@@ -1,0 +1,85 @@
+name:                hs-gui
+version:             0.1.0.0
+github:              "fjvallarino/hs-gui"
+license:             BSD3
+author:              "Francisco Vallarino"
+maintainer:          "fjvallarino@gmail.com"
+copyright:           "2018 Francisco Vallarino"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            GUI Library
+# category:            GUI
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/fjvallarino/hs-gui#readme>
+
+default-extensions:
+- OverloadedStrings
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- data-default
+- ekg
+- extra
+- microlens
+- microlens-mtl
+- microlens-th
+- mtl
+- nanovg
+- OpenGL
+- sdl2
+- text
+- unordered-containers
+- vector
+
+library:
+  source-dirs: src
+  c-sources:
+  - cbits/glew.c
+  cc-options:
+  - -fPIC
+  ghc-options:
+  - -fwarn-incomplete-patterns
+  - -O0
+  extra-libraries:
+  - GLEW
+
+executables:
+  hs-gui-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -fwarn-incomplete-patterns
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -with-rtsopts=-T
+    - -O0
+
+    dependencies:
+    - hs-gui
+
+tests:
+  hs-gui-test:
+    main:                Spec.hs
+    source-dirs:         test/unit
+    ghc-options:
+    - -fwarn-incomplete-patterns
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - call-stack
+    - hs-gui
+    - hedgehog
+    - hedgehog-classes
+    - hspec
+    - HUnit
+    - silently
