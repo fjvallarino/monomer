@@ -3,6 +3,7 @@
 module GUI.Widget.Widgets where
 
 import Control.Monad.State
+import Data.Char
 import Data.Default
 import Data.Maybe
 import Data.Typeable
@@ -79,11 +80,56 @@ makeFixedGrid widgetType direction = Widget widgetType handleEvent preferredSize
       cols = if direction == Horizontal then (length children) else 1
       rows = if direction == Horizontal then 1 else (length children)
       newWidgets = fmap resizeChild [0..(length children - 1)]
-      resizeChild i = traceShow i $ Rect (cx i) (cy i) cw ch
+      resizeChild i = Rect (cx i) (cy i) cw ch
       cw = w / fromIntegral cols
       ch = h / fromIntegral rows
       cx i = l + (fromIntegral $ i `div` rows) * cw
       cy i = t + (fromIntegral $ i `div` cols) * ch
+
+data TextFieldState = TextFieldState {
+  _tfText :: String,
+  _tfPosition :: Int
+} deriving (Eq, Show)
+
+textField_ :: (Monad m) => Tree (WidgetNode e m)
+textField_ = singleWidget $ makeTextField (TextFieldState "" 0)
+
+makeTextField :: (Monad m) => TextFieldState -> Widget e m
+makeTextField (TextFieldState txt tp) = Widget widgetType handleEvent preferredSize resizeChildren render
+  where
+    widgetType = "textField"
+    handleKeyPress currText currTp code
+        | isKeyBackspace code && currTp > 0 = (init part1 ++ part2, currTp - 1)
+        | isKeyLeft code && currTp > 0 = (currText, currTp - 1)
+        | isKeyRight code && currTp < length currText = (currText, currTp + 1)
+        | isKeyBackspace code || isKeyLeft code || isKeyRight code = (currText, currTp)
+        | length newText > 0 = (part1 ++ newText ++ part2, currTp + length newText)
+        | otherwise = (currText, currTp)
+      where
+        newText = if isKeyPrintable code then [chr code] else ""
+        (part1, part2) = splitAt currTp currText
+    handleEvent _ evt = case evt of
+      KeyAction code KeyPressed -> EventsState [] (makeTextField newState) where
+        (txt2, tp2) = handleKeyPress txt tp code
+        newState = TextFieldState txt2 tp2
+      _ -> NoEvents
+    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
+    resizeChildren _ _ _ = []
+    render renderer ts viewport (style@Style{..}) = do
+      drawBgRect renderer viewport style
+      drawText renderer viewport _textStyle (T.pack txt)
+
+isKeyPrintable :: KeyCode -> Bool
+isKeyPrintable key = key >= 32 && key < 126
+
+isKeyBackspace :: KeyCode -> Bool
+isKeyBackspace key = key == 8
+
+isKeyLeft :: KeyCode -> Bool
+isKeyLeft key = key == 1073741904
+
+isKeyRight :: KeyCode -> Bool
+isKeyRight key = key == 1073741903
 
 {--
 makeSizedGrid :: (Monad m) => Direction -> Widget e m
@@ -123,4 +169,23 @@ makeGrid r@(Rect l t w h) rows cols widgets iv = widget
         ch = h / fromIntegral rows
         cx i = l + (fromIntegral $ i `mod` rows) * cw
         cy i = t + (fromIntegral $ i `div` cols) * ch
+--}
+
+{--
+
+
+
+labelField :: (MonadState s m) => Rect -> String -> Widget s m
+labelField (Rect l t w h) label = widget
+  where
+    widget = Widget widgetData (pure True) handleEvent render resize undefined
+    widgetData = WidgetData l t w h
+    handleEvent _ _ = pure widget
+    render r rt@(Rect x y w h) = do
+      fillColor r (RGB 255 0 0)
+      text r rt "sans" 32 (Align Center Middle) (T.pack label)
+    resize w@Widget{..} = labelField (widgetDataToRect _widgetData) label
+
+
+
 --}

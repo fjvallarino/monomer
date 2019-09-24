@@ -109,9 +109,16 @@ buildUI model = styledTree where
   border1 = S.border 5 (RGB 0 255 0) 20
   border2 = S.borderLeft 20 (RGB 200 200 0) <> S.borderRight 20 (RGB 200 0 200)
   style1 = S.bgColor (RGB 0 0 255) <> S.textSize 64 <> border1 <> border2 <> S.bgRadius 20
+  textStyle = S.textColor (RGB 0 255 0)
   --extraWidgets = if _clickCount model < 3 then [] else [WS.button (Action1 0)] -- map (\i -> WS.button (Action1 0)) [0..(_clickCount model)]
   extraWidgets = map (\i -> WS.button (Action1 i)) [1..(_clickCount model)]
   widgetTree = WS.vgrid_ ([
+      WS.textField_ `W.style` textStyle,
+      WS.hgrid_ [
+        WS.button (Action1 10) `W.style` style1,
+        WS.button (Action1 10) `W.style` style1,
+        WS.button (Action1 10) `W.style` style1
+      ],
       WS.button (Action1 0) `W.style` style1
     ] ++ extraWidgets)
 --  widgetTree = WS.container_ [
@@ -156,7 +163,7 @@ mainLoop window c renderer prevTicks widgets = do
 handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> WidgetTree -> WidgetM WidgetTree
 handleSystemEvents renderer systemEvents widgets = updatedWidgets where
   (eventsWidgets, appEvents) = W.handleEvents widgets systemEvents
-  updatedWidgets = if | length appEvents == 0 -> return widgets
+  updatedWidgets = if | length appEvents == 0 -> return eventsWidgets
                       | otherwise -> handleAppEvents renderer appEvents eventsWidgets
 
 handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> WidgetM WidgetTree

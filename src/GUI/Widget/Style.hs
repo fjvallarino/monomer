@@ -191,6 +191,13 @@ bgRadius :: Double -> Style
 bgRadius rad = mempty { _bgRadius = (Just (Radius jrad jrad jrad jrad)) } where
   jrad = Just rad
 
+textColor :: Color -> Style
+textColor color = mempty {
+  _textStyle = Just $ mempty {
+    _tsColor = Just color
+  }
+}
+
 textSize :: Double -> Style
 textSize size = mempty {
   _textStyle = Just $ mempty {
