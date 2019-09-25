@@ -1,135 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Widgets where
+module GUI.Widget.Widgets (
+  module GUI.Widget.Button,
+  module GUI.Widget.Layout,
+  module GUI.Widget.TextField
+) where
 
-import Control.Monad.State
-import Data.Char
-import Data.Default
-import Data.Maybe
-import Data.Typeable
-import Debug.Trace
-
-import GUI.Core
-import GUI.Data.Tree
-import GUI.Widget.Core
-import GUI.Widget.Drawing
-import GUI.Widget.Style
-
-import qualified Data.Text as T
-
-container_ :: (Monad m) => [Tree (WidgetNode e m)] -> Tree (WidgetNode e m)
-container_ = parentWidget makeContainer
-
-emptyState :: Maybe ()
-emptyState = Nothing
-
-makeContainer :: (Monad m) => Widget e m
-makeContainer = Widget widgetType handleEvent preferredSize resizeChildren render
-  where
-    widgetType = "container"
-    handleEvent _ _ = NoEvents
-    preferredSize _ _ _ = return def
-    resizeChildren _ _ children = []
-    render _ _ _ _ = return ()
-
-button :: (Monad m) => e -> Tree (WidgetNode e m)
-button onClick = singleWidget (makeButton 0 onClick)
-
-makeButton :: (Monad m) => Int -> e -> Widget e m
-makeButton state onClick = Widget widgetType handleEvent preferredSize resizeChildren render
-  where
-    widgetType = "button"
-    handleEvent view evt = case evt of
-      Click (Point x y) _ status -> EventsState events (makeButton newState onClick) where
-        isPressed = status == PressedBtn && inRect view (Point x y)
-        newState = if isPressed then state + 1 else state
-        events = if isPressed then [onClick] else []
-      _ -> NoEvents
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack (show state))
-    resizeChildren _ _ _ = []
-    render renderer ts viewport (style@Style{..}) =
-      do
-        drawBgRect renderer viewport style
-        drawText renderer viewport _textStyle (T.pack (show state))
-
-data Direction = Horizontal | Vertical deriving (Show, Eq)
-
-hgrid_ :: (Monad m) => [Tree (WidgetNode e m)] -> Tree (WidgetNode e m)
-hgrid_ = parentWidget makeHGrid
-
-makeHGrid :: (Monad m) => Widget e m
-makeHGrid = makeFixedGrid "hgrid" Horizontal
-
-vgrid_ :: (Monad m) => [Tree (WidgetNode e m)] -> Tree (WidgetNode e m)
-vgrid_ = parentWidget makeVGrid
-
-makeVGrid :: (Monad m) => Widget e m
-makeVGrid = makeFixedGrid "vgrid" Vertical
-
-makeFixedGrid :: (Monad m) => WidgetType -> Direction -> Widget e m
-makeFixedGrid widgetType direction = Widget widgetType handleEvent preferredSize resizeChildren render
-  where
-    handleEvent _ _ = NoEvents
-    render _ _ _ _ = return ()
-    preferredSize _ _ children = return $ Size width height where
-      width = (fromIntegral wMul) * (maximum . map _w) children
-      height = (fromIntegral hMul) * (maximum . map _h) children
-      wMul = if direction == Horizontal then length children else 1
-      hMul = if direction == Horizontal then 1 else length children
-    resizeChildren (Rect l t w h) style children = newWidgets where
-      cols = if direction == Horizontal then (length children) else 1
-      rows = if direction == Horizontal then 1 else (length children)
-      newWidgets = fmap resizeChild [0..(length children - 1)]
-      resizeChild i = Rect (cx i) (cy i) cw ch
-      cw = w / fromIntegral cols
-      ch = h / fromIntegral rows
-      cx i = l + (fromIntegral $ i `div` rows) * cw
-      cy i = t + (fromIntegral $ i `div` cols) * ch
-
-data TextFieldState = TextFieldState {
-  _tfText :: String,
-  _tfPosition :: Int
-} deriving (Eq, Show)
-
-textField_ :: (Monad m) => Tree (WidgetNode e m)
-textField_ = singleWidget $ makeTextField (TextFieldState "" 0)
-
-makeTextField :: (Monad m) => TextFieldState -> Widget e m
-makeTextField (TextFieldState txt tp) = Widget widgetType handleEvent preferredSize resizeChildren render
-  where
-    widgetType = "textField"
-    handleKeyPress currText currTp code
-        | isKeyBackspace code && currTp > 0 = (init part1 ++ part2, currTp - 1)
-        | isKeyLeft code && currTp > 0 = (currText, currTp - 1)
-        | isKeyRight code && currTp < length currText = (currText, currTp + 1)
-        | isKeyBackspace code || isKeyLeft code || isKeyRight code = (currText, currTp)
-        | length newText > 0 = (part1 ++ newText ++ part2, currTp + length newText)
-        | otherwise = (currText, currTp)
-      where
-        newText = if isKeyPrintable code then [chr code] else ""
-        (part1, part2) = splitAt currTp currText
-    handleEvent _ evt = case evt of
-      KeyAction code KeyPressed -> EventsState [] (makeTextField newState) where
-        (txt2, tp2) = handleKeyPress txt tp code
-        newState = TextFieldState txt2 tp2
-      _ -> NoEvents
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
-    resizeChildren _ _ _ = []
-    render renderer ts viewport (style@Style{..}) = do
-      drawBgRect renderer viewport style
-      drawText renderer viewport _textStyle (T.pack txt)
-
-isKeyPrintable :: KeyCode -> Bool
-isKeyPrintable key = key >= 32 && key < 126
-
-isKeyBackspace :: KeyCode -> Bool
-isKeyBackspace key = key == 8
-
-isKeyLeft :: KeyCode -> Bool
-isKeyLeft key = key == 1073741904
-
-isKeyRight :: KeyCode -> Bool
-isKeyRight key = key == 1073741903
+import GUI.Widget.Button
+import GUI.Widget.Layout
+import GUI.Widget.TextField
 
 {--
 makeSizedGrid :: (Monad m) => Direction -> Widget e m

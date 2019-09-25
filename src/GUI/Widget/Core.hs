@@ -8,20 +8,10 @@
 module GUI.Widget.Core where
 
 import Control.Monad
-import Control.Monad.Extra
 import Control.Monad.State
-import Lens.Micro
-import Lens.Micro.Mtl
 
-import Data.Char
 import Data.Default
 import Data.String
-import Data.Typeable
-import Unsafe.Coerce
-
-import System.IO.Unsafe
-
-import Debug.Trace
 
 import GUI.Core
 import GUI.Data.Tree
@@ -31,6 +21,8 @@ import qualified Data.Text as T
 import qualified Data.Sequence as SQ
 
 type Timestamp = Int
+
+data Direction = Horizontal | Vertical deriving (Show, Eq)
 
 data Button = LeftBtn | RightBtn deriving (Show, Eq)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
@@ -158,6 +150,9 @@ singleWidget widget = singleton (defaultWidgetNode widget)
 
 parentWidget :: (Monad m) => Widget e m -> [Tree (WidgetNode e m)] -> Tree (WidgetNode e m)
 parentWidget widget = fromList (defaultWidgetNode widget)
+
+emptyState :: Maybe ()
+emptyState = Nothing
 
 widgetMatches :: (Monad m) => WidgetNode e m -> WidgetNode e m -> Bool
 widgetMatches wn1 wn2 = _widgetType (_widget wn1) == _widgetType (_widget wn2) && _widgetKey wn1 == _widgetKey wn2

@@ -5,7 +5,6 @@ module GUI.Widget.Drawing where
 import qualified Data.Text as T
 
 import Control.Monad (when)
-import Data.Default
 import Data.Maybe
 
 import GUI.Core
