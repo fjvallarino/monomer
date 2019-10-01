@@ -15,14 +15,15 @@ import GUI.Widget.Style
 
 import qualified Data.Text as T
 
-button :: (Monad m) => e -> Tree (WidgetNode e m)
+button :: (MonadState s m) => e -> Tree (WidgetNode s e m)
 button onClick = singleWidget (makeButton 0 onClick)
 
-makeButton :: (Monad m) => Int -> e -> Widget e m
-makeButton state onClick = Widget widgetType handleEvent preferredSize resizeChildren render
+makeButton :: (MonadState s m) => Int -> e -> Widget s e m
+makeButton state onClick = Widget widgetType widgetFocusable handleEvent preferredSize resizeChildren render
   where
     widgetType = "button"
-    handleEvent view evt = case evt of
+    widgetFocusable = False
+    handleEvent view focused evt = case evt of
       Click (Point x y) _ status -> EventsState events (makeButton newState onClick) where
         isPressed = status == PressedBtn && inRect view (Point x y)
         newState = if isPressed then state + 1 else state
@@ -30,7 +31,28 @@ makeButton state onClick = Widget widgetType handleEvent preferredSize resizeChi
       _ -> NoEvents
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack (show state))
     resizeChildren _ _ _ = []
-    render renderer ts viewport (style@Style{..}) =
+    render renderer viewport (style@Style{..}) enabled focused ts =
       do
         drawBgRect renderer viewport style
         drawText renderer viewport _textStyle (T.pack (show state))
+
+
+
+{--
+
+
+
+labelField :: (MonadState s m) => Rect -> String -> Widget s m
+labelField (Rect l t w h) label = widget
+  where
+    widget = Widget widgetData (pure True) handleEvent render resize undefined
+    widgetData = WidgetData l t w h
+    handleEvent _ _ = pure widget
+    render r rt@(Rect x y w h) = do
+      fillColor r (RGB 255 0 0)
+      text r rt "sans" 32 (Align Center Middle) (T.pack label)
+    resize w@Widget{..} = labelField (widgetDataToRect _widgetData) label
+
+
+
+--}

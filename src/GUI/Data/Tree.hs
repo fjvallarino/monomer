@@ -28,6 +28,9 @@ nodeChildrenList (Node _ children) = seqToList children
 seqToList :: (S.Seq (Tree a)) -> [a]
 seqToList children = (fmap nodeValue . F.toList) children
 
+seqToNodeList :: (S.Seq (Tree a)) -> [Tree a]
+seqToNodeList children = F.toList children
+
 fromList :: a -> [Tree a] -> Tree a
 fromList value children = Node value (S.fromList children)
 

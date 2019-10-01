@@ -40,15 +40,18 @@ import qualified GUI.Data.Tree as TR
 import qualified GUI.NanoVGRenderer as NV
 import qualified GUI.Widget.Core as W
 import qualified GUI.Widget.Style as S
-import qualified GUI.Widget.Widgets as WS
+import qualified GUI.Widgets as WS
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
 data AppEvent = Action1 Int | Action2 deriving (Show, Eq)
 
 type WidgetM = StateT App IO
-type LocalWidget = W.Widget AppEvent WidgetM
-type WidgetTree = TR.Tree (W.WidgetNode AppEvent WidgetM)
+type LocalWidget = W.Widget App AppEvent WidgetM
+type WidgetTree = TR.Tree (W.WidgetNode App AppEvent WidgetM)
+
+type AppContext = W.GUIContext App
+type AppM = StateT AppContext IO
 
 (screenWidth, screenHeight) = (640, 480)
 windowSize = (Rect 0 0 (fromIntegral screenWidth) (fromIntegral screenHeight))
@@ -89,7 +92,7 @@ main = do
 
   fontRes <- createFont c "sans" (FileName "./assets/fonts/Roboto-Regular.ttf")
 
-  runStateT (runWidgets window c) def
+  runStateT (runWidgets window c) (W.initGUIContext def)
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
@@ -119,7 +122,8 @@ buildUI model = styledTree where
         WS.button (Action1 10) `W.style` style1,
         WS.button (Action1 10) `W.style` style1
       ],
-      WS.button (Action1 0) `W.style` style1
+      WS.button (Action1 0) `W.style` style1,
+      WS.textField_ `W.style` textStyle
     ] ++ extraWidgets)
 --  widgetTree = WS.container_ [
 --      WS.button (Action1 1) `W.style` style1,
@@ -134,17 +138,23 @@ buildUI model = styledTree where
 --    ]
   styledTree = W.cascadeStyle mempty widgetTree
 
-runWidgets :: SDL.Window -> Context -> WidgetM ()
+runWidgets :: SDL.Window -> Context -> AppM ()
 runWidgets window c = do
   let renderer = NV.makeRenderer c
 
   ticks <- SDL.ticks
-  app <- get
-  resizedUI <- W.resizeUI renderer windowSize (buildUI app)
+
+  resizedUI <- zoom appContext $ do
+    app <- get
+    W.resizeUI renderer windowSize (buildUI app)
+
+  let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI [0]
+
+  focusRing .= paths
 
   mainLoop window c renderer (fromIntegral ticks) resizedUI
 
-mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> WidgetM ()
+mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> AppM ()
 mainLoop window c renderer prevTicks widgets = do
   ticks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
@@ -155,32 +165,50 @@ mainLoop window c renderer prevTicks widgets = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
 
-  newWidgets <- handleSystemEvents renderer (convertEvents eventsPayload) widgets
+  focus <- currentFocus
+  newWidgets <- handleSystemEvents renderer (convertEvents eventsPayload) focus widgets
+
   renderWidgets window c renderer newWidgets ticks
+
   liftIO $ threadDelay $ (nextFrame ts) * 1000
   unless quit (mainLoop window c renderer ticks newWidgets)
 
-handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> WidgetTree -> WidgetM WidgetTree
-handleSystemEvents renderer systemEvents widgets = updatedWidgets where
-  (eventsWidgets, appEvents) = W.handleEvents widgets systemEvents
+currentFocus :: AppM TR.Path
+currentFocus = do
+  ring <- use focusRing
+  return (if length ring > 0 then ring!!0 else [])
+
+handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvents renderer systemEvents currentFocus widgets = updatedWidgets where
+  (eventsWidgets, appEvents) = do
+    W.handleEvents currentFocus widgets [0] systemEvents
   updatedWidgets = if | length appEvents == 0 -> return eventsWidgets
                       | otherwise -> handleAppEvents renderer appEvents eventsWidgets
 
-handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> WidgetM WidgetTree
+handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> AppM WidgetTree
 handleAppEvents renderer appEvents oldWidgets = do
-  app <- get
-  forM_ appEvents handleAppEvent
-  newApp <- get
+  (app, newApp) <- zoom appContext $ do
+    app <- get
+    forM_ appEvents handleAppEvent
+    newApp <- get
+    return (app, newApp)
 
   let newWidgets = W.mergeTrees (buildUI newApp) oldWidgets
-  let mergedWidgets = if | app /= newApp -> W.resizeUI renderer windowSize newWidgets
+  let mergedWidgets = if | app /= newApp -> do
+                            let paths = traceShowId $ map snd $ filter (isFocusable . fst) $ collectPaths newWidgets [0]
+
+                            focusRing .= paths
+                            zoom appContext $ W.resizeUI renderer windowSize newWidgets
                          | otherwise -> return oldWidgets
 
   when (app /= newApp) $ liftIO $ putStrLn "App changed!"
 
   mergedWidgets
 
-renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> WidgetM ()
+isFocusable :: (MonadState s m) => W.WidgetNode s e m -> Bool
+isFocusable (W.WidgetNode { _widget = W.Widget{..}, ..}) = _widgetEnabled && _widgetFocusable
+
+renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer widgets ticks = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   let !pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
@@ -190,10 +218,24 @@ renderWidgets !window !c !renderer widgets ticks = do
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame c screenWidth screenHeight pxRatio
 
-  mapM_ (\widgetNode -> W.handleRender renderer ticks widgetNode) widgets
+  guiContext <- get
+
+  zoom appContext $ do
+    traversePaths (\widgetNode path -> W.handleRender renderer widgetNode (W.isFocused guiContext path) ticks) widgets [0]
 
   liftIO $ endFrame c
   SDL.glSwapWindow window
+
+collectPaths :: (MonadState s m) => TR.Tree (W.WidgetNode s e m) -> TR.Path -> [(W.WidgetNode s e m, TR.Path)]
+collectPaths (TR.Node widgetNode children) path = (widgetNode, path) : remainingItems where
+  pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
+  remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
+
+traversePaths :: (MonadState s m) => (W.WidgetNode s e m -> TR.Path -> m ()) -> TR.Tree (W.WidgetNode s e m) -> TR.Path -> m ()
+traversePaths fn (TR.Node wn children) currentPath = do
+  fn wn currentPath
+
+  mapM_ (\(treeNode, idx) -> traversePaths fn treeNode (idx : currentPath)) (zip (TR.seqToNodeList children) [0..])
 
 convertEvents :: [SDL.EventPayload] -> [W.SystemEvent]
 convertEvents events = newEvents
@@ -202,6 +244,16 @@ convertEvents events = newEvents
     mouseEvents = mouseClick events
     keyboardEvents = keyboardEvent events
     --SDL.P (SDL.V2 mouseX mouseY) <- Mouse.getAbsoluteMouseLocation
+
+{--
+convertEvents :: [SDL.EventPayload] -> [W.SystemEvent]
+convertEvents events = newEvents
+  where
+    newEvents = mouseEvents ++ keyboardEvents
+    mouseEvents = mouseClick events
+    keyboardEvents = keyboardEvent events
+    --SDL.P (SDL.V2 mouseX mouseY) <- Mouse.getAbsoluteMouseLocation
+--}
 
 mouseClick :: [SDL.EventPayload] -> [W.SystemEvent]
 mouseClick events =

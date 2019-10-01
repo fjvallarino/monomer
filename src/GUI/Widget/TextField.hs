@@ -22,16 +22,17 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show)
 
-textField_ :: (Monad m) => Tree (WidgetNode e m)
+textField_ :: (MonadState s m) => Tree (WidgetNode s e m)
 textField_ = singleWidget $ makeTextField (TextFieldState "" 0)
 
 {-- 
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
-makeTextField :: (Monad m) => TextFieldState -> Widget e m
-makeTextField (TextFieldState txt tp) = Widget widgetType handleEvent preferredSize resizeChildren render
+makeTextField :: (MonadState s m) => TextFieldState -> Widget s e m
+makeTextField (TextFieldState txt tp) = Widget widgetType widgetFocusable handleEvent preferredSize resizeChildren render
   where
     widgetType = "textField"
+    widgetFocusable = True
     (part1, part2) = splitAt tp txt
     printedText = part1 ++ "|" ++ part2
     handleKeyPress currText currTp code
@@ -44,14 +45,15 @@ makeTextField (TextFieldState txt tp) = Widget widgetType handleEvent preferredS
       where
         newText = if isKeyPrintable code then [chr code] else ""
         (part1, part2) = splitAt currTp currText
-    handleEvent _ evt = case evt of
+    handleEvent _ True evt = case evt of
       KeyAction code KeyPressed -> EventsState [] (makeTextField newState) where
         (txt2, tp2) = handleKeyPress txt tp code
         newState = TextFieldState txt2 tp2
       _ -> NoEvents
+    handleEvent _ _ _ = NoEvents
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
     resizeChildren _ _ _ = []
-    render renderer ts viewport (style@Style{..}) = do
+    render renderer viewport (style@Style{..}) enabled focused ts = do
       drawBgRect renderer viewport style
       drawText renderer viewport _textStyle (T.pack printedText)
 

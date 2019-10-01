@@ -8,6 +8,20 @@ import Lens.Micro.TH (makeLenses)
 
 import GUI.Core
 
+data FontInstance = FontInstance
+
+data Theme = Theme {
+  _backgroundColor :: Color,
+  _primaryColor :: Color,
+  _secondaryColor :: Color,
+  _palette :: [Color],
+  _titleFont :: FontInstance,
+  _subtitleFont :: FontInstance,
+  _labelFont :: FontInstance,
+  _messageFont :: FontInstance
+}
+
+
 -- | Basic styling attributes
 --
 -- Remember adjacent margin collapse behavior
