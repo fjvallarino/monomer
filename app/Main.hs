@@ -148,7 +148,7 @@ runWidgets window c = do
     app <- get
     W.resizeUI renderer windowSize (buildUI app)
 
-  let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI [0]
+  let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths resizedUI [0]
 
   focusRing .= paths
 
@@ -180,7 +180,7 @@ currentFocus = do
 
 handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer systemEvents currentFocus widgets = updatedWidgets where
-  (eventsWidgets, appEvents) = do
+  (stop, eventsWidgets, appEvents) = do
     W.handleEvents currentFocus widgets [0] systemEvents
   updatedWidgets = if | length appEvents == 0 -> return eventsWidgets
                       | otherwise -> handleAppEvents renderer appEvents eventsWidgets
@@ -195,7 +195,7 @@ handleAppEvents renderer appEvents oldWidgets = do
 
   let newWidgets = W.mergeTrees (buildUI newApp) oldWidgets
   let mergedWidgets = if | app /= newApp -> do
-                            let paths = traceShowId $ map snd $ filter (isFocusable . fst) $ collectPaths newWidgets [0]
+                            let paths = traceShowId $ map snd $ filter (W.isFocusable . fst) $ collectPaths newWidgets [0]
 
                             focusRing .= paths
                             zoom appContext $ W.resizeUI renderer windowSize newWidgets
@@ -204,9 +204,6 @@ handleAppEvents renderer appEvents oldWidgets = do
   when (app /= newApp) $ liftIO $ putStrLn "App changed!"
 
   mergedWidgets
-
-isFocusable :: (MonadState s m) => W.WidgetNode s e m -> Bool
-isFocusable (W.WidgetNode { _widget = W.Widget{..}, ..}) = _widgetEnabled && _widgetFocusable
 
 renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer widgets ticks = do

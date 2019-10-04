@@ -32,7 +32,7 @@ makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
 makeFixedGrid widgetType direction = Widget widgetType widgetFocusable handleEvent preferredSize resizeChildren render
   where
     widgetFocusable = False
-    handleEvent _ _ _ = NoEvents
+    handleEvent _ _ _ = Nothing
     render _ _ _ _ _ _ = return ()
     preferredSize _ _ children = return $ Size width height where
       width = (fromIntegral wMul) * (maximum . map _w) children

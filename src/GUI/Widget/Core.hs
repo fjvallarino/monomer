@@ -10,6 +10,7 @@ import Control.Monad
 import Control.Monad.State
 
 import Data.Default
+import Data.Maybe
 import Data.String
 
 import GUI.Core
@@ -35,7 +36,36 @@ data SystemEvent = Update Timestamp |
                    Click Point Button ButtonState |
                    KeyAction KeyCode KeyMotion deriving (Show, Eq)
 
+data WidgetEventResult s e m = WidgetEventResult {
+  _eventResultStop :: Bool,
+  _eventResultUserEvents :: [e],
+  _eventResultNewWidget :: Maybe (Widget s e m)
+}
+
+instance Semigroup (WidgetEventResult s e m) where
+  wer1 <> wer2 = WidgetEventResult {
+    _eventResultStop = _eventResultStop wer1 || _eventResultStop wer2,
+    _eventResultUserEvents = _eventResultUserEvents wer1 ++ _eventResultUserEvents wer2,
+    _eventResultNewWidget = _eventResultNewWidget wer2
+  }
+
+instance Monoid (WidgetEventResult s e m) where
+  mempty = WidgetEventResult False [] Nothing
+
+mkWidgetEventResult :: Bool -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+mkWidgetEventResult stop userEvents newWidget = Just $ WidgetEventResult stop userEvents (Just newWidget)
+{--
 data EventResult s e m = NoEvents | Events [e] | EventsState [e] (Widget s e m)
+
+instance Semigroup (EventResult s e m) where
+  (<>) NoEvents er2 = er2
+  (<>) er1 NoEvents = er1
+  (<>) (Events e1) (Events e2) = Events (e1 ++ e2)
+  (<>) (EventsState e1 s1) (Events e2) = EventsState (e1 ++ e2) s1
+  (<>) (Events e1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
+  (<>) (EventsState e1 s1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
+--}
+
 newtype WidgetType = WidgetType String deriving Eq
 newtype WidgetKey = WidgetKey String deriving Eq
 
@@ -47,14 +77,6 @@ instance IsString WidgetKey where
 
 newtype NodePath = NodePath [Int]
 data NodeInfo = NodeInfo WidgetType (Maybe WidgetKey)
-
-instance Semigroup (EventResult s e m) where
-  (<>) NoEvents er2 = er2
-  (<>) er1 NoEvents = er1
-  (<>) (Events e1) (Events e2) = Events (e1 ++ e2)
-  (<>) (EventsState e1 s1) (Events e2) = EventsState (e1 ++ e2) s1
-  (<>) (Events e1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
-  (<>) (EventsState e1 s1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
 
 data GUIContext app = GUIContext {
   _appContext :: app,
@@ -71,6 +93,9 @@ isFocused :: GUIContext app -> Path -> Focused
 isFocused (GUIContext _ []) _ = False
 isFocused (GUIContext _ (x:xs)) path = x == path
 
+isFocusable :: (MonadState s m) => WidgetNode s e m -> Bool
+isFocusable (WidgetNode { _widgetNodeWidget = Widget{..}, ..}) = _widgetNodeEnabled && _widgetFocusable
+
 data Widget s e m =
   (MonadState s m) => Widget {
     -- | Type of the widget
@@ -84,7 +109,7 @@ data Widget s e m =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _handleEvent :: Rect -> Bool -> SystemEvent -> EventResult s e m,
+    _widgetHandleEvent :: Rect -> Bool -> SystemEvent -> Maybe (WidgetEventResult s e m),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -92,7 +117,7 @@ data Widget s e m =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _preferredSize :: Renderer m -> Style -> [Size] -> m Size,
+    _widgetPreferredSize :: Renderer m -> Style -> [Size] -> m Size,
     -- | Resizes the children of this widget
     --
     -- Region assigned to the widget
@@ -100,7 +125,7 @@ data Widget s e m =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _resizeChildren :: Rect -> Style -> [Size] -> [Rect],
+    _widgetResizeChildren :: Rect -> Style -> [Size] -> [Rect],
     -- | Renders the widget
     --
     -- Renderer
@@ -111,7 +136,7 @@ data Widget s e m =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _render :: Renderer m -> Rect -> Style -> Enabled -> Focused -> Timestamp -> m ()
+    _widgetRender :: Renderer m -> Rect -> Style -> Enabled -> Focused -> Timestamp -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
@@ -121,39 +146,39 @@ data Widget s e m =
 data WidgetNode s e m =
   (MonadState s m) => WidgetNode {
     -- | Key/Identifier of the widget. If provided, it needs to be unique in the same hierarchy level (not globally)
-    _widgetKey :: Maybe WidgetKey,
-    _widget :: Widget s e m,
-    _widgetEnabled :: Enabled,
-    _viewport :: Rect,
-    _style :: Style,
-    _calculatedStyle :: Style,
-    _calculatedSize :: Size
+    _widgetNodeKey :: Maybe WidgetKey,
+    _widgetNodeWidget :: Widget s e m,
+    _widgetNodeEnabled :: Enabled,
+    _widgetNodeViewport :: Rect,
+    _widgetNodeStyle :: Style,
+    _widgetNodeComputedStyle :: Style,
+    _widgetNodeComputedSize :: Size
   }
 
 key :: (MonadState s m) => WidgetKey -> WidgetNode s e m -> WidgetNode s e m
-key key wn = wn { _widgetKey = Just key }
+key key wn = wn { _widgetNodeKey = Just key }
 
 style :: (MonadState s m) => Tree (WidgetNode s e m) -> Style -> Tree (WidgetNode s e m)
-style (Node value children) newStyle = Node (value { _style = newStyle }) children
+style (Node value children) newStyle = Node (value { _widgetNodeStyle = newStyle }) children
 
 children :: (MonadState s m) => Tree (WidgetNode s e m) -> [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
 children (Node value _) newChildren = fromList value newChildren
 
 cascadeStyle :: (MonadState s m) => Style -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
 cascadeStyle parentStyle (Node (wn@WidgetNode{..}) children) = newNode where
-  newNode = Node (wn { _calculatedStyle = newStyle }) newChildren
-  newStyle = _style <> parentStyle
+  newNode = Node (wn { _widgetNodeComputedStyle = newStyle }) newChildren
+  newStyle = _widgetNodeStyle <> parentStyle
   newChildren = fmap (cascadeStyle newStyle) children
 
 defaultWidgetNode :: (MonadState s m) => Widget s e m -> WidgetNode s e m
 defaultWidgetNode widget = WidgetNode {
-  _widgetKey = Nothing,
-  _widget = widget,
-  _widgetEnabled = True,
-  _viewport = def,
-  _style = mempty,
-  _calculatedStyle = mempty,
-  _calculatedSize = def
+  _widgetNodeKey = Nothing,
+  _widgetNodeWidget = widget,
+  _widgetNodeEnabled = True,
+  _widgetNodeViewport = def,
+  _widgetNodeStyle = mempty,
+  _widgetNodeComputedStyle = mempty,
+  _widgetNodeComputedSize = def
 }
 
 singleWidget :: (MonadState s m) => Widget s e m -> Tree (WidgetNode s e m)
@@ -166,7 +191,7 @@ emptyState :: Maybe ()
 emptyState = Nothing
 
 widgetMatches :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m -> Bool
-widgetMatches wn1 wn2 = _widgetType (_widget wn1) == _widgetType (_widget wn2) && _widgetKey wn1 == _widgetKey wn2
+widgetMatches wn1 wn2 = _widgetType (_widgetNodeWidget wn1) == _widgetType (_widgetNodeWidget wn2) && _widgetNodeKey wn1 == _widgetNodeKey wn2
 
 mergeTrees :: (MonadState s m) => Tree (WidgetNode s e m) -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
 mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
@@ -178,22 +203,21 @@ mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
   addedChildren = SQ.drop (SQ.length seq2) seq1
   mergeChild = \(c1, c2) -> mergeTrees c1 c2
 
-handleWidgetEvents :: (MonadState s m, Traversable t) => Widget s e m -> Rect -> Focused -> t SystemEvent -> EventResult s e m
+handleWidgetEvents :: (MonadState s m, Traversable t) => Widget s e m -> Rect -> Focused -> t SystemEvent -> Maybe (WidgetEventResult s e m)
 handleWidgetEvents (Widget {..}) viewport focused systemEvents =
-  foldl (\eventResult event -> eventResult <> _handleEvent viewport focused event) NoEvents systemEvents
+  foldl (\widgetEvent systemEvent -> widgetEvent <> _widgetHandleEvent viewport focused systemEvent) Nothing systemEvents
 
-handleEvents :: (MonadState s m, Traversable t) => Path -> Tree (WidgetNode s e m) -> Path -> t SystemEvent -> (Tree (WidgetNode s e m), SQ.Seq e)
-handleEvents focusedPath (Node (wn@WidgetNode { .. }) children) currentPath systemEvents = (newNode, childEvents) where
-  (newWidget, events) = case handleWidgetEvents _widget _viewport (focusedPath == currentPath) systemEvents of
-                          NoEvents -> (_widget, [])
-                          Events evts -> (_widget, evts)
-                          EventsState evts wdt -> (wdt, evts)
-  (newChildren, childEvents, _) = foldl (\(ws, evs, idx) widgetNode -> case handleEvents focusedPath widgetNode (idx : currentPath) systemEvents of
-                                        (ws2, evs2) -> (ws SQ.|> ws2, evs SQ.>< evs2, idx + 1)) (SQ.empty, SQ.fromList events, 0) children
-  newNode = Node (wn { _widget = newWidget }) newChildren
+handleEvents :: (MonadState s m, Traversable t) => Path -> Tree (WidgetNode s e m) -> Path -> t SystemEvent -> (Bool, Tree (WidgetNode s e m), SQ.Seq e)
+handleEvents focusedPath (Node (wn@WidgetNode { .. }) children) currentPath systemEvents = (newStop, newNode, childEvents) where
+  (stop, userEvents, newWidget) = case handleWidgetEvents _widgetNodeWidget _widgetNodeViewport (focusedPath == currentPath) systemEvents of
+                          Nothing -> (False, [], _widgetNodeWidget)
+                          Just (WidgetEventResult {..}) -> (_eventResultStop, _eventResultUserEvents, fromMaybe _widgetNodeWidget _eventResultNewWidget)
+  (newStop, newChildren, childEvents, _) = foldl (\(st, ws, evs, idx) widgetNode -> case handleEvents focusedPath widgetNode (idx : currentPath) systemEvents of
+                                        (st2, ws2, evs2) -> (st || st2, ws SQ.|> ws2, evs SQ.>< evs2, idx + 1)) (stop, SQ.empty, SQ.fromList userEvents, 0) children
+  newNode = Node (wn { _widgetNodeWidget = newWidget }) newChildren
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Focused -> Timestamp -> m ()
-handleRender renderer (WidgetNode { _widget = Widget{..}, .. }) focused ts = _render renderer _viewport _calculatedStyle _widgetEnabled focused ts
+handleRender renderer (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) focused ts = _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeEnabled focused ts
 
 resizeUI :: (MonadState s m) => Renderer m -> Rect -> Tree (WidgetNode s e m) -> m (Tree (WidgetNode s e m))
 resizeUI renderer assignedRect widgetNode = do
@@ -203,16 +227,16 @@ resizeUI renderer assignedRect widgetNode = do
 buildPreferredSizes :: (MonadState s m) => Renderer m -> Tree (WidgetNode s e m) -> m (Tree Size)
 buildPreferredSizes renderer (Node (WidgetNode {..}) children) = do
   childrenSizes <- mapM (buildPreferredSizes renderer) children
-  size <- _preferredSize _widget renderer _style (seqToList childrenSizes)
+  size <- _widgetPreferredSize _widgetNodeWidget renderer _widgetNodeStyle (seqToList childrenSizes)
 
   return $ Node size childrenSizes
 
 resizeNode :: (MonadState s m) => Renderer m -> Rect -> Tree Size -> Tree (WidgetNode s e m) -> m (Tree (WidgetNode s e m))
 resizeNode renderer assignedRect (Node _ {--widgetSize--} childrenSizes) (Node widgetNode childrenWns) = do
-  let widget = _widget widgetNode
-  let style = _style widgetNode
-  let updatedNode = widgetNode { _viewport = assignedRect }
-  let assignedRects = (_resizeChildren widget) assignedRect style (seqToList childrenSizes)
+  let widget = _widgetNodeWidget widgetNode
+  let style = _widgetNodeStyle widgetNode
+  let updatedNode = widgetNode { _widgetNodeViewport = assignedRect }
+  let assignedRects = (_widgetResizeChildren widget) assignedRect style (seqToList childrenSizes)
   let childrenPair = SQ.zip3 childrenSizes childrenWns (SQ.fromList assignedRects)
   let childResize = \(size, node, rect) -> resizeNode renderer rect size node
 

@@ -24,11 +24,11 @@ makeButton state onClick = Widget widgetType widgetFocusable handleEvent preferr
     widgetType = "button"
     widgetFocusable = False
     handleEvent view focused evt = case evt of
-      Click (Point x y) _ status -> EventsState events (makeButton newState onClick) where
+      Click (Point x y) _ status -> mkWidgetEventResult False events (makeButton newState onClick) where
         isPressed = status == PressedBtn && inRect view (Point x y)
         newState = if isPressed then state + 1 else state
         events = if isPressed then [onClick] else []
-      _ -> NoEvents
+      _ -> Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack (show state))
     resizeChildren _ _ _ = []
     render renderer viewport (style@Style{..}) enabled focused ts =
