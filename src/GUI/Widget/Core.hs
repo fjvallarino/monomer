@@ -36,6 +36,10 @@ data SystemEvent = Update Timestamp |
                    Click Point Button ButtonState |
                    KeyAction KeyCode KeyMotion deriving (Show, Eq)
 
+isKeyPressed :: SystemEvent -> KeyCode -> Bool
+isKeyPressed (KeyAction keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed _ _ = False
+
 data WidgetEventResult s e m = WidgetEventResult {
   _eventResultStop :: Bool,
   _eventResultUserEvents :: [e],
@@ -203,16 +207,15 @@ mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
   addedChildren = SQ.drop (SQ.length seq2) seq1
   mergeChild = \(c1, c2) -> mergeTrees c1 c2
 
-handleWidgetEvents :: (MonadState s m, Traversable t) => Widget s e m -> Rect -> Focused -> t SystemEvent -> Maybe (WidgetEventResult s e m)
-handleWidgetEvents (Widget {..}) viewport focused systemEvents =
-  foldl (\widgetEvent systemEvent -> widgetEvent <> _widgetHandleEvent viewport focused systemEvent) Nothing systemEvents
+handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> Focused -> SystemEvent -> Maybe (WidgetEventResult s e m)
+handleWidgetEvents (Widget {..}) viewport focused systemEvent = _widgetHandleEvent viewport focused systemEvent
 
-handleEvents :: (MonadState s m, Traversable t) => Path -> Tree (WidgetNode s e m) -> Path -> t SystemEvent -> (Bool, Tree (WidgetNode s e m), SQ.Seq e)
-handleEvents focusedPath (Node (wn@WidgetNode { .. }) children) currentPath systemEvents = (newStop, newNode, childEvents) where
+handleEvent :: (MonadState s m) => Path -> Tree (WidgetNode s e m) -> Path -> SystemEvent -> (Bool, Tree (WidgetNode s e m), SQ.Seq e)
+handleEvent focusedPath (Node (wn@WidgetNode { .. }) children) currentPath systemEvents = (newStop, newNode, childEvents) where
   (stop, userEvents, newWidget) = case handleWidgetEvents _widgetNodeWidget _widgetNodeViewport (focusedPath == currentPath) systemEvents of
                           Nothing -> (False, [], _widgetNodeWidget)
                           Just (WidgetEventResult {..}) -> (_eventResultStop, _eventResultUserEvents, fromMaybe _widgetNodeWidget _eventResultNewWidget)
-  (newStop, newChildren, childEvents, _) = foldl (\(st, ws, evs, idx) widgetNode -> case handleEvents focusedPath widgetNode (idx : currentPath) systemEvents of
+  (newStop, newChildren, childEvents, _) = foldl (\(st, ws, evs, idx) widgetNode -> case handleEvent focusedPath widgetNode (idx : currentPath) systemEvents of
                                         (st2, ws2, evs2) -> (st || st2, ws SQ.|> ws2, evs SQ.>< evs2, idx + 1)) (stop, SQ.empty, SQ.fromList userEvents, 0) children
   newNode = Node (wn { _widgetNodeWidget = newWidget }) newChildren
 

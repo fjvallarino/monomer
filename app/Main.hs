@@ -31,6 +31,8 @@ import qualified Foreign.C.String as STR
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified SDL.Vect
+import qualified SDL.Input.Keyboard as Keyboard
+import qualified SDL.Input.Keyboard.Codes as KeyCodes
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw.Error as SRE
 
@@ -179,11 +181,33 @@ currentFocus = do
   return (if length ring > 0 then ring!!0 else [])
 
 handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTree -> AppM WidgetTree
-handleSystemEvents renderer systemEvents currentFocus widgets = updatedWidgets where
-  (stop, eventsWidgets, appEvents) = do
-    W.handleEvents currentFocus widgets [0] systemEvents
-  updatedWidgets = if | length appEvents == 0 -> return eventsWidgets
-                      | otherwise -> handleAppEvents renderer appEvents eventsWidgets
+handleSystemEvents renderer systemEvents currentFocus widgets =
+  foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
+
+handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvent renderer systemEvent currentFocus widgets = do
+  let (stop, eventsWidgets, appEvents) = W.handleEvent currentFocus widgets [0] systemEvent
+
+  when (not stop && W.isKeyPressed systemEvent keycodeTab) $ do
+    ring <- use focusRing
+    focusRing .= rotateList ring
+
+  if length appEvents == 0 then
+    return eventsWidgets
+  else
+    handleAppEvents renderer appEvents eventsWidgets
+
+rotateList :: [a] -> [a]
+rotateList [] = []
+rotateList (x:xs) = xs ++ [x]
+
+keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
+
+isKeyTab :: W.KeyCode -> Bool
+isKeyTab key = matchesSDLKeyCode key SDL.KeycodeTab
+
+matchesSDLKeyCode :: W.KeyCode -> SDL.Keycode -> Bool
+matchesSDLKeyCode keyCode sdlKeyCode = keyCode == (fromIntegral $ Keyboard.unwrapKeycode sdlKeyCode)
 
 handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> AppM WidgetTree
 handleAppEvents renderer appEvents oldWidgets = do
