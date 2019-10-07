@@ -11,6 +11,7 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Default
+import Data.Maybe
 import Foreign.C.Types
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro.Mtl
@@ -186,16 +187,18 @@ handleSystemEvents renderer systemEvents currentFocus widgets =
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
-  let (stop, eventsWidgets, appEvents) = W.handleEvent currentFocus widgets [0] systemEvent
+  --let (stop, eventsWidgets, appEvents) = W.handleEvent currentFocus widgets [0] systemEvent
+  let (stop, appEvents, newWidgets) = W.handleFocusedEvent currentFocus widgets systemEvent
+  let newRoot = fromMaybe widgets newWidgets
 
   when (not stop && W.isKeyPressed systemEvent keycodeTab) $ do
     ring <- use focusRing
     focusRing .= rotateList ring
 
   if length appEvents == 0 then
-    return eventsWidgets
+    return newRoot
   else
-    handleAppEvents renderer appEvents eventsWidgets
+    handleAppEvents renderer appEvents newRoot
 
 rotateList :: [a] -> [a]
 rotateList [] = []
