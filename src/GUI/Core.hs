@@ -86,6 +86,10 @@ data Renderer m  = (Monad m) => Renderer {
 inRect :: Rect -> Point -> Bool
 inRect (Rect x y w h) (Point x2 y2) = (x2 >= x && x2 < x + w) && (y2 >= y && y2 < y + h)
 
+rotateList :: [a] -> [a]
+rotateList [] = []
+rotateList (x:xs) = xs ++ [x]
+
 firstJust :: Maybe a -> Maybe a -> Maybe a
 firstJust (Just val) _ = Just val
 firstJust _ value = value

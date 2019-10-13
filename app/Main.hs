@@ -185,10 +185,13 @@ handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTr
 handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
+handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, SQ.Seq AppEvent, Maybe WidgetTree)
+handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleMouseEvent point widgets systemEvent
+handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleFocusedEvent currentFocus widgets systemEvent
+
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
-  --let (stop, eventsWidgets, appEvents) = W.handleEvent currentFocus widgets [0] systemEvent
-  let (stop, appEvents, newWidgets) = W.handleFocusedEvent currentFocus widgets systemEvent
+  let (stop, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
   when (not stop && W.isKeyPressed systemEvent keycodeTab) $ do
@@ -199,10 +202,6 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
     return newRoot
   else
     handleAppEvents renderer appEvents newRoot
-
-rotateList :: [a] -> [a]
-rotateList [] = []
-rotateList (x:xs) = xs ++ [x]
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 

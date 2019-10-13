@@ -32,9 +32,12 @@ data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 type KeyCode = Int
 data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data SystemEvent = Update Timestamp |
-                   Click Point Button ButtonState |
+data SystemEvent = Click Point Button ButtonState |
                    KeyAction KeyCode KeyMotion deriving (Show, Eq)
+
+isKeyboardEvent :: SystemEvent -> Bool
+isKeyboardEvent (KeyAction _ _) = True
+isKeyboardEvent _ = False
 
 isKeyPressed :: SystemEvent -> KeyCode -> Bool
 isKeyPressed (KeyAction keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
@@ -219,32 +222,41 @@ handleEvent focusedPath (Node (wn@WidgetNode {..}) children) currentPath systemE
                                         (st2, ws2, evs2) -> (st || st2, ws SQ.|> ws2, evs SQ.>< evs2, idx + 1)) (stop, SQ.empty, SQ.fromList userEvents, 0) children
   newNode = Node (wn { _widgetNodeWidget = newWidget }) newChildren
 
-handleFocusedEvent :: (MonadState s m) => Path -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
-handleFocusedEvent [] widgetNode _ = (False, SQ.empty, Nothing)
-handleFocusedEvent (p:ps) treeNode@(Node wn@WidgetNode{..} children) systemEvent = (stopPropagation, userEvents, newTreeNode) where
+
+handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (Tree (WidgetNode s e m)) -> (a, Maybe Int)) -> a -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
+handleChildEvent selectorFn selector treeNode@(Node wn@WidgetNode{..} children) systemEvent = (stopPropagation, userEvents, newTreeNode) where
   (stopPropagation, userEvents, newTreeNode) = case spChild of
     True -> (spChild, ueChild, newNode1)
     False -> (sp, ueChild SQ.>< ue, newNode2)
-  (spChild, ueChild, tnChild) = case (SQ.lookup p children) of
-    Nothing -> (False, SQ.empty, Nothing)
-    Just childTreeNode -> handleFocusedEvent ps childTreeNode systemEvent
-  (sp, ue, tn) = case handleWidgetEvents _widgetNodeWidget _widgetNodeViewport (null ps) systemEvent of
+  (spChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
+    (_, Nothing) -> (False, SQ.empty, Nothing, 0)
+    (newSelector, Just idx) -> (sp2, ue2, tn2, idx) where
+      (sp2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
+  (sp, ue, tn) = case handleWidgetEvents _widgetNodeWidget _widgetNodeViewport True systemEvent of
     Nothing -> (False, SQ.empty, Nothing)
     Just (WidgetEventResult sp2 ue2 widget) -> (sp2, SQ.fromList ue2, if isNothing widget then Nothing else Just (Node (wn { _widgetNodeWidget = fromJust widget }) children))
   newNode1 = case tnChild of
     Nothing -> Nothing
-    Just wnChild -> Just $ Node wn (SQ.update p wnChild children)
+    Just wnChild -> Just $ Node wn (SQ.update tnChildIdx wnChild children)
   newNode2 = case (tn, tnChild) of
     (Nothing, Nothing) -> Nothing
     (Nothing, Just cn) -> newNode1
     (Just pn, Nothing) -> tn
-    (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update p tnChild children)
+    (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
 
---    (stopChild, widgetNodeChild, userEventsChild) = handleFocusedEvent ps widgetNode event
---    handleWidgetEvents _widgetNodeWidget _widgetNodeViewport (focusedPath == currentPath) systemEvent
---
---      (stopPropagation, Nothing, userEvents) ->
---      Just a -> (stopPropagation, newNode, userEvents) where
+handleFocusedEvent :: (MonadState s m) => Path -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
+handleFocusedEvent path widgetNode systemEvent = handleChildEvent pathSelector path widgetNode systemEvent where
+  pathSelector [] _ = ([], Nothing)
+  pathSelector (p:ps) children
+    | length children > p = (ps, Just p)
+    | otherwise = ([], Nothing)
+
+handleMouseEvent :: (MonadState s m) => Point -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
+handleMouseEvent cursorPos widgetNode systemEvent = handleChildEvent rectSelector cursorPos widgetNode systemEvent where
+  rectSelector point children = (point, SQ.lookup 0 inRectList) where
+    inRectList = fmap snd $ SQ.filter inNodeRect childrenPair
+    inNodeRect = \(Node (WidgetNode {..}) _, _) -> inRect _widgetNodeViewport point
+    childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Focused -> Timestamp -> m ()
 handleRender renderer (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) focused ts = _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeEnabled focused ts
