@@ -221,7 +221,7 @@ handleAppEvents renderer appEvents oldWidgets = do
 
   let newWidgets = W.mergeTrees (buildUI newApp) oldWidgets
   let mergedWidgets = if | app /= newApp -> do
-                            let paths = traceShowId $ map snd $ filter (W.isFocusable . fst) $ collectPaths newWidgets [0]
+                            let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths newWidgets [0]
 
                             focusRing .= paths
                             zoom appContext $ W.resizeUI renderer windowSize newWidgets

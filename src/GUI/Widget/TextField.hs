@@ -45,12 +45,11 @@ makeTextField (TextFieldState txt tp) = Widget widgetType widgetFocusable handle
       where
         newText = if isKeyPrintable code then [chr code] else ""
         (part1, part2) = splitAt currTp currText
-    handleEvent _ True evt = case evt of
+    handleEvent _ evt = case evt of
       KeyAction code KeyPressed -> mkWidgetEventResult False [] (makeTextField newState) where
         (txt2, tp2) = handleKeyPress txt tp code
         newState = TextFieldState txt2 tp2
       _ -> Nothing
-    handleEvent _ _ _ = Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
     resizeChildren _ _ _ = []
     render renderer viewport (style@Style{..}) enabled focused ts = do
