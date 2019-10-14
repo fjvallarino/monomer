@@ -61,17 +61,6 @@ instance Monoid (WidgetEventResult s e m) where
 
 mkWidgetEventResult :: Bool -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
 mkWidgetEventResult stop userEvents newWidget = Just $ WidgetEventResult stop userEvents (Just newWidget)
-{--
-data EventResult s e m = NoEvents | Events [e] | EventsState [e] (Widget s e m)
-
-instance Semigroup (EventResult s e m) where
-  (<>) NoEvents er2 = er2
-  (<>) er1 NoEvents = er1
-  (<>) (Events e1) (Events e2) = Events (e1 ++ e2)
-  (<>) (EventsState e1 s1) (Events e2) = EventsState (e1 ++ e2) s1
-  (<>) (Events e1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
-  (<>) (EventsState e1 s1) (EventsState e2 s2) = EventsState (e1 ++ e2) s2
---}
 
 newtype WidgetType = WidgetType String deriving Eq
 newtype WidgetKey = WidgetKey String deriving Eq
@@ -263,7 +252,7 @@ buildPreferredSizes renderer (Node (WidgetNode {..}) children) = do
   return $ Node size childrenSizes
 
 resizeNode :: (MonadState s m) => Renderer m -> Rect -> Tree Size -> Tree (WidgetNode s e m) -> m (Tree (WidgetNode s e m))
-resizeNode renderer assignedRect (Node _ {--widgetSize--} childrenSizes) (Node widgetNode childrenWns) = do
+resizeNode renderer assignedRect (Node _ childrenSizes) (Node widgetNode childrenWns) = do
   let widget = _widgetNodeWidget widgetNode
   let style = _widgetNodeStyle widgetNode
   let updatedNode = widgetNode { _widgetNodeViewport = assignedRect }

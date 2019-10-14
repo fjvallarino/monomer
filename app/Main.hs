@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -61,7 +60,7 @@ windowSize = (Rect 0 0 (fromIntegral screenWidth) (fromIntegral screenHeight))
 
 main :: IO ()
 main = do
---  forkServer "localhost" 8000
+  --forkServer "localhost" 28000
 
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
@@ -116,7 +115,6 @@ buildUI model = styledTree where
   border2 = S.borderLeft 20 (RGB 200 200 0) <> S.borderRight 20 (RGB 200 0 200)
   style1 = S.bgColor (RGB 0 0 255) <> S.textSize 64 <> border1 <> border2 <> S.bgRadius 20
   textStyle = S.textColor (RGB 0 255 0)
-  --extraWidgets = if _clickCount model < 3 then [] else [WS.button (Action1 0)] -- map (\i -> WS.button (Action1 0)) [0..(_clickCount model)]
   extraWidgets = map (\i -> WS.button (Action1 i)) [1..(_clickCount model)]
   widgetTree = WS.vgrid_ ([
       WS.textField_ `W.style` textStyle,
@@ -128,17 +126,6 @@ buildUI model = styledTree where
       WS.button (Action1 0) `W.style` style1,
       WS.textField_ `W.style` textStyle
     ] ++ extraWidgets)
---  widgetTree = WS.container_ [
---      WS.button (Action1 1) `W.style` style1,
---      WS.button (Action1 2),
---      WS.button (Action1 3),
---      WS.container `W.style` S.bgColor (RGB 0 0 255) `W.children` [
---        WS.button (Action1 4),
---        WS.button (Action1 5) `W.style` (S.bgColor (RGB 255 0 255) <> S.bgRadius 10),
---        WS.button (Action1 6) `W.style` border1,
---        WS.button (Action1 7)
---      ]
---    ]
   styledTree = W.cascadeStyle mempty widgetTree
 
 runWidgets :: SDL.Window -> Context -> AppM ()
@@ -147,6 +134,12 @@ runWidgets window c = do
 
   ticks <- SDL.ticks
 
+  newUI <- updateUI renderer
+
+  mainLoop window c renderer (fromIntegral ticks) newUI
+
+updateUI :: Renderer WidgetM -> AppM WidgetTree
+updateUI renderer = do
   resizedUI <- zoom appContext $ do
     app <- get
     W.resizeUI renderer windowSize (buildUI app)
@@ -155,7 +148,7 @@ runWidgets window c = do
 
   focusRing .= paths
 
-  mainLoop window c renderer (fromIntegral ticks) resizedUI
+  return resizedUI
 
 mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> AppM ()
 mainLoop window c renderer prevTicks widgets = do
@@ -219,12 +212,7 @@ handleAppEvents renderer appEvents oldWidgets = do
     newApp <- get
     return (app, newApp)
 
-  let newWidgets = W.mergeTrees (buildUI newApp) oldWidgets
-  let mergedWidgets = if | app /= newApp -> do
-                            let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths newWidgets [0]
-
-                            focusRing .= paths
-                            zoom appContext $ W.resizeUI renderer windowSize newWidgets
+  let mergedWidgets = if | app /= newApp -> updateUI renderer
                          | otherwise -> return oldWidgets
 
   when (app /= newApp) $ liftIO $ putStrLn "App changed!"
