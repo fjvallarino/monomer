@@ -16,6 +16,9 @@ import GUI.Widget.Style
 
 import qualified Data.Text as T
 
+empty :: (MonadState s m) => Tree (WidgetNode s e m)
+empty = singleWidget makeHGrid
+
 hgrid_ :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
 hgrid_ = parentWidget makeHGrid
 
@@ -33,7 +36,7 @@ makeFixedGrid widgetType direction = Widget widgetType widgetFocusable handleEve
   where
     widgetFocusable = False
     handleEvent _ _ = Nothing
-    render _ _ _ _ _ _ = return ()
+    render _ _ _ _ _ = return ()
     preferredSize _ _ children = return $ Size width height where
       width = (fromIntegral wMul) * (maximum . map _w) children
       height = (fromIntegral hMul) * (maximum . map _h) children

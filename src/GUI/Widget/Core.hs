@@ -90,7 +90,7 @@ isFocused (GUIContext _ []) _ = False
 isFocused (GUIContext _ (x:xs)) path = x == path
 
 isFocusable :: (MonadState s m) => WidgetNode s e m -> Bool
-isFocusable (WidgetNode { _widgetNodeWidget = Widget{..}, ..}) = _widgetNodeEnabled && _widgetFocusable
+isFocusable (WidgetNode { _widgetNodeWidget = Widget{..}, ..}) = (_widgetStatusEnabled _widgetNodeStatus)  && _widgetFocusable
 
 data Widget s e m =
   (MonadState s m) => Widget {
@@ -131,8 +131,35 @@ data Widget s e m =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: Renderer m -> Rect -> Style -> Enabled -> Focused -> Timestamp -> m ()
+    _widgetRender :: Renderer m -> Rect -> Style -> WidgetStatus -> Timestamp -> m ()
   }
+
+data WidgetStatus = WidgetStatus {
+  _widgetStatusEnabled :: Bool,
+  _widgetStatusFocused :: Bool
+} deriving (Show, Eq)
+
+instance Default WidgetStatus where
+  def = WidgetStatus {
+    _widgetStatusEnabled = True,
+    _widgetStatusFocused = False
+  }
+
+-- *********
+-- *********
+-- *********
+-- *********
+-- ********* Think about scrolling. Most likely solution:
+-- *********
+-- ********* - ScrollableContainer (may use viewport clipping/scissoring)
+-- ********* - render receives two Rect:
+-- *********   - viewport: the actual piece of the screen where the widget can draw
+-- *********   - visibleRegion: the piece of the total preferred area that can be shown (viewport may remain fixed while this one varies)
+-- *********
+-- *********
+-- *********
+-- *********
+
 
 -- | Complementary information to a Widget, forming a node in the view tree
 --
@@ -143,7 +170,7 @@ data WidgetNode s e m =
     -- | Key/Identifier of the widget. If provided, it needs to be unique in the same hierarchy level (not globally)
     _widgetNodeKey :: Maybe WidgetKey,
     _widgetNodeWidget :: Widget s e m,
-    _widgetNodeEnabled :: Enabled,
+    _widgetNodeStatus :: WidgetStatus,
     _widgetNodeViewport :: Rect,
     _widgetNodeStyle :: Style,
     _widgetNodeComputedStyle :: Style,
@@ -169,7 +196,7 @@ defaultWidgetNode :: (MonadState s m) => Widget s e m -> WidgetNode s e m
 defaultWidgetNode widget = WidgetNode {
   _widgetNodeKey = Nothing,
   _widgetNodeWidget = widget,
-  _widgetNodeEnabled = True,
+  _widgetNodeStatus = def,
   _widgetNodeViewport = def,
   _widgetNodeStyle = mempty,
   _widgetNodeComputedStyle = mempty,
@@ -181,9 +208,6 @@ singleWidget widget = singleton (defaultWidgetNode widget)
 
 parentWidget :: (MonadState s m) => Widget s e m -> [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
 parentWidget widget = fromList (defaultWidgetNode widget)
-
-emptyState :: Maybe ()
-emptyState = Nothing
 
 widgetMatches :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m -> Bool
 widgetMatches wn1 wn2 = _widgetType (_widgetNodeWidget wn1) == _widgetType (_widgetNodeWidget wn2) && _widgetNodeKey wn1 == _widgetNodeKey wn2
@@ -222,22 +246,33 @@ handleChildEvent selectorFn selector treeNode@(Node wn@WidgetNode{..} children) 
     (Just pn, Nothing) -> tn
     (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
 
-handleFocusedEvent :: (MonadState s m) => Path -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
-handleFocusedEvent path widgetNode systemEvent = handleChildEvent pathSelector path widgetNode systemEvent where
+handleEventFromPath :: (MonadState s m) => Path -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
+handleEventFromPath path widgetNode systemEvent = handleChildEvent pathSelector path widgetNode systemEvent where
   pathSelector [] _ = ([], Nothing)
   pathSelector (p:ps) children
     | length children > p = (ps, Just p)
     | otherwise = ([], Nothing)
 
-handleMouseEvent :: (MonadState s m) => Point -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
-handleMouseEvent cursorPos widgetNode systemEvent = handleChildEvent rectSelector cursorPos widgetNode systemEvent where
+handleEventFromPoint :: (MonadState s m) => Point -> Tree (WidgetNode s e m) -> SystemEvent -> (Bool, SQ.Seq e, Maybe (Tree (WidgetNode s e m)))
+handleEventFromPoint cursorPos widgetNode systemEvent = handleChildEvent rectSelector cursorPos widgetNode systemEvent where
   rectSelector point children = (point, SQ.lookup 0 inRectList) where
     inRectList = fmap snd $ SQ.filter inNodeRect childrenPair
     inNodeRect = \(Node (WidgetNode {..}) _, _) -> inRect _widgetNodeViewport point
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
-handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Focused -> Timestamp -> m ()
-handleRender renderer (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) focused ts = _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeEnabled focused ts
+handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
+handleRender renderer (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) ts = _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeStatus ts
+
+updateWidgetNode :: Path -> Tree (WidgetNode s e m) -> (WidgetNode s e m -> WidgetNode s e m) -> Tree (WidgetNode s e m)
+updateWidgetNode path root updateFn = updateNode path root (\(Node widgetNode children) -> Node (updateFn widgetNode) children)
+
+markFocused :: Path -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
+markFocused focused root = updateWidgetNode focused root updateFn where
+  updateFn wn@(WidgetNode {..}) = wn {
+    _widgetNodeStatus = _widgetNodeStatus {
+      _widgetStatusFocused = True
+    }
+  }
 
 resizeUI :: (MonadState s m) => Renderer m -> Rect -> Tree (WidgetNode s e m) -> m (Tree (WidgetNode s e m))
 resizeUI renderer assignedRect widgetNode = do

@@ -117,7 +117,10 @@ buildUI model = styledTree where
   textStyle = S.textColor (RGB 0 255 0)
   extraWidgets = map (\i -> WS.button (Action1 i)) [1..(_clickCount model)]
   widgetTree = WS.vgrid_ ([
-      WS.textField_ `W.style` textStyle,
+      WS.hgrid_ [
+        WS.textField_ `W.style` textStyle,
+        WS.textField_ `W.style` textStyle
+      ],
       WS.hgrid_ [
         WS.button (Action1 10) `W.style` style1,
         WS.button (Action1 10) `W.style` style1,
@@ -133,19 +136,17 @@ runWidgets window c = do
   let renderer = NV.makeRenderer c
 
   ticks <- SDL.ticks
-
-  newUI <- updateUI renderer
+  newUI <- updateUI renderer WS.empty
 
   mainLoop window c renderer (fromIntegral ticks) newUI
 
-updateUI :: Renderer WidgetM -> AppM WidgetTree
-updateUI renderer = do
+updateUI :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+updateUI renderer oldWidgets = do
   resizedUI <- zoom appContext $ do
     app <- get
-    W.resizeUI renderer windowSize (buildUI app)
+    W.resizeUI renderer windowSize (W.mergeTrees (buildUI app) oldWidgets)
 
-  let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths resizedUI [0]
-
+  let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths resizedUI []
   focusRing .= paths
 
   return resizedUI
@@ -179,22 +180,25 @@ handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
 handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, SQ.Seq AppEvent, Maybe WidgetTree)
-handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleMouseEvent point widgets systemEvent
-handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleFocusedEvent currentFocus widgets systemEvent
+handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
+handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
   let (stop, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
-  when (not stop && W.isKeyPressed systemEvent keycodeTab) $ do
+  updatedRoot <- if (not stop && W.isKeyPressed systemEvent keycodeTab) then do
     ring <- use focusRing
     focusRing .= rotateList ring
+    return $ W.markFocused currentFocus newRoot
+  else
+    return newRoot
 
   if length appEvents == 0 then
-    return newRoot
+    return updatedRoot
   else
-    handleAppEvents renderer appEvents newRoot
+    handleAppEvents renderer appEvents updatedRoot
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 
@@ -212,7 +216,7 @@ handleAppEvents renderer appEvents oldWidgets = do
     newApp <- get
     return (app, newApp)
 
-  let mergedWidgets = if | app /= newApp -> updateUI renderer
+  let mergedWidgets = if | app /= newApp -> updateUI renderer oldWidgets
                          | otherwise -> return oldWidgets
 
   when (app /= newApp) $ liftIO $ putStrLn "App changed!"
@@ -230,21 +234,20 @@ renderWidgets !window !c !renderer widgets ticks = do
   liftIO $ beginFrame c screenWidth screenHeight pxRatio
 
   guiContext <- get
-
   zoom appContext $ do
-    traversePaths (\widgetNode path -> W.handleRender renderer widgetNode (W.isFocused guiContext path) ticks) widgets [0]
+    traversePaths (\widgetNode path -> W.handleRender renderer widgetNode ticks) widgets [0]
 
   liftIO $ endFrame c
   SDL.glSwapWindow window
 
 collectPaths :: (MonadState s m) => TR.Tree (W.WidgetNode s e m) -> TR.Path -> [(W.WidgetNode s e m, TR.Path)]
-collectPaths (TR.Node widgetNode children) path = (widgetNode, path) : remainingItems where
+collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
   pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
 
 traversePaths :: (MonadState s m) => (W.WidgetNode s e m -> TR.Path -> m ()) -> TR.Tree (W.WidgetNode s e m) -> TR.Path -> m ()
 traversePaths fn (TR.Node wn children) currentPath = do
-  fn wn currentPath
+  fn wn (reverse currentPath)
 
   mapM_ (\(treeNode, idx) -> traversePaths fn treeNode (idx : currentPath)) (zip (TR.seqToNodeList children) [0..])
 

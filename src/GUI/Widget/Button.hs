@@ -31,7 +31,7 @@ makeButton state onClick = Widget widgetType widgetFocusable handleEvent preferr
       _ -> Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack (show state))
     resizeChildren _ _ _ = []
-    render renderer viewport (style@Style{..}) enabled focused ts =
+    render renderer viewport (style@Style{..}) status ts =
       do
         drawBgRect renderer viewport style
         drawText renderer viewport _textStyle (T.pack (show state))

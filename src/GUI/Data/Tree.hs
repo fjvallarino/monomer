@@ -40,10 +40,13 @@ lookup (idx:xs) (Node val seq) = case S.lookup idx seq of
   Just tree -> lookup xs tree
   otherwise -> Nothing
 
-updateNode :: Path -> Tree a -> Tree a -> Tree a
-updateNode [] _ new = new
-updateNode (idx:xs) node@(Node val seq) new = case S.lookup idx seq of
+updateNode :: Path -> Tree a -> (Tree a -> Tree a) -> Tree a
+updateNode [] old updateFn = updateFn old
+updateNode (idx:xs) node@(Node val seq) updateFn = case S.lookup idx seq of
   Just tree -> Node val newChildren where
     newChildren = S.update idx newNode seq
-    newNode = updateNode xs tree new
+    newNode = updateNode xs tree updateFn
   Nothing -> node
+
+replaceNode :: Path -> Tree a -> Tree a -> Tree a
+replaceNode path root new = updateNode path root (\_ -> new)

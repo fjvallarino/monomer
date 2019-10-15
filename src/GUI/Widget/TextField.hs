@@ -9,6 +9,8 @@ import Control.Monad.State
 
 import Data.Char
 
+import Debug.Trace
+
 import GUI.Core
 import GUI.Data.Tree
 import GUI.Widget.Core
@@ -52,7 +54,7 @@ makeTextField (TextFieldState txt tp) = Widget widgetType widgetFocusable handle
       _ -> Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
     resizeChildren _ _ _ = []
-    render renderer viewport (style@Style{..}) enabled focused ts = do
+    render renderer viewport (style@Style{..}) status ts = do
       drawBgRect renderer viewport style
       drawText renderer viewport _textStyle (T.pack printedText)
 
