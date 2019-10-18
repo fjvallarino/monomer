@@ -37,12 +37,13 @@ import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw.Error as SRE
 
 import Types
-import GUI.Core
+import GUI.Common.Core
+import GUI.Common.Style
+import GUI.Widgets
+
 import qualified GUI.Data.Tree as TR
-import qualified GUI.NanoVGRenderer as NV
+import qualified GUI.Platform.NanoVGRenderer as NV
 import qualified GUI.Widget.Core as W
-import qualified GUI.Widget.Style as S
-import qualified GUI.Widgets as WS
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
@@ -111,23 +112,25 @@ handleAppEvent evt = do
 
 buildUI :: App -> WidgetTree
 buildUI model = styledTree where
-  border1 = S.border 5 (RGB 0 255 0) 20
-  border2 = S.borderLeft 20 (RGB 200 200 0) <> S.borderRight 20 (RGB 200 0 200)
-  style1 = S.bgColor (RGB 0 0 255) <> S.textSize 64 <> border1 <> border2 <> S.bgRadius 20
-  textStyle = S.textColor (RGB 0 255 0)
-  extraWidgets = map (\i -> WS.button (Action1 i)) [1..(_clickCount model)]
-  widgetTree = WS.vgrid_ ([
-      WS.hgrid_ [
-        WS.textField_ `W.style` textStyle,
-        WS.textField_ `W.style` textStyle
+  border1 = border 5 (RGB 0 255 0) 20
+  border2 = borderLeft 20 (RGB 200 200 0) <> borderRight 20 (RGB 200 0 200)
+  style1 = bgColor (RGB 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
+  styleLabel = bgColor (RGB 100 100 100) <> textSize 48
+  textStyle = textColor (RGB 0 255 0)
+  extraWidgets = map (\i -> button (Action1 (10 + i))) [1..(_clickCount model)]
+  widgetTree = vgrid ([
+      hgrid [
+        textField `style` textStyle,
+        textField `style` textStyle
       ],
-      WS.hgrid_ [
-        WS.button (Action1 10) `W.style` style1,
-        WS.button (Action1 10) `W.style` style1,
-        WS.button (Action1 10) `W.style` style1
+      scroll $ label "This is a really really really long label, you know?" `style` styleLabel,
+      hgrid [
+        button (Action1 1) `style` style1,
+        button (Action1 2) `style` style1,
+        button (Action1 3) `style` style1
       ],
-      WS.button (Action1 0) `W.style` style1,
-      WS.textField_ `W.style` textStyle
+      button (Action1 0) `style` style1,
+      textField `style` textStyle
     ] ++ extraWidgets)
   styledTree = W.cascadeStyle mempty widgetTree
 
@@ -136,7 +139,7 @@ runWidgets window c = do
   let renderer = NV.makeRenderer c
 
   ticks <- SDL.ticks
-  newUI <- updateUI renderer WS.empty
+  newUI <- updateUI renderer empty
 
   mainLoop window c renderer (fromIntegral ticks) newUI
 
@@ -148,8 +151,9 @@ updateUI renderer oldWidgets = do
 
   let paths = map snd $ filter (W.isFocusable . fst) $ collectPaths resizedUI []
   focusRing .= paths
+  currentFocus <- getCurrentFocus
 
-  return resizedUI
+  return (W.setFocusedStatus currentFocus True resizedUI)
 
 mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> AppM ()
 mainLoop window c renderer prevTicks widgets = do
@@ -162,7 +166,7 @@ mainLoop window c renderer prevTicks widgets = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
 
-  focus <- currentFocus
+  focus <- getCurrentFocus
   newWidgets <- handleSystemEvents renderer (convertEvents eventsPayload) focus widgets
 
   renderWidgets window c renderer newWidgets ticks
@@ -170,8 +174,8 @@ mainLoop window c renderer prevTicks widgets = do
   liftIO $ threadDelay $ (nextFrame ts) * 1000
   unless quit (mainLoop window c renderer ticks newWidgets)
 
-currentFocus :: AppM TR.Path
-currentFocus = do
+getCurrentFocus :: AppM TR.Path
+getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
 
@@ -191,7 +195,8 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   updatedRoot <- if (not stop && W.isKeyPressed systemEvent keycodeTab) then do
     ring <- use focusRing
     focusRing .= rotateList ring
-    return $ W.markFocused currentFocus newRoot
+    newFocus <- getCurrentFocus
+    return $ W.setFocusedStatus newFocus True (W.setFocusedStatus currentFocus False newRoot)
   else
     return newRoot
 
@@ -235,7 +240,7 @@ renderWidgets !window !c !renderer widgets ticks = do
 
   guiContext <- get
   zoom appContext $ do
-    traversePaths (\widgetNode path -> W.handleRender renderer widgetNode ticks) widgets [0]
+    W.handleRender renderer widgets ticks
 
   liftIO $ endFrame c
   SDL.glSwapWindow window
@@ -244,12 +249,6 @@ collectPaths :: (MonadState s m) => TR.Tree (W.WidgetNode s e m) -> TR.Path -> [
 collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
   pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
-
-traversePaths :: (MonadState s m) => (W.WidgetNode s e m -> TR.Path -> m ()) -> TR.Tree (W.WidgetNode s e m) -> TR.Path -> m ()
-traversePaths fn (TR.Node wn children) currentPath = do
-  fn wn (reverse currentPath)
-
-  mapM_ (\(treeNode, idx) -> traversePaths fn treeNode (idx : currentPath)) (zip (TR.seqToNodeList children) [0..])
 
 convertEvents :: [SDL.EventPayload] -> [W.SystemEvent]
 convertEvents events = newEvents

@@ -2,7 +2,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module GUI.Core where
+module GUI.Common.Core where
 
 import Control.Monad
 import Data.Default
@@ -66,12 +66,21 @@ type FontSize = Double
 
 data Renderer m  = (Monad m) => Renderer {
   beginPath :: m (),
+  -- Context management
+  saveContext :: m (),
+  restoreContext :: m (),
+  -- Scissor operations
+  scissor :: Rect -> m (),
+  resetScissor :: m (),
+  -- Strokes
   stroke :: m (),
+  strokeColor :: Color -> m (),
+  strokeWidth :: Double -> m (),
+  -- Fill
   fill :: m (),
   fillColor :: Color -> m (),
   fillLinearGradient :: Point -> Point -> Color -> Color -> m (),
-  strokeColor :: Color -> m (),
-  strokeWidth :: Double -> m (),
+  -- Drawing
   moveTo :: Point -> m (),
   line :: Point -> Point -> m (),
   lineTo :: Point -> m (),
@@ -79,6 +88,7 @@ data Renderer m  = (Monad m) => Renderer {
   arc :: Point -> Double -> Double -> Double -> m (),
   quadTo :: Point -> Point -> m (),
   ellipse :: Rect -> m (),
+  -- Text
   text :: Rect -> Font -> FontSize -> Align -> T.Text -> m (),
   textBounds :: Font -> FontSize -> T.Text -> m Size
 }

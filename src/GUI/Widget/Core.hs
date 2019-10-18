@@ -13,9 +13,9 @@ import Data.Default
 import Data.Maybe
 import Data.String
 
-import GUI.Core
+import GUI.Common.Core
+import GUI.Common.Style
 import GUI.Data.Tree
-import GUI.Widget.Style
 
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
@@ -59,8 +59,8 @@ instance Semigroup (WidgetEventResult s e m) where
 instance Monoid (WidgetEventResult s e m) where
   mempty = WidgetEventResult False [] Nothing
 
-mkWidgetEventResult :: Bool -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
-mkWidgetEventResult stop userEvents newWidget = Just $ WidgetEventResult stop userEvents (Just newWidget)
+widgetEventResult :: Bool -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+widgetEventResult stop userEvents newWidget = Just $ WidgetEventResult stop userEvents (Just newWidget)
 
 newtype WidgetType = WidgetType String deriving Eq
 newtype WidgetKey = WidgetKey String deriving Eq
@@ -96,6 +96,8 @@ data Widget s e m =
   (MonadState s m) => Widget {
     -- | Type of the widget
     _widgetType :: WidgetType,
+    -- | Indicates whether the widget makes changes to the render context that needs to be restored AFTER children render
+    _widgetModifiesContext :: Bool,
     -- | Indicates whether the widget can receive focus
     _widgetFocusable :: Bool,
     -- | Handles an event
@@ -171,10 +173,12 @@ data WidgetNode s e m =
     _widgetNodeKey :: Maybe WidgetKey,
     _widgetNodeWidget :: Widget s e m,
     _widgetNodeStatus :: WidgetStatus,
+    -- The area of the screen where the widget can draw.
     _widgetNodeViewport :: Rect,
+    -- The are of the requested viewport that is actually visible. Used for optimization purposes.
+    _widgetNodeVisibleRegion :: Rect,
     _widgetNodeStyle :: Style,
-    _widgetNodeComputedStyle :: Style,
-    _widgetNodeComputedSize :: Size
+    _widgetNodeComputedStyle :: Style
   }
 
 key :: (MonadState s m) => WidgetKey -> WidgetNode s e m -> WidgetNode s e m
@@ -198,9 +202,9 @@ defaultWidgetNode widget = WidgetNode {
   _widgetNodeWidget = widget,
   _widgetNodeStatus = def,
   _widgetNodeViewport = def,
+  _widgetNodeVisibleRegion = def,
   _widgetNodeStyle = mempty,
-  _widgetNodeComputedStyle = mempty,
-  _widgetNodeComputedSize = def
+  _widgetNodeComputedStyle = mempty
 }
 
 singleWidget :: (MonadState s m) => Widget s e m -> Tree (WidgetNode s e m)
@@ -260,17 +264,23 @@ handleEventFromPoint cursorPos widgetNode systemEvent = handleChildEvent rectSel
     inNodeRect = \(Node (WidgetNode {..}) _, _) -> inRect _widgetNodeViewport point
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
-handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
-handleRender renderer (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) ts = _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeStatus ts
+handleRender :: (MonadState s m) => Renderer m -> Tree (WidgetNode s e m) -> Timestamp -> m ()
+handleRender renderer (Node (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) children) ts = do
+  when (_widgetModifiesContext) $ saveContext renderer
+
+  _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeStatus ts
+  mapM_ (\treeNode -> handleRender renderer treeNode ts) children
+
+  when (_widgetModifiesContext) $ restoreContext renderer
 
 updateWidgetNode :: Path -> Tree (WidgetNode s e m) -> (WidgetNode s e m -> WidgetNode s e m) -> Tree (WidgetNode s e m)
 updateWidgetNode path root updateFn = updateNode path root (\(Node widgetNode children) -> Node (updateFn widgetNode) children)
 
-markFocused :: Path -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
-markFocused focused root = updateWidgetNode focused root updateFn where
+setFocusedStatus :: Path -> Bool -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
+setFocusedStatus path focused root = updateWidgetNode path root updateFn where
   updateFn wn@(WidgetNode {..}) = wn {
     _widgetNodeStatus = _widgetNodeStatus {
-      _widgetStatusFocused = True
+      _widgetStatusFocused = focused
     }
   }
 

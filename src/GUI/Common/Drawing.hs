@@ -1,14 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Drawing where
+module GUI.Common.Drawing where
 
 import qualified Data.Text as T
 
 import Control.Monad (when)
 import Data.Maybe
 
-import GUI.Core
-import GUI.Widget.Style
+import GUI.Common.Core
+import GUI.Common.Style
 
 defaultColor :: Color
 defaultColor = RGB 255 255 255

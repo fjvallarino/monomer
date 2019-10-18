@@ -2,39 +2,40 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Layout where
+module GUI.Widget.Layout (empty, hgrid, vgrid) where
 
 import Control.Monad
 import Control.Monad.State
 
 import Data.Default
 
-import GUI.Core
+import GUI.Common.Core
+import GUI.Common.Style
 import GUI.Data.Tree
 import GUI.Widget.Core
-import GUI.Widget.Style
 
 import qualified Data.Text as T
 
 empty :: (MonadState s m) => Tree (WidgetNode s e m)
 empty = singleWidget makeHGrid
 
-hgrid_ :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
-hgrid_ = parentWidget makeHGrid
+hgrid :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
+hgrid = parentWidget makeHGrid
 
 makeHGrid :: (MonadState s m) => Widget s e m
 makeHGrid = makeFixedGrid "hgrid" Horizontal
 
-vgrid_ :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
-vgrid_ = parentWidget makeVGrid
+vgrid :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
+vgrid = parentWidget makeVGrid
 
 makeVGrid :: (MonadState s m) => Widget s e m
 makeVGrid = makeFixedGrid "vgrid" Vertical
 
 makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeFixedGrid widgetType direction = Widget widgetType widgetFocusable handleEvent preferredSize resizeChildren render
+makeFixedGrid widgetType direction = Widget widgetType modifiesContext focusable handleEvent preferredSize resizeChildren render
   where
-    widgetFocusable = False
+    modifiesContext = False
+    focusable = False
     handleEvent _ _ = Nothing
     render _ _ _ _ _ = return ()
     preferredSize _ _ children = return $ Size width height where
