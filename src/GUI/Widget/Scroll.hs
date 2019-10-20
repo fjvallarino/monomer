@@ -19,7 +19,7 @@ data ScrollState = ScrollState {
   _scPosition :: Int
 } deriving (Eq, Show)
 
-scroll :: (MonadState s m) => Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
+scroll :: (MonadState s m) => Tree (WidgetInstance s e m) -> Tree (WidgetInstance s e m)
 scroll managedWidget = parentWidget (makeScroll (ScrollState 0)) [managedWidget]
 
 makeScroll :: (MonadState s m) => ScrollState -> Widget s e m

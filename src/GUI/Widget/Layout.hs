@@ -16,16 +16,16 @@ import GUI.Widget.Core
 
 import qualified Data.Text as T
 
-empty :: (MonadState s m) => Tree (WidgetNode s e m)
+empty :: (MonadState s m) => Tree (WidgetInstance s e m)
 empty = singleWidget makeHGrid
 
-hgrid :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
+hgrid :: (MonadState s m) => [Tree (WidgetInstance s e m)] -> Tree (WidgetInstance s e m)
 hgrid = parentWidget makeHGrid
 
 makeHGrid :: (MonadState s m) => Widget s e m
 makeHGrid = makeFixedGrid "hgrid" Horizontal
 
-vgrid :: (MonadState s m) => [Tree (WidgetNode s e m)] -> Tree (WidgetNode s e m)
+vgrid :: (MonadState s m) => [Tree (WidgetInstance s e m)] -> Tree (WidgetInstance s e m)
 vgrid = parentWidget makeVGrid
 
 makeVGrid :: (MonadState s m) => Widget s e m

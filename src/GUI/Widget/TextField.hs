@@ -24,7 +24,7 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show)
 
-textField :: (MonadState s m) => Tree (WidgetNode s e m)
+textField :: (MonadState s m) => Tree (WidgetInstance s e m)
 textField = singleWidget $ makeTextField (TextFieldState "" 0)
 
 {-- 

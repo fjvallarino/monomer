@@ -15,7 +15,7 @@ import GUI.Widget.Core
 
 import qualified Data.Text as T
 
-button :: (MonadState s m) => e -> Tree (WidgetNode s e m)
+button :: (MonadState s m) => e -> Tree (WidgetInstance s e m)
 button onClick = singleWidget (makeButton 0 onClick)
 
 makeButton :: (MonadState s m) => Int -> e -> Widget s e m
@@ -37,7 +37,7 @@ makeButton state onClick = Widget widgetType modifiesContext focusable handleEve
         drawBgRect renderer viewport style
         drawText renderer viewport _textStyle (T.pack (show state))
 
-label :: (MonadState s m) => T.Text -> Tree (WidgetNode s e m)
+label :: (MonadState s m) => T.Text -> Tree (WidgetInstance s e m)
 label caption = singleWidget (makeLabel caption)
 
 makeLabel :: (MonadState s m) => T.Text -> Widget s e m

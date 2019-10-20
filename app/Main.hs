@@ -51,7 +51,7 @@ data AppEvent = Action1 Int | Action2 deriving (Show, Eq)
 
 type WidgetM = StateT App IO
 type LocalWidget = W.Widget App AppEvent WidgetM
-type WidgetTree = TR.Tree (W.WidgetNode App AppEvent WidgetM)
+type WidgetTree = TR.Tree (W.WidgetInstance App AppEvent WidgetM)
 
 type AppContext = W.GUIContext App
 type AppM = StateT AppContext IO
@@ -245,7 +245,7 @@ renderWidgets !window !c !renderer widgets ticks = do
   liftIO $ endFrame c
   SDL.glSwapWindow window
 
-collectPaths :: (MonadState s m) => TR.Tree (W.WidgetNode s e m) -> TR.Path -> [(W.WidgetNode s e m, TR.Path)]
+collectPaths :: (MonadState s m) => TR.Tree (W.WidgetInstance s e m) -> TR.Path -> [(W.WidgetInstance s e m, TR.Path)]
 collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
   pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
