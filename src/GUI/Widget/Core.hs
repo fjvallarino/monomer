@@ -177,8 +177,7 @@ data WidgetNode s e m =
     _widgetNodeViewport :: Rect,
     -- The are of the requested viewport that is actually visible. Used for optimization purposes.
     _widgetNodeVisibleRegion :: Rect,
-    _widgetNodeStyle :: Style,
-    _widgetNodeComputedStyle :: Style
+    _widgetNodeStyle :: Style
   }
 
 key :: (MonadState s m) => WidgetKey -> WidgetNode s e m -> WidgetNode s e m
@@ -192,7 +191,7 @@ children (Node value _) newChildren = fromList value newChildren
 
 cascadeStyle :: (MonadState s m) => Style -> Tree (WidgetNode s e m) -> Tree (WidgetNode s e m)
 cascadeStyle parentStyle (Node (wn@WidgetNode{..}) children) = newNode where
-  newNode = Node (wn { _widgetNodeComputedStyle = newStyle }) newChildren
+  newNode = Node (wn { _widgetNodeStyle = newStyle }) newChildren
   newStyle = _widgetNodeStyle <> parentStyle
   newChildren = fmap (cascadeStyle newStyle) children
 
@@ -203,8 +202,7 @@ defaultWidgetNode widget = WidgetNode {
   _widgetNodeStatus = def,
   _widgetNodeViewport = def,
   _widgetNodeVisibleRegion = def,
-  _widgetNodeStyle = mempty,
-  _widgetNodeComputedStyle = mempty
+  _widgetNodeStyle = mempty
 }
 
 singleWidget :: (MonadState s m) => Widget s e m -> Tree (WidgetNode s e m)
@@ -268,7 +266,7 @@ handleRender :: (MonadState s m) => Renderer m -> Tree (WidgetNode s e m) -> Tim
 handleRender renderer (Node (WidgetNode { _widgetNodeWidget = Widget{..}, .. }) children) ts = do
   when (_widgetModifiesContext) $ saveContext renderer
 
-  _widgetRender renderer _widgetNodeViewport _widgetNodeComputedStyle _widgetNodeStatus ts
+  _widgetRender renderer _widgetNodeViewport _widgetNodeStyle _widgetNodeStatus ts
   mapM_ (\treeNode -> handleRender renderer treeNode ts) children
 
   when (_widgetModifiesContext) $ restoreContext renderer
