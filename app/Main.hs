@@ -114,8 +114,8 @@ buildUI :: App -> WidgetTree
 buildUI model = styledTree where
   border1 = border 5 (RGB 0 255 0) 20
   border2 = borderLeft 20 (RGB 200 200 0) <> borderRight 20 (RGB 200 0 200)
-  style1 = bgColor (RGB 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
-  styleLabel = bgColor (RGB 100 100 100) <> textSize 48
+  buttonStyle = bgColor (RGB 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
+  labelStyle = bgColor (RGB 100 100 100) <> textSize 48
   textStyle = textColor (RGB 0 255 0)
   extraWidgets = map (\i -> button (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vgrid ([
@@ -123,13 +123,13 @@ buildUI model = styledTree where
         textField `style` textStyle,
         textField `style` textStyle
       ],
-      scroll $ label "This is a really really really long label, you know?" `style` styleLabel,
+      scroll $ label "This is a really really really long label, you know?" `style` labelStyle,
       hgrid [
-        button (Action1 1) `style` style1,
-        button (Action1 2) `style` style1,
-        button (Action1 3) `style` style1
+        button (Action1 1) `style` buttonStyle,
+        button (Action1 2) `style` buttonStyle,
+        button (Action1 3) `style` buttonStyle
       ],
-      button (Action1 0) `style` style1,
+      button (Action1 0) `style` buttonStyle,
       textField `style` textStyle
     ] ++ extraWidgets)
   styledTree = W.cascadeStyle mempty widgetTree
