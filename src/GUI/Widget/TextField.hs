@@ -24,7 +24,7 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show)
 
-textField :: (MonadState s m) => Tree (WidgetInstance s e m)
+textField :: (MonadState s m) => WidgetNode s e m
 textField = singleWidget $ makeTextField (TextFieldState "" 0)
 
 {-- 
@@ -54,8 +54,8 @@ makeTextField (TextFieldState txt tp) = Widget widgetType modifiesContext focusa
         newState = TextFieldState txt2 tp2
       _ -> Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
-    resizeChildren _ _ _ = []
-    render renderer viewport (style@Style{..}) status ts = do
+    resizeChildren _ _ _ = Nothing
+    render renderer viewport (style@Style{..}) enabled focused ts = do
       drawBgRect renderer viewport style
       drawText renderer viewport _textStyle (T.pack printedText)
 

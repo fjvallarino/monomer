@@ -16,16 +16,16 @@ import GUI.Widget.Core
 
 import qualified Data.Text as T
 
-empty :: (MonadState s m) => Tree (WidgetInstance s e m)
+empty :: (MonadState s m) => WidgetNode s e m
 empty = singleWidget makeHGrid
 
-hgrid :: (MonadState s m) => [Tree (WidgetInstance s e m)] -> Tree (WidgetInstance s e m)
+hgrid :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
 hgrid = parentWidget makeHGrid
 
 makeHGrid :: (MonadState s m) => Widget s e m
 makeHGrid = makeFixedGrid "hgrid" Horizontal
 
-vgrid :: (MonadState s m) => [Tree (WidgetInstance s e m)] -> Tree (WidgetInstance s e m)
+vgrid :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
 vgrid = parentWidget makeVGrid
 
 makeVGrid :: (MonadState s m) => Widget s e m
@@ -37,16 +37,16 @@ makeFixedGrid widgetType direction = Widget widgetType modifiesContext focusable
     modifiesContext = False
     focusable = False
     handleEvent _ _ = Nothing
-    render _ _ _ _ _ = return ()
+    render _ _ _ _ _ _ = return ()
     preferredSize _ _ children = return $ Size width height where
       width = (fromIntegral wMul) * (maximum . map _w) children
       height = (fromIntegral hMul) * (maximum . map _h) children
       wMul = if direction == Horizontal then length children else 1
       hMul = if direction == Horizontal then 1 else length children
-    resizeChildren (Rect l t w h) style children = newWidgets where
+    resizeChildren (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
       cols = if direction == Horizontal then (length children) else 1
       rows = if direction == Horizontal then 1 else (length children)
-      newWidgets = fmap resizeChild [0..(length children - 1)]
+      newViewports = fmap resizeChild [0..(length children - 1)]
       resizeChild i = Rect (cx i) (cy i) cw ch
       cw = w / fromIntegral cols
       ch = h / fromIntegral rows

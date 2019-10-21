@@ -192,7 +192,7 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   let (stop, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
-  updatedRoot <- if (not stop && W.isKeyPressed systemEvent keycodeTab) then do
+  updatedRoot <- if (not stop && isKeyPressed systemEvent keycodeTab) then do
     ring <- use focusRing
     focusRing .= rotateList ring
     newFocus <- getCurrentFocus
@@ -206,6 +206,14 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
     handleAppEvents renderer appEvents updatedRoot
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
+
+isKeyboardEvent :: W.SystemEvent -> Bool
+isKeyboardEvent (W.KeyAction _ _) = True
+isKeyboardEvent _ = False
+
+isKeyPressed :: W.SystemEvent -> W.KeyCode -> Bool
+isKeyPressed (W.KeyAction keyCode W.KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed _ _ = False
 
 isKeyTab :: W.KeyCode -> Bool
 isKeyTab key = matchesSDLKeyCode key SDL.KeycodeTab
