@@ -123,7 +123,10 @@ buildUI model = styledTree where
         textField `style` textStyle,
         textField `style` textStyle
       ],
-      scroll $ label "This is a really really really long label, you know?" `style` labelStyle,
+      hgrid [
+        scroll $ label "This is a really really really long label, you know?" `style` labelStyle,
+        label "Short"
+      ],
       hgrid [
         button (Action1 1) `style` buttonStyle,
         button (Action1 2) `style` buttonStyle,

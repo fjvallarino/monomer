@@ -23,10 +23,9 @@ scroll :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m
 scroll managedWidget = parentWidget (makeScroll (ScrollState 0)) [managedWidget]
 
 makeScroll :: (MonadState s m) => ScrollState -> Widget s e m
-makeScroll state = Widget widgetType modifiesContext focusable handleEvent preferredSize resizeChildren render
+makeScroll state = Widget widgetType focusable handleEvent preferredSize resizeChildren render
   where
     widgetType = "scroll"
-    modifiesContext = True
     focusable = False
     handleEvent view evt = Nothing
     preferredSize _ _ children = return (head children)
@@ -35,6 +34,10 @@ makeScroll state = Widget widgetType modifiesContext focusable handleEvent prefe
       newWidget = Just $ makeScroll state
       viewport = [Rect l t w h]
       renderArea = [Rect l t w h]
-    render renderer viewport (style@Style{..}) enabled focused ts =
+    render renderer WidgetInstance{..} children ts =
       do
-        drawText renderer viewport _textStyle (T.pack (show state))
+        scissor renderer _widgetInstanceViewport
+        handleRenderChildren renderer children ts
+        resetScissor renderer
+
+        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show state))

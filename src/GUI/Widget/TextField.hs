@@ -31,10 +31,9 @@ textField = singleWidget $ makeTextField (TextFieldState "" 0)
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
 makeTextField :: (MonadState s m) => TextFieldState -> Widget s e m
-makeTextField (TextFieldState txt tp) = Widget widgetType modifiesContext focusable handleEvent preferredSize resizeChildren render
+makeTextField (TextFieldState txt tp) = Widget widgetType focusable handleEvent preferredSize resizeChildren render
   where
     widgetType = "textField"
-    modifiesContext = False
     focusable = True
     (part1, part2) = splitAt tp txt
     printedText = part1 ++ "|" ++ part2
@@ -55,9 +54,10 @@ makeTextField (TextFieldState txt tp) = Widget widgetType modifiesContext focusa
       _ -> Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
     resizeChildren _ _ _ = Nothing
-    render renderer viewport (style@Style{..}) enabled focused ts = do
-      drawBgRect renderer viewport style
-      drawText renderer viewport _textStyle (T.pack printedText)
+    render renderer WidgetInstance{..} _ ts =
+      do
+        drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
+        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack printedText)
 
 isKeyPrintable :: KeyCode -> Bool
 isKeyPrintable key = key >= 32 && key < 126

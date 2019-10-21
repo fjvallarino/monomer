@@ -26,6 +26,7 @@ type Focused = Bool
 type KeyCode = Int
 
 type WidgetNode s e m = Tree (WidgetInstance s e m)
+type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 
@@ -44,8 +45,8 @@ data WidgetEventResult s e m = WidgetEventResult {
 }
 
 data WidgetResizeResult s e m = WidgetResizeResult {
-  _resizeResultViewports :: [Rect],
   _resizeResultRenderAreas :: [Rect],
+  _resizeResultViewports :: [Rect],
   _resizeResultWidget :: Maybe (Widget s e m)
 }
 
@@ -82,8 +83,6 @@ data Widget s e m =
   (MonadState s m) => Widget {
     -- | Type of the widget
     _widgetType :: WidgetType,
-    -- | Indicates whether the widget makes changes to the render context that needs to be restored AFTER children render
-    _widgetModifiesContext :: Bool,
     -- | Indicates whether the widget can receive focus
     _widgetFocusable :: Bool,
     -- | Handles an event
@@ -112,14 +111,15 @@ data Widget s e m =
     -- | Renders the widget
     --
     -- Renderer
-    -- Region assigned to the widget
     -- Style options
+    -- renderArea: The area of the screen where the widget can draw
+    -- viewport: The visible area of the screen assigned to the widget
     -- Indicates if the widget (and its children) are enabled
     -- Indicates if the widget has focus
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: Renderer m -> Rect -> Style -> Enabled -> Focused -> Timestamp -> m ()
+    _widgetRender :: Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
@@ -229,13 +229,12 @@ handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rec
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
-handleRender renderer (Node (WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
-  when (_widgetModifiesContext) $ saveContext renderer
+handleRender renderer (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
+  _widgetRender renderer widgetInstance children ts
 
-  _widgetRender renderer _widgetInstanceViewport _widgetInstanceStyle _widgetInstanceEnabled _widgetInstanceFocused ts
+handleRenderChildren :: (MonadState s m) => Renderer m -> WidgetChildren s e m -> Timestamp -> m ()
+handleRenderChildren renderer children ts = do
   mapM_ (\treeNode -> handleRender renderer treeNode ts) children
-
-  when (_widgetModifiesContext) $ restoreContext renderer
 
 updateWidgetInstance :: Path -> WidgetNode s e m -> (WidgetInstance s e m -> WidgetInstance s e m) -> WidgetNode s e m
 updateWidgetInstance path root updateFn = updateNode path root (\(Node widgetInstance children) -> Node (updateFn widgetInstance) children)

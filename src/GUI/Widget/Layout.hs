@@ -32,12 +32,10 @@ makeVGrid :: (MonadState s m) => Widget s e m
 makeVGrid = makeFixedGrid "vgrid" Vertical
 
 makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeFixedGrid widgetType direction = Widget widgetType modifiesContext focusable handleEvent preferredSize resizeChildren render
+makeFixedGrid widgetType direction = Widget widgetType focusable handleEvent preferredSize resizeChildren render
   where
-    modifiesContext = False
     focusable = False
     handleEvent _ _ = Nothing
-    render _ _ _ _ _ _ = return ()
     preferredSize _ _ children = return $ Size width height where
       width = (fromIntegral wMul) * (maximum . map _w) children
       height = (fromIntegral hMul) * (maximum . map _h) children
@@ -52,6 +50,8 @@ makeFixedGrid widgetType direction = Widget widgetType modifiesContext focusable
       ch = h / fromIntegral rows
       cx i = l + (fromIntegral $ i `div` rows) * cw
       cy i = t + (fromIntegral $ i `div` cols) * ch
+    render renderer WidgetInstance{..} children {--style renderArea viewport enabled focused--} ts = do
+      handleRenderChildren renderer children ts
 
 {--
 makeSizedGrid :: (Monad m) => Direction -> Widget e m
