@@ -124,8 +124,8 @@ buildUI model = styledTree where
         textField `style` textStyle
       ],
       hgrid [
-        scroll $ label "This is a really really really long label, you know?" `style` labelStyle,
-        label "Short"
+        label "Short",
+        scroll $ label "This is a really really really long label, you know?" `style` labelStyle
       ],
       hgrid [
         button (Action1 1) `style` buttonStyle,
@@ -186,13 +186,13 @@ handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTr
 handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
-handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, SQ.Seq AppEvent, Maybe WidgetTree)
+handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, [W.EventRequest], SQ.Seq AppEvent, Maybe WidgetTree)
 handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
 handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
-  let (stop, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
+  let (stop, eventRequests, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
   updatedRoot <- if (not stop && isKeyPressed systemEvent keycodeTab) then do
@@ -203,10 +203,15 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   else
     return newRoot
 
-  if length appEvents == 0 then
+  updatedRoot2 <- if length appEvents == 0 then
     return updatedRoot
   else
     handleAppEvents renderer appEvents updatedRoot
+
+  if elem W.ResizeChildren eventRequests then
+    updateUI renderer updatedRoot2
+  else
+    return updatedRoot2
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 

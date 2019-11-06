@@ -1,7 +1,5 @@
 .stack-work/
 .vscode/
-app copy/
-src copy/
 hs-GUI.cabal
 *~
 *.prof

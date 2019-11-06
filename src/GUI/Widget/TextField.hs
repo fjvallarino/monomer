@@ -48,7 +48,7 @@ makeTextField (TextFieldState txt tp) = Widget widgetType focusable handleEvent 
         newText = if isKeyPrintable code then [chr code] else ""
         (part1, part2) = splitAt currTp currText
     handleEvent _ evt = case evt of
-      KeyAction code KeyPressed -> widgetEventResult False [] (makeTextField newState) where
+      KeyAction code KeyPressed -> eventResult [] (makeTextField newState) where
         (txt2, tp2) = handleKeyPress txt tp code
         newState = TextFieldState txt2 tp2
       _ -> Nothing

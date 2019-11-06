@@ -24,7 +24,7 @@ makeButton state onClick = Widget widgetType focusable handleEvent preferredSize
     widgetType = "button"
     focusable = False
     handleEvent view evt = case evt of
-      Click (Point x y) _ status -> widgetEventResult False events (makeButton newState onClick) where
+      Click (Point x y) _ status -> eventResult events (makeButton newState onClick) where
         isPressed = status == PressedBtn && inRect view (Point x y)
         newState = if isPressed then state + 1 else state
         events = if isPressed then [onClick] else []

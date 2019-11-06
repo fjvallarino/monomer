@@ -1,1 +1,3 @@
 :set -fno-ghci-sandbox
+:set prompt "\x03BB: "
+:set prompt-cont  "   | "

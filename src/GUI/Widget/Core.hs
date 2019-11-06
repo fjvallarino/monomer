@@ -38,8 +38,10 @@ data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
 data SystemEvent = Click Point Button ButtonState |
                    KeyAction KeyCode KeyMotion deriving (Show, Eq)
 
+data EventRequest = StopPropagation | ResizeChildren | ResizeAll deriving (Show, Eq)
+
 data WidgetEventResult s e m = WidgetEventResult {
-  _eventResultStop :: Bool,
+  _eventResultRequest :: [EventRequest],
   _eventResultUserEvents :: [e],
   _eventResultNewWidget :: Maybe (Widget s e m)
 }
@@ -50,8 +52,11 @@ data WidgetResizeResult s e m = WidgetResizeResult {
   _resizeResultWidget :: Maybe (Widget s e m)
 }
 
-widgetEventResult :: Bool -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
-widgetEventResult stop userEvents newWidget = Just $ WidgetEventResult stop userEvents (Just newWidget)
+eventResult :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+eventResult userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget)
+
+eventResultRequest :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+eventResultRequest requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
 
 newtype WidgetType = WidgetType String deriving Eq
 newtype WidgetKey = WidgetKey String deriving Eq
@@ -143,6 +148,7 @@ data WidgetInstance s e m =
     _widgetInstanceRenderArea :: Rect,
     -- | Style attributes of the widget instance
     _widgetInstanceStyle :: Style
+    --_widgetInstanceElementStyle :: Style
   }
 
 key :: (MonadState s m) => WidgetKey -> WidgetInstance s e m -> WidgetInstance s e m
@@ -193,18 +199,20 @@ mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
 handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> SystemEvent -> Maybe (WidgetEventResult s e m)
 handleWidgetEvents (Widget {..}) viewport systemEvent = _widgetHandleEvent viewport systemEvent
 
-handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> WidgetNode s e m -> SystemEvent -> (Bool, SQ.Seq e, Maybe (WidgetNode s e m))
-handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} children) systemEvent = (stopPropagation, userEvents, newTreeNode) where
-  (stopPropagation, userEvents, newTreeNode) = case spChild of
-    True -> (spChild, ueChild, newNode1)
-    False -> (sp, ueChild SQ.>< ue, newNode2)
-  (spChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
-    (_, Nothing) -> (False, SQ.empty, Nothing, 0)
-    (newSelector, Just idx) -> (sp2, ue2, tn2, idx) where
-      (sp2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
-  (sp, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceViewport systemEvent of
-    Nothing -> (False, SQ.empty, Nothing)
-    Just (WidgetEventResult sp2 ue2 widget) -> (sp2, SQ.fromList ue2, if isNothing widget then Nothing else Just (Node (wn { _widgetInstanceWidget = fromJust widget }) children))
+handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
+handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} children) systemEvent = (stopPropagation, eventRequests, userEvents, newTreeNode) where
+  (stopPropagation, eventRequests, userEvents, newTreeNode) = case spChild of
+    True -> (spChild, erChild, ueChild, newNode1)
+    False -> (sp, erChild ++ er, ueChild SQ.>< ue, newNode2)
+  -- Children widgets
+  (spChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
+    (_, Nothing) -> (False, [], SQ.empty, Nothing, 0)
+    (newSelector, Just idx) -> (sp2, er2, ue2, tn2, idx) where
+      (sp2, er2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
+  -- Current widget
+  (sp, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
+    Nothing -> (False, [], SQ.empty, Nothing)
+    Just (WidgetEventResult er2 ue2 widget) -> (elem StopPropagation er2, er2, SQ.fromList ue2, if isNothing widget then Nothing else Just (Node (wn { _widgetInstanceWidget = fromJust widget }) children))
   newNode1 = case tnChild of
     Nothing -> Nothing
     Just wnChild -> Just $ Node wn (SQ.update tnChildIdx wnChild children)
@@ -214,14 +222,14 @@ handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} childr
     (Just pn, Nothing) -> tn
     (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
 
-handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> (Bool, SQ.Seq e, Maybe (WidgetNode s e m))
+handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
 handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path widgetInstance systemEvent where
   pathSelector [] _ = ([], Nothing)
   pathSelector (p:ps) children
     | length children > p = (ps, Just p)
     | otherwise = ([], Nothing)
 
-handleEventFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> SystemEvent -> (Bool, SQ.Seq e, Maybe (WidgetNode s e m))
+handleEventFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
 handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rectSelector cursorPos widgetInstance systemEvent where
   rectSelector point children = (point, SQ.lookup 0 inRectList) where
     inRectList = fmap snd $ SQ.filter inNodeRect childrenPair
@@ -275,4 +283,3 @@ resizeNode renderer viewport renderArea (Node _ childrenSizes) (Node widgetInsta
     }
     childrenPair = SQ.zip4 childrenSizes childrenWns (SQ.fromList viewports) (SQ.fromList renderAreas)
     childResize = \(size, node, viewport, renderArea) -> resizeNode renderer viewport renderArea size node
-

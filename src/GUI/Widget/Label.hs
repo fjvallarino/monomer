@@ -15,6 +15,15 @@ import GUI.Widget.Core
 
 import qualified Data.Text as T
 
+{--
+
+***********************************
+
+Implement auto scalable label! Selects correct size to fit the given text
+
+***********************************
+
+--}
 label :: (MonadState s m) => T.Text -> WidgetNode s e m
 label caption = singleWidget (makeLabel caption)
 

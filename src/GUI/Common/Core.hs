@@ -51,11 +51,14 @@ instance Semigroup Color where
 instance Default Color where
   def = RGB 0 0 0
 
-white = RGB 255 255 255
-black = RGB   0   0   0
-red   = RGB 255   0   0
-green = RGB   0 255   0
-blue  = RGB   0   0 255
+white      = RGB 255 255 255
+black      = RGB   0   0   0
+red        = RGB 255   0   0
+green      = RGB   0 255   0
+blue       = RGB   0   0 255
+lightGray  = RGB 191 191 191
+gray       = RGB 127 127 127
+darkGray   = RGB  63  63  63
 
 makeLenses ''Point
 makeLenses ''Size
@@ -112,3 +115,6 @@ midPoint :: Point -> Point -> Point
 midPoint (Point x1 y1) (Point x2 y2) = Point x3 y3 where
   x3 = (x2 + x1) / 2
   y3 = (y2 + y1) / 2
+
+moveRect :: Rect -> Double -> Double -> Rect
+moveRect (Rect x y w h) dx dy = Rect (x + dx) (y + dy) w h
