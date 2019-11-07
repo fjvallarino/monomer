@@ -42,7 +42,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     handleEvent view@(Rect rx ry rw rh) evt = case evt of
       Click (Point px py) btn status -> eventResultRequest [ResizeChildren] [] (makeScroll newState) where
         isPressed = status == PressedBtn && inRect view (Point px py)
-        isLeftClick = traceShow state $ isPressed && btn == LeftBtn
+        isLeftClick = isPressed && btn == LeftBtn
         isRigthClick = isPressed && btn == RightBtn
         newDx = if | isLeftClick -> if dx + stepSize < 0 then dx + stepSize else 0
                    | isRigthClick -> if cw - rw + dx - stepSize > 0 then dx - stepSize else rw - cw

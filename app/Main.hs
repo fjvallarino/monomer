@@ -142,7 +142,7 @@ runWidgets window c = do
   let renderer = NV.makeRenderer c
 
   ticks <- SDL.ticks
-  newUI <- updateUI renderer empty
+  newUI <- doInDrawingContext window c $ updateUI renderer empty
 
   mainLoop window c renderer (fromIntegral ticks) newUI
 
@@ -245,21 +245,25 @@ handleAppEvents renderer appEvents oldWidgets = do
   mergedWidgets
 
 renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
-renderWidgets !window !c !renderer widgets ticks = do
+renderWidgets !window !c !renderer widgets ticks =
+  doInDrawingContext window c $ do
+    guiContext <- get
+    zoom appContext $ do
+      W.handleRender renderer widgets ticks
+
+doInDrawingContext :: SDL.Window -> Context -> AppM a -> AppM a
+doInDrawingContext window c action = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   let !pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
-  let !w = fromIntegral screenWidth
-  let !h = fromIntegral screenHeight
 
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame c screenWidth screenHeight pxRatio
 
-  guiContext <- get
-  zoom appContext $ do
-    W.handleRender renderer widgets ticks
+  ret <- action
 
   liftIO $ endFrame c
   SDL.glSwapWindow window
+  return ret
 
 collectPaths :: (MonadState s m) => TR.Tree (W.WidgetInstance s e m) -> TR.Path -> [(W.WidgetInstance s e m, TR.Path)]
 collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
