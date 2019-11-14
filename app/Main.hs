@@ -162,6 +162,7 @@ mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> Ap
 mainLoop window c renderer prevTicks widgets = do
   ticks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
+  mousePos <- getCurrentMousePos
 
   let frameLength = 1000 `div` 30
   let nextFrame = \t -> if t >= frameLength then 0 else frameLength - t
@@ -170,12 +171,17 @@ mainLoop window c renderer prevTicks widgets = do
   let quit = elem SDL.QuitEvent eventsPayload
 
   focus <- getCurrentFocus
-  newWidgets <- handleSystemEvents renderer (convertEvents eventsPayload) focus widgets
+  newWidgets <- handleSystemEvents renderer (convertEvents mousePos eventsPayload) focus widgets
 
   renderWidgets window c renderer newWidgets ticks
 
   liftIO $ threadDelay $ (nextFrame ts) * 1000
   unless quit (mainLoop window c renderer ticks newWidgets)
+
+getCurrentMousePos :: AppM Point
+getCurrentMousePos = do
+  SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
+  return $ Point (fromIntegral x) (fromIntegral y)
 
 getCurrentFocus :: AppM TR.Path
 getCurrentFocus = do
@@ -188,6 +194,7 @@ handleSystemEvents renderer systemEvents currentFocus widgets =
 
 handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, [W.EventRequest], SQ.Seq AppEvent, Maybe WidgetTree)
 handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
+handleEvent renderer systemEvent@(W.WheelScroll point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
 handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
@@ -270,11 +277,12 @@ collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : r
   pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
 
-convertEvents :: [SDL.EventPayload] -> [W.SystemEvent]
-convertEvents events = newEvents
+convertEvents :: Point -> [SDL.EventPayload] -> [W.SystemEvent]
+convertEvents mousePos events = newEvents
   where
-    newEvents = mouseEvents ++ keyboardEvents
+    newEvents = mouseEvents ++ mouseWheelEvents ++ keyboardEvents
     mouseEvents = mouseClick events
+    mouseWheelEvents = mouseWheelEvent mousePos events
     keyboardEvents = keyboardEvent events
     --SDL.P (SDL.V2 mouseX mouseY) <- Mouse.getAbsoluteMouseLocation
 
@@ -308,6 +316,21 @@ mouseClick events =
     otherwhise -> []
   where clickEvent = L.find (\evt -> case evt of
                                      SDL.MouseButtonEvent _ -> True
+                                     otherwhise -> False
+                          ) events
+
+mouseWheelEvent :: Point -> [SDL.EventPayload] -> [W.SystemEvent]
+mouseWheelEvent mousePos events =
+  case touchEvent of
+    Just (SDL.MouseWheelEvent SDL.MouseWheelEventData
+          { SDL.mouseWheelEventPos = (SDL.V2 x y),
+            SDL.mouseWheelEventDirection = direction,
+            SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else traceShowId [W.WheelScroll mousePos wheelDelta wheelDirection]
+      where wheelDirection = if direction == SDL.ScrollNormal then W.WheelNormal else W.WheelFlipped
+            wheelDelta = Point (fromIntegral x) (fromIntegral y)
+    otherwhise -> []
+  where touchEvent = L.find (\evt -> case evt of
+                                     SDL.MouseWheelEvent _ -> True
                                      otherwhise -> False
                           ) events
 

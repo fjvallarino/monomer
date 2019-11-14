@@ -30,12 +30,15 @@ type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 
+data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
+
 data Button = LeftBtn | RightBtn deriving (Show, Eq)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 
 data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
 
 data SystemEvent = Click Point Button ButtonState |
+                   WheelScroll Point Point WheelDirection |
                    KeyAction KeyCode KeyMotion deriving (Show, Eq)
 
 data EventRequest = StopPropagation | ResizeChildren | ResizeAll deriving (Show, Eq)

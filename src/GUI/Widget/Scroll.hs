@@ -37,18 +37,29 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
   }
   where
     stepSize = 50
+    wheelRate = 10
     widgetType = "scroll"
     focusable = False
     handleEvent view@(Rect rx ry rw rh) evt = case evt of
-      Click (Point px py) btn status -> eventResultRequest [ResizeChildren] [] (makeScroll newState) where
+      Click (Point px py) btn status -> result where
+        result = if isPressed then eventResultRequest [ResizeChildren] [] (makeScroll newState) else Nothing
         isPressed = status == PressedBtn && inRect view (Point px py)
         isLeftClick = isPressed && btn == LeftBtn
         isRigthClick = isPressed && btn == RightBtn
-        newDx = if | isLeftClick -> if dx + stepSize < 0 then dx + stepSize else 0
-                   | isRigthClick -> if cw - rw + dx - stepSize > 0 then dx - stepSize else rw - cw
-                   | otherwise -> dx
-        newState = ScrollState newDx dy cs
+        step = if | isLeftClick -> stepSize
+                  | isRigthClick -> -stepSize
+                  | otherwise -> 0
+        newState = ScrollState (scrollX step dx cw rw) dy cs
+      WheelScroll _ (Point wx wy) wheelDirection -> result where
+        needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
+        result = if needsUpdate then eventResultRequest [ResizeChildren] [] (makeScroll newState) else Nothing
+        stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
+        stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
+        newState = ScrollState (scrollX stepX dx cw rw) (scrollX stepY dy ch rh) cs
       _ -> Nothing
+    scrollX reqDelta currScroll childPos viewportLimit
+      | reqDelta >= 0 = if currScroll + reqDelta < 0 then currScroll + reqDelta else 0
+      | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0 then currScroll + reqDelta else viewportLimit - childPos
     preferredSize _ _ children = return (head children)
     resizeChildren (Rect l t w h) _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
       Size cw2 ch2 = (head children)
