@@ -284,17 +284,6 @@ convertEvents mousePos events = newEvents
     mouseEvents = mouseClick events
     mouseWheelEvents = mouseWheelEvent mousePos events
     keyboardEvents = keyboardEvent events
-    --SDL.P (SDL.V2 mouseX mouseY) <- Mouse.getAbsoluteMouseLocation
-
-{--
-convertEvents :: [SDL.EventPayload] -> [W.SystemEvent]
-convertEvents events = newEvents
-  where
-    newEvents = mouseEvents ++ keyboardEvents
-    mouseEvents = mouseClick events
-    keyboardEvents = keyboardEvent events
-    --SDL.P (SDL.V2 mouseX mouseY) <- Mouse.getAbsoluteMouseLocation
---}
 
 mouseClick :: [SDL.EventPayload] -> [W.SystemEvent]
 mouseClick events =
@@ -325,7 +314,7 @@ mouseWheelEvent mousePos events =
     Just (SDL.MouseWheelEvent SDL.MouseWheelEventData
           { SDL.mouseWheelEventPos = (SDL.V2 x y),
             SDL.mouseWheelEventDirection = direction,
-            SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else traceShowId [W.WheelScroll mousePos wheelDelta wheelDirection]
+            SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else [W.WheelScroll mousePos wheelDelta wheelDirection]
       where wheelDirection = if direction == SDL.ScrollNormal then W.WheelNormal else W.WheelFlipped
             wheelDelta = Point (fromIntegral x) (fromIntegral y)
     otherwhise -> []

@@ -50,7 +50,7 @@ makeFixedGrid widgetType direction = Widget widgetType focusable handleEvent pre
       ch = h / fromIntegral rows
       cx i = l + (fromIntegral $ i `div` rows) * cw
       cy i = t + (fromIntegral $ i `div` cols) * ch
-    render renderer WidgetInstance{..} children {--style renderArea viewport enabled focused--} ts = do
+    render renderer WidgetInstance{..} children ts = do
       handleRenderChildren renderer children ts
 
 {--

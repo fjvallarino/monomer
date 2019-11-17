@@ -37,11 +37,16 @@ data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 
 data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data SystemEvent = Click Point Button ButtonState |
-                   WheelScroll Point Point WheelDirection |
-                   KeyAction KeyCode KeyMotion deriving (Show, Eq)
+data SystemEvent = Click Point Button ButtonState
+                 | WheelScroll Point Point WheelDirection
+                 | KeyAction KeyCode KeyMotion
+                 deriving (Show, Eq)
 
-data EventRequest = StopPropagation | ResizeChildren | ResizeAll deriving (Show, Eq)
+data EventRequest = IgnoreParentEvents
+                  | IgnoreChildrenEvents
+                  | ResizeChildren
+                  | ResizeAll
+                  deriving (Show, Eq)
 
 data WidgetEventResult s e m = WidgetEventResult {
   _eventResultRequest :: [EventRequest],
@@ -203,19 +208,25 @@ handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> SystemEvent ->
 handleWidgetEvents (Widget {..}) viewport systemEvent = _widgetHandleEvent viewport systemEvent
 
 handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
-handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} children) systemEvent = (stopPropagation, eventRequests, userEvents, newTreeNode) where
-  (stopPropagation, eventRequests, userEvents, newTreeNode) = case spChild of
-    True -> (spChild, erChild, ueChild, newNode1)
-    False -> (sp, erChild ++ er, ueChild SQ.>< ue, newNode2)
+handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} children) systemEvent = (ignoreParentEvents, eventRequests, userEvents, newTreeNode) where
+  (ignoreParentEvents, eventRequests, userEvents, newTreeNode) = case (ice, ipeChild) of
+    (True, _) -> (ipe, er, ue, newNode1)
+    (_, True) -> (ipeChild, erChild, ueChild, newNode1)
+    (_, False) -> (ipe, erChild ++ er, ueChild SQ.>< ue, newNode2)
   -- Children widgets
-  (spChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
+  (ipeChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
     (_, Nothing) -> (False, [], SQ.empty, Nothing, 0)
-    (newSelector, Just idx) -> (sp2, er2, ue2, tn2, idx) where
-      (sp2, er2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
+    (newSelector, Just idx) -> (ipe2, er2, ue2, tn2, idx) where
+      (ipe2, er2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
   -- Current widget
-  (sp, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
-    Nothing -> (False, [], SQ.empty, Nothing)
-    Just (WidgetEventResult er2 ue2 widget) -> (elem StopPropagation er2, er2, SQ.fromList ue2, if isNothing widget then Nothing else Just (Node (wn { _widgetInstanceWidget = fromJust widget }) children))
+  (ice, ipe, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
+    Nothing -> (False, False, [], SQ.empty, Nothing)
+    Just (WidgetEventResult er2 ue2 widget) -> (ice, ipe, er2, SQ.fromList ue2, updatedNode) where
+      ice = elem IgnoreChildrenEvents er2
+      ipe = elem IgnoreParentEvents er2
+      updatedNode = if isNothing widget
+                      then Nothing
+                      else Just $ Node (wn { _widgetInstanceWidget = fromJust widget }) children
   newNode1 = case tnChild of
     Nothing -> Nothing
     Just wnChild -> Just $ Node wn (SQ.update tnChildIdx wnChild children)

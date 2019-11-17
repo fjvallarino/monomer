@@ -5,7 +5,6 @@
 module GUI.Widget.Scroll (scroll) where
 
 import Data.Default
-import Debug.Trace
 import Control.Monad
 import Control.Monad.State
 
@@ -58,8 +57,12 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
         newState = ScrollState (scrollX stepX dx cw rw) (scrollX stepY dy ch rh) cs
       _ -> Nothing
     scrollX reqDelta currScroll childPos viewportLimit
-      | reqDelta >= 0 = if currScroll + reqDelta < 0 then currScroll + reqDelta else 0
-      | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0 then currScroll + reqDelta else viewportLimit - childPos
+      | reqDelta >= 0 = if currScroll + reqDelta < 0
+                          then currScroll + reqDelta
+                          else 0
+      | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0
+                      then currScroll + reqDelta
+                      else viewportLimit - childPos
     preferredSize _ _ children = return (head children)
     resizeChildren (Rect l t w h) _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
       Size cw2 ch2 = (head children)
