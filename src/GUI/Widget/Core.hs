@@ -3,6 +3,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module GUI.Widget.Core where
 
@@ -12,6 +13,7 @@ import Control.Monad.State
 import Data.Default
 import Data.Maybe
 import Data.String
+import Data.Typeable (cast, Typeable)
 
 import GUI.Common.Core
 import GUI.Common.Style
@@ -92,8 +94,11 @@ initGUIContext app = GUIContext {
 isFocusable :: (MonadState s m) => WidgetInstance s e m -> Bool
 isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widgetInstanceEnabled  && _widgetFocusable
 
-data Widget s e m =
-  (MonadState s m) => Widget {
+defaultCustomHandler :: Int -> Maybe (WidgetEventResult s e m)
+defaultCustomHandler _ = Nothing
+
+data Widget s e m = forall i .
+  (MonadState s m, Typeable i) => Widget {
     -- | Type of the widget
     _widgetType :: WidgetType,
     -- | Indicates whether the widget can receive focus
@@ -105,6 +110,12 @@ data Widget s e m =
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
     _widgetHandleEvent :: Rect -> SystemEvent -> Maybe (WidgetEventResult s e m),
+    -- | Handles an custom asynchronous event
+    --
+    -- Result of asynchronous computation
+    --
+    -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
+    _widgetHandleCustom :: i -> Maybe (WidgetEventResult s e m),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -207,8 +218,15 @@ mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
 handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> SystemEvent -> Maybe (WidgetEventResult s e m)
 handleWidgetEvents (Widget {..}) viewport systemEvent = _widgetHandleEvent viewport systemEvent
 
-handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
-handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} children) systemEvent = (ignoreParentEvents, eventRequests, userEvents, newTreeNode) where
+data ChildEventResult s e m = ChildEventResult {
+  cerIgnoreParentEvents :: Bool,
+  cerEventRequests :: [(Path, EventRequest)],
+  cerUserEvents :: SQ.Seq e,
+  cerNewTreeNode :: Maybe (WidgetNode s e m)
+}
+
+handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
+handleChildEvent selectorFn selector path treeNode@(Node wn@WidgetInstance{..} children) systemEvent = ChildEventResult ignoreParentEvents eventRequests userEvents newTreeNode where
   (ignoreParentEvents, eventRequests, userEvents, newTreeNode) = case (ice, ipeChild) of
     (True, _) -> (ipe, er, ue, newNode1)
     (_, True) -> (ipeChild, erChild, ueChild, newNode1)
@@ -217,13 +235,14 @@ handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} childr
   (ipeChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
     (_, Nothing) -> (False, [], SQ.empty, Nothing, 0)
     (newSelector, Just idx) -> (ipe2, er2, ue2, tn2, idx) where
-      (ipe2, er2, ue2, tn2) = handleChildEvent selectorFn newSelector (SQ.index children idx) systemEvent
+      (ChildEventResult ipe2 er2 ue2 tn2) = handleChildEvent selectorFn newSelector (idx:path) (SQ.index children idx) systemEvent
   -- Current widget
   (ice, ipe, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
     Nothing -> (False, False, [], SQ.empty, Nothing)
-    Just (WidgetEventResult er2 ue2 widget) -> (ice, ipe, er2, SQ.fromList ue2, updatedNode) where
+    Just (WidgetEventResult er2 ue2 widget) -> (ice, ipe, pathEvents, SQ.fromList ue2, updatedNode) where
       ice = elem IgnoreChildrenEvents er2
       ipe = elem IgnoreParentEvents er2
+      pathEvents = fmap (path,) er2
       updatedNode = if isNothing widget
                       then Nothing
                       else Just $ Node (wn { _widgetInstanceWidget = fromJust widget }) children
@@ -236,15 +255,15 @@ handleChildEvent selectorFn selector treeNode@(Node wn@WidgetInstance{..} childr
     (Just pn, Nothing) -> tn
     (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
 
-handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
-handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path widgetInstance systemEvent where
+handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
+handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path [0] widgetInstance systemEvent where
   pathSelector [] _ = ([], Nothing)
   pathSelector (p:ps) children
     | length children > p = (ps, Just p)
     | otherwise = ([], Nothing)
 
-handleEventFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> SystemEvent -> (Bool, [EventRequest], SQ.Seq e, Maybe (WidgetNode s e m))
-handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rectSelector cursorPos widgetInstance systemEvent where
+handleEventFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
+handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rectSelector cursorPos [0] widgetInstance systemEvent where
   rectSelector point children = (point, SQ.lookup 0 inRectList) where
     inRectList = fmap snd $ SQ.filter inNodeRect childrenPair
     inNodeRect = \(Node (WidgetInstance {..}) _, _) -> inRect _widgetInstanceViewport point

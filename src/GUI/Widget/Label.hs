@@ -28,10 +28,16 @@ label :: (MonadState s m) => T.Text -> WidgetNode s e m
 label caption = singleWidget (makeLabel caption)
 
 makeLabel :: (MonadState s m) => T.Text -> Widget s e m
-makeLabel caption = Widget widgetType focusable handleEvent preferredSize resizeChildren render
+makeLabel caption = Widget {
+    _widgetType = "label",
+    _widgetFocusable = False,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
   where
-    widgetType = "label"
-    focusable = False
     handleEvent view evt = Nothing
     preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle caption
     resizeChildren _ _ _ = Nothing

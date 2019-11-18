@@ -19,10 +19,16 @@ button :: (MonadState s m) => e -> WidgetNode s e m
 button onClick = singleWidget (makeButton 0 onClick)
 
 makeButton :: (MonadState s m) => Int -> e -> Widget s e m
-makeButton state onClick = Widget widgetType focusable handleEvent preferredSize resizeChildren render
+makeButton state onClick = Widget {
+    _widgetType = "button",
+    _widgetFocusable = False,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
   where
-    widgetType = "button"
-    focusable = False
     handleEvent view evt = case evt of
       Click (Point x y) _ status -> eventResult events (makeButton newState onClick) where
         isPressed = status == PressedBtn && inRect view (Point x y)

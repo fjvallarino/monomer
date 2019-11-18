@@ -31,10 +31,16 @@ textField = singleWidget $ makeTextField (TextFieldState "" 0)
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
 makeTextField :: (MonadState s m) => TextFieldState -> Widget s e m
-makeTextField (TextFieldState txt tp) = Widget widgetType focusable handleEvent preferredSize resizeChildren render
+makeTextField (TextFieldState txt tp) = Widget {
+    _widgetType = "textField",
+    _widgetFocusable = True,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
   where
-    widgetType = "textField"
-    focusable = True
     (part1, part2) = splitAt tp txt
     printedText = part1 ++ "|" ++ part2
     handleKeyPress currText currTp code

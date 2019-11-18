@@ -32,7 +32,15 @@ makeVGrid :: (MonadState s m) => Widget s e m
 makeVGrid = makeFixedGrid "vgrid" Vertical
 
 makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeFixedGrid widgetType direction = Widget widgetType focusable handleEvent preferredSize resizeChildren render
+makeFixedGrid widgetType direction = Widget {
+    _widgetType = widgetType,
+    _widgetFocusable = False,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
   where
     focusable = False
     handleEvent _ _ = Nothing

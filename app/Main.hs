@@ -192,14 +192,14 @@ handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTr
 handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
-handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> (Bool, [W.EventRequest], SQ.Seq AppEvent, Maybe WidgetTree)
+handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> W.ChildEventResult App AppEvent WidgetM
 handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
 handleEvent renderer systemEvent@(W.WheelScroll point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
 handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
-  let (stop, eventRequests, appEvents, newWidgets) = handleEvent renderer systemEvent currentFocus widgets
+  let (W.ChildEventResult stop eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
   updatedRoot <- if (not stop && isKeyPressed systemEvent keycodeTab) then do
@@ -215,10 +215,9 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   else
     handleAppEvents renderer appEvents updatedRoot
 
-  if elem W.ResizeChildren eventRequests then
-    updateUI renderer updatedRoot2
-  else
-    return updatedRoot2
+  case L.find (\evt -> snd evt == W.ResizeChildren) eventRequests of
+    Just (path, event) -> updateUI renderer updatedRoot2
+    Nothing -> return updatedRoot2
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 

@@ -30,6 +30,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     _widgetType = "scroll",
     _widgetFocusable = False,
     _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render
