@@ -23,6 +23,7 @@ default-extensions:
 - OverloadedStrings
 
 dependencies:
+- async
 - base >= 4.7 && < 5
 - containers
 - data-default

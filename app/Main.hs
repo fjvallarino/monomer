@@ -6,11 +6,15 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
+import Control.Concurrent.Async (async, poll)
+import Control.Exception.Base
 import Control.Monad
+import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
+import Data.Typeable
 import Foreign.C.Types
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro.Mtl
@@ -170,8 +174,10 @@ mainLoop window c renderer prevTicks widgets = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
 
+  handledWidgets <- processCustomHandlers widgets
+
   focus <- getCurrentFocus
-  newWidgets <- handleSystemEvents renderer (convertEvents mousePos eventsPayload) focus widgets
+  newWidgets <- handleSystemEvents renderer (convertEvents mousePos eventsPayload) focus handledWidgets
 
   renderWidgets window c renderer newWidgets ticks
 
@@ -201,6 +207,7 @@ handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree 
 handleSystemEvent renderer systemEvent currentFocus widgets = do
   let (W.ChildEventResult stop eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
+  let customHandlers = L.filter isCustomHandler eventRequests
 
   updatedRoot <- if (not stop && isKeyPressed systemEvent keycodeTab) then do
     ring <- use focusRing
@@ -215,9 +222,46 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   else
     handleAppEvents renderer appEvents updatedRoot
 
-  case L.find (\evt -> snd evt == W.ResizeChildren) eventRequests of
+  updatedRoot3 <- case L.find (\evt -> snd evt == W.ResizeChildren) eventRequests of
     Just (path, event) -> updateUI renderer updatedRoot2
     Nothing -> return updatedRoot2
+
+  tasks <- forM customHandlers $ \(path, W.RunCustom handler) -> do
+    asyncTask <- liftIO $ async (liftIO handler)
+
+    return $ W.WidgetTask path asyncTask
+
+  previousTasks <- use widgetTasks
+  widgetTasks .= previousTasks ++ tasks
+
+  return updatedRoot3
+
+isCustomHandler :: (TR.Path, W.EventRequest) -> Bool
+isCustomHandler (_, W.RunCustom _) = True
+isCustomHandler _ = False
+
+processCustomHandlers :: WidgetTree -> AppM WidgetTree
+processCustomHandlers widgets = do
+  tasks <- use widgetTasks
+  (active, finished) <- partitionM (\(W.WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) tasks
+  widgetTasks .= active
+
+  newWidgets <- runCustomHandlers widgets finished
+
+  return newWidgets
+
+runCustomHandlers :: WidgetTree -> [W.WidgetTask] -> AppM WidgetTree
+runCustomHandlers widgets tasks = do
+  newWidgets <- foldM (\widgets (W.WidgetTask path task) -> do
+    taskStatus <- fmap fromJust (liftIO $ poll task)
+    processCustomHandler widgets path taskStatus) widgets tasks
+  return newWidgets
+
+processCustomHandler :: (Typeable a) => WidgetTree -> TR.Path -> Either SomeException a -> AppM WidgetTree
+processCustomHandler widgets _ (Left _) = return widgets
+processCustomHandler widgets path (Right val) = do
+  let !res = W.handleCustomCommand path widgets val
+  return widgets
 
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 

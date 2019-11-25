@@ -2,12 +2,16 @@
 
 module Types where
 
+import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
 import Data.Default
 
+import Control.Monad
+import Control.Monad.State
+
 import qualified GUI.Data.Tree as TR
-import GUI.Widget.Core (GUIContext)
+import GUI.Widget.Core (GUIContext, WidgetTask, _appContext, _focusRing, _widgetTasks)
 
 data App = App {
   _clickCount :: !Int
@@ -18,3 +22,14 @@ instance Default App where
 
 makeLenses ''App
 makeLenses ''GUIContext
+
+{--
+appContext :: (MonadState s m) => Lens' (GUIContext s m) s
+appContext = lens _appContext (\app val -> app { _appContext = val })
+
+focusRing :: (MonadState s m) => Lens' (GUIContext s m) [TR.Path]
+focusRing = lens _focusRing (\app val -> app { _focusRing = val })
+
+widgetTasks :: (MonadState s m) => Lens' (GUIContext s m) [WidgetTask s m]
+widgetTasks = lens _widgetTasks (\app val -> app { _widgetTasks = val })
+--}

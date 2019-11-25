@@ -2,10 +2,13 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
 module GUI.Widget.Core where
+
+import Control.Concurrent.Async
 
 import Control.Monad
 import Control.Monad.State
@@ -14,6 +17,8 @@ import Data.Default
 import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
+
+import Debug.Trace
 
 import GUI.Common.Core
 import GUI.Common.Style
@@ -48,7 +53,14 @@ data EventRequest = IgnoreParentEvents
                   | IgnoreChildrenEvents
                   | ResizeChildren
                   | ResizeAll
-                  deriving (Show, Eq)
+                  | forall a . Typeable a => RunCustom (IO a)
+
+instance Eq EventRequest where
+  IgnoreParentEvents == IgnoreParentEvents = True
+  IgnoreChildrenEvents == IgnoreChildrenEvents = True
+  ResizeChildren == ResizeChildren = True
+  ResizeAll == ResizeAll = True
+  _ == _ = False
 
 data WidgetEventResult s e m = WidgetEventResult {
   _eventResultRequest :: [EventRequest],
@@ -80,25 +92,32 @@ instance IsString WidgetKey where
 newtype NodePath = NodePath [Int]
 data NodeInfo = NodeInfo WidgetType (Maybe WidgetKey)
 
+data WidgetTask = forall a . Typeable a => WidgetTask {
+  widgetTaskPath :: Path,
+  widgetTask :: Async a
+}
+
 data GUIContext app = GUIContext {
   _appContext :: app,
-  _focusRing :: [Path]
-} deriving (Show, Eq)
+  _focusRing :: [Path],
+  _widgetTasks :: [WidgetTask]
+}
 
 initGUIContext :: app -> GUIContext app
 initGUIContext app = GUIContext {
   _appContext = app,
-  _focusRing = []
+  _focusRing = [],
+  _widgetTasks = []
 }
 
 isFocusable :: (MonadState s m) => WidgetInstance s e m -> Bool
 isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widgetInstanceEnabled  && _widgetFocusable
 
-defaultCustomHandler :: Int -> Maybe (WidgetEventResult s e m)
+defaultCustomHandler :: a -> Maybe (WidgetEventResult s e m)
 defaultCustomHandler _ = Nothing
 
-data Widget s e m = forall i .
-  (MonadState s m, Typeable i) => Widget {
+data Widget s e m =
+  (MonadState s m) => Widget {
     -- | Type of the widget
     _widgetType :: WidgetType,
     -- | Indicates whether the widget can receive focus
@@ -115,7 +134,7 @@ data Widget s e m = forall i .
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleCustom :: i -> Maybe (WidgetEventResult s e m),
+    _widgetHandleCustom ::  forall i . Typeable i => i -> Maybe (WidgetEventResult s e m),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -235,7 +254,8 @@ handleChildEvent selectorFn selector path treeNode@(Node wn@WidgetInstance{..} c
   (ipeChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
     (_, Nothing) -> (False, [], SQ.empty, Nothing, 0)
     (newSelector, Just idx) -> (ipe2, er2, ue2, tn2, idx) where
-      (ChildEventResult ipe2 er2 ue2 tn2) = handleChildEvent selectorFn newSelector (idx:path) (SQ.index children idx) systemEvent
+      (ChildEventResult ipe2 er2 ue2 tn2) = handleChildEvent selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
+      widgetPath = reverse (idx:path)
   -- Current widget
   (ice, ipe, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
     Nothing -> (False, False, [], SQ.empty, Nothing)
@@ -256,18 +276,26 @@ handleChildEvent selectorFn selector path treeNode@(Node wn@WidgetInstance{..} c
     (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
 
 handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
-handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path [0] widgetInstance systemEvent where
+handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path [] widgetInstance systemEvent where
   pathSelector [] _ = ([], Nothing)
   pathSelector (p:ps) children
     | length children > p = (ps, Just p)
     | otherwise = ([], Nothing)
 
 handleEventFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
-handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rectSelector cursorPos [0] widgetInstance systemEvent where
+handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rectSelector cursorPos [] widgetInstance systemEvent where
   rectSelector point children = (point, SQ.lookup 0 inRectList) where
     inRectList = fmap snd $ SQ.filter inNodeRect childrenPair
     inNodeRect = \(Node (WidgetInstance {..}) _, _) -> inRect _widgetInstanceViewport point
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
+
+handleCustomCommand :: (MonadState s m, Typeable i) => Path -> WidgetNode s e m -> i -> ChildEventResult s e m
+handleCustomCommand path treeNode customData = traceShow path $ case GUI.Data.Tree.lookup path treeNode of
+  Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
+    case _widgetHandleCustom customData of
+      Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
+      Nothing -> ChildEventResult False [] SQ.Empty Nothing
+  Nothing -> ChildEventResult False [] SQ.Empty Nothing
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
 handleRender renderer (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
@@ -277,14 +305,17 @@ handleRenderChildren :: (MonadState s m) => Renderer m -> WidgetChildren s e m -
 handleRenderChildren renderer children ts = do
   mapM_ (\treeNode -> handleRender renderer treeNode ts) children
 
-updateWidgetInstance :: Path -> WidgetNode s e m -> (WidgetInstance s e m -> WidgetInstance s e m) -> WidgetNode s e m
+updateWidgetInstance :: Path -> WidgetNode s e m -> (WidgetInstance s e m -> WidgetInstance s e m) -> Maybe (WidgetNode s e m)
 updateWidgetInstance path root updateFn = updateNode path root (\(Node widgetInstance children) -> Node (updateFn widgetInstance) children)
 
 setFocusedStatus :: Path -> Bool -> WidgetNode s e m -> WidgetNode s e m
-setFocusedStatus path focused root = updateWidgetInstance path root updateFn where
-  updateFn wn@(WidgetInstance {..}) = wn {
-    _widgetInstanceFocused = focused
-  }
+setFocusedStatus path focused root = case updateWidgetInstance path root updateFn of
+    Just newRoot -> newRoot
+    Nothing -> root
+  where
+    updateFn wn@(WidgetInstance {..}) = wn {
+      _widgetInstanceFocused = focused
+    }
 
 resizeUI :: (MonadState s m) => Renderer m -> Rect -> WidgetNode s e m -> m (WidgetNode s e m)
 resizeUI renderer assignedRect widgetInstance = do
