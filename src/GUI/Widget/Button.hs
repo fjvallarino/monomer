@@ -42,7 +42,6 @@ makeButton state onClick = Widget {
         requests = if isPressed then [RunCustom runCustom] else []
       _ -> Nothing
     runCustom = do
-      liftIO $ putStrLn "Hello!"
       return Button2Data
     handleCustom bd = case cast bd of
       Just val -> if val == Button2Data then Nothing else Nothing

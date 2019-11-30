@@ -174,7 +174,7 @@ mainLoop window c renderer prevTicks widgets = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
 
-  handledWidgets <- processCustomHandlers widgets
+  handledWidgets <- processWidgetTasks renderer widgets
 
   focus <- getCurrentFocus
   newWidgets <- handleSystemEvents renderer (convertEvents mousePos eventsPayload) focus handledWidgets
@@ -205,26 +205,35 @@ handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.hand
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
-  let (W.ChildEventResult stop eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
+  let (W.ChildEventResult stopProcessing eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
+
+  launchWidgetTasks renderer eventRequests
+
+  handleFocusChange currentFocus systemEvent stopProcessing newRoot
+    >>= handleAppEvents renderer appEvents
+    >>= handleResizeChildren renderer eventRequests
+
+handleFocusChange :: TR.Path -> W.SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
+handleFocusChange currentFocus systemEvent stopProcessing widgetRoot
+  | focusChangeRequested = do
+      ring <- use focusRing
+      focusRing .= rotateList ring
+      newFocus <- getCurrentFocus
+      return $ W.setFocusedStatus newFocus True (W.setFocusedStatus currentFocus False widgetRoot)
+  | otherwise = return widgetRoot
+  where
+    focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keycodeTab
+
+handleResizeChildren :: Renderer WidgetM -> [(TR.Path, W.EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleResizeChildren renderer eventRequests widgetRoot =
+  case L.find (\(path, evt) -> evt == W.ResizeChildren) eventRequests of
+    Just (path, event) -> updateUI renderer widgetRoot
+    Nothing -> return widgetRoot
+
+launchWidgetTasks :: Renderer WidgetM -> [(TR.Path, W.EventRequest)] -> AppM ()
+launchWidgetTasks renderer eventRequests = do
   let customHandlers = L.filter isCustomHandler eventRequests
-
-  updatedRoot <- if (not stop && isKeyPressed systemEvent keycodeTab) then do
-    ring <- use focusRing
-    focusRing .= rotateList ring
-    newFocus <- getCurrentFocus
-    return $ W.setFocusedStatus newFocus True (W.setFocusedStatus currentFocus False newRoot)
-  else
-    return newRoot
-
-  updatedRoot2 <- if length appEvents == 0 then
-    return updatedRoot
-  else
-    handleAppEvents renderer appEvents updatedRoot
-
-  updatedRoot3 <- case L.find (\evt -> snd evt == W.ResizeChildren) eventRequests of
-    Just (path, event) -> updateUI renderer updatedRoot2
-    Nothing -> return updatedRoot2
 
   tasks <- forM customHandlers $ \(path, W.RunCustom handler) -> do
     asyncTask <- liftIO $ async (liftIO handler)
@@ -234,35 +243,43 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   previousTasks <- use widgetTasks
   widgetTasks .= previousTasks ++ tasks
 
-  return updatedRoot3
-
 isCustomHandler :: (TR.Path, W.EventRequest) -> Bool
 isCustomHandler (_, W.RunCustom _) = True
 isCustomHandler _ = False
 
-processCustomHandlers :: WidgetTree -> AppM WidgetTree
-processCustomHandlers widgets = do
+processWidgetTasks :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+processWidgetTasks renderer widgets = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM (\(W.WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) tasks
   widgetTasks .= active
 
-  newWidgets <- runCustomHandlers widgets finished
+  processCustomHandlers renderer widgets finished
 
+processCustomHandlers :: Renderer WidgetM -> WidgetTree -> [W.WidgetTask] -> AppM WidgetTree
+processCustomHandlers renderer widgets tasks = do
+  newWidgets <- foldM (stepWidgetTask renderer) widgets tasks
   return newWidgets
 
-runCustomHandlers :: WidgetTree -> [W.WidgetTask] -> AppM WidgetTree
-runCustomHandlers widgets tasks = do
-  newWidgets <- foldM (\widgets (W.WidgetTask path task) -> do
-    taskStatus <- fmap fromJust (liftIO $ poll task)
-    processCustomHandler widgets path taskStatus) widgets tasks
-  return newWidgets
+stepWidgetTask :: Renderer WidgetM -> WidgetTree -> W.WidgetTask -> AppM WidgetTree
+stepWidgetTask renderer widgets (W.WidgetTask path task) = do
+  taskStatus <- liftIO $ poll task
 
-processCustomHandler :: (Typeable a) => WidgetTree -> TR.Path -> Either SomeException a -> AppM WidgetTree
-processCustomHandler widgets _ (Left _) = return widgets
-processCustomHandler widgets path (Right val) = do
-  let !res = W.handleCustomCommand path widgets val
-  return widgets
+  if (isJust taskStatus)
+    then processCustomHandler renderer widgets path (fromJust taskStatus)
+    else return widgets
 
+processCustomHandler :: (Typeable a) => Renderer WidgetM -> WidgetTree -> TR.Path -> Either SomeException a -> AppM WidgetTree
+processCustomHandler renderer widgets _ (Left _) = return widgets
+processCustomHandler renderer widgets path (Right val) = do
+  let (W.ChildEventResult stopProcessing eventRequests appEvents newWidgets) = W.handleCustomCommand path widgets val
+  let newRoot = fromMaybe widgets newWidgets
+
+  launchWidgetTasks renderer eventRequests
+
+  handleAppEvents renderer appEvents newRoot
+    >>= handleResizeChildren renderer eventRequests
+
+keycodeTab :: (Integral a) => a
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 
 isKeyboardEvent :: W.SystemEvent -> Bool
@@ -280,19 +297,17 @@ matchesSDLKeyCode :: W.KeyCode -> SDL.Keycode -> Bool
 matchesSDLKeyCode keyCode sdlKeyCode = keyCode == (fromIntegral $ Keyboard.unwrapKeycode sdlKeyCode)
 
 handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> AppM WidgetTree
-handleAppEvents renderer appEvents oldWidgets = do
-  (app, newApp) <- zoom appContext $ do
-    app <- get
-    forM_ appEvents handleAppEvent
-    newApp <- get
-    return (app, newApp)
+handleAppEvents renderer appEvents oldWidgets
+  | SQ.null appEvents = return oldWidgets
+  | otherwise = do
+    (app, newApp) <- zoom appContext $ do
+      app <- get
+      forM_ appEvents handleAppEvent
+      newApp <- get
+      return (app, newApp)
 
-  let mergedWidgets = if | app /= newApp -> updateUI renderer oldWidgets
-                         | otherwise -> return oldWidgets
-
-  when (app /= newApp) $ liftIO $ putStrLn "App changed!"
-
-  mergedWidgets
+    if | app /= newApp -> updateUI renderer oldWidgets
+       | otherwise -> return oldWidgets
 
 renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer widgets ticks =
@@ -345,10 +360,10 @@ mouseClick events =
             rightClicked = if isRight && isClicked then [W.Click mousePos W.RightBtn W.PressedBtn] else []
             rightReleased = if isRight && isReleased then [W.Click mousePos W.RightBtn W.ReleasedBtn] else []
 
-    otherwhise -> []
+    otherwise -> []
   where clickEvent = L.find (\evt -> case evt of
                                      SDL.MouseButtonEvent _ -> True
-                                     otherwhise -> False
+                                     otherwise -> False
                           ) events
 
 mouseWheelEvent :: Point -> [SDL.EventPayload] -> [W.SystemEvent]
@@ -360,10 +375,10 @@ mouseWheelEvent mousePos events =
             SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else [W.WheelScroll mousePos wheelDelta wheelDirection]
       where wheelDirection = if direction == SDL.ScrollNormal then W.WheelNormal else W.WheelFlipped
             wheelDelta = Point (fromIntegral x) (fromIntegral y)
-    otherwhise -> []
+    otherwise -> []
   where touchEvent = L.find (\evt -> case evt of
                                      SDL.MouseWheelEvent _ -> True
-                                     otherwhise -> False
+                                     otherwise -> False
                           ) events
 
 keyboardEvent :: [SDL.EventPayload] -> [W.SystemEvent]
