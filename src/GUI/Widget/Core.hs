@@ -74,11 +74,14 @@ data WidgetResizeResult s e m = WidgetResizeResult {
   _resizeResultWidget :: Maybe (Widget s e m)
 }
 
-eventResult :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
-eventResult userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget)
+resultEvents :: [e] -> Maybe (WidgetEventResult s e m)
+resultEvents userEvents = Just $ WidgetEventResult [] userEvents Nothing
 
-eventResultRequest :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
-eventResultRequest requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
+resultEventsWidget :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+resultEventsWidget userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget)
+
+resultReqsEventsWidget :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+resultReqsEventsWidget requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
 
 newtype WidgetType = WidgetType String deriving Eq
 newtype WidgetKey = WidgetKey String deriving Eq

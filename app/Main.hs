@@ -121,7 +121,7 @@ buildUI model = styledTree where
   buttonStyle = bgColor (RGB 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
   labelStyle = bgColor (RGB 100 100 100) <> textSize 48
   textStyle = textColor (RGB 0 255 0)
-  extraWidgets = map (\i -> button (Action1 (10 + i))) [1..(_clickCount model)]
+  extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vgrid ([
       hgrid [
         textField `style` textStyle,
@@ -132,11 +132,11 @@ buildUI model = styledTree where
         scroll $ label "This is a really really really long label, you know?" `style` labelStyle
       ],
       hgrid [
-        button (Action1 1) `style` buttonStyle,
-        button (Action1 2) `style` buttonStyle,
-        button (Action1 3) `style` buttonStyle
+        sandbox (Action1 1) `style` buttonStyle,
+        sandbox (Action1 2) `style` buttonStyle,
+        sandbox (Action1 3) `style` buttonStyle
       ],
-      button (Action1 0) `style` buttonStyle,
+      button "Add items" (Action1 0) `style` buttonStyle,
       textField `style` textStyle
     ] ++ extraWidgets)
   styledTree = W.cascadeStyle mempty widgetTree
@@ -199,9 +199,10 @@ handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
 handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> W.ChildEventResult App AppEvent WidgetM
-handleEvent renderer systemEvent@(W.Click point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
-handleEvent renderer systemEvent@(W.WheelScroll point _ _) currentFocus widgets = W.handleEventFromPoint point widgets systemEvent
-handleEvent renderer systemEvent@(W.KeyAction _ _) currentFocus widgets = W.handleEventFromPath currentFocus widgets systemEvent
+handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
+  W.Click point _ _       -> W.handleEventFromPoint point widgets systemEvent
+  W.WheelScroll point _ _ -> W.handleEventFromPoint point widgets systemEvent
+  W.KeyAction _ _         -> W.handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
@@ -306,8 +307,9 @@ handleAppEvents renderer appEvents oldWidgets
       newApp <- get
       return (app, newApp)
 
-    if | app /= newApp -> updateUI renderer oldWidgets
-       | otherwise -> return oldWidgets
+    if app /= newApp
+      then updateUI renderer oldWidgets
+      else return oldWidgets
 
 renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer widgets ticks =

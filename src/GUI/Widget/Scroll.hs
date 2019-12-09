@@ -42,7 +42,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     focusable = False
     handleEvent view@(Rect rx ry rw rh) evt = case evt of
       Click (Point px py) btn status -> result where
-        result = if isPressed then eventResultRequest [ResizeChildren] [] (makeScroll newState) else Nothing
+        result = if isPressed then resultReqsEventsWidget [ResizeChildren] [] (makeScroll newState) else Nothing
         isPressed = status == PressedBtn && inRect view (Point px py)
         isLeftClick = isPressed && btn == LeftBtn
         isRigthClick = isPressed && btn == RightBtn
@@ -52,7 +52,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
         newState = ScrollState (scrollX step dx cw rw) dy cs
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
-        result = if needsUpdate then eventResultRequest [ResizeChildren] [] (makeScroll newState) else Nothing
+        result = if needsUpdate then resultReqsEventsWidget [ResizeChildren] [] (makeScroll newState) else Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
         newState = ScrollState (scrollX stepX dx cw rw) (scrollX stepY dy ch rh) cs

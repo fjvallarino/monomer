@@ -18,37 +18,28 @@ import GUI.Widget.Core
 
 import qualified Data.Text as T
 
-data ButtonData = ButtonData | Button2Data deriving (Eq, Show, Typeable)
+button :: (MonadState s m, MonadIO m) => T.Text -> e -> WidgetNode s e m
+button label onClick = singleWidget (makeButton label onClick)
 
-button :: (MonadState s m, MonadIO m) => e -> WidgetNode s e m
-button onClick = singleWidget (makeButton 0 onClick)
-
-makeButton :: (MonadState s m, MonadIO m) => Int -> e -> Widget s e m
-makeButton state onClick = Widget {
+makeButton :: (MonadState s m, MonadIO m) => T.Text -> e -> Widget s e m
+makeButton label onClick = Widget {
     _widgetType = "button",
     _widgetFocusable = False,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = handleCustom,
+    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render
   }
   where
     handleEvent view evt = case evt of
-      Click (Point x y) _ status -> eventResultRequest requests events (makeButton newState onClick) where
+      Click (Point x y) _ status -> resultEvents events where
         isPressed = status == PressedBtn && inRect view (Point x y)
-        newState = if isPressed then state + 1 else state
         events = if isPressed then [onClick] else []
-        requests = if isPressed then [RunCustom runCustom] else []
       _ -> Nothing
-    runCustom = do
-      return Button2Data
-    handleCustom bd = case cast bd of
-      Just val -> if val == Button2Data then Nothing else Nothing
-      Nothing -> Nothing
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack (show state))
+    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle label
     resizeChildren _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show state))
+        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) label
