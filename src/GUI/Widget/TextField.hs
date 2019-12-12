@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -8,6 +9,8 @@ import Control.Monad
 import Control.Monad.State
 
 import Data.Char
+import Data.Dynamic
+import Data.Typeable
 
 import Debug.Trace
 
@@ -17,12 +20,14 @@ import GUI.Common.Style
 import GUI.Data.Tree
 import GUI.Widget.Core
 
+import GHC.Generics
+
 import qualified Data.Text as T
 
 data TextFieldState = TextFieldState {
   _tfText :: String,
   _tfPosition :: Int
-} deriving (Eq, Show)
+} deriving (Eq, Show, Typeable, Generic)
 
 textField :: (MonadState s m) => WidgetNode s e m
 textField = singleWidget $ makeTextField (TextFieldState "" 0)
@@ -31,9 +36,11 @@ textField = singleWidget $ makeTextField (TextFieldState "" 0)
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
 makeTextField :: (MonadState s m) => TextFieldState -> Widget s e m
-makeTextField (TextFieldState txt tp) = Widget {
+makeTextField tfs@(TextFieldState txt tp) = Widget {
     _widgetType = "textField",
     _widgetFocusable = True,
+    _widgetRestoreState = fmap makeTextField . useState,
+    _widgetSaveState = makeState tfs,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,

@@ -1,10 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module GUI.Widget.Scroll (scroll) where
 
 import Data.Default
+import Data.Typeable
 import Control.Monad
 import Control.Monad.State
 
@@ -16,11 +18,13 @@ import GUI.Common.Style
 import GUI.Data.Tree
 import GUI.Widget.Core
 
+import GHC.Generics
+
 data ScrollState = ScrollState {
   _scDeltaX :: !Double,
   _scDeltaY :: !Double,
   _scChildSize :: Size
-} deriving (Eq, Show)
+} deriving (Eq, Show, Typeable, Generic)
 
 scroll :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m
 scroll managedWidget = parentWidget (makeScroll (ScrollState 0 0 def)) [managedWidget]
@@ -29,6 +33,8 @@ makeScroll :: (MonadState s m) => ScrollState -> Widget s e m
 makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     _widgetType = "scroll",
     _widgetFocusable = False,
+    _widgetRestoreState = fmap makeScroll . useState,
+    _widgetSaveState = makeState state,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,

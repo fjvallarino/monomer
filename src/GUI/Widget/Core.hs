@@ -14,6 +14,7 @@ import Control.Monad
 import Control.Monad.State
 
 import Data.Default
+import Data.Dynamic
 import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
@@ -23,6 +24,8 @@ import Debug.Trace
 import GUI.Common.Core
 import GUI.Common.Style
 import GUI.Data.Tree
+
+import GHC.Generics
 
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
@@ -119,12 +122,30 @@ isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widget
 defaultCustomHandler :: a -> Maybe (WidgetEventResult s e m)
 defaultCustomHandler _ = Nothing
 
+data WidgetState = forall i . (Typeable i, Generic i) => WidgetState i
+
+defaultRestoreState :: WidgetState -> Maybe (Widget s e m)
+defaultRestoreState _ = Nothing
+
+defaultSaveState :: Maybe WidgetState
+defaultSaveState = Nothing
+
+makeState :: (Typeable i, Generic i) => i -> Maybe WidgetState
+makeState state = Just (WidgetState state)
+
+useState ::  (Typeable i, Generic i) => WidgetState -> Maybe i
+useState (WidgetState state) = cast state
+
 data Widget s e m =
   (MonadState s m) => Widget {
     -- | Type of the widget
     _widgetType :: WidgetType,
     -- | Indicates whether the widget can receive focus
     _widgetFocusable :: Bool,
+    -- | Provides the previous internal state to the new widget, which can choose to ignore it or update itself
+    _widgetRestoreState :: WidgetState -> Maybe (Widget s e m),
+    -- | Returns the current internal state, which can later be used to restore the widget
+    _widgetSaveState :: Maybe WidgetState,
     -- | Handles an event
     --
     -- Region assigned to the widget
@@ -137,7 +158,7 @@ data Widget s e m =
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleCustom ::  forall i . Typeable i => i -> Maybe (WidgetEventResult s e m),
+    _widgetHandleCustom :: forall i . Typeable i => i -> Maybe (WidgetEventResult s e m),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -228,13 +249,19 @@ widgetMatches :: (MonadState s m) => WidgetInstance s e m -> WidgetInstance s e 
 widgetMatches wn1 wn2 = _widgetType (_widgetInstanceWidget wn1) == _widgetType (_widgetInstanceWidget wn2) && _widgetInstanceKey wn1 == _widgetInstanceKey wn2
 
 mergeTrees :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m -> WidgetNode s e m
-mergeTrees node1@(Node widget1 seq1) (Node widget2 seq2) = newNode where
-  matches = widgetMatches widget1 widget2
-  newNode = if | matches -> Node widget2 newChildren
+mergeTrees node1@(Node candidateInstance candidateChildren) (Node oldInstance oldChildren) = newNode where
+  matches = widgetMatches candidateInstance oldInstance
+  newNode = if | matches -> Node newInstance newChildren
                | otherwise -> node1
+  oldWidget = _widgetInstanceWidget oldInstance
+  candidateWidget = _widgetInstanceWidget candidateInstance
+  newWidget = case _widgetSaveState oldWidget of
+    Just st -> fromMaybe candidateWidget (_widgetRestoreState candidateWidget st)
+    Nothing -> candidateWidget
+  newInstance = candidateInstance { _widgetInstanceWidget = newWidget }
   newChildren = mergedChildren SQ.>< addedChildren
-  mergedChildren = fmap mergeChild (SQ.zip seq1 seq2)
-  addedChildren = SQ.drop (SQ.length seq2) seq1
+  mergedChildren = fmap mergeChild (SQ.zip candidateChildren oldChildren)
+  addedChildren = SQ.drop (SQ.length oldChildren) candidateChildren
   mergeChild = \(c1, c2) -> mergeTrees c1 c2
 
 handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> SystemEvent -> Maybe (WidgetEventResult s e m)
