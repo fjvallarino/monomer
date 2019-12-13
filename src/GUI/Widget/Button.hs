@@ -39,7 +39,9 @@ makeButton label onClick = Widget {
         isPressed = status == PressedBtn && inRect view (Point x y)
         events = if isPressed then [onClick] else []
       _ -> Nothing
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle label
+    preferredSize renderer (style@Style{..}) _ = do
+      size <- calcTextBounds renderer _textStyle label
+      return $ SizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do

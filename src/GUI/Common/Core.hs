@@ -15,6 +15,8 @@ data Align = Align AlignH AlignV deriving (Show, Eq)
 data AlignH = ALeft | ACenter | ARight deriving (Show, Eq)
 data AlignV = ATop | AMiddle | ABottom deriving (Show, Eq)
 
+data SizePolicy = StrictSize | FlexibleSize | RemainderSize deriving (Show, Eq)
+
 data Point = Point {
   _x :: !Double,
   _y :: !Double

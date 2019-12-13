@@ -72,7 +72,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
                       else viewportLimit - childPos
     preferredSize _ _ children = return (head children)
     resizeChildren (Rect l t w h) _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
-      Size cw2 ch2 = (head children)
+      SizeReq (Size cw2 ch2) _ _ = (head children)
       newWidget = Just $ makeScroll (ScrollState dx dy (Size cw2 ch2))
       viewport = [Rect l t w h]
       renderArea = [Rect (l + dx) (t + dy) cw2 ch2]

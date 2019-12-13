@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Layout (empty, hgrid, vgrid) where
+module GUI.Widget.Layout (empty, hgrid, vgrid, hstack, spacer) where
 
 import Control.Monad
 import Control.Monad.State
@@ -46,9 +46,10 @@ makeFixedGrid widgetType direction = Widget {
   where
     focusable = False
     handleEvent _ _ = Nothing
-    preferredSize _ _ children = return $ Size width height where
-      width = (fromIntegral wMul) * (maximum . map _w) children
-      height = (fromIntegral hMul) * (maximum . map _h) children
+    preferredSize _ _ children = return reqSize where
+      reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
+      width = (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
+      height = (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
       wMul = if direction == Horizontal then length children else 1
       hMul = if direction == Horizontal then 1 else length children
     resizeChildren (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
@@ -62,6 +63,80 @@ makeFixedGrid widgetType direction = Widget {
       cy i = t + (fromIntegral $ i `div` cols) * ch
     render renderer WidgetInstance{..} children ts = do
       handleRenderChildren renderer children ts
+
+hstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+hstack = parentWidget (makeHStack "hstack" Horizontal)
+
+makeHStack :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
+makeHStack widgetType direction = Widget {
+    _widgetType = widgetType,
+    _widgetFocusable = False,
+    _widgetRestoreState = defaultRestoreState,
+    _widgetSaveState = defaultSaveState,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
+  where
+    focusable = False
+    handleEvent _ _ = Nothing
+    preferredSize _ _ children = return reqSize where
+      reqSize = SizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
+    resizeChildren (Rect l t w h) style children = Just $ WidgetResizeResult (reverse newViewports) (reverse newViewports) Nothing where
+      sChildren = filter (\c -> _srPolicyWidth c == StrictSize) children
+      fChildren = filter (\c -> _srPolicyWidth c == FlexibleSize) children
+      rChildren = filter (\c -> _srPolicyWidth c == RemainderSize) children
+      remainderCount = length rChildren
+      remainderExist = not $ null rChildren
+      Size sw _  = calcPreferredSize sChildren
+      Size fw _  = calcPreferredSize fChildren
+      fRatio = if | w - sw > fw &&     remainderExist -> 1
+                  | w - sw > fw && not remainderExist -> (w - sw) / fw
+                  | w - sw > 0                        -> (w - sw) / fw
+                  | otherwise                         -> 0
+      remainderTotal = w - (sw + fw * fRatio)
+      remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
+      (newViewports, _) = foldl foldHelper ([], 0) children
+      foldHelper (accum, left) child = (newSize : accum, left + nw) where
+        newSize@(Rect _ _ nw _) = resizeChild left child
+      resizeChild left (SizeReq (Size cw _) srW _) = Rect left t newWidth h where
+        newWidth = case srW of
+          StrictSize -> cw
+          FlexibleSize -> cw * fRatio
+          RemainderSize -> remainderUnit
+    calcPreferredSize children = Size width height where
+      maxWidth = if null children then 0 else (maximum . map (_w . _srSize)) children
+      sumWidth = (sum . map (_w . _srSize)) children
+      maxHeight = if null children then 0 else (maximum . map (_h . _srSize)) children
+      sumHeight = (sum . map (_h . _srSize)) children
+      width = if direction == Horizontal then sumWidth else maxWidth
+      height = if direction == Horizontal then maxHeight else sumHeight
+    render renderer WidgetInstance{..} children ts = do
+      handleRenderChildren renderer children ts
+
+
+spacer :: (MonadState s m) => WidgetNode s e m
+spacer = singleWidget makeSpacer
+
+makeSpacer :: (MonadState s m) => Widget s e m
+makeSpacer = Widget {
+    _widgetType = "spacer",
+    _widgetFocusable = False,
+    _widgetRestoreState = defaultRestoreState,
+    _widgetSaveState = defaultSaveState,
+    _widgetHandleEvent = handleEvent,
+    _widgetHandleCustom = defaultCustomHandler,
+    _widgetPreferredSize = preferredSize,
+    _widgetResizeChildren = resizeChildren,
+    _widgetRender = render
+  }
+  where
+    handleEvent view evt = Nothing
+    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size 0 0) RemainderSize RemainderSize
+    resizeChildren _ _ _ = Nothing
+    render renderer WidgetInstance{..} _ ts = return ()
 
 {--
 makeSizedGrid :: (Monad m) => Direction -> Widget e m

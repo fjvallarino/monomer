@@ -65,7 +65,9 @@ makeTextField tfs@(TextFieldState txt tp) = Widget {
         (txt2, tp2) = handleKeyPress txt tp code
         newState = TextFieldState txt2 tp2
       _ -> Nothing
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle (T.pack txt)
+    preferredSize renderer (style@Style{..}) _ = do
+      size <- calcTextBounds renderer _textStyle (T.pack txt)
+      return $ SizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do

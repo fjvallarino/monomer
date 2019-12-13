@@ -131,6 +131,13 @@ buildUI model = styledTree where
         label "Short",
         scroll $ label "This is a really really really long label, you know?" `style` labelStyle
       ],
+      hstack [
+        label "Short",
+        spacer,
+        label "Long",
+        spacer,
+        label "Very Long"
+      ],
       hgrid [
         sandbox (Action1 1) `style` buttonStyle,
         sandbox (Action1 2) `style` buttonStyle,

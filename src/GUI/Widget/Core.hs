@@ -42,6 +42,12 @@ data Direction = Horizontal | Vertical deriving (Show, Eq)
 
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
+data SizeReq = SizeReq {
+  _srSize :: Size,
+  _srPolicyWidth :: SizePolicy,
+  _srPolicyHeight :: SizePolicy
+} deriving (Show, Eq)
+
 data Button = LeftBtn | RightBtn deriving (Show, Eq)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 
@@ -166,7 +172,7 @@ data Widget s e m =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: Renderer m -> Style -> [Size] -> m Size,
+    _widgetPreferredSize :: Renderer m -> Style -> [SizeReq] -> m SizeReq,
     -- | Resizes the children of this widget
     --
     -- Region assigned to the widget
@@ -174,7 +180,7 @@ data Widget s e m =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResizeChildren :: Rect -> Style -> [Size] -> Maybe (WidgetResizeResult s e m),
+    _widgetResizeChildren :: Rect -> Style -> [SizeReq] -> Maybe (WidgetResizeResult s e m),
     -- | Renders the widget
     --
     -- Renderer
@@ -352,14 +358,14 @@ resizeUI renderer assignedRect widgetInstance = do
   preferredSizes <- buildPreferredSizes renderer widgetInstance
   resizeNode renderer assignedRect assignedRect preferredSizes widgetInstance
 
-buildPreferredSizes :: (MonadState s m) => Renderer m -> WidgetNode s e m -> m (Tree Size)
+buildPreferredSizes :: (MonadState s m) => Renderer m -> WidgetNode s e m -> m (Tree SizeReq)
 buildPreferredSizes renderer (Node (WidgetInstance {..}) children) = do
   childrenSizes <- mapM (buildPreferredSizes renderer) children
   size <- _widgetPreferredSize _widgetInstanceWidget renderer _widgetInstanceStyle (seqToList childrenSizes)
 
   return $ Node size childrenSizes
 
-resizeNode :: (MonadState s m) => Renderer m -> Rect -> Rect -> Tree Size -> WidgetNode s e m -> m (WidgetNode s e m)
+resizeNode :: (MonadState s m) => Renderer m -> Rect -> Rect -> Tree SizeReq -> WidgetNode s e m -> m (WidgetNode s e m)
 resizeNode renderer viewport renderArea (Node _ childrenSizes) (Node widgetInstance childrenWns) = do
     newChildren <- mapM childResize childrenPair
 

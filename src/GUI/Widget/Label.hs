@@ -41,7 +41,9 @@ makeLabel caption = Widget {
   }
   where
     handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = calcTextBounds renderer _textStyle caption
+    preferredSize renderer (style@Style{..}) _ = do
+      size <- calcTextBounds renderer _textStyle caption
+      return $ SizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do
