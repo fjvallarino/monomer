@@ -68,7 +68,7 @@ makeTextField tfs@(TextFieldState txt tp) = Widget {
     preferredSize renderer (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (T.pack txt)
       return $ SizeReq size FlexibleSize FlexibleSize
-    resizeChildren _ _ _ = Nothing
+    resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle

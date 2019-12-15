@@ -52,7 +52,7 @@ makeFixedGrid widgetType direction = Widget {
       height = (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
       wMul = if direction == Horizontal then length children else 1
       hMul = if direction == Horizontal then 1 else length children
-    resizeChildren (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
+    resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
       cols = if direction == Horizontal then (length children) else 1
       rows = if direction == Horizontal then 1 else (length children)
       newViewports = fmap resizeChild [0..(length children - 1)]
@@ -84,7 +84,7 @@ makeHStack widgetType direction = Widget {
     handleEvent _ _ = Nothing
     preferredSize _ _ children = return reqSize where
       reqSize = SizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
-    resizeChildren (Rect l t w h) style children = Just $ WidgetResizeResult (reverse newViewports) (reverse newViewports) Nothing where
+    resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
       sChildren = filter (\c -> _srPolicyWidth c == StrictSize) children
       fChildren = filter (\c -> _srPolicyWidth c == FlexibleSize) children
       rChildren = filter (\c -> _srPolicyWidth c == RemainderSize) children
@@ -98,7 +98,8 @@ makeHStack widgetType direction = Widget {
                   | otherwise                         -> 0
       remainderTotal = w - (sw + fw * fRatio)
       remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
-      (newViewports, _) = foldl foldHelper ([], 0) children
+      newViewports = reverse revViewports
+      (revViewports, _) = foldl foldHelper ([], l) children
       foldHelper (accum, left) child = (newSize : accum, left + nw) where
         newSize@(Rect _ _ nw _) = resizeChild left child
       resizeChild left (SizeReq (Size cw _) srW _) = Rect left t newWidth h where
@@ -134,8 +135,8 @@ makeSpacer = Widget {
   }
   where
     handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size 0 0) RemainderSize RemainderSize
-    resizeChildren _ _ _ = Nothing
+    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size 10 10) RemainderSize RemainderSize
+    resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts = return ()
 
 {--

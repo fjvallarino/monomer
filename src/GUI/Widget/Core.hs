@@ -180,7 +180,7 @@ data Widget s e m =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResizeChildren :: Rect -> Style -> [SizeReq] -> Maybe (WidgetResizeResult s e m),
+    _widgetResizeChildren :: Rect -> Rect -> Style -> [SizeReq] -> Maybe (WidgetResizeResult s e m),
     -- | Renders the widget
     --
     -- Renderer
@@ -373,7 +373,7 @@ resizeNode renderer viewport renderArea (Node _ childrenSizes) (Node widgetInsta
   where
     widget = _widgetInstanceWidget widgetInstance
     style = _widgetInstanceStyle widgetInstance
-    (WidgetResizeResult viewports renderAreas newWidget) = case (_widgetResizeChildren widget) viewport style (seqToList childrenSizes) of
+    (WidgetResizeResult viewports renderAreas newWidget) = case (_widgetResizeChildren widget) viewport renderArea style (seqToList childrenSizes) of
       Nothing -> WidgetResizeResult [] [] Nothing
       Just wrr -> wrr
     updatedNode = widgetInstance {
