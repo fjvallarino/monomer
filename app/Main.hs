@@ -124,12 +124,27 @@ buildUI model = styledTree where
   extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vgrid ([
       hgrid [
-        textField `style` textStyle,
-        textField `style` textStyle
-      ],
-      hgrid [
-        label "Short",
-        scroll $ label "This is a really really really long label, you know?" `style` labelStyle
+        scroll $ vstack [
+          textField `style` textStyle,
+          spacer,
+          label "Label 1",
+          spacer,
+          label "Label 2",
+          spacer,
+          label "Label 3",
+          spacer,
+          label "Label 4",
+          spacer,
+          label "Label 5",
+          spacer,
+          label "Label 6",
+          spacer,
+          label "Label 7"
+        ],
+        vgrid [
+          textField `style` textStyle,
+          scroll $ label "This is a really really really long label, you know?" `style` labelStyle
+        ]
       ],
       scroll $ hstack [
         label "Short",

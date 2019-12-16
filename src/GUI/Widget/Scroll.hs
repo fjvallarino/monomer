@@ -73,16 +73,16 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     preferredSize _ _ children = return (head children)
     resizeChildren (Rect l t w h) _ _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
       SizeReq (Size cw2 ch2) _ _ = (head children)
-      newWidget = Just $ makeScroll (ScrollState dx dy (Size cw2 ch2))
+      areaW = max w cw2
+      areaH = max h ch2
+      newWidget = Just $ makeScroll (ScrollState dx dy (Size areaW areaH))
       viewport = [Rect l t w h]
-      renderArea = [Rect (l + dx) (t + dy) cw2 ch2]
+      renderArea = [Rect (l + dx) (t + dy) areaW areaH]
     render renderer WidgetInstance{..} children ts =
       do
         scissor renderer _widgetInstanceViewport
         handleRenderChildren renderer children ts
         resetScissor renderer
-
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show dx))
 
         when (barRatioH < 1) $ do
           drawRect renderer scrollRectH (Just darkGray) Nothing

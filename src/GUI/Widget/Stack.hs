@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Stack (hstack) where
+module GUI.Widget.Stack (hstack, vstack) where
 
 import Control.Monad
 import Control.Monad.State
@@ -12,10 +12,19 @@ import GUI.Data.Tree
 import GUI.Widget.Core
 
 hstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
-hstack = parentWidget (makeHStack "hstack" Horizontal)
+hstack = parentWidget makeHStack
 
-makeHStack :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeHStack widgetType direction = Widget {
+makeHStack :: (MonadState s m) => Widget s e m
+makeHStack = makeStack "hstack" Horizontal
+
+vstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+vstack = parentWidget makeVStack
+
+makeVStack :: (MonadState s m) => Widget s e m
+makeVStack = makeStack "vstack" Vertical
+
+makeStack :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
+makeStack widgetType direction = Widget {
     _widgetType = widgetType,
     _widgetFocusable = False,
     _widgetRestoreState = defaultRestoreState,
@@ -27,39 +36,47 @@ makeHStack widgetType direction = Widget {
     _widgetRender = render
   }
   where
+    isHorizontal = direction == Horizontal
     focusable = False
     handleEvent _ _ = Nothing
     preferredSize _ _ children = return reqSize where
       reqSize = SizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
-      sChildren = filter (\c -> _srPolicyWidth c == StrictSize) children
-      fChildren = filter (\c -> _srPolicyWidth c == FlexibleSize) children
-      rChildren = filter (\c -> _srPolicyWidth c == RemainderSize) children
+      policySelector = if isHorizontal then _srPolicyWidth else _srPolicyHeight
+      sizeSelector = if isHorizontal then _w else _h
+      rectSelector = if isHorizontal then _rw else _rh
+      mSize = if isHorizontal then w else h
+      mStart = if isHorizontal then l else t
+      sChildren = filter (\c -> policySelector c == StrictSize) children
+      fChildren = filter (\c -> policySelector c == FlexibleSize) children
+      rChildren = filter (\c -> policySelector c == RemainderSize) children
       remainderCount = length rChildren
       remainderExist = not $ null rChildren
-      Size sw _  = calcPreferredSize sChildren
-      Size fw _  = calcPreferredSize fChildren
-      fRatio = if | w - sw > fw &&     remainderExist -> 1
-                  | w - sw > fw && not remainderExist -> (w - sw) / fw
-                  | w - sw > 0                        -> (w - sw) / fw
-                  | otherwise                         -> 0
-      remainderTotal = w - (sw + fw * fRatio)
+      sSize = sizeSelector $ calcPreferredSize sChildren
+      fSize = sizeSelector $ calcPreferredSize fChildren
+      fRatio = if | mSize - sSize > fSize &&     remainderExist -> 1
+                  | mSize - sSize > fSize && not remainderExist -> (mSize - sSize) / fSize
+                  | mSize - sSize > 0                           -> (mSize - sSize) / fSize
+                  | otherwise                                   -> 0
+      remainderTotal = mSize - (sSize + fSize * fRatio)
       remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
       newViewports = reverse revViewports
-      (revViewports, _) = foldl foldHelper ([], l) children
-      foldHelper (accum, left) child = (newSize : accum, left + nw) where
-        newSize@(Rect _ _ nw _) = resizeChild left child
-      resizeChild left (SizeReq (Size cw _) srW _) = Rect left t newWidth h where
-        newWidth = case srW of
-          StrictSize -> cw
-          FlexibleSize -> cw * fRatio
+      (revViewports, _) = foldl foldHelper ([], mStart) children
+      foldHelper (accum, offset) child = (newSize : accum, offset + rectSelector newSize) where
+        newSize = resizeChild offset child
+      resizeChild offset sr@(SizeReq srSize _ _) = if isHorizontal then hRect else vRect where
+        hRect = Rect offset t newSize h
+        vRect = Rect l offset w newSize
+        newSize = case policySelector sr of
+          StrictSize -> sizeSelector srSize
+          FlexibleSize -> sizeSelector srSize * fRatio
           RemainderSize -> remainderUnit
     calcPreferredSize children = Size width height where
       maxWidth = if null children then 0 else (maximum . map (_w . _srSize)) children
       sumWidth = (sum . map (_w . _srSize)) children
       maxHeight = if null children then 0 else (maximum . map (_h . _srSize)) children
       sumHeight = (sum . map (_h . _srSize)) children
-      width = if direction == Horizontal then sumWidth else maxWidth
-      height = if direction == Horizontal then maxHeight else sumHeight
+      width = if isHorizontal then sumWidth else maxWidth
+      height = if isHorizontal then maxHeight else sumHeight
     render renderer WidgetInstance{..} children ts = do
       handleRenderChildren renderer children ts
