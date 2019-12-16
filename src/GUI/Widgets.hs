@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module GUI.Widgets (
   module GUI.Widget.Core,
   module GUI.Widget.Button,
