@@ -7,6 +7,7 @@ import Control.Monad
 import Control.Monad.State
 
 import GUI.Common.Core
+import GUI.Common.Event
 import GUI.Common.Style
 import GUI.Data.Tree
 import GUI.Widget.Core

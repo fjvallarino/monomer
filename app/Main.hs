@@ -40,8 +40,11 @@ import qualified SDL.Input.Keyboard.Codes as KeyCodes
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw.Error as SRE
 
+import qualified SDL.Raw.Event as SREv
+
 import Types
 import GUI.Common.Core
+import GUI.Common.Event
 import GUI.Common.Style
 import GUI.Widgets
 
@@ -98,6 +101,8 @@ main = do
   c@(Context c') <- createGL3 (S.fromList [Antialias, StencilStrokes, Debug])
 
   fontRes <- createFont c "sans" (FileName "./assets/fonts/Roboto-Regular.ttf")
+
+  SREv.startTextInput
 
   runStateT (runWidgets window c) (W.initGUIContext def)
 
@@ -222,17 +227,18 @@ getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
 
-handleSystemEvents :: Renderer WidgetM -> [W.SystemEvent] -> TR.Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer systemEvents currentFocus widgets =
   foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
-handleEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> W.ChildEventResult App AppEvent WidgetM
+handleEvent :: Renderer WidgetM -> SystemEvent -> TR.Path -> WidgetTree -> W.ChildEventResult App AppEvent WidgetM
 handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
-  W.Click point _ _       -> W.handleEventFromPoint point widgets systemEvent
-  W.WheelScroll point _ _ -> W.handleEventFromPoint point widgets systemEvent
-  W.KeyAction _ _         -> W.handleEventFromPath currentFocus widgets systemEvent
+  Click point _ _       -> W.handleEventFromPoint point widgets systemEvent
+  WheelScroll point _ _ -> W.handleEventFromPoint point widgets systemEvent
+  KeyAction _ _         -> W.handleEventFromPath currentFocus widgets systemEvent
+  TextInput _           -> W.handleEventFromPath currentFocus widgets systemEvent
 
-handleSystemEvent :: Renderer WidgetM -> W.SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvent :: Renderer WidgetM -> SystemEvent -> TR.Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
   let (W.ChildEventResult stopProcessing eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
@@ -243,7 +249,7 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
     >>= handleAppEvents renderer appEvents
     >>= handleResizeChildren renderer eventRequests
 
-handleFocusChange :: TR.Path -> W.SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
+handleFocusChange :: TR.Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
 handleFocusChange currentFocus systemEvent stopProcessing widgetRoot
   | focusChangeRequested = do
       ring <- use focusRing
@@ -311,18 +317,18 @@ processCustomHandler renderer widgets path (Right val) = do
 keycodeTab :: (Integral a) => a
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 
-isKeyboardEvent :: W.SystemEvent -> Bool
-isKeyboardEvent (W.KeyAction _ _) = True
+isKeyboardEvent :: SystemEvent -> Bool
+isKeyboardEvent (KeyAction _ _) = True
 isKeyboardEvent _ = False
 
-isKeyPressed :: W.SystemEvent -> W.KeyCode -> Bool
-isKeyPressed (W.KeyAction keyCode W.KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed :: SystemEvent -> KeyCode -> Bool
+isKeyPressed (KeyAction keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
 isKeyPressed _ _ = False
 
-isKeyTab :: W.KeyCode -> Bool
+isKeyTab :: KeyCode -> Bool
 isKeyTab key = matchesSDLKeyCode key SDL.KeycodeTab
 
-matchesSDLKeyCode :: W.KeyCode -> SDL.Keycode -> Bool
+matchesSDLKeyCode :: KeyCode -> SDL.Keycode -> Bool
 matchesSDLKeyCode keyCode sdlKeyCode = keyCode == (fromIntegral $ Keyboard.unwrapKeycode sdlKeyCode)
 
 handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> AppM WidgetTree
@@ -364,59 +370,3 @@ collectPaths :: (MonadState s m) => TR.Tree (W.WidgetInstance s e m) -> TR.Path 
 collectPaths (TR.Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
   pairs = zip (TR.seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
-
-convertEvents :: Point -> [SDL.EventPayload] -> [W.SystemEvent]
-convertEvents mousePos events = newEvents
-  where
-    newEvents = mouseEvents ++ mouseWheelEvents ++ keyboardEvents
-    mouseEvents = mouseClick events
-    mouseWheelEvents = mouseWheelEvent mousePos events
-    keyboardEvents = keyboardEvent events
-
-mouseClick :: [SDL.EventPayload] -> [W.SystemEvent]
-mouseClick events =
-  case clickEvent of
-    Just (SDL.MouseButtonEvent SDL.MouseButtonEventData
-          { SDL.mouseButtonEventMotion = motion,
-            SDL.mouseButtonEventButton = button,
-            SDL.mouseButtonEventPos = SDL.P (SDL.V2 x y) }) -> leftClicked ++ leftReleased ++ rightClicked ++ rightReleased
-      where isLeft = button == SDL.ButtonLeft
-            isRight = button == SDL.ButtonRight
-            isClicked = motion == SDL.Pressed
-            isReleased = motion == SDL.Released
-            mousePos = Point (fromIntegral x) (fromIntegral y)
-            leftClicked = if isLeft && isClicked then [W.Click mousePos W.LeftBtn W.PressedBtn] else []
-            leftReleased = if isLeft && isReleased then [W.Click mousePos W.LeftBtn W.ReleasedBtn] else []
-            rightClicked = if isRight && isClicked then [W.Click mousePos W.RightBtn W.PressedBtn] else []
-            rightReleased = if isRight && isReleased then [W.Click mousePos W.RightBtn W.ReleasedBtn] else []
-
-    otherwise -> []
-  where clickEvent = L.find (\evt -> case evt of
-                                     SDL.MouseButtonEvent _ -> True
-                                     otherwise -> False
-                          ) events
-
-mouseWheelEvent :: Point -> [SDL.EventPayload] -> [W.SystemEvent]
-mouseWheelEvent mousePos events =
-  case touchEvent of
-    Just (SDL.MouseWheelEvent SDL.MouseWheelEventData
-          { SDL.mouseWheelEventPos = (SDL.V2 x y),
-            SDL.mouseWheelEventDirection = direction,
-            SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else [W.WheelScroll mousePos wheelDelta wheelDirection]
-      where wheelDirection = if direction == SDL.ScrollNormal then W.WheelNormal else W.WheelFlipped
-            wheelDelta = Point (fromIntegral x) (fromIntegral y)
-    otherwise -> []
-  where touchEvent = L.find (\evt -> case evt of
-                                     SDL.MouseWheelEvent _ -> True
-                                     otherwise -> False
-                          ) events
-
-keyboardEvent :: [SDL.EventPayload] -> [W.SystemEvent]
-keyboardEvent events = activeKeys
-  where
-    activeKeys = map (\(SDL.KeyboardEvent k) -> W.KeyAction (keyCode k) (keyMotion k)) (unsafeCoerce keyboardEvents)
-    keyCode event = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym event
-    keyMotion event = if SDL.keyboardEventKeyMotion event == SDL.Pressed then W.KeyPressed else W.KeyReleased
-    keyboardEvents = filter (\e -> case e of
-                                      SDL.KeyboardEvent k -> True
-                                      _ -> False) events

@@ -13,6 +13,7 @@ import Control.Monad.State
 import qualified Data.Text as T
 
 import GUI.Common.Core
+import GUI.Common.Event
 import GUI.Common.Drawing
 import GUI.Common.Style
 import GUI.Data.Tree

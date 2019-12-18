@@ -22,6 +22,7 @@ import Data.Typeable (cast, Typeable)
 import Debug.Trace
 
 import GUI.Common.Core
+import GUI.Common.Event
 import GUI.Common.Style
 import GUI.Data.Tree
 
@@ -33,30 +34,15 @@ import qualified Data.Sequence as SQ
 type Timestamp = Int
 type Enabled = Bool
 type Focused = Bool
-type KeyCode = Int
 
 type WidgetNode s e m = Tree (WidgetInstance s e m)
 type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
-
-data Direction = Horizontal | Vertical deriving (Show, Eq)
-
-data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data SizeReq = SizeReq {
   _srSize :: Size,
   _srPolicyWidth :: SizePolicy,
   _srPolicyHeight :: SizePolicy
 } deriving (Show, Eq)
-
-data Button = LeftBtn | RightBtn deriving (Show, Eq)
-data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
-
-data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
-
-data SystemEvent = Click Point Button ButtonState
-                 | WheelScroll Point Point WheelDirection
-                 | KeyAction KeyCode KeyMotion
-                 deriving (Show, Eq)
 
 data EventRequest = IgnoreParentEvents
                   | IgnoreChildrenEvents

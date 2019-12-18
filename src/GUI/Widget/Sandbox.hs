@@ -12,6 +12,7 @@ import Data.Typeable
 import Debug.Trace
 
 import GUI.Common.Core
+import GUI.Common.Event
 import GUI.Common.Drawing
 import GUI.Common.Style
 import GUI.Data.Tree
