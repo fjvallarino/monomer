@@ -11,7 +11,7 @@ import Control.Monad
 import Control.Monad.State
 
 import qualified GUI.Data.Tree as TR
-import GUI.Widget.Core (GUIContext, WidgetTask, _appContext, _focusRing, _widgetTasks)
+import GUI.Common.Core (GUIContext, WidgetTask, _appContext, _focusRing, _widgetTasks)
 
 data App = App {
   _clickCount :: !Int

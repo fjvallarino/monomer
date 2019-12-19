@@ -16,8 +16,8 @@ import GUI.Common.Core
 import GUI.Common.Event
 import GUI.Common.Drawing
 import GUI.Common.Style
+import GUI.Common.Types
 import GUI.Data.Tree
-import GUI.Widget.Core
 
 import GHC.Generics
 

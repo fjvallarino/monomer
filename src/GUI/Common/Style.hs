@@ -6,7 +6,8 @@ import Data.Default
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
-import GUI.Common.Core
+import GUI.Common.Types
+import GUI.Common.Util
 
 data FontInstance = FontInstance
 

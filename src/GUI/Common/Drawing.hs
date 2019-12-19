@@ -7,8 +7,9 @@ import qualified Data.Text as T
 import Control.Monad (when)
 import Data.Maybe
 
-import GUI.Common.Core
+import GUI.Common.Types
 import GUI.Common.Style
+import GUI.Common.Util
 
 defaultColor :: Color
 defaultColor = RGB 255 255 255

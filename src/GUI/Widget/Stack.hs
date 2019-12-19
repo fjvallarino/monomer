@@ -9,8 +9,8 @@ import Control.Monad.State
 import GUI.Common.Core
 import GUI.Common.Event
 import GUI.Common.Style
+import GUI.Common.Types
 import GUI.Data.Tree
-import GUI.Widget.Core
 
 hstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
 hstack = parentWidget makeHStack

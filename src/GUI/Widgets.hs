@@ -1,5 +1,5 @@
 module GUI.Widgets (
-  module GUI.Widget.Core,
+  module GUI.Common.Core,
   module GUI.Widget.Button,
   module GUI.Widget.Grid,
   module GUI.Widget.Label,
@@ -10,7 +10,7 @@ module GUI.Widgets (
   module GUI.Widget.TextField
 ) where
 
-import GUI.Widget.Core (key, style, children)
+import GUI.Common.Core (key, style, children)
 import GUI.Widget.Button
 import GUI.Widget.Grid
 import GUI.Widget.Label

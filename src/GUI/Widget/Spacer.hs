@@ -7,8 +7,8 @@ import Control.Monad.State
 
 import GUI.Common.Core
 import GUI.Common.Style
+import GUI.Common.Types
 import GUI.Data.Tree
-import GUI.Widget.Core
 
 spacer :: (MonadState s m) => WidgetNode s e m
 spacer = singleWidget makeSpacer

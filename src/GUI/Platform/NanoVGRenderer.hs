@@ -5,7 +5,7 @@ module GUI.Platform.NanoVGRenderer (makeRenderer) where
 
 import Data.Default
 
-import qualified GUI.Common.Core as C
+import qualified GUI.Common.Types as C
 import qualified Data.Text as T
 import qualified NanoVG as VG
 

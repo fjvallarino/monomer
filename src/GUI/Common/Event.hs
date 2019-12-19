@@ -10,7 +10,7 @@ import Unsafe.Coerce
 import Control.Monad (when)
 import Data.Maybe
 
-import GUI.Common.Core
+import GUI.Common.Types
 import GUI.Common.Style
 
 import qualified SDL
@@ -21,7 +21,6 @@ data Button = LeftBtn | RightBtn deriving (Show, Eq)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 
 data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
-data Direction = Horizontal | Vertical deriving (Show, Eq)
 
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
