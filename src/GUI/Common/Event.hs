@@ -1,41 +1,63 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module GUI.Common.Event where
 
 import qualified Data.List as L
-
 import qualified Data.Text as T
+
+import Data.Typeable (cast, Typeable)
 import Unsafe.Coerce
 
-import Control.Monad (when)
-import Data.Maybe
-
+import GUI.Common.Keyboard
 import GUI.Common.Types
-import GUI.Common.Style
 
 import qualified SDL
 
-type KeyCode = Int
-
 data Button = LeftBtn | RightBtn deriving (Show, Eq)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
+data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
+data EventRequest = IgnoreParentEvents
+                  | IgnoreChildrenEvents
+                  | ResizeChildren
+                  | ResizeAll
+                  | GetClipboard
+                  | SetClipboard ClipboardData
+                  | forall a . Typeable a => RunCustom (IO a)
 
 data SystemEvent = Click Point Button ButtonState
                  | WheelScroll Point Point WheelDirection
-                 | KeyAction KeyCode KeyMotion
+                 | KeyAction !KeyMod !KeyCode !KeyMotion
                  | TextInput T.Text
+                 | Clipboard ClipboardData
                  deriving (Show, Eq)
 
-getKeycode :: SDL.Keycode -> Int
-getKeycode keyCode = fromIntegral $ SDL.unwrapKeycode keyCode
+isIgnoreParentEvents :: EventRequest -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False
 
-keyBackspace = getKeycode SDL.KeycodeBackspace
-keyLeft = getKeycode SDL.KeycodeLeft
-keyRight = getKeycode SDL.KeycodeRight
+isIgnoreChildrenEvents :: EventRequest -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isResizeChildren :: EventRequest -> Bool
+isResizeChildren ResizeChildren = True
+isResizeChildren _ = False
+
+isResizeAll :: EventRequest -> Bool
+isResizeAll ResizeAll = True
+isResizeAll _ = False
+
+isGetClipboard :: EventRequest -> Bool
+isGetClipboard GetClipboard = True
+isGetClipboard _ = False
+
+isSetClipboard :: EventRequest -> Bool
+isSetClipboard (SetClipboard _) = True
+isSetClipboard _ = False
 
 convertEvents :: Point -> [SDL.EventPayload] -> [SystemEvent]
 convertEvents mousePos events = newEvents
@@ -87,7 +109,8 @@ mouseWheelEvent mousePos events =
 keyboardEvent :: [SDL.EventPayload] -> [SystemEvent]
 keyboardEvent events = activeKeys
   where
-    activeKeys = map (\(SDL.KeyboardEvent k) -> KeyAction (keyCode k) (keyMotion k)) (unsafeCoerce keyboardEvents)
+    activeKeys = map (\(SDL.KeyboardEvent k) -> KeyAction (keyMod k) (keyCode k) (keyMotion k)) (unsafeCoerce keyboardEvents)
+    keyMod event = convertKeyModifier $ SDL.keysymModifier $ SDL.keyboardEventKeysym event
     keyCode event = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym event
     keyMotion event = if SDL.keyboardEventKeyMotion event == SDL.Pressed then KeyPressed else KeyReleased
     keyboardEvents = filter (\e -> case e of
@@ -101,3 +124,13 @@ textEvent events = inputText
     inputTextEvents = filter (\e -> case e of
                                       SDL.TextInputEvent _ -> True
                                       _ -> False) events
+
+checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyMotion -> Bool) -> Bool
+checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
+checkKeyboard _ _ = False
+
+isClipboardCopy :: SystemEvent -> Bool
+isClipboardCopy event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyC code)
+
+isClipboardPaste :: SystemEvent -> Bool
+isClipboardPaste event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyV code)

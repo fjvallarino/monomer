@@ -9,7 +9,6 @@ import Control.Monad
 import Control.Monad.State
 
 import Data.Typeable
-import Debug.Trace
 
 import GUI.Common.Core
 import GUI.Common.Event

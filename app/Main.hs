@@ -22,8 +22,6 @@ import NanoVG
 import SDL (($=))
 import Unsafe.Coerce
 
-import Debug.Trace
-
 import System.Remote.Monitoring
 
 import qualified Data.List as L
@@ -45,6 +43,7 @@ import qualified SDL.Raw.Event as SREv
 import Types
 import GUI.Common.Core
 import GUI.Common.Event
+import GUI.Common.Keyboard
 import GUI.Common.Style
 import GUI.Common.Types
 import GUI.Common.Util
@@ -88,8 +87,11 @@ main = do
   window <-
     SDL.createWindow
       "SDL / OpenGL Example"
-      SDL.defaultWindow {SDL.windowInitialSize = SDL.V2 screenWidth screenHeight,
-                         SDL.windowOpenGL = Just customOpenGL }
+      SDL.defaultWindow {
+        SDL.windowInitialSize = SDL.V2 screenWidth screenHeight,
+        SDL.windowHighDPI = True,
+        SDL.windowOpenGL = Just customOpenGL
+      }
 
   err <- SRE.getError
   err <- STR.peekCString err
@@ -236,8 +238,9 @@ handleEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> ChildEve
 handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
   Click point _ _       -> handleEventFromPoint point widgets systemEvent
   WheelScroll point _ _ -> handleEventFromPoint point widgets systemEvent
-  KeyAction _ _         -> handleEventFromPath currentFocus widgets systemEvent
+  KeyAction _ _ _       -> handleEventFromPath currentFocus widgets systemEvent
   TextInput _           -> handleEventFromPath currentFocus widgets systemEvent
+  Clipboard _           -> handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
@@ -248,6 +251,8 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
 
   handleFocusChange currentFocus systemEvent stopProcessing newRoot
     >>= handleAppEvents renderer appEvents
+    >>= handleClipboardGet renderer eventRequests
+    >>= handleClipboardSet renderer eventRequests
     >>= handleResizeChildren renderer eventRequests
 
 handleFocusChange :: Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
@@ -263,8 +268,28 @@ handleFocusChange currentFocus systemEvent stopProcessing widgetRoot
 
 handleResizeChildren :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
 handleResizeChildren renderer eventRequests widgetRoot =
-  case L.find (\(path, evt) -> evt == ResizeChildren) eventRequests of
+  case L.find (\(path, evt) -> isResizeChildren evt) eventRequests of
     Just (path, event) -> updateUI renderer widgetRoot
+    Nothing -> return widgetRoot
+
+handleClipboardGet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardGet renderer eventRequests widgetRoot =
+  case L.find (\(path, evt) -> isGetClipboard evt) eventRequests of
+    Just (path, event) -> do
+      hasText <- SDL.hasClipboardText
+      contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
+
+      handleSystemEvents renderer [Clipboard contents] path widgetRoot
+    Nothing -> return widgetRoot
+
+handleClipboardSet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardSet renderer eventRequests widgetRoot =
+  case L.find (\(path, evt) -> isSetClipboard evt) eventRequests of
+    Just (path, SetClipboard (ClipboardText text)) -> do
+      SDL.setClipboardText text
+
+      return widgetRoot
+    Just _ -> return widgetRoot
     Nothing -> return widgetRoot
 
 launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest)] -> AppM ()
@@ -319,11 +344,11 @@ keycodeTab :: (Integral a) => a
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
 
 isKeyboardEvent :: SystemEvent -> Bool
-isKeyboardEvent (KeyAction _ _) = True
+isKeyboardEvent (KeyAction _ _ _) = True
 isKeyboardEvent _ = False
 
 isKeyPressed :: SystemEvent -> KeyCode -> Bool
-isKeyPressed (KeyAction keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed (KeyAction _ keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
 isKeyPressed _ _ = False
 
 isKeyTab :: KeyCode -> Bool

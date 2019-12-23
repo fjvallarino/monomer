@@ -30,6 +30,8 @@ data SizePolicy = StrictSize |
                   FlexibleSize |
                   RemainderSize deriving (Show, Eq)
 
+data ClipboardData = ClipboardEmpty | ClipboardText T.Text deriving (Eq, Show)
+
 data Point = Point {
   _x :: !Double,
   _y :: !Double

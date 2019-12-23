@@ -19,8 +19,6 @@ import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
 
-import Debug.Trace
-
 import GUI.Common.Event
 import GUI.Common.Style
 import GUI.Common.Types
@@ -29,6 +27,7 @@ import GUI.Data.Tree
 
 import GHC.Generics
 
+import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
 
@@ -53,19 +52,6 @@ data SizeReq = SizeReq {
   _srPolicyWidth :: SizePolicy,
   _srPolicyHeight :: SizePolicy
 } deriving (Show, Eq)
-
-data EventRequest = IgnoreParentEvents
-                  | IgnoreChildrenEvents
-                  | ResizeChildren
-                  | ResizeAll
-                  | forall a . Typeable a => RunCustom (IO a)
-
-instance Eq EventRequest where
-  IgnoreParentEvents == IgnoreParentEvents = True
-  IgnoreChildrenEvents == IgnoreChildrenEvents = True
-  ResizeChildren == ResizeChildren = True
-  ResizeAll == ResizeAll = True
-  _ == _ = False
 
 data WidgetEventResult s e m = WidgetEventResult {
   _eventResultRequest :: [EventRequest],
@@ -278,8 +264,8 @@ handleChildEvent selectorFn selector path treeNode@(Node wn@WidgetInstance{..} c
   (ice, ipe, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
     Nothing -> (False, False, [], SQ.empty, Nothing)
     Just (WidgetEventResult er2 ue2 widget) -> (ice, ipe, pathEvents, SQ.fromList ue2, updatedNode) where
-      ice = elem IgnoreChildrenEvents er2
-      ipe = elem IgnoreParentEvents er2
+      ice = isJust $ L.find isIgnoreChildrenEvents er2
+      ipe = isJust $ L.find isIgnoreParentEvents er2
       pathEvents = fmap (path,) er2
       updatedNode = if isNothing widget
                       then Nothing
@@ -308,7 +294,7 @@ handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rec
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleCustomCommand :: (MonadState s m, Typeable i) => Path -> WidgetNode s e m -> i -> ChildEventResult s e m
-handleCustomCommand path treeNode customData = traceShow path $ case GUI.Data.Tree.lookup path treeNode of
+handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
     case _widgetHandleCustom customData of
       Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
