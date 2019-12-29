@@ -126,5 +126,6 @@ nvArc c cx cy radius angleStart angleEnd winding = do
   VG.arc c (realToFrac cx) (realToFrac cy) (realToFrac radius) (VG.degToRad $ realToFrac angleStart) (VG.degToRad $ realToFrac angleEnd) winding
 
 colorToPaint :: C.Color -> VG.Color
-colorToPaint (C.RGB r g b) = VG.rgb (round r) (round g) (round b)
-colorToPaint (C.RGBA r g b a) = VG.rgba (round r) (round g) (round b) (round a)
+colorToPaint (C.Color r g b a)
+  | a >= 1.0  = VG.rgb (fromIntegral r) (fromIntegral g) (fromIntegral b)
+  | otherwise = VG.rgba (fromIntegral r) (fromIntegral g) (fromIntegral b) (round $ a * 255)

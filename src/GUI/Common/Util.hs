@@ -6,18 +6,26 @@ import Data.Default
 
 import GUI.Common.Types
 
-white      = RGB 255 255 255
-black      = RGB   0   0   0
-red        = RGB 255   0   0
-green      = RGB   0 255   0
-blue       = RGB   0   0 255
-lightGray  = RGB 191 191 191
-gray       = RGB 127 127 127
-darkGray   = RGB  63  63  63
+white      = rgb 255 255 255
+black      = rgb   0   0   0
+red        = rgb 255   0   0
+green      = rgb   0 255   0
+blue       = rgb   0   0 255
+lightGray  = rgb 191 191 191
+gray       = rgb 127 127 127
+darkGray   = rgb  63  63  63
 
-alpha :: Color -> Double -> Color
-(RGB r g b) `alpha` a = RGBA r g b a
-(RGBA r g b _) `alpha` a = RGBA r g b a
+clampChannel :: Int -> Int
+clampChannel channel = clamp 0 255 channel
+
+clampAlpha :: Double -> Double
+clampAlpha alpha = clamp 0 1 alpha
+
+rgb :: Int -> Int -> Int -> Color
+rgb r g b = Color (clampChannel r) (clampChannel g) (clampChannel b) 1.0
+
+rgba :: Int -> Int -> Int -> Double -> Color
+rgba r g b a = Color (clampChannel r) (clampChannel g) (clampChannel b) (clampAlpha a)
 
 inRect :: Rect -> Point -> Bool
 inRect (Rect x y w h) (Point x2 y2) = (x2 >= x && x2 < x + w) && (y2 >= y && y2 < y + h)
@@ -45,3 +53,6 @@ moveRect (Rect x y w h) dx dy = Rect (x + dx) (y + dy) w h
 bindIf :: (Monad m) => Bool -> (a -> m a) -> a -> m a
 bindIf False _ value = return value
 bindIf _ action value = action value
+
+clamp :: (Ord a) => a -> a -> a -> a
+clamp mn mx = max mn . min mx

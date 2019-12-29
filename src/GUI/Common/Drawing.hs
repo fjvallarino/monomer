@@ -12,7 +12,7 @@ import GUI.Common.Style
 import GUI.Common.Util
 
 defaultColor :: Color
-defaultColor = RGB 255 255 255
+defaultColor = white
 
 defaultFont :: Font
 defaultFont = "sans"

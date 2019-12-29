@@ -18,7 +18,7 @@ import Data.Typeable
 import Foreign.C.Types
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro.Mtl
-import NanoVG
+import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
 import SDL (($=))
 import Unsafe.Coerce
 
@@ -130,11 +130,11 @@ handleAppEvent evt = do
 
 buildUI :: App -> WidgetTree
 buildUI model = styledTree where
-  border1 = border 5 (RGB 0 255 0) 20
-  border2 = borderLeft 20 (RGB 200 200 0) <> borderRight 20 (RGB 200 0 200)
-  buttonStyle = bgColor (RGB 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
-  labelStyle = bgColor (RGB 100 100 100) <> textSize 48
-  textStyle = textColor (RGB 0 255 0)
+  border1 = border 5 (rgb 0 255 0) 20
+  border2 = borderLeft 20 (rgb 200 200 0) <> borderRight 20 (rgb 200 0 200)
+  buttonStyle = bgColor (rgb 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
+  labelStyle = bgColor (rgb 100 100 100) <> textSize 48
+  textStyle = textColor (rgb 0 255 0)
   extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vgrid [
       hgrid [

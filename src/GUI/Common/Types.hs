@@ -58,16 +58,18 @@ data Rect = Rect {
 instance Default Rect where
   def = Rect 0 0 0 0
 
-data Color =
-    RGB !Double !Double !Double |
-    RGBA !Double !Double !Double !Double
-  deriving (Show, Eq)
+data Color = Color {
+  _r :: Int,
+  _g :: Int,
+  _b :: Int,
+  _alpha :: Double
+} deriving (Show, Eq)
 
 instance Semigroup Color where
   (<>) _ c2 = c2
 
 instance Default Color where
-  def = RGB 0 0 0
+  def = Color 0 0 0 1.0
 
 data Renderer m  = (Monad m) => Renderer {
   beginPath :: m (),

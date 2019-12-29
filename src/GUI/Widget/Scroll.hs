@@ -87,10 +87,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
         resetScissor renderer
 
         when (barRatioH < 1) $ do
-          drawRect renderer scrollRectH (Just $ darkGray `alpha` 150) Nothing
+          drawRect renderer scrollRectH (Just $ darkGray { _alpha = 0.6 }) Nothing
 
         when (barRatioV < 1) $ do
-          drawRect renderer scrollRectV (Just $ darkGray `alpha` 150) Nothing
+          drawRect renderer scrollRectV (Just $ darkGray { _alpha = 0.6 }) Nothing
       where
         barThickness = 10
         vpLeft = (_rx _widgetInstanceViewport)
