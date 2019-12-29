@@ -13,7 +13,7 @@ import GUI.Data.Tree
 spacer :: (MonadState s m) => WidgetNode s e m
 spacer = singleWidget makeSpacer
 
-defaultSpace :: Int
+defaultSpace :: Double
 defaultSpace = 10
 
 makeSpacer :: (MonadState s m) => Widget s e m
@@ -30,6 +30,6 @@ makeSpacer = Widget {
   }
   where
     handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size 10 10) RemainderSize RemainderSize
+    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts = return ()

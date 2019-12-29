@@ -59,17 +59,17 @@ isSetClipboard :: EventRequest -> Bool
 isSetClipboard (SetClipboard _) = True
 isSetClipboard _ = False
 
-convertEvents :: Point -> [SDL.EventPayload] -> [SystemEvent]
-convertEvents mousePos events = newEvents
+convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
+convertEvents devicePixelRate mousePos events = newEvents
   where
     newEvents = mouseEvents ++ mouseWheelEvents ++ keyboardEvents ++ textEvents
-    mouseEvents = mouseClick events
-    mouseWheelEvents = mouseWheelEvent mousePos events
+    mouseEvents = mouseClick devicePixelRate events
+    mouseWheelEvents = mouseWheelEvent devicePixelRate mousePos events
     keyboardEvents = keyboardEvent events
     textEvents = textEvent events
 
-mouseClick :: [SDL.EventPayload] -> [SystemEvent]
-mouseClick events =
+mouseClick :: Double -> [SDL.EventPayload] -> [SystemEvent]
+mouseClick devicePixelRate events =
   case clickEvent of
     Just (SDL.MouseButtonEvent SDL.MouseButtonEventData
           { SDL.mouseButtonEventMotion = motion,
@@ -79,7 +79,7 @@ mouseClick events =
             isRight = button == SDL.ButtonRight
             isClicked = motion == SDL.Pressed
             isReleased = motion == SDL.Released
-            mousePos = Point (fromIntegral x) (fromIntegral y)
+            mousePos = Point (fromIntegral x * devicePixelRate) (fromIntegral y * devicePixelRate)
             leftClicked = if isLeft && isClicked then [Click mousePos LeftBtn PressedBtn] else []
             leftReleased = if isLeft && isReleased then [Click mousePos LeftBtn ReleasedBtn] else []
             rightClicked = if isRight && isClicked then [Click mousePos RightBtn PressedBtn] else []
@@ -91,15 +91,15 @@ mouseClick events =
                                      otherwise -> False
                           ) events
 
-mouseWheelEvent :: Point -> [SDL.EventPayload] -> [SystemEvent]
-mouseWheelEvent mousePos events =
+mouseWheelEvent :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
+mouseWheelEvent devicePixelRate mousePos events =
   case touchEvent of
     Just (SDL.MouseWheelEvent SDL.MouseWheelEventData
           { SDL.mouseWheelEventPos = (SDL.V2 x y),
             SDL.mouseWheelEventDirection = direction,
             SDL.mouseWheelEventWhich = which }) -> if which == SDL.Touch then [] else [WheelScroll mousePos wheelDelta wheelDirection]
       where wheelDirection = if direction == SDL.ScrollNormal then WheelNormal else WheelFlipped
-            wheelDelta = Point (fromIntegral x) (fromIntegral y)
+            wheelDelta = Point (fromIntegral x * devicePixelRate) (fromIntegral y * devicePixelRate)
     otherwise -> []
   where touchEvent = L.find (\evt -> case evt of
                                      SDL.MouseWheelEvent _ -> True

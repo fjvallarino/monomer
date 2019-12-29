@@ -47,8 +47,8 @@ makeFixedGrid widgetType direction = Widget {
     handleEvent _ _ = Nothing
     preferredSize _ _ children = return reqSize where
       reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
-      width = (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
-      height = (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
+      width = if null children then 0 else (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
+      height = if null children then 0 else (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
       wMul = if direction == Horizontal then length children else 1
       hMul = if direction == Horizontal then 1 else length children
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where

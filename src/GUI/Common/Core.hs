@@ -110,6 +110,7 @@ data Widget s e m =
     _widgetPreferredSize :: Renderer m -> Style -> [SizeReq] -> m SizeReq,
     -- | Resizes the children of this widget
     --
+    -- Vieport assigned to the widget
     -- Region assigned to the widget
     -- Style options
     -- Preferred size for each of the children widgets
@@ -156,13 +157,19 @@ data WidgetInstance s e m =
 
 data GUIContext app = GUIContext {
   _appContext :: app,
+  _windowSize :: Rect,
+  _useHiDPI :: Bool,
+  _devicePixelRate :: Double,
   _focusRing :: [Path],
   _widgetTasks :: [WidgetTask]
 }
 
-initGUIContext :: app -> GUIContext app
-initGUIContext app = GUIContext {
+initGUIContext :: app -> Rect -> Bool -> Double -> GUIContext app
+initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _appContext = app,
+  _windowSize = winSize,
+  _useHiDPI = useHiDPI,
+  _devicePixelRate = devicePixelRate,
   _focusRing = [],
   _widgetTasks = []
 }

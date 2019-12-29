@@ -37,8 +37,8 @@ import qualified SDL.Input.Keyboard as Keyboard
 import qualified SDL.Input.Keyboard.Codes as KeyCodes
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw.Error as SRE
-
 import qualified SDL.Raw.Event as SREv
+import qualified SDL.Raw.Video as SRV
 
 import Types
 import GUI.Common.Core
@@ -63,9 +63,6 @@ type WidgetTree = Tree (WidgetInstance App AppEvent WidgetM)
 type AppContext = GUIContext App
 type AppM = StateT AppContext IO
 
-(screenWidth, screenHeight) = (640, 480)
-windowSize = (Rect 0 0 (fromIntegral screenWidth) (fromIntegral screenHeight))
-
 main :: IO ()
 main = do
   --forkServer "localhost" 28000
@@ -84,12 +81,17 @@ main = do
     SDL.glMultisampleSamples = 1
   }
 
+  let (screenWidth, screenHeight) = (640, 480)
+      windowHiDPI = True
+      useHiDPI = True
+
   window <-
     SDL.createWindow
       "SDL / OpenGL Example"
       SDL.defaultWindow {
         SDL.windowInitialSize = SDL.V2 screenWidth screenHeight,
-        SDL.windowHighDPI = True,
+        SDL.windowHighDPI = windowHiDPI,
+        SDL.windowResizable = True,
         SDL.windowOpenGL = Just customOpenGL
       }
 
@@ -107,7 +109,11 @@ main = do
 
   SREv.startTextInput
 
-  runStateT (runWidgets window c) (initGUIContext def)
+  winSize@(Rect rx ry rw rh) <- getWindowSize window
+
+  let devicePixelRate = _rw winSize / fromIntegral screenWidth
+
+  runStateT (runWidgets window c) (initGUIContext def winSize useHiDPI devicePixelRate)
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
@@ -130,7 +136,7 @@ buildUI model = styledTree where
   labelStyle = bgColor (RGB 100 100 100) <> textSize 48
   textStyle = textColor (RGB 0 255 0)
   extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
-  widgetTree = vgrid ([
+  widgetTree = vgrid [
       hgrid [
         scroll $ vstack [
           textField `style` textStyle,
@@ -147,47 +153,73 @@ buildUI model = styledTree where
           spacer,
           label "Label 6",
           spacer,
-          label "Label 7"
+          label "Label 7",
+          spacer,
+          label "Label 8",
+          spacer,
+          label "Label 9",
+          spacer,
+          label "Label 10",
+          spacer,
+          label "Label 11",
+          spacer,
+          label "Label 12"
         ],
         vgrid [
           textField `style` textStyle,
           scroll $ label "This is a really really really long label, you know?" `style` labelStyle
         ]
       ],
-      scroll $ hstack [
-        label "Short",
-        spacer,
-        label "Long",
-        spacer,
-        label "Very Long",
-        spacer,
-        label "Very Very Long",
-        spacer,
-        label "Very Very Very Long",
-        spacer,
-        label "Very Very Very Very Long"
-      ],
-      hgrid [
-        sandbox (Action1 1) `style` buttonStyle,
-        sandbox (Action1 2) `style` buttonStyle,
-        sandbox (Action1 3) `style` buttonStyle
-      ],
-      button "Add items" (Action1 0) `style` buttonStyle,
-      textField `style` textStyle
-    ] ++ extraWidgets)
+      vgrid ([
+        scroll $ hstack [
+          label "Short",
+          spacer,
+          label "Long",
+          spacer,
+          label "Very Long",
+          spacer,
+          label "Very Very Long",
+          spacer,
+          label "Very Very Very Long",
+          spacer,
+          label "Very Very Very Very Long"
+        ],
+        hgrid [
+          sandbox (Action1 1) `style` buttonStyle,
+          sandbox (Action1 2) `style` buttonStyle,
+          sandbox (Action1 3) `style` buttonStyle
+        ],
+        button "Add items" (Action1 0) `style` buttonStyle,
+        textField `style` textStyle
+      ] ++ extraWidgets)
+    ]
   styledTree = cascadeStyle mempty widgetTree
 
 runWidgets :: SDL.Window -> Context -> AppM ()
 runWidgets window c = do
-  let renderer = NV.makeRenderer c
+  useHiDPI <- use useHiDPI
+  devicePixelRate <- use devicePixelRate
+  Rect rx ry rw rh <- use windowSize
 
+  let dpr = if useHiDPI then devicePixelRate else 1
+  let renderer = NV.makeRenderer c dpr
+  let newWindowSize = Rect rx ry (rw / dpr) (rh / dpr)
+
+  windowSize .= newWindowSize
   ticks <- SDL.ticks
   newUI <- doInDrawingContext window c $ updateUI renderer empty
 
   mainLoop window c renderer (fromIntegral ticks) newUI
 
+getWindowSize :: (MonadIO m) => SDL.Window -> m Rect
+getWindowSize window = do
+  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+  return (Rect 0 0 (fromIntegral fbWidth) (fromIntegral fbHeight))
+
 updateUI :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
 updateUI renderer oldWidgets = do
+  windowSize <- use windowSize
+
   resizedUI <- zoom appContext $ do
     app <- get
     resizeUI renderer windowSize (mergeTrees (buildUI app) oldWidgets)
@@ -200,6 +232,8 @@ updateUI renderer oldWidgets = do
 
 mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> AppM ()
 mainLoop window c renderer prevTicks widgets = do
+  useHiDPI <- use useHiDPI
+  devicePixelRate <- use devicePixelRate
   ticks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
@@ -209,11 +243,15 @@ mainLoop window c renderer prevTicks widgets = do
   let !ts = (ticks - prevTicks)
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
-
-  handledWidgets <- processWidgetTasks renderer widgets
+  let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
+  let mousePixelRate = if not useHiDPI then devicePixelRate else 1
+  let systemEvents = convertEvents mousePixelRate mousePos eventsPayload
 
   focus <- getCurrentFocus
-  newWidgets <- handleSystemEvents renderer (convertEvents mousePos eventsPayload) focus handledWidgets
+
+  newWidgets <- handleSystemEvents renderer systemEvents focus widgets
+    >>= processWidgetTasks renderer
+    >>= bindIf resized (handleWindowResize window renderer)
 
   renderWidgets window c renderer newWidgets ticks
 
@@ -230,10 +268,6 @@ getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
 
-handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
-handleSystemEvents renderer systemEvents currentFocus widgets =
-  foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
-
 handleEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> ChildEventResult App AppEvent WidgetM
 handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
   Click point _ _       -> handleEventFromPoint point widgets systemEvent
@@ -241,6 +275,10 @@ handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
   KeyAction _ _ _       -> handleEventFromPath currentFocus widgets systemEvent
   TextInput _           -> handleEventFromPath currentFocus widgets systemEvent
   Clipboard _           -> handleEventFromPath currentFocus widgets systemEvent
+
+handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvents renderer systemEvents currentFocus widgets =
+  foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
 
 handleSystemEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
@@ -291,6 +329,21 @@ handleClipboardSet renderer eventRequests widgetRoot =
       return widgetRoot
     Just _ -> return widgetRoot
     Nothing -> return widgetRoot
+
+handleWindowResize :: SDL.Window -> Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+handleWindowResize window renderer widgets = do
+  ctx <- get
+  dpr <- use devicePixelRate
+  Rect rx ry rw rh <- getWindowSize window
+
+  let newWindowSize = Rect rx ry (rw / dpr) (rh / dpr)
+
+  windowSize .= newWindowSize
+
+  liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round rw) (round rh))
+
+  zoom appContext $ do
+    resizeUI renderer newWindowSize widgets
 
 launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest)] -> AppM ()
 launchWidgetTasks renderer eventRequests = do
@@ -384,7 +437,7 @@ doInDrawingContext window c action = do
   let !pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
 
   liftIO $ GL.clear [GL.ColorBuffer]
-  liftIO $ beginFrame c screenWidth screenHeight pxRatio
+  liftIO $ beginFrame c fbWidth fbHeight pxRatio
 
   ret <- action
 

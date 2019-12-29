@@ -15,6 +15,10 @@ lightGray  = RGB 191 191 191
 gray       = RGB 127 127 127
 darkGray   = RGB  63  63  63
 
+alpha :: Color -> Double -> Color
+(RGB r g b) `alpha` a = RGBA r g b a
+(RGBA r g b _) `alpha` a = RGBA r g b a
+
 inRect :: Rect -> Point -> Bool
 inRect (Rect x y w h) (Point x2 y2) = (x2 >= x && x2 < x + w) && (y2 >= y && y2 < y + h)
 
@@ -37,3 +41,7 @@ midPoint (Point x1 y1) (Point x2 y2) = Point x3 y3 where
 
 moveRect :: Rect -> Double -> Double -> Rect
 moveRect (Rect x y w h) dx dy = Rect (x + dx) (y + dy) w h
+
+bindIf :: (Monad m) => Bool -> (a -> m a) -> a -> m a
+bindIf False _ value = return value
+bindIf _ action value = action value

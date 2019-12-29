@@ -57,15 +57,15 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
         step = if | isLeftClick -> stepSize
                   | isRigthClick -> -stepSize
                   | otherwise -> 0
-        newState = ScrollState (scrollX step dx cw rw) dy cs
+        newState = ScrollState (scrollAxis step dx cw rw) dy cs
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
         result = if needsUpdate then resultReqsEventsWidget [ResizeChildren] [] (makeScroll newState) else Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
-        newState = ScrollState (scrollX stepX dx cw rw) (scrollX stepY dy ch rh) cs
+        newState = ScrollState (scrollAxis stepX dx cw rw) (scrollAxis stepY dy ch rh) cs
       _ -> Nothing
-    scrollX reqDelta currScroll childPos viewportLimit
+    scrollAxis reqDelta currScroll childPos viewportLimit
       | reqDelta >= 0 = if currScroll + reqDelta < 0
                           then currScroll + reqDelta
                           else 0
@@ -87,10 +87,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
         resetScissor renderer
 
         when (barRatioH < 1) $ do
-          drawRect renderer scrollRectH (Just darkGray) Nothing
+          drawRect renderer scrollRectH (Just $ darkGray `alpha` 150) Nothing
 
         when (barRatioV < 1) $ do
-          drawRect renderer scrollRectV (Just darkGray) Nothing
+          drawRect renderer scrollRectV (Just $ darkGray `alpha` 150) Nothing
       where
         barThickness = 10
         vpLeft = (_rx _widgetInstanceViewport)

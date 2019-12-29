@@ -59,7 +59,8 @@ instance Default Rect where
   def = Rect 0 0 0 0
 
 data Color =
-    RGB !Double !Double !Double
+    RGB !Double !Double !Double |
+    RGBA !Double !Double !Double !Double
   deriving (Show, Eq)
 
 instance Semigroup Color where
