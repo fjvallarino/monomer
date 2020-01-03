@@ -46,19 +46,22 @@ makeFixedGrid widgetType direction = Widget {
     focusable = False
     handleEvent _ _ = Nothing
     preferredSize _ _ children = return reqSize where
-      reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
+      reqSize = sizeReq (Size width height) FlexibleSize FlexibleSize
       width = if null children then 0 else (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
       height = if null children then 0 else (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
       wMul = if direction == Horizontal then length children else 1
       hMul = if direction == Horizontal then 1 else length children
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
-      cols = if direction == Horizontal then (length children) else 1
-      rows = if direction == Horizontal then 1 else (length children)
-      newViewports = fmap resizeChild [0..(length children - 1)]
+      visibleChildren = filter _srVisible children
+      cols = if direction == Horizontal then (length visibleChildren) else 1
+      rows = if direction == Horizontal then 1 else (length visibleChildren)
+      foldHelper (accum, index) child = (index : accum, index + if _srVisible child then 1 else 0)
+      indices = reverse . fst $ foldl foldHelper ([], 0) children
+      newViewports = fmap resizeChild indices
       resizeChild i = Rect (cx i) (cy i) cw ch
-      cw = w / fromIntegral cols
-      ch = h / fromIntegral rows
-      cx i = l + (fromIntegral $ i `div` rows) * cw
-      cy i = t + (fromIntegral $ i `div` cols) * ch
+      cw = if cols > 0 then w / fromIntegral cols else 0
+      ch = if rows > 0 then h / fromIntegral rows else 0
+      cx i = if rows > 0 then l + (fromIntegral $ i `div` rows) * cw else 0
+      cy i = if cols > 0 then t + (fromIntegral $ i `div` cols) * ch else 0
     render renderer WidgetInstance{..} children ts = do
       handleRenderChildren renderer children ts

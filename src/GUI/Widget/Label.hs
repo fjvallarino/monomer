@@ -41,7 +41,7 @@ makeLabel caption = Widget {
     handleEvent view evt = Nothing
     preferredSize renderer (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (if caption == "" then " " else caption)
-      return $ SizeReq size FlexibleSize FlexibleSize
+      return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do

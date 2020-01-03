@@ -30,6 +30,6 @@ makeSpacer = Widget {
   }
   where
     handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = return $ SizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
+    preferredSize renderer (style@Style{..}) _ = return $ sizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts = return ()

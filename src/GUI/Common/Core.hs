@@ -36,7 +36,7 @@ type Timestamp = Int
 type WidgetNode s e m = Tree (WidgetInstance s e m)
 type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
 
-newtype WidgetType = WidgetType String deriving Eq
+newtype WidgetType = WidgetType String deriving (Eq, Show)
 newtype WidgetKey = WidgetKey String deriving Eq
 
 instance IsString WidgetType where
@@ -50,7 +50,8 @@ data WidgetState = forall i . (Typeable i, Generic i) => WidgetState i
 data SizeReq = SizeReq {
   _srSize :: Size,
   _srPolicyWidth :: SizePolicy,
-  _srPolicyHeight :: SizePolicy
+  _srPolicyHeight :: SizePolicy,
+  _srVisible :: Bool
 } deriving (Show, Eq)
 
 data WidgetEventResult s e m = WidgetEventResult {
@@ -143,6 +144,8 @@ data WidgetInstance s e m =
     _widgetInstanceWidget :: Widget s e m,
     -- | Indicates if the widget is enabled for user interaction
     _widgetInstanceEnabled :: Bool,
+    -- | Indicates if the widget is visible
+    _widgetInstanceVisible :: Bool,
     -- | Indicates if the widget is focused
     _widgetInstanceFocused :: Bool,
     -- | The visible area of the screen assigned to the widget
@@ -173,6 +176,9 @@ initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _focusRing = [],
   _widgetTasks = []
 }
+
+sizeReq :: Size -> SizePolicy -> SizePolicy -> SizeReq
+sizeReq size policyWidth policyHeight = SizeReq size policyWidth policyHeight True
 
 resultEvents :: [e] -> Maybe (WidgetEventResult s e m)
 resultEvents userEvents = Just $ WidgetEventResult [] userEvents Nothing
@@ -207,6 +213,9 @@ key key wn = wn { _widgetInstanceKey = Just key }
 style :: (MonadState s m) => WidgetNode s e m -> Style -> WidgetNode s e m
 style (Node value children) newStyle = Node (value { _widgetInstanceStyle = newStyle }) children
 
+visible :: (MonadState s m) => WidgetNode s e m -> Bool -> WidgetNode s e m
+visible (Node value children) visibility = Node (value { _widgetInstanceVisible = visibility }) children
+
 children :: (MonadState s m) => WidgetNode s e m -> [WidgetNode s e m] -> WidgetNode s e m
 children (Node value _) newChildren = fromList value newChildren
 
@@ -221,6 +230,7 @@ defaultWidgetInstance widget = WidgetInstance {
   _widgetInstanceKey = Nothing,
   _widgetInstanceWidget = widget,
   _widgetInstanceEnabled = True,
+  _widgetInstanceVisible = True,
   _widgetInstanceFocused = False,
   _widgetInstanceViewport = def,
   _widgetInstanceRenderArea = def,
@@ -310,7 +320,8 @@ handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path tr
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
 handleRender renderer (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
-  _widgetRender renderer widgetInstance children ts
+  when _widgetInstanceVisible $
+    _widgetRender renderer widgetInstance children ts
 
 handleRenderChildren :: (MonadState s m) => Renderer m -> WidgetChildren s e m -> Timestamp -> m ()
 handleRenderChildren renderer children ts = do
@@ -330,15 +341,17 @@ setFocusedStatus path focused root = case updateWidgetInstance path root updateF
 
 resizeUI :: (MonadState s m) => Renderer m -> Rect -> WidgetNode s e m -> m (WidgetNode s e m)
 resizeUI renderer assignedRect widgetInstance = do
-  preferredSizes <- buildPreferredSizes renderer widgetInstance
+  preferredSizes <- buildPreferredSizes renderer True widgetInstance
   resizeNode renderer assignedRect assignedRect preferredSizes widgetInstance
 
-buildPreferredSizes :: (MonadState s m) => Renderer m -> WidgetNode s e m -> m (Tree SizeReq)
-buildPreferredSizes renderer (Node (WidgetInstance {..}) children) = do
-  childrenSizes <- mapM (buildPreferredSizes renderer) children
+buildPreferredSizes :: (MonadState s m) => Renderer m -> Bool -> WidgetNode s e m -> m (Tree SizeReq)
+buildPreferredSizes renderer parentVisible (Node (WidgetInstance {..}) children) = do
+  let isVisible = parentVisible && _widgetInstanceVisible
+
+  childrenSizes <- mapM (buildPreferredSizes renderer isVisible) children
   size <- _widgetPreferredSize _widgetInstanceWidget renderer _widgetInstanceStyle (seqToList childrenSizes)
 
-  return $ Node size childrenSizes
+  return $ Node (size { _srVisible = isVisible}) childrenSizes
 
 resizeNode :: (MonadState s m) => Renderer m -> Rect -> Rect -> Tree SizeReq -> WidgetNode s e m -> m (WidgetNode s e m)
 resizeNode renderer viewport renderArea (Node _ childrenSizes) (Node widgetInstance childrenWns) = do

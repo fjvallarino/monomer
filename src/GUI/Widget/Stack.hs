@@ -41,16 +41,17 @@ makeStack widgetType direction = Widget {
     focusable = False
     handleEvent _ _ = Nothing
     preferredSize _ _ children = return reqSize where
-      reqSize = SizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
+      reqSize = sizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
+      visibleChildren = filter _srVisible children
       policySelector = if isHorizontal then _srPolicyWidth else _srPolicyHeight
       sizeSelector = if isHorizontal then _w else _h
       rectSelector = if isHorizontal then _rw else _rh
       mSize = if isHorizontal then w else h
       mStart = if isHorizontal then l else t
-      sChildren = filter (\c -> policySelector c == StrictSize) children
-      fChildren = filter (\c -> policySelector c == FlexibleSize) children
-      rChildren = filter (\c -> policySelector c == RemainderSize) children
+      sChildren = filter (\c -> policySelector c == StrictSize) visibleChildren
+      fChildren = filter (\c -> policySelector c == FlexibleSize) visibleChildren
+      rChildren = filter (\c -> policySelector c == RemainderSize) visibleChildren
       remainderCount = length rChildren
       remainderExist = not $ null rChildren
       sSize = sizeSelector $ calcPreferredSize sChildren
@@ -65,7 +66,9 @@ makeStack widgetType direction = Widget {
       (revViewports, _) = foldl foldHelper ([], mStart) children
       foldHelper (accum, offset) child = (newSize : accum, offset + rectSelector newSize) where
         newSize = resizeChild offset child
-      resizeChild offset sr@(SizeReq srSize _ _) = if isHorizontal then hRect else vRect where
+      resizeChild offset sr = if not (_srVisible sr) then emptyRect else if isHorizontal then hRect else vRect where
+        srSize = _srSize sr
+        emptyRect = Rect l t 0 0
         hRect = Rect offset t newSize h
         vRect = Rect l offset w newSize
         newSize = case policySelector sr of

@@ -57,7 +57,7 @@ makeSandbox state onClick = Widget {
       Nothing -> Nothing
     preferredSize renderer (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
-      return $ SizeReq size FlexibleSize FlexibleSize
+      return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       do
