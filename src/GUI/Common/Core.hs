@@ -190,7 +190,7 @@ resultReqsEventsWidget :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (Widg
 resultReqsEventsWidget requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
 
 isFocusable :: (MonadState s m) => WidgetInstance s e m -> Bool
-isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widgetInstanceEnabled  && _widgetFocusable
+isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widgetInstanceVisible && _widgetInstanceEnabled && _widgetFocusable
 
 defaultCustomHandler :: a -> Maybe (WidgetEventResult s e m)
 defaultCustomHandler _ = Nothing
@@ -222,7 +222,15 @@ children (Node value _) newChildren = fromList value newChildren
 cascadeStyle :: (MonadState s m) => Style -> WidgetNode s e m -> WidgetNode s e m
 cascadeStyle parentStyle (Node (wn@WidgetInstance{..}) children) = newNode where
   newNode = Node (wn { _widgetInstanceStyle = newStyle }) newChildren
-  newStyle = _widgetInstanceStyle <> parentStyle
+  newStyle = Style {
+    _fixedWidth = _fixedWidth _widgetInstanceStyle,
+    _fixedHeight = _fixedHeight _widgetInstanceStyle,
+    _padding = _padding parentStyle <> _padding _widgetInstanceStyle,
+    _bgRadius = _bgRadius parentStyle <> _bgRadius _widgetInstanceStyle,
+    _bgColor = firstJust (_bgColor parentStyle) (_bgColor _widgetInstanceStyle),
+    _border = _border parentStyle <> _border _widgetInstanceStyle,
+    _textStyle = _textStyle parentStyle <> _textStyle _widgetInstanceStyle
+  }
   newChildren = fmap (cascadeStyle newStyle) children
 
 defaultWidgetInstance :: (MonadState s m) => Widget s e m -> WidgetInstance s e m
@@ -349,9 +357,27 @@ buildPreferredSizes renderer parentVisible (Node (WidgetInstance {..}) children)
   let isVisible = parentVisible && _widgetInstanceVisible
 
   childrenSizes <- mapM (buildPreferredSizes renderer isVisible) children
-  size <- _widgetPreferredSize _widgetInstanceWidget renderer _widgetInstanceStyle (seqToList childrenSizes)
+  sr <- _widgetPreferredSize _widgetInstanceWidget renderer _widgetInstanceStyle (seqToList childrenSizes)
 
-  return $ Node (size { _srVisible = isVisible}) childrenSizes
+  let updatedSr = updateSizeReq sr (_fixedWidth _widgetInstanceStyle) (_fixedHeight _widgetInstanceStyle)
+
+  return $ Node (updatedSr { _srVisible = isVisible}) childrenSizes
+
+updateSizeReq :: SizeReq -> Maybe Double -> Maybe Double -> SizeReq
+updateSizeReq sr Nothing Nothing = sr
+updateSizeReq sr (Just width) Nothing = sr {
+  _srSize = Size width (_h . _srSize $ sr),
+  _srPolicyWidth = StrictSize
+}
+updateSizeReq sr Nothing (Just height) = sr {
+  _srSize = Size (_w . _srSize $ sr) height,
+  _srPolicyHeight = StrictSize
+}
+updateSizeReq sr (Just width) (Just height) = sr {
+  _srSize = Size width height,
+  _srPolicyWidth = StrictSize,
+  _srPolicyHeight = StrictSize
+}
 
 resizeNode :: (MonadState s m) => Renderer m -> Rect -> Rect -> Tree SizeReq -> WidgetNode s e m -> m (WidgetNode s e m)
 resizeNode renderer viewport renderArea (Node _ childrenSizes) (Node widgetInstance childrenWns) = do

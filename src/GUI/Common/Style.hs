@@ -28,6 +28,8 @@ data Theme = Theme {
 -- Remember adjacent margin collapse behavior
 data Style =
   Style {
+    _fixedWidth :: Maybe Double,
+    _fixedHeight :: Maybe Double,
     _padding :: Maybe Padding,
     _bgRadius :: Maybe Radius,
     _bgColor :: Maybe Color,
@@ -37,6 +39,8 @@ data Style =
 
 instance Monoid Style where
   mempty = Style {
+    _fixedWidth = Nothing,
+    _fixedHeight = Nothing,
     _padding = Nothing,
     _bgRadius = Nothing,
     _bgColor = Nothing,
@@ -46,6 +50,8 @@ instance Monoid Style where
 
 instance Semigroup Style where
   (<>) style1 style2 = Style {
+    _fixedWidth = max (_fixedWidth style2) (_fixedWidth style1),
+    _fixedHeight = max (_fixedHeight style2) (_fixedHeight style1),
     _padding = (_padding style2) <> (_padding style1),
     _bgRadius = (_bgRadius style2) <> (_bgRadius style1),
     _bgColor = firstJust (_bgColor style2) (_bgColor style1),
@@ -198,6 +204,12 @@ borderRight width color = mempty {
     _bRight = Just (BorderSide width color)
   }
 }
+
+swidth :: Double -> Style
+swidth width = mempty { _fixedWidth = (Just width) }
+
+sheight :: Double -> Style
+sheight height = mempty { _fixedHeight = (Just height) }
 
 bgColor :: Color -> Style
 bgColor color = mempty { _bgColor = (Just color) }

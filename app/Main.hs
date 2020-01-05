@@ -137,8 +137,8 @@ buildUI model = styledTree where
   textStyle = textColor (rgb 0 255 0)
   extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vstack [
-      hgrid [
-        scroll $ vstack [
+      hstack [
+        (scroll $ vstack [
           textField `style` textStyle `visible` False,
           spacer `visible` False,
           label "Label 1",
@@ -164,7 +164,7 @@ buildUI model = styledTree where
           label "Label 11",
           spacer,
           label "Label 12"
-        ],
+        ]) `style` (swidth 400 <> sheight 300),
         vstack [
           textField `style` textStyle,
           scroll $ label "This is a really really really long label, you know?" `style` labelStyle

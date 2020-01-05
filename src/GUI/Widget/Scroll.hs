@@ -72,7 +72,8 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
       | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0
                       then currScroll + reqDelta
                       else viewportLimit - childPos
-    preferredSize _ _ children = return (head children)
+    preferredSize _ _ children = return $ sizeReq size FlexibleSize FlexibleSize where
+      SizeReq size _ _ _ = head children
     resizeChildren (Rect l t w h) _ _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
       Size cw2 ch2 = _srSize (head children)
       areaW = max w cw2
