@@ -50,15 +50,12 @@ makeTextField tfs@(TextFieldState currText currPos) = Widget {
   }
   where
     (part1, part2) = T.splitAt currPos currText
-    printedText = T.concat [part1, "|", part2]
-    handleKeyPress currText currTp code
-        | isKeyBackspace code && currTp > 0 = (T.append (T.init part1) part2, currTp - 1)
-        | isKeyLeft code && currTp > 0 = (currText, currTp - 1)
-        | isKeyRight code && currTp < T.length currText = (currText, currTp + 1)
-        | isKeyBackspace code || isKeyLeft code || isKeyRight code = (currText, currTp)
-        | otherwise = (currText, currTp)
-      where
-        (part1, part2) = T.splitAt currTp currText
+    handleKeyPress txt tp code
+        | isKeyBackspace code && tp > 0 = (T.append (T.init part1) part2, tp - 1)
+        | isKeyLeft code && tp > 0 = (txt, tp - 1)
+        | isKeyRight code && tp < T.length txt = (txt, tp + 1)
+        | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
+        | otherwise = (txt, tp)
     handleEvent _ evt = case evt of
       KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField newState) where
         (newText, newPos) = handleKeyPress currText currPos code

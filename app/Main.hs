@@ -134,7 +134,7 @@ buildUI model = styledTree where
   border2 = borderLeft 20 (rgb 200 200 0) <> borderRight 20 (rgb 200 0 200)
   buttonStyle = bgColor (rgb 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
   labelStyle = bgColor (rgb 100 100 100) <> textSize 48
-  textStyle = textColor (rgb 0 255 0)
+  textStyle = textColor (rgb 0 255 0) <> textAlignH ACenter
   extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
   widgetTree = vstack [
       hstack [
