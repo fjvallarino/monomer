@@ -62,4 +62,4 @@ makeSandbox state onClick = Widget {
     render renderer WidgetInstance{..} _ ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show (_clickCount state)))
+        drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show (_clickCount state)))

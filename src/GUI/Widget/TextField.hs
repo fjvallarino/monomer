@@ -16,11 +16,14 @@ import GUI.Common.Drawing
 import GUI.Common.Keyboard
 import GUI.Common.Style
 import GUI.Common.Types
+import GUI.Common.Util
 import GUI.Data.Tree
 
 import GHC.Generics
 
 import qualified Data.Text as T
+
+caretWidth = 2
 
 data TextFieldState = TextFieldState {
   _tfText :: T.Text,
@@ -75,6 +78,15 @@ makeTextField tfs@(TextFieldState currText currPos) = Widget {
       return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
-      do
-        drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) printedText
+      let textStyle = _textStyle _widgetInstanceStyle
+          cursorAlpha = (fromIntegral $ ts `mod` 1000) / 1000.0
+          textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
+          renderArea@(Rect rl rt rw rh) = _widgetInstanceRenderArea
+      in do
+        drawBgRect renderer renderArea _widgetInstanceStyle
+        Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
+
+        when True $ do
+          Size sw sh <- calcTextBounds renderer textStyle (if part1 == "" then " " else part1)
+          drawRect renderer (Rect (tl + sw) tt caretWidth sh) (Just textColor) Nothing
+          return ()

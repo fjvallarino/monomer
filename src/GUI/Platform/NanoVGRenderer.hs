@@ -5,6 +5,8 @@ module GUI.Platform.NanoVGRenderer (makeRenderer) where
 
 import Data.Default
 
+import Control.Monad (when)
+
 import qualified GUI.Common.Types as C
 import qualified Data.Text as T
 import qualified NanoVG as VG
@@ -83,7 +85,6 @@ makeRenderer c dpr = C.Renderer {..} where
           ry = h / 2
 
   -- Text
-  text _ _ _ _ "" = return ()
   text (C.Rect x y w h) font fontSize (C.Align ha va) message = do
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac $ fontSize * dpr
@@ -103,7 +104,10 @@ makeRenderer c dpr = C.Renderer {..} where
            | va == C.AMiddle = yr + (hr + realToFrac th) / 2
            | otherwise = yr + hr
 
-    liftIO $ VG.text c (realToFrac tx) (realToFrac ty) message
+    when (message /= "") $ do
+      liftIO $ VG.text c (realToFrac tx) (realToFrac ty) message
+
+    return $ C.Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
 
   textBounds _ _ "" = return def
   textBounds font fontSize message = do

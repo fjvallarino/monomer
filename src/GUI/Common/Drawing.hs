@@ -4,7 +4,7 @@ module GUI.Common.Drawing where
 
 import qualified Data.Text as T
 
-import Control.Monad (when)
+import Control.Monad (when, void)
 import Data.Maybe
 
 import GUI.Common.Types
@@ -159,7 +159,11 @@ drawRoundedBorder renderer (Rect x y w h) Border{..} =
     when (rbl > 0.5) $
       drawRadius _bBottom _bLeft   (Point xbl1 yb1) (Point xl1 ybl1) (Point xl2 ybl2) (Point xbl2 yb2) (Point xl1 yb1) (Point xl2 yb2)
 
-drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m ()
+tsTextColor :: Maybe TextStyle -> Color
+tsTextColor Nothing = tsTextColor (Just mempty)
+tsTextColor (Just ts) = fromMaybe defaultColor (_tsColor ts)
+
+drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m Rect
 drawText renderer viewport Nothing txt = drawText renderer viewport (Just mempty) txt
 drawText renderer viewport (Just TextStyle{..}) txt = do
   let tsColor = fromMaybe defaultColor _tsColor
@@ -170,6 +174,10 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
 
   fillColor renderer tsColor
   text renderer viewport defaultFont tsFontSize tsAlign txt
+
+drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m ()
+drawText_ renderer viewport style txt = do
+  void $ drawText renderer viewport style txt
 
 calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> T.Text -> m Size
 calcTextBounds renderer Nothing txt = calcTextBounds renderer (Just mempty) txt

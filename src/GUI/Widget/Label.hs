@@ -46,4 +46,4 @@ makeLabel caption = Widget {
     render renderer WidgetInstance{..} _ ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) caption
+        drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) caption

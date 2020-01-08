@@ -96,7 +96,7 @@ data Renderer m  = (Monad m) => Renderer {
   quadTo :: Point -> Point -> m (),
   ellipse :: Rect -> m (),
   -- Text
-  text :: Rect -> Font -> FontSize -> Align -> T.Text -> m (),
+  text :: Rect -> Font -> FontSize -> Align -> T.Text -> m (Rect),
   textBounds :: Font -> FontSize -> T.Text -> m Size
 }
 

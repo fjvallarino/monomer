@@ -45,4 +45,4 @@ makeButton label onClick = Widget {
     render renderer WidgetInstance{..} _ ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) label
+        drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) label
