@@ -275,6 +275,8 @@ handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
   KeyAction _ _ _       -> handleEventFromPath currentFocus widgets systemEvent
   TextInput _           -> handleEventFromPath currentFocus widgets systemEvent
   Clipboard _           -> handleEventFromPath currentFocus widgets systemEvent
+  Focus                 -> handleEventFromPath currentFocus widgets systemEvent
+  Blur                  -> handleEventFromPath currentFocus widgets systemEvent
 
 handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer systemEvents currentFocus widgets =
@@ -287,19 +289,22 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
 
   launchWidgetTasks renderer eventRequests
 
-  handleFocusChange currentFocus systemEvent stopProcessing newRoot
+  handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
     >>= handleAppEvents renderer appEvents
     >>= handleClipboardGet renderer eventRequests
     >>= handleClipboardSet renderer eventRequests
     >>= handleResizeChildren renderer eventRequests
 
-handleFocusChange :: Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
-handleFocusChange currentFocus systemEvent stopProcessing widgetRoot
+handleFocusChange :: Renderer WidgetM -> Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
+handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
   | focusChangeRequested = do
       ring <- use focusRing
+      oldFocus <- getCurrentFocus
+      newRoot1 <- handleSystemEvent renderer Blur oldFocus widgetRoot
       focusRing .= rotateList ring
       newFocus <- getCurrentFocus
-      return $ setFocusedStatus newFocus True (setFocusedStatus currentFocus False widgetRoot)
+      newRoot2 <- handleSystemEvent renderer Focus newFocus newRoot1
+      return $ setFocusedStatus newFocus True (setFocusedStatus currentFocus False newRoot2)
   | otherwise = return widgetRoot
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keycodeTab

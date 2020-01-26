@@ -33,6 +33,8 @@ data SystemEvent = Click Point Button ButtonState
                  | KeyAction !KeyMod !KeyCode !KeyMotion
                  | TextInput T.Text
                  | Clipboard ClipboardData
+                 | Focus
+                 | Blur
                  deriving (Show, Eq)
 
 isIgnoreParentEvents :: EventRequest -> Bool
