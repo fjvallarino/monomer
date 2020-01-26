@@ -76,7 +76,7 @@ makeTextField tfs@(TextFieldState currText currPos) = Widget {
     resizeChildren _ _ _ _ = Nothing
     render renderer WidgetInstance{..} _ ts =
       let textStyle = _textStyle _widgetInstanceStyle
-          cursorAlpha = (fromIntegral $ ts `mod` 1000) / 1000.0
+          cursorAlpha = if _widgetInstanceFocused then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _widgetInstanceRenderArea
       in do
