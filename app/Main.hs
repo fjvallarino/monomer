@@ -245,8 +245,10 @@ mainLoop window c renderer prevTicks widgets = do
   let quit = elem SDL.QuitEvent eventsPayload
   let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
-  let systemEvents = convertEvents mousePixelRate mousePos eventsPayload
+  let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
 
+  -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
+  systemEvents <- preProcessEvents widgets baseSystemEvents
   focus <- getCurrentFocus
 
   newWidgets <- handleSystemEvents renderer systemEvents focus widgets
@@ -257,6 +259,23 @@ mainLoop window c renderer prevTicks widgets = do
 
   liftIO $ threadDelay $ (nextFrame ts) * 1000
   unless quit (mainLoop window c renderer ticks newWidgets)
+
+preProcessEvents :: WidgetTree -> [SystemEvent] -> AppM [SystemEvent]
+preProcessEvents widgets events = concatMapM (preProcessEvent widgets) events
+
+preProcessEvent :: WidgetTree -> SystemEvent -> AppM [SystemEvent]
+preProcessEvent widgets evt@(Move point) = do
+  hover <- use latestHover
+  let current = findPathFromPoint point widgets
+  let hoverChanged = isJust hover && current /= fromJust hover
+  let enter = if isNothing hover || hoverChanged then [Enter point] else []
+  let leave = if hoverChanged then [Leave (fromJust hover) point] else []
+
+  when (isNothing hover || hoverChanged) $
+    latestHover .= Just current
+
+  return $ leave ++ enter ++ [evt]
+preProcessEvent widgets event = return [event]
 
 getCurrentMousePos :: AppM Point
 getCurrentMousePos = do
@@ -269,14 +288,21 @@ getCurrentFocus = do
   return (if length ring > 0 then ring!!0 else [])
 
 handleEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> ChildEventResult App AppEvent WidgetM
-handleEvent renderer systemEvent currentFocus widgets = case systemEvent of
+handleEvent renderer systemEvent targetPath widgets = case systemEvent of
+  -- Keyboard
+  KeyAction _ _ _       -> handleEventFromPath targetPath widgets systemEvent
+  TextInput _           -> handleEventFromPath targetPath widgets systemEvent
+  -- Clipboard
+  Clipboard _           -> handleEventFromPath targetPath widgets systemEvent
+  -- Mouse/touch
   Click point _ _       -> handleEventFromPoint point widgets systemEvent
   WheelScroll point _ _ -> handleEventFromPoint point widgets systemEvent
-  KeyAction _ _ _       -> handleEventFromPath currentFocus widgets systemEvent
-  TextInput _           -> handleEventFromPath currentFocus widgets systemEvent
-  Clipboard _           -> handleEventFromPath currentFocus widgets systemEvent
-  Focus                 -> handleEventFromPath currentFocus widgets systemEvent
-  Blur                  -> handleEventFromPath currentFocus widgets systemEvent
+  Focus                 -> handleEventFromPath targetPath widgets systemEvent
+  Blur                  -> handleEventFromPath targetPath widgets systemEvent
+  Enter point           -> handleEventFromPoint point widgets systemEvent
+  Move point            -> handleEventFromPoint point widgets systemEvent
+  Leave oldPath _       -> handleEventFromPath oldPath widgets systemEvent
+  -- Leave _ _             -> handleEventFromPath targetPath widgets systemEvent
 
 handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer systemEvents currentFocus widgets =

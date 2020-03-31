@@ -164,6 +164,7 @@ data GUIContext app = GUIContext {
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
   _focusRing :: [Path],
+  _latestHover :: Maybe Path,
   _widgetTasks :: [WidgetTask]
 }
 
@@ -174,6 +175,7 @@ initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _useHiDPI = useHiDPI,
   _devicePixelRate = devicePixelRate,
   _focusRing = [],
+  _latestHover = Nothing,
   _widgetTasks = []
 }
 
@@ -325,6 +327,16 @@ handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path tr
       Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
       Nothing -> ChildEventResult False [] SQ.Empty Nothing
   Nothing -> ChildEventResult False [] SQ.Empty Nothing
+
+findPathFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> Path
+findPathFromPoint p widgetInstance = path where
+  path = case SQ.lookup 0 inRectList of
+    Just (child, idx) -> idx : findPathFromPoint p child
+    Nothing -> []
+  children = nodeChildren widgetInstance
+  inRectList = SQ.filter inNodeRect childrenPair
+  inNodeRect = \(Node (WidgetInstance {..}) _, _) -> inRect _widgetInstanceViewport p
+  childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
 handleRender renderer (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do

@@ -1,0 +1,36 @@
+- Done
+  - Check events only for interested widgets (use focus for keyboard and region for mouse)
+  - Add handling of disabled widget nodes
+  - Add handling of custom external actions for widgets
+  - Do something with return of custom handlers (the exact same thing we do with event handlers)
+  - Add scroll support
+  - Add hstack/vstack containers
+  - Improve input (keyboard) handling
+  - Implement copy/paste
+  - Add HiDPI handling
+  - Handle window resize
+  - Improve handling of Color (turn to 0.0 to 1.0 instead of 0 to 255? only do it for alpha?)
+  - Add handling of non visible widget nodes
+  - Handle widget fixed size
+  - Add good looking caret to textField
+  - Add support for onFocus/onBlur
+- Pending
+  - Maybe we don't need this and we can get by with position in render function?
+    - Add support for onEnter/onLeave (keep track of previous active widgets)
+    - We probably need it for drag&drop
+  - How is the user going to provide state updates?
+  - How will long running (i.e., not immediate) user tasks will be handled?
+  - Improve mouse support/current state of mouse and keyboard for event handling
+  - Add selection to textField
+  - Stop and think
+    - How should all of this be organized?
+    - How should modules be layed out?
+    - What are good interfaces the different parts of the system?
+    - Does it make sense that handleEvent is the only pure function in a widget?
+  - Refactor modules; code is starting to get disgusting
+  - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
+  - Check if advanced type level features would improve the design
+  - Check what syntax extensions can be abused to make life easier
+  - Does it make sense to avoid lenses internally, given that we already include the dependency?
+  - Can we cache some drawing operations?
+  - Can we use Skia?

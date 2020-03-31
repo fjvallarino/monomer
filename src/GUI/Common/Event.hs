@@ -12,6 +12,8 @@ import Unsafe.Coerce
 import GUI.Common.Keyboard
 import GUI.Common.Types
 
+import GUI.Data.Tree
+
 import qualified SDL
 
 data Button = LeftBtn | RightBtn deriving (Show, Eq)
@@ -35,6 +37,9 @@ data SystemEvent = Click Point Button ButtonState
                  | Clipboard ClipboardData
                  | Focus
                  | Blur
+                 | Enter Point
+                 | Move Point
+                 | Leave Path Point
                  deriving (Show, Eq)
 
 isIgnoreParentEvents :: EventRequest -> Bool
@@ -64,8 +69,9 @@ isSetClipboard _ = False
 convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
 convertEvents devicePixelRate mousePos events = newEvents
   where
-    newEvents = mouseEvents ++ mouseWheelEvents ++ keyboardEvents ++ textEvents
+    newEvents = mouseEvents ++ mouseMoveEvents ++ mouseWheelEvents ++ keyboardEvents ++ textEvents
     mouseEvents = mouseClick devicePixelRate events
+    mouseMoveEvents = mouseMoveEvent devicePixelRate mousePos events
     mouseWheelEvents = mouseWheelEvent devicePixelRate mousePos events
     keyboardEvents = keyboardEvent events
     textEvents = textEvent events
@@ -90,6 +96,27 @@ mouseClick devicePixelRate events =
     otherwise -> []
   where clickEvent = L.find (\evt -> case evt of
                                      SDL.MouseButtonEvent _ -> True
+                                     otherwise -> False
+                          ) events
+
+-- mouseMotionEventWindow,
+-- mouseMotionEventWhich,
+-- mouseMotionEventState,
+-- mouseMotionEventPos,
+-- mouseMotionEventRelMotion,
+
+{-
+SDL.MouseMotionEventData
+          { SDL.mouseMotionEventState,
+            SDL.mouseMotionEventPos = (SDL.V2 x y) }
+-}
+mouseMoveEvent :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
+mouseMoveEvent devicePixelRate mousePos events =
+  case moveEvent of
+    Just (SDL.MouseMotionEvent _) -> [Move mousePos]
+    otherwise -> []
+  where moveEvent = L.find (\evt -> case evt of
+                                     SDL.MouseMotionEvent _ -> True
                                      otherwise -> False
                           ) events
 
