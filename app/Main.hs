@@ -25,6 +25,7 @@ import Unsafe.Coerce
 import System.Remote.Monitoring
 
 import qualified Data.List as L
+import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import qualified Data.Sequence as SQ
 import qualified Data.Text as T
@@ -261,7 +262,10 @@ mainLoop window c renderer prevTicks widgets = do
   unless quit (mainLoop window c renderer ticks newWidgets)
 
 preProcessEvents :: WidgetTree -> [SystemEvent] -> AppM [SystemEvent]
-preProcessEvents widgets events = concatMapM (preProcessEvent widgets) events
+preProcessEvents widgets events = do
+  systemEvents <- concatMapM (preProcessEvent widgets) events
+  mapM_ updateInputStatus systemEvents
+  return systemEvents
 
 preProcessEvent :: WidgetTree -> SystemEvent -> AppM [SystemEvent]
 preProcessEvent widgets evt@(Move point) = do
@@ -276,6 +280,13 @@ preProcessEvent widgets evt@(Move point) = do
 
   return $ leave ++ enter ++ [evt]
 preProcessEvent widgets event = return [event]
+
+updateInputStatus :: SystemEvent -> AppM ()
+updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist { statusButtons = M.insert btn btnState (statusButtons ist) }
+updateInputStatus (KeyAction kMod kCode kStatus) = inputStatus %= \ist -> ist {
+    statusKeyMod = kMod, statusKeys = M.insert kCode kStatus (statusKeys ist)
+  }
+updateInputStatus _ = return ()
 
 getCurrentMousePos :: AppM Point
 getCurrentMousePos = do
@@ -302,7 +313,6 @@ handleEvent renderer systemEvent targetPath widgets = case systemEvent of
   Enter point           -> handleEventFromPoint point widgets systemEvent
   Move point            -> handleEventFromPoint point widgets systemEvent
   Leave oldPath _       -> handleEventFromPath oldPath widgets systemEvent
-  -- Leave _ _             -> handleEventFromPath targetPath widgets systemEvent
 
 handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer systemEvents currentFocus widgets =

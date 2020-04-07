@@ -163,6 +163,7 @@ data GUIContext app = GUIContext {
   _windowSize :: Rect,
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
+  _inputStatus :: InputStatus,
   _focusRing :: [Path],
   _latestHover :: Maybe Path,
   _widgetTasks :: [WidgetTask]
@@ -174,6 +175,7 @@ initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _windowSize = winSize,
   _useHiDPI = useHiDPI,
   _devicePixelRate = devicePixelRate,
+  _inputStatus = defInputStatus,
   _focusRing = [],
   _latestHover = Nothing,
   _widgetTasks = []

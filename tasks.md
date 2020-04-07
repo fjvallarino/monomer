@@ -14,23 +14,25 @@
   - Handle widget fixed size
   - Add good looking caret to textField
   - Add support for onFocus/onBlur
-- Pending
   - Maybe we don't need this and we can get by with position in render function?
     - Add support for onEnter/onLeave (keep track of previous active widgets)
     - We probably need it for drag&drop
   - How is the user going to provide state updates?
+    - We already provide this with the State monad and corresponding lenses
+- Pending
   - How will long running (i.e., not immediate) user tasks will be handled?
   - Improve mouse support/current state of mouse and keyboard for event handling
-  - Add selection to textField
-  - Stop and think
+  - Add text selection/editing to textField
+  - Drag & drop (add attribute indicating if component supports being source/target)
+  - Stop, think and design
     - How should all of this be organized?
     - How should modules be layed out?
     - What are good interfaces the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
-  - Refactor modules; code is starting to get disgusting
+  - Based on the previous design, refactor modules
   - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
   - Check if advanced type level features would improve the design
   - Check what syntax extensions can be abused to make life easier
   - Does it make sense to avoid lenses internally, given that we already include the dependency?
   - Can we cache some drawing operations?
-  - Can we use Skia?
+  - Can we use Skia? Does it make sense?

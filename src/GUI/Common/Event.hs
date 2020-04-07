@@ -5,6 +5,7 @@ module GUI.Common.Event where
 
 import qualified Data.List as L
 import qualified Data.Text as T
+import qualified Data.Map.Strict as M
 
 import Data.Typeable (cast, Typeable)
 import Unsafe.Coerce
@@ -16,7 +17,7 @@ import GUI.Data.Tree
 
 import qualified SDL
 
-data Button = LeftBtn | RightBtn deriving (Show, Eq)
+data Button = LeftBtn | MiddleBtn | RightBtn deriving (Show, Eq, Ord)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
@@ -41,6 +42,18 @@ data SystemEvent = Click Point Button ButtonState
                  | Move Point
                  | Leave Path Point
                  deriving (Show, Eq)
+
+data InputStatus = InputStatus {
+  statusKeyMod :: KeyMod,
+  statusKeys :: M.Map KeyCode KeyMotion,
+  statusButtons :: M.Map Button ButtonState
+} deriving (Eq, Show)
+
+defInputStatus = InputStatus {
+  statusKeyMod = defKeyMod,
+  statusKeys = M.empty,
+  statusButtons = M.empty
+}
 
 isIgnoreParentEvents :: EventRequest -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
@@ -99,17 +112,6 @@ mouseClick devicePixelRate events =
                                      otherwise -> False
                           ) events
 
--- mouseMotionEventWindow,
--- mouseMotionEventWhich,
--- mouseMotionEventState,
--- mouseMotionEventPos,
--- mouseMotionEventRelMotion,
-
-{-
-SDL.MouseMotionEventData
-          { SDL.mouseMotionEventState,
-            SDL.mouseMotionEventPos = (SDL.V2 x y) }
--}
 mouseMoveEvent :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
 mouseMoveEvent devicePixelRate mousePos events =
   case moveEvent of
