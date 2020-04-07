@@ -21,7 +21,7 @@ data Button = LeftBtn | MiddleBtn | RightBtn deriving (Show, Eq, Ord)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
-data KeyMotion = KeyPressed | KeyReleased deriving (Show, Eq)
+data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)
 
 data EventRequest = IgnoreParentEvents
                   | IgnoreChildrenEvents
@@ -33,7 +33,7 @@ data EventRequest = IgnoreParentEvents
 
 data SystemEvent = Click Point Button ButtonState
                  | WheelScroll Point Point WheelDirection
-                 | KeyAction !KeyMod !KeyCode !KeyMotion
+                 | KeyAction !KeyMod !KeyCode !KeyStatus
                  | TextInput T.Text
                  | Clipboard ClipboardData
                  | Focus
@@ -45,7 +45,7 @@ data SystemEvent = Click Point Button ButtonState
 
 data InputStatus = InputStatus {
   statusKeyMod :: KeyMod,
-  statusKeys :: M.Map KeyCode KeyMotion,
+  statusKeys :: M.Map KeyCode KeyStatus,
   statusButtons :: M.Map Button ButtonState
 } deriving (Eq, Show)
 
@@ -140,10 +140,10 @@ mouseWheelEvent devicePixelRate mousePos events =
 keyboardEvent :: [SDL.EventPayload] -> [SystemEvent]
 keyboardEvent events = activeKeys
   where
-    activeKeys = map (\(SDL.KeyboardEvent k) -> KeyAction (keyMod k) (keyCode k) (keyMotion k)) (unsafeCoerce keyboardEvents)
+    activeKeys = map (\(SDL.KeyboardEvent k) -> KeyAction (keyMod k) (keyCode k) (keyStatus k)) (unsafeCoerce keyboardEvents)
     keyMod event = convertKeyModifier $ SDL.keysymModifier $ SDL.keyboardEventKeysym event
     keyCode event = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym event
-    keyMotion event = if SDL.keyboardEventKeyMotion event == SDL.Pressed then KeyPressed else KeyReleased
+    keyStatus event = if SDL.keyboardEventKeyMotion event == SDL.Pressed then KeyPressed else KeyReleased
     keyboardEvents = filter (\e -> case e of
                                       SDL.KeyboardEvent k -> True
                                       _ -> False) events
@@ -156,7 +156,7 @@ textEvent events = inputText
                                       SDL.TextInputEvent _ -> True
                                       _ -> False) events
 
-checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyMotion -> Bool) -> Bool
+checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False
 

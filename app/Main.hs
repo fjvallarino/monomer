@@ -282,9 +282,12 @@ preProcessEvent widgets evt@(Move point) = do
 preProcessEvent widgets event = return [event]
 
 updateInputStatus :: SystemEvent -> AppM ()
-updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist { statusButtons = M.insert btn btnState (statusButtons ist) }
+updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist {
+    statusButtons = M.insert btn btnState (statusButtons ist)
+  }
 updateInputStatus (KeyAction kMod kCode kStatus) = inputStatus %= \ist -> ist {
-    statusKeyMod = kMod, statusKeys = M.insert kCode kStatus (statusKeys ist)
+    statusKeyMod = kMod,
+    statusKeys = M.insert kCode kStatus (statusKeys ist)
   }
 updateInputStatus _ = return ()
 
