@@ -19,9 +19,11 @@
     - We probably need it for drag&drop
   - How is the user going to provide state updates?
     - We already provide this with the State monad and corresponding lenses
-- Pending
-  - How will long running (i.e., not immediate) user tasks will be handled?
   - Improve mouse support/current state of mouse and keyboard for event handling
+- Pending
+  - Make handleEvent run inside MonadState (required to update user provided lenses)
+  - Create layer widget to handle overlays/dialog boxes
+  - How will long running (i.e., not immediate) user tasks will be handled?
   - Add text selection/editing to textField
   - Drag & drop (add attribute indicating if component supports being source/target)
   - Stop, think and design

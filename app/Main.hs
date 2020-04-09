@@ -140,7 +140,7 @@ buildUI model = styledTree where
   widgetTree = vstack [
       hstack [
         (scroll $ vstack [
-          textField `style` textStyle `visible` False,
+          textField textField1 `style` textStyle `visible` False,
           spacer `visible` False,
           label "Label 1",
           spacer,
@@ -167,7 +167,7 @@ buildUI model = styledTree where
           label "Label 12"
         ]) `style` (swidth 400 <> sheight 300),
         vstack [
-          textField `style` textStyle,
+          textField textField2 `style` textStyle,
           scroll $ label "This is a really really really long label, you know?" `style` labelStyle
         ]
       ],
@@ -191,7 +191,7 @@ buildUI model = styledTree where
           sandbox (Action1 3) `style` buttonStyle
         ],
         button "Add items" (Action1 0) `style` buttonStyle,
-        textField `style` textStyle
+        textField textField3 `style` textStyle
       ] ++ extraWidgets)
     ]
   styledTree = cascadeStyle mempty widgetTree
@@ -348,13 +348,13 @@ handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keycodeTab
 
-handleResizeChildren :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleResizeChildren :: (MonadState s m) => Renderer WidgetM -> [(Path, EventRequest s m)] -> WidgetTree -> AppM WidgetTree
 handleResizeChildren renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isResizeChildren evt) eventRequests of
     Just (path, event) -> updateUI renderer widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardGet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardGet :: (MonadState s m) => Renderer WidgetM -> [(Path, EventRequest s m)] -> WidgetTree -> AppM WidgetTree
 handleClipboardGet renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isGetClipboard evt) eventRequests of
     Just (path, event) -> do
@@ -364,7 +364,7 @@ handleClipboardGet renderer eventRequests widgetRoot =
       handleSystemEvents renderer [Clipboard contents] path widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardSet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardSet :: (MonadState s m) => Renderer WidgetM -> [(Path, EventRequest s m)] -> WidgetTree -> AppM WidgetTree
 handleClipboardSet renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isSetClipboard evt) eventRequests of
     Just (path, SetClipboard (ClipboardText text)) -> do
@@ -389,7 +389,7 @@ handleWindowResize window renderer widgets = do
   zoom appContext $ do
     resizeUI renderer newWindowSize widgets
 
-launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest)] -> AppM ()
+launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest s m)] -> AppM ()
 launchWidgetTasks renderer eventRequests = do
   let customHandlers = L.filter isCustomHandler eventRequests
 
@@ -401,7 +401,7 @@ launchWidgetTasks renderer eventRequests = do
   previousTasks <- use widgetTasks
   widgetTasks .= previousTasks ++ tasks
 
-isCustomHandler :: (Path, EventRequest) -> Bool
+isCustomHandler :: (Path, EventRequest s m) -> Bool
 isCustomHandler (_, RunCustom _) = True
 isCustomHandler _ = False
 

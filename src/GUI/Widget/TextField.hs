@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module GUI.Widget.TextField where
@@ -9,6 +10,7 @@ import Control.Monad.State
 import Data.Char
 import Data.Dynamic
 import Data.Typeable
+import qualified Data.Text as T
 
 import GUI.Common.Core
 import GUI.Common.Event
@@ -21,7 +23,8 @@ import GUI.Data.Tree
 
 import GHC.Generics
 
-import qualified Data.Text as T
+import Lens.Micro
+import Lens.Micro.Mtl
 
 caretWidth = 2
 
@@ -30,17 +33,17 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
-textField :: (MonadState s m) => WidgetNode s e m
-textField = singleWidget $ makeTextField (TextFieldState "" 0)
+textField :: (MonadState s m) => Lens' s T.Text -> WidgetNode s e m
+textField userField = singleWidget $ makeTextField userField (TextFieldState "" 0)
 
 {-- 
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
-makeTextField :: (MonadState s m) => TextFieldState -> Widget s e m
-makeTextField tfs@(TextFieldState currText currPos) = Widget {
+makeTextField :: (MonadState s m) => Lens' s T.Text -> TextFieldState -> Widget s e m
+makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
     _widgetType = "textField",
     _widgetFocusable = True,
-    _widgetRestoreState = fmap makeTextField . useState,
+    _widgetRestoreState = fmap (makeTextField userField) . useState,
     _widgetSaveState = makeState tfs,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
@@ -57,7 +60,7 @@ makeTextField tfs@(TextFieldState currText currPos) = Widget {
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
     handleEvent _ evt = case evt of
-      KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField newState) where
+      KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField userField newState) where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard
         reqGetClipboard = if isClipboardPaste evt then [GetClipboard] else []
@@ -66,7 +69,7 @@ makeTextField tfs@(TextFieldState currText currPos) = Widget {
       TextInput newText -> insertText newText
       Clipboard (ClipboardText newText) -> insertText newText
       _ -> Nothing
-    insertText addedText = resultEventsWidget [] (makeTextField newState) where
+    insertText addedText = resultReqsEventsWidget [RunState $ userField .= newText] [] (makeTextField userField newState) where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos

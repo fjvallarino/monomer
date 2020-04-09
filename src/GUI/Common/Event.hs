@@ -3,6 +3,8 @@
 
 module GUI.Common.Event where
 
+import Control.Monad.State
+  
 import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Data.Map.Strict as M
@@ -23,12 +25,14 @@ data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data EventRequest = IgnoreParentEvents
+data EventRequest s m = (MonadState s m) =>
+                    IgnoreParentEvents
                   | IgnoreChildrenEvents
                   | ResizeChildren
                   | ResizeAll
                   | GetClipboard
                   | SetClipboard ClipboardData
+                  | RunState (m ())
                   | forall a . Typeable a => RunCustom (IO a)
 
 data SystemEvent = Click Point Button ButtonState
@@ -55,27 +59,27 @@ defInputStatus = InputStatus {
   statusButtons = M.empty
 }
 
-isIgnoreParentEvents :: EventRequest -> Bool
+isIgnoreParentEvents :: (MonadState s m) => EventRequest s m -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
 isIgnoreParentEvents _ = False
 
-isIgnoreChildrenEvents :: EventRequest -> Bool
+isIgnoreChildrenEvents :: (MonadState s m) => EventRequest s m -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
-isResizeChildren :: EventRequest -> Bool
+isResizeChildren :: (MonadState s m) => EventRequest s m -> Bool
 isResizeChildren ResizeChildren = True
 isResizeChildren _ = False
 
-isResizeAll :: EventRequest -> Bool
+isResizeAll :: (MonadState s m) => EventRequest s m -> Bool
 isResizeAll ResizeAll = True
 isResizeAll _ = False
 
-isGetClipboard :: EventRequest -> Bool
+isGetClipboard :: (MonadState s m) => EventRequest s m -> Bool
 isGetClipboard GetClipboard = True
 isGetClipboard _ = False
 
-isSetClipboard :: EventRequest -> Bool
+isSetClipboard :: (MonadState s m) => EventRequest s m -> Bool
 isSetClipboard (SetClipboard _) = True
 isSetClipboard _ = False
 

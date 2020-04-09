@@ -55,7 +55,7 @@ data SizeReq = SizeReq {
 } deriving (Show, Eq)
 
 data WidgetEventResult s e m = WidgetEventResult {
-  _eventResultRequest :: [EventRequest],
+  _eventResultRequest :: [EventRequest s m],
   _eventResultUserEvents :: [e],
   _eventResultNewWidget :: Maybe (Widget s e m)
 }
@@ -73,7 +73,7 @@ data WidgetTask = forall a . Typeable a => WidgetTask {
 
 data ChildEventResult s e m = ChildEventResult {
   cerIgnoreParentEvents :: Bool,
-  cerEventRequests :: [(Path, EventRequest)],
+  cerEventRequests :: [(Path, EventRequest s m)],
   cerUserEvents :: SQ.Seq e,
   cerNewTreeNode :: Maybe (WidgetNode s e m)
 }
@@ -190,7 +190,7 @@ resultEvents userEvents = Just $ WidgetEventResult [] userEvents Nothing
 resultEventsWidget :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
 resultEventsWidget userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget)
 
-resultReqsEventsWidget :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+resultReqsEventsWidget :: [EventRequest s m] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
 resultReqsEventsWidget requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
 
 isFocusable :: (MonadState s m) => WidgetInstance s e m -> Bool
@@ -274,39 +274,84 @@ mergeTrees node1@(Node candidateInstance candidateChildren) (Node oldInstance ol
   addedChildren = SQ.drop (SQ.length oldChildren) candidateChildren
   mergeChild = \(c1, c2) -> mergeTrees c1 c2
 
+type ChildrenSelector s e m a = a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)
+
+data EventsParent s e m = EventsParent {
+  epIgnoreChildrenEvents :: Bool,
+  epIgnoreParentEvents :: Bool,
+  epEventRequests :: [(Path, EventRequest s m)],
+  epUserEvents :: SQ.Seq e,
+  epUpdatedNode :: Maybe (Tree (WidgetInstance s e m))
+}
+
+data EventsChildren s e m = EventsChildren {
+  ecIgnoreParentEvents :: Bool,
+  ecEventRequests :: [(Path, EventRequest s m)],
+  ecUserEvents :: SQ.Seq e,
+  ecUpdatedNode :: Maybe (Tree (WidgetInstance s e m)),
+  ecNodePosition :: Int
+}
+
 handleWidgetEvents :: (MonadState s m) => Widget s e m -> Rect -> SystemEvent -> Maybe (WidgetEventResult s e m)
 handleWidgetEvents (Widget {..}) viewport systemEvent = _widgetHandleEvent viewport systemEvent
 
-handleChildEvent :: (MonadState s m) => (a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)) -> a -> Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
-handleChildEvent selectorFn selector path treeNode@(Node wn@WidgetInstance{..} children) systemEvent = ChildEventResult ignoreParentEvents eventRequests userEvents newTreeNode where
-  (ignoreParentEvents, eventRequests, userEvents, newTreeNode) = case (ice, ipeChild) of
-    (True, _) -> (ipe, er, ue, newNode1)
-    (_, True) -> (ipeChild, erChild, ueChild, newNode1)
-    (_, False) -> (ipe, erChild ++ er, ueChild SQ.>< ue, newNode2)
-  -- Children widgets
-  (ipeChild, erChild, ueChild, tnChild, tnChildIdx) = case selectorFn selector children of
-    (_, Nothing) -> (False, [], SQ.empty, Nothing, 0)
-    (newSelector, Just idx) -> (ipe2, er2, ue2, tn2, idx) where
-      (ChildEventResult ipe2 er2 ue2 tn2) = handleChildEvent selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
+handleChildEvent :: (MonadState s m) => ChildrenSelector s e m a -> a -> Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
+handleChildEvent selectorFn selector path (Node widgetInstance children) systemEvent =
+  createUpdatedNode widgetInstance children eventsParent eventsChildren
+    where
+      eventsParent = handleEventsParent path widgetInstance children systemEvent
+      eventsChildren = handleEventsChildren selectorFn selector path children systemEvent
+
+createUpdatedNode :: (MonadState s m) => WidgetInstance s e m -> WidgetChildren s e m -> EventsParent s e m -> EventsChildren s e m -> ChildEventResult s e m
+createUpdatedNode widgetInstance children (EventsParent{..}) (EventsChildren{..}) = updatedNode where
+  updatedNode = case (epIgnoreChildrenEvents, ecIgnoreParentEvents) of
+    (True, _) -> ChildEventResult epIgnoreParentEvents epEventRequests epUserEvents epUpdatedNode
+    (_, True) -> ChildEventResult ecIgnoreParentEvents ecEventRequests ecUserEvents newNodeOldParent
+    (_, False) -> ChildEventResult epIgnoreParentEvents (ecEventRequests ++ epEventRequests) (ecUserEvents SQ.>< epUserEvents) newNodeMixed
+  newNodeOldParent = createNewNodeOldParent widgetInstance children ecNodePosition ecUpdatedNode
+  newNodeMixed = createNewNodeMixed widgetInstance children ecNodePosition epUpdatedNode ecUpdatedNode
+
+handleEventsParent :: (MonadState s m) => Path -> WidgetInstance s e m -> WidgetChildren s e m -> SystemEvent -> EventsParent s e m
+handleEventsParent path (wi@WidgetInstance{..}) children systemEvent = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
+  Nothing -> EventsParent False False [] SQ.empty Nothing
+  Just (WidgetEventResult er ue widget) -> EventsParent {
+      epIgnoreChildrenEvents = isJust $ L.find isIgnoreChildrenEvents er,
+      epIgnoreParentEvents = isJust $ L.find isIgnoreParentEvents er,
+      epEventRequests = fmap (path,) er,
+      epUserEvents = SQ.fromList ue,
+      epUpdatedNode = if isNothing widget
+                        then Nothing
+                        else Just $ Node (wi { _widgetInstanceWidget = fromJust widget }) children
+    }
+
+handleEventsChildren :: (MonadState s m) => ChildrenSelector s e m a -> a -> Path -> WidgetChildren s e m -> SystemEvent -> EventsChildren s e m
+handleEventsChildren selectorFn selector path children systemEvent = case selectorFn selector children of
+  (_, Nothing) -> EventsChildren False [] SQ.empty Nothing 0
+  (newSelector, Just idx) -> EventsChildren {
+      ecIgnoreParentEvents = ipe,
+      ecEventRequests = er,
+      ecUserEvents = ue,
+      ecUpdatedNode = tn,
+      ecNodePosition = idx
+    }
+    where
+      (ChildEventResult ipe er ue tn) = handleChildEvent selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
       widgetPath = reverse (idx:path)
-  -- Current widget
-  (ice, ipe, er, ue, tn) = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
-    Nothing -> (False, False, [], SQ.empty, Nothing)
-    Just (WidgetEventResult er2 ue2 widget) -> (ice, ipe, pathEvents, SQ.fromList ue2, updatedNode) where
-      ice = isJust $ L.find isIgnoreChildrenEvents er2
-      ipe = isJust $ L.find isIgnoreParentEvents er2
-      pathEvents = fmap (path,) er2
-      updatedNode = if isNothing widget
-                      then Nothing
-                      else Just $ Node (wn { _widgetInstanceWidget = fromJust widget }) children
-  newNode1 = case tnChild of
-    Nothing -> Nothing
-    Just wnChild -> Just $ Node wn (SQ.update tnChildIdx wnChild children)
-  newNode2 = case (tn, tnChild) of
-    (Nothing, Nothing) -> Nothing
-    (Nothing, Just cn) -> newNode1
-    (Just pn, Nothing) -> tn
-    (Just (Node wn _), Just tnChild) -> Just $ Node wn (SQ.update tnChildIdx tnChild children)
+
+replaceChild :: (MonadState s m) => WidgetInstance s e m -> WidgetChildren s e m -> Int -> WidgetNode s e m -> Maybe (WidgetNode s e m)
+replaceChild widgetInstance children childIdx newChild = Just $ Node widgetInstance (SQ.update childIdx newChild children)
+
+createNewNodeOldParent :: (MonadState s m) => WidgetInstance s e m -> WidgetChildren s e m -> Int -> Maybe (WidgetNode s e m) -> Maybe (WidgetNode s e m)
+createNewNodeOldParent widgetInstance children childIdx newChild = case newChild of
+  Nothing -> Nothing
+  Just tnChild -> replaceChild widgetInstance children childIdx tnChild
+
+createNewNodeMixed :: (MonadState s m) => WidgetInstance s e m -> WidgetChildren s e m -> Int -> Maybe (WidgetNode s e m) -> Maybe (WidgetNode s e m) -> Maybe (WidgetNode s e m)
+createNewNodeMixed oldParentWidgetInstance children childIdx newParent newChild = case (newParent, newChild) of
+  (Nothing, Nothing) -> Nothing
+  (Nothing, Just cn) -> replaceChild oldParentWidgetInstance children childIdx cn
+  (Just _, Nothing) -> newParent
+  (Just (Node newParentWidgetInstance _), Just newChildTreeNode) -> replaceChild newParentWidgetInstance children childIdx newChildTreeNode
 
 handleEventFromPath :: (MonadState s m) => Path -> WidgetNode s e m -> SystemEvent -> ChildEventResult s e m
 handleEventFromPath path widgetInstance systemEvent = handleChildEvent pathSelector path [] widgetInstance systemEvent where
