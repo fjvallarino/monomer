@@ -25,8 +25,7 @@ data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data EventRequest s m = (MonadState s m) =>
-                    IgnoreParentEvents
+data EventRequest = IgnoreParentEvents
                   | IgnoreChildrenEvents
                   | ResizeChildren
                   | ResizeAll
@@ -59,27 +58,27 @@ defInputStatus = InputStatus {
   statusButtons = M.empty
 }
 
-isIgnoreParentEvents :: (MonadState s m) => EventRequest s m -> Bool
+isIgnoreParentEvents :: EventRequest -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
 isIgnoreParentEvents _ = False
 
-isIgnoreChildrenEvents :: (MonadState s m) => EventRequest s m -> Bool
+isIgnoreChildrenEvents :: EventRequest -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
-isResizeChildren :: (MonadState s m) => EventRequest s m -> Bool
+isResizeChildren :: EventRequest -> Bool
 isResizeChildren ResizeChildren = True
 isResizeChildren _ = False
 
-isResizeAll :: (MonadState s m) => EventRequest s m -> Bool
+isResizeAll :: EventRequest -> Bool
 isResizeAll ResizeAll = True
 isResizeAll _ = False
 
-isGetClipboard :: (MonadState s m) => EventRequest s m -> Bool
+isGetClipboard :: EventRequest -> Bool
 isGetClipboard GetClipboard = True
 isGetClipboard _ = False
 
-isSetClipboard :: (MonadState s m) => EventRequest s m -> Bool
+isSetClipboard :: EventRequest -> Bool
 isSetClipboard (SetClipboard _) = True
 isSetClipboard _ = False
 

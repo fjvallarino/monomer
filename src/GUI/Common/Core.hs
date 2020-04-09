@@ -55,7 +55,7 @@ data SizeReq = SizeReq {
 } deriving (Show, Eq)
 
 data WidgetEventResult s e m = WidgetEventResult {
-  _eventResultRequest :: [EventRequest s m],
+  _eventResultRequest :: [EventRequest],
   _eventResultUserEvents :: [e],
   _eventResultNewWidget :: Maybe (Widget s e m)
 }
@@ -73,7 +73,7 @@ data WidgetTask = forall a . Typeable a => WidgetTask {
 
 data ChildEventResult s e m = ChildEventResult {
   cerIgnoreParentEvents :: Bool,
-  cerEventRequests :: [(Path, EventRequest s m)],
+  cerEventRequests :: [(Path, EventRequest)],
   cerUserEvents :: SQ.Seq e,
   cerNewTreeNode :: Maybe (WidgetNode s e m)
 }
@@ -192,7 +192,7 @@ resultEvents userEvents = Just $ WidgetEventResult [] userEvents Nothing
 resultEventsWidget :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
 resultEventsWidget userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget)
 
-resultReqsEventsWidget :: [EventRequest s m] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
+resultReqsEventsWidget :: [EventRequest] -> [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
 resultReqsEventsWidget requests userEvents newWidget = Just $ WidgetEventResult requests userEvents (Just newWidget)
 
 isFocusable :: (MonadState s m) => WidgetInstance s e m -> Bool
@@ -284,14 +284,14 @@ type ChildrenSelector s e m a = a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)
 data EventsParent s e m = EventsParent {
   epIgnoreChildrenEvents :: Bool,
   epIgnoreParentEvents :: Bool,
-  epEventRequests :: [(Path, EventRequest s m)],
+  epEventRequests :: [(Path, EventRequest)],
   epUserEvents :: SQ.Seq e,
   epUpdatedNode :: Maybe (Tree (WidgetInstance s e m))
 }
 
 data EventsChildren s e m = EventsChildren {
   ecIgnoreParentEvents :: Bool,
-  ecEventRequests :: [(Path, EventRequest s m)],
+  ecEventRequests :: [(Path, EventRequest)],
   ecUserEvents :: SQ.Seq e,
   ecUpdatedNode :: Maybe (Tree (WidgetInstance s e m)),
   ecNodePosition :: Int
