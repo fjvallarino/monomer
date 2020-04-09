@@ -37,6 +37,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     _widgetFocusable = False,
     _widgetRestoreState = fmap makeScroll . useState,
     _widgetSaveState = makeState state,
+    _widgetUpdateUserState = defaultUpdateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,

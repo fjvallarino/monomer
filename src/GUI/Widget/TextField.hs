@@ -45,6 +45,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
     _widgetFocusable = True,
     _widgetRestoreState = fmap (makeTextField userField) . useState,
     _widgetSaveState = makeState tfs,
+    _widgetUpdateUserState = updateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
@@ -59,17 +60,19 @@ makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
         | isKeyRight code && tp < T.length txt = (txt, tp + 1)
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
+    updateUserState = userField .= currText
     handleEvent _ evt = case evt of
       KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField userField newState) where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqs = reqGetClipboard ++ reqSetClipboard
+        reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         reqGetClipboard = if isClipboardPaste evt then [GetClipboard] else []
         reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
+        reqUpdateUserState = if currText /= newText then [UpdateUserState] else []
         newState = TextFieldState newText newPos
       TextInput newText -> insertText newText
       Clipboard (ClipboardText newText) -> insertText newText
       _ -> Nothing
-    insertText addedText = resultReqsEventsWidget [RunState $ userField .= newText] [] (makeTextField userField newState) where
+    insertText addedText = resultReqsEventsWidget [UpdateUserState] [] (makeTextField userField newState) where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos

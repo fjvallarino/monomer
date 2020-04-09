@@ -126,7 +126,13 @@ handleAppEvent evt = do
     Action1 v -> do
       when (v == 0) $ clickCount += 1
       count <- use clickCount
+      txt1 <- use textField1
+      txt2 <- use textField2
+      txt3 <- use textField3
       liftIO . putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ (show count)
+      liftIO . putStrLn $ "Current text 1 is: " ++ (show txt1)
+      liftIO . putStrLn $ "Current text 2 is: " ++ (show txt2)
+      liftIO . putStrLn $ "Current text 3 is: " ++ (show txt3)
     Action2   -> liftIO . putStrLn $ "I don't know what's this"
 
 buildUI :: App -> WidgetTree
@@ -140,7 +146,7 @@ buildUI model = styledTree where
   widgetTree = vstack [
       hstack [
         (scroll $ vstack [
-          textField textField1 `style` textStyle `visible` False,
+          textField textField1 `style` textStyle,
           spacer `visible` False,
           label "Label 1",
           spacer,
@@ -326,6 +332,7 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   let (ChildEventResult stopProcessing eventRequests appEvents newWidgets) = handleEvent renderer systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
+  handleWidgetUserStateUpdate newRoot eventRequests
   launchWidgetTasks renderer eventRequests
 
   handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
@@ -389,6 +396,14 @@ handleWindowResize window renderer widgets = do
   zoom appContext $ do
     resizeUI renderer newWindowSize widgets
 
+handleWidgetUserStateUpdate :: WidgetTree -> [(Path, EventRequest s m)] -> AppM ()
+handleWidgetUserStateUpdate widgets eventRequests = do
+  let runStateHandlers = L.filter isUpdateUserState eventRequests
+
+  zoom appContext $ do
+    forM_ runStateHandlers $ \(path, _) -> do
+      handleUserUpdateState (reverse path) widgets
+
 launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest s m)] -> AppM ()
 launchWidgetTasks renderer eventRequests = do
   let customHandlers = L.filter isCustomHandler eventRequests
@@ -404,6 +419,10 @@ launchWidgetTasks renderer eventRequests = do
 isCustomHandler :: (Path, EventRequest s m) -> Bool
 isCustomHandler (_, RunCustom _) = True
 isCustomHandler _ = False
+
+isUpdateUserState :: (Path, EventRequest s m) -> Bool
+isUpdateUserState (_, UpdateUserState) = True
+isUpdateUserState _ = False
 
 processWidgetTasks :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
 processWidgetTasks renderer widgets = do
@@ -490,6 +509,9 @@ doInDrawingContext window c action = do
   return ret
 
 collectPaths :: (MonadState s m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
-collectPaths (Node widgetNode children) path = (widgetNode, reverse path) : remainingItems where
+collectPaths treeNode path = fmap (\(node, path) -> (node, reverse path)) (collectReversedPaths treeNode path)
+
+collectReversedPaths :: (MonadState s m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
+collectReversedPaths (Node widgetNode children) path = (widgetNode, path) : remainingItems where
   pairs = zip (seqToNodeList children) (map (: path) [0..])
-  remainingItems = concatMap (\(wn, path) -> collectPaths wn path) pairs
+  remainingItems = concatMap (\(wn, path) -> collectReversedPaths wn path) pairs

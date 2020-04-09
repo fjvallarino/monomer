@@ -88,6 +88,8 @@ data Widget s e m =
     _widgetRestoreState :: WidgetState -> Maybe (Widget s e m),
     -- | Returns the current internal state, which can later be used to restore the widget
     _widgetSaveState :: Maybe WidgetState,
+    -- | Updates user state used by widget with internal state
+    _widgetUpdateUserState :: m (),
     -- | Handles an event
     --
     -- Region assigned to the widget
@@ -204,6 +206,9 @@ defaultRestoreState _ = Nothing
 
 defaultSaveState :: Maybe WidgetState
 defaultSaveState = Nothing
+
+defaultUpdateUserState :: (MonadState s m) => m ()
+defaultUpdateUserState = return ()
 
 makeState :: (Typeable i, Generic i) => i -> Maybe WidgetState
 makeState state = Just (WidgetState state)
@@ -336,7 +341,7 @@ handleEventsChildren selectorFn selector path children systemEvent = case select
     }
     where
       (ChildEventResult ipe er ue tn) = handleChildEvent selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
-      widgetPath = reverse (idx:path)
+      widgetPath = (idx:path)
 
 replaceChild :: (MonadState s m) => WidgetInstance s e m -> WidgetChildren s e m -> Int -> WidgetNode s e m -> Maybe (WidgetNode s e m)
 replaceChild widgetInstance children childIdx newChild = Just $ Node widgetInstance (SQ.update childIdx newChild children)
@@ -374,6 +379,11 @@ handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path tr
       Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
       Nothing -> ChildEventResult False [] SQ.Empty Nothing
   Nothing -> ChildEventResult False [] SQ.Empty Nothing
+
+handleUserUpdateState :: (MonadState s m) => Path -> WidgetNode s e m -> m ()
+handleUserUpdateState path treeNode = case GUI.Data.Tree.lookup path treeNode of
+  Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) -> _widgetUpdateUserState
+  Nothing -> return ()
 
 findPathFromPoint :: (MonadState s m) => Point -> WidgetNode s e m -> Path
 findPathFromPoint p widgetInstance = path where

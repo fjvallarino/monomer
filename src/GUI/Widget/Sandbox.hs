@@ -38,6 +38,7 @@ makeSandbox state onClick = Widget {
     _widgetFocusable = False,
     _widgetRestoreState = fmap (flip makeSandbox onClick) . useState,
     _widgetSaveState = makeState state,
+    _widgetUpdateUserState = defaultUpdateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = handleCustom,
     _widgetPreferredSize = preferredSize,

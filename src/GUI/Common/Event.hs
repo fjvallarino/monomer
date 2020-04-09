@@ -32,7 +32,7 @@ data EventRequest s m = (MonadState s m) =>
                   | ResizeAll
                   | GetClipboard
                   | SetClipboard ClipboardData
-                  | RunState (m ())
+                  | UpdateUserState
                   | forall a . Typeable a => RunCustom (IO a)
 
 data SystemEvent = Click Point Button ButtonState

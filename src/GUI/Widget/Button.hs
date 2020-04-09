@@ -26,6 +26,7 @@ makeButton label onClick = Widget {
     _widgetFocusable = False,
     _widgetRestoreState = defaultRestoreState,
     _widgetSaveState = defaultSaveState,
+    _widgetUpdateUserState = defaultUpdateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
