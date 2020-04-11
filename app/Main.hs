@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -55,13 +57,48 @@ import qualified GUI.Platform.NanoVGRenderer as NV
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
-data AppEvent = Action1 Int | Action2 deriving (Show, Eq)
+type GWidgetMonad s e m = (MonadState (GUIContext s e) m, MonadIO m)
+
+launchUserTasks :: GWidgetMonad a e m => [AsyncHandler e] -> m ()
+launchUserTasks handlers = do
+  tasks <- forM handlers $ \(AsyncHandler handler) -> do
+    asyncTask <- liftIO $ async (liftIO handler)
+
+    return $ UserTask asyncTask
+
+  previousTasks <- use userTasks
+  userTasks .= previousTasks ++ tasks
+
+checkUserTasks :: GWidgetMonad a e m => m [e]
+checkUserTasks = do
+  tasks <- use userTasks
+  (active, finished) <- partitionM (\(UserTask task) -> fmap isNothing (liftIO $ poll task)) tasks
+  userTasks .= active
+
+  processUserTaskHandlers finished
+
+processUserTaskHandlers :: GWidgetMonad a e m => [UserTask e] -> m [e]
+processUserTaskHandlers tasks = do
+  results <- forM tasks stepUserTask
+  return $ catMaybes results
+
+stepUserTask :: GWidgetMonad a e m => UserTask e -> m (Maybe e)
+stepUserTask (UserTask task) = do
+  taskStatus <- liftIO $ poll task
+
+  return $ maybe Nothing processUserTaskHandler taskStatus
+
+processUserTaskHandler :: Either SomeException e -> Maybe e
+processUserTaskHandler (Left _) = Nothing
+processUserTaskHandler (Right evt) = Just evt
+
+data AppEvent = Action1 Int | Action2 | UpdateText3 T.Text deriving (Show, Eq)
 
 type WidgetM = StateT App IO
 type LocalWidget = Widget App AppEvent WidgetM
 type WidgetTree = Tree (WidgetInstance App AppEvent WidgetM)
 
-type AppContext = GUIContext App
+type AppContext = GUIContext App AppEvent
 type AppM = StateT AppContext IO
 
 main :: IO ()
@@ -120,20 +157,37 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent :: AppEvent -> WidgetM ()
-handleAppEvent evt = do
+
+handleAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
+handleAppEvent app evt = do
   case evt of
-    Action1 v -> do
-      when (v == 0) $ clickCount += 1
-      count <- use clickCount
+    Action1 2 -> return [AsyncHandler $ do
+      threadDelay $ 1 * 1000 * 1000
+
+      return $ UpdateText3 "HOLA"
+      ]
+    otherwise -> handlePureAppEvent app evt
+
+handlePureAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
+handlePureAppEvent app evt = do
+  liftIO . putStrLn $ "Calledddd"
+  case evt of
+    Action1 0 -> do
       txt1 <- use textField1
       txt2 <- use textField2
       txt3 <- use textField3
-      liftIO . putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ (show count)
       liftIO . putStrLn $ "Current text 1 is: " ++ (show txt1)
       liftIO . putStrLn $ "Current text 2 is: " ++ (show txt2)
       liftIO . putStrLn $ "Current text 3 is: " ++ (show txt3)
+    Action1 v -> do
+      clickCount += 1
+      count <- use clickCount
+      liftIO . putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ (show count)
     Action2   -> liftIO . putStrLn $ "I don't know what's this"
+    UpdateText3 txt -> do
+      textField3 .= txt
+
+  return []
 
 buildUI :: App -> WidgetTree
 buildUI model = styledTree where
@@ -226,13 +280,14 @@ getWindowSize window = do
 updateUI :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
 updateUI renderer oldWidgets = do
   windowSize <- use windowSize
+  oldFocus <- getCurrentFocus
 
   resizedUI <- zoom appContext $ do
     app <- get
     resizeUI renderer windowSize (mergeTrees (buildUI app) oldWidgets)
 
   let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI []
-  focusRing .= paths
+  focusRing .= rotateUntil oldFocus paths
   currentFocus <- getCurrentFocus
 
   return (setFocusedStatus currentFocus True resizedUI)
@@ -255,10 +310,13 @@ mainLoop window c renderer prevTicks widgets = do
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
+  pendingEvents <- checkUserTasks
   systemEvents <- preProcessEvents widgets baseSystemEvents
-  focus <- getCurrentFocus
+  oldApp <- use appContext
 
-  newWidgets <- handleSystemEvents renderer systemEvents focus widgets
+  newWidgets <- handleAppEvents renderer (SQ.fromList pendingEvents)
+    >>  handleSystemEvents renderer systemEvents widgets
+    >>= rebuildIfNecessary renderer oldApp
     >>= processWidgetTasks renderer
     >>= bindIf resized (handleWindowResize window renderer)
 
@@ -266,6 +324,14 @@ mainLoop window c renderer prevTicks widgets = do
 
   liftIO $ threadDelay $ (nextFrame ts) * 1000
   unless quit (mainLoop window c renderer ticks newWidgets)
+
+rebuildIfNecessary :: Renderer WidgetM -> App -> WidgetTree -> AppM WidgetTree
+rebuildIfNecessary renderer oldApp widgets = do
+  newApp <- use appContext
+
+  if oldApp /= newApp
+    then updateUI renderer widgets
+    else return widgets
 
 preProcessEvents :: WidgetTree -> [SystemEvent] -> AppM [SystemEvent]
 preProcessEvents widgets events = do
@@ -323,9 +389,11 @@ handleEvent renderer systemEvent targetPath widgets = case systemEvent of
   Move point            -> handleEventFromPoint point widgets systemEvent
   Leave oldPath _       -> handleEventFromPath oldPath widgets systemEvent
 
-handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> Path -> WidgetTree -> AppM WidgetTree
-handleSystemEvents renderer systemEvents currentFocus widgets =
-  foldM (\newWidgets event -> handleSystemEvent renderer event currentFocus newWidgets) widgets systemEvents
+handleSystemEvents :: Renderer WidgetM -> [SystemEvent] -> WidgetTree -> AppM WidgetTree
+handleSystemEvents renderer systemEvents widgets = do
+  foldM (\newWidgets event -> do
+    focus <- getCurrentFocus
+    handleSystemEvent renderer event focus newWidgets) widgets systemEvents
 
 handleSystemEvent :: Renderer WidgetM -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer systemEvent currentFocus widgets = do
@@ -335,8 +403,8 @@ handleSystemEvent renderer systemEvent currentFocus widgets = do
   handleWidgetUserStateUpdate newRoot eventRequests
   launchWidgetTasks renderer eventRequests
 
-  handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
-    >>= handleAppEvents renderer appEvents
+  handleAppEvents renderer appEvents
+    >>  handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
     >>= handleClipboardGet renderer eventRequests
     >>= handleClipboardSet renderer eventRequests
     >>= handleResizeChildren renderer eventRequests
@@ -368,7 +436,7 @@ handleClipboardGet renderer eventRequests widgetRoot =
       hasText <- SDL.hasClipboardText
       contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
 
-      handleSystemEvents renderer [Clipboard contents] path widgetRoot
+      handleSystemEvent renderer (Clipboard contents) path widgetRoot
     Nothing -> return widgetRoot
 
 handleClipboardSet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
@@ -453,8 +521,8 @@ processCustomHandler renderer widgets path (Right val) = do
 
   launchWidgetTasks renderer eventRequests
 
-  handleAppEvents renderer appEvents newRoot
-    >>= handleResizeChildren renderer eventRequests
+  handleAppEvents renderer appEvents
+    >> handleResizeChildren renderer eventRequests newRoot
 
 keycodeTab :: (Integral a) => a
 keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
@@ -473,19 +541,15 @@ isKeyTab key = matchesSDLKeyCode key SDL.KeycodeTab
 matchesSDLKeyCode :: KeyCode -> SDL.Keycode -> Bool
 matchesSDLKeyCode keyCode sdlKeyCode = keyCode == (fromIntegral $ Keyboard.unwrapKeycode sdlKeyCode)
 
-handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> WidgetTree -> AppM WidgetTree
-handleAppEvents renderer appEvents oldWidgets
-  | SQ.null appEvents = return oldWidgets
-  | otherwise = do
-    (app, newApp) <- zoom appContext $ do
-      app <- get
-      forM_ appEvents handleAppEvent
-      newApp <- get
-      return (app, newApp)
+handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> AppM ()
+handleAppEvents renderer appEvents = do
+  tasks <- zoom appContext $ do
+    tasks <- forM appEvents $ \event -> do
+      currApp <- get
+      handleAppEvent currApp event
+    return $ msum tasks
 
-    if app /= newApp
-      then updateUI renderer oldWidgets
-      else return oldWidgets
+  launchUserTasks $ tasks
 
 renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer widgets ticks =

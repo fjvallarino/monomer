@@ -31,6 +31,12 @@ import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
 
+data AsyncHandler e = AsyncHandler (IO e)
+
+data UserTask e = UserTask {
+  userTask :: Async e
+}
+
 type Timestamp = Int
 
 type WidgetNode s e m = Tree (WidgetInstance s e m)
@@ -160,18 +166,19 @@ data WidgetInstance s e m =
     --_widgetInstanceElementStyle :: Style
   }
 
-data GUIContext app = GUIContext {
-  _appContext :: app,
+data GUIContext s e = GUIContext {
+  _appContext :: s,
   _windowSize :: Rect,
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
   _inputStatus :: InputStatus,
   _focusRing :: [Path],
   _latestHover :: Maybe Path,
+  _userTasks :: [UserTask e],
   _widgetTasks :: [WidgetTask]
 }
 
-initGUIContext :: app -> Rect -> Bool -> Double -> GUIContext app
+initGUIContext :: s -> Rect -> Bool -> Double -> GUIContext s e
 initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _appContext = app,
   _windowSize = winSize,
@@ -180,6 +187,7 @@ initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
   _inputStatus = defInputStatus,
   _focusRing = [],
   _latestHover = Nothing,
+  _userTasks = [],
   _widgetTasks = []
 }
 

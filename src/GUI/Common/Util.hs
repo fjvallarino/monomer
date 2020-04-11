@@ -3,6 +3,7 @@
 module GUI.Common.Util where
 
 import Data.Default
+import Data.List (elemIndex, splitAt)
 
 import GUI.Common.Types
 
@@ -33,6 +34,12 @@ inRect (Rect x y w h) (Point x2 y2) = (x2 >= x && x2 < x + w) && (y2 >= y && y2 
 rotateList :: [a] -> [a]
 rotateList [] = []
 rotateList (x:xs) = xs ++ [x]
+
+rotateUntil :: (Eq a) => a -> [a] -> [a]
+rotateUntil val list = case elemIndex val list of
+  Nothing -> list
+  Just idx -> part2 ++ part1 where
+    (part1, part2) = splitAt idx list
 
 firstJust :: Maybe a -> Maybe a -> Maybe a
 firstJust (Just val) _ = Just val

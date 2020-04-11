@@ -20,10 +20,13 @@
   - How is the user going to provide state updates?
     - We already provide this with the State monad and corresponding lenses
   - Improve mouse support/current state of mouse and keyboard for event handling
+  - Make handleEvent run inside MonadState (required to update user provided lenses) **CANCELLED**
+  - Add logic that allows widgets to update user state
+  - Does it make sense to avoid lenses internally, given that we already include the dependency?
 - Pending
-  - Make handleEvent run inside MonadState (required to update user provided lenses)
-  - Create layer widget to handle overlays/dialog boxes
   - How will long running (i.e., not immediate) user tasks will be handled?
+  - Think how overlays should work
+  - Create layer widget to handle overlays/dialog boxes
   - Add text selection/editing to textField
   - Drag & drop (add attribute indicating if component supports being source/target)
   - Stop, think and design
@@ -35,6 +38,8 @@
   - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
   - Check if advanced type level features would improve the design
   - Check what syntax extensions can be abused to make life easier
-  - Does it make sense to avoid lenses internally, given that we already include the dependency?
+  - Look for ways that allow both lenses and user events to be used in the same widget
+  - Related to previous, look for ways to simplify widget setup. Default instance with common values?
+  - Think about how using Cairo+SDL Surfaces+Caching could be used instead of NanoVG. Maybe that way it can run in Vulkan?
   - Can we cache some drawing operations?
   - Can we use Skia? Does it make sense?

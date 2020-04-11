@@ -52,9 +52,9 @@ makeSandbox state onClick = Widget {
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
         events = if isPressed then [onClick] else []
         requests = if isPressed then [RunCustom runCustom] else []
-      Enter p -> trace ("Enter: " ++ show p) Nothing
-      Move p -> trace ("Move: " ++ show p) Nothing
-      Leave _ p -> trace ("Leave: " ++ show p) Nothing
+      Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
+      Move p -> Nothing --trace ("Move: " ++ show p) Nothing
+      Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
       _ -> Nothing
     runCustom = do
       return SandboxData2
