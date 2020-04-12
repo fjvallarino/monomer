@@ -9,6 +9,7 @@ import Control.Monad.State
 
 import Data.Char
 import Data.Dynamic
+import Data.Maybe
 import Data.Typeable
 import qualified Data.Text as T
 
@@ -33,8 +34,10 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
+emptyState = TextFieldState "" 0
+
 textField :: (MonadState s m) => Lens' s T.Text -> WidgetNode s e m
-textField userField = singleWidget $ makeTextField userField (TextFieldState "" 0)
+textField userField = singleWidget $ makeTextField userField emptyState
 
 {-- 
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
@@ -43,7 +46,7 @@ makeTextField :: (MonadState s m) => Lens' s T.Text -> TextFieldState -> Widget 
 makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
     _widgetType = "textField",
     _widgetFocusable = True,
-    _widgetRestoreState = fmap (makeTextField userField) . useState,
+    _widgetRestoreState = restoreState,
     _widgetSaveState = makeState tfs,
     _widgetUpdateUserState = updateUserState,
     _widgetHandleEvent = handleEvent,
@@ -60,6 +63,11 @@ makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
         | isKeyRight code && tp < T.length txt = (txt, tp + 1)
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
+    restoreState app st = if appText /= currText then newWidget else Nothing where
+      TextFieldState txt pos = fromMaybe emptyState (useState st)
+      appText = app ^. userField
+      newPos = if T.length appText > pos then T.length appText else pos
+      newWidget = Just $ makeTextField userField (TextFieldState appText newPos)
     updateUserState = userField .= currText
     handleEvent _ evt = case evt of
       KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField userField newState) where

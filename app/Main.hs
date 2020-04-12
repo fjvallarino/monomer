@@ -166,10 +166,10 @@ handleAppEvent app evt = do
 
       return $ UpdateText3 "HOLA"
       ]
-    otherwise -> handlePureAppEvent app evt
+    otherwise -> handleSyncAppEvent app evt
 
-handlePureAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
-handlePureAppEvent app evt = do
+handleSyncAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
+handleSyncAppEvent app evt = do
   liftIO . putStrLn $ "Calledddd"
   case evt of
     Action1 0 -> do
@@ -284,7 +284,7 @@ updateUI renderer oldWidgets = do
 
   resizedUI <- zoom appContext $ do
     app <- get
-    resizeUI renderer windowSize (mergeTrees (buildUI app) oldWidgets)
+    resizeUI renderer windowSize (mergeTrees app (buildUI app) oldWidgets)
 
   let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI []
   focusRing .= rotateUntil oldFocus paths

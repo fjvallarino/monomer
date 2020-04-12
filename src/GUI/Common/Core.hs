@@ -91,7 +91,7 @@ data Widget s e m =
     -- | Indicates whether the widget can receive focus
     _widgetFocusable :: Bool,
     -- | Provides the previous internal state to the new widget, which can choose to ignore it or update itself
-    _widgetRestoreState :: WidgetState -> Maybe (Widget s e m),
+    _widgetRestoreState :: s -> Maybe WidgetState -> Maybe (Widget s e m),
     -- | Returns the current internal state, which can later be used to restore the widget
     _widgetSaveState :: Maybe WidgetState,
     -- | Updates user state used by widget with internal state
@@ -209,8 +209,8 @@ isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widget
 defaultCustomHandler :: a -> Maybe (WidgetEventResult s e m)
 defaultCustomHandler _ = Nothing
 
-defaultRestoreState :: WidgetState -> Maybe (Widget s e m)
-defaultRestoreState _ = Nothing
+defaultRestoreState :: s -> Maybe WidgetState -> Maybe (Widget s e m)
+defaultRestoreState _ _ = Nothing
 
 defaultSaveState :: Maybe WidgetState
 defaultSaveState = Nothing
@@ -221,8 +221,9 @@ defaultUpdateUserState = return ()
 makeState :: (Typeable i, Generic i) => i -> Maybe WidgetState
 makeState state = Just (WidgetState state)
 
-useState ::  (Typeable i, Generic i) => WidgetState -> Maybe i
-useState (WidgetState state) = cast state
+useState ::  (Typeable i, Generic i) => Maybe WidgetState -> Maybe i
+useState Nothing = Nothing
+useState (Just (WidgetState state)) = cast state
 
 key :: (MonadState s m) => WidgetKey -> WidgetInstance s e m -> WidgetInstance s e m
 key key wn = wn { _widgetInstanceKey = Just key }
@@ -271,21 +272,20 @@ parentWidget widget = fromList (defaultWidgetInstance widget)
 widgetMatches :: (MonadState s m) => WidgetInstance s e m -> WidgetInstance s e m -> Bool
 widgetMatches wn1 wn2 = _widgetType (_widgetInstanceWidget wn1) == _widgetType (_widgetInstanceWidget wn2) && _widgetInstanceKey wn1 == _widgetInstanceKey wn2
 
-mergeTrees :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m -> WidgetNode s e m
-mergeTrees node1@(Node candidateInstance candidateChildren) (Node oldInstance oldChildren) = newNode where
+mergeTrees :: (MonadState s m) => s -> WidgetNode s e m -> WidgetNode s e m -> WidgetNode s e m
+mergeTrees app node1@(Node candidateInstance candidateChildren) (Node oldInstance oldChildren) = newNode where
   matches = widgetMatches candidateInstance oldInstance
   newNode = if | matches -> Node newInstance newChildren
                | otherwise -> node1
   oldWidget = _widgetInstanceWidget oldInstance
+  oldState = _widgetSaveState oldWidget
   candidateWidget = _widgetInstanceWidget candidateInstance
-  newWidget = case _widgetSaveState oldWidget of
-    Just st -> fromMaybe candidateWidget (_widgetRestoreState candidateWidget st)
-    Nothing -> candidateWidget
+  newWidget = fromMaybe candidateWidget (_widgetRestoreState candidateWidget app oldState)
   newInstance = candidateInstance { _widgetInstanceWidget = newWidget }
   newChildren = mergedChildren SQ.>< addedChildren
   mergedChildren = fmap mergeChild (SQ.zip candidateChildren oldChildren)
   addedChildren = SQ.drop (SQ.length oldChildren) candidateChildren
-  mergeChild = \(c1, c2) -> mergeTrees c1 c2
+  mergeChild = \(c1, c2) -> mergeTrees app c1 c2
 
 type ChildrenSelector s e m a = a -> SQ.Seq (WidgetNode s e m) -> (a, Maybe Int)
 
