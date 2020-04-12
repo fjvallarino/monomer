@@ -35,6 +35,10 @@ rotateList :: [a] -> [a]
 rotateList [] = []
 rotateList (x:xs) = xs ++ [x]
 
+inverseRotateList :: [a] -> [a]
+inverseRotateList [] = []
+inverseRotateList xs = last xs : init xs
+
 rotateUntil :: (Eq a) => a -> [a] -> [a]
 rotateUntil val list = case elemIndex val list of
   Nothing -> list

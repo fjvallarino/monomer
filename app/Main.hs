@@ -415,13 +415,14 @@ handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
       ring <- use focusRing
       oldFocus <- getCurrentFocus
       newRoot1 <- handleSystemEvent renderer Blur oldFocus widgetRoot
-      focusRing .= rotateList ring
+      focusRing .= rotate ring
       newFocus <- getCurrentFocus
       newRoot2 <- handleSystemEvent renderer Focus newFocus newRoot1
       return $ setFocusedStatus newFocus True (setFocusedStatus currentFocus False newRoot2)
   | otherwise = return widgetRoot
   where
-    focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keycodeTab
+    focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
+    rotate = if isShiftPressed systemEvent then inverseRotateList else rotateList
 
 handleResizeChildren :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
 handleResizeChildren renderer eventRequests widgetRoot =
@@ -523,23 +524,6 @@ processCustomHandler renderer widgets path (Right val) = do
 
   handleAppEvents renderer appEvents
     >> handleResizeChildren renderer eventRequests newRoot
-
-keycodeTab :: (Integral a) => a
-keycodeTab = fromIntegral $ Keyboard.unwrapKeycode SDL.KeycodeTab
-
-isKeyboardEvent :: SystemEvent -> Bool
-isKeyboardEvent (KeyAction _ _ _) = True
-isKeyboardEvent _ = False
-
-isKeyPressed :: SystemEvent -> KeyCode -> Bool
-isKeyPressed (KeyAction _ keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
-isKeyPressed _ _ = False
-
-isKeyTab :: KeyCode -> Bool
-isKeyTab key = matchesSDLKeyCode key SDL.KeycodeTab
-
-matchesSDLKeyCode :: KeyCode -> SDL.Keycode -> Bool
-matchesSDLKeyCode keyCode sdlKeyCode = keyCode == (fromIntegral $ Keyboard.unwrapKeycode sdlKeyCode)
 
 handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> AppM ()
 handleAppEvents renderer appEvents = do

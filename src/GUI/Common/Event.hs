@@ -168,3 +168,15 @@ isClipboardCopy event = checkKeyboard event (\mod code motion -> (keyModLeftGUI 
 
 isClipboardPaste :: SystemEvent -> Bool
 isClipboardPaste event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyV code)
+
+isKeyboardEvent :: SystemEvent -> Bool
+isKeyboardEvent (KeyAction _ _ _) = True
+isKeyboardEvent _ = False
+
+isKeyPressed :: SystemEvent -> KeyCode -> Bool
+isKeyPressed (KeyAction _ keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed _ _ = False
+
+isShiftPressed :: SystemEvent -> Bool
+isShiftPressed (KeyAction keyMod _ _) = keyModLeftShift keyMod
+isShiftPressed _ = False

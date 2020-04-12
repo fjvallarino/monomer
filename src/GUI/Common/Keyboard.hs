@@ -55,6 +55,7 @@ keyLeft = getKeycode SDL.KeycodeLeft
 keyRight = getKeycode SDL.KeycodeRight
 keyUp = getKeycode SDL.KeycodeUp
 keyDown = getKeycode SDL.KeycodeDown
+keyTab = getKeycode SDL.KeycodeTab
 
 keyC = getKeycode SDL.KeycodeC
 keyV = getKeycode SDL.KeycodeV
