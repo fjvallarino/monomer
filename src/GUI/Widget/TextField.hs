@@ -66,7 +66,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
     restoreState app st = if appText /= currText then newWidget else Nothing where
       TextFieldState txt pos = fromMaybe emptyState (useState st)
       appText = app ^. userField
-      newPos = if T.length appText > pos then T.length appText else pos
+      newPos = if T.length appText < pos then T.length appText else pos
       newWidget = Just $ makeTextField userField (TextFieldState appText newPos)
     updateUserState = userField .= currText
     handleEvent _ evt = case evt of
