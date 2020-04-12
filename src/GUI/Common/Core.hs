@@ -209,14 +209,14 @@ isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widget
 defaultCustomHandler :: a -> Maybe (WidgetEventResult s e m)
 defaultCustomHandler _ = Nothing
 
-defaultRestoreState :: s -> Maybe WidgetState -> Maybe (Widget s e m)
-defaultRestoreState _ _ = Nothing
+ignoreRestoreState :: s -> Maybe WidgetState -> Maybe (Widget s e m)
+ignoreRestoreState _ _ = Nothing
 
-defaultSaveState :: Maybe WidgetState
-defaultSaveState = Nothing
+ignoreSaveState :: Maybe WidgetState
+ignoreSaveState = Nothing
 
-defaultUpdateUserState :: (MonadState s m) => m ()
-defaultUpdateUserState = return ()
+ignoreUpdateUserState :: (MonadState s m) => m ()
+ignoreUpdateUserState = return ()
 
 makeState :: (Typeable i, Generic i) => i -> Maybe WidgetState
 makeState state = Just (WidgetState state)
@@ -224,6 +224,9 @@ makeState state = Just (WidgetState state)
 useState ::  (Typeable i, Generic i) => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
+
+defaultRestoreState :: (MonadState s m, Typeable i, Generic i) => (i -> Widget s e m) -> s -> Maybe WidgetState -> Maybe (Widget s e m)
+defaultRestoreState makeState _ oldState = fmap makeState $ useState oldState
 
 key :: (MonadState s m) => WidgetKey -> WidgetInstance s e m -> WidgetInstance s e m
 key key wn = wn { _widgetInstanceKey = Just key }

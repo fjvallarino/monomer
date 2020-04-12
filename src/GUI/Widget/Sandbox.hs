@@ -30,15 +30,15 @@ data SandboxState = SandboxState {
 } deriving (Eq, Show, Typeable, Generic)
 
 sandbox :: (MonadState s m, MonadIO m) => e -> WidgetNode s e m
-sandbox onClick = singleWidget (makeSandbox (SandboxState 0) onClick)
+sandbox onClick = singleWidget (makeSandbox onClick (SandboxState 0))
 
-makeSandbox :: (MonadState s m, MonadIO m) => SandboxState -> e -> Widget s e m
-makeSandbox state onClick = Widget {
+makeSandbox :: (MonadState s m, MonadIO m) => e -> SandboxState -> Widget s e m
+makeSandbox onClick state = Widget {
     _widgetType = "button",
     _widgetFocusable = False,
-    _widgetRestoreState = \_ -> fmap (flip makeSandbox onClick) . useState,
+    _widgetRestoreState = defaultRestoreState (makeSandbox onClick),
     _widgetSaveState = makeState state,
-    _widgetUpdateUserState = defaultUpdateUserState,
+    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = handleCustom,
     _widgetPreferredSize = preferredSize,
@@ -47,7 +47,7 @@ makeSandbox state onClick = Widget {
   }
   where
     handleEvent view evt = case evt of
-      Click (Point x y) _ status -> resultReqsEventsWidget requests events (makeSandbox newState onClick) where
+      Click (Point x y) _ status -> resultReqsEventsWidget requests events (makeSandbox onClick newState) where
         isPressed = status == PressedBtn && inRect view (Point x y)
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
         events = if isPressed then [onClick] else []
