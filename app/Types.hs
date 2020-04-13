@@ -12,7 +12,7 @@ import Control.Monad
 import Control.Monad.State
 
 import qualified GUI.Data.Tree as TR
-import GUI.Common.Core (AsyncHandler, GUIContext, UserTask, WidgetTask, _appContext, _focusRing, _userTasks, _widgetTasks)
+import GUI.Common.Core (GUIContext, UserTask, WidgetTask, _appContext, _focusRing, _userTasks, _widgetTasks)
 
 data App = App {
   _clickCount :: !Int,
@@ -30,9 +30,6 @@ makeLenses ''GUIContext
 {--
 appContext :: (MonadState s m) => Lens' (GUIContext s e) s
 appContext = lens _appContext (\app val -> app { _appContext = val })
-
-eventHandler :: (MonadState s m) => Lens' (GUIContext s e m) (s -> e -> m [AsyncHandler e])
-eventHandler = lens _eventHandler (\app val -> app { _eventHandler = val })
 
 focusRing :: (MonadState s m) => Lens' (GUIContext s e) [TR.Path]
 focusRing = lens _focusRing (\app val -> app { _focusRing = val })

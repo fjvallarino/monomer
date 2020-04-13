@@ -31,8 +31,6 @@ import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
 
-data AsyncHandler e = AsyncHandler (IO e)
-
 data UserTask e = UserTask {
   userTask :: Async e
 }

@@ -59,10 +59,10 @@ foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
 type GWidgetMonad s e m = (MonadState (GUIContext s e) m, MonadIO m)
 
-launchUserTasks :: GWidgetMonad a e m => [AsyncHandler e] -> m ()
+launchUserTasks :: GWidgetMonad a e m => [IO e] -> m ()
 launchUserTasks handlers = do
-  tasks <- forM handlers $ \(AsyncHandler handler) -> do
-    asyncTask <- liftIO $ async (liftIO handler)
+  tasks <- forM handlers $ \handler -> do
+    asyncTask <- liftIO $ async handler
 
     return $ UserTask asyncTask
 
@@ -158,17 +158,17 @@ main = do
   SDL.quit
 
 
-handleAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
+handleAppEvent :: App -> AppEvent -> WidgetM [IO AppEvent]
 handleAppEvent app evt = do
   case evt of
-    Action1 2 -> return [AsyncHandler $ do
+    Action1 2 -> return [do
       threadDelay $ 1 * 1000 * 1000
 
       return $ UpdateText3 "HOLA"
       ]
     otherwise -> handleSyncAppEvent app evt
 
-handleSyncAppEvent :: App -> AppEvent -> WidgetM [AsyncHandler AppEvent]
+handleSyncAppEvent :: App -> AppEvent -> WidgetM [IO AppEvent]
 handleSyncAppEvent app evt = do
   liftIO . putStrLn $ "Calledddd"
   case evt of
