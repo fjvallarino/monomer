@@ -16,6 +16,12 @@ import GHC.Float
 
 makeRenderer :: (MonadIO m) => VG.Context -> Double -> C.Renderer m
 makeRenderer c dpr = C.Renderer {..} where
+  beginWidget _ _ =
+    return ()
+
+  endWidget _ _ =
+    return ()
+
   beginPath =
     liftIO $ VG.beginPath c
   -- Context management

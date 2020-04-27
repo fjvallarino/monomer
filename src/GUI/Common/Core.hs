@@ -135,7 +135,8 @@ data Widget s e m =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m ()
+    _widgetRender :: Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m (),
+    _widgetRenderPost :: Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
@@ -213,8 +214,38 @@ ignoreRestoreState _ _ = Nothing
 ignoreSaveState :: Maybe WidgetState
 ignoreSaveState = Nothing
 
-ignoreUpdateUserState :: (MonadState s m) => m ()
+ignoreUpdateUserState :: (Monad m) => m ()
 ignoreUpdateUserState = return ()
+
+ignoreHandleEvent :: (MonadState s m) => Rect -> SystemEvent -> Maybe (WidgetEventResult s e m)
+ignoreHandleEvent _ _ = Nothing
+
+ignorePreferredSize :: (Monad m) => Renderer m -> Style -> [SizeReq] -> m SizeReq
+ignorePreferredSize _ _ _ = return $ SizeReq (Size 0 0) FlexibleSize FlexibleSize False
+
+ignoreResizeChildren :: (MonadState s m) => Rect -> Rect -> Style -> [SizeReq] -> Maybe (WidgetResizeResult s e m)
+ignoreResizeChildren _ _ _ _ = Nothing
+
+ignoreRender :: (MonadState s m) => Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m ()
+ignoreRender _ _ _ _ = return ()
+
+ignoreRenderPost :: (MonadState s m) => Renderer m -> WidgetInstance s e m -> WidgetChildren s e m -> Timestamp -> m ()
+ignoreRenderPost _ _ _ _ = return ()
+
+baseWidget :: (MonadState s m) => Widget s e m
+baseWidget = Widget {
+  _widgetType = "base",
+  _widgetFocusable = False,
+  _widgetRestoreState = ignoreRestoreState,
+  _widgetSaveState = ignoreSaveState,
+  _widgetUpdateUserState = ignoreUpdateUserState,
+  _widgetHandleEvent = ignoreHandleEvent,
+  _widgetHandleCustom = defaultCustomHandler,
+  _widgetPreferredSize = ignorePreferredSize,
+  _widgetResizeChildren = ignoreResizeChildren,
+  _widgetRender = ignoreRender,
+  _widgetRenderPost = ignoreRenderPost
+}
 
 makeState :: (Typeable i, Generic i) => i -> Maybe WidgetState
 makeState state = Just (WidgetState state)
@@ -404,14 +435,22 @@ findPathFromPoint p widgetInstance = path where
   inNodeRect = \(Node (WidgetInstance {..}) _, _) -> inRect _widgetInstanceViewport p
   childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
-handleRender :: (MonadState s m) => Renderer m -> WidgetNode s e m -> Timestamp -> m ()
-handleRender renderer (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
-  when _widgetInstanceVisible $
-    _widgetRender renderer widgetInstance children ts
+handleRender :: (MonadState s m) => Renderer m -> Path -> WidgetNode s e m -> Timestamp -> m ()
+handleRender renderer path (Node (widgetInstance@WidgetInstance { _widgetInstanceWidget = Widget{..}, .. }) children) ts = do
+  when _widgetInstanceVisible $ do
+    renderWidget renderer path RenderNormal $
+      _widgetRender renderer widgetInstance children ts
 
-handleRenderChildren :: (MonadState s m) => Renderer m -> WidgetChildren s e m -> Timestamp -> m ()
-handleRenderChildren renderer children ts = do
-  mapM_ (\treeNode -> handleRender renderer treeNode ts) children
+    handleRenderChildren renderer path children ts
+
+    renderWidget renderer path RenderPost $
+      _widgetRenderPost renderer widgetInstance children ts
+
+handleRenderChildren :: (MonadState s m) => Renderer m -> Path -> WidgetChildren s e m -> Timestamp -> m ()
+handleRenderChildren renderer parentPath children ts = do
+  let childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
+
+  mapM_ (\(treeNode, idx) -> handleRender renderer (idx:parentPath) treeNode ts) childrenPair
 
 updateWidgetInstance :: Path -> WidgetNode s e m -> (WidgetInstance s e m -> WidgetInstance s e m) -> Maybe (WidgetNode s e m)
 updateWidgetInstance path root updateFn = updateNode path root (\(Node widgetInstance children) -> Node (updateFn widgetInstance) children)

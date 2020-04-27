@@ -21,14 +21,9 @@ button :: (MonadState s m, MonadIO m) => T.Text -> e -> WidgetNode s e m
 button label onClick = singleWidget (makeButton label onClick)
 
 makeButton :: (MonadState s m, MonadIO m) => T.Text -> e -> Widget s e m
-makeButton label onClick = Widget {
+makeButton label onClick = baseWidget {
     _widgetType = "button",
-    _widgetFocusable = False,
-    _widgetRestoreState = ignoreRestoreState,
-    _widgetSaveState = ignoreSaveState,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render

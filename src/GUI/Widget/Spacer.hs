@@ -17,14 +17,9 @@ defaultSpace :: Double
 defaultSpace = 10
 
 makeSpacer :: (MonadState s m) => Widget s e m
-makeSpacer = Widget {
+makeSpacer = baseWidget {
     _widgetType = "spacer",
-    _widgetFocusable = False,
-    _widgetRestoreState = ignoreRestoreState,
-    _widgetSaveState = ignoreSaveState,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render

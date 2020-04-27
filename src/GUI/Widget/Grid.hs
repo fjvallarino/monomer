@@ -31,14 +31,9 @@ makeVGrid :: (MonadState s m) => Widget s e m
 makeVGrid = makeFixedGrid "vgrid" Vertical
 
 makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeFixedGrid widgetType direction = Widget {
+makeFixedGrid widgetType direction = baseWidget {
     _widgetType = widgetType,
-    _widgetFocusable = False,
-    _widgetRestoreState = ignoreRestoreState,
-    _widgetSaveState = ignoreSaveState,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render
@@ -64,5 +59,5 @@ makeFixedGrid widgetType direction = Widget {
       ch = if rows > 0 then h / fromIntegral rows else 0
       cx i = if rows > 0 then l + (fromIntegral $ i `div` rows) * cw else 0
       cy i = if cols > 0 then t + (fromIntegral $ i `div` cols) * ch else 0
-    render renderer WidgetInstance{..} children ts = do
-      handleRenderChildren renderer children ts
+    render _ _ _ _ = return ()
+    renderPost _ _ _ _ = return ()

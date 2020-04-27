@@ -43,14 +43,13 @@ textField userField = singleWidget $ makeTextField userField emptyState
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
 makeTextField :: (MonadState s m) => Lens' s T.Text -> TextFieldState -> Widget s e m
-makeTextField userField tfs@(TextFieldState currText currPos) = Widget {
+makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
     _widgetType = "textField",
     _widgetFocusable = True,
     _widgetRestoreState = restoreState,
     _widgetSaveState = makeState tfs,
     _widgetUpdateUserState = updateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render

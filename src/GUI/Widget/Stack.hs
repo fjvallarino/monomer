@@ -25,14 +25,9 @@ makeVStack :: (MonadState s m) => Widget s e m
 makeVStack = makeStack "vstack" Vertical
 
 makeStack :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
-makeStack widgetType direction = Widget {
+makeStack widgetType direction = baseWidget {
     _widgetType = widgetType,
-    _widgetFocusable = False,
-    _widgetRestoreState = ignoreRestoreState,
-    _widgetSaveState = ignoreSaveState,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render
@@ -83,5 +78,5 @@ makeStack widgetType direction = Widget {
       sumHeight = (sum . map (_h . _srSize)) children
       width = if isHorizontal then sumWidth else maxWidth
       height = if isHorizontal then maxHeight else sumHeight
-    render renderer WidgetInstance{..} children ts = do
-      handleRenderChildren renderer children ts
+    render _ _ _ _ = return ()
+    renderPost _ _ _ _ = return ()

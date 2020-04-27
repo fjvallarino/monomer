@@ -26,10 +26,9 @@
   - How will long running (i.e., not immediate) user tasks will be handled?
   - Using local coordinates for widgets **CANCELLED**
     - How do we adjust current displacement?
+  - Track drawing operations made by a Widget
+    - Reorganize drawing operations
 - Pending
-  - Can we keep track of who makes a given draw call?
-    - Can we cache some drawing operations?
-    - Think about possible caching and usage of SDL_Surface + Cairo
   - Stop, think and design
     - How should all of this be organized?
     - How should modules be layed out?
@@ -58,3 +57,5 @@
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
+  - Implement SDL_Surface + Cairo backend
+    - Can we cache some drawing operations?

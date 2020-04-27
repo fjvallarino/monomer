@@ -540,7 +540,7 @@ renderWidgets !window !c !renderer widgets ticks =
   doInDrawingContext window c $ do
     guiContext <- get
     zoom appContext $ do
-      handleRender renderer widgets ticks
+      handleRender renderer [0] widgets ticks
 
 doInDrawingContext :: SDL.Window -> Context -> AppM a -> AppM a
 doInDrawingContext window c action = do

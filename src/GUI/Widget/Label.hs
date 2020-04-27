@@ -26,14 +26,9 @@ label :: (MonadState s m) => T.Text -> WidgetNode s e m
 label caption = singleWidget (makeLabel caption)
 
 makeLabel :: (MonadState s m) => T.Text -> Widget s e m
-makeLabel caption = Widget {
+makeLabel caption = baseWidget {
     _widgetType = "label",
-    _widgetFocusable = False,
-    _widgetRestoreState = ignoreRestoreState,
-    _widgetSaveState = ignoreSaveState,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
     _widgetRender = render

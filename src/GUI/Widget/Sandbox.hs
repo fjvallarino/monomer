@@ -33,12 +33,10 @@ sandbox :: (MonadState s m, MonadIO m) => e -> WidgetNode s e m
 sandbox onClick = singleWidget (makeSandbox onClick (SandboxState 0))
 
 makeSandbox :: (MonadState s m, MonadIO m) => e -> SandboxState -> Widget s e m
-makeSandbox onClick state = Widget {
+makeSandbox onClick state = baseWidget {
     _widgetType = "button",
-    _widgetFocusable = False,
     _widgetRestoreState = defaultRestoreState (makeSandbox onClick),
     _widgetSaveState = makeState state,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = handleCustom,
     _widgetPreferredSize = preferredSize,

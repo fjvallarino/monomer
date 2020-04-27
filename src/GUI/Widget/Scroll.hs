@@ -32,17 +32,15 @@ scroll :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m
 scroll managedWidget = parentWidget (makeScroll (ScrollState 0 0 def)) [managedWidget]
 
 makeScroll :: (MonadState s m) => ScrollState -> Widget s e m
-makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
+makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
     _widgetType = "scroll",
-    _widgetFocusable = False,
     _widgetRestoreState = defaultRestoreState makeScroll,
     _widgetSaveState = makeState state,
-    _widgetUpdateUserState = ignoreUpdateUserState,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = defaultCustomHandler,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
-    _widgetRender = render
+    _widgetRender = render,
+    _widgetRenderPost = renderPost
   }
   where
     stepSize = 50
@@ -85,7 +83,8 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = Widget {
     render renderer WidgetInstance{..} children ts =
       do
         scissor renderer _widgetInstanceViewport
-        handleRenderChildren renderer children ts
+    renderPost renderer WidgetInstance{..} children ts =
+      do
         resetScissor renderer
 
         when (barRatioH < 1) $ do

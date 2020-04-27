@@ -6,6 +6,7 @@ module GUI.Common.Types where
 
 import Control.Monad
 import Data.Default
+import GUI.Data.Tree (Path)
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
@@ -71,7 +72,17 @@ instance Semigroup Color where
 instance Default Color where
   def = Color 0 0 0 1.0
 
-data Renderer m  = (Monad m) => Renderer {
+data WidgetRenderType = RenderNormal | RenderPost deriving (Eq, Show)
+
+renderWidget :: (Monad m) => Renderer m -> Path -> WidgetRenderType -> m () -> m ()
+renderWidget renderer path wr renderCalls = do
+  beginWidget renderer path wr
+  renderCalls
+  beginWidget renderer path wr
+
+data Renderer m = (Monad m) => Renderer {
+  beginWidget :: Path -> WidgetRenderType -> m (),
+  endWidget :: Path -> WidgetRenderType -> m (),
   beginPath :: m (),
   -- Context management
   saveContext :: m (),
