@@ -23,23 +23,38 @@
   - Make handleEvent run inside MonadState (required to update user provided lenses) **CANCELLED**
   - Add logic that allows widgets to update user state
   - Does it make sense to avoid lenses internally, given that we already include the dependency?
-- Pending
   - How will long running (i.e., not immediate) user tasks will be handled?
-  - Think how overlays should work
-  - Create layer widget to handle overlays/dialog boxes
-  - Add text selection/editing to textField
-  - Drag & drop (add attribute indicating if component supports being source/target)
+  - Using local coordinates for widgets **CANCELLED**
+    - How do we adjust current displacement?
+- Pending
+  - Can we keep track of who makes a given draw call?
+    - Can we cache some drawing operations?
+    - Think about possible caching and usage of SDL_Surface + Cairo
   - Stop, think and design
     - How should all of this be organized?
     - How should modules be layed out?
     - What are good interfaces the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
-  - Based on the previous design, refactor modules
-  - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
-  - Check if advanced type level features would improve the design
-  - Check what syntax extensions can be abused to make life easier
-  - Look for ways that allow both lenses and user events to be used in the same widget
-  - Related to previous, look for ways to simplify widget setup. Default instance with common values?
-  - Think about how using Cairo+SDL Surfaces+Caching could be used instead of NanoVG. Maybe that way it can run in Vulkan?
-  - Can we cache some drawing operations?
-  - Can we use Skia? Does it make sense?
+    - Based on the previous design, refactor modules
+  - Improve hstack/vstack
+    - If space is available space is greater than requested, do not apply resizing logic
+  - Does a styling engine make sense or doing something similar to Flutter is simpler?
+    - Could container handle padding and centering?
+    - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
+  - Improve ergonomics
+    - Check if advanced type level features would improve the design
+    - Check what syntax extensions can be abused to make life easier
+    - Look for ways that allow both lenses and user events to be used in the same widget
+    - Related to previous, look for ways to simplify widget setup. Default instance with common values?
+  - Keep sending mouse move event if mouse is away but button is still pressed
+  - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
+  - Add text selection/editing to textField
+  - Create Checkbox
+  - Create Radio
+  - Create Dropdown
+  - Create Color Selector
+  - Create Dialog
+  - Create File Selector
+  - Drag & drop for user (add attribute indicating if component supports being source/target)
+    - Add new request types (drag started, drag stopped, drag cancelled)
+    - Add new events (drag hover)
