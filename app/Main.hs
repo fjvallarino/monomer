@@ -270,7 +270,7 @@ runWidgets window c = do
   ticks <- SDL.ticks
   newUI <- doInDrawingContext window c $ updateUI renderer empty
 
-  mainLoop window c renderer (fromIntegral ticks) newUI
+  mainLoop window c renderer (fromIntegral ticks) 0 newUI
 
 getWindowSize :: (MonadIO m) => SDL.Window -> m Rect
 getWindowSize window = do
@@ -292,8 +292,8 @@ updateUI renderer oldWidgets = do
 
   return (setFocusedStatus currentFocus True resizedUI)
 
-mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> WidgetTree -> AppM ()
-mainLoop window c renderer prevTicks widgets = do
+mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> Int -> WidgetTree -> AppM ()
+mainLoop window c renderer prevTicks frames widgets = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
   ticks <- fmap fromIntegral SDL.ticks
@@ -308,6 +308,11 @@ mainLoop window c renderer prevTicks widgets = do
   let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
+  let newSecond = (div ticks 1000) /= (div prevTicks 1000)
+  let newFrameCount = if newSecond then 0 else frames + 1
+
+  when newSecond $
+    liftIO . putStrLn $ "Frames: " ++ (show frames)
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
   pendingEvents <- checkUserTasks
@@ -323,7 +328,7 @@ mainLoop window c renderer prevTicks widgets = do
   renderWidgets window c renderer newWidgets ticks
 
   liftIO $ threadDelay $ (nextFrame ts) * 1000
-  unless quit (mainLoop window c renderer ticks newWidgets)
+  unless quit (mainLoop window c renderer ticks newFrameCount newWidgets)
 
 rebuildIfNecessary :: Renderer WidgetM -> App -> WidgetTree -> AppM WidgetTree
 rebuildIfNecessary renderer oldApp widgets = do
