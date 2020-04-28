@@ -270,7 +270,7 @@ runWidgets window c = do
   ticks <- SDL.ticks
   newUI <- doInDrawingContext window c $ updateUI renderer empty
 
-  mainLoop window c renderer (fromIntegral ticks) 0 newUI
+  mainLoop window c renderer (fromIntegral ticks) 0 0 newUI
 
 getWindowSize :: (MonadIO m) => SDL.Window -> m Rect
 getWindowSize window = do
@@ -292,23 +292,22 @@ updateUI renderer oldWidgets = do
 
   return (setFocusedStatus currentFocus True resizedUI)
 
-mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> Int -> WidgetTree -> AppM ()
-mainLoop window c renderer prevTicks frames widgets = do
+mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> Int -> Int -> WidgetTree -> AppM ()
+mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
-  ticks <- fmap fromIntegral SDL.ticks
+  startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
 
-  let frameLength = 1000 `div` 30
-  let nextFrame = \t -> if t >= frameLength then 0 else frameLength - t
-  let !ts = (ticks - prevTicks)
+  let !ts = (startTicks - prevTicks)
   let eventsPayload = fmap SDL.eventPayload events
   let quit = elem SDL.QuitEvent eventsPayload
   let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
-  let newSecond = (div ticks 1000) /= (div prevTicks 1000)
+  let newSecond = tsAccum + ts > 1000
+  let newTsAccum = if newSecond then 0 else tsAccum + ts
   let newFrameCount = if newSecond then 0 else frames + 1
 
   when newSecond $
@@ -325,10 +324,17 @@ mainLoop window c renderer prevTicks frames widgets = do
     >>= processWidgetTasks renderer
     >>= bindIf resized (handleWindowResize window renderer)
 
-  renderWidgets window c renderer newWidgets ticks
+  renderWidgets window c renderer newWidgets startTicks
 
-  liftIO $ threadDelay $ (nextFrame ts) * 1000
-  unless quit (mainLoop window c renderer ticks newFrameCount newWidgets)
+  endTicks <- fmap fromIntegral SDL.ticks
+
+  let fps = 30
+  let frameLength = 0.9 * 1000000 / fps
+  let newTs = fromIntegral $ (endTicks - startTicks)
+  let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
+
+  liftIO $ threadDelay nextFrameDelay
+  unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgets)
 
 rebuildIfNecessary :: Renderer WidgetM -> App -> WidgetTree -> AppM WidgetTree
 rebuildIfNecessary renderer oldApp widgets = do
