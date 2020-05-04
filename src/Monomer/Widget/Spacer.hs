@@ -1,14 +1,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Spacer (spacer) where
+module Monomer.Widget.Spacer (spacer) where
 
 import Control.Monad
 import Control.Monad.State
 
-import GUI.Common.Core
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Data.Tree
+import Monomer.Common.Core
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Data.Tree
 
 spacer :: (MonadState s m) => WidgetNode s e m
 spacer = singleWidget makeSpacer

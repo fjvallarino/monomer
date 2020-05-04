@@ -2,11 +2,11 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module GUI.Common.Types where
+module Monomer.Common.Types where
 
 import Control.Monad
 import Data.Default
-import GUI.Data.Tree (Path)
+import Monomer.Data.Tree (Path)
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 

@@ -1,11 +1,11 @@
 {-# LANGUAGE BangPatterns #-}
 
-module GUI.Common.Util where
+module Monomer.Common.Util where
 
 import Data.Default
 import Data.List (elemIndex, splitAt)
 
-import GUI.Common.Types
+import Monomer.Common.Types
 
 white      = rgb 255 255 255
 black      = rgb   0   0   0

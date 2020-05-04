@@ -1,4 +1,4 @@
-module GUI.Common.Keyboard where
+module Monomer.Common.Keyboard where
 
 import qualified SDL
 

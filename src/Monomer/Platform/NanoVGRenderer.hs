@@ -1,13 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module GUI.Platform.NanoVGRenderer (makeRenderer) where
+module Monomer.Platform.NanoVGRenderer (makeRenderer) where
 
 import Data.Default
 
 import Control.Monad (when)
 
-import qualified GUI.Common.Types as C
+import qualified Monomer.Common.Types as C
 import qualified Data.Text as T
 import qualified NanoVG as VG
 

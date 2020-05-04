@@ -6,7 +6,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 
-module GUI.Common.Core where
+module Monomer.Common.Core where
 
 import Control.Concurrent.Async
 
@@ -19,11 +19,11 @@ import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
 
-import GUI.Common.Event
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Common.Util
-import GUI.Data.Tree
+import Monomer.Common.Event
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Common.Util
+import Monomer.Data.Tree
 
 import GHC.Generics
 
@@ -413,7 +413,7 @@ handleEventFromPoint cursorPos widgetInstance systemEvent = handleChildEvent rec
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleCustomCommand :: (MonadState s m, Typeable i) => Path -> WidgetNode s e m -> i -> ChildEventResult s e m
-handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path treeNode of
+handleCustomCommand path treeNode customData = case Monomer.Data.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
     case _widgetHandleCustom customData of
       Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
@@ -421,7 +421,7 @@ handleCustomCommand path treeNode customData = case GUI.Data.Tree.lookup path tr
   Nothing -> ChildEventResult False [] SQ.Empty Nothing
 
 handleUserUpdateState :: (MonadState s m) => Path -> WidgetNode s e m -> m ()
-handleUserUpdateState path treeNode = case GUI.Data.Tree.lookup path treeNode of
+handleUserUpdateState path treeNode = case Monomer.Data.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) -> _widgetUpdateUserState
   Nothing -> return ()
 

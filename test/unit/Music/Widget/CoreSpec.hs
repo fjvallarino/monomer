@@ -1,4 +1,4 @@
-module GUI.Widget.CoreSpec where
+module Monomer.Widget.CoreSpec where
 
 import Test.Hspec
 

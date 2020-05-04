@@ -44,16 +44,16 @@ import qualified SDL.Raw.Event as SREv
 import qualified SDL.Raw.Video as SRV
 
 import Types
-import GUI.Common.Core
-import GUI.Common.Event
-import GUI.Common.Keyboard
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Common.Util
-import GUI.Data.Tree
-import GUI.Widgets
+import Monomer.Common.Core
+import Monomer.Common.Event
+import Monomer.Common.Keyboard
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Common.Util
+import Monomer.Data.Tree
+import Monomer.Widgets
 
-import qualified GUI.Platform.NanoVGRenderer as NV
+import qualified Monomer.Platform.NanoVGRenderer as NV
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 

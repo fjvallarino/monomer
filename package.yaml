@@ -1,6 +1,6 @@
-name:                hs-gui
+name:                monomer
 version:             0.1.0.0
-github:              "fjvallarino/hs-gui"
+github:              "fjvallarino/monomer"
 license:             BSD3
 author:              "Francisco Vallarino"
 maintainer:          "fjvallarino@gmail.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/fjvallarino/hs-gui#readme>
+description:         Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
 
 default-extensions:
 - OverloadedStrings
@@ -53,7 +53,7 @@ library:
   - GLEW
 
 executables:
-  hs-gui-exe:
+  monomer-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -65,10 +65,10 @@ executables:
     - -O0
 
     dependencies:
-    - hs-gui
+    - monomer
 
 tests:
-  hs-gui-test:
+  monomer-test:
     main:                Spec.hs
     source-dirs:         test/unit
     ghc-options:
@@ -78,7 +78,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - call-stack
-    - hs-gui
+    - monomer
     - hedgehog
     - hedgehog-classes
     - hspec

@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
-module GUI.Common.Event where
+module Monomer.Common.Event where
 
 import Control.Monad.State
   
@@ -12,10 +12,10 @@ import qualified Data.Map.Strict as M
 import Data.Typeable (cast, Typeable)
 import Unsafe.Coerce
 
-import GUI.Common.Keyboard
-import GUI.Common.Types
+import Monomer.Common.Keyboard
+import Monomer.Common.Types
 
-import GUI.Data.Tree
+import Monomer.Data.Tree
 
 import qualified SDL
 

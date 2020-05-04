@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Sandbox (sandbox) where
+module Monomer.Widget.Sandbox (sandbox) where
 
 import Control.Monad
 import Control.Monad.State
@@ -12,13 +12,13 @@ import Data.Typeable
 
 import Debug.Trace
 
-import GUI.Common.Core
-import GUI.Common.Event
-import GUI.Common.Drawing
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Common.Util
-import GUI.Data.Tree
+import Monomer.Common.Core
+import Monomer.Common.Event
+import Monomer.Common.Drawing
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Common.Util
+import Monomer.Data.Tree
 
 import GHC.Generics
 

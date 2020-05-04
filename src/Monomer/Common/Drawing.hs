@@ -1,15 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Common.Drawing where
+module Monomer.Common.Drawing where
 
 import qualified Data.Text as T
 
 import Control.Monad (when, void)
 import Data.Maybe
 
-import GUI.Common.Types
-import GUI.Common.Style
-import GUI.Common.Util
+import Monomer.Common.Types
+import Monomer.Common.Style
+import Monomer.Common.Util
 
 defaultColor :: Color
 defaultColor = white

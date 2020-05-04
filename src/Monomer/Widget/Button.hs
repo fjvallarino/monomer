@@ -1,19 +1,19 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.Button (button) where
+module Monomer.Widget.Button (button) where
 
 import Control.Monad
 import Control.Monad.State
 
 import Data.Typeable
 
-import GUI.Common.Core
-import GUI.Common.Event
-import GUI.Common.Drawing
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Common.Util
-import GUI.Data.Tree
+import Monomer.Common.Core
+import Monomer.Common.Event
+import Monomer.Common.Drawing
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Common.Util
+import Monomer.Data.Tree
 
 import qualified Data.Text as T
 

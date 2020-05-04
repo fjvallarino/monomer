@@ -1,13 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module GUI.Common.Style where
+module Monomer.Common.Style where
 
 import Data.Default
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
-import GUI.Common.Types
-import GUI.Common.Util
+import Monomer.Common.Types
+import Monomer.Common.Util
 
 data FontInstance = FontInstance
 

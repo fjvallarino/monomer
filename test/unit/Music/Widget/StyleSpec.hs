@@ -1,4 +1,4 @@
-module GUI.Widget.StyleSpec where
+module Monomer.Widget.StyleSpec where
 
 import Hedgehog
 import Hedgehog.Classes
@@ -8,8 +8,8 @@ import TestUtils
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
-import GUI.Core
-import GUI.Widget.Style
+import Monomer.Core
+import Monomer.Widget.Style
 
 spec :: Spec
 spec = describe "Style" $ do

@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module GUI.Widget.TextField where
+module Monomer.Widget.TextField where
 
 import Control.Monad
 import Control.Monad.State
@@ -13,14 +13,14 @@ import Data.Maybe
 import Data.Typeable
 import qualified Data.Text as T
 
-import GUI.Common.Core
-import GUI.Common.Event
-import GUI.Common.Drawing
-import GUI.Common.Keyboard
-import GUI.Common.Style
-import GUI.Common.Types
-import GUI.Common.Util
-import GUI.Data.Tree
+import Monomer.Common.Core
+import Monomer.Common.Event
+import Monomer.Common.Drawing
+import Monomer.Common.Keyboard
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Common.Util
+import Monomer.Data.Tree
 
 import GHC.Generics
 
