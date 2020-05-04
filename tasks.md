@@ -32,7 +32,7 @@
   - Stop, think and design
     - How should all of this be organized?
     - How should modules be layed out?
-    - What are good interfaces the different parts of the system?
+    - What are good interfaces for the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
   - Improve hstack/vstack
@@ -59,3 +59,5 @@
     - Add new events (drag hover)
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
+  - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
+  - Replace Tree with Containers' Tree
