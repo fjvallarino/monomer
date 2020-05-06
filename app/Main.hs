@@ -318,7 +318,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   systemEvents <- preProcessEvents widgets baseSystemEvents
   oldApp <- use appContext
 
-  newWidgets <- handleAppEvents renderer (SQ.fromList pendingEvents)
+  newWidgets <- handleAppEvents renderer pendingEvents
     >>  handleSystemEvents renderer systemEvents widgets
     >>= rebuildIfNecessary renderer oldApp
     >>= processWidgetTasks renderer
@@ -536,7 +536,7 @@ processCustomHandler renderer widgets path (Right val) = do
   handleAppEvents renderer appEvents
     >> handleResizeChildren renderer eventRequests newRoot
 
-handleAppEvents :: Renderer WidgetM -> SQ.Seq AppEvent -> AppM ()
+handleAppEvents :: Renderer WidgetM -> [AppEvent] -> AppM ()
 handleAppEvents renderer appEvents = do
   tasks <- zoom appContext $ do
     tasks <- forM appEvents $ \event -> do

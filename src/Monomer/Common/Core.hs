@@ -14,7 +14,6 @@ import Control.Monad
 import Control.Monad.State
 
 import Data.Default
-import Data.Dynamic
 import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
@@ -78,7 +77,7 @@ data WidgetTask = forall a . Typeable a => WidgetTask {
 data ChildEventResult s e m = ChildEventResult {
   cerIgnoreParentEvents :: Bool,
   cerEventRequests :: [(Path, EventRequest)],
-  cerUserEvents :: SQ.Seq e,
+  cerUserEvents :: [e],
   cerNewTreeNode :: Maybe (WidgetNode s e m)
 }
 
@@ -325,14 +324,14 @@ data EventsParent s e m = EventsParent {
   epIgnoreChildrenEvents :: Bool,
   epIgnoreParentEvents :: Bool,
   epEventRequests :: [(Path, EventRequest)],
-  epUserEvents :: SQ.Seq e,
+  epUserEvents :: [e],
   epUpdatedNode :: Maybe (Tree (WidgetInstance s e m))
 }
 
 data EventsChildren s e m = EventsChildren {
   ecIgnoreParentEvents :: Bool,
   ecEventRequests :: [(Path, EventRequest)],
-  ecUserEvents :: SQ.Seq e,
+  ecUserEvents :: [e],
   ecUpdatedNode :: Maybe (Tree (WidgetInstance s e m)),
   ecNodePosition :: Int
 }
@@ -352,18 +351,18 @@ createUpdatedNode widgetInstance children (EventsParent{..}) (EventsChildren{..}
   updatedNode = case (epIgnoreChildrenEvents, ecIgnoreParentEvents) of
     (True, _) -> ChildEventResult epIgnoreParentEvents epEventRequests epUserEvents epUpdatedNode
     (_, True) -> ChildEventResult ecIgnoreParentEvents ecEventRequests ecUserEvents newNodeOldParent
-    (_, False) -> ChildEventResult epIgnoreParentEvents (ecEventRequests ++ epEventRequests) (ecUserEvents SQ.>< epUserEvents) newNodeMixed
+    (_, False) -> ChildEventResult epIgnoreParentEvents (ecEventRequests ++ epEventRequests) (ecUserEvents ++ epUserEvents) newNodeMixed
   newNodeOldParent = createNewNodeOldParent widgetInstance children ecNodePosition ecUpdatedNode
   newNodeMixed = createNewNodeMixed widgetInstance children ecNodePosition epUpdatedNode ecUpdatedNode
 
 handleEventsParent :: (MonadState s m) => Path -> WidgetInstance s e m -> WidgetChildren s e m -> SystemEvent -> EventsParent s e m
 handleEventsParent path (wi@WidgetInstance{..}) children systemEvent = case handleWidgetEvents _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
-  Nothing -> EventsParent False False [] SQ.empty Nothing
+  Nothing -> EventsParent False False [] [] Nothing
   Just (WidgetEventResult er ue widget) -> EventsParent {
       epIgnoreChildrenEvents = isJust $ L.find isIgnoreChildrenEvents er,
       epIgnoreParentEvents = isJust $ L.find isIgnoreParentEvents er,
       epEventRequests = fmap (path,) er,
-      epUserEvents = SQ.fromList ue,
+      epUserEvents = ue,
       epUpdatedNode = if isNothing widget
                         then Nothing
                         else Just $ Node (wi { _widgetInstanceWidget = fromJust widget }) children
@@ -371,7 +370,7 @@ handleEventsParent path (wi@WidgetInstance{..}) children systemEvent = case hand
 
 handleEventsChildren :: (MonadState s m) => ChildrenSelector s e m a -> a -> Path -> WidgetChildren s e m -> SystemEvent -> EventsChildren s e m
 handleEventsChildren selectorFn selector path children systemEvent = case selectorFn selector children of
-  (_, Nothing) -> EventsChildren False [] SQ.empty Nothing 0
+  (_, Nothing) -> EventsChildren False [] [] Nothing 0
   (newSelector, Just idx) -> EventsChildren {
       ecIgnoreParentEvents = ipe,
       ecEventRequests = er,
@@ -416,9 +415,9 @@ handleCustomCommand :: (MonadState s m, Typeable i) => Path -> WidgetNode s e m 
 handleCustomCommand path treeNode customData = case Monomer.Data.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
     case _widgetHandleCustom customData of
-      Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) (SQ.fromList ue) Nothing
-      Nothing -> ChildEventResult False [] SQ.Empty Nothing
-  Nothing -> ChildEventResult False [] SQ.Empty Nothing
+      Just (WidgetEventResult er ue tn) -> ChildEventResult False (fmap (path,) er) ue Nothing
+      Nothing -> ChildEventResult False [] [] Nothing
+  Nothing -> ChildEventResult False [] [] Nothing
 
 handleUserUpdateState :: (MonadState s m) => Path -> WidgetNode s e m -> m ()
 handleUserUpdateState path treeNode = case Monomer.Data.Tree.lookup path treeNode of
