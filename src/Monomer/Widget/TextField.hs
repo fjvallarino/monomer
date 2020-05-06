@@ -48,7 +48,6 @@ makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
     _widgetFocusable = True,
     _widgetRestoreState = restoreState,
     _widgetSaveState = makeState tfs,
-    _widgetUpdateUserState = updateUserState,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren,
@@ -67,27 +66,26 @@ makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
       appText = app ^. userField
       newPos = if T.length appText < pos then T.length appText else pos
       newWidget = Just $ makeTextField userField (TextFieldState appText newPos)
-    updateUserState = userField .= currText
-    handleEvent _ evt = case evt of
-      KeyAction mod code KeyPressed -> resultReqsEventsWidget reqs [] (makeTextField userField newState) where
+    handleEvent app _ evt = case evt of
+      KeyAction mod code KeyPressed -> Just $ WidgetEventResult reqs [] (Just $ makeTextField userField newState) id where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         reqGetClipboard = if isClipboardPaste evt then [GetClipboard] else []
         reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
         reqUpdateUserState = if currText /= newText then [UpdateUserState] else []
         newState = TextFieldState newText newPos
-      TextInput newText -> insertText newText
-      Clipboard (ClipboardText newText) -> insertText newText
+      TextInput newText -> insertText app newText
+      Clipboard (ClipboardText newText) -> insertText app newText
       _ -> Nothing
-    insertText addedText = resultReqsEventsWidget [UpdateUserState] [] (makeTextField userField newState) where
+    insertText app addedText = Just $ WidgetEventResult [UpdateUserState] [] (Just $ makeTextField userField newState) id where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
-    preferredSize renderer (style@Style{..}) _ = do
+    preferredSize renderer app (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
       return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
-    render renderer WidgetInstance{..} _ ts =
+    render renderer app WidgetInstance{..} ts =
       let textStyle = _textStyle _widgetInstanceStyle
           cursorAlpha = if _widgetInstanceFocused then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }

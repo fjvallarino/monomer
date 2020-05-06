@@ -47,9 +47,9 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
     wheelRate = 10
     widgetType = "scroll"
     focusable = False
-    handleEvent view@(Rect rx ry rw rh) evt = case evt of
+    handleEvent app view@(Rect rx ry rw rh) evt = case evt of
       Click (Point px py) btn status -> result where
-        result = if isPressed then resultReqsEventsWidget [ResizeChildren] [] (makeScroll newState) else Nothing
+        result = if isPressed then Just $ WidgetEventResult [ResizeChildren] [] (Just $ makeScroll newState) id else Nothing
         isPressed = status == PressedBtn && inRect view (Point px py)
         isLeftClick = isPressed && btn == LeftBtn
         isRigthClick = isPressed && btn == RightBtn
@@ -59,7 +59,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
         newState = ScrollState (scrollAxis step dx cw rw) dy cs
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
-        result = if needsUpdate then resultReqsEventsWidget [ResizeChildren] [] (makeScroll newState) else Nothing
+        result = if needsUpdate then Just $ WidgetEventResult [ResizeChildren] [] (Just $ makeScroll newState) id else Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
         newState = ScrollState (scrollAxis stepX dx cw rw) (scrollAxis stepY dy ch rh) cs
@@ -71,7 +71,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
       | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0
                       then currScroll + reqDelta
                       else viewportLimit - childPos
-    preferredSize _ _ children = return $ sizeReq size FlexibleSize FlexibleSize where
+    preferredSize _ _ _ children = return $ sizeReq size FlexibleSize FlexibleSize where
       SizeReq size _ _ _ = head children
     resizeChildren (Rect l t w h) _ _ children = Just $ WidgetResizeResult viewport renderArea newWidget where
       Size cw2 ch2 = _srSize (head children)
@@ -80,10 +80,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
       newWidget = Just $ makeScroll (ScrollState dx dy (Size areaW areaH))
       viewport = [Rect l t w h]
       renderArea = [Rect (l + dx) (t + dy) areaW areaH]
-    render renderer WidgetInstance{..} children ts =
+    render renderer app WidgetInstance{..} ts =
       do
         scissor renderer _widgetInstanceViewport
-    renderPost renderer WidgetInstance{..} children ts =
+    renderPost renderer app WidgetInstance{..} ts =
       do
         resetScissor renderer
 

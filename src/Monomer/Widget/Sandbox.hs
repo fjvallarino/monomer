@@ -44,26 +44,27 @@ makeSandbox onClick state = baseWidget {
     _widgetRender = render
   }
   where
-    handleEvent view evt = case evt of
-      Click (Point x y) _ status -> resultReqsEventsWidget requests events (makeSandbox onClick newState) where
+    handleEvent app view evt = case evt of
+      Click (Point x y) _ status -> Just $ WidgetEventResult requests events newWidget id where
         isPressed = status == PressedBtn && inRect view (Point x y)
-        newState = if isPressed then SandboxState (_clickCount state + 1) else state
         events = if isPressed then [onClick] else []
         requests = if isPressed then [RunCustom runCustom] else []
+        newState = if isPressed then SandboxState (_clickCount state + 1) else state
+        newWidget = (Just $ makeSandbox onClick newState)
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
       Move p -> Nothing --trace ("Move: " ++ show p) Nothing
       Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
       _ -> Nothing
     runCustom = do
       return SandboxData2
-    handleCustom bd = case cast bd of
+    handleCustom app bd = case cast bd of
       Just val -> if val == SandboxData2 then Nothing else Nothing
       Nothing -> Nothing
-    preferredSize renderer (style@Style{..}) _ = do
+    preferredSize renderer app (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
       return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
-    render renderer WidgetInstance{..} _ ts =
+    render renderer app WidgetInstance{..} ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
         drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show (_clickCount state)))

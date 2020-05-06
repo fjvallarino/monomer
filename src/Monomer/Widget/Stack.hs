@@ -29,14 +29,13 @@ makeStack widgetType direction = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren,
-    _widgetRender = render
+    _widgetResizeChildren = resizeChildren
   }
   where
     isHorizontal = direction == Horizontal
     focusable = False
-    handleEvent _ _ = Nothing
-    preferredSize _ _ children = return reqSize where
+    handleEvent _ _ _ = Nothing
+    preferredSize _ _ _ children = return reqSize where
       reqSize = sizeReq (calcPreferredSize children) FlexibleSize FlexibleSize
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
       visibleChildren = filter _srVisible children
@@ -78,5 +77,3 @@ makeStack widgetType direction = baseWidget {
       sumHeight = (sum . map (_h . _srSize)) children
       width = if isHorizontal then sumWidth else maxWidth
       height = if isHorizontal then maxHeight else sumHeight
-    render _ _ _ _ = return ()
-    renderPost _ _ _ _ = return ()

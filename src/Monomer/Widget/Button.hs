@@ -29,16 +29,16 @@ makeButton label onClick = baseWidget {
     _widgetRender = render
   }
   where
-    handleEvent view evt = case evt of
+    handleEvent app view evt = case evt of
       Click (Point x y) _ status -> resultEvents events where
         isPressed = status == PressedBtn && inRect view (Point x y)
         events = if isPressed then [onClick] else []
       _ -> Nothing
-    preferredSize renderer (style@Style{..}) _ = do
+    preferredSize renderer app (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle label
       return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
-    render renderer WidgetInstance{..} _ ts =
+    render renderer app WidgetInstance{..} ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
         drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) label

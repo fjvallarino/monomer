@@ -35,13 +35,12 @@ makeFixedGrid widgetType direction = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren,
-    _widgetRender = render
+    _widgetResizeChildren = resizeChildren
   }
   where
     focusable = False
-    handleEvent _ _ = Nothing
-    preferredSize _ _ children = return reqSize where
+    handleEvent _ _ _ = Nothing
+    preferredSize _ _ _ children = return reqSize where
       reqSize = sizeReq (Size width height) FlexibleSize FlexibleSize
       width = if null children then 0 else (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
       height = if null children then 0 else (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
@@ -59,5 +58,3 @@ makeFixedGrid widgetType direction = baseWidget {
       ch = if rows > 0 then h / fromIntegral rows else 0
       cx i = if rows > 0 then l + (fromIntegral $ i `div` rows) * cw else 0
       cy i = if cols > 0 then t + (fromIntegral $ i `div` cols) * ch else 0
-    render _ _ _ _ = return ()
-    renderPost _ _ _ _ = return ()

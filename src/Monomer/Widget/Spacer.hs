@@ -21,11 +21,9 @@ makeSpacer = baseWidget {
     _widgetType = "spacer",
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren,
-    _widgetRender = render
+    _widgetResizeChildren = resizeChildren
   }
   where
-    handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = return $ sizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
+    handleEvent app view evt = Nothing
+    preferredSize renderer app (style@Style{..}) _ = return $ sizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
     resizeChildren _ _ _ _ = Nothing
-    render renderer WidgetInstance{..} _ ts = return ()

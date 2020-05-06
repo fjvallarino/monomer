@@ -34,12 +34,12 @@ makeLabel caption = baseWidget {
     _widgetRender = render
   }
   where
-    handleEvent view evt = Nothing
-    preferredSize renderer (style@Style{..}) _ = do
+    handleEvent app view evt = Nothing
+    preferredSize renderer app (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (if caption == "" then " " else caption)
       return $ sizeReq size FlexibleSize FlexibleSize
     resizeChildren _ _ _ _ = Nothing
-    render renderer WidgetInstance{..} _ ts =
+    render renderer app WidgetInstance{..} ts =
       do
         drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
         drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) caption
