@@ -58,8 +58,6 @@ import qualified Monomer.Platform.NanoVGRenderer as NV
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
-type MonomerM s e m = (MonadState (GUIContext s e) m, MonadIO m)
-
 launchUserTasks :: MonomerM a e m => [IO (Maybe e)] -> m ()
 launchUserTasks handlers = do
   tasks <- forM handlers $ \handler -> do
@@ -99,8 +97,6 @@ data AppEvent = RunLongTask | PrintTextFields | IncreaseCount Int | UpdateText3 
 type AppContext = GUIContext App AppEvent
 type AppM = StateT AppContext IO
 type WidgetTree = Tree (WidgetInstance App AppEvent AppM)
-
-data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
 
 main :: IO ()
 main = do
@@ -152,7 +148,7 @@ main = do
 
   let devicePixelRate = _rw winSize / fromIntegral screenWidth
 
-  runStateT (runWidgets window c) (initGUIContext def winSize useHiDPI devicePixelRate)
+  runStateT (runWidgets window c) (initGUIContext def handleAppEvent winSize useHiDPI devicePixelRate)
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
@@ -304,7 +300,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   systemEvents <- preProcessEvents widgets baseSystemEvents
   oldApp <- use appContext
 
-  newWidgets <- handleAppEvents renderer pendingEvents
+  newWidgets <- handleAppEvents pendingEvents
     >>  handleSystemEvents renderer oldApp systemEvents widgets
     >>= rebuildIfNecessary renderer oldApp
     >>= processWidgetTasks renderer
@@ -367,7 +363,7 @@ getCurrentMousePos = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
   return $ Point (fromIntegral x) (fromIntegral y)
 
-getCurrentFocus :: AppM Path
+getCurrentFocus :: (MonomerM s e m) => m Path
 getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
@@ -402,7 +398,7 @@ handleSystemEvent renderer app systemEvent currentFocus widgets = do
   appContext %= compose newStates
   launchWidgetTasks renderer eventRequests
 
-  handleAppEvents renderer appEvents
+  handleAppEvents appEvents
     >>  handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
     >>= handleClipboardGet renderer eventRequests
     >>= handleClipboardSet renderer eventRequests
@@ -466,7 +462,7 @@ handleWindowResize window renderer widgets = do
 
   resizeUI renderer app newWindowSize widgets
 
-launchWidgetTasks :: Renderer AppM -> [(Path, EventRequest)] -> AppM ()
+launchWidgetTasks :: (MonomerM s e m) => Renderer m -> [(Path, EventRequest)] -> m ()
 launchWidgetTasks renderer eventRequests = do
   let customHandlers = L.filter isCustomHandler eventRequests
 
@@ -517,28 +513,31 @@ processCustomHandler renderer app widgets path (Right val) = do
   appContext %= compose newStates
   launchWidgetTasks renderer eventRequests
 
-  handleAppEvents renderer appEvents
+  handleAppEvents appEvents
     >> handleResizeChildren renderer eventRequests newRoot
 
-handleAppEvents :: Renderer AppM -> [AppEvent] -> AppM ()
-handleAppEvents renderer appEvents = let
-  reducer (app, tasks) event = case handleAppEvent app event of
+handleAppEvents :: (MonomerM s e m) => [e] -> m ()
+handleAppEvents events = do
+  appEventHandler <- use appEventHandler
+  app <- use appContext
+  let (newApp, tasks) = reduceAppEvents appEventHandler app events
+
+  appContext .= newApp
+  launchUserTasks tasks
+
+reduceAppEvents :: AppEventHandler s e -> s -> [e] -> (s, [IO (Maybe e)])
+reduceAppEvents appEventHandler app events = foldl reducer (app, []) events where
+  reducer (app, tasks) event = case appEventHandler app event of
     State newApp -> (newApp, tasks)
     StateEvent newApp newEvent -> reducer (newApp, tasks) newEvent
     Task newApp task -> (newApp, task : tasks)
-  reduceEvents app = foldl reducer (app, []) appEvents
-  in do
-    (newApp, tasks) <- fmap reduceEvents $ use appContext
 
-    appContext .= newApp
-    launchUserTasks tasks
-
-renderWidgets :: SDL.Window -> Context -> Renderer AppM -> App -> WidgetTree -> Int -> AppM ()
+renderWidgets :: (MonomerM s e m) => SDL.Window -> Context -> Renderer m -> s -> WidgetNode s e m -> Int -> m ()
 renderWidgets !window !c !renderer app widgets ticks =
   doInDrawingContext window c $ do
     handleRender renderer app [0] widgets ticks
 
-doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m a -> m a
+doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m s -> m s
 doInDrawingContext window c action = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   let !pxRatio = fromIntegral fbWidth / fromIntegral fbHeight

@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -36,8 +37,13 @@ data UserTask e = UserTask {
 
 type Timestamp = Int
 
+type MonomerM s e m = (MonadState (GUIContext s e) m, MonadIO m)
+data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
+
 type WidgetNode s e m = Tree (WidgetInstance s e m)
 type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
+
+type AppEventHandler s e = s -> e -> EventResponse s e
 
 newtype WidgetType = WidgetType String deriving (Eq, Show)
 newtype WidgetKey = WidgetKey String deriving Eq
@@ -162,6 +168,7 @@ data WidgetInstance s e m =
 
 data GUIContext s e = GUIContext {
   _appContext :: s,
+  _appEventHandler :: AppEventHandler s e,
   _windowSize :: Rect,
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
@@ -172,9 +179,10 @@ data GUIContext s e = GUIContext {
   _widgetTasks :: [WidgetTask]
 }
 
-initGUIContext :: s -> Rect -> Bool -> Double -> GUIContext s e
-initGUIContext app winSize useHiDPI devicePixelRate = GUIContext {
+initGUIContext :: s -> AppEventHandler s e -> Rect -> Bool -> Double -> GUIContext s e
+initGUIContext app appEventHandler winSize useHiDPI devicePixelRate = GUIContext {
   _appContext = app,
+  _appEventHandler = appEventHandler,
   _windowSize = winSize,
   _useHiDPI = useHiDPI,
   _devicePixelRate = devicePixelRate,
