@@ -328,13 +328,13 @@ rebuildIfNecessary renderer oldApp widgets = do
     then updateUI renderer widgets
     else return widgets
 
-preProcessEvents :: WidgetTree -> [SystemEvent] -> AppM [SystemEvent]
+preProcessEvents :: (MonomerM s e m) => (WidgetNode s e m) -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do
   systemEvents <- concatMapM (preProcessEvent widgets) events
   mapM_ updateInputStatus systemEvents
   return systemEvents
 
-preProcessEvent :: WidgetTree -> SystemEvent -> AppM [SystemEvent]
+preProcessEvent :: (MonomerM s e m) => (WidgetNode s e m) -> SystemEvent -> m [SystemEvent]
 preProcessEvent widgets evt@(Move point) = do
   hover <- use latestHover
   let current = findPathFromPoint point widgets
@@ -348,7 +348,7 @@ preProcessEvent widgets evt@(Move point) = do
   return $ leave ++ enter ++ [evt]
 preProcessEvent widgets event = return [event]
 
-updateInputStatus :: SystemEvent -> AppM ()
+updateInputStatus :: (MonomerM s e m) => SystemEvent -> m ()
 updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist {
     statusButtons = M.insert btn btnState (statusButtons ist)
   }
@@ -358,7 +358,7 @@ updateInputStatus (KeyAction kMod kCode kStatus) = inputStatus %= \ist -> ist {
   }
 updateInputStatus _ = return ()
 
-getCurrentMousePos :: AppM Point
+getCurrentMousePos :: (MonadIO m) => m Point
 getCurrentMousePos = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
   return $ Point (fromIntegral x) (fromIntegral y)
