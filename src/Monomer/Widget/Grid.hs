@@ -15,22 +15,22 @@ import Monomer.Data.Tree
 
 import qualified Data.Text as T
 
-empty :: (MonadState s m) => WidgetNode s e m
+empty :: (Monad m) => WidgetNode s e m
 empty = singleWidget makeHGrid
 
-hgrid :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+hgrid :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hgrid = parentWidget makeHGrid
 
-makeHGrid :: (MonadState s m) => Widget s e m
+makeHGrid :: (Monad m) => Widget s e m
 makeHGrid = makeFixedGrid "hgrid" Horizontal
 
-vgrid :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+vgrid :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 vgrid = parentWidget makeVGrid
 
-makeVGrid :: (MonadState s m) => Widget s e m
+makeVGrid :: (Monad m) => Widget s e m
 makeVGrid = makeFixedGrid "vgrid" Vertical
 
-makeFixedGrid :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
+makeFixedGrid :: (Monad m) => WidgetType -> Direction -> Widget s e m
 makeFixedGrid widgetType direction = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,

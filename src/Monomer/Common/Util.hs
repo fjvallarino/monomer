@@ -67,3 +67,6 @@ bindIf _ action value = action value
 
 clamp :: (Ord a) => a -> a -> a -> a
 clamp mn mx = max mn . min mx
+
+compose :: [a -> a] -> a -> a
+compose functions init = foldr (.) id functions init

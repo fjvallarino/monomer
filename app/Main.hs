@@ -18,6 +18,7 @@ import Data.Default
 import Data.Maybe
 import Data.Typeable
 import Foreign.C.Types
+import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 import Lens.Micro.Mtl
 import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
@@ -57,9 +58,9 @@ import qualified Monomer.Platform.NanoVGRenderer as NV
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
-type GWidgetMonad s e m = (MonadState (GUIContext s e) m, MonadIO m)
+type MonomerM s e m = (MonadState (GUIContext s e) m, MonadIO m)
 
-launchUserTasks :: GWidgetMonad a e m => [IO e] -> m ()
+launchUserTasks :: MonomerM a e m => [IO (Maybe e)] -> m ()
 launchUserTasks handlers = do
   tasks <- forM handlers $ \handler -> do
     asyncTask <- liftIO $ async handler
@@ -69,7 +70,7 @@ launchUserTasks handlers = do
   previousTasks <- use userTasks
   userTasks .= previousTasks ++ tasks
 
-checkUserTasks :: GWidgetMonad a e m => m [e]
+checkUserTasks :: MonomerM a e m => m [e]
 checkUserTasks = do
   tasks <- use userTasks
   (active, finished) <- partitionM (\(UserTask task) -> fmap isNothing (liftIO $ poll task)) tasks
@@ -77,29 +78,29 @@ checkUserTasks = do
 
   processUserTaskHandlers finished
 
-processUserTaskHandlers :: GWidgetMonad a e m => [UserTask e] -> m [e]
+processUserTaskHandlers :: MonomerM a e m => [UserTask (Maybe e)] -> m [e]
 processUserTaskHandlers tasks = do
   results <- forM tasks stepUserTask
   return $ catMaybes results
 
-stepUserTask :: GWidgetMonad a e m => UserTask e -> m (Maybe e)
+stepUserTask :: MonomerM a e m => UserTask (Maybe e) -> m (Maybe e)
 stepUserTask (UserTask task) = do
   taskStatus <- liftIO $ poll task
 
   return $ maybe Nothing processUserTaskHandler taskStatus
 
-processUserTaskHandler :: Either SomeException e -> Maybe e
+processUserTaskHandler :: Either SomeException (Maybe e) -> Maybe e
 processUserTaskHandler (Left _) = Nothing
-processUserTaskHandler (Right evt) = Just evt
+processUserTaskHandler (Right Nothing) = Nothing
+processUserTaskHandler (Right evt) = evt
 
-data AppEvent = Action1 Int | Action2 | UpdateText3 T.Text deriving (Show, Eq)
-
-type WidgetM = StateT App IO
-type LocalWidget = Widget App AppEvent WidgetM
-type WidgetTree = Tree (WidgetInstance App AppEvent WidgetM)
+data AppEvent = RunLongTask | PrintTextFields | IncreaseCount Int | UpdateText3 T.Text deriving (Show, Eq)
 
 type AppContext = GUIContext App AppEvent
 type AppM = StateT AppContext IO
+type WidgetTree = Tree (WidgetInstance App AppEvent AppM)
+
+data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
 
 main :: IO ()
 main = do
@@ -157,36 +158,23 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent :: App -> AppEvent -> WidgetM [IO AppEvent]
+handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = do
   case evt of
-    Action1 2 -> return [do
+    RunLongTask -> Task app $ do
       threadDelay $ 1 * 1000 * 1000
 
-      return $ UpdateText3 "HOLA"
-      ]
-    otherwise -> handleSyncAppEvent app evt
+      return $ Just (UpdateText3 "HOLA")
+    PrintTextFields -> Task app $ do
+      putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)
+      putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
+      putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
+      return Nothing
+    IncreaseCount v -> Task (app & clickCount %~ (+1)) $ do
+      putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ show (app ^. clickCount)
 
-handleSyncAppEvent :: App -> AppEvent -> WidgetM [IO AppEvent]
-handleSyncAppEvent app evt = do
-  liftIO . putStrLn $ "Calledddd"
-  case evt of
-    Action1 0 -> do
-      txt1 <- use textField1
-      txt2 <- use textField2
-      txt3 <- use textField3
-      liftIO . putStrLn $ "Current text 1 is: " ++ (show txt1)
-      liftIO . putStrLn $ "Current text 2 is: " ++ (show txt2)
-      liftIO . putStrLn $ "Current text 3 is: " ++ (show txt3)
-    Action1 v -> do
-      clickCount += 1
-      count <- use clickCount
-      liftIO . putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ (show count)
-    Action2   -> liftIO . putStrLn $ "I don't know what's this"
-    UpdateText3 txt -> do
-      textField3 .= txt
-
-  return []
+      return Nothing
+    UpdateText3 txt -> State $ app & textField3 .~ txt
 
 buildUI :: App -> WidgetTree
 buildUI model = styledTree where
@@ -195,7 +183,7 @@ buildUI model = styledTree where
   buttonStyle = bgColor (rgb 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
   labelStyle = bgColor (rgb 100 100 100) <> textSize 48
   textStyle = textColor (rgb 0 255 0) <> textAlignH ACenter
-  extraWidgets = map (\i -> sandbox (Action1 (10 + i))) [1..(_clickCount model)]
+  extraWidgets = map (\i -> sandbox (IncreaseCount (10 + i))) [1..(_clickCount model)]
   widgetTree = vstack [
       hstack [
         (scroll $ vstack [
@@ -245,11 +233,11 @@ buildUI model = styledTree where
           label "Very Very Very Very Long"
         ],
         hstack [
-          sandbox (Action1 0) `style` buttonStyle,
-          sandbox (Action1 1) `style` buttonStyle,
-          sandbox (Action1 2) `style` buttonStyle
+          sandbox RunLongTask `style` buttonStyle,
+          sandbox PrintTextFields `style` buttonStyle,
+          sandbox (IncreaseCount 2) `style` buttonStyle
         ],
-        button "Add items" (Action1 0) `style` buttonStyle,
+        button "Add items" (IncreaseCount 1) `style` buttonStyle,
         textField textField3 `style` textStyle
       ] ++ extraWidgets)
     ]
@@ -276,13 +264,13 @@ getWindowSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   return (Rect 0 0 (fromIntegral fbWidth) (fromIntegral fbHeight))
 
-updateUI :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+updateUI :: Renderer AppM -> WidgetTree -> AppM WidgetTree
 updateUI renderer oldWidgets = do
   windowSize <- use windowSize
   oldFocus <- getCurrentFocus
   app <- use appContext
 
-  resizedUI <- zoom appContext $ resizeUI renderer app windowSize (mergeTrees app (buildUI app) oldWidgets)
+  resizedUI <- resizeUI renderer app windowSize (mergeTrees app (buildUI app) oldWidgets)
 
   let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI []
   focusRing .= rotateUntil oldFocus paths
@@ -290,7 +278,7 @@ updateUI renderer oldWidgets = do
 
   return (setFocusedStatus currentFocus True resizedUI)
 
-mainLoop :: SDL.Window -> Context -> Renderer WidgetM -> Int -> Int -> Int -> WidgetTree -> AppM ()
+mainLoop :: SDL.Window -> Context -> Renderer AppM -> Int -> Int -> Int -> WidgetTree -> AppM ()
 mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
@@ -336,7 +324,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgets)
 
-rebuildIfNecessary :: Renderer WidgetM -> App -> WidgetTree -> AppM WidgetTree
+rebuildIfNecessary :: Renderer AppM -> App -> WidgetTree -> AppM WidgetTree
 rebuildIfNecessary renderer oldApp widgets = do
   newApp <- use appContext
 
@@ -384,7 +372,7 @@ getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
 
-handleEvent :: Renderer WidgetM -> App -> SystemEvent -> Path -> WidgetTree -> ChildEventResult App AppEvent WidgetM
+handleEvent :: Renderer AppM -> App -> SystemEvent -> Path -> WidgetTree -> ChildEventResult App AppEvent AppM
 handleEvent renderer app systemEvent targetPath widgets = case systemEvent of
   -- Keyboard
   KeyAction _ _ _       -> handleEventFromPath app targetPath widgets systemEvent
@@ -400,17 +388,18 @@ handleEvent renderer app systemEvent targetPath widgets = case systemEvent of
   Move point            -> handleEventFromPoint app point widgets systemEvent
   Leave oldPath _       -> handleEventFromPath app oldPath widgets systemEvent
 
-handleSystemEvents :: Renderer WidgetM -> App -> [SystemEvent] -> WidgetTree -> AppM WidgetTree
+handleSystemEvents :: Renderer AppM -> App -> [SystemEvent] -> WidgetTree -> AppM WidgetTree
 handleSystemEvents renderer app systemEvents widgets = do
   foldM (\newWidgets event -> do
     focus <- getCurrentFocus
     handleSystemEvent renderer app event focus newWidgets) widgets systemEvents
 
-handleSystemEvent :: Renderer WidgetM -> App -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
+handleSystemEvent :: Renderer AppM -> App -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
 handleSystemEvent renderer app systemEvent currentFocus widgets = do
-  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets) = handleEvent renderer app systemEvent currentFocus widgets
+  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleEvent renderer app systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
+  appContext %= compose newStates
   launchWidgetTasks renderer eventRequests
 
   handleAppEvents renderer appEvents
@@ -419,7 +408,7 @@ handleSystemEvent renderer app systemEvent currentFocus widgets = do
     >>= handleClipboardSet renderer eventRequests
     >>= handleResizeChildren renderer eventRequests
 
-handleFocusChange :: Renderer WidgetM -> Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
+handleFocusChange :: Renderer AppM -> Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
 handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
   | focusChangeRequested = do
       ring <- use focusRing
@@ -436,13 +425,13 @@ handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
     rotate = if isShiftPressed systemEvent then inverseRotateList else rotateList
 
-handleResizeChildren :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleResizeChildren :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
 handleResizeChildren renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isResizeChildren evt) eventRequests of
     Just (path, event) -> updateUI renderer widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardGet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardGet :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
 handleClipboardGet renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isGetClipboard evt) eventRequests of
     Just (path, event) -> do
@@ -453,7 +442,7 @@ handleClipboardGet renderer eventRequests widgetRoot =
       handleSystemEvent renderer app (Clipboard contents) path widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardSet :: Renderer WidgetM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardSet :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
 handleClipboardSet renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isSetClipboard evt) eventRequests of
     Just (path, SetClipboard (ClipboardText text)) -> do
@@ -463,7 +452,7 @@ handleClipboardSet renderer eventRequests widgetRoot =
     Just _ -> return widgetRoot
     Nothing -> return widgetRoot
 
-handleWindowResize :: SDL.Window -> Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+handleWindowResize :: SDL.Window -> Renderer AppM -> WidgetTree -> AppM WidgetTree
 handleWindowResize window renderer widgets = do
   app <- use appContext
   dpr <- use devicePixelRate
@@ -475,10 +464,9 @@ handleWindowResize window renderer widgets = do
 
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round rw) (round rh))
 
-  zoom appContext $ do
-    resizeUI renderer app newWindowSize widgets
+  resizeUI renderer app newWindowSize widgets
 
-launchWidgetTasks :: Renderer WidgetM -> [(Path, EventRequest)] -> AppM ()
+launchWidgetTasks :: Renderer AppM -> [(Path, EventRequest)] -> AppM ()
 launchWidgetTasks renderer eventRequests = do
   let customHandlers = L.filter isCustomHandler eventRequests
 
@@ -498,7 +486,7 @@ isUpdateUserState :: (Path, EventRequest) -> Bool
 isUpdateUserState (_, UpdateUserState) = True
 isUpdateUserState _ = False
 
-processWidgetTasks :: Renderer WidgetM -> WidgetTree -> AppM WidgetTree
+processWidgetTasks :: Renderer AppM -> WidgetTree -> AppM WidgetTree
 processWidgetTasks renderer widgets = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM (\(WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) tasks
@@ -506,12 +494,12 @@ processWidgetTasks renderer widgets = do
 
   processCustomHandlers renderer widgets finished
 
-processCustomHandlers :: Renderer WidgetM -> WidgetTree -> [WidgetTask] -> AppM WidgetTree
+processCustomHandlers :: Renderer AppM -> WidgetTree -> [WidgetTask] -> AppM WidgetTree
 processCustomHandlers renderer widgets tasks = do
   newWidgets <- foldM (stepWidgetTask renderer) widgets tasks
   return newWidgets
 
-stepWidgetTask :: Renderer WidgetM -> WidgetTree -> WidgetTask -> AppM WidgetTree
+stepWidgetTask :: Renderer AppM -> WidgetTree -> WidgetTask -> AppM WidgetTree
 stepWidgetTask renderer widgets (WidgetTask path task) = do
   app <- use appContext
   taskStatus <- liftIO $ poll task
@@ -520,32 +508,35 @@ stepWidgetTask renderer widgets (WidgetTask path task) = do
     then processCustomHandler renderer app widgets path (fromJust taskStatus)
     else return widgets
 
-processCustomHandler :: (Typeable a) => Renderer WidgetM -> App -> WidgetTree -> Path -> Either SomeException a -> AppM WidgetTree
+processCustomHandler :: (Typeable a) => Renderer AppM -> App -> WidgetTree -> Path -> Either SomeException a -> AppM WidgetTree
 processCustomHandler renderer app widgets _ (Left _) = return widgets
 processCustomHandler renderer app widgets path (Right val) = do
-  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets) = handleCustomCommand app path widgets val
+  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleCustomCommand app path widgets val
   let newRoot = fromMaybe widgets newWidgets
 
+  appContext %= compose newStates
   launchWidgetTasks renderer eventRequests
 
   handleAppEvents renderer appEvents
     >> handleResizeChildren renderer eventRequests newRoot
 
-handleAppEvents :: Renderer WidgetM -> [AppEvent] -> AppM ()
-handleAppEvents renderer appEvents = do
-  tasks <- zoom appContext $ do
-    tasks <- forM appEvents $ \event -> do
-      currApp <- get
-      handleAppEvent currApp event
-    return $ msum tasks
+handleAppEvents :: Renderer AppM -> [AppEvent] -> AppM ()
+handleAppEvents renderer appEvents = let
+  reducer (app, tasks) event = case handleAppEvent app event of
+    State newApp -> (newApp, tasks)
+    StateEvent newApp newEvent -> reducer (newApp, tasks) newEvent
+    Task newApp task -> (newApp, task : tasks)
+  reduceEvents app = foldl reducer (app, []) appEvents
+  in do
+    (newApp, tasks) <- fmap reduceEvents $ use appContext
 
-  launchUserTasks $ tasks
+    appContext .= newApp
+    launchUserTasks tasks
 
-renderWidgets :: SDL.Window -> Context -> Renderer WidgetM -> App -> WidgetTree -> Int -> AppM ()
+renderWidgets :: SDL.Window -> Context -> Renderer AppM -> App -> WidgetTree -> Int -> AppM ()
 renderWidgets !window !c !renderer app widgets ticks =
   doInDrawingContext window c $ do
-    zoom appContext $ do
-      handleRender renderer app [0] widgets ticks
+    handleRender renderer app [0] widgets ticks
 
 doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m a -> m a
 doInDrawingContext window c action = do
@@ -561,10 +552,10 @@ doInDrawingContext window c action = do
   SDL.glSwapWindow window
   return ret
 
-collectPaths :: (MonadState s m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
+collectPaths :: (Monad m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
 collectPaths treeNode path = fmap (\(node, path) -> (node, reverse path)) (collectReversedPaths treeNode path)
 
-collectReversedPaths :: (MonadState s m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
+collectReversedPaths :: (Monad m) => Tree (WidgetInstance s e m) -> Path -> [(WidgetInstance s e m, Path)]
 collectReversedPaths (Node widgetNode children) path = (widgetNode, path) : remainingItems where
   pairs = zip (seqToNodeList children) (map (: path) [0..])
   remainingItems = concatMap (\(wn, path) -> collectReversedPaths wn path) pairs

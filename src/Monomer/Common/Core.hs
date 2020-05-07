@@ -79,7 +79,8 @@ data ChildEventResult s e m = ChildEventResult {
   cerIgnoreParentEvents :: Bool,
   cerEventRequests :: [(Path, EventRequest)],
   cerUserEvents :: [e],
-  cerNewTreeNode :: Maybe (WidgetNode s e m)
+  cerNewTreeNode :: Maybe (WidgetNode s e m),
+  cerNewState :: [s -> s]
 }
 
 data Widget s e m =
@@ -167,7 +168,7 @@ data GUIContext s e = GUIContext {
   _inputStatus :: InputStatus,
   _focusRing :: [Path],
   _latestHover :: Maybe Path,
-  _userTasks :: [UserTask e],
+  _userTasks :: [UserTask (Maybe e)],
   _widgetTasks :: [WidgetTask]
 }
 
@@ -313,7 +314,8 @@ data EventsParent s e m = EventsParent {
   epIgnoreParentEvents :: Bool,
   epEventRequests :: [(Path, EventRequest)],
   epUserEvents :: [e],
-  epUpdatedNode :: Maybe (Tree (WidgetInstance s e m))
+  epUpdatedNode :: Maybe (Tree (WidgetInstance s e m)),
+  epNewStates :: [s -> s]
 }
 
 data EventsChildren s e m = EventsChildren {
@@ -321,6 +323,7 @@ data EventsChildren s e m = EventsChildren {
   ecEventRequests :: [(Path, EventRequest)],
   ecUserEvents :: [e],
   ecUpdatedNode :: Maybe (Tree (WidgetInstance s e m)),
+  ecNewStates :: [s -> s],
   ecNodePosition :: Int
 }
 
@@ -337,15 +340,15 @@ handleChildEvent app selectorFn selector path (Node widgetInstance children) sys
 createUpdatedNode :: (Monad m) => WidgetInstance s e m -> WidgetChildren s e m -> EventsParent s e m -> EventsChildren s e m -> ChildEventResult s e m
 createUpdatedNode widgetInstance children (EventsParent{..}) (EventsChildren{..}) = updatedNode where
   updatedNode = case (epIgnoreChildrenEvents, ecIgnoreParentEvents) of
-    (True, _) -> ChildEventResult epIgnoreParentEvents epEventRequests epUserEvents epUpdatedNode
-    (_, True) -> ChildEventResult ecIgnoreParentEvents ecEventRequests ecUserEvents newNodeOldParent
-    (_, False) -> ChildEventResult epIgnoreParentEvents (ecEventRequests ++ epEventRequests) (ecUserEvents ++ epUserEvents) newNodeMixed
+    (True, _) -> ChildEventResult epIgnoreParentEvents epEventRequests epUserEvents epUpdatedNode epNewStates
+    (_, True) -> ChildEventResult ecIgnoreParentEvents ecEventRequests ecUserEvents newNodeOldParent ecNewStates
+    (_, False) -> ChildEventResult epIgnoreParentEvents (epEventRequests ++ ecEventRequests) (epUserEvents ++ ecUserEvents) newNodeMixed (epNewStates ++ ecNewStates)
   newNodeOldParent = createNewNodeOldParent widgetInstance children ecNodePosition ecUpdatedNode
   newNodeMixed = createNewNodeMixed widgetInstance children ecNodePosition epUpdatedNode ecUpdatedNode
 
 handleEventsParent :: (Monad m) => s -> Path -> WidgetInstance s e m -> WidgetChildren s e m -> SystemEvent -> EventsParent s e m
 handleEventsParent app path (wi@WidgetInstance{..}) children systemEvent = case handleWidgetEvents app _widgetInstanceWidget _widgetInstanceRenderArea systemEvent of
-  Nothing -> EventsParent False False [] [] Nothing
+  Nothing -> EventsParent False False [] [] Nothing []
   Just (WidgetEventResult er ue nw ns) -> EventsParent {
       epIgnoreChildrenEvents = isJust $ L.find isIgnoreChildrenEvents er,
       epIgnoreParentEvents = isJust $ L.find isIgnoreParentEvents er,
@@ -353,21 +356,23 @@ handleEventsParent app path (wi@WidgetInstance{..}) children systemEvent = case 
       epUserEvents = ue,
       epUpdatedNode = if isNothing nw
                         then Nothing
-                        else Just $ Node (wi { _widgetInstanceWidget = fromJust nw }) children
+                        else Just $ Node (wi { _widgetInstanceWidget = fromJust nw }) children,
+      epNewStates = [ns]
     }
 
 handleEventsChildren :: (Monad m) => s -> ChildrenSelector s e m a -> a -> Path -> WidgetChildren s e m -> SystemEvent -> EventsChildren s e m
 handleEventsChildren app selectorFn selector path children systemEvent = case selectorFn selector children of
-  (_, Nothing) -> EventsChildren False [] [] Nothing 0
+  (_, Nothing) -> EventsChildren False [] [] Nothing [] 0
   (newSelector, Just idx) -> EventsChildren {
       ecIgnoreParentEvents = ipe,
       ecEventRequests = er,
       ecUserEvents = ue,
-      ecUpdatedNode = tn,
+      ecUpdatedNode = nw,
+      ecNewStates = ns,
       ecNodePosition = idx
     }
     where
-      (ChildEventResult ipe er ue tn) = handleChildEvent app selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
+      (ChildEventResult ipe er ue nw ns) = handleChildEvent app selectorFn newSelector widgetPath (SQ.index children idx) systemEvent
       widgetPath = (idx:path)
 
 replaceChild :: (Monad m) => WidgetInstance s e m -> WidgetChildren s e m -> Int -> WidgetNode s e m -> Maybe (WidgetNode s e m)
@@ -403,9 +408,9 @@ handleCustomCommand :: (Monad m, Typeable i) => s -> Path -> WidgetNode s e m ->
 handleCustomCommand app path treeNode customData = case Monomer.Data.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
     case _widgetHandleCustom app customData of
-      Just (WidgetEventResult er ue nw ns) -> ChildEventResult False (fmap (path,) er) ue Nothing
-      Nothing -> ChildEventResult False [] [] Nothing
-  Nothing -> ChildEventResult False [] [] Nothing
+      Just (WidgetEventResult er ue nw ns) -> ChildEventResult False (fmap (path,) er) ue Nothing [ns]
+      Nothing -> ChildEventResult False [] [] Nothing []
+  Nothing -> ChildEventResult False [] [] Nothing []
 
 findPathFromPoint :: (Monad m) => Point -> WidgetNode s e m -> Path
 findPathFromPoint p widgetInstance = path where

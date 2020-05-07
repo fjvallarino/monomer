@@ -22,10 +22,10 @@ Implement auto scalable label! Selects correct size to fit the given text
 ***********************************
 
 --}
-label :: (MonadState s m) => T.Text -> WidgetNode s e m
+label :: (Monad m) => T.Text -> WidgetNode s e m
 label caption = singleWidget (makeLabel caption)
 
-makeLabel :: (MonadState s m) => T.Text -> Widget s e m
+makeLabel :: (Monad m) => T.Text -> Widget s e m
 makeLabel caption = baseWidget {
     _widgetType = "label",
     _widgetHandleEvent = handleEvent,

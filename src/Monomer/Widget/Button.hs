@@ -17,10 +17,10 @@ import Monomer.Data.Tree
 
 import qualified Data.Text as T
 
-button :: (MonadState s m, MonadIO m) => T.Text -> e -> WidgetNode s e m
+button :: (Monad m) => T.Text -> e -> WidgetNode s e m
 button label onClick = singleWidget (makeButton label onClick)
 
-makeButton :: (MonadState s m, MonadIO m) => T.Text -> e -> Widget s e m
+makeButton :: (Monad m) => T.Text -> e -> Widget s e m
 makeButton label onClick = baseWidget {
     _widgetType = "button",
     _widgetHandleEvent = handleEvent,

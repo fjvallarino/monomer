@@ -29,10 +29,10 @@ data SandboxState = SandboxState {
   _clickCount :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
-sandbox :: (MonadState s m, MonadIO m) => e -> WidgetNode s e m
+sandbox :: (Monad m) => e -> WidgetNode s e m
 sandbox onClick = singleWidget (makeSandbox onClick (SandboxState 0))
 
-makeSandbox :: (MonadState s m, MonadIO m) => e -> SandboxState -> Widget s e m
+makeSandbox :: (Monad m) => e -> SandboxState -> Widget s e m
 makeSandbox onClick state = baseWidget {
     _widgetType = "button",
     _widgetRestoreState = defaultRestoreState (makeSandbox onClick),

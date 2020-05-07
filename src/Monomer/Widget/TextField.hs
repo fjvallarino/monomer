@@ -36,13 +36,13 @@ data TextFieldState = TextFieldState {
 
 emptyState = TextFieldState "" 0
 
-textField :: (MonadState s m) => Lens' s T.Text -> WidgetNode s e m
+textField :: (Monad m) => Lens' s T.Text -> WidgetNode s e m
 textField userField = singleWidget $ makeTextField userField emptyState
 
 {-- 
 Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
 --}
-makeTextField :: (MonadState s m) => Lens' s T.Text -> TextFieldState -> Widget s e m
+makeTextField :: (Monad m) => Lens' s T.Text -> TextFieldState -> Widget s e m
 makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
     _widgetType = "textField",
     _widgetFocusable = True,
@@ -67,20 +67,22 @@ makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
       newPos = if T.length appText < pos then T.length appText else pos
       newWidget = Just $ makeTextField userField (TextFieldState appText newPos)
     handleEvent app _ evt = case evt of
-      KeyAction mod code KeyPressed -> Just $ WidgetEventResult reqs [] (Just $ makeTextField userField newState) id where
+      KeyAction mod code KeyPressed -> Just $ WidgetEventResult reqs [] (Just $ makeTextField userField newState) updateState where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         reqGetClipboard = if isClipboardPaste evt then [GetClipboard] else []
         reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
         reqUpdateUserState = if currText /= newText then [UpdateUserState] else []
         newState = TextFieldState newText newPos
+        updateState app = app & userField .~ newText
       TextInput newText -> insertText app newText
       Clipboard (ClipboardText newText) -> insertText app newText
       _ -> Nothing
-    insertText app addedText = Just $ WidgetEventResult [UpdateUserState] [] (Just $ makeTextField userField newState) id where
+    insertText app addedText = Just $ WidgetEventResult [UpdateUserState] [] (Just $ makeTextField userField newState) updateState where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
+      updateState app = app & userField .~ newText
     preferredSize renderer app (style@Style{..}) _ = do
       size <- calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
       return $ sizeReq size FlexibleSize FlexibleSize

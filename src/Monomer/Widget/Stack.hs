@@ -12,19 +12,19 @@ import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Data.Tree
 
-hstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+hstack :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hstack = parentWidget makeHStack
 
-makeHStack :: (MonadState s m) => Widget s e m
+makeHStack :: (Monad m) => Widget s e m
 makeHStack = makeStack "hstack" Horizontal
 
-vstack :: (MonadState s m) => [WidgetNode s e m] -> WidgetNode s e m
+vstack :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 vstack = parentWidget makeVStack
 
-makeVStack :: (MonadState s m) => Widget s e m
+makeVStack :: (Monad m) => Widget s e m
 makeVStack = makeStack "vstack" Vertical
 
-makeStack :: (MonadState s m) => WidgetType -> Direction -> Widget s e m
+makeStack :: (Monad m) => WidgetType -> Direction -> Widget s e m
 makeStack widgetType direction = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,

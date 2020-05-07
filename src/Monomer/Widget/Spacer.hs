@@ -10,13 +10,13 @@ import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Data.Tree
 
-spacer :: (MonadState s m) => WidgetNode s e m
+spacer :: (Monad m) => WidgetNode s e m
 spacer = singleWidget makeSpacer
 
 defaultSpace :: Double
 defaultSpace = 10
 
-makeSpacer :: (MonadState s m) => Widget s e m
+makeSpacer :: (Monad m) => Widget s e m
 makeSpacer = baseWidget {
     _widgetType = "spacer",
     _widgetHandleEvent = handleEvent,

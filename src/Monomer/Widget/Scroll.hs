@@ -28,10 +28,10 @@ data ScrollState = ScrollState {
   _scChildSize :: Size
 } deriving (Eq, Show, Typeable, Generic)
 
-scroll :: (MonadState s m) => WidgetNode s e m -> WidgetNode s e m
+scroll :: (Monad m) => WidgetNode s e m -> WidgetNode s e m
 scroll managedWidget = parentWidget (makeScroll (ScrollState 0 0 def)) [managedWidget]
 
-makeScroll :: (MonadState s m) => ScrollState -> Widget s e m
+makeScroll :: (Monad m) => ScrollState -> Widget s e m
 makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = baseWidget {
     _widgetType = "scroll",
     _widgetRestoreState = defaultRestoreState makeScroll,
