@@ -37,12 +37,13 @@ data UserTask e = UserTask {
 
 type Timestamp = Int
 
-type MonomerM s e m = (MonadState (GUIContext s e) m, MonadIO m)
+type MonomerM s e m = (MonadState (GUIContext s e) m, MonadIO m, Eq s)
 data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
 
 type WidgetNode s e m = Tree (WidgetInstance s e m)
 type WidgetChildren s e m = SQ.Seq (WidgetNode s e m)
 
+type UIBuilder s e m = s -> WidgetNode s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
 newtype WidgetType = WidgetType String deriving (Eq, Show)

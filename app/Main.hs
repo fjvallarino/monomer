@@ -251,17 +251,17 @@ runWidgets window c = do
 
   windowSize .= newWindowSize
   ticks <- SDL.ticks
-  newUI <- doInDrawingContext window c $ updateUI renderer empty
+  newUI <- doInDrawingContext window c $ updateUI renderer buildUI empty
 
-  mainLoop window c renderer (fromIntegral ticks) 0 0 newUI
+  mainLoop window c renderer buildUI (fromIntegral ticks) 0 0 newUI
 
 getWindowSize :: (MonadIO m) => SDL.Window -> m Rect
 getWindowSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   return (Rect 0 0 (fromIntegral fbWidth) (fromIntegral fbHeight))
 
-updateUI :: Renderer AppM -> WidgetTree -> AppM WidgetTree
-updateUI renderer oldWidgets = do
+updateUI :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> WidgetNode s e m -> m (WidgetNode s e m)
+updateUI renderer buildUI oldWidgets = do
   windowSize <- use windowSize
   oldFocus <- getCurrentFocus
   app <- use appContext
@@ -274,8 +274,8 @@ updateUI renderer oldWidgets = do
 
   return (setFocusedStatus currentFocus True resizedUI)
 
-mainLoop :: SDL.Window -> Context -> Renderer AppM -> Int -> Int -> Int -> WidgetTree -> AppM ()
-mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
+mainLoop :: (MonomerM s e m) => SDL.Window -> Context -> Renderer m -> UIBuilder s e m -> Int -> Int -> Int -> WidgetNode s e m -> m ()
+mainLoop window c renderer buildUI !prevTicks !tsAccum !frames widgets = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
   startTicks <- fmap fromIntegral SDL.ticks
@@ -301,8 +301,8 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   oldApp <- use appContext
 
   newWidgets <- handleAppEvents pendingEvents
-    >>  handleSystemEvents renderer oldApp systemEvents widgets
-    >>= rebuildIfNecessary renderer oldApp
+    >>  handleSystemEvents renderer buildUI oldApp systemEvents widgets
+    >>= rebuildIfNecessary renderer buildUI oldApp
     >>= processWidgetTasks renderer
     >>= bindIf resized (handleWindowResize window renderer)
 
@@ -318,14 +318,14 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgets = do
   let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
 
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgets)
+  unless quit (mainLoop window c renderer buildUI startTicks newTsAccum newFrameCount newWidgets)
 
-rebuildIfNecessary :: Renderer AppM -> App -> WidgetTree -> AppM WidgetTree
-rebuildIfNecessary renderer oldApp widgets = do
+rebuildIfNecessary :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> s -> WidgetNode s e m -> m (WidgetNode s e m)
+rebuildIfNecessary renderer buildUI oldApp widgets = do
   newApp <- use appContext
 
   if oldApp /= newApp
-    then updateUI renderer widgets
+    then updateUI renderer buildUI widgets
     else return widgets
 
 preProcessEvents :: (MonomerM s e m) => (WidgetNode s e m) -> [SystemEvent] -> m [SystemEvent]
@@ -368,7 +368,7 @@ getCurrentFocus = do
   ring <- use focusRing
   return (if length ring > 0 then ring!!0 else [])
 
-handleEvent :: Renderer AppM -> App -> SystemEvent -> Path -> WidgetTree -> ChildEventResult App AppEvent AppM
+handleEvent :: (MonomerM s e m) => Renderer m -> s -> SystemEvent -> Path -> WidgetNode s e m -> ChildEventResult s e m
 handleEvent renderer app systemEvent targetPath widgets = case systemEvent of
   -- Keyboard
   KeyAction _ _ _       -> handleEventFromPath app targetPath widgets systemEvent
@@ -384,14 +384,14 @@ handleEvent renderer app systemEvent targetPath widgets = case systemEvent of
   Move point            -> handleEventFromPoint app point widgets systemEvent
   Leave oldPath _       -> handleEventFromPath app oldPath widgets systemEvent
 
-handleSystemEvents :: Renderer AppM -> App -> [SystemEvent] -> WidgetTree -> AppM WidgetTree
-handleSystemEvents renderer app systemEvents widgets = do
+handleSystemEvents :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> s -> [SystemEvent] -> WidgetNode s e m -> m (WidgetNode s e m)
+handleSystemEvents renderer buildUI app systemEvents widgets = do
   foldM (\newWidgets event -> do
     focus <- getCurrentFocus
-    handleSystemEvent renderer app event focus newWidgets) widgets systemEvents
+    handleSystemEvent renderer buildUI app event focus newWidgets) widgets systemEvents
 
-handleSystemEvent :: Renderer AppM -> App -> SystemEvent -> Path -> WidgetTree -> AppM WidgetTree
-handleSystemEvent renderer app systemEvent currentFocus widgets = do
+handleSystemEvent :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> s -> SystemEvent -> Path -> WidgetNode s e m -> m (WidgetNode s e m)
+handleSystemEvent renderer buildUI app systemEvent currentFocus widgets = do
   let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleEvent renderer app systemEvent currentFocus widgets
   let newRoot = fromMaybe widgets newWidgets
 
@@ -399,46 +399,46 @@ handleSystemEvent renderer app systemEvent currentFocus widgets = do
   launchWidgetTasks renderer eventRequests
 
   handleAppEvents appEvents
-    >>  handleFocusChange renderer currentFocus systemEvent stopProcessing newRoot
-    >>= handleClipboardGet renderer eventRequests
+    >>  handleFocusChange renderer buildUI currentFocus systemEvent stopProcessing newRoot
+    >>= handleClipboardGet renderer buildUI eventRequests
     >>= handleClipboardSet renderer eventRequests
-    >>= handleResizeChildren renderer eventRequests
+    >>= handleResizeChildren renderer buildUI eventRequests
 
-handleFocusChange :: Renderer AppM -> Path -> SystemEvent -> Bool -> WidgetTree -> AppM WidgetTree
-handleFocusChange renderer currentFocus systemEvent stopProcessing widgetRoot
+handleFocusChange :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> Path -> SystemEvent -> Bool -> WidgetNode s e m -> m (WidgetNode s e m)
+handleFocusChange renderer buildUI currentFocus systemEvent stopProcessing widgetRoot
   | focusChangeRequested = do
       ring <- use focusRing
       app <- use appContext
       oldFocus <- getCurrentFocus
-      newRoot1 <- handleSystemEvent renderer app Blur oldFocus widgetRoot
+      newRoot1 <- handleSystemEvent renderer buildUI app Blur oldFocus widgetRoot
       focusRing .= rotate ring
       newApp <- use appContext
       newFocus <- getCurrentFocus
-      newRoot2 <- handleSystemEvent renderer newApp Focus newFocus newRoot1
+      newRoot2 <- handleSystemEvent renderer buildUI newApp Focus newFocus newRoot1
       return $ setFocusedStatus newFocus True (setFocusedStatus currentFocus False newRoot2)
   | otherwise = return widgetRoot
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
     rotate = if isShiftPressed systemEvent then inverseRotateList else rotateList
 
-handleResizeChildren :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
-handleResizeChildren renderer eventRequests widgetRoot =
+handleResizeChildren :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
+handleResizeChildren renderer buildUI eventRequests widgetRoot =
   case L.find (\(path, evt) -> isResizeChildren evt) eventRequests of
-    Just (path, event) -> updateUI renderer widgetRoot
+    Just (path, event) -> updateUI renderer buildUI widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardGet :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
-handleClipboardGet renderer eventRequests widgetRoot =
+handleClipboardGet :: (MonomerM s e m) => Renderer m -> UIBuilder s e m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
+handleClipboardGet renderer buildUI eventRequests widgetRoot =
   case L.find (\(path, evt) -> isGetClipboard evt) eventRequests of
     Just (path, event) -> do
       app <- use appContext
       hasText <- SDL.hasClipboardText
       contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
 
-      handleSystemEvent renderer app (Clipboard contents) path widgetRoot
+      handleSystemEvent renderer buildUI app (Clipboard contents) path widgetRoot
     Nothing -> return widgetRoot
 
-handleClipboardSet :: Renderer AppM -> [(Path, EventRequest)] -> WidgetTree -> AppM WidgetTree
+handleClipboardSet :: (MonomerM s e m) => Renderer m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
 handleClipboardSet renderer eventRequests widgetRoot =
   case L.find (\(path, evt) -> isSetClipboard evt) eventRequests of
     Just (path, SetClipboard (ClipboardText text)) -> do
@@ -448,7 +448,7 @@ handleClipboardSet renderer eventRequests widgetRoot =
     Just _ -> return widgetRoot
     Nothing -> return widgetRoot
 
-handleWindowResize :: SDL.Window -> Renderer AppM -> WidgetTree -> AppM WidgetTree
+handleWindowResize :: (MonomerM s e m) => SDL.Window -> Renderer m -> WidgetNode s e m -> m (WidgetNode s e m)
 handleWindowResize window renderer widgets = do
   app <- use appContext
   dpr <- use devicePixelRate
@@ -482,7 +482,7 @@ isUpdateUserState :: (Path, EventRequest) -> Bool
 isUpdateUserState (_, UpdateUserState) = True
 isUpdateUserState _ = False
 
-processWidgetTasks :: Renderer AppM -> WidgetTree -> AppM WidgetTree
+processWidgetTasks :: (MonomerM s e m) => Renderer m -> WidgetNode s e m -> m (WidgetNode s e m)
 processWidgetTasks renderer widgets = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM (\(WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) tasks
@@ -490,12 +490,12 @@ processWidgetTasks renderer widgets = do
 
   processCustomHandlers renderer widgets finished
 
-processCustomHandlers :: Renderer AppM -> WidgetTree -> [WidgetTask] -> AppM WidgetTree
+processCustomHandlers :: (MonomerM s e m) => Renderer m -> WidgetNode s e m -> [WidgetTask] -> m (WidgetNode s e m)
 processCustomHandlers renderer widgets tasks = do
   newWidgets <- foldM (stepWidgetTask renderer) widgets tasks
   return newWidgets
 
-stepWidgetTask :: Renderer AppM -> WidgetTree -> WidgetTask -> AppM WidgetTree
+stepWidgetTask :: (MonomerM s e m) => Renderer m -> WidgetNode s e m -> WidgetTask -> m (WidgetNode s e m)
 stepWidgetTask renderer widgets (WidgetTask path task) = do
   app <- use appContext
   taskStatus <- liftIO $ poll task
@@ -504,7 +504,7 @@ stepWidgetTask renderer widgets (WidgetTask path task) = do
     then processCustomHandler renderer app widgets path (fromJust taskStatus)
     else return widgets
 
-processCustomHandler :: (Typeable a) => Renderer AppM -> App -> WidgetTree -> Path -> Either SomeException a -> AppM WidgetTree
+processCustomHandler :: (MonomerM s e m, Typeable a) => Renderer m -> s -> WidgetNode s e m -> Path -> Either SomeException a -> m (WidgetNode s e m)
 processCustomHandler renderer app widgets _ (Left _) = return widgets
 processCustomHandler renderer app widgets path (Right val) = do
   let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleCustomCommand app path widgets val
@@ -514,7 +514,9 @@ processCustomHandler renderer app widgets path (Right val) = do
   launchWidgetTasks renderer eventRequests
 
   handleAppEvents appEvents
-    >> handleResizeChildren renderer eventRequests newRoot
+
+  return newRoot
+--    >> handleResizeChildren renderer eventRequests newRoot
 
 handleAppEvents :: (MonomerM s e m) => [e] -> m ()
 handleAppEvents events = do
