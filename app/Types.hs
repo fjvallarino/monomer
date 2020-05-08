@@ -12,7 +12,7 @@ import Control.Monad
 import Control.Monad.State
 
 import qualified Monomer.Data.Tree as TR
-import Monomer.Common.Core (GUIContext, UserTask, WidgetTask, _appContext, _focusRing, _userTasks, _widgetTasks)
+import Monomer.Common.Core (MonomerContext, UserTask, WidgetTask, _appContext, _focusRing, _userTasks, _widgetTasks)
 
 data App = App {
   _clickCount :: !Int,
@@ -25,7 +25,7 @@ instance Default App where
   def = App 0 "" "" ""
 
 makeLenses ''App
-makeLenses ''GUIContext
+makeLenses ''MonomerContext
 
 {--
 appContext :: (MonadState s m) => Lens' (GUIContext s e) s
