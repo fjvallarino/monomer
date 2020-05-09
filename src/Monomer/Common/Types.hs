@@ -74,12 +74,6 @@ instance Default Color where
 
 data WidgetRenderType = RenderNormal | RenderPost deriving (Eq, Show)
 
-renderWidget :: (Monad m) => Renderer m -> Path -> WidgetRenderType -> m () -> m ()
-renderWidget renderer path wr renderCalls = do
-  beginWidget renderer path wr
-  renderCalls
-  beginWidget renderer path wr
-
 data Renderer m = (Monad m) => Renderer {
   beginWidget :: Path -> WidgetRenderType -> m (),
   endWidget :: Path -> WidgetRenderType -> m (),

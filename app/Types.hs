@@ -25,7 +25,6 @@ instance Default App where
   def = App 0 "" "" ""
 
 makeLenses ''App
-makeLenses ''MonomerContext
 
 {--
 appContext :: (MonadState s m) => Lens' (GUIContext s e) s

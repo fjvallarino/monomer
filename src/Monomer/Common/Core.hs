@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 
 module Monomer.Common.Core where
@@ -19,17 +20,19 @@ import Data.Maybe
 import Data.String
 import Data.Typeable (cast, Typeable)
 
+import GHC.Generics
+
+import Lens.Micro.TH (makeLenses)
+
+import qualified Data.List as L
+import qualified Data.Text as T
+import qualified Data.Sequence as SQ
+
 import Monomer.Common.Event
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
-
-import GHC.Generics
-
-import qualified Data.List as L
-import qualified Data.Text as T
-import qualified Data.Sequence as SQ
 
 data UserTask e = UserTask {
   userTask :: Async e
@@ -183,6 +186,8 @@ data MonomerContext s e = MonomerContext {
   _userTasks :: [UserTask (Maybe e)],
   _widgetTasks :: [WidgetTask]
 }
+
+makeLenses ''MonomerContext
 
 initMonomerContext :: s -> Rect -> Bool -> Double -> MonomerContext s e
 initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
@@ -450,6 +455,12 @@ handleRenderChildren renderer app parentPath children ts = do
   let childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
   mapM_ (\(treeNode, idx) -> handleRender renderer app (idx:parentPath) treeNode ts) childrenPair
+
+renderWidget :: (Monad m) => Renderer m -> Path -> WidgetRenderType -> m () -> m ()
+renderWidget renderer path wr renderCalls = do
+  beginWidget renderer path wr
+  renderCalls
+  beginWidget renderer path wr
 
 updateWidgetInstance :: Path -> WidgetNode s e m -> (WidgetInstance s e m -> WidgetInstance s e m) -> Maybe (WidgetNode s e m)
 updateWidgetInstance path root updateFn = updateNode path root (\(Node widgetInstance children) -> Node (updateFn widgetInstance) children)
