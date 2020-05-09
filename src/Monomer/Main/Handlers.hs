@@ -6,10 +6,8 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.Maybe
 import Lens.Micro.Mtl
-import SDL (($=))
 
 import qualified Data.List as L
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 
 import Monomer.Common.Core
@@ -18,106 +16,94 @@ import Monomer.Common.Keyboard
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
-import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.WidgetTask
 import Monomer.Main.Util
 
+type HandlerStep s e m = (s, WidgetNode s e m, [e])
+
 handleEvent :: (MonomerM s e m) => Renderer m -> s -> SystemEvent -> Path -> WidgetNode s e m -> ChildEventResult s e m
-handleEvent renderer app systemEvent targetPath widgets = case systemEvent of
+handleEvent renderer app systemEvent targetPath widgetRoot = case systemEvent of
   -- Keyboard
-  KeyAction _ _ _       -> handleEventFromPath app targetPath widgets systemEvent
-  TextInput _           -> handleEventFromPath app targetPath widgets systemEvent
+  KeyAction _ _ _       -> handleEventFromPath app targetPath widgetRoot systemEvent
+  TextInput _           -> handleEventFromPath app targetPath widgetRoot systemEvent
   -- Clipboard
-  Clipboard _           -> handleEventFromPath app targetPath widgets systemEvent
+  Clipboard _           -> handleEventFromPath app targetPath widgetRoot systemEvent
   -- Mouse/touch
-  Click point _ _       -> handleEventFromPoint app point widgets systemEvent
-  WheelScroll point _ _ -> handleEventFromPoint app point widgets systemEvent
-  Focus                 -> handleEventFromPath app targetPath widgets systemEvent
-  Blur                  -> handleEventFromPath app targetPath widgets systemEvent
-  Enter point           -> handleEventFromPoint app point widgets systemEvent
-  Move point            -> handleEventFromPoint app point widgets systemEvent
-  Leave oldPath _       -> handleEventFromPath app oldPath widgets systemEvent
+  Click point _ _       -> handleEventFromPoint app point widgetRoot systemEvent
+  WheelScroll point _ _ -> handleEventFromPoint app point widgetRoot systemEvent
+  Focus                 -> handleEventFromPath app targetPath widgetRoot systemEvent
+  Blur                  -> handleEventFromPath app targetPath widgetRoot systemEvent
+  Enter point           -> handleEventFromPoint app point widgetRoot systemEvent
+  Move point            -> handleEventFromPoint app point widgetRoot systemEvent
+  Leave oldPath _       -> handleEventFromPath app oldPath widgetRoot systemEvent
 
-handleSystemEvents :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> [SystemEvent] -> WidgetNode s e m -> m (WidgetNode s e m)
-handleSystemEvents renderer mapp app systemEvents widgets = do
-  foldM (\newWidgets event -> do
+handleSystemEvents :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> [SystemEvent] -> WidgetNode s e m -> m (HandlerStep s e m)
+handleSystemEvents renderer mapp app systemEvents widgetRoot = foldM reducer (app, widgetRoot, []) systemEvents where
+  reducer (currApp, currWidgetRoot, currAppEvents) systemEvent = do
     focus <- getCurrentFocus
-    handleSystemEvent renderer mapp app event focus newWidgets) widgets systemEvents
+    (ca2, ws2, as2) <- handleSystemEvent renderer mapp currApp systemEvent focus currWidgetRoot
+    return (ca2, ws2, currAppEvents ++ as2)
 
-handleSystemEvent :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> SystemEvent -> Path -> WidgetNode s e m -> m (WidgetNode s e m)
-handleSystemEvent renderer mapp app systemEvent currentFocus widgets = do
-  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleEvent renderer app systemEvent currentFocus widgets
-  let newRoot = fromMaybe widgets newWidgets
+handleSystemEvent :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> SystemEvent -> Path -> WidgetNode s e m -> m (HandlerStep s e m)
+handleSystemEvent renderer mapp app systemEvent currentFocus widgetRoot = do
+  let (ChildEventResult stopProcessing eventRequests appEvents newWidgets newStates) = handleEvent renderer app systemEvent currentFocus widgetRoot
+  let tempRoot = fromMaybe widgetRoot newWidgets
+  let tempApp = compose newStates app
 
-  appContext %= compose newStates
   launchWidgetTasks eventRequests
 
-  handleAppEvents mapp appEvents
-    >>  handleFocusChange renderer mapp currentFocus systemEvent stopProcessing newRoot
+  (newApp, newRoot, newAppEvents) <- handleFocusChange renderer mapp currentFocus systemEvent stopProcessing (tempApp, tempRoot, [])
     >>= handleClipboardGet renderer mapp eventRequests
     >>= handleClipboardSet renderer eventRequests
     >>= handleResizeChildren renderer mapp eventRequests
 
-handleFocusChange :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> Path -> SystemEvent -> Bool -> WidgetNode s e m -> m (WidgetNode s e m)
-handleFocusChange renderer mapp currentFocus systemEvent stopProcessing widgetRoot
+  return (newApp, newRoot, appEvents ++ newAppEvents)
+
+handleFocusChange :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> Path -> SystemEvent -> Bool -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleFocusChange renderer mapp currentFocus systemEvent stopProcessing (app, widgetRoot, events)
   | focusChangeRequested = do
       ring <- use focusRing
-      app <- use appContext
       oldFocus <- getCurrentFocus
-      newRoot1 <- handleSystemEvent renderer mapp app Blur oldFocus widgetRoot
+      (newApp1, newRoot1, newEvents1) <- handleSystemEvent renderer mapp app Blur oldFocus widgetRoot
       focusRing .= rotate ring
-      newApp <- use appContext
       newFocus <- getCurrentFocus
-      newRoot2 <- handleSystemEvent renderer mapp newApp Focus newFocus newRoot1
-      return $ setFocusedStatus newFocus True (setFocusedStatus currentFocus False newRoot2)
-  | otherwise = return widgetRoot
+      (newApp2, newRoot2, newEvents2) <- handleSystemEvent renderer mapp newApp1 Focus newFocus newRoot1
+
+      let newFocusedRoot = setFocusedStatus newFocus True (setFocusedStatus currentFocus False newRoot2)
+
+      return (newApp2, newFocusedRoot, events ++ newEvents1 ++ newEvents2)
+  | otherwise = return (app, widgetRoot, events)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
     rotate = if isShiftPressed systemEvent then inverseRotateList else rotateList
 
-handleResizeChildren :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
-handleResizeChildren renderer mapp eventRequests widgetRoot =
+handleResizeChildren :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> [(Path, EventRequest)] -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleResizeChildren renderer mapp eventRequests (app, widgetRoot, events) =
   case L.find (\(path, evt) -> isResizeChildren evt) eventRequests of
     Just (path, event) -> do
       windowSize <- use windowSize
-      app <- use appContext
+      newRoot <- resizeUI renderer app windowSize widgetRoot
 
-      resizeUI renderer app windowSize widgetRoot
-    Nothing -> return widgetRoot
+      return (app, newRoot, events)
+    Nothing -> return (app, widgetRoot, events)
 
-handleClipboardGet :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
-handleClipboardGet renderer mapp eventRequests widgetRoot =
+handleClipboardGet :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> [(Path, EventRequest)] -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleClipboardGet renderer mapp eventRequests (app, widgetRoot, events) =
   case L.find (\(path, evt) -> isGetClipboard evt) eventRequests of
     Just (path, event) -> do
-      app <- use appContext
       hasText <- SDL.hasClipboardText
       contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
 
       handleSystemEvent renderer mapp app (Clipboard contents) path widgetRoot
-    Nothing -> return widgetRoot
+    Nothing -> return (app, widgetRoot, events)
 
-handleClipboardSet :: (MonomerM s e m) => Renderer m -> [(Path, EventRequest)] -> WidgetNode s e m -> m (WidgetNode s e m)
-handleClipboardSet renderer eventRequests widgetRoot =
+handleClipboardSet :: (MonomerM s e m) => Renderer m -> [(Path, EventRequest)] -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleClipboardSet renderer eventRequests (app, widgetRoot, events) =
   case L.find (\(path, evt) -> isSetClipboard evt) eventRequests of
     Just (path, SetClipboard (ClipboardText text)) -> do
       SDL.setClipboardText text
 
-      return widgetRoot
-    Just _ -> return widgetRoot
-    Nothing -> return widgetRoot
-
-handleWindowResize :: (MonomerM s e m) => SDL.Window -> Renderer m -> WidgetNode s e m -> m (WidgetNode s e m)
-handleWindowResize window renderer widgets = do
-  app <- use appContext
-  dpr <- use devicePixelRate
-  Rect rx ry rw rh <- getWindowSize window
-
-  let newWindowSize = Rect rx ry (rw / dpr) (rh / dpr)
-
-  windowSize .= newWindowSize
-
-  liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round rw) (round rh))
-
-  resizeUI renderer app newWindowSize widgets
+      return (app, widgetRoot, events)
+    _ -> return (app, widgetRoot, events)

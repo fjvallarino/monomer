@@ -8,51 +8,28 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
-import Control.Concurrent.Async (async, poll)
-import Control.Exception.Base
-import Control.Monad
-import Control.Monad.Extra
-import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Default
-import Data.Maybe
-import Data.Typeable
 import Foreign.C.Types
 import Lens.Micro
-import Lens.Micro.TH (makeLenses)
-import Lens.Micro.Mtl
 import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
 import SDL (($=))
-import Unsafe.Coerce
 
 import System.Remote.Monitoring
 
-import qualified Data.List as L
-import qualified Data.Map.Strict as M
 import qualified Data.Set as S
-import qualified Data.Sequence as SQ
 import qualified Data.Text as T
-import qualified Data.Vector.Generic as V
 import qualified Foreign.C.String as STR
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
-import qualified SDL.Vect
-import qualified SDL.Input.Keyboard as Keyboard
-import qualified SDL.Input.Keyboard.Codes as KeyCodes
-import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw.Error as SRE
 import qualified SDL.Raw.Event as SREv
-import qualified SDL.Raw.Video as SRV
 
 import Types
 import Monomer.Common.Core
-import Monomer.Common.Event
-import Monomer.Common.Keyboard
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
-import Monomer.Main.App
 import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Widgets
@@ -113,7 +90,7 @@ main = do
 
   SREv.startTextInput
 
-  winSize@(Rect rx ry rw rh) <- getWindowSize window
+  winSize@(Rect rx ry rw rh) <- getDrawableSize window
 
   let devicePixelRate = _rw winSize / fromIntegral screenWidth
   let mapp = MonomerApp buildUI handleAppEvent
