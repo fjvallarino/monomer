@@ -5,9 +5,8 @@ module Monomer.Main.Util where
 import Lens.Micro.Mtl
 
 import Monomer.Common.Core
-import Monomer.Common.Event
-
 import Monomer.Data.Tree
+import Monomer.Event.Types
 
 getCurrentFocus :: (MonomerM s e m) => m Path
 getCurrentFocus = do

@@ -11,11 +11,12 @@ import qualified Data.List as L
 import qualified SDL
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Keyboard
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
+import Monomer.Event.Core
+import Monomer.Event.Types
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.WidgetTask

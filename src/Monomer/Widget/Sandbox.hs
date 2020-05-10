@@ -13,12 +13,13 @@ import Data.Typeable
 import Debug.Trace
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Drawing
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
+import Monomer.Event.Core
+import Monomer.Event.Types
 
 import GHC.Generics
 

@@ -33,6 +33,9 @@ import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
+import Monomer.Event.Core
+import Monomer.Event.Types
+import Monomer.Event.Util
 
 data UserTask e = UserTask {
   userTask :: Async e

@@ -14,13 +14,13 @@ import Data.Typeable
 import qualified Data.Text as T
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Drawing
-import Monomer.Common.Keyboard
 import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Common.Util
 import Monomer.Data.Tree
+import Monomer.Event.Core
+import Monomer.Event.Keyboard
+import Monomer.Event.Types
 
 import GHC.Generics
 

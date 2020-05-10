@@ -16,9 +16,10 @@ import qualified SDL
 import qualified NanoVG as NV
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Types
 import Monomer.Common.Util
+import Monomer.Event.Core
+import Monomer.Event.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
