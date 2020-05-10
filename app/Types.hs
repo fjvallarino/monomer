@@ -2,17 +2,10 @@
 
 module Types where
 
-import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
 import Data.Default
 import qualified Data.Text as T
-
-import Control.Monad
-import Control.Monad.State
-
-import qualified Monomer.Data.Tree as TR
-import Monomer.Common.Core (MonomerContext, UserTask, WidgetTask, _appContext, _focusRing, _userTasks, _widgetTasks)
 
 data App = App {
   _clickCount :: !Int,
@@ -25,30 +18,3 @@ instance Default App where
   def = App 0 "" "" ""
 
 makeLenses ''App
-
-{--
-appContext :: (MonadState s m) => Lens' (GUIContext s e) s
-appContext = lens _appContext (\app val -> app { _appContext = val })
-
-focusRing :: (MonadState s m) => Lens' (GUIContext s e) [TR.Path]
-focusRing = lens _focusRing (\app val -> app { _focusRing = val })
-
-userTasks :: (MonadState s m) => Lens' (GUIContext s e) [UserTask e]
-userTasks = lens _userTasks (\app val -> app { _userTasks = val })
-
-widgetTasks :: (MonadState s m) => Lens' (GUIContext s e) [WidgetTask]
-widgetTasks = lens _widgetTasks (\app val -> app { _widgetTasks = val })
---}
-
-{--
-  _appContext = app,
-  _windowSize = winSize,
-  _useHiDPI = useHiDPI,
-  _devicePixelRate = devicePixelRate,
-  _inputStatus = defInputStatus,
-  _focusRing = [],
-  _latestHover = Nothing,
-  _userTasks = [],
-  _widgetTasks = [],
-  _eventHandler = \_ _ -> return []
---}
