@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 

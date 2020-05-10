@@ -1,15 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Stack (hstack, vstack) where
 
 import Control.Monad
-import Control.Monad.State
 
 import Monomer.Common.Core
-import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Data.Tree
 
 hstack :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hstack = parentWidget makeHStack

@@ -1,12 +1,9 @@
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Common.Types where
 
---import Control.Monad
 import Data.Default
---import Monomer.Data.Tree (Path)
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 

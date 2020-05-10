@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -8,16 +7,10 @@ module Monomer.Widget.Scroll (scroll) where
 import Data.Default
 import Data.Typeable
 import Control.Monad
-import Control.Monad.State
-
-import qualified Data.Text as T
 
 import Monomer.Common.Core
-import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Data.Tree
-import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing

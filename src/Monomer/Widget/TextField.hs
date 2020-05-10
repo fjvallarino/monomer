@@ -5,10 +5,7 @@
 module Monomer.Widget.TextField where
 
 import Control.Monad
-import Control.Monad.State
 
-import Data.Char
-import Data.Dynamic
 import Data.Maybe
 import Data.Typeable
 import qualified Data.Text as T
@@ -16,7 +13,6 @@ import qualified Data.Text as T
 import Monomer.Common.Core
 import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Data.Tree
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -26,7 +22,6 @@ import Monomer.Graphics.Types
 import GHC.Generics
 
 import Lens.Micro
-import Lens.Micro.Mtl
 
 caretWidth = 2
 

@@ -3,7 +3,6 @@
 module Monomer.Main.Platform where
 
 import Control.Monad.IO.Class
---import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
 import NanoVG (Context(..), beginFrame, endFrame)
 
 import qualified Graphics.Rendering.OpenGL as GL

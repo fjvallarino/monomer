@@ -3,16 +3,11 @@
 module Monomer.Widget.Button (button) where
 
 import Control.Monad
-import Control.Monad.State
-
-import Data.Typeable
 
 import Monomer.Common.Core
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Data.Tree
-import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types

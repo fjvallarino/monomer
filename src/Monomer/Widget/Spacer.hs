@@ -3,12 +3,10 @@
 module Monomer.Widget.Spacer (spacer) where
 
 import Control.Monad
-import Control.Monad.State
 
 import Monomer.Common.Core
 import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Data.Tree
 
 spacer :: (Monad m) => WidgetNode s e m
 spacer = singleWidget makeSpacer
