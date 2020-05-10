@@ -40,9 +40,9 @@ foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
 data AppEvent = RunLongTask | PrintTextFields | IncreaseCount Int | UpdateText3 T.Text deriving (Show, Eq)
 
-type AppContext = MonomerContext App AppEvent
-type AppM = StateT AppContext IO
-type WidgetTree = Tree (WidgetInstance App AppEvent AppM)
+--type AppContext = MonomerContext App AppEvent
+--type AppM = StateT AppContext IO
+--type WidgetTree = Tree (WidgetInstance App AppEvent AppM)
 
 main :: IO ()
 main = do
@@ -101,7 +101,7 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
+--handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = do
   case evt of
     RunLongTask -> Task app $ do
@@ -119,7 +119,7 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
-buildUI :: App -> WidgetTree
+--buildUI :: App -> WidgetTree
 buildUI model = styledTree where
   border1 = border 5 (rgb 0 255 0) 20
   border2 = borderLeft 20 (rgb 200 200 0) <> borderRight 20 (rgb 200 0 200)
