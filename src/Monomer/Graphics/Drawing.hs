@@ -1,33 +1,18 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Common.Drawing where
+module Monomer.Graphics.Drawing where
 
 import qualified Data.Text as T
 
 import Control.Monad (when, void)
 import Data.Maybe
 
-import Monomer.Common.Types
 import Monomer.Common.Style
+import Monomer.Common.Types
 import Monomer.Common.Util
-
-defaultColor :: Color
-defaultColor = white
-
-defaultFont :: Font
-defaultFont = "sans"
-
-defaultFontSize :: FontSize
-defaultFontSize = 32
-
-defaultAlignH :: AlignH
-defaultAlignH = ACenter
-
-defaultAlignV :: AlignV
-defaultAlignV = AMiddle
-
-degToRad :: Double -> Double
-degToRad rad = rad * 3.1416 / 180.0
+import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
+import Monomer.Graphics.Util
 
 drawBgRect :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawBgRect renderer rect Style{..} = do

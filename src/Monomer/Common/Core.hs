@@ -28,7 +28,6 @@ import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Data.Sequence as SQ
 
-import Monomer.Common.Event
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
@@ -36,6 +35,7 @@ import Monomer.Data.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Event.Util
+import Monomer.Graphics.Renderer
 
 data UserTask e = UserTask {
   userTask :: Async e
@@ -67,6 +67,12 @@ instance IsString WidgetKey where
   fromString string = WidgetKey string
 
 data WidgetState = forall i . (Typeable i, Generic i) => WidgetState i
+
+data Direction = Horizontal | Vertical deriving (Show, Eq)
+
+data SizePolicy = StrictSize |
+                  FlexibleSize |
+                  RemainderSize deriving (Show, Eq)
 
 data SizeReq = SizeReq {
   _srSize :: Size,

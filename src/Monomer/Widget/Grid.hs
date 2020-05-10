@@ -8,7 +8,6 @@ import Control.Monad.State
 import Data.Default
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Data.Tree

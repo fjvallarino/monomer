@@ -1,21 +1,21 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Monomer.Platform.NanoVGRenderer (makeRenderer) where
-
-import Data.Default
+module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
 import Control.Monad (when)
+import Control.Monad.IO.Class
+import Data.Default
 
-import qualified Monomer.Common.Types as C
 import qualified Data.Text as T
 import qualified NanoVG as VG
 
-import Control.Monad.IO.Class
-import GHC.Float
+import Monomer.Common.Types
+import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
 
-makeRenderer :: (MonadIO m) => VG.Context -> Double -> C.Renderer m
-makeRenderer c dpr = C.Renderer {..} where
+makeRenderer :: (MonadIO m) => VG.Context -> Double -> Renderer m
+makeRenderer c dpr = Renderer {..} where
   beginWidget _ _ =
     return ()
 
@@ -32,7 +32,7 @@ makeRenderer c dpr = C.Renderer {..} where
     liftIO $ VG.restore c
 
   -- Scissor operations
-  scissor (C.Rect x y w h) =
+  scissor (Rect x y w h) =
     liftIO $ VG.scissor c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
 
   resetScissor =
@@ -55,7 +55,7 @@ makeRenderer c dpr = C.Renderer {..} where
   fillColor color = do
     liftIO $ VG.fillColor c (colorToPaint color)
 
-  fillLinearGradient (C.Point x1 y1) (C.Point x2 y2) color1 color2 =
+  fillLinearGradient (Point x1 y1) (Point x2 y2) color1 color2 =
     let
       col1 = colorToPaint color1
       col2 = colorToPaint color2
@@ -64,26 +64,26 @@ makeRenderer c dpr = C.Renderer {..} where
       liftIO $ VG.fillPaint c gradient
 
   -- Drawing
-  moveTo (C.Point x y) = do
+  moveTo (Point x y) = do
     liftIO $ nvMoveTo c (x * dpr) (y * dpr)
 
-  line (C.Point x1 y1) (C.Point x2 y2) = do
+  line (Point x1 y1) (Point x2 y2) = do
     liftIO $ nvMoveTo c (x1 * dpr) (y1 * dpr)
     liftIO $ nvLineTo c (x2 * dpr) (y2 * dpr)
 
-  lineTo (C.Point x y) = do
+  lineTo (Point x y) = do
     liftIO $ nvLineTo c (x * dpr) (y * dpr)
 
-  rect (C.Rect x y w h) = do
+  rect (Rect x y w h) = do
     liftIO $ VG.rect c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
 
-  arc (C.Point x1 y1) rad angleStart angleEnd = do
+  arc (Point x1 y1) rad angleStart angleEnd = do
     liftIO $ nvArc c (x1 * dpr) (y1 * dpr) (rad * dpr) angleStart angleEnd VG.CW
 
-  quadTo (C.Point x1 y1) (C.Point x2 y2) = do
+  quadTo (Point x1 y1) (Point x2 y2) = do
     liftIO $ VG.quadTo c (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr) (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
 
-  ellipse (C.Rect x y w h) = do
+  ellipse (Rect x y w h) = do
     liftIO $ VG.ellipse c (realToFrac $ cx * dpr) (realToFrac $ cy * dpr) (realToFrac $ rx * dpr) (realToFrac $ ry * dpr)
     where cx = x + rx
           cy = y + ry
@@ -91,7 +91,7 @@ makeRenderer c dpr = C.Renderer {..} where
           ry = h / 2
 
   -- Text
-  text (C.Rect x y w h) font fontSize (C.Align ha va) message = do
+  text (Rect x y w h) font fontSize (Align ha va) message = do
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac $ fontSize * dpr
     VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c (realToFrac $ x * dpr) (realToFrac $ y * dpr) message
@@ -103,17 +103,17 @@ makeRenderer c dpr = C.Renderer {..} where
         hr = h * dpr
         tw = x2 - x1
         th = asc + desc
-        tx | ha == C.ALeft = xr
-           | ha == C.ACenter = xr + (wr - realToFrac tw) / 2
+        tx | ha == ALeft = xr
+           | ha == ACenter = xr + (wr - realToFrac tw) / 2
            | otherwise = xr + (wr - realToFrac tw)
-        ty | va == C.ATop = yr + realToFrac th
-           | va == C.AMiddle = yr + (hr + realToFrac th) / 2
+        ty | va == ATop = yr + realToFrac th
+           | va == AMiddle = yr + (hr + realToFrac th) / 2
            | otherwise = yr + hr
 
     when (message /= "") $ do
       liftIO $ VG.text c (realToFrac tx) (realToFrac ty) message
 
-    return $ C.Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
+    return $ Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
 
   textBounds _ _ "" = return def
   textBounds font fontSize message = do
@@ -121,7 +121,7 @@ makeRenderer c dpr = C.Renderer {..} where
     liftIO $ VG.fontSize c $ realToFrac $ fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 message
 
-    return $ C.Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
+    return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
 nvMoveTo :: VG.Context -> Double -> Double -> IO ()
 nvMoveTo c x y = do
@@ -135,7 +135,7 @@ nvArc :: VG.Context -> Double -> Double -> Double -> Double -> Double -> VG.Wind
 nvArc c cx cy radius angleStart angleEnd winding = do
   VG.arc c (realToFrac cx) (realToFrac cy) (realToFrac radius) (VG.degToRad $ realToFrac angleStart) (VG.degToRad $ realToFrac angleEnd) winding
 
-colorToPaint :: C.Color -> VG.Color
-colorToPaint (C.Color r g b a)
+colorToPaint :: Color -> VG.Color
+colorToPaint (Color r g b a)
   | a >= 1.0  = VG.rgb (fromIntegral r) (fromIntegral g) (fromIntegral b)
   | otherwise = VG.rgba (fromIntegral r) (fromIntegral g) (fromIntegral b) (round $ a * 255)

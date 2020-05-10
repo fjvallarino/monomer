@@ -21,6 +21,7 @@ import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.WidgetTask
 import Monomer.Main.Util
+import Monomer.Graphics.Renderer
 
 type HandlerStep s e m = (s, WidgetNode s e m, [e])
 

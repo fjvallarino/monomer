@@ -34,7 +34,8 @@ import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Widgets
 
-import qualified Monomer.Platform.NanoVGRenderer as NV
+import Monomer.Graphics.Color
+import Monomer.Graphics.Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 

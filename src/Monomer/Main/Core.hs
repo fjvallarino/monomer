@@ -25,7 +25,8 @@ import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
-import Monomer.Platform.NanoVGRenderer
+import Monomer.Graphics.NanoVGRenderer
+import Monomer.Graphics.Renderer
 import Monomer.Widgets
 
 runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> MonomerApp s e m -> m ()

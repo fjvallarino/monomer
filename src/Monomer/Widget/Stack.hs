@@ -7,7 +7,6 @@ import Control.Monad
 import Control.Monad.State
 
 import Monomer.Common.Core
-import Monomer.Common.Event
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Data.Tree
