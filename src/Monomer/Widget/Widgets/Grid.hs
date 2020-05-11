@@ -4,25 +4,27 @@ module Monomer.Widget.Widgets.Grid (empty, hgrid, vgrid) where
 
 import Control.Monad
 
-import Monomer.Common.Core
-import Monomer.Common.Types
-
 import qualified Data.Text as T
+
+import Monomer.Common.Types
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
 hgrid :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hgrid = parentWidget makeHGrid
 
 makeHGrid :: (Monad m) => Widget s e m
-makeHGrid = makeFixedGrid "hgrid" Horizontal
+makeHGrid = makeFixedGrid "hgrid" True
 
 vgrid :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 vgrid = parentWidget makeVGrid
 
 makeVGrid :: (Monad m) => Widget s e m
-makeVGrid = makeFixedGrid "vgrid" Vertical
+makeVGrid = makeFixedGrid "vgrid" False
 
-makeFixedGrid :: (Monad m) => WidgetType -> Direction -> Widget s e m
-makeFixedGrid widgetType direction = baseWidget {
+makeFixedGrid :: (Monad m) => WidgetType -> Bool -> Widget s e m
+makeFixedGrid widgetType isHorizontal = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
@@ -35,12 +37,12 @@ makeFixedGrid widgetType direction = baseWidget {
       reqSize = sizeReq (Size width height) FlexibleSize FlexibleSize
       width = if null children then 0 else (fromIntegral wMul) * (maximum . map (_w . _srSize)) children
       height = if null children then 0 else (fromIntegral hMul) * (maximum . map (_h . _srSize)) children
-      wMul = if direction == Horizontal then length children else 1
-      hMul = if direction == Horizontal then 1 else length children
+      wMul = if isHorizontal then length children else 1
+      hMul = if isHorizontal then 1 else length children
     resizeChildren _ (Rect l t w h) style children = Just $ WidgetResizeResult newViewports newViewports Nothing where
       visibleChildren = filter _srVisible children
-      cols = if direction == Horizontal then (length visibleChildren) else 1
-      rows = if direction == Horizontal then 1 else (length visibleChildren)
+      cols = if isHorizontal then (length visibleChildren) else 1
+      rows = if isHorizontal then 1 else (length visibleChildren)
       foldHelper (accum, index) child = (index : accum, index + if _srVisible child then 1 else 0)
       indices = reverse . fst $ foldl foldHelper ([], 0) children
       newViewports = fmap resizeChild indices

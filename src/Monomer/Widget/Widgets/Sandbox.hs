@@ -4,21 +4,20 @@
 module Monomer.Widget.Widgets.Sandbox (sandbox) where
 
 import Control.Monad
-
 import Data.Typeable
-
 import Debug.Trace
+import GHC.Generics
 
-import Monomer.Common.Core
+import qualified Data.Text as T
+
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
-
-import GHC.Generics
-
-import qualified Data.Text as T
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
 data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
 data SandboxState = SandboxState {

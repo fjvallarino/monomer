@@ -4,9 +4,11 @@ module Monomer.Widget.Widgets.Spacer (spacer) where
 
 import Control.Monad
 
-import Monomer.Common.Core
 import Monomer.Common.Style
 import Monomer.Common.Types
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
 spacer :: (Monad m) => WidgetNode s e m
 spacer = singleWidget makeSpacer

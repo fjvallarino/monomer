@@ -4,21 +4,15 @@ module Monomer.Widget.Widgets.Label (label) where
 
 import Control.Monad
 
-import Monomer.Common.Core
-import Monomer.Common.Style
-import Monomer.Graphics.Drawing
-
 import qualified Data.Text as T
 
-{--
+import Monomer.Common.Style
+import Monomer.Common.Types
+import Monomer.Graphics.Drawing
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
-***********************************
-
-Implement auto scalable label! Selects correct size to fit the given text
-
-***********************************
-
---}
 label :: (Monad m) => T.Text -> WidgetNode s e m
 label caption = singleWidget (makeLabel caption)
 

@@ -13,13 +13,16 @@ import Lens.Micro.Mtl
 
 import qualified Data.List as L
 
-import Monomer.Common.Core
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
+import Monomer.Main.Internal
 import Monomer.Main.Util
+import Monomer.Main.Types
+import Monomer.Widget.Core
+import Monomer.Widget.Types
 
 launchWidgetTasks :: (MonomerM s e m) => [(Path, EventRequest)] -> m ()
 launchWidgetTasks eventRequests = do

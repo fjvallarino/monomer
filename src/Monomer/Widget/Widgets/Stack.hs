@@ -4,30 +4,31 @@ module Monomer.Widget.Widgets.Stack (hstack, vstack) where
 
 import Control.Monad
 
-import Monomer.Common.Core
 import Monomer.Common.Types
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
 hstack :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hstack = parentWidget makeHStack
 
 makeHStack :: (Monad m) => Widget s e m
-makeHStack = makeStack "hstack" Horizontal
+makeHStack = makeStack "hstack" True
 
 vstack :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 vstack = parentWidget makeVStack
 
 makeVStack :: (Monad m) => Widget s e m
-makeVStack = makeStack "vstack" Vertical
+makeVStack = makeStack "vstack" False
 
-makeStack :: (Monad m) => WidgetType -> Direction -> Widget s e m
-makeStack widgetType direction = baseWidget {
+makeStack :: (Monad m) => WidgetType -> Bool -> Widget s e m
+makeStack widgetType isHorizontal = baseWidget {
     _widgetType = widgetType,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetResizeChildren = resizeChildren
   }
   where
-    isHorizontal = direction == Horizontal
     focusable = False
     handleEvent _ _ _ = Nothing
     preferredSize _ _ _ children = return reqSize where

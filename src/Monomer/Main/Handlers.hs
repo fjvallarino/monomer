@@ -10,18 +10,21 @@ import Lens.Micro.Mtl
 import qualified Data.List as L
 import qualified SDL
 
-import Monomer.Common.Core
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Data.Tree
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
+import Monomer.Main.Internal
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.WidgetTask
+import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Graphics.Renderer
+import Monomer.Widget.Core
+import Monomer.Widget.Types
 
 type HandlerStep s e m = (s, WidgetNode s e m, [e])
 

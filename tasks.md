@@ -35,8 +35,9 @@
     - What are good interfaces for the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
+  - Replace Default instances for Monoid, if possible
   - Improve hstack/vstack
-    - If space is available space is greater than requested, do not apply resizing logic
+    - If available space is greater than requested, do not apply resizing logic
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
     - Could container handle padding and centering?
     - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)

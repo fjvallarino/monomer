@@ -4,11 +4,11 @@
 
 module Monomer.Widget.Widgets.Scroll (scroll) where
 
+import Control.Monad
 import Data.Default
 import Data.Typeable
-import Control.Monad
+import GHC.Generics
 
-import Monomer.Common.Core
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
@@ -16,8 +16,10 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
-import GHC.Generics
 
 data ScrollState = ScrollState {
   _scDeltaX :: !Double,

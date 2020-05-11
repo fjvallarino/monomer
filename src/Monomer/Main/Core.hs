@@ -15,18 +15,22 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified NanoVG as NV
 
-import Monomer.Common.Core
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Core
 import Monomer.Event.Types
+import Monomer.Main.Internal
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
+import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
+import Monomer.Widget.Core
+import Monomer.Widget.Types
+import Monomer.Widget.Util
 
 runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> MonomerApp s e m -> m ()
 runWidgets window c mapp = do

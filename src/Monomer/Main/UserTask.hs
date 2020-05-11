@@ -10,7 +10,7 @@ import Control.Monad.IO.Class
 import Data.Maybe
 import Lens.Micro.Mtl
 
-import Monomer.Common.Core
+import Monomer.Main.Types
 
 launchUserTasks :: MonomerM a e m => [IO (Maybe e)] -> m ()
 launchUserTasks handlers = do

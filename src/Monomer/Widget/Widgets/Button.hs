@@ -4,15 +4,18 @@ module Monomer.Widget.Widgets.Button (button) where
 
 import Control.Monad
 
-import Monomer.Common.Core
+import qualified Data.Text as T
+
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widget.Types
+import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Base
 
-import qualified Data.Text as T
 
 button :: (Monad m) => T.Text -> e -> WidgetNode s e m
 button label onClick = singleWidget (makeButton label onClick)
