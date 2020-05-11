@@ -8,7 +8,7 @@ import GHC.Generics
 
 import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Main.Types
 import Monomer.Widget.Internal
 import Monomer.Widget.Types

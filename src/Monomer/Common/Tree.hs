@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveTraversable #-}
 
-module Monomer.Data.Tree where
+module Monomer.Common.Tree where
 
 import Prelude hiding (lookup)
 

@@ -7,7 +7,7 @@ import Control.Monad
 import qualified Data.Text as T
 
 import Monomer.Common.Types
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
 data WidgetRenderType = RenderNormal | RenderPost deriving (Eq, Show)

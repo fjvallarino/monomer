@@ -4,10 +4,7 @@
 module Monomer.Common.Types where
 
 import Data.Default
-import Lens.Micro
 import Lens.Micro.TH (makeLenses)
-
---import qualified Data.Text as T
 
 data Point = Point {
   _x :: !Double,

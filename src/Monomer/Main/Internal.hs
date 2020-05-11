@@ -4,7 +4,7 @@ module Monomer.Main.Internal where
 
 import Lens.Micro.Mtl
 
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Widget.Types

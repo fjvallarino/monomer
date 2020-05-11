@@ -12,7 +12,7 @@ import qualified SDL
 
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types

@@ -16,7 +16,7 @@ import qualified Data.Sequence as SQ
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
@@ -133,7 +133,7 @@ handleEventFromPoint app cursorPos widgetInstance systemEvent = handleChildEvent
     childrenPair = SQ.zip children (SQ.fromList [0..(length children - 1)])
 
 handleCustomCommand :: (Monad m, Typeable i) => s -> Path -> WidgetNode s e m -> i -> ChildEventResult s e m
-handleCustomCommand app path treeNode customData = case Monomer.Data.Tree.lookup path treeNode of
+handleCustomCommand app path treeNode customData = case Monomer.Common.Tree.lookup path treeNode of
   Just (WidgetInstance{ _widgetInstanceWidget = Widget{..}, ..}) ->
     case _widgetHandleCustom app customData of
       Just (WidgetEventResult er ue nw ns) -> ChildEventResult False (fmap (path,) er) ue Nothing [ns]

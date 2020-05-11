@@ -24,11 +24,8 @@ import qualified SDL
 import qualified SDL.Raw.Error as SRE
 import qualified SDL.Raw.Event as SREv
 
-import Types
 import Monomer.Common.Style
 import Monomer.Common.Types
-import Monomer.Common.Util
-import Monomer.Data.Tree
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 import Monomer.Main.Core
@@ -38,6 +35,8 @@ import Monomer.Main.Util
 import Monomer.Widget.Core
 import Monomer.Widget.Util
 import Monomer.Widgets
+
+import Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 

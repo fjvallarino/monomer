@@ -4,7 +4,7 @@ import Data.Default
 
 import qualified Data.Sequence as SQ
 
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Widget.Types
 

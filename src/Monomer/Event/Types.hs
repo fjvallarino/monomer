@@ -8,7 +8,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
 import Monomer.Common.Types
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 
 type KeyCode = Int
 data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)

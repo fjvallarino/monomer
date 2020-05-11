@@ -11,7 +11,7 @@ import Data.Typeable (Typeable)
 import Lens.Micro.TH (makeLenses)
 
 import Monomer.Common.Types
-import Monomer.Data.Tree
+import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Widget.Types
 
