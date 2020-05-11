@@ -2,7 +2,6 @@
 
 module Monomer.Common.Util where
 
-import Data.Default
 import Data.List (elemIndex, splitAt)
 
 import Monomer.Common.Types
@@ -24,21 +23,10 @@ rotateUntil val list = case elemIndex val list of
   Just idx -> part2 ++ part1 where
     (part1, part2) = splitAt idx list
 
-firstJust :: Maybe a -> Maybe a -> Maybe a
-firstJust (Just val) _ = Just val
-firstJust _ value = value
-
-justDef :: (Default a) => Maybe a -> a
-justDef Nothing = def
-justDef (Just val) = val
-
 midPoint :: Point -> Point -> Point
 midPoint (Point x1 y1) (Point x2 y2) = Point x3 y3 where
   x3 = (x2 + x1) / 2
   y3 = (y2 + y1) / 2
-
-moveRect :: Rect -> Double -> Double -> Rect
-moveRect (Rect x y w h) dx dy = Rect (x + dx) (y + dy) w h
 
 bindIf :: (Monad m) => Bool -> (a -> m a) -> a -> m a
 bindIf False _ value = return value

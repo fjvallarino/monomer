@@ -5,6 +5,7 @@ module Monomer.Graphics.Drawing where
 import qualified Data.Text as T
 
 import Control.Monad (when, void)
+import Data.Default
 import Data.Maybe
 
 import Monomer.Common.Style
@@ -13,6 +14,10 @@ import Monomer.Common.Util
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Graphics.Util
+
+justDef :: (Default a) => Maybe a -> a
+justDef Nothing = def
+justDef (Just val) = val
 
 drawBgRect :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawBgRect renderer rect Style{..} = do

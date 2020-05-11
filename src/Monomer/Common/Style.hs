@@ -2,6 +2,7 @@
 
 module Monomer.Common.Style where
 
+import Control.Applicative
 import Data.Default
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
@@ -52,11 +53,11 @@ instance Semigroup Style where
   (<>) style1 style2 = Style {
     _fixedWidth = max (_fixedWidth style2) (_fixedWidth style1),
     _fixedHeight = max (_fixedHeight style2) (_fixedHeight style1),
-    _padding = (_padding style2) <> (_padding style1),
-    _bgRadius = (_bgRadius style2) <> (_bgRadius style1),
-    _bgColor = firstJust (_bgColor style2) (_bgColor style1),
-    _border = (_border style2) <> (_border style1),
-    _textStyle = (_textStyle style2) <> (_textStyle style1)
+    _padding = _padding style2 <> _padding style1,
+    _bgRadius = _bgRadius style2 <> _bgRadius style1,
+    _bgColor = _bgColor style2 <|> _bgColor style1,
+    _border = _border style2 <> _border style1,
+    _textStyle = _textStyle style2 <> _textStyle style1
   }
 
 data Padding = Padding {
@@ -68,10 +69,10 @@ data Padding = Padding {
 
 instance Semigroup Padding where
   (<>) p1 p2 = Padding {
-    _pLeft = firstJust (_pLeft p2) (_pLeft p1),
-    _pRight = firstJust (_pRight p2) (_pRight p1),
-    _pTop = firstJust (_pTop p2) (_pTop p1),
-    _pBottom = firstJust (_pBottom p2) (_pBottom p1)
+    _pLeft = _pLeft p2 <|> _pLeft p1,
+    _pRight = _pRight p2 <|> _pRight p1,
+    _pTop = _pTop p2 <|> _pTop p1,
+    _pBottom = _pBottom p2 <|> _pBottom p1
   }
 
 instance Monoid Padding where
@@ -106,11 +107,11 @@ data Border = Border {
 
 instance Semigroup Border where
   (<>) b1 b2 = Border {
-    _bLeft = (_bLeft b2) <> (_bLeft b1),
-    _bRight = (_bRight b2) <> (_bRight b1),
-    _bTop = (_bTop b2) <> (_bTop b1),
-    _bBottom = (_bBottom b2) <> (_bBottom b1),
-    _bRadius = (_bRadius b2) <> (_bRadius b1)
+    _bLeft = _bLeft b2 <> _bLeft b1,
+    _bRight = _bRight b2 <> _bRight b1,
+    _bTop = _bTop b2 <> _bTop b1,
+    _bBottom = _bBottom b2 <> _bBottom b1,
+    _bRadius = _bRadius b2 <> _bRadius b1
   }
 
 instance Monoid Border where
@@ -150,11 +151,11 @@ data TextStyle = TextStyle {
 
 instance Semigroup TextStyle where
   (<>) ts1 ts2 = TextStyle {
-    _tsFont = firstJust (_tsFont ts2) (_tsFont ts1),
-    _tsFontSize = firstJust (_tsFontSize ts2) (_tsFontSize ts1),
-    _tsColor = firstJust (_tsColor ts2) (_tsColor ts1),
-    _tsAlignH = firstJust (_tsAlignH ts2) (_tsAlignH ts1),
-    _tsAlignV = firstJust (_tsAlignV ts2) (_tsAlignV ts1)
+    _tsFont = _tsFont ts2 <|> _tsFont ts1,
+    _tsFontSize = _tsFontSize ts2 <|> _tsFontSize ts1,
+    _tsColor = _tsColor ts2 <|> _tsColor ts1,
+    _tsAlignH = _tsAlignH ts2 <|> _tsAlignH ts1,
+    _tsAlignV = _tsAlignV ts2 <|> _tsAlignV ts1
   }
 
 instance Monoid TextStyle where

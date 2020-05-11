@@ -10,8 +10,8 @@
 
 module Monomer.Common.Core where
 
+import Control.Applicative
 import Control.Concurrent.Async
-
 import Control.Monad
 import Control.Monad.State
 
@@ -291,7 +291,7 @@ cascadeStyle parentStyle (Node (wn@WidgetInstance{..}) children) = newNode where
     _fixedHeight = _fixedHeight _widgetInstanceStyle,
     _padding = _padding parentStyle <> _padding _widgetInstanceStyle,
     _bgRadius = _bgRadius parentStyle <> _bgRadius _widgetInstanceStyle,
-    _bgColor = firstJust (_bgColor parentStyle) (_bgColor _widgetInstanceStyle),
+    _bgColor = _bgColor parentStyle <|> _bgColor _widgetInstanceStyle,
     _border = _border parentStyle <> _border _widgetInstanceStyle,
     _textStyle = _textStyle parentStyle <> _textStyle _widgetInstanceStyle
   }
