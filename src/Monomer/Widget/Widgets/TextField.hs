@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.TextField where
+module Monomer.Widget.Widgets.TextField where
 
 import Control.Monad
 

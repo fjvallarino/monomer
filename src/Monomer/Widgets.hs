@@ -1,21 +1,21 @@
 module Monomer.Widgets (
   module Monomer.Common.Core,
-  module Monomer.Widget.Button,
-  module Monomer.Widget.Grid,
-  module Monomer.Widget.Label,
-  module Monomer.Widget.Sandbox,
-  module Monomer.Widget.Scroll,
-  module Monomer.Widget.Spacer,
-  module Monomer.Widget.Stack,
-  module Monomer.Widget.TextField
+  module Monomer.Widget.Widgets.Button,
+  module Monomer.Widget.Widgets.Grid,
+  module Monomer.Widget.Widgets.Label,
+  module Monomer.Widget.Widgets.Sandbox,
+  module Monomer.Widget.Widgets.Scroll,
+  module Monomer.Widget.Widgets.Spacer,
+  module Monomer.Widget.Widgets.Stack,
+  module Monomer.Widget.Widgets.TextField
 ) where
 
 import Monomer.Common.Core (key, style, children)
-import Monomer.Widget.Button
-import Monomer.Widget.Grid
-import Monomer.Widget.Label
-import Monomer.Widget.Sandbox
-import Monomer.Widget.Scroll
-import Monomer.Widget.Spacer
-import Monomer.Widget.Stack
-import Monomer.Widget.TextField
+import Monomer.Widget.Widgets.Button
+import Monomer.Widget.Widgets.Grid
+import Monomer.Widget.Widgets.Label
+import Monomer.Widget.Widgets.Sandbox
+import Monomer.Widget.Widgets.Scroll
+import Monomer.Widget.Widgets.Spacer
+import Monomer.Widget.Widgets.Stack
+import Monomer.Widget.Widgets.TextField

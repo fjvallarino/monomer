@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Button (button) where
+module Monomer.Widget.Widgets.Button (button) where
 
 import Control.Monad
 

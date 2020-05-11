@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Grid (empty, hgrid, vgrid) where
+module Monomer.Widget.Widgets.Grid (empty, hgrid, vgrid) where
 
 import Control.Monad
 

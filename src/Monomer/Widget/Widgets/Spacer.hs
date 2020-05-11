@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Spacer (spacer) where
+module Monomer.Widget.Widgets.Spacer (spacer) where
 
 import Control.Monad
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiWayIf #-}
 
-module Monomer.Widget.Stack (hstack, vstack) where
+module Monomer.Widget.Widgets.Stack (hstack, vstack) where
 
 import Control.Monad
 

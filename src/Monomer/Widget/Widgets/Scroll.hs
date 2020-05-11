@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Scroll (scroll) where
+module Monomer.Widget.Widgets.Scroll (scroll) where
 
 import Data.Default
 import Data.Typeable

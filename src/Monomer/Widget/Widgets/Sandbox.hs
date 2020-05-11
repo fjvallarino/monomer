@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Sandbox (sandbox) where
+module Monomer.Widget.Widgets.Sandbox (sandbox) where
 
 import Control.Monad
 
