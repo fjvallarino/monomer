@@ -27,7 +27,6 @@ import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
-import Monomer.Widgets
 
 runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> MonomerApp s e m -> m ()
 runWidgets window c mapp = do
@@ -76,8 +75,8 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
 
   newApp <- handleAppEvents mapp seApp (seAppEvents ++ uTasksEvents ++ wTasksEvents)
 
-  newWidgets <- rebuildIfNecessary renderer mapp currentApp newApp seWidgets
-    >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
+  newWidgets <- bindIf (currentApp /= newApp) (updateUI renderer mapp) seWidgets
+            >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
 
   renderWidgets window c renderer newApp newWidgets startTicks
 
@@ -137,12 +136,6 @@ resizeWindow window renderer app widgetRoot = do
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _rw drawableSize) (round $ _rh drawableSize))
 
   return newRoot
-
-rebuildIfNecessary :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> s -> WidgetNode s e m -> m (WidgetNode s e m)
-rebuildIfNecessary renderer mapp currentApp newApp widgets = do
-  if currentApp /= newApp
-    then updateUI renderer mapp widgets
-    else return widgets
 
 preProcessEvents :: (MonomerM s e m) => (WidgetNode s e m) -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do

@@ -315,6 +315,9 @@ singleWidget widget = singleton (defaultWidgetInstance widget)
 parentWidget :: (Monad m) => Widget s e m -> [WidgetNode s e m] -> WidgetNode s e m
 parentWidget widget = fromList (defaultWidgetInstance widget)
 
+empty :: (Monad m) => WidgetNode s e m
+empty = singleWidget baseWidget
+
 widgetMatches :: (Monad m) => WidgetInstance s e m -> WidgetInstance s e m -> Bool
 widgetMatches wn1 wn2 = _widgetType (_widgetInstanceWidget wn1) == _widgetType (_widgetInstanceWidget wn2) && _widgetInstanceKey wn1 == _widgetInstanceKey wn2
 

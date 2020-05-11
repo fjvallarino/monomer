@@ -9,9 +9,6 @@ import Monomer.Common.Types
 
 import qualified Data.Text as T
 
-empty :: (Monad m) => WidgetNode s e m
-empty = singleWidget makeHGrid
-
 hgrid :: (Monad m) => [WidgetNode s e m] -> WidgetNode s e m
 hgrid = parentWidget makeHGrid
 
