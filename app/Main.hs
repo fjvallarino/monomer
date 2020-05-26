@@ -40,7 +40,7 @@ import Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
-data AppEvent = RunLongTask | PrintTextFields | IncreaseCount Int | UpdateText3 T.Text deriving (Show, Eq)
+data AppEvent = RunShortTask | RunLongTask | PrintTextFields | IncreaseCount Int | UpdateText3 T.Text deriving (Show, Eq)
 
 --type AppContext = MonomerContext App AppEvent
 --type AppM = StateT AppContext IO
@@ -106,6 +106,7 @@ main = do
 --handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = do
   case evt of
+    RunShortTask -> State $ app & textField3 .~ "Updated!"
     RunLongTask -> Task app $ do
       threadDelay $ 1 * 1000 * 1000
 
@@ -125,7 +126,7 @@ buildUI app = styledTree where
   buttonStyle = bgColor blue
   widgetTree =
     vstack [
-      sandbox RunLongTask `style` buttonStyle,
+      button "Update" RunShortTask `style` buttonStyle,
       label "Hola" `style` bgColor lightGray,
       label "como" `style` bgColor gray,
       hgrid [

@@ -115,8 +115,10 @@ containerHandleEvent pHandler ctx event app widgetInstance
 
 mergeParentChildEventResults :: WidgetInstance s e m -> Maybe (EventResult s e m) -> Maybe (EventResult s e m) -> Int -> Maybe (EventResult s e m)
 mergeParentChildEventResults _ Nothing Nothing _ = Nothing
-mergeParentChildEventResults _ p@(Just wer) Nothing _ = p
-mergeParentChildEventResults _ Nothing c@(Just wer) _ = c
+mergeParentChildEventResults _ pResult Nothing _ = pResult
+mergeParentChildEventResults original Nothing (Just cResult) idx = Just $ cResult {
+    _eventResultNewWidget = replaceChild original (_eventResultNewWidget cResult) idx
+  }
 mergeParentChildEventResults original (Just pResult) (Just cResult) idx
   | ignoreChildren pResult = Just pResult
   | ignoreParent cResult = Just $ cResult {

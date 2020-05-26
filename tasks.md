@@ -47,6 +47,7 @@
     - Clean up Seq imports
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
+    - Handle SetFocus request
   - Replace Default instances for Monoid, if possible
   - Improve merge process. Implement Global keys
   - Improve hstack/vstack
@@ -55,8 +56,12 @@
     - Could container handle padding and centering?
     - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
   - Improve ergonomics
+    - https://hackage.haskell.org/package/string-interpolate
     - Check if advanced type level features would improve the design
     - Check what syntax extensions can be abused to make life easier
+      - https://limperg.de/ghc-extensions/#basic-patterns
+      - https://limperg.de/ghc-extensions/#datakinds
+      - Maybe -> https://typeclasses.com/extensions-intro
     - Look for ways that allow both lenses and user events to be used in the same widget
     - Related to previous, look for ways to simplify widget setup. Default instance with common values?
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)

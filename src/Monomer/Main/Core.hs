@@ -118,9 +118,6 @@ renderWidgets !window !c !renderer app widgetRoot ticks =
   doInDrawingContext window c $ do
     _widgetRender (_instanceWidget widgetRoot) renderer ticks app widgetRoot
 
---    _widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e m -> m (Tree SizeReq),
---    _widgetResize :: s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m,
-
 resizeUI :: (Monad m) => Renderer m -> s -> Rect -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeUI renderer app assignedRect widgetRoot = do
   preferredSizes <- _widgetPreferredSize (_instanceWidget widgetRoot) renderer app widgetRoot
