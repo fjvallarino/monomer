@@ -49,6 +49,9 @@ instance Monoid Style where
     _textStyle = Nothing
   }
 
+instance Default Style where
+  def = mempty
+
 instance Semigroup Style where
   (<>) style1 style2 = Style {
     _fixedWidth = max (_fixedWidth style2) (_fixedWidth style1),

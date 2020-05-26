@@ -1,5 +1,7 @@
 module Monomer.Main.Util where
 
+import qualified Data.Sequence as Seq
+
 import Monomer.Common.Types
 import Monomer.Event.Util
 import Monomer.Main.Types
@@ -11,8 +13,8 @@ initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
   _useHiDPI = useHiDPI,
   _devicePixelRate = devicePixelRate,
   _inputStatus = defInputStatus,
-  _focusRing = [],
+  _focusRing = Seq.empty,
   _latestHover = Nothing,
   _userTasks = [],
-  _widgetTasks = []
+  _widgetTasks = Seq.empty
 }

@@ -5,25 +5,21 @@ module Monomer.Widget.Widgets.Spacer (spacer) where
 import Control.Monad
 
 import Monomer.Common.Style
+import Monomer.Common.Tree
 import Monomer.Common.Types
+import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-import Monomer.Widget.Widgets.Base
 
-spacer :: (Monad m) => WidgetNode s e m
-spacer = singleWidget makeSpacer
+spacer :: (Monad m) => WidgetInstance s e m
+spacer = defaultWidgetInstance "spacer" makeSpacer
 
 defaultSpace :: Double
 defaultSpace = 10
 
 makeSpacer :: (Monad m) => Widget s e m
-makeSpacer = baseWidget {
-    _widgetType = "spacer",
-    _widgetHandleEvent = handleEvent,
-    _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren
+makeSpacer = createWidget {
+    _widgetPreferredSize = preferredSize
   }
   where
-    handleEvent app view evt = Nothing
-    preferredSize renderer app (style@Style{..}) _ = return $ sizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
-    resizeChildren _ _ _ _ = Nothing
+    preferredSize renderer app widgetInstance = return . singleton $ SizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize

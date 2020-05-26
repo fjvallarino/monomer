@@ -35,7 +35,20 @@
     - What are good interfaces for the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
+  - Current massive refactor
+    - Replace Tree with Containers' Tree
+    - Fix issue with event handling (click makes everything disappear)
+    - Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
+    - Provide focus to render (needed by textField)
+    - Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
+    - Check if WidgetState is really needed
+    - Can we generalize _widgetFind?
+    - Rethink Tree.Path import
+    - Clean up Seq imports
+    - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
+    - Reorganize Common Types. What do other projects do? They should be simple to import and use
   - Replace Default instances for Monoid, if possible
+  - Improve merge process. Implement Global keys
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
@@ -46,6 +59,7 @@
     - Check what syntax extensions can be abused to make life easier
     - Look for ways that allow both lenses and user events to be used in the same widget
     - Related to previous, look for ways to simplify widget setup. Default instance with common values?
+    - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
   - Keep sending mouse move event if mouse is away but button is still pressed
   - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
   - Add text selection/editing to textField
@@ -61,4 +75,84 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Replace Tree with Containers' Tree
+
+
+
+
+
+
+What we have
+============
+
+  Main
+    Collects System Events
+    Propagates System Events to Widgets
+    Updates Widget hierarchy
+    Collects App Events
+    Calls App Events Handler
+    Runs Widget Tasks
+    Runs User Tasks
+  Widget
+    Consumes System Events
+    Updates Internal State
+    Creates new copy on handleEvent
+    Generates App Events
+    Generates Widget Tasks
+  App
+    Consumes App Events
+    Generates User Tasks
+    Updates Model
+
+What we need/want
+=================
+
+Create Data records for different types of Widget:
+  StatelessWidget
+  StatefulWidget
+  StatelessContainer
+  StatefulContainer
+
+  Composite
+
+  Main
+    Collects System Events
+    Propagates System Events to Widgets
+    Updates Widget hierarchy
+    Collects App Events
+    Calls App Events Handler
+    Runs Widget Tasks
+    Runs User Tasks
+  Widget
+    Consumes System Events
+    Updates Internal State
+    Creates new copy on handleEvent
+    Generates App Events
+    Generates Widget Tasks
+  App
+    Consumes App Events
+    Generates User Tasks
+    Updates Model
+
+Widget
+  render
+    draws itself
+    calls children to draw themselves
+    returns ()
+  handleSystemEvent
+    handles own events
+    decides if event is handled by its children
+    returns
+      maybe widget tree (if changes where made)
+      app events
+      system requests
+      async tasks
+  handleTaskResult
+    returns
+      maybe widget tree (if changes where made)
+      app events
+      system requests
+      async tasks
+  mergeWith (receives current state)
+
+  preferredSize
+  resize

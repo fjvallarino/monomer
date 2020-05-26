@@ -8,6 +8,7 @@ module Monomer.Main.Types where
 import Control.Concurrent.Async
 import Control.Monad.State
 import Data.Typeable (Typeable)
+import Data.Sequence (Seq)
 import Lens.Micro.TH (makeLenses)
 
 import Monomer.Common.Types
@@ -16,7 +17,7 @@ import Monomer.Event.Types
 import Monomer.Widget.Types
 
 type MonomerM s e m = (MonadState (MonomerContext s e) m, MonadIO m, Eq s)
-type UIBuilder s e m = s -> WidgetNode s e m
+type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
 data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
@@ -32,10 +33,10 @@ data MonomerContext s e = MonomerContext {
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
   _inputStatus :: InputStatus,
-  _focusRing :: [Path],
+  _focusRing :: Seq Path,
   _latestHover :: Maybe Path,
   _userTasks :: [UserTask (Maybe e)],
-  _widgetTasks :: [WidgetTask]
+  _widgetTasks :: Seq WidgetTask
 }
 
 data UserTask e = UserTask {

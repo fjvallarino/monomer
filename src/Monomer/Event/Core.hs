@@ -1,5 +1,9 @@
 module Monomer.Event.Core where
 
+import Data.Traversable
+import Data.Sequence (Seq(..), (<|), (|>), (><))
+
+import qualified Data.Sequence as Seq
 import qualified SDL
 
 import Monomer.Common.Types
@@ -21,29 +25,42 @@ checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False
 
-isIgnoreParentEvents :: EventRequest -> Bool
+isCustomHandler :: EventRequest s -> Bool
+isCustomHandler (RunCustom _ _) = True
+isCustomHandler _ = False
+
+isIgnoreParentEvents :: EventRequest s -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
 isIgnoreParentEvents _ = False
 
-isIgnoreChildrenEvents :: EventRequest -> Bool
+isIgnoreChildrenEvents :: EventRequest s -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
-isResizeChildren :: EventRequest -> Bool
-isResizeChildren ResizeChildren = True
+isResizeChildren :: EventRequest s -> Bool
+isResizeChildren (ResizeChildren _) = True
 isResizeChildren _ = False
 
-isResizeAll :: EventRequest -> Bool
+isResizeAll :: EventRequest s -> Bool
 isResizeAll ResizeAll = True
 isResizeAll _ = False
 
-isGetClipboard :: EventRequest -> Bool
-isGetClipboard GetClipboard = True
+isGetClipboard :: EventRequest s -> Bool
+isGetClipboard (GetClipboard _) = True
 isGetClipboard _ = False
 
-isSetClipboard :: EventRequest -> Bool
+isSetClipboard :: EventRequest s -> Bool
 isSetClipboard (SetClipboard _) = True
 isSetClipboard _ = False
+
+isUpdateUserState :: EventRequest s -> Bool
+isUpdateUserState (UpdateUserState _) = True
+isUpdateUserState _ = False
+
+getUpdateUserStates :: (Traversable t) => t (EventRequest s) -> Seq (s -> s)
+getUpdateUserStates reqs = foldl foldHelper Seq.empty reqs where
+  foldHelper acc (UpdateUserState fn) = acc |> fn
+  foldHelper acc _ = acc
 
 isClipboardCopy :: SystemEvent -> Bool
 isClipboardCopy event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyC code)

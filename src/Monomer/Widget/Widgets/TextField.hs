@@ -19,9 +19,12 @@ import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widget.BaseWidget
+import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-import Monomer.Widget.Widgets.Base
+
+import qualified Monomer.Common.Tree as Tr
 
 caretWidth = 2
 
@@ -32,24 +35,31 @@ data TextFieldState = TextFieldState {
 
 emptyState = TextFieldState "" 0
 
-textField :: (Monad m) => Lens' s T.Text -> WidgetNode s e m
-textField userField = singleWidget $ makeTextField userField emptyState
+textField :: (Monad m) => Lens' s T.Text -> WidgetInstance s e m
+textField userField = makeInstance $ makeTextField userField emptyState
 
-{-- 
-Check caret logic in nanovg's demo: https://github.com/memononen/nanovg/blob/master/example/demo.c#L901
---}
+makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m
+makeInstance widget = (defaultWidgetInstance "textField" widget) {
+  _instanceFocusable = True
+}
+
 makeTextField :: (Monad m) => Lens' s T.Text -> TextFieldState -> Widget s e m
-makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
-    _widgetType = "textField",
-    _widgetFocusable = True,
-    _widgetRestoreState = restoreState,
-    _widgetSaveState = makeState tfs,
+makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
+    _widgetGetState = getState,
+    _widgetMerge = defaultMerge merge,
+
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren,
     _widgetRender = render
   }
   where
+    getState = makeState tfs
+    merge app oldState = makeTextField userField newState where
+      TextFieldState txt pos = fromMaybe emptyState (useState oldState)
+      appText = app ^. userField
+      newPos = if T.length appText < pos then T.length appText else pos
+      newState = TextFieldState appText newPos
+
     (part1, part2) = T.splitAt currPos currText
     handleKeyPress txt tp code
         | isKeyBackspace code && tp > 0 = (T.append (T.init part1) part2, tp - 1)
@@ -57,39 +67,39 @@ makeTextField userField tfs@(TextFieldState currText currPos) = baseWidget {
         | isKeyRight code && tp < T.length txt = (txt, tp + 1)
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
-    restoreState app st = if appText /= currText then newWidget else Nothing where
-      TextFieldState txt pos = fromMaybe emptyState (useState st)
-      appText = app ^. userField
-      newPos = if T.length appText < pos then T.length appText else pos
-      newWidget = Just $ makeTextField userField (TextFieldState appText newPos)
-    handleEvent app _ evt = case evt of
-      KeyAction mod code KeyPressed -> Just $ WidgetEventResult reqs [] (Just $ makeTextField userField newState) updateState where
+
+    handleEvent ctx evt app widgetInstance = case evt of
+      KeyAction mod code KeyPressed -> resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
-        reqGetClipboard = if isClipboardPaste evt then [GetClipboard] else []
+        reqGetClipboard = if isClipboardPaste evt then [GetClipboard (_pathCurrent ctx)] else []
         reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
-        reqUpdateUserState = if currText /= newText then [UpdateUserState] else []
+        reqUpdateUserState = if currText /= newText then [UpdateUserState $ \app -> app & userField .~ newText] else []
         newState = TextFieldState newText newPos
-        updateState app = app & userField .~ newText
-      TextInput newText -> insertText app newText
-      Clipboard (ClipboardText newText) -> insertText app newText
+        newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+      TextInput newText -> insertText app widgetInstance newText
+      Clipboard (ClipboardText newText) -> insertText app widgetInstance newText
       _ -> Nothing
-    insertText app addedText = Just $ WidgetEventResult [UpdateUserState] [] (Just $ makeTextField userField newState) updateState where
+
+    insertText app widgetInstance addedText = resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
-      updateState app = app & userField .~ newText
-    preferredSize renderer app (style@Style{..}) _ = do
+      newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+  
+    preferredSize renderer app widgetInstance = do
+      let Style{..} = _instanceStyle widgetInstance
+
       size <- calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
-      return $ sizeReq size FlexibleSize FlexibleSize
-    resizeChildren _ _ _ _ = Nothing
-    render renderer app WidgetInstance{..} ts =
-      let textStyle = _textStyle _widgetInstanceStyle
-          cursorAlpha = if _widgetInstanceFocused then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
+      return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
+
+    render renderer ts app WidgetInstance{..} =
+      let textStyle = _textStyle _instanceStyle
+          cursorAlpha = 0 -- if _instanceFocused then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
-          renderArea@(Rect rl rt rw rh) = _widgetInstanceRenderArea
+          renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do
-        drawBgRect renderer renderArea _widgetInstanceStyle
+        drawBgRect renderer renderArea _instanceStyle
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when True $ do

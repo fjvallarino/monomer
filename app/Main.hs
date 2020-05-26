@@ -121,8 +121,23 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
+buildUI app = styledTree where
+  buttonStyle = bgColor blue
+  widgetTree =
+    vstack [
+      sandbox RunLongTask `style` buttonStyle,
+      label "Hola" `style` bgColor lightGray,
+      label "como" `style` bgColor gray,
+      hgrid [
+        label "te" `style` bgColor darkGray,
+        label "va?"
+      ],
+      label (app ^. textField3)
+    ]
+  styledTree = cascadeStyle mempty widgetTree
+
 --buildUI :: App -> WidgetTree
-buildUI model = styledTree where
+buildUI2 model = styledTree where
   border1 = border 5 (rgb 0 255 0) 20
   border2 = borderLeft 20 (rgb 200 200 0) <> borderRight 20 (rgb 200 0 200)
   buttonStyle = bgColor (rgb 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20

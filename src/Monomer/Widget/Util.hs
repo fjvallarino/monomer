@@ -2,50 +2,56 @@
 
 module Monomer.Widget.Util where
 
+import Data.Default
 import Data.Typeable (cast, Typeable)
-
 import GHC.Generics
+
+import qualified Data.Sequence as Seq
 
 import Monomer.Common.Style
 import Monomer.Common.Types
 import Monomer.Common.Tree
+import Monomer.Event.Types
 import Monomer.Main.Types
-import Monomer.Widget.Internal
 import Monomer.Widget.Types
-import Monomer.Widget.Widgets.Base
+
+defaultWidgetInstance :: (Monad m) => WidgetType -> Widget s e m -> WidgetInstance s e m
+defaultWidgetInstance widgetType widget = WidgetInstance {
+  _instanceType = widgetType,
+  _instanceKey = Nothing,
+  _instanceWidget = widget,
+  _instanceChildren = Seq.empty,
+  _instanceEnabled = True,
+  _instanceVisible = True,
+  _instanceFocusable = False,
+  _instanceViewport = def,
+  _instanceRenderArea = def,
+  _instanceStyle = def
+}
 
 key :: (Monad m) => WidgetKey -> WidgetInstance s e m -> WidgetInstance s e m
-key key wn = wn { _widgetInstanceKey = Just key }
+key key wn = wn { _instanceKey = Just key }
 
-style :: (Monad m) => WidgetNode s e m -> Style -> WidgetNode s e m
-style (Node value children) newStyle = Node (value { _widgetInstanceStyle = newStyle }) children
+style :: (Monad m) => WidgetInstance s e m -> Style -> WidgetInstance s e m
+style widgetInstance newStyle = widgetInstance { _instanceStyle = newStyle }
 
-visible :: (Monad m) => WidgetNode s e m -> Bool -> WidgetNode s e m
-visible (Node value children) visibility = Node (value { _widgetInstanceVisible = visibility }) children
+visible :: (Monad m) => WidgetInstance s e m -> Bool -> WidgetInstance s e m
+visible widgetInstance visibility = widgetInstance { _instanceVisible = visibility }
 
-children :: (Monad m) => WidgetNode s e m -> [WidgetNode s e m] -> WidgetNode s e m
-children (Node value _) newChildren = fromList value newChildren
+children :: (Monad m) => WidgetInstance s e m -> [WidgetInstance s e m] -> WidgetInstance s e m
+children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.fromList newChildren }
 
 isFocusable :: (Monad m) => WidgetInstance s e m -> Bool
-isFocusable (WidgetInstance { _widgetInstanceWidget = Widget{..}, ..}) = _widgetInstanceVisible && _widgetInstanceEnabled && _widgetFocusable
+isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
 
-empty :: (Monad m) => WidgetNode s e m
-empty = singleWidget baseWidget
+resultEvents :: [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultEvents userEvents widgetInstance = Just $ EventResult Seq.empty (Seq.fromList userEvents) widgetInstance
 
-singleWidget :: (Monad m) => Widget s e m -> WidgetNode s e m
-singleWidget widget = singleton (defaultWidgetInstance widget)
+resultReqs :: [EventRequest s] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultReqs requests widgetInstance = Just $ EventResult (Seq.fromList requests) Seq.empty widgetInstance
 
-parentWidget :: (Monad m) => Widget s e m -> [WidgetNode s e m] -> WidgetNode s e m
-parentWidget widget = fromList (defaultWidgetInstance widget)
-
-sizeReq :: Size -> SizePolicy -> SizePolicy -> SizeReq
-sizeReq size policyWidth policyHeight = SizeReq size policyWidth policyHeight True
-
-resultEvents :: [e] -> Maybe (WidgetEventResult s e m)
-resultEvents userEvents = Just $ WidgetEventResult [] userEvents Nothing id
-
-resultEventsWidget :: [e] -> (Widget s e m) -> Maybe (WidgetEventResult s e m)
-resultEventsWidget userEvents newWidget = Just $ WidgetEventResult [] userEvents (Just newWidget) id
+resultReqsEvents :: [EventRequest s] -> [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultReqsEvents requests userEvents widgetInstance = Just $ EventResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
 makeState :: (Typeable i, Generic i) => i -> s -> Maybe WidgetState
 makeState state app = Just (WidgetState state)

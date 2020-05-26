@@ -4,6 +4,7 @@
 module Monomer.Widget.Widgets.Sandbox (sandbox) where
 
 import Control.Monad
+import Data.Maybe
 import Data.Typeable
 import Debug.Trace
 import GHC.Generics
@@ -15,51 +16,64 @@ import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
+import Monomer.Widget.BaseWidget
+import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-import Monomer.Widget.Widgets.Base
+
+import qualified Monomer.Common.Tree as Tr
 
 data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
 data SandboxState = SandboxState {
   _clickCount :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
-sandbox :: (Monad m) => e -> WidgetNode s e m
-sandbox onClick = singleWidget (makeSandbox onClick (SandboxState 0))
+sandbox :: (Monad m) => e -> WidgetInstance s e m
+sandbox onClick = makeInstance $ makeSandbox onClick (SandboxState 0)
+
+makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m
+makeInstance widget = defaultWidgetInstance "sandbox" widget
 
 makeSandbox :: (Monad m) => e -> SandboxState -> Widget s e m
-makeSandbox onClick state = baseWidget {
-    _widgetType = "button",
-    _widgetRestoreState = defaultRestoreState (makeSandbox onClick),
-    _widgetSaveState = makeState state,
+makeSandbox onClick state = createWidget {
+    _widgetGetState = getState,
+    _widgetMerge = defaultMerge merge,
     _widgetHandleEvent = handleEvent,
     _widgetHandleCustom = handleCustom,
     _widgetPreferredSize = preferredSize,
-    _widgetResizeChildren = resizeChildren,
     _widgetRender = render
   }
   where
-    handleEvent app view evt = case evt of
-      Click (Point x y) _ status -> Just $ WidgetEventResult requests events newWidget id where
-        isPressed = status == PressedBtn && inRect view (Point x y)
+    getState = makeState state
+    merge app oldState = makeSandbox onClick newState where
+      newState = fromMaybe state (useState oldState)
+
+    handleEvent ctx evt app widgetInstance = case evt of
+      Click (Point x y) _ status -> resultReqsEvents requests events newInstance where
+        isPressed = status == PressedBtn -- && inRect view (Point x y)
         events = if isPressed then [onClick] else []
-        requests = if isPressed then [RunCustom runCustom] else []
+        requests = if isPressed then [RunCustom (_pathCurrent ctx) runCustom] else []
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
-        newWidget = (Just $ makeSandbox onClick newState)
+        newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
       Move p -> Nothing --trace ("Move: " ++ show p) Nothing
       Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
       _ -> Nothing
+
     runCustom = do
       return SandboxData2
-    handleCustom app bd = case cast bd of
+
+    handleCustom ctx bd app widgetInstance = case cast bd of
       Just val -> if val == SandboxData2 then Nothing else Nothing
       Nothing -> Nothing
-    preferredSize renderer app (style@Style{..}) _ = do
+
+    preferredSize renderer app widgetInstance = do
+      let Style{..} = _instanceStyle widgetInstance
+
       size <- calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
-      return $ sizeReq size FlexibleSize FlexibleSize
-    resizeChildren _ _ _ _ = Nothing
-    render renderer app WidgetInstance{..} ts =
+      return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
+
+    render renderer ts app WidgetInstance{..} =
       do
-        drawBgRect renderer _widgetInstanceRenderArea _widgetInstanceStyle
-        drawText_ renderer _widgetInstanceRenderArea (_textStyle _widgetInstanceStyle) (T.pack (show (_clickCount state)))
+        drawBgRect renderer _instanceRenderArea _instanceStyle
+        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack (show (_clickCount state)))

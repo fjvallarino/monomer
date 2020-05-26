@@ -19,14 +19,15 @@ data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data ClipboardData = ClipboardEmpty | ClipboardText T.Text deriving (Eq, Show)
 
-data EventRequest = IgnoreParentEvents
-                  | IgnoreChildrenEvents
-                  | ResizeChildren
-                  | ResizeAll
-                  | GetClipboard
-                  | SetClipboard ClipboardData
-                  | UpdateUserState
-                  | forall a . Typeable a => RunCustom (IO a)
+data EventRequest s = IgnoreParentEvents
+                    | IgnoreChildrenEvents
+                    | ResizeChildren Path
+                    | ResizeAll
+                    -- | SetFocus Path
+                    | GetClipboard Path
+                    | SetClipboard ClipboardData
+                    | UpdateUserState (s -> s)
+                    | forall a . Typeable a => RunCustom Path (IO a)
 
 data SystemEvent = Click Point Button ButtonState
                  | WheelScroll Point Point WheelDirection
