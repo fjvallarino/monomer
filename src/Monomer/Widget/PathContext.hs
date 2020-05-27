@@ -26,6 +26,9 @@ moveToTarget ctx = fmap (addToCurrent ctx) (nextTargetStep ctx)
 addToCurrent :: PathContext -> PathStep -> PathContext
 addToCurrent ctx step = ctx { _pathCurrent = _pathCurrent ctx |> step }
 
+isFocused :: PathContext -> Bool
+isFocused ctx = _pathFocused ctx == _pathCurrent ctx
+
 isTargetReached :: PathContext -> Bool
 isTargetReached ctx = _pathTarget ctx == _pathCurrent ctx
 

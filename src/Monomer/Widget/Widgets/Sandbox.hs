@@ -73,7 +73,7 @@ makeSandbox onClick state = createWidget {
       size <- calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
       return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
 
-    render renderer ts app WidgetInstance{..} =
+    render renderer ts ctx app WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
         drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack (show (_clickCount state)))

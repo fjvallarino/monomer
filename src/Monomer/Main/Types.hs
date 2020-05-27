@@ -33,7 +33,7 @@ data MonomerContext s e = MonomerContext {
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
   _inputStatus :: InputStatus,
-  _focusRing :: Seq Path,
+  _focused :: Path,
   _latestHover :: Maybe Path,
   _userTasks :: [UserTask (Maybe e)],
   _widgetTasks :: Seq WidgetTask

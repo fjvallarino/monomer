@@ -93,9 +93,9 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
       size <- calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
       return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
 
-    render renderer ts app WidgetInstance{..} =
+    render renderer ts ctx app WidgetInstance{..} =
       let textStyle = _textStyle _instanceStyle
-          cursorAlpha = 0 -- if _instanceFocused then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
+          cursorAlpha = if isFocused ctx then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do

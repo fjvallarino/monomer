@@ -29,7 +29,7 @@ makeLabel caption = createWidget {
       size <- calcTextBounds renderer _textStyle (if caption == "" then " " else caption)
       return . singleton $ SizeReq size FlexibleSize FlexibleSize
 
-    render renderer ts app WidgetInstance{..} =
+    render renderer ts ctx app WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
         drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) caption

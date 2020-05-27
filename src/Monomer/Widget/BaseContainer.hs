@@ -77,7 +77,7 @@ containerNextFocusable ctx widgetInstance = nextFocus where
   children = _instanceChildren widgetInstance
   stepper idx child = (addToCurrent ctx idx, child)
   filterChildren (ctx, child) = isTargetBeforeCurrent ctx && not (isTargetReached ctx)
-  indexes = Seq.fromList [0..]
+  indexes = Seq.fromList [0..length children]
   pairs = Seq.zipWith stepper indexes children
   maybeFocused = fmap getFocused (Seq.filter filterChildren pairs)
   focusedPaths = fmap fromJust $ Seq.filter isJust maybeFocused
@@ -177,10 +177,14 @@ containerResize rHandler app viewport renderArea widgetInstance reqs = newInstan
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) app viewport renderArea child req
 
 -- | Rendering
-containerRender :: (Monad m) => Renderer m -> Timestamp -> s -> WidgetInstance s e m -> m ()
-containerRender renderer ts app widgetInstance =
-  forM_ (_instanceChildren widgetInstance) $ \child ->
-    when (_instanceVisible child) $ _widgetRender (_instanceWidget child) renderer ts app child
+containerRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
+containerRender renderer ts ctx app widgetInstance = do
+  let children = _instanceChildren widgetInstance
+  let indexes = Seq.fromList [0..length children]
+  let pairs = Seq.zip indexes children
+
+  forM_ pairs $ \(idx, child) ->
+    when (_instanceVisible child) $ _widgetRender (_instanceWidget child) renderer ts (addToCurrent ctx idx) app child
 
 -- | Event Handling Helpers
 ignoreChildren :: EventResult s e m -> Bool

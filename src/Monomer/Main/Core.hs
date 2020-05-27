@@ -31,6 +31,7 @@ import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Core
+import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widgets
@@ -47,9 +48,13 @@ runWidgets window c mapp = do
 
   windowSize .= newWindowSize
   ticks <- SDL.ticks
-  newUI <- doInDrawingContext window c $ updateUI renderer mapp empty
+  widgetRoot <- doInDrawingContext window c $ updateUI renderer mapp empty
 
-  mainLoop window c renderer mapp (fromIntegral ticks) 0 0 newUI
+  let newFocus = findNextFocusable rootPath widgetRoot
+
+  focused .= newFocus
+
+  mainLoop window c renderer mapp (fromIntegral ticks) 0 0 widgetRoot
 
 mainLoop :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> MonomerApp s e m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
 mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
@@ -85,7 +90,8 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
   newWidgets <- bindIf (currentApp /= newApp) (updateUI renderer mapp) seWidgets
             >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
 
-  renderWidgets window c renderer newApp newWidgets startTicks
+  currentFocus <- use focused
+  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) newApp newWidgets startTicks
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -113,10 +119,10 @@ reduceAppEvents appEventHandler app events = foldl reducer (app, []) events wher
     StateEvent newApp newEvent -> reducer (newApp, tasks) newEvent
     Task newApp task -> (newApp, task : tasks)
 
-renderWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> s -> WidgetInstance s e m -> Int -> m ()
-renderWidgets !window !c !renderer app widgetRoot ticks =
+renderWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> PathContext -> s -> WidgetInstance s e m -> Int -> m ()
+renderWidgets !window !c !renderer ctx app widgetRoot ticks =
   doInDrawingContext window c $ do
-    _widgetRender (_instanceWidget widgetRoot) renderer ticks app widgetRoot
+    _widgetRender (_instanceWidget widgetRoot) renderer ticks ctx app widgetRoot
 
 resizeUI :: (Monad m) => Renderer m -> s -> Rect -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeUI renderer app assignedRect widgetRoot = do
@@ -127,16 +133,12 @@ resizeUI renderer app assignedRect widgetRoot = do
 updateUI :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> WidgetInstance s e m -> m (WidgetInstance s e m)
 updateUI renderer mapp oldWidgets = do
   windowSize <- use windowSize
-  oldFocus <- getCurrentFocus
   app <- use appContext
 
   let newWidgets = _uiBuilder mapp app
   let mergedRoot = _widgetMerge (_instanceWidget newWidgets) app newWidgets oldWidgets
 
   resizeUI renderer app windowSize mergedRoot
-
-  --let paths = map snd $ filter (isFocusable . fst) $ collectPaths resizedUI []
-  --focusRing .= rotateUntil oldFocus paths
 
 resizeWindow :: (MonomerM s e m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeWindow window renderer app widgetRoot = do

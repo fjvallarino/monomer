@@ -64,5 +64,5 @@ defaultResize app viewport renderArea widgetInstance reqs = widgetInstance {
     _instanceRenderArea = renderArea
   }
 
-ignoreRender :: (Monad m) => Renderer m -> Timestamp -> s -> WidgetInstance s e m -> m ()
-ignoreRender renderer ts app widgetInstance = return ()
+ignoreRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
+ignoreRender renderer ts ctx app widgetInstance = return ()

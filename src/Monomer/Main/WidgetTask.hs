@@ -66,7 +66,7 @@ processCustomHandler mapp widgets (WidgetTask path task) = do
 processCustomHandlerResult :: (MonomerM s e m, Typeable a) => MonomerApp s e m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (WidgetInstance s e m, Seq e, Bool)
 processCustomHandlerResult mapp app widgetRoot _ (Left _) = return (widgetRoot, Seq.empty, False)
 processCustomHandlerResult mapp app widgetRoot path (Right val) = do
-  currentFocus <- getCurrentFocus
+  currentFocus <- use focused
 
   let ctx = PathContext currentFocus path rootPath
   let emptyResult = EventResult Seq.empty Seq.empty widgetRoot

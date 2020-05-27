@@ -96,10 +96,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = createContainer {
       areaH = max h ch2
       childViewport = Rect l t w h
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
-    render renderer ts app widgetInstance =
+    render renderer ts ctx app widgetInstance =
       do
         scissor renderer viewport
-        containerRender renderer ts app widgetInstance
+        containerRender renderer ts ctx app widgetInstance
         resetScissor renderer
 
         when (barRatioH < 1) $ do

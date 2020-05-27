@@ -90,7 +90,7 @@ data Widget s e m =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: Renderer m -> Timestamp -> s -> WidgetInstance s e m -> m ()
+    _widgetRender :: Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree

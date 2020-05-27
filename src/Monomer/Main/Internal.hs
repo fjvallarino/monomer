@@ -11,10 +11,10 @@ import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Widget.Types
 
-getCurrentFocus :: (MonomerM s e m) => m Path
-getCurrentFocus = do
-  ring <- use focusRing
-  return (if length ring > 0 then Seq.index ring 0 else Seq.empty)
+--getCurrentFocus :: (MonomerM s e m) => m Path
+--getCurrentFocus = do
+--  ring <- use focusRing
+--  return (if length ring > 0 then Seq.index ring 0 else Seq.empty)
 
 {--
 
