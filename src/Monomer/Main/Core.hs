@@ -7,6 +7,7 @@ import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
+import Control.Monad.State
 import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>), (><))
 import Lens.Micro.Mtl
@@ -48,11 +49,10 @@ runWidgets window c mapp = do
 
   windowSize .= newWindowSize
   ticks <- SDL.ticks
-  widgetRoot <- doInDrawingContext window c $ updateUI renderer mapp empty
+  ctx <- get
+  let widgetRoot = updateUI renderer mapp ctx empty
 
-  let newFocus = findNextFocusable rootPath widgetRoot
-
-  focused .= newFocus
+  focused .= findNextFocusable rootPath widgetRoot
 
   mainLoop window c renderer mapp (fromIntegral ticks) 0 0 widgetRoot
 
@@ -86,9 +86,12 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
   (seApp, seAppEvents, seWidgets) <- handleSystemEvents renderer mapp currentApp systemEvents wTasksWidgets
 
   newApp <- handleAppEvents mapp seApp (seAppEvents >< (Seq.fromList uTasksEvents) >< wTasksEvents)
+  mctx <- get
 
-  newWidgets <- bindIf (currentApp /= newApp) (updateUI renderer mapp) seWidgets
-            >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
+  let updatedWidgets = if currentApp /= newApp
+                          then updateUI renderer mapp mctx seWidgets
+                          else seWidgets
+  newWidgets <- return updatedWidgets >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
 
   currentFocus <- use focused
   renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) newApp newWidgets startTicks
@@ -102,6 +105,7 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
 
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer mapp startTicks newTsAccum newFrameCount newWidgets)
+
 
 handleAppEvents :: (MonomerM s e m) => MonomerApp s e m -> s -> Seq e -> m s
 handleAppEvents mapp app events = do
@@ -124,33 +128,29 @@ renderWidgets !window !c !renderer ctx app widgetRoot ticks =
   doInDrawingContext window c $ do
     _widgetRender (_instanceWidget widgetRoot) renderer ticks ctx app widgetRoot
 
-resizeUI :: (Monad m) => Renderer m -> s -> Rect -> WidgetInstance s e m -> m (WidgetInstance s e m)
-resizeUI renderer app assignedRect widgetRoot = do
-  preferredSizes <- _widgetPreferredSize (_instanceWidget widgetRoot) renderer app widgetRoot
+resizeUI :: (Monad m) => Renderer m -> s -> Rect -> WidgetInstance s e m -> WidgetInstance s e m
+resizeUI renderer app assignedRect widgetRoot = newWidgetRoot where
+  widget = _instanceWidget widgetRoot
+  preferredSizes = _widgetPreferredSize widget renderer app widgetRoot
+  newWidgetRoot = _widgetResize widget app assignedRect assignedRect widgetRoot preferredSizes
 
-  return $ _widgetResize (_instanceWidget widgetRoot) app assignedRect assignedRect widgetRoot preferredSizes
-
-updateUI :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> WidgetInstance s e m -> m (WidgetInstance s e m)
-updateUI renderer mapp oldWidgets = do
-  windowSize <- use windowSize
-  app <- use appContext
-
-  let newWidgets = _uiBuilder mapp app
-  let mergedRoot = _widgetMerge (_instanceWidget newWidgets) app newWidgets oldWidgets
-
-  resizeUI renderer app windowSize mergedRoot
+updateUI :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> MonomerContext s e -> WidgetInstance s e m -> WidgetInstance s e m
+updateUI renderer mapp mctx oldWidgets = resizeUI renderer app windowSize mergedRoot where
+  app = _appContext mctx
+  windowSize = _windowSize mctx
+  newWidgets = _uiBuilder mapp app
+  mergedRoot = _widgetMerge (_instanceWidget newWidgets) app newWidgets oldWidgets
 
 resizeWindow :: (MonomerM s e m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeWindow window renderer app widgetRoot = do
   dpr <- use devicePixelRate
   drawableSize <- getDrawableSize window
   newWindowSize <- getWindowSize window dpr
-  newRoot <- resizeUI renderer app newWindowSize widgetRoot
 
   windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _rw drawableSize) (round $ _rh drawableSize))
 
-  return newRoot
+  return $ resizeUI renderer app newWindowSize widgetRoot
 
 preProcessEvents :: (MonomerM s e m) => (WidgetInstance s e m) -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do

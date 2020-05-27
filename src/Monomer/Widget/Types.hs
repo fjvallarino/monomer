@@ -73,7 +73,7 @@ data Widget s e m =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e m -> m (Tree SizeReq),
+    _widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget

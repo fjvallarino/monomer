@@ -26,7 +26,7 @@ import qualified Monomer.Common.Tree as Tr
 
 type WidgetMergeHandler s e m = s -> Maybe WidgetState -> WidgetInstance s e m -> WidgetInstance s e m
 type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
-type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> m (Tr.Tree SizeReq)
+type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> Tr.Tree SizeReq
 type WidgetResizeHandler s e m = s -> Rect -> Rect -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> Seq (Rect, Rect)
 
 createContainer :: (Monad m) => Widget s e m
@@ -143,7 +143,7 @@ containerHandleCustom ctx arg app widgetInstance
 
 -- | Preferred size
 defaultPreferredSize :: WidgetPreferredSizeHandler s e m
-defaultPreferredSize renderer app childrenPairs = return (Tr.Node current childrenReqs) where
+defaultPreferredSize renderer app childrenPairs = Tr.Node current childrenReqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
     _sizePolicyWidth = FlexibleSize,
@@ -151,13 +151,10 @@ defaultPreferredSize renderer app childrenPairs = return (Tr.Node current childr
   }
   childrenReqs = fmap snd childrenPairs
 
-containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> m (Tr.Tree SizeReq)
-containerPreferredSize psHandler renderer app widgetInstance = do
-  let children = _instanceChildren widgetInstance
-
-  childrenReqs <- forM children $ \child -> _widgetPreferredSize (_instanceWidget child) renderer app child
-
-  psHandler renderer app (Seq.zip children childrenReqs)
+containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> Tr.Tree SizeReq
+containerPreferredSize psHandler renderer app widgetInstance = psHandler renderer app (Seq.zip children childrenReqs) where
+  children = _instanceChildren widgetInstance
+  childrenReqs = flip fmap children $ \child -> _widgetPreferredSize (_instanceWidget child) renderer app child
 
 -- | Resize
 defaultResize :: WidgetResizeHandler s e m

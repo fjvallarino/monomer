@@ -51,8 +51,8 @@ ignoreHandleEvent ctx evt app widgetInstance = Nothing
 ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
 ignoreHandleCustom ctx evt app widgetInstance = Nothing
 
-ignorePreferredSize :: (Monad m) => Renderer m -> s -> WidgetInstance s e m -> m (Tr.Tree SizeReq)
-ignorePreferredSize renderer app widgetInstance = return $ Tr.singleton SizeReq {
+ignorePreferredSize :: (Monad m) => Renderer m -> s -> WidgetInstance s e m -> Tr.Tree SizeReq
+ignorePreferredSize renderer app widgetInstance = Tr.singleton SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize

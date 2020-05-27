@@ -81,14 +81,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = createContainer {
                       then currScroll + reqDelta
                       else viewportLimit - childPos
 
-    --preferredSize renderer app childrenPairs = return (Tr.Node reqSize children) where
-    preferredSize renderer app childrenPairs = return (Tr.Node sizeReq childrenReqs) where
-      --reqsTree = fmap snd childrenPairs
-      --childrenReqs = fmap (Tr.nodeValue . snd) childrenPairs
+    preferredSize renderer app childrenPairs = Tr.Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = SizeReq (_sizeRequested . Tr.nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 
-    --resize app viewport renderArea childrenPairs = assignedAreas where
     resize app viewport renderArea childrenPairs = Seq.singleton (childViewport, childRenderArea) where
       Rect l t w h = viewport
       Size cw2 ch2 = _sizeRequested (Tr.nodeValue . snd $ Seq.index childrenPairs 0)

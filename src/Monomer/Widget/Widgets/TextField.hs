@@ -87,11 +87,10 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
       newState = TextFieldState newText newPos
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
   
-    preferredSize renderer app widgetInstance = do
-      let Style{..} = _instanceStyle widgetInstance
-
-      size <- calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
-      return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
+    preferredSize renderer app widgetInstance = Tr.singleton sizeReq where
+      Style{..} = _instanceStyle widgetInstance
+      size = calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
+      sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer ts ctx app WidgetInstance{..} =
       let textStyle = _textStyle _instanceStyle
@@ -103,6 +102,6 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when True $ do
-          Size sw sh <- calcTextBounds renderer textStyle (if part1 == "" then " " else part1)
+          let Size sw sh = calcTextBounds renderer textStyle (if part1 == "" then " " else part1)
           drawRect renderer (Rect (tl + sw) tt caretWidth sh) (Just textColor) Nothing
           return ()

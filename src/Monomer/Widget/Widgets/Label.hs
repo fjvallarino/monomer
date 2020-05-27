@@ -23,11 +23,10 @@ makeLabel caption = createWidget {
     _widgetRender = render
   }
   where
-    preferredSize renderer app widgetInstance = do
-      let Style{..} = _instanceStyle widgetInstance
-
-      size <- calcTextBounds renderer _textStyle (if caption == "" then " " else caption)
-      return . singleton $ SizeReq size FlexibleSize FlexibleSize
+    preferredSize renderer app widgetInstance = singleton sizeReq where
+      Style{..} = _instanceStyle widgetInstance
+      size = calcTextBounds renderer _textStyle (if caption == "" then " " else caption)
+      sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer ts ctx app WidgetInstance{..} =
       do

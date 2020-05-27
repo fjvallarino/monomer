@@ -67,11 +67,10 @@ makeSandbox onClick state = createWidget {
       Just val -> if val == SandboxData2 then Nothing else Nothing
       Nothing -> Nothing
 
-    preferredSize renderer app widgetInstance = do
-      let Style{..} = _instanceStyle widgetInstance
-
-      size <- calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
-      return . Tr.singleton $ SizeReq size FlexibleSize FlexibleSize
+    preferredSize renderer app widgetInstance = Tr.singleton sizeReq where
+      Style{..} = _instanceStyle widgetInstance
+      size = calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
+      sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer ts ctx app WidgetInstance{..} =
       do

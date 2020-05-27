@@ -32,7 +32,7 @@ makeStack isHorizontal = createContainer {
     focusable = False
     handleEvent _ _ _ = Nothing
 
-    preferredSize renderer app childrenPairs = return (Node reqSize childrenReqs) where
+    preferredSize renderer app childrenPairs = Node reqSize childrenReqs where
       reqSize = SizeReq (calcPreferredSize childrenPairs) FlexibleSize FlexibleSize
       childrenReqs = fmap snd childrenPairs
 

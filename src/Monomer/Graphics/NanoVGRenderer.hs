@@ -5,6 +5,7 @@ module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 import Control.Monad (when)
 import Control.Monad.IO.Class
 import Data.Default
+import System.IO.Unsafe
 
 import qualified Data.Text as T
 import qualified NanoVG as VG
@@ -114,8 +115,8 @@ makeRenderer c dpr = Renderer {..} where
 
     return $ Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
 
-  textBounds _ _ "" = return def
-  textBounds font fontSize message = do
+  textBounds _ _ "" = def
+  textBounds font fontSize message = unsafePerformIO $ do
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac $ fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 message

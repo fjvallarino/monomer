@@ -33,11 +33,10 @@ makeButton label onClick = createWidget {
         events = if isPressed then [onClick] else []
       _ -> Nothing
 
-    preferredSize renderer app widgetInstance = do
-      let Style{..} = _instanceStyle widgetInstance
-
-      size <- calcTextBounds renderer _textStyle label
-      return $ singleton (SizeReq size FlexibleSize FlexibleSize)
+    preferredSize renderer app widgetInstance = singleton sizeReq where
+      Style{..} = _instanceStyle widgetInstance
+      size = calcTextBounds renderer _textStyle label
+      sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer ts ctx app WidgetInstance{..} =
       do

@@ -169,7 +169,7 @@ drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m (
 drawText_ renderer viewport style txt = do
   void $ drawText renderer viewport style txt
 
-calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> T.Text -> m Size
+calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> T.Text -> Size
 calcTextBounds renderer Nothing txt = calcTextBounds renderer (Just mempty) txt
 calcTextBounds renderer (Just TextStyle{..}) txt =
   let
