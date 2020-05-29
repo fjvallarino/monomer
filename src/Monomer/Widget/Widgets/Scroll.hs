@@ -6,8 +6,8 @@ module Monomer.Widget.Widgets.Scroll (scroll) where
 
 import Control.Monad
 import Data.Default
+import Data.Maybe
 import Data.Typeable
-import Debug.Trace
 import GHC.Generics
 
 import qualified Data.Sequence as Seq
@@ -48,7 +48,7 @@ makeScroll :: (Monad m) => ScrollState -> Widget s e m
 makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = scrollResize, -- containerResize resize,
+    _widgetResize = scrollResize Nothing, -- containerResize resize,
     _widgetRender = render
   }
   where
@@ -86,13 +86,13 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
     rebuildWidget app newState widgetInstance reqs = newInstance where
       newWidget = makeScroll newState
       tempInstance = widgetInstance { _instanceWidget = newWidget }
-      newInstance = _widgetResize newWidget app (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
+      newInstance = scrollResize (Just newWidget) app (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
 
     preferredSize renderer app childrenPairs = Tr.Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = SizeReq (_sizeRequested . Tr.nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 
-    scrollResize app viewport renderArea widgetInstance reqs = newInstance where
+    scrollResize updatedWidget app viewport renderArea widgetInstance reqs = newInstance where
       Rect l t w h = renderArea
       child = Seq.index (_instanceChildren widgetInstance) 0
       childReq = Seq.index (Tr.nodeChildren reqs) 0
@@ -102,7 +102,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       areaH = max h ch2
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
 
-      newWidget = makeScroll $ ScrollState dx dy (Size areaW areaH) reqs
+      newWidget = fromMaybe (makeScroll $ ScrollState dx dy (Size areaW areaH) reqs) updatedWidget
       newChildWidget = _widgetResize (_instanceWidget child) app viewport childRenderArea child childReq
 
       newInstance = widgetInstance {
