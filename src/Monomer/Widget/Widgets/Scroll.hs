@@ -39,7 +39,7 @@ scroll managedWidget = makeInstance (makeScroll defaultState) managedWidget
 makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m -> WidgetInstance s e m
 makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
   _instanceChildren = Seq.singleton managedWidget,
-  _instanceFocusable = True
+  _instanceFocusable = False
 }
 
 makeScroll :: (Monad m) => ScrollState -> Widget s e m
@@ -85,13 +85,19 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch)) = createContainer {
       childrenReqs = fmap snd childrenPairs
       sizeReq = SizeReq (_sizeRequested . Tr.nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 
-    resize app viewport renderArea childrenPairs = Seq.singleton (childViewport, childRenderArea) where
-      Rect l t w h = viewport
+    resize app viewport renderArea widgetInstance childrenPairs = (newWidgetInstance, assignedArea) where
+      Rect l t w h = renderArea
       Size cw2 ch2 = _sizeRequested (Tr.nodeValue . snd $ Seq.index childrenPairs 0)
       areaW = max w cw2
       areaH = max h ch2
+      newWidget = makeScroll (ScrollState dx dy (Size areaW areaH))
+      newWidgetInstance = widgetInstance {
+        _instanceWidget = newWidget
+      }
       childViewport = Rect l t w h
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
+      assignedArea = Seq.singleton (childViewport, childRenderArea)
+
     render renderer ts ctx app widgetInstance =
       do
         scissor renderer viewport

@@ -127,22 +127,70 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
-buildUI app = styledTree where
-  buttonStyle = bgColor blue
+buildUI model = widgetTree where
   widgetTree =
     vstack [
-      textField textField1,
-      textField textField2,
-      button "Update" RunShortTask `style` buttonStyle,
-      label "Hola" `style` bgColor lightGray,
-      label "como" `style` bgColor gray,
-      hgrid [
-        label "te" `style` bgColor darkGray,
-        label "va?"
-      ],
-      label (app ^. textField3)
+      label "This is label 1" `style` bgColor blue,
+      label "This is label 2" `style` bgColor black,
+      label "This is label 3" `style` bgColor blue,
+      flip style (sheight 300) $ scroll $ vstack [
+        label "This is label in scroll 01" `style` bgColor lightGray,
+        label "This is label in scroll 02" `style` bgColor gray,
+        label "This is label in scroll 03" `style` bgColor darkGray,
+        label "This is label in scroll 04" `style` bgColor lightGray,
+        label "This is label in scroll 05" `style` bgColor gray,
+        label "This is label in scroll 06" `style` bgColor darkGray,
+        label "This is label in scroll 07" `style` bgColor lightGray,
+        label "This is label in scroll 08" `style` bgColor gray,
+        label "This is label in scroll 09" `style` bgColor darkGray,
+        label "This is label in scroll 10" `style` bgColor lightGray,
+        label "This is label in scroll 11" `style` bgColor gray,
+        label "This is label in scroll 12" `style` bgColor darkGray,
+        label "This is label in scroll 13" `style` bgColor lightGray,
+        label "This is label in scroll 14" `style` bgColor gray,
+        label "This is label in scroll 15" `style` bgColor darkGray,
+        label "This is label in scroll 16" `style` bgColor lightGray,
+        label "This is label in scroll 17" `style` bgColor gray,
+        label "This is label in scroll 18" `style` bgColor darkGray
+      ]
     ]
-  styledTree = cascadeStyle mempty widgetTree
+
+--buildUI app = styledTree where
+--  labelScroll1 = bgColor lightBlue <> textSize 36
+--  labelScroll2 = bgColor blue <> textSize 36
+--  labelScroll3 = bgColor darkBlue <> textSize 36
+--  buttonStyle = bgColor blue
+--  widgetTree =
+--    vstack [
+--      label "This is a label" `style` bgColor lightGray,
+--      label "This, too" `style` bgColor gray,
+--      (scroll $ vstack [
+--        label "Label 01" `style` labelScroll1,
+--        label "Label 02" `style` labelScroll2,
+--        label "Label 03" `style` labelScroll3,
+--        label "Label 04" `style` labelScroll1,
+--        label "Label 05" `style` labelScroll2,
+--        label "Label 06" `style` labelScroll3,
+--        label "Label 07" `style` labelScroll1,
+--        label "Label 08" `style` labelScroll2,
+--        label "Label 09" `style` labelScroll3,
+--        label "Label 10" `style` labelScroll1,
+--        label "Label 11" `style` labelScroll2,
+--        label "Label 12" `style` labelScroll3,
+--        label "Label 13" `style` labelScroll1,
+--        label "Label 14" `style` labelScroll2,
+--        label "Label 15" `style` labelScroll3,
+--        label "Label 16" `style` labelScroll1,
+--        label "Label 17" `style` labelScroll2,
+--        label "Label 18" `style` labelScroll3,
+--        label "Label 19" `style` labelScroll1,
+--        label "Label 20" `style` labelScroll2,
+--        label "Label 21" `style` labelScroll3
+--      ]) `style` sheight 200,
+--      label (app ^. textField3),
+--      button "Update" RunShortTask `style` buttonStyle
+--    ]
+--  styledTree = cascadeStyle mempty widgetTree
 
 --buildUI :: App -> WidgetTree
 buildUI2 model = styledTree where

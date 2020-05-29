@@ -3,6 +3,7 @@
 module Monomer.Widget.Util where
 
 import Data.Default
+import Data.Maybe
 import Data.Typeable (cast, Typeable)
 import GHC.Generics
 
@@ -62,3 +63,16 @@ useState (Just (WidgetState state)) = cast state
 
 defaultRestoreState :: (Monad m, Typeable i, Generic i) => (i -> Widget s e m) -> s -> Maybe WidgetState -> Maybe (Widget s e m)
 defaultRestoreState makeState _ oldState = fmap makeState $ useState oldState
+
+updateSizeReq :: SizeReq -> WidgetInstance s e m -> SizeReq
+updateSizeReq sizeReq widgetInstance = newSizeReq where
+  width = _fixedWidth . _instanceStyle $ widgetInstance
+  height = _fixedHeight . _instanceStyle $ widgetInstance
+  tempSizeReq = if isNothing width then sizeReq else sizeReq {
+    _sizeRequested = Size (fromJust width) (_w . _sizeRequested $ sizeReq),
+    _sizePolicyWidth = StrictSize
+  }
+  newSizeReq = if isNothing height then tempSizeReq else tempSizeReq {
+    _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
+    _sizePolicyHeight = StrictSize
+  }

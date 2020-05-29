@@ -21,13 +21,14 @@ import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
+import Monomer.Widget.Util
 
 import qualified Monomer.Common.Tree as Tr
 
 type WidgetMergeHandler s e m = s -> Maybe WidgetState -> WidgetInstance s e m -> WidgetInstance s e m
 type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> Tr.Tree SizeReq
-type WidgetResizeHandler s e m = s -> Rect -> Rect -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> Seq (Rect, Rect)
+type WidgetResizeHandler s e m = s -> Rect -> Rect -> WidgetInstance s e m -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> (WidgetInstance s e m, Seq (Rect, Rect))
 
 createContainer :: (Monad m) => Widget s e m
 createContainer = Widget {
@@ -154,22 +155,25 @@ defaultPreferredSize renderer app childrenPairs = Tr.Node current childrenReqs w
 containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> Tr.Tree SizeReq
 containerPreferredSize psHandler renderer app widgetInstance = psHandler renderer app (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
-  childrenReqs = flip fmap children $ \child -> _widgetPreferredSize (_instanceWidget child) renderer app child
+  childrenReqs = flip fmap children updateChild
+  updateChild child = Node (updateSizeReq req child) reqs where
+    Node req reqs = _widgetPreferredSize (_instanceWidget child) renderer app child
 
 -- | Resize
 defaultResize :: WidgetResizeHandler s e m
-defaultResize app viewport renderArea childrenReqs = Seq.replicate (Seq.length childrenReqs) (def, def)
+defaultResize app viewport renderArea widgetInstance childrenReqs = (widgetInstance, childrenSizes) where
+  childrenSizes = Seq.replicate (Seq.length childrenReqs) (def, def)
 
 containerResize :: (Monad m) => WidgetResizeHandler s e m -> s -> Rect -> Rect -> WidgetInstance s e m -> Tr.Tree SizeReq -> WidgetInstance s e m
 containerResize rHandler app viewport renderArea widgetInstance reqs = newInstance where
-  newInstance = widgetInstance {
+  newInstance = tempInstance {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea,
     _instanceChildren = newChildren
   }
   children = _instanceChildren widgetInstance
   childrenReqs = nodeChildren reqs
-  assignedAreas = rHandler app viewport renderArea (Seq.zip children childrenReqs)
+  (tempInstance, assignedAreas) = rHandler app viewport renderArea widgetInstance (Seq.zip children childrenReqs)
   newChildren = flip fmap (Seq.zip3 children childrenReqs assignedAreas) $
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) app viewport renderArea child req
 

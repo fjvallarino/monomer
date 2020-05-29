@@ -29,16 +29,12 @@ makeStack isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    focusable = False
-    handleEvent _ _ _ = Nothing
-
     preferredSize renderer app childrenPairs = Node reqSize childrenReqs where
       reqSize = SizeReq (calcPreferredSize childrenPairs) FlexibleSize FlexibleSize
       childrenReqs = fmap snd childrenPairs
 
-    resize app viewport renderArea childrenPairs = Seq.zip newViewports newViewports where
-      --childrenReqs
-      Rect l t w h = viewport
+    resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+      Rect l t w h = renderArea
       visibleChildren = Seq.filter (_instanceVisible . fst) childrenPairs
       policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight
       sizeSelector = if isHorizontal then _w else _h
@@ -59,6 +55,7 @@ makeStack isHorizontal = createContainer {
       remainderTotal = mSize - (sSize + fSize * fRatio)
       remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
       newViewports = Seq.reverse revViewports
+      assignedArea = Seq.zip newViewports newViewports
       (revViewports, _) = foldl foldHelper (Seq.empty, mStart) childrenPairs
       foldHelper (accum, offset) childPair = (newSize <| accum, offset + rectSelector newSize) where
         newSize = resizeChild offset childPair

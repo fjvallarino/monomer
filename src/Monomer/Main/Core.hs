@@ -106,7 +106,6 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer mapp startTicks newTsAccum newFrameCount newWidgets)
 
-
 handleAppEvents :: (MonomerM s e m) => MonomerApp s e m -> s -> Seq e -> m s
 handleAppEvents mapp app events = do
   let (newApp, tasks) = reduceAppEvents (_appEventHandler mapp) app events
@@ -135,11 +134,12 @@ resizeUI renderer app assignedRect widgetRoot = newWidgetRoot where
   newWidgetRoot = _widgetResize widget app assignedRect assignedRect widgetRoot preferredSizes
 
 updateUI :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> MonomerContext s e -> WidgetInstance s e m -> WidgetInstance s e m
-updateUI renderer mapp mctx oldWidgets = resizeUI renderer app windowSize mergedRoot where
+updateUI renderer mapp mctx oldRoot = resizeUI renderer app windowSize styledRoot where
   app = _appContext mctx
   windowSize = _windowSize mctx
-  newWidgets = _uiBuilder mapp app
-  mergedRoot = _widgetMerge (_instanceWidget newWidgets) app newWidgets oldWidgets
+  newRoot = _uiBuilder mapp app
+  mergedRoot = _widgetMerge (_instanceWidget newRoot) app newRoot oldRoot
+  styledRoot = cascadeStyle mempty mergedRoot
 
 resizeWindow :: (MonomerM s e m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeWindow window renderer app widgetRoot = do
