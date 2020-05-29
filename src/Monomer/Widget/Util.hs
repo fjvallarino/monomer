@@ -45,6 +45,9 @@ children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.f
 isFocusable :: (Monad m) => WidgetInstance s e m -> Bool
 isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
 
+resultWidget :: WidgetInstance s e m -> Maybe (EventResult s e m)
+resultWidget widgetInstance = Just $ EventResult Seq.empty Seq.empty widgetInstance
+
 resultEvents :: [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
 resultEvents userEvents widgetInstance = Just $ EventResult Seq.empty (Seq.fromList userEvents) widgetInstance
 

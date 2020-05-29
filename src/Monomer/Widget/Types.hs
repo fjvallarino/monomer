@@ -3,6 +3,7 @@
 
 module Monomer.Widget.Types where
 
+import Data.Default
 import Data.Typeable (cast, Typeable)
 import GHC.Generics
 
@@ -29,6 +30,9 @@ data SizeReq = SizeReq {
   _sizePolicyWidth :: SizePolicy,
   _sizePolicyHeight :: SizePolicy
 } deriving (Show, Eq)
+
+instance Default SizeReq where
+  def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
 
 data EventResult s e m = EventResult {
   _eventResultRequest :: SQ.Seq (EventRequest s),

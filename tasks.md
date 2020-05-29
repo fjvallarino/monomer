@@ -36,10 +36,10 @@
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
   - Current massive refactor
-    - Replace Tree with Containers' Tree
-    - Fix issue with event handling (click makes everything disappear)
-    - Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
-    - Provide focus to render (needed by textField)
+    - + Replace Tree with Containers' Tree
+    - + Fix issue with event handling (click makes everything disappear)
+    - + Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
+    - + Provide focus to render (needed by textField)
     - Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
     - Check if WidgetState is really needed
     - Can we generalize _widgetFind?
@@ -48,6 +48,7 @@
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
     - Handle SetFocus request
+  - Fix scroll click navigation
   - Replace Default instances for Monoid, if possible
   - Improve merge process. Implement Global keys
   - Improve hstack/vstack
