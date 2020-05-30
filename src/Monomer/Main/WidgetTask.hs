@@ -2,7 +2,7 @@
 
 module Monomer.Main.WidgetTask where
 
-import Control.Concurrent.Async (async, poll)
+import Control.Concurrent.Async (poll)
 import Control.Exception.Base
 import Control.Monad
 import Control.Monad.Extra
@@ -21,6 +21,8 @@ import Monomer.Common.Util
 import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
+import Monomer.Graphics.Renderer
+import Monomer.Main.Handlers
 import Monomer.Main.Internal
 import Monomer.Main.Util
 import Monomer.Main.Types
@@ -28,53 +30,36 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-launchWidgetTasks :: (MonomerM s e m) => Seq (EventRequest s) -> m ()
-launchWidgetTasks eventRequests = do
-  let customHandlers = Seq.filter isCustomHandler eventRequests
-
-  tasks <- forM customHandlers $ \(RunCustom path handler) -> do
-    asyncTask <- liftIO $ async (liftIO handler)
-
-    return $ WidgetTask path asyncTask
-
-  previousTasks <- use widgetTasks
-  widgetTasks .= previousTasks >< tasks
-
-checkWidgetTasks :: (MonomerM s e m) => MonomerApp s e m -> WidgetInstance s e m -> m (WidgetInstance s e m, Seq e, Bool)
-checkWidgetTasks mapp widgets = do
+handleWidgetTasks :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleWidgetTasks renderer mapp app widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM (\(WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) (toList tasks)
   widgetTasks .= Seq.fromList active
 
-  processCustomHandlers mapp widgets finished
+  processWidgetTasks renderer mapp app widgetRoot finished
 
-processCustomHandlers :: (MonomerM s e m) => MonomerApp s e m -> WidgetInstance s e m -> [WidgetTask] -> m (WidgetInstance s e m, Seq e, Bool)
-processCustomHandlers mapp widgets tasks = foldM reducer (widgets, Seq.empty, False) tasks where
-  reducer (ws, es, resize) task = do
-    (ws2, es2, resize2) <- processCustomHandler mapp ws task
-    return (ws2, es >< es2, resize || resize2)
+processWidgetTasks :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> WidgetInstance s e m -> [WidgetTask] -> m (HandlerStep s e m)
+processWidgetTasks renderer mapp app widgetRoot tasks = foldM reducer (app, Seq.empty, widgetRoot) tasks where
+  reducer (wApp, wEvts, wRoot) task = do
+    (wApp2, wEvts2, wRoot2) <- processWidgetTask renderer mapp wApp wRoot task
+    return (wApp2, wEvts >< wEvts2, wRoot2)
 
-processCustomHandler :: (MonomerM s e m) => MonomerApp s e m -> WidgetInstance s e m -> WidgetTask -> m (WidgetInstance s e m, Seq e, Bool)
-processCustomHandler mapp widgets (WidgetTask path task) = do
+processWidgetTask :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> WidgetInstance s e m -> WidgetTask -> m (HandlerStep s e m)
+processWidgetTask renderer mapp app widgetRoot (WidgetTask path task) = do
   app <- use appContext
   taskStatus <- liftIO $ poll task
 
   if (isJust taskStatus)
-    then processCustomHandlerResult mapp app widgets path (fromJust taskStatus)
-    else return (widgets, Seq.empty, False)
+    then processWidgetTaskResult renderer mapp app widgetRoot path (fromJust taskStatus)
+    else return (app, Seq.empty, widgetRoot)
 
-processCustomHandlerResult :: (MonomerM s e m, Typeable a) => MonomerApp s e m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (WidgetInstance s e m, Seq e, Bool)
-processCustomHandlerResult mapp app widgetRoot _ (Left _) = return (widgetRoot, Seq.empty, False)
-processCustomHandlerResult mapp app widgetRoot path (Right val) = do
+processWidgetTaskResult :: (MonomerM s e m, Typeable a) => Renderer m -> MonomerApp s e m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (HandlerStep s e m)
+processWidgetTaskResult renderer mapp app widgetRoot _ (Left _) = return (app, Seq.empty, widgetRoot)
+processWidgetTaskResult renderer mapp app widgetRoot path (Right val) = do
   currentFocus <- use focused
 
   let ctx = PathContext currentFocus path rootPath
   let emptyResult = EventResult Seq.empty Seq.empty widgetRoot
-  let EventResult eventRequests appEvents newWidgetRoot = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx val app widgetRoot
-  let resizeRequested = isJust $ Seq.findIndexL isResizeChildren eventRequests
-  let newStates = getUpdateUserStates eventRequests
+  let eventResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx val app widgetRoot
 
-  appContext %= compose newStates
-  launchWidgetTasks eventRequests
-
-  return (newWidgetRoot, appEvents, resizeRequested)
+  handleEventResult renderer mapp ctx app eventResult

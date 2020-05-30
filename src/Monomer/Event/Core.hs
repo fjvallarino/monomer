@@ -37,14 +37,6 @@ isIgnoreChildrenEvents :: EventRequest s -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
-isResizeChildren :: EventRequest s -> Bool
-isResizeChildren (ResizeChildren _) = True
-isResizeChildren _ = False
-
-isResizeAll :: EventRequest s -> Bool
-isResizeAll ResizeAll = True
-isResizeAll _ = False
-
 isGetClipboard :: EventRequest s -> Bool
 isGetClipboard (GetClipboard _) = True
 isGetClipboard _ = False

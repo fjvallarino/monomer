@@ -38,7 +38,7 @@ isTargetValid ctx children = case nextTargetStep ctx of
   Nothing -> False
 
 isTargetBeforeCurrent :: PathContext -> Bool
-isTargetBeforeCurrent ctx@PathContext{..} = targetPrefix < _pathCurrent where
+isTargetBeforeCurrent ctx@PathContext{..} = targetPrefix <= _pathCurrent where
   lenTarget = Seq.length _pathTarget
   lenCurrent = Seq.length _pathCurrent
   targetPrefix = if lenTarget > lenCurrent

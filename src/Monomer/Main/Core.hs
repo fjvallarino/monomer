@@ -27,6 +27,7 @@ import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.Types
+import Monomer.Main.Handlers
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
@@ -57,7 +58,7 @@ runWidgets window c mapp = do
   mainLoop window c renderer mapp (fromIntegral ticks) 0 0 widgetRoot
 
 mainLoop :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> MonomerApp s e m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
-mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
+mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgetRoot = do
   windowSize <- use windowSize
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
@@ -80,21 +81,21 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
   currentApp <- use appContext
-  systemEvents <- preProcessEvents widgets baseSystemEvents
+  systemEvents <- preProcessEvents widgetRoot baseSystemEvents
   uTasksEvents <- checkUserTasks
-  (wTasksWidgets, wTasksEvents, wTasksResize) <- checkWidgetTasks mapp widgets
-  (seApp, seAppEvents, seWidgets) <- handleSystemEvents renderer mapp currentApp systemEvents wTasksWidgets
+  (wtApp, wtAppEvents, wtWidgetRoot) <- handleWidgetTasks renderer mapp currentApp widgetRoot
+  (seApp, seAppEvents, seWidgetRoot) <- handleSystemEvents renderer mapp wtApp systemEvents wtWidgetRoot
 
-  newApp <- handleAppEvents mapp seApp (seAppEvents >< (Seq.fromList uTasksEvents) >< wTasksEvents)
+  newApp <- handleAppEvents mapp seApp (seAppEvents >< (Seq.fromList uTasksEvents) >< wtAppEvents)
   mctx <- get
 
-  let updatedWidgets = if currentApp /= newApp
-                          then updateUI renderer mapp mctx seWidgets
-                          else seWidgets
-  newWidgets <- return updatedWidgets >>= bindIf (resized || wTasksResize) (resizeWindow window renderer newApp)
+  let tempWidgetRoot = if currentApp /= newApp
+                          then updateUI renderer mapp mctx seWidgetRoot
+                          else seWidgetRoot
+  newWidgetRoot <- return tempWidgetRoot >>= bindIf resized (resizeWindow window renderer newApp)
 
   currentFocus <- use focused
-  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) newApp newWidgets startTicks
+  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) newApp newWidgetRoot startTicks
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -104,7 +105,7 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgets = do
   let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
 
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window c renderer mapp startTicks newTsAccum newFrameCount newWidgets)
+  unless quit (mainLoop window c renderer mapp startTicks newTsAccum newFrameCount newWidgetRoot)
 
 handleAppEvents :: (MonomerM s e m) => MonomerApp s e m -> s -> Seq e -> m s
 handleAppEvents mapp app events = do

@@ -127,12 +127,17 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
-buildUI model = widgetTree where
+buildUI app = widgetTree where
   widgetTree =
     vstack [
       label "This is label 1" `style` bgColor blue,
       label "This is label 2" `style` bgColor black,
       label "This is label 3" `style` bgColor blue,
+      hstack [
+        textField textField1,
+        button "Update state" (UpdateText3 $ app ^. textField1),
+        textField textField3
+      ],
       flip style (sheight 300) $ scroll $ vstack [
         label "This is label in scroll 01" `style` bgColor lightGray,
         label "This is label in scroll 02" `style` bgColor gray,
