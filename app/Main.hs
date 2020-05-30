@@ -24,8 +24,8 @@ import qualified SDL
 import qualified SDL.Raw.Error as SRE
 import qualified SDL.Raw.Event as SREv
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 import Monomer.Main.Core

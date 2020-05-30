@@ -12,9 +12,8 @@ import Data.Sequence (Seq, (<|), (><))
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Common.Types
-import Monomer.Common.Util
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer

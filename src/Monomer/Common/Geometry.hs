@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Common.Types where
+module Monomer.Common.Geometry where
 
 import Data.Default
 import Lens.Micro.TH (makeLenses)
@@ -35,3 +35,11 @@ instance Default Rect where
 makeLenses ''Point
 makeLenses ''Size
 makeLenses ''Rect
+
+inRect :: Rect -> Point -> Bool
+inRect (Rect x y w h) (Point x2 y2) = (x2 >= x && x2 < x + w) && (y2 >= y && y2 < y + h)
+
+midPoint :: Point -> Point -> Point
+midPoint (Point x1 y1) (Point x2 y2) = Point x3 y3 where
+  x3 = (x2 + x1) / 2
+  y3 = (y2 + y1) / 2

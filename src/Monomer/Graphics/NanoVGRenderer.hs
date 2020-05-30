@@ -10,7 +10,7 @@ import System.IO.Unsafe
 import qualified Data.Text as T
 import qualified NanoVG as VG
 
-import Monomer.Common.Types
+import Monomer.Common.Geometry
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 

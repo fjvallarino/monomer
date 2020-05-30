@@ -7,8 +7,8 @@ import Data.Default
 import Data.Maybe
 import Data.Typeable (Typeable, cast)
 
+import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Common.Types
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext

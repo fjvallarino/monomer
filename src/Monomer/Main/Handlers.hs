@@ -13,8 +13,7 @@ import qualified Data.List as L
 import qualified Data.Sequence as Seq
 import qualified SDL
 
-import Monomer.Common.Types
-import Monomer.Common.Util
+import Monomer.Common.Geometry
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types

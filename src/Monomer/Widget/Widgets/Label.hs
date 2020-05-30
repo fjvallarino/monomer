@@ -6,9 +6,9 @@ import Control.Monad
 
 import qualified Data.Text as T
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
-import Monomer.Common.Types
 import Monomer.Graphics.Drawing
 import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types

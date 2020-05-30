@@ -8,8 +8,8 @@ import Data.Sequence ((<|))
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Common.Types
 import Monomer.Widget.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Util

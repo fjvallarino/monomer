@@ -19,8 +19,7 @@ import qualified SDL
 import qualified Data.Sequence as Seq
 import qualified NanoVG as NV
 
-import Monomer.Common.Types
-import Monomer.Common.Util
+import Monomer.Common.Geometry
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Main.Handlers

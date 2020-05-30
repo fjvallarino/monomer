@@ -7,8 +7,8 @@ import Data.Default
 import Data.Sequence (Seq)
 import Data.Typeable (cast, Typeable)
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.Types
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer

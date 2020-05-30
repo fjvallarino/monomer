@@ -8,9 +8,8 @@ import Control.Monad (when, void)
 import Data.Default
 import Data.Maybe
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.Types
-import Monomer.Common.Util
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Graphics.Util

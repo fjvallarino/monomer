@@ -6,7 +6,7 @@ import Control.Monad
 
 import qualified Data.Text as T
 
-import Monomer.Common.Types
+import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 

@@ -7,7 +7,6 @@ import Data.Default
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
-import Monomer.Common.Util
 import Monomer.Graphics.Types
 
 data FontInstance = FontInstance

@@ -4,9 +4,9 @@ module Monomer.Widget.Widgets.Spacer (spacer) where
 
 import Control.Monad
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
-import Monomer.Common.Types
 import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util

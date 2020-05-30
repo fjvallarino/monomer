@@ -9,7 +9,7 @@ import Data.Traversable
 import qualified Data.Sequence as Seq
 import qualified SDL
 
-import Monomer.Common.Types
+import Monomer.Common.Geometry
 import Monomer.Event.Keyboard
 import Monomer.Event.Mouse
 import Monomer.Event.Types

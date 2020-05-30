@@ -11,9 +11,9 @@ import Lens.Micro
 
 import qualified Data.Text as T
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
-import Monomer.Common.Types
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types

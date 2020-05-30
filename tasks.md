@@ -46,11 +46,10 @@
         - Maybe Data.Dynamic can be used, but currently abadoned
     - + Rethink Tree.Path import
     - + Clean up Seq imports
-    - Can we generalize _widgetFind?
-      - What for?
-        - To find widgetInstances that need a specific kind of event (TimeStep)
-    - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
+    - + Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
+  - Can we generalize _widgetFind?
+    - To find widgetInstances that need a specific kind of event (TimeStep)
   - Create composite widget, on which application itself is based
   - Improve merge process. Implement Global keys
   - Improve hstack/vstack

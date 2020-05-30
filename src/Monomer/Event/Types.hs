@@ -7,7 +7,7 @@ import Data.Typeable (Typeable)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
-import Monomer.Common.Types
+import Monomer.Common.Geometry
 import Monomer.Common.Tree
 
 type KeyCode = Int

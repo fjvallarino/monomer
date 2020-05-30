@@ -8,8 +8,8 @@ import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.Types
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Main.Types

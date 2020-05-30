@@ -16,8 +16,7 @@ import Lens.Micro.Mtl
 import qualified Data.List as L
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Types
-import Monomer.Common.Util
+import Monomer.Common.Geometry
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer

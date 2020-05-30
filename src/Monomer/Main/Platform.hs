@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 module Monomer.Main.Platform where
 
 import Control.Monad.IO.Class
@@ -9,7 +7,7 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
 
-import Monomer.Common.Types
+import Monomer.Common.Geometry
 
 getCurrentMousePos :: (MonadIO m) => m Point
 getCurrentMousePos = do
@@ -30,7 +28,7 @@ getWindowSize window dpr = do
 doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m s -> m s
 doInDrawingContext window c action = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
-  let !pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
+  let pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
 
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame c fbWidth fbHeight pxRatio
