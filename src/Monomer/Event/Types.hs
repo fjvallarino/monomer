@@ -21,7 +21,7 @@ data ClipboardData = ClipboardEmpty | ClipboardText T.Text deriving (Eq, Show)
 
 data EventRequest s = IgnoreParentEvents
                     | IgnoreChildrenEvents
-                    -- | SetFocus Path
+                    | SetFocus Path
                     | GetClipboard Path
                     | SetClipboard ClipboardData
                     | UpdateUserState (s -> s)

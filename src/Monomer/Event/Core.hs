@@ -37,6 +37,10 @@ isIgnoreChildrenEvents :: EventRequest s -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
+isSetFocus :: EventRequest s -> Bool
+isSetFocus (SetFocus _) = True
+isSetFocus _ = False
+
 isGetClipboard :: EventRequest s -> Bool
 isGetClipboard (GetClipboard _) = True
 isGetClipboard _ = False

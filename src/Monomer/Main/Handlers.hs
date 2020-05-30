@@ -78,7 +78,8 @@ handleEventResult renderer mapp ctx app (EventResult eventRequests appEvents evt
 
   handleNewWidgetTasks eventRequests
 
-  handleClipboardGet renderer mapp ctx eventRequests (evtApp, appEvents, evtRoot)
+  handleFocusSet renderer eventRequests (evtApp, appEvents, evtRoot)
+    >>= handleClipboardGet renderer mapp ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
 
 handleFocusChange :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e m) -> m (HandlerStep s e m)
@@ -95,6 +96,15 @@ handleFocusChange renderer mapp ctx systemEvent stopProcessing (app, events, wid
   | otherwise = return (app, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
+
+handleFocusSet :: (MonomerM s e m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleFocusSet renderer eventRequests previousStep =
+  case Seq.filter isSetFocus eventRequests of
+    SetFocus newFocus :<| _ -> do
+      focused .= newFocus
+
+      return previousStep
+    _ -> return previousStep
 
 handleClipboardGet :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> PathContext -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
 handleClipboardGet renderer mapp ctx eventRequests (app, events, widgetRoot) =

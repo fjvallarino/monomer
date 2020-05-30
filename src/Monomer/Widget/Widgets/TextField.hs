@@ -69,6 +69,10 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         | otherwise = (txt, tp)
 
     handleEvent ctx evt app widgetInstance = case evt of
+      Click (Point x y) _ status -> resultReqs reqs widgetInstance where
+        isPressed = status == PressedBtn
+        reqs = if isPressed then [SetFocus $ _pathCurrent ctx] else []
+
       KeyAction mod code KeyPressed -> resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
@@ -77,8 +81,11 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         reqUpdateUserState = if currText /= newText then [UpdateUserState $ \app -> app & userField .~ newText] else []
         newState = TextFieldState newText newPos
         newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+
       TextInput newText -> insertText app widgetInstance newText
+
       Clipboard (ClipboardText newText) -> insertText app widgetInstance newText
+
       _ -> Nothing
 
     insertText app widgetInstance addedText = resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
