@@ -1,5 +1,7 @@
 module Monomer.Event.Core where
 
+import Control.Applicative ((<|>))
+import Data.Maybe (catMaybes)
 import Data.List (foldl')
 import Data.Sequence (Seq, (|>))
 import Data.Traversable
@@ -13,14 +15,14 @@ import Monomer.Event.Mouse
 import Monomer.Event.Types
 
 convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
-convertEvents devicePixelRate mousePos events = newEvents
-  where
-    newEvents = mouseEvents ++ mouseMoveEvents ++ mouseWheelEvents ++ keyboardEvents ++ textEvents
-    mouseEvents = mouseClick devicePixelRate events
-    mouseMoveEvents = mouseMoveEvent devicePixelRate mousePos events
-    mouseWheelEvents = mouseWheelEvent devicePixelRate mousePos events
-    keyboardEvents = keyboardEvent events
-    textEvents = textEvent events
+convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
+  convertedEvents = fmap convertEvent events
+  convertEvent evt =
+    mouseMoveEvent devicePixelRate mousePos evt
+    <|> mouseClick mousePos evt
+    <|> mouseWheelEvent devicePixelRate mousePos evt
+    <|> keyboardEvent evt
+    <|> textEvent evt
 
 checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion

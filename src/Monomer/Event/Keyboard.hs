@@ -9,24 +9,19 @@ import Monomer.Event.Types
 getKeycode :: SDL.Keycode -> KeyCode
 getKeycode keyCode = fromIntegral $ SDL.unwrapKeycode keyCode
 
-keyboardEvent :: [SDL.EventPayload] -> [SystemEvent]
-keyboardEvent events = activeKeys
-  where
-    activeKeys = map (\(SDL.KeyboardEvent k) -> KeyAction (keyMod k) (keyCode k) (keyStatus k)) (unsafeCoerce keyboardEvents)
-    keyMod event = convertKeyModifier $ SDL.keysymModifier $ SDL.keyboardEventKeysym event
-    keyCode event = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym event
-    keyStatus event = if SDL.keyboardEventKeyMotion event == SDL.Pressed then KeyPressed else KeyReleased
-    keyboardEvents = filter (\e -> case e of
-                                      SDL.KeyboardEvent k -> True
-                                      _ -> False) events
+keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
+keyboardEvent (SDL.KeyboardEvent eventData) = Just $ KeyAction keyMod keyCode keyStatus where
+  keyMod = convertKeyModifier $ SDL.keysymModifier $ SDL.keyboardEventKeysym eventData
+  keyCode = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym eventData
+  keyStatus = case SDL.keyboardEventKeyMotion eventData of
+    SDL.Pressed -> KeyPressed
+    SDL.Released -> KeyReleased
+keyboardEvent _ = Nothing
 
-textEvent :: [SDL.EventPayload] -> [SystemEvent]
-textEvent events = inputText
-  where
-    inputText = map (\(SDL.TextInputEvent t) -> TextInput (SDL.textInputEventText t)) (unsafeCoerce inputTextEvents)
-    inputTextEvents = filter (\e -> case e of
-                                      SDL.TextInputEvent _ -> True
-                                      _ -> False) events
+textEvent :: SDL.EventPayload -> Maybe SystemEvent
+textEvent (SDL.TextInputEvent eventData) = Just $ TextInput text where
+  text = SDL.textInputEventText eventData
+textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod
 convertKeyModifier keyMod = KeyMod {
