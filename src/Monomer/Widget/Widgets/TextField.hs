@@ -7,7 +7,6 @@ module Monomer.Widget.Widgets.TextField where
 import Control.Monad
 import Data.Maybe
 import Data.Typeable
-import GHC.Generics
 import Lens.Micro
 
 import qualified Data.Text as T
@@ -31,7 +30,7 @@ caretWidth = 2
 data TextFieldState = TextFieldState {
   _tfText :: T.Text,
   _tfPosition :: Int
-} deriving (Eq, Show, Typeable, Generic)
+} deriving (Eq, Show, Typeable)
 
 emptyState = TextFieldState "" 0
 

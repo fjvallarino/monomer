@@ -8,7 +8,6 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Typeable
-import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
@@ -31,7 +30,7 @@ data ScrollState = ScrollState {
   _scDeltaY :: !Double,
   _scChildSize :: Size,
   _scReqSize :: Tr.Tree SizeReq
-} deriving (Typeable, Generic)
+} deriving (Typeable)
 
 defaultState = ScrollState 0 0 def (Tr.singleton def)
 

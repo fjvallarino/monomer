@@ -5,7 +5,6 @@ module Monomer.Widget.Types where
 
 import Data.Default
 import Data.Typeable (cast, Typeable)
-import GHC.Generics
 
 import qualified Data.Sequence as SQ
 
@@ -21,7 +20,7 @@ type WidgetType = String
 type WidgetKey = String
 type WidgetChildren s e m = SQ.Seq (WidgetInstance s e m)
 
-data WidgetState = forall i . (Typeable i, Generic i) => WidgetState i
+data WidgetState = forall i . Typeable i => WidgetState i
 
 data SizePolicy = StrictSize | FlexibleSize | RemainderSize deriving (Show, Eq)
 

@@ -5,7 +5,6 @@ module Monomer.Widget.Util where
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast, Typeable)
-import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
@@ -57,14 +56,14 @@ resultReqs requests widgetInstance = Just $ EventResult (Seq.fromList requests) 
 resultReqsEvents :: [EventRequest s] -> [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
 resultReqsEvents requests userEvents widgetInstance = Just $ EventResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
-makeState :: (Typeable i, Generic i) => i -> s -> Maybe WidgetState
+makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state app = Just (WidgetState state)
 
-useState ::  (Typeable i, Generic i) => Maybe WidgetState -> Maybe i
+useState ::  Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
 
-defaultRestoreState :: (Monad m, Typeable i, Generic i) => (i -> Widget s e m) -> s -> Maybe WidgetState -> Maybe (Widget s e m)
+defaultRestoreState :: (Monad m, Typeable i) => (i -> Widget s e m) -> s -> Maybe WidgetState -> Maybe (Widget s e m)
 defaultRestoreState makeState _ oldState = fmap makeState $ useState oldState
 
 updateSizeReq :: SizeReq -> WidgetInstance s e m -> SizeReq

@@ -7,7 +7,6 @@ import Control.Monad
 import Data.Maybe
 import Data.Typeable
 import Debug.Trace
-import GHC.Generics
 
 import qualified Data.Text as T
 
@@ -26,7 +25,7 @@ import qualified Monomer.Common.Tree as Tr
 data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
 data SandboxState = SandboxState {
   _clickCount :: Int
-} deriving (Eq, Show, Typeable, Generic)
+} deriving (Eq, Show, Typeable)
 
 sandbox :: (Monad m) => e -> WidgetInstance s e m
 sandbox onClick = makeInstance $ makeSandbox onClick (SandboxState 0)

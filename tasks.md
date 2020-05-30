@@ -41,8 +41,9 @@
     - + Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
     - + Provide focus to render (needed by textField)
     - + Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
-    - Handle SetFocus request
-    - Check if WidgetState is really needed
+    - + Handle SetFocus request
+    - + Check if WidgetState is really needed
+        - Maybe Data.Dynamic can be used, but currently abadoned
     - Can we generalize _widgetFind?
     - Rethink Tree.Path import
     - Clean up Seq imports
