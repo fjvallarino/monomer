@@ -28,7 +28,6 @@
     - How do we adjust current displacement?
   - Track drawing operations made by a Widget
     - Reorganize drawing operations
-- Pending
   - Stop, think and design
     - How should all of this be organized?
     - How should modules be layed out?
@@ -36,21 +35,24 @@
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
   - Current massive refactor
-    - + Replace Tree with Containers' Tree
-    - + Fix issue with event handling (click makes everything disappear)
-    - + Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
-    - + Provide focus to render (needed by textField)
-    - + Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
-    - + Handle SetFocus request
-    - + Check if WidgetState is really needed
+    - Replace Tree with Containers' Tree
+    - Fix issue with event handling (click makes everything disappear)
+    - Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
+    - Provide focus to render (needed by textField)
+    - Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
+    - Handle SetFocus request
+    - Check if WidgetState is really needed
         - Maybe Data.Dynamic can be used, but currently abadoned
-    - + Rethink Tree.Path import
-    - + Clean up Seq imports
-    - + Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
+    - Rethink Tree.Path import
+    - Clean up Seq imports
+    - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
+
+- Pending
   - Can we generalize _widgetFind?
     - To find widgetInstances that need a specific kind of event (TimeStep)
   - Create composite widget, on which application itself is based
+    - Remove UserTask concept, handle it as WidgetTask
   - Improve merge process. Implement Global keys
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
@@ -58,6 +60,7 @@
     - Does keeping style for some things (fixed width/height) make sense?
     - Could container handle padding and centering?
     - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
+    - Improve FixedSize. Consider adding min/max width/height
   - Improve ergonomics
     - https://hackage.haskell.org/package/string-interpolate
     - Check if advanced type level features would improve the design
@@ -84,84 +87,3 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-
-
-
-
-
-
-What we have
-============
-
-  Main
-    Collects System Events
-    Propagates System Events to Widgets
-    Updates Widget hierarchy
-    Collects App Events
-    Calls App Events Handler
-    Runs Widget Tasks
-    Runs User Tasks
-  Widget
-    Consumes System Events
-    Updates Internal State
-    Creates new copy on handleEvent
-    Generates App Events
-    Generates Widget Tasks
-  App
-    Consumes App Events
-    Generates User Tasks
-    Updates Model
-
-What we need/want
-=================
-
-Create Data records for different types of Widget:
-  StatelessWidget
-  StatefulWidget
-  StatelessContainer
-  StatefulContainer
-
-  Composite
-
-  Main
-    Collects System Events
-    Propagates System Events to Widgets
-    Updates Widget hierarchy
-    Collects App Events
-    Calls App Events Handler
-    Runs Widget Tasks
-    Runs User Tasks
-  Widget
-    Consumes System Events
-    Updates Internal State
-    Creates new copy on handleEvent
-    Generates App Events
-    Generates Widget Tasks
-  App
-    Consumes App Events
-    Generates User Tasks
-    Updates Model
-
-Widget
-  render
-    draws itself
-    calls children to draw themselves
-    returns ()
-  handleSystemEvent
-    handles own events
-    decides if event is handled by its children
-    returns
-      maybe widget tree (if changes where made)
-      app events
-      system requests
-      async tasks
-  handleTaskResult
-    returns
-      maybe widget tree (if changes where made)
-      app events
-      system requests
-      async tasks
-  mergeWith (receives current state)
-
-  preferredSize
-  resize
