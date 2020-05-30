@@ -9,7 +9,7 @@ import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Data.Foldable (toList)
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence ((><))
 import Data.Typeable
 import Lens.Micro.Mtl
 

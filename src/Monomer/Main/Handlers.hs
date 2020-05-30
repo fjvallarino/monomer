@@ -6,7 +6,7 @@ import Control.Concurrent.Async (async)
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence (Seq(..), (><))
 import Lens.Micro.Mtl
 
 import qualified Data.List as L

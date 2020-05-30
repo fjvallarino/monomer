@@ -1,7 +1,7 @@
 module Monomer.Event.Core where
 
 import Data.Traversable
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence (Seq, (|>))
 
 import qualified Data.Sequence as Seq
 import qualified SDL

@@ -8,7 +8,7 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Typeable (Typeable)
-import Data.Sequence (Seq, (<|), (|>), (><))
+import Data.Sequence (Seq, (<|), (><))
 
 import qualified Data.Sequence as Seq
 

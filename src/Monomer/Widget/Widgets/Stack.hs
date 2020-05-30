@@ -3,7 +3,7 @@
 module Monomer.Widget.Widgets.Stack (hstack, vstack) where
 
 import Control.Monad
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence ((<|))
 
 import qualified Data.Sequence as Seq
 

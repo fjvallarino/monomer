@@ -44,9 +44,9 @@
     - + Handle SetFocus request
     - + Check if WidgetState is really needed
         - Maybe Data.Dynamic can be used, but currently abadoned
+    - + Rethink Tree.Path import
+    - + Clean up Seq imports
     - Can we generalize _widgetFind?
-    - Rethink Tree.Path import
-    - Clean up Seq imports
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
   - Create composite widget, on which application itself is based

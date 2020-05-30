@@ -4,9 +4,8 @@
 module Monomer.Widget.Types where
 
 import Data.Default
+import Data.Sequence (Seq)
 import Data.Typeable (cast, Typeable)
-
-import qualified Data.Sequence as SQ
 
 import Monomer.Common.Style
 import Monomer.Common.Types
@@ -18,7 +17,7 @@ import Monomer.Widget.PathContext
 type Timestamp = Int
 type WidgetType = String
 type WidgetKey = String
-type WidgetChildren s e m = SQ.Seq (WidgetInstance s e m)
+type WidgetChildren s e m = Seq (WidgetInstance s e m)
 
 data WidgetState = forall i . Typeable i => WidgetState i
 
@@ -34,8 +33,8 @@ instance Default SizeReq where
   def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
 
 data EventResult s e m = EventResult {
-  _eventResultRequest :: SQ.Seq (EventRequest s),
-  _eventResultUserEvents :: SQ.Seq e,
+  _eventResultRequest :: Seq (EventRequest s),
+  _eventResultUserEvents :: Seq e,
   _eventResultNewWidget :: WidgetInstance s e m
 }
 

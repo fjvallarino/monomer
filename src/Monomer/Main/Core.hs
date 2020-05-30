@@ -9,7 +9,7 @@ import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Maybe
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence (Seq, (><))
 import Lens.Micro.Mtl
 
 import qualified Data.Map as M
