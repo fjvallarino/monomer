@@ -3,6 +3,7 @@
 module Monomer.Widget.Widgets.Stack (hstack, vstack) where
 
 import Control.Monad
+import Data.List (foldl')
 import Data.Sequence ((<|))
 
 import qualified Data.Sequence as Seq
@@ -56,7 +57,7 @@ makeStack isHorizontal = createContainer {
       remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
       newViewports = Seq.reverse revViewports
       assignedArea = Seq.zip newViewports newViewports
-      (revViewports, _) = foldl foldHelper (Seq.empty, mStart) childrenPairs
+      (revViewports, _) = foldl' foldHelper (Seq.empty, mStart) childrenPairs
       foldHelper (accum, offset) childPair = (newSize <| accum, offset + rectSelector newSize) where
         newSize = resizeChild offset childPair
       resizeChild offset childPair = if not (_instanceVisible widgetInstance) then emptyRect else if isHorizontal then hRect else vRect where

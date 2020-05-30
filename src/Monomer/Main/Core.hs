@@ -8,6 +8,7 @@ import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.State
+import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (><))
 import Lens.Micro.Mtl
@@ -116,7 +117,7 @@ handleAppEvents mapp app events = do
   return newApp
 
 reduceAppEvents :: AppEventHandler s e -> s -> Seq e -> (s, [IO (Maybe e)])
-reduceAppEvents appEventHandler app events = foldl reducer (app, []) events where
+reduceAppEvents appEventHandler app events = foldl' reducer (app, []) events where
   reducer (app, tasks) event = case appEventHandler app event of
     State newApp -> (newApp, tasks)
     StateEvent newApp newEvent -> reducer (newApp, tasks) newEvent

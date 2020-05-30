@@ -1,7 +1,8 @@
 module Monomer.Event.Core where
 
-import Data.Traversable
+import Data.List (foldl')
 import Data.Sequence (Seq, (|>))
+import Data.Traversable
 
 import qualified Data.Sequence as Seq
 import qualified SDL
@@ -54,7 +55,7 @@ isUpdateUserState (UpdateUserState _) = True
 isUpdateUserState _ = False
 
 getUpdateUserStates :: (Traversable t) => t (EventRequest s) -> Seq (s -> s)
-getUpdateUserStates reqs = foldl foldHelper Seq.empty reqs where
+getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateUserState fn) = acc |> fn
   foldHelper acc _ = acc
 

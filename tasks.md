@@ -47,6 +47,7 @@
     - + Rethink Tree.Path import
     - + Clean up Seq imports
     - Can we generalize _widgetFind?
+      - What for?
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
   - Create composite widget, on which application itself is based

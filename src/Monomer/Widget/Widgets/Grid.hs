@@ -4,6 +4,7 @@ module Monomer.Widget.Widgets.Grid (empty, hgrid, vgrid) where
 
 import Control.Monad
 import Data.Default
+import Data.List (foldl')
 import Data.Sequence ((|>))
 
 import qualified Data.Sequence as Seq
@@ -55,7 +56,7 @@ makeFixedGrid isHorizontal = createContainer {
         newIndex = index + if _instanceVisible child then 1 else 0
         newViewport = if visible then calcViewport index else def
         newArea = (newViewport, newViewport)
-      assignedAreas = fst $ foldl foldHelper (Seq.empty, 0) children
+      assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) children
       calcViewport i = Rect (cx i) (cy i) cw ch
       cw = if cols > 0 then w / fromIntegral cols else 0
       ch = if rows > 0 then h / fromIntegral rows else 0
