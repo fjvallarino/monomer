@@ -12,6 +12,7 @@ import Lens.Micro
 import qualified Data.Text as T
 
 import Monomer.Common.Style
+import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
@@ -22,8 +23,6 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-
-import qualified Monomer.Common.Tree as Tr
 
 caretWidth = 2
 
@@ -70,12 +69,12 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     handleEvent ctx evt app widgetInstance = case evt of
       Click (Point x y) _ status -> resultReqs reqs widgetInstance where
         isPressed = status == PressedBtn
-        reqs = if isPressed then [SetFocus $ _pathCurrent ctx] else []
+        reqs = if isPressed then [SetFocus $ currentPath ctx] else []
 
       KeyAction mod code KeyPressed -> resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
-        reqGetClipboard = if isClipboardPaste evt then [GetClipboard (_pathCurrent ctx)] else []
+        reqGetClipboard = if isClipboardPaste evt then [GetClipboard (currentPath ctx)] else []
         reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
         reqUpdateUserState = if currText /= newText then [UpdateUserState $ \app -> app & userField .~ newText] else []
         newState = TextFieldState newText newPos
@@ -93,7 +92,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
       newState = TextFieldState newText newPos
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
   
-    preferredSize renderer app widgetInstance = Tr.singleton sizeReq where
+    preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
       size = calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
       sizeReq = SizeReq size FlexibleSize FlexibleSize

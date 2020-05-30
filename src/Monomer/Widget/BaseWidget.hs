@@ -7,14 +7,12 @@ import Data.Default
 import Data.Maybe
 import Data.Typeable (Typeable, cast)
 
-import Monomer.Common.Tree (Path)
+import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
-
-import qualified Monomer.Common.Tree as Tr
 
 createWidget :: (Monad m) => Widget s e m
 createWidget = Widget {
@@ -51,14 +49,14 @@ ignoreHandleEvent ctx evt app widgetInstance = Nothing
 ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
 ignoreHandleCustom ctx evt app widgetInstance = Nothing
 
-ignorePreferredSize :: (Monad m) => Renderer m -> s -> WidgetInstance s e m -> Tr.Tree SizeReq
-ignorePreferredSize renderer app widgetInstance = Tr.singleton SizeReq {
+ignorePreferredSize :: (Monad m) => Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq
+ignorePreferredSize renderer app widgetInstance = singleNode SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize
 }
 
-defaultResize :: (Monad m) => s -> Rect -> Rect -> WidgetInstance s e m -> Tr.Tree SizeReq -> WidgetInstance s e m
+defaultResize :: (Monad m) => s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m
 defaultResize app viewport renderArea widgetInstance reqs = widgetInstance {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea

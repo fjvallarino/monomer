@@ -10,7 +10,6 @@ import Data.Maybe
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq, (<|), (|>), (><))
 
-import qualified Data.List as L
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Tree
@@ -23,12 +22,10 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-import qualified Monomer.Common.Tree as Tr
-
 type WidgetMergeHandler s e m = s -> Maybe WidgetState -> WidgetInstance s e m -> WidgetInstance s e m
 type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
-type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> Tr.Tree SizeReq
-type WidgetResizeHandler s e m = s -> Rect -> Rect -> WidgetInstance s e m -> Seq (WidgetInstance s e m, Tr.Tree SizeReq) -> (WidgetInstance s e m, Seq (Rect, Rect))
+type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tree SizeReq) -> Tree SizeReq
+type WidgetResizeHandler s e m = s -> Rect -> Rect -> WidgetInstance s e m -> Seq (WidgetInstance s e m, Tree SizeReq) -> (WidgetInstance s e m, Seq (Rect, Rect))
 
 createContainer :: (Monad m) => Widget s e m
 createContainer = Widget {
@@ -84,7 +81,7 @@ containerNextFocusable ctx widgetInstance = nextFocus where
   focusedPaths = fmap fromJust $ Seq.filter isJust maybeFocused
   nextFocus = Seq.lookup 0 focusedPaths
   getFocused (ctx, child) = if _instanceFocusable child
-    then Just (_pathCurrent ctx)
+    then Just (currentPath ctx)
     else _widgetNextFocusable (_instanceWidget child) ctx child
 
 -- | Find instance matching point
@@ -144,7 +141,7 @@ containerHandleCustom ctx arg app widgetInstance
 
 -- | Preferred size
 defaultPreferredSize :: WidgetPreferredSizeHandler s e m
-defaultPreferredSize renderer app childrenPairs = Tr.Node current childrenReqs where
+defaultPreferredSize renderer app childrenPairs = Node current childrenReqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
     _sizePolicyWidth = FlexibleSize,
@@ -152,7 +149,7 @@ defaultPreferredSize renderer app childrenPairs = Tr.Node current childrenReqs w
   }
   childrenReqs = fmap snd childrenPairs
 
-containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> Tr.Tree SizeReq
+containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq
 containerPreferredSize psHandler renderer app widgetInstance = psHandler renderer app (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
   childrenReqs = flip fmap children updateChild
@@ -164,7 +161,7 @@ defaultResize :: WidgetResizeHandler s e m
 defaultResize app viewport renderArea widgetInstance childrenReqs = (widgetInstance, childrenSizes) where
   childrenSizes = Seq.replicate (Seq.length childrenReqs) (def, def)
 
-containerResize :: (Monad m) => WidgetResizeHandler s e m -> s -> Rect -> Rect -> WidgetInstance s e m -> Tr.Tree SizeReq -> WidgetInstance s e m
+containerResize :: (Monad m) => WidgetResizeHandler s e m -> s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m
 containerResize rHandler app viewport renderArea widgetInstance reqs = newInstance where
   newInstance = tempInstance {
     _instanceViewport = viewport,
@@ -189,10 +186,10 @@ containerRender renderer ts ctx app widgetInstance = do
 
 -- | Event Handling Helpers
 ignoreChildren :: EventResult s e m -> Bool
-ignoreChildren result = isJust $ L.find isIgnoreChildrenEvents (_eventResultRequest result)
+ignoreChildren result = Seq.null $ Seq.filter isIgnoreChildrenEvents (_eventResultRequest result)
 
 ignoreParent :: EventResult s e m -> Bool
-ignoreParent result = isJust $ L.find isIgnoreParentEvents (_eventResultRequest result)
+ignoreParent result = Seq.null $ Seq.filter isIgnoreParentEvents (_eventResultRequest result)
 
 replaceChild :: WidgetInstance s e m -> WidgetInstance s e m -> Int -> WidgetInstance s e m
 replaceChild parent child idx = parent { _instanceChildren = newChildren } where

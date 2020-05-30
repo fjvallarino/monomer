@@ -1,12 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.PathContext where
+module Monomer.Widget.PathContext (
+  module Monomer.Widget.PathContext,
+  module Monomer.Common.Tree
+) where
 
-import Data.Sequence (Seq, (<|), (|>), (><))
+import Data.Sequence ((|>))
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Tree
+import Monomer.Common.Tree (Path, PathStep)
 
 data PathContext = PathContext {
   _pathFocused :: Path,
@@ -22,6 +25,9 @@ nextTargetStep PathContext{..} = Seq.lookup (Seq.length _pathCurrent) _pathTarge
 
 moveToTarget :: PathContext -> Maybe PathContext
 moveToTarget ctx = fmap (addToCurrent ctx) (nextTargetStep ctx)
+
+currentPath :: PathContext -> Path
+currentPath ctx = _pathCurrent ctx
 
 addToCurrent :: PathContext -> PathStep -> PathContext
 addToCurrent ctx step = ctx { _pathCurrent = _pathCurrent ctx |> step }

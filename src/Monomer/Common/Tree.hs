@@ -6,37 +6,21 @@ module Monomer.Common.Tree where
 
 import Prelude hiding (lookup)
 
-import Data.Sequence (Seq(..), (<|), (|>), (><))
-import qualified Data.Foldable as F
+import Data.Sequence (Seq(..))
 
+import qualified Data.Foldable as F
 import qualified Data.Sequence as Seq
 
 type PathStep = Int
 type Path = Seq PathStep
-type Nodes a = Seq (Tree a)
 
-data Tree a = Node a (Nodes a) deriving (Functor, Foldable, Traversable)
+data Tree a = Node {
+  nodeValue :: a,
+  nodeChildren :: Seq (Tree a)
+} deriving (Functor, Foldable, Traversable)
 
-singleton :: a -> Tree a
-singleton value = Node value Seq.empty
-
-nodeValue :: Tree a -> a
-nodeValue (Node value _) = value
-
-nodeChildren :: Tree a -> Seq.Seq (Tree a)
-nodeChildren (Node _ children) = children
-
-nodeChildrenList :: Tree a -> [a]
-nodeChildrenList (Node _ children) = seqToList children
-
-seqToList :: (Seq.Seq (Tree a)) -> [a]
-seqToList children = (fmap nodeValue . F.toList) children
-
-seqToNodeList :: (Seq.Seq (Tree a)) -> [Tree a]
-seqToNodeList children = F.toList children
-
-fromList :: a -> [Tree a] -> Tree a
-fromList value children = Node value (Seq.fromList children)
+singleNode :: a -> Tree a
+singleNode value = Node value Seq.empty
 
 lookup :: Path -> Tree a -> Maybe a
 lookup Empty (Node val _) = Just val

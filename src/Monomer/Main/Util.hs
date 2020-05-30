@@ -4,7 +4,6 @@ import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Event.Util
 import Monomer.Main.Types

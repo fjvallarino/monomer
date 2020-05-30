@@ -15,11 +15,9 @@ import qualified SDL
 
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
-import Monomer.Main.Internal
 import Monomer.Main.Platform
 import Monomer.Main.UserTask
 import Monomer.Main.Types

@@ -11,6 +11,7 @@ import Debug.Trace
 import qualified Data.Text as T
 
 import Monomer.Common.Style
+import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
@@ -19,8 +20,6 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-
-import qualified Monomer.Common.Tree as Tr
 
 data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
 data SandboxState = SandboxState {
@@ -51,7 +50,7 @@ makeSandbox onClick state = createWidget {
       Click (Point x y) _ status -> resultReqsEvents requests events newInstance where
         isPressed = status == PressedBtn -- && inRect view (Point x y)
         events = if isPressed then [onClick] else []
-        requests = if isPressed then [RunCustom (_pathCurrent ctx) runCustom] else []
+        requests = if isPressed then [RunCustom (currentPath ctx) runCustom] else []
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
@@ -66,7 +65,7 @@ makeSandbox onClick state = createWidget {
       Just val -> if val == SandboxData2 then Nothing else Nothing
       Nothing -> Nothing
 
-    preferredSize renderer app widgetInstance = Tr.singleton sizeReq where
+    preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
       size = calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
       sizeReq = SizeReq size FlexibleSize FlexibleSize

@@ -18,12 +18,10 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common.Types
 import Monomer.Common.Util
-import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Main.Handlers
-import Monomer.Main.Internal
 import Monomer.Main.Util
 import Monomer.Main.Types
 import Monomer.Widget.Core

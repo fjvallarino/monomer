@@ -11,6 +11,7 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Common.Util
 import Monomer.Event.Types
@@ -23,16 +24,14 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-import qualified Monomer.Common.Tree as Tr
-
 data ScrollState = ScrollState {
   _scDeltaX :: !Double,
   _scDeltaY :: !Double,
   _scChildSize :: Size,
-  _scReqSize :: Tr.Tree SizeReq
+  _scReqSize :: Tree SizeReq
 } deriving (Typeable)
 
-defaultState = ScrollState 0 0 def (Tr.singleton def)
+defaultState = ScrollState 0 0 def (singleNode def)
 
 scroll :: (Monad m) => WidgetInstance s e m -> WidgetInstance s e m
 scroll managedWidget = makeInstance (makeScroll defaultState) managedWidget
@@ -87,16 +86,16 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       tempInstance = widgetInstance { _instanceWidget = newWidget }
       newInstance = scrollResize (Just newWidget) app (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
 
-    preferredSize renderer app childrenPairs = Tr.Node sizeReq childrenReqs where
+    preferredSize renderer app childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
-      sizeReq = SizeReq (_sizeRequested . Tr.nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
+      sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 
     scrollResize updatedWidget app viewport renderArea widgetInstance reqs = newInstance where
       Rect l t w h = renderArea
       child = Seq.index (_instanceChildren widgetInstance) 0
-      childReq = Seq.index (Tr.nodeChildren reqs) 0
+      childReq = Seq.index (nodeChildren reqs) 0
 
-      Size cw2 ch2 = _sizeRequested $ Tr.nodeValue childReq
+      Size cw2 ch2 = _sizeRequested $ nodeValue childReq
       areaW = max w cw2
       areaH = max h ch2
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH

@@ -4,16 +4,15 @@ module Monomer.Widget.Widgets.Grid (empty, hgrid, vgrid) where
 
 import Control.Monad
 import Data.Default
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence ((|>))
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Tree
 import Monomer.Common.Types
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
-
-import qualified Monomer.Common.Tree as Tr
 
 empty :: (Monad m) => WidgetInstance s e m
 empty = defaultWidgetInstance "empty" createContainer
@@ -34,10 +33,10 @@ makeFixedGrid isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize renderer app childrenPairs = Tr.Node reqSize children where
+    preferredSize renderer app childrenPairs = Node reqSize children where
       children = fmap snd childrenPairs
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
-      childrenReqs = fmap (Tr.nodeValue . snd) visiblePairs
+      childrenReqs = fmap (nodeValue . snd) visiblePairs
       reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
       width = if Seq.null children then 0 else (fromIntegral wMul) * (maximum . fmap (_w . _sizeRequested)) childrenReqs
       height = if Seq.null children then 0 else (fromIntegral hMul) * (maximum . fmap (_h . _sizeRequested)) childrenReqs
@@ -47,7 +46,7 @@ makeFixedGrid isHorizontal = createContainer {
     resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedAreas) where
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       children = fmap fst visiblePairs
-      childrenReqs = fmap (Tr.nodeValue . snd) visiblePairs
+      childrenReqs = fmap (nodeValue . snd) visiblePairs
       Rect l t w h = renderArea
       cols = if isHorizontal then length visiblePairs else 1
       rows = if isHorizontal then 1 else length visiblePairs
