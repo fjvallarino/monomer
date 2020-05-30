@@ -40,12 +40,12 @@ data MonomerContext s e = MonomerContext {
 }
 
 data UserTask e = UserTask {
-  userTask :: Async e
+  _userTask :: Async e
 }
 
 data WidgetTask = forall a . Typeable a => WidgetTask {
-  widgetTaskPath :: Path,
-  widgetTask :: Async a
+  _widgetTaskPath :: Path,
+  _widgetTask :: Async a
 }
 
 makeLenses ''MonomerContext

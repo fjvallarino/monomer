@@ -5,7 +5,7 @@ module Monomer.Widget.PathContext (
   module Monomer.Common.Tree
 ) where
 
-import Data.Sequence ((|>))
+import Data.Sequence (Seq, (|>))
 
 import qualified Data.Sequence as Seq
 
@@ -38,7 +38,7 @@ isFocused ctx = _pathFocused ctx == _pathCurrent ctx
 isTargetReached :: PathContext -> Bool
 isTargetReached ctx = _pathTarget ctx == _pathCurrent ctx
 
-isTargetValid :: PathContext -> Seq.Seq a -> Bool
+isTargetValid :: PathContext -> Seq a -> Bool
 isTargetValid ctx children = case nextTargetStep ctx of
   Just step -> step < Seq.length children
   Nothing -> False
