@@ -32,8 +32,10 @@ import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Main.Util
+import Monomer.Widget.CompositeWidget
 import Monomer.Widget.Core
 import Monomer.Widget.Util
+--import Monomer.Widget.Types
 import Monomer.Widgets
 
 import Types
@@ -127,7 +129,35 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
+data CompState = CompState {
+  _csCounter :: Int
+}
+
+instance Default CompState where
+  def = CompState 0
+
+data CompEvent = CEvent1 | CEvent2 deriving (Eq, Show)
+
+handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent ep
+handleCompositeEvent app evt = TaskC app $ do
+  liftIO . putStrLn $ "HOLA"
+  return Nothing
+
+--buildComposite :: (Monad m) => CompState -> Widget CompState e m
+buildComposite app =
+  vstack [
+    label "This is a composited label!",
+    button "Click me!" CEvent1
+  ]
+
 buildUI app = widgetTree where
+  widgetTree =
+    vstack [
+      composite "newCounter" def handleCompositeEvent buildComposite
+      --, button "Increase" (IncreaseCount 1)
+    ]
+
+buildUI2 app = widgetTree where
   widgetTree =
     vstack [
       label "This is label 1" `style` bgColor blue,
@@ -159,107 +189,3 @@ buildUI app = widgetTree where
         label "This is label in scroll 18" `style` bgColor darkGray
       ]
     ]
-
---buildUI app = styledTree where
---  labelScroll1 = bgColor lightBlue <> textSize 36
---  labelScroll2 = bgColor blue <> textSize 36
---  labelScroll3 = bgColor darkBlue <> textSize 36
---  buttonStyle = bgColor blue
---  widgetTree =
---    vstack [
---      label "This is a label" `style` bgColor lightGray,
---      label "This, too" `style` bgColor gray,
---      (scroll $ vstack [
---        label "Label 01" `style` labelScroll1,
---        label "Label 02" `style` labelScroll2,
---        label "Label 03" `style` labelScroll3,
---        label "Label 04" `style` labelScroll1,
---        label "Label 05" `style` labelScroll2,
---        label "Label 06" `style` labelScroll3,
---        label "Label 07" `style` labelScroll1,
---        label "Label 08" `style` labelScroll2,
---        label "Label 09" `style` labelScroll3,
---        label "Label 10" `style` labelScroll1,
---        label "Label 11" `style` labelScroll2,
---        label "Label 12" `style` labelScroll3,
---        label "Label 13" `style` labelScroll1,
---        label "Label 14" `style` labelScroll2,
---        label "Label 15" `style` labelScroll3,
---        label "Label 16" `style` labelScroll1,
---        label "Label 17" `style` labelScroll2,
---        label "Label 18" `style` labelScroll3,
---        label "Label 19" `style` labelScroll1,
---        label "Label 20" `style` labelScroll2,
---        label "Label 21" `style` labelScroll3
---      ]) `style` sheight 200,
---      label (app ^. textField3),
---      button "Update" RunShortTask `style` buttonStyle
---    ]
---  styledTree = cascadeStyle mempty widgetTree
-
---buildUI :: App -> WidgetTree
-buildUI2 model = styledTree where
-  border1 = border 5 (rgb 0 255 0) 20
-  border2 = borderLeft 20 (rgb 200 200 0) <> borderRight 20 (rgb 200 0 200)
-  buttonStyle = bgColor (rgb 0 0 255) <> textSize 64 <> border1 <> border2 <> bgRadius 20
-  labelStyle = bgColor (rgb 100 100 100) <> textSize 48
-  textStyle = textColor (rgb 0 255 0) <> textAlignH ACenter
-  extraWidgets = map (\i -> sandbox (IncreaseCount (10 + i))) [1..(_clickCount model)]
-  widgetTree = vstack [
-      hstack [
-        (scroll $ vstack [
-          textField textField1 `style` textStyle,
-          spacer `visible` False,
-          label "Label 1",
-          spacer,
-          label "Label 2",
-          spacer `visible` False,
-          label "Label 3" `visible` False,
-          spacer `visible` False,
-          label "Label 4",
-          spacer,
-          label "Label 5",
-          spacer,
-          label "Label 6",
-          spacer,
-          label "Label 7",
-          spacer,
-          label "Label 8",
-          spacer,
-          label "Label 9",
-          spacer,
-          label "Label 10",
-          spacer,
-          label "Label 11",
-          spacer,
-          label "Label 12"
-        ]) `style` (swidth 400 <> sheight 300),
-        vstack [
-          textField textField2 `style` textStyle,
-          scroll $ label "This is a really really really long label, you know?" `style` labelStyle
-        ]
-      ],
-      vgrid ([
-        scroll $ hstack [
-          label "Short",
-          spacer,
-          label "Long",
-          spacer,
-          label "Very Long",
-          spacer,
-          label "Very Very Long",
-          spacer,
-          label "Very Very Very Long",
-          spacer,
-          label "Very Very Very Very Long"
-        ],
-        hstack [
-          sandbox RunLongTask `style` buttonStyle,
-          sandbox PrintTextFields `style` buttonStyle,
-          sandbox (IncreaseCount 2) `style` buttonStyle
-        ],
-        button "Add items" (IncreaseCount 1) `style` buttonStyle,
-        textField textField3 `style` textStyle
-      ] ++ extraWidgets)
-    ]
-  styledTree = cascadeStyle mempty widgetTree

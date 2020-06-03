@@ -49,11 +49,16 @@
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
 
 - Pending
-  - Can we generalize _widgetFind?
-    - To find widgetInstances that need a specific kind of event (TimeStep)
   - Create composite widget, on which application itself is based
     - Remove UserTask concept, handle it as WidgetTask
+  - Can we generalize _widgetFind?
+    - To find widgetInstances that need a specific kind of event (TimeStep)
   - Improve merge process. Implement Global keys
+  - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
+    - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
+    - A _handleDelayedRendering_ also needs to be added
+    - We also need a way of receiving events on _upper_ layers
+    - This all is needed for dropdowns, but it's also useful for tooltips
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
