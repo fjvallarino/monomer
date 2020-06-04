@@ -37,6 +37,7 @@ dependencies:
 - OpenGL
 - sdl2
 - text
+- text-show
 - unordered-containers
 - vector
 

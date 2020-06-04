@@ -1,7 +1,7 @@
 module Monomer.Event.Core where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromJust, isJust)
 import Data.List (foldl')
 import Data.Sequence (Seq, (|>))
 import Data.Traversable
@@ -78,3 +78,15 @@ isKeyPressed _ _ = False
 isShiftPressed :: SystemEvent -> Bool
 isShiftPressed (KeyAction keyMod _ _) = keyModLeftShift keyMod
 isShiftPressed _ = False
+
+convertRequest :: EventRequest s -> Maybe (EventRequest s2)
+convertRequest IgnoreParentEvents = Just IgnoreParentEvents
+convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
+convertRequest (SetFocus path) = Just (SetFocus path)
+convertRequest (GetClipboard path) = Just (GetClipboard path)
+convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
+convertRequest (RunCustom path action) = Just (RunCustom path action)
+convertRequest (UpdateUserState fn) = Nothing
+
+convertRequests :: Seq (EventRequest s) -> Seq (EventRequest sp)
+convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest reqs

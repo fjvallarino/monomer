@@ -89,7 +89,7 @@ containerFind point widgetInstance = fmap (combinePath point children) childIdx 
   children = _instanceChildren widgetInstance
   pointInWidget wi = inRect (_instanceViewport wi) point
   childIdx = Seq.findIndexL pointInWidget children
-  
+
 combinePath :: Point -> Seq (WidgetInstance s e m) -> Int -> Path
 combinePath point children childIdx = childIdx <| childPath where
   child = Seq.index children childIdx

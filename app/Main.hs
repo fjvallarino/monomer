@@ -14,6 +14,7 @@ import Foreign.C.Types
 import Lens.Micro
 import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
 import SDL (($=))
+import TextShow
 
 import System.Remote.Monitoring
 
@@ -129,32 +130,31 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
-data CompState = CompState {
-  _csCounter :: Int
-}
+data CompEvent = CEvent1 | CEvent2 | CEvent3 deriving (Eq, Show)
 
-instance Default CompState where
-  def = CompState 0
+handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
+handleCompositeEvent app evt = case evt of
+  CEvent1 -> StateC $ app & csCounter %~ (+1)
+  CEvent2 -> MessageC (IncreaseCount 55)
+  otherwise -> TaskC app $ do
+    liftIO . putStrLn $ "HOLA!!!!"
+    return Nothing
 
-data CompEvent = CEvent1 | CEvent2 deriving (Eq, Show)
-
-handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent ep
-handleCompositeEvent app evt = TaskC app $ do
-  liftIO . putStrLn $ "HOLA"
-  return Nothing
-
---buildComposite :: (Monad m) => CompState -> Widget CompState e m
 buildComposite app =
   vstack [
     scroll $ label "This is a composite label!",
-    button "Click me!" CEvent1
+    hgrid [
+      button ("Clicked: " <> (showt $ _csCounter app)) CEvent1,
+      button "Message parent" CEvent2,
+      button "Run task" CEvent3
+    ] `style` bgColor gray
   ]
 
 buildUI app = widgetTree where
   widgetTree =
     vstack [
-      composite "newCounter" def handleCompositeEvent buildComposite
-      --, button "Increase" (IncreaseCount 1)
+      composite "newCounter" def handleCompositeEvent buildComposite,
+      button "Increase" (IncreaseCount 1)
     ]
 
 buildUI2 app = widgetTree where

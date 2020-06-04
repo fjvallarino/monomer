@@ -18,3 +18,12 @@ instance Default App where
   def = App 0 "" "" ""
 
 makeLenses ''App
+
+data CompState = CompState {
+  _csCounter :: Int
+} deriving (Show, Eq)
+
+instance Default CompState where
+  def = CompState 0
+
+makeLenses ''CompState
