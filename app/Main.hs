@@ -146,7 +146,7 @@ handleCompositeEvent app evt = TaskC app $ do
 --buildComposite :: (Monad m) => CompState -> Widget CompState e m
 buildComposite app =
   vstack [
-    label "This is a composited label!",
+    scroll $ label "This is a composite label!",
     button "Click me!" CEvent1
   ]
 
