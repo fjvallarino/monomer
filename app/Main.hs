@@ -30,27 +30,17 @@ import qualified SDL.Raw.Event as SREv
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Graphics.Color
-import Monomer.Graphics.Types
 import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Main.Util
-import Monomer.Widget.CompositeWidget
-import Monomer.Widget.Core
 import Monomer.Widget.Util
---import Monomer.Widget.Types
 import Monomer.Widgets
 
+import TestComposite
 import Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
-
-data AppEvent = RunShortTask
-              | RunLongTask
-              | PrintTextFields
-              | IncreaseCount Int
-              | UpdateText3 T.Text
-              deriving (Show, Eq)
 
 --type AppContext = MonomerContext App AppEvent
 --type AppM = StateT AppContext IO
@@ -132,30 +122,10 @@ handleAppEvent app evt = do
       return Nothing
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
-data CompEvent = CEvent1 | CEvent2 | CEvent3 deriving (Eq, Show)
-
-handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
-handleCompositeEvent app evt = case evt of
-  CEvent1 -> StateC $ app & csCounter %~ (+1)
-  CEvent2 -> MessageC (IncreaseCount 55)
-  otherwise -> TaskC app $ do
-    liftIO . putStrLn $ "HOLA!!!!"
-    return $ Just CEvent1
-
-buildComposite app =
-  vstack [
-    scroll $ label "This is a composite label!",
-    hgrid [
-      button ("Clicked: " <> (showt $ _csCounter app)) CEvent1,
-      button "Message parent" CEvent2,
-      button "Run task" CEvent3
-    ] `style` bgColor gray
-  ]
-
 buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
     vstack [
-      composite "newCounter" def handleCompositeEvent buildComposite,
+      testComposite,
       button "Increase" (IncreaseCount 1)
     ]
 

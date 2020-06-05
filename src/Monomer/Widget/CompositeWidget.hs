@@ -18,7 +18,6 @@ import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
-import Monomer.Widget.BaseContainer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -71,8 +70,8 @@ compositeMerge :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable 
 compositeMerge comp state pApp newComposite oldComposite = newInstance where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
   CompositeState oldApp oldRoot = fromMaybe state (useState oldState)
-  newRoot = (_uiBuilderC comp) oldApp
-  --CompositeState _ newRoot = state
+  -- The widgetRoot created on _composite_ has not yet been evaluated, so duplicate widget tree creation is avoided
+  newRoot = _uiBuilderC comp oldApp
   widgetRoot = _widgetMerge (_instanceWidget newRoot) oldApp newRoot oldRoot
   newState = CompositeState oldApp widgetRoot
   newInstance = newComposite {
@@ -124,12 +123,16 @@ convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurre
 compositeHandleCustom :: forall i s e sp ep m . (Monad m, Eq s, Typeable i, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> PathContext -> i -> sp -> WidgetInstance sp ep m -> Maybe (EventResult sp ep m)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
-      Just (CompositeTask evt) -> traceShow (typeOf evt) $ case cast evt of
+      Just (CompositeTask evt) -> case cast evt of
         Just (Just res) -> Just $ processEventResult comp state ctx widgetComposite evtResult where
           evtResult = EventResult Seq.empty (Seq.singleton res) (_compositeRoot state)
         _ -> Nothing
       Nothing -> Nothing
-  | otherwise = Nothing
+  | otherwise = fmap processEvent result where
+      CompositeState app widgetRoot = state
+      processEvent = processEventResult comp state ctx widgetComposite
+      result = _widgetHandleCustom (_instanceWidget widgetRoot) ctx arg app widgetRoot
+
 
 -- Preferred size
 compositePreferredSize :: CompositeState s e m -> Renderer m -> sp -> WidgetInstance sp ep m -> Tree SizeReq

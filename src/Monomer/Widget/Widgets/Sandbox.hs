@@ -41,6 +41,8 @@ makeSandbox onClick state = createWidget {
     _widgetRender = render
   }
   where
+    label = "Sandbox: " ++ show (_clickCount state)
+
     getState = makeState state
     merge app oldState = makeSandbox onClick newState where
       newState = fromMaybe state (useState oldState)
@@ -61,15 +63,15 @@ makeSandbox onClick state = createWidget {
       return SandboxData2
 
     handleCustom ctx bd app widgetInstance = case cast bd of
-      Just val -> if val == SandboxData2 then Nothing else Nothing
+      Just val -> if val == SandboxData2 then trace "Sandbox handleCustom called" Nothing else Nothing
       Nothing -> Nothing
 
     preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _textStyle (T.pack (show (_clickCount state)))
+      size = calcTextBounds renderer _textStyle (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer ts ctx app WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack (show (_clickCount state)))
+        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack label)

@@ -19,6 +19,13 @@ instance Default App where
 
 makeLenses ''App
 
+data AppEvent = RunShortTask
+              | RunLongTask
+              | PrintTextFields
+              | IncreaseCount Int
+              | UpdateText3 T.Text
+              deriving (Show, Eq)
+
 data CompState = CompState {
   _csCounter :: Int
 } deriving (Show, Eq)

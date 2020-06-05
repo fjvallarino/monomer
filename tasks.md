@@ -52,8 +52,15 @@
   - Create composite widget, on which application itself is based
     - Remove UserTask concept, handle it as WidgetTask
   - Can we generalize _widgetFind?
-    - To find widgetInstances that need a specific kind of event (TimeStep)
+    - To find widgetInstances that need a specific kind of event (entities that need timeStep)
   - Improve merge process. Implement Global keys
+  - Provide long running tasks that can provide events through a channel
+  - Provide a way of initializing the application
+    - Probably taking a simple event that is relayed to appEventsHandler is enough?
+  - Add a way to get path of widget given an id, and provide a method to send a message/event
+  - Try to remove all those Typeable requirements in CompositeWidget
+    - Maybe passing the current root as a parameter?
+    - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
     - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
     - A _handleDelayedRendering_ also needs to be added
