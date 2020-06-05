@@ -7,6 +7,8 @@
 
 module Main where
 
+import Debug.Trace
+
 import Control.Concurrent (threadDelay)
 import Control.Monad.State
 import Data.Default
@@ -138,7 +140,7 @@ handleCompositeEvent app evt = case evt of
   CEvent2 -> MessageC (IncreaseCount 55)
   otherwise -> TaskC app $ do
     liftIO . putStrLn $ "HOLA!!!!"
-    return Nothing
+    return $ Just CEvent1
 
 buildComposite app =
   vstack [
@@ -150,7 +152,7 @@ buildComposite app =
     ] `style` bgColor gray
   ]
 
-buildUI app = widgetTree where
+buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
     vstack [
       composite "newCounter" def handleCompositeEvent buildComposite,
