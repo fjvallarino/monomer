@@ -39,9 +39,9 @@ data Composite s e ep m = Composite {
 data CompositeState s e m = CompositeState {
   _compositeApp :: s,
   _compositeRoot :: WidgetInstance s e m
-} deriving (Typeable)
+}
 
-data CompositeTask = forall e . Typeable e => CompositeTask e deriving Typeable
+data CompositeTask = forall e . Typeable e => CompositeTask e
 
 composite :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e m -> WidgetInstance sp ep m
 composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
@@ -50,20 +50,19 @@ composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetTy
   state = CompositeState app widgetRoot
   widget = createComposite composite state
 
--- We need to re build UI if state changed
 createComposite :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> Widget sp ep m
 createComposite comp state = widget where
   CompositeState app widgetRoot = state
   widget = Widget {
-    _widgetGetState = makeState state,-- state,
-    _widgetMerge = compositeMerge comp state, --containerMergeTrees ignoreOldInstance,
-    _widgetNextFocusable = compositeNextFocusable state, -- containerNextFocusable,
+    _widgetGetState = makeState state,
+    _widgetMerge = compositeMerge comp state,
+    _widgetNextFocusable = compositeNextFocusable state,
     _widgetFind = compositeFind state,
-    _widgetHandleEvent = compositeHandleEvent comp state, --containerHandleEvent ignoreEvent,
-    _widgetHandleCustom = compositeHandleCustom comp state, --containerHandleCustom,
-    _widgetPreferredSize = compositePreferredSize state, -- containerPreferredSize defaultPreferredSize,
-    _widgetResize = compositeResize comp state, -- containerResize defaultResize,
-    _widgetRender = compositeRender state --containerRender
+    _widgetHandleEvent = compositeHandleEvent comp state,
+    _widgetHandleCustom = compositeHandleCustom comp state,
+    _widgetPreferredSize = compositePreferredSize state,
+    _widgetResize = compositeResize comp state,
+    _widgetRender = compositeRender state
   }
 
 compositeMerge :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> sp -> WidgetInstance sp ep m -> WidgetInstance sp ep m -> WidgetInstance sp ep m
@@ -94,7 +93,7 @@ processEventResult :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typea
 processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoot) = EventResult newReqs messages newInstance where
   CompositeState app widgetRoot = state
   evtStates = getUpdateUserStates reqs
-  evtApp = compose evtStates app
+  evtApp = foldr (.) id evtStates app
   newReqs = convertRequests reqs <> convertTasksToRequests ctx tasks
 
   (newApp, tasks, messages) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
@@ -120,7 +119,7 @@ convertTasksToRequests :: Typeable e => PathContext -> Seq (IO (Maybe e)) -> Seq
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) (fmap CompositeTask req)
 
 -- | Custom Handling
-compositeHandleCustom :: forall i s e sp ep m . (Monad m, Eq s, Typeable i, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> PathContext -> i -> sp -> WidgetInstance sp ep m -> Maybe (EventResult sp ep m)
+compositeHandleCustom :: (Monad m, Eq s, Typeable i, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> PathContext -> i -> sp -> WidgetInstance sp ep m -> Maybe (EventResult sp ep m)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
       Just (CompositeTask evt) -> case cast evt of
@@ -133,11 +132,11 @@ compositeHandleCustom comp state ctx arg app widgetComposite
       processEvent = processEventResult comp state ctx widgetComposite
       result = _widgetHandleCustom (_instanceWidget widgetRoot) ctx arg app widgetRoot
 
-
 -- Preferred size
 compositePreferredSize :: CompositeState s e m -> Renderer m -> sp -> WidgetInstance sp ep m -> Tree SizeReq
 compositePreferredSize (CompositeState app widgetRoot) renderer _ _ = _widgetPreferredSize (_instanceWidget widgetRoot) renderer app widgetRoot
 
+-- Resize
 compositeResize :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> sp -> Rect -> Rect -> WidgetInstance sp ep m -> Tree SizeReq -> WidgetInstance sp ep m
 compositeResize comp state _ viewport renderArea widgetComposite reqs = newInstance where
   CompositeState app widgetRoot = state
@@ -150,39 +149,6 @@ compositeResize comp state _ viewport renderArea widgetComposite reqs = newInsta
     _instanceRenderArea = renderArea
   }
 
+-- Render
 compositeRender :: (Monad m) => CompositeState s e m -> Renderer m -> Timestamp -> PathContext -> sp -> WidgetInstance sp ep m -> m ()
 compositeRender (CompositeState app widgetRoot) renderer ts ctx _ _ = _widgetRender (_instanceWidget widgetRoot) renderer ts ctx app widgetRoot
-
-compose :: (Traversable t) => t (a -> a) -> a -> a
-compose functions init = foldr (.) id functions init
-
-{--
-  The objective is allowing modules that are not tied to the main application's state type, and that provide event handling at a higher level
-  Having said that, using the same state type should be possible
-
-  Event handling should:
-    - Provide a way to update custom state (State s)
-    - Provide a way to run actions in IO (through WidgetTask)
-    - Provide a way to send events to parent (ep)
-    - Provide a way to update parent state (State sp)
-
-  Handle Custom should route to corresponding Widget
-
-  _widgetGetState = ignoreGetState,
-    Saves custom state
-  _widgetMerge = containerMergeTrees ignoreOldInstance,
-    Relies on baseContainer's merge
-  _widgetNextFocusable = containerNextFocusable,
-    Calls the main widget's nextFocusable, with the corresponding ctx
-  _widgetFind = containerFind,
-    Calls the main widget's find, with the corresponding ctx
-  _widgetHandleEvent = containerHandleEvent ignoreEvent,
-  _widgetHandleCustom = containerHandleCustom,
-    Route to corresponding Widget
-  _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
-    Returns the main widget's preferredSize
-  _widgetResize = containerResize defaultResize,
-    Calls the main widget's resize, passing the assigned size
-  _widgetRender
-    Calls the main widget's render  function
---}

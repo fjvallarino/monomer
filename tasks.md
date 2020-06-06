@@ -47,20 +47,22 @@
     - Clean up Seq imports
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
+    - Create composite widget, allowing isolated event handling and UI creation
 
 - Pending
-  - Create composite widget, on which application itself is based
-    - Remove UserTask concept, handle it as WidgetTask
-  - Can we generalize _widgetFind?
-    - To find widgetInstances that need a specific kind of event (entities that need timeStep)
-  - Improve merge process. Implement Global keys
-  - Provide long running tasks that can provide events through a channel
-  - Provide a way of initializing the application
-    - Probably taking a simple event that is relayed to appEventsHandler is enough?
-  - Add a way to get path of widget given an id, and provide a method to send a message/event
   - Try to remove all those Typeable requirements in CompositeWidget
     - Maybe passing the current root as a parameter?
     - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
+    - Just use a field in WidgetInstance?
+  - Create application widget, based on composite
+    - Remove UserTask concept, handle it as WidgetTask
+  - Support long running tasks that can provide events through a channel
+  - Add a way to get path of widget given an id, and provide a method to send a message/event
+  - Provide a way of initializing the application
+    - Probably taking a simple event that is relayed to appEventsHandler is enough?
+  - Can we generalize _widgetFind?
+    - To find widgetInstances that need a specific kind of event (entities that need timeStep)
+  - Improve merge process. Implement Global keys
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
     - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
     - A _handleDelayedRendering_ also needs to be added
@@ -81,6 +83,7 @@
       - https://limperg.de/ghc-extensions/#datakinds
       - Maybe -> https://typeclasses.com/extensions-intro
     - Look for ways that allow both lenses and user events to be used in the same widget
+      - Most likely through a Default instance
     - Related to previous, look for ways to simplify widget setup. Default instance with common values?
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
   - Keep sending mouse move event if mouse is away but button is still pressed
