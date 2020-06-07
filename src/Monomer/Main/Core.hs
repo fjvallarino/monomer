@@ -82,8 +82,8 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgetRoot = do
   currentApp <- use appContext
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
   uTasksEvents <- checkUserTasks
-  (wtApp, wtAppEvents, wtWidgetRoot) <- handleWidgetTasks renderer mapp currentApp widgetRoot
-  (seApp, seAppEvents, seWidgetRoot) <- handleSystemEvents renderer mapp wtApp systemEvents wtWidgetRoot
+  (wtApp, wtAppEvents, wtWidgetRoot) <- handleWidgetTasks renderer currentApp widgetRoot
+  (seApp, seAppEvents, seWidgetRoot) <- handleSystemEvents renderer wtApp systemEvents wtWidgetRoot
 
   newApp <- handleAppEvents mapp seApp (seAppEvents >< (Seq.fromList uTasksEvents) >< wtAppEvents)
   mctx <- get

@@ -54,6 +54,9 @@
     - Maybe passing the current root as a parameter?
     - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
     - Just use a field in WidgetInstance?
+    - It does not seem possible with current design
+      - What about adding ep and sp to Widget/WidgetInstance?
+      - Create PWidget/PWidgetInstance
   - Create application widget, based on composite
     - Remove UserTask concept, handle it as WidgetTask
   - Support long running tasks that can provide events through a channel
@@ -101,6 +104,7 @@
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
+    - SDL supports Drag and Drop integration with OS
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it

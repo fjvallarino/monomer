@@ -48,16 +48,16 @@ createEventContext currentFocus currentTarget systemEvent widgetRoot = case syst
     pointEvent point = fmap makePathCtx $ _widgetFind (_instanceWidget widgetRoot) point widgetRoot
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
-handleSystemEvents :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> [SystemEvent] -> WidgetInstance s e m -> m (HandlerStep s e m)
-handleSystemEvents renderer mapp app systemEvents widgetRoot = foldM reducer (app, Seq.empty, widgetRoot) systemEvents where
+handleSystemEvents :: (MonomerM s e m) => Renderer m -> s -> [SystemEvent] -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleSystemEvents renderer app systemEvents widgetRoot = foldM reducer (app, Seq.empty, widgetRoot) systemEvents where
   reducer (currApp, currAppEvents, currWidgetRoot) systemEvent = do
     currentFocus <- use focused
 
-    (ca2, as2, ws2) <- handleSystemEvent renderer mapp currApp systemEvent currentFocus currentFocus currWidgetRoot
+    (ca2, as2, ws2) <- handleSystemEvent renderer currApp systemEvent currentFocus currentFocus currWidgetRoot
     return (ca2, currAppEvents >< as2, ws2)
 
-handleSystemEvent :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> s -> SystemEvent -> Path -> Path -> WidgetInstance s e m -> m (HandlerStep s e m)
-handleSystemEvent renderer mapp app systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
+handleSystemEvent :: (MonomerM s e m) => Renderer m -> s -> SystemEvent -> Path -> Path -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
   Nothing -> return (app, Seq.empty, widgetRoot)
   Just ctx -> do
     let widget = _instanceWidget widgetRoot
@@ -65,28 +65,28 @@ handleSystemEvent renderer mapp app systemEvent currentFocus currentTarget widge
     let eventResult = fromMaybe emptyResult $ _widgetHandleEvent widget ctx systemEvent app widgetRoot
     let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_eventResultRequest eventResult)
 
-    handleEventResult renderer mapp ctx app eventResult
-      >>= handleFocusChange renderer mapp ctx systemEvent stopProcessing
+    handleEventResult renderer ctx app eventResult
+      >>= handleFocusChange renderer ctx systemEvent stopProcessing
 
-handleEventResult :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> PathContext -> s -> EventResult s e m -> m (HandlerStep s e m)
-handleEventResult renderer mapp ctx app (EventResult eventRequests appEvents evtRoot) = do
+handleEventResult :: (MonomerM s e m) => Renderer m -> PathContext -> s -> EventResult s e m -> m (HandlerStep s e m)
+handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot) = do
   let evtStates = getUpdateUserStates eventRequests
   let evtApp = compose evtStates app
 
   handleNewWidgetTasks eventRequests
 
   handleFocusSet renderer eventRequests (evtApp, appEvents, evtRoot)
-    >>= handleClipboardGet renderer mapp ctx eventRequests
+    >>= handleClipboardGet renderer ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
 
-handleFocusChange :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e m) -> m (HandlerStep s e m)
-handleFocusChange renderer mapp ctx systemEvent stopProcessing (app, events, widgetRoot)
+handleFocusChange :: (MonomerM s e m) => Renderer m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
-      (newApp1, newEvents1, newRoot1) <- handleSystemEvent renderer mapp app Blur oldFocus oldFocus widgetRoot
+      (newApp1, newEvents1, newRoot1) <- handleSystemEvent renderer app Blur oldFocus oldFocus widgetRoot
 
       let newFocus = findNextFocusable oldFocus widgetRoot
-      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer mapp newApp1 Focus newFocus newFocus newRoot1
+      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer newApp1 Focus newFocus newFocus newRoot1
       focused .= newFocus
 
       return (newApp2, events >< newEvents1 >< newEvents2, widgetRoot)
@@ -103,14 +103,14 @@ handleFocusSet renderer eventRequests previousStep =
       return previousStep
     _ -> return previousStep
 
-handleClipboardGet :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> PathContext -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
-handleClipboardGet renderer mapp ctx eventRequests (app, events, widgetRoot) =
+handleClipboardGet :: (MonomerM s e m) => Renderer m -> PathContext -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleClipboardGet renderer ctx eventRequests (app, events, widgetRoot) =
   case Seq.filter isGetClipboard eventRequests of
     GetClipboard path :<| _ -> do
       hasText <- SDL.hasClipboardText
       contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
 
-      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer mapp app (Clipboard contents) (_pathCurrent ctx) path widgetRoot
+      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer app (Clipboard contents) (_pathCurrent ctx) path widgetRoot
 
       return (newApp2, events >< newEvents2, newRoot2)
     _ -> return (app, events, widgetRoot)
