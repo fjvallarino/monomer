@@ -16,7 +16,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Widget.Types
 
-type MonomerM s e m = (MonadState (MonomerContext s e) m, MonadIO m, Eq s)
+type MonomerM s m = (MonadState (MonomerContext s) m, MonadIO m, Eq s)
 type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
@@ -29,7 +29,7 @@ data MonomerApp s e m = MonomerApp {
   _appEventHandler :: AppEventHandler s e
 }
 
-data MonomerContext s e = MonomerContext {
+data MonomerContext s = MonomerContext {
   _appContext :: s,
   _windowSize :: Rect,
   _useHiDPI :: Bool,
@@ -37,7 +37,6 @@ data MonomerContext s e = MonomerContext {
   _inputStatus :: InputStatus,
   _focused :: Path,
   _latestHover :: Maybe Path,
-  _userTasks :: [UserTask (Maybe e)],
   _widgetTasks :: Seq WidgetTask
 }
 

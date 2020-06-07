@@ -10,7 +10,7 @@ import Monomer.Main.Types
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-initMonomerContext :: s -> Rect -> Bool -> Double -> MonomerContext s e
+initMonomerContext :: s -> Rect -> Bool -> Double -> MonomerContext s
 initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
   _appContext = app,
   _windowSize = winSize,
@@ -19,7 +19,6 @@ initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
   _inputStatus = defInputStatus,
   _focused = Seq.empty,
   _latestHover = Nothing,
-  _userTasks = [],
   _widgetTasks = Seq.empty
 }
 

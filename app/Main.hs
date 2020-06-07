@@ -30,7 +30,6 @@ import qualified SDL.Raw.Event as SREv
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Graphics.Color
-import Monomer.Main.App
 import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.Types
@@ -98,7 +97,7 @@ main = do
   let devicePixelRate = _rw winSize / fromIntegral screenWidth
   let appWidget = createApp def handleAppEvent buildUI
 
-  runStateT (runWidgets window c appWidget) (initMonomerContext def winSize useHiDPI devicePixelRate)
+  runStateT (runWidgets window c appWidget) (initMonomerContext () winSize useHiDPI devicePixelRate)
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window

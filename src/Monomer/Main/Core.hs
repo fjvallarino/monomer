@@ -11,6 +11,7 @@ import Control.Monad.State
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (><))
+import Data.Typeable (Typeable)
 import Lens.Micro.Mtl
 
 import qualified Data.Map as M
@@ -25,18 +26,25 @@ import Monomer.Event.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
-import Monomer.Main.Handlers
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
+import Monomer.Widget.CompositeWidget
 import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
-import Monomer.Widget.Util
-import Monomer.Widgets
 
-runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()
+createApp :: (Eq s, Monad m, Typeable s, Typeable e, Typeable m) => s -> AppEventHandler s e -> UIBuilder s e m -> WidgetInstance () () m
+createApp app eventHandler uiBuilder = composite "app" app (eventHandlerWrapper eventHandler) uiBuilder
+
+eventHandlerWrapper :: AppEventHandler s e -> s -> e -> EventResponseC s e ()
+eventHandlerWrapper eventHandler app evt = case eventHandler app evt of
+  State newApp -> StateC newApp
+  StateEvent newApp newEvent -> StateEventC newApp newEvent
+  Task newApp newAction -> TaskC newApp newAction
+
+runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()
 runWidgets window c widgetRoot = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
@@ -57,7 +65,7 @@ runWidgets window c widgetRoot = do
 
   mainLoop window c renderer (fromIntegral ticks) 0 0 newWidgetRoot
 
-mainLoop :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
+mainLoop :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
 mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   windowSize <- use windowSize
   useHiDPI <- use useHiDPI
@@ -100,7 +108,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgetRoot)
 
-renderWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> PathContext -> s -> WidgetInstance s e m -> Int -> m ()
+renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> PathContext -> s -> WidgetInstance s e m -> Int -> m ()
 renderWidgets !window !c !renderer ctx app widgetRoot ticks =
   doInDrawingContext window c $ do
     _widgetRender (_instanceWidget widgetRoot) renderer ticks ctx app widgetRoot
@@ -111,7 +119,7 @@ resizeUI renderer app assignedRect widgetRoot = newWidgetRoot where
   preferredSizes = _widgetPreferredSize widget renderer app widgetRoot
   newWidgetRoot = _widgetResize widget app assignedRect assignedRect widgetRoot preferredSizes
 
-resizeWindow :: (MonomerM s e m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
+resizeWindow :: (MonomerM s m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeWindow window renderer app widgetRoot = do
   dpr <- use devicePixelRate
   drawableSize <- getDrawableSize window
@@ -122,13 +130,13 @@ resizeWindow window renderer app widgetRoot = do
 
   return $ resizeUI renderer app newWindowSize widgetRoot
 
-preProcessEvents :: (MonomerM s e m) => (WidgetInstance s e m) -> [SystemEvent] -> m [SystemEvent]
+preProcessEvents :: (MonomerM s m) => (WidgetInstance s e m) -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do
   systemEvents <- concatMapM (preProcessEvent widgets) events
   mapM_ updateInputStatus systemEvents
   return systemEvents
 
-preProcessEvent :: (MonomerM s e m) => (WidgetInstance s e m) -> SystemEvent -> m [SystemEvent]
+preProcessEvent :: (MonomerM s m) => (WidgetInstance s e m) -> SystemEvent -> m [SystemEvent]
 preProcessEvent widgetRoot evt@(Move point) = do
   hover <- use latestHover
   let current = _widgetFind (_instanceWidget widgetRoot) point widgetRoot
@@ -142,7 +150,7 @@ preProcessEvent widgetRoot evt@(Move point) = do
   return $ leave ++ enter ++ [evt]
 preProcessEvent widgetRoot event = return [event]
 
-updateInputStatus :: (MonomerM s e m) => SystemEvent -> m ()
+updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
 updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist {
     statusButtons = M.insert btn btnState (statusButtons ist)
   }

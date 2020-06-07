@@ -27,7 +27,7 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-handleWidgetTasks :: (MonomerM s e m) => Renderer m -> s -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleWidgetTasks :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e m -> m (HandlerStep s e m)
 handleWidgetTasks renderer app widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM (\(WidgetTask _ task) -> fmap isNothing (liftIO $ poll task)) (toList tasks)
@@ -35,22 +35,21 @@ handleWidgetTasks renderer app widgetRoot = do
 
   processWidgetTasks renderer app widgetRoot finished
 
-processWidgetTasks :: (MonomerM s e m) => Renderer m -> s -> WidgetInstance s e m -> [WidgetTask] -> m (HandlerStep s e m)
+processWidgetTasks :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e m -> [WidgetTask] -> m (HandlerStep s e m)
 processWidgetTasks renderer app widgetRoot tasks = foldM reducer (app, Seq.empty, widgetRoot) tasks where
   reducer (wApp, wEvts, wRoot) task = do
     (wApp2, wEvts2, wRoot2) <- processWidgetTask renderer wApp wRoot task
     return (wApp2, wEvts >< wEvts2, wRoot2)
 
-processWidgetTask :: (MonomerM s e m) => Renderer m -> s -> WidgetInstance s e m -> WidgetTask -> m (HandlerStep s e m)
+processWidgetTask :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e m -> WidgetTask -> m (HandlerStep s e m)
 processWidgetTask renderer app widgetRoot (WidgetTask path task) = do
-  app <- use appContext
   taskStatus <- liftIO $ poll task
 
   if (isJust taskStatus)
     then processWidgetTaskResult renderer app widgetRoot path (fromJust taskStatus)
     else return (app, Seq.empty, widgetRoot)
 
-processWidgetTaskResult :: (MonomerM s e m, Typeable a) => Renderer m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (HandlerStep s e m)
+processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (HandlerStep s e m)
 processWidgetTaskResult renderer app widgetRoot _ (Left _) = return (app, Seq.empty, widgetRoot)
 processWidgetTaskResult renderer app widgetRoot path (Right val) = do
   currentFocus <- use focused
