@@ -26,6 +26,7 @@ type UIBuilderC s e m = s -> WidgetInstance s e m
 type EventHandlerC s e ep = s -> e -> EventResponseC s e ep
 
 data EventResponseC s e ep = StateC s
+                           | StateEventC s e
                            | TaskC s (IO (Maybe e))
                            | MessageC ep
 
@@ -112,6 +113,7 @@ reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> (s, Seq (IO (Mayb
 reduceCompositeEvents appEventHandler app events = foldl' reducer (app, Seq.empty, Seq.empty) events where
   reducer (app, tasks, messages) event = case appEventHandler app event of
     StateC newApp -> (newApp, tasks, messages)
+    StateEventC newApp evt -> reducer (newApp, tasks, messages) evt
     TaskC newApp task -> (newApp, tasks |> task, messages)
     MessageC message -> (app, tasks, messages |> message)
 
