@@ -24,7 +24,6 @@ import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
-import Monomer.Main.UserTask
 import Monomer.Main.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Util
@@ -37,8 +36,8 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widgets
 
-runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> MonomerApp s e m -> m ()
-runWidgets window c mapp = do
+runWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()
+runWidgets window c widgetRoot = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
   Rect rx ry rw rh <- use windowSize
@@ -50,14 +49,16 @@ runWidgets window c mapp = do
   windowSize .= newWindowSize
   ticks <- SDL.ticks
   ctx <- get
-  let widgetRoot = updateUI renderer mapp ctx empty
 
-  focused .= findNextFocusable rootPath widgetRoot
+  let styledRoot = cascadeStyle mempty widgetRoot
+  let newWidgetRoot = resizeUI renderer (_appContext ctx) newWindowSize styledRoot
 
-  mainLoop window c renderer mapp (fromIntegral ticks) 0 0 widgetRoot
+  focused .= findNextFocusable rootPath newWidgetRoot
 
-mainLoop :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> MonomerApp s e m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
-mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgetRoot = do
+  mainLoop window c renderer (fromIntegral ticks) 0 0 newWidgetRoot
+
+mainLoop :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> Int -> Int -> Int -> WidgetInstance s e m -> m ()
+mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   windowSize <- use windowSize
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
@@ -81,20 +82,13 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgetRoot = do
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
   currentApp <- use appContext
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
-  uTasksEvents <- checkUserTasks
   (wtApp, wtAppEvents, wtWidgetRoot) <- handleWidgetTasks renderer currentApp widgetRoot
   (seApp, seAppEvents, seWidgetRoot) <- handleSystemEvents renderer wtApp systemEvents wtWidgetRoot
 
-  newApp <- handleAppEvents mapp seApp (seAppEvents >< (Seq.fromList uTasksEvents) >< wtAppEvents)
-  mctx <- get
-
-  let tempWidgetRoot = if currentApp /= newApp
-                          then updateUI renderer mapp mctx seWidgetRoot
-                          else seWidgetRoot
-  newWidgetRoot <- return tempWidgetRoot >>= bindIf resized (resizeWindow window renderer newApp)
+  newWidgetRoot <- return seWidgetRoot >>= bindIf resized (resizeWindow window renderer seApp)
 
   currentFocus <- use focused
-  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) newApp newWidgetRoot startTicks
+  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) seApp newWidgetRoot startTicks
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -104,23 +98,7 @@ mainLoop window c renderer mapp !prevTicks !tsAccum !frames widgetRoot = do
   let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
 
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window c renderer mapp startTicks newTsAccum newFrameCount newWidgetRoot)
-
-handleAppEvents :: (MonomerM s e m) => MonomerApp s e m -> s -> Seq e -> m s
-handleAppEvents mapp app events = do
-  let (newApp, tasks) = reduceAppEvents (_appEventHandler mapp) app events
-
-  appContext .= newApp
-  launchUserTasks tasks
-
-  return newApp
-
-reduceAppEvents :: AppEventHandler s e -> s -> Seq e -> (s, [IO (Maybe e)])
-reduceAppEvents appEventHandler app events = foldl' reducer (app, []) events where
-  reducer (app, tasks) event = case appEventHandler app event of
-    State newApp -> (newApp, tasks)
-    StateEvent newApp newEvent -> reducer (newApp, tasks) newEvent
-    Task newApp task -> (newApp, task : tasks)
+  unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgetRoot)
 
 renderWidgets :: (MonomerM s e m) => SDL.Window -> NV.Context -> Renderer m -> PathContext -> s -> WidgetInstance s e m -> Int -> m ()
 renderWidgets !window !c !renderer ctx app widgetRoot ticks =
@@ -132,14 +110,6 @@ resizeUI renderer app assignedRect widgetRoot = newWidgetRoot where
   widget = _instanceWidget widgetRoot
   preferredSizes = _widgetPreferredSize widget renderer app widgetRoot
   newWidgetRoot = _widgetResize widget app assignedRect assignedRect widgetRoot preferredSizes
-
-updateUI :: (MonomerM s e m) => Renderer m -> MonomerApp s e m -> MonomerContext s e -> WidgetInstance s e m -> WidgetInstance s e m
-updateUI renderer mapp mctx oldRoot = resizeUI renderer app windowSize styledRoot where
-  app = _appContext mctx
-  windowSize = _windowSize mctx
-  newRoot = _uiBuilder mapp app
-  mergedRoot = _widgetMerge (_instanceWidget newRoot) app newRoot oldRoot
-  styledRoot = cascadeStyle mempty mergedRoot
 
 resizeWindow :: (MonomerM s e m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e m -> m (WidgetInstance s e m)
 resizeWindow window renderer app widgetRoot = do

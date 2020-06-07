@@ -30,6 +30,7 @@ import qualified SDL.Raw.Event as SREv
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Graphics.Color
+import Monomer.Main.App
 import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.Types
@@ -95,9 +96,9 @@ main = do
   winSize@(Rect rx ry rw rh) <- getDrawableSize window
 
   let devicePixelRate = _rw winSize / fromIntegral screenWidth
-  let mapp = MonomerApp buildUI handleAppEvent
+  let appWidget = createApp def handleAppEvent buildUI
 
-  runStateT (runWidgets window c mapp) (initMonomerContext def winSize useHiDPI devicePixelRate)
+  runStateT (runWidgets window c appWidget) (initMonomerContext def winSize useHiDPI devicePixelRate)
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
@@ -126,7 +127,7 @@ buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
     vstack [
       testComposite,
-      button "Increase" (IncreaseCount 1)
+      button ("Increase: " <> (showt $ _clickCount app)) (IncreaseCount 1)
     ]
 
 buildUI2 app = widgetTree where

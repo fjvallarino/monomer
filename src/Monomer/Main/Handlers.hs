@@ -18,7 +18,6 @@ import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Main.Platform
-import Monomer.Main.UserTask
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Graphics.Renderer

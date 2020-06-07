@@ -50,13 +50,6 @@
     - Create composite widget, allowing isolated event handling and UI creation
 
 - Pending
-  - Try to remove all those Typeable requirements in CompositeWidget
-    - Maybe passing the current root as a parameter?
-    - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
-    - Just use a field in WidgetInstance?
-    - It does not seem possible with current design
-      - What about adding ep and sp to Widget/WidgetInstance?
-      - Create PWidget/PWidgetInstance
   - Create application widget, based on composite
     - Remove UserTask concept, handle it as WidgetTask
   - Support long running tasks that can provide events through a channel
@@ -108,3 +101,10 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
+  - Try to remove all those Typeable requirements in CompositeWidget
+    - Maybe passing the current root as a parameter?
+    - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
+    - Just use a field in WidgetInstance?
+    - It does not seem possible with current design
+      - What about adding ep and sp to Widget/WidgetInstance?
+      - Create PWidget/PWidgetInstance

@@ -20,7 +20,9 @@ type MonomerM s e m = (MonadState (MonomerContext s e) m, MonadIO m, Eq s)
 type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
-data EventResponse s e = State s | StateEvent s e | Task s (IO (Maybe e))
+data EventResponse s e = State s
+                       | StateEvent s e
+                       | Task s (IO (Maybe e))
 
 data MonomerApp s e m = MonomerApp {
   _uiBuilder :: UIBuilder s e m,

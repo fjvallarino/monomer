@@ -1,4 +1,4 @@
-module Monomer.Main.App where
+module Monomer.Main.App (createApp) where
 
 import Debug.Trace
 
@@ -16,31 +16,11 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widgets
 
-{--
-createApp :: (Monad m, Typeable m) => s -> WidgetInstance s e m
-createApp app = composite "app" app handleCompositeEvent buildComposite
+createApp :: (Eq s, Monad m, Typeable s, Typeable e, Typeable m) => s -> AppEventHandler s e -> UIBuilder s e m -> WidgetInstance s e m
+createApp app eventHandler uiBuilder = composite "app" app (handleAppEvent eventHandler) uiBuilder
 
-handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
-handleCompositeEvent app evt = case evt of
-  CEvent1 -> StateC $ app & csCounter %~ (+1)
-  CEvent2 -> MessageC (IncreaseCount 55)
-  CEvent3 -> TaskC app $ return Nothing
-  otherwise -> TaskC app $ do
-    liftIO . putStrLn $ "Composite event handler called"
-    return $ Just CEvent1
-
-buildComposite app = trace "Created composite UI" $
-  vstack [
-    scroll $ label "This is a composite label!",
-    vgrid [
-      hgrid [
-        button ("Clicked: " <> (showt $ _csCounter app)) CEvent1,
-        button "Message parent" CEvent2
-      ],
-      hgrid [
-        sandbox CEvent3,
-        button "Run task" CEvent4
-      ]
-    ] `style` bgColor gray
-  ]
---}
+handleAppEvent :: AppEventHandler s e -> s -> e -> EventResponseC s e e
+handleAppEvent eventHandler app evt = case eventHandler app evt of
+  State newApp -> StateC newApp
+  StateEvent newApp newEvent -> StateEventC newApp newEvent
+  Task newApp newAction -> TaskC newApp newAction
