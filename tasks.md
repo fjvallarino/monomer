@@ -47,12 +47,13 @@
     - Clean up Seq imports
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
     - Reorganize Common Types. What do other projects do? They should be simple to import and use
-    - Create composite widget, allowing isolated event handling and UI creation
-
-- Pending
+  - Create composite widget, allowing isolated event handling and UI creation
   - Create application widget, based on composite
     - Remove UserTask concept, handle it as WidgetTask
   - Support long running tasks that can provide events through a channel
+
+- Pending
+  - Add Multiple response support (extra value in EventResponse)
   - Add a way to get path of widget given an id, and provide a method to send a message/event
   - Provide a way of initializing the application
     - Probably taking a simple event that is relayed to appEventsHandler is enough?

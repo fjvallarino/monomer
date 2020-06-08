@@ -6,6 +6,7 @@
 module Monomer.Main.Types where
 
 import Control.Concurrent.Async
+import Control.Concurrent.STM.TChan
 import Control.Monad.State
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
@@ -21,8 +22,8 @@ type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
 data EventResponse s e = State s
-                       | StateEvent s e
                        | Task s (IO (Maybe e))
+                       | Producer s ((e -> IO ()) -> IO ())
 
 data MonomerApp s e m = MonomerApp {
   _uiBuilder :: UIBuilder s e m,
@@ -40,13 +41,8 @@ data MonomerContext s = MonomerContext {
   _widgetTasks :: Seq WidgetTask
 }
 
-data UserTask e = UserTask {
-  _userTask :: Async e
-}
-
-data WidgetTask = forall a . Typeable a => WidgetTask {
-  _widgetTaskPath :: Path,
-  _widgetTask :: Async a
-}
+data WidgetTask =
+    forall a . Typeable a => WidgetTask Path (Async a)
+  | forall a . Typeable a => WidgetProducer Path (TChan a) (Async ())
 
 makeLenses ''MonomerContext

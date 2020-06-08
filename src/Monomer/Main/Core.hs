@@ -41,8 +41,8 @@ createApp app eventHandler uiBuilder = composite "app" app (eventHandlerWrapper 
 eventHandlerWrapper :: AppEventHandler s e -> s -> e -> EventResponseC s e ()
 eventHandlerWrapper eventHandler app evt = case eventHandler app evt of
   State newApp -> StateC newApp
-  StateEvent newApp newEvent -> StateEventC newApp newEvent
   Task newApp newAction -> TaskC newApp newAction
+  Producer newApp newAction -> ProducerC newApp newAction
 
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()
 runWidgets window c widgetRoot = do

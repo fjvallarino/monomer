@@ -1,6 +1,7 @@
 module Monomer.Event.Core where
 
 import Control.Applicative ((<|>))
+import Control.Concurrent.STM.TChan (TChan, writeTChan)
 import Data.Maybe (catMaybes, fromJust, isJust)
 import Data.List (foldl')
 import Data.Sequence (Seq, (|>))
@@ -31,6 +32,10 @@ checkKeyboard _ _ = False
 isCustomHandler :: EventRequest s -> Bool
 isCustomHandler (RunCustom _ _) = True
 isCustomHandler _ = False
+
+isProducerHandler :: EventRequest s -> Bool
+isProducerHandler (RunProducer _ _ _) = True
+isProducerHandler _ = False
 
 isIgnoreParentEvents :: EventRequest s -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
@@ -86,6 +91,7 @@ convertRequest (SetFocus path) = Just (SetFocus path)
 convertRequest (GetClipboard path) = Just (GetClipboard path)
 convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
 convertRequest (RunCustom path action) = Just (RunCustom path action)
+convertRequest (RunProducer adapter path action) = Just (RunProducer adapter path action)
 convertRequest (UpdateUserState fn) = Nothing
 
 convertRequests :: Seq (EventRequest s) -> Seq (EventRequest sp)

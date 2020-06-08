@@ -116,17 +116,20 @@ handleAppEvent app evt = do
       putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
       putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
       return Nothing
-    IncreaseCount v -> Task (app & clickCount %~ (+1)) $ do
-      putStrLn $ "Clicked button: " ++ (show v) ++ " - Count is: " ++ show (app ^. clickCount)
-
+    AppButton -> Task app $ do
+      putStrLn $ "Clicked button"
       return Nothing
+    IncreaseMessage -> State $ app & msgCount %~ (+1)
     UpdateText3 txt -> State $ app & textField3 .~ txt
 
 buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
     vstack [
-      testComposite,
-      button ("Increase: " <> (showt $ _clickCount app)) (IncreaseCount 1)
+      hgrid [
+        button ("Increase: " <> (showt $ _clickCount app)) AppButton,
+        label $ "Messages: " <> (showt $ _msgCount app)
+      ],
+      testComposite
     ]
 
 buildUI2 app = widgetTree where

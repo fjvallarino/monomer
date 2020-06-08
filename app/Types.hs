@@ -5,32 +5,25 @@ module Types where
 import Lens.Micro.TH (makeLenses)
 
 import Data.Default
-import qualified Data.Text as T
+import Data.Text (Text)
 
 data App = App {
   _clickCount :: !Int,
-  _textField1 :: T.Text,
-  _textField2 :: T.Text,
-  _textField3 :: T.Text
+  _msgCount :: !Int,
+  _textField1 :: Text,
+  _textField2 :: Text,
+  _textField3 :: Text
 } deriving (Show, Eq)
 
 instance Default App where
-  def = App 0 "" "" ""
+  def = App 0 0 "" "" ""
 
 makeLenses ''App
 
 data AppEvent = RunShortTask
               | RunLongTask
               | PrintTextFields
-              | IncreaseCount Int
-              | UpdateText3 T.Text
+              | AppButton
+              | IncreaseMessage
+              | UpdateText3 Text
               deriving (Show, Eq)
-
-data CompState = CompState {
-  _csCounter :: Int
-} deriving (Show, Eq)
-
-instance Default CompState where
-  def = CompState 0
-
-makeLenses ''CompState

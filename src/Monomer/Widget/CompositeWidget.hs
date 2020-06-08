@@ -5,6 +5,8 @@ module Monomer.Widget.CompositeWidget where
 
 import Debug.Trace
 
+import Control.Concurrent.STM.TChan
+import Control.Monad.STM (atomically)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
@@ -26,8 +28,8 @@ type UIBuilderC s e m = s -> WidgetInstance s e m
 type EventHandlerC s e ep = s -> e -> EventResponseC s e ep
 
 data EventResponseC s e ep = StateC s
-                           | StateEventC s e
                            | TaskC s (IO (Maybe e))
+                           | ProducerC s ((e -> IO ()) -> IO ())
                            | MessageC ep
 
 data Composite s e ep m = Composite {
@@ -42,7 +44,9 @@ data CompositeState s e m = CompositeState {
   _compositeRoot :: WidgetInstance s e m
 }
 
-data CompositeTask = forall e . Typeable e => CompositeTask e
+data CompositeTask =
+    forall e . Typeable e => CompositeTask e
+  | forall e . Typeable e => CompositeProducer e
 
 composite :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e m -> WidgetInstance sp ep m
 composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
@@ -95,9 +99,11 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   CompositeState app widgetRoot = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates app
-  newReqs = convertRequests reqs <> convertTasksToRequests ctx tasks
+  newReqs = convertRequests reqs
+         <> convertTasksToRequests ctx tasks
+         <> convertProducersToRequests ctx producers
 
-  (newApp, tasks, messages) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
+  (newApp, tasks, producers, messages) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
   builtRoot = _uiBuilderC comp newApp
   tempRoot = if | app /= newApp -> _widgetMerge (_instanceWidget builtRoot) newApp builtRoot evtsRoot
                 | otherwise -> evtsRoot
@@ -109,30 +115,39 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
     _instanceWidget = createComposite comp newState
   }
 
-reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> (s, Seq (IO (Maybe e)), Seq ep)
-reduceCompositeEvents appEventHandler app events = foldl' reducer (app, Seq.empty, Seq.empty) events where
-  reducer (app, tasks, messages) event = case appEventHandler app event of
-    StateC newApp -> (newApp, tasks, messages)
-    StateEventC newApp evt -> reducer (newApp, tasks, messages) evt
-    TaskC newApp task -> (newApp, tasks |> task, messages)
-    MessageC message -> (app, tasks, messages |> message)
+reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> (s, Seq (IO (Maybe e)), Seq ((e -> IO ()) -> IO ()), Seq ep)
+reduceCompositeEvents appEventHandler app events = foldl' reducer (app, Seq.empty, Seq.empty, Seq.empty) events where
+  reducer (app, tasks, producers, messages) event = case appEventHandler app event of
+    StateC newApp -> (newApp, tasks, producers, messages)
+    TaskC newApp task -> (newApp, tasks |> task, producers, messages)
+    ProducerC newApp producer -> (newApp, tasks, producers |> producer, messages)
+    MessageC message -> (app, tasks, producers, messages |> message)
 
-convertTasksToRequests :: Typeable e => PathContext -> Seq (IO (Maybe e)) -> Seq (EventRequest sp)
+convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) (fmap CompositeTask req)
+
+convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (EventRequest sp)
+convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer CompositeProducer (_pathCurrent ctx) req
 
 -- | Custom Handling
 compositeHandleCustom :: (Monad m, Eq s, Typeable i, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> PathContext -> i -> sp -> WidgetInstance sp ep m -> Maybe (EventResult sp ep m)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
       Just (CompositeTask evt) -> case cast evt of
-        Just (Just res) -> Just $ processEventResult comp state ctx widgetComposite evtResult where
-          evtResult = EventResult Seq.empty (Seq.singleton res) (_compositeRoot state)
+        Just (Just res) -> handleCustomHelper comp state ctx widgetComposite res
+        _ -> Nothing
+      Just (CompositeProducer evt) -> case cast evt of
+        Just res -> handleCustomHelper comp state ctx widgetComposite res
         _ -> Nothing
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
       CompositeState app widgetRoot = state
       processEvent = processEventResult comp state ctx widgetComposite
       result = _widgetHandleCustom (_instanceWidget widgetRoot) ctx arg app widgetRoot
+
+handleCustomHelper :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> CompositeState s e m -> PathContext -> WidgetInstance sp ep m -> e -> Maybe (EventResult sp ep m)
+handleCustomHelper comp state ctx widgetComposite res = Just $ processEventResult comp state ctx widgetComposite evtResult where
+  evtResult = EventResult Seq.empty (Seq.singleton res) (_compositeRoot state)
 
 -- Preferred size
 compositePreferredSize :: CompositeState s e m -> Renderer m -> sp -> WidgetInstance sp ep m -> Tree SizeReq

@@ -3,6 +3,8 @@
 module Monomer.Main.Handlers where
 
 import Control.Concurrent.Async (async)
+import Control.Monad.STM (atomically)
+import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Maybe
@@ -126,11 +128,19 @@ handleClipboardSet renderer eventRequests previousStep =
 handleNewWidgetTasks :: (MonomerM s m) => Seq (EventRequest s) -> m ()
 handleNewWidgetTasks eventRequests = do
   let customHandlers = Seq.filter isCustomHandler eventRequests
+  let producerHandlers = Seq.filter isProducerHandler eventRequests
 
-  tasks <- forM customHandlers $ \(RunCustom path handler) -> do
+  customTasks <- forM customHandlers $ \(RunCustom path handler) -> do
     asyncTask <- liftIO $ async (liftIO handler)
-
     return $ WidgetTask path asyncTask
 
+  producerTasks <- forM producerHandlers $ \(RunProducer adapter path handler) -> do
+    newChannel <- liftIO newTChanIO
+    asyncTask <- liftIO $ async (liftIO $ handler (sendMessage adapter newChannel))
+    return $ WidgetProducer path newChannel asyncTask
+
   previousTasks <- use widgetTasks
-  widgetTasks .= previousTasks >< tasks
+  widgetTasks .= previousTasks >< customTasks >< producerTasks
+
+sendMessage :: (e -> a) -> TChan a -> e -> IO ()
+sendMessage adapter channel message = atomically $ writeTChan channel (adapter message)
