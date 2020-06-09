@@ -94,7 +94,7 @@ compositeMerge :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable 
 compositeMerge comp state pApp newComposite oldComposite = newInstance where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
   CompositeState oldApp oldRoot = fromMaybe state (useState oldState)
-  -- The widgetRoot created on _composite_ has not yet been evaluated, so duplicate widget tree creation is avoided
+  -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
   newRoot = _uiBuilderC comp oldApp
   widgetRoot = _widgetMerge (_instanceWidget newRoot) oldApp newRoot oldRoot
   newState = CompositeState oldApp widgetRoot
@@ -123,9 +123,13 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
+  newInstance = updateComposite comp app newApp evtsRoot widgetComposite
+
+updateComposite :: (Monad m, Eq s, Typeable s, Typeable e, Typeable ep, Typeable m) => Composite s e ep m -> s -> s -> WidgetInstance s e m -> WidgetInstance sp ep m -> WidgetInstance sp ep m
+updateComposite comp app newApp oldRoot widgetComposite = newInstance where
   builtRoot = _uiBuilderC comp newApp
-  tempRoot = if | app /= newApp -> _widgetMerge (_instanceWidget builtRoot) newApp builtRoot evtsRoot
-                | otherwise -> evtsRoot
+  tempRoot = if | app /= newApp -> _widgetMerge (_instanceWidget builtRoot) newApp builtRoot oldRoot
+                | otherwise -> oldRoot
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
   newRoot = _widgetResize (_instanceWidget tempRoot) newApp viewport renderArea tempRoot (_sizeReqC comp)
