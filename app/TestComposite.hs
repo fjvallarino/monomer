@@ -46,15 +46,15 @@ testComposite = composite "testComposite" def handleCompositeEvent buildComposit
 handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
   MessageParent -> MessageC IncreaseMessage
-  CallSandbox -> TaskC app $ return Nothing
-  RunTask -> TaskC app $ do
+  CallSandbox -> EventC (HandleProducer 20) <> (TaskC $ return Nothing)
+  RunTask -> TaskC $ do
     putStrLn $ "Composite event handler called"
     return Nothing
-  RunProducer -> ProducerC app $ \sendMessage -> do
+  RunProducer -> ProducerC $ \sendMessage -> do
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
       threadDelay $ 1000 * 1000
-  HandleProducer val -> StateC $ app & csProduced %~ (+1)
+  HandleProducer val -> StateC $ app & csProduced %~ (+val)
 
 buildComposite app = trace "Created composite UI" $
   vstack [

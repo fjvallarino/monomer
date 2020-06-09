@@ -22,8 +22,9 @@ type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
 data EventResponse s e = State s
-                       | Task s (IO (Maybe e))
-                       | Producer s ((e -> IO ()) -> IO ())
+                       | Event e
+                       | Task (IO (Maybe e))
+                       | Producer ((e -> IO ()) -> IO ())
                        | Multiple (Seq (EventResponse s e))
 
 instance Semigroup (EventResponse s e) where

@@ -1,5 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.CompositeWidget where
 
@@ -27,13 +28,21 @@ import Monomer.Widget.Util
 type UIBuilderC s e m = s -> WidgetInstance s e m
 type EventHandlerC s e ep = s -> e -> EventResponseC s e ep
 
-type TaskHandler e = Seq (IO (Maybe e))
-type ProducerHandler e = Seq ((e -> IO ()) -> IO ())
-type ReducedEvents s e ep = (s, Seq ep, TaskHandler e, ProducerHandler e)
+type TaskHandler e = IO (Maybe e)
+type ProducerHandler e = (e -> IO ()) -> IO ()
+
+data ReducedEvents s e ep = ReducedEvents {
+  _reApp :: s,
+  _reEvents :: Seq e,
+  _reMessages :: Seq ep,
+  _reTasks :: Seq (TaskHandler e),
+  _reProducers :: Seq (ProducerHandler e)
+}
 
 data EventResponseC s e ep = StateC s
-                           | TaskC s (IO (Maybe e))
-                           | ProducerC s ((e -> IO ()) -> IO ())
+                           | EventC e
+                           | TaskC (TaskHandler e)
+                           | ProducerC (ProducerHandler e)
                            | MessageC ep
                            | MultipleC (Seq (EventResponseC s e ep))
 
@@ -110,7 +119,7 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   CompositeState app widgetRoot = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates app
-  (newApp, messages, tasks, producers) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
+  ReducedEvents newApp _ messages tasks producers = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
@@ -126,16 +135,21 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   }
 
 reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> ReducedEvents s e ep
-reduceCompositeEvents appEventHandler app events = foldl' reducer (app, Seq.empty, Seq.empty, Seq.empty) events where
-  reducer params@(app, _, _, _) event = convertResponseToTuple params (appEventHandler app event)
+reduceCompositeEvents appEventHandler app events = foldl' reducer initial events where
+  initial = ReducedEvents app Seq.empty Seq.empty Seq.empty Seq.empty
+  reducer current event = foldl' reducer newCurrent newEvents where
+    processed = convertResponse current (appEventHandler (_reApp current) event)
+    newEvents = _reEvents processed
+    newCurrent = processed { _reEvents = Seq.empty }
 
-convertResponseToTuple :: ReducedEvents s e ep -> EventResponseC s e ep -> ReducedEvents s e ep
-convertResponseToTuple (app, messages, tasks, producers) response = case response of
-  StateC newApp ->  (newApp, messages, tasks, producers)
-  MessageC message -> (app, messages |> message, tasks, producers)
-  TaskC newApp task ->  (newApp, messages, tasks |> task, producers)
-  ProducerC newApp producer -> (newApp, messages, tasks, producers |> producer)
-  MultipleC ehs -> foldl' convertResponseToTuple (app, messages, tasks, producers) ehs
+convertResponse :: ReducedEvents s e ep -> EventResponseC s e ep -> ReducedEvents s e ep
+convertResponse current@ReducedEvents{..} response = case response of
+  StateC newApp -> current { _reApp = newApp }
+  EventC event -> current { _reEvents = _reEvents |> event }
+  MessageC message -> current { _reMessages = _reMessages |> message }
+  TaskC task -> current { _reTasks = _reTasks |> task }
+  ProducerC producer -> current { _reProducers = _reProducers |> producer }
+  MultipleC ehs -> foldl' convertResponse current ehs
 
 convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) (fmap CompositeTask req)

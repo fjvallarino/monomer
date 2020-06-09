@@ -43,8 +43,9 @@ eventHandlerWrapper eventHandler app evt = convertEventResponse $ eventHandler a
 
 convertEventResponse :: EventResponse s e -> EventResponseC s e ()
 convertEventResponse (State newApp) = StateC newApp
-convertEventResponse (Task newApp newAction) = TaskC newApp newAction
-convertEventResponse (Producer newApp newAction) = ProducerC newApp newAction
+convertEventResponse (Event newEvent) = EventC newEvent
+convertEventResponse (Task newTask) = TaskC newTask
+convertEventResponse (Producer newProducer) = ProducerC newProducer
 convertEventResponse (Multiple ehs) = MultipleC $ fmap convertEventResponse ehs
 
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()

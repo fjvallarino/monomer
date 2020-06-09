@@ -106,21 +106,21 @@ main = do
 --handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = do
   case evt of
-    RunShortTask -> State $ app & textField3 .~ "Updated!"
-    RunLongTask -> Task app $ do
+    RunShortTask -> State (app & textField3 .~ "Updated!")
+    RunLongTask -> Task $ do
       threadDelay $ 1 * 1000 * 1000
 
       return $ Just (UpdateText3 "HOLA")
-    PrintTextFields -> Task app $ do
+    PrintTextFields -> Task $ do
       putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)
       putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
       putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
       return Nothing
-    AppButton -> Task app $ do
+    AppButton -> State (app & clickCount %~ (+10)) <> (Task $ do
       putStrLn $ "Clicked button"
-      return Nothing
-    IncreaseMessage -> State $ app & msgCount %~ (+1)
-    UpdateText3 txt -> State $ app & textField3 .~ txt
+      return Nothing)
+    IncreaseMessage -> State (app & msgCount %~ (+1))
+    UpdateText3 txt -> State (app & textField3 .~ txt)
 
 buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
