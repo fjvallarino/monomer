@@ -39,10 +39,13 @@ createApp :: (Eq s, Monad m, Typeable s, Typeable e, Typeable m) => s -> AppEven
 createApp app eventHandler uiBuilder = composite "app" app (eventHandlerWrapper eventHandler) uiBuilder
 
 eventHandlerWrapper :: AppEventHandler s e -> s -> e -> EventResponseC s e ()
-eventHandlerWrapper eventHandler app evt = case eventHandler app evt of
-  State newApp -> StateC newApp
-  Task newApp newAction -> TaskC newApp newAction
-  Producer newApp newAction -> ProducerC newApp newAction
+eventHandlerWrapper eventHandler app evt = convertEventResponse $ eventHandler app evt
+
+convertEventResponse :: EventResponse s e -> EventResponseC s e ()
+convertEventResponse (State newApp) = StateC newApp
+convertEventResponse (Task newApp newAction) = TaskC newApp newAction
+convertEventResponse (Producer newApp newAction) = ProducerC newApp newAction
+convertEventResponse (Multiple ehs) = MultipleC $ fmap convertEventResponse ehs
 
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e m -> m ()
 runWidgets window c widgetRoot = do

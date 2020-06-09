@@ -10,7 +10,7 @@ import Control.Monad.STM (atomically)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (|>))
+import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
 
 import qualified Data.Sequence as Seq
@@ -27,10 +27,21 @@ import Monomer.Widget.Util
 type UIBuilderC s e m = s -> WidgetInstance s e m
 type EventHandlerC s e ep = s -> e -> EventResponseC s e ep
 
+type TaskHandler e = Seq (IO (Maybe e))
+type ProducerHandler e = Seq ((e -> IO ()) -> IO ())
+type ReducedEvents s e ep = (s, Seq ep, TaskHandler e, ProducerHandler e)
+
 data EventResponseC s e ep = StateC s
                            | TaskC s (IO (Maybe e))
                            | ProducerC s ((e -> IO ()) -> IO ())
                            | MessageC ep
+                           | MultipleC (Seq (EventResponseC s e ep))
+
+instance Semigroup (EventResponseC s e ep) where
+  MultipleC seq1 <> MultipleC seq2 = MultipleC (seq1 <> seq2)
+  MultipleC seq1 <> er2 = MultipleC (seq1 |> er2)
+  er1 <> MultipleC seq2 = MultipleC (er1 <| seq2)
+  er1 <> er2 = MultipleC (fromList [er1, er2])
 
 data Composite s e ep m = Composite {
   _widgetTypeC :: WidgetType,
@@ -99,11 +110,10 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   CompositeState app widgetRoot = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates app
+  (newApp, messages, tasks, producers) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
-
-  (newApp, tasks, producers, messages) = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
   builtRoot = _uiBuilderC comp newApp
   tempRoot = if | app /= newApp -> _widgetMerge (_instanceWidget builtRoot) newApp builtRoot evtsRoot
                 | otherwise -> evtsRoot
@@ -115,13 +125,17 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
     _instanceWidget = createComposite comp newState
   }
 
-reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> (s, Seq (IO (Maybe e)), Seq ((e -> IO ()) -> IO ()), Seq ep)
+reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> ReducedEvents s e ep
 reduceCompositeEvents appEventHandler app events = foldl' reducer (app, Seq.empty, Seq.empty, Seq.empty) events where
-  reducer (app, tasks, producers, messages) event = case appEventHandler app event of
-    StateC newApp -> (newApp, tasks, producers, messages)
-    TaskC newApp task -> (newApp, tasks |> task, producers, messages)
-    ProducerC newApp producer -> (newApp, tasks, producers |> producer, messages)
-    MessageC message -> (app, tasks, producers, messages |> message)
+  reducer params@(app, _, _, _) event = convertResponseToTuple params (appEventHandler app event)
+
+convertResponseToTuple :: ReducedEvents s e ep -> EventResponseC s e ep -> ReducedEvents s e ep
+convertResponseToTuple (app, messages, tasks, producers) response = case response of
+  StateC newApp ->  (newApp, messages, tasks, producers)
+  MessageC message -> (app, messages |> message, tasks, producers)
+  TaskC newApp task ->  (newApp, messages, tasks |> task, producers)
+  ProducerC newApp producer -> (newApp, messages, tasks, producers |> producer)
+  MultipleC ehs -> foldl' convertResponseToTuple (app, messages, tasks, producers) ehs
 
 convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) (fmap CompositeTask req)

@@ -9,7 +9,7 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
 import Control.Monad.State
 import Data.Typeable (Typeable)
-import Data.Sequence (Seq)
+import Data.Sequence (Seq, (|>), (<|), fromList)
 import Lens.Micro.TH (makeLenses)
 
 import Monomer.Common.Geometry
@@ -24,6 +24,13 @@ type AppEventHandler s e = s -> e -> EventResponse s e
 data EventResponse s e = State s
                        | Task s (IO (Maybe e))
                        | Producer s ((e -> IO ()) -> IO ())
+                       | Multiple (Seq (EventResponse s e))
+
+instance Semigroup (EventResponse s e) where
+  Multiple seq1 <> Multiple seq2 = Multiple (seq1 <> seq2)
+  Multiple seq1 <> er2 = Multiple (seq1 |> er2)
+  er1 <> Multiple seq2 = Multiple (er1 <| seq2)
+  er1 <> er2 = Multiple (fromList [er1, er2])
 
 data MonomerApp s e m = MonomerApp {
   _uiBuilder :: UIBuilder s e m,
