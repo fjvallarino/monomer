@@ -1,6 +1,9 @@
 {-# LANGUAGE MultiWayIf #-}
 
-module Monomer.Widget.Widgets.Stack (hstack, vstack) where
+module Monomer.Widget.Widgets.Stack (
+  hstack,
+  vstack
+) where
 
 import Control.Monad
 import Data.List (foldl')

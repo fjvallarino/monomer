@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.TextField where
+module Monomer.Widget.Widgets.TextField (textField) where
 
 import Control.Monad
 import Data.Maybe
@@ -44,7 +44,7 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
 makeTextField :: (Monad m) => Lens' s T.Text -> TextFieldState -> Widget s e m
 makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetGetState = getState,
-    _widgetMerge = defaultMerge merge,
+    _widgetMerge = widgetMerge merge,
 
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,

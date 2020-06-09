@@ -17,14 +17,17 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Widget.Types
 
-type MonomerM s m = (MonadState (MonomerContext s) m, MonadIO m, Eq s)
+type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
 type UIBuilder s e m = s -> WidgetInstance s e m
 type AppEventHandler s e = s -> e -> EventResponse s e
 
+type TaskHandler e = IO (Maybe e)
+type ProducerHandler e = (e -> IO ()) -> IO ()
+
 data EventResponse s e = State s
                        | Event e
-                       | Task (IO (Maybe e))
-                       | Producer ((e -> IO ()) -> IO ())
+                       | Task (TaskHandler e)
+                       | Producer (ProducerHandler e)
                        | Multiple (Seq (EventResponse s e))
 
 instance Semigroup (EventResponse s e) where

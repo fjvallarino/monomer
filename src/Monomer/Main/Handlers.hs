@@ -1,6 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Monomer.Main.Handlers where
+module Monomer.Main.Handlers (
+  HandlerStep,
+  handleEventResult,
+  handleSystemEvents
+) where
 
 import Control.Concurrent.Async (async)
 import Control.Monad.STM (atomically)

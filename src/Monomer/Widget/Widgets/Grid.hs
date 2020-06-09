@@ -1,6 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.Grid (empty, hgrid, vgrid) where
+module Monomer.Widget.Widgets.Grid (
+  hgrid,
+  vgrid
+) where
 
 import Control.Monad
 import Data.Default
@@ -14,9 +17,6 @@ import Monomer.Common.Tree
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
-
-empty :: (Monad m) => WidgetInstance s e m
-empty = defaultWidgetInstance "empty" createContainer
 
 hgrid :: (Monad m) => [WidgetInstance s e m] -> WidgetInstance s e m
 hgrid children = (defaultWidgetInstance "hgrid" (makeFixedGrid True)) {

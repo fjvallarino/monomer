@@ -1,7 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Monomer.Main.Core where
+module Monomer.Main.Core (
+  createApp,
+  runWidgets
+) where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad

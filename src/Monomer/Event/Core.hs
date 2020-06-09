@@ -1,7 +1,6 @@
 module Monomer.Event.Core where
 
 import Control.Applicative ((<|>))
-import Control.Concurrent.STM.TChan (TChan, writeTChan)
 import Data.Maybe (catMaybes, fromJust, isJust)
 import Data.List (foldl')
 import Data.Sequence (Seq, (|>))

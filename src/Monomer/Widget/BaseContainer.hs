@@ -2,7 +2,13 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Monomer.Widget.BaseContainer where
+module Monomer.Widget.BaseContainer (
+  createContainer,
+  containerHandleEvent,
+  containerPreferredSize,
+  containerResize,
+  containerRender
+) where
 
 import Control.Monad
 import Data.Default

@@ -2,7 +2,10 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.CompositeWidget where
+module Monomer.Widget.CompositeWidget (
+  EventResponseC(..),
+  composite
+) where
 
 import Debug.Trace
 
