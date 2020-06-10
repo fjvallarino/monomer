@@ -10,7 +10,7 @@ import Control.Monad
 import Monomer.Common.Style
 import Monomer.Widget.Types
 
-cascadeStyle :: (Monad m) => Style -> WidgetInstance s e m -> WidgetInstance s e m
+cascadeStyle :: Style -> WidgetInstance s e -> WidgetInstance s e
 cascadeStyle parentStyle widgetInstance@WidgetInstance{..} = newNode where
   newNode = widgetInstance { _instanceStyle = newStyle, _instanceChildren = newChildren }
   newChildren = fmap (cascadeStyle newStyle) _instanceChildren

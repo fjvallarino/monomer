@@ -32,16 +32,16 @@ data ScrollState = ScrollState {
 
 defaultState = ScrollState 0 0 def (singleNode def)
 
-scroll :: (Monad m) => WidgetInstance s e m -> WidgetInstance s e m
+scroll :: WidgetInstance s e -> WidgetInstance s e
 scroll managedWidget = makeInstance (makeScroll defaultState) managedWidget
 
-makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m -> WidgetInstance s e m
+makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
   _instanceChildren = Seq.singleton managedWidget,
   _instanceFocusable = False
 }
 
-makeScroll :: (Monad m) => ScrollState -> Widget s e m
+makeScroll :: ScrollState -> Widget s e
 makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,

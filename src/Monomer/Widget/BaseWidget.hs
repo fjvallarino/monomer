@@ -17,7 +17,7 @@ import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-createWidget :: (Monad m) => Widget s e m
+createWidget :: Widget s e
 createWidget = Widget {
   _widgetGetState = ignoreGetState,
   _widgetMerge = ignoreMerge,
@@ -33,37 +33,37 @@ createWidget = Widget {
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
-ignoreMerge :: s -> WidgetInstance s e m -> WidgetInstance s e m -> WidgetInstance s e m
+ignoreMerge :: s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
 ignoreMerge app new old = new
 
-widgetMerge :: (s -> Maybe WidgetState -> Widget s e m) -> s -> WidgetInstance s e m -> WidgetInstance s e m -> WidgetInstance s e m
+widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
 widgetMerge makeWidget app new old = new { _instanceWidget = makeWidget app oldState } where
   oldState = _widgetGetState (_instanceWidget old) app
 
-ignoreNextFocusable :: PathContext -> WidgetInstance s e m -> Maybe Path
+ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
 ignoreNextFocusable ctx widgetInstance = Nothing
 
-widgetFind :: Point -> WidgetInstance s e m -> Maybe Path
+widgetFind :: Point -> WidgetInstance s e -> Maybe Path
 widgetFind point widgetInstance = Nothing
 
-ignoreHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
+ignoreHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e)
 ignoreHandleEvent ctx evt app widgetInstance = Nothing
 
-ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
+ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (EventResult s e)
 ignoreHandleCustom ctx evt app widgetInstance = Nothing
 
-widgetPreferredSize :: (Monad m) => Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq
+widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e -> Tree SizeReq
 widgetPreferredSize renderer app widgetInstance = singleNode SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize
 }
 
-widgetResize :: (Monad m) => s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m
+widgetResize :: s -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
 widgetResize app viewport renderArea widgetInstance reqs = widgetInstance {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea
   }
 
-ignoreRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
+ignoreRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e -> m ()
 ignoreRender renderer ts ctx app widgetInstance = return ()

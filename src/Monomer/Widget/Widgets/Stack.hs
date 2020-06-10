@@ -17,17 +17,17 @@ import Monomer.Widget.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Util
 
-hstack :: (Monad m) => [WidgetInstance s e m] -> WidgetInstance s e m
+hstack :: [WidgetInstance s e] -> WidgetInstance s e
 hstack children = (defaultWidgetInstance "hstack" (makeStack True)) {
   _instanceChildren = Seq.fromList children
 }
 
-vstack :: (Monad m) => [WidgetInstance s e m] -> WidgetInstance s e m
+vstack :: [WidgetInstance s e] -> WidgetInstance s e
 vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
   _instanceChildren = Seq.fromList children
 }
 
-makeStack :: (Monad m) => Bool -> Widget s e m
+makeStack :: Bool -> Widget s e
 makeStack isHorizontal = createContainer {
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize

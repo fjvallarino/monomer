@@ -18,7 +18,7 @@ import Monomer.Event.Types
 import Monomer.Widget.Types
 
 type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
-type UIBuilder s e m = s -> WidgetInstance s e m
+type UIBuilder s e = s -> WidgetInstance s e
 type AppEventHandler s e = s -> e -> EventResponse s e
 
 type TaskHandler e = IO (Maybe e)
@@ -37,7 +37,7 @@ instance Semigroup (EventResponse s e) where
   er1 <> er2 = Multiple (fromList [er1, er2])
 
 data MonomerApp s e m = MonomerApp {
-  _uiBuilder :: UIBuilder s e m,
+  _uiBuilder :: UIBuilder s e,
   _appEventHandler :: AppEventHandler s e
 }
 

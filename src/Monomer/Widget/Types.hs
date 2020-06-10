@@ -17,7 +17,7 @@ import Monomer.Widget.PathContext
 type Timestamp = Int
 type WidgetType = String
 type WidgetKey = String
-type WidgetChildren s e m = Seq (WidgetInstance s e m)
+type WidgetChildren s e = Seq (WidgetInstance s e)
 
 data WidgetState = forall i . Typeable i => WidgetState i
 
@@ -32,14 +32,14 @@ data SizeReq = SizeReq {
 instance Default SizeReq where
   def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
 
-data EventResult s e m = EventResult {
+data EventResult s e = EventResult {
   _eventResultRequest :: Seq (EventRequest s),
   _eventResultUserEvents :: Seq e,
-  _eventResultNewWidget :: WidgetInstance s e m
+  _eventResultNewWidget :: WidgetInstance s e
 }
 
-data Widget s e m =
-  (Monad m) => Widget {
+data Widget s e =
+  Widget {
     -- | Returns the current internal state, which can later be used when merging widget trees
     _widgetGetState :: s -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
@@ -47,12 +47,12 @@ data Widget s e m =
     -- Current app state
     -- Old instance
     -- New instance
-    _widgetMerge :: s -> WidgetInstance s e m -> WidgetInstance s e m -> WidgetInstance s e m,
+    _widgetMerge :: s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable :: PathContext -> WidgetInstance s e m -> Maybe Path,
+    _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates
-    _widgetFind :: Point -> WidgetInstance s e m -> Maybe Path,
+    _widgetFind :: Point -> WidgetInstance s e -> Maybe Path,
     -- | Handles an event
     --
     -- Current user state
@@ -61,13 +61,13 @@ data Widget s e m =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m),
+    _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e),
     -- | Handles an custom asynchronous event
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleCustom :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e m -> Maybe (EventResult s e m),
+    _widgetHandleCustom :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (EventResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -75,7 +75,7 @@ data Widget s e m =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq,
+    _widgetPreferredSize :: forall m . Monad m => Renderer m -> s -> WidgetInstance s e -> Tree SizeReq,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget
@@ -84,7 +84,7 @@ data Widget s e m =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResize :: s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m,
+    _widgetResize :: s -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
     -- | Renders the widget
     --
     -- Renderer
@@ -92,23 +92,23 @@ data Widget s e m =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
+    _widgetRender :: forall m . Monad m => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
 --
 -- Type variables:
 -- * n: Identifier for a node
-data WidgetInstance s e m =
-  (Monad m) => WidgetInstance {
+data WidgetInstance s e =
+  WidgetInstance {
     -- | Type of the widget
     _instanceType :: WidgetType,
     -- | Key/Identifier of the widget. If provided, it needs to be unique in the same hierarchy level (not globally)
     _instanceKey :: Maybe WidgetKey,
     -- | The actual widget
-    _instanceWidget :: Widget s e m,
+    _instanceWidget :: Widget s e,
     -- | The children widget, if any
-    _instanceChildren :: WidgetChildren s e m,
+    _instanceChildren :: WidgetChildren s e,
     -- | Indicates if the widget is enabled for user interaction
     _instanceEnabled :: Bool,
     -- | Indicates if the widget is visible

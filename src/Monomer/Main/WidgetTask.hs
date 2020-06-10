@@ -31,7 +31,7 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-handleWidgetTasks :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleWidgetTasks :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> m (HandlerStep s e)
 handleWidgetTasks renderer app widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM isThreadActive (toList tasks)
@@ -39,13 +39,13 @@ handleWidgetTasks renderer app widgetRoot = do
 
   processWidgetTasks renderer app widgetRoot tasks
 
-processWidgetTasks :: (MonomerM s m, Traversable t) => Renderer m -> s -> WidgetInstance s e m -> t WidgetTask -> m (HandlerStep s e m)
+processWidgetTasks :: (MonomerM s m, Traversable t) => Renderer m -> s -> WidgetInstance s e -> t WidgetTask -> m (HandlerStep s e)
 processWidgetTasks renderer app widgetRoot tasks = foldM reducer (app, Seq.empty, widgetRoot) tasks where
   reducer (wApp, wEvts, wRoot) task = do
     (wApp2, wEvts2, wRoot2) <- processWidgetTask renderer wApp wRoot task
     return (wApp2, wEvts >< wEvts2, wRoot2)
 
-processWidgetTask :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e m -> WidgetTask -> m (HandlerStep s e m)
+processWidgetTask :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> WidgetTask -> m (HandlerStep s e)
 processWidgetTask renderer app widgetRoot (WidgetTask path task) = do
   taskStatus <- liftIO $ poll task
 
@@ -59,13 +59,13 @@ processWidgetTask renderer app widgetRoot (WidgetProducer path channel task) = d
     Just taskMessage -> processWidgetTaskEvent renderer app widgetRoot path taskMessage
     Nothing -> return (app, Seq.empty, widgetRoot)
 
-processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e m -> Path -> Either SomeException a -> m (HandlerStep s e m)
+processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e -> Path -> Either SomeException a -> m (HandlerStep s e)
 processWidgetTaskResult renderer app widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
   return (app, Seq.empty, widgetRoot)
 processWidgetTaskResult renderer app widgetRoot path (Right taskResult) = processWidgetTaskEvent renderer app widgetRoot path taskResult
 
-processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e m -> Path -> a -> m (HandlerStep s e m)
+processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e -> Path -> a -> m (HandlerStep s e)
 processWidgetTaskEvent renderer app widgetRoot path event = do
   currentFocus <- use focused
 

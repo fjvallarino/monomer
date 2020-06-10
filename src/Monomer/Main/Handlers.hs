@@ -31,9 +31,9 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-type HandlerStep s e m = (s, Seq e, WidgetInstance s e m)
+type HandlerStep s e = (s, Seq e, WidgetInstance s e)
 
-createEventContext :: Path -> Path -> SystemEvent -> WidgetInstance s e m -> Maybe PathContext
+createEventContext :: Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
 createEventContext currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
     KeyAction _ _ _       -> pathEvent currentTarget
@@ -53,7 +53,7 @@ createEventContext currentFocus currentTarget systemEvent widgetRoot = case syst
     pointEvent point = fmap makePathCtx $ _widgetFind (_instanceWidget widgetRoot) point widgetRoot
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
-handleSystemEvents :: (MonomerM s m) => Renderer m -> s -> [SystemEvent] -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleSystemEvents :: (MonomerM s m) => Renderer m -> s -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
 handleSystemEvents renderer app systemEvents widgetRoot = foldM reducer (app, Seq.empty, widgetRoot) systemEvents where
   reducer (currApp, currAppEvents, currWidgetRoot) systemEvent = do
     currentFocus <- use focused
@@ -61,7 +61,7 @@ handleSystemEvents renderer app systemEvents widgetRoot = foldM reducer (app, Se
     (ca2, as2, ws2) <- handleSystemEvent renderer currApp systemEvent currentFocus currentFocus currWidgetRoot
     return (ca2, currAppEvents >< as2, ws2)
 
-handleSystemEvent :: (MonomerM s m) => Renderer m -> s -> SystemEvent -> Path -> Path -> WidgetInstance s e m -> m (HandlerStep s e m)
+handleSystemEvent :: (MonomerM s m) => Renderer m -> s -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
 handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
   Nothing -> return (app, Seq.empty, widgetRoot)
   Just ctx -> do
@@ -73,7 +73,7 @@ handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot
     handleEventResult renderer ctx app eventResult
       >>= handleFocusChange renderer ctx systemEvent stopProcessing
 
-handleEventResult :: (MonomerM s m) => Renderer m -> PathContext -> s -> EventResult s e m -> m (HandlerStep s e m)
+handleEventResult :: (MonomerM s m) => Renderer m -> PathContext -> s -> EventResult s e -> m (HandlerStep s e)
 handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot) = do
   let evtStates = getUpdateUserStates eventRequests
   let evtApp = compose evtStates app
@@ -84,7 +84,7 @@ handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot)
     >>= handleClipboardGet renderer ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
 
-handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e) -> m (HandlerStep s e)
 handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
@@ -99,7 +99,7 @@ handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRo
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
 
-handleFocusSet :: (MonomerM s m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleFocusSet :: (MonomerM s m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
 handleFocusSet renderer eventRequests previousStep =
   case Seq.filter isSetFocus eventRequests of
     SetFocus newFocus :<| _ -> do
@@ -108,7 +108,7 @@ handleFocusSet renderer eventRequests previousStep =
       return previousStep
     _ -> return previousStep
 
-handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (EventRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
 handleClipboardGet renderer ctx eventRequests (app, events, widgetRoot) =
   case Seq.filter isGetClipboard eventRequests of
     GetClipboard path :<| _ -> do
@@ -120,7 +120,7 @@ handleClipboardGet renderer ctx eventRequests (app, events, widgetRoot) =
       return (newApp2, events >< newEvents2, newRoot2)
     _ -> return (app, events, widgetRoot)
 
-handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e m) -> m (HandlerStep s e m)
+handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
 handleClipboardSet renderer eventRequests previousStep =
   case Seq.filter isSetClipboard eventRequests of
     SetClipboard (ClipboardText text) :<| _ -> do

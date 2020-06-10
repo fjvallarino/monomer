@@ -27,12 +27,12 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type WidgetMergeHandler s e m = s -> Maybe WidgetState -> WidgetInstance s e m -> WidgetInstance s e m
-type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
-type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e m, Tree SizeReq) -> Tree SizeReq
-type WidgetResizeHandler s e m = s -> Rect -> Rect -> WidgetInstance s e m -> Seq (WidgetInstance s e m, Tree SizeReq) -> (WidgetInstance s e m, Seq (Rect, Rect))
+type WidgetMergeHandler s e = s -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
+type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e)
+type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
+type WidgetResizeHandler s e = s -> Rect -> Rect -> WidgetInstance s e -> Seq (WidgetInstance s e, Tree SizeReq) -> (WidgetInstance s e, Seq (Rect, Rect))
 
-createContainer :: (Monad m) => Widget s e m
+createContainer :: Widget s e
 createContainer = Widget {
   _widgetGetState = ignoreGetState,
   _widgetMerge = containerMergeTrees ignoreOldInstance,
@@ -50,11 +50,11 @@ ignoreGetState :: forall i s . Typeable i => s -> Maybe i
 ignoreGetState _ = Nothing
 
 -- | Merging
-ignoreOldInstance :: WidgetMergeHandler s e m
+ignoreOldInstance :: WidgetMergeHandler s e
 ignoreOldInstance app state newInstance = newInstance
 
 {-- This implementation is far from complete --}
-containerMergeTrees :: (Monad m) => WidgetMergeHandler s e m -> s -> WidgetInstance s e m -> WidgetInstance s e m -> WidgetInstance s e m
+containerMergeTrees :: WidgetMergeHandler s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
 containerMergeTrees mergeWidgetState app newInstance oldInstance = if matches then mergedInstance else newInstance where
   matches = instanceMatches newInstance oldInstance
   oldState = _widgetGetState (_instanceWidget oldInstance) app
@@ -69,13 +69,13 @@ containerMergeTrees mergeWidgetState app newInstance oldInstance = if matches th
   addedChildren = Seq.drop (Seq.length oldChildren) candidateChildren
   mergeChild = \(newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) app newChild oldChild
 
-instanceMatches :: (Monad m) => WidgetInstance s e m -> WidgetInstance s e m -> Bool
+instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
   typeMatches = _instanceType oldInstance == _instanceType newInstance
   keyMatches = _instanceKey oldInstance == _instanceKey newInstance
 
 -- | Find next focusable item
-containerNextFocusable :: PathContext -> WidgetInstance s e m -> Maybe Path
+containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
 containerNextFocusable ctx widgetInstance = nextFocus where
   children = _instanceChildren widgetInstance
   stepper idx child = (addToCurrent ctx idx, child)
@@ -90,13 +90,13 @@ containerNextFocusable ctx widgetInstance = nextFocus where
     else _widgetNextFocusable (_instanceWidget child) ctx child
 
 -- | Find instance matching point
-containerFind :: Point -> WidgetInstance s e m -> Maybe Path
+containerFind :: Point -> WidgetInstance s e -> Maybe Path
 containerFind point widgetInstance = fmap (combinePath point children) childIdx where
   children = _instanceChildren widgetInstance
   pointInWidget wi = inRect (_instanceViewport wi) point
   childIdx = Seq.findIndexL pointInWidget children
 
-combinePath :: Point -> Seq (WidgetInstance s e m) -> Int -> Path
+combinePath :: Point -> Seq (WidgetInstance s e) -> Int -> Path
 combinePath point children childIdx = childIdx <| childPath where
   child = Seq.index children childIdx
   childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) point child
@@ -105,7 +105,7 @@ combinePath point children childIdx = childIdx <| childPath where
 ignoreEvent :: WidgetEventHandler s e m
 ignoreEvent ctx evt app widgetInstance = Nothing
 
-containerHandleEvent :: WidgetEventHandler s e m -> PathContext -> SystemEvent -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
+containerHandleEvent :: WidgetEventHandler s e m -> PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e)
 containerHandleEvent pHandler ctx event app widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = pHandler ctx event app widgetInstance
   | otherwise = mergeParentChildEventResults widgetInstance pResult cResult childIdx where
@@ -116,7 +116,7 @@ containerHandleEvent pHandler ctx event app widgetInstance
       pResult = pHandler ctx event app widgetInstance
       cResult = _widgetHandleEvent (_instanceWidget child) nextCtx event app child
 
-mergeParentChildEventResults :: WidgetInstance s e m -> Maybe (EventResult s e m) -> Maybe (EventResult s e m) -> Int -> Maybe (EventResult s e m)
+mergeParentChildEventResults :: WidgetInstance s e -> Maybe (EventResult s e) -> Maybe (EventResult s e) -> Int -> Maybe (EventResult s e)
 mergeParentChildEventResults _ Nothing Nothing _ = Nothing
 mergeParentChildEventResults _ pResult Nothing _ = pResult
 mergeParentChildEventResults original Nothing (Just cResult) idx = Just $ cResult {
@@ -133,7 +133,7 @@ mergeParentChildEventResults original (Just pResult) (Just cResult) idx
       newWidget = replaceChild (_eventResultNewWidget pResult) (_eventResultNewWidget cResult) idx
 
 -- | Custom Handling
-containerHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e m -> Maybe (EventResult s e m)
+containerHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (EventResult s e)
 containerHandleCustom ctx arg app widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = Nothing
   | otherwise = customResult where
@@ -154,7 +154,7 @@ defaultPreferredSize renderer app childrenPairs = Node current childrenReqs wher
   }
   childrenReqs = fmap snd childrenPairs
 
-containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e m -> Tree SizeReq
+containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> s -> WidgetInstance s e -> Tree SizeReq
 containerPreferredSize psHandler renderer app widgetInstance = psHandler renderer app (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
   childrenReqs = flip fmap children updateChild
@@ -162,11 +162,11 @@ containerPreferredSize psHandler renderer app widgetInstance = psHandler rendere
     Node req reqs = _widgetPreferredSize (_instanceWidget child) renderer app child
 
 -- | Resize
-defaultResize :: WidgetResizeHandler s e m
+defaultResize :: WidgetResizeHandler s e
 defaultResize app viewport renderArea widgetInstance childrenReqs = (widgetInstance, childrenSizes) where
   childrenSizes = Seq.replicate (Seq.length childrenReqs) (def, def)
 
-containerResize :: (Monad m) => WidgetResizeHandler s e m -> s -> Rect -> Rect -> WidgetInstance s e m -> Tree SizeReq -> WidgetInstance s e m
+containerResize :: WidgetResizeHandler s e -> s -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
 containerResize rHandler app viewport renderArea widgetInstance reqs = newInstance where
   newInstance = tempInstance {
     _instanceViewport = viewport,
@@ -180,7 +180,7 @@ containerResize rHandler app viewport renderArea widgetInstance reqs = newInstan
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) app viewport renderArea child req
 
 -- | Rendering
-containerRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e m -> m ()
+containerRender :: (Monad m) => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e -> m ()
 containerRender renderer ts ctx app widgetInstance = do
   let children = _instanceChildren widgetInstance
   let indexes = Seq.fromList [0..length children]
@@ -190,12 +190,12 @@ containerRender renderer ts ctx app widgetInstance = do
     when (_instanceVisible child) $ _widgetRender (_instanceWidget child) renderer ts (addToCurrent ctx idx) app child
 
 -- | Event Handling Helpers
-ignoreChildren :: EventResult s e m -> Bool
+ignoreChildren :: EventResult s e -> Bool
 ignoreChildren result = Seq.null $ Seq.filter isIgnoreChildrenEvents (_eventResultRequest result)
 
-ignoreParent :: EventResult s e m -> Bool
+ignoreParent :: EventResult s e -> Bool
 ignoreParent result = Seq.null $ Seq.filter isIgnoreParentEvents (_eventResultRequest result)
 
-replaceChild :: WidgetInstance s e m -> WidgetInstance s e m -> Int -> WidgetInstance s e m
+replaceChild :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
 replaceChild parent child idx = parent { _instanceChildren = newChildren } where
   newChildren = Seq.update idx child (_instanceChildren parent)

@@ -51,12 +51,12 @@
   - Create application widget, based on composite
     - Remove UserTask concept, handle it as WidgetTask
   - Support long running tasks that can provide events through a channel
+  - Add Multiple response support (extra value in EventResponse)
 
 - Pending
-  - Add Multiple response support (extra value in EventResponse)
-  - Add a way to get path of widget given an id, and provide a method to send a message/event
   - Provide a way of initializing the application
     - Probably taking a simple event that is relayed to appEventsHandler is enough?
+  - Add a way to get path of widget given an id, and provide a method to send a message/event
   - Can we generalize _widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
   - Improve merge process. Implement Global keys

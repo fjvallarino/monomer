@@ -14,10 +14,10 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-label :: (Monad m) => T.Text -> WidgetInstance s e m
+label :: T.Text -> WidgetInstance s e
 label caption = defaultWidgetInstance "label" (makeLabel caption)
 
-makeLabel :: (Monad m) => T.Text -> Widget s e m
+makeLabel :: T.Text -> Widget s e
 makeLabel caption = createWidget {
     _widgetPreferredSize = preferredSize,
     _widgetRender = render

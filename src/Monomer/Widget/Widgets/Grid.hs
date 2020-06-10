@@ -18,17 +18,17 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
 
-hgrid :: (Monad m) => [WidgetInstance s e m] -> WidgetInstance s e m
+hgrid :: [WidgetInstance s e] -> WidgetInstance s e
 hgrid children = (defaultWidgetInstance "hgrid" (makeFixedGrid True)) {
   _instanceChildren = Seq.fromList children
 }
 
-vgrid :: (Monad m) => [WidgetInstance s e m] -> WidgetInstance s e m
+vgrid :: [WidgetInstance s e] -> WidgetInstance s e
 vgrid children = (defaultWidgetInstance "vgrid" (makeFixedGrid False)) {
   _instanceChildren = Seq.fromList children
 }
 
-makeFixedGrid :: (Monad m) => Bool -> Widget s e m
+makeFixedGrid :: Bool -> Widget s e
 makeFixedGrid isHorizontal = createContainer {
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize

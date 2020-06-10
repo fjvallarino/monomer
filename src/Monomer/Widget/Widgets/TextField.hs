@@ -33,15 +33,15 @@ data TextFieldState = TextFieldState {
 
 emptyState = TextFieldState "" 0
 
-textField :: (Monad m) => Lens' s T.Text -> WidgetInstance s e m
+textField :: Lens' s T.Text -> WidgetInstance s e
 textField userField = makeInstance $ makeTextField userField emptyState
 
-makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m
+makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _instanceFocusable = True
 }
 
-makeTextField :: (Monad m) => Lens' s T.Text -> TextFieldState -> Widget s e m
+makeTextField :: Lens' s T.Text -> TextFieldState -> Widget s e
 makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetGetState = getState,
     _widgetMerge = widgetMerge merge,

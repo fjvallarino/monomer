@@ -40,7 +40,7 @@ data CompEvent = MessageParent
                | HandleProducer Int
                deriving (Eq, Show)
 
-testComposite :: (Monad m, Typeable m) => WidgetInstance sp AppEvent m
+testComposite :: WidgetInstance sp AppEvent
 testComposite = composite "testComposite" def handleCompositeEvent buildComposite
 
 handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent

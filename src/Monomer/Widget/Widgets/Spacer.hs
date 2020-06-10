@@ -11,13 +11,13 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-spacer :: (Monad m) => WidgetInstance s e m
+spacer :: WidgetInstance s e
 spacer = defaultWidgetInstance "spacer" makeSpacer
 
 defaultSpace :: Double
 defaultSpace = 10
 
-makeSpacer :: (Monad m) => Widget s e m
+makeSpacer :: Widget s e
 makeSpacer = createWidget {
     _widgetPreferredSize = preferredSize
   }

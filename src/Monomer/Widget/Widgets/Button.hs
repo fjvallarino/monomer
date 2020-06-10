@@ -16,10 +16,10 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-button :: (Monad m) => T.Text -> e -> WidgetInstance s e m
+button :: T.Text -> e -> WidgetInstance s e
 button label onClick = defaultWidgetInstance "button" (makeButton label onClick)
 
-makeButton :: (Monad m) => T.Text -> e -> Widget s e m
+makeButton :: T.Text -> e -> Widget s e
 makeButton label onClick = createWidget {
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,

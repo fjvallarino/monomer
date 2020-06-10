@@ -15,7 +15,7 @@ import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Widget.Types
 
-defaultWidgetInstance :: (Monad m) => WidgetType -> Widget s e m -> WidgetInstance s e m
+defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
   _instanceType = widgetType,
   _instanceKey = Nothing,
@@ -29,31 +29,31 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _instanceStyle = def
 }
 
-key :: (Monad m) => WidgetKey -> WidgetInstance s e m -> WidgetInstance s e m
+key :: WidgetKey -> WidgetInstance s e -> WidgetInstance s e
 key key wn = wn { _instanceKey = Just key }
 
-style :: (Monad m) => WidgetInstance s e m -> Style -> WidgetInstance s e m
+style :: WidgetInstance s e -> Style -> WidgetInstance s e
 style widgetInstance newStyle = widgetInstance { _instanceStyle = newStyle }
 
-visible :: (Monad m) => WidgetInstance s e m -> Bool -> WidgetInstance s e m
+visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible widgetInstance visibility = widgetInstance { _instanceVisible = visibility }
 
-children :: (Monad m) => WidgetInstance s e m -> [WidgetInstance s e m] -> WidgetInstance s e m
+children :: WidgetInstance s e -> [WidgetInstance s e] -> WidgetInstance s e
 children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.fromList newChildren }
 
-isFocusable :: (Monad m) => WidgetInstance s e m -> Bool
+isFocusable :: WidgetInstance s e -> Bool
 isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
 
-resultWidget :: WidgetInstance s e m -> Maybe (EventResult s e m)
+resultWidget :: WidgetInstance s e -> Maybe (EventResult s e)
 resultWidget widgetInstance = Just $ EventResult Seq.empty Seq.empty widgetInstance
 
-resultEvents :: [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultEvents :: [e] -> WidgetInstance s e -> Maybe (EventResult s e)
 resultEvents userEvents widgetInstance = Just $ EventResult Seq.empty (Seq.fromList userEvents) widgetInstance
 
-resultReqs :: [EventRequest s] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultReqs :: [EventRequest s] -> WidgetInstance s e -> Maybe (EventResult s e)
 resultReqs requests widgetInstance = Just $ EventResult (Seq.fromList requests) Seq.empty widgetInstance
 
-resultReqsEvents :: [EventRequest s] -> [e] -> WidgetInstance s e m -> Maybe (EventResult s e m)
+resultReqsEvents :: [EventRequest s] -> [e] -> WidgetInstance s e -> Maybe (EventResult s e)
 resultReqsEvents requests userEvents widgetInstance = Just $ EventResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
@@ -63,10 +63,10 @@ useState ::  Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
 
-defaultRestoreState :: (Monad m, Typeable i) => (i -> Widget s e m) -> s -> Maybe WidgetState -> Maybe (Widget s e m)
+defaultRestoreState :: (Typeable i) => (i -> Widget s e) -> s -> Maybe WidgetState -> Maybe (Widget s e)
 defaultRestoreState makeState _ oldState = fmap makeState $ useState oldState
 
-updateSizeReq :: SizeReq -> WidgetInstance s e m -> SizeReq
+updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
 updateSizeReq sizeReq widgetInstance = newSizeReq where
   width = _fixedWidth . _instanceStyle $ widgetInstance
   height = _fixedHeight . _instanceStyle $ widgetInstance

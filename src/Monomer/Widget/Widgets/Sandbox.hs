@@ -25,13 +25,13 @@ data SandboxState = SandboxState {
   _clickCount :: Int
 } deriving (Eq, Show, Typeable)
 
-sandbox :: (Monad m) => e -> WidgetInstance s e m
+sandbox :: e -> WidgetInstance s e
 sandbox onClick = makeInstance $ makeSandbox onClick (SandboxState 0)
 
-makeInstance :: (Monad m) => Widget s e m -> WidgetInstance s e m
+makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = defaultWidgetInstance "sandbox" widget
 
-makeSandbox :: (Monad m) => e -> SandboxState -> Widget s e m
+makeSandbox :: e -> SandboxState -> Widget s e
 makeSandbox onClick state = createWidget {
     _widgetGetState = getState,
     _widgetMerge = widgetMerge merge,
