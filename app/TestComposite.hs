@@ -40,10 +40,10 @@ data CompEvent = MessageParent
                | HandleProducer Int
                deriving (Eq, Show)
 
-testComposite :: WidgetInstance sp AppEvent
+--testComposite :: WidgetInstance sp AppEvent
 testComposite = composite "testComposite" def handleCompositeEvent buildComposite
 
-handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
+--handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
   MessageParent -> MessageC IncreaseMessage
   CallSandbox -> EventC (HandleProducer 20) <> (TaskC $ return Nothing)

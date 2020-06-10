@@ -71,14 +71,14 @@ data CompositeTask =
     forall e . Typeable e => CompositeTask e
   | forall e . Typeable e => CompositeProducer e
 
-composite :: (Eq s, Typeable s, Typeable e, Typeable ep) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e -> WidgetInstance sp ep
+composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e -> WidgetInstance sp ep
 composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
   widgetRoot = uiBuilder app
   composite = Composite widgetType eventHandler uiBuilder (singleNode def)
   state = CompositeState app widgetRoot
   widget = createComposite composite state
 
-createComposite :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> Widget sp ep
+createComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> Widget sp ep
 createComposite comp state = widget where
   CompositeState app widgetRoot = state
   widget = Widget {
@@ -93,7 +93,7 @@ createComposite comp state = widget where
     _widgetRender = compositeRender state
   }
 
-compositeMerge :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetInstance sp ep
+compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetInstance sp ep
 compositeMerge comp state pApp newComposite oldComposite = newInstance where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
   CompositeState oldApp oldRoot = fromMaybe state (useState oldState)
@@ -111,13 +111,13 @@ compositeNextFocusable (CompositeState app widgetRoot) ctx widgetComposite = _wi
 compositeFind :: CompositeState s e -> Point -> WidgetInstance sp ep -> Maybe Path
 compositeFind (CompositeState app widgetRoot) point widgetComposite = _widgetFind (_instanceWidget widgetRoot) point widgetRoot
 
-compositeHandleEvent :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> PathContext -> SystemEvent -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
+compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> SystemEvent -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
 compositeHandleEvent comp state ctx evt pApp widgetComposite = fmap processEvent result where
   CompositeState app widgetRoot = state
   processEvent = processEventResult comp state ctx widgetComposite
   result = _widgetHandleEvent (_instanceWidget widgetRoot) ctx evt app widgetRoot
 
-processEventResult :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> EventResult s e -> EventResult sp ep
+processEventResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> EventResult s e -> EventResult sp ep
 processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoot) = EventResult newReqs messages newInstance where
   CompositeState app widgetRoot = state
   evtStates = getUpdateUserStates reqs
@@ -128,7 +128,7 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
          <> convertProducersToRequests ctx producers
   newInstance = updateComposite comp app newApp evtsRoot widgetComposite
 
-updateComposite :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> s -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetInstance sp ep
+updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> s -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetInstance sp ep
 updateComposite comp app newApp oldRoot widgetComposite = newInstance where
   builtRoot = _uiBuilderC comp newApp
   tempRoot = if | app /= newApp -> _widgetMerge (_instanceWidget builtRoot) newApp builtRoot oldRoot
@@ -165,7 +165,7 @@ convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> 
 convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer CompositeProducer (_pathCurrent ctx) req
 
 -- | Custom Handling
-compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
+compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
       Just (CompositeTask evt) -> case cast evt of
@@ -180,7 +180,7 @@ compositeHandleCustom comp state ctx arg app widgetComposite
       processEvent = processEventResult comp state ctx widgetComposite
       result = _widgetHandleCustom (_instanceWidget widgetRoot) ctx arg app widgetRoot
 
-handleCustomHelper :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> e -> Maybe (EventResult sp ep)
+handleCustomHelper :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> e -> Maybe (EventResult sp ep)
 handleCustomHelper comp state ctx widgetComposite res = Just $ processEventResult comp state ctx widgetComposite evtResult where
   evtResult = EventResult Seq.empty (Seq.singleton res) (_compositeRoot state)
 
@@ -189,7 +189,7 @@ compositePreferredSize :: (Monad m) => CompositeState s e -> Renderer m -> sp ->
 compositePreferredSize (CompositeState app widgetRoot) renderer _ _ = _widgetPreferredSize (_instanceWidget widgetRoot) renderer app widgetRoot
 
 -- Resize
-compositeResize :: (Eq s, Typeable s, Typeable e, Typeable ep) => Composite s e ep -> CompositeState s e -> sp -> Rect -> Rect -> WidgetInstance sp ep -> Tree SizeReq -> WidgetInstance sp ep
+compositeResize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> sp -> Rect -> Rect -> WidgetInstance sp ep -> Tree SizeReq -> WidgetInstance sp ep
 compositeResize comp state _ viewport renderArea widgetComposite reqs = newInstance where
   CompositeState app widgetRoot = state
   newComp = comp { _sizeReqC = reqs }
