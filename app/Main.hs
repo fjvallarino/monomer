@@ -116,7 +116,7 @@ handleAppEvent app evt = do
       putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
       putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
       return Nothing
-    AppButton -> State (app & clickCount %~ (+10)) <> (Task $ do
+    AppButton -> State (app & clickCount %~ (+1)) <> (Task $ do
       putStrLn $ "Clicked button"
       return Nothing)
     IncreaseMessage -> State (app & msgCount %~ (+1))

@@ -16,12 +16,19 @@ import Monomer.Widget.PathContext
 
 type Timestamp = Int
 type WidgetType = String
-type WidgetKey = String
 type WidgetChildren s e = Seq (WidgetInstance s e)
+type WidgetKeyValue = String
+
+data WidgetKey = LKey WidgetKeyValue
+               | GKey WidgetKeyValue
+               deriving (Show, Eq)
 
 data WidgetState = forall i . Typeable i => WidgetState i
 
-data SizePolicy = StrictSize | FlexibleSize | RemainderSize deriving (Show, Eq)
+data SizePolicy = StrictSize
+                | FlexibleSize
+                | RemainderSize
+                deriving (Show, Eq)
 
 data SizeReq = SizeReq {
   _sizeRequested :: Size,
