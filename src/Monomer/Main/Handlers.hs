@@ -138,13 +138,13 @@ handleNewWidgetTasks eventRequests = do
     asyncTask <- liftIO $ async (liftIO handler)
     return $ WidgetTask path asyncTask
 
-  producerTasks <- forM producerHandlers $ \(RunProducer adapter path handler) -> do
+  producerTasks <- forM producerHandlers $ \(RunProducer path handler) -> do
     newChannel <- liftIO newTChanIO
-    asyncTask <- liftIO $ async (liftIO $ handler (sendMessage adapter newChannel))
+    asyncTask <- liftIO $ async (liftIO $ handler (sendMessage newChannel))
     return $ WidgetProducer path newChannel asyncTask
 
   previousTasks <- use widgetTasks
   widgetTasks .= previousTasks >< customTasks >< producerTasks
 
-sendMessage :: (e -> a) -> TChan a -> e -> IO ()
-sendMessage adapter channel message = atomically $ writeTChan channel (adapter message)
+sendMessage :: TChan e -> e -> IO ()
+sendMessage channel message = atomically $ writeTChan channel message

@@ -33,7 +33,7 @@ isCustomHandler (RunCustom _ _) = True
 isCustomHandler _ = False
 
 isProducerHandler :: EventRequest s -> Bool
-isProducerHandler (RunProducer _ _ _) = True
+isProducerHandler (RunProducer _ _) = True
 isProducerHandler _ = False
 
 isIgnoreParentEvents :: EventRequest s -> Bool
@@ -90,7 +90,7 @@ convertRequest (SetFocus path) = Just (SetFocus path)
 convertRequest (GetClipboard path) = Just (GetClipboard path)
 convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
 convertRequest (RunCustom path action) = Just (RunCustom path action)
-convertRequest (RunProducer adapter path action) = Just (RunProducer adapter path action)
+convertRequest (RunProducer path action) = Just (RunProducer path action)
 convertRequest (UpdateUserState fn) = Nothing
 
 convertRequests :: Seq (EventRequest s) -> Seq (EventRequest sp)

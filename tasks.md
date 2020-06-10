@@ -52,14 +52,20 @@
     - Remove UserTask concept, handle it as WidgetTask
   - Support long running tasks that can provide events through a channel
   - Add Multiple response support (extra value in EventResponse)
+  - Try to remove all those Typeable requirements in CompositeWidget
+    - Removing Monad from Widget/WidgetInstance was good enough
+    - Some Typeable constraints still needed, but user should not need to do anything
 
 - Pending
+  - Implement Global keys
   - Provide a way of initializing the application
     - Probably taking a simple event that is relayed to appEventsHandler is enough?
   - Add a way to get path of widget given an id, and provide a method to send a message/event
+  - Improve merge process
   - Can we generalize _widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
-  - Improve merge process. Implement Global keys
+    - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
+    - Do we need this?
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
     - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
     - A _handleDelayedRendering_ also needs to be added
@@ -102,10 +108,3 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Try to remove all those Typeable requirements in CompositeWidget
-    - Maybe passing the current root as a parameter?
-    - Find a way of providing a function that creates the updated UI, and avoid storing it in state?
-    - Just use a field in WidgetInstance?
-    - It does not seem possible with current design
-      - What about adding ep and sp to Widget/WidgetInstance?
-      - Create PWidget/PWidgetInstance

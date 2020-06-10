@@ -67,10 +67,6 @@ data CompositeState s e = CompositeState {
   _compositeRoot :: WidgetInstance s e
 }
 
-data CompositeTask =
-    forall e . Typeable e => CompositeTask e
-  | forall e . Typeable e => CompositeProducer e
-
 composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e -> WidgetInstance sp ep
 composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
   widgetRoot = uiBuilder app
@@ -159,21 +155,16 @@ convertResponse current@ReducedEvents{..} response = case response of
   MultipleC ehs -> foldl' convertResponse current ehs
 
 convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
-convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) (fmap CompositeTask req)
+convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) req
 
 convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (EventRequest sp)
-convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer CompositeProducer (_pathCurrent ctx) req
+convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_pathCurrent ctx) req
 
 -- | Custom Handling
 compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
-      Just (CompositeTask evt) -> case cast evt of
-        Just (Just res) -> handleCustomHelper comp state ctx widgetComposite res
-        _ -> Nothing
-      Just (CompositeProducer evt) -> case cast evt of
-        Just res -> handleCustomHelper comp state ctx widgetComposite res
-        _ -> Nothing
+      Just evt -> handleCustomHelper comp state ctx widgetComposite evt
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
       CompositeState app widgetRoot = state
