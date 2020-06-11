@@ -33,11 +33,11 @@ createWidget = Widget {
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
-ignoreMerge :: s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-ignoreMerge app new old = new
+ignoreMerge :: GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
+ignoreMerge globalKeys app new old = new
 
-widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-widgetMerge makeWidget app new old = new { _instanceWidget = makeWidget app oldState } where
+widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
+widgetMerge makeWidget globalKeys app new old = new { _instanceWidget = makeWidget app oldState } where
   oldState = _widgetGetState (_instanceWidget old) app
 
 ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path

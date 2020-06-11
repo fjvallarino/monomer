@@ -4,6 +4,7 @@
 module Monomer.Widget.Types where
 
 import Data.Default
+import Data.Map.Strict (Map)
 import Data.Sequence (Seq)
 import Data.Typeable (cast, Typeable)
 
@@ -18,6 +19,7 @@ type Timestamp = Int
 type WidgetType = String
 type WidgetChildren s e = Seq (WidgetInstance s e)
 type WidgetKeyValue = String
+type GlobalKeys s e = Map WidgetKeyValue (Path, WidgetInstance s e)
 
 data WidgetKey = LKey WidgetKeyValue
                | GKey WidgetKeyValue
@@ -54,7 +56,7 @@ data Widget s e =
     -- Current app state
     -- Old instance
     -- New instance
-    _widgetMerge :: s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e,
+    _widgetMerge :: GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e,
     -- | Returns the list of focusable paths, if any
     --
     _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,

@@ -54,8 +54,8 @@ ignoreOldInstance :: WidgetMergeHandler s e
 ignoreOldInstance app state newInstance = newInstance
 
 {-- This implementation is far from complete --}
-containerMergeTrees :: WidgetMergeHandler s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-containerMergeTrees mergeWidgetState app newInstance oldInstance = if matches then mergedInstance else newInstance where
+containerMergeTrees :: WidgetMergeHandler s e -> GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
+containerMergeTrees mergeWidgetState globalKeys app newInstance oldInstance = if matches then mergedInstance else newInstance where
   matches = instanceMatches newInstance oldInstance
   oldState = _widgetGetState (_instanceWidget oldInstance) app
   mergedInstance = (mergeWidgetState app oldState newInstance) {
@@ -67,7 +67,7 @@ containerMergeTrees mergeWidgetState app newInstance oldInstance = if matches th
   newChildren = mergedChildren Seq.>< addedChildren
   mergedChildren = fmap mergeChild (Seq.zip candidateChildren oldChildren)
   addedChildren = Seq.drop (Seq.length oldChildren) candidateChildren
-  mergeChild = \(newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) app newChild oldChild
+  mergeChild = \(newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) globalKeys app newChild oldChild
 
 instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
