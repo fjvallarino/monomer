@@ -47,6 +47,12 @@ data EventResult s e = EventResult {
   _eventResultNewWidget :: WidgetInstance s e
 }
 
+instance Semigroup (EventResult s e) where
+  er1 <> er2 = EventResult reqs evts widget where
+    reqs = _eventResultRequest er1 <> _eventResultRequest er2
+    evts = _eventResultUserEvents er1 <> _eventResultUserEvents er2
+    widget = _eventResultNewWidget er2
+
 data Widget s e =
   Widget {
     -- | Returns the current internal state, which can later be used when merging widget trees
@@ -56,7 +62,7 @@ data Widget s e =
     -- Current app state
     -- Old instance
     -- New instance
-    _widgetMerge :: GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e,
+    _widgetMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e,
     -- | Returns the list of focusable paths, if any
     --
     _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,

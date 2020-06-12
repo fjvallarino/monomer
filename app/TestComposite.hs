@@ -57,8 +57,9 @@ handleCompositeEvent app evt = case evt of
   HandleProducer val -> StateC $ app & csProduced %~ (+val)
 
 buildComposite app = trace "Created composite UI" $
-  vstack [
+  vgrid [
     scroll $ label "This is a composite label!",
+    scroll $ label "This is a composite label again!",
     vgrid [
       hgrid [
         button "Message parent" MessageParent

@@ -158,10 +158,12 @@ preProcessEvent widgetRoot evt@(Move point) = do
 preProcessEvent widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
-updateInputStatus (Click _ btn btnState) = inputStatus %= \ist -> ist {
+updateInputStatus (Click _ btn btnState) =
+  inputStatus %= \ist -> ist {
     statusButtons = M.insert btn btnState (statusButtons ist)
   }
-updateInputStatus (KeyAction kMod kCode kStatus) = inputStatus %= \ist -> ist {
+updateInputStatus (KeyAction kMod kCode kStatus) =
+  inputStatus %= \ist -> ist {
     statusKeyMod = kMod,
     statusKeys = M.insert kCode kStatus (statusKeys ist)
   }

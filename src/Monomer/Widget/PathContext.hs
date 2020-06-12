@@ -15,7 +15,7 @@ data PathContext = PathContext {
   _pathFocused :: Path,
   _pathTarget :: Path,
   _pathCurrent :: Path
-}
+} deriving (Show, Eq)
 
 rootPath :: Path
 rootPath = Seq.empty

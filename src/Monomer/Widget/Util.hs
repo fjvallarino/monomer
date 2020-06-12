@@ -4,6 +4,8 @@ module Monomer.Widget.Util where
 
 import Data.Default
 import Data.Maybe
+import Data.List (foldl')
+import Data.Sequence (Seq, (><))
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
@@ -44,6 +46,9 @@ children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.f
 isFocusable :: WidgetInstance s e -> Bool
 isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
 
+rWidget :: WidgetInstance s e -> EventResult s e
+rWidget widgetInstance = EventResult Seq.empty Seq.empty widgetInstance
+
 resultWidget :: WidgetInstance s e -> Maybe (EventResult s e)
 resultWidget widgetInstance = Just $ EventResult Seq.empty Seq.empty widgetInstance
 
@@ -78,3 +83,6 @@ updateSizeReq sizeReq widgetInstance = newSizeReq where
     _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
     _sizePolicyHeight = StrictSize
   }
+
+concatSeq :: Seq (Seq a) -> Seq a
+concatSeq seqs = foldl' (><) Seq.empty seqs

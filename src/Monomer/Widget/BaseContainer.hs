@@ -54,20 +54,25 @@ ignoreOldInstance :: WidgetMergeHandler s e
 ignoreOldInstance app state newInstance = newInstance
 
 {-- This implementation is far from complete --}
-containerMergeTrees :: WidgetMergeHandler s e -> GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-containerMergeTrees mergeWidgetState globalKeys app newInstance oldInstance = if matches then mergedInstance else newInstance where
-  matches = instanceMatches newInstance oldInstance
+containerMergeTrees :: WidgetMergeHandler s e -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
+containerMergeTrees mergeWidgetState globalKeys ctx app candidateInstance oldInstance = EventResult newReqs newEvents newInstance where
+  matches = instanceMatches candidateInstance oldInstance
   oldState = _widgetGetState (_instanceWidget oldInstance) app
-  mergedInstance = (mergeWidgetState app oldState newInstance) {
+  mergedInstance = (mergeWidgetState app oldState candidateInstance) {
     _instanceChildren = newChildren
   }
+  newInstance = if matches then mergedInstance else candidateInstance
   {-- This should also handle changes in position and global keys --}
-  candidateChildren = _instanceChildren newInstance
+  candidateChildren = _instanceChildren candidateInstance
   oldChildren = _instanceChildren oldInstance
   newChildren = mergedChildren Seq.>< addedChildren
-  mergedChildren = fmap mergeChild (Seq.zip candidateChildren oldChildren)
+  indexes = Seq.fromList [0..length candidateChildren]
+  mergedEventResults = fmap mergeChild (Seq.zip3 indexes candidateChildren oldChildren)
+  mergedChildren = fmap _eventResultNewWidget mergedEventResults
+  newReqs = concatSeq $ fmap _eventResultRequest mergedEventResults
+  newEvents = concatSeq $ fmap _eventResultUserEvents mergedEventResults
   addedChildren = Seq.drop (Seq.length oldChildren) candidateChildren
-  mergeChild = \(newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) globalKeys app newChild oldChild
+  mergeChild = \(idx, newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) globalKeys (addToCurrent ctx idx) app newChild oldChild
 
 instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where

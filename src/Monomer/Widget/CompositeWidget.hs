@@ -92,13 +92,13 @@ createComposite comp state = widget where
     _widgetRender = compositeRender state
   }
 
-compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetInstance sp ep
-compositeMerge comp state _ pApp newComposite oldComposite = newInstance where
+compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> EventResult sp ep
+compositeMerge comp state _ ctx pApp newComposite oldComposite = rWidget newInstance where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
   CompositeState oldApp oldRoot globalKeys = fromMaybe state (useState oldState)
   -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
   newRoot = _uiBuilderC comp oldApp
-  widgetRoot = _widgetMerge (_instanceWidget newRoot) globalKeys oldApp newRoot oldRoot
+  EventResult _ _ widgetRoot = _widgetMerge (_instanceWidget newRoot) globalKeys (childContext ctx) oldApp newRoot oldRoot
   newState = CompositeState oldApp widgetRoot globalKeys
   newInstance = newComposite {
     _instanceWidget = createComposite comp newState
@@ -126,14 +126,14 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
-  newInstance = updateComposite comp state newApp evtsRoot widgetComposite
+  newInstance = updateComposite comp state ctx newApp evtsRoot widgetComposite
 
-updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetInstance sp ep
-updateComposite comp state newApp oldRoot widgetComposite = newInstance where
+updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetInstance sp ep
+updateComposite comp state ctx newApp oldRoot widgetComposite = newInstance where
   CompositeState{..} = state
   builtRoot = _uiBuilderC comp newApp
-  tempRoot = if | _compositeApp /= newApp -> _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys newApp builtRoot oldRoot
-                | otherwise -> oldRoot
+  EventResult _ _ tempRoot = if | _compositeApp /= newApp -> _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
+                                | otherwise -> rWidget oldRoot
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
   newRoot = _widgetResize (_instanceWidget tempRoot) newApp viewport renderArea tempRoot (_sizeReqC comp)

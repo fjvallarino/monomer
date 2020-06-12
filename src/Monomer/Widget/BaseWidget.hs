@@ -16,6 +16,7 @@ import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
+import Monomer.Widget.Util
 
 createWidget :: Widget s e
 createWidget = Widget {
@@ -33,12 +34,13 @@ createWidget = Widget {
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
-ignoreMerge :: GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-ignoreMerge globalKeys app new old = new
+ignoreMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
+ignoreMerge globalKeys ctx app new old = rWidget new
 
-widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-widgetMerge makeWidget globalKeys app new old = new { _instanceWidget = makeWidget app oldState } where
+widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
+widgetMerge makeWidget globalKeys ctx app new old = rWidget updated where
   oldState = _widgetGetState (_instanceWidget old) app
+  updated = new { _instanceWidget = makeWidget app oldState }
 
 ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
 ignoreNextFocusable ctx widgetInstance = Nothing
