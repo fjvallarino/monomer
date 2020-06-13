@@ -47,7 +47,6 @@ makeFixedGrid isHorizontal = createContainer {
     resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedAreas) where
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       children = fmap fst visiblePairs
-      childrenReqs = fmap (nodeValue . snd) visiblePairs
       Rect l t w h = renderArea
       cols = if isHorizontal then length visiblePairs else 1
       rows = if isHorizontal then 1 else length visiblePairs

@@ -7,8 +7,6 @@ module Monomer.Widget.CompositeWidget (
   composite
 ) where
 
-import Debug.Trace
-
 import Control.Concurrent.STM.TChan
 import Control.Monad.STM (atomically)
 import Data.Default
@@ -60,26 +58,26 @@ instance Semigroup (EventResponseC s e ep) where
 data Composite s e ep = Composite {
   _widgetTypeC :: WidgetType,
   _eventHandlerC :: EventHandlerC s e ep,
-  _uiBuilderC :: UIBuilderC s e,
-  _sizeReqC :: Tree SizeReq
+  _uiBuilderC :: UIBuilderC s e
 }
 
 data CompositeState s e = CompositeState {
   _compositeApp :: s,
   _compositeRoot :: WidgetInstance s e,
-  _compositeGlobalKeys :: GlobalKeys s e
+  _compositeGlobalKeys :: GlobalKeys s e,
+  _compositeSizeReq :: Tree SizeReq
 }
 
 composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> EventHandlerC s e ep -> UIBuilderC s e -> WidgetInstance sp ep
 composite widgetType app eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
   widgetRoot = uiBuilder app
-  composite = Composite widgetType eventHandler uiBuilder (singleNode def)
-  state = CompositeState app widgetRoot M.empty
+  composite = Composite widgetType eventHandler uiBuilder
+  state = CompositeState app widgetRoot M.empty (singleNode def)
   widget = createComposite composite state
 
 createComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> Widget sp ep
 createComposite comp state = widget where
-  CompositeState app widgetRoot _ = state
+  CompositeState app widgetRoot _ _ = state
   widget = Widget {
     _widgetGetState = makeState state,
     _widgetMerge = compositeMerge comp state,
@@ -93,16 +91,20 @@ createComposite comp state = widget where
   }
 
 compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> EventResult sp ep
-compositeMerge comp state _ ctx pApp newComposite oldComposite = rWidget newInstance where
+compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
-  CompositeState oldApp oldRoot globalKeys = fromMaybe state (useState oldState)
+  CompositeState oldApp oldRoot oldGlobalKeys oldReqs = fromMaybe state (useState oldState)
   -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
   newRoot = _uiBuilderC comp oldApp
-  EventResult _ _ widgetRoot = _widgetMerge (_instanceWidget newRoot) globalKeys (childContext ctx) oldApp newRoot oldRoot
-  newState = CompositeState oldApp widgetRoot globalKeys
-  newInstance = newComposite {
-    _instanceWidget = createComposite comp newState
-  }
+  newState = CompositeState oldApp newRoot oldGlobalKeys oldReqs
+  eventResult = _widgetMerge (_instanceWidget newRoot) oldGlobalKeys (childContext ctx) oldApp newRoot oldRoot
+  result = processEventResult comp newState ctx newComposite eventResult
+  --widgetRoot = _eventResultNewWidget eventResult
+  --newState = CompositeState oldApp widgetRoot globalKeys
+  --newInstance = newComposite {
+  --  _instanceWidget = createComposite comp newState
+  --}
+  --result = processEventResult comp newState ctx newInstance eventResult
 
 compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
 compositeNextFocusable CompositeState{..} ctx widgetComposite = _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
@@ -136,8 +138,8 @@ updateComposite comp state ctx newApp oldRoot widgetComposite = newInstance wher
                                 | otherwise -> rWidget oldRoot
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
-  newRoot = _widgetResize (_instanceWidget tempRoot) newApp viewport renderArea tempRoot (_sizeReqC comp)
-  newState = CompositeState newApp newRoot _compositeGlobalKeys
+  newRoot = _widgetResize (_instanceWidget tempRoot) newApp viewport renderArea tempRoot _compositeSizeReq
+  newState = CompositeState newApp newRoot _compositeGlobalKeys _compositeSizeReq
   newInstance = widgetComposite {
     _instanceWidget = createComposite comp newState
   }
@@ -173,7 +175,7 @@ compositeHandleCustom comp state ctx arg app widgetComposite
         evtResult = EventResult Seq.empty (Seq.singleton evt) (_compositeRoot state)
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
-      CompositeState app widgetRoot _ = state
+      CompositeState app widgetRoot _ _ = state
       processEvent = processEventResult comp state ctx widgetComposite
       nextCtx = fromJust $ moveToTarget ctx
       result = _widgetHandleCustom (_instanceWidget widgetRoot) nextCtx arg app widgetRoot
@@ -185,12 +187,11 @@ compositePreferredSize CompositeState{..} renderer _ _ = _widgetPreferredSize (_
 -- Resize
 compositeResize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> sp -> Rect -> Rect -> WidgetInstance sp ep -> Tree SizeReq -> WidgetInstance sp ep
 compositeResize comp state _ viewport renderArea widgetComposite reqs = newInstance where
-  CompositeState app widgetRoot globalKeys = state
-  newComp = comp { _sizeReqC = reqs }
+  CompositeState app widgetRoot globalKeys _ = state
   newRoot = _widgetResize (_instanceWidget widgetRoot) app viewport renderArea widgetRoot reqs
-  newState = CompositeState app newRoot globalKeys
+  newState = CompositeState app newRoot globalKeys reqs
   newInstance = widgetComposite {
-    _instanceWidget = createComposite newComp newState,
+    _instanceWidget = createComposite comp newState,
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea
   }
