@@ -99,12 +99,6 @@ compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   newState = CompositeState oldApp newRoot oldGlobalKeys oldReqs
   eventResult = _widgetMerge (_instanceWidget newRoot) oldGlobalKeys (childContext ctx) oldApp newRoot oldRoot
   result = processEventResult comp newState ctx newComposite eventResult
-  --widgetRoot = _eventResultNewWidget eventResult
-  --newState = CompositeState oldApp widgetRoot globalKeys
-  --newInstance = newComposite {
-  --  _instanceWidget = createComposite comp newState
-  --}
-  --result = processEventResult comp newState ctx newInstance eventResult
 
 compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
 compositeNextFocusable CompositeState{..} ctx widgetComposite = _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
@@ -120,25 +114,34 @@ compositeHandleEvent comp state ctx evt pApp widgetComposite = fmap processEvent
   result = _widgetHandleEvent (_instanceWidget _compositeRoot) (childContext ctx) evt _compositeApp _compositeRoot
 
 processEventResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> EventResult s e -> EventResult sp ep
-processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoot) = EventResult newReqs messages newInstance where
+processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoot) = EventResult newReqs newEvts uWidget where
   CompositeState{..} = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates _compositeApp
   ReducedEvents newApp _ messages tasks producers = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
+  EventResult uReqs uEvts uWidget = updateComposite comp state ctx newApp evtsRoot widgetComposite
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
-  newInstance = updateComposite comp state ctx newApp evtsRoot widgetComposite
+         <> convertRequests uReqs
+  newEvts = messages <> uEvts
 
-updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetInstance sp ep
-updateComposite comp state ctx newApp oldRoot widgetComposite = newInstance where
+updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> EventResult sp ep
+updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged then processedResult else updatedResult where
   CompositeState{..} = state
+  appChanged = _compositeApp /= newApp
   builtRoot = _uiBuilderC comp newApp
-  EventResult _ _ tempRoot = if | _compositeApp /= newApp -> _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
-                                | otherwise -> rWidget oldRoot
+  mergedResult = _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
+  mergedState = CompositeState newApp (_eventResultNewWidget mergedResult) _compositeGlobalKeys _compositeSizeReq
+  processedResult = processEventResult comp mergedState ctx widgetComposite mergedResult
+  updatedResult = updateCompositeSize comp state ctx newApp oldRoot widgetComposite
+
+updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> EventResult sp ep
+updateCompositeSize comp state ctx newApp oldRoot widgetComposite = rWidget newInstance where
+  CompositeState{..} = state
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
-  newRoot = _widgetResize (_instanceWidget tempRoot) newApp viewport renderArea tempRoot _compositeSizeReq
+  newRoot = _widgetResize (_instanceWidget oldRoot) newApp viewport renderArea oldRoot _compositeSizeReq
   newState = CompositeState newApp newRoot _compositeGlobalKeys _compositeSizeReq
   newInstance = widgetComposite {
     _instanceWidget = createComposite comp newState
