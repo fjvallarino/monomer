@@ -46,7 +46,10 @@ testComposite = composite "testComposite" def (Just Initialize) handleCompositeE
 
 --handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
-  Initialize -> EventC RunProducer
+  Initialize -> TaskC $ do
+    threadDelay $ 1000
+    putStrLn $ "Initialized composite"
+    return Nothing
   MessageParent -> MessageC IncreaseMessage
   CallSandbox -> EventC (HandleProducer 20) <> (TaskC $ return Nothing)
   RunTask -> TaskC $ do

@@ -85,7 +85,7 @@ handleWidgetInit renderer app widgetRoot = do
 handleEventResult :: (MonomerM s m) => Renderer m -> PathContext -> s -> EventResult s e -> m (HandlerStep s e)
 handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot) = do
   let evtStates = getUpdateUserStates eventRequests
-  let evtApp = compose evtStates app
+  let evtApp = foldr (.) id evtStates app
 
   handleNewWidgetTasks eventRequests
 

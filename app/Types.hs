@@ -20,7 +20,8 @@ instance Default App where
 
 makeLenses ''App
 
-data AppEvent = RunShortTask
+data AppEvent = InitApp
+              | RunShortTask
               | RunLongTask
               | PrintTextFields
               | AppButton

@@ -100,10 +100,11 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
   currentApp <- use appContext
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
-  (wtApp, wtAppEvents, wtWidgetRoot) <- handleWidgetTasks renderer currentApp widgetRoot
-  (seApp, seAppEvents, seWidgetRoot) <- handleSystemEvents renderer wtApp systemEvents wtWidgetRoot
+  (wtApp, _, wtWidgetRoot) <- handleWidgetTasks renderer currentApp widgetRoot
+  (seApp, _, seWidgetRoot) <- handleSystemEvents renderer wtApp systemEvents wtWidgetRoot
 
-  newWidgetRoot <- return seWidgetRoot >>= bindIf resized (resizeWindow window renderer seApp)
+  newWidgetRoot <- if resized then resizeWindow window renderer seApp seWidgetRoot
+                              else return seWidgetRoot
 
   currentFocus <- use focused
   renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) seApp newWidgetRoot startTicks

@@ -95,7 +95,7 @@ main = do
   winSize@(Rect rx ry rw rh) <- getDrawableSize window
 
   let devicePixelRate = _rw winSize / fromIntegral screenWidth
-  let appWidget = createApp def (Just RunLongTask) handleAppEvent buildUI
+  let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
 
   runStateT (runWidgets window c appWidget) (initMonomerContext () winSize useHiDPI devicePixelRate)
 
@@ -106,11 +106,12 @@ main = do
 --handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = do
   case evt of
+    InitApp -> Task $ do
+      putStrLn $ "Initialized application"
+      return Nothing
     RunShortTask -> State (app & textField3 .~ "Updated!")
     RunLongTask -> Task $ do
       threadDelay $ 1 * 1000 * 1000
-      putStrLn $ "Initialized application"
-
       return $ Just (UpdateText3 "HOLA")
     PrintTextFields -> Task $ do
       putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)

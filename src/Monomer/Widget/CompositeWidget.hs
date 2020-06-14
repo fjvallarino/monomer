@@ -53,7 +53,7 @@ instance Semigroup (EventResponseC s e ep) where
   MultipleC seq1 <> MultipleC seq2 = MultipleC (seq1 <> seq2)
   MultipleC seq1 <> er2 = MultipleC (seq1 |> er2)
   er1 <> MultipleC seq2 = MultipleC (er1 <| seq2)
-  er1 <> er2 = MultipleC (fromList [er1, er2])
+  er1 <> er2 = MultipleC (Seq.empty |> er1 |> er2)
 
 data Composite s e ep = Composite {
   _widgetTypeC :: WidgetType,

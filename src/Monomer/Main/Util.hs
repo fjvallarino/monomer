@@ -30,10 +30,3 @@ findNextFocusable currentFocus widgetRoot = fromMaybe rootFocus candidateFocus w
   candidateFocus = _widgetNextFocusable (_instanceWidget widgetRoot) ctxFocus widgetRoot
   ctxRootFocus = PathContext rootPath rootPath rootPath
   rootFocus = fromMaybe currentFocus $ _widgetNextFocusable (_instanceWidget widgetRoot) ctxRootFocus widgetRoot
-
-compose :: (Traversable t) => t (a -> a) -> a -> a
-compose functions init = foldr (.) id functions init
-
-bindIf :: (Monad m) => Bool -> (a -> m a) -> a -> m a
-bindIf False _ value = return value
-bindIf _ action value = action value

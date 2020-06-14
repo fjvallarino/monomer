@@ -55,13 +55,14 @@
   - Try to remove all those Typeable requirements in CompositeWidget
     - Removing Monad from Widget/WidgetInstance was good enough
     - Some Typeable constraints still needed, but user should not need to do anything
+  - Provide a way of initializing the application
+    - Probably taking a simple event that is relayed to appEventsHandler is enough?
 
 - Pending
   - Implement Global keys
-  - Provide a way of initializing the application
-    - Probably taking a simple event that is relayed to appEventsHandler is enough?
-  - Add a way to get path of widget given an id, and provide a method to send a message/event
   - Improve merge process
+  - Add a way to get path of widget given an id, and provide a method to send a message/event (most likely, a new Request kind)
+  - Should Resize be restored?
   - Can we generalize _widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
     - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
