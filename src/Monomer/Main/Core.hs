@@ -64,10 +64,13 @@ runWidgets window c widgetRoot = do
   windowSize .= newWindowSize
   ticks <- SDL.ticks
   ctx <- get
+  app <- use appContext
+  (newApp, _, initializedRoot) <- handleWidgetInit renderer app widgetRoot
 
-  let styledRoot = cascadeStyle mempty widgetRoot
-  let newWidgetRoot = resizeUI renderer (_appContext ctx) newWindowSize styledRoot
+  let styledRoot = cascadeStyle mempty initializedRoot
+  let newWidgetRoot = resizeUI renderer app newWindowSize styledRoot
 
+  appContext .= newApp
   focused .= findNextFocusable rootPath newWidgetRoot
 
   mainLoop window c renderer (fromIntegral ticks) 0 0 newWidgetRoot

@@ -20,6 +20,7 @@ import Monomer.Widget.Util
 
 createWidget :: Widget s e
 createWidget = Widget {
+  _widgetInit = widgetInit,
   _widgetGetState = ignoreGetState,
   _widgetMerge = ignoreMerge,
   _widgetNextFocusable = ignoreNextFocusable,
@@ -30,6 +31,9 @@ createWidget = Widget {
   _widgetResize = widgetResize,
   _widgetRender = ignoreRender
 }
+
+widgetInit :: PathContext -> s -> WidgetInstance s e -> EventResult s e
+widgetInit _ _ widgetComposite = rWidget widgetComposite
 
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing

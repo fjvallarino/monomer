@@ -79,6 +79,7 @@ createComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> Composi
 createComposite comp state = widget where
   CompositeState app widgetRoot _ _ = state
   widget = Widget {
+    _widgetInit = compositeInit comp state,
     _widgetGetState = makeState state,
     _widgetMerge = compositeMerge comp state,
     _widgetNextFocusable = compositeNextFocusable state,
@@ -89,6 +90,12 @@ createComposite comp state = widget where
     _widgetResize = compositeResize comp state,
     _widgetRender = compositeRender state
   }
+
+compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> sp -> WidgetInstance sp ep -> EventResult sp ep
+compositeInit comp state ctx pApp widgetComposite = result where
+  CompositeState app widgetRoot _ _ = state
+  initResult = _widgetInit (_instanceWidget widgetRoot) (childContext ctx) app widgetRoot
+  result = processEventResult comp state ctx widgetComposite initResult
 
 compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> EventResult sp ep
 compositeMerge comp state _ ctx pApp newComposite oldComposite = result where

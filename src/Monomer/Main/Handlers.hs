@@ -3,7 +3,8 @@
 module Monomer.Main.Handlers (
   HandlerStep,
   handleEventResult,
-  handleSystemEvents
+  handleSystemEvents,
+  handleWidgetInit
 ) where
 
 import Control.Concurrent.Async (async)
@@ -72,6 +73,14 @@ handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot
 
     handleEventResult renderer ctx app eventResult
       >>= handleFocusChange renderer ctx systemEvent stopProcessing
+
+handleWidgetInit :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> m (HandlerStep s e)
+handleWidgetInit renderer app widgetRoot = do
+  let widget = _instanceWidget widgetRoot
+  let ctx = PathContext rootPath rootPath rootPath
+  let eventResult = _widgetInit widget ctx app widgetRoot
+
+  handleEventResult renderer ctx app eventResult
 
 handleEventResult :: (MonomerM s m) => Renderer m -> PathContext -> s -> EventResult s e -> m (HandlerStep s e)
 handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot) = do

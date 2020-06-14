@@ -55,6 +55,8 @@ instance Semigroup (EventResult s e) where
 
 data Widget s e =
   Widget {
+    -- | Performs widget initialization
+    _widgetInit :: PathContext -> s -> WidgetInstance s e -> EventResult s e,
     -- | Returns the current internal state, which can later be used when merging widget trees
     _widgetGetState :: s -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one

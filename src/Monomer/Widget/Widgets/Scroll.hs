@@ -92,7 +92,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
     scrollResize updatedWidget app viewport renderArea widgetInstance reqs = newInstance where
       Rect l t w h = renderArea
       child = Seq.index (_instanceChildren widgetInstance) 0
-      childReq = Seq.index (nodeChildren reqs) 0
+      childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
 
       Size cw2 ch2 = _sizeRequested $ nodeValue childReq
       areaW = max w cw2

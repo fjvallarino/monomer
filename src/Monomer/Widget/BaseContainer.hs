@@ -12,6 +12,7 @@ module Monomer.Widget.BaseContainer (
 
 import Control.Monad
 import Data.Default
+import Data.Foldable (fold)
 import Data.Maybe
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq, (<|), (><))
@@ -27,6 +28,7 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
+type WidgetInitHandler s e = PathContext -> s -> WidgetInstance s e -> EventResult s e
 type WidgetMergeHandler s e = s -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
 type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
@@ -34,6 +36,7 @@ type WidgetResizeHandler s e = s -> Rect -> Rect -> WidgetInstance s e -> Seq (W
 
 createContainer :: Widget s e
 createContainer = Widget {
+  _widgetInit = containerInit defaultInit,
   _widgetGetState = ignoreGetState,
   _widgetMerge = containerMergeTrees ignoreOldInstance,
   _widgetNextFocusable = containerNextFocusable,
@@ -44,6 +47,24 @@ createContainer = Widget {
   _widgetResize = containerResize defaultResize,
   _widgetRender = containerRender
 }
+
+-- | Init handler
+defaultInit :: WidgetInitHandler s e
+defaultInit _ _ widgetInstance = rWidget widgetInstance
+
+containerInit :: WidgetInitHandler s e -> PathContext -> s -> WidgetInstance s e -> EventResult s e
+containerInit initHandler ctx app widgetInstance = EventResult (reqs <> newReqs) (events <> newEvents) newInstance where
+  children = _instanceChildren widgetInstance
+  indexes = Seq.fromList [0..length children]
+  zipper idx child = _widgetInit (_instanceWidget child) (addToCurrent ctx idx) app child
+  results = Seq.zipWith zipper indexes children
+  newReqs = fold $ fmap _eventResultRequest results
+  newEvents = fold $ fmap _eventResultUserEvents results
+  newChildren = fmap _eventResultNewWidget results
+  EventResult reqs events tempInstance = initHandler ctx app widgetInstance
+  newInstance = tempInstance {
+    _instanceChildren = newChildren
+  }
 
 -- | State Handling helpers
 ignoreGetState :: forall i s . Typeable i => s -> Maybe i
@@ -179,7 +200,9 @@ containerResize rHandler app viewport renderArea widgetInstance reqs = newInstan
     _instanceChildren = newChildren
   }
   children = _instanceChildren widgetInstance
-  childrenReqs = nodeChildren reqs
+  defReqs = Seq.replicate (Seq.length children) (singleNode def)
+  curReqs = nodeChildren reqs
+  childrenReqs = if Seq.null curReqs then defReqs else curReqs
   (tempInstance, assignedAreas) = rHandler app viewport renderArea widgetInstance (Seq.zip children childrenReqs)
   newChildren = flip fmap (Seq.zip3 children childrenReqs assignedAreas) $
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) app viewport renderArea child req
