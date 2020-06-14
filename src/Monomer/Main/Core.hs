@@ -38,8 +38,8 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-createApp :: (Eq s, Typeable s, Typeable e) => s -> AppEventHandler s e -> UIBuilder s e -> WidgetInstance () ()
-createApp app eventHandler uiBuilder = composite "app" app (eventHandlerWrapper eventHandler) uiBuilder
+createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> AppEventHandler s e -> UIBuilder s e -> WidgetInstance () ()
+createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent (eventHandlerWrapper eventHandler) uiBuilder
 
 eventHandlerWrapper :: AppEventHandler s e -> s -> e -> EventResponseC s e ()
 eventHandlerWrapper eventHandler app evt = convertEventResponse $ eventHandler app evt

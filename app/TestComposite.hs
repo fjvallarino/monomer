@@ -33,7 +33,8 @@ instance Default CompState where
 
 makeLenses ''CompState
 
-data CompEvent = MessageParent
+data CompEvent = Initialize
+               | MessageParent
                | CallSandbox
                | RunTask
                | RunProducer
@@ -41,10 +42,11 @@ data CompEvent = MessageParent
                deriving (Eq, Show)
 
 --testComposite :: WidgetInstance sp AppEvent
-testComposite = composite "testComposite" def handleCompositeEvent buildComposite
+testComposite = composite "testComposite" def (Just Initialize) handleCompositeEvent buildComposite
 
 --handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
+  Initialize -> EventC RunProducer
   MessageParent -> MessageC IncreaseMessage
   CallSandbox -> EventC (HandleProducer 20) <> (TaskC $ return Nothing)
   RunTask -> TaskC $ do
