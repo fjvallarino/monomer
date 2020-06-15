@@ -33,7 +33,7 @@ createWidget = Widget {
 }
 
 widgetInit :: PathContext -> s -> WidgetInstance s e -> EventResult s e
-widgetInit _ _ widgetComposite = rWidget widgetComposite
+widgetInit _ _ widgetInstance = rWidget widgetInstance
 
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing

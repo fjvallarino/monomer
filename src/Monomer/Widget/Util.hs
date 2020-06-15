@@ -6,6 +6,7 @@ import Data.Default
 import Data.Maybe
 import Data.List (foldl')
 import Data.Sequence (Seq, (><))
+import Data.Text (Text)
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
@@ -31,8 +32,8 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _instanceStyle = def
 }
 
-key :: WidgetKey -> WidgetInstance s e -> WidgetInstance s e
-key key wn = wn { _instanceKey = Just key }
+key :: WidgetInstance s e -> Text -> WidgetInstance s e
+key wn key = wn { _instanceKey = Just (WidgetKey key) }
 
 style :: WidgetInstance s e -> Style -> WidgetInstance s e
 style widgetInstance newStyle = widgetInstance { _instanceStyle = newStyle }
@@ -68,8 +69,10 @@ useState ::  Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
 
-defaultRestoreState :: (Typeable i) => (i -> Widget s e) -> s -> Maybe WidgetState -> Maybe (Widget s e)
-defaultRestoreState makeState _ oldState = fmap makeState $ useState oldState
+instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
+instanceMatches newInstance oldInstance = typeMatches && keyMatches where
+  typeMatches = _instanceType oldInstance == _instanceType newInstance
+  keyMatches = _instanceKey oldInstance == _instanceKey newInstance
 
 updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
 updateSizeReq sizeReq widgetInstance = newSizeReq where

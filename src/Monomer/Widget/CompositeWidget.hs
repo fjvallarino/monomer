@@ -97,7 +97,10 @@ compositeInit comp state ctx pApp widgetComposite = result where
   CompositeState app widgetRoot initEvent _ _ = state
   EventResult reqs evts root = _widgetInit (_instanceWidget widgetRoot) (childContext ctx) app widgetRoot
   newEvts = maybe evts (evts |>) initEvent
-  result = processEventResult comp state ctx widgetComposite (EventResult reqs newEvts root)
+  newState = state {
+    _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) widgetRoot
+  }
+  result = processEventResult comp newState ctx widgetComposite (EventResult reqs newEvts root)
 
 compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> EventResult sp ep
 compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
@@ -107,9 +110,12 @@ compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
   newRoot = _uiBuilderC comp oldApp
   newState = validState {
-    _compositeRoot = newRoot
+    _compositeRoot = newRoot,
+    _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
   }
-  eventResult = _widgetMerge (_instanceWidget newRoot) oldGlobalKeys (childContext ctx) oldApp newRoot oldRoot
+  eventResult = if instanceMatches newRoot oldRoot
+                  then _widgetMerge (_instanceWidget newRoot) oldGlobalKeys (childContext ctx) oldApp newRoot oldRoot
+                  else _widgetInit (_instanceWidget newRoot) (childContext ctx) oldApp newRoot
   result = processEventResult comp newState ctx newComposite eventResult
 
 compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
@@ -226,13 +232,13 @@ compositeRender CompositeState{..} renderer ts ctx _ _ = _widgetRender (_instanc
 
 childContext :: PathContext -> PathContext
 childContext ctx = addToCurrent ctx 0
-
-collectGlobalKeys :: Map WidgetKeyValue (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKeyValue (Path, WidgetInstance s e)
+--
+collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
 collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs where
   children = _instanceChildren widgetInstance
   ctxs = Seq.fromList $ fmap (addToCurrent ctx) [0..length children]
   pairs = Seq.zip ctxs children
   collectFn current (ctx, child) = collectGlobalKeys current ctx child
   updatedMap = case _instanceKey widgetInstance of
-    Just (GKey key) -> M.insert key (rootPath, widgetInstance) keys
+    Just key -> M.insert key (rootPath, widgetInstance) keys
     _ -> keys

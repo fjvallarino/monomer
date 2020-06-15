@@ -43,6 +43,7 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
 
 makeTextField :: Lens' s T.Text -> TextFieldState -> Widget s e
 makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
+    _widgetInit = initTextField,
     _widgetGetState = getState,
     _widgetMerge = widgetMerge merge,
 
@@ -51,6 +52,9 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetRender = render
   }
   where
+    initTextField ctx app widgetInstance = rWidget newInstance where
+      newState = TextFieldState (app ^. userField) 0
+      newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
     getState = makeState tfs
     merge app oldState = makeTextField userField newState where
       TextFieldState txt pos = fromMaybe emptyState (useState oldState)

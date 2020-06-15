@@ -6,6 +6,7 @@ module Monomer.Widget.Types where
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq)
+import Data.Text (Text)
 import Data.Typeable (cast, Typeable)
 
 import Monomer.Common.Geometry
@@ -18,12 +19,9 @@ import Monomer.Widget.PathContext
 type Timestamp = Int
 type WidgetType = String
 type WidgetChildren s e = Seq (WidgetInstance s e)
-type WidgetKeyValue = String
-type GlobalKeys s e = Map WidgetKeyValue (Path, WidgetInstance s e)
+type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
 
-data WidgetKey = LKey WidgetKeyValue
-               | GKey WidgetKeyValue
-               deriving (Show, Eq)
+data WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
 
 data WidgetState = forall i . Typeable i => WidgetState i
 

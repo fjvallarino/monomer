@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -15,8 +16,9 @@ import Data.Default
 import Data.Foldable (fold)
 import Data.Maybe
 import Data.Typeable (Typeable)
-import Data.Sequence (Seq, (<|), (><))
+import Data.Sequence (Seq(..), (<|), (><))
 
+import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
@@ -76,29 +78,34 @@ ignoreOldInstance app state newInstance = newInstance
 
 {-- This implementation is far from complete --}
 containerMergeTrees :: WidgetMergeHandler s e -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
-containerMergeTrees mergeWidgetState globalKeys ctx app candidateInstance oldInstance = EventResult newReqs newEvents newInstance where
-  matches = instanceMatches candidateInstance oldInstance
+containerMergeTrees mergeWidgetState globalKeys ctx app newInstance oldInstance = EventResult mergedReqs mergedEvents mergedInstance where
   oldState = _widgetGetState (_instanceWidget oldInstance) app
-  mergedInstance = (mergeWidgetState app oldState candidateInstance) {
-    _instanceChildren = newChildren
-  }
-  newInstance = if matches then mergedInstance else candidateInstance
-  {-- This should also handle changes in position and global keys --}
-  candidateChildren = _instanceChildren candidateInstance
   oldChildren = _instanceChildren oldInstance
-  newChildren = mergedChildren Seq.>< addedChildren
-  indexes = Seq.fromList [0..length candidateChildren]
-  mergedEventResults = fmap mergeChild (Seq.zip3 indexes candidateChildren oldChildren)
-  mergedChildren = fmap _eventResultNewWidget mergedEventResults
-  newReqs = concatSeq $ fmap _eventResultRequest mergedEventResults
-  newEvents = concatSeq $ fmap _eventResultUserEvents mergedEventResults
-  addedChildren = Seq.drop (Seq.length oldChildren) candidateChildren
-  mergeChild = \(idx, newChild, oldChild) -> _widgetMerge (_instanceWidget newChild) globalKeys (addToCurrent ctx idx) app newChild oldChild
+  newChildren = _instanceChildren newInstance
+  indexes = Seq.fromList [0..length newChildren]
+  newPairs = Seq.zipWith (\idx child -> (addToCurrent ctx idx, child)) indexes newChildren
+  mergedResults = mergeChildren globalKeys app newPairs oldChildren
+  mergedChildren = fmap _eventResultNewWidget mergedResults
+  mergedReqs = concatSeq $ fmap _eventResultRequest mergedResults
+  mergedEvents = concatSeq $ fmap _eventResultUserEvents mergedResults
+  mergedInstance = (mergeWidgetState app oldState newInstance) {
+    _instanceChildren = mergedChildren
+  }
 
-instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
-instanceMatches newInstance oldInstance = typeMatches && keyMatches where
-  typeMatches = _instanceType oldInstance == _instanceType newInstance
-  keyMatches = _instanceKey oldInstance == _instanceKey newInstance
+mergeChildren :: GlobalKeys s e -> s -> Seq (PathContext, WidgetInstance s e) -> Seq (WidgetInstance s e) -> Seq (EventResult s e)
+mergeChildren _ _ Empty _ = Empty
+mergeChildren keys app ((ctx, newChild) :<| newChildren) Empty = child <| mergeChildren keys app newChildren Empty where
+  child = _widgetInit (_instanceWidget newChild) ctx app newChild
+mergeChildren keys app ((ctx, newChild) :<| newChildren) oldFull@(oldChild :<| oldChildren) = result where
+  newWidget = _instanceWidget newChild
+  oldKeyed = maybe Nothing (\key -> M.lookup key keys) (_instanceKey newChild)
+  mergedOld = _widgetMerge newWidget keys ctx app newChild oldChild
+  mergedKey = _widgetMerge newWidget keys ctx app newChild (snd $ fromJust oldKeyed)
+  initNew = _widgetInit newWidget ctx app newChild
+  (child, oldRest) = if | instanceMatches newChild oldChild -> (mergedOld, oldChildren)
+                        | isJust oldKeyed -> (mergedKey, oldFull)
+                        | otherwise -> (initNew, oldFull)
+  result = child <| mergeChildren keys app newChildren oldRest
 
 -- | Find next focusable item
 containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path

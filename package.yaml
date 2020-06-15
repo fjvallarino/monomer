@@ -67,6 +67,7 @@ executables:
 
     dependencies:
     - ekg
+    - microlens-ghc
     - monomer
 
 tests:

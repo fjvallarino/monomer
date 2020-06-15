@@ -33,7 +33,7 @@ instance Default CompState where
 
 makeLenses ''CompState
 
-data CompEvent = Initialize
+data CompEvent = InitComposite
                | MessageParent
                | CallSandbox
                | RunTask
@@ -42,11 +42,11 @@ data CompEvent = Initialize
                deriving (Eq, Show)
 
 --testComposite :: WidgetInstance sp AppEvent
-testComposite = composite "testComposite" def (Just Initialize) handleCompositeEvent buildComposite
+testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
 
 --handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
-  Initialize -> TaskC $ do
+  InitComposite -> TaskC $ do
     threadDelay $ 1000
     putStrLn $ "Initialized composite"
     return Nothing

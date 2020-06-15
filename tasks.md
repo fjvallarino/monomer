@@ -57,16 +57,18 @@
     - Some Typeable constraints still needed, but user should not need to do anything
   - Provide a way of initializing the application
     - Probably taking a simple event that is relayed to appEventsHandler is enough?
-
-- Pending
   - Implement Global keys
   - Improve merge process
+
+- Pending
   - Add a way to get path of widget given an id, and provide a method to send a message/event (most likely, a new Request kind)
   - Should Resize be restored?
   - Can we generalize _widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
     - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
     - Do we need this?
+  - Rename EventResult to something more accurate
+    - Replace resultWidget and friends with non-Maybe versions (update widgets)
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
     - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
     - A _handleDelayedRendering_ also needs to be added

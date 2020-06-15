@@ -37,6 +37,7 @@ import Monomer.Main.Util
 import Monomer.Widget.Util
 import Monomer.Widgets
 
+import KeysComposite
 import TestComposite
 import Types
 
@@ -131,7 +132,8 @@ buildUI app = trace "Created main UI" $ widgetTree where
         button ("Increase: " <> (showt $ _clickCount app)) AppButton,
         label $ "Messages: " <> (showt $ _msgCount app)
       ],
-      testComposite
+      --testComposite
+      keysComposite
     ]
 
 buildUI2 app = widgetTree where
