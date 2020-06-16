@@ -28,9 +28,9 @@ checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False
 
-isCustomHandler :: EventRequest s -> Bool
-isCustomHandler (RunCustom _ _) = True
-isCustomHandler _ = False
+isTaskHandler :: EventRequest s -> Bool
+isTaskHandler (RunTask _ _) = True
+isTaskHandler _ = False
 
 isProducerHandler :: EventRequest s -> Bool
 isProducerHandler (RunProducer _ _) = True
@@ -89,7 +89,7 @@ convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
 convertRequest (SetFocus path) = Just (SetFocus path)
 convertRequest (GetClipboard path) = Just (GetClipboard path)
 convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
-convertRequest (RunCustom path action) = Just (RunCustom path action)
+convertRequest (RunTask path action) = Just (RunTask path action)
 convertRequest (RunProducer path action) = Just (RunProducer path action)
 convertRequest (UpdateUserState fn) = Nothing
 

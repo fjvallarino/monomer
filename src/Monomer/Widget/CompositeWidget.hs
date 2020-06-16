@@ -189,7 +189,7 @@ convertResponse current@ReducedEvents{..} response = case response of
   MultipleC ehs -> foldl' convertResponse current ehs
 
 convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
-convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunCustom (_pathCurrent ctx) req
+convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_pathCurrent ctx) req
 
 convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (EventRequest sp)
 convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_pathCurrent ctx) req

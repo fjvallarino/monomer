@@ -51,7 +51,7 @@ makeSandbox onClick state = createWidget {
       Click (Point x y) _ status -> resultReqsEvents requests events newInstance where
         isPressed = status == PressedBtn -- && inRect view (Point x y)
         events = if isPressed then [onClick] else []
-        requests = if isPressed then [RunCustom (currentPath ctx) runCustom] else []
+        requests = if isPressed then [RunTask (currentPath ctx) runTask] else []
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
@@ -59,7 +59,7 @@ makeSandbox onClick state = createWidget {
       Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
       _ -> Nothing
 
-    runCustom = do
+    runTask = do
       return SandboxData2
 
     handleCustom ctx bd app widgetInstance = case cast bd of

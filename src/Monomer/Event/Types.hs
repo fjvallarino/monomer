@@ -26,7 +26,7 @@ data EventRequest s = IgnoreParentEvents
                     | GetClipboard Path
                     | SetClipboard ClipboardData
                     | UpdateUserState (s -> s)
-                    | forall a . Typeable a => RunCustom Path (IO a)
+                    | forall a . Typeable a => RunTask Path (IO a)
                     | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
 
 data SystemEvent = Click Point Button ButtonState

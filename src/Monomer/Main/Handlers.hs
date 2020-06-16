@@ -140,10 +140,10 @@ handleClipboardSet renderer eventRequests previousStep =
 
 handleNewWidgetTasks :: (MonomerM s m) => Seq (EventRequest s) -> m ()
 handleNewWidgetTasks eventRequests = do
-  let customHandlers = Seq.filter isCustomHandler eventRequests
+  let taskHandlers = Seq.filter isTaskHandler eventRequests
   let producerHandlers = Seq.filter isProducerHandler eventRequests
 
-  customTasks <- forM customHandlers $ \(RunCustom path handler) -> do
+  singleTasks <- forM taskHandlers $ \(RunTask path handler) -> do
     asyncTask <- liftIO $ async (liftIO handler)
     return $ WidgetTask path asyncTask
 
@@ -153,7 +153,7 @@ handleNewWidgetTasks eventRequests = do
     return $ WidgetProducer path newChannel asyncTask
 
   previousTasks <- use widgetTasks
-  widgetTasks .= previousTasks >< customTasks >< producerTasks
+  widgetTasks .= previousTasks >< singleTasks >< producerTasks
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
