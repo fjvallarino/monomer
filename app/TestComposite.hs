@@ -36,8 +36,8 @@ makeLenses ''CompState
 data CompEvent = InitComposite
                | MessageParent
                | CallSandbox
-               | RunTask
-               | RunProducer
+               | StartTask
+               | StartProducer
                | HandleProducer Int
                deriving (Eq, Show)
 
@@ -52,10 +52,10 @@ handleCompositeEvent app evt = case evt of
     return Nothing
   MessageParent -> Report IncreaseMessage
   CallSandbox -> Event (HandleProducer 20) <> (Task $ return Nothing)
-  RunTask -> Task $ do
+  StartTask -> Task $ do
     putStrLn $ "Composite event handler called"
     return Nothing
-  RunProducer -> Producer $ \sendMessage -> do
+  StartProducer -> Producer $ \sendMessage -> do
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
       threadDelay $ 1000 * 1000
@@ -71,10 +71,10 @@ buildComposite app = trace "Created composite UI" $
       ],
       hgrid [
         sandbox CallSandbox,
-        button "Run task" RunTask
+        button "Run task" StartTask
       ],
       hgrid [
-        button "Run Producer" RunProducer,
+        button "Run Producer" StartProducer,
         label ("Produced: " <> (showt $ _csProduced app))
       ]
     ] `style` bgColor gray

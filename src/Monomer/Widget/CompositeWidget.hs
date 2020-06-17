@@ -66,7 +66,7 @@ data CompositeState s e = CompositeState {
 data ReducedEvents s e sp ep = ReducedEvents {
   _reApp :: s,
   _reEvents :: Seq e,
-  _reMessages :: Seq (EventRequest sp),
+  _reMessages :: Seq (WidgetRequest sp),
   _reReports :: Seq ep,
   _reTasks :: Seq (TaskHandler e),
   _reProducers :: Seq (ProducerHandler e)
@@ -95,17 +95,17 @@ createComposite comp state = widget where
     _widgetRender = compositeRender state
   }
 
-compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> sp -> WidgetInstance sp ep -> EventResult sp ep
+compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> sp -> WidgetInstance sp ep -> WidgetResult sp ep
 compositeInit comp state ctx pApp widgetComposite = result where
   CompositeState app widgetRoot initEvent _ _ = state
-  EventResult reqs evts root = _widgetInit (_instanceWidget widgetRoot) (childContext ctx) app widgetRoot
+  WidgetResult reqs evts root = _widgetInit (_instanceWidget widgetRoot) (childContext ctx) app widgetRoot
   newEvts = maybe evts (evts |>) initEvent
   newState = state {
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) widgetRoot
   }
-  result = processEventResult comp newState ctx widgetComposite (EventResult reqs newEvts root)
+  result = processWidgetResult comp newState ctx widgetComposite (WidgetResult reqs newEvts root)
 
-compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> EventResult sp ep
+compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> GlobalKeys sp ep -> PathContext -> sp -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetResult sp ep
 compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) pApp
   validState = fromMaybe state (useState oldState)
@@ -116,10 +116,10 @@ compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
     _compositeRoot = newRoot,
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
   }
-  eventResult = if instanceMatches newRoot oldRoot
+  widgetResult = if instanceMatches newRoot oldRoot
                   then _widgetMerge (_instanceWidget newRoot) oldGlobalKeys (childContext ctx) oldApp newRoot oldRoot
                   else _widgetInit (_instanceWidget newRoot) (childContext ctx) oldApp newRoot
-  result = processEventResult comp newState ctx newComposite eventResult
+  result = processWidgetResult comp newState ctx newComposite widgetResult
 
 compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
 compositeNextFocusable CompositeState{..} ctx widgetComposite = _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
@@ -128,19 +128,19 @@ compositeFind :: CompositeState s e -> Point -> WidgetInstance sp ep -> Maybe Pa
 compositeFind CompositeState{..} point widgetComposite = fmap (0 <|) childPath where
   childPath = _widgetFind (_instanceWidget _compositeRoot) point _compositeRoot
 
-compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> SystemEvent -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
+compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> SystemEvent -> sp -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleEvent comp state ctx evt pApp widgetComposite = fmap processEvent result where
   CompositeState{..} = state
-  processEvent = processEventResult comp state ctx widgetComposite
+  processEvent = processWidgetResult comp state ctx widgetComposite
   result = _widgetHandleEvent (_instanceWidget _compositeRoot) (childContext ctx) evt _compositeApp _compositeRoot
 
-processEventResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> EventResult s e -> EventResult sp ep
-processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoot) = EventResult newReqs newEvts uWidget where
+processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
+processWidgetResult comp state ctx widgetComposite (WidgetResult reqs evts evtsRoot) = WidgetResult newReqs newEvts uWidget where
   CompositeState{..} = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates _compositeApp
   ReducedEvents newApp _ messages reports tasks producers = reduceCompositeEvents _compositeGlobalKeys (_eventHandler comp) evtApp evts
-  EventResult uReqs uEvts uWidget = updateComposite comp state ctx newApp evtsRoot widgetComposite
+  WidgetResult uReqs uEvts uWidget = updateComposite comp state ctx newApp evtsRoot widgetComposite
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
@@ -148,7 +148,7 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
          <> messages
   newEvts = reports <> uEvts
 
-updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> EventResult sp ep
+updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
 updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged then processedResult else updatedResult where
   CompositeState{..} = state
   appChanged = _compositeApp /= newApp
@@ -156,12 +156,12 @@ updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged th
   mergedResult = _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
   mergedState = state {
     _compositeApp = newApp,
-    _compositeRoot = _eventResultNewWidget mergedResult
+    _compositeRoot = _responseWidget mergedResult
   }
-  processedResult = processEventResult comp mergedState ctx widgetComposite mergedResult
+  processedResult = processWidgetResult comp mergedState ctx widgetComposite mergedResult
   updatedResult = updateCompositeSize comp state ctx newApp oldRoot widgetComposite
 
-updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> EventResult sp ep
+updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
 updateCompositeSize comp state ctx newApp oldRoot widgetComposite = rWidget newInstance where
   CompositeState{..} = state
   viewport = _instanceViewport widgetComposite
@@ -195,22 +195,22 @@ convertResponse globalKeys current@ReducedEvents{..} response = case response of
   Producer producer -> current { _reProducers = _reProducers |> producer }
   Multiple ehs -> foldl' (convertResponse globalKeys) current ehs
 
-convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
+convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (WidgetRequest sp)
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_pathCurrent ctx) req
 
-convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (EventRequest sp)
+convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (WidgetRequest sp)
 convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_pathCurrent ctx) req
 
 -- | Custom Handling
-compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (EventResult sp ep)
+compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleCustom comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
-      Just evt -> Just $ processEventResult comp state ctx widgetComposite evtResult where
-        evtResult = EventResult Seq.empty (Seq.singleton evt) (_compositeRoot state)
+      Just evt -> Just $ processWidgetResult comp state ctx widgetComposite evtResult where
+        evtResult = WidgetResult Seq.empty (Seq.singleton evt) (_compositeRoot state)
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
       CompositeState app widgetRoot _ _ _ = state
-      processEvent = processEventResult comp state ctx widgetComposite
+      processEvent = processWidgetResult comp state ctx widgetComposite
       nextCtx = fromJust $ moveToTarget ctx
       result = _widgetHandleCustom (_instanceWidget widgetRoot) nextCtx arg app widgetRoot
 

@@ -32,16 +32,16 @@ createWidget = Widget {
   _widgetRender = ignoreRender
 }
 
-widgetInit :: PathContext -> s -> WidgetInstance s e -> EventResult s e
+widgetInit :: PathContext -> s -> WidgetInstance s e -> WidgetResult s e
 widgetInit _ _ widgetInstance = rWidget widgetInstance
 
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
-ignoreMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
+ignoreMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
 ignoreMerge globalKeys ctx app new old = rWidget new
 
-widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e
+widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
 widgetMerge makeWidget globalKeys ctx app new old = rWidget updated where
   oldState = _widgetGetState (_instanceWidget old) app
   updated = new { _instanceWidget = makeWidget app oldState }
@@ -52,10 +52,10 @@ ignoreNextFocusable ctx widgetInstance = Nothing
 widgetFind :: Point -> WidgetInstance s e -> Maybe Path
 widgetFind point widgetInstance = Nothing
 
-ignoreHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e)
+ignoreHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
 ignoreHandleEvent ctx evt app widgetInstance = Nothing
 
-ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (EventResult s e)
+ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
 ignoreHandleCustom ctx evt app widgetInstance = Nothing
 
 widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e -> Tree SizeReq

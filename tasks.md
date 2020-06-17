@@ -59,14 +59,9 @@
     - Probably taking a simple event that is relayed to appEventsHandler is enough?
   - Implement Global keys
   - Improve merge process
+  - Add a way to get path of widget given an id, and provide a method to send a message/event (most likely, a new Request kind)
 
 - Pending
-  - Add a way to get path of widget given an id, and provide a method to send a message/event (most likely, a new Request kind)
-  - Should Resize be restored?
-  - Can we generalize _widgetFind?
-    - To find widgetInstances that need a specific kind of event (entities that need timeStep)
-    - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
-    - Do we need this?
   - Rename EventResult to something more accurate
     - Replace resultWidget and friends with non-Maybe versions (update widgets)
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
@@ -94,6 +89,7 @@
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
   - Keep sending mouse move event if mouse is away but button is still pressed
   - Fix scroll click navigation
+  - Should Resize be restored?
   - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
   - Add text selection/editing to textField
   - Add testing
@@ -111,3 +107,8 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
+  - Can we generalize _widgetFind?
+    - To find widgetInstances that need a specific kind of event (entities that need timeStep)
+    - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
+    - Do we need this?
+    - It is implemented in chore/unify-query. I honestly don't think it's an improvement

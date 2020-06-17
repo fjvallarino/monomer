@@ -20,7 +20,6 @@ import Monomer.Widget.PathContext
 
 type Timestamp = Int
 type WidgetType = String
-type WidgetChildren s e = Seq (WidgetInstance s e)
 type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
 
 data WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
@@ -41,22 +40,32 @@ data SizeReq = SizeReq {
 instance Default SizeReq where
   def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
 
-data EventResult s e = EventResult {
-  _eventResultRequest :: Seq (EventRequest s),
-  _eventResultUserEvents :: Seq e,
-  _eventResultNewWidget :: WidgetInstance s e
+data WidgetRequest s = IgnoreParentEvents
+                     | IgnoreChildrenEvents
+                     | SetFocus Path
+                     | GetClipboard Path
+                     | SetClipboard ClipboardData
+                     | UpdateUserState (s -> s)
+                     | forall a . Typeable a => SendMessage Path a
+                     | forall a . Typeable a => RunTask Path (IO a)
+                     | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
+
+data WidgetResult s e = WidgetResult {
+  _responseRequests :: Seq (WidgetRequest s),
+  _responseEvents :: Seq e,
+  _responseWidget :: WidgetInstance s e
 }
 
-instance Semigroup (EventResult s e) where
-  er1 <> er2 = EventResult reqs evts widget where
-    reqs = _eventResultRequest er1 <> _eventResultRequest er2
-    evts = _eventResultUserEvents er1 <> _eventResultUserEvents er2
-    widget = _eventResultNewWidget er2
+instance Semigroup (WidgetResult s e) where
+  er1 <> er2 = WidgetResult reqs evts widget where
+    reqs = _responseRequests er1 <> _responseRequests er2
+    evts = _responseEvents er1 <> _responseEvents er2
+    widget = _responseWidget er2
 
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit :: PathContext -> s -> WidgetInstance s e -> EventResult s e,
+    _widgetInit :: PathContext -> s -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when merging widget trees
     _widgetGetState :: s -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
@@ -64,7 +73,7 @@ data Widget s e =
     -- Current app state
     -- Old instance
     -- New instance
-    _widgetMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> EventResult s e,
+    _widgetMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
     _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,
@@ -78,13 +87,13 @@ data Widget s e =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (EventResult s e),
+    _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Handles an custom asynchronous event
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleCustom :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (EventResult s e),
+    _widgetHandleCustom :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -125,7 +134,7 @@ data WidgetInstance s e =
     -- | The actual widget
     _instanceWidget :: Widget s e,
     -- | The children widget, if any
-    _instanceChildren :: WidgetChildren s e,
+    _instanceChildren :: Seq (WidgetInstance s e),
     -- | Indicates if the widget is enabled for user interaction
     _instanceEnabled :: Bool,
     -- | Indicates if the widget is visible

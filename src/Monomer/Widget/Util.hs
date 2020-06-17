@@ -5,7 +5,7 @@ module Monomer.Widget.Util where
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
-import Data.Sequence (Seq, (><))
+import Data.Sequence (Seq, (><), (|>))
 import Data.Text (Text)
 import Data.Typeable (cast, Typeable)
 
@@ -46,20 +46,20 @@ children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.f
 isFocusable :: WidgetInstance s e -> Bool
 isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
 
-rWidget :: WidgetInstance s e -> EventResult s e
-rWidget widgetInstance = EventResult Seq.empty Seq.empty widgetInstance
+rWidget :: WidgetInstance s e -> WidgetResult s e
+rWidget widgetInstance = WidgetResult Seq.empty Seq.empty widgetInstance
 
-resultWidget :: WidgetInstance s e -> Maybe (EventResult s e)
-resultWidget widgetInstance = Just $ EventResult Seq.empty Seq.empty widgetInstance
+resultWidget :: WidgetInstance s e -> Maybe (WidgetResult s e)
+resultWidget widgetInstance = Just $ WidgetResult Seq.empty Seq.empty widgetInstance
 
-resultEvents :: [e] -> WidgetInstance s e -> Maybe (EventResult s e)
-resultEvents userEvents widgetInstance = Just $ EventResult Seq.empty (Seq.fromList userEvents) widgetInstance
+resultEvents :: [e] -> WidgetInstance s e -> Maybe (WidgetResult s e)
+resultEvents userEvents widgetInstance = Just $ WidgetResult Seq.empty (Seq.fromList userEvents) widgetInstance
 
-resultReqs :: [EventRequest s] -> WidgetInstance s e -> Maybe (EventResult s e)
-resultReqs requests widgetInstance = Just $ EventResult (Seq.fromList requests) Seq.empty widgetInstance
+resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> Maybe (WidgetResult s e)
+resultReqs requests widgetInstance = Just $ WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
 
-resultReqsEvents :: [EventRequest s] -> [e] -> WidgetInstance s e -> Maybe (EventResult s e)
-resultReqsEvents requests userEvents widgetInstance = Just $ EventResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
+resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> Maybe (WidgetResult s e)
+resultReqsEvents requests userEvents widgetInstance = Just $ WidgetResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state app = Just (WidgetState state)
@@ -88,3 +88,58 @@ updateSizeReq sizeReq widgetInstance = newSizeReq where
 
 concatSeq :: Seq (Seq a) -> Seq a
 concatSeq seqs = foldl' (><) Seq.empty seqs
+
+isSendMessageHandler :: WidgetRequest s -> Bool
+isSendMessageHandler (SendMessage _ _) = True
+isSendMessageHandler _ = False
+
+isTaskHandler :: WidgetRequest s -> Bool
+isTaskHandler (RunTask _ _) = True
+isTaskHandler _ = False
+
+isProducerHandler :: WidgetRequest s -> Bool
+isProducerHandler (RunProducer _ _) = True
+isProducerHandler _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False
+
+isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isSetFocus :: WidgetRequest s -> Bool
+isSetFocus (SetFocus _) = True
+isSetFocus _ = False
+
+isGetClipboard :: WidgetRequest s -> Bool
+isGetClipboard (GetClipboard _) = True
+isGetClipboard _ = False
+
+isSetClipboard :: WidgetRequest s -> Bool
+isSetClipboard (SetClipboard _) = True
+isSetClipboard _ = False
+
+isUpdateUserState :: WidgetRequest s -> Bool
+isUpdateUserState (UpdateUserState _) = True
+isUpdateUserState _ = False
+
+getUpdateUserStates :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
+getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
+  foldHelper acc (UpdateUserState fn) = acc |> fn
+  foldHelper acc _ = acc
+
+convertRequest :: WidgetRequest s -> Maybe (WidgetRequest s2)
+convertRequest IgnoreParentEvents = Just IgnoreParentEvents
+convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
+convertRequest (SetFocus path) = Just (SetFocus path)
+convertRequest (GetClipboard path) = Just (GetClipboard path)
+convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
+convertRequest (SendMessage path message) = Just (SendMessage path message)
+convertRequest (RunTask path action) = Just (RunTask path action)
+convertRequest (RunProducer path action) = Just (RunProducer path action)
+convertRequest (UpdateUserState fn) = Nothing
+
+convertRequests :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
+convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest reqs

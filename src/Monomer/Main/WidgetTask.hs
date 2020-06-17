@@ -70,10 +70,10 @@ processWidgetTaskEvent renderer app widgetRoot path event = do
   currentFocus <- use focused
 
   let ctx = PathContext currentFocus path rootPath
-  let emptyResult = EventResult Seq.empty Seq.empty widgetRoot
-  let eventResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx event app widgetRoot
+  let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
+  let widgetResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx event app widgetRoot
 
-  handleEventResult renderer ctx app eventResult
+  handleWidgetResult renderer ctx app widgetResult
 
 isThreadActive :: (MonomerM s m) => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)

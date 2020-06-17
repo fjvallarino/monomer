@@ -2,14 +2,11 @@
 
 module Monomer.Event.Types where
 
-import Control.Concurrent.STM.TChan (TChan)
 import Data.Text (Text)
-import Data.Typeable (Typeable)
-
-import qualified Data.Map.Strict as M
+import Data.Map.Strict (Map)
 
 import Monomer.Common.Geometry
-import Monomer.Common.Tree
+import Monomer.Common.Tree (Path)
 
 type KeyCode = Int
 data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)
@@ -19,16 +16,6 @@ data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data ClipboardData = ClipboardEmpty | ClipboardText Text deriving (Eq, Show)
-
-data EventRequest s = IgnoreParentEvents
-                    | IgnoreChildrenEvents
-                    | SetFocus Path
-                    | GetClipboard Path
-                    | SetClipboard ClipboardData
-                    | UpdateUserState (s -> s)
-                    | forall a . Typeable a => SendMessage Path a
-                    | forall a . Typeable a => RunTask Path (IO a)
-                    | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
 
 data SystemEvent = Click Point Button ButtonState
                  | WheelScroll Point Point WheelDirection
@@ -44,8 +31,8 @@ data SystemEvent = Click Point Button ButtonState
 
 data InputStatus = InputStatus {
   statusKeyMod :: KeyMod,
-  statusKeys :: M.Map KeyCode KeyStatus,
-  statusButtons :: M.Map Button ButtonState
+  statusKeys :: Map KeyCode KeyStatus,
+  statusButtons :: Map Button ButtonState
 } deriving (Eq, Show)
 
 data KeyMod = KeyMod {
