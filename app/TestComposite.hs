@@ -44,22 +44,22 @@ data CompEvent = InitComposite
 --testComposite :: WidgetInstance sp AppEvent
 testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
 
---handleCompositeEvent :: CompState -> CompEvent -> EventResponseC CompState CompEvent AppEvent
+--handleCompositeEvent :: CompState -> CompEvent -> EventResponse CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
-  InitComposite -> TaskC $ do
+  InitComposite -> Task $ do
     threadDelay $ 1000
     putStrLn $ "Initialized composite"
     return Nothing
-  MessageParent -> MessageC IncreaseMessage
-  CallSandbox -> EventC (HandleProducer 20) <> (TaskC $ return Nothing)
-  RunTask -> TaskC $ do
+  MessageParent -> Report IncreaseMessage
+  CallSandbox -> Event (HandleProducer 20) <> (Task $ return Nothing)
+  RunTask -> Task $ do
     putStrLn $ "Composite event handler called"
     return Nothing
-  RunProducer -> ProducerC $ \sendMessage -> do
+  RunProducer -> Producer $ \sendMessage -> do
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
       threadDelay $ 1000 * 1000
-  HandleProducer val -> StateC $ app & csProduced %~ (+val)
+  HandleProducer val -> Model $ app & csProduced %~ (+val)
 
 buildComposite app = trace "Created composite UI" $
   vgrid [

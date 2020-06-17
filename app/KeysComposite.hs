@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module KeysComposite (keysComposite) where
+module KeysComposite (
+  KeysCompEvent(..),
+  keysComposite
+) where
 
 import Debug.Trace
 
@@ -27,12 +30,12 @@ import Monomer.Widget.Util
 import Monomer.Widgets
 
 data EditableItem = EditableItem {
-  _eiId :: Text,
-  _eiText :: Text
+  _itemId :: Text,
+  _itemDesc :: Text
 } deriving (Show, Eq)
 
 data KeysCompState = KeysCompState {
-  _kcsItems :: Seq EditableItem
+  _items :: Seq EditableItem
 } deriving (Show, Eq)
 
 makeLenses ''EditableItem
@@ -42,7 +45,7 @@ data KeysCompEvent = RotateChildren
                deriving (Eq, Show)
 
 initialState = KeysCompState {
-  _kcsItems = Seq.fromList [
+  _items = Seq.fromList [
     EditableItem "1" "Text 1",
     EditableItem "2" "Text 2",
     EditableItem "3" "Text 3",
@@ -53,20 +56,22 @@ initialState = KeysCompState {
 
 keysComposite = composite "keysComposite" initialState Nothing handleKeysCompEvent buildKeysComp
 
-handleKeysCompEvent :: KeysCompState -> KeysCompEvent -> EventResponseC KeysCompState KeysCompEvent ep
+--handleKeysCompEvent :: KeysCompState -> KeysCompEvent -> EventResponse KeysCompState KeysCompEvent ep
 handleKeysCompEvent app evt = case evt of
-  RotateChildren -> StateC (app & kcsItems %~ rotateSeq)
+  RotateChildren -> Model (app & items %~ rotateSeq)
 
 buildKeysComp app = trace "Created keys composite UI" $
   hgrid [
-    button "Add new" RotateChildren,
-    vgrid $ fmap (editableItem app) [0..(length (_kcsItems app) - 1)]
+    button "Rotate" RotateChildren,
+    vgrid $ fmap (editableItem app) [0..(length (_items app) - 1)]
   ]
 
-editableItem app idx = hgrid [
-    label "Enter text!",
-    textField (singular $ kcsItems . ix idx . eiText)
-  ] `key` (app ^. (singular $ kcsItems . ix idx . eiId))
+editableItem app idx = widget where
+  widgetKey = app ^. (singular $ items . ix idx . itemId)
+  widget = hgrid [
+      label $ "Item " <> showt idx,
+      textField (singular $ items . ix idx . itemDesc)
+    ] `key` widgetKey
 
 rotateSeq Empty = Empty
 rotateSeq (x :<| xs) = xs |> x

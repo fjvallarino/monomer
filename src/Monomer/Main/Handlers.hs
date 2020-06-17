@@ -92,6 +92,7 @@ handleEventResult renderer ctx app (EventResult eventRequests appEvents evtRoot)
   handleFocusSet renderer eventRequests (evtApp, appEvents, evtRoot)
     >>= handleClipboardGet renderer ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
+    >>= handleSendMessages renderer eventRequests
 
 handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e) -> m (HandlerStep s e)
 handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
@@ -137,6 +138,21 @@ handleClipboardSet renderer eventRequests previousStep =
 
       return previousStep
     _ -> return previousStep
+
+handleSendMessages :: (MonomerM s m) => Renderer m -> Seq (EventRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
+handleSendMessages renderer eventRequests previousStep = foldM reducer previousStep eventRequests where
+  reducer previousStep (SendMessage path message) = do
+    currentFocus <- use focused
+
+    let (app, events, widgetRoot) = previousStep
+    let ctx = PathContext currentFocus path rootPath
+    let emptyResult = EventResult Seq.empty Seq.empty widgetRoot
+    let eventResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx message app widgetRoot
+
+    (newApp, newEvents, newWidgetRoot) <- handleEventResult renderer ctx app eventResult
+
+    return (newApp, events >< newEvents, newWidgetRoot)
+  reducer previousStep _ = return previousStep
 
 handleNewWidgetTasks :: (MonomerM s m) => Seq (EventRequest s) -> m ()
 handleNewWidgetTasks eventRequests = do

@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Main.Core (
+  EventResponse(..),
   createApp,
   runWidgets
 ) where
@@ -38,18 +39,11 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> AppEventHandler s e -> UIBuilder s e -> WidgetInstance () ()
+createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
 createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent (eventHandlerWrapper eventHandler) uiBuilder
 
-eventHandlerWrapper :: AppEventHandler s e -> s -> e -> EventResponseC s e ()
-eventHandlerWrapper eventHandler app evt = convertEventResponse $ eventHandler app evt
-
-convertEventResponse :: EventResponse s e -> EventResponseC s e ()
-convertEventResponse (State newApp) = StateC newApp
-convertEventResponse (Event newEvent) = EventC newEvent
-convertEventResponse (Task newTask) = TaskC newTask
-convertEventResponse (Producer newProducer) = ProducerC newProducer
-convertEventResponse (Multiple ehs) = MultipleC $ fmap convertEventResponse ehs
+eventHandlerWrapper :: EventHandler s e () -> s -> e -> EventResponse s e ()
+eventHandlerWrapper eventHandler app evt = eventHandler app evt
 
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -> m ()
 runWidgets window c widgetRoot = do

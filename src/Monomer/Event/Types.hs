@@ -3,10 +3,10 @@
 module Monomer.Event.Types where
 
 import Control.Concurrent.STM.TChan (TChan)
+import Data.Text (Text)
 import Data.Typeable (Typeable)
 
 import qualified Data.Map.Strict as M
-import qualified Data.Text as T
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
@@ -18,7 +18,7 @@ data Button = LeftBtn | MiddleBtn | RightBtn deriving (Show, Eq, Ord)
 data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
 data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
-data ClipboardData = ClipboardEmpty | ClipboardText T.Text deriving (Eq, Show)
+data ClipboardData = ClipboardEmpty | ClipboardText Text deriving (Eq, Show)
 
 data EventRequest s = IgnoreParentEvents
                     | IgnoreChildrenEvents
@@ -26,13 +26,14 @@ data EventRequest s = IgnoreParentEvents
                     | GetClipboard Path
                     | SetClipboard ClipboardData
                     | UpdateUserState (s -> s)
+                    | forall a . Typeable a => SendMessage Path a
                     | forall a . Typeable a => RunTask Path (IO a)
                     | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
 
 data SystemEvent = Click Point Button ButtonState
                  | WheelScroll Point Point WheelDirection
                  | KeyAction !KeyMod !KeyCode !KeyStatus
-                 | TextInput T.Text
+                 | TextInput Text
                  | Clipboard ClipboardData
                  | Focus
                  | Blur

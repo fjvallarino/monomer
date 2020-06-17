@@ -15,7 +15,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
-import Monomer.Main.Types
 import Monomer.Widget.Types
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e

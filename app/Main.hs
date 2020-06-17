@@ -35,6 +35,7 @@ import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Widget.Util
+import Monomer.Widget.Types
 import Monomer.Widgets
 
 import KeysComposite
@@ -110,7 +111,7 @@ handleAppEvent app evt = do
     InitApp -> Task $ do
       putStrLn $ "Initialized application"
       return Nothing
-    RunShortTask -> State (app & textField3 .~ "Updated!")
+    RunShortTask -> Model (app & textField3 .~ "Updated!")
     RunLongTask -> Task $ do
       threadDelay $ 1 * 1000 * 1000
       return $ Just (UpdateText3 "HOLA")
@@ -119,11 +120,11 @@ handleAppEvent app evt = do
       putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
       putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
       return Nothing
-    AppButton -> State (app & clickCount %~ (+1)) <> (Task $ do
+    AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (app & clickCount %~ (+1)) <> (Task $ do
       putStrLn $ "Clicked button"
       return Nothing)
-    IncreaseMessage -> State (app & msgCount %~ (+1))
-    UpdateText3 txt -> State (app & textField3 .~ txt)
+    IncreaseMessage -> Model (app & msgCount %~ (+1))
+    UpdateText3 txt -> Model (app & textField3 .~ txt)
 
 buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
@@ -133,7 +134,7 @@ buildUI app = trace "Created main UI" $ widgetTree where
         label $ "Messages: " <> (showt $ _msgCount app)
       ],
       --testComposite
-      keysComposite
+      keysComposite `key` "kcmp"
     ]
 
 buildUI2 app = widgetTree where

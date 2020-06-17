@@ -3,7 +3,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.CompositeWidget (
-  EventResponseC(..),
+  EventResponse(..),
+  EventHandler,
+  UIBuilder,
   composite
 ) where
 
@@ -28,37 +30,29 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type UIBuilderC s e = s -> WidgetInstance s e
-type EventHandlerC s e ep = s -> e -> EventResponseC s e ep
-
+type EventHandler s e ep = s -> e -> EventResponse s e ep
+type UIBuilder s e = s -> WidgetInstance s e
 type TaskHandler e = IO (Maybe e)
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
-data ReducedEvents s e ep = ReducedEvents {
-  _reApp :: s,
-  _reEvents :: Seq e,
-  _reMessages :: Seq ep,
-  _reTasks :: Seq (TaskHandler e),
-  _reProducers :: Seq (ProducerHandler e)
-}
+data EventResponse s e ep = Model s
+                          | Event e
+                          | Report ep
+                          | forall a . Typeable a => Message WidgetKey a
+                          | Task (TaskHandler e)
+                          | Producer (ProducerHandler e)
+                          | Multiple (Seq (EventResponse s e ep))
 
-data EventResponseC s e ep = StateC s
-                           | EventC e
-                           | TaskC (TaskHandler e)
-                           | ProducerC (ProducerHandler e)
-                           | MessageC ep
-                           | MultipleC (Seq (EventResponseC s e ep))
-
-instance Semigroup (EventResponseC s e ep) where
-  MultipleC seq1 <> MultipleC seq2 = MultipleC (seq1 <> seq2)
-  MultipleC seq1 <> er2 = MultipleC (seq1 |> er2)
-  er1 <> MultipleC seq2 = MultipleC (er1 <| seq2)
-  er1 <> er2 = MultipleC (Seq.empty |> er1 |> er2)
+instance Semigroup (EventResponse s e ep) where
+  Multiple seq1 <> Multiple seq2 = Multiple (seq1 <> seq2)
+  Multiple seq1 <> er2 = Multiple (seq1 |> er2)
+  er1 <> Multiple seq2 = Multiple (er1 <| seq2)
+  er1 <> er2 = Multiple (Seq.singleton er1 |> er2)
 
 data Composite s e ep = Composite {
-  _widgetTypeC :: WidgetType,
-  _eventHandlerC :: EventHandlerC s e ep,
-  _uiBuilderC :: UIBuilderC s e
+  _widgetType :: WidgetType,
+  _eventHandler :: EventHandler s e ep,
+  _uiBuilder :: UIBuilder s e
 }
 
 data CompositeState s e = CompositeState {
@@ -69,7 +63,16 @@ data CompositeState s e = CompositeState {
   _compositeSizeReq :: Tree SizeReq
 }
 
-composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> Maybe e -> EventHandlerC s e ep -> UIBuilderC s e -> WidgetInstance sp ep
+data ReducedEvents s e sp ep = ReducedEvents {
+  _reApp :: s,
+  _reEvents :: Seq e,
+  _reMessages :: Seq (EventRequest sp),
+  _reReports :: Seq ep,
+  _reTasks :: Seq (TaskHandler e),
+  _reProducers :: Seq (ProducerHandler e)
+}
+
+composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> Maybe e -> EventHandler s e ep -> UIBuilder s e -> WidgetInstance sp ep
 composite widgetType app initEvent eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
   widgetRoot = uiBuilder app
   composite = Composite widgetType eventHandler uiBuilder
@@ -108,7 +111,7 @@ compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   validState = fromMaybe state (useState oldState)
   CompositeState oldApp oldRoot oldInit oldGlobalKeys oldReqs = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
-  newRoot = _uiBuilderC comp oldApp
+  newRoot = _uiBuilder comp oldApp
   newState = validState {
     _compositeRoot = newRoot,
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
@@ -136,19 +139,20 @@ processEventResult comp state ctx widgetComposite (EventResult reqs evts evtsRoo
   CompositeState{..} = state
   evtStates = getUpdateUserStates reqs
   evtApp = foldr (.) id evtStates _compositeApp
-  ReducedEvents newApp _ messages tasks producers = reduceCompositeEvents (_eventHandlerC comp) evtApp evts
+  ReducedEvents newApp _ messages reports tasks producers = reduceCompositeEvents _compositeGlobalKeys (_eventHandler comp) evtApp evts
   EventResult uReqs uEvts uWidget = updateComposite comp state ctx newApp evtsRoot widgetComposite
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
          <> convertRequests uReqs
-  newEvts = messages <> uEvts
+         <> messages
+  newEvts = reports <> uEvts
 
 updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> EventResult sp ep
 updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged then processedResult else updatedResult where
   CompositeState{..} = state
   appChanged = _compositeApp /= newApp
-  builtRoot = _uiBuilderC comp newApp
+  builtRoot = _uiBuilder comp newApp
   mergedResult = _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
   mergedState = state {
     _compositeApp = newApp,
@@ -171,22 +175,25 @@ updateCompositeSize comp state ctx newApp oldRoot widgetComposite = rWidget newI
     _instanceWidget = createComposite comp newState
   }
 
-reduceCompositeEvents :: EventHandlerC s e ep -> s -> Seq e -> ReducedEvents s e ep
-reduceCompositeEvents appEventHandler app events = foldl' reducer initial events where
-  initial = ReducedEvents app Seq.empty Seq.empty Seq.empty Seq.empty
+reduceCompositeEvents :: GlobalKeys s e -> EventHandler s e ep -> s -> Seq e -> ReducedEvents s e sp ep
+reduceCompositeEvents globalKeys appEventHandler app events = foldl' reducer initial events where
+  initial = ReducedEvents app Seq.empty Seq.empty Seq.empty Seq.empty Seq.empty
   reducer current event = foldl' reducer newCurrent newEvents where
-    processed = convertResponse current (appEventHandler (_reApp current) event)
+    processed = convertResponse globalKeys current (appEventHandler (_reApp current) event)
     newEvents = _reEvents processed
     newCurrent = processed { _reEvents = Seq.empty }
 
-convertResponse :: ReducedEvents s e ep -> EventResponseC s e ep -> ReducedEvents s e ep
-convertResponse current@ReducedEvents{..} response = case response of
-  StateC newApp -> current { _reApp = newApp }
-  EventC event -> current { _reEvents = _reEvents |> event }
-  MessageC message -> current { _reMessages = _reMessages |> message }
-  TaskC task -> current { _reTasks = _reTasks |> task }
-  ProducerC producer -> current { _reProducers = _reProducers |> producer }
-  MultipleC ehs -> foldl' convertResponse current ehs
+convertResponse :: GlobalKeys s e -> ReducedEvents s e sp ep -> EventResponse s e ep -> ReducedEvents s e sp ep
+convertResponse globalKeys current@ReducedEvents{..} response = case response of
+  Model newApp -> current { _reApp = newApp }
+  Event event -> current { _reEvents = _reEvents |> event }
+  Message key message -> case M.lookup key globalKeys of
+    Just (path, _) -> current { _reMessages = _reMessages |> SendMessage path message }
+    Nothing -> current
+  Report report -> current { _reReports = _reReports |> report }
+  Task task -> current { _reTasks = _reTasks |> task }
+  Producer producer -> current { _reProducers = _reProducers |> producer }
+  Multiple ehs -> foldl' (convertResponse globalKeys) current ehs
 
 convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (EventRequest sp)
 convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_pathCurrent ctx) req
@@ -238,7 +245,7 @@ collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs wh
   children = _instanceChildren widgetInstance
   ctxs = Seq.fromList $ fmap (addToCurrent ctx) [0..length children]
   pairs = Seq.zip ctxs children
-  collectFn current (ctx, child) = collectGlobalKeys current ctx child
+  collectFn current (ctxChild, child) = collectGlobalKeys current ctxChild child
   updatedMap = case _instanceKey widgetInstance of
-    Just key -> M.insert key (rootPath, widgetInstance) keys
+    Just key -> M.insert key (_pathCurrent ctx, widgetInstance) keys
     _ -> keys
