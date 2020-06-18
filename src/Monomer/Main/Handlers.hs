@@ -148,7 +148,7 @@ handleSendMessages renderer eventRequests previousStep = foldM reducer previousS
     let (app, events, widgetRoot) = previousStep
     let ctx = PathContext currentFocus path rootPath
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widgetResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx message app widgetRoot
+    let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) ctx message app widgetRoot
 
     (newApp, newEvents, newWidgetRoot) <- handleWidgetResult renderer ctx app widgetResult
 

@@ -89,12 +89,12 @@ data Widget s e =
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
     _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
-    -- | Handles an custom asynchronous event
+    -- | Handles a custom message
     --
     -- Result of asynchronous computation
     --
-    -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleCustom :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    -- Returns: the list of generated events and a new version of the widget if internal state changed
+    _widgetHandleMessage :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options

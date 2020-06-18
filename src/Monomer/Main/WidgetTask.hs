@@ -71,7 +71,7 @@ processWidgetTaskEvent renderer app widgetRoot path event = do
 
   let ctx = PathContext currentFocus path rootPath
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-  let widgetResult = fromMaybe emptyResult $ _widgetHandleCustom (_instanceWidget widgetRoot) ctx event app widgetRoot
+  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) ctx event app widgetRoot
 
   handleWidgetResult renderer ctx app widgetResult
 

@@ -90,7 +90,7 @@ createComposite comp state = widget where
     _widgetNextFocusable = compositeNextFocusable state,
     _widgetFind = compositeFind state,
     _widgetHandleEvent = compositeHandleEvent comp state,
-    _widgetHandleCustom = compositeHandleCustom comp state,
+    _widgetHandleMessage = compositeHandleMessage comp state,
     _widgetPreferredSize = compositePreferredSize state,
     _widgetResize = compositeResize comp state,
     _widgetRender = compositeRender state
@@ -218,8 +218,8 @@ convertRequest (RunProducer path action) = Just (RunProducer path action)
 convertRequest (UpdateUserState fn) = Nothing
 
 -- | Custom Handling
-compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
-compositeHandleCustom comp state ctx arg app widgetComposite
+compositeHandleMessage :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
+compositeHandleMessage comp state ctx arg app widgetComposite
   | isTargetReached ctx = case cast arg of
       Just evt -> Just $ processWidgetResult comp state ctx widgetComposite evtResult where
         evtResult = WidgetResult Seq.empty (Seq.singleton evt) (_compositeRoot state)
@@ -228,7 +228,7 @@ compositeHandleCustom comp state ctx arg app widgetComposite
       CompositeState app widgetRoot _ _ _ = state
       processEvent = processWidgetResult comp state ctx widgetComposite
       nextCtx = fromJust $ moveToTarget ctx
-      result = _widgetHandleCustom (_instanceWidget widgetRoot) nextCtx arg app widgetRoot
+      result = _widgetHandleMessage (_instanceWidget widgetRoot) nextCtx arg app widgetRoot
 
 -- Preferred size
 compositePreferredSize :: (Monad m) => CompositeState s e -> Renderer m -> sp -> WidgetInstance sp ep -> Tree SizeReq

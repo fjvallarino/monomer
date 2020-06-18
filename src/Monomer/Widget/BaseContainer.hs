@@ -47,7 +47,7 @@ createContainer = Widget {
   _widgetNextFocusable = containerNextFocusable,
   _widgetFind = containerFind,
   _widgetHandleEvent = containerHandleEvent ignoreEvent,
-  _widgetHandleCustom = containerHandleCustom,
+  _widgetHandleMessage = containerHandleMessage,
   _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
   _widgetResize = containerResize defaultResize,
   _widgetRender = containerRender
@@ -173,16 +173,16 @@ mergeParentChildWidgetResults original (Just pResponse) (Just cResponse) idx
       newWidget = replaceChild (_resultWidget pResponse) (_resultWidget cResponse) idx
 
 -- | Custom Handling
-containerHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
-containerHandleCustom ctx arg app widgetInstance
+containerHandleMessage :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleMessage ctx arg app widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = Nothing
-  | otherwise = customResult where
+  | otherwise = messageResult where
       nextCtx = fromJust $ moveToTarget ctx
       childIdx = fromJust $ nextTargetStep ctx
       children = _instanceChildren widgetInstance
       child = Seq.index children childIdx
-      customResult = flip fmap (_widgetHandleCustom (_instanceWidget child) nextCtx arg app child) $
-        \cr@(WidgetResult _ _ newChild) -> cr { _resultWidget = replaceChild widgetInstance newChild childIdx }
+      messageResult = flip fmap (_widgetHandleMessage (_instanceWidget child) nextCtx arg app child) $
+        \cr -> cr { _resultWidget = replaceChild widgetInstance (_resultWidget cr) childIdx }
 
 -- | Preferred size
 defaultPreferredSize :: WidgetPreferredSizeHandler s e m

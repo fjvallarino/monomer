@@ -36,7 +36,7 @@ makeSandbox onClick state = createWidget {
     _widgetGetState = getState,
     _widgetMerge = widgetMerge merge,
     _widgetHandleEvent = handleEvent,
-    _widgetHandleCustom = handleCustom,
+    _widgetHandleMessage = handleMessage,
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
@@ -62,8 +62,8 @@ makeSandbox onClick state = createWidget {
     runTask = do
       return SandboxData2
 
-    handleCustom ctx bd app widgetInstance = case cast bd of
-      Just val -> if val == SandboxData2 then trace "Sandbox handleCustom called" Nothing else Nothing
+    handleMessage ctx bd app widgetInstance = case cast bd of
+      Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
       Nothing -> Nothing
 
     preferredSize renderer app widgetInstance = singleNode sizeReq where

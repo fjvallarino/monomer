@@ -26,7 +26,7 @@ createWidget = Widget {
   _widgetNextFocusable = ignoreNextFocusable,
   _widgetFind = widgetFind,
   _widgetHandleEvent = ignoreHandleEvent,
-  _widgetHandleCustom = ignoreHandleCustom,
+  _widgetHandleMessage = ignoreHandleMessage,
   _widgetPreferredSize = widgetPreferredSize,
   _widgetResize = widgetResize,
   _widgetRender = ignoreRender
@@ -55,8 +55,8 @@ widgetFind point widgetInstance = Nothing
 ignoreHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
 ignoreHandleEvent ctx evt app widgetInstance = Nothing
 
-ignoreHandleCustom :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
-ignoreHandleCustom ctx evt app widgetInstance = Nothing
+ignoreHandleMessage :: forall i s e m . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
+ignoreHandleMessage ctx evt app widgetInstance = Nothing
 
 widgetPreferredSize :: Renderer m -> s -> WidgetInstance s e -> Tree SizeReq
 widgetPreferredSize renderer app widgetInstance = singleNode SizeReq {
