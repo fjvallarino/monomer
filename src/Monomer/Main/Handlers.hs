@@ -117,16 +117,19 @@ handleFocusSet renderer eventRequests previousStep =
     _ -> return previousStep
 
 handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
-handleClipboardGet renderer ctx eventRequests (app, events, widgetRoot) =
-  case Seq.filter isGetClipboard eventRequests of
-    GetClipboard path :<| _ -> do
-      hasText <- SDL.hasClipboardText
-      contents <- if hasText then fmap ClipboardText SDL.getClipboardText else return ClipboardEmpty
+handleClipboardGet renderer ctx eventRequests previousStep = do
+    hasText <- SDL.hasClipboardText
+    contents <- if hasText
+                  then fmap ClipboardText SDL.getClipboardText
+                  else return ClipboardEmpty
 
+    foldM (reducer contents) previousStep eventRequests
+  where
+    reducer contents (app, events, widgetRoot) (GetClipboard path) = do
       (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer app (Clipboard contents) (_pathCurrent ctx) path widgetRoot
 
       return (newApp2, events >< newEvents2, newRoot2)
-    _ -> return (app, events, widgetRoot)
+    reducer contents previousStep _ = return previousStep
 
 handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
 handleClipboardSet renderer eventRequests previousStep =
