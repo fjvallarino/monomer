@@ -19,8 +19,7 @@ keyboardEvent (SDL.KeyboardEvent eventData) = Just $ KeyAction keyMod keyCode ke
 keyboardEvent _ = Nothing
 
 textEvent :: SDL.EventPayload -> Maybe SystemEvent
-textEvent (SDL.TextInputEvent eventData) = Just $ TextInput text where
-  text = SDL.textInputEventText eventData
+textEvent (SDL.TextInputEvent input) = Just $ TextInput (SDL.textInputEventText input) where
 textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod

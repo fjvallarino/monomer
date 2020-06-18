@@ -8,7 +8,6 @@ import Prelude hiding (lookup)
 
 import Data.Sequence (Seq(..))
 
-import qualified Data.Foldable as F
 import qualified Data.Sequence as Seq
 
 type PathStep = Int

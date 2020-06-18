@@ -35,13 +35,14 @@ type UIBuilder s e = s -> WidgetInstance s e
 type TaskHandler e = IO (Maybe e)
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
-data EventResponse s e ep = Model s
-                          | Event e
-                          | Report ep
-                          | forall a . Typeable a => Message WidgetKey a
-                          | Task (TaskHandler e)
-                          | Producer (ProducerHandler e)
-                          | Multiple (Seq (EventResponse s e ep))
+data EventResponse s e ep
+  = Model s
+  | Event e
+  | Report ep
+  | forall a . Typeable a => Message WidgetKey a
+  | Task (TaskHandler e)
+  | Producer (ProducerHandler e)
+  | Multiple (Seq (EventResponse s e ep))
 
 instance Semigroup (EventResponse s e ep) where
   Multiple seq1 <> Multiple seq2 = Multiple (seq1 <> seq2)
@@ -122,7 +123,8 @@ compositeMerge comp state _ ctx pApp newComposite oldComposite = result where
   result = processWidgetResult comp newState ctx newComposite widgetResult
 
 compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
-compositeNextFocusable CompositeState{..} ctx widgetComposite = _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
+compositeNextFocusable CompositeState{..} ctx widgetComposite =
+  _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
 
 compositeFind :: CompositeState s e -> Point -> WidgetInstance sp ep -> Maybe Path
 compositeFind CompositeState{..} point widgetComposite = fmap (0 <|) childPath where
@@ -230,7 +232,8 @@ compositeHandleCustom comp state ctx arg app widgetComposite
 
 -- Preferred size
 compositePreferredSize :: (Monad m) => CompositeState s e -> Renderer m -> sp -> WidgetInstance sp ep -> Tree SizeReq
-compositePreferredSize CompositeState{..} renderer _ _ = _widgetPreferredSize (_instanceWidget _compositeRoot) renderer _compositeApp _compositeRoot
+compositePreferredSize CompositeState{..} renderer _ _ =
+  _widgetPreferredSize (_instanceWidget _compositeRoot) renderer _compositeApp _compositeRoot
 
 -- Resize
 compositeResize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> sp -> Rect -> Rect -> WidgetInstance sp ep -> Tree SizeReq -> WidgetInstance sp ep
@@ -249,11 +252,12 @@ compositeResize comp state _ viewport renderArea widgetComposite reqs = newInsta
 
 -- Render
 compositeRender :: (Monad m) => CompositeState s e -> Renderer m -> Timestamp -> PathContext -> sp -> WidgetInstance sp ep -> m ()
-compositeRender CompositeState{..} renderer ts ctx _ _ = _widgetRender (_instanceWidget _compositeRoot) renderer ts (childContext ctx) _compositeApp _compositeRoot
+compositeRender CompositeState{..} renderer ts ctx _ _ =
+  _widgetRender (_instanceWidget _compositeRoot) renderer ts (childContext ctx) _compositeApp _compositeRoot
 
 childContext :: PathContext -> PathContext
 childContext ctx = addToCurrent ctx 0
---
+
 collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
 collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs where
   children = _instanceChildren widgetInstance

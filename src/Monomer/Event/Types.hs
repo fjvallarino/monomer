@@ -17,17 +17,18 @@ data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 
 data ClipboardData = ClipboardEmpty | ClipboardText Text deriving (Eq, Show)
 
-data SystemEvent = Click Point Button ButtonState
-                 | WheelScroll Point Point WheelDirection
-                 | KeyAction !KeyMod !KeyCode !KeyStatus
-                 | TextInput Text
-                 | Clipboard ClipboardData
-                 | Focus
-                 | Blur
-                 | Enter Point
-                 | Move Point
-                 | Leave Path Point
-                 deriving (Show, Eq)
+data SystemEvent
+  = Click Point Button ButtonState
+  | WheelScroll Point Point WheelDirection
+  | KeyAction !KeyMod !KeyCode !KeyStatus
+  | TextInput Text
+  | Clipboard ClipboardData
+  | Focus
+  | Blur
+  | Enter Point
+  | Move Point
+  | Leave Path Point
+  deriving (Show, Eq)
 
 data InputStatus = InputStatus {
   statusKeyMod :: KeyMod,

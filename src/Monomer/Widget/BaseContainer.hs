@@ -31,11 +31,13 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
+type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
+
 type WidgetInitHandler s e = PathContext -> s -> WidgetInstance s e -> WidgetResult s e
 type WidgetMergeHandler s e = s -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
 type WidgetEventHandler s e m = PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> s -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
-type WidgetResizeHandler s e = s -> Rect -> Rect -> WidgetInstance s e -> Seq (WidgetInstance s e, Tree SizeReq) -> (WidgetInstance s e, Seq (Rect, Rect))
+type WidgetResizeHandler s e = s -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
 
 createContainer :: Widget s e
 createContainer = Widget {
@@ -79,7 +81,7 @@ ignoreOldInstance app state newInstance = newInstance
 
 {-- This implementation is far from complete --}
 containerMergeTrees :: WidgetMergeHandler s e -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-containerMergeTrees mergeWidgetState globalKeys ctx app newInstance oldInstance = WidgetResult mergedReqs mergedEvents mergedInstance where
+containerMergeTrees mergeWidgetState globalKeys ctx app newInstance oldInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) app
   oldChildren = _instanceChildren oldInstance
   newChildren = _instanceChildren newInstance
@@ -92,6 +94,7 @@ containerMergeTrees mergeWidgetState globalKeys ctx app newInstance oldInstance 
   mergedInstance = (mergeWidgetState app oldState newInstance) {
     _instanceChildren = mergedChildren
   }
+  result = WidgetResult mergedReqs mergedEvents mergedInstance
 
 mergeChildren :: GlobalKeys s e -> s -> Seq (PathContext, WidgetInstance s e) -> Seq (WidgetInstance s e) -> Seq (WidgetResult s e)
 mergeChildren _ _ Empty _ = Empty

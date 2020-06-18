@@ -6,6 +6,7 @@ module Monomer.Widget.Widgets.TextField (textField) where
 
 import Control.Monad
 import Data.Maybe
+import Data.Text (Text)
 import Data.Typeable
 import Lens.Micro
 
@@ -27,13 +28,13 @@ import Monomer.Widget.Util
 caretWidth = 2
 
 data TextFieldState = TextFieldState {
-  _tfText :: T.Text,
+  _tfText :: Text,
   _tfPosition :: Int
 } deriving (Eq, Show, Typeable)
 
 emptyState = TextFieldState "" 0
 
-textField :: Lens' s T.Text -> WidgetInstance s e
+textField :: Lens' s Text -> WidgetInstance s e
 textField userField = makeInstance $ makeTextField userField emptyState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -41,7 +42,7 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _instanceFocusable = True
 }
 
-makeTextField :: Lens' s T.Text -> TextFieldState -> Widget s e
+makeTextField :: Lens' s Text -> TextFieldState -> Widget s e
 makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetInit = initTextField,
     _widgetGetState = getState,

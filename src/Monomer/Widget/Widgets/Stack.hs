@@ -45,9 +45,10 @@ makeStack isHorizontal = createContainer {
       rectSelector = if isHorizontal then _rw else _rh
       mSize = if isHorizontal then w else h
       mStart = if isHorizontal then l else t
-      sChildren = Seq.filter (\c -> policySelector (nodeValue $ snd c) == StrictSize) visibleChildren
-      fChildren = Seq.filter (\c -> policySelector (nodeValue $ snd c) == FlexibleSize) visibleChildren
-      rChildren = Seq.filter (\c -> policySelector (nodeValue $ snd c) == RemainderSize) visibleChildren
+      policyFilter policy childPair = policySelector (nodeValue $ snd childPair) == policy
+      sChildren = Seq.filter (policyFilter StrictSize) visibleChildren
+      fChildren = Seq.filter (policyFilter FlexibleSize) visibleChildren
+      rChildren = Seq.filter (policyFilter RemainderSize) visibleChildren
       remainderCount = length rChildren
       remainderExist = not $ null rChildren
       sSize = sizeSelector $ calcPreferredSize sChildren
@@ -63,7 +64,10 @@ makeStack isHorizontal = createContainer {
       (revViewports, _) = foldl' foldHelper (Seq.empty, mStart) childrenPairs
       foldHelper (accum, offset) childPair = (newSize <| accum, offset + rectSelector newSize) where
         newSize = resizeChild offset childPair
-      resizeChild offset childPair = if not (_instanceVisible widgetInstance) then emptyRect else if isHorizontal then hRect else vRect where
+      resizeChild offset childPair = result where
+        result = if | not $ _instanceVisible widgetInstance -> emptyRect
+                    | isHorizontal -> hRect
+                    | otherwise -> vRect
         widgetInstance = fst childPair
         req = nodeValue $ snd childPair
         srSize = _sizeRequested req

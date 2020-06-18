@@ -23,13 +23,13 @@ type WidgetType = String
 type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
 
 data WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
-
 data WidgetState = forall i . Typeable i => WidgetState i
 
-data SizePolicy = StrictSize
-                | FlexibleSize
-                | RemainderSize
-                deriving (Show, Eq)
+data SizePolicy
+  = StrictSize
+  | FlexibleSize
+  | RemainderSize
+  deriving (Show, Eq)
 
 data SizeReq = SizeReq {
   _sizeRequested :: Size,
@@ -40,15 +40,16 @@ data SizeReq = SizeReq {
 instance Default SizeReq where
   def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
 
-data WidgetRequest s = IgnoreParentEvents
-                     | IgnoreChildrenEvents
-                     | SetFocus Path
-                     | GetClipboard Path
-                     | SetClipboard ClipboardData
-                     | UpdateUserState (s -> s)
-                     | forall a . Typeable a => SendMessage Path a
-                     | forall a . Typeable a => RunTask Path (IO a)
-                     | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
+data WidgetRequest s
+  = IgnoreParentEvents
+  | IgnoreChildrenEvents
+  | SetFocus Path
+  | GetClipboard Path
+  | SetClipboard ClipboardData
+  | UpdateUserState (s -> s)
+  | forall a . Typeable a => SendMessage Path a
+  | forall a . Typeable a => RunTask Path (IO a)
+  | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
   _responseRequests :: Seq (WidgetRequest s),
