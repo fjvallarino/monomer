@@ -67,7 +67,7 @@ handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot
     let widget = _instanceWidget widgetRoot
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
     let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget ctx systemEvent app widgetRoot
-    let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_responseRequests widgetResult)
+    let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_resultRequests widgetResult)
 
     handleWidgetResult renderer ctx app widgetResult
       >>= handleFocusChange renderer ctx systemEvent stopProcessing

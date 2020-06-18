@@ -39,7 +39,7 @@ data EventResponse s e ep
   = Model s
   | Event e
   | Report ep
-  | forall a . Typeable a => Message WidgetKey a
+  | forall i . Typeable i => Message WidgetKey i
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
   | Multiple (Seq (EventResponse s e ep))
@@ -158,7 +158,7 @@ updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged th
   mergedResult = _widgetMerge (_instanceWidget builtRoot) _compositeGlobalKeys (childContext ctx) newApp builtRoot oldRoot
   mergedState = state {
     _compositeApp = newApp,
-    _compositeRoot = _responseWidget mergedResult
+    _compositeRoot = _resultWidget mergedResult
   }
   processedResult = processWidgetResult comp mergedState ctx widgetComposite mergedResult
   updatedResult = updateCompositeSize comp state ctx newApp oldRoot widgetComposite

@@ -37,7 +37,7 @@ data MonomerContext s = MonomerContext {
 }
 
 data WidgetTask
-  = forall a . Typeable a => WidgetTask Path (Async a)
-  | forall a . Typeable a => WidgetProducer Path (TChan a) (Async ())
+  = forall i . Typeable i => WidgetTask Path (Async i)
+  | forall i . Typeable i => WidgetProducer Path (TChan i) (Async ())
 
 makeLenses ''MonomerContext

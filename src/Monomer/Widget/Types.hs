@@ -47,21 +47,21 @@ data WidgetRequest s
   | GetClipboard Path
   | SetClipboard ClipboardData
   | UpdateUserState (s -> s)
-  | forall a . Typeable a => SendMessage Path a
-  | forall a . Typeable a => RunTask Path (IO a)
-  | forall a . Typeable a => RunProducer Path ((a -> IO ()) -> IO ())
+  | forall i . Typeable i => SendMessage Path i
+  | forall i . Typeable i => RunTask Path (IO i)
+  | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
-  _responseRequests :: Seq (WidgetRequest s),
-  _responseEvents :: Seq e,
-  _responseWidget :: WidgetInstance s e
+  _resultRequests :: Seq (WidgetRequest s),
+  _resultEvents :: Seq e,
+  _resultWidget :: WidgetInstance s e
 }
 
 instance Semigroup (WidgetResult s e) where
   er1 <> er2 = WidgetResult reqs evts widget where
-    reqs = _responseRequests er1 <> _responseRequests er2
-    evts = _responseEvents er1 <> _responseEvents er2
-    widget = _responseWidget er2
+    reqs = _resultRequests er1 <> _resultRequests er2
+    evts = _resultEvents er1 <> _resultEvents er2
+    widget = _resultWidget er2
 
 data Widget s e =
   Widget {
