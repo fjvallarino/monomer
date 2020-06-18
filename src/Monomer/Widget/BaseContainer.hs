@@ -14,6 +14,7 @@ module Monomer.Widget.BaseContainer (
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
+import Data.List (foldl')
 import Data.Maybe
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq(..), (<|), (><))
@@ -52,7 +53,7 @@ createContainer = Widget {
 
 -- | Init handler
 defaultInit :: WidgetInitHandler s e
-defaultInit _ _ widgetInstance = rWidget widgetInstance
+defaultInit _ _ widgetInstance = resultWidget widgetInstance
 
 containerInit :: WidgetInitHandler s e -> PathContext -> s -> WidgetInstance s e -> WidgetResult s e
 containerInit initHandler ctx app widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
@@ -106,6 +107,9 @@ mergeChildren keys app ((ctx, newChild) :<| newChildren) oldFull@(oldChild :<| o
                         | isJust oldKeyed -> (mergedKey, oldFull)
                         | otherwise -> (initNew, oldFull)
   result = child <| mergeChildren keys app newChildren oldRest
+
+concatSeq :: Seq (Seq a) -> Seq a
+concatSeq seqs = foldl' (><) Seq.empty seqs
 
 -- | Find next focusable item
 containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path

@@ -40,26 +40,17 @@ style widgetInstance newStyle = widgetInstance { _instanceStyle = newStyle }
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible widgetInstance visibility = widgetInstance { _instanceVisible = visibility }
 
-children :: WidgetInstance s e -> [WidgetInstance s e] -> WidgetInstance s e
-children widgetInstance newChildren = widgetInstance { _instanceChildren = Seq.fromList newChildren }
+resultWidget :: WidgetInstance s e -> WidgetResult s e
+resultWidget widgetInstance = WidgetResult Seq.empty Seq.empty widgetInstance
 
-isFocusable :: WidgetInstance s e -> Bool
-isFocusable (WidgetInstance { _instanceWidget = Widget{..}, ..}) = _instanceVisible && _instanceEnabled && _instanceFocusable
+resultEvents :: [e] -> WidgetInstance s e -> WidgetResult s e
+resultEvents userEvents widgetInstance = WidgetResult Seq.empty (Seq.fromList userEvents) widgetInstance
 
-rWidget :: WidgetInstance s e -> WidgetResult s e
-rWidget widgetInstance = WidgetResult Seq.empty Seq.empty widgetInstance
+resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
+resultReqs requests widgetInstance = WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
 
-resultWidget :: WidgetInstance s e -> Maybe (WidgetResult s e)
-resultWidget widgetInstance = Just $ WidgetResult Seq.empty Seq.empty widgetInstance
-
-resultEvents :: [e] -> WidgetInstance s e -> Maybe (WidgetResult s e)
-resultEvents userEvents widgetInstance = Just $ WidgetResult Seq.empty (Seq.fromList userEvents) widgetInstance
-
-resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> Maybe (WidgetResult s e)
-resultReqs requests widgetInstance = Just $ WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
-
-resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> Maybe (WidgetResult s e)
-resultReqsEvents requests userEvents widgetInstance = Just $ WidgetResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
+resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
+resultReqsEvents requests userEvents widgetInstance = WidgetResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state app = Just (WidgetState state)
@@ -85,9 +76,6 @@ updateSizeReq sizeReq widgetInstance = newSizeReq where
     _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
     _sizePolicyHeight = StrictSize
   }
-
-concatSeq :: Seq (Seq a) -> Seq a
-concatSeq seqs = foldl' (><) Seq.empty seqs
 
 isSendMessageHandler :: WidgetRequest s -> Bool
 isSendMessageHandler (SendMessage _ _) = True
@@ -129,17 +117,3 @@ getUpdateUserStates :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
 getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateUserState fn) = acc |> fn
   foldHelper acc _ = acc
-
-convertRequest :: WidgetRequest s -> Maybe (WidgetRequest s2)
-convertRequest IgnoreParentEvents = Just IgnoreParentEvents
-convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
-convertRequest (SetFocus path) = Just (SetFocus path)
-convertRequest (GetClipboard path) = Just (GetClipboard path)
-convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
-convertRequest (SendMessage path message) = Just (SendMessage path message)
-convertRequest (RunTask path action) = Just (RunTask path action)
-convertRequest (RunProducer path action) = Just (RunProducer path action)
-convertRequest (UpdateUserState fn) = Nothing
-
-convertRequests :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
-convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest reqs

@@ -3,8 +3,7 @@
 module Monomer.Widget.Widgets.Button (button) where
 
 import Control.Monad
-
-import qualified Data.Text as T
+import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
@@ -16,10 +15,10 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-button :: T.Text -> e -> WidgetInstance s e
+button :: Text -> e -> WidgetInstance s e
 button label onClick = defaultWidgetInstance "button" (makeButton label onClick)
 
-makeButton :: T.Text -> e -> Widget s e
+makeButton :: Text -> e -> Widget s e
 makeButton label onClick = createWidget {
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
@@ -27,7 +26,7 @@ makeButton label onClick = createWidget {
   }
   where
     handleEvent ctx evt app widgetInstance = case evt of
-      Click (Point x y) _ status -> resultEvents events widgetInstance where
+      Click (Point x y) _ status -> Just $ resultEvents events widgetInstance where
         isPressed = status == PressedBtn -- && inRect (_instanceViewport instance) (Point x y)
         events = if isPressed then [onClick] else []
       _ -> Nothing

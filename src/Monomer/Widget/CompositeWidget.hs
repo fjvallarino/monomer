@@ -162,7 +162,7 @@ updateComposite comp state ctx newApp oldRoot widgetComposite = if appChanged th
   updatedResult = updateCompositeSize comp state ctx newApp oldRoot widgetComposite
 
 updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
-updateCompositeSize comp state ctx newApp oldRoot widgetComposite = rWidget newInstance where
+updateCompositeSize comp state ctx newApp oldRoot widgetComposite = resultWidget newInstance where
   CompositeState{..} = state
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
@@ -200,6 +200,20 @@ convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_pathCurrent
 
 convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (WidgetRequest sp)
 convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_pathCurrent ctx) req
+
+convertRequests :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
+convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest reqs
+
+convertRequest :: WidgetRequest s -> Maybe (WidgetRequest s2)
+convertRequest IgnoreParentEvents = Just IgnoreParentEvents
+convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
+convertRequest (SetFocus path) = Just (SetFocus path)
+convertRequest (GetClipboard path) = Just (GetClipboard path)
+convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
+convertRequest (SendMessage path message) = Just (SendMessage path message)
+convertRequest (RunTask path action) = Just (RunTask path action)
+convertRequest (RunProducer path action) = Just (RunProducer path action)
+convertRequest (UpdateUserState fn) = Nothing
 
 -- | Custom Handling
 compositeHandleCustom :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> PathContext -> i -> sp -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)

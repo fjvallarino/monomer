@@ -33,16 +33,16 @@ createWidget = Widget {
 }
 
 widgetInit :: PathContext -> s -> WidgetInstance s e -> WidgetResult s e
-widgetInit _ _ widgetInstance = rWidget widgetInstance
+widgetInit _ _ widgetInstance = resultWidget widgetInstance
 
 ignoreGetState :: s -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
 ignoreMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-ignoreMerge globalKeys ctx app new old = rWidget new
+ignoreMerge globalKeys ctx app new old = resultWidget new
 
 widgetMerge :: (s -> Maybe WidgetState -> Widget s e) -> GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-widgetMerge makeWidget globalKeys ctx app new old = rWidget updated where
+widgetMerge makeWidget globalKeys ctx app new old = resultWidget updated where
   oldState = _widgetGetState (_instanceWidget old) app
   updated = new { _instanceWidget = makeWidget app oldState }
 

@@ -52,7 +52,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetRender = render
   }
   where
-    initTextField ctx app widgetInstance = rWidget newInstance where
+    initTextField ctx app widgetInstance = resultWidget newInstance where
       newState = TextFieldState (app ^. userField) 0
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
     getState = makeState tfs
@@ -71,11 +71,11 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         | otherwise = (txt, tp)
 
     handleEvent ctx evt app widgetInstance = case evt of
-      Click (Point x y) _ status -> resultReqs reqs widgetInstance where
+      Click (Point x y) _ status -> Just $ resultReqs reqs widgetInstance where
         isPressed = status == PressedBtn
         reqs = if isPressed then [SetFocus $ currentPath ctx] else []
 
-      KeyAction mod code KeyPressed -> resultReqs reqs newInstance where
+      KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         reqGetClipboard = if isClipboardPaste evt then [GetClipboard (currentPath ctx)] else []
@@ -90,7 +90,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
 
       _ -> Nothing
 
-    insertText app widgetInstance addedText = resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
+    insertText app widgetInstance addedText = Just $ resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos

@@ -48,7 +48,7 @@ makeSandbox onClick state = createWidget {
       newState = fromMaybe state (useState oldState)
 
     handleEvent ctx evt app widgetInstance = case evt of
-      Click (Point x y) _ status -> resultReqsEvents requests events newInstance where
+      Click (Point x y) _ status -> Just $ resultReqsEvents requests events newInstance where
         isPressed = status == PressedBtn -- && inRect view (Point x y)
         events = if isPressed then [onClick] else []
         requests = if isPressed then [RunTask (currentPath ctx) runTask] else []

@@ -45,7 +45,7 @@ makeScroll :: ScrollState -> Widget s e
 makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = scrollResize Nothing, -- containerResize resize,
+    _widgetResize = scrollResize Nothing,
     _widgetRender = render
   }
   where
@@ -54,7 +54,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
     handleEvent ctx evt app widgetInstance = case evt of
       Click (Point px py) btn status -> result where
         viewport = _instanceViewport widgetInstance
-        result = if | isPressed -> resultWidget (rebuildWidget app newState widgetInstance prevReqs)
+        result = if | isPressed -> Just $ resultWidget (rebuildWidget app newState widgetInstance prevReqs)
                     | otherwise -> Nothing
         isPressed = status == PressedBtn && inRect viewport (Point px py)
         isLeftClick = isPressed && btn == LeftBtn
@@ -66,7 +66,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         Rect rx ry rw rh = _instanceViewport widgetInstance
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
-        result = if | needsUpdate -> resultWidget (rebuildWidget app newState widgetInstance prevReqs)
+        result = if | needsUpdate -> Just $ resultWidget (rebuildWidget app newState widgetInstance prevReqs)
                     | otherwise   -> Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
