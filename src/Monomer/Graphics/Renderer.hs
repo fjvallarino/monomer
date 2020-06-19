@@ -3,24 +3,22 @@
 module Monomer.Graphics.Renderer where
 
 import Control.Monad
-
-import qualified Data.Text as T
+import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
-data WidgetRenderType = RenderNormal | RenderPost deriving (Eq, Show)
-
 data Renderer m = (Monad m) => Renderer {
-  beginWidget :: Path -> WidgetRenderType -> m (),
-  endWidget :: Path -> WidgetRenderType -> m (),
   beginPath :: m (),
   -- Context management
   saveContext :: m (),
   restoreContext :: m (),
+  -- Overlays
+  createOverlay :: m () -> m (),
+  runOverlays :: m (),
   -- Scissor operations
-  scissor :: Rect -> m (),
+  setScissor :: Rect -> m (),
   resetScissor :: m (),
   -- Strokes
   stroke :: m (),
@@ -39,6 +37,6 @@ data Renderer m = (Monad m) => Renderer {
   quadTo :: Point -> Point -> m (),
   ellipse :: Rect -> m (),
   -- Text
-  text :: Rect -> Font -> FontSize -> Align -> T.Text -> m Rect,
-  textBounds :: Font -> FontSize -> T.Text -> Size
+  text :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
+  textBounds :: Font -> FontSize -> Text -> Size
 }

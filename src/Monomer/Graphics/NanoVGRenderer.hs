@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
@@ -5,23 +6,28 @@ module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 import Control.Monad (when)
 import Control.Monad.IO.Class
 import Data.Default
+import Data.IORef
+import Data.Sequence (Seq, (|>))
+import Data.Text (Text)
 import System.IO.Unsafe
 
-import qualified Data.Text as T
 import qualified NanoVG as VG
+import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
-makeRenderer :: (MonadIO m) => VG.Context -> Double -> Renderer m
-makeRenderer c dpr = Renderer {..} where
-  beginWidget _ _ =
-    return ()
+type Overlays m = Monad m => IORef (Seq (m ()))
 
-  endWidget _ _ =
-    return ()
+makeRenderer :: (MonadIO m) => VG.Context -> Double -> m (Renderer m)
+makeRenderer c dpr = do
+  overlaysRef <- liftIO $ newIORef Seq.empty
 
+  return $ newRenderer c dpr overlaysRef
+
+newRenderer :: (MonadIO m) => VG.Context -> Double -> Overlays m -> Renderer m
+newRenderer c dpr overlaysRef = Renderer {..} where
   beginPath =
     liftIO $ VG.beginPath c
   -- Context management
@@ -31,8 +37,17 @@ makeRenderer c dpr = Renderer {..} where
   restoreContext =
     liftIO $ VG.restore c
 
+  -- Overlays
+  createOverlay overlay = do
+    liftIO $ modifyIORef overlaysRef (|> overlay)
+
+  runOverlays = do
+    overlays <- liftIO $ readIORef overlaysRef
+    sequence_ overlays
+    liftIO $ writeIORef overlaysRef Seq.empty
+
   -- Scissor operations
-  scissor (Rect x y w h) =
+  setScissor (Rect x y w h) =
     liftIO $ VG.scissor c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
 
   resetScissor =

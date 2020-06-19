@@ -111,7 +111,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
 
     render renderer ts ctx app widgetInstance =
       do
-        scissor renderer viewport
+        setScissor renderer viewport
         containerRender renderer ts ctx app widgetInstance
         resetScissor renderer
 

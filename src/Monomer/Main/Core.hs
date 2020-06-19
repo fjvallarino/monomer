@@ -52,13 +52,13 @@ runWidgets window c widgetRoot = do
   Rect rx ry rw rh <- use windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
-  let renderer = makeRenderer c dpr
   let newWindowSize = Rect rx ry (rw / dpr) (rh / dpr)
 
   windowSize .= newWindowSize
   ticks <- SDL.ticks
   ctx <- get
   app <- use appContext
+  renderer <- makeRenderer c dpr
   (newApp, _, initializedRoot) <- handleWidgetInit renderer app widgetRoot
 
   let styledRoot = cascadeStyle mempty initializedRoot
@@ -102,6 +102,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
 
   currentFocus <- use focused
   renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) seApp newWidgetRoot startTicks
+  runOverlays renderer
 
   endTicks <- fmap fromIntegral SDL.ticks
 
