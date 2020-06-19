@@ -40,10 +40,7 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
 createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
-createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent (eventHandlerWrapper eventHandler) uiBuilder
-
-eventHandlerWrapper :: EventHandler s e () -> s -> e -> EventResponse s e ()
-eventHandlerWrapper eventHandler app evt = eventHandler app evt
+createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent eventHandler uiBuilder
 
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -> m ()
 runWidgets window c widgetRoot = do
