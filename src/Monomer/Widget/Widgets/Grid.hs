@@ -8,7 +8,7 @@ module Monomer.Widget.Widgets.Grid (
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
-import Data.Sequence ((|>))
+import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
 
@@ -18,14 +18,14 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
 
-hgrid :: [WidgetInstance s e] -> WidgetInstance s e
+hgrid :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 hgrid children = (defaultWidgetInstance "hgrid" (makeFixedGrid True)) {
-  _instanceChildren = Seq.fromList children
+  _instanceChildren = foldl' (|>) Empty children
 }
 
-vgrid :: [WidgetInstance s e] -> WidgetInstance s e
+vgrid :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 vgrid children = (defaultWidgetInstance "vgrid" (makeFixedGrid False)) {
-  _instanceChildren = Seq.fromList children
+  _instanceChildren = foldl' (|>) Empty children
 }
 
 makeFixedGrid :: Bool -> Widget s e

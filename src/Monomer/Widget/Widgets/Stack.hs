@@ -7,7 +7,7 @@ module Monomer.Widget.Widgets.Stack (
 
 import Control.Monad
 import Data.List (foldl')
-import Data.Sequence ((<|))
+import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
@@ -17,14 +17,14 @@ import Monomer.Widget.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Util
 
-hstack :: [WidgetInstance s e] -> WidgetInstance s e
+hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 hstack children = (defaultWidgetInstance "hstack" (makeStack True)) {
-  _instanceChildren = Seq.fromList children
+  _instanceChildren = foldl' (|>) Empty children
 }
 
-vstack :: [WidgetInstance s e] -> WidgetInstance s e
+vstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
-  _instanceChildren = Seq.fromList children
+  _instanceChildren = foldl' (|>) Empty children
 }
 
 makeStack :: Bool -> Widget s e
