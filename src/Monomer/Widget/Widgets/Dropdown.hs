@@ -51,7 +51,7 @@ makeOverlayList items display = scroll makeGrid where
   makeItem i = container def { _onClick = Just $ ItemClicked i } $ label (display i)
 
 makeDropdown :: DropdownState -> Lens' s a -> WidgetInstance s (ItemEvent a) -> Widget s  ae
-makeDropdown state field overlayList = createWidget {
+makeDropdown state field overlayInstance = createWidget {
     _widgetFind = dropdownFind,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
@@ -61,32 +61,40 @@ makeDropdown state field overlayList = createWidget {
   where
     dropdownLabel = "Hola"
     isOpen = state == Open
-    createDropdown status = makeInstance $ makeDropdown status field overlayList
+    createDropdown status = makeInstance $ makeDropdown status field overlayInstance
 
     dropdownFind point widgetComposite = fmap (0 <|) childPath where
-      childPath = _widgetFind (_instanceWidget overlayList) point overlayList
+      childPath = _widgetFind (_instanceWidget overlayInstance) point overlayInstance
 
     handleEvent ctx evt app widgetInstance = case evt of
-      Click p@(Point x y) _ status -> Just $ resultReqs requests newInstance where
-        inViewport = inRect (_instanceViewport widgetInstance) p
-        inOverlay = inRect (_instanceViewport overlayList) p
-        isOpenAction = status == PressedBtn && not isOpen && inViewport
-        isCloseAction = status == PressedBtn && isOpen && not inViewport 
-        newInstance = if | isOpenAction  -> createDropdown Open
-                         | isCloseAction -> createDropdown Closed
-                         | otherwise -> widgetInstance
-        requests = if | isOpenAction -> [SetOverlay $ _pathCurrent ctx]
-                      | isCloseAction -> [ResetOverlay $ _pathCurrent ctx]
-                      | otherwise -> []
+      Click p@(Point x y) _ status
+        | clicked && openRequired p widgetInstance -> handleOpenDropdown ctx
+        | clicked && closeRequired p widgetInstance -> handleCloseDropdown ctx
+        where
+          clicked = status == PressedBtn
       _ -> Nothing
       -- Nothing where
-      -- !childRes = _widgetHandleEvent (_instanceWidget overlayList) (childContext ctx) evt app overlayList
+      -- !childRes = _widgetHandleEvent (_instanceWidget overlayInstance) (childContext ctx) evt app overlayInstance
+
+    openRequired point widgetInstance = not isOpen && inViewport where
+      inViewport = inRect (_instanceViewport widgetInstance) point
+
+    closeRequired point widgetInstance = isOpen && not inOverlay where
+      inOverlay = inRect (_instanceViewport overlayInstance) point
+
+    handleOpenDropdown ctx = Just $ resultReqs requests newInstance where
+      newInstance = createDropdown Open
+      requests = [SetOverlay $ _pathCurrent ctx]
+
+    handleCloseDropdown ctx = Just $ resultReqs requests newInstance where
+      newInstance = createDropdown Closed
+      requests = [ResetOverlay $ _pathCurrent ctx]
 
     preferredSize renderer app widgetInstance = Node sizeReq (Seq.singleton childReq) where
       Style{..} = _instanceStyle widgetInstance
       size = calcTextBounds renderer _textStyle dropdownLabel
       sizeReq = SizeReq size FlexibleSize StrictSize
-      childReq = _widgetPreferredSize (_instanceWidget overlayList) renderer app overlayList
+      childReq = _widgetPreferredSize (_instanceWidget overlayInstance) renderer app overlayInstance
 
     resize app viewport renderArea widgetInstance reqs = newInstance where
       newOverlayList = case Seq.lookup 0 (nodeChildren reqs) of
@@ -95,8 +103,8 @@ makeDropdown state field overlayList = createWidget {
           maxHeight = min reqHeight 150
           oViewport = viewport { _ry = _ry viewport + _rh viewport, _rh = maxHeight }
           oRenderArea = renderArea { _ry = _ry renderArea + _rh viewport }
-          resizedOverlay = _widgetResize (_instanceWidget overlayList) app oViewport oRenderArea overlayList reqChild
-        Nothing -> overlayList
+          resizedOverlay = _widgetResize (_instanceWidget overlayInstance) app oViewport oRenderArea overlayInstance reqChild
+        Nothing -> overlayInstance
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown state field newOverlayList,
         _instanceViewport = viewport,
@@ -112,4 +120,4 @@ makeDropdown state field overlayList = createWidget {
           createOverlay renderer $ renderOverlay renderer ts ctx app
     
     renderOverlay renderer ts ctx app = renderAction where
-      renderAction = _widgetRender (_instanceWidget overlayList) renderer ts ctx app overlayList
+      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer ts ctx app overlayInstance
