@@ -111,61 +111,27 @@ handleAppEvent app evt = do
     InitApp -> Task $ do
       putStrLn $ "Initialized application"
       return Nothing
-    RunShortTask -> Model (app & textField3 .~ "Updated!")
+    RunShortTask -> Model (app & textField1 .~ "Updated!")
     RunLongTask -> Task $ do
       threadDelay $ 1 * 1000 * 1000
-      return $ Just (UpdateText3 "HOLA")
+      return $ Just (UpdateText "HOLA")
     PrintTextFields -> Task $ do
       putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)
-      putStrLn $ "Current text 2 is: " ++ show (app ^. textField2)
-      putStrLn $ "Current text 3 is: " ++ show (app ^. textField3)
       return Nothing
     AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (app & clickCount %~ (+1)) <> (Task $ do
       putStrLn $ "Clicked button"
       return Nothing)
     IncreaseMessage -> Model (app & msgCount %~ (+1))
-    UpdateText3 txt -> Model (app & textField3 .~ txt)
+    UpdateText txt -> Model (app & textField1 .~ txt)
 
 buildUI app = trace "Created main UI" $ widgetTree where
   widgetTree =
     vstack [
+      dropdown dropdown1 (fmap (\i -> "Value " <> showt i) [1..10::Int]) id,
       hgrid [
         button ("Increase: " <> (showt $ _clickCount app)) AppButton,
         label $ "Messages: " <> (showt $ _msgCount app)
-      ],
-      --testComposite
-      keysComposite `key` "kcmp"
-    ]
-
-buildUI2 app = widgetTree where
-  widgetTree =
-    vstack [
-      label "This is label 1" `style` bgColor blue,
-      label "This is label 2" `style` bgColor black,
-      label "This is label 3" `style` bgColor blue,
-      hstack [
-        textField textField1,
-        button "Update state" (UpdateText3 $ app ^. textField1),
-        textField textField3
-      ],
-      flip style (sheight 300) $ scroll $ vstack [
-        label "This is label in scroll 01" `style` bgColor lightGray,
-        label "This is label in scroll 02" `style` bgColor gray,
-        label "This is label in scroll 03" `style` bgColor darkGray,
-        label "This is label in scroll 04" `style` bgColor lightGray,
-        label "This is label in scroll 05" `style` bgColor gray,
-        label "This is label in scroll 06" `style` bgColor darkGray,
-        label "This is label in scroll 07" `style` bgColor lightGray,
-        label "This is label in scroll 08" `style` bgColor gray,
-        label "This is label in scroll 09" `style` bgColor darkGray,
-        label "This is label in scroll 10" `style` bgColor lightGray,
-        label "This is label in scroll 11" `style` bgColor gray,
-        label "This is label in scroll 12" `style` bgColor darkGray,
-        label "This is label in scroll 13" `style` bgColor lightGray,
-        label "This is label in scroll 14" `style` bgColor gray,
-        label "This is label in scroll 15" `style` bgColor darkGray,
-        label "This is label in scroll 16" `style` bgColor lightGray,
-        label "This is label in scroll 17" `style` bgColor gray,
-        label "This is label in scroll 18" `style` bgColor darkGray
       ]
+      --testComposite
+      --keysComposite `key` "kcmp"
     ]

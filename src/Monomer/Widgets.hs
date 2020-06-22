@@ -1,5 +1,6 @@
 module Monomer.Widgets (
   module Monomer.Widget.Widgets.Button,
+  module Monomer.Widget.Widgets.Dropdown,
   module Monomer.Widget.Widgets.Grid,
   module Monomer.Widget.Widgets.Label,
   module Monomer.Widget.Widgets.Sandbox,
@@ -10,6 +11,8 @@ module Monomer.Widgets (
 ) where
 
 import Monomer.Widget.Widgets.Button
+import Monomer.Widget.Widgets.Container
+import Monomer.Widget.Widgets.Dropdown
 import Monomer.Widget.Widgets.Grid
 import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.Sandbox

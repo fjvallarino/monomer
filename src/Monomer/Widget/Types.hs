@@ -38,7 +38,7 @@ data SizeReq = SizeReq {
 } deriving (Show, Eq)
 
 instance Default SizeReq where
-  def = SizeReq (Size 0 0) FlexibleSize FlexibleSize
+  def = SizeReq def FlexibleSize FlexibleSize
 
 data WidgetRequest s
   = IgnoreParentEvents
@@ -46,6 +46,8 @@ data WidgetRequest s
   | SetFocus Path
   | GetClipboard Path
   | SetClipboard ClipboardData
+  | ResetOverlay Path
+  | SetOverlay Path
   | UpdateUserState (s -> s)
   | forall i . Typeable i => SendMessage Path i
   | forall i . Typeable i => RunTask Path (IO i)
