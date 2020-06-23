@@ -115,10 +115,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
         containerRender ignoreRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
-        when (barRatioH < 1) $ do
+        when (barRatioH < 1) $
           drawRect renderer scrollRectH (Just $ darkGray { _alpha = 0.6 }) Nothing
 
-        when (barRatioV < 1) $ do
+        when (barRatioV < 1) $
           drawRect renderer scrollRectV (Just $ darkGray { _alpha = 0.6 }) Nothing
       where
         barThickness = 10

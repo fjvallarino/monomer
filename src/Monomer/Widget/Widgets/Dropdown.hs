@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -38,7 +37,7 @@ import Monomer.Widget.Widgets.Stack
 
 data DropdownState = Open | Closed deriving (Eq, Show)
 
-data ItemEvent a = ItemClicked a
+newtype ItemEvent a = ItemClicked a
 
 dropdown :: (Traversable t) => Lens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 dropdown field items display = makeInstance (makeDropdown Closed field overlayList) where
@@ -50,8 +49,9 @@ makeInstance widget = defaultWidgetInstance "dropdown" widget
 makeOverlayList :: (Traversable t) => t a -> (a -> Text) -> WidgetInstance s (ItemEvent a)
 makeOverlayList items display = scroll makeGrid where
   makeGrid = vstack $ fmap makeItem items
-  makeItem i = container config { _onClick = Just $ ItemClicked i } $ label (display i)
-  config = def {
+  makeItem i = container (config i) $ label (display i)
+  config i = def {
+    _onClick = Just $ ItemClicked i,
     _hoverColor = Just lightGray
   }
 
@@ -77,9 +77,9 @@ makeDropdown state field overlayInstance = createWidget {
         | clicked && closeRequired p widgetInstance -> handleCloseDropdown ctx
         where
           clicked = status == PressedBtn
-      _ -> Nothing
-      -- Nothing where
-      -- !childRes = _widgetHandleEvent (_instanceWidget overlayInstance) (childContext ctx) evt app overlayInstance
+      _
+        | isOpen -> handleOverlayEvent wctx ctx evt widgetInstance
+        | otherwise -> Nothing
 
     openRequired point widgetInstance = not isOpen && inViewport where
       inViewport = inRect (_instanceViewport widgetInstance) point
@@ -94,6 +94,19 @@ makeDropdown state field overlayInstance = createWidget {
     handleCloseDropdown ctx = Just $ resultReqs requests newInstance where
       newInstance = createDropdown Closed
       requests = [ResetOverlay $ _pathCurrent ctx]
+
+    handleOverlayEvent wctx ctx evt widgetInstance = result where
+      cwctx = convertWidgetContext wctx
+      cctx = childContext ctx
+      childResult = _widgetHandleEvent (_instanceWidget overlayInstance) cwctx cctx evt overlayInstance
+      result = case childResult of
+        Just (WidgetResult reqs evts newOverlayList)
+          | not (Seq.null evts) -> Just $ WidgetResult newReqs Seq.empty newInstance where
+            newInstance = makeInstance $ makeDropdown state field newOverlayList
+            newReqs = fmap convertItemClickReq evts
+        _ -> Nothing
+
+    convertItemClickReq (ItemClicked value) = UpdateUserState $ \app -> app & field .~ value
 
     preferredSize renderer wctx widgetInstance = Node sizeReq (Seq.singleton childReq) where
       Style{..} = _instanceStyle widgetInstance
@@ -137,3 +150,6 @@ convertWidgetContext wctx = WidgetContext {
   _wcInputStatus = _wcInputStatus wctx,
   _wcTimestamp = _wcTimestamp wctx
 }
+
+childContext :: PathContext -> PathContext
+childContext ctx = addToCurrent ctx 0
