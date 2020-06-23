@@ -31,6 +31,7 @@ data SystemEvent
   deriving (Show, Eq)
 
 data InputStatus = InputStatus {
+  statusMousePos :: Point,
   statusKeyMod :: KeyMod,
   statusKeys :: Map KeyCode KeyStatus,
   statusButtons :: Map Button ButtonState

@@ -8,7 +8,8 @@ module Monomer.Widget.BaseContainer (
   containerHandleEvent,
   containerPreferredSize,
   containerResize,
-  containerRender
+  containerRender,
+  ignoreRender
 ) where
 
 import Control.Monad
@@ -38,6 +39,7 @@ type WidgetMergeHandler s e = WidgetContext s e -> Maybe WidgetState -> WidgetIn
 type WidgetEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
 type WidgetResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
+type WidgetRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 
 createContainer :: Widget s e
 createContainer = Widget {
@@ -50,7 +52,7 @@ createContainer = Widget {
   _widgetHandleMessage = containerHandleMessage,
   _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
   _widgetResize = containerResize defaultResize,
-  _widgetRender = containerRender
+  _widgetRender = containerRender ignoreRender
 }
 
 -- | Init handler
@@ -222,11 +224,16 @@ containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInsta
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) wctx viewport renderArea child req
 
 -- | Rendering
-containerRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
-containerRender renderer wctx ctx widgetInstance = do
+ignoreRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+ignoreRender renderer wctx ctx widgetInstance = return ()
+
+containerRender :: (Monad m) => WidgetRenderHandler s e m -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+containerRender rHandler renderer wctx ctx widgetInstance = do
   let children = _instanceChildren widgetInstance
   let indexes = Seq.fromList [0..length children]
   let pairs = Seq.zip indexes children
+
+  rHandler renderer wctx ctx widgetInstance
 
   forM_ pairs $ \(idx, child) ->
     when (_instanceVisible child) $ _widgetRender (_instanceWidget child) renderer wctx (addToCurrent ctx idx) child

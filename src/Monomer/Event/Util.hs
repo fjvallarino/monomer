@@ -1,5 +1,7 @@
 module Monomer.Event.Util where
 
+import Data.Default
+
 import qualified Data.Map.Strict as M
 
 import Monomer.Event.Types
@@ -19,6 +21,7 @@ defKeyMod = KeyMod {
 }
 
 defInputStatus = InputStatus {
+  statusMousePos = def,
   statusKeyMod = defKeyMod,
   statusKeys = M.empty,
   statusButtons = M.empty

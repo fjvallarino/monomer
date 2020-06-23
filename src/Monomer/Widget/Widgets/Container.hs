@@ -5,14 +5,18 @@ module Monomer.Widget.Widgets.Container (
   container
 ) where
 
+import Control.Monad (when)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
+import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -40,7 +44,8 @@ makeContainer :: ContainerConfig e -> Widget s e
 makeContainer config = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = containerResize resize
+    _widgetResize = containerResize resize,
+    _widgetRender = containerRender render
   }
   where
     handleEvent wctx ctx evt widgetInstance = case evt of
@@ -57,3 +62,10 @@ makeContainer config = createContainer {
 
     resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
+
+    render renderer wctx ctx widgetInstance = do
+      let point = statusMousePos . _wcInputStatus $ wctx
+      let viewport = _instanceViewport widgetInstance
+
+      when (inRect viewport point && isJust (_hoverColor config)) $
+        drawBgRect renderer viewport (bgColor . fromJust . _hoverColor $ config)

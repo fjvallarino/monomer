@@ -22,6 +22,7 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
+import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
@@ -49,7 +50,10 @@ makeInstance widget = defaultWidgetInstance "dropdown" widget
 makeOverlayList :: (Traversable t) => t a -> (a -> Text) -> WidgetInstance s (ItemEvent a)
 makeOverlayList items display = scroll makeGrid where
   makeGrid = vstack $ fmap makeItem items
-  makeItem i = container def { _onClick = Just $ ItemClicked i } $ label (display i)
+  makeItem i = container config { _onClick = Just $ ItemClicked i } $ label (display i)
+  config = def {
+    _hoverColor = Just lightGray
+  }
 
 makeDropdown :: DropdownState -> Lens' s a -> WidgetInstance s (ItemEvent a) -> Widget s e
 makeDropdown state field overlayInstance = createWidget {
