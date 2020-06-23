@@ -44,10 +44,10 @@ makeSandbox onClick state = createWidget {
     label = "Sandbox: " ++ show (_clickCount state)
 
     getState = makeState state
-    merge app oldState = makeSandbox onClick newState where
+    merge wctx oldState = makeSandbox onClick newState where
       newState = fromMaybe state (useState oldState)
 
-    handleEvent ctx evt app widgetInstance = case evt of
+    handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ status -> Just $ resultReqsEvents requests events newInstance where
         isPressed = status == PressedBtn -- && inRect view (Point x y)
         events = if isPressed then [onClick] else []
@@ -71,7 +71,7 @@ makeSandbox onClick state = createWidget {
       size = calcTextBounds renderer _textStyle (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-    render renderer ts ctx app WidgetInstance{..} =
+    render renderer wctx ctx WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
         drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack label)

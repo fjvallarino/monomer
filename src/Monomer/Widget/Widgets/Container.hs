@@ -43,7 +43,7 @@ makeContainer config = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    handleEvent ctx evt app widgetInstance = case evt of
+    handleEvent wctx ctx evt widgetInstance = case evt of
       Click point btn status -> result where
         isPressed = status == PressedBtn && btn == LeftBtn
         result = if isPressed && isJust (_onClick config)
@@ -51,9 +51,9 @@ makeContainer config = createContainer {
                     else Nothing
       _ -> Nothing
 
-    preferredSize renderer app childrenPairs = Node sizeReq childrenReqs where
+    preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = nodeValue $ Seq.index childrenReqs 0
 
-    resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+    resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)

@@ -27,7 +27,7 @@ data MonomerApp s e = MonomerApp {
 
 data MonomerContext s = MonomerContext {
   _appContext :: s,
-  _windowSize :: Rect,
+  _windowSize :: Size,
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,
   _inputStatus :: InputStatus,

@@ -31,27 +31,27 @@ import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
-handleWidgetTasks :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> m (HandlerStep s e)
-handleWidgetTasks renderer app widgetRoot = do
+handleWidgetTasks :: (MonomerM s m) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (HandlerStep s e)
+handleWidgetTasks renderer wctx widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM isThreadActive (toList tasks)
   widgetTasks .= Seq.fromList active
 
-  processWidgetTasks renderer app widgetRoot tasks
+  processWidgetTasks renderer wctx widgetRoot tasks
 
-processWidgetTasks :: (MonomerM s m, Traversable t) => Renderer m -> s -> WidgetInstance s e -> t WidgetTask -> m (HandlerStep s e)
-processWidgetTasks renderer app widgetRoot tasks = foldM reducer (app, Seq.empty, widgetRoot) tasks where
-  reducer (wApp, wEvts, wRoot) task = do
-    (wApp2, wEvts2, wRoot2) <- processWidgetTask renderer wApp wRoot task
-    return (wApp2, wEvts >< wEvts2, wRoot2)
+processWidgetTasks :: (MonomerM s m, Traversable t) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> t WidgetTask -> m (HandlerStep s e)
+processWidgetTasks renderer wctx widgetRoot tasks = foldM reducer (wctx, Seq.empty, widgetRoot) tasks where
+  reducer (wWctx, wEvts, wRoot) task = do
+    (wWctx2, wEvts2, wRoot2) <- processWidgetTask renderer wWctx wRoot task
+    return (wWctx2, wEvts >< wEvts2, wRoot2)
 
-processWidgetTask :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> WidgetTask -> m (HandlerStep s e)
-processWidgetTask renderer app widgetRoot (WidgetTask path task) = do
+processWidgetTask :: (MonomerM s m) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> WidgetTask -> m (HandlerStep s e)
+processWidgetTask renderer wctx widgetRoot (WidgetTask path task) = do
   taskStatus <- liftIO $ poll task
 
   case taskStatus of
-    Just taskResult -> processWidgetTaskResult renderer app widgetRoot path taskResult
-    Nothing -> return (app, Seq.empty, widgetRoot)
+    Just taskResult -> processWidgetTaskResult renderer wctx widgetRoot path taskResult
+    Nothing -> return (wctx, Seq.empty, widgetRoot)
 processWidgetTask renderer app widgetRoot (WidgetProducer path channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
@@ -59,21 +59,21 @@ processWidgetTask renderer app widgetRoot (WidgetProducer path channel task) = d
     Just taskMessage -> processWidgetTaskEvent renderer app widgetRoot path taskMessage
     Nothing -> return (app, Seq.empty, widgetRoot)
 
-processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e -> Path -> Either SomeException a -> m (HandlerStep s e)
-processWidgetTaskResult renderer app widgetRoot _ (Left ex) = do
+processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Path -> Either SomeException a -> m (HandlerStep s e)
+processWidgetTaskResult renderer wctx widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
-  return (app, Seq.empty, widgetRoot)
-processWidgetTaskResult renderer app widgetRoot path (Right taskResult) = processWidgetTaskEvent renderer app widgetRoot path taskResult
+  return (wctx, Seq.empty, widgetRoot)
+processWidgetTaskResult renderer wctx widgetRoot path (Right taskResult) = processWidgetTaskEvent renderer wctx widgetRoot path taskResult
 
-processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> s -> WidgetInstance s e -> Path -> a -> m (HandlerStep s e)
-processWidgetTaskEvent renderer app widgetRoot path event = do
+processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Path -> a -> m (HandlerStep s e)
+processWidgetTaskEvent renderer wctx widgetRoot path event = do
   currentFocus <- use focused
 
   let ctx = PathContext currentFocus path rootPath
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) ctx event app widgetRoot
+  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wctx ctx event widgetRoot
 
-  handleWidgetResult renderer ctx app widgetResult
+  handleWidgetResult renderer wctx ctx widgetResult
 
 isThreadActive :: (MonomerM s m) => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)

@@ -53,11 +53,13 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     _widgetRender = render
   }
   where
-    initTextField ctx app widgetInstance = resultWidget newInstance where
+    initTextField wctx ctx widgetInstance = resultWidget newInstance where
+      app = _wcApp wctx
       newState = TextFieldState (app ^. userField) 0
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
     getState = makeState tfs
-    merge app oldState = makeTextField userField newState where
+    merge wctx oldState = makeTextField userField newState where
+      app = _wcApp wctx
       TextFieldState txt pos = fromMaybe emptyState (useState oldState)
       appText = app ^. userField
       newPos = if T.length appText < pos then T.length appText else pos
@@ -71,7 +73,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
 
-    handleEvent ctx evt app widgetInstance = case evt of
+    handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ status -> Just $ resultReqs reqs widgetInstance where
         isPressed = status == PressedBtn
         reqs = if isPressed then [SetFocus $ currentPath ctx] else []
@@ -85,13 +87,13 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         newState = TextFieldState newText newPos
         newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
 
-      TextInput newText -> insertText app widgetInstance newText
+      TextInput newText -> insertText wctx widgetInstance newText
 
-      Clipboard (ClipboardText newText) -> insertText app widgetInstance newText
+      Clipboard (ClipboardText newText) -> insertText wctx widgetInstance newText
 
       _ -> Nothing
 
-    insertText app widgetInstance addedText = Just $ resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
+    insertText wctx widgetInstance addedText = Just $ resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
@@ -102,8 +104,9 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
       size = calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-    render renderer ts ctx app WidgetInstance{..} =
-      let textStyle = _textStyle _instanceStyle
+    render renderer wctx ctx WidgetInstance{..} =
+      let ts = _wcTimestamp wctx
+          textStyle = _textStyle _instanceStyle
           cursorAlpha = if isFocused ctx then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea

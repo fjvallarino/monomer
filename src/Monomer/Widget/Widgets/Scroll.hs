@@ -51,10 +51,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
   where
     stepSize = 50
     wheelRate = 10
-    handleEvent ctx evt app widgetInstance = case evt of
+    handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point px py) btn status -> result where
         viewport = _instanceViewport widgetInstance
-        result = if | isPressed -> Just $ resultWidget (rebuildWidget app newState widgetInstance prevReqs)
+        result = if | isPressed -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
                     | otherwise -> Nothing
         isPressed = status == PressedBtn && inRect viewport (Point px py)
         isLeftClick = isPressed && btn == LeftBtn
@@ -66,7 +66,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         Rect rx ry rw rh = _instanceViewport widgetInstance
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
-        result = if | needsUpdate -> Just $ resultWidget (rebuildWidget app newState widgetInstance prevReqs)
+        result = if | needsUpdate -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
                     | otherwise   -> Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
@@ -80,16 +80,16 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
                       then currScroll + reqDelta
                       else viewportLimit - childPos
 
-    rebuildWidget app newState widgetInstance reqs = newInstance where
+    rebuildWidget wctx newState widgetInstance reqs = newInstance where
       newWidget = makeScroll newState
       tempInstance = widgetInstance { _instanceWidget = newWidget }
-      newInstance = scrollResize (Just newWidget) app (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
+      newInstance = scrollResize (Just newWidget) wctx (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
 
-    preferredSize renderer app childrenPairs = Node sizeReq childrenReqs where
+    preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 
-    scrollResize updatedWidget app viewport renderArea widgetInstance reqs = newInstance where
+    scrollResize updatedWidget wctx viewport renderArea widgetInstance reqs = newInstance where
       Rect l t w h = renderArea
       child = Seq.index (_instanceChildren widgetInstance) 0
       childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
@@ -100,7 +100,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
 
       newWidget = fromMaybe (makeScroll $ ScrollState dx dy (Size areaW areaH) reqs) updatedWidget
-      newChildWidget = _widgetResize (_instanceWidget child) app viewport childRenderArea child childReq
+      newChildWidget = _widgetResize (_instanceWidget child) wctx viewport childRenderArea child childReq
 
       newInstance = widgetInstance {
         _instanceViewport = viewport,
@@ -109,10 +109,10 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
         _instanceChildren = Seq.singleton newChildWidget
       }
 
-    render renderer ts ctx app widgetInstance =
+    render renderer wctx ctx widgetInstance =
       do
         setScissor renderer viewport
-        containerRender renderer ts ctx app widgetInstance
+        containerRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
         when (barRatioH < 1) $ do

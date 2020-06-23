@@ -14,16 +14,16 @@ getCurrentMousePos = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
   return $ Point (fromIntegral x) (fromIntegral y)
 
-getDrawableSize :: (MonadIO m) => SDL.Window -> m Rect
+getDrawableSize :: (MonadIO m) => SDL.Window -> m Size
 getDrawableSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
-  return (Rect 0 0 (fromIntegral fbWidth) (fromIntegral fbHeight))
+  return $ Size (fromIntegral fbWidth) (fromIntegral fbHeight)
 
-getWindowSize :: (MonadIO m) => SDL.Window -> Double -> m Rect
+getWindowSize :: (MonadIO m) => SDL.Window -> Double -> m Size
 getWindowSize window dpr = do
-  Rect rx ry rw rh <- getDrawableSize window
+  Size rw rh <- getDrawableSize window
 
-  return $ Rect rx ry (rw / dpr) (rh / dpr)
+  return $ Size (rw / dpr) (rh / dpr)
 
 doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m s -> m s
 doInDrawingContext window c action = do

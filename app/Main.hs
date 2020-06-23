@@ -94,9 +94,9 @@ main = do
 
   SREv.startTextInput
 
-  winSize@(Rect rx ry rw rh) <- getDrawableSize window
+  winSize <- getDrawableSize window
 
-  let devicePixelRate = _rw winSize / fromIntegral screenWidth
+  let devicePixelRate = _w winSize / fromIntegral screenWidth
   let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
 
   runStateT (runWidgets window c appWidget) (initMonomerContext () winSize useHiDPI devicePixelRate)

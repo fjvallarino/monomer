@@ -15,6 +15,7 @@ import Data.Text (Text)
 import Data.Traversable
 import Lens.Micro
 
+import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
@@ -50,7 +51,7 @@ makeOverlayList items display = scroll makeGrid where
   makeGrid = vstack $ fmap makeItem items
   makeItem i = container def { _onClick = Just $ ItemClicked i } $ label (display i)
 
-makeDropdown :: DropdownState -> Lens' s a -> WidgetInstance s (ItemEvent a) -> Widget s  ae
+makeDropdown :: DropdownState -> Lens' s a -> WidgetInstance s (ItemEvent a) -> Widget s e
 makeDropdown state field overlayInstance = createWidget {
     _widgetFind = dropdownFind,
     _widgetHandleEvent = handleEvent,
@@ -66,7 +67,7 @@ makeDropdown state field overlayInstance = createWidget {
     dropdownFind point widgetComposite = fmap (0 <|) childPath where
       childPath = _widgetFind (_instanceWidget overlayInstance) point overlayInstance
 
-    handleEvent ctx evt app widgetInstance = case evt of
+    handleEvent wctx ctx evt widgetInstance = case evt of
       Click p@(Point x y) _ status
         | clicked && openRequired p widgetInstance -> handleOpenDropdown ctx
         | clicked && closeRequired p widgetInstance -> handleCloseDropdown ctx
@@ -90,20 +91,22 @@ makeDropdown state field overlayInstance = createWidget {
       newInstance = createDropdown Closed
       requests = [ResetOverlay $ _pathCurrent ctx]
 
-    preferredSize renderer app widgetInstance = Node sizeReq (Seq.singleton childReq) where
+    preferredSize renderer wctx widgetInstance = Node sizeReq (Seq.singleton childReq) where
       Style{..} = _instanceStyle widgetInstance
       size = calcTextBounds renderer _textStyle dropdownLabel
       sizeReq = SizeReq size FlexibleSize StrictSize
-      childReq = _widgetPreferredSize (_instanceWidget overlayInstance) renderer app overlayInstance
+      cwctx = convertWidgetContext wctx
+      childReq = _widgetPreferredSize (_instanceWidget overlayInstance) renderer cwctx overlayInstance
 
-    resize app viewport renderArea widgetInstance reqs = newInstance where
+    resize wctx viewport renderArea widgetInstance reqs = newInstance where
       newOverlayList = case Seq.lookup 0 (nodeChildren reqs) of
         Just reqChild -> resizedOverlay where
           reqHeight = _h . _sizeRequested . nodeValue $ reqChild
           maxHeight = min reqHeight 150
           oViewport = viewport { _ry = _ry viewport + _rh viewport, _rh = maxHeight }
           oRenderArea = renderArea { _ry = _ry renderArea + _rh viewport }
-          resizedOverlay = _widgetResize (_instanceWidget overlayInstance) app oViewport oRenderArea overlayInstance reqChild
+          cwctx = convertWidgetContext wctx
+          resizedOverlay = _widgetResize (_instanceWidget overlayInstance) cwctx oViewport oRenderArea overlayInstance reqChild
         Nothing -> overlayInstance
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown state field newOverlayList,
@@ -111,13 +114,22 @@ makeDropdown state field overlayInstance = createWidget {
         _instanceRenderArea = renderArea
       }
 
-    render renderer ts ctx app WidgetInstance{..} =
+    render renderer wctx ctx WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
         drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) dropdownLabel
 
         when isOpen $
-          createOverlay renderer $ renderOverlay renderer ts ctx app
+          createOverlay renderer $ renderOverlay renderer (convertWidgetContext wctx) ctx
     
-    renderOverlay renderer ts ctx app = renderAction where
-      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer ts ctx app overlayInstance
+    renderOverlay renderer wctx ctx = renderAction where
+      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wctx ctx overlayInstance
+
+convertWidgetContext :: WidgetContext s ep -> WidgetContext s e
+convertWidgetContext wctx = WidgetContext {
+  _wcScreenSize = _wcScreenSize wctx,
+  _wcGlobalKeys = M.empty,
+  _wcApp = _wcApp wctx,
+  _wcInputStatus = _wcInputStatus wctx,
+  _wcTimestamp = _wcTimestamp wctx
+}

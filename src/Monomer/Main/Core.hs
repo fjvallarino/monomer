@@ -27,6 +27,7 @@ import qualified NanoVG as NV
 import Monomer.Common.Geometry
 import Monomer.Event.Core
 import Monomer.Event.Types
+import Monomer.Event.Util
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
@@ -46,25 +47,33 @@ runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -
 runWidgets window c widgetRoot = do
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
-  Rect rx ry rw rh <- use windowSize
+  Size rw rh <- use windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
-  let newWindowSize = Rect rx ry (rw / dpr) (rh / dpr)
+  let newWindowSize = Size (rw / dpr) (rh / dpr)
 
   windowSize .= newWindowSize
-  ticks <- SDL.ticks
+  ticks <- fmap fromIntegral SDL.ticks
   ctx <- get
   app <- use appContext
   renderer <- makeRenderer c dpr
-  (newApp, _, initializedRoot) <- handleWidgetInit renderer app widgetRoot
+  let wctx = WidgetContext {
+    _wcScreenSize = newWindowSize,
+    _wcGlobalKeys = M.empty,
+    _wcApp = app,
+    _wcInputStatus = defInputStatus,
+    _wcTimestamp = ticks
+  }
+  (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
 
   let styledRoot = cascadeStyle mempty initializedRoot
-  let newWidgetRoot = resizeUI renderer app newWindowSize styledRoot
+  let newWidgetRoot = resizeUI renderer wctx newWindowSize styledRoot
+  let newApp = _wcApp newWctx
 
   appContext .= newApp
   focused .= findNextFocusable rootPath newWidgetRoot
 
-  mainLoop window c renderer (fromIntegral ticks) 0 0 newWidgetRoot
+  mainLoop window c renderer ticks 0 0 newWidgetRoot
 
 mainLoop :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> Int -> Int -> Int -> WidgetInstance s e -> m ()
 mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
@@ -91,14 +100,23 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
   currentApp <- use appContext
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
-  (wtApp, _, wtWidgetRoot) <- handleWidgetTasks renderer currentApp widgetRoot
-  (seApp, _, seWidgetRoot) <- handleSystemEvents renderer wtApp systemEvents wtWidgetRoot
+  inputStatus <- use inputStatus
 
-  newWidgetRoot <- if resized then resizeWindow window renderer seApp seWidgetRoot
+  let wctx = WidgetContext {
+    _wcScreenSize = windowSize,
+    _wcGlobalKeys = M.empty,
+    _wcApp = currentApp,
+    _wcInputStatus = inputStatus,
+    _wcTimestamp = ts
+  }
+  (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wctx widgetRoot
+  (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot
+
+  newWidgetRoot <- if resized then resizeWindow window renderer seWctx seWidgetRoot
                               else return seWidgetRoot
 
   currentFocus <- use focused
-  renderWidgets window c renderer (PathContext currentFocus rootPath rootPath) seApp newWidgetRoot startTicks
+  renderWidgets window c renderer seWctx (PathContext currentFocus rootPath rootPath) newWidgetRoot
   runOverlays renderer
 
   endTicks <- fmap fromIntegral SDL.ticks
@@ -111,27 +129,29 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgetRoot)
 
-renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> PathContext -> s -> WidgetInstance s e -> Int -> m ()
-renderWidgets !window !c !renderer ctx app widgetRoot ticks =
+renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+renderWidgets !window !c !renderer wctx ctx widgetRoot =
   doInDrawingContext window c $ do
-    _widgetRender (_instanceWidget widgetRoot) renderer ticks ctx app widgetRoot
+    _widgetRender (_instanceWidget widgetRoot) renderer wctx ctx widgetRoot
 
-resizeUI :: (Monad m) => Renderer m -> s -> Rect -> WidgetInstance s e -> WidgetInstance s e
-resizeUI renderer app assignedRect widgetRoot = newWidgetRoot where
+resizeUI :: (Monad m) => Renderer m -> WidgetContext s e -> Size -> WidgetInstance s e -> WidgetInstance s e
+resizeUI renderer wctx windowSize widgetRoot = newWidgetRoot where
+  Size w h = windowSize
+  assignedRect = Rect 0 0 w h
   widget = _instanceWidget widgetRoot
-  preferredSizes = _widgetPreferredSize widget renderer app widgetRoot
-  newWidgetRoot = _widgetResize widget app assignedRect assignedRect widgetRoot preferredSizes
+  preferredSizes = _widgetPreferredSize widget renderer wctx widgetRoot
+  newWidgetRoot = _widgetResize widget wctx assignedRect assignedRect widgetRoot preferredSizes
 
-resizeWindow :: (MonomerM s m) => SDL.Window -> Renderer m -> s -> WidgetInstance s e -> m (WidgetInstance s e)
-resizeWindow window renderer app widgetRoot = do
+resizeWindow :: (MonomerM s m) => SDL.Window -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (WidgetInstance s e)
+resizeWindow window renderer wctx widgetRoot = do
   dpr <- use devicePixelRate
   drawableSize <- getDrawableSize window
   newWindowSize <- getWindowSize window dpr
 
   windowSize .= newWindowSize
-  liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _rw drawableSize) (round $ _rh drawableSize))
+  liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _w drawableSize) (round $ _h drawableSize))
 
-  return $ resizeUI renderer app newWindowSize widgetRoot
+  return $ resizeUI renderer wctx newWindowSize widgetRoot
 
 preProcessEvents :: (MonomerM s m) => (WidgetInstance s e) -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do

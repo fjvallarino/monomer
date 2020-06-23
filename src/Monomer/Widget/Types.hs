@@ -65,18 +65,26 @@ instance Semigroup (WidgetResult s e) where
     evts = _resultEvents er1 <> _resultEvents er2
     widget = _resultWidget er2
 
+data WidgetContext s e = WidgetContext {
+  _wcScreenSize :: Size,
+  _wcGlobalKeys :: GlobalKeys s e,
+  _wcApp :: s,
+  _wcInputStatus :: InputStatus,
+  _wcTimestamp :: Int
+}
+
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit :: PathContext -> s -> WidgetInstance s e -> WidgetResult s e,
+    _widgetInit :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when merging widget trees
-    _widgetGetState :: s -> Maybe WidgetState,
+    _widgetGetState :: WidgetContext s e -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
     --
     -- Current app state
     -- Old instance
     -- New instance
-    _widgetMerge :: GlobalKeys s e -> PathContext -> s -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
+    _widgetMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
     _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,
@@ -90,13 +98,13 @@ data Widget s e =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: PathContext -> SystemEvent -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and a new version of the widget if internal state changed
-    _widgetHandleMessage :: forall i . Typeable i => PathContext -> i -> s -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleMessage :: forall i . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -104,7 +112,7 @@ data Widget s e =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: forall m . Monad m => Renderer m -> s -> WidgetInstance s e -> Tree SizeReq,
+    _widgetPreferredSize :: forall m . Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget
@@ -113,7 +121,7 @@ data Widget s e =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResize :: s -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
+    _widgetResize :: WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
     -- | Renders the widget
     --
     -- Renderer
@@ -121,7 +129,7 @@ data Widget s e =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: forall m . Monad m => Renderer m -> Timestamp -> PathContext -> s -> WidgetInstance s e -> m ()
+    _widgetRender :: forall m . Monad m => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree

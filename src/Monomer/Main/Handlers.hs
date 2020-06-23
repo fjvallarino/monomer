@@ -30,7 +30,7 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type HandlerStep s e = (s, Seq e, WidgetInstance s e)
+type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
 
 createEventContext :: Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
 createEventContext currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
@@ -52,47 +52,48 @@ createEventContext currentFocus currentTarget systemEvent widgetRoot = case syst
     pointEvent point = fmap makePathCtx $ _widgetFind (_instanceWidget widgetRoot) point widgetRoot
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
-handleSystemEvents :: (MonomerM s m) => Renderer m -> s -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvents renderer app systemEvents widgetRoot = foldM reducer (app, Seq.empty, widgetRoot) systemEvents where
-  reducer (currApp, currAppEvents, currWidgetRoot) systemEvent = do
+handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetContext s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
+handleSystemEvents renderer wctx systemEvents widgetRoot = foldM reducer (wctx, Seq.empty, widgetRoot) systemEvents where
+  reducer (currWctx, currEvents, currWidgetRoot) systemEvent = do
     currentFocus <- use focused
 
-    (ca2, as2, ws2) <- handleSystemEvent renderer currApp systemEvent currentFocus currentFocus currWidgetRoot
-    return (ca2, currAppEvents >< as2, ws2)
+    (wctx2, evts2, wroot2) <- handleSystemEvent renderer currWctx systemEvent currentFocus currentFocus currWidgetRoot
+    return (wctx2, currEvents >< evts2, wroot2)
 
-handleSystemEvent :: (MonomerM s m) => Renderer m -> s -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvent renderer app systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
-  Nothing -> return (app, Seq.empty, widgetRoot)
+handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetContext s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
+handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
+  Nothing -> return (wctx, Seq.empty, widgetRoot)
   Just ctx -> do
     let widget = _instanceWidget widgetRoot
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget ctx systemEvent app widgetRoot
+    let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget wctx ctx systemEvent widgetRoot
     let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_resultRequests widgetResult)
 
-    handleWidgetResult renderer ctx app widgetResult
+    handleWidgetResult renderer wctx ctx widgetResult
       >>= handleFocusChange renderer ctx systemEvent stopProcessing
 
-handleWidgetInit :: (MonomerM s m) => Renderer m -> s -> WidgetInstance s e -> m (HandlerStep s e)
-handleWidgetInit renderer app widgetRoot = do
+handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (HandlerStep s e)
+handleWidgetInit renderer wctx widgetRoot = do
   let widget = _instanceWidget widgetRoot
   let ctx = PathContext rootPath rootPath rootPath
-  let widgetResult = _widgetInit widget ctx app widgetRoot
+  let widgetResult = _widgetInit widget wctx ctx widgetRoot
 
-  handleWidgetResult renderer ctx app widgetResult
+  handleWidgetResult renderer wctx ctx widgetResult
 
-handleWidgetResult :: (MonomerM s m) => Renderer m -> PathContext -> s -> WidgetResult s e -> m (HandlerStep s e)
-handleWidgetResult renderer ctx app (WidgetResult eventRequests appEvents evtRoot) = do
+handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetResult s e -> m (HandlerStep s e)
+handleWidgetResult renderer wctx ctx (WidgetResult eventRequests appEvents evtRoot) = do
   let evtStates = getUpdateUserStates eventRequests
-  let evtApp = foldr (.) id evtStates app
+  let evtApp = foldr (.) id evtStates (_wcApp wctx)
+  let evtWctx = wctx { _wcApp = evtApp }
 
   handleNewWidgetTasks eventRequests
 
-  handleFocusSet renderer eventRequests (evtApp, appEvents, evtRoot)
+  handleFocusSet renderer eventRequests (evtWctx, appEvents, evtRoot)
     >>= handleClipboardGet renderer ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
     >>= handleSendMessages renderer eventRequests
 
-handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> (HandlerStep s e) -> m (HandlerStep s e)
+handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
@@ -107,7 +108,7 @@ handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRo
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
 
-handleFocusSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
+handleFocusSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleFocusSet renderer eventRequests previousStep =
   case Seq.filter isSetFocus eventRequests of
     SetFocus newFocus :<| _ -> do
@@ -116,7 +117,7 @@ handleFocusSet renderer eventRequests previousStep =
       return previousStep
     _ -> return previousStep
 
-handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
+handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleClipboardGet renderer ctx eventRequests previousStep = do
     hasText <- SDL.hasClipboardText
     contents <- if hasText
@@ -131,7 +132,7 @@ handleClipboardGet renderer ctx eventRequests previousStep = do
       return (newApp2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
 
-handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
+handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleClipboardSet renderer eventRequests previousStep =
   case Seq.filter isSetClipboard eventRequests of
     SetClipboard (ClipboardText text) :<| _ -> do
@@ -140,19 +141,19 @@ handleClipboardSet renderer eventRequests previousStep =
       return previousStep
     _ -> return previousStep
 
-handleSendMessages :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> (HandlerStep s e) -> m (HandlerStep s e)
+handleSendMessages :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleSendMessages renderer eventRequests previousStep = foldM reducer previousStep eventRequests where
   reducer previousStep (SendMessage path message) = do
     currentFocus <- use focused
 
-    let (app, events, widgetRoot) = previousStep
+    let (wctx, events, widgetRoot) = previousStep
     let ctx = PathContext currentFocus path rootPath
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) ctx message app widgetRoot
+    let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wctx ctx message widgetRoot
 
-    (newApp, newEvents, newWidgetRoot) <- handleWidgetResult renderer ctx app widgetResult
+    (newWctx, newEvents, newWidgetRoot) <- handleWidgetResult renderer wctx ctx widgetResult
 
-    return (newApp, events >< newEvents, newWidgetRoot)
+    return (newWctx, events >< newEvents, newWidgetRoot)
   reducer previousStep _ = return previousStep
 
 handleNewWidgetTasks :: (MonomerM s m) => Seq (WidgetRequest s) -> m ()
