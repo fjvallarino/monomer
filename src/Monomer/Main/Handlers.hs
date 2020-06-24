@@ -32,10 +32,10 @@ import Monomer.Widget.Util
 
 type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
 
-createEventContext :: Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
-createEventContext currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
+createEventContext :: Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
+createEventContext activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
-    KeyAction _ _ _       -> pathEvent currentTarget
+    KeyAction{}           -> pathEvent currentTarget
     TextInput _           -> pathEvent currentTarget
     -- Clipboard
     Clipboard _           -> pathEvent currentTarget
@@ -49,7 +49,7 @@ createEventContext currentFocus currentTarget systemEvent widgetRoot = case syst
     Leave oldPath _       -> pathEvent oldPath
   where
     pathEvent = Just . makePathCtx
-    pointEvent point = fmap makePathCtx $ _widgetFind (_instanceWidget widgetRoot) point widgetRoot
+    pointEvent point = makePathCtx <$> _widgetFind (_instanceWidget widgetRoot) activeOverlay point widgetRoot
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetContext s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
@@ -61,16 +61,19 @@ handleSystemEvents renderer wctx systemEvents widgetRoot = foldM reducer (wctx, 
     return (wctx2, currEvents >< evts2, wroot2)
 
 handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetContext s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoot = case createEventContext currentFocus currentTarget systemEvent widgetRoot of
-  Nothing -> return (wctx, Seq.empty, widgetRoot)
-  Just ctx -> do
-    let widget = _instanceWidget widgetRoot
-    let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget wctx ctx systemEvent widgetRoot
-    let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_resultRequests widgetResult)
+handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoot = do
+  activeOverlay <- fromMaybe rootPath <$> use activeOverlay
 
-    handleWidgetResult renderer wctx ctx widgetResult
-      >>= handleFocusChange renderer ctx systemEvent stopProcessing
+  case createEventContext activeOverlay currentFocus currentTarget systemEvent widgetRoot of
+    Nothing -> return (wctx, Seq.empty, widgetRoot)
+    Just ctx -> do
+      let widget = _instanceWidget widgetRoot
+      let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
+      let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget wctx ctx systemEvent widgetRoot
+      let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_resultRequests widgetResult)
+
+      handleWidgetResult renderer wctx ctx widgetResult
+        >>= handleFocusChange renderer ctx systemEvent stopProcessing
 
 handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (HandlerStep s e)
 handleWidgetInit renderer wctx widgetRoot = do
@@ -92,6 +95,8 @@ handleWidgetResult renderer wctx ctx (WidgetResult eventRequests appEvents evtRo
     >>= handleClipboardGet renderer ctx eventRequests
     >>= handleClipboardSet renderer eventRequests
     >>= handleSendMessages renderer eventRequests
+    >>= handleOverlaySet renderer eventRequests
+    >>= handleOverlayReset renderer eventRequests
 
 handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
@@ -137,6 +142,24 @@ handleClipboardSet renderer eventRequests previousStep =
   case Seq.filter isSetClipboard eventRequests of
     SetClipboard (ClipboardText text) :<| _ -> do
       SDL.setClipboardText text
+
+      return previousStep
+    _ -> return previousStep
+
+handleOverlaySet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
+handleOverlaySet renderer eventRequests previousStep =
+  case Seq.filter isSetOverlay eventRequests of
+    SetOverlay path :<| _ -> do
+      activeOverlay .= Just path
+
+      return previousStep
+    _ -> return previousStep
+
+handleOverlayReset :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
+handleOverlayReset renderer eventRequests previousStep =
+  case Seq.filter isSetOverlay eventRequests of
+    ResetOverlay :<| _ -> do
+      activeOverlay .= Nothing
 
       return previousStep
     _ -> return previousStep

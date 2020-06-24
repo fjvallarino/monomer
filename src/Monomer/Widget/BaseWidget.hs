@@ -51,8 +51,8 @@ widgetMerge makeWidget wctx ctx new old = resultWidget updated where
 ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
 ignoreNextFocusable ctx widgetInstance = Nothing
 
-widgetFind :: Point -> WidgetInstance s e -> Maybe Path
-widgetFind point widgetInstance = Nothing
+widgetFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
+widgetFind path point widgetInstance = Nothing
 
 ignoreHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 ignoreHandleEvent wctx ctx evt widgetInstance = Nothing

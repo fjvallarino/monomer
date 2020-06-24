@@ -33,6 +33,7 @@ data MonomerContext s = MonomerContext {
   _inputStatus :: InputStatus,
   _focused :: Path,
   _latestHover :: Maybe Path,
+  _activeOverlay :: Maybe Path,
   _widgetTasks :: Seq WidgetTask
 }
 

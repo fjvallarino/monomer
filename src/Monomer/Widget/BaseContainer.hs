@@ -125,23 +125,26 @@ containerNextFocusable ctx widgetInstance = nextFocus where
   indexes = Seq.fromList [0..length children]
   pairs = Seq.zipWith stepper indexes children
   maybeFocused = fmap getFocused (Seq.filter filterChildren pairs)
-  focusedPaths = fmap fromJust $ Seq.filter isJust maybeFocused
+  focusedPaths = fromJust <$> Seq.filter isJust maybeFocused
   nextFocus = Seq.lookup 0 focusedPaths
   getFocused (ctx, child) = if _instanceFocusable child
     then Just (currentPath ctx)
     else _widgetNextFocusable (_instanceWidget child) ctx child
 
 -- | Find instance matching point
-containerFind :: Point -> WidgetInstance s e -> Maybe Path
-containerFind point widgetInstance = fmap (combinePath point children) childIdx where
+containerFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
+containerFind path point widgetInstance = fmap (combinePath newPath point children) childIdx where
   children = _instanceChildren widgetInstance
   pointInWidget wi = inRect (_instanceViewport wi) point
-  childIdx = Seq.findIndexL pointInWidget children
+  newPath = Seq.drop 1 path
+  childIdx = case path of
+    Empty -> Seq.findIndexL pointInWidget children
+    p :<| ps -> if Seq.length children > p then Just p else Nothing
 
-combinePath :: Point -> Seq (WidgetInstance s e) -> Int -> Path
-combinePath point children childIdx = childIdx <| childPath where
+combinePath :: Path -> Point -> Seq (WidgetInstance s e) -> Int -> Path
+combinePath path point children childIdx = childIdx <| childPath where
   child = Seq.index children childIdx
-  childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) point child
+  childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) path point child
 
 -- | Event Handling
 ignoreEvent :: WidgetEventHandler s e m

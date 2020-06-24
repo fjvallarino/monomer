@@ -109,6 +109,14 @@ isSetClipboard :: WidgetRequest s -> Bool
 isSetClipboard (SetClipboard _) = True
 isSetClipboard _ = False
 
+isSetOverlay :: WidgetRequest s -> Bool
+isSetOverlay (SetOverlay _) = True
+isSetOverlay _ = False
+
+isResetOverlay :: WidgetRequest s -> Bool
+isResetOverlay ResetOverlay = True
+isResetOverlay _ = False
+
 isUpdateUserState :: WidgetRequest s -> Bool
 isUpdateUserState (UpdateUserState _) = True
 isUpdateUserState _ = False

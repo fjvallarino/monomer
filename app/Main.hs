@@ -106,10 +106,10 @@ main = do
   SDL.quit
 
 --handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
-handleAppEvent app evt = do
+handleAppEvent app evt = traceShow app $
   case evt of
     InitApp -> Task $ do
-      putStrLn $ "Initialized application"
+      putStrLn "Initialized application"
       return Nothing
     RunShortTask -> Model (app & textField1 .~ "Updated!")
     RunLongTask -> Task $ do
@@ -119,18 +119,18 @@ handleAppEvent app evt = do
       putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)
       return Nothing
     AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (app & clickCount %~ (+1)) <> (Task $ do
-      putStrLn $ "Clicked button"
+      putStrLn "Clicked button"
       return Nothing)
     IncreaseMessage -> Model (app & msgCount %~ (+1))
     UpdateText txt -> Model (app & textField1 .~ txt)
 
-buildUI app = trace "Created main UI" $ widgetTree where
+buildUI app = trace "Created main UI" widgetTree where
   widgetTree =
     vstack [
       dropdown dropdown1 (fmap (\i -> "Value " <> showt i) [1..10::Int]) id,
       hgrid [
-        button ("Increase: " <> (showt $ _clickCount app)) AppButton,
-        label $ "Messages: " <> (showt $ _msgCount app)
+        button ("Increase: " <> showt (_clickCount app)) AppButton,
+        label $ "Messages: " <> showt (_msgCount app)
       ]
       --testComposite
       --keysComposite `key` "kcmp"

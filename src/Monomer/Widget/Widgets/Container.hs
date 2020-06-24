@@ -64,7 +64,7 @@ makeContainer config = createContainer {
       assignedArea = Seq.singleton (viewport, renderArea)
 
     render renderer wctx ctx widgetInstance = do
-      let point = statusMousePos . _wcInputStatus $ wctx
+      let point = statusMousePos (_wcInputStatus wctx)
       let viewport = _instanceViewport widgetInstance
 
       when (inRect viewport point && isJust (_hoverColor config)) $

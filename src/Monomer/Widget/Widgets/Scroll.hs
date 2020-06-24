@@ -52,17 +52,17 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
     stepSize = 50
     wheelRate = 10
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click (Point px py) btn status -> result where
-        viewport = _instanceViewport widgetInstance
-        result = if | isPressed -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
-                    | otherwise -> Nothing
-        isPressed = status == PressedBtn && inRect viewport (Point px py)
-        isLeftClick = isPressed && btn == LeftBtn
-        isRigthClick = isPressed && btn == RightBtn
-        step = if | isLeftClick -> stepSize
-                  | isRigthClick -> -stepSize
-                  | otherwise -> 0
-        newState = ScrollState (scrollAxis step dx cw (_rw viewport)) dy cs prevReqs
+      --Click (Point px py) btn status -> result where
+      --  viewport = _instanceViewport widgetInstance
+      --  result = if | isPressed -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
+      --              | otherwise -> Nothing
+      --  isPressed = status == PressedBtn && inRect viewport (Point px py)
+      --  isLeftClick = isPressed && btn == LeftBtn
+      --  isRigthClick = isPressed && btn == RightBtn
+      --  step = if | isLeftClick -> stepSize
+      --            | isRigthClick -> -stepSize
+      --            | otherwise -> 0
+      --  newState = ScrollState (scrollAxis step dx cw (_rw viewport)) dy cs prevReqs
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         Rect rx ry rw rh = _instanceViewport widgetInstance
         needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)

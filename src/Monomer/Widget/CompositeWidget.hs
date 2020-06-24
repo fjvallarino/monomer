@@ -131,9 +131,14 @@ compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp
 compositeNextFocusable CompositeState{..} ctx widgetComposite =
   _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
 
-compositeFind :: CompositeState s e -> Point -> WidgetInstance sp ep -> Maybe Path
-compositeFind CompositeState{..} point widgetComposite = fmap (0 <|) childPath where
-  childPath = _widgetFind (_instanceWidget _compositeRoot) point _compositeRoot
+compositeFind :: CompositeState s e -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
+compositeFind CompositeState{..} path point widgetComposite
+  | validStep = fmap (0 <|) childPath
+  | otherwise = Nothing
+  where
+    validStep = Seq.null path || Seq.index path 0 == 0
+    newPath = Seq.drop 1 path
+    childPath = _widgetFind (_instanceWidget _compositeRoot) newPath point _compositeRoot
 
 compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> SystemEvent -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleEvent comp state wctx ctx evt widgetComposite = fmap processEvent result where
@@ -225,7 +230,7 @@ convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
 convertRequest (SetFocus path) = Just (SetFocus path)
 convertRequest (GetClipboard path) = Just (GetClipboard path)
 convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)
-convertRequest (ResetOverlay path) = Just (ResetOverlay path)
+convertRequest ResetOverlay = Just ResetOverlay
 convertRequest (SetOverlay path) = Just (SetOverlay path)
 convertRequest (SendMessage path message) = Just (SendMessage path message)
 convertRequest (RunTask path action) = Just (RunTask path action)

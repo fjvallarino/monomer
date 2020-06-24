@@ -22,7 +22,7 @@ type Timestamp = Int
 type WidgetType = String
 type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
 
-data WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
+newtype WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
 data WidgetState = forall i . Typeable i => WidgetState i
 
 data SizePolicy
@@ -46,7 +46,7 @@ data WidgetRequest s
   | SetFocus Path
   | GetClipboard Path
   | SetClipboard ClipboardData
-  | ResetOverlay Path
+  | ResetOverlay
   | SetOverlay Path
   | UpdateUserState (s -> s)
   | forall i . Typeable i => SendMessage Path i
@@ -88,8 +88,8 @@ data Widget s e =
     -- | Returns the list of focusable paths, if any
     --
     _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,
-    -- | Returns the path of the child item with the given coordinates
-    _widgetFind :: Point -> WidgetInstance s e -> Maybe Path,
+    -- | Returns the path of the child item with the given coordinates, starting on the given path
+    _widgetFind :: Path -> Point -> WidgetInstance s e -> Maybe Path,
     -- | Handles an event
     --
     -- Current user state

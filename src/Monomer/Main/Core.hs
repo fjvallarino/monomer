@@ -84,9 +84,9 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
 
-  let !ts = (startTicks - prevTicks)
+  let !ts = startTicks - prevTicks
   let eventsPayload = fmap SDL.eventPayload events
-  let quit = elem SDL.QuitEvent eventsPayload
+  let quit = SDL.QuitEvent `elem` eventsPayload
   let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
@@ -123,7 +123,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
 
   let fps = 30
   let frameLength = 0.9 * 1000000 / fps
-  let newTs = fromIntegral $ (endTicks - startTicks)
+  let newTs = fromIntegral $ endTicks - startTicks
   let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
 
   liftIO $ threadDelay nextFrameDelay
@@ -131,7 +131,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
 
 renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 renderWidgets !window !c !renderer wctx ctx widgetRoot =
-  doInDrawingContext window c $ do
+  doInDrawingContext window c $
     _widgetRender (_instanceWidget widgetRoot) renderer wctx ctx widgetRoot
 
 resizeUI :: (Monad m) => Renderer m -> WidgetContext s e -> Size -> WidgetInstance s e -> WidgetInstance s e
@@ -153,19 +153,19 @@ resizeWindow window renderer wctx widgetRoot = do
 
   return $ resizeUI renderer wctx newWindowSize widgetRoot
 
-preProcessEvents :: (MonomerM s m) => (WidgetInstance s e) -> [SystemEvent] -> m [SystemEvent]
+preProcessEvents :: (MonomerM s m) => WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do
   systemEvents <- concatMapM (preProcessEvent widgets) events
   mapM_ updateInputStatus systemEvents
   return systemEvents
 
-preProcessEvent :: (MonomerM s m) => (WidgetInstance s e) -> SystemEvent -> m [SystemEvent]
+preProcessEvent :: (MonomerM s m) => WidgetInstance s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent widgetRoot evt@(Move point) = do
   hover <- use latestHover
-  let current = _widgetFind (_instanceWidget widgetRoot) point widgetRoot
+  let current = _widgetFind (_instanceWidget widgetRoot) rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
-  let enter = if isNothing hover || hoverChanged then [Enter point] else []
-  let leave = if hoverChanged then [Leave (fromJust hover) point] else []
+  let enter = [Enter point | isNothing hover || hoverChanged]
+  let leave = [Leave (fromJust hover) point | hoverChanged]
 
   when (isNothing hover || hoverChanged) $
     latestHover .= current
