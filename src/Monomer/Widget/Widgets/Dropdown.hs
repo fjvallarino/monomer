@@ -1,11 +1,14 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (dropdown) where
 
+import Control.Applicative ((<|>))
 import Control.Monad
 import Data.Default
+import Data.Foldable (find)
 import Data.List (foldl')
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
@@ -37,25 +40,19 @@ data DropdownState = Open | Closed deriving (Eq, Show)
 
 newtype ItemEvent a = ItemClicked a
 
-dropdown :: (Traversable t) => Lens' s a -> t a -> (a -> Text) -> WidgetInstance s e
-dropdown field items display = makeInstance (makeDropdown Closed field display overlayList) where
-  overlayList = makeOverlayList items display
+dropdown :: (Traversable t, Eq a) => Lens' s a -> t a -> (a -> Text) -> WidgetInstance s e
+dropdown field items itemToText = makeInstance (makeDropdown Closed field items itemToText spacer)
+-- where
+--  overlayList = makeOverlayList items Nothing itemToText
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = defaultWidgetInstance "dropdown" widget
 
-makeOverlayList :: (Traversable t) => t a -> (a -> Text) -> WidgetInstance s (ItemEvent a)
-makeOverlayList items display = scroll makeGrid where
-  makeGrid = vstack $ fmap makeItem items
-  makeItem i = container (config i) $ label (display i)
-  config i = def {
-    _onClick = Just $ ItemClicked i,
-    _hoverColor = Just lightGray
-  }
-
-makeDropdown :: DropdownState -> Lens' s a -> (a -> Text) -> WidgetInstance s (ItemEvent a) -> Widget s e
-makeDropdown state field display overlayInstance = createWidget {
-    _widgetFind = dropdownFind,
+makeDropdown :: (Traversable t, Eq a) => DropdownState -> Lens' s a -> t a -> (a -> Text) -> WidgetInstance s (ItemEvent a) -> Widget s e
+makeDropdown state field items itemToText overlayInstance = createWidget {
+    _widgetInit = init,
+    _widgetMerge = merge,
+    _widgetFind = find,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetResize = resize,
@@ -63,9 +60,16 @@ makeDropdown state field display overlayInstance = createWidget {
   }
   where
     isOpen = state == Open
-    createDropdown status = makeInstance $ makeDropdown status field display overlayInstance
+    createDropdown status = makeInstance $ makeDropdown status field items itemToText overlayInstance
 
-    dropdownFind path point widgetInstance
+    init wctx ctx widgetInstance = resultWidget newInstance where
+      selected = _wcApp wctx ^. field
+      newOverlayList = makeOverlayList items selected itemToText
+      newInstance = makeInstance $ makeDropdown state field items itemToText newOverlayList
+
+    merge wctx ctx oldInstance newInstance = init wctx ctx newInstance
+
+    find path point widgetInstance
       | validStep = fmap (0 <|) childPath
       | otherwise = Nothing
       where
@@ -108,13 +112,13 @@ makeDropdown state field display overlayInstance = createWidget {
           | otherwise -> Just $ resultWidget newInstance
           where
             newReqs = resetReq <| fmap convertItemClickReq evts
-            newInstance = makeInstance $ makeDropdown state field display newOverlayList
+            newInstance = makeInstance $ makeDropdown state field items itemToText newOverlayList
         _ -> Nothing
 
     convertItemClickReq (ItemClicked value) = UpdateUserState $ \app -> app & field .~ value
 
-    dropdownLabel wctx = if value == "" then "<Choose>" else value where
-      value = display $ _wcApp wctx ^. field
+    dropdownLabel wctx = if value == "" then " " else value where
+      value = itemToText $ _wcApp wctx ^. field
 
     preferredSize renderer wctx widgetInstance = Node sizeReq (Seq.singleton childReq) where
       Style{..} = _instanceStyle widgetInstance
@@ -134,7 +138,7 @@ makeDropdown state field display overlayInstance = createWidget {
           resizedOverlay = _widgetResize (_instanceWidget overlayInstance) cwctx oViewport oRenderArea overlayInstance reqChild
         Nothing -> overlayInstance
       newInstance = widgetInstance {
-        _instanceWidget = makeDropdown state field display newOverlayList,
+        _instanceWidget = makeDropdown state field items itemToText newOverlayList,
         _instanceViewport = viewport,
         _instanceRenderArea = renderArea
       }
@@ -149,6 +153,19 @@ makeDropdown state field display overlayInstance = createWidget {
     
     renderOverlay renderer wctx ctx = renderAction where
       renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wctx ctx overlayInstance
+
+makeOverlayList :: (Traversable t, Eq a) => t a -> a -> (a -> Text) -> WidgetInstance s (ItemEvent a)
+makeOverlayList items selected itemToText = scroll makeGrid where
+  isSelected item = item == selected
+  selectedColor item = if isSelected item then Just gray else Nothing
+  hoverColor item = if isSelected item then Nothing else Just lightGray
+  makeGrid = vstack $ fmap makeItem items
+  makeItem item = container (config item) $ label (itemToText item)
+  config item = def {
+    _onClick = Just $ ItemClicked item,
+    _bgColor = selectedColor item,
+    _hoverColor = hoverColor item
+  }
 
 convertWidgetContext :: WidgetContext s ep -> WidgetContext s e
 convertWidgetContext wctx = WidgetContext {
