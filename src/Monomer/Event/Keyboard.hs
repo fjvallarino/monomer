@@ -19,7 +19,7 @@ keyboardEvent (SDL.KeyboardEvent eventData) = Just $ KeyAction keyMod keyCode ke
 keyboardEvent _ = Nothing
 
 textEvent :: SDL.EventPayload -> Maybe SystemEvent
-textEvent (SDL.TextInputEvent input) = Just $ TextInput (SDL.textInputEventText input) where
+textEvent (SDL.TextInputEvent input) = Just $ TextInput (SDL.textInputEventText input)
 textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod
@@ -38,17 +38,26 @@ convertKeyModifier keyMod = KeyMod {
 }
 
 keyBackspace = getKeycode SDL.KeycodeBackspace
+keyEsc = getKeycode SDL.KeycodeEscape
+keyReturn = getKeycode SDL.KeycodeReturn
+keyTab = getKeycode SDL.KeycodeTab
+
 keyLeft = getKeycode SDL.KeycodeLeft
 keyRight = getKeycode SDL.KeycodeRight
 keyUp = getKeycode SDL.KeycodeUp
 keyDown = getKeycode SDL.KeycodeDown
-keyTab = getKeycode SDL.KeycodeTab
 
 keyC = getKeycode SDL.KeycodeC
 keyV = getKeycode SDL.KeycodeV
 
 isKeyBackspace = (== keyBackspace)
+isKeyEsc = (== keyEsc)
+isKeyReturn = (== keyReturn)
+isKeyTab = (== keyTab)
+
 isKeyLeft = (== keyLeft)
 isKeyRight = (== keyRight)
+isKeyUp = (== keyUp)
+isKeyDown = (== keyDown)
 isKeyC = (== keyC)
 isKeyV = (== keyV)

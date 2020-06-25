@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Monomer.Widget.Widgets.Container (
   ContainerConfig(..),
   container
@@ -13,7 +11,6 @@ import Data.Sequence (Seq(..), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
@@ -22,10 +19,12 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
 
+import qualified Monomer.Common.Style as St
+
 data ContainerConfig e = ContainerConfig {
-  _onClick :: Maybe e,
-  _bgColor :: Maybe Color,
-  _hoverColor :: Maybe Color
+  _ctOnClick :: Maybe e,
+  _ctBgColor :: Maybe Color,
+  _ctHoverColor :: Maybe Color
 }
 
 instance Default (ContainerConfig e) where
@@ -51,8 +50,8 @@ makeContainer config = createContainer {
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click point btn status -> result where
         isPressed = status == PressedBtn && btn == LeftBtn
-        result = if isPressed && isJust (_onClick config)
-                    then Just $ resultEvents [fromJust $ _onClick config] widgetInstance
+        result = if isPressed && isJust (_ctOnClick config)
+                    then Just $ resultEvents [fromJust $ _ctOnClick config] widgetInstance
                     else Nothing
       _ -> Nothing
 
@@ -67,5 +66,8 @@ makeContainer config = createContainer {
       let point = statusMousePos (_wcInputStatus wctx)
       let viewport = _instanceViewport widgetInstance
 
-      when (inRect viewport point && isJust (_hoverColor config)) $
-        drawBgRect renderer viewport (bgColor . fromJust . _hoverColor $ config)
+      when (isJust (_ctBgColor config)) $
+        drawRect renderer viewport (_ctBgColor config) Nothing
+
+      when (inRect viewport point && isJust (_ctHoverColor config)) $
+        drawRect renderer viewport (_ctHoverColor config) Nothing

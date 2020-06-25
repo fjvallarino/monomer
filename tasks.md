@@ -69,6 +69,7 @@
     - A _handleDelayedRendering_ also needs to be added
     - We also need a way of receiving events on _upper_ layers
     - All this is needed for dropdowns, but it's also useful for tooltips
+  - Create Dropdown
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
@@ -89,6 +90,11 @@
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
   - Keep sending mouse move event if mouse is away but button is still pressed
   - Fix scroll click navigation
+  - Add support for scroll requests from children
+  - Improve Dropdown
+    - Create self rendered version
+    - Expose customizable interface
+    - Request scroll when needed
   - Should Resize be restored?
   - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
   - Add text selection/editing to textField
@@ -97,9 +103,9 @@
     - Delayed until this point to try to settle down interfaces
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Try to unify path handling on widgetFind and widgetNextFocusable
+    - This is also needed for _widgetPreferredSize and _widgetResize
   - Create Checkbox
   - Create Radio
-  - Create Dropdown
   - Create Color Selector
   - Create Dialog
   - Create File Selector
