@@ -53,11 +53,11 @@ makeStack isHorizontal = createContainer {
       remainderExist = not $ null rChildren
       sSize = sizeSelector $ calcPreferredSize sChildren
       fSize = sizeSelector $ calcPreferredSize fChildren
-      fRatio = if | mSize - sSize > fSize &&     remainderExist -> 1
-               -- | mSize - sSize > fSize && not remainderExist -> (mSize - sSize) / fSize
-                  | mSize - sSize > 0                           -> (mSize - sSize) / fSize
-                  | otherwise                                   -> 0
-      remainderTotal = mSize - (sSize + fSize * fRatio)
+      fCount = fromIntegral $ length fChildren
+      fExtra = if fCount > 0 && not remainderExist
+                  then (mSize - sSize - fSize) / fCount
+                  else 0
+      remainderTotal = mSize - (sSize + fCount * fExtra)
       remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
       newViewports = Seq.reverse revViewports
       assignedArea = Seq.zip newViewports newViewports
@@ -72,19 +72,22 @@ makeStack isHorizontal = createContainer {
         req = nodeValue $ snd childPair
         srSize = _sizeRequested req
         emptyRect = Rect l t 0 0
-        hRect = Rect offset t newSize h
-        vRect = Rect l offset w newSize
-        newSize = case policySelector req of
+        hRect = Rect offset t calcNewSize h
+        vRect = Rect l offset w calcNewSize
+        calcNewSize = case policySelector req of
           StrictSize -> sizeSelector srSize
-          FlexibleSize -> sizeSelector srSize * fRatio
+          FlexibleSize -> sizeSelector srSize + fExtra
           RemainderSize -> remainderUnit
 
     calcPreferredSize childrenPairs = Size width height where
+      (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions childrenPairs
+      width = if isHorizontal then sumWidth else maxWidth
+      height = if isHorizontal then maxHeight else sumHeight
+
+    calcDimensions childrenPairs = (maxWidth, sumWidth, maxHeight, sumHeight) where
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       visibleChildren = fmap (nodeValue . snd) visiblePairs 
       maxWidth = if Seq.null visibleChildren then 0 else (maximum . fmap (_w . _sizeRequested)) visibleChildren
       sumWidth = (sum . fmap (_w . _sizeRequested)) visibleChildren
       maxHeight = if null visibleChildren then 0 else (maximum . fmap (_h . _sizeRequested)) visibleChildren
       sumHeight = (sum . fmap (_h . _sizeRequested)) visibleChildren
-      width = if isHorizontal then sumWidth else maxWidth
-      height = if isHorizontal then maxHeight else sumHeight

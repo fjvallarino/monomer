@@ -1,8 +1,7 @@
 module Monomer.Graphics.Types where
 
 import Data.Default
-
-import qualified Data.Text as T
+import Data.Text (Text)
 
 data Color = Color {
   _r :: Int,
@@ -17,7 +16,7 @@ instance Semigroup Color where
 instance Default Color where
   def = Color 0 0 0 1.0
 
-type Font = T.Text
+type Font = Text
 type FontSize = Double
 
 data Align = Align AlignH AlignV deriving (Show, Eq)
