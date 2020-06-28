@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Monomer.Common.Style where
 
 import Control.Applicative
@@ -209,16 +207,16 @@ borderRight width color = mempty {
 }
 
 swidth :: Double -> Style
-swidth width = mempty { _fixedWidth = (Just width) }
+swidth width = mempty { _fixedWidth = Just width }
 
 sheight :: Double -> Style
-sheight height = mempty { _fixedHeight = (Just height) }
+sheight height = mempty { _fixedHeight = Just height }
 
 bgColor :: Color -> Style
-bgColor color = mempty { _bgColor = (Just color) }
+bgColor color = mempty { _bgColor = Just color }
 
 bgRadius :: Double -> Style
-bgRadius rad = mempty { _bgRadius = (Just (Radius jrad jrad jrad jrad)) } where
+bgRadius rad = mempty { _bgRadius = Just (Radius jrad jrad jrad jrad) } where
   jrad = Just rad
 
 textColor :: Color -> Style

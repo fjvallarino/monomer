@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -76,14 +75,14 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ status -> Just $ resultReqs reqs widgetInstance where
         isPressed = status == PressedBtn
-        reqs = if isPressed then [SetFocus $ currentPath ctx] else []
+        reqs = [SetFocus $ currentPath ctx | isPressed]
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
-        reqGetClipboard = if isClipboardPaste evt then [GetClipboard (currentPath ctx)] else []
-        reqSetClipboard = if isClipboardCopy evt then [SetClipboard (ClipboardText currText)] else []
-        reqUpdateUserState = if currText /= newText then [UpdateUserState $ \app -> app & userField .~ newText] else []
+        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste evt]
+        reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy evt]
+        reqUpdateUserState = [UpdateUserState $ \app -> app & userField .~ newText | currText /= newText]
         newState = TextFieldState newText newPos
         newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
 
@@ -107,14 +106,14 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
     render renderer wctx ctx WidgetInstance{..} =
       let ts = _wcTimestamp wctx
           textStyle = _textStyle _instanceStyle
-          cursorAlpha = if isFocused ctx then (fromIntegral $ ts `mod` 1000) / 1000.0 else 0
+          cursorAlpha = if isFocused ctx then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do
         drawBgRect renderer renderArea _instanceStyle
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
-        when True $ do
+        when (isFocused ctx) $ do
           let Size sw sh = calcTextBounds renderer textStyle (if part1 == "" then " " else part1)
           drawRect renderer (Rect (tl + sw) tt caretWidth sh) (Just textColor) Nothing
           return ()

@@ -54,7 +54,7 @@ makeStack isHorizontal = createContainer {
       sSize = sizeSelector $ calcPreferredSize sChildren
       fSize = sizeSelector $ calcPreferredSize fChildren
       fRatio = if | mSize - sSize > fSize &&     remainderExist -> 1
-                  | mSize - sSize > fSize && not remainderExist -> (mSize - sSize) / fSize
+               -- | mSize - sSize > fSize && not remainderExist -> (mSize - sSize) / fSize
                   | mSize - sSize > 0                           -> (mSize - sSize) / fSize
                   | otherwise                                   -> 0
       remainderTotal = mSize - (sSize + fSize * fRatio)

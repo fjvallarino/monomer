@@ -107,7 +107,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
     _wcGlobalKeys = M.empty,
     _wcApp = currentApp,
     _wcInputStatus = inputStatus,
-    _wcTimestamp = ts
+    _wcTimestamp = startTicks
   }
   (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wctx widgetRoot
   (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot

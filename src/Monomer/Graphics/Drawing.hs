@@ -4,7 +4,7 @@ module Monomer.Graphics.Drawing where
 
 import qualified Data.Text as T
 
-import Control.Monad (when, void)
+import Control.Monad (when, void, forM_)
 import Data.Default
 import Data.Maybe
 
@@ -21,8 +21,7 @@ justDef (Just val) = val
 drawBgRect :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawBgRect renderer rect Style{..} = do
   drawRect renderer rect _bgColor _bgRadius
-  when (isJust _border) $ do
-    drawRoundedBorder renderer rect (fromJust _border)
+  forM_ _border (drawRoundedBorder renderer rect)
 
 drawRect :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
 drawRect _ _ Nothing _ = pure ()
@@ -44,14 +43,14 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     xr = x + w
     yt = y
     yb = y + h
-    x1 = x + (justDef _rTopLeft)
-    x2 = x + w - (justDef _rTopRight)
-    x3 = x + (justDef _rBottomLeft)
-    x4 = x + w - (justDef _rBottomRight)
-    y1 = y + (justDef _rTopLeft)
-    y2 = y + h - (justDef _rBottomLeft)
-    y3 = y + (justDef _rTopRight)
-    y4 = y + h - (justDef _rBottomRight)
+    x1 = x + justDef _rTopLeft
+    x2 = x + w - justDef _rTopRight
+    x3 = x + justDef _rBottomLeft
+    x4 = x + w - justDef _rBottomRight
+    y1 = y + justDef _rTopLeft
+    y2 = y + h - justDef _rBottomLeft
+    y3 = y + justDef _rTopRight
+    y4 = y + h - justDef _rBottomRight
   in do
     arc renderer (Point x1 y1) (justDef _rTopLeft) 180 270
     lineTo renderer (Point x2 yt) --
@@ -126,7 +125,7 @@ drawRoundedBorder renderer (Rect x y w h) Border{..} =
 
       if isJust s1 && isJust s2 && fromJust s1 /= fromJust s2 then
         fillLinearGradient renderer (midPoint p1 p4) (midPoint p2 p3) (_bsColor (fromJust s1)) (_bsColor (fromJust s2))
-      else if (isJust s1) then
+      else if isJust s1 then
         fillColor renderer (_bsColor (fromJust s1))
       else 
         fillColor renderer (_bsColor (fromJust s2))
@@ -165,7 +164,7 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
   text renderer viewport defaultFont tsFontSize tsAlign txt
 
 drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m ()
-drawText_ renderer viewport style txt = do
+drawText_ renderer viewport style txt =
   void $ drawText renderer viewport style txt
 
 calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> T.Text -> Size
@@ -178,14 +177,14 @@ calcTextBounds renderer (Just TextStyle{..}) txt =
 
 subtractBorder :: Rect -> Border -> Rect
 subtractBorder (Rect x y w h) (Border l r t b _) = Rect nx ny nw nh where
-  nx = x + (_bsWidth (justDef l))
-  ny = y + (_bsWidth (justDef t))
-  nw = w - (_bsWidth (justDef l)) - (_bsWidth (justDef r))
-  nh = h - (_bsWidth (justDef t)) - (_bsWidth (justDef b))
+  nx = x + _bsWidth (justDef l)
+  ny = y + _bsWidth (justDef t)
+  nw = w - _bsWidth (justDef l) - _bsWidth (justDef r)
+  nh = h - _bsWidth (justDef t) - _bsWidth (justDef b)
 
 subtractPadding :: Rect -> Padding -> Rect
 subtractPadding (Rect x y w h) (Padding l r t b) = Rect nx ny nw nh where
-  nx = x + (justDef l)
-  ny = y + (justDef t)
-  nw = w - (justDef l) - (justDef r)
-  nh = h - (justDef t) - (justDef b)
+  nx = x + justDef l
+  ny = y + justDef t
+  nw = w - justDef l - justDef r
+  nh = h - justDef t - justDef b

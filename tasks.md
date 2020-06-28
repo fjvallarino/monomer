@@ -62,14 +62,14 @@
   - Add a way to get path of widget given an id, and provide a method to send a message/event (most likely, a new Request kind)
   - Rename EventResult to something more accurate
     - Replace resultWidget and friends with non-Maybe versions (update widgets)
-
-- Pending
   - Add _renderLast_ function to Renderer, which delays rendering until the first pass is done
     - Futher calls to _renderLast_ should not be ignored (tooltip on dropdown menu?)
     - A _handleDelayedRendering_ also needs to be added
     - We also need a way of receiving events on _upper_ layers
     - All this is needed for dropdowns, but it's also useful for tooltips
   - Create Dropdown
+
+- Pending
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
@@ -95,9 +95,13 @@
     - Create self rendered version
     - Expose customizable interface
     - Request scroll when needed
+    - Validate Maybe values are supported
+    - Create nullable version which takes care of fmapping traversable with Just
   - Should Resize be restored?
   - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
-  - Add text selection/editing to textField
+  - Improve textField
+    - Add text selection/editing to textField
+    - Find non visible character that returns correct height if input is empty
   - Request text input when text field gets focus (required for mobile)
   - Add testing
     - Delayed until this point to try to settle down interfaces

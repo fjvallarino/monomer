@@ -91,6 +91,7 @@ containerMergeTrees mergeWidgetState wctx ctx newInstance oldInstance = result w
   newPairs = Seq.zipWith (\idx child -> (addToCurrent ctx idx, child)) indexes newChildren
   mergedResults = mergeChildren wctx newPairs oldChildren
   mergedChildren = fmap _resultWidget mergedResults
+  concatSeq seqs = foldl' (><) Seq.empty seqs
   mergedReqs = concatSeq $ fmap _resultRequests mergedResults
   mergedEvents = concatSeq $ fmap _resultEvents mergedResults
   mergedInstance = (mergeWidgetState wctx oldState newInstance) {
@@ -104,7 +105,7 @@ mergeChildren wctx ((ctx, newChild) :<| newChildren) Empty = child <| mergeChild
   child = _widgetInit (_instanceWidget newChild) wctx ctx newChild
 mergeChildren wctx ((ctx, newChild) :<| newChildren) oldFull@(oldChild :<| oldChildren) = result where
   newWidget = _instanceWidget newChild
-  oldKeyed = maybe Nothing (\key -> M.lookup key (_wcGlobalKeys wctx)) (_instanceKey newChild)
+  oldKeyed = _instanceKey newChild >>= (\key -> M.lookup key (_wcGlobalKeys wctx))
   mergedOld = _widgetMerge newWidget wctx ctx newChild oldChild
   mergedKey = _widgetMerge newWidget wctx ctx newChild (snd $ fromJust oldKeyed)
   initNew = _widgetInit newWidget wctx ctx newChild
@@ -112,9 +113,6 @@ mergeChildren wctx ((ctx, newChild) :<| newChildren) oldFull@(oldChild :<| oldCh
                         | isJust oldKeyed -> (mergedKey, oldFull)
                         | otherwise -> (initNew, oldFull)
   result = child <| mergeChildren wctx newChildren oldRest
-
-concatSeq :: Seq (Seq a) -> Seq a
-concatSeq seqs = foldl' (><) Seq.empty seqs
 
 -- | Find next focusable item
 containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
