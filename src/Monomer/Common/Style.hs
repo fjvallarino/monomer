@@ -10,10 +10,8 @@ data Style =
   Style {
     _styleWidth :: Maybe Double,
     _styleHeight :: Maybe Double,
-    _styleBgColor :: Maybe Color,
-    _styleFgColor :: Maybe Color,
-    _styleBgHoverColor :: Maybe Color,
-    _styleFgHoverColor :: Maybe Color,
+    _styleColor :: Maybe Color,
+    _styleHover :: Maybe Color,
     _stylePadding :: Maybe Padding,
     _styleBorder :: Maybe Border,
     _styleRadius :: Maybe Radius,
@@ -24,10 +22,8 @@ instance Default Style where
   def = Style {
     _styleWidth = Nothing,
     _styleHeight = Nothing,
-    _styleBgColor = Nothing,
-    _styleFgColor = Nothing,
-    _styleBgHoverColor = Nothing,
-    _styleFgHoverColor = Nothing,
+    _styleColor = Nothing,
+    _styleHover = Nothing,
     _stylePadding = Nothing,
     _styleBorder = Nothing,
     _styleRadius = Nothing,
@@ -38,10 +34,8 @@ instance Semigroup Style where
   (<>) style1 style2 = Style {
     _styleWidth = max (_styleWidth style2) (_styleWidth style1),
     _styleHeight = max (_styleHeight style2) (_styleHeight style1),
-    _styleBgColor = _styleBgColor style2 <|> _styleBgColor style1,
-    _styleFgColor = _styleFgColor style2 <|> _styleFgColor style1,
-    _styleBgHoverColor = _styleBgHoverColor style2 <|> _styleBgHoverColor style1,
-    _styleFgHoverColor = _styleFgHoverColor style2 <|> _styleFgHoverColor style1,
+    _styleColor = _styleColor style2 <|> _styleColor style1,
+    _styleHover = _styleHover style2 <|> _styleHover style1,
     _stylePadding = _stylePadding style2 <> _stylePadding style1,
     _styleBorder = _styleBorder style2 <> _styleBorder style1,
     _styleRadius = _styleRadius style2 <> _styleRadius style1,
@@ -150,6 +144,7 @@ data TextStyle = TextStyle {
   _textStyleFont :: Maybe String,
   _textStyleFontSize :: Maybe Double,
   _textStyleColor :: Maybe Color,
+  _textStyleHover :: Maybe Color,
   _textStyleAlignH :: Maybe AlignH,
   _textStyleAlignV :: Maybe AlignV
 } deriving (Show, Eq)
@@ -159,6 +154,7 @@ instance Default TextStyle where
     _textStyleFont = Nothing,
     _textStyleFontSize = Nothing,
     _textStyleColor = Nothing,
+    _textStyleHover = Nothing,
     _textStyleAlignH = Nothing,
     _textStyleAlignV = Nothing
   }
@@ -168,6 +164,7 @@ instance Semigroup TextStyle where
     _textStyleFont = _textStyleFont ts2 <|> _textStyleFont ts1,
     _textStyleFontSize = _textStyleFontSize ts2 <|> _textStyleFontSize ts1,
     _textStyleColor = _textStyleColor ts2 <|> _textStyleColor ts1,
+    _textStyleHover = _textStyleHover ts2 <|> _textStyleHover ts1,
     _textStyleAlignH = _textStyleAlignH ts2 <|> _textStyleAlignH ts1,
     _textStyleAlignV = _textStyleAlignV ts2 <|> _textStyleAlignV ts1
   }

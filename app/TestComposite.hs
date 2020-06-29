@@ -48,15 +48,15 @@ testComposite = composite "testComposite" def (Just InitComposite) handleComposi
 --handleCompositeEvent :: CompState -> CompEvent -> EventResponse CompState CompEvent AppEvent
 handleCompositeEvent app evt = case evt of
   InitComposite -> Task $ do
-    threadDelay $ 1000
-    putStrLn $ "Initialized composite"
+    threadDelay 1000
+    putStrLn "Initialized composite"
     return Nothing
   MessageParent -> Report IncreaseMessage
   CallSandbox -> Event (HandleProducer 20) <> (Task $ return Nothing)
   StartTask -> Task $ do
-    putStrLn $ "Composite event handler called"
+    putStrLn "Composite event handler called"
     return Nothing
-  StartProducer -> Producer $ \sendMessage -> do
+  StartProducer -> Producer $ \sendMessage ->
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
       threadDelay $ 1000 * 1000
@@ -76,7 +76,7 @@ buildComposite app = trace "Created composite UI" $
       ],
       hgrid [
         button "Run Producer" StartProducer,
-        label ("Produced: " <> (showt $ _csProduced app))
+        label ("Produced: " <> showt (_csProduced app))
       ]
-    ] `style` bgColor gray
+    ] `style` color gray
   ]

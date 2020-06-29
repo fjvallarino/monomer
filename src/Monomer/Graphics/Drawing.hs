@@ -2,11 +2,10 @@
 
 module Monomer.Graphics.Drawing where
 
-import qualified Data.Text as T
-
 import Control.Monad (when, void, forM_)
 import Data.Default
 import Data.Maybe
+import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
@@ -20,7 +19,7 @@ justDef (Just val) = val
 
 drawBgRect :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawBgRect renderer rect Style{..} = do
-  drawRect renderer rect _styleBgColor _styleRadius
+  drawRect renderer rect _styleColor _styleRadius
 
   when (isJust _styleBorder) $
     drawBorder renderer rect (fromJust _styleBorder) _styleRadius
@@ -155,7 +154,7 @@ tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)
 tsTextColor (Just ts) = fromMaybe defaultColor (_textStyleColor ts)
 
-drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m Rect
+drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
 drawText renderer viewport Nothing txt = drawText renderer viewport (Just mempty) txt
 drawText renderer viewport (Just TextStyle{..}) txt = do
   let tsColor = fromMaybe defaultColor _textStyleColor
@@ -167,11 +166,11 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
   fillColor renderer tsColor
   text renderer viewport defaultFont tsFontSize tsAlign txt
 
-drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> T.Text -> m ()
+drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m ()
 drawText_ renderer viewport style txt =
   void $ drawText renderer viewport style txt
 
-calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> T.Text -> Size
+calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> Text -> Size
 calcTextBounds renderer Nothing txt = calcTextBounds renderer (Just mempty) txt
 calcTextBounds renderer (Just TextStyle{..}) txt =
   let

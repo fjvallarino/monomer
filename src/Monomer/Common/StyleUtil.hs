@@ -47,17 +47,11 @@ borderRight width color = mempty {
   }
 }
 
-bgColor :: Color -> Style
-bgColor color = mempty { _styleBgColor = Just color }
+color :: Color -> Style
+color color = mempty { _styleColor = Just color }
 
-fgColor :: Color -> Style
-fgColor color = mempty { _styleFgColor = Just color }
-
-bgHoverColor :: Color -> Style
-bgHoverColor color = mempty { _styleBgHoverColor = Just color }
-
-fgHoverColor :: Color -> Style
-fgHoverColor color = mempty { _styleFgHoverColor = Just color }
+hover :: Color -> Style
+hover color = mempty { _styleColor = Just color }
 
 sRadius :: Double -> Style
 sRadius rad = mempty { _styleRadius = Just (Radius jrad jrad jrad jrad) } where

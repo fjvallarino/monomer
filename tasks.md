@@ -68,15 +68,18 @@
     - We also need a way of receiving events on _upper_ layers
     - All this is needed for dropdowns, but it's also useful for tooltips
   - Create Dropdown
-
-- Pending
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
+
+- Pending
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
-    - Does keeping style for some things (fixed width/height) make sense?
+    - Does keeping style for some things (fixed width/height) make sense? Yes!
     - Could container handle padding and centering?
+      - No, staying how it is now. It does not disallow having a container, of course
     - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
+      - Handle this with a widget that takes care of this
     - Improve FixedSize. Consider adding min/max width/height
+      - Not for the moment
   - Improve ergonomics
     - https://hackage.haskell.org/package/string-interpolate
     - Check if advanced type level features would improve the design
@@ -113,6 +116,7 @@
   - Create Color Selector
   - Create Dialog
   - Create File Selector
+  - Create Layout with width/heights specified in percents
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

@@ -19,9 +19,7 @@ cascadeStyle parentStyle widgetInstance@WidgetInstance{..} = newNode where
     _stylePadding = _stylePadding parentStyle <> _stylePadding _instanceStyle,
     _styleBorder = _styleBorder parentStyle <> _styleBorder _instanceStyle,
     _styleRadius = _styleRadius parentStyle <> _styleRadius _instanceStyle,
-    _styleBgColor = _styleBgColor parentStyle <|> _styleBgColor _instanceStyle,
-    _styleFgColor = _styleFgColor parentStyle <|> _styleFgColor _instanceStyle,
-    _styleBgHoverColor = _styleBgHoverColor parentStyle <|> _styleBgHoverColor _instanceStyle,
-    _styleFgHoverColor = _styleFgHoverColor parentStyle <|> _styleFgHoverColor _instanceStyle,
+    _styleColor = _styleColor parentStyle <|> _styleColor _instanceStyle,
+    _styleHover = _styleHover parentStyle <|> _styleHover _instanceStyle,
     _styleText = _styleText parentStyle <> _styleText _instanceStyle
   }
