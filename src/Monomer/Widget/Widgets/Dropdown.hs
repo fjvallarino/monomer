@@ -155,7 +155,7 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
 
     preferredSize renderer wctx widgetInstance = Node sizeReq (Seq.singleton childReq) where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _textStyle (dropdownLabel wctx)
+      size = calcTextBounds renderer _styleText (dropdownLabel wctx)
       sizeReq = SizeReq size FlexibleSize StrictSize
       cwctx = convertWidgetContext wctx
       childReq = _widgetPreferredSize (_instanceWidget overlayInstance) renderer cwctx overlayInstance
@@ -179,7 +179,7 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
     render renderer wctx ctx WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (dropdownLabel wctx)
+        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) (dropdownLabel wctx)
 
         when isOpen $
           createOverlay renderer $ renderOverlay renderer (convertWidgetContext wctx) ctx

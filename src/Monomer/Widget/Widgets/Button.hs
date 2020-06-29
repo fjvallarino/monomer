@@ -28,15 +28,15 @@ makeButton label onClick = createWidget {
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ status -> Just $ resultEvents events widgetInstance where
         isPressed = status == PressedBtn -- && inRect (_instanceViewport instance) (Point x y)
-        events = if isPressed then [onClick] else []
+        events = [onClick | isPressed]
       _ -> Nothing
 
     preferredSize renderer wctx widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _textStyle label
+      size = calcTextBounds renderer _styleText label
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) label
+        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) label

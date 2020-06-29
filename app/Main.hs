@@ -27,6 +27,7 @@ import qualified SDL.Raw.Event as SREv
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil
 import Monomer.Graphics.Color
 import Monomer.Main.Core
 import Monomer.Main.Platform

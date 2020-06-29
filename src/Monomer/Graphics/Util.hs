@@ -1,6 +1,7 @@
 module Monomer.Graphics.Util where
 
 import Monomer.Graphics.Color
+import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 defaultColor :: Color

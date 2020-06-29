@@ -14,6 +14,7 @@ import Lens.Micro.TH (makeLenses)
 import TextShow
 
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil
 import Monomer.Graphics.Color
 import Monomer.Main.Util
 import Monomer.Widget.CompositeWidget

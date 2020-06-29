@@ -100,12 +100,12 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
   
     preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _textStyle (if currText == "" then " " else currText)
+      size = calcTextBounds renderer _styleText (if currText == "" then " " else currText)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =
       let ts = _wcTimestamp wctx
-          textStyle = _textStyle _instanceStyle
+          textStyle = _styleText _instanceStyle
           cursorAlpha = if isFocused ctx then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea

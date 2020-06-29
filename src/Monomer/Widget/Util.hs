@@ -64,8 +64,8 @@ instanceMatches newInstance oldInstance = typeMatches && keyMatches where
 
 updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
 updateSizeReq sizeReq widgetInstance = newSizeReq where
-  width = _fixedWidth . _instanceStyle $ widgetInstance
-  height = _fixedHeight . _instanceStyle $ widgetInstance
+  width = _styleWidth . _instanceStyle $ widgetInstance
+  height = _styleHeight . _instanceStyle $ widgetInstance
   tempSizeReq = if isNothing width then sizeReq else sizeReq {
     _sizeRequested = Size (fromJust width) (_w . _sizeRequested $ sizeReq),
     _sizePolicyWidth = StrictSize

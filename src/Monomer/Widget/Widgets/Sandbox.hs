@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Sandbox (sandbox) where
@@ -21,7 +20,7 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 
 data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
-data SandboxState = SandboxState {
+newtype SandboxState = SandboxState {
   _clickCount :: Int
 } deriving (Eq, Show, Typeable)
 
@@ -50,8 +49,8 @@ makeSandbox onClick state = createWidget {
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ status -> Just $ resultReqsEvents requests events newInstance where
         isPressed = status == PressedBtn -- && inRect view (Point x y)
-        events = if isPressed then [onClick] else []
-        requests = if isPressed then [RunTask (currentPath ctx) runTask] else []
+        events = [onClick  | isPressed]
+        requests = [RunTask (currentPath ctx) runTask | isPressed]
         newState = if isPressed then SandboxState (_clickCount state + 1) else state
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
@@ -59,8 +58,7 @@ makeSandbox onClick state = createWidget {
       Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
       _ -> Nothing
 
-    runTask = do
-      return SandboxData2
+    runTask = return SandboxData2
 
     handleMessage ctx bd app widgetInstance = case cast bd of
       Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
@@ -68,10 +66,10 @@ makeSandbox onClick state = createWidget {
 
     preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _textStyle (T.pack label)
+      size = calcTextBounds renderer _styleText (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =
       do
         drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_textStyle _instanceStyle) (T.pack label)
+        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) (T.pack label)
