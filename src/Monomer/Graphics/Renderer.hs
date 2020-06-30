@@ -9,6 +9,8 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
+data Winding = CW | CCW deriving (Eq, Show)
+
 data Renderer m = (Monad m) => Renderer {
   beginPath :: m (),
   -- Context management
@@ -33,7 +35,7 @@ data Renderer m = (Monad m) => Renderer {
   line :: Point -> Point -> m (),
   lineTo :: Point -> m (),
   rect :: Rect -> m (),
-  arc :: Point -> Double -> Double -> Double -> m (),
+  arc :: Point -> Double -> Double -> Double -> Winding -> m (),
   quadTo :: Point -> Point -> m (),
   ellipse :: Rect -> m (),
   -- Text

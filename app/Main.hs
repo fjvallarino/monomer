@@ -129,7 +129,7 @@ buildUI app = trace "Created main UI" widgetTree where
       --textField textField1 `style` (color lightGray <> textColor black <> border 2 red),
       --textField textField2 `style` (color darkGray <> textColor black),
       --textField textField3 `style` (color lightGray <> textColor black)
-    ] `style` (color gray <> border 10 blue <> radius 50)
+    ] `style` (color gray <> borderLeft 20 blue <> borderTop 20 red <> borderRight 10 green <> borderBottom 20 white) -- <> radius 50
 
 buildUI2 app = trace "Created main UI" widgetTree where
   widgetTree =

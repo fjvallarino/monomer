@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Monomer.Widget.Widgets.Grid (
   hgrid,
   vgrid

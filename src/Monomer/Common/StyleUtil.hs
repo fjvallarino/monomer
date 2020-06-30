@@ -9,6 +9,12 @@ width width = mempty { _styleWidth = Just width }
 height :: Double -> Style
 height height = mempty { _styleHeight = Just height }
 
+color :: Color -> Style
+color color = mempty { _styleColor = Just color }
+
+hover :: Color -> Style
+hover color = mempty { _styleColor = Just color }
+
 margin :: Double -> Style
 margin mar = mempty {
   _styleMargin = Just mempty {
@@ -95,20 +101,6 @@ border width color = mempty {
   }
 }
 
-borderTop :: Double -> Color -> Style
-borderTop width color = mempty {
-  _styleBorder = Just mempty {
-    _borderTop = Just (BorderSide width color)
-  }
-}
-
-borderBottom :: Double -> Color -> Style
-borderBottom width color = mempty {
-  _styleBorder = Just mempty {
-    _borderBottom = Just (BorderSide width color)
-  }
-}
-
 borderLeft :: Double -> Color -> Style
 borderLeft width color = mempty {
   _styleBorder = Just mempty {
@@ -123,15 +115,51 @@ borderRight width color = mempty {
   }
 }
 
-color :: Color -> Style
-color color = mempty { _styleColor = Just color }
+borderTop :: Double -> Color -> Style
+borderTop width color = mempty {
+  _styleBorder = Just mempty {
+    _borderTop = Just (BorderSide width color)
+  }
+}
 
-hover :: Color -> Style
-hover color = mempty { _styleColor = Just color }
+borderBottom :: Double -> Color -> Style
+borderBottom width color = mempty {
+  _styleBorder = Just mempty {
+    _borderBottom = Just (BorderSide width color)
+  }
+}
 
 radius :: Double -> Style
 radius rad = mempty { _styleRadius = Just (Radius jrad jrad jrad jrad) } where
   jrad = Just rad
+
+radiusTopLeft :: Double -> Style
+radiusTopLeft rad = mempty {
+  _styleRadius = Just mempty {
+    _radiusTopLeft = Just rad
+  }
+}
+
+radiusTopRight :: Double -> Style
+radiusTopRight rad = mempty {
+  _styleRadius = Just mempty {
+    _radiusTopRight = Just rad
+  }
+}
+
+radiusBottomLeft :: Double -> Style
+radiusBottomLeft rad = mempty {
+  _styleRadius = Just mempty {
+    _radiusBottomLeft = Just rad
+  }
+}
+
+radiusBottomRight :: Double -> Style
+radiusBottomRight rad = mempty {
+  _styleRadius = Just mempty {
+    _radiusBottomRight = Just rad
+  }
+}
 
 textColor :: Color -> Style
 textColor color = mempty {

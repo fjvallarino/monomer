@@ -86,14 +86,15 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     liftIO $ nvMoveTo c (x1 * dpr) (y1 * dpr)
     liftIO $ nvLineTo c (x2 * dpr) (y2 * dpr)
 
-  lineTo (Point x y) =
+  lineTo (Point x y) = do
+    liftIO $ VG.lineJoin c VG.Bevel
     liftIO $ nvLineTo c (x * dpr) (y * dpr)
 
   rect (Rect x y w h) =
     liftIO $ VG.rect c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
 
-  arc (Point x1 y1) rad angleStart angleEnd =
-    liftIO $ nvArc c (x1 * dpr) (y1 * dpr) (rad * dpr) angleStart angleEnd VG.CW
+  arc (Point x1 y1) rad angleStart angleEnd winding =
+    liftIO $ nvArc c (x1 * dpr) (y1 * dpr) (rad * dpr) angleStart angleEnd (convertWinding winding)
 
   quadTo (Point x1 y1) (Point x2 y2) =
     liftIO $ VG.quadTo c (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr) (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
@@ -154,3 +155,7 @@ colorToPaint :: Color -> VG.Color
 colorToPaint (Color r g b a)
   | a >= 1.0  = VG.rgb (fromIntegral r) (fromIntegral g) (fromIntegral b)
   | otherwise = VG.rgba (fromIntegral r) (fromIntegral g) (fromIntegral b) (round $ a * 255)
+
+convertWinding :: Winding -> VG.Winding
+convertWinding CW = VG.CW
+convertWinding CCW = VG.CCW
