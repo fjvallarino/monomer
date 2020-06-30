@@ -38,5 +38,5 @@ makeButton label onClick = createWidget {
 
     render renderer wctx ctx WidgetInstance{..} =
       do
-        drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) label
+        drawStyledBackground renderer _instanceRenderArea _instanceStyle
+        drawStyledText_ renderer _instanceRenderArea _instanceStyle label

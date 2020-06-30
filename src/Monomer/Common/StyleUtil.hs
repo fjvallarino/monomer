@@ -9,6 +9,82 @@ width width = mempty { _styleWidth = Just width }
 height :: Double -> Style
 height height = mempty { _styleHeight = Just height }
 
+margin :: Double -> Style
+margin mar = mempty {
+  _styleMargin = Just mempty {
+    _marginLeft = Just mar,
+    _marginRight = Just mar,
+    _marginTop = Just mar,
+    _marginBottom = Just mar
+  }
+}
+
+marginLeft :: Double -> Style
+marginLeft mar = mempty {
+  _styleMargin = Just mempty {
+    _marginLeft = Just mar
+  }
+}
+
+marginRight :: Double -> Style
+marginRight mar = mempty {
+  _styleMargin = Just mempty {
+    _marginRight = Just mar
+  }
+}
+
+marginTop :: Double -> Style
+marginTop mar = mempty {
+  _styleMargin = Just mempty {
+    _marginTop = Just mar
+  }
+}
+
+marginBottom :: Double -> Style
+marginBottom mar = mempty {
+  _styleMargin = Just mempty {
+    _marginBottom = Just mar
+  }
+}
+
+padding :: Double -> Style
+padding padd = mempty {
+  _stylePadding = Just mempty {
+    _paddingLeft = Just padd,
+    _paddingRight = Just padd,
+    _paddingTop = Just padd,
+    _paddingBottom = Just padd
+  }
+}
+
+paddingLeft :: Double -> Style
+paddingLeft padd = mempty {
+  _stylePadding = Just mempty {
+    _paddingLeft = Just padd
+  }
+}
+
+paddingRight :: Double -> Style
+paddingRight padd = mempty {
+  _stylePadding = Just mempty {
+    _paddingRight = Just padd
+  }
+}
+
+paddingTop :: Double -> Style
+paddingTop padd = mempty {
+  _stylePadding = Just mempty {
+    _paddingTop = Just padd
+  }
+}
+
+paddingBottom :: Double -> Style
+paddingBottom padd = mempty {
+  _stylePadding = Just mempty {
+    _paddingBottom = Just padd
+  }
+}
+
 border :: Double -> Color -> Style
 border width color = mempty {
   _styleBorder = Just mempty {
@@ -84,3 +160,21 @@ textAlignV alignV = mempty {
     _textStyleAlignV = Just alignV
   }
 }
+
+textAlignLeft :: Style
+textAlignLeft = textAlignH ALeft
+
+textAlignCenter :: Style
+textAlignCenter = textAlignH ACenter
+
+textAlignRight :: Style
+textAlignRight = textAlignH ARight
+
+textAlignTop :: Style
+textAlignTop = textAlignV ATop
+
+textAlignMiddle :: Style
+textAlignMiddle = textAlignV AMiddle
+
+textAlignBottom :: Style
+textAlignBottom = textAlignV ABottom

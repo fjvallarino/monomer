@@ -12,6 +12,7 @@ data Style =
     _styleHeight :: Maybe Double,
     _styleColor :: Maybe Color,
     _styleHover :: Maybe Color,
+    _styleMargin :: Maybe Margin,
     _stylePadding :: Maybe Padding,
     _styleBorder :: Maybe Border,
     _styleRadius :: Maybe Radius,
@@ -24,6 +25,7 @@ instance Default Style where
     _styleHeight = Nothing,
     _styleColor = Nothing,
     _styleHover = Nothing,
+    _styleMargin = Nothing,
     _stylePadding = Nothing,
     _styleBorder = Nothing,
     _styleRadius = Nothing,
@@ -36,6 +38,7 @@ instance Semigroup Style where
     _styleHeight = max (_styleHeight style2) (_styleHeight style1),
     _styleColor = _styleColor style2 <|> _styleColor style1,
     _styleHover = _styleHover style2 <|> _styleHover style1,
+    _styleMargin = _styleMargin style2 <> _styleMargin style1,
     _stylePadding = _stylePadding style2 <> _stylePadding style1,
     _styleBorder = _styleBorder style2 <> _styleBorder style1,
     _styleRadius = _styleRadius style2 <> _styleRadius style1,
@@ -45,10 +48,36 @@ instance Semigroup Style where
 instance Monoid Style where
   mempty = def
 
+data Margin = Margin {
+  _marginLeft :: Maybe Double,
+  _marginRight :: Maybe Double,
+  _marginTop :: Maybe Double,
+  _marginBottom :: Maybe Double
+} deriving (Show, Eq)
+
+instance Default Margin where
+  def = Margin {
+    _marginLeft = Nothing,
+    _marginRight = Nothing,
+    _marginTop = Nothing,
+    _marginBottom = Nothing
+  }
+
+instance Semigroup Margin where
+  (<>) p1 p2 = Margin {
+    _marginLeft = _marginLeft p2 <|> _marginLeft p1,
+    _marginRight = _marginRight p2 <|> _marginRight p1,
+    _marginTop = _marginTop p2 <|> _marginTop p1,
+    _marginBottom = _marginBottom p2 <|> _marginBottom p1
+  }
+
+instance Monoid Margin where
+  mempty = def
+
 data Padding = Padding {
-  _paddingLeft   :: Maybe Double,
-  _paddingRight  :: Maybe Double,
-  _paddingTop    :: Maybe Double,
+  _paddingLeft :: Maybe Double,
+  _paddingRight :: Maybe Double,
+  _paddingTop :: Maybe Double,
   _paddingBottom :: Maybe Double
 } deriving (Show, Eq)
 
@@ -89,9 +118,9 @@ instance Monoid BorderSide where
   mempty = mempty
 
 data Border = Border {
-  _borderLeft   :: Maybe BorderSide,
-  _borderRight  :: Maybe BorderSide,
-  _borderTop    :: Maybe BorderSide,
+  _borderLeft :: Maybe BorderSide,
+  _borderRight :: Maybe BorderSide,
+  _borderTop :: Maybe BorderSide,
   _borderBottom :: Maybe BorderSide
 } deriving (Show, Eq)
 

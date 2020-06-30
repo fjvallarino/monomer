@@ -29,5 +29,5 @@ makeLabel caption = createWidget {
 
     render renderer wctx ctx WidgetInstance{..} =
       do
-        drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) caption
+        drawStyledBackground renderer _instanceRenderArea _instanceStyle
+        drawStyledText_ renderer _instanceRenderArea _instanceStyle caption

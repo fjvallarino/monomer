@@ -17,8 +17,10 @@ justDef :: (Default a) => Maybe a -> a
 justDef Nothing = def
 justDef (Just val) = val
 
-drawBgRect :: (Monad m) => Renderer m -> Rect -> Style -> m ()
-drawBgRect renderer rect Style{..} = do
+drawStyledBackground :: (Monad m) => Renderer m -> Rect -> Style -> m ()
+drawStyledBackground renderer viewport Style{..} = do
+  let rect = subtractMargin viewport _styleMargin
+
   drawRect renderer rect _styleColor _styleRadius
 
   when (isJust _styleBorder) $
@@ -26,15 +28,15 @@ drawBgRect renderer rect Style{..} = do
 
 drawRect :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
 drawRect _ _ Nothing _ = pure ()
-drawRect renderer rt (Just color) Nothing = do
+drawRect renderer viewport (Just color) Nothing = do
   beginPath renderer
   fillColor renderer color
-  rect renderer rt
+  rect renderer viewport
   fill renderer
-drawRect renderer rt (Just color) (Just radius) = do
+drawRect renderer viewport (Just color) (Just radius) = do
   beginPath renderer
   fillColor renderer color
-  drawRoundedRect renderer rt radius
+  drawRoundedRect renderer viewport radius
   fill renderer
 
 drawRoundedRect :: (Monad m) => Renderer m -> Rect -> Radius -> m ()
@@ -154,6 +156,14 @@ tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)
 tsTextColor (Just ts) = fromMaybe defaultColor (_textStyleColor ts)
 
+drawStyledText :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m Rect
+drawStyledText renderer viewport style txt = drawText renderer tsRect (_styleText style) txt where
+  tsRect = getContentRect viewport style
+
+drawStyledText_ :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m ()
+drawStyledText_ renderer viewport style txt = void $ drawStyledText renderer rect style txt where
+  rect = getContentRect viewport style
+
 drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
 drawText renderer viewport Nothing txt = drawText renderer viewport (Just mempty) txt
 drawText renderer viewport (Just TextStyle{..}) txt = do
@@ -166,10 +176,6 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
   fillColor renderer tsColor
   text renderer viewport defaultFont tsFontSize tsAlign txt
 
-drawText_ :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m ()
-drawText_ renderer viewport style txt =
-  void $ drawText renderer viewport style txt
-
 calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> Text -> Size
 calcTextBounds renderer Nothing txt = calcTextBounds renderer (Just mempty) txt
 calcTextBounds renderer (Just TextStyle{..}) txt =
@@ -178,16 +184,32 @@ calcTextBounds renderer (Just TextStyle{..}) txt =
   in
     textBounds renderer defaultFont tsFontSize txt
 
-subtractBorder :: Rect -> Border -> Rect
-subtractBorder (Rect x y w h) (Border l r t b) = Rect nx ny nw nh where
+subtractBorder :: Rect -> Maybe Border -> Rect
+subtractBorder rect Nothing = rect
+subtractBorder (Rect x y w h) (Just (Border l r t b)) = Rect nx ny nw nh where
   nx = x + _borderSideWidth (justDef l)
   ny = y + _borderSideWidth (justDef t)
   nw = w - _borderSideWidth (justDef l) - _borderSideWidth (justDef r)
   nh = h - _borderSideWidth (justDef t) - _borderSideWidth (justDef b)
 
-subtractPadding :: Rect -> Padding -> Rect
-subtractPadding (Rect x y w h) (Padding l r t b) = Rect nx ny nw nh where
+subtractMargin :: Rect -> Maybe Margin -> Rect
+subtractMargin rect Nothing = rect
+subtractMargin rect (Just (Margin l r t b)) = subtractFromRect rect l r t b
+
+subtractPadding :: Rect -> Maybe Padding -> Rect
+subtractPadding rect Nothing = rect
+subtractPadding rect (Just (Padding l r t b)) = subtractFromRect rect l r t b
+
+subtractFromRect :: Rect -> Maybe Double -> Maybe Double -> Maybe Double -> Maybe Double -> Rect
+subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
   nx = x + justDef l
   ny = y + justDef t
   nw = w - justDef l - justDef r
   nh = h - justDef t - justDef b
+
+getContentRect :: Rect -> Style -> Rect
+getContentRect viewport Style{..} = final where
+  border = subtractBorder viewport _styleBorder
+  margin = subtractMargin border _styleMargin
+  padding = subtractPadding margin _stylePadding
+  final = padding

@@ -16,6 +16,7 @@ cascadeStyle parentStyle widgetInstance@WidgetInstance{..} = newNode where
   newStyle = Style {
     _styleWidth = _styleWidth _instanceStyle,
     _styleHeight = _styleHeight _instanceStyle,
+    _styleMargin = _styleMargin parentStyle <> _styleMargin _instanceStyle,
     _stylePadding = _stylePadding parentStyle <> _stylePadding _instanceStyle,
     _styleBorder = _styleBorder parentStyle <> _styleBorder _instanceStyle,
     _styleRadius = _styleRadius parentStyle <> _styleRadius _instanceStyle,

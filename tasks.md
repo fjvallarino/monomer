@@ -70,14 +70,13 @@
   - Create Dropdown
   - Improve hstack/vstack
     - If available space is greater than requested, do not apply resizing logic
-
-- Pending
   - Does a styling engine make sense or doing something similar to Flutter is simpler?
-    - Does keeping style for some things (fixed width/height) make sense? Yes!
+    - Does keeping style for some things (fixed width/height) make sense?
+      - Yes! All these properties are staying
     - Could container handle padding and centering?
       - No, staying how it is now. It does not disallow having a container, of course
     - Implement styling engine. Think why Maybe Double instead of Maybe Dimension (to handle pixels, percent, etc)
-      - Handle this with a widget that takes care of this
+      - Handle this with a widget that takes care of assigning space
     - Improve FixedSize. Consider adding min/max width/height
       - Not for the moment
   - Improve ergonomics
@@ -91,8 +90,15 @@
       - Most likely through a Default instance
     - Related to previous, look for ways to simplify widget setup. Default instance with common values?
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
+      - Just provide `style` after children. SwiftUI does it this way
+
+- Pending
+  - Fix border drawing. Handle simple case (more efficient)
   - Keep sending mouse move event if mouse is away but button is still pressed
   - Fix scroll click navigation
+  - Unify criteria for instantiation
+    - Component name without underscore receives parameters positionally
+    - Component name with underscore receives Config instance
   - Add support for scroll requests from children
   - Improve Dropdown
     - Create self rendered version

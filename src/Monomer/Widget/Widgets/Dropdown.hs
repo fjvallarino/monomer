@@ -178,8 +178,8 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
 
     render renderer wctx ctx WidgetInstance{..} =
       do
-        drawBgRect renderer _instanceRenderArea _instanceStyle
-        drawText_ renderer _instanceRenderArea (_styleText _instanceStyle) (dropdownLabel wctx)
+        drawStyledBackground renderer _instanceRenderArea _instanceStyle
+        drawStyledText_ renderer _instanceRenderArea _instanceStyle (dropdownLabel wctx)
 
         when isOpen $
           createOverlay renderer $ renderOverlay renderer (convertWidgetContext wctx) ctx

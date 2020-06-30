@@ -110,7 +110,7 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do
-        drawBgRect renderer renderArea _instanceStyle
+        drawStyledBackground renderer renderArea _instanceStyle
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when (isFocused ctx) $ do
