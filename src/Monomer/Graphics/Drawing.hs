@@ -65,7 +65,7 @@ drawStyledBorder renderer rect border Nothing = drawBorder renderer rect border
 drawStyledBorder renderer rect border (Just radius) = drawRoundedBorder renderer rect border radius
 
 drawBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
-drawBorder renderer (Rect xl yt w h) Border{..} =
+drawBorder renderer rt@(Rect xl yt w h) border@Border{..} =
   let
     xr = xl + w
     yb = yt + h
@@ -73,10 +73,6 @@ drawBorder renderer (Rect xl yt w h) Border{..} =
     xrb = xr - sw _borderRight
     ytb = yt + sw _borderTop
     ybb = yb - sw _borderBottom
-    xlb2 = xl + sw _borderLeft * 2
-    xrb2 = xr - sw _borderRight * 2
-    ytb2 = yt + sw _borderTop * 2
-    ybb2 = yb - sw _borderBottom * 2
     sw bs = if isJust bs then _borderSideWidth (fromJust bs) / 2 else 0
   in do
     strokeBorder renderer (p2 xl ytb) (p2 xr ytb) _borderTop
@@ -84,10 +80,34 @@ drawBorder renderer (Rect xl yt w h) Border{..} =
     strokeBorder renderer (p2 xr ybb) (p2 xl ybb) _borderBottom
     strokeBorder renderer (p2 xlb yb) (p2 xlb yt) _borderLeft
 
+    drawCorners renderer rt border
+
+drawCorners :: Monad m => Renderer m -> Rect -> Border -> m ()
+drawCorners renderer (Rect xl yt w h) Border{..} =
+  let
+    xr = xl + w
+    yb = yt + h
+    xlb2 = xl + sw _borderLeft
+    xrb2 = xr - sw _borderRight
+    ytb2 = yt + sw _borderTop
+    ybb2 = yb - sw _borderBottom
+    sw bs = maybe 0 _borderSideWidth bs
+  in do
     drawCorner renderer (p2 xl yt) (p2 xlb2 ytb2) (p2 xlb2 yt) _borderTop _borderLeft
     drawCorner renderer (p2 xrb2 yt) (p2 xrb2 ytb2) (p2 xr yt) _borderTop _borderRight
     drawCorner renderer (p2 xrb2 ybb2) (p2 xr yb) (p2 xr ybb2) _borderRight _borderBottom
     drawCorner renderer (p2 xlb2 yb) (p2 xlb2 ybb2) (p2 xl yb) _borderBottom _borderLeft
+
+drawCorner :: (Monad m) => Renderer m -> Point -> Point -> Point -> Maybe BorderSide -> Maybe BorderSide -> m ()
+drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
+  beginPath renderer
+  fillColor renderer (_borderSideColor bs1)
+  moveTo renderer p1
+  lineTo renderer p2
+  lineTo renderer p3
+  lineTo renderer p1
+  fill renderer
+drawCorner renderer p1 p2 p3 _ _ = return ()
 
 drawRoundedBorder :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
 drawRoundedBorder renderer (Rect x y w h) Border{..} Radius{..} =
@@ -126,17 +146,6 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   moveTo renderer from
   lineTo renderer to
   stroke renderer
-
-drawCorner :: (Monad m) => Renderer m -> Point -> Point -> Point -> Maybe BorderSide -> Maybe BorderSide -> m ()
-drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
-  beginPath renderer
-  fillColor renderer (_borderSideColor bs1)
-  moveTo renderer p1
-  lineTo renderer p2
-  lineTo renderer p3
-  lineTo renderer p1
-  fill renderer
-drawCorner renderer p1 p2 p3 _ _ = return ()
 
 drawStyledText :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m Rect
 drawStyledText renderer viewport style txt = drawText renderer tsRect (_styleText style) txt where
