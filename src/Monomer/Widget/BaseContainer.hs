@@ -1,6 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widget.BaseContainer (
@@ -9,7 +10,7 @@ module Monomer.Widget.BaseContainer (
   containerPreferredSize,
   containerResize,
   containerRender,
-  ignoreRender
+  defaultRender
 ) where
 
 import Control.Monad
@@ -27,6 +28,7 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
+import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
@@ -52,7 +54,7 @@ createContainer = Widget {
   _widgetHandleMessage = containerHandleMessage,
   _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
   _widgetResize = containerResize defaultResize,
-  _widgetRender = containerRender ignoreRender
+  _widgetRender = containerRender defaultRender
 }
 
 -- | Init handler
@@ -225,8 +227,9 @@ containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInsta
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) wctx viewport renderArea child req
 
 -- | Rendering
-ignoreRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
-ignoreRender renderer wctx ctx widgetInstance = return ()
+defaultRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+defaultRender  renderer wctx ctx WidgetInstance{..} =
+  drawStyledBackground renderer _instanceRenderArea _instanceStyle
 
 containerRender :: (Monad m) => WidgetRenderHandler s e m -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 containerRender rHandler renderer wctx ctx widgetInstance = do

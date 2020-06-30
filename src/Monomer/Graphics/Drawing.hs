@@ -21,10 +21,10 @@ drawStyledBackground :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawStyledBackground renderer viewport Style{..} = do
   let rect = subtractMargin viewport _styleMargin
 
-  drawRect renderer rect _styleColor _styleRadius
-
   when (isJust _styleBorder) $
     drawStyledBorder renderer rect (fromJust _styleBorder) _styleRadius
+
+  drawRect renderer rect _styleColor _styleRadius
 
 drawRect :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
 drawRect _ _ Nothing _ = pure ()

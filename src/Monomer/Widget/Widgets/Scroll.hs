@@ -112,7 +112,7 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
     render renderer wctx ctx widgetInstance =
       do
         setScissor renderer viewport
-        containerRender ignoreRender renderer wctx ctx widgetInstance
+        containerRender defaultRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
         when (barRatioH < 1) $

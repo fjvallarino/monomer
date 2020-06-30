@@ -17,7 +17,6 @@ import Data.Sequence ((><))
 import Data.Typeable
 import Lens.Micro.Mtl
 
-import qualified Data.List as L
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry

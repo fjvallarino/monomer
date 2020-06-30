@@ -126,10 +126,10 @@ handleAppEvent app evt = traceShow app $
 buildUI app = trace "Created main UI" widgetTree where
   widgetTree =
     hstack [
-      textField textField1 `style` (color lightGray <> textColor black <> border 2 red),
-      textField textField2 `style` (color darkGray <> textColor black <> border 2 blue),
-      textField textField3 `style` (color lightGray <> textColor black)
-    ]
+      --textField textField1 `style` (color lightGray <> textColor black <> border 2 red),
+      --textField textField2 `style` (color darkGray <> textColor black),
+      --textField textField3 `style` (color lightGray <> textColor black)
+    ] `style` (color gray <> border 10 blue <> radius 50)
 
 buildUI2 app = trace "Created main UI" widgetTree where
   widgetTree =
