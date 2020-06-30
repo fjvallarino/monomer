@@ -25,7 +25,6 @@ import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Graphics.Renderer
-import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util

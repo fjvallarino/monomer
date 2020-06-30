@@ -27,7 +27,6 @@ import Monomer.Graphics.Renderer
 import Monomer.Main.Handlers
 import Monomer.Main.Util
 import Monomer.Main.Types
-import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 

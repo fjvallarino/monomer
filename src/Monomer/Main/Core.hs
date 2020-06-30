@@ -36,7 +36,6 @@ import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
 import Monomer.Widget.CompositeWidget
-import Monomer.Widget.Core
 import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
@@ -66,8 +65,7 @@ runWidgets window c widgetRoot = do
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
 
-  let styledRoot = initializedRoot -- cascadeStyle mempty initializedRoot
-  let newWidgetRoot = resizeUI renderer wctx newWindowSize styledRoot
+  let newWidgetRoot = resizeUI renderer wctx newWindowSize initializedRoot
   let newApp = _wcApp newWctx
 
   appContext .= newApp
