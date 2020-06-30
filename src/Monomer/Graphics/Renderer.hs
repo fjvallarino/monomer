@@ -13,6 +13,7 @@ data Winding = CW | CCW deriving (Eq, Show)
 
 data Renderer m = (Monad m) => Renderer {
   beginPath :: m (),
+  closePath :: m (),
   -- Context management
   saveContext :: m (),
   restoreContext :: m (),

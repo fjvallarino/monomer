@@ -30,6 +30,10 @@ newRenderer :: (MonadIO m) => VG.Context -> Double -> Overlays m -> Renderer m
 newRenderer c dpr overlaysRef = Renderer {..} where
   beginPath =
     liftIO $ VG.beginPath c
+
+  closePath =
+    liftIO $ VG.closePath c
+
   -- Context management
   saveContext =
     liftIO $ VG.save c
