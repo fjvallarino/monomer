@@ -24,7 +24,7 @@ drawStyledBackground renderer viewport Style{..} = do
   drawRect renderer rect _styleColor _styleRadius
 
   when (isJust _styleBorder) $
-    drawBorder renderer rect (fromJust _styleBorder) _styleRadius
+    drawStyledBorder renderer rect (fromJust _styleBorder) _styleRadius
 
 drawRect :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
 drawRect _ _ Nothing _ = pure ()
@@ -64,8 +64,34 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     arc renderer (Point x1 y2) (justDef _radiusBottomLeft) 90 180
     lineTo renderer (Point xl y1) --
 
-drawBorder :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
-drawBorder renderer rect border mradius = drawRoundedBorder renderer rect border (justDef mradius)
+drawStyledBorder :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
+drawStyledBorder renderer rect border Nothing = drawBorder renderer rect border
+drawStyledBorder renderer rect border (Just radius) = drawRoundedBorder renderer rect border radius
+
+drawBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
+drawBorder renderer (Rect xl yt w h) Border{..} =
+  let
+    xr = xl + w
+    yb = yt + h
+    sw bs = if isJust bs then _borderSideWidth (fromJust bs) / 2 else 0
+  in do
+    beginPath renderer
+    moveTo renderer (Point xl (yt + sw _borderTop))
+    strokeBorder renderer (Point xr (yt + sw _borderTop)) _borderTop
+    moveTo renderer (Point (xr - sw _borderRight) yt)
+    strokeBorder renderer (Point (xr - sw _borderRight) yb) _borderRight
+    moveTo renderer (Point xr (yb - sw _borderBottom))
+    strokeBorder renderer (Point xl (yb - sw _borderBottom)) _borderBottom
+    moveTo renderer (Point (xl + sw _borderLeft) yb)
+    strokeBorder renderer (Point (xl + sw _borderLeft) yt) _borderLeft
+    stroke renderer
+
+strokeBorder :: (Monad m) => Renderer m -> Point -> Maybe BorderSide -> m ()
+strokeBorder renderer target Nothing = pure ()
+strokeBorder renderer target (Just BorderSide{..}) = do
+  strokeColor renderer _borderSideColor
+  strokeWidth renderer _borderSideWidth
+  lineTo renderer target
 
 drawRoundedBorder :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
 drawRoundedBorder renderer (Rect x y w h) Border{..} Radius{..} =

@@ -129,8 +129,8 @@ color color = mempty { _styleColor = Just color }
 hover :: Color -> Style
 hover color = mempty { _styleColor = Just color }
 
-sRadius :: Double -> Style
-sRadius rad = mempty { _styleRadius = Just (Radius jrad jrad jrad jrad) } where
+radius :: Double -> Style
+radius rad = mempty { _styleRadius = Just (Radius jrad jrad jrad jrad) } where
   jrad = Just rad
 
 textColor :: Color -> Style

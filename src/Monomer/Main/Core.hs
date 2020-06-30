@@ -66,7 +66,7 @@ runWidgets window c widgetRoot = do
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
 
-  let styledRoot = cascadeStyle mempty initializedRoot
+  let styledRoot = initializedRoot -- cascadeStyle mempty initializedRoot
   let newWidgetRoot = resizeUI renderer wctx newWindowSize styledRoot
   let newApp = _wcApp newWctx
 

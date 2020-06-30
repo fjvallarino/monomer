@@ -34,15 +34,15 @@ instance Default Style where
 
 instance Semigroup Style where
   (<>) style1 style2 = Style {
-    _styleWidth = max (_styleWidth style2) (_styleWidth style1),
-    _styleHeight = max (_styleHeight style2) (_styleHeight style1),
+    _styleWidth = _styleWidth style2 <|> _styleWidth style1,
+    _styleHeight = _styleHeight style2 <|> _styleHeight style1,
     _styleColor = _styleColor style2 <|> _styleColor style1,
     _styleHover = _styleHover style2 <|> _styleHover style1,
-    _styleMargin = _styleMargin style2 <> _styleMargin style1,
-    _stylePadding = _stylePadding style2 <> _stylePadding style1,
-    _styleBorder = _styleBorder style2 <> _styleBorder style1,
-    _styleRadius = _styleRadius style2 <> _styleRadius style1,
-    _styleText = _styleText style2 <> _styleText style1
+    _styleMargin = _styleMargin style1 <> _styleMargin style2,
+    _stylePadding = _stylePadding style1 <> _stylePadding style2,
+    _styleBorder = _styleBorder style1 <> _styleBorder style2,
+    _styleRadius = _styleRadius style1 <> _styleRadius style2,
+    _styleText = _styleText style1 <> _styleText style2
   }
 
 instance Monoid Style where
@@ -112,7 +112,7 @@ instance Default BorderSide where
   }
 
 instance Semigroup BorderSide where
-  (<>) _ b2 = b2
+  (<>) b1 b2 = b2
 
 instance Monoid BorderSide where
   mempty = mempty
@@ -134,10 +134,10 @@ instance Default Border where
 
 instance Semigroup Border where
   (<>) b1 b2 = Border {
-    _borderLeft = _borderLeft b2 <> _borderLeft b1,
-    _borderRight = _borderRight b2 <> _borderRight b1,
-    _borderTop = _borderTop b2 <> _borderTop b1,
-    _borderBottom = _borderBottom b2 <> _borderBottom b1
+    _borderLeft = _borderLeft b1 <> _borderLeft b2,
+    _borderRight = _borderRight b1 <> _borderRight b2,
+    _borderTop = _borderTop b1 <> _borderTop b2,
+    _borderBottom = _borderBottom b1 <> _borderBottom b2
   }
 
 instance Monoid Border where
