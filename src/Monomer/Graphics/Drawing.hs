@@ -44,20 +44,29 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     yb = y + h
     x1 = x + justDef _radiusTopLeft
     x2 = x + w - justDef _radiusTopRight
-    x3 = x + justDef _radiusBottomLeft
-    x4 = x + w - justDef _radiusBottomRight
+    x3 = x + w - justDef _radiusBottomRight
+    x4 = x + justDef _radiusBottomLeft
     y1 = y + justDef _radiusTopLeft
-    y2 = y + h - justDef _radiusBottomLeft
-    y3 = y + justDef _radiusTopRight
-    y4 = y + h - justDef _radiusBottomRight
+    y2 = y + justDef _radiusTopRight
+    y3 = y + h - justDef _radiusBottomRight
+    y4 = y + h - justDef _radiusBottomLeft
   in do
-    arc renderer (Point x1 y1) (justDef _radiusTopLeft) 180 270 CW
+    moveTo renderer (Point x1 y1)
+
+    when (isJust _radiusTopLeft) $
+      arc renderer (Point x1 y1) (fromJust _radiusTopLeft) 180 270 CW
     lineTo renderer (Point x2 yt)
-    arc renderer (Point x2 y1) (justDef _radiusTopRight) 270 0 CW
-    lineTo renderer (Point xr y2)
-    arc renderer (Point x2 y2) (justDef _radiusBottomRight) 0 90 CW
-    lineTo renderer (Point x1 yb)
-    arc renderer (Point x1 y2) (justDef _radiusBottomLeft) 90 180 CW
+
+    when (isJust _radiusTopRight) $
+      arc renderer (Point x2 y2) (justDef _radiusTopRight) 270 0 CW
+    lineTo renderer (Point xr y3)
+
+    when (isJust _radiusBottomRight) $
+      arc renderer (Point x3 y3) (justDef _radiusBottomRight) 0 90 CW
+    lineTo renderer (Point x4 yb)
+
+    when (isJust _radiusBottomLeft) $
+      arc renderer (Point x4 y4) (justDef _radiusBottomLeft) 90 180 CW
     lineTo renderer (Point xl y1)
 
 drawStyledBorder :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
