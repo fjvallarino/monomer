@@ -132,8 +132,11 @@ buildUI app = trace "Created main UI" widgetTree where
     ] `style` (color gray
             <> radiusTopLeft 20
             <> radiusTopRight 50
-            <> radiusBottomRight 30
+            <> radiusBottomRight 50
             <> radiusBottomLeft 50
+            <> border 10 red
+            <> borderRight 30 blue
+            <> borderBottom 40 green
             ) -- <> radius 50
 --    ] `style` (color gray
 --            <> borderLeft 20 blue

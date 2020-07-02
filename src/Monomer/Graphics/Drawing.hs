@@ -143,46 +143,48 @@ drawRoundedBorder renderer (Rect xl yt w h) border@Border{..} radius@Radius{..} 
   in do
     strokeBorder renderer (p2 xt1 ytb) (p2 xt2 ytb) _borderTop
     strokeBorder renderer (p2 xrb yr1) (p2 xrb yr2) _borderRight
-    strokeBorder renderer (p2 xb1 ybb) (p2 xt2 ybb) _borderBottom
+    strokeBorder renderer (p2 xb1 ybb) (p2 xb2 ybb) _borderBottom
     strokeBorder renderer (p2 xlb yl1) (p2 xlb yl2) _borderLeft
 
     drawRoundedCorner renderer (p2 xt1 yl1) (p2 xlb2 ytb2) (p2 xlb2 yl1) (p2 xt1 ytb2) 270 _radiusTopLeft _borderLeft _borderTop
     drawRoundedCorner renderer (p2 xt2 yr1) (p2 xrb2 ytb2) (p2 xt2 ytb2) (p2 xrb2 yr1) 0 _radiusTopRight _borderTop _borderRight
-    drawRoundedCorner renderer (p2 xb2 yr2) (p2 xrb2 ybb2) (p2 xrb2 yr2) (p2 xb2 ybb2) 90 _radiusTopRight _borderRight _borderBottom
-    drawRoundedCorner renderer (p2 xb1 yl2) (p2 xlb2 ybb2) (p2 xb1 ybb2) (p2 xlb2 yl2) 180 _radiusTopRight _borderBottom _borderLeft
+    drawRoundedCorner renderer (p2 xb2 yr2) (p2 xrb2 ybb2) (p2 xrb2 yr2) (p2 xb2 ybb2) 90 _radiusBottomRight _borderRight _borderBottom
+    drawRoundedCorner renderer (p2 xb1 yl2) (p2 xlb2 ybb2) (p2 xb1 ybb2) (p2 xlb2 yl2) 180 _radiusBottomLeft _borderBottom _borderLeft
 
 topLeftBorderSize :: Border -> Radius -> Double
 topLeftBorderSize Border{..} Radius{..}
-  | isJust _borderLeft && isJust _borderTop && isJust _radiusTopLeft = fromJust  _radiusTopLeft
+  | isJust _borderLeft && isJust _borderTop && isJust _radiusTopLeft = fromJust _radiusTopLeft
   | otherwise = 0
 
 topRightBorderSize :: Border -> Radius -> Double
 topRightBorderSize Border{..} Radius{..}
-  | isJust _borderRight && isJust _borderTop && isJust _radiusTopRight = fromJust  _radiusTopRight
+  | isJust _borderRight && isJust _borderTop && isJust _radiusTopRight = fromJust _radiusTopRight
   | otherwise = 0
 
 bottomLeftBorderSize :: Border -> Radius -> Double
 bottomLeftBorderSize Border{..} Radius{..}
-  | isJust _borderLeft && isJust _borderBottom && isJust _radiusBottomLeft = fromJust  _radiusBottomLeft
+  | isJust _borderLeft && isJust _borderBottom && isJust _radiusBottomLeft = fromJust _radiusBottomLeft
   | otherwise = 0
 
 bottomRightBorderSize :: Border -> Radius -> Double
 bottomRightBorderSize Border{..} Radius{..}
-  | isJust _borderRight && isJust _borderBottom && isJust _radiusBottomRight = fromJust  _radiusBottomRight
+  | isJust _borderRight && isJust _borderBottom && isJust _radiusBottomRight = fromJust _radiusBottomRight
   | otherwise = 0
 
 drawRoundedCorner :: (Monad m) => Renderer m -> Point -> Point -> Point -> Point -> Double -> Maybe Double -> Maybe BorderSide -> Maybe BorderSide -> m ()
 drawRoundedCorner renderer c1 c2 p1 p2 fromDeg (Just radius) (Just side1) (Just side2) = do
-  let kappa90 = 0.5522847493
-      width1 = _borderSideWidth side1
+  let width1 = _borderSideWidth side1
       width2 = _borderSideWidth side2
 
   beginPath renderer
-  fillColor renderer (_borderSideColor side1)
+
+  if _borderSideColor side1 == _borderSideColor side2
+    then fillColor renderer (_borderSideColor side1)
+    else fillLinearGradient renderer p1 p2 (_borderSideColor side1) (_borderSideColor side2)
 
   arc renderer c1 radius fromDeg (fromDeg - 90) CCW
   lineTo renderer p1
-  if abs (width2 - width1) < 0.1
+  if abs (width2 - width1) < 0.5
     then arc renderer c1 (radius - width1) (fromDeg - 90) fromDeg CW
     else quadTo renderer c2 p2
 
