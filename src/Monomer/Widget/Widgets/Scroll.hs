@@ -115,11 +115,17 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
         containerRender defaultRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
-        when (barRatioH < 1) $
-          drawRect renderer scrollRectH (Just $ darkGray { _alpha = 0.6 }) Nothing
+        when (scrollNeededH && inBarH) $
+          drawRect renderer barRectH (Just barColor) Nothing
 
-        when (barRatioV < 1) $
-          drawRect renderer scrollRectV (Just $ darkGray { _alpha = 0.6 }) Nothing
+        when (scrollNeededV && inBarV) $
+          drawRect renderer barRectV (Just barColor) Nothing
+
+        when scrollNeededH $
+          drawRect renderer scrollRectH (Just handleColorH) Nothing
+
+        when scrollNeededV $
+          drawRect renderer scrollRectV (Just handleColorV) Nothing
       where
         barThickness = 10
         viewport = _instanceViewport widgetInstance
@@ -131,5 +137,17 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
         barLeft = vpWidth - barThickness
         barRatioH = vpWidth / cw
         barRatioV = vpHeight / ch
+        scrollNeededH = barRatioH < 1
+        scrollNeededV = barRatioV < 1
+        barRectH = Rect vpLeft (vpTop + barTop) (vpLeft + vpWidth) (vpTop + vpHeight)
+        barRectV = Rect (vpLeft + barLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
         scrollRectH = Rect (vpLeft - barRatioH * dx) (vpTop + barTop) (barRatioH * vpWidth) barThickness
         scrollRectV = Rect (vpLeft + barLeft) (vpTop - barRatioV * dy) barThickness (barRatioV * vpHeight)
+        mousePos = statusMousePos (_wcInputStatus wctx)
+        inBarH = inRect barRectH mousePos
+        inBarV = inRect barRectV mousePos
+        inHandleH = inRect scrollRectH mousePos
+        inHandleV = inRect scrollRectV mousePos
+        barColor = darkGray { _alpha = 0.4 }
+        handleColorH = if inHandleH then gray else darkGray
+        handleColorV = if inHandleV then gray else darkGray

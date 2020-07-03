@@ -123,36 +123,6 @@ handleAppEvent app evt = traceShow app $
     IncreaseMessage -> Model (app & msgCount %~ (+1))
     UpdateText txt -> Model (app & textField1 .~ txt)
 
-buildUI app = trace "Created main UI" widgetTree where
-  widgetTree =
-    hstack [
-      --textField textField1 `style` (color lightGray <> textColor black <> border 2 red),
-      --textField textField2 `style` (color darkGray <> textColor black),
-      --textField textField3 `style` (color lightGray <> textColor black)
-    ] `style` (color gray
-            <> radiusTopLeft 20
-            <> radiusTopRight 50
-            <> radiusBottomRight 50
-            <> radiusBottomLeft 50
-            <> border 10 red
-            <> borderRight 30 blue
-            <> borderBottom 40 green
-            ) -- <> radius 50
---    ] `style` (color gray
---            <> borderLeft 20 blue
---            <> borderTop 10 red
---            <> borderRight 10 green
---            <> borderBottom 20 white
---            <> radius 40) -- <> radius 50
-
-buildUI2 app = trace "Created main UI" widgetTree where
-  widgetTree =
-    vstack [
-      dropdown dropdown1 (fmap (\i -> "Value " <> showt i) [1..10::Int]) id,
-      hgrid [
-        button ("Increase: " <> showt (_clickCount app)) AppButton,
-        label $ "Messages: " <> showt (_msgCount app)
-      ]
-      --testComposite
-      --keysComposite `key` "kcmp"
-    ]
+buildUI model = widgetTree where
+  widgetTree = scroll $ vgrid items
+  items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft

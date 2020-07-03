@@ -140,7 +140,7 @@ data WidgetInstance s e =
   WidgetInstance {
     -- | Type of the widget
     _instanceType :: WidgetType,
-    -- | Key/Identifier of the widget. If provided, it needs to be unique in the same hierarchy level (not globally)
+    -- | Key/Identifier of the widget
     _instanceKey :: Maybe WidgetKey,
     -- | The actual widget
     _instanceWidget :: Widget s e,

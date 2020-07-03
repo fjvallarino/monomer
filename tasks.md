@@ -91,15 +91,21 @@
     - Related to previous, look for ways to simplify widget setup. Default instance with common values?
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
       - Just provide `style` after children. SwiftUI does it this way
+    - Fix border drawing. Handle simple case (more efficient)
 
 - Pending
-  - Fix border drawing. Handle simple case (more efficient)
-  - Keep sending mouse move event if mouse is away but button is still pressed
   - Fix scroll click navigation
+    - Highlight bar when mouse over
+    - Highlight handle when mouse over
+    - Handle clicks in bar outside handle
+    - Handle handle drag
+    - Mouse over on overlapping axis gives precedence to vertical scroll
+  - Keep sending mouse move event if mouse is away but button is still pressed
+    - Handle mouse enter/leave window events
+  - Add support for scroll requests from children
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
-  - Add support for scroll requests from children
   - Improve Dropdown
     - Create self rendered version
     - Expose customizable interface
