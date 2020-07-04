@@ -1,8 +1,9 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Scroll (scroll) where
+
+import Debug.Trace
 
 import Control.Monad
 import Data.Default
@@ -30,7 +31,26 @@ data ScrollState = ScrollState {
   _scReqSize :: Tree SizeReq
 } deriving (Typeable)
 
+data ScrollContext = ScrollContext {
+  hScrollRatio :: Double,
+  vScrollRatio :: Double,
+  hScrollRequired :: Bool,
+  vScrollRequired :: Bool,
+  hMouseInScroll :: Bool,
+  vMouseInScroll :: Bool,
+  hMouseInThumb :: Bool,
+  vMouseInThumb :: Bool,
+  hScrollRect :: Rect,
+  vScrollRect :: Rect,
+  hThumbRect :: Rect,
+  vThumbRect :: Rect
+}
+
 defaultState = ScrollState 0 0 def (singleNode def)
+
+barThickness = 10
+stepSize = 50
+wheelRate = 10
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
 scroll managedWidget = makeInstance (makeScroll defaultState) managedWidget
@@ -42,36 +62,40 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 }
 
 makeScroll :: ScrollState -> Widget s e
-makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer {
+makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = scrollResize Nothing,
     _widgetRender = render
   }
   where
-    stepSize = 50
-    wheelRate = 10
     handleEvent wctx ctx evt widgetInstance = case evt of
-      --Click (Point px py) btn status -> result where
-      --  viewport = _instanceViewport widgetInstance
-      --  result = if | isPressed -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
-      --              | otherwise -> Nothing
-      --  isPressed = status == PressedBtn && inRect viewport (Point px py)
-      --  isLeftClick = isPressed && btn == LeftBtn
-      --  isRigthClick = isPressed && btn == RightBtn
-      --  step = if | isLeftClick -> stepSize
-      --            | isRigthClick -> -stepSize
-      --            | otherwise -> 0
-      --  newState = ScrollState (scrollAxis step dx cw (_rw viewport)) dy cs prevReqs
+      Click (Point px py) btn status -> result where
+        isLeftClick = status == PressedBtn && btn == LeftBtn
+        hMid = _rw hThumbRect / 2
+        vMid = _rh vThumbRect / 2
+        hDelta = (rx - px + hMid) / hScrollRatio
+        vDelta = (ry - py + vMid) / vScrollRatio
+        hChanged = hMouseInScroll && not hMouseInThumb
+        vChanged = vMouseInScroll && not vMouseInThumb
+        newDeltaX = if hChanged then scrollAxis hDelta 0 childWidth rw else dx
+        newDeltaY = if vChanged then scrollAxis vDelta 0 childHeight rh else dy
+        newState = ScrollState newDeltaX newDeltaY cs prevReqs
+        result = if isLeftClick && (hChanged || vChanged)
+                    then Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
+                    else Nothing
       WheelScroll _ (Point wx wy) wheelDirection -> result where
-        Rect rx ry rw rh = _instanceViewport widgetInstance
-        needsUpdate = (wx /= 0 && cw > rw) || (wy /= 0 && ch > rh)
+        needsUpdate = (wx /= 0 && childWidth > rw) || (wy /= 0 && childHeight > rh)
         result = if | needsUpdate -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
                     | otherwise   -> Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
-        newState = ScrollState (scrollAxis stepX dx cw rw) (scrollAxis stepY dy ch rh) cs prevReqs
+        newState = ScrollState (scrollAxis stepX dx childWidth rw) (scrollAxis stepY dy childHeight rh) cs prevReqs
       _ -> Nothing
+      where
+        viewport = _instanceViewport widgetInstance
+        Rect rx ry rw rh = _instanceViewport widgetInstance
+        ScrollContext{..} = scrollStatus wctx state viewport
     scrollAxis reqDelta currScroll childPos viewportLimit
       | reqDelta >= 0 = if currScroll + reqDelta < 0
                           then currScroll + reqDelta
@@ -94,9 +118,9 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
       child = Seq.index (_instanceChildren widgetInstance) 0
       childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
 
-      Size cw2 ch2 = _sizeRequested $ nodeValue childReq
-      areaW = max w cw2
-      areaH = max h ch2
+      Size childWidth2 childHeight2 = _sizeRequested $ nodeValue childReq
+      areaW = max w childWidth2
+      areaH = max h childHeight2
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
 
       newWidget = fromMaybe (makeScroll $ ScrollState dx dy (Size areaW areaH) reqs) updatedWidget
@@ -115,39 +139,43 @@ makeScroll state@(ScrollState dx dy cs@(Size cw ch) prevReqs) = createContainer 
         containerRender defaultRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
-        when (scrollNeededH && inBarH) $
-          drawRect renderer barRectH (Just barColor) Nothing
+        when (hScrollRequired && hMouseInScroll) $
+          drawRect renderer hScrollRect (Just barColor) Nothing
 
-        when (scrollNeededV && inBarV) $
-          drawRect renderer barRectV (Just barColor) Nothing
+        when (vScrollRequired && vMouseInScroll) $
+          drawRect renderer vScrollRect (Just barColor) Nothing
 
-        when scrollNeededH $
-          drawRect renderer scrollRectH (Just handleColorH) Nothing
+        when hScrollRequired $
+          drawRect renderer hThumbRect (Just handleColorH) Nothing
 
-        when scrollNeededV $
-          drawRect renderer scrollRectV (Just handleColorV) Nothing
+        when vScrollRequired $
+          drawRect renderer vThumbRect (Just handleColorV) Nothing
       where
-        barThickness = 10
         viewport = _instanceViewport widgetInstance
-        vpLeft = _rx viewport
-        vpTop = _ry viewport
-        vpWidth = _rw viewport
-        vpHeight = _rh viewport
-        barTop = vpHeight - barThickness
-        barLeft = vpWidth - barThickness
-        barRatioH = vpWidth / cw
-        barRatioV = vpHeight / ch
-        scrollNeededH = barRatioH < 1
-        scrollNeededV = barRatioV < 1
-        barRectH = Rect vpLeft (vpTop + barTop) (vpLeft + vpWidth) (vpTop + vpHeight)
-        barRectV = Rect (vpLeft + barLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
-        scrollRectH = Rect (vpLeft - barRatioH * dx) (vpTop + barTop) (barRatioH * vpWidth) barThickness
-        scrollRectV = Rect (vpLeft + barLeft) (vpTop - barRatioV * dy) barThickness (barRatioV * vpHeight)
-        mousePos = statusMousePos (_wcInputStatus wctx)
-        inBarH = inRect barRectH mousePos
-        inBarV = inRect barRectV mousePos
-        inHandleH = inRect scrollRectH mousePos
-        inHandleV = inRect scrollRectV mousePos
+        ScrollContext{..} = scrollStatus wctx state viewport
         barColor = darkGray { _alpha = 0.4 }
-        handleColorH = if inHandleH then gray else darkGray
-        handleColorV = if inHandleV then gray else darkGray
+        handleColorH = if hMouseInThumb then gray else darkGray
+        handleColorV = if vMouseInThumb then gray else darkGray
+
+scrollStatus :: WidgetContext s e -> ScrollState -> Rect -> ScrollContext
+scrollStatus wctx scrollState viewport = ScrollContext{..} where
+  ScrollState dx dy (Size childWidth childHeight) _ = scrollState
+  mousePos = statusMousePos (_wcInputStatus wctx)
+  vpLeft = _rx viewport
+  vpTop = _ry viewport
+  vpWidth = _rw viewport
+  vpHeight = _rh viewport
+  hScrollTop = vpHeight - barThickness
+  vScrollLeft = vpWidth - barThickness
+  hScrollRatio = min (vpWidth / childWidth) 1
+  vScrollRatio = min (vpHeight / childHeight) 1
+  hScrollRequired = hScrollRatio < 1
+  vScrollRequired = vScrollRatio < 1
+  hScrollRect = Rect vpLeft (vpTop + hScrollTop) (vpLeft + vpWidth) (vpTop + vpHeight)
+  vScrollRect = Rect (vpLeft + vScrollLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
+  hThumbRect = Rect (vpLeft - hScrollRatio * dx) (vpTop + hScrollTop) (hScrollRatio * vpWidth) barThickness
+  vThumbRect = Rect (vpLeft + vScrollLeft) (vpTop - vScrollRatio * dy) barThickness (vScrollRatio * vpHeight)
+  hMouseInScroll = inRect hScrollRect mousePos
+  vMouseInScroll = inRect vScrollRect mousePos
+  hMouseInThumb = inRect hThumbRect mousePos
+  vMouseInThumb = inRect vThumbRect mousePos

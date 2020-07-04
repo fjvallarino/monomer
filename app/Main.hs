@@ -124,5 +124,5 @@ handleAppEvent app evt = traceShow app $
     UpdateText txt -> Model (app & textField1 .~ txt)
 
 buildUI model = widgetTree where
-  widgetTree = scroll $ vgrid items
+  widgetTree = scroll $ hgrid items
   items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft
