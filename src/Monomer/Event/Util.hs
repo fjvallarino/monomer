@@ -1,6 +1,7 @@
 module Monomer.Event.Util where
 
 import Data.Default
+import Data.Maybe
 
 import qualified Data.Map.Strict as M
 
@@ -26,3 +27,7 @@ defInputStatus = InputStatus {
   statusKeys = M.empty,
   statusButtons = M.empty
 }
+
+isButtonPressed :: InputStatus -> Button -> Bool
+isButtonPressed inputStatus button = fromMaybe ReleasedBtn status == PressedBtn where
+  status = M.lookup button (statusButtons inputStatus)

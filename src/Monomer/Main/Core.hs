@@ -86,6 +86,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
   let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
+  let mouseEntered = not $ null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
   let newSecond = tsAccum + ts > 1000
@@ -99,7 +100,9 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   currentApp <- use appContext
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
   inputStatus <- use inputStatus
+  isMouseFocusedWidget <- fmap isJust (use latestPressed)
 
+  let isLeftPressed = isButtonPressed inputStatus LeftBtn
   let wctx = WidgetContext {
     _wcScreenSize = windowSize,
     _wcGlobalKeys = M.empty,
@@ -107,6 +110,10 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
     _wcInputStatus = inputStatus,
     _wcTimestamp = startTicks
   }
+
+  when (mouseEntered && isLeftPressed && isMouseFocusedWidget) $
+    latestPressed .= Nothing
+
   (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wctx widgetRoot
   (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot
 
