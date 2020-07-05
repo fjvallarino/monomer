@@ -25,6 +25,8 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 
 data ScrollState = ScrollState {
+  _scDraggingX :: Bool,
+  _scDraggingY :: Bool,
   _scDeltaX :: !Double,
   _scDeltaY :: !Double,
   _scChildSize :: Size,
@@ -46,7 +48,7 @@ data ScrollContext = ScrollContext {
   vThumbRect :: Rect
 }
 
-defaultState = ScrollState 0 0 def (singleNode def)
+defaultState = ScrollState False False 0 0 def (singleNode def)
 
 barThickness = 10
 stepSize = 50
@@ -62,26 +64,39 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 }
 
 makeScroll :: ScrollState -> Widget s e
-makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) = createContainer {
+makeScroll state@(ScrollState dgx dgy dx dy cs prevReqs) = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = scrollResize Nothing,
     _widgetRender = render
   }
   where
+    Size childWidth childHeight = cs
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point px py) btn status -> result where
-        isLeftClick = status == ReleasedBtn && btn == LeftBtn
+        isLeftPressed = status == PressedBtn && btn == LeftBtn
+        isButtonReleased = status == ReleasedBtn
+        newState = if | isLeftPressed && hMouseInThumb -> state { _scDraggingX = True }
+                      | isLeftPressed && vMouseInThumb -> state { _scDraggingY = True }
+                      | isButtonReleased -> state { _scDraggingX = False, _scDraggingY = False }
+                      | otherwise -> state
+        newInstance = widgetInstance {
+          _instanceWidget = makeScroll newState
+        }
+        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> Just $ resultWidget newInstance
+                    | isButtonReleased && (_scDraggingX state || _scDraggingY state) -> Just $ resultWidget newInstance
+                    | otherwise -> Nothing
+      Move (Point px py) -> result where
         hMid = _rw hThumbRect / 2
         vMid = _rh vThumbRect / 2
         hDelta = (rx - px + hMid) / hScrollRatio
         vDelta = (ry - py + vMid) / vScrollRatio
-        hChanged = hMouseInScroll && not hMouseInThumb
-        vChanged = vMouseInScroll && not vMouseInThumb
-        newDeltaX = if hChanged then scrollAxis hDelta 0 childWidth rw else dx
-        newDeltaY = if vChanged then scrollAxis vDelta 0 childHeight rh else dy
-        newState = ScrollState newDeltaX newDeltaY cs prevReqs
-        result = if isLeftClick && (hChanged || vChanged)
+        draggingX = _scDraggingX state
+        draggingY = _scDraggingY state
+        newDeltaX = if draggingX then scrollAxis hDelta 0 childWidth rw else dx
+        newDeltaY = if draggingY then scrollAxis vDelta 0 childHeight rh else dy
+        newState = state { _scDeltaX = newDeltaX, _scDeltaY = newDeltaY }
+        result = if draggingX || draggingY
                     then Just $ resultReqs [IgnoreChildrenEvents] (rebuildWidget wctx newState widgetInstance prevReqs)
                     else Nothing
       WheelScroll _ (Point wx wy) wheelDirection -> result where
@@ -90,7 +105,10 @@ makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) =
                     | otherwise   -> Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
-        newState = ScrollState (scrollAxis stepX dx childWidth rw) (scrollAxis stepY dy childHeight rh) cs prevReqs
+        newState = state {
+          _scDeltaX = scrollAxis stepX dx childWidth rw,
+          _scDeltaY = scrollAxis stepY dy childHeight rh
+        }
       _ -> Nothing
       where
         viewport = _instanceViewport widgetInstance
@@ -123,7 +141,7 @@ makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) =
       areaH = max h childHeight2
       childRenderArea = Rect (l + dx) (t + dy) areaW areaH
 
-      newWidget = fromMaybe (makeScroll $ ScrollState dx dy (Size areaW areaH) reqs) updatedWidget
+      newWidget = fromMaybe (makeScroll $ state { _scChildSize = Size areaW areaH, _scReqSize = reqs }) updatedWidget
       newChildWidget = _widgetResize (_instanceWidget child) wctx viewport childRenderArea child childReq
 
       newInstance = widgetInstance {
@@ -159,7 +177,7 @@ makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) =
 
 scrollStatus :: WidgetContext s e -> ScrollState -> Rect -> ScrollContext
 scrollStatus wctx scrollState viewport = ScrollContext{..} where
-  ScrollState dx dy (Size childWidth childHeight) _ = scrollState
+  ScrollState _ _ dx dy (Size childWidth childHeight) _ = scrollState
   mousePos = statusMousePos (_wcInputStatus wctx)
   vpLeft = _rx viewport
   vpTop = _ry viewport
