@@ -10,6 +10,7 @@ module Monomer.Main.Handlers (
 import Control.Concurrent.Async (async)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
+import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Maybe
@@ -31,8 +32,8 @@ import Monomer.Widget.Util
 
 type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
 
-createEventContext :: Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
-createEventContext activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
+createEventContext :: Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
+createEventContext latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
     KeyAction{}           -> pathEvent currentTarget
     TextInput _           -> pathEvent currentTarget
@@ -48,7 +49,9 @@ createEventContext activeOverlay currentFocus currentTarget systemEvent widgetRo
     Leave oldPath _       -> pathEvent oldPath
   where
     pathEvent = Just . makePathCtx
-    pointEvent point = makePathCtx <$> _widgetFind (_instanceWidget widgetRoot) activeOverlay point widgetRoot
+    startPath = fromMaybe rootPath activeOverlay
+    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) startPath point widgetRoot
+    pointEvent point = makePathCtx <$> (latestPressed <|> pathFromPoint point)
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetContext s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
@@ -61,9 +64,10 @@ handleSystemEvents renderer wctx systemEvents widgetRoot = foldM reducer (wctx, 
 
 handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetContext s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
 handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoot = do
-  activeOverlay <- fromMaybe rootPath <$> use activeOverlay
+  latestPressed <- use latestPressed
+  activeOverlay <- use activeOverlay
 
-  case createEventContext activeOverlay currentFocus currentTarget systemEvent widgetRoot of
+  case createEventContext latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot of
     Nothing -> return (wctx, Seq.empty, widgetRoot)
     Just ctx -> do
       let widget = _instanceWidget widgetRoot

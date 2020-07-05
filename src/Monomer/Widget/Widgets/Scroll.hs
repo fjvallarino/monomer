@@ -71,7 +71,7 @@ makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) =
   where
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point px py) btn status -> result where
-        isLeftClick = status == PressedBtn && btn == LeftBtn
+        isLeftClick = status == ReleasedBtn && btn == LeftBtn
         hMid = _rw hThumbRect / 2
         vMid = _rh vThumbRect / 2
         hDelta = (rx - px + hMid) / hScrollRatio
@@ -82,11 +82,11 @@ makeScroll state@(ScrollState dx dy cs@(Size childWidth childHeight) prevReqs) =
         newDeltaY = if vChanged then scrollAxis vDelta 0 childHeight rh else dy
         newState = ScrollState newDeltaX newDeltaY cs prevReqs
         result = if isLeftClick && (hChanged || vChanged)
-                    then Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
+                    then Just $ resultReqs [IgnoreChildrenEvents] (rebuildWidget wctx newState widgetInstance prevReqs)
                     else Nothing
       WheelScroll _ (Point wx wy) wheelDirection -> result where
         needsUpdate = (wx /= 0 && childWidth > rw) || (wy /= 0 && childHeight > rh)
-        result = if | needsUpdate -> Just $ resultWidget (rebuildWidget wctx newState widgetInstance prevReqs)
+        result = if | needsUpdate -> Just $ resultReqs [IgnoreChildrenEvents] (rebuildWidget wctx newState widgetInstance prevReqs)
                     | otherwise   -> Nothing
         stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
         stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate

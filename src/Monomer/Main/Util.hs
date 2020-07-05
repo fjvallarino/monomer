@@ -21,6 +21,7 @@ initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
   _inputStatus = defInputStatus,
   _focused = Seq.empty,
   _latestHover = Nothing,
+  _latestPressed = Nothing,
   _activeOverlay = Nothing,
   _widgetTasks = Seq.empty
 }
