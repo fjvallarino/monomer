@@ -104,7 +104,6 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
---handleAppEvent :: App -> AppEvent -> EventResponse App AppEvent
 handleAppEvent app evt = traceShow app $
   case evt of
     InitApp -> Task $ do

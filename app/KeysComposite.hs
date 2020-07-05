@@ -14,7 +14,6 @@ import Data.Default
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable)
---import Lens.Micro
 import Lens.Micro.GHC
 import Lens.Micro.TH (makeLenses)
 import TextShow
@@ -34,7 +33,7 @@ data EditableItem = EditableItem {
   _itemDesc :: Text
 } deriving (Show, Eq)
 
-data KeysCompState = KeysCompState {
+newtype KeysCompState = KeysCompState {
   _items :: Seq EditableItem
 } deriving (Show, Eq)
 
@@ -56,7 +55,6 @@ initialState = KeysCompState {
 
 keysComposite = composite "keysComposite" initialState Nothing handleKeysCompEvent buildKeysComp
 
---handleKeysCompEvent :: KeysCompState -> KeysCompEvent -> EventResponse KeysCompState KeysCompEvent ep
 handleKeysCompEvent app evt = case evt of
   RotateChildren -> Model (app & items %~ rotateSeq)
 
@@ -67,7 +65,7 @@ buildKeysComp app = trace "Created keys composite UI" $
   ]
 
 editableItem app idx = widget where
-  widgetKey = app ^. (singular $ items . ix idx . itemId)
+  widgetKey = app ^. singular (items . ix idx . itemId)
   widget = hgrid [
       label $ "Item " <> showt idx,
       textField (singular $ items . ix idx . itemDesc)

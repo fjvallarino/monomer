@@ -49,8 +49,8 @@ createEventContext latestPressed activeOverlay currentFocus currentTarget system
     Leave oldPath _       -> pathEvent oldPath
   where
     pathEvent = Just . makePathCtx
-    startPath = fromMaybe rootPath activeOverlay
-    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) startPath point widgetRoot
+    findStartPath = fromMaybe rootPath activeOverlay
+    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) findStartPath point widgetRoot
     pointEvent point = makePathCtx <$> (latestPressed <|> pathFromPoint point)
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
