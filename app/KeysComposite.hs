@@ -8,14 +8,13 @@ module KeysComposite (
 import Debug.Trace
 
 import Control.Concurrent (threadDelay)
+import Control.Lens hiding (Empty, (|>), (<|))
 import Control.Monad (forM_)
 
 import Data.Default
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable)
-import Lens.Micro.GHC
-import Lens.Micro.TH (makeLenses)
 import TextShow
 
 import qualified Data.Sequence as Seq

@@ -8,10 +8,10 @@ module Main where
 import Debug.Trace
 
 import Control.Concurrent (threadDelay)
+import Control.Lens (Lens', (&), (<&>), (^.), (.~), (%~))
 import Control.Monad.State
 import Data.Default
 import Foreign.C.Types
-import Lens.Micro
 import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
 import SDL (($=))
 import TextShow

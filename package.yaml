@@ -28,9 +28,7 @@ dependencies:
 - containers
 - data-default
 - extra
-- microlens
-- microlens-mtl
-- microlens-th
+- lens
 - mtl
 - nanovg
 - OpenGL
@@ -67,7 +65,7 @@ executables:
 
     dependencies:
     - ekg
-    - microlens-ghc
+    - lens
     - monomer
 
 tests:

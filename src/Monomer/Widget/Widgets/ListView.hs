@@ -7,6 +7,7 @@ module Monomer.Widget.Widgets.ListView (listView) where
 import Debug.Trace
 
 import Control.Applicative ((<|>))
+import Control.Lens (Lens', (&), (^.), (.~))
 import Control.Monad
 import Data.Default
 import Data.Foldable (find)
@@ -16,7 +17,6 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Traversable
 import Data.Typeable (Typeable, cast)
-import Lens.Micro
 
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq

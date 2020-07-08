@@ -8,6 +8,7 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
+import Control.Lens (use, (.=))
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -15,7 +16,6 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.Maybe
 import Data.Sequence (Seq(..), (><))
-import Lens.Micro.Mtl
 
 import qualified Data.Sequence as Seq
 import qualified SDL

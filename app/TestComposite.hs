@@ -5,12 +5,11 @@ module TestComposite (testComposite) where
 import Debug.Trace
 
 import Control.Concurrent (threadDelay)
+import Control.Lens
 import Control.Monad (forM_)
 
 import Data.Default
 import Data.Typeable (Typeable)
-import Lens.Micro
-import Lens.Micro.TH (makeLenses)
 import TextShow
 
 import Monomer.Common.Style

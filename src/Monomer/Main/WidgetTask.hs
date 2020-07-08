@@ -7,6 +7,7 @@ import Debug.Trace
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
+import Control.Lens
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
@@ -15,7 +16,6 @@ import Data.Foldable (toList)
 import Data.Maybe
 import Data.Sequence ((><))
 import Data.Typeable
-import Lens.Micro.Mtl
 
 import qualified Data.Sequence as Seq
 

@@ -4,10 +4,10 @@
 module Monomer.Widget.Widgets.TextField (textField) where
 
 import Control.Monad
+import Control.Lens (Lens', (&), (^.), (.~))
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable
-import Lens.Micro
 
 import qualified Data.Text as T
 

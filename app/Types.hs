@@ -2,7 +2,7 @@
 
 module Types where
 
-import Lens.Micro.TH (makeLenses)
+import Control.Lens (makeLenses)
 
 import Data.Default
 import Data.Text (Text)

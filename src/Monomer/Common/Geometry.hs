@@ -3,8 +3,8 @@
 
 module Monomer.Common.Geometry where
 
+import Control.Lens.TH (makeLenses)
 import Data.Default
-import Lens.Micro.TH (makeLenses)
 
 data Point = Point {
   _x :: !Double,

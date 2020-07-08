@@ -8,6 +8,7 @@ module Monomer.Main.Core (
 ) where
 
 import Control.Concurrent (threadDelay)
+import Control.Lens
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
@@ -16,7 +17,6 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (><))
 import Data.Typeable (Typeable)
-import Lens.Micro.Mtl
 
 import qualified Data.Map as M
 import qualified Graphics.Rendering.OpenGL as GL

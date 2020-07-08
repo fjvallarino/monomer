@@ -7,10 +7,10 @@ module Monomer.Main.Types where
 
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
+import Control.Lens.TH (makeLenses)
 import Control.Monad.State
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
-import Lens.Micro.TH (makeLenses)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
