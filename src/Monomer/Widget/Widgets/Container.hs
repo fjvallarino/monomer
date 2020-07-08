@@ -21,16 +21,17 @@ import Monomer.Widget.BaseContainer
 
 import qualified Monomer.Common.Style as St
 
-data ContainerConfig e = ContainerConfig {
-  _ctOnClick :: Maybe e,
+data ContainerConfig s e = ContainerConfig {
+  _ctOnClick :: [e],
+  _ctOnClickReq :: [WidgetRequest s],
   _ctBgColor :: Maybe Color,
   _ctHoverColor :: Maybe Color
 }
 
-instance Default (ContainerConfig e) where
-  def = ContainerConfig Nothing Nothing Nothing
+instance Default (ContainerConfig s e) where
+  def = ContainerConfig [] [] Nothing Nothing
 
-container :: ContainerConfig e -> WidgetInstance s e -> WidgetInstance s e
+container :: ContainerConfig s e -> WidgetInstance s e -> WidgetInstance s e
 container config managedWidget = makeInstance (makeContainer config) managedWidget
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
@@ -39,7 +40,7 @@ makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
   _instanceFocusable = False
 }
 
-makeContainer :: ContainerConfig e -> Widget s e
+makeContainer :: ContainerConfig s e -> Widget s e
 makeContainer config = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
@@ -50,8 +51,10 @@ makeContainer config = createContainer {
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click point btn status -> result where
         isPressed = status == PressedBtn && btn == LeftBtn
-        result = if isPressed && isJust (_ctOnClick config)
-                    then Just $ resultEvents [fromJust $ _ctOnClick config] widgetInstance
+        events = _ctOnClick config
+        requests = _ctOnClickReq config
+        result = if isPressed && not (null events && null requests)
+                    then Just $ resultReqsEvents requests events widgetInstance
                     else Nothing
       _ -> Nothing
 

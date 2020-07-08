@@ -196,7 +196,7 @@ makeOverlayList items selected highlightedIdx itemToText = scroll makeGrid where
   makeGrid = vstack $ fmap (uncurry makeItem) pairs
   makeItem idx item = container (config idx item) $ label (itemToText item)
   config idx item = def {
-    _ctOnClick = Just $ ItemClicked item,
+    _ctOnClick = [ItemClicked item],
     _ctBgColor = highlightedColor idx <|> selectedColor item,
     _ctHoverColor = Just lightGray
   }

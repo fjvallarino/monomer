@@ -92,8 +92,6 @@
     - Find way of providing instance config (style, visibility, etc) before providing children (some sort of flip operator)
       - Just provide `style` after children. SwiftUI does it this way
     - Fix border drawing. Handle simple case (more efficient)
-
-- Pending
   - Fix scroll click navigation
     - Highlight bar when mouse over
     - Highlight handle when mouse over
@@ -102,16 +100,18 @@
     - Mouse over on overlapping axis gives precedence to vertical scroll
   - Keep sending mouse move event if mouse is away but button is still pressed
     - Handle mouse enter/leave window events
+
+- Pending
   - Add support for scroll requests from children
-  - Unify criteria for instantiation
-    - Component name without underscore receives parameters positionally
-    - Component name with underscore receives Config instance
   - Improve Dropdown
     - Create self rendered version
     - Expose customizable interface
     - Request scroll when needed
     - Validate Maybe values are supported
     - Create nullable version which takes care of fmapping traversable with Just
+  - Unify criteria for instantiation
+    - Component name without underscore receives parameters positionally
+    - Component name with underscore receives Config instance
   - Should Resize be restored?
   - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
   - Improve textField
@@ -125,6 +125,8 @@
     - This is also needed for _widgetPreferredSize and _widgetResize
   - Create Checkbox
   - Create Radio
+  - Create Slider
+  - Create Dial
   - Create Color Selector
   - Create Dialog
   - Create File Selector

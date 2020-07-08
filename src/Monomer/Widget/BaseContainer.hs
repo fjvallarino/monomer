@@ -6,7 +6,10 @@
 
 module Monomer.Widget.BaseContainer (
   createContainer,
+  containerInit,
+  containerMergeTrees,
   containerHandleEvent,
+  containerHandleMessage,
   containerPreferredSize,
   containerResize,
   containerRender,
@@ -37,8 +40,9 @@ import Monomer.Widget.Util
 type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
 
 type WidgetInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
-type WidgetMergeHandler s e = WidgetContext s e -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
+type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
 type WidgetEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+type WidgetMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
 type WidgetResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
 type WidgetRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
@@ -51,7 +55,7 @@ createContainer = Widget {
   _widgetNextFocusable = containerNextFocusable,
   _widgetFind = containerFind,
   _widgetHandleEvent = containerHandleEvent ignoreEvent,
-  _widgetHandleMessage = containerHandleMessage,
+  _widgetHandleMessage = containerHandleMessage ignoreMessage,
   _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
   _widgetResize = containerResize defaultResize,
   _widgetRender = containerRender defaultRender
@@ -81,14 +85,14 @@ ignoreGetState _ = Nothing
 
 -- | Merging
 ignoreOldInstance :: WidgetMergeHandler s e
-ignoreOldInstance app state newInstance = newInstance
+ignoreOldInstance wctx ctx state newInstance = newInstance
 
-{-- This implementation is far from complete --}
 containerMergeTrees :: WidgetMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
 containerMergeTrees mergeWidgetState wctx ctx newInstance oldInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
+  updatedInstance = mergeWidgetState wctx ctx oldState newInstance
   oldChildren = _instanceChildren oldInstance
-  newChildren = _instanceChildren newInstance
+  newChildren = _instanceChildren updatedInstance
   indexes = Seq.fromList [0..length newChildren]
   newPairs = Seq.zipWith (\idx child -> (addToCurrent ctx idx, child)) indexes newChildren
   mergedResults = mergeChildren wctx newPairs oldChildren
@@ -96,7 +100,7 @@ containerMergeTrees mergeWidgetState wctx ctx newInstance oldInstance = result w
   concatSeq seqs = foldl' (><) Seq.empty seqs
   mergedReqs = concatSeq $ fmap _resultRequests mergedResults
   mergedEvents = concatSeq $ fmap _resultEvents mergedResults
-  mergedInstance = (mergeWidgetState wctx oldState newInstance) {
+  mergedInstance = updatedInstance {
     _instanceChildren = mergedChildren
   }
   result = WidgetResult mergedReqs mergedEvents mergedInstance
@@ -177,10 +181,13 @@ mergeParentChildWidgetResults original (Just pResponse) (Just cResponse) idx
       userEvents = _resultEvents pResponse >< _resultEvents cResponse
       newWidget = replaceChild (_resultWidget pResponse) (_resultWidget cResponse) idx
 
--- | Custom Handling
-containerHandleMessage :: forall i s e m . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-containerHandleMessage wctx ctx arg widgetInstance
-  | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = Nothing
+-- | Message Handling
+ignoreMessage :: WidgetMessageHandler i s e m
+ignoreMessage wctx ctx message widgetInstance = Nothing
+
+containerHandleMessage :: forall i s e m . Typeable i => WidgetMessageHandler i s e m -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleMessage mHandler wctx ctx arg widgetInstance
+  | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = mHandler wctx ctx arg widgetInstance
   | otherwise = messageResult where
       nextCtx = fromJust $ moveToTarget ctx
       childIdx = fromJust $ nextTargetStep ctx
