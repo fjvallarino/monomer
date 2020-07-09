@@ -3,8 +3,6 @@
 
 module Monomer.Widget.Widgets.Scroll (scroll) where
 
-import Debug.Trace
-
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -66,6 +64,8 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 
 makeScroll :: ScrollState -> Widget s e
 makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
+    _widgetGetState = getState,
+    _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = scrollResize Nothing,
@@ -73,6 +73,15 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
   }
   where
     Size childWidth childHeight = cs
+
+    getState = makeState state
+
+    merge wctx ctx oldState widgetInstance = newInstance where
+      newState = fromMaybe state (useState oldState)
+      newInstance = widgetInstance {
+        _instanceWidget = makeScroll newState
+      }
+
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click point btn status -> result where
         isLeftPressed = status == PressedBtn && btn == LeftBtn
@@ -109,6 +118,7 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
         viewport = _instanceViewport widgetInstance
         Rect rx ry rw rh = _instanceViewport widgetInstance
         sctx@ScrollContext{..} = scrollStatus wctx state viewport
+
     scrollAxis reqDelta currScroll childPos viewportLimit
       | reqDelta >= 0 = if currScroll + reqDelta < 0
                           then currScroll + reqDelta

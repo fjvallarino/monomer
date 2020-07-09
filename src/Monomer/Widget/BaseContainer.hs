@@ -209,7 +209,7 @@ defaultPreferredSize renderer app childrenPairs = Node current childrenReqs wher
 containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
 containerPreferredSize psHandler renderer wctx widgetInstance = psHandler renderer wctx (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
-  childrenReqs = flip fmap children updateChild
+  childrenReqs = fmap updateChild children
   updateChild child = Node (updateSizeReq req child) reqs where
     Node req reqs = _widgetPreferredSize (_instanceWidget child) renderer wctx child
 
