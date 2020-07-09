@@ -93,29 +93,31 @@ makeListView config state items itemToText = createContainer {
 
     handleEvent wctx ctx evt widgetInstance = case evt of
       KeyAction mode code status
-        | isKeyDown code && status == KeyPressed -> handleSelectNext wctx ctx widgetInstance
-        | isKeyUp code && status == KeyPressed -> handleSelectPrev wctx ctx widgetInstance
+        | isKeyDown code && status == KeyPressed -> handleHighlightNext wctx ctx widgetInstance
+        | isKeyUp code && status == KeyPressed -> handleHighlightPrev wctx ctx widgetInstance
         | isKeyReturn code && status == KeyPressed -> Just $ selectItem wctx ctx widgetInstance (_highlighted state)
       _ -> Nothing
 
-    handleSelectNext wctx ctx widgetInstance = Just $ resultWidget newInstance where
+    handleHighlightNext wctx ctx widgetInstance = highlightItem wctx ctx widgetInstance nextIdx where
       tempIdx = _highlighted state
       nextIdx = if tempIdx < length items - 1 then tempIdx + 1 else tempIdx
-      newState = ListViewState nextIdx
-      newInstance = widgetInstance {
-        _instanceWidget = makeListView config newState items itemToText
-      }
 
-    handleSelectPrev wctx ctx widgetInstance = Just $ resultWidget newInstance where
+    handleHighlightPrev wctx ctx widgetInstance = highlightItem wctx ctx widgetInstance nextIdx where
       tempIdx = _highlighted state
       nextIdx = if tempIdx > 0 then tempIdx - 1 else tempIdx
-      newState = ListViewState nextIdx
-      newInstance = widgetInstance {
-        _instanceWidget = makeListView config newState items itemToText
-      }
 
     handleMessage wctx ctx message widgetInstance = fmap handleSelect (cast message) where
       handleSelect (ClickMessage idx) = selectItem wctx ctx widgetInstance idx
+
+    highlightItem wctx ctx widgetInstance nextIdx = Just $ _widgetMerge newWidget wctx ctx newInstance oldInstance where
+      newState = ListViewState nextIdx
+      newWidget = makeListView config newState items itemToText
+      -- ListView's merge uses the old state. Since we want the newly create state, we replace the old widget
+      -- ListView's tree will be rebuilt in merge (before merging its children), so it does not matter what we currently have
+      oldInstance = widgetInstance {
+        _instanceWidget = newWidget
+      }
+      newInstance = oldInstance
 
     selectItem wctx ctx widgetInstance idx = resultReqs requests newInstance where
       selected = widgetValueGet (_wcApp wctx) (_lvValue config)
