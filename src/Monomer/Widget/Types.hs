@@ -3,6 +3,7 @@
 
 module Monomer.Widget.Types where
 
+import Control.Lens (ALens')
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq, (<|), (|>))
@@ -21,6 +22,8 @@ import Monomer.Widget.PathContext
 type Timestamp = Int
 type WidgetType = String
 type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
+
+data WidgetValue s a = WidgetValue a | WidgetLens (ALens' s a)
 
 newtype WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
 data WidgetState = forall i . Typeable i => WidgetState i

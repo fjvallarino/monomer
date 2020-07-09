@@ -93,9 +93,6 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
           clicked = status == PressedBtn
       KeyAction mode code status
         | isKeyDown code && not isOpen -> handleOpenDropdown wctx ctx
-        | isKeyDown code && status == KeyPressed && isOpen -> handleSelectNext wctx ctx
-        | isKeyUp code && status == KeyPressed && isOpen -> handleSelectPrev wctx ctx
-        | isKeyReturn code && status == KeyPressed && isOpen -> handleSelectHighligted wctx ctx
         | isKeyEsc code && isOpen -> handleCloseDropdown wctx ctx
       _
         | isOpen -> handleOverlayEvent wctx ctx evt widgetInstance
@@ -116,23 +113,6 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
     handleCloseDropdown wctx ctx = Just $ resultReqs requests newInstance where
       newInstance = createDropdown wctx ctx $ Dropdown False 0
       requests = [ResetOverlay]
-
-    handleSelectNext wctx ctx = Just $ resultWidget newInstance where
-      tempIdx = _highlighted state
-      nextIdx = if tempIdx < length items - 1 then tempIdx + 1 else tempIdx
-      newInstance = createDropdown wctx ctx $ Dropdown True nextIdx
-
-    handleSelectPrev wctx ctx = Just $ resultWidget newInstance where
-      tempIdx = _highlighted state
-      nextIdx = if tempIdx > 0 then tempIdx - 1 else tempIdx
-      newInstance = createDropdown wctx ctx $ Dropdown True nextIdx
-
-    handleSelectHighligted wctx ctx = Just $ resultReqs requests newInstance where
-      selected = _wcApp wctx ^. field
-      idx = _highlighted state
-      value = fromMaybe selected (Seq.lookup idx items)
-      requests = [UpdateUserState $ \app -> app & field .~ value]
-      newInstance = createDropdown wctx ctx $ Dropdown False 0
 
     handleOverlayEvent wctx ctx evt widgetInstance = result where
       resetReq = ResetOverlay

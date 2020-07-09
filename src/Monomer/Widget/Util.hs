@@ -1,5 +1,6 @@
 module Monomer.Widget.Util where
 
+import Control.Lens (ALens', (&), (^#), (#~))
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
@@ -28,6 +29,14 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _instanceRenderArea = def,
   _instanceStyle = def
 }
+
+widgetValueGet :: s -> WidgetValue s a -> a
+widgetValueGet _ (WidgetValue value) = value
+widgetValueGet model (WidgetLens lens) = model ^# lens
+
+widgetValueSet :: WidgetValue s a -> a -> [WidgetRequest s]
+widgetValueSet WidgetValue{} _ = []
+widgetValueSet (WidgetLens lens) value = [UpdateUserState $ \model -> model & lens #~ value]
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
 key wn key = wn { _instanceKey = Just (WidgetKey key) }
