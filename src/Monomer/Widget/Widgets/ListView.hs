@@ -66,22 +66,6 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
   _instanceFocusable = True
 }
 
-swapScrollInstance :: WidgetInstance s e -> WidgetInstance s e -> WidgetInstance s e
-swapScrollInstance newInstance oldInstance
-  | length newChildren == 1 && length oldChildren == 1 = updatedInstance
-  | otherwise = newInstance
-  where
-    newChildren = _instanceChildren newInstance
-    oldChildren = _instanceChildren oldInstance
-    newScroll = Seq.index newChildren 0
-    oldScroll = Seq.index oldChildren 0
-    updatedScroll = newScroll {
-      _instanceWidget = _instanceWidget oldScroll
-    }
-    updatedInstance = newInstance {
-      _instanceChildren = Seq.singleton updatedScroll
-    }
-
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Seq a -> (a -> Text) -> Widget s e
 makeListView config state items itemToText = createContainer {
     _widgetInit = init,
@@ -93,18 +77,18 @@ makeListView config state items itemToText = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    createListView wctx ctx oldInstance newState = swapScrollInstance newInstance oldInstance where
+    createListView wctx ctx newState = newInstance where
       selected = widgetValueGet (_wcApp wctx) (_lvValue config)
-      newScrollableList = scroll $ makeItemsList ctx items selected (_highlighted newState) itemToText
+      itemsList = makeItemsList ctx items selected (_highlighted newState) itemToText
       newInstance = (makeInstance $ makeListView config newState items itemToText) {
-        _instanceChildren = Seq.singleton newScrollableList
+        _instanceChildren = Seq.singleton (scroll itemsList)
       }
 
-    init wctx ctx widgetInstance = resultWidget $ createListView wctx ctx widgetInstance state
+    init wctx ctx widgetInstance = resultWidget $ createListView wctx ctx state
 
     getState = makeState state
 
-    merge wctx ctx oldState newInstance = createListView wctx ctx newInstance newState where
+    merge wctx ctx oldState newInstance = createListView wctx ctx newState where
       newState = fromMaybe state (useState oldState)
 
     handleEvent wctx ctx evt widgetInstance = case evt of
@@ -117,12 +101,18 @@ makeListView config state items itemToText = createContainer {
     handleSelectNext wctx ctx widgetInstance = Just $ resultWidget newInstance where
       tempIdx = _highlighted state
       nextIdx = if tempIdx < length items - 1 then tempIdx + 1 else tempIdx
-      newInstance = createListView wctx ctx widgetInstance $ ListViewState nextIdx
+      newState = ListViewState nextIdx
+      newInstance = widgetInstance {
+        _instanceWidget = makeListView config newState items itemToText
+      }
 
     handleSelectPrev wctx ctx widgetInstance = Just $ resultWidget newInstance where
       tempIdx = _highlighted state
       nextIdx = if tempIdx > 0 then tempIdx - 1 else tempIdx
-      newInstance = createListView wctx ctx widgetInstance $ ListViewState nextIdx
+      newState = ListViewState nextIdx
+      newInstance = widgetInstance {
+        _instanceWidget = makeListView config newState items itemToText
+      }
 
     handleMessage wctx ctx message widgetInstance = fmap handleSelect (cast message) where
       handleSelect (ClickMessage idx) = selectItem wctx ctx widgetInstance idx
@@ -131,7 +121,10 @@ makeListView config state items itemToText = createContainer {
       selected = widgetValueGet (_wcApp wctx) (_lvValue config)
       value = fromMaybe selected (Seq.lookup idx items)
       requests = widgetValueSet (_lvValue config) value
-      newInstance = createListView wctx ctx widgetInstance $ ListViewState idx
+      newState = ListViewState idx
+      newInstance = widgetInstance {
+        _instanceWidget = makeListView config newState items itemToText
+      }
 
     preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
