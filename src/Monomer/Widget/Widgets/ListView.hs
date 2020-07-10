@@ -10,7 +10,7 @@ import Control.Monad
 import Data.Default
 import Data.Foldable (find)
 import Data.List (foldl')
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Traversable
@@ -48,9 +48,7 @@ newtype ListViewState = ListViewState {
   _highlighted :: Int
 }
 
-newtype ClickMessage = ClickMessage {
-  _clickedIndex :: Int
-} deriving Typeable
+newtype ListViewMessage = ClickMessage Int deriving Typeable
 
 listView :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 listView field items itemToText = listView_ config items itemToText where
@@ -109,24 +107,38 @@ makeListView config state items itemToText = createContainer {
     handleMessage wctx ctx message widgetInstance = fmap handleSelect (cast message) where
       handleSelect (ClickMessage idx) = selectItem wctx ctx widgetInstance idx
 
-    highlightItem wctx ctx widgetInstance nextIdx = Just $ _widgetMerge newWidget wctx ctx newInstance oldInstance where
+    highlightItem wctx ctx widgetInstance nextIdx = Just $ widgetResult { _resultRequests = requests } where
       newState = ListViewState nextIdx
       newWidget = makeListView config newState items itemToText
-      -- ListView's merge uses the old state. Since we want the newly create state, we replace the old widget
-      -- ListView's tree will be rebuilt in merge (before merging its children), so it does not matter what we currently have
+      -- ListView's merge uses the old widget's state. Since we want the newly created state, we the old widget is replaced here
       oldInstance = widgetInstance {
         _instanceWidget = newWidget
       }
+      -- ListView's tree will be rebuilt in merge, before merging its children, so it does not matter what we currently have
       newInstance = oldInstance
+      widgetResult = _widgetMerge newWidget wctx ctx newInstance oldInstance
+      scrollToReq = itemScrollTo ctx widgetInstance nextIdx
+      requests = Seq.fromList scrollToReq
 
     selectItem wctx ctx widgetInstance idx = resultReqs requests newInstance where
       selected = widgetValueGet (_wcApp wctx) (_lvValue config)
       value = fromMaybe selected (Seq.lookup idx items)
-      requests = widgetValueSet (_lvValue config) value
+      valueSetReq = widgetValueSet (_lvValue config) value
+      scrollToReq = itemScrollTo ctx widgetInstance idx
+      requests = valueSetReq ++ scrollToReq
       newState = ListViewState idx
       newInstance = widgetInstance {
         _instanceWidget = makeListView config newState items itemToText
       }
+
+    itemScrollTo ctx widgetInstance idx = maybeToList (fmap makeScrollReq renderArea) where
+      lookup idx inst = Seq.lookup idx (_instanceChildren inst)
+      renderArea = fmap _instanceRenderArea $ pure widgetInstance
+        >>= lookup 0 -- scroll
+        >>= lookup 0 -- vstack
+        >>= lookup idx -- item
+      scrollPath = currentPath $ childContext ctx
+      makeScrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
     preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs

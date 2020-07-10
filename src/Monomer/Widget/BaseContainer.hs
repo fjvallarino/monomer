@@ -139,7 +139,7 @@ containerNextFocusable ctx widgetInstance = nextFocus where
 containerFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
 containerFind path point widgetInstance = fmap (combinePath newPath point children) childIdx where
   children = _instanceChildren widgetInstance
-  pointInWidget wi = inRect (_instanceViewport wi) point
+  pointInWidget wi = pointInRect point (_instanceViewport wi)
   newPath = Seq.drop 1 path
   childIdx = case path of
     Empty -> Seq.findIndexL pointInWidget children
@@ -156,14 +156,19 @@ ignoreEvent wctx ctx evt widgetInstance = Nothing
 
 containerHandleEvent :: WidgetEventHandler s e m -> WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleEvent pHandler wctx ctx event widgetInstance
-  | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = pHandler wctx ctx event widgetInstance
-  | otherwise = mergeParentChildWidgetResults widgetInstance pResponse cResponse childIdx where
-      nextCtx = fromJust $ moveToTarget ctx
-      childIdx = fromJust $ nextTargetStep ctx
-      children = _instanceChildren widgetInstance
-      child = Seq.index children childIdx
-      pResponse = pHandler wctx ctx event widgetInstance
-      cResponse = _widgetHandleEvent (_instanceWidget child) wctx nextCtx event child
+  | targetReached || not targetValid = pHandler wctx ctx event widgetInstance
+  | otherwise = mergeParentChildWidgetResults widgetInstance pResponse cResponse childIdx
+  where
+    -- Having targetValid = False means the next path step is not in _instanceChildren, but may still be valid in the receiving widget
+    -- For instance, Composite has its own tree of child widgets with (possibly) different types for Model and Events, and is a candidate for the next step
+    targetValid = isTargetValid ctx children
+    targetReached = isTargetReached ctx
+    nextCtx = fromJust $ moveToTarget ctx
+    childIdx = fromJust $ nextTargetStep ctx
+    children = _instanceChildren widgetInstance
+    child = Seq.index children childIdx
+    pResponse = pHandler wctx ctx event widgetInstance
+    cResponse = _widgetHandleEvent (_instanceWidget child) wctx nextCtx event child
 
 mergeParentChildWidgetResults :: WidgetInstance s e -> Maybe (WidgetResult s e) -> Maybe (WidgetResult s e) -> Int -> Maybe (WidgetResult s e)
 mergeParentChildWidgetResults _ Nothing Nothing _ = Nothing

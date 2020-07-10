@@ -99,10 +99,10 @@ makeDropdown state field items itemToText overlayInstance = createWidget {
         | otherwise -> Nothing
 
     openRequired point widgetInstance = not isOpen && inViewport where
-      inViewport = inRect (_instanceViewport widgetInstance) point
+      inViewport = pointInRect point (_instanceViewport widgetInstance)
 
     closeRequired point widgetInstance = isOpen && not inOverlay where
-      inOverlay = inRect (_instanceViewport overlayInstance) point
+      inOverlay = pointInRect point (_instanceViewport overlayInstance)
 
     handleOpenDropdown wctx ctx = Just $ resultReqs requests newInstance where
       selected = _wcApp wctx ^. field
@@ -189,6 +189,3 @@ convertWidgetContext wctx = WidgetContext {
   _wcInputStatus = _wcInputStatus wctx,
   _wcTimestamp = _wcTimestamp wctx
 }
-
-childContext :: PathContext -> PathContext
-childContext ctx = addToCurrent ctx 0

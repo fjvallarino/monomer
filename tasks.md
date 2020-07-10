@@ -109,27 +109,29 @@
     - Request scroll when needed
     - Validate Maybe values are supported
     - Create nullable version which takes care of fmapping traversable with Just
+  - Change order of parameters. We should always pass _old_ before _new_
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
   - Should Resize be restored?
-  - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
-  - Improve textField
-    - Add text selection/editing to textField
-    - Find non visible character that returns correct height if input is empty
-  - Request text input when text field gets focus (required for mobile)
   - Add testing
     - Delayed until this point to try to settle down interfaces
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is also needed for _widgetPreferredSize and _widgetResize
+    - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
   - Create Checkbox
   - Create Radio
   - Create Slider
   - Create Dial
-  - Create Color Selector
+  - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
+  - Improve textField
+    - Add text selection/editing to textField
+    - Find non visible character that returns correct height if input is empty
+  - Request text input when text field gets focus (required for mobile)
   - Create Dialog
   - Create File Selector
+  - Create Color Selector
   - Create Layout with width/heights specified in percents
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)

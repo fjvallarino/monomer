@@ -13,12 +13,16 @@ import Monomer.Common.Tree (Path, PathStep)
 
 data PathContext = PathContext {
   _pathFocused :: Path,
+--  _pathStart :: Path,
   _pathTarget :: Path,
   _pathCurrent :: Path
 } deriving (Show, Eq)
 
 rootPath :: Path
 rootPath = Seq.empty
+
+childContext :: PathContext -> PathContext
+childContext ctx = addToCurrent ctx 0
 
 nextTargetStep :: PathContext -> Maybe PathStep
 nextTargetStep PathContext{..} = Seq.lookup (Seq.length _pathCurrent) _pathTarget

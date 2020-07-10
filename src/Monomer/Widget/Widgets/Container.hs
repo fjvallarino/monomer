@@ -72,5 +72,5 @@ makeContainer config = createContainer {
       when (isJust (_ctBgColor config)) $
         drawRect renderer viewport (_ctBgColor config) Nothing
 
-      when (inRect viewport point && isJust (_ctHoverColor config)) $
+      when (pointInRect point viewport && isJust (_ctHoverColor config)) $
         drawRect renderer viewport (_ctHoverColor config) Nothing

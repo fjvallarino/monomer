@@ -280,9 +280,6 @@ compositeRender CompositeState{..} renderer wctx ctx _ = _widgetRender widget re
   cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
   cctx = childContext ctx
 
-childContext :: PathContext -> PathContext
-childContext ctx = addToCurrent ctx 0
-
 collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
 collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs where
   children = _instanceChildren widgetInstance
