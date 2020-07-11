@@ -100,11 +100,10 @@
     - Mouse over on overlapping axis gives precedence to vertical scroll
   - Keep sending mouse move event if mouse is away but button is still pressed
     - Handle mouse enter/leave window events
+  - Add support for scroll requests from children
 
 - Pending
-  - Add support for scroll requests from children
   - Improve Dropdown
-    - Create self rendered version
     - Expose customizable interface
     - Request scroll when needed
     - Validate Maybe values are supported
@@ -114,12 +113,16 @@
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
   - Should Resize be restored?
-  - Add testing
-    - Delayed until this point to try to settle down interfaces
-  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is also needed for _widgetPreferredSize and _widgetResize
     - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
+  - Add testing
+    - Delayed until this point to try to settle down interfaces
+  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
+  - Add header in all files, indicating license and documenting what the module does
+  - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
+  - Add support for dashed borders
+  - Create self rendered version of dropdown and list
   - Create Checkbox
   - Create Radio
   - Create Slider
