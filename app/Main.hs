@@ -129,3 +129,12 @@ buildUI model = widgetTree where
 buildUI2 model = widgetTree where
   widgetTree = scroll $ vgrid items
   items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft
+
+buildUI3 model = widgetTree where
+  widgetTree = vgrid [
+      dropdown textField1 itemsDropdown id
+      --, spacer
+      --, spacer
+    ]
+  itemsDropdown = fmap dropdownText [1..100::Int]
+  dropdownText i = "Dropdown " <> showt i

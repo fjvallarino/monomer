@@ -134,7 +134,6 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
 
     handleMessage wctx ctx message widgetInstance = cast message >>= handleScrollMessage where
       handleScrollMessage (ScrollTo rect) = scrollTo wctx widgetInstance rect
-      --rebuildWidget wctx newState widgetInstance prevReqs
 
     scrollTo wctx widgetInstance rect
       | rectInRect rect viewport = Nothing

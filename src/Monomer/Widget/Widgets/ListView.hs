@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Monomer.Widget.Widgets.ListView (listView) where
+module Monomer.Widget.Widgets.ListView (ListViewConfig(..), listView, listView_) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~))
@@ -40,7 +40,7 @@ import Monomer.Widget.Widgets.Stack
 
 data ListViewConfig s e a = ListViewConfig {
   _lvValue :: WidgetValue s a,
-  _lvOnChange :: [e],
+  _lvOnChange :: [Int -> a -> e],
   _lvOnChangeReq :: [WidgetRequest s]
 }
 
@@ -55,9 +55,9 @@ listView field items itemToText = listView_ config items itemToText where
   config = ListViewConfig (WidgetLens field) [] []
 
 listView_ :: (Traversable t, Eq a) => ListViewConfig s e a -> t a -> (a -> Text) -> WidgetInstance s e
-listView_ config items itemToText = makeInstance (makeListView config newStatus newItems itemToText) where
+listView_ config items itemToText = makeInstance (makeListView config newState newItems itemToText) where
   newItems = foldl' (|>) Empty items
-  newStatus = ListViewState 0
+  newState = ListViewState 0
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "listView" widget) {
@@ -110,7 +110,7 @@ makeListView config state items itemToText = createContainer {
     highlightItem wctx ctx widgetInstance nextIdx = Just $ widgetResult { _resultRequests = requests } where
       newState = ListViewState nextIdx
       newWidget = makeListView config newState items itemToText
-      -- ListView's merge uses the old widget's state. Since we want the newly created state, we the old widget is replaced here
+      -- ListView's merge uses the old widget's state. Since we want the newly created state, the old widget is replaced here
       oldInstance = widgetInstance {
         _instanceWidget = newWidget
       }

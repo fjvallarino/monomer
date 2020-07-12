@@ -108,6 +108,7 @@
     - Request scroll when needed
     - Validate Maybe values are supported
     - Create nullable version which takes care of fmapping traversable with Just
+  - Check why vstack fails when using [spacer, listView]
   - Change order of parameters. We should always pass _old_ before _new_
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
