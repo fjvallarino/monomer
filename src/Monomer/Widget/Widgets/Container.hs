@@ -50,7 +50,7 @@ makeContainer config = createContainer {
   where
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click point btn status -> result where
-        isPressed = status == PressedBtn && btn == LeftBtn
+        isPressed = status == ReleasedBtn && btn == LeftBtn
         events = _ctOnClick config
         requests = _ctOnClickReq config
         result = if isPressed && not (null events && null requests)

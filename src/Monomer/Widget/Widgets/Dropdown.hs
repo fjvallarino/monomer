@@ -15,6 +15,7 @@ import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Traversable
+import Data.Typeable (Typeable, cast)
 
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
@@ -36,13 +37,15 @@ import Monomer.Widget.Widgets.ListView
 
 data DropdownConfig s e a = DropdownConfig {
   _ddValue :: WidgetValue s a,
-  _ddOnChange :: [e],
+  _ddOnChange :: [a -> e],
   _ddOnChangeReq :: [WidgetRequest s]
 }
 
 newtype DropdownState = DropdownState {
   _isOpen :: Bool
 }
+
+newtype DropdownMessage = OnChangeMessage Int deriving Typeable
 
 dropdown :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 dropdown field items itemToText = dropdown_ config items itemToText where
@@ -64,6 +67,7 @@ makeDropdown config state items itemToText = createContainer {
     _widgetGetState = getState,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
+    _widgetHandleMessage = containerHandleMessage handleMessage,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize,
     _widgetRender = render
@@ -76,7 +80,7 @@ makeDropdown config state items itemToText = createContainer {
       selected = currentValue wctx
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState items itemToText,
-        _instanceChildren = Seq.singleton $ makeListView items selected itemToText
+        _instanceChildren = Seq.singleton $ makeListView ctx items selected itemToText
       }
 
     init wctx ctx widgetInstance = resultWidget $ createDropdown wctx ctx state widgetInstance
@@ -123,7 +127,17 @@ makeDropdown config state items itemToText = createContainer {
       }
       requests = [ResetOverlay]
 
-    dropdownLabel wctx = itemToText $ currentValue wctx
+    handleMessage wctx ctx message widgetInstance = cast message
+      >>= \(OnChangeMessage idx) -> Seq.lookup idx items
+      >>= \value -> Just $ handleOnChange idx value widgetInstance
+
+    handleOnChange idx item widgetInstance = resultReqsEvents reqs events newInstance where
+      reqs = ResetOverlay : widgetValueSet (_ddValue config) item
+      events = fmap ($ item) (_ddOnChange config)
+      newState = DropdownState False
+      newInstance = widgetInstance {
+        _instanceWidget = makeDropdown config newState items itemToText
+      }
 
     preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       Style{..} = _instanceStyle widgetInstance
@@ -153,10 +167,13 @@ makeDropdown config state items itemToText = createContainer {
     renderOverlay renderer wctx ctx overlayInstance = renderAction where
       renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wctx (childContext ctx) overlayInstance
 
-makeListView :: (Eq a) => Seq a -> a -> (a -> Text) -> WidgetInstance s e
-makeListView items selected itemToText = listView_ lvConfig items itemToText where
+    dropdownLabel wctx = itemToText $ currentValue wctx
+
+makeListView :: (Eq a) => PathContext -> Seq a -> a -> (a -> Text) -> WidgetInstance s e
+makeListView ctx items selected itemToText = listView_ lvConfig items itemToText where
+  path = _pathCurrent ctx
   lvConfig = ListViewConfig {
     _lvValue = WidgetValue selected,
     _lvOnChange = [],
-    _lvOnChangeReq = []
+    _lvOnChangeReq = [SendMessage path . OnChangeMessage]
   }

@@ -41,14 +41,14 @@ import Monomer.Widget.Widgets.Stack
 data ListViewConfig s e a = ListViewConfig {
   _lvValue :: WidgetValue s a,
   _lvOnChange :: [Int -> a -> e],
-  _lvOnChangeReq :: [WidgetRequest s]
+  _lvOnChangeReq :: [Int -> WidgetRequest s]
 }
 
 newtype ListViewState = ListViewState {
   _highlighted :: Int
 }
 
-newtype ListViewMessage = ClickMessage Int deriving Typeable
+newtype ListViewMessage = OnClickMessage Int deriving Typeable
 
 listView :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 listView field items itemToText = listView_ config items itemToText where
@@ -108,7 +108,7 @@ makeListView config state items itemToText = createContainer {
       nextIdx = if tempIdx > 0 then tempIdx - 1 else tempIdx
 
     handleMessage wctx ctx message widgetInstance = fmap handleSelect (cast message) where
-      handleSelect (ClickMessage idx) = selectItem wctx ctx widgetInstance idx
+      handleSelect (OnClickMessage idx) = selectItem wctx ctx widgetInstance idx
 
     highlightItem wctx ctx widgetInstance nextIdx = Just $ widgetResult { _resultRequests = requests } where
       newState = ListViewState nextIdx
@@ -128,7 +128,8 @@ makeListView config state items itemToText = createContainer {
       value = fromMaybe selected (Seq.lookup idx items)
       valueSetReq = widgetValueSet (_lvValue config) value
       scrollToReq = itemScrollTo ctx widgetInstance idx
-      requests = valueSetReq ++ scrollToReq
+      changeReqs = fmap ($ idx) (_lvOnChangeReq config)
+      requests = valueSetReq ++ scrollToReq ++ changeReqs
       newState = ListViewState idx
       newInstance = widgetInstance {
         _instanceWidget = makeListView config newState items itemToText
@@ -160,7 +161,7 @@ makeItemsList ctx items selected highlightedIdx itemToText = makeItemsList where
   makeItemsList = vstack $ fmap (uncurry makeItem) pairs
   makeItem idx item = container (config idx item) $ label (itemToText item)
   config idx item = def {
-    _ctOnClickReq = [SendMessage path (ClickMessage idx)],
+    _ctOnClickReq = [SendMessage path (OnClickMessage idx)],
     _ctBgColor = highlightedColor idx <|> selectedColor item,
     _ctHoverColor = Just lightGray
   }
