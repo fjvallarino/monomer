@@ -40,7 +40,7 @@ import Monomer.Widget.Util
 type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
 
 type WidgetInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
-type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
+type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
 type WidgetEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
@@ -67,14 +67,14 @@ defaultInit _ _ widgetInstance = resultWidget widgetInstance
 
 containerInit :: WidgetInitHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
 containerInit initHandler wctx ctx widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
-  children = _instanceChildren widgetInstance
+  WidgetResult reqs events tempInstance = initHandler wctx ctx widgetInstance
+  children = _instanceChildren tempInstance
   indexes = Seq.fromList [0..length children]
   zipper idx child = _widgetInit (_instanceWidget child) wctx (addToCurrent ctx idx) child
   results = Seq.zipWith zipper indexes children
   newReqs = fold $ fmap _resultRequests results
   newEvents = fold $ fmap _resultEvents results
   newChildren = fmap _resultWidget results
-  WidgetResult reqs events tempInstance = initHandler wctx ctx widgetInstance
   newInstance = tempInstance {
     _instanceChildren = newChildren
   }
@@ -85,12 +85,12 @@ ignoreGetState _ = Nothing
 
 -- | Merging
 ignoreOldInstance :: WidgetMergeHandler s e
-ignoreOldInstance wctx ctx state newInstance = newInstance
+ignoreOldInstance wctx ctx state newInstance = resultWidget newInstance
 
 containerMergeTrees :: WidgetMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-containerMergeTrees mergeWidgetState wctx ctx newInstance oldInstance = result where
+containerMergeTrees mergeHandler wctx ctx newInstance oldInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
-  updatedInstance = mergeWidgetState wctx ctx oldState newInstance
+  WidgetResult uReqs uEvents updatedInstance = mergeHandler wctx ctx oldState newInstance
   oldChildren = _instanceChildren oldInstance
   newChildren = _instanceChildren updatedInstance
   indexes = Seq.fromList [0..length newChildren]
@@ -103,7 +103,7 @@ containerMergeTrees mergeWidgetState wctx ctx newInstance oldInstance = result w
   mergedInstance = updatedInstance {
     _instanceChildren = mergedChildren
   }
-  result = WidgetResult mergedReqs mergedEvents mergedInstance
+  result = WidgetResult (uReqs <> mergedReqs) (uEvents <> mergedEvents) mergedInstance
 
 mergeChildren :: WidgetContext s e -> Seq (PathContext, WidgetInstance s e) -> Seq (WidgetInstance s e) -> Seq (WidgetResult s e)
 mergeChildren _ Empty _ = Empty

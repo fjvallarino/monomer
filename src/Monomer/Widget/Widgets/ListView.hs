@@ -75,18 +75,21 @@ makeListView config state items itemToText = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    createListView wctx ctx newState = newInstance where
-      selected = widgetValueGet (_wcApp wctx) (_lvValue config)
+    currentValue wctx = widgetValueGet (_wcApp wctx) (_lvValue config)
+
+    createListView wctx ctx newState widgetInstance = newInstance where
+      selected = currentValue wctx
       itemsList = makeItemsList ctx items selected (_highlighted newState) itemToText
-      newInstance = (makeInstance $ makeListView config newState items itemToText) {
+      newInstance = widgetInstance {
+        _instanceWidget = makeListView config newState items itemToText,
         _instanceChildren = Seq.singleton (scroll itemsList)
       }
 
-    init wctx ctx widgetInstance = resultWidget $ createListView wctx ctx state
+    init wctx ctx widgetInstance = resultWidget $ createListView wctx ctx state widgetInstance
 
     getState = makeState state
 
-    merge wctx ctx oldState newInstance = createListView wctx ctx newState where
+    merge wctx ctx oldState newInstance = resultWidget $ createListView wctx ctx newState newInstance where
       newState = fromMaybe state (useState oldState)
 
     handleEvent wctx ctx evt widgetInstance = case evt of
@@ -121,7 +124,7 @@ makeListView config state items itemToText = createContainer {
       requests = Seq.fromList scrollToReq
 
     selectItem wctx ctx widgetInstance idx = resultReqs requests newInstance where
-      selected = widgetValueGet (_wcApp wctx) (_lvValue config)
+      selected = currentValue wctx
       value = fromMaybe selected (Seq.lookup idx items)
       valueSetReq = widgetValueSet (_lvValue config) value
       scrollToReq = itemScrollTo ctx widgetInstance idx

@@ -81,7 +81,7 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
 
     getState = makeState state
 
-    merge wctx ctx oldState widgetInstance = newInstance where
+    merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
       newInstance = widgetInstance {
         _instanceWidget = makeScroll newState

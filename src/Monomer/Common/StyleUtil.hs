@@ -13,7 +13,7 @@ color :: Color -> Style
 color color = mempty { _styleColor = Just color }
 
 hover :: Color -> Style
-hover color = mempty { _styleColor = Just color }
+hover color = mempty { _styleHover = Just color }
 
 margin :: Double -> Style
 margin mar = mempty {

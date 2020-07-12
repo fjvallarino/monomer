@@ -137,9 +137,11 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
   textBounds _ _ "" = def
   textBounds font fontSize message = unsafePerformIO $ do
+    let text = if message == "" then " " else message
+
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac fontSize
-    VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 message
+    VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 

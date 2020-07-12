@@ -5,8 +5,6 @@
 
 module Monomer.Widget.Widgets.Dropdown (dropdown) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~))
 import Control.Monad
@@ -62,40 +60,41 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 
 makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Seq a -> (a -> Text) -> Widget s e
 makeDropdown config state items itemToText = createContainer {
-    _widgetInit = init,
+    _widgetInit = containerInit init,
     _widgetGetState = getState,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize,
-    _widgetRender = containerRender render
+    _widgetRender = render
   }
   where
     isOpen = _isOpen state
     currentValue wctx = widgetValueGet (_wcApp wctx) (_ddValue config)
 
-    createDropdown wctx ctx newState = newInstance where
+    createDropdown wctx ctx newState widgetInstance = newInstance where
       selected = currentValue wctx
-      newInstance = (makeInstance $ makeDropdown config newState items itemToText) {
+      newInstance = widgetInstance {
+        _instanceWidget = makeDropdown config newState items itemToText,
         _instanceChildren = Seq.singleton $ makeListView items selected itemToText
       }
 
-    init wctx ctx widgetInstance = resultWidget $ createDropdown wctx ctx state
+    init wctx ctx widgetInstance = resultWidget $ createDropdown wctx ctx state widgetInstance
 
     getState = makeState state
 
-    merge wctx ctx oldState newInstance = createDropdown wctx ctx newState where
+    merge wctx ctx oldState newInstance = resultWidget $ createDropdown wctx ctx newState newInstance where
       newState = fromMaybe state (useState oldState)
 
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click p@(Point x y) _ status
-        | clicked && openRequired p widgetInstance -> handleOpenDropdown wctx ctx
-        | clicked && closeRequired p widgetInstance -> handleCloseDropdown wctx ctx
+      Click point _ status
+        | clicked && openRequired point widgetInstance -> handleOpenDropdown wctx ctx widgetInstance
+        | clicked && closeRequired point widgetInstance -> handleCloseDropdown wctx ctx widgetInstance
         where
           clicked = status == PressedBtn
       KeyAction mode code status
-        | isKeyDown code && not isOpen -> handleOpenDropdown wctx ctx
-        | isKeyEsc code && isOpen -> handleCloseDropdown wctx ctx
+        | isKeyDown code && not isOpen -> handleOpenDropdown wctx ctx widgetInstance
+        | isKeyEsc code && isOpen -> handleCloseDropdown wctx ctx widgetInstance
       _
         | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] widgetInstance
         | otherwise -> Nothing
@@ -108,21 +107,26 @@ makeDropdown config state items itemToText = createContainer {
         Just inst -> pointInRect point (_instanceViewport inst)
         Nothing -> False
 
-    handleOpenDropdown wctx ctx = Just $ resultReqs requests newInstance where
+    handleOpenDropdown wctx ctx widgetInstance = Just $ resultReqs requests newInstance where
       selected = currentValue wctx
       selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
-      newInstance = createDropdown wctx ctx $ DropdownState True
+      newState = DropdownState True
+      newInstance = widgetInstance {
+        _instanceWidget = makeDropdown config newState items itemToText
+      }
       requests = [SetOverlay $ _pathCurrent ctx]
 
-    handleCloseDropdown wctx ctx = Just $ resultReqs requests newInstance where
-      newInstance = createDropdown wctx ctx $ DropdownState False
+    handleCloseDropdown wctx ctx widgetInstance = Just $ resultReqs requests newInstance where
+      newState = DropdownState False
+      newInstance = widgetInstance {
+        _instanceWidget = makeDropdown config newState items itemToText
+      }
       requests = [ResetOverlay]
 
-    dropdownLabel wctx = if value == "" then " " else value where
-      value = itemToText $ currentValue wctx
+    dropdownLabel wctx = itemToText $ currentValue wctx
 
     preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
-      Style{..} = def _instanceStyle widgetInstance
+      Style{..} = _instanceStyle widgetInstance
       size = calcTextBounds renderer _styleText (dropdownLabel wctx)
       sizeReq = SizeReq size FlexibleSize StrictSize
       childrenReqs = fmap snd childrenPairs
@@ -147,7 +151,7 @@ makeDropdown config state items itemToText = createContainer {
         listViewOverlay = Seq.lookup 0 _instanceChildren
 
     renderOverlay renderer wctx ctx overlayInstance = renderAction where
-      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wctx ctx overlayInstance
+      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wctx (childContext ctx) overlayInstance
 
 makeListView :: (Eq a) => Seq a -> a -> (a -> Text) -> WidgetInstance s e
 makeListView items selected itemToText = listView_ lvConfig items itemToText where

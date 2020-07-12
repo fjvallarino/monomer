@@ -122,7 +122,7 @@ handleAppEvent app evt = traceShow app $
     IncreaseMessage -> Model (app & msgCount %~ (+1))
     UpdateText txt -> Model (app & textField1 .~ txt)
 
-buildUI model = widgetTree where
+buildUI1 model = widgetTree where
   widgetTree = listView textField1 items id
   items = fmap showt [1..100::Int]
 
@@ -130,11 +130,11 @@ buildUI2 model = widgetTree where
   widgetTree = scroll $ vgrid items
   items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft
 
-buildUI3 model = widgetTree where
+buildUI model = widgetTree where
   widgetTree = vgrid [
-      dropdown textField1 itemsDropdown id
-      --, spacer
-      --, spacer
+      dropdown textField1 itemsDropdown id `style` color red
+      , spacer
+      , spacer
     ]
   itemsDropdown = fmap dropdownText [1..100::Int]
   dropdownText i = "Dropdown " <> showt i
