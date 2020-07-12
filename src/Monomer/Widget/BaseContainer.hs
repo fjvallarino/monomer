@@ -43,7 +43,7 @@ type WidgetInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance 
 type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetInstance s e
 type WidgetEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type WidgetMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
+type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
 type WidgetResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
 type WidgetRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 
@@ -203,7 +203,7 @@ containerHandleMessage mHandler wctx ctx arg widgetInstance
 
 -- | Preferred size
 defaultPreferredSize :: WidgetPreferredSizeHandler s e m
-defaultPreferredSize renderer app childrenPairs = Node current childrenReqs where
+defaultPreferredSize renderer app widgetInstance childrenPairs = Node current childrenReqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
     _sizePolicyWidth = FlexibleSize,
@@ -212,7 +212,7 @@ defaultPreferredSize renderer app childrenPairs = Node current childrenReqs wher
   childrenReqs = fmap snd childrenPairs
 
 containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
-containerPreferredSize psHandler renderer wctx widgetInstance = psHandler renderer wctx (Seq.zip children childrenReqs) where
+containerPreferredSize psHandler renderer wctx widgetInstance = psHandler renderer wctx widgetInstance (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
   childrenReqs = fmap updateChild children
   updateChild child = Node (updateSizeReq req child) reqs where

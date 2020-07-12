@@ -176,7 +176,7 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
       tempInstance = widgetInstance { _instanceWidget = newWidget }
       newInstance = scrollResize (Just newWidget) wctx (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
 
-    preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
+    preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
 

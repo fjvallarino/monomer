@@ -140,7 +140,7 @@ makeListView config state items itemToText = createContainer {
       scrollPath = currentPath $ childContext ctx
       makeScrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-    preferredSize renderer wctx childrenPairs = Node sizeReq childrenReqs where
+    preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = nodeValue $ Seq.index childrenReqs 0
 
