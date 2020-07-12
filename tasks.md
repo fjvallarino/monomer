@@ -110,6 +110,7 @@
     - Create nullable version which takes care of fmapping traversable with Just
   - Check why vstack fails when using [spacer, listView]
   - Remove status from Click event. Add ButtonPressed and ButtonReleased events
+  - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Change order of parameters. We should always pass _old_ before _new_
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally

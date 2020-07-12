@@ -92,13 +92,13 @@ makeDropdown config state items itemToText = createContainer {
 
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click point _ status
-        | clicked && openRequired point widgetInstance -> handleOpenDropdown wctx ctx widgetInstance
-        | clicked && closeRequired point widgetInstance -> handleCloseDropdown wctx ctx widgetInstance
+        | clicked && openRequired point widgetInstance -> Just $ handleOpenDropdown wctx ctx widgetInstance
+        | clicked && closeRequired point widgetInstance -> Just $ handleCloseDropdown wctx ctx widgetInstance
         where
           clicked = status == PressedBtn
       KeyAction mode code status
-        | isKeyDown code && not isOpen -> handleOpenDropdown wctx ctx widgetInstance
-        | isKeyEsc code && isOpen -> handleCloseDropdown wctx ctx widgetInstance
+        | isKeyDown code && not isOpen -> Just $ handleOpenDropdown wctx ctx widgetInstance
+        | isKeyEsc code && isOpen -> Just $ handleCloseDropdown wctx ctx widgetInstance
       _
         | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] widgetInstance
         | otherwise -> Nothing
@@ -111,33 +111,31 @@ makeDropdown config state items itemToText = createContainer {
         Just inst -> pointInRect point (_instanceViewport inst)
         Nothing -> False
 
-    handleOpenDropdown wctx ctx widgetInstance = Just $ resultReqs requests newInstance where
+    handleOpenDropdown wctx ctx widgetInstance = resultReqs requests newInstance where
       selected = currentValue wctx
       selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
       newState = DropdownState True
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState items itemToText
       }
-      requests = [SetOverlay $ _pathCurrent ctx]
+      lvPath = currentPath (childContext ctx)
+      requests = [SetOverlay (currentPath ctx), SetFocus lvPath]
 
-    handleCloseDropdown wctx ctx widgetInstance = Just $ resultReqs requests newInstance where
+    handleCloseDropdown wctx ctx widgetInstance = resultReqs requests newInstance where
       newState = DropdownState False
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState items itemToText
       }
-      requests = [ResetOverlay]
+      requests = [ResetOverlay, SetFocus (currentPath ctx)]
 
     handleMessage wctx ctx message widgetInstance = cast message
       >>= \(OnChangeMessage idx) -> Seq.lookup idx items
-      >>= \value -> Just $ handleOnChange idx value widgetInstance
+      >>= \value -> Just $ handleOnChange wctx ctx idx value widgetInstance
 
-    handleOnChange idx item widgetInstance = resultReqsEvents reqs events newInstance where
-      reqs = ResetOverlay : widgetValueSet (_ddValue config) item
-      events = fmap ($ item) (_ddOnChange config)
-      newState = DropdownState False
-      newInstance = widgetInstance {
-        _instanceWidget = makeDropdown config newState items itemToText
-      }
+    handleOnChange wctx ctx idx item widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
+      WidgetResult reqs events newInstance = handleCloseDropdown wctx ctx widgetInstance
+      newReqs = Seq.fromList $ widgetValueSet (_ddValue config) item
+      newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
 
     preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       Style{..} = _instanceStyle widgetInstance

@@ -51,7 +51,7 @@ createEventContext latestPressed activeOverlay currentFocus currentTarget system
     pathEvent = Just . makePathCtx
     findStartPath = fromMaybe rootPath activeOverlay
     pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) findStartPath point widgetRoot
-    pointEvent point = makePathCtx <$> (latestPressed <|> pathFromPoint point)
+    pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetContext s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
