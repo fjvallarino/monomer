@@ -43,20 +43,21 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
 
 makeTextField :: Lens' s Text -> TextFieldState -> Widget s e
 makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
-    _widgetInit = initTextField,
-    _widgetGetState = getState,
+    _widgetInit = init,
+    _widgetGetState = makeState tfs,
     _widgetMerge = widgetMerge merge,
-
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
   where
-    initTextField wctx ctx widgetInstance = resultWidget newInstance where
+    (part1, part2) = T.splitAt currPos currText
+
+    init wctx ctx widgetInstance = resultWidget newInstance where
       app = _wcApp wctx
       newState = TextFieldState (app ^. userField) 0
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
-    getState = makeState tfs
+
     merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       app = _wcApp wctx
       TextFieldState txt pos = fromMaybe emptyState (useState oldState)
@@ -67,7 +68,6 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         _instanceWidget = makeTextField userField newState
       }
 
-    (part1, part2) = T.splitAt currPos currText
     handleKeyPress txt tp code
         | isKeyBackspace code && tp > 0 = (T.append (T.init part1) part2, tp - 1)
         | isKeyLeft code && tp > 0 = (txt, tp - 1)

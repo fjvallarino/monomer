@@ -64,7 +64,7 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Seq a -> (a -> Text) -> Widget s e
 makeDropdown config state items itemToText = createContainer {
     _widgetInit = containerInit init,
-    _widgetGetState = getState,
+    _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetHandleMessage = containerHandleMessage handleMessage,
@@ -84,8 +84,6 @@ makeDropdown config state items itemToText = createContainer {
       }
 
     init wctx ctx widgetInstance = resultWidget $ createDropdown wctx ctx state widgetInstance
-
-    getState = makeState state
 
     merge wctx ctx oldState newInstance = resultWidget $ createDropdown wctx ctx newState newInstance where
       newState = fromMaybe state (useState oldState)

@@ -67,7 +67,7 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Seq a -> (a -> Text) -> Widget s e
 makeListView config state items itemToText = createContainer {
     _widgetInit = init,
-    _widgetGetState = getState,
+    _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetHandleMessage = containerHandleMessage handleMessage,
@@ -86,8 +86,6 @@ makeListView config state items itemToText = createContainer {
       }
 
     init wctx ctx widgetInstance = resultWidget $ createListView wctx ctx state widgetInstance
-
-    getState = makeState state
 
     merge wctx ctx oldState newInstance = resultWidget $ createListView wctx ctx newState newInstance where
       newState = fromMaybe state (useState oldState)

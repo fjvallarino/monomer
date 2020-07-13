@@ -68,7 +68,7 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 
 makeScroll :: ScrollState -> Widget s e
 makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
-    _widgetGetState = getState,
+    _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetHandleMessage = containerHandleMessage handleMessage,
@@ -78,8 +78,6 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
   }
   where
     Size childWidth childHeight = cs
-
-    getState = makeState state
 
     merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)

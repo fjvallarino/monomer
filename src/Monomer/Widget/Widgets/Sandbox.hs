@@ -32,7 +32,7 @@ makeInstance widget = defaultWidgetInstance "sandbox" widget
 
 makeSandbox :: e -> SandboxState -> Widget s e
 makeSandbox onClick state = createWidget {
-    _widgetGetState = getState,
+    _widgetGetState = makeState state,
     _widgetMerge = widgetMerge merge,
     _widgetHandleEvent = handleEvent,
     _widgetHandleMessage = handleMessage,
@@ -42,7 +42,6 @@ makeSandbox onClick state = createWidget {
   where
     label = "Sandbox: " ++ show (_clickCount state)
 
-    getState = makeState state
     merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
       newInstance = widgetInstance {
