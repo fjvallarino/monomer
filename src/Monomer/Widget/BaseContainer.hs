@@ -168,7 +168,9 @@ containerHandleEvent pHandler wctx ctx event widgetInstance
     children = _instanceChildren widgetInstance
     child = Seq.index children childIdx
     pResponse = pHandler wctx ctx event widgetInstance
-    cResponse = _widgetHandleEvent (_instanceWidget child) wctx nextCtx event child
+    cResponse = if isJust pResponse && ignoreChildren (fromJust pResponse)
+                  then Nothing
+                  else _widgetHandleEvent (_instanceWidget child) wctx nextCtx event child
 
 mergeParentChildWidgetResults :: WidgetInstance s e -> Maybe (WidgetResult s e) -> Maybe (WidgetResult s e) -> Int -> Maybe (WidgetResult s e)
 mergeParentChildWidgetResults _ Nothing Nothing _ = Nothing

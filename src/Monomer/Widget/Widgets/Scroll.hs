@@ -91,18 +91,19 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
       Click point btn status -> result where
         isLeftPressed = status == PressedBtn && btn == LeftBtn
         isButtonReleased = status == ReleasedBtn
-        newState = if | isLeftPressed && hMouseInThumb -> state { _scDragging = Just HBar }
-                      | isLeftPressed && vMouseInThumb -> state { _scDragging = Just VBar }
-                      | isLeftPressed && hMouseInScroll -> updateScrollThumb state HBar point viewport sctx
-                      | isLeftPressed && vMouseInScroll -> updateScrollThumb state VBar point viewport sctx
+        isDragging = isJust $ _scDragging state
+        newState = if | isLeftPressed && hMouseInThumb && not isDragging -> state { _scDragging = Just HBar }
+                      | isLeftPressed && vMouseInThumb && not isDragging -> state { _scDragging = Just VBar }
+                      | isButtonReleased && hMouseInScroll && not isDragging -> updateScrollThumb state HBar point viewport sctx
+                      | isButtonReleased && vMouseInScroll && not isDragging -> updateScrollThumb state VBar point viewport sctx
                       | isButtonReleased -> state { _scDragging = Nothing }
                       | otherwise -> state
         newInstance = widgetInstance {
           _instanceWidget = makeScroll newState
         }
         result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
-                    | isLeftPressed && (hMouseInScroll || vMouseInScroll) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
-                    | isButtonReleased && isJust (_scDragging state) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
+                    | isButtonReleased && (hMouseInScroll || vMouseInScroll) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
+                    | isButtonReleased && isDragging -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
                     | otherwise -> Nothing
       Move point -> result where
         updatedState = fmap (\dg -> updateScrollThumb state dg point viewport sctx) dragging

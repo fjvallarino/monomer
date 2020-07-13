@@ -132,10 +132,10 @@ buildUI2 model = widgetTree where
 
 buildUI model = widgetTree where
   widgetTree = vstack [
-      dropdown textField1 itemsDropdown id `style` color red,
-      label "Yes!" `style` color green,
-      spacer,
-      listView textField1 items id `style` height 100,
+      --dropdown textField1 itemsDropdown id `style` color red,
+      --label "Yes!" `style` color green,
+      --spacer,
+      listView textField1 items id,
       spacer
     ]
   items = fmap showt [1..100::Int]
