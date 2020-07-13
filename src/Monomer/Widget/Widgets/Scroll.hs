@@ -100,9 +100,9 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
         newInstance = widgetInstance {
           _instanceWidget = makeScroll newState
         }
-        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> Just $ resultWidget newInstance
-                    | isLeftPressed && (hMouseInScroll || vMouseInScroll) -> Just $ resultWidget newInstance
-                    | isButtonReleased && isJust (_scDragging state) -> Just $ resultWidget newInstance
+        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
+                    | isLeftPressed && (hMouseInScroll || vMouseInScroll) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
+                    | isButtonReleased && isJust (_scDragging state) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
                     | otherwise -> Nothing
       Move point -> result where
         updatedState = fmap (\dg -> updateScrollThumb state dg point viewport sctx) dragging

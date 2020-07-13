@@ -131,10 +131,13 @@ buildUI2 model = widgetTree where
   items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft
 
 buildUI model = widgetTree where
-  widgetTree = vgrid [
-      dropdown textField1 itemsDropdown id `style` color red
-      , spacer
-      , spacer
+  widgetTree = vstack [
+      dropdown textField1 itemsDropdown id `style` color red,
+      label "Yes!" `style` color green,
+      spacer,
+      listView textField1 items id `style` height 100,
+      spacer
     ]
+  items = fmap showt [1..100::Int]
   itemsDropdown = fmap dropdownText [1..100::Int]
   dropdownText i = "Dropdown " <> showt i

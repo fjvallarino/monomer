@@ -170,7 +170,7 @@ instance Monoid Radius where
   mempty = def
 
 data TextStyle = TextStyle {
-  _textStyleFont :: Maybe String,
+  _textStyleFont :: Maybe Font,
   _textStyleFontSize :: Maybe Double,
   _textStyleColor :: Maybe Color,
   _textStyleHover :: Maybe Color,

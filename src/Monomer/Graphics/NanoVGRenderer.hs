@@ -135,7 +135,6 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
     return $ Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
 
-  textBounds _ _ "" = def
   textBounds font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
 

@@ -43,8 +43,8 @@ makeStack isHorizontal = createContainer {
       policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight
       sizeSelector = if isHorizontal then _w else _h
       rectSelector = if isHorizontal then _rw else _rh
-      mSize = if isHorizontal then w else h
-      mStart = if isHorizontal then l else t
+      mainSize = if isHorizontal then w else h
+      mainStart = if isHorizontal then l else t
       policyFilter policy childPair = policySelector (nodeValue $ snd childPair) == policy
       sChildren = Seq.filter (policyFilter StrictSize) visibleChildren
       fChildren = Seq.filter (policyFilter FlexibleSize) visibleChildren
@@ -54,16 +54,18 @@ makeStack isHorizontal = createContainer {
       sSize = sizeSelector $ calcPreferredSize sChildren
       fSize = sizeSelector $ calcPreferredSize fChildren
       fCount = fromIntegral $ length fChildren
-      fExtra = if fCount > 0 && not remainderExist
-                  then (mSize - sSize - fSize) / fCount
-                  else 0
-      remainderTotal = mSize - (sSize + fCount * fExtra)
-      remainderUnit = if remainderExist then max 0 remainderTotal / fromIntegral remainderCount else 0
+      fExtra = if | fCount > 0 -> (mainSize - sSize - fSize) / fCount
+                  | otherwise -> 0
+      remainderTotal = mainSize - (sSize + fCount * fExtra)
+      remainderUnit = if | remainderExist -> max 0 remainderTotal / fromIntegral remainderCount
+                         | otherwise -> 0
       newViewports = Seq.reverse revViewports
       assignedArea = Seq.zip newViewports newViewports
-      (revViewports, _) = foldl' foldHelper (Seq.empty, mStart) childrenPairs
-      foldHelper (accum, offset) childPair = (newSize <| accum, offset + rectSelector newSize) where
+      (revViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
+      foldHelper (accum, offset) childPair = (newAccum, newOffset) where
+        newAccum = newSize <| accum
         newSize = resizeChild offset childPair
+        newOffset = offset + rectSelector newSize
       resizeChild offset childPair = result where
         result = if | not $ _instanceVisible widgetInstance -> emptyRect
                     | isHorizontal -> hRect

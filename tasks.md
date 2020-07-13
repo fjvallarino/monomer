@@ -101,13 +101,13 @@
   - Keep sending mouse move event if mouse is away but button is still pressed
     - Handle mouse enter/leave window events
   - Add support for scroll requests from children
-
-- Pending
   - Improve Dropdown
     - Expose customizable interface
     - Request scroll when needed
     - Validate Maybe values are supported
     - Create nullable version which takes care of fmapping traversable with Just
+
+- Pending
   - Check why vstack fails when using [spacer, listView]
   - Remove status from Click event. Add ButtonPressed and ButtonReleased events
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
@@ -126,19 +126,21 @@
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
   - Add support for dashed borders
   - Create self rendered version of dropdown and list
+    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
   - Create Checkbox
   - Create Radio
   - Create Slider
   - Create Dial
-  - Create layer widget to handle overlays/dialog boxes/tooltips (takes care of overlays)
   - Improve textField
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty
   - Request text input when text field gets focus (required for mobile)
+  - Create Layer widget
   - Create Dialog
   - Create File Selector
   - Create Color Selector
   - Create Layout with width/heights specified in percents
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

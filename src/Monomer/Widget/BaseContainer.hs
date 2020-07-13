@@ -225,11 +225,6 @@ defaultResize wctx viewport renderArea widgetInstance childrenReqs = (widgetInst
 
 containerResize :: WidgetResizeHandler s e -> WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
 containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInstance where
-  newInstance = tempInstance {
-    _instanceViewport = viewport,
-    _instanceRenderArea = renderArea,
-    _instanceChildren = newChildren
-  }
   children = _instanceChildren widgetInstance
   defReqs = Seq.replicate (Seq.length children) (singleNode def)
   curReqs = nodeChildren reqs
@@ -237,6 +232,11 @@ containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInsta
   (tempInstance, assignedAreas) = rHandler wctx viewport renderArea widgetInstance (Seq.zip children childrenReqs)
   newChildren = flip fmap (Seq.zip3 children childrenReqs assignedAreas) $
     \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) wctx viewport renderArea child req
+  newInstance = tempInstance {
+    _instanceViewport = viewport,
+    _instanceRenderArea = renderArea,
+    _instanceChildren = newChildren
+  }
 
 -- | Rendering
 defaultRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
@@ -256,10 +256,10 @@ containerRender rHandler renderer wctx ctx widgetInstance = do
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
-ignoreChildren result = Seq.null $ Seq.filter isIgnoreChildrenEvents (_resultRequests result)
+ignoreChildren result = not . Seq.null $ Seq.filter isIgnoreChildrenEvents (_resultRequests result)
 
 ignoreParent :: WidgetResult s e -> Bool
-ignoreParent result = Seq.null $ Seq.filter isIgnoreParentEvents (_resultRequests result)
+ignoreParent result = not . Seq.null $ Seq.filter isIgnoreParentEvents (_resultRequests result)
 
 replaceChild :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
 replaceChild parent child idx = parent { _instanceChildren = newChildren } where
