@@ -109,7 +109,7 @@ compositeInit comp state wctx ctx widgetComposite = result where
   result = processWidgetResult comp newState wctx ctx widgetComposite (WidgetResult reqs newEvts root)
 
 compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetResult sp ep
-compositeMerge comp state wctx ctx newComposite oldComposite = result where
+compositeMerge comp state wctx ctx oldComposite newComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) wctx
   validState = fromMaybe state (useState oldState)
   CompositeState oldApp oldRoot oldInit oldGlobalKeys oldReqs = validState
@@ -123,7 +123,7 @@ compositeMerge comp state wctx ctx newComposite oldComposite = result where
   cwctx = convertWidgetContext wctx oldGlobalKeys oldApp
   cctx = childContext ctx
   widgetResult = if instanceMatches newRoot oldRoot
-                  then _widgetMerge newWidget cwctx cctx newRoot oldRoot
+                  then _widgetMerge newWidget cwctx cctx oldRoot newRoot
                   else _widgetInit newWidget cwctx cctx newRoot
   result = processWidgetResult comp newState wctx ctx newComposite widgetResult
 
@@ -171,7 +171,7 @@ updateComposite comp state wctx ctx newApp oldRoot widgetComposite = if appChang
   cctx = childContext ctx
   appChanged = _compositeApp /= newApp
   builtRoot = _uiBuilder comp newApp
-  mergedResult = _widgetMerge (_instanceWidget builtRoot) cwctx cctx builtRoot oldRoot
+  mergedResult = _widgetMerge (_instanceWidget builtRoot) cwctx cctx oldRoot builtRoot
   mergedState = state {
     _compositeApp = newApp,
     _compositeRoot = _resultWidget mergedResult

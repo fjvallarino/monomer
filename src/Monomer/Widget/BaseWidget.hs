@@ -41,12 +41,12 @@ ignoreGetState :: WidgetContext s e -> Maybe WidgetState
 ignoreGetState _ = Nothing
 
 ignoreMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-ignoreMerge wctx ctx new old = resultWidget new
+ignoreMerge wctx ctx oldInstance newInstance = resultWidget newInstance
 
 widgetMerge :: MakeWidget s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-widgetMerge makeWidget wctx ctx new old = resultWidget updated where
-  oldState = _widgetGetState (_instanceWidget old) wctx
-  updated = new { _instanceWidget = makeWidget wctx oldState }
+widgetMerge makeWidget wctx ctx oldInstance newInstance = resultWidget updated where
+  oldState = _widgetGetState (_instanceWidget oldInstance) wctx
+  updated = newInstance { _instanceWidget = makeWidget wctx oldState }
 
 ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
 ignoreNextFocusable ctx widgetInstance = Nothing

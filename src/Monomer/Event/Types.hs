@@ -18,10 +18,10 @@ data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
 data ClipboardData = ClipboardEmpty | ClipboardText Text deriving (Eq, Show)
 
 data SystemEvent
-  = ButtonAction Point Button ButtonState
-  | Click Point Button
+  = Click Point Button
+  | ButtonAction Point Button ButtonState
   | WheelScroll Point Point WheelDirection
-  | KeyAction !KeyMod !KeyCode !KeyStatus
+  | KeyAction KeyMod KeyCode KeyStatus
   | TextInput Text
   | Clipboard ClipboardData
   | Focus

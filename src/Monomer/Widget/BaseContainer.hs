@@ -88,14 +88,14 @@ ignoreOldInstance :: WidgetMergeHandler s e
 ignoreOldInstance wctx ctx state newInstance = resultWidget newInstance
 
 containerMergeTrees :: WidgetMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-containerMergeTrees mergeHandler wctx ctx newInstance oldInstance = result where
+containerMergeTrees mergeHandler wctx ctx oldInstance newInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
   WidgetResult uReqs uEvents updatedInstance = mergeHandler wctx ctx oldState newInstance
   oldChildren = _instanceChildren oldInstance
   newChildren = _instanceChildren updatedInstance
   indexes = Seq.fromList [0..length newChildren]
   newPairs = Seq.zipWith (\idx child -> (addToCurrent ctx idx, child)) indexes newChildren
-  mergedResults = mergeChildren wctx newPairs oldChildren
+  mergedResults = mergeChildren wctx oldChildren newPairs
   mergedChildren = fmap _resultWidget mergedResults
   concatSeq seqs = foldl' (><) Seq.empty seqs
   mergedReqs = concatSeq $ fmap _resultRequests mergedResults
@@ -105,20 +105,20 @@ containerMergeTrees mergeHandler wctx ctx newInstance oldInstance = result where
   }
   result = WidgetResult (uReqs <> mergedReqs) (uEvents <> mergedEvents) mergedInstance
 
-mergeChildren :: WidgetContext s e -> Seq (PathContext, WidgetInstance s e) -> Seq (WidgetInstance s e) -> Seq (WidgetResult s e)
-mergeChildren _ Empty _ = Empty
-mergeChildren wctx ((ctx, newChild) :<| newChildren) Empty = child <| mergeChildren wctx newChildren Empty where
+mergeChildren :: WidgetContext s e -> Seq (WidgetInstance s e) -> Seq (PathContext, WidgetInstance s e) -> Seq (WidgetResult s e)
+mergeChildren _ _ Empty = Empty
+mergeChildren wctx Empty ((ctx, newChild) :<| newChildren) = child <| mergeChildren wctx Empty newChildren where
   child = _widgetInit (_instanceWidget newChild) wctx ctx newChild
-mergeChildren wctx ((ctx, newChild) :<| newChildren) oldFull@(oldChild :<| oldChildren) = result where
+mergeChildren wctx oldFull@(oldChild :<| oldChildren) ((ctx, newChild) :<| newChildren) = result where
   newWidget = _instanceWidget newChild
   oldKeyed = _instanceKey newChild >>= (\key -> M.lookup key (_wcGlobalKeys wctx))
-  mergedOld = _widgetMerge newWidget wctx ctx newChild oldChild
-  mergedKey = _widgetMerge newWidget wctx ctx newChild (snd $ fromJust oldKeyed)
+  mergedOld = _widgetMerge newWidget wctx ctx oldChild newChild
+  mergedKey = _widgetMerge newWidget wctx ctx (snd $ fromJust oldKeyed) newChild
   initNew = _widgetInit newWidget wctx ctx newChild
   (child, oldRest) = if | instanceMatches newChild oldChild -> (mergedOld, oldChildren)
                         | isJust oldKeyed -> (mergedKey, oldFull)
                         | otherwise -> (initNew, oldFull)
-  result = child <| mergeChildren wctx newChildren oldRest
+  result = child <| mergeChildren wctx oldRest newChildren
 
 -- | Find next focusable item
 containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path

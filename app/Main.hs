@@ -135,7 +135,8 @@ buildUI model = widgetTree where
       --dropdown textField1 itemsDropdown id `style` color red,
       --label "Yes!" `style` color green,
       --spacer,
-      listView textField1 items id,
+      textField textField1,
+      listView textField2 items id,
       spacer
     ]
   items = fmap showt [1..100::Int]

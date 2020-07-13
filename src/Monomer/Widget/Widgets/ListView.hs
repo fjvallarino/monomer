@@ -119,7 +119,7 @@ makeListView config state items itemToText = createContainer {
       }
       -- ListView's tree will be rebuilt in merge, before merging its children, so it does not matter what we currently have
       newInstance = oldInstance
-      widgetResult = _widgetMerge newWidget wctx ctx newInstance oldInstance
+      widgetResult = _widgetMerge newWidget wctx ctx oldInstance newInstance
       scrollToReq = itemScrollTo ctx widgetInstance nextIdx
       requests = Seq.fromList scrollToReq
 
