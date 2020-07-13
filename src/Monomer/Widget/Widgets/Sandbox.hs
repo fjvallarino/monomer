@@ -43,8 +43,11 @@ makeSandbox onClick state = createWidget {
     label = "Sandbox: " ++ show (_clickCount state)
 
     getState = makeState state
-    merge wctx oldState = makeSandbox onClick newState where
+    merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
+      newInstance = widgetInstance {
+        _instanceWidget = makeSandbox onClick newState
+      }
 
     handleEvent wctx ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where

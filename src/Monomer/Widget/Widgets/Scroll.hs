@@ -209,7 +209,7 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
     render renderer wctx ctx widgetInstance =
       do
         setScissor renderer viewport
-        containerRender defaultRender renderer wctx ctx widgetInstance
+        containerRender defaultContainerRender renderer wctx ctx widgetInstance
         resetScissor renderer
 
         when (hScrollRequired && hMouseInScroll) $

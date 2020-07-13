@@ -18,60 +18,60 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type MakeWidget s e = WidgetContext s e -> Maybe WidgetState -> Widget s e
+type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
 
 createWidget :: Widget s e
 createWidget = Widget {
-  _widgetInit = widgetInit,
-  _widgetGetState = ignoreGetState,
-  _widgetMerge = ignoreMerge,
-  _widgetNextFocusable = ignoreNextFocusable,
-  _widgetFind = widgetFind,
-  _widgetHandleEvent = ignoreHandleEvent,
-  _widgetHandleMessage = ignoreHandleMessage,
-  _widgetPreferredSize = widgetPreferredSize,
-  _widgetResize = widgetResize,
-  _widgetRender = ignoreRender
+  _widgetInit = defaultInit,
+  _widgetGetState = defaultGetState,
+  _widgetMerge = widgetMerge defaultMerge,
+  _widgetNextFocusable = defaultNextFocusable,
+  _widgetFind = defaultFind,
+  _widgetHandleEvent = defaultHandleEvent,
+  _widgetHandleMessage = defaultHandleMessage,
+  _widgetPreferredSize = defaultPreferredSize,
+  _widgetResize = defaultResize,
+  _widgetRender = defaultRender
 }
 
-widgetInit :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
-widgetInit _ _ widgetInstance = resultWidget widgetInstance
+defaultInit :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
+defaultInit _ _ widgetInstance = resultWidget widgetInstance
 
-ignoreGetState :: WidgetContext s e -> Maybe WidgetState
-ignoreGetState _ = Nothing
+defaultGetState :: WidgetContext s e -> Maybe WidgetState
+defaultGetState _ = Nothing
 
-ignoreMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-ignoreMerge wctx ctx oldInstance newInstance = resultWidget newInstance
+defaultMerge :: WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
+defaultMerge wctx ctx oldState newInstance = resultWidget newInstance
 
-widgetMerge :: MakeWidget s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
-widgetMerge makeWidget wctx ctx oldInstance newInstance = resultWidget updated where
+widgetMerge :: WidgetMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
+widgetMerge mergeHandler wctx ctx oldInstance newInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
-  updated = newInstance { _instanceWidget = makeWidget wctx oldState }
+  result = mergeHandler wctx ctx oldState newInstance
 
-ignoreNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
-ignoreNextFocusable ctx widgetInstance = Nothing
+defaultNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
+defaultNextFocusable ctx widgetInstance = Nothing
 
-widgetFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
-widgetFind path point widgetInstance = Nothing
+defaultFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
+defaultFind path point widgetInstance = Nothing
 
-ignoreHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
-ignoreHandleEvent wctx ctx evt widgetInstance = Nothing
+defaultHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+defaultHandleEvent wctx ctx evt widgetInstance = Nothing
 
-ignoreHandleMessage :: forall i s e m . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-ignoreHandleMessage wctx ctx evt widgetInstance = Nothing
+defaultHandleMessage :: forall i s e m . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+defaultHandleMessage wctx ctx evt widgetInstance = Nothing
 
-widgetPreferredSize :: Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
-widgetPreferredSize renderer wctx widgetInstance = singleNode SizeReq {
+defaultPreferredSize :: Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
+defaultPreferredSize renderer wctx widgetInstance = singleNode SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize
 }
 
-widgetResize :: WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
-widgetResize wctx viewport renderArea widgetInstance reqs = widgetInstance {
+defaultResize :: WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
+defaultResize wctx viewport renderArea widgetInstance reqs = widgetInstance {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea
   }
 
-ignoreRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
-ignoreRender renderer wctx ctx widgetInstance = return ()
+defaultRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+defaultRender renderer wctx ctx widgetInstance = return ()

@@ -57,12 +57,15 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
       newState = TextFieldState (app ^. userField) 0
       newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
     getState = makeState tfs
-    merge wctx oldState = makeTextField userField newState where
+    merge wctx ctx oldState widgetInstance = resultWidget newInstance where
       app = _wcApp wctx
       TextFieldState txt pos = fromMaybe emptyState (useState oldState)
       appText = app ^. userField
       newPos = if T.length appText < pos then T.length appText else pos
       newState = TextFieldState appText newPos
+      newInstance = widgetInstance {
+        _instanceWidget = makeTextField userField newState
+      }
 
     (part1, part2) = T.splitAt currPos currText
     handleKeyPress txt tp code

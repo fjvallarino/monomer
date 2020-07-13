@@ -13,7 +13,7 @@ module Monomer.Widget.BaseContainer (
   containerPreferredSize,
   containerResize,
   containerRender,
-  defaultRender
+  defaultContainerRender
 ) where
 
 import Control.Monad
@@ -39,33 +39,33 @@ import Monomer.Widget.Util
 
 type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
 
-type WidgetInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
-type WidgetMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
-type WidgetEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type WidgetMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type WidgetPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Seq (WidgetInstance s e, Tree SizeReq) -> Tree SizeReq
-type WidgetResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
-type WidgetRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+type ContainerInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
+type ContainerMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
+type ContainerEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+type ContainerMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+type ContainerPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> Tree SizeReq
+type ContainerResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
+type ContainerRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 
 createContainer :: Widget s e
 createContainer = Widget {
   _widgetInit = containerInit defaultInit,
-  _widgetGetState = ignoreGetState,
-  _widgetMerge = containerMergeTrees ignoreOldInstance,
+  _widgetGetState = defaultGetState,
+  _widgetMerge = containerMergeTrees defaultMerge,
   _widgetNextFocusable = containerNextFocusable,
   _widgetFind = containerFind,
-  _widgetHandleEvent = containerHandleEvent ignoreEvent,
-  _widgetHandleMessage = containerHandleMessage ignoreMessage,
+  _widgetHandleEvent = containerHandleEvent defaultHandleEvent,
+  _widgetHandleMessage = containerHandleMessage defaultHandleMessage,
   _widgetPreferredSize = containerPreferredSize defaultPreferredSize,
   _widgetResize = containerResize defaultResize,
-  _widgetRender = containerRender defaultRender
+  _widgetRender = containerRender defaultContainerRender
 }
 
 -- | Init handler
-defaultInit :: WidgetInitHandler s e
+defaultInit :: ContainerInitHandler s e
 defaultInit _ _ widgetInstance = resultWidget widgetInstance
 
-containerInit :: WidgetInitHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
+containerInit :: ContainerInitHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
 containerInit initHandler wctx ctx widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
   WidgetResult reqs events tempInstance = initHandler wctx ctx widgetInstance
   children = _instanceChildren tempInstance
@@ -80,14 +80,14 @@ containerInit initHandler wctx ctx widgetInstance = WidgetResult (reqs <> newReq
   }
 
 -- | State Handling helpers
-ignoreGetState :: forall i s e . Typeable i => WidgetContext s e -> Maybe i
-ignoreGetState _ = Nothing
+defaultGetState :: forall i s e . Typeable i => WidgetContext s e -> Maybe i
+defaultGetState _ = Nothing
 
 -- | Merging
-ignoreOldInstance :: WidgetMergeHandler s e
-ignoreOldInstance wctx ctx state newInstance = resultWidget newInstance
+defaultMerge :: ContainerMergeHandler s e
+defaultMerge wctx ctx state newInstance = resultWidget newInstance
 
-containerMergeTrees :: WidgetMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
+containerMergeTrees :: ContainerMergeHandler s e -> WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
 containerMergeTrees mergeHandler wctx ctx oldInstance newInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
   WidgetResult uReqs uEvents updatedInstance = mergeHandler wctx ctx oldState newInstance
@@ -151,10 +151,10 @@ combinePath path point children childIdx = childIdx <| childPath where
   childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) path point child
 
 -- | Event Handling
-ignoreEvent :: WidgetEventHandler s e m
-ignoreEvent wctx ctx evt widgetInstance = Nothing
+defaultHandleEvent :: ContainerEventHandler s e m
+defaultHandleEvent wctx ctx evt widgetInstance = Nothing
 
-containerHandleEvent :: WidgetEventHandler s e m -> WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleEvent :: ContainerEventHandler s e m -> WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleEvent pHandler wctx ctx event widgetInstance
   | targetReached || not targetValid = pHandler wctx ctx event widgetInstance
   | otherwise = mergeParentChildWidgetResults widgetInstance pResponse cResponse childIdx
@@ -189,10 +189,10 @@ mergeParentChildWidgetResults original (Just pResponse) (Just cResponse) idx
       newWidget = replaceChild (_resultWidget pResponse) (_resultWidget cResponse) idx
 
 -- | Message Handling
-ignoreMessage :: WidgetMessageHandler i s e m
-ignoreMessage wctx ctx message widgetInstance = Nothing
+defaultHandleMessage :: ContainerMessageHandler i s e m
+defaultHandleMessage wctx ctx message widgetInstance = Nothing
 
-containerHandleMessage :: forall i s e m . Typeable i => WidgetMessageHandler i s e m -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleMessage :: forall i s e m . Typeable i => ContainerMessageHandler i s e m -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleMessage mHandler wctx ctx arg widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = mHandler wctx ctx arg widgetInstance
   | otherwise = messageResult where
@@ -204,7 +204,7 @@ containerHandleMessage mHandler wctx ctx arg widgetInstance
         \cr -> cr { _resultWidget = replaceChild widgetInstance (_resultWidget cr) childIdx }
 
 -- | Preferred size
-defaultPreferredSize :: WidgetPreferredSizeHandler s e m
+defaultPreferredSize :: ContainerPreferredSizeHandler s e m
 defaultPreferredSize renderer app widgetInstance childrenPairs = Node current childrenReqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
@@ -213,7 +213,7 @@ defaultPreferredSize renderer app widgetInstance childrenPairs = Node current ch
   }
   childrenReqs = fmap snd childrenPairs
 
-containerPreferredSize :: (Monad m) => WidgetPreferredSizeHandler s e m -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
+containerPreferredSize :: (Monad m) => ContainerPreferredSizeHandler s e m -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
 containerPreferredSize psHandler renderer wctx widgetInstance = psHandler renderer wctx widgetInstance (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
   childrenReqs = fmap updateChild children
@@ -221,11 +221,11 @@ containerPreferredSize psHandler renderer wctx widgetInstance = psHandler render
     Node req reqs = _widgetPreferredSize (_instanceWidget child) renderer wctx child
 
 -- | Resize
-defaultResize :: WidgetResizeHandler s e
+defaultResize :: ContainerResizeHandler s e
 defaultResize wctx viewport renderArea widgetInstance childrenReqs = (widgetInstance, childrenSizes) where
   childrenSizes = Seq.replicate (Seq.length childrenReqs) (def, def)
 
-containerResize :: WidgetResizeHandler s e -> WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
+containerResize :: ContainerResizeHandler s e -> WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
 containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInstance where
   children = _instanceChildren widgetInstance
   defReqs = Seq.replicate (Seq.length children) (singleNode def)
@@ -241,11 +241,11 @@ containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInsta
   }
 
 -- | Rendering
-defaultRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
-defaultRender  renderer wctx ctx WidgetInstance{..} =
+defaultContainerRender :: (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+defaultContainerRender  renderer wctx ctx WidgetInstance{..} =
   drawStyledBackground renderer _instanceRenderArea _instanceStyle
 
-containerRender :: (Monad m) => WidgetRenderHandler s e m -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+containerRender :: (Monad m) => ContainerRenderHandler s e m -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 containerRender rHandler renderer wctx ctx widgetInstance = do
   let children = _instanceChildren widgetInstance
   let indexes = Seq.fromList [0..length children]
