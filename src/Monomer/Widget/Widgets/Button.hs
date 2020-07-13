@@ -1,6 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.Button (ButtonConfig(..), button, button_) where
+module Monomer.Widget.Widgets.Button (
+  ButtonConfig(..),
+  button,
+  button_,
+  buttonConfig
+) where
 
 import Control.Monad
 import Data.Text (Text)
@@ -21,9 +26,12 @@ data ButtonConfig s e = ButtonConfig {
   _btnOnChangeReq :: [WidgetRequest s]
 }
 
+buttonConfig :: e -> Text -> ButtonConfig s e
+buttonConfig onClick label = ButtonConfig label [onClick] []
+
 button :: e -> Text -> WidgetInstance s e
 button onClick label = button_ config where
-  config = ButtonConfig label [onClick] []
+  config = buttonConfig onClick label
 
 button_ :: ButtonConfig s e -> WidgetInstance s e
 button_ config = defaultWidgetInstance "button" (makeButton config)

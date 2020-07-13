@@ -1,7 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.Scroll (ScrollMessage(..), scroll) where
+module Monomer.Widget.Widgets.Scroll (
+  ScrollMessage(..),
+  scroll,
+  scrollConfig
+) where
 
 import Debug.Trace
 
@@ -60,7 +64,7 @@ data ScrollContext = ScrollContext {
   vThumbRect :: Rect
 }
 
-defaultScrollConfig = ScrollConfig {
+scrollConfig = ScrollConfig {
   _scActiveBarColor = Just $ darkGray { _alpha = 0.4 },
   _scIdleBarColor = Nothing,
   _scActiveThumbColor = gray,
@@ -78,7 +82,7 @@ defaultState = ScrollState {
 }
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
-scroll managedWidget = scroll_ defaultScrollConfig managedWidget
+scroll managedWidget = scroll_ scrollConfig managedWidget
 
 scroll_ :: ScrollConfig -> WidgetInstance s e -> WidgetInstance s e
 scroll_ config managedWidget = makeInstance (makeScroll config defaultState) managedWidget

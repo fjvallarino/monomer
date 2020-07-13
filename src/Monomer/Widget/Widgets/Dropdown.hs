@@ -3,7 +3,11 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.Dropdown (DropdownConfig(..), dropdown) where
+module Monomer.Widget.Widgets.Dropdown (
+  DropdownConfig(..),
+  dropdown,
+  dropdownConfig
+) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~))
@@ -40,7 +44,10 @@ data DropdownConfig s e a = DropdownConfig {
   _ddItems :: Seq a,
   _ddItemToText :: a -> Text,
   _ddOnChange :: [a -> e],
-  _ddOnChangeReq :: [WidgetRequest s]
+  _ddOnChangeReq :: [WidgetRequest s],
+  _ddSelectedColor :: Color,
+  _ddHighlightedColor :: Color,
+  _ddHoverColor :: Color
 }
 
 newtype DropdownState = DropdownState {
@@ -49,9 +56,21 @@ newtype DropdownState = DropdownState {
 
 newtype DropdownMessage = OnChangeMessage Int deriving Typeable
 
+dropdownConfig :: WidgetValue s a -> Seq a -> (a -> Text) -> DropdownConfig s e a
+dropdownConfig value items itemToText = DropdownConfig {
+  _ddValue = value,
+  _ddItems = items,
+  _ddItemToText = itemToText,
+  _ddOnChange = [],
+  _ddOnChangeReq = [],
+  _ddSelectedColor = gray,
+  _ddHighlightedColor = darkGray,
+  _ddHoverColor = lightGray
+}
+
 dropdown :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 dropdown field items itemToText = dropdown_ config where
-  config = DropdownConfig (WidgetLens field) newItems itemToText [] []
+  config = dropdownConfig (WidgetLens field) newItems itemToText
   newItems = foldl' (|>) Empty items
 
 dropdown_ :: (Eq a) => DropdownConfig s e a -> WidgetInstance s e
@@ -173,5 +192,8 @@ makeListView DropdownConfig{..} ctx selected = listView_ lvConfig where
     _lvItems = _ddItems,
     _lvItemToText = _ddItemToText,
     _lvOnChange = [],
-    _lvOnChangeReq = [SendMessage path . OnChangeMessage]
+    _lvOnChangeReq = [SendMessage path . OnChangeMessage],
+    _lvSelectedColor = _ddSelectedColor,
+    _lvHighlightedColor = _ddHighlightedColor,
+    _lvHoverColor = _ddHoverColor
   }

@@ -3,7 +3,12 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.ListView (ListViewConfig(..), listView, listView_) where
+module Monomer.Widget.Widgets.ListView (
+  ListViewConfig(..),
+  listView,
+  listView_,
+  listViewConfig
+) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~))
@@ -44,7 +49,10 @@ data ListViewConfig s e a = ListViewConfig {
   _lvItems :: Seq a,
   _lvItemToText :: a -> Text,
   _lvOnChange :: [Int -> a -> e],
-  _lvOnChangeReq :: [Int -> WidgetRequest s]
+  _lvOnChangeReq :: [Int -> WidgetRequest s],
+  _lvSelectedColor :: Color,
+  _lvHighlightedColor :: Color,
+  _lvHoverColor :: Color
 }
 
 newtype ListViewState = ListViewState {
@@ -53,9 +61,21 @@ newtype ListViewState = ListViewState {
 
 newtype ListViewMessage = OnClickMessage Int deriving Typeable
 
+listViewConfig :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewConfig s e a
+listViewConfig value items itemToText = ListViewConfig {
+  _lvValue = value,
+  _lvItems = items,
+  _lvItemToText = itemToText,
+  _lvOnChange = [],
+  _lvOnChangeReq = [],
+  _lvSelectedColor = gray,
+  _lvHighlightedColor = darkGray,
+  _lvHoverColor = lightGray
+}
+
 listView :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 listView field items itemToText = listView_ config where
-  config = ListViewConfig (WidgetLens field) newItems itemToText [] []
+  config = listViewConfig (WidgetLens field) newItems itemToText
   newItems = foldl' (|>) Empty items
 
 listView_ :: (Eq a) => ListViewConfig s e a -> WidgetInstance s e
@@ -156,13 +176,17 @@ makeItemsList :: (Eq a) => ListViewConfig s e a -> PathContext -> a -> Int -> Wi
 makeItemsList ListViewConfig{..} ctx selected highlightedIdx = makeItemsList where
   path = _pathCurrent ctx
   isSelected item = item == selected
-  selectedColor item = if isSelected item then Just gray else Nothing
-  highlightedColor idx = if idx == highlightedIdx then Just darkGray else Nothing
+  selectedColor item = if isSelected item then Just _lvSelectedColor else Nothing
+  highlightedColor idx = if idx == highlightedIdx then Just _lvHighlightedColor else Nothing
   pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
-  makeItemsList = vstack $ fmap (uncurry makeItem) pairs
-  makeItem idx item = container (config idx item) $ label (_lvItemToText item)
-  config idx item = def {
-    _ctOnClickReq = [SendMessage path (OnClickMessage idx)],
-    _ctBgColor = highlightedColor idx <|> selectedColor item,
-    _ctHoverColor = Just lightGray
+  itemStyle idx item = def {
+    _styleColor = selectedColor item <|> highlightedColor idx,
+    _styleHover = Just _lvHoverColor
   }
+  itemConfig idx = containerConfig {
+    _ctOnClickReq = [SendMessage path (OnClickMessage idx)]
+  }
+  makeItem idx item = container config content `style` itemStyle idx item where
+    config = itemConfig idx
+    content = label (_lvItemToText item)
+  makeItemsList = vstack $ fmap (uncurry makeItem) pairs
