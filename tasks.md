@@ -30,7 +30,7 @@
     - Reorganize drawing operations
   - Stop, think and design
     - How should all of this be organized?
-    - How should modules be layed out?
+    - How should modules be laid out?
     - What are good interfaces for the different parts of the system?
     - Does it make sense that handleEvent is the only pure function in a widget?
     - Based on the previous design, refactor modules
@@ -42,7 +42,7 @@
     - Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
     - Handle SetFocus request
     - Check if WidgetState is really needed
-        - Maybe Data.Dynamic can be used, but currently abadoned
+        - Maybe Data.Dynamic can be used, but currently abandoned
     - Rethink Tree.Path import
     - Clean up Seq imports
     - Where can we use Seq? Does it make sense to use it everywhere? What about Traversable?
@@ -108,12 +108,13 @@
     - Create nullable version which takes care of fmapping traversable with Just
   - Check why vstack fails when using [spacer, listView]
   - Remove status from Click event. Add ButtonPressed and ButtonReleased events
+  - Change order of parameters. We should always pass _old_ before _new_
 
 - Pending
-  - Change order of parameters. We should always pass _old_ before _new_
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
+  - Add renderer parameter to resize. It will be needed for auto adjustable Label and to handle ellipsis in text
   - Should Resize be restored?
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is also needed for _widgetPreferredSize and _widgetResize
@@ -126,6 +127,7 @@
   - Add support for dashed borders
   - Create self rendered version of dropdown and list
     - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
+  - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
   - Create Checkbox
   - Create Radio
   - Create Slider

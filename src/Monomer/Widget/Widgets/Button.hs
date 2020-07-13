@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.Button (button) where
+module Monomer.Widget.Widgets.Button (ButtonConfig(..), button, button_) where
 
 import Control.Monad
 import Data.Text (Text)
@@ -15,27 +15,38 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-button :: Text -> e -> WidgetInstance s e
-button label onClick = defaultWidgetInstance "button" (makeButton label onClick)
+data ButtonConfig s e = ButtonConfig {
+  _btnLabel :: Text,
+  _btnOnChange :: [e],
+  _btnOnChangeReq :: [WidgetRequest s]
+}
 
-makeButton :: Text -> e -> Widget s e
-makeButton label onClick = createWidget {
+button :: e -> Text -> WidgetInstance s e
+button onClick label = button_ config where
+  config = ButtonConfig label [onClick] []
+
+button_ :: ButtonConfig s e -> WidgetInstance s e
+button_ config = defaultWidgetInstance "button" (makeButton config)
+
+makeButton :: ButtonConfig s e -> Widget s e
+makeButton config = createWidget {
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
   where
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click (Point x y) _ -> Just $ resultEvents events widgetInstance where
-        events = [onClick]
+      Click (Point x y) _ -> Just $ resultReqsEvents requests events widgetInstance where
+        requests = _btnOnChangeReq config
+        events = _btnOnChange config
       _ -> Nothing
 
     preferredSize renderer wctx widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText label
+      size = calcTextBounds renderer _styleText (_btnLabel config)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
-        drawStyledText_ renderer _instanceRenderArea _instanceStyle label
+        drawStyledText_ renderer _instanceRenderArea _instanceStyle (_btnLabel config)

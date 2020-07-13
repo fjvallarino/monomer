@@ -67,14 +67,14 @@ buildComposite app = trace "Created composite UI" $
     scroll $ label "This is a composite label again!",
     vgrid [
       hgrid [
-        button "Message parent" MessageParent
+        button MessageParent "Message parent"
       ],
       hgrid [
         sandbox CallSandbox,
-        button "Run task" StartTask
+        button StartTask "Run task"
       ],
       hgrid [
-        button "Run Producer" StartProducer,
+        button StartProducer "Run Producer",
         label ("Produced: " <> showt (_csProduced app))
       ]
     ] `style` color gray

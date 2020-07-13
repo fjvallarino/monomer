@@ -1,6 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.ListView (ListViewConfig(..), listView, listView_) where
 
@@ -40,6 +41,8 @@ import Monomer.Widget.Widgets.Stack
 
 data ListViewConfig s e a = ListViewConfig {
   _lvValue :: WidgetValue s a,
+  _lvItems :: Seq a,
+  _lvItemToText :: a -> Text,
   _lvOnChange :: [Int -> a -> e],
   _lvOnChangeReq :: [Int -> WidgetRequest s]
 }
@@ -51,12 +54,12 @@ newtype ListViewState = ListViewState {
 newtype ListViewMessage = OnClickMessage Int deriving Typeable
 
 listView :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
-listView field items itemToText = listView_ config items itemToText where
-  config = ListViewConfig (WidgetLens field) [] []
-
-listView_ :: (Traversable t, Eq a) => ListViewConfig s e a -> t a -> (a -> Text) -> WidgetInstance s e
-listView_ config items itemToText = makeInstance (makeListView config newState newItems itemToText) where
+listView field items itemToText = listView_ config where
+  config = ListViewConfig (WidgetLens field) newItems itemToText [] []
   newItems = foldl' (|>) Empty items
+
+listView_ :: (Eq a) => ListViewConfig s e a -> WidgetInstance s e
+listView_ config = makeInstance (makeListView config newState) where
   newState = ListViewState 0
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -64,8 +67,8 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
   _instanceFocusable = True
 }
 
-makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Seq a -> (a -> Text) -> Widget s e
-makeListView config state items itemToText = createContainer {
+makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
+makeListView config state = createContainer {
     _widgetInit = init,
     _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
@@ -79,9 +82,9 @@ makeListView config state items itemToText = createContainer {
 
     createListView wctx ctx newState widgetInstance = newInstance where
       selected = currentValue wctx
-      itemsList = makeItemsList ctx items selected (_highlighted newState) itemToText
+      itemsList = makeItemsList config ctx selected (_highlighted newState)
       newInstance = widgetInstance {
-        _instanceWidget = makeListView config newState items itemToText,
+        _instanceWidget = makeListView config newState,
         _instanceChildren = Seq.singleton (scroll itemsList)
       }
 
@@ -99,7 +102,7 @@ makeListView config state items itemToText = createContainer {
 
     handleHighlightNext wctx ctx widgetInstance = highlightItem wctx ctx widgetInstance nextIdx where
       tempIdx = _highlighted state
-      nextIdx = if tempIdx < length items - 1 then tempIdx + 1 else tempIdx
+      nextIdx = if tempIdx < length (_lvItems config) - 1 then tempIdx + 1 else tempIdx
 
     handleHighlightPrev wctx ctx widgetInstance = highlightItem wctx ctx widgetInstance nextIdx where
       tempIdx = _highlighted state
@@ -110,7 +113,7 @@ makeListView config state items itemToText = createContainer {
 
     highlightItem wctx ctx widgetInstance nextIdx = Just $ widgetResult { _resultRequests = requests } where
       newState = ListViewState nextIdx
-      newWidget = makeListView config newState items itemToText
+      newWidget = makeListView config newState
       -- ListView's merge uses the old widget's state. Since we want the newly created state, the old widget is replaced here
       oldInstance = widgetInstance {
         _instanceWidget = newWidget
@@ -123,14 +126,14 @@ makeListView config state items itemToText = createContainer {
 
     selectItem wctx ctx widgetInstance idx = resultReqs requests newInstance where
       selected = currentValue wctx
-      value = fromMaybe selected (Seq.lookup idx items)
+      value = fromMaybe selected (Seq.lookup idx (_lvItems config))
       valueSetReq = widgetValueSet (_lvValue config) value
       scrollToReq = itemScrollTo ctx widgetInstance idx
       changeReqs = fmap ($ idx) (_lvOnChangeReq config)
       requests = valueSetReq ++ scrollToReq ++ changeReqs
       newState = ListViewState idx
       newInstance = widgetInstance {
-        _instanceWidget = makeListView config newState items itemToText
+        _instanceWidget = makeListView config newState
       }
 
     itemScrollTo ctx widgetInstance idx = maybeToList (fmap makeScrollReq renderArea) where
@@ -149,15 +152,15 @@ makeListView config state items itemToText = createContainer {
     resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
-makeItemsList :: (Eq a) => PathContext -> Seq a -> a -> Int -> (a -> Text) -> WidgetInstance s e
-makeItemsList ctx items selected highlightedIdx itemToText = makeItemsList where
+makeItemsList :: (Eq a) => ListViewConfig s e a -> PathContext -> a -> Int -> WidgetInstance s e
+makeItemsList ListViewConfig{..} ctx selected highlightedIdx = makeItemsList where
   path = _pathCurrent ctx
   isSelected item = item == selected
   selectedColor item = if isSelected item then Just gray else Nothing
   highlightedColor idx = if idx == highlightedIdx then Just darkGray else Nothing
-  pairs = Seq.zip (Seq.fromList [0..length items]) items
+  pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
   makeItemsList = vstack $ fmap (uncurry makeItem) pairs
-  makeItem idx item = container (config idx item) $ label (itemToText item)
+  makeItem idx item = container (config idx item) $ label (_lvItemToText item)
   config idx item = def {
     _ctOnClickReq = [SendMessage path (OnClickMessage idx)],
     _ctBgColor = highlightedColor idx <|> selectedColor item,

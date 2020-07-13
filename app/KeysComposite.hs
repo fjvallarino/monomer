@@ -59,7 +59,7 @@ handleKeysCompEvent app evt = case evt of
 
 buildKeysComp app = trace "Created keys composite UI" $
   hgrid [
-    button "Rotate" RotateChildren,
+    button RotateChildren "Rotate",
     vgrid $ fmap (editableItem app) [0..(length (_items app) - 1)]
   ]
 
