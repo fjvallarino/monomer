@@ -88,7 +88,7 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
       }
 
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click point btn status -> result where
+      ButtonAction point btn status -> result where
         isLeftPressed = status == PressedBtn && btn == LeftBtn
         isButtonReleased = status == ReleasedBtn
         isDragging = isJust $ _scDragging state
@@ -101,9 +101,15 @@ makeScroll state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
         newInstance = widgetInstance {
           _instanceWidget = makeScroll newState
         }
-        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
-                    | isButtonReleased && (hMouseInScroll || vMouseInScroll) -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
-                    | isButtonReleased && isDragging -> Just $ resultReqs [IgnoreChildrenEvents] newInstance
+        handledResult = Just $ resultReqs [IgnoreChildrenEvents] newInstance
+        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> handledResult
+                    | isButtonReleased && (hMouseInScroll || vMouseInScroll) -> handledResult
+                    | isButtonReleased && isDragging -> handledResult
+                    | otherwise -> Nothing
+      Click point btn -> result where
+        isDragging = isJust $ _scDragging state
+        handledResult = Just $ resultReqs [IgnoreChildrenEvents] widgetInstance
+        result = if | hMouseInScroll || vMouseInScroll || isDragging -> handledResult
                     | otherwise -> Nothing
       Move point -> result where
         updatedState = fmap (\dg -> updateScrollThumb state dg point viewport sctx) dragging

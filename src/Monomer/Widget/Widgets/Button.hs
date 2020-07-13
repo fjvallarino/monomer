@@ -26,9 +26,8 @@ makeButton label onClick = createWidget {
   }
   where
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click (Point x y) _ status -> Just $ resultEvents events widgetInstance where
-        isPressed = status == PressedBtn -- && inRect (_instanceViewport instance) (Point x y)
-        events = [onClick | isPressed]
+      Click (Point x y) _ -> Just $ resultEvents events widgetInstance where
+        events = [onClick]
       _ -> Nothing
 
     preferredSize renderer wctx widgetInstance = singleNode sizeReq where

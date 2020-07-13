@@ -91,11 +91,9 @@ makeDropdown config state items itemToText = createContainer {
       newState = fromMaybe state (useState oldState)
 
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click point _ status
-        | clicked && openRequired point widgetInstance -> Just $ handleOpenDropdown wctx ctx widgetInstance
-        | clicked && closeRequired point widgetInstance -> Just $ handleCloseDropdown wctx ctx widgetInstance
-        where
-          clicked = status == PressedBtn
+      Click point _
+        | openRequired point widgetInstance -> Just $ handleOpenDropdown wctx ctx widgetInstance
+        | closeRequired point widgetInstance -> Just $ handleCloseDropdown wctx ctx widgetInstance
       KeyAction mode code status
         | isKeyDown code && not isOpen -> Just $ handleOpenDropdown wctx ctx widgetInstance
         | isKeyEsc code && isOpen -> Just $ handleCloseDropdown wctx ctx widgetInstance

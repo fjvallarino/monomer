@@ -35,18 +35,19 @@ type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
 createEventContext :: Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
 createEventContext latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
-    KeyAction{}           -> pathEvent currentTarget
-    TextInput _           -> pathEvent currentTarget
+    KeyAction{}            -> pathEvent currentTarget
+    TextInput _            -> pathEvent currentTarget
     -- Clipboard
-    Clipboard _           -> pathEvent currentTarget
+    Clipboard _            -> pathEvent currentTarget
     -- Mouse/touch
-    Click point _ _       -> pointEvent point
-    WheelScroll point _ _ -> pointEvent point
-    Focus                 -> pathEvent currentTarget
-    Blur                  -> pathEvent currentTarget
-    Enter point           -> pointEvent point
-    Move point            -> pointEvent point
-    Leave oldPath _       -> pathEvent oldPath
+    ButtonAction point _ _ -> pointEvent point
+    Click point _          -> pointEvent point
+    WheelScroll point _ _  -> pointEvent point
+    Focus                  -> pathEvent currentTarget
+    Blur                   -> pathEvent currentTarget
+    Enter point            -> pointEvent point
+    Move point             -> pointEvent point
+    Leave oldPath _        -> pathEvent oldPath
   where
     pathEvent = Just . makePathCtx
     findStartPath = fromMaybe rootPath activeOverlay

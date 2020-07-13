@@ -176,21 +176,22 @@ preProcessEvent widgetRoot evt@(Move point) = do
     latestHover .= current
 
   return $ leave ++ enter ++ [evt]
-preProcessEvent widgetRoot evt@(Click point btn status) = do
+preProcessEvent widgetRoot evt@(ButtonAction point btn PressedBtn) = do
   let current = _widgetFind (_instanceWidget widgetRoot) rootPath point widgetRoot
 
-  if status == PressedBtn
-    then latestPressed .= current
-    else latestPressed .= Nothing
-
+  latestPressed .= current
   return [evt]
+preProcessEvent widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
+  latestPressed .= Nothing
+  return [Click point btn, evt]
+
 preProcessEvent widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
 updateInputStatus (Move point) = inputStatus %= \status -> status {
     statusMousePos = point
   }
-updateInputStatus (Click _ btn btnState) = inputStatus %= \status -> status {
+updateInputStatus (ButtonAction _ btn btnState) = inputStatus %= \status -> status {
     statusButtons = M.insert btn btnState (statusButtons status)
   }
 updateInputStatus (KeyAction kMod kCode kStatus) = inputStatus %= \status -> status {

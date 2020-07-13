@@ -47,11 +47,10 @@ makeSandbox onClick state = createWidget {
       newState = fromMaybe state (useState oldState)
 
     handleEvent wctx ctx evt widgetInstance = case evt of
-      Click (Point x y) _ status -> Just $ resultReqsEvents requests events newInstance where
-        isPressed = status == PressedBtn -- && inRect view (Point x y)
-        events = [onClick  | isPressed]
-        requests = [RunTask (currentPath ctx) runTask | isPressed]
-        newState = if isPressed then SandboxState (_clickCount state + 1) else state
+      Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
+        events = [onClick]
+        requests = [RunTask (currentPath ctx) runTask]
+        newState = SandboxState (_clickCount state + 1)
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
       Move p -> Nothing --trace ("Move: " ++ show p) Nothing
