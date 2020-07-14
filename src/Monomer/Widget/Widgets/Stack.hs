@@ -33,11 +33,11 @@ makeStack isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize renderer app widgetInstance childrenPairs = Node reqSize childrenReqs where
+    preferredSize renderer wctx widgetInstance childrenPairs = Node reqSize childrenReqs where
       reqSize = SizeReq (calcPreferredSize childrenPairs) FlexibleSize FlexibleSize
       childrenReqs = fmap snd childrenPairs
 
-    resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+    resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       Rect l t w h = renderArea
       visibleChildren = Seq.filter (_instanceVisible . fst) childrenPairs
       policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight
@@ -49,16 +49,15 @@ makeStack isHorizontal = createContainer {
       sChildren = Seq.filter (policyFilter StrictSize) visibleChildren
       fChildren = Seq.filter (policyFilter FlexibleSize) visibleChildren
       rChildren = Seq.filter (policyFilter RemainderSize) visibleChildren
-      remainderCount = length rChildren
-      remainderExist = not $ null rChildren
+      fExists = not $ null fChildren
+      rExists = not $ null rChildren
       sSize = sizeSelector $ calcPreferredSize sChildren
       fSize = sizeSelector $ calcPreferredSize fChildren
+      rSize = max 0 (mainSize - sSize)
       fCount = fromIntegral $ length fChildren
-      fExtra = if | fCount > 0 -> (mainSize - sSize - fSize) / fCount
-                  | otherwise -> 0
-      remainderTotal = mainSize - (sSize + fCount * fExtra)
-      remainderUnit = if | remainderExist -> max 0 remainderTotal / fromIntegral remainderCount
-                         | otherwise -> 0
+      rCount = fromIntegral $ length rChildren
+      fExtra = if fExists then rSize / fCount else 0
+      rUnit = if rExists && not fExists then rSize / rCount else 0
       newViewports = Seq.reverse revViewports
       assignedArea = Seq.zip newViewports newViewports
       (revViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
@@ -78,8 +77,9 @@ makeStack isHorizontal = createContainer {
         vRect = Rect l offset w calcNewSize
         calcNewSize = case policySelector req of
           StrictSize -> sizeSelector srSize
-          FlexibleSize -> sizeSelector srSize + fExtra
-          RemainderSize -> remainderUnit
+          FlexibleSize -> if | rSize >= fSize -> sizeSelector srSize + fExtra
+                             | otherwise -> sizeSelector srSize * rSize / fSize
+          RemainderSize -> rUnit
 
     calcPreferredSize childrenPairs = Size width height where
       (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions childrenPairs

@@ -109,11 +109,12 @@
   - Check why vstack fails when using [spacer, listView]
   - Remove status from Click event. Add ButtonPressed and ButtonReleased events
   - Change order of parameters. We should always pass _old_ before _new_
-
-- Pending
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
+
+- Pending
+  - If two flexible sized and one remaining elements are in a vstack, problems arise
   - Add renderer parameter to resize. It will be needed for auto adjustable Label and to handle ellipsis in texts
     - Maybe creating a record of functions would be useful?
     - Besides calcTextBounds, we need isClipboardPaste and isClipboardCopy which could be customizable
@@ -124,6 +125,8 @@
     - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
   - Add testing
     - Delayed until this point to try to settle down interfaces
+    - Validate stack assigns space correctly
+    - Use weight to control allocations
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Add header in all files, indicating license and documenting what the module does
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border

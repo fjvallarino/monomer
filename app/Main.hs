@@ -137,6 +137,8 @@ buildUI model = widgetTree where
       --spacer,
       textField textField1,
       listView textField2 items id,
+      spacer,
+      listView textField2 items id,
       spacer
     ]
   items = fmap showt [1..100::Int]
