@@ -1,10 +1,16 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widget.Widgets.TextField (textField) where
+module Monomer.Widget.Widgets.TextField (
+  TextFieldConfig(..),
+  textField,
+  textField_,
+  textFieldConfig
+) where
 
 import Control.Monad
-import Control.Lens (Lens', (&), (^.), (.~))
+import Control.Lens (ALens', (&), (^#), (#~))
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable
@@ -24,48 +30,73 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-caretWidth = 2
+data TextFieldConfig s e = TextFieldConfig {
+  _tfcValue :: WidgetValue s Text,
+  _tfcOnChange :: [Text -> e],
+  _tfcOnChangeReq :: [WidgetRequest s],
+  _tfcCaretWidth :: Double
+}
 
 data TextFieldState = TextFieldState {
-  _tfText :: Text,
+  _tfCurrText :: Text,
   _tfPosition :: Int
 } deriving (Eq, Show, Typeable)
 
-emptyState = TextFieldState "" 0
+textFieldConfig :: WidgetValue s Text -> TextFieldConfig s e
+textFieldConfig value = TextFieldConfig {
+  _tfcValue = value,
+  _tfcOnChange = [],
+  _tfcOnChangeReq = [],
+  _tfcCaretWidth = 2
+}
 
-textField :: Lens' s Text -> WidgetInstance s e
-textField userField = makeInstance $ makeTextField userField emptyState
+textFieldState :: TextFieldState
+textFieldState = TextFieldState {
+  _tfCurrText = "",
+  _tfPosition = 0
+}
+
+textField :: ALens' s Text -> WidgetInstance s e
+textField field = textField_ config where
+  config = textFieldConfig (WidgetLens field)
+
+textField_ :: TextFieldConfig s e -> WidgetInstance s e
+textField_ config = makeInstance $ makeTextField config textFieldState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _instanceFocusable = True
 }
 
-makeTextField :: Lens' s Text -> TextFieldState -> Widget s e
-makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
+makeTextField :: TextFieldConfig s e -> TextFieldState -> Widget s e
+makeTextField config state = createWidget {
     _widgetInit = init,
-    _widgetGetState = makeState tfs,
+    _widgetGetState = makeState state,
     _widgetMerge = widgetMerge merge,
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
   where
+    TextFieldState currText currPos = state
     (part1, part2) = T.splitAt currPos currText
+    currentValue wctx = widgetValueGet (_wcApp wctx) (_tfcValue config)
 
     init wctx ctx widgetInstance = resultWidget newInstance where
-      app = _wcApp wctx
-      newState = TextFieldState (app ^. userField) 0
-      newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+      currText = currentValue wctx
+      newState = TextFieldState currText 0
+      newInstance = widgetInstance {
+        _instanceWidget = makeTextField config newState
+      }
 
     merge wctx ctx oldState widgetInstance = resultWidget newInstance where
-      app = _wcApp wctx
-      TextFieldState txt pos = fromMaybe emptyState (useState oldState)
-      appText = app ^. userField
-      newPos = if T.length appText < pos then T.length appText else pos
-      newState = TextFieldState appText newPos
+      TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
+      currText = currentValue wctx
+      newPos = if | T.length currText < oldPos -> T.length currText
+                  | otherwise -> oldPos
+      newState = TextFieldState currText newPos
       newInstance = widgetInstance {
-        _instanceWidget = makeTextField userField newState
+        _instanceWidget = makeTextField config newState
       }
 
     handleKeyPress txt tp code
@@ -81,12 +112,15 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste evt]
         reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy evt]
-        reqUpdateUserState = [UpdateUserState $ \app -> app & userField .~ newText | currText /= newText]
+        reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
+                                | otherwise -> []
+        reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
         newState = TextFieldState newText newPos
-        newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+        newInstance = widgetInstance {
+          _instanceWidget = makeTextField config newState
+        }
 
       TextInput newText -> insertText wctx widgetInstance newText
 
@@ -94,16 +128,19 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
 
       _ -> Nothing
 
-    insertText wctx widgetInstance addedText = Just $ resultReqs [UpdateUserState $ \app -> app & userField .~ newText] newInstance where
+    insertText wctx widgetInstance addedText = Just $ resultReqs reqs newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
-      newInstance = widgetInstance { _instanceWidget = makeTextField userField newState }
+      reqs = widgetValueSet (_tfcValue config) newText
+      newInstance = widgetInstance {
+        _instanceWidget = makeTextField config newState
+      }
   
     preferredSize renderer app widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText (if currText == "" then " " else currText)
-      sizeReq = SizeReq size FlexibleSize FlexibleSize
+      size = calcTextBounds renderer _styleText currText
+      sizeReq = SizeReq size FlexibleSize StrictSize
 
     render renderer wctx ctx WidgetInstance{..} =
       let ts = _wcTimestamp wctx
@@ -116,6 +153,6 @@ makeTextField userField tfs@(TextFieldState currText currPos) = createWidget {
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when (isFocused ctx) $ do
-          let Size sw sh = calcTextBounds renderer textStyle (if part1 == "" then " " else part1)
-          drawRect renderer (Rect (tl + sw) tt caretWidth sh) (Just textColor) Nothing
+          let Size sw sh = calcTextBounds renderer textStyle part1
+          drawRect renderer (Rect (tl + sw) tt (_tfcCaretWidth config) sh) (Just textColor) Nothing
           return ()

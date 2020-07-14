@@ -114,8 +114,11 @@
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
-  - Add renderer parameter to resize. It will be needed for auto adjustable Label and to handle ellipsis in text
+  - Add renderer parameter to resize. It will be needed for auto adjustable Label and to handle ellipsis in texts
+    - Maybe creating a record of functions would be useful?
+    - Besides calcTextBounds, we need isClipboardPaste and isClipboardCopy which could be customizable
   - Should Resize be restored?
+  - If two flexible sized and one remaining elements are in a vstack, problems arise
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is also needed for _widgetPreferredSize and _widgetResize
     - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)

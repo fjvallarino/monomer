@@ -135,7 +135,7 @@ buildUI model = widgetTree where
       --dropdown textField1 itemsDropdown id `style` color red,
       --label "Yes!" `style` color green,
       --spacer,
-      --textField textField1,
+      textField textField1,
       listView textField2 items id,
       spacer
     ]
