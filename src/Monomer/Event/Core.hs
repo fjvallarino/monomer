@@ -28,12 +28,6 @@ checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False
 
-isClipboardCopy :: SystemEvent -> Bool
-isClipboardCopy event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyC code)
-
-isClipboardPaste :: SystemEvent -> Bool
-isClipboardPaste event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyV code)
-
 isKeyboardEvent :: SystemEvent -> Bool
 isKeyboardEvent KeyAction{} = True
 isKeyboardEvent _ = False

@@ -13,6 +13,8 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
+import Monomer.Event.Core (checkKeyboard)
+import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds)
 import Monomer.Widget.Types
@@ -137,3 +139,19 @@ getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
 getTextBounds :: WidgetContext s e -> Maybe TextStyle -> Text -> Size
 getTextBounds wctx style text = calcTextBounds handler style text where
   handler = _wpTextBounds (_wcPlatform wctx)
+
+isShortCutControl :: WidgetContext s e -> KeyMod -> Bool
+isShortCutControl wctx mod = isControl || isCommand where
+  isControl = not (isMacOS wctx) && keyModLeftCtrl mod
+  isCommand = isMacOS wctx && keyModLeftGUI mod
+
+isClipboardCopy :: WidgetContext s e -> SystemEvent -> Bool
+isClipboardCopy wctx event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wctx mod && isKeyC code
+
+isClipboardPaste :: WidgetContext s e -> SystemEvent -> Bool
+isClipboardPaste wctx event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wctx mod && isKeyV code
+
+isMacOS :: WidgetContext s e -> Bool
+isMacOS wctx = _wpOS (_wcPlatform wctx) == "Mac OS X"

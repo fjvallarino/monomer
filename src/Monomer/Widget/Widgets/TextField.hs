@@ -112,8 +112,8 @@ makeTextField config state = createWidget {
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste evt]
-        reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy evt]
+        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste wctx evt]
+        reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wctx evt]
         reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
