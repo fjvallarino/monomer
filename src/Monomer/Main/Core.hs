@@ -16,6 +16,7 @@ import Control.Monad.State
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (><))
+import Data.Text (Text)
 import Data.Typeable (Typeable)
 
 import qualified Data.Map as M
@@ -42,6 +43,13 @@ import Monomer.Widget.Types
 createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
 createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent eventHandler uiBuilder
 
+createWidgetPlatform :: (Monad m) => Text -> Renderer m -> WidgetPlatform
+createWidgetPlatform os renderer = WidgetPlatform {
+  _wpOS = os,
+  _wpGetKeyCode = getKeyCode,
+  _wpTextBounds = textBounds renderer
+}
+
 runWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -> m ()
 runWidgets window c widgetRoot = do
   useHiDPI <- use useHiDPI
@@ -55,8 +63,11 @@ runWidgets window c widgetRoot = do
   ticks <- fmap fromIntegral SDL.ticks
   ctx <- get
   app <- use appContext
+  os <- getPlatform
   renderer <- makeRenderer c dpr
+  let widgetPlatform = createWidgetPlatform os renderer
   let wctx = WidgetContext {
+    _wcPlatform = widgetPlatform,
     _wcScreenSize = newWindowSize,
     _wcGlobalKeys = M.empty,
     _wcApp = app,
@@ -71,10 +82,10 @@ runWidgets window c widgetRoot = do
   appContext .= newApp
   focused .= findNextFocusable rootPath newWidgetRoot
 
-  mainLoop window c renderer ticks 0 0 newWidgetRoot
+  mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
 
-mainLoop :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> Int -> Int -> Int -> WidgetInstance s e -> m ()
-mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
+mainLoop :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetPlatform -> Int -> Int -> Int -> WidgetInstance s e -> m ()
+mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot = do
   windowSize <- use windowSize
   useHiDPI <- use useHiDPI
   devicePixelRate <- use devicePixelRate
@@ -104,6 +115,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
   let wctx = WidgetContext {
+    _wcPlatform = widgetPlatform,
     _wcScreenSize = windowSize,
     _wcGlobalKeys = M.empty,
     _wcApp = currentApp,
@@ -132,7 +144,7 @@ mainLoop window c renderer !prevTicks !tsAccum !frames widgetRoot = do
   let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
 
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window c renderer startTicks newTsAccum newFrameCount newWidgetRoot)
+  unless quit (mainLoop window c renderer widgetPlatform startTicks newTsAccum newFrameCount newWidgetRoot)
 
 renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 renderWidgets !window !c !renderer wctx ctx widgetRoot =

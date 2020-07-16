@@ -35,7 +35,7 @@ isClipboardPaste :: SystemEvent -> Bool
 isClipboardPaste event = checkKeyboard event (\mod code motion -> (keyModLeftGUI mod || keyModLeftCtrl mod) && isKeyV code)
 
 isKeyboardEvent :: SystemEvent -> Bool
-isKeyboardEvent (KeyAction _ _ _) = True
+isKeyboardEvent KeyAction{} = True
 isKeyboardEvent _ = False
 
 isKeyPressed :: SystemEvent -> KeyCode -> Bool

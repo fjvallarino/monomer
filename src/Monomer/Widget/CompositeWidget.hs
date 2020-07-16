@@ -292,6 +292,7 @@ collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs wh
 
 convertWidgetContext :: WidgetContext sp ep -> GlobalKeys s e -> s -> WidgetContext s e
 convertWidgetContext wctx globalKeys app = WidgetContext {
+  _wcPlatform = _wcPlatform wctx,
   _wcScreenSize = _wcScreenSize wctx,
   _wcGlobalKeys = globalKeys,
   _wcApp = app,

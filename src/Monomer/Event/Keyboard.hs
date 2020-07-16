@@ -1,4 +1,19 @@
-module Monomer.Event.Keyboard where
+module Monomer.Event.Keyboard (
+  keyboardEvent,
+  textEvent,
+
+  keyTab,
+  isKeyBackspace,
+  isKeyEsc,
+  isKeyReturn,
+  isKeyTab,
+  isKeyLeft,
+  isKeyRight,
+  isKeyUp,
+  isKeyDown,
+  isKeyC,
+  isKeyV
+) where
 
 import Unsafe.Coerce
 

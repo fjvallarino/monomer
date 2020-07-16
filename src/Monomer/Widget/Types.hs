@@ -17,6 +17,7 @@ import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
 import Monomer.Widget.PathContext
 
 type Timestamp = Int
@@ -68,7 +69,14 @@ instance Semigroup (WidgetResult s e) where
     evts = _resultEvents er1 <> _resultEvents er2
     widget = _resultWidget er2
 
+data WidgetPlatform = WidgetPlatform {
+  _wpOS :: Text,
+  _wpGetKeyCode :: String -> Maybe KeyCode,
+  _wpTextBounds :: Font -> FontSize -> Text -> Size
+}
+
 data WidgetContext s e = WidgetContext {
+  _wcPlatform :: WidgetPlatform,
   _wcScreenSize :: Size,
   _wcGlobalKeys :: GlobalKeys s e,
   _wcApp :: s,
