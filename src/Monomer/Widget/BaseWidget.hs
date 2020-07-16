@@ -60,8 +60,8 @@ defaultHandleEvent wctx ctx evt widgetInstance = Nothing
 defaultHandleMessage :: forall i s e m . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleMessage wctx ctx evt widgetInstance = Nothing
 
-defaultPreferredSize :: Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
-defaultPreferredSize renderer wctx widgetInstance = singleNode SizeReq {
+defaultPreferredSize :: WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
+defaultPreferredSize wctx widgetInstance = singleNode SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize

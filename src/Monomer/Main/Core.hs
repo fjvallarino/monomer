@@ -76,7 +76,7 @@ runWidgets window c widgetRoot = do
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
 
-  let newWidgetRoot = resizeUI renderer wctx newWindowSize initializedRoot
+  let newWidgetRoot = resizeUI wctx newWindowSize initializedRoot
   let newApp = _wcApp newWctx
 
   appContext .= newApp
@@ -129,7 +129,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wctx widgetRoot
   (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot
 
-  newWidgetRoot <- if resized then resizeWindow window renderer seWctx seWidgetRoot
+  newWidgetRoot <- if resized then resizeWindow window seWctx seWidgetRoot
                               else return seWidgetRoot
 
   currentFocus <- use focused
@@ -151,16 +151,16 @@ renderWidgets !window !c !renderer wctx ctx widgetRoot =
   doInDrawingContext window c $
     _widgetRender (_instanceWidget widgetRoot) renderer wctx ctx widgetRoot
 
-resizeUI :: (Monad m) => Renderer m -> WidgetContext s e -> Size -> WidgetInstance s e -> WidgetInstance s e
-resizeUI renderer wctx windowSize widgetRoot = newWidgetRoot where
+resizeUI :: WidgetContext s e -> Size -> WidgetInstance s e -> WidgetInstance s e
+resizeUI wctx windowSize widgetRoot = newWidgetRoot where
   Size w h = windowSize
   assignedRect = Rect 0 0 w h
   widget = _instanceWidget widgetRoot
-  preferredSizes = _widgetPreferredSize widget renderer wctx widgetRoot
+  preferredSizes = _widgetPreferredSize widget wctx widgetRoot
   newWidgetRoot = _widgetResize widget wctx assignedRect assignedRect widgetRoot preferredSizes
 
-resizeWindow :: (MonomerM s m) => SDL.Window -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (WidgetInstance s e)
-resizeWindow window renderer wctx widgetRoot = do
+resizeWindow :: (MonomerM s m) => SDL.Window -> WidgetContext s e -> WidgetInstance s e -> m (WidgetInstance s e)
+resizeWindow window wctx widgetRoot = do
   dpr <- use devicePixelRate
   drawableSize <- getDrawableSize window
   newWindowSize <- getWindowSize window dpr
@@ -168,7 +168,7 @@ resizeWindow window renderer wctx widgetRoot = do
   windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _w drawableSize) (round $ _h drawableSize))
 
-  return $ resizeUI renderer wctx newWindowSize widgetRoot
+  return $ resizeUI wctx newWindowSize widgetRoot
 
 preProcessEvents :: (MonomerM s m) => WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents widgets events = do

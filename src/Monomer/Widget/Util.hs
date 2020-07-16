@@ -14,6 +14,7 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
+import Monomer.Graphics.Drawing (calcTextBounds)
 import Monomer.Widget.Types
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
@@ -132,3 +133,7 @@ getUpdateUserStates :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
 getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateUserState fn) = acc |> fn
   foldHelper acc _ = acc
+
+getTextBounds :: WidgetContext s e -> Maybe TextStyle -> Text -> Size
+getTextBounds wctx style text = calcTextBounds handler style text where
+  handler = _wpTextBounds (_wcPlatform wctx)

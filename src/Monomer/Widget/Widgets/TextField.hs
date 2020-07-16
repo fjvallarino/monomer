@@ -137,9 +137,9 @@ makeTextField config state = createWidget {
         _instanceWidget = makeTextField config newState
       }
   
-    preferredSize renderer app widgetInstance = singleNode sizeReq where
+    preferredSize wctx widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText currText
+      size = getTextBounds wctx _styleText currText
       sizeReq = SizeReq size FlexibleSize StrictSize
 
     render renderer wctx ctx WidgetInstance{..} =
@@ -153,6 +153,6 @@ makeTextField config state = createWidget {
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when (isFocused ctx) $ do
-          let Size sw sh = calcTextBounds renderer textStyle part1
+          let Size sw sh = getTextBounds wctx textStyle part1
           drawRect renderer (Rect (tl + sw) tt (_tfcCaretWidth config) sh) (Just textColor) Nothing
           return ()

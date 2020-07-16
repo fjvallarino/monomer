@@ -41,9 +41,9 @@ type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
 
 type ContainerInitHandler s e = WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
 type ContainerMergeHandler s e = WidgetContext s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
-type ContainerEventHandler s e m = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type ContainerMessageHandler i s e m = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type ContainerPreferredSizeHandler s e m = Monad m => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> Tree SizeReq
+type ContainerEventHandler s e = WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+type ContainerMessageHandler i s e = Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+type ContainerPreferredSizeHandler s e = WidgetContext s e -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> Tree SizeReq
 type ContainerResizeHandler s e = WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
 type ContainerRenderHandler s e m = (Monad m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
 
@@ -151,10 +151,10 @@ combinePath path point children childIdx = childIdx <| childPath where
   childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) path point child
 
 -- | Event Handling
-defaultHandleEvent :: ContainerEventHandler s e m
+defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wctx ctx evt widgetInstance = Nothing
 
-containerHandleEvent :: ContainerEventHandler s e m -> WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleEvent :: ContainerEventHandler s e -> WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleEvent pHandler wctx ctx event widgetInstance
   | targetReached || not targetValid = pHandler wctx ctx event widgetInstance
   | otherwise = mergeParentChildWidgetResults widgetInstance pResponse cResponse childIdx
@@ -189,10 +189,10 @@ mergeParentChildWidgetResults original (Just pResponse) (Just cResponse) idx
       newWidget = replaceChild (_resultWidget pResponse) (_resultWidget cResponse) idx
 
 -- | Message Handling
-defaultHandleMessage :: ContainerMessageHandler i s e m
+defaultHandleMessage :: ContainerMessageHandler i s e
 defaultHandleMessage wctx ctx message widgetInstance = Nothing
 
-containerHandleMessage :: forall i s e m . Typeable i => ContainerMessageHandler i s e m -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+containerHandleMessage :: forall i s e . Typeable i => ContainerMessageHandler i s e -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleMessage mHandler wctx ctx arg widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = mHandler wctx ctx arg widgetInstance
   | otherwise = messageResult where
@@ -204,8 +204,8 @@ containerHandleMessage mHandler wctx ctx arg widgetInstance
         \cr -> cr { _resultWidget = replaceChild widgetInstance (_resultWidget cr) childIdx }
 
 -- | Preferred size
-defaultPreferredSize :: ContainerPreferredSizeHandler s e m
-defaultPreferredSize renderer app widgetInstance childrenPairs = Node current childrenReqs where
+defaultPreferredSize :: ContainerPreferredSizeHandler s e
+defaultPreferredSize wctx widgetInstance childrenPairs = Node current childrenReqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
     _sizePolicyWidth = FlexibleSize,
@@ -213,12 +213,12 @@ defaultPreferredSize renderer app widgetInstance childrenPairs = Node current ch
   }
   childrenReqs = fmap snd childrenPairs
 
-containerPreferredSize :: (Monad m) => ContainerPreferredSizeHandler s e m -> Renderer m -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
-containerPreferredSize psHandler renderer wctx widgetInstance = psHandler renderer wctx widgetInstance (Seq.zip children childrenReqs) where
+containerPreferredSize :: ContainerPreferredSizeHandler s e -> WidgetContext s e -> WidgetInstance s e -> Tree SizeReq
+containerPreferredSize psHandler wctx widgetInstance = psHandler wctx widgetInstance (Seq.zip children childrenReqs) where
   children = _instanceChildren widgetInstance
   childrenReqs = fmap updateChild children
   updateChild child = Node (updateSizeReq req child) reqs where
-    Node req reqs = _widgetPreferredSize (_instanceWidget child) renderer wctx child
+    Node req reqs = _widgetPreferredSize (_instanceWidget child) wctx child
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e

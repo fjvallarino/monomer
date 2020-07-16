@@ -154,9 +154,9 @@ makeDropdown config state = createContainer {
       newReqs = Seq.fromList $ widgetValueSet (_ddValue config) item
       newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
 
-    preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
+    preferredSize wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText (dropdownLabel wctx)
+      size = getTextBounds wctx _styleText (dropdownLabel wctx)
       sizeReq = SizeReq size FlexibleSize StrictSize
       childrenReqs = fmap snd childrenPairs
 

@@ -223,14 +223,14 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
   fillColor renderer tsColor
   text renderer viewport tsFont tsFontSize tsAlign txt
 
-calcTextBounds :: (Monad m) => Renderer m -> Maybe TextStyle -> Text -> Size
-calcTextBounds renderer Nothing txt = calcTextBounds renderer (Just mempty) txt
-calcTextBounds renderer (Just TextStyle{..}) txt =
+calcTextBounds :: (Font -> FontSize -> Text -> Size) -> Maybe TextStyle -> Text -> Size
+calcTextBounds textBoundsFn Nothing txt = calcTextBounds textBoundsFn (Just mempty) txt
+calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
   let
     tsFont = fromMaybe defaultFont _textStyleFont
     tsFontSize = fromMaybe defaultFontSize _textStyleFontSize
   in
-    textBounds renderer tsFont tsFontSize txt
+    textBoundsFn tsFont tsFontSize txt
 
 tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)

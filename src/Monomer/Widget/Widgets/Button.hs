@@ -49,9 +49,9 @@ makeButton config = createWidget {
         events = _btnOnChange config
       _ -> Nothing
 
-    preferredSize renderer wctx widgetInstance = singleNode sizeReq where
+    preferredSize wctx widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText (_btnLabel config)
+      size = getTextBounds wctx _styleText (_btnLabel config)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =

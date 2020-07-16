@@ -33,7 +33,7 @@ makeStack isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize renderer wctx widgetInstance childrenPairs = Node reqSize childrenReqs where
+    preferredSize wctx widgetInstance childrenPairs = Node reqSize childrenReqs where
       reqSize = SizeReq (calcPreferredSize childrenPairs) FlexibleSize FlexibleSize
       childrenReqs = fmap snd childrenPairs
 

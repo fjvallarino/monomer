@@ -251,8 +251,8 @@ compositeHandleMessage comp state@CompositeState{..} wctx ctx arg widgetComposit
       result = _widgetHandleMessage (_instanceWidget _compositeRoot) cwctx nextCtx arg _compositeRoot
 
 -- Preferred size
-compositePreferredSize :: (Monad m) => CompositeState s e -> Renderer m -> WidgetContext sp ep -> WidgetInstance sp ep -> Tree SizeReq
-compositePreferredSize CompositeState{..} renderer wctx _ = _widgetPreferredSize widget renderer cwctx _compositeRoot where
+compositePreferredSize :: CompositeState s e -> WidgetContext sp ep -> WidgetInstance sp ep -> Tree SizeReq
+compositePreferredSize CompositeState{..} wctx _ = _widgetPreferredSize widget cwctx _compositeRoot where
   widget = _instanceWidget _compositeRoot
   cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
 

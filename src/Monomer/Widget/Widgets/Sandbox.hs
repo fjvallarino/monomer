@@ -65,9 +65,9 @@ makeSandbox onClick state = createWidget {
       Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
       Nothing -> Nothing
 
-    preferredSize renderer app widgetInstance = singleNode sizeReq where
+    preferredSize wctx widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = calcTextBounds renderer _styleText (T.pack label)
+      size = getTextBounds wctx _styleText (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
     render renderer wctx ctx WidgetInstance{..} =

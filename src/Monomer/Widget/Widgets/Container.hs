@@ -56,7 +56,7 @@ makeContainer config = createContainer {
                     else Nothing
       _ -> Nothing
 
-    preferredSize renderer wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
+    preferredSize wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = nodeValue $ Seq.index childrenReqs 0
 

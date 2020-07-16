@@ -32,7 +32,7 @@ makeFixedGrid isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize renderer app widgetInstance childrenPairs = Node reqSize children where
+    preferredSize app widgetInstance childrenPairs = Node reqSize children where
       children = fmap snd childrenPairs
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       childrenReqs = fmap (nodeValue . snd) visiblePairs
