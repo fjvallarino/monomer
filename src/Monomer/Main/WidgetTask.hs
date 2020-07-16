@@ -50,12 +50,12 @@ processWidgetTask renderer wctx widgetRoot (WidgetTask path task) = do
   case taskStatus of
     Just taskResult -> processWidgetTaskResult renderer wctx widgetRoot path taskResult
     Nothing -> return (wctx, Seq.empty, widgetRoot)
-processWidgetTask renderer app widgetRoot (WidgetProducer path channel task) = do
+processWidgetTask renderer model widgetRoot (WidgetProducer path channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
-    Just taskMessage -> processWidgetTaskEvent renderer app widgetRoot path taskMessage
-    Nothing -> return (app, Seq.empty, widgetRoot)
+    Just taskMessage -> processWidgetTaskEvent renderer model widgetRoot path taskMessage
+    Nothing -> return (model, Seq.empty, widgetRoot)
 
 processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> Path -> Either SomeException a -> m (HandlerStep s e)
 processWidgetTaskResult renderer wctx widgetRoot _ (Left ex) = do

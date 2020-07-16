@@ -80,7 +80,7 @@ makeTextField config state = createWidget {
   where
     TextFieldState currText currPos = state
     (part1, part2) = T.splitAt currPos currText
-    currentValue wctx = widgetValueGet (_wcApp wctx) (_tfcValue config)
+    currentValue wctx = widgetValueGet (_wcModel wctx) (_tfcValue config)
 
     init wctx ctx widgetInstance = resultWidget newInstance where
       currText = currentValue wctx

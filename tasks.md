@@ -112,14 +112,14 @@
   - Unify criteria for instantiation
     - Component name without underscore receives parameters positionally
     - Component name with underscore receives Config instance
-
-- Pending
   - If two flexible sized and one remaining elements are in a vstack, problems arise
   - Add renderer parameter to resize. It will be needed for auto adjustable Label and to handle ellipsis in texts
     - Maybe creating a record of functions would be useful?
     - Besides calcTextBounds, we need isClipboardPaste and isClipboardCopy which could be customizable
+      - Customization discarded. What would it be needed for?
+
+- Pending
   - Should Resize be restored?
-  - If two flexible sized and one remaining elements are in a vstack, problems arise
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is also needed for _widgetPreferredSize and _widgetResize
     - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
@@ -142,6 +142,7 @@
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty
   - Request text input when text field gets focus (required for mobile)
+    - Also set TextInputRect
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

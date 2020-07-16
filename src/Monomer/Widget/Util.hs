@@ -63,7 +63,7 @@ resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResu
 resultReqsEvents requests userEvents widgetInstance = WidgetResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
-makeState state app = Just (WidgetState state)
+makeState state model = Just (WidgetState state)
 
 useState ::  Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing

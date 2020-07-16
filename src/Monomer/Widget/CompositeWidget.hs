@@ -57,7 +57,7 @@ data Composite s e ep = Composite {
 }
 
 data CompositeState s e = CompositeState {
-  _compositeApp :: s,
+  _compositeModel :: s,
   _compositeRoot :: WidgetInstance s e,
   _compositeInitEvent :: Maybe e,
   _compositeGlobalKeys :: GlobalKeys s e,
@@ -65,7 +65,7 @@ data CompositeState s e = CompositeState {
 }
 
 data ReducedEvents s e sp ep = ReducedEvents {
-  _reApp :: s,
+  _reModel :: s,
   _reEvents :: Seq e,
   _reMessages :: Seq (WidgetRequest sp),
   _reReports :: Seq ep,
@@ -74,10 +74,10 @@ data ReducedEvents s e sp ep = ReducedEvents {
 }
 
 composite :: (Eq s, Typeable s, Typeable e) => WidgetType -> s -> Maybe e -> EventHandler s e ep -> UIBuilder s e -> WidgetInstance sp ep
-composite widgetType app initEvent eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
-  widgetRoot = uiBuilder app
+composite widgetType model initEvent eventHandler uiBuilder = defaultWidgetInstance widgetType widget where
+  widgetRoot = uiBuilder model
   composite = Composite widgetType eventHandler uiBuilder
-  state = CompositeState app widgetRoot initEvent M.empty (singleNode def)
+  state = CompositeState model widgetRoot initEvent M.empty (singleNode def)
   widget = createComposite composite state
 
 createComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> Widget sp ep
@@ -99,7 +99,7 @@ compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> Composite
 compositeInit comp state wctx ctx widgetComposite = result where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
   cctx = childContext ctx
   WidgetResult reqs evts root = _widgetInit widget cwctx cctx _compositeRoot
   newEvts = maybe evts (evts |>) _compositeInitEvent
@@ -112,15 +112,15 @@ compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> Composit
 compositeMerge comp state wctx ctx oldComposite newComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) wctx
   validState = fromMaybe state (useState oldState)
-  CompositeState oldApp oldRoot oldInit oldGlobalKeys oldReqs = validState
+  CompositeState oldModel oldRoot oldInit oldGlobalKeys oldReqs = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
-  newRoot = _uiBuilder comp oldApp
+  newRoot = _uiBuilder comp oldModel
   newState = validState {
     _compositeRoot = newRoot,
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
   }
   newWidget = _instanceWidget newRoot
-  cwctx = convertWidgetContext wctx oldGlobalKeys oldApp
+  cwctx = convertWidgetContext wctx oldGlobalKeys oldModel
   cctx = childContext ctx
   widgetResult = if instanceMatches newRoot oldRoot
                   then _widgetMerge newWidget cwctx cctx oldRoot newRoot
@@ -144,7 +144,7 @@ compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> Co
 compositeHandleEvent comp state wctx ctx evt widgetComposite = fmap processEvent result where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
   cctx = childContext ctx
   processEvent = processWidgetResult comp state wctx ctx widgetComposite
   result = _widgetHandleEvent widget cwctx cctx evt _compositeRoot
@@ -152,10 +152,10 @@ compositeHandleEvent comp state wctx ctx evt widgetComposite = fmap processEvent
 processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
 processWidgetResult comp state wctx ctx widgetComposite (WidgetResult reqs evts evtsRoot) = WidgetResult newReqs newEvts uWidget where
   CompositeState{..} = state
-  evtStates = getUpdateUserStates reqs
-  evtApp = foldr (.) id evtStates _compositeApp
-  ReducedEvents newApp _ messages reports tasks producers = reduceCompositeEvents _compositeGlobalKeys (_eventHandler comp) evtApp evts
-  WidgetResult uReqs uEvts uWidget = updateComposite comp state wctx ctx newApp evtsRoot widgetComposite
+  evtUpdates = getUpdateUserStates reqs
+  evtModel = foldr (.) id evtUpdates _compositeModel
+  ReducedEvents newModel _ messages reports tasks producers = reduceCompositeEvents _compositeGlobalKeys (_eventHandler comp) evtModel evts
+  WidgetResult uReqs uEvts uWidget = updateComposite comp state wctx ctx newModel evtsRoot widgetComposite
   newReqs = convertRequests reqs
          <> convertTasksToRequests ctx tasks
          <> convertProducersToRequests ctx producers
@@ -164,31 +164,31 @@ processWidgetResult comp state wctx ctx widgetComposite (WidgetResult reqs evts 
   newEvts = reports <> uEvts
 
 updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
-updateComposite comp state wctx ctx newApp oldRoot widgetComposite = if appChanged then processedResult else updatedResult where
+updateComposite comp state wctx ctx newModel oldRoot widgetComposite = if modelChanged then processedResult else updatedResult where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys newApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys newModel
   cctx = childContext ctx
-  appChanged = _compositeApp /= newApp
-  builtRoot = _uiBuilder comp newApp
+  modelChanged = _compositeModel /= newModel
+  builtRoot = _uiBuilder comp newModel
   mergedResult = _widgetMerge (_instanceWidget builtRoot) cwctx cctx oldRoot builtRoot
   mergedState = state {
-    _compositeApp = newApp,
+    _compositeModel = newModel,
     _compositeRoot = _resultWidget mergedResult
   }
   processedResult = processWidgetResult comp mergedState wctx ctx widgetComposite mergedResult
-  updatedResult = updateCompositeSize comp state wctx ctx newApp oldRoot widgetComposite
+  updatedResult = updateCompositeSize comp state wctx ctx newModel oldRoot widgetComposite
 
 updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
-updateCompositeSize comp state wctx ctx newApp oldRoot widgetComposite = resultWidget newInstance where
+updateCompositeSize comp state wctx ctx newModel oldRoot widgetComposite = resultWidget newInstance where
   CompositeState{..} = state
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys newApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys newModel
   cctx = childContext ctx
   newRoot = _widgetResize (_instanceWidget oldRoot) cwctx viewport renderArea oldRoot _compositeSizeReq
   newState = state {
-    _compositeApp = newApp,
+    _compositeModel = newModel,
     _compositeRoot = newRoot
   }
   newInstance = widgetComposite {
@@ -196,16 +196,16 @@ updateCompositeSize comp state wctx ctx newApp oldRoot widgetComposite = resultW
   }
 
 reduceCompositeEvents :: GlobalKeys s e -> EventHandler s e ep -> s -> Seq e -> ReducedEvents s e sp ep
-reduceCompositeEvents globalKeys appEventHandler app events = foldl' reducer initial events where
-  initial = ReducedEvents app Seq.empty Seq.empty Seq.empty Seq.empty Seq.empty
+reduceCompositeEvents globalKeys eventHandler model events = foldl' reducer initial events where
+  initial = ReducedEvents model Seq.empty Seq.empty Seq.empty Seq.empty Seq.empty
   reducer current event = foldl' reducer newCurrent newEvents where
-    processed = convertResponse globalKeys current (appEventHandler (_reApp current) event)
+    processed = convertResponse globalKeys current (eventHandler (_reModel current) event)
     newEvents = _reEvents processed
     newCurrent = processed { _reEvents = Seq.empty }
 
 convertResponse :: GlobalKeys s e -> ReducedEvents s e sp ep -> EventResponse s e ep -> ReducedEvents s e sp ep
 convertResponse globalKeys current@ReducedEvents{..} response = case response of
-  Model newApp -> current { _reApp = newApp }
+  Model newModel -> current { _reModel = newModel }
   Event event -> current { _reEvents = _reEvents |> event }
   Message key message -> case M.lookup key globalKeys of
     Just (path, _) -> current { _reMessages = _reMessages |> SendMessage path message }
@@ -246,7 +246,7 @@ compositeHandleMessage comp state@CompositeState{..} wctx ctx arg widgetComposit
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
       processEvent = processWidgetResult comp state wctx ctx widgetComposite
-      cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+      cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
       nextCtx = fromJust $ moveToTarget ctx
       result = _widgetHandleMessage (_instanceWidget _compositeRoot) cwctx nextCtx arg _compositeRoot
 
@@ -254,14 +254,14 @@ compositeHandleMessage comp state@CompositeState{..} wctx ctx arg widgetComposit
 compositePreferredSize :: CompositeState s e -> WidgetContext sp ep -> WidgetInstance sp ep -> Tree SizeReq
 compositePreferredSize CompositeState{..} wctx _ = _widgetPreferredSize widget cwctx _compositeRoot where
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
 
 -- Resize
 compositeResize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> Rect -> Rect -> WidgetInstance sp ep -> Tree SizeReq -> WidgetInstance sp ep
 compositeResize comp state wctx viewport renderArea widgetComposite reqs = newInstance where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
   newRoot = _widgetResize widget cwctx viewport renderArea _compositeRoot reqs
   newState = state {
     _compositeRoot = newRoot,
@@ -277,7 +277,7 @@ compositeResize comp state wctx viewport renderArea widgetComposite reqs = newIn
 compositeRender :: (Monad m) => CompositeState s e -> Renderer m -> WidgetContext sp ep -> PathContext -> WidgetInstance sp ep -> m ()
 compositeRender CompositeState{..} renderer wctx ctx _ = _widgetRender widget renderer cwctx cctx _compositeRoot where
   widget = _instanceWidget _compositeRoot
-  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeApp
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
   cctx = childContext ctx
 
 collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
@@ -291,11 +291,11 @@ collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs wh
     _ -> keys
 
 convertWidgetContext :: WidgetContext sp ep -> GlobalKeys s e -> s -> WidgetContext s e
-convertWidgetContext wctx globalKeys app = WidgetContext {
+convertWidgetContext wctx globalKeys model = WidgetContext {
   _wcPlatform = _wcPlatform wctx,
   _wcScreenSize = _wcScreenSize wctx,
   _wcGlobalKeys = globalKeys,
-  _wcApp = app,
+  _wcModel = model,
   _wcInputStatus = _wcInputStatus wctx,
   _wcTimestamp = _wcTimestamp wctx
 }

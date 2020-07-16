@@ -95,7 +95,7 @@ makeDropdown config state = createContainer {
   }
   where
     isOpen = _isOpen state
-    currentValue wctx = widgetValueGet (_wcApp wctx) (_ddValue config)
+    currentValue wctx = widgetValueGet (_wcModel wctx) (_ddValue config)
 
     createDropdown wctx ctx newState widgetInstance = newInstance where
       selected = currentValue wctx

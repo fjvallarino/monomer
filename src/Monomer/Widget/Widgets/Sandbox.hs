@@ -61,7 +61,7 @@ makeSandbox onClick state = createWidget {
 
     runTask = return SandboxData2
 
-    handleMessage ctx bd app widgetInstance = case cast bd of
+    handleMessage wctx ctx bd widgetInstance = case cast bd of
       Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
       Nothing -> Nothing
 

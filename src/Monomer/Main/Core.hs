@@ -41,7 +41,7 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
 createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
-createApp app initEvent eventHandler uiBuilder = composite "app" app initEvent eventHandler uiBuilder
+createApp model initEvent eventHandler uiBuilder = composite "app" model initEvent eventHandler uiBuilder
 
 createWidgetPlatform :: (Monad m) => Text -> Renderer m -> WidgetPlatform
 createWidgetPlatform os renderer = WidgetPlatform {
@@ -62,7 +62,7 @@ runWidgets window c widgetRoot = do
   windowSize .= newWindowSize
   ticks <- fmap fromIntegral SDL.ticks
   ctx <- get
-  app <- use appContext
+  model <- use mainModel
   os <- getPlatform
   renderer <- makeRenderer c dpr
   let widgetPlatform = createWidgetPlatform os renderer
@@ -70,16 +70,15 @@ runWidgets window c widgetRoot = do
     _wcPlatform = widgetPlatform,
     _wcScreenSize = newWindowSize,
     _wcGlobalKeys = M.empty,
-    _wcApp = app,
+    _wcModel = model,
     _wcInputStatus = defInputStatus,
     _wcTimestamp = ticks
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
 
   let newWidgetRoot = resizeUI wctx newWindowSize initializedRoot
-  let newApp = _wcApp newWctx
 
-  appContext .= newApp
+  mainModel .= _wcModel newWctx
   focused .= findNextFocusable rootPath newWidgetRoot
 
   mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
@@ -108,7 +107,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   --  liftIO . putStrLn $ "Frames: " ++ (show frames)
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
-  currentApp <- use appContext
+  currentModel <- use mainModel
   systemEvents <- preProcessEvents widgetRoot baseSystemEvents
   inputStatus <- use inputStatus
   isMouseFocusedWidget <- fmap isJust (use latestPressed)
@@ -118,7 +117,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
     _wcPlatform = widgetPlatform,
     _wcScreenSize = windowSize,
     _wcGlobalKeys = M.empty,
-    _wcApp = currentApp,
+    _wcModel = currentModel,
     _wcInputStatus = inputStatus,
     _wcTimestamp = startTicks
   }

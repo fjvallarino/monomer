@@ -13,8 +13,8 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
-initMonomerContext app winSize useHiDPI devicePixelRate = MonomerContext {
-  _appContext = app,
+initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
+  _mainModel = model,
   _windowSize = winSize,
   _useHiDPI = useHiDPI,
   _devicePixelRate = devicePixelRate,

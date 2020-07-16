@@ -79,7 +79,7 @@ data WidgetContext s e = WidgetContext {
   _wcPlatform :: WidgetPlatform,
   _wcScreenSize :: Size,
   _wcGlobalKeys :: GlobalKeys s e,
-  _wcApp :: s,
+  _wcModel :: s,
   _wcInputStatus :: InputStatus,
   _wcTimestamp :: Int
 }
@@ -92,7 +92,7 @@ data Widget s e =
     _widgetGetState :: WidgetContext s e -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
     --
-    -- Current app state
+    -- Current state
     -- Old instance
     -- New instance
     _widgetMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,

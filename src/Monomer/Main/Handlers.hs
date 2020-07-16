@@ -88,38 +88,38 @@ handleWidgetInit renderer wctx widgetRoot = do
   handleWidgetResult renderer wctx ctx widgetResult
 
 handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetResult s e -> m (HandlerStep s e)
-handleWidgetResult renderer wctx ctx (WidgetResult eventRequests appEvents evtRoot) = do
-  let evtStates = getUpdateUserStates eventRequests
-  let evtApp = foldr (.) id evtStates (_wcApp wctx)
-  let evtWctx = wctx { _wcApp = evtApp }
+handleWidgetResult renderer wctx ctx (WidgetResult reqs events evtRoot) = do
+  let evtUpdates = getUpdateUserStates reqs
+  let evtModel = foldr (.) id evtUpdates (_wcModel wctx)
+  let evtWctx = wctx { _wcModel = evtModel }
 
-  handleNewWidgetTasks eventRequests
+  handleNewWidgetTasks reqs
 
-  handleFocusSet renderer eventRequests (evtWctx, appEvents, evtRoot)
-    >>= handleClipboardGet renderer ctx eventRequests
-    >>= handleClipboardSet renderer eventRequests
-    >>= handleSendMessages renderer eventRequests
-    >>= handleOverlaySet renderer eventRequests
-    >>= handleOverlayReset renderer eventRequests
+  handleFocusSet renderer reqs (evtWctx, events, evtRoot)
+    >>= handleClipboardGet renderer ctx reqs
+    >>= handleClipboardSet renderer reqs
+    >>= handleSendMessages renderer reqs
+    >>= handleOverlaySet renderer reqs
+    >>= handleOverlayReset renderer reqs
 
 handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
-handleFocusChange renderer ctx systemEvent stopProcessing (app, events, widgetRoot)
+handleFocusChange renderer ctx systemEvent stopProcessing (model, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
-      (newApp1, newEvents1, newRoot1) <- handleSystemEvent renderer app Blur oldFocus oldFocus widgetRoot
+      (newModel, newEvents1, newRoot1) <- handleSystemEvent renderer model Blur oldFocus oldFocus widgetRoot
 
       let newFocus = findNextFocusable oldFocus widgetRoot
-      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer newApp1 Focus newFocus newFocus newRoot1
+      (newModel2, newEvents2, newRoot2) <- handleSystemEvent renderer newModel Focus newFocus newFocus newRoot1
       focused .= newFocus
 
-      return (newApp2, events >< newEvents1 >< newEvents2, widgetRoot)
-  | otherwise = return (app, events, widgetRoot)
+      return (newModel2, events >< newEvents1 >< newEvents2, widgetRoot)
+  | otherwise = return (model, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
 
 handleFocusSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleFocusSet renderer eventRequests previousStep =
-  case Seq.filter isSetFocus eventRequests of
+handleFocusSet renderer reqs previousStep =
+  case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
       focused .= newFocus
 
@@ -127,23 +127,23 @@ handleFocusSet renderer eventRequests previousStep =
     _ -> return previousStep
 
 handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleClipboardGet renderer ctx eventRequests previousStep = do
+handleClipboardGet renderer ctx reqs previousStep = do
     hasText <- SDL.hasClipboardText
     contents <- if hasText
                   then fmap ClipboardText SDL.getClipboardText
                   else return ClipboardEmpty
 
-    foldM (reducer contents) previousStep eventRequests
+    foldM (reducer contents) previousStep reqs
   where
-    reducer contents (app, events, widgetRoot) (GetClipboard path) = do
-      (newApp2, newEvents2, newRoot2) <- handleSystemEvent renderer app (Clipboard contents) (_pathCurrent ctx) path widgetRoot
+    reducer contents (model, events, widgetRoot) (GetClipboard path) = do
+      (newModel2, newEvents2, newRoot2) <- handleSystemEvent renderer model (Clipboard contents) (_pathCurrent ctx) path widgetRoot
 
-      return (newApp2, events >< newEvents2, newRoot2)
+      return (newModel2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
 
 handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleClipboardSet renderer eventRequests previousStep =
-  case Seq.filter isSetClipboard eventRequests of
+handleClipboardSet renderer reqs previousStep =
+  case Seq.filter isSetClipboard reqs of
     SetClipboard (ClipboardText text) :<| _ -> do
       SDL.setClipboardText text
 
@@ -151,8 +151,8 @@ handleClipboardSet renderer eventRequests previousStep =
     _ -> return previousStep
 
 handleOverlaySet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleOverlaySet renderer eventRequests previousStep =
-  case Seq.filter isSetOverlay eventRequests of
+handleOverlaySet renderer reqs previousStep =
+  case Seq.filter isSetOverlay reqs of
     SetOverlay path :<| _ -> do
       activeOverlay .= Just path
 
@@ -160,8 +160,8 @@ handleOverlaySet renderer eventRequests previousStep =
     _ -> return previousStep
 
 handleOverlayReset :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleOverlayReset renderer eventRequests previousStep =
-  case Seq.filter isSetOverlay eventRequests of
+handleOverlayReset renderer reqs previousStep =
+  case Seq.filter isSetOverlay reqs of
     ResetOverlay :<| _ -> do
       activeOverlay .= Nothing
 
@@ -169,7 +169,7 @@ handleOverlayReset renderer eventRequests previousStep =
     _ -> return previousStep
 
 handleSendMessages :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
-handleSendMessages renderer eventRequests previousStep = foldM reducer previousStep eventRequests where
+handleSendMessages renderer reqs previousStep = foldM reducer previousStep reqs where
   reducer previousStep (SendMessage path message) = do
     currentFocus <- use focused
 
@@ -184,9 +184,9 @@ handleSendMessages renderer eventRequests previousStep = foldM reducer previousS
   reducer previousStep _ = return previousStep
 
 handleNewWidgetTasks :: (MonomerM s m) => Seq (WidgetRequest s) -> m ()
-handleNewWidgetTasks eventRequests = do
-  let taskHandlers = Seq.filter isTaskHandler eventRequests
-  let producerHandlers = Seq.filter isProducerHandler eventRequests
+handleNewWidgetTasks reqs = do
+  let taskHandlers = Seq.filter isTaskHandler reqs
+  let producerHandlers = Seq.filter isProducerHandler reqs
 
   singleTasks <- forM taskHandlers $ \(RunTask path handler) -> do
     asyncTask <- liftIO $ async (liftIO handler)

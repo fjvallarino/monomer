@@ -20,13 +20,8 @@ import Monomer.Widget.Types
 
 type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
 
-data MonomerApp s e = MonomerApp {
-  _uiBuilder :: UIBuilder s e,
-  _appEventHandler :: EventHandler s e ()
-}
-
 data MonomerContext s = MonomerContext {
-  _appContext :: s,
+  _mainModel :: s,
   _windowSize :: Size,
   _useHiDPI :: Bool,
   _devicePixelRate :: Double,

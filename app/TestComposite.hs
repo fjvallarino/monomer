@@ -45,7 +45,7 @@ data CompEvent = InitComposite
 testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
 
 --handleCompositeEvent :: CompState -> CompEvent -> EventResponse CompState CompEvent AppEvent
-handleCompositeEvent app evt = case evt of
+handleCompositeEvent model evt = case evt of
   InitComposite -> Task $ do
     threadDelay 1000
     putStrLn "Initialized composite"
@@ -59,9 +59,9 @@ handleCompositeEvent app evt = case evt of
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
       threadDelay $ 1000 * 1000
-  HandleProducer val -> Model $ app & csProduced %~ (+val)
+  HandleProducer val -> Model $ model & csProduced %~ (+val)
 
-buildComposite app = trace "Created composite UI" $
+buildComposite model = trace "Created composite UI" $
   vgrid [
     scroll $ label "This is a composite label!",
     scroll $ label "This is a composite label again!",
@@ -75,7 +75,7 @@ buildComposite app = trace "Created composite UI" $
       ],
       hgrid [
         button StartProducer "Run Producer",
-        label ("Produced: " <> showt (_csProduced app))
+        label ("Produced: " <> showt (_csProduced model))
       ]
     ] `style` color gray
   ]

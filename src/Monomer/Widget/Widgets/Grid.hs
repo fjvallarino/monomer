@@ -32,7 +32,7 @@ makeFixedGrid isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize app widgetInstance childrenPairs = Node reqSize children where
+    preferredSize wctx widgetInstance childrenPairs = Node reqSize children where
       children = fmap snd childrenPairs
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       childrenReqs = fmap (nodeValue . snd) visiblePairs
@@ -42,7 +42,7 @@ makeFixedGrid isHorizontal = createContainer {
       wMul = if isHorizontal then length children else 1
       hMul = if isHorizontal then 1 else length children
 
-    resize app viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedAreas) where
+    resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedAreas) where
       visiblePairs = Seq.filter (_instanceVisible . fst) childrenPairs
       children = fmap fst visiblePairs
       Rect l t w h = renderArea

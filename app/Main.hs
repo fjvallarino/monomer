@@ -43,10 +43,6 @@ import Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
---type AppContext = MonomerContext App AppEvent
---type AppM = StateT AppContext IO
---type WidgetTree = Tree (WidgetInstance App AppEvent AppM)
-
 main :: IO ()
 main = do
   --forkServer "localhost" 28000
@@ -104,23 +100,23 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent app evt = traceShow app $
+handleAppEvent model evt = traceShow model $
   case evt of
     InitApp -> Task $ do
       putStrLn "Initialized application"
       return Nothing
-    RunShortTask -> Model (app & textField1 .~ "Updated!")
+    RunShortTask -> Model (model & textField1 .~ "Updated!")
     RunLongTask -> Task $ do
       threadDelay $ 1 * 1000 * 1000
       return $ Just (UpdateText "HOLA")
     PrintTextFields -> Task $ do
-      putStrLn $ "Current text 1 is: " ++ show (app ^. textField1)
+      putStrLn $ "Current text 1 is: " ++ show (model ^. textField1)
       return Nothing
-    AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (app & clickCount %~ (+1)) <> (Task $ do
+    AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (model & clickCount %~ (+1)) <> (Task $ do
       putStrLn "Clicked button"
       return Nothing)
-    IncreaseMessage -> Model (app & msgCount %~ (+1))
-    UpdateText txt -> Model (app & textField1 .~ txt)
+    IncreaseMessage -> Model (model & msgCount %~ (+1))
+    UpdateText txt -> Model (model & textField1 .~ txt)
 
 buildUI1 model = widgetTree where
   widgetTree = listView textField1 items id
