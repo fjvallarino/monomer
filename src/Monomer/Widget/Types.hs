@@ -75,7 +75,7 @@ data WidgetPlatform = WidgetPlatform {
   _wpTextBounds :: Font -> FontSize -> Text -> Size
 }
 
-data WidgetContext s e = WidgetContext {
+data WidgetEnv s e = WidgetEnv {
   _wcPlatform :: WidgetPlatform,
   _wcScreenSize :: Size,
   _wcGlobalKeys :: GlobalKeys s e,
@@ -87,20 +87,20 @@ data WidgetContext s e = WidgetContext {
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetResult s e,
+    _widgetInit :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when merging widget trees
-    _widgetGetState :: WidgetContext s e -> Maybe WidgetState,
+    _widgetGetState :: WidgetEnv s e -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
     --
     -- Current state
     -- Old instance
     -- New instance
-    _widgetMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
+    _widgetMerge :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable :: WidgetContext s e -> PathContext -> WidgetInstance s e -> Maybe Path,
+    _widgetNextFocusable :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting on the given path
-    _widgetFind :: WidgetContext s e -> Path -> Point -> WidgetInstance s e -> Maybe Path,
+    _widgetFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path,
     -- | Handles an event
     --
     -- Current user state
@@ -109,13 +109,13 @@ data Widget s e =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleEvent :: WidgetEnv s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and a new version of the widget if internal state changed
-    _widgetHandleMessage :: forall i . Typeable i => WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleMessage :: forall i . Typeable i => WidgetEnv s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -123,7 +123,7 @@ data Widget s e =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: WidgetContext s e -> WidgetInstance s e -> Tree SizeReq,
+    _widgetPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget
@@ -132,7 +132,7 @@ data Widget s e =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResize :: WidgetContext s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
+    _widgetResize :: WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
     -- | Renders the widget
     --
     -- Renderer
@@ -140,7 +140,7 @@ data Widget s e =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: forall m . Monad m => Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
+    _widgetRender :: forall m . Monad m => Renderer m -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree

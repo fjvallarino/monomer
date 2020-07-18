@@ -80,18 +80,18 @@ makeTextField config state = createWidget {
   where
     TextFieldState currText currPos = state
     (part1, part2) = T.splitAt currPos currText
-    currentValue wctx = widgetValueGet (_wcModel wctx) (_tfcValue config)
+    currentValue wenv = widgetValueGet (_wcModel wenv) (_tfcValue config)
 
-    init wctx ctx widgetInstance = resultWidget newInstance where
-      currText = currentValue wctx
+    init wenv ctx widgetInstance = resultWidget newInstance where
+      currText = currentValue wenv
       newState = TextFieldState currText 0
       newInstance = widgetInstance {
         _instanceWidget = makeTextField config newState
       }
 
-    merge wctx ctx oldState widgetInstance = resultWidget newInstance where
+    merge wenv ctx oldState widgetInstance = resultWidget newInstance where
       TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
-      currText = currentValue wctx
+      currText = currentValue wenv
       newPos = if | T.length currText < oldPos -> T.length currText
                   | otherwise -> oldPos
       newState = TextFieldState currText newPos
@@ -106,14 +106,14 @@ makeTextField config state = createWidget {
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
 
-    handleEvent wctx ctx evt widgetInstance = case evt of
+    handleEvent wenv ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqs reqs widgetInstance where
         reqs = [SetFocus $ currentPath ctx]
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste wctx evt]
-        reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wctx evt]
+        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste wenv evt]
+        reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wenv evt]
         reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
@@ -122,13 +122,13 @@ makeTextField config state = createWidget {
           _instanceWidget = makeTextField config newState
         }
 
-      TextInput newText -> insertText wctx widgetInstance newText
+      TextInput newText -> insertText wenv widgetInstance newText
 
-      Clipboard (ClipboardText newText) -> insertText wctx widgetInstance newText
+      Clipboard (ClipboardText newText) -> insertText wenv widgetInstance newText
 
       _ -> Nothing
 
-    insertText wctx widgetInstance addedText = Just $ resultReqs reqs newInstance where
+    insertText wenv widgetInstance addedText = Just $ resultReqs reqs newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
@@ -137,13 +137,13 @@ makeTextField config state = createWidget {
         _instanceWidget = makeTextField config newState
       }
   
-    preferredSize wctx widgetInstance = singleNode sizeReq where
+    preferredSize wenv widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = getTextBounds wctx _styleText currText
+      size = getTextBounds wenv _styleText currText
       sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wctx ctx WidgetInstance{..} =
-      let ts = _wcTimestamp wctx
+    render renderer wenv ctx WidgetInstance{..} =
+      let ts = _wcTimestamp wenv
           textStyle = _styleText _instanceStyle
           cursorAlpha = if isFocused ctx then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
@@ -153,6 +153,6 @@ makeTextField config state = createWidget {
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
         when (isFocused ctx) $ do
-          let Size sw sh = getTextBounds wctx textStyle part1
+          let Size sw sh = getTextBounds wenv textStyle part1
           drawRect renderer (Rect (tl + sw) tt (_tfcCaretWidth config) sh) (Just textColor) Nothing
           return ()

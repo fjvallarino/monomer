@@ -30,10 +30,10 @@ import Monomer.Widget.PathContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
+type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 
-createEventContext :: WidgetContext s e -> Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
-createEventContext wctx latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
+createEventContext :: WidgetEnv s e -> Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
+createEventContext wenv latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
     KeyAction{}            -> pathEvent currentTarget
     TextInput _            -> pathEvent currentTarget
@@ -51,47 +51,47 @@ createEventContext wctx latestPressed activeOverlay currentFocus currentTarget s
   where
     pathEvent = Just . makePathCtx
     findStartPath = fromMaybe rootPath activeOverlay
-    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wctx findStartPath point widgetRoot
+    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wenv findStartPath point widgetRoot
     pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
-handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetContext s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvents renderer wctx systemEvents widgetRoot = foldM reducer (wctx, Seq.empty, widgetRoot) systemEvents where
+handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
+handleSystemEvents renderer wenv systemEvents widgetRoot = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents where
   reducer (currWctx, currEvents, currWidgetRoot) systemEvent = do
     currentFocus <- use focused
 
-    (wctx2, evts2, wroot2) <- handleSystemEvent renderer currWctx systemEvent currentFocus currentFocus currWidgetRoot
-    return (wctx2, currEvents >< evts2, wroot2)
+    (wenv2, evts2, wroot2) <- handleSystemEvent renderer currWctx systemEvent currentFocus currentFocus currWidgetRoot
+    return (wenv2, currEvents >< evts2, wroot2)
 
-handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetContext s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoot = do
+handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
+handleSystemEvent renderer wenv systemEvent currentFocus currentTarget widgetRoot = do
   latestPressed <- use latestPressed
   activeOverlay <- use activeOverlay
 
-  case createEventContext wctx latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot of
-    Nothing -> return (wctx, Seq.empty, widgetRoot)
+  case createEventContext wenv latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot of
+    Nothing -> return (wenv, Seq.empty, widgetRoot)
     Just ctx -> do
       let widget = _instanceWidget widgetRoot
       let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-      let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget wctx ctx systemEvent widgetRoot
+      let widgetResult = fromMaybe emptyResult $ _widgetHandleEvent widget wenv ctx systemEvent widgetRoot
       let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents (_resultRequests widgetResult)
 
-      handleWidgetResult renderer wctx ctx widgetResult
+      handleWidgetResult renderer wenv ctx widgetResult
         >>= handleFocusChange renderer ctx systemEvent stopProcessing
 
-handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetContext s e -> WidgetInstance s e -> m (HandlerStep s e)
-handleWidgetInit renderer wctx widgetRoot = do
+handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
+handleWidgetInit renderer wenv widgetRoot = do
   let widget = _instanceWidget widgetRoot
   let ctx = PathContext rootPath rootPath rootPath
-  let widgetResult = _widgetInit widget wctx ctx widgetRoot
+  let widgetResult = _widgetInit widget wenv ctx widgetRoot
 
-  handleWidgetResult renderer wctx ctx widgetResult
+  handleWidgetResult renderer wenv ctx widgetResult
 
-handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetContext s e -> PathContext -> WidgetResult s e -> m (HandlerStep s e)
-handleWidgetResult renderer wctx ctx (WidgetResult reqs events evtRoot) = do
+handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> PathContext -> WidgetResult s e -> m (HandlerStep s e)
+handleWidgetResult renderer wenv ctx (WidgetResult reqs events evtRoot) = do
   let evtUpdates = getUpdateUserStates reqs
-  let evtModel = foldr (.) id evtUpdates (_wcModel wctx)
-  let evtWctx = wctx { _wcModel = evtModel }
+  let evtModel = foldr (.) id evtUpdates (_wcModel wenv)
+  let evtWctx = wenv { _wcModel = evtModel }
 
   handleNewWidgetTasks reqs
 
@@ -173,12 +173,12 @@ handleSendMessages renderer reqs previousStep = foldM reducer previousStep reqs 
   reducer previousStep (SendMessage path message) = do
     currentFocus <- use focused
 
-    let (wctx, events, widgetRoot) = previousStep
+    let (wenv, events, widgetRoot) = previousStep
     let ctx = PathContext currentFocus path rootPath
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wctx ctx message widgetRoot
+    let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx message widgetRoot
 
-    (newWctx, newEvents, newWidgetRoot) <- handleWidgetResult renderer wctx ctx widgetResult
+    (newWctx, newEvents, newWidgetRoot) <- handleWidgetResult renderer wenv ctx widgetResult
 
     return (newWctx, events >< newEvents, newWidgetRoot)
   reducer previousStep _ = return previousStep

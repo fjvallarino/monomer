@@ -136,22 +136,22 @@ getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateUserState fn) = acc |> fn
   foldHelper acc _ = acc
 
-getTextBounds :: WidgetContext s e -> Maybe TextStyle -> Text -> Size
-getTextBounds wctx style text = calcTextBounds handler style text where
-  handler = _wpTextBounds (_wcPlatform wctx)
+getTextBounds :: WidgetEnv s e -> Maybe TextStyle -> Text -> Size
+getTextBounds wenv style text = calcTextBounds handler style text where
+  handler = _wpTextBounds (_wcPlatform wenv)
 
-isShortCutControl :: WidgetContext s e -> KeyMod -> Bool
-isShortCutControl wctx mod = isControl || isCommand where
-  isControl = not (isMacOS wctx) && keyModLeftCtrl mod
-  isCommand = isMacOS wctx && keyModLeftGUI mod
+isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
+isShortCutControl wenv mod = isControl || isCommand where
+  isControl = not (isMacOS wenv) && keyModLeftCtrl mod
+  isCommand = isMacOS wenv && keyModLeftGUI mod
 
-isClipboardCopy :: WidgetContext s e -> SystemEvent -> Bool
-isClipboardCopy wctx event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wctx mod && isKeyC code
+isClipboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
+isClipboardCopy wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod && isKeyC code
 
-isClipboardPaste :: WidgetContext s e -> SystemEvent -> Bool
-isClipboardPaste wctx event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wctx mod && isKeyV code
+isClipboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
+isClipboardPaste wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod && isKeyV code
 
-isMacOS :: WidgetContext s e -> Bool
-isMacOS wctx = _wpOS (_wcPlatform wctx) == "Mac OS X"
+isMacOS :: WidgetEnv s e -> Bool
+isMacOS wenv = _wpOS (_wcPlatform wenv) == "Mac OS X"

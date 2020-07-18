@@ -47,7 +47,7 @@ makeContainer config = createContainer {
     _widgetRender = containerRender render
   }
   where
-    handleEvent wctx ctx evt widgetInstance = case evt of
+    handleEvent wenv ctx evt widgetInstance = case evt of
       Click point btn -> result where
         events = _ctOnClick config
         requests = _ctOnClickReq config
@@ -56,15 +56,15 @@ makeContainer config = createContainer {
                     else Nothing
       _ -> Nothing
 
-    preferredSize wctx widgetInstance childrenPairs = Node sizeReq childrenReqs where
+    preferredSize wenv widgetInstance childrenPairs = Node sizeReq childrenReqs where
       childrenReqs = fmap snd childrenPairs
       sizeReq = nodeValue $ Seq.index childrenReqs 0
 
-    resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+    resize wenv viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
-    render renderer wctx ctx widgetInstance = do
-      let point = statusMousePos (_wcInputStatus wctx)
+    render renderer wenv ctx widgetInstance = do
+      let point = statusMousePos (_wcInputStatus wenv)
       let viewport = _instanceViewport widgetInstance
       let Style{..} = _instanceStyle widgetInstance
 

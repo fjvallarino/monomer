@@ -33,11 +33,11 @@ makeStack isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize wctx widgetInstance childrenPairs = Node reqSize childrenReqs where
+    preferredSize wenv widgetInstance childrenPairs = Node reqSize childrenReqs where
       reqSize = SizeReq (calcPreferredSize childrenPairs) FlexibleSize FlexibleSize
       childrenReqs = fmap snd childrenPairs
 
-    resize wctx viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+    resize wenv viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       Rect l t w h = renderArea
       visibleChildren = Seq.filter (_instanceVisible . fst) childrenPairs
       policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight

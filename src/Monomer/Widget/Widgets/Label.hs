@@ -22,12 +22,12 @@ makeLabel caption = createWidget {
     _widgetRender = render
   }
   where
-    preferredSize wctx widgetInstance = singleNode sizeReq where
+    preferredSize wenv widgetInstance = singleNode sizeReq where
       Style{..} = _instanceStyle widgetInstance
-      size = getTextBounds wctx _styleText caption
+      size = getTextBounds wenv _styleText caption
       sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wctx ctx WidgetInstance{..} =
+    render renderer wenv ctx WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
         drawStyledText_ renderer _instanceRenderArea _instanceStyle caption

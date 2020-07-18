@@ -66,7 +66,7 @@ runWidgets window c widgetRoot = do
   os <- getPlatform
   renderer <- makeRenderer c dpr
   let widgetPlatform = createWidgetPlatform os renderer
-  let wctx = WidgetContext {
+  let wenv = WidgetEnv {
     _wcPlatform = widgetPlatform,
     _wcScreenSize = newWindowSize,
     _wcGlobalKeys = M.empty,
@@ -74,9 +74,9 @@ runWidgets window c widgetRoot = do
     _wcInputStatus = defInputStatus,
     _wcTimestamp = ticks
   }
-  (newWctx, _, initializedRoot) <- handleWidgetInit renderer wctx widgetRoot
+  (newWctx, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
 
-  let newWidgetRoot = resizeUI wctx newWindowSize initializedRoot
+  let newWidgetRoot = resizeUI wenv newWindowSize initializedRoot
 
   mainModel .= _wcModel newWctx
   focused .= findNextFocusable newWctx rootPath newWidgetRoot
@@ -104,7 +104,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   let newSecond = tsAccum + ts > 1000
   let newTsAccum = if newSecond then 0 else tsAccum + ts
   let newFrameCount = if newSecond then 0 else frames + 1
-  let oldWctx = WidgetContext {
+  let oldWctx = WidgetEnv {
     _wcPlatform = widgetPlatform,
     _wcScreenSize = windowSize,
     _wcGlobalKeys = M.empty,
@@ -122,14 +122,14 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   isMouseFocusedWidget <- fmap isJust (use latestPressed)
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
-  let wctx = oldWctx {
+  let wenv = oldWctx {
     _wcInputStatus = oldInputStatus
   }
 
   when (mouseEntered && isLeftPressed && isMouseFocusedWidget) $
     latestPressed .= Nothing
 
-  (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wctx widgetRoot
+  (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wenv widgetRoot
   (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot
 
   newWidgetRoot <- if resized then resizeWindow window seWctx seWidgetRoot
@@ -149,21 +149,21 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer widgetPlatform startTicks newTsAccum newFrameCount newWidgetRoot)
 
-renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetContext s e -> PathContext -> WidgetInstance s e -> m ()
-renderWidgets !window !c !renderer wctx ctx widgetRoot =
+renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> m ()
+renderWidgets !window !c !renderer wenv ctx widgetRoot =
   doInDrawingContext window c $
-    _widgetRender (_instanceWidget widgetRoot) renderer wctx ctx widgetRoot
+    _widgetRender (_instanceWidget widgetRoot) renderer wenv ctx widgetRoot
 
-resizeUI :: WidgetContext s e -> Size -> WidgetInstance s e -> WidgetInstance s e
-resizeUI wctx windowSize widgetRoot = newWidgetRoot where
+resizeUI :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
+resizeUI wenv windowSize widgetRoot = newWidgetRoot where
   Size w h = windowSize
   assignedRect = Rect 0 0 w h
   widget = _instanceWidget widgetRoot
-  preferredSizes = _widgetPreferredSize widget wctx widgetRoot
-  newWidgetRoot = _widgetResize widget wctx assignedRect assignedRect widgetRoot preferredSizes
+  preferredSizes = _widgetPreferredSize widget wenv widgetRoot
+  newWidgetRoot = _widgetResize widget wenv assignedRect assignedRect widgetRoot preferredSizes
 
-resizeWindow :: (MonomerM s m) => SDL.Window -> WidgetContext s e -> WidgetInstance s e -> m (WidgetInstance s e)
-resizeWindow window wctx widgetRoot = do
+resizeWindow :: (MonomerM s m) => SDL.Window -> WidgetEnv s e -> WidgetInstance s e -> m (WidgetInstance s e)
+resizeWindow window wenv widgetRoot = do
   dpr <- use devicePixelRate
   drawableSize <- getDrawableSize window
   newWindowSize <- getWindowSize window dpr
@@ -171,18 +171,18 @@ resizeWindow window wctx widgetRoot = do
   windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _w drawableSize) (round $ _h drawableSize))
 
-  return $ resizeUI wctx newWindowSize widgetRoot
+  return $ resizeUI wenv newWindowSize widgetRoot
 
-preProcessEvents :: (MonomerM s m) => WidgetContext s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
-preProcessEvents wctx widgets events = do
-  systemEvents <- concatMapM (preProcessEvent wctx widgets) events
+preProcessEvents :: (MonomerM s m) => WidgetEnv s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
+preProcessEvents wenv widgets events = do
+  systemEvents <- concatMapM (preProcessEvent wenv widgets) events
   mapM_ updateInputStatus systemEvents
   return systemEvents
 
-preProcessEvent :: (MonomerM s m) => WidgetContext s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
-preProcessEvent wctx widgetRoot evt@(Move point) = do
+preProcessEvent :: (MonomerM s m) => WidgetEnv s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
+preProcessEvent wenv widgetRoot evt@(Move point) = do
   hover <- use latestHover
-  let current = _widgetFind (_instanceWidget widgetRoot) wctx rootPath point widgetRoot
+  let current = _widgetFind (_instanceWidget widgetRoot) wenv rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
   let enter = [Enter point | isNothing hover || hoverChanged]
   let leave = [Leave (fromJust hover) point | hoverChanged]
@@ -191,16 +191,16 @@ preProcessEvent wctx widgetRoot evt@(Move point) = do
     latestHover .= current
 
   return $ leave ++ enter ++ [evt]
-preProcessEvent wctx widgetRoot evt@(ButtonAction point btn PressedBtn) = do
-  let current = _widgetFind (_instanceWidget widgetRoot) wctx rootPath point widgetRoot
+preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
+  let current = _widgetFind (_instanceWidget widgetRoot) wenv rootPath point widgetRoot
 
   latestPressed .= current
   return [evt]
-preProcessEvent wctx widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
+preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
   latestPressed .= Nothing
   return [Click point btn, evt]
 
-preProcessEvent wctx widgetRoot event = return [event]
+preProcessEvent wenv widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
 updateInputStatus (Move point) = inputStatus %= \status -> status {
