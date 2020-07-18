@@ -163,8 +163,8 @@ containerHandleEvent pHandler wctx ctx event widgetInstance
     -- For instance, Composite has its own tree of child widgets with (possibly) different types for Model and Events, and is a candidate for the next step
     targetValid = isTargetValid ctx children
     targetReached = isTargetReached ctx
-    nextCtx = fromJust $ moveToTarget ctx
-    childIdx = fromJust $ nextTargetStep ctx
+    nextCtx = fromJust (moveToTarget ctx)
+    childIdx = fromJust (nextTargetStep ctx)
     children = _instanceChildren widgetInstance
     child = Seq.index children childIdx
     pResponse = pHandler wctx ctx event widgetInstance
@@ -195,13 +195,16 @@ defaultHandleMessage wctx ctx message widgetInstance = Nothing
 containerHandleMessage :: forall i s e . Typeable i => ContainerMessageHandler i s e -> WidgetContext s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 containerHandleMessage mHandler wctx ctx arg widgetInstance
   | isTargetReached ctx || not (isTargetValid ctx (_instanceChildren widgetInstance)) = mHandler wctx ctx arg widgetInstance
-  | otherwise = messageResult where
-      nextCtx = fromJust $ moveToTarget ctx
-      childIdx = fromJust $ nextTargetStep ctx
-      children = _instanceChildren widgetInstance
-      child = Seq.index children childIdx
-      messageResult = flip fmap (_widgetHandleMessage (_instanceWidget child) wctx nextCtx arg child) $
-        \cr -> cr { _resultWidget = replaceChild widgetInstance (_resultWidget cr) childIdx }
+  | otherwise = messageResult
+  where
+    nextCtx = fromJust $ moveToTarget ctx
+    childIdx = fromJust $ nextTargetStep ctx
+    children = _instanceChildren widgetInstance
+    child = Seq.index children childIdx
+    messageResult = updateChild <$> _widgetHandleMessage (_instanceWidget child) wctx nextCtx arg child
+    updateChild cr = cr {
+      _resultWidget = replaceChild widgetInstance (_resultWidget cr) childIdx
+    }
 
 -- | Preferred size
 defaultPreferredSize :: ContainerPreferredSizeHandler s e
@@ -232,8 +235,8 @@ containerResize rHandler wctx viewport renderArea widgetInstance reqs = newInsta
   curReqs = nodeChildren reqs
   childrenReqs = if Seq.null curReqs then defReqs else curReqs
   (tempInstance, assignedAreas) = rHandler wctx viewport renderArea widgetInstance (Seq.zip children childrenReqs)
-  newChildren = flip fmap (Seq.zip3 children childrenReqs assignedAreas) $
-    \(child, req, (viewport, renderArea)) -> _widgetResize (_instanceWidget child) wctx viewport renderArea child req
+  resizeChild (child, req, (viewport, renderArea)) = _widgetResize (_instanceWidget child) wctx viewport renderArea child req
+  newChildren = resizeChild <$> Seq.zip3 children childrenReqs assignedAreas
   newInstance = tempInstance {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea,
