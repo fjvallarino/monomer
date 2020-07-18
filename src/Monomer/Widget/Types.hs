@@ -47,6 +47,7 @@ instance Default SizeReq where
 data WidgetRequest s
   = IgnoreParentEvents
   | IgnoreChildrenEvents
+  | Resize
   | SetFocus Path
   | GetClipboard Path
   | SetClipboard ClipboardData

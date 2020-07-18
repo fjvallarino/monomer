@@ -20,6 +20,7 @@ import Data.Sequence (Seq(..), (><))
 import qualified Data.Sequence as Seq
 import qualified SDL
 
+import Monomer.Common.Geometry
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -101,19 +102,20 @@ handleWidgetResult renderer wenv ctx (WidgetResult reqs events evtRoot) = do
     >>= handleSendMessages renderer reqs
     >>= handleOverlaySet renderer reqs
     >>= handleOverlayReset renderer reqs
+    >>= handleResize renderer reqs
 
 handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
-handleFocusChange renderer ctx systemEvent stopProcessing (model, events, widgetRoot)
+handleFocusChange renderer ctx systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
-      (newWctx, newEvents1, newRoot1) <- handleSystemEvent renderer model Blur oldFocus oldFocus widgetRoot
+      (newWctx, newEvents1, newRoot1) <- handleSystemEvent renderer wenv Blur oldFocus oldFocus widgetRoot
 
       let newFocus = findNextFocusable newWctx oldFocus widgetRoot
       (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer newWctx Focus newFocus newFocus newRoot1
       focused .= newFocus
 
       return (newWctx2, events >< newEvents1 >< newEvents2, widgetRoot)
-  | otherwise = return (model, events, widgetRoot)
+  | otherwise = return (wenv, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
 
@@ -126,6 +128,18 @@ handleFocusSet renderer reqs previousStep =
       return previousStep
     _ -> return previousStep
 
+handleResize :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
+handleResize renderer reqs previousStep =
+  case Seq.filter isResize reqs of
+    Resize :<| _ -> do
+      windowSize <- use windowSize
+
+      let (wenv, events, widgetRoot) = previousStep
+      let newWidgetRoot = resizeWidget wenv windowSize widgetRoot
+
+      return (wenv, events, newWidgetRoot)
+    _ -> return previousStep
+
 handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleClipboardGet renderer ctx reqs previousStep = do
     hasText <- SDL.hasClipboardText
@@ -135,8 +149,8 @@ handleClipboardGet renderer ctx reqs previousStep = do
 
     foldM (reducer contents) previousStep reqs
   where
-    reducer contents (model, events, widgetRoot) (GetClipboard path) = do
-      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer model (Clipboard contents) (_pathCurrent ctx) path widgetRoot
+    reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
+      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_pathCurrent ctx) path widgetRoot
 
       return (newWctx2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep

@@ -32,3 +32,11 @@ findNextFocusable wenv currentFocus widgetRoot = fromMaybe rootFocus candidateFo
   candidateFocus = _widgetNextFocusable (_instanceWidget widgetRoot) wenv ctxFocus widgetRoot
   ctxRootFocus = PathContext rootPath rootPath rootPath
   rootFocus = fromMaybe currentFocus $ _widgetNextFocusable (_instanceWidget widgetRoot) wenv ctxRootFocus widgetRoot
+
+resizeWidget :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
+resizeWidget wenv windowSize widgetRoot = newWidgetRoot where
+  Size w h = windowSize
+  assignedRect = Rect 0 0 w h
+  widget = _instanceWidget widgetRoot
+  preferredSizes = _widgetPreferredSize widget wenv widgetRoot
+  newWidgetRoot = _widgetResize widget wenv assignedRect assignedRect widgetRoot preferredSizes

@@ -88,15 +88,15 @@ updateSizeReq sizeReq widgetInstance = newSizeReq where
   }
 
 isSendMessageHandler :: WidgetRequest s -> Bool
-isSendMessageHandler (SendMessage _ _) = True
+isSendMessageHandler SendMessage{} = True
 isSendMessageHandler _ = False
 
 isTaskHandler :: WidgetRequest s -> Bool
-isTaskHandler (RunTask _ _) = True
+isTaskHandler RunTask{} = True
 isTaskHandler _ = False
 
 isProducerHandler :: WidgetRequest s -> Bool
-isProducerHandler (RunProducer _ _) = True
+isProducerHandler RunProducer{} = True
 isProducerHandler _ = False
 
 isIgnoreParentEvents :: WidgetRequest s -> Bool
@@ -108,19 +108,23 @@ isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
 isSetFocus :: WidgetRequest s -> Bool
-isSetFocus (SetFocus _) = True
+isSetFocus SetFocus{} = True
 isSetFocus _ = False
 
+isResize :: WidgetRequest s -> Bool
+isResize Resize = True
+isResize _ = False
+
 isGetClipboard :: WidgetRequest s -> Bool
-isGetClipboard (GetClipboard _) = True
+isGetClipboard GetClipboard{} = True
 isGetClipboard _ = False
 
 isSetClipboard :: WidgetRequest s -> Bool
-isSetClipboard (SetClipboard _) = True
+isSetClipboard SetClipboard{} = True
 isSetClipboard _ = False
 
 isSetOverlay :: WidgetRequest s -> Bool
-isSetOverlay (SetOverlay _) = True
+isSetOverlay SetOverlay{} = True
 isSetOverlay _ = False
 
 isResetOverlay :: WidgetRequest s -> Bool
@@ -128,7 +132,7 @@ isResetOverlay ResetOverlay = True
 isResetOverlay _ = False
 
 isUpdateUserState :: WidgetRequest s -> Bool
-isUpdateUserState (UpdateUserState _) = True
+isUpdateUserState UpdateUserState{} = True
 isUpdateUserState _ = False
 
 getUpdateUserStates :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)

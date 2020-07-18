@@ -3,6 +3,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.BaseContainer (
   createContainer,
@@ -163,8 +164,8 @@ containerHandleEvent pHandler wenv ctx event widgetInstance
     -- For instance, Composite has its own tree of child widgets with (possibly) different types for Model and Events, and is a candidate for the next step
     targetValid = isTargetValid ctx children
     targetReached = isTargetReached ctx
-    nextCtx = fromJust (moveToTarget ctx)
-    childIdx = fromJust (nextTargetStep ctx)
+    nextCtx = fromJust $ moveToTarget ctx
+    childIdx = fromJust $ nextTargetStep ctx
     children = _instanceChildren widgetInstance
     child = Seq.index children childIdx
     pResponse = pHandler wenv ctx event widgetInstance

@@ -76,7 +76,7 @@ runWidgets window c widgetRoot = do
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
 
-  let newWidgetRoot = resizeUI wenv newWindowSize initializedRoot
+  let newWidgetRoot = resizeWidget wenv newWindowSize initializedRoot
 
   mainModel .= _wcModel newWctx
   focused .= findNextFocusable newWctx rootPath newWidgetRoot
@@ -154,14 +154,6 @@ renderWidgets !window !c !renderer wenv ctx widgetRoot =
   doInDrawingContext window c $
     _widgetRender (_instanceWidget widgetRoot) renderer wenv ctx widgetRoot
 
-resizeUI :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
-resizeUI wenv windowSize widgetRoot = newWidgetRoot where
-  Size w h = windowSize
-  assignedRect = Rect 0 0 w h
-  widget = _instanceWidget widgetRoot
-  preferredSizes = _widgetPreferredSize widget wenv widgetRoot
-  newWidgetRoot = _widgetResize widget wenv assignedRect assignedRect widgetRoot preferredSizes
-
 resizeWindow :: (MonomerM s m) => SDL.Window -> WidgetEnv s e -> WidgetInstance s e -> m (WidgetInstance s e)
 resizeWindow window wenv widgetRoot = do
   dpr <- use devicePixelRate
@@ -171,7 +163,7 @@ resizeWindow window wenv widgetRoot = do
   windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (GL.Position 0 0, GL.Size (round $ _w drawableSize) (round $ _h drawableSize))
 
-  return $ resizeUI wenv newWindowSize widgetRoot
+  return $ resizeWidget wenv newWindowSize widgetRoot
 
 preProcessEvents :: (MonomerM s m) => WidgetEnv s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents wenv widgets events = do

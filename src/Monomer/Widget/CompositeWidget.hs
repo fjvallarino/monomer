@@ -1,6 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
+{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.CompositeWidget (
   EventResponse(..),
@@ -231,6 +232,7 @@ convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest r
 convertRequest :: WidgetRequest s -> Maybe (WidgetRequest s2)
 convertRequest IgnoreParentEvents = Just IgnoreParentEvents
 convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
+convertRequest Resize = Just Resize
 convertRequest (SetFocus path) = Just (SetFocus path)
 convertRequest (GetClipboard path) = Just (GetClipboard path)
 convertRequest (SetClipboard clipboard) = Just (SetClipboard clipboard)

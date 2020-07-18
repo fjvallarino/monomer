@@ -23,17 +23,14 @@ singleNode value = Node value Seq.empty
 
 lookup :: Path -> Tree a -> Maybe a
 lookup Empty (Node val _) = Just val
-lookup (idx :<| xs) (Node val seq) = case Seq.lookup idx seq of
-  Just tree -> lookup xs tree
-  otherwise -> Nothing
+lookup (idx :<| xs) (Node val seq) = Seq.lookup idx seq >>= lookup xs
 
 updateNode :: Path -> Tree a -> (Tree a -> Tree a) -> Maybe (Tree a)
 updateNode Empty old updateFn = Just $ updateFn old
-updateNode (idx :<| xs) node@(Node val seq) updateFn = case Seq.lookup idx seq of
-  Just tree -> case updateNode xs tree updateFn of
-    Just newNode -> Just $ Node val (Seq.update idx newNode seq) where
-    Nothing -> Nothing
-  Nothing -> Nothing
+updateNode (idx :<| xs) node@(Node val seq) updateFn = do
+  tree <- Seq.lookup idx seq
+  newNode <- updateNode xs tree updateFn
+  return $ Node val (Seq.update idx newNode seq)
 
 replaceNode :: Path -> Tree a -> Tree a -> Maybe (Tree a)
 replaceNode path root new = updateNode path root (const new)
