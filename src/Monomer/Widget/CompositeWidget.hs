@@ -127,18 +127,22 @@ compositeMerge comp state wctx ctx oldComposite newComposite = result where
                   else _widgetInit newWidget cwctx cctx newRoot
   result = processWidgetResult comp newState wctx ctx newComposite widgetResult
 
-compositeNextFocusable :: CompositeState s e -> PathContext -> WidgetInstance sp ep -> Maybe Path
-compositeNextFocusable CompositeState{..} ctx widgetComposite =
-  _widgetNextFocusable (_instanceWidget _compositeRoot) (childContext ctx) _compositeRoot
+compositeNextFocusable :: CompositeState s e -> WidgetContext sp ep -> PathContext -> WidgetInstance sp ep -> Maybe Path
+compositeNextFocusable CompositeState{..} wctx ctx widgetComposite = _widgetNextFocusable widget cwctx cctx _compositeRoot where
+  widget = _instanceWidget _compositeRoot
+  cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
+  cctx = childContext ctx
 
-compositeFind :: CompositeState s e -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
-compositeFind CompositeState{..} path point widgetComposite
+compositeFind :: CompositeState s e -> WidgetContext sp ep -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
+compositeFind CompositeState{..} wctx path point widgetComposite
   | validStep = fmap (0 <|) childPath
   | otherwise = Nothing
   where
+    widget = _instanceWidget _compositeRoot
+    cwctx = convertWidgetContext wctx _compositeGlobalKeys _compositeModel
     validStep = Seq.null path || Seq.index path 0 == 0
     newPath = Seq.drop 1 path
-    childPath = _widgetFind (_instanceWidget _compositeRoot) newPath point _compositeRoot
+    childPath = _widgetFind widget cwctx newPath point _compositeRoot
 
 compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetContext sp ep -> PathContext -> SystemEvent -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleEvent comp state wctx ctx evt widgetComposite = fmap processEvent result where

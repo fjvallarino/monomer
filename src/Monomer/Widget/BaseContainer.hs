@@ -121,8 +121,8 @@ mergeChildren wctx oldFull@(oldChild :<| oldChildren) ((ctx, newChild) :<| newCh
   result = child <| mergeChildren wctx oldRest newChildren
 
 -- | Find next focusable item
-containerNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
-containerNextFocusable ctx widgetInstance = nextFocus where
+containerNextFocusable :: WidgetContext s e -> PathContext -> WidgetInstance s e -> Maybe Path
+containerNextFocusable wctx ctx widgetInstance = nextFocus where
   children = _instanceChildren widgetInstance
   stepper idx child = (addToCurrent ctx idx, child)
   filterChildren (ctx, child) = isTargetBeforeCurrent ctx && not (isTargetReached ctx)
@@ -133,11 +133,11 @@ containerNextFocusable ctx widgetInstance = nextFocus where
   nextFocus = Seq.lookup 0 focusedPaths
   getFocused (ctx, child) = if _instanceFocusable child
     then Just (currentPath ctx)
-    else _widgetNextFocusable (_instanceWidget child) ctx child
+    else _widgetNextFocusable (_instanceWidget child) wctx ctx child
 
 -- | Find instance matching point
-containerFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
-containerFind path point widgetInstance = fmap (combinePath newPath point children) childIdx where
+containerFind :: WidgetContext s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
+containerFind wctx path point widgetInstance = fmap (combinePath wctx newPath point children) childIdx where
   children = _instanceChildren widgetInstance
   pointInWidget wi = pointInRect point (_instanceViewport wi)
   newPath = Seq.drop 1 path
@@ -145,10 +145,10 @@ containerFind path point widgetInstance = fmap (combinePath newPath point childr
     Empty -> Seq.findIndexL pointInWidget children
     p :<| ps -> if Seq.length children > p then Just p else Nothing
 
-combinePath :: Path -> Point -> Seq (WidgetInstance s e) -> Int -> Path
-combinePath path point children childIdx = childIdx <| childPath where
+combinePath :: WidgetContext s e -> Path -> Point -> Seq (WidgetInstance s e) -> Int -> Path
+combinePath wctx path point children childIdx = childIdx <| childPath where
   child = Seq.index children childIdx
-  childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) path point child
+  childPath = fromMaybe Seq.empty $ _widgetFind (_instanceWidget child) wctx path point child
 
 -- | Event Handling
 defaultHandleEvent :: ContainerEventHandler s e

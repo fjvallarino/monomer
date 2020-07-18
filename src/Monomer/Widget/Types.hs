@@ -98,9 +98,9 @@ data Widget s e =
     _widgetMerge :: WidgetContext s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path,
+    _widgetNextFocusable :: WidgetContext s e -> PathContext -> WidgetInstance s e -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting on the given path
-    _widgetFind :: Path -> Point -> WidgetInstance s e -> Maybe Path,
+    _widgetFind :: WidgetContext s e -> Path -> Point -> WidgetInstance s e -> Maybe Path,
     -- | Handles an event
     --
     -- Current user state

@@ -54,17 +54,17 @@ initialState = KeysCompState {
 
 keysComposite = composite "keysComposite" initialState Nothing handleKeysCompEvent buildKeysComp
 
-handleKeysCompEvent app evt = case evt of
-  RotateChildren -> Model (app & items %~ rotateSeq)
+handleKeysCompEvent model evt = case evt of
+  RotateChildren -> Model (model & items %~ rotateSeq)
 
-buildKeysComp app = trace "Created keys composite UI" $
+buildKeysComp model = trace "Created keys composite UI" $
   hgrid [
     button RotateChildren "Rotate",
-    vgrid $ fmap (editableItem app) [0..(length (_items app) - 1)]
+    vgrid $ fmap (editableItem model) [0..(length (_items model) - 1)]
   ]
 
-editableItem app idx = widget where
-  widgetKey = app ^. singular (items . ix idx . itemId)
+editableItem model idx = widget where
+  widgetKey = model ^. singular (items . ix idx . itemId)
   widget = hgrid [
       label $ "Item " <> showt idx,
       textField (singular $ items . ix idx . itemDesc)

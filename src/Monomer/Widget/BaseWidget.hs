@@ -48,11 +48,11 @@ widgetMerge mergeHandler wctx ctx oldInstance newInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wctx
   result = mergeHandler wctx ctx oldState newInstance
 
-defaultNextFocusable :: PathContext -> WidgetInstance s e -> Maybe Path
-defaultNextFocusable ctx widgetInstance = Nothing
+defaultNextFocusable :: WidgetContext s e -> PathContext -> WidgetInstance s e -> Maybe Path
+defaultNextFocusable wctx ctx widgetInstance = Nothing
 
-defaultFind :: Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind path point widgetInstance = Nothing
+defaultFind :: WidgetContext s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
+defaultFind wctx path point widgetInstance = Nothing
 
 defaultHandleEvent :: WidgetContext s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleEvent wctx ctx evt widgetInstance = Nothing

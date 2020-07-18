@@ -79,7 +79,7 @@ runWidgets window c widgetRoot = do
   let newWidgetRoot = resizeUI wctx newWindowSize initializedRoot
 
   mainModel .= _wcModel newWctx
-  focused .= findNextFocusable rootPath newWidgetRoot
+  focused .= findNextFocusable newWctx rootPath newWidgetRoot
 
   mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
 
@@ -91,6 +91,8 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
+  currentModel <- use mainModel
+  oldInputStatus <- use inputStatus
 
   let !ts = startTicks - prevTicks
   let eventsPayload = fmap SDL.eventPayload events
@@ -102,24 +104,26 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   let newSecond = tsAccum + ts > 1000
   let newTsAccum = if newSecond then 0 else tsAccum + ts
   let newFrameCount = if newSecond then 0 else frames + 1
+  let oldWctx = WidgetContext {
+    _wcPlatform = widgetPlatform,
+    _wcScreenSize = windowSize,
+    _wcGlobalKeys = M.empty,
+    _wcModel = currentModel,
+    _wcInputStatus = oldInputStatus,
+    _wcTimestamp = startTicks
+  }
 
   --when newSecond $
   --  liftIO . putStrLn $ "Frames: " ++ (show frames)
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
-  currentModel <- use mainModel
-  systemEvents <- preProcessEvents widgetRoot baseSystemEvents
+  systemEvents <- preProcessEvents oldWctx widgetRoot baseSystemEvents
   inputStatus <- use inputStatus
   isMouseFocusedWidget <- fmap isJust (use latestPressed)
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
-  let wctx = WidgetContext {
-    _wcPlatform = widgetPlatform,
-    _wcScreenSize = windowSize,
-    _wcGlobalKeys = M.empty,
-    _wcModel = currentModel,
-    _wcInputStatus = inputStatus,
-    _wcTimestamp = startTicks
+  let wctx = oldWctx {
+    _wcInputStatus = oldInputStatus
   }
 
   when (mouseEntered && isLeftPressed && isMouseFocusedWidget) $
@@ -169,16 +173,16 @@ resizeWindow window wctx widgetRoot = do
 
   return $ resizeUI wctx newWindowSize widgetRoot
 
-preProcessEvents :: (MonomerM s m) => WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
-preProcessEvents widgets events = do
-  systemEvents <- concatMapM (preProcessEvent widgets) events
+preProcessEvents :: (MonomerM s m) => WidgetContext s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
+preProcessEvents wctx widgets events = do
+  systemEvents <- concatMapM (preProcessEvent wctx widgets) events
   mapM_ updateInputStatus systemEvents
   return systemEvents
 
-preProcessEvent :: (MonomerM s m) => WidgetInstance s e -> SystemEvent -> m [SystemEvent]
-preProcessEvent widgetRoot evt@(Move point) = do
+preProcessEvent :: (MonomerM s m) => WidgetContext s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
+preProcessEvent wctx widgetRoot evt@(Move point) = do
   hover <- use latestHover
-  let current = _widgetFind (_instanceWidget widgetRoot) rootPath point widgetRoot
+  let current = _widgetFind (_instanceWidget widgetRoot) wctx rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
   let enter = [Enter point | isNothing hover || hoverChanged]
   let leave = [Leave (fromJust hover) point | hoverChanged]
@@ -187,16 +191,16 @@ preProcessEvent widgetRoot evt@(Move point) = do
     latestHover .= current
 
   return $ leave ++ enter ++ [evt]
-preProcessEvent widgetRoot evt@(ButtonAction point btn PressedBtn) = do
-  let current = _widgetFind (_instanceWidget widgetRoot) rootPath point widgetRoot
+preProcessEvent wctx widgetRoot evt@(ButtonAction point btn PressedBtn) = do
+  let current = _widgetFind (_instanceWidget widgetRoot) wctx rootPath point widgetRoot
 
   latestPressed .= current
   return [evt]
-preProcessEvent widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
+preProcessEvent wctx widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
   latestPressed .= Nothing
   return [Click point btn, evt]
 
-preProcessEvent widgetRoot event = return [event]
+preProcessEvent wctx widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
 updateInputStatus (Move point) = inputStatus %= \status -> status {

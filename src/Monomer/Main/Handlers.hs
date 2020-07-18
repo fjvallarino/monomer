@@ -32,8 +32,8 @@ import Monomer.Widget.Util
 
 type HandlerStep s e = (WidgetContext s e, Seq e, WidgetInstance s e)
 
-createEventContext :: Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
-createEventContext latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
+createEventContext :: WidgetContext s e -> Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
+createEventContext wctx latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
     KeyAction{}            -> pathEvent currentTarget
     TextInput _            -> pathEvent currentTarget
@@ -51,7 +51,7 @@ createEventContext latestPressed activeOverlay currentFocus currentTarget system
   where
     pathEvent = Just . makePathCtx
     findStartPath = fromMaybe rootPath activeOverlay
-    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) findStartPath point widgetRoot
+    pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wctx findStartPath point widgetRoot
     pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
     makePathCtx targetPath = PathContext currentFocus targetPath rootPath
 
@@ -68,7 +68,7 @@ handleSystemEvent renderer wctx systemEvent currentFocus currentTarget widgetRoo
   latestPressed <- use latestPressed
   activeOverlay <- use activeOverlay
 
-  case createEventContext latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot of
+  case createEventContext wctx latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot of
     Nothing -> return (wctx, Seq.empty, widgetRoot)
     Just ctx -> do
       let widget = _instanceWidget widgetRoot
@@ -106,13 +106,13 @@ handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent 
 handleFocusChange renderer ctx systemEvent stopProcessing (model, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
-      (newModel, newEvents1, newRoot1) <- handleSystemEvent renderer model Blur oldFocus oldFocus widgetRoot
+      (newWctx, newEvents1, newRoot1) <- handleSystemEvent renderer model Blur oldFocus oldFocus widgetRoot
 
-      let newFocus = findNextFocusable oldFocus widgetRoot
-      (newModel2, newEvents2, newRoot2) <- handleSystemEvent renderer newModel Focus newFocus newFocus newRoot1
+      let newFocus = findNextFocusable newWctx oldFocus widgetRoot
+      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer newWctx Focus newFocus newFocus newRoot1
       focused .= newFocus
 
-      return (newModel2, events >< newEvents1 >< newEvents2, widgetRoot)
+      return (newWctx2, events >< newEvents1 >< newEvents2, widgetRoot)
   | otherwise = return (model, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
@@ -136,9 +136,9 @@ handleClipboardGet renderer ctx reqs previousStep = do
     foldM (reducer contents) previousStep reqs
   where
     reducer contents (model, events, widgetRoot) (GetClipboard path) = do
-      (newModel2, newEvents2, newRoot2) <- handleSystemEvent renderer model (Clipboard contents) (_pathCurrent ctx) path widgetRoot
+      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer model (Clipboard contents) (_pathCurrent ctx) path widgetRoot
 
-      return (newModel2, events >< newEvents2, newRoot2)
+      return (newWctx2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
 
 handleClipboardSet :: (MonomerM s m) => Renderer m -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)

@@ -13,7 +13,6 @@ import Monomer.Common.Tree (Path, PathStep)
 
 data PathContext = PathContext {
   _pathFocused :: Path,
---  _pathStart :: Path,
   _pathTarget :: Path,
   _pathCurrent :: Path
 } deriving (Show, Eq)
