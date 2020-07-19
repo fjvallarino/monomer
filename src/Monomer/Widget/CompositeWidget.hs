@@ -298,10 +298,10 @@ collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs wh
 
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
-  _wcPlatform = _wcPlatform wenv,
-  _wcScreenSize = _wcScreenSize wenv,
-  _wcGlobalKeys = globalKeys,
-  _wcModel = model,
-  _wcInputStatus = _wcInputStatus wenv,
-  _wcTimestamp = _wcTimestamp wenv
+  _wePlatform = _wePlatform wenv,
+  _weScreenSize = _weScreenSize wenv,
+  _weGlobalKeys = globalKeys,
+  _weModel = model,
+  _weInputStatus = _weInputStatus wenv,
+  _weTimestamp = _weTimestamp wenv
 }

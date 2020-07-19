@@ -142,7 +142,7 @@ getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
 
 getTextBounds :: WidgetEnv s e -> Maybe TextStyle -> Text -> Size
 getTextBounds wenv style text = calcTextBounds handler style text where
-  handler = _wpTextBounds (_wcPlatform wenv)
+  handler = _wpTextBounds (_wePlatform wenv)
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
@@ -158,4 +158,4 @@ isClipboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
 
 isMacOS :: WidgetEnv s e -> Bool
-isMacOS wenv = _wpOS (_wcPlatform wenv) == "Mac OS X"
+isMacOS wenv = _wpOS (_wePlatform wenv) == "Mac OS X"

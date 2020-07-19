@@ -112,7 +112,7 @@ mergeChildren wenv Empty ((ctx, newChild) :<| newChildren) = child <| mergeChild
   child = _widgetInit (_instanceWidget newChild) wenv ctx newChild
 mergeChildren wenv oldFull@(oldChild :<| oldChildren) ((ctx, newChild) :<| newChildren) = result where
   newWidget = _instanceWidget newChild
-  oldKeyed = _instanceKey newChild >>= (\key -> M.lookup key (_wcGlobalKeys wenv))
+  oldKeyed = _instanceKey newChild >>= (\key -> M.lookup key (_weGlobalKeys wenv))
   mergedOld = _widgetMerge newWidget wenv ctx oldChild newChild
   mergedKey = _widgetMerge newWidget wenv ctx (snd $ fromJust oldKeyed) newChild
   initNew = _widgetInit newWidget wenv ctx newChild

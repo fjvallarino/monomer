@@ -67,18 +67,18 @@ runWidgets window c widgetRoot = do
   renderer <- makeRenderer c dpr
   let widgetPlatform = createWidgetPlatform os renderer
   let wenv = WidgetEnv {
-    _wcPlatform = widgetPlatform,
-    _wcScreenSize = newWindowSize,
-    _wcGlobalKeys = M.empty,
-    _wcModel = model,
-    _wcInputStatus = defInputStatus,
-    _wcTimestamp = ticks
+    _wePlatform = widgetPlatform,
+    _weScreenSize = newWindowSize,
+    _weGlobalKeys = M.empty,
+    _weModel = model,
+    _weInputStatus = defInputStatus,
+    _weTimestamp = ticks
   }
   (newWctx, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
 
   let newWidgetRoot = resizeWidget wenv newWindowSize initializedRoot
 
-  mainModel .= _wcModel newWctx
+  mainModel .= _weModel newWctx
   focused .= findNextFocusable newWctx rootPath newWidgetRoot
 
   mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
@@ -105,12 +105,12 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   let newTsAccum = if newSecond then 0 else tsAccum + ts
   let newFrameCount = if newSecond then 0 else frames + 1
   let oldWctx = WidgetEnv {
-    _wcPlatform = widgetPlatform,
-    _wcScreenSize = windowSize,
-    _wcGlobalKeys = M.empty,
-    _wcModel = currentModel,
-    _wcInputStatus = oldInputStatus,
-    _wcTimestamp = startTicks
+    _wePlatform = widgetPlatform,
+    _weScreenSize = windowSize,
+    _weGlobalKeys = M.empty,
+    _weModel = currentModel,
+    _weInputStatus = oldInputStatus,
+    _weTimestamp = startTicks
   }
 
   --when newSecond $
@@ -123,7 +123,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
   let wenv = oldWctx {
-    _wcInputStatus = oldInputStatus
+    _weInputStatus = oldInputStatus
   }
 
   when (mouseEntered && isLeftPressed && isMouseFocusedWidget) $

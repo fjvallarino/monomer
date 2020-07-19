@@ -263,7 +263,7 @@ scrollStatus :: ScrollConfig -> WidgetEnv s e -> ScrollState -> Rect -> ScrollCo
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   barThickness = _scBarThickness config
-  mousePos = statusMousePos (_wcInputStatus wenv)
+  mousePos = statusMousePos (_weInputStatus wenv)
   vpLeft = _rx viewport
   vpTop = _ry viewport
   vpWidth = _rw viewport

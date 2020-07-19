@@ -98,7 +98,7 @@ makeListView config state = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    currentValue wenv = widgetValueGet (_wcModel wenv) (_lvValue config)
+    currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)
 
     createListView wenv ctx newState widgetInstance = newInstance where
       selected = currentValue wenv

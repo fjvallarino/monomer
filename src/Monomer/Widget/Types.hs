@@ -77,12 +77,12 @@ data WidgetPlatform = WidgetPlatform {
 }
 
 data WidgetEnv s e = WidgetEnv {
-  _wcPlatform :: WidgetPlatform,
-  _wcScreenSize :: Size,
-  _wcGlobalKeys :: GlobalKeys s e,
-  _wcModel :: s,
-  _wcInputStatus :: InputStatus,
-  _wcTimestamp :: Int
+  _wePlatform :: WidgetPlatform,
+  _weScreenSize :: Size,
+  _weGlobalKeys :: GlobalKeys s e,
+  _weModel :: s,
+  _weInputStatus :: InputStatus,
+  _weTimestamp :: Int
 }
 
 data Widget s e =

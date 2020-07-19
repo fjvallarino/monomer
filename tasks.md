@@ -122,10 +122,11 @@
     - WidgetEnv was added as a parameter for completeness sake
     - This is also needed for _widgetPreferredSize and _widgetResize
     - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
+  - Should Resize be restored? -> Restored
 
 - Pending
-  - Should Resize be restored?
   - Make sure enabled/visible attributes are being used
+  - Format code!
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly

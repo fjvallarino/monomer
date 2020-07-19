@@ -64,7 +64,7 @@ makeContainer config = createContainer {
       assignedArea = Seq.singleton (viewport, renderArea)
 
     render renderer wenv ctx widgetInstance = do
-      let point = statusMousePos (_wcInputStatus wenv)
+      let point = statusMousePos (_weInputStatus wenv)
       let viewport = _instanceViewport widgetInstance
       let Style{..} = _instanceStyle widgetInstance
 

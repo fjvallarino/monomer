@@ -80,7 +80,7 @@ makeTextField config state = createWidget {
   where
     TextFieldState currText currPos = state
     (part1, part2) = T.splitAt currPos currText
-    currentValue wenv = widgetValueGet (_wcModel wenv) (_tfcValue config)
+    currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
     init wenv ctx widgetInstance = resultWidget newInstance where
       currText = currentValue wenv
@@ -143,7 +143,7 @@ makeTextField config state = createWidget {
       sizeReq = SizeReq size FlexibleSize StrictSize
 
     render renderer wenv ctx WidgetInstance{..} =
-      let ts = _wcTimestamp wenv
+      let ts = _weTimestamp wenv
           textStyle = _styleText _instanceStyle
           cursorAlpha = if isFocused ctx then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
