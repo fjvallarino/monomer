@@ -127,6 +127,7 @@
 - Pending
   - Make sure enabled/visible attributes are being used
     - This needs modifying WidgetContext (former PathContext) to include visible and enabled attributes
+  - Move widgetPath into WidgetInstance (do it in init/merge)
   - Format code!
   - Add testing
     - Delayed until this point to try to settle down interfaces

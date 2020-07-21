@@ -14,7 +14,8 @@ module Monomer.Widget.BaseContainer (
   containerPreferredSize,
   containerResize,
   containerRender,
-  defaultContainerRender
+  defaultContainerRender,
+  visibleChildrenReq
 ) where
 
 import Control.Monad
@@ -38,14 +39,12 @@ import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type ChildSizeReq s e = (WidgetInstance s e, Tree SizeReq)
-
 type ContainerInitHandler s e = WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> WidgetResult s e
 type ContainerMergeHandler s e = WidgetEnv s e -> WidgetContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
 type ContainerEventHandler s e = WidgetEnv s e -> WidgetContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 type ContainerMessageHandler i s e = Typeable i => WidgetEnv s e -> WidgetContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-type ContainerPreferredSizeHandler s e = WidgetEnv s e -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> Tree SizeReq
-type ContainerResizeHandler s e = WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Seq (ChildSizeReq s e) -> (WidgetInstance s e, Seq (Rect, Rect))
+type ContainerPreferredSizeHandler s e = WidgetEnv s e -> WidgetInstance s e -> Seq (WidgetInstance s e) -> Seq (Tree SizeReq) -> Tree SizeReq
+type ContainerResizeHandler s e = WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Seq (WidgetInstance s e) -> Seq (Tree SizeReq) -> (WidgetInstance s e, Seq (Rect, Rect))
 type ContainerRenderHandler s e m = (Monad m) => Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> m ()
 
 createContainer :: Widget s e
@@ -209,16 +208,15 @@ containerHandleMessage mHandler wenv ctx arg widgetInstance
 
 -- | Preferred size
 defaultPreferredSize :: ContainerPreferredSizeHandler s e
-defaultPreferredSize wenv widgetInstance childrenPairs = Node current childrenReqs where
+defaultPreferredSize wenv widgetInstance children reqs = Node current reqs where
   current = SizeReq {
     _sizeRequested = Size 0 0,
     _sizePolicyWidth = FlexibleSize,
     _sizePolicyHeight = FlexibleSize
   }
-  childrenReqs = fmap snd childrenPairs
 
 containerPreferredSize :: ContainerPreferredSizeHandler s e -> WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq
-containerPreferredSize psHandler wenv widgetInstance = psHandler wenv widgetInstance (Seq.zip children childrenReqs) where
+containerPreferredSize psHandler wenv widgetInstance = psHandler wenv widgetInstance children childrenReqs where
   children = _instanceChildren widgetInstance
   childrenReqs = fmap updateChild children
   updateChild child = Node (updateSizeReq req child) reqs where
@@ -226,8 +224,8 @@ containerPreferredSize psHandler wenv widgetInstance = psHandler wenv widgetInst
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv viewport renderArea widgetInstance childrenReqs = (widgetInstance, childrenSizes) where
-  childrenSizes = Seq.replicate (Seq.length childrenReqs) (def, def)
+defaultResize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, childrenSizes) where
+  childrenSizes = Seq.replicate (Seq.length reqs) (def, def)
 
 containerResize :: ContainerResizeHandler s e -> WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
 containerResize rHandler wenv viewport renderArea widgetInstance reqs = newInstance where
@@ -235,7 +233,7 @@ containerResize rHandler wenv viewport renderArea widgetInstance reqs = newInsta
   defReqs = Seq.replicate (Seq.length children) (singleNode def)
   curReqs = nodeChildren reqs
   childrenReqs = if Seq.null curReqs then defReqs else curReqs
-  (tempInstance, assignedAreas) = rHandler wenv viewport renderArea widgetInstance (Seq.zip children childrenReqs)
+  (tempInstance, assignedAreas) = rHandler wenv viewport renderArea widgetInstance children childrenReqs
   resizeChild (child, req, (viewport, renderArea)) = _widgetResize (_instanceWidget child) wenv viewport renderArea child req
   newChildren = resizeChild <$> Seq.zip3 children childrenReqs assignedAreas
   newInstance = tempInstance {
@@ -277,3 +275,10 @@ updateCtx ctx widgetInstance = ctx {
   _wcVisible = _wcVisible ctx && _instanceVisible widgetInstance,
   _wcEnabled = _wcEnabled ctx && _instanceEnabled widgetInstance
 }
+
+visibleChildrenReq :: Seq (WidgetInstance s e) -> Seq (Tree SizeReq) -> (Seq (WidgetInstance s e), Seq SizeReq)
+visibleChildrenReq children reqs = Seq.unzipWith extract filtered where
+  pairs = Seq.zip children reqs
+  isVisible (child, req) = _instanceVisible child
+  filtered = Seq.filter isVisible pairs
+  extract (child, treq) = (child, nodeValue treq)

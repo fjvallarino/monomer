@@ -154,20 +154,21 @@ makeDropdown config state = createContainer {
       newReqs = Seq.fromList $ widgetValueSet (_ddValue config) item
       newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
 
-    preferredSize wenv widgetInstance childrenPairs = Node sizeReq childrenReqs where
+    preferredSize wenv widgetInstance children reqs = Node sizeReq reqs where
       Style{..} = _instanceStyle widgetInstance
       size = getTextBounds wenv _styleText (dropdownLabel wenv)
       sizeReq = SizeReq size FlexibleSize StrictSize
-      childrenReqs = fmap snd childrenPairs
 
-    resize wenv viewport renderArea widgetInstance reqs = (widgetInstance, Seq.singleton assignedArea) where
-      assignedArea = case Seq.lookup 0 reqs of
+    resize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, assignedArea) where
+      childrenReqs = Seq.zip children reqs
+      area = case Seq.lookup 0 childrenReqs of
         Just (child, reqChild) -> (oViewport, oRenderArea) where
           reqHeight = _h . _sizeRequested . nodeValue $ reqChild
           maxHeight = min reqHeight 150
           oViewport = viewport { _ry = _ry viewport + _rh viewport, _rh = maxHeight }
           oRenderArea = renderArea { _ry = _ry renderArea + _rh viewport }
         Nothing -> (viewport, renderArea)
+      assignedArea = Seq.singleton area
 
     render renderer wenv ctx WidgetInstance{..} =
       do

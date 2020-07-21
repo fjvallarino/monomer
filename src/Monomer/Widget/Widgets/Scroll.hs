@@ -208,9 +208,8 @@ makeScroll config state@(ScrollState dragging dx dy cs prevReqs) = createContain
       tempInstance = widgetInstance { _instanceWidget = newWidget }
       newInstance = scrollResize (Just newWidget) wenv (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
 
-    preferredSize wenv widgetInstance childrenPairs = Node sizeReq childrenReqs where
-      childrenReqs = fmap snd childrenPairs
-      sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index childrenReqs 0) FlexibleSize FlexibleSize
+    preferredSize wenv widgetInstance children reqs = Node sizeReq reqs where
+      sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index reqs 0) FlexibleSize FlexibleSize
 
     scrollResize updatedWidget wenv viewport renderArea widgetInstance reqs = newInstance where
       Rect l t w h = renderArea

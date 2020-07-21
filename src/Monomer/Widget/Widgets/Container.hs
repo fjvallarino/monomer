@@ -56,11 +56,10 @@ makeContainer config = createContainer {
                     else Nothing
       _ -> Nothing
 
-    preferredSize wenv widgetInstance childrenPairs = Node sizeReq childrenReqs where
-      childrenReqs = fmap snd childrenPairs
-      sizeReq = nodeValue $ Seq.index childrenReqs 0
+    preferredSize wenv widgetInstance children reqs = Node sizeReq reqs where
+      sizeReq = nodeValue $ Seq.index reqs 0
 
-    resize wenv viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
+    resize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
     render renderer wenv ctx widgetInstance = do
