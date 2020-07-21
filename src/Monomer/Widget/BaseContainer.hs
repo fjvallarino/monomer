@@ -131,8 +131,9 @@ containerNextFocusable wenv ctx widgetInstance = nextFocus where
   maybeFocused = fmap getFocused (Seq.filter filterChildren pairs)
   focusedPaths = fromJust <$> Seq.filter isJust maybeFocused
   nextFocus = Seq.lookup 0 focusedPaths
+  isFocusable child = _instanceFocusable child && _instanceEnabled child
   getFocused (ctx, child)
-    | _instanceFocusable child = Just (_wcCurrentPath ctx)
+    | isFocusable child = Just (_wcCurrentPath ctx)
     | otherwise = _widgetNextFocusable (_instanceWidget child) wenv ctx child
 
 -- | Find instance matching point
@@ -168,7 +169,8 @@ containerHandleEvent pHandler wenv ctx event widgetInstance
     child = Seq.index children childIdx
     nextCtx = updateCtx (fromJust $ moveToTarget ctx) child
     pResponse = pHandler wenv ctx event widgetInstance
-    cResponse = if isJust pResponse && ignoreChildren (fromJust pResponse)
+    childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
+    cResponse = if childrenIgnored || not (_instanceEnabled child)
                   then Nothing
                   else _widgetHandleEvent (_instanceWidget child) wenv nextCtx event child
 

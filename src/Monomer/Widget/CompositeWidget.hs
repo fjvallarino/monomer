@@ -129,10 +129,14 @@ compositeMerge comp state wenv ctx oldComposite newComposite = result where
   result = processWidgetResult comp newState wenv ctx newComposite widgetResult
 
 compositeNextFocusable :: Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> Maybe Path
-compositeNextFocusable comp state wenv ctx widgetComposite = _widgetNextFocusable widget cwenv cctx _compositeRoot where
+compositeNextFocusable comp state wenv ctx widgetComposite = nextFocus where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
   (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
+  isEnabled = _instanceEnabled _compositeRoot
+  nextFocus
+    | isEnabled = _widgetNextFocusable widget cwenv cctx _compositeRoot
+    | otherwise = Nothing
 
 compositeFind :: CompositeState s e -> WidgetEnv sp ep -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
 compositeFind CompositeState{..} wenv path point widgetComposite
@@ -150,8 +154,11 @@ compositeHandleEvent comp state wenv ctx evt widgetComposite = fmap processEvent
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
   (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
+  rootEnabled = _instanceEnabled _compositeRoot
   processEvent = processWidgetResult comp state wenv ctx widgetComposite
-  result = _widgetHandleEvent widget cwenv cctx evt _compositeRoot
+  result
+    | rootEnabled = _widgetHandleEvent widget cwenv cctx evt _compositeRoot
+    | otherwise = Nothing
 
 processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
 processWidgetResult comp state wenv ctx widgetComposite (WidgetResult reqs evts evtsRoot) = WidgetResult newReqs newEvts uWidget where
