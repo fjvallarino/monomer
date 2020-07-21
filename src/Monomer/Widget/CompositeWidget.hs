@@ -27,7 +27,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -87,21 +87,20 @@ createComposite comp state = widget where
     _widgetInit = compositeInit comp state,
     _widgetGetState = makeState state,
     _widgetMerge = compositeMerge comp state,
-    _widgetNextFocusable = compositeNextFocusable state,
+    _widgetNextFocusable = compositeNextFocusable comp state,
     _widgetFind = compositeFind state,
     _widgetHandleEvent = compositeHandleEvent comp state,
     _widgetHandleMessage = compositeHandleMessage comp state,
     _widgetPreferredSize = compositePreferredSize state,
     _widgetResize = compositeResize comp state,
-    _widgetRender = compositeRender state
+    _widgetRender = compositeRender comp state
   }
 
-compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> WidgetInstance sp ep -> WidgetResult sp ep
+compositeInit :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> WidgetResult sp ep
 compositeInit comp state wenv ctx widgetComposite = result where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
-  cctx = childContext ctx
+  (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
   WidgetResult reqs evts root = _widgetInit widget cwenv cctx _compositeRoot
   newEvts = maybe evts (evts |>) _compositeInitEvent
   newState = state {
@@ -109,7 +108,7 @@ compositeInit comp state wenv ctx widgetComposite = result where
   }
   result = processWidgetResult comp newState wenv ctx widgetComposite (WidgetResult reqs newEvts root)
 
-compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetResult sp ep
+compositeMerge :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> WidgetInstance sp ep -> WidgetResult sp ep
 compositeMerge comp state wenv ctx oldComposite newComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) wenv
   validState = fromMaybe state (useState oldState)
@@ -122,17 +121,18 @@ compositeMerge comp state wenv ctx oldComposite newComposite = result where
   }
   newWidget = _instanceWidget newRoot
   cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
-  cctx = childContext ctx
+  cctx = convertWidgetCtx (childContext ctx) newRoot
+  -- (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
   widgetResult = if instanceMatches newRoot oldRoot
                   then _widgetMerge newWidget cwenv cctx oldRoot newRoot
                   else _widgetInit newWidget cwenv cctx newRoot
   result = processWidgetResult comp newState wenv ctx newComposite widgetResult
 
-compositeNextFocusable :: CompositeState s e -> WidgetEnv sp ep -> PathContext -> WidgetInstance sp ep -> Maybe Path
-compositeNextFocusable CompositeState{..} wenv ctx widgetComposite = _widgetNextFocusable widget cwenv cctx _compositeRoot where
+compositeNextFocusable :: Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> Maybe Path
+compositeNextFocusable comp state wenv ctx widgetComposite = _widgetNextFocusable widget cwenv cctx _compositeRoot where
+  CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
-  cctx = childContext ctx
+  (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
 
 compositeFind :: CompositeState s e -> WidgetEnv sp ep -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
 compositeFind CompositeState{..} wenv path point widgetComposite
@@ -145,16 +145,15 @@ compositeFind CompositeState{..} wenv path point widgetComposite
     newPath = Seq.drop 1 path
     childPath = _widgetFind widget cwenv newPath point _compositeRoot
 
-compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> SystemEvent -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
+compositeHandleEvent :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> SystemEvent -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleEvent comp state wenv ctx evt widgetComposite = fmap processEvent result where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
-  cctx = childContext ctx
+  (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
   processEvent = processWidgetResult comp state wenv ctx widgetComposite
   result = _widgetHandleEvent widget cwenv cctx evt _compositeRoot
 
-processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
+processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
 processWidgetResult comp state wenv ctx widgetComposite (WidgetResult reqs evts evtsRoot) = WidgetResult newReqs newEvts uWidget where
   CompositeState{..} = state
   evtUpdates = getUpdateUserStates reqs
@@ -168,14 +167,14 @@ processWidgetResult comp state wenv ctx widgetComposite (WidgetResult reqs evts 
          <> messages
   newEvts = reports <> uEvts
 
-updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
+updateComposite :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
 updateComposite comp state wenv ctx newModel oldRoot widgetComposite = if modelChanged then processedResult else updatedResult where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwenv = convertWidgetEnv wenv _compositeGlobalKeys newModel
-  cctx = childContext ctx
   modelChanged = _compositeModel /= newModel
   builtRoot = _uiBuilder comp newModel
+  cwenv = convertWidgetEnv wenv _compositeGlobalKeys newModel
+  cctx = convertWidgetCtx (childContext ctx) builtRoot
   mergedResult = _widgetMerge (_instanceWidget builtRoot) cwenv cctx oldRoot builtRoot
   mergedState = state {
     _compositeModel = newModel,
@@ -184,13 +183,12 @@ updateComposite comp state wenv ctx newModel oldRoot widgetComposite = if modelC
   processedResult = processWidgetResult comp mergedState wenv ctx widgetComposite mergedResult
   updatedResult = updateCompositeSize comp state wenv ctx newModel oldRoot widgetComposite
 
-updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
+updateCompositeSize :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> s -> WidgetInstance s e -> WidgetInstance sp ep -> WidgetResult sp ep
 updateCompositeSize comp state wenv ctx newModel oldRoot widgetComposite = resultWidget newInstance where
   CompositeState{..} = state
   viewport = _instanceViewport widgetComposite
   renderArea = _instanceRenderArea widgetComposite
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys newModel
-  cctx = childContext ctx
   newRoot = _widgetResize (_instanceWidget oldRoot) cwenv viewport renderArea oldRoot _compositeSizeReq
   newState = state {
     _compositeModel = newModel,
@@ -220,16 +218,16 @@ convertResponse globalKeys current@ReducedEvents{..} response = case response of
   Producer producer -> current { _reProducers = _reProducers |> producer }
   Multiple ehs -> foldl' (convertResponse globalKeys) current ehs
 
-convertTasksToRequests :: Typeable e => PathContext -> Seq (IO e) -> Seq (WidgetRequest sp)
-convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_pathCurrent ctx) req
+convertTasksToRequests :: Typeable e => WidgetContext -> Seq (IO e) -> Seq (WidgetRequest sp)
+convertTasksToRequests ctx reqs = flip fmap reqs $ \req -> RunTask (_wcCurrentPath ctx) req
 
-convertProducersToRequests :: Typeable e => PathContext -> Seq ((e -> IO ()) -> IO ()) -> Seq (WidgetRequest sp)
-convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_pathCurrent ctx) req
+convertProducersToRequests :: Typeable e => WidgetContext -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
+convertProducersToRequests ctx reqs = flip fmap reqs $ \req -> RunProducer (_wcCurrentPath ctx) req
 
 convertRequests :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
 convertRequests reqs = fmap fromJust $ Seq.filter isJust $ fmap convertRequest reqs
 
-convertRequest :: WidgetRequest s -> Maybe (WidgetRequest s2)
+convertRequest :: WidgetRequest s -> Maybe (WidgetRequest sp)
 convertRequest IgnoreParentEvents = Just IgnoreParentEvents
 convertRequest IgnoreChildrenEvents = Just IgnoreChildrenEvents
 convertRequest Resize = Just Resize
@@ -244,7 +242,7 @@ convertRequest (RunProducer path action) = Just (RunProducer path action)
 convertRequest (UpdateUserState fn) = Nothing
 
 -- | Custom Handling
-compositeHandleMessage :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> PathContext -> i -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
+compositeHandleMessage :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> i -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)
 compositeHandleMessage comp state@CompositeState{..} wenv ctx arg widgetComposite
   | isTargetReached ctx = case cast arg of
       Just evt -> Just $ processWidgetResult comp state wenv ctx widgetComposite evtResult where
@@ -252,9 +250,9 @@ compositeHandleMessage comp state@CompositeState{..} wenv ctx arg widgetComposit
       Nothing -> Nothing
   | otherwise = fmap processEvent result where
       processEvent = processWidgetResult comp state wenv ctx widgetComposite
-      cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
       nextCtx = fromJust $ moveToTarget ctx
-      result = _widgetHandleMessage (_instanceWidget _compositeRoot) cwenv nextCtx arg _compositeRoot
+      (cwenv, cctx) = convertContexts comp state wenv nextCtx
+      result = _widgetHandleMessage (_instanceWidget _compositeRoot) cwenv cctx arg _compositeRoot
 
 -- Preferred size
 compositePreferredSize :: CompositeState s e -> WidgetEnv sp ep -> WidgetInstance sp ep -> Tree SizeReq
@@ -280,21 +278,28 @@ compositeResize comp state wenv viewport renderArea widgetComposite reqs = newIn
   }
 
 -- Render
-compositeRender :: (Monad m) => CompositeState s e -> Renderer m -> WidgetEnv sp ep -> PathContext -> WidgetInstance sp ep -> m ()
-compositeRender CompositeState{..} renderer wenv ctx _ = _widgetRender widget renderer cwenv cctx _compositeRoot where
+compositeRender :: (Monad m) => Composite s e ep -> CompositeState s e -> Renderer m -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> m ()
+compositeRender comp state renderer wenv ctx _ = _widgetRender widget renderer cwenv cctx _compositeRoot where
+  CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
-  cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
-  cctx = childContext ctx
+  (cwenv, cctx) = convertContexts comp state wenv (childContext ctx)
 
-collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> PathContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
+collectGlobalKeys :: Map WidgetKey (Path, WidgetInstance s e) -> WidgetContext -> WidgetInstance s e -> Map WidgetKey (Path, WidgetInstance s e)
 collectGlobalKeys keys ctx widgetInstance = foldl' collectFn updatedMap pairs where
+  createChildCtx idx child = convertWidgetCtx (addToCurrent ctx idx) child
   children = _instanceChildren widgetInstance
-  ctxs = Seq.fromList $ fmap (addToCurrent ctx) [0..length children]
-  pairs = Seq.zip ctxs children
+  idxs = Seq.fromList [0..length children]
+  pairs = Seq.zipWith (\idx child -> (createChildCtx idx child, child)) idxs children
   collectFn current (ctxChild, child) = collectGlobalKeys current ctxChild child
   updatedMap = case _instanceKey widgetInstance of
-    Just key -> M.insert key (_pathCurrent ctx, widgetInstance) keys
+    Just key -> M.insert key (_wcCurrentPath ctx, widgetInstance) keys
     _ -> keys
+
+convertContexts :: Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> (WidgetEnv s e, WidgetContext)
+convertContexts comp state wenv ctx = (cwenv, cctx) where
+  CompositeState{..} = state
+  cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
+  cctx = convertWidgetCtx ctx _compositeRoot
 
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
@@ -304,4 +309,10 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
   _weTimestamp = _weTimestamp wenv
+}
+
+convertWidgetCtx :: WidgetContext -> WidgetInstance s e -> WidgetContext
+convertWidgetCtx ctx widgetRoot = ctx {
+  _wcVisible = _wcVisible ctx && _instanceVisible widgetRoot,
+  _wcEnabled = _wcEnabled ctx && _instanceEnabled widgetRoot
 }

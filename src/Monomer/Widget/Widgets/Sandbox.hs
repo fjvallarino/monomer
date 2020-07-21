@@ -15,7 +15,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Widget.BaseWidget
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -51,7 +51,7 @@ makeSandbox onClick state = createWidget {
     handleEvent wenv ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
         events = [onClick]
-        requests = [RunTask (currentPath ctx) runTask]
+        requests = [RunTask (_wcCurrentPath ctx) runTask]
         newState = SandboxState (_clickCount state + 1)
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing

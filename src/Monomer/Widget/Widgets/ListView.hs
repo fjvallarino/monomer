@@ -35,7 +35,7 @@ import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.Container
@@ -150,7 +150,8 @@ makeListView config state = createContainer {
       valueSetReq = widgetValueSet (_lvValue config) value
       scrollToReq = itemScrollTo ctx widgetInstance idx
       changeReqs = fmap ($ idx) (_lvOnChangeReq config)
-      requests = valueSetReq ++ scrollToReq ++ changeReqs
+      focusReq = [SetFocus $ _wcCurrentPath ctx]
+      requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
       newState = ListViewState idx
       newInstance = widgetInstance {
         _instanceWidget = makeListView config newState
@@ -162,7 +163,7 @@ makeListView config state = createContainer {
         >>= lookup 0 -- scroll
         >>= lookup 0 -- vstack
         >>= lookup idx -- item
-      scrollPath = currentPath $ childContext ctx
+      scrollPath = _wcCurrentPath $ childContext ctx
       makeScrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
     preferredSize wenv widgetInstance childrenPairs = Node sizeReq childrenReqs where
@@ -172,9 +173,9 @@ makeListView config state = createContainer {
     resize wenv viewport renderArea widgetInstance childrenPairs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
-makeItemsList :: (Eq a) => ListViewConfig s e a -> PathContext -> a -> Int -> WidgetInstance s e
+makeItemsList :: (Eq a) => ListViewConfig s e a -> WidgetContext -> a -> Int -> WidgetInstance s e
 makeItemsList ListViewConfig{..} ctx selected highlightedIdx = makeItemsList where
-  path = _pathCurrent ctx
+  path = _wcCurrentPath ctx
   isSelected item = item == selected
   selectedColor item = if isSelected item then Just _lvSelectedColor else Nothing
   highlightedColor idx = if idx == highlightedIdx then Just _lvHighlightedColor else Nothing

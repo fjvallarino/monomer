@@ -14,11 +14,11 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-type WidgetMergeHandler s e = WidgetEnv s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
+type WidgetMergeHandler s e = WidgetEnv s e -> WidgetContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
 
 createWidget :: Widget s e
 createWidget = Widget {
@@ -34,30 +34,30 @@ createWidget = Widget {
   _widgetRender = defaultRender
 }
 
-defaultInit :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetResult s e
+defaultInit :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> WidgetResult s e
 defaultInit _ _ widgetInstance = resultWidget widgetInstance
 
 defaultGetState :: WidgetEnv s e -> Maybe WidgetState
 defaultGetState _ = Nothing
 
-defaultMerge :: WidgetEnv s e -> PathContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
+defaultMerge :: WidgetEnv s e -> WidgetContext -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
 defaultMerge wenv ctx oldState newInstance = resultWidget newInstance
 
-widgetMerge :: WidgetMergeHandler s e -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
+widgetMerge :: WidgetMergeHandler s e -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e
 widgetMerge mergeHandler wenv ctx oldInstance newInstance = result where
   oldState = _widgetGetState (_instanceWidget oldInstance) wenv
   result = mergeHandler wenv ctx oldState newInstance
 
-defaultNextFocusable :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> Maybe Path
+defaultNextFocusable :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> Maybe Path
 defaultNextFocusable wenv ctx widgetInstance = Nothing
 
 defaultFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
 defaultFind wenv path point widgetInstance = Nothing
 
-defaultHandleEvent :: WidgetEnv s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
+defaultHandleEvent :: WidgetEnv s e -> WidgetContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleEvent wenv ctx evt widgetInstance = Nothing
 
-defaultHandleMessage :: forall i s e m . Typeable i => WidgetEnv s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
+defaultHandleMessage :: forall i s e m . Typeable i => WidgetEnv s e -> WidgetContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleMessage wenv ctx evt widgetInstance = Nothing
 
 defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq
@@ -73,5 +73,5 @@ defaultResize wenv viewport renderArea widgetInstance reqs = widgetInstance {
     _instanceRenderArea = renderArea
   }
 
-defaultRender :: (Monad m) => Renderer m -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> m ()
+defaultRender :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> m ()
 defaultRender renderer wenv ctx widgetInstance = return ()

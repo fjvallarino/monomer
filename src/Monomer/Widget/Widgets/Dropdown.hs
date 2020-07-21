@@ -34,7 +34,7 @@ import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.ListView
@@ -135,15 +135,15 @@ makeDropdown config state = createContainer {
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState
       }
-      lvPath = currentPath (childContext ctx)
-      requests = [SetOverlay (currentPath ctx), SetFocus lvPath]
+      lvPath = _wcCurrentPath (childContext ctx)
+      requests = [SetOverlay (_wcCurrentPath ctx), SetFocus lvPath]
 
     handleCloseDropdown wenv ctx widgetInstance = resultReqs requests newInstance where
       newState = DropdownState False
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState
       }
-      requests = [ResetOverlay, SetFocus (currentPath ctx)]
+      requests = [ResetOverlay, SetFocus (_wcCurrentPath ctx)]
 
     handleMessage wenv ctx message widgetInstance = cast message
       >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddItems config)
@@ -184,9 +184,9 @@ makeDropdown config state = createContainer {
 
     dropdownLabel wenv = _ddItemToText config $ currentValue wenv
 
-makeListView :: (Eq a) => DropdownConfig s e a -> PathContext -> a -> WidgetInstance s e
+makeListView :: (Eq a) => DropdownConfig s e a -> WidgetContext -> a -> WidgetInstance s e
 makeListView DropdownConfig{..} ctx selected = listView_ lvConfig where
-  path = _pathCurrent ctx
+  path = _wcCurrentPath ctx
   lvConfig = ListViewConfig {
     _lvValue = WidgetValue selected,
     _lvItems = _ddItems,

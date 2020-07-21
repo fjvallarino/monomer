@@ -27,13 +27,13 @@ import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Graphics.Renderer
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 
-createEventContext :: WidgetEnv s e -> Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe PathContext
+createEventContext :: WidgetEnv s e -> Maybe Path -> Maybe Path -> Path -> Path -> SystemEvent -> WidgetInstance s e -> Maybe WidgetContext
 createEventContext wenv latestPressed activeOverlay currentFocus currentTarget systemEvent widgetRoot = case systemEvent of
     -- Keyboard
     KeyAction{}            -> pathEvent currentTarget
@@ -54,7 +54,13 @@ createEventContext wenv latestPressed activeOverlay currentFocus currentTarget s
     findStartPath = fromMaybe rootPath activeOverlay
     pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wenv findStartPath point widgetRoot
     pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
-    makePathCtx targetPath = PathContext currentFocus targetPath rootPath
+    makePathCtx targetPath = WidgetContext {
+      _wcVisible = _instanceVisible widgetRoot,
+      _wcEnabled = _instanceEnabled widgetRoot,
+      _wcFocusedPath = currentFocus,
+      _wcTargetPath = targetPath,
+      _wcCurrentPath = rootPath
+    }
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
 handleSystemEvents renderer wenv systemEvents widgetRoot = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents where
@@ -83,12 +89,18 @@ handleSystemEvent renderer wenv systemEvent currentFocus currentTarget widgetRoo
 handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
 handleWidgetInit renderer wenv widgetRoot = do
   let widget = _instanceWidget widgetRoot
-  let ctx = PathContext rootPath rootPath rootPath
+  let ctx = WidgetContext {
+    _wcVisible = _instanceVisible widgetRoot,
+    _wcEnabled = _instanceEnabled widgetRoot,
+    _wcFocusedPath = rootPath,
+    _wcTargetPath = rootPath,
+    _wcCurrentPath = rootPath
+  }
   let widgetResult = _widgetInit widget wenv ctx widgetRoot
 
   handleWidgetResult renderer wenv ctx widgetResult
 
-handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> PathContext -> WidgetResult s e -> m (HandlerStep s e)
+handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetResult s e -> m (HandlerStep s e)
 handleWidgetResult renderer wenv ctx (WidgetResult reqs events evtRoot) = do
   let evtUpdates = getUpdateUserStates reqs
   let evtModel = foldr (.) id evtUpdates (_weModel wenv)
@@ -104,7 +116,7 @@ handleWidgetResult renderer wenv ctx (WidgetResult reqs events evtRoot) = do
     >>= handleOverlayReset renderer reqs
     >>= handleResize renderer reqs
 
-handleFocusChange :: (MonomerM s m) => Renderer m -> PathContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
+handleFocusChange :: (MonomerM s m) => Renderer m -> WidgetContext -> SystemEvent -> Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleFocusChange renderer ctx systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
@@ -140,7 +152,7 @@ handleResize renderer reqs previousStep =
       return (wenv, events, newWidgetRoot)
     _ -> return previousStep
 
-handleClipboardGet :: (MonomerM s m) => Renderer m -> PathContext -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
+handleClipboardGet :: (MonomerM s m) => Renderer m -> WidgetContext -> Seq (WidgetRequest s) -> HandlerStep s e -> m (HandlerStep s e)
 handleClipboardGet renderer ctx reqs previousStep = do
     hasText <- SDL.hasClipboardText
     contents <- if hasText
@@ -150,7 +162,7 @@ handleClipboardGet renderer ctx reqs previousStep = do
     foldM (reducer contents) previousStep reqs
   where
     reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
-      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_pathCurrent ctx) path widgetRoot
+      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_wcCurrentPath ctx) path widgetRoot
 
       return (newWctx2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
@@ -188,7 +200,13 @@ handleSendMessages renderer reqs previousStep = foldM reducer previousStep reqs 
     currentFocus <- use focused
 
     let (wenv, events, widgetRoot) = previousStep
-    let ctx = PathContext currentFocus path rootPath
+    let ctx = WidgetContext {
+      _wcVisible = _instanceVisible widgetRoot,
+      _wcEnabled = _instanceEnabled widgetRoot,
+      _wcFocusedPath = currentFocus,
+      _wcTargetPath = path,
+      _wcCurrentPath = rootPath
+    }
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
     let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx message widgetRoot
 

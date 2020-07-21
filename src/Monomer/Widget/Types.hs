@@ -18,7 +18,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 
 type Timestamp = Int
 type WidgetType = String
@@ -88,7 +88,7 @@ data WidgetEnv s e = WidgetEnv {
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetResult s e,
+    _widgetInit :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when merging widget trees
     _widgetGetState :: WidgetEnv s e -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
@@ -96,10 +96,10 @@ data Widget s e =
     -- Current state
     -- Old instance
     -- New instance
-    _widgetMerge :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
+    _widgetMerge :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable :: WidgetEnv s e -> PathContext -> WidgetInstance s e -> Maybe Path,
+    _widgetNextFocusable :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting on the given path
     _widgetFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path,
     -- | Handles an event
@@ -110,13 +110,13 @@ data Widget s e =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: WidgetEnv s e -> PathContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleEvent :: WidgetEnv s e -> WidgetContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and a new version of the widget if internal state changed
-    _widgetHandleMessage :: forall i . Typeable i => WidgetEnv s e -> PathContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleMessage :: forall i . Typeable i => WidgetEnv s e -> WidgetContext -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -141,7 +141,7 @@ data Widget s e =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: forall m . Monad m => Renderer m -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> m ()
+    _widgetRender :: forall m . Monad m => Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree

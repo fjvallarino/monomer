@@ -26,7 +26,7 @@ import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseWidget
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -108,11 +108,11 @@ makeTextField config state = createWidget {
 
     handleEvent wenv ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqs reqs widgetInstance where
-        reqs = [SetFocus $ currentPath ctx]
+        reqs = [SetFocus $ _wcCurrentPath ctx]
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqGetClipboard = [GetClipboard (currentPath ctx) | isClipboardPaste wenv evt]
+        reqGetClipboard = [GetClipboard (_wcCurrentPath ctx) | isClipboardPaste wenv evt]
         reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wenv evt]
         reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []

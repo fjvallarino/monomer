@@ -26,7 +26,7 @@ import Monomer.Graphics.Renderer
 import Monomer.Main.Handlers
 import Monomer.Main.Util
 import Monomer.Main.Types
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 
 handleWidgetTasks :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
@@ -67,7 +67,13 @@ processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> WidgetEnv 
 processWidgetTaskEvent renderer wenv widgetRoot path event = do
   currentFocus <- use focused
 
-  let ctx = PathContext currentFocus path rootPath
+  let ctx = WidgetContext {
+    _wcVisible = _instanceVisible widgetRoot,
+    _wcEnabled = _instanceEnabled widgetRoot,
+    _wcFocusedPath = currentFocus,
+    _wcTargetPath = path,
+    _wcCurrentPath = rootPath
+  }
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
   let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx event widgetRoot
 

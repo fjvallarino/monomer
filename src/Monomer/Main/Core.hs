@@ -37,7 +37,7 @@ import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
 import Monomer.Widget.CompositeWidget
-import Monomer.Widget.PathContext
+import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 
 createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
@@ -136,7 +136,14 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
                               else return seWidgetRoot
 
   currentFocus <- use focused
-  renderWidgets window c renderer seWctx (PathContext currentFocus rootPath rootPath) newWidgetRoot
+  let ctx = WidgetContext {
+    _wcVisible = _instanceVisible newWidgetRoot,
+    _wcEnabled = _instanceEnabled newWidgetRoot,
+    _wcFocusedPath = currentFocus,
+    _wcTargetPath = rootPath,
+    _wcCurrentPath = rootPath
+  }
+  renderWidgets window c renderer seWctx ctx newWidgetRoot
   runOverlays renderer
 
   endTicks <- fmap fromIntegral SDL.ticks
@@ -149,7 +156,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer widgetPlatform startTicks newTsAccum newFrameCount newWidgetRoot)
 
-renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetEnv s e -> PathContext -> WidgetInstance s e -> m ()
+renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> m ()
 renderWidgets !window !c !renderer wenv ctx widgetRoot =
   doInDrawingContext window c $
     _widgetRender (_instanceWidget widgetRoot) renderer wenv ctx widgetRoot
