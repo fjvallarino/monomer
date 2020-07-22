@@ -24,7 +24,7 @@ import Data.Foldable (fold)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Typeable (Typeable)
-import Data.Sequence (Seq(..), (<|), (><))
+import Data.Sequence (Seq(..), (<|), (|>), (><))
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -70,15 +70,10 @@ containerInit initHandler wenv ctx widgetInstance = WidgetResult (reqs <> newReq
   WidgetResult reqs events tempInstance = initHandler wenv ctx widgetInstance
   children = _instanceChildren tempInstance
   indexes = Seq.fromList [0..length children]
-  parentVisible = _instanceVisible widgetInstance
-  parentEnabled = _instanceEnabled widgetInstance
   zipper idx child = _widgetInit wchild wenv cctx newChild where
     cctx = addToCurrent ctx idx
     wchild = _instanceWidget child
-    newChild = child {
-      _instanceVisible = _instanceVisible child && parentVisible,
-      _instanceEnabled = _instanceEnabled child && parentEnabled
-    }
+    newChild = cascadeCtx widgetInstance child idx
   results = Seq.zipWith zipper indexes children
   newReqs = fold $ fmap _resultRequests results
   newEvents = fold $ fmap _resultEvents results
@@ -101,14 +96,9 @@ containerMergeTrees mergeHandler wenv ctx oldInstance newInstance = result where
   WidgetResult uReqs uEvents updatedInstance = mergeHandler wenv ctx oldState newInstance
   oldChildren = _instanceChildren oldInstance
   newChildren = _instanceChildren updatedInstance
-  parentVisible = _instanceVisible updatedInstance
-  parentEnabled = _instanceEnabled updatedInstance
   indexes = Seq.fromList [0..length newChildren]
   zipper idx child = (addToCurrent ctx idx, child) where
-    newChild = child {
-      _instanceVisible = _instanceVisible child && parentVisible,
-      _instanceEnabled = _instanceEnabled child && parentEnabled
-    }
+    newChild = cascadeCtx updatedInstance child idx
   newPairs = Seq.zipWith zipper indexes newChildren
   mergedResults = mergeChildren wenv oldChildren newPairs
   mergedChildren = fmap _resultWidget mergedResults
@@ -292,3 +282,14 @@ visibleChildrenReq children reqs = Seq.unzipWith extract filtered where
   isVisible (child, req) = _instanceVisible child
   filtered = Seq.filter isVisible pairs
   extract (child, treq) = (child, nodeValue treq)
+
+cascadeCtx :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
+cascadeCtx parent child idx = newChild where
+  parentPath = _instancePath parent
+  parentVisible = _instanceVisible parent
+  parentEnabled = _instanceEnabled parent
+  newChild = child {
+    _instancePath = parentPath |> idx,
+    _instanceVisible = _instanceVisible child && parentVisible,
+    _instanceEnabled = _instanceEnabled child && parentEnabled
+  }

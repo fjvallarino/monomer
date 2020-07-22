@@ -102,12 +102,7 @@ compositeInit comp state wenv ctx widgetComposite = result where
   widget = _instanceWidget _compositeRoot
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
   cctx = childContext ctx
-  parentVisible = _instanceVisible widgetComposite
-  parentEnabled = _instanceEnabled widgetComposite
-  tempRoot = _compositeRoot {
-    _instanceVisible = _instanceVisible _compositeRoot && parentVisible,
-    _instanceEnabled = _instanceEnabled _compositeRoot && parentEnabled
-  }
+  tempRoot = cascadeCtx widgetComposite _compositeRoot
   WidgetResult reqs evts root = _widgetInit widget cwenv cctx tempRoot
   newEvts = maybe evts (evts |>) _compositeInitEvent
   newState = state {
@@ -122,13 +117,7 @@ compositeMerge comp state wenv ctx oldComposite newComposite = result where
   CompositeState oldModel oldRoot oldInit oldGlobalKeys oldReqs = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created
   -- on _composite_ has not yet been evaluated
-  parentVisible = _instanceVisible newComposite
-  parentEnabled = _instanceEnabled newComposite
-  tempRoot = _uiBuilder comp oldModel
-  newRoot = tempRoot {
-    _instanceVisible = _instanceVisible tempRoot && parentVisible,
-    _instanceEnabled = _instanceEnabled tempRoot && parentEnabled
-  }
+  newRoot = cascadeCtx newComposite (_uiBuilder comp oldModel)
   newState = validState {
     _compositeRoot = newRoot,
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
@@ -330,3 +319,14 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weInputStatus = _weInputStatus wenv,
   _weTimestamp = _weTimestamp wenv
 }
+
+cascadeCtx :: WidgetInstance sp ep -> WidgetInstance s e -> WidgetInstance s e
+cascadeCtx parent child = newChild where
+  parentPath = _instancePath parent
+  parentVisible = _instanceVisible parent
+  parentEnabled = _instanceEnabled parent
+  newChild = child {
+    _instancePath = parentPath |> 0,
+    _instanceVisible = _instanceVisible child && parentVisible,
+    _instanceEnabled = _instanceEnabled child && parentEnabled
+  }
