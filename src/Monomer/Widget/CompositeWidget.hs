@@ -102,7 +102,13 @@ compositeInit comp state wenv ctx widgetComposite = result where
   widget = _instanceWidget _compositeRoot
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
   cctx = childContext ctx
-  WidgetResult reqs evts root = _widgetInit widget cwenv cctx _compositeRoot
+  parentVisible = _instanceVisible widgetComposite
+  parentEnabled = _instanceEnabled widgetComposite
+  tempRoot = _compositeRoot {
+    _instanceVisible = _instanceVisible _compositeRoot && parentVisible,
+    _instanceEnabled = _instanceEnabled _compositeRoot && parentEnabled
+  }
+  WidgetResult reqs evts root = _widgetInit widget cwenv cctx tempRoot
   newEvts = maybe evts (evts |>) _compositeInitEvent
   newState = state {
     _compositeGlobalKeys = collectGlobalKeys M.empty cctx _compositeRoot
@@ -114,8 +120,15 @@ compositeMerge comp state wenv ctx oldComposite newComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldInit oldGlobalKeys oldReqs = validState
-  -- Duplicate widget tree creation is avoided because the widgetRoot created on _composite_ has not yet been evaluated
-  newRoot = _uiBuilder comp oldModel
+  -- Duplicate widget tree creation is avoided because the widgetRoot created
+  -- on _composite_ has not yet been evaluated
+  parentVisible = _instanceVisible newComposite
+  parentEnabled = _instanceEnabled newComposite
+  tempRoot = _uiBuilder comp oldModel
+  newRoot = tempRoot {
+    _instanceVisible = _instanceVisible tempRoot && parentVisible,
+    _instanceEnabled = _instanceEnabled tempRoot && parentEnabled
+  }
   newState = validState {
     _compositeRoot = newRoot,
     _compositeGlobalKeys = collectGlobalKeys M.empty (childContext ctx) newRoot
@@ -123,9 +136,10 @@ compositeMerge comp state wenv ctx oldComposite newComposite = result where
   newWidget = _instanceWidget newRoot
   cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
   cctx = childContext ctx
-  widgetResult = if instanceMatches newRoot oldRoot
-                  then _widgetMerge newWidget cwenv cctx oldRoot newRoot
-                  else _widgetInit newWidget cwenv cctx newRoot
+  mergeRequired = instanceMatches newRoot oldRoot
+  widgetResult
+    | mergeRequired = _widgetMerge newWidget cwenv cctx oldRoot newRoot
+    | otherwise = _widgetInit newWidget cwenv cctx newRoot
   result = processWidgetResult comp newState wenv ctx newComposite widgetResult
 
 compositeNextFocusable :: Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetContext -> WidgetInstance sp ep -> Maybe Path
