@@ -137,8 +137,6 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
 
   currentFocus <- use focused
   let ctx = WidgetContext {
-    _wcVisible = _instanceVisible newWidgetRoot,
-    _wcEnabled = _instanceEnabled newWidgetRoot,
     _wcFocusedPath = currentFocus,
     _wcTargetPath = rootPath,
     _wcCurrentPath = rootPath

@@ -68,8 +68,6 @@ processWidgetTaskEvent renderer wenv widgetRoot path event = do
   currentFocus <- use focused
 
   let ctx = WidgetContext {
-    _wcVisible = _instanceVisible widgetRoot,
-    _wcEnabled = _instanceEnabled widgetRoot,
     _wcFocusedPath = currentFocus,
     _wcTargetPath = path,
     _wcCurrentPath = rootPath

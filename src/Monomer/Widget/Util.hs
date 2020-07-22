@@ -23,6 +23,7 @@ defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
   _instanceType = widgetType,
   _instanceKey = Nothing,
+  _instancePath = Seq.empty,
   _instanceWidget = widget,
   _instanceChildren = Seq.empty,
   _instanceEnabled = True,

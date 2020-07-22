@@ -55,8 +55,6 @@ createEventContext wenv latestPressed activeOverlay currentFocus currentTarget s
     pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wenv findStartPath point widgetRoot
     pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
     makePathCtx targetPath = WidgetContext {
-      _wcVisible = _instanceVisible widgetRoot,
-      _wcEnabled = _instanceEnabled widgetRoot,
       _wcFocusedPath = currentFocus,
       _wcTargetPath = targetPath,
       _wcCurrentPath = rootPath
@@ -90,8 +88,6 @@ handleWidgetInit :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInsta
 handleWidgetInit renderer wenv widgetRoot = do
   let widget = _instanceWidget widgetRoot
   let ctx = WidgetContext {
-    _wcVisible = _instanceVisible widgetRoot,
-    _wcEnabled = _instanceEnabled widgetRoot,
     _wcFocusedPath = rootPath,
     _wcTargetPath = rootPath,
     _wcCurrentPath = rootPath
@@ -201,8 +197,6 @@ handleSendMessages renderer reqs previousStep = foldM reducer previousStep reqs 
 
     let (wenv, events, widgetRoot) = previousStep
     let ctx = WidgetContext {
-      _wcVisible = _instanceVisible widgetRoot,
-      _wcEnabled = _instanceEnabled widgetRoot,
       _wcFocusedPath = currentFocus,
       _wcTargetPath = path,
       _wcCurrentPath = rootPath

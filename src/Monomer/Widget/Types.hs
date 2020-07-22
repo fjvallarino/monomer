@@ -154,6 +154,8 @@ data WidgetInstance s e =
     _instanceType :: WidgetType,
     -- | Key/Identifier of the widget
     _instanceKey :: Maybe WidgetKey,
+    -- | The path of the instance in the widget tree
+    _instancePath :: Path,
     -- | The actual widget
     _instanceWidget :: Widget s e,
     -- | The children widget, if any

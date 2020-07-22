@@ -12,8 +12,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Tree (Path, PathStep)
 
 data WidgetContext = WidgetContext {
-  _wcVisible :: Bool,
-  _wcEnabled :: Bool,
   _wcFocusedPath :: Path,
   _wcTargetPath :: Path,
   _wcCurrentPath :: Path
