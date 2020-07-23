@@ -18,7 +18,6 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
-import Monomer.Widget.WidgetContext
 
 type Timestamp = Int
 type WidgetType = String

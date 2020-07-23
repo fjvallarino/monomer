@@ -37,8 +37,8 @@ import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
 import Monomer.Widget.CompositeWidget
-import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
+import Monomer.Widget.Util
 
 createApp :: (Eq s, Typeable s, Typeable e) => s -> Maybe e -> EventHandler s e () -> UIBuilder s e -> WidgetInstance () ()
 createApp model initEvent eventHandler uiBuilder = composite "app" model initEvent eventHandler uiBuilder

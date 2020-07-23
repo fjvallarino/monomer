@@ -20,7 +20,9 @@ import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds)
 import Monomer.Widget.Types
-import Monomer.Widget.WidgetContext
+
+rootPath :: Path
+rootPath = Seq.empty
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {

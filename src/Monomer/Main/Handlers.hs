@@ -21,13 +21,13 @@ import qualified Data.Sequence as Seq
 import qualified SDL
 
 import Monomer.Common.Geometry
+import Monomer.Common.Tree (Path)
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Graphics.Renderer
-import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 

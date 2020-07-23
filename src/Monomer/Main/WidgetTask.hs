@@ -20,13 +20,13 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Tree (Path)
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Main.Handlers
 import Monomer.Main.Util
 import Monomer.Main.Types
-import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 
 handleWidgetTasks :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)

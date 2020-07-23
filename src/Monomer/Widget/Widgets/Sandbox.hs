@@ -15,7 +15,6 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Widget.BaseWidget
-import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 

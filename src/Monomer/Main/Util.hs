@@ -7,10 +7,11 @@ import Data.Maybe
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Tree (Path)
 import Monomer.Event.Util
 import Monomer.Main.Types
-import Monomer.Widget.WidgetContext
 import Monomer.Widget.Types
+import Monomer.Widget.Util
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
 initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
