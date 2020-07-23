@@ -22,7 +22,7 @@ import Monomer.Widget.WidgetContext
 
 type Timestamp = Int
 type WidgetType = String
-type GlobalKeys s e = Map WidgetKey (Path, WidgetInstance s e)
+type GlobalKeys s e = Map WidgetKey (WidgetInstance s e)
 
 data WidgetValue s a = WidgetValue a | WidgetLens (ALens' s a)
 
@@ -151,26 +151,26 @@ data Widget s e =
 data WidgetInstance s e =
   WidgetInstance {
     -- | Type of the widget
-    _instanceType :: WidgetType,
+    _instanceType :: !WidgetType,
     -- | Key/Identifier of the widget
     _instanceKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
-    _instancePath :: Path,
+    _instancePath :: !Path,
     -- | The actual widget
     _instanceWidget :: Widget s e,
     -- | The children widget, if any
     _instanceChildren :: Seq (WidgetInstance s e),
     -- | Indicates if the widget is enabled for user interaction
-    _instanceEnabled :: Bool,
+    _instanceEnabled :: !Bool,
     -- | Indicates if the widget is visible
-    _instanceVisible :: Bool,
+    _instanceVisible :: !Bool,
     -- | Indicates whether the widget can receive focus
-    _instanceFocusable :: Bool,
+    _instanceFocusable :: !Bool,
     -- | The visible area of the screen assigned to the widget
-    _instanceViewport :: Rect,
+    _instanceViewport :: !Rect,
     -- | The area of the screen where the widget can draw
     -- | Usually equal to _instanceViewport, but may be larger if the widget is wrapped in a scrollable container
-    _instanceRenderArea :: Rect,
+    _instanceRenderArea :: !Rect,
     -- | Style attributes of the widget instance
     _instanceStyle :: Style
   }

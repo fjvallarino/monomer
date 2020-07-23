@@ -89,7 +89,7 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
 makeListView config state = createContainer {
-    _widgetInit = init,
+    _widgetInit = containerInit init,
     _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
@@ -102,7 +102,8 @@ makeListView config state = createContainer {
 
     createListView wenv ctx newState widgetInstance = newInstance where
       selected = currentValue wenv
-      itemsList = makeItemsList config ctx selected (_highlighted newState)
+      path = _instancePath widgetInstance
+      itemsList = makeItemsList config path selected (_highlighted newState)
       newInstance = widgetInstance {
         _instanceWidget = makeListView config newState,
         _instanceChildren = Seq.singleton (scroll itemsList)
@@ -150,7 +151,7 @@ makeListView config state = createContainer {
       valueSetReq = widgetValueSet (_lvValue config) value
       scrollToReq = itemScrollTo ctx widgetInstance idx
       changeReqs = fmap ($ idx) (_lvOnChangeReq config)
-      focusReq = [SetFocus $ _wcCurrentPath ctx]
+      focusReq = [SetFocus $ _instancePath widgetInstance]
       requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
       newState = ListViewState idx
       newInstance = widgetInstance {
@@ -163,7 +164,7 @@ makeListView config state = createContainer {
         >>= lookup 0 -- scroll
         >>= lookup 0 -- vstack
         >>= lookup idx -- item
-      scrollPath = _wcCurrentPath $ childContext ctx
+      scrollPath = firstChildPath widgetInstance
       makeScrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
     preferredSize wenv widgetInstance children reqs = Node sizeReq reqs where
@@ -172,9 +173,9 @@ makeListView config state = createContainer {
     resize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
-makeItemsList :: (Eq a) => ListViewConfig s e a -> WidgetContext -> a -> Int -> WidgetInstance s e
-makeItemsList ListViewConfig{..} ctx selected highlightedIdx = makeItemsList where
-  path = _wcCurrentPath ctx
+makeItemsList :: (Eq a) => ListViewConfig s e a -> Path -> a -> Int -> WidgetInstance s e
+makeItemsList lvConfig lvPath selected highlightedIdx = makeItemsList where
+  ListViewConfig{..} = lvConfig
   isSelected item = item == selected
   selectedColor item = if isSelected item then Just _lvSelectedColor else Nothing
   highlightedColor idx = if idx == highlightedIdx then Just _lvHighlightedColor else Nothing
@@ -184,7 +185,7 @@ makeItemsList ListViewConfig{..} ctx selected highlightedIdx = makeItemsList whe
     _styleHover = Just _lvHoverColor
   }
   itemConfig idx = containerConfig {
-    _ctOnClickReq = [SendMessage path (OnClickMessage idx)]
+    _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }
   makeItem idx item = container config content `style` itemStyle idx item where
     config = itemConfig idx

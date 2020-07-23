@@ -51,7 +51,7 @@ makeSandbox onClick state = createWidget {
     handleEvent wenv ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
         events = [onClick]
-        requests = [RunTask (_wcCurrentPath ctx) runTask]
+        requests = [RunTask (_instancePath widgetInstance) runTask]
         newState = SandboxState (_clickCount state + 1)
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing

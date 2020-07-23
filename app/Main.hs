@@ -134,9 +134,11 @@ buildUI model = widgetTree where
       --listView textField2 items id,
       --spacer,
       textField textField1,
+      -- button RunShortTask "Hola",
+      -- textField textField1 `style` color red,
       listView textField2 items id,
       spacer
     ]
-  items = fmap showt [1..100::Int]
+  items = fmap showt [1..30::Int]
   itemsDropdown = fmap dropdownText [1..100::Int]
   dropdownText i = "Dropdown " <> showt i

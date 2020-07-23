@@ -108,11 +108,11 @@ makeTextField config state = createWidget {
 
     handleEvent wenv ctx evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqs reqs widgetInstance where
-        reqs = [SetFocus $ _wcCurrentPath ctx]
+        reqs = [SetFocus $ _instancePath widgetInstance]
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqGetClipboard = [GetClipboard (_wcCurrentPath ctx) | isClipboardPaste wenv evt]
+        reqGetClipboard = [GetClipboard (_instancePath widgetInstance) | isClipboardPaste wenv evt]
         reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wenv evt]
         reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []
@@ -142,17 +142,18 @@ makeTextField config state = createWidget {
       size = getTextBounds wenv _styleText currText
       sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wenv ctx WidgetInstance{..} =
-      let ts = _weTimestamp wenv
+    render renderer wenv ctx widgetInst =
+      let WidgetInstance{..} = widgetInst
+          ts = _weTimestamp wenv
           textStyle = _styleText _instanceStyle
-          cursorAlpha = if isFocused ctx then fromIntegral (ts `mod` 1000) / 1000.0 else 0
+          cursorAlpha = if isFocused ctx widgetInst then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do
         drawStyledBackground renderer renderArea _instanceStyle
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
-        when (isFocused ctx) $ do
+        when (isFocused ctx widgetInst) $ do
           let Size sw sh = getTextBounds wenv textStyle part1
           drawRect renderer (Rect (tl + sw) tt (_tfcCaretWidth config) sh) (Just textColor) Nothing
           return ()

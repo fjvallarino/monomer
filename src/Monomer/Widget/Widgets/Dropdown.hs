@@ -99,9 +99,10 @@ makeDropdown config state = createContainer {
 
     createDropdown wenv ctx newState widgetInstance = newInstance where
       selected = currentValue wenv
+      path = _instancePath widgetInstance
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState,
-        _instanceChildren = Seq.singleton $ makeListView config ctx selected
+        _instanceChildren = Seq.singleton $ makeListView config path selected
       }
 
     init wenv ctx widgetInstance = resultWidget $ createDropdown wenv ctx state widgetInstance
@@ -135,15 +136,17 @@ makeDropdown config state = createContainer {
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState
       }
-      lvPath = _wcCurrentPath (childContext ctx)
-      requests = [SetOverlay (_wcCurrentPath ctx), SetFocus lvPath]
+      path = _instancePath widgetInstance
+      lvPath = firstChildPath widgetInstance
+      requests = [SetOverlay path, SetFocus lvPath]
 
     handleCloseDropdown wenv ctx widgetInstance = resultReqs requests newInstance where
+      path = _instancePath widgetInstance
       newState = DropdownState False
       newInstance = widgetInstance {
         _instanceWidget = makeDropdown config newState
       }
-      requests = [ResetOverlay, SetFocus (_wcCurrentPath ctx)]
+      requests = [ResetOverlay, SetFocus path]
 
     handleMessage wenv ctx message widgetInstance = cast message
       >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddItems config)
@@ -181,19 +184,18 @@ makeDropdown config state = createContainer {
         listViewOverlay = Seq.lookup 0 _instanceChildren
 
     renderOverlay renderer wenv ctx overlayInstance = renderAction where
-      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wenv (childContext ctx) overlayInstance
+      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wenv ctx overlayInstance
 
     dropdownLabel wenv = _ddItemToText config $ currentValue wenv
 
-makeListView :: (Eq a) => DropdownConfig s e a -> WidgetContext -> a -> WidgetInstance s e
-makeListView DropdownConfig{..} ctx selected = listView_ lvConfig where
-  path = _wcCurrentPath ctx
+makeListView :: (Eq a) => DropdownConfig s e a -> Path -> a -> WidgetInstance s e
+makeListView DropdownConfig{..} dropdownPath selected = listView_ lvConfig where
   lvConfig = ListViewConfig {
     _lvValue = WidgetValue selected,
     _lvItems = _ddItems,
     _lvItemToText = _ddItemToText,
     _lvOnChange = [],
-    _lvOnChangeReq = [SendMessage path . OnChangeMessage],
+    _lvOnChangeReq = [SendMessage dropdownPath . OnChangeMessage],
     _lvSelectedColor = _ddSelectedColor,
     _lvHighlightedColor = _ddHighlightedColor,
     _lvHoverColor = _ddHoverColor

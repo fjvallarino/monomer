@@ -52,7 +52,7 @@ defaultNextFocusable :: WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> 
 defaultNextFocusable wenv ctx widgetInstance = Nothing
 
 defaultFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind wenv path point widgetInstance = Nothing
+defaultFind wenv path point widgetInstance = Just $ _instancePath widgetInstance
 
 defaultHandleEvent :: WidgetEnv s e -> WidgetContext -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleEvent wenv ctx evt widgetInstance = Nothing

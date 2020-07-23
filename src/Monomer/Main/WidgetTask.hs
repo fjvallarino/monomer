@@ -69,8 +69,7 @@ processWidgetTaskEvent renderer wenv widgetRoot path event = do
 
   let ctx = WidgetContext {
     _wcFocusedPath = currentFocus,
-    _wcTargetPath = path,
-    _wcCurrentPath = rootPath
+    _wcTargetPath = path
   }
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
   let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx event widgetRoot

@@ -30,8 +30,7 @@ findNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Path
 findNextFocusable wenv currentFocus widgetRoot = fromMaybe rootFocus candidateFocus where
   ctxFocus = WidgetContext {
     _wcFocusedPath = currentFocus,
-    _wcTargetPath = currentFocus,
-    _wcCurrentPath = rootPath
+    _wcTargetPath = currentFocus
   }
   ctxRootFocus = ctxFocus {
     _wcFocusedPath = rootPath,

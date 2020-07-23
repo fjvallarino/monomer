@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Monomer.Widget.Util where
 
 import Control.Lens (ALens', (&), (^#), (#~))
@@ -18,6 +20,7 @@ import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds)
 import Monomer.Widget.Types
+import Monomer.Widget.WidgetContext
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
@@ -160,3 +163,38 @@ isClipboardPaste wenv event = checkKeyboard event testFn where
 
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _wpOS (_wePlatform wenv) == "Mac OS X"
+
+firstChildPath :: WidgetInstance s e -> Path
+firstChildPath widgetInst = _instancePath widgetInst |> 0
+
+nextTargetStep :: WidgetContext -> WidgetInstance s e -> Maybe PathStep
+nextTargetStep WidgetContext{..} widgetInst = nextStep where
+  currentPath = _instancePath widgetInst
+  nextStep = Seq.lookup (Seq.length currentPath) _wcTargetPath
+
+moveToTarget :: WidgetContext -> WidgetInstance s e -> Maybe Path
+moveToTarget ctx widgetInst = (_instancePath widgetInst |>) <$> nextStep where
+  nextStep = nextTargetStep ctx widgetInst
+
+isFocused :: WidgetContext -> WidgetInstance s e -> Bool
+isFocused ctx widgetInst = _wcFocusedPath ctx == _instancePath widgetInst
+
+isTargetReached :: WidgetContext -> WidgetInstance s e -> Bool
+isTargetReached ctx widgetInst = _wcTargetPath ctx == _instancePath widgetInst
+
+isTargetValid :: WidgetContext -> WidgetInstance s e -> Bool
+isTargetValid ctx widgetInst = valid where
+  children = _instanceChildren widgetInst
+  valid = case nextTargetStep ctx widgetInst of
+    Just step -> step < Seq.length children
+    Nothing -> False
+
+isTargetBeforeCurrent :: WidgetContext -> WidgetInstance s e -> Bool
+isTargetBeforeCurrent ctx widgetInst = targetPrefix < currentPath where
+  WidgetContext{..} = ctx
+  currentPath = _instancePath widgetInst
+  lenTarget = Seq.length _wcTargetPath
+  lenCurrent = Seq.length currentPath
+  targetPrefix
+    | lenTarget > lenCurrent = Seq.take lenCurrent _wcTargetPath
+    | otherwise = _wcTargetPath

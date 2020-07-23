@@ -138,8 +138,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   currentFocus <- use focused
   let ctx = WidgetContext {
     _wcFocusedPath = currentFocus,
-    _wcTargetPath = rootPath,
-    _wcCurrentPath = rootPath
+    _wcTargetPath = rootPath
   }
   renderWidgets window c renderer seWctx ctx newWidgetRoot
   runOverlays renderer

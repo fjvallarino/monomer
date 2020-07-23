@@ -56,8 +56,7 @@ createEventContext wenv latestPressed activeOverlay currentFocus currentTarget s
     pointEvent point = makePathCtx <$> (pathFromPoint point <|> activeOverlay <|> latestPressed)
     makePathCtx targetPath = WidgetContext {
       _wcFocusedPath = currentFocus,
-      _wcTargetPath = targetPath,
-      _wcCurrentPath = rootPath
+      _wcTargetPath = targetPath
     }
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
@@ -89,8 +88,7 @@ handleWidgetInit renderer wenv widgetRoot = do
   let widget = _instanceWidget widgetRoot
   let ctx = WidgetContext {
     _wcFocusedPath = rootPath,
-    _wcTargetPath = rootPath,
-    _wcCurrentPath = rootPath
+    _wcTargetPath = rootPath
   }
   let widgetResult = _widgetInit widget wenv ctx widgetRoot
 
@@ -158,7 +156,7 @@ handleClipboardGet renderer ctx reqs previousStep = do
     foldM (reducer contents) previousStep reqs
   where
     reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
-      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_wcCurrentPath ctx) path widgetRoot
+      (newWctx2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_wcFocusedPath ctx) path widgetRoot
 
       return (newWctx2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
@@ -198,8 +196,7 @@ handleSendMessages renderer reqs previousStep = foldM reducer previousStep reqs 
     let (wenv, events, widgetRoot) = previousStep
     let ctx = WidgetContext {
       _wcFocusedPath = currentFocus,
-      _wcTargetPath = path,
-      _wcCurrentPath = rootPath
+      _wcTargetPath = path
     }
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
     let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx message widgetRoot
