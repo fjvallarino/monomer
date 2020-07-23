@@ -106,13 +106,13 @@ makeScroll config state@(ScrollState dragging dx dy cs prevReqs) = createContain
   where
     Size childWidth childHeight = cs
 
-    merge wenv ctx oldState widgetInstance = resultWidget newInstance where
+    merge wenv oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
       newInstance = widgetInstance {
         _instanceWidget = makeScroll config newState
       }
 
-    handleEvent wenv ctx evt widgetInstance = case evt of
+    handleEvent wenv target evt widgetInstance = case evt of
       ButtonAction point btn status -> result where
         isLeftPressed = status == PressedBtn && btn == LeftBtn
         isButtonReleased = status == ReleasedBtn
@@ -231,10 +231,10 @@ makeScroll config state@(ScrollState dragging dx dy cs prevReqs) = createContain
         _instanceChildren = Seq.singleton newChildWidget
       }
 
-    render renderer wenv ctx widgetInstance =
+    render renderer wenv widgetInstance =
       do
         setScissor renderer viewport
-        containerRender defaultContainerRender renderer wenv ctx widgetInstance
+        containerRender defaultContainerRender renderer wenv widgetInstance
         resetScissor renderer
 
         when hScrollRequired $

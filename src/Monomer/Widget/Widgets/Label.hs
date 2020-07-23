@@ -27,7 +27,7 @@ makeLabel caption = createWidget {
       size = getTextBounds wenv _styleText caption
       sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wenv ctx WidgetInstance{..} =
+    render renderer wenv WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
         drawStyledText_ renderer _instanceRenderArea _instanceStyle caption

@@ -70,16 +70,17 @@ runWidgets window c widgetRoot = do
     _wePlatform = widgetPlatform,
     _weScreenSize = newWindowSize,
     _weGlobalKeys = M.empty,
+    _weFocusedPath = rootPath,
     _weModel = model,
     _weInputStatus = defInputStatus,
     _weTimestamp = ticks
   }
-  (newWctx, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
+  (newWenv, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
 
   let newWidgetRoot = resizeWidget wenv newWindowSize initializedRoot
 
-  mainModel .= _weModel newWctx
-  focused .= findNextFocusable newWctx rootPath newWidgetRoot
+  mainModel .= _weModel newWenv
+  focused .= findNextFocusable newWenv rootPath newWidgetRoot
 
   mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
 
@@ -92,6 +93,7 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
   currentModel <- use mainModel
+  focused <- use focused
   oldInputStatus <- use inputStatus
 
   let !ts = startTicks - prevTicks
@@ -104,10 +106,11 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   let newSecond = tsAccum + ts > 1000
   let newTsAccum = if newSecond then 0 else tsAccum + ts
   let newFrameCount = if newSecond then 0 else frames + 1
-  let oldWctx = WidgetEnv {
+  let oldWenv = WidgetEnv {
     _wePlatform = widgetPlatform,
     _weScreenSize = windowSize,
     _weGlobalKeys = M.empty,
+    _weFocusedPath = focused,
     _weModel = currentModel,
     _weInputStatus = oldInputStatus,
     _weTimestamp = startTicks
@@ -117,30 +120,25 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   --  liftIO . putStrLn $ "Frames: " ++ (show frames)
 
   -- Pre process events (change focus, add Enter/Leave events when Move is received, etc)
-  systemEvents <- preProcessEvents oldWctx widgetRoot baseSystemEvents
+  systemEvents <- preProcessEvents oldWenv widgetRoot baseSystemEvents
   inputStatus <- use inputStatus
   isMouseFocusedWidget <- fmap isJust (use latestPressed)
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
-  let wenv = oldWctx {
+  let wenv = oldWenv {
     _weInputStatus = oldInputStatus
   }
 
   when (mouseEntered && isLeftPressed && isMouseFocusedWidget) $
     latestPressed .= Nothing
 
-  (wtWctx, _, wtWidgetRoot) <- handleWidgetTasks renderer wenv widgetRoot
-  (seWctx, _, seWidgetRoot) <- handleSystemEvents renderer wtWctx systemEvents wtWidgetRoot
+  (wtWenv, _, wtWidgetRoot) <- handleWidgetTasks renderer wenv widgetRoot
+  (seWenv, _, seWidgetRoot) <- handleSystemEvents renderer wtWenv systemEvents wtWidgetRoot
 
-  newWidgetRoot <- if resized then resizeWindow window seWctx seWidgetRoot
+  newWidgetRoot <- if resized then resizeWindow window seWenv seWidgetRoot
                               else return seWidgetRoot
 
-  currentFocus <- use focused
-  let ctx = WidgetContext {
-    _wcFocusedPath = currentFocus,
-    _wcTargetPath = rootPath
-  }
-  renderWidgets window c renderer seWctx ctx newWidgetRoot
+  renderWidgets window c renderer seWenv newWidgetRoot
   runOverlays renderer
 
   endTicks <- fmap fromIntegral SDL.ticks
@@ -153,10 +151,10 @@ mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot
   liftIO $ threadDelay nextFrameDelay
   unless quit (mainLoop window c renderer widgetPlatform startTicks newTsAccum newFrameCount newWidgetRoot)
 
-renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetEnv s e -> WidgetContext -> WidgetInstance s e -> m ()
-renderWidgets !window !c !renderer wenv ctx widgetRoot =
+renderWidgets :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
+renderWidgets !window !c !renderer wenv widgetRoot =
   doInDrawingContext window c $
-    _widgetRender (_instanceWidget widgetRoot) renderer wenv ctx widgetRoot
+    _widgetRender (_instanceWidget widgetRoot) renderer wenv widgetRoot
 
 resizeWindow :: (MonomerM s m) => SDL.Window -> WidgetEnv s e -> WidgetInstance s e -> m (WidgetInstance s e)
 resizeWindow window wenv widgetRoot = do

@@ -67,14 +67,10 @@ processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> WidgetEnv 
 processWidgetTaskEvent renderer wenv widgetRoot path event = do
   currentFocus <- use focused
 
-  let ctx = WidgetContext {
-    _wcFocusedPath = currentFocus,
-    _wcTargetPath = path
-  }
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv ctx event widgetRoot
+  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv path event widgetRoot
 
-  handleWidgetResult renderer wenv ctx widgetResult
+  handleWidgetResult renderer wenv widgetResult
 
 isThreadActive :: (MonomerM s m) => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)

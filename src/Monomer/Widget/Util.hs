@@ -167,34 +167,29 @@ isMacOS wenv = _wpOS (_wePlatform wenv) == "Mac OS X"
 firstChildPath :: WidgetInstance s e -> Path
 firstChildPath widgetInst = _instancePath widgetInst |> 0
 
-nextTargetStep :: WidgetContext -> WidgetInstance s e -> Maybe PathStep
-nextTargetStep WidgetContext{..} widgetInst = nextStep where
+nextTargetStep :: Path -> WidgetInstance s e -> Maybe PathStep
+nextTargetStep target widgetInst = nextStep where
   currentPath = _instancePath widgetInst
-  nextStep = Seq.lookup (Seq.length currentPath) _wcTargetPath
+  nextStep = Seq.lookup (Seq.length currentPath) target
 
-moveToTarget :: WidgetContext -> WidgetInstance s e -> Maybe Path
-moveToTarget ctx widgetInst = (_instancePath widgetInst |>) <$> nextStep where
-  nextStep = nextTargetStep ctx widgetInst
+isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
+isFocused ctx widgetInst = _weFocusedPath ctx == _instancePath widgetInst
 
-isFocused :: WidgetContext -> WidgetInstance s e -> Bool
-isFocused ctx widgetInst = _wcFocusedPath ctx == _instancePath widgetInst
+isTargetReached :: Path -> WidgetInstance s e -> Bool
+isTargetReached target widgetInst = target == _instancePath widgetInst
 
-isTargetReached :: WidgetContext -> WidgetInstance s e -> Bool
-isTargetReached ctx widgetInst = _wcTargetPath ctx == _instancePath widgetInst
-
-isTargetValid :: WidgetContext -> WidgetInstance s e -> Bool
-isTargetValid ctx widgetInst = valid where
+isTargetValid :: Path -> WidgetInstance s e -> Bool
+isTargetValid target widgetInst = valid where
   children = _instanceChildren widgetInst
-  valid = case nextTargetStep ctx widgetInst of
+  valid = case nextTargetStep target widgetInst of
     Just step -> step < Seq.length children
     Nothing -> False
 
-isTargetBeforeCurrent :: WidgetContext -> WidgetInstance s e -> Bool
-isTargetBeforeCurrent ctx widgetInst = targetPrefix < currentPath where
-  WidgetContext{..} = ctx
+isTargetBeforeCurrent :: Path -> WidgetInstance s e -> Bool
+isTargetBeforeCurrent target widgetInst = targetPrefix < currentPath where
   currentPath = _instancePath widgetInst
-  lenTarget = Seq.length _wcTargetPath
+  lenTarget = Seq.length target
   lenCurrent = Seq.length currentPath
   targetPrefix
-    | lenTarget > lenCurrent = Seq.take lenCurrent _wcTargetPath
-    | otherwise = _wcTargetPath
+    | lenTarget > lenCurrent = Seq.take lenCurrent target
+    | otherwise = target

@@ -54,7 +54,7 @@ makeButton config = createWidget {
       size = getTextBounds wenv _styleText (_btnLabel config)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-    render renderer wenv ctx WidgetInstance{..} =
+    render renderer wenv WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
         drawStyledText_ renderer _instanceRenderArea _instanceStyle (_btnLabel config)

@@ -82,14 +82,14 @@ makeTextField config state = createWidget {
     (part1, part2) = T.splitAt currPos currText
     currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
-    init wenv ctx widgetInstance = resultWidget newInstance where
+    init wenv widgetInstance = resultWidget newInstance where
       currText = currentValue wenv
       newState = TextFieldState currText 0
       newInstance = widgetInstance {
         _instanceWidget = makeTextField config newState
       }
 
-    merge wenv ctx oldState widgetInstance = resultWidget newInstance where
+    merge wenv oldState widgetInstance = resultWidget newInstance where
       TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
       currText = currentValue wenv
       newPos = if | T.length currText < oldPos -> T.length currText
@@ -106,7 +106,7 @@ makeTextField config state = createWidget {
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
 
-    handleEvent wenv ctx evt widgetInstance = case evt of
+    handleEvent wenv target evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqs reqs widgetInstance where
         reqs = [SetFocus $ _instancePath widgetInstance]
 
@@ -142,18 +142,18 @@ makeTextField config state = createWidget {
       size = getTextBounds wenv _styleText currText
       sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wenv ctx widgetInst =
+    render renderer wenv widgetInst =
       let WidgetInstance{..} = widgetInst
           ts = _weTimestamp wenv
           textStyle = _styleText _instanceStyle
-          cursorAlpha = if isFocused ctx widgetInst then fromIntegral (ts `mod` 1000) / 1000.0 else 0
+          cursorAlpha = if isFocused wenv widgetInst then fromIntegral (ts `mod` 1000) / 1000.0 else 0
           textColor = (tsTextColor textStyle) { _alpha = cursorAlpha }
           renderArea@(Rect rl rt rw rh) = _instanceRenderArea
       in do
         drawStyledBackground renderer renderArea _instanceStyle
         Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
-        when (isFocused ctx widgetInst) $ do
+        when (isFocused wenv widgetInst) $ do
           let Size sw sh = getTextBounds wenv textStyle part1
           drawRect renderer (Rect (tl + sw) tt (_tfcCaretWidth config) sh) (Just textColor) Nothing
           return ()

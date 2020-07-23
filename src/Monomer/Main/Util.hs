@@ -28,16 +28,8 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
 
 findNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Path
 findNextFocusable wenv currentFocus widgetRoot = fromMaybe rootFocus candidateFocus where
-  ctxFocus = WidgetContext {
-    _wcFocusedPath = currentFocus,
-    _wcTargetPath = currentFocus
-  }
-  ctxRootFocus = ctxFocus {
-    _wcFocusedPath = rootPath,
-    _wcTargetPath = rootPath
-  }
-  candidateFocus = _widgetNextFocusable (_instanceWidget widgetRoot) wenv ctxFocus widgetRoot
-  rootFocus = fromMaybe currentFocus $ _widgetNextFocusable (_instanceWidget widgetRoot) wenv ctxRootFocus widgetRoot
+  candidateFocus = _widgetNextFocusable (_instanceWidget widgetRoot) wenv currentFocus widgetRoot
+  rootFocus = fromMaybe currentFocus $ _widgetNextFocusable (_instanceWidget widgetRoot) wenv rootPath widgetRoot
 
 resizeWidget :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
 resizeWidget wenv windowSize widgetRoot = newWidgetRoot where

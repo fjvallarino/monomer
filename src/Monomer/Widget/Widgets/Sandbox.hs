@@ -42,13 +42,13 @@ makeSandbox onClick state = createWidget {
   where
     label = "Sandbox: " ++ show (_clickCount state)
 
-    merge wenv ctx oldState widgetInstance = resultWidget newInstance where
+    merge wenv oldState widgetInstance = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
       newInstance = widgetInstance {
         _instanceWidget = makeSandbox onClick newState
       }
 
-    handleEvent wenv ctx evt widgetInstance = case evt of
+    handleEvent wenv target evt widgetInstance = case evt of
       Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
         events = [onClick]
         requests = [RunTask (_instancePath widgetInstance) runTask]
@@ -61,7 +61,7 @@ makeSandbox onClick state = createWidget {
 
     runTask = return SandboxData2
 
-    handleMessage wenv ctx bd widgetInstance = case cast bd of
+    handleMessage wenv target bd widgetInstance = case cast bd of
       Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
       Nothing -> Nothing
 
@@ -70,7 +70,7 @@ makeSandbox onClick state = createWidget {
       size = getTextBounds wenv _styleText (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-    render renderer wenv ctx WidgetInstance{..} =
+    render renderer wenv WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
         drawStyledText_ renderer _instanceRenderArea _instanceStyle (T.pack label)

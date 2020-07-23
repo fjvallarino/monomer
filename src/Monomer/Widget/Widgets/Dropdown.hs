@@ -97,7 +97,7 @@ makeDropdown config state = createContainer {
     isOpen = _isOpen state
     currentValue wenv = widgetValueGet (_weModel wenv) (_ddValue config)
 
-    createDropdown wenv ctx newState widgetInstance = newInstance where
+    createDropdown wenv newState widgetInstance = newInstance where
       selected = currentValue wenv
       path = _instancePath widgetInstance
       newInstance = widgetInstance {
@@ -105,18 +105,18 @@ makeDropdown config state = createContainer {
         _instanceChildren = Seq.singleton $ makeListView config path selected
       }
 
-    init wenv ctx widgetInstance = resultWidget $ createDropdown wenv ctx state widgetInstance
+    init wenv widgetInstance = resultWidget $ createDropdown wenv state widgetInstance
 
-    merge wenv ctx oldState newInstance = resultWidget $ createDropdown wenv ctx newState newInstance where
+    merge wenv oldState newInstance = resultWidget $ createDropdown wenv newState newInstance where
       newState = fromMaybe state (useState oldState)
 
-    handleEvent wenv ctx evt widgetInstance = case evt of
+    handleEvent wenv target evt widgetInstance = case evt of
       Click point _
-        | openRequired point widgetInstance -> Just $ handleOpenDropdown wenv ctx widgetInstance
-        | closeRequired point widgetInstance -> Just $ handleCloseDropdown wenv ctx widgetInstance
+        | openRequired point widgetInstance -> Just $ handleOpenDropdown wenv widgetInstance
+        | closeRequired point widgetInstance -> Just $ handleCloseDropdown wenv widgetInstance
       KeyAction mode code status
-        | isKeyDown code && not isOpen -> Just $ handleOpenDropdown wenv ctx widgetInstance
-        | isKeyEsc code && isOpen -> Just $ handleCloseDropdown wenv ctx widgetInstance
+        | isKeyDown code && not isOpen -> Just $ handleOpenDropdown wenv widgetInstance
+        | isKeyEsc code && isOpen -> Just $ handleCloseDropdown wenv widgetInstance
       _
         | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] widgetInstance
         | otherwise -> Nothing
@@ -129,7 +129,7 @@ makeDropdown config state = createContainer {
         Just inst -> pointInRect point (_instanceViewport inst)
         Nothing -> False
 
-    handleOpenDropdown wenv ctx widgetInstance = resultReqs requests newInstance where
+    handleOpenDropdown wenv widgetInstance = resultReqs requests newInstance where
       selected = currentValue wenv
       selectedIdx = fromMaybe 0 (Seq.elemIndexL selected (_ddItems config))
       newState = DropdownState True
@@ -140,7 +140,7 @@ makeDropdown config state = createContainer {
       lvPath = firstChildPath widgetInstance
       requests = [SetOverlay path, SetFocus lvPath]
 
-    handleCloseDropdown wenv ctx widgetInstance = resultReqs requests newInstance where
+    handleCloseDropdown wenv widgetInstance = resultReqs requests newInstance where
       path = _instancePath widgetInstance
       newState = DropdownState False
       newInstance = widgetInstance {
@@ -148,12 +148,12 @@ makeDropdown config state = createContainer {
       }
       requests = [ResetOverlay, SetFocus path]
 
-    handleMessage wenv ctx message widgetInstance = cast message
+    handleMessage wenv target message widgetInstance = cast message
       >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddItems config)
-      >>= \value -> Just $ handleOnChange wenv ctx idx value widgetInstance
+      >>= \value -> Just $ handleOnChange wenv idx value widgetInstance
 
-    handleOnChange wenv ctx idx item widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
-      WidgetResult reqs events newInstance = handleCloseDropdown wenv ctx widgetInstance
+    handleOnChange wenv idx item widgetInstance = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance where
+      WidgetResult reqs events newInstance = handleCloseDropdown wenv widgetInstance
       newReqs = Seq.fromList $ widgetValueSet (_ddValue config) item
       newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
 
@@ -173,18 +173,18 @@ makeDropdown config state = createContainer {
         Nothing -> (viewport, renderArea)
       assignedArea = Seq.singleton area
 
-    render renderer wenv ctx WidgetInstance{..} =
+    render renderer wenv WidgetInstance{..} =
       do
         drawStyledBackground renderer _instanceRenderArea _instanceStyle
         drawStyledText_ renderer _instanceRenderArea _instanceStyle (dropdownLabel wenv)
 
         when (isOpen && isJust listViewOverlay) $
-          createOverlay renderer $ renderOverlay renderer wenv ctx (fromJust listViewOverlay)
+          createOverlay renderer $ renderOverlay renderer wenv (fromJust listViewOverlay)
       where
         listViewOverlay = Seq.lookup 0 _instanceChildren
 
-    renderOverlay renderer wenv ctx overlayInstance = renderAction where
-      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wenv ctx overlayInstance
+    renderOverlay renderer wenv overlayInstance = renderAction where
+      renderAction = _widgetRender (_instanceWidget overlayInstance) renderer wenv overlayInstance
 
     dropdownLabel wenv = _ddItemToText config $ currentValue wenv
 
