@@ -56,8 +56,8 @@ makeStack isHorizontal = createContainer {
       rCount = fromIntegral $ length rChildren
       fAvg = if fExists then fSize / fCount else 0
       fBigFilter c = sizeSelector (_sizeRequested c) >= fAvg
-      fBigCount = fromIntegral $ Seq.length (Seq.filter fBigFilter fChildren)
-      fExtra = if fExists then (rSize - fSize) / fBigCount else 0
+      fBigSize = sizeSelector $ calcPreferredSize (Seq.filter fBigFilter fChildren)
+      fExtra = if fExists then (rSize - fSize) / fBigSize else 0
       rUnit = if rExists && not fExists then rSize / rCount else 0
       assignedArea = Seq.zip newViewports newViewports
       (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
@@ -80,7 +80,7 @@ makeStack isHorizontal = createContainer {
       calcNewSize = case policySelector req of
         StrictSize -> sizeSelector srSize
         FlexibleSize
-          | sizeSelector srSize >= fAvg -> sizeSelector srSize + fExtra
+          | sizeSelector srSize >= fAvg -> (1 + fExtra) * sizeSelector srSize
           | otherwise -> sizeSelector srSize
         RemainderSize -> rUnit
 
