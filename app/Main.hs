@@ -100,7 +100,7 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent model evt = traceShow model $
+handleAppEvent model evt = traceShow evt $ traceShow model $
   case evt of
     InitApp -> Task $ do
       putStrLn "Initialized application"
@@ -134,7 +134,8 @@ buildUI model = widgetTree where
       --listView textField2 items id,
       --spacer,
       textField textField1,
-      textField textField1 `style` color red,
+      textField textField2 `style` color red,
+      textField textField3 `style` color blue,
       listView textField3 items id
     ]
   items = fmap showt [1..30::Int]

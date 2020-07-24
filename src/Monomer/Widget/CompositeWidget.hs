@@ -179,7 +179,7 @@ updateComposite comp state wenv newModel oldRoot widgetComposite = if modelChang
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
   modelChanged = _compositeModel /= newModel
-  builtRoot = _uiBuilder comp newModel
+  builtRoot = cascadeCtx widgetComposite (_uiBuilder comp newModel)
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys newModel
   mergedResult = _widgetMerge (_instanceWidget builtRoot) cwenv oldRoot builtRoot
   mergedState = state {
