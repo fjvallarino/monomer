@@ -88,7 +88,7 @@ handleWidgetInit renderer wenv widgetRoot = do
 
 handleWidgetResult :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetResult s e -> m (HandlerStep s e)
 handleWidgetResult renderer wenv (WidgetResult reqs events evtRoot) = do
-  let evtUpdates = getUpdateUserStates reqs
+  let evtUpdates = getUpdateModelReqs reqs
   let evtModel = foldr (.) id evtUpdates (_weModel wenv)
   let evtWctx = wenv { _weModel = evtModel }
 

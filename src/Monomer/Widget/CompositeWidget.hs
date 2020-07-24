@@ -159,7 +159,7 @@ compositeHandleEvent comp state wenv target evt widgetComposite = fmap processEv
 processWidgetResult :: (Eq s, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> WidgetInstance sp ep -> WidgetResult s e -> WidgetResult sp ep
 processWidgetResult comp state wenv widgetComposite (WidgetResult reqs evts evtsRoot) = WidgetResult newReqs newEvts uWidget where
   CompositeState{..} = state
-  evtUpdates = getUpdateUserStates reqs
+  evtUpdates = getUpdateModelReqs reqs
   evtModel = foldr (.) id evtUpdates _compositeModel
   ReducedEvents newModel _ messages reports tasks producers = reduceCompositeEvents _compositeGlobalKeys (_eventHandler comp) evtModel evts
   WidgetResult uReqs uEvts uWidget = updateComposite comp state wenv newModel evtsRoot widgetComposite
@@ -244,7 +244,7 @@ convertRequest (SetOverlay path) = Just (SetOverlay path)
 convertRequest (SendMessage path message) = Just (SendMessage path message)
 convertRequest (RunTask path action) = Just (RunTask path action)
 convertRequest (RunProducer path action) = Just (RunProducer path action)
-convertRequest (UpdateUserState fn) = Nothing
+convertRequest (UpdateModel fn) = Nothing
 
 -- | Custom Handling
 compositeHandleMessage :: (Eq s, Typeable i, Typeable s, Typeable e) => Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> Path -> i -> WidgetInstance sp ep -> Maybe (WidgetResult sp ep)

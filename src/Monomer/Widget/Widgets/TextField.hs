@@ -113,9 +113,9 @@ makeTextField config state = createWidget {
         (newText, newPos) = handleKeyPress currText currPos code
         reqGetClipboard = [GetClipboard (_instancePath widgetInstance) | isClipboardPaste wenv evt]
         reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wenv evt]
-        reqUpdateUserState = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
+        reqUpdateModel = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []
-        reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateUserState
+        reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateModel
         newState = TextFieldState newText newPos
         newInstance = widgetInstance {
           _instanceWidget = makeTextField config newState

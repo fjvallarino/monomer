@@ -52,7 +52,7 @@ data WidgetRequest s
   | SetClipboard ClipboardData
   | ResetOverlay
   | SetOverlay Path
-  | UpdateUserState (s -> s)
+  | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i
   | forall i . Typeable i => RunTask Path (IO i)
   | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())

@@ -43,8 +43,8 @@ widgetValueGet model (WidgetLens lens) = model ^# lens
 
 widgetValueSet :: WidgetValue s a -> a -> [WidgetRequest s]
 widgetValueSet WidgetValue{} _ = []
-widgetValueSet (WidgetLens lens) value = [UpdateUserState updater] where
-  updater model = model & lens #~ value
+widgetValueSet (WidgetLens lens) value = [UpdateModel updateFn] where
+  updateFn model = model & lens #~ value
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
 key widgetInstance key = widgetInstance {
@@ -149,13 +149,13 @@ isResetOverlay :: WidgetRequest s -> Bool
 isResetOverlay ResetOverlay = True
 isResetOverlay _ = False
 
-isUpdateUserState :: WidgetRequest s -> Bool
-isUpdateUserState UpdateUserState{} = True
-isUpdateUserState _ = False
+isUpdateModel :: WidgetRequest s -> Bool
+isUpdateModel UpdateModel{} = True
+isUpdateModel _ = False
 
-getUpdateUserStates :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
-getUpdateUserStates reqs = foldl' foldHelper Seq.empty reqs where
-  foldHelper acc (UpdateUserState fn) = acc |> fn
+getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
+getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
+  foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
 
 getTextBounds :: WidgetEnv s e -> Maybe TextStyle -> Text -> Size
