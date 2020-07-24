@@ -129,13 +129,13 @@ compositeMerge comp state wenv oldComposite newComposite = result where
   result = processWidgetResult comp newState wenv newComposite widgetResult
 
 compositeNextFocusable :: Composite s e ep -> CompositeState s e -> WidgetEnv sp ep -> Path -> WidgetInstance sp ep -> Maybe Path
-compositeNextFocusable comp state wenv focused widgetComposite = nextFocus where
+compositeNextFocusable comp state wenv startFrom widgetComposite = nextFocus where
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
   isEnabled = _instanceEnabled _compositeRoot
   nextFocus
-    | isEnabled = _widgetNextFocusable widget cwenv focused _compositeRoot
+    | isEnabled = _widgetNextFocusable widget cwenv startFrom _compositeRoot
     | otherwise = Nothing
 
 compositeFind :: CompositeState s e -> WidgetEnv sp ep -> Path -> Point -> WidgetInstance sp ep -> Maybe Path

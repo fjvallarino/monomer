@@ -53,18 +53,18 @@ createEventContext wenv latestPressed activeOverlay currentTarget systemEvent wi
     pathEvent = Just
     findStartPath = fromMaybe rootPath activeOverlay
     pathFromPoint point = _widgetFind (_instanceWidget widgetRoot) wenv findStartPath point widgetRoot
-    pointEvent point = pathFromPoint point <|> activeOverlay <|> latestPressed
+    pointEvent point = latestPressed <|> pathFromPoint point <|> activeOverlay
 
 handleSystemEvents :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> [SystemEvent] -> WidgetInstance s e -> m (HandlerStep s e)
 handleSystemEvents renderer wenv systemEvents widgetRoot = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents where
   reducer (currWctx, currEvents, currWidgetRoot) systemEvent = do
     currentFocus <- use focused
 
-    (wenv2, evts2, wroot2) <- handleSystemEvent renderer currWctx systemEvent currentFocus currentFocus currWidgetRoot
+    (wenv2, evts2, wroot2) <- handleSystemEvent renderer currWctx systemEvent currentFocus currWidgetRoot
     return (wenv2, currEvents >< evts2, wroot2)
 
-handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> SystemEvent -> Path -> Path -> WidgetInstance s e -> m (HandlerStep s e)
-handleSystemEvent renderer wenv systemEvent currentFocus currentTarget widgetRoot = do
+handleSystemEvent :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> SystemEvent -> Path -> WidgetInstance s e -> m (HandlerStep s e)
+handleSystemEvent renderer wenv systemEvent currentTarget widgetRoot = do
   latestPressed <- use latestPressed
   activeOverlay <- use activeOverlay
 
@@ -106,13 +106,13 @@ handleFocusChange :: (MonomerM s m) => Renderer m -> SystemEvent -> Bool -> Hand
 handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use focused
-      (newWenv, newEvents1, newRoot1) <- handleSystemEvent renderer wenv Blur oldFocus oldFocus widgetRoot
+      (newWenv1, newEvents1, newRoot1) <- handleSystemEvent renderer wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocusable newWenv oldFocus widgetRoot
-      let tempWenv = newWenv {
+      let newFocus = findNextFocusable newWenv1 oldFocus widgetRoot
+      let tempWenv = newWenv1 {
         _weFocusedPath = newFocus
       }
-      (newWenv2, newEvents2, newRoot2) <- handleSystemEvent renderer tempWenv Focus newFocus newFocus newRoot1
+      (newWenv2, newEvents2, newRoot2) <- handleSystemEvent renderer tempWenv Focus newFocus newRoot1
       focused .= newFocus
 
       return (newWenv2, events >< newEvents1 >< newEvents2, widgetRoot)
@@ -151,7 +151,7 @@ handleClipboardGet renderer reqs previousStep = do
     foldM (reducer contents) previousStep reqs
   where
     reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
-      (newWenv2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) (_weFocusedPath wenv) path widgetRoot
+      (newWenv2, newEvents2, newRoot2) <- handleSystemEvent renderer wenv (Clipboard contents) path widgetRoot
 
       return (newWenv2, events >< newEvents2, newRoot2)
     reducer contents previousStep _ = return previousStep
