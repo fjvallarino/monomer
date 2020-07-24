@@ -2,8 +2,6 @@
 
 module Monomer.Main.WidgetTask (handleWidgetTasks) where
 
-import Debug.Trace
-
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base

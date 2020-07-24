@@ -54,17 +54,19 @@ makeStack isHorizontal = createContainer {
       rSize = max 0 (mainSize - sSize)
       fCount = fromIntegral $ length fChildren
       rCount = fromIntegral $ length rChildren
-      fExtra = if fExists then rSize / fCount else 0
+      fAvg = if fExists then fSize / fCount else 0
+      fBigFilter c = sizeSelector (_sizeRequested c) >= fAvg
+      fBigCount = fromIntegral $ Seq.length (Seq.filter fBigFilter fChildren)
+      fExtra = if fExists then (rSize - fSize) / fBigCount else 0
       rUnit = if rExists && not fExists then rSize / rCount else 0
-      newViewports = Seq.reverse revViewports
       assignedArea = Seq.zip newViewports newViewports
-      (revViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
+      (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
       foldHelper (accum, offset) childPair = (newAccum, newOffset) where
-        newAccum = newSize <| accum
-        newSize = resizeChild renderArea fSize fExtra rSize rUnit offset childPair
+        newSize = resizeChild renderArea fAvg fExtra rUnit offset childPair
+        newAccum = accum |> newSize
         newOffset = offset + rectSelector newSize
 
-    resizeChild renderArea fSize fExtra rSize rUnit offset childPair = result where
+    resizeChild renderArea fAvg fExtra rUnit offset childPair = result where
       Rect l t w h = renderArea
       result = if | not $ _instanceVisible childInstance -> emptyRect
                   | isHorizontal -> hRect
@@ -77,8 +79,9 @@ makeStack isHorizontal = createContainer {
       vRect = Rect l offset w calcNewSize
       calcNewSize = case policySelector req of
         StrictSize -> sizeSelector srSize
-        FlexibleSize -> if | rSize >= fSize -> sizeSelector srSize + fExtra
-                           | otherwise -> sizeSelector srSize * rSize / fSize
+        FlexibleSize
+          | sizeSelector srSize >= fAvg -> sizeSelector srSize + fExtra
+          | otherwise -> sizeSelector srSize
         RemainderSize -> rUnit
 
     calcPreferredSize vreqs = Size width height where

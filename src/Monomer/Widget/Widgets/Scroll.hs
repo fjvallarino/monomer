@@ -7,8 +7,6 @@ module Monomer.Widget.Widgets.Scroll (
   scrollConfig
 ) where
 
-import Debug.Trace
-
 import Control.Monad
 import Data.Default
 import Data.Maybe
