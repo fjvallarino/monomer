@@ -43,28 +43,38 @@ widgetValueGet model (WidgetLens lens) = model ^# lens
 
 widgetValueSet :: WidgetValue s a -> a -> [WidgetRequest s]
 widgetValueSet WidgetValue{} _ = []
-widgetValueSet (WidgetLens lens) value = [UpdateUserState $ \model -> model & lens #~ value]
+widgetValueSet (WidgetLens lens) value = [UpdateUserState updater] where
+  updater model = model & lens #~ value
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
-key wn key = wn { _instanceKey = Just (WidgetKey key) }
+key widgetInstance key = widgetInstance {
+  _instanceKey = Just (WidgetKey key)
+}
 
 style :: WidgetInstance s e -> Style -> WidgetInstance s e
-style widgetInstance newStyle = widgetInstance { _instanceStyle = newStyle }
+style widgetInstance newStyle = widgetInstance {
+  _instanceStyle = newStyle
+}
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
-visible widgetInstance visibility = widgetInstance { _instanceVisible = visibility }
+visible widgetInstance visibility = widgetInstance {
+  _instanceVisible = visibility
+}
 
 resultWidget :: WidgetInstance s e -> WidgetResult s e
 resultWidget widgetInstance = WidgetResult Seq.empty Seq.empty widgetInstance
 
 resultEvents :: [e] -> WidgetInstance s e -> WidgetResult s e
-resultEvents userEvents widgetInstance = WidgetResult Seq.empty (Seq.fromList userEvents) widgetInstance
+resultEvents events widgetInstance = result where
+  result = WidgetResult Seq.empty (Seq.fromList events) widgetInstance
 
 resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
-resultReqs requests widgetInstance = WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
+resultReqs requests widgetInstance = result where
+  result = WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
 
 resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
-resultReqsEvents requests userEvents widgetInstance = WidgetResult (Seq.fromList requests) (Seq.fromList userEvents) widgetInstance
+resultReqsEvents requests events widgetInstance = result where
+  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) widgetInstance
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
@@ -82,14 +92,18 @@ updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
 updateSizeReq sizeReq widgetInstance = newSizeReq where
   width = _styleWidth . _instanceStyle $ widgetInstance
   height = _styleHeight . _instanceStyle $ widgetInstance
-  tempSizeReq = if isNothing width then sizeReq else sizeReq {
-    _sizeRequested = Size (fromJust width) (_w . _sizeRequested $ sizeReq),
-    _sizePolicyWidth = StrictSize
-  }
-  newSizeReq = if isNothing height then tempSizeReq else tempSizeReq {
-    _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
-    _sizePolicyHeight = StrictSize
-  }
+  tempSizeReq
+    | isNothing width = sizeReq
+    | otherwise = sizeReq {
+      _sizeRequested = Size (fromJust width) (_w . _sizeRequested $ sizeReq),
+      _sizePolicyWidth = StrictSize
+    }
+  newSizeReq
+    | isNothing height = tempSizeReq
+    | otherwise = tempSizeReq {
+      _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
+      _sizePolicyHeight = StrictSize
+    }
 
 isSendMessageHandler :: WidgetRequest s -> Bool
 isSendMessageHandler SendMessage{} = True
