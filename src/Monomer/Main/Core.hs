@@ -75,14 +75,17 @@ runWidgets window c widgetRoot = do
     _weInputStatus = defInputStatus,
     _weTimestamp = ticks
   }
-  (newWenv, _, initializedRoot) <- handleWidgetInit renderer wenv widgetRoot
+  let pathReadyRoot = widgetRoot {
+    _instancePath = Seq.singleton 0
+  }
+  (newWenv, _, initializedRoot) <- handleWidgetInit renderer wenv pathReadyRoot
 
-  let newWidgetRoot = resizeWidget wenv newWindowSize initializedRoot
+  let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot
 
   mainModel .= _weModel newWenv
-  focused .= findNextFocusable newWenv rootPath newWidgetRoot
+  focused .= findNextFocusable newWenv rootPath resizedRoot
 
-  mainLoop window c renderer widgetPlatform ticks 0 0 newWidgetRoot
+  mainLoop window c renderer widgetPlatform ticks 0 0 resizedRoot
 
 mainLoop :: (MonomerM s m) => SDL.Window -> NV.Context -> Renderer m -> WidgetPlatform -> Int -> Int -> Int -> WidgetInstance s e -> m ()
 mainLoop window c renderer widgetPlatform !prevTicks !tsAccum !frames widgetRoot = do

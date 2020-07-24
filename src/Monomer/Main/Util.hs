@@ -2,6 +2,7 @@
 
 module Monomer.Main.Util where
 
+import Control.Applicative ((<|>))
 import Data.Maybe
 
 import qualified Data.Sequence as Seq
@@ -28,9 +29,11 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
 }
 
 findNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Path
-findNextFocusable wenv currentFocus widgetRoot = fromMaybe rootFocus candidateFocus where
-  candidateFocus = _widgetNextFocusable (_instanceWidget widgetRoot) wenv currentFocus widgetRoot
-  rootFocus = fromMaybe currentFocus $ _widgetNextFocusable (_instanceWidget widgetRoot) wenv rootPath widgetRoot
+findNextFocusable wenv currentFocus widgetRoot = fromJust nextFocus where
+  widget = _instanceWidget widgetRoot
+  candidateFocus = _widgetNextFocusable widget wenv currentFocus widgetRoot
+  fromRootFocus = _widgetNextFocusable widget wenv rootPath widgetRoot
+  nextFocus = candidateFocus <|> fromRootFocus <|> Just currentFocus
 
 resizeWidget :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
 resizeWidget wenv windowSize widgetRoot = newWidgetRoot where

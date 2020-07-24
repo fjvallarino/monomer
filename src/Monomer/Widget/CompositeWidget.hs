@@ -133,10 +133,7 @@ compositeNextFocusable comp state wenv startFrom widgetComposite = nextFocus whe
   CompositeState{..} = state
   widget = _instanceWidget _compositeRoot
   cwenv = convertWidgetEnv wenv _compositeGlobalKeys _compositeModel
-  isEnabled = _instanceEnabled _compositeRoot
-  nextFocus
-    | isEnabled = _widgetNextFocusable widget cwenv startFrom _compositeRoot
-    | otherwise = Nothing
+  nextFocus = _widgetNextFocusable widget cwenv startFrom _compositeRoot
 
 compositeFind :: CompositeState s e -> WidgetEnv sp ep -> Path -> Point -> WidgetInstance sp ep -> Maybe Path
 compositeFind CompositeState{..} wenv startPath point widgetComposite

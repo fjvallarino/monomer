@@ -48,10 +48,12 @@ widgetMerge mergeHandler wenv oldInstance newInstance = result where
   result = mergeHandler wenv oldState newInstance
 
 defaultNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-defaultNextFocusable wenv startFrom widgetInstance = Nothing
+defaultNextFocusable wenv startFrom widgetInst
+  | isFocusCandidate startFrom widgetInst = Just (_instancePath widgetInst)
+  | otherwise = Nothing
 
 defaultFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind wenv path point widgetInstance = Just $ _instancePath widgetInstance
+defaultFind wenv path point widgetInstance = Just (_instancePath widgetInstance)
 
 defaultHandleEvent :: WidgetEnv s e -> Path -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
 defaultHandleEvent wenv target evt widgetInstance = Nothing

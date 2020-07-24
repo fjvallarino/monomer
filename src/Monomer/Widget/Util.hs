@@ -175,6 +175,13 @@ nextTargetStep target widgetInst = nextStep where
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused ctx widgetInst = _weFocusedPath ctx == _instancePath widgetInst
 
+isFocusCandidate :: Path -> WidgetInstance s e -> Bool
+isFocusCandidate startFrom widgetInst = isValid where
+  isBefore = isTargetBeforeCurrent startFrom widgetInst
+  isFocusable = _instanceFocusable widgetInst
+  isEnabled = _instanceVisible widgetInst && _instanceEnabled widgetInst
+  isValid = isBefore && isFocusable && isEnabled
+
 isTargetReached :: Path -> WidgetInstance s e -> Bool
 isTargetReached target widgetInst = target == _instancePath widgetInst
 

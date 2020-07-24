@@ -125,17 +125,15 @@ mergeChildren wenv oldFull@(oldChild :<| oldChildren) (newChild :<| newChildren)
 
 -- | Find next focusable item
 containerNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-containerNextFocusable wenv startFrom widgetInstance = nextFocus where
-  children = _instanceChildren widgetInstance
-  filterChildren child = isTargetBeforeCurrent startFrom child && not (isTargetReached startFrom child)
-  indexes = Seq.fromList [0..length children]
-  maybeFocused = fmap getFocused (Seq.filter filterChildren children)
-  focusedPaths = fromJust <$> Seq.filter isJust maybeFocused
-  nextFocus = Seq.lookup 0 focusedPaths
-  isFocusable child = _instanceFocusable child && _instanceEnabled child
-  getFocused child
-    | isFocusable child = Just (_instancePath child)
-    | otherwise = _widgetNextFocusable (_instanceWidget child) wenv startFrom child
+containerNextFocusable wenv startFrom widgetInst = nextFocus where
+  children = _instanceChildren widgetInst
+  isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
+  nextCandidate ch = _widgetNextFocusable (_instanceWidget ch) wenv startFrom ch
+  candidates = fmap nextCandidate (Seq.filter isBeforeTarget children)
+  focusedPaths = fmap fromJust (Seq.filter isJust candidates)
+  nextFocus
+    | isFocusCandidate startFrom widgetInst = Just (_instancePath widgetInst)
+    | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
 containerFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
