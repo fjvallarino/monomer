@@ -43,14 +43,14 @@ makeButton config = createWidget {
     _widgetRender = render
   }
   where
-    handleEvent wenv ctx evt widgetInstance = case evt of
-      Click (Point x y) _ -> Just $ resultReqsEvents requests events widgetInstance where
+    handleEvent wenv ctx evt widgetInst = case evt of
+      Click (Point x y) _ -> Just $ resultReqsEvents requests events widgetInst where
         requests = _btnOnChangeReq config
         events = _btnOnChange config
       _ -> Nothing
 
-    preferredSize wenv widgetInstance = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInstance
+    preferredSize wenv widgetInst = singleNode sizeReq where
+      Style{..} = _instanceStyle widgetInst
       size = getTextBounds wenv _styleText (_btnLabel config)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 

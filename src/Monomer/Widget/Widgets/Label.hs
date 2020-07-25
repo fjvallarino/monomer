@@ -22,8 +22,8 @@ makeLabel caption = createWidget {
     _widgetRender = render
   }
   where
-    preferredSize wenv widgetInstance = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInstance
+    preferredSize wenv widgetInst = singleNode sizeReq where
+      Style{..} = _instanceStyle widgetInst
       size = getTextBounds wenv _styleText caption
       sizeReq = SizeReq size FlexibleSize StrictSize
 

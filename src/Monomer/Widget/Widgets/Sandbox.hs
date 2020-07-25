@@ -41,16 +41,16 @@ makeSandbox onClick state = createWidget {
   where
     label = "Sandbox: " ++ show (_clickCount state)
 
-    merge wenv oldState widgetInstance = resultWidget newInstance where
+    merge wenv oldState widgetInst = resultWidget newInstance where
       newState = fromMaybe state (useState oldState)
-      newInstance = widgetInstance {
+      newInstance = widgetInst {
         _instanceWidget = makeSandbox onClick newState
       }
 
-    handleEvent wenv target evt widgetInstance = case evt of
+    handleEvent wenv target evt widgetInst = case evt of
       Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
         events = [onClick]
-        requests = [RunTask (_instancePath widgetInstance) runTask]
+        requests = [RunTask (_instancePath widgetInst) runTask]
         newState = SandboxState (_clickCount state + 1)
         newInstance = makeInstance $ makeSandbox onClick newState
       Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
@@ -60,12 +60,12 @@ makeSandbox onClick state = createWidget {
 
     runTask = return SandboxData2
 
-    handleMessage wenv target bd widgetInstance = case cast bd of
+    handleMessage wenv target bd widgetInst = case cast bd of
       Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
       Nothing -> Nothing
 
-    preferredSize wenv widgetInstance = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInstance
+    preferredSize wenv widgetInst = singleNode sizeReq where
+      Style{..} = _instanceStyle widgetInst
       size = getTextBounds wenv _styleText (T.pack label)
       sizeReq = SizeReq size FlexibleSize FlexibleSize
 

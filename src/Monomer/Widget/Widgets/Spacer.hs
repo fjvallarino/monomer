@@ -20,5 +20,5 @@ makeSpacer = createWidget {
     _widgetPreferredSize = preferredSize
   }
   where
-    preferredSize wenv widgetInstance = singleNode sizeReq where
+    preferredSize wenv widgetInst = singleNode sizeReq where
       sizeReq = SizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize

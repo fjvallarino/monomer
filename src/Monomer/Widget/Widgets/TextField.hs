@@ -81,20 +81,20 @@ makeTextField config state = createWidget {
     (part1, part2) = T.splitAt currPos currText
     currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
-    init wenv widgetInstance = resultWidget newInstance where
+    init wenv widgetInst = resultWidget newInstance where
       currText = currentValue wenv
       newState = TextFieldState currText 0
-      newInstance = widgetInstance {
+      newInstance = widgetInst {
         _instanceWidget = makeTextField config newState
       }
 
-    merge wenv oldState widgetInstance = resultWidget newInstance where
+    merge wenv oldState widgetInst = resultWidget newInstance where
       TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
       currText = currentValue wenv
       newPos = if | T.length currText < oldPos -> T.length currText
                   | otherwise -> oldPos
       newState = TextFieldState currText newPos
-      newInstance = widgetInstance {
+      newInstance = widgetInst {
         _instanceWidget = makeTextField config newState
       }
 
@@ -105,39 +105,39 @@ makeTextField config state = createWidget {
         | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
         | otherwise = (txt, tp)
 
-    handleEvent wenv target evt widgetInstance = case evt of
-      Click (Point x y) _ -> Just $ resultReqs reqs widgetInstance where
-        reqs = [SetFocus $ _instancePath widgetInstance]
+    handleEvent wenv target evt widgetInst = case evt of
+      Click (Point x y) _ -> Just $ resultReqs reqs widgetInst where
+        reqs = [SetFocus $ _instancePath widgetInst]
 
       KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
         (newText, newPos) = handleKeyPress currText currPos code
-        reqGetClipboard = [GetClipboard (_instancePath widgetInstance) | isClipboardPaste wenv evt]
+        reqGetClipboard = [GetClipboard (_instancePath widgetInst) | isClipboardPaste wenv evt]
         reqSetClipboard = [SetClipboard (ClipboardText currText) | isClipboardCopy wenv evt]
         reqUpdateModel = if | currText /= newText -> widgetValueSet (_tfcValue config) newText
                                 | otherwise -> []
         reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateModel
         newState = TextFieldState newText newPos
-        newInstance = widgetInstance {
+        newInstance = widgetInst {
           _instanceWidget = makeTextField config newState
         }
 
-      TextInput newText -> insertText wenv widgetInstance newText
+      TextInput newText -> insertText wenv widgetInst newText
 
-      Clipboard (ClipboardText newText) -> insertText wenv widgetInstance newText
+      Clipboard (ClipboardText newText) -> insertText wenv widgetInst newText
 
       _ -> Nothing
 
-    insertText wenv widgetInstance addedText = Just $ resultReqs reqs newInstance where
+    insertText wenv widgetInst addedText = Just $ resultReqs reqs newInstance where
       newText = T.concat [part1, addedText, part2]
       newPos = currPos + T.length addedText
       newState = TextFieldState newText newPos
       reqs = widgetValueSet (_tfcValue config) newText
-      newInstance = widgetInstance {
+      newInstance = widgetInst {
         _instanceWidget = makeTextField config newState
       }
   
-    preferredSize wenv widgetInstance = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInstance
+    preferredSize wenv widgetInst = singleNode sizeReq where
+      Style{..} = _instanceStyle widgetInst
       size = getTextBounds wenv _styleText currText
       sizeReq = SizeReq size FlexibleSize StrictSize
 

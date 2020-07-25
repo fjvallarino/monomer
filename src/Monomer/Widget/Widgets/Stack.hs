@@ -33,11 +33,11 @@ makeStack isHorizontal = createContainer {
     _widgetResize = containerResize resize
   }
   where
-    preferredSize wenv widgetInstance children reqs = Node reqSize reqs where
+    preferredSize wenv widgetInst children reqs = Node reqSize reqs where
       (_, vreqs) = visibleChildrenReq children reqs
       reqSize = SizeReq (calcPreferredSize vreqs) FlexibleSize FlexibleSize
 
-    resize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, assignedArea) where
+    resize wenv viewport renderArea widgetInst children reqs = (widgetInst, assignedArea) where
       Rect l t w h = renderArea
       childrenPairs = Seq.zip children reqs
       (vchildren, vreqs) = visibleChildrenReq children reqs

@@ -47,25 +47,25 @@ makeContainer config = createContainer {
     _widgetRender = containerRender render
   }
   where
-    handleEvent wenv ctx evt widgetInstance = case evt of
+    handleEvent wenv ctx evt widgetInst = case evt of
       Click point btn -> result where
         events = _ctOnClick config
         requests = _ctOnClickReq config
         result = if btn == LeftBtn && not (null events && null requests)
-                    then Just $ resultReqsEvents requests events widgetInstance
+                    then Just $ resultReqsEvents requests events widgetInst
                     else Nothing
       _ -> Nothing
 
-    preferredSize wenv widgetInstance children reqs = Node sizeReq reqs where
+    preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
       sizeReq = nodeValue $ Seq.index reqs 0
 
-    resize wenv viewport renderArea widgetInstance children reqs = (widgetInstance, assignedArea) where
+    resize wenv viewport renderArea widgetInst children reqs = (widgetInst, assignedArea) where
       assignedArea = Seq.singleton (viewport, renderArea)
 
-    render renderer wenv widgetInstance = do
+    render renderer wenv widgetInst = do
       let point = statusMousePos (_weInputStatus wenv)
-      let viewport = _instanceViewport widgetInstance
-      let Style{..} = _instanceStyle widgetInstance
+      let viewport = _instanceViewport widgetInst
+      let Style{..} = _instanceStyle widgetInst
 
       drawRect renderer viewport _styleColor Nothing
 

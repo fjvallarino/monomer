@@ -47,34 +47,34 @@ widgetValueSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
-key widgetInstance key = widgetInstance {
+key widgetInst key = widgetInst {
   _instanceKey = Just (WidgetKey key)
 }
 
 style :: WidgetInstance s e -> Style -> WidgetInstance s e
-style widgetInstance newStyle = widgetInstance {
+style widgetInst newStyle = widgetInst {
   _instanceStyle = newStyle
 }
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
-visible widgetInstance visibility = widgetInstance {
+visible widgetInst visibility = widgetInst {
   _instanceVisible = visibility
 }
 
 resultWidget :: WidgetInstance s e -> WidgetResult s e
-resultWidget widgetInstance = WidgetResult Seq.empty Seq.empty widgetInstance
+resultWidget widgetInst = WidgetResult Seq.empty Seq.empty widgetInst
 
 resultEvents :: [e] -> WidgetInstance s e -> WidgetResult s e
-resultEvents events widgetInstance = result where
-  result = WidgetResult Seq.empty (Seq.fromList events) widgetInstance
+resultEvents events widgetInst = result where
+  result = WidgetResult Seq.empty (Seq.fromList events) widgetInst
 
 resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
-resultReqs requests widgetInstance = result where
-  result = WidgetResult (Seq.fromList requests) Seq.empty widgetInstance
+resultReqs requests widgetInst = result where
+  result = WidgetResult (Seq.fromList requests) Seq.empty widgetInst
 
 resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
-resultReqsEvents requests events widgetInstance = result where
-  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) widgetInstance
+resultReqsEvents requests events widgetInst = result where
+  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) widgetInst
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
@@ -89,9 +89,9 @@ instanceMatches newInstance oldInstance = typeMatches && keyMatches where
   keyMatches = _instanceKey oldInstance == _instanceKey newInstance
 
 updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
-updateSizeReq sizeReq widgetInstance = newSizeReq where
-  width = _styleWidth . _instanceStyle $ widgetInstance
-  height = _styleHeight . _instanceStyle $ widgetInstance
+updateSizeReq sizeReq widgetInst = newSizeReq where
+  width = _styleWidth . _instanceStyle $ widgetInst
+  height = _styleHeight . _instanceStyle $ widgetInst
   tempSizeReq
     | isNothing width = sizeReq
     | otherwise = sizeReq {

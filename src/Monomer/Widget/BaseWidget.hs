@@ -34,7 +34,7 @@ createWidget = Widget {
 }
 
 defaultInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetResult s e
-defaultInit _ widgetInstance = resultWidget widgetInstance
+defaultInit _ widgetInst = resultWidget widgetInst
 
 defaultGetState :: WidgetEnv s e -> Maybe WidgetState
 defaultGetState _ = Nothing
@@ -53,26 +53,26 @@ defaultNextFocusable wenv startFrom widgetInst
   | otherwise = Nothing
 
 defaultFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind wenv path point widgetInstance = Just (_instancePath widgetInstance)
+defaultFind wenv path point widgetInst = Just (_instancePath widgetInst)
 
 defaultHandleEvent :: WidgetEnv s e -> Path -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e)
-defaultHandleEvent wenv target evt widgetInstance = Nothing
+defaultHandleEvent wenv target evt widgetInst = Nothing
 
 defaultHandleMessage :: forall i s e m . Typeable i => WidgetEnv s e -> Path -> i -> WidgetInstance s e -> Maybe (WidgetResult s e)
-defaultHandleMessage wenv target message widgetInstance = Nothing
+defaultHandleMessage wenv target message widgetInst = Nothing
 
 defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq
-defaultPreferredSize wenv widgetInstance = singleNode SizeReq {
+defaultPreferredSize wenv widgetInst = singleNode SizeReq {
   _sizeRequested = Size 0 0,
   _sizePolicyWidth = FlexibleSize,
   _sizePolicyHeight = FlexibleSize
 }
 
 defaultResize :: WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e
-defaultResize wenv viewport renderArea widgetInstance reqs = widgetInstance {
+defaultResize wenv viewport renderArea widgetInst reqs = widgetInst {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea
   }
 
 defaultRender :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
-defaultRender renderer wenv widgetInstance = return ()
+defaultRender renderer wenv widgetInst = return ()
