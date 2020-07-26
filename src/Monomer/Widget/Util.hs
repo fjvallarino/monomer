@@ -72,7 +72,8 @@ resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
 resultReqs requests widgetInst = result where
   result = WidgetResult (Seq.fromList requests) Seq.empty widgetInst
 
-resultReqsEvents :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
+resultReqsEvents
+  :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
 resultReqsEvents requests events widgetInst = result where
   result = WidgetResult (Seq.fromList requests) (Seq.fromList events) widgetInst
 

@@ -29,5 +29,6 @@ defInputStatus = InputStatus {
 }
 
 isButtonPressed :: InputStatus -> Button -> Bool
-isButtonPressed inputStatus button = fromMaybe ReleasedBtn status == PressedBtn where
-  status = M.lookup button (statusButtons inputStatus)
+isButtonPressed inputStatus button = status == PressedBtn where
+  currentStatus = M.lookup button (statusButtons inputStatus)
+  status = fromMaybe ReleasedBtn currentStatus

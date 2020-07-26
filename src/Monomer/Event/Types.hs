@@ -9,13 +9,32 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path)
 
 type KeyCode = Int
-data KeyStatus = KeyPressed | KeyReleased deriving (Show, Eq)
 
-data Button = LeftBtn | MiddleBtn | RightBtn deriving (Show, Eq, Ord)
-data ButtonState = PressedBtn | ReleasedBtn deriving (Show, Eq)
-data WheelDirection = WheelNormal | WheelFlipped deriving (Show, Eq)
+data KeyStatus
+  = KeyPressed
+  | KeyReleased
+  deriving (Show, Eq)
 
-data ClipboardData = ClipboardEmpty | ClipboardText Text deriving (Eq, Show)
+data Button
+  = LeftBtn
+  | MiddleBtn
+  | RightBtn
+  deriving (Show, Eq, Ord)
+
+data ButtonState
+  = PressedBtn
+  | ReleasedBtn
+  deriving (Show, Eq)
+
+data WheelDirection
+  = WheelNormal
+  | WheelFlipped
+  deriving (Show, Eq)
+
+data ClipboardData
+  = ClipboardEmpty
+  | ClipboardText Text
+  deriving (Eq, Show)
 
 data SystemEvent
   = Click Point Button

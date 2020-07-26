@@ -119,7 +119,8 @@ data Widget s e =
       -> Path
       -> WidgetInstance s e
       -> Maybe Path,
-    -- | Returns the path of the child item with the given coordinates, starting on the given path
+    -- | Returns the path of the child item with the given coordinates, starting
+    -- | on the given path
     _widgetFind
       :: WidgetEnv s e
       -> Path
@@ -133,7 +134,8 @@ data Widget s e =
     -- Current widget path
     -- Event to handle
     --
-    -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
+    -- Returns: the list of generated events and, maybe, a new version of the
+    -- widget if internal state changed
     _widgetHandleEvent
       :: WidgetEnv s e
       -> Path
@@ -144,7 +146,8 @@ data Widget s e =
     --
     -- Result of asynchronous computation
     --
-    -- Returns: the list of generated events and a new version of the widget if internal state changed
+    -- Returns: the list of generated events and a new version of the widget if
+    -- internal state changed
     _widgetHandleMessage
       :: forall i . Typeable i
       => WidgetEnv s e

@@ -19,12 +19,18 @@ instance Default Color where
 type Font = Text
 type FontSize = Double
 
-data Align = Align AlignH AlignV deriving (Show, Eq)
+data Align
+  = Align AlignH AlignV
+  deriving (Show, Eq)
 
-data AlignH = ALeft |
-              ACenter |
-              ARight deriving (Show, Eq)
+data AlignH
+  = ALeft
+  | ACenter
+  | ARight
+  deriving (Show, Eq)
 
-data AlignV = ATop |
-              AMiddle |
-              ABottom deriving (Show, Eq)
+data AlignV
+  = ATop
+  | AMiddle
+  | ABottom
+  deriving (Show, Eq)

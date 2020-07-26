@@ -33,7 +33,7 @@ isKeyboardEvent KeyAction{} = True
 isKeyboardEvent _ = False
 
 isKeyPressed :: SystemEvent -> KeyCode -> Bool
-isKeyPressed (KeyAction _ keyCode KeyPressed) keyCodeChecked = keyCode == keyCodeChecked
+isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
 isKeyPressed _ _ = False
 
 isShiftPressed :: SystemEvent -> Bool

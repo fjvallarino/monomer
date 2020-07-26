@@ -27,46 +27,78 @@ import Monomer.Main.Util
 import Monomer.Main.Types
 import Monomer.Widget.Types
 
-handleWidgetTasks :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
+handleWidgetTasks
+  :: (MonomerM s m)
+  => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
 handleWidgetTasks renderer wenv widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM isThreadActive (toList tasks)
   widgetTasks .= Seq.fromList active
 
-  processWidgetTasks renderer wenv widgetRoot tasks
+  processTasks renderer wenv widgetRoot tasks
 
-processWidgetTasks :: (MonomerM s m, Traversable t) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> t WidgetTask -> m (HandlerStep s e)
-processWidgetTasks renderer wenv widgetRoot tasks = foldM reducer (wenv, Seq.empty, widgetRoot) tasks where
+processTasks
+  :: (MonomerM s m, Traversable t)
+  => Renderer m
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> t WidgetTask
+  -> m (HandlerStep s e)
+processTasks renderer wenv widgetRoot tasks = nextStep where
   reducer (wWctx, wEvts, wRoot) task = do
-    (wWctx2, wEvts2, wRoot2) <- processWidgetTask renderer wWctx wRoot task
+    (wWctx2, wEvts2, wRoot2) <- processTask renderer wWctx wRoot task
     return (wWctx2, wEvts >< wEvts2, wRoot2)
+  nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) tasks
 
-processWidgetTask :: (MonomerM s m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> WidgetTask -> m (HandlerStep s e)
-processWidgetTask renderer wenv widgetRoot (WidgetTask path task) = do
+processTask
+  :: (MonomerM s m)
+  => Renderer m
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetTask
+  -> m (HandlerStep s e)
+processTask renderer wenv widgetRoot (WidgetTask path task) = do
   taskStatus <- liftIO $ poll task
 
   case taskStatus of
-    Just taskResult -> processWidgetTaskResult renderer wenv widgetRoot path taskResult
+    Just taskRes -> processTaskResult renderer wenv widgetRoot path taskRes
     Nothing -> return (wenv, Seq.empty, widgetRoot)
-processWidgetTask renderer model widgetRoot (WidgetProducer path channel task) = do
+processTask renderer model widgetRoot (WidgetProducer path channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
-    Just taskMessage -> processWidgetTaskEvent renderer model widgetRoot path taskMessage
+    Just taskMsg -> processTaskEvent renderer model widgetRoot path taskMsg
     Nothing -> return (model, Seq.empty, widgetRoot)
 
-processWidgetTaskResult :: (MonomerM s m, Typeable a) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> Path -> Either SomeException a -> m (HandlerStep s e)
-processWidgetTaskResult renderer wenv widgetRoot _ (Left ex) = do
+processTaskResult
+  :: (MonomerM s m, Typeable a)
+  => Renderer m
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> Path
+  -> Either SomeException a
+  -> m (HandlerStep s e)
+processTaskResult renderer wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
   return (wenv, Seq.empty, widgetRoot)
-processWidgetTaskResult renderer wenv widgetRoot path (Right taskResult) = processWidgetTaskEvent renderer wenv widgetRoot path taskResult
+processTaskResult renderer wenv widgetRoot path (Right taskResult)
+  = processTaskEvent renderer wenv widgetRoot path taskResult
 
-processWidgetTaskEvent :: (MonomerM s m, Typeable a) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> Path -> a -> m (HandlerStep s e)
-processWidgetTaskEvent renderer wenv widgetRoot path event = do
+processTaskEvent
+  :: (MonomerM s m, Typeable a)
+  => Renderer m
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> Path
+  -> a
+  -> m (HandlerStep s e)
+processTaskEvent renderer wenv widgetRoot path event = do
   currentFocus <- use focused
 
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-  let widgetResult = fromMaybe emptyResult $ _widgetHandleMessage (_instanceWidget widgetRoot) wenv path event widgetRoot
+  let widget = _instanceWidget widgetRoot
+  let msgResult = _widgetHandleMessage widget wenv path event widgetRoot
+  let widgetResult = fromMaybe emptyResult msgResult
 
   handleWidgetResult renderer wenv widgetResult
 
