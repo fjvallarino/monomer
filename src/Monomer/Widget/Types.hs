@@ -23,10 +23,15 @@ type Timestamp = Int
 type WidgetType = String
 type GlobalKeys s e = Map WidgetKey (WidgetInstance s e)
 
-data WidgetValue s a = WidgetValue a | WidgetLens (ALens' s a)
+data WidgetValue s a
+  = WidgetValue a
+  | WidgetLens (ALens' s a)
 
-newtype WidgetKey = WidgetKey Text deriving (Show, Eq, Ord)
-data WidgetState = forall i . Typeable i => WidgetState i
+newtype WidgetKey
+  = WidgetKey Text deriving (Show, Eq, Ord)
+
+data WidgetState
+  = forall i . Typeable i => WidgetState i
 
 data SizePolicy
   = StrictSize
@@ -88,20 +93,39 @@ data WidgetEnv s e = WidgetEnv {
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetResult s e,
-    -- | Returns the current internal state, which can later be used when merging widget trees
-    _widgetGetState :: WidgetEnv s e -> Maybe WidgetState,
+    _widgetInit
+      :: WidgetEnv s e
+      -> WidgetInstance s e
+      -> WidgetResult s e,
+    -- | Returns the current internal state, which can later be used when
+    -- | merging widget trees
+    _widgetGetState
+      :: WidgetEnv s e
+      -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
     --
     -- Current state
     -- Old instance
     -- New instance
-    _widgetMerge :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e -> WidgetResult s e,
+    _widgetMerge
+      :: WidgetEnv s e
+      -> WidgetInstance s e
+      -> WidgetInstance s e
+      -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path,
+    _widgetNextFocusable
+      :: WidgetEnv s e
+      -> Path
+      -> WidgetInstance s e
+      -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting on the given path
-    _widgetFind :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path,
+    _widgetFind
+      :: WidgetEnv s e
+      -> Path
+      -> Point
+      -> WidgetInstance s e
+      -> Maybe Path,
     -- | Handles an event
     --
     -- Current user state
@@ -110,13 +134,24 @@ data Widget s e =
     -- Event to handle
     --
     -- Returns: the list of generated events and, maybe, a new version of the widget if internal state changed
-    _widgetHandleEvent :: WidgetEnv s e -> Path -> SystemEvent -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleEvent
+      :: WidgetEnv s e
+      -> Path
+      -> SystemEvent
+      -> WidgetInstance s e
+      -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
     -- Result of asynchronous computation
     --
     -- Returns: the list of generated events and a new version of the widget if internal state changed
-    _widgetHandleMessage :: forall i . Typeable i => WidgetEnv s e -> Path -> i -> WidgetInstance s e -> Maybe (WidgetResult s e),
+    _widgetHandleMessage
+      :: forall i . Typeable i
+      => WidgetEnv s e
+      -> Path
+      -> i
+      -> WidgetInstance s e
+      -> Maybe (WidgetResult s e),
     -- | Minimum size desired by the widget
     --
     -- Style options
@@ -124,7 +159,10 @@ data Widget s e =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq,
+    _widgetPreferredSize
+      :: WidgetEnv s e
+      -> WidgetInstance s e
+      -> Tree SizeReq,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget
@@ -133,7 +171,13 @@ data Widget s e =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResize :: WidgetEnv s e -> Rect -> Rect -> WidgetInstance s e -> Tree SizeReq -> WidgetInstance s e,
+    _widgetResize
+      :: WidgetEnv s e
+      -> Rect
+      -> Rect
+      -> WidgetInstance s e
+      -> Tree SizeReq
+      -> WidgetInstance s e,
     -- | Renders the widget
     --
     -- Renderer
@@ -141,13 +185,15 @@ data Widget s e =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender :: forall m . Monad m => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
+    _widgetRender
+      :: forall m . Monad m
+      => Renderer m
+      -> WidgetEnv s e
+      -> WidgetInstance s e
+      -> m ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
---
--- Type variables:
--- * n: Identifier for a node
 data WidgetInstance s e =
   WidgetInstance {
     -- | Type of the widget
@@ -169,7 +215,8 @@ data WidgetInstance s e =
     -- | The visible area of the screen assigned to the widget
     _instanceViewport :: !Rect,
     -- | The area of the screen where the widget can draw
-    -- | Usually equal to _instanceViewport, but may be larger if the widget is wrapped in a scrollable container
+    -- | Usually equal to _instanceViewport, but may be larger if the widget is
+    -- | wrapped in a scrollable container
     _instanceRenderArea :: !Rect,
     -- | Style attributes of the widget instance
     _instanceStyle :: Style

@@ -12,7 +12,10 @@ import Control.Lens (Lens', (&), (<&>), (^.), (.~), (%~))
 import Control.Monad.State
 import Data.Default
 import Foreign.C.Types
-import NanoVG (Context(..), createGL3, CreateFlags(..), createFont, FileName(..), beginFrame, endFrame)
+import NanoVG (
+    Context(..), CreateFlags(..), FileName(..),
+    beginFrame, createFont, createGL3, endFrame
+  )
 import SDL (($=))
 import TextShow
 
@@ -93,8 +96,9 @@ main = do
 
   let devicePixelRate = _w winSize / fromIntegral screenWidth
   let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
+  let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
 
-  runStateT (runWidgets window c appWidget) (initMonomerContext () winSize useHiDPI devicePixelRate)
+  runStateT (runWidgets window c appWidget) monomerContext
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
@@ -112,19 +116,17 @@ handleAppEvent model evt = traceShow evt $ traceShow model $
     PrintTextFields -> Task $ do
       putStrLn $ "Current text 1 is: " ++ show (model ^. textField1)
       return Nothing
-    AppButton -> Message (WidgetKey "kcmp") RotateChildren <> Model (model & clickCount %~ (+1)) <> (Task $ do
-      putStrLn "Clicked button"
-      return Nothing)
+    AppButton -> Message (WidgetKey "kcmp") RotateChildren
+      <> Model (model & clickCount %~ (+1))
+      <> (Task $ do
+        putStrLn "Clicked button"
+        return Nothing)
     IncreaseMessage -> Model (model & msgCount %~ (+1))
     UpdateText txt -> Model (model & textField1 .~ txt)
 
 buildUI1 model = widgetTree where
   widgetTree = listView textField1 items id
   items = fmap showt [1..100::Int]
-
-buildUI2 model = widgetTree where
-  widgetTree = scroll $ vgrid items
-  items = [1..100::Int] <&> \i -> label ("Item: " <> showt i) `style` textAlignLeft
 
 buildUI model = widgetTree where
   widgetTree = vstack [
