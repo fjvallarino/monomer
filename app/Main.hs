@@ -34,7 +34,6 @@ import Monomer.Common.StyleUtil
 import Monomer.Graphics.Color
 import Monomer.Main.Core
 import Monomer.Main.Platform
-import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Widget.Util
 import Monomer.Widget.Types
