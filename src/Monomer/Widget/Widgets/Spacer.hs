@@ -16,9 +16,11 @@ defaultSpace :: Double
 defaultSpace = 10
 
 makeSpacer :: Widget s e
-makeSpacer = createWidget {
+makeSpacer = widget where
+  widget = createWidget {
     _widgetPreferredSize = preferredSize
   }
-  where
-    preferredSize wenv widgetInst = singleNode sizeReq where
-      sizeReq = SizeReq (Size defaultSpace defaultSpace) RemainderSize RemainderSize
+
+  preferredSize wenv widgetInst = singleNode sizeReq where
+    size = Size defaultSpace defaultSpace
+    sizeReq = SizeReq size RemainderSize RemainderSize

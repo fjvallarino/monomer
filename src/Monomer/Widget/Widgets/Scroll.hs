@@ -25,7 +25,10 @@ import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-data ActiveBar = HBar | VBar deriving (Eq)
+data ActiveBar
+  = HBar
+  | VBar
+  deriving (Eq)
 
 data ScrollConfig = ScrollConfig {
   _scActiveBarColor :: Maybe Color,
@@ -44,7 +47,9 @@ data ScrollState = ScrollState {
   _sstReqSize :: Tree SizeReq
 } deriving (Typeable)
 
-newtype ScrollMessage = ScrollTo Rect deriving Typeable
+newtype ScrollMessage
+  = ScrollTo Rect
+  deriving Typeable
 
 data ScrollContext = ScrollContext {
   hScrollRatio :: Double,
@@ -61,6 +66,7 @@ data ScrollContext = ScrollContext {
   vThumbRect :: Rect
 }
 
+scrollConfig :: ScrollConfig
 scrollConfig = ScrollConfig {
   _scActiveBarColor = Just $ darkGray { _alpha = 0.4 },
   _scIdleBarColor = Nothing,
@@ -70,6 +76,7 @@ scrollConfig = ScrollConfig {
   _scWheelRate = 10
 }
 
+defaultState :: ScrollState
 defaultState = ScrollState {
   _sstDragging = Nothing,
   _sstDeltaX = 0,
@@ -82,7 +89,7 @@ scroll :: WidgetInstance s e -> WidgetInstance s e
 scroll managedWidget = scroll_ scrollConfig managedWidget
 
 scroll_ :: ScrollConfig -> WidgetInstance s e -> WidgetInstance s e
-scroll_ config managedWidget = makeInstance (makeScroll config defaultState) managedWidget
+scroll_ config managed = makeInstance (makeScroll config defaultState) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
@@ -91,7 +98,8 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 }
 
 makeScroll :: ScrollConfig -> ScrollState -> Widget s e
-makeScroll config state@(ScrollState dragging dx dy cs prevReqs) = createContainer {
+makeScroll config state = widget where
+  widget = createContainer {
     _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
     _widgetHandleEvent = containerHandleEvent handleEvent,
@@ -100,162 +108,205 @@ makeScroll config state@(ScrollState dragging dx dy cs prevReqs) = createContain
     _widgetResize = scrollResize Nothing,
     _widgetRender = render
   }
-  where
-    Size childWidth childHeight = cs
 
-    merge wenv oldState widgetInst = resultWidget newInstance where
-      newState = fromMaybe state (useState oldState)
+  ScrollState dragging dx dy cs prevReqs = state
+  Size childWidth childHeight = cs
+
+  merge wenv oldState widgetInst = resultWidget newInstance where
+    newState = fromMaybe state (useState oldState)
+    newInstance = widgetInst {
+      _instanceWidget = makeScroll config newState
+    }
+
+  handleEvent wenv target evt widgetInst = case evt of
+    ButtonAction point btn status -> result where
+      leftPressed = status == PressedBtn && btn == LeftBtn
+      btnReleased = status == ReleasedBtn
+      isDragging = isJust $ _sstDragging state
+      startDrag = leftPressed && not isDragging
+      jumpScroll = btnReleased && not isDragging
+      newState
+        | startDrag && hMouseInThumb = state { _sstDragging = Just HBar }
+        | startDrag && vMouseInThumb = state { _sstDragging = Just VBar }
+        | jumpScroll && hMouseInScroll =
+            updateScrollThumb state HBar point viewport sctx
+        | jumpScroll && vMouseInScroll =
+            updateScrollThumb state VBar point viewport sctx
+        | btnReleased = state { _sstDragging = Nothing }
+        | otherwise = state
       newInstance = widgetInst {
         _instanceWidget = makeScroll config newState
       }
-
-    handleEvent wenv target evt widgetInst = case evt of
-      ButtonAction point btn status -> result where
-        isLeftPressed = status == PressedBtn && btn == LeftBtn
-        isButtonReleased = status == ReleasedBtn
-        isDragging = isJust $ _sstDragging state
-        newState = if | isLeftPressed && hMouseInThumb && not isDragging -> state { _sstDragging = Just HBar }
-                      | isLeftPressed && vMouseInThumb && not isDragging -> state { _sstDragging = Just VBar }
-                      | isButtonReleased && hMouseInScroll && not isDragging -> updateScrollThumb state HBar point viewport sctx
-                      | isButtonReleased && vMouseInScroll && not isDragging -> updateScrollThumb state VBar point viewport sctx
-                      | isButtonReleased -> state { _sstDragging = Nothing }
-                      | otherwise -> state
-        newInstance = widgetInst {
-          _instanceWidget = makeScroll config newState
-        }
-        handledResult = Just $ resultReqs [IgnoreChildrenEvents] newInstance
-        result = if | isLeftPressed && (hMouseInThumb || vMouseInThumb) -> handledResult
-                    | isButtonReleased && (hMouseInScroll || vMouseInScroll) -> handledResult
-                    | isButtonReleased && isDragging -> handledResult
-                    | otherwise -> Nothing
-      Click point btn -> result where
-        isDragging = isJust $ _sstDragging state
-        handledResult = Just $ resultReqs [IgnoreChildrenEvents] widgetInst
-        result = if | hMouseInScroll || vMouseInScroll || isDragging -> handledResult
-                    | otherwise -> Nothing
-      Move point -> result where
-        updatedState = fmap (\dg -> updateScrollThumb state dg point viewport sctx) dragging
-        makeResult newState = resultReqs [IgnoreChildrenEvents] (rebuildWidget wenv newState widgetInst prevReqs)
-        result = fmap makeResult updatedState
-      WheelScroll _ (Point wx wy) wheelDirection -> result where
-        needsUpdate = (wx /= 0 && childWidth > vw) || (wy /= 0 && childHeight > vh)
-        result = if | needsUpdate -> Just $ resultReqs [IgnoreChildrenEvents] (rebuildWidget wenv newState widgetInst prevReqs)
-                    | otherwise   -> Nothing
-        wheelRate = _scWheelRate config
-        stepX = wx * if wheelDirection == WheelNormal then -wheelRate else wheelRate
-        stepY = wy * if wheelDirection == WheelNormal then wheelRate else -wheelRate
-        newState = state {
-          _sstDeltaX = scrollAxis stepX dx childWidth vw,
-          _sstDeltaY = scrollAxis stepY dy childHeight vh
-        }
-      _ -> Nothing
-      where
-        viewport = _instanceViewport widgetInst
-        Rect vx vy vw vh = _instanceViewport widgetInst
-        sctx@ScrollContext{..} = scrollStatus config wenv state viewport
-
-    scrollAxis reqDelta currScroll childPos viewportLimit
-      | reqDelta >= 0 = if currScroll + reqDelta < 0
-                          then currScroll + reqDelta
-                          else 0
-      | otherwise = if childPos - viewportLimit + currScroll + reqDelta > 0
-                      then currScroll + reqDelta
-                      else viewportLimit - childPos
-
-    handleMessage wenv ctx message widgetInst = cast message >>= handleScrollMessage where
-      handleScrollMessage (ScrollTo rect) = scrollTo wenv widgetInst rect
-
-    scrollTo wenv widgetInst rect
-      | rectInRect rect viewport = Nothing
-      | otherwise = Just $ resultWidget newInstance
-      where
-        viewport = _instanceViewport widgetInst
-        Rect rx ry rw rh = rect
-        Rect vx vy vw vh = viewport
-        diffL = vx - rx
-        diffR = vx + vw - (rx + rw)
-        diffT = vy - ry
-        diffB = vy + vh - (ry + rh)
-        stepX = if | rectInRectH rect viewport -> dx
-                   | abs diffL <= abs diffR -> diffL + dx
-                   | otherwise -> diffR + dx
-        stepY = if | rectInRectV rect viewport -> dy
-                   | abs diffT <= abs diffB -> diffT + dy
-                   | otherwise -> diffB + dy
-        newState = state {
-          _sstDeltaX = scrollAxis stepX 0 childWidth vw,
-          _sstDeltaY = scrollAxis stepY 0 childHeight vh
-        }
-        newInstance = rebuildWidget wenv newState widgetInst prevReqs
-
-    updateScrollThumb state activeBar point viewport sctx = newState where
-      Point px py = point
-      ScrollContext{..} = sctx
-      Rect rx ry rw rh = viewport
-      hMid = _rw hThumbRect / 2
-      vMid = _rh vThumbRect / 2
-      hDelta = (rx - px + hMid) / hScrollRatio
-      vDelta = (ry - py + vMid) / vScrollRatio
-      newDeltaX = if activeBar == HBar then scrollAxis hDelta 0 childWidth rw else dx
-      newDeltaY = if activeBar == VBar then scrollAxis vDelta 0 childHeight rh else dy
-      newState = state { _sstDeltaX = newDeltaX, _sstDeltaY = newDeltaY }
-
-    rebuildWidget wenv newState widgetInst reqs = newInstance where
-      newWidget = makeScroll config newState
-      tempInstance = widgetInst { _instanceWidget = newWidget }
-      newInstance = scrollResize (Just newWidget) wenv (_instanceViewport tempInstance) (_instanceRenderArea tempInstance) tempInstance reqs
-
-    preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-      sizeReq = SizeReq (_sizeRequested . nodeValue $ Seq.index reqs 0) FlexibleSize FlexibleSize
-
-    scrollResize updatedWidget wenv viewport renderArea widgetInst reqs = newInstance where
-      Rect l t w h = renderArea
-      child = Seq.index (_instanceChildren widgetInst) 0
-      childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
-
-      Size childWidth2 childHeight2 = _sizeRequested $ nodeValue childReq
-      areaW = max w childWidth2
-      areaH = max h childHeight2
-      childRenderArea = Rect (l + dx) (t + dy) areaW areaH
-
-      newWidget = fromMaybe (makeScroll config $ state { _sstChildSize = Size areaW areaH, _sstReqSize = reqs }) updatedWidget
-      newChildWidget = _widgetResize (_instanceWidget child) wenv viewport childRenderArea child childReq
-
-      newInstance = widgetInst {
-        _instanceViewport = viewport,
-        _instanceRenderArea = renderArea,
-        _instanceWidget = newWidget,
-        _instanceChildren = Seq.singleton newChildWidget
+      handledResult = Just $ resultReqs [IgnoreChildrenEvents] newInstance
+      result
+        | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
+        | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
+        | btnReleased && isDragging = handledResult
+        | otherwise = Nothing
+    Click point btn -> result where
+      isDragging = isJust $ _sstDragging state
+      handledResult = Just $ resultReqs [IgnoreChildrenEvents] widgetInst
+      result
+        | hMouseInScroll || vMouseInScroll || isDragging = handledResult
+        | otherwise = Nothing
+    Move point -> result where
+      drag bar = updateScrollThumb state bar point viewport sctx
+      makeWidget state = rebuildWidget wenv state widgetInst prevReqs
+      makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
+      result = fmap (makeResult . drag) dragging
+    WheelScroll _ (Point wx wy) wheelDirection -> result where
+      changedX = wx /= 0 && childWidth > vw
+      changedY = wy /= 0 && childHeight > vh
+      needsUpdate = changedX || changedY
+      makeWidget state = rebuildWidget wenv state widgetInst prevReqs
+      makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
+      wheelRate = _scWheelRate config
+      result
+        | needsUpdate = Just $ makeResult newState
+        | otherwise = Nothing
+      stepX
+        | wheelDirection == WheelNormal = -wheelRate * wx
+        | otherwise = wheelRate * wx
+      stepY
+        | wheelDirection == WheelNormal = wheelRate * wy
+        | otherwise = -wheelRate * wy
+      newState = state {
+        _sstDeltaX = scrollAxis stepX dx childWidth vw,
+        _sstDeltaY = scrollAxis stepY dy childHeight vh
       }
+    _ -> Nothing
+    where
+      viewport = _instanceViewport widgetInst
+      Rect vx vy vw vh = _instanceViewport widgetInst
+      sctx@ScrollContext{..} = scrollStatus config wenv state viewport
 
-    render renderer wenv widgetInst =
-      do
-        setScissor renderer viewport
-        containerRender defaultContainerRender renderer wenv widgetInst
-        resetScissor renderer
+  scrollAxis reqDelta currScroll childPos vpLimit
+    | reqDelta >= 0 && currScroll + reqDelta < 0 = currScroll + reqDelta
+    | reqDelta >= 0 = 0
+    | childPos - vpLimit + currScroll + reqDelta > 0 = currScroll + reqDelta
+    | otherwise = vpLimit - childPos
 
-        when hScrollRequired $
-          drawRect renderer hScrollRect barColorH Nothing
+  handleMessage wenv ctx message widgetInst = result where
+    handleScrollMessage (ScrollTo rect) = scrollTo wenv widgetInst rect
+    result = cast message >>= handleScrollMessage
 
-        when vScrollRequired $
-          drawRect renderer vScrollRect barColorV Nothing
+  scrollTo wenv widgetInst rect
+    | rectInRect rect viewport = Nothing
+    | otherwise = Just $ resultWidget newInstance
+    where
+      viewport = _instanceViewport widgetInst
+      Rect rx ry rw rh = rect
+      Rect vx vy vw vh = viewport
+      diffL = vx - rx
+      diffR = vx + vw - (rx + rw)
+      diffT = vy - ry
+      diffB = vy + vh - (ry + rh)
+      stepX
+        | rectInRectH rect viewport = dx
+        | abs diffL <= abs diffR = diffL + dx
+        | otherwise = diffR + dx
+      stepY
+        | rectInRectV rect viewport = dy
+        | abs diffT <= abs diffB = diffT + dy
+        | otherwise = diffB + dy
+      newState = state {
+        _sstDeltaX = scrollAxis stepX 0 childWidth vw,
+        _sstDeltaY = scrollAxis stepY 0 childHeight vh
+      }
+      newInstance = rebuildWidget wenv newState widgetInst prevReqs
 
-        when hScrollRequired $
-          drawRect renderer hThumbRect (Just thumbColorH) Nothing
+  updateScrollThumb state activeBar point viewport sctx = newState where
+    Point px py = point
+    ScrollContext{..} = sctx
+    Rect rx ry rw rh = viewport
+    hMid = _rw hThumbRect / 2
+    vMid = _rh vThumbRect / 2
+    hDelta = (rx - px + hMid) / hScrollRatio
+    vDelta = (ry - py + vMid) / vScrollRatio
+    newDeltaX
+      | activeBar == HBar = scrollAxis hDelta 0 childWidth rw
+      | otherwise = dx
+    newDeltaY
+      | activeBar == VBar = scrollAxis vDelta 0 childHeight rh
+      | otherwise = dy
+    newState = state {
+      _sstDeltaX = newDeltaX,
+      _sstDeltaY = newDeltaY
+    }
 
-        when vScrollRequired $
-          drawRect renderer vThumbRect (Just thumbColorV) Nothing
-      where
-        viewport = _instanceViewport widgetInst
-        ScrollContext{..} = scrollStatus config wenv state viewport
-        draggingH = _sstDragging state == Just HBar
-        draggingV = _sstDragging state == Just VBar
-        barColorH = if hMouseInScroll then _scActiveBarColor config else _scIdleBarColor config
-        barColorV = if vMouseInScroll then _scActiveBarColor config else _scIdleBarColor config
-        thumbColorH = if hMouseInThumb || draggingH then _scActiveThumbColor config else _scIdleThumbColor config
-        thumbColorV = if vMouseInThumb || draggingV then _scActiveThumbColor config else _scIdleThumbColor config
+  rebuildWidget wenv newState widgetInst reqs = newInst where
+    newWidget = makeScroll config newState
+    tempInst = widgetInst { _instanceWidget = newWidget }
+    widget = _instanceViewport tempInst
+    renderArea = _instanceRenderArea tempInst
+    newInst = scrollResize (Just newWidget) wenv widget renderArea tempInst reqs
 
-scrollStatus :: ScrollConfig -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
+  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
+    size = _sizeRequested . nodeValue $ Seq.index reqs 0
+    sizeReq = SizeReq size FlexibleSize FlexibleSize
+
+  scrollResize uWidget wenv viewport renderArea widgetInst reqs = newInst where
+    Rect l t w h = renderArea
+    child = Seq.index (_instanceChildren widgetInst) 0
+    childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
+
+    Size childWidth2 childHeight2 = _sizeRequested $ nodeValue childReq
+    areaW = max w childWidth2
+    areaH = max h childHeight2
+    cRenderArea = Rect (l + dx) (t + dy) areaW areaH
+
+    defWidget = makeScroll config $ state {
+      _sstChildSize = Size areaW areaH,
+      _sstReqSize = reqs
+    }
+    newWidget = fromMaybe defWidget uWidget
+    cWidget = _instanceWidget child
+    newChild = _widgetResize cWidget wenv viewport cRenderArea child childReq
+
+    newInst = widgetInst {
+      _instanceViewport = viewport,
+      _instanceRenderArea = renderArea,
+      _instanceWidget = newWidget,
+      _instanceChildren = Seq.singleton newChild
+    }
+
+  render renderer wenv widgetInst = do
+    setScissor renderer viewport
+    containerRender defaultContainerRender renderer wenv widgetInst
+    resetScissor renderer
+
+    when hScrollRequired $
+      drawRect renderer hScrollRect barColorH Nothing
+
+    when vScrollRequired $
+      drawRect renderer vScrollRect barColorV Nothing
+
+    when hScrollRequired $
+      drawRect renderer hThumbRect (Just thumbColorH) Nothing
+
+    when vScrollRequired $
+      drawRect renderer vThumbRect (Just thumbColorV) Nothing
+
+    where
+      viewport = _instanceViewport widgetInst
+      ScrollContext{..} = scrollStatus config wenv state viewport
+      draggingH = _sstDragging state == Just HBar
+      draggingV = _sstDragging state == Just VBar
+      barColorH
+        | hMouseInScroll = _scActiveBarColor config
+        | otherwise = _scIdleBarColor config
+      barColorV
+        | vMouseInScroll = _scActiveBarColor config
+        | otherwise = _scIdleBarColor config
+      thumbColorH
+        | hMouseInThumb || draggingH = _scActiveThumbColor config
+        | otherwise =  _scIdleThumbColor config
+      thumbColorV
+        | vMouseInThumb || draggingV = _scActiveThumbColor config
+        | otherwise = _scIdleThumbColor config
+
+scrollStatus
+  :: ScrollConfig -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   barThickness = _scBarThickness config
@@ -270,10 +321,20 @@ scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   vScrollRatio = min (vpHeight / childHeight) 1
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
-  hScrollRect = Rect vpLeft (vpTop + hScrollTop) (vpLeft + vpWidth) (vpTop + vpHeight)
-  vScrollRect = Rect (vpLeft + vScrollLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
-  hThumbRect = Rect (vpLeft - hScrollRatio * dx) (vpTop + hScrollTop) (hScrollRatio * vpWidth) barThickness
-  vThumbRect = Rect (vpLeft + vScrollLeft) (vpTop - vScrollRatio * dy) barThickness (vScrollRatio * vpHeight)
+  hScrollRect =
+    Rect vpLeft (vpTop + hScrollTop) (vpLeft + vpWidth) (vpTop + vpHeight)
+  vScrollRect =
+    Rect (vpLeft + vScrollLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
+  hThumbRect = Rect
+    (vpLeft - hScrollRatio * dx)
+    (vpTop + hScrollTop)
+    (hScrollRatio * vpWidth)
+    barThickness
+  vThumbRect = Rect
+    (vpLeft + vScrollLeft)
+    (vpTop - vScrollRatio * dy)
+    barThickness
+    (vScrollRatio * vpHeight)
   hMouseInScroll = pointInRect mousePos hScrollRect
   vMouseInScroll = pointInRect mousePos vScrollRect
   hMouseInThumb = pointInRect mousePos hThumbRect

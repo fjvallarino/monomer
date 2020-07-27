@@ -28,73 +28,85 @@ vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
 }
 
 makeStack :: Bool -> Widget s e
-makeStack isHorizontal = createContainer {
+makeStack isHorizontal = widget where
+  widget = createContainer {
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize
   }
-  where
-    preferredSize wenv widgetInst children reqs = Node reqSize reqs where
-      (_, vreqs) = visibleChildrenReq children reqs
-      reqSize = SizeReq (calcPreferredSize vreqs) FlexibleSize FlexibleSize
 
-    resize wenv viewport renderArea widgetInst children reqs = (widgetInst, assignedArea) where
-      Rect l t w h = renderArea
-      childrenPairs = Seq.zip children reqs
-      (vchildren, vreqs) = visibleChildrenReq children reqs
-      mainSize = if isHorizontal then w else h
-      mainStart = if isHorizontal then l else t
-      policyFilter policy req = policySelector req == policy
-      sChildren = Seq.filter (policyFilter StrictSize) vreqs
-      fChildren = Seq.filter (policyFilter FlexibleSize) vreqs
-      rChildren = Seq.filter (policyFilter RemainderSize) vreqs
-      fExists = not $ null fChildren
-      rExists = not $ null rChildren
-      sSize = sizeSelector $ calcPreferredSize sChildren
-      fSize = sizeSelector $ calcPreferredSize fChildren
-      rSize = max 0 (mainSize - sSize)
-      fCount = fromIntegral $ length fChildren
-      rCount = fromIntegral $ length rChildren
-      fAvg = if fExists then fSize / fCount else 0
-      fBigFilter c = sizeSelector (_sizeRequested c) >= fAvg
-      fBigSize = sizeSelector $ calcPreferredSize (Seq.filter fBigFilter fChildren)
-      fExtra = if fExists then (rSize - fSize) / fBigSize else 0
-      rUnit = if rExists && not fExists then rSize / rCount else 0
-      assignedArea = Seq.zip newViewports newViewports
-      (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
-      foldHelper (accum, offset) childPair = (newAccum, newOffset) where
-        newSize = resizeChild renderArea fAvg fExtra rUnit offset childPair
-        newAccum = accum |> newSize
-        newOffset = offset + rectSelector newSize
+  preferredSize wenv widgetInst children reqs = Node reqSize reqs where
+    (_, vreqs) = visibleChildrenReq children reqs
+    reqSize = SizeReq (calcPreferredSize vreqs) FlexibleSize FlexibleSize
 
-    resizeChild renderArea fAvg fExtra rUnit offset childPair = result where
-      Rect l t w h = renderArea
-      result = if | not $ _instanceVisible childInstance -> emptyRect
-                  | isHorizontal -> hRect
-                  | otherwise -> vRect
-      childInstance = fst childPair
-      req = nodeValue $ snd childPair
-      srSize = _sizeRequested req
-      emptyRect = Rect l t 0 0
-      hRect = Rect offset t calcNewSize h
-      vRect = Rect l offset w calcNewSize
-      calcNewSize = case policySelector req of
-        StrictSize -> sizeSelector srSize
-        FlexibleSize
-          | sizeSelector srSize >= fAvg -> (1 + fExtra) * sizeSelector srSize
-          | otherwise -> sizeSelector srSize
-        RemainderSize -> rUnit
+  resize wenv viewport renderArea widgetInst children reqs = resized where
+    Rect l t w h = renderArea
+    childrenPairs = Seq.zip children reqs
+    (vchildren, vreqs) = visibleChildrenReq children reqs
+    mainSize = if isHorizontal then w else h
+    mainStart = if isHorizontal then l else t
+    policyFilter policy req = policySelector req == policy
+    sChildren = Seq.filter (policyFilter StrictSize) vreqs
+    fChildren = Seq.filter (policyFilter FlexibleSize) vreqs
+    rChildren = Seq.filter (policyFilter RemainderSize) vreqs
+    fExists = not $ null fChildren
+    rExists = not $ null rChildren
+    sSize = sizeSelector $ calcPreferredSize sChildren
+    fSize = sizeSelector $ calcPreferredSize fChildren
+    rSize = max 0 (mainSize - sSize)
+    fCount = fromIntegral $ length fChildren
+    rCount = fromIntegral $ length rChildren
+    fAvg = if fExists then fSize / fCount else 0
+    fLargeFilter c = sizeSelector (_sizeRequested c) >= fAvg
+    fLargeFiltered = Seq.filter fLargeFilter fChildren
+    fLargeSize = sizeSelector $ calcPreferredSize fLargeFiltered
+    fExtra
+      | fExists = (rSize - fSize) / fLargeSize
+      | otherwise = 0
+    rUnit
+      | rExists && not fExists = rSize / rCount
+      | otherwise = 0
+    assignedArea = Seq.zip newViewports newViewports
+    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
+    foldHelper (accum, offset) childPair = (newAccum, newOffset) where
+      newSize = resizeChild renderArea fAvg fExtra rUnit offset childPair
+      newAccum = accum |> newSize
+      newOffset = offset + rectSelector newSize
+    resized = (widgetInst, assignedArea)
 
-    calcPreferredSize vreqs = Size width height where
-      (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vreqs
-      width = if isHorizontal then sumWidth else maxWidth
-      height = if isHorizontal then maxHeight else sumHeight
+  resizeChild renderArea fAvg fExtra rUnit offset childPair = result where
+    Rect l t w h = renderArea
+    childInstance = fst childPair
+    req = nodeValue $ snd childPair
+    srSize = _sizeRequested req
+    emptyRect = Rect l t 0 0
+    hRect = Rect offset t calcNewSize h
+    vRect = Rect l offset w calcNewSize
+    calcNewSize = case policySelector req of
+      StrictSize -> sizeSelector srSize
+      FlexibleSize
+        | sizeSelector srSize >= fAvg -> (1 + fExtra) * sizeSelector srSize
+        | otherwise -> sizeSelector srSize
+      RemainderSize -> rUnit
+    result
+      | not $ _instanceVisible childInstance = emptyRect
+      | isHorizontal = hRect
+      | otherwise = vRect
 
-    calcDimensions vreqs = (maxWidth, sumWidth, maxHeight, sumHeight) where
-      maxWidth = if Seq.null vreqs then 0 else (maximum . fmap (_w . _sizeRequested)) vreqs
-      sumWidth = (sum . fmap (_w . _sizeRequested)) vreqs
-      maxHeight = if null vreqs then 0 else (maximum . fmap (_h . _sizeRequested)) vreqs
-      sumHeight = (sum . fmap (_h . _sizeRequested)) vreqs
+  calcPreferredSize vreqs = Size width height where
+    (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vreqs
+    width = if isHorizontal then sumWidth else maxWidth
+    height = if isHorizontal then maxHeight else sumHeight
 
-    sizeSelector = if isHorizontal then _w else _h
-    rectSelector = if isHorizontal then _rw else _rh
-    policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight
+  calcDimensions vreqs = (maxWidth, sumWidth, maxHeight, sumHeight) where
+    sumWidth = (sum . fmap (_w . _sizeRequested)) vreqs
+    sumHeight = (sum . fmap (_h . _sizeRequested)) vreqs
+    maxWidth
+      | Seq.null vreqs = 0
+      | otherwise = (maximum . fmap (_w . _sizeRequested)) vreqs
+    maxHeight
+      | Seq.null vreqs = 0
+      | otherwise = (maximum . fmap (_h . _sizeRequested)) vreqs
+
+  sizeSelector = if isHorizontal then _w else _h
+  rectSelector = if isHorizontal then _rw else _rh
+  policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight

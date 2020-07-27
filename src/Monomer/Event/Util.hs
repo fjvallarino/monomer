@@ -7,6 +7,7 @@ import qualified Data.Map.Strict as M
 
 import Monomer.Event.Types
 
+defKeyMod :: KeyMod
 defKeyMod = KeyMod {
   keyModLeftShift = False,
   keyModRightShift = False,
@@ -21,6 +22,7 @@ defKeyMod = KeyMod {
   keyModAltGr = False
 }
 
+defInputStatus :: InputStatus
 defInputStatus = InputStatus {
   statusMousePos = def,
   statusKeyMod = defKeyMod,

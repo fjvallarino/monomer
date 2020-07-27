@@ -60,7 +60,8 @@ newtype ListViewState = ListViewState {
 
 newtype ListViewMessage = OnClickMessage Int deriving Typeable
 
-listViewConfig :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewConfig s e a
+listViewConfig
+  :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewConfig s e a
 listViewConfig value items itemToText = ListViewConfig {
   _lvValue = value,
   _lvItems = items,
@@ -72,7 +73,9 @@ listViewConfig value items itemToText = ListViewConfig {
   _lvHoverColor = lightGray
 }
 
-listView :: (Traversable t, Eq a) => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
+listView
+  :: (Traversable t, Eq a)
+  => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 listView field items itemToText = listView_ config where
   config = listViewConfig (WidgetLens field) newItems itemToText
   newItems = foldl' (|>) Empty items
@@ -87,7 +90,8 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 }
 
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
-makeListView config state = createContainer {
+makeListView config state = widget where
+  widget = createContainer {
     _widgetInit = containerInit init,
     _widgetGetState = makeState state,
     _widgetMerge = containerMergeTrees merge,
@@ -96,89 +100,106 @@ makeListView config state = createContainer {
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize
   }
-  where
-    currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)
 
-    createListView wenv newState widgetInst = newInstance where
-      selected = currentValue wenv
-      path = _instancePath widgetInst
-      itemsList = makeItemsList config path selected (_highlighted newState)
-      newInstance = widgetInst {
-        _instanceWidget = makeListView config newState,
-        _instanceChildren = Seq.singleton (scroll itemsList)
-      }
+  currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)
 
-    init wenv widgetInst = resultWidget $ createListView wenv state widgetInst
+  createListView wenv newState widgetInst = newInstance where
+    selected = currentValue wenv
+    path = _instancePath widgetInst
+    itemsList = makeItemsList config path selected (_highlighted newState)
+    newInstance = widgetInst {
+      _instanceWidget = makeListView config newState,
+      _instanceChildren = Seq.singleton (scroll itemsList)
+    }
 
-    merge wenv oldState newInstance = resultWidget $ createListView wenv newState newInstance where
-      newState = fromMaybe state (useState oldState)
+  init wenv widgetInst = resultWidget $ createListView wenv state widgetInst
 
-    handleEvent wenv target evt widgetInst = case evt of
-      KeyAction mode code status
-        | isKeyDown code && status == KeyPressed -> handleHighlightNext wenv widgetInst
-        | isKeyUp code && status == KeyPressed -> handleHighlightPrev wenv widgetInst
-        | isKeyReturn code && status == KeyPressed -> Just $ selectItem wenv widgetInst (_highlighted state)
-      _ -> Nothing
+  merge wenv oldState newInstance = result where
+    newState = fromMaybe state (useState oldState)
+    result = resultWidget $ createListView wenv newState newInstance
 
-    handleHighlightNext wenv widgetInst = highlightItem wenv widgetInst nextIdx where
-      tempIdx = _highlighted state
-      nextIdx = if tempIdx < length (_lvItems config) - 1 then tempIdx + 1 else tempIdx
+  handleEvent wenv target evt widgetInst = case evt of
+    KeyAction mode code status
+      | isKeyDown code && status == KeyPressed -> highlightNext wenv widgetInst
+      | isKeyUp code && status == KeyPressed -> highlightPrev wenv widgetInst
+      | isSelectKey code && status == KeyPressed -> resultSelected
+      where
+        resultSelected = Just $ selectItem wenv widgetInst (_highlighted state)
+        isSelectKey code = isKeyReturn code || isKeySpace code
+    _ -> Nothing
 
-    handleHighlightPrev wenv widgetInst = highlightItem wenv widgetInst nextIdx where
-      tempIdx = _highlighted state
-      nextIdx = if tempIdx > 0 then tempIdx - 1 else tempIdx
+  highlightNext wenv widgetInst = highlightItem wenv widgetInst nextIdx where
+    tempIdx = _highlighted state
+    nextIdx
+      | tempIdx < length (_lvItems config) - 1 = tempIdx + 1
+      | otherwise = tempIdx
 
-    handleMessage wenv target message widgetInst = fmap handleSelect (cast message) where
-      handleSelect (OnClickMessage idx) = selectItem wenv widgetInst idx
+  highlightPrev wenv widgetInst = highlightItem wenv widgetInst nextIdx where
+    tempIdx = _highlighted state
+    nextIdx
+      | tempIdx > 0 = tempIdx - 1
+      | otherwise = tempIdx
 
-    highlightItem wenv widgetInst nextIdx = Just $ widgetResult { _resultRequests = requests } where
-      newState = ListViewState nextIdx
-      newWidget = makeListView config newState
-      -- ListView's merge uses the old widget's state. Since we want the newly created state, the old widget is replaced here
-      oldInstance = widgetInst {
-        _instanceWidget = newWidget
-      }
-      -- ListView's tree will be rebuilt in merge, before merging its children, so it does not matter what we currently have
-      newInstance = oldInstance
-      widgetResult = _widgetMerge newWidget wenv oldInstance newInstance
-      scrollToReq = itemScrollTo widgetInst nextIdx
-      requests = Seq.fromList scrollToReq
+  handleMessage wenv target message widgetInst = result where
+    handleSelect (OnClickMessage idx) = selectItem wenv widgetInst idx
+    result = fmap handleSelect (cast message)
 
-    selectItem wenv widgetInst idx = resultReqs requests newInstance where
-      selected = currentValue wenv
-      value = fromMaybe selected (Seq.lookup idx (_lvItems config))
-      valueSetReq = widgetValueSet (_lvValue config) value
-      scrollToReq = itemScrollTo widgetInst idx
-      changeReqs = fmap ($ idx) (_lvOnChangeReq config)
-      focusReq = [SetFocus $ _instancePath widgetInst]
-      requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
-      newState = ListViewState idx
-      newInstance = widgetInst {
-        _instanceWidget = makeListView config newState
-      }
+  highlightItem wenv widgetInst nextIdx = result where
+    newState = ListViewState nextIdx
+    newWidget = makeListView config newState
+    -- ListView's merge uses the old widget's state. Since we want the newly
+    -- created state, the old widget is replaced here
+    oldInstance = widgetInst {
+      _instanceWidget = newWidget
+    }
+    -- ListView's tree will be rebuilt in merge, before merging its children,
+    -- so it does not matter what we currently have
+    newInstance = oldInstance
+    widgetResult = _widgetMerge newWidget wenv oldInstance newInstance
+    scrollToReq = itemScrollTo widgetInst nextIdx
+    requests = Seq.fromList scrollToReq
+    result = Just $ widgetResult { _resultRequests = requests }
 
-    itemScrollTo widgetInst idx = maybeToList (fmap makeScrollReq renderArea) where
-      lookup idx inst = Seq.lookup idx (_instanceChildren inst)
-      renderArea = fmap _instanceRenderArea $ pure widgetInst
-        >>= lookup 0 -- scroll
-        >>= lookup 0 -- vstack
-        >>= lookup idx -- item
-      scrollPath = firstChildPath widgetInst
-      makeScrollReq rect = SendMessage scrollPath (ScrollTo rect)
+  selectItem wenv widgetInst idx = resultReqs requests newInstance where
+    selected = currentValue wenv
+    value = fromMaybe selected (Seq.lookup idx (_lvItems config))
+    valueSetReq = widgetValueSet (_lvValue config) value
+    scrollToReq = itemScrollTo widgetInst idx
+    changeReqs = fmap ($ idx) (_lvOnChangeReq config)
+    focusReq = [SetFocus $ _instancePath widgetInst]
+    requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
+    newState = ListViewState idx
+    newInstance = widgetInst {
+      _instanceWidget = makeListView config newState
+    }
 
-    preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-      sizeReq = nodeValue $ Seq.index reqs 0
+  itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
+    lookup idx inst = Seq.lookup idx (_instanceChildren inst)
+    renderArea = fmap _instanceRenderArea $ pure widgetInst
+      >>= lookup 0 -- scroll
+      >>= lookup 0 -- vstack
+      >>= lookup idx -- item
+    scrollPath = firstChildPath widgetInst
+    scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-    resize wenv viewport renderArea widgetInst children reqs = (widgetInst, assignedArea) where
-      assignedArea = Seq.singleton (viewport, renderArea)
+  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
+    sizeReq = nodeValue $ Seq.index reqs 0
 
-makeItemsList :: (Eq a) => ListViewConfig s e a -> Path -> a -> Int -> WidgetInstance s e
-makeItemsList lvConfig lvPath selected highlightedIdx = makeItemsList where
+  resize wenv viewport renderArea widgetInst children reqs = resized where
+    assignedArea = Seq.singleton (viewport, renderArea)
+    resized = (widgetInst, assignedArea)
+
+makeItemsList
+  :: (Eq a) => ListViewConfig s e a -> Path -> a -> Int -> WidgetInstance s e
+makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   ListViewConfig{..} = lvConfig
   isSelected item = item == selected
-  selectedColor item = if isSelected item then Just _lvSelectedColor else Nothing
-  highlightedColor idx = if idx == highlightedIdx then Just _lvHighlightedColor else Nothing
-  pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
+  selectedColor item
+    | isSelected item = Just _lvSelectedColor
+    | otherwise = Nothing
+  highlightedColor idx
+    | idx == highlightedIdx = Just _lvHighlightedColor
+    | otherwise = Nothing
   itemStyle idx item = def {
     _styleColor = selectedColor item <|> highlightedColor idx,
     _styleHover = Just _lvHoverColor
@@ -189,4 +210,5 @@ makeItemsList lvConfig lvPath selected highlightedIdx = makeItemsList where
   makeItem idx item = container config content `style` itemStyle idx item where
     config = itemConfig idx
     content = label (_lvItemToText item)
-  makeItemsList = vstack $ fmap (uncurry makeItem) pairs
+  pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
+  itemsList = vstack $ fmap (uncurry makeItem) pairs

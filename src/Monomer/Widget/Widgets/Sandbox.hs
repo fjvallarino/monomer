@@ -18,7 +18,11 @@ import Monomer.Widget.BaseWidget
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-data SandboxData = SandboxData | SandboxData2 deriving (Eq, Show, Typeable)
+data SandboxData
+  = SandboxData
+  | SandboxData2
+  deriving (Eq, Show, Typeable)
+
 newtype SandboxState = SandboxState {
   _clickCount :: Int
 } deriving (Eq, Show, Typeable)
@@ -30,7 +34,8 @@ makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = defaultWidgetInstance "sandbox" widget
 
 makeSandbox :: e -> SandboxState -> Widget s e
-makeSandbox onClick state = createWidget {
+makeSandbox onClick state = widget where
+  widget = createWidget {
     _widgetGetState = makeState state,
     _widgetMerge = widgetMerge merge,
     _widgetHandleEvent = handleEvent,
@@ -38,38 +43,40 @@ makeSandbox onClick state = createWidget {
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
-  where
-    label = "Sandbox: " ++ show (_clickCount state)
 
-    merge wenv oldState widgetInst = resultWidget newInstance where
-      newState = fromMaybe state (useState oldState)
-      newInstance = widgetInst {
-        _instanceWidget = makeSandbox onClick newState
-      }
+  label = "Sandbox: " ++ show (_clickCount state)
 
-    handleEvent wenv target evt widgetInst = case evt of
-      Click (Point x y) _ -> Just $ resultReqsEvents requests events newInstance where
-        events = [onClick]
-        requests = [RunTask (_instancePath widgetInst) runTask]
-        newState = SandboxState (_clickCount state + 1)
-        newInstance = makeInstance $ makeSandbox onClick newState
-      Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
-      Move p -> Nothing --trace ("Move: " ++ show p) Nothing
-      Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
-      _ -> Nothing
+  merge wenv oldState widgetInst = resultWidget newInstance where
+    newState = fromMaybe state (useState oldState)
+    newInstance = widgetInst {
+      _instanceWidget = makeSandbox onClick newState
+    }
 
-    runTask = return SandboxData2
+  handleEvent wenv target evt widgetInst = case evt of
+    Click (Point x y) _ -> result where
+      events = [onClick]
+      requests = [RunTask (_instancePath widgetInst) runTask]
+      newState = SandboxState (_clickCount state + 1)
+      newInstance = makeInstance $ makeSandbox onClick newState
+      result = Just $ resultReqsEvents requests events newInstance
+    Enter p -> Nothing --trace ("Enter: " ++ show p) Nothing
+    Move p -> Nothing --trace ("Move: " ++ show p) Nothing
+    Leave _ p -> Nothing --trace ("Leave: " ++ show p) Nothing
+    _ -> Nothing
 
-    handleMessage wenv target bd widgetInst = case cast bd of
-      Just val -> if val == SandboxData2 then trace "Sandbox handleMessage called" Nothing else Nothing
-      Nothing -> Nothing
+  runTask = return SandboxData2
 
-    preferredSize wenv widgetInst = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInst
-      size = getTextBounds wenv _styleText (T.pack label)
-      sizeReq = SizeReq size FlexibleSize FlexibleSize
+  handleMessage wenv target bd widgetInst = case cast bd of
+    Just val
+      | val == SandboxData2 -> trace "Sandbox handleMessage called" Nothing
+      | otherwise -> Nothing
+    Nothing -> Nothing
 
-    render renderer wenv WidgetInstance{..} =
-      do
-        drawStyledBackground renderer _instanceRenderArea _instanceStyle
-        drawStyledText_ renderer _instanceRenderArea _instanceStyle (T.pack label)
+  preferredSize wenv widgetInst = singleNode sizeReq where
+    Style{..} = _instanceStyle widgetInst
+    size = getTextBounds wenv _styleText (T.pack label)
+    sizeReq = SizeReq size FlexibleSize FlexibleSize
+
+  render renderer wenv WidgetInstance{..} = do
+    drawStyledBackground renderer _instanceRenderArea _instanceStyle
+    drawStyledText_ renderer _instanceRenderArea _instanceStyle (T.pack label)

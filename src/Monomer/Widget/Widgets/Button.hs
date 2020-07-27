@@ -37,24 +37,29 @@ button_ :: ButtonConfig s e -> WidgetInstance s e
 button_ config = defaultWidgetInstance "button" (makeButton config)
 
 makeButton :: ButtonConfig s e -> Widget s e
-makeButton config = createWidget {
+makeButton config = widget where
+  widget = createWidget {
     _widgetHandleEvent = handleEvent,
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
-  where
-    handleEvent wenv ctx evt widgetInst = case evt of
-      Click (Point x y) _ -> Just $ resultReqsEvents requests events widgetInst where
-        requests = _btnOnChangeReq config
-        events = _btnOnChange config
-      _ -> Nothing
 
-    preferredSize wenv widgetInst = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInst
-      size = getTextBounds wenv _styleText (_btnLabel config)
-      sizeReq = SizeReq size FlexibleSize FlexibleSize
+  handleEvent wenv ctx evt widgetInst = case evt of
+    Click (Point x y) _ -> Just result where
+      requests = _btnOnChangeReq config
+      events = _btnOnChange config
+      result = resultReqsEvents requests events widgetInst
+    _ -> Nothing
 
-    render renderer wenv WidgetInstance{..} =
-      do
-        drawStyledBackground renderer _instanceRenderArea _instanceStyle
-        drawStyledText_ renderer _instanceRenderArea _instanceStyle (_btnLabel config)
+  preferredSize wenv widgetInst = singleNode sizeReq where
+    Style{..} = _instanceStyle widgetInst
+    size = getTextBounds wenv _styleText (_btnLabel config)
+    sizeReq = SizeReq size FlexibleSize FlexibleSize
+
+  render renderer wenv WidgetInstance{..} = do
+    drawStyledBackground renderer renderArea style
+    drawStyledText_ renderer renderArea style (_btnLabel config)
+
+    where
+      renderArea = _instanceRenderArea
+      style = _instanceStyle

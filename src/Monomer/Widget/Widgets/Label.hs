@@ -17,17 +17,17 @@ label :: Text -> WidgetInstance s e
 label caption = defaultWidgetInstance "label" (makeLabel caption)
 
 makeLabel :: Text -> Widget s e
-makeLabel caption = createWidget {
+makeLabel caption = widget where
+  widget = createWidget {
     _widgetPreferredSize = preferredSize,
     _widgetRender = render
   }
-  where
-    preferredSize wenv widgetInst = singleNode sizeReq where
-      Style{..} = _instanceStyle widgetInst
-      size = getTextBounds wenv _styleText caption
-      sizeReq = SizeReq size FlexibleSize StrictSize
 
-    render renderer wenv WidgetInstance{..} =
-      do
-        drawStyledBackground renderer _instanceRenderArea _instanceStyle
-        drawStyledText_ renderer _instanceRenderArea _instanceStyle caption
+  preferredSize wenv widgetInst = singleNode sizeReq where
+    Style{..} = _instanceStyle widgetInst
+    size = getTextBounds wenv _styleText caption
+    sizeReq = SizeReq size FlexibleSize StrictSize
+
+  render renderer wenv WidgetInstance{..} = do
+    drawStyledBackground renderer _instanceRenderArea _instanceStyle
+    drawStyledText_ renderer _instanceRenderArea _instanceStyle caption

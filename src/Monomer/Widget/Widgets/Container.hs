@@ -31,7 +31,7 @@ containerConfig :: ContainerConfig s e
 containerConfig = ContainerConfig [] []
 
 container :: ContainerConfig s e -> WidgetInstance s e -> WidgetInstance s e
-container config managedWidget = makeInstance (makeContainer config) managedWidget
+container config managed = makeInstance (makeContainer config) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
@@ -40,34 +40,38 @@ makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
 }
 
 makeContainer :: ContainerConfig s e -> Widget s e
-makeContainer config = createContainer {
+makeContainer config = widget where
+  widget = createContainer {
     _widgetHandleEvent = containerHandleEvent handleEvent,
     _widgetPreferredSize = containerPreferredSize preferredSize,
     _widgetResize = containerResize resize,
     _widgetRender = containerRender render
   }
-  where
-    handleEvent wenv ctx evt widgetInst = case evt of
-      Click point btn -> result where
-        events = _ctOnClick config
-        requests = _ctOnClickReq config
-        result = if btn == LeftBtn && not (null events && null requests)
-                    then Just $ resultReqsEvents requests events widgetInst
-                    else Nothing
-      _ -> Nothing
 
-    preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-      sizeReq = nodeValue $ Seq.index reqs 0
+  handleEvent wenv ctx evt widgetInst = case evt of
+    Click point btn -> result where
+      events = _ctOnClick config
+      requests = _ctOnClickReq config
+      needsUpdate = btn == LeftBtn && not (null events && null requests)
+      result
+        | needsUpdate = Just $ resultReqsEvents requests events widgetInst
+        | otherwise = Nothing
+    _ -> Nothing
 
-    resize wenv viewport renderArea widgetInst children reqs = (widgetInst, assignedArea) where
-      assignedArea = Seq.singleton (viewport, renderArea)
+  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
+    sizeReq = nodeValue $ Seq.index reqs 0
 
-    render renderer wenv widgetInst = do
-      let point = statusMousePos (_weInputStatus wenv)
-      let viewport = _instanceViewport widgetInst
-      let Style{..} = _instanceStyle widgetInst
+  resize wenv viewport renderArea widgetInst children reqs = resized where
+    assignedArea = Seq.singleton (viewport, renderArea)
+    resized = (widgetInst, assignedArea)
 
-      drawRect renderer viewport _styleColor Nothing
+  render renderer wenv widgetInst = do
+    drawRect renderer viewport _styleColor Nothing
 
-      when (pointInRect point viewport) $
-        drawRect renderer viewport _styleHover Nothing
+    when (pointInRect point viewport) $
+      drawRect renderer viewport _styleHover Nothing
+
+    where
+      point = statusMousePos (_weInputStatus wenv)
+      viewport = _instanceViewport widgetInst
+      Style{..} = _instanceStyle widgetInst
