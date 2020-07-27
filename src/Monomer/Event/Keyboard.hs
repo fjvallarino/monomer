@@ -25,16 +25,19 @@ getKeycode :: SDL.Keycode -> KeyCode
 getKeycode keyCode = fromIntegral $ SDL.unwrapKeycode keyCode
 
 keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
-keyboardEvent (SDL.KeyboardEvent eventData) = Just $ KeyAction keyMod keyCode keyStatus where
-  keyMod = convertKeyModifier $ SDL.keysymModifier $ SDL.keyboardEventKeysym eventData
-  keyCode = fromIntegral $ SDL.unwrapKeycode $ SDL.keysymKeycode $ SDL.keyboardEventKeysym eventData
+keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where
+  keySym = SDL.keyboardEventKeysym eventData
+  keyMod = convertKeyModifier $ SDL.keysymModifier keySym
+  keyCode = SDL.unwrapKeycode $ SDL.keysymKeycode keySym
   keyStatus = case SDL.keyboardEventKeyMotion eventData of
     SDL.Pressed -> KeyPressed
     SDL.Released -> KeyReleased
+  keyAction = KeyAction keyMod (fromIntegral keyCode) keyStatus
 keyboardEvent _ = Nothing
 
 textEvent :: SDL.EventPayload -> Maybe SystemEvent
-textEvent (SDL.TextInputEvent input) = Just $ TextInput (SDL.textInputEventText input)
+textEvent (SDL.TextInputEvent input) = Just textInput where
+  textInput = TextInput (SDL.textInputEventText input)
 textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod

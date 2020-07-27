@@ -52,7 +52,11 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
   -- Scissor operations
   setScissor (Rect x y w h) =
-    liftIO $ VG.scissor c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
+    liftIO $ VG.scissor c
+      (realToFrac $ x * dpr)
+      (realToFrac $ y * dpr)
+      (realToFrac $ w * dpr)
+      (realToFrac $ h * dpr)
 
   resetScissor =
     liftIO $ VG.resetScissor c
@@ -79,7 +83,12 @@ newRenderer c dpr overlaysRef = Renderer {..} where
       col1 = colorToPaint color1
       col2 = colorToPaint color2
     in do
-      gradient <- liftIO $ VG.linearGradient c (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr) (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr) col1 col2
+      gradient <- liftIO $ VG.linearGradient c
+        (realToFrac $ x1 * dpr)
+        (realToFrac $ y1 * dpr)
+        (realToFrac $ x2 * dpr)
+        (realToFrac $ y2 * dpr)
+        col1 col2
       liftIO $ VG.fillPaint c gradient
 
   -- Drawing
@@ -95,16 +104,28 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     liftIO $ nvLineTo c (x * dpr) (y * dpr)
 
   rect (Rect x y w h) =
-    liftIO $ VG.rect c (realToFrac $ x * dpr) (realToFrac $ y * dpr) (realToFrac $ w * dpr) (realToFrac $ h * dpr)
+    liftIO $ VG.rect c
+      (realToFrac $ x * dpr)
+      (realToFrac $ y * dpr)
+      (realToFrac $ w * dpr)
+      (realToFrac $ h * dpr)
 
   arc (Point x1 y1) rad angleStart angleEnd winding =
-    liftIO $ nvArc c (x1 * dpr) (y1 * dpr) (rad * dpr) angleStart angleEnd (convertWinding winding)
+    liftIO $ nvArc c
+      (x1 * dpr) (y1 * dpr)
+      (rad * dpr)
+      angleStart angleEnd
+      (convertWinding winding)
 
   quadTo (Point x1 y1) (Point x2 y2) =
-    liftIO $ VG.quadTo c (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr) (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
+    liftIO $ VG.quadTo c
+      (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr)
+      (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
 
   ellipse (Rect x y w h) =
-    liftIO $ VG.ellipse c (realToFrac $ cx * dpr) (realToFrac $ cy * dpr) (realToFrac $ rx * dpr) (realToFrac $ ry * dpr)
+    liftIO $ VG.ellipse c
+      (realToFrac $ cx * dpr) (realToFrac $ cy * dpr)
+      (realToFrac $ rx * dpr) (realToFrac $ ry * dpr)
     where cx = x + rx
           cy = y + ry
           rx = w / 2
@@ -114,7 +135,10 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   text (Rect x y w h) font fontSize (Align ha va) message = do
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac $ fontSize * dpr
-    VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c (realToFrac $ x * dpr) (realToFrac $ y * dpr) message
+    VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c
+      (realToFrac $ x * dpr)
+      (realToFrac $ y * dpr)
+      message
     (asc, desc, _) <- liftIO $ VG.textMetrics c
 
     let xr = x * dpr
@@ -133,7 +157,11 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     when (message /= "") $
       liftIO $ VG.text c (realToFrac tx) (realToFrac ty) message
 
-    return $ Rect (tx / dpr) ((ty - realToFrac asc) / dpr) (realToFrac tw / dpr) (realToFrac th / dpr)
+    return $ Rect
+      (tx / dpr)
+      ((ty - realToFrac asc) / dpr)
+      (realToFrac tw / dpr)
+      (realToFrac th / dpr)
 
   textBounds font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
@@ -152,14 +180,25 @@ nvLineTo :: VG.Context -> Double -> Double -> IO ()
 nvLineTo c x y =
   VG.lineTo c (realToFrac x) (realToFrac y)
 
-nvArc :: VG.Context -> Double -> Double -> Double -> Double -> Double -> VG.Winding -> IO ()
+nvArc
+  :: VG.Context
+  -> Double -> Double -> Double -> Double -> Double -> VG.Winding -> IO ()
 nvArc c cx cy radius angleStart angleEnd winding =
-  VG.arc c (realToFrac cx) (realToFrac cy) (realToFrac radius) (VG.degToRad $ realToFrac angleStart) (VG.degToRad $ realToFrac angleEnd) winding
+  VG.arc c
+    (realToFrac cx) (realToFrac cy)
+    (realToFrac radius)
+    (VG.degToRad $ realToFrac angleStart) (VG.degToRad $ realToFrac angleEnd)
+    winding
 
 colorToPaint :: Color -> VG.Color
 colorToPaint (Color r g b a)
-  | a >= 1.0  = VG.rgb (fromIntegral r) (fromIntegral g) (fromIntegral b)
-  | otherwise = VG.rgba (fromIntegral r) (fromIntegral g) (fromIntegral b) (round $ a * 255)
+  | a >= 1.0  = VG.rgb red green blue
+  | otherwise = VG.rgba red green blue alpha
+  where
+    red = fromIntegral r
+    green = fromIntegral g
+    blue = fromIntegral b
+    alpha = round $ a * 255
 
 convertWinding :: Winding -> VG.Winding
 convertWinding CW = VG.CW

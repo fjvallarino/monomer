@@ -196,7 +196,7 @@ containerHandleEvent pHandler wenv target event widgetInst
   where
     -- Having targetValid = False means the next path step is not in
     -- _instanceChildren, but may still be valid in the receiving widget
-    -- For instance, Composite has its own tree of child widgets with (possibly)
+    -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
     targetReached = isTargetReached target widgetInst
     targetValid = isTargetValid target widgetInst

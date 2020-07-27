@@ -18,17 +18,17 @@ mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
 mouseClick _ _ = Nothing
 
 mouseMoveEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseMoveEvent devicePixelRate mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
-mouseMoveEvent devicePixelRate mousePos _ = Nothing
+mouseMoveEvent dpr mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
+mouseMoveEvent dpr mousePos _ = Nothing
 
 mouseWheelEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseWheelEvent devicePixelRate mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
+mouseWheelEvent dpr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
   wheelDirection = case SDL.mouseWheelEventDirection eventData of
     SDL.ScrollNormal -> WheelNormal
     SDL.ScrollFlipped -> WheelFlipped
   SDL.V2 x y = SDL.mouseWheelEventPos eventData
-  wheelDelta = Point (fromIntegral x * devicePixelRate) (fromIntegral y * devicePixelRate)
+  wheelDelta = Point (fromIntegral x * dpr) (fromIntegral y * dpr)
   systemEvent = case SDL.mouseWheelEventWhich eventData of
     SDL.Mouse _ -> Just $ WheelScroll mousePos wheelDelta wheelDirection
     SDL.Touch -> Nothing
-mouseWheelEvent devicePixelRate mousePos _ = Nothing
+mouseWheelEvent dpr mousePos _ = Nothing
