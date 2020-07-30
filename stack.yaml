@@ -40,12 +40,8 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- hedgehog-1.0
-- hedgehog-classes-0.2.1
+- hedgehog-classes-0.2.5
 - nanovg-0.6.0.0
-- StateVar-1.1.1.1@sha256:cd3b516a49faf0627ea31885e012611e63600824976dcb276bcb2e92cdb0790f,1417
-- git: https://github.com/haskell-game/sdl2
-  commit: 647c5611e23ad2822e974d9868faa481059258ca
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

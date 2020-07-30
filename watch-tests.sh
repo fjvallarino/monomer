@@ -1,1 +1,1 @@
-ghcid --command "stack ghci hs-music:lib hs-music:test:hs-music-test --ghci-options=-fobject-code"
+ghcid --command "stack ghci monomer:lib monomer:test:monomer-test --ghci-options=-fobject-code"

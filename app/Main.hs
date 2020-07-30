@@ -74,7 +74,7 @@ main = do
         SDL.windowInitialSize = SDL.V2 screenWidth screenHeight,
         SDL.windowHighDPI = windowHiDPI,
         SDL.windowResizable = True,
-        SDL.windowOpenGL = Just customOpenGL
+        SDL.windowGraphicsContext = SDL.OpenGLContext customOpenGL
       }
 
   err <- SRE.getError

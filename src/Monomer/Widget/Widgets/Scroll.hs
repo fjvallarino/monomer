@@ -321,20 +321,30 @@ scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   vScrollRatio = min (vpHeight / childHeight) 1
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
-  hScrollRect =
-    Rect vpLeft (vpTop + hScrollTop) (vpLeft + vpWidth) (vpTop + vpHeight)
-  vScrollRect =
-    Rect (vpLeft + vScrollLeft) vpTop (vpLeft + vpWidth) (vpTop + vpHeight)
-  hThumbRect = Rect
-    (vpLeft - hScrollRatio * dx)
-    (vpTop + hScrollTop)
-    (hScrollRatio * vpWidth)
-    barThickness
-  vThumbRect = Rect
-    (vpLeft + vScrollLeft)
-    (vpTop - vScrollRatio * dy)
-    barThickness
-    (vScrollRatio * vpHeight)
+  hScrollRect = Rect {
+    _rx = vpLeft,
+    _ry = vpTop + hScrollTop,
+    _rw = vpLeft + vpWidth,
+    _rh = vpTop + vpHeight
+  }
+  vScrollRect = Rect {
+    _rx = vpLeft + vScrollLeft,
+    _ry = vpTop,
+    _rw = vpLeft + vpWidth,
+    _rh = vpTop + vpHeight
+  }
+  hThumbRect = Rect {
+    _rx = vpLeft - hScrollRatio * dx,
+    _ry = vpTop + hScrollTop,
+    _rw = hScrollRatio * vpWidth,
+    _rh = barThickness
+  }
+  vThumbRect = Rect {
+    _rx = vpLeft + vScrollLeft,
+    _ry = vpTop - vScrollRatio * dy,
+    _rw = barThickness,
+    _rh = vScrollRatio * vpHeight
+  }
   hMouseInScroll = pointInRect mousePos hScrollRect
   vMouseInScroll = pointInRect mousePos vScrollRect
   hMouseInThumb = pointInRect mousePos hThumbRect

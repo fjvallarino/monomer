@@ -129,9 +129,9 @@
     - Move currentPath into WidgetInstance
     - Move focusedPath and targetPath to WidgetEnv
     - Visible and enabled would get updated on init/merge
+  - Format code!
 
 - Pending
-  - Format code!
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -152,6 +152,8 @@
     - Find non visible character that returns correct height if input is empty
   - Request text input when text field gets focus (required for mobile)
     - Also set TextInputRect
+  - Use newtypes whenever possible
+  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
