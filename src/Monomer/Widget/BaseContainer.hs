@@ -125,9 +125,8 @@ mergeChildren
   -> Seq (WidgetResult s e)
 mergeChildren _ _ Empty = Empty
 mergeChildren wenv Empty newItems = result where
-  newChild :<| newChildren = newItems
-  child = _widgetInit (_instanceWidget newChild) wenv newChild
-  result = child <| mergeChildren wenv Empty newChildren
+  init child = _widgetInit (_instanceWidget child) wenv child
+  result = fmap init newItems
 mergeChildren wenv oldItems newItems = result where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems

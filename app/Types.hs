@@ -28,4 +28,5 @@ data AppEvent = InitApp
               | AppButton
               | IncreaseMessage
               | UpdateText Text
+              | IncButton
               deriving (Show, Eq)

@@ -103,7 +103,7 @@ main = do
   SDL.destroyWindow window
   SDL.quit
 
-handleAppEvent model evt = traceShow evt $ traceShow model $
+handleAppEvent2 model evt = traceShow evt $ traceShow model $
   case evt of
     InitApp -> Task $ do
       putStrLn "Initialized application"
@@ -122,23 +122,21 @@ handleAppEvent model evt = traceShow evt $ traceShow model $
         return Nothing)
     IncreaseMessage -> Model (model & msgCount %~ (+1))
     UpdateText txt -> Model (model & textField1 .~ txt)
+    _ -> Model model
 
-buildUI1 model = widgetTree where
-  widgetTree = listView textField1 items id
-  items = fmap showt [1..100::Int]
+handleAppEvent model evt = case evt of
+  IncButton -> Model (model & clickCount %~ (+1))
+  _ -> Model model
 
-buildUI model = widgetTree where
+buildUI model = trace "Creating UI" widgetTree where
   widgetTree = vstack [
-      --dropdown textField1 itemsDropdown id `style` color red,
-      --label "Yes!" `style` color green,
-      --spacer,
-      --listView textField2 items id,
-      --spacer,
-      textField textField1,
-      textField textField2 `style` color red,
-      textField textField3 `style` color blue,
-      listView textField3 items id
-    ]
-  items = fmap showt [1..30::Int]
-  itemsDropdown = fmap dropdownText [1..100::Int]
-  dropdownText i = "Dropdown " <> showt i
+      label (showt $ model ^. clickCount),
+      hstack labels `key` "Labels",
+      --hstack [
+      --  label "Label 1",
+      --  label "Label 2"
+      --],
+      button IncButton "Click!"
+    ] `key` "Main"
+  newLabel i = label $ "New: " <> showt i
+  labels = newLabel <$> [0..(model ^. clickCount - 1)]
