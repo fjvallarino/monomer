@@ -56,12 +56,8 @@ makeStack isHorizontal = widget where
     rSize = max 0 (mainSize - sSize)
     fCount = fromIntegral $ length fChildren
     rCount = fromIntegral $ length rChildren
-    fAvg = if fExists then fSize / fCount else 0
-    fLargeFilter c = sizeSelector (_sizeRequested c) >= fAvg
-    fLargeFiltered = Seq.filter fLargeFilter fChildren
-    fLargeSize = sizeSelector $ calcPreferredSize fLargeFiltered
     fExtra
-      | fExists = (rSize - fSize) / fLargeSize
+      | fExists = (rSize - fSize) / fSize
       | otherwise = 0
     rUnit
       | rExists && not fExists = rSize / rCount
@@ -69,12 +65,12 @@ makeStack isHorizontal = widget where
     assignedArea = Seq.zip newViewports newViewports
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
     foldHelper (accum, offset) childPair = (newAccum, newOffset) where
-      newSize = resizeChild renderArea fAvg fExtra rUnit offset childPair
+      newSize = resizeChild renderArea fExtra rUnit offset childPair
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
     resized = (widgetInst, assignedArea)
 
-  resizeChild renderArea fAvg fExtra rUnit offset childPair = result where
+  resizeChild renderArea fExtra rUnit offset childPair = result where
     Rect l t w h = renderArea
     childInstance = fst childPair
     req = nodeValue $ snd childPair
@@ -84,9 +80,7 @@ makeStack isHorizontal = widget where
     vRect = Rect l offset w calcNewSize
     calcNewSize = case policySelector req of
       StrictSize -> sizeSelector srSize
-      FlexibleSize
-        | sizeSelector srSize >= fAvg -> (1 + fExtra) * sizeSelector srSize
-        | otherwise -> sizeSelector srSize
+      FlexibleSize -> (1 + fExtra) * sizeSelector srSize
       RemainderSize -> rUnit
     result
       | not $ _instanceVisible childInstance = emptyRect

@@ -138,5 +138,5 @@ buildUI model = trace "Creating UI" widgetTree where
       --],
       button IncButton "Click!"
     ] `key` "Main"
-  newLabel i = label $ "New: " <> showt i
+  newLabel i = label ("New: " <> showt i) `style` color (if i `mod` 2 == 0 then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]
