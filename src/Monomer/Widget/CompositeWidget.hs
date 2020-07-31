@@ -60,8 +60,7 @@ data CompositeState s e = CompositeState {
   _cmpModel :: s,
   _cmpRoot :: WidgetInstance s e,
   _cmpInitEvent :: Maybe e,
-  _cmpGlobalKeys :: GlobalKeys s e,
-  _cmpSizeReq :: Tree SizeReq
+  _cmpGlobalKeys :: GlobalKeys s e
 }
 
 data ReducedEvents s e sp ep = ReducedEvents {
@@ -84,7 +83,7 @@ composite
 composite widgetType model initEvent eventHandler uiBuilder = newInstance where
   widgetRoot = uiBuilder model
   composite = Composite widgetType eventHandler uiBuilder
-  state = CompositeState model widgetRoot initEvent M.empty (singleNode def)
+  state = CompositeState model widgetRoot initEvent M.empty
   widget = createComposite composite state
   newInstance = defaultWidgetInstance widgetType widget
 
@@ -138,7 +137,7 @@ compositeMerge
 compositeMerge comp state wenv oldComposite newComposite = result where
   oldState = _widgetGetState (_instanceWidget oldComposite) wenv
   validState = fromMaybe state (useState oldState)
-  CompositeState oldModel oldRoot oldInit oldGlobalKeys oldReqs = validState
+  CompositeState oldModel oldRoot oldInit oldGlobalKeys = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created
   -- on _cmp_ has not yet been evaluated
   newRoot = cascadeCtx newComposite (_uiBuilder comp oldModel)
@@ -256,8 +255,7 @@ compositeResize comp state wenv newView newArea widgetComp reqs = resized where
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = _widgetResize widget cwenv newView newArea _cmpRoot reqs
   newState = state {
-    _cmpRoot = newRoot,
-    _cmpSizeReq = reqs
+    _cmpRoot = newRoot
   }
   resized = widgetComp {
     _instanceWidget = createComposite comp newState,
@@ -315,27 +313,20 @@ updateComposite
   -> WidgetInstance s e
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-updateComposite comp state wenv newModel oldRoot widgetComp = result where
+updateComposite comp state wenv newModel widgetRoot widgetComp = result where
   CompositeState{..} = state
-  widget = _instanceWidget _cmpRoot
-  modelChanged = _cmpModel /= newModel
-  builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
-  builtWidget = _instanceWidget builtRoot
-  cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
-  mergedResult = _widgetMerge builtWidget cwenv oldRoot builtRoot
-  mergedRoot = _resultWidget mergedResult
-  mergedWidget = _instanceWidget mergedRoot
-  mergedReqs = _widgetPreferredSize mergedWidget cwenv mergedRoot
-  mergedState = state {
+  changed = _cmpModel /= newModel
+  newState = state {
     _cmpModel = newModel,
-    _cmpRoot = mergedRoot,
-    _cmpSizeReq = mergedReqs
+    _cmpRoot = widgetRoot
   }
   result
-    | modelChanged = reduceResult comp mergedState wenv widgetComp mergedResult
-    | otherwise = updateCompSize comp state wenv newModel oldRoot widgetComp
+    | changed = rebuildComposite comp state wenv newModel widgetRoot widgetComp
+    | otherwise = resultWidget $ widgetComp {
+        _instanceWidget = createComposite comp newState
+      }
 
-updateCompSize
+rebuildComposite
   :: (Eq s, Typeable s, Typeable e)
   => Composite s e ep
   -> CompositeState s e
@@ -344,21 +335,38 @@ updateCompSize
   -> WidgetInstance s e
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-updateCompSize comp state wenv newModel oldRoot widgetComp = result where
+rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
+  CompositeState{..} = state
+  builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
+  builtWidget = _instanceWidget builtRoot
+  cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
+  mergedResult = _widgetMerge builtWidget cwenv widgetRoot builtRoot
+  resizedResult = resizeResult state wenv mergedResult widgetComp
+  mergedState = state {
+    _cmpModel = newModel,
+    _cmpRoot = _resultWidget resizedResult
+  }
+  result = reduceResult comp mergedState wenv widgetComp resizedResult
+
+resizeResult
+  :: (Eq s, Typeable s, Typeable e)
+  => CompositeState s e
+  -> WidgetEnv sp ep
+  -> WidgetResult s e
+  -> WidgetInstance sp ep
+  -> WidgetResult s e
+resizeResult state wenv result widgetComp = resizedResult where
   CompositeState{..} = state
   viewport = _instanceViewport widgetComp
   renderArea = _instanceRenderArea widgetComp
-  widget = _instanceWidget oldRoot
-  cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
-  newRoot = _widgetResize widget cwenv viewport renderArea oldRoot _cmpSizeReq
-  newState = state {
-    _cmpModel = newModel,
-    _cmpRoot = newRoot
+  cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
+  widgetRoot = _resultWidget result
+  widget = _instanceWidget widgetRoot
+  newReqs = _widgetPreferredSize widget cwenv widgetRoot
+  newRoot = _widgetResize widget cwenv viewport renderArea widgetRoot newReqs
+  resizedResult = result {
+    _resultWidget = newRoot
   }
-  newInstance = widgetComp {
-    _instanceWidget = createComposite comp newState
-  }
-  result = resultWidget newInstance
 
 reduceCompEvents
   :: GlobalKeys s e
