@@ -58,7 +58,7 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     Leave oldPath _        -> pathEvent oldPath
   where
     startPath = fromMaybe rootPath overlay
-    widget = _instanceWidget widgetRoot
+    widget = _wiWidget widgetRoot
     pathEvent = Just
     pathFromPoint point = _widgetFind widget wenv startPath point widgetRoot
     pointEvent point = pressed <|> pathFromPoint point <|> overlay
@@ -94,7 +94,7 @@ handleSystemEvent renderer wenv event currentTarget widgetRoot = do
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)
     Just target -> do
-      let widget = _instanceWidget widgetRoot
+      let widget = _wiWidget widgetRoot
       let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
       let evtResult = _widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
@@ -111,7 +111,7 @@ handleWidgetInit
   -> WidgetInstance s e
   -> m (HandlerStep s e)
 handleWidgetInit renderer wenv widgetRoot = do
-  let widget = _instanceWidget widgetRoot
+  let widget = _wiWidget widgetRoot
   let widgetResult = _widgetInit widget wenv widgetRoot
 
   handleWidgetResult renderer wenv widgetResult
@@ -271,7 +271,7 @@ handleSendMessages renderer reqs previousStep = nextStep where
 
     let (wenv, events, widgetRoot) = previousStep
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widget = _instanceWidget widgetRoot
+    let widget = _wiWidget widgetRoot
     let msgResult = _widgetHandleMessage widget wenv path message widgetRoot
     let widgetResult = fromMaybe emptyResult msgResult
 

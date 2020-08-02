@@ -53,18 +53,18 @@ widgetMerge
   -> WidgetInstance s e
   -> WidgetResult s e
 widgetMerge mergeHandler wenv oldInstance newInstance = result where
-  oldState = _widgetGetState (_instanceWidget oldInstance) wenv
+  oldState = _widgetGetState (_wiWidget oldInstance) wenv
   result = mergeHandler wenv oldState newInstance
 
 defaultNextFocusable
   :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
 defaultNextFocusable wenv startFrom widgetInst
-  | isFocusCandidate startFrom widgetInst = Just (_instancePath widgetInst)
+  | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
   | otherwise = Nothing
 
 defaultFind
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind wenv path point widgetInst = Just (_instancePath widgetInst)
+defaultFind wenv path point widgetInst = Just (_wiPath widgetInst)
 
 defaultHandleEvent
   :: WidgetEnv s e
@@ -98,8 +98,8 @@ defaultResize
   -> WidgetInstance s e
   -> WidgetInstance s e
 defaultResize wenv viewport renderArea reqs widgetInst = widgetInst {
-    _instanceViewport = viewport,
-    _instanceRenderArea = renderArea
+    _wiViewport = viewport,
+    _wiRenderArea = renderArea
   }
 
 defaultRender

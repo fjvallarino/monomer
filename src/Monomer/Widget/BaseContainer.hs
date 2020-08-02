@@ -67,17 +67,17 @@ containerInit
   -> WidgetResult s e
 containerInit initHandler wenv widgetInst = result where
   WidgetResult reqs events tempInstance = initHandler wenv widgetInst
-  children = _instanceChildren tempInstance
+  children = _wiChildren tempInstance
   indexes = Seq.fromList [0..length children]
   zipper idx child = _widgetInit newWidget wenv newChild where
     newChild = cascadeCtx widgetInst child idx
-    newWidget = _instanceWidget newChild
+    newWidget = _wiWidget newChild
   results = Seq.zipWith zipper indexes children
   newReqs = fold $ fmap _wrRequests results
   newEvents = fold $ fmap _wrEvents results
   newChildren = fmap _wrWidget results
   newInstance = tempInstance {
-    _instanceChildren = newChildren
+    _wiChildren = newChildren
   }
   result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
@@ -99,10 +99,10 @@ containerMergeTrees
   -> WidgetInstance s e
   -> WidgetResult s e
 containerMergeTrees mergeHandler wenv oldInst newInst = result where
-  oldState = _widgetGetState (_instanceWidget oldInst) wenv
+  oldState = _widgetGetState (_wiWidget oldInst) wenv
   WidgetResult uReqs uEvents uInstance = mergeHandler wenv oldState newInst
-  oldChildren = _instanceChildren oldInst
-  updatedChildren = _instanceChildren uInstance
+  oldChildren = _wiChildren oldInst
+  updatedChildren = _wiChildren uInstance
   indexes = Seq.fromList [0..length updatedChildren]
   zipper idx child = cascadeCtx newInst child idx
   newChildren = Seq.zipWith zipper indexes updatedChildren
@@ -112,7 +112,7 @@ containerMergeTrees mergeHandler wenv oldInst newInst = result where
   mergedReqs = concatSeq $ fmap _wrRequests mergedResults
   mergedEvents = concatSeq $ fmap _wrEvents mergedResults
   mergedInstance = uInstance {
-    _instanceChildren = mergedChildren
+    _wiChildren = mergedChildren
   }
   newReqs = uReqs <> mergedReqs
   newEvents = uEvents <> mergedEvents
@@ -125,13 +125,13 @@ mergeChildren
   -> Seq (WidgetResult s e)
 mergeChildren _ _ Empty = Empty
 mergeChildren wenv Empty newItems = result where
-  init child = _widgetInit (_instanceWidget child) wenv child
+  init child = _widgetInit (_wiWidget child) wenv child
   result = fmap init newItems
 mergeChildren wenv oldItems newItems = result where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems
-  newWidget = _instanceWidget newChild
-  oldKeyMatch = _instanceKey newChild >>= flip M.lookup (_weGlobalKeys wenv)
+  newWidget = _wiWidget newChild
+  oldKeyMatch = _wiKey newChild >>= flip M.lookup (_weGlobalKeys wenv)
   mergedOld = _widgetMerge newWidget wenv oldChild newChild
   mergedKey = _widgetMerge newWidget wenv (fromJust oldKeyMatch) newChild
   initNew = _widgetInit newWidget wenv newChild
@@ -145,21 +145,21 @@ mergeChildren wenv oldItems newItems = result where
 containerNextFocusable
   :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
 containerNextFocusable wenv startFrom widgetInst = nextFocus where
-  children = _instanceChildren widgetInst
+  children = _wiChildren widgetInst
   isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
-  nextCandidate ch = _widgetNextFocusable (_instanceWidget ch) wenv startFrom ch
+  nextCandidate ch = _widgetNextFocusable (_wiWidget ch) wenv startFrom ch
   candidates = fmap nextCandidate (Seq.filter isBeforeTarget children)
   focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus
-    | isFocusCandidate startFrom widgetInst = Just (_instancePath widgetInst)
+    | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
     | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
 containerFind
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
 containerFind wenv startPath point widgetInst = result where
-  children = _instanceChildren widgetInst
-  pointInWidget wi = pointInRect point (_instanceViewport wi)
+  children = _wiChildren widgetInst
+  pointInWidget wi = pointInRect point (_wiViewport wi)
   newStartPath = Seq.drop 1 startPath
   childIdx = case startPath of
     Empty -> Seq.findIndexL pointInWidget children
@@ -168,8 +168,8 @@ containerFind wenv startPath point widgetInst = result where
     Just idx -> childPath where
       childPath = _widgetFind childWidget wenv newStartPath point child
       child = Seq.index children idx
-      childWidget = _instanceWidget child
-    Nothing -> Just $ _instancePath widgetInst
+      childWidget = _wiWidget child
+    Nothing -> Just $ _wiPath widgetInst
 
 -- | Event Handling
 type ContainerEventHandler s e
@@ -194,19 +194,19 @@ containerHandleEvent pHandler wenv target event widgetInst
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx
   where
     -- Having targetValid = False means the next path step is not in
-    -- _instanceChildren, but may still be valid in the receiving widget
+    -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
     targetReached = isTargetReached target widgetInst
     targetValid = isTargetValid target widgetInst
     childIdx = fromJust $ nextTargetStep target widgetInst
-    children = _instanceChildren widgetInst
+    children = _wiChildren widgetInst
     child = Seq.index children childIdx
-    childWidget = _instanceWidget child
+    childWidget = _wiWidget child
     pResponse = pHandler wenv target event widgetInst
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
-      | childrenIgnored || not (_instanceEnabled child) = Nothing
+      | childrenIgnored || not (_wiEnabled child) = Nothing
       | otherwise = _widgetHandleEvent childWidget wenv target event child
 
 mergeParentChildEvts
@@ -261,9 +261,9 @@ containerHandleMessage mHandler wenv target arg widgetInst
     targetReached = isTargetReached target widgetInst
     targetValid = isTargetValid target widgetInst
     childIdx = fromJust $ nextTargetStep target widgetInst
-    children = _instanceChildren widgetInst
+    children = _wiChildren widgetInst
     child = Seq.index children childIdx
-    message = _widgetHandleMessage (_instanceWidget child) wenv target arg child
+    message = _widgetHandleMessage (_wiWidget child) wenv target arg child
     messageResult = updateChild <$> message
     updateChild cr = cr {
       _wrWidget = replaceChild widgetInst (_wrWidget cr) childIdx
@@ -291,10 +291,10 @@ containerPreferredSize
   -> WidgetInstance s e
   -> Tree SizeReq
 containerPreferredSize psHandler wenv widgetInst = preferredSize where
-  children = _instanceChildren widgetInst
+  children = _wiChildren widgetInst
   childrenReqs = fmap updateChild children
   updateChild child = Node (updateSizeReq req child) reqs where
-    Node req reqs = _widgetPreferredSize (_instanceWidget child) wenv child
+    Node req reqs = _widgetPreferredSize (_wiWidget child) wenv child
   preferredSize = psHandler wenv widgetInst children childrenReqs
 
 -- | Resize
@@ -321,19 +321,19 @@ containerResize
   -> WidgetInstance s e
   -> WidgetInstance s e
 containerResize handler wenv viewport renderArea reqs widgetInst = newSize where
-  children = _instanceChildren widgetInst
+  children = _wiChildren widgetInst
   defReqs = Seq.replicate (Seq.length children) (singleNode def)
   curReqs = nodeChildren reqs
   childrenReqs = if Seq.null curReqs then defReqs else curReqs
   (tempInst, assigned) =
     handler wenv viewport renderArea children childrenReqs widgetInst
   resizeChild (child, req, (viewport, renderArea)) =
-    _widgetResize (_instanceWidget child) wenv viewport renderArea req child
+    _widgetResize (_wiWidget child) wenv viewport renderArea req child
   newChildren = resizeChild <$> Seq.zip3 children childrenReqs assigned
   newSize = tempInst {
-    _instanceViewport = viewport,
-    _instanceRenderArea = renderArea,
-    _instanceChildren = newChildren
+    _wiViewport = viewport,
+    _wiRenderArea = renderArea,
+    _wiChildren = newChildren
   }
 
 -- | Rendering
@@ -346,7 +346,7 @@ type ContainerRenderHandler s e m
 
 defaultContainerRender :: ContainerRenderHandler s e m
 defaultContainerRender renderer wenv WidgetInstance{..} =
-  drawStyledBackground renderer _instanceRenderArea _instanceStyle
+  drawStyledBackground renderer _wiRenderArea _wiStyle
 
 containerRender
   :: (Monad m)
@@ -356,12 +356,12 @@ containerRender
   -> WidgetInstance s e
   -> m ()
 containerRender rHandler renderer wenv widgetInst = do
-  let children = _instanceChildren widgetInst
+  let children = _wiChildren widgetInst
 
   rHandler renderer wenv widgetInst
 
-  forM_ children $ \child -> when (_instanceVisible child) $
-    _widgetRender (_instanceWidget child) renderer wenv child
+  forM_ children $ \child -> when (_wiVisible child) $
+    _widgetRender (_wiWidget child) renderer wenv child
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
@@ -374,8 +374,8 @@ ignoreParent result = not (Seq.null ignoreReqs) where
 
 replaceChild
   :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
-replaceChild parent child idx = parent { _instanceChildren = newChildren } where
-  newChildren = Seq.update idx child (_instanceChildren parent)
+replaceChild parent child idx = parent { _wiChildren = newChildren } where
+  newChildren = Seq.update idx child (_wiChildren parent)
 
 visibleChildrenReq
   :: Seq (WidgetInstance s e)
@@ -383,18 +383,18 @@ visibleChildrenReq
   -> (Seq (WidgetInstance s e), Seq SizeReq)
 visibleChildrenReq children reqs = Seq.unzipWith extract filtered where
   pairs = Seq.zip children reqs
-  isVisible (child, req) = _instanceVisible child
+  isVisible (child, req) = _wiVisible child
   filtered = Seq.filter isVisible pairs
   extract (child, treq) = (child, nodeValue treq)
 
 cascadeCtx
   :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
 cascadeCtx parent child idx = newChild where
-  parentPath = _instancePath parent
-  parentVisible = _instanceVisible parent
-  parentEnabled = _instanceEnabled parent
+  parentPath = _wiPath parent
+  parentVisible = _wiVisible parent
+  parentEnabled = _wiEnabled parent
   newChild = child {
-    _instancePath = parentPath |> idx,
-    _instanceVisible = _instanceVisible child && parentVisible,
-    _instanceEnabled = _instanceEnabled child && parentEnabled
+    _wiPath = parentPath |> idx,
+    _wiVisible = _wiVisible child && parentVisible,
+    _wiEnabled = _wiEnabled child && parentEnabled
   }

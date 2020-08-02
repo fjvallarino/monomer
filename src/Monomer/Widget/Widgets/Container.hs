@@ -35,8 +35,8 @@ container config managed = makeInstance (makeContainer config) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
-  _instanceChildren = Seq.singleton managedWidget,
-  _instanceFocusable = False
+  _wiChildren = Seq.singleton managedWidget,
+  _wiFocusable = False
 }
 
 makeContainer :: ContainerConfig s e -> Widget s e
@@ -73,5 +73,5 @@ makeContainer config = widget where
 
     where
       point = statusMousePos (_weInputStatus wenv)
-      viewport = _instanceViewport widgetInst
-      Style{..} = _instanceStyle widgetInst
+      viewport = _wiViewport widgetInst
+      Style{..} = _wiStyle widgetInst

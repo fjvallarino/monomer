@@ -54,7 +54,7 @@ makeButton config = widget where
     _ -> Nothing
 
   preferredSize wenv widgetInst = singleNode sizeReq where
-    Style{..} = _instanceStyle widgetInst
+    Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText (_btnLabel config)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
@@ -63,5 +63,5 @@ makeButton config = widget where
     drawStyledText_ renderer renderArea style (_btnLabel config)
 
     where
-      renderArea = _instanceRenderArea
-      style = _instanceStyle
+      renderArea = _wiRenderArea
+      style = _wiStyle

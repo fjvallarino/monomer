@@ -24,17 +24,17 @@ rootPath = Seq.empty
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
-  _instanceType = widgetType,
-  _instanceKey = Nothing,
-  _instancePath = Seq.empty,
-  _instanceWidget = widget,
-  _instanceChildren = Seq.empty,
-  _instanceEnabled = True,
-  _instanceVisible = True,
-  _instanceFocusable = False,
-  _instanceViewport = def,
-  _instanceRenderArea = def,
-  _instanceStyle = def
+  _wiType = widgetType,
+  _wiKey = Nothing,
+  _wiPath = Seq.empty,
+  _wiWidget = widget,
+  _wiChildren = Seq.empty,
+  _wiEnabled = True,
+  _wiVisible = True,
+  _wiFocusable = False,
+  _wiViewport = def,
+  _wiRenderArea = def,
+  _wiStyle = def
 }
 
 widgetValueGet :: s -> WidgetValue s a -> a
@@ -48,17 +48,17 @@ widgetValueSet (WidgetLens lens) value = [UpdateModel updateFn] where
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
 key widgetInst key = widgetInst {
-  _instanceKey = Just (WidgetKey key)
+  _wiKey = Just (WidgetKey key)
 }
 
 style :: WidgetInstance s e -> Style -> WidgetInstance s e
 style widgetInst newStyle = widgetInst {
-  _instanceStyle = newStyle
+  _wiStyle = newStyle
 }
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible widgetInst visibility = widgetInst {
-  _instanceVisible = visibility
+  _wiVisible = visibility
 }
 
 resultWidget :: WidgetInstance s e -> WidgetResult s e
@@ -86,13 +86,13 @@ useState (Just (WidgetState state)) = cast state
 
 instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
-  typeMatches = _instanceType oldInstance == _instanceType newInstance
-  keyMatches = _instanceKey oldInstance == _instanceKey newInstance
+  typeMatches = _wiType oldInstance == _wiType newInstance
+  keyMatches = _wiKey oldInstance == _wiKey newInstance
 
 updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
 updateSizeReq sizeReq widgetInst = newSizeReq where
-  width = _styleWidth . _instanceStyle $ widgetInst
-  height = _styleHeight . _instanceStyle $ widgetInst
+  width = _styleWidth . _wiStyle $ widgetInst
+  height = _styleHeight . _wiStyle $ widgetInst
   tempSizeReq
     | isNothing width = sizeReq
     | otherwise = sizeReq {
@@ -180,39 +180,39 @@ isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _wpOS (_wePlatform wenv) == "Mac OS X"
 
 firstChildPath :: WidgetInstance s e -> Path
-firstChildPath widgetInst = _instancePath widgetInst |> 0
+firstChildPath widgetInst = _wiPath widgetInst |> 0
 
 nextTargetStep :: Path -> WidgetInstance s e -> Maybe PathStep
 nextTargetStep target widgetInst = nextStep where
-  currentPath = _instancePath widgetInst
+  currentPath = _wiPath widgetInst
   nextStep = Seq.lookup (Seq.length currentPath) target
 
 pointInViewport :: Point -> WidgetInstance s e -> Bool
-pointInViewport p inst = pointInRect p (_instanceViewport inst)
+pointInViewport p inst = pointInRect p (_wiViewport inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isFocused ctx widgetInst = _weFocusedPath ctx == _instancePath widgetInst
+isFocused ctx widgetInst = _weFocusedPath ctx == _wiPath widgetInst
 
 isFocusCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusCandidate startFrom widgetInst = isValid where
   isBefore = isTargetBeforeCurrent startFrom widgetInst
-  isFocusable = _instanceFocusable widgetInst
-  isEnabled = _instanceVisible widgetInst && _instanceEnabled widgetInst
+  isFocusable = _wiFocusable widgetInst
+  isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
   isValid = isBefore && isFocusable && isEnabled
 
 isTargetReached :: Path -> WidgetInstance s e -> Bool
-isTargetReached target widgetInst = target == _instancePath widgetInst
+isTargetReached target widgetInst = target == _wiPath widgetInst
 
 isTargetValid :: Path -> WidgetInstance s e -> Bool
 isTargetValid target widgetInst = valid where
-  children = _instanceChildren widgetInst
+  children = _wiChildren widgetInst
   valid = case nextTargetStep target widgetInst of
     Just step -> step < Seq.length children
     Nothing -> False
 
 isTargetBeforeCurrent :: Path -> WidgetInstance s e -> Bool
 isTargetBeforeCurrent target widgetInst = targetPrefix < currentPath where
-  currentPath = _instancePath widgetInst
+  currentPath = _wiPath widgetInst
   lenTarget = Seq.length target
   lenCurrent = Seq.length currentPath
   targetPrefix

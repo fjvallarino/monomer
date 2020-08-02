@@ -36,13 +36,13 @@ mockWenv model = WidgetEnv {
 
 initWidget :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 initWidget wenv inst = newInst where
-  WidgetResult _ _  inst2 = _widgetInit (_instanceWidget inst) wenv inst
+  WidgetResult _ _  inst2 = _widgetInit (_wiWidget inst) wenv inst
   Size w h = _weScreenSize wenv
   vp = Rect 0 0 w h
-  reqs = _widgetPreferredSize (_instanceWidget inst2) wenv inst2
-  newInst = _widgetResize (_instanceWidget inst2) wenv vp vp reqs inst2
+  reqs = _widgetPreferredSize (_wiWidget inst2) wenv inst2
+  newInst = _widgetResize (_wiWidget inst2) wenv vp vp reqs inst2
 
 instancePreferredSize :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
 instancePreferredSize wenv inst = nodeValue reqs where
-  widget = _instanceWidget inst
+  widget = _wiWidget inst
   reqs = _widgetPreferredSize widget wenv inst

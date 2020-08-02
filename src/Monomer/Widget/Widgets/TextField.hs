@@ -64,7 +64,7 @@ textField_ config = makeInstance $ makeTextField config textFieldState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "textField" widget) {
-  _instanceFocusable = True
+  _wiFocusable = True
 }
 
 makeTextField :: TextFieldConfig s e -> TextFieldState -> Widget s e
@@ -86,7 +86,7 @@ makeTextField config state = widget where
     currText = currentValue wenv
     newState = TextFieldState currText 0
     newInstance = widgetInst {
-      _instanceWidget = makeTextField config newState
+      _wiWidget = makeTextField config newState
     }
 
   merge wenv oldState widgetInst = resultWidget newInstance where
@@ -96,7 +96,7 @@ makeTextField config state = widget where
                 | otherwise -> oldPos
     newState = TextFieldState currText newPos
     newInstance = widgetInst {
-      _instanceWidget = makeTextField config newState
+      _wiWidget = makeTextField config newState
     }
 
   handleKeyPress txt tp code
@@ -108,13 +108,13 @@ makeTextField config state = widget where
 
   handleEvent wenv target evt widgetInst = case evt of
     Click (Point x y) _ -> Just $ resultReqs reqs widgetInst where
-      reqs = [SetFocus $ _instancePath widgetInst]
+      reqs = [SetFocus $ _wiPath widgetInst]
 
     KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
       (newText, newPos) = handleKeyPress currText currPos code
       isPaste = isClipboardPaste wenv evt
       isCopy = isClipboardCopy wenv evt
-      reqGetClipboard = [GetClipboard (_instancePath widgetInst) | isPaste]
+      reqGetClipboard = [GetClipboard (_wiPath widgetInst) | isPaste]
       reqSetClipboard = [SetClipboard (ClipboardText currText) | isCopy]
       reqUpdateModel
         | currText /= newText = widgetValueSet (_tfcValue config) newText
@@ -122,7 +122,7 @@ makeTextField config state = widget where
       reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateModel
       newState = TextFieldState newText newPos
       newInstance = widgetInst {
-        _instanceWidget = makeTextField config newState
+        _wiWidget = makeTextField config newState
       }
 
     TextInput newText -> insertText wenv widgetInst newText
@@ -137,16 +137,16 @@ makeTextField config state = widget where
     newState = TextFieldState newText newPos
     reqs = widgetValueSet (_tfcValue config) newText
     newInst = widgetInst {
-      _instanceWidget = makeTextField config newState
+      _wiWidget = makeTextField config newState
     }
 
   preferredSize wenv widgetInst = singleNode sizeReq where
-    Style{..} = _instanceStyle widgetInst
+    Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText currText
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv widgetInst = do
-    drawStyledBackground renderer renderArea _instanceStyle
+    drawStyledBackground renderer renderArea _wiStyle
     Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
     when (isFocused wenv widgetInst) $ do
@@ -156,8 +156,8 @@ makeTextField config state = widget where
     where
       WidgetInstance{..} = widgetInst
       ts = _weTimestamp wenv
-      renderArea@(Rect rl rt rw rh) = _instanceRenderArea
-      textStyle = _styleText _instanceStyle
+      renderArea@(Rect rl rt rw rh) = _wiRenderArea
+      textStyle = _styleText _wiStyle
       caretAlpha
         | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0

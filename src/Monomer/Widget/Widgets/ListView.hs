@@ -86,7 +86,7 @@ listView_ config = makeInstance (makeListView config newState) where
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "listView" widget) {
-  _instanceFocusable = True
+  _wiFocusable = True
 }
 
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
@@ -105,11 +105,11 @@ makeListView config state = widget where
 
   createListView wenv newState widgetInst = newInstance where
     selected = currentValue wenv
-    path = _instancePath widgetInst
+    path = _wiPath widgetInst
     itemsList = makeItemsList config path selected (_highlighted newState)
     newInstance = widgetInst {
-      _instanceWidget = makeListView config newState,
-      _instanceChildren = Seq.singleton (scroll itemsList)
+      _wiWidget = makeListView config newState,
+      _wiChildren = Seq.singleton (scroll itemsList)
     }
 
   init wenv widgetInst = resultWidget $ createListView wenv state widgetInst
@@ -150,7 +150,7 @@ makeListView config state = widget where
     -- ListView's merge uses the old widget's state. Since we want the newly
     -- created state, the old widget is replaced here
     oldInstance = widgetInst {
-      _instanceWidget = newWidget
+      _wiWidget = newWidget
     }
     -- ListView's tree will be rebuilt in merge, before merging its children,
     -- so it does not matter what we currently have
@@ -166,16 +166,16 @@ makeListView config state = widget where
     valueSetReq = widgetValueSet (_lvValue config) value
     scrollToReq = itemScrollTo widgetInst idx
     changeReqs = fmap ($ idx) (_lvOnChangeReq config)
-    focusReq = [SetFocus $ _instancePath widgetInst]
+    focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
     newInstance = widgetInst {
-      _instanceWidget = makeListView config newState
+      _wiWidget = makeListView config newState
     }
 
   itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
-    lookup idx inst = Seq.lookup idx (_instanceChildren inst)
-    renderArea = fmap _instanceRenderArea $ pure widgetInst
+    lookup idx inst = Seq.lookup idx (_wiChildren inst)
+    renderArea = fmap _wiRenderArea $ pure widgetInst
       >>= lookup 0 -- scroll
       >>= lookup 0 -- vstack
       >>= lookup idx -- item

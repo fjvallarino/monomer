@@ -81,7 +81,7 @@ dropdown_ config = makeInstance (makeDropdown config newState) where
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
-  _instanceFocusable = True
+  _wiFocusable = True
 }
 
 makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Widget s e
@@ -102,10 +102,10 @@ makeDropdown config state = widget where
 
   createDropdown wenv newState widgetInst = newInstance where
     selected = currentValue wenv
-    path = _instancePath widgetInst
+    path = _wiPath widgetInst
     newInstance = widgetInst {
-      _instanceWidget = makeDropdown config newState,
-      _instanceChildren = Seq.singleton $ makeListView config path selected
+      _wiWidget = makeDropdown config newState,
+      _wiChildren = Seq.singleton $ makeListView config path selected
     }
 
   init wenv widgetInst = resultWidget $ createDropdown wenv state widgetInst
@@ -126,11 +126,11 @@ makeDropdown config state = widget where
       | otherwise -> Nothing
 
   openRequired point widgetInst = not isOpen && inViewport where
-    inViewport = pointInRect point (_instanceViewport widgetInst)
+    inViewport = pointInRect point (_wiViewport widgetInst)
 
   closeRequired point widgetInst = isOpen && not inOverlay where
-    inOverlay = case Seq.lookup 0 (_instanceChildren widgetInst) of
-      Just inst -> pointInRect point (_instanceViewport inst)
+    inOverlay = case Seq.lookup 0 (_wiChildren widgetInst) of
+      Just inst -> pointInRect point (_wiViewport inst)
       Nothing -> False
 
   openDropdown wenv widgetInst = resultReqs requests newInstance where
@@ -138,17 +138,17 @@ makeDropdown config state = widget where
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected (_ddItems config))
     newState = DropdownState True
     newInstance = widgetInst {
-      _instanceWidget = makeDropdown config newState
+      _wiWidget = makeDropdown config newState
     }
-    path = _instancePath widgetInst
+    path = _wiPath widgetInst
     lvPath = firstChildPath widgetInst
     requests = [SetOverlay path, SetFocus lvPath]
 
   closeDropdown wenv widgetInst = resultReqs requests newInstance where
-    path = _instancePath widgetInst
+    path = _wiPath widgetInst
     newState = DropdownState False
     newInstance = widgetInst {
-      _instanceWidget = makeDropdown config newState
+      _wiWidget = makeDropdown config newState
     }
     requests = [ResetOverlay, SetFocus path]
 
@@ -163,7 +163,7 @@ makeDropdown config state = widget where
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
   preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-    Style{..} = _instanceStyle widgetInst
+    Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText (dropdownLabel wenv)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
@@ -190,12 +190,12 @@ makeDropdown config state = widget where
       createOverlay renderer $
         renderOverlay renderer wenv (fromJust listViewOverlay)
     where
-      listViewOverlay = Seq.lookup 0 _instanceChildren
-      renderArea = _instanceRenderArea
-      style = _instanceStyle
+      listViewOverlay = Seq.lookup 0 _wiChildren
+      renderArea = _wiRenderArea
+      style = _wiStyle
 
   renderOverlay renderer wenv overlayInstance = renderAction where
-    widget = _instanceWidget overlayInstance
+    widget = _wiWidget overlayInstance
     renderAction = _widgetRender widget renderer wenv overlayInstance
 
   dropdownLabel wenv = _ddItemToText config $ currentValue wenv

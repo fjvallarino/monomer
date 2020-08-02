@@ -200,27 +200,27 @@ data Widget s e =
 data WidgetInstance s e =
   WidgetInstance {
     -- | Type of the widget
-    _instanceType :: !WidgetType,
+    _wiType :: !WidgetType,
     -- | Key/Identifier of the widget
-    _instanceKey :: Maybe WidgetKey,
+    _wiKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
-    _instancePath :: !Path,
+    _wiPath :: !Path,
     -- | The actual widget
-    _instanceWidget :: Widget s e,
+    _wiWidget :: Widget s e,
     -- | The children widget, if any
-    _instanceChildren :: Seq (WidgetInstance s e),
+    _wiChildren :: Seq (WidgetInstance s e),
     -- | Indicates if the widget is enabled for user interaction
-    _instanceEnabled :: !Bool,
+    _wiEnabled :: !Bool,
     -- | Indicates if the widget is visible
-    _instanceVisible :: !Bool,
+    _wiVisible :: !Bool,
     -- | Indicates whether the widget can receive focus
-    _instanceFocusable :: !Bool,
+    _wiFocusable :: !Bool,
     -- | The visible area of the screen assigned to the widget
-    _instanceViewport :: !Rect,
+    _wiViewport :: !Rect,
     -- | The area of the screen where the widget can draw
-    -- | Usually equal to _instanceViewport, but may be larger if the widget is
+    -- | Usually equal to _wiViewport, but may be larger if the widget is
     -- | wrapped in a scrollable container
-    _instanceRenderArea :: !Rect,
+    _wiRenderArea :: !Rect,
     -- | Style attributes of the widget instance
-    _instanceStyle :: Style
+    _wiStyle :: Style
   }

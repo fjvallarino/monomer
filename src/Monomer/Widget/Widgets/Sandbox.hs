@@ -49,13 +49,13 @@ makeSandbox onClick state = widget where
   merge wenv oldState widgetInst = resultWidget newInstance where
     newState = fromMaybe state (useState oldState)
     newInstance = widgetInst {
-      _instanceWidget = makeSandbox onClick newState
+      _wiWidget = makeSandbox onClick newState
     }
 
   handleEvent wenv target evt widgetInst = case evt of
     Click (Point x y) _ -> result where
       events = [onClick]
-      requests = [RunTask (_instancePath widgetInst) runTask]
+      requests = [RunTask (_wiPath widgetInst) runTask]
       newState = SandboxState (_clickCount state + 1)
       newInstance = makeInstance $ makeSandbox onClick newState
       result = Just $ resultReqsEvents requests events newInstance
@@ -73,10 +73,10 @@ makeSandbox onClick state = widget where
     Nothing -> Nothing
 
   preferredSize wenv widgetInst = singleNode sizeReq where
-    Style{..} = _instanceStyle widgetInst
+    Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText (T.pack label)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   render renderer wenv WidgetInstance{..} = do
-    drawStyledBackground renderer _instanceRenderArea _instanceStyle
-    drawStyledText_ renderer _instanceRenderArea _instanceStyle (T.pack label)
+    drawStyledBackground renderer _wiRenderArea _wiStyle
+    drawStyledText_ renderer _wiRenderArea _wiStyle (T.pack label)

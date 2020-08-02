@@ -18,12 +18,12 @@ import Monomer.Widget.BaseContainer
 
 hgrid :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 hgrid children = (defaultWidgetInstance "hgrid" (makeFixedGrid True)) {
-  _instanceChildren = foldl' (|>) Empty children
+  _wiChildren = foldl' (|>) Empty children
 }
 
 vgrid :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 vgrid children = (defaultWidgetInstance "vgrid" (makeFixedGrid False)) {
-  _instanceChildren = foldl' (|>) Empty children
+  _wiChildren = foldl' (|>) Empty children
 }
 
 makeFixedGrid :: Bool -> Widget s e
@@ -51,7 +51,7 @@ makeFixedGrid isHorizontal = widget where
 
   resize wenv viewport renderArea children reqs widgetInst = resized where
     Rect l t w h = renderArea
-    vchildren = Seq.filter _instanceVisible children
+    vchildren = Seq.filter _wiVisible children
     cols = if isHorizontal then length vchildren else 1
     rows = if isHorizontal then 1 else length vchildren
     cw = if cols > 0 then w / fromIntegral cols else 0
@@ -63,8 +63,8 @@ makeFixedGrid isHorizontal = widget where
       | cols > 0 = t + fromIntegral (i `div` cols) * ch
       | otherwise = 0
     foldHelper (newAreas, index) child = (newAreas |> newArea, newIndex) where
-      visible = _instanceVisible child
-      newIndex = index + if _instanceVisible child then 1 else 0
+      visible = _wiVisible child
+      newIndex = index + if _wiVisible child then 1 else 0
       newViewport = if visible then calcViewport index else def
       newArea = (newViewport, newViewport)
     calcViewport i = Rect (cx i) (cy i) cw ch

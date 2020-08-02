@@ -35,7 +35,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btn = initWidget wenv (button BtnClick "Click")
-    widget = _instanceWidget btn
+    widget = _wiWidget btn
     click p = _widgetHandleEvent widget wenv rootPath (Click p LeftBtn) btn
     events p = maybe Seq.empty _wrEvents (click p)
 

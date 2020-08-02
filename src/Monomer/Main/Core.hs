@@ -94,7 +94,7 @@ runWidgets window c widgetRoot = do
     _weTimestamp = startTs
   }
   let pathReadyRoot = widgetRoot {
-    _instancePath = Seq.singleton 0
+    _wiPath = Seq.singleton 0
   }
   (newWenv, _, initializedRoot) <- handleWidgetInit renderer wenv pathReadyRoot
 
@@ -201,7 +201,7 @@ renderWidgets
   -> m ()
 renderWidgets !window !c !renderer wenv widgetRoot =
   doInDrawingContext window c $
-    _widgetRender (_instanceWidget widgetRoot) renderer wenv widgetRoot
+    _widgetRender (_wiWidget widgetRoot) renderer wenv widgetRoot
 
 resizeWindow
   :: (MonomerM s m)
@@ -236,7 +236,7 @@ preProcessEvent
   => WidgetEnv s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent wenv widgetRoot evt@(Move point) = do
   hover <- use latestHover
-  let widget = _instanceWidget widgetRoot
+  let widget = _wiWidget widgetRoot
   let current = _widgetFind widget wenv rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
   let enter = [Enter point | isNothing hover || hoverChanged]
@@ -247,7 +247,7 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
 
   return $ leave ++ enter ++ [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
-  let widget = _instanceWidget widgetRoot
+  let widget = _wiWidget widgetRoot
   let current = _widgetFind widget wenv rootPath point widgetRoot
 
   latestPressed .= current

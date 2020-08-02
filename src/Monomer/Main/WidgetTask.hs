@@ -96,7 +96,7 @@ processTaskEvent renderer wenv widgetRoot path event = do
   currentFocus <- use focused
 
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-  let widget = _instanceWidget widgetRoot
+  let widget = _wiWidget widgetRoot
   let msgResult = _widgetHandleMessage widget wenv path event widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 

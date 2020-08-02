@@ -19,12 +19,12 @@ import Monomer.Widget.Util
 
 hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 hstack children = (defaultWidgetInstance "hstack" (makeStack True)) {
-  _instanceChildren = foldl' (|>) Empty children
+  _wiChildren = foldl' (|>) Empty children
 }
 
 vstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
-  _instanceChildren = foldl' (|>) Empty children
+  _wiChildren = foldl' (|>) Empty children
 }
 
 makeStack :: Bool -> Widget s e
@@ -83,7 +83,7 @@ makeStack isHorizontal = widget where
       FlexibleSize -> (1 + fExtra) * sizeSelector srSize
       RemainderSize -> rUnit
     result
-      | not $ _instanceVisible childInstance = emptyRect
+      | not $ _wiVisible childInstance = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
 
