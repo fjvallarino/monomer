@@ -20,7 +20,7 @@ mockPlatform :: WidgetPlatform
 mockPlatform = WidgetPlatform {
   _wpOS = "Linux",
   _wpGetKeyCode = const Nothing,
-  _wpTextBounds = mockTextBounds
+  _wpGetTextSize = mockTextBounds
 }
 
 mockWenv :: s -> WidgetEnv s e

@@ -27,12 +27,12 @@ drawRect
 drawRect _ _ Nothing _ = pure ()
 drawRect renderer viewport (Just color) Nothing = do
   beginPath renderer
-  fillColor renderer color
-  rect renderer viewport
+  setFillColor renderer color
+  renderRect renderer viewport
   fill renderer
 drawRect renderer viewport (Just color) (Just radius) = do
   beginPath renderer
-  fillColor renderer color
+  setFillColor renderer color
   drawRoundedRect renderer viewport radius
   fill renderer
 
@@ -55,20 +55,20 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     moveTo renderer (Point x1 y1)
 
     when (isJust _radiusTopLeft) $
-      arc renderer (Point x1 y1) (fromJust _radiusTopLeft) 180 270 CW
-    lineTo renderer (Point x2 yt)
+      renderArc renderer (Point x1 y1) (fromJust _radiusTopLeft) 180 270 CW
+    renderLineTo renderer (Point x2 yt)
 
     when (isJust _radiusTopRight) $
-      arc renderer (Point x2 y2) (justDef _radiusTopRight) 270 0 CW
-    lineTo renderer (Point xr y3)
+      renderArc renderer (Point x2 y2) (justDef _radiusTopRight) 270 0 CW
+    renderLineTo renderer (Point xr y3)
 
     when (isJust _radiusBottomRight) $
-      arc renderer (Point x3 y3) (justDef _radiusBottomRight) 0 90 CW
-    lineTo renderer (Point x4 yb)
+      renderArc renderer (Point x3 y3) (justDef _radiusBottomRight) 0 90 CW
+    renderLineTo renderer (Point x4 yb)
 
     when (isJust _radiusBottomLeft) $
-      arc renderer (Point x4 y4) (justDef _radiusBottomLeft) 90 180 CW
-    lineTo renderer (Point xl y1)
+      renderArc renderer (Point x4 y4) (justDef _radiusBottomLeft) 90 180 CW
+    renderLineTo renderer (Point xl y1)
 
 drawStyledBorder
   :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
@@ -126,11 +126,11 @@ drawCorner
   -> m ()
 drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   beginPath renderer
-  fillColor renderer (_borderSideColor bs1)
+  setFillColor renderer (_borderSideColor bs1)
   moveTo renderer p1
-  lineTo renderer p2
-  lineTo renderer p3
-  lineTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  renderLineTo renderer p1
   fill renderer
 drawCorner renderer p1 p2 p3 _ _ = return ()
 
@@ -231,14 +231,14 @@ drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
   beginPath renderer
 
   if color1 == color2
-    then fillColor renderer color1
-    else fillLinearGradient renderer p1 p2 color1 color2
+    then setFillColor renderer color1
+    else setFillLinearGradient renderer p1 p2 color1 color2
 
-  arc renderer c1 rad deg (deg - 90) CCW
-  lineTo renderer p1
+  renderArc renderer c1 rad deg (deg - 90) CCW
+  renderLineTo renderer p1
   if abs (width2 - width1) < 0.5
-    then arc renderer c1 (rad - width1) (deg - 90) deg CW
-    else quadTo renderer c2 p2
+    then renderArc renderer c1 (rad - width1) (deg - 90) deg CW
+    else renderQuadTo renderer c2 p2
 
   closePath renderer
   fill renderer
@@ -249,10 +249,10 @@ strokeBorder
 strokeBorder renderer from to Nothing = pure ()
 strokeBorder renderer from to (Just BorderSide{..}) = do
   beginPath renderer
-  strokeColor renderer _borderSideColor
-  strokeWidth renderer _borderSideWidth
+  setStrokeColor renderer _borderSideColor
+  setStrokeWidth renderer _borderSideWidth
   moveTo renderer from
-  lineTo renderer to
+  renderLineTo renderer to
   stroke renderer
 
 drawStyledText :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m Rect
@@ -269,8 +269,8 @@ drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
 drawText renderer viewport Nothing txt =
   drawText renderer viewport (Just mempty) txt
 drawText renderer viewport (Just TextStyle{..}) txt = do
-    fillColor renderer tsColor
-    text renderer viewport tsFont tsFontSize tsAlign txt
+    setFillColor renderer tsColor
+    renderText renderer viewport tsFont tsFontSize tsAlign txt
   where
     tsColor = fromMaybe defaultColor _textStyleColor
     tsFont = fromMaybe defaultFont _textStyleFont

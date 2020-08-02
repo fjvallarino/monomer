@@ -45,7 +45,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   createOverlay overlay =
     liftIO $ modifyIORef overlaysRef (|> overlay)
 
-  runOverlays = do
+  renderOverlays = do
     overlays <- liftIO $ readIORef overlaysRef
     sequence_ overlays
     liftIO $ writeIORef overlaysRef Seq.empty
@@ -65,20 +65,20 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   stroke =
     liftIO $ VG.stroke c
 
-  strokeColor color =
+  setStrokeColor color =
     liftIO $ VG.strokeColor c (colorToPaint color)
 
-  strokeWidth width =
+  setStrokeWidth width =
     liftIO $ VG.strokeWidth c (realToFrac $ width * dpr)
 
   -- Fill
   fill =
     liftIO $ VG.fill c
 
-  fillColor color =
+  setFillColor color =
     liftIO $ VG.fillColor c (colorToPaint color)
 
-  fillLinearGradient (Point x1 y1) (Point x2 y2) color1 color2 =
+  setFillLinearGradient (Point x1 y1) (Point x2 y2) color1 color2 =
     let
       col1 = colorToPaint color1
       col2 = colorToPaint color2
@@ -95,34 +95,34 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   moveTo (Point x y) =
     liftIO $ nvMoveTo c (x * dpr) (y * dpr)
 
-  line (Point x1 y1) (Point x2 y2) = do
+  renderLine (Point x1 y1) (Point x2 y2) = do
     liftIO $ nvMoveTo c (x1 * dpr) (y1 * dpr)
     liftIO $ nvLineTo c (x2 * dpr) (y2 * dpr)
 
-  lineTo (Point x y) = do
+  renderLineTo (Point x y) = do
     liftIO $ VG.lineJoin c VG.Bevel
     liftIO $ nvLineTo c (x * dpr) (y * dpr)
 
-  rect (Rect x y w h) =
+  renderRect (Rect x y w h) =
     liftIO $ VG.rect c
       (realToFrac $ x * dpr)
       (realToFrac $ y * dpr)
       (realToFrac $ w * dpr)
       (realToFrac $ h * dpr)
 
-  arc (Point x1 y1) rad angleStart angleEnd winding =
+  renderArc (Point x1 y1) rad angleStart angleEnd winding =
     liftIO $ nvArc c
       (x1 * dpr) (y1 * dpr)
       (rad * dpr)
       angleStart angleEnd
       (convertWinding winding)
 
-  quadTo (Point x1 y1) (Point x2 y2) =
+  renderQuadTo (Point x1 y1) (Point x2 y2) =
     liftIO $ VG.quadTo c
       (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr)
       (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
 
-  ellipse (Rect x y w h) =
+  renderEllipse (Rect x y w h) =
     liftIO $ VG.ellipse c
       (realToFrac $ cx * dpr) (realToFrac $ cy * dpr)
       (realToFrac $ rx * dpr) (realToFrac $ ry * dpr)
@@ -132,7 +132,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
           ry = h / 2
 
   -- Text
-  text (Rect x y w h) font fontSize (Align ha va) message = do
+  renderText (Rect x y w h) font fontSize (Align ha va) message = do
     liftIO $ VG.fontFace c font
     liftIO $ VG.fontSize c $ realToFrac $ fontSize * dpr
     VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c
@@ -163,7 +163,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
       (realToFrac tw / dpr)
       (realToFrac th / dpr)
 
-  textBounds font fontSize message = unsafePerformIO $ do
+  getTextSize font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
 
     liftIO $ VG.fontFace c font

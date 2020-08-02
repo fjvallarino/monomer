@@ -19,27 +19,27 @@ data Renderer m = (Monad m) => Renderer {
   restoreContext :: m (),
   -- Overlays
   createOverlay :: m () -> m (),
-  runOverlays :: m (),
+  renderOverlays :: m (),
   -- Scissor operations
   setScissor :: Rect -> m (),
   resetScissor :: m (),
   -- Strokes
   stroke :: m (),
-  strokeColor :: Color -> m (),
-  strokeWidth :: Double -> m (),
+  setStrokeColor :: Color -> m (),
+  setStrokeWidth :: Double -> m (),
   -- Fill
   fill :: m (),
-  fillColor :: Color -> m (),
-  fillLinearGradient :: Point -> Point -> Color -> Color -> m (),
+  setFillColor :: Color -> m (),
+  setFillLinearGradient :: Point -> Point -> Color -> Color -> m (),
   -- Drawing
   moveTo :: Point -> m (),
-  line :: Point -> Point -> m (),
-  lineTo :: Point -> m (),
-  rect :: Rect -> m (),
-  arc :: Point -> Double -> Double -> Double -> Winding -> m (),
-  quadTo :: Point -> Point -> m (),
-  ellipse :: Rect -> m (),
+  renderLine :: Point -> Point -> m (),
+  renderLineTo :: Point -> m (),
+  renderRect :: Rect -> m (),
+  renderArc :: Point -> Double -> Double -> Double -> Winding -> m (),
+  renderQuadTo :: Point -> Point -> m (),
+  renderEllipse :: Rect -> m (),
   -- Text
-  text :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
-  textBounds :: Font -> FontSize -> Text -> Size
+  renderText :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
+  getTextSize :: Font -> FontSize -> Text -> Size
 }

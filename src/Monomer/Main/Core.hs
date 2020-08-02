@@ -64,7 +64,7 @@ createWidgetPlatform :: (Monad m) => Text -> Renderer m -> WidgetPlatform
 createWidgetPlatform os renderer = WidgetPlatform {
   _wpOS = os,
   _wpGetKeyCode = getKeyCode,
-  _wpTextBounds = textBounds renderer
+  _wpGetTextSize = getTextSize renderer
 }
 
 runWidgets
@@ -135,9 +135,8 @@ mainLoop window c renderer loopArgs = do
   let !ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
-  let resized = not $ null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
-  let mouseEntered =
-        not $ null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
+  let windowResized = isWindowResized eventsPayload
+  let mouseEntered = isMouseEntered eventsPayload
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
   let newSecond = _mlFrameStartTs + ts > 1000
@@ -169,11 +168,11 @@ mainLoop window c renderer loopArgs = do
   (wtWenv, _, wtRoot) <- handleWidgetTasks renderer wenv _mlWidgetRoot
   (seWenv, _, seRoot) <- handleSystemEvents renderer wtWenv sysEvents wtRoot
 
-  newRoot <- if resized then resizeWindow window seWenv seRoot
+  newRoot <- if windowResized then resizeWindow window seWenv seRoot
                               else return seRoot
 
   renderWidgets window c renderer seWenv newRoot
-  runOverlays renderer
+  renderOverlays renderer
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -274,3 +273,11 @@ updateInputStatus (KeyAction kMod kCode kStatus)
     statusKeys = M.insert kCode kStatus (statusKeys status)
   }
 updateInputStatus _ = return ()
+
+isWindowResized :: [SDL.EventPayload] -> Bool
+isWindowResized eventsPayload = not status where
+  status = null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
+
+isMouseEntered :: [SDL.EventPayload] -> Bool
+isMouseEntered eventsPayload = not status where
+  status = null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]

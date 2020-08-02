@@ -161,7 +161,7 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 
 getTextBounds :: WidgetEnv s e -> Maybe TextStyle -> Text -> Size
 getTextBounds wenv style text = calcTextBounds handler style text where
-  handler = _wpTextBounds (_wePlatform wenv)
+  handler = _wpGetTextSize (_wePlatform wenv)
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
