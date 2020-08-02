@@ -21,12 +21,13 @@ instance Default App where
 
 makeLenses ''App
 
-data AppEvent = InitApp
-              | RunShortTask
-              | RunLongTask
-              | PrintTextFields
-              | AppButton
-              | IncreaseMessage
-              | UpdateText Text
-              | IncButton
-              deriving (Show, Eq)
+data AppEvent
+  = InitApp
+  | RunShortTask
+  | RunLongTask
+  | PrintTextFields
+  | AppButton
+  | IncreaseMessage
+  | UpdateText Text
+  | IncButton
+  deriving (Show, Eq)

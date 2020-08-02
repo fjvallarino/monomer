@@ -187,6 +187,9 @@ nextTargetStep target widgetInst = nextStep where
   currentPath = _instancePath widgetInst
   nextStep = Seq.lookup (Seq.length currentPath) target
 
+pointInViewport :: Point -> WidgetInstance s e -> Bool
+pointInViewport p inst = pointInRect p (_instanceViewport inst)
+
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused ctx widgetInst = _weFocusedPath ctx == _instancePath widgetInst
 

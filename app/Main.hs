@@ -129,6 +129,7 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
+  widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
   widgetTree = vstack [
       label (showt $ model ^. clickCount),
       hstack labels `key` "Labels",
