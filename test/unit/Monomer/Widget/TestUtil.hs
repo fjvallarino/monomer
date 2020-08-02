@@ -40,7 +40,7 @@ initWidget wenv inst = newInst where
   Size w h = _weScreenSize wenv
   vp = Rect 0 0 w h
   reqs = _widgetPreferredSize (_instanceWidget inst2) wenv inst2
-  newInst = _widgetResize (_instanceWidget inst2) wenv vp vp inst2 reqs
+  newInst = _widgetResize (_instanceWidget inst2) wenv vp vp reqs inst2
 
 instancePreferredSize :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
 instancePreferredSize wenv inst = nodeValue reqs where

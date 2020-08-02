@@ -49,7 +49,7 @@ makeFixedGrid isHorizontal = widget where
       | isHorizontal = 1
       | otherwise = fromIntegral (length vchildren)
 
-  resize wenv viewport renderArea widgetInst children reqs = resized where
+  resize wenv viewport renderArea children reqs widgetInst = resized where
     Rect l t w h = renderArea
     vchildren = Seq.filter _instanceVisible children
     cols = if isHorizontal then length vchildren else 1

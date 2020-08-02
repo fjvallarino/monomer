@@ -39,7 +39,7 @@ makeStack isHorizontal = widget where
     size = calcPreferredSize vreqs
     reqSize = SizeReq size FlexibleSize FlexibleSize
 
-  resize wenv viewport renderArea widgetInst children reqs = resized where
+  resize wenv viewport renderArea children reqs widgetInst = resized where
     Rect l t w h = renderArea
     childrenPairs = Seq.zip children reqs
     (vchildren, vreqs) = visibleChildrenReq children reqs

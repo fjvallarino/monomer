@@ -61,7 +61,7 @@ makeContainer config = widget where
   preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
     sizeReq = nodeValue $ Seq.index reqs 0
 
-  resize wenv viewport renderArea widgetInst children reqs = resized where
+  resize wenv viewport renderArea children reqs widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (widgetInst, assignedArea)
 

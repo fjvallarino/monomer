@@ -246,14 +246,14 @@ compositeResize
   -> WidgetEnv sp ep
   -> Rect
   -> Rect
-  -> WidgetInstance sp ep
   -> Tree SizeReq
   -> WidgetInstance sp ep
-compositeResize comp state wenv newView newArea widgetComp reqs = resized where
+  -> WidgetInstance sp ep
+compositeResize comp state wenv newView newArea reqs widgetComp = resized where
   CompositeState{..} = state
   widget = _instanceWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  newRoot = _widgetResize widget cwenv newView newArea _cmpRoot reqs
+  newRoot = _widgetResize widget cwenv newView newArea reqs _cmpRoot
   newState = state {
     _cmpRoot = newRoot
   }
@@ -363,7 +363,7 @@ resizeResult state wenv result widgetComp = resizedResult where
   widgetRoot = _resultWidget result
   widget = _instanceWidget widgetRoot
   newReqs = _widgetPreferredSize widget cwenv widgetRoot
-  newRoot = _widgetResize widget cwenv viewport renderArea widgetRoot newReqs
+  newRoot = _widgetResize widget cwenv viewport renderArea newReqs widgetRoot
   resizedResult = result {
     _resultWidget = newRoot
   }

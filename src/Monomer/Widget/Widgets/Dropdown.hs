@@ -167,7 +167,7 @@ makeDropdown config state = widget where
     size = getTextBounds wenv _styleText (dropdownLabel wenv)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  resize wenv viewport renderArea widgetInst children reqs = resized where
+  resize wenv viewport renderArea children reqs widgetInst = resized where
     childrenReqs = Seq.zip children reqs
     area = case Seq.lookup 0 childrenReqs of
       Just (child, reqChild) -> (oViewport, oRenderArea) where

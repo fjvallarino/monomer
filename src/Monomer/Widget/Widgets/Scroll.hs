@@ -239,13 +239,13 @@ makeScroll config state = widget where
     tempInst = widgetInst { _instanceWidget = newWidget }
     widget = _instanceViewport tempInst
     renderArea = _instanceRenderArea tempInst
-    newInst = scrollResize (Just newWidget) wenv widget renderArea tempInst reqs
+    newInst = scrollResize (Just newWidget) wenv widget renderArea reqs tempInst
 
   preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
     size = _sizeRequested . nodeValue $ Seq.index reqs 0
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  scrollResize uWidget wenv viewport renderArea widgetInst reqs = newInst where
+  scrollResize uWidget wenv viewport renderArea reqs widgetInst = newInst where
     Rect l t w h = renderArea
     child = Seq.index (_instanceChildren widgetInst) 0
     childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
@@ -261,7 +261,7 @@ makeScroll config state = widget where
     }
     newWidget = fromMaybe defWidget uWidget
     cWidget = _instanceWidget child
-    newChild = _widgetResize cWidget wenv viewport cRenderArea child childReq
+    newChild = _widgetResize cWidget wenv viewport cRenderArea childReq child
 
     newInst = widgetInst {
       _instanceViewport = viewport,

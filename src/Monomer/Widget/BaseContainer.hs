@@ -302,13 +302,13 @@ type ContainerResizeHandler s e
   = WidgetEnv s e
   -> Rect
   -> Rect
-  -> WidgetInstance s e
   -> Seq (WidgetInstance s e)
   -> Seq (Tree SizeReq)
+  -> WidgetInstance s e
   -> (WidgetInstance s e, Seq (Rect, Rect))
 
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv viewport renderArea widgetInst children reqs = newSize where
+defaultResize wenv viewport renderArea children reqs widgetInst = newSize where
   childrenSizes = Seq.replicate (Seq.length reqs) (def, def)
   newSize = (widgetInst, childrenSizes)
 
@@ -317,18 +317,18 @@ containerResize
   -> WidgetEnv s e
   -> Rect
   -> Rect
-  -> WidgetInstance s e
   -> Tree SizeReq
   -> WidgetInstance s e
-containerResize handler wenv viewport renderArea widgetInst reqs = newSize where
+  -> WidgetInstance s e
+containerResize handler wenv viewport renderArea reqs widgetInst = newSize where
   children = _instanceChildren widgetInst
   defReqs = Seq.replicate (Seq.length children) (singleNode def)
   curReqs = nodeChildren reqs
   childrenReqs = if Seq.null curReqs then defReqs else curReqs
   (tempInst, assigned) =
-    handler wenv viewport renderArea widgetInst children childrenReqs
+    handler wenv viewport renderArea children childrenReqs widgetInst
   resizeChild (child, req, (viewport, renderArea)) =
-    _widgetResize (_instanceWidget child) wenv viewport renderArea child req
+    _widgetResize (_instanceWidget child) wenv viewport renderArea req child
   newChildren = resizeChild <$> Seq.zip3 children childrenReqs assigned
   newSize = tempInst {
     _instanceViewport = viewport,

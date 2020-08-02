@@ -94,10 +94,10 @@ defaultResize
   :: WidgetEnv s e
   -> Rect
   -> Rect
-  -> WidgetInstance s e
   -> Tree SizeReq
   -> WidgetInstance s e
-defaultResize wenv viewport renderArea widgetInst reqs = widgetInst {
+  -> WidgetInstance s e
+defaultResize wenv viewport renderArea reqs widgetInst = widgetInst {
     _instanceViewport = viewport,
     _instanceRenderArea = renderArea
   }

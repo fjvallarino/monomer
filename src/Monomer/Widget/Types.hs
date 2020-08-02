@@ -178,8 +178,8 @@ data Widget s e =
       :: WidgetEnv s e
       -> Rect
       -> Rect
-      -> WidgetInstance s e
       -> Tree SizeReq
+      -> WidgetInstance s e
       -> WidgetInstance s e,
     -- | Renders the widget
     --
