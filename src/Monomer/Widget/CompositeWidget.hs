@@ -344,7 +344,7 @@ rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
   resizedResult = resizeResult state wenv mergedResult widgetComp
   mergedState = state {
     _cmpModel = newModel,
-    _cmpRoot = _resultWidget resizedResult
+    _cmpRoot = _wrWidget resizedResult
   }
   result = reduceResult comp mergedState wenv widgetComp resizedResult
 
@@ -360,12 +360,12 @@ resizeResult state wenv result widgetComp = resizedResult where
   viewport = _instanceViewport widgetComp
   renderArea = _instanceRenderArea widgetComp
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  widgetRoot = _resultWidget result
+  widgetRoot = _wrWidget result
   widget = _instanceWidget widgetRoot
   newReqs = _widgetPreferredSize widget cwenv widgetRoot
   newRoot = _widgetResize widget cwenv viewport renderArea newReqs widgetRoot
   resizedResult = result {
-    _resultWidget = newRoot
+    _wrWidget = newRoot
   }
 
 reduceCompEvents

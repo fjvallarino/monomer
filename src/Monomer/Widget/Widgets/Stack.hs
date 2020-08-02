@@ -74,7 +74,7 @@ makeStack isHorizontal = widget where
     Rect l t w h = renderArea
     childInstance = fst childPair
     req = nodeValue $ snd childPair
-    srSize = _sizeRequested req
+    srSize = _srSize req
     emptyRect = Rect l t 0 0
     hRect = Rect offset t calcNewSize h
     vRect = Rect l offset w calcNewSize
@@ -93,15 +93,15 @@ makeStack isHorizontal = widget where
     height = if isHorizontal then maxHeight else sumHeight
 
   calcDimensions vreqs = (maxWidth, sumWidth, maxHeight, sumHeight) where
-    sumWidth = (sum . fmap (_w . _sizeRequested)) vreqs
-    sumHeight = (sum . fmap (_h . _sizeRequested)) vreqs
+    sumWidth = (sum . fmap (_w . _srSize)) vreqs
+    sumHeight = (sum . fmap (_h . _srSize)) vreqs
     maxWidth
       | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_w . _sizeRequested)) vreqs
+      | otherwise = (maximum . fmap (_w . _srSize)) vreqs
     maxHeight
       | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_h . _sizeRequested)) vreqs
+      | otherwise = (maximum . fmap (_h . _srSize)) vreqs
 
   sizeSelector = if isHorizontal then _w else _h
   rectSelector = if isHorizontal then _rw else _rh
-  policySelector = if isHorizontal then _sizePolicyWidth else _sizePolicyHeight
+  policySelector = if isHorizontal then _srPolicyWidth else _srPolicyHeight

@@ -38,10 +38,10 @@ makeFixedGrid isHorizontal = widget where
     reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
     width
       | Seq.null vchildren = 0
-      | otherwise = wMul * (maximum . fmap (_w . _sizeRequested)) vreqs
+      | otherwise = wMul * (maximum . fmap (_w . _srSize)) vreqs
     height
       | Seq.null vchildren = 0
-      | otherwise = hMul * (maximum . fmap (_h . _sizeRequested)) vreqs
+      | otherwise = hMul * (maximum . fmap (_h . _srSize)) vreqs
     wMul
       | isHorizontal = fromIntegral (length vchildren)
       | otherwise = 1

@@ -37,18 +37,18 @@ handleEvent = describe "handleEvent" $ do
     btn = initWidget wenv (button BtnClick "Click")
     widget = _instanceWidget btn
     click p = _widgetHandleEvent widget wenv rootPath (Click p LeftBtn) btn
-    events p = maybe Seq.empty _resultEvents (click p)
+    events p = maybe Seq.empty _wrEvents (click p)
 
 preferredSize :: Spec
 preferredSize = describe "preferredSize" $ do
   it "should return the expected size" $
-    _sizeRequested `shouldBe` Size 50 20
+    _srSize `shouldBe` Size 50 20
 
   it "should return Flexible width policy" $
-    _sizePolicyWidth `shouldBe` FlexibleSize
+    _srPolicyWidth `shouldBe` FlexibleSize
 
   it "should return Strict height policy" $
-    _sizePolicyHeight `shouldBe` StrictSize
+    _srPolicyHeight `shouldBe` StrictSize
 
   where
     wenv = mockWenv ()

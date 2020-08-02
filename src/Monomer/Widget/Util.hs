@@ -96,14 +96,14 @@ updateSizeReq sizeReq widgetInst = newSizeReq where
   tempSizeReq
     | isNothing width = sizeReq
     | otherwise = sizeReq {
-      _sizeRequested = Size (fromJust width) (_w . _sizeRequested $ sizeReq),
-      _sizePolicyWidth = StrictSize
+      _srSize = Size (fromJust width) (_w . _srSize $ sizeReq),
+      _srPolicyWidth = StrictSize
     }
   newSizeReq
     | isNothing height = tempSizeReq
     | otherwise = tempSizeReq {
-      _sizeRequested = Size (_h . _sizeRequested $ sizeReq) (fromJust height),
-      _sizePolicyHeight = StrictSize
+      _srSize = Size (_h . _srSize $ sizeReq) (fromJust height),
+      _srPolicyHeight = StrictSize
     }
 
 isSendMessageHandler :: WidgetRequest s -> Bool

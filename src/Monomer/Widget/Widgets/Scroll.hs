@@ -242,7 +242,7 @@ makeScroll config state = widget where
     newInst = scrollResize (Just newWidget) wenv widget renderArea reqs tempInst
 
   preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-    size = _sizeRequested . nodeValue $ Seq.index reqs 0
+    size = _srSize . nodeValue $ Seq.index reqs 0
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   scrollResize uWidget wenv viewport renderArea reqs widgetInst = newInst where
@@ -250,7 +250,7 @@ makeScroll config state = widget where
     child = Seq.index (_instanceChildren widgetInst) 0
     childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
 
-    Size childWidth2 childHeight2 = _sizeRequested $ nodeValue childReq
+    Size childWidth2 childHeight2 = _srSize $ nodeValue childReq
     areaW = max w childWidth2
     areaH = max h childHeight2
     cRenderArea = Rect (l + dx) (t + dy) areaW areaH

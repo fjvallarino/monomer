@@ -158,7 +158,7 @@ makeListView config state = widget where
     widgetResult = _widgetMerge newWidget wenv oldInstance newInstance
     scrollToReq = itemScrollTo widgetInst nextIdx
     requests = Seq.fromList scrollToReq
-    result = Just $ widgetResult { _resultRequests = requests }
+    result = Just $ widgetResult { _wrRequests = requests }
 
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv

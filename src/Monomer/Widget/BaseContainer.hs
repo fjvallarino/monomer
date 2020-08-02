@@ -73,9 +73,9 @@ containerInit initHandler wenv widgetInst = result where
     newChild = cascadeCtx widgetInst child idx
     newWidget = _instanceWidget newChild
   results = Seq.zipWith zipper indexes children
-  newReqs = fold $ fmap _resultRequests results
-  newEvents = fold $ fmap _resultEvents results
-  newChildren = fmap _resultWidget results
+  newReqs = fold $ fmap _wrRequests results
+  newEvents = fold $ fmap _wrEvents results
+  newChildren = fmap _wrWidget results
   newInstance = tempInstance {
     _instanceChildren = newChildren
   }
@@ -107,10 +107,10 @@ containerMergeTrees mergeHandler wenv oldInst newInst = result where
   zipper idx child = cascadeCtx newInst child idx
   newChildren = Seq.zipWith zipper indexes updatedChildren
   mergedResults = mergeChildren wenv oldChildren newChildren
-  mergedChildren = fmap _resultWidget mergedResults
+  mergedChildren = fmap _wrWidget mergedResults
   concatSeq seqs = foldl' (><) Seq.empty seqs
-  mergedReqs = concatSeq $ fmap _resultRequests mergedResults
-  mergedEvents = concatSeq $ fmap _resultEvents mergedResults
+  mergedReqs = concatSeq $ fmap _wrRequests mergedResults
+  mergedEvents = concatSeq $ fmap _wrEvents mergedResults
   mergedInstance = uInstance {
     _instanceChildren = mergedChildren
   }
@@ -218,20 +218,20 @@ mergeParentChildEvts
 mergeParentChildEvts _ Nothing Nothing _ = Nothing
 mergeParentChildEvts _ pResponse Nothing _ = pResponse
 mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
-    _resultWidget = replaceChild original (_resultWidget cResponse) idx
+    _wrWidget = replaceChild original (_wrWidget cResponse) idx
   }
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
   | otherwise = Just $ WidgetResult requests userEvents newWidget
   where
-    pWidget = _resultWidget pResponse
-    cWidget = _resultWidget cResponse
-    requests = _resultRequests pResponse >< _resultRequests cResponse
-    userEvents = _resultEvents pResponse >< _resultEvents cResponse
+    pWidget = _wrWidget pResponse
+    cWidget = _wrWidget cResponse
+    requests = _wrRequests pResponse >< _wrRequests cResponse
+    userEvents = _wrEvents pResponse >< _wrEvents cResponse
     newWidget = replaceChild pWidget cWidget idx
     newChildResponse = cResponse {
-      _resultWidget = replaceChild original (_resultWidget cResponse) idx
+      _wrWidget = replaceChild original (_wrWidget cResponse) idx
     }
 
 -- | Message Handling
@@ -266,7 +266,7 @@ containerHandleMessage mHandler wenv target arg widgetInst
     message = _widgetHandleMessage (_instanceWidget child) wenv target arg child
     messageResult = updateChild <$> message
     updateChild cr = cr {
-      _resultWidget = replaceChild widgetInst (_resultWidget cr) childIdx
+      _wrWidget = replaceChild widgetInst (_wrWidget cr) childIdx
     }
 
 -- | Preferred size
@@ -280,9 +280,9 @@ type ContainerPreferredSizeHandler s e
 defaultPreferredSize :: ContainerPreferredSizeHandler s e
 defaultPreferredSize wenv widgetInst children reqs = Node current reqs where
   current = SizeReq {
-    _sizeRequested = Size 0 0,
-    _sizePolicyWidth = FlexibleSize,
-    _sizePolicyHeight = FlexibleSize
+    _srSize = Size 0 0,
+    _srPolicyWidth = FlexibleSize,
+    _srPolicyHeight = FlexibleSize
   }
 
 containerPreferredSize
@@ -366,11 +366,11 @@ containerRender rHandler renderer wenv widgetInst = do
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
 ignoreChildren result = not (Seq.null ignoreReqs) where
-  ignoreReqs = Seq.filter isIgnoreChildrenEvents (_resultRequests result)
+  ignoreReqs = Seq.filter isIgnoreChildrenEvents (_wrRequests result)
 
 ignoreParent :: WidgetResult s e -> Bool
 ignoreParent result = not (Seq.null ignoreReqs) where
-  ignoreReqs = Seq.filter isIgnoreParentEvents (_resultRequests result)
+  ignoreReqs = Seq.filter isIgnoreParentEvents (_wrRequests result)
 
 replaceChild
   :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e

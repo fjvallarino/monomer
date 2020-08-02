@@ -171,7 +171,7 @@ makeDropdown config state = widget where
     childrenReqs = Seq.zip children reqs
     area = case Seq.lookup 0 childrenReqs of
       Just (child, reqChild) -> (oViewport, oRenderArea) where
-        reqHeight = _h . _sizeRequested . nodeValue $ reqChild
+        reqHeight = _h . _srSize . nodeValue $ reqChild
         maxHeight = min reqHeight 150
         oViewport = viewport {
           _ry = _ry viewport + _rh viewport,

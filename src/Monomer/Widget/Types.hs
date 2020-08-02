@@ -40,9 +40,9 @@ data SizePolicy
   deriving (Show, Eq)
 
 data SizeReq = SizeReq {
-  _sizeRequested :: Size,
-  _sizePolicyWidth :: SizePolicy,
-  _sizePolicyHeight :: SizePolicy
+  _srSize :: Size,
+  _srPolicyWidth :: SizePolicy,
+  _srPolicyHeight :: SizePolicy
 } deriving (Show, Eq)
 
 instance Default SizeReq where
@@ -63,16 +63,16 @@ data WidgetRequest s
   | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
-  _resultRequests :: Seq (WidgetRequest s),
-  _resultEvents :: Seq e,
-  _resultWidget :: WidgetInstance s e
+  _wrRequests :: Seq (WidgetRequest s),
+  _wrEvents :: Seq e,
+  _wrWidget :: WidgetInstance s e
 }
 
 instance Semigroup (WidgetResult s e) where
   er1 <> er2 = WidgetResult reqs evts widget where
-    reqs = _resultRequests er1 <> _resultRequests er2
-    evts = _resultEvents er1 <> _resultEvents er2
-    widget = _resultWidget er2
+    reqs = _wrRequests er1 <> _wrRequests er2
+    evts = _wrEvents er1 <> _wrEvents er2
+    widget = _wrWidget er2
 
 data WidgetPlatform = WidgetPlatform {
   _wpOS :: Text,

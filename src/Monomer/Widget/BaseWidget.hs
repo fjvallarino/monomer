@@ -85,9 +85,9 @@ defaultHandleMessage wenv target message widgetInst = Nothing
 
 defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq
 defaultPreferredSize wenv widgetInst = singleNode SizeReq {
-  _sizeRequested = Size 0 0,
-  _sizePolicyWidth = FlexibleSize,
-  _sizePolicyHeight = FlexibleSize
+  _srSize = Size 0 0,
+  _srPolicyWidth = FlexibleSize,
+  _srPolicyHeight = FlexibleSize
 }
 
 defaultResize

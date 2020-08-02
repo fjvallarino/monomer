@@ -98,7 +98,7 @@ handleSystemEvent renderer wenv event currentTarget widgetRoot = do
       let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
       let evtResult = _widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
-      let reqs = _resultRequests widgetResult
+      let reqs = _wrRequests widgetResult
       let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
 
       handleWidgetResult renderer wenv widgetResult
