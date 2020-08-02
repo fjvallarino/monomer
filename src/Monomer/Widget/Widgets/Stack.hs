@@ -57,10 +57,10 @@ makeStack isHorizontal = widget where
     fCount = fromIntegral $ length fChildren
     rCount = fromIntegral $ length rChildren
     fExtra
-      | fExists = (rSize - fSize) / fSize
+      | fExists && fSize > 0 = (rSize - fSize) / fSize
       | otherwise = 0
     rUnit
-      | rExists && not fExists = rSize / rCount
+      | rExists && (not fExists || fSize <= 0) = rSize / rCount
       | otherwise = 0
     assignedArea = Seq.zip newViewports newViewports
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
