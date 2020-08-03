@@ -24,7 +24,7 @@ rootPath = Seq.empty
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
-  _wiType = widgetType,
+  _wiWidgetType = widgetType,
   _wiKey = Nothing,
   _wiPath = Seq.empty,
   _wiWidget = widget,
@@ -86,7 +86,7 @@ useState (Just (WidgetState state)) = cast state
 
 instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
-  typeMatches = _wiType oldInstance == _wiType newInstance
+  typeMatches = _wiWidgetType oldInstance == _wiWidgetType newInstance
   keyMatches = _wiKey oldInstance == _wiKey newInstance
 
 updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq

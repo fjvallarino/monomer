@@ -200,7 +200,7 @@ data Widget s e =
 data WidgetInstance s e =
   WidgetInstance {
     -- | Type of the widget
-    _wiType :: !WidgetType,
+    _wiWidgetType :: !WidgetType,
     -- | Key/Identifier of the widget
     _wiKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
