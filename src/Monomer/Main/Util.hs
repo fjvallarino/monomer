@@ -16,16 +16,16 @@ import Monomer.Widget.Util
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
 initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
-  _mainModel = model,
-  _windowSize = winSize,
-  _useHiDPI = useHiDPI,
-  _devicePixelRate = devicePixelRate,
-  _inputStatus = defInputStatus,
-  _focused = Seq.empty,
-  _latestHover = Nothing,
-  _latestPressed = Nothing,
-  _activeOverlay = Nothing,
-  _widgetTasks = Seq.empty
+  _mcMainModel = model,
+  _mcWindowSize = winSize,
+  _mcHdpi = useHiDPI,
+  _mcDpr = devicePixelRate,
+  _mcInputStatus = defInputStatus,
+  _mcPathFocus = Seq.empty,
+  _mcPathHover = Nothing,
+  _mcPathPressed = Nothing,
+  _mcPathOverlay = Nothing,
+  _mcWidgetTasks = Seq.empty
 }
 
 findNextFocusable :: WidgetEnv s e -> Path -> WidgetInstance s e -> Path

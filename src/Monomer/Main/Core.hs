@@ -70,8 +70,8 @@ createWidgetPlatform os renderer = WidgetPlatform {
 runWidgets
   :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -> m ()
 runWidgets window c widgetRoot = do
-  useHiDPI <- use useHiDPI
-  devicePixelRate <- use devicePixelRate
+  useHiDPI <- use hdpi
+  devicePixelRate <- use dpr
   Size rw rh <- use windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
@@ -109,7 +109,7 @@ runWidgets window c widgetRoot = do
   }
 
   mainModel .= _weModel newWenv
-  focused .= findNextFocusable newWenv rootPath resizedRoot
+  pathFocus .= findNextFocusable newWenv rootPath resizedRoot
 
   mainLoop window c renderer loopArgs
 
@@ -122,13 +122,13 @@ mainLoop
   -> m ()
 mainLoop window c renderer loopArgs = do
   windowSize <- use windowSize
-  useHiDPI <- use useHiDPI
-  devicePixelRate <- use devicePixelRate
+  useHiDPI <- use hdpi
+  devicePixelRate <- use dpr
   startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
   currentModel <- use mainModel
-  focused <- use focused
+  focused <- use pathFocus
   oldInputStatus <- use inputStatus
 
   let MainLoopArgs{..} = loopArgs
@@ -155,7 +155,7 @@ mainLoop window c renderer loopArgs = do
 
   sysEvents <- preProcessEvents oldWenv _mlWidgetRoot baseSystemEvents
   inputStatus <- use inputStatus
-  isMouseFocused <- fmap isJust (use latestPressed)
+  isMouseFocused <- fmap isJust (use pathPressed)
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
   let wenv = oldWenv {
@@ -163,7 +163,7 @@ mainLoop window c renderer loopArgs = do
   }
 
   when (mouseEntered && isLeftPressed && isMouseFocused) $
-    latestPressed .= Nothing
+    pathPressed .= Nothing
 
   (wtWenv, _, wtRoot) <- handleWidgetTasks renderer wenv _mlWidgetRoot
   (seWenv, _, seRoot) <- handleSystemEvents renderer wtWenv sysEvents wtRoot
@@ -210,7 +210,7 @@ resizeWindow
   -> WidgetInstance s e
   -> m (WidgetInstance s e)
 resizeWindow window wenv widgetRoot = do
-  dpr <- use devicePixelRate
+  dpr <- use dpr
   drawableSize <- getDrawableSize window
   newWindowSize <- getWindowSize window dpr
 
@@ -235,7 +235,7 @@ preProcessEvent
   :: (MonomerM s m)
   => WidgetEnv s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent wenv widgetRoot evt@(Move point) = do
-  hover <- use latestHover
+  hover <- use pathHover
   let widget = _wiWidget widgetRoot
   let current = _widgetFind widget wenv rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
@@ -243,17 +243,17 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
   let leave = [Leave (fromJust hover) point | hoverChanged]
 
   when (isNothing hover || hoverChanged) $
-    latestHover .= current
+    pathHover .= current
 
   return $ leave ++ enter ++ [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
   let widget = _wiWidget widgetRoot
   let current = _widgetFind widget wenv rootPath point widgetRoot
 
-  latestPressed .= current
+  pathPressed .= current
   return [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
-  latestPressed .= Nothing
+  pathPressed .= Nothing
   return [Click point btn, evt]
 
 preProcessEvent wenv widgetRoot event = return [event]

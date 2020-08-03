@@ -72,7 +72,7 @@ handleSystemEvents
   -> m (HandlerStep s e)
 handleSystemEvents renderer wenv systemEvents widgetRoot = nextStep where
   reducer (currWctx, currEvents, currRoot) systemEvent = do
-    focused <- use focused
+    focused <- use pathFocus
 
     (wenv2, evts2, wroot2)
       <- handleSystemEvent renderer currWctx systemEvent focused currRoot
@@ -88,8 +88,8 @@ handleSystemEvent
   -> WidgetInstance s e
   -> m (HandlerStep s e)
 handleSystemEvent renderer wenv event currentTarget widgetRoot = do
-  pressed <- use latestPressed
-  overlay <- use activeOverlay
+  pressed <- use pathPressed
+  overlay <- use pathOverlay
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)
@@ -146,7 +146,7 @@ handleFocusChange
   -> m (HandlerStep s e)
 handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
-      oldFocus <- use focused
+      oldFocus <- use pathFocus
       (newWenv1, newEvents1, newRoot1)
         <- handleSystemEvent renderer wenv Blur oldFocus widgetRoot
 
@@ -157,7 +157,7 @@ handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
       (newWenv2, newEvents2, newRoot2)
         <- handleSystemEvent renderer tempWenv Focus newFocus newRoot1
 
-      focused .= newFocus
+      pathFocus .= newFocus
 
       return (newWenv2, events >< newEvents1 >< newEvents2, widgetRoot)
   | otherwise = return (wenv, events, widgetRoot)
@@ -173,7 +173,7 @@ handleFocusSet
 handleFocusSet renderer reqs previousStep =
   case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
-      focused .= newFocus
+      pathFocus .= newFocus
 
       return previousStep
     _ -> return previousStep
@@ -239,7 +239,7 @@ handleOverlaySet
 handleOverlaySet renderer reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     SetOverlay path :<| _ -> do
-      activeOverlay .= Just path
+      pathOverlay .= Just path
 
       return previousStep
     _ -> return previousStep
@@ -253,7 +253,7 @@ handleOverlayReset
 handleOverlayReset renderer reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     ResetOverlay :<| _ -> do
-      activeOverlay .= Nothing
+      pathOverlay .= Nothing
 
       return previousStep
     _ -> return previousStep
@@ -267,7 +267,7 @@ handleSendMessages
 handleSendMessages renderer reqs previousStep = nextStep where
   nextStep = foldM reducer previousStep reqs
   reducer previousStep (SendMessage path message) = do
-    currentFocus <- use focused
+    currentFocus <- use pathFocus
 
     let (wenv, events, widgetRoot) = previousStep
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot

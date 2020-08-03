@@ -93,7 +93,7 @@ processTaskEvent
   -> a
   -> m (HandlerStep s e)
 processTaskEvent renderer wenv widgetRoot path event = do
-  currentFocus <- use focused
+  currentFocus <- use pathFocus
 
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
   let widget = _wiWidget widgetRoot
