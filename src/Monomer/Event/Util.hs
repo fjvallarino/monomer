@@ -9,28 +9,28 @@ import Monomer.Event.Types
 
 defKeyMod :: KeyMod
 defKeyMod = KeyMod {
-  keyModLeftShift = False,
-  keyModRightShift = False,
-  keyModLeftCtrl = False,
-  keyModRightCtrl = False,
-  keyModLeftAlt = False,
-  keyModRightAlt = False,
-  keyModLeftGUI = False,
-  keyModRightGUI = False,
-  keyModNumLock = False,
-  keyModCapsLock = False,
-  keyModAltGr = False
+  kmLeftShift = False,
+  kmRightShift = False,
+  kmLeftCtrl = False,
+  kmRightCtrl = False,
+  kmLeftAlt = False,
+  kmRightAlt = False,
+  kmLeftGUI = False,
+  kmRightGUI = False,
+  kmNumLock = False,
+  kmCapsLock = False,
+  kmAltGr = False
 }
 
 defInputStatus :: InputStatus
 defInputStatus = InputStatus {
-  statusMousePos = def,
-  statusKeyMod = defKeyMod,
-  statusKeys = M.empty,
-  statusButtons = M.empty
+  ipsMousePos = def,
+  ipsKeyMod = defKeyMod,
+  ipsKeys = M.empty,
+  ipsButtons = M.empty
 }
 
 isButtonPressed :: InputStatus -> Button -> Bool
 isButtonPressed inputStatus button = status == PressedBtn where
-  currentStatus = M.lookup button (statusButtons inputStatus)
+  currentStatus = M.lookup button (ipsButtons inputStatus)
   status = fromMaybe ReleasedBtn currentStatus

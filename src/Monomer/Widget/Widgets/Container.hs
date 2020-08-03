@@ -72,6 +72,6 @@ makeContainer config = widget where
       drawRect renderer viewport _styleHover Nothing
 
     where
-      point = statusMousePos (_weInputStatus wenv)
+      point = ipsMousePos (_weInputStatus wenv)
       viewport = _wiViewport widgetInst
       Style{..} = _wiStyle widgetInst

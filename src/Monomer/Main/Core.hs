@@ -261,16 +261,16 @@ preProcessEvent wenv widgetRoot event = return [event]
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
 updateInputStatus (Move point)
   = inputStatus %= \status -> status {
-    statusMousePos = point
+    ipsMousePos = point
   }
 updateInputStatus (ButtonAction _ btn btnState)
   = inputStatus %= \status -> status {
-    statusButtons = M.insert btn btnState (statusButtons status)
+    ipsButtons = M.insert btn btnState (ipsButtons status)
   }
 updateInputStatus (KeyAction kMod kCode kStatus)
   = inputStatus %= \status -> status {
-    statusKeyMod = kMod,
-    statusKeys = M.insert kCode kStatus (statusKeys status)
+    ipsKeyMod = kMod,
+    ipsKeys = M.insert kCode kStatus (ipsKeys status)
   }
 updateInputStatus _ = return ()
 

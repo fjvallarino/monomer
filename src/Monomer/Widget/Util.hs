@@ -165,8 +165,8 @@ getTextBounds wenv style text = calcTextBounds handler style text where
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
-  isControl = not (isMacOS wenv) && keyModLeftCtrl mod
-  isCommand = isMacOS wenv && keyModLeftGUI mod
+  isControl = not (isMacOS wenv) && kmLeftCtrl mod
+  isCommand = isMacOS wenv && kmLeftGUI mod
 
 isClipboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
 isClipboardCopy wenv event = checkKeyboard event testFn where

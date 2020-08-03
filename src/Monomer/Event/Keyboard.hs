@@ -16,8 +16,6 @@ module Monomer.Event.Keyboard (
   isKeyV
 ) where
 
-import Unsafe.Coerce
-
 import qualified SDL
 
 import Monomer.Event.Types
@@ -43,17 +41,17 @@ textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod
 convertKeyModifier keyMod = KeyMod {
-  keyModLeftShift = SDL.keyModifierLeftShift keyMod,
-  keyModRightShift = SDL.keyModifierRightShift keyMod,
-  keyModLeftCtrl = SDL.keyModifierLeftCtrl keyMod,
-  keyModRightCtrl = SDL.keyModifierRightCtrl keyMod,
-  keyModLeftAlt = SDL.keyModifierLeftAlt keyMod,
-  keyModRightAlt = SDL.keyModifierRightAlt keyMod,
-  keyModLeftGUI = SDL.keyModifierLeftGUI keyMod,
-  keyModRightGUI = SDL.keyModifierRightGUI keyMod,
-  keyModNumLock = SDL.keyModifierNumLock keyMod,
-  keyModCapsLock = SDL.keyModifierCapsLock keyMod,
-  keyModAltGr = SDL.keyModifierAltGr keyMod
+  kmLeftShift = SDL.keyModifierLeftShift keyMod,
+  kmRightShift = SDL.keyModifierRightShift keyMod,
+  kmLeftCtrl = SDL.keyModifierLeftCtrl keyMod,
+  kmRightCtrl = SDL.keyModifierRightCtrl keyMod,
+  kmLeftAlt = SDL.keyModifierLeftAlt keyMod,
+  kmRightAlt = SDL.keyModifierRightAlt keyMod,
+  kmLeftGUI = SDL.keyModifierLeftGUI keyMod,
+  kmRightGUI = SDL.keyModifierRightGUI keyMod,
+  kmNumLock = SDL.keyModifierNumLock keyMod,
+  kmCapsLock = SDL.keyModifierCapsLock keyMod,
+  kmAltGr = SDL.keyModifierAltGr keyMod
 }
 
 keyBackspace :: KeyCode

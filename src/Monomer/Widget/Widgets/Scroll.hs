@@ -124,14 +124,13 @@ makeScroll config state = widget where
       btnReleased = status == ReleasedBtn
       isDragging = isJust $ _sstDragging state
       startDrag = leftPressed && not isDragging
-      jumpScroll = btnReleased && not isDragging
+      jumpScrollH = btnReleased && not isDragging && hMouseInScroll
+      jumpScrollV = btnReleased && not isDragging && vMouseInScroll
       newState
         | startDrag && hMouseInThumb = state { _sstDragging = Just HBar }
         | startDrag && vMouseInThumb = state { _sstDragging = Just VBar }
-        | jumpScroll && hMouseInScroll =
-            updateScrollThumb state HBar point viewport sctx
-        | jumpScroll && vMouseInScroll =
-            updateScrollThumb state VBar point viewport sctx
+        | jumpScrollH = updateScrollThumb state HBar point viewport sctx
+        | jumpScrollV = updateScrollThumb state VBar point viewport sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
       newInstance = widgetInst {
@@ -310,7 +309,7 @@ scrollStatus
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   barThickness = _scBarThickness config
-  mousePos = statusMousePos (_weInputStatus wenv)
+  mousePos = ipsMousePos (_weInputStatus wenv)
   vpLeft = _rx viewport
   vpTop = _ry viewport
   vpWidth = _rw viewport

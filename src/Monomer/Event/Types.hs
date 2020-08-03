@@ -51,22 +51,22 @@ data SystemEvent
   deriving (Show, Eq)
 
 data InputStatus = InputStatus {
-  statusMousePos :: Point,
-  statusKeyMod :: KeyMod,
-  statusKeys :: Map KeyCode KeyStatus,
-  statusButtons :: Map Button ButtonState
+  ipsMousePos :: Point,
+  ipsKeyMod :: KeyMod,
+  ipsKeys :: Map KeyCode KeyStatus,
+  ipsButtons :: Map Button ButtonState
 } deriving (Eq, Show)
 
 data KeyMod = KeyMod {
-  keyModLeftShift :: Bool,
-  keyModRightShift :: Bool,
-  keyModLeftCtrl :: Bool,
-  keyModRightCtrl :: Bool,
-  keyModLeftAlt :: Bool,
-  keyModRightAlt :: Bool,
-  keyModLeftGUI :: Bool,
-  keyModRightGUI :: Bool,
-  keyModNumLock :: Bool,
-  keyModCapsLock :: Bool,
-  keyModAltGr :: Bool
+  kmLeftShift :: Bool,
+  kmRightShift :: Bool,
+  kmLeftCtrl :: Bool,
+  kmRightCtrl :: Bool,
+  kmLeftAlt :: Bool,
+  kmRightAlt :: Bool,
+  kmLeftGUI :: Bool,
+  kmRightGUI :: Bool,
+  kmNumLock :: Bool,
+  kmCapsLock :: Bool,
+  kmAltGr :: Bool
 } deriving (Show, Eq)

@@ -37,5 +37,5 @@ isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
 isKeyPressed _ _ = False
 
 isShiftPressed :: SystemEvent -> Bool
-isShiftPressed (KeyAction keyMod _ _) = keyModLeftShift keyMod
+isShiftPressed (KeyAction keyMod _ _) = kmLeftShift keyMod
 isShiftPressed _ = False
