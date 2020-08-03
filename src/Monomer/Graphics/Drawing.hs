@@ -43,31 +43,31 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     xr = x + w
     yt = y
     yb = y + h
-    x1 = x + justDef _radiusTopLeft
-    x2 = x + w - justDef _radiusTopRight
-    x3 = x + w - justDef _radiusBottomRight
-    x4 = x + justDef _radiusBottomLeft
-    y1 = y + justDef _radiusTopLeft
-    y2 = y + justDef _radiusTopRight
-    y3 = y + h - justDef _radiusBottomRight
-    y4 = y + h - justDef _radiusBottomLeft
+    x1 = x + justDef _radTopLeft
+    x2 = x + w - justDef _radTopRight
+    x3 = x + w - justDef _radBottomRight
+    x4 = x + justDef _radBottomLeft
+    y1 = y + justDef _radTopLeft
+    y2 = y + justDef _radTopRight
+    y3 = y + h - justDef _radBottomRight
+    y4 = y + h - justDef _radBottomLeft
   in do
     moveTo renderer (Point x1 y1)
 
-    when (isJust _radiusTopLeft) $
-      renderArc renderer (Point x1 y1) (fromJust _radiusTopLeft) 180 270 CW
+    when (isJust _radTopLeft) $
+      renderArc renderer (Point x1 y1) (fromJust _radTopLeft) 180 270 CW
     renderLineTo renderer (Point x2 yt)
 
-    when (isJust _radiusTopRight) $
-      renderArc renderer (Point x2 y2) (justDef _radiusTopRight) 270 0 CW
+    when (isJust _radTopRight) $
+      renderArc renderer (Point x2 y2) (justDef _radTopRight) 270 0 CW
     renderLineTo renderer (Point xr y3)
 
-    when (isJust _radiusBottomRight) $
-      renderArc renderer (Point x3 y3) (justDef _radiusBottomRight) 0 90 CW
+    when (isJust _radBottomRight) $
+      renderArc renderer (Point x3 y3) (justDef _radBottomRight) 0 90 CW
     renderLineTo renderer (Point x4 yb)
 
-    when (isJust _radiusBottomLeft) $
-      renderArc renderer (Point x4 y4) (justDef _radiusBottomLeft) 90 180 CW
+    when (isJust _radBottomLeft) $
+      renderArc renderer (Point x4 y4) (justDef _radBottomLeft) 90 180 CW
     renderLineTo renderer (Point xl y1)
 
 drawStyledBorder
@@ -82,16 +82,16 @@ drawBorder renderer rt@(Rect xl yt w h) border@Border{..} =
   let
     xr = xl + w
     yb = yt + h
-    xlb = xl + sw _borderLeft
-    xrb = xr - sw _borderRight
-    ytb = yt + sw _borderTop
-    ybb = yb - sw _borderBottom
-    sw bs = if isJust bs then _borderSideWidth (fromJust bs) / 2 else 0
+    xlb = xl + sw _brdLeft
+    xrb = xr - sw _brdRight
+    ytb = yt + sw _brdTop
+    ybb = yb - sw _brdBottom
+    sw bs = if isJust bs then _bsWidth (fromJust bs) / 2 else 0
   in do
-    strokeBorder renderer (p2 xl ytb) (p2 xr ytb) _borderTop
-    strokeBorder renderer (p2 xrb yt) (p2 xrb yb) _borderRight
-    strokeBorder renderer (p2 xr ybb) (p2 xl ybb) _borderBottom
-    strokeBorder renderer (p2 xlb yb) (p2 xlb yt) _borderLeft
+    strokeBorder renderer (p2 xl ytb) (p2 xr ytb) _brdTop
+    strokeBorder renderer (p2 xrb yt) (p2 xrb yb) _brdRight
+    strokeBorder renderer (p2 xr ybb) (p2 xl ybb) _brdBottom
+    strokeBorder renderer (p2 xlb yb) (p2 xlb yt) _brdLeft
 
     drawCorners renderer rt border
 
@@ -100,15 +100,15 @@ drawCorners renderer (Rect xl yt w h) Border{..} =
   let
     xr = xl + w
     yb = yt + h
-    xlb2 = xl + sw _borderLeft
-    xrb2 = xr - sw _borderRight
-    ytb2 = yt + sw _borderTop
-    ybb2 = yb - sw _borderBottom
-    sw bs = maybe 0 _borderSideWidth bs
-    borderL = _borderLeft
-    borderR = _borderRight
-    borderT = _borderTop
-    borderB = _borderBottom
+    xlb2 = xl + sw _brdLeft
+    xrb2 = xr - sw _brdRight
+    ytb2 = yt + sw _brdTop
+    ybb2 = yb - sw _brdBottom
+    sw bs = maybe 0 _bsWidth bs
+    borderL = _brdLeft
+    borderR = _brdRight
+    borderT = _brdTop
+    borderB = _brdBottom
   in do
     drawCorner renderer (p2 xl yt) (p2 xlb2 ytb2) (p2 xlb2 yt) borderT borderL
     drawCorner renderer (p2 xrb2 yt) (p2 xrb2 ytb2) (p2 xr yt) borderT borderR
@@ -126,7 +126,7 @@ drawCorner
   -> m ()
 drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   beginPath renderer
-  setFillColor renderer (_borderSideColor bs1)
+  setFillColor renderer (_bsColor bs1)
   moveTo renderer p1
   renderLineTo renderer p2
   renderLineTo renderer p3
@@ -140,14 +140,14 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
     Rect xl yt w h = rect
     xr = xl + w
     yb = yt + h
-    xlb = xl + swr _borderLeft
-    xrb = xr - swr _borderRight
-    ytb = yt + swr _borderTop
-    ybb = yb - swr _borderBottom
-    xlb2 = xl + 2 * swr _borderLeft
-    xrb2 = xr - 2 * swr _borderRight
-    ytb2 = yt + 2 * swr _borderTop
-    ybb2 = yb - 2 * swr _borderBottom
+    xlb = xl + swr _brdLeft
+    xrb = xr - swr _brdRight
+    ytb = yt + swr _brdTop
+    ybb = yb - swr _brdBottom
+    xlb2 = xl + 2 * swr _brdLeft
+    xrb2 = xr - 2 * swr _brdRight
+    ytb2 = yt + 2 * swr _brdTop
+    ybb2 = yb - 2 * swr _brdBottom
     xt1 = xl + topLeftBorderSize border radius
     xt2 = xr - topRightBorderSize border radius
     yl1 = yt + topLeftBorderSize border radius
@@ -156,59 +156,59 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
     xb2 = xr - bottomRightBorderSize border radius
     yr1 = yt + topRightBorderSize border radius
     yr2 = yb - bottomRightBorderSize border radius
-    swr bs = if isJust bs then _borderSideWidth (fromJust bs) / 2 else 0
+    swr bs = if isJust bs then _bsWidth (fromJust bs) / 2 else 0
   in do
-    strokeBorder renderer (p2 xt1 ytb) (p2 xt2 ytb) _borderTop
-    strokeBorder renderer (p2 xrb yr1) (p2 xrb yr2) _borderRight
-    strokeBorder renderer (p2 xb1 ybb) (p2 xb2 ybb) _borderBottom
-    strokeBorder renderer (p2 xlb yl1) (p2 xlb yl2) _borderLeft
+    strokeBorder renderer (p2 xt1 ytb) (p2 xt2 ytb) _brdTop
+    strokeBorder renderer (p2 xrb yr1) (p2 xrb yr2) _brdRight
+    strokeBorder renderer (p2 xb1 ybb) (p2 xb2 ybb) _brdBottom
+    strokeBorder renderer (p2 xlb yl1) (p2 xlb yl2) _brdLeft
 
     drawRoundedCorner renderer
       (p2 xt1 yl1) (p2 xlb2 ytb2) (p2 xlb2 yl1) (p2 xt1 ytb2) 270
-      _radiusTopLeft _borderLeft _borderTop
+      _radTopLeft _brdLeft _brdTop
     drawRoundedCorner renderer
       (p2 xt2 yr1) (p2 xrb2 ytb2) (p2 xt2 ytb2) (p2 xrb2 yr1) 0
-      _radiusTopRight _borderTop _borderRight
+      _radTopRight _brdTop _brdRight
     drawRoundedCorner renderer
       (p2 xb2 yr2) (p2 xrb2 ybb2) (p2 xrb2 yr2) (p2 xb2 ybb2) 90
-      _radiusBottomRight _borderRight _borderBottom
+      _radBottomRight _brdRight _brdBottom
     drawRoundedCorner renderer
       (p2 xb1 yl2) (p2 xlb2 ybb2) (p2 xb1 ybb2) (p2 xlb2 yl2) 180
-      _radiusBottomLeft _borderBottom _borderLeft
+      _radBottomLeft _brdBottom _brdLeft
 
 topLeftBorderSize :: Border -> Radius -> Double
 topLeftBorderSize Border{..} Radius{..}
-  | justLeft && justTop && isJust _radiusTopLeft = fromJust _radiusTopLeft
+  | justLeft && justTop && isJust _radTopLeft = fromJust _radTopLeft
   | otherwise = 0
   where
-    justLeft = isJust _borderLeft
-    justTop = isJust _borderTop
+    justLeft = isJust _brdLeft
+    justTop = isJust _brdTop
 
 topRightBorderSize :: Border -> Radius -> Double
 topRightBorderSize Border{..} Radius{..}
-  | justRight && justTop && isJust _radiusTopRight = fromJust _radiusTopRight
+  | justRight && justTop && isJust _radTopRight = fromJust _radTopRight
   | otherwise = 0
   where
-    justRight = isJust _borderRight
-    justTop = isJust _borderTop
+    justRight = isJust _brdRight
+    justTop = isJust _brdTop
 
 bottomLeftBorderSize :: Border -> Radius -> Double
 bottomLeftBorderSize Border{..} Radius{..}
-  | justLeft && justBottom && justRad = fromJust _radiusBottomLeft
+  | justLeft && justBottom && justRad = fromJust _radBottomLeft
   | otherwise = 0
   where
-    justLeft = isJust _borderLeft
-    justBottom = isJust _borderBottom
-    justRad = isJust _radiusBottomLeft
+    justLeft = isJust _brdLeft
+    justBottom = isJust _brdBottom
+    justRad = isJust _radBottomLeft
 
 bottomRightBorderSize :: Border -> Radius -> Double
 bottomRightBorderSize Border{..} Radius{..}
-  | justRight && justBottom && justRad = fromJust _radiusBottomRight
+  | justRight && justBottom && justRad = fromJust _radBottomRight
   | otherwise = 0
   where
-    justRight = isJust _borderRight
-    justBottom = isJust _borderBottom
-    justRad = isJust _radiusBottomRight
+    justRight = isJust _brdRight
+    justBottom = isJust _brdBottom
+    justRad = isJust _radBottomRight
 
 drawRoundedCorner
   :: (Monad m)
@@ -223,10 +223,10 @@ drawRoundedCorner
   -> Maybe BorderSide
   -> m ()
 drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
-  let width1 = _borderSideWidth s1
-      width2 = _borderSideWidth s2
-      color1 = _borderSideColor s1
-      color2 = _borderSideColor s2
+  let width1 = _bsWidth s1
+      width2 = _bsWidth s2
+      color1 = _bsColor s1
+      color2 = _bsColor s2
 
   beginPath renderer
 
@@ -249,8 +249,8 @@ strokeBorder
 strokeBorder renderer from to Nothing = pure ()
 strokeBorder renderer from to (Just BorderSide{..}) = do
   beginPath renderer
-  setStrokeColor renderer _borderSideColor
-  setStrokeWidth renderer _borderSideWidth
+  setStrokeColor renderer _bsColor
+  setStrokeWidth renderer _bsWidth
   moveTo renderer from
   renderLineTo renderer to
   stroke renderer
@@ -272,11 +272,11 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
     setFillColor renderer tsColor
     renderText renderer viewport tsFont tsFontSize tsAlign txt
   where
-    tsColor = fromMaybe defaultColor _textStyleColor
-    tsFont = fromMaybe defaultFont _textStyleFont
-    tsFontSize = fromMaybe defaultFontSize _textStyleFontSize
-    tsAlignH = fromMaybe defaultAlignH _textStyleAlignH
-    tsAlignV = fromMaybe defaultAlignV _textStyleAlignV
+    tsColor = fromMaybe defaultColor _txsColor
+    tsFont = fromMaybe defaultFont _txsFont
+    tsFontSize = fromMaybe defaultFontSize _txsFontSize
+    tsAlignH = fromMaybe defaultAlignH _txsAlignH
+    tsAlignV = fromMaybe defaultAlignV _txsAlignV
     tsAlign = Align tsAlignH tsAlignV
 
 calcTextBounds
@@ -285,22 +285,22 @@ calcTextBounds textBoundsFn Nothing txt
   = calcTextBounds textBoundsFn (Just mempty) txt
 calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
   let
-    tsFont = fromMaybe defaultFont _textStyleFont
-    tsFontSize = fromMaybe defaultFontSize _textStyleFontSize
+    tsFont = fromMaybe defaultFont _txsFont
+    tsFontSize = fromMaybe defaultFontSize _txsFontSize
   in
     textBoundsFn tsFont tsFontSize txt
 
 tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)
-tsTextColor (Just ts) = fromMaybe defaultColor (_textStyleColor ts)
+tsTextColor (Just ts) = fromMaybe defaultColor (_txsColor ts)
 
 subtractBorder :: Rect -> Maybe Border -> Rect
 subtractBorder rect Nothing = rect
 subtractBorder (Rect x y w h) (Just (Border l r t b)) = Rect nx ny nw nh where
-  nx = x + _borderSideWidth (justDef l)
-  ny = y + _borderSideWidth (justDef t)
-  nw = w - _borderSideWidth (justDef l) - _borderSideWidth (justDef r)
-  nh = h - _borderSideWidth (justDef t) - _borderSideWidth (justDef b)
+  nx = x + _bsWidth (justDef l)
+  ny = y + _bsWidth (justDef t)
+  nw = w - _bsWidth (justDef l) - _bsWidth (justDef r)
+  nh = h - _bsWidth (justDef t) - _bsWidth (justDef b)
 
 subtractMargin :: Rect -> Maybe Margin -> Rect
 subtractMargin rect Nothing = rect

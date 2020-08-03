@@ -49,66 +49,66 @@ instance Monoid Style where
   mempty = def
 
 data Margin = Margin {
-  _marginLeft :: Maybe Double,
-  _marginRight :: Maybe Double,
-  _marginTop :: Maybe Double,
-  _marginBottom :: Maybe Double
+  _mgnLeft :: Maybe Double,
+  _mgnRight :: Maybe Double,
+  _mgnTop :: Maybe Double,
+  _mgnBottom :: Maybe Double
 } deriving (Show, Eq)
 
 instance Default Margin where
   def = Margin {
-    _marginLeft = Nothing,
-    _marginRight = Nothing,
-    _marginTop = Nothing,
-    _marginBottom = Nothing
+    _mgnLeft = Nothing,
+    _mgnRight = Nothing,
+    _mgnTop = Nothing,
+    _mgnBottom = Nothing
   }
 
 instance Semigroup Margin where
   (<>) p1 p2 = Margin {
-    _marginLeft = _marginLeft p2 <|> _marginLeft p1,
-    _marginRight = _marginRight p2 <|> _marginRight p1,
-    _marginTop = _marginTop p2 <|> _marginTop p1,
-    _marginBottom = _marginBottom p2 <|> _marginBottom p1
+    _mgnLeft = _mgnLeft p2 <|> _mgnLeft p1,
+    _mgnRight = _mgnRight p2 <|> _mgnRight p1,
+    _mgnTop = _mgnTop p2 <|> _mgnTop p1,
+    _mgnBottom = _mgnBottom p2 <|> _mgnBottom p1
   }
 
 instance Monoid Margin where
   mempty = def
 
 data Padding = Padding {
-  _paddingLeft :: Maybe Double,
-  _paddingRight :: Maybe Double,
-  _paddingTop :: Maybe Double,
-  _paddingBottom :: Maybe Double
+  _padLeft :: Maybe Double,
+  _padRight :: Maybe Double,
+  _padTop :: Maybe Double,
+  _padBottom :: Maybe Double
 } deriving (Show, Eq)
 
 instance Default Padding where
   def = Padding {
-    _paddingLeft = Nothing,
-    _paddingRight = Nothing,
-    _paddingTop = Nothing,
-    _paddingBottom = Nothing
+    _padLeft = Nothing,
+    _padRight = Nothing,
+    _padTop = Nothing,
+    _padBottom = Nothing
   }
 
 instance Semigroup Padding where
   (<>) p1 p2 = Padding {
-    _paddingLeft = _paddingLeft p2 <|> _paddingLeft p1,
-    _paddingRight = _paddingRight p2 <|> _paddingRight p1,
-    _paddingTop = _paddingTop p2 <|> _paddingTop p1,
-    _paddingBottom = _paddingBottom p2 <|> _paddingBottom p1
+    _padLeft = _padLeft p2 <|> _padLeft p1,
+    _padRight = _padRight p2 <|> _padRight p1,
+    _padTop = _padTop p2 <|> _padTop p1,
+    _padBottom = _padBottom p2 <|> _padBottom p1
   }
 
 instance Monoid Padding where
   mempty = def
 
 data BorderSide = BorderSide {
-  _borderSideWidth :: Double,
-  _borderSideColor :: Color
+  _bsWidth :: Double,
+  _bsColor :: Color
 } deriving (Show, Eq)
 
 instance Default BorderSide where
   def = BorderSide {
-    _borderSideWidth = 0,
-    _borderSideColor = def
+    _bsWidth = 0,
+    _bsColor = def
   }
 
 instance Semigroup BorderSide where
@@ -118,84 +118,84 @@ instance Monoid BorderSide where
   mempty = mempty
 
 data Border = Border {
-  _borderLeft :: Maybe BorderSide,
-  _borderRight :: Maybe BorderSide,
-  _borderTop :: Maybe BorderSide,
-  _borderBottom :: Maybe BorderSide
+  _brdLeft :: Maybe BorderSide,
+  _brdRight :: Maybe BorderSide,
+  _brdTop :: Maybe BorderSide,
+  _brdBottom :: Maybe BorderSide
 } deriving (Show, Eq)
 
 instance Default Border where
   def = Border {
-    _borderLeft = def,
-    _borderRight = def,
-    _borderTop = def,
-    _borderBottom = def
+    _brdLeft = def,
+    _brdRight = def,
+    _brdTop = def,
+    _brdBottom = def
   }
 
 instance Semigroup Border where
   (<>) b1 b2 = Border {
-    _borderLeft = _borderLeft b1 <> _borderLeft b2,
-    _borderRight = _borderRight b1 <> _borderRight b2,
-    _borderTop = _borderTop b1 <> _borderTop b2,
-    _borderBottom = _borderBottom b1 <> _borderBottom b2
+    _brdLeft = _brdLeft b1 <> _brdLeft b2,
+    _brdRight = _brdRight b1 <> _brdRight b2,
+    _brdTop = _brdTop b1 <> _brdTop b2,
+    _brdBottom = _brdBottom b1 <> _brdBottom b2
   }
 
 instance Monoid Border where
   mempty = def
 
 data Radius = Radius {
-  _radiusTopLeft :: Maybe Double,
-  _radiusTopRight :: Maybe Double,
-  _radiusBottomLeft :: Maybe Double,
-  _radiusBottomRight :: Maybe Double
+  _radTopLeft :: Maybe Double,
+  _radTopRight :: Maybe Double,
+  _radBottomLeft :: Maybe Double,
+  _radBottomRight :: Maybe Double
 } deriving (Show, Eq)
 
 instance Default Radius where
   def = Radius {
-    _radiusTopLeft = Nothing,
-    _radiusTopRight = Nothing,
-    _radiusBottomLeft = Nothing,
-    _radiusBottomRight = Nothing
+    _radTopLeft = Nothing,
+    _radTopRight = Nothing,
+    _radBottomLeft = Nothing,
+    _radBottomRight = Nothing
   }
 
 instance Semigroup Radius where
   (<>) r1 r2 = Radius {
-    _radiusTopLeft = _radiusTopLeft r2 <|> _radiusTopLeft r1,
-    _radiusTopRight = _radiusTopRight r2 <|> _radiusTopRight r1,
-    _radiusBottomLeft = _radiusBottomLeft r2 <|> _radiusBottomLeft r1,
-    _radiusBottomRight = _radiusBottomRight r2 <|> _radiusBottomRight r1
+    _radTopLeft = _radTopLeft r2 <|> _radTopLeft r1,
+    _radTopRight = _radTopRight r2 <|> _radTopRight r1,
+    _radBottomLeft = _radBottomLeft r2 <|> _radBottomLeft r1,
+    _radBottomRight = _radBottomRight r2 <|> _radBottomRight r1
   }
 
 instance Monoid Radius where
   mempty = def
 
 data TextStyle = TextStyle {
-  _textStyleFont :: Maybe Font,
-  _textStyleFontSize :: Maybe Double,
-  _textStyleColor :: Maybe Color,
-  _textStyleHover :: Maybe Color,
-  _textStyleAlignH :: Maybe AlignH,
-  _textStyleAlignV :: Maybe AlignV
+  _txsFont :: Maybe Font,
+  _txsFontSize :: Maybe Double,
+  _txsColor :: Maybe Color,
+  _txsHover :: Maybe Color,
+  _txsAlignH :: Maybe AlignH,
+  _txsAlignV :: Maybe AlignV
 } deriving (Show, Eq)
 
 instance Default TextStyle where
   def = TextStyle {
-    _textStyleFont = Nothing,
-    _textStyleFontSize = Nothing,
-    _textStyleColor = Nothing,
-    _textStyleHover = Nothing,
-    _textStyleAlignH = Nothing,
-    _textStyleAlignV = Nothing
+    _txsFont = Nothing,
+    _txsFontSize = Nothing,
+    _txsColor = Nothing,
+    _txsHover = Nothing,
+    _txsAlignH = Nothing,
+    _txsAlignV = Nothing
   }
 
 instance Semigroup TextStyle where
   (<>) ts1 ts2 = TextStyle {
-    _textStyleFont = _textStyleFont ts2 <|> _textStyleFont ts1,
-    _textStyleFontSize = _textStyleFontSize ts2 <|> _textStyleFontSize ts1,
-    _textStyleColor = _textStyleColor ts2 <|> _textStyleColor ts1,
-    _textStyleHover = _textStyleHover ts2 <|> _textStyleHover ts1,
-    _textStyleAlignH = _textStyleAlignH ts2 <|> _textStyleAlignH ts1,
-    _textStyleAlignV = _textStyleAlignV ts2 <|> _textStyleAlignV ts1
+    _txsFont = _txsFont ts2 <|> _txsFont ts1,
+    _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
+    _txsColor = _txsColor ts2 <|> _txsColor ts1,
+    _txsHover = _txsHover ts2 <|> _txsHover ts1,
+    _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
+    _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
   }
 
 instance Monoid TextStyle where
