@@ -14,14 +14,28 @@ instance Semigroup Color where
   (<>) _ c2 = c2
 
 instance Default Color where
-  def = Color 0 0 0 1.0
+  def = Color 255 255 255 1.0
 
-type Font = Text
-type FontSize = Double
+newtype Font
+  = Font { unFont :: Text }
+  deriving (Eq, Show)
+
+newtype FontSize
+  = FontSize { unFontSize :: Double }
+  deriving (Eq, Show)
+
+instance Default Font where
+  def = Font "sans"
+
+instance Default FontSize where
+  def = FontSize 32
 
 data Align
   = Align AlignH AlignV
   deriving (Show, Eq)
+
+instance Default Align where
+  def = Align ACenter AMiddle
 
 data AlignH
   = ALeft
@@ -29,8 +43,14 @@ data AlignH
   | ARight
   deriving (Show, Eq)
 
+instance Default AlignH where
+  def = ACenter
+
 data AlignV
   = ATop
   | AMiddle
   | ABottom
   deriving (Show, Eq)
+
+instance Default AlignV where
+  def = AMiddle

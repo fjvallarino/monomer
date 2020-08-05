@@ -53,7 +53,9 @@ newtype DropdownState = DropdownState {
   _isOpen :: Bool
 }
 
-newtype DropdownMessage = OnChangeMessage Int deriving Typeable
+newtype DropdownMessage
+  = OnChangeMessage Int
+  deriving Typeable
 
 dropdownConfig
   :: WidgetValue s a -> Seq a -> (a -> Text) -> DropdownConfig s e a

@@ -3,12 +3,13 @@
 module Monomer.Main.Util where
 
 import Control.Applicative ((<|>))
+import Data.Default
 import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Common.Tree (Path)
+import Monomer.Common.Tree (Path, rootPath)
 import Monomer.Event.Util
 import Monomer.Main.Types
 import Monomer.Widget.Types
@@ -20,7 +21,7 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
   _mcWindowSize = winSize,
   _mcHdpi = useHiDPI,
   _mcDpr = devicePixelRate,
-  _mcInputStatus = defInputStatus,
+  _mcInputStatus = def,
   _mcPathFocus = Seq.empty,
   _mcPathHover = Nothing,
   _mcPathPressed = Nothing,

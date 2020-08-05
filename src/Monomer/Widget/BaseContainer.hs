@@ -38,7 +38,6 @@ import Monomer.Graphics.Renderer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-
 createContainer :: Widget s e
 createContainer = Widget {
   _widgetInit = containerInit defaultInit,

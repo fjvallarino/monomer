@@ -133,8 +133,8 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
   -- Text
   renderText (Rect x y w h) font fontSize (Align ha va) message = do
-    liftIO $ VG.fontFace c font
-    liftIO $ VG.fontSize c $ realToFrac $ fontSize * dpr
+    liftIO $ VG.fontFace c (unFont font)
+    liftIO $ VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
     VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c
       (realToFrac $ x * dpr)
       (realToFrac $ y * dpr)
@@ -166,8 +166,8 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   getTextSize font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
 
-    liftIO $ VG.fontFace c font
-    liftIO $ VG.fontSize c $ realToFrac fontSize
+    liftIO $ VG.fontFace c (unFont font)
+    liftIO $ VG.fontSize c $ realToFrac (unFontSize fontSize)
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)

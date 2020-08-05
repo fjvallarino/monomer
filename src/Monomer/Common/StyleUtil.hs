@@ -171,7 +171,7 @@ textColor color = mempty {
 textSize :: Double -> Style
 textSize size = mempty {
   _styleText = Just $ mempty {
-    _txsFontSize = Just size
+    _txsFontSize = Just (FontSize size)
   }
 }
 

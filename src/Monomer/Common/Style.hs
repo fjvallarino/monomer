@@ -171,7 +171,7 @@ instance Monoid Radius where
 
 data TextStyle = TextStyle {
   _txsFont :: Maybe Font,
-  _txsFontSize :: Maybe Double,
+  _txsFontSize :: Maybe FontSize,
   _txsColor :: Maybe Color,
   _txsHover :: Maybe Color,
   _txsAlignH :: Maybe AlignH,

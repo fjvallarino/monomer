@@ -19,9 +19,6 @@ import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds)
 import Monomer.Widget.Types
 
-rootPath :: Path
-rootPath = Seq.empty
-
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
   _wiWidgetType = widgetType,

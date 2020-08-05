@@ -14,6 +14,7 @@ import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.State
+import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (><))
@@ -27,6 +28,7 @@ import qualified Data.Sequence as Seq
 import qualified NanoVG as NV
 
 import Monomer.Common.Geometry
+import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Event.Util
@@ -39,7 +41,6 @@ import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
 import Monomer.Widget.CompositeWidget
 import Monomer.Widget.Types
-import Monomer.Widget.Util
 
 data MainLoopArgs s e = MainLoopArgs {
   _mlPlatform :: WidgetPlatform,
@@ -90,7 +91,7 @@ runWidgets window c widgetRoot = do
     _weGlobalKeys = M.empty,
     _weFocusedPath = rootPath,
     _weModel = model,
-    _weInputStatus = defInputStatus,
+    _weInputStatus = def,
     _weTimestamp = startTs
   }
   let pathReadyRoot = widgetRoot {

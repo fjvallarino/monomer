@@ -58,7 +58,9 @@ newtype ListViewState = ListViewState {
   _highlighted :: Int
 }
 
-newtype ListViewMessage = OnClickMessage Int deriving Typeable
+newtype ListViewMessage
+  = OnClickMessage Int
+  deriving Typeable
 
 listViewConfig
   :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewConfig s e a

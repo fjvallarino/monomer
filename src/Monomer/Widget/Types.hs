@@ -7,6 +7,7 @@ import Control.Lens (ALens')
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq, (<|), (|>))
+import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Typeable (cast, Typeable)
 
@@ -20,8 +21,14 @@ import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 type Timestamp = Int
-type WidgetType = String
 type GlobalKeys s e = Map WidgetKey (WidgetInstance s e)
+
+newtype WidgetType
+  = WidgetType { unWidgetType :: String }
+  deriving (Eq, Show)
+
+instance IsString WidgetType where
+  fromString str = WidgetType str
 
 data WidgetValue s a
   = WidgetValue a
@@ -229,6 +236,6 @@ data WidgetInstance s e =
 instance Show (WidgetInstance s e) where
   show inst = desc where
     desc = wtype ++ ", " ++ wkey ++ ", " ++ wchildren
-    wtype = "Type = " ++ _wiWidgetType inst
+    wtype = "Type = " ++ unWidgetType (_wiWidgetType inst)
     wkey = "Key = " ++ show (_wiKey inst)
     wchildren = "Children = " ++ show (length $ _wiChildren inst)

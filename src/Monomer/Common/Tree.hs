@@ -18,6 +18,9 @@ data Tree a = Node {
   nodeChildren :: Seq (Tree a)
 } deriving (Functor, Foldable, Traversable)
 
+rootPath :: Path
+rootPath = Seq.empty
+
 singleNode :: a -> Tree a
 singleNode value = Node value Seq.empty
 

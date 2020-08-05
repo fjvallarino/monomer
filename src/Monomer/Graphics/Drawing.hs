@@ -1,7 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 {- HLINT ignore "Reduce duplication" -}
 
-module Monomer.Graphics.Drawing where
+module Monomer.Graphics.Drawing (
+  calcTextBounds,
+  drawRect,
+  drawStyledBackground,
+  drawStyledText,
+  drawStyledText_,
+  drawText,
+  tsTextColor
+) where
 
 import Control.Monad (when, void, forM_)
 import Data.Default
@@ -12,7 +20,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
-import Monomer.Graphics.Util
 
 drawStyledBackground :: (Monad m) => Renderer m -> Rect -> Style -> m ()
 drawStyledBackground renderer viewport Style{..} = do
@@ -279,11 +286,11 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
     setFillColor renderer tsColor
     renderText renderer viewport tsFont tsFontSize tsAlign txt
   where
-    tsColor = fromMaybe defaultColor _txsColor
-    tsFont = fromMaybe defaultFont _txsFont
-    tsFontSize = fromMaybe defaultFontSize _txsFontSize
-    tsAlignH = fromMaybe defaultAlignH _txsAlignH
-    tsAlignV = fromMaybe defaultAlignV _txsAlignV
+    tsColor = justDef _txsColor
+    tsFont = justDef _txsFont
+    tsFontSize = fromMaybe def _txsFontSize
+    tsAlignH = justDef _txsAlignH
+    tsAlignV = justDef _txsAlignV
     tsAlign = Align tsAlignH tsAlignV
 
 calcTextBounds
@@ -292,14 +299,14 @@ calcTextBounds textBoundsFn Nothing txt
   = calcTextBounds textBoundsFn (Just mempty) txt
 calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
   let
-    tsFont = fromMaybe defaultFont _txsFont
-    tsFontSize = fromMaybe defaultFontSize _txsFontSize
+    tsFont = justDef _txsFont
+    tsFontSize = justDef _txsFontSize
   in
     textBoundsFn tsFont tsFontSize txt
 
 tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)
-tsTextColor (Just ts) = fromMaybe defaultColor (_txsColor ts)
+tsTextColor (Just ts) = justDef (_txsColor ts)
 
 subtractBorder :: Rect -> Maybe Border -> Rect
 subtractBorder rect Nothing = rect
