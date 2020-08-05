@@ -21,7 +21,7 @@ import qualified SDL
 import Monomer.Event.Types
 
 getKeycode :: SDL.Keycode -> KeyCode
-getKeycode keyCode = fromIntegral $ SDL.unwrapKeycode keyCode
+getKeycode keyCode = KeyCode $ fromIntegral (SDL.unwrapKeycode keyCode)
 
 keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
 keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where
@@ -31,7 +31,7 @@ keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where
   keyStatus = case SDL.keyboardEventKeyMotion eventData of
     SDL.Pressed -> KeyPressed
     SDL.Released -> KeyReleased
-  keyAction = KeyAction keyMod (fromIntegral keyCode) keyStatus
+  keyAction = KeyAction keyMod (KeyCode $ fromIntegral keyCode) keyStatus
 keyboardEvent _ = Nothing
 
 textEvent :: SDL.EventPayload -> Maybe SystemEvent

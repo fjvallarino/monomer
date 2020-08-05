@@ -15,6 +15,7 @@ import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw
 
 import Monomer.Common.Geometry
+import Monomer.Event.Types
 
 getCurrentMousePos :: (MonadIO m) => m Point
 getCurrentMousePos = do
@@ -38,11 +39,11 @@ getPlatform = do
 
   return $ T.pack platform
 
-getKeyCode :: String -> Maybe Int
+getKeyCode :: String -> Maybe KeyCode
 getKeyCode name = unsafePerformIO $ withCString name getKeyCodeFFI where
   getKeyCodeFFI cname = fmap convert (Raw.getKeyFromName cname)
   convert Raw.SDLK_UNKNOWN = Nothing
-  convert code = Just (fromIntegral code)
+  convert code = Just (KeyCode $ fromIntegral code)
 
 doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m s -> m s
 doInDrawingContext window c action = do

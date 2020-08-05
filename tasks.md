@@ -134,6 +134,8 @@
 - Pending
   - Make types Lens friendly
     - Use lenses whenever they make the code clearer
+    - Use Lenses for Main/Core.hs' updateInputStatus
+    - Create Lenses for Graphics/Types.hs
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly

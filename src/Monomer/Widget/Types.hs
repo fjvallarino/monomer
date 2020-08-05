@@ -95,7 +95,7 @@ data WidgetEnv s e = WidgetEnv {
   _weFocusedPath :: Path,
   _weModel :: s,
   _weInputStatus :: InputStatus,
-  _weTimestamp :: Int
+  _weTimestamp :: Timestamp
 }
 
 data Widget s e =

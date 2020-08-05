@@ -11,7 +11,9 @@ import qualified Data.Map.Strict as M
 import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path)
 
-type KeyCode = Int
+newtype KeyCode
+  = KeyCode { unKeyCode :: Int }
+  deriving (Eq, Ord, Show)
 
 data KeyStatus
   = KeyPressed
