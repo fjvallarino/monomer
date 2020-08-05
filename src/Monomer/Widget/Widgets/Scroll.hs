@@ -100,13 +100,13 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 makeScroll :: ScrollConfig -> ScrollState -> Widget s e
 makeScroll config state = widget where
   widget = createContainer {
-    _widgetGetState = makeState state,
-    _widgetMerge = containerMergeTrees merge,
-    _widgetHandleEvent = containerHandleEvent handleEvent,
-    _widgetHandleMessage = containerHandleMessage handleMessage,
-    _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = scrollResize Nothing,
-    _widgetRender = render
+    widgetGetState = makeState state,
+    widgetMerge = containerMergeTrees merge,
+    widgetHandleEvent = containerHandleEvent handleEvent,
+    widgetHandleMessage = containerHandleMessage handleMessage,
+    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetResize = scrollResize Nothing,
+    widgetRender = render
   }
 
   ScrollState dragging dx dy cs prevReqs = state
@@ -260,7 +260,7 @@ makeScroll config state = widget where
     }
     newWidget = fromMaybe defWidget uWidget
     cWidget = _wiWidget child
-    newChild = _widgetResize cWidget wenv viewport cRenderArea childReq child
+    newChild = widgetResize cWidget wenv viewport cRenderArea childReq child
 
     newInst = widgetInst {
       _wiViewport = viewport,

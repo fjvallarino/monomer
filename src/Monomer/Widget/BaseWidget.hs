@@ -1,8 +1,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
 module Monomer.Widget.BaseWidget (
-  createWidget,
-  widgetMerge
+  baseWidgetMerge,
+  createWidget
 ) where
 
 import Control.Monad
@@ -19,16 +19,16 @@ import Monomer.Widget.Util
 
 createWidget :: Widget s e
 createWidget = Widget {
-  _widgetInit = defaultInit,
-  _widgetGetState = defaultGetState,
-  _widgetMerge = widgetMerge defaultMerge,
-  _widgetNextFocusable = defaultNextFocusable,
-  _widgetFind = defaultFind,
-  _widgetHandleEvent = defaultHandleEvent,
-  _widgetHandleMessage = defaultHandleMessage,
-  _widgetPreferredSize = defaultPreferredSize,
-  _widgetResize = defaultResize,
-  _widgetRender = defaultRender
+  widgetInit = defaultInit,
+  widgetGetState = defaultGetState,
+  widgetMerge = baseWidgetMerge defaultMerge,
+  widgetNextFocusable = defaultNextFocusable,
+  widgetFind = defaultFind,
+  widgetHandleEvent = defaultHandleEvent,
+  widgetHandleMessage = defaultHandleMessage,
+  widgetPreferredSize = defaultPreferredSize,
+  widgetResize = defaultResize,
+  widgetRender = defaultRender
 }
 
 defaultInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetResult s e
@@ -46,14 +46,14 @@ type WidgetMergeHandler s e
 defaultMerge :: WidgetMergeHandler s e
 defaultMerge wenv oldState newInstance = resultWidget newInstance
 
-widgetMerge
+baseWidgetMerge
   :: WidgetMergeHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-widgetMerge mergeHandler wenv oldInstance newInstance = result where
-  oldState = _widgetGetState (_wiWidget oldInstance) wenv
+baseWidgetMerge mergeHandler wenv oldInstance newInstance = result where
+  oldState = widgetGetState (_wiWidget oldInstance) wenv
   result = mergeHandler wenv oldState newInstance
 
 defaultNextFocusable

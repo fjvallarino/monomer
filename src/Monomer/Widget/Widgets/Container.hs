@@ -42,10 +42,10 @@ makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
 makeContainer :: ContainerConfig s e -> Widget s e
 makeContainer config = widget where
   widget = createContainer {
-    _widgetHandleEvent = containerHandleEvent handleEvent,
-    _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = containerResize resize,
-    _widgetRender = containerRender render
+    widgetHandleEvent = containerHandleEvent handleEvent,
+    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetResize = containerResize resize,
+    widgetRender = containerRender render
   }
 
   handleEvent wenv ctx evt widgetInst = case evt of

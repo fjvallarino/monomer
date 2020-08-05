@@ -94,13 +94,13 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
 makeListView config state = widget where
   widget = createContainer {
-    _widgetInit = containerInit init,
-    _widgetGetState = makeState state,
-    _widgetMerge = containerMergeTrees merge,
-    _widgetHandleEvent = containerHandleEvent handleEvent,
-    _widgetHandleMessage = containerHandleMessage handleMessage,
-    _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = containerResize resize
+    widgetInit = containerInit init,
+    widgetGetState = makeState state,
+    widgetMerge = containerMergeTrees merge,
+    widgetHandleEvent = containerHandleEvent handleEvent,
+    widgetHandleMessage = containerHandleMessage handleMessage,
+    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetResize = containerResize resize
   }
 
   currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)
@@ -157,7 +157,7 @@ makeListView config state = widget where
     -- ListView's tree will be rebuilt in merge, before merging its children,
     -- so it does not matter what we currently have
     newInstance = oldInstance
-    widgetResult = _widgetMerge newWidget wenv oldInstance newInstance
+    widgetResult = widgetMerge newWidget wenv oldInstance newInstance
     scrollToReq = itemScrollTo widgetInst nextIdx
     requests = Seq.fromList scrollToReq
     result = Just $ widgetResult { _wrRequests = requests }

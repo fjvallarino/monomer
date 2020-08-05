@@ -39,9 +39,9 @@ button_ config = defaultWidgetInstance "button" (makeButton config)
 makeButton :: ButtonConfig s e -> Widget s e
 makeButton config = widget where
   widget = createWidget {
-    _widgetHandleEvent = handleEvent,
-    _widgetPreferredSize = preferredSize,
-    _widgetRender = render
+    widgetHandleEvent = handleEvent,
+    widgetPreferredSize = preferredSize,
+    widgetRender = render
   }
 
   handleEvent wenv ctx evt widgetInst = case evt of

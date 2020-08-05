@@ -37,7 +37,7 @@
   - Current massive refactor
     - Replace Tree with Containers' Tree
     - Fix issue with event handling (click makes everything disappear)
-    - Fix focus situation (remove _focusRing and replace with single focus, then use _widgetNextFocusable)
+    - Fix focus situation (remove _focusRing and replace with single focus, then use widgetNextFocusable)
     - Provide focus to render (needed by textField)
     - Check if resize children still makes sense (maybe the widget itself can resize on the corresponding event?)
     - Handle SetFocus request
@@ -120,8 +120,8 @@
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is cancelled fo the moment. I can't find a good reason for doing it.
     - WidgetEnv was added as a parameter for completeness sake
-    - This is also needed for _widgetPreferredSize and _widgetResize
-    - Generalize the "startFrom" concept of _widgetFind (and also validate it's actually well/fully implemented)
+    - This is also needed for widgetPreferredSize and widgetResize
+    - Generalize the "startFrom" concept of widgetFind (and also validate it's actually well/fully implemented)
   - Should Resize be restored? -> Restored
   - Make sure enabled/visible attributes are being used
     - This needs modifying WidgetContext (former PathContext) to include visible and enabled attributes
@@ -170,7 +170,7 @@
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Can we generalize _widgetFind?
+  - Can we generalize widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
     - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
     - Do we need this?

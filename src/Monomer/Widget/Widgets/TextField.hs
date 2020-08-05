@@ -70,12 +70,12 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
 makeTextField :: TextFieldConfig s e -> TextFieldState -> Widget s e
 makeTextField config state = widget where
   widget = createWidget {
-    _widgetInit = init,
-    _widgetGetState = makeState state,
-    _widgetMerge = widgetMerge merge,
-    _widgetHandleEvent = handleEvent,
-    _widgetPreferredSize = preferredSize,
-    _widgetRender = render
+    widgetInit = init,
+    widgetGetState = makeState state,
+    widgetMerge = baseWidgetMerge merge,
+    widgetHandleEvent = handleEvent,
+    widgetPreferredSize = preferredSize,
+    widgetRender = render
   }
 
   TextFieldState currText currPos = state

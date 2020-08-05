@@ -43,23 +43,23 @@ mockWenv model = WidgetEnv {
 
 initWidget :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 initWidget wenv inst = newInst where
-  WidgetResult _ _ inst2 = _widgetInit (_wiWidget inst) wenv inst
+  WidgetResult _ _ inst2 = widgetInit (_wiWidget inst) wenv inst
   Size w h = _weScreenSize wenv
   vp = Rect 0 0 w h
-  reqs = _widgetPreferredSize (_wiWidget inst2) wenv inst2
-  newInst = _widgetResize (_wiWidget inst2) wenv vp vp reqs inst2
+  reqs = widgetPreferredSize (_wiWidget inst2) wenv inst2
+  newInst = widgetResize (_wiWidget inst2) wenv vp vp reqs inst2
 
 instancePreferredSize :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
 instancePreferredSize wenv inst = nodeValue reqs where
   widget = _wiWidget inst
-  reqs = _widgetPreferredSize widget wenv inst
+  reqs = widgetPreferredSize widget wenv inst
 
 instanceResize
   :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instanceResize wenv viewport inst = newInst where
   widget = _wiWidget inst
-  reqs = _widgetPreferredSize widget wenv inst
-  newInst = _widgetResize widget wenv viewport viewport reqs inst
+  reqs = widgetPreferredSize widget wenv inst
+  newInst = widgetResize widget wenv viewport viewport reqs inst
 
 instanceGetEvents
   :: WidgetEnv s e
@@ -68,5 +68,5 @@ instanceGetEvents
   -> Seq e
 instanceGetEvents wenv evt inst = events where
   widget = _wiWidget inst
-  result = _widgetHandleEvent widget wenv rootPath evt inst
+  result = widgetHandleEvent widget wenv rootPath evt inst
   events = maybe Seq.empty _wrEvents result

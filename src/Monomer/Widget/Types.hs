@@ -101,13 +101,13 @@ data WidgetEnv s e = WidgetEnv {
 data Widget s e =
   Widget {
     -- | Performs widget initialization
-    _widgetInit
+    widgetInit
       :: WidgetEnv s e
       -> WidgetInstance s e
       -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when
     -- | merging widget trees
-    _widgetGetState
+    widgetGetState
       :: WidgetEnv s e
       -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
@@ -115,21 +115,21 @@ data Widget s e =
     -- Current state
     -- Old instance
     -- New instance
-    _widgetMerge
+    widgetMerge
       :: WidgetEnv s e
       -> WidgetInstance s e
       -> WidgetInstance s e
       -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    _widgetNextFocusable
+    widgetNextFocusable
       :: WidgetEnv s e
       -> Path
       -> WidgetInstance s e
       -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting
     -- | on the given path
-    _widgetFind
+    widgetFind
       :: WidgetEnv s e
       -> Path
       -> Point
@@ -144,7 +144,7 @@ data Widget s e =
     --
     -- Returns: the list of generated events and, maybe, a new version of the
     -- widget if internal state changed
-    _widgetHandleEvent
+    widgetHandleEvent
       :: WidgetEnv s e
       -> Path
       -> SystemEvent
@@ -156,7 +156,7 @@ data Widget s e =
     --
     -- Returns: the list of generated events and a new version of the widget if
     -- internal state changed
-    _widgetHandleMessage
+    widgetHandleMessage
       :: forall i . Typeable i
       => WidgetEnv s e
       -> Path
@@ -170,7 +170,7 @@ data Widget s e =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    _widgetPreferredSize
+    widgetPreferredSize
       :: WidgetEnv s e
       -> WidgetInstance s e
       -> Tree SizeReq,
@@ -182,7 +182,7 @@ data Widget s e =
     -- Preferred size for each of the children widgets
     --
     -- Returns: the size assigned to each of the children
-    _widgetResize
+    widgetResize
       :: WidgetEnv s e
       -> Rect
       -> Rect
@@ -196,7 +196,7 @@ data Widget s e =
     -- The current time in milliseconds
     --
     -- Returns: unit
-    _widgetRender
+    widgetRender
       :: forall m . Monad m
       => Renderer m
       -> WidgetEnv s e

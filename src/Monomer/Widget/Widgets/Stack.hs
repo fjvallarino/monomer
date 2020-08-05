@@ -30,8 +30,8 @@ vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
 makeStack :: Bool -> Widget s e
 makeStack isHorizontal = widget where
   widget = createContainer {
-    _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = containerResize resize
+    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetResize = containerResize resize
   }
 
   preferredSize wenv widgetInst children reqs = Node reqSize reqs where

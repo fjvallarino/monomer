@@ -19,8 +19,8 @@ label caption = defaultWidgetInstance "label" (makeLabel caption)
 makeLabel :: Text -> Widget s e
 makeLabel caption = widget where
   widget = createWidget {
-    _widgetPreferredSize = preferredSize,
-    _widgetRender = render
+    widgetPreferredSize = preferredSize,
+    widgetRender = render
   }
 
   preferredSize wenv widgetInst = singleNode sizeReq where

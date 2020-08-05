@@ -89,14 +89,14 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Widget s e
 makeDropdown config state = widget where
   widget = createContainer {
-    _widgetInit = containerInit init,
-    _widgetGetState = makeState state,
-    _widgetMerge = containerMergeTrees merge,
-    _widgetHandleEvent = containerHandleEvent handleEvent,
-    _widgetHandleMessage = containerHandleMessage handleMessage,
-    _widgetPreferredSize = containerPreferredSize preferredSize,
-    _widgetResize = containerResize resize,
-    _widgetRender = render
+    widgetInit = containerInit init,
+    widgetGetState = makeState state,
+    widgetMerge = containerMergeTrees merge,
+    widgetHandleEvent = containerHandleEvent handleEvent,
+    widgetHandleMessage = containerHandleMessage handleMessage,
+    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetResize = containerResize resize,
+    widgetRender = render
   }
 
   isOpen = _isOpen state
@@ -198,7 +198,7 @@ makeDropdown config state = widget where
 
   renderOverlay renderer wenv overlayInstance = renderAction where
     widget = _wiWidget overlayInstance
-    renderAction = _widgetRender widget renderer wenv overlayInstance
+    renderAction = widgetRender widget renderer wenv overlayInstance
 
   dropdownLabel wenv = _ddItemToText config $ currentValue wenv
 
