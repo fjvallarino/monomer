@@ -28,7 +28,8 @@ data WidgetValue s a
   | WidgetLens (ALens' s a)
 
 newtype WidgetKey
-  = WidgetKey Text deriving (Show, Eq, Ord)
+  = WidgetKey Text
+  deriving (Show, Eq, Ord)
 
 data WidgetState
   = forall i . Typeable i => WidgetState i
@@ -224,3 +225,10 @@ data WidgetInstance s e =
     -- | Style attributes of the widget instance
     _wiStyle :: Style
   }
+
+instance Show (WidgetInstance s e) where
+  show inst = desc where
+    desc = wtype ++ ", " ++ wkey ++ ", " ++ wchildren
+    wtype = "Type = " ++ _wiWidgetType inst
+    wkey = "Key = " ++ show (_wiKey inst)
+    wchildren = "Children = " ++ show (length $ _wiChildren inst)

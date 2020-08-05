@@ -1,6 +1,3 @@
---{-# LANGUAGE ConstraintKinds #-}
---{-# LANGUAGE ExistentialQuantification #-}
---{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -9,6 +6,7 @@ module Monomer.Widget.LensCore where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
+import Monomer.Common.LensStyle
 import Monomer.Widget.Types
 
 makeLensesWith abbreviatedFields ''SizePolicy

@@ -132,6 +132,8 @@
   - Format code!
 
 - Pending
+  - Make types Lens friendly
+    - Use lenses whenever they make the code clearer
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -140,8 +142,6 @@
   - Add header in all files, indicating license and documenting what the module does
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
   - Add support for dashed borders
-  - Create self rendered version of dropdown and list
-    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
   - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
   - Create Checkbox
   - Create Radio
@@ -154,6 +154,8 @@
     - Also set TextInputRect
   - Use newtypes whenever possible
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
+  - Create self rendered version of dropdown and list
+    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

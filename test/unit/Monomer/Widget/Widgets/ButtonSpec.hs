@@ -22,7 +22,6 @@ spec :: Spec
 spec = describe "Button" $ do
   handleEvent
   preferredSize
-  render
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -54,8 +53,3 @@ preferredSize = describe "preferredSize" $ do
     wenv = mockWenv ()
     btnInst = button Click "Click"
     SizeReq{..} = instancePreferredSize wenv btnInst
-
-render :: Spec
-render = describe "render" $
-  it "should render the button" $
-    pendingWith "Need to mock Renderer"

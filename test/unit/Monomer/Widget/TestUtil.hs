@@ -46,3 +46,9 @@ instancePreferredSize :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
 instancePreferredSize wenv inst = nodeValue reqs where
   widget = _wiWidget inst
   reqs = _widgetPreferredSize widget wenv inst
+
+instanceResize :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
+instanceResize wenv viewport inst = newInst where
+  widget = _wiWidget inst
+  reqs = _widgetPreferredSize widget wenv inst
+  newInst = _widgetResize widget wenv viewport viewport reqs inst

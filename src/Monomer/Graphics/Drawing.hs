@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Graphics.Drawing where
 
@@ -82,11 +83,13 @@ drawBorder renderer rt@(Rect xl yt w h) border@Border{..} =
   let
     xr = xl + w
     yb = yt + h
-    xlb = xl + sw _brdLeft
-    xrb = xr - sw _brdRight
-    ytb = yt + sw _brdTop
-    ybb = yb - sw _brdBottom
-    sw bs = if isJust bs then _bsWidth (fromJust bs) / 2 else 0
+    xlb = xl + halfWidth _brdLeft
+    xrb = xr - halfWidth _brdRight
+    ytb = yt + halfWidth _brdTop
+    ybb = yb - halfWidth _brdBottom
+    halfWidth bs
+      | isJust bs = _bsWidth (fromJust bs) / 2
+      | otherwise = 0
   in do
     strokeBorder renderer (p2 xl ytb) (p2 xr ytb) _brdTop
     strokeBorder renderer (p2 xrb yt) (p2 xrb yb) _brdRight
@@ -140,14 +143,14 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
     Rect xl yt w h = rect
     xr = xl + w
     yb = yt + h
-    xlb = xl + swr _brdLeft
-    xrb = xr - swr _brdRight
-    ytb = yt + swr _brdTop
-    ybb = yb - swr _brdBottom
-    xlb2 = xl + 2 * swr _brdLeft
-    xrb2 = xr - 2 * swr _brdRight
-    ytb2 = yt + 2 * swr _brdTop
-    ybb2 = yb - 2 * swr _brdBottom
+    xlb = xl + halfWidth _brdLeft
+    xrb = xr - halfWidth _brdRight
+    ytb = yt + halfWidth _brdTop
+    ybb = yb - halfWidth _brdBottom
+    xlb2 = xl + 2 * halfWidth _brdLeft
+    xrb2 = xr - 2 * halfWidth _brdRight
+    ytb2 = yt + 2 * halfWidth _brdTop
+    ybb2 = yb - 2 * halfWidth _brdBottom
     xt1 = xl + topLeftBorderSize border radius
     xt2 = xr - topRightBorderSize border radius
     yl1 = yt + topLeftBorderSize border radius
@@ -156,7 +159,9 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
     xb2 = xr - bottomRightBorderSize border radius
     yr1 = yt + topRightBorderSize border radius
     yr2 = yb - bottomRightBorderSize border radius
-    swr bs = if isJust bs then _bsWidth (fromJust bs) / 2 else 0
+    halfWidth bs
+      | isJust bs = _bsWidth (fromJust bs) / 2
+      | otherwise = 0
   in do
     strokeBorder renderer (p2 xt1 ytb) (p2 xt2 ytb) _brdTop
     strokeBorder renderer (p2 xrb yr1) (p2 xrb yr2) _brdRight
@@ -223,10 +228,11 @@ drawRoundedCorner
   -> Maybe BorderSide
   -> m ()
 drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
-  let width1 = _bsWidth s1
-      width2 = _bsWidth s2
-      color1 = _bsColor s1
-      color2 = _bsColor s2
+  let
+    width1 = _bsWidth s1
+    width2 = _bsWidth s2
+    color1 = _bsColor s1
+    color2 = _bsColor s2
 
   beginPath renderer
 
@@ -236,6 +242,7 @@ drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
 
   renderArc renderer c1 rad deg (deg - 90) CCW
   renderLineTo renderer p1
+
   if abs (width2 - width1) < 0.5
     then renderArc renderer c1 (rad - width1) (deg - 90) deg CW
     else renderQuadTo renderer c2 p2
