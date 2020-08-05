@@ -33,18 +33,17 @@ instance Default CompState where
 
 makeLenses ''CompState
 
-data CompEvent = InitComposite
-               | MessageParent
-               | CallSandbox
-               | StartTask
-               | StartProducer
-               | HandleProducer Int
-               deriving (Eq, Show)
+data CompEvent
+  = InitComposite
+  | MessageParent
+  | CallSandbox
+  | StartTask
+  | StartProducer
+  | HandleProducer Int
+  deriving (Eq, Show)
 
---testComposite :: WidgetInstance sp AppEvent
 testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
 
---handleCompositeEvent :: CompState -> CompEvent -> EventResponse CompState CompEvent AppEvent
 handleCompositeEvent model evt = case evt of
   InitComposite -> Task $ do
     threadDelay 1000
@@ -70,7 +69,6 @@ buildComposite model = trace "Created composite UI" $
         button MessageParent "Message parent"
       ],
       hgrid [
-        sandbox CallSandbox,
         button StartTask "Run task"
       ],
       hgrid [
