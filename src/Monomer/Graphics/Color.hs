@@ -29,8 +29,8 @@ rgb r g b = Color (clampChannel r) (clampChannel g) (clampChannel b) 1.0
 
 rgba :: Int -> Int -> Int -> Double -> Color
 rgba r g b a = Color {
-  _r = clampChannel r,
-  _g = clampChannel g,
-  _b = clampChannel b,
-  _alpha = clampAlpha a
+  _colorRed = clampChannel r,
+  _colorGreen = clampChannel g,
+  _colorBlue = clampChannel b,
+  _colorAlpha = clampAlpha a
 }

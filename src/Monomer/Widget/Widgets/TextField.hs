@@ -10,7 +10,7 @@ module Monomer.Widget.Widgets.TextField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (^#), (#~))
+import Control.Lens (ALens', (&), (^#), (#~), (.~))
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable
@@ -161,5 +161,5 @@ makeTextField config state = widget where
       caretAlpha
         | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0
-      caretColor = Just $ (tsTextColor textStyle) { _alpha = caretAlpha }
+      caretColor = Just $ tsTextColor textStyle & alpha .~ caretAlpha
       caretWidth = _tfcCaretWidth config

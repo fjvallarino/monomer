@@ -7,6 +7,7 @@ module Monomer.Widget.Widgets.Scroll (
   scrollConfig
 ) where
 
+import Control.Lens ((&), (.~))
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -68,7 +69,7 @@ data ScrollContext = ScrollContext {
 
 scrollConfig :: ScrollConfig
 scrollConfig = ScrollConfig {
-  _scActiveBarColor = Just $ darkGray { _alpha = 0.4 },
+  _scActiveBarColor = Just $ darkGray & alpha .~ 0.4,
   _scIdleBarColor = Nothing,
   _scActiveThumbColor = gray,
   _scIdleThumbColor = darkGray,

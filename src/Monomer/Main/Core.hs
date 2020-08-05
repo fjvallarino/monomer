@@ -256,7 +256,6 @@ preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
   pathPressed .= Nothing
   return [Click point btn, evt]
-
 preProcessEvent wenv widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()

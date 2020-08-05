@@ -1,13 +1,18 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Monomer.Graphics.Types where
 
+import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Text (Text)
 
 data Color = Color {
-  _r :: Int,
-  _g :: Int,
-  _b :: Int,
-  _alpha :: Double
+  _colorRed :: Int,
+  _colorGreen :: Int,
+  _colorBlue :: Int,
+  _colorAlpha :: Double
 } deriving (Show, Eq)
 
 instance Semigroup Color where
@@ -54,3 +59,5 @@ data AlignV
 
 instance Default AlignV where
   def = AMiddle
+
+makeLensesWith abbreviatedFields ''Color
