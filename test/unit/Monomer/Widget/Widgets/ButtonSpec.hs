@@ -8,6 +8,7 @@ import Test.Hspec
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Types
 import Monomer.Widget.Types
 import Monomer.Widget.TestUtil
@@ -34,9 +35,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btn = initWidget wenv (button BtnClick "Click")
-    widget = _wiWidget btn
-    click p = _widgetHandleEvent widget wenv rootPath (Click p LeftBtn) btn
-    events p = maybe Seq.empty _wrEvents (click p)
+    events p = instanceGetEvents wenv (Click p LeftBtn) btn
 
 preferredSize :: Spec
 preferredSize = describe "preferredSize" $ do

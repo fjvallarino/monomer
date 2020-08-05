@@ -2,13 +2,15 @@ module Monomer.Widget.TestUtil where
 
 import Data.Default
 import Data.Text (Text)
+import Data.Sequence (Seq)
 
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
+import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Event.Util
+import Monomer.Event.Types
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -52,8 +54,19 @@ instancePreferredSize wenv inst = nodeValue reqs where
   widget = _wiWidget inst
   reqs = _widgetPreferredSize widget wenv inst
 
-instanceResize :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
+instanceResize
+  :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instanceResize wenv viewport inst = newInst where
   widget = _wiWidget inst
   reqs = _widgetPreferredSize widget wenv inst
   newInst = _widgetResize widget wenv viewport viewport reqs inst
+
+instanceGetEvents
+  :: WidgetEnv s e
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> Seq e
+instanceGetEvents wenv evt inst = events where
+  widget = _wiWidget inst
+  result = _widgetHandleEvent widget wenv rootPath evt inst
+  events = maybe Seq.empty _wrEvents result
