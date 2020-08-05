@@ -2,8 +2,11 @@
 
 module Monomer.Event.Types where
 
+import Data.Default
 import Data.Text (Text)
 import Data.Map.Strict (Map)
+
+import qualified Data.Map.Strict as M
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path)
@@ -57,6 +60,14 @@ data InputStatus = InputStatus {
   ipsButtons :: Map Button ButtonState
 } deriving (Eq, Show)
 
+instance Default InputStatus where
+  def = InputStatus {
+    ipsMousePos = def,
+    ipsKeyMod = def,
+    ipsKeys = M.empty,
+    ipsButtons = M.empty
+  }
+
 data KeyMod = KeyMod {
   kmLeftShift :: Bool,
   kmRightShift :: Bool,
@@ -70,3 +81,18 @@ data KeyMod = KeyMod {
   kmCapsLock :: Bool,
   kmAltGr :: Bool
 } deriving (Show, Eq)
+
+instance Default KeyMod where
+  def = KeyMod {
+    kmLeftShift = False,
+    kmRightShift = False,
+    kmLeftCtrl = False,
+    kmRightCtrl = False,
+    kmLeftAlt = False,
+    kmRightAlt = False,
+    kmLeftGUI = False,
+    kmRightGUI = False,
+    kmNumLock = False,
+    kmCapsLock = False,
+    kmAltGr = False
+  }

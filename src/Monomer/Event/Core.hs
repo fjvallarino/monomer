@@ -1,11 +1,12 @@
 module Monomer.Event.Core where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (catMaybes, fromJust, isJust)
+import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust)
 import Data.List (foldl')
 import Data.Sequence (Seq, (|>))
 import Data.Traversable
 
+import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 import qualified SDL
 
@@ -39,3 +40,8 @@ isKeyPressed _ _ = False
 isShiftPressed :: SystemEvent -> Bool
 isShiftPressed (KeyAction keyMod _ _) = kmLeftShift keyMod
 isShiftPressed _ = False
+
+isButtonPressed :: InputStatus -> Button -> Bool
+isButtonPressed inputStatus button = status == PressedBtn where
+  currentStatus = M.lookup button (ipsButtons inputStatus)
+  status = fromMaybe ReleasedBtn currentStatus

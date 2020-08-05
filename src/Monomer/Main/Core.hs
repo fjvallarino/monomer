@@ -31,7 +31,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Core
 import Monomer.Event.Types
-import Monomer.Event.Util
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
