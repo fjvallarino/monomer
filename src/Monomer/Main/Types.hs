@@ -16,6 +16,7 @@ import Data.Sequence (Seq)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
+import Monomer.Event.LensEvent
 import Monomer.Event.Types
 import Monomer.Widget.CompositeWidget
 import Monomer.Widget.Types

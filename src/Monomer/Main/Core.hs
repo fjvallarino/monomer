@@ -30,6 +30,7 @@ import qualified NanoVG as NV
 import Monomer.Common.Geometry
 import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Core
+import Monomer.Event.LensEvent
 import Monomer.Event.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
@@ -259,19 +260,13 @@ preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
 preProcessEvent wenv widgetRoot event = return [event]
 
 updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
-updateInputStatus (Move point)
-  = inputStatus %= \status -> status {
-    ipsMousePos = point
-  }
-updateInputStatus (ButtonAction _ btn btnState)
-  = inputStatus %= \status -> status {
-    ipsButtons = M.insert btn btnState (ipsButtons status)
-  }
-updateInputStatus (KeyAction kMod kCode kStatus)
-  = inputStatus %= \status -> status {
-    ipsKeyMod = kMod,
-    ipsKeys = M.insert kCode kStatus (ipsKeys status)
-  }
+updateInputStatus (Move point) =
+  inputStatus . mousePos .= point
+updateInputStatus (ButtonAction _ btn btnState) =
+  inputStatus . buttons . at btn ?= btnState
+updateInputStatus (KeyAction kMod kCode kStatus) = do
+  inputStatus . keyMod .= kMod
+  inputStatus . keys . at kCode ?= kStatus
 updateInputStatus _ = return ()
 
 isWindowResized :: [SDL.EventPayload] -> Bool

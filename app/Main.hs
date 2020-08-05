@@ -132,6 +132,7 @@ buildUI model = trace "Creating UI" widgetTree where
   widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
   widgetTree = vstack [
       label (showt $ model ^. clickCount),
+      textField textField1 `style` color lightGray,
       hstack labels `key` "Labels",
       --hstack [
       --  label "Label 1",
