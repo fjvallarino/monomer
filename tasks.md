@@ -130,12 +130,13 @@
     - Move focusedPath and targetPath to WidgetEnv
     - Visible and enabled would get updated on init/merge
   - Format code!
-
-- Pending
+  - Use newtypes whenever possible
   - Make types Lens friendly
     - Use lenses whenever they make the code clearer
     - Use Lenses for Main/Core.hs' updateInputStatus
     - Create Lenses for Graphics/Types.hs
+
+- Pending
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -154,7 +155,6 @@
     - Find non visible character that returns correct height if input is empty
   - Request text input when text field gets focus (required for mobile)
     - Also set TextInputRect
-  - Use newtypes whenever possible
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create self rendered version of dropdown and list
     - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
