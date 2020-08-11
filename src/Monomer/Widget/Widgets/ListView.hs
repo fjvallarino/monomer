@@ -1,4 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -10,8 +11,10 @@ module Monomer.Widget.Widgets.ListView (
   listViewConfig
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~))
+import Control.Lens (ALens', (&), (^#), (#~), (.~), (?~), non)
 import Control.Monad
 import Data.Default
 import Data.Foldable (find)
@@ -26,7 +29,9 @@ import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.LensStyle
 import Monomer.Common.Style
+--import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -160,7 +165,10 @@ makeListView config state = widget where
     widgetResult = widgetMerge newWidget wenv oldInstance newInstance
     scrollToReq = itemScrollTo widgetInst nextIdx
     requests = Seq.fromList scrollToReq
-    result = Just $ widgetResult { _wrRequests = requests }
+    result = Just $ widgetResult {
+      _wrRequests = requests,
+      _wrWidget = resizeInstance wenv (_wrWidget widgetResult)
+    }
 
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv
@@ -202,15 +210,15 @@ makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   highlightedColor idx
     | idx == highlightedIdx = Just _lvHighlightedColor
     | otherwise = Nothing
-  itemStyle idx item = def {
-    _styleColor = selectedColor item <|> highlightedColor idx,
-    _styleHover = Just _lvHoverColor
-  }
+  itemStyle idx item = def
+    & basic . non def . color .~ (selectedColor item <|> highlightedColor idx)
+    & hover . non def . color ?~ _lvHoverColor
   itemConfig idx = containerConfig {
     _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }
-  makeItem idx item = container config content `style` itemStyle idx item where
+  makeItem idx item = newItem where
     config = itemConfig idx
     content = label (_lvItemToText item)
+    newItem = container config content `style` itemStyle idx item
   pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
   itemsList = vstack $ fmap (uncurry makeItem) pairs

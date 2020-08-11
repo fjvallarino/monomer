@@ -56,45 +56,45 @@ data SystemEvent
   deriving (Show, Eq)
 
 data InputStatus = InputStatus {
-  ipsMousePos :: Point,
-  ipsKeyMod :: KeyMod,
-  ipsKeys :: Map KeyCode KeyStatus,
-  ipsButtons :: Map Button ButtonState
+  _ipsMousePos :: Point,
+  _ipsKeyMod :: KeyMod,
+  _ipsKeys :: Map KeyCode KeyStatus,
+  _ipsButtons :: Map Button ButtonState
 } deriving (Eq, Show)
 
 instance Default InputStatus where
   def = InputStatus {
-    ipsMousePos = def,
-    ipsKeyMod = def,
-    ipsKeys = M.empty,
-    ipsButtons = M.empty
+    _ipsMousePos = def,
+    _ipsKeyMod = def,
+    _ipsKeys = M.empty,
+    _ipsButtons = M.empty
   }
 
 data KeyMod = KeyMod {
-  kmLeftShift :: Bool,
-  kmRightShift :: Bool,
-  kmLeftCtrl :: Bool,
-  kmRightCtrl :: Bool,
-  kmLeftAlt :: Bool,
-  kmRightAlt :: Bool,
-  kmLeftGUI :: Bool,
-  kmRightGUI :: Bool,
-  kmNumLock :: Bool,
-  kmCapsLock :: Bool,
-  kmAltGr :: Bool
+  _kmLeftShift :: Bool,
+  _kmRightShift :: Bool,
+  _kmLeftCtrl :: Bool,
+  _kmRightCtrl :: Bool,
+  _kmLeftAlt :: Bool,
+  _kmRightAlt :: Bool,
+  _kmLeftGUI :: Bool,
+  _kmRightGUI :: Bool,
+  _kmNumLock :: Bool,
+  _kmCapsLock :: Bool,
+  _kmAltGr :: Bool
 } deriving (Show, Eq)
 
 instance Default KeyMod where
   def = KeyMod {
-    kmLeftShift = False,
-    kmRightShift = False,
-    kmLeftCtrl = False,
-    kmRightCtrl = False,
-    kmLeftAlt = False,
-    kmRightAlt = False,
-    kmLeftGUI = False,
-    kmRightGUI = False,
-    kmNumLock = False,
-    kmCapsLock = False,
-    kmAltGr = False
+    _kmLeftShift = False,
+    _kmRightShift = False,
+    _kmLeftCtrl = False,
+    _kmRightCtrl = False,
+    _kmLeftAlt = False,
+    _kmRightAlt = False,
+    _kmLeftGUI = False,
+    _kmRightGUI = False,
+    _kmNumLock = False,
+    _kmCapsLock = False,
+    _kmAltGr = False
   }

@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Monomer.Widget.Util where
 
 import Control.Lens (ALens', (&), (^#), (#~))
@@ -16,7 +18,8 @@ import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
-import Monomer.Graphics.Drawing (calcTextBounds)
+import Monomer.Graphics.Drawing (calcTextBounds, drawStyledBackground)
+import Monomer.Graphics.Renderer
 import Monomer.Widget.Types
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
@@ -162,8 +165,8 @@ getTextBounds wenv style text = calcTextBounds handler style text where
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
-  isControl = not (isMacOS wenv) && kmLeftCtrl mod
-  isCommand = isMacOS wenv && kmLeftGUI mod
+  isControl = not (isMacOS wenv) && _kmLeftCtrl mod
+  isCommand = isMacOS wenv && _kmLeftGUI mod
 
 isClipboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
 isClipboardCopy wenv event = checkKeyboard event testFn where
@@ -188,7 +191,31 @@ pointInViewport :: Point -> WidgetInstance s e -> Bool
 pointInViewport p inst = pointInRect p (_wiViewport inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isFocused ctx widgetInst = _weFocusedPath ctx == _wiPath widgetInst
+isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
+
+drawWidgetBg
+  :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
+drawWidgetBg renderer wenv inst = drawBg styleState _styleMargin where
+  mousePos = _ipsMousePos $ _weInputStatus wenv
+  isHover = pointInViewport mousePos inst
+  isFocus = isFocused wenv inst
+  Style{..} = _wiStyle inst
+  renderArea = _wiRenderArea inst
+  styleState
+    | isHover && isFocus = _styleBasic <> _styleFocus <> _styleHover
+    | isHover = _styleBasic <> _styleHover
+    | isFocus = _styleBasic <> _styleFocus
+    | otherwise = _styleBasic
+  drawBg Nothing _ = return ()
+  drawBg (Just sst) margin = drawStyledBackground renderer renderArea sst margin
+
+resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+resizeInstance wenv inst = newInstance where
+  widget = _wiWidget inst
+  viewport = _wiViewport inst
+  renderArea = _wiRenderArea inst
+  reqs = widgetPreferredSize widget wenv inst
+  newInstance = widgetResize widget wenv viewport renderArea reqs inst
 
 isFocusCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusCandidate startFrom widgetInst = isValid where

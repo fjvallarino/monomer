@@ -28,6 +28,6 @@ makeLabel caption = widget where
     size = getTextBounds wenv _styleText caption
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  render renderer wenv WidgetInstance{..} = do
-    drawStyledBackground renderer _wiRenderArea _wiStyle
+  render renderer wenv widgetInst@WidgetInstance{..} = do
+    drawWidgetBg renderer wenv widgetInst
     drawStyledText_ renderer _wiRenderArea _wiStyle caption

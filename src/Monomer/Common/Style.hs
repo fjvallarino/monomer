@@ -10,42 +10,63 @@ data Style =
   Style {
     _styleWidth :: Maybe Double,
     _styleHeight :: Maybe Double,
-    _styleColor :: Maybe Color,
-    _styleHover :: Maybe Color,
     _styleMargin :: Maybe Margin,
     _stylePadding :: Maybe Padding,
-    _styleBorder :: Maybe Border,
-    _styleRadius :: Maybe Radius,
-    _styleText :: Maybe TextStyle
+    _styleText :: Maybe TextStyle,
+    _styleBasic :: Maybe StyleState,
+    _styleHover :: Maybe StyleState,
+    _styleFocus :: Maybe StyleState
   } deriving (Show, Eq)
 
 instance Default Style where
   def = Style {
     _styleWidth = Nothing,
     _styleHeight = Nothing,
-    _styleColor = Nothing,
-    _styleHover = Nothing,
     _styleMargin = Nothing,
     _stylePadding = Nothing,
-    _styleBorder = Nothing,
-    _styleRadius = Nothing,
-    _styleText = Nothing
+    _styleText = Nothing,
+    _styleBasic = Nothing,
+    _styleHover = Nothing,
+    _styleFocus = Nothing
   }
 
 instance Semigroup Style where
   (<>) style1 style2 = Style {
     _styleWidth = _styleWidth style2 <|> _styleWidth style1,
     _styleHeight = _styleHeight style2 <|> _styleHeight style1,
-    _styleColor = _styleColor style2 <|> _styleColor style1,
-    _styleHover = _styleHover style2 <|> _styleHover style1,
     _styleMargin = _styleMargin style1 <> _styleMargin style2,
     _stylePadding = _stylePadding style1 <> _stylePadding style2,
-    _styleBorder = _styleBorder style1 <> _styleBorder style2,
-    _styleRadius = _styleRadius style1 <> _styleRadius style2,
-    _styleText = _styleText style1 <> _styleText style2
+    _styleText = _styleText style1 <> _styleText style2,
+    _styleBasic = _styleBasic style1 <> _styleBasic style2,
+    _styleHover = _styleHover style1 <> _styleHover style2,
+    _styleFocus = _styleFocus style1 <> _styleFocus style2
   }
 
 instance Monoid Style where
+  mempty = def
+
+data StyleState
+  = StyleState {
+    _sstColor :: Maybe Color,
+    _sstBorder :: Maybe Border,
+    _sstRadius :: Maybe Radius
+  } deriving (Eq, Show)
+
+instance Default StyleState where
+  def = StyleState {
+    _sstColor = Nothing,
+    _sstBorder = Nothing,
+    _sstRadius = Nothing
+  }
+
+instance Semigroup StyleState where
+  (<>) s1 s2 = StyleState {
+    _sstColor = _sstColor s1 <> _sstColor s2,
+    _sstBorder = _sstBorder s1 <> _sstBorder s2,
+    _sstRadius = _sstRadius s1 <> _sstRadius s2
+  }
+
+instance Monoid StyleState where
   mempty = def
 
 data Margin = Margin {

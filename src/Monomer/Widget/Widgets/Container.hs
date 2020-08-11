@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Monomer.Widget.Widgets.Container (
   ContainerConfig(..),
   container,
@@ -44,8 +42,7 @@ makeContainer config = widget where
   widget = createContainer {
     widgetHandleEvent = containerHandleEvent handleEvent,
     widgetPreferredSize = containerPreferredSize preferredSize,
-    widgetResize = containerResize resize,
-    widgetRender = containerRender render
+    widgetResize = containerResize resize
   }
 
   handleEvent wenv ctx evt widgetInst = case evt of
@@ -64,14 +61,3 @@ makeContainer config = widget where
   resize wenv viewport renderArea children reqs widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (widgetInst, assignedArea)
-
-  render renderer wenv widgetInst = do
-    drawRect renderer viewport _styleColor Nothing
-
-    when (pointInRect point viewport) $
-      drawRect renderer viewport _styleHover Nothing
-
-    where
-      point = ipsMousePos (_weInputStatus wenv)
-      viewport = _wiViewport widgetInst
-      Style{..} = _wiStyle widgetInst

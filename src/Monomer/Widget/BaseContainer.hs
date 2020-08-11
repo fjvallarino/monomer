@@ -1,7 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- HLINT ignore "Reduce duplication" -}
 
@@ -344,8 +343,7 @@ type ContainerRenderHandler s e m
   -> m ()
 
 defaultContainerRender :: ContainerRenderHandler s e m
-defaultContainerRender renderer wenv WidgetInstance{..} =
-  drawStyledBackground renderer _wiRenderArea _wiStyle
+defaultContainerRender renderer wenv inst = drawWidgetBg renderer wenv inst
 
 containerRender
   :: (Monad m)

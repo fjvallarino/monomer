@@ -41,17 +41,17 @@ textEvent _ = Nothing
 
 convertKeyModifier :: SDL.KeyModifier -> KeyMod
 convertKeyModifier keyMod = KeyMod {
-  kmLeftShift = SDL.keyModifierLeftShift keyMod,
-  kmRightShift = SDL.keyModifierRightShift keyMod,
-  kmLeftCtrl = SDL.keyModifierLeftCtrl keyMod,
-  kmRightCtrl = SDL.keyModifierRightCtrl keyMod,
-  kmLeftAlt = SDL.keyModifierLeftAlt keyMod,
-  kmRightAlt = SDL.keyModifierRightAlt keyMod,
-  kmLeftGUI = SDL.keyModifierLeftGUI keyMod,
-  kmRightGUI = SDL.keyModifierRightGUI keyMod,
-  kmNumLock = SDL.keyModifierNumLock keyMod,
-  kmCapsLock = SDL.keyModifierCapsLock keyMod,
-  kmAltGr = SDL.keyModifierAltGr keyMod
+  _kmLeftShift = SDL.keyModifierLeftShift keyMod,
+  _kmRightShift = SDL.keyModifierRightShift keyMod,
+  _kmLeftCtrl = SDL.keyModifierLeftCtrl keyMod,
+  _kmRightCtrl = SDL.keyModifierRightCtrl keyMod,
+  _kmLeftAlt = SDL.keyModifierLeftAlt keyMod,
+  _kmRightAlt = SDL.keyModifierRightAlt keyMod,
+  _kmLeftGUI = SDL.keyModifierLeftGUI keyMod,
+  _kmRightGUI = SDL.keyModifierRightGUI keyMod,
+  _kmNumLock = SDL.keyModifierNumLock keyMod,
+  _kmCapsLock = SDL.keyModifierCapsLock keyMod,
+  _kmAltGr = SDL.keyModifierAltGr keyMod
 }
 
 keyBackspace :: KeyCode

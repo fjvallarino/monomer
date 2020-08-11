@@ -38,10 +38,10 @@ isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
 isKeyPressed _ _ = False
 
 isShiftPressed :: SystemEvent -> Bool
-isShiftPressed (KeyAction keyMod _ _) = kmLeftShift keyMod
+isShiftPressed (KeyAction keyMod _ _) = _kmLeftShift keyMod
 isShiftPressed _ = False
 
 isButtonPressed :: InputStatus -> Button -> Bool
 isButtonPressed inputStatus button = status == PressedBtn where
-  currentStatus = M.lookup button (ipsButtons inputStatus)
+  currentStatus = M.lookup button (_ipsButtons inputStatus)
   status = fromMaybe ReleasedBtn currentStatus

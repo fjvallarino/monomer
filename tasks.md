@@ -137,19 +137,19 @@
     - Create Lenses for Graphics/Types.hs
 
 - Pending
+  - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
+  - Add support for dashed borders
+  - Create Checkbox
+  - Create Radio
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Use weight to control allocations
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Add header in all files, indicating license and documenting what the module does
-  - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
-  - Add support for dashed borders
-  - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
-  - Create Checkbox
-  - Create Radio
   - Create Slider
   - Create Dial
+  - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
   - Improve textField
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty

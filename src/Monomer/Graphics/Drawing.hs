@@ -21,14 +21,15 @@ import Monomer.Common.Style
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
-drawStyledBackground :: (Monad m) => Renderer m -> Rect -> Style -> m ()
-drawStyledBackground renderer viewport Style{..} = do
-  let rect = subtractMargin viewport _styleMargin
+drawStyledBackground
+  :: (Monad m) => Renderer m -> Rect -> StyleState -> Maybe Margin -> m ()
+drawStyledBackground renderer viewport StyleState{..} margin = do
+  let rect = subtractMargin viewport margin
 
-  drawRect renderer rect _styleColor _styleRadius
+  drawRect renderer rect _sstColor _sstRadius
 
-  when (isJust _styleBorder) $
-    drawStyledBorder renderer rect (fromJust _styleBorder) _styleRadius
+  when (isJust _sstBorder) $
+    drawStyledBorder renderer rect (fromJust _sstBorder) _sstRadius
 
 drawRect
   :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
@@ -308,13 +309,26 @@ tsTextColor :: Maybe TextStyle -> Color
 tsTextColor Nothing = tsTextColor (Just mempty)
 tsTextColor (Just ts) = justDef (_txsColor ts)
 
-subtractBorder :: Rect -> Maybe Border -> Rect
-subtractBorder rect Nothing = rect
-subtractBorder (Rect x y w h) (Just (Border l r t b)) = Rect nx ny nw nh where
-  nx = x + _bsWidth (justDef l)
-  ny = y + _bsWidth (justDef t)
-  nw = w - _bsWidth (justDef l) - _bsWidth (justDef r)
-  nh = h - _bsWidth (justDef t) - _bsWidth (justDef b)
+largestBorder :: Style -> (Double, Double, Double, Double)
+largestBorder style = (l, r, t, b) where
+  states = [_styleBasic style, _styleHover style, _styleFocus style]
+  borders = fmap (maybe Nothing _sstBorder) states
+  l = maximum (width _brdLeft <$> borders)
+  r = maximum (width _brdRight <$> borders)
+  t = maximum (width _brdTop <$> borders)
+  b = maximum (width _brdBottom <$> borders)
+  width side Nothing = 0
+  width side (Just border)
+    | isNothing (side border) = 0
+    | otherwise = maybe 0 _bsWidth (side border)
+
+subtractBorder :: Rect -> Style -> Rect
+subtractBorder (Rect x y w h) style = Rect nx ny nw nh where
+  nx = x + bl
+  ny = y + bt
+  nw = w - bl - br
+  nh = h - bt - bb
+  (bl, br, bt, bb) = largestBorder style
 
 subtractMargin :: Rect -> Maybe Margin -> Rect
 subtractMargin rect Nothing = rect
@@ -338,10 +352,10 @@ subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
   nh = h - justDef t - justDef b
 
 contentRect :: Rect -> Style -> Rect
-contentRect viewport Style{..} = final where
-  border = subtractBorder viewport _styleBorder
-  margin = subtractMargin border _styleMargin
-  padding = subtractPadding margin _stylePadding
+contentRect viewport style = final where
+  border = subtractBorder viewport style
+  margin = subtractMargin border (_styleMargin style)
+  padding = subtractPadding margin (_stylePadding style)
   final = padding
 
 justDef :: (Default a) => Maybe a -> a

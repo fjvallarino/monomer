@@ -184,8 +184,8 @@ makeDropdown config state = widget where
     assignedArea = Seq.singleton area
     resized = (widgetInst, assignedArea)
 
-  render renderer wenv WidgetInstance{..} = do
-    drawStyledBackground renderer renderArea style
+  render renderer wenv widgetInst@WidgetInstance{..} = do
+    drawWidgetBg renderer wenv widgetInst
     drawStyledText_ renderer renderArea style (dropdownLabel wenv)
 
     when (isOpen && isJust listViewOverlay) $

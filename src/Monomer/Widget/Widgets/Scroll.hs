@@ -310,7 +310,7 @@ scrollStatus
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   barThickness = _scBarThickness config
-  mousePos = ipsMousePos (_weInputStatus wenv)
+  mousePos = _ipsMousePos (_weInputStatus wenv)
   vpLeft = _rx viewport
   vpTop = _ry viewport
   vpWidth = _rw viewport

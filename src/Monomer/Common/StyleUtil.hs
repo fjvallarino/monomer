@@ -3,17 +3,13 @@ module Monomer.Common.StyleUtil where
 import Monomer.Common.Style
 import Monomer.Graphics.Types
 
+import Monomer.Common.LensStyle
+
 width :: Double -> Style
 width width = mempty { _styleWidth = Just width }
 
 height :: Double -> Style
 height height = mempty { _styleHeight = Just height }
-
-color :: Color -> Style
-color color = mempty { _styleColor = Just color }
-
-hover :: Color -> Style
-hover color = mempty { _styleHover = Just color }
 
 margin :: Double -> Style
 margin mar = mempty {
@@ -91,74 +87,80 @@ paddingBottom padd = mempty {
   }
 }
 
-border :: Double -> Color -> Style
+basicColorM :: Maybe Color -> Style
+basicColorM mcolor = mempty {
+  _styleBasic = Just mempty {
+    _sstColor = mcolor
+  }
+}
+
+basicColor :: Color -> Style
+basicColor color = basicColorM (Just color)
+
+hoverColor :: Color -> Style
+hoverColor color = mempty {
+  _styleHover = Just mempty {
+    _sstColor = Just color
+  }
+}
+
+focusColor :: Color -> Style
+focusColor color = mempty {
+  _styleFocus = Just mempty {
+    _sstColor = Just color
+  }
+}
+
+border :: Double -> Color -> Border
 border width color = mempty {
-  _styleBorder = Just mempty {
-    _brdLeft = Just (BorderSide width color),
-    _brdRight = Just (BorderSide width color),
-    _brdTop = Just (BorderSide width color),
-    _brdBottom = Just (BorderSide width color)
-  }
+  _brdLeft = Just (BorderSide width color),
+  _brdRight = Just (BorderSide width color),
+  _brdTop = Just (BorderSide width color),
+  _brdBottom = Just (BorderSide width color)
 }
 
-borderLeft :: Double -> Color -> Style
+borderLeft :: Double -> Color -> Border
 borderLeft width color = mempty {
-  _styleBorder = Just mempty {
-    _brdLeft = Just (BorderSide width color)
-  }
+  _brdLeft = Just (BorderSide width color)
 }
 
-borderRight :: Double -> Color -> Style
+borderRight :: Double -> Color -> Border
 borderRight width color = mempty {
-  _styleBorder = Just mempty {
-    _brdRight = Just (BorderSide width color)
-  }
+  _brdRight = Just (BorderSide width color)
 }
 
-borderTop :: Double -> Color -> Style
+borderTop :: Double -> Color -> Border
 borderTop width color = mempty {
-  _styleBorder = Just mempty {
-    _brdTop = Just (BorderSide width color)
-  }
+  _brdTop = Just (BorderSide width color)
 }
 
-borderBottom :: Double -> Color -> Style
+borderBottom :: Double -> Color -> Border
 borderBottom width color = mempty {
-  _styleBorder = Just mempty {
-    _brdBottom = Just (BorderSide width color)
-  }
+  _brdBottom = Just (BorderSide width color)
 }
 
-radius :: Double -> Style
-radius rad = mempty { _styleRadius = Just (Radius jrad jrad jrad jrad) } where
+radius :: Double -> Radius
+radius rad = Radius jrad jrad jrad jrad where
   jrad = Just rad
 
-radiusTopLeft :: Double -> Style
+radiusTopLeft :: Double -> Radius
 radiusTopLeft rad = mempty {
-  _styleRadius = Just mempty {
-    _radTopLeft = Just rad
-  }
+  _radTopLeft = Just rad
 }
 
-radiusTopRight :: Double -> Style
+radiusTopRight :: Double -> Radius
 radiusTopRight rad = mempty {
-  _styleRadius = Just mempty {
-    _radTopRight = Just rad
-  }
+  _radTopRight = Just rad
 }
 
-radiusBottomLeft :: Double -> Style
+radiusBottomLeft :: Double -> Radius
 radiusBottomLeft rad = mempty {
-  _styleRadius = Just mempty {
-    _radBottomLeft = Just rad
-  }
+  _radBottomLeft = Just rad
 }
 
-radiusBottomRight :: Double -> Style
+radiusBottomRight :: Double -> Radius
 radiusBottomRight rad = mempty {
-  _styleRadius = Just mempty {
-    _radBottomRight = Just rad
-  }
+  _radBottomRight = Just rad
 }
 
 textColor :: Color -> Style

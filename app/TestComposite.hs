@@ -75,5 +75,5 @@ buildComposite model = trace "Created composite UI" $
         button StartProducer "Run Producer",
         label ("Produced: " <> showt (_csProduced model))
       ]
-    ] `style` color gray
+    ] `style` basicColor gray
   ]

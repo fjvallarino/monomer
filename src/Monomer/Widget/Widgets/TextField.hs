@@ -146,7 +146,7 @@ makeTextField config state = widget where
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv widgetInst = do
-    drawStyledBackground renderer renderArea _wiStyle
+    drawWidgetBg renderer wenv widgetInst
     Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
 
     when (isFocused wenv widgetInst) $ do
