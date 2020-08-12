@@ -132,7 +132,7 @@ buildUI model = trace "Creating UI" widgetTree where
   widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
   widgetTree = vstack [
       label (showt $ model ^. clickCount),
-      textField textField1 `style` basicColor lightGray,
+      textField textField1 `style` basic (color lightGray),
       --hstack labels `key` "Labels",
       --hstack [
       --  label "Label 1",
@@ -142,6 +142,6 @@ buildUI model = trace "Creating UI" widgetTree where
       button IncButton "Click!"
     ] `key` "Main"
   newLabel i = label ("New: " <> showt i) `style` altColor i
-  altColor i = basicColor (if even i then gray else darkGray)
+  altColor i = basic $ color (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]
   items = fmap showt [1..100::Int]
