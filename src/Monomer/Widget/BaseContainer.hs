@@ -272,12 +272,11 @@ type ContainerPreferredSizeHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
   -> Seq (WidgetInstance s e)
-  -> Seq (Tree SizeReq)
-  -> Tree SizeReq
+  -> SizeReq
 
 defaultPreferredSize :: ContainerPreferredSizeHandler s e
-defaultPreferredSize wenv widgetInst children reqs = Node current reqs where
-  current = SizeReq {
+defaultPreferredSize wenv inst children = req where
+  req = SizeReq {
     _srSize = Size 0 0,
     _srPolicyWidth = FlexibleSize,
     _srPolicyHeight = FlexibleSize
@@ -287,13 +286,16 @@ containerPreferredSize
   :: ContainerPreferredSizeHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> Tree SizeReq
-containerPreferredSize psHandler wenv widgetInst = preferredSize where
+  -> WidgetInstance s e
+containerPreferredSize psHandler wenv widgetInst = newInst where
   children = _wiChildren widgetInst
-  childrenReqs = fmap updateChild children
-  updateChild child = Node (updateSizeReq req child) reqs where
-    Node req reqs = widgetPreferredSize (_wiWidget child) wenv child
-  preferredSize = psHandler wenv widgetInst children childrenReqs
+  updateChild child = widgetPreferredSize (_wiWidget child) wenv child
+  newChildren = fmap updateChild children
+  sizeReq = psHandler wenv widgetInst newChildren
+  newInst = widgetInst {
+    _wiChildren = newChildren,
+    _wiSizeReq = sizeReq
+  }
 
 -- | Resize
 type ContainerResizeHandler s e
@@ -301,13 +303,12 @@ type ContainerResizeHandler s e
   -> Rect
   -> Rect
   -> Seq (WidgetInstance s e)
-  -> Seq (Tree SizeReq)
   -> WidgetInstance s e
   -> (WidgetInstance s e, Seq (Rect, Rect))
 
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv viewport renderArea children reqs widgetInst = newSize where
-  childrenSizes = Seq.replicate (Seq.length reqs) (def, def)
+defaultResize wenv viewport renderArea children widgetInst = newSize where
+  childrenSizes = Seq.replicate (Seq.length children) def
   newSize = (widgetInst, childrenSizes)
 
 containerResize
@@ -315,19 +316,13 @@ containerResize
   -> WidgetEnv s e
   -> Rect
   -> Rect
-  -> Tree SizeReq
   -> WidgetInstance s e
   -> WidgetInstance s e
-containerResize handler wenv viewport renderArea reqs widgetInst = newSize where
+containerResize handler wenv viewport renderArea widgetInst = newSize where
   children = _wiChildren widgetInst
-  defReqs = Seq.replicate (Seq.length children) (singleNode def)
-  curReqs = nodeChildren reqs
-  childrenReqs = if Seq.null curReqs then defReqs else curReqs
-  (tempInst, assigned) =
-    handler wenv viewport renderArea children childrenReqs widgetInst
-  resizeChild (child, req, (viewport, renderArea)) =
-    widgetResize (_wiWidget child) wenv viewport renderArea req child
-  newChildren = resizeChild <$> Seq.zip3 children childrenReqs assigned
+  (tempInst, assigned) = handler wenv viewport renderArea children widgetInst
+  resize (child, (vp, ra)) = widgetResize (_wiWidget child) wenv vp ra child
+  newChildren = resize <$> Seq.zip children assigned
   newSize = tempInst {
     _wiViewport = viewport,
     _wiRenderArea = renderArea,

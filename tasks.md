@@ -139,6 +139,8 @@
 - Pending
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
   - Add support for dashed borders
+  - Make BaseWidget and BaseContainer use a custom type instead of just Widget. Maybe also rename them?
+  - Fix ListView keyboard navigation
   - Create Checkbox
   - Create Radio
   - Add testing

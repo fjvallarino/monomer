@@ -53,10 +53,13 @@ makeButton config = widget where
         result = resultReqsEvents requests events widgetInst
     _ -> Nothing
 
-  preferredSize wenv widgetInst = singleNode sizeReq where
+  preferredSize wenv widgetInst = newInst where
     Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText (_btnLabel config)
     sizeReq = SizeReq size FlexibleSize StrictSize
+    newInst = widgetInst {
+      _wiSizeReq = sizeReq
+    }
 
   render renderer wenv widgetInst@WidgetInstance{..} = do
     drawWidgetBg renderer wenv widgetInst

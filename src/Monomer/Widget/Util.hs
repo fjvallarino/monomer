@@ -29,6 +29,7 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _wiPath = Seq.empty,
   _wiWidget = widget,
   _wiChildren = Seq.empty,
+  _wiSizeReq = def,
   _wiEnabled = True,
   _wiVisible = True,
   _wiFocusable = False,
@@ -210,12 +211,11 @@ drawWidgetBg renderer wenv inst = drawBg styleState _styleMargin where
   drawBg (Just sst) margin = drawStyledBackground renderer renderArea sst margin
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
-resizeInstance wenv inst = newInstance where
-  widget = _wiWidget inst
+resizeInstance wenv inst = newInst where
   viewport = _wiViewport inst
   renderArea = _wiRenderArea inst
-  reqs = widgetPreferredSize widget wenv inst
-  newInstance = widgetResize widget wenv viewport renderArea reqs inst
+  instReqs = widgetPreferredSize (_wiWidget inst) wenv inst
+  newInst = widgetResize (_wiWidget instReqs) wenv viewport renderArea instReqs
 
 isFocusCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusCandidate startFrom widgetInst = isValid where

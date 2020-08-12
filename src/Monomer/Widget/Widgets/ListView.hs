@@ -192,10 +192,10 @@ makeListView config state = widget where
     scrollPath = firstChildPath widgetInst
     scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-    sizeReq = nodeValue $ Seq.index reqs 0
+  preferredSize wenv widgetInst children = sizeReq where
+    sizeReq = _wiSizeReq $ Seq.index children 0
 
-  resize wenv viewport renderArea children reqs widgetInst = resized where
+  resize wenv viewport renderArea children widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (widgetInst, assignedArea)
 

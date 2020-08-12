@@ -34,15 +34,15 @@ makeStack isHorizontal = widget where
     widgetResize = containerResize resize
   }
 
-  preferredSize wenv widgetInst children reqs = Node reqSize reqs where
-    (_, vreqs) = visibleChildrenReq children reqs
+  preferredSize wenv widgetInst children = sizeReq where
+    vreqs = _wiSizeReq <$> Seq.filter _wiVisible children
     size = calcPreferredSize vreqs
-    reqSize = SizeReq size FlexibleSize FlexibleSize
+    sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  resize wenv viewport renderArea children reqs widgetInst = resized where
+  resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
-    childrenPairs = Seq.zip children reqs
-    (vchildren, vreqs) = visibleChildrenReq children reqs
+    vchildren = Seq.filter _wiVisible children
+    vreqs = _wiSizeReq <$> vchildren
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then l else t
     policyFilter policy req = policySelector req == policy
@@ -63,17 +63,16 @@ makeStack isHorizontal = widget where
       | rExists && (not fExists || fSize <= 0) = rSize / rCount
       | otherwise = 0
     assignedArea = Seq.zip newViewports newViewports
-    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) childrenPairs
-    foldHelper (accum, offset) childPair = (newAccum, newOffset) where
-      newSize = resizeChild renderArea fExtra rUnit offset childPair
+    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
+    foldHelper (accum, offset) child = (newAccum, newOffset) where
+      newSize = resizeChild renderArea fExtra rUnit offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
     resized = (widgetInst, assignedArea)
 
-  resizeChild renderArea fExtra rUnit offset childPair = result where
+  resizeChild renderArea fExtra rUnit offset child = result where
     Rect l t w h = renderArea
-    childInstance = fst childPair
-    req = nodeValue $ snd childPair
+    req = _wiSizeReq child
     srSize = _srSize req
     emptyRect = Rect l t 0 0
     hRect = Rect offset t calcNewSize h
@@ -83,7 +82,7 @@ makeStack isHorizontal = widget where
       FlexibleSize -> (1 + fExtra) * sizeSelector srSize
       RemainderSize -> rUnit
     result
-      | not $ _wiVisible childInstance = emptyRect
+      | not $ _wiVisible child = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
 

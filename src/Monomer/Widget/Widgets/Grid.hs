@@ -33,8 +33,9 @@ makeFixedGrid isHorizontal = widget where
     widgetResize = containerResize resize
   }
 
-  preferredSize wenv widgetInst children reqs = Node reqSize reqs where
-    (vchildren, vreqs) = visibleChildrenReq children reqs
+  preferredSize wenv widgetInst children = reqSize where
+    vchildren = Seq.filter _wiVisible children
+    vreqs = _wiSizeReq <$> vchildren
     reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
     width
       | Seq.null vchildren = 0
@@ -49,7 +50,7 @@ makeFixedGrid isHorizontal = widget where
       | isHorizontal = 1
       | otherwise = fromIntegral (length vchildren)
 
-  resize wenv viewport renderArea children reqs widgetInst = resized where
+  resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
     vchildren = Seq.filter _wiVisible children
     cols = if isHorizontal then length vchildren else 1

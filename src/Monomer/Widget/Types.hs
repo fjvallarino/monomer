@@ -170,10 +170,10 @@ data Widget s e =
     -- Renderer (mainly for text sizing functions)
     --
     -- Returns: the minimum size desired by the widget
-    widgetPreferredSize
+    widgetPreferredSize -- -> widgetUpdateSizeReq
       :: WidgetEnv s e
       -> WidgetInstance s e
-      -> Tree SizeReq,
+      -> WidgetInstance s e,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget
@@ -186,7 +186,6 @@ data Widget s e =
       :: WidgetEnv s e
       -> Rect
       -> Rect
-      -> Tree SizeReq
       -> WidgetInstance s e
       -> WidgetInstance s e,
     -- | Renders the widget
@@ -217,6 +216,8 @@ data WidgetInstance s e =
     _wiWidget :: Widget s e,
     -- | The children widget, if any
     _wiChildren :: Seq (WidgetInstance s e),
+    -- | The preferred size for the widget
+    _wiSizeReq :: SizeReq,
     -- | Indicates if the widget is enabled for user interaction
     _wiEnabled :: !Bool,
     -- | Indicates if the widget is visible

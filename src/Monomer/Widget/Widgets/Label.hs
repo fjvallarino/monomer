@@ -23,10 +23,13 @@ makeLabel caption = widget where
     widgetRender = render
   }
 
-  preferredSize wenv widgetInst = singleNode sizeReq where
+  preferredSize wenv widgetInst = newInst where
     Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText caption
     sizeReq = SizeReq size FlexibleSize StrictSize
+    newInst = widgetInst {
+      _wiSizeReq = sizeReq
+    }
 
   render renderer wenv widgetInst@WidgetInstance{..} = do
     drawWidgetBg renderer wenv widgetInst

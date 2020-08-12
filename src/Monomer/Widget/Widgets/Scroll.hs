@@ -44,8 +44,7 @@ data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
-  _sstChildSize :: Size,
-  _sstReqSize :: Tree SizeReq
+  _sstChildSize :: Size
 } deriving (Typeable)
 
 newtype ScrollMessage
@@ -82,8 +81,7 @@ defaultState = ScrollState {
   _sstDragging = Nothing,
   _sstDeltaX = 0,
   _sstDeltaY = 0,
-  _sstChildSize = def,
-  _sstReqSize = singleNode def
+  _sstChildSize = def
 }
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
@@ -110,7 +108,7 @@ makeScroll config state = widget where
     widgetRender = render
   }
 
-  ScrollState dragging dx dy cs prevReqs = state
+  ScrollState dragging dx dy cs = state
   Size childWidth childHeight = cs
 
   merge wenv oldState widgetInst = resultWidget newInstance where
@@ -151,14 +149,14 @@ makeScroll config state = widget where
         | otherwise = Nothing
     Move point -> result where
       drag bar = updateScrollThumb state bar point viewport sctx
-      makeWidget state = rebuildWidget wenv state widgetInst prevReqs
+      makeWidget state = rebuildWidget wenv state widgetInst
       makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > vw
       changedY = wy /= 0 && childHeight > vh
       needsUpdate = changedX || changedY
-      makeWidget state = rebuildWidget wenv state widgetInst prevReqs
+      makeWidget state = rebuildWidget wenv state widgetInst
       makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
       wheelRate = _scWheelRate config
       result
@@ -213,7 +211,7 @@ makeScroll config state = widget where
         _sstDeltaX = scrollAxis stepX 0 childWidth vw,
         _sstDeltaY = scrollAxis stepY 0 childHeight vh
       }
-      newInstance = rebuildWidget wenv newState widgetInst prevReqs
+      newInstance = rebuildWidget wenv newState widgetInst
 
   updateScrollThumb state activeBar point viewport sctx = newState where
     Point px py = point
@@ -234,34 +232,33 @@ makeScroll config state = widget where
       _sstDeltaY = newDeltaY
     }
 
-  rebuildWidget wenv newState widgetInst reqs = newInst where
+  rebuildWidget wenv newState widgetInst = newInst where
     newWidget = makeScroll config newState
     tempInst = widgetInst { _wiWidget = newWidget }
-    widget = _wiViewport tempInst
+    viewport = _wiViewport tempInst
     renderArea = _wiRenderArea tempInst
-    newInst = scrollResize (Just newWidget) wenv widget renderArea reqs tempInst
+    newInst = scrollResize (Just newWidget) wenv viewport renderArea tempInst
 
-  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
-    size = _srSize . nodeValue $ Seq.index reqs 0
+  preferredSize wenv widgetInst children = sizeReq where
+    size = _srSize $ _wiSizeReq (Seq.index children 0)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  scrollResize uWidget wenv viewport renderArea reqs widgetInst = newInst where
+  scrollResize uWidget wenv viewport renderArea widgetInst = newInst where
     Rect l t w h = renderArea
     child = Seq.index (_wiChildren widgetInst) 0
-    childReq = fromMaybe (singleNode def) (Seq.lookup 0 (nodeChildren reqs))
+    childReq = _wiSizeReq child
 
-    Size childWidth2 childHeight2 = _srSize $ nodeValue childReq
+    Size childWidth2 childHeight2 = _srSize childReq
     areaW = max w childWidth2
     areaH = max h childHeight2
     cRenderArea = Rect (l + dx) (t + dy) areaW areaH
 
     defWidget = makeScroll config $ state {
-      _sstChildSize = Size areaW areaH,
-      _sstReqSize = reqs
+      _sstChildSize = Size areaW areaH
     }
     newWidget = fromMaybe defWidget uWidget
     cWidget = _wiWidget child
-    newChild = widgetResize cWidget wenv viewport cRenderArea childReq child
+    newChild = widgetResize cWidget wenv viewport cRenderArea child
 
     newInst = widgetInst {
       _wiViewport = viewport,
@@ -308,7 +305,7 @@ makeScroll config state = widget where
 scrollStatus
   :: ScrollConfig -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
-  ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
+  ScrollState _ dx dy (Size childWidth childHeight) = scrollState
   barThickness = _scBarThickness config
   mousePos = _ipsMousePos (_weInputStatus wenv)
   vpLeft = _rx viewport

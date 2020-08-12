@@ -83,21 +83,16 @@ defaultHandleMessage
   -> Maybe (WidgetResult s e)
 defaultHandleMessage wenv target message widgetInst = Nothing
 
-defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> Tree SizeReq
-defaultPreferredSize wenv widgetInst = singleNode SizeReq {
-  _srSize = Size 0 0,
-  _srPolicyWidth = FlexibleSize,
-  _srPolicyHeight = FlexibleSize
-}
+defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+defaultPreferredSize wenv widgetInst = widgetInst
 
 defaultResize
   :: WidgetEnv s e
   -> Rect
   -> Rect
-  -> Tree SizeReq
   -> WidgetInstance s e
   -> WidgetInstance s e
-defaultResize wenv viewport renderArea reqs widgetInst = widgetInst {
+defaultResize wenv viewport renderArea widgetInst = widgetInst {
     _wiViewport = viewport,
     _wiRenderArea = renderArea
   }

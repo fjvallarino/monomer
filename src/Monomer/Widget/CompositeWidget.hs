@@ -99,7 +99,7 @@ createComposite comp state = widget where
     widgetFind = compositeFind state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
-    widgetPreferredSize = compositePreferredSize state,
+    widgetPreferredSize = compositePreferredSize comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -228,15 +228,24 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
 
 -- Preferred size
 compositePreferredSize
-  :: CompositeState s e
+  :: (Eq s, Typeable s, Typeable e)
+  => Composite s e ep
+  -> CompositeState s e
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
-  -> Tree SizeReq
-compositePreferredSize state wenv _ = preferredSize where
+  -> WidgetInstance sp ep
+compositePreferredSize comp state wenv widgetComp = newComp where
   CompositeState{..} = state
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  preferredSize = widgetPreferredSize widget cwenv _cmpRoot
+  newRoot = widgetPreferredSize widget cwenv _cmpRoot
+  newState = state {
+    _cmpRoot = newRoot
+  }
+  newComp = widgetComp {
+    _wiWidget = createComposite comp newState,
+    _wiSizeReq = _wiSizeReq newRoot
+  }
 
 -- Resize
 compositeResize
@@ -246,14 +255,13 @@ compositeResize
   -> WidgetEnv sp ep
   -> Rect
   -> Rect
-  -> Tree SizeReq
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
-compositeResize comp state wenv newView newArea reqs widgetComp = resized where
+compositeResize comp state wenv newView newArea widgetComp = resized where
   CompositeState{..} = state
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  newRoot = widgetResize widget cwenv newView newArea reqs _cmpRoot
+  newRoot = widgetResize widget cwenv newView newArea _cmpRoot
   newState = state {
     _cmpRoot = newRoot
   }
@@ -361,9 +369,8 @@ resizeResult state wenv result widgetComp = resizedResult where
   renderArea = _wiRenderArea widgetComp
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   widgetRoot = _wrWidget result
-  widget = _wiWidget widgetRoot
-  newReqs = widgetPreferredSize widget cwenv widgetRoot
-  newRoot = widgetResize widget cwenv viewport renderArea newReqs widgetRoot
+  tempRoot = widgetPreferredSize (_wiWidget widgetRoot) cwenv widgetRoot
+  newRoot = widgetResize (_wiWidget tempRoot) cwenv viewport renderArea tempRoot
   resizedResult = result {
     _wrWidget = newRoot
   }

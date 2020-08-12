@@ -140,10 +140,13 @@ makeTextField config state = widget where
       _wiWidget = makeTextField config newState
     }
 
-  preferredSize wenv widgetInst = singleNode sizeReq where
+  preferredSize wenv widgetInst = newInst where
     Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText currText
     sizeReq = SizeReq size FlexibleSize StrictSize
+    newInst = widgetInst {
+      _wiSizeReq = sizeReq
+    }
 
   render renderer wenv widgetInst = do
     drawWidgetBg renderer wenv widgetInst

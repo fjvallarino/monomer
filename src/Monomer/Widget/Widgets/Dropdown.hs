@@ -164,16 +164,15 @@ makeDropdown config state = widget where
     newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
-  preferredSize wenv widgetInst children reqs = Node sizeReq reqs where
+  preferredSize wenv widgetInst children = sizeReq where
     Style{..} = _wiStyle widgetInst
     size = getTextBounds wenv _styleText (dropdownLabel wenv)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  resize wenv viewport renderArea children reqs widgetInst = resized where
-    childrenReqs = Seq.zip children reqs
-    area = case Seq.lookup 0 childrenReqs of
-      Just (child, reqChild) -> (oViewport, oRenderArea) where
-        reqHeight = _h . _srSize . nodeValue $ reqChild
+  resize wenv viewport renderArea children widgetInst = resized where
+    area = case Seq.lookup 0 children of
+      Just child -> (oViewport, oRenderArea) where
+        reqHeight = _h . _srSize . _wiSizeReq $ child
         maxHeight = min reqHeight 150
         oViewport = viewport {
           _ry = _ry viewport + _rh viewport,
