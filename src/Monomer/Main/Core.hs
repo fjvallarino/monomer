@@ -39,7 +39,7 @@ import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Renderer
-import Monomer.Widget.CompositeWidget
+import Monomer.Widget.Composite
 import Monomer.Widget.Types
 
 data MainLoopArgs s e = MainLoopArgs {

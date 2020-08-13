@@ -1,11 +1,12 @@
 module Monomer.Widget.Widgets.Spacer (spacer) where
 
 import Control.Monad
+import Data.Default
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
-import Monomer.Widget.BaseWidget
+import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -17,8 +18,8 @@ defaultSpace = 10
 
 makeSpacer :: Widget s e
 makeSpacer = widget where
-  widget = createWidget {
-    widgetUpdateSizeReq = updateSizeReq
+  widget = createSingle def {
+    singleUpdateSizeReq = updateSizeReq
   }
 
   updateSizeReq wenv widgetInst = newInst where

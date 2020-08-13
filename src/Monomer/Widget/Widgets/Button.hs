@@ -8,6 +8,7 @@ module Monomer.Widget.Widgets.Button (
 ) where
 
 import Control.Monad
+import Data.Default
 import Data.Text (Text)
 
 import Monomer.Common.Geometry
@@ -16,7 +17,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
-import Monomer.Widget.BaseWidget
+import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -38,10 +39,10 @@ button_ config = defaultWidgetInstance "button" (makeButton config)
 
 makeButton :: ButtonConfig s e -> Widget s e
 makeButton config = widget where
-  widget = createWidget {
-    widgetHandleEvent = handleEvent,
-    widgetUpdateSizeReq = updateSizeReq,
-    widgetRender = render
+  widget = createSingle def {
+    singleHandleEvent = handleEvent,
+    singleUpdateSizeReq = updateSizeReq,
+    singleRender = render
   }
 
   handleEvent wenv ctx evt widgetInst = case evt of

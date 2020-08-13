@@ -3,13 +3,14 @@
 module Monomer.Widget.Widgets.Label (label) where
 
 import Control.Monad
+import Data.Default
 import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Graphics.Drawing
-import Monomer.Widget.BaseWidget
+import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -18,9 +19,9 @@ label caption = defaultWidgetInstance "label" (makeLabel caption)
 
 makeLabel :: Text -> Widget s e
 makeLabel caption = widget where
-  widget = createWidget {
-    widgetUpdateSizeReq = updateSizeReq,
-    widgetRender = render
+  widget = createSingle def {
+    singleUpdateSizeReq = updateSizeReq,
+    singleRender = render
   }
 
   updateSizeReq wenv widgetInst = newInst where

@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {- HLINT ignore "Reduce duplication" -}
 
-module Monomer.Widget.CompositeWidget (
+module Monomer.Widget.Composite (
   EventResponse(..),
   EventHandler,
   UIBuilder,

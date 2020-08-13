@@ -22,7 +22,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Style
 import Monomer.Graphics.Color
 import Monomer.Main.Util
-import Monomer.Widget.CompositeWidget
+import Monomer.Widget.Composite
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widgets

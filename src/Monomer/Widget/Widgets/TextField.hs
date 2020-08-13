@@ -11,6 +11,7 @@ module Monomer.Widget.Widgets.TextField (
 
 import Control.Monad
 import Control.Lens (ALens', (&), (^#), (#~), (.~))
+import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable
@@ -25,7 +26,7 @@ import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
-import Monomer.Widget.BaseWidget
+import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -69,13 +70,13 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
 
 makeTextField :: TextFieldConfig s e -> TextFieldState -> Widget s e
 makeTextField config state = widget where
-  widget = createWidget {
-    widgetInit = init,
-    widgetGetState = makeState state,
-    widgetMerge = baseWidgetMerge merge,
-    widgetHandleEvent = handleEvent,
-    widgetUpdateSizeReq = updateSizeReq,
-    widgetRender = render
+  widget = createSingle def {
+    singleInit = init,
+    singleGetState = makeState state,
+    singleMerge = merge,
+    singleHandleEvent = handleEvent,
+    singleUpdateSizeReq = updateSizeReq,
+    singleRender = render
   }
 
   TextFieldState currText currPos = state

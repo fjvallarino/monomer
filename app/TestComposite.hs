@@ -16,7 +16,7 @@ import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Graphics.Color
 import Monomer.Main.Util
-import Monomer.Widget.CompositeWidget
+import Monomer.Widget.Composite
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widgets
