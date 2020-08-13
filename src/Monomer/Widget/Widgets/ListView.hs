@@ -97,14 +97,14 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 
 makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
 makeListView config state = widget where
-  widget = createContainer {
-    widgetInit = containerInit init,
-    widgetGetState = makeState state,
-    widgetMerge = containerMergeTrees merge,
-    widgetHandleEvent = containerHandleEvent handleEvent,
-    widgetHandleMessage = containerHandleMessage handleMessage,
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
-    widgetResize = containerResize resize
+  widget = createContainer def {
+    containerInit = init,
+    containerGetState = makeState state,
+    containerMerge = merge,
+    containerHandleEvent = handleEvent,
+    containerHandleMessage = handleMessage,
+    containerUpdateSizeReq = updateSizeReq,
+    containerResize = resize
   }
 
   currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)

@@ -1,20 +1,21 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.BaseContainer (
+  Container(..),
   createContainer,
-  containerInit,
-  containerMergeTrees,
-  containerHandleEvent,
-  containerHandleMessage,
-  containerUpdateSizeReq,
-  containerResize,
-  containerRender,
-  defaultContainerRender,
-  visibleChildrenReq
+  initWrapper,
+  mergeWrapper,
+  handleEventWrapper,
+  handleMessageWrapper,
+  updateSizeReqWrapper,
+  resizeWrapper,
+  renderWrapper,
+  defaultRender
 ) where
 
 import Control.Monad
@@ -37,33 +38,121 @@ import Monomer.Graphics.Renderer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-createContainer :: Widget s e
-createContainer = Widget {
-  widgetInit = containerInit defaultInit,
-  widgetGetState = defaultGetState,
-  widgetMerge = containerMergeTrees defaultMerge,
+type ContainerInitHandler s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+
+type ContainerGetStateHandler s e
+  = WidgetEnv s e
+  -> Maybe WidgetState
+
+type ContainerMergeHandler s e
+  = WidgetEnv s e
+  -> Maybe WidgetState
+  -> WidgetInstance s e
+  -> WidgetResult s e
+
+type ContainerFindNextFocusHandler s e
+  = WidgetEnv s e
+  -> Path
+  -> WidgetInstance s e
+  -> Maybe Path
+
+type ContainerFindByPointHandler s e
+  = WidgetEnv s e
+  -> Path
+  -> Point
+  -> WidgetInstance s e
+  -> Maybe Path
+
+type ContainerEventHandler s e
+  = WidgetEnv s e
+  -> Path
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> Maybe (WidgetResult s e)
+
+type ContainerMessageHandler s e
+  = forall i . Typeable i
+  => WidgetEnv s e
+  -> Path
+  -> i
+  -> WidgetInstance s e
+  -> Maybe (WidgetResult s e)
+
+type ContainerUpdateSizeReqHandler s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> Seq (WidgetInstance s e)
+  -> SizeReq
+
+type ContainerResizeHandler s e
+  = WidgetEnv s e
+  -> Rect
+  -> Rect
+  -> Seq (WidgetInstance s e)
+  -> WidgetInstance s e
+  -> (WidgetInstance s e, Seq (Rect, Rect))
+
+type ContainerRenderHandler s e
+  = forall m . Monad m
+  => Renderer m
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> m ()
+
+data Container s e = Container {
+  containerInit :: ContainerInitHandler s e,
+  containerGetState :: ContainerGetStateHandler s e,
+  containerMerge :: ContainerMergeHandler s e,
+  containerFindNextFocus :: ContainerFindNextFocusHandler s e,
+  containerFindByPoint :: ContainerFindByPointHandler s e,
+  containerHandleEvent :: ContainerEventHandler s e,
+  containerHandleMessage :: ContainerMessageHandler s e,
+  containerUpdateSizeReq :: ContainerUpdateSizeReqHandler s e,
+  containerResize :: ContainerResizeHandler s e,
+  containerRender :: ContainerRenderHandler s e
+}
+
+instance Default (Container s e) where
+  def = Container {
+    containerInit = defaultInit,
+    containerGetState = defaultGetState,
+    containerMerge = defaultMerge,
+    containerFindNextFocus = defaultFindNextFocus,
+    containerFindByPoint = defaultFindByPoint,
+    containerHandleEvent = defaultHandleEvent,
+    containerHandleMessage = defaultHandleMessage,
+    containerUpdateSizeReq = defaultUpdateSizeReq,
+    containerResize = defaultResize,
+    containerRender = defaultRender
+  }
+
+createContainer :: Container s e -> Widget s e
+createContainer Container{..} = Widget {
+  widgetInit = initWrapper containerInit,
+  widgetGetState = containerGetState,
+  widgetMerge = mergeWrapper containerMerge,
   widgetFindNextFocus = containerFindNextFocus,
   widgetFindByPoint = containerFindByPoint,
-  widgetHandleEvent = containerHandleEvent defaultHandleEvent,
-  widgetHandleMessage = containerHandleMessage defaultHandleMessage,
-  widgetUpdateSizeReq = containerUpdateSizeReq defaultUpdateSizeReq,
-  widgetResize = containerResize defaultResize,
-  widgetRender = containerRender defaultContainerRender
+  widgetHandleEvent = handleEventWrapper containerHandleEvent,
+  widgetHandleMessage = handleMessageWrapper containerHandleMessage,
+  widgetUpdateSizeReq = updateSizeReqWrapper containerUpdateSizeReq,
+  widgetResize = resizeWrapper containerResize,
+  widgetRender = renderWrapper containerRender
 }
 
 -- | Init handler
-type ContainerInitHandler s e
-  = WidgetEnv s e -> WidgetInstance s e -> WidgetResult s e
-
 defaultInit :: ContainerInitHandler s e
 defaultInit _ widgetInst = resultWidget widgetInst
 
-containerInit
+initWrapper
   :: ContainerInitHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetResult s e
-containerInit initHandler wenv widgetInst = result where
+initWrapper initHandler wenv widgetInst = result where
   WidgetResult reqs events tempInstance = initHandler wenv widgetInst
   children = _wiChildren tempInstance
   indexes = Seq.fromList [0..length children]
@@ -80,23 +169,20 @@ containerInit initHandler wenv widgetInst = result where
   result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
 -- | State Handling helpers
-defaultGetState :: forall i s e . Typeable i => WidgetEnv s e -> Maybe i
+defaultGetState :: ContainerGetStateHandler s e
 defaultGetState _ = Nothing
 
 -- | Merging
-type ContainerMergeHandler s e
-  = WidgetEnv s e -> Maybe WidgetState -> WidgetInstance s e -> WidgetResult s e
-
 defaultMerge :: ContainerMergeHandler s e
 defaultMerge wenv state newInstance = resultWidget newInstance
 
-containerMergeTrees
+mergeWrapper
   :: ContainerMergeHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-containerMergeTrees mergeHandler wenv oldInst newInst = result where
+mergeWrapper mergeHandler wenv oldInst newInst = result where
   oldState = widgetGetState (_wiWidget oldInst) wenv
   WidgetResult uReqs uEvents uInstance = mergeHandler wenv oldState newInst
   oldChildren = _wiChildren oldInst
@@ -140,9 +226,9 @@ mergeChildren wenv oldItems newItems = result where
   result = child <| mergeChildren wenv oldRest newChildren
 
 -- | Find next focusable item
-containerFindNextFocus
+defaultFindNextFocus
   :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-containerFindNextFocus wenv startFrom widgetInst = nextFocus where
+defaultFindNextFocus wenv startFrom widgetInst = nextFocus where
   children = _wiChildren widgetInst
   isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
   nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv startFrom ch
@@ -153,9 +239,9 @@ containerFindNextFocus wenv startFrom widgetInst = nextFocus where
     | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
-containerFindByPoint
+defaultFindByPoint
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-containerFindByPoint wenv startPath point widgetInst = result where
+defaultFindByPoint wenv startPath point widgetInst = result where
   children = _wiChildren widgetInst
   pointInWidget wi = pointInRect point (_wiViewport wi)
   newStartPath = Seq.drop 1 startPath
@@ -170,24 +256,17 @@ containerFindByPoint wenv startPath point widgetInst = result where
     Nothing -> Just $ _wiPath widgetInst
 
 -- | Event Handling
-type ContainerEventHandler s e
-  = WidgetEnv s e
-  -> Path
-  -> SystemEvent
-  -> WidgetInstance s e
-  -> Maybe (WidgetResult s e)
-
 defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt widgetInst = Nothing
 
-containerHandleEvent
+handleEventWrapper
   :: ContainerEventHandler s e
   -> WidgetEnv s e
   -> Path
   -> SystemEvent
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-containerHandleEvent pHandler wenv target event widgetInst
+handleEventWrapper pHandler wenv target event widgetInst
   | targetReached || not targetValid = pHandler wenv target event widgetInst
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx
   where
@@ -233,26 +312,18 @@ mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
     }
 
 -- | Message Handling
-type ContainerMessageHandler i s e
-  = Typeable i
-  => WidgetEnv s e
-  -> Path
-  -> i
-  -> WidgetInstance s e
-  -> Maybe (WidgetResult s e)
-
-defaultHandleMessage :: ContainerMessageHandler i s e
+defaultHandleMessage :: ContainerMessageHandler s e
 defaultHandleMessage wenv ctx message widgetInst = Nothing
 
-containerHandleMessage
-  :: forall i s e . Typeable i
-  => ContainerMessageHandler i s e
+handleMessageWrapper
+  :: Typeable i
+  => ContainerMessageHandler s e
   -> WidgetEnv s e
   -> Path
   -> i
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-containerHandleMessage mHandler wenv target arg widgetInst
+handleMessageWrapper mHandler wenv target arg widgetInst
   | targetReached || not targetValid = mHandler wenv target arg widgetInst
   | otherwise = messageResult
   where
@@ -268,12 +339,6 @@ containerHandleMessage mHandler wenv target arg widgetInst
     }
 
 -- | Preferred size
-type ContainerUpdateSizeReqHandler s e
-  = WidgetEnv s e
-  -> WidgetInstance s e
-  -> Seq (WidgetInstance s e)
-  -> SizeReq
-
 defaultUpdateSizeReq :: ContainerUpdateSizeReqHandler s e
 defaultUpdateSizeReq wenv inst children = req where
   req = SizeReq {
@@ -282,12 +347,12 @@ defaultUpdateSizeReq wenv inst children = req where
     _srPolicyHeight = FlexibleSize
   }
 
-containerUpdateSizeReq
+updateSizeReqWrapper
   :: ContainerUpdateSizeReqHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
-containerUpdateSizeReq psHandler wenv widgetInst = newInst where
+updateSizeReqWrapper psHandler wenv widgetInst = newInst where
   children = _wiChildren widgetInst
   updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
   newChildren = fmap updateChild children
@@ -298,27 +363,19 @@ containerUpdateSizeReq psHandler wenv widgetInst = newInst where
   }
 
 -- | Resize
-type ContainerResizeHandler s e
-  = WidgetEnv s e
-  -> Rect
-  -> Rect
-  -> Seq (WidgetInstance s e)
-  -> WidgetInstance s e
-  -> (WidgetInstance s e, Seq (Rect, Rect))
-
 defaultResize :: ContainerResizeHandler s e
 defaultResize wenv viewport renderArea children widgetInst = newSize where
   childrenSizes = Seq.replicate (Seq.length children) def
   newSize = (widgetInst, childrenSizes)
 
-containerResize
+resizeWrapper
   :: ContainerResizeHandler s e
   -> WidgetEnv s e
   -> Rect
   -> Rect
   -> WidgetInstance s e
   -> WidgetInstance s e
-containerResize handler wenv viewport renderArea widgetInst = newSize where
+resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
   children = _wiChildren widgetInst
   (tempInst, assigned) = handler wenv viewport renderArea children widgetInst
   resize (child, (vp, ra)) = widgetResize (_wiWidget child) wenv vp ra child
@@ -330,24 +387,17 @@ containerResize handler wenv viewport renderArea widgetInst = newSize where
   }
 
 -- | Rendering
-type ContainerRenderHandler s e m
-  = (Monad m)
-  => Renderer m
-  -> WidgetEnv s e
-  -> WidgetInstance s e
-  -> m ()
+defaultRender :: ContainerRenderHandler s e
+defaultRender renderer wenv inst = drawWidgetBg renderer wenv inst
 
-defaultContainerRender :: ContainerRenderHandler s e m
-defaultContainerRender renderer wenv inst = drawWidgetBg renderer wenv inst
-
-containerRender
-  :: (Monad m)
-  => ContainerRenderHandler s e m
+renderWrapper
+  :: Monad m
+  => ContainerRenderHandler s e
   -> Renderer m
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> m ()
-containerRender rHandler renderer wenv widgetInst = do
+renderWrapper rHandler renderer wenv widgetInst = do
   let children = _wiChildren widgetInst
 
   rHandler renderer wenv widgetInst
@@ -368,16 +418,6 @@ replaceChild
   :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e
 replaceChild parent child idx = parent { _wiChildren = newChildren } where
   newChildren = Seq.update idx child (_wiChildren parent)
-
-visibleChildrenReq
-  :: Seq (WidgetInstance s e)
-  -> Seq (Tree SizeReq)
-  -> (Seq (WidgetInstance s e), Seq SizeReq)
-visibleChildrenReq children reqs = Seq.unzipWith extract filtered where
-  pairs = Seq.zip children reqs
-  isVisible (child, req) = _wiVisible child
-  filtered = Seq.filter isVisible pairs
-  extract (child, treq) = (child, nodeValue treq)
 
 cascadeCtx
   :: WidgetInstance s e -> WidgetInstance s e -> Int -> WidgetInstance s e

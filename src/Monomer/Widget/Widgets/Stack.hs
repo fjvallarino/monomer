@@ -6,6 +6,7 @@ module Monomer.Widget.Widgets.Stack (
 ) where
 
 import Control.Monad
+import Data.Default
 import Data.List (foldl')
 import Data.Sequence (Seq(..), (<|), (|>))
 
@@ -29,9 +30,9 @@ vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
 
 makeStack :: Bool -> Widget s e
 makeStack isHorizontal = widget where
-  widget = createContainer {
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
-    widgetResize = containerResize resize
+  widget = createContainer def {
+    containerUpdateSizeReq = updateSizeReq,
+    containerResize = resize
   }
 
   updateSizeReq wenv widgetInst children = sizeReq where

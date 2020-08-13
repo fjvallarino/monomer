@@ -88,14 +88,16 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 
 makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Widget s e
 makeDropdown config state = widget where
-  widget = createContainer {
-    widgetInit = containerInit init,
-    widgetGetState = makeState state,
-    widgetMerge = containerMergeTrees merge,
-    widgetHandleEvent = containerHandleEvent handleEvent,
-    widgetHandleMessage = containerHandleMessage handleMessage,
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
-    widgetResize = containerResize resize,
+  baseWidget = createContainer def {
+    containerInit = init,
+    containerGetState = makeState state,
+    containerMerge = merge,
+    containerHandleEvent = handleEvent,
+    containerHandleMessage = handleMessage,
+    containerUpdateSizeReq = updateSizeReq,
+    containerResize = resize
+  }
+  widget = baseWidget {
     widgetRender = render
   }
 

@@ -5,6 +5,7 @@ module Monomer.Widget.Widgets.Box (
 ) where
 
 import Control.Monad (when)
+import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 
@@ -39,10 +40,10 @@ makeInstance widget managedWidget = (defaultWidgetInstance "box" widget) {
 
 makeBox :: BoxConfig s e -> Widget s e
 makeBox config = widget where
-  widget = createContainer {
-    widgetHandleEvent = containerHandleEvent handleEvent,
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
-    widgetResize = containerResize resize
+  widget = createContainer def {
+    containerHandleEvent = handleEvent,
+    containerUpdateSizeReq = updateSizeReq,
+    containerResize = resize
   }
 
   handleEvent wenv ctx evt widgetInst = case evt of

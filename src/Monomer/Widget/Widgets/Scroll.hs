@@ -98,12 +98,14 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 
 makeScroll :: ScrollConfig -> ScrollState -> Widget s e
 makeScroll config state = widget where
-  widget = createContainer {
-    widgetGetState = makeState state,
-    widgetMerge = containerMergeTrees merge,
-    widgetHandleEvent = containerHandleEvent handleEvent,
-    widgetHandleMessage = containerHandleMessage handleMessage,
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
+  baseWidget = createContainer def {
+    containerGetState = makeState state,
+    containerMerge = merge,
+    containerHandleEvent = handleEvent,
+    containerHandleMessage = handleMessage,
+    containerUpdateSizeReq = updateSizeReq
+  }
+  widget = baseWidget {
     widgetResize = scrollResize Nothing,
     widgetRender = render
   }
@@ -269,7 +271,7 @@ makeScroll config state = widget where
 
   render renderer wenv widgetInst = do
     setScissor renderer viewport
-    containerRender defaultContainerRender renderer wenv widgetInst
+    renderWrapper defaultRender renderer wenv widgetInst
     resetScissor renderer
 
     when hScrollRequired $

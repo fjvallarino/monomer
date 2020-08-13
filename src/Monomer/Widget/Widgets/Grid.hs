@@ -28,9 +28,9 @@ vgrid children = (defaultWidgetInstance "vgrid" (makeFixedGrid False)) {
 
 makeFixedGrid :: Bool -> Widget s e
 makeFixedGrid isHorizontal = widget where
-  widget = createContainer {
-    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
-    widgetResize = containerResize resize
+  widget = createContainer def {
+    containerUpdateSizeReq = updateSizeReq,
+    containerResize = resize
   }
 
   updateSizeReq wenv widgetInst children = reqSize where
