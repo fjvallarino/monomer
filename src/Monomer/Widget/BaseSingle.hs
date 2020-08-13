@@ -112,7 +112,7 @@ createSingle :: Single s e -> Widget s e
 createSingle Single{..} = Widget {
   widgetInit = singleInit,
   widgetGetState = singleGetState,
-  widgetMerge = baseWidgetMerge singleMerge,
+  widgetMerge = mergeWrapper singleMerge,
   widgetFindNextFocus = singleFindNextFocus,
   widgetFindByPoint = singleFindByPoint,
   widgetHandleEvent = singleHandleEvent,
@@ -131,13 +131,13 @@ defaultGetState _ = Nothing
 defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInstance = resultWidget newInstance
 
-baseWidgetMerge
+mergeWrapper
   :: SingleMergeHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-baseWidgetMerge mergeHandler wenv oldInstance newInstance = result where
+mergeWrapper mergeHandler wenv oldInstance newInstance = result where
   oldState = widgetGetState (_wiWidget oldInstance) wenv
   result = mergeHandler wenv oldState newInstance
 
