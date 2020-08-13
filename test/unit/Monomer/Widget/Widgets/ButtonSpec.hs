@@ -22,7 +22,7 @@ data BtnEvent
 spec :: Spec
 spec = describe "Button" $ do
   handleEvent
-  preferredSize
+  updateSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -37,8 +37,8 @@ handleEvent = describe "handleEvent" $ do
     btn = initWidget wenv (button BtnClick "Click")
     events p = instanceGetEvents wenv (Click p LeftBtn) btn
 
-preferredSize :: Spec
-preferredSize = describe "preferredSize" $ do
+updateSizeReq :: Spec
+updateSizeReq = describe "updateSizeReq" $ do
   it "should return the expected size" $
     _srSize `shouldBe` Size 50 20
 
@@ -51,4 +51,4 @@ preferredSize = describe "preferredSize" $ do
   where
     wenv = mockWenv ()
     btnInst = button Click "Click"
-    SizeReq{..} = instancePreferredSize wenv btnInst
+    SizeReq{..} = instanceUpdateSizeReq wenv btnInst

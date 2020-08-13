@@ -30,13 +30,13 @@ vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
 makeStack :: Bool -> Widget s e
 makeStack isHorizontal = widget where
   widget = createContainer {
-    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
     widgetResize = containerResize resize
   }
 
-  preferredSize wenv widgetInst children = sizeReq where
+  updateSizeReq wenv widgetInst children = sizeReq where
     vreqs = _wiSizeReq <$> Seq.filter _wiVisible children
-    size = calcPreferredSize vreqs
+    size = calcUpdateSizeReq vreqs
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   resize wenv viewport renderArea children widgetInst = resized where
@@ -51,8 +51,8 @@ makeStack isHorizontal = widget where
     rChildren = Seq.filter (policyFilter RemainderSize) vreqs
     fExists = not $ null fChildren
     rExists = not $ null rChildren
-    sSize = sizeSelector $ calcPreferredSize sChildren
-    fSize = sizeSelector $ calcPreferredSize fChildren
+    sSize = sizeSelector $ calcUpdateSizeReq sChildren
+    fSize = sizeSelector $ calcUpdateSizeReq fChildren
     rSize = max 0 (mainSize - sSize)
     fCount = fromIntegral $ length fChildren
     rCount = fromIntegral $ length rChildren
@@ -86,7 +86,7 @@ makeStack isHorizontal = widget where
       | isHorizontal = hRect
       | otherwise = vRect
 
-  calcPreferredSize vreqs = Size width height where
+  calcUpdateSizeReq vreqs = Size width height where
     (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vreqs
     width = if isHorizontal then sumWidth else maxWidth
     height = if isHorizontal then maxHeight else sumHeight

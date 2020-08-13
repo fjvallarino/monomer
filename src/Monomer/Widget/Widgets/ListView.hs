@@ -104,7 +104,7 @@ makeListView config state = widget where
     widgetMerge = containerMergeTrees merge,
     widgetHandleEvent = containerHandleEvent handleEvent,
     widgetHandleMessage = containerHandleMessage handleMessage,
-    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
     widgetResize = containerResize resize
   }
 
@@ -192,7 +192,7 @@ makeListView config state = widget where
     scrollPath = firstChildPath widgetInst
     scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-  preferredSize wenv widgetInst children = sizeReq where
+  updateSizeReq wenv widgetInst children = sizeReq where
     sizeReq = _wiSizeReq $ Seq.index children 0
 
   resize wenv viewport renderArea children widgetInst = resized where

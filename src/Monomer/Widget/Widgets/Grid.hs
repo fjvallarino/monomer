@@ -29,11 +29,11 @@ vgrid children = (defaultWidgetInstance "vgrid" (makeFixedGrid False)) {
 makeFixedGrid :: Bool -> Widget s e
 makeFixedGrid isHorizontal = widget where
   widget = createContainer {
-    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
     widgetResize = containerResize resize
   }
 
-  preferredSize wenv widgetInst children = reqSize where
+  updateSizeReq wenv widgetInst children = reqSize where
     vchildren = Seq.filter _wiVisible children
     vreqs = _wiSizeReq <$> vchildren
     reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize

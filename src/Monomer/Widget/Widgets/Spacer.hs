@@ -18,10 +18,10 @@ defaultSpace = 10
 makeSpacer :: Widget s e
 makeSpacer = widget where
   widget = createWidget {
-    widgetPreferredSize = preferredSize
+    widgetUpdateSizeReq = updateSizeReq
   }
 
-  preferredSize wenv widgetInst = newInst where
+  updateSizeReq wenv widgetInst = newInst where
     size = Size defaultSpace defaultSpace
     sizeReq = SizeReq size RemainderSize RemainderSize
     newInst = widgetInst {

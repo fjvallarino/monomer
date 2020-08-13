@@ -120,7 +120,7 @@
   - Try to unify path handling on widgetFind and widgetNextFocusable
     - This is cancelled fo the moment. I can't find a good reason for doing it.
     - WidgetEnv was added as a parameter for completeness sake
-    - This is also needed for widgetPreferredSize and widgetResize
+    - This is also needed for widgetUpdateSizeReq and widgetResize
     - Generalize the "startFrom" concept of widgetFind (and also validate it's actually well/fully implemented)
   - Should Resize be restored? -> Restored
   - Make sure enabled/visible attributes are being used

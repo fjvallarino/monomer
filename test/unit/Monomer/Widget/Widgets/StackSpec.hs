@@ -20,16 +20,16 @@ import Monomer.Widget.Widgets.Stack
 
 spec :: Spec
 spec = describe "Stack" $ do
-  preferredSize
+  updateSizeReq
   resize
 
-preferredSize :: Spec
-preferredSize = describe "preferredSize" $ do
-  preferredSizeEmpty
-  preferredSizeItems
+updateSizeReq :: Spec
+updateSizeReq = describe "updateSizeReq" $ do
+  updateSizeReqEmpty
+  updateSizeReqItems
 
-preferredSizeEmpty :: Spec
-preferredSizeEmpty = describe "empty" $ do
+updateSizeReqEmpty :: Spec
+updateSizeReqEmpty = describe "empty" $ do
   it "should return size (0, 0)" $
     _srSize `shouldBe` Size 0 0
 
@@ -42,10 +42,10 @@ preferredSizeEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     vstackInst = vstack []
-    SizeReq{..} = instancePreferredSize wenv vstackInst
+    SizeReq{..} = instanceUpdateSizeReq wenv vstackInst
 
-preferredSizeItems :: Spec
-preferredSizeItems = describe "several items" $ do
+updateSizeReqItems :: Spec
+updateSizeReqItems = describe "several items" $ do
   it "should return size (80, 60)" $
     _srSize `shouldBe` Size 80 60
 
@@ -62,7 +62,7 @@ preferredSizeItems = describe "several items" $ do
         label "how",
         label "are you?"
       ]
-    SizeReq{..} = instancePreferredSize wenv vstackInst
+    SizeReq{..} = instanceUpdateSizeReq wenv vstackInst
 
 resize :: Spec
 resize = describe "resize" $ do

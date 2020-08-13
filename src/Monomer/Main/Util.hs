@@ -40,5 +40,5 @@ resizeWidget
 resizeWidget wenv windowSize widgetRoot = newRoot where
   Size w h = windowSize
   assigned = Rect 0 0 w h
-  instReqs = widgetPreferredSize (_wiWidget widgetRoot) wenv widgetRoot
+  instReqs = widgetUpdateSizeReq (_wiWidget widgetRoot) wenv widgetRoot
   newRoot = widgetResize (_wiWidget instReqs) wenv assigned assigned instReqs

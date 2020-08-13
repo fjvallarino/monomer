@@ -26,7 +26,7 @@ createWidget = Widget {
   widgetFind = defaultFind,
   widgetHandleEvent = defaultHandleEvent,
   widgetHandleMessage = defaultHandleMessage,
-  widgetPreferredSize = defaultPreferredSize,
+  widgetUpdateSizeReq = defaultUpdateSizeReq,
   widgetResize = defaultResize,
   widgetRender = defaultRender
 }
@@ -83,8 +83,8 @@ defaultHandleMessage
   -> Maybe (WidgetResult s e)
 defaultHandleMessage wenv target message widgetInst = Nothing
 
-defaultPreferredSize :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
-defaultPreferredSize wenv widgetInst = widgetInst
+defaultUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+defaultUpdateSizeReq wenv widgetInst = widgetInst
 
 defaultResize
   :: WidgetEnv s e

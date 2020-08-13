@@ -41,7 +41,7 @@ makeContainer :: ContainerConfig s e -> Widget s e
 makeContainer config = widget where
   widget = createContainer {
     widgetHandleEvent = containerHandleEvent handleEvent,
-    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
     widgetResize = containerResize resize
   }
 
@@ -55,7 +55,7 @@ makeContainer config = widget where
         | otherwise = Nothing
     _ -> Nothing
 
-  preferredSize wenv widgetInst children = sizeReq where
+  updateSizeReq wenv widgetInst children = sizeReq where
     sizeReq = _wiSizeReq $ Seq.index children 0
 
   resize wenv viewport renderArea children widgetInst = resized where

@@ -214,7 +214,7 @@ resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where
   viewport = _wiViewport inst
   renderArea = _wiRenderArea inst
-  instReqs = widgetPreferredSize (_wiWidget inst) wenv inst
+  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   newInst = widgetResize (_wiWidget instReqs) wenv viewport renderArea instReqs
 
 isFocusCandidate :: Path -> WidgetInstance s e -> Bool

@@ -17,10 +17,10 @@ import Monomer.Widget.Widgets.Label
 
 spec :: Spec
 spec = describe "Label"
-  preferredSize
+  updateSizeReq
 
-preferredSize :: Spec
-preferredSize = describe "preferredSize" $ do
+updateSizeReq :: Spec
+updateSizeReq = describe "updateSizeReq" $ do
   it "should return the expected size" $
     _srSize `shouldBe` Size 100 20
 
@@ -33,4 +33,4 @@ preferredSize = describe "preferredSize" $ do
   where
     wenv = mockWenv ()
     lblInst = label "Test label"
-    SizeReq{..} = instancePreferredSize wenv lblInst
+    SizeReq{..} = instanceUpdateSizeReq wenv lblInst

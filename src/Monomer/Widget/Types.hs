@@ -163,14 +163,8 @@ data Widget s e =
       -> i
       -> WidgetInstance s e
       -> Maybe (WidgetResult s e),
-    -- | Minimum size desired by the widget
-    --
-    -- Style options
-    -- Preferred size for each of the children widgets
-    -- Renderer (mainly for text sizing functions)
-    --
-    -- Returns: the minimum size desired by the widget
-    widgetPreferredSize -- -> widgetUpdateSizeReq
+    -- | Updates the sizeReq field for the widget
+    widgetUpdateSizeReq
       :: WidgetEnv s e
       -> WidgetInstance s e
       -> WidgetInstance s e,

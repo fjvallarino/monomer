@@ -103,7 +103,7 @@ makeScroll config state = widget where
     widgetMerge = containerMergeTrees merge,
     widgetHandleEvent = containerHandleEvent handleEvent,
     widgetHandleMessage = containerHandleMessage handleMessage,
-    widgetPreferredSize = containerPreferredSize preferredSize,
+    widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,
     widgetResize = scrollResize Nothing,
     widgetRender = render
   }
@@ -239,7 +239,7 @@ makeScroll config state = widget where
     renderArea = _wiRenderArea tempInst
     newInst = scrollResize (Just newWidget) wenv viewport renderArea tempInst
 
-  preferredSize wenv widgetInst children = sizeReq where
+  updateSizeReq wenv widgetInst children = sizeReq where
     size = _srSize $ _wiSizeReq (Seq.index children 0)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 

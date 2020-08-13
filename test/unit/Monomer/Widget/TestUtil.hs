@@ -46,19 +46,19 @@ initWidget wenv inst = newInst where
   WidgetResult _ _ inst2 = widgetInit (_wiWidget inst) wenv inst
   Size w h = _weScreenSize wenv
   vp = Rect 0 0 w h
-  reqs = widgetPreferredSize (_wiWidget inst2) wenv inst2
+  reqs = widgetUpdateSizeReq (_wiWidget inst2) wenv inst2
   newInst = widgetResize (_wiWidget inst2) wenv vp vp reqs inst2
 
-instancePreferredSize :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
-instancePreferredSize wenv inst = nodeValue reqs where
+instanceUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
+instanceUpdateSizeReq wenv inst = nodeValue reqs where
   widget = _wiWidget inst
-  reqs = widgetPreferredSize widget wenv inst
+  reqs = widgetUpdateSizeReq widget wenv inst
 
 instanceResize
   :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instanceResize wenv viewport inst = newInst where
   widget = _wiWidget inst
-  reqs = widgetPreferredSize widget wenv inst
+  reqs = widgetUpdateSizeReq widget wenv inst
   newInst = widgetResize widget wenv viewport viewport reqs inst
 
 instanceGetEvents

@@ -10,7 +10,7 @@ module Monomer.Widget.BaseContainer (
   containerMergeTrees,
   containerHandleEvent,
   containerHandleMessage,
-  containerPreferredSize,
+  containerUpdateSizeReq,
   containerResize,
   containerRender,
   defaultContainerRender,
@@ -46,7 +46,7 @@ createContainer = Widget {
   widgetFind = containerFind,
   widgetHandleEvent = containerHandleEvent defaultHandleEvent,
   widgetHandleMessage = containerHandleMessage defaultHandleMessage,
-  widgetPreferredSize = containerPreferredSize defaultPreferredSize,
+  widgetUpdateSizeReq = containerUpdateSizeReq defaultUpdateSizeReq,
   widgetResize = containerResize defaultResize,
   widgetRender = containerRender defaultContainerRender
 }
@@ -268,28 +268,28 @@ containerHandleMessage mHandler wenv target arg widgetInst
     }
 
 -- | Preferred size
-type ContainerPreferredSizeHandler s e
+type ContainerUpdateSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
   -> Seq (WidgetInstance s e)
   -> SizeReq
 
-defaultPreferredSize :: ContainerPreferredSizeHandler s e
-defaultPreferredSize wenv inst children = req where
+defaultUpdateSizeReq :: ContainerUpdateSizeReqHandler s e
+defaultUpdateSizeReq wenv inst children = req where
   req = SizeReq {
     _srSize = Size 0 0,
     _srPolicyWidth = FlexibleSize,
     _srPolicyHeight = FlexibleSize
   }
 
-containerPreferredSize
-  :: ContainerPreferredSizeHandler s e
+containerUpdateSizeReq
+  :: ContainerUpdateSizeReqHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
-containerPreferredSize psHandler wenv widgetInst = newInst where
+containerUpdateSizeReq psHandler wenv widgetInst = newInst where
   children = _wiChildren widgetInst
-  updateChild child = widgetPreferredSize (_wiWidget child) wenv child
+  updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
   newChildren = fmap updateChild children
   sizeReq = psHandler wenv widgetInst newChildren
   newInst = widgetInst {
