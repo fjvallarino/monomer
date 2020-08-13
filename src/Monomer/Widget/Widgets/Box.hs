@@ -1,7 +1,7 @@
-module Monomer.Widget.Widgets.Container (
-  ContainerConfig(..),
-  container,
-  containerConfig
+module Monomer.Widget.Widgets.Box (
+  BoxConfig(..),
+  box,
+  boxConfig
 ) where
 
 import Control.Monad (when)
@@ -20,25 +20,25 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
 
-data ContainerConfig s e = ContainerConfig {
+data BoxConfig s e = BoxConfig {
   _ctOnClick :: [e],
   _ctOnClickReq :: [WidgetRequest s]
 }
 
-containerConfig :: ContainerConfig s e
-containerConfig = ContainerConfig [] []
+boxConfig :: BoxConfig s e
+boxConfig = BoxConfig [] []
 
-container :: ContainerConfig s e -> WidgetInstance s e -> WidgetInstance s e
-container config managed = makeInstance (makeContainer config) managed
+box :: BoxConfig s e -> WidgetInstance s e -> WidgetInstance s e
+box config managed = makeInstance (makeBox config) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
-makeInstance widget managedWidget = (defaultWidgetInstance "container" widget) {
+makeInstance widget managedWidget = (defaultWidgetInstance "box" widget) {
   _wiChildren = Seq.singleton managedWidget,
   _wiFocusable = False
 }
 
-makeContainer :: ContainerConfig s e -> Widget s e
-makeContainer config = widget where
+makeBox :: BoxConfig s e -> Widget s e
+makeBox config = widget where
   widget = createContainer {
     widgetHandleEvent = containerHandleEvent handleEvent,
     widgetUpdateSizeReq = containerUpdateSizeReq updateSizeReq,

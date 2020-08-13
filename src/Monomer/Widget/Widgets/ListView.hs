@@ -31,7 +31,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Geometry
 import Monomer.Common.LensStyle
 import Monomer.Common.Style
---import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -42,7 +41,7 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-import Monomer.Widget.Widgets.Container
+import Monomer.Widget.Widgets.Box
 import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.Scroll
 import Monomer.Widget.Widgets.Spacer
@@ -213,12 +212,12 @@ makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   itemStyle idx item = def
     & basic . non def . color .~ (selectedColor item <|> highlightedColor idx)
     & hover . non def . color ?~ _lvHoverColor
-  itemConfig idx = containerConfig {
+  itemConfig idx = boxConfig {
     _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }
   makeItem idx item = newItem where
     config = itemConfig idx
     content = label (_lvItemToText item)
-    newItem = container config content `style` itemStyle idx item
+    newItem = box config content `style` itemStyle idx item
   pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
   itemsList = vstack $ fmap (uncurry makeItem) pairs
