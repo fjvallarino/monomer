@@ -150,7 +150,7 @@ handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
       (newWenv1, newEvents1, newRoot1)
         <- handleSystemEvent renderer wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocusable newWenv1 oldFocus widgetRoot
+      let newFocus = findNextFocus newWenv1 oldFocus widgetRoot
       let tempWenv = newWenv1 {
         _weFocusedPath = newFocus
       }

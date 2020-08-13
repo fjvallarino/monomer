@@ -110,7 +110,7 @@ runWidgets window c widgetRoot = do
   }
 
   mainModel .= _weModel newWenv
-  pathFocus .= findNextFocusable newWenv rootPath resizedRoot
+  pathFocus .= findNextFocus newWenv rootPath resizedRoot
 
   mainLoop window c renderer loopArgs
 

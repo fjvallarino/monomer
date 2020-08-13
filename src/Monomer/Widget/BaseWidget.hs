@@ -22,7 +22,7 @@ createWidget = Widget {
   widgetInit = defaultInit,
   widgetGetState = defaultGetState,
   widgetMerge = baseWidgetMerge defaultMerge,
-  widgetNextFocusable = defaultNextFocusable,
+  widgetFindNextFocus = defaultFindNextFocus,
   widgetFindByPoint = defaultFindByPoint,
   widgetHandleEvent = defaultHandleEvent,
   widgetHandleMessage = defaultHandleMessage,
@@ -56,9 +56,9 @@ baseWidgetMerge mergeHandler wenv oldInstance newInstance = result where
   oldState = widgetGetState (_wiWidget oldInstance) wenv
   result = mergeHandler wenv oldState newInstance
 
-defaultNextFocusable
+defaultFindNextFocus
   :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-defaultNextFocusable wenv startFrom widgetInst
+defaultFindNextFocus wenv startFrom widgetInst
   | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
   | otherwise = Nothing
 

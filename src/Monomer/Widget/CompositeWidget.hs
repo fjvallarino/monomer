@@ -95,8 +95,8 @@ createComposite comp state = widget where
     widgetInit = compositeInit comp state,
     widgetGetState = makeState state,
     widgetMerge = compositeMerge comp state,
-    widgetNextFocusable = compositeNextFocusable comp state,
-    widgetFindByPoint = compositeFind state,
+    widgetFindNextFocus = compositeFindNextFocus comp state,
+    widgetFindByPoint = compositeFindByPoint state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
     widgetUpdateSizeReq = compositeUpdateSizeReq comp state,
@@ -154,28 +154,28 @@ compositeMerge comp state wenv oldComposite newComposite = result where
   result = reduceResult comp newState wenv newComposite widgetResult
 
 -- | Next focusable
-compositeNextFocusable
+compositeFindNextFocus
   :: Composite s e ep
   -> CompositeState s e
   -> WidgetEnv sp ep
   -> Path
   -> WidgetInstance sp ep
   -> Maybe Path
-compositeNextFocusable comp state wenv startFrom widgetComp = nextFocus where
+compositeFindNextFocus comp state wenv startFrom widgetComp = nextFocus where
   CompositeState{..} = state
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  nextFocus = widgetNextFocusable widget cwenv startFrom _cmpRoot
+  nextFocus = widgetFindNextFocus widget cwenv startFrom _cmpRoot
 
 -- | Find
-compositeFind
+compositeFindByPoint
   :: CompositeState s e
   -> WidgetEnv sp ep
   -> Path
   -> Point
   -> WidgetInstance sp ep
   -> Maybe Path
-compositeFind CompositeState{..} wenv startPath point widgetComp
+compositeFindByPoint CompositeState{..} wenv startPath point widgetComp
   | validStep = widgetFindByPoint widget cwenv newStartPath point _cmpRoot
   | otherwise = Nothing
   where

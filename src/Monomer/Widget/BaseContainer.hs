@@ -42,7 +42,7 @@ createContainer = Widget {
   widgetInit = containerInit defaultInit,
   widgetGetState = defaultGetState,
   widgetMerge = containerMergeTrees defaultMerge,
-  widgetNextFocusable = containerNextFocusable,
+  widgetFindNextFocus = containerFindNextFocus,
   widgetFindByPoint = containerFindByPoint,
   widgetHandleEvent = containerHandleEvent defaultHandleEvent,
   widgetHandleMessage = containerHandleMessage defaultHandleMessage,
@@ -140,12 +140,12 @@ mergeChildren wenv oldItems newItems = result where
   result = child <| mergeChildren wenv oldRest newChildren
 
 -- | Find next focusable item
-containerNextFocusable
+containerFindNextFocus
   :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-containerNextFocusable wenv startFrom widgetInst = nextFocus where
+containerFindNextFocus wenv startFrom widgetInst = nextFocus where
   children = _wiChildren widgetInst
   isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
-  nextCandidate ch = widgetNextFocusable (_wiWidget ch) wenv startFrom ch
+  nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv startFrom ch
   candidates = fmap nextCandidate (Seq.filter isBeforeTarget children)
   focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus

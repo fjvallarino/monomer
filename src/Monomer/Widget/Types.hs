@@ -122,7 +122,7 @@ data Widget s e =
       -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
-    widgetNextFocusable
+    widgetFindNextFocus
       :: WidgetEnv s e
       -> Path
       -> WidgetInstance s e
