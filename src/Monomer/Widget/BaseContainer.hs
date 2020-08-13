@@ -43,7 +43,7 @@ createContainer = Widget {
   widgetGetState = defaultGetState,
   widgetMerge = containerMergeTrees defaultMerge,
   widgetNextFocusable = containerNextFocusable,
-  widgetFind = containerFind,
+  widgetFindByPoint = containerFindByPoint,
   widgetHandleEvent = containerHandleEvent defaultHandleEvent,
   widgetHandleMessage = containerHandleMessage defaultHandleMessage,
   widgetUpdateSizeReq = containerUpdateSizeReq defaultUpdateSizeReq,
@@ -153,9 +153,9 @@ containerNextFocusable wenv startFrom widgetInst = nextFocus where
     | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
-containerFind
+containerFindByPoint
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-containerFind wenv startPath point widgetInst = result where
+containerFindByPoint wenv startPath point widgetInst = result where
   children = _wiChildren widgetInst
   pointInWidget wi = pointInRect point (_wiViewport wi)
   newStartPath = Seq.drop 1 startPath
@@ -164,7 +164,7 @@ containerFind wenv startPath point widgetInst = result where
     p :<| ps -> if Seq.length children > p then Just p else Nothing
   result = case childIdx of
     Just idx -> childPath where
-      childPath = widgetFind childWidget wenv newStartPath point child
+      childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx
       childWidget = _wiWidget child
     Nothing -> Just $ _wiPath widgetInst

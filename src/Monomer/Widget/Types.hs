@@ -129,7 +129,7 @@ data Widget s e =
       -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting
     -- | on the given path
-    widgetFind
+    widgetFindByPoint
       :: WidgetEnv s e
       -> Path
       -> Point

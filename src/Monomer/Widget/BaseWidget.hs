@@ -23,7 +23,7 @@ createWidget = Widget {
   widgetGetState = defaultGetState,
   widgetMerge = baseWidgetMerge defaultMerge,
   widgetNextFocusable = defaultNextFocusable,
-  widgetFind = defaultFind,
+  widgetFindByPoint = defaultFindByPoint,
   widgetHandleEvent = defaultHandleEvent,
   widgetHandleMessage = defaultHandleMessage,
   widgetUpdateSizeReq = defaultUpdateSizeReq,
@@ -62,9 +62,9 @@ defaultNextFocusable wenv startFrom widgetInst
   | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
   | otherwise = Nothing
 
-defaultFind
+defaultFindByPoint
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
-defaultFind wenv path point widgetInst = Just (_wiPath widgetInst)
+defaultFindByPoint wenv path point widgetInst = Just (_wiPath widgetInst)
 
 defaultHandleEvent
   :: WidgetEnv s e

@@ -238,7 +238,7 @@ preProcessEvent
 preProcessEvent wenv widgetRoot evt@(Move point) = do
   hover <- use pathHover
   let widget = _wiWidget widgetRoot
-  let current = widgetFind widget wenv rootPath point widgetRoot
+  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
   let hoverChanged = isJust hover && current /= hover
   let enter = [Enter point | isNothing hover || hoverChanged]
   let leave = [Leave (fromJust hover) point | hoverChanged]
@@ -249,7 +249,7 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
   return $ leave ++ enter ++ [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
   let widget = _wiWidget widgetRoot
-  let current = widgetFind widget wenv rootPath point widgetRoot
+  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
 
   pathPressed .= current
   return [evt]

@@ -96,7 +96,7 @@ createComposite comp state = widget where
     widgetGetState = makeState state,
     widgetMerge = compositeMerge comp state,
     widgetNextFocusable = compositeNextFocusable comp state,
-    widgetFind = compositeFind state,
+    widgetFindByPoint = compositeFind state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
     widgetUpdateSizeReq = compositeUpdateSizeReq comp state,
@@ -176,7 +176,7 @@ compositeFind
   -> WidgetInstance sp ep
   -> Maybe Path
 compositeFind CompositeState{..} wenv startPath point widgetComp
-  | validStep = widgetFind widget cwenv newStartPath point _cmpRoot
+  | validStep = widgetFindByPoint widget cwenv newStartPath point _cmpRoot
   | otherwise = Nothing
   where
     widget = _wiWidget _cmpRoot
