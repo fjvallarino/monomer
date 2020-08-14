@@ -62,10 +62,10 @@ type SingleMessageHandler s e
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 
-type SingleUpdateSizeReqHandler s e
+type SingleGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
-  -> WidgetInstance s e
+  -> SizeReq
 
 type SingleResizeHandler s e
   = WidgetEnv s e
@@ -89,7 +89,7 @@ data Single s e = Single {
   singleFindByPoint :: SingleFindByPointHandler s e,
   singleHandleEvent :: SingleEventHandler s e,
   singleHandleMessage :: SingleMessageHandler s e,
-  singleUpdateSizeReq :: SingleUpdateSizeReqHandler s e,
+  singleGetSizeReq :: SingleGetSizeReqHandler s e,
   singleResize :: SingleResizeHandler s e,
   singleRender :: SingleRenderHandler s e
 }
@@ -103,7 +103,7 @@ instance Default (Single s e) where
     singleFindByPoint = defaultFindByPoint,
     singleHandleEvent = defaultHandleEvent,
     singleHandleMessage = defaultHandleMessage,
-    singleUpdateSizeReq = defaultUpdateSizeReq,
+    singleGetSizeReq = defaultGetSizeReq,
     singleResize = defaultResize,
     singleRender = defaultRender
   }
@@ -117,7 +117,7 @@ createSingle Single{..} = Widget {
   widgetFindByPoint = singleFindByPoint,
   widgetHandleEvent = singleHandleEvent,
   widgetHandleMessage = singleHandleMessage,
-  widgetUpdateSizeReq = singleUpdateSizeReq,
+  widgetUpdateSizeReq = updateSizeReqWrapper singleGetSizeReq,
   widgetResize = singleResize,
   widgetRender = singleRender
 }
@@ -155,8 +155,19 @@ defaultHandleEvent wenv target evt widgetInst = Nothing
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message widgetInst = Nothing
 
-defaultUpdateSizeReq :: SingleUpdateSizeReqHandler s e
-defaultUpdateSizeReq wenv widgetInst = widgetInst
+defaultGetSizeReq :: SingleGetSizeReqHandler s e
+defaultGetSizeReq wenv widgetInst = def
+
+updateSizeReqWrapper
+  :: SingleGetSizeReqHandler s e
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+updateSizeReqWrapper handler wenv inst = newInst where
+  sizeReq = handler wenv inst
+  newInst = inst {
+    _wiSizeReq = sizeReq
+  }
 
 defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport renderArea widgetInst = widgetInst {

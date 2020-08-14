@@ -39,7 +39,7 @@ makeButton :: ButtonConfig s e -> Widget s e
 makeButton config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
-    singleUpdateSizeReq = updateSizeReq,
+    singleGetSizeReq = getSizeReq,
     singleRender = render
   }
 
@@ -52,13 +52,10 @@ makeButton config = widget where
         result = resultReqsEvents requests events widgetInst
     _ -> Nothing
 
-  updateSizeReq wenv widgetInst = newInst where
+  getSizeReq wenv widgetInst = sizeReq where
     style = activeStyle wenv widgetInst
     size = getTextBounds wenv style (_btnLabel config)
     sizeReq = SizeReq size FlexibleSize StrictSize
-    newInst = widgetInst {
-      _wiSizeReq = sizeReq
-    }
 
   render renderer wenv widgetInst = do
     drawWidgetBg renderer wenv widgetInst

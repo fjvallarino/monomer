@@ -94,7 +94,7 @@ makeDropdown config state = widget where
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
-    containerUpdateSizeReq = updateSizeReq,
+    containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
   widget = baseWidget {
@@ -166,7 +166,7 @@ makeDropdown config state = widget where
     newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
-  updateSizeReq wenv widgetInst children = sizeReq where
+  getSizeReq wenv widgetInst children = sizeReq where
     style = activeStyle wenv widgetInst
     size = getTextBounds wenv style (dropdownLabel wenv)
     sizeReq = SizeReq size FlexibleSize StrictSize

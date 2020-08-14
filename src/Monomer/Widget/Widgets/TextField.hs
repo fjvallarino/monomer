@@ -75,7 +75,7 @@ makeTextField config state = widget where
     singleGetState = makeState state,
     singleMerge = merge,
     singleHandleEvent = handleEvent,
-    singleUpdateSizeReq = updateSizeReq,
+    singleGetSizeReq = getSizeReq,
     singleRender = render
   }
 
@@ -141,13 +141,10 @@ makeTextField config state = widget where
       _wiWidget = makeTextField config newState
     }
 
-  updateSizeReq wenv widgetInst = newInst where
+  getSizeReq wenv widgetInst = sizeReq where
     style = activeStyle wenv widgetInst
     size = getTextBounds wenv style currText
     sizeReq = SizeReq size FlexibleSize StrictSize
-    newInst = widgetInst {
-      _wiSizeReq = sizeReq
-    }
 
   render renderer wenv widgetInst = do
     drawStyledBackground renderer _wiViewport style

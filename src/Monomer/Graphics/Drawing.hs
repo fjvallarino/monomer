@@ -3,14 +3,15 @@
 
 module Monomer.Graphics.Drawing (
   calcTextBounds,
+  contentRect,
   drawRect,
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
   drawText,
+  textColor,
   textFont,
-  textSize,
-  textColor
+  textSize
 ) where
 
 import Control.Monad (when, void, forM_)
@@ -337,14 +338,14 @@ borderWidths (Just border) = (bl, br, bt, bb) where
   bt = maybe 0 _bsWidth (_brdTop border)
   bb = maybe 0 _bsWidth (_brdBottom border)
 
-subtractBorder :: Rect -> StyleState -> Rect
-subtractBorder (Rect x y w h) state = Rect nx ny nw nh where
+subtractBorder :: Rect -> Maybe Border -> Rect
+subtractBorder (Rect x y w h) border = Rect nx ny nw nh where
   nx = x + bl
   ny = y + bt
   nw = w - bl - br
   nh = h - bt - bb
 
-  (bl, br, bt, bb) = borderWidths (_sstBorder state)
+  (bl, br, bt, bb) = borderWidths border
 
 subtractMargin :: Rect -> Maybe Margin -> Rect
 subtractMargin rect Nothing = rect
@@ -369,8 +370,8 @@ subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
 
 contentRect :: Rect -> StyleState -> Rect
 contentRect viewport style = final where
-  border = subtractBorder viewport style
-  margin = subtractMargin border (_sstMargin style)
+  margin = subtractMargin viewport (_sstMargin style)
+  border = subtractBorder margin (_sstBorder style)
   padding = subtractPadding margin (_sstPadding style)
   final = padding
 

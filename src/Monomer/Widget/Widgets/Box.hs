@@ -42,7 +42,7 @@ makeBox :: BoxConfig s e -> Widget s e
 makeBox config = widget where
   widget = createContainer def {
     containerHandleEvent = handleEvent,
-    containerUpdateSizeReq = updateSizeReq,
+    containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
 
@@ -56,7 +56,7 @@ makeBox config = widget where
         | otherwise = Nothing
     _ -> Nothing
 
-  updateSizeReq wenv widgetInst children = sizeReq where
+  getSizeReq wenv widgetInst children = sizeReq where
     sizeReq = _wiSizeReq $ Seq.index children 0
 
   resize wenv viewport renderArea children widgetInst = resized where

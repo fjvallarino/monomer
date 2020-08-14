@@ -81,7 +81,7 @@ type ContainerMessageHandler s e
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 
-type ContainerUpdateSizeReqHandler s e
+type ContainerGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
   -> Seq (WidgetInstance s e)
@@ -110,7 +110,7 @@ data Container s e = Container {
   containerFindByPoint :: ContainerFindByPointHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
   containerHandleMessage :: ContainerMessageHandler s e,
-  containerUpdateSizeReq :: ContainerUpdateSizeReqHandler s e,
+  containerGetSizeReq :: ContainerGetSizeReqHandler s e,
   containerResize :: ContainerResizeHandler s e,
   containerRender :: ContainerRenderHandler s e
 }
@@ -124,7 +124,7 @@ instance Default (Container s e) where
     containerFindByPoint = defaultFindByPoint,
     containerHandleEvent = defaultHandleEvent,
     containerHandleMessage = defaultHandleMessage,
-    containerUpdateSizeReq = defaultUpdateSizeReq,
+    containerGetSizeReq = defaultGetSizeReq,
     containerResize = defaultResize,
     containerRender = defaultRender
   }
@@ -138,7 +138,7 @@ createContainer Container{..} = Widget {
   widgetFindByPoint = containerFindByPoint,
   widgetHandleEvent = handleEventWrapper containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
-  widgetUpdateSizeReq = updateSizeReqWrapper containerUpdateSizeReq,
+  widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
   widgetResize = resizeWrapper containerResize,
   widgetRender = renderWrapper containerRender
 }
@@ -339,8 +339,8 @@ handleMessageWrapper mHandler wenv target arg widgetInst
     }
 
 -- | Preferred size
-defaultUpdateSizeReq :: ContainerUpdateSizeReqHandler s e
-defaultUpdateSizeReq wenv inst children = req where
+defaultGetSizeReq :: ContainerGetSizeReqHandler s e
+defaultGetSizeReq wenv inst children = req where
   req = SizeReq {
     _srSize = Size 0 0,
     _srPolicyWidth = FlexibleSize,
@@ -348,7 +348,7 @@ defaultUpdateSizeReq wenv inst children = req where
   }
 
 updateSizeReqWrapper
-  :: ContainerUpdateSizeReqHandler s e
+  :: ContainerGetSizeReqHandler s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e

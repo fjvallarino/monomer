@@ -18,17 +18,14 @@ label caption = defaultWidgetInstance "label" (makeLabel caption)
 makeLabel :: Text -> Widget s e
 makeLabel caption = widget where
   widget = createSingle def {
-    singleUpdateSizeReq = updateSizeReq,
+    singleGetSizeReq = getSizeReq,
     singleRender = render
   }
 
-  updateSizeReq wenv widgetInst = newInst where
+  getSizeReq wenv widgetInst = sizeReq where
     style = activeStyle wenv widgetInst
     size = getTextBounds wenv style caption
     sizeReq = SizeReq size FlexibleSize StrictSize
-    newInst = widgetInst {
-      _wiSizeReq = sizeReq
-    }
 
   render renderer wenv widgetInst = do
     drawWidgetBg renderer wenv widgetInst
