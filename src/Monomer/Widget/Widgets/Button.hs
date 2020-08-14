@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Monomer.Widget.Widgets.Button (
   ButtonConfig(..),
   button,
@@ -55,13 +53,16 @@ makeButton config = widget where
     _ -> Nothing
 
   updateSizeReq wenv widgetInst = newInst where
-    Style{..} = _wiStyle widgetInst
-    size = getTextBounds wenv _styleText (_btnLabel config)
+    style = activeStyle wenv widgetInst
+    size = getTextBounds wenv style (_btnLabel config)
     sizeReq = SizeReq size FlexibleSize StrictSize
     newInst = widgetInst {
       _wiSizeReq = sizeReq
     }
 
-  render renderer wenv widgetInst@WidgetInstance{..} = do
+  render renderer wenv widgetInst = do
     drawWidgetBg renderer wenv widgetInst
-    drawStyledText_ renderer _wiRenderArea _wiStyle (_btnLabel config)
+    drawStyledText_ renderer renderArea style (_btnLabel config)
+    where
+      renderArea = _wiRenderArea widgetInst
+      style = activeStyle wenv widgetInst

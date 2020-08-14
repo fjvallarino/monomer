@@ -8,138 +8,108 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Common.LensStyle as L
 
-width :: Double -> Style
-width width = mempty { _styleWidth = Just width }
+width :: Double -> StyleState
+width w = def & L.width ?~ w
 
-height :: Double -> Style
-height height = mempty { _styleHeight = Just height }
+height :: Double -> StyleState
+height h = def & L.height ?~ h
 
-margin :: Double -> Style
+margin :: Double -> StyleState
 margin mar = def & L.margin ?~ Margin jm jm jm jm where
   jm = Just mar
 
-marginLeft :: Double -> Style
-marginLeft mar = def & L.margin . non def . L.left ?~ mar
+marginL :: Double -> StyleState
+marginL mar = def & L.margin . non def . L.left ?~ mar
 
-marginRight :: Double -> Style
-marginRight mar = def & L.margin . non def . L.right ?~ mar
+marginR :: Double -> StyleState
+marginR mar = def & L.margin . non def . L.right ?~ mar
 
-marginTop :: Double -> Style
-marginTop mar = def & L.margin . non def . L.top ?~ mar
+marginT :: Double -> StyleState
+marginT mar = def & L.margin . non def . L.top ?~ mar
 
-marginBottom :: Double -> Style
-marginBottom mar = def & L.margin . non def . L.bottom ?~ mar
+marginB :: Double -> StyleState
+marginB mar = def & L.margin . non def . L.bottom ?~ mar
 
-padding :: Double -> Style
+padding :: Double -> StyleState
 padding padd = def & L.padding ?~ Padding jp jp jp jp where
   jp = Just padd
 
-paddingLeft :: Double -> Style
-paddingLeft padd = def & L.padding . non def . L.left ?~ padd
+paddingL :: Double -> StyleState
+paddingL padd = def & L.padding . non def . L.left ?~ padd
 
-paddingRight :: Double -> Style
-paddingRight padd = def & L.padding . non def . L.right ?~ padd
+paddingR :: Double -> StyleState
+paddingR padd = def & L.padding . non def . L.right ?~ padd
 
-paddingTop :: Double -> Style
-paddingTop padd = def & L.padding . non def . L.top ?~ padd
+paddingT :: Double -> StyleState
+paddingT padd = def & L.padding . non def . L.top ?~ padd
 
-paddingBottom :: Double -> Style
-paddingBottom padd = def & L.padding . non def . L.bottom ?~ padd
-
-basic :: StyleState -> Style
-basic sst = def & L.basic ?~ sst
-
-hover :: StyleState -> Style
-hover sst = def & L.hover ?~ sst
-
-focus :: StyleState -> Style
-focus sst = def & L.focus ?~ sst
-
-color :: Color -> StyleState
-color col = def & L.color ?~ col
+paddingB :: Double -> StyleState
+paddingB padd = def & L.padding . non def . L.bottom ?~ padd
 
 border :: Double -> Color -> StyleState
 border w col = def & L.border ?~ Border bs bs bs bs where
   bs =  Just (BorderSide w col)
 
-borderLeft :: Double -> Color -> StyleState
-borderLeft w col = def & L.border . non def . L.left ?~ BorderSide w col
+borderL :: Double -> Color -> StyleState
+borderL w col = def & L.border . non def . L.left ?~ BorderSide w col
 
-borderRight :: Double -> Color -> StyleState
-borderRight w col = def & L.border . non def . L.right ?~ BorderSide w col
+borderR :: Double -> Color -> StyleState
+borderR w col = def & L.border . non def . L.right ?~ BorderSide w col
 
-borderTop :: Double -> Color -> StyleState
-borderTop w col = def & L.border . non def . L.top ?~ BorderSide w col
+borderT :: Double -> Color -> StyleState
+borderT w col = def & L.border . non def . L.top ?~ BorderSide w col
 
-borderBottom :: Double -> Color -> StyleState
-borderBottom w col = def & L.border . non def . L.bottom ?~ BorderSide w col
+borderB :: Double -> Color -> StyleState
+borderB w col = def & L.border . non def . L.bottom ?~ BorderSide w col
 
-radius :: Double -> Radius
-radius rad = Radius jrad jrad jrad jrad where
+radius :: Double -> StyleState
+radius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
   jrad = Just rad
 
-radiusTopLeft :: Double -> Radius
-radiusTopLeft rad = mempty {
-  _radTopLeft = Just rad
-}
+radiusTL :: Double -> StyleState
+radiusTL rad = def & L.radius . non def . L.topLeft ?~ rad
 
-radiusTopRight :: Double -> Radius
-radiusTopRight rad = mempty {
-  _radTopRight = Just rad
-}
+radiusTR :: Double -> StyleState
+radiusTR rad = def & L.radius . non def . L.topRight ?~ rad
 
-radiusBottomLeft :: Double -> Radius
-radiusBottomLeft rad = mempty {
-  _radBottomLeft = Just rad
-}
+radiusBL :: Double -> StyleState
+radiusBL rad = def & L.radius . non def . L.bottomLeft ?~ rad
 
-radiusBottomRight :: Double -> Radius
-radiusBottomRight rad = mempty {
-  _radBottomRight = Just rad
-}
+radiusBR :: Double -> StyleState
+radiusBR rad = def & L.radius . non def . L.bottomRight ?~ rad
 
-textColor :: Color -> Style
-textColor color = mempty {
-  _styleText = Just $ mempty {
-    _txsColor = Just color
-  }
-}
+bgColor :: Color -> StyleState
+bgColor col = def & L.bgColor ?~ col
 
-textSize :: Double -> Style
-textSize size = mempty {
-  _styleText = Just $ mempty {
-    _txsFontSize = Just (FontSize size)
-  }
-}
+textFont :: Font -> StyleState
+textFont font = def & L.text . non def . L.font ?~ font
 
-textAlignH :: AlignH -> Style
-textAlignH alignH = mempty {
-  _styleText = Just $ mempty {
-    _txsAlignH = Just alignH
-  }
-}
+textSize :: FontSize -> StyleState
+textSize size = def & L.text . non def . L.fontSize ?~ size
 
-textAlignV :: AlignV -> Style
-textAlignV alignV = mempty {
-  _styleText = Just $ mempty {
-    _txsAlignV = Just alignV
-  }
-}
+textColor :: Color -> StyleState
+textColor col = def & L.text . non def . L.color ?~ col
 
-textAlignLeft :: Style
-textAlignLeft = textAlignH ALeft
+textAlignH :: AlignH -> StyleState
+textAlignH align = def & L.text . non def . L.alignH ?~ align
 
-textAlignCenter :: Style
-textAlignCenter = textAlignH ACenter
+textAlignV :: AlignV -> StyleState
+textAlignV align = def & L.text . non def . L.alignV ?~ align
 
-textAlignRight :: Style
-textAlignRight = textAlignH ARight
+textLeft :: StyleState
+textLeft = textAlignH ALeft
 
-textAlignTop :: Style
-textAlignTop = textAlignV ATop
+textCenter :: StyleState
+textCenter = textAlignH ACenter
 
-textAlignMiddle :: Style
-textAlignMiddle = textAlignV AMiddle
+textRight :: StyleState
+textRight = textAlignH ARight
 
-textAlignBottom :: Style
-textAlignBottom = textAlignV ABottom
+textTop :: StyleState
+textTop = textAlignV ATop
+
+textMiddle :: StyleState
+textMiddle = textAlignV AMiddle
+
+textBottom :: StyleState
+textBottom = textAlignV ABottom

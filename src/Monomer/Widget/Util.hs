@@ -2,7 +2,7 @@
 
 module Monomer.Widget.Util where
 
-import Control.Lens (ALens', (&), (^#), (#~))
+import Control.Lens (ALens', (&), (^#), (#~), (.~), (?~), non)
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
@@ -21,6 +21,9 @@ import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds, drawStyledBackground)
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Types
+
+import qualified Monomer.Common.LensStyle as S
+import qualified Monomer.Widget.LensCore as C
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
@@ -52,10 +55,20 @@ key widgetInst key = widgetInst {
   _wiKey = Just (WidgetKey key)
 }
 
-style :: WidgetInstance s e -> Style -> WidgetInstance s e
-style widgetInst newStyle = widgetInst {
-  _wiStyle = newStyle
-}
+style :: WidgetInstance s e -> StyleState -> WidgetInstance s e
+style inst state = inst & C.style .~ newStyle where
+  oldStyle = _wiStyle inst
+  newStyle = oldStyle & S.basic ?~ state
+
+hover :: WidgetInstance s e -> StyleState -> WidgetInstance s e
+hover inst state = inst & C.style .~ newStyle where
+  oldStyle = _wiStyle inst
+  newStyle = oldStyle & S.hover ?~ state
+
+focus :: WidgetInstance s e -> StyleState -> WidgetInstance s e
+focus inst state = inst & C.style .~ newStyle where
+  oldStyle = _wiStyle inst
+  newStyle = oldStyle & S.focus ?~ state
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible widgetInst visibility = widgetInst {
@@ -89,23 +102,6 @@ instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
   typeMatches = _wiWidgetType oldInstance == _wiWidgetType newInstance
   keyMatches = _wiKey oldInstance == _wiKey newInstance
-
-updateSizeReq :: SizeReq -> WidgetInstance s e -> SizeReq
-updateSizeReq sizeReq widgetInst = newSizeReq where
-  width = _styleWidth . _wiStyle $ widgetInst
-  height = _styleHeight . _wiStyle $ widgetInst
-  tempSizeReq
-    | isNothing width = sizeReq
-    | otherwise = sizeReq {
-      _srSize = Size (fromJust width) (_w . _srSize $ sizeReq),
-      _srPolicyWidth = StrictSize
-    }
-  newSizeReq
-    | isNothing height = tempSizeReq
-    | otherwise = tempSizeReq {
-      _srSize = Size (_h . _srSize $ sizeReq) (fromJust height),
-      _srPolicyHeight = StrictSize
-    }
 
 isSendMessageHandler :: WidgetRequest s -> Bool
 isSendMessageHandler SendMessage{} = True
@@ -160,9 +156,14 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
 
-getTextBounds :: WidgetEnv s e -> Maybe TextStyle -> Text -> Size
-getTextBounds wenv style text = calcTextBounds handler style text where
+getTextBounds :: WidgetEnv s e -> Maybe StyleState -> Text -> Size
+getTextBounds wenv style text = calcTextBounds handler textStyle text where
+  state = maybe def _sstText style
+  textStyle = maybe def _sstText style
   handler = _wpGetTextSize (_wePlatform wenv)
+
+getFullTextBounds :: WidgetEnv s e -> Maybe StyleState -> Text -> Size
+getFullTextBounds wenv style text = getTextBounds wenv style text
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
@@ -194,21 +195,24 @@ pointInViewport p inst = pointInRect p (_wiViewport inst)
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
 
-drawWidgetBg
-  :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
-drawWidgetBg renderer wenv inst = drawBg styleState _styleMargin where
+activeStyle :: WidgetEnv s e -> WidgetInstance s e -> Maybe StyleState
+activeStyle wenv inst = styleState where
+  Style{..} = _wiStyle inst
   mousePos = _ipsMousePos $ _weInputStatus wenv
   isHover = pointInViewport mousePos inst
   isFocus = isFocused wenv inst
-  Style{..} = _wiStyle inst
-  renderArea = _wiRenderArea inst
   styleState
     | isHover && isFocus = _styleBasic <> _styleFocus <> _styleHover
     | isHover = _styleBasic <> _styleHover
     | isFocus = _styleBasic <> _styleFocus
     | otherwise = _styleBasic
-  drawBg Nothing _ = return ()
-  drawBg (Just sst) margin = drawStyledBackground renderer renderArea sst margin
+
+drawWidgetBg
+  :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
+drawWidgetBg renderer wenv inst = drawBg styleState where
+  renderArea = _wiRenderArea inst
+  styleState = activeStyle wenv inst
+  drawBg sst = drawStyledBackground renderer renderArea sst
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

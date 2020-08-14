@@ -29,7 +29,6 @@ import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Common.LensStyle
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
@@ -46,6 +45,8 @@ import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.Scroll
 import Monomer.Widget.Widgets.Spacer
 import Monomer.Widget.Widgets.Stack
+
+import qualified Monomer.Common.LensStyle as S
 
 data ListViewConfig s e a = ListViewConfig {
   _lvValue :: WidgetValue s a,
@@ -203,21 +204,23 @@ makeItemsList
 makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   ListViewConfig{..} = lvConfig
   isSelected item = item == selected
-  selectedColor item
+  selectedCol item
     | isSelected item = Just _lvSelectedColor
     | otherwise = Nothing
-  highlightedColor idx
+  highlightedCol idx
     | idx == highlightedIdx = Just _lvHighlightedColor
     | otherwise = Nothing
   itemStyle idx item = def
-    & basic . non def . color .~ (selectedColor item <|> highlightedColor idx)
-    & hover . non def . color ?~ _lvHoverColor
+    & S.basic . non def . S.bgColor .~ (selectedCol item <|> highlightedCol idx)
+    & S.hover . non def . S.bgColor ?~ _lvHoverColor
   itemConfig idx = boxConfig {
     _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }
   makeItem idx item = newItem where
     config = itemConfig idx
     content = label (_lvItemToText item)
-    newItem = box config content `style` itemStyle idx item
+    newItem = (box config content) {
+        _wiStyle = itemStyle idx item
+      }
   pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
   itemsList = vstack $ fmap (uncurry makeItem) pairs

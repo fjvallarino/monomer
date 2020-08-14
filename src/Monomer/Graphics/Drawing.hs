@@ -8,7 +8,9 @@ module Monomer.Graphics.Drawing (
   drawStyledText,
   drawStyledText_,
   drawText,
-  tsTextColor
+  textFont,
+  textSize,
+  textColor
 ) where
 
 import Control.Monad (when, void, forM_)
@@ -22,11 +24,13 @@ import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 drawStyledBackground
-  :: (Monad m) => Renderer m -> Rect -> StyleState -> Maybe Margin -> m ()
-drawStyledBackground renderer viewport StyleState{..} margin = do
+  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> m ()
+drawStyledBackground renderer viewport Nothing = return ()
+drawStyledBackground renderer viewport (Just StyleState{..}) = do
+  let margin = _sstMargin
   let rect = subtractMargin viewport margin
 
-  drawRect renderer rect _sstColor _sstRadius
+  drawRect renderer rect _sstBgColor _sstRadius
 
   when (isJust _sstBorder) $
     drawStyledBorder renderer rect (fromJust _sstBorder) _sstRadius
@@ -146,9 +150,11 @@ drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
 drawCorner renderer p1 p2 p3 _ _ = return ()
 
 drawRoundedBorder :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
-drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
+drawRoundedBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
+    Border{..} = border
+    Radius{..} = radius
     xr = xl + w
     yb = yt + h
     xlb = xl + halfWidth _brdLeft
@@ -159,14 +165,14 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
     xrb2 = xr - 2 * halfWidth _brdRight
     ytb2 = yt + 2 * halfWidth _brdTop
     ybb2 = yb - 2 * halfWidth _brdBottom
-    xt1 = xl + topLeftBorderSize border radius
-    xt2 = xr - topRightBorderSize border radius
-    yl1 = yt + topLeftBorderSize border radius
-    yl2 = yb - bottomLeftBorderSize border radius
-    xb1 = xl + bottomLeftBorderSize border radius
-    xb2 = xr - bottomRightBorderSize border radius
-    yr1 = yt + topRightBorderSize border radius
-    yr2 = yb - bottomRightBorderSize border radius
+    xt1 = xl + tlBorderSize border radius
+    xt2 = xr - trBorderSize border radius
+    yl1 = yt + tlBorderSize border radius
+    yl2 = yb - blBorderSize border radius
+    xb1 = xl + blBorderSize border radius
+    xb2 = xr - brBorderSize border radius
+    yr1 = yt + trBorderSize border radius
+    yr2 = yb - brBorderSize border radius
     halfWidth bs
       | isJust bs = _bsWidth (fromJust bs) / 2
       | otherwise = 0
@@ -189,24 +195,24 @@ drawRoundedBorder renderer rect border@Border{..} radius@Radius{..} =
       (p2 xb1 yl2) (p2 xlb2 ybb2) (p2 xb1 ybb2) (p2 xlb2 yl2) 180
       _radBottomLeft _brdBottom _brdLeft
 
-topLeftBorderSize :: Border -> Radius -> Double
-topLeftBorderSize Border{..} Radius{..}
+tlBorderSize :: Border -> Radius -> Double
+tlBorderSize Border{..} Radius{..}
   | justLeft && justTop && isJust _radTopLeft = fromJust _radTopLeft
   | otherwise = 0
   where
     justLeft = isJust _brdLeft
     justTop = isJust _brdTop
 
-topRightBorderSize :: Border -> Radius -> Double
-topRightBorderSize Border{..} Radius{..}
+trBorderSize :: Border -> Radius -> Double
+trBorderSize Border{..} Radius{..}
   | justRight && justTop && isJust _radTopRight = fromJust _radTopRight
   | otherwise = 0
   where
     justRight = isJust _brdRight
     justTop = isJust _brdTop
 
-bottomLeftBorderSize :: Border -> Radius -> Double
-bottomLeftBorderSize Border{..} Radius{..}
+blBorderSize :: Border -> Radius -> Double
+blBorderSize Border{..} Radius{..}
   | justLeft && justBottom && justRad = fromJust _radBottomLeft
   | otherwise = 0
   where
@@ -214,8 +220,8 @@ bottomLeftBorderSize Border{..} Radius{..}
     justBottom = isJust _brdBottom
     justRad = isJust _radBottomLeft
 
-bottomRightBorderSize :: Border -> Radius -> Double
-bottomRightBorderSize Border{..} Radius{..}
+brBorderSize :: Border -> Radius -> Double
+brBorderSize Border{..} Radius{..}
   | justRight && justBottom && justRad = fromJust _radBottomRight
   | otherwise = 0
   where
@@ -270,15 +276,18 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
-drawStyledText :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m Rect
-drawStyledText renderer viewport style txt = action where
+drawStyledText
+  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> Text -> m Rect
+drawStyledText renderer viewport Nothing txt =
+  drawStyledText renderer viewport (Just def) txt
+drawStyledText renderer viewport (Just style) txt = action where
   tsRect = contentRect viewport style
-  action = drawText renderer tsRect (_styleText style) txt
+  action = drawText renderer tsRect (_sstText style) txt
 
-drawStyledText_ :: (Monad m) => Renderer m -> Rect -> Style -> Text -> m ()
+drawStyledText_
+  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> Text -> m ()
 drawStyledText_ renderer viewport style txt = void action where
-  rect = contentRect viewport style
-  action = drawStyledText renderer rect style txt
+  action = drawStyledText renderer viewport style txt
 
 drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
 drawText renderer viewport Nothing txt =
@@ -305,30 +314,37 @@ calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
   in
     textBoundsFn tsFont tsFontSize txt
 
-tsTextColor :: Maybe TextStyle -> Color
-tsTextColor Nothing = tsTextColor (Just mempty)
-tsTextColor (Just ts) = justDef (_txsColor ts)
+textStyle :: StyleState -> TextStyle
+textStyle sst = justDef (_sstText sst)
 
-largestBorder :: Style -> (Double, Double, Double, Double)
-largestBorder style = (l, r, t, b) where
-  states = [_styleBasic style, _styleHover style, _styleFocus style]
-  borders = fmap (maybe Nothing _sstBorder) states
-  l = maximum (width _brdLeft <$> borders)
-  r = maximum (width _brdRight <$> borders)
-  t = maximum (width _brdTop <$> borders)
-  b = maximum (width _brdBottom <$> borders)
-  width side Nothing = 0
-  width side (Just border)
-    | isNothing (side border) = 0
-    | otherwise = maybe 0 _bsWidth (side border)
+textFont :: Maybe StyleState -> Font
+textFont Nothing = textFont (Just mempty)
+textFont (Just ts) = justDef (_txsFont $ textStyle ts)
 
-subtractBorder :: Rect -> Style -> Rect
-subtractBorder (Rect x y w h) style = Rect nx ny nw nh where
+textSize :: Maybe StyleState -> FontSize
+textSize Nothing = textSize (Just mempty)
+textSize (Just ts) = justDef (_txsFontSize $ textStyle ts)
+
+textColor :: Maybe StyleState -> Color
+textColor Nothing = textColor (Just mempty)
+textColor (Just ts) = justDef (_txsColor $ textStyle ts)
+
+borderWidths :: Maybe Border -> (Double, Double, Double, Double)
+borderWidths Nothing = (0, 0, 0, 0)
+borderWidths (Just border) = (bl, br, bt, bb) where
+  bl = maybe 0 _bsWidth (_brdLeft border)
+  br = maybe 0 _bsWidth (_brdRight border)
+  bt = maybe 0 _bsWidth (_brdTop border)
+  bb = maybe 0 _bsWidth (_brdBottom border)
+
+subtractBorder :: Rect -> StyleState -> Rect
+subtractBorder (Rect x y w h) state = Rect nx ny nw nh where
   nx = x + bl
   ny = y + bt
   nw = w - bl - br
   nh = h - bt - bb
-  (bl, br, bt, bb) = largestBorder style
+
+  (bl, br, bt, bb) = borderWidths (_sstBorder state)
 
 subtractMargin :: Rect -> Maybe Margin -> Rect
 subtractMargin rect Nothing = rect
@@ -351,11 +367,11 @@ subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
   nw = w - justDef l - justDef r
   nh = h - justDef t - justDef b
 
-contentRect :: Rect -> Style -> Rect
+contentRect :: Rect -> StyleState -> Rect
 contentRect viewport style = final where
   border = subtractBorder viewport style
-  margin = subtractMargin border (_styleMargin style)
-  padding = subtractPadding margin (_stylePadding style)
+  margin = subtractMargin border (_sstMargin style)
+  padding = subtractPadding margin (_sstPadding style)
   final = padding
 
 justDef :: (Default a) => Maybe a -> a

@@ -10,7 +10,7 @@ module Monomer.Widget.Widgets.TextField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (^#), (#~), (.~))
+import Control.Lens (ALens', (&), (^#), (#~), (.~), (^?), _Just, non)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -142,28 +142,28 @@ makeTextField config state = widget where
     }
 
   updateSizeReq wenv widgetInst = newInst where
-    Style{..} = _wiStyle widgetInst
-    size = getTextBounds wenv _styleText currText
+    style = activeStyle wenv widgetInst
+    size = getTextBounds wenv style currText
     sizeReq = SizeReq size FlexibleSize StrictSize
     newInst = widgetInst {
       _wiSizeReq = sizeReq
     }
 
   render renderer wenv widgetInst = do
-    drawWidgetBg renderer wenv widgetInst
-    Rect tl tt _ _ <- drawText renderer renderArea textStyle currText
+    drawStyledBackground renderer _wiViewport style
+    Rect tl tt _ _ <- drawStyledText renderer renderArea style currText
 
     when (isFocused wenv widgetInst) $ do
-      let Size sw sh = getTextBounds wenv textStyle part1
+      let Size sw sh = getTextBounds wenv style part1
       drawRect renderer (Rect (tl + sw) tt caretWidth sh) caretColor Nothing
 
     where
       WidgetInstance{..} = widgetInst
       ts = _weTimestamp wenv
       renderArea@(Rect rl rt rw rh) = _wiRenderArea
-      textStyle = _styleText _wiStyle
+      style = activeStyle wenv widgetInst
       caretAlpha
         | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0
-      caretColor = Just $ tsTextColor textStyle & alpha .~ caretAlpha
+      caretColor = Just $ textColor style & alpha .~ caretAlpha
       caretWidth = _tfcCaretWidth config

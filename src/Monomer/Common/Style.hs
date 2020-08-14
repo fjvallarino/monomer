@@ -8,11 +8,6 @@ import Monomer.Graphics.Types
 -- | Basic styling attributes
 data Style =
   Style {
-    _styleWidth :: Maybe Double,
-    _styleHeight :: Maybe Double,
-    _styleMargin :: Maybe Margin,
-    _stylePadding :: Maybe Padding,
-    _styleText :: Maybe TextStyle,
     _styleBasic :: Maybe StyleState,
     _styleHover :: Maybe StyleState,
     _styleFocus :: Maybe StyleState
@@ -20,11 +15,6 @@ data Style =
 
 instance Default Style where
   def = Style {
-    _styleWidth = Nothing,
-    _styleHeight = Nothing,
-    _styleMargin = Nothing,
-    _stylePadding = Nothing,
-    _styleText = Nothing,
     _styleBasic = Nothing,
     _styleHover = Nothing,
     _styleFocus = Nothing
@@ -32,11 +22,6 @@ instance Default Style where
 
 instance Semigroup Style where
   (<>) style1 style2 = Style {
-    _styleWidth = _styleWidth style2 <|> _styleWidth style1,
-    _styleHeight = _styleHeight style2 <|> _styleHeight style1,
-    _styleMargin = _styleMargin style1 <> _styleMargin style2,
-    _stylePadding = _stylePadding style1 <> _stylePadding style2,
-    _styleText = _styleText style1 <> _styleText style2,
     _styleBasic = _styleBasic style1 <> _styleBasic style2,
     _styleHover = _styleHover style1 <> _styleHover style2,
     _styleFocus = _styleFocus style1 <> _styleFocus style2
@@ -47,23 +32,38 @@ instance Monoid Style where
 
 data StyleState
   = StyleState {
-    _sstColor :: Maybe Color,
+    _sstWidth :: Maybe Double,
+    _sstHeight :: Maybe Double,
+    _sstMargin :: Maybe Margin,
+    _sstPadding :: Maybe Padding,
     _sstBorder :: Maybe Border,
-    _sstRadius :: Maybe Radius
+    _sstRadius :: Maybe Radius,
+    _sstBgColor :: Maybe Color,
+    _sstText :: Maybe TextStyle
   } deriving (Eq, Show)
 
 instance Default StyleState where
   def = StyleState {
-    _sstColor = Nothing,
+    _sstWidth = Nothing,
+    _sstHeight = Nothing,
+    _sstMargin = Nothing,
+    _sstPadding = Nothing,
     _sstBorder = Nothing,
-    _sstRadius = Nothing
+    _sstRadius = Nothing,
+    _sstBgColor = Nothing,
+    _sstText = Nothing
   }
 
 instance Semigroup StyleState where
   (<>) s1 s2 = StyleState {
-    _sstColor = _sstColor s1 <> _sstColor s2,
+    _sstWidth = _sstWidth s2 <|> _sstWidth s1,
+    _sstHeight = _sstHeight s2 <|> _sstHeight s1,
+    _sstMargin = _sstMargin s1 <> _sstMargin s2,
+    _sstPadding = _sstPadding s1 <> _sstPadding s2,
     _sstBorder = _sstBorder s1 <> _sstBorder s2,
-    _sstRadius = _sstRadius s1 <> _sstRadius s2
+    _sstRadius = _sstRadius s1 <> _sstRadius s2,
+    _sstBgColor = _sstBgColor s1 <> _sstBgColor s2,
+    _sstText = _sstText s1 <> _sstText s2
   }
 
 instance Monoid StyleState where
@@ -194,7 +194,6 @@ data TextStyle = TextStyle {
   _txsFont :: Maybe Font,
   _txsFontSize :: Maybe FontSize,
   _txsColor :: Maybe Color,
-  _txsHover :: Maybe Color,
   _txsAlignH :: Maybe AlignH,
   _txsAlignV :: Maybe AlignV
 } deriving (Show, Eq)
@@ -204,7 +203,6 @@ instance Default TextStyle where
     _txsFont = Nothing,
     _txsFontSize = Nothing,
     _txsColor = Nothing,
-    _txsHover = Nothing,
     _txsAlignH = Nothing,
     _txsAlignV = Nothing
   }
@@ -214,7 +212,6 @@ instance Semigroup TextStyle where
     _txsFont = _txsFont ts2 <|> _txsFont ts1,
     _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
     _txsColor = _txsColor ts2 <|> _txsColor ts1,
-    _txsHover = _txsHover ts2 <|> _txsHover ts1,
     _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
     _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
   }

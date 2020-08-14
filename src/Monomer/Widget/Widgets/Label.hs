@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Monomer.Widget.Widgets.Label (label) where
 
 import Control.Monad
@@ -25,13 +23,16 @@ makeLabel caption = widget where
   }
 
   updateSizeReq wenv widgetInst = newInst where
-    Style{..} = _wiStyle widgetInst
-    size = getTextBounds wenv _styleText caption
+    style = activeStyle wenv widgetInst
+    size = getTextBounds wenv style caption
     sizeReq = SizeReq size FlexibleSize StrictSize
     newInst = widgetInst {
       _wiSizeReq = sizeReq
     }
 
-  render renderer wenv widgetInst@WidgetInstance{..} = do
+  render renderer wenv widgetInst = do
     drawWidgetBg renderer wenv widgetInst
-    drawStyledText_ renderer _wiRenderArea _wiStyle caption
+    drawStyledText_ renderer renderArea style caption
+    where
+      renderArea = _wiRenderArea widgetInst
+      style = activeStyle wenv widgetInst
