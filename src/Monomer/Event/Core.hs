@@ -41,6 +41,22 @@ isShiftPressed :: SystemEvent -> Bool
 isShiftPressed (KeyAction keyMod _ _) = _kmLeftShift keyMod
 isShiftPressed _ = False
 
+isOnFocus :: SystemEvent -> Bool
+isOnFocus Focus = True
+isOnFocus _ = False
+
+isOnBlur :: SystemEvent -> Bool
+isOnBlur Blur = True
+isOnBlur _ = False
+
+isOnEnter :: SystemEvent -> Bool
+isOnEnter Enter{} = True
+isOnEnter _ = False
+
+isOnLeave :: SystemEvent -> Bool
+isOnLeave Leave{} = True
+isOnLeave _ = False
+
 isButtonPressed :: InputStatus -> Button -> Bool
 isButtonPressed inputStatus button = status == PressedBtn where
   currentStatus = M.lookup button (_ipsButtons inputStatus)

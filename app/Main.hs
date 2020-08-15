@@ -131,8 +131,11 @@ handleAppEvent model evt = case evt of
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
   widgetTree = vstack [
-      label (showt $ model ^. clickCount),
+      label (showt $ model ^. clickCount)
+        `style` textSize 40 `hover` textSize 400,
       textField textField1 `style` bgColor lightGray,
+        --`style` bgColor lightGray <> textSize 40
+        --`focus` bgColor darkGray <> textSize 400,
       --hstack labels `key` "Labels",
       --hstack [
       --  label "Label 1",

@@ -7,13 +7,16 @@ module Monomer.Widget.BaseSingle (
   createSingle
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Monad
 import Data.Default
 import Data.Maybe
+import Data.Sequence ((|>))
 import Data.Typeable (Typeable, cast)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
+import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Types
@@ -115,7 +118,7 @@ createSingle Single{..} = Widget {
   widgetMerge = mergeWrapper singleMerge,
   widgetFindNextFocus = singleFindNextFocus,
   widgetFindByPoint = singleFindByPoint,
-  widgetHandleEvent = singleHandleEvent,
+  widgetHandleEvent = handleEventWrapper singleHandleEvent,
   widgetHandleMessage = singleHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper singleGetSizeReq,
   widgetResize = singleResize,
@@ -152,6 +155,27 @@ defaultFindByPoint wenv path point widgetInst = Just (_wiPath widgetInst)
 defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt widgetInst = Nothing
 
+handleEventWrapper
+  :: SingleEventHandler s e
+  -> WidgetEnv s e
+  -> Path
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> Maybe (WidgetResult s e)
+handleEventWrapper handler wenv target evt inst = newResult where
+  hResult = handler wenv target evt inst
+  result = fromMaybe (resultWidget inst) hResult
+  checkSize = or $ fmap ($ evt) [isOnFocus, isOnBlur, isOnEnter, isOnLeave]
+  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
+  oldSizeReq = _wiSizeReq inst
+  newSizeReq = _wiSizeReq instReqs
+  sizeReqChanged = oldSizeReq /= newSizeReq
+  newResult
+    | checkSize && sizeReqChanged = Just result {
+        _wrRequests = _wrRequests result |> Resize
+      }
+    | otherwise = hResult
+
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message widgetInst = Nothing
 
@@ -164,9 +188,8 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper handler wenv inst = newInst where
-  sizeReq = handler wenv inst
   newInst = inst {
-    _wiSizeReq = sizeReq
+    _wiSizeReq = handler wenv inst
   }
 
 defaultResize :: SingleResizeHandler s e

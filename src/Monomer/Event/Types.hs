@@ -50,7 +50,7 @@ data SystemEvent
   | Clipboard ClipboardData
   | Focus
   | Blur
-  | Enter Point
+  | Enter Path Point
   | Move Point
   | Leave Path Point
   deriving (Show, Eq)
@@ -64,7 +64,7 @@ data InputStatus = InputStatus {
 
 instance Default InputStatus where
   def = InputStatus {
-    _ipsMousePos = def,
+    _ipsMousePos = Point (-1) (-1),
     _ipsKeyMod = def,
     _ipsKeys = M.empty,
     _ipsButtons = M.empty

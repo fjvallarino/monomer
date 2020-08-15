@@ -388,7 +388,10 @@ resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e
-defaultRender renderer wenv inst = drawWidgetBg renderer wenv inst
+defaultRender renderer wenv inst = action where
+  renderArea = _wiRenderArea inst
+  style = activeStyle wenv inst
+  action = drawStyledBackground renderer renderArea style
 
 renderWrapper
   :: Monad m

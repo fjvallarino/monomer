@@ -130,7 +130,6 @@ mainLoop window c renderer loopArgs = do
   mousePos <- getCurrentMousePos
   currentModel <- use mainModel
   focused <- use pathFocus
-  oldInputStatus <- use inputStatus
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -141,27 +140,26 @@ mainLoop window c renderer loopArgs = do
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
   let newSecond = _mlFrameStartTs + ts > 1000
-  let oldWenv = WidgetEnv {
+
+  inputStatus <- updateInputStatus baseSystemEvents
+
+  let wenv = WidgetEnv {
     _wePlatform = _mlPlatform,
     _weScreenSize = windowSize,
     _weGlobalKeys = M.empty,
     _weFocusedPath = focused,
     _weModel = currentModel,
-    _weInputStatus = oldInputStatus,
+    _weInputStatus = inputStatus,
     _weTimestamp = startTicks
   }
 
   --when newSecond $
   --  liftIO . putStrLn $ "Frames: " ++ (show frames)
 
-  sysEvents <- preProcessEvents oldWenv _mlWidgetRoot baseSystemEvents
-  inputStatus <- use inputStatus
+  sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
   isMouseFocused <- fmap isJust (use pathPressed)
 
   let isLeftPressed = isButtonPressed inputStatus LeftBtn
-  let wenv = oldWenv {
-    _weInputStatus = oldInputStatus
-  }
 
   when (mouseEntered && isLeftPressed && isMouseFocused) $
     pathPressed .= Nothing
@@ -227,10 +225,8 @@ resizeWindow window wenv widgetRoot = do
 preProcessEvents
   :: (MonomerM s m)
   => WidgetEnv s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
-preProcessEvents wenv widgets events = do
-  systemEvents <- concatMapM (preProcessEvent wenv widgets) events
-  mapM_ updateInputStatus systemEvents
-  return systemEvents
+preProcessEvents wenv widgets events =
+  concatMapM (preProcessEvent wenv widgets) events
 
 preProcessEvent
   :: (MonomerM s m)
@@ -239,11 +235,11 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
   hover <- use pathHover
   let widget = _wiWidget widgetRoot
   let current = widgetFindByPoint widget wenv rootPath point widgetRoot
-  let hoverChanged = isJust hover && current /= hover
-  let enter = [Enter point | isNothing hover || hoverChanged]
-  let leave = [Leave (fromJust hover) point | hoverChanged]
+  let hoverChanged = current /= hover
+  let enter = [Enter (fromJust current) point | isJust current && hoverChanged]
+  let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
 
-  when (isNothing hover || hoverChanged) $
+  when hoverChanged $
     pathHover .= current
 
   return $ leave ++ enter ++ [evt]
@@ -254,19 +250,29 @@ preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
   pathPressed .= current
   return [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
+  pressed <- use pathPressed
+  let widget = _wiWidget widgetRoot
+  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
+  let extraEvt = [Click point btn | current == pressed]
+
   pathPressed .= Nothing
-  return [Click point btn, evt]
+  return $ extraEvt ++ [evt]
 preProcessEvent wenv widgetRoot event = return [event]
 
-updateInputStatus :: (MonomerM s m) => SystemEvent -> m ()
-updateInputStatus (Move point) =
+updateInputStatus :: (MonomerM s m) => [SystemEvent] -> m InputStatus
+updateInputStatus systemEvents = do
+  mapM_ evtToInputStatus systemEvents
+  use inputStatus
+
+evtToInputStatus :: (MonomerM s m) => SystemEvent -> m ()
+evtToInputStatus (Move point) =
   inputStatus . mousePos .= point
-updateInputStatus (ButtonAction _ btn btnState) =
+evtToInputStatus (ButtonAction _ btn btnState) =
   inputStatus . buttons . at btn ?= btnState
-updateInputStatus (KeyAction kMod kCode kStatus) = do
+evtToInputStatus (KeyAction kMod kCode kStatus) = do
   inputStatus . keyMod .= kMod
   inputStatus . keys . at kCode ?= kStatus
-updateInputStatus _ = return ()
+evtToInputStatus _ = return ()
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

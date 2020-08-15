@@ -53,7 +53,7 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     WheelScroll point _ _  -> pointEvent point
     Focus                  -> pathEvent target
     Blur                   -> pathEvent target
-    Enter point            -> pointEvent point
+    Enter newPath _        -> pathEvent newPath
     Move point             -> pointEvent point
     Leave oldPath _        -> pathEvent oldPath
   where
@@ -71,12 +71,11 @@ handleSystemEvents
   -> WidgetInstance s e
   -> m (HandlerStep s e)
 handleSystemEvents renderer wenv systemEvents widgetRoot = nextStep where
-  reducer (currWctx, currEvents, currRoot) systemEvent = do
+  reducer (cWctx, cEvents, cRoot) evt = do
     focused <- use pathFocus
 
-    (wenv2, evts2, wroot2)
-      <- handleSystemEvent renderer currWctx systemEvent focused currRoot
-    return (wenv2, currEvents >< evts2, wroot2)
+    (wenv2, evts2, wroot2) <- handleSystemEvent renderer cWctx evt focused cRoot
+    return (wenv2, cEvents >< evts2, wroot2)
   nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents
 
 handleSystemEvent
@@ -150,7 +149,7 @@ handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
       (newWenv1, newEvents1, newRoot1)
         <- handleSystemEvent renderer wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocus newWenv1 oldFocus widgetRoot
+      let newFocus = findNextFocus newWenv1 oldFocus newRoot1
       let tempWenv = newWenv1 {
         _weFocusedPath = newFocus
       }
@@ -159,7 +158,7 @@ handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
 
       pathFocus .= newFocus
 
-      return (newWenv2, events >< newEvents1 >< newEvents2, widgetRoot)
+      return (newWenv2, events >< newEvents1 >< newEvents2, newRoot2)
   | otherwise = return (wenv, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
@@ -214,7 +213,7 @@ handleClipboardGet renderer reqs previousStep = do
         <- handleSystemEvent renderer wenv (Clipboard contents) path widgetRoot
 
       return (newWenv2, events >< newEvents2, newRoot2)
-    reducer contents previousStep _ = return previousStep
+    reducer contents prevStep _ = return prevStep
 
 handleClipboardSet
   :: (MonomerM s m)
@@ -266,10 +265,10 @@ handleSendMessages
   -> m (HandlerStep s e)
 handleSendMessages renderer reqs previousStep = nextStep where
   nextStep = foldM reducer previousStep reqs
-  reducer previousStep (SendMessage path message) = do
+  reducer prevStep (SendMessage path message) = do
     currentFocus <- use pathFocus
 
-    let (wenv, events, widgetRoot) = previousStep
+    let (wenv, events, widgetRoot) = prevStep
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
     let widget = _wiWidget widgetRoot
     let msgResult = widgetHandleMessage widget wenv path message widgetRoot
@@ -279,7 +278,7 @@ handleSendMessages renderer reqs previousStep = nextStep where
       <- handleWidgetResult renderer wenv widgetResult
 
     return (newWenv, events >< newEvents, newWidgetRoot)
-  reducer previousStep _ = return previousStep
+  reducer prevStep _ = return prevStep
 
 handleNewWidgetTasks :: (MonomerM s m) => Seq (WidgetRequest s) -> m ()
 handleNewWidgetTasks reqs = do

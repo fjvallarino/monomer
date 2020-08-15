@@ -55,6 +55,10 @@ key widgetInst key = widgetInst {
   _wiKey = Just (WidgetKey key)
 }
 
+infixl 5 `style`
+infixl 5 `hover`
+infixl 5 `focus`
+
 style :: WidgetInstance s e -> StyleState -> WidgetInstance s e
 style inst state = inst & C.style .~ newStyle where
   oldStyle = _wiStyle inst
@@ -158,7 +162,6 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 
 getTextBounds :: WidgetEnv s e -> Maybe StyleState -> Text -> Size
 getTextBounds wenv style text = calcTextBounds handler textStyle text where
-  state = maybe def _sstText style
   textStyle = maybe def _sstText style
   handler = _wpGetTextSize (_wePlatform wenv)
 
@@ -206,13 +209,6 @@ activeStyle wenv inst = styleState where
     | isHover = _styleBasic <> _styleHover
     | isFocus = _styleBasic <> _styleFocus
     | otherwise = _styleBasic
-
-drawWidgetBg
-  :: (Monad m) => Renderer m -> WidgetEnv s e -> WidgetInstance s e -> m ()
-drawWidgetBg renderer wenv inst = drawBg styleState where
-  renderArea = _wiRenderArea inst
-  styleState = activeStyle wenv inst
-  drawBg sst = drawStyledBackground renderer renderArea sst
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

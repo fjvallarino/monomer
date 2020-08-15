@@ -84,8 +84,8 @@ bgColor col = def & L.bgColor ?~ col
 textFont :: Font -> StyleState
 textFont font = def & L.text . non def . L.font ?~ font
 
-textSize :: FontSize -> StyleState
-textSize size = def & L.text . non def . L.fontSize ?~ size
+textSize :: Double -> StyleState
+textSize size = def & L.text . non def . L.fontSize ?~ FontSize size
 
 textColor :: Color -> StyleState
 textColor col = def & L.text . non def . L.color ?~ col
