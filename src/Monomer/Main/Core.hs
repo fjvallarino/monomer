@@ -80,7 +80,6 @@ runWidgets window c widgetRoot = do
 
   windowSize .= newWindowSize
   startTs <- fmap fromIntegral SDL.ticks
-  ctx <- get
   model <- use mainModel
   os <- getPlatform
   renderer <- makeRenderer c dpr

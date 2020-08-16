@@ -35,6 +35,7 @@ import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -267,7 +268,8 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper pHandler wenv target event widgetInst
-  | targetReached || not targetValid = pHandler wenv target event widgetInst
+  | not targetValid = Nothing
+  | targetReached = handleStyleChange pHandler wenv target event widgetInst
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx
   where
     -- Having targetValid = False means the next path step is not in

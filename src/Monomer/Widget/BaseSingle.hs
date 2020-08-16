@@ -19,6 +19,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -163,18 +164,7 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper handler wenv target evt inst = newResult where
-  hResult = handler wenv target evt inst
-  result = fromMaybe (resultWidget inst) hResult
-  checkSize = or $ fmap ($ evt) [isOnFocus, isOnBlur, isOnEnter, isOnLeave]
-  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
-  oldSizeReq = _wiSizeReq inst
-  newSizeReq = _wiSizeReq instReqs
-  sizeReqChanged = oldSizeReq /= newSizeReq
-  newResult
-    | checkSize && sizeReqChanged = Just result {
-        _wrRequests = _wrRequests result |> Resize
-      }
-    | otherwise = hResult
+  newResult = handleStyleChange handler wenv target evt inst
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message widgetInst = Nothing

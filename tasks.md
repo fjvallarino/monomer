@@ -135,11 +135,11 @@
     - Use lenses whenever they make the code clearer
     - Use Lenses for Main/Core.hs' updateInputStatus
     - Create Lenses for Graphics/Types.hs
+  - Make BaseWidget and BaseContainer use a custom type instead of just Widget. Maybe also rename them?
 
 - Pending
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
   - Add support for dashed borders
-  - Make BaseWidget and BaseContainer use a custom type instead of just Widget. Maybe also rename them?
   - Fix ListView keyboard navigation
   - Create Checkbox
   - Create Radio
@@ -149,6 +149,7 @@
     - Use weight to control allocations
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Add header in all files, indicating license and documenting what the module does
+  - Create Image
   - Create Slider
   - Create Dial
   - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
