@@ -106,7 +106,7 @@ makeScroll config state = widget where
     containerGetSizeReq = getSizeReq
   }
   widget = baseWidget {
-    widgetResize = scrollResize Nothing,
+    widgetResize = scrollResize Nothing state,
     widgetRender = render
   }
 
@@ -191,30 +191,30 @@ makeScroll config state = widget where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv widgetInst rect
     result = cast message >>= handleScrollMessage
 
-  scrollTo wenv widgetInst rect
-    | rectInRect rect viewport = Nothing
-    | otherwise = Just $ resultWidget newInstance
-    where
-      viewport = _wiViewport widgetInst
-      Rect rx ry rw rh = rect
-      Rect vx vy vw vh = viewport
-      diffL = vx - rx
-      diffR = vx + vw - (rx + rw)
-      diffT = vy - ry
-      diffB = vy + vh - (ry + rh)
-      stepX
-        | rectInRectH rect viewport = dx
-        | abs diffL <= abs diffR = diffL + dx
-        | otherwise = diffR + dx
-      stepY
-        | rectInRectV rect viewport = dy
-        | abs diffT <= abs diffB = diffT + dy
-        | otherwise = diffB + dy
-      newState = state {
-        _sstDeltaX = scrollAxis stepX childWidth vw,
-        _sstDeltaY = scrollAxis stepY childHeight vh
-      }
-      newInstance = rebuildWidget wenv newState widgetInst
+  scrollTo wenv widgetInst rect = result where
+    viewport = _wiViewport widgetInst
+    Rect rx ry rw rh = rect
+    Rect vx vy vw vh = viewport
+    diffL = vx - rx
+    diffR = vx + vw - (rx + rw)
+    diffT = vy - ry
+    diffB = vy + vh - (ry + rh)
+    stepX
+      | rectInRectH rect viewport = dx
+      | abs diffL <= abs diffR = diffL + dx
+      | otherwise = diffR + dx
+    stepY
+      | rectInRectV rect viewport = dy
+      | abs diffT <= abs diffB = diffT + dy
+      | otherwise = diffB + dy
+    newState = state {
+      _sstDeltaX = scrollAxis stepX childWidth vw,
+      _sstDeltaY = scrollAxis stepY childHeight vh
+    }
+    newInstance = rebuildWidget wenv newState widgetInst
+    result
+      | rectInRect rect viewport = Nothing
+      | otherwise = Just $ resultWidget newInstance
 
   updateScrollThumb state activeBar point viewport sctx = newState where
     Point px py = point
@@ -238,16 +238,19 @@ makeScroll config state = widget where
   rebuildWidget wenv newState widgetInst = newInst where
     newWidget = makeScroll config newState
     tempInst = widgetInst { _wiWidget = newWidget }
-    viewport = _wiViewport tempInst
-    renderArea = _wiRenderArea tempInst
-    newInst = scrollResize (Just newWidget) wenv viewport renderArea tempInst
+    vp = _wiViewport tempInst
+    ra = _wiRenderArea tempInst
+    newInst = scrollResize (Just newWidget) newState wenv vp ra tempInst
 
   getSizeReq wenv widgetInst children = sizeReq where
     size = _srSize $ _wiSizeReq (Seq.index children 0)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  scrollResize uWidget wenv viewport renderArea widgetInst = newInst where
+  scrollResize uWidget state wenv viewport renderArea widgetInst = newInst where
     Rect l t w h = renderArea
+    dx = _sstDeltaX state
+    dy = _sstDeltaY state
+
     child = Seq.index (_wiChildren widgetInst) 0
     childReq = _wiSizeReq child
 
