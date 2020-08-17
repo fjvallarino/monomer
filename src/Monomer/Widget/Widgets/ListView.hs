@@ -30,6 +30,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -55,9 +56,9 @@ data ListViewConfig s e a = ListViewConfig {
   _lvItemToText :: a -> Text,
   _lvOnChange :: [Int -> a -> e],
   _lvOnChangeReq :: [Int -> WidgetRequest s],
-  _lvSelectedColor :: Color,
-  _lvHighlightedColor :: Color,
-  _lvHoverColor :: Color
+  _lvSelectedStyle :: StyleState,
+  _lvHighlightedStyle :: StyleState,
+  _lvHoverStyle :: StyleState
 }
 
 newtype ListViewState = ListViewState {
@@ -76,9 +77,9 @@ listViewConfig value items itemToText = ListViewConfig {
   _lvItemToText = itemToText,
   _lvOnChange = [],
   _lvOnChangeReq = [],
-  _lvSelectedColor = gray,
-  _lvHighlightedColor = darkGray,
-  _lvHoverColor = lightGray
+  _lvSelectedStyle = bgColor gray,
+  _lvHighlightedStyle = border 1 darkGray,
+  _lvHoverStyle = bgColor lightGray
 }
 
 listView
@@ -205,15 +206,15 @@ makeItemsList
 makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   ListViewConfig{..} = lvConfig
   isSelected item = item == selected
-  selectedCol item
-    | isSelected item = Just _lvSelectedColor
+  selectedStyle item
+    | isSelected item = Just _lvSelectedStyle
     | otherwise = Nothing
-  highlightedCol idx
-    | idx == highlightedIdx = Just _lvHighlightedColor
+  highlightedStyle idx
+    | idx == highlightedIdx = Just _lvHighlightedStyle
     | otherwise = Nothing
   itemStyle idx item = def
-    & S.basic . non def . S.bgColor .~ (selectedCol item <|> highlightedCol idx)
-    & S.hover . non def . S.bgColor ?~ _lvHoverColor
+    & S.basic .~ (selectedStyle item <|> highlightedStyle idx)
+    & S.hover ?~ _lvHoverStyle
   itemConfig idx = boxConfig {
     _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }

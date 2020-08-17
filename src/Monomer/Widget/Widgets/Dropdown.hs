@@ -26,6 +26,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -44,9 +45,9 @@ data DropdownConfig s e a = DropdownConfig {
   _ddItemToText :: a -> Text,
   _ddOnChange :: [a -> e],
   _ddOnChangeReq :: [WidgetRequest s],
-  _ddSelectedColor :: Color,
-  _ddHighlightedColor :: Color,
-  _ddHoverColor :: Color
+  _ddSelectedStyle :: StyleState,
+  _ddHighlightedStyle :: StyleState,
+  _ddHoverStyle :: StyleState
 }
 
 newtype DropdownState = DropdownState {
@@ -65,9 +66,9 @@ dropdownConfig value items itemToText = DropdownConfig {
   _ddItemToText = itemToText,
   _ddOnChange = [],
   _ddOnChangeReq = [],
-  _ddSelectedColor = gray,
-  _ddHighlightedColor = darkGray,
-  _ddHoverColor = lightGray
+  _ddSelectedStyle = bgColor gray,
+  _ddHighlightedStyle = border 1 darkGray,
+  _ddHoverStyle = bgColor lightGray
 }
 
 dropdown
@@ -212,7 +213,7 @@ makeListView DropdownConfig{..} dropdownPath selected = listView_ lvConfig where
     _lvItemToText = _ddItemToText,
     _lvOnChange = [],
     _lvOnChangeReq = [SendMessage dropdownPath . OnChangeMessage],
-    _lvSelectedColor = _ddSelectedColor,
-    _lvHighlightedColor = _ddHighlightedColor,
-    _lvHoverColor = _ddHoverColor
+    _lvSelectedStyle = _ddSelectedStyle,
+    _lvHighlightedStyle = _ddHighlightedStyle,
+    _lvHoverStyle = _ddHoverStyle
   }

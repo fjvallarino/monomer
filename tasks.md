@@ -137,10 +137,13 @@
     - Create Lenses for Graphics/Types.hs
   - Make BaseWidget and BaseContainer use a custom type instead of just Widget. Maybe also rename them?
   - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
+  - Add support for dashed borders
+    - NanoVG does not seem to support this
+    - If we ever move to Skia, reconsider
 
 - Pending
-  - Add support for dashed borders
   - Fix ListView keyboard navigation
+  - Handle mouse entering/leaving the window
   - Create Checkbox
   - Create Radio
   - Add testing
