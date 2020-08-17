@@ -140,10 +140,10 @@
   - Add support for dashed borders
     - NanoVG does not seem to support this
     - If we ever move to Skia, reconsider
-
-- Pending
   - Fix ListView keyboard navigation
   - Handle mouse entering/leaving the window
+
+- Pending
   - Create Checkbox
   - Create Radio
   - Add testing

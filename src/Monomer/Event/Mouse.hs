@@ -21,6 +21,11 @@ mouseMoveEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
 mouseMoveEvent dpr mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
 mouseMoveEvent dpr mousePos _ = Nothing
 
+mouseMoveLeave :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseMoveLeave dpr mousePos SDL.WindowLostMouseFocusEvent{} = evt where
+  evt = Just $ Move (Point (-1) (-1))
+mouseMoveLeave dpr mousePos _ = Nothing
+
 mouseWheelEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
 mouseWheelEvent dpr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
   wheelDirection = case SDL.mouseWheelEventDirection eventData of

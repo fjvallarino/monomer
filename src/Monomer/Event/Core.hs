@@ -22,6 +22,7 @@ convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
     mouseMoveEvent devicePixelRate mousePos evt
     <|> mouseClick mousePos evt
     <|> mouseWheelEvent devicePixelRate mousePos evt
+    <|> mouseMoveLeave devicePixelRate mousePos evt
     <|> keyboardEvent evt
     <|> textEvent evt
 
