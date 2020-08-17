@@ -136,9 +136,9 @@
     - Use Lenses for Main/Core.hs' updateInputStatus
     - Create Lenses for Graphics/Types.hs
   - Make BaseWidget and BaseContainer use a custom type instead of just Widget. Maybe also rename them?
+  - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
 
 - Pending
-  - Improve styling options. Handle cases for Normal, Hover, Focused with independent background and border
   - Add support for dashed borders
   - Fix ListView keyboard navigation
   - Create Checkbox

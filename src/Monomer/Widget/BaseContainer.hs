@@ -268,8 +268,8 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper pHandler wenv target event widgetInst
-  | not targetValid = Nothing
   | targetReached = handleStyleChange pHandler wenv target event widgetInst
+  | not targetValid = Nothing
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx
   where
     -- Having targetValid = False means the next path step is not in
@@ -326,7 +326,8 @@ handleMessageWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleMessageWrapper mHandler wenv target arg widgetInst
-  | targetReached || not targetValid = mHandler wenv target arg widgetInst
+  | targetReached = mHandler wenv target arg widgetInst
+  | not targetValid = Nothing
   | otherwise = messageResult
   where
     targetReached = isTargetReached target widgetInst

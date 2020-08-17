@@ -47,6 +47,7 @@ import Monomer.Widget.Widgets.Spacer
 import Monomer.Widget.Widgets.Stack
 
 import qualified Monomer.Common.LensStyle as S
+import qualified Monomer.Widget.LensCore as C
 
 data ListViewConfig s e a = ListViewConfig {
   _lvValue :: WidgetValue s a,
@@ -219,8 +220,6 @@ makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   makeItem idx item = newItem where
     config = itemConfig idx
     content = label (_lvItemToText item)
-    newItem = (box config content) {
-        _wiStyle = itemStyle idx item
-      }
+    newItem = box config content & C.style .~ itemStyle idx item
   pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
   itemsList = vstack $ fmap (uncurry makeItem) pairs

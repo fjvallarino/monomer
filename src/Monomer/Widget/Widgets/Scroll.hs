@@ -171,8 +171,8 @@ makeScroll config state = widget where
         | wheelDirection == WheelNormal = wheelRate * wy
         | otherwise = -wheelRate * wy
       newState = state {
-        _sstDeltaX = scrollAxis stepX dx childWidth vw,
-        _sstDeltaY = scrollAxis stepY dy childHeight vh
+        _sstDeltaX = scrollAxis (stepX + dx) childWidth vw,
+        _sstDeltaY = scrollAxis (stepY + dy) childHeight vh
       }
     _ -> Nothing
     where
@@ -180,11 +180,12 @@ makeScroll config state = widget where
       Rect vx vy vw vh = _wiViewport widgetInst
       sctx@ScrollContext{..} = scrollStatus config wenv state viewport
 
-  scrollAxis reqDelta currScroll childPos vpLimit
-    | reqDelta >= 0 && currScroll + reqDelta < 0 = currScroll + reqDelta
-    | reqDelta >= 0 = 0
-    | childPos - vpLimit + currScroll + reqDelta > 0 = currScroll + reqDelta
-    | otherwise = vpLimit - childPos
+  scrollAxis reqDelta childLength vpLength
+    | maxDelta == 0 = 0
+    | reqDelta < 0 = max reqDelta (-maxDelta)
+    | otherwise = min reqDelta 0
+    where
+      maxDelta = max 0 (childLength - vpLength)
 
   handleMessage wenv ctx message widgetInst = result where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv widgetInst rect
@@ -210,8 +211,8 @@ makeScroll config state = widget where
         | abs diffT <= abs diffB = diffT + dy
         | otherwise = diffB + dy
       newState = state {
-        _sstDeltaX = scrollAxis stepX 0 childWidth vw,
-        _sstDeltaY = scrollAxis stepY 0 childHeight vh
+        _sstDeltaX = scrollAxis stepX childWidth vw,
+        _sstDeltaY = scrollAxis stepY childHeight vh
       }
       newInstance = rebuildWidget wenv newState widgetInst
 
@@ -224,10 +225,10 @@ makeScroll config state = widget where
     hDelta = (rx - px + hMid) / hScrollRatio
     vDelta = (ry - py + vMid) / vScrollRatio
     newDeltaX
-      | activeBar == HBar = scrollAxis hDelta 0 childWidth rw
+      | activeBar == HBar = scrollAxis hDelta childWidth rw
       | otherwise = dx
     newDeltaY
-      | activeBar == VBar = scrollAxis vDelta 0 childHeight rh
+      | activeBar == VBar = scrollAxis vDelta childHeight rh
       | otherwise = dy
     newState = state {
       _sstDeltaX = newDeltaX,
