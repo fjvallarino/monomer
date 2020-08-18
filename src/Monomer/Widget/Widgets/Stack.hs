@@ -93,15 +93,15 @@ makeStack isHorizontal = widget where
     height = if isHorizontal then maxHeight else sumHeight
 
   calcDimensions vreqs = (maxWidth, sumWidth, maxHeight, sumHeight) where
-    sumWidth = (sum . fmap (_w . _srSize)) vreqs
-    sumHeight = (sum . fmap (_h . _srSize)) vreqs
+    sumWidth = (sum . fmap (_sW . _srSize)) vreqs
+    sumHeight = (sum . fmap (_sH . _srSize)) vreqs
     maxWidth
       | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_w . _srSize)) vreqs
+      | otherwise = (maximum . fmap (_sW . _srSize)) vreqs
     maxHeight
       | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_h . _srSize)) vreqs
+      | otherwise = (maximum . fmap (_sH . _srSize)) vreqs
 
-  sizeSelector = if isHorizontal then _w else _h
-  rectSelector = if isHorizontal then _rw else _rh
+  sizeSelector = if isHorizontal then _sW else _sH
+  rectSelector = if isHorizontal then _rW else _rH
   policySelector = if isHorizontal then _srPolicyWidth else _srPolicyHeight

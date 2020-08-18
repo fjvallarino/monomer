@@ -213,7 +213,7 @@ resizeWindow window wenv widgetRoot = do
   newWindowSize <- getWindowSize window dpr
 
   let position = GL.Position 0 0
-  let size = GL.Size (round $ _w drawableSize) (round $ _h drawableSize)
+  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
 
   windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (position, size)

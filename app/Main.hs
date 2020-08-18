@@ -93,7 +93,7 @@ main = do
 
   winSize <- getDrawableSize window
 
-  let devicePixelRate = _w winSize / fromIntegral screenWidth
+  let devicePixelRate = _sW winSize / fromIntegral screenWidth
   let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
   let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
 

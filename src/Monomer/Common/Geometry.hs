@@ -7,26 +7,26 @@ import Control.Lens.TH (makeLenses)
 import Data.Default
 
 data Point = Point {
-  _x :: !Double,
-  _y :: !Double
+  _pX :: !Double,
+  _pY :: !Double
 } deriving (Show, Eq)
 
 instance Default Point where
   def = Point 0 0
 
 data Size = Size {
-  _w :: !Double,
-  _h :: !Double
+  _sW :: !Double,
+  _sH :: !Double
 } deriving (Show, Eq)
 
 instance Default Size where
   def = Size 0 0
 
 data Rect = Rect {
-  _rx :: !Double,
-  _ry :: !Double,
-  _rw :: !Double,
-  _rh :: !Double
+  _rX :: !Double,
+  _rY :: !Double,
+  _rW :: !Double,
+  _rH :: !Double
 } deriving (Show, Eq)
 
 instance Default Rect where

@@ -175,13 +175,15 @@ makeDropdown config state = widget where
   resize wenv viewport renderArea children widgetInst = resized where
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
-        reqHeight = _h . _srSize . _wiSizeReq $ child
+        reqHeight = _sH . _srSize . _wiSizeReq $ child
         maxHeight = min reqHeight 150
         oViewport = viewport {
-          _ry = _ry viewport + _rh viewport,
-          _rh = maxHeight
+          _rY = _rY viewport + _rH viewport,
+          _rH = maxHeight
         }
-        oRenderArea = renderArea { _ry = _ry renderArea + _rh viewport }
+        oRenderArea = renderArea {
+          _rY = _rY renderArea + _rH viewport
+        }
       Nothing -> (viewport, renderArea)
     assignedArea = Seq.singleton area
     resized = (widgetInst, assignedArea)
