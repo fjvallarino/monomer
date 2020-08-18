@@ -5,10 +5,10 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.ListView (
-  ListViewConfig(..),
+  ListViewCfg(..),
   listView,
   listView_,
-  listViewConfig
+  listViewCfg
 ) where
 
 import Debug.Trace
@@ -50,15 +50,15 @@ import Monomer.Widget.Widgets.Stack
 import qualified Monomer.Common.LensStyle as S
 import qualified Monomer.Widget.LensCore as C
 
-data ListViewConfig s e a = ListViewConfig {
-  _lvValue :: WidgetValue s a,
-  _lvItems :: Seq a,
-  _lvItemToText :: a -> Text,
-  _lvOnChange :: [Int -> a -> e],
-  _lvOnChangeReq :: [Int -> WidgetRequest s],
-  _lvSelectedStyle :: StyleState,
-  _lvHighlightedStyle :: StyleState,
-  _lvHoverStyle :: StyleState
+data ListViewCfg s e a = ListViewCfg {
+  _lvcValue :: WidgetValue s a,
+  _lvcItems :: Seq a,
+  _lvcItemToText :: a -> Text,
+  _lvcOnChange :: [Int -> a -> e],
+  _lvcOnChangeReq :: [Int -> WidgetRequest s],
+  _lvcSelectedStyle :: StyleState,
+  _lvcHighlightedStyle :: StyleState,
+  _lvcHoverStyle :: StyleState
 }
 
 newtype ListViewState = ListViewState {
@@ -69,27 +69,27 @@ newtype ListViewMessage
   = OnClickMessage Int
   deriving Typeable
 
-listViewConfig
-  :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewConfig s e a
-listViewConfig value items itemToText = ListViewConfig {
-  _lvValue = value,
-  _lvItems = items,
-  _lvItemToText = itemToText,
-  _lvOnChange = [],
-  _lvOnChangeReq = [],
-  _lvSelectedStyle = bgColor gray,
-  _lvHighlightedStyle = border 1 darkGray,
-  _lvHoverStyle = bgColor lightGray
+listViewCfg
+  :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewCfg s e a
+listViewCfg value items itemToText = ListViewCfg {
+  _lvcValue = value,
+  _lvcItems = items,
+  _lvcItemToText = itemToText,
+  _lvcOnChange = [],
+  _lvcOnChangeReq = [],
+  _lvcSelectedStyle = bgColor gray,
+  _lvcHighlightedStyle = border 1 darkGray,
+  _lvcHoverStyle = bgColor lightGray
 }
 
 listView
   :: (Traversable t, Eq a)
   => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 listView field items itemToText = listView_ config where
-  config = listViewConfig (WidgetLens field) newItems itemToText
+  config = listViewCfg (WidgetLens field) newItems itemToText
   newItems = foldl' (|>) Empty items
 
-listView_ :: (Eq a) => ListViewConfig s e a -> WidgetInstance s e
+listView_ :: (Eq a) => ListViewCfg s e a -> WidgetInstance s e
 listView_ config = makeInstance (makeListView config newState) where
   newState = ListViewState 0
 
@@ -98,7 +98,7 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
   _wiFocusable = True
 }
 
-makeListView :: (Eq a) => ListViewConfig s e a -> ListViewState -> Widget s e
+makeListView :: (Eq a) => ListViewCfg s e a -> ListViewState -> Widget s e
 makeListView config state = widget where
   widget = createContainer def {
     containerInit = init,
@@ -110,7 +110,7 @@ makeListView config state = widget where
     containerResize = resize
   }
 
-  currentValue wenv = widgetValueGet (_weModel wenv) (_lvValue config)
+  currentValue wenv = widgetValueGet (_weModel wenv) (_lvcValue config)
 
   createListView wenv newState widgetInst = newInstance where
     selected = currentValue wenv
@@ -140,7 +140,7 @@ makeListView config state = widget where
   highlightNext wenv widgetInst = highlightItem wenv widgetInst nextIdx where
     tempIdx = _highlighted state
     nextIdx
-      | tempIdx < length (_lvItems config) - 1 = tempIdx + 1
+      | tempIdx < length (_lvcItems config) - 1 = tempIdx + 1
       | otherwise = tempIdx
 
   highlightPrev wenv widgetInst = highlightItem wenv widgetInst nextIdx where
@@ -174,10 +174,10 @@ makeListView config state = widget where
 
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv
-    value = fromMaybe selected (Seq.lookup idx (_lvItems config))
-    valueSetReq = widgetValueSet (_lvValue config) value
+    value = fromMaybe selected (Seq.lookup idx (_lvcItems config))
+    valueSetReq = widgetValueSet (_lvcValue config) value
     scrollToReq = itemScrollTo widgetInst idx
-    changeReqs = fmap ($ idx) (_lvOnChangeReq config)
+    changeReqs = fmap ($ idx) (_lvcOnChangeReq config)
     focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
@@ -202,25 +202,25 @@ makeListView config state = widget where
     resized = (widgetInst, assignedArea)
 
 makeItemsList
-  :: (Eq a) => ListViewConfig s e a -> Path -> a -> Int -> WidgetInstance s e
+  :: (Eq a) => ListViewCfg s e a -> Path -> a -> Int -> WidgetInstance s e
 makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
-  ListViewConfig{..} = lvConfig
+  ListViewCfg{..} = lvConfig
   isSelected item = item == selected
   selectedStyle item
-    | isSelected item = Just _lvSelectedStyle
+    | isSelected item = Just _lvcSelectedStyle
     | otherwise = Nothing
   highlightedStyle idx
-    | idx == highlightedIdx = Just _lvHighlightedStyle
+    | idx == highlightedIdx = Just _lvcHighlightedStyle
     | otherwise = Nothing
   itemStyle idx item = def
     & S.basic .~ (selectedStyle item <|> highlightedStyle idx)
-    & S.hover ?~ _lvHoverStyle
+    & S.hover ?~ _lvcHoverStyle
   itemConfig idx = boxConfig {
     _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
   }
   makeItem idx item = newItem where
     config = itemConfig idx
-    content = label (_lvItemToText item)
+    content = label (_lvcItemToText item)
     newItem = box config content & C.style .~ itemStyle idx item
-  pairs = Seq.zip (Seq.fromList [0..length _lvItems]) _lvItems
+  pairs = Seq.zip (Seq.fromList [0..length _lvcItems]) _lvcItems
   itemsList = vstack $ fmap (uncurry makeItem) pairs

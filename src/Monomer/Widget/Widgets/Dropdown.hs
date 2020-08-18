@@ -4,9 +4,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (
-  DropdownConfig(..),
+  DropdownCfg(..),
   dropdown,
-  dropdownConfig
+  dropdownCfg
 ) where
 
 import Control.Applicative ((<|>))
@@ -39,15 +39,15 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.ListView
 
-data DropdownConfig s e a = DropdownConfig {
-  _ddValue :: WidgetValue s a,
-  _ddItems :: Seq a,
-  _ddItemToText :: a -> Text,
-  _ddOnChange :: [a -> e],
-  _ddOnChangeReq :: [WidgetRequest s],
-  _ddSelectedStyle :: StyleState,
-  _ddHighlightedStyle :: StyleState,
-  _ddHoverStyle :: StyleState
+data DropdownCfg s e a = DropdownCfg {
+  _ddcValue :: WidgetValue s a,
+  _ddcItems :: Seq a,
+  _ddcItemToText :: a -> Text,
+  _ddcOnChange :: [a -> e],
+  _ddcOnChangeReq :: [WidgetRequest s],
+  _ddcSelectedStyle :: StyleState,
+  _ddcHighlightedStyle :: StyleState,
+  _ddcHoverStyle :: StyleState
 }
 
 newtype DropdownState = DropdownState {
@@ -58,27 +58,27 @@ newtype DropdownMessage
   = OnChangeMessage Int
   deriving Typeable
 
-dropdownConfig
-  :: WidgetValue s a -> Seq a -> (a -> Text) -> DropdownConfig s e a
-dropdownConfig value items itemToText = DropdownConfig {
-  _ddValue = value,
-  _ddItems = items,
-  _ddItemToText = itemToText,
-  _ddOnChange = [],
-  _ddOnChangeReq = [],
-  _ddSelectedStyle = bgColor gray,
-  _ddHighlightedStyle = border 1 darkGray,
-  _ddHoverStyle = bgColor lightGray
+dropdownCfg
+  :: WidgetValue s a -> Seq a -> (a -> Text) -> DropdownCfg s e a
+dropdownCfg value items itemToText = DropdownCfg {
+  _ddcValue = value,
+  _ddcItems = items,
+  _ddcItemToText = itemToText,
+  _ddcOnChange = [],
+  _ddcOnChangeReq = [],
+  _ddcSelectedStyle = bgColor gray,
+  _ddcHighlightedStyle = border 1 darkGray,
+  _ddcHoverStyle = bgColor lightGray
 }
 
 dropdown
   :: (Traversable t, Eq a)
   => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
 dropdown field items itemToText = dropdown_ config where
-  config = dropdownConfig (WidgetLens field) newItems itemToText
+  config = dropdownCfg (WidgetLens field) newItems itemToText
   newItems = foldl' (|>) Empty items
 
-dropdown_ :: (Eq a) => DropdownConfig s e a -> WidgetInstance s e
+dropdown_ :: (Eq a) => DropdownCfg s e a -> WidgetInstance s e
 dropdown_ config = makeInstance (makeDropdown config newState) where
   newState = DropdownState False
 
@@ -87,7 +87,7 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
   _wiFocusable = True
 }
 
-makeDropdown :: (Eq a) => DropdownConfig s e a -> DropdownState -> Widget s e
+makeDropdown :: (Eq a) => DropdownCfg s e a -> DropdownState -> Widget s e
 makeDropdown config state = widget where
   baseWidget = createContainer def {
     containerInit = init,
@@ -103,7 +103,7 @@ makeDropdown config state = widget where
   }
 
   isOpen = _isOpen state
-  currentValue wenv = widgetValueGet (_weModel wenv) (_ddValue config)
+  currentValue wenv = widgetValueGet (_weModel wenv) (_ddcValue config)
 
   createDropdown wenv newState widgetInst = newInstance where
     selected = currentValue wenv
@@ -140,7 +140,7 @@ makeDropdown config state = widget where
 
   openDropdown wenv widgetInst = resultReqs requests newInstance where
     selected = currentValue wenv
-    selectedIdx = fromMaybe 0 (Seq.elemIndexL selected (_ddItems config))
+    selectedIdx = fromMaybe 0 (Seq.elemIndexL selected (_ddcItems config))
     newState = DropdownState True
     newInstance = widgetInst {
       _wiWidget = makeDropdown config newState
@@ -158,13 +158,13 @@ makeDropdown config state = widget where
     requests = [ResetOverlay, SetFocus path]
 
   handleMessage wenv target message widgetInst = cast message
-    >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddItems config)
+    >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddcItems config)
     >>= \value -> Just $ onChange wenv idx value widgetInst
 
   onChange wenv idx item widgetInst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
-    newReqs = Seq.fromList $ widgetValueSet (_ddValue config) item
-    newEvents = Seq.fromList $ fmap ($ item) (_ddOnChange config)
+    newReqs = Seq.fromList $ widgetValueSet (_ddcValue config) item
+    newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
   getSizeReq wenv widgetInst children = sizeReq where
@@ -204,18 +204,18 @@ makeDropdown config state = widget where
     widget = _wiWidget overlayInstance
     renderAction = widgetRender widget renderer wenv overlayInstance
 
-  dropdownLabel wenv = _ddItemToText config $ currentValue wenv
+  dropdownLabel wenv = _ddcItemToText config $ currentValue wenv
 
 makeListView
-  :: (Eq a) => DropdownConfig s e a -> Path -> a -> WidgetInstance s e
-makeListView DropdownConfig{..} dropdownPath selected = listView_ lvConfig where
-  lvConfig = ListViewConfig {
-    _lvValue = WidgetValue selected,
-    _lvItems = _ddItems,
-    _lvItemToText = _ddItemToText,
-    _lvOnChange = [],
-    _lvOnChangeReq = [SendMessage dropdownPath . OnChangeMessage],
-    _lvSelectedStyle = _ddSelectedStyle,
-    _lvHighlightedStyle = _ddHighlightedStyle,
-    _lvHoverStyle = _ddHoverStyle
+  :: (Eq a) => DropdownCfg s e a -> Path -> a -> WidgetInstance s e
+makeListView DropdownCfg{..} dropdownPath selected = listView_ lvConfig where
+  lvConfig = ListViewCfg {
+    _lvcValue = WidgetValue selected,
+    _lvcItems = _ddcItems,
+    _lvcItemToText = _ddcItemToText,
+    _lvcOnChange = [],
+    _lvcOnChangeReq = [SendMessage dropdownPath . OnChangeMessage],
+    _lvcSelectedStyle = _ddcSelectedStyle,
+    _lvcHighlightedStyle = _ddcHighlightedStyle,
+    _lvcHoverStyle = _ddcHoverStyle
   }
