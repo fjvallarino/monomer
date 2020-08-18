@@ -1,9 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Common.Geometry where
 
-import Control.Lens.TH (makeLenses)
+--import Control.Lens.TH (makeLenses)
+import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 
 data Point = Point {
@@ -32,9 +35,9 @@ data Rect = Rect {
 instance Default Rect where
   def = Rect 0 0 0 0
 
-makeLenses ''Point
-makeLenses ''Size
-makeLenses ''Rect
+makeLensesWith abbreviatedFields ''Point
+makeLensesWith abbreviatedFields ''Size
+makeLensesWith abbreviatedFields ''Rect
 
 pointInRect :: Point -> Rect -> Bool
 pointInRect (Point px py) (Rect x y w h) = pointInH && pointInV where
