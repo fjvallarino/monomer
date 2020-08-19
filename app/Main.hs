@@ -133,6 +133,11 @@ buildUI model = trace "Creating UI" widgetTree where
   widgetTree = vstack [
       label (showt $ model ^. clickCount),
       textField textField1 `style` bgColor lightGray,
+      hstack [
+        radio fruit Apple,
+        radio fruit Orange,
+        radio fruit Pear
+      ],
         --`style` bgColor lightGray <> textSize 40
         --`focus` bgColor darkGray <> textSize 400,
       --hstack labels `key` "Labels",

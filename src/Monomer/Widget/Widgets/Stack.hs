@@ -38,7 +38,8 @@ makeStack isHorizontal = widget where
   getSizeReq wenv widgetInst children = sizeReq where
     vreqs = _wiSizeReq <$> Seq.filter _wiVisible children
     size = calcSize vreqs
-    sizeReq = SizeReq size FlexibleSize FlexibleSize
+    (policyH, policyV) = sizePolicy vreqs
+    sizeReq = SizeReq size policyH policyV
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
@@ -86,6 +87,17 @@ makeStack isHorizontal = widget where
       | not $ _wiVisible child = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
+
+  sizePolicy vreqs = (hPolicy, vPolicy) where
+    strictReqs policy = Seq.filter (\r -> policy r == StrictSize) vreqs
+    strictH = Seq.length (strictReqs _srPolicyWidth) > 0
+    strictV = Seq.length (strictReqs _srPolicyHeight) > 0
+    hPolicy
+      | not isHorizontal && strictH = StrictSize
+      | otherwise = FlexibleSize
+    vPolicy
+      | isHorizontal && strictV = StrictSize
+      | otherwise = FlexibleSize
 
   calcSize vreqs = Size width height where
     (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vreqs

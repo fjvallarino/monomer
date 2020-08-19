@@ -5,6 +5,8 @@ module Monomer.Graphics.Drawing (
   calcTextBounds,
   contentRect,
   drawRect,
+  drawEllipse,
+  drawEllipseBorder,
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
@@ -277,6 +279,27 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
+drawEllipse :: (Monad m) => Renderer m -> Rect -> Maybe Color -> m ()
+drawEllipse renderer rect Nothing = return ()
+drawEllipse renderer rect (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  renderEllipse renderer rect
+  fill renderer
+
+drawEllipseBorder
+  :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Double -> m ()
+drawEllipseBorder renderer rect Nothing _ = return ()
+drawEllipseBorder renderer rect (Just color) width = do
+  beginPath renderer
+  setStrokeColor renderer color
+  setStrokeWidth renderer width
+  renderEllipse renderer finalRect
+  stroke renderer
+  where
+    finalRect = subtractFromRect rect w w w w
+    w = width / 2
+
 drawStyledText
   :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> Text -> m Rect
 drawStyledText renderer viewport Nothing txt =
@@ -349,24 +372,13 @@ subtractBorder (Rect x y w h) border = Rect nx ny nw nh where
 
 subtractMargin :: Rect -> Maybe Margin -> Rect
 subtractMargin rect Nothing = rect
-subtractMargin rect (Just (Margin l r t b)) = subtractFromRect rect l r t b
+subtractMargin rect (Just (Margin l r t b)) = nRect where
+  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
 subtractPadding :: Rect -> Maybe Padding -> Rect
 subtractPadding rect Nothing = rect
-subtractPadding rect (Just (Padding l r t b)) = subtractFromRect rect l r t b
-
-subtractFromRect
-  :: Rect
-  -> Maybe Double
-  -> Maybe Double
-  -> Maybe Double
-  -> Maybe Double
-  -> Rect
-subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
-  nx = x + justDef l
-  ny = y + justDef t
-  nw = w - justDef l - justDef r
-  nh = h - justDef t - justDef b
+subtractPadding rect (Just (Padding l r t b)) = nRect where
+  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
 contentRect :: Rect -> StyleState -> Rect
 contentRect viewport style = final where

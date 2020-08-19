@@ -3,14 +3,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.TextField (
-  TextFieldConfig(..),
+  TextFieldCfg(..),
   textField,
   textField_,
-  textFieldConfig
+  textFieldCfg
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (^#), (#~), (.~), (^?), _Just, non)
+import Control.Lens (ALens', (&), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -30,7 +30,7 @@ import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-data TextFieldConfig s e = TextFieldConfig {
+data TextFieldCfg s e = TextFieldCfg {
   _tfcValue :: WidgetValue s Text,
   _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [WidgetRequest s],
@@ -42,8 +42,8 @@ data TextFieldState = TextFieldState {
   _tfPosition :: Int
 } deriving (Eq, Show, Typeable)
 
-textFieldConfig :: WidgetValue s Text -> TextFieldConfig s e
-textFieldConfig value = TextFieldConfig {
+textFieldCfg :: WidgetValue s Text -> TextFieldCfg s e
+textFieldCfg value = TextFieldCfg {
   _tfcValue = value,
   _tfcOnChange = [],
   _tfcOnChangeReq = [],
@@ -58,9 +58,9 @@ textFieldState = TextFieldState {
 
 textField :: ALens' s Text -> WidgetInstance s e
 textField field = textField_ config where
-  config = textFieldConfig (WidgetLens field)
+  config = textFieldCfg (WidgetLens field)
 
-textField_ :: TextFieldConfig s e -> WidgetInstance s e
+textField_ :: TextFieldCfg s e -> WidgetInstance s e
 textField_ config = makeInstance $ makeTextField config textFieldState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -68,7 +68,7 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _wiFocusable = True
 }
 
-makeTextField :: TextFieldConfig s e -> TextFieldState -> Widget s e
+makeTextField :: TextFieldCfg s e -> TextFieldState -> Widget s e
 makeTextField config state = widget where
   widget = createSingle def {
     singleInit = init,

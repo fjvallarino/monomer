@@ -54,3 +54,10 @@ rectInRectH (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) =
 rectInRectV :: Rect -> Rect -> Bool
 rectInRectV (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) =
   y1 >= y2 && y1 + h1 <= y2 + h2
+
+subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Rect
+subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
+  nx = x + l
+  ny = y + t
+  nw = w - l - r
+  nh = h - t - b

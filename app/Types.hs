@@ -7,17 +7,32 @@ import Control.Lens (makeLenses)
 import Data.Default
 import Data.Text (Text)
 
+data Fruit
+  = Apple
+  | Orange
+  | Pear
+  deriving (Eq, Show)
+
 data App = App {
   _clickCount :: !Int,
   _msgCount :: !Int,
   _textField1 :: Text,
   _textField2 :: Text,
   _textField3 :: Text,
-  _dropdown1 :: Text
+  _dropdown1 :: Text,
+  _fruit :: Fruit
 } deriving (Show, Eq)
 
 instance Default App where
-  def = App 0 0 "" "" "" ""
+  def = App {
+    _clickCount = 0,
+    _msgCount = 0,
+    _textField1 = "",
+    _textField2 = "",
+    _textField3 = "",
+    _dropdown1 = "",
+    _fruit = Orange
+  }
 
 makeLenses ''App
 

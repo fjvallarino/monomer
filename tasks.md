@@ -146,6 +146,9 @@
 - Pending
   - Create Checkbox
   - Create Radio
+  - Rename Align fields (remove A, make record instead)
+  - Rename policy... to policyW/H
+  - Reorganize Drawing (move helpers to bottom)
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -164,6 +167,7 @@
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create self rendered version of dropdown and list
     - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
+  - Rethink the idea of global theme in WidgetEnv
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
