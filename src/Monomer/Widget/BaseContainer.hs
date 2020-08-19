@@ -346,8 +346,8 @@ defaultGetSizeReq :: ContainerGetSizeReqHandler s e
 defaultGetSizeReq wenv inst children = req where
   req = SizeReq {
     _srSize = Size 0 0,
-    _srPolicyWidth = FlexibleSize,
-    _srPolicyHeight = FlexibleSize
+    _srPolicyW = FlexibleSize,
+    _srPolicyH = FlexibleSize
   }
 
 updateSizeReqWrapper

@@ -1,4 +1,8 @@
-module Monomer.Widget.Widgets.Radio (radio) where
+module Monomer.Widget.Widgets.Radio (
+  RadioCfg(..),
+  radio,
+  radioCfg
+) where
 
 import Control.Lens (ALens', (&), (^.), (.~))
 import Control.Monad

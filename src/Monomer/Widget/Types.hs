@@ -49,8 +49,8 @@ data SizePolicy
 
 data SizeReq = SizeReq {
   _srSize :: Size,
-  _srPolicyWidth :: SizePolicy,
-  _srPolicyHeight :: SizePolicy
+  _srPolicyW :: SizePolicy,
+  _srPolicyH :: SizePolicy
 } deriving (Show, Eq)
 
 instance Default SizeReq where

@@ -146,7 +146,6 @@
 - Pending
   - Create Checkbox
   - Create Radio
-  - Rename Align fields (remove A, make record instead)
   - Rename policy... to policyW/H
   - Reorganize Drawing (move helpers to bottom)
   - Add testing
