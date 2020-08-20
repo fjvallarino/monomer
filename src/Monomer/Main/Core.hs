@@ -28,6 +28,7 @@ import qualified Data.Sequence as Seq
 import qualified NanoVG as NV
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Core
 import Monomer.Event.LensEvent
@@ -44,6 +45,7 @@ import Monomer.Widget.Types
 
 data MainLoopArgs s e = MainLoopArgs {
   _mlPlatform :: WidgetPlatform,
+  _mlTheme :: Theme,
   _mlAppStartTs :: Int,
   _mlFrameStartTs :: Int,
   _mlFrameAccumTs :: Int,
@@ -69,8 +71,8 @@ createWidgetPlatform os renderer = WidgetPlatform {
 }
 
 runWidgets
-  :: (MonomerM s m) => SDL.Window -> NV.Context -> WidgetInstance s e -> m ()
-runWidgets window c widgetRoot = do
+  :: (MonomerM s m) => SDL.Window -> NV.Context -> Theme -> WidgetInstance s e -> m ()
+runWidgets window c theme widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use windowSize
@@ -86,6 +88,7 @@ runWidgets window c widgetRoot = do
   let widgetPlatform = createWidgetPlatform os renderer
   let wenv = WidgetEnv {
     _wePlatform = widgetPlatform,
+    _weTheme = theme,
     _weScreenSize = newWindowSize,
     _weGlobalKeys = M.empty,
     _weFocusedPath = rootPath,
@@ -101,6 +104,7 @@ runWidgets window c widgetRoot = do
   let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot
   let loopArgs = MainLoopArgs {
     _mlPlatform = widgetPlatform,
+    _mlTheme = theme,
     _mlAppStartTs = 0,
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
@@ -144,6 +148,7 @@ mainLoop window c renderer loopArgs = do
 
   let wenv = WidgetEnv {
     _wePlatform = _mlPlatform,
+    _weTheme = _mlTheme,
     _weScreenSize = windowSize,
     _weGlobalKeys = M.empty,
     _weFocusedPath = focused,

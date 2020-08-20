@@ -5,13 +5,52 @@ import Data.Default
 
 import Monomer.Graphics.Types
 
+data Theme = Theme {
+  _themeBasic :: ThemeState,
+  _themeHover :: ThemeState,
+  _themeFocus :: ThemeState
+} deriving (Show, Eq)
+
+instance Default Theme where
+  def = Theme {
+    _themeBasic = def,
+    _themeHover = def,
+    _themeFocus = def
+  }
+
+instance Semigroup Theme where
+  (<>) t1 t2 = t2
+
+instance Monoid Theme where
+  mempty = def
+
+data ThemeState = ThemeState {
+  _thsFgColor :: Color,
+  _thsFont :: Font,
+  _thsFontSize :: FontSize,
+  _thsColor :: Color
+} deriving (Show, Eq)
+
+instance Default ThemeState where
+  def = ThemeState {
+    _thsFgColor = Color 255 255 255 1,
+    _thsFont = Font "sans",
+    _thsFontSize = FontSize 36,
+    _thsColor = Color 255 255 255 1
+  }
+
+instance Semigroup ThemeState where
+  (<>) ts1 ts2 = ts2
+
+instance Monoid ThemeState where
+  mempty = def
+
 -- | Basic styling attributes
-data Style =
-  Style {
-    _styleBasic :: Maybe StyleState,
-    _styleHover :: Maybe StyleState,
-    _styleFocus :: Maybe StyleState
-  } deriving (Show, Eq)
+data Style = Style {
+  _styleBasic :: Maybe StyleState,
+  _styleHover :: Maybe StyleState,
+  _styleFocus :: Maybe StyleState
+} deriving (Show, Eq)
 
 instance Default Style where
   def = Style {
@@ -30,17 +69,17 @@ instance Semigroup Style where
 instance Monoid Style where
   mempty = def
 
-data StyleState
-  = StyleState {
-    _sstWidth :: Maybe Double,
-    _sstHeight :: Maybe Double,
-    _sstMargin :: Maybe Margin,
-    _sstPadding :: Maybe Padding,
-    _sstBorder :: Maybe Border,
-    _sstRadius :: Maybe Radius,
-    _sstBgColor :: Maybe Color,
-    _sstText :: Maybe TextStyle
-  } deriving (Eq, Show)
+data StyleState = StyleState {
+  _sstWidth :: Maybe Double,
+  _sstHeight :: Maybe Double,
+  _sstMargin :: Maybe Margin,
+  _sstPadding :: Maybe Padding,
+  _sstBorder :: Maybe Border,
+  _sstRadius :: Maybe Radius,
+  _sstBgColor :: Maybe Color,
+  _sstFgColor :: Maybe Color,
+  _sstText :: Maybe TextStyle
+} deriving (Show, Eq)
 
 instance Default StyleState where
   def = StyleState {
@@ -51,6 +90,7 @@ instance Default StyleState where
     _sstBorder = Nothing,
     _sstRadius = Nothing,
     _sstBgColor = Nothing,
+    _sstFgColor = Nothing,
     _sstText = Nothing
   }
 
@@ -63,6 +103,7 @@ instance Semigroup StyleState where
     _sstBorder = _sstBorder s1 <> _sstBorder s2,
     _sstRadius = _sstRadius s1 <> _sstRadius s2,
     _sstBgColor = _sstBgColor s1 <> _sstBgColor s2,
+    _sstFgColor = _sstFgColor s1 <> _sstFgColor s2,
     _sstText = _sstText s1 <> _sstText s2
   }
 

@@ -21,7 +21,7 @@ import TextShow
 
 import System.Remote.Monitoring
 
-import qualified Data.Set as S
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Foreign.C.String as STR
 import qualified SDL
@@ -38,6 +38,8 @@ import Monomer.Main.Util
 import Monomer.Widget.Util
 import Monomer.Widget.Types
 import Monomer.Widgets
+
+import qualified Monomer.Common.LensStyle as S
 
 import KeysComposite
 import TestComposite
@@ -85,7 +87,7 @@ main = do
 
   _ <- glewInit
 
-  c@(Context c') <- createGL3 (S.fromList [Antialias, StencilStrokes, Debug])
+  c@(Context c') <- createGL3 (Set.fromList [Antialias, StencilStrokes, Debug])
 
   fontRes <- createFont c "sans" (FileName "./assets/fonts/Roboto-Regular.ttf")
 
@@ -96,8 +98,12 @@ main = do
   let devicePixelRate = _sW winSize / fromIntegral screenWidth
   let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
   let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
+  let theme = def
+        & S.basic . S.fgColor .~ blue
+        & S.hover . S.fgColor .~ white
+        & S.focus . S.fgColor .~ white
 
-  runStateT (runWidgets window c appWidget) monomerContext
+  runStateT (runWidgets window c theme appWidget) monomerContext
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window

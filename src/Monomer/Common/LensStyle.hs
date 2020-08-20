@@ -16,3 +16,5 @@ makeLensesWith abbreviatedFields ''Radius
 makeLensesWith abbreviatedFields ''TextStyle
 makeLensesWith abbreviatedFields ''StyleState
 makeLensesWith abbreviatedFields ''Style
+makeLensesWith abbreviatedFields ''ThemeState
+makeLensesWith abbreviatedFields ''Theme

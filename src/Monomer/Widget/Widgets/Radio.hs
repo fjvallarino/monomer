@@ -27,7 +27,6 @@ data RadioCfg s e a = RadioCfg {
   _rdcOption :: a,
   _rdcOnChange :: [a -> e],
   _rdcOnChangeReq :: [WidgetRequest s],
-  _rdcColor :: Color,
   _rdcWidth :: Double,
   _rdcSize :: Double
 }
@@ -38,7 +37,6 @@ radioCfg value option = RadioCfg {
   _rdcOption = option,
   _rdcOnChange = [],
   _rdcOnChangeReq = [],
-  _rdcColor = white,
   _rdcWidth = 2,
   _rdcSize = 25
 }
@@ -77,10 +75,10 @@ makeRadio config = widget where
 
   render renderer wenv inst = do
     drawStyledBackground renderer rarea style
-    renderRadio renderer config rarea
+    renderRadio renderer config rarea fgColor
 
     when (value == option) $
-      renderMark renderer config rarea
+      renderMark renderer config rarea fgColor
     where
       model = _weModel wenv
       style = activeStyle wenv inst
@@ -91,16 +89,17 @@ makeRadio config = widget where
       radioT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)
       radioArea = Rect radioL radioT sz sz
+      fgColor = activeFgColor wenv inst
 
-renderRadio :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> m ()
-renderRadio renderer config rect = action where
-  color = Just $ _rdcColor config
+renderRadio
+  :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> Color -> m ()
+renderRadio renderer config rect color = action where
   width = _rdcWidth config
-  action = drawEllipseBorder renderer rect color width
+  action = drawEllipseBorder renderer rect (Just color) width
 
-renderMark :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> m ()
-renderMark renderer config rect = action where
-  color = Just $ _rdcColor config
+renderMark
+  :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> Color -> m ()
+renderMark renderer config rect color = action where
   w = _rdcWidth config * 2
   newRect = subtractFromRect rect w w w w
-  action = drawEllipse renderer newRect color
+  action = drawEllipse renderer newRect (Just color)

@@ -1,8 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
+{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.Util where
 
-import Control.Lens (ALens', (&), (^#), (#~), (.~), (?~), non)
+import Control.Applicative ((<|>))
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (.~), (?~), non, _Just)
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
@@ -20,6 +22,7 @@ import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing (calcTextBounds, drawStyledBackground)
 import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
 import Monomer.Widget.Types
 
 import qualified Monomer.Common.LensStyle as S
@@ -209,6 +212,24 @@ activeStyle wenv inst = styleState where
     | isHover = _styleBasic <> _styleHover
     | isFocus = _styleBasic <> _styleFocus
     | otherwise = _styleBasic
+
+activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
+activeTheme wenv inst = themeState where
+  theme = _weTheme wenv
+  mousePos = _ipsMousePos $ _weInputStatus wenv
+  isHover = pointInViewport mousePos inst
+  isFocus = isFocused wenv inst
+  themeState
+    | isHover = _themeHover theme
+    | isFocus = _themeFocus theme
+    | otherwise = _themeBasic theme
+
+activeFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+activeFgColor wenv inst = fromMaybe themeColor styleColor where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  styleColor = style ^. _Just . S.fgColor
+  themeColor = theme ^. S.fgColor
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

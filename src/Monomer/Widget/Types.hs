@@ -90,6 +90,7 @@ data WidgetPlatform = WidgetPlatform {
 
 data WidgetEnv s e = WidgetEnv {
   _wePlatform :: WidgetPlatform,
+  _weTheme :: Theme,
   _weScreenSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
