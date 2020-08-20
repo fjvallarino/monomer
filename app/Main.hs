@@ -148,6 +148,12 @@ buildUI model = trace "Creating UI" widgetTree where
       listView textField1 items id,
       button IncButton "Click!"
     ] `key` "Main"
+  widgetTree3 = vstack
+    [hstack [
+      radio fruit Apple,
+      radio fruit Orange,
+      radio fruit Pear
+    ]]
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]

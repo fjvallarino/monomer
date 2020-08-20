@@ -233,7 +233,8 @@ defaultFindNextFocus wenv startFrom widgetInst = nextFocus where
   children = _wiChildren widgetInst
   isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
   nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv startFrom ch
-  candidates = fmap nextCandidate (Seq.filter isBeforeTarget children)
+  filtered = Seq.filter isBeforeTarget children
+  candidates = fmap nextCandidate filtered
   focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus
     | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)

@@ -101,11 +101,11 @@ makeTextField config state = widget where
     }
 
   handleKeyPress txt tp code
-      | isKeyBackspace code && tp > 0 = (T.append (T.init part1) part2, tp - 1)
-      | isKeyLeft code && tp > 0 = (txt, tp - 1)
-      | isKeyRight code && tp < T.length txt = (txt, tp + 1)
-      | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
-      | otherwise = (txt, tp)
+    | isKeyBackspace code && tp > 0 = (T.append (T.init part1) part2, tp - 1)
+    | isKeyLeft code && tp > 0 = (txt, tp - 1)
+    | isKeyRight code && tp < T.length txt = (txt, tp + 1)
+    | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
+    | otherwise = (txt, tp)
 
   handleEvent wenv target evt widgetInst = case evt of
     Click (Point x y) _ -> Just $ resultReqs reqs widgetInst where

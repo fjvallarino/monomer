@@ -12,6 +12,7 @@ import Data.Text (Text)
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
+import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
@@ -43,8 +44,11 @@ radioCfg value option = RadioCfg {
 }
 
 radio :: (Eq a) => ALens' s a -> a -> WidgetInstance s e
-radio field option = defaultWidgetInstance "radio" (makeRadio config) where
+radio field option = radioInstance where
   config = radioCfg (WidgetLens field) option
+  radioInstance = (defaultWidgetInstance "radio" (makeRadio config)) {
+    _wiFocusable = True
+  }
 
 makeRadio :: (Eq a) => RadioCfg s e a -> Widget s e
 makeRadio config = widget where
@@ -55,10 +59,15 @@ makeRadio config = widget where
   }
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> Just $ resultReqs reqs inst where
+    Click (Point x y) _ -> resultSelected
+    KeyAction mod code KeyPressed
+      | isSelectKey code -> resultSelected
+    _ -> Nothing
+    where
+      isSelectKey code = isKeyReturn code || isKeySpace code
       reqs = widgetValueSet (_rdcValue config) option
       option = _rdcOption config
-    _ -> Nothing
+      resultSelected = Just $ resultReqs reqs inst
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst

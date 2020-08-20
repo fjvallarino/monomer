@@ -235,10 +235,11 @@ isTargetValid target widgetInst = valid where
     Nothing -> False
 
 isTargetBeforeCurrent :: Path -> WidgetInstance s e -> Bool
-isTargetBeforeCurrent target widgetInst = targetPrefix < currentPath where
+isTargetBeforeCurrent target widgetInst = result where
   currentPath = _wiPath widgetInst
   lenTarget = Seq.length target
   lenCurrent = Seq.length currentPath
-  targetPrefix
-    | lenTarget > lenCurrent = Seq.take lenCurrent target
-    | otherwise = target
+  targetPrefix = Seq.take lenCurrent target
+  result
+    | lenTarget > lenCurrent = targetPrefix <= currentPath
+    | otherwise = target < currentPath

@@ -142,11 +142,11 @@
     - If we ever move to Skia, reconsider
   - Fix ListView keyboard navigation
   - Handle mouse entering/leaving the window
+  - Rename policy... to policyW/H
 
 - Pending
   - Create Checkbox
   - Create Radio
-  - Rename policy... to policyW/H
   - Reorganize Drawing (move helpers to bottom)
   - Add testing
     - Delayed until this point to try to settle down interfaces
