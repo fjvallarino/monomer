@@ -10,10 +10,7 @@ module Monomer.Graphics.Drawing (
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
-  drawText,
-  textColor,
-  textFont,
-  textSize
+  drawText
 ) where
 
 import Control.Monad (when, void, forM_)
@@ -26,10 +23,8 @@ import Monomer.Common.Style
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
-drawStyledBackground
-  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> m ()
-drawStyledBackground renderer viewport Nothing = return ()
-drawStyledBackground renderer viewport (Just StyleState{..}) = do
+drawStyledBackground :: (Monad m) => Renderer m -> Rect -> StyleState -> m ()
+drawStyledBackground renderer viewport StyleState{..} = do
   let margin = _sstMargin
   let rect = subtractMargin viewport margin
 
@@ -301,15 +296,12 @@ drawEllipseBorder renderer rect (Just color) width = do
     w = width / 2
 
 drawStyledText
-  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> Text -> m Rect
-drawStyledText renderer viewport Nothing txt =
-  drawStyledText renderer viewport (Just def) txt
-drawStyledText renderer viewport (Just style) txt = action where
-  tsRect = contentRect viewport style
+  :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m Rect
+drawStyledText renderer viewport style txt = action where
+  tsRect = contentRect style viewport
   action = drawText renderer tsRect (_sstText style) txt
 
-drawStyledText_
-  :: (Monad m) => Renderer m -> Rect -> Maybe StyleState -> Text -> m ()
+drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
 drawStyledText_ renderer viewport style txt = void action where
   action = drawStyledText renderer viewport style txt
 
@@ -338,21 +330,6 @@ calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
   in
     textBoundsFn tsFont tsFontSize txt
 
-textStyle :: StyleState -> TextStyle
-textStyle sst = justDef (_sstText sst)
-
-textFont :: Maybe StyleState -> Font
-textFont Nothing = textFont (Just mempty)
-textFont (Just ts) = justDef (_txsFont $ textStyle ts)
-
-textSize :: Maybe StyleState -> FontSize
-textSize Nothing = textSize (Just mempty)
-textSize (Just ts) = justDef (_txsFontSize $ textStyle ts)
-
-textColor :: Maybe StyleState -> Color
-textColor Nothing = textColor (Just mempty)
-textColor (Just ts) = justDef (_txsColor $ textStyle ts)
-
 borderWidths :: Maybe Border -> (Double, Double, Double, Double)
 borderWidths Nothing = (0, 0, 0, 0)
 borderWidths (Just border) = (bl, br, bt, bb) where
@@ -380,8 +357,8 @@ subtractPadding rect Nothing = rect
 subtractPadding rect (Just (Padding l r t b)) = nRect where
   nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-contentRect :: Rect -> StyleState -> Rect
-contentRect viewport style = final where
+contentRect :: StyleState -> Rect -> Rect
+contentRect style viewport = final where
   margin = subtractMargin viewport (_sstMargin style)
   border = subtractBorder margin (_sstBorder style)
   padding = subtractPadding margin (_sstPadding style)

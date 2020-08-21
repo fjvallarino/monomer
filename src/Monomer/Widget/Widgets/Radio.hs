@@ -57,15 +57,15 @@ makeRadio config = widget where
   }
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> resultSelected
+    Click (Point x y) _ -> Just $ resultReqs (setFocusReq : setValueReq) inst
     KeyAction mod code KeyPressed
-      | isSelectKey code -> resultSelected
+      | isSelectKey code -> Just $ resultReqs setValueReq inst
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
-      reqs = widgetValueSet (_rdcValue config) option
       option = _rdcOption config
-      resultSelected = Just $ resultReqs reqs inst
+      setValueReq = widgetValueSet (_rdcValue config) option
+      setFocusReq = SetFocus $ _wiPath inst
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
@@ -84,7 +84,7 @@ makeRadio config = widget where
       style = activeStyle wenv inst
       value = widgetValueGet model (_rdcValue config)
       option = _rdcOption config
-      rarea = _wiRenderArea inst
+      rarea = contentRect style $ _wiRenderArea inst
       radioL = _rX rarea
       radioT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)

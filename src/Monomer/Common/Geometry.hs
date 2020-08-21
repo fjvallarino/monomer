@@ -5,7 +5,6 @@
 
 module Monomer.Common.Geometry where
 
---import Control.Lens.TH (makeLenses)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 
@@ -59,5 +58,5 @@ subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Rect
 subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
   nx = x + l
   ny = y + t
-  nw = w - l - r
-  nh = h - t - b
+  nw = max 0 $ w - l - r
+  nh = max 0 $ h - t - b

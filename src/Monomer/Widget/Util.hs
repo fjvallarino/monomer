@@ -53,14 +53,15 @@ widgetValueSet WidgetValue{} _ = []
 widgetValueSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
+infixl 5 `key`
+infixl 5 `style`
+infixl 5 `hover`
+infixl 5 `focus`
+
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
 key widgetInst key = widgetInst {
   _wiKey = Just (WidgetKey key)
 }
-
-infixl 5 `style`
-infixl 5 `hover`
-infixl 5 `focus`
 
 style :: WidgetInstance s e -> StyleState -> WidgetInstance s e
 style inst state = inst & C.style .~ newStyle where
@@ -163,12 +164,12 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
 
-getTextBounds :: WidgetEnv s e -> Maybe StyleState -> Text -> Size
+getTextBounds :: WidgetEnv s e -> StyleState -> Text -> Size
 getTextBounds wenv style text = calcTextBounds handler textStyle text where
-  textStyle = maybe def _sstText style
+  textStyle = _sstText style
   handler = _wpGetTextSize (_wePlatform wenv)
 
-getFullTextBounds :: WidgetEnv s e -> Maybe StyleState -> Text -> Size
+getFullTextBounds :: WidgetEnv s e -> StyleState -> Text -> Size
 getFullTextBounds wenv style text = getTextBounds wenv style text
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
@@ -201,8 +202,8 @@ pointInViewport p inst = pointInRect p (_wiViewport inst)
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
 
-activeStyle :: WidgetEnv s e -> WidgetInstance s e -> Maybe StyleState
-activeStyle wenv inst = styleState where
+activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
+activeStyle wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
   mousePos = _ipsMousePos $ _weInputStatus wenv
   isHover = pointInViewport mousePos inst
@@ -228,8 +229,20 @@ activeFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
 activeFgColor wenv inst = fromMaybe themeColor styleColor where
   style = activeStyle wenv inst
   theme = activeTheme wenv inst
-  styleColor = style ^. _Just . S.fgColor
+  styleColor = style ^. S.fgColor
   themeColor = theme ^. S.fgColor
+
+textStyle :: StyleState -> TextStyle
+textStyle sst = fromMaybe def (_sstText sst)
+
+textFont :: StyleState -> Font
+textFont style = fromMaybe def (_txsFont $ textStyle style)
+
+textSize :: StyleState -> FontSize
+textSize style = fromMaybe def (_txsFontSize $ textStyle style)
+
+textColor :: StyleState -> Color
+textColor style = fromMaybe def (_txsColor $ textStyle style)
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where
