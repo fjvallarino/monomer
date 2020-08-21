@@ -144,6 +144,12 @@ buildUI model = trace "Creating UI" widgetTree where
         radio fruit Orange,
         radio fruit Pear
       ],
+      hstack [
+        checkbox condition1,
+        checkbox condition2,
+        checkbox condition3,
+        checkbox condition1
+      ],
         --`style` bgColor lightGray <> textSize 40
         --`focus` bgColor darkGray <> textSize 400,
       --hstack labels `key` "Labels",

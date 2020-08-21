@@ -20,7 +20,10 @@ data App = App {
   _textField2 :: Text,
   _textField3 :: Text,
   _dropdown1 :: Text,
-  _fruit :: Fruit
+  _fruit :: Fruit,
+  _condition1 :: Bool,
+  _condition2 :: Bool,
+  _condition3 :: Bool
 } deriving (Show, Eq)
 
 instance Default App where
@@ -31,7 +34,10 @@ instance Default App where
     _textField2 = "",
     _textField3 = "",
     _dropdown1 = "",
-    _fruit = Orange
+    _fruit = Orange,
+    _condition1 = False,
+    _condition2 = False,
+    _condition3 = False
   }
 
 makeLenses ''App

@@ -5,6 +5,7 @@ module Monomer.Graphics.Drawing (
   calcTextBounds,
   contentRect,
   drawRect,
+  drawRectBorder,
   drawEllipse,
   drawEllipseBorder,
   drawStyledBackground,
@@ -31,7 +32,7 @@ drawStyledBackground renderer viewport StyleState{..} = do
   drawRect renderer rect _sstBgColor _sstRadius
 
   when (isJust _sstBorder) $
-    drawStyledBorder renderer rect (fromJust _sstBorder) _sstRadius
+    drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
 drawRect
   :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
@@ -81,15 +82,15 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
       renderArc renderer (Point x4 y4) (justDef _radBottomLeft) 90 180 CW
     renderLineTo renderer (Point xl y1)
 
-drawStyledBorder
+drawRectBorder
   :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
-drawStyledBorder renderer rect border Nothing =
-  drawBorder renderer rect border
-drawStyledBorder renderer rect border (Just radius) =
-  drawRoundedBorder renderer rect border radius
+drawRectBorder renderer rect border Nothing =
+  drawRectSimpleBorder renderer rect border
+drawRectBorder renderer rect border (Just radius) =
+  drawRectRoundedBorder renderer rect border radius
 
-drawBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
-drawBorder renderer rt@(Rect xl yt w h) border@Border{..} =
+drawRectSimpleBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
+drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
   let
     xr = xl + w
     yb = yt + h
@@ -106,10 +107,10 @@ drawBorder renderer rt@(Rect xl yt w h) border@Border{..} =
     strokeBorder renderer (p2 xr ybb) (p2 xl ybb) _brdBottom
     strokeBorder renderer (p2 xlb yb) (p2 xlb yt) _brdLeft
 
-    drawCorners renderer rt border
+    drawRectCorners renderer rt border
 
-drawCorners :: Monad m => Renderer m -> Rect -> Border -> m ()
-drawCorners renderer (Rect xl yt w h) Border{..} =
+drawRectCorners :: Monad m => Renderer m -> Rect -> Border -> m ()
+drawRectCorners renderer (Rect xl yt w h) Border{..} =
   let
     xr = xl + w
     yb = yt + h
@@ -147,8 +148,9 @@ drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   fill renderer
 drawCorner renderer p1 p2 p3 _ _ = return ()
 
-drawRoundedBorder :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
-drawRoundedBorder renderer rect border radius =
+drawRectRoundedBorder
+  :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
+drawRectRoundedBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
     Border{..} = border

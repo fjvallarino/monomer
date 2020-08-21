@@ -1,6 +1,7 @@
 module Monomer.Widgets (
   module Monomer.Widget.Widgets.Box,
   module Monomer.Widget.Widgets.Button,
+  module Monomer.Widget.Widgets.Checkbox,
   module Monomer.Widget.Widgets.Dropdown,
   module Monomer.Widget.Widgets.Grid,
   module Monomer.Widget.Widgets.Label,
@@ -14,6 +15,7 @@ module Monomer.Widgets (
 
 import Monomer.Widget.Widgets.Box
 import Monomer.Widget.Widgets.Button
+import Monomer.Widget.Widgets.Checkbox
 import Monomer.Widget.Widgets.Dropdown
 import Monomer.Widget.Widgets.Grid
 import Monomer.Widget.Widgets.Label
