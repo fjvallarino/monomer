@@ -85,7 +85,7 @@ instance Semigroup (WidgetResult s e) where
 data WidgetPlatform = WidgetPlatform {
   _wpOS :: Text,
   _wpGetKeyCode :: String -> Maybe KeyCode,
-  _wpGetTextSize :: Font -> FontSize -> Text -> Size
+  _wpComputeTextSize :: Font -> FontSize -> Text -> Size
 }
 
 data WidgetEnv s e = WidgetEnv {

@@ -41,5 +41,5 @@ data Renderer m = (Monad m) => Renderer {
   renderEllipse :: Rect -> m (),
   -- Text
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
-  getTextSize :: Font -> FontSize -> Text -> Size
+  computeTextSize :: Font -> FontSize -> Text -> Size
 }

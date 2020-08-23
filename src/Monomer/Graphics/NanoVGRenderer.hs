@@ -163,7 +163,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
       (realToFrac tw / dpr)
       (realToFrac th / dpr)
 
-  getTextSize font fontSize message = unsafePerformIO $ do
+  computeTextSize font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
 
     liftIO $ VG.fontFace c (unFont font)

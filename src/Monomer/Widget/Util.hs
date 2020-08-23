@@ -4,7 +4,7 @@
 module Monomer.Widget.Util where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.), (.~), (?~), non, _Just)
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (?~), non, _Just)
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
@@ -16,11 +16,12 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil (addOuterSize)
 import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
-import Monomer.Graphics.Drawing (calcTextBounds, drawStyledBackground)
+import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
@@ -164,13 +165,20 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
 
-getTextBounds :: WidgetEnv s e -> StyleState -> Text -> Size
-getTextBounds wenv style text = calcTextBounds handler textStyle text where
-  textStyle = _sstText style
-  handler = _wpGetTextSize (_wePlatform wenv)
+getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
+getTextSize wenv theme style text = handler font fontSize text where
+  handler = _wpComputeTextSize (_wePlatform wenv)
+  styleFont = style ^? S.text . _Just  . S.font . _Just
+  styleFontSize = style ^? S.text . _Just . S.fontSize . _Just
+  themeFont = theme ^. S.font
+  themeFontSize = theme ^. S.fontSize
+  font = fromMaybe themeFont styleFont
+  fontSize = fromMaybe themeFontSize styleFontSize
 
-getFullTextBounds :: WidgetEnv s e -> StyleState -> Text -> Size
-getFullTextBounds wenv style text = getTextBounds wenv style text
+getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
+getFullTextSize wenv theme style text = totalBounds where
+  textBounds = getTextSize wenv theme style text
+  totalBounds = addOuterSize style textBounds
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where

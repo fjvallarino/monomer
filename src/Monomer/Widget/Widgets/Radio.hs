@@ -11,6 +11,7 @@ import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil (removeOuterBounds)
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -84,7 +85,7 @@ makeRadio config = widget where
       style = activeStyle wenv inst
       value = widgetValueGet model (_rdcValue config)
       option = _rdcOption config
-      rarea = contentRect style $ _wiRenderArea inst
+      rarea = removeOuterBounds style $ _wiRenderArea inst
       radioL = _rX rarea
       radioT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)

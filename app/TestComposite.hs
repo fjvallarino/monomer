@@ -13,7 +13,7 @@ import Data.Typeable (Typeable)
 import TextShow
 
 import Monomer.Common.Style
-import Monomer.Common.StyleUtil
+import Monomer.Common.StyleCombinators
 import Monomer.Graphics.Color
 import Monomer.Main.Util
 import Monomer.Widget.Composite

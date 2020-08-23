@@ -43,6 +43,16 @@ pointInRect (Point px py) (Rect x y w h) = pointInH && pointInV where
   pointInH = px >= x && px < x + w
   pointInV = py >= y && py < y + h
 
+addToSize :: Size -> Double -> Double -> Size
+addToSize (Size w h) w2 h2 = Size nw nh where
+  nw = max 0 $ w + w2
+  nh = max 0 $ h + h2
+
+subtractFromSize :: Size -> Double -> Double -> Size
+subtractFromSize (Size w h) w2 h2 = Size nw nh where
+  nw = max 0 $ w - w2
+  nh = max 0 $ h - h2
+
 rectInRect :: Rect -> Rect -> Bool
 rectInRect inner outer = rectInRectH inner outer && rectInRectV inner outer
 
@@ -53,6 +63,13 @@ rectInRectH (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) =
 rectInRectV :: Rect -> Rect -> Bool
 rectInRectV (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) =
   y1 >= y2 && y1 + h1 <= y2 + h2
+
+addToRect :: Rect -> Double -> Double -> Double -> Double -> Rect
+addToRect (Rect x y w h) l r t b = Rect nx ny nw nh where
+  nx = x - l
+  ny = y - t
+  nw = max 0 $ w + l + r
+  nh = max 0 $ h + t + b
 
 subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Rect
 subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where

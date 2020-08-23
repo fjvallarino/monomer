@@ -11,6 +11,7 @@ import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil (removeOuterBounds)
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -82,7 +83,7 @@ makeCheckbox config = widget where
       model = _weModel wenv
       style = activeStyle wenv inst
       value = widgetValueGet model (_ckcValue config)
-      rarea = contentRect style $ _wiRenderArea inst
+      rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea
       checkboxT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)

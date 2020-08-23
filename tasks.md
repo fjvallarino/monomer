@@ -143,18 +143,18 @@
   - Fix ListView keyboard navigation
   - Handle mouse entering/leaving the window
   - Rename policy... to policyW/H
-
-- Pending
   - Create Checkbox
   - Create Radio
   - Reorganize Drawing (move helpers to bottom)
+
+- Pending
+  - Create Image
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Use weight to control allocations
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Add header in all files, indicating license and documenting what the module does
-  - Create Image
   - Create Slider
   - Create Dial
   - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis

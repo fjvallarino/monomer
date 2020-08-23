@@ -1,115 +1,112 @@
-module Monomer.Common.StyleUtil where
+module Monomer.Common.StyleUtil (
+  addOuterSize,
+  removeOuterSize,
+  addOuterBounds,
+  removeOuterBounds
+) where
 
-import Control.Lens ((&), (.~), (?~), non)
 import Data.Default
+import Data.Maybe
 
+import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Graphics.Types
 
-import qualified Monomer.Common.LensStyle as L
+addOuterSize :: StyleState -> Size -> Size
+addOuterSize style sz = final where
+  margin = addMarginSize sz (_sstMargin style)
+  border = addBorderSize margin (_sstBorder style)
+  padding = addPaddingSize margin (_sstPadding style)
+  final = padding
 
-width :: Double -> StyleState
-width w = def & L.width ?~ w
+removeOuterSize :: StyleState -> Size -> Size
+removeOuterSize style sz = final where
+  margin = subtractMarginSize sz (_sstMargin style)
+  border = subtractBorderSize margin (_sstBorder style)
+  padding = subtractPaddingSize margin (_sstPadding style)
+  final = padding
 
-height :: Double -> StyleState
-height h = def & L.height ?~ h
+addOuterBounds :: StyleState -> Rect -> Rect
+addOuterBounds style viewport = final where
+  margin = addMargin viewport (_sstMargin style)
+  border = addBorder margin (_sstBorder style)
+  padding = addPadding margin (_sstPadding style)
+  final = padding
 
-margin :: Double -> StyleState
-margin mar = def & L.margin ?~ Margin jm jm jm jm where
-  jm = Just mar
+removeOuterBounds :: StyleState -> Rect -> Rect
+removeOuterBounds style viewport = final where
+  margin = subtractMargin viewport (_sstMargin style)
+  border = subtractBorder margin (_sstBorder style)
+  padding = subtractPadding margin (_sstPadding style)
+  final = padding
 
-marginL :: Double -> StyleState
-marginL mar = def & L.margin . non def . L.left ?~ mar
+-- Internal
+addBorderSize :: Size -> Maybe Border -> Size
+addBorderSize sz border = nSize where
+  (bl, br, bt, bb) = borderWidths border
+  nSize = addToSize sz (bl + br) (bt + bb)
 
-marginR :: Double -> StyleState
-marginR mar = def & L.margin . non def . L.right ?~ mar
+addMarginSize :: Size -> Maybe Margin -> Size
+addMarginSize sz Nothing = sz
+addMarginSize sz (Just (Margin l r t b)) = nSize where
+  nSize = addToSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-marginT :: Double -> StyleState
-marginT mar = def & L.margin . non def . L.top ?~ mar
+addPaddingSize :: Size -> Maybe Padding -> Size
+addPaddingSize sz Nothing = sz
+addPaddingSize sz (Just (Padding l r t b)) = nSize where
+  nSize = addToSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-marginB :: Double -> StyleState
-marginB mar = def & L.margin . non def . L.bottom ?~ mar
+subtractBorderSize :: Size -> Maybe Border -> Size
+subtractBorderSize sz border = nSize where
+  (bl, br, bt, bb) = borderWidths border
+  nSize = subtractFromSize sz (bl + br) (bt + bb)
 
-padding :: Double -> StyleState
-padding padd = def & L.padding ?~ Padding jp jp jp jp where
-  jp = Just padd
+subtractMarginSize :: Size -> Maybe Margin -> Size
+subtractMarginSize sz Nothing = sz
+subtractMarginSize sz (Just (Margin l r t b)) = nSize where
+  nSize = subtractFromSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-paddingL :: Double -> StyleState
-paddingL padd = def & L.padding . non def . L.left ?~ padd
+subtractPaddingSize :: Size -> Maybe Padding -> Size
+subtractPaddingSize sz Nothing = sz
+subtractPaddingSize sz (Just (Padding l r t b)) = nSize where
+  nSize = subtractFromSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-paddingR :: Double -> StyleState
-paddingR padd = def & L.padding . non def . L.right ?~ padd
+addBorder :: Rect -> Maybe Border -> Rect
+addBorder rect border = nRect where
+  (bl, br, bt, bb) = borderWidths border
+  nRect = addToRect rect bl br bt bb
 
-paddingT :: Double -> StyleState
-paddingT padd = def & L.padding . non def . L.top ?~ padd
+addMargin :: Rect -> Maybe Margin -> Rect
+addMargin rect Nothing = rect
+addMargin rect (Just (Margin l r t b)) = nRect where
+  nRect = addToRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-paddingB :: Double -> StyleState
-paddingB padd = def & L.padding . non def . L.bottom ?~ padd
+addPadding :: Rect -> Maybe Padding -> Rect
+addPadding rect Nothing = rect
+addPadding rect (Just (Padding l r t b)) = nRect where
+  nRect = addToRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-border :: Double -> Color -> StyleState
-border w col = def & L.border ?~ Border bs bs bs bs where
-  bs =  Just (BorderSide w col)
+subtractBorder :: Rect -> Maybe Border -> Rect
+subtractBorder rect border = nRect where
+  (bl, br, bt, bb) = borderWidths border
+  nRect = subtractFromRect rect bl br bt bb
 
-borderL :: Double -> Color -> StyleState
-borderL w col = def & L.border . non def . L.left ?~ BorderSide w col
+subtractMargin :: Rect -> Maybe Margin -> Rect
+subtractMargin rect Nothing = rect
+subtractMargin rect (Just (Margin l r t b)) = nRect where
+  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-borderR :: Double -> Color -> StyleState
-borderR w col = def & L.border . non def . L.right ?~ BorderSide w col
+subtractPadding :: Rect -> Maybe Padding -> Rect
+subtractPadding rect Nothing = rect
+subtractPadding rect (Just (Padding l r t b)) = nRect where
+  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-borderT :: Double -> Color -> StyleState
-borderT w col = def & L.border . non def . L.top ?~ BorderSide w col
+borderWidths :: Maybe Border -> (Double, Double, Double, Double)
+borderWidths Nothing = (0, 0, 0, 0)
+borderWidths (Just border) = (bl, br, bt, bb) where
+  bl = maybe 0 _bsWidth (_brdLeft border)
+  br = maybe 0 _bsWidth (_brdRight border)
+  bt = maybe 0 _bsWidth (_brdTop border)
+  bb = maybe 0 _bsWidth (_brdBottom border)
 
-borderB :: Double -> Color -> StyleState
-borderB w col = def & L.border . non def . L.bottom ?~ BorderSide w col
-
-radius :: Double -> StyleState
-radius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
-  jrad = Just rad
-
-radiusTL :: Double -> StyleState
-radiusTL rad = def & L.radius . non def . L.topLeft ?~ rad
-
-radiusTR :: Double -> StyleState
-radiusTR rad = def & L.radius . non def . L.topRight ?~ rad
-
-radiusBL :: Double -> StyleState
-radiusBL rad = def & L.radius . non def . L.bottomLeft ?~ rad
-
-radiusBR :: Double -> StyleState
-radiusBR rad = def & L.radius . non def . L.bottomRight ?~ rad
-
-bgColor :: Color -> StyleState
-bgColor col = def & L.bgColor ?~ col
-
-textFont :: Font -> StyleState
-textFont font = def & L.text . non def . L.font ?~ font
-
-textSize :: Double -> StyleState
-textSize size = def & L.text . non def . L.fontSize ?~ FontSize size
-
-textColor :: Color -> StyleState
-textColor col = def & L.text . non def . L.color ?~ col
-
-textAlignH :: AlignH -> StyleState
-textAlignH align = def & L.text . non def . L.alignH ?~ align
-
-textAlignV :: AlignV -> StyleState
-textAlignV align = def & L.text . non def . L.alignV ?~ align
-
-textLeft :: StyleState
-textLeft = textAlignH ALeft
-
-textCenter :: StyleState
-textCenter = textAlignH ACenter
-
-textRight :: StyleState
-textRight = textAlignH ARight
-
-textTop :: StyleState
-textTop = textAlignV ATop
-
-textMiddle :: StyleState
-textMiddle = textAlignV AMiddle
-
-textBottom :: StyleState
-textBottom = textAlignV ABottom
+justDef :: (Default a) => Maybe a -> a
+justDef val = fromMaybe def val

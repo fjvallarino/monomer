@@ -142,8 +142,9 @@ makeTextField config state = widget where
     }
 
   getSizeReq wenv widgetInst = sizeReq where
+    theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextBounds wenv style currText
+    size = getTextSize wenv theme style currText
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv widgetInst = do
@@ -151,14 +152,15 @@ makeTextField config state = widget where
     Rect tl tt _ _ <- drawStyledText renderer renderArea style currText
 
     when (isFocused wenv widgetInst) $ do
-      let Size sw sh = getTextBounds wenv style part1
+      let Size sw sh = getTextSize wenv theme style part1
       drawRect renderer (Rect (tl + sw) tt caretWidth sh) caretColor Nothing
 
     where
       WidgetInstance{..} = widgetInst
+      theme = activeTheme wenv widgetInst
+      style = activeStyle wenv widgetInst
       ts = _weTimestamp wenv
       renderArea@(Rect rl rt rw rh) = _wiRenderArea
-      style = activeStyle wenv widgetInst
       caretAlpha
         | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0

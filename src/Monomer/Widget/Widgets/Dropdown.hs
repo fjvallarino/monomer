@@ -26,7 +26,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.StyleUtil
+import Monomer.Common.StyleCombinators
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -168,8 +168,9 @@ makeDropdown config state = widget where
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
   getSizeReq wenv widgetInst children = sizeReq where
+    theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextBounds wenv style (dropdownLabel wenv)
+    size = getTextSize wenv theme style (dropdownLabel wenv)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   resize wenv viewport renderArea children widgetInst = resized where

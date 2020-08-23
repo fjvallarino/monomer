@@ -23,8 +23,9 @@ makeLabel caption = widget where
   }
 
   getSizeReq wenv widgetInst = sizeReq where
+    theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextBounds wenv style caption
+    size = getTextSize wenv theme style caption
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv widgetInst = do

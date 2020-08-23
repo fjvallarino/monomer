@@ -2,8 +2,6 @@
 {- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Graphics.Drawing (
-  calcTextBounds,
-  contentRect,
   drawRect,
   drawRectBorder,
   drawEllipse,
@@ -14,25 +12,16 @@ module Monomer.Graphics.Drawing (
   drawText
 ) where
 
-import Control.Monad (when, void, forM_)
+import Control.Monad (when, void)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleUtil
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
-
-drawStyledBackground :: (Monad m) => Renderer m -> Rect -> StyleState -> m ()
-drawStyledBackground renderer viewport StyleState{..} = do
-  let margin = _sstMargin
-  let rect = subtractMargin viewport margin
-
-  drawRect renderer rect _sstBgColor _sstRadius
-
-  when (isJust _sstBorder) $
-    drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
 drawRect
   :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
@@ -47,6 +36,55 @@ drawRect renderer viewport (Just color) (Just radius) = do
   setFillColor renderer color
   drawRoundedRect renderer viewport radius
   fill renderer
+
+drawRectBorder
+  :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
+drawRectBorder renderer rect border Nothing =
+  drawRectSimpleBorder renderer rect border
+drawRectBorder renderer rect border (Just radius) =
+  drawRectRoundedBorder renderer rect border radius
+
+drawEllipse :: (Monad m) => Renderer m -> Rect -> Maybe Color -> m ()
+drawEllipse renderer rect Nothing = return ()
+drawEllipse renderer rect (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  renderEllipse renderer rect
+  fill renderer
+
+drawEllipseBorder
+  :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Double -> m ()
+drawEllipseBorder renderer rect Nothing _ = return ()
+drawEllipseBorder renderer rect (Just color) width = do
+  beginPath renderer
+  setStrokeColor renderer color
+  setStrokeWidth renderer width
+  renderEllipse renderer finalRect
+  stroke renderer
+  where
+    finalRect = subtractFromRect rect w w w w
+    w = width / 2
+
+drawStyledBackground :: (Monad m) => Renderer m -> Rect -> StyleState -> m ()
+drawStyledBackground renderer viewport style = do
+  let StyleState{..} = style
+  let margin = _sstMargin
+  let rect = removeOuterBounds style viewport
+
+  drawRect renderer rect _sstBgColor _sstRadius
+
+  when (isJust _sstBorder) $
+    drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
+
+drawStyledText
+  :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m Rect
+drawStyledText renderer viewport style txt = action where
+  tsRect = removeOuterBounds style viewport
+  action = drawText renderer tsRect (_sstText style) txt
+
+drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
+drawStyledText_ renderer viewport style txt = void action where
+  action = drawStyledText renderer viewport style txt
 
 drawRoundedRect :: (Monad m) => Renderer m -> Rect -> Radius -> m ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =
@@ -81,13 +119,6 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     when (isJust _radBottomLeft) $
       renderArc renderer (Point x4 y4) (justDef _radBottomLeft) 90 180 CW
     renderLineTo renderer (Point xl y1)
-
-drawRectBorder
-  :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
-drawRectBorder renderer rect border Nothing =
-  drawRectSimpleBorder renderer rect border
-drawRectBorder renderer rect border (Just radius) =
-  drawRectRoundedBorder renderer rect border radius
 
 drawRectSimpleBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
 drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
@@ -276,37 +307,6 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
-drawEllipse :: (Monad m) => Renderer m -> Rect -> Maybe Color -> m ()
-drawEllipse renderer rect Nothing = return ()
-drawEllipse renderer rect (Just color) = do
-  beginPath renderer
-  setFillColor renderer color
-  renderEllipse renderer rect
-  fill renderer
-
-drawEllipseBorder
-  :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Double -> m ()
-drawEllipseBorder renderer rect Nothing _ = return ()
-drawEllipseBorder renderer rect (Just color) width = do
-  beginPath renderer
-  setStrokeColor renderer color
-  setStrokeWidth renderer width
-  renderEllipse renderer finalRect
-  stroke renderer
-  where
-    finalRect = subtractFromRect rect w w w w
-    w = width / 2
-
-drawStyledText
-  :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m Rect
-drawStyledText renderer viewport style txt = action where
-  tsRect = contentRect style viewport
-  action = drawText renderer tsRect (_sstText style) txt
-
-drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
-drawStyledText_ renderer viewport style txt = void action where
-  action = drawStyledText renderer viewport style txt
-
 drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
 drawText renderer viewport Nothing txt =
   drawText renderer viewport (Just mempty) txt
@@ -321,54 +321,8 @@ drawText renderer viewport (Just TextStyle{..}) txt = do
     tsAlignV = justDef _txsAlignV
     tsAlign = Align tsAlignH tsAlignV
 
-calcTextBounds
-  :: (Font -> FontSize -> Text -> Size) -> Maybe TextStyle -> Text -> Size
-calcTextBounds textBoundsFn Nothing txt
-  = calcTextBounds textBoundsFn (Just mempty) txt
-calcTextBounds textBoundsFn (Just TextStyle{..}) txt =
-  let
-    tsFont = justDef _txsFont
-    tsFontSize = justDef _txsFontSize
-  in
-    textBoundsFn tsFont tsFontSize txt
-
-borderWidths :: Maybe Border -> (Double, Double, Double, Double)
-borderWidths Nothing = (0, 0, 0, 0)
-borderWidths (Just border) = (bl, br, bt, bb) where
-  bl = maybe 0 _bsWidth (_brdLeft border)
-  br = maybe 0 _bsWidth (_brdRight border)
-  bt = maybe 0 _bsWidth (_brdTop border)
-  bb = maybe 0 _bsWidth (_brdBottom border)
-
-subtractBorder :: Rect -> Maybe Border -> Rect
-subtractBorder (Rect x y w h) border = Rect nx ny nw nh where
-  nx = x + bl
-  ny = y + bt
-  nw = w - bl - br
-  nh = h - bt - bb
-
-  (bl, br, bt, bb) = borderWidths border
-
-subtractMargin :: Rect -> Maybe Margin -> Rect
-subtractMargin rect Nothing = rect
-subtractMargin rect (Just (Margin l r t b)) = nRect where
-  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
-
-subtractPadding :: Rect -> Maybe Padding -> Rect
-subtractPadding rect Nothing = rect
-subtractPadding rect (Just (Padding l r t b)) = nRect where
-  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
-
-contentRect :: StyleState -> Rect -> Rect
-contentRect style viewport = final where
-  margin = subtractMargin viewport (_sstMargin style)
-  border = subtractBorder margin (_sstBorder style)
-  padding = subtractPadding margin (_sstPadding style)
-  final = padding
-
 justDef :: (Default a) => Maybe a -> a
-justDef Nothing = def
-justDef (Just val) = val
+justDef val = fromMaybe def val
 
 p2 :: Double -> Double -> Point
 p2 x y = Point x y

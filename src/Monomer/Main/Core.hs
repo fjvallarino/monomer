@@ -67,7 +67,7 @@ createWidgetPlatform :: (Monad m) => Text -> Renderer m -> WidgetPlatform
 createWidgetPlatform os renderer = WidgetPlatform {
   _wpOS = os,
   _wpGetKeyCode = getKeyCode,
-  _wpGetTextSize = getTextSize renderer
+  _wpComputeTextSize = computeTextSize renderer
 }
 
 runWidgets
