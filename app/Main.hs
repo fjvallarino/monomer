@@ -136,7 +136,7 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
-  widgetTree2 = vstack [
+  widgetTree = vstack [
       label (showt $ model ^. clickCount),
       textField textField1 `style` bgColor lightGray,
       hstack [
@@ -160,7 +160,7 @@ buildUI model = trace "Creating UI" widgetTree where
       listView textField1 items id,
       button IncButton "Click!"
     ] `key` "Main"
-  widgetTree = hstack
+  widgetTree3 = vstack
     [hstack [
       radio fruit Apple,
       radio fruit Orange,

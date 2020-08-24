@@ -23,6 +23,10 @@ import Monomer.Graphics.Types
 
 type Overlays m = Monad m => IORef (Seq (m ()))
 
+data CPoint
+    = CPoint CFloat CFloat
+    deriving (Eq, Show)
+
 data CRect
     = CRect CFloat CFloat CFloat CFloat
     deriving (Eq, Show)
@@ -58,12 +62,10 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     liftIO $ writeIORef overlaysRef Seq.empty
 
   -- Scissor operations
-  setScissor (Rect x y w h) =
-    liftIO $ VG.scissor c
-      (realToFrac $ x * dpr)
-      (realToFrac $ y * dpr)
-      (realToFrac $ w * dpr)
-      (realToFrac $ h * dpr)
+  setScissor rect =
+    liftIO $ VG.scissor c x y w h
+    where
+      CRect x y w h = rectToCRect rect dpr
 
   resetScissor =
     liftIO $ VG.resetScissor c
@@ -85,58 +87,62 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   setFillColor color =
     liftIO $ VG.fillColor c (colorToPaint color)
 
-  setFillLinearGradient (Point x1 y1) (Point x2 y2) color1 color2 =
-    let
+  setFillLinearGradient p1 p2 color1 color2 = do
+    gradient <- liftIO $ VG.linearGradient c x1 y1 x2 y2 col1 col2
+    liftIO $ VG.fillPaint c gradient
+    where
       col1 = colorToPaint color1
       col2 = colorToPaint color2
-    in do
-      gradient <- liftIO $ VG.linearGradient c
-        (realToFrac $ x1 * dpr)
-        (realToFrac $ y1 * dpr)
-        (realToFrac $ x2 * dpr)
-        (realToFrac $ y2 * dpr)
-        col1 col2
-      liftIO $ VG.fillPaint c gradient
+      CPoint x1 y1 = pointToCPoint p1 dpr
+      CPoint x2 y2 = pointToCPoint p2 dpr
 
   -- Drawing
-  moveTo (Point x y) =
-    liftIO $ nvMoveTo c (x * dpr) (y * dpr)
+  moveTo point =
+    liftIO $ VG.moveTo c x y
+    where
+      CPoint x y = pointToCPoint point dpr
 
-  renderLine (Point x1 y1) (Point x2 y2) = do
-    liftIO $ nvMoveTo c (x1 * dpr) (y1 * dpr)
-    liftIO $ nvLineTo c (x2 * dpr) (y2 * dpr)
+  renderLine p1 p2 = do
+    liftIO $ VG.moveTo c x1 y1
+    liftIO $ VG.lineTo c x2 y2
+    where
+      CPoint x1 y1 = pointToCPoint p1 dpr
+      CPoint x2 y2 = pointToCPoint p2 dpr
 
-  renderLineTo (Point x y) = do
+  renderLineTo point = do
     liftIO $ VG.lineJoin c VG.Bevel
-    liftIO $ nvLineTo c (x * dpr) (y * dpr)
+    liftIO $ VG.lineTo c x y
+    where
+      CPoint x y = pointToCPoint point dpr
 
-  renderRect (Rect x y w h) =
-    liftIO $ VG.rect c
-      (realToFrac $ x * dpr)
-      (realToFrac $ y * dpr)
-      (realToFrac $ w * dpr)
-      (realToFrac $ h * dpr)
+  renderRect rect =
+    liftIO $ VG.rect c x y w h
+    where
+      CRect x y w h = rectToCRect rect dpr
 
-  renderArc (Point x1 y1) rad angleStart angleEnd winding =
-    liftIO $ nvArc c
-      (x1 * dpr) (y1 * dpr)
-      (rad * dpr)
-      angleStart angleEnd
-      (convertWinding winding)
+  renderArc point rad angleStart angleEnd winding =
+    liftIO $ VG.arc c x y radius start end wind
+    where
+      CPoint x y = pointToCPoint point dpr
+      radius = realToFrac rad
+      start = VG.degToRad $ realToFrac angleStart
+      end = VG.degToRad $ realToFrac angleEnd
+      wind = convertWinding winding
 
-  renderQuadTo (Point x1 y1) (Point x2 y2) =
-    liftIO $ VG.quadTo c
-      (realToFrac $ x1 * dpr) (realToFrac $ y1 * dpr)
-      (realToFrac $ x2 * dpr) (realToFrac $ y2 * dpr)
+  renderQuadTo p1 p2 =
+    liftIO $ VG.quadTo c x1 y1 x2 y2
+    where
+      CPoint x1 y1 = pointToCPoint p1 dpr
+      CPoint x2 y2 = pointToCPoint p2 dpr
 
-  renderEllipse (Rect x y w h) =
-    liftIO $ VG.ellipse c
-      (realToFrac $ cx * dpr) (realToFrac $ cy * dpr)
-      (realToFrac $ rx * dpr) (realToFrac $ ry * dpr)
-    where cx = x + rx
-          cy = y + ry
-          rx = w / 2
-          ry = h / 2
+  renderEllipse rect =
+    liftIO $ VG.ellipse c cx cy rx ry
+    where
+      CRect x y w h = rectToCRect rect dpr
+      cx = x + rx
+      cy = y + ry
+      rx = w / 2
+      ry = h / 2
 
   -- Text
   renderText (Rect x y w h) font fontSize (Align ha va) message = do
@@ -191,7 +197,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     liftIO $ VG.fill c
     where
       nvImg = VG.Image $ fromIntegral (_imageHandle image)
-      CRect x y w h = rectToCRect rect
+      CRect x y w h = rectToCRect rect dpr
 
 createImageHandle :: (MonadIO m) => VG.Context -> VG.Image -> m Image
 createImageHandle c nvImg = do
@@ -201,24 +207,6 @@ createImageHandle c nvImg = do
     _imageHandle = fromIntegral $ VG.imageHandle nvImg,
     _imageSize = Size (fromIntegral w) (fromIntegral h)
   }
-
-nvMoveTo :: VG.Context -> Double -> Double -> IO ()
-nvMoveTo c x y =
-  VG.moveTo c (realToFrac x) (realToFrac y)
-
-nvLineTo :: VG.Context -> Double -> Double -> IO ()
-nvLineTo c x y =
-  VG.lineTo c (realToFrac x) (realToFrac y)
-
-nvArc
-  :: VG.Context
-  -> Double -> Double -> Double -> Double -> Double -> VG.Winding -> IO ()
-nvArc c cx cy radius angleStart angleEnd winding =
-  VG.arc c
-    (realToFrac cx) (realToFrac cy)
-    (realToFrac radius)
-    (VG.degToRad $ realToFrac angleStart) (VG.degToRad $ realToFrac angleEnd)
-    winding
 
 colorToPaint :: Color -> VG.Color
 colorToPaint (Color r g b a)
@@ -234,9 +222,14 @@ convertWinding :: Winding -> VG.Winding
 convertWinding CW = VG.CW
 convertWinding CCW = VG.CCW
 
-rectToCRect :: Rect -> CRect
-rectToCRect (Rect x y w h) = CRect cx cy cw ch where
-  cx = realToFrac x
-  cy = realToFrac y
-  ch = realToFrac h
-  cw = realToFrac w
+pointToCPoint :: Point -> Double -> CPoint
+pointToCPoint (Point x y) dpr = CPoint cx cy where
+  cx = realToFrac $ x * dpr
+  cy = realToFrac $ y * dpr
+
+rectToCRect :: Rect -> Double -> CRect
+rectToCRect (Rect x y w h) dpr = CRect cx cy cw ch where
+  cx = realToFrac $ x * dpr
+  cy = realToFrac $ y * dpr
+  ch = realToFrac $ h * dpr
+  cw = realToFrac $ w * dpr
