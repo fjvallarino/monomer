@@ -4,6 +4,7 @@ module Monomer.Widgets (
   module Monomer.Widget.Widgets.Checkbox,
   module Monomer.Widget.Widgets.Dropdown,
   module Monomer.Widget.Widgets.Grid,
+  module Monomer.Widget.Widgets.Image,
   module Monomer.Widget.Widgets.Label,
   module Monomer.Widget.Widgets.ListView,
   module Monomer.Widget.Widgets.Radio,
@@ -18,6 +19,7 @@ import Monomer.Widget.Widgets.Button
 import Monomer.Widget.Widgets.Checkbox
 import Monomer.Widget.Widgets.Dropdown
 import Monomer.Widget.Widgets.Grid
+import Monomer.Widget.Widgets.Image
 import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.ListView
 import Monomer.Widget.Widgets.Radio

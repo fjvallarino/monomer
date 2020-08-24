@@ -29,6 +29,7 @@ dependencies:
 - data-default
 - extra
 - lens
+- JuicyPixels
 - mtl
 - nanovg
 - OpenGL
@@ -36,6 +37,7 @@ dependencies:
 - stm
 - text
 - text-show
+- transformers
 - unordered-containers
 - vector
 

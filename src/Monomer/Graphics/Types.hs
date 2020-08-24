@@ -8,6 +8,19 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Text (Text)
 
+import Monomer.Common.Geometry
+
+newtype LocalPath
+  = LocalPath Text
+  deriving (Eq, Show)
+
+data Winding = CW | CCW deriving (Eq, Show)
+
+data Image = Image {
+  _imageHandle :: Int,
+  _imageSize :: Size
+} deriving (Eq, Show)
+
 data Color = Color {
   _colorRed :: Int,
   _colorGreen :: Int,

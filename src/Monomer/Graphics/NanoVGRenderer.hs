@@ -3,12 +3,15 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Monad (when)
+import Debug.Trace
+
+import Control.Monad (forM, when)
 import Control.Monad.IO.Class
 import Data.Default
 import Data.IORef
 import Data.Sequence (Seq, (|>))
 import Data.Text (Text)
+import Foreign.C.Types (CFloat)
 import System.IO.Unsafe
 
 import qualified NanoVG as VG
@@ -19,6 +22,10 @@ import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 type Overlays m = Monad m => IORef (Seq (m ()))
+
+data CRect
+    = CRect CFloat CFloat CFloat CFloat
+    deriving (Eq, Show)
 
 makeRenderer :: (MonadIO m) => VG.Context -> Double -> m (Renderer m)
 makeRenderer c dpr = do
@@ -172,6 +179,29 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
+  loadImage (LocalPath path) = unsafePerformIO $ do
+    nvImg <- liftIO $ VG.createImage c (VG.FileName path) 0
+    forM nvImg $ createImageHandle c
+
+  renderImage rect image = do
+    imgPaint <- liftIO $ VG.imagePattern c x y w h 0 nvImg 1
+    liftIO $ VG.beginPath c
+    liftIO $ VG.rect c x y w h
+    liftIO $ VG.fillPaint c imgPaint
+    liftIO $ VG.fill c
+    where
+      nvImg = VG.Image $ fromIntegral (_imageHandle image)
+      CRect x y w h = rectToCRect rect
+
+createImageHandle :: (MonadIO m) => VG.Context -> VG.Image -> m Image
+createImageHandle c nvImg = do
+  (w, h) <- liftIO $ VG.imageSize c nvImg
+
+  return $ Image {
+    _imageHandle = fromIntegral $ VG.imageHandle nvImg,
+    _imageSize = Size (fromIntegral w) (fromIntegral h)
+  }
+
 nvMoveTo :: VG.Context -> Double -> Double -> IO ()
 nvMoveTo c x y =
   VG.moveTo c (realToFrac x) (realToFrac y)
@@ -203,3 +233,10 @@ colorToPaint (Color r g b a)
 convertWinding :: Winding -> VG.Winding
 convertWinding CW = VG.CW
 convertWinding CCW = VG.CCW
+
+rectToCRect :: Rect -> CRect
+rectToCRect (Rect x y w h) = CRect cx cy cw ch where
+  cx = realToFrac x
+  cy = realToFrac y
+  ch = realToFrac h
+  cw = realToFrac w

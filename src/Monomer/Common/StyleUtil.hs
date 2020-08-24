@@ -1,8 +1,9 @@
 module Monomer.Common.StyleUtil (
   addOuterSize,
-  removeOuterSize,
   addOuterBounds,
-  removeOuterBounds
+  removeOuterSize,
+  removeOuterBounds,
+  subtractMargin
 ) where
 
 import Data.Default

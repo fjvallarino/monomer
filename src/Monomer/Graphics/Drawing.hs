@@ -9,7 +9,9 @@ module Monomer.Graphics.Drawing (
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
-  drawText
+  drawText,
+  drawImage,
+  drawStyledImage
 ) where
 
 import Control.Monad (when, void)
@@ -69,7 +71,7 @@ drawStyledBackground :: (Monad m) => Renderer m -> Rect -> StyleState -> m ()
 drawStyledBackground renderer viewport style = do
   let StyleState{..} = style
   let margin = _sstMargin
-  let rect = removeOuterBounds style viewport
+  let rect = subtractMargin viewport margin
 
   drawRect renderer rect _sstBgColor _sstRadius
 
@@ -85,6 +87,16 @@ drawStyledText renderer viewport style txt = action where
 drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
 drawStyledText_ renderer viewport style txt = void action where
   action = drawStyledText renderer viewport style txt
+
+drawImage :: (Monad m) => Renderer m -> Rect -> Image -> m ()
+drawImage renderer viewport image = action where
+  action = renderImage renderer viewport image
+
+drawStyledImage
+  :: (Monad m) => Renderer m -> Rect -> StyleState -> Image -> m ()
+drawStyledImage renderer viewport style image = action where
+  imgRect = removeOuterBounds style viewport
+  action = renderImage renderer imgRect image
 
 drawRoundedRect :: (Monad m) => Renderer m -> Rect -> Radius -> m ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =

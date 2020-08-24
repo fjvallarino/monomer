@@ -9,8 +9,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
-data Winding = CW | CCW deriving (Eq, Show)
-
 data Renderer m = (Monad m) => Renderer {
   beginPath :: m (),
   closePath :: m (),
@@ -41,5 +39,8 @@ data Renderer m = (Monad m) => Renderer {
   renderEllipse :: Rect -> m (),
   -- Text
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
-  computeTextSize :: Font -> FontSize -> Text -> Size
+  computeTextSize :: Font -> FontSize -> Text -> Size,
+  -- Image
+  loadImage :: LocalPath -> Maybe Image,
+  renderImage :: Rect -> Image -> m ()
 }
