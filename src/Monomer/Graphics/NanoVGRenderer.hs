@@ -5,9 +5,6 @@ module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
 import Debug.Trace
 
-import Control.Concurrent.MVar (MVar, newMVar, putMVar, takeMVar)
---import Control.Exception.Safe (finally)
-import Control.Exception.Base (finally)
 import Control.Monad (foldM, forM, when)
 import Control.Monad.IO.Class
 import Data.Default
@@ -18,6 +15,7 @@ import Data.Text (Text)
 import Foreign.C.Types (CFloat)
 import System.IO.Unsafe
 
+import qualified Control.Concurrent.Lock as L
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
@@ -28,8 +26,6 @@ import qualified NanoVG.Internal.Image as VGI
 import Monomer.Common.Geometry
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
-
-newtype Lock = Lock (MVar ())
 
 type ImagesMap = M.Map String VG.Image
 
@@ -60,7 +56,7 @@ makeRenderer dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
   _ <- VG.createFont c "sans" (VG.FileName "./assets/fonts/Roboto-Regular.ttf")
 
-  lock <- newLock
+  lock <- L.new
   envRef <- newIORef $ Env {
     overlays = Seq.empty,
     imagesMap = M.empty,
@@ -69,9 +65,9 @@ makeRenderer dpr = do
 
   return $ newRenderer c dpr lock envRef
 
-newRenderer :: VG.Context -> Double -> Lock -> IORef Env -> Renderer
+newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
-  beginFrame w h = withLock lock $ do
+  beginFrame w h = L.with lock $ do
     env <- readIORef envRef
     newMap <- handlePendingImages c (imagesMap env) (addedImages env)
     writeIORef envRef env {
@@ -102,12 +98,12 @@ newRenderer c dpr lock envRef = Renderer {..} where
     VG.restore c
 
   -- Overlays
-  createOverlay overlay = withLock lock $
+  createOverlay overlay = L.with lock $
     modifyIORef envRef $ \env -> env {
       overlays = overlays env |> overlay
     }
 
-  renderOverlays = withLock lock $ do
+  renderOverlays = L.with lock $ do
     env <- readIORef envRef
     sequence_ $ overlays env
     writeIORef envRef env {
@@ -236,7 +232,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
-  addImage name w h action imgData = withLock lock $ do
+  addImage name w h action imgData = L.with lock $ do
     env <- readIORef envRef
 
     writeIORef envRef env {
@@ -265,11 +261,11 @@ handlePendingImages c imagesMap addedImages =
 
 handlePendingImage :: VG.Context -> ImagesMap -> ImageReq -> IO ImagesMap
 handlePendingImage c imagesMap imageReq
-  | action == Keep && imageExists = trace "A" return imagesMap
-  | imageExists = trace "B" $ do
+  | action == Keep && imageExists = return imagesMap
+  | imageExists = do
     nvImg <- VG.updateImage c (fromJust nvImg) imgData
     return imagesMap
-  | otherwise = trace "C" $ do
+  | otherwise = do
     nvImg <- VG.createImageRGBA c cw ch VGI.ImageNearest imgData
     return $ maybe imagesMap insertImage nvImg
   where
@@ -307,24 +303,3 @@ rectToCRect (Rect x y w h) dpr = CRect cx cy cw ch where
   cy = realToFrac $ y * dpr
   ch = realToFrac $ h * dpr
   cw = realToFrac $ w * dpr
-
--- | Create a new lock.
-newLock :: IO Lock
-newLock = Lock <$> newMVar ()
-
--- | Block until the lock is available, then grab it. Something that acquires
--- the lock should at some point subsequently relinquish it with 'releaseLock'.
--- Consider using 'withLock' instead unless you need more fine-grained control.
-acquireLock :: Lock -> IO ()
-acquireLock (Lock v) = takeMVar v
-
--- | Release a lock that you have previously acquired with 'acquireLock'.
-releaseLock :: Lock -> IO ()
-releaseLock (Lock v) = putMVar v ()
-
--- | Acquire the lock, perform some action while the lock is held, then
--- release the lock. You can use this instead of manually calling 'acquireLock'
--- and 'releaseLock'.
-withLock :: Lock -> IO a -> IO a
-withLock lock action =
-  acquireLock lock *> action `finally` releaseLock lock

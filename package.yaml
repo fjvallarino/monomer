@@ -28,6 +28,7 @@ dependencies:
 - bytestring
 - bytestring-to-vector
 - containers
+- concurrent-extra
 - data-default
 - extra
 - lens
