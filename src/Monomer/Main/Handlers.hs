@@ -65,28 +65,26 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
 
 handleSystemEvents
   :: (MonomerM s m)
-  => Renderer m
-  -> WidgetEnv s e
+  => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetInstance s e
   -> m (HandlerStep s e)
-handleSystemEvents renderer wenv systemEvents widgetRoot = nextStep where
+handleSystemEvents wenv systemEvents widgetRoot = nextStep where
   reducer (cWctx, cEvents, cRoot) evt = do
     focused <- use pathFocus
 
-    (wenv2, evts2, wroot2) <- handleSystemEvent renderer cWctx evt focused cRoot
+    (wenv2, evts2, wroot2) <- handleSystemEvent cWctx evt focused cRoot
     return (wenv2, cEvents >< evts2, wroot2)
   nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents
 
 handleSystemEvent
   :: (MonomerM s m)
-  => Renderer m
-  -> WidgetEnv s e
+  => WidgetEnv s e
   -> SystemEvent
   -> Path
   -> WidgetInstance s e
   -> m (HandlerStep s e)
-handleSystemEvent renderer wenv event currentTarget widgetRoot = do
+handleSystemEvent wenv event currentTarget widgetRoot = do
   pressed <- use pathPressed
   overlay <- use pathOverlay
 
@@ -100,61 +98,58 @@ handleSystemEvent renderer wenv event currentTarget widgetRoot = do
       let reqs = _wrRequests widgetResult
       let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
 
-      handleWidgetResult renderer wenv widgetResult
-        >>= handleFocusChange renderer event stopProcessing
+      handleWidgetResult wenv widgetResult
+        >>= handleFocusChange event stopProcessing
 
 handleWidgetInit
   :: (MonomerM s m)
-  => Renderer m
-  -> WidgetEnv s e
+  => WidgetEnv s e
   -> WidgetInstance s e
   -> m (HandlerStep s e)
-handleWidgetInit renderer wenv widgetRoot = do
+handleWidgetInit wenv widgetRoot = do
   let widget = _wiWidget widgetRoot
   let widgetResult = widgetInit widget wenv widgetRoot
 
-  handleWidgetResult renderer wenv widgetResult
+  handleWidgetResult wenv widgetResult
 
 handleWidgetResult
   :: (MonomerM s m)
-  => Renderer m
-  -> WidgetEnv s e
+  => WidgetEnv s e
   -> WidgetResult s e
   -> m (HandlerStep s e)
-handleWidgetResult renderer wenv (WidgetResult reqs events evtRoot) = do
+handleWidgetResult wenv (WidgetResult reqs events evtRoot) = do
   let evtUpdates = getUpdateModelReqs reqs
   let evtModel = foldr (.) id evtUpdates (_weModel wenv)
   let evtWctx = wenv { _weModel = evtModel }
 
   handleNewWidgetTasks reqs
 
-  handleFocusSet renderer reqs (evtWctx, events, evtRoot)
-    >>= handleClipboardGet renderer reqs
-    >>= handleClipboardSet renderer reqs
-    >>= handleSendMessages renderer reqs
-    >>= handleOverlaySet renderer reqs
-    >>= handleOverlayReset renderer reqs
-    >>= handleResize renderer reqs
+  handleFocusSet reqs (evtWctx, events, evtRoot)
+    >>= handleClipboardGet reqs
+    >>= handleClipboardSet reqs
+    >>= handleSendMessages reqs
+    >>= handleOverlaySet reqs
+    >>= handleOverlayReset reqs
+    >>= handleResize reqs
 
 handleFocusChange
   :: (MonomerM s m)
-  => Renderer m
-  -> SystemEvent
+  => SystemEvent
   -> Bool
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
+handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use pathFocus
       (newWenv1, newEvents1, newRoot1)
-        <- handleSystemEvent renderer wenv Blur oldFocus widgetRoot
+        <- handleSystemEvent wenv Blur oldFocus widgetRoot
 
       let newFocus = findNextFocus newWenv1 oldFocus newRoot1
       let tempWenv = newWenv1 {
         _weFocusedPath = newFocus
       }
       (newWenv2, newEvents2, newRoot2)
-        <- handleSystemEvent renderer tempWenv Focus newFocus newRoot1
+        <- handleSystemEvent tempWenv Focus newFocus newRoot1
 
       pathFocus .= newFocus
 
@@ -165,11 +160,10 @@ handleFocusChange renderer systemEvent stopProcessing (wenv, events, widgetRoot)
 
 handleFocusSet
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleFocusSet renderer reqs previousStep =
+handleFocusSet reqs previousStep =
   case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
       pathFocus .= newFocus
@@ -179,11 +173,10 @@ handleFocusSet renderer reqs previousStep =
 
 handleResize
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleResize renderer reqs previousStep =
+handleResize reqs previousStep =
   case Seq.filter isResize reqs of
     Resize :<| _ -> do
       windowSize <- use windowSize
@@ -196,11 +189,10 @@ handleResize renderer reqs previousStep =
 
 handleClipboardGet
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleClipboardGet renderer reqs previousStep = do
+handleClipboardGet reqs previousStep = do
     hasText <- SDL.hasClipboardText
     contents <- if hasText
                   then fmap ClipboardText SDL.getClipboardText
@@ -210,18 +202,17 @@ handleClipboardGet renderer reqs previousStep = do
   where
     reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
       (newWenv2, newEvents2, newRoot2)
-        <- handleSystemEvent renderer wenv (Clipboard contents) path widgetRoot
+        <- handleSystemEvent wenv (Clipboard contents) path widgetRoot
 
       return (newWenv2, events >< newEvents2, newRoot2)
     reducer contents prevStep _ = return prevStep
 
 handleClipboardSet
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleClipboardSet renderer reqs previousStep =
+handleClipboardSet reqs previousStep =
   case Seq.filter isSetClipboard reqs of
     SetClipboard (ClipboardText text) :<| _ -> do
       SDL.setClipboardText text
@@ -231,11 +222,10 @@ handleClipboardSet renderer reqs previousStep =
 
 handleOverlaySet
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleOverlaySet renderer reqs previousStep =
+handleOverlaySet reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     SetOverlay path :<| _ -> do
       pathOverlay .= Just path
@@ -245,11 +235,10 @@ handleOverlaySet renderer reqs previousStep =
 
 handleOverlayReset
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleOverlayReset renderer reqs previousStep =
+handleOverlayReset reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     ResetOverlay :<| _ -> do
       pathOverlay .= Nothing
@@ -259,11 +248,10 @@ handleOverlayReset renderer reqs previousStep =
 
 handleSendMessages
   :: (MonomerM s m)
-  => Renderer m
-  -> Seq (WidgetRequest s)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSendMessages renderer reqs previousStep = nextStep where
+handleSendMessages reqs previousStep = nextStep where
   nextStep = foldM reducer previousStep reqs
   reducer prevStep (SendMessage path message) = do
     currentFocus <- use pathFocus
@@ -275,7 +263,7 @@ handleSendMessages renderer reqs previousStep = nextStep where
     let widgetResult = fromMaybe emptyResult msgResult
 
     (newWenv, newEvents, newWidgetRoot)
-      <- handleWidgetResult renderer wenv widgetResult
+      <- handleWidgetResult wenv widgetResult
 
     return (newWenv, events >< newEvents, newWidgetRoot)
   reducer prevStep _ = return prevStep

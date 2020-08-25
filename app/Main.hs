@@ -12,16 +12,11 @@ import Control.Lens (Lens', (&), (<&>), (^.), (.~), (%~))
 import Control.Monad.State
 import Data.Default
 import Foreign.C.Types
-import NanoVG (
-    Context(..), CreateFlags(..), FileName(..),
-    beginFrame, createFont, createGL3, endFrame
-  )
 import SDL (($=))
 import TextShow
 
 import System.Remote.Monitoring
 
-import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Foreign.C.String as STR
 import qualified SDL
@@ -87,10 +82,6 @@ main = do
 
   _ <- glewInit
 
-  c@(Context c') <- createGL3 (Set.fromList [Antialias, StencilStrokes, Debug])
-
-  fontRes <- createFont c "sans" (FileName "./assets/fonts/Roboto-Regular.ttf")
-
   SREv.startTextInput
 
   winSize <- getDrawableSize window
@@ -103,7 +94,7 @@ main = do
         & S.hover . S.fgColor .~ white
         & S.focus . S.fgColor .~ white
 
-  runStateT (runWidgets window c theme appWidget) monomerContext
+  runStateT (runApp window theme appWidget) monomerContext
 
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window

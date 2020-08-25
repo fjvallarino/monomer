@@ -92,14 +92,12 @@ makeRadio config = widget where
       radioArea = Rect radioL radioT sz sz
       fgColor = activeFgColor wenv inst
 
-renderRadio
-  :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> Color -> m ()
+renderRadio :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderRadio renderer config rect color = action where
   width = _rdcWidth config
   action = drawEllipseBorder renderer rect (Just color) width
 
-renderMark
-  :: (Monad m) => Renderer m -> RadioCfg s e a -> Rect -> Color -> m ()
+renderMark :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderMark renderer config rect color = action where
   w = _rdcWidth config * 2
   newRect = subtractFromRect rect w w w w

@@ -79,11 +79,10 @@ type SingleResizeHandler s e
   -> WidgetInstance s e
 
 type SingleRenderHandler s e
-  = forall m . Monad m
-  => Renderer m
+  =  Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> m ()
+  -> IO ()
 
 data Single s e = Single {
   singleInit :: SingleInitHandler s e,

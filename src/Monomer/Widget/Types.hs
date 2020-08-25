@@ -86,12 +86,12 @@ instance Semigroup (WidgetResult s e) where
 data WidgetPlatform = WidgetPlatform {
   _wpOS :: Text,
   _wpGetKeyCode :: String -> Maybe KeyCode,
-  _wpComputeTextSize :: Font -> FontSize -> Text -> Size,
-  _wpCreateImage :: Int -> Int -> ByteString -> Maybe ImageHandle
+  _wpComputeTextSize :: Font -> FontSize -> Text -> Size
 }
 
 data WidgetEnv s e = WidgetEnv {
   _wePlatform :: WidgetPlatform,
+  _weRenderer :: Renderer,
   _weTheme :: Theme,
   _weScreenSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
@@ -193,11 +193,10 @@ data Widget s e =
     --
     -- Returns: unit
     widgetRender
-      :: forall m . Monad m
-      => Renderer m
+      :: Renderer
       -> WidgetEnv s e
       -> WidgetInstance s e
-      -> m ()
+      -> IO ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree

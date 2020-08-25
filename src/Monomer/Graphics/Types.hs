@@ -12,12 +12,6 @@ import Monomer.Common.Geometry
 
 data Winding = CW | CCW deriving (Eq, Show)
 
-data ImageHandle
-  = ImageHandle {
-    _imageId :: Int,
-    _imageSize :: Size
-  } deriving (Eq, Show)
-
 data Color = Color {
   _colorRed :: Int,
   _colorGreen :: Int,

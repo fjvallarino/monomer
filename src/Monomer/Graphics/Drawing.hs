@@ -25,8 +25,7 @@ import Monomer.Common.StyleUtil
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
-drawRect
-  :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Maybe Radius -> m ()
+drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
 drawRect _ _ Nothing _ = pure ()
 drawRect renderer viewport (Just color) Nothing = do
   beginPath renderer
@@ -39,14 +38,13 @@ drawRect renderer viewport (Just color) (Just radius) = do
   drawRoundedRect renderer viewport radius
   fill renderer
 
-drawRectBorder
-  :: (Monad m) => Renderer m -> Rect -> Border -> Maybe Radius -> m ()
+drawRectBorder :: Renderer -> Rect -> Border -> Maybe Radius -> IO ()
 drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
   drawRectRoundedBorder renderer rect border radius
 
-drawEllipse :: (Monad m) => Renderer m -> Rect -> Maybe Color -> m ()
+drawEllipse :: Renderer -> Rect -> Maybe Color -> IO ()
 drawEllipse renderer rect Nothing = return ()
 drawEllipse renderer rect (Just color) = do
   beginPath renderer
@@ -54,8 +52,7 @@ drawEllipse renderer rect (Just color) = do
   renderEllipse renderer rect
   fill renderer
 
-drawEllipseBorder
-  :: (Monad m) => Renderer m -> Rect -> Maybe Color -> Double -> m ()
+drawEllipseBorder :: Renderer -> Rect -> Maybe Color -> Double -> IO ()
 drawEllipseBorder renderer rect Nothing _ = return ()
 drawEllipseBorder renderer rect (Just color) width = do
   beginPath renderer
@@ -67,7 +64,7 @@ drawEllipseBorder renderer rect (Just color) width = do
     finalRect = subtractFromRect rect w w w w
     w = width / 2
 
-drawStyledBackground :: (Monad m) => Renderer m -> Rect -> StyleState -> m ()
+drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
 drawStyledBackground renderer viewport style = do
   let StyleState{..} = style
   let margin = _sstMargin
@@ -78,27 +75,25 @@ drawStyledBackground renderer viewport style = do
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
-drawStyledText
-  :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m Rect
+drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer viewport style txt = action where
   tsRect = removeOuterBounds style viewport
   action = drawText renderer tsRect (_sstText style) txt
 
-drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
+drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
 drawStyledText_ renderer viewport style txt = void action where
   action = drawStyledText renderer viewport style txt
 
-drawImage :: (Monad m) => Renderer m -> Rect -> ImageHandle -> m ()
-drawImage renderer viewport image = action where
-  action = renderImage renderer viewport image
+drawImage :: Renderer -> Rect -> String -> IO ()
+drawImage renderer viewport imgName = action where
+  action = renderImage renderer viewport imgName
 
-drawStyledImage
-  :: (Monad m) => Renderer m -> Rect -> StyleState -> ImageHandle -> m ()
-drawStyledImage renderer viewport style image = action where
+drawStyledImage :: Renderer -> Rect -> StyleState -> String -> IO ()
+drawStyledImage renderer viewport style imgName = action where
   imgRect = removeOuterBounds style viewport
-  action = renderImage renderer imgRect image
+  action = renderImage renderer imgRect imgName
 
-drawRoundedRect :: (Monad m) => Renderer m -> Rect -> Radius -> m ()
+drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =
   let
     xl = x
@@ -132,7 +127,7 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
       renderArc renderer (Point x4 y4) (justDef _radBottomLeft) 90 180 CW
     renderLineTo renderer (Point xl y1)
 
-drawRectSimpleBorder :: (Monad m) => Renderer m -> Rect -> Border -> m ()
+drawRectSimpleBorder :: Renderer -> Rect -> Border -> IO ()
 drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
   let
     xr = xl + w
@@ -152,7 +147,7 @@ drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
 
     drawRectCorners renderer rt border
 
-drawRectCorners :: Monad m => Renderer m -> Rect -> Border -> m ()
+drawRectCorners :: Renderer -> Rect -> Border -> IO ()
 drawRectCorners renderer (Rect xl yt w h) Border{..} =
   let
     xr = xl + w
@@ -173,14 +168,13 @@ drawRectCorners renderer (Rect xl yt w h) Border{..} =
     drawCorner renderer (p2 xlb2 yb) (p2 xlb2 ybb2) (p2 xl yb) borderB borderL
 
 drawCorner
-  :: (Monad m)
-  => Renderer m
+  :: Renderer
   -> Point
   -> Point
   -> Point
   -> Maybe BorderSide
   -> Maybe BorderSide
-  -> m ()
+  -> IO ()
 drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   beginPath renderer
   setFillColor renderer (_bsColor bs1)
@@ -191,8 +185,7 @@ drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   fill renderer
 drawCorner renderer p1 p2 p3 _ _ = return ()
 
-drawRectRoundedBorder
-  :: (Monad m) => Renderer m -> Rect -> Border -> Radius -> m ()
+drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
 drawRectRoundedBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
@@ -273,8 +266,7 @@ brBorderSize Border{..} Radius{..}
     justRad = isJust _radBottomRight
 
 drawRoundedCorner
-  :: (Monad m)
-  => Renderer m
+  :: Renderer
   -> Point
   -> Point
   -> Point
@@ -283,7 +275,7 @@ drawRoundedCorner
   -> Maybe Double
   -> Maybe BorderSide
   -> Maybe BorderSide
-  -> m ()
+  -> IO ()
 drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
   let
     width1 = _bsWidth s1
@@ -308,8 +300,7 @@ drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
   fill renderer
 drawRoundedCorner renderer c1 c2 p1 p2 deg _ _ _ = return ()
 
-strokeBorder
-  :: (Monad m) => Renderer m -> Point -> Point -> Maybe BorderSide -> m ()
+strokeBorder :: Renderer -> Point -> Point -> Maybe BorderSide -> IO ()
 strokeBorder renderer from to Nothing = pure ()
 strokeBorder renderer from to (Just BorderSide{..}) = do
   beginPath renderer
@@ -319,7 +310,7 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
-drawText :: (Monad m) => Renderer m -> Rect -> Maybe TextStyle -> Text -> m Rect
+drawText :: Renderer -> Rect -> Maybe TextStyle -> Text -> IO Rect
 drawText renderer viewport Nothing txt =
   drawText renderer viewport (Just mempty) txt
 drawText renderer viewport (Just TextStyle{..}) txt = do

@@ -2,7 +2,7 @@ module Monomer.Widget.Widgets.Image (image) where
 
 import Debug.Trace
 
-import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
+import Codec.Picture (DynamicImage, Image(..), convertRGBA8, encodeBitmap, readImage)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -13,20 +13,21 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Graphics.Drawing
+import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-newtype ImageMessage = ImageMessage {
-  unImageMessage :: Maybe ImageHandle
-}
+data ImageMessage
+  = ImageLoaded Size
+  | ImageFailed
 
-image :: FilePath -> WidgetInstance s e
+image :: String -> WidgetInstance s e
 image imgPath = defaultWidgetInstance "image" (makeImage imgPath Nothing)
 
-makeImage :: FilePath -> Maybe ImageHandle -> Widget s e
-makeImage imgPath image = widget where
+makeImage :: String -> Maybe Size -> Widget s e
+makeImage imgPath imageSize = widget where
   widget = createSingle def {
     singleInit = init,
     singleHandleMessage = handleMessage,
@@ -37,47 +38,50 @@ makeImage imgPath image = widget where
   init wenv inst = resultReqs reqs inst where
     path = _wiPath inst
     platform = _wePlatform wenv
-    handleLoadImage = do
-      img <- loadImage wenv imgPath
-      return $ ImageMessage img
+    handleLoadImage = loadImage wenv imgPath
     reqs = [RunTask path handleLoadImage]
 
   handleMessage wenv target message inst = result where
     result = cast message
-      >>= unImageMessage
       >>= useImage inst
 
-  useImage inst img = Just $ resultReqs [Resize] newInst where
+  useImage inst ImageFailed = trace "AA" Nothing
+  useImage inst (ImageLoaded newSize) = trace "BB" Just $ resultReqs [Resize] newInst where
     newInst = inst {
-      _wiWidget = makeImage imgPath (Just img)
+      _wiWidget = makeImage imgPath (Just newSize)
     }
 
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
     style = activeStyle wenv inst
-    size = case image of
-      Just img -> _imageSize img
-      Nothing -> def
+    size = fromMaybe def imageSize
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   render renderer wenv inst = do
     drawStyledBackground renderer renderArea style
-
-    forM_ image (drawStyledImage renderer renderArea style)
+    drawStyledImage renderer renderArea style imgPath
     where
       renderArea = _wiRenderArea inst
       style = activeStyle wenv inst
 
-loadImage :: WidgetEnv s e -> FilePath -> IO (Maybe ImageHandle)
+loadImage :: WidgetEnv s e -> String -> IO ImageMessage
 loadImage wenv path = do
   res <- readImage path
-  return $ registerImg wenv res
+  registerImg wenv path res
 
-registerImg :: WidgetEnv s e -> Either String DynamicImage -> Maybe ImageHandle
-registerImg _ Left{} = Nothing
-registerImg wenv (Right dimg) = _wpCreateImage platform w h bs where
-  platform = _wePlatform wenv
-  img = convertRGBA8 dimg
-  w = imageWidth img
-  h = imageHeight img
-  bs = vectorToByteString $ imageData img
+registerImg
+  :: WidgetEnv s e
+  -> String
+  -> Either String DynamicImage
+  -> IO ImageMessage
+registerImg wenv name Left{} = return ImageFailed
+registerImg wenv name (Right dimg) = do
+  addImage renderer name cw ch Keep bs
+  return $ ImageLoaded size
+  where
+    renderer = _weRenderer wenv
+    img = convertRGBA8 dimg
+    cw = imageWidth img
+    ch = imageHeight img
+    size = Size (fromIntegral cw) (fromIntegral ch)
+    bs = vectorToByteString $ imageData img

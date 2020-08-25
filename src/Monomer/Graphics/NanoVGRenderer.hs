@@ -5,92 +5,144 @@ module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
 import Debug.Trace
 
-import Control.Monad (forM, when)
+import Control.Concurrent.MVar (MVar, newMVar, putMVar, takeMVar)
+--import Control.Exception.Safe (finally)
+import Control.Exception.Base (finally)
+import Control.Monad (foldM, forM, when)
 import Control.Monad.IO.Class
 import Data.Default
 import Data.IORef
+import Data.Maybe
 import Data.Sequence (Seq, (|>))
 import Data.Text (Text)
 import Foreign.C.Types (CFloat)
 import System.IO.Unsafe
 
+import qualified Data.ByteString as BS
+import qualified Data.Map as M
+import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 import qualified NanoVG as VG
 import qualified NanoVG.Internal.Image as VGI
-import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
-type Overlays m = Monad m => IORef (Seq (m ()))
+newtype Lock = Lock (MVar ())
+
+type ImagesMap = M.Map String VG.Image
+
+data ImageReq = ImageReq {
+  _irName :: String,
+  _irAction :: ResourceAction,
+  _irWidth :: Int,
+  _irHeight :: Int,
+  _irImgData :: BS.ByteString
+}
+
+data Env = Env {
+  overlays :: Seq (IO ()),
+  imagesMap :: ImagesMap,
+  addedImages :: Seq ImageReq
+}
 
 data CPoint
-    = CPoint CFloat CFloat
-    deriving (Eq, Show)
+  = CPoint CFloat CFloat
+  deriving (Eq, Show)
 
 data CRect
-    = CRect CFloat CFloat CFloat CFloat
-    deriving (Eq, Show)
+  = CRect CFloat CFloat CFloat CFloat
+  deriving (Eq, Show)
 
-makeRenderer :: (MonadIO m) => VG.Context -> Double -> m (Renderer m)
-makeRenderer c dpr = do
-  overlaysRef <- liftIO $ newIORef Seq.empty
+makeRenderer :: Double -> IO Renderer
+makeRenderer dpr = do
+  c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
+  _ <- VG.createFont c "sans" (VG.FileName "./assets/fonts/Roboto-Regular.ttf")
 
-  return $ newRenderer c dpr overlaysRef
+  lock <- newLock
+  envRef <- newIORef $ Env {
+    overlays = Seq.empty,
+    imagesMap = M.empty,
+    addedImages = Seq.empty
+  }
 
-newRenderer :: (MonadIO m) => VG.Context -> Double -> Overlays m -> Renderer m
-newRenderer c dpr overlaysRef = Renderer {..} where
+  return $ newRenderer c dpr lock envRef
+
+newRenderer :: VG.Context -> Double -> Lock -> IORef Env -> Renderer
+newRenderer c dpr lock envRef = Renderer {..} where
+  beginFrame w h = withLock lock $ do
+    env <- readIORef envRef
+    newMap <- handlePendingImages c (imagesMap env) (addedImages env)
+    writeIORef envRef env {
+      imagesMap = newMap,
+      addedImages = Seq.empty
+    }
+
+    VG.beginFrame c cw ch pxRatio
+    where
+      cw = fromIntegral w
+      ch = fromIntegral h
+      pxRatio = fromIntegral w / fromIntegral h
+
+  endFrame =
+    VG.endFrame c
+
   beginPath =
-    liftIO $ VG.beginPath c
+    VG.beginPath c
 
   closePath =
-    liftIO $ VG.closePath c
+    VG.closePath c
 
   -- Context management
   saveContext =
-    liftIO $ VG.save c
+    VG.save c
 
   restoreContext =
-    liftIO $ VG.restore c
+    VG.restore c
 
   -- Overlays
-  createOverlay overlay =
-    liftIO $ modifyIORef overlaysRef (|> overlay)
+  createOverlay overlay = withLock lock $
+    modifyIORef envRef $ \env -> env {
+      overlays = overlays env |> overlay
+    }
 
-  renderOverlays = do
-    overlays <- liftIO $ readIORef overlaysRef
-    sequence_ overlays
-    liftIO $ writeIORef overlaysRef Seq.empty
+  renderOverlays = withLock lock $ do
+    env <- readIORef envRef
+    sequence_ $ overlays env
+    writeIORef envRef env {
+      overlays = Seq.empty
+    }
 
   -- Scissor operations
   setScissor rect =
-    liftIO $ VG.scissor c x y w h
+    VG.scissor c x y w h
     where
       CRect x y w h = rectToCRect rect dpr
 
   resetScissor =
-    liftIO $ VG.resetScissor c
+    VG.resetScissor c
 
   -- Strokes
   stroke =
-    liftIO $ VG.stroke c
+    VG.stroke c
 
   setStrokeColor color =
-    liftIO $ VG.strokeColor c (colorToPaint color)
+    VG.strokeColor c (colorToPaint color)
 
   setStrokeWidth width =
-    liftIO $ VG.strokeWidth c (realToFrac $ width * dpr)
+    VG.strokeWidth c (realToFrac $ width * dpr)
 
   -- Fill
   fill =
-    liftIO $ VG.fill c
+    VG.fill c
 
   setFillColor color =
-    liftIO $ VG.fillColor c (colorToPaint color)
+    VG.fillColor c (colorToPaint color)
 
   setFillLinearGradient p1 p2 color1 color2 = do
-    gradient <- liftIO $ VG.linearGradient c x1 y1 x2 y2 col1 col2
-    liftIO $ VG.fillPaint c gradient
+    gradient <- VG.linearGradient c x1 y1 x2 y2 col1 col2
+    VG.fillPaint c gradient
     where
       col1 = colorToPaint color1
       col2 = colorToPaint color2
@@ -99,30 +151,30 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
   -- Drawing
   moveTo point =
-    liftIO $ VG.moveTo c x y
+    VG.moveTo c x y
     where
       CPoint x y = pointToCPoint point dpr
 
   renderLine p1 p2 = do
-    liftIO $ VG.moveTo c x1 y1
-    liftIO $ VG.lineTo c x2 y2
+    VG.moveTo c x1 y1
+    VG.lineTo c x2 y2
     where
       CPoint x1 y1 = pointToCPoint p1 dpr
       CPoint x2 y2 = pointToCPoint p2 dpr
 
   renderLineTo point = do
-    liftIO $ VG.lineJoin c VG.Bevel
-    liftIO $ VG.lineTo c x y
+    VG.lineJoin c VG.Bevel
+    VG.lineTo c x y
     where
       CPoint x y = pointToCPoint point dpr
 
   renderRect rect =
-    liftIO $ VG.rect c x y w h
+    VG.rect c x y w h
     where
       CRect x y w h = rectToCRect rect dpr
 
   renderArc point rad angleStart angleEnd winding =
-    liftIO $ VG.arc c x y radius start end wind
+    VG.arc c x y radius start end wind
     where
       CPoint x y = pointToCPoint point dpr
       radius = realToFrac rad
@@ -131,13 +183,13 @@ newRenderer c dpr overlaysRef = Renderer {..} where
       wind = convertWinding winding
 
   renderQuadTo p1 p2 =
-    liftIO $ VG.quadTo c x1 y1 x2 y2
+    VG.quadTo c x1 y1 x2 y2
     where
       CPoint x1 y1 = pointToCPoint p1 dpr
       CPoint x2 y2 = pointToCPoint p2 dpr
 
   renderEllipse rect =
-    liftIO $ VG.ellipse c cx cy rx ry
+    VG.ellipse c cx cy rx ry
     where
       CRect x y w h = rectToCRect rect dpr
       cx = x + rx
@@ -147,10 +199,10 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
   -- Text
   renderText rect font fontSize (Align ha va) message = do
-    liftIO $ VG.fontFace c (unFont font)
-    liftIO $ VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
-    VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c x y message
-    (asc, desc, _) <- liftIO $ VG.textMetrics c
+    VG.fontFace c (unFont font)
+    VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
+    VG.Bounds (VG.V4 x1 _ x2 _) <- VG.textBounds c x y message
+    (asc, desc, _) <- VG.textMetrics c
 
     let
       tw = x2 - x1
@@ -163,7 +215,7 @@ newRenderer c dpr overlaysRef = Renderer {..} where
          | otherwise = y + h
 
     when (message /= "") $
-      liftIO $ VG.text c tx ty message
+      VG.text c tx ty message
 
     return $ Rect {
       _rX = fromCFloat tx,
@@ -178,37 +230,57 @@ newRenderer c dpr overlaysRef = Renderer {..} where
   computeTextSize font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
 
-    liftIO $ VG.fontFace c (unFont font)
-    liftIO $ VG.fontSize c $ realToFrac (unFontSize fontSize)
-    VG.Bounds (VG.V4 x1 y1 x2 y2) <- liftIO $ VG.textBounds c 0 0 text
+    VG.fontFace c (unFont font)
+    VG.fontSize c $ realToFrac (unFontSize fontSize)
+    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
-  createImage w h imgData = unsafePerformIO $ do
-    nvImg <- liftIO $ VG.createImageRGBA c cw ch VGI.ImageNearest imgData
-    forM nvImg $ createImageHandle c
+  addImage name w h action imgData = withLock lock $ do
+    env <- readIORef envRef
+
+    writeIORef envRef env {
+      addedImages = addedImages env |> imageReq
+    }
     where
-      cw = fromIntegral w
-      ch = fromIntegral h
+      imageReq = ImageReq name action w h imgData
 
-  renderImage rect image = do
-    imgPaint <- liftIO $ VG.imagePattern c x y w h 0 nvImg 1
-    liftIO $ VG.beginPath c
-    liftIO $ VG.rect c x y w h
-    liftIO $ VG.fillPaint c imgPaint
-    liftIO $ VG.fill c
-    where
-      nvImg = VG.Image $ fromIntegral (_imageId image)
-      CRect x y w h = rectToCRect rect dpr
+  renderImage rect name = do
+    env <- readIORef envRef
+    mapM_ (handleRender c dpr rect) $ M.lookup name (imagesMap env)
 
-createImageHandle :: (MonadIO m) => VG.Context -> VG.Image -> m ImageHandle
-createImageHandle c nvImg = do
-  (w, h) <- liftIO $ VG.imageSize c nvImg
+handleRender :: VG.Context -> Double -> Rect -> VG.Image -> IO ()
+handleRender c dpr rect nvImg = do
+  imgPaint <- VG.imagePattern c x y w h 0 nvImg 1
+  VG.beginPath c
+  VG.rect c x y w h
+  VG.fillPaint c imgPaint
+  VG.fill c
+  where
+    CRect x y w h = rectToCRect rect dpr
 
-  return $ ImageHandle {
-    _imageId = fromIntegral $ VG.imageHandle nvImg,
-    _imageSize = Size (fromIntegral w) (fromIntegral h)
-  }
+handlePendingImages :: VG.Context -> ImagesMap -> Seq ImageReq -> IO ImagesMap
+handlePendingImages c imagesMap addedImages =
+  foldM (handlePendingImage c) imagesMap addedImages
+
+handlePendingImage :: VG.Context -> ImagesMap -> ImageReq -> IO ImagesMap
+handlePendingImage c imagesMap imageReq
+  | action == Keep && imageExists = trace "A" return imagesMap
+  | imageExists = trace "B" $ do
+    nvImg <- VG.updateImage c (fromJust nvImg) imgData
+    return imagesMap
+  | otherwise = trace "C" $ do
+    nvImg <- VG.createImageRGBA c cw ch VGI.ImageNearest imgData
+    return $ maybe imagesMap insertImage nvImg
+  where
+    name = _irName imageReq
+    action = _irAction imageReq
+    cw = fromIntegral $ _irWidth imageReq
+    ch = fromIntegral $ _irHeight imageReq
+    imgData = _irImgData imageReq
+    nvImg = M.lookup name imagesMap
+    imageExists = isJust nvImg
+    insertImage img = M.insert name img imagesMap
 
 colorToPaint :: Color -> VG.Color
 colorToPaint (Color r g b a)
@@ -235,3 +307,24 @@ rectToCRect (Rect x y w h) dpr = CRect cx cy cw ch where
   cy = realToFrac $ y * dpr
   ch = realToFrac $ h * dpr
   cw = realToFrac $ w * dpr
+
+-- | Create a new lock.
+newLock :: IO Lock
+newLock = Lock <$> newMVar ()
+
+-- | Block until the lock is available, then grab it. Something that acquires
+-- the lock should at some point subsequently relinquish it with 'releaseLock'.
+-- Consider using 'withLock' instead unless you need more fine-grained control.
+acquireLock :: Lock -> IO ()
+acquireLock (Lock v) = takeMVar v
+
+-- | Release a lock that you have previously acquired with 'acquireLock'.
+releaseLock :: Lock -> IO ()
+releaseLock (Lock v) = putMVar v ()
+
+-- | Acquire the lock, perform some action while the lock is held, then
+-- release the lock. You can use this instead of manually calling 'acquireLock'
+-- and 'releaseLock'.
+withLock :: Lock -> IO a -> IO a
+withLock lock action =
+  acquireLock lock *> action `finally` releaseLock lock

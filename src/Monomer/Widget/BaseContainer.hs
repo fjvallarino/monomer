@@ -97,11 +97,10 @@ type ContainerResizeHandler s e
   -> (WidgetInstance s e, Seq (Rect, Rect))
 
 type ContainerRenderHandler s e
-  = forall m . Monad m
-  => Renderer m
+  =  Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> m ()
+  -> IO ()
 
 data Container s e = Container {
   containerInit :: ContainerInitHandler s e,
@@ -398,12 +397,11 @@ defaultRender renderer wenv inst = action where
   action = drawStyledBackground renderer renderArea style
 
 renderWrapper
-  :: Monad m
-  => ContainerRenderHandler s e
-  -> Renderer m
+  :: ContainerRenderHandler s e
+  -> Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> m ()
+  -> IO ()
 renderWrapper rHandler renderer wenv widgetInst = do
   let children = _wiChildren widgetInst
 

@@ -44,17 +44,3 @@ getKeyCode name = unsafePerformIO $ withCString name getKeyCodeFFI where
   getKeyCodeFFI cname = fmap convert (Raw.getKeyFromName cname)
   convert Raw.SDLK_UNKNOWN = Nothing
   convert code = Just (KeyCode $ fromIntegral code)
-
-doInDrawingContext :: (MonadIO m) => SDL.Window -> Context -> m s -> m s
-doInDrawingContext window c action = do
-  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
-  let pxRatio = fromIntegral fbWidth / fromIntegral fbHeight
-
-  liftIO $ GL.clear [GL.ColorBuffer]
-  liftIO $ beginFrame c fbWidth fbHeight pxRatio
-
-  ret <- action
-
-  liftIO $ endFrame c
-  SDL.glSwapWindow window
-  return ret

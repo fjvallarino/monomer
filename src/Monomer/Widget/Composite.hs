@@ -273,13 +273,12 @@ compositeResize comp state wenv newView newArea widgetComp = resized where
 
 -- Render
 compositeRender
-  :: (Monad m)
-  => Composite s e ep
+  :: Composite s e ep
   -> CompositeState s e
-  -> Renderer m
+  -> Renderer
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
-  -> m ()
+  -> IO ()
 compositeRender comp state renderer wenv _ = action where
   CompositeState{..} = state
   widget = _wiWidget _cmpRoot
@@ -447,6 +446,7 @@ collectGlobalKeys keys widgetInst = foldl' collect updatedMap children where
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _wePlatform = _wePlatform wenv,
+  _weRenderer = _weRenderer wenv,
   _weTheme = _weTheme wenv,
   _weScreenSize = _weScreenSize wenv,
   _weGlobalKeys = globalKeys,

@@ -5,7 +5,7 @@
 module Monomer.Main.Core (
   EventResponse(..),
   createApp,
-  runWidgets
+  runApp
 ) where
 
 import Control.Concurrent (threadDelay)
@@ -63,17 +63,15 @@ createApp
 createApp model initEvent eventHandler uiBuilder = app where
   app = composite "app" model initEvent eventHandler uiBuilder
 
-createWidgetPlatform :: (Monad m) => Text -> Renderer m -> WidgetPlatform
+createWidgetPlatform :: Text -> Renderer -> WidgetPlatform
 createWidgetPlatform os renderer = WidgetPlatform {
   _wpOS = os,
   _wpGetKeyCode = getKeyCode,
-  _wpComputeTextSize = computeTextSize renderer,
-  _wpCreateImage = createImage renderer
+  _wpComputeTextSize = computeTextSize renderer
 }
 
-runWidgets
-  :: (MonomerM s m) => SDL.Window -> NV.Context -> Theme -> WidgetInstance s e -> m ()
-runWidgets window c theme widgetRoot = do
+runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()
+runApp window theme widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use windowSize
@@ -85,10 +83,11 @@ runWidgets window c theme widgetRoot = do
   startTs <- fmap fromIntegral SDL.ticks
   model <- use mainModel
   os <- getPlatform
-  renderer <- makeRenderer c dpr
+  renderer <- liftIO $ makeRenderer dpr
   let widgetPlatform = createWidgetPlatform os renderer
   let wenv = WidgetEnv {
     _wePlatform = widgetPlatform,
+    _weRenderer = renderer,
     _weTheme = theme,
     _weScreenSize = newWindowSize,
     _weGlobalKeys = M.empty,
@@ -100,7 +99,7 @@ runWidgets window c theme widgetRoot = do
   let pathReadyRoot = widgetRoot {
     _wiPath = Seq.singleton 0
   }
-  (newWenv, _, initializedRoot) <- handleWidgetInit renderer wenv pathReadyRoot
+  (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot
 
   let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot
   let loopArgs = MainLoopArgs {
@@ -116,16 +115,10 @@ runWidgets window c theme widgetRoot = do
   mainModel .= _weModel newWenv
   pathFocus .= findNextFocus newWenv rootPath resizedRoot
 
-  mainLoop window c renderer loopArgs
+  mainLoop window renderer loopArgs
 
-mainLoop
-  :: (MonomerM s m)
-  => SDL.Window
-  -> NV.Context
-  -> Renderer m
-  -> MainLoopArgs s e
-  -> m ()
-mainLoop window c renderer loopArgs = do
+mainLoop :: (MonomerM s m) => SDL.Window -> Renderer -> MainLoopArgs s e -> m ()
+mainLoop window renderer loopArgs = do
   windowSize <- use windowSize
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
@@ -149,6 +142,7 @@ mainLoop window c renderer loopArgs = do
 
   let wenv = WidgetEnv {
     _wePlatform = _mlPlatform,
+    _weRenderer = renderer,
     _weTheme = _mlTheme,
     _weScreenSize = windowSize,
     _weGlobalKeys = M.empty,
@@ -169,14 +163,13 @@ mainLoop window c renderer loopArgs = do
   when (mouseEntered && isLeftPressed && isMouseFocused) $
     pathPressed .= Nothing
 
-  (wtWenv, _, wtRoot) <- handleWidgetTasks renderer wenv _mlWidgetRoot
-  (seWenv, _, seRoot) <- handleSystemEvents renderer wtWenv sysEvents wtRoot
+  (wtWenv, _, wtRoot) <- handleWidgetTasks wenv _mlWidgetRoot
+  (seWenv, _, seRoot) <- handleSystemEvents wtWenv sysEvents wtRoot
 
   newRoot <- if windowResized then resizeWindow window seWenv seRoot
                               else return seRoot
 
-  renderWidgets window c renderer seWenv newRoot
-  renderOverlays renderer
+  renderWidgets window renderer seWenv newRoot
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -193,19 +186,26 @@ mainLoop window c renderer loopArgs = do
   }
 
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window c renderer newLoopArgs)
+  unless quit (mainLoop window renderer newLoopArgs)
 
 renderWidgets
   :: (MonomerM s m)
   => SDL.Window
-  -> NV.Context
-  -> Renderer m
+  -> Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> m ()
-renderWidgets !window !c !renderer wenv widgetRoot =
-  doInDrawingContext window c $
-    widgetRender (_wiWidget widgetRoot) renderer wenv widgetRoot
+renderWidgets !window renderer wenv widgetRoot = do
+  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+
+  liftIO $ GL.clear [GL.ColorBuffer]
+  liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
+
+  liftIO $ widgetRender (_wiWidget widgetRoot) renderer wenv widgetRoot
+  liftIO $ renderOverlays renderer
+
+  liftIO $ endFrame renderer
+  SDL.glSwapWindow window
 
 resizeWindow
   :: (MonomerM s m)

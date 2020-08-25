@@ -2,7 +2,6 @@
 
 module Monomer.Graphics.Renderer where
 
-import Control.Monad
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 
@@ -10,38 +9,47 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
-data Renderer m = (Monad m) => Renderer {
-  beginPath :: m (),
-  closePath :: m (),
+data ResourceAction
+  = Replace
+  | Keep
+  deriving (Eq, Show)
+
+data Renderer = Renderer {
+  -- Frame
+  beginFrame :: Int -> Int -> IO (),
+  endFrame :: IO (),
+  -- Path
+  beginPath :: IO (),
+  closePath :: IO (),
   -- Context management
-  saveContext :: m (),
-  restoreContext :: m (),
+  saveContext :: IO (),
+  restoreContext :: IO (),
   -- Overlays
-  createOverlay :: m () -> m (),
-  renderOverlays :: m (),
+  createOverlay :: IO () -> IO (),
+  renderOverlays :: IO (),
   -- Scissor operations
-  setScissor :: Rect -> m (),
-  resetScissor :: m (),
+  setScissor :: Rect -> IO (),
+  resetScissor :: IO (),
   -- Strokes
-  stroke :: m (),
-  setStrokeColor :: Color -> m (),
-  setStrokeWidth :: Double -> m (),
+  stroke :: IO (),
+  setStrokeColor :: Color -> IO (),
+  setStrokeWidth :: Double -> IO (),
   -- Fill
-  fill :: m (),
-  setFillColor :: Color -> m (),
-  setFillLinearGradient :: Point -> Point -> Color -> Color -> m (),
+  fill :: IO (),
+  setFillColor :: Color -> IO (),
+  setFillLinearGradient :: Point -> Point -> Color -> Color -> IO (),
   -- Drawing
-  moveTo :: Point -> m (),
-  renderLine :: Point -> Point -> m (),
-  renderLineTo :: Point -> m (),
-  renderRect :: Rect -> m (),
-  renderArc :: Point -> Double -> Double -> Double -> Winding -> m (),
-  renderQuadTo :: Point -> Point -> m (),
-  renderEllipse :: Rect -> m (),
+  moveTo :: Point -> IO (),
+  renderLine :: Point -> Point -> IO (),
+  renderLineTo :: Point -> IO (),
+  renderRect :: Rect -> IO (),
+  renderArc :: Point -> Double -> Double -> Double -> Winding -> IO (),
+  renderQuadTo :: Point -> Point -> IO (),
+  renderEllipse :: Rect -> IO (),
   -- Text
-  renderText :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
   computeTextSize :: Font -> FontSize -> Text -> Size,
+  renderText :: Rect -> Font -> FontSize -> Align -> Text -> IO Rect,
   -- Image
-  createImage :: Int -> Int -> ByteString -> Maybe ImageHandle,
-  renderImage :: Rect -> ImageHandle -> m ()
+  addImage :: String -> Int -> Int -> ResourceAction -> ByteString -> IO (),
+  renderImage :: Rect -> String -> IO ()
 }

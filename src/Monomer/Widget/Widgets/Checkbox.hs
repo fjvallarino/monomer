@@ -90,16 +90,14 @@ makeCheckbox config = widget where
       checkboxArea = Rect checkboxL checkboxT sz sz
       fgColor = activeFgColor wenv inst
 
-renderCheckbox
-  :: (Monad m) => Renderer m -> CheckboxCfg s e -> Rect -> Color -> m ()
+renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderCheckbox renderer config rect color = action where
   width = _ckcWidth config
   action = drawRectBorder renderer rect border Nothing
   side = Just $ BorderSide 2 color
   border = Border side side side side
 
-renderMark
-  :: (Monad m) => Renderer m -> CheckboxCfg s e -> Rect -> Color -> m ()
+renderMark :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderMark renderer config rect color = action where
   w = _ckcWidth config * 2
   newRect = subtractFromRect rect w w w w
