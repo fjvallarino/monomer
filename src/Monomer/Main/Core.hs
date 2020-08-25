@@ -68,7 +68,7 @@ createWidgetPlatform os renderer = WidgetPlatform {
   _wpOS = os,
   _wpGetKeyCode = getKeyCode,
   _wpComputeTextSize = computeTextSize renderer,
-  _wpLoadImage = loadImage renderer
+  _wpCreateImage = createImage renderer
 }
 
 runWidgets

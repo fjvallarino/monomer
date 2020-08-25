@@ -25,6 +25,8 @@ default-extensions:
 dependencies:
 - async
 - base >= 4.7 && < 5
+- bytestring
+- bytestring-to-vector
 - containers
 - data-default
 - extra

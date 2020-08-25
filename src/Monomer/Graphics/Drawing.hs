@@ -88,12 +88,12 @@ drawStyledText_ :: (Monad m) => Renderer m -> Rect -> StyleState -> Text -> m ()
 drawStyledText_ renderer viewport style txt = void action where
   action = drawStyledText renderer viewport style txt
 
-drawImage :: (Monad m) => Renderer m -> Rect -> Image -> m ()
+drawImage :: (Monad m) => Renderer m -> Rect -> ImageHandle -> m ()
 drawImage renderer viewport image = action where
   action = renderImage renderer viewport image
 
 drawStyledImage
-  :: (Monad m) => Renderer m -> Rect -> StyleState -> Image -> m ()
+  :: (Monad m) => Renderer m -> Rect -> StyleState -> ImageHandle -> m ()
 drawStyledImage renderer viewport style image = action where
   imgRect = removeOuterBounds style viewport
   action = renderImage renderer imgRect image

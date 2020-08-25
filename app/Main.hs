@@ -136,7 +136,7 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
-  widgetTree = vstack [
+  widgetTree2 = vstack [
       label (showt $ model ^. clickCount),
       textField textField1 `style` bgColor lightGray,
       hstack [
@@ -160,13 +160,13 @@ buildUI model = trace "Creating UI" widgetTree where
       listView textField1 items id,
       button IncButton "Click!"
     ] `key` "Main"
-  widgetTree3 = vstack
+  widgetTree = vstack
     [hstack [
       radio fruit Apple,
       radio fruit Orange,
       radio fruit Pear
     ],
-    image "/Users/francisco/dev/personal/haskell/monomer/assets/images/pecans.jpg"
+    image "/Users/francisco/dev/personal/haskell/monomer/assets/images/pecans.jpg" `style` margin 20
     ]
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)

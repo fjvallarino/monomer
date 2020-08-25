@@ -3,6 +3,7 @@
 module Monomer.Graphics.Renderer where
 
 import Control.Monad
+import Data.ByteString (ByteString)
 import Data.Text (Text)
 
 import Monomer.Common.Geometry
@@ -41,6 +42,6 @@ data Renderer m = (Monad m) => Renderer {
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> m Rect,
   computeTextSize :: Font -> FontSize -> Text -> Size,
   -- Image
-  loadImage :: LocalPath -> Maybe Image,
-  renderImage :: Rect -> Image -> m ()
+  createImage :: Int -> Int -> ByteString -> Maybe ImageHandle,
+  renderImage :: Rect -> ImageHandle -> m ()
 }

@@ -15,6 +15,7 @@ import Foreign.C.Types (CFloat)
 import System.IO.Unsafe
 
 import qualified NanoVG as VG
+import qualified NanoVG.Internal.Image as VGI
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
@@ -145,36 +146,34 @@ newRenderer c dpr overlaysRef = Renderer {..} where
       ry = h / 2
 
   -- Text
-  renderText (Rect x y w h) font fontSize (Align ha va) message = do
+  renderText rect font fontSize (Align ha va) message = do
     liftIO $ VG.fontFace c (unFont font)
     liftIO $ VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
-    VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c
-      (realToFrac $ x * dpr)
-      (realToFrac $ y * dpr)
-      message
+    VG.Bounds (VG.V4 x1 _ x2 _) <- liftIO $ VG.textBounds c x y message
     (asc, desc, _) <- liftIO $ VG.textMetrics c
 
-    let xr = x * dpr
-        yr = y * dpr
-        wr = w * dpr
-        hr = h * dpr
-        tw = x2 - x1
-        th = asc + desc
-        tx | ha == ALeft = xr
-           | ha == ACenter = xr + (wr - realToFrac tw) / 2
-           | otherwise = xr + (wr - realToFrac tw)
-        ty | va == ATop = yr + realToFrac th
-           | va == AMiddle = yr + (hr + realToFrac th) / 2
-           | otherwise = yr + hr
+    let
+      tw = x2 - x1
+      th = asc + desc
+      tx | ha == ALeft = x
+         | ha == ACenter = x + (w - tw) / 2
+         | otherwise = x + (w - tw)
+      ty | va == ATop = y + th
+         | va == AMiddle = y + (h + th) / 2
+         | otherwise = y + h
 
     when (message /= "") $
-      liftIO $ VG.text c (realToFrac tx) (realToFrac ty) message
+      liftIO $ VG.text c tx ty message
 
-    return $ Rect
-      (tx / dpr)
-      ((ty - realToFrac asc) / dpr)
-      (realToFrac tw / dpr)
-      (realToFrac th / dpr)
+    return $ Rect {
+      _rX = fromCFloat tx,
+      _rY = fromCFloat (ty - asc),
+      _rW = fromCFloat tw,
+      _rH = fromCFloat th
+    }
+    where
+      CRect x y w h = rectToCRect rect dpr
+      fromCFloat val = realToFrac $ val / realToFrac dpr
 
   computeTextSize font fontSize message = unsafePerformIO $ do
     let text = if message == "" then " " else message
@@ -185,9 +184,12 @@ newRenderer c dpr overlaysRef = Renderer {..} where
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
-  loadImage (LocalPath path) = unsafePerformIO $ do
-    nvImg <- liftIO $ VG.createImage c (VG.FileName path) 0
+  createImage w h imgData = unsafePerformIO $ do
+    nvImg <- liftIO $ VG.createImageRGBA c cw ch VGI.ImageNearest imgData
     forM nvImg $ createImageHandle c
+    where
+      cw = fromIntegral w
+      ch = fromIntegral h
 
   renderImage rect image = do
     imgPaint <- liftIO $ VG.imagePattern c x y w h 0 nvImg 1
@@ -196,15 +198,15 @@ newRenderer c dpr overlaysRef = Renderer {..} where
     liftIO $ VG.fillPaint c imgPaint
     liftIO $ VG.fill c
     where
-      nvImg = VG.Image $ fromIntegral (_imageHandle image)
+      nvImg = VG.Image $ fromIntegral (_imageId image)
       CRect x y w h = rectToCRect rect dpr
 
-createImageHandle :: (MonadIO m) => VG.Context -> VG.Image -> m Image
+createImageHandle :: (MonadIO m) => VG.Context -> VG.Image -> m ImageHandle
 createImageHandle c nvImg = do
   (w, h) <- liftIO $ VG.imageSize c nvImg
 
-  return $ Image {
-    _imageHandle = fromIntegral $ VG.imageHandle nvImg,
+  return $ ImageHandle {
+    _imageId = fromIntegral $ VG.imageHandle nvImg,
     _imageSize = Size (fromIntegral w) (fromIntegral h)
   }
 

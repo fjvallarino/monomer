@@ -4,6 +4,7 @@
 module Monomer.Widget.Types where
 
 import Control.Lens (ALens')
+import Data.ByteString (ByteString)
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq, (<|), (|>))
@@ -86,7 +87,7 @@ data WidgetPlatform = WidgetPlatform {
   _wpOS :: Text,
   _wpGetKeyCode :: String -> Maybe KeyCode,
   _wpComputeTextSize :: Font -> FontSize -> Text -> Size,
-  _wpLoadImage :: LocalPath -> Maybe Image
+  _wpCreateImage :: Int -> Int -> ByteString -> Maybe ImageHandle
 }
 
 data WidgetEnv s e = WidgetEnv {
