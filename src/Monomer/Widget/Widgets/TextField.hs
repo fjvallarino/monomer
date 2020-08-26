@@ -1,4 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -93,8 +92,9 @@ makeTextField config state = widget where
   merge wenv oldState widgetInst = resultWidget newInstance where
     TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
     currText = currentValue wenv
-    newPos = if | T.length currText < oldPos -> T.length currText
-                | otherwise -> oldPos
+    newPos
+      | T.length currText < oldPos = T.length currText
+      | otherwise = oldPos
     newState = TextFieldState currText newPos
     newInstance = widgetInst {
       _wiWidget = makeTextField config newState

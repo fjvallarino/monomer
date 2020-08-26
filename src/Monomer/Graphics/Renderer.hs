@@ -9,11 +9,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
-data ResourceAction
-  = Replace
-  | Keep
-  deriving (Eq, Show)
-
 data Renderer = Renderer {
   -- Frame
   beginFrame :: Int -> Int -> IO (),
@@ -50,6 +45,8 @@ data Renderer = Renderer {
   computeTextSize :: Font -> FontSize -> Text -> Size,
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> IO Rect,
   -- Image
-  addImage :: String -> Int -> Int -> ResourceAction -> ByteString -> IO (),
+  addImage :: String -> Int -> Int -> Bool -> ByteString -> IO (),
+  updateImage :: String -> ByteString -> IO (),
+  deleteImage :: String -> IO (),
   renderImage :: Rect -> String -> IO ()
 }

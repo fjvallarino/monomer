@@ -2,7 +2,7 @@ module Monomer.Widget.Widgets.Image (image) where
 
 import Debug.Trace
 
-import Codec.Picture (DynamicImage, Image(..), convertRGBA8, encodeBitmap, readImage)
+import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -19,42 +19,57 @@ import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
+newtype ImageState = ImageState {
+  isSize :: Maybe Size
+}
+
 data ImageMessage
   = ImageLoaded Size
   | ImageFailed
 
-image :: String -> WidgetInstance s e
-image imgPath = defaultWidgetInstance "image" (makeImage imgPath Nothing)
+imageState :: ImageState
+imageState = ImageState Nothing
 
-makeImage :: String -> Maybe Size -> Widget s e
-makeImage imgPath imageSize = widget where
+image :: String -> WidgetInstance s e
+image path = defaultWidgetInstance "image" (makeImage path imageState)
+
+makeImage :: String -> ImageState -> Widget s e
+makeImage imgPath state = widget where
   widget = createSingle def {
+    singleGetState = makeState state,
     singleInit = init,
+    singleMerge = merge,
     singleHandleMessage = handleMessage,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
 
-  init wenv inst = resultReqs reqs inst where
+  init wenv inst = trace "Init!" resultReqs reqs inst where
     path = _wiPath inst
     platform = _wePlatform wenv
     handleLoadImage = loadImage wenv imgPath
     reqs = [RunTask path handleLoadImage]
 
+  merge wenv oldState widgetInst = resultWidget $ case useState oldState of
+    Just newState -> widgetInst {
+      _wiWidget = makeImage imgPath newState
+    }
+    Nothing -> widgetInst
+
   handleMessage wenv target message inst = result where
     result = cast message
       >>= useImage inst
 
-  useImage inst ImageFailed = trace "AA" Nothing
-  useImage inst (ImageLoaded newSize) = trace "BB" Just $ resultReqs [Resize] newInst where
+  useImage inst ImageFailed = Nothing
+  useImage inst (ImageLoaded newSize) = Just $ resultReqs [Resize] newInst where
     newInst = inst {
-      _wiWidget = makeImage imgPath (Just newSize)
+      _wiWidget = makeImage imgPath (ImageState $ Just newSize)
     }
 
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
     style = activeStyle wenv inst
-    size = fromMaybe def imageSize
+    size = fromMaybe def (isSize state)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   render renderer wenv inst = do
@@ -76,7 +91,7 @@ registerImg
   -> IO ImageMessage
 registerImg wenv name Left{} = return ImageFailed
 registerImg wenv name (Right dimg) = do
-  addImage renderer name cw ch Keep bs
+  addImage renderer name cw ch False bs
   return $ ImageLoaded size
   where
     renderer = _weRenderer wenv
