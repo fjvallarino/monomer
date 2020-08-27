@@ -23,6 +23,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
@@ -276,18 +277,20 @@ compositeResize
   -> Rect
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
-compositeResize comp state wenv newView newArea widgetComp = resized where
+compositeResize comp state wenv viewport renderArea widgetComp = resized where
   CompositeState{..} = state
+  style = activeStyle wenv widgetComp
+  contentArea = removeOuterBounds style renderArea
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  newRoot = widgetResize widget cwenv newView newArea _cmpRoot
+  newRoot = widgetResize widget cwenv viewport contentArea _cmpRoot
   newState = state {
     _cmpRoot = newRoot
   }
   resized = widgetComp {
     _wiWidget = createComposite comp newState,
-    _wiViewport = newView,
-    _wiRenderArea = newArea
+    _wiViewport = viewport,
+    _wiRenderArea = renderArea
   }
 
 -- Render

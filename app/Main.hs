@@ -157,8 +157,8 @@ buildUI model = trace "Creating UI" widgetTree where
         radio fruit Orange,
         radio fruit Pear
       ],
-      image "assets/images/pecans.jpg" `style` margin 10
-    ] `style` margin 30 <> border 1 red <> padding 20
+      image "assets/images/pecans.jpg" `style` marginT 10
+    ] `style` margin 50 <> border 1 red <> radius 15 <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]

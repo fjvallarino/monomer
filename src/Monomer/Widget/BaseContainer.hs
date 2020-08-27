@@ -30,6 +30,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
@@ -411,8 +412,10 @@ resizeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
+  style = activeStyle wenv widgetInst
+  contentArea = removeOuterBounds style renderArea
   children = _wiChildren widgetInst
-  (tempInst, assigned) = handler wenv viewport renderArea children widgetInst
+  (tempInst, assigned) = handler wenv viewport contentArea children widgetInst
   resize (child, (vp, ra)) = widgetResize (_wiWidget child) wenv vp ra child
   newChildren = resize <$> Seq.zip children assigned
   newSize = tempInst {
