@@ -44,15 +44,20 @@ type ContainerInitHandler s e
   -> WidgetInstance s e
   -> WidgetResult s e
 
-type ContainerGetStateHandler s e
-  = WidgetEnv s e
-  -> Maybe WidgetState
-
 type ContainerMergeHandler s e
   = WidgetEnv s e
   -> Maybe WidgetState
   -> WidgetInstance s e
   -> WidgetResult s e
+
+type ContainerDisposeHandler s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+
+type ContainerGetStateHandler s e
+  = WidgetEnv s e
+  -> Maybe WidgetState
 
 type ContainerFindNextFocusHandler s e
   = WidgetEnv s e
@@ -104,8 +109,9 @@ type ContainerRenderHandler s e
 
 data Container s e = Container {
   containerInit :: ContainerInitHandler s e,
-  containerGetState :: ContainerGetStateHandler s e,
   containerMerge :: ContainerMergeHandler s e,
+  containerDispose :: ContainerDisposeHandler s e,
+  containerGetState :: ContainerGetStateHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
@@ -118,8 +124,9 @@ data Container s e = Container {
 instance Default (Container s e) where
   def = Container {
     containerInit = defaultInit,
-    containerGetState = defaultGetState,
     containerMerge = defaultMerge,
+    containerDispose = defaultDispose,
+    containerGetState = defaultGetState,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
     containerHandleEvent = defaultHandleEvent,
@@ -132,8 +139,9 @@ instance Default (Container s e) where
 createContainer :: Container s e -> Widget s e
 createContainer Container{..} = Widget {
   widgetInit = initWrapper containerInit,
-  widgetGetState = containerGetState,
   widgetMerge = mergeWrapper containerMerge,
+  widgetDispose = disposeWrapper containerDispose,
+  widgetGetState = containerGetState,
   widgetFindNextFocus = containerFindNextFocus,
   widgetFindByPoint = containerFindByPoint,
   widgetHandleEvent = handleEventWrapper containerHandleEvent,
@@ -168,10 +176,6 @@ initWrapper initHandler wenv widgetInst = result where
   }
   result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
--- | State Handling helpers
-defaultGetState :: ContainerGetStateHandler s e
-defaultGetState _ = Nothing
-
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
 defaultMerge wenv state newInstance = resultWidget newInstance
@@ -190,28 +194,32 @@ mergeWrapper mergeHandler wenv oldInst newInst = result where
   indexes = Seq.fromList [0..length updatedChildren]
   zipper idx child = cascadeCtx newInst child idx
   newChildren = Seq.zipWith zipper indexes updatedChildren
-  mergedResults = mergeChildren wenv oldChildren newChildren
+  (mergedResults, removedResults) = mergeChildren wenv oldChildren newChildren
   mergedChildren = fmap _wrWidget mergedResults
   concatSeq seqs = foldl' (><) Seq.empty seqs
   mergedReqs = concatSeq $ fmap _wrRequests mergedResults
   mergedEvents = concatSeq $ fmap _wrEvents mergedResults
+  removedReqs = concatSeq $ fmap _wrRequests removedResults
+  removedEvents = concatSeq $ fmap _wrEvents removedResults
   mergedInstance = uInstance {
     _wiChildren = mergedChildren
   }
-  newReqs = uReqs <> mergedReqs
-  newEvents = uEvents <> mergedEvents
+  newReqs = uReqs <> mergedReqs <> removedReqs
+  newEvents = uEvents <> mergedEvents <> removedEvents
   result = WidgetResult newReqs newEvents mergedInstance
 
 mergeChildren
   :: WidgetEnv s e
   -> Seq (WidgetInstance s e)
   -> Seq (WidgetInstance s e)
-  -> Seq (WidgetResult s e)
-mergeChildren _ _ Empty = Empty
-mergeChildren wenv Empty newItems = result where
+  -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
+mergeChildren wenv oldItems Empty = (Empty, removed) where
+  dispose child = widgetDispose (_wiWidget child) wenv child
+  removed = fmap dispose oldItems
+mergeChildren wenv Empty newItems = (added, Empty) where
   init child = widgetInit (_wiWidget child) wenv child
-  result = fmap init newItems
-mergeChildren wenv oldItems newItems = result where
+  added = fmap init newItems
+mergeChildren wenv oldItems newItems = (added, cremoved) where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems
   newWidget = _wiWidget newChild
@@ -223,7 +231,30 @@ mergeChildren wenv oldItems newItems = result where
     | instanceMatches newChild oldChild = (mergedOld, oldChildren)
     | isJust oldKeyMatch = (mergedKey, oldItems)
     | otherwise = (initNew, oldItems)
-  result = child <| mergeChildren wenv oldRest newChildren
+  (cadded, cremoved) = mergeChildren wenv oldRest newChildren
+  added = child <| cadded
+
+-- | Dispose handler
+defaultDispose :: ContainerInitHandler s e
+defaultDispose _ widgetInst = resultWidget widgetInst
+
+disposeWrapper
+  :: ContainerDisposeHandler s e
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+disposeWrapper disposeHandler wenv widgetInst = result where
+  WidgetResult reqs events tempInstance = disposeHandler wenv widgetInst
+  children = _wiChildren tempInstance
+  dispose child = widgetDispose (_wiWidget child) wenv child
+  results = fmap dispose children
+  newReqs = fold $ fmap _wrRequests results
+  newEvents = fold $ fmap _wrEvents results
+  result = WidgetResult (reqs <> newReqs) (events <> newEvents) widgetInst
+
+-- | State Handling helpers
+defaultGetState :: ContainerGetStateHandler s e
+defaultGetState _ = Nothing
 
 -- | Find next focusable item
 defaultFindNextFocus

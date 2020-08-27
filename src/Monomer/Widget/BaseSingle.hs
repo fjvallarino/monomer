@@ -28,15 +28,20 @@ type SingleInitHandler s e
   -> WidgetInstance s e
   -> WidgetResult s e
 
-type SingleGetStateHandler s e
-  = WidgetEnv s e
-  -> Maybe WidgetState
-
 type SingleMergeHandler s e
   = WidgetEnv s e
   -> Maybe WidgetState
   -> WidgetInstance s e
   -> WidgetResult s e
+
+type SingleDisposeHandler s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+
+type SingleGetStateHandler s e
+  = WidgetEnv s e
+  -> Maybe WidgetState
 
 type SingleFindNextFocusHandler s e
   = WidgetEnv s e
@@ -86,8 +91,9 @@ type SingleRenderHandler s e
 
 data Single s e = Single {
   singleInit :: SingleInitHandler s e,
-  singleGetState :: SingleGetStateHandler s e,
   singleMerge :: SingleMergeHandler s e,
+  singleDispose :: SingleDisposeHandler s e,
+  singleGetState :: SingleGetStateHandler s e,
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
   singleFindByPoint :: SingleFindByPointHandler s e,
   singleHandleEvent :: SingleEventHandler s e,
@@ -100,8 +106,9 @@ data Single s e = Single {
 instance Default (Single s e) where
   def = Single {
     singleInit = defaultInit,
-    singleGetState = defaultGetState,
     singleMerge = defaultMerge,
+    singleDispose = defaultDispose,
+    singleGetState = defaultGetState,
     singleFindNextFocus = defaultFindNextFocus,
     singleFindByPoint = defaultFindByPoint,
     singleHandleEvent = defaultHandleEvent,
@@ -114,8 +121,9 @@ instance Default (Single s e) where
 createSingle :: Single s e -> Widget s e
 createSingle Single{..} = Widget {
   widgetInit = singleInit,
-  widgetGetState = singleGetState,
   widgetMerge = mergeWrapper singleMerge,
+  widgetDispose = singleDispose,
+  widgetGetState = singleGetState,
   widgetFindNextFocus = singleFindNextFocus,
   widgetFindByPoint = singleFindByPoint,
   widgetHandleEvent = handleEventWrapper singleHandleEvent,
@@ -128,11 +136,14 @@ createSingle Single{..} = Widget {
 defaultInit :: SingleInitHandler s e
 defaultInit _ widgetInst = resultWidget widgetInst
 
-defaultGetState :: SingleGetStateHandler s e
-defaultGetState _ = Nothing
-
 defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInstance = resultWidget newInstance
+
+defaultDispose :: SingleDisposeHandler s e
+defaultDispose _ widgetInst = resultWidget widgetInst
+
+defaultGetState :: SingleGetStateHandler s e
+defaultGetState _ = Nothing
 
 mergeWrapper
   :: SingleMergeHandler s e

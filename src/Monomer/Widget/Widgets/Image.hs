@@ -1,7 +1,5 @@
 module Monomer.Widget.Widgets.Image (image) where
 
-import Debug.Trace
-
 import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
 import Control.Monad
 import Data.Default
@@ -39,26 +37,31 @@ makeImage imgPath state = widget where
     singleGetState = makeState state,
     singleInit = init,
     singleMerge = merge,
+    singleDispose = dispose,
     singleHandleMessage = handleMessage,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
 
-  init wenv inst = trace "Init!" resultReqs reqs inst where
+  init wenv inst = resultReqs reqs inst where
     path = _wiPath inst
-    platform = _wePlatform wenv
     handleLoadImage = loadImage wenv imgPath
     reqs = [RunTask path handleLoadImage]
 
-  merge wenv oldState widgetInst = resultWidget $ case useState oldState of
-    Just newState -> widgetInst {
-      _wiWidget = makeImage imgPath newState
-    }
-    Nothing -> widgetInst
+  dispose wenv inst = resultReqs reqs inst where
+    path = _wiPath inst
+    renderer = _weRenderer wenv
+    reqs = [RunTask path $ removeImage wenv imgPath]
+
+  merge wenv oldState widgetInst = resultWidget newInstance where
+    newInstance = case useState oldState of
+      Just newState -> widgetInst {
+        _wiWidget = makeImage imgPath newState
+      }
+      Nothing -> widgetInst
 
   handleMessage wenv target message inst = result where
-    result = cast message
-      >>= useImage inst
+    result = cast message >>= useImage inst
 
   useImage inst ImageFailed = Nothing
   useImage inst (ImageLoaded newSize) = Just $ resultReqs [Resize] newInst where
@@ -83,6 +86,13 @@ loadImage :: WidgetEnv s e -> String -> IO ImageMessage
 loadImage wenv path = do
   res <- readImage path
   registerImg wenv path res
+
+removeImage :: WidgetEnv s e -> String -> IO (Maybe ImageMessage)
+removeImage wenv path = do
+  deleteImage renderer path
+  return Nothing
+  where
+    renderer = _weRenderer wenv
 
 registerImg
   :: WidgetEnv s e

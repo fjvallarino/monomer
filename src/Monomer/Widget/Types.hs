@@ -108,11 +108,6 @@ data Widget s e =
       :: WidgetEnv s e
       -> WidgetInstance s e
       -> WidgetResult s e,
-    -- | Returns the current internal state, which can later be used when
-    -- | merging widget trees
-    widgetGetState
-      :: WidgetEnv s e
-      -> Maybe WidgetState,
     -- | Merges the current widget tree with the old one
     --
     -- Current state
@@ -123,6 +118,16 @@ data Widget s e =
       -> WidgetInstance s e
       -> WidgetInstance s e
       -> WidgetResult s e,
+    -- | Performs widget release
+    widgetDispose
+      :: WidgetEnv s e
+      -> WidgetInstance s e
+      -> WidgetResult s e,
+    -- | Returns the current internal state, which can later be used when
+    -- | merging widget trees
+    widgetGetState
+      :: WidgetEnv s e
+      -> Maybe WidgetState,
     -- | Returns the list of focusable paths, if any
     --
     widgetFindNextFocus

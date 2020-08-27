@@ -93,8 +93,9 @@ createComposite
 createComposite comp state = widget where
   widget = Widget {
     widgetInit = compositeInit comp state,
-    widgetGetState = makeState state,
     widgetMerge = compositeMerge comp state,
+    widgetDispose = compositeDispose comp state,
+    widgetGetState = makeState state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint state,
     widgetHandleEvent = compositeHandleEvent comp state,
@@ -152,6 +153,22 @@ compositeMerge comp state wenv oldComposite newComposite = result where
     | mergeRequired = widgetMerge newWidget cwenv oldRoot newRoot
     | otherwise = widgetInit newWidget cwenv newRoot
   result = reduceResult comp newState wenv newComposite widgetResult
+
+-- | Dispose
+compositeDispose
+  :: (Eq s, Typeable s, Typeable e)
+  => Composite s e ep
+  -> CompositeState s e
+  -> WidgetEnv sp ep
+  -> WidgetInstance sp ep
+  -> WidgetResult sp ep
+compositeDispose comp state wenv widgetComp = result where
+  CompositeState{..} = state
+  cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
+  widget = _wiWidget _cmpRoot
+  WidgetResult reqs evts _ = widgetDispose widget cwenv _cmpRoot
+  tempResult = WidgetResult reqs evts _cmpRoot
+  result = reduceResult comp state wenv widgetComp tempResult
 
 -- | Next focusable
 compositeFindNextFocus
