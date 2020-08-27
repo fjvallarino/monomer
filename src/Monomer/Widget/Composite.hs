@@ -27,6 +27,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -253,6 +254,7 @@ compositeUpdateSizeReq
   -> WidgetInstance sp ep
 compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   CompositeState{..} = state
+  style = activeStyle wenv widgetComp
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = widgetUpdateSizeReq widget cwenv _cmpRoot
@@ -261,7 +263,7 @@ compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   }
   newComp = widgetComp {
     _wiWidget = createComposite comp newState,
-    _wiSizeReq = _wiSizeReq newRoot
+    _wiSizeReq = handleSizeReqStyle style $ _wiSizeReq newRoot
   }
 
 -- Resize

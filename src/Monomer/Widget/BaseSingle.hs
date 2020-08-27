@@ -188,8 +188,10 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper handler wenv inst = newInst where
+  style = activeStyle wenv inst
+  req = handler wenv inst
   newInst = inst {
-    _wiSizeReq = handler wenv inst
+    _wiSizeReq = handleSizeReqStyle style req
   }
 
 defaultResize :: SingleResizeHandler s e

@@ -32,10 +32,10 @@ updateSizeReqEmpty = describe "empty" $ do
     _srSize `shouldBe` Size 0 0
 
   it "should return Flexible width policy" $
-    _srPolicyWidth `shouldBe` FlexibleSize
+    _srPolicyW `shouldBe` FlexibleSize
 
   it "should return Strict height policy" $
-    _srPolicyHeight `shouldBe` FlexibleSize
+    _srPolicyH `shouldBe` FlexibleSize
 
   where
     wenv = mockWenv ()
@@ -48,10 +48,10 @@ updateSizeReqItems = describe "several items" $ do
     _srSize `shouldBe` Size 80 60
 
   it "should return Flexible width policy" $
-    _srPolicyWidth `shouldBe` FlexibleSize
+    _srPolicyW `shouldBe` FlexibleSize
 
   it "should return Strict height policy" $
-    _srPolicyHeight `shouldBe` FlexibleSize
+    _srPolicyH `shouldBe` FlexibleSize
 
   where
     wenv = mockWenv ()

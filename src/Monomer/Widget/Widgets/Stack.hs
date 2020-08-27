@@ -91,8 +91,8 @@ makeStack isHorizontal = widget where
   sizePolicy vreqs = (hPolicy, vPolicy) where
     nReqs = length vreqs
     strictReqs policy = Seq.filter (\r -> policy r == StrictSize) vreqs
-    strictH = Seq.length (strictReqs _srPolicyW) == nReqs
-    strictV = Seq.length (strictReqs _srPolicyH) == nReqs
+    strictH = nReqs > 0 && Seq.length (strictReqs _srPolicyW) == nReqs
+    strictV = nReqs > 0 && Seq.length (strictReqs _srPolicyH) == nReqs
     hPolicy
       | not isHorizontal && strictH = StrictSize
       | otherwise = FlexibleSize

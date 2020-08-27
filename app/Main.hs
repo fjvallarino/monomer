@@ -151,14 +151,14 @@ buildUI model = trace "Creating UI" widgetTree where
       listView textField1 items id,
       button IncButton "Click!"
     ] `key` "Main"
-  widgetTree = vstack
-    [hstack [
-      radio fruit Apple,
-      radio fruit Orange,
-      radio fruit Pear
-    ],
-    image "/Users/francisco/dev/personal/haskell/monomer/assets/images/pecans.jpg" `style` margin 20
-    ]
+  widgetTree = vstack [
+      hstack [
+        radio fruit Apple,
+        radio fruit Orange,
+        radio fruit Pear
+      ],
+      image "assets/images/pecans.jpg" `style` margin 10
+    ] `style` margin 30 <> border 1 red <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]

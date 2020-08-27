@@ -387,13 +387,14 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper psHandler wenv widgetInst = newInst where
+  style = activeStyle wenv widgetInst
   children = _wiChildren widgetInst
   updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
   newChildren = fmap updateChild children
   sizeReq = psHandler wenv widgetInst newChildren
   newInst = widgetInst {
     _wiChildren = newChildren,
-    _wiSizeReq = sizeReq
+    _wiSizeReq = handleSizeReqStyle style sizeReq
   }
 
 -- | Resize

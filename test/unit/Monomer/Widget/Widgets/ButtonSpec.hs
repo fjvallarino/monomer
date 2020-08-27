@@ -43,10 +43,10 @@ updateSizeReq = describe "updateSizeReq" $ do
     _srSize `shouldBe` Size 50 20
 
   it "should return Flexible width policy" $
-    _srPolicyWidth `shouldBe` FlexibleSize
+    _srPolicyW `shouldBe` FlexibleSize
 
   it "should return Strict height policy" $
-    _srPolicyHeight `shouldBe` StrictSize
+    _srPolicyH `shouldBe` StrictSize
 
   where
     wenv = mockWenv ()
