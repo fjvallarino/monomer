@@ -4,6 +4,7 @@ module Monomer.Graphics.Renderer where
 
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import Data.Sequence (Seq)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
@@ -43,6 +44,7 @@ data Renderer = Renderer {
   renderEllipse :: Rect -> IO (),
   -- Text
   computeTextSize :: Font -> FontSize -> Text -> Size,
+  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> IO Rect,
   -- Image
   addImage :: String -> Int -> Int -> Bool -> ByteString -> IO (),

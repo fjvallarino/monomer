@@ -67,7 +67,8 @@ createWidgetPlatform :: Text -> Renderer -> WidgetPlatform
 createWidgetPlatform os renderer = WidgetPlatform {
   _wpOS = os,
   _wpGetKeyCode = getKeyCode,
-  _wpComputeTextSize = computeTextSize renderer
+  _wpComputeTextSize = computeTextSize renderer,
+  _wpComputeGlyphsPos = computeGlyphsPos renderer
 }
 
 runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()

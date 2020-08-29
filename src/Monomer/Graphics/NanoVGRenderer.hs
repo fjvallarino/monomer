@@ -6,10 +6,13 @@ module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 import Control.Monad (foldM, when)
 import Data.Default
 import Data.IORef
+import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq, (|>))
 import Data.Text (Text)
+import Data.Text.Foreign (withCStringLen)
 import Foreign.C.Types (CFloat)
+import Foreign.Ptr
 import System.IO.Unsafe
 
 import qualified Control.Concurrent.Lock as L
@@ -17,6 +20,8 @@ import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
+import qualified Data.Text as T
+import qualified Data.Vector as V
 import qualified NanoVG as VG
 import qualified NanoVG.Internal.Image as VGI
 
@@ -203,6 +208,30 @@ newRenderer c dpr lock envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
+  computeTextSize font fontSize message = unsafePerformIO $ do
+    VG.fontFace c (unFont font)
+    VG.fontSize c $ realToFrac (unFontSize fontSize)
+    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
+
+    return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
+    where
+      text = if message == "" then " " else message
+
+  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
+  computeGlyphsPos font fontSize message = unsafePerformIO $ do
+    VG.fontFace c (unFont font)
+    VG.fontSize c $ realToFrac (unFontSize fontSize)
+
+    glyphs <- textGlyphPositions c 0 0 text
+    return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
+    where
+      text = if message == "" then " " else message
+      convert glyph = GlyphPos {
+        _glpXMin = realToFrac $ VG.glyphPosMinX glyph,
+        _glpXMax = realToFrac $ VG.glyphPosMaxX glyph,
+        _glpW = realToFrac $ VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph
+      }
+
   renderText rect font fontSize (Align ha va) message = do
     VG.fontFace c (unFont font)
     VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
@@ -231,15 +260,6 @@ newRenderer c dpr lock envRef = Renderer {..} where
     where
       CRect x y w h = rectToCRect rect dpr
       fromCFloat val = realToFrac $ val / realToFrac dpr
-
-  computeTextSize font fontSize message = unsafePerformIO $ do
-    let text = if message == "" then " " else message
-
-    VG.fontFace c (unFont font)
-    VG.fontSize c $ realToFrac (unFontSize fontSize)
-    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
-
-    return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
 
   addImage name w h replace imgData = addPending lock envRef imageReq where
     action = if replace then AddReplace else AddKeep
@@ -272,6 +292,15 @@ handleRender c dpr rect image = do
   where
     CRect x y w h = rectToCRect rect dpr
     nvImg = _imNvImage image
+
+textGlyphPositions
+  :: VG.Context -> Double -> Double -> Text -> IO (V.Vector VG.GlyphPosition)
+textGlyphPositions c x y text = withCStringLen text $ \(ptr, len) ->
+    VG.textGlyphPositions c cx cy ptr (ptr `plusPtr` len) count
+  where
+    cx = fromIntegral $ round x
+    cy = fromIntegral $ round y
+    count = fromIntegral $ T.length text
 
 handlePendingImages :: VG.Context -> ImagesMap -> Seq ImageReq -> IO ImagesMap
 handlePendingImages c imagesMap addedImages =

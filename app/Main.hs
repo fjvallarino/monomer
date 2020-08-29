@@ -157,6 +157,11 @@ buildUI model = trace "Creating UI" widgetTree where
         radio fruit Orange,
         radio fruit Pear
       ],
+      hstack [
+        label "This is a long label",
+        label "Another long label",
+        label "Yet another long label"
+      ],
       image "assets/images/pecans.jpg" `style` marginT 10
     ] `style` margin 50 <> border 1 red <> radius 15 <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i

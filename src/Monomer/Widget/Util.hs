@@ -8,11 +8,13 @@ import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (?~), non, _Just
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
-import Data.Sequence (Seq, (><), (|>))
+import Data.Sequence (Seq(..), (><), (|>))
 import Data.Text (Text)
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
+import qualified Data.Vector as V
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
@@ -168,17 +170,71 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
 getTextSize wenv theme style text = handler font fontSize text where
   handler = _wpComputeTextSize (_wePlatform wenv)
+  (font, fontSize) = getFontAndSize wenv theme style
+
+getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
+getFullTextSize wenv theme style text = totalBounds where
+  textBounds = getTextSize wenv theme style text
+  totalBounds = addOuterSize style textBounds
+
+fitText
+  :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Text -> (Text, Size)
+fitText wenv theme style viewport text = (newText, newSize) where
+  (font, fontSize) = getFontAndSize wenv theme style
+  sizeHandler = _wpComputeTextSize (_wePlatform wenv)
+  size = sizeHandler font fontSize text
+  (newText, newSize)
+    | _sW size <= _rW viewport = (text, size)
+    | otherwise = fitEllipsis wenv theme style viewport size text
+
+fitEllipsis
+  :: WidgetEnv s e
+  -> ThemeState
+  -> StyleState
+  -> Rect
+  -> Size
+  -> Text
+  -> (Text, Size)
+fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
+  Size tw th = textSize
+  vpW = _rW viewport
+  (font, fontSize) = getFontAndSize wenv theme style
+  glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize (text <> ".")
+  dotW = _glpW $ Seq.index glyphs (Seq.length glyphs - 1)
+  dotsW = 3 * dotW
+  dotsFit = vpW >= tw + dotsW
+  targetW
+    | dotsFit = vpW
+    | otherwise = vpW - dotsW
+  (gCount, gWidth) = fitGlyphsCount targetW 0 glyphs
+  remW = vpW - gWidth
+  dotCount = min 3 . max 0 $ round (remW / dotW)
+  newText
+    | dotsFit = text <> "..."
+    | otherwise = T.take gCount text <> T.replicate dotCount "."
+  newWidth
+    | dotsFit = tw + dotsW
+    | otherwise = gWidth + fromIntegral dotCount * dotW
+  newSize = Size newWidth th
+
+fitGlyphsCount :: Double -> Double -> Seq GlyphPos -> (Int, Double)
+fitGlyphsCount _ _ Empty = (0, 0)
+fitGlyphsCount totalW currW (g :<| gs)
+  | newCurrW <= totalW = (gCount + 1, gWidth + gsW)
+  | otherwise = (0, 0)
+  where
+    gsW = _glpW g
+    newCurrW = currW + gsW
+    (gCount, gWidth) = fitGlyphsCount totalW newCurrW gs
+
+getFontAndSize :: WidgetEnv s e -> ThemeState -> StyleState -> (Font, FontSize)
+getFontAndSize wenv theme style = (font, fontSize) where
   styleFont = style ^? S.text . _Just  . S.font . _Just
   styleFontSize = style ^? S.text . _Just . S.fontSize . _Just
   themeFont = theme ^. S.font
   themeFontSize = theme ^. S.fontSize
   font = fromMaybe themeFont styleFont
   fontSize = fromMaybe themeFontSize styleFontSize
-
-getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
-getFullTextSize wenv theme style text = totalBounds where
-  textBounds = getTextSize wenv theme style text
-  totalBounds = addOuterSize style textBounds
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where

@@ -10,7 +10,10 @@ import Data.Text (Text)
 
 import Monomer.Common.Geometry
 
-data Winding = CW | CCW deriving (Eq, Show)
+data Winding
+  = CW
+  | CCW
+  deriving (Eq, Show)
 
 data Color = Color {
   _colorRed :: Int,
@@ -63,5 +66,18 @@ data AlignV
 
 instance Default AlignV where
   def = AMiddle
+
+data GlyphPos = GlyphPos {
+  _glpXMin :: Double,
+  _glpXMax :: Double,
+  _glpW :: Double
+}
+
+instance Default GlyphPos where
+  def = GlyphPos {
+    _glpXMin = 0,
+    _glpXMax = 0,
+    _glpW = 0
+  }
 
 makeLensesWith abbreviatedFields ''Color

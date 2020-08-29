@@ -90,7 +90,7 @@ makeTextField config state = widget where
     }
 
   merge wenv oldState widgetInst = resultWidget newInstance where
-    TextFieldState _ oldPos = fromMaybe textFieldState (useState oldState)
+    TextFieldState _ oldPos = fromMaybe state (useState oldState)
     currText = currentValue wenv
     newPos
       | T.length currText < oldPos = T.length currText
