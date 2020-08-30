@@ -2,14 +2,10 @@
 
 module Monomer.Widget.Widgets.Label (label) where
 
-import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Common.Geometry
-import Monomer.Common.Style
-import Monomer.Common.Tree
 import Monomer.Graphics.Drawing
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types

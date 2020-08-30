@@ -3,7 +3,6 @@
 
 module Monomer.Widget.Util where
 
-import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (?~), non, _Just)
 import Data.Default
 import Data.Maybe
@@ -14,7 +13,6 @@ import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
-import qualified Data.Vector as V
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
@@ -23,8 +21,6 @@ import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
 

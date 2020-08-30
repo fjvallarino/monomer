@@ -4,15 +4,12 @@
 module Monomer.Widget.Types where
 
 import Control.Lens (ALens')
-import Data.ByteString (ByteString)
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq, (<|), (|>))
 import Data.String (IsString(..))
 import Data.Text (Text)
-import Data.Typeable (cast, Typeable)
-
-import qualified Data.Sequence as Seq
+import Data.Typeable (Typeable)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
@@ -235,10 +232,3 @@ data WidgetInstance s e =
     -- | Style attributes of the widget instance
     _wiStyle :: Style
   }
-
-instance Show (WidgetInstance s e) where
-  show inst = desc where
-    desc = wtype ++ ", " ++ wkey ++ ", " ++ wchildren
-    wtype = "Type = " ++ unWidgetType (_wiWidgetType inst)
-    wkey = "Key = " ++ show (_wiKey inst)
-    wchildren = "Children = " ++ show (length $ _wiChildren inst)

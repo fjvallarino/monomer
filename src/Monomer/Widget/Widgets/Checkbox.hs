@@ -12,10 +12,8 @@ import Data.Text (Text)
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil (removeOuterBounds)
-import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
-import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types

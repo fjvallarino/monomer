@@ -4,7 +4,6 @@
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
 import Control.Monad (foldM, when)
-import Data.Default
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe

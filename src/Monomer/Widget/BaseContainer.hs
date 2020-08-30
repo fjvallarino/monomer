@@ -32,7 +32,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Geometry
 import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
-import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer

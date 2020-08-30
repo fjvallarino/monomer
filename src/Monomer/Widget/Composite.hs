@@ -10,9 +10,6 @@ module Monomer.Widget.Composite (
   composite
 ) where
 
-import Control.Concurrent.STM.TChan
-import Control.Monad.STM (atomically)
-import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
@@ -25,7 +22,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Common.Geometry
 import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
-import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Internal

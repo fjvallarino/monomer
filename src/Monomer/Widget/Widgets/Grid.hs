@@ -3,7 +3,6 @@ module Monomer.Widget.Widgets.Grid (
   vgrid
 ) where
 
-import Control.Monad
 import Data.Default
 import Data.List (foldl')
 import Data.Sequence (Seq(..), (|>))
@@ -11,7 +10,6 @@ import Data.Sequence (Seq(..), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Common.Tree
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer

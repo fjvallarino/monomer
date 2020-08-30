@@ -16,10 +16,7 @@ import Data.Sequence (Seq)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Event.LensEvent
 import Monomer.Event.Types
-import Monomer.Widget.Composite
-import Monomer.Widget.Types
 
 type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
 

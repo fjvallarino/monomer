@@ -1,18 +1,14 @@
 module Monomer.Widget.Widgets.Image (image) where
 
 import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
-import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)
 
 import Monomer.Common.Geometry
-import Monomer.Common.Style
-import Monomer.Common.Tree
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
-import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -34,9 +30,7 @@ image path = defaultWidgetInstance "image" (makeImage path imageState)
 makeImage :: String -> ImageState -> Widget s e
 makeImage imgPath state = widget where
   widget = createSingle def {
-    singleGetState = makeState state,
     singleInit = init,
-    singleMerge = merge,
     singleDispose = dispose,
     singleHandleMessage = handleMessage,
     singleGetSizeReq = getSizeReq,
@@ -52,13 +46,6 @@ makeImage imgPath state = widget where
     path = _wiPath inst
     renderer = _weRenderer wenv
     reqs = [RunTask path $ removeImage wenv imgPath]
-
-  merge wenv oldState widgetInst = resultWidget newInstance where
-    newInstance = case useState oldState of
-      Just newState -> widgetInst {
-        _wiWidget = makeImage imgPath newState
-      }
-      Nothing -> widgetInst
 
   handleMessage wenv target message inst = result where
     result = cast message >>= useImage inst

@@ -7,7 +7,6 @@ import Data.Text (Text)
 import Data.Sequence (Seq)
 
 import Monomer.Common.Geometry
-import Monomer.Common.Tree
 import Monomer.Graphics.Types
 
 data Renderer = Renderer {

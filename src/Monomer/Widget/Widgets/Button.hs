@@ -5,13 +5,9 @@ module Monomer.Widget.Widgets.Button (
   buttonConfig
 ) where
 
-import Control.Monad
 import Data.Default
 import Data.Text (Text)
 
-import Monomer.Common.Geometry
-import Monomer.Common.Style
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types

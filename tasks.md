@@ -147,18 +147,23 @@
   - Create Radio
   - Reorganize Drawing (move helpers to bottom)
   - Create Image
+  - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
 
 - Pending
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Use weight to control allocations
-  - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
+  - DrawStyledBackground should draw borders after widget content
   - Request text input when text field gets focus (required for mobile)
     - Also set TextInputRect
   - Improve textField
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty
+  - Rethink Image handling
+    - Should image component keep a copy around?
+    - Should it be provided to renderer every time and, if removed, put back in the list?
+    - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Add header in all files, indicating license and documenting what the module does
   - Create Slider

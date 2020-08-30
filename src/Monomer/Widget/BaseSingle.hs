@@ -7,16 +7,11 @@ module Monomer.Widget.BaseSingle (
   createSingle
 ) where
 
-import Control.Applicative ((<|>))
-import Control.Monad
 import Data.Default
-import Data.Maybe
-import Data.Sequence ((|>))
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (Typeable)
 
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
-import Monomer.Event.Core
 import Monomer.Event.Types
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Internal

@@ -1,13 +1,9 @@
 module Monomer.Event.Core where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust)
-import Data.List (foldl')
-import Data.Sequence (Seq, (|>))
-import Data.Traversable
+import Data.Maybe (catMaybes, fromMaybe)
 
 import qualified Data.Map.Strict as M
-import qualified Data.Sequence as Seq
 import qualified SDL
 
 import Monomer.Common.Geometry

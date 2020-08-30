@@ -16,7 +16,6 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing

@@ -10,14 +10,10 @@ module Monomer.Main.Core (
 
 import Control.Concurrent (threadDelay)
 import Control.Lens
-import Control.Monad
 import Control.Monad.Extra
-import Control.Monad.IO.Class
 import Control.Monad.State
 import Data.Default
-import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq, (><))
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 
@@ -25,7 +21,6 @@ import qualified Data.Map as M
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
-import qualified NanoVG as NV
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style

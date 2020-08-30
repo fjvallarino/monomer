@@ -12,7 +12,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path, rootPath)
 import Monomer.Main.Types
 import Monomer.Widget.Types
-import Monomer.Widget.Util
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
 initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {

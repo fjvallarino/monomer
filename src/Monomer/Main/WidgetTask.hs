@@ -6,7 +6,6 @@ import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
 import Control.Lens
-import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
@@ -17,13 +16,8 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path)
-import Monomer.Event.Core
-import Monomer.Event.Types
-import Monomer.Graphics.Renderer
 import Monomer.Main.Handlers
-import Monomer.Main.Util
 import Monomer.Main.Types
 import Monomer.Widget.Types
 

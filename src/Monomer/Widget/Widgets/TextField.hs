@@ -18,9 +18,6 @@ import Data.Typeable
 import qualified Data.Text as T
 
 import Monomer.Common.Geometry
-import Monomer.Common.Style
-import Monomer.Common.Tree
-import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing

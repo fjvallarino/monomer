@@ -1,15 +1,11 @@
 module Monomer.Main.Platform where
 
-import Control.Exception (finally)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Text (Text)
-import Foreign (free)
 import Foreign.C (peekCString, withCString)
-import NanoVG (Context(..), beginFrame, endFrame)
 import System.IO.Unsafe (unsafePerformIO)
 
 import qualified Data.Text as T
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw

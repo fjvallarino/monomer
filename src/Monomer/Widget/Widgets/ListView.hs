@@ -11,33 +11,23 @@ module Monomer.Widget.Widgets.ListView (
   listViewCfg
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~), (.~), (?~), non)
-import Control.Monad
 import Data.Default
-import Data.Foldable (find)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
-import Data.Traversable
 import Data.Typeable (Typeable, cast)
 
-import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.StyleCombinators
 import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Color
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Renderer
-import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
