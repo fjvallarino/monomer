@@ -187,7 +187,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
     VG.arc c x y radius start end wind
     where
       CPoint x y = pointToCPoint point dpr
-      radius = realToFrac rad
+      radius = realToFrac $ rad * dpr
       start = VG.degToRad $ realToFrac angleStart
       end = VG.degToRad $ realToFrac angleEnd
       wind = convertWinding winding

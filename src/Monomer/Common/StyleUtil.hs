@@ -16,28 +16,28 @@ addOuterSize :: StyleState -> Size -> Size
 addOuterSize style sz = final where
   margin = addMarginSize sz (_sstMargin style)
   border = addBorderSize margin (_sstBorder style)
-  padding = addPaddingSize margin (_sstPadding style)
+  padding = addPaddingSize border (_sstPadding style)
   final = padding
 
 removeOuterSize :: StyleState -> Size -> Size
 removeOuterSize style sz = final where
   margin = subtractMarginSize sz (_sstMargin style)
   border = subtractBorderSize margin (_sstBorder style)
-  padding = subtractPaddingSize margin (_sstPadding style)
+  padding = subtractPaddingSize border (_sstPadding style)
   final = padding
 
 addOuterBounds :: StyleState -> Rect -> Rect
 addOuterBounds style viewport = final where
   margin = addMargin viewport (_sstMargin style)
   border = addBorder margin (_sstBorder style)
-  padding = addPadding margin (_sstPadding style)
+  padding = addPadding border (_sstPadding style)
   final = padding
 
 removeOuterBounds :: StyleState -> Rect -> Rect
 removeOuterBounds style viewport = final where
   margin = subtractMargin viewport (_sstMargin style)
   border = subtractBorder margin (_sstBorder style)
-  padding = subtractPadding margin (_sstPadding style)
+  padding = subtractPadding border (_sstPadding style)
   final = padding
 
 -- Internal
