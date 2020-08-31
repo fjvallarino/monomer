@@ -72,7 +72,6 @@ makeCheckbox config = widget where
     sizeReq = SizeReq size StrictSize StrictSize
 
   render renderer wenv inst = do
-    drawStyledBackground renderer rarea style
     renderCheckbox renderer config rarea fgColor
 
     when value $

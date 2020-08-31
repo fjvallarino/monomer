@@ -62,12 +62,11 @@ makeImage imgPath state = widget where
     size = fromMaybe def (isSize state)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  render renderer wenv inst = do
-    drawStyledBackground renderer renderArea style
-    drawStyledImage renderer renderArea style imgPath
+  render renderer wenv inst =
+    drawStyledImage renderer contentRect style imgPath
     where
-      renderArea = _wiRenderArea inst
       style = activeStyle wenv inst
+      contentRect = getContentRect style inst
 
 loadImage :: WidgetEnv s e -> String -> IO ImageMessage
 loadImage wenv path = do

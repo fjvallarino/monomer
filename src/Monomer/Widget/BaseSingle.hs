@@ -13,6 +13,7 @@ import Data.Typeable (Typeable)
 import Monomer.Common.Geometry
 import Monomer.Common.Tree
 import Monomer.Event.Types
+import Monomer.Graphics.Drawing
 import Monomer.Graphics.Renderer
 import Monomer.Widget.Internal
 import Monomer.Widget.Types
@@ -197,3 +198,15 @@ defaultResize wenv viewport renderArea widgetInst = widgetInst {
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv widgetInst = return ()
+renderWrapper
+  :: SingleRenderHandler s e
+  -> Renderer
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> IO ()
+renderWrapper rHandler renderer wenv widgetInst =
+  drawStyledAction renderer renderArea style $ \_ ->
+    rHandler renderer wenv widgetInst
+  where
+    renderArea = _wiRenderArea widgetInst
+    style = activeStyle wenv widgetInst

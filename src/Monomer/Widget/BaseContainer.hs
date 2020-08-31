@@ -425,10 +425,7 @@ resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e
-defaultRender renderer wenv inst = action where
-  renderArea = _wiRenderArea inst
-  style = activeStyle wenv inst
-  action = drawStyledBackground renderer renderArea style
+defaultRender renderer wenv widgetInst = return ()
 
 renderWrapper
   :: ContainerRenderHandler s e
@@ -436,13 +433,16 @@ renderWrapper
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> IO ()
-renderWrapper rHandler renderer wenv widgetInst = do
-  let children = _wiChildren widgetInst
+renderWrapper rHandler renderer wenv widgetInst =
+  drawStyledAction renderer renderArea style $ \_ -> do
+    rHandler renderer wenv widgetInst
 
-  rHandler renderer wenv widgetInst
-
-  forM_ children $ \child -> when (_wiVisible child) $
-    widgetRender (_wiWidget child) renderer wenv child
+    forM_ children $ \child -> when (_wiVisible child) $
+      widgetRender (_wiWidget child) renderer wenv child
+  where
+    children = _wiChildren widgetInst
+    renderArea = _wiRenderArea widgetInst
+    style = activeStyle wenv widgetInst
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool

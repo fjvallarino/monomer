@@ -16,7 +16,7 @@ import qualified Data.Text as T
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.StyleUtil (addOuterSize)
+import Monomer.Common.StyleUtil (addOuterSize, removeOuterBounds)
 import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
@@ -258,6 +258,9 @@ nextTargetStep target widgetInst = nextStep where
 
 pointInViewport :: Point -> WidgetInstance s e -> Bool
 pointInViewport p inst = pointInRect p (_wiViewport inst)
+
+getContentRect :: StyleState -> WidgetInstance s e -> Rect
+getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst

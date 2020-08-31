@@ -18,6 +18,7 @@ import Data.Typeable
 import qualified Data.Text as T
 
 import Monomer.Common.Geometry
+import Monomer.Common.StyleUtil
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
@@ -145,8 +146,7 @@ makeTextField config state = widget where
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv widgetInst = do
-    drawStyledBackground renderer _wiViewport style
-    Rect tl tt _ _ <- drawStyledText renderer renderArea style currText
+    Rect tl tt _ _ <- drawStyledText renderer contentRect mergedStyle currText
 
     when (isFocused wenv widgetInst) $ do
       let Size sw sh = getTextSize wenv theme style part1
@@ -156,8 +156,9 @@ makeTextField config state = widget where
       WidgetInstance{..} = widgetInst
       theme = activeTheme wenv widgetInst
       style = activeStyle wenv widgetInst
+      mergedStyle = mergeThemeStyle theme style
+      contentRect = getContentRect style widgetInst
       ts = _weTimestamp wenv
-      renderArea@(Rect rl rt rw rh) = _wiRenderArea
       caretAlpha
         | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0

@@ -6,10 +6,10 @@ module Monomer.Graphics.Drawing (
   drawRectBorder,
   drawEllipse,
   drawEllipseBorder,
+  drawStyledAction,
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
-  drawText,
   drawImage,
   drawStyledImage
 ) where
@@ -64,21 +64,26 @@ drawEllipseBorder renderer rect (Just color) width = do
     finalRect = subtractFromRect rect w w w w
     w = width / 2
 
-drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
-drawStyledBackground renderer viewport style = do
+drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
+drawStyledAction renderer viewport style action = do
   let StyleState{..} = style
   let margin = _sstMargin
   let rect = subtractMargin viewport margin
+  let contentRect = removeOuterBounds style viewport
 
   drawRect renderer rect _sstBgColor _sstRadius
+  action contentRect
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
+drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
+drawStyledBackground renderer viewport style =
+  drawStyledAction renderer viewport style (\_ -> return ())
+
 drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer viewport style txt = action where
-  tsRect = removeOuterBounds style viewport
-  action = drawText renderer tsRect (_sstText style) txt
+  action = drawText renderer viewport (_sstText style) txt
 
 drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
 drawStyledText_ renderer viewport style txt = void action where

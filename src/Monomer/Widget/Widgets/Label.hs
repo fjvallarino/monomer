@@ -56,8 +56,7 @@ makeLabel state@(LabelState caption captionFit) = widget where
       _wiRenderArea = renderArea
     }
 
-  render renderer wenv widgetInst = do
-    drawStyledBackground renderer renderArea style
+  render renderer wenv widgetInst =
     drawStyledText_ renderer renderArea style captionFit
     where
       renderArea = _wiRenderArea widgetInst

@@ -54,8 +54,7 @@ makeButton config = widget where
     size = getTextSize wenv theme style (_btnLabel config)
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  render renderer wenv widgetInst = do
-    drawStyledBackground renderer renderArea style
+  render renderer wenv widgetInst =
     drawStyledText_ renderer renderArea style (_btnLabel config)
     where
       style = activeStyle wenv widgetInst
