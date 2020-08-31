@@ -71,7 +71,7 @@ data GlyphPos = GlyphPos {
   _glpXMin :: Double,
   _glpXMax :: Double,
   _glpW :: Double
-}
+} deriving (Eq, Show)
 
 instance Default GlyphPos where
   def = GlyphPos {

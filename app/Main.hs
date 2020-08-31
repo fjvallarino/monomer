@@ -81,8 +81,11 @@ main = do
 
   winSize <- getDrawableSize window
 
+  let model = def  {
+    _textField1 = "This is a test! Or not? Well, we'll see"
+  }
   let devicePixelRate = _sW winSize / fromIntegral screenWidth
-  let appWidget = createApp def (Just InitApp) handleAppEvent buildUI
+  let appWidget = createApp model (Just InitApp) handleAppEvent buildUI
   let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
   let theme = def
         & S.basic . S.fgColor .~ blue
@@ -147,11 +150,11 @@ buildUI model = trace "Creating UI" widgetTree where
       button IncButton "Click!"
     ] `key` "Main"
   widgetTree = vstack [
-      hstack [
-        radio fruit Apple,
-        radio fruit Orange,
-        radio fruit Pear
-      ],
+      --hstack [
+      --  radio fruit Apple,
+      --  radio fruit Orange,
+      --  radio fruit Pear
+      --],
       textField textField1,
       hstack [
         label "This is a long label",

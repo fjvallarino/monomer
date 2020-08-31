@@ -148,15 +148,15 @@
   - Reorganize Drawing (move helpers to bottom)
   - Create Image
   - Add config for Label to choose from: Overflow | Cut (better name?) | Ellipsis
+  - DrawStyledBackground should draw borders after widget content
+  - Request text input when text field gets focus (required for mobile)
+    - Also set TextInputRect
 
 - Pending
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Use weight to control allocations
-  - DrawStyledBackground should draw borders after widget content
-  - Request text input when text field gets focus (required for mobile)
-    - Also set TextInputRect
   - Improve textField
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty

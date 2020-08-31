@@ -194,8 +194,7 @@ fitEllipsis
 fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
   Size tw th = textSize
   vpW = _rW viewport
-  (font, fontSize) = getFontAndSize theme style
-  glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize (text <> ".")
+  glyphs = getTextGlyphs wenv theme style (text <> ".")
   dotW = _glpW $ Seq.index glyphs (Seq.length glyphs - 1)
   dotsW = 3 * dotW
   dotsFit = vpW >= tw + dotsW
@@ -212,6 +211,12 @@ fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
     | dotsFit = tw + dotsW
     | otherwise = gWidth + fromIntegral dotCount * dotW
   newSize = Size newWidth th
+
+getTextGlyphs
+  :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Seq GlyphPos
+getTextGlyphs wenv theme style text = glyphs where
+  (font, fontSize) = getFontAndSize theme style
+  glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize text
 
 fitGlyphsCount :: Double -> Double -> Seq GlyphPos -> (Int, Double)
 fitGlyphsCount _ _ Empty = (0, 0)
