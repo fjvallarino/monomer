@@ -16,7 +16,7 @@ import qualified Data.Text as T
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
-import Monomer.Common.StyleUtil (addOuterSize, removeOuterBounds)
+import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
@@ -166,7 +166,7 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
 getTextSize wenv theme style text = handler font fontSize text where
   handler = _wpComputeTextSize (_wePlatform wenv)
-  (font, fontSize) = getFontAndSize wenv theme style
+  (font, fontSize) = getFontAndSize theme style
 
 getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
 getFullTextSize wenv theme style text = totalBounds where
@@ -176,7 +176,7 @@ getFullTextSize wenv theme style text = totalBounds where
 fitText
   :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Text -> (Text, Size)
 fitText wenv theme style viewport text = (newText, newSize) where
-  (font, fontSize) = getFontAndSize wenv theme style
+  (font, fontSize) = getFontAndSize theme style
   sizeHandler = _wpComputeTextSize (_wePlatform wenv)
   size = sizeHandler font fontSize text
   (newText, newSize)
@@ -194,7 +194,7 @@ fitEllipsis
 fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
   Size tw th = textSize
   vpW = _rW viewport
-  (font, fontSize) = getFontAndSize wenv theme style
+  (font, fontSize) = getFontAndSize theme style
   glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize (text <> ".")
   dotW = _glpW $ Seq.index glyphs (Seq.length glyphs - 1)
   dotsW = 3 * dotW
@@ -223,8 +223,8 @@ fitGlyphsCount totalW currW (g :<| gs)
     newCurrW = currW + gsW
     (gCount, gWidth) = fitGlyphsCount totalW newCurrW gs
 
-getFontAndSize :: WidgetEnv s e -> ThemeState -> StyleState -> (Font, FontSize)
-getFontAndSize wenv theme style = (font, fontSize) where
+getFontAndSize :: ThemeState -> StyleState -> (Font, FontSize)
+getFontAndSize theme style = (font, fontSize) where
   styleFont = style ^? S.text . _Just  . S.font . _Just
   styleFontSize = style ^? S.text . _Just . S.fontSize . _Just
   themeFont = theme ^. S.font
@@ -264,6 +264,11 @@ getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
+
+instanceStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
+instanceStyle wenv inst = mergeThemeStyle theme style where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv  inst
 
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where

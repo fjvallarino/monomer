@@ -61,6 +61,8 @@ data WidgetRequest s
   | SetFocus Path
   | GetClipboard Path
   | SetClipboard ClipboardData
+  | StartTextInput Rect
+  | StopTextInput
   | ResetOverlay
   | SetOverlay Path
   | UpdateModel (s -> s)

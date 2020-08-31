@@ -19,7 +19,9 @@ import Data.Sequence (Seq(..), (><))
 
 import qualified Data.Sequence as Seq
 import qualified SDL
+import qualified SDL.Raw.Types as SDL
 
+import Monomer.Common.Geometry
 import Monomer.Common.Tree (Path, rootPath)
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
@@ -125,6 +127,8 @@ handleWidgetResult wenv (WidgetResult reqs events evtRoot) = do
   handleFocusSet reqs (evtWctx, events, evtRoot)
     >>= handleClipboardGet reqs
     >>= handleClipboardSet reqs
+    >>= handleStartTextInput reqs
+    >>= handleStopTextInput reqs
     >>= handleSendMessages reqs
     >>= handleOverlaySet reqs
     >>= handleOverlayReset reqs
@@ -214,6 +218,34 @@ handleClipboardSet reqs previousStep =
   case Seq.filter isSetClipboard reqs of
     SetClipboard (ClipboardText text) :<| _ -> do
       SDL.setClipboardText text
+
+      return previousStep
+    _ -> return previousStep
+
+handleStartTextInput
+  :: (MonomerM s m)
+  => Seq (WidgetRequest s)
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleStartTextInput reqs previousStep =
+  case Seq.filter isSetOverlay reqs of
+    StartTextInput (Rect x y w h) :<| _ -> do
+      SDL.startTextInput (SDL.Rect (c x) (c y) (c w) (c h))
+
+      return previousStep
+    _ -> return previousStep
+  where
+    c x = fromIntegral $ round x
+
+handleStopTextInput
+  :: (MonomerM s m)
+  => Seq (WidgetRequest s)
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleStopTextInput reqs previousStep =
+  case Seq.filter isSetOverlay reqs of
+    StopTextInput :<| _ -> do
+      SDL.stopTextInput
 
       return previousStep
     _ -> return previousStep

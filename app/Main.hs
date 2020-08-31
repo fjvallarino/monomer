@@ -17,14 +17,11 @@ import TextShow
 
 import System.Remote.Monitoring
 
-import qualified Data.Text as T
 import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Raw.Error as SRE
-import qualified SDL.Raw.Event as SREv
 
 import Monomer.Common.Geometry
-import Monomer.Common.Style
 import Monomer.Common.StyleCombinators
 import Monomer.Graphics.Color
 import Monomer.Main.Core
@@ -81,8 +78,6 @@ main = do
   _ <- SDL.glCreateContext window
 
   _ <- glewInit
-
-  SREv.startTextInput
 
   winSize <- getDrawableSize window
 

@@ -80,21 +80,21 @@ makeTextField config state = widget where
   (part1, part2) = T.splitAt currPos currText
   currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
-  init wenv widgetInst = resultWidget newInstance where
+  init wenv inst = resultWidget newInstance where
     currText = currentValue wenv
     newState = TextFieldState currText 0
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeTextField config newState
     }
 
-  merge wenv oldState widgetInst = resultWidget newInstance where
+  merge wenv oldState inst = resultWidget newInstance where
     TextFieldState _ oldPos = fromMaybe state (useState oldState)
     currText = currentValue wenv
     newPos
       | T.length currText < oldPos = T.length currText
       | otherwise = oldPos
     newState = TextFieldState currText newPos
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeTextField config newState
     }
 
@@ -105,62 +105,66 @@ makeTextField config state = widget where
     | isKeyBackspace code || isKeyLeft code || isKeyRight code = (txt, tp)
     | otherwise = (txt, tp)
 
-  handleEvent wenv target evt widgetInst = case evt of
-    Click (Point x y) _ -> Just $ resultReqs reqs widgetInst where
-      reqs = [SetFocus $ _wiPath widgetInst]
+  handleEvent wenv target evt inst = case evt of
+    Click (Point x y) _ -> Just $ resultReqs reqs inst where
+      reqs = [SetFocus $ _wiPath inst]
 
     KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
       (newText, newPos) = handleKeyPress currText currPos code
       isPaste = isClipboardPaste wenv evt
       isCopy = isClipboardCopy wenv evt
-      reqGetClipboard = [GetClipboard (_wiPath widgetInst) | isPaste]
+      reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
       reqSetClipboard = [SetClipboard (ClipboardText currText) | isCopy]
       reqUpdateModel
         | currText /= newText = widgetValueSet (_tfcValue config) newText
         | otherwise = []
       reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateModel
       newState = TextFieldState newText newPos
-      newInstance = widgetInst {
+      newInstance = inst {
         _wiWidget = makeTextField config newState
       }
 
-    TextInput newText -> insertText wenv widgetInst newText
+    TextInput newText -> insertText wenv inst newText
 
-    Clipboard (ClipboardText newText) -> insertText wenv widgetInst newText
+    Clipboard (ClipboardText newText) -> insertText wenv inst newText
+
+    Focus -> Just $ resultReqs [StartTextInput (_wiViewport inst)] inst
+
+    Blur -> Just $ resultReqs [StopTextInput] inst
 
     _ -> Nothing
 
-  insertText wenv widgetInst addedText = Just $ resultReqs reqs newInst where
+  insertText wenv inst addedText = Just $ resultReqs reqs newInst where
     newText = T.concat [part1, addedText, part2]
     newPos = currPos + T.length addedText
     newState = TextFieldState newText newPos
     reqs = widgetValueSet (_tfcValue config) newText
-    newInst = widgetInst {
+    newInst = inst {
       _wiWidget = makeTextField config newState
     }
 
-  getSizeReq wenv widgetInst = sizeReq where
-    theme = activeTheme wenv widgetInst
-    style = activeStyle wenv widgetInst
+  getSizeReq wenv inst = sizeReq where
+    theme = activeTheme wenv inst
+    style = activeStyle wenv inst
     size = getTextSize wenv theme style currText
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  render renderer wenv widgetInst = do
+  render renderer wenv inst = do
     Rect tl tt _ _ <- drawStyledText renderer contentRect mergedStyle currText
 
-    when (isFocused wenv widgetInst) $ do
+    when (isFocused wenv inst) $ do
       let Size sw sh = getTextSize wenv theme style part1
       drawRect renderer (Rect (tl + sw) tt caretWidth sh) caretColor Nothing
 
     where
-      WidgetInstance{..} = widgetInst
-      theme = activeTheme wenv widgetInst
-      style = activeStyle wenv widgetInst
+      WidgetInstance{..} = inst
+      theme = activeTheme wenv inst
+      style = activeStyle wenv inst
       mergedStyle = mergeThemeStyle theme style
-      contentRect = getContentRect style widgetInst
+      contentRect = getContentRect style inst
       ts = _weTimestamp wenv
       caretAlpha
-        | isFocused wenv widgetInst = fromIntegral (ts `mod` 1000) / 1000.0
+        | isFocused wenv inst = fromIntegral (ts `mod` 1000) / 1000.0
         | otherwise = 0
       caretColor = Just $ textColor style & alpha .~ caretAlpha
       caretWidth = _tfcCaretWidth config
