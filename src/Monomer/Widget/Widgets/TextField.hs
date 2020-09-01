@@ -8,8 +8,6 @@ module Monomer.Widget.Widgets.TextField (
   textFieldCfg
 ) where
 
-import Debug.Trace
-
 import Control.Monad
 import Control.Lens (ALens', (&), (.~))
 import Data.Default
@@ -111,20 +109,24 @@ makeTextField config state = widget where
     }
 
   handleKeyPress wenv mod code
-    | isBackspace = (T.init part1 <> part2, tp - 1, Nothing)
-    | isMoveLeft = (txt, max 0 (tp - 1), Nothing)
-    | isMoveRight = (txt, min txtLen (tp + 1), Nothing)
-    | isMoveWordL = (txt, T.length prevWordStart, Nothing)
-    | isMoveWordR = (txt, T.length txt - T.length nextWordEnd, Nothing)
-    | isSelectLeft = (txt, tp, moveSel (-1))
-    | isSelectRight = (txt, tp, moveSel 1)
-    | otherwise = (txt, tp, currSel)
+    | isBackspace = moveCursor removeText (tp - 1) Nothing
+    | isMoveLeft = moveCursor txt (tp - 1) Nothing
+    | isMoveRight = moveCursor txt (tp + 1) Nothing
+    | isMoveWordL = moveCursor txt prevWordStartIdx Nothing
+    | isMoveWordR = moveCursor txt nextWordEndIdx Nothing
+    | isSelectLeft = moveCursor txt (tp - 1) (Just tp)
+    | isSelectRight = moveCursor txt (tp + 1) (Just tp)
+    | isSelectWordL = moveCursor txt prevWordStartIdx (Just tp)
+    | isSelectWordR = moveCursor txt nextWordEndIdx (Just tp)
+    | otherwise = moveCursor txt tp currSel
     where
       txt = currText
       txtLen = T.length txt
       tp = currPos
       prevWordStart = T.dropWhileEnd (not . delim) $ T.dropWhileEnd delim part1
+      prevWordStartIdx = T.length prevWordStart
       nextWordEnd = T.dropWhile (not . delim) $ T.dropWhile delim part2
+      nextWordEndIdx = txtLen - T.length nextWordEnd
       isShift = _kmLeftShift mod
       isWordMod
         | isMacOS wenv = _kmLeftAlt mod
@@ -133,23 +135,31 @@ makeTextField config state = widget where
       isMove = not isShift && not isWordMod
       isMoveWord = not isShift && isWordMod
       isSelect = isShift && not isWordMod
+      isSelectWord = isShift && isWordMod
       isMoveLeft = isMove && isKeyLeft code
       isMoveRight = isMove && isKeyRight code
       isMoveWordL = isMoveWord && isKeyLeft code
       isMoveWordR = isMoveWord && isKeyRight code
       isSelectLeft = isSelect && isKeyLeft code
       isSelectRight = isSelect && isKeyRight code
+      isSelectWordL = isSelectWord && isKeyLeft code
+      isSelectWordR = isSelectWord && isKeyRight code
       delim c = c == ' ' || c == '.' || c == ','
       currSelVal = fromMaybe 0 currSel
+      removeText
+        | isJust currSel = replaceText txt ""
+        | otherwise = T.init part1 <> part2
+      moveCursor txt newPos newSel
+        | isJust currSel && isNothing newSel = (txt, tp, Nothing)
+        | isJust currSel && Just fixedPos == currSel = (txt, fixedPos, Nothing)
+        | isJust currSel = (txt, fixedPos, currSel)
+        | otherwise = (txt, fixedPos, newSel)
+        where
+          fixedPos = fixIdx newPos
       fixIdx idx
         | idx < 0 = 0
         | idx >= txtLen = txtLen
         | otherwise = idx
-      moveSel q
-        | q == 0 = currSel
-        | isNothing currSel = Just (fixIdx $ currPos + q)
-        | (currSelVal + q) /= currPos = Just (fixIdx $ currSelVal + q)
-        | otherwise = Nothing
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> Just $ resultReqs reqs inst where
@@ -160,7 +170,7 @@ makeTextField config state = widget where
       isPaste = isClipboardPaste wenv evt
       isCopy = isClipboardCopy wenv evt
       reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
-      reqSetClipboard = [SetClipboard (ClipboardText currText) | isCopy]
+      reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
       reqUpdateModel
         | currText /= newText = widgetValueSet (_tfcValue config) newText
         | otherwise = []
@@ -181,13 +191,29 @@ makeTextField config state = widget where
     _ -> Nothing
 
   insertText wenv inst addedText = Just $ resultReqs reqs newInst where
-    newText = T.concat [part1, addedText, part2]
-    newPos = currPos + T.length addedText
+    newText = replaceText currText addedText
+    newPos
+      | isJust currSel = 1 + min currPos (fromJust currSel)
+      | otherwise = currPos + T.length addedText
     newState = newTextState wenv inst newText newPos Nothing
     reqs = widgetValueSet (_tfcValue config) newText
     newInst = inst {
       _wiWidget = makeTextField config newState
     }
+
+  replaceText txt newTxt
+    | isJust currSel = T.take start txt <> newTxt <> T.drop end txt
+    | otherwise = T.take currPos txt <> newTxt <> T.drop currPos txt
+    where
+      start = min currPos (fromJust currSel)
+      end = max currPos (fromJust currSel)
+
+  copyText
+    | isJust currSel = T.take (end - start) $ T.drop start currText
+    | otherwise = ""
+    where
+      start = min currPos (fromJust currSel)
+      end = max currPos (fromJust currSel)
 
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
