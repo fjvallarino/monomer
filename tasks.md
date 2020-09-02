@@ -151,43 +151,55 @@
   - DrawStyledBackground should draw borders after widget content
   - Request text input when text field gets focus (required for mobile)
     - Also set TextInputRect
-
-- Pending
-  - Add testing
-    - Delayed until this point to try to settle down interfaces
-    - Validate stack assigns space correctly
-    - Use weight to control allocations
   - Improve textField
     - Add text selection/editing to textField
     - Find non visible character that returns correct height if input is empty
-  - Rethink Image handling
-    - Should image component keep a copy around?
-    - Should it be provided to renderer every time and, if removed, put back in the list?
-    - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
-  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
-  - Add header in all files, indicating license and documenting what the module does
-  - Create Slider
-  - Create Dial
-  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
-  - Create self rendered version of dropdown and list
-    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
-  - Rethink the idea of global theme in WidgetEnv
-  - Create Layer widget
-  - Create Dialog
-    - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
-  - Create File Selector
-  - Create Color Selector
-  - Create Layout with width/heights specified in percents
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Drag & drop for user (add attribute indicating if component supports being source/target)
-    - Add new request types (drag started, drag stopped, drag cancelled)
-    - Add new events (drag hover)
-    - SDL supports Drag and Drop integration with OS
-  - Implement SDL_Surface + Cairo backend
-    - Can we cache some drawing operations?
-  - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
   - Can we generalize widgetFind?
     - To find widgetInstances that need a specific kind of event (entities that need timeStep)
     - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
     - Do we need this?
     - It is implemented in chore/unify-query. I honestly don't think it's an improvement
+
+- Pending
+  - Further textField improvements
+    - Handle long text and cursor position
+      - Scissor needed?
+    - Add regex support for validation
+  - Rethink Image handling
+    - Should image component keep a copy around?
+    - Should it be provided to renderer every time and, if removed, put back in the list?
+    - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
+  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
+  - Rethink the idea of global theme in WidgetEnv
+  - Create Layer widget
+  - Create Dialog
+    - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Add testing
+    - Delayed until this point to try to settle down interfaces
+    - Validate stack assigns space correctly
+    - Use weight to control allocations
+  - Add header in all files, indicating license and documenting what the module does
+  - Add examples
+  - Add user documentation
+
+Maybe postponed after release?
+  - Further textField improvements
+    - Handle mouse selection
+    - Handle undo history
+    - Create numeric wrapper that allows increasing/decreasing with mouse
+  - Create Slider
+  - Create Dial
+  - Create self rendered version of dropdown and list
+    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
+  - Create File Selector
+  - Create Color Selector
+  - Create Layout with width/heights specified in percents
+  - Drag & drop for user (add attribute indicating if component supports being source/target)
+    - Add new request types (drag started, drag stopped, drag cancelled)
+    - Add new events (drag hover)
+    - SDL supports Drag and Drop integration with OS
+  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
+  - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
+  - Implement SDL_Surface + Cairo backend
+    - Can we cache some drawing operations?

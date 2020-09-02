@@ -155,7 +155,7 @@ buildUI model = trace "Creating UI" widgetTree where
       --  radio fruit Orange,
       --  radio fruit Pear
       --],
-      textField textField1,
+      textField textField1 `style` bgColor lightGray <> height 200 <> textCenter,
       hstack [
         label "This is a long label",
         label "Another long label",

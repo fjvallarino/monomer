@@ -126,7 +126,7 @@ createSingle Single{..} = Widget {
   widgetHandleMessage = singleHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper singleGetSizeReq,
   widgetResize = singleResize,
-  widgetRender = singleRender
+  widgetRender = renderWrapper singleRender
 }
 
 defaultInit :: SingleInitHandler s e
@@ -198,6 +198,7 @@ defaultResize wenv viewport renderArea widgetInst = widgetInst {
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv widgetInst = return ()
+
 renderWrapper
   :: SingleRenderHandler s e
   -> Renderer

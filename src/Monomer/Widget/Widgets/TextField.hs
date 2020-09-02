@@ -83,7 +83,6 @@ makeTextField config state = widget where
   }
 
   TextFieldState currText currGlyphs currPos currSel = state
-  (part1, part2) = T.splitAt currPos currText
   currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
   init wenv inst = resultWidget newInstance where
@@ -123,6 +122,7 @@ makeTextField config state = widget where
       txt = currText
       txtLen = T.length txt
       tp = currPos
+      (part1, part2) = T.splitAt currPos currText
       prevWordStart = T.dropWhileEnd (not . delim) $ T.dropWhileEnd delim part1
       prevWordStartIdx = T.length prevWordStart
       nextWordEnd = T.dropWhile (not . delim) $ T.dropWhile delim part2
@@ -222,13 +222,13 @@ makeTextField config state = widget where
     sizeReq = SizeReq size FlexibleSize StrictSize
 
   render renderer wenv inst = do
-    Rect tl tt _ _ <- drawStyledText renderer contentRect mergedStyle currText
+    textRect <- drawStyledText renderer contentRect mergedStyle currText
 
     when (isJust currSel) $
-      drawRect renderer (selRect tl) caretColor Nothing
+      drawRect renderer (selRect textRect) caretColor Nothing
 
     when (isFocused wenv inst && isNothing currSel) $
-      drawRect renderer (caretRect tl) caretColor Nothing
+      drawRect renderer (caretRect textRect) caretColor Nothing
 
     where
       WidgetInstance{..} = inst
@@ -237,10 +237,10 @@ makeTextField config state = widget where
       mergedStyle = mergeThemeStyle theme style
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
-      selRect x1 = maybe def (mkSelRect x1) currSel
-      mkSelRect x1 end
-        | currPos <= end = Rect (x1 + gx currPos) cy (gw currPos (end - 1)) ch
-        | otherwise = Rect (x1 + gx end) cy (gw end (currPos - 1)) ch
+      selRect textRect = maybe def (mkSelRect textRect) currSel
+      mkSelRect (Rect rx ry rw rh) end
+        | currPos <= end = Rect (rx + gx currPos) ry (gw currPos (end - 1)) rh
+        | otherwise = Rect (rx + gx end) ry (gw end (currPos - 1)) rh
       gx idx = _glpXMin (glyph idx)
       gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
       glyph idx = Seq.index currGlyphs idx
@@ -253,7 +253,7 @@ makeTextField config state = widget where
       caretPos
         | currPos == 0 = 0
         | otherwise = _glpXMax (glyph $ currPos - 1)
-      caretRect x1 = Rect (x1 + caretPos) cy caretWidth ch
+      caretRect (Rect tx ty tw th) = Rect (tx + caretPos) ty caretWidth th
 
 newTextState
   :: WidgetEnv s e

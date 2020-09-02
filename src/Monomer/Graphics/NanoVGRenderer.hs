@@ -243,9 +243,9 @@ newRenderer c dpr lock envRef = Renderer {..} where
       tx | ha == ALeft = x
          | ha == ACenter = x + (w - tw) / 2
          | otherwise = x + (w - tw)
-      ty | va == ATop = y + th
+      ty | va == ATop = y + asc
          | va == AMiddle = y + (h + th) / 2
-         | otherwise = y + h
+         | otherwise = y + h + desc
 
     when (message /= "") $
       VG.text c tx ty message
@@ -254,7 +254,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       _rX = fromCFloat tx,
       _rY = fromCFloat (ty - asc),
       _rW = fromCFloat tw,
-      _rH = fromCFloat th
+      _rH = fromCFloat (asc - desc)
     }
     where
       CRect x y w h = rectToCRect rect dpr
