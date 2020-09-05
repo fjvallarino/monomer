@@ -218,6 +218,10 @@ getTextGlyphs wenv theme style text = glyphs where
   (font, fontSize) = getFontAndSize theme style
   glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize text
 
+glyphsLength :: Seq GlyphPos -> Double
+glyphsLength Empty = 0
+glyphsLength (gs :|> g) = _glpXMax g
+
 fitGlyphsCount :: Double -> Double -> Seq GlyphPos -> (Int, Double)
 fitGlyphsCount _ _ Empty = (0, 0)
 fitGlyphsCount totalW currW (g :<| gs)
@@ -304,18 +308,6 @@ activeFgColor wenv inst = fromMaybe themeColor styleColor where
   theme = activeTheme wenv inst
   styleColor = style ^. S.fgColor
   themeColor = theme ^. S.fgColor
-
-textStyle :: StyleState -> TextStyle
-textStyle sst = fromMaybe def (_sstText sst)
-
-textFont :: StyleState -> Font
-textFont style = fromMaybe def (_txsFont $ textStyle style)
-
-textSize :: StyleState -> FontSize
-textSize style = fromMaybe def (_txsFontSize $ textStyle style)
-
-textColor :: StyleState -> Color
-textColor style = fromMaybe def (_txsColor $ textStyle style)
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

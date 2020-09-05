@@ -124,13 +124,15 @@ newRenderer c dpr lock envRef = Renderer {..} where
     }
 
   -- Scissor operations
-  setScissor rect =
+  setScissor rect = do
+    VG.save c
     VG.scissor c x y w h
     where
       CRect x y w h = rectToCRect rect dpr
 
-  resetScissor =
+  resetScissor = do
     VG.resetScissor c
+    VG.restore c
 
   -- Strokes
   stroke =

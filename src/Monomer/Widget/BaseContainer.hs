@@ -188,11 +188,15 @@ mergeWrapper
   -> WidgetResult s e
 mergeWrapper mergeHandler wenv oldInst newInst = result where
   oldState = widgetGetState (_wiWidget oldInst) wenv
-  WidgetResult uReqs uEvents uInstance = mergeHandler wenv oldState newInst
+  tempInst = newInst {
+    _wiViewport = _wiViewport oldInst,
+    _wiRenderArea = _wiRenderArea oldInst
+  }
+  WidgetResult uReqs uEvents uInstance = mergeHandler wenv oldState tempInst
   oldChildren = _wiChildren oldInst
   updatedChildren = _wiChildren uInstance
   indexes = Seq.fromList [0..length updatedChildren]
-  zipper idx child = cascadeCtx newInst child idx
+  zipper idx child = cascadeCtx tempInst child idx
   newChildren = Seq.zipWith zipper indexes updatedChildren
   (mergedResults, removedResults) = mergeChildren wenv oldChildren newChildren
   mergedChildren = fmap _wrWidget mergedResults

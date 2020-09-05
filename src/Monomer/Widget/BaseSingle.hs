@@ -133,7 +133,7 @@ defaultInit :: SingleInitHandler s e
 defaultInit _ widgetInst = resultWidget widgetInst
 
 defaultMerge :: SingleMergeHandler s e
-defaultMerge wenv oldState newInstance = resultWidget newInstance
+defaultMerge wenv oldState newInst = resultWidget newInst
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose _ widgetInst = resultWidget widgetInst
@@ -147,9 +147,13 @@ mergeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper mergeHandler wenv oldInstance newInstance = result where
-  oldState = widgetGetState (_wiWidget oldInstance) wenv
-  result = mergeHandler wenv oldState newInstance
+mergeWrapper mergeHandler wenv oldInst newInst = result where
+  oldState = widgetGetState (_wiWidget oldInst) wenv
+  tempInst = newInst {
+    _wiViewport = _wiViewport oldInst,
+    _wiRenderArea = _wiRenderArea oldInst
+  }
+  result = mergeHandler wenv oldState tempInst
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv startFrom widgetInst

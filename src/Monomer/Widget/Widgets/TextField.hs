@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -9,7 +10,7 @@ module Monomer.Widget.Widgets.TextField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (.~))
+import Control.Lens (ALens', (&), (.~), (^.), (^?))
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq)
@@ -20,10 +21,12 @@ import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
+import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
@@ -37,10 +40,11 @@ data TextFieldCfg s e = TextFieldCfg {
 }
 
 data TextFieldState = TextFieldState {
-  _tfCurrText :: Text,
+  _tfCurrText :: !Text,
   _tfGlyphs :: Seq GlyphPos,
-  _tfCursorPos :: Int,
-  _stSelStart :: Maybe Int
+  _tfCursorPos :: !Int,
+  _tfSelStart :: Maybe Int,
+  _tfOffset :: !Double
 } deriving (Eq, Show, Typeable)
 
 textFieldCfg :: WidgetValue s Text -> TextFieldCfg s e
@@ -56,7 +60,8 @@ textFieldState = TextFieldState {
   _tfCurrText = "",
   _tfGlyphs = Seq.empty,
   _tfCursorPos = 0,
-  _stSelStart = Nothing
+  _tfSelStart = Nothing,
+  _tfOffset = 0
 }
 
 textField :: ALens' s Text -> WidgetInstance s e
@@ -79,21 +84,22 @@ makeTextField config state = widget where
     singleMerge = merge,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
+    singleResize = resize,
     singleRender = render
   }
 
-  TextFieldState currText currGlyphs currPos currSel = state
+  TextFieldState currText currGlyphs currPos currSel _ = state
   currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
   init wenv inst = resultWidget newInstance where
     currText = currentValue wenv
-    newState = newTextState wenv inst currText 0 Nothing
+    newState = newTextState wenv inst state currText 0 Nothing
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
 
   merge wenv oldState inst = resultWidget newInstance where
-    TextFieldState _ _ oldPos oldSel = fromMaybe state (useState oldState)
+    TextFieldState _ _ oldPos oldSel _ = fromMaybe state (useState oldState)
     currText = currentValue wenv
     currTextL = T.length currText
     newPos
@@ -102,7 +108,7 @@ makeTextField config state = widget where
     newSelStart
       | isNothing oldSel || currTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst currText newPos newSelStart
+    newState = newTextState wenv inst state currText newPos newSelStart
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
@@ -175,7 +181,7 @@ makeTextField config state = widget where
         | currText /= newText = widgetValueSet (_tfcValue config) newText
         | otherwise = []
       reqs = reqGetClipboard ++ reqSetClipboard ++ reqUpdateModel
-      newState = newTextState wenv inst newText newPos newSel
+      newState = newTextState wenv inst state newText newPos newSel
       newInstance = inst {
         _wiWidget = makeTextField config newState
       }
@@ -195,7 +201,7 @@ makeTextField config state = widget where
     newPos
       | isJust currSel = 1 + min currPos (fromJust currSel)
       | otherwise = currPos + T.length addedText
-    newState = newTextState wenv inst newText newPos Nothing
+    newState = newTextState wenv inst state newText newPos Nothing
     reqs = widgetValueSet (_tfcValue config) newText
     newInst = inst {
       _wiWidget = makeTextField config newState
@@ -221,15 +227,27 @@ makeTextField config state = widget where
     size = getTextSize wenv theme style currText
     sizeReq = SizeReq size FlexibleSize StrictSize
 
+  resize wenv viewport renderArea inst = newInst where
+    tempInst = inst {
+      _wiViewport = viewport,
+      _wiRenderArea = renderArea
+    }
+    newState = newTextState wenv tempInst state currText currPos currSel
+    newInst = tempInst {
+      _wiWidget = makeTextField config newState
+    }
+
   render renderer wenv inst = do
-    textRect <- drawStyledText renderer contentRect mergedStyle currText
+    setScissor renderer contentRect
+    textRect <- renderContent renderer state contentRect mergedStyle currText
 
     when (isJust currSel) $
-      drawRect renderer (selRect textRect) caretColor Nothing
+      drawRect renderer (selRect textRect) selColor Nothing
 
-    when (isFocused wenv inst && isNothing currSel) $
+    when (isFocused wenv inst) $
       drawRect renderer (caretRect textRect) caretColor Nothing
 
+    resetScissor renderer
     where
       WidgetInstance{..} = inst
       theme = activeTheme wenv inst
@@ -245,30 +263,64 @@ makeTextField config state = widget where
       gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
       glyph idx = Seq.index currGlyphs idx
       ts = _weTimestamp wenv
+      selAlpha
+        | isFocused wenv inst = 0.5
+        | otherwise = 0.3
+      selColor = Just $ textColor style & alpha .~ selAlpha
       caretAlpha
-        | isFocused wenv inst = fromIntegral (ts `mod` 1000) / 1000.0
+        | isFocused wenv inst = if (ts `mod` 1000) < 500 then 1 else 0
         | otherwise = 0
       caretColor = Just $ textColor style & alpha .~ caretAlpha
       caretWidth = _tfcCaretWidth config
       caretPos
         | currPos == 0 = 0
         | otherwise = _glpXMax (glyph $ currPos - 1)
-      caretRect (Rect tx ty tw th) = Rect (tx + caretPos) ty caretWidth th
+      caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
+      caretRect (Rect tx ty tw th) = Rect (caretX tx) ty caretWidth th
+
+renderContent
+  :: Renderer -> TextFieldState -> Rect -> StyleState -> Text -> IO Rect
+renderContent renderer state viewport style currText =
+  drawText renderer tsRect tsColor tsFont tsFontSize tsAlign currText
+  where
+    Rect x y w h = viewport
+    textW = glyphsLength $ _tfGlyphs state
+    !tsRect = Rect (x + _tfOffset state) y textW h
+    tsFont = textFont style
+    tsFontSize = textSize style
+    tsColor = textColor style
+    tsAlignV = textAlignV style
+    tsAlign = Align ALeft tsAlignV
 
 newTextState
   :: WidgetEnv s e
   -> WidgetInstance s e
+  -> TextFieldState
   -> Text
   -> Int
   -> Maybe Int
   -> TextFieldState
-newTextState wenv inst text cursor selection = newState where
+newTextState wenv inst oldState text cursor selection = newState where
   theme = activeTheme wenv inst
   style = activeStyle wenv inst
+  Rect cx cy cw ch = getContentRect style inst
   glyphs = getTextGlyphs wenv theme style text
+  curX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
+  oldOffset = _tfOffset oldState
+  textW = glyphsLength glyphs
+  textFits = cw >= textW
+  align = fromMaybe ALeft (_txsAlignH $ textStyle style)
+  newOffset
+    | textFits && align == ALeft = 0
+    | textFits && align == ACenter = (cw - textW) / 2
+    | textFits && align == ARight = cw - textW
+    | curX + oldOffset > cw = cw - curX
+    | curX + oldOffset < 0 = -curX
+    | otherwise = oldOffset
   newState = TextFieldState {
     _tfCurrText = text,
     _tfGlyphs = glyphs,
     _tfCursorPos = cursor,
-    _stSelStart = selection
+    _tfSelStart = selection,
+    _tfOffset = newOffset
   }

@@ -39,9 +39,13 @@ makeLensesWith abbreviatedFields ''Size
 makeLensesWith abbreviatedFields ''Rect
 
 pointInRect :: Point -> Rect -> Bool
-pointInRect (Point px py) (Rect x y w h) = pointInH && pointInV where
-  pointInH = px >= x && px < x + w
-  pointInV = py >= y && py < y + h
+pointInRect (Point px py) rect = coordInRectH px rect && coordInRectY py rect
+
+coordInRectH :: Double -> Rect -> Bool
+coordInRectH px (Rect x y w h) = px >= x && px < x + w
+
+coordInRectY :: Double -> Rect -> Bool
+coordInRectY py (Rect x y w h) = py >= y && py < y + h
 
 addToSize :: Size -> Double -> Double -> Size
 addToSize (Size w h) w2 h2 = Size nw nh where

@@ -4,7 +4,13 @@ module Monomer.Common.StyleUtil (
   addOuterBounds,
   removeOuterSize,
   removeOuterBounds,
-  subtractMargin
+  subtractMargin,
+  textStyle,
+  textFont,
+  textSize,
+  textColor,
+  textAlignH,
+  textAlignV
 ) where
 
 import Data.Default
@@ -12,6 +18,25 @@ import Data.Maybe
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Graphics.Types
+
+textStyle :: StyleState -> TextStyle
+textStyle sst = fromMaybe def (_sstText sst)
+
+textFont :: StyleState -> Font
+textFont style = fromMaybe def (_txsFont $ textStyle style)
+
+textSize :: StyleState -> FontSize
+textSize style = fromMaybe def (_txsFontSize $ textStyle style)
+
+textColor :: StyleState -> Color
+textColor style = fromMaybe def (_txsColor $ textStyle style)
+
+textAlignH :: StyleState -> AlignH
+textAlignH style = fromMaybe def (_txsAlignH $ textStyle style)
+
+textAlignV :: StyleState -> AlignV
+textAlignV style = fromMaybe def (_txsAlignV $ textStyle style)
 
 mergeThemeStyle :: ThemeState -> StyleState -> StyleState
 mergeThemeStyle theme style = newStyle where
@@ -20,9 +45,9 @@ mergeThemeStyle theme style = newStyle where
     _txsFontSize = Just $ _thsFontSize theme,
     _txsColor = Just $ _thsColor theme
   }
-  textFgColor = Just $ _thsFgColor theme
+  themeFgColor = Just $ _thsFgColor theme
   newStyle = style {
-    _sstFgColor = _sstFgColor style <> textFgColor,
+    _sstFgColor = _sstFgColor style <> themeFgColor,
     _sstText = _sstText style <> themeText
   }
 

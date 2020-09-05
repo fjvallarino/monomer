@@ -10,6 +10,7 @@ module Monomer.Graphics.Drawing (
   drawStyledBackground,
   drawStyledText,
   drawStyledText_,
+  drawText,
   drawImage,
   drawStyledImage
 ) where
@@ -83,11 +84,31 @@ drawStyledBackground renderer viewport style =
 
 drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer viewport style txt = action where
-  action = drawText renderer viewport (_sstText style) txt
+  action = drawText renderer viewport tsColor tsFont tsFontSize tsAlign txt
+  TextStyle{..} = fromMaybe def (_sstText style)
+  tsColor = justDef _txsColor
+  tsFont = justDef _txsFont
+  tsFontSize = fromMaybe def _txsFontSize
+  tsAlignH = justDef _txsAlignH
+  tsAlignV = justDef _txsAlignV
+  tsAlign = Align tsAlignH tsAlignV
 
 drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
 drawStyledText_ renderer viewport style txt = void action where
   action = drawStyledText renderer viewport style txt
+
+drawText
+  :: Renderer
+  -> Rect
+  -> Color
+  -> Font
+  -> FontSize
+  -> Align
+  -> Text
+  -> IO Rect
+drawText renderer viewport color font fontSize align txt = do
+    setFillColor renderer color
+    renderText renderer viewport font fontSize align txt
 
 drawImage :: Renderer -> Rect -> String -> IO ()
 drawImage renderer viewport imgName = action where
@@ -314,20 +335,6 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   moveTo renderer from
   renderLineTo renderer to
   stroke renderer
-
-drawText :: Renderer -> Rect -> Maybe TextStyle -> Text -> IO Rect
-drawText renderer viewport Nothing txt =
-  drawText renderer viewport (Just mempty) txt
-drawText renderer viewport (Just TextStyle{..}) txt = do
-    setFillColor renderer tsColor
-    renderText renderer viewport tsFont tsFontSize tsAlign txt
-  where
-    tsColor = justDef _txsColor
-    tsFont = justDef _txsFont
-    tsFontSize = fromMaybe def _txsFontSize
-    tsAlignH = justDef _txsAlignH
-    tsAlignV = justDef _txsAlignV
-    tsAlign = Align tsAlignH tsAlignV
 
 justDef :: (Default a) => Maybe a -> a
 justDef val = fromMaybe def val
