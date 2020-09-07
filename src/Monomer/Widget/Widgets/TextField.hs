@@ -13,7 +13,7 @@ import Control.Monad
 import Control.Lens (ALens', (&), (.~), (^.), (^?))
 import Data.Default
 import Data.Maybe
-import Data.Sequence (Seq)
+import Data.Sequence (Seq, (|>))
 import Data.Text (Text)
 import Data.Typeable
 
@@ -168,8 +168,25 @@ makeTextField config state = widget where
         | otherwise = idx
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> Just $ resultReqs reqs inst where
-      reqs = [SetFocus $ _wiPath inst]
+    Click (Point x y) _ -> result where
+      style = activeStyle wenv inst
+      rect = getContentRect style inst
+      localX = x - _rX rect + _tfOffset state
+      textLen = glyphsLength (_tfGlyphs state)
+      glyphs = _tfGlyphs state |> GlyphPos textLen 0 0
+      zipper i g = (i, abs (_glpXMin g - localX))
+      idxs = Seq.fromList [0..length glyphs]
+      pairs = Seq.zipWith zipper idxs glyphs
+      cpm (_, g1) (_, g2) = compare g1 g2
+      diffs = Seq.sortBy cpm pairs
+      newPos = maybe 0 fst (Seq.lookup 0 diffs)
+      newState = newTextState wenv inst state currText newPos Nothing
+      newInst = inst {
+        _wiWidget = makeTextField config newState
+      }
+      result
+        | isFocused wenv inst = Just $ resultWidget newInst
+        | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] inst
 
     KeyAction mod code KeyPressed -> Just $ resultReqs reqs newInstance where
       (newText, newPos, newSel) = handleKeyPress wenv mod code

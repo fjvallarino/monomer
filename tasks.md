@@ -159,12 +159,14 @@
     - Instead of passing Point, pass WidgetQuery ADT. Currently it would support... PointQuery
     - Do we need this?
     - It is implemented in chore/unify-query. I honestly don't think it's an improvement
-
-- Pending
   - Further textField improvements
     - Handle long text and cursor position
       - Scissor needed?
-    - Add regex support for validation
+    - Add support for changing cursor position with mouse click
+
+- Pending
+  - Further textField improvements
+    - Add support for validation
   - Rethink Image handling
     - Should image component keep a copy around?
     - Should it be provided to renderer every time and, if removed, put back in the list?
