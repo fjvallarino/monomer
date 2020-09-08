@@ -14,6 +14,5 @@ makeLensesWith abbreviatedFields ''SizeReq
 makeLensesWith abbreviatedFields ''WidgetEnv
 makeLensesWith abbreviatedFields ''WidgetRequest
 makeLensesWith abbreviatedFields ''WidgetResult
-makeLensesWith abbreviatedFields ''WidgetPlatform
 makeLensesWith abbreviatedFields ''WidgetValue
 makeLensesWith abbreviatedFields ''WidgetInstance

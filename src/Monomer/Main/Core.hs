@@ -39,7 +39,7 @@ import Monomer.Widget.Composite
 import Monomer.Widget.Types
 
 data MainLoopArgs s e = MainLoopArgs {
-  _mlPlatform :: WidgetPlatform,
+  _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
   _mlFrameStartTs :: Int,
@@ -58,14 +58,6 @@ createApp
 createApp model initEvent eventHandler uiBuilder = app where
   app = composite "app" model initEvent eventHandler uiBuilder
 
-createWidgetPlatform :: Text -> Renderer -> WidgetPlatform
-createWidgetPlatform os renderer = WidgetPlatform {
-  _wpOS = os,
-  _wpGetKeyCode = getKeyCode,
-  _wpComputeTextSize = computeTextSize renderer,
-  _wpComputeGlyphsPos = computeGlyphsPos renderer
-}
-
 runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()
 runApp window theme widgetRoot = do
   useHiDPI <- use hdpi
@@ -80,9 +72,8 @@ runApp window theme widgetRoot = do
   model <- use mainModel
   os <- getPlatform
   renderer <- liftIO $ makeRenderer dpr
-  let widgetPlatform = createWidgetPlatform os renderer
   let wenv = WidgetEnv {
-    _wePlatform = widgetPlatform,
+    _weOS = os,
     _weRenderer = renderer,
     _weTheme = theme,
     _weScreenSize = newWindowSize,
@@ -99,7 +90,7 @@ runApp window theme widgetRoot = do
 
   let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot
   let loopArgs = MainLoopArgs {
-    _mlPlatform = widgetPlatform,
+    _mlOS = os,
     _mlTheme = theme,
     _mlAppStartTs = 0,
     _mlFrameStartTs = startTs,
@@ -137,7 +128,7 @@ mainLoop window renderer loopArgs = do
   inputStatus <- updateInputStatus baseSystemEvents
 
   let wenv = WidgetEnv {
-    _wePlatform = _mlPlatform,
+    _weOS = _mlOS,
     _weRenderer = renderer,
     _weTheme = _mlTheme,
     _weScreenSize = windowSize,

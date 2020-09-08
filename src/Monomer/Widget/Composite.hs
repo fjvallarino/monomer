@@ -465,7 +465,7 @@ collectGlobalKeys keys widgetInst = foldl' collect updatedMap children where
 
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
-  _wePlatform = _wePlatform wenv,
+  _weOS = _weOS wenv,
   _weRenderer = _weRenderer wenv,
   _weTheme = _weTheme wenv,
   _weScreenSize = _weScreenSize wenv,

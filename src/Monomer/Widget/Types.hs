@@ -82,15 +82,8 @@ instance Semigroup (WidgetResult s e) where
     evts = _wrEvents er1 <> _wrEvents er2
     widget = _wrWidget er2
 
-data WidgetPlatform = WidgetPlatform {
-  _wpOS :: Text,
-  _wpGetKeyCode :: String -> Maybe KeyCode,
-  _wpComputeTextSize :: Font -> FontSize -> Text -> Size,
-  _wpComputeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
-}
-
 data WidgetEnv s e = WidgetEnv {
-  _wePlatform :: WidgetPlatform,
+  _weOS :: Text,
   _weRenderer :: Renderer,
   _weTheme :: Theme,
   _weScreenSize :: Size,

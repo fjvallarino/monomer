@@ -21,6 +21,7 @@ import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
+import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
 
@@ -165,7 +166,7 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 
 getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
 getTextSize wenv theme style text = handler font fontSize text where
-  handler = _wpComputeTextSize (_wePlatform wenv)
+  handler = computeTextSize (_weRenderer wenv)
   (font, fontSize) = getFontAndSize theme style
 
 getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
@@ -177,7 +178,7 @@ fitText
   :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Text -> (Text, Size)
 fitText wenv theme style viewport text = (newText, newSize) where
   (font, fontSize) = getFontAndSize theme style
-  sizeHandler = _wpComputeTextSize (_wePlatform wenv)
+  sizeHandler = computeTextSize (_weRenderer wenv)
   size = sizeHandler font fontSize text
   (newText, newSize)
     | _sW size <= _rW viewport = (text, size)
@@ -216,7 +217,7 @@ getTextGlyphs
   :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv theme style text = glyphs where
   (font, fontSize) = getFontAndSize theme style
-  glyphs = _wpComputeGlyphsPos (_wePlatform wenv) font fontSize text
+  glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
 
 glyphsLength :: Seq GlyphPos -> Double
 glyphsLength Empty = 0
@@ -255,7 +256,7 @@ isClipboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
 
 isMacOS :: WidgetEnv s e -> Bool
-isMacOS wenv = _wpOS (_wePlatform wenv) == "Mac OS X"
+isMacOS wenv = _weOS wenv == "Mac OS X"
 
 firstChildPath :: WidgetInstance s e -> Path
 firstChildPath widgetInst = _wiPath widgetInst |> 0
