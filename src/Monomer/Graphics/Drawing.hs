@@ -23,7 +23,6 @@ import Data.Text (Text)
 import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()

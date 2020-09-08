@@ -34,7 +34,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
-import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
 import Monomer.Widget.Composite
 import Monomer.Widget.Types
 

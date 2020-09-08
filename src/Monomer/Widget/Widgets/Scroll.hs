@@ -19,7 +19,6 @@ import Monomer.Common.Geometry
 import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types

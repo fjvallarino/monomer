@@ -15,7 +15,6 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 type Timestamp = Int

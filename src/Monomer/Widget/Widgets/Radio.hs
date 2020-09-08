@@ -15,7 +15,6 @@ import Monomer.Common.StyleUtil (removeOuterBounds)
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types

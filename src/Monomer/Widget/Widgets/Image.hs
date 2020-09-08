@@ -8,7 +8,7 @@ import Data.Vector.Storable.ByteString (vectorToByteString)
 
 import Monomer.Common.Geometry
 import Monomer.Graphics.Drawing
-import Monomer.Graphics.Renderer
+import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util

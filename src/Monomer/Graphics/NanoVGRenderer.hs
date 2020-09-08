@@ -25,7 +25,6 @@ import qualified NanoVG as VG
 import qualified NanoVG.Internal.Image as VGI
 
 import Monomer.Common.Geometry
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 
 type ImagesMap = M.Map String Image

@@ -21,7 +21,6 @@ import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
-import Monomer.Graphics.Renderer
 import Monomer.Graphics.Types
 import Monomer.Widget.Types
 
