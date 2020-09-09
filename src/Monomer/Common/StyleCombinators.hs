@@ -120,6 +120,9 @@ bgColor col = def & L.bgColor ?~ col
 fgColor :: Color -> StyleState
 fgColor col = def & L.fgColor ?~ col
 
+hlColor :: Color -> StyleState
+hlColor col = def & L.hlColor ?~ col
+
 textFont :: Font -> StyleState
 textFont font = def & L.text . non def . L.font ?~ font
 
@@ -127,7 +130,7 @@ textSize :: Double -> StyleState
 textSize size = def & L.text . non def . L.fontSize ?~ FontSize size
 
 textColor :: Color -> StyleState
-textColor col = def & L.text . non def . L.color ?~ col
+textColor col = def & L.text . non def . L.fontColor ?~ col
 
 textAlignH :: AlignH -> StyleState
 textAlignH align = def & L.text . non def . L.alignH ?~ align

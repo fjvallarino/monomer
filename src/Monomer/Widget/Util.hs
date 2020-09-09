@@ -274,11 +274,6 @@ getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
 
-instanceStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-instanceStyle wenv inst = mergeThemeStyle theme style where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv  inst
-
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
@@ -302,12 +297,49 @@ activeTheme wenv inst = themeState where
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
 
-activeFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
-activeFgColor wenv inst = fromMaybe themeColor styleColor where
+instanceStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
+instanceStyle wenv inst = mergeThemeStyle theme style where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv  inst
+
+instanceFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceFgColor wenv inst = fromMaybe themeColor styleColor where
   style = activeStyle wenv inst
   theme = activeTheme wenv inst
-  styleColor = style ^. S.fgColor
-  themeColor = theme ^. S.fgColor
+  styleColor = _sstFgColor style
+  themeColor = _thsFgColor theme
+
+instanceHlColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceHlColor wenv inst = fromMaybe themeColor styleColor where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  styleColor = _sstHlColor style
+  themeColor = _thsHlColor theme
+
+instanceTextStyle :: WidgetEnv s e -> WidgetInstance s e -> TextStyle
+instanceTextStyle wenv inst = textStyle <> textTheme where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  textStyle = fromMaybe def (_sstText style)
+  textTheme = TextStyle {
+    _txsFont = Just (_thsFont theme),
+    _txsFontSize = Just (_thsFontSize theme),
+    _txsFontColor = Just (_thsFontColor theme),
+    _txsAlignH = Nothing,
+    _txsAlignV = Nothing
+  }
+
+instanceFont :: WidgetEnv s e -> WidgetInstance s e -> Font
+instanceFont wenv inst = fromJust (_txsFont textStyle) where
+  textStyle = instanceTextStyle wenv inst
+
+instanceFontSize :: WidgetEnv s e -> WidgetInstance s e -> FontSize
+instanceFontSize wenv inst = fromJust (_txsFontSize textStyle) where
+  textStyle = instanceTextStyle wenv inst
+
+instanceFontColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceFontColor wenv inst = fromJust (_txsFontColor textStyle) where
+  textStyle = instanceTextStyle wenv inst
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

@@ -10,7 +10,7 @@ module Monomer.Widget.Widgets.TextField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (.~), (^.), (^?))
+import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq, (|>))
@@ -30,6 +30,8 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+
+import qualified Monomer.Common.LensStyle as S
 
 data TextFieldCfg s e = TextFieldCfg {
   _tfcValue :: WidgetValue s Text,
@@ -255,20 +257,18 @@ makeTextField config state = widget where
 
   render renderer wenv inst = do
     setScissor renderer contentRect
-    textRect <- renderContent renderer state contentRect mergedStyle currText
+    textRect <- renderContent renderer state contentRect style currText
 
     when (isJust currSel) $
-      drawRect renderer (selRect textRect) selColor Nothing
+      drawRect renderer (selRect textRect) (Just selColor) Nothing
 
     when (isFocused wenv inst) $
-      drawRect renderer (caretRect textRect) caretColor Nothing
+      drawRect renderer (caretRect textRect) (Just caretColor) Nothing
 
     resetScissor renderer
     where
       WidgetInstance{..} = inst
-      theme = activeTheme wenv inst
-      style = activeStyle wenv inst
-      mergedStyle = mergeThemeStyle theme style
+      style = instanceStyle wenv inst
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
       selRect textRect = maybe def (mkSelRect textRect) currSel
@@ -282,11 +282,11 @@ makeTextField config state = widget where
       selAlpha
         | isFocused wenv inst = 0.5
         | otherwise = 0.3
-      selColor = Just $ textColor style & alpha .~ selAlpha
+      selColor = instanceHlColor wenv inst & alpha .~ selAlpha
       caretAlpha
         | isFocused wenv inst = if (ts `mod` 1000) < 500 then 1 else 0
         | otherwise = 0
-      caretColor = Just $ textColor style & alpha .~ caretAlpha
+      caretColor = instanceFontColor wenv inst & alpha .~ caretAlpha
       caretWidth = _tfcCaretWidth config
       caretPos
         | currPos == 0 = 0
@@ -302,10 +302,11 @@ renderContent renderer state viewport style currText =
     Rect x y w h = viewport
     textW = glyphsLength $ _tfGlyphs state
     !tsRect = Rect (x + _tfOffset state) y textW h
-    tsFont = textFont style
-    tsFontSize = textSize style
-    tsColor = textColor style
-    tsAlignV = textAlignV style
+    textStyle = fromJust (_sstText style)
+    tsFont = fromJust (_txsFont textStyle)
+    tsFontSize = fromJust (_txsFontSize textStyle)
+    tsColor = fromJust (_txsFontColor textStyle)
+    tsAlignV = fromMaybe AMiddle (_txsAlignV textStyle)
     tsAlign = Align ALeft tsAlignV
 
 newTextState
@@ -318,14 +319,15 @@ newTextState
   -> TextFieldState
 newTextState wenv inst oldState text cursor selection = newState where
   theme = activeTheme wenv inst
-  style = activeStyle wenv inst
+  style = instanceStyle wenv inst
   Rect cx cy cw ch = getContentRect style inst
   glyphs = getTextGlyphs wenv theme style text
   curX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   oldOffset = _tfOffset oldState
   textW = glyphsLength glyphs
   textFits = cw >= textW
-  align = fromMaybe ALeft (_txsAlignH $ textStyle style)
+  textStyle = fromJust (_sstText style)
+  align = fromMaybe ALeft (_txsAlignH textStyle)
   newOffset
     | textFits && align == ALeft = 0
     | textFits && align == ACenter = (cw - textW) / 2

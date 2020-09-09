@@ -26,17 +26,19 @@ instance Monoid Theme where
 
 data ThemeState = ThemeState {
   _thsFgColor :: Color,
+  _thsHlColor :: Color,
   _thsFont :: Font,
   _thsFontSize :: FontSize,
-  _thsColor :: Color
+  _thsFontColor :: Color
 } deriving (Show, Eq)
 
 instance Default ThemeState where
   def = ThemeState {
     _thsFgColor = Color 255 255 255 1,
+    _thsHlColor = Color 0 0 200 1,
     _thsFont = Font "sans",
     _thsFontSize = FontSize 36,
-    _thsColor = Color 255 255 255 1
+    _thsFontColor = Color 255 255 255 1
   }
 
 instance Semigroup ThemeState where
@@ -78,6 +80,7 @@ data StyleState = StyleState {
   _sstRadius :: Maybe Radius,
   _sstBgColor :: Maybe Color,
   _sstFgColor :: Maybe Color,
+  _sstHlColor :: Maybe Color,
   _sstText :: Maybe TextStyle
 } deriving (Show, Eq)
 
@@ -91,6 +94,7 @@ instance Default StyleState where
     _sstRadius = Nothing,
     _sstBgColor = Nothing,
     _sstFgColor = Nothing,
+    _sstHlColor = Nothing,
     _sstText = Nothing
   }
 
@@ -104,6 +108,7 @@ instance Semigroup StyleState where
     _sstRadius = _sstRadius s1 <> _sstRadius s2,
     _sstBgColor = _sstBgColor s1 <> _sstBgColor s2,
     _sstFgColor = _sstFgColor s1 <> _sstFgColor s2,
+    _sstHlColor = _sstHlColor s1 <> _sstHlColor s2,
     _sstText = _sstText s1 <> _sstText s2
   }
 
@@ -234,7 +239,7 @@ instance Monoid Radius where
 data TextStyle = TextStyle {
   _txsFont :: Maybe Font,
   _txsFontSize :: Maybe FontSize,
-  _txsColor :: Maybe Color,
+  _txsFontColor :: Maybe Color,
   _txsAlignH :: Maybe AlignH,
   _txsAlignV :: Maybe AlignV
 } deriving (Show, Eq)
@@ -243,7 +248,7 @@ instance Default TextStyle where
   def = TextStyle {
     _txsFont = Nothing,
     _txsFontSize = Nothing,
-    _txsColor = Nothing,
+    _txsFontColor = Nothing,
     _txsAlignH = Nothing,
     _txsAlignV = Nothing
   }
@@ -252,7 +257,7 @@ instance Semigroup TextStyle where
   (<>) ts1 ts2 = TextStyle {
     _txsFont = _txsFont ts2 <|> _txsFont ts1,
     _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
-    _txsColor = _txsColor ts2 <|> _txsColor ts1,
+    _txsFontColor = _txsFontColor ts2 <|> _txsFontColor ts1,
     _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
     _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
   }

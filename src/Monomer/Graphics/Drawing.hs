@@ -85,7 +85,7 @@ drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer viewport style txt = action where
   action = drawText renderer viewport tsColor tsFont tsFontSize tsAlign txt
   TextStyle{..} = fromMaybe def (_sstText style)
-  tsColor = justDef _txsColor
+  tsColor = justDef _txsFontColor
   tsFont = justDef _txsFont
   tsFontSize = fromMaybe def _txsFontSize
   tsAlignH = justDef _txsAlignH

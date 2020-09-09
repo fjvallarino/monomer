@@ -84,7 +84,7 @@ makeCheckbox config = widget where
       checkboxT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)
       checkboxArea = Rect checkboxL checkboxT sz sz
-      fgColor = activeFgColor wenv inst
+      fgColor = instanceFgColor wenv inst
 
 renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderCheckbox renderer config rect color = action where

@@ -86,7 +86,7 @@ makeRadio config = widget where
       radioT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)
       radioArea = Rect radioL radioT sz sz
-      fgColor = activeFgColor wenv inst
+      fgColor = instanceFgColor wenv inst
 
 renderRadio :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderRadio renderer config rect color = action where
