@@ -173,6 +173,12 @@ getFullTextSize wenv theme style text = totalBounds where
   textBounds = getTextSize wenv theme style text
   totalBounds = addOuterSize style textBounds
 
+getTextRect
+  :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Align -> Text -> Rect
+getTextRect wenv theme style rect align text = textRect where
+  textRect = computeTextRect (_weRenderer wenv) rect font fontSize align text
+  (font, fontSize) = getFontAndSize theme style
+
 fitText
   :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Text -> (Text, Size)
 fitText wenv theme style viewport text = (newText, newSize) where

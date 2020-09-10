@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -45,7 +44,8 @@ data TextFieldState = TextFieldState {
   _tfGlyphs :: Seq GlyphPos,
   _tfCursorPos :: !Int,
   _tfSelStart :: Maybe Int,
-  _tfOffset :: !Double
+  _tfOffset :: !Double,
+  _tfTextRect :: Rect
 } deriving (Eq, Show, Typeable)
 
 textFieldCfg :: WidgetValue s Text -> TextFieldCfg s e
@@ -62,7 +62,8 @@ textFieldState = TextFieldState {
   _tfGlyphs = Seq.empty,
   _tfCursorPos = 0,
   _tfSelStart = Nothing,
-  _tfOffset = 0
+  _tfOffset = 0,
+  _tfTextRect = def
 }
 
 textField :: ALens' s Text -> WidgetInstance s e
@@ -89,7 +90,7 @@ makeTextField config state = widget where
     singleRender = render
   }
 
-  TextFieldState currText currGlyphs currPos currSel _ = state
+  TextFieldState currText currGlyphs currPos currSel _ _ = state
   currentValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
 
   init wenv inst = resultWidget newInstance where
@@ -100,7 +101,7 @@ makeTextField config state = widget where
     }
 
   merge wenv oldState inst = resultWidget newInstance where
-    TextFieldState _ _ oldPos oldSel _ = fromMaybe state (useState oldState)
+    TextFieldState _ _ oldPos oldSel _ _ = fromMaybe state (useState oldState)
     currText = currentValue wenv
     currTextL = T.length currText
     newPos
@@ -160,9 +161,11 @@ makeTextField config state = widget where
         | isJust currSel && isNothing newSel = (txt, tp, Nothing)
         | isJust currSel && Just fixedPos == currSel = (txt, fixedPos, Nothing)
         | isJust currSel = (txt, fixedPos, currSel)
-        | otherwise = (txt, fixedPos, newSel)
+        | Just fixedPos == fixedSel = (txt, fixedPos, Nothing)
+        | otherwise = (txt, fixedPos, fixedSel)
         where
           fixedPos = fixIdx newPos
+          fixedSel = fmap fixIdx newSel
       fixIdx idx
         | idx < 0 = 0
         | idx >= txtLen = txtLen
@@ -257,13 +260,14 @@ makeTextField config state = widget where
 
   render renderer wenv inst = do
     setScissor renderer contentRect
-    textRect <- renderContent renderer state contentRect style currText
 
     when (isJust currSel) $
-      drawRect renderer (selRect textRect) (Just selColor) Nothing
+      drawRect renderer selRect (Just selColor) Nothing
 
-    when (isFocused wenv inst) $
-      drawRect renderer (caretRect textRect) (Just caretColor) Nothing
+    renderContent renderer textRect style currText
+
+    when caretRequired $
+      drawRect renderer caretRect (Just caretColor) Nothing
 
     resetScissor renderer
     where
@@ -271,37 +275,32 @@ makeTextField config state = widget where
       style = instanceStyle wenv inst
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
-      selRect textRect = maybe def (mkSelRect textRect) currSel
-      mkSelRect (Rect rx ry rw rh) end
-        | currPos <= end = Rect (rx + gx currPos) ry (gw currPos (end - 1)) rh
-        | otherwise = Rect (rx + gx end) ry (gw end (currPos - 1)) rh
+      textRect = _tfTextRect state
+      Rect tx ty tw th = textRect
+      selRect = maybe def mkSelRect currSel
+      mkSelRect end
+        | currPos <= end = Rect (tx + gx currPos) ty (gw currPos (end - 1)) th
+        | otherwise = Rect (tx + gx end) ty (gw end (currPos - 1)) th
       gx idx = _glpXMin (glyph idx)
       gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
-      glyph idx = Seq.index currGlyphs idx
+      nglyphs = Seq.length currGlyphs
+      glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
-      selAlpha
-        | isFocused wenv inst = 0.5
-        | otherwise = 0.3
-      selColor = instanceHlColor wenv inst & alpha .~ selAlpha
-      caretAlpha
-        | isFocused wenv inst = if (ts `mod` 1000) < 500 then 1 else 0
-        | otherwise = 0
-      caretColor = instanceFontColor wenv inst & alpha .~ caretAlpha
+      selColor = instanceHlColor wenv inst
+      caretRequired = isFocused wenv inst && ts `mod` 1000 < 500
+      caretColor = instanceFontColor wenv inst
       caretWidth = _tfcCaretWidth config
       caretPos
         | currPos == 0 = 0
-        | otherwise = _glpXMax (glyph $ currPos - 1)
+        | currPos == nglyphs = _glpXMax (glyph $ currPos - 1)
+        | otherwise = _glpXMin (glyph currPos)
       caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
-      caretRect (Rect tx ty tw th) = Rect (caretX tx) ty caretWidth th
+      caretRect = Rect (caretX tx) ty caretWidth th
 
-renderContent
-  :: Renderer -> TextFieldState -> Rect -> StyleState -> Text -> IO Rect
-renderContent renderer state viewport style currText =
-  drawText renderer tsRect tsColor tsFont tsFontSize tsAlign currText
+renderContent :: Renderer -> Rect -> StyleState -> Text -> IO Rect
+renderContent renderer textRect style currText =
+  drawText renderer textRect tsColor tsFont tsFontSize tsAlign currText
   where
-    Rect x y w h = viewport
-    textW = glyphsLength $ _tfGlyphs state
-    !tsRect = Rect (x + _tfOffset state) y textW h
     textStyle = fromJust (_sstText style)
     tsFont = fromJust (_txsFont textStyle)
     tsFontSize = fromJust (_txsFontSize textStyle)
@@ -320,18 +319,22 @@ newTextState
 newTextState wenv inst oldState text cursor selection = newState where
   theme = activeTheme wenv inst
   style = instanceStyle wenv inst
-  Rect cx cy cw ch = getContentRect style inst
+  contentRect = getContentRect style inst
   glyphs = getTextGlyphs wenv theme style text
   curX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   oldOffset = _tfOffset oldState
+  textStyle = fromJust (_sstText style)
+  alignH = fromMaybe ALeft (_txsAlignH textStyle)
+  alignV = fromMaybe def (_txsAlignV textStyle)
+  align = Align alignH alignV
+  Rect cx cy cw ch = contentRect
+  Rect tx ty tw th = getTextRect wenv theme style contentRect align text
   textW = glyphsLength glyphs
   textFits = cw >= textW
-  textStyle = fromJust (_sstText style)
-  align = fromMaybe ALeft (_txsAlignH textStyle)
   newOffset
-    | textFits && align == ALeft = 0
-    | textFits && align == ACenter = (cw - textW) / 2
-    | textFits && align == ARight = cw - textW
+    | textFits && alignH == ALeft = 0
+    | textFits && alignH == ACenter = (cw - textW) / 2
+    | textFits && alignH == ARight = cw - textW
     | curX + oldOffset > cw = cw - curX
     | curX + oldOffset < 0 = -curX
     | otherwise = oldOffset
@@ -340,5 +343,6 @@ newTextState wenv inst oldState text cursor selection = newState where
     _tfGlyphs = glyphs,
     _tfCursorPos = cursor,
     _tfSelStart = selection,
-    _tfOffset = newOffset
+    _tfOffset = newOffset,
+    _tfTextRect = Rect cx ty textW th
   }

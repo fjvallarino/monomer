@@ -217,6 +217,32 @@ newRenderer c dpr lock envRef = Renderer {..} where
     where
       text = if message == "" then " " else message
 
+  computeTextRect rect font fontSize (Align ha va) msg = unsafePerformIO $ do
+    VG.fontFace c (unFont font)
+    VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
+    VG.Bounds (VG.V4 x1 _ x2 _) <- VG.textBounds c x y msg
+    (asc, desc, _) <- VG.textMetrics c
+
+    let
+      tw = x2 - x1
+      th = asc + desc
+      tx | ha == ALeft = x
+         | ha == ACenter = x + (w - tw) / 2
+         | otherwise = x + (w - tw)
+      ty | va == ATop = y + asc
+         | va == AMiddle = y + (h + th) / 2
+         | otherwise = y + h + desc
+
+    return $ Rect {
+      _rX = fromCFloat tx,
+      _rY = fromCFloat (ty - asc),
+      _rW = fromCFloat tw,
+      _rH = fromCFloat (asc - desc)
+    }
+    where
+      CRect x y w h = rectToCRect rect dpr
+      fromCFloat val = realToFrac $ val / realToFrac dpr
+
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
     VG.fontFace c (unFont font)
@@ -232,34 +258,18 @@ newRenderer c dpr lock envRef = Renderer {..} where
         _glpW = realToFrac $ VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph
       }
 
-  renderText rect font fontSize (Align ha va) message = do
+  renderText rect font fontSize align message = do
     VG.fontFace c (unFont font)
     VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
-    VG.Bounds (VG.V4 x1 _ x2 _) <- VG.textBounds c x y message
     (asc, desc, _) <- VG.textMetrics c
 
-    let
-      tw = x2 - x1
-      th = asc + desc
-      tx | ha == ALeft = x
-         | ha == ACenter = x + (w - tw) / 2
-         | otherwise = x + (w - tw)
-      ty | va == ATop = y + asc
-         | va == AMiddle = y + (h + th) / 2
-         | otherwise = y + h + desc
-
     when (message /= "") $
-      VG.text c tx ty message
+      VG.text c tx (ty + asc) message
 
-    return $ Rect {
-      _rX = fromCFloat tx,
-      _rY = fromCFloat (ty - asc),
-      _rW = fromCFloat tw,
-      _rH = fromCFloat (asc - desc)
-    }
+    return textRect
     where
-      CRect x y w h = rectToCRect rect dpr
-      fromCFloat val = realToFrac $ val / realToFrac dpr
+      textRect = computeTextRect rect font fontSize align message
+      CRect tx ty _ _ = rectToCRect textRect dpr
 
   addImage name w h replace imgData = addPending lock envRef imageReq where
     action = if replace then AddReplace else AddKeep
