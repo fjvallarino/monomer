@@ -1,6 +1,8 @@
 module Monomer.Widget.Widgets.Image (image) where
 
 import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
+import Control.Monad (when)
+import Data.ByteString (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast)
@@ -13,16 +15,17 @@ import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-newtype ImageState = ImageState {
-  isSize :: Maybe Size
+data ImageState = ImageState {
+  isImageData :: Maybe ByteString,
+  isImageSize :: Maybe Size
 }
 
 data ImageMessage
-  = ImageLoaded Size
+  = ImageLoaded ImageState
   | ImageFailed
 
 imageState :: ImageState
-imageState = ImageState Nothing
+imageState = ImageState Nothing Nothing
 
 image :: String -> WidgetInstance s e
 image path = defaultWidgetInstance "image" (makeImage path imageState)
@@ -51,22 +54,29 @@ makeImage imgPath state = widget where
     result = cast message >>= useImage inst
 
   useImage inst ImageFailed = Nothing
-  useImage inst (ImageLoaded newSize) = Just $ resultReqs [Resize] newInst where
+  useImage inst (ImageLoaded newState) = result where
     newInst = inst {
-      _wiWidget = makeImage imgPath (ImageState $ Just newSize)
+      _wiWidget = makeImage imgPath newState
     }
+    result = Just $ resultReqs [Resize] newInst
 
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
     style = activeStyle wenv inst
-    size = fromMaybe def (isSize state)
+    size = fromMaybe def (isImageSize state)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
-  render renderer wenv inst =
+  render renderer wenv inst = do
+    when (imageLoaded && not imageExists) $
+      addImage renderer imgPath (fromJust imgSize) False (fromJust imgData)
+
     drawStyledImage renderer contentRect style imgPath
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst
+      ImageState imgData imgSize = state
+      imageLoaded = isJust imgData
+      imageExists = existsImage renderer imgPath
 
 loadImage :: WidgetEnv s e -> String -> IO ImageMessage
 loadImage wenv path = do
@@ -87,8 +97,8 @@ registerImg
   -> IO ImageMessage
 registerImg wenv name Left{} = return ImageFailed
 registerImg wenv name (Right dimg) = do
-  addImage renderer name cw ch False bs
-  return $ ImageLoaded size
+  addImage renderer name size False bs
+  return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
     img = convertRGBA8 dimg
@@ -96,3 +106,7 @@ registerImg wenv name (Right dimg) = do
     ch = imageHeight img
     size = Size (fromIntegral cw) (fromIntegral ch)
     bs = vectorToByteString $ imageData img
+    newState = ImageState {
+      isImageData = Just bs,
+      isImageSize = Just size
+    }

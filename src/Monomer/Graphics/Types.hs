@@ -120,9 +120,10 @@ data Renderer = Renderer {
   computeTextRect :: Rect -> Font -> FontSize -> Align -> Text -> Rect,
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> IO Rect,
   -- Image
-  addImage :: String -> Int -> Int -> Bool -> ByteString -> IO (),
+  addImage :: String -> Size -> Bool -> ByteString -> IO (),
   updateImage :: String -> ByteString -> IO (),
   deleteImage :: String -> IO (),
+  existsImage :: String -> Bool,
   renderImage :: Rect -> String -> IO ()
 }
 

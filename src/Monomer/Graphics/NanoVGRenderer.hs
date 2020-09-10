@@ -43,8 +43,8 @@ data Image = Image {
 
 data ImageReq = ImageReq {
   _irName :: String,
-  _irWidth :: Int,
-  _irHeight :: Int,
+  _irWidth :: Double,
+  _irHeight :: Double,
   _irImgData :: Maybe BS.ByteString,
   _irAction :: Action
 }
@@ -271,8 +271,9 @@ newRenderer c dpr lock envRef = Renderer {..} where
       textRect = computeTextRect rect font fontSize align message
       CRect tx ty _ _ = rectToCRect textRect dpr
 
-  addImage name w h replace imgData = addPending lock envRef imageReq where
+  addImage name size replace imgData = addPending lock envRef imageReq where
     action = if replace then AddReplace else AddKeep
+    Size w h = size
     imageReq = ImageReq name w h (Just imgData) action
 
   updateImage name imgData = addPending lock envRef imageReq where
@@ -280,6 +281,10 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   deleteImage name = addPending lock envRef imageReq where
     imageReq = ImageReq name 0 0 Nothing Delete
+
+  existsImage name = unsafePerformIO $ do
+    env <- readIORef envRef
+    return $ M.member name (imagesMap env)
 
   renderImage rect name = do
     env <- readIORef envRef
@@ -335,8 +340,8 @@ handlePendingImage c imagesMap imageReq
   where
     name = _irName imageReq
     action = _irAction imageReq
-    cw = fromIntegral $ _irWidth imageReq
-    ch = fromIntegral $ _irHeight imageReq
+    cw = round $ _irWidth imageReq
+    ch = round $ _irHeight imageReq
     imgData = fromJust $ _irImgData imageReq
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
