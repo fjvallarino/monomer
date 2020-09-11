@@ -21,6 +21,11 @@ module Monomer.Common.StyleCombinators (
   radiusTR,
   radiusBL,
   radiusBR,
+  iradius,
+  iradiusTL,
+  iradiusTR,
+  iradiusBL,
+  iradiusBR,
   bgColor,
   fgColor,
   textFont,
@@ -98,21 +103,43 @@ borderT w col = def & L.border . non def . L.top ?~ BorderSide w col
 borderB :: Double -> Color -> StyleState
 borderB w col = def & L.border . non def . L.bottom ?~ BorderSide w col
 
+radiusCorner :: Double -> RadiusCorner
+radiusCorner rad = RadiusCorner RadiusBoth rad
+
 radius :: Double -> StyleState
 radius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
-  jrad = Just rad
+  jrad = Just $ radiusCorner rad
 
 radiusTL :: Double -> StyleState
-radiusTL rad = def & L.radius . non def . L.topLeft ?~ rad
+radiusTL rad = def & L.radius . non def . L.topLeft ?~ radiusCorner rad
 
 radiusTR :: Double -> StyleState
-radiusTR rad = def & L.radius . non def . L.topRight ?~ rad
+radiusTR rad = def & L.radius . non def . L.topRight ?~ radiusCorner rad
 
 radiusBL :: Double -> StyleState
-radiusBL rad = def & L.radius . non def . L.bottomLeft ?~ rad
+radiusBL rad = def & L.radius . non def . L.bottomLeft ?~ radiusCorner rad
 
 radiusBR :: Double -> StyleState
-radiusBR rad = def & L.radius . non def . L.bottomRight ?~ rad
+radiusBR rad = def & L.radius . non def . L.bottomRight ?~ radiusCorner rad
+
+iradiusCorner :: Double -> RadiusCorner
+iradiusCorner rad = RadiusCorner RadiusInner rad
+
+iradius :: Double -> StyleState
+iradius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
+  jrad = Just $ iradiusCorner rad
+
+iradiusTL :: Double -> StyleState
+iradiusTL rad = def & L.radius . non def . L.topLeft ?~ iradiusCorner rad
+
+iradiusTR :: Double -> StyleState
+iradiusTR rad = def & L.radius . non def . L.topRight ?~ iradiusCorner rad
+
+iradiusBL :: Double -> StyleState
+iradiusBL rad = def & L.radius . non def . L.bottomLeft ?~ iradiusCorner rad
+
+iradiusBR :: Double -> StyleState
+iradiusBR rad = def & L.radius . non def . L.bottomRight ?~ iradiusCorner rad
 
 bgColor :: Color -> StyleState
 bgColor col = def & L.bgColor ?~ col

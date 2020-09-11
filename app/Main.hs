@@ -163,7 +163,7 @@ buildUI model = trace "Creating UI" widgetTree where
         label "Yet another long label"
       ],
       image "assets/images/pecans.jpg" `style` marginT 10
-    ] `style` borderT 20 red <> borderL 10 blue <> borderR 10 green <> borderB 10 gray <> radius 50 <> padding 20
+    ] `style` borderT 20 red <> borderL 10 blue <> borderR 10 green <> borderB 10 gray <> iradius 50 -- <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]

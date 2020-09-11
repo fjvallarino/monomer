@@ -9,7 +9,7 @@ data Theme = Theme {
   _themeBasic :: ThemeState,
   _themeHover :: ThemeState,
   _themeFocus :: ThemeState
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default Theme where
   def = Theme {
@@ -30,7 +30,7 @@ data ThemeState = ThemeState {
   _thsFont :: Font,
   _thsFontSize :: FontSize,
   _thsFontColor :: Color
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default ThemeState where
   def = ThemeState {
@@ -52,7 +52,7 @@ data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
   _styleFocus :: Maybe StyleState
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default Style where
   def = Style {
@@ -82,7 +82,7 @@ data StyleState = StyleState {
   _sstFgColor :: Maybe Color,
   _sstHlColor :: Maybe Color,
   _sstText :: Maybe TextStyle
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default StyleState where
   def = StyleState {
@@ -120,7 +120,7 @@ data Margin = Margin {
   _mgnRight :: Maybe Double,
   _mgnTop :: Maybe Double,
   _mgnBottom :: Maybe Double
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default Margin where
   def = Margin {
@@ -146,7 +146,7 @@ data Padding = Padding {
   _padRight :: Maybe Double,
   _padTop :: Maybe Double,
   _padBottom :: Maybe Double
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default Padding where
   def = Padding {
@@ -170,7 +170,7 @@ instance Monoid Padding where
 data BorderSide = BorderSide {
   _bsWidth :: Double,
   _bsColor :: Color
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default BorderSide where
   def = BorderSide {
@@ -189,7 +189,7 @@ data Border = Border {
   _brdRight :: Maybe BorderSide,
   _brdTop :: Maybe BorderSide,
   _brdBottom :: Maybe BorderSide
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default Border where
   def = Border {
@@ -210,12 +210,43 @@ instance Semigroup Border where
 instance Monoid Border where
   mempty = def
 
+data RadiusType
+  = RadiusInner
+  | RadiusBoth
+  deriving (Eq, Show)
+
+instance Default RadiusType where
+  def = RadiusBoth
+
+instance Semigroup RadiusType where
+  (<>) rc1 rc2 = rc2
+
+instance Monoid RadiusType where
+  mempty = mempty
+
+data RadiusCorner = RadiusCorner {
+  _rcrType :: RadiusType,
+  _rcrWidth :: Double
+} deriving (Eq, Show)
+
+instance Default RadiusCorner where
+  def = RadiusCorner {
+    _rcrType = RadiusBoth,
+    _rcrWidth = def
+  }
+
+instance Semigroup RadiusCorner where
+  (<>) rc1 rc2 = rc2
+
+instance Monoid RadiusCorner where
+  mempty = mempty
+
 data Radius = Radius {
-  _radTopLeft :: Maybe Double,
-  _radTopRight :: Maybe Double,
-  _radBottomLeft :: Maybe Double,
-  _radBottomRight :: Maybe Double
-} deriving (Show, Eq)
+  _radTopLeft :: Maybe RadiusCorner,
+  _radTopRight :: Maybe RadiusCorner,
+  _radBottomLeft :: Maybe RadiusCorner,
+  _radBottomRight :: Maybe RadiusCorner
+} deriving (Eq, Show)
 
 instance Default Radius where
   def = Radius {
@@ -242,7 +273,7 @@ data TextStyle = TextStyle {
   _txsFontColor :: Maybe Color,
   _txsAlignH :: Maybe AlignH,
   _txsAlignV :: Maybe AlignV
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default TextStyle where
   def = TextStyle {

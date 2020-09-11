@@ -125,31 +125,31 @@ drawRoundedRect renderer (Rect x y w h) Radius{..} =
     xr = x + w
     yt = y
     yb = y + h
-    x1 = x + justDef _radTopLeft
-    x2 = x + w - justDef _radTopRight
-    x3 = x + w - justDef _radBottomRight
-    x4 = x + justDef _radBottomLeft
-    y1 = y + justDef _radTopLeft
-    y2 = y + justDef _radTopRight
-    y3 = y + h - justDef _radBottomRight
-    y4 = y + h - justDef _radBottomLeft
+    x1 = x + radW _radTopLeft
+    x2 = x + w - radW _radTopRight
+    x3 = x + w - radW _radBottomRight
+    x4 = x + radW _radBottomLeft
+    y1 = y + radW _radTopLeft
+    y2 = y + radW _radTopRight
+    y3 = y + h - radW _radBottomRight
+    y4 = y + h - radW _radBottomLeft
   in do
     moveTo renderer (Point x1 y1)
 
     when (isJust _radTopLeft) $
-      renderArc renderer (Point x1 y1) (fromJust _radTopLeft) 180 270 CW
+      renderArc renderer (Point x1 y1) (radW _radTopLeft) 180 270 CW
     renderLineTo renderer (Point x2 yt)
 
     when (isJust _radTopRight) $
-      renderArc renderer (Point x2 y2) (justDef _radTopRight) 270 0 CW
+      renderArc renderer (Point x2 y2) (radW _radTopRight) 270 0 CW
     renderLineTo renderer (Point xr y3)
 
     when (isJust _radBottomRight) $
-      renderArc renderer (Point x3 y3) (justDef _radBottomRight) 0 90 CW
+      renderArc renderer (Point x3 y3) (radW _radBottomRight) 0 90 CW
     renderLineTo renderer (Point x4 yb)
 
     when (isJust _radBottomLeft) $
-      renderArc renderer (Point x4 y4) (justDef _radBottomLeft) 90 180 CW
+      renderArc renderer (Point x4 y4) (radW _radBottomLeft) 90 180 CW
     renderLineTo renderer (Point xl y1)
 
 drawRectSimpleBorder :: Renderer -> Rect -> Border -> IO ()
@@ -258,7 +258,7 @@ drawRectRoundedBorder renderer rect border radius =
 
 tlBorderSize :: Border -> Radius -> Double
 tlBorderSize Border{..} Radius{..}
-  | justLeft && justTop && isJust _radTopLeft = fromJust _radTopLeft
+  | justLeft && justTop && isJust _radTopLeft = radW _radTopLeft
   | otherwise = 0
   where
     justLeft = isJust _brdLeft
@@ -266,7 +266,7 @@ tlBorderSize Border{..} Radius{..}
 
 trBorderSize :: Border -> Radius -> Double
 trBorderSize Border{..} Radius{..}
-  | justRight && justTop && isJust _radTopRight = fromJust _radTopRight
+  | justRight && justTop && isJust _radTopRight = radW _radTopRight
   | otherwise = 0
   where
     justRight = isJust _brdRight
@@ -274,7 +274,7 @@ trBorderSize Border{..} Radius{..}
 
 blBorderSize :: Border -> Radius -> Double
 blBorderSize Border{..} Radius{..}
-  | justLeft && justBottom && justRad = fromJust _radBottomLeft
+  | justLeft && justBottom && justRad = radW _radBottomLeft
   | otherwise = 0
   where
     justLeft = isJust _brdLeft
@@ -283,7 +283,7 @@ blBorderSize Border{..} Radius{..}
 
 brBorderSize :: Border -> Radius -> Double
 brBorderSize Border{..} Radius{..}
-  | justRight && justBottom && justRad = fromJust _radBottomRight
+  | justRight && justBottom && justRad = radW _radBottomRight
   | otherwise = 0
   where
     justRight = isJust _brdRight
@@ -297,16 +297,17 @@ drawRoundedCorner
   -> Point
   -> Point
   -> Double
-  -> Maybe Double
+  -> Maybe RadiusCorner
   -> Maybe BorderSide
   -> Maybe BorderSide
   -> IO ()
-drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
+drawRoundedCorner renderer c1 c2 p1 p2 deg (Just cor) (Just s1) (Just s2) = do
   let
     width1 = _bsWidth s1
     width2 = _bsWidth s2
     color1 = _bsColor s1
     color2 = _bsColor s2
+    radSize = _rcrWidth cor
 
   beginPath renderer
 
@@ -314,16 +315,38 @@ drawRoundedCorner renderer c1 c2 p1 p2 deg (Just rad) (Just s1) (Just s2) = do
     then setFillColor renderer color1
     else setFillLinearGradient renderer p1 p2 color1 color2
 
-  renderArc renderer c1 rad deg (deg - 90) CCW
+  when (_rcrType cor == RadiusBoth) $
+    renderArc renderer c1 radSize deg (deg - 90) CCW
+
+  when (_rcrType cor == RadiusInner) $
+    renderRectCorner renderer c1 radSize deg
+
   renderLineTo renderer p1
 
   if abs (width2 - width1) < 0.5
-    then renderArc renderer c1 (rad - width1) (deg - 90) deg CW
+    then renderArc renderer c1 (radSize - width1) (deg - 90) deg CW
     else renderQuadTo renderer c2 p2
 
   closePath renderer
   fill renderer
 drawRoundedCorner renderer c1 c2 p1 p2 deg _ _ _ = return ()
+
+renderRectCorner :: Renderer -> Point -> Double -> Double -> IO ()
+renderRectCorner renderer c1 width fromRad = do
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  where
+    (dx, dy) = case fromRad of
+      0 -> (width, -width)
+      90 -> (width, width)
+      180 -> (-width, width)
+      _ -> (-width, -width)
+    t1 = addPoint c1 (Point dx 0)
+    t3 = addPoint c1 (Point 0 dy)
+    p1 = if fromRad == 0 || fromRad == 180 then t1 else t3
+    p2 = addPoint c1 (Point dx dy)
+    p3 = if fromRad == 0 || fromRad == 180 then t3 else t1
 
 strokeBorder :: Renderer -> Point -> Point -> Maybe BorderSide -> IO ()
 strokeBorder renderer from to Nothing = pure ()
@@ -340,3 +363,6 @@ justDef val = fromMaybe def val
 
 p2 :: Double -> Double -> Point
 p2 x y = Point x y
+
+radW :: Maybe RadiusCorner -> Double
+radW r = _rcrWidth (justDef r)

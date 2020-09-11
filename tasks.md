@@ -163,14 +163,14 @@
     - Handle long text and cursor position
       - Scissor needed?
     - Add support for changing cursor position with mouse click
-
-- Pending
-  - Further textField improvements
-    - Add support for validation
   - Rethink Image handling
     - Should image component keep a copy around?
     - Should it be provided to renderer every time and, if removed, put back in the list?
     - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
+
+- Pending
+  - Further textField improvements
+    - Add support for validation
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Rethink the idea of global theme in WidgetEnv
     - Add option to render inner rounded borders with normal outer ones

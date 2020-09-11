@@ -41,6 +41,9 @@ makeLensesWith abbreviatedFields ''Rect
 pointInRect :: Point -> Rect -> Bool
 pointInRect (Point px py) rect = coordInRectH px rect && coordInRectY py rect
 
+addPoint :: Point -> Point -> Point
+addPoint (Point x1 y1) (Point x2 y2) = Point (x1 + x2) (y1 + y2)
+
 coordInRectH :: Double -> Rect -> Bool
 coordInRectH px (Rect x y w h) = px >= x && px < x + w
 
