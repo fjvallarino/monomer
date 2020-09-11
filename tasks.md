@@ -173,6 +173,7 @@
     - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Rethink the idea of global theme in WidgetEnv
+    - Add option to render inner rounded borders with normal outer ones
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

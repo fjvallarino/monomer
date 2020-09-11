@@ -82,6 +82,11 @@ instance Default GlyphPos where
     _glpW = 0
   }
 
+data ImageAddAction
+  = ImageAddKeep
+  | ImageAddReplace
+  deriving (Eq, Show)
+
 data Renderer = Renderer {
   -- Frame
   beginFrame :: Int -> Int -> IO (),
@@ -120,7 +125,7 @@ data Renderer = Renderer {
   computeTextRect :: Rect -> Font -> FontSize -> Align -> Text -> Rect,
   renderText :: Rect -> Font -> FontSize -> Align -> Text -> IO Rect,
   -- Image
-  addImage :: String -> Size -> Bool -> ByteString -> IO (),
+  addImage :: String -> ImageAddAction -> Size -> ByteString -> IO (),
   updateImage :: String -> ByteString -> IO (),
   deleteImage :: String -> IO (),
   existsImage :: String -> Bool,

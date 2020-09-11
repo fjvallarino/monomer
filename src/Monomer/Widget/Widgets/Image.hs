@@ -15,9 +15,8 @@ import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
-data ImageState = ImageState {
-  isImageData :: Maybe ByteString,
-  isImageSize :: Maybe Size
+newtype ImageState = ImageState {
+  isImageData :: Maybe (ByteString, Size)
 }
 
 data ImageMessage
@@ -25,7 +24,7 @@ data ImageMessage
   | ImageFailed
 
 imageState :: ImageState
-imageState = ImageState Nothing Nothing
+imageState = ImageState Nothing
 
 image :: String -> WidgetInstance s e
 image path = defaultWidgetInstance "image" (makeImage path imageState)
@@ -63,19 +62,20 @@ makeImage imgPath state = widget where
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
     style = activeStyle wenv inst
-    size = fromMaybe def (isImageSize state)
+    size = maybe def snd (isImageData state)
     sizeReq = SizeReq size FlexibleSize FlexibleSize
 
   render renderer wenv inst = do
     when (imageLoaded && not imageExists) $
-      addImage renderer imgPath (fromJust imgSize) False (fromJust imgData)
+      addImage renderer imgPath ImageAddKeep imgSize imgBytes
 
     drawStyledImage renderer contentRect style imgPath
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst
-      ImageState imgData imgSize = state
+      ImageState imgData = state
       imageLoaded = isJust imgData
+      (imgBytes, imgSize) = fromJust imgData
       imageExists = existsImage renderer imgPath
 
 loadImage :: WidgetEnv s e -> String -> IO ImageMessage
@@ -97,7 +97,7 @@ registerImg
   -> IO ImageMessage
 registerImg wenv name Left{} = return ImageFailed
 registerImg wenv name (Right dimg) = do
-  addImage renderer name size False bs
+  addImage renderer name ImageAddKeep size bs
   return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
@@ -107,6 +107,5 @@ registerImg wenv name (Right dimg) = do
     size = Size (fromIntegral cw) (fromIntegral ch)
     bs = vectorToByteString $ imageData img
     newState = ImageState {
-      isImageData = Just bs,
-      isImageSize = Just size
+      isImageData = Just (bs, size)
     }

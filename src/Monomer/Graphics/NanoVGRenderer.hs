@@ -271,10 +271,12 @@ newRenderer c dpr lock envRef = Renderer {..} where
       textRect = computeTextRect rect font fontSize align message
       CRect tx ty _ _ = rectToCRect textRect dpr
 
-  addImage name size replace imgData = addPending lock envRef imageReq where
-    action = if replace then AddReplace else AddKeep
+  addImage name action size imgData = addPending lock envRef imageReq where
+    newAction = case action of
+      ImageAddKeep -> AddKeep
+      _ -> AddReplace
     Size w h = size
-    imageReq = ImageReq name w h (Just imgData) action
+    imageReq = ImageReq name w h (Just imgData) newAction
 
   updateImage name imgData = addPending lock envRef imageReq where
     imageReq = ImageReq name 0 0 (Just imgData) Update

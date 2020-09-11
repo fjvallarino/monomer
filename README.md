@@ -7,7 +7,6 @@ An easy to use, Elm inspired, GUI library.
 - It should be easy to use, in particular for newcomers
 - It should be possible to extend with custom widgets
 - It should work on Windows, Linux and macOS
-- It should not rely on OS specific APIs (currently it uses OpenGL through NanoVG)
 - It should have good documentation
 - It should have good examples
 
