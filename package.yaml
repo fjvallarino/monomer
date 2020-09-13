@@ -32,6 +32,7 @@ dependencies:
 - concurrent-extra
 - data-default
 - extra
+- formatting
 - lens
 - JuicyPixels
 - mtl
