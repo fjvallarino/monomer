@@ -24,6 +24,7 @@ default-extensions:
 
 dependencies:
 - async
+- attoparsec
 - base >= 4.7 && < 5
 - bytestring
 - bytestring-to-vector

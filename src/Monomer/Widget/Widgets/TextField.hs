@@ -35,10 +35,9 @@ import qualified Monomer.Common.LensStyle as S
 data TextFieldCfg s e a = TextFieldCfg {
   _tfcValue :: WidgetValue s a,
   _tfcValid :: Maybe (WidgetValue s a),
-  _tfcFromText :: Text -> a,
+  _tfcFromText :: Text -> Maybe a,
   _tfcToText :: a -> Text,
   _tfcAcceptInput :: Text -> Bool,
-  _tfcUpdateModel :: Text -> Bool,
   _tfcOnChange :: [a -> e],
   _tfcOnChangeReq :: [WidgetRequest s],
   _tfcCaretWidth :: Double
@@ -54,14 +53,13 @@ data TextFieldState = TextFieldState {
 } deriving (Eq, Show, Typeable)
 
 textFieldCfg
-  :: WidgetValue s a -> (Text -> a) -> (a -> Text) -> TextFieldCfg s e a
+  :: WidgetValue s a -> (Text -> Maybe a) -> (a -> Text) -> TextFieldCfg s e a
 textFieldCfg value fromText toText = TextFieldCfg {
   _tfcValue = value,
   _tfcValid = Nothing,
   _tfcFromText = fromText,
   _tfcToText = toText,
   _tfcAcceptInput = const True,
-  _tfcUpdateModel = const True,
   _tfcOnChange = [],
   _tfcOnChangeReq = [],
   _tfcCaretWidth = 2
@@ -79,9 +77,9 @@ textFieldState = TextFieldState {
 
 textField :: ALens' s Text -> WidgetInstance s e
 textField field = textField_ config where
-  config = textFieldCfg (WidgetLens field) id id
+  config = textFieldCfg (WidgetLens field) Just id
 
-textField_ :: TextFieldCfg s e a -> WidgetInstance s e
+textField_ :: (Eq a) => TextFieldCfg s e a -> WidgetInstance s e
 textField_ config = makeInstance $ makeTextField config textFieldState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -89,7 +87,7 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _wiFocusable = True
 }
 
-makeTextField :: TextFieldCfg s e a -> TextFieldState -> Widget s e
+makeTextField :: (Eq a) => TextFieldCfg s e a -> TextFieldState -> Widget s e
 makeTextField config state = widget where
   widget = createSingle def {
     singleInit = init,
@@ -108,23 +106,29 @@ makeTextField config state = widget where
   setModelValue = widgetValueSet (_tfcValue config)
 
   init wenv inst = resultWidget newInstance where
-    currText = getModelValue wenv
-    newState = newTextState wenv inst state (toText currText) 0 Nothing
+    newText = getModelValue wenv
+    newState = newTextState wenv inst state (toText newText) 0 Nothing
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
 
   merge wenv oldState inst = resultWidget newInstance where
-    TextFieldState _ _ oldPos oldSel _ _ = fromMaybe state (useState oldState)
-    currText = toText $ getModelValue wenv
-    currTextL = T.length currText
+    oldTextState = fromMaybe state (useState oldState)
+    oldText = _tfCurrText oldTextState
+    oldPos = _tfCursorPos oldTextState
+    oldSel = _tfSelStart oldTextState
+    value = getModelValue wenv
+    newText
+      | fromText oldText /= Just (getModelValue wenv) = toText value
+      | otherwise = oldText
+    newTextL = T.length newText
     newPos
-      | currTextL < oldPos = T.length currText
+      | newTextL < oldPos = T.length newText
       | otherwise = oldPos
     newSelStart
-      | isNothing oldSel || currTextL < fromJust oldSel = Nothing
+      | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst state currText newPos newSelStart
+    newState = newTextState wenv inst state newText newPos newSelStart
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
@@ -233,18 +237,19 @@ makeTextField config state = widget where
     result = generateInputResult wenv inst newText newPos Nothing []
 
   generateInputResult wenv inst newText newPos newSel newReqs = result where
-    isValidInput = _tfcAcceptInput config newText
-    isValidModel = _tfcUpdateModel config newText
+    isValid = _tfcAcceptInput config newText
+    hasChanged = currText /= newText
+    newVal = fromText newText
     reqUpdateModel
-      | isValidInput && currText /= newText = setModelValue (fromText newText)
+      | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
       | otherwise = []
-    reqs = reqUpdateModel ++ newReqs
+    reqs = newReqs ++ reqUpdateModel
     newState = newTextState wenv inst state newText newPos newSel
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
     result
-      | isValidInput = resultReqs reqs newInstance
+      | isValid = resultReqs reqs newInstance
       | otherwise = resultReqs reqs inst
 
   replaceText txt newTxt

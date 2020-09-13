@@ -16,6 +16,7 @@ data Fruit
 data App = App {
   _clickCount :: !Int,
   _msgCount :: !Int,
+  _numberField1 :: Double,
   _textField1 :: Text,
   _textField2 :: Text,
   _textField3 :: Text,
@@ -30,6 +31,7 @@ instance Default App where
   def = App {
     _clickCount = 0,
     _msgCount = 0,
+    _numberField1 = 0,
     _textField1 = "",
     _textField2 = "",
     _textField3 = "",

@@ -7,6 +7,7 @@ module Monomer.Widgets (
   module Monomer.Widget.Widgets.Image,
   module Monomer.Widget.Widgets.Label,
   module Monomer.Widget.Widgets.ListView,
+  module Monomer.Widget.Widgets.NumericInput,
   module Monomer.Widget.Widgets.Radio,
   module Monomer.Widget.Widgets.Scroll,
   module Monomer.Widget.Widgets.Spacer,
@@ -22,6 +23,7 @@ import Monomer.Widget.Widgets.Grid
 import Monomer.Widget.Widgets.Image
 import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.ListView
+import Monomer.Widget.Widgets.NumericInput
 import Monomer.Widget.Widgets.Radio
 import Monomer.Widget.Widgets.Scroll
 import Monomer.Widget.Widgets.Spacer
