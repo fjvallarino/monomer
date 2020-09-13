@@ -167,13 +167,13 @@
     - Should image component keep a copy around?
     - Should it be provided to renderer every time and, if removed, put back in the list?
     - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
+  - Rethink the idea of global theme in WidgetEnv
+    - Add option to render inner rounded borders with normal outer ones
 
 - Pending
   - Further textField improvements
     - Add support for validation
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
-  - Rethink the idea of global theme in WidgetEnv
-    - Add option to render inner rounded borders with normal outer ones
   - Create Layer widget
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
