@@ -173,6 +173,9 @@
 - Pending
   - Further textField improvements
     - Add support for validation
+    - Add max length limit
+    - Add range limit
+    - Think widget config in a similar way to style config (combinator functions)
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create Layer widget
   - Create Dialog

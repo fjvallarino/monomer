@@ -34,7 +34,7 @@ import qualified Monomer.Common.LensStyle as S
 
 data TextFieldCfg s e a = TextFieldCfg {
   _tfcValue :: WidgetValue s a,
-  _tfcValid :: Maybe (WidgetValue s a),
+  _tfcValid :: Maybe (WidgetValue s Bool),
   _tfcFromText :: Text -> Maybe a,
   _tfcToText :: a -> Text,
   _tfcAcceptInput :: Text -> Bool,
@@ -43,7 +43,8 @@ data TextFieldCfg s e a = TextFieldCfg {
   _tfcCaretWidth :: Double
 }
 
-data TextFieldState = TextFieldState {
+data TextFieldState a = TextFieldState {
+  _tfCurrValue :: a,
   _tfCurrText :: !Text,
   _tfGlyphs :: Seq GlyphPos,
   _tfCursorPos :: !Int,
@@ -65,8 +66,9 @@ textFieldCfg value fromText toText = TextFieldCfg {
   _tfcCaretWidth = 2
 }
 
-textFieldState :: TextFieldState
+textFieldState :: Default a => TextFieldState a
 textFieldState = TextFieldState {
+  _tfCurrValue = def,
   _tfCurrText = "",
   _tfGlyphs = Seq.empty,
   _tfCursorPos = 0,
@@ -75,11 +77,15 @@ textFieldState = TextFieldState {
   _tfTextRect = def
 }
 
+instance Default Text where
+  def = T.empty
+
 textField :: ALens' s Text -> WidgetInstance s e
 textField field = textField_ config where
   config = textFieldCfg (WidgetLens field) Just id
 
-textField_ :: (Eq a) => TextFieldCfg s e a -> WidgetInstance s e
+textField_
+  :: (Eq a, Default a, Typeable a) => TextFieldCfg s e a -> WidgetInstance s e
 textField_ config = makeInstance $ makeTextField config textFieldState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -87,7 +93,9 @@ makeInstance widget = (defaultWidgetInstance "textField" widget) {
   _wiFocusable = True
 }
 
-makeTextField :: (Eq a) => TextFieldCfg s e a -> TextFieldState -> Widget s e
+makeTextField
+  :: (Eq a, Default a, Typeable a)
+  => TextFieldCfg s e a -> TextFieldState a -> Widget s e
 makeTextField config state = widget where
   widget = createSingle def {
     singleInit = init,
@@ -99,27 +107,31 @@ makeTextField config state = widget where
     singleRender = render
   }
 
-  TextFieldState currText currGlyphs currPos currSel _ _ = state
+  TextFieldState currVal currText currGlyphs currPos currSel _ _ = state
   fromText = _tfcFromText config
   toText = _tfcToText config
   getModelValue wenv = widgetValueGet (_weModel wenv) (_tfcValue config)
   setModelValue = widgetValueSet (_tfcValue config)
+  setModelValid
+    | isJust (_tfcValid config) = widgetValueSet (fromJust $ _tfcValid config)
+    | otherwise = const []
 
   init wenv inst = resultWidget newInstance where
-    newText = getModelValue wenv
-    newState = newTextState wenv inst state (toText newText) 0 Nothing
+    newValue = getModelValue wenv
+    newState = newTextState wenv inst state newValue (toText newValue) 0 Nothing
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
 
   merge wenv oldState inst = resultWidget newInstance where
     oldTextState = fromMaybe state (useState oldState)
+    oldValue = _tfCurrValue oldTextState
     oldText = _tfCurrText oldTextState
     oldPos = _tfCursorPos oldTextState
     oldSel = _tfSelStart oldTextState
     value = getModelValue wenv
     newText
-      | fromText oldText /= Just (getModelValue wenv) = toText value
+      | oldValue /= getModelValue wenv = toText value
       | otherwise = oldText
     newTextL = T.length newText
     newPos
@@ -128,7 +140,7 @@ makeTextField config state = widget where
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst state newText newPos newSelStart
+    newState = newTextState wenv inst state value newText newPos newSelStart
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
@@ -202,7 +214,7 @@ makeTextField config state = widget where
       cpm (_, g1) (_, g2) = compare g1 g2
       diffs = Seq.sortBy cpm pairs
       newPos = maybe 0 fst (Seq.lookup 0 diffs)
-      newState = newTextState wenv inst state currText newPos Nothing
+      newState = newTextState wenv inst state currVal currText newPos Nothing
       newInst = inst {
         _wiWidget = makeTextField config newState
       }
@@ -243,8 +255,9 @@ makeTextField config state = widget where
     reqUpdateModel
       | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
       | otherwise = []
-    reqs = newReqs ++ reqUpdateModel
-    newState = newTextState wenv inst state newText newPos newSel
+    reqs = newReqs ++ setModelValid (isJust newVal) ++ reqUpdateModel
+    stateVal = fromMaybe currVal newVal
+    newState = newTextState wenv inst state stateVal newText newPos newSel
     newInstance = inst {
       _wiWidget = makeTextField config newState
     }
@@ -277,7 +290,7 @@ makeTextField config state = widget where
       _wiViewport = viewport,
       _wiRenderArea = renderArea
     }
-    newState = newTextState wenv tempInst state currText currPos currSel
+    newState = newTextState wenv tempInst state currVal currText currPos currSel
     newInst = tempInst {
       _wiWidget = makeTextField config newState
     }
@@ -333,14 +346,16 @@ renderContent renderer textRect style currText =
     tsAlign = Align ALeft tsAlignV
 
 newTextState
-  :: WidgetEnv s e
+  :: (Eq a, Default a)
+  => WidgetEnv s e
   -> WidgetInstance s e
-  -> TextFieldState
+  -> TextFieldState a
+  -> a
   -> Text
   -> Int
   -> Maybe Int
-  -> TextFieldState
-newTextState wenv inst oldState text cursor selection = newState where
+  -> TextFieldState a
+newTextState wenv inst oldState value text cursor selection = newState where
   theme = activeTheme wenv inst
   style = instanceStyle wenv inst
   contentRect = getContentRect style inst
@@ -363,6 +378,7 @@ newTextState wenv inst oldState text cursor selection = newState where
     | curX + oldOffset < 0 = -curX
     | otherwise = oldOffset
   newState = TextFieldState {
+    _tfCurrValue = value,
     _tfCurrText = text,
     _tfGlyphs = glyphs,
     _tfCursorPos = cursor,

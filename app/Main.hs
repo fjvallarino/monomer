@@ -158,9 +158,10 @@ buildUI model = trace "Creating UI" widgetTree where
       --textField textField1 `style` bgColor lightGray <> height 200 <> textLeft,
       --textField textField2,
       label "Floating",
-      floatingInput floatingField1,
+      floatingInput float1 validFloat1
+        `style` if model ^. validFloat1 then def else border 1 red,
       label "Integer",
-      integerInput integerField1,
+      integerInput integer1,
       hstack [
         label "This is a long label",
         label "Another long label",

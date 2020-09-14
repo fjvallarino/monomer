@@ -12,7 +12,7 @@ import Data.Either
 import Data.Maybe
 import Data.Text (Text)
 import Data.Text.Read (decimal, rational)
-import Text.Printf
+import Data.Typeable (Typeable)
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
@@ -22,8 +22,8 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.TextField
 
-type FormattableInt a = (Eq a, Integral a, Real a)
-type FormattableFloat a = (Eq a, Fractional a, Real a)
+type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
+type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
 
 integerInput :: FormattableInt a => ALens' s a -> WidgetInstance s e
 integerInput field = newInst where
@@ -45,13 +45,18 @@ acceptIntegerInput text = isRight (A.parseOnly parser text) where
   number = A.takeWhile isDigit
   parser = number <* A.endOfInput
 
-floatingInput :: FormattableFloat a => ALens' s a -> WidgetInstance s e
-floatingInput field = floatingInput_ field 2
+floatingInput
+  :: FormattableFloat a
+  => ALens' s a -> ALens' s Bool -> WidgetInstance s e
+floatingInput field valid = floatingInput_ field valid 2
 
-floatingInput_ :: FormattableFloat a => ALens' s a -> Int -> WidgetInstance s e
-floatingInput_ field decimals = newInst where
+floatingInput_
+  :: FormattableFloat a
+  => ALens' s a -> ALens' s Bool -> Int -> WidgetInstance s e
+floatingInput_ field valid decimals = newInst where
   config = textFieldCfg (WidgetLens field) floatFromText (floatToText decimals)
   newInst = textField_ config {
+    _tfcValid = Just (WidgetLens valid),
     _tfcAcceptInput = acceptFloatInput decimals
   }
 
