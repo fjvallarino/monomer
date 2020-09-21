@@ -182,7 +182,7 @@ instance Semigroup BorderSide where
   (<>) b1 b2 = b2
 
 instance Monoid BorderSide where
-  mempty = mempty
+  mempty = def
 
 data Border = Border {
   _brdLeft :: Maybe BorderSide,
@@ -222,7 +222,7 @@ instance Semigroup RadiusType where
   (<>) rc1 rc2 = rc2
 
 instance Monoid RadiusType where
-  mempty = mempty
+  mempty = def
 
 data RadiusCorner = RadiusCorner {
   _rcrType :: RadiusType,
@@ -239,7 +239,7 @@ instance Semigroup RadiusCorner where
   (<>) rc1 rc2 = rc2
 
 instance Monoid RadiusCorner where
-  mempty = mempty
+  mempty = def
 
 data Radius = Radius {
   _radTopLeft :: Maybe RadiusCorner,

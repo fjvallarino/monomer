@@ -157,6 +157,8 @@ buildUI model = trace "Creating UI" widgetTree where
       --],
       --textField textField1 `style` bgColor lightGray <> height 200 <> textLeft,
       --textField textField2,
+      label "Text",
+      textField_ textField2 (maxLength 10 <> validInput validText2),
       label "Floating",
       floatingInput float1 validFloat1
         `style` if model ^. validFloat1 then def else border 1 red,
