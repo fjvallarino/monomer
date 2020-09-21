@@ -20,16 +20,16 @@ import qualified Formatting as F
 
 import Monomer.Widget.Types
 import Monomer.Widget.Util
-import Monomer.Widget.Widgets.TextField
+import Monomer.Widget.Widgets.InputField
 
 type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
 type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
 
 integerInput :: FormattableInt a => ALens' s a -> WidgetInstance s e
 integerInput field = newInst where
-  config = textFieldCfg (WidgetLens field) integerFromText integerToText
-  newInst = textField_ config {
-    _tfcAcceptInput = acceptIntegerInput
+  config = inputFieldCfg (WidgetLens field) integerFromText integerToText
+  newInst = inputField_ "integerInput" config {
+    _ifcAcceptInput = acceptIntegerInput
   }
 
 integerFromText :: FormattableInt a => Text -> Maybe a
@@ -54,10 +54,10 @@ floatingInput_
   :: FormattableFloat a
   => ALens' s a -> ALens' s Bool -> Int -> WidgetInstance s e
 floatingInput_ field valid decimals = newInst where
-  config = textFieldCfg (WidgetLens field) floatFromText (floatToText decimals)
-  newInst = textField_ config {
-    _tfcValid = Just (WidgetLens valid),
-    _tfcAcceptInput = acceptFloatInput decimals
+  config = inputFieldCfg (WidgetLens field) floatFromText (floatToText decimals)
+  newInst = inputField_ "floatingInput" config {
+    _ifcValid = Just (WidgetLens valid),
+    _ifcAcceptInput = acceptFloatInput decimals
   }
 
 floatFromText :: FormattableFloat a => Text -> Maybe a
