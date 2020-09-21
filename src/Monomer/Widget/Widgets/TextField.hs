@@ -8,20 +8,12 @@ module Monomer.Widget.Widgets.TextField where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')
-import Data.Char
 import Data.Default
-import Data.Either
-import Data.Maybe
 import Data.Text (Text)
-import Data.Text.Read (decimal, rational)
-import Data.Typeable (Typeable)
 
-import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
-import qualified Formatting as F
 
 import Monomer.Widget.Types
-import Monomer.Widget.Util
 import Monomer.Widget.Widgets.InputField
 import Monomer.Widget.Widgets.WidgetCombinators
 
@@ -44,8 +36,8 @@ instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
-    _tfcOnChange = _tfcOnChange t2 <> _tfcOnChange t1,
-    _tfcOnChangeReq = _tfcOnChangeReq t2 <> _tfcOnChangeReq t1
+    _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
+    _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
   }
 
 instance Monoid (TextFieldCfg s e) where
@@ -59,6 +51,16 @@ instance ValidInput (TextFieldCfg s e) s where
 instance MaxLengthCombinator (TextFieldCfg s e) where
   maxLength len = def {
     _tfcMaxLength = Just len
+  }
+
+instance OnChange (TextFieldCfg s e) Text e where
+  onChange fn = def {
+    _tfcOnChange = [fn]
+  }
+
+instance OnChangeReq (TextFieldCfg s e) s where
+  onChangeReq req = def {
+    _tfcOnChangeReq = [req]
   }
 
 instance Default Text where

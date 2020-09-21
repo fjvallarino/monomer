@@ -12,8 +12,8 @@ class ValidInput a s where
 class MaxLengthCombinator a where
   maxLength :: Int -> a
 
-class OnChange a where
-  onChange :: [v -> e] -> a
+class OnChange a v e where
+  onChange :: (v -> e) -> a
 
-class OnChangeReq a where
-  onChangeReq :: [WidgetRequest s] -> a
+class OnChangeReq a s where
+  onChangeReq :: WidgetRequest s -> a

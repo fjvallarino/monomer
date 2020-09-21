@@ -247,18 +247,26 @@ makeInputField config state = widget where
     isValid = _ifcAcceptInput config newText
     hasChanged = currText /= newText
     newVal = fromText newText
+    stateVal = fromMaybe currVal newVal
+    onChangeEvts
+      | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
+      | otherwise = []
+    events = onChangeEvts
+    reqValid = setModelValid (isJust newVal)
     reqUpdateModel
       | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
       | otherwise = []
-    reqs = newReqs ++ setModelValid (isJust newVal) ++ reqUpdateModel
-    stateVal = fromMaybe currVal newVal
+    reqOnChange
+      | stateVal /= currVal = _ifcOnChangeReq config
+      | otherwise = []
+    reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
     newState = newTextState wenv inst state stateVal newText newPos newSel
     newInstance = inst {
       _wiWidget = makeInputField config newState
     }
     result
-      | isValid = resultReqs reqs newInstance
-      | otherwise = resultReqs reqs inst
+      | isValid = resultReqsEvents reqs events newInstance
+      | otherwise = resultReqsEvents reqs events inst
 
   replaceText txt newTxt
     | isJust currSel = T.take start txt <> newTxt <> T.drop end txt

@@ -59,4 +59,5 @@ data AppEvent
   | IncreaseMessage
   | UpdateText Text
   | IncButton
+  | PrintMessage Text
   deriving (Show, Eq)

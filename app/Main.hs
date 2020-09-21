@@ -121,6 +121,9 @@ handleAppEvent2 model evt = traceShow evt $ traceShow model $
 
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))
+  PrintMessage txt -> Task $ do
+    print txt
+    return Nothing
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -158,7 +161,7 @@ buildUI model = trace "Creating UI" widgetTree where
       --textField textField1 `style` bgColor lightGray <> height 200 <> textLeft,
       --textField textField2,
       label "Text",
-      textField_ textField2 (maxLength 10 <> validInput validText2),
+      textField_ textField2 (maxLength 10 <> validInput validText2 <> onChange PrintMessage),
       label "Floating",
       floatingInput float1 validFloat1
         `style` if model ^. validFloat1 then def else border 1 red,
