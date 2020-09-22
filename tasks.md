@@ -177,6 +177,8 @@
     - Add range limit
     - Initialize validators (maybe input is invalid and that needs to be signaled)
   - Think widget config in a similar way to style config (combinator functions)
+  - Rethink focus handling. Maybe return list of all focusable elements? Currently shift-tab is not possible
+    - http://hackage.haskell.org/package/data-clist-0.1.2.3
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer

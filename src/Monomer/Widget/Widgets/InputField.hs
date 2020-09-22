@@ -111,14 +111,16 @@ makeInputField config state = widget where
     | isJust (_ifcValid config) = widgetValueSet (fromJust $ _ifcValid config)
     | otherwise = const []
 
-  init wenv inst = resultWidget newInstance where
+  init wenv inst = resultReqs reqs newInstance where
     newValue = getModelValue wenv
     newState = newTextState wenv inst state newValue (toText newValue) 0 Nothing
     newInstance = inst {
       _wiWidget = makeInputField config newState
     }
+    parsedVal = fromText (toText newValue)
+    reqs = setModelValid (isJust parsedVal)
 
-  merge wenv oldState inst = resultWidget newInstance where
+  merge wenv oldState inst = resultReqs reqs newInstance where
     oldTextState = fromMaybe state (useState oldState)
     oldValue = _ifsCurrValue oldTextState
     oldText = _ifsCurrText oldTextState
@@ -139,6 +141,8 @@ makeInputField config state = widget where
     newInstance = inst {
       _wiWidget = makeInputField config newState
     }
+    parsedVal = fromText newText
+    reqs = setModelValid (isJust parsedVal)
 
   handleKeyPress wenv mod code
     | isBackspace = moveCursor removeText (tp - 1) Nothing
@@ -224,7 +228,7 @@ makeInputField config state = widget where
       reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
       reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
       reqs = reqGetClipboard ++ reqSetClipboard
-      result = generateInputResult wenv inst newText newPos newSel reqs
+      result = genInputResult wenv inst False newText newPos newSel reqs
 
     TextInput newText -> insertText wenv inst newText
 
@@ -241,9 +245,9 @@ makeInputField config state = widget where
     newPos
       | isJust currSel = 1 + min currPos (fromJust currSel)
       | otherwise = currPos + T.length addedText
-    result = generateInputResult wenv inst newText newPos Nothing []
+    result = genInputResult wenv inst True newText newPos Nothing []
 
-  generateInputResult wenv inst newText newPos newSel newReqs = result where
+  genInputResult wenv inst textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText
     hasChanged = currText /= newText
     newVal = fromText newText
@@ -265,7 +269,7 @@ makeInputField config state = widget where
       _wiWidget = makeInputField config newState
     }
     result
-      | isValid = resultReqsEvents reqs events newInstance
+      | isValid || not textAdd = resultReqsEvents reqs events newInstance
       | otherwise = resultReqsEvents reqs events inst
 
   replaceText txt newTxt

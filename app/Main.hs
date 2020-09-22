@@ -154,7 +154,8 @@ buildUI model = trace "Creating UI" widgetTree where
 --    ] `key` "Main"
   widgetTree = vstack [
       label "Text",
-      textField_ textField2 (maxLength 10 <> onChange PrintMessage),
+      textField_ textField2 (validInput validText2 <> maxLength 10 <> onChange PrintMessage)
+        `style` if model ^. validText2 then def else border 1 red,
       label "Floating",
       floatingField_ float1 (validInput validFloat1)
         `style` if model ^. validFloat1 then def else border 1 red,

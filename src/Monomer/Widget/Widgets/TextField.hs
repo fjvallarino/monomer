@@ -18,6 +18,7 @@ import Monomer.Widget.Widgets.InputField
 import Monomer.Widget.Widgets.WidgetCombinators
 
 data TextFieldCfg s e = TextFieldCfg {
+  _tfcValid :: Maybe (WidgetValue s Bool),
   _tfcMaxLength :: Maybe Int,
   _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [WidgetRequest s]
@@ -25,6 +26,7 @@ data TextFieldCfg s e = TextFieldCfg {
 
 instance Default (TextFieldCfg s e) where
   def = TextFieldCfg {
+    _tfcValid = Nothing,
     _tfcMaxLength = Nothing,
     _tfcOnChange = [],
     _tfcOnChangeReq = []
@@ -32,6 +34,7 @@ instance Default (TextFieldCfg s e) where
 
 instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
+    _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
     _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
@@ -39,6 +42,11 @@ instance Semigroup (TextFieldCfg s e) where
 
 instance Monoid (TextFieldCfg s e) where
   mempty = def
+
+instance ValidInput (TextFieldCfg s e) s where
+  validInput field = def {
+    _tfcValid = Just (WidgetLens field)
+  }
 
 instance MaxLength (TextFieldCfg s e) where
   maxLength len = def {
@@ -63,12 +71,20 @@ textField field = textField_ field def
 
 textField_ :: ALens' s Text -> TextFieldCfg s e -> WidgetInstance s e
 textField_ field config = inputField where
-  inputConfig = inputFieldCfg (WidgetLens field) Just id
+  inputConfig = inputFieldCfg (WidgetLens field) fromText id
+  fromText = textToText (_tfcMaxLength config)
   inputField = inputField_ "textField" inputConfig {
+    _ifcValid = _tfcValid config,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }
+
+textToText :: Maybe Int -> Text -> Maybe Text
+textToText Nothing text = Just text
+textToText (Just len) text
+  | T.length text <= len = Just text
+  | otherwise = Nothing
 
 acceptInput :: Maybe Int -> Text -> Bool
 acceptInput Nothing _ = True
