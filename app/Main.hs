@@ -127,52 +127,50 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
-  widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
-  widgetTree2 = vstack [
-      label (showt $ model ^. clickCount),
-      textField textField1 `style` bgColor lightGray,
-      hstack [
-        radio fruit Apple,
-        radio fruit Orange,
-        radio fruit Pear
-      ],
-      hstack [
-        checkbox condition1,
-        checkbox condition2,
-        checkbox condition3,
-        checkbox condition1
-      ],
-        --`style` bgColor lightGray <> textSize 40
-        --`focus` bgColor darkGray <> textSize 400,
-      --hstack labels `key` "Labels",
-      --hstack [
-      --  label "Label 1",
-      --  label "Label 2"
-      --],
-      listView textField1 items id,
-      button IncButton "Click!"
-    ] `key` "Main"
+--  widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
+--  widgetTree2 = vstack [
+--      label (showt $ model ^. clickCount),
+--      textField textField1 `style` bgColor lightGray,
+--      hstack [
+--        radio fruit Apple,
+--        radio fruit Orange,
+--        radio fruit Pear
+--      ],
+--      hstack [
+--        checkbox condition1,
+--        checkbox condition2,
+--        checkbox condition3,
+--        checkbox condition1
+--      ],
+--        --`style` bgColor lightGray <> textSize 40
+--        --`focus` bgColor darkGray <> textSize 400,
+--      --hstack labels `key` "Labels",
+--      --hstack [
+--      --  label "Label 1",
+--      --  label "Label 2"
+--      --],
+--      listView textField1 items id,
+--      button IncButton "Click!"
+--    ] `key` "Main"
   widgetTree = vstack [
-      --hstack [
-      --  radio fruit Apple,
-      --  radio fruit Orange,
-      --  radio fruit Pear
-      --],
-      --textField textField1 `style` bgColor lightGray <> height 200 <> textLeft,
-      --textField textField2,
       label "Text",
-      textField_ textField2 (maxLength 10 <> validInput validText2 <> onChange PrintMessage),
+      textField_ textField2 (maxLength 10 <> onChange PrintMessage),
       label "Floating",
-      floatingInput float1 validFloat1
+      floatingField_ float1 (validInput validFloat1)
         `style` if model ^. validFloat1 then def else border 1 red,
       label "Integer",
-      integerInput integer1,
-      hstack [
-        label "This is a long label",
-        label "Another long label",
-        label "Yet another long label"
-      ],
-      image "assets/images/pecans.jpg" `style` marginT 10
+      integralField_ word1 (validInput validWord1 <> maxValue 100)
+        `style` if model ^. validWord1 then def else border 1 red,
+      integralField_ int1 (validInput validInt1 <> maxValue 100)
+        `style` if model ^. validInt1 then def else border 1 red,
+      integralField_ integer1 (validInput validInteger1 <> minValue 10 <> maxValue 100)
+        `style` if model ^. validInteger1 then def else border 1 red
+--      hstack [
+--        label "This is a long label",
+--        label "Another long label",
+--        label "Yet another long label"
+--      ],
+--      image "assets/images/pecans.jpg" `style` marginT 10
     ] `style` borderT 20 red <> borderL 10 blue <> borderR 10 green <> borderB 10 gray <> iradius 50 -- <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)

@@ -175,6 +175,8 @@
     - Add support for validation
     - Add max length limit
     - Add range limit
+    - Initialize validators (maybe input is invalid and that needs to be signaled)
+  - Think widget config in a similar way to style config (combinator functions)
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer
@@ -182,7 +184,6 @@
   - Create Dialog
     - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Think widget config in a similar way to style config (combinator functions)
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly

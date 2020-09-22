@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Monomer.Widget.Widgets.WidgetCombinators where
 
@@ -6,14 +6,23 @@ import Control.Lens (ALens')
 
 import Monomer.Widget.Types
 
-class ValidInput a s where
-  validInput :: ALens' s Bool -> a
+class ValidInput t s where
+  validInput :: ALens' s Bool -> t
 
-class MaxLengthCombinator a where
-  maxLength :: Int -> a
+class MaxLength t where
+  maxLength :: Int -> t
 
-class OnChange a v e where
-  onChange :: (v -> e) -> a
+class Decimals t where
+  decimals :: Int -> t
 
-class OnChangeReq a s where
-  onChangeReq :: WidgetRequest s -> a
+class Num a => MinValue t a | t -> a where
+  minValue :: a -> t
+
+class Num a => MaxValue t a | t -> a where
+  maxValue :: a -> t
+
+class OnChange t a e where
+  onChange :: (a -> e) -> t
+
+class OnChangeReq t s where
+  onChangeReq :: WidgetRequest s -> t

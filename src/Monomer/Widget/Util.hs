@@ -380,3 +380,9 @@ isTargetBeforeCurrent target widgetInst = result where
   result
     | lenTarget > lenCurrent = targetPrefix <= currentPath
     | otherwise = target < currentPath
+
+numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
+numberInBounds Nothing Nothing _ = True
+numberInBounds (Just minVal) Nothing val = val >= minVal
+numberInBounds Nothing (Just maxVal) val = val <= maxVal
+numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
