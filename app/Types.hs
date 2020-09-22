@@ -71,4 +71,5 @@ data AppEvent
   | IncButton
   | PrintMessage Text
   | CheckboxSt Bool
+  | RadioSt Fruit
   deriving (Show, Eq)

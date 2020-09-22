@@ -57,8 +57,8 @@ instance OnChangeReq (CheckboxCfg s e) s where
 checkboxWidth :: Double
 checkboxWidth = 25
 
-checkboxLineW :: Double
-checkboxLineW = 2
+checkboxBorderW :: Double
+checkboxBorderW = 2
 
 checkbox :: ALens' s Bool -> WidgetInstance s e
 checkbox field = checkbox_ field def
@@ -118,12 +118,12 @@ makeCheckbox field config = widget where
 
 renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderCheckbox renderer config rect color = action where
-  action = drawRectBorder renderer rect border Nothing
-  side = Just $ BorderSide 2 color
+  side = Just $ BorderSide checkboxBorderW color
   border = Border side side side side
+  action = drawRectBorder renderer rect border Nothing
 
 renderMark :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderMark renderer config rect color = action where
-  w = checkboxLineW * 2
+  w = checkboxBorderW * 2
   newRect = subtractFromRect rect w w w w
   action = drawRect renderer newRect (Just color) Nothing

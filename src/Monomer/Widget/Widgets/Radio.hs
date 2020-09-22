@@ -1,7 +1,10 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monomer.Widget.Widgets.Radio (
   RadioCfg(..),
   radio,
-  radioCfg
+  radio_
 ) where
 
 import Control.Lens (ALens', (&), (^.), (.~))
@@ -19,35 +22,56 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+import Monomer.Widget.Widgets.WidgetCombinators
 
 data RadioCfg s e a = RadioCfg {
-  _rdcValue :: WidgetValue s a,
-  _rdcOption :: a,
   _rdcOnChange :: [a -> e],
-  _rdcOnChangeReq :: [WidgetRequest s],
-  _rdcWidth :: Double,
-  _rdcSize :: Double
+  _rdcOnChangeReq :: [WidgetRequest s]
 }
 
-radioCfg :: WidgetValue s a -> a -> RadioCfg s e a
-radioCfg value option = RadioCfg {
-  _rdcValue = value,
-  _rdcOption = option,
-  _rdcOnChange = [],
-  _rdcOnChangeReq = [],
-  _rdcWidth = 2,
-  _rdcSize = 25
-}
+instance Default (RadioCfg s e a) where
+  def = RadioCfg {
+    _rdcOnChange = [],
+    _rdcOnChangeReq = []
+  }
+
+instance Semigroup (RadioCfg s e a) where
+  (<>) t1 t2 = RadioCfg {
+    _rdcOnChange = _rdcOnChange t1 <> _rdcOnChange t2,
+    _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
+  }
+
+instance Monoid (RadioCfg s e a) where
+  mempty = def
+
+instance OnChange (RadioCfg s e a) a e where
+  onChange fn = def {
+    _rdcOnChange = [fn]
+  }
+
+instance OnChangeReq (RadioCfg s e a) s where
+  onChangeReq req = def {
+    _rdcOnChangeReq = [req]
+  }
+
+radioWidth :: Double
+radioWidth = 25
+
+radioBorderW :: Double
+radioBorderW = 2
 
 radio :: (Eq a) => ALens' s a -> a -> WidgetInstance s e
-radio field option = radioInstance where
-  config = radioCfg (WidgetLens field) option
-  radioInstance = (defaultWidgetInstance "radio" (makeRadio config)) {
+radio field option = radio_ field option def
+
+radio_ :: (Eq a) => ALens' s a -> a -> RadioCfg s e a -> WidgetInstance s e
+radio_ field option config = radioInstance where
+  widget = makeRadio (WidgetLens field) option config
+  radioInstance = (defaultWidgetInstance "radio" widget) {
     _wiFocusable = True
   }
 
-makeRadio :: (Eq a) => RadioCfg s e a -> Widget s e
-makeRadio config = widget where
+makeRadio :: (Eq a) => WidgetValue s a -> a -> RadioCfg s e a -> Widget s e
+makeRadio field option config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -55,19 +79,21 @@ makeRadio config = widget where
   }
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> Just $ resultReqs (setFocusReq : setValueReq) inst
+    Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqs setValueReq inst
+      | isSelectKey code -> Just $ resultReqsEvents reqs events inst
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
-      option = _rdcOption config
-      setValueReq = widgetValueSet (_rdcValue config) option
+      events = fmap ($ option) (_rdcOnChange config)
+      setValueReq = widgetValueSet field option
       setFocusReq = SetFocus $ _wiPath inst
+      reqs = setValueReq ++ _rdcOnChangeReq config
+      clickReqs = setFocusReq : reqs
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    sz = _rdcSize config
+    sz = radioWidth
     size = Size sz sz
     sizeReq = SizeReq size StrictSize StrictSize
 
@@ -79,8 +105,7 @@ makeRadio config = widget where
     where
       model = _weModel wenv
       style = activeStyle wenv inst
-      value = widgetValueGet model (_rdcValue config)
-      option = _rdcOption config
+      value = widgetValueGet model field
       rarea = removeOuterBounds style $ _wiRenderArea inst
       radioL = _rX rarea
       radioT = _rY rarea
@@ -90,11 +115,11 @@ makeRadio config = widget where
 
 renderRadio :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderRadio renderer config rect color = action where
-  width = _rdcWidth config
+  width = radioBorderW
   action = drawEllipseBorder renderer rect (Just color) width
 
 renderMark :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderMark renderer config rect color = action where
-  w = _rdcWidth config * 2
+  w = radioBorderW
   newRect = subtractFromRect rect w w w w
   action = drawEllipse renderer newRect (Just color)

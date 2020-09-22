@@ -127,6 +127,9 @@ handleAppEvent model evt = case evt of
   CheckboxSt st -> Task $ do
     putStrLn $ "Checkbox is: " ++ show st
     return Nothing
+  RadioSt st -> Task $ do
+    putStrLn $ "Radio is: " ++ show st
+    return Nothing
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -156,6 +159,11 @@ buildUI model = trace "Creating UI" widgetTree where
 --      button IncButton "Click!"
 --    ] `key` "Main"
   widgetTree = vstack [
+      hstack [
+        radio_ fruit Apple (onChange RadioSt),
+        radio_ fruit Orange (onChange RadioSt),
+        radio_ fruit Pear (onChange RadioSt)
+      ],
       hstack [
         checkbox condition1,
         checkbox condition2,
