@@ -59,7 +59,7 @@ handleKeysCompEvent model evt = case evt of
 
 buildKeysComp model = trace "Created keys composite UI" $
   hgrid [
-    button RotateChildren "Rotate",
+    button "Rotate" RotateChildren,
     vgrid $ fmap (editableItem model) [0..(length (_items model) - 1)]
   ]
 

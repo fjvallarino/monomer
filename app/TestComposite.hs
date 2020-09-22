@@ -66,13 +66,13 @@ buildComposite model = trace "Created composite UI" $
     scroll $ label "This is a composite label again!",
     vgrid [
       hgrid [
-        button MessageParent "Message parent"
+        button "Message parent" MessageParent
       ],
       hgrid [
-        button StartTask "Run task"
+        button "Run task" StartTask
       ],
       hgrid [
-        button StartProducer "Run Producer",
+        button "Run Producer" StartProducer,
         label ("Produced: " <> showt (_csProduced model))
       ]
     ] `style` bgColor gray

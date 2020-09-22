@@ -3,7 +3,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Monomer.Widget.Widgets.IntegralField where
+module Monomer.Widget.Widgets.IntegralField (
+  integralField,
+  integralField_
+) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')

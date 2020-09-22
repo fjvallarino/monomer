@@ -4,3 +4,5 @@ Why is the return type of render IO and not some custom monad?
 Why not FRP?
 Why Lens and not MicroLens?
 Why does Widget have a reference to children widget, considering the Widget may not have any?
+Why records of functions instead of typeclasses?
+Why functional dependencies instead of type families for widget combinators?

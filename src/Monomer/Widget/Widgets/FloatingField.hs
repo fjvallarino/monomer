@@ -4,7 +4,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {- HLINT ignore "Use foldr" -}
 
-module Monomer.Widget.Widgets.FloatingField where
+module Monomer.Widget.Widgets.FloatingField (
+  floatingField,
+  floatingField_
+) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')
