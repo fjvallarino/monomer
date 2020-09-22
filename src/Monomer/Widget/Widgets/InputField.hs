@@ -40,6 +40,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcAcceptInput :: Text -> Bool,
   _ifcOnChange :: [a -> e],
   _ifcOnChangeReq :: [WidgetRequest s],
+  _ifcSelectOnFocus :: Bool,
   _ifcCaretWidth :: Double
 }
 
@@ -63,6 +64,7 @@ inputFieldCfg value fromText toText = InputFieldCfg {
   _ifcAcceptInput = const True,
   _ifcOnChange = [],
   _ifcOnChangeReq = [],
+  _ifcSelectOnFocus = False,
   _ifcCaretWidth = 2
 }
 
@@ -234,7 +236,16 @@ makeInputField config state = widget where
 
     Clipboard (ClipboardText newText) -> insertText wenv inst newText
 
-    Focus -> Just $ resultReqs [StartTextInput (_wiViewport inst)] inst
+    Focus -> Just $ resultReqs [StartTextInput (_wiViewport inst)] newInst where
+      newState = state {
+        _ifsSelStart = Just 0,
+        _ifsCursorPos = T.length currText
+      }
+      newInst
+        | _ifcSelectOnFocus config && T.length currText > 0 = inst {
+            _wiWidget = makeInputField config newState
+          }
+        | otherwise = inst
 
     Blur -> Just $ resultReqs [StopTextInput] inst
 
@@ -305,7 +316,7 @@ makeInputField config state = widget where
   render renderer wenv inst = do
     setScissor renderer contentRect
 
-    when (isJust currSel) $
+    when (selRequired && isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 
     renderContent renderer textRect style currText
@@ -330,6 +341,7 @@ makeInputField config state = widget where
       nglyphs = Seq.length currGlyphs
       glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
+      selRequired = isFocused wenv inst
       selColor = instanceHlColor wenv inst
       caretRequired = isFocused wenv inst && ts `mod` 1000 < 500
       caretColor = instanceFontColor wenv inst

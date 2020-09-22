@@ -169,13 +169,13 @@
     - Otherwise, when graphics memory is exhausted new images will not be added (until the widget is disposed)
   - Rethink the idea of global theme in WidgetEnv
     - Add option to render inner rounded borders with normal outer ones
-
-- Pending
   - Further textField improvements
     - Add support for validation
     - Add max length limit
     - Add range limit
     - Initialize validators (maybe input is invalid and that needs to be signaled)
+
+- Pending
   - Think widget config in a similar way to style config (combinator functions)
   - Rethink focus handling. Maybe return list of all focusable elements? Currently shift-tab is not possible
     - http://hackage.haskell.org/package/data-clist-0.1.2.3

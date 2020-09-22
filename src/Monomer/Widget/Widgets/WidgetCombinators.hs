@@ -9,6 +9,9 @@ import Monomer.Widget.Types
 class ValidInput t s where
   validInput :: ALens' s Bool -> t
 
+class SelectOnFocus t where
+  selectOnFocus :: Bool -> t
+
 class MaxLength t where
   maxLength :: Int -> t
 

@@ -32,6 +32,7 @@ data FloatingFieldCfg s e a = FloatingFieldCfg {
   _ffcDecimals :: Maybe Int,
   _ffcMinValue :: Maybe a,
   _ffcMaxValue :: Maybe a,
+  _ffcSelectOnFocus :: Maybe Bool,
   _ffcOnChange :: [a -> e],
   _ffcOnChangeReq :: [WidgetRequest s]
 }
@@ -42,6 +43,7 @@ instance Default (FloatingFieldCfg s e a) where
     _ffcDecimals = Nothing,
     _ffcMinValue = Nothing,
     _ffcMaxValue = Nothing,
+    _ffcSelectOnFocus = Nothing,
     _ffcOnChange = [],
     _ffcOnChangeReq = []
   }
@@ -52,6 +54,7 @@ instance Semigroup (FloatingFieldCfg s e a) where
     _ffcDecimals = _ffcDecimals t2 <|> _ffcDecimals t1,
     _ffcMinValue = _ffcMinValue t2 <|> _ffcMinValue t1,
     _ffcMaxValue = _ffcMaxValue t2 <|> _ffcMaxValue t1,
+    _ffcSelectOnFocus = _ffcSelectOnFocus t2 <|> _ffcSelectOnFocus t1,
     _ffcOnChange = _ffcOnChange t1 <> _ffcOnChange t2,
     _ffcOnChangeReq = _ffcOnChangeReq t1 <> _ffcOnChangeReq t2
   }
@@ -62,6 +65,11 @@ instance Monoid (FloatingFieldCfg s e a) where
 instance ValidInput (FloatingFieldCfg s e a) s where
   validInput field = def {
     _ffcValid = Just (WidgetLens field)
+  }
+
+instance SelectOnFocus (FloatingFieldCfg s e a) where
+  selectOnFocus sel = def {
+    _ffcSelectOnFocus = Just sel
   }
 
 instance FormattableFloat a => MinValue (FloatingFieldCfg s e a) a where
@@ -108,7 +116,10 @@ floatingField_ field config = newInst where
   toText = floatToText decimals
   newInst = inputField_ "floatingField" inputConfig {
     _ifcValid = _ffcValid config,
-    _ifcAcceptInput = acceptFloatInput decimals
+    _ifcAcceptInput = acceptFloatInput decimals,
+    _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
+    _ifcOnChange = _ffcOnChange config,
+    _ifcOnChangeReq = _ffcOnChangeReq config
   }
 
 floatFromText :: FormattableFloat a => Maybe a -> Maybe a -> Text -> Maybe a
