@@ -124,6 +124,9 @@ handleAppEvent model evt = case evt of
   PrintMessage txt -> Task $ do
     print txt
     return Nothing
+  CheckboxSt st -> Task $ do
+    putStrLn $ "Checkbox is: " ++ show st
+    return Nothing
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -153,6 +156,12 @@ buildUI model = trace "Creating UI" widgetTree where
 --      button IncButton "Click!"
 --    ] `key` "Main"
   widgetTree = vstack [
+      hstack [
+        checkbox condition1,
+        checkbox condition2,
+        checkbox condition3,
+        checkbox_ condition1 (onChange CheckboxSt)
+      ],
       label "Text",
       textField_ textField2 (validInput validText2 <> maxLength 10 <> onChange PrintMessage <> selectOnFocus True)
         `style` if model ^. validText2 then def else border 1 red,

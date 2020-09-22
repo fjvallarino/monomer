@@ -70,4 +70,5 @@ data AppEvent
   | UpdateText Text
   | IncButton
   | PrintMessage Text
+  | CheckboxSt Bool
   deriving (Show, Eq)

@@ -1,7 +1,10 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monomer.Widget.Widgets.Checkbox (
   CheckboxCfg(..),
   checkbox,
-  checkboxCfg
+  checkbox_
 ) where
 
 import Control.Lens (ALens', (&), (^.), (.~))
@@ -19,33 +22,56 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+import Monomer.Widget.Widgets.WidgetCombinators
 
 data CheckboxCfg s e = CheckboxCfg {
-  _ckcValue :: WidgetValue s Bool,
   _ckcOnChange :: [Bool -> e],
-  _ckcOnChangeReq :: [WidgetRequest s],
-  _ckcWidth :: Double,
-  _ckcSize :: Double
+  _ckcOnChangeReq :: [WidgetRequest s]
 }
 
-checkboxCfg :: WidgetValue s Bool -> CheckboxCfg s e
-checkboxCfg value = CheckboxCfg {
-  _ckcValue = value,
-  _ckcOnChange = [],
-  _ckcOnChangeReq = [],
-  _ckcWidth = 2,
-  _ckcSize = 25
-}
+instance Default (CheckboxCfg s e) where
+  def = CheckboxCfg {
+    _ckcOnChange = [],
+    _ckcOnChangeReq = []
+  }
+
+instance Semigroup (CheckboxCfg s e) where
+  (<>) t1 t2 = CheckboxCfg {
+    _ckcOnChange = _ckcOnChange t1 <> _ckcOnChange t2,
+    _ckcOnChangeReq = _ckcOnChangeReq t1 <> _ckcOnChangeReq t2
+  }
+
+instance Monoid (CheckboxCfg s e) where
+  mempty = def
+
+instance OnChange (CheckboxCfg s e) Bool e where
+  onChange fn = def {
+    _ckcOnChange = [fn]
+  }
+
+instance OnChangeReq (CheckboxCfg s e) s where
+  onChangeReq req = def {
+    _ckcOnChangeReq = [req]
+  }
+
+checkboxWidth :: Double
+checkboxWidth = 25
+
+checkboxLineW :: Double
+checkboxLineW = 2
 
 checkbox :: ALens' s Bool -> WidgetInstance s e
-checkbox field = checkboxInstance where
-  config = checkboxCfg (WidgetLens field)
-  checkboxInstance = (defaultWidgetInstance "checkbox" (makeCheckbox config)) {
+checkbox field = checkbox_ field def
+
+checkbox_ :: ALens' s Bool -> CheckboxCfg s e -> WidgetInstance s e
+checkbox_ field config = checkboxInstance where
+  widget = makeCheckbox (WidgetLens field) config
+  checkboxInstance = (defaultWidgetInstance "checkbox" widget) {
     _wiFocusable = True
   }
 
-makeCheckbox :: CheckboxCfg s e -> Widget s e
-makeCheckbox config = widget where
+makeCheckbox :: WidgetValue s Bool -> CheckboxCfg s e -> Widget s e
+makeCheckbox field config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -53,20 +79,24 @@ makeCheckbox config = widget where
   }
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> Just $ resultReqs (setFocusReq : setValueReq) inst
+    Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqs setValueReq inst
+      | isSelectKey code -> Just $ resultReqsEvents reqs events inst
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
-      value = widgetValueGet model (_ckcValue config)
-      setValueReq = widgetValueSet (_ckcValue config) (not value)
+      value = widgetValueGet model field
+      newValue = not value
+      events = fmap ($ newValue) (_ckcOnChange config)
+      setValueReq = widgetValueSet field newValue
       setFocusReq = SetFocus $ _wiPath inst
+      reqs = setValueReq ++ _ckcOnChangeReq config
+      clickReqs = setFocusReq : reqs
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    sz = _ckcSize config
+    sz = checkboxWidth
     size = Size sz sz
     sizeReq = SizeReq size StrictSize StrictSize
 
@@ -78,7 +108,7 @@ makeCheckbox config = widget where
     where
       model = _weModel wenv
       style = activeStyle wenv inst
-      value = widgetValueGet model (_ckcValue config)
+      value = widgetValueGet model field
       rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea
       checkboxT = _rY rarea
@@ -88,13 +118,12 @@ makeCheckbox config = widget where
 
 renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderCheckbox renderer config rect color = action where
-  width = _ckcWidth config
   action = drawRectBorder renderer rect border Nothing
   side = Just $ BorderSide 2 color
   border = Border side side side side
 
 renderMark :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderMark renderer config rect color = action where
-  w = _ckcWidth config * 2
+  w = checkboxLineW * 2
   newRect = subtractFromRect rect w w w w
   action = drawRect renderer newRect (Just color) Nothing

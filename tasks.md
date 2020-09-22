@@ -177,6 +177,7 @@
 
 - Pending
   - Think widget config in a similar way to style config (combinator functions)
+  - textField should support textFieldV and validInputV
   - Rethink focus handling. Maybe return list of all focusable elements? Currently shift-tab is not possible
     - http://hackage.haskell.org/package/data-clist-0.1.2.3
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
