@@ -31,11 +31,11 @@ class Num a => MaxValue t a | t -> a where
 class OnClick t e | t -> e  where
   onClick :: e -> t
 
-class OnClickReq t s where
+class OnClickReq t s | t -> s where
   onClickReq :: WidgetRequest s -> t
 
-class OnChange t a e where
+class OnChange t a e | t -> e where
   onChange :: (a -> e) -> t
 
-class OnChangeReq t s where
+class OnChangeReq t s | t -> s where
   onChangeReq :: WidgetRequest s -> t

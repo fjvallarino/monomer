@@ -36,6 +36,7 @@ import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.Scroll
 import Monomer.Widget.Widgets.Spacer
 import Monomer.Widget.Widgets.Stack
+import Monomer.Widget.Widgets.WidgetCombinators
 
 import qualified Monomer.Common.LensStyle as S
 import qualified Monomer.Widget.LensCore as C
@@ -205,11 +206,8 @@ makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
   itemStyle idx item = def
     & S.basic .~ (selectedStyle item <|> highlightedStyle idx)
     & S.hover ?~ _lvcHoverStyle
-  itemConfig idx = boxConfig {
-    _ctOnClickReq = [SendMessage lvPath (OnClickMessage idx)]
-  }
   makeItem idx item = newItem where
-    config = itemConfig idx
+    config = onClickReq $ SendMessage lvPath (OnClickMessage idx)
     content = label (_lvcItemToText item)
     newItem = box config content & C.style .~ itemStyle idx item
   pairs = Seq.zip (Seq.fromList [0..length _lvcItems]) _lvcItems
