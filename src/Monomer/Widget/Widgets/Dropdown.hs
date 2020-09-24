@@ -6,6 +6,8 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (
+  textDropdown,
+  textDropdown_,
   dropdown,
   dropdown_
 ) where
@@ -100,6 +102,27 @@ newtype DropdownState = DropdownState {
 newtype DropdownMessage
   = OnChangeMessage Int
   deriving Typeable
+
+textDropdown
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> WidgetInstance s e
+textDropdown field items toText = newInst where
+  newInst = textDropdown_ field items toText def
+
+textDropdown_
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> DropdownCfg s e a
+  -> WidgetInstance s e
+textDropdown_ field items toText config = newInst where
+  makeMain = toText
+  makeRow = label . toText
+  newInst = dropdown_ field items makeMain makeRow config
 
 dropdown
   :: (Traversable t, Eq a)

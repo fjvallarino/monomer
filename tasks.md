@@ -200,6 +200,9 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Add options to image widget (stretch/crop/etc)
+  - Add support for urls to image widget
+  - Add options to label/button (ellipsis/cut)
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history

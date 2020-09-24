@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widget.Widgets.Box (
-  BoxConfig,
   box,
   box_
 ) where

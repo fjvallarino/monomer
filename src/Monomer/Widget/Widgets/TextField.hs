@@ -4,7 +4,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {- HLINT ignore "Use foldr" -}
 
-module Monomer.Widget.Widgets.TextField where
+module Monomer.Widget.Widgets.TextField (
+  textField,
+  textField_
+) where
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')

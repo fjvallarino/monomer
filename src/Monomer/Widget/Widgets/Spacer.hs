@@ -1,4 +1,6 @@
-module Monomer.Widget.Widgets.Spacer (spacer) where
+module Monomer.Widget.Widgets.Spacer (
+  spacer
+) where
 
 import Data.Default
 

@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widget.Widgets.Checkbox (
-  CheckboxCfg(..),
   checkbox,
   checkbox_
 ) where
