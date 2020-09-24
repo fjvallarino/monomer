@@ -182,7 +182,8 @@ buildUI model = trace "Creating UI" widgetTree where
       integralField_ int1 (validInput validInt1 <> maxValue 100)
         `style` if model ^. validInt1 then def else border 1 red,
       integralField_ integer1 (validInput validInteger1 <> minValue 10 <> maxValue 100)
-        `style` if model ^. validInteger1 then def else border 1 red
+        `style` if model ^. validInteger1 then def else border 1 red,
+      listView textField1 items label
 --      hstack [
 --        label "This is a long label",
 --        label "Another long label",

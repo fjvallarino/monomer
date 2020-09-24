@@ -1,18 +1,22 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.ListView (
   ListViewCfg(..),
+  textListView,
+  textListView_,
   listView,
   listView_,
-  listViewCfg
+  listViewF_
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (.~), (?~), non)
+import Control.Lens (ALens', (&), (.~))
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, maybeToList)
@@ -42,15 +46,58 @@ import qualified Monomer.Common.LensStyle as S
 import qualified Monomer.Widget.LensCore as C
 
 data ListViewCfg s e a = ListViewCfg {
-  _lvcValue :: WidgetValue s a,
-  _lvcItems :: Seq a,
-  _lvcItemToText :: a -> Text,
-  _lvcOnChange :: [Int -> a -> e],
-  _lvcOnChangeReq :: [Int -> WidgetRequest s],
-  _lvcSelectedStyle :: StyleState,
-  _lvcHighlightedStyle :: StyleState,
-  _lvcHoverStyle :: StyleState
+  _lvcOnChangeIdx :: [Int -> a -> e],
+  _lvcOnChangeReqIdx :: [Int -> WidgetRequest s],
+  _lvcSelectedStyle :: Maybe StyleState,
+  _lvcHighlightedStyle :: Maybe StyleState,
+  _lvcHoverStyle :: Maybe StyleState
 }
+
+instance Default (ListViewCfg s e a) where
+  def = ListViewCfg {
+    _lvcOnChangeIdx = [],
+    _lvcOnChangeReqIdx = [],
+    _lvcSelectedStyle = Just $ bgColor gray,
+    _lvcHighlightedStyle = Just $ border 1 darkGray,
+    _lvcHoverStyle = Just $ bgColor lightGray
+  }
+
+instance Semigroup (ListViewCfg s e a) where
+  (<>) t1 t2 = ListViewCfg {
+    _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
+    _lvcOnChangeReqIdx = _lvcOnChangeReqIdx t1 <> _lvcOnChangeReqIdx t2,
+    _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
+    _lvcHighlightedStyle = _lvcHighlightedStyle t2 <|> _lvcHighlightedStyle t1,
+    _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1
+  }
+
+instance Monoid (ListViewCfg s e a) where
+  mempty = def
+
+instance OnChangeIdx (ListViewCfg s e a) a e where
+  onChangeIdx fn = def {
+    _lvcOnChangeIdx = [fn]
+  }
+
+instance OnChangeReqIdx (ListViewCfg s e a) s where
+  onChangeReqIdx req = def {
+    _lvcOnChangeReqIdx = [req]
+  }
+
+instance SelectedStyle (ListViewCfg s e a) where
+  selectedStyle style = def {
+    _lvcSelectedStyle = Just style
+  }
+
+instance HighlightedStyle (ListViewCfg s e a) where
+  highlightedStyle style = def {
+    _lvcHighlightedStyle = Just style
+  }
+
+instance HoverStyle (ListViewCfg s e a) where
+  hoverStyle style = def {
+    _lvcHoverStyle = Just style
+  }
 
 newtype ListViewState = ListViewState {
   _highlighted :: Int
@@ -60,37 +107,70 @@ newtype ListViewMessage
   = OnClickMessage Int
   deriving Typeable
 
-listViewCfg
-  :: WidgetValue s a -> Seq a -> (a -> Text) -> ListViewCfg s e a
-listViewCfg value items itemToText = ListViewCfg {
-  _lvcValue = value,
-  _lvcItems = items,
-  _lvcItemToText = itemToText,
-  _lvcOnChange = [],
-  _lvcOnChangeReq = [],
-  _lvcSelectedStyle = bgColor gray,
-  _lvcHighlightedStyle = border 1 darkGray,
-  _lvcHoverStyle = bgColor lightGray
-}
+textListView
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> WidgetInstance s e
+textListView field items itemDesc = textListView_ field items itemDesc def
+
+textListView_
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> ListViewCfg s e a
+  -> WidgetInstance s e
+textListView_ field items itemDesc config = inst where
+  makeRow item = label (itemDesc item)
+  inst = listView_ field items makeRow config
 
 listView
   :: (Traversable t, Eq a)
-  => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
-listView field items itemToText = listView_ config where
-  config = listViewCfg (WidgetLens field) newItems itemToText
-  newItems = foldl' (|>) Empty items
+  => ALens' s a
+  -> t a
+  -> (a -> WidgetInstance s e)
+  -> WidgetInstance s e
+listView field items makeRow = listView_ field items makeRow def
 
-listView_ :: (Eq a) => ListViewCfg s e a -> WidgetInstance s e
-listView_ config = makeInstance (makeListView config newState) where
+listView_
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> WidgetInstance s e)
+  -> ListViewCfg s e a
+  -> WidgetInstance s e
+listView_ field items makeRow config = newInst where
+  value = WidgetLens field
+  newInst = listViewF_ value items makeRow config
+
+listViewF_
+  :: (Traversable t, Eq a)
+  => WidgetValue s a
+  -> t a
+  -> (a -> WidgetInstance s e)
+  -> ListViewCfg s e a
+  -> WidgetInstance s e
+listViewF_ value items makeRow config = makeInstance widget where
+  newItems = foldl' (|>) Empty items
   newState = ListViewState 0
+  widget = makeListView value newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "listView" widget) {
   _wiFocusable = True
 }
 
-makeListView :: (Eq a) => ListViewCfg s e a -> ListViewState -> Widget s e
-makeListView config state = widget where
+makeListView
+  :: (Eq a)
+  => WidgetValue s a
+  -> Seq a
+  -> (a -> WidgetInstance s e)
+  -> ListViewCfg s e a
+  -> ListViewState
+  -> Widget s e
+makeListView field items makeRow config state = widget where
   widget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
@@ -101,14 +181,15 @@ makeListView config state = widget where
     containerResize = resize
   }
 
-  currentValue wenv = widgetValueGet (_weModel wenv) (_lvcValue config)
+  currentValue wenv = widgetValueGet (_weModel wenv) field
 
   createListView wenv newState widgetInst = newInstance where
     selected = currentValue wenv
+    highlighted = _highlighted newState
     path = _wiPath widgetInst
-    itemsList = makeItemsList config path selected (_highlighted newState)
+    itemsList = makeItemsList items makeRow config path selected highlighted
     newInstance = widgetInst {
-      _wiWidget = makeListView config newState,
+      _wiWidget = makeListView field items makeRow config newState,
       _wiChildren = Seq.singleton (scroll itemsList)
     }
 
@@ -131,7 +212,7 @@ makeListView config state = widget where
   highlightNext wenv widgetInst = highlightItem wenv widgetInst nextIdx where
     tempIdx = _highlighted state
     nextIdx
-      | tempIdx < length (_lvcItems config) - 1 = tempIdx + 1
+      | tempIdx < length items - 1 = tempIdx + 1
       | otherwise = tempIdx
 
   highlightPrev wenv widgetInst = highlightItem wenv widgetInst nextIdx where
@@ -146,7 +227,7 @@ makeListView config state = widget where
 
   highlightItem wenv widgetInst nextIdx = result where
     newState = ListViewState nextIdx
-    newWidget = makeListView config newState
+    newWidget = makeListView field items makeRow config newState
     -- ListView's merge uses the old widget's state. Since we want the newly
     -- created state, the old widget is replaced here
     oldInstance = widgetInst {
@@ -165,15 +246,15 @@ makeListView config state = widget where
 
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv
-    value = fromMaybe selected (Seq.lookup idx (_lvcItems config))
-    valueSetReq = widgetValueSet (_lvcValue config) value
+    value = fromMaybe selected (Seq.lookup idx items)
+    valueSetReq = widgetValueSet field value
     scrollToReq = itemScrollTo widgetInst idx
-    changeReqs = fmap ($ idx) (_lvcOnChangeReq config)
+    changeReqs = fmap ($ idx) (_lvcOnChangeReqIdx config)
     focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
     newInstance = widgetInst {
-      _wiWidget = makeListView config newState
+      _wiWidget = makeListView field items makeRow config newState
     }
 
   itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
@@ -193,22 +274,29 @@ makeListView config state = widget where
     resized = (widgetInst, assignedArea)
 
 makeItemsList
-  :: (Eq a) => ListViewCfg s e a -> Path -> a -> Int -> WidgetInstance s e
-makeItemsList lvConfig lvPath selected highlightedIdx = itemsList where
-  ListViewCfg{..} = lvConfig
+  :: (Eq a)
+  => Seq a
+  -> (a -> WidgetInstance s e)
+  -> ListViewCfg s e a
+  -> Path
+  -> a
+  -> Int
+  -> WidgetInstance s e
+makeItemsList items makeRow config path selected hlIdx = itemsList where
+  ListViewCfg{..} = config
   isSelected item = item == selected
   selectedStyle item
-    | isSelected item = Just _lvcSelectedStyle
+    | isSelected item = _lvcSelectedStyle
     | otherwise = Nothing
   highlightedStyle idx
-    | idx == highlightedIdx = Just _lvcHighlightedStyle
+    | idx == hlIdx = _lvcHighlightedStyle
     | otherwise = Nothing
   itemStyle idx item = def
     & S.basic .~ (selectedStyle item <|> highlightedStyle idx)
-    & S.hover ?~ _lvcHoverStyle
+    & S.hover .~ _lvcHoverStyle
   makeItem idx item = newItem where
-    config = onClickReq $ SendMessage lvPath (OnClickMessage idx)
-    content = label (_lvcItemToText item)
-    newItem = box config content & C.style .~ itemStyle idx item
-  pairs = Seq.zip (Seq.fromList [0..length _lvcItems]) _lvcItems
+    itemCfg = onClickReq $ SendMessage path (OnClickMessage idx)
+    content = makeRow item
+    newItem = box itemCfg content & C.style .~ itemStyle idx item
+  pairs = Seq.zip (Seq.fromList [0..length items]) items
   itemsList = vstack $ fmap (uncurry makeItem) pairs

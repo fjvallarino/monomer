@@ -5,6 +5,7 @@ module Monomer.Widget.Widgets.WidgetCombinators where
 import Control.Lens (ALens')
 import Data.Text (Text)
 
+import Monomer.Common.Style
 import Monomer.Widget.Types
 
 class ValidInput t s where
@@ -37,5 +38,20 @@ class OnClickReq t s | t -> s where
 class OnChange t a e | t -> e where
   onChange :: (a -> e) -> t
 
+class OnChangeIdx t a e | t -> e where
+  onChangeIdx :: (Int -> a -> e) -> t
+
 class OnChangeReq t s | t -> s where
   onChangeReq :: WidgetRequest s -> t
+
+class OnChangeReqIdx t s | t -> s where
+  onChangeReqIdx :: (Int -> WidgetRequest s) -> t
+
+class SelectedStyle t where
+  selectedStyle :: StyleState -> t
+
+class HighlightedStyle t where
+  highlightedStyle :: StyleState -> t
+
+class HoverStyle t where
+  hoverStyle :: StyleState -> t

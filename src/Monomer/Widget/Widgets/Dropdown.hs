@@ -33,7 +33,9 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.ListView
+import Monomer.Widget.Widgets.WidgetCombinators
 
 data DropdownCfg s e a = DropdownCfg {
   _ddcValue :: WidgetValue s a,
@@ -205,14 +207,9 @@ makeDropdown config state = widget where
 
 makeListView
   :: (Eq a) => DropdownCfg s e a -> Path -> a -> WidgetInstance s e
-makeListView DropdownCfg{..} dropdownPath selected = listView_ lvConfig where
-  lvConfig = ListViewCfg {
-    _lvcValue = WidgetValue selected,
-    _lvcItems = _ddcItems,
-    _lvcItemToText = _ddcItemToText,
-    _lvcOnChange = [],
-    _lvcOnChangeReq = [SendMessage dropdownPath . OnChangeMessage],
-    _lvcSelectedStyle = _ddcSelectedStyle,
-    _lvcHighlightedStyle = _ddcHighlightedStyle,
-    _lvcHoverStyle = _ddcHoverStyle
-  }
+makeListView DropdownCfg{..} dropdownPath selected = listViewInst where
+  value = WidgetValue selected
+  items = _ddcItems
+  makeRow item = label (_ddcItemToText item)
+  config = onChangeReqIdx (SendMessage dropdownPath . OnChangeMessage)
+  listViewInst = listViewF_ value items makeRow config
