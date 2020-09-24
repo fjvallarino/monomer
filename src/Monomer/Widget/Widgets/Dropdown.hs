@@ -1,14 +1,16 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (
-  DropdownCfg(..),
   dropdown,
-  dropdownCfg
+  dropdown_
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^#), (#~))
 import Control.Monad
 import Data.Default
@@ -38,15 +40,58 @@ import Monomer.Widget.Widgets.ListView
 import Monomer.Widget.Widgets.WidgetCombinators
 
 data DropdownCfg s e a = DropdownCfg {
-  _ddcValue :: WidgetValue s a,
-  _ddcItems :: Seq a,
-  _ddcItemToText :: a -> Text,
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
-  _ddcSelectedStyle :: StyleState,
-  _ddcHighlightedStyle :: StyleState,
-  _ddcHoverStyle :: StyleState
+  _ddcSelectedStyle :: Maybe StyleState,
+  _ddcHighlightedStyle :: Maybe StyleState,
+  _ddcHoverStyle :: Maybe StyleState
 }
+
+instance Default (DropdownCfg s e a) where
+  def = DropdownCfg {
+    _ddcOnChange = [],
+    _ddcOnChangeReq = [],
+    _ddcSelectedStyle = Just $ bgColor gray,
+    _ddcHighlightedStyle = Just $ border 1 darkGray,
+    _ddcHoverStyle = Just $ bgColor lightGray
+  }
+
+instance Semigroup (DropdownCfg s e a) where
+  (<>) t1 t2 = DropdownCfg {
+    _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
+    _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
+    _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
+    _ddcHighlightedStyle = _ddcHighlightedStyle t2 <|> _ddcHighlightedStyle t1,
+    _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1
+  }
+
+instance Monoid (DropdownCfg s e a) where
+  mempty = def
+
+instance OnChange (DropdownCfg s e a) a e where
+  onChange fn = def {
+    _ddcOnChange = [fn]
+  }
+
+instance OnChangeReq (DropdownCfg s e a) s where
+  onChangeReq req = def {
+    _ddcOnChangeReq = [req]
+  }
+
+instance SelectedStyle (DropdownCfg s e a) where
+  selectedStyle style = def {
+    _ddcSelectedStyle = Just style
+  }
+
+instance HighlightedStyle (DropdownCfg s e a) where
+  highlightedStyle style = def {
+    _ddcHighlightedStyle = Just style
+  }
+
+instance HoverStyle (DropdownCfg s e a) where
+  hoverStyle style = def {
+    _ddcHoverStyle = Just style
+  }
 
 newtype DropdownState = DropdownState {
   _isOpen :: Bool
@@ -56,37 +101,45 @@ newtype DropdownMessage
   = OnChangeMessage Int
   deriving Typeable
 
-dropdownCfg
-  :: WidgetValue s a -> Seq a -> (a -> Text) -> DropdownCfg s e a
-dropdownCfg value items itemToText = DropdownCfg {
-  _ddcValue = value,
-  _ddcItems = items,
-  _ddcItemToText = itemToText,
-  _ddcOnChange = [],
-  _ddcOnChangeReq = [],
-  _ddcSelectedStyle = bgColor gray,
-  _ddcHighlightedStyle = border 1 darkGray,
-  _ddcHoverStyle = bgColor lightGray
-}
-
 dropdown
   :: (Traversable t, Eq a)
-  => ALens' s a -> t a -> (a -> Text) -> WidgetInstance s e
-dropdown field items itemToText = dropdown_ config where
-  config = dropdownCfg (WidgetLens field) newItems itemToText
-  newItems = foldl' (|>) Empty items
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> WidgetInstance s e
+dropdown field items makeMain makeRow = newInst where
+  newInst = dropdown_ field items makeMain makeRow def
 
-dropdown_ :: (Eq a) => DropdownCfg s e a -> WidgetInstance s e
-dropdown_ config = makeInstance (makeDropdown config newState) where
+dropdown_
+  :: (Traversable t, Eq a)
+  => ALens' s a
+  -> t a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> DropdownCfg s e a
+  -> WidgetInstance s e
+dropdown_ field items makeMain makeRow config = makeInstance widget where
+  value = WidgetLens field
   newState = DropdownState False
+  newItems = foldl' (|>) Empty items
+  widget = makeDropdown value newItems makeMain makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
   _wiFocusable = True
 }
 
-makeDropdown :: (Eq a) => DropdownCfg s e a -> DropdownState -> Widget s e
-makeDropdown config state = widget where
+makeDropdown
+  :: (Eq a)
+  => WidgetValue s a
+  -> Seq a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> DropdownCfg s e a
+  -> DropdownState
+  -> Widget s e
+makeDropdown field items makeMain makeRow config state = widget where
   baseWidget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
@@ -101,14 +154,15 @@ makeDropdown config state = widget where
   }
 
   isOpen = _isOpen state
-  currentValue wenv = widgetValueGet (_weModel wenv) (_ddcValue config)
+  currentValue wenv = widgetValueGet (_weModel wenv) field
 
   createDropdown wenv newState widgetInst = newInstance where
     selected = currentValue wenv
     path = _wiPath widgetInst
+    listViewInst = makeListView field items makeRow config path selected
     newInstance = widgetInst {
-      _wiWidget = makeDropdown config newState,
-      _wiChildren = Seq.singleton $ makeListView config path selected
+      _wiWidget = makeDropdown field items makeMain makeRow config newState,
+      _wiChildren = Seq.singleton listViewInst
     }
 
   init wenv widgetInst = resultWidget $ createDropdown wenv state widgetInst
@@ -138,10 +192,10 @@ makeDropdown config state = widget where
 
   openDropdown wenv widgetInst = resultReqs requests newInstance where
     selected = currentValue wenv
-    selectedIdx = fromMaybe 0 (Seq.elemIndexL selected (_ddcItems config))
+    selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
     newInstance = widgetInst {
-      _wiWidget = makeDropdown config newState
+      _wiWidget = makeDropdown field items makeMain makeRow config newState
     }
     path = _wiPath widgetInst
     lvPath = firstChildPath widgetInst
@@ -151,17 +205,17 @@ makeDropdown config state = widget where
     path = _wiPath widgetInst
     newState = DropdownState False
     newInstance = widgetInst {
-      _wiWidget = makeDropdown config newState
+      _wiWidget = makeDropdown field items makeMain makeRow config newState
     }
     requests = [ResetOverlay, SetFocus path]
 
   handleMessage wenv target message widgetInst = cast message
-    >>= \(OnChangeMessage idx) -> Seq.lookup idx (_ddcItems config)
+    >>= \(OnChangeMessage idx) -> Seq.lookup idx items
     >>= \value -> Just $ onChange wenv idx value widgetInst
 
   onChange wenv idx item widgetInst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
-    newReqs = Seq.fromList $ widgetValueSet (_ddcValue config) item
+    newReqs = Seq.fromList $ widgetValueSet field item
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
@@ -203,13 +257,25 @@ makeDropdown config state = widget where
     widget = _wiWidget overlayInstance
     renderAction = widgetRender widget renderer wenv overlayInstance
 
-  dropdownLabel wenv = _ddcItemToText config $ currentValue wenv
+  dropdownLabel wenv =  makeMain $ currentValue wenv
 
 makeListView
-  :: (Eq a) => DropdownCfg s e a -> Path -> a -> WidgetInstance s e
-makeListView DropdownCfg{..} dropdownPath selected = listViewInst where
-  value = WidgetValue selected
-  items = _ddcItems
-  makeRow item = label (_ddcItemToText item)
-  config = onChangeReqIdx (SendMessage dropdownPath . OnChangeMessage)
-  listViewInst = listViewF_ value items makeRow config
+  :: (Eq a)
+  => WidgetValue s a
+  -> Seq a
+  -> (a -> WidgetInstance s e)
+  -> DropdownCfg s e a
+  -> Path
+  -> a
+  -> WidgetInstance s e
+makeListView value items makeRow config path selected = listViewInst where
+  DropdownCfg{..} = config
+  lvConfig = onChangeReqIdx (SendMessage path . OnChangeMessage)
+    <> setStyle _ddcSelectedStyle selectedStyle
+    <> setStyle _ddcHighlightedStyle highlightedStyle
+    <> setStyle _ddcHoverStyle hoverStyle
+  listViewInst = listViewF_ value items makeRow lvConfig
+
+setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a
+setStyle Nothing _ = def
+setStyle (Just st) fn = fn st

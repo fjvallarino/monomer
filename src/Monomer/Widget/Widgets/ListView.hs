@@ -7,7 +7,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.ListView (
-  ListViewCfg(..),
   textListView,
   textListView_,
   listView,

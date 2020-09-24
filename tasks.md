@@ -183,9 +183,12 @@
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer
+  - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+  - Fix dropdown issues
+    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
+    - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
   - Create Layer widget
   - Create Dialog
-    - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Add testing
     - Delayed until this point to try to settle down interfaces
@@ -204,7 +207,6 @@ Maybe postponed after release?
   - Create Slider
   - Create Dial
   - Create self rendered version of dropdown and list
-    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
   - Create File Selector
   - Create Color Selector
   - Create Layout with width/heights specified in percents
