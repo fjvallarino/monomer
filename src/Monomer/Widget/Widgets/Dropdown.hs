@@ -6,6 +6,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (
+  DropdownCfg,
   textDropdown,
   textDropdown_,
   dropdown,

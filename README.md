@@ -4,7 +4,7 @@ An easy to use, Elm inspired, GUI library for native applications.
 
 ## Objectives
 
-- It should be easy to use, in particular for newcomers
+- It should be easy to use
 - It should be possible to extend it with custom widgets
 - It should work on Windows, Linux and macOS
 - It should have good documentation

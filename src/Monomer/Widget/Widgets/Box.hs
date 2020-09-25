@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widget.Widgets.Box (
+  BoxCfg,
   box,
   box_
 ) where
@@ -16,40 +17,40 @@ import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Widgets.WidgetCombinators
 
-data BoxConfig s e = BoxConfig {
+data BoxCfg s e = BoxCfg {
   _boxOnClick :: [e],
   _boxOnClickReq :: [WidgetRequest s]
 }
 
-instance Default (BoxConfig s e) where
-  def = BoxConfig {
+instance Default (BoxCfg s e) where
+  def = BoxCfg {
     _boxOnClick = [],
     _boxOnClickReq = []
   }
 
-instance Semigroup (BoxConfig s e) where
-  (<>) t1 t2 = BoxConfig {
+instance Semigroup (BoxCfg s e) where
+  (<>) t1 t2 = BoxCfg {
     _boxOnClick = _boxOnClick t1 <> _boxOnClick t2,
     _boxOnClickReq = _boxOnClickReq t1 <> _boxOnClickReq t2
   }
 
-instance Monoid (BoxConfig s e) where
+instance Monoid (BoxCfg s e) where
   mempty = def
 
-instance OnClick (BoxConfig s e) e where
+instance OnClick (BoxCfg s e) e where
   onClick handler = def {
     _boxOnClick = [handler]
   }
 
-instance OnClickReq (BoxConfig s e) s where
+instance OnClickReq (BoxCfg s e) s where
   onClickReq req = def {
     _boxOnClickReq = [req]
   }
 
-box :: BoxConfig s e -> WidgetInstance s e -> WidgetInstance s e
+box :: BoxCfg s e -> WidgetInstance s e -> WidgetInstance s e
 box config managed = box_ managed config
 
-box_ :: WidgetInstance s e -> BoxConfig s e -> WidgetInstance s e
+box_ :: WidgetInstance s e -> BoxCfg s e -> WidgetInstance s e
 box_ managed config = makeInstance (makeBox config) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
@@ -58,7 +59,7 @@ makeInstance widget managedWidget = (defaultWidgetInstance "box" widget) {
   _wiFocusable = False
 }
 
-makeBox :: BoxConfig s e -> Widget s e
+makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
   widget = createContainer def {
     containerHandleEvent = handleEvent,

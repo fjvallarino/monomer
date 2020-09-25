@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widget.Widgets.IntegralField (
+  IntegralFieldCfg,
   integralField,
   integralField_
 ) where

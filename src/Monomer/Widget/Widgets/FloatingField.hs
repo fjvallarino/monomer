@@ -5,6 +5,7 @@
 {- HLINT ignore "Use foldr" -}
 
 module Monomer.Widget.Widgets.FloatingField (
+  FloatingFieldCfg,
   floatingField,
   floatingField_
 ) where

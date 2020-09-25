@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widget.Widgets.Button (
+  ButtonCfg,
   button,
   button_
 ) where
@@ -17,32 +18,32 @@ import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.WidgetCombinators
 
-data ButtonConfig s e = ButtonConfig {
+data ButtonCfg s e = ButtonCfg {
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s]
 }
 
-instance Default (ButtonConfig s e) where
-  def = ButtonConfig {
+instance Default (ButtonCfg s e) where
+  def = ButtonCfg {
     _btnOnClick = [],
     _btnOnClickReq = []
   }
 
-instance Semigroup (ButtonConfig s e) where
-  (<>) t1 t2 = ButtonConfig {
+instance Semigroup (ButtonCfg s e) where
+  (<>) t1 t2 = ButtonCfg {
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
   }
 
-instance Monoid (ButtonConfig s e) where
+instance Monoid (ButtonCfg s e) where
   mempty = def
 
-instance OnClick (ButtonConfig s e) e where
+instance OnClick (ButtonCfg s e) e where
   onClick handler = def {
     _btnOnClick = [handler]
   }
 
-instance OnClickReq (ButtonConfig s e) s where
+instance OnClickReq (ButtonCfg s e) s where
   onClickReq req = def {
     _btnOnClickReq = [req]
   }
@@ -50,10 +51,10 @@ instance OnClickReq (ButtonConfig s e) s where
 button :: Text -> e -> WidgetInstance s e
 button label handler = button_ label (onClick handler)
 
-button_ :: Text -> ButtonConfig s e -> WidgetInstance s e
+button_ :: Text -> ButtonCfg s e -> WidgetInstance s e
 button_ label config = defaultWidgetInstance "button" (makeButton label config)
 
-makeButton :: Text -> ButtonConfig s e -> Widget s e
+makeButton :: Text -> ButtonCfg s e -> Widget s e
 makeButton label config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,

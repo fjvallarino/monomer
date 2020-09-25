@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Scroll (
+  ScrollCfg,
   ScrollMessage(..),
   scroll,
   scrollConfig
@@ -29,7 +30,7 @@ data ActiveBar
   | VBar
   deriving (Eq)
 
-data ScrollConfig = ScrollConfig {
+data ScrollCfg = ScrollCfg {
   _scActiveBarColor :: Maybe Color,
   _scIdleBarColor :: Maybe Color,
   _scActiveThumbColor :: Color,
@@ -64,8 +65,8 @@ data ScrollContext = ScrollContext {
   vThumbRect :: Rect
 }
 
-scrollConfig :: ScrollConfig
-scrollConfig = ScrollConfig {
+scrollConfig :: ScrollCfg
+scrollConfig = ScrollCfg {
   _scActiveBarColor = Just $ darkGray & alpha .~ 0.4,
   _scIdleBarColor = Nothing,
   _scActiveThumbColor = gray,
@@ -85,7 +86,7 @@ defaultState = ScrollState {
 scroll :: WidgetInstance s e -> WidgetInstance s e
 scroll managedWidget = scroll_ scrollConfig managedWidget
 
-scroll_ :: ScrollConfig -> WidgetInstance s e -> WidgetInstance s e
+scroll_ :: ScrollCfg -> WidgetInstance s e -> WidgetInstance s e
 scroll_ config managed = makeInstance (makeScroll config defaultState) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
@@ -94,7 +95,7 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
   _wiFocusable = False
 }
 
-makeScroll :: ScrollConfig -> ScrollState -> Widget s e
+makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer def {
     containerGetState = makeState state,
@@ -307,7 +308,7 @@ makeScroll config state = widget where
         | otherwise = _scIdleThumbColor config
 
 scrollStatus
-  :: ScrollConfig -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
+  :: ScrollCfg -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) = scrollState
   barThickness = _scBarThickness config

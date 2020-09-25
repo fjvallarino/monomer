@@ -5,6 +5,7 @@
 {- HLINT ignore "Use foldr" -}
 
 module Monomer.Widget.Widgets.TextField (
+  TextFieldCfg,
   textField,
   textField_
 ) where
