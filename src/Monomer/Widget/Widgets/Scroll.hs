@@ -5,9 +5,13 @@ module Monomer.Widget.Widgets.Scroll (
   ScrollCfg,
   ScrollMessage(..),
   scroll,
-  scrollConfig
+  activeBarColor,
+  idleBarColor,
+  activeThumbColor,
+  idleThumbColor
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens ((&), (.~))
 import Control.Monad
 import Data.Default
@@ -33,11 +37,28 @@ data ActiveBar
 data ScrollCfg = ScrollCfg {
   _scActiveBarColor :: Maybe Color,
   _scIdleBarColor :: Maybe Color,
-  _scActiveThumbColor :: Color,
-  _scIdleThumbColor :: Color,
-  _scBarThickness :: Double,
-  _scWheelRate :: Double
+  _scActiveThumbColor :: Maybe Color,
+  _scIdleThumbColor :: Maybe Color
 }
+
+instance Default ScrollCfg where
+  def = ScrollCfg {
+    _scActiveBarColor = Just $ darkGray & alpha .~ 0.4,
+    _scIdleBarColor = Nothing,
+    _scActiveThumbColor = Just gray,
+    _scIdleThumbColor = Just darkGray
+  }
+
+instance Semigroup ScrollCfg where
+  (<>) t1 t2 = ScrollCfg {
+    _scActiveBarColor = _scActiveBarColor t2 <|> _scActiveBarColor t1,
+    _scIdleBarColor = _scIdleBarColor t2 <|> _scIdleBarColor t1,
+    _scActiveThumbColor = _scActiveThumbColor t2 <|> _scActiveThumbColor t1,
+    _scIdleThumbColor = _scIdleThumbColor t2 <|> _scIdleThumbColor t1
+  }
+
+instance Monoid ScrollCfg where
+  mempty = def
 
 data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
@@ -65,29 +86,45 @@ data ScrollContext = ScrollContext {
   vThumbRect :: Rect
 }
 
-scrollConfig :: ScrollCfg
-scrollConfig = ScrollCfg {
-  _scActiveBarColor = Just $ darkGray & alpha .~ 0.4,
-  _scIdleBarColor = Nothing,
-  _scActiveThumbColor = gray,
-  _scIdleThumbColor = darkGray,
-  _scBarThickness = 10,
-  _scWheelRate = 10
+instance Default ScrollState where
+  def = ScrollState {
+    _sstDragging = Nothing,
+    _sstDeltaX = 0,
+    _sstDeltaY = 0,
+    _sstChildSize = def
+  }
+
+activeBarColor :: Color -> ScrollCfg
+activeBarColor col = def {
+  _scActiveBarColor = Just col
 }
 
-defaultState :: ScrollState
-defaultState = ScrollState {
-  _sstDragging = Nothing,
-  _sstDeltaX = 0,
-  _sstDeltaY = 0,
-  _sstChildSize = def
+idleBarColor :: Color -> ScrollCfg
+idleBarColor col = def {
+  _scIdleBarColor = Just col
 }
+
+activeThumbColor :: Color -> ScrollCfg
+activeThumbColor col = def {
+  _scActiveThumbColor = Just col
+}
+
+idleThumbColor :: Color -> ScrollCfg
+idleThumbColor col = def {
+  _scIdleThumbColor = Just col
+}
+
+barThickness :: Double
+barThickness = 10
+
+wheelRate :: Double
+wheelRate = 10
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
-scroll managedWidget = scroll_ scrollConfig managedWidget
+scroll managedWidget = scroll_ def managedWidget
 
 scroll_ :: ScrollCfg -> WidgetInstance s e -> WidgetInstance s e
-scroll_ config managed = makeInstance (makeScroll config defaultState) managed
+scroll_ config managed = makeInstance (makeScroll config def) managed
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
@@ -159,7 +196,6 @@ makeScroll config state = widget where
       needsUpdate = changedX || changedY
       makeWidget state = rebuildWidget wenv state widgetInst
       makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
-      wheelRate = _scWheelRate config
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
@@ -284,10 +320,10 @@ makeScroll config state = widget where
       drawRect renderer vScrollRect barColorV Nothing
 
     when hScrollRequired $
-      drawRect renderer hThumbRect (Just thumbColorH) Nothing
+      drawRect renderer hThumbRect thumbColorH Nothing
 
     when vScrollRequired $
-      drawRect renderer vThumbRect (Just thumbColorV) Nothing
+      drawRect renderer vThumbRect thumbColorV Nothing
 
     where
       viewport = _wiViewport widgetInst
@@ -311,7 +347,6 @@ scrollStatus
   :: ScrollCfg -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
 scrollStatus config wenv scrollState viewport = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) = scrollState
-  barThickness = _scBarThickness config
   mousePos = _ipsMousePos (_weInputStatus wenv)
   vpLeft = _rX viewport
   vpTop = _rY viewport
