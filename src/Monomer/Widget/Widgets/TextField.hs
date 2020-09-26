@@ -96,15 +96,18 @@ textFieldV_ value config = textFieldD_ (WidgetValue value) config
 
 textFieldD_ :: WidgetValue s Text -> TextFieldCfg s e -> WidgetInstance s e
 textFieldD_ widgetData config = inputField where
-  inputConfig = inputFieldCfg widgetData fromText id
   fromText = textToText (_tfcMaxLength config)
-  inputField = inputField_ "textField" inputConfig {
+  inputConfig = InputFieldCfg {
+    _ifcValue = widgetData,
     _ifcValid = _tfcValid config,
+    _ifcFromText = fromText,
+    _ifcToText = id,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }
+  inputField = inputField_ "textField" inputConfig
 
 textToText :: Maybe Int -> Text -> Maybe Text
 textToText Nothing text = Just text

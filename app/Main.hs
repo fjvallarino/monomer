@@ -170,7 +170,6 @@ buildUI model = trace "Creating UI" widgetTree where
         checkbox condition3,
         checkbox_ condition1 (onChange CheckboxSt)
       ],
-      dropdown textField1 items id label,
       label "Text",
       textField_ textField2 (validInput validText2 <> maxLength 10 <> onChange PrintMessage <> selectOnFocus True)
         `style` if model ^. validText2 then def else border 1 red,

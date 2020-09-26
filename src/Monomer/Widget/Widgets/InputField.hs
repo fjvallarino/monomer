@@ -3,7 +3,6 @@
 
 module Monomer.Widget.Widgets.InputField (
   InputFieldCfg(..),
-  inputFieldCfg,
   inputField_,
   makeInputField
 ) where
@@ -40,8 +39,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcAcceptInput :: Text -> Bool,
   _ifcOnChange :: [a -> e],
   _ifcOnChangeReq :: [WidgetRequest s],
-  _ifcSelectOnFocus :: Bool,
-  _ifcCaretWidth :: Double
+  _ifcSelectOnFocus :: Bool
 }
 
 data InputFieldState a = InputFieldState {
@@ -54,20 +52,6 @@ data InputFieldState a = InputFieldState {
   _ifsTextRect :: Rect
 } deriving (Eq, Show, Typeable)
 
-inputFieldCfg
-  :: WidgetValue s a -> (Text -> Maybe a) -> (a -> Text) -> InputFieldCfg s e a
-inputFieldCfg value fromText toText = InputFieldCfg {
-  _ifcValue = value,
-  _ifcValid = Nothing,
-  _ifcFromText = fromText,
-  _ifcToText = toText,
-  _ifcAcceptInput = const True,
-  _ifcOnChange = [],
-  _ifcOnChangeReq = [],
-  _ifcSelectOnFocus = False,
-  _ifcCaretWidth = 2
-}
-
 inputFieldState :: Default a => InputFieldState a
 inputFieldState = InputFieldState {
   _ifsCurrValue = def,
@@ -78,6 +62,9 @@ inputFieldState = InputFieldState {
   _ifsOffset = 0,
   _ifsTextRect = def
 }
+
+caretWidth :: Double
+caretWidth = 2
 
 inputField_
   :: (Eq a, Default a, Typeable a)
@@ -345,7 +332,6 @@ makeInputField config state = widget where
       selColor = instanceHlColor wenv inst
       caretRequired = isFocused wenv inst && ts `mod` 1000 < 500
       caretColor = instanceFontColor wenv inst
-      caretWidth = _ifcCaretWidth config
       caretPos
         | currPos == 0 = 0
         | currPos == nglyphs = _glpXMax (glyph $ currPos - 1)

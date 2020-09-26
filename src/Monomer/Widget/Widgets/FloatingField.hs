@@ -133,20 +133,23 @@ floatingFieldD_
   => WidgetValue s a
   -> FloatingFieldCfg s e a
   -> WidgetInstance s e
-floatingFieldD_ widgetValue config = newInst where
-  inputConfig = inputFieldCfg widgetValue fromText toText
+floatingFieldD_ widgetData config = newInst where
   minVal = _ffcMinValue config
   maxVal = _ffcMaxValue config
   decimals = max 0 $ fromMaybe 2 (_ffcDecimals config)
   fromText = floatFromText minVal maxVal
   toText = floatToText decimals
-  newInst = inputField_ "floatingField" inputConfig {
+  inputConfig = InputFieldCfg {
+    _ifcValue = widgetData,
     _ifcValid = _ffcValid config,
+    _ifcFromText = fromText,
+    _ifcToText = toText,
     _ifcAcceptInput = acceptFloatInput decimals,
     _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
     _ifcOnChange = _ffcOnChange config,
     _ifcOnChangeReq = _ffcOnChangeReq config
   }
+  newInst = inputField_ "floatingField" inputConfig
 
 floatFromText :: FormattableFloat a => Maybe a -> Maybe a -> Text -> Maybe a
 floatFromText minVal maxVal t = case rational t of

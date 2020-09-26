@@ -121,18 +121,21 @@ integralFieldD_
   -> IntegralFieldCfg s e a
   -> WidgetInstance s e
 integralFieldD_ widgetData config = newInst where
-  inputConfig = inputFieldCfg widgetData fromText toText
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
   fromText = integralFromText minVal maxVal
   toText = integralToText
-  newInst = inputField_ "integralField" inputConfig {
+  inputConfig = InputFieldCfg {
+    _ifcValue = widgetData,
     _ifcValid = _nfcValid config,
+    _ifcFromText = fromText,
+    _ifcToText = toText,
     _ifcAcceptInput = acceptIntegralInput,
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }
+  newInst = inputField_ "integralField" inputConfig
 
 integralFromText :: FormattableInt a => Maybe a -> Maybe a -> Text -> Maybe a
 integralFromText minVal maxVal t = case decimal t of
