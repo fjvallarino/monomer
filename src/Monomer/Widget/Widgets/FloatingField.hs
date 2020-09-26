@@ -7,7 +7,10 @@
 module Monomer.Widget.Widgets.FloatingField (
   FloatingFieldCfg,
   floatingField,
-  floatingField_
+  floatingField_,
+  floatingFieldV,
+  floatingFieldV_,
+  floatingFieldD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -111,8 +114,27 @@ floatingField_
   => ALens' s a
   -> FloatingFieldCfg s e a
   -> WidgetInstance s e
-floatingField_ field config = newInst where
-  inputConfig = inputFieldCfg (WidgetLens field) fromText toText
+floatingField_ field config = floatingFieldD_ (WidgetLens field) config
+
+floatingFieldV
+  :: FormattableFloat a
+  => a -> WidgetInstance s e
+floatingFieldV field = floatingFieldV_ field def
+
+floatingFieldV_
+  :: FormattableFloat a
+  => a
+  -> FloatingFieldCfg s e a
+  -> WidgetInstance s e
+floatingFieldV_ field config = floatingFieldD_ (WidgetValue field) config
+
+floatingFieldD_
+  :: FormattableFloat a
+  => WidgetValue s a
+  -> FloatingFieldCfg s e a
+  -> WidgetInstance s e
+floatingFieldD_ widgetValue config = newInst where
+  inputConfig = inputFieldCfg widgetValue fromText toText
   minVal = _ffcMinValue config
   maxVal = _ffcMaxValue config
   decimals = max 0 $ fromMaybe 2 (_ffcDecimals config)

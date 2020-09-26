@@ -1,16 +1,14 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.Dropdown (
   DropdownCfg,
-  textDropdown,
-  textDropdown_,
   dropdown,
-  dropdown_
+  dropdown_,
+  dropdownV,
+  dropdownV_,
+  dropdownD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -104,27 +102,6 @@ newtype DropdownMessage
   = OnChangeMessage Int
   deriving Typeable
 
-textDropdown
-  :: (Traversable t, Eq a)
-  => ALens' s a
-  -> t a
-  -> (a -> Text)
-  -> WidgetInstance s e
-textDropdown field items toText = newInst where
-  newInst = textDropdown_ field items toText def
-
-textDropdown_
-  :: (Traversable t, Eq a)
-  => ALens' s a
-  -> t a
-  -> (a -> Text)
-  -> DropdownCfg s e a
-  -> WidgetInstance s e
-textDropdown_ field items toText config = newInst where
-  makeMain = toText
-  makeRow = label . toText
-  newInst = dropdown_ field items makeMain makeRow config
-
 dropdown
   :: (Traversable t, Eq a)
   => ALens' s a
@@ -143,11 +120,44 @@ dropdown_
   -> (a -> WidgetInstance s e)
   -> DropdownCfg s e a
   -> WidgetInstance s e
-dropdown_ field items makeMain makeRow config = makeInstance widget where
-  value = WidgetLens field
+dropdown_ field items makeMain makeRow config = newInst where
+  widgetData = WidgetLens field
+  newInst = dropdownD_ widgetData items makeMain makeRow config
+
+dropdownV
+  :: (Traversable t, Eq a)
+  => a
+  -> t a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> WidgetInstance s e
+dropdownV value items makeMain makeRow = newInst where
+  newInst = dropdownV_ value items makeMain makeRow def
+
+dropdownV_
+  :: (Traversable t, Eq a)
+  => a
+  -> t a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> DropdownCfg s e a
+  -> WidgetInstance s e
+dropdownV_ value items makeMain makeRow config = newInst where
+  widgetData = WidgetValue value
+  newInst = dropdownD_ widgetData items makeMain makeRow config
+
+dropdownD_
+  :: (Traversable t, Eq a)
+  => WidgetValue s a
+  -> t a
+  -> (a -> Text)
+  -> (a -> WidgetInstance s e)
+  -> DropdownCfg s e a
+  -> WidgetInstance s e
+dropdownD_ widgetData items makeMain makeRow config = makeInstance widget where
   newState = DropdownState False
   newItems = foldl' (|>) Empty items
-  widget = makeDropdown value newItems makeMain makeRow config newState
+  widget = makeDropdown widgetData newItems makeMain makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
@@ -163,7 +173,7 @@ makeDropdown
   -> DropdownCfg s e a
   -> DropdownState
   -> Widget s e
-makeDropdown field items makeMain makeRow config state = widget where
+makeDropdown widgetData items makeMain makeRow config state = widget where
   baseWidget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
@@ -178,14 +188,15 @@ makeDropdown field items makeMain makeRow config state = widget where
   }
 
   isOpen = _isOpen state
-  currentValue wenv = widgetValueGet (_weModel wenv) field
+  currentValue wenv = widgetValueGet (_weModel wenv) widgetData
 
   createDropdown wenv newState widgetInst = newInstance where
     selected = currentValue wenv
     path = _wiPath widgetInst
-    listViewInst = makeListView field items makeRow config path selected
+    listViewInst = makeListView widgetData items makeRow config path selected
+    newWidget = makeDropdown widgetData items makeMain makeRow config newState
     newInstance = widgetInst {
-      _wiWidget = makeDropdown field items makeMain makeRow config newState,
+      _wiWidget = newWidget,
       _wiChildren = Seq.singleton listViewInst
     }
 
@@ -219,7 +230,7 @@ makeDropdown field items makeMain makeRow config state = widget where
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
     newInstance = widgetInst {
-      _wiWidget = makeDropdown field items makeMain makeRow config newState
+      _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     path = _wiPath widgetInst
     lvPath = firstChildPath widgetInst
@@ -229,7 +240,7 @@ makeDropdown field items makeMain makeRow config state = widget where
     path = _wiPath widgetInst
     newState = DropdownState False
     newInstance = widgetInst {
-      _wiWidget = makeDropdown field items makeMain makeRow config newState
+      _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     requests = [ResetOverlay, SetFocus path]
 
@@ -239,7 +250,7 @@ makeDropdown field items makeMain makeRow config state = widget where
 
   onChange wenv idx item widgetInst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
-    newReqs = Seq.fromList $ widgetValueSet field item
+    newReqs = Seq.fromList $ widgetValueSet widgetData item
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
@@ -298,7 +309,7 @@ makeListView value items makeRow config path selected = listViewInst where
     <> setStyle _ddcSelectedStyle selectedStyle
     <> setStyle _ddcHighlightedStyle highlightedStyle
     <> setStyle _ddcHoverStyle hoverStyle
-  listViewInst = listViewF_ value items makeRow lvConfig
+  listViewInst = listViewD_ value items makeRow lvConfig
 
 setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a
 setStyle Nothing _ = def

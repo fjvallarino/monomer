@@ -4,7 +4,10 @@
 module Monomer.Widget.Widgets.Radio (
   RadioCfg,
   radio,
-  radio_
+  radio_,
+  radioV,
+  radioV_,
+  radioD_
 ) where
 
 import Control.Lens (ALens', (&), (^.), (.~))
@@ -64,8 +67,18 @@ radio :: (Eq a) => ALens' s a -> a -> WidgetInstance s e
 radio field option = radio_ field option def
 
 radio_ :: (Eq a) => ALens' s a -> a -> RadioCfg s e a -> WidgetInstance s e
-radio_ field option config = radioInstance where
-  widget = makeRadio (WidgetLens field) option config
+radio_ field option config = radioD_ (WidgetLens field) option config
+
+radioV :: (Eq a) => a -> a -> WidgetInstance s e
+radioV value option = radioV_ value option def
+
+radioV_ :: (Eq a) => a -> a -> RadioCfg s e a -> WidgetInstance s e
+radioV_ value option config = radioD_ (WidgetValue value) option config
+
+radioD_
+  :: (Eq a) => WidgetValue s a -> a -> RadioCfg s e a -> WidgetInstance s e
+radioD_ widgetData option config = radioInstance where
+  widget = makeRadio widgetData option config
   radioInstance = (defaultWidgetInstance "radio" widget) {
     _wiFocusable = True
   }

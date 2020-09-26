@@ -7,7 +7,10 @@
 module Monomer.Widget.Widgets.TextField (
   TextFieldCfg,
   textField,
-  textField_
+  textField_,
+  textFieldV,
+  textFieldV_,
+  textFieldD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -83,8 +86,17 @@ textField :: ALens' s Text -> WidgetInstance s e
 textField field = textField_ field def
 
 textField_ :: ALens' s Text -> TextFieldCfg s e -> WidgetInstance s e
-textField_ field config = inputField where
-  inputConfig = inputFieldCfg (WidgetLens field) fromText id
+textField_ field config = textFieldD_ (WidgetLens field) config
+
+textFieldV :: Text -> WidgetInstance s e
+textFieldV value = textFieldV_ value def
+
+textFieldV_ :: Text -> TextFieldCfg s e -> WidgetInstance s e
+textFieldV_ value config = textFieldD_ (WidgetValue value) config
+
+textFieldD_ :: WidgetValue s Text -> TextFieldCfg s e -> WidgetInstance s e
+textFieldD_ widgetData config = inputField where
+  inputConfig = inputFieldCfg widgetData fromText id
   fromText = textToText (_tfcMaxLength config)
   inputField = inputField_ "textField" inputConfig {
     _ifcValid = _tfcValid config,

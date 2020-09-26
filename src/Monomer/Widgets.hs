@@ -13,6 +13,7 @@ module Monomer.Widgets (
   module Monomer.Widget.Widgets.Scroll,
   module Monomer.Widget.Widgets.Spacer,
   module Monomer.Widget.Widgets.Stack,
+  module Monomer.Widget.Widgets.TextDropdown,
   module Monomer.Widget.Widgets.TextField,
 
   module Monomer.Widget.Widgets.WidgetCombinators
@@ -32,6 +33,7 @@ import Monomer.Widget.Widgets.Radio
 import Monomer.Widget.Widgets.Scroll
 import Monomer.Widget.Widgets.Spacer
 import Monomer.Widget.Widgets.Stack
+import Monomer.Widget.Widgets.TextDropdown
 import Monomer.Widget.Widgets.TextField
 
 import Monomer.Widget.Widgets.WidgetCombinators

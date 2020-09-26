@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-
 module Monomer.Widget.Widgets.Stack (
   hstack,
   vstack

@@ -1,18 +1,15 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widget.Widgets.ListView (
   ListViewCfg,
-  textListView,
-  textListView_,
   listView,
   listView_,
-  listViewF_
+  listViewV,
+  listViewV_,
+  listViewD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -107,25 +104,6 @@ newtype ListViewMessage
   = OnClickMessage Int
   deriving Typeable
 
-textListView
-  :: (Traversable t, Eq a)
-  => ALens' s a
-  -> t a
-  -> (a -> Text)
-  -> WidgetInstance s e
-textListView field items itemDesc = textListView_ field items itemDesc def
-
-textListView_
-  :: (Traversable t, Eq a)
-  => ALens' s a
-  -> t a
-  -> (a -> Text)
-  -> ListViewCfg s e a
-  -> WidgetInstance s e
-textListView_ field items itemDesc config = inst where
-  makeRow item = label (itemDesc item)
-  inst = listView_ field items makeRow config
-
 listView
   :: (Traversable t, Eq a)
   => ALens' s a
@@ -142,17 +120,34 @@ listView_
   -> ListViewCfg s e a
   -> WidgetInstance s e
 listView_ field items makeRow config = newInst where
-  value = WidgetLens field
-  newInst = listViewF_ value items makeRow config
+  newInst = listViewD_ (WidgetLens field) items makeRow config
 
-listViewF_
+listViewV
+  :: (Traversable t, Eq a)
+  => a
+  -> t a
+  -> (a -> WidgetInstance s e)
+  -> WidgetInstance s e
+listViewV value items makeRow = listViewV_ value items makeRow def
+
+listViewV_
+  :: (Traversable t, Eq a)
+  => a
+  -> t a
+  -> (a -> WidgetInstance s e)
+  -> ListViewCfg s e a
+  -> WidgetInstance s e
+listViewV_ value items makeRow config = newInst where
+  newInst = listViewD_ (WidgetValue value) items makeRow config
+
+listViewD_
   :: (Traversable t, Eq a)
   => WidgetValue s a
   -> t a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
   -> WidgetInstance s e
-listViewF_ value items makeRow config = makeInstance widget where
+listViewD_ value items makeRow config = makeInstance widget where
   newItems = foldl' (|>) Empty items
   newState = ListViewState 0
   widget = makeListView value newItems makeRow config newState
@@ -170,7 +165,7 @@ makeListView
   -> ListViewCfg s e a
   -> ListViewState
   -> Widget s e
-makeListView field items makeRow config state = widget where
+makeListView widgetData items makeRow config state = widget where
   widget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
@@ -181,7 +176,7 @@ makeListView field items makeRow config state = widget where
     containerResize = resize
   }
 
-  currentValue wenv = widgetValueGet (_weModel wenv) field
+  currentValue wenv = widgetValueGet (_weModel wenv) widgetData
 
   createListView wenv newState widgetInst = newInstance where
     selected = currentValue wenv
@@ -189,7 +184,7 @@ makeListView field items makeRow config state = widget where
     path = _wiPath widgetInst
     itemsList = makeItemsList items makeRow config path selected highlighted
     newInstance = widgetInst {
-      _wiWidget = makeListView field items makeRow config newState,
+      _wiWidget = makeListView widgetData items makeRow config newState,
       _wiChildren = Seq.singleton (scroll itemsList)
     }
 
@@ -227,7 +222,7 @@ makeListView field items makeRow config state = widget where
 
   highlightItem wenv widgetInst nextIdx = result where
     newState = ListViewState nextIdx
-    newWidget = makeListView field items makeRow config newState
+    newWidget = makeListView widgetData items makeRow config newState
     -- ListView's merge uses the old widget's state. Since we want the newly
     -- created state, the old widget is replaced here
     oldInstance = widgetInst {
@@ -247,14 +242,14 @@ makeListView field items makeRow config state = widget where
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
-    valueSetReq = widgetValueSet field value
+    valueSetReq = widgetValueSet widgetData value
     scrollToReq = itemScrollTo widgetInst idx
     changeReqs = fmap ($ idx) (_lvcOnChangeReqIdx config)
     focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
     newInstance = widgetInst {
-      _wiWidget = makeListView field items makeRow config newState
+      _wiWidget = makeListView widgetData items makeRow config newState
     }
 
   itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where

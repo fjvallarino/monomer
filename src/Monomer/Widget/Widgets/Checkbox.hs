@@ -4,7 +4,10 @@
 module Monomer.Widget.Widgets.Checkbox (
   CheckboxCfg,
   checkbox,
-  checkbox_
+  checkbox_,
+  checkboxV,
+  checkboxV_,
+  checkboxD_
 ) where
 
 import Control.Lens (ALens', (&), (^.), (.~))
@@ -64,14 +67,23 @@ checkbox :: ALens' s Bool -> WidgetInstance s e
 checkbox field = checkbox_ field def
 
 checkbox_ :: ALens' s Bool -> CheckboxCfg s e -> WidgetInstance s e
-checkbox_ field config = checkboxInstance where
-  widget = makeCheckbox (WidgetLens field) config
+checkbox_ field config = checkboxD_ (WidgetLens field) def
+
+checkboxV :: Bool -> WidgetInstance s e
+checkboxV value = checkboxV_ value def
+
+checkboxV_ :: Bool -> CheckboxCfg s e -> WidgetInstance s e
+checkboxV_ value config = checkboxD_ (WidgetValue value) def
+
+checkboxD_ :: WidgetValue s Bool -> CheckboxCfg s e -> WidgetInstance s e
+checkboxD_ widgetData config = checkboxInstance where
+  widget = makeCheckbox widgetData config
   checkboxInstance = (defaultWidgetInstance "checkbox" widget) {
     _wiFocusable = True
   }
 
 makeCheckbox :: WidgetValue s Bool -> CheckboxCfg s e -> Widget s e
-makeCheckbox field config = widget where
+makeCheckbox widgetData config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -86,10 +98,10 @@ makeCheckbox field config = widget where
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
-      value = widgetValueGet model field
+      value = widgetValueGet model widgetData
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)
-      setValueReq = widgetValueSet field newValue
+      setValueReq = widgetValueSet widgetData newValue
       setFocusReq = SetFocus $ _wiPath inst
       reqs = setValueReq ++ _ckcOnChangeReq config
       clickReqs = setFocusReq : reqs
@@ -108,7 +120,7 @@ makeCheckbox field config = widget where
     where
       model = _weModel wenv
       style = activeStyle wenv inst
-      value = widgetValueGet model field
+      value = widgetValueGet model widgetData
       rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea
       checkboxT = _rY rarea

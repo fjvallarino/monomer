@@ -6,7 +6,10 @@
 module Monomer.Widget.Widgets.IntegralField (
   IntegralFieldCfg,
   integralField,
-  integralField_
+  integralField_,
+  integralFieldV,
+  integralFieldV_,
+  integralFieldD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -100,8 +103,25 @@ integralField_
   => ALens' s a
   -> IntegralFieldCfg s e a
   -> WidgetInstance s e
-integralField_ field config = newInst where
-  inputConfig = inputFieldCfg (WidgetLens field) fromText toText
+integralField_ field config = integralFieldD_ (WidgetLens field) config
+
+integralFieldV :: FormattableInt a => a -> WidgetInstance s e
+integralFieldV field = integralFieldV_ field def
+
+integralFieldV_
+  :: FormattableInt a
+  => a
+  -> IntegralFieldCfg s e a
+  -> WidgetInstance s e
+integralFieldV_ field config = integralFieldD_ (WidgetValue field) config
+
+integralFieldD_
+  :: FormattableInt a
+  => WidgetValue s a
+  -> IntegralFieldCfg s e a
+  -> WidgetInstance s e
+integralFieldD_ widgetData config = newInst where
+  inputConfig = inputFieldCfg widgetData fromText toText
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
   fromText = integralFromText minVal maxVal
