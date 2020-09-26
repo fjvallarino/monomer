@@ -143,19 +143,17 @@ handleFocusChange
 handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use pathFocus
-      (newWenv1, newEvents1, newRoot1)
-        <- handleSystemEvent wenv Blur oldFocus widgetRoot
+      (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocus newWenv1 oldFocus newRoot1
-      let tempWenv = newWenv1 {
+      let newFocus = findNextFocus wenv1 oldFocus root1
+      let tempWenv = wenv1 {
         _weFocusedPath = newFocus
       }
-      (newWenv2, newEvents2, newRoot2)
-        <- handleSystemEvent tempWenv Focus newFocus newRoot1
 
       pathFocus .= newFocus
+      (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
-      return (newWenv2, events >< newEvents1 >< newEvents2, newRoot2)
+      return (wenv2, events >< events1 >< events2, root2)
   | otherwise = return (wenv, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
@@ -165,12 +163,13 @@ handleFocusSet
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleFocusSet reqs previousStep =
+handleFocusSet reqs previousStep@(wenv, events, root) =
   case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
       pathFocus .= newFocus
+      (wenv2, events2, root2) <- handleSystemEvent wenv Focus newFocus root
 
-      return previousStep
+      return (wenv2, events >< events2, root2)
     _ -> return previousStep
 
 handleResize
