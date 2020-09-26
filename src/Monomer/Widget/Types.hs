@@ -27,7 +27,7 @@ newtype WidgetType
 instance IsString WidgetType where
   fromString str = WidgetType str
 
-data WidgetValue s a
+data WidgetData s a
   = WidgetValue a
   | WidgetLens (ALens' s a)
 

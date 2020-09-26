@@ -142,7 +142,7 @@ listViewV_ value items makeRow config = newInst where
 
 listViewD_
   :: (Traversable t, Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> t a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
@@ -159,7 +159,7 @@ makeInstance widget = (defaultWidgetInstance "listView" widget) {
 
 makeListView
   :: (Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
@@ -176,7 +176,7 @@ makeListView widgetData items makeRow config state = widget where
     containerResize = resize
   }
 
-  currentValue wenv = widgetValueGet (_weModel wenv) widgetData
+  currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
   createListView wenv newState widgetInst = newInstance where
     selected = currentValue wenv
@@ -242,7 +242,7 @@ makeListView widgetData items makeRow config state = widget where
   selectItem wenv widgetInst idx = resultReqs requests newInstance where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
-    valueSetReq = widgetValueSet widgetData value
+    valueSetReq = widgetDataSet widgetData value
     scrollToReq = itemScrollTo widgetInst idx
     changeReqs = fmap ($ idx) (_lvcOnChangeReqIdx config)
     focusReq = [SetFocus $ _wiPath widgetInst]

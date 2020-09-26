@@ -43,13 +43,13 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _wiStyle = def
 }
 
-widgetValueGet :: s -> WidgetValue s a -> a
-widgetValueGet _ (WidgetValue value) = value
-widgetValueGet model (WidgetLens lens) = model ^# lens
+widgetDataGet :: s -> WidgetData s a -> a
+widgetDataGet _ (WidgetValue value) = value
+widgetDataGet model (WidgetLens lens) = model ^# lens
 
-widgetValueSet :: WidgetValue s a -> a -> [WidgetRequest s]
-widgetValueSet WidgetValue{} _ = []
-widgetValueSet (WidgetLens lens) value = [UpdateModel updateFn] where
+widgetDataSet :: WidgetData s a -> a -> [WidgetRequest s]
+widgetDataSet WidgetValue{} _ = []
+widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
 infixl 5 `key`

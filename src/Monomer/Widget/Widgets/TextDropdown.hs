@@ -54,7 +54,7 @@ textDropdownV_ value items toText config = newInst where
 
 textDropdownD_
   :: (Traversable t, Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> t a
   -> (a -> Text)
   -> DropdownCfg s e a

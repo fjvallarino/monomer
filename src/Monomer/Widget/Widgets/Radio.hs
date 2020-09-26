@@ -76,14 +76,14 @@ radioV_ :: (Eq a) => a -> a -> RadioCfg s e a -> WidgetInstance s e
 radioV_ value option config = radioD_ (WidgetValue value) option config
 
 radioD_
-  :: (Eq a) => WidgetValue s a -> a -> RadioCfg s e a -> WidgetInstance s e
+  :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> WidgetInstance s e
 radioD_ widgetData option config = radioInstance where
   widget = makeRadio widgetData option config
   radioInstance = (defaultWidgetInstance "radio" widget) {
     _wiFocusable = True
   }
 
-makeRadio :: (Eq a) => WidgetValue s a -> a -> RadioCfg s e a -> Widget s e
+makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
@@ -99,7 +99,7 @@ makeRadio field option config = widget where
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       events = fmap ($ option) (_rdcOnChange config)
-      setValueReq = widgetValueSet field option
+      setValueReq = widgetDataSet field option
       setFocusReq = SetFocus $ _wiPath inst
       reqs = setValueReq ++ _rdcOnChangeReq config
       clickReqs = setFocusReq : reqs
@@ -118,7 +118,7 @@ makeRadio field option config = widget where
     where
       model = _weModel wenv
       style = activeStyle wenv inst
-      value = widgetValueGet model field
+      value = widgetDataGet model field
       rarea = removeOuterBounds style $ _wiRenderArea inst
       radioL = _rX rarea
       radioT = _rY rarea

@@ -35,7 +35,7 @@ import Monomer.Widget.Widgets.WidgetCombinators
 type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
 
 data FloatingFieldCfg s e a = FloatingFieldCfg {
-  _ffcValid :: Maybe (WidgetValue s Bool),
+  _ffcValid :: Maybe (WidgetData s Bool),
   _ffcDecimals :: Maybe Int,
   _ffcMinValue :: Maybe a,
   _ffcMaxValue :: Maybe a,
@@ -130,7 +130,7 @@ floatingFieldV_ field config = floatingFieldD_ (WidgetValue field) config
 
 floatingFieldD_
   :: FormattableFloat a
-  => WidgetValue s a
+  => WidgetData s a
   -> FloatingFieldCfg s e a
   -> WidgetInstance s e
 floatingFieldD_ widgetData config = newInst where

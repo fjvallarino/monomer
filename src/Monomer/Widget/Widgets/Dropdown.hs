@@ -143,12 +143,11 @@ dropdownV_
   -> DropdownCfg s e a
   -> WidgetInstance s e
 dropdownV_ value items makeMain makeRow config = newInst where
-  widgetData = WidgetValue value
-  newInst = dropdownD_ widgetData items makeMain makeRow config
+  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow config
 
 dropdownD_
   :: (Traversable t, Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
@@ -166,7 +165,7 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 
 makeDropdown
   :: (Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> Seq a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
@@ -188,7 +187,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   }
 
   isOpen = _isOpen state
-  currentValue wenv = widgetValueGet (_weModel wenv) widgetData
+  currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
   createDropdown wenv newState widgetInst = newInstance where
     selected = currentValue wenv
@@ -250,7 +249,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   onChange wenv idx item widgetInst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
-    newReqs = Seq.fromList $ widgetValueSet widgetData item
+    newReqs = Seq.fromList $ widgetDataSet widgetData item
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
@@ -296,7 +295,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
 makeListView
   :: (Eq a)
-  => WidgetValue s a
+  => WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
   -> DropdownCfg s e a

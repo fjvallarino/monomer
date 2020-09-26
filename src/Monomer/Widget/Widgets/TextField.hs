@@ -26,7 +26,7 @@ import Monomer.Widget.Widgets.InputField
 import Monomer.Widget.Widgets.WidgetCombinators
 
 data TextFieldCfg s e = TextFieldCfg {
-  _tfcValid :: Maybe (WidgetValue s Bool),
+  _tfcValid :: Maybe (WidgetData s Bool),
   _tfcMaxLength :: Maybe Int,
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnChange :: [Text -> e],
@@ -94,7 +94,7 @@ textFieldV value = textFieldV_ value def
 textFieldV_ :: Text -> TextFieldCfg s e -> WidgetInstance s e
 textFieldV_ value config = textFieldD_ (WidgetValue value) config
 
-textFieldD_ :: WidgetValue s Text -> TextFieldCfg s e -> WidgetInstance s e
+textFieldD_ :: WidgetData s Text -> TextFieldCfg s e -> WidgetInstance s e
 textFieldD_ widgetData config = inputField where
   fromText = textToText (_tfcMaxLength config)
   inputConfig = InputFieldCfg {

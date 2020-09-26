@@ -75,14 +75,14 @@ checkboxV value = checkboxV_ value def
 checkboxV_ :: Bool -> CheckboxCfg s e -> WidgetInstance s e
 checkboxV_ value config = checkboxD_ (WidgetValue value) def
 
-checkboxD_ :: WidgetValue s Bool -> CheckboxCfg s e -> WidgetInstance s e
+checkboxD_ :: WidgetData s Bool -> CheckboxCfg s e -> WidgetInstance s e
 checkboxD_ widgetData config = checkboxInstance where
   widget = makeCheckbox widgetData config
   checkboxInstance = (defaultWidgetInstance "checkbox" widget) {
     _wiFocusable = True
   }
 
-makeCheckbox :: WidgetValue s Bool -> CheckboxCfg s e -> Widget s e
+makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
@@ -98,10 +98,10 @@ makeCheckbox widgetData config = widget where
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
-      value = widgetValueGet model widgetData
+      value = widgetDataGet model widgetData
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)
-      setValueReq = widgetValueSet widgetData newValue
+      setValueReq = widgetDataSet widgetData newValue
       setFocusReq = SetFocus $ _wiPath inst
       reqs = setValueReq ++ _ckcOnChangeReq config
       clickReqs = setFocusReq : reqs
@@ -120,7 +120,7 @@ makeCheckbox widgetData config = widget where
     where
       model = _weModel wenv
       style = activeStyle wenv inst
-      value = widgetValueGet model widgetData
+      value = widgetDataGet model widgetData
       rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea
       checkboxT = _rY rarea

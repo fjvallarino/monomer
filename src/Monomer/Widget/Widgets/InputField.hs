@@ -32,8 +32,8 @@ import Monomer.Widget.Util
 import qualified Monomer.Common.LensStyle as S
 
 data InputFieldCfg s e a = InputFieldCfg {
-  _ifcValue :: WidgetValue s a,
-  _ifcValid :: Maybe (WidgetValue s Bool),
+  _ifcValue :: WidgetData s a,
+  _ifcValid :: Maybe (WidgetData s Bool),
   _ifcFromText :: Text -> Maybe a,
   _ifcToText :: a -> Text,
   _ifcAcceptInput :: Text -> Bool,
@@ -94,10 +94,10 @@ makeInputField config state = widget where
   InputFieldState currVal currText currGlyphs currPos currSel _ _ = state
   fromText = _ifcFromText config
   toText = _ifcToText config
-  getModelValue wenv = widgetValueGet (_weModel wenv) (_ifcValue config)
-  setModelValue = widgetValueSet (_ifcValue config)
+  getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
+  setModelValue = widgetDataSet (_ifcValue config)
   setModelValid
-    | isJust (_ifcValid config) = widgetValueSet (fromJust $ _ifcValid config)
+    | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
     | otherwise = const []
 
   init wenv inst = resultReqs reqs newInstance where

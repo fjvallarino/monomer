@@ -34,7 +34,7 @@ import Monomer.Widget.Widgets.WidgetCombinators
 type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
 
 data IntegralFieldCfg s e a = IntegralFieldCfg {
-  _nfcValid :: Maybe (WidgetValue s Bool),
+  _nfcValid :: Maybe (WidgetData s Bool),
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
   _nfcSelectOnFocus :: Maybe Bool,
@@ -117,7 +117,7 @@ integralFieldV_ field config = integralFieldD_ (WidgetValue field) config
 
 integralFieldD_
   :: FormattableInt a
-  => WidgetValue s a
+  => WidgetData s a
   -> IntegralFieldCfg s e a
   -> WidgetInstance s e
 integralFieldD_ widgetData config = newInst where
