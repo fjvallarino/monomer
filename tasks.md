@@ -175,14 +175,16 @@
     - Add range limit
     - Initialize validators (maybe input is invalid and that needs to be signaled)
   - Think widget config in a similar way to style config (combinator functions)
-
-- Pending
   - textField should support textFieldV and validInputV
     - Add mandatory event parameter for V constructors
+
+- Pending
   - Why does the model update when trying to input a char in FloatingInput?
   - Focus event not received after clicking and gaining focus
   - Rethink focus handling. Maybe return list of all focusable elements? Currently shift-tab is not possible
     - http://hackage.haskell.org/package/data-clist-0.1.2.3
+  - Think about argument position for widgets, in particular listview/radio
+    - Should value come before items/option?
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer

@@ -254,7 +254,9 @@ makeInputField config state = widget where
       | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
       | otherwise = []
     events = onChangeEvts
-    reqValid = setModelValid (isJust newVal)
+    reqValid
+      | isValid = setModelValid (isJust newVal)
+      | otherwise = []
     reqUpdateModel
       | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
       | otherwise = []

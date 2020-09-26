@@ -159,7 +159,7 @@ buildUI model = trace "Creating UI" widgetTree where
 --      listView textField1 items id,
 --      button IncButton "Click!"
 --    ] `key` "Main"
-  widgetTree = vstack [
+  widgetTree = traceShow model $ vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,

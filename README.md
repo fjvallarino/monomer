@@ -14,7 +14,6 @@ An easy to use, Elm inspired, GUI library for native applications.
 
 - Be able to run in mobile
 - Support Vulkan/Metal
-- Have great performance
 
 ### These are not objectives for this project
 
