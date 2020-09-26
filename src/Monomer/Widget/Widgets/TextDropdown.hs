@@ -13,6 +13,7 @@ import Data.Text (Text)
 import Monomer.Widget.Types
 import Monomer.Widget.Widgets.Label
 import Monomer.Widget.Widgets.Dropdown
+import Monomer.Widget.Widgets.WidgetCombinators
 
 textDropdown
   :: (Traversable t, Eq a)
@@ -36,21 +37,25 @@ textDropdown_ field items toText config = newInst where
 textDropdownV
   :: (Traversable t, Eq a)
   => a
+  -> (a -> e)
   -> t a
   -> (a -> Text)
   -> WidgetInstance s e
-textDropdownV value items toText = newInst where
-  newInst = textDropdownV_ value items toText def
+textDropdownV value handler items toText = newInst where
+  newInst = textDropdownV_ value handler items toText def
 
 textDropdownV_
   :: (Traversable t, Eq a)
   => a
+  -> (a -> e)
   -> t a
   -> (a -> Text)
   -> DropdownCfg s e a
   -> WidgetInstance s e
-textDropdownV_ value items toText config = newInst where
-  newInst = textDropdownD_ (WidgetValue value) items toText config
+textDropdownV_ value handler items toText config = newInst where
+  widgetData = WidgetValue value
+  newConfig = config <> onChange handler
+  newInst = textDropdownD_ widgetData items toText newConfig
 
 textDropdownD_
   :: (Traversable t, Eq a)

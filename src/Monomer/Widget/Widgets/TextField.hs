@@ -88,11 +88,13 @@ textField field = textField_ field def
 textField_ :: ALens' s Text -> TextFieldCfg s e -> WidgetInstance s e
 textField_ field config = textFieldD_ (WidgetLens field) config
 
-textFieldV :: Text -> WidgetInstance s e
-textFieldV value = textFieldV_ value def
+textFieldV :: Text -> (Text -> e) -> WidgetInstance s e
+textFieldV value handler = textFieldV_ value handler def
 
-textFieldV_ :: Text -> TextFieldCfg s e -> WidgetInstance s e
-textFieldV_ value config = textFieldD_ (WidgetValue value) config
+textFieldV_ :: Text -> (Text -> e) -> TextFieldCfg s e -> WidgetInstance s e
+textFieldV_ value handler config = textFieldD_ widgetData newConfig where
+  widgetData = WidgetValue value
+  newConfig = config <> onChange handler
 
 textFieldD_ :: WidgetData s Text -> TextFieldCfg s e -> WidgetInstance s e
 textFieldD_ widgetData config = inputField where

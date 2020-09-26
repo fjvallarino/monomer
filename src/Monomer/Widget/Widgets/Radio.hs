@@ -69,14 +69,20 @@ radio field option = radio_ field option def
 radio_ :: (Eq a) => ALens' s a -> a -> RadioCfg s e a -> WidgetInstance s e
 radio_ field option config = radioD_ (WidgetLens field) option config
 
-radioV :: (Eq a) => a -> a -> WidgetInstance s e
-radioV value option = radioV_ value option def
+radioV :: (Eq a) => a -> (a -> e) -> a -> WidgetInstance s e
+radioV value handler option = radioV_ value handler option def
 
-radioV_ :: (Eq a) => a -> a -> RadioCfg s e a -> WidgetInstance s e
-radioV_ value option config = radioD_ (WidgetValue value) option config
+radioV_ :: (Eq a) => a -> (a -> e) -> a -> RadioCfg s e a -> WidgetInstance s e
+radioV_ value handler option config = radioD_ widgetData option newConfig where
+  widgetData = WidgetValue value
+  newConfig = config <> onChange handler
 
 radioD_
-  :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> WidgetInstance s e
+  :: (Eq a)
+  => WidgetData s a
+  -> a
+  -> RadioCfg s e a
+  -> WidgetInstance s e
 radioD_ widgetData option config = radioInstance where
   widget = makeRadio widgetData option config
   radioInstance = (defaultWidgetInstance "radio" widget) {

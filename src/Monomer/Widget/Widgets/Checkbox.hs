@@ -69,11 +69,12 @@ checkbox field = checkbox_ field def
 checkbox_ :: ALens' s Bool -> CheckboxCfg s e -> WidgetInstance s e
 checkbox_ field config = checkboxD_ (WidgetLens field) def
 
-checkboxV :: Bool -> WidgetInstance s e
-checkboxV value = checkboxV_ value def
+checkboxV :: Bool -> (Bool -> e) -> WidgetInstance s e
+checkboxV value handler = checkboxV_ value handler def
 
-checkboxV_ :: Bool -> CheckboxCfg s e -> WidgetInstance s e
-checkboxV_ value config = checkboxD_ (WidgetValue value) def
+checkboxV_ :: Bool -> (Bool -> e) -> CheckboxCfg s e -> WidgetInstance s e
+checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
+  newConfig = config <> onChange handler
 
 checkboxD_ :: WidgetData s Bool -> CheckboxCfg s e -> WidgetInstance s e
 checkboxD_ widgetData config = checkboxInstance where

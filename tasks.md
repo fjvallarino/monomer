@@ -178,9 +178,9 @@
 
 - Pending
   - textField should support textFieldV and validInputV
-  - Add mandatory event parameter for V constructors
+    - Add mandatory event parameter for V constructors
   - Why does the model update when trying to input a char in FloatingInput?
-  - Focus event not received when click and gaining focus
+  - Focus event not received after clicking and gaining focus
   - Rethink focus handling. Maybe return list of all focusable elements? Currently shift-tab is not possible
     - http://hackage.haskell.org/package/data-clist-0.1.2.3
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations

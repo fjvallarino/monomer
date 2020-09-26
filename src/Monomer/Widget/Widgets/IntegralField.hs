@@ -105,15 +105,19 @@ integralField_
   -> WidgetInstance s e
 integralField_ field config = integralFieldD_ (WidgetLens field) config
 
-integralFieldV :: FormattableInt a => a -> WidgetInstance s e
-integralFieldV field = integralFieldV_ field def
+integralFieldV :: FormattableInt a => a -> (a -> e) -> WidgetInstance s e
+integralFieldV value handler = integralFieldV_ value handler def
 
 integralFieldV_
   :: FormattableInt a
   => a
+  -> (a -> e)
   -> IntegralFieldCfg s e a
   -> WidgetInstance s e
-integralFieldV_ field config = integralFieldD_ (WidgetValue field) config
+integralFieldV_ value handler config = newInst where
+  widgetData = WidgetValue value
+  newConfig = config <> onChange handler
+  newInst = integralFieldD_ widgetData newConfig
 
 integralFieldD_
   :: FormattableInt a

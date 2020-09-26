@@ -127,23 +127,26 @@ dropdown_ field items makeMain makeRow config = newInst where
 dropdownV
   :: (Traversable t, Eq a)
   => a
+  -> (a -> e)
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
   -> WidgetInstance s e
-dropdownV value items makeMain makeRow = newInst where
-  newInst = dropdownV_ value items makeMain makeRow def
+dropdownV value handler items makeMain makeRow = newInst where
+  newInst = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
   :: (Traversable t, Eq a)
   => a
+  -> (a -> e)
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
   -> DropdownCfg s e a
   -> WidgetInstance s e
-dropdownV_ value items makeMain makeRow config = newInst where
-  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow config
+dropdownV_ value handler items makeMain makeRow config = newInst where
+  newConfig = config <> onChange handler
+  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfig
 
 dropdownD_
   :: (Traversable t, Eq a)

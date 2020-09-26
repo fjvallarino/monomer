@@ -125,20 +125,25 @@ listView_ field items makeRow config = newInst where
 listViewV
   :: (Traversable t, Eq a)
   => a
+  -> (Int -> a -> e)
   -> t a
   -> (a -> WidgetInstance s e)
   -> WidgetInstance s e
-listViewV value items makeRow = listViewV_ value items makeRow def
+listViewV value handler items makeRow = newInst where
+  newInst = listViewV_ value handler items makeRow def
 
 listViewV_
   :: (Traversable t, Eq a)
   => a
+  -> (Int -> a -> e)
   -> t a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
   -> WidgetInstance s e
-listViewV_ value items makeRow config = newInst where
-  newInst = listViewD_ (WidgetValue value) items makeRow config
+listViewV_ value handler items makeRow config = newInst where
+  widgetData = WidgetValue value
+  newConfig = config <> onChangeIdx handler
+  newInst = listViewD_ widgetData items makeRow newConfig
 
 listViewD_
   :: (Traversable t, Eq a)
@@ -147,10 +152,10 @@ listViewD_
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
   -> WidgetInstance s e
-listViewD_ value items makeRow config = makeInstance widget where
+listViewD_ widgetData items makeRow config = makeInstance widget where
   newItems = foldl' (|>) Empty items
   newState = ListViewState 0
-  widget = makeListView value newItems makeRow config newState
+  widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
 makeInstance widget = (defaultWidgetInstance "listView" widget) {

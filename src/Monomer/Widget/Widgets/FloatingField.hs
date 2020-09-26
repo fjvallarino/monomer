@@ -118,15 +118,19 @@ floatingField_ field config = floatingFieldD_ (WidgetLens field) config
 
 floatingFieldV
   :: FormattableFloat a
-  => a -> WidgetInstance s e
-floatingFieldV field = floatingFieldV_ field def
+  => a -> (a -> e) -> WidgetInstance s e
+floatingFieldV value handler = floatingFieldV_ value handler def
 
 floatingFieldV_
   :: FormattableFloat a
   => a
+  -> (a -> e)
   -> FloatingFieldCfg s e a
   -> WidgetInstance s e
-floatingFieldV_ field config = floatingFieldD_ (WidgetValue field) config
+floatingFieldV_ value handler config = newInst where
+  widgetData = WidgetValue value
+  newConfig = config <> onChange handler
+  newInst = floatingFieldD_ widgetData newConfig
 
 floatingFieldD_
   :: FormattableFloat a

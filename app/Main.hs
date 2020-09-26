@@ -127,9 +127,10 @@ handleAppEvent model evt = case evt of
   CheckboxSt st -> Task $ do
     putStrLn $ "Checkbox is: " ++ show st
     return Nothing
-  RadioSt st -> Task $ do
-    putStrLn $ "Radio is: " ++ show st
-    return Nothing
+--  RadioSt st -> Task $ do
+--    putStrLn $ "Radio is: " ++ show st
+--    return Nothing
+  RadioSt st -> Model (model & fruit .~ st)
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -160,9 +161,9 @@ buildUI model = trace "Creating UI" widgetTree where
 --    ] `key` "Main"
   widgetTree = vstack [
       hstack [
-        radio_ fruit Apple (onChange RadioSt),
-        radio_ fruit Orange (onChange RadioSt),
-        radio_ fruit Pear (onChange RadioSt)
+        radioV (model ^. fruit) RadioSt Apple,
+        radioV (model ^. fruit) RadioSt Orange,
+        radioV (model ^. fruit) RadioSt Pear
       ],
       hstack [
         checkbox condition1,
@@ -184,12 +185,6 @@ buildUI model = trace "Creating UI" widgetTree where
       integralField_ integer1 (validInput validInteger1 <> minValue 10 <> maxValue 100)
         `style` if model ^. validInteger1 then def else border 1 red,
       listView textField1 items label
---      hstack [
---        label "This is a long label",
---        label "Another long label",
---        label "Yet another long label"
---      ],
---      image "assets/images/pecans.jpg" `style` marginT 10
     ] `style` borderT 20 red <> borderL 10 blue <> borderR 10 green <> borderB 10 gray <> iradius 50 -- <> padding 20
   newLabel i = label ("New: " <> showt i) `style` altColor i
   altColor i = bgColor (if even i then gray else darkGray)
