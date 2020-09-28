@@ -62,18 +62,21 @@ key widgetInst key = widgetInst {
   _wiKey = Just (WidgetKey key)
 }
 
-style :: WidgetInstance s e -> StyleState -> WidgetInstance s e
-style inst state = inst & C.style .~ newStyle where
+style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+style inst states = inst & C.style .~ newStyle where
+  state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.basic ?~ state
 
-hover :: WidgetInstance s e -> StyleState -> WidgetInstance s e
-hover inst state = inst & C.style .~ newStyle where
+hover :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+hover inst states = inst & C.style .~ newStyle where
+  state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.hover ?~ state
 
-focus :: WidgetInstance s e -> StyleState -> WidgetInstance s e
-focus inst state = inst & C.style .~ newStyle where
+focus :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+focus inst states = inst & C.style .~ newStyle where
+  state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.focus ?~ state
 
