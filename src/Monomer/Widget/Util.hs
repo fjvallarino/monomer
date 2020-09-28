@@ -354,12 +354,23 @@ resizeInstance wenv inst = newInst where
   instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   newInst = widgetResize (_wiWidget instReqs) wenv viewport renderArea instReqs
 
-isFocusCandidate :: Path -> WidgetInstance s e -> Bool
-isFocusCandidate startFrom widgetInst = isValid where
+isFocusCandidate :: FocusDirection -> Path -> WidgetInstance s e -> Bool
+isFocusCandidate FocusFwd = isFocusFwdCandidate
+isFocusCandidate FocusBwd = isFocusBwdCandidate
+
+isFocusFwdCandidate :: Path -> WidgetInstance s e -> Bool
+isFocusFwdCandidate startFrom widgetInst = isValid where
   isBefore = isTargetBeforeCurrent startFrom widgetInst
   isFocusable = _wiFocusable widgetInst
   isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
   isValid = isBefore && isFocusable && isEnabled
+
+isFocusBwdCandidate :: Path -> WidgetInstance s e -> Bool
+isFocusBwdCandidate startFrom widgetInst = isValid where
+  isAfter = isTargetAfterCurrent startFrom widgetInst
+  isFocusable = _wiFocusable widgetInst
+  isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
+  isValid = isAfter && isFocusable && isEnabled
 
 isTargetReached :: Path -> WidgetInstance s e -> Bool
 isTargetReached target widgetInst = target == _wiPath widgetInst
@@ -380,6 +391,13 @@ isTargetBeforeCurrent target widgetInst = result where
   result
     | lenTarget > lenCurrent = targetPrefix <= currentPath
     | otherwise = target < currentPath
+
+isTargetAfterCurrent :: Path -> WidgetInstance s e -> Bool
+isTargetAfterCurrent target widgetInst
+  | target == rootPath = True
+  | otherwise = target > currentPath
+  where
+    currentPath = _wiPath widgetInst
 
 numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
 numberInBounds Nothing Nothing _ = True

@@ -178,13 +178,21 @@
   - textField should support textFieldV and validInputV
     - Add mandatory event parameter for V constructors
   - Why does the model update when trying to input a char in FloatingInput?
+  - Focus event not received after clicking and gaining focus
 
 - Pending
-  - Focus event not received after clicking and gaining focus
   - Rethink focus handling. Maybe return a list of all focusable elements? Currently shift-tab is not possible
     - http://hackage.haskell.org/package/data-clist-0.1.2.3
+    - Ver si tiene sentido esta opcion o es mejor volver a dos funciones
+      - Empezar desde atras pero con logica similar a la normal
+
+
+
+
+
   - Think about argument position for widgets, in particular listview/radio
     - Should value come before items/option?
+    - Should we use a list of configs instead of <> operator?
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer

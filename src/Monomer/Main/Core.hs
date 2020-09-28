@@ -100,7 +100,7 @@ runApp window theme widgetRoot = do
   }
 
   mainModel .= _weModel newWenv
-  pathFocus .= findNextFocus newWenv rootPath resizedRoot
+  pathFocus .= findNextFocus newWenv FocusFwd rootPath resizedRoot
 
   mainLoop window renderer loopArgs
 

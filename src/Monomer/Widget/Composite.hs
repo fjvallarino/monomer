@@ -173,14 +173,15 @@ compositeFindNextFocus
   :: Composite s e ep
   -> CompositeState s e
   -> WidgetEnv sp ep
+  -> FocusDirection
   -> Path
   -> WidgetInstance sp ep
   -> Maybe Path
-compositeFindNextFocus comp state wenv startFrom widgetComp = nextFocus where
+compositeFindNextFocus comp state wenv dir start widgetComp = nextFocus where
   CompositeState{..} = state
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
-  nextFocus = widgetFindNextFocus widget cwenv startFrom _cmpRoot
+  nextFocus = widgetFindNextFocus widget cwenv dir start _cmpRoot
 
 -- | Find
 compositeFindByPoint

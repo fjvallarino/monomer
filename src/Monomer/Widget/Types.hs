@@ -20,6 +20,11 @@ import Monomer.Graphics.Types
 type Timestamp = Int
 type GlobalKeys s e = Map WidgetKey (WidgetInstance s e)
 
+data FocusDirection
+  = FocusFwd
+  | FocusBwd
+  deriving (Eq, Show)
+
 newtype WidgetType
   = WidgetType { unWidgetType :: String }
   deriving (Eq, Show)
@@ -124,6 +129,7 @@ data Widget s e =
     --
     widgetFindNextFocus
       :: WidgetEnv s e
+      -> FocusDirection
       -> Path
       -> WidgetInstance s e
       -> Maybe Path,

@@ -41,6 +41,7 @@ type SingleGetStateHandler s e
 
 type SingleFindNextFocusHandler s e
   = WidgetEnv s e
+  -> FocusDirection
   -> Path
   -> WidgetInstance s e
   -> Maybe Path
@@ -156,8 +157,8 @@ mergeWrapper mergeHandler wenv oldInst newInst = result where
   result = mergeHandler wenv oldState tempInst
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
-defaultFindNextFocus wenv startFrom widgetInst
-  | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
+defaultFindNextFocus wenv direction startFrom widgetInst
+  | isFocusCandidate direction startFrom widgetInst = Just (_wiPath widgetInst)
   | otherwise = Nothing
 
 defaultFindByPoint :: SingleFindByPointHandler s e

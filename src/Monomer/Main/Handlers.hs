@@ -145,7 +145,7 @@ handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
       oldFocus <- use pathFocus
       (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocus wenv1 oldFocus root1
+      let newFocus = findNextFocus wenv1 focusDirection oldFocus root1
       let tempWenv = wenv1 {
         _weFocusedPath = newFocus
       }
@@ -157,6 +157,9 @@ handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
   | otherwise = return (wenv, events, widgetRoot)
   where
     focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
+    focusDirection
+      | isShiftPressed systemEvent = FocusBwd
+      | otherwise = FocusFwd
 
 handleFocusSet
   :: (MonomerM s m)

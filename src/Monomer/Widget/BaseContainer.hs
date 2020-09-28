@@ -61,6 +61,7 @@ type ContainerGetStateHandler s e
 
 type ContainerFindNextFocusHandler s e
   = WidgetEnv s e
+  -> FocusDirection
   -> Path
   -> WidgetInstance s e
   -> Maybe Path
@@ -262,16 +263,20 @@ defaultGetState _ = Nothing
 
 -- | Find next focusable item
 defaultFindNextFocus
-  :: WidgetEnv s e -> Path -> WidgetInstance s e -> Maybe Path
-defaultFindNextFocus wenv startFrom widgetInst = nextFocus where
-  children = _wiChildren widgetInst
-  isBeforeTarget ch = isTargetBeforeCurrent startFrom ch
-  nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv startFrom ch
+  :: WidgetEnv s e -> FocusDirection -> Path -> WidgetInstance s e -> Maybe Path
+defaultFindNextFocus wenv direction start widgetInst = nextFocus where
+  children
+    | direction == FocusFwd = _wiChildren widgetInst
+    | otherwise = Seq.reverse (_wiChildren widgetInst)
+  isBeforeTarget ch
+    | direction == FocusFwd = isTargetBeforeCurrent start ch
+    | otherwise = isTargetAfterCurrent start ch
+  nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv direction start ch
   filtered = Seq.filter isBeforeTarget children
   candidates = fmap nextCandidate filtered
   focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus
-    | isFocusCandidate startFrom widgetInst = Just (_wiPath widgetInst)
+    | isFocusCandidate direction start widgetInst = Just (_wiPath widgetInst)
     | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
