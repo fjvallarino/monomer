@@ -112,9 +112,9 @@ floatingField field = floatingField_ field def
 floatingField_
   :: FormattableFloat a
   => ALens' s a
-  -> FloatingFieldCfg s e a
+  -> [FloatingFieldCfg s e a]
   -> WidgetInstance s e
-floatingField_ field config = floatingFieldD_ (WidgetLens field) config
+floatingField_ field configs = floatingFieldD_ (WidgetLens field) configs
 
 floatingFieldV
   :: FormattableFloat a
@@ -125,19 +125,20 @@ floatingFieldV_
   :: FormattableFloat a
   => a
   -> (a -> e)
-  -> FloatingFieldCfg s e a
+  -> [FloatingFieldCfg s e a]
   -> WidgetInstance s e
-floatingFieldV_ value handler config = newInst where
+floatingFieldV_ value handler configs = newInst where
   widgetData = WidgetValue value
-  newConfig = config <> onChange handler
-  newInst = floatingFieldD_ widgetData newConfig
+  newConfigs = onChange handler : configs
+  newInst = floatingFieldD_ widgetData newConfigs
 
 floatingFieldD_
   :: FormattableFloat a
   => WidgetData s a
-  -> FloatingFieldCfg s e a
+  -> [FloatingFieldCfg s e a]
   -> WidgetInstance s e
-floatingFieldD_ widgetData config = newInst where
+floatingFieldD_ widgetData configs = newInst where
+  config = mconcat configs
   minVal = _ffcMinValue config
   maxVal = _ffcMaxValue config
   decimals = max 0 $ fromMaybe 2 (_ffcDecimals config)

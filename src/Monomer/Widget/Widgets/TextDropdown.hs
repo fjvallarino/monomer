@@ -29,10 +29,10 @@ textDropdown_
   => ALens' s a
   -> t a
   -> (a -> Text)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-textDropdown_ field items toText config = newInst where
-  newInst = textDropdownD_ (WidgetLens field) items toText config
+textDropdown_ field items toText configs = newInst where
+  newInst = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
   :: (Traversable t, Eq a)
@@ -50,21 +50,21 @@ textDropdownV_
   -> (a -> e)
   -> t a
   -> (a -> Text)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-textDropdownV_ value handler items toText config = newInst where
+textDropdownV_ value handler items toText configs = newInst where
   widgetData = WidgetValue value
-  newConfig = config <> onChange handler
-  newInst = textDropdownD_ widgetData items toText newConfig
+  newConfigs = onChange handler : configs
+  newInst = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
   :: (Traversable t, Eq a)
   => WidgetData s a
   -> t a
   -> (a -> Text)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-textDropdownD_ widgetData items toText config = newInst where
+textDropdownD_ widgetData items toText configs = newInst where
   makeMain = toText
   makeRow = label . toText
-  newInst = dropdownD_ widgetData items makeMain makeRow config
+  newInst = dropdownD_ widgetData items makeMain makeRow configs

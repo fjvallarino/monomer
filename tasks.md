@@ -179,20 +179,16 @@
     - Add mandatory event parameter for V constructors
   - Why does the model update when trying to input a char in FloatingInput?
   - Focus event not received after clicking and gaining focus
+  - Rethink focus handling. Maybe return a list of all focusable elements? Currently shift-tab is not possible
+    - Added a direction parameter to widgetFindNextFocus
 
 - Pending
-  - Rethink focus handling. Maybe return a list of all focusable elements? Currently shift-tab is not possible
-    - http://hackage.haskell.org/package/data-clist-0.1.2.3
-    - Ver si tiene sentido esta opcion o es mejor volver a dos funciones
-      - Empezar desde atras pero con logica similar a la normal
-
-
-
-
-
   - Think about argument position for widgets, in particular listview/radio
     - Should value come before items/option?
     - Should we use a list of configs instead of <> operator?
+  - Add options to label/button (ellipsis/cut)
+  - Add options to image widget (stretch/crop/etc)
+  - Add support for urls to image widget
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Rename spacer
@@ -213,9 +209,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add options to image widget (stretch/crop/etc)
-  - Add support for urls to image widget
-  - Add options to label/button (ellipsis/cut)
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history
@@ -227,6 +220,13 @@ Maybe postponed after release?
   - Create Color Selector
   - Create Layout with width/heights specified in percents
   - Drag & drop for user (add attribute indicating if component supports being source/target)
+    - Add new request types (drag started, drag stopped, drag cancelled)
+    - Add new events (drag hover)
+    - SDL supports Drag and Drop integration with OS
+  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
+  - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
+  - Implement SDL_Surface + Cairo backend
+    - Can we cache some drawing operations?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS

@@ -117,10 +117,10 @@ listView_
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
-  -> ListViewCfg s e a
+  -> [ListViewCfg s e a]
   -> WidgetInstance s e
-listView_ field items makeRow config = newInst where
-  newInst = listViewD_ (WidgetLens field) items makeRow config
+listView_ field items makeRow configs = newInst where
+  newInst = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
   :: (Traversable t, Eq a)
@@ -138,21 +138,22 @@ listViewV_
   -> (Int -> a -> e)
   -> t a
   -> (a -> WidgetInstance s e)
-  -> ListViewCfg s e a
+  -> [ListViewCfg s e a]
   -> WidgetInstance s e
-listViewV_ value handler items makeRow config = newInst where
+listViewV_ value handler items makeRow configs = newInst where
   widgetData = WidgetValue value
-  newConfig = config <> onChangeIdx handler
-  newInst = listViewD_ widgetData items makeRow newConfig
+  newConfigs = onChangeIdx handler : configs
+  newInst = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
   :: (Traversable t, Eq a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetInstance s e)
-  -> ListViewCfg s e a
+  -> [ListViewCfg s e a]
   -> WidgetInstance s e
-listViewD_ widgetData items makeRow config = makeInstance widget where
+listViewD_ widgetData items makeRow configs = makeInstance widget where
+  config = mconcat configs
   newItems = foldl' (|>) Empty items
   newState = ListViewState 0
   widget = makeListView widgetData newItems makeRow config newState

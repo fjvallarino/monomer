@@ -123,8 +123,9 @@ wheelRate = 10
 scroll :: WidgetInstance s e -> WidgetInstance s e
 scroll managedWidget = scroll_ def managedWidget
 
-scroll_ :: ScrollCfg -> WidgetInstance s e -> WidgetInstance s e
-scroll_ config managed = makeInstance (makeScroll config def) managed
+scroll_ :: [ScrollCfg] -> WidgetInstance s e -> WidgetInstance s e
+scroll_ configs managed = makeInstance (makeScroll config def) managed where
+  config = mconcat configs
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
 makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {

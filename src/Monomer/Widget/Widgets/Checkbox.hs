@@ -66,18 +66,19 @@ checkboxBorderW = 2
 checkbox :: ALens' s Bool -> WidgetInstance s e
 checkbox field = checkbox_ field def
 
-checkbox_ :: ALens' s Bool -> CheckboxCfg s e -> WidgetInstance s e
-checkbox_ field config = checkboxD_ (WidgetLens field) def
+checkbox_ :: ALens' s Bool -> [CheckboxCfg s e] -> WidgetInstance s e
+checkbox_ field config = checkboxD_ (WidgetLens field) config
 
 checkboxV :: Bool -> (Bool -> e) -> WidgetInstance s e
 checkboxV value handler = checkboxV_ value handler def
 
-checkboxV_ :: Bool -> (Bool -> e) -> CheckboxCfg s e -> WidgetInstance s e
+checkboxV_ :: Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetInstance s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
-  newConfig = config <> onChange handler
+  newConfig = onChange handler : config
 
-checkboxD_ :: WidgetData s Bool -> CheckboxCfg s e -> WidgetInstance s e
-checkboxD_ widgetData config = checkboxInstance where
+checkboxD_ :: WidgetData s Bool -> [CheckboxCfg s e] -> WidgetInstance s e
+checkboxD_ widgetData configs = checkboxInstance where
+  config = mconcat configs
   widget = makeCheckbox widgetData config
   checkboxInstance = (defaultWidgetInstance "checkbox" widget) {
     _wiFocusable = True

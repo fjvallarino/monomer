@@ -85,19 +85,20 @@ instance Default Text where
 textField :: ALens' s Text -> WidgetInstance s e
 textField field = textField_ field def
 
-textField_ :: ALens' s Text -> TextFieldCfg s e -> WidgetInstance s e
-textField_ field config = textFieldD_ (WidgetLens field) config
+textField_ :: ALens' s Text -> [TextFieldCfg s e] -> WidgetInstance s e
+textField_ field configs = textFieldD_ (WidgetLens field) configs
 
 textFieldV :: Text -> (Text -> e) -> WidgetInstance s e
 textFieldV value handler = textFieldV_ value handler def
 
-textFieldV_ :: Text -> (Text -> e) -> TextFieldCfg s e -> WidgetInstance s e
-textFieldV_ value handler config = textFieldD_ widgetData newConfig where
+textFieldV_ :: Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetInstance s e
+textFieldV_ value handler configs = textFieldD_ widgetData newConfig where
   widgetData = WidgetValue value
-  newConfig = config <> onChange handler
+  newConfig = onChange handler : configs
 
-textFieldD_ :: WidgetData s Text -> TextFieldCfg s e -> WidgetInstance s e
-textFieldD_ widgetData config = inputField where
+textFieldD_ :: WidgetData s Text -> [TextFieldCfg s e] -> WidgetInstance s e
+textFieldD_ widgetData configs = inputField where
+  config = mconcat configs
   fromText = textToText (_tfcMaxLength config)
   inputConfig = InputFieldCfg {
     _ifcValue = widgetData,

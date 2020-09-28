@@ -49,10 +49,12 @@ instance OnClickReq (ButtonCfg s e) s where
   }
 
 button :: Text -> e -> WidgetInstance s e
-button label handler = button_ label (onClick handler)
+button label handler = button_ label handler def
 
-button_ :: Text -> ButtonCfg s e -> WidgetInstance s e
-button_ label config = defaultWidgetInstance "button" (makeButton label config)
+button_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
+button_ label handler configs = defaultWidgetInstance "button" widget where
+  config = onClick handler <> mconcat configs
+  widget = makeButton label config
 
 makeButton :: Text -> ButtonCfg s e -> Widget s e
 makeButton label config = widget where

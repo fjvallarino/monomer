@@ -118,11 +118,11 @@ dropdown_
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-dropdown_ field items makeMain makeRow config = newInst where
+dropdown_ field items makeMain makeRow configs = newInst where
   widgetData = WidgetLens field
-  newInst = dropdownD_ widgetData items makeMain makeRow config
+  newInst = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
   :: (Traversable t, Eq a)
@@ -142,11 +142,11 @@ dropdownV_
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-dropdownV_ value handler items makeMain makeRow config = newInst where
-  newConfig = config <> onChange handler
-  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfig
+dropdownV_ value handler items makeMain makeRow configs = newInst where
+  newConfigs = onChange handler : configs
+  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
   :: (Traversable t, Eq a)
@@ -154,9 +154,10 @@ dropdownD_
   -> t a
   -> (a -> Text)
   -> (a -> WidgetInstance s e)
-  -> DropdownCfg s e a
+  -> [DropdownCfg s e a]
   -> WidgetInstance s e
-dropdownD_ widgetData items makeMain makeRow config = makeInstance widget where
+dropdownD_ widgetData items makeMain makeRow configs = makeInstance widget where
+  config = mconcat configs
   newState = DropdownState False
   newItems = foldl' (|>) Empty items
   widget = makeDropdown widgetData newItems makeMain makeRow config newState
@@ -294,7 +295,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     widget = _wiWidget overlayInstance
     renderAction = widgetRender widget renderer wenv overlayInstance
 
-  dropdownLabel wenv =  makeMain $ currentValue wenv
+  dropdownLabel wenv = makeMain $ currentValue wenv
 
 makeListView
   :: (Eq a)
@@ -307,10 +308,12 @@ makeListView
   -> WidgetInstance s e
 makeListView value items makeRow config path selected = listViewInst where
   DropdownCfg{..} = config
-  lvConfig = onChangeReqIdx (SendMessage path . OnChangeMessage)
-    <> setStyle _ddcSelectedStyle selectedStyle
-    <> setStyle _ddcHighlightedStyle highlightedStyle
-    <> setStyle _ddcHoverStyle hoverStyle
+  lvConfig = [
+      onChangeReqIdx (SendMessage path . OnChangeMessage),
+      setStyle _ddcSelectedStyle selectedStyle,
+      setStyle _ddcHighlightedStyle highlightedStyle,
+      setStyle _ddcHoverStyle hoverStyle
+    ]
   listViewInst = listViewD_ value items makeRow lvConfig
 
 setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a

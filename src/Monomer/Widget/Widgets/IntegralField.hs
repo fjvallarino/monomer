@@ -101,9 +101,9 @@ integralField field = integralField_ field def
 integralField_
   :: FormattableInt a
   => ALens' s a
-  -> IntegralFieldCfg s e a
+  -> [IntegralFieldCfg s e a]
   -> WidgetInstance s e
-integralField_ field config = integralFieldD_ (WidgetLens field) config
+integralField_ field configs = integralFieldD_ (WidgetLens field) configs
 
 integralFieldV :: FormattableInt a => a -> (a -> e) -> WidgetInstance s e
 integralFieldV value handler = integralFieldV_ value handler def
@@ -112,19 +112,20 @@ integralFieldV_
   :: FormattableInt a
   => a
   -> (a -> e)
-  -> IntegralFieldCfg s e a
+  -> [IntegralFieldCfg s e a]
   -> WidgetInstance s e
-integralFieldV_ value handler config = newInst where
+integralFieldV_ value handler configs = newInst where
   widgetData = WidgetValue value
-  newConfig = config <> onChange handler
-  newInst = integralFieldD_ widgetData newConfig
+  newConfigs = onChange handler : configs
+  newInst = integralFieldD_ widgetData newConfigs
 
 integralFieldD_
   :: FormattableInt a
   => WidgetData s a
-  -> IntegralFieldCfg s e a
+  -> [IntegralFieldCfg s e a]
   -> WidgetInstance s e
-integralFieldD_ widgetData config = newInst where
+integralFieldD_ widgetData configs = newInst where
+  config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
   fromText = integralFromText minVal maxVal

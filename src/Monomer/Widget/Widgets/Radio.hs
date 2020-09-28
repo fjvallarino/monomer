@@ -66,24 +66,27 @@ radioBorderW = 2
 radio :: (Eq a) => ALens' s a -> a -> WidgetInstance s e
 radio field option = radio_ field option def
 
-radio_ :: (Eq a) => ALens' s a -> a -> RadioCfg s e a -> WidgetInstance s e
-radio_ field option config = radioD_ (WidgetLens field) option config
+radio_ :: (Eq a) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetInstance s e
+radio_ field option configs = radioD_ (WidgetLens field) option configs
 
 radioV :: (Eq a) => a -> (a -> e) -> a -> WidgetInstance s e
 radioV value handler option = radioV_ value handler option def
 
-radioV_ :: (Eq a) => a -> (a -> e) -> a -> RadioCfg s e a -> WidgetInstance s e
-radioV_ value handler option config = radioD_ widgetData option newConfig where
+radioV_
+  :: (Eq a) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetInstance s e
+radioV_ value handler option configs = newInst where
   widgetData = WidgetValue value
-  newConfig = config <> onChange handler
+  newConfigs = onChange handler : configs
+  newInst = radioD_ widgetData option newConfigs
 
 radioD_
   :: (Eq a)
   => WidgetData s a
   -> a
-  -> RadioCfg s e a
+  -> [RadioCfg s e a]
   -> WidgetInstance s e
-radioD_ widgetData option config = radioInstance where
+radioD_ widgetData option configs = radioInstance where
+  config = mconcat configs
   widget = makeRadio widgetData option config
   radioInstance = (defaultWidgetInstance "radio" widget) {
     _wiFocusable = True
