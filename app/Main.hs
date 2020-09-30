@@ -171,6 +171,10 @@ buildUI model = trace "Creating UI" widgetTree where
         checkbox condition3,
         checkbox_ condition1 [onChange CheckboxSt]
       ],
+      hstack [
+        label_ "This is a really long label used to check what I did works fine" [textEllipsis],
+        label "Short label"
+      ],
       label "Text",
       textField_ textField2 [validInput validText2, maxLength 10, onChange PrintMessage, selectOnFocus True]
         `style` if model ^. validText2 then def else [border 1 red],

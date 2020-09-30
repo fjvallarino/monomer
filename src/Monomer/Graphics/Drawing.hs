@@ -106,8 +106,8 @@ drawText
   -> Text
   -> IO Rect
 drawText renderer viewport color font fontSize align txt = do
-    setFillColor renderer color
-    renderText renderer viewport font fontSize align txt
+  setFillColor renderer color
+  renderText renderer viewport font fontSize align txt
 
 drawImage :: Renderer -> Rect -> String -> IO ()
 drawImage renderer viewport imgName = action where

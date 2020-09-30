@@ -188,6 +188,7 @@
     - Should we use a list of configs instead of <> operator?
   - Add options to label/button (ellipsis/cut)
   - Add options to image widget (stretch/crop/etc)
+    - Check if re-adding image on render should be inside lock
   - Add support for urls to image widget
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?

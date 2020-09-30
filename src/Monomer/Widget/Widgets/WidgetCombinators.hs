@@ -55,3 +55,7 @@ class HighlightedStyle t where
 
 class HoverStyle t where
   hoverStyle :: StyleState -> t
+
+class OnTextOverflow t where
+  textEllipsis :: t
+  textClip :: t

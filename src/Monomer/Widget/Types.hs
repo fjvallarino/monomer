@@ -25,6 +25,11 @@ data FocusDirection
   | FocusBwd
   deriving (Eq, Show)
 
+data TextOverflow
+  = Ellipsis
+  | ClipText
+  deriving (Eq, Show)
+
 newtype WidgetType
   = WidgetType { unWidgetType :: String }
   deriving (Eq, Show)
