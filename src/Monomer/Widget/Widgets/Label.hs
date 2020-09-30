@@ -35,8 +35,12 @@ instance Monoid LabelCfg where
   mempty = def
 
 instance OnTextOverflow LabelCfg where
-  textEllipsis = LabelCfg (Just Ellipsis)
-  textClip = LabelCfg (Just ClipText)
+  textEllipsis = def {
+    _lscTextOverflow = Just Ellipsis
+  }
+  textClip = def {
+    _lscTextOverflow = Just ClipText
+  }
 
 data LabelState = LabelState {
   _lstCaption :: Text,

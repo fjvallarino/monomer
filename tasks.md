@@ -181,11 +181,11 @@
   - Focus event not received after clicking and gaining focus
   - Rethink focus handling. Maybe return a list of all focusable elements? Currently shift-tab is not possible
     - Added a direction parameter to widgetFindNextFocus
-
-- Pending
   - Think about argument position for widgets, in particular listview/radio
     - Should value come before items/option?
     - Should we use a list of configs instead of <> operator?
+
+- Pending
   - Add options to label/button (ellipsis/cut)
   - Add options to image widget (stretch/crop/etc)
     - Check if re-adding image on render should be inside lock

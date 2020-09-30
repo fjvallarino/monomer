@@ -7,7 +7,9 @@ module Monomer.Widget.Widgets.Button (
   button_
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default
+import Data.Maybe
 import Data.Text (Text)
 
 import Monomer.Event.Types
@@ -19,24 +21,35 @@ import Monomer.Widget.Util
 import Monomer.Widget.Widgets.WidgetCombinators
 
 data ButtonCfg s e = ButtonCfg {
+  _btnTextOverflow :: Maybe TextOverflow,
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s]
 }
 
 instance Default (ButtonCfg s e) where
   def = ButtonCfg {
+    _btnTextOverflow = Nothing,
     _btnOnClick = [],
     _btnOnClickReq = []
   }
 
 instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
+    _btnTextOverflow = _btnTextOverflow t2 <|> _btnTextOverflow t1,
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
   }
 
 instance Monoid (ButtonCfg s e) where
   mempty = def
+
+instance OnTextOverflow (ButtonCfg s e) where
+  textEllipsis = def {
+    _btnTextOverflow = Just Ellipsis
+  }
+  textClip = def {
+    _btnTextOverflow = Just ClipText
+  }
 
 instance OnClick (ButtonCfg s e) e where
   onClick handler = def {
@@ -48,21 +61,30 @@ instance OnClickReq (ButtonCfg s e) s where
     _btnOnClickReq = [req]
   }
 
+data BtnState = BtnState {
+  _btnCaption :: Text,
+  _btnCaptionFit :: Text
+} deriving (Eq, Show)
+
 button :: Text -> e -> WidgetInstance s e
-button label handler = button_ label handler def
+button caption handler = button_ caption handler def
 
 button_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
-button_ label handler configs = defaultWidgetInstance "button" widget where
+button_ caption handler configs = defaultWidgetInstance "button" widget where
   config = onClick handler <> mconcat configs
-  widget = makeButton label config
+  state = BtnState caption caption
+  widget = makeButton config state
 
-makeButton :: Text -> ButtonCfg s e -> Widget s e
-makeButton label config = widget where
+makeButton :: ButtonCfg s e -> BtnState -> Widget s e
+makeButton config state = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
+
+  textOverflow = fromMaybe Ellipsis (_btnTextOverflow config)
+  BtnState caption captionFit = state
 
   handleEvent wenv ctx evt widgetInst = case evt of
     Click p _
@@ -76,11 +98,29 @@ makeButton label config = widget where
   getSizeReq wenv widgetInst = sizeReq where
     theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextSize wenv theme style label
+    size = getTextSize wenv theme style caption
     sizeReq = SizeReq size FlexibleSize StrictSize
 
-  render renderer wenv widgetInst =
-    drawStyledText_ renderer renderArea style label
+  resize wenv viewport renderArea widgetInst = newInst where
+    theme = activeTheme wenv widgetInst
+    style = activeStyle wenv widgetInst
+    size = getTextSize wenv theme style caption
+    (newCaptionFit, _) = case textOverflow of
+      Ellipsis -> fitText wenv theme style renderArea caption
+      _ -> (caption, def)
+    newWidget
+      | captionFit == newCaptionFit = _wiWidget widgetInst
+      | otherwise = makeButton config (BtnState caption newCaptionFit)
+    newInst = widgetInst {
+      _wiWidget = newWidget,
+      _wiViewport = viewport,
+      _wiRenderArea = renderArea
+    }
+
+  render renderer wenv inst = do
+    setScissor renderer contentRect
+    drawStyledText_ renderer contentRect style captionFit
+    resetScissor renderer
     where
-      style = activeStyle wenv widgetInst
-      renderArea = _wiRenderArea widgetInst
+      style = activeStyle wenv inst
+      contentRect = getContentRect style inst
