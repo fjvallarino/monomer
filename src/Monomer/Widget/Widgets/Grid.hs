@@ -34,19 +34,29 @@ makeFixedGrid isHorizontal = widget where
   getSizeReq wenv widgetInst children = reqSize where
     vchildren = Seq.filter _wiVisible children
     vreqs = _wiSizeReq <$> vchildren
-    reqSize = SizeReq (Size width height) FlexibleSize FlexibleSize
-    width
-      | Seq.null vchildren = 0
-      | otherwise = wMul * (maximum . fmap (_sW . _srSize)) vreqs
-    height
-      | Seq.null vchildren = 0
-      | otherwise = hMul * (maximum . fmap (_sH . _srSize)) vreqs
+    nReqs = length vreqs
+    strictReqs policy = Seq.filter (\r -> policy r == StrictSize) vreqs
+    strictH = nReqs > 0 && Seq.length (strictReqs _srPolicyW) == nReqs
+    strictV = nReqs > 0 && Seq.length (strictReqs _srPolicyH) == nReqs
     wMul
       | isHorizontal = fromIntegral (length vchildren)
       | otherwise = 1
     hMul
       | isHorizontal = 1
       | otherwise = fromIntegral (length vchildren)
+    width
+      | Seq.null vchildren = 0
+      | otherwise = wMul * (maximum . fmap (_sW . _srSize)) vreqs
+    height
+      | Seq.null vchildren = 0
+      | otherwise = hMul * (maximum . fmap (_sH . _srSize)) vreqs
+    hPolicy
+      | not isHorizontal && strictH = StrictSize
+      | otherwise = FlexibleSize
+    vPolicy
+      | isHorizontal && strictV = StrictSize
+      | otherwise = FlexibleSize
+    reqSize = SizeReq (Size width height) hPolicy vPolicy
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea

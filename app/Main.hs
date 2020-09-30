@@ -134,31 +134,6 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
---  widgetTree1 = scroll $ vstack (newLabel <$> [0..100::Int])
---  widgetTree2 = vstack [
---      label (showt $ model ^. clickCount),
---      textField textField1 `style` bgColor lightGray,
---      hstack [
---        radio fruit Apple,
---        radio fruit Orange,
---        radio fruit Pear
---      ],
---      hstack [
---        checkbox condition1,
---        checkbox condition2,
---        checkbox condition3,
---        checkbox condition1
---      ],
---        --`style` bgColor lightGray <> textSize 40
---        --`focus` bgColor darkGray <> textSize 400,
---      --hstack labels `key` "Labels",
---      --hstack [
---      --  label "Label 1",
---      --  label "Label 2"
---      --],
---      listView textField1 items id,
---      button IncButton "Click!"
---    ] `key` "Main"
   widgetTree = vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
@@ -171,7 +146,7 @@ buildUI model = trace "Creating UI" widgetTree where
         checkbox condition3,
         checkbox_ condition1 [onChange CheckboxSt]
       ],
-      hstack [
+      hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],
         label "Short label"
       ],
