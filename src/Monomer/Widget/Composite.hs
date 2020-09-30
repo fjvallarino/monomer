@@ -1,7 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
-{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.Composite (
   EventResponse(..),

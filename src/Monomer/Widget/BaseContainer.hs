@@ -3,7 +3,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.BaseContainer (
   Container(..),

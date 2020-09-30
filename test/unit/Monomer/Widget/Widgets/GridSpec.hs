@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{- HLINT ignore "Reduce duplication" -}
 
 module Monomer.Widget.Widgets.GridSpec (spec) where
 

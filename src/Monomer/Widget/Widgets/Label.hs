@@ -1,5 +1,3 @@
-{- HLINT ignore "Reduce duplication" -}
-
 module Monomer.Widget.Widgets.Label (
   label,
   label_
