@@ -14,9 +14,10 @@ module Monomer.Widget.Widgets.ListView (
 
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (.~))
+import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
-import Data.Maybe (fromMaybe, maybeToList)
+import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
@@ -29,6 +30,8 @@ import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Color
+import Monomer.Graphics.Drawing
+import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -46,8 +49,8 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcOnChangeIdx :: [Int -> a -> e],
   _lvcOnChangeReqIdx :: [Int -> WidgetRequest s],
   _lvcSelectedStyle :: Maybe StyleState,
-  _lvcHighlightedStyle :: Maybe StyleState,
-  _lvcHoverStyle :: Maybe StyleState
+  _lvcHoverStyle :: Maybe StyleState,
+  _lvcHighlightedColor :: Maybe Color
 }
 
 instance Default (ListViewCfg s e a) where
@@ -55,8 +58,8 @@ instance Default (ListViewCfg s e a) where
     _lvcOnChangeIdx = [],
     _lvcOnChangeReqIdx = [],
     _lvcSelectedStyle = Just $ bgColor gray,
-    _lvcHighlightedStyle = Just $ border 1 darkGray,
-    _lvcHoverStyle = Just $ bgColor lightGray
+    _lvcHoverStyle = Just $ bgColor darkGray,
+    _lvcHighlightedColor = Just lightGray
   }
 
 instance Semigroup (ListViewCfg s e a) where
@@ -64,8 +67,8 @@ instance Semigroup (ListViewCfg s e a) where
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
     _lvcOnChangeReqIdx = _lvcOnChangeReqIdx t1 <> _lvcOnChangeReqIdx t2,
     _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
-    _lvcHighlightedStyle = _lvcHighlightedStyle t2 <|> _lvcHighlightedStyle t1,
-    _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1
+    _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1,
+    _lvcHighlightedColor = _lvcHighlightedColor t2 <|> _lvcHighlightedColor t1
   }
 
 instance Monoid (ListViewCfg s e a) where
@@ -86,14 +89,14 @@ instance SelectedStyle (ListViewCfg s e a) where
     _lvcSelectedStyle = Just style
   }
 
-instance HighlightedStyle (ListViewCfg s e a) where
-  highlightedStyle style = def {
-    _lvcHighlightedStyle = Just style
-  }
-
 instance HoverStyle (ListViewCfg s e a) where
   hoverStyle style = def {
     _lvcHoverStyle = Just style
+  }
+
+instance HighlightedColor (ListViewCfg s e a) where
+  highlightedColor color = def {
+    _lvcHighlightedColor = Just color
   }
 
 newtype ListViewState = ListViewState {
@@ -159,7 +162,7 @@ listViewD_ widgetData items makeRow configs = makeInstance widget where
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
-makeInstance widget = (defaultWidgetInstance "listView" widget) {
+makeInstance widget = scroll $ (defaultWidgetInstance "listView" widget) {
   _wiFocusable = True
 }
 
@@ -172,7 +175,7 @@ makeListView
   -> ListViewState
   -> Widget s e
 makeListView widgetData items makeRow config state = widget where
-  widget = createContainer def {
+  baseWidget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
     containerMerge = merge,
@@ -180,6 +183,9 @@ makeListView widgetData items makeRow config state = widget where
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
+  }
+  widget = baseWidget {
+    widgetRender = render
   }
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
@@ -191,7 +197,7 @@ makeListView widgetData items makeRow config state = widget where
     itemsList = makeItemsList items makeRow config path selected highlighted
     newInstance = widgetInst {
       _wiWidget = makeListView widgetData items makeRow config newState,
-      _wiChildren = Seq.singleton (scroll itemsList)
+      _wiChildren = Seq.singleton itemsList
     }
 
   init wenv widgetInst = resultWidget $ createListView wenv state widgetInst
@@ -259,13 +265,15 @@ makeListView widgetData items makeRow config state = widget where
     }
 
   itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
+    renderArea = itemRenderArea widgetInst idx
+    scrollPath =  parentPath widgetInst
+    scrollReq rect = SendMessage scrollPath (ScrollTo rect)
+
+  itemRenderArea widgetInst idx = renderArea where
     lookup idx inst = Seq.lookup idx (_wiChildren inst)
     renderArea = fmap _wiRenderArea $ pure widgetInst
-      >>= lookup 0 -- scroll
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
-    scrollPath = firstChildPath widgetInst
-    scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
   getSizeReq wenv widgetInst children = sizeReq where
     sizeReq = _wiSizeReq $ Seq.index children 0
@@ -273,6 +281,22 @@ makeListView widgetData items makeRow config state = widget where
   resize wenv viewport renderArea children widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (widgetInst, assignedArea)
+
+  render renderer wenv inst = do
+    renderWrapper defaultRender renderer wenv inst
+
+    when (isJust itemRect && isJust baseColor) $
+      drawRectBorder renderer (fromJust itemRect) itemBorder Nothing
+    where
+      children = _wiChildren inst
+      itemIdx = _highlighted state
+      itemRect = itemRenderArea inst itemIdx
+      baseColor = _lvcHighlightedColor config
+      highlightColor
+        | isFocused wenv inst = fromJust baseColor
+        | otherwise = fromJust baseColor & alpha .~ 0.4
+      bs = Just $ BorderSide 1 highlightColor
+      itemBorder = Border bs bs bs bs
 
 makeItemsList
   :: (Eq a)
@@ -289,11 +313,8 @@ makeItemsList items makeRow config path selected hlIdx = itemsList where
   selectedStyle item
     | isSelected item = _lvcSelectedStyle
     | otherwise = Nothing
-  highlightedStyle idx
-    | idx == hlIdx = _lvcHighlightedStyle
-    | otherwise = Nothing
   itemStyle idx item = def
-    & S.basic .~ (selectedStyle item <|> highlightedStyle idx)
+    & S.basic .~ selectedStyle item
     & S.hover .~ _lvcHoverStyle
   makeItem idx item = newItem where
     itemCfg = onClickReq $ SendMessage path (OnClickMessage idx)

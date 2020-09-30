@@ -150,19 +150,19 @@ buildUI model = trace "Creating UI" widgetTree where
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],
         label "Short label"
       ],
-      label "Text",
-      textField_ textField2 [validInput validText2, maxLength 10, onChange PrintMessage, selectOnFocus True]
-        `style` if model ^. validText2 then def else [border 1 red],
-      label "Floating",
-      floatingField_ float1 [validInput validFloat1]
-        `style` if model ^. validFloat1 then def else [border 1 red],
-      label "Integer",
-      integralField_ word1 [validInput validWord1, maxValue 100]
-        `style` if model ^. validWord1 then def else [border 1 red],
-      integralField_ int1 [validInput validInt1, maxValue 100]
-        `style` if model ^. validInt1 then def else [border 1 red],
-      integralField_ integer1 [validInput validInteger1, minValue 10, maxValue 100]
-        `style` if model ^. validInteger1 then def else [border 1 red],
+      -- label "Text",
+      -- textField_ textField2 [validInput validText2, maxLength 10, onChange PrintMessage, selectOnFocus True]
+      --   `style` if model ^. validText2 then def else [border 1 red],
+      -- label "Floating",
+      -- floatingField_ float1 [validInput validFloat1]
+      --   `style` if model ^. validFloat1 then def else [border 1 red],
+      -- label "Integer",
+      -- integralField_ word1 [validInput validWord1, maxValue 100]
+      --   `style` if model ^. validWord1 then def else [border 1 red],
+      -- integralField_ int1 [validInput validInt1, maxValue 100]
+      --   `style` if model ^. validInt1 then def else [border 1 red],
+      -- integralField_ integer1 [validInput validInteger1, minValue 10, maxValue 100]
+      --   `style` if model ^. validInteger1 then def else [border 1 red],
       listView textField1 items label
     ] `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]

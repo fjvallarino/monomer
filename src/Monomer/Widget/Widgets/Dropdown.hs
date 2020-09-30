@@ -44,8 +44,8 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcSelectedStyle :: Maybe StyleState,
-  _ddcHighlightedStyle :: Maybe StyleState,
-  _ddcHoverStyle :: Maybe StyleState
+  _ddcHoverStyle :: Maybe StyleState,
+  _ddcHighlightedColor :: Maybe Color
 }
 
 instance Default (DropdownCfg s e a) where
@@ -53,8 +53,8 @@ instance Default (DropdownCfg s e a) where
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcSelectedStyle = Just $ bgColor gray,
-    _ddcHighlightedStyle = Just $ border 1 darkGray,
-    _ddcHoverStyle = Just $ bgColor lightGray
+    _ddcHoverStyle = Just $ bgColor darkGray,
+    _ddcHighlightedColor = Just lightGray
   }
 
 instance Semigroup (DropdownCfg s e a) where
@@ -62,8 +62,8 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
-    _ddcHighlightedStyle = _ddcHighlightedStyle t2 <|> _ddcHighlightedStyle t1,
-    _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1
+    _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1,
+    _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1
   }
 
 instance Monoid (DropdownCfg s e a) where
@@ -84,14 +84,14 @@ instance SelectedStyle (DropdownCfg s e a) where
     _ddcSelectedStyle = Just style
   }
 
-instance HighlightedStyle (DropdownCfg s e a) where
-  highlightedStyle style = def {
-    _ddcHighlightedStyle = Just style
-  }
-
 instance HoverStyle (DropdownCfg s e a) where
   hoverStyle style = def {
     _ddcHoverStyle = Just style
+  }
+
+instance HighlightedColor (DropdownCfg s e a) where
+  highlightedColor color = def {
+    _ddcHighlightedColor = Just color
   }
 
 newtype DropdownState = DropdownState {
@@ -311,8 +311,8 @@ makeListView value items makeRow config path selected = listViewInst where
   lvConfig = [
       onChangeReqIdx (SendMessage path . OnChangeMessage),
       setStyle _ddcSelectedStyle selectedStyle,
-      setStyle _ddcHighlightedStyle highlightedStyle,
-      setStyle _ddcHoverStyle hoverStyle
+      setStyle _ddcHoverStyle hoverStyle,
+      maybe def highlightedColor _ddcHighlightedColor
     ]
   listViewInst = listViewD_ value items makeRow lvConfig
 

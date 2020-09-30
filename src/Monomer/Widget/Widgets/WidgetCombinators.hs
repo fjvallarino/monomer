@@ -6,6 +6,7 @@ import Control.Lens (ALens')
 import Data.Text (Text)
 
 import Monomer.Common.Style
+import Monomer.Graphics.Types
 import Monomer.Widget.Types
 
 class ValidInput t s where
@@ -55,6 +56,9 @@ class HighlightedStyle t where
 
 class HoverStyle t where
   hoverStyle :: StyleState -> t
+
+class HighlightedColor t where
+  highlightedColor :: Color -> t
 
 class OnTextOverflow t where
   textEllipsis :: t

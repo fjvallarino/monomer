@@ -3,11 +3,11 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Monad (foldM, when)
+import Control.Monad (foldM, unless, when)
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq, (|>))
+import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Foreign.C.Types (CFloat)
@@ -50,6 +50,7 @@ data ImageReq = ImageReq {
 }
 
 data Env = Env {
+  scissors :: Seq CRect,
   overlays :: Seq (IO ()),
   imagesMap :: ImagesMap,
   addedImages :: Seq ImageReq
@@ -70,6 +71,7 @@ makeRenderer dpr = do
 
   lock <- L.new
   envRef <- newIORef $ Env {
+    scissors = Seq.empty,
     overlays = Seq.empty,
     imagesMap = M.empty,
     addedImages = Seq.empty
@@ -124,14 +126,27 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Scissor operations
   setScissor rect = do
-    VG.save c
-    VG.scissor c x y w h
+    env <- readIORef envRef
+    modifyIORef envRef $ \env -> env {
+      scissors = crect <| scissors env
+    }
+    handleScissor $ scissors env
     where
-      CRect x y w h = rectToCRect rect dpr
+      crect = rectToCRect rect dpr
+      handleScissor scissors
+        | Seq.null scissors = setScissorVG c crect
+        | otherwise = intersectScissorVG c crect
 
   resetScissor = do
-    VG.resetScissor c
-    VG.restore c
+    modifyIORef envRef $ \env -> env {
+      scissors = Seq.drop 1 (scissors env)
+    }
+    env <- readIORef envRef
+    handleScissor $ scissors env
+    where
+      handleScissor scissors
+        | Seq.null scissors = VG.resetScissor c
+        | otherwise = applyScissorsVG c scissors
 
   -- Strokes
   stroke =
@@ -391,3 +406,17 @@ rectToCRect (Rect x y w h) dpr = CRect cx cy cw ch where
   cy = realToFrac $ y * dpr
   ch = realToFrac $ h * dpr
   cw = realToFrac $ w * dpr
+
+setScissorVG :: VG.Context -> CRect -> IO ()
+setScissorVG c crect = VG.scissor c x y w h where
+  CRect x y w h = crect
+
+intersectScissorVG :: VG.Context -> CRect -> IO ()
+intersectScissorVG c crect = VG.intersectScissor c x y w h where
+  CRect x y w h = crect
+
+applyScissorsVG :: VG.Context -> Seq CRect -> IO ()
+applyScissorsVG c Empty = return ()
+applyScissorsVG c (x :<| xs) = do
+  setScissorVG c x
+  mapM_ (intersectScissorVG c) xs

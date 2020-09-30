@@ -266,6 +266,10 @@ isClipboardPaste wenv event = checkKeyboard event testFn where
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOS wenv == "Mac OS X"
 
+parentPath :: WidgetInstance s e -> Path
+parentPath widgetInst = Seq.take (Seq.length path - 1) path where
+  path = _wiPath widgetInst
+
 firstChildPath :: WidgetInstance s e -> Path
 firstChildPath widgetInst = _wiPath widgetInst |> 0
 
