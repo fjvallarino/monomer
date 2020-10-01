@@ -1,12 +1,22 @@
 module Monomer.Widget.Widgets.Image (image) where
 
-import Codec.Picture (DynamicImage, Image(..), convertRGBA8, readImage)
+import Debug.Trace
+
+import Codec.Picture (DynamicImage, Image(..))
+import Control.Lens ((^.))
 import Control.Monad (when)
 import Data.ByteString (ByteString)
+import Data.Char (toLower)
 import Data.Default
 import Data.Maybe
+import Data.List (isPrefixOf)
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)
+import Network.Wreq
+
+import qualified Codec.Picture as Pic
+import qualified Data.ByteString.Lazy as BSL
+import qualified Network.Wreq as Wreq
 
 import Monomer.Common.Geometry
 import Monomer.Graphics.Drawing
@@ -21,7 +31,7 @@ newtype ImageState = ImageState {
 
 data ImageMessage
   = ImageLoaded ImageState
-  | ImageFailed
+  | ImageFailed String
 
 imageState :: ImageState
 imageState = ImageState Nothing
@@ -41,8 +51,7 @@ makeImage imgPath state = widget where
 
   init wenv inst = resultReqs reqs inst where
     path = _wiPath inst
-    handleLoadImage = loadImage wenv imgPath
-    reqs = [RunTask path handleLoadImage]
+    reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
   dispose wenv inst = resultReqs reqs inst where
     path = _wiPath inst
@@ -52,7 +61,7 @@ makeImage imgPath state = widget where
   handleMessage wenv target message inst = result where
     result = cast message >>= useImage inst
 
-  useImage inst ImageFailed = Nothing
+  useImage inst (ImageFailed msg) = traceShow msg Nothing
   useImage inst (ImageLoaded newState) = result where
     newInst = inst {
       _wiWidget = makeImage imgPath newState
@@ -78,10 +87,27 @@ makeImage imgPath state = widget where
       (imgBytes, imgSize) = fromJust imgData
       imageExists = existsImage renderer imgPath
 
-loadImage :: WidgetEnv s e -> String -> IO ImageMessage
-loadImage wenv path = do
-  res <- readImage path
+handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage
+handleImageLoad wenv path = do
+  res <- loadImage path
   registerImg wenv path res
+
+loadImage :: String -> IO (Either String DynamicImage)
+loadImage path
+  | not (isUrl path) = Pic.readImage path
+  | otherwise = loadRemote path
+
+loadRemote :: String -> IO (Either String DynamicImage)
+loadRemote path = do
+  r <- Wreq.get path
+
+  if respCode r == 200
+    then return . Pic.decodeImage $ respBody r
+    else return . Left $ errorMessage r
+  where
+    respCode r = r ^. responseStatus . statusCode
+    respBody r = BSL.toStrict $ r ^. responseBody
+    errorMessage r = "Status: " ++ show (respCode r)
 
 removeImage :: WidgetEnv s e -> String -> IO (Maybe ImageMessage)
 removeImage wenv path = do
@@ -95,13 +121,13 @@ registerImg
   -> String
   -> Either String DynamicImage
   -> IO ImageMessage
-registerImg wenv name Left{} = return ImageFailed
+registerImg wenv name (Left msg) = return $ ImageFailed msg
 registerImg wenv name (Right dimg) = do
   addImage renderer name ImageAddKeep size bs
   return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
-    img = convertRGBA8 dimg
+    img = Pic.convertRGBA8 dimg
     cw = imageWidth img
     ch = imageHeight img
     size = Size (fromIntegral cw) (fromIntegral ch)
@@ -109,3 +135,7 @@ registerImg wenv name (Right dimg) = do
     newState = ImageState {
       isImageData = Just (bs, size)
     }
+
+isUrl :: String -> Bool
+isUrl url = isPrefixOf "http://" lurl || isPrefixOf "https://" lurl where
+  lurl = map toLower url

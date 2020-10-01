@@ -45,6 +45,7 @@ dependencies:
 - transformers
 - unordered-containers
 - vector
+- wreq
 
 library:
   source-dirs: src
