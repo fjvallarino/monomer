@@ -185,9 +185,9 @@
     - Should value come before items/option?
     - Should we use a list of configs instead of <> operator?
   - Add options to label/button (ellipsis/cut)
+  - Add support for urls to image widget
 
 - Pending
-  - Add support for urls to image widget
   - Add options to image widget (stretch/crop/etc)
     - Check if re-adding image on render should be inside lock
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
@@ -210,6 +210,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Do not draw non visible items in grid/stack (outside viewport)
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history
@@ -231,7 +232,3 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
-  - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Implement SDL_Surface + Cairo backend
-    - Can we cache some drawing operations?

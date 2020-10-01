@@ -303,10 +303,11 @@ newRenderer c dpr lock envRef = Renderer {..} where
     env <- readIORef envRef
     return $ M.member name (imagesMap env)
 
-  renderImage rect name = do
+  renderImage name rect alpha = do
     env <- readIORef envRef
-    mapM_ (handleRender c dpr rect) $ M.lookup name (imagesMap env)
+    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
 
+addPending :: L.Lock -> IORef Env -> ImageReq -> IO ()
 addPending lock envRef imageReq = L.with lock $ do
   env <- readIORef envRef
 
@@ -314,9 +315,9 @@ addPending lock envRef imageReq = L.with lock $ do
     addedImages = addedImages env |> imageReq
   }
 
-handleRender :: VG.Context -> Double -> Rect -> Image -> IO ()
-handleRender c dpr rect image = do
-  imgPaint <- VG.imagePattern c x y w h 0 nvImg 1
+handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
+handleImageRender c dpr rect alpha image = do
+  imgPaint <- VG.imagePattern c x y w h 0 nvImg calpha
   VG.beginPath c
   VG.rect c x y w h
   VG.fillPaint c imgPaint
@@ -324,6 +325,7 @@ handleRender c dpr rect image = do
   where
     CRect x y w h = rectToCRect rect dpr
     nvImg = _imNvImage image
+    calpha = realToFrac alpha
 
 textGlyphPositions
   :: VG.Context -> Double -> Double -> Text -> IO (V.Vector VG.GlyphPosition)

@@ -60,6 +60,9 @@ class HoverStyle t where
 class HighlightedColor t where
   highlightedColor :: Color -> t
 
+class Transparency t where
+  transparency :: Double -> t
+
 class OnTextOverflow t where
   textEllipsis :: t
   textClip :: t

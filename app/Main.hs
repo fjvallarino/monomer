@@ -152,7 +152,7 @@ buildUI model = trace "Creating UI" widgetTree where
       ],
       hgrid [
         image "assets/images/pecans.jpg",
-        image "https://picsum.photos/600/400"
+        image_ "https://picsum.photos/600/400" [fitHeight, transparency 0.3]
       ],
       button "Click me" (PrintMessage "Button clicked")
       --,

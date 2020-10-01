@@ -1,8 +1,16 @@
-module Monomer.Widget.Widgets.Image (image) where
+module Monomer.Widget.Widgets.Image (
+  image,
+  image_,
+  fitNone,
+  fitFill,
+  fitWidth,
+  fitHeight
+) where
 
 import Debug.Trace
 
 import Codec.Picture (DynamicImage, Image(..))
+import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Data.ByteString (ByteString)
@@ -24,6 +32,51 @@ import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+import Monomer.Widget.Widgets.WidgetCombinators
+
+data ImageFit
+  = FitNone
+  | FitFill
+  | FitWidth
+  | FitHeight
+  deriving (Eq, Show)
+
+data ImageCfg = ImageCfg {
+  _imcFit :: Maybe ImageFit,
+  _imcTransparency :: Maybe Double
+}
+
+instance Default ImageCfg where
+  def = ImageCfg {
+    _imcFit = Nothing,
+    _imcTransparency = Nothing
+  }
+
+instance Semigroup ImageCfg where
+  (<>) i1 i2 = ImageCfg {
+    _imcFit = _imcFit i2 <|> _imcFit i1,
+    _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
+  }
+
+instance Monoid ImageCfg where
+  mempty = def
+
+instance Transparency ImageCfg where
+  transparency alpha = def {
+    _imcTransparency = Just alpha
+  }
+
+fitNone :: ImageCfg
+fitNone = def { _imcFit = Just FitNone }
+
+fitFill :: ImageCfg
+fitFill = def { _imcFit = Just FitFill }
+
+fitWidth :: ImageCfg
+fitWidth = def { _imcFit = Just FitWidth }
+
+fitHeight :: ImageCfg
+fitHeight = def { _imcFit = Just FitHeight }
 
 newtype ImageState = ImageState {
   isImageData :: Maybe (ByteString, Size)
@@ -37,10 +90,15 @@ imageState :: ImageState
 imageState = ImageState Nothing
 
 image :: String -> WidgetInstance s e
-image path = defaultWidgetInstance "image" (makeImage path imageState)
+image path = image_ path def
 
-makeImage :: String -> ImageState -> Widget s e
-makeImage imgPath state = widget where
+image_ :: String -> [ImageCfg] -> WidgetInstance s e
+image_ path configs = defaultWidgetInstance "image" widget where
+  config = mconcat configs
+  widget = makeImage path config imageState
+
+makeImage :: String -> ImageCfg -> ImageState -> Widget s e
+makeImage imgPath config state = widget where
   widget = createSingle def {
     singleInit = init,
     singleDispose = dispose,
@@ -64,7 +122,7 @@ makeImage imgPath state = widget where
   useImage inst (ImageFailed msg) = traceShow msg Nothing
   useImage inst (ImageLoaded newState) = result where
     newInst = inst {
-      _wiWidget = makeImage imgPath newState
+      _wiWidget = makeImage imgPath config newState
     }
     result = Just $ resultReqs [Resize] newInst
 
@@ -78,14 +136,29 @@ makeImage imgPath state = widget where
     when (imageLoaded && not imageExists) $
       addImage renderer imgPath ImageAddKeep imgSize imgBytes
 
-    drawStyledImage renderer contentRect style imgPath
+    when imageLoaded $
+      drawInScissor renderer True contentRect $
+        drawStyledImage renderer imgPath imageRect alpha style
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst
+      alpha = fromMaybe 1 (_imcTransparency config)
+      fitMode = fromMaybe FitNone (_imcFit config)
+      imageRect = fitImage fitMode imgSize contentRect
       ImageState imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
       imageExists = existsImage renderer imgPath
+
+fitImage :: ImageFit -> Size -> Rect -> Rect
+fitImage fitMode imageSize renderArea = case fitMode of
+  FitNone -> Rect x y iw ih
+  FitFill -> Rect x y w h
+  FitWidth -> Rect x y w ih
+  FitHeight -> Rect x y iw h
+  where
+    Rect x y w h = renderArea
+    Size iw ih = imageSize
 
 handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage
 handleImageLoad wenv path = do

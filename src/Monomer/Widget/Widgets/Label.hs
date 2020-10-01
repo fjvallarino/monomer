@@ -95,10 +95,9 @@ makeLabel config state = widget where
       _wiRenderArea = renderArea
     }
 
-  render renderer wenv inst = do
-    setScissor renderer contentRect
-    drawStyledText_ renderer contentRect style captionFit
-    resetScissor renderer
+  render renderer wenv inst =
+    drawInScissor renderer True contentRect $
+      drawStyledText_ renderer contentRect style captionFit
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst

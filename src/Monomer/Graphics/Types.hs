@@ -129,7 +129,7 @@ data Renderer = Renderer {
   updateImage :: String -> ByteString -> IO (),
   deleteImage :: String -> IO (),
   existsImage :: String -> Bool,
-  renderImage :: Rect -> String -> IO ()
+  renderImage :: String -> Rect -> Double -> IO ()
 }
 
 makeLensesWith abbreviatedFields ''Color

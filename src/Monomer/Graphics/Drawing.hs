@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.Drawing (
+  drawInScissor,
   drawRect,
   drawRectBorder,
   drawEllipse,
@@ -23,6 +24,13 @@ import Monomer.Common.Geometry
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Graphics.Types
+
+drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
+drawInScissor renderer False _ action = action
+drawInScissor renderer True rect action = do
+  setScissor renderer rect
+  action
+  resetScissor renderer
 
 drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
 drawRect _ _ Nothing _ = pure ()
@@ -108,14 +116,14 @@ drawText renderer viewport color font fontSize align txt = do
   setFillColor renderer color
   renderText renderer viewport font fontSize align txt
 
-drawImage :: Renderer -> Rect -> String -> IO ()
-drawImage renderer viewport imgName = action where
-  action = renderImage renderer viewport imgName
+drawImage :: Renderer -> String -> Rect -> Double -> IO ()
+drawImage renderer imgName viewport alpha = action where
+  action = renderImage renderer imgName viewport alpha
 
-drawStyledImage :: Renderer -> Rect -> StyleState -> String -> IO ()
-drawStyledImage renderer viewport style imgName = action where
+drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
+drawStyledImage renderer imgName viewport alpha style = action where
   imgRect = removeOuterBounds style viewport
-  action = renderImage renderer imgRect imgName
+  action = renderImage renderer imgName imgRect alpha
 
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =
