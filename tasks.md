@@ -186,17 +186,17 @@
     - Should we use a list of configs instead of <> operator?
   - Add options to label/button (ellipsis/cut)
   - Add support for urls to image widget
-
-- Pending
   - Add options to image widget (stretch/crop/etc)
     - Check if re-adding image on render should be inside lock
-  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
-  - Can _wiChildren be removed from Widget and only be kept in Container?
+
+- Pending
   - Rename spacer
+  - Can _wiChildren be removed from Widget and only be kept in Container?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Fix dropdown issues
     - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
     - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
+  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create Layer widget
   - Create Dialog
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay

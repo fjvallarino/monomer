@@ -138,7 +138,7 @@ makeImage imgPath config state = widget where
 
     when imageLoaded $
       drawInScissor renderer True contentRect $
-        drawStyledImage renderer imgPath imageRect alpha style
+        drawImage renderer imgPath imageRect alpha style
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst

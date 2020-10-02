@@ -9,6 +9,11 @@ import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
+data SpacerCfg = SpacerCfg {
+  _spcWidth :: Maybe Double,
+  _spcHeight :: Maybe Double
+}
+
 spacer :: WidgetInstance s e
 spacer = defaultWidgetInstance "spacer" makeSpacer
 
