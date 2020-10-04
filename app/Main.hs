@@ -81,9 +81,7 @@ main = do
 
   winSize <- getDrawableSize window
 
-  let model = def  {
-    _textField1 = "This is a test! Or not? Well, we'll see"
-  }
+  let model = def
   let devicePixelRate = _sW winSize / fromIntegral screenWidth
   let appWidget = createApp model (Just InitApp) handleAppEvent buildUI
   let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
@@ -150,9 +148,10 @@ buildUI model = trace "Creating UI" widgetTree where
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],
         label "Short label"
       ],
-      hgrid [
-        image "assets/images/pecans.jpg",
-        image_ "https://picsum.photos/600/400" [fitHeight, transparency 1]
+      hstack [
+        image_ "assets/images/pecans.jpg" [fitFill],
+        spacer,
+        image_ "https://picsum.photos/600/400" [fitHeight]
       ],
       hstack [
         label "Test"

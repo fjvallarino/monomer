@@ -50,8 +50,8 @@ instance Monoid ThemeState where
 
 -- | Basic styling attributes
 data SizeReq
-  = FlexSize Coord Factor
-  | FixedSize Coord
+  = FixedSize Coord
+  | FlexSize Coord Factor
 --  | MinSize Coord
 --  | MaxSize Coord
 --  | RangeSize Coord Coord

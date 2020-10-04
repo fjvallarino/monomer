@@ -4,6 +4,8 @@ module Monomer.Widget.Internal (
   handleStyleChange,
   isStrictReq,
   getReqCoord,
+  getReqFactor,
+  getReqFactored,
   modifyReqCoord
 ) where
 
@@ -68,11 +70,18 @@ isStrictReq FlexSize{} = False
 isStrictReq _ = True
 
 getReqCoord :: SizeReq -> Coord
-getReqCoord (FlexSize c _) = c
 getReqCoord (FixedSize c) = c
+getReqCoord (FlexSize c _) = c
 --getReqCoord (MinSize c) = c
 --getReqCoord (MaxSize c) = c
 --getReqCoord (RangeSize c1 _) = c1
+
+getReqFactor :: SizeReq -> Factor
+getReqFactor (FixedSize _) = 1
+getReqFactor (FlexSize _ f) = f
+
+getReqFactored :: SizeReq -> Coord
+getReqFactored req = getReqFactor req * getReqCoord req
 
 modifyReqCoord :: SizeReq -> (Coord -> Coord) -> SizeReq
 modifyReqCoord (FlexSize c factor) f = FlexSize (f c) factor

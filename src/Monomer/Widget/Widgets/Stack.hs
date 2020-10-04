@@ -52,17 +52,18 @@ makeStack isHorizontal = widget where
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
-    vchildren = Seq.filter _wiVisible children
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then l else t
+    vchildren = Seq.filter _wiVisible children
     sChildren = Seq.filter (isStrictReq . mainReqSelector) vchildren
     fChildren = Seq.filter (not . isStrictReq . mainReqSelector) vchildren
     fExists = not $ null fChildren
     sSize = sizeSelector $ calcSize sChildren
     fSize = sizeSelector $ calcSize fChildren
+    fSizeFactor = sizeSelector $ calcSizeFactor fChildren
     rSize = max 0 (mainSize - sSize)
     fExtra
-      | fExists && fSize > 0 = (rSize - fSize) / fSize
+      | fExists && fSize > 0 = (rSize - fSize) / fSizeFactor
       | otherwise = 0
     assignedArea = Seq.zip newViewports newViewports
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
@@ -77,7 +78,8 @@ makeStack isHorizontal = widget where
     emptyRect = Rect l t 0 0
     calcMainSize = case mainReqSelector child of
       FixedSize sz -> sz
-      FlexSize sz factor -> (1 + fExtra) * sz -- factor still not accounted for
+      -- factor still not accounted for
+      FlexSize sz factor -> (1 + fExtra * factor) * sz  -- (1 + fExtra) * sz
     calcSndSize total = case sndReqSelector child of
       FixedSize sz -> sz
       _ -> total
@@ -88,26 +90,32 @@ makeStack isHorizontal = widget where
       | isHorizontal = hRect
       | otherwise = vRect
 
-  calcSize vchildren = Size width height where
-    (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vchildren
-    width
-      | isHorizontal = sumWidth
-      | otherwise = maxWidth
-    height
-      | isHorizontal = maxHeight
-      | otherwise = sumHeight
+  calcSize vchildren = calcSize_ vchildren False
+  calcSizeFactor vchildren = calcSize_ vchildren True
 
-  calcDimensions vchildren = (maxWidth, sumWidth, maxHeight, sumHeight) where
+  calcSize_ vchildren useFactor = Size width height where
+    (maxW, sumW, maxH, sumH) = calcDimensions vchildren useFactor
+    width
+      | isHorizontal = sumW
+      | otherwise = maxW
+    height
+      | isHorizontal = maxH
+      | otherwise = sumH
+
+  calcDimensions vchildren useFactor = (maxW, sumW, maxH, sumH) where
+    getReqSize
+      | useFactor = getReqFactored
+      | otherwise = getReqCoord
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
-    sumWidth = (sum . fmap getReqCoord) vreqsW
-    sumHeight = (sum . fmap getReqCoord) vreqsH
-    maxWidth
+    sumW = (sum . fmap getReqSize) vreqsW
+    sumH = (sum . fmap getReqSize) vreqsH
+    maxW
       | Seq.null vchildren = 0
-      | otherwise = (maximum . fmap getReqCoord) vreqsW
-    maxHeight
+      | otherwise = (maximum . fmap getReqSize) vreqsW
+    maxH
       | Seq.null vchildren = 0
-      | otherwise = (maximum . fmap getReqCoord) vreqsH
+      | otherwise = (maximum . fmap getReqSize) vreqsH
 
   mainReqSelector
     | isHorizontal = _wiSizeReqW
