@@ -2,7 +2,9 @@ module Monomer.Widget.Internal (
   addOuterSizeReq,
   handleSizeReqStyle,
   handleStyleChange,
-  isStrictReq,
+  isFixedReq,
+  isFlexReq,
+  isBoundedReq,
   getReqCoord,
   getReqFactor,
   getReqFactored,
@@ -64,28 +66,32 @@ addOuterSizeReq style (reqW, reqH) = (newReqW, newReqH) where
   newReqW = modifyReqCoord reqW (+w)
   newReqH = modifyReqCoord reqH (+h)
 
-isStrictReq :: SizeReq -> Bool
-isStrictReq FlexSize{} = False
---isStrictReq MaxSize{} = False
-isStrictReq _ = True
+isFixedReq :: SizeReq -> Bool
+isFixedReq FixedSize{} = True
+isFixedReq _ = False
+
+isFlexReq :: SizeReq -> Bool
+isFlexReq FlexSize{} = True
+isFlexReq _ = False
+
+isBoundedReq :: SizeReq -> Bool
+isBoundedReq BoundedSize{} = True
+isBoundedReq _ = False
 
 getReqCoord :: SizeReq -> Coord
 getReqCoord (FixedSize c) = c
 getReqCoord (FlexSize c _) = c
---getReqCoord (MinSize c) = c
---getReqCoord (MaxSize c) = c
---getReqCoord (RangeSize c1 _) = c1
+getReqCoord (BoundedSize c1 c2 _) = c1
 
 getReqFactor :: SizeReq -> Factor
 getReqFactor (FixedSize _) = 1
 getReqFactor (FlexSize _ f) = f
+getReqFactor (BoundedSize _ _ f) = f
 
 getReqFactored :: SizeReq -> Coord
 getReqFactored req = getReqFactor req * getReqCoord req
 
 modifyReqCoord :: SizeReq -> (Coord -> Coord) -> SizeReq
-modifyReqCoord (FlexSize c factor) f = FlexSize (f c) factor
 modifyReqCoord (FixedSize c) f = FixedSize (f c)
---modifyReqCoord (MinSize c) f = MinSize (f c)
---modifyReqCoord (MaxSize c) f = MaxSize (f c)
---modifyReqCoord (RangeSize c1 c2) f = RangeSize (f c1) (f c2)
+modifyReqCoord (FlexSize c factor) f = FlexSize (f c) factor
+modifyReqCoord (BoundedSize c1 c2 factor) f = BoundedSize (f c1) (f c2) factor

@@ -38,9 +38,9 @@ makeFixedGrid isHorizontal = widget where
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
-    strictReqs reqs = Seq.filter isStrictReq reqs
-    strictW = nReqs > 0 && Seq.length (strictReqs vreqsW) == nReqs
-    strictH = nReqs > 0 && Seq.length (strictReqs vreqsH) == nReqs
+    fixedReqs reqs = Seq.filter isFixedReq reqs
+    fixedW = nReqs > 0 && Seq.length (fixedReqs vreqsW) == nReqs
+    fixedH = nReqs > 0 && Seq.length (fixedReqs vreqsH) == nReqs
     factor = 1
     wMul
       | isHorizontal = fromIntegral (length vchildren)
@@ -55,10 +55,10 @@ makeFixedGrid isHorizontal = widget where
       | Seq.null vchildren = 0
       | otherwise = hMul * (maximum . fmap getReqCoord) vreqsH
     newSizeReqW
-      | not isHorizontal && strictW = FixedSize width
+      | not isHorizontal && fixedW = FixedSize width
       | otherwise = FlexSize width factor
     newSizeReqH
-      | isHorizontal && strictH = FixedSize height
+      | isHorizontal && fixedH = FixedSize height
       | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children widgetInst = resized where
@@ -82,3 +82,8 @@ makeFixedGrid isHorizontal = widget where
     calcViewport i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) vchildren
     resized = (widgetInst, assignedAreas)
+
+getMaxSize :: SizeReq -> Coord
+getMaxSize (FixedSize c) = c
+getMaxSize (FlexSize c _) = c
+getMaxSize (BoundedSize _ c2 _) = c2

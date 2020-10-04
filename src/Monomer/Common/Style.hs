@@ -52,9 +52,7 @@ instance Monoid ThemeState where
 data SizeReq
   = FixedSize Coord
   | FlexSize Coord Factor
---  | MinSize Coord
---  | MaxSize Coord
---  | RangeSize Coord Coord
+  | BoundedSize Coord Coord Factor
   deriving (Eq, Show)
 
 instance Default SizeReq where

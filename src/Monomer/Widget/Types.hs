@@ -35,7 +35,7 @@ newtype WidgetType
   deriving (Eq, Show)
 
 instance IsString WidgetType where
-  fromString str = WidgetType str
+  fromString = WidgetType
 
 data WidgetData s a
   = WidgetValue a

@@ -4,6 +4,7 @@ module Monomer.Widget.Widgets.Stack (
 ) where
 
 import Data.Default
+import Data.Foldable (toList)
 import Data.List (foldl')
 import Data.Sequence (Seq(..), (<|), (|>))
 
@@ -33,34 +34,48 @@ makeStack isHorizontal = widget where
     containerResize = resize
   }
 
+  isVertical = not isHorizontal
+
   getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
-    strictReqs reqs = Seq.filter isStrictReq reqs
-    strictW = nReqs > 0 && Seq.length (strictReqs vreqsW) == nReqs
-    strictH = nReqs > 0 && Seq.length (strictReqs vreqsH) == nReqs
-    factor = 1
-    Size width height = calcSize vchildren
+    fixedW = fmap getFixedSize vreqsW
+    fixedH = fmap getFixedSize vreqsH
+    flexW = fmap (getFlexSize False) vreqsW
+    flexH = fmap (getFlexSize False) vreqsH
+    tmaxW = maximum fixedW + maximum flexW
+    tmaxH = maximum fixedH + maximum flexH
+    tsumW = sum fixedW + sum flexW
+    tsumH = sum fixedH + sum flexH
+    factW = getFactorAvg vreqsW
+    factH = getFactorAvg vreqsH
     newSizeReqW
-      | not isHorizontal && strictW = FixedSize width
-      | otherwise = FlexSize width factor
+      | isVertical && Seq.null flexW = FixedSize (maximum fixedW)
+      | isVertical && Seq.null fixedW = FlexSize (maximum flexW) factW
+      | isVertical = BoundedSize (maximum fixedW) tmaxW factW
+      | Seq.null flexW = FixedSize (sum fixedW)
+      | Seq.null fixedW = FlexSize (sum flexW) factW
+      | otherwise = BoundedSize (sum fixedW) tsumW factW
     newSizeReqH
-      | isHorizontal && strictH = FixedSize height
-      | otherwise = FlexSize height factor
+      | isHorizontal && Seq.null flexH = FixedSize (maximum fixedH)
+      | isHorizontal && Seq.null fixedH = FlexSize (maximum flexH) factH
+      | isHorizontal = BoundedSize (maximum fixedH) tmaxH factH
+      | Seq.null flexH = FixedSize (sum fixedH)
+      | Seq.null fixedH = FlexSize (sum flexH) factH
+      | otherwise = BoundedSize (sum fixedH) tsumH factH
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then l else t
     vchildren = Seq.filter _wiVisible children
-    sChildren = Seq.filter (isStrictReq . mainReqSelector) vchildren
-    fChildren = Seq.filter (not . isStrictReq . mainReqSelector) vchildren
-    fExists = not $ null fChildren
-    sSize = sizeSelector $ calcSize sChildren
-    fSize = sizeSelector $ calcSize fChildren
-    fSizeFactor = sizeSelector $ calcSizeFactor fChildren
+    reqs = fmap mainReqSelector vchildren
+    sSize = sum $ fmap getFixedSize reqs
+    fSize = sum $ fmap (getFlexSize False) reqs
+    fExists = fSize > 0
+    fSizeFactor = sum $ fmap (getFlexSize True) reqs
     rSize = max 0 (mainSize - sSize)
     fExtra
       | fExists && fSize > 0 = (rSize - fSize) / fSizeFactor
@@ -78,10 +93,11 @@ makeStack isHorizontal = widget where
     emptyRect = Rect l t 0 0
     calcMainSize = case mainReqSelector child of
       FixedSize sz -> sz
-      -- factor still not accounted for
-      FlexSize sz factor -> (1 + fExtra * factor) * sz  -- (1 + fExtra) * sz
+      FlexSize sz factor -> (1 + fExtra * factor) * sz
+      BoundedSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
     calcSndSize total = case sndReqSelector child of
       FixedSize sz -> sz
+      BoundedSize sz1 sz2 _ -> max sz1 (min sz2 total)
       _ -> total
     hRect = Rect offset t calcMainSize (calcSndSize h)
     vRect = Rect l offset (calcSndSize w) calcMainSize
@@ -132,3 +148,26 @@ makeStack isHorizontal = widget where
   rectSelector
     | isHorizontal = _rW
     | otherwise = _rH
+
+getFixedSize :: SizeReq -> Coord
+getFixedSize (FixedSize c) = c
+getFixedSize (FlexSize c _) = 0
+getFixedSize (BoundedSize c1 _ _) = c1
+
+getFlexSize :: Bool -> SizeReq -> Coord
+getFlexSize useFactor req = coord where
+  factor
+    | useFactor = getReqFactor req
+    | otherwise = 1
+  coord = case req of
+    FixedSize c -> 0
+    FlexSize c _ -> c * factor
+    BoundedSize c1 c2 _ -> (c2 - c1) * factor
+
+getFactorAvg :: Seq SizeReq -> Double
+getFactorAvg reqs
+  | Seq.null flexReqs = 1
+  | otherwise = sum (fmap getReqFactor flexReqs) / flexCount
+  where
+    flexReqs = Seq.filter (not . isFixedReq) reqs
+    flexCount = fromIntegral (Seq.length flexReqs)

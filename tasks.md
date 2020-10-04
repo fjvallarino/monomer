@@ -191,6 +191,7 @@
 
 - Pending
   - Rename spacer
+  - Remove Tree
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Fix dropdown issues
