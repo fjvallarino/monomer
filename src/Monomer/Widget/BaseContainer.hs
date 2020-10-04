@@ -29,6 +29,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Common.Tree
 import Monomer.Event.Types
@@ -91,7 +92,7 @@ type ContainerGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
   -> Seq (WidgetInstance s e)
-  -> SizeReq
+  -> (SizeReq, SizeReq)
 
 type ContainerResizeHandler s e
   = WidgetEnv s e
@@ -382,12 +383,7 @@ handleMessageWrapper mHandler wenv target arg widgetInst
 
 -- | Preferred size
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e
-defaultGetSizeReq wenv inst children = req where
-  req = SizeReq {
-    _srSize = Size 0 0,
-    _srPolicyW = FlexibleSize,
-    _srPolicyH = FlexibleSize
-  }
+defaultGetSizeReq wenv inst children = def
 
 updateSizeReqWrapper
   :: ContainerGetSizeReqHandler s e
@@ -399,10 +395,12 @@ updateSizeReqWrapper psHandler wenv widgetInst = newInst where
   children = _wiChildren widgetInst
   updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
   newChildren = fmap updateChild children
-  sizeReq = psHandler wenv widgetInst newChildren
+  reqs = psHandler wenv widgetInst newChildren
+  (newReqW, newReqH) = handleSizeReqStyle style reqs
   newInst = widgetInst {
     _wiChildren = newChildren,
-    _wiSizeReq = handleSizeReqStyle style sizeReq
+    _wiSizeReqW = newReqW,
+    _wiSizeReqH = newReqH
   }
 
 -- | Resize

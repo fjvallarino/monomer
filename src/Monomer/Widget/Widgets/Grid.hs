@@ -10,6 +10,8 @@ import Data.Sequence (Seq(..), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.BaseContainer
@@ -31,13 +33,15 @@ makeFixedGrid isHorizontal = widget where
     containerResize = resize
   }
 
-  getSizeReq wenv widgetInst children = reqSize where
+  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
-    vreqs = _wiSizeReq <$> vchildren
-    nReqs = length vreqs
-    strictReqs policy = Seq.filter (\r -> policy r == StrictSize) vreqs
-    strictH = nReqs > 0 && Seq.length (strictReqs _srPolicyW) == nReqs
-    strictV = nReqs > 0 && Seq.length (strictReqs _srPolicyH) == nReqs
+    nReqs = length vchildren
+    vreqsW = _wiSizeReqW <$> vchildren
+    vreqsH = _wiSizeReqH <$> vchildren
+    strictReqs reqs = Seq.filter isStrictReq reqs
+    strictW = nReqs > 0 && Seq.length (strictReqs vreqsW) == nReqs
+    strictH = nReqs > 0 && Seq.length (strictReqs vreqsH) == nReqs
+    factor = 1
     wMul
       | isHorizontal = fromIntegral (length vchildren)
       | otherwise = 1
@@ -46,17 +50,16 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = fromIntegral (length vchildren)
     width
       | Seq.null vchildren = 0
-      | otherwise = wMul * (maximum . fmap (_sW . _srSize)) vreqs
+      | otherwise = wMul * (maximum . fmap getReqCoord) vreqsW
     height
       | Seq.null vchildren = 0
-      | otherwise = hMul * (maximum . fmap (_sH . _srSize)) vreqs
-    hPolicy
-      | not isHorizontal && strictH = StrictSize
-      | otherwise = FlexibleSize
-    vPolicy
-      | isHorizontal && strictV = StrictSize
-      | otherwise = FlexibleSize
-    reqSize = SizeReq (Size width height) hPolicy vPolicy
+      | otherwise = hMul * (maximum . fmap getReqCoord) vreqsH
+    newSizeReqW
+      | not isHorizontal && strictW = FixedSize width
+      | otherwise = FlexSize width factor
+    newSizeReqH
+      | isHorizontal && strictH = FixedSize height
+      | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea

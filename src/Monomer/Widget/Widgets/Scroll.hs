@@ -21,11 +21,13 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 
@@ -279,8 +281,12 @@ makeScroll config state = widget where
     newInst = scrollResize (Just newWidget) newState wenv vp ra tempInst
 
   getSizeReq wenv widgetInst children = sizeReq where
-    size = _srSize $ _wiSizeReq (Seq.index children 0)
-    sizeReq = SizeReq size FlexibleSize FlexibleSize
+    child = Seq.index children 0
+    w = getReqCoord $ _wiSizeReqW child
+    h = getReqCoord $ _wiSizeReqH child
+    factor = 1
+
+    sizeReq = (FlexSize w factor, FlexSize h factor)
 
   scrollResize uWidget state wenv viewport renderArea widgetInst = newInst where
     Rect l t w h = renderArea
@@ -288,9 +294,9 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (_wiChildren widgetInst) 0
-    childReq = _wiSizeReq child
+    childWidth2 = getReqCoord $ _wiSizeReqW child
+    childHeight2 = getReqCoord $ _wiSizeReqH child
 
-    Size childWidth2 childHeight2 = _srSize childReq
     areaW = max w childWidth2
     areaH = max h childHeight2
     cRenderArea = Rect (l + dx) (t + dy) areaW areaH

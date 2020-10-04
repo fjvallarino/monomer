@@ -34,6 +34,7 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseContainer
+import Monomer.Widget.Internal
 import Monomer.Widget.Types
 import Monomer.Widget.Util
 import Monomer.Widget.Widgets.Label
@@ -260,13 +261,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   getSizeReq wenv widgetInst children = sizeReq where
     theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextSize wenv theme style (dropdownLabel wenv)
-    sizeReq = SizeReq size FlexibleSize StrictSize
+    Size w h = getTextSize wenv theme style (dropdownLabel wenv)
+    factor = 1
+    sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea children widgetInst = resized where
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
-        reqHeight = _sH . _srSize . _wiSizeReq $ child
+        reqHeight = getReqCoord . _wiSizeReqH $ child
         maxHeight = min reqHeight 150
         oViewport = viewport {
           _rY = _rY viewport + _rH viewport,

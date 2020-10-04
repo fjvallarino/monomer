@@ -275,8 +275,10 @@ makeListView widgetData items makeRow config state = widget where
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
-  getSizeReq wenv widgetInst children = sizeReq where
-    sizeReq = _wiSizeReq $ Seq.index children 0
+  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+    child = Seq.index children 0
+    newSizeReqW = _wiSizeReqW child
+    newSizeReqH = _wiSizeReqW child
 
   resize wenv viewport renderArea children widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)

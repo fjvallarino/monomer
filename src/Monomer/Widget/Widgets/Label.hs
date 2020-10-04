@@ -8,6 +8,8 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
+import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
@@ -76,8 +78,9 @@ makeLabel config state = widget where
   getSizeReq wenv widgetInst = sizeReq where
     theme = activeTheme wenv widgetInst
     style = activeStyle wenv widgetInst
-    size = getTextSize wenv theme style caption
-    sizeReq = SizeReq size FlexibleSize StrictSize
+    Size w h = getTextSize wenv theme style caption
+    factor = 1
+    sizeReq = (FlexSize w factor, FlexSize h factor)
 
   resize wenv viewport renderArea widgetInst = newInst where
     theme = activeTheme wenv widgetInst

@@ -139,7 +139,7 @@ buildUI model = trace "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
-      ],
+      ] `key` "radio hstack" `style` [bgColor gray],
       hstack [
         checkbox condition1,
         checkbox condition2,
@@ -152,8 +152,11 @@ buildUI model = trace "Creating UI" widgetTree where
       ],
       hgrid [
         image "assets/images/pecans.jpg",
-        image_ "https://picsum.photos/600/400" [fitHeight, transparency 0.3]
+        image_ "https://picsum.photos/600/400" [fitHeight, transparency 1]
       ],
+      hstack [
+        label "Test"
+      ] `key` "label hstack" `style` [bgColor darkGray],
       button "Click me" (PrintMessage "Button clicked")
       --,
       --listView textField1 items label
@@ -170,7 +173,7 @@ buildUI model = trace "Creating UI" widgetTree where
       --   `style` if model ^. validInt1 then def else [border 1 red],
       -- integralField_ integer1 [validInput validInteger1, minValue 10, maxValue 100]
       --   `style` if model ^. validInteger1 then def else [border 1 red],
-    ] `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
+    ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]
   altColor i = bgColor (if even i then gray else darkGray)
   labels = newLabel <$> [0..(model ^. clickCount - 1)]

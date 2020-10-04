@@ -1,6 +1,6 @@
 module Monomer.Common.StyleCombinators (
-  width,
-  height,
+--  width,
+--  height,
   margin,
   marginL,
   marginR,
@@ -49,11 +49,11 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Common.LensStyle as L
 
-width :: Double -> StyleState
-width w = def & L.width ?~ w
-
-height :: Double -> StyleState
-height h = def & L.height ?~ h
+--width :: Double -> StyleState
+--width w = def & L.width ?~ w
+--
+--height :: Double -> StyleState
+--height h = def & L.height ?~ h
 
 margin :: Double -> StyleState
 margin mar = def & L.margin ?~ Margin jm jm jm jm where

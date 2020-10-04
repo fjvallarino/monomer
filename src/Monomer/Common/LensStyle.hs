@@ -8,6 +8,7 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Common.Style
 
+makeLensesWith abbreviatedFields ''SizeReq
 makeLensesWith abbreviatedFields ''Margin
 makeLensesWith abbreviatedFields ''Padding
 makeLensesWith abbreviatedFields ''BorderSide

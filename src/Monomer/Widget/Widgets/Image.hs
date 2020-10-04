@@ -27,6 +27,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wreq as Wreq
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widget.BaseSingle
@@ -129,8 +130,9 @@ makeImage imgPath config state = widget where
   getSizeReq wenv inst = sizeReq where
     theme = activeTheme wenv inst
     style = activeStyle wenv inst
-    size = maybe def snd (isImageData state)
-    sizeReq = SizeReq size FlexibleSize FlexibleSize
+    Size w h = maybe def snd (isImageData state)
+    factor = 1
+    sizeReq = (FlexSize w factor, FlexSize h factor)
 
   render renderer wenv inst = do
     when (imageLoaded && not imageExists) $
@@ -138,7 +140,7 @@ makeImage imgPath config state = widget where
 
     when imageLoaded $
       drawInScissor renderer True contentRect $
-        drawImage renderer imgPath imageRect alpha style
+        drawImage renderer imgPath imageRect alpha
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst

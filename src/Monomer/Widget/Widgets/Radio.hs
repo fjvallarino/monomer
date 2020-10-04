@@ -113,11 +113,8 @@ makeRadio field option config = widget where
       reqs = setValueReq ++ _rdcOnChangeReq config
       clickReqs = setFocusReq : reqs
 
-  getSizeReq wenv inst = sizeReq where
-    style = activeStyle wenv inst
-    sz = radioWidth
-    size = Size sz sz
-    sizeReq = SizeReq size StrictSize StrictSize
+  getSizeReq wenv inst =
+    (FixedSize radioWidth, FixedSize radioWidth)
 
   render renderer wenv inst = do
     renderRadio renderer config rarea fgColor

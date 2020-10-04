@@ -255,12 +255,16 @@ compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = widgetUpdateSizeReq widget cwenv _cmpRoot
+  currReqW = _wiSizeReqW newRoot
+  currReqH = _wiSizeReqH newRoot
+  (newReqW, newReqH) = handleSizeReqStyle style (currReqW, currReqH)
   newState = state {
     _cmpRoot = newRoot
   }
   newComp = widgetComp {
     _wiWidget = createComposite comp newState,
-    _wiSizeReq = handleSizeReqStyle style $ _wiSizeReq newRoot
+    _wiSizeReqW = newReqW,
+    _wiSizeReqH = newReqH
   }
 
 -- Resize

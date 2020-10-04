@@ -77,8 +77,10 @@ makeBox config = widget where
         | otherwise = Nothing
     _ -> Nothing
 
-  getSizeReq wenv widgetInst children = sizeReq where
-    sizeReq = _wiSizeReq $ Seq.index children 0
+  getSizeReq wenv widgetInst children = (newReqW, newReqH) where
+    child = Seq.index children 0
+    newReqW = _wiSizeReqW child
+    newReqH = _wiSizeReqH child
 
   resize wenv viewport renderArea children widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)

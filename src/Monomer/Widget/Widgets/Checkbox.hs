@@ -108,11 +108,7 @@ makeCheckbox widgetData config = widget where
       reqs = setValueReq ++ _ckcOnChangeReq config
       clickReqs = setFocusReq : reqs
 
-  getSizeReq wenv inst = sizeReq where
-    style = activeStyle wenv inst
-    sz = checkboxWidth
-    size = Size sz sz
-    sizeReq = SizeReq size StrictSize StrictSize
+  getSizeReq wenv inst = (FixedSize checkboxWidth, FixedSize checkboxWidth)
 
   render renderer wenv inst = do
     renderCheckbox renderer config rarea fgColor

@@ -48,21 +48,6 @@ newtype WidgetKey
 data WidgetState
   = forall i . Typeable i => WidgetState i
 
-data SizePolicy
-  = StrictSize
-  | FlexibleSize
-  | RemainderSize
-  deriving (Show, Eq)
-
-data SizeReq = SizeReq {
-  _srSize :: Size,
-  _srPolicyW :: SizePolicy,
-  _srPolicyH :: SizePolicy
-} deriving (Show, Eq)
-
-instance Default SizeReq where
-  def = SizeReq def FlexibleSize FlexibleSize
-
 data WidgetRequest s
   = IgnoreParentEvents
   | IgnoreChildrenEvents
@@ -221,7 +206,8 @@ data WidgetInstance s e =
     -- | The children widget, if any
     _wiChildren :: Seq (WidgetInstance s e),
     -- | The preferred size for the widget
-    _wiSizeReq :: SizeReq,
+    _wiSizeReqW :: SizeReq,
+    _wiSizeReqH :: SizeReq,
     -- | Indicates if the widget is enabled for user interaction
     _wiEnabled :: !Bool,
     -- | Indicates if the widget is visible

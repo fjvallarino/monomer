@@ -11,6 +11,7 @@ import Data.Default
 import Data.Typeable (Typeable)
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
@@ -71,7 +72,7 @@ type SingleMessageHandler s e
 type SingleGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
-  -> SizeReq
+  -> (SizeReq, SizeReq)
 
 type SingleResizeHandler s e
   = WidgetEnv s e
@@ -190,9 +191,11 @@ updateSizeReqWrapper
   -> WidgetInstance s e
 updateSizeReqWrapper handler wenv inst = newInst where
   style = activeStyle wenv inst
-  req = handler wenv inst
+  reqs = handler wenv inst
+  (newReqW, newReqH) = handleSizeReqStyle style reqs
   newInst = inst {
-    _wiSizeReq = handleSizeReqStyle style req
+    _wiSizeReqW = newReqW,
+    _wiSizeReqH = newReqH
   }
 
 defaultResize :: SingleResizeHandler s e

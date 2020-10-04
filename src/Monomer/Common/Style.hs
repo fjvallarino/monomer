@@ -3,6 +3,7 @@ module Monomer.Common.Style where
 import Control.Applicative
 import Data.Default
 
+import Monomer.Common.Geometry
 import Monomer.Graphics.Types
 
 data Theme = Theme {
@@ -48,6 +49,17 @@ instance Monoid ThemeState where
   mempty = def
 
 -- | Basic styling attributes
+data SizeReq
+  = FlexSize Coord Factor
+  | FixedSize Coord
+--  | MinSize Coord
+--  | MaxSize Coord
+--  | RangeSize Coord Coord
+  deriving (Eq, Show)
+
+instance Default SizeReq where
+  def = FlexSize 0 1
+
 data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
@@ -72,8 +84,8 @@ instance Monoid Style where
   mempty = def
 
 data StyleState = StyleState {
-  _sstWidth :: Maybe Double,
-  _sstHeight :: Maybe Double,
+  _sstSizeReqW :: Maybe SizeReq,
+  _sstSizeReqH :: Maybe SizeReq,
   _sstMargin :: Maybe Margin,
   _sstPadding :: Maybe Padding,
   _sstBorder :: Maybe Border,
@@ -86,8 +98,8 @@ data StyleState = StyleState {
 
 instance Default StyleState where
   def = StyleState {
-    _sstWidth = Nothing,
-    _sstHeight = Nothing,
+    _sstSizeReqW = Nothing,
+    _sstSizeReqH = Nothing,
     _sstMargin = Nothing,
     _sstPadding = Nothing,
     _sstBorder = Nothing,
@@ -100,8 +112,8 @@ instance Default StyleState where
 
 instance Semigroup StyleState where
   (<>) s1 s2 = StyleState {
-    _sstWidth = _sstWidth s2 <|> _sstWidth s1,
-    _sstHeight = _sstHeight s2 <|> _sstHeight s1,
+    _sstSizeReqW = _sstSizeReqW s2 <|> _sstSizeReqW s1,
+    _sstSizeReqH = _sstSizeReqH s2 <|> _sstSizeReqH s1,
     _sstMargin = _sstMargin s1 <> _sstMargin s2,
     _sstPadding = _sstPadding s1 <> _sstPadding s2,
     _sstBorder = _sstBorder s1 <> _sstBorder s2,

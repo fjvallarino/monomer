@@ -10,8 +10,10 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Common.Geometry
-import Monomer.Widget.Types
+import Monomer.Common.Style
 import Monomer.Widget.BaseContainer
+import Monomer.Widget.Internal
+import Monomer.Widget.Types
 import Monomer.Widget.Util
 
 hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
@@ -31,86 +33,94 @@ makeStack isHorizontal = widget where
     containerResize = resize
   }
 
-  getSizeReq wenv widgetInst children = sizeReq where
-    vreqs = _wiSizeReq <$> Seq.filter _wiVisible children
-    size = calcSize vreqs
-    (policyH, policyV) = sizePolicy vreqs
-    sizeReq = SizeReq size policyH policyV
+  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+    vchildren = Seq.filter _wiVisible children
+    nReqs = length vchildren
+    vreqsW = _wiSizeReqW <$> vchildren
+    vreqsH = _wiSizeReqH <$> vchildren
+    strictReqs reqs = Seq.filter isStrictReq reqs
+    strictW = nReqs > 0 && Seq.length (strictReqs vreqsW) == nReqs
+    strictH = nReqs > 0 && Seq.length (strictReqs vreqsH) == nReqs
+    factor = 1
+    Size width height = calcSize vchildren
+    newSizeReqW
+      | not isHorizontal && strictW = FixedSize width
+      | otherwise = FlexSize width factor
+    newSizeReqH
+      | isHorizontal && strictH = FixedSize height
+      | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
     vchildren = Seq.filter _wiVisible children
-    vreqs = _wiSizeReq <$> vchildren
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then l else t
-    policyFilter policy req = policySelector req == policy
-    sChildren = Seq.filter (policyFilter StrictSize) vreqs
-    fChildren = Seq.filter (policyFilter FlexibleSize) vreqs
-    rChildren = Seq.filter (policyFilter RemainderSize) vreqs
+    sChildren = Seq.filter (isStrictReq . mainReqSelector) vchildren
+    fChildren = Seq.filter (not . isStrictReq . mainReqSelector) vchildren
     fExists = not $ null fChildren
-    rExists = not $ null rChildren
     sSize = sizeSelector $ calcSize sChildren
     fSize = sizeSelector $ calcSize fChildren
     rSize = max 0 (mainSize - sSize)
-    fCount = fromIntegral $ length fChildren
-    rCount = fromIntegral $ length rChildren
     fExtra
       | fExists && fSize > 0 = (rSize - fSize) / fSize
-      | otherwise = 0
-    rUnit
-      | rExists && (not fExists || fSize <= 0) = rSize / rCount
       | otherwise = 0
     assignedArea = Seq.zip newViewports newViewports
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
     foldHelper (accum, offset) child = (newAccum, newOffset) where
-      newSize = resizeChild renderArea fExtra rUnit offset child
+      newSize = resizeChild renderArea fExtra offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
     resized = (widgetInst, assignedArea)
 
-  resizeChild renderArea fExtra rUnit offset child = result where
+  resizeChild renderArea fExtra offset child = result where
     Rect l t w h = renderArea
-    req = _wiSizeReq child
-    srSize = _srSize req
     emptyRect = Rect l t 0 0
-    hRect = Rect offset t calcNewSize h
-    vRect = Rect l offset w calcNewSize
-    calcNewSize = case policySelector req of
-      StrictSize -> sizeSelector srSize
-      FlexibleSize -> (1 + fExtra) * sizeSelector srSize
-      RemainderSize -> rUnit
+    calcMainSize = case mainReqSelector child of
+      FixedSize sz -> sz
+      FlexSize sz factor -> (1 + fExtra) * sz -- factor still not accounted for
+    calcSndSize total = case sndReqSelector child of
+      FixedSize sz -> sz
+      _ -> total
+    hRect = Rect offset t calcMainSize (calcSndSize h)
+    vRect = Rect l offset (calcSndSize w) calcMainSize
     result
       | not $ _wiVisible child = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
 
-  sizePolicy vreqs = (hPolicy, vPolicy) where
-    nReqs = length vreqs
-    strictReqs policy = Seq.filter (\r -> policy r == StrictSize) vreqs
-    strictH = nReqs > 0 && Seq.length (strictReqs _srPolicyW) == nReqs
-    strictV = nReqs > 0 && Seq.length (strictReqs _srPolicyH) == nReqs
-    hPolicy
-      | not isHorizontal && strictH = StrictSize
-      | otherwise = FlexibleSize
-    vPolicy
-      | isHorizontal && strictV = StrictSize
-      | otherwise = FlexibleSize
+  calcSize vchildren = Size width height where
+    (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vchildren
+    width
+      | isHorizontal = sumWidth
+      | otherwise = maxWidth
+    height
+      | isHorizontal = maxHeight
+      | otherwise = sumHeight
 
-  calcSize vreqs = Size width height where
-    (maxWidth, sumWidth, maxHeight, sumHeight) = calcDimensions vreqs
-    width = if isHorizontal then sumWidth else maxWidth
-    height = if isHorizontal then maxHeight else sumHeight
-
-  calcDimensions vreqs = (maxWidth, sumWidth, maxHeight, sumHeight) where
-    sumWidth = (sum . fmap (_sW . _srSize)) vreqs
-    sumHeight = (sum . fmap (_sH . _srSize)) vreqs
+  calcDimensions vchildren = (maxWidth, sumWidth, maxHeight, sumHeight) where
+    vreqsW = _wiSizeReqW <$> vchildren
+    vreqsH = _wiSizeReqH <$> vchildren
+    sumWidth = (sum . fmap getReqCoord) vreqsW
+    sumHeight = (sum . fmap getReqCoord) vreqsH
     maxWidth
-      | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_sW . _srSize)) vreqs
+      | Seq.null vchildren = 0
+      | otherwise = (maximum . fmap getReqCoord) vreqsW
     maxHeight
-      | Seq.null vreqs = 0
-      | otherwise = (maximum . fmap (_sH . _srSize)) vreqs
+      | Seq.null vchildren = 0
+      | otherwise = (maximum . fmap getReqCoord) vreqsH
 
-  sizeSelector = if isHorizontal then _sW else _sH
-  rectSelector = if isHorizontal then _rW else _rH
-  policySelector = if isHorizontal then _srPolicyW else _srPolicyH
+  mainReqSelector
+    | isHorizontal = _wiSizeReqW
+    | otherwise = _wiSizeReqH
+
+  sndReqSelector
+    | isHorizontal = _wiSizeReqH
+    | otherwise = _wiSizeReqW
+
+  sizeSelector
+    | isHorizontal = _sW
+    | otherwise = _sH
+
+  rectSelector
+    | isHorizontal = _rW
+    | otherwise = _rH

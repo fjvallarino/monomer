@@ -5,6 +5,7 @@ module Monomer.Widget.Widgets.Spacer (
 import Data.Default
 
 import Monomer.Common.Geometry
+import Monomer.Common.Style
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
@@ -27,5 +28,6 @@ makeSpacer = widget where
   }
 
   getSizeReq wenv widgetInst = sizeReq where
-    size = Size defaultSpace defaultSpace
-    sizeReq = SizeReq size RemainderSize RemainderSize
+    size = 10
+    factor = 0.5
+    sizeReq = (FlexSize size factor, FlexSize size factor)
