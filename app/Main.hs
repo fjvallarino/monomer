@@ -25,7 +25,7 @@ import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Util
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Color
 import Monomer.Main.Core
 import Monomer.Main.Platform

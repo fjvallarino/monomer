@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
 import Monomer.Core.StyleUtil
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types

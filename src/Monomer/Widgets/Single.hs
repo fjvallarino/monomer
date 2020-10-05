@@ -13,7 +13,7 @@ import Data.Typeable (Typeable)
 import Monomer.Core.BasicTypes
 import Monomer.Core.Internal
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing

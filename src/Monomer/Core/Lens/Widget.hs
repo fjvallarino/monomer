@@ -7,7 +7,7 @@ module Monomer.Core.Lens.Widget where
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Core.Lens.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 
 makeLensesWith abbreviatedFields ''WidgetEnv
 makeLensesWith abbreviatedFields ''WidgetRequest

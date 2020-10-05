@@ -7,7 +7,7 @@ module Monomer.Core.Lens.Basic where
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 
 makeLensesWith abbreviatedFields ''Point
 makeLensesWith abbreviatedFields ''Size

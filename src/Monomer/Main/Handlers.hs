@@ -22,7 +22,7 @@ import qualified SDL
 import qualified SDL.Raw.Types as SDL
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Event.Core
 import Monomer.Event.Keyboard

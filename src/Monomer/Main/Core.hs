@@ -24,7 +24,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Event.Core
 import Monomer.Event.LensEvent
 import Monomer.Event.Types

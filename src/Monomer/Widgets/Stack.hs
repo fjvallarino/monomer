@@ -13,7 +13,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core.BasicTypes
 import Monomer.Core.Internal
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Widgets.Container
 

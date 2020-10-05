@@ -6,7 +6,7 @@ import Control.Lens (ALens')
 import Data.Text (Text)
 
 import Monomer.Core.StyleTypes
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
 -- Input

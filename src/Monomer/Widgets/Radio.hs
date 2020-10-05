@@ -19,7 +19,7 @@ import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
 import Monomer.Core.StyleUtil (removeOuterBounds)
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Event.Keyboard
 import Monomer.Event.Types

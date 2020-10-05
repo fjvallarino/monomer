@@ -1,7 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Monomer.Core.Types where
+module Monomer.Core.WidgetTypes where
 
 import Control.Lens (ALens')
 import Data.Default

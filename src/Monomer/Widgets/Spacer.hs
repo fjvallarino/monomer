@@ -10,8 +10,8 @@ import Data.Maybe
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Core.Types
 import Monomer.Core.Util
+import Monomer.Core.WidgetTypes
 import Monomer.Widgets.Single
 
 data SpacerCfg = SpacerCfg {

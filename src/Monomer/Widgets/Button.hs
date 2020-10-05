@@ -15,7 +15,7 @@ import Data.Text (Text)
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing

@@ -20,7 +20,7 @@ import TextShow
 import qualified Data.Sequence as Seq
 
 import Monomer.Core.Style
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Graphics.Color
 import Monomer.Main.Util

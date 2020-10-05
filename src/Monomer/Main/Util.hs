@@ -9,7 +9,7 @@ import Data.Maybe
 import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Types
+import Monomer.Core.WidgetTypes
 import Monomer.Main.Types
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
