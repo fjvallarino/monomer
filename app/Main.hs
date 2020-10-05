@@ -149,9 +149,13 @@ buildUI model = trace "Creating UI" widgetTree where
         label "Short label"
       ],
       hstack [
-        image_ "assets/images/pecans.jpg" [fitFill],
-        spacer,
-        image_ "https://picsum.photos/600/400" [fitHeight]
+        label "test" `style` [bgColor gray]
+      ],
+      hstack [
+        image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
+        --,
+        --spacer,
+        --image_ "https://picsum.photos/600/400" [fitHeight]
       ],
       hstack [
         label "Test"

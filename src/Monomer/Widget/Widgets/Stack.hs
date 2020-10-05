@@ -91,16 +91,12 @@ makeStack isHorizontal = widget where
   resizeChild renderArea fExtra offset child = result where
     Rect l t w h = renderArea
     emptyRect = Rect l t 0 0
-    calcMainSize = case mainReqSelector child of
+    mainSize = case mainReqSelector child of
       FixedSize sz -> sz
       FlexSize sz factor -> (1 + fExtra * factor) * sz
       BoundedSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
-    calcSndSize total = case sndReqSelector child of
-      FixedSize sz -> sz
-      BoundedSize sz1 sz2 _ -> max sz1 (min sz2 total)
-      _ -> total
-    hRect = Rect offset t calcMainSize (calcSndSize h)
-    vRect = Rect l offset (calcSndSize w) calcMainSize
+    hRect = Rect offset t mainSize h
+    vRect = Rect l offset w mainSize
     result
       | not $ _wiVisible child = emptyRect
       | isHorizontal = hRect

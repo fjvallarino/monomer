@@ -7,3 +7,4 @@ Why does Widget have a reference to children widget, considering the Widget may 
 Why records of functions instead of typeclasses?
 Why functional dependencies instead of type families for widget combinators?
 Why do you use Lens style record field names for internal config types?
+Why do you use lawless typeclasses for combinators?

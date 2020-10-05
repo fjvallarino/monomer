@@ -319,8 +319,9 @@ makeItemsList items makeRow config path selected hlIdx = itemsList where
     & S.basic .~ selectedStyle item
     & S.hover .~ _lvcHoverStyle
   makeItem idx item = newItem where
-    itemCfg = onClickReq $ SendMessage path (OnClickMessage idx)
+    clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
+    itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box itemCfg content & C.style .~ itemStyle idx item
+    newItem = box_ (content & C.style .~ itemStyle idx item) itemCfg
   pairs = Seq.zip (Seq.fromList [0..length items]) items
   itemsList = vstack $ fmap (uncurry makeItem) pairs

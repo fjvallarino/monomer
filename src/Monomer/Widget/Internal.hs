@@ -5,6 +5,7 @@ module Monomer.Widget.Internal (
   isFixedReq,
   isFlexReq,
   isBoundedReq,
+  getMaxReqCoord,
   getReqCoord,
   getReqFactor,
   getReqFactored,
@@ -82,6 +83,11 @@ getReqCoord :: SizeReq -> Coord
 getReqCoord (FixedSize c) = c
 getReqCoord (FlexSize c _) = c
 getReqCoord (BoundedSize c1 c2 _) = c1
+
+getMaxReqCoord :: SizeReq -> Coord
+getMaxReqCoord (FixedSize c) = c
+getMaxReqCoord (FlexSize c _) = c
+getMaxReqCoord (BoundedSize c1 c2 _) = c2
 
 getReqFactor :: SizeReq -> Factor
 getReqFactor (FixedSize _) = 1

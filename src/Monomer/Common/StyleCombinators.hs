@@ -1,4 +1,14 @@
 module Monomer.Common.StyleCombinators (
+  Width(..),
+  Height(..),
+  FlexWidth(..),
+  FlexHeight(..),
+  BoundedWidth(..),
+  BoundedHeight(..),
+  MinWidth(..),
+  MinHeight(..),
+  MaxWidth(..),
+  MaxHeight(..),
 --  width,
 --  height,
   margin,
@@ -49,11 +59,65 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Common.LensStyle as L
 
---width :: Double -> StyleState
---width w = def & L.width ?~ w
---
---height :: Double -> StyleState
---height h = def & L.height ?~ h
+class Width t where
+  width :: Double -> t
+
+class Height t where
+  height :: Double -> t
+
+class FlexWidth t where
+  flexWidth :: Double -> t
+
+class FlexHeight t where
+  flexHeight :: Double -> t
+
+class BoundedWidth t where
+  boundedWidth :: Double -> Double -> t
+
+class BoundedHeight t where
+  boundedHeight :: Double -> Double -> t
+
+class MinWidth t where
+  minWidth :: Double -> t
+
+class MinHeight t where
+  minHeight :: Double -> t
+
+class MaxWidth t where
+  maxWidth :: Double -> t
+
+class MaxHeight t where
+  maxHeight :: Double -> t
+
+instance Width StyleState where
+  width w = def & L.sizeReqW ?~ FixedSize w
+
+instance Height StyleState where
+  height h = def & L.sizeReqH ?~ FixedSize h
+
+instance FlexWidth StyleState where
+  flexWidth w = def & L.sizeReqW ?~ FlexSize w 1
+
+instance FlexHeight StyleState where
+  flexHeight h = def & L.sizeReqH ?~ FlexSize h 1
+
+instance BoundedWidth StyleState where
+  boundedWidth w1 w2 = def & L.sizeReqW ?~ BoundedSize w1 w2 1
+
+instance BoundedHeight StyleState where
+  boundedHeight h1 h2 = def & L.sizeReqH ?~ BoundedSize h1 h2 1
+
+instance MinWidth StyleState where
+  minWidth w = def & L.sizeReqW ?~ BoundedSize w (2 * w) 1
+
+instance MinHeight StyleState where
+  minHeight h = def & L.sizeReqH ?~ BoundedSize h (2 * h) 1
+
+instance MaxWidth StyleState where
+  maxWidth w = def & L.sizeReqW ?~ BoundedSize 0 w 1
+
+instance MaxHeight StyleState where
+  maxHeight h = def & L.sizeReqH ?~ BoundedSize 0 h 1
 
 margin :: Double -> StyleState
 margin mar = def & L.margin ?~ Margin jm jm jm jm where
