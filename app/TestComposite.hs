@@ -12,13 +12,13 @@ import Data.Default
 import Data.Typeable (Typeable)
 import TextShow
 
-import Monomer.Common.Style
-import Monomer.Common.StyleCombinators
+import Monomer.Core.Style
+import Monomer.Core.StyleCombinators
 import Monomer.Graphics.Color
 import Monomer.Main.Util
-import Monomer.Widget.Composite
-import Monomer.Widget.Types
-import Monomer.Widget.Util
+import Monomer.Core.Composite
+import Monomer.Core.Types
+import Monomer.Core.Util
 import Monomer.Widgets
 
 import Types

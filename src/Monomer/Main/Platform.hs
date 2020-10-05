@@ -10,7 +10,7 @@ import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw
 
-import Monomer.Common.BasicTypes
+import Monomer.Core.BasicTypes
 import Monomer.Event.Types
 
 getCurrentMousePos :: (MonadIO m) => m Point

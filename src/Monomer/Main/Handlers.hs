@@ -21,14 +21,14 @@ import qualified Data.Sequence as Seq
 import qualified SDL
 import qualified SDL.Raw.Types as SDL
 
-import Monomer.Common.BasicTypes
+import Monomer.Core.BasicTypes
+import Monomer.Core.Types
+import Monomer.Core.Util
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Main.Types
 import Monomer.Main.Util
-import Monomer.Widget.Types
-import Monomer.Widget.Util
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 

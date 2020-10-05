@@ -22,8 +22,10 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.BasicTypes
-import Monomer.Common.Style
+import Monomer.Core.BasicTypes
+import Monomer.Core.Composite
+import Monomer.Core.Style
+import Monomer.Core.Types
 import Monomer.Event.Core
 import Monomer.Event.LensEvent
 import Monomer.Event.Types
@@ -34,8 +36,6 @@ import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Types
-import Monomer.Widget.Composite
-import Monomer.Widget.Types
 
 data MainLoopArgs s e = MainLoopArgs {
   _mlOS :: Text,

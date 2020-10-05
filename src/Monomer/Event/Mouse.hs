@@ -2,7 +2,7 @@ module Monomer.Event.Mouse where
 
 import qualified SDL
 
-import Monomer.Common.BasicTypes
+import Monomer.Core.BasicTypes
 import Monomer.Event.Types
 
 mouseClick :: Point -> SDL.EventPayload -> Maybe SystemEvent

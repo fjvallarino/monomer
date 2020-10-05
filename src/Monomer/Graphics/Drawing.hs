@@ -20,9 +20,9 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Common.BasicTypes
-import Monomer.Common.Style
-import Monomer.Common.StyleUtil
+import Monomer.Core.BasicTypes
+import Monomer.Core.Style
+import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()

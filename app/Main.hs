@@ -21,17 +21,17 @@ import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Raw.Error as SRE
 
-import Monomer.Common.BasicTypes
-import Monomer.Common.StyleCombinators
+import Monomer.Core.BasicTypes
+import Monomer.Core.StyleCombinators
+import Monomer.Core.Util
+import Monomer.Core.Types
 import Monomer.Graphics.Color
 import Monomer.Main.Core
 import Monomer.Main.Platform
 import Monomer.Main.Util
-import Monomer.Widget.Util
-import Monomer.Widget.Types
 import Monomer.Widgets
 
-import qualified Monomer.Common.LensStyle as S
+import qualified Monomer.Core.LensStyle as S
 
 import KeysComposite
 import TestComposite

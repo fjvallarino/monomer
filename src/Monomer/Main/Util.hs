@@ -8,9 +8,9 @@ import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.BasicTypes
+import Monomer.Core.BasicTypes
+import Monomer.Core.Types
 import Monomer.Main.Types
-import Monomer.Widget.Types
 
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
 initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {

@@ -16,10 +16,10 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.BasicTypes
+import Monomer.Core.BasicTypes
+import Monomer.Core.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Types
-import Monomer.Widget.Types
 
 handleWidgetTasks
   :: (MonomerM s m)
