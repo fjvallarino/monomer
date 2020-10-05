@@ -10,7 +10,7 @@ import Data.Default
 import Data.Text (Text)
 import Data.Sequence (Seq)
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 
 data Winding
   = CW

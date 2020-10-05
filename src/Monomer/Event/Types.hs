@@ -8,8 +8,7 @@ import Data.Map.Strict (Map)
 
 import qualified Data.Map.Strict as M
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree (Path)
+import Monomer.Common.BasicTypes
 
 newtype KeyCode
   = KeyCode { unKeyCode :: Int }

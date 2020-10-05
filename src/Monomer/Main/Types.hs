@@ -14,8 +14,7 @@ import Control.Monad.State
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree
+import Monomer.Common.BasicTypes
 import Monomer.Event.Types
 
 type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)

@@ -20,7 +20,7 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Event.Types
 import Monomer.Graphics.Color

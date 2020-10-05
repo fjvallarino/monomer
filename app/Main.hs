@@ -21,7 +21,7 @@ import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Raw.Error as SRE
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.StyleCombinators
 import Monomer.Graphics.Color
 import Monomer.Main.Core

@@ -21,8 +21,7 @@ import qualified Data.Sequence as Seq
 import qualified SDL
 import qualified SDL.Raw.Types as SDL
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree (Path, rootPath)
+import Monomer.Common.BasicTypes
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types

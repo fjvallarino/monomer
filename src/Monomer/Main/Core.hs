@@ -22,9 +22,8 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
-import Monomer.Common.Tree (rootPath)
 import Monomer.Event.Core
 import Monomer.Event.LensEvent
 import Monomer.Event.Types

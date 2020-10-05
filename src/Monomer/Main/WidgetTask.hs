@@ -16,7 +16,7 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Tree (Path)
+import Monomer.Common.BasicTypes
 import Monomer.Main.Handlers
 import Monomer.Main.Types
 import Monomer.Widget.Types

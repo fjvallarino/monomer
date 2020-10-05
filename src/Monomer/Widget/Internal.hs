@@ -16,8 +16,7 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence ((|>))
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Event.Types

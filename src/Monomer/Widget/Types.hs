@@ -11,9 +11,8 @@ import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 

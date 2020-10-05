@@ -18,9 +18,8 @@ import Data.Typeable (Typeable, cast, typeOf)
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.StyleUtil
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 import Monomer.Widget.Internal

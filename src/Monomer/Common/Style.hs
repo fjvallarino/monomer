@@ -3,7 +3,7 @@ module Monomer.Common.Style where
 import Control.Applicative
 import Data.Default
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Graphics.Types
 
 data Theme = Theme {

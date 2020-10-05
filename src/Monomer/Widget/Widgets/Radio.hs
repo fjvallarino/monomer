@@ -15,7 +15,7 @@ import Control.Monad
 import Data.Default
 import Data.Text (Text)
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil (removeOuterBounds)
 import Monomer.Event.Keyboard

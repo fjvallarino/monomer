@@ -28,10 +28,9 @@ import Data.Sequence (Seq(..), (<|), (|>), (><))
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types

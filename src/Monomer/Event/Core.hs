@@ -6,7 +6,7 @@ import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Map.Strict as M
 import qualified SDL
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Event.Keyboard
 import Monomer.Event.Mouse
 import Monomer.Event.Types

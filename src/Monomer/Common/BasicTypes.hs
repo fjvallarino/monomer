@@ -3,10 +3,16 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Common.Geometry where
+module Monomer.Common.BasicTypes where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
+import Data.Sequence (Seq)
+
+import qualified Data.Sequence as Seq
+
+type PathStep = Int
+type Path = Seq PathStep
 
 type Coord = Double
 type Factor = Double
@@ -36,6 +42,9 @@ data Rect = Rect {
 
 instance Default Rect where
   def = Rect 0 0 0 0
+
+rootPath :: Path
+rootPath = Seq.empty
 
 makeLensesWith abbreviatedFields ''Point
 makeLensesWith abbreviatedFields ''Size

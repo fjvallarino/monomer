@@ -26,7 +26,7 @@ import qualified Codec.Picture as Pic
 import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wreq as Wreq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types

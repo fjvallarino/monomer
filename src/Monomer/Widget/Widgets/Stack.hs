@@ -10,7 +10,7 @@ import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Widget.BaseContainer
 import Monomer.Widget.Internal

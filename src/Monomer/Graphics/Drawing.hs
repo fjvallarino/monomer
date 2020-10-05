@@ -20,7 +20,7 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Graphics.Types

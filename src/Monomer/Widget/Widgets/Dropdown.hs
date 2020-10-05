@@ -24,10 +24,9 @@ import Data.Typeable (Typeable, cast)
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleCombinators
-import Monomer.Common.Tree
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Color

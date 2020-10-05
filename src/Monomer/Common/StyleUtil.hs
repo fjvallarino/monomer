@@ -10,7 +10,7 @@ module Monomer.Common.StyleUtil (
 import Data.Default
 import Data.Maybe
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Graphics.Types
 

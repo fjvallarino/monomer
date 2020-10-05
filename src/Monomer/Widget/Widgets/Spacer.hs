@@ -7,7 +7,7 @@ import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleCombinators
 import Monomer.Widget.BaseSingle

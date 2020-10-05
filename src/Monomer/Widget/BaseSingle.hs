@@ -10,9 +10,8 @@ module Monomer.Widget.BaseSingle (
 import Data.Default
 import Data.Typeable (Typeable)
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
-import Monomer.Common.Tree
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types

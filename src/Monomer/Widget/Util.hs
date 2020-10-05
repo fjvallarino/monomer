@@ -13,10 +13,9 @@ import Data.Typeable (cast, Typeable)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
-import Monomer.Common.Tree
 import Monomer.Event.Core (checkKeyboard)
 import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types

@@ -8,8 +8,7 @@ import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree (Path, rootPath)
+import Monomer.Common.BasicTypes
 import Monomer.Main.Types
 import Monomer.Widget.Types
 

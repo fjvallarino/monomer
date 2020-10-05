@@ -18,7 +18,7 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Common.Geometry
+import Monomer.Common.BasicTypes
 import Monomer.Common.Style
 import Monomer.Common.StyleUtil
 import Monomer.Event.Keyboard
