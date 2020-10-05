@@ -1,11 +1,5 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Monomer.Core.BasicTypes where
 
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Sequence (Seq)
 
@@ -45,10 +39,6 @@ instance Default Rect where
 
 rootPath :: Path
 rootPath = Seq.empty
-
-makeLensesWith abbreviatedFields ''Point
-makeLensesWith abbreviatedFields ''Size
-makeLensesWith abbreviatedFields ''Rect
 
 pointInRect :: Point -> Rect -> Bool
 pointInRect (Point px py) rect = coordInRectH px rect && coordInRectY py rect

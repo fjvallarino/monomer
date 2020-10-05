@@ -31,7 +31,7 @@ import Monomer.Main.Platform
 import Monomer.Main.Util
 import Monomer.Widgets
 
-import qualified Monomer.Core.LensStyle as S
+import qualified Monomer.Core.Lens.Style as S
 
 import KeysComposite
 import TestComposite

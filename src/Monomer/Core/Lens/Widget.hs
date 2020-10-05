@@ -2,11 +2,11 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Core.LensCore where
+module Monomer.Core.Lens.Widget where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
-import Monomer.Core.LensStyle
+import Monomer.Core.Lens.Style
 import Monomer.Core.Types
 
 makeLensesWith abbreviatedFields ''WidgetEnv

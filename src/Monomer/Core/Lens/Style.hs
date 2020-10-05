@@ -2,10 +2,11 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Core.LensStyle where
+module Monomer.Core.Lens.Style where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
+import Monomer.Core.Lens.Basic
 import Monomer.Core.Style
 
 makeLensesWith abbreviatedFields ''SizeReq

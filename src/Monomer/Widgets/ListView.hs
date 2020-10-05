@@ -42,8 +42,8 @@ import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 import Monomer.Widgets.WidgetCombinators
 
-import qualified Monomer.Core.LensStyle as S
-import qualified Monomer.Core.LensCore as C
+import qualified Monomer.Core.Lens.Style as S
+import qualified Monomer.Core.Lens.Widget as W
 
 data ListViewCfg s e a = ListViewCfg {
   _lvcOnChangeIdx :: [Int -> a -> e],
@@ -322,6 +322,6 @@ makeItemsList items makeRow config path selected hlIdx = itemsList where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ (content & C.style .~ itemStyle idx item) itemCfg
+    newItem = box_ (content & W.style .~ itemStyle idx item) itemCfg
   pairs = Seq.zip (Seq.fromList [0..length items]) items
   itemsList = vstack $ fmap (uncurry makeItem) pairs

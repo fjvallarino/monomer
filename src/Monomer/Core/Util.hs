@@ -22,8 +22,8 @@ import Monomer.Event.Keyboard (isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
-import qualified Monomer.Core.LensStyle as S
-import qualified Monomer.Core.LensCore as C
+import qualified Monomer.Core.Lens.Style as S
+import qualified Monomer.Core.Lens.Widget as W
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
@@ -62,19 +62,19 @@ key widgetInst key = widgetInst {
 }
 
 style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-style inst states = inst & C.style .~ newStyle where
+style inst states = inst & W.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.basic ?~ state
 
 hover :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-hover inst states = inst & C.style .~ newStyle where
+hover inst states = inst & W.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.hover ?~ state
 
 focus :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-focus inst states = inst & C.style .~ newStyle where
+focus inst states = inst & W.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
   newStyle = oldStyle & S.focus ?~ state

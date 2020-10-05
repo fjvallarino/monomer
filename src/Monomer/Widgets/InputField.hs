@@ -29,7 +29,7 @@ import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 
-import qualified Monomer.Core.LensStyle as S
+import qualified Monomer.Core.Lens.Style as S
 
 data InputFieldCfg s e a = InputFieldCfg {
   _ifcValue :: WidgetData s a,

@@ -57,7 +57,7 @@ import Data.Default
 import Monomer.Core.Style
 import Monomer.Graphics.Types
 
-import qualified Monomer.Core.LensStyle as L
+import qualified Monomer.Core.Lens.Style as L
 
 class Width t where
   width :: Double -> t
