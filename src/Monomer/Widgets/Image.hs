@@ -102,6 +102,8 @@ makeImage :: String -> ImageCfg -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle def {
     singleInit = init,
+    singleGetState = makeState state,
+    singleMerge = merge,
     singleDispose = dispose,
     singleHandleMessage = handleMessage,
     singleGetSizeReq = getSizeReq,
@@ -111,6 +113,12 @@ makeImage imgPath config state = widget where
   init wenv inst = resultReqs reqs inst where
     path = _wiPath inst
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
+
+  merge wenv oldState inst = resultWidget newInst where
+    newState = fromMaybe state (useState oldState)
+    newInst = inst {
+      _wiWidget = makeImage imgPath config newState
+    }
 
   dispose wenv inst = resultReqs reqs inst where
     path = _wiPath inst

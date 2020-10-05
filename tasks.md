@@ -192,7 +192,7 @@
   - Remove Tree
 
 - Pending
-  - Check why image dissapears when model changes
+  - Check why image dissapears when model changes (missing merge)
   - Add center, right components based on box
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Reorganize modules.
