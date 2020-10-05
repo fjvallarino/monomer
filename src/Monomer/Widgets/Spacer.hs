@@ -7,12 +7,12 @@ import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
 
-import Monomer.Core.BaseSingle
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
 import Monomer.Core.Types
 import Monomer.Core.Util
+import Monomer.Widgets.Single
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,

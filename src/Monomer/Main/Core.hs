@@ -23,7 +23,6 @@ import qualified SDL
 import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Composite
 import Monomer.Core.Style
 import Monomer.Core.Types
 import Monomer.Event.Core
@@ -36,6 +35,7 @@ import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Types
+import Monomer.Widgets.Composite
 
 data MainLoopArgs s e = MainLoopArgs {
   _mlOS :: Text,

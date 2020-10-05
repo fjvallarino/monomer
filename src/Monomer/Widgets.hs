@@ -2,6 +2,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Box,
   module Monomer.Widgets.Button,
   module Monomer.Widgets.Checkbox,
+  module Monomer.Widgets.Composite,
   module Monomer.Widgets.Dropdown,
   module Monomer.Widgets.FloatingField,
   module Monomer.Widgets.Grid,
@@ -20,6 +21,7 @@ module Monomer.Widgets (
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Checkbox
+import Monomer.Widgets.Composite
 import Monomer.Widgets.Dropdown
 import Monomer.Widgets.FloatingField
 import Monomer.Widgets.Grid

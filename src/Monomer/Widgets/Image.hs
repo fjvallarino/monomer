@@ -26,7 +26,6 @@ import qualified Codec.Picture as Pic
 import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wreq as Wreq
 
-import Monomer.Core.BaseSingle
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
@@ -34,6 +33,7 @@ import Monomer.Core.Types
 import Monomer.Core.Util
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widgets.Single
 
 data ImageFit
   = FitNone

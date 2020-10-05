@@ -24,7 +24,6 @@ import Data.Typeable (Typeable, cast)
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BaseContainer
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
@@ -36,6 +35,7 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widgets.Box
+import Monomer.Widgets.Container
 import Monomer.Widgets.Label
 import Monomer.Widgets.Scroll
 import Monomer.Widgets.Spacer

@@ -10,12 +10,12 @@ import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BaseContainer
 import Monomer.Core.BasicTypes
 import Monomer.Core.Internal
 import Monomer.Core.Style
 import Monomer.Core.Types
 import Monomer.Core.Util
+import Monomer.Widgets.Container
 
 hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
 hstack children = (defaultWidgetInstance "hstack" (makeStack True)) {

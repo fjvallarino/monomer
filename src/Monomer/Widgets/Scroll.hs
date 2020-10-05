@@ -19,7 +19,6 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BaseContainer
 import Monomer.Core.BasicTypes
 import Monomer.Core.Internal
 import Monomer.Core.Style
@@ -29,6 +28,7 @@ import Monomer.Event.Types
 import Monomer.Graphics.Color
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widgets.Container
 
 data ActiveBar
   = HBar

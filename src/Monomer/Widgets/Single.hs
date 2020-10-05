@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Core.BaseSingle (
+module Monomer.Widgets.Single (
   Single(..),
   createSingle
 ) where

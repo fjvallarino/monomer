@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Monomer.Core.BaseContainer (
+module Monomer.Widgets.Container (
   Container(..),
   createContainer,
   initWrapper,

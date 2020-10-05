@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Core.Composite (
+module Monomer.Widgets.Composite (
   EventResponse(..),
   EventHandler,
   UIBuilder,

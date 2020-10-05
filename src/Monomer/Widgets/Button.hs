@@ -12,7 +12,6 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Core.BaseSingle
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.Style
@@ -21,6 +20,7 @@ import Monomer.Core.Util
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widgets.Single
 
 data ButtonCfg s e = ButtonCfg {
   _btnTextOverflow :: Maybe TextOverflow,

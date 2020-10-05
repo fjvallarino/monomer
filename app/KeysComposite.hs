@@ -19,7 +19,6 @@ import TextShow
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.Composite
 import Monomer.Core.Style
 import Monomer.Core.Types
 import Monomer.Core.Util

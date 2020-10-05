@@ -18,7 +18,6 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Core.BaseSingle
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
 import Monomer.Core.StyleUtil
@@ -28,6 +27,7 @@ import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
+import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens.Style as S
 
