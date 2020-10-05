@@ -26,9 +26,9 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core.BaseContainer
 import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
 import Monomer.Core.Internal
 import Monomer.Core.Style
-import Monomer.Core.StyleCombinators
 import Monomer.Core.Types
 import Monomer.Core.Util
 import Monomer.Event.Keyboard
@@ -38,7 +38,6 @@ import Monomer.Graphics.Drawing
 import Monomer.Graphics.Types
 import Monomer.Widgets.Label
 import Monomer.Widgets.ListView
-import Monomer.Widgets.WidgetCombinators
 
 data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],

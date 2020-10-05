@@ -7,7 +7,7 @@ module Monomer.Core.Lens.Style where
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Core.Lens.Basic
-import Monomer.Core.Style
+import Monomer.Core.StyleTypes
 
 makeLensesWith abbreviatedFields ''SizeReq
 makeLensesWith abbreviatedFields ''Margin

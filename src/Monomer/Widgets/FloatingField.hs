@@ -27,10 +27,10 @@ import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
 import qualified Formatting as F
 
+import Monomer.Core.Combinators
 import Monomer.Core.Types
 import Monomer.Core.Util
 import Monomer.Widgets.InputField
-import Monomer.Widgets.WidgetCombinators
 
 type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
 

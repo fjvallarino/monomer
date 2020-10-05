@@ -14,9 +14,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Spacer,
   module Monomer.Widgets.Stack,
   module Monomer.Widgets.TextDropdown,
-  module Monomer.Widgets.TextField,
-
-  module Monomer.Widgets.WidgetCombinators
+  module Monomer.Widgets.TextField
 ) where
 
 import Monomer.Widgets.Box
@@ -35,5 +33,3 @@ import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 import Monomer.Widgets.TextDropdown
 import Monomer.Widgets.TextField
-
-import Monomer.Widgets.WidgetCombinators

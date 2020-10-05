@@ -22,8 +22,9 @@ import qualified SDL
 import qualified SDL.Raw.Error as SRE
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.StyleCombinators
+import Monomer.Core.Combinators
 import Monomer.Core.Util
+import Monomer.Core.Style
 import Monomer.Core.Types
 import Monomer.Graphics.Color
 import Monomer.Main.Core
@@ -154,7 +155,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
         spacer_ [resizeFactor 1],
-        image_ "https://picsum.photos/600/400" [fitHeight]
+        image_ "https://picsum.photos/600/400" [fitFill]
       ],
       hstack [
         label "Test"

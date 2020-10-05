@@ -10,10 +10,10 @@ import Control.Lens (ALens')
 import Data.Default
 import Data.Text (Text)
 
+import Monomer.Core.Combinators
 import Monomer.Core.Types
 import Monomer.Widgets.Label
 import Monomer.Widgets.Dropdown
-import Monomer.Widgets.WidgetCombinators
 
 textDropdown
   :: (Traversable t, Eq a)

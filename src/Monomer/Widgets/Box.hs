@@ -16,11 +16,11 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.BaseContainer
+import Monomer.Core.Combinators
 import Monomer.Core.Internal
 import Monomer.Core.Types
 import Monomer.Core.Util
 import Monomer.Event.Types
-import Monomer.Widgets.WidgetCombinators
 
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,

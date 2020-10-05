@@ -189,9 +189,10 @@
   - Add options to image widget (stretch/crop/etc)
     - Check if re-adding image on render should be inside lock
   - Improve spacer
+  - Remove Tree
 
 - Pending
-  - Remove Tree
+  - Check why image dissapears when model changes
   - Add center, right components based on box
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Reorganize modules.
@@ -199,6 +200,7 @@
     -  Widget.Widgets moved to Widget?
     -  WidgetCombinators and StyleCombinators merged into a single Combinators?
     -  Create Lens package. BasicTypes lenses should also be there
+    -  Create separate Util/WidgetUtil
   - WidgetRequest for error messages? Probably not worth it
     - Maybe provide a config where a notification/lens can be sent?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

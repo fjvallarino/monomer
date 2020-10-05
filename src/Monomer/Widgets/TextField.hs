@@ -21,9 +21,9 @@ import Data.Text (Text)
 
 import qualified Data.Text as T
 
+import Monomer.Core.Combinators
 import Monomer.Core.Types
 import Monomer.Widgets.InputField
-import Monomer.Widgets.WidgetCombinators
 
 data TextFieldCfg s e = TextFieldCfg {
   _tfcValid :: Maybe (WidgetData s Bool),

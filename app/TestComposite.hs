@@ -12,8 +12,8 @@ import Data.Default
 import Data.Typeable (Typeable)
 import TextShow
 
+import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Core.StyleCombinators
 import Monomer.Graphics.Color
 import Monomer.Main.Util
 import Monomer.Core.Composite

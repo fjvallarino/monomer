@@ -12,7 +12,7 @@ import Data.Text (Text)
 import Data.Typeable (Typeable)
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Style
+import Monomer.Core.StyleTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 

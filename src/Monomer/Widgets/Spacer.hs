@@ -9,11 +9,10 @@ import Data.Maybe
 
 import Monomer.Core.BaseSingle
 import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Core.StyleCombinators
 import Monomer.Core.Types
 import Monomer.Core.Util
-import Monomer.Widgets.WidgetCombinators
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,

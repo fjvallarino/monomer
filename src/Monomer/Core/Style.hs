@@ -1,307 +1,170 @@
-module Monomer.Core.Style where
+module Monomer.Core.Style (
+  module Monomer.Core.StyleTypes
+) where
 
-import Control.Applicative
+import Control.Lens ((&), (?~), non)
 import Data.Default
 
-import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
+import Monomer.Core.StyleTypes
 import Monomer.Graphics.Types
 
-data Theme = Theme {
-  _themeBasic :: ThemeState,
-  _themeHover :: ThemeState,
-  _themeFocus :: ThemeState
-} deriving (Eq, Show)
+import qualified Monomer.Core.Lens.Style as L
 
-instance Default Theme where
-  def = Theme {
-    _themeBasic = def,
-    _themeHover = def,
-    _themeFocus = def
-  }
+instance Width StyleState where
+  width w = def & L.sizeReqW ?~ FixedSize w
 
-instance Semigroup Theme where
-  (<>) t1 t2 = t2
+instance Height StyleState where
+  height h = def & L.sizeReqH ?~ FixedSize h
 
-instance Monoid Theme where
-  mempty = def
+instance FlexWidth StyleState where
+  flexWidth w = def & L.sizeReqW ?~ FlexSize w 1
 
-data ThemeState = ThemeState {
-  _thsFgColor :: Color,
-  _thsHlColor :: Color,
-  _thsFont :: Font,
-  _thsFontSize :: FontSize,
-  _thsFontColor :: Color
-} deriving (Eq, Show)
+instance FlexHeight StyleState where
+  flexHeight h = def & L.sizeReqH ?~ FlexSize h 1
 
-instance Default ThemeState where
-  def = ThemeState {
-    _thsFgColor = Color 255 255 255 1,
-    _thsHlColor = Color 0 0 200 1,
-    _thsFont = Font "sans",
-    _thsFontSize = FontSize 36,
-    _thsFontColor = Color 255 255 255 1
-  }
+instance BoundedWidth StyleState where
+  boundedWidth w1 w2 = def & L.sizeReqW ?~ BoundedSize w1 w2 1
 
-instance Semigroup ThemeState where
-  (<>) ts1 ts2 = ts2
+instance BoundedHeight StyleState where
+  boundedHeight h1 h2 = def & L.sizeReqH ?~ BoundedSize h1 h2 1
 
-instance Monoid ThemeState where
-  mempty = def
+instance MinWidth StyleState where
+  minWidth w = def & L.sizeReqW ?~ BoundedSize w (2 * w) 1
 
--- | Basic styling attributes
-data SizeReq
-  = FixedSize Coord
-  | FlexSize Coord Factor
-  | BoundedSize Coord Coord Factor
-  deriving (Eq, Show)
+instance MinHeight StyleState where
+  minHeight h = def & L.sizeReqH ?~ BoundedSize h (2 * h) 1
 
-instance Default SizeReq where
-  def = FlexSize 0 1
+instance MaxWidth StyleState where
+  maxWidth w = def & L.sizeReqW ?~ BoundedSize 0 w 1
 
-data Style = Style {
-  _styleBasic :: Maybe StyleState,
-  _styleHover :: Maybe StyleState,
-  _styleFocus :: Maybe StyleState
-} deriving (Eq, Show)
+instance MaxHeight StyleState where
+  maxHeight h = def & L.sizeReqH ?~ BoundedSize 0 h 1
 
-instance Default Style where
-  def = Style {
-    _styleBasic = Nothing,
-    _styleHover = Nothing,
-    _styleFocus = Nothing
-  }
+instance BgColor StyleState where
+  bgColor col = def & L.bgColor ?~ col
 
-instance Semigroup Style where
-  (<>) style1 style2 = Style {
-    _styleBasic = _styleBasic style1 <> _styleBasic style2,
-    _styleHover = _styleHover style1 <> _styleHover style2,
-    _styleFocus = _styleFocus style1 <> _styleFocus style2
-  }
+instance FgColor StyleState where
+  fgColor col = def & L.fgColor ?~ col
 
-instance Monoid Style where
-  mempty = def
+instance HlColor StyleState where
+  hlColor col = def & L.hlColor ?~ col
 
-data StyleState = StyleState {
-  _sstSizeReqW :: Maybe SizeReq,
-  _sstSizeReqH :: Maybe SizeReq,
-  _sstMargin :: Maybe Margin,
-  _sstPadding :: Maybe Padding,
-  _sstBorder :: Maybe Border,
-  _sstRadius :: Maybe Radius,
-  _sstBgColor :: Maybe Color,
-  _sstFgColor :: Maybe Color,
-  _sstHlColor :: Maybe Color,
-  _sstText :: Maybe TextStyle
-} deriving (Eq, Show)
+instance TextFont StyleState where
+  textFont font = def & L.text . non def . L.font ?~ font
 
-instance Default StyleState where
-  def = StyleState {
-    _sstSizeReqW = Nothing,
-    _sstSizeReqH = Nothing,
-    _sstMargin = Nothing,
-    _sstPadding = Nothing,
-    _sstBorder = Nothing,
-    _sstRadius = Nothing,
-    _sstBgColor = Nothing,
-    _sstFgColor = Nothing,
-    _sstHlColor = Nothing,
-    _sstText = Nothing
-  }
+instance TextSize StyleState where
+  textSize size = def & L.text . non def . L.fontSize ?~ FontSize size
 
-instance Semigroup StyleState where
-  (<>) s1 s2 = StyleState {
-    _sstSizeReqW = _sstSizeReqW s2 <|> _sstSizeReqW s1,
-    _sstSizeReqH = _sstSizeReqH s2 <|> _sstSizeReqH s1,
-    _sstMargin = _sstMargin s1 <> _sstMargin s2,
-    _sstPadding = _sstPadding s1 <> _sstPadding s2,
-    _sstBorder = _sstBorder s1 <> _sstBorder s2,
-    _sstRadius = _sstRadius s1 <> _sstRadius s2,
-    _sstBgColor = _sstBgColor s1 <> _sstBgColor s2,
-    _sstFgColor = _sstFgColor s1 <> _sstFgColor s2,
-    _sstHlColor = _sstHlColor s1 <> _sstHlColor s2,
-    _sstText = _sstText s1 <> _sstText s2
-  }
+instance TextColor StyleState where
+  textColor col = def & L.text . non def . L.fontColor ?~ col
 
-instance Monoid StyleState where
-  mempty = def
+instance TextLeft StyleState where
+  textLeft = textAlignH ALeft
 
-data Margin = Margin {
-  _mgnLeft :: Maybe Double,
-  _mgnRight :: Maybe Double,
-  _mgnTop :: Maybe Double,
-  _mgnBottom :: Maybe Double
-} deriving (Eq, Show)
+instance TextCenter StyleState where
+  textCenter = textAlignH ACenter
 
-instance Default Margin where
-  def = Margin {
-    _mgnLeft = Nothing,
-    _mgnRight = Nothing,
-    _mgnTop = Nothing,
-    _mgnBottom = Nothing
-  }
+instance TextRight StyleState where
+  textRight = textAlignH ARight
 
-instance Semigroup Margin where
-  (<>) p1 p2 = Margin {
-    _mgnLeft = _mgnLeft p2 <|> _mgnLeft p1,
-    _mgnRight = _mgnRight p2 <|> _mgnRight p1,
-    _mgnTop = _mgnTop p2 <|> _mgnTop p1,
-    _mgnBottom = _mgnBottom p2 <|> _mgnBottom p1
-  }
+instance TextTop StyleState where
+  textTop = textAlignV ATop
 
-instance Monoid Margin where
-  mempty = def
+instance TextMiddle StyleState where
+  textMiddle = textAlignV AMiddle
 
-data Padding = Padding {
-  _padLeft :: Maybe Double,
-  _padRight :: Maybe Double,
-  _padTop :: Maybe Double,
-  _padBottom :: Maybe Double
-} deriving (Eq, Show)
+instance TextBottom StyleState where
+  textBottom = textAlignV ABottom
 
-instance Default Padding where
-  def = Padding {
-    _padLeft = Nothing,
-    _padRight = Nothing,
-    _padTop = Nothing,
-    _padBottom = Nothing
-  }
+instance Margin_ StyleState where
+  margin mar = def & L.margin ?~ Margin jm jm jm jm where
+    jm = Just mar
 
-instance Semigroup Padding where
-  (<>) p1 p2 = Padding {
-    _padLeft = _padLeft p2 <|> _padLeft p1,
-    _padRight = _padRight p2 <|> _padRight p1,
-    _padTop = _padTop p2 <|> _padTop p1,
-    _padBottom = _padBottom p2 <|> _padBottom p1
-  }
+instance MarginL StyleState where
+  marginL mar = def & L.margin . non def . L.left ?~ mar
 
-instance Monoid Padding where
-  mempty = def
+instance MarginR StyleState where
+  marginR mar = def & L.margin . non def . L.right ?~ mar
 
-data BorderSide = BorderSide {
-  _bsWidth :: Double,
-  _bsColor :: Color
-} deriving (Eq, Show)
+instance MarginT StyleState where
+  marginT mar = def & L.margin . non def . L.top ?~ mar
 
-instance Default BorderSide where
-  def = BorderSide {
-    _bsWidth = 0,
-    _bsColor = def
-  }
+instance MarginB StyleState where
+  marginB mar = def & L.margin . non def . L.bottom ?~ mar
 
-instance Semigroup BorderSide where
-  (<>) b1 b2 = b2
+instance Padding_ StyleState where
+  padding padd = def & L.padding ?~ Padding jp jp jp jp where
+    jp = Just padd
 
-instance Monoid BorderSide where
-  mempty = def
+instance PaddingL StyleState where
+  paddingL padd = def & L.padding . non def . L.left ?~ padd
 
-data Border = Border {
-  _brdLeft :: Maybe BorderSide,
-  _brdRight :: Maybe BorderSide,
-  _brdTop :: Maybe BorderSide,
-  _brdBottom :: Maybe BorderSide
-} deriving (Eq, Show)
+instance PaddingR StyleState where
+  paddingR padd = def & L.padding . non def . L.right ?~ padd
 
-instance Default Border where
-  def = Border {
-    _brdLeft = def,
-    _brdRight = def,
-    _brdTop = def,
-    _brdBottom = def
-  }
+instance PaddingT StyleState where
+  paddingT padd = def & L.padding . non def . L.top ?~ padd
 
-instance Semigroup Border where
-  (<>) b1 b2 = Border {
-    _brdLeft = _brdLeft b1 <> _brdLeft b2,
-    _brdRight = _brdRight b1 <> _brdRight b2,
-    _brdTop = _brdTop b1 <> _brdTop b2,
-    _brdBottom = _brdBottom b1 <> _brdBottom b2
-  }
+instance PaddingB StyleState where
+  paddingB padd = def & L.padding . non def . L.bottom ?~ padd
 
-instance Monoid Border where
-  mempty = def
+instance Border_ StyleState where
+  border w col = def & L.border ?~ Border bs bs bs bs where
+    bs =  Just (BorderSide w col)
 
-data RadiusType
-  = RadiusInner
-  | RadiusBoth
-  deriving (Eq, Show)
+instance BorderL StyleState where
+  borderL w col = def & L.border . non def . L.left ?~ BorderSide w col
 
-instance Default RadiusType where
-  def = RadiusBoth
+instance BorderR StyleState where
+  borderR w col = def & L.border . non def . L.right ?~ BorderSide w col
 
-instance Semigroup RadiusType where
-  (<>) rc1 rc2 = rc2
+instance BorderT StyleState where
+  borderT w col = def & L.border . non def . L.top ?~ BorderSide w col
 
-instance Monoid RadiusType where
-  mempty = def
+instance BorderB StyleState where
+  borderB w col = def & L.border . non def . L.bottom ?~ BorderSide w col
 
-data RadiusCorner = RadiusCorner {
-  _rcrType :: RadiusType,
-  _rcrWidth :: Double
-} deriving (Eq, Show)
+instance Radius_ StyleState where
+  radius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
+    jrad = Just $ radiusCorner rad
 
-instance Default RadiusCorner where
-  def = RadiusCorner {
-    _rcrType = RadiusBoth,
-    _rcrWidth = def
-  }
+instance RadiusTL StyleState where
+  radiusTL rad = def & L.radius . non def . L.topLeft ?~ radiusCorner rad
 
-instance Semigroup RadiusCorner where
-  (<>) rc1 rc2 = rc2
+instance RadiusTR StyleState where
+  radiusTR rad = def & L.radius . non def . L.topRight ?~ radiusCorner rad
 
-instance Monoid RadiusCorner where
-  mempty = def
+instance RadiusBL StyleState where
+  radiusBL rad = def & L.radius . non def . L.bottomLeft ?~ radiusCorner rad
 
-data Radius = Radius {
-  _radTopLeft :: Maybe RadiusCorner,
-  _radTopRight :: Maybe RadiusCorner,
-  _radBottomLeft :: Maybe RadiusCorner,
-  _radBottomRight :: Maybe RadiusCorner
-} deriving (Eq, Show)
+instance RadiusBR StyleState where
+  radiusBR rad = def & L.radius . non def . L.bottomRight ?~ radiusCorner rad
 
-instance Default Radius where
-  def = Radius {
-    _radTopLeft = Nothing,
-    _radTopRight = Nothing,
-    _radBottomLeft = Nothing,
-    _radBottomRight = Nothing
-  }
+instance InnerRadius_ StyleState where
+  iradius rad = def & L.radius ?~ Radius jrad jrad jrad jrad where
+    jrad = Just $ iradiusCorner rad
 
-instance Semigroup Radius where
-  (<>) r1 r2 = Radius {
-    _radTopLeft = _radTopLeft r2 <|> _radTopLeft r1,
-    _radTopRight = _radTopRight r2 <|> _radTopRight r1,
-    _radBottomLeft = _radBottomLeft r2 <|> _radBottomLeft r1,
-    _radBottomRight = _radBottomRight r2 <|> _radBottomRight r1
-  }
+instance InnerRadiusTL StyleState where
+  iradiusTL rad = def & L.radius . non def . L.topLeft ?~ iradiusCorner rad
 
-instance Monoid Radius where
-  mempty = def
+instance InnerRadiusTR StyleState where
+  iradiusTR rad = def & L.radius . non def . L.topRight ?~ iradiusCorner rad
 
-data TextStyle = TextStyle {
-  _txsFont :: Maybe Font,
-  _txsFontSize :: Maybe FontSize,
-  _txsFontColor :: Maybe Color,
-  _txsAlignH :: Maybe AlignH,
-  _txsAlignV :: Maybe AlignV
-} deriving (Eq, Show)
+instance InnerRadiusBL StyleState where
+  iradiusBL rad = def & L.radius . non def . L.bottomLeft ?~ iradiusCorner rad
 
-instance Default TextStyle where
-  def = TextStyle {
-    _txsFont = Nothing,
-    _txsFontSize = Nothing,
-    _txsFontColor = Nothing,
-    _txsAlignH = Nothing,
-    _txsAlignV = Nothing
-  }
+instance InnerRadiusBR StyleState where
+  iradiusBR rad = def & L.radius . non def . L.bottomRight ?~ iradiusCorner rad
 
-instance Semigroup TextStyle where
-  (<>) ts1 ts2 = TextStyle {
-    _txsFont = _txsFont ts2 <|> _txsFont ts1,
-    _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
-    _txsFontColor = _txsFontColor ts2 <|> _txsFontColor ts1,
-    _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
-    _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
-  }
+radiusCorner :: Double -> RadiusCorner
+radiusCorner rad = RadiusCorner RadiusBoth rad
 
-instance Monoid TextStyle where
-  mempty = def
+iradiusCorner :: Double -> RadiusCorner
+iradiusCorner rad = RadiusCorner RadiusInner rad
+
+textAlignH :: AlignH -> StyleState
+textAlignH align = def & L.text . non def . L.alignH ?~ align
+
+textAlignV :: AlignV -> StyleState
+textAlignV align = def & L.text . non def . L.alignV ?~ align

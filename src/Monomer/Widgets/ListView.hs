@@ -26,8 +26,8 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core.BaseContainer
 import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Core.StyleCombinators
 import Monomer.Core.Types
 import Monomer.Core.Util
 import Monomer.Event.Keyboard
@@ -40,7 +40,6 @@ import Monomer.Widgets.Label
 import Monomer.Widgets.Scroll
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
-import Monomer.Widgets.WidgetCombinators
 
 import qualified Monomer.Core.Lens.Style as S
 import qualified Monomer.Core.Lens.Widget as W
