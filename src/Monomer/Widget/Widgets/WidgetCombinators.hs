@@ -30,6 +30,9 @@ class Num a => MinValue t a | t -> a where
 class Num a => MaxValue t a | t -> a where
   maxValue :: a -> t
 
+class ResizeFactor t where
+  resizeFactor :: Double -> t
+
 class OnClick t e | t -> e  where
   onClick :: e -> t
 

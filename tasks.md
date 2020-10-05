@@ -194,9 +194,15 @@
   - Remove Tree
   - Add center, right components based on box
   - Can _wiChildren be removed from Widget and only be kept in Container?
+  - Reorganize modules.
+    -  Common and Widget merged into new Core?
+    -  Widget.Widgets moved to Widget?
+    -  WidgetCombinators and StyleCombinators merged into a single Combinators?
+  - WidgetRequest for error messages? Probably not worth it
+    - Maybe provide a config where a notification/lens can be sent?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Fix dropdown issues
-    - Show listview in appropriate location (if dropdown is at bottom, the listView should be up)
+    - Show listview in appropriate location (if dropdown is at the bottom, the listView should be up)
     - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create Layer widget

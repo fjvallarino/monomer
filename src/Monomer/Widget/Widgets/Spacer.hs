@@ -1,33 +1,74 @@
 module Monomer.Widget.Widgets.Spacer (
-  spacer
+  spacer,
+  spacer_
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default
+import Data.Maybe
 
 import Monomer.Common.Geometry
 import Monomer.Common.Style
+import Monomer.Common.StyleCombinators
 import Monomer.Widget.BaseSingle
 import Monomer.Widget.Types
 import Monomer.Widget.Util
+import Monomer.Widget.Widgets.WidgetCombinators
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,
-  _spcHeight :: Maybe Double
+  _spcHeight :: Maybe Double,
+  _spcFactor :: Maybe Double
 }
 
+instance Default SpacerCfg where
+  def = SpacerCfg {
+    _spcWidth = Nothing,
+    _spcHeight = Nothing,
+    _spcFactor = Nothing
+  }
+
+instance Semigroup SpacerCfg where
+  (<>) s1 s2 = SpacerCfg {
+    _spcWidth = _spcWidth s2 <|> _spcWidth s1,
+    _spcHeight = _spcHeight s2 <|> _spcHeight s1,
+    _spcFactor = _spcFactor s2 <|> _spcFactor s1
+  }
+
+instance Monoid SpacerCfg where
+  mempty = def
+
+instance Width SpacerCfg where
+  width w = def {
+    _spcWidth = Just w
+  }
+
+instance Height SpacerCfg where
+  height h = def {
+    _spcHeight = Just h
+  }
+
+instance ResizeFactor SpacerCfg where
+  resizeFactor f = def {
+    _spcFactor = Just f
+  }
+
 spacer :: WidgetInstance s e
-spacer = defaultWidgetInstance "spacer" makeSpacer
+spacer = spacer_ def
 
-defaultSpace :: Double
-defaultSpace = 10
+spacer_ :: [SpacerCfg] -> WidgetInstance s e
+spacer_ configs = defaultWidgetInstance "spacer" widget where
+  config = mconcat configs
+  widget = makeSpacer config
 
-makeSpacer :: Widget s e
-makeSpacer = widget where
+makeSpacer :: SpacerCfg  -> Widget s e
+makeSpacer config = widget where
   widget = createSingle def {
     singleGetSizeReq = getSizeReq
   }
 
   getSizeReq wenv widgetInst = sizeReq where
-    size = 10
-    factor = 0.5
-    sizeReq = (FlexSize size factor, FlexSize size factor)
+    width = fromMaybe 10 (_spcWidth config)
+    height = fromMaybe 10 (_spcHeight config)
+    factor = fromMaybe 0.5 (_spcFactor config)
+    sizeReq = (FlexSize width factor, FlexSize height factor)
