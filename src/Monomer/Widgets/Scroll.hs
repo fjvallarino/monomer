@@ -19,6 +19,7 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Lens
 import Monomer.Widgets.Container
 
 data ActiveBar

@@ -32,7 +32,7 @@ import Monomer.Main.Platform
 import Monomer.Main.Util
 import Monomer.Widgets
 
-import qualified Monomer.Core.Lens.Style as S
+import qualified Monomer.Lens as L
 
 import KeysComposite
 import TestComposite
@@ -87,9 +87,9 @@ main = do
   let appWidget = createApp model (Just InitApp) handleAppEvent buildUI
   let monomerContext = initMonomerContext () winSize useHiDPI devicePixelRate
   let theme = def
-        & S.basic . S.fgColor .~ blue
-        & S.hover . S.fgColor .~ white
-        & S.focus . S.fgColor .~ white
+        & L.basic . L.fgColor .~ blue
+        & L.hover . L.fgColor .~ white
+        & L.focus . L.fgColor .~ white
 
   runStateT (runApp window theme appWidget) monomerContext
 

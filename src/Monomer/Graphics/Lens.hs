@@ -2,10 +2,10 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Event.LensEvent where
+module Monomer.Graphics.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
-import Monomer.Event.Types
+import Monomer.Graphics.Types
 
-makeLensesWith abbreviatedFields ''InputStatus
+makeLensesWith abbreviatedFields ''Color

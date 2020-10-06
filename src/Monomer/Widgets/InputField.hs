@@ -20,8 +20,6 @@ import qualified Data.Text as T
 
 import Monomer.Widgets.Single
 
-import qualified Monomer.Core.Lens.Style as S
-
 data InputFieldCfg s e a = InputFieldCfg {
   _ifcValue :: WidgetData s a,
   _ifcValid :: Maybe (WidgetData s Bool),

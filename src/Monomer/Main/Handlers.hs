@@ -24,6 +24,7 @@ import qualified SDL.Raw.Types as SDL
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Main.Lens
 import Monomer.Main.Types
 import Monomer.Main.Util
 

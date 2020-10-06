@@ -2,14 +2,20 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Core.Lens.Style where
+module Monomer.Core.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
--- Imported to avoid having typeclasses created more than once
-import Monomer.Core.Lens.Basic
+import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
+import Monomer.Core.WidgetTypes
 
+-- Basic
+makeLensesWith abbreviatedFields ''Point
+makeLensesWith abbreviatedFields ''Size
+makeLensesWith abbreviatedFields ''Rect
+
+-- Style
 makeLensesWith abbreviatedFields ''SizeReq
 makeLensesWith abbreviatedFields ''Margin
 makeLensesWith abbreviatedFields ''Padding
@@ -21,3 +27,10 @@ makeLensesWith abbreviatedFields ''StyleState
 makeLensesWith abbreviatedFields ''Style
 makeLensesWith abbreviatedFields ''ThemeState
 makeLensesWith abbreviatedFields ''Theme
+
+-- Widget
+makeLensesWith abbreviatedFields ''WidgetEnv
+makeLensesWith abbreviatedFields ''WidgetRequest
+makeLensesWith abbreviatedFields ''WidgetResult
+makeLensesWith abbreviatedFields ''WidgetData
+makeLensesWith abbreviatedFields ''WidgetInstance

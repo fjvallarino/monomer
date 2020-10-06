@@ -18,6 +18,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Main.Handlers
+import Monomer.Main.Lens
 import Monomer.Main.Types
 
 handleWidgetTasks

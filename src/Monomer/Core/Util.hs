@@ -6,8 +6,7 @@ import Data.Text (Text)
 import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 
-import qualified Monomer.Core.Lens.Style as S
-import qualified Monomer.Core.Lens.Widget as W
+import qualified Monomer.Core.Lens as L
 
 infixl 5 `key`
 infixl 5 `style`
@@ -21,22 +20,22 @@ key widgetInst key = widgetInst {
 }
 
 style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-style inst states = inst & W.style .~ newStyle where
+style inst states = inst & L.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
-  newStyle = oldStyle & S.basic ?~ state
+  newStyle = oldStyle & L.basic ?~ state
 
 hover :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-hover inst states = inst & W.style .~ newStyle where
+hover inst states = inst & L.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
-  newStyle = oldStyle & S.hover ?~ state
+  newStyle = oldStyle & L.hover ?~ state
 
 focus :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-focus inst states = inst & W.style .~ newStyle where
+focus inst states = inst & L.style .~ newStyle where
   state = mconcat states
   oldStyle = _wiStyle inst
-  newStyle = oldStyle & S.focus ?~ state
+  newStyle = oldStyle & L.focus ?~ state
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible widgetInst visibility = widgetInst {

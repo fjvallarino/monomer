@@ -11,7 +11,7 @@ import qualified Data.Text as T
 import Monomer.Core
 import Monomer.Graphics
 
-import qualified Monomer.Core.Lens.Style as S
+import qualified Monomer.Core.Lens as L
 
 getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
 getTextSize wenv theme style text = handler font fontSize text where
@@ -90,9 +90,9 @@ fitGlyphsCount totalW currW (g :<| gs)
 
 getFontAndSize :: ThemeState -> StyleState -> (Font, FontSize)
 getFontAndSize theme style = (font, fontSize) where
-  styleFont = style ^? S.text . _Just  . S.font . _Just
-  styleFontSize = style ^? S.text . _Just . S.fontSize . _Just
-  themeFont = theme ^. S.font
-  themeFontSize = theme ^. S.fontSize
+  styleFont = style ^? L.text . _Just  . L.font . _Just
+  styleFontSize = style ^? L.text . _Just . L.fontSize . _Just
+  themeFont = theme ^. L.font
+  themeFontSize = theme ^. L.fontSize
   font = fromMaybe themeFont styleFont
   fontSize = fromMaybe themeFontSize styleFontSize

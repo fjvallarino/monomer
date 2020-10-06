@@ -9,7 +9,7 @@ import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.Types
 
-import qualified Monomer.Core.Lens.Style as L
+import qualified Monomer.Core.Lens as L
 
 instance Width StyleState where
   width w = def & L.sizeReqW ?~ FixedSize w

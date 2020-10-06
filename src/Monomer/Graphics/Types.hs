@@ -1,10 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Monomer.Graphics.Types where
 
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.ByteString (ByteString)
 import Data.Default
 import Data.Text (Text)
@@ -131,5 +126,3 @@ data Renderer = Renderer {
   existsImage :: String -> Bool,
   renderImage :: String -> Rect -> Double -> IO ()
 }
-
-makeLensesWith abbreviatedFields ''Color
