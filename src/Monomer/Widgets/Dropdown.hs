@@ -21,20 +21,8 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
 
-import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Combinators
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Keyboard
-import Monomer.Event.Types
-import Monomer.Graphics.Color
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
 import Monomer.Widgets.Container
 import Monomer.Widgets.Label
 import Monomer.Widgets.ListView
@@ -266,7 +254,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   resize wenv viewport renderArea children widgetInst = resized where
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
-        reqHeight = getReqCoord . _wiSizeReqH $ child
+        reqHeight = getMinReqCoord . _wiSizeReqH $ child
         maxHeight = min reqHeight 150
         oViewport = viewport {
           _rY = _rY viewport + _rH viewport,

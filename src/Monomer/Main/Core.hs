@@ -22,19 +22,16 @@ import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Event.Core
+import Monomer.Core
+import Monomer.Event
 import Monomer.Event.LensEvent
-import Monomer.Event.Types
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
+import Monomer.Graphics
 import Monomer.Graphics.NanoVGRenderer
-import Monomer.Graphics.Types
 import Monomer.Widgets.Composite
 
 data MainLoopArgs s e = MainLoopArgs {

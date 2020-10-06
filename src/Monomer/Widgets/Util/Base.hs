@@ -1,14 +1,12 @@
-module Monomer.Core.Internal (
-  addOuterSizeReq,
+module Monomer.Widgets.Util.Base (
   handleSizeReqStyle,
   handleStyleChange,
   isFixedReq,
   isFlexReq,
   isBoundedReq,
+  getMinReqCoord,
   getMaxReqCoord,
-  getReqCoord,
   getReqFactor,
-  getReqFactored,
   modifyReqCoord
 ) where
 
@@ -16,13 +14,9 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence ((|>))
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Style
-import Monomer.Core.StyleUtil
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Types
-import Monomer.Event.Core
+import Monomer.Core
+import Monomer.Event
+import Monomer.Widgets.Util.Widget
 
 type EventHandler s e
   = WidgetEnv s e
@@ -78,10 +72,10 @@ isBoundedReq :: SizeReq -> Bool
 isBoundedReq BoundedSize{} = True
 isBoundedReq _ = False
 
-getReqCoord :: SizeReq -> Coord
-getReqCoord (FixedSize c) = c
-getReqCoord (FlexSize c _) = c
-getReqCoord (BoundedSize c1 c2 _) = c1
+getMinReqCoord :: SizeReq -> Coord
+getMinReqCoord (FixedSize c) = c
+getMinReqCoord (FlexSize c _) = c
+getMinReqCoord (BoundedSize c1 c2 _) = c1
 
 getMaxReqCoord :: SizeReq -> Coord
 getMaxReqCoord (FixedSize c) = c
@@ -92,9 +86,6 @@ getReqFactor :: SizeReq -> Factor
 getReqFactor (FixedSize _) = 1
 getReqFactor (FlexSize _ f) = f
 getReqFactor (BoundedSize _ _ f) = f
-
-getReqFactored :: SizeReq -> Coord
-getReqFactored req = getReqFactor req * getReqCoord req
 
 modifyReqCoord :: SizeReq -> (Coord -> Coord) -> SizeReq
 modifyReqCoord (FixedSize c) f = FixedSize (f c)

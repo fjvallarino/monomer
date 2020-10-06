@@ -19,15 +19,6 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Types
-import Monomer.Graphics.Color
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
 import Monomer.Widgets.Container
 
 data ActiveBar
@@ -44,7 +35,7 @@ data ScrollCfg = ScrollCfg {
 
 instance Default ScrollCfg where
   def = ScrollCfg {
-    _scActiveBarColor = Just $ darkGray & alpha .~ 0.4,
+    _scActiveBarColor = Just $ darkGray & a .~ 0.4,
     _scIdleBarColor = Nothing,
     _scActiveThumbColor = Just gray,
     _scIdleThumbColor = Just darkGray
@@ -281,8 +272,8 @@ makeScroll config state = widget where
 
   getSizeReq wenv widgetInst children = sizeReq where
     child = Seq.index children 0
-    w = getReqCoord $ _wiSizeReqW child
-    h = getReqCoord $ _wiSizeReqH child
+    w = getMinReqCoord $ _wiSizeReqW child
+    h = getMinReqCoord $ _wiSizeReqH child
     factor = 1
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
@@ -293,8 +284,8 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (_wiChildren widgetInst) 0
-    childWidth2 = getReqCoord $ _wiSizeReqW child
-    childHeight2 = getReqCoord $ _wiSizeReqH child
+    childWidth2 = getMinReqCoord $ _wiSizeReqW child
+    childHeight2 = getMinReqCoord $ _wiSizeReqH child
 
     areaW = max w childWidth2
     areaH = max h childHeight2

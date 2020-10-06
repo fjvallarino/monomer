@@ -10,8 +10,7 @@ import Control.Lens (ALens')
 import Data.Default
 import Data.Text (Text)
 
-import Monomer.Core.Combinators
-import Monomer.Core.WidgetTypes
+import Monomer.Core
 import Monomer.Widgets.Label
 import Monomer.Widgets.Dropdown
 

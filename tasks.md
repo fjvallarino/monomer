@@ -190,11 +190,9 @@
     - Check if re-adding image on render should be inside lock
   - Improve spacer
   - Remove Tree
+  - Check why image dissapears when model changes (missing merge)
 
 - Pending
-  - Check why image dissapears when model changes (missing merge)
-  - Add center, right components based on box
-  - Can _wiChildren be removed from Widget and only be kept in Container?
   - Reorganize modules.
     -  Common and Widget merged into new Core?
     -  Widget.Widgets moved to Widget?
@@ -202,7 +200,14 @@
     -  Create Lens package. BasicTypes lenses should also be there
     -  Create separate Util/WidgetUtil (rename Types to WidgetTypes)
     -  Simplify imports
+    -  Create Lens.hs in each module instead of directory
+    -  Should StyleState be a phantom type?
+    -  Clean up checkbox/radio (fgcolor, etc)
   - Simplify Main.hs by abstracting SDL initialization
+  - Check if textBounds is enough, or we're missing descending part of font
+    - getFullTextSize should be used?
+  - Add center, right components based on box
+  - Can _wiChildren be removed from Widget and only be kept in Container?
   - WidgetRequest for error messages? Probably not worth it
     - Maybe provide a config where a notification/lens can be sent?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

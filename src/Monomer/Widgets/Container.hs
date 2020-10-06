@@ -5,6 +5,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Container (
+  module Monomer.Core,
+  module Monomer.Event,
+  module Monomer.Graphics,
+  module Monomer.Widgets.Util,
+
   Container(..),
   createContainer,
   initWrapper,
@@ -20,7 +25,6 @@ module Monomer.Widgets.Container (
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
-import Data.List (foldl')
 import Data.Maybe
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq(..), (<|), (|>), (><))
@@ -28,15 +32,10 @@ import Data.Sequence (Seq(..), (<|), (|>), (><))
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.StyleUtil
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Types
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
+import Monomer.Core
+import Monomer.Event
+import Monomer.Graphics
+import Monomer.Widgets.Util
 
 type ContainerInitHandler s e
   = WidgetEnv s e
@@ -200,7 +199,7 @@ mergeWrapper mergeHandler wenv oldInst newInst = result where
   newChildren = Seq.zipWith zipper indexes updatedChildren
   (mergedResults, removedResults) = mergeChildren wenv oldChildren newChildren
   mergedChildren = fmap _wrWidget mergedResults
-  concatSeq seqs = foldl' (><) Seq.empty seqs
+  concatSeq seqs = fold seqs
   mergedReqs = concatSeq $ fmap _wrRequests mergedResults
   mergedEvents = concatSeq $ fmap _wrEvents mergedResults
   removedReqs = concatSeq $ fmap _wrRequests removedResults
@@ -474,3 +473,11 @@ cascadeCtx parent child idx = newChild where
     _wiVisible = _wiVisible child && parentVisible,
     _wiEnabled = _wiEnabled child && parentEnabled
   }
+
+isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False

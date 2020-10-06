@@ -21,8 +21,7 @@ import Data.Text (Text)
 
 import qualified Data.Text as T
 
-import Monomer.Core.Combinators
-import Monomer.Core.WidgetTypes
+import Monomer.Core
 import Monomer.Widgets.InputField
 
 data TextFieldCfg s e = TextFieldCfg {

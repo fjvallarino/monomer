@@ -18,15 +18,6 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Style
-import Monomer.Core.StyleUtil
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Keyboard
-import Monomer.Event.Types
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
 import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens.Style as S
@@ -394,3 +385,27 @@ newTextState wenv inst oldState value text cursor selection = newState where
     _ifsOffset = newOffset,
     _ifsTextRect = Rect cx ty textW th
   }
+
+instanceTextStyle :: WidgetEnv s e -> WidgetInstance s e -> TextStyle
+instanceTextStyle wenv inst = textStyle <> textTheme where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  textStyle = fromMaybe def (_sstText style)
+  textTheme = TextStyle {
+    _txsFont = Just (_thsFont theme),
+    _txsFontSize = Just (_thsFontSize theme),
+    _txsFontColor = Just (_thsFontColor theme),
+    _txsAlignH = Nothing,
+    _txsAlignV = Nothing
+  }
+
+instanceFontColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceFontColor wenv inst = fromJust (_txsFontColor textStyle) where
+  textStyle = instanceTextStyle wenv inst
+
+instanceHlColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceHlColor wenv inst = fromMaybe themeColor styleColor where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  styleColor = _sstHlColor style
+  themeColor = _thsHlColor theme

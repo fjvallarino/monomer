@@ -4,9 +4,8 @@
 module Monomer.Core.WidgetTypes where
 
 import Control.Lens (ALens')
-import Data.Default
 import Data.Map.Strict (Map)
-import Data.Sequence (Seq, (<|), (|>))
+import Data.Sequence (Seq)
 import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Typeable (Typeable)

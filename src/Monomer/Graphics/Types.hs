@@ -18,10 +18,10 @@ data Winding
   deriving (Eq, Show)
 
 data Color = Color {
-  _colorRed :: Int,
-  _colorGreen :: Int,
-  _colorBlue :: Int,
-  _colorAlpha :: Double
+  _colorR :: Int,
+  _colorG :: Int,
+  _colorB :: Int,
+  _colorA :: Double
 } deriving (Show, Eq)
 
 instance Semigroup Color where

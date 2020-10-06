@@ -157,6 +157,8 @@ instance InnerRadiusBL StyleState where
 instance InnerRadiusBR StyleState where
   iradiusBR rad = def & L.radius . non def . L.bottomRight ?~ iradiusCorner rad
 
+-- Internal
+
 radiusCorner :: Double -> RadiusCorner
 radiusCorner rad = RadiusCorner RadiusBoth rad
 

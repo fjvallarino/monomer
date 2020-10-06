@@ -18,13 +18,10 @@ import Data.Typeable (Typeable, cast, typeOf)
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.StyleUtil
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Types
-import Monomer.Graphics.Types
+import Monomer.Core
+import Monomer.Event
+import Monomer.Graphics
+import Monomer.Widgets.Util
 
 type EventHandler s e ep = s -> e -> EventResponse s e ep
 type UIBuilder s e = s -> WidgetInstance s e
@@ -489,3 +486,8 @@ cascadeCtx parent child = newChild where
     _wiVisible = _wiVisible child && parentVisible,
     _wiEnabled = _wiEnabled child && parentEnabled
   }
+
+getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
+getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
+  foldHelper acc (UpdateModel fn) = acc |> fn
+  foldHelper acc _ = acc

@@ -3,6 +3,11 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Single (
+  module Monomer.Core,
+  module Monomer.Event,
+  module Monomer.Graphics,
+  module Monomer.Widgets.Util,
+
   Single(..),
   createSingle
 ) where
@@ -10,14 +15,10 @@ module Monomer.Widgets.Single (
 import Data.Default
 import Data.Typeable (Typeable)
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Types
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
+import Monomer.Core
+import Monomer.Event
+import Monomer.Graphics
+import Monomer.Widgets.Util
 
 type SingleInitHandler s e
   = WidgetEnv s e

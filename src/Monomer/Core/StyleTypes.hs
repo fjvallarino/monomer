@@ -1,6 +1,6 @@
 module Monomer.Core.StyleTypes where
 
-import Control.Applicative
+import Control.Applicative ((<|>))
 import Data.Default
 
 import Monomer.Core.BasicTypes

@@ -9,11 +9,6 @@ import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
 import Monomer.Widgets.Container
 
 hgrid :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
@@ -50,10 +45,10 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = fromIntegral (length vchildren)
     width
       | Seq.null vchildren = 0
-      | otherwise = wMul * (maximum . fmap getMaxSize) vreqsW
+      | otherwise = wMul * (maximum . fmap getMaxReqCoord) vreqsW
     height
       | Seq.null vchildren = 0
-      | otherwise = hMul * (maximum . fmap getMaxSize) vreqsH
+      | otherwise = hMul * (maximum . fmap getMaxReqCoord) vreqsH
     newSizeReqW
       | not isHorizontal && fixedW = FixedSize width
       | otherwise = FlexSize width factor
@@ -82,8 +77,3 @@ makeFixedGrid isHorizontal = widget where
     calcViewport i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) vchildren
     resized = (widgetInst, assignedAreas)
-
-getMaxSize :: SizeReq -> Coord
-getMaxSize (FixedSize c) = c
-getMaxSize (FlexSize c _) = c
-getMaxSize (BoundedSize _ c2 _) = c2

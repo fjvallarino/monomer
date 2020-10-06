@@ -10,11 +10,6 @@ import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Internal
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
 import Monomer.Widgets.Container
 
 hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
@@ -117,7 +112,7 @@ makeStack isHorizontal = widget where
   calcDimensions vchildren useFactor = (maxW, sumW, maxH, sumH) where
     getReqSize
       | useFactor = getReqFactored
-      | otherwise = getReqCoord
+      | otherwise = getMinReqCoord
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
     sumW = (sum . fmap getReqSize) vreqsW
@@ -167,3 +162,6 @@ getFactorAvg reqs
   where
     flexReqs = Seq.filter (not . isFixedReq) reqs
     flexCount = fromIntegral (Seq.length flexReqs)
+
+getReqFactored :: SizeReq -> Coord
+getReqFactored req = getReqFactor req * getMinReqCoord req

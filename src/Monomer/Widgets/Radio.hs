@@ -13,18 +13,9 @@ module Monomer.Widgets.Radio (
 import Control.Lens (ALens', (&), (^.), (.~))
 import Control.Monad
 import Data.Default
+import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Combinators
-import Monomer.Core.Style
-import Monomer.Core.StyleUtil (removeOuterBounds)
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Keyboard
-import Monomer.Event.Types
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
 import Monomer.Widgets.Single
 
 data RadioCfg s e a = RadioCfg {
@@ -142,3 +133,10 @@ renderMark renderer config rect color = action where
   w = radioBorderW
   newRect = subtractFromRect rect w w w w
   action = drawEllipse renderer newRect (Just color)
+
+instanceFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
+instanceFgColor wenv inst = fromMaybe themeColor styleColor where
+  style = activeStyle wenv inst
+  theme = activeTheme wenv inst
+  styleColor = _sstFgColor style
+  themeColor = _thsFgColor theme

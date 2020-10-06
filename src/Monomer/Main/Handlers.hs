@@ -14,19 +14,16 @@ import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (><))
+import Data.Sequence (Seq(..), (><), (|>))
 
 import qualified Data.Sequence as Seq
 import qualified SDL
 import qualified SDL.Raw.Types as SDL
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Core
-import Monomer.Event.Keyboard
-import Monomer.Event.Types
+import Monomer.Core
+import Monomer.Event
 import Monomer.Main.Types
 import Monomer.Main.Util
 
@@ -318,3 +315,36 @@ handleNewWidgetTasks reqs = do
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False
+
+isResize :: WidgetRequest s -> Bool
+isResize Resize = True
+isResize _ = False
+
+isSetClipboard :: WidgetRequest s -> Bool
+isSetClipboard SetClipboard{} = True
+isSetClipboard _ = False
+
+isSetOverlay :: WidgetRequest s -> Bool
+isSetOverlay SetOverlay{} = True
+isSetOverlay _ = False
+
+isSetFocus :: WidgetRequest s -> Bool
+isSetFocus SetFocus{} = True
+isSetFocus _ = False
+
+isProducerHandler :: WidgetRequest s -> Bool
+isProducerHandler RunProducer{} = True
+isProducerHandler _ = False
+
+isTaskHandler :: WidgetRequest s -> Bool
+isTaskHandler RunTask{} = True
+isTaskHandler _ = False
+
+getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
+getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
+  foldHelper acc (UpdateModel fn) = acc |> fn
+  foldHelper acc _ = acc

@@ -6,6 +6,7 @@ module Monomer.Core.Lens.Style where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
+-- Imported to avoid having typeclasses created more than once
 import Monomer.Core.Lens.Basic
 import Monomer.Core.StyleTypes
 

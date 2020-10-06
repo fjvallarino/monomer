@@ -1,5 +1,4 @@
 module Monomer.Core.StyleUtil (
-  mergeThemeStyle,
   addOuterSize,
   addOuterBounds,
   removeOuterSize,
@@ -11,23 +10,7 @@ import Data.Default
 import Data.Maybe
 
 import Monomer.Core.BasicTypes
-import Monomer.Core.Style
-import Monomer.Graphics.Types
-
-mergeThemeStyle :: ThemeState -> StyleState -> StyleState
-mergeThemeStyle theme style = newStyle where
-  themeFgColor = Just $ _thsFgColor theme
-  themeHlColor = Just $ _thsHlColor theme
-  themeText = Just def {
-    _txsFont = Just $ _thsFont theme,
-    _txsFontSize = Just $ _thsFontSize theme,
-    _txsFontColor = Just $ _thsFontColor theme
-  }
-  newStyle = style {
-    _sstFgColor = _sstFgColor style <> themeFgColor,
-    _sstHlColor = _sstHlColor style <> themeHlColor,
-    _sstText = _sstText style <> themeText
-  }
+import Monomer.Core.StyleTypes
 
 addOuterSize :: StyleState -> Size -> Size
 addOuterSize style sz = final where

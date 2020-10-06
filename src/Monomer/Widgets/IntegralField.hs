@@ -26,10 +26,9 @@ import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
 import qualified Formatting as F
 
-import Monomer.Core.Combinators
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
+import Monomer.Core
 import Monomer.Widgets.InputField
+import Monomer.Widgets.Util
 
 type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
 

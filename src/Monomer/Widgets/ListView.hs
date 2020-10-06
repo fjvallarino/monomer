@@ -24,16 +24,6 @@ import Data.Typeable (Typeable, cast)
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.BasicTypes
-import Monomer.Core.Combinators
-import Monomer.Core.Style
-import Monomer.Core.WidgetTypes
-import Monomer.Core.Util
-import Monomer.Event.Keyboard
-import Monomer.Event.Types
-import Monomer.Graphics.Color
-import Monomer.Graphics.Drawing
-import Monomer.Graphics.Types
 import Monomer.Widgets.Box
 import Monomer.Widgets.Container
 import Monomer.Widgets.Label
@@ -295,7 +285,7 @@ makeListView widgetData items makeRow config state = widget where
       baseColor = _lvcHighlightedColor config
       highlightColor
         | isFocused wenv inst = fromJust baseColor
-        | otherwise = fromJust baseColor & alpha .~ 0.4
+        | otherwise = fromJust baseColor & a .~ 0.4
       bs = Just $ BorderSide 1 highlightColor
       itemBorder = Border bs bs bs bs
 
@@ -324,3 +314,10 @@ makeItemsList items makeRow config path selected hlIdx = itemsList where
     newItem = box_ (content & W.style .~ itemStyle idx item) itemCfg
   pairs = Seq.zip (Seq.fromList [0..length items]) items
   itemsList = vstack $ fmap (uncurry makeItem) pairs
+
+resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+resizeInstance wenv inst = newInst where
+  viewport = _wiViewport inst
+  renderArea = _wiRenderArea inst
+  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
+  newInst = widgetResize (_wiWidget instReqs) wenv viewport renderArea instReqs
