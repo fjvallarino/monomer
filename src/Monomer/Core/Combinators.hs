@@ -5,9 +5,14 @@ module Monomer.Core.Combinators where
 import Control.Lens (ALens')
 import Data.Text (Text)
 
+import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
+
+-- Config
+class WindowSize t s | t -> s where
+  windowSize :: s -> t
 
 -- Input
 class ValidInput t s where

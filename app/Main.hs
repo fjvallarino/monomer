@@ -28,9 +28,10 @@ main = do
         & L.basic . L.fgColor .~ blue
         & L.hover . L.fgColor .~ white
         & L.focus . L.fgColor .~ white
-  let config = def
+  let config = [windowSize (1280, 960), useHdpi True]
 
-  simpleApp model (Just InitApp) theme handleAppEvent buildUI config
+  --simpleApp model (Just InitApp) theme handleAppEvent buildUI config
+  simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
 
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))

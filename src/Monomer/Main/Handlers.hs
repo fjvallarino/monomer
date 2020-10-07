@@ -24,9 +24,10 @@ import qualified SDL.Raw.Types as SDL
 
 import Monomer.Core
 import Monomer.Event
-import Monomer.Main.Lens
 import Monomer.Main.Types
 import Monomer.Main.Util
+
+import qualified Monomer.Main.Lens as L
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 
@@ -68,7 +69,7 @@ handleSystemEvents
   -> m (HandlerStep s e)
 handleSystemEvents wenv systemEvents widgetRoot = nextStep where
   reducer (cWctx, cEvents, cRoot) evt = do
-    focused <- use pathFocus
+    focused <- use L.pathFocus
 
     (wenv2, evts2, wroot2) <- handleSystemEvent cWctx evt focused cRoot
     return (wenv2, cEvents >< evts2, wroot2)
@@ -82,8 +83,8 @@ handleSystemEvent
   -> WidgetInstance s e
   -> m (HandlerStep s e)
 handleSystemEvent wenv event currentTarget widgetRoot = do
-  pressed <- use pathPressed
-  overlay <- use pathOverlay
+  pressed <- use L.pathPressed
+  overlay <- use L.pathOverlay
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)
@@ -139,7 +140,7 @@ handleFocusChange
   -> m (HandlerStep s e)
 handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
-      oldFocus <- use pathFocus
+      oldFocus <- use L.pathFocus
       (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
 
       let newFocus = findNextFocus wenv1 focusDirection oldFocus root1
@@ -147,7 +148,7 @@ handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
         _weFocusedPath = newFocus
       }
 
-      pathFocus .= newFocus
+      L.pathFocus .= newFocus
       (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
       return (wenv2, events >< events1 >< events2, root2)
@@ -166,7 +167,7 @@ handleFocusSet
 handleFocusSet reqs previousStep@(wenv, events, root) =
   case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
-      pathFocus .= newFocus
+      L.pathFocus .= newFocus
       (wenv2, events2, root2) <- handleSystemEvent wenv Focus newFocus root
 
       return (wenv2, events >< events2, root2)
@@ -180,7 +181,7 @@ handleResize
 handleResize reqs previousStep =
   case Seq.filter isResize reqs of
     Resize :<| _ -> do
-      windowSize <- use windowSize
+      windowSize <- use L.windowSize
 
       let (wenv, events, widgetRoot) = previousStep
       let newWidgetRoot = resizeWidget wenv windowSize widgetRoot
@@ -257,7 +258,7 @@ handleOverlaySet
 handleOverlaySet reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     SetOverlay path :<| _ -> do
-      pathOverlay .= Just path
+      L.pathOverlay .= Just path
 
       return previousStep
     _ -> return previousStep
@@ -270,7 +271,7 @@ handleOverlayReset
 handleOverlayReset reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     ResetOverlay :<| _ -> do
-      pathOverlay .= Nothing
+      L.pathOverlay .= Nothing
 
       return previousStep
     _ -> return previousStep
@@ -283,7 +284,7 @@ handleSendMessages
 handleSendMessages reqs previousStep = nextStep where
   nextStep = foldM reducer previousStep reqs
   reducer prevStep (SendMessage path message) = do
-    currentFocus <- use pathFocus
+    currentFocus <- use L.pathFocus
 
     let (wenv, events, widgetRoot) = prevStep
     let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
@@ -311,8 +312,8 @@ handleNewWidgetTasks reqs = do
     asyncTask <- liftIO $ async (liftIO $ handler (sendMessage newChannel))
     return $ WidgetProducer path newChannel asyncTask
 
-  previousTasks <- use widgetTasks
-  widgetTasks .= previousTasks >< singleTasks >< producerTasks
+  previousTasks <- use L.widgetTasks
+  L.widgetTasks .= previousTasks >< singleTasks >< producerTasks
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message

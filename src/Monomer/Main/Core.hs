@@ -5,6 +5,7 @@
 module Monomer.Main.Core (
   EventResponse(..),
   simpleApp,
+  simpleApp_,
   runApp
 ) where
 
@@ -33,6 +34,8 @@ import Monomer.Main.WidgetTask
 import Monomer.Graphics
 import Monomer.Widgets.Composite
 
+import qualified Monomer.Lens as L
+
 data MainLoopArgs s e = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
@@ -50,9 +53,20 @@ simpleApp
   -> Theme
   -> EventHandler s e ()
   -> UIBuilder s e
-  -> AppConfig e
   -> IO ()
-simpleApp model initEvent theme eventHandler uiBuilder config = do
+simpleApp model initEvent theme eventHandler uiBuilder =
+  simpleApp_ model initEvent theme eventHandler uiBuilder def
+
+simpleApp_
+  :: (Eq s, Typeable s, Typeable e)
+  => s
+  -> Maybe e
+  -> Theme
+  -> EventHandler s e ()
+  -> UIBuilder s e
+  -> [AppConfig e]
+  -> IO ()
+simpleApp_ model initEvent theme eventHandler uiBuilder configs = do
   window <- initSDLWindow config
   winSize <- getDrawableSize window
 
@@ -62,21 +76,21 @@ simpleApp model initEvent theme eventHandler uiBuilder config = do
   runStateT (runApp window theme appWidget) monomerContext
   detroySDLWindow window
   where
-    (winW, winH) =_apcWindowSize config
-    useHdpi = _apcHdpi config
-    initEvent = _apcInitEvent config
+    config = mconcat configs
+    (winW, winH) = fromMaybe defaultWindowSize (_apcWindowSize config)
+    useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
     appWidget = composite "app" model initEvent eventHandler uiBuilder
 
 runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()
 runApp window theme widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
-  Size rw rh <- use windowSize
+  Size rw rh <- use L.windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
   let newWindowSize = Size (rw / dpr) (rh / dpr)
 
-  windowSize .= newWindowSize
+  L.windowSize .= newWindowSize
   startTs <- fmap fromIntegral SDL.ticks
   model <- use mainModel
   os <- getPlatform
@@ -115,7 +129,7 @@ runApp window theme widgetRoot = do
 
 mainLoop :: (MonomerM s m) => SDL.Window -> Renderer -> MainLoopArgs s e -> m ()
 mainLoop window renderer loopArgs = do
-  windowSize <- use windowSize
+  windowSize <- use L.windowSize
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   startTicks <- fmap fromIntegral SDL.ticks
@@ -217,7 +231,7 @@ resizeWindow window wenv widgetRoot = do
   let position = GL.Position 0 0
   let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
 
-  windowSize .= newWindowSize
+  L.windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (position, size)
 
   return $ resizeWidget wenv newWindowSize widgetRoot

@@ -1,6 +1,7 @@
 module Monomer.Main.Platform where
 
 import Control.Monad.State
+import Data.Maybe
 import Data.Text (Text)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
@@ -40,8 +41,8 @@ initSDLWindow config = do
     SDL.glMultisampleSamples = 1
   }
 
-  let (winW, winH) =_apcWindowSize config
-  let windowHiDPI = _apcHdpi config
+  let (winW, winH) = fromMaybe defaultWindowSize (_apcWindowSize config)
+  let windowHiDPI = fromMaybe defaultUseHdpi (_apcHdpi config)
 
   window <-
     SDL.createWindow

@@ -11,6 +11,12 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Main.Types
 
+defaultWindowSize :: (Int, Int)
+defaultWindowSize = (640, 480)
+
+defaultUseHdpi :: Bool
+defaultUseHdpi = True
+
 initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
 initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
   _mcMainModel = model,

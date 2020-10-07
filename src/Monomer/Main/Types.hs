@@ -1,9 +1,12 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Main.Types where
 
+import Control.Applicative ((<|>))
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
 import Control.Monad.State
@@ -12,6 +15,7 @@ import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
 
 import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Event.Types
 
@@ -35,14 +39,31 @@ data MonomerContext s = MonomerContext {
 }
 
 data AppConfig e = AppConfig {
-  _apcWindowSize :: (Int, Int),
-  _apcHdpi :: Bool,
-  _apcInitEvent :: Maybe e
+  _apcWindowSize :: Maybe (Int, Int),
+  _apcHdpi :: Maybe Bool
 }
 
 instance Default (AppConfig e) where
   def = AppConfig {
-    _apcWindowSize = (640, 480),
-    _apcHdpi = True,
-    _apcInitEvent = Nothing
+    _apcWindowSize = Nothing,
+    _apcHdpi = Nothing
   }
+
+instance Semigroup (AppConfig e) where
+  (<>) a1 a2 = AppConfig {
+    _apcWindowSize = _apcWindowSize a2 <|> _apcWindowSize a1,
+    _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1
+  }
+
+instance Monoid (AppConfig e) where
+  mempty = def
+
+instance WindowSize (AppConfig e) (Int, Int) where
+  windowSize size = def {
+    _apcWindowSize = Just size
+  }
+
+useHdpi :: Bool -> AppConfig e
+useHdpi use = def {
+  _apcHdpi = Just use
+}
