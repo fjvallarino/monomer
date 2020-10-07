@@ -4,7 +4,7 @@
 
 module Monomer.Main.Core (
   EventResponse(..),
-  createApp,
+  simpleApp,
   runApp
 ) where
 
@@ -31,7 +31,6 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics
-import Monomer.Graphics.NanoVGRenderer
 import Monomer.Widgets.Composite
 
 data MainLoopArgs s e = MainLoopArgs {
@@ -44,15 +43,29 @@ data MainLoopArgs s e = MainLoopArgs {
   _mlWidgetRoot :: WidgetInstance s e
 }
 
-createApp
+simpleApp
   :: (Eq s, Typeable s, Typeable e)
   => s
   -> Maybe e
+  -> Theme
   -> EventHandler s e ()
   -> UIBuilder s e
-  -> WidgetInstance () ()
-createApp model initEvent eventHandler uiBuilder = app where
-  app = composite "app" model initEvent eventHandler uiBuilder
+  -> AppConfig e
+  -> IO ()
+simpleApp model initEvent theme eventHandler uiBuilder config = do
+  window <- initSDLWindow config
+  winSize <- getDrawableSize window
+
+  let dpr = _sW winSize / fromIntegral winW
+  let monomerContext = initMonomerContext () winSize useHdpi dpr
+
+  runStateT (runApp window theme appWidget) monomerContext
+  detroySDLWindow window
+  where
+    (winW, winH) =_apcWindowSize config
+    useHdpi = _apcHdpi config
+    initEvent = _apcInitEvent config
+    appWidget = composite "app" model initEvent eventHandler uiBuilder
 
 runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()
 runApp window theme widgetRoot = do

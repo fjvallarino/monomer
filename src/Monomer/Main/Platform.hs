@@ -1,17 +1,73 @@
 module Monomer.Main.Platform where
 
-import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.State
 import Data.Text (Text)
 import Foreign.C (peekCString, withCString)
+import Foreign.C.Types
+import SDL (($=))
 import System.IO.Unsafe (unsafePerformIO)
 
 import qualified Data.Text as T
+import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw
+import qualified SDL.Raw.Error as SRE
 
 import Monomer.Core.BasicTypes
+import Monomer.Core.StyleTypes
+import Monomer.Main.Types
+import Monomer.Main.Util
 import Monomer.Event.Types
+import Monomer.Widgets.Composite
+
+foreign import ccall unsafe "initGlew" glewInit :: IO CInt
+
+initSDLWindow :: AppConfig e -> IO SDL.Window
+initSDLWindow config = do
+  SDL.initialize [SDL.InitVideo]
+  SDL.HintRenderScaleQuality $= SDL.ScaleLinear
+
+  do renderQuality <- SDL.get SDL.HintRenderScaleQuality
+     when (renderQuality /= SDL.ScaleLinear) $
+       putStrLn "Warning: Linear texture filtering not enabled!"
+
+  let customOpenGL = SDL.OpenGLConfig {
+    SDL.glColorPrecision = SDL.V4 8 8 8 0,
+    SDL.glDepthPrecision = 24,
+    SDL.glStencilPrecision = 8,
+    SDL.glProfile = SDL.Core SDL.Debug 3 2,
+    SDL.glMultisampleSamples = 1
+  }
+
+  let (winW, winH) =_apcWindowSize config
+  let windowHiDPI = _apcHdpi config
+
+  window <-
+    SDL.createWindow
+      "SDL / OpenGL Example"
+      SDL.defaultWindow {
+        SDL.windowInitialSize = SDL.V2 (fromIntegral winW) (fromIntegral winH),
+        SDL.windowHighDPI = windowHiDPI,
+        SDL.windowResizable = True,
+        SDL.windowGraphicsContext = SDL.OpenGLContext customOpenGL
+      }
+
+  err <- SRE.getError
+  err <- STR.peekCString err
+  putStrLn err
+
+  _ <- SDL.glCreateContext window
+
+  _ <- glewInit
+
+  return window
+
+detroySDLWindow :: SDL.Window -> IO ()
+detroySDLWindow window = do
+  putStrLn "About to destroyWindow"
+  SDL.destroyWindow window
+  SDL.quit
 
 getCurrentMousePos :: (MonadIO m) => m Point
 getCurrentMousePos = do
