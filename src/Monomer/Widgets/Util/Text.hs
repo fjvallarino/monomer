@@ -1,6 +1,5 @@
 module Monomer.Widgets.Util.Text where
 
-import Control.Lens ((^.), (^?), _Just)
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
 import Data.Text (Text)
@@ -10,47 +9,41 @@ import qualified Data.Text as T
 
 import Monomer.Core
 import Monomer.Graphics
+import Monomer.Widgets.Util.Style
 
-import qualified Monomer.Core.Lens as L
-
-getTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
-getTextSize wenv theme style text = handler font fontSize text where
+getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
+getTextSize wenv style text = handler font fontSize text where
   handler = computeTextSize (_weRenderer wenv)
-  (font, fontSize) = getFontAndSize theme style
+  font = styleFont style
+  fontSize = styleFontSize style
 
-getFullTextSize :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Size
-getFullTextSize wenv theme style text = totalBounds where
-  textBounds = getTextSize wenv theme style text
+getFullTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
+getFullTextSize wenv style text = totalBounds where
+  textBounds = getTextSize wenv style text
   totalBounds = addOuterSize style textBounds
 
-getTextRect
-  :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Align -> Text -> Rect
-getTextRect wenv theme style rect align text = textRect where
+getTextRect :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
+getTextRect wenv style rect align text = textRect where
   textRect = computeTextRect (_weRenderer wenv) rect font fontSize align text
-  (font, fontSize) = getFontAndSize theme style
+  font = styleFont style
+  fontSize = styleFontSize style
 
-fitText
-  :: WidgetEnv s e -> ThemeState -> StyleState -> Rect -> Text -> (Text, Size)
-fitText wenv theme style viewport text = (newText, newSize) where
-  (font, fontSize) = getFontAndSize theme style
+fitText :: WidgetEnv s e -> StyleState -> Rect -> Text -> (Text, Size)
+fitText wenv style viewport text = (newText, newSize) where
+  font = styleFont style
+  fontSize = styleFontSize style
   sizeHandler = computeTextSize (_weRenderer wenv)
   size = sizeHandler font fontSize text
   (newText, newSize)
     | _sW size <= _rW viewport = (text, size)
-    | otherwise = fitEllipsis wenv theme style viewport size text
+    | otherwise = fitEllipsis wenv style viewport size text
 
 fitEllipsis
-  :: WidgetEnv s e
-  -> ThemeState
-  -> StyleState
-  -> Rect
-  -> Size
-  -> Text
-  -> (Text, Size)
-fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
+  :: WidgetEnv s e -> StyleState -> Rect -> Size -> Text -> (Text, Size)
+fitEllipsis wenv style viewport textSize text = (newText, newSize) where
   Size tw th = textSize
   vpW = _rW viewport
-  glyphs = getTextGlyphs wenv theme style (text <> ".")
+  glyphs = getTextGlyphs wenv style (text <> ".")
   dotW = _glpW $ Seq.index glyphs (Seq.length glyphs - 1)
   dotsW = 3 * dotW
   dotsFit = vpW >= tw + dotsW
@@ -68,10 +61,10 @@ fitEllipsis wenv theme style viewport textSize text = (newText, newSize) where
     | otherwise = gWidth + fromIntegral dotCount * dotW
   newSize = Size newWidth th
 
-getTextGlyphs
-  :: WidgetEnv s e -> ThemeState -> StyleState -> Text -> Seq GlyphPos
-getTextGlyphs wenv theme style text = glyphs where
-  (font, fontSize) = getFontAndSize theme style
+getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
+getTextGlyphs wenv style text = glyphs where
+  font = styleFont style
+  fontSize = styleFontSize style
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
 
 glyphsLength :: Seq GlyphPos -> Double
@@ -87,12 +80,3 @@ fitGlyphsCount totalW currW (g :<| gs)
     gsW = _glpW g
     newCurrW = currW + gsW
     (gCount, gWidth) = fitGlyphsCount totalW newCurrW gs
-
-getFontAndSize :: ThemeState -> StyleState -> (Font, FontSize)
-getFontAndSize theme style = (font, fontSize) where
-  styleFont = style ^? L.text . _Just  . L.font . _Just
-  styleFontSize = style ^? L.text . _Just . L.fontSize . _Just
-  themeFont = theme ^. L.font
-  themeFontSize = theme ^. L.fontSize
-  font = fromMaybe themeFont styleFont
-  fontSize = fromMaybe themeFontSize styleFontSize

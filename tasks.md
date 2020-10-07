@@ -201,7 +201,6 @@
     -  Create separate Util/WidgetUtil (rename Types to WidgetTypes)
     -  Simplify imports
     -  Create Lens.hs in each module instead of directory
-    -  Should StyleState be a phantom type?
     -  Clean up checkbox/radio (fgcolor, etc)
   - Simplify Main.hs by abstracting SDL initialization
   - Check if textBounds is enough, or we're missing descending part of font
@@ -243,6 +242,10 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+  - Should StyleState be a phantom type?
+    - A branch was created and got it working
+    - Getting the meant extending that idea to Widget was logical
+    - Interfaces got ugly quickly. Need to revisit
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
   - Implement SDL_Surface + Cairo backend

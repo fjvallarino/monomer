@@ -109,14 +109,14 @@ makeCheckbox widgetData config = widget where
       renderMark renderer config rarea fgColor
     where
       model = _weModel wenv
-      style = activeStyle wenv inst
+      style = instanceStyle wenv inst
       value = widgetDataGet model widgetData
       rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea
       checkboxT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)
       checkboxArea = Rect checkboxL checkboxT sz sz
-      fgColor = instanceFgColor wenv inst
+      fgColor = styleFgColor style
 
 renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
 renderCheckbox renderer config rect color = action where
@@ -129,10 +129,3 @@ renderMark renderer config rect color = action where
   w = checkboxBorderW * 2
   newRect = subtractFromRect rect w w w w
   action = drawRect renderer newRect (Just color) Nothing
-
-instanceFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
-instanceFgColor wenv inst = fromMaybe themeColor styleColor where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv inst
-  styleColor = _sstFgColor style
-  themeColor = _thsFgColor theme

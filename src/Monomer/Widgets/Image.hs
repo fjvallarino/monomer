@@ -129,8 +129,7 @@ makeImage imgPath config state = widget where
     result = Just $ resultReqs [Resize] newInst
 
   getSizeReq wenv inst = sizeReq where
-    theme = activeTheme wenv inst
-    style = activeStyle wenv inst
+    style = instanceStyle wenv inst
     Size w h = maybe def snd (isImageData state)
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)
@@ -143,7 +142,7 @@ makeImage imgPath config state = widget where
       drawInScissor renderer True contentRect $
         drawImage renderer imgPath imageRect alpha
     where
-      style = activeStyle wenv inst
+      style = instanceStyle wenv inst
       contentRect = getContentRect style inst
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)

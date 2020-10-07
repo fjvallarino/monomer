@@ -180,7 +180,7 @@ makeInputField config state = widget where
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> result where
-      style = activeStyle wenv inst
+      style = instanceStyle wenv inst
       rect = getContentRect style inst
       localX = x - _rX rect + _ifsOffset state
       textLen = glyphsLength (_ifsGlyphs state)
@@ -276,9 +276,8 @@ makeInputField config state = widget where
       end = max currPos (fromJust currSel)
 
   getSizeReq wenv inst = sizeReq where
-    theme = activeTheme wenv inst
-    style = activeStyle wenv inst
-    Size w h = getTextSize wenv theme style currText
+    style = instanceStyle wenv inst
+    Size w h = getTextSize wenv style currText
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
@@ -321,9 +320,9 @@ makeInputField config state = widget where
       glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
       selRequired = isFocused wenv inst
-      selColor = instanceHlColor wenv inst
+      selColor = styleHlColor style
       caretRequired = isFocused wenv inst && ts `mod` 1000 < 500
-      caretColor = instanceFontColor wenv inst
+      caretColor = styleFontColor style
       caretPos
         | currPos == 0 = 0
         | currPos == nglyphs = _glpXMax (glyph $ currPos - 1)
@@ -353,10 +352,9 @@ newTextState
   -> Maybe Int
   -> InputFieldState a
 newTextState wenv inst oldState value text cursor selection = newState where
-  theme = activeTheme wenv inst
   style = instanceStyle wenv inst
   contentRect = getContentRect style inst
-  glyphs = getTextGlyphs wenv theme style text
+  glyphs = getTextGlyphs wenv style text
   curX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   oldOffset = _ifsOffset oldState
   textStyle = fromJust (_sstText style)
@@ -364,7 +362,7 @@ newTextState wenv inst oldState value text cursor selection = newState where
   alignV = fromMaybe def (_txsAlignV textStyle)
   align = Align alignH alignV
   Rect cx cy cw ch = contentRect
-  Rect tx ty tw th = getTextRect wenv theme style contentRect align text
+  Rect tx ty tw th = getTextRect wenv style contentRect align text
   textW = glyphsLength glyphs
   textFits = cw >= textW
   newOffset
@@ -383,27 +381,3 @@ newTextState wenv inst oldState value text cursor selection = newState where
     _ifsOffset = newOffset,
     _ifsTextRect = Rect cx ty textW th
   }
-
-instanceTextStyle :: WidgetEnv s e -> WidgetInstance s e -> TextStyle
-instanceTextStyle wenv inst = textStyle <> textTheme where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv inst
-  textStyle = fromMaybe def (_sstText style)
-  textTheme = TextStyle {
-    _txsFont = Just (_thsFont theme),
-    _txsFontSize = Just (_thsFontSize theme),
-    _txsFontColor = Just (_thsFontColor theme),
-    _txsAlignH = Nothing,
-    _txsAlignV = Nothing
-  }
-
-instanceFontColor :: WidgetEnv s e -> WidgetInstance s e -> Color
-instanceFontColor wenv inst = fromJust (_txsFontColor textStyle) where
-  textStyle = instanceTextStyle wenv inst
-
-instanceHlColor :: WidgetEnv s e -> WidgetInstance s e -> Color
-instanceHlColor wenv inst = fromMaybe themeColor styleColor where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv inst
-  styleColor = _sstHlColor style
-  themeColor = _thsHlColor theme

@@ -90,18 +90,16 @@ makeButton config state = widget where
     _ -> Nothing
 
   getSizeReq wenv widgetInst = sizeReq where
-    theme = activeTheme wenv widgetInst
-    style = activeStyle wenv widgetInst
-    Size w h = getTextSize wenv theme style caption
+    style = instanceStyle wenv widgetInst
+    Size w h = getTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   resize wenv viewport renderArea widgetInst = newInst where
-    theme = activeTheme wenv widgetInst
-    style = activeStyle wenv widgetInst
-    size = getTextSize wenv theme style caption
+    style = instanceStyle wenv widgetInst
+    size = getTextSize wenv style caption
     (newCaptionFit, _) = case textOverflow of
-      Ellipsis -> fitText wenv theme style renderArea caption
+      Ellipsis -> fitText wenv style renderArea caption
       _ -> (caption, def)
     newWidget
       | captionFit == newCaptionFit = _wiWidget widgetInst
@@ -112,10 +110,10 @@ makeButton config state = widget where
       _wiRenderArea = renderArea
     }
 
-  render renderer wenv inst = do
+  render renderer wenv widgetInst = do
     setScissor renderer contentRect
     drawStyledText_ renderer contentRect style captionFit
     resetScissor renderer
     where
-      style = activeStyle wenv inst
-      contentRect = getContentRect style inst
+      style = instanceStyle wenv widgetInst
+      contentRect = getContentRect style widgetInst

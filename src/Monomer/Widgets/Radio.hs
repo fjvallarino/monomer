@@ -114,14 +114,14 @@ makeRadio field option config = widget where
       renderMark renderer config rarea fgColor
     where
       model = _weModel wenv
-      style = activeStyle wenv inst
+      style = instanceStyle wenv inst
       value = widgetDataGet model field
       rarea = removeOuterBounds style $ _wiRenderArea inst
       radioL = _rX rarea
       radioT = _rY rarea
       sz = min (_rW rarea) (_rH rarea)
       radioArea = Rect radioL radioT sz sz
-      fgColor = instanceFgColor wenv inst
+      fgColor = styleFgColor style
 
 renderRadio :: Renderer -> RadioCfg s e a -> Rect -> Color -> IO ()
 renderRadio renderer config rect color = action where
@@ -133,10 +133,3 @@ renderMark renderer config rect color = action where
   w = radioBorderW
   newRect = subtractFromRect rect w w w w
   action = drawEllipse renderer newRect (Just color)
-
-instanceFgColor :: WidgetEnv s e -> WidgetInstance s e -> Color
-instanceFgColor wenv inst = fromMaybe themeColor styleColor where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv inst
-  styleColor = _sstFgColor style
-  themeColor = _thsFgColor theme

@@ -5,9 +5,15 @@ module Monomer.Widgets.Util.Style (
   activeStyle,
   activeTheme,
   instanceStyle,
-  mergeThemeStyle
+  mergeThemeStyle,
+  styleFont,
+  styleFontSize,
+  styleFontColor,
+  styleFgColor,
+  styleHlColor,
 ) where
 
+import Control.Lens ((^.), (^?), _Just)
 import Data.Default
 import Data.Maybe
 
@@ -16,6 +22,8 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Widget
+
+import qualified Monomer.Core.Lens as L
 
 getContentRect :: StyleState -> WidgetInstance s e -> Rect
 getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
@@ -62,3 +70,23 @@ mergeThemeStyle theme style = newStyle where
     _sstHlColor = _sstHlColor style <> themeHlColor,
     _sstText = _sstText style <> themeText
   }
+
+styleFont :: StyleState -> Font
+styleFont style = fromMaybe def font where
+  font = style ^? L.text . _Just  . L.font . _Just
+
+styleFontSize :: StyleState -> FontSize
+styleFontSize style = fromMaybe def fontSize where
+  fontSize = style ^? L.text . _Just . L.fontSize . _Just
+
+styleFontColor :: StyleState -> Color
+styleFontColor style = fromMaybe def fontColor where
+  fontColor = style ^? L.text . _Just . L.fontColor . _Just
+
+styleFgColor :: StyleState -> Color
+styleFgColor style = fromMaybe def fgColor where
+  fgColor = style ^? L.fgColor . _Just
+
+styleHlColor :: StyleState -> Color
+styleHlColor style = fromMaybe def hlColor where
+  hlColor = style ^? L.hlColor . _Just
