@@ -15,8 +15,12 @@ An easy to use, Elm inspired, GUI library for native applications.
 - Be able to run in mobile
 - Support Vulkan/Metal
 
+### Limitations
+
+- Multi-platform features depend on what SDL already provides
+- Text input capabilities are basic, supporting only left to right at the moment
+
 ### These are not objectives for this project
 
 - Have a native look and feel
-- Provide multi-platform features beyond what SDL already provides
 - Be a research project pushing the boundaries on how GUIs are created

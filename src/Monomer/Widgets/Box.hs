@@ -3,9 +3,9 @@
 
 module Monomer.Widgets.Box (
   BoxCfg,
-  expandContent,
   box,
-  box_
+  box_,
+  expandContent
 ) where
 
 import Control.Applicative ((<|>))
@@ -18,6 +18,8 @@ import Monomer.Widgets.Container
 
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
+  _boxAlignH :: Maybe AlignH,
+  _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
   _boxOnClickReq :: [WidgetRequest s]
 }
@@ -25,6 +27,8 @@ data BoxCfg s e = BoxCfg {
 instance Default (BoxCfg s e) where
   def = BoxCfg {
     _boxExpandContent = Nothing,
+    _boxAlignH = Nothing,
+    _boxAlignV = Nothing,
     _boxOnClick = [],
     _boxOnClickReq = []
   }
@@ -32,12 +36,44 @@ instance Default (BoxCfg s e) where
 instance Semigroup (BoxCfg s e) where
   (<>) t1 t2 = BoxCfg {
     _boxExpandContent = _boxExpandContent t2 <|> _boxExpandContent t1,
+    _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
+    _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
     _boxOnClick = _boxOnClick t1 <> _boxOnClick t2,
     _boxOnClickReq = _boxOnClickReq t1 <> _boxOnClickReq t2
   }
 
 instance Monoid (BoxCfg s e) where
   mempty = def
+
+instance AlignLeft (BoxCfg s e) where
+  alignLeft = def {
+    _boxAlignH = Just ALeft
+  }
+
+instance AlignCenter (BoxCfg s e) where
+  alignCenter = def {
+    _boxAlignH = Just ACenter
+  }
+
+instance AlignRight (BoxCfg s e) where
+  alignRight = def {
+    _boxAlignH = Just ARight
+  }
+
+instance AlignTop (BoxCfg s e) where
+  alignTop = def {
+    _boxAlignV = Just ATop
+  }
+
+instance AlignMiddle (BoxCfg s e) where
+  alignMiddle = def {
+    _boxAlignV = Just AMiddle
+  }
+
+instance AlignBottom (BoxCfg s e) where
+  alignBottom = def {
+    _boxAlignV = Just ABottom
+  }
 
 instance OnClick (BoxCfg s e) e where
   onClick handler = def {
@@ -96,9 +132,38 @@ makeBox config = widget where
     child = Seq.index children 0
     contentW = getMaxReqCoord $ _wiSizeReqW child
     contentH = getMaxReqCoord $ _wiSizeReqH child
-    viewportC = Rect vx vy (min vw contentW) (min vh contentH)
-    renderAreaC = Rect rx ry (min rw contentW) (min rh contentH)
+    vpChild = Rect vx vy (min vw contentW) (min vh contentH)
+    raChild = Rect rx ry (min rw contentW) (min rh contentH)
+    ah = fromMaybe ACenter (_boxAlignH config)
+    av = fromMaybe AMiddle (_boxAlignV config)
+    vpAligned = alignInRect ah av viewport vpChild
+    raAligned = alignInRect ah av renderArea raChild
     expand = fromMaybe False (_boxExpandContent config)
     resized
       | expand = (widgetInst, Seq.singleton (viewport, renderArea))
-      | otherwise  = (widgetInst, Seq.singleton (viewportC, renderAreaC))
+      | otherwise  = (widgetInst, Seq.singleton (vpAligned, raAligned))
+
+alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
+alignInRect ah av parent child = newRect where
+  tempRect = alignVInRect av parent child
+  newRect = alignHInRect ah parent tempRect
+
+alignHInRect :: AlignH -> Rect -> Rect -> Rect
+alignHInRect ah parent child = newRect where
+  Rect px _ pw _ = parent
+  Rect cx cy cw ch = child
+  newX = case ah of
+    ALeft -> px
+    ACenter -> px + (pw - cw) / 2
+    ARight -> px + pw - cw
+  newRect = Rect newX cy cw ch
+
+alignVInRect :: AlignV -> Rect -> Rect -> Rect
+alignVInRect av parent child = newRect where
+  Rect _ py _ ph = parent
+  Rect cx cy cw ch = child
+  newY = case av of
+    ATop -> py
+    AMiddle -> py + (ph - ch) / 2
+    ABottom -> py + ph - ch
+  newRect = Rect cx newY cw ch

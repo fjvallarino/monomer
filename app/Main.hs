@@ -55,10 +55,10 @@ buildUI model = trace "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack" `style` [bgColor gray],
       vstack [
-        hstack [label "Label 1", box $ checkbox condition1],
-        hstack [label "Label 12", box $ checkbox condition2],
-        hstack [label "Label 123", box $ checkbox condition3],
-        hstack [label "Label 1234", box $ checkbox_ condition1 [onChange CheckboxSt]]
+        hstack [label "Label 1", box_ (checkbox condition1) [] `style` [width 100, bgColor darkGray]],
+        hstack [label "Label 12", box_ (checkbox condition2) [alignLeft] `style` [width 100, bgColor lightGray]],
+        hstack [label "Label 123", box_ (checkbox condition3) [alignRight, alignBottom] `style` [width 100, bgColor darkGray]],
+        hstack [label "Label 1234", box_ (checkbox_ condition1 [onChange CheckboxSt]) [] `style` [width 100, bgColor lightGray]]
       ],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],

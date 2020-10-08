@@ -148,6 +148,25 @@ class SelectedStyle t where
 class Transparency t where
   transparency :: Double -> t
 
+-- Align
+class AlignLeft t where
+  alignLeft :: t
+
+class AlignCenter t where
+  alignCenter :: t
+
+class AlignRight t where
+  alignRight :: t
+
+class AlignTop t where
+  alignTop :: t
+
+class AlignMiddle t where
+  alignMiddle :: t
+
+class AlignBottom t where
+  alignBottom :: t
+
 -- Margin
 class Margin_ t where
   margin :: Double -> t
