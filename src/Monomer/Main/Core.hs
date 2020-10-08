@@ -49,45 +49,45 @@ data MainLoopArgs s e = MainLoopArgs {
 simpleApp
   :: (Eq s, Typeable s, Typeable e)
   => s
-  -> Maybe e
-  -> Theme
   -> EventHandler s e ()
   -> UIBuilder s e
   -> IO ()
-simpleApp model initEvent theme eventHandler uiBuilder =
-  simpleApp_ model initEvent theme eventHandler uiBuilder def
+simpleApp model eventHandler uiBuilder =
+  simpleApp_ model eventHandler uiBuilder def
 
 simpleApp_
   :: (Eq s, Typeable s, Typeable e)
   => s
-  -> Maybe e
-  -> Theme
   -> EventHandler s e ()
   -> UIBuilder s e
-  -> [AppConfig]
+  -> [AppConfig e]
   -> IO ()
-simpleApp_ model initEvent theme eventHandler uiBuilder configs = do
+simpleApp_ model eventHandler uiBuilder configs = do
   window <- initSDLWindow config
   winSize <- getDrawableSize window
 
   let dpr = _sW winSize / fromIntegral winW
   let monomerContext = initMonomerContext () winSize useHdpi dpr
 
-  runStateT (runApp window config theme appWidget) monomerContext
+  runStateT (runApp window theme fonts appWidget) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
     (winW, winH) = fromMaybe defaultWindowSize (_apcWindowSize config)
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
+    fonts = _apcFonts config
+    theme = fromMaybe def (_apcTheme config)
+    initEvent = _apcInitEvent config
     appWidget = composite "app" model initEvent eventHandler uiBuilder
 
 runApp
   :: (MonomerM s m)
   => SDL.Window
-  -> AppConfig
   -> Theme
-  -> WidgetInstance s e -> m ()
-runApp window config theme widgetRoot = do
+  -> [FontDef]
+  -> WidgetInstance s e
+  -> m ()
+runApp window theme fonts widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use L.windowSize
@@ -99,7 +99,7 @@ runApp window config theme widgetRoot = do
   startTs <- fmap fromIntegral SDL.ticks
   model <- use mainModel
   os <- getPlatform
-  renderer <- liftIO $ makeRenderer (config ^. L.fonts) dpr
+  renderer <- liftIO $ makeRenderer fonts dpr
   let wenv = WidgetEnv {
     _weOS = os,
     _weRenderer = renderer,

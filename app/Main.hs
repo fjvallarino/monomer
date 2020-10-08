@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -24,19 +25,21 @@ main = do
   --forkServer "localhost" 28000
 
   let model = def
-  let theme = def
+  let theme :: Theme = def
         & L.basic . L.fgColor .~ blue
         & L.hover . L.fgColor .~ white
         & L.focus . L.fgColor .~ white
   let config = [
         windowSize (1280, 960),
         useHdpi True,
+        appTheme theme,
+        appInitEvent InitApp,
         fontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         fontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         fontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
-  --simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
-  simpleApp model (Just InitApp) theme handleAppEvent buildUI
+  simpleApp_ model handleAppEvent buildUI config
+  --simpleApp model handleAppEvent buildUI
 
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))

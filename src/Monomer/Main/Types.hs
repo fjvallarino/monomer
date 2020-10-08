@@ -40,40 +40,56 @@ data MonomerContext s = MonomerContext {
   _mcWidgetTasks :: Seq WidgetTask
 }
 
-data AppConfig = AppConfig {
+data AppConfig e = AppConfig {
   _apcWindowSize :: Maybe (Int, Int),
   _apcHdpi :: Maybe Bool,
-  _apcFonts :: [FontDef]
+  _apcFonts :: [FontDef],
+  _apcTheme :: Maybe Theme,
+  _apcInitEvent :: Maybe e
 }
 
-instance Default AppConfig where
+instance Default (AppConfig e) where
   def = AppConfig {
     _apcWindowSize = Nothing,
     _apcHdpi = Nothing,
-    _apcFonts = []
+    _apcFonts = [],
+    _apcTheme = Nothing,
+    _apcInitEvent = Nothing
   }
 
-instance Semigroup AppConfig where
+instance Semigroup (AppConfig e) where
   (<>) a1 a2 = AppConfig {
     _apcWindowSize = _apcWindowSize a2 <|> _apcWindowSize a1,
     _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
-    _apcFonts = _apcFonts a1 ++ _apcFonts a2
+    _apcFonts = _apcFonts a1 ++ _apcFonts a2,
+    _apcTheme = _apcTheme a2 <|> _apcTheme a1,
+    _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1
   }
 
-instance Monoid AppConfig where
+instance Monoid (AppConfig e) where
   mempty = def
 
-instance WindowSize AppConfig (Int, Int) where
+instance WindowSize (AppConfig e) (Int, Int) where
   windowSize size = def {
     _apcWindowSize = Just size
   }
 
-useHdpi :: Bool -> AppConfig
+useHdpi :: Bool -> AppConfig e
 useHdpi use = def {
   _apcHdpi = Just use
 }
 
-fontDef :: Text -> Text -> AppConfig
+appTheme :: Theme -> AppConfig e
+appTheme t = def {
+  _apcTheme = Just t
+}
+
+appInitEvent :: e -> AppConfig e
+appInitEvent e = def {
+  _apcInitEvent = Just e
+}
+
+fontDef :: Text -> Text -> AppConfig e
 fontDef name path = def {
   _apcFonts = [ FontDef name path ]
 }
