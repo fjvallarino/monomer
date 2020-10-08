@@ -3,11 +3,12 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Monad (foldM, forM_, unless, when)
+import Control.Monad (foldM, unless, when)
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
+import Data.Set (Set(..))
 import Data.Text (Text)
 import Data.Text.Foreign (withCStringLen)
 import Foreign.C.Types (CFloat)
@@ -52,6 +53,7 @@ data ImageReq = ImageReq {
 data Env = Env {
   scissors :: Seq CRect,
   overlays :: Seq (IO ()),
+  validFonts :: Set Text,
   imagesMap :: ImagesMap,
   addedImages :: Seq ImageReq
 }
@@ -68,13 +70,13 @@ makeRenderer :: [FontDef] -> Double -> IO Renderer
 makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
 
-  forM_ fonts $ \(FontDef name path) ->
-    VG.createFont c name (VG.FileName path)
-
   lock <- L.new
+  validFonts <- foldM (loadFont c) Set.empty fonts
+
   envRef <- newIORef $ Env {
     scissors = Seq.empty,
     overlays = Seq.empty,
+    validFonts = validFonts,
     imagesMap = M.empty,
     addedImages = Seq.empty
   }
@@ -226,8 +228,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Text
   computeTextSize font fontSize message = unsafePerformIO $ do
-    VG.fontFace c (unFont font)
-    VG.fontSize c $ realToFrac (unFontSize fontSize)
+    setFont c envRef dpr font fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
@@ -235,8 +236,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       text = if message == "" then " " else message
 
   computeTextRect rect font fontSize (Align ha va) msg = unsafePerformIO $ do
-    VG.fontFace c (unFont font)
-    VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
+    setFont c envRef dpr font fontSize
     VG.Bounds (VG.V4 x1 _ x2 _) <- VG.textBounds c x y msg
     (asc, desc, _) <- VG.textMetrics c
 
@@ -262,8 +262,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
-    VG.fontFace c (unFont font)
-    VG.fontSize c $ realToFrac (unFontSize fontSize)
+    setFont c envRef dpr font fontSize
 
     glyphs <- textGlyphPositions c 0 0 text
     return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
@@ -276,8 +275,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       }
 
   renderText rect font fontSize align message = do
-    VG.fontFace c (unFont font)
-    VG.fontSize c $ realToFrac $ unFontSize fontSize * dpr
+    setFont c envRef dpr font fontSize
     (asc, desc, _) <- VG.textMetrics c
 
     when (message /= "") $
@@ -308,6 +306,24 @@ newRenderer c dpr lock envRef = Renderer {..} where
   renderImage name rect alpha = do
     env <- readIORef envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
+
+loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
+loadFont c fonts (FontDef name path) = do
+  res <- VG.createFont c name (VG.FileName path)
+  case res of
+    Just{} -> return $ Set.insert name fonts
+    _ -> putStrLn ("Failed to load font: " ++ T.unpack name) >> return fonts
+
+setFont :: VG.Context -> IORef Env -> Double -> Font -> FontSize -> IO ()
+setFont c envRef dpr (Font name) (FontSize size) = do
+  env <- readIORef envRef
+  handleSetFont (validFonts env)
+  where
+    handleSetFont validFonts
+      | Set.member name validFonts = do
+          VG.fontFace c name
+          VG.fontSize c $ realToFrac $ size * dpr
+      | otherwise = return ()
 
 addPending :: L.Lock -> IORef Env -> ImageReq -> IO ()
 addPending lock envRef imageReq = L.with lock $ do

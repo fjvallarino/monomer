@@ -44,7 +44,7 @@ fitEllipsis wenv style viewport textSize text = (newText, newSize) where
   Size tw th = textSize
   vpW = _rW viewport
   glyphs = getTextGlyphs wenv style (text <> ".")
-  dotW = _glpW $ Seq.index glyphs (Seq.length glyphs - 1)
+  dotW = maybe 0 _glpW (Seq.lookup (Seq.length glyphs - 1) glyphs)
   dotsW = 3 * dotW
   dotsFit = vpW >= tw + dotsW
   targetW

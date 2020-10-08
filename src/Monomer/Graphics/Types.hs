@@ -7,6 +7,9 @@ import Data.Sequence (Seq)
 
 import Monomer.Core.BasicTypes
 
+defaultFontName :: Text
+defaultFontName = "Regular"
+
 data Winding
   = CW
   | CCW
@@ -39,7 +42,7 @@ newtype FontSize
   deriving (Eq, Show)
 
 instance Default Font where
-  def = Font "sans"
+  def = Font defaultFontName
 
 instance Default FontSize where
   def = FontSize 32

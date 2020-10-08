@@ -55,9 +55,7 @@ simpleApp
   -> UIBuilder s e
   -> IO ()
 simpleApp model initEvent theme eventHandler uiBuilder =
-  simpleApp_ model initEvent theme eventHandler uiBuilder [config]
-  where
-    config = fontDef "sans" "./assets/fonts/Roboto-Regular.ttf"
+  simpleApp_ model initEvent theme eventHandler uiBuilder def
 
 simpleApp_
   :: (Eq s, Typeable s, Typeable e)

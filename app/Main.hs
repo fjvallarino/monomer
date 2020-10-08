@@ -28,9 +28,13 @@ main = do
         & L.basic . L.fgColor .~ blue
         & L.hover . L.fgColor .~ white
         & L.focus . L.fgColor .~ white
-  let config = [windowSize (1280, 960), useHdpi True, fontDef "sans" "./assets/fonts/Roboto-Italic.ttf"]
+  let config = [
+        windowSize (1280, 960),
+        useHdpi True,
+        fontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+        fontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+        fontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
-  --simpleApp model (Just InitApp) theme handleAppEvent buildUI config
   simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
 
 handleAppEvent model evt = case evt of
