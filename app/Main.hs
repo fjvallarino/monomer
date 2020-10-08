@@ -35,7 +35,8 @@ main = do
         fontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         fontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
-  simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
+  --simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
+  simpleApp model (Just InitApp) theme handleAppEvent buildUI
 
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))
