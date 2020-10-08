@@ -273,8 +273,8 @@ makeScroll config state = widget where
 
   getSizeReq wenv widgetInst children = sizeReq where
     child = Seq.index children 0
-    w = getMinReqCoord $ _wiSizeReqW child
-    h = getMinReqCoord $ _wiSizeReqH child
+    w = getMinSizeReq $ _wiSizeReqW child
+    h = getMinSizeReq $ _wiSizeReqH child
     factor = 1
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
@@ -285,8 +285,8 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (_wiChildren widgetInst) 0
-    childWidth2 = getMinReqCoord $ _wiSizeReqW child
-    childHeight2 = getMinReqCoord $ _wiSizeReqH child
+    childWidth2 = getMinSizeReq $ _wiSizeReqW child
+    childHeight2 = getMinSizeReq $ _wiSizeReqH child
 
     areaW = max w childWidth2
     areaH = max h childHeight2

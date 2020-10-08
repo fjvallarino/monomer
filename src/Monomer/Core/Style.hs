@@ -24,22 +24,22 @@ instance FlexHeight StyleState where
   flexHeight h = def & L.sizeReqH ?~ FlexSize h 1
 
 instance BoundedWidth StyleState where
-  boundedWidth w1 w2 = def & L.sizeReqW ?~ BoundedSize w1 w2 1
+  boundedWidth w1 w2 = def & L.sizeReqW ?~ RangeSize w1 w2 1
 
 instance BoundedHeight StyleState where
-  boundedHeight h1 h2 = def & L.sizeReqH ?~ BoundedSize h1 h2 1
+  boundedHeight h1 h2 = def & L.sizeReqH ?~ RangeSize h1 h2 1
 
 instance MinWidth StyleState where
-  minWidth w = def & L.sizeReqW ?~ BoundedSize w (2 * w) 1
+  minWidth w = def & L.sizeReqW ?~ RangeSize w (2 * w) 1
 
 instance MinHeight StyleState where
-  minHeight h = def & L.sizeReqH ?~ BoundedSize h (2 * h) 1
+  minHeight h = def & L.sizeReqH ?~ RangeSize h (2 * h) 1
 
 instance MaxWidth StyleState where
-  maxWidth w = def & L.sizeReqW ?~ BoundedSize 0 w 1
+  maxWidth w = def & L.sizeReqW ?~ RangeSize 0 w 1
 
 instance MaxHeight StyleState where
-  maxHeight h = def & L.sizeReqH ?~ BoundedSize 0 h 1
+  maxHeight h = def & L.sizeReqH ?~ RangeSize 0 h 1
 
 instance BgColor StyleState where
   bgColor col = def & L.bgColor ?~ col

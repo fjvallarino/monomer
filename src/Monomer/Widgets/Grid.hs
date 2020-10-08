@@ -33,7 +33,7 @@ makeFixedGrid isHorizontal = widget where
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
-    fixedReqs reqs = Seq.filter isFixedReq reqs
+    fixedReqs reqs = Seq.filter isFixedSizeReq reqs
     fixedW = nReqs > 0 && Seq.length (fixedReqs vreqsW) == nReqs
     fixedH = nReqs > 0 && Seq.length (fixedReqs vreqsH) == nReqs
     factor = 1
@@ -45,10 +45,10 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = fromIntegral (length vchildren)
     width
       | Seq.null vchildren = 0
-      | otherwise = wMul * (maximum . fmap getMaxReqCoord) vreqsW
+      | otherwise = wMul * (maximum . fmap getMaxSizeReq) vreqsW
     height
       | Seq.null vchildren = 0
-      | otherwise = hMul * (maximum . fmap getMaxReqCoord) vreqsH
+      | otherwise = hMul * (maximum . fmap getMaxSizeReq) vreqsH
     newSizeReqW
       | not isHorizontal && fixedW = FixedSize width
       | otherwise = FlexSize width factor

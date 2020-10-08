@@ -50,9 +50,9 @@ instance Monoid ThemeState where
 
 -- | Basic styling attributes
 data SizeReq
-  = FixedSize Coord
-  | FlexSize Coord Factor
-  | BoundedSize Coord Coord Factor
+  = FixedSize Double
+  | FlexSize Double Factor
+  | RangeSize Double Double Factor
   deriving (Eq, Show)
 
 instance Default SizeReq where

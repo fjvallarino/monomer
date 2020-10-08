@@ -253,7 +253,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   resize wenv viewport renderArea children widgetInst = resized where
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
-        reqHeight = getMinReqCoord . _wiSizeReqH $ child
+        reqHeight = getMinSizeReq . _wiSizeReqH $ child
         maxHeight = min reqHeight 150
         oViewport = viewport {
           _rY = _rY viewport + _rH viewport,

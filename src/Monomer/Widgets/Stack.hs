@@ -49,17 +49,17 @@ makeStack isHorizontal = widget where
     newSizeReqW
       | isVertical && Seq.null flexW = FixedSize (maximum fixedW)
       | isVertical && Seq.null fixedW = FlexSize (maximum flexW) factW
-      | isVertical = BoundedSize (maximum fixedW) tmaxW factW
+      | isVertical = RangeSize (maximum fixedW) tmaxW factW
       | Seq.null flexW = FixedSize (sum fixedW)
       | Seq.null fixedW = FlexSize (sum flexW) factW
-      | otherwise = BoundedSize (sum fixedW) tsumW factW
+      | otherwise = RangeSize (sum fixedW) tsumW factW
     newSizeReqH
       | isHorizontal && Seq.null flexH = FixedSize (maximum fixedH)
       | isHorizontal && Seq.null fixedH = FlexSize (maximum flexH) factH
-      | isHorizontal = BoundedSize (maximum fixedH) tmaxH factH
+      | isHorizontal = RangeSize (maximum fixedH) tmaxH factH
       | Seq.null flexH = FixedSize (sum fixedH)
       | Seq.null fixedH = FlexSize (sum flexH) factH
-      | otherwise = BoundedSize (sum fixedH) tsumH factH
+      | otherwise = RangeSize (sum fixedH) tsumH factH
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
@@ -89,7 +89,7 @@ makeStack isHorizontal = widget where
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz
       FlexSize sz factor -> (1 + fExtra * factor) * sz
-      BoundedSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
+      RangeSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result
@@ -112,7 +112,7 @@ makeStack isHorizontal = widget where
   calcDimensions vchildren useFactor = (maxW, sumW, maxH, sumH) where
     getReqSize
       | useFactor = getReqFactored
-      | otherwise = getMinReqCoord
+      | otherwise = getMinSizeReq
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
     sumW = (sum . fmap getReqSize) vreqsW
@@ -140,28 +140,28 @@ makeStack isHorizontal = widget where
     | isHorizontal = _rW
     | otherwise = _rH
 
-getFixedSize :: SizeReq -> Coord
+getFixedSize :: SizeReq -> Double
 getFixedSize (FixedSize c) = c
 getFixedSize (FlexSize c _) = 0
-getFixedSize (BoundedSize c1 _ _) = c1
+getFixedSize (RangeSize c1 _ _) = c1
 
-getFlexSize :: Bool -> SizeReq -> Coord
+getFlexSize :: Bool -> SizeReq -> Double
 getFlexSize useFactor req = coord where
   factor
-    | useFactor = getReqFactor req
+    | useFactor = getFactorReq req
     | otherwise = 1
   coord = case req of
     FixedSize c -> 0
     FlexSize c _ -> c * factor
-    BoundedSize c1 c2 _ -> (c2 - c1) * factor
+    RangeSize c1 c2 _ -> (c2 - c1) * factor
 
 getFactorAvg :: Seq SizeReq -> Double
 getFactorAvg reqs
   | Seq.null flexReqs = 1
-  | otherwise = sum (fmap getReqFactor flexReqs) / flexCount
+  | otherwise = sum (fmap getFactorReq flexReqs) / flexCount
   where
-    flexReqs = Seq.filter (not . isFixedReq) reqs
+    flexReqs = Seq.filter (not . isFixedSizeReq) reqs
     flexCount = fromIntegral (Seq.length flexReqs)
 
-getReqFactored :: SizeReq -> Coord
-getReqFactored req = getReqFactor req * getMinReqCoord req
+getReqFactored :: SizeReq -> Double
+getReqFactored req = getFactorReq req * getMinSizeReq req

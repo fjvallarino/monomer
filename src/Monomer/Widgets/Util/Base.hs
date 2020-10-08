@@ -1,13 +1,13 @@
 module Monomer.Widgets.Util.Base (
   handleSizeReqStyle,
   handleStyleChange,
-  isFixedReq,
-  isFlexReq,
-  isBoundedReq,
-  getMinReqCoord,
-  getMaxReqCoord,
-  getReqFactor,
-  modifyReqCoord
+  isFixedSizeReq,
+  isFlexSizeReq,
+  isBoundedSizeReq,
+  getMinSizeReq,
+  getMaxSizeReq,
+  getFactorReq,
+  modifySizeReq
 ) where
 
 import Data.Default
@@ -57,37 +57,37 @@ handleSizeReqStyle style (reqW, reqH) = (newReqW, newReqH) where
 addOuterSizeReq :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 addOuterSizeReq style (reqW, reqH) = (newReqW, newReqH) where
   Size w h = addOuterSize style def
-  newReqW = modifyReqCoord reqW (+w)
-  newReqH = modifyReqCoord reqH (+h)
+  newReqW = modifySizeReq reqW (+w)
+  newReqH = modifySizeReq reqH (+h)
 
-isFixedReq :: SizeReq -> Bool
-isFixedReq FixedSize{} = True
-isFixedReq _ = False
+isFixedSizeReq :: SizeReq -> Bool
+isFixedSizeReq FixedSize{} = True
+isFixedSizeReq _ = False
 
-isFlexReq :: SizeReq -> Bool
-isFlexReq FlexSize{} = True
-isFlexReq _ = False
+isFlexSizeReq :: SizeReq -> Bool
+isFlexSizeReq FlexSize{} = True
+isFlexSizeReq _ = False
 
-isBoundedReq :: SizeReq -> Bool
-isBoundedReq BoundedSize{} = True
-isBoundedReq _ = False
+isBoundedSizeReq :: SizeReq -> Bool
+isBoundedSizeReq RangeSize{} = True
+isBoundedSizeReq _ = False
 
-getMinReqCoord :: SizeReq -> Coord
-getMinReqCoord (FixedSize c) = c
-getMinReqCoord (FlexSize c _) = c
-getMinReqCoord (BoundedSize c1 c2 _) = c1
+getMinSizeReq :: SizeReq -> Double
+getMinSizeReq (FixedSize c) = c
+getMinSizeReq (FlexSize c _) = c
+getMinSizeReq (RangeSize c1 c2 _) = c1
 
-getMaxReqCoord :: SizeReq -> Coord
-getMaxReqCoord (FixedSize c) = c
-getMaxReqCoord (FlexSize c _) = c
-getMaxReqCoord (BoundedSize c1 c2 _) = c2
+getMaxSizeReq :: SizeReq -> Double
+getMaxSizeReq (FixedSize c) = c
+getMaxSizeReq (FlexSize c _) = c
+getMaxSizeReq (RangeSize c1 c2 _) = c2
 
-getReqFactor :: SizeReq -> Factor
-getReqFactor (FixedSize _) = 1
-getReqFactor (FlexSize _ f) = f
-getReqFactor (BoundedSize _ _ f) = f
+getFactorReq :: SizeReq -> Factor
+getFactorReq (FixedSize _) = 1
+getFactorReq (FlexSize _ f) = f
+getFactorReq (RangeSize _ _ f) = f
 
-modifyReqCoord :: SizeReq -> (Coord -> Coord) -> SizeReq
-modifyReqCoord (FixedSize c) f = FixedSize (f c)
-modifyReqCoord (FlexSize c factor) f = FlexSize (f c) factor
-modifyReqCoord (BoundedSize c1 c2 factor) f = BoundedSize (f c1) (f c2) factor
+modifySizeReq :: SizeReq -> (Double -> Double) -> SizeReq
+modifySizeReq (FixedSize c) f = FixedSize (f c)
+modifySizeReq (FlexSize c factor) f = FlexSize (f c) factor
+modifySizeReq (RangeSize c1 c2 factor) f = RangeSize (f c1) (f c2) factor
