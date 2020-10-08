@@ -28,7 +28,7 @@ main = do
         & L.basic . L.fgColor .~ blue
         & L.hover . L.fgColor .~ white
         & L.focus . L.fgColor .~ white
-  let config = [windowSize (1280, 960), useHdpi True]
+  let config = [windowSize (1280, 960), useHdpi True, fontDef "sans" "./assets/fonts/Roboto-Italic.ttf"]
 
   --simpleApp model (Just InitApp) theme handleAppEvent buildUI config
   simpleApp_ model (Just InitApp) theme handleAppEvent buildUI config
@@ -54,11 +54,11 @@ buildUI model = trace "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack" `style` [bgColor gray],
-      hstack [
-        checkbox condition1,
-        checkbox condition2,
-        checkbox condition3,
-        checkbox_ condition1 [onChange CheckboxSt]
+      vstack [
+        hstack [label "Label 1", box $ checkbox condition1],
+        hstack [label "Label 12", box $ checkbox condition2],
+        hstack [label "Label 123", box $ checkbox condition3],
+        hstack [label "Label 1234", box $ checkbox_ condition1 [onChange CheckboxSt]]
       ],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],

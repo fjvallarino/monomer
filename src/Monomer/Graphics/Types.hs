@@ -25,6 +25,11 @@ instance Semigroup Color where
 instance Default Color where
   def = Color 255 255 255 1.0
 
+data FontDef = FontDef {
+  _fntName :: Text,
+  _fntPath :: Text
+}
+
 newtype Font
   = Font { unFont :: Text }
   deriving (Eq, Show)

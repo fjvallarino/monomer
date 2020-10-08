@@ -55,7 +55,9 @@ simpleApp
   -> UIBuilder s e
   -> IO ()
 simpleApp model initEvent theme eventHandler uiBuilder =
-  simpleApp_ model initEvent theme eventHandler uiBuilder def
+  simpleApp_ model initEvent theme eventHandler uiBuilder [config]
+  where
+    config = fontDef "sans" "./assets/fonts/Roboto-Regular.ttf"
 
 simpleApp_
   :: (Eq s, Typeable s, Typeable e)
@@ -64,7 +66,7 @@ simpleApp_
   -> Theme
   -> EventHandler s e ()
   -> UIBuilder s e
-  -> [AppConfig e]
+  -> [AppConfig]
   -> IO ()
 simpleApp_ model initEvent theme eventHandler uiBuilder configs = do
   window <- initSDLWindow config
@@ -73,7 +75,7 @@ simpleApp_ model initEvent theme eventHandler uiBuilder configs = do
   let dpr = _sW winSize / fromIntegral winW
   let monomerContext = initMonomerContext () winSize useHdpi dpr
 
-  runStateT (runApp window theme appWidget) monomerContext
+  runStateT (runApp window config theme appWidget) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
@@ -81,8 +83,13 @@ simpleApp_ model initEvent theme eventHandler uiBuilder configs = do
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
     appWidget = composite "app" model initEvent eventHandler uiBuilder
 
-runApp :: (MonomerM s m) => SDL.Window -> Theme -> WidgetInstance s e -> m ()
-runApp window theme widgetRoot = do
+runApp
+  :: (MonomerM s m)
+  => SDL.Window
+  -> AppConfig
+  -> Theme
+  -> WidgetInstance s e -> m ()
+runApp window config theme widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use L.windowSize
@@ -94,7 +101,7 @@ runApp window theme widgetRoot = do
   startTs <- fmap fromIntegral SDL.ticks
   model <- use mainModel
   os <- getPlatform
-  renderer <- liftIO $ makeRenderer dpr
+  renderer <- liftIO $ makeRenderer (config ^. L.fonts) dpr
   let wenv = WidgetEnv {
     _weOS = os,
     _weRenderer = renderer,

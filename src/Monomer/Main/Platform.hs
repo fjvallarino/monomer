@@ -24,7 +24,7 @@ import Monomer.Widgets.Composite
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
-initSDLWindow :: AppConfig e -> IO SDL.Window
+initSDLWindow :: AppConfig -> IO SDL.Window
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear

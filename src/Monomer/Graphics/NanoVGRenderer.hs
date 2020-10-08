@@ -3,7 +3,7 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Monad (foldM, unless, when)
+import Control.Monad (foldM, forM_, unless, when)
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
@@ -64,10 +64,12 @@ data CRect
   = CRect CFloat CFloat CFloat CFloat
   deriving (Eq, Show)
 
-makeRenderer :: Double -> IO Renderer
-makeRenderer dpr = do
+makeRenderer :: [FontDef] -> Double -> IO Renderer
+makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
-  _ <- VG.createFont c "sans" (VG.FileName "./assets/fonts/Roboto-Regular.ttf")
+
+  forM_ fonts $ \(FontDef name path) ->
+    VG.createFont c name (VG.FileName path)
 
   lock <- L.new
   envRef <- newIORef $ Env {

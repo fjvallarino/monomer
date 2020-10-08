@@ -191,8 +191,6 @@
   - Improve spacer
   - Remove Tree
   - Check why image dissapears when model changes (missing merge)
-
-- Pending
   - Reorganize modules.
     -  Common and Widget merged into new Core?
     -  Widget.Widgets moved to Widget?
@@ -203,6 +201,8 @@
     -  Create Lens.hs in each module instead of directory
     -  Clean up checkbox/radio (fgcolor, etc)
   - Simplify Main.hs by abstracting SDL initialization
+
+- Pending
   - Check if textBounds is enough, or we're missing descending part of font
     - getFullTextSize should be used?
   - Add center, right components based on box
@@ -227,6 +227,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Validate font exists before using it in NanoVG (crashes otherwise)
   - Do not draw non visible items in grid/stack (outside viewport)
   - Further textField improvements
     - Handle mouse selection
