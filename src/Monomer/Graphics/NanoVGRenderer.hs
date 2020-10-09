@@ -233,45 +233,51 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Text
   computeTextSize font fontSize message = unsafePerformIO $ do
-    setFont c envRef dpr font fontSize
+    setFont c envRef localDpr font fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
     where
+      localDpr = 1
       text = if message == "" then " " else message
 
-  computeTextRect rect font fontSize (Align ha va) msg = unsafePerformIO $ do
-    setFont c envRef dpr font fontSize
-    VG.Bounds (VG.V4 x1 _ x2 _) <- VG.textBounds c x y msg
-    (asc, desc, _) <- VG.textMetrics c
+  computeTextMetrics rect font fontSize (Align ha va) msg = unsafePerformIO $ do
+    setFont c envRef localDpr font fontSize
+    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c x y msg
+    (asc, desc, lineh) <- VG.textMetrics c
 
     let
       tw = x2 - x1
-      th = asc + desc
+      th = lineh -- asc - desc
       tx | ha == ALeft = x
          | ha == ACenter = x + (w - tw) / 2
          | otherwise = x + (w - tw)
       ty | va == ATop = y + asc
-         | va == AMiddle = y + (h + th) / 2
+         | va == AMiddle = y + h + desc - (h - th) / 2
          | otherwise = y + h + desc
 
-    return $ Rect {
-      _rX = fromCFloat tx,
-      _rY = fromCFloat (ty - asc),
-      _rW = fromCFloat tw,
-      _rH = fromCFloat (asc - desc)
+    return $ TextMetrics {
+      _txmX = fromCFloat tx,
+      _txmY = fromCFloat (ty - th),
+      _txmW = fromCFloat tw,
+      _txmH = fromCFloat th,
+      _txhAsc = fromCFloat asc,
+      _txhDesc = fromCFloat desc
     }
     where
-      CRect x y w h = rectToCRect rect dpr
-      fromCFloat val = realToFrac $ val / realToFrac dpr
+      CRect x y w h = rectToCRect rect localDpr
+      fromCFloat val = realToFrac $ val / realToFrac localDpr
+      localDpr = dpr
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
-    setFont c envRef dpr font fontSize
+    -- Glyph position is usually used in local coord calculations, ignoring dpr
+    setFont c envRef localDpr font fontSize
 
     glyphs <- textGlyphPositions c 0 0 text
     return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
     where
+      localDpr = 1
       text = if message == "" then " " else message
       convert glyph = GlyphPos {
         _glpXMin = realToFrac $ VG.glyphPosMinX glyph,
@@ -279,17 +285,13 @@ newRenderer c dpr lock envRef = Renderer {..} where
         _glpW = realToFrac $ VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph
       }
 
-  renderText rect font fontSize align message = do
+  renderText point font fontSize message = do
     setFont c envRef dpr font fontSize
-    (asc, desc, _) <- VG.textMetrics c
 
     when (message /= "") $
-      VG.text c tx (ty + asc) message
-
-    return textRect
+      VG.text c tx ty message
     where
-      textRect = computeTextRect rect font fontSize align message
-      CRect tx ty _ _ = rectToCRect textRect dpr
+      CPoint tx ty = pointToCPoint point dpr
 
   addImage name action size imgData = addPending lock envRef imageReq where
     newAction = case action of

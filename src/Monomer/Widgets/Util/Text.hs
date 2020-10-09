@@ -22,9 +22,9 @@ getFullTextSize wenv style text = totalBounds where
   textBounds = getTextSize wenv style text
   totalBounds = addOuterSize style textBounds
 
-getTextRect :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
-getTextRect wenv style rect align text = textRect where
-  textRect = computeTextRect (_weRenderer wenv) rect font fontSize align text
+getTextMetrics :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
+getTextMetrics wenv style rect align text = textMetrics where
+  textMetrics = computeTextMetrics (_weRenderer wenv) rect font fontSize align text
   font = styleFont style
   fontSize = styleFontSize style
 

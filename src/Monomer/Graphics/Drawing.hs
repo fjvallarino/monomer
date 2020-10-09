@@ -86,7 +86,7 @@ drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
 drawStyledBackground renderer viewport style =
   drawStyledAction renderer viewport style (\_ -> return ())
 
-drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
+drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO TextMetrics
 drawStyledText renderer viewport style txt = action where
   action = drawText renderer viewport tsColor tsFont tsFontSize tsAlign txt
   TextStyle{..} = fromMaybe def (_sstText style)
@@ -109,10 +109,15 @@ drawText
   -> FontSize
   -> Align
   -> Text
-  -> IO Rect
+  -> IO TextMetrics
 drawText renderer viewport color font fontSize align txt = do
   setFillColor renderer color
-  renderText renderer viewport font fontSize align txt
+  renderText renderer textPos font fontSize txt
+  return textMetrics
+  where
+    textMetrics = computeTextMetrics renderer viewport font fontSize align txt
+    TextMetrics tx ty tw th ta td = textMetrics
+    textPos = Point tx (ty + th)
 
 drawImage :: Renderer -> String -> Rect -> Double -> IO ()
 drawImage renderer imgName viewport alpha = action where

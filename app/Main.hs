@@ -57,29 +57,42 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = vstack [
-      hstack [
-        radioV (model ^. fruit) RadioSt Apple,
-        radioV (model ^. fruit) RadioSt Orange,
-        radioV (model ^. fruit) RadioSt Pear
-      ] `key` "radio hstack" `style` [bgColor gray],
-      vstack [
-        hstack [label "Label 1", box_ (checkbox condition1) [] `style` [width 100, bgColor darkGray]],
-        hstack [label "Label 12", box_ (checkbox condition2) [alignLeft] `style` [width 100, bgColor lightGray]],
-        hstack [label "Label 123", box_ (checkbox condition3) [alignRight, alignBottom] `style` [width 100, bgColor darkGray]],
-        hstack [label "Label 1234", box_ (checkbox_ condition1 [onChange CheckboxSt]) [] `style` [width 100, bgColor lightGray]]
+      --hstack [
+      --  radioV (model ^. fruit) RadioSt Apple,
+      --  radioV (model ^. fruit) RadioSt Orange,
+      --  radioV (model ^. fruit) RadioSt Pear
+      --] `key` "radio hstack" `style` [bgColor gray],
+      hgrid [
+        vstack [
+          label "jLabel 1" `style` [bgColor darkGray],
+          label "Label 12" `style` [bgColor lightGray],
+          label "Label 12" `style` [bgColor darkGray],
+          label "Label 12" `style` [bgColor lightGray],
+          label "Label 123" `style` [bgColor darkGray],
+          label "Label 1234" `style` [bgColor lightGray]
+        ],
+        vstack [
+          label "jLabel 1" `style` [bgColor lightGray, textBottom],
+          label "Label 12" `style` [bgColor darkGray, textTop],
+          label "Label 12" `style` [bgColor lightGray],
+          label "Label 12" `style` [bgColor darkGray],
+          label "Label 123" `style` [bgColor lightGray],
+          label "Label 1234" `style` [bgColor darkGray]
+        ]
       ],
+      textField textField2 `style` [bgColor lightBlue, textCenter],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],
-        label "Short label"
+        label "Jj label"
       ],
       hstack [
         label "test" `style` [bgColor gray]
       ],
-      hstack [
-        image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
-        spacer_ [resizeFactor 1],
-        image_ "https://picsum.photos/600/400" [fitFill]
-      ],
+      --affhstack [
+      --  image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
+      --  spacer_ [resizeFactor 1],
+      --  image_ "https://picsum.photos/600/400" [fitFill]
+      --],
       hstack [
         label "Test"
       ] `key` "label hstack" `style` [bgColor darkGray],

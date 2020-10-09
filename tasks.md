@@ -201,12 +201,16 @@
     -  Create Lens.hs in each module instead of directory
     -  Clean up checkbox/radio (fgcolor, etc)
   - Simplify Main.hs by abstracting SDL initialization
+  - Add center, right components based on box
+  - Validate font exists before using it in NanoVG (crashes otherwise)
+    - Also added default font
 
 - Pending
   - Check if textBounds is enough, or we're missing descending part of font
     - getFullTextSize should be used?
-  - Add center, right components based on box
-  - Can _wiChildren be removed from Widget and only be kept in Container?
+  - Make label use fixed height by default
+  - Do not draw non visible items in grid/stack (outside viewport)
+    - Apply scissor
   - WidgetRequest for error messages? Probably not worth it
     - Maybe provide a config where a notification/lens can be sent?
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
@@ -227,8 +231,7 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Validate font exists before using it in NanoVG (crashes otherwise)
-  - Do not draw non visible items in grid/stack (outside viewport)
+  - Can _wiChildren be removed from Widget and only be kept in Container?
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history

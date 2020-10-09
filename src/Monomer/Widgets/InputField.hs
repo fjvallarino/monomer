@@ -38,7 +38,7 @@ data InputFieldState a = InputFieldState {
   _ifsCursorPos :: !Int,
   _ifsSelStart :: Maybe Int,
   _ifsOffset :: !Double,
-  _ifsTextRect :: Rect
+  _ifsTextMetrics :: TextMetrics
 } deriving (Eq, Show, Typeable)
 
 inputFieldState :: Default a => InputFieldState a
@@ -49,7 +49,7 @@ inputFieldState = InputFieldState {
   _ifsCursorPos = 0,
   _ifsSelStart = Nothing,
   _ifsOffset = 0,
-  _ifsTextRect = def
+  _ifsTextMetrics = def
 }
 
 caretWidth :: Double
@@ -297,7 +297,7 @@ makeInputField config state = widget where
     when (selRequired && isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 
-    renderContent renderer textRect style currText
+    renderContent renderer textMetrics style currText
 
     when caretRequired $
       drawRect renderer caretRect (Just caretColor) Nothing
@@ -308,12 +308,12 @@ makeInputField config state = widget where
       style = instanceStyle wenv inst
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
-      textRect = _ifsTextRect state
-      Rect tx ty tw th = textRect
+      textMetrics = _ifsTextMetrics state
+      TextMetrics tx ty tw th ta td = textMetrics
       selRect = maybe def mkSelRect currSel
       mkSelRect end
-        | currPos <= end = Rect (tx + gx currPos) ty (gw currPos (end - 1)) th
-        | otherwise = Rect (tx + gx end) ty (gw end (currPos - 1)) th
+        | currPos > end = Rect (tx + gx end) (ty - td) (gw end (currPos - 1)) th
+        | otherwise = Rect (tx + gx currPos) (ty - td) (gw currPos (end - 1)) th
       gx idx = _glpXMin (glyph idx)
       gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
       nglyphs = Seq.length currGlyphs
@@ -328,12 +328,15 @@ makeInputField config state = widget where
         | currPos == nglyphs = _glpXMax (glyph $ currPos - 1)
         | otherwise = _glpXMin (glyph currPos)
       caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
-      caretRect = Rect (caretX tx) ty caretWidth th
+      caretRect = Rect (caretX tx) (ty - td) caretWidth th
 
-renderContent :: Renderer -> Rect -> StyleState -> Text -> IO Rect
-renderContent renderer textRect style currText =
-  drawText renderer textRect tsColor tsFont tsFontSize tsAlign currText
+renderContent :: Renderer -> TextMetrics -> StyleState -> Text -> IO ()
+renderContent renderer textMetrics style currText = do
+  setFillColor renderer tsColor
+  renderText renderer textPos tsFont tsFontSize currText
   where
+    TextMetrics tx ty tw th ta td= textMetrics
+    textPos = Point tx (ty + th)
     textStyle = fromJust (_sstText style)
     tsFont = fromJust (_txsFont textStyle)
     tsFontSize = fromJust (_txsFontSize textStyle)
@@ -362,7 +365,8 @@ newTextState wenv inst oldState value text cursor selection = newState where
   alignV = fromMaybe def (_txsAlignV textStyle)
   align = Align alignH alignV
   Rect cx cy cw ch = contentRect
-  Rect tx ty tw th = getTextRect wenv style contentRect align text
+  textMetrics = getTextMetrics wenv style contentRect align text
+  TextMetrics tx ty tw th ta ts = textMetrics
   textW = glyphsLength glyphs
   textFits = cw >= textW
   newOffset
@@ -379,5 +383,5 @@ newTextState wenv inst oldState value text cursor selection = newState where
     _ifsCursorPos = cursor,
     _ifsSelStart = selection,
     _ifsOffset = newOffset,
-    _ifsTextRect = Rect cx ty textW th
+    _ifsTextMetrics = textMetrics
   }
