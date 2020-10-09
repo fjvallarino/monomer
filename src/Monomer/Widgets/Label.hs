@@ -70,13 +70,12 @@ makeLabel config state = widget where
 
   getSizeReq wenv widgetInst = sizeReq where
     style = instanceStyle wenv widgetInst
-    Size w h = getTextSize wenv style caption
+    Size w h = getStyledTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   resize wenv viewport renderArea widgetInst = newInst where
     style = instanceStyle wenv widgetInst
-    size = getTextSize wenv style caption
     (newCaptionFit, _) = case textOverflow of
       Ellipsis -> fitText wenv style renderArea caption
       _ -> (caption, def)

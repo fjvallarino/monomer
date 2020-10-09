@@ -98,8 +98,8 @@ drawStyledText renderer viewport style txt = action where
   tsAlign = Align tsAlignH tsAlignV
 
 drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
-drawStyledText_ renderer viewport style txt = void action where
-  action = drawStyledText renderer viewport style txt
+drawStyledText_ renderer viewport style txt =
+  void $ drawStyledText renderer viewport style txt
 
 drawText
   :: Renderer

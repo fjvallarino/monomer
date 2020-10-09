@@ -1,4 +1,10 @@
-module Monomer.Widgets.Util.Text where
+module Monomer.Widgets.Util.Text (
+  getStyledTextSize,
+  getTextMetrics,
+  fitText,
+  getTextGlyphs,
+  glyphsLength
+) where
 
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
@@ -17,14 +23,16 @@ getTextSize wenv style text = handler font fontSize text where
   font = styleFont style
   fontSize = styleFontSize style
 
-getFullTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
-getFullTextSize wenv style text = totalBounds where
+getStyledTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
+getStyledTextSize wenv style text = totalBounds where
   textBounds = getTextSize wenv style text
   totalBounds = addOuterSize style textBounds
 
-getTextMetrics :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
+getTextMetrics
+  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
 getTextMetrics wenv style rect align text = textMetrics where
-  textMetrics = computeTextMetrics (_weRenderer wenv) rect font fontSize align text
+  renderer = _weRenderer wenv
+  textMetrics = computeTextMetrics renderer rect font fontSize align text
   font = styleFont style
   fontSize = styleFontSize style
 

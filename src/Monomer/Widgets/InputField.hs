@@ -277,7 +277,7 @@ makeInputField config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = instanceStyle wenv inst
-    Size w h = getTextSize wenv style currText
+    Size w h = getStyledTextSize wenv style currText
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
@@ -335,7 +335,7 @@ renderContent renderer textMetrics style currText = do
   setFillColor renderer tsColor
   renderText renderer textPos tsFont tsFontSize currText
   where
-    TextMetrics tx ty tw th ta td= textMetrics
+    TextMetrics tx ty tw th ta td = textMetrics
     textPos = Point tx (ty + th)
     textStyle = fromJust (_sstText style)
     tsFont = fromJust (_txsFont textStyle)

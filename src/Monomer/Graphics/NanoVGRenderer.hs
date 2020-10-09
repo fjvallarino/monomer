@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -90,6 +91,8 @@ makeRenderer fonts dpr = do
 
 newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
+  defaultDpr = 1
+
   beginFrame w h = L.with lock $ do
     env <- readIORef envRef
     newMap <- handlePendingImages c (imagesMap env) (addedImages env)
@@ -134,7 +137,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
     }
 
   -- Scissor operations
-  setScissor rect = do
+  setScissor !rect = do
     env <- readIORef envRef
     modifyIORef envRef $ \env -> env {
       scissors = crect <| scissors env
@@ -184,7 +187,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       CPoint x2 y2 = pointToCPoint p2 dpr
 
   -- Drawing
-  moveTo point =
+  moveTo !point =
     VG.moveTo c x y
     where
       CPoint x y = pointToCPoint point dpr
@@ -196,18 +199,18 @@ newRenderer c dpr lock envRef = Renderer {..} where
       CPoint x1 y1 = pointToCPoint p1 dpr
       CPoint x2 y2 = pointToCPoint p2 dpr
 
-  renderLineTo point = do
+  renderLineTo !point = do
     VG.lineJoin c VG.Bevel
     VG.lineTo c x y
     where
       CPoint x y = pointToCPoint point dpr
 
-  renderRect rect =
+  renderRect !rect =
     VG.rect c x y w h
     where
       CRect x y w h = rectToCRect rect dpr
 
-  renderArc point rad angleStart angleEnd winding =
+  renderArc !point rad angleStart angleEnd winding =
     VG.arc c x y radius start end wind
     where
       CPoint x y = pointToCPoint point dpr
@@ -222,7 +225,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       CPoint x1 y1 = pointToCPoint p1 dpr
       CPoint x2 y2 = pointToCPoint p2 dpr
 
-  renderEllipse rect =
+  renderEllipse !rect =
     VG.ellipse c cx cy rx ry
     where
       CRect x y w h = rectToCRect rect dpr
@@ -233,22 +236,21 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Text
   computeTextSize font fontSize message = unsafePerformIO $ do
-    setFont c envRef localDpr font fontSize
+    setFont c envRef defaultDpr font fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
     where
-      localDpr = 1
       text = if message == "" then " " else message
 
-  computeTextMetrics rect font fontSize (Align ha va) msg = unsafePerformIO $ do
-    setFont c envRef localDpr font fontSize
+  computeTextMetrics !rect font fontSize (Align ha va) msg = unsafePerformIO $ do
+    setFont c envRef defaultDpr font fontSize
     VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c x y msg
     (asc, desc, lineh) <- VG.textMetrics c
 
     let
       tw = x2 - x1
-      th = lineh -- asc - desc
+      th = lineh
       tx | ha == ALeft = x
          | ha == ACenter = x + (w - tw) / 2
          | otherwise = x + (w - tw)
@@ -265,19 +267,17 @@ newRenderer c dpr lock envRef = Renderer {..} where
       _txhDesc = fromCFloat desc
     }
     where
-      CRect x y w h = rectToCRect rect localDpr
-      fromCFloat val = realToFrac $ val / realToFrac localDpr
-      localDpr = dpr
+      CRect x y w h = rectToCRect rect defaultDpr
+      fromCFloat val = realToFrac val / realToFrac defaultDpr
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
     -- Glyph position is usually used in local coord calculations, ignoring dpr
-    setFont c envRef localDpr font fontSize
+    setFont c envRef defaultDpr font fontSize
 
     glyphs <- textGlyphPositions c 0 0 text
     return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
     where
-      localDpr = 1
       text = if message == "" then " " else message
       convert glyph = GlyphPos {
         _glpXMin = realToFrac $ VG.glyphPosMinX glyph,
@@ -285,7 +285,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
         _glpW = realToFrac $ VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph
       }
 
-  renderText point font fontSize message = do
+  renderText !point font fontSize message = do
     setFont c envRef dpr font fontSize
 
     when (message /= "") $
