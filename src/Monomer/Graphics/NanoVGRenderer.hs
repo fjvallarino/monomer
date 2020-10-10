@@ -235,18 +235,16 @@ newRenderer c dpr lock envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
-  computeTextSize font fontSize message = unsafePerformIO $ do
+  computeTextSize font fontSize text = unsafePerformIO $ do
     setFont c envRef defaultDpr font fontSize
-    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c 0 0 text
+    (x1, y1, x2, y2) <- getTextBounds c 0 0 text
 
     return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
-    where
-      text = if message == "" then " " else message
 
-  computeTextMetrics !rect font fontSize (Align ha va) msg = unsafePerformIO $ do
+  computeTextMetrics !rect font fontSize align text = unsafePerformIO $ do
     setFont c envRef defaultDpr font fontSize
-    VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c x y msg
-    (asc, desc, lineh) <- VG.textMetrics c
+    (x1, y1, x2, y2) <- getTextBounds c x y text
+    (asc, desc, lineh) <- getTextMetrics c
 
     let
       tw = x2 - x1
@@ -259,16 +257,16 @@ newRenderer c dpr lock envRef = Renderer {..} where
          | otherwise = y + h + desc
 
     return $ TextMetrics {
-      _txmX = fromCFloat tx,
-      _txmY = fromCFloat (ty - th),
-      _txmW = fromCFloat tw,
-      _txmH = fromCFloat th,
-      _txhAsc = fromCFloat asc,
-      _txhDesc = fromCFloat desc
+      _txmX = tx,
+      _txmY = ty - th,
+      _txmW = tw,
+      _txmH = th,
+      _txhAsc = asc,
+      _txhDesc = desc
     }
     where
-      CRect x y w h = rectToCRect rect defaultDpr
-      fromCFloat val = realToFrac val / realToFrac defaultDpr
+      Align ha va = align
+      Rect x y w h = rect
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
@@ -342,6 +340,25 @@ setFont c envRef dpr (Font name) (FontSize size) = do
           VG.fontFace c name
           VG.fontSize c $ realToFrac $ size * dpr
       | otherwise = return ()
+
+getTextMetrics :: VG.Context -> IO (Double, Double, Double)
+getTextMetrics c = do
+  (asc, desc, lineh) <- VG.textMetrics c
+  return (realToFrac asc, realToFrac desc, realToFrac lineh)
+
+getTextBounds
+  :: VG.Context
+  -> Double
+  -> Double
+  -> Text
+  -> IO (Double, Double, Double, Double)
+getTextBounds c x y text = do
+  VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c cx cy text
+  return (realToFrac x1, realToFrac y1, realToFrac x2, realToFrac y2)
+  where
+    msg = if text == "" then " " else text
+    cx = realToFrac x
+    cy = realToFrac y
 
 addPending :: L.Lock -> IORef Env -> ImageReq -> IO ()
 addPending lock envRef imageReq = L.with lock $ do

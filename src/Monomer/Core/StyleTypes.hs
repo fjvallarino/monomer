@@ -37,8 +37,8 @@ instance Default ThemeState where
   def = ThemeState {
     _thsFgColor = Color 255 255 255 1,
     _thsHlColor = Color 0 0 200 1,
-    _thsFont = Font defaultFontName,
-    _thsFontSize = FontSize 36,
+    _thsFont = def,
+    _thsFontSize = def,
     _thsFontColor = Color 255 255 255 1
   }
 

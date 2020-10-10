@@ -1,9 +1,12 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Monomer.Widgets.Util.Text (
+  fitText,
   getStyledTextSize,
   getTextMetrics,
-  fitText,
   getTextGlyphs,
-  glyphsLength
+  getGlyphsMin,
+  getGlyphsMax,
 ) where
 
 import Data.Maybe
@@ -17,22 +20,18 @@ import Monomer.Core
 import Monomer.Graphics
 import Monomer.Widgets.Util.Style
 
-getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
-getTextSize wenv style text = handler font fontSize text where
-  handler = computeTextSize (_weRenderer wenv)
-  font = styleFont style
-  fontSize = styleFontSize style
-
 getStyledTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
 getStyledTextSize wenv style text = totalBounds where
-  textBounds = getTextSize wenv style text
+  font = styleFont style
+  fontSize = styleFontSize style
+  !textBounds = computeTextSize (_weRenderer wenv) font fontSize text
   totalBounds = addOuterSize style textBounds
 
 getTextMetrics
   :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
 getTextMetrics wenv style rect align text = textMetrics where
   renderer = _weRenderer wenv
-  textMetrics = computeTextMetrics renderer rect font fontSize align text
+  !textMetrics = computeTextMetrics renderer rect font fontSize align text
   font = styleFont style
   fontSize = styleFontSize style
 
@@ -41,7 +40,7 @@ fitText wenv style viewport text = (newText, newSize) where
   font = styleFont style
   fontSize = styleFontSize style
   sizeHandler = computeTextSize (_weRenderer wenv)
-  size = sizeHandler font fontSize text
+  !size = sizeHandler font fontSize text
   (newText, newSize)
     | _sW size <= _rW viewport = (text, size)
     | otherwise = fitEllipsis wenv style viewport size text
@@ -75,9 +74,13 @@ getTextGlyphs wenv style text = glyphs where
   fontSize = styleFontSize style
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
 
-glyphsLength :: Seq GlyphPos -> Double
-glyphsLength Empty = 0
-glyphsLength (gs :|> g) = _glpXMax g
+getGlyphsMin :: Seq GlyphPos -> Double
+getGlyphsMin Empty = 0
+getGlyphsMin (g :<| gs) = _glpXMin g
+
+getGlyphsMax :: Seq GlyphPos -> Double
+getGlyphsMax Empty = 0
+getGlyphsMax (gs :|> g) = _glpXMax g
 
 fitGlyphsCount :: Double -> Double -> Seq GlyphPos -> (Int, Double)
 fitGlyphsCount _ _ Empty = (0, 0)

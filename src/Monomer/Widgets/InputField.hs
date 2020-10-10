@@ -1,5 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.InputField (
   InputFieldCfg(..),
@@ -19,6 +19,8 @@ import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
 import Monomer.Widgets.Single
+
+import qualified Monomer.Lens as L
 
 data InputFieldCfg s e a = InputFieldCfg {
   _ifcValue :: WidgetData s a,
@@ -123,7 +125,8 @@ makeInputField config state = widget where
     reqs = setModelValid (isJust parsedVal)
 
   handleKeyPress wenv mod code
-    | isBackspace = moveCursor removeText (tp - 1) Nothing
+    | isBackspace && isNothing currSel = moveCursor removeText (tp - 1) Nothing
+    | isBackspace = moveCursor removeText (min currSelVal tp) Nothing
     | isMoveLeft = moveCursor txt (tp - 1) Nothing
     | isMoveRight = moveCursor txt (tp + 1) Nothing
     | isMoveWordL = moveCursor txt prevWordStartIdx Nothing
@@ -165,7 +168,7 @@ makeInputField config state = widget where
         | isJust currSel = replaceText txt ""
         | otherwise = T.init part1 <> part2
       moveCursor txt newPos newSel
-        | isJust currSel && isNothing newSel = (txt, tp, Nothing)
+        | isJust currSel && isNothing newSel = (txt, fixedPos, Nothing)
         | isJust currSel && Just fixedPos == currSel = (txt, fixedPos, Nothing)
         | isJust currSel = (txt, fixedPos, currSel)
         | Just fixedPos == fixedSel = (txt, fixedPos, Nothing)
@@ -183,7 +186,7 @@ makeInputField config state = widget where
       style = instanceStyle wenv inst
       rect = getContentRect style inst
       localX = x - _rX rect + _ifsOffset state
-      textLen = glyphsLength (_ifsGlyphs state)
+      textLen = getGlyphsMax (_ifsGlyphs state)
       glyphs = _ifsGlyphs state |> GlyphPos textLen 0 0
       zipper i g = (i, abs (_glpXMin g - localX))
       idxs = Seq.fromList [0..length glyphs]
@@ -304,7 +307,6 @@ makeInputField config state = widget where
 
     resetScissor renderer
     where
-      WidgetInstance{..} = inst
       style = instanceStyle wenv inst
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
@@ -357,24 +359,24 @@ newTextState
 newTextState wenv inst oldState value text cursor selection = newState where
   style = instanceStyle wenv inst
   contentRect = getContentRect style inst
-  glyphs = getTextGlyphs wenv style text
-  curX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
+  !(Rect cx cy cw ch) = contentRect
+  !textMetrics = getTextMetrics wenv style contentRect align text
+  TextMetrics tx ty tw th ta ts = textMetrics
+  !glyphs = getTextGlyphs wenv style text
+  glyphX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
+  glyphOffset = getGlyphsMin glyphs
+  curX = tx + glyphX - glyphOffset
   oldOffset = _ifsOffset oldState
   textStyle = fromJust (_sstText style)
   alignH = fromMaybe ALeft (_txsAlignH textStyle)
   alignV = fromMaybe def (_txsAlignV textStyle)
   align = Align alignH alignV
-  Rect cx cy cw ch = contentRect
-  textMetrics = getTextMetrics wenv style contentRect align text
-  TextMetrics tx ty tw th ta ts = textMetrics
-  textW = glyphsLength glyphs
-  textFits = cw >= textW
+  textFits = cw >= tw
   newOffset
-    | textFits && alignH == ALeft = 0
-    | textFits && alignH == ACenter = (cw - textW) / 2
-    | textFits && alignH == ARight = cw - textW
-    | curX + oldOffset > cw = cw - curX
-    | curX + oldOffset < 0 = -curX
+    | textFits = 0
+    | cursor == 0 && not textFits = cx - tx
+    | curX + oldOffset > cx + cw = cx + cw - curX
+    | curX + oldOffset < cx = cx - curX
     | otherwise = oldOffset
   newState = InputFieldState {
     _ifsCurrValue = value,
@@ -383,5 +385,5 @@ newTextState wenv inst oldState value text cursor selection = newState where
     _ifsCursorPos = cursor,
     _ifsSelStart = selection,
     _ifsOffset = newOffset,
-    _ifsTextMetrics = textMetrics
+    _ifsTextMetrics = textMetrics & L.x .~ tx + newOffset
   }

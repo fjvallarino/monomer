@@ -47,7 +47,7 @@ instance Default App where
     _validInteger1 = True,
     _float1 = 0,
     _validFloat1 = True,
-    _textField1 = "",
+    _textField1 = "text 1, text 2, text 3, text 4, text 5, text 6, text 7, text 8, text 9",
     _textField2 = "",
     _validText2 = True,
     _textField3 = "",

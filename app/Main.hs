@@ -31,6 +31,7 @@ main = do
         & L.focus . L.fgColor .~ white
   let config = [
         windowSize (1280, 960),
+        --windowSize (320, 240),
         useHdpi True,
         appTheme theme,
         appInitEvent InitApp,
@@ -56,7 +57,8 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
-  widgetTree = vstack [
+  widgetTree = textField textField1 `style` [bgColor lightBlue, textLeft]
+  widgetTree2 = vstack [
       --hstack [
       --  radioV (model ^. fruit) RadioSt Apple,
       --  radioV (model ^. fruit) RadioSt Orange,
@@ -80,7 +82,7 @@ buildUI model = trace "Creating UI" widgetTree where
           label "Label 1234" `style` [bgColor darkGray]
         ]
       ],
-      textField textField2 `style` [bgColor lightBlue, textCenter],
+      textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],
         label "Jj label"
@@ -88,7 +90,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         label "test" `style` [bgColor gray]
       ],
-      --affhstack [
+      --hstack [
       --  image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
       --  spacer_ [resizeFactor 1],
       --  image_ "https://picsum.photos/600/400" [fitFill]
