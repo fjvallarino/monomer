@@ -30,7 +30,7 @@ main = do
         & L.hover . L.fgColor .~ white
         & L.focus . L.fgColor .~ white
   let config = [
-        windowSize (1280, 960),
+        --windowSize (1280, 960),
         --windowSize (320, 240),
         useHdpi True,
         appTheme theme,
@@ -57,8 +57,8 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
-  widgetTree = textField textField1 `style` [bgColor lightBlue, textLeft]
-  widgetTree2 = vstack [
+  widgetTree1 = textField textField1 `style` [bgColor lightBlue, textLeft]
+  widgetTree = vstack [
       --hstack [
       --  radioV (model ^. fruit) RadioSt Apple,
       --  radioV (model ^. fruit) RadioSt Orange,
@@ -90,11 +90,11 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         label "test" `style` [bgColor gray]
       ],
-      --hstack [
-      --  image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
-      --  spacer_ [resizeFactor 1],
-      --  image_ "https://picsum.photos/600/400" [fitFill]
-      --],
+      hstack [
+        image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
+        spacer_ [resizeFactor 1],
+        image_ "https://picsum.photos/600/400" [fitFill]
+      ],
       hstack [
         label "Test"
       ] `key` "label hstack" `style` [bgColor darkGray],

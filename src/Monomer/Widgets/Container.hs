@@ -438,15 +438,18 @@ renderWrapper
   -> WidgetInstance s e
   -> IO ()
 renderWrapper rHandler renderer wenv widgetInst =
-  drawStyledAction renderer renderArea style $ \_ -> do
-    rHandler renderer wenv widgetInst
+  drawInScissor renderer True viewport $
+    drawStyledAction renderer renderArea style $ \_ -> do
+      rHandler renderer wenv widgetInst
 
-    forM_ children $ \child -> when (_wiVisible child) $
-      widgetRender (_wiWidget child) renderer wenv child
+      forM_ children $ \child -> when (isVisible child) $
+        widgetRender (_wiWidget child) renderer wenv child
   where
-    children = _wiChildren widgetInst
-    renderArea = _wiRenderArea widgetInst
     style = activeStyle wenv widgetInst
+    children = _wiChildren widgetInst
+    viewport = _wiViewport widgetInst
+    renderArea = _wiRenderArea widgetInst
+    isVisible c = _wiVisible c && rectsOverlap viewport (_wiViewport c)
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
