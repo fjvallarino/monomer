@@ -30,6 +30,8 @@ import Monomer.Widgets.ListView
 data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
+  _ddcOnChangeIdx :: [Int -> a -> e],
+  _ddcOnChangeReqIdx :: [Int -> WidgetRequest s],
   _ddcMaxHeight :: Maybe Double,
   _ddcBgColor :: Maybe Color,
   _ddcSelectedStyle :: Maybe StyleState,
@@ -41,6 +43,8 @@ instance Default (DropdownCfg s e a) where
   def = DropdownCfg {
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
+    _ddcOnChangeIdx = [],
+    _ddcOnChangeReqIdx = [],
     _ddcMaxHeight = Nothing,
     _ddcBgColor = Nothing,
     _ddcSelectedStyle = Nothing,
@@ -52,6 +56,8 @@ instance Semigroup (DropdownCfg s e a) where
   (<>) t1 t2 = DropdownCfg {
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
+    _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
+    _ddcOnChangeReqIdx = _ddcOnChangeReqIdx t1 <> _ddcOnChangeReqIdx t2,
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
     _ddcBgColor = _ddcBgColor t2 <|> _ddcBgColor t1,
     _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
@@ -70,6 +76,16 @@ instance OnChange (DropdownCfg s e a) a e where
 instance OnChangeReq (DropdownCfg s e a) s where
   onChangeReq req = def {
     _ddcOnChangeReq = [req]
+  }
+
+instance OnChangeIdx (DropdownCfg s e a) a e where
+  onChangeIdx fn = def {
+    _ddcOnChangeIdx = [fn]
+  }
+
+instance OnChangeReqIdx (DropdownCfg s e a) s where
+  onChangeReqIdx req = def {
+    _ddcOnChangeReqIdx = [req]
   }
 
 instance BgColor (DropdownCfg s e a) where
@@ -252,7 +268,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   onChange wenv idx item widgetInst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
     newReqs = Seq.fromList $ widgetDataSet widgetData item
+      ++ _ddcOnChangeReq config
+      ++ fmap ($ idx) (_ddcOnChangeReqIdx config)
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
+      ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
   getSizeReq wenv widgetInst children = sizeReq where

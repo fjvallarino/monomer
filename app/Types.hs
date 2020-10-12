@@ -75,4 +75,6 @@ data AppEvent
   | CheckboxSt Bool
   | RadioSt Fruit
   | ImageMsg ImageLoadError
+  | DropdownVal Text
+  | DropdownIdx Int Text
   deriving (Show, Eq)

@@ -57,6 +57,13 @@ handleAppEvent model evt = case evt of
   ImageMsg msg -> Task $ do
     putStrLn $ "Image msg is: " ++ show msg
     return Nothing
+  DropdownVal txt -> Task $ do
+    putStrLn $ "Dropdown txt is: " ++ show txt
+    return Nothing
+  DropdownIdx idx txt -> Task $ do
+    threadDelay 100
+    putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
+    return Nothing
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -105,7 +112,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         label "Test"
       ] `key` "label hstack" `style` [bgColor darkGray],
-      textDropdown_ textField2 items id [bgColor red, bgColor green] `style` [bgColor lightBlue],
+      textDropdown_ textField2 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]

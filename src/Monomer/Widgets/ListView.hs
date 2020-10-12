@@ -35,6 +35,8 @@ import Monomer.Widgets.Stack
 import qualified Monomer.Core.Lens as L
 
 data ListViewCfg s e a = ListViewCfg {
+  _lvcOnChange :: [a -> e],
+  _lvcOnChangeReq :: [WidgetRequest s],
   _lvcOnChangeIdx :: [Int -> a -> e],
   _lvcOnChangeReqIdx :: [Int -> WidgetRequest s],
   _lvcSelectedStyle :: Maybe StyleState,
@@ -44,6 +46,8 @@ data ListViewCfg s e a = ListViewCfg {
 
 instance Default (ListViewCfg s e a) where
   def = ListViewCfg {
+    _lvcOnChange = [],
+    _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeReqIdx = [],
     _lvcSelectedStyle = Just $ bgColor gray,
@@ -53,6 +57,8 @@ instance Default (ListViewCfg s e a) where
 
 instance Semigroup (ListViewCfg s e a) where
   (<>) t1 t2 = ListViewCfg {
+    _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
+    _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
     _lvcOnChangeReqIdx = _lvcOnChangeReqIdx t1 <> _lvcOnChangeReqIdx t2,
     _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
@@ -62,11 +68,23 @@ instance Semigroup (ListViewCfg s e a) where
 
 instance Monoid (ListViewCfg s e a) where
   mempty = ListViewCfg {
+    _lvcOnChange = [],
+    _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeReqIdx = [],
     _lvcSelectedStyle = Nothing,
     _lvcHoverStyle = Nothing,
     _lvcHighlightedColor = Nothing
+  }
+
+instance OnChange (ListViewCfg s e a) a e where
+  onChange fn = def {
+    _lvcOnChange = [fn]
+  }
+
+instance OnChangeReq (ListViewCfg s e a) s where
+  onChangeReq req = def {
+    _lvcOnChangeReq = [req]
   }
 
 instance OnChangeIdx (ListViewCfg s e a) a e where
@@ -246,18 +264,22 @@ makeListView widgetData items makeRow config state = widget where
       _wrWidget = resizeInstance wenv (_wrWidget widgetResult)
     }
 
-  selectItem wenv widgetInst idx = resultReqs requests newInstance where
+  selectItem wenv widgetInst idx = result where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
     valueSetReq = widgetDataSet widgetData value
     scrollToReq = itemScrollTo widgetInst idx
-    changeReqs = fmap ($ idx) (_lvcOnChangeReqIdx config)
+    events = fmap ($ value) (_lvcOnChange config)
+      ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
+    changeReqs = _lvcOnChangeReq config
+      ++ fmap ($ idx) (_lvcOnChangeReqIdx config)
     focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
     newInstance = widgetInst {
       _wiWidget = makeListView widgetData items makeRow config newState
     }
+    result = resultReqsEvents requests events newInstance
 
   itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
     renderArea = itemRenderArea widgetInst idx
