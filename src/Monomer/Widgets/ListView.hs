@@ -61,7 +61,13 @@ instance Semigroup (ListViewCfg s e a) where
   }
 
 instance Monoid (ListViewCfg s e a) where
-  mempty = def
+  mempty = ListViewCfg {
+    _lvcOnChangeIdx = [],
+    _lvcOnChangeReqIdx = [],
+    _lvcSelectedStyle = Nothing,
+    _lvcHoverStyle = Nothing,
+    _lvcHighlightedColor = Nothing
+  }
 
 instance OnChangeIdx (ListViewCfg s e a) a e where
   onChangeIdx fn = def {

@@ -42,10 +42,10 @@ instance Default (DropdownCfg s e a) where
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcMaxHeight = Nothing,
-    _ddcBgColor = Just black,
-    _ddcSelectedStyle = Just $ bgColor gray,
-    _ddcHoverStyle = Just $ bgColor darkGray,
-    _ddcHighlightedColor = Just lightGray
+    _ddcBgColor = Nothing,
+    _ddcSelectedStyle = Nothing,
+    _ddcHoverStyle = Nothing,
+    _ddcHighlightedColor = Nothing
   }
 
 instance Semigroup (DropdownCfg s e a) where
@@ -318,10 +318,8 @@ makeListView value items makeRow config path selected = listViewInst where
       setStyle _ddcHoverStyle hoverStyle,
       maybe def highlightedColor _ddcHighlightedColor
     ]
-  tempListView = listViewD_ value items makeRow lvConfig
-  listViewInst
-    | isJust _ddcBgColor = tempListView `style` [bgColor $ fromJust _ddcBgColor]
-    | otherwise = tempListView
+  bgCol = fromMaybe black _ddcBgColor
+  listViewInst = listViewD_ value items makeRow lvConfig `style` [bgColor bgCol]
 
 setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a
 setStyle Nothing _ = def

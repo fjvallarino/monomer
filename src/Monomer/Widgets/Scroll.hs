@@ -51,7 +51,12 @@ instance Semigroup ScrollCfg where
   }
 
 instance Monoid ScrollCfg where
-  mempty = def
+  mempty = ScrollCfg {
+    _scActiveBarColor = Nothing,
+    _scIdleBarColor = Nothing,
+    _scActiveThumbColor = Nothing,
+    _scIdleThumbColor = Nothing
+  }
 
 data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
