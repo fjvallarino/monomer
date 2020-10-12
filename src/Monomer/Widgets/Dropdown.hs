@@ -31,6 +31,7 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcMaxHeight :: Maybe Double,
+  _ddcBgColor :: Maybe Color,
   _ddcSelectedStyle :: Maybe StyleState,
   _ddcHoverStyle :: Maybe StyleState,
   _ddcHighlightedColor :: Maybe Color
@@ -41,6 +42,7 @@ instance Default (DropdownCfg s e a) where
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcMaxHeight = Nothing,
+    _ddcBgColor = Just black,
     _ddcSelectedStyle = Just $ bgColor gray,
     _ddcHoverStyle = Just $ bgColor darkGray,
     _ddcHighlightedColor = Just lightGray
@@ -51,6 +53,7 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
+    _ddcBgColor = _ddcBgColor t2 <|> _ddcBgColor t1,
     _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
     _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1,
     _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1
@@ -67,6 +70,11 @@ instance OnChange (DropdownCfg s e a) a e where
 instance OnChangeReq (DropdownCfg s e a) s where
   onChangeReq req = def {
     _ddcOnChangeReq = [req]
+  }
+
+instance BgColor (DropdownCfg s e a) where
+  bgColor col = def {
+    _ddcBgColor = Just col
   }
 
 instance SelectedStyle (DropdownCfg s e a) where
@@ -310,7 +318,10 @@ makeListView value items makeRow config path selected = listViewInst where
       setStyle _ddcHoverStyle hoverStyle,
       maybe def highlightedColor _ddcHighlightedColor
     ]
-  listViewInst = listViewD_ value items makeRow lvConfig
+  tempListView = listViewD_ value items makeRow lvConfig
+  listViewInst
+    | isJust _ddcBgColor = tempListView `style` [bgColor $ fromJust _ddcBgColor]
+    | otherwise = tempListView
 
 setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a
 setStyle Nothing _ = def
