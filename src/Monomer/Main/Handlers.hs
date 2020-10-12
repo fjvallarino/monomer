@@ -55,8 +55,8 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     Move point             -> pointEvent point
     Leave oldPath _        -> pathEvent oldPath
   where
-    startPath = fromMaybe rootPath overlay
     widget = _wiWidget widgetRoot
+    startPath = fromMaybe rootPath overlay
     pathEvent = Just
     pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
     pointEvent point = pressed <|> pathFromPoint point <|> overlay

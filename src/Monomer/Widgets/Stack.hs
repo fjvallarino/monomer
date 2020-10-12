@@ -49,17 +49,17 @@ makeStack isHorizontal = widget where
     newSizeReqW
       | isVertical && Seq.null flexW = FixedSize (maximum fixedW)
       | isVertical && Seq.null fixedW = FlexSize (maximum flexW) factW
-      | isVertical = RangeSize (maximum fixedW) tmaxW factW
+      | isVertical = rangeOrFixed (maximum fixedW) tmaxW factW
       | Seq.null flexW = FixedSize (sum fixedW)
       | Seq.null fixedW = FlexSize (sum flexW) factW
-      | otherwise = RangeSize (sum fixedW) tsumW factW
+      | otherwise = rangeOrFixed (sum fixedW) tsumW factW
     newSizeReqH
       | isHorizontal && Seq.null flexH = FixedSize (maximum fixedH)
       | isHorizontal && Seq.null fixedH = FlexSize (maximum flexH) factH
-      | isHorizontal = RangeSize (maximum fixedH) tmaxH factH
+      | isHorizontal = rangeOrFixed (maximum fixedH) tmaxH factH
       | Seq.null flexH = FixedSize (sum fixedH)
       | Seq.null fixedH = FlexSize (sum flexH) factH
-      | otherwise = RangeSize (sum fixedH) tsumH factH
+      | otherwise = rangeOrFixed (sum fixedH) tsumH factH
 
   resize wenv viewport renderArea children widgetInst = resized where
     Rect l t w h = renderArea
@@ -165,3 +165,8 @@ getFactorAvg reqs
 
 getReqFactored :: SizeReq -> Double
 getReqFactored req = getFactorReq req * getMinSizeReq req
+
+rangeOrFixed :: Double -> Double -> Factor -> SizeReq
+rangeOrFixed val1 val2 factor
+  | abs (val2 - val1) < 0.01 = FixedSize val1
+  | otherwise = RangeSize val1 val2 factor

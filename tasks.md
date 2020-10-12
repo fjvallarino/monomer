@@ -206,20 +206,20 @@
     - Also added default font
   - Check if textBounds is enough, or we're missing descending part of font
     - getFullTextSize should be used?
-
-- Pending
   - Make label use fixed height by default
   - Do not draw non visible items in grid/stack (outside viewport)
     - Apply scissor
-  - Fix text size/cursor position issue
   - WidgetRequest for error messages? Probably not worth it
     - Maybe provide a config where a notification/lens can be sent?
-  - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+
+- Pending
+  - Fix text size/cursor position issue
   - Fix dropdown issues
     - Show listview in appropriate location (if dropdown is at the bottom, the listView should be up)
     - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Create Layer widget
+  - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Create Dialog
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Add testing
@@ -232,6 +232,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Image widget could also have a ByteString version
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Further textField improvements
     - Handle mouse selection

@@ -93,7 +93,7 @@ makeButton config state = widget where
     style = instanceStyle wenv widgetInst
     Size w h = getStyledTextSize wenv style caption
     factor = 1
-    sizeReq = (FlexSize w factor, FlexSize h factor)
+    sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea widgetInst = newInst where
     style = instanceStyle wenv widgetInst

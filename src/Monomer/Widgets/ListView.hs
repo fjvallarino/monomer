@@ -267,7 +267,7 @@ makeListView widgetData items makeRow config state = widget where
   getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
     child = Seq.index children 0
     newSizeReqW = _wiSizeReqW child
-    newSizeReqH = _wiSizeReqW child
+    newSizeReqH = _wiSizeReqH child
 
   resize wenv viewport renderArea children widgetInst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)

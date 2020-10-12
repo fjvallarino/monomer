@@ -78,7 +78,7 @@ data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
   _weTheme :: Theme,
-  _weScreenSize :: Size,
+  _weAppWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
   _weModel :: s,

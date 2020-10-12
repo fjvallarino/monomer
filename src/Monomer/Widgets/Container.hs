@@ -284,7 +284,7 @@ defaultFindByPoint wenv startPath point widgetInst = result where
   children = _wiChildren widgetInst
   pointInWidget wi = pointInRect point (_wiViewport wi)
   newStartPath = Seq.drop 1 startPath
-  childIdx = case startPath of
+  childIdx = case newStartPath of
     Empty -> Seq.findIndexL pointInWidget children
     p :<| ps -> if Seq.length children > p then Just p else Nothing
   result = case childIdx of

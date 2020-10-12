@@ -307,9 +307,8 @@ makeScroll config state = widget where
     }
 
   render renderer wenv widgetInst = do
-    setScissor renderer viewport
-    renderWrapper defaultRender renderer wenv widgetInst
-    resetScissor renderer
+    drawInScissor renderer True viewport $
+      renderWrapper defaultRender renderer wenv widgetInst
 
     when hScrollRequired $
       drawRect renderer hScrollRect barColorH Nothing

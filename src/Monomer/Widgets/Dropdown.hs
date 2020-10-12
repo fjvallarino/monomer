@@ -12,7 +12,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~))
+import Control.Lens (ALens', (&), (^#), (#~), (^.))
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -30,6 +30,7 @@ import Monomer.Widgets.ListView
 data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
+  _ddcMaxHeight :: Maybe Double,
   _ddcSelectedStyle :: Maybe StyleState,
   _ddcHoverStyle :: Maybe StyleState,
   _ddcHighlightedColor :: Maybe Color
@@ -39,6 +40,7 @@ instance Default (DropdownCfg s e a) where
   def = DropdownCfg {
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
+    _ddcMaxHeight = Nothing,
     _ddcSelectedStyle = Just $ bgColor gray,
     _ddcHoverStyle = Just $ bgColor darkGray,
     _ddcHighlightedColor = Just lightGray
@@ -48,6 +50,7 @@ instance Semigroup (DropdownCfg s e a) where
   (<>) t1 t2 = DropdownCfg {
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
+    _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
     _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
     _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1,
     _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1
@@ -251,16 +254,22 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea children widgetInst = resized where
+    Size winW winH = _weAppWindowSize wenv
+    Rect rx ry rw rh = renderArea
+    dropdownY dh
+      | ry + rh + dh <= winH = ry + rh
+      | otherwise = ry - dh
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
         reqHeight = getMinSizeReq . _wiSizeReqH $ child
-        maxHeight = min reqHeight 150
+        maxHeight = min reqHeight $ fromMaybe 200 (_ddcMaxHeight config)
         oViewport = viewport {
-          _rY = _rY viewport + _rH viewport,
+          _rY = dropdownY maxHeight,
           _rH = maxHeight
         }
         oRenderArea = renderArea {
-          _rY = _rY renderArea + _rH viewport
+          _rY = dropdownY maxHeight,
+          _rH = maxHeight
         }
       Nothing -> (viewport, renderArea)
     assignedArea = Seq.singleton area

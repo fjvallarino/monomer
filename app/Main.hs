@@ -60,6 +60,10 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
+  widgetTree3 = vstack [
+      label "Test" `style` [height 450],
+      textDropdown textField2 items id `style` [bgColor lightBlue]
+    ]
   widgetTree1 = textField textField1 `style` [bgColor lightBlue, textLeft]
   widgetTree = vstack [
       --hstack [
@@ -101,6 +105,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         label "Test"
       ] `key` "label hstack" `style` [bgColor darkGray],
+      textDropdown textField2 items id `style` [bgColor lightBlue],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]
