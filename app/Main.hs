@@ -54,6 +54,9 @@ handleAppEvent model evt = case evt of
 --    putStrLn $ "Radio is: " ++ show st
 --    return Nothing
   RadioSt st -> Model (model & fruit .~ st)
+  ImageMsg msg -> Task $ do
+    putStrLn $ "Image msg is: " ++ show msg
+    return Nothing
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
@@ -93,7 +96,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hstack [
         image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
         spacer_ [resizeFactor 1],
-        image_ "https://picsum.photos/600/400" [fitFill]
+        image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
       hstack [
         label "Test"

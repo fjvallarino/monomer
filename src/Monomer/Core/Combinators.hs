@@ -89,6 +89,9 @@ class OnChangeReq t s | t -> s where
 class OnChangeReqIdx t s | t -> s where
   onChangeReqIdx :: (Int -> WidgetRequest s) -> t
 
+class OnLoadError t a e | t -> e where
+  onLoadError :: (a -> e) -> t
+
 -- Size
 class BoundedWidth t where
   boundedWidth :: Double -> Double -> t

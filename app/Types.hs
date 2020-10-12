@@ -7,6 +7,8 @@ import Control.Lens (makeLenses)
 import Data.Default
 import Data.Text (Text)
 
+import Monomer
+
 data Fruit
   = Apple
   | Orange
@@ -72,4 +74,5 @@ data AppEvent
   | PrintMessage Text
   | CheckboxSt Bool
   | RadioSt Fruit
+  | ImageMsg ImageLoadError
   deriving (Show, Eq)

@@ -1,4 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Monomer.Widgets.Image (
+  ImageLoadError(..),
   image,
   image_,
   fitNone,
@@ -7,11 +11,10 @@ module Monomer.Widgets.Image (
   fitHeight
 ) where
 
-import Debug.Trace
-
 import Codec.Picture (DynamicImage, Image(..))
 import Control.Applicative ((<|>))
-import Control.Lens ((^.))
+import Control.Exception (try)
+import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
@@ -20,9 +23,11 @@ import Data.Maybe
 import Data.List (isPrefixOf)
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)
+import Network.HTTP.Client (HttpException(..), HttpExceptionContent(..))
 import Network.Wreq
 
 import qualified Codec.Picture as Pic
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wreq as Wreq
 
@@ -35,41 +40,54 @@ data ImageFit
   | FitHeight
   deriving (Eq, Show)
 
-data ImageCfg = ImageCfg {
+data ImageLoadError
+  = ImageLoadFailed String
+  | ImageInvalid String
+  deriving (Eq, Show)
+
+data ImageCfg s e = ImageCfg {
+  _imcLoadError :: [ImageLoadError -> e],
   _imcFit :: Maybe ImageFit,
   _imcTransparency :: Maybe Double
 }
 
-instance Default ImageCfg where
+instance Default (ImageCfg s e) where
   def = ImageCfg {
+    _imcLoadError = [],
     _imcFit = Nothing,
     _imcTransparency = Nothing
   }
 
-instance Semigroup ImageCfg where
+instance Semigroup (ImageCfg s e) where
   (<>) i1 i2 = ImageCfg {
+    _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
     _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
   }
 
-instance Monoid ImageCfg where
+instance Monoid (ImageCfg s e) where
   mempty = def
 
-instance Transparency ImageCfg where
+instance Transparency (ImageCfg s e) where
   transparency alpha = def {
     _imcTransparency = Just alpha
   }
 
-fitNone :: ImageCfg
+instance OnLoadError (ImageCfg s e) ImageLoadError e where
+  onLoadError err = def {
+    _imcLoadError = [err]
+  }
+
+fitNone :: ImageCfg s e
 fitNone = def { _imcFit = Just FitNone }
 
-fitFill :: ImageCfg
+fitFill :: ImageCfg s e
 fitFill = def { _imcFit = Just FitFill }
 
-fitWidth :: ImageCfg
+fitWidth :: ImageCfg s e
 fitWidth = def { _imcFit = Just FitWidth }
 
-fitHeight :: ImageCfg
+fitHeight :: ImageCfg s e
 fitHeight = def { _imcFit = Just FitHeight }
 
 newtype ImageState = ImageState {
@@ -78,7 +96,7 @@ newtype ImageState = ImageState {
 
 data ImageMessage
   = ImageLoaded ImageState
-  | ImageFailed String
+  | ImageFailed ImageLoadError
 
 imageState :: ImageState
 imageState = ImageState Nothing
@@ -86,12 +104,12 @@ imageState = ImageState Nothing
 image :: String -> WidgetInstance s e
 image path = image_ path def
 
-image_ :: String -> [ImageCfg] -> WidgetInstance s e
+image_ :: String -> [ImageCfg s e] -> WidgetInstance s e
 image_ path configs = defaultWidgetInstance "image" widget where
   config = mconcat configs
   widget = makeImage path config imageState
 
-makeImage :: String -> ImageCfg -> ImageState -> Widget s e
+makeImage :: String -> ImageCfg s e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle def {
     singleInit = init,
@@ -121,7 +139,9 @@ makeImage imgPath config state = widget where
   handleMessage wenv target message inst = result where
     result = cast message >>= useImage inst
 
-  useImage inst (ImageFailed msg) = traceShow msg Nothing
+  useImage inst (ImageFailed msg) = result where
+    evts = fmap ($ msg) (_imcLoadError config)
+    result = Just $ resultEvents evts inst
   useImage inst (ImageLoaded newState) = result where
     newInst = inst {
       _wiWidget = makeImage imgPath config newState
@@ -165,24 +185,50 @@ fitImage fitMode imageSize renderArea = case fitMode of
 handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage
 handleImageLoad wenv path = do
   res <- loadImage path
-  registerImg wenv path res
 
-loadImage :: String -> IO (Either String DynamicImage)
+  case res >>= decodeImage of
+    Left loadError -> return (ImageFailed loadError)
+    Right dimg -> registerImg wenv path dimg
+
+loadImage :: String -> IO (Either ImageLoadError ByteString)
 loadImage path
-  | not (isUrl path) = Pic.readImage path
+  | not (isUrl path) = loadLocal path -- Pic.readImage path
   | otherwise = loadRemote path
 
-loadRemote :: String -> IO (Either String DynamicImage)
-loadRemote path = do
-  r <- Wreq.get path
+decodeImage :: ByteString -> Either ImageLoadError DynamicImage
+decodeImage bs = either (Left . ImageInvalid) Right (Pic.decodeImage bs)
 
-  if respCode r == 200
-    then return . Pic.decodeImage $ respBody r
-    else return . Left $ errorMessage r
+loadLocal :: String -> IO (Either ImageLoadError ByteString)
+loadLocal path = do
+  content <- BS.readFile path
+
+  if BS.length content == 0
+    then return . Left . ImageLoadFailed $ "Failed to load: " ++ path
+    else return . Right $ content
+
+loadRemote :: String -> IO (Either ImageLoadError ByteString)
+loadRemote path = do
+  eresp <- try $ getUrl path
+
+  return $ case eresp of
+    Left e -> remoteException path e
+    Right r -> Right $ respBody r
   where
-    respCode r = r ^. responseStatus . statusCode
     respBody r = BSL.toStrict $ r ^. responseBody
-    errorMessage r = "Status: " ++ show (respCode r)
+    getUrl = getWith (defaults & checkResponse .~ (Just $ \_ _ -> return ()))
+
+remoteException
+  :: String -> HttpException -> Either ImageLoadError ByteString
+remoteException path (HttpExceptionRequest _ (StatusCodeException r _)) =
+  Left . ImageLoadFailed $ respErrorMsg path $ show (respCode r)
+remoteException path _ =
+  Left . ImageLoadFailed $ respErrorMsg path "Unknown"
+
+respCode :: Response a -> Int
+respCode r = r ^. responseStatus . statusCode
+
+respErrorMsg :: String -> String -> String
+respErrorMsg path code = "Status: " ++ code ++ " - Path: " ++ path
 
 removeImage :: WidgetEnv s e -> String -> IO (Maybe ImageMessage)
 removeImage wenv path = do
@@ -194,10 +240,9 @@ removeImage wenv path = do
 registerImg
   :: WidgetEnv s e
   -> String
-  -> Either String DynamicImage
+  -> DynamicImage
   -> IO ImageMessage
-registerImg wenv name (Left msg) = return $ ImageFailed msg
-registerImg wenv name (Right dimg) = do
+registerImg wenv name dimg = do
   addImage renderer name ImageAddKeep size bs
   return $ ImageLoaded newState
   where
