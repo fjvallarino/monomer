@@ -68,9 +68,9 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
-      widgetTree3,
+      widgetTree3
       --widgetTree2,
-      widgetTree1
+      --widgetTree1
     ]
   widgetTree1 = vstack [
       box (label "Test" `style` [bgColor blue]) `style` [flexHeight 450],

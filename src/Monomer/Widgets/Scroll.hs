@@ -295,7 +295,9 @@ makeScroll config state = widget where
 
     areaW = max w childWidth2
     areaH = max h childHeight2
-    cRenderArea = Rect (l + dx) (t + dy) areaW areaH
+    newDx = scrollAxis dx areaW w
+    newDy = scrollAxis dy areaH h
+    cRenderArea = Rect (l + newDx) (t + newDy) areaW areaH
 
     defWidget = makeScroll config $ state {
       _sstChildSize = Size areaW areaH
