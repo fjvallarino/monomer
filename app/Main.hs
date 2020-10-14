@@ -67,12 +67,17 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI model = trace "Creating UI" widgetTree where
-  widgetTree3 = vstack [
-      label "Test" `style` [height 450],
+  widgetTree = zstack [
+      widgetTree3,
+      --widgetTree2,
+      widgetTree1
+    ]
+  widgetTree1 = vstack [
+      box (label "Test" `style` [bgColor blue]) `style` [flexHeight 450],
       textDropdown textField2 items id `style` [bgColor lightBlue]
     ]
-  widgetTree1 = textField textField1 `style` [bgColor lightBlue, textLeft]
-  widgetTree = vstack [
+  widgetTree2 = textField textField1 `style` [bgColor lightBlue, textLeft]
+  widgetTree3 = vstack [
       --hstack [
       --  radioV (model ^. fruit) RadioSt Apple,
       --  radioV (model ^. fruit) RadioSt Orange,
@@ -105,7 +110,7 @@ buildUI model = trace "Creating UI" widgetTree where
         label "test" `style` [bgColor gray]
       ],
       hstack [
-        image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
+        scroll $ image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],

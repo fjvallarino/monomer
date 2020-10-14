@@ -40,23 +40,23 @@ makeStack isHorizontal = widget where
     fixedH = fmap getFixedSize vreqsH
     flexW = fmap (getFlexSize False) vreqsW
     flexH = fmap (getFlexSize False) vreqsH
-    tmaxW = maximum fixedW + maximum flexW
-    tmaxH = maximum fixedH + maximum flexH
+    tmaxW = safeMaximum fixedW + safeMaximum flexW
+    tmaxH = safeMaximum fixedH + safeMaximum flexH
     tsumW = sum fixedW + sum flexW
     tsumH = sum fixedH + sum flexH
     factW = getFactorAvg vreqsW
     factH = getFactorAvg vreqsH
     newSizeReqW
-      | isVertical && Seq.null flexW = FixedSize (maximum fixedW)
-      | isVertical && Seq.null fixedW = FlexSize (maximum flexW) factW
-      | isVertical = rangeOrFixed (maximum fixedW) tmaxW factW
+      | isVertical && Seq.null flexW = FixedSize (safeMaximum fixedW)
+      | isVertical && Seq.null fixedW = FlexSize (safeMaximum flexW) factW
+      | isVertical = rangeOrFixed (safeMaximum fixedW) tmaxW factW
       | Seq.null flexW = FixedSize (sum fixedW)
       | Seq.null fixedW = FlexSize (sum flexW) factW
       | otherwise = rangeOrFixed (sum fixedW) tsumW factW
     newSizeReqH
-      | isHorizontal && Seq.null flexH = FixedSize (maximum fixedH)
-      | isHorizontal && Seq.null fixedH = FlexSize (maximum flexH) factH
-      | isHorizontal = rangeOrFixed (maximum fixedH) tmaxH factH
+      | isHorizontal && Seq.null flexH = FixedSize (safeMaximum fixedH)
+      | isHorizontal && Seq.null fixedH = FlexSize (safeMaximum flexH) factH
+      | isHorizontal = rangeOrFixed (safeMaximum fixedH) tmaxH factH
       | Seq.null flexH = FixedSize (sum fixedH)
       | Seq.null fixedH = FlexSize (sum flexH) factH
       | otherwise = rangeOrFixed (sum fixedH) tsumH factH
@@ -117,12 +117,8 @@ makeStack isHorizontal = widget where
     vreqsH = _wiSizeReqH <$> vchildren
     sumW = (sum . fmap getReqSize) vreqsW
     sumH = (sum . fmap getReqSize) vreqsH
-    maxW
-      | Seq.null vchildren = 0
-      | otherwise = (maximum . fmap getReqSize) vreqsW
-    maxH
-      | Seq.null vchildren = 0
-      | otherwise = (maximum . fmap getReqSize) vreqsH
+    maxW = (safeMaximum . fmap getReqSize) vreqsW
+    maxH = (safeMaximum . fmap getReqSize) vreqsH
 
   mainReqSelector
     | isHorizontal = _wiSizeReqW
@@ -170,3 +166,6 @@ rangeOrFixed :: Double -> Double -> Factor -> SizeReq
 rangeOrFixed val1 val2 factor
   | abs (val2 - val1) < 0.01 = FixedSize val1
   | otherwise = RangeSize val1 val2 factor
+
+safeMaximum Empty = 0
+safeMaximum xs = maximum xs

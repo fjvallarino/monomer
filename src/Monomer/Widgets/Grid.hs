@@ -44,10 +44,10 @@ makeFixedGrid isHorizontal = widget where
       | isHorizontal = 1
       | otherwise = fromIntegral (length vchildren)
     width
-      | Seq.null vchildren = 0
+      | Seq.null vreqsW = 0
       | otherwise = wMul * (maximum . fmap getMaxSizeReq) vreqsW
     height
-      | Seq.null vchildren = 0
+      | Seq.null vreqsH = 0
       | otherwise = hMul * (maximum . fmap getMaxSizeReq) vreqsH
     newSizeReqW
       | not isHorizontal && fixedW = FixedSize width
@@ -69,11 +69,12 @@ makeFixedGrid isHorizontal = widget where
     cy i
       | cols > 0 = t + fromIntegral (i `div` cols) * ch
       | otherwise = 0
-    foldHelper (newAreas, index) child = (newAreas |> newArea, newIndex) where
-      visible = _wiVisible child
-      newIndex = index + if _wiVisible child then 1 else 0
-      newViewport = if visible then calcViewport index else def
+    foldHelper (currAreas, index) child = (newAreas, newIndex) where
+      (newIndex, newViewport)
+        | _wiVisible child = (index + 1, calcViewport index)
+        | otherwise = (0, def)
       newArea = (newViewport, newViewport)
+      newAreas = currAreas |> newArea
     calcViewport i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) vchildren
     resized = (widgetInst, assignedAreas)

@@ -39,7 +39,7 @@ instance Default ScrollCfg where
     _scActiveBarColor = Just $ darkGray & a .~ 0.4,
     _scIdleBarColor = Nothing,
     _scActiveThumbColor = Just gray,
-    _scIdleThumbColor = Just darkGray
+    _scIdleThumbColor = Just $ darkGray & a .~ 0.4
   }
 
 instance Semigroup ScrollCfg where
@@ -119,7 +119,7 @@ wheelRate :: Double
 wheelRate = 10
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
-scroll managedWidget = scroll_ def managedWidget
+scroll managedWidget = scroll_ [def] managedWidget
 
 scroll_ :: [ScrollCfg] -> WidgetInstance s e -> WidgetInstance s e
 scroll_ configs managed = makeInstance (makeScroll config def) managed where
