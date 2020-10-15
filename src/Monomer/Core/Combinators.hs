@@ -93,11 +93,11 @@ class OnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t
 
 -- Size
-class BoundedWidth t where
-  boundedWidth :: Double -> Double -> t
+class RangeWidth t where
+  rangeWidth :: Double -> Double -> t
 
-class BoundedHeight t where
-  boundedHeight :: Double -> Double -> t
+class RangeHeight t where
+  rangeHeight :: Double -> Double -> t
 
 class FlexWidth t where
   flexWidth :: Double -> t

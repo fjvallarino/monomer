@@ -3,6 +3,11 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Composite (
+  module Monomer.Core,
+  module Monomer.Event,
+  module Monomer.Graphics,
+  module Monomer.Widgets.Util,
+
   EventResponse(..),
   EventHandler,
   UIBuilder,

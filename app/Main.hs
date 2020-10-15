@@ -68,7 +68,8 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
-      widgetTree3
+      widgetTree3,
+      alert "Title" "Message" "Accept" RunShortTask
       --widgetTree2,
       --widgetTree1
     ]

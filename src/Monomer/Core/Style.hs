@@ -23,11 +23,11 @@ instance FlexWidth StyleState where
 instance FlexHeight StyleState where
   flexHeight h = def & L.sizeReqH ?~ FlexSize h 1
 
-instance BoundedWidth StyleState where
-  boundedWidth w1 w2 = def & L.sizeReqW ?~ RangeSize w1 w2 1
+instance RangeWidth StyleState where
+  rangeWidth w1 w2 = def & L.sizeReqW ?~ RangeSize w1 w2 1
 
-instance BoundedHeight StyleState where
-  boundedHeight h1 h2 = def & L.sizeReqH ?~ RangeSize h1 h2 1
+instance RangeHeight StyleState where
+  rangeHeight h1 h2 = def & L.sizeReqH ?~ RangeSize h1 h2 1
 
 instance MinWidth StyleState where
   minWidth w = def & L.sizeReqW ?~ RangeSize w (2 * w) 1
