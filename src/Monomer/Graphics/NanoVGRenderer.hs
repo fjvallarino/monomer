@@ -101,11 +101,11 @@ newRenderer c dpr lock envRef = Renderer {..} where
       addedImages = Seq.empty
     }
 
-    VG.beginFrame c cw ch pxRatio
+    VG.beginFrame c cw ch cdpr
     where
       cw = fromIntegral w
       ch = fromIntegral h
-      pxRatio = fromIntegral w / fromIntegral h
+      cdpr = realToFrac dpr
 
   endFrame =
     VG.endFrame c
@@ -236,10 +236,10 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Text
   computeTextSize font fontSize text = unsafePerformIO $ do
-    setFont c envRef defaultDpr font fontSize
+    setFont c envRef dpr font fontSize
     (x1, y1, x2, y2) <- getTextBounds c 0 0 text
 
-    return $ Size (realToFrac $ x2 - x1) (realToFrac $ y2 - y1)
+    return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
   computeTextMetrics !rect font fontSize align text = unsafePerformIO $ do
     setFont c envRef defaultDpr font fontSize
@@ -271,16 +271,16 @@ newRenderer c dpr lock envRef = Renderer {..} where
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
     -- Glyph position is usually used in local coord calculations, ignoring dpr
-    setFont c envRef defaultDpr font fontSize
+    setFont c envRef dpr font fontSize
 
     glyphs <- textGlyphPositions c 0 0 text
     return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
     where
       text = if message == "" then " " else message
       convert glyph = GlyphPos {
-        _glpXMin = realToFrac $ VG.glyphPosMinX glyph,
-        _glpXMax = realToFrac $ VG.glyphPosMaxX glyph,
-        _glpW = realToFrac $ VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph
+        _glpXMin = realToFrac (VG.glyphPosMinX glyph) / dpr,
+        _glpXMax = realToFrac (VG.glyphPosMaxX glyph) / dpr,
+        _glpW = realToFrac (VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph) / dpr
       }
 
   renderText !point font fontSize message = do
