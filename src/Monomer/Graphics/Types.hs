@@ -22,9 +22,6 @@ data Color = Color {
   _colorA :: Double
 } deriving (Show, Eq)
 
-instance Semigroup Color where
-  (<>) _ c2 = c2
-
 instance Default Color where
   def = Color 255 255 255 1.0
 

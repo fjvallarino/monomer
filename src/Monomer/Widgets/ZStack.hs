@@ -56,7 +56,7 @@ makeZStack isHorizontal = widget where
         forM_ children $ \child -> when (isVisible child) $
           widgetRender (_wiWidget child) renderer wenv child
     where
-      style = activeStyle wenv widgetInst
+      style = instanceStyle wenv widgetInst
       children = Seq.reverse $ _wiChildren widgetInst
       viewport = _wiViewport widgetInst
       renderArea = _wiRenderArea widgetInst

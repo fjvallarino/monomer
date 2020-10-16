@@ -389,7 +389,7 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper psHandler wenv widgetInst = newInst where
-  style = activeStyle wenv widgetInst
+  style = instanceStyle wenv widgetInst
   children = _wiChildren widgetInst
   updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
   newChildren = fmap updateChild children
@@ -415,7 +415,7 @@ resizeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
-  style = activeStyle wenv widgetInst
+  style = instanceStyle wenv widgetInst
   contentArea = removeOuterBounds style renderArea
   children = _wiChildren widgetInst
   (tempInst, assigned) = handler wenv viewport contentArea children widgetInst
@@ -445,7 +445,7 @@ renderWrapper rHandler renderer wenv widgetInst =
       forM_ children $ \child -> when (isVisible child) $
         widgetRender (_wiWidget child) renderer wenv child
   where
-    style = activeStyle wenv widgetInst
+    style = instanceStyle wenv widgetInst
     children = _wiChildren widgetInst
     viewport = _wiViewport widgetInst
     renderArea = _wiRenderArea widgetInst

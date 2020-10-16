@@ -70,7 +70,7 @@ makeLabel config state = widget where
 
   getSizeReq wenv widgetInst = sizeReq where
     style = instanceStyle wenv widgetInst
-    Size w h = getStyledTextSize wenv style caption
+    Size w h = getTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 

@@ -4,19 +4,22 @@ import Control.Applicative ((<|>))
 import Data.Default
 
 import Monomer.Core.BasicTypes
+import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 data Theme = Theme {
   _themeBasic :: ThemeState,
   _themeHover :: ThemeState,
-  _themeFocus :: ThemeState
+  _themeFocus :: ThemeState,
+  _themeDisabled :: ThemeState
 } deriving (Eq, Show)
 
 instance Default Theme where
   def = Theme {
     _themeBasic = def,
     _themeHover = def,
-    _themeFocus = def
+    _themeFocus = def,
+    _themeDisabled = def
   }
 
 instance Semigroup Theme where
@@ -28,18 +31,18 @@ instance Monoid Theme where
 data ThemeState = ThemeState {
   _thsFgColor :: Color,
   _thsHlColor :: Color,
-  _thsFont :: Font,
-  _thsFontSize :: FontSize,
-  _thsFontColor :: Color
+  _thsText :: TextStyle
 } deriving (Eq, Show)
 
 instance Default ThemeState where
   def = ThemeState {
-    _thsFgColor = Color 255 255 255 1,
-    _thsHlColor = Color 0 0 200 1,
-    _thsFont = def,
-    _thsFontSize = def,
-    _thsFontColor = Color 255 255 255 1
+    _thsFgColor = white,
+    _thsHlColor = blue,
+    _thsText = def {
+      _txsFont = Just def,
+      _txsFontSize = Just def,
+      _txsFontColor = Just white
+    }
   }
 
 instance Semigroup ThemeState where
@@ -61,21 +64,24 @@ instance Default SizeReq where
 data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
-  _styleFocus :: Maybe StyleState
+  _styleFocus :: Maybe StyleState,
+  _styleDisabled :: Maybe StyleState
 } deriving (Eq, Show)
 
 instance Default Style where
   def = Style {
     _styleBasic = Nothing,
     _styleHover = Nothing,
-    _styleFocus = Nothing
+    _styleFocus = Nothing,
+    _styleDisabled = Nothing
   }
 
 instance Semigroup Style where
   (<>) style1 style2 = Style {
     _styleBasic = _styleBasic style1 <> _styleBasic style2,
     _styleHover = _styleHover style1 <> _styleHover style2,
-    _styleFocus = _styleFocus style1 <> _styleFocus style2
+    _styleFocus = _styleFocus style1 <> _styleFocus style2,
+    _styleDisabled = _styleDisabled style1 <> _styleDisabled style2
   }
 
 instance Monoid Style where
@@ -116,9 +122,9 @@ instance Semigroup StyleState where
     _sstPadding = _sstPadding s1 <> _sstPadding s2,
     _sstBorder = _sstBorder s1 <> _sstBorder s2,
     _sstRadius = _sstRadius s1 <> _sstRadius s2,
-    _sstBgColor = _sstBgColor s1 <> _sstBgColor s2,
-    _sstFgColor = _sstFgColor s1 <> _sstFgColor s2,
-    _sstHlColor = _sstHlColor s1 <> _sstHlColor s2,
+    _sstBgColor = _sstBgColor s2 <|> _sstBgColor s1,
+    _sstFgColor = _sstFgColor s2 <|> _sstFgColor s1,
+    _sstHlColor = _sstHlColor s2 <|> _sstHlColor s1,
     _sstText = _sstText s1 <> _sstText s2
   }
 

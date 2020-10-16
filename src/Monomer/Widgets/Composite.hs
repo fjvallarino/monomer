@@ -252,7 +252,7 @@ compositeUpdateSizeReq
   -> WidgetInstance sp ep
 compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   CompositeState{..} = state
-  style = activeStyle wenv widgetComp
+  style = instanceStyle wenv widgetComp
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = widgetUpdateSizeReq widget cwenv _cmpRoot
@@ -280,7 +280,7 @@ compositeResize
   -> WidgetInstance sp ep
 compositeResize comp state wenv viewport renderArea widgetComp = resized where
   CompositeState{..} = state
-  style = activeStyle wenv widgetComp
+  style = instanceStyle wenv widgetComp
   contentArea = removeOuterBounds style renderArea
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel

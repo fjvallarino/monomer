@@ -259,6 +259,7 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+  - Create Theme widget to override global theme
   - Should StyleState be a phantom type?
     - A branch was created and got it working
     - Getting the types working for  meant extending that idea to Widget was logical

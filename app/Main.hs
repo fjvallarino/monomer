@@ -68,14 +68,14 @@ handleAppEvent model evt = case evt of
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
-      widgetTree3,
-      alert "Title" "Message" "Accept" RunShortTask
+      --widgetTree3
+      --, alert "Title" "Message" "Accept" RunShortTask
       --widgetTree2,
-      --widgetTree1
+      widgetTree1
     ]
   widgetTree1 = vstack [
-      box (label "Test" `style` [bgColor blue]) `style` [flexHeight 450],
-      textDropdown textField2 items id `style` [bgColor lightBlue]
+      label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
+      textField textField1 `style` [bgColor lightBlue, textLeft]
     ]
   widgetTree2 = textField textField1 `style` [bgColor lightBlue, textLeft]
   widgetTree3 = vstack [
@@ -92,7 +92,7 @@ buildUI model = trace "Creating UI" widgetTree where
           label "Label 12" `style` [bgColor lightGray],
           label "Label 123" `style` [bgColor darkGray],
           label "Label 1234" `style` [bgColor lightGray]
-        ],
+        ] `style` [bgColor red],
         vstack [
           label "jLabel 1" `style` [bgColor lightGray, textBottom],
           label "Label 12" `style` [bgColor darkGray, textTop],
@@ -100,8 +100,9 @@ buildUI model = trace "Creating UI" widgetTree where
           label "Label 12" `style` [bgColor darkGray],
           label "Label 123" `style` [bgColor lightGray],
           label "Label 1234" `style` [bgColor darkGray]
-        ]
-      ],
+        ] `style` [bgColor blue]
+      ] `style` [bgColor green],
+      label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textEllipsis],

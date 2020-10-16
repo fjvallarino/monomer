@@ -5,15 +5,10 @@ module Monomer.Widgets.Util.Style (
   activeStyle,
   activeTheme,
   instanceStyle,
-  mergeThemeStyle,
-  styleFont,
-  styleFontSize,
-  styleFontColor,
-  styleFgColor,
-  styleHlColor,
+  mergeThemeStyle
 ) where
 
-import Control.Lens ((^.), (^?), _Just)
+import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
 
@@ -23,8 +18,6 @@ import Monomer.Graphics
 import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Widget
 
-import qualified Monomer.Core.Lens as L
-
 getContentRect :: StyleState -> WidgetInstance s e -> Rect
 getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 
@@ -32,9 +25,11 @@ activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
   mousePos = _ipsMousePos $ _weInputStatus wenv
+  isEnabled = _wiEnabled inst
   isHover = pointInViewport mousePos inst
   isFocus = isFocused wenv inst
   styleState
+    | not isEnabled = _styleBasic <> _styleDisabled
     | isHover && isFocus = _styleBasic <> _styleFocus <> _styleHover
     | isHover = _styleBasic <> _styleHover
     | isFocus = _styleBasic <> _styleFocus
@@ -44,9 +39,11 @@ activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
 activeTheme wenv inst = themeState where
   theme = _weTheme wenv
   mousePos = _ipsMousePos $ _weInputStatus wenv
+  isEnabled = _wiEnabled inst
   isHover = pointInViewport mousePos inst
   isFocus = isFocused wenv inst
   themeState
+    | not isEnabled = _themeDisabled theme
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
@@ -54,39 +51,15 @@ activeTheme wenv inst = themeState where
 instanceStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 instanceStyle wenv inst = mergeThemeStyle theme style where
   style = activeStyle wenv inst
-  theme = activeTheme wenv  inst
+  theme = activeTheme wenv inst
 
 mergeThemeStyle :: ThemeState -> StyleState -> StyleState
 mergeThemeStyle theme style = newStyle where
   themeFgColor = Just $ _thsFgColor theme
   themeHlColor = Just $ _thsHlColor theme
-  themeText = Just def {
-    _txsFont = Just $ _thsFont theme,
-    _txsFontSize = Just $ _thsFontSize theme,
-    _txsFontColor = Just $ _thsFontColor theme
-  }
+  themeTextNormal = Just $ _thsText theme
   newStyle = style {
-    _sstFgColor = _sstFgColor style <> themeFgColor,
-    _sstHlColor = _sstHlColor style <> themeHlColor,
-    _sstText = _sstText style <> themeText
+    _sstFgColor = _sstFgColor style <|> themeFgColor,
+    _sstHlColor = _sstHlColor style <|> themeHlColor,
+    _sstText = _sstText style <> themeTextNormal
   }
-
-styleFont :: StyleState -> Font
-styleFont style = fromMaybe def font where
-  font = style ^? L.text . _Just  . L.font . _Just
-
-styleFontSize :: StyleState -> FontSize
-styleFontSize style = fromMaybe def fontSize where
-  fontSize = style ^? L.text . _Just . L.fontSize . _Just
-
-styleFontColor :: StyleState -> Color
-styleFontColor style = fromMaybe def fontColor where
-  fontColor = style ^? L.text . _Just . L.fontColor . _Just
-
-styleFgColor :: StyleState -> Color
-styleFgColor style = fromMaybe def fgColor where
-  fgColor = style ^? L.fgColor . _Just
-
-styleHlColor :: StyleState -> Color
-styleHlColor style = fromMaybe def hlColor where
-  hlColor = style ^? L.hlColor . _Just

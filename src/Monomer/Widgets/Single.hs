@@ -190,7 +190,7 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper handler wenv inst = newInst where
-  style = activeStyle wenv inst
+  style = instanceStyle wenv inst
   reqs = handler wenv inst
   (newReqW, newReqH) = handleSizeReqStyle style reqs
   newInst = inst {
@@ -218,4 +218,4 @@ renderWrapper rHandler renderer wenv widgetInst =
     rHandler renderer wenv widgetInst
   where
     renderArea = _wiRenderArea widgetInst
-    style = activeStyle wenv widgetInst
+    style = instanceStyle wenv widgetInst

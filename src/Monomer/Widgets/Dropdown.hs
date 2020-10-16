@@ -276,7 +276,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   getSizeReq wenv widgetInst children = sizeReq where
     style = instanceStyle wenv widgetInst
-    Size w h = getStyledTextSize wenv style (dropdownLabel wenv)
+    Size w h = getTextSize wenv style (dropdownLabel wenv)
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 

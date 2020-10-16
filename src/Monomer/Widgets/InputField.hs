@@ -11,7 +11,7 @@ import Control.Monad
 import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, non)
 import Data.Default
 import Data.Maybe
-import Data.Sequence (Seq, (|>))
+import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable
 
@@ -280,7 +280,7 @@ makeInputField config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = instanceStyle wenv inst
-    Size w h = getStyledTextSize wenv style currText
+    Size w h = getTextSize wenv style currText
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
@@ -334,15 +334,15 @@ makeInputField config state = widget where
 
 renderContent :: Renderer -> TextMetrics -> StyleState -> Text -> IO ()
 renderContent renderer textMetrics style currText = do
-  setFillColor renderer tsColor
+  setFillColor renderer tsFontColor
   renderText renderer textPos tsFont tsFontSize currText
   where
     TextMetrics tx ty tw th ta td = textMetrics
     textPos = Point tx (ty + th)
-    textStyle = fromJust (_sstText style)
-    tsFont = fromJust (_txsFont textStyle)
-    tsFontSize = fromJust (_txsFontSize textStyle)
-    tsColor = fromJust (_txsFontColor textStyle)
+    textStyle = fromMaybe def (_sstText style)
+    tsFont = styleFont style
+    tsFontSize = styleFontSize style
+    tsFontColor = styleFontColor style
     tsAlignV = fromMaybe AMiddle (_txsAlignV textStyle)
     tsAlign = Align ALeft tsAlignV
 
@@ -362,12 +362,13 @@ newTextState wenv inst oldState value text cursor selection = newState where
   !(Rect cx cy cw ch) = contentRect
   !textMetrics = getTextMetrics wenv style contentRect align text
   TextMetrics tx ty tw th ta ts = textMetrics
-  !glyphs = getTextGlyphs wenv style text
+  glyphs = getTextGlyphs wenv style text
+  g :<| gs = glyphs
   glyphX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   glyphOffset = getGlyphsMin glyphs
   curX = tx + glyphX - glyphOffset
   oldOffset = _ifsOffset oldState
-  textStyle = fromJust (_sstText style)
+  textStyle = fromMaybe def (_sstText style)
   alignH = fromMaybe ALeft (_txsAlignH textStyle)
   alignV = fromMaybe def (_txsAlignV textStyle)
   align = Align alignH alignV

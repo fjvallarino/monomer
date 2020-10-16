@@ -1,4 +1,11 @@
 module Monomer.Core.StyleUtil (
+  styleFont,
+  styleFontSize,
+  styleFontColor,
+  styleTextAlignH,
+  styleTextAlignV,
+  styleFgColor,
+  styleHlColor,
   addOuterSize,
   addOuterBounds,
   removeOuterSize,
@@ -6,11 +13,44 @@ module Monomer.Core.StyleUtil (
   subtractMargin
 ) where
 
+import Control.Lens ((^.), (^?), _Just)
 import Data.Default
 import Data.Maybe
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
+import Monomer.Graphics.Types
+
+import qualified Monomer.Core.Lens as L
+
+styleFont :: StyleState -> Font
+--styleFont style = fromJust font where --fromMaybe def font where
+styleFont style = fromMaybe def font where
+  font = style ^? L.text . _Just  . L.font . _Just
+
+styleFontSize :: StyleState -> FontSize
+styleFontSize style = fromMaybe def fontSize where
+  fontSize = style ^? L.text . _Just . L.fontSize . _Just
+
+styleFontColor :: StyleState -> Color
+styleFontColor style = fromMaybe def fontColor where
+  fontColor = style ^? L.text . _Just . L.fontColor . _Just
+
+styleTextAlignH :: StyleState -> AlignH
+styleTextAlignH style = fromMaybe def alignH where
+  alignH = style ^? L.text . _Just . L.alignH . _Just
+
+styleTextAlignV :: StyleState -> AlignV
+styleTextAlignV style = fromMaybe def alignV where
+  alignV = style ^? L.text . _Just . L.alignV . _Just
+
+styleFgColor :: StyleState -> Color
+styleFgColor style = fromMaybe def fgColor where
+  fgColor = style ^? L.fgColor . _Just
+
+styleHlColor :: StyleState -> Color
+styleHlColor style = fromMaybe def hlColor where
+  hlColor = style ^? L.hlColor . _Just
 
 addOuterSize :: StyleState -> Size -> Size
 addOuterSize style sz = final where

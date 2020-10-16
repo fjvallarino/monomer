@@ -21,6 +21,7 @@ import Data.Maybe
 import Data.Text (Text)
 
 import Monomer.Core
+import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
@@ -88,13 +89,12 @@ drawStyledBackground renderer viewport style =
 
 drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO TextMetrics
 drawStyledText renderer viewport style txt = action where
-  action = drawText renderer viewport tsColor tsFont tsFontSize tsAlign txt
-  TextStyle{..} = fromMaybe def (_sstText style)
-  tsColor = justDef _txsFontColor
-  tsFont = justDef _txsFont
-  tsFontSize = fromMaybe def _txsFontSize
-  tsAlignH = justDef _txsAlignH
-  tsAlignV = justDef _txsAlignV
+  action = drawText renderer viewport tsFontColor tsFont tsFontSize tsAlign txt
+  tsFont = styleFont style
+  tsFontSize = styleFontSize style
+  tsFontColor = styleFontColor style
+  tsAlignH = styleTextAlignH style
+  tsAlignV = styleTextAlignV style
   tsAlign = Align tsAlignH tsAlignV
 
 drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
