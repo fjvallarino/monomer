@@ -44,24 +44,35 @@ alert title message caption evt = createThemed "alert" factory where
 makeAlert
   :: WidgetEnv s e -> Text -> Text -> Text -> e -> WidgetInstance s e
 makeAlert wenv title message caption evt = alertBox where
+  emptyOverlayColor = themeEmptyOverlayColor wenv
+  dismissButton = button caption evt & L.style .~ themeBtnMain wenv
   alertTree = vstack [
-      label title & L.style <>~ themeTitleText wenv,
-      label message `style` [minHeight 200, minWidth 200],
-      box_ (button caption evt & L.style <>~ themeBtnMain wenv) [alignLeft]
+      label title & L.style .~ themeDialogTitle wenv,
+      label message & L.style .~ themeDialogBody wenv,
+      box_ dismissButton [alignLeft] & L.style .~ themeDialogButtons wenv
     ] `style` [bgColor gray]
-  alertBox = box_ alertTree [onClick evt] `style` [bgColor $ darkGray & L.a .~ 0.8]
+  alertBox = box_ alertTree [onClick evt] & L.style .~ emptyOverlayColor
+
+themeEmptyOverlayColor :: WidgetEnv s e -> Style
+themeEmptyOverlayColor wenv = copyThemeField wenv def L.bgColor L.emptyOverlayColor
 
 themeText :: WidgetEnv s e -> Style
 themeText wenv = copyThemeField wenv def L.text L.text
-
-themeTitleText :: WidgetEnv s e -> Style
-themeTitleText wenv = copyThemeField wenv def L.text L.titleText
 
 themeBtn :: WidgetEnv s e -> Style
 themeBtn wenv = collectTheme wenv L.btnStyle
 
 themeBtnMain :: WidgetEnv s e -> Style
 themeBtnMain wenv = collectTheme wenv L.btnMainStyle
+
+themeDialogTitle :: WidgetEnv s e -> Style
+themeDialogTitle wenv = collectTheme wenv L.dialogTitleStyle
+
+themeDialogBody :: WidgetEnv s e -> Style
+themeDialogBody wenv = collectTheme wenv L.dialogBodyStyle
+
+themeDialogButtons :: WidgetEnv s e -> Style
+themeDialogButtons wenv = collectTheme wenv L.dialogButtonsStyle
 
 copyThemeField
   :: WidgetEnv s e

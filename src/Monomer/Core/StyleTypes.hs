@@ -31,20 +31,26 @@ instance Monoid Theme where
 data ThemeState = ThemeState {
   _thsFgColor :: Color,
   _thsHlColor :: Color,
+  _thsEmptyOverlayColor :: Color,
   _thsText :: TextStyle,
-  _thsTitleText :: TextStyle,
   _thsBtnStyle :: StyleState,
-  _thsBtnMainStyle :: StyleState
+  _thsBtnMainStyle :: StyleState,
+  _thsDialogTitleStyle :: StyleState,
+  _thsDialogBodyStyle :: StyleState,
+  _thsDialogButtonsStyle :: StyleState
 } deriving (Eq, Show)
 
 instance Default ThemeState where
   def = ThemeState {
     _thsFgColor = def,
     _thsHlColor = def,
+    _thsEmptyOverlayColor = def,
     _thsText = def,
-    _thsTitleText = def,
     _thsBtnStyle = def,
-    _thsBtnMainStyle = def
+    _thsBtnMainStyle = def,
+    _thsDialogTitleStyle = def,
+    _thsDialogBodyStyle = def,
+    _thsDialogButtonsStyle = def
   }
 
 instance Semigroup ThemeState where

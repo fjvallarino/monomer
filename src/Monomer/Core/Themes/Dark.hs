@@ -29,21 +29,30 @@ normalFont = def
   & L.fontSize ?~ FontSize 24
   & L.fontColor ?~ white
 
+titleFont :: TextStyle
+titleFont = def
+  & L.font ?~ Font "Bold"
+  & L.fontSize ?~ FontSize 32
+  & L.fontColor ?~ white
+
 darkBasic :: ThemeState
 darkBasic = def
   & L.fgColor .~ blue
   & L.hlColor .~ white
+  & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
   & L.text .~ normalFont
-  & L.titleText . L.font ?~ Font "Bold"
-  & L.titleText . L.fontSize ?~ FontSize 32
-  & L.titleText . L.fontColor ?~ white
-  & L.titleText . L.alignH ?~ ALeft
-  & L.titleText . L.alignV ?~ AMiddle
   & L.btnStyle . L.bgColor ?~ gray
   & L.btnStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ padding 5
+  & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
+  & L.dialogTitleStyle . L.padding ?~ padding 5
+  & L.dialogBodyStyle . L.text ?~ normalFont
+  & L.dialogBodyStyle . L.padding ?~ padding 5
+  & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 200
+  & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 100
+  & L.dialogButtonsStyle . L.padding ?~ padding 5
 
 darkHover :: ThemeState
 darkHover = darkBasic
