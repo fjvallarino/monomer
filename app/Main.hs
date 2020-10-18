@@ -25,10 +25,10 @@ main = do
   --forkServer "localhost" 28000
 
   let model = def
-  let theme :: Theme = def
-        & L.basic . L.fgColor .~ blue
-        & L.hover . L.fgColor .~ white
-        & L.focus . L.fgColor .~ white
+  let theme :: Theme = darkTheme
+  --      & L.basic . L.fgColor .~ blue
+  --      & L.hover . L.fgColor .~ white
+  --      & L.focus . L.fgColor .~ white
   let config = [
         --windowSize (1280, 960),
         --windowSize (320, 240),
@@ -64,18 +64,23 @@ handleAppEvent model evt = case evt of
     threadDelay 100
     putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
     return Nothing
+  RunShortTask -> Task $ do
+    putStrLn "Running!"
+    return Nothing
   _ -> Model model
 
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree1 where
   widgetTree = zstack [
-      --widgetTree3
-      --, alert "Title" "Message" "Accept" RunShortTask
+      widgetTree3
+      , alert "Title" "Message" "Accept" RunShortTask
       --widgetTree2,
-      widgetTree1
+      --widgetTree1
     ]
   widgetTree1 = vstack [
-      label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
-      textField textField1 `style` [bgColor lightBlue, textLeft]
+      --label (model ^. textField1) `style` [bgColor lightBlue, textLeft]
+      alert "Title" "Message" "Accept" RunShortTask
+      --,
+      --textField textField1 `style` [bgColor lightBlue, textLeft]
     ]
   widgetTree2 = textField textField1 `style` [bgColor lightBlue, textLeft]
   widgetTree3 = vstack [

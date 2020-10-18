@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
@@ -58,8 +59,8 @@ mergeThemeStyle theme style = newStyle where
   themeFgColor = Just $ _thsFgColor theme
   themeHlColor = Just $ _thsHlColor theme
   themeTextNormal = Just $ _thsText theme
-  newStyle = style {
+  !newStyle = style {
     _sstFgColor = _sstFgColor style <|> themeFgColor,
     _sstHlColor = _sstHlColor style <|> themeHlColor,
-    _sstText = _sstText style <> themeTextNormal
+    _sstText = themeTextNormal <> _sstText style
   }

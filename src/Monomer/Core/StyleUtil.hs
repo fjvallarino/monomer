@@ -24,7 +24,6 @@ import Monomer.Graphics.Types
 import qualified Monomer.Core.Lens as L
 
 styleFont :: StyleState -> Font
---styleFont style = fromJust font where --fromMaybe def font where
 styleFont style = fromMaybe def font where
   font = style ^? L.text . _Just  . L.font . _Just
 

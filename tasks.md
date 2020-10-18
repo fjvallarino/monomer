@@ -215,10 +215,12 @@
     - Show listview in appropriate location (if dropdown is at the bottom, the listView should be up)
     - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
   - Fix issue on scroll. If moved and later expanded, content remains displaced
+  - Fix text size/cursor position issue
 
 - Pending
   - Create Layer widget
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
+  - Add clickOutsideChild in box
   - Create Dialog
     - Receive Title + Message
       - Receive Confirm and Cancel actions
@@ -226,8 +228,8 @@
     - Receive title, body and buttons (actions and labels)
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
-  - Fix text size/cursor position issue
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Multiline label
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
