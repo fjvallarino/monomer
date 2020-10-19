@@ -31,7 +31,7 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcOnChangeIdx :: [Int -> a -> e],
-  _ddcOnChangeReqIdx :: [Int -> WidgetRequest s],
+  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s],
   _ddcMaxHeight :: Maybe Double,
   _ddcBgColor :: Maybe Color,
   _ddcSelectedStyle :: Maybe StyleState,
@@ -44,7 +44,7 @@ instance Default (DropdownCfg s e a) where
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcOnChangeIdx = [],
-    _ddcOnChangeReqIdx = [],
+    _ddcOnChangeIdxReq = [],
     _ddcMaxHeight = Nothing,
     _ddcBgColor = Nothing,
     _ddcSelectedStyle = Nothing,
@@ -57,7 +57,7 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
-    _ddcOnChangeReqIdx = _ddcOnChangeReqIdx t1 <> _ddcOnChangeReqIdx t2,
+    _ddcOnChangeIdxReq = _ddcOnChangeIdxReq t1 <> _ddcOnChangeIdxReq t2,
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
     _ddcBgColor = _ddcBgColor t2 <|> _ddcBgColor t1,
     _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
@@ -83,9 +83,9 @@ instance OnChangeIdx (DropdownCfg s e a) a e where
     _ddcOnChangeIdx = [fn]
   }
 
-instance OnChangeReqIdx (DropdownCfg s e a) s where
-  onChangeReqIdx req = def {
-    _ddcOnChangeReqIdx = [req]
+instance OnChangeIdxReq (DropdownCfg s e a) s where
+  onChangeIdxReq req = def {
+    _ddcOnChangeIdxReq = [req]
   }
 
 instance BgColor (DropdownCfg s e a) where
@@ -269,7 +269,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
-      ++ fmap ($ idx) (_ddcOnChangeReqIdx config)
+      ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
@@ -332,7 +332,7 @@ makeListView
 makeListView value items makeRow config path selected = listViewInst where
   DropdownCfg{..} = config
   lvConfig = [
-      onChangeReqIdx (SendMessage path . OnChangeMessage),
+      onChangeIdxReq (SendMessage path . OnChangeMessage),
       setStyle _ddcSelectedStyle selectedStyle,
       setStyle _ddcHoverStyle hoverStyle,
       maybe def highlightedColor _ddcHighlightedColor

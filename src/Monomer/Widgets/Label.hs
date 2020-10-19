@@ -3,8 +3,6 @@ module Monomer.Widgets.Label (
   label_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe

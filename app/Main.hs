@@ -44,9 +44,10 @@ main = do
 
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))
-  PrintMessage txt -> Task $ do
+--  PrintMessage txt -> Model (model & showAlert .~ True)
+  PrintMessage txt -> Model (model & showAlert .~ True) <> (Task $ do
     print txt
-    return Nothing
+    return Nothing)
   CheckboxSt st -> Task $ do
     putStrLn $ "Checkbox is: " ++ show st
     return Nothing
@@ -64,15 +65,15 @@ handleAppEvent model evt = case evt of
     threadDelay 100
     putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
     return Nothing
-  RunShortTask -> Task $ do
+  RunShortTask -> Model (model & showAlert .~ False) <> (Task $ do
     putStrLn "Running!"
-    return Nothing
+    return Nothing)
   _ -> Model model
 
-buildUI model = trace "Creating UI" widgetTree1 where
+buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
-      widgetTree3
-      , alert "Title" "Message" "Accept" RunShortTask
+      widgetTree3,
+      alert "Title" "Message" "Accept" RunShortTask `visible` model ^. showAlert
       --widgetTree2,
       --widgetTree1
     ]
@@ -124,7 +125,7 @@ buildUI model = trace "Creating UI" widgetTree1 where
       hstack [
         label "Test"
       ] `key` "label hstack" `style` [bgColor darkGray],
-      textDropdown_ textField2 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
+      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]

@@ -192,13 +192,14 @@ compositeFindByPoint
   -> WidgetInstance sp ep
   -> Maybe Path
 compositeFindByPoint CompositeState{..} wenv startPath point widgetComp
-  | validStep = widgetFindByPoint widget cwenv newStartPath point _cmpRoot
+  | _wiVisible widgetComp && validStep = resultPath
   | otherwise = Nothing
   where
     widget = _wiWidget _cmpRoot
     cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
     validStep = Seq.null startPath || Seq.index startPath 0 == 0
     newStartPath = Seq.drop 1 startPath
+    resultPath = widgetFindByPoint widget cwenv newStartPath point _cmpRoot
 
 -- | Event handling
 compositeHandleEvent
@@ -217,6 +218,7 @@ compositeHandleEvent comp state wenv target evt widgetComp = result where
   rootEnabled = _wiEnabled _cmpRoot
   processEvent = reduceResult comp state wenv widgetComp
   evtResult
+    | not (_wiVisible widgetComp && _wiEnabled widgetComp) = Nothing
     | rootEnabled = widgetHandleEvent widget cwenv target evt _cmpRoot
     | otherwise = Nothing
   result = fmap processEvent evtResult

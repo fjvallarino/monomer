@@ -38,7 +38,7 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcOnChange :: [a -> e],
   _lvcOnChangeReq :: [WidgetRequest s],
   _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeReqIdx :: [Int -> WidgetRequest s],
+  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s],
   _lvcSelectedStyle :: Maybe StyleState,
   _lvcHoverStyle :: Maybe StyleState,
   _lvcHighlightedColor :: Maybe Color
@@ -49,7 +49,7 @@ instance Default (ListViewCfg s e a) where
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
-    _lvcOnChangeReqIdx = [],
+    _lvcOnChangeIdxReq = [],
     _lvcSelectedStyle = Just $ bgColor gray,
     _lvcHoverStyle = Just $ bgColor darkGray,
     _lvcHighlightedColor = Just lightGray
@@ -60,7 +60,7 @@ instance Semigroup (ListViewCfg s e a) where
     _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
     _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
-    _lvcOnChangeReqIdx = _lvcOnChangeReqIdx t1 <> _lvcOnChangeReqIdx t2,
+    _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2,
     _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
     _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1,
     _lvcHighlightedColor = _lvcHighlightedColor t2 <|> _lvcHighlightedColor t1
@@ -71,7 +71,7 @@ instance Monoid (ListViewCfg s e a) where
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
-    _lvcOnChangeReqIdx = [],
+    _lvcOnChangeIdxReq = [],
     _lvcSelectedStyle = Nothing,
     _lvcHoverStyle = Nothing,
     _lvcHighlightedColor = Nothing
@@ -92,9 +92,9 @@ instance OnChangeIdx (ListViewCfg s e a) a e where
     _lvcOnChangeIdx = [fn]
   }
 
-instance OnChangeReqIdx (ListViewCfg s e a) s where
-  onChangeReqIdx req = def {
-    _lvcOnChangeReqIdx = [req]
+instance OnChangeIdxReq (ListViewCfg s e a) s where
+  onChangeIdxReq req = def {
+    _lvcOnChangeIdxReq = [req]
   }
 
 instance SelectedStyle (ListViewCfg s e a) where
@@ -272,7 +272,7 @@ makeListView widgetData items makeRow config state = widget where
     events = fmap ($ value) (_lvcOnChange config)
       ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
     changeReqs = _lvcOnChangeReq config
-      ++ fmap ($ idx) (_lvcOnChangeReqIdx config)
+      ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
     focusReq = [SetFocus $ _wiPath widgetInst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx

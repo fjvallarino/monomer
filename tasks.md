@@ -226,6 +226,7 @@
       - Receive Confirm and Cancel actions
       - Receive Actions and Labels
     - Receive title, body and buttons (actions and labels)
+  - Check if there's a 1px error in click handling
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
@@ -244,6 +245,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
@@ -261,7 +263,6 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-  - Create Theme widget to override global theme
   - Should StyleState be a phantom type?
     - A branch was created and got it working
     - Getting the types working for  meant extending that idea to Widget was logical

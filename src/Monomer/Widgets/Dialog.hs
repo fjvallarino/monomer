@@ -30,9 +30,20 @@ createThemed
   -> (WidgetEnv s e -> WidgetInstance s e)
   -> WidgetInstance s e
 createThemed widgetType factory = newInst where
-  themedInit wenv inst = resultWidget $ factory wenv
+  --themedInit wenv inst = resultWidget $ factory wenv
+  createInst wenv inst = resultWidget themedInst where
+    tempInst = factory wenv
+    themedInst = inst {
+      _wiWidget = _wiWidget tempInst,
+      _wiChildren = _wiChildren tempInst,
+      _wiFocusable = _wiFocusable tempInst,
+      _wiStyle = _wiStyle tempInst <> _wiStyle inst
+    }
+  init = createInst
+  merge wenv oldState inst = createInst wenv inst
   newWidget = createContainer def {
-    containerInit = themedInit
+    containerInit = createInst,
+    containerMerge = merge
   }
   newInst = defaultWidgetInstance widgetType newWidget
 
@@ -50,8 +61,8 @@ makeAlert wenv title message caption evt = alertBox where
       label title & L.style .~ themeDialogTitle wenv,
       label message & L.style .~ themeDialogBody wenv,
       box_ dismissButton [alignLeft] & L.style .~ themeDialogButtons wenv
-    ] `style` [bgColor gray]
-  alertBox = box_ alertTree [onClick evt] & L.style .~ emptyOverlayColor
+    ] & L.style .~ themeDialogFrame wenv
+  alertBox = box_ alertTree [onClickEmpty evt] & L.style .~ emptyOverlayColor
 
 themeEmptyOverlayColor :: WidgetEnv s e -> Style
 themeEmptyOverlayColor wenv = copyThemeField wenv def L.bgColor L.emptyOverlayColor
@@ -64,6 +75,9 @@ themeBtn wenv = collectTheme wenv L.btnStyle
 
 themeBtnMain :: WidgetEnv s e -> Style
 themeBtnMain wenv = collectTheme wenv L.btnMainStyle
+
+themeDialogFrame :: WidgetEnv s e -> Style
+themeDialogFrame wenv = collectTheme wenv L.dialogFrameStyle
 
 themeDialogTitle :: WidgetEnv s e -> Style
 themeDialogTitle wenv = collectTheme wenv L.dialogTitleStyle
@@ -106,16 +120,3 @@ makeConfirm title message = vstack [
     label title,
     label message
   ]
-
---makeDialog
---  :: (Eq sd, Typeable sd, Typeable ed)
---  => WidgetType
---  -> sd
---  -> WidgetInstance sd ed
---  -> WidgetInstance s e
---makeDialog widgetType model body = comp where
---  buildUI _ = body
---  comp = composite widgetType model Nothing handleEvent buildUI
---
---handleEvent :: s -> e -> EventResponse s e ep
---handleEvent model evt = Model model

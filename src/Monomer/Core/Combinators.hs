@@ -77,6 +77,12 @@ class OnClick t e | t -> e  where
 class OnClickReq t s | t -> s where
   onClickReq :: WidgetRequest s -> t
 
+class OnClickEmpty t e | t -> e  where
+  onClickEmpty :: e -> t
+
+class OnClickEmptyReq t s | t -> s where
+  onClickEmptyReq :: WidgetRequest s -> t
+
 class OnChange t a e | t -> e where
   onChange :: (a -> e) -> t
 
@@ -86,8 +92,8 @@ class OnChangeIdx t a e | t -> e where
 class OnChangeReq t s | t -> s where
   onChangeReq :: WidgetRequest s -> t
 
-class OnChangeReqIdx t s | t -> s where
-  onChangeReqIdx :: (Int -> WidgetRequest s) -> t
+class OnChangeIdxReq t s | t -> s where
+  onChangeIdxReq :: (Int -> WidgetRequest s) -> t
 
 class OnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t

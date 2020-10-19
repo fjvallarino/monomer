@@ -282,17 +282,20 @@ defaultFindByPoint
   :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
 defaultFindByPoint wenv startPath point widgetInst = result where
   children = _wiChildren widgetInst
-  pointInWidget wi = pointInRect point (_wiViewport wi)
+  pointInWidget wi = _wiVisible wi && pointInRect point (_wiViewport wi)
   newStartPath = Seq.drop 1 startPath
   childIdx = case newStartPath of
     Empty -> Seq.findIndexL pointInWidget children
     p :<| ps -> if Seq.length children > p then Just p else Nothing
-  result = case childIdx of
+  resultPath = case childIdx of
     Just idx -> childPath where
       childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx
       childWidget = _wiWidget child
     Nothing -> Just $ _wiPath widgetInst
+  result
+    | _wiVisible widgetInst = resultPath
+    | otherwise = Nothing
 
 -- | Event Handling
 defaultHandleEvent :: ContainerEventHandler s e
@@ -306,6 +309,7 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper pHandler wenv target event widgetInst
+  | not (_wiVisible widgetInst && _wiEnabled widgetInst) = Nothing
   | targetReached = handleStyleChange pHandler wenv target event widgetInst
   | not targetValid = Nothing
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx

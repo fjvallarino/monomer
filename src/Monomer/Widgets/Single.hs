@@ -164,7 +164,9 @@ defaultFindNextFocus wenv direction startFrom widgetInst
   | otherwise = Nothing
 
 defaultFindByPoint :: SingleFindByPointHandler s e
-defaultFindByPoint wenv path point widgetInst = Just (_wiPath widgetInst)
+defaultFindByPoint wenv path point widgetInst
+  | _wiVisible widgetInst = Just (_wiPath widgetInst)
+  | otherwise = Nothing
 
 defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt widgetInst = Nothing
@@ -176,8 +178,9 @@ handleEventWrapper
   -> SystemEvent
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper handler wenv target evt inst = newResult where
-  newResult = handleStyleChange handler wenv target evt inst
+handleEventWrapper handler wenv target evt inst
+  | not (_wiVisible inst && _wiEnabled inst) = Nothing
+  | otherwise = handleStyleChange handler wenv target evt inst
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message widgetInst = Nothing

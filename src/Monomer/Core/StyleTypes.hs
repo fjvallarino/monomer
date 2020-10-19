@@ -35,6 +35,7 @@ data ThemeState = ThemeState {
   _thsText :: TextStyle,
   _thsBtnStyle :: StyleState,
   _thsBtnMainStyle :: StyleState,
+  _thsDialogFrameStyle :: StyleState,
   _thsDialogTitleStyle :: StyleState,
   _thsDialogBodyStyle :: StyleState,
   _thsDialogButtonsStyle :: StyleState
@@ -48,6 +49,7 @@ instance Default ThemeState where
     _thsText = def,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
+    _thsDialogFrameStyle = def,
     _thsDialogTitleStyle = def,
     _thsDialogBodyStyle = def,
     _thsDialogButtonsStyle = def

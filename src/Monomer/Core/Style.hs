@@ -1,5 +1,7 @@
 module Monomer.Core.Style (
-  module Monomer.Core.StyleTypes
+  module Monomer.Core.StyleTypes,
+  paddingH,
+  paddingV
 ) where
 
 import Control.Lens ((&), (?~), non)
@@ -10,6 +12,12 @@ import Monomer.Core.StyleTypes
 import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L
+
+paddingH :: (Semigroup a, PaddingL a, PaddingR a) => Double -> a
+paddingH p = paddingL p <> paddingR p
+
+paddingV :: (Semigroup a, PaddingT a, PaddingB a) => Double -> a
+paddingV p = paddingT p <> paddingB p
 
 -- Size
 instance Width SizeReq where

@@ -21,7 +21,9 @@ data BoxCfg s e = BoxCfg {
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
-  _boxOnClickReq :: [WidgetRequest s]
+  _boxOnClickReq :: [WidgetRequest s],
+  _boxOnClickEmpty :: [e],
+  _boxOnClickEmptyReq :: [WidgetRequest s]
 }
 
 instance Default (BoxCfg s e) where
@@ -30,7 +32,9 @@ instance Default (BoxCfg s e) where
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
     _boxOnClick = [],
-    _boxOnClickReq = []
+    _boxOnClickReq = [],
+    _boxOnClickEmpty = [],
+    _boxOnClickEmptyReq = []
   }
 
 instance Semigroup (BoxCfg s e) where
@@ -39,7 +43,9 @@ instance Semigroup (BoxCfg s e) where
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
     _boxOnClick = _boxOnClick t1 <> _boxOnClick t2,
-    _boxOnClickReq = _boxOnClickReq t1 <> _boxOnClickReq t2
+    _boxOnClickReq = _boxOnClickReq t1 <> _boxOnClickReq t2,
+    _boxOnClickEmpty = _boxOnClickEmpty t1 <> _boxOnClickEmpty t2,
+    _boxOnClickEmptyReq = _boxOnClickEmptyReq t1 <> _boxOnClickEmptyReq t2
   }
 
 instance Monoid (BoxCfg s e) where
@@ -85,6 +91,16 @@ instance OnClickReq (BoxCfg s e) s where
     _boxOnClickReq = [req]
   }
 
+instance OnClickEmpty (BoxCfg s e) e where
+  onClickEmpty handler = def {
+    _boxOnClickEmpty = [handler]
+  }
+
+instance OnClickEmptyReq (BoxCfg s e) s where
+  onClickEmptyReq req = def {
+    _boxOnClickEmptyReq = [req]
+  }
+
 expandContent :: BoxCfg s e
 expandContent = def {
   _boxExpandContent = Just True
@@ -111,22 +127,28 @@ makeBox config = widget where
     containerResize = resize
   }
 
-  handleEvent wenv ctx evt widgetInst = case evt of
+  handleEvent wenv ctx evt inst = case evt of
     Click point btn -> result where
-      events = _boxOnClick config
-      requests = _boxOnClickReq config
+      child = Seq.index (_wiChildren inst) 0
+      childClicked = pointInRect point (_wiViewport child)
+      events
+        | childClicked = _boxOnClick config
+        | otherwise = _boxOnClickEmpty config
+      requests
+        | childClicked  = _boxOnClickReq config
+        | otherwise = _boxOnClickEmptyReq config
       needsUpdate = btn == LeftBtn && not (null events && null requests)
       result
-        | needsUpdate = Just $ resultReqsEvents requests events widgetInst
+        | needsUpdate = Just $ resultReqsEvents requests events inst
         | otherwise = Nothing
     _ -> Nothing
 
-  getSizeReq wenv widgetInst children = (newReqW, newReqH) where
+  getSizeReq wenv inst children = (newReqW, newReqH) where
     child = Seq.index children 0
     newReqW = _wiSizeReqW child
     newReqH = _wiSizeReqH child
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     Rect vx vy vw vh = viewport
     Rect rx ry rw rh = renderArea
     child = Seq.index children 0
@@ -140,8 +162,8 @@ makeBox config = widget where
     raAligned = alignInRect ah av renderArea raChild
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (widgetInst, Seq.singleton (viewport, renderArea))
-      | otherwise  = (widgetInst, Seq.singleton (vpAligned, raAligned))
+      | expand = (inst, Seq.singleton (viewport, renderArea))
+      | otherwise  = (inst, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where
