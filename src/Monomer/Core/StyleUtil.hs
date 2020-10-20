@@ -66,15 +66,15 @@ removeOuterSize style sz = final where
   final = padding
 
 addOuterBounds :: StyleState -> Rect -> Rect
-addOuterBounds style viewport = final where
-  margin = addMargin viewport (_sstMargin style)
+addOuterBounds style rect = final where
+  margin = addMargin rect (_sstMargin style)
   border = addBorder margin (_sstBorder style)
   padding = addPadding border (_sstPadding style)
   final = padding
 
 removeOuterBounds :: StyleState -> Rect -> Rect
-removeOuterBounds style viewport = final where
-  margin = subtractMargin viewport (_sstMargin style)
+removeOuterBounds style rect = final where
+  margin = subtractMargin rect (_sstMargin style)
   border = subtractBorder margin (_sstBorder style)
   padding = subtractPadding border (_sstPadding style)
   final = padding

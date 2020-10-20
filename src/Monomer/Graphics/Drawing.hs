@@ -33,15 +33,15 @@ drawInScissor renderer True rect action = do
 
 drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
 drawRect _ _ Nothing _ = pure ()
-drawRect renderer viewport (Just color) Nothing = do
+drawRect renderer rect (Just color) Nothing = do
   beginPath renderer
   setFillColor renderer color
-  renderRect renderer viewport
+  renderRect renderer rect
   fill renderer
-drawRect renderer viewport (Just color) (Just radius) = do
+drawRect renderer rect (Just color) (Just radius) = do
   beginPath renderer
   setFillColor renderer color
-  drawRoundedRect renderer viewport radius
+  drawRoundedRect renderer rect radius
   fill renderer
 
 drawRectBorder :: Renderer -> Rect -> Border -> Maybe Radius -> IO ()
@@ -71,25 +71,25 @@ drawEllipseBorder renderer rect (Just color) width = do
     w = width / 2
 
 drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
-drawStyledAction renderer viewport style action = do
+drawStyledAction renderer rect style action = do
   let StyleState{..} = style
   let margin = _sstMargin
-  let rect = subtractMargin viewport margin
-  let contentRect = removeOuterBounds style viewport
+  let marginRect = subtractMargin rect margin
+  let contentRect = removeOuterBounds style marginRect
 
-  drawRect renderer rect _sstBgColor _sstRadius
+  drawRect renderer marginRect _sstBgColor _sstRadius
   action contentRect
 
   when (isJust _sstBorder) $
-    drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
+    drawRectBorder renderer marginRect (fromJust _sstBorder) _sstRadius
 
 drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
-drawStyledBackground renderer viewport style =
-  drawStyledAction renderer viewport style (\_ -> return ())
+drawStyledBackground renderer rect style =
+  drawStyledAction renderer rect style (\_ -> return ())
 
 drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO TextMetrics
-drawStyledText renderer viewport style txt = action where
-  action = drawText renderer viewport tsFontColor tsFont tsFontSize tsAlign txt
+drawStyledText renderer rect style txt = action where
+  action = drawText renderer rect tsFontColor tsFont tsFontSize tsAlign txt
   tsFont = styleFont style
   tsFontSize = styleFontSize style
   tsFontColor = styleFontColor style
@@ -98,8 +98,8 @@ drawStyledText renderer viewport style txt = action where
   tsAlign = Align tsAlignH tsAlignV
 
 drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
-drawStyledText_ renderer viewport style txt =
-  void $ drawStyledText renderer viewport style txt
+drawStyledText_ renderer rect style txt =
+  void $ drawStyledText renderer rect style txt
 
 drawText
   :: Renderer
@@ -110,22 +110,22 @@ drawText
   -> Align
   -> Text
   -> IO TextMetrics
-drawText renderer viewport color font fontSize align txt = do
+drawText renderer rect color font fontSize align txt = do
   setFillColor renderer color
   renderText renderer textPos font fontSize txt
   return textMetrics
   where
-    textMetrics = computeTextMetrics renderer viewport font fontSize align txt
+    textMetrics = computeTextMetrics renderer rect font fontSize align txt
     TextMetrics tx ty tw th ta td = textMetrics
     textPos = Point tx (ty + th)
 
 drawImage :: Renderer -> String -> Rect -> Double -> IO ()
-drawImage renderer imgName viewport alpha = action where
-  action = renderImage renderer imgName viewport alpha
+drawImage renderer imgName rect alpha = action where
+  action = renderImage renderer imgName rect alpha
 
 drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
-drawStyledImage renderer imgName viewport alpha style = action where
-  imgRect = removeOuterBounds style viewport
+drawStyledImage renderer imgName rect alpha style = action where
+  imgRect = removeOuterBounds style rect
   action = renderImage renderer imgName imgRect alpha
 
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()

@@ -35,20 +35,20 @@ getTextMetrics wenv style !rect !align !text = textMetrics where
   fontSize = styleFontSize style
 
 fitText :: WidgetEnv s e -> StyleState -> Rect -> Text -> (Text, Size)
-fitText wenv style !viewport !text = (newText, newSize) where
+fitText wenv style !rect !text = (newText, newSize) where
   font = styleFont style
   fontSize = styleFontSize style
   sizeHandler = computeTextSize (_weRenderer wenv)
   !size = sizeHandler font fontSize text
   (newText, newSize)
-    | _sW size <= _rW viewport = (text, size)
-    | otherwise = fitEllipsis wenv style viewport size text
+    | _sW size <= _rW rect = (text, size)
+    | otherwise = fitEllipsis wenv style rect size text
 
 fitEllipsis
   :: WidgetEnv s e -> StyleState -> Rect -> Size -> Text -> (Text, Size)
-fitEllipsis wenv style !viewport !textSize !text = (newText, newSize) where
+fitEllipsis wenv style !rect !textSize !text = (newText, newSize) where
   Size tw th = textSize
-  vpW = _rW viewport
+  vpW = _rW rect
   !glyphs = getTextGlyphs wenv style (text <> ".")
   dotW = maybe 0 _glpW (Seq.lookup (Seq.length glyphs - 1) glyphs)
   dotsW = 3 * dotW

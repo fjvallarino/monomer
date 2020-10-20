@@ -106,9 +106,7 @@ makeButton config state = widget where
       | captionFit == newCaptionFit = _wiWidget widgetInst
       | otherwise = makeButton config (BtnState caption newCaptionFit)
     newInst = widgetInst {
-      _wiWidget = newWidget,
-      _wiViewport = viewport,
-      _wiRenderArea = renderArea
+      _wiWidget = newWidget
     }
 
   render renderer wenv widgetInst = do

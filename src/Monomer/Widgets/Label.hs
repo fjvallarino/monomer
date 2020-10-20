@@ -83,9 +83,7 @@ makeLabel config state = widget where
       | captionFit == newCaptionFit = _wiWidget widgetInst
       | otherwise = makeLabel config (LabelState caption newCaptionFit)
     newInst = widgetInst {
-      _wiWidget = newWidget,
-      _wiViewport = viewport,
-      _wiRenderArea = renderArea
+      _wiWidget = newWidget
     }
 
   render renderer wenv widgetInst =
