@@ -168,9 +168,6 @@ instance InnerRadiusBL Radius where
 instance InnerRadiusBR Radius where
   iradiusBR rad = def & L.bottomRight ?~ iradiusCorner rad
 
-
-
-
 --
 -- StyleState instances
 --

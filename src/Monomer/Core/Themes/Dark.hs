@@ -41,8 +41,9 @@ darkBasic = def
   & L.hlColor .~ blue
   & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
   & L.text .~ normalFont
-  & L.btnStyle . L.bgColor ?~ gray
+  & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont
+  & L.btnStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)

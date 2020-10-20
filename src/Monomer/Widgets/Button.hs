@@ -74,6 +74,7 @@ makeButton config state = widget where
   widget = createSingle def {
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
+    singleResize = resize,
     singleRender = render
   }
 

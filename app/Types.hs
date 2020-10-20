@@ -30,7 +30,8 @@ data App = App {
   _condition1 :: Bool,
   _condition2 :: Bool,
   _condition3 :: Bool,
-  _showAlert :: Bool
+  _showAlert :: Bool,
+  _showConfirm :: Bool
 } deriving (Show, Eq)
 
 instance Default App where
@@ -49,7 +50,8 @@ instance Default App where
     _condition1 = False,
     _condition2 = False,
     _condition3 = False,
-    _showAlert = False
+    _showAlert = False,
+    _showConfirm = False
   }
 
 makeLenses ''App
@@ -69,4 +71,9 @@ data AppEvent
   | ImageMsg ImageLoadError
   | DropdownVal Text
   | DropdownIdx Int Text
+  | ShowAlert
+  | CloseAlert
+  | ShowConfirm
+  | AcceptConfirm
+  | CancelConfirm
   deriving (Show, Eq)

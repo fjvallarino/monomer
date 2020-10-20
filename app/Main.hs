@@ -45,9 +45,9 @@ main = do
 handleAppEvent model evt = case evt of
   IncButton -> Model (model & clickCount %~ (+1))
 --  PrintMessage txt -> Model (model & showAlert .~ True)
-  PrintMessage txt -> Model (model & showAlert .~ True) <> (Task $ do
+  PrintMessage txt -> Task $ do
     print txt
-    return Nothing)
+    return Nothing
   CheckboxSt st -> Task $ do
     putStrLn $ "Checkbox is: " ++ show st
     return Nothing
@@ -65,44 +65,52 @@ handleAppEvent model evt = case evt of
     threadDelay 100
     putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
     return Nothing
-  RunShortTask -> Model (model & showAlert .~ False) <> (Task $ do
+  ShowAlert -> Model (model & showAlert .~ True)
+  CloseAlert -> Model (model & showAlert .~ False)
+  ShowConfirm -> Model (model & showConfirm .~ True)
+  AcceptConfirm -> Model (model & showConfirm .~ False)
+  CancelConfirm -> Model (model & showConfirm .~ False)
+  RunShortTask -> Task $ do
     putStrLn "Running!"
-    return Nothing)
+    return Nothing
   _ -> Model model
+
 
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
       widgetTree3,
-      alert "Title" "Message" "Accept" RunShortTask `visible` model ^. showAlert
+      --alert "Message" CloseAlert `visible` model ^. showAlert
+      confirm "Message" AcceptConfirm CancelConfirm `visible` model ^. showConfirm
+      --confirm "Message" AcceptConfirm CancelConfirm
       --widgetTree2,
       --widgetTree1
     ]
   widgetTree1 = vstack [
       --label (model ^. textField1) `style` [bgColor lightBlue, textLeft]
-      alert "Title" "Message" "Accept" RunShortTask
+      alert "Message" RunShortTask
       --,
       --textField textField1 `style` [bgColor lightBlue, textLeft]
     ]
   widgetTree2 = textField textField1 `style` [bgColor lightBlue, textLeft]
   widgetTree3 = vstack [
-      --hstack [
-      --  radioV (model ^. fruit) RadioSt Apple,
-      --  radioV (model ^. fruit) RadioSt Orange,
-      --  radioV (model ^. fruit) RadioSt Pear
-      --] `key` "radio hstack" `style` [bgColor gray],
+      hstack [
+        radioV (model ^. fruit) RadioSt Apple,
+        radioV (model ^. fruit) RadioSt Orange,
+        radioV (model ^. fruit) RadioSt Pear
+      ] `key` "radio hstack" `style` [bgColor gray],
+      hstack [
+        button "Show Alert" ShowAlert,
+        button "Show Confirm" ShowConfirm
+      ],
       hgrid [
         vstack [
           label "jLabel 1" `style` [bgColor darkGray],
-          label "Label 12" `style` [bgColor lightGray],
-          label "Label 12" `style` [bgColor darkGray],
           label "Label 12" `style` [bgColor lightGray],
           label "Label 123" `style` [bgColor darkGray],
           label "Label 1234" `style` [bgColor lightGray]
         ] `style` [bgColor red],
         vstack [
           label "jLabel 1" `style` [bgColor lightGray, textBottom],
-          label "Label 12" `style` [bgColor darkGray, textTop],
-          label "Label 12" `style` [bgColor lightGray],
           label "Label 12" `style` [bgColor darkGray],
           label "Label 123" `style` [bgColor lightGray],
           label "Label 1234" `style` [bgColor darkGray]
@@ -115,16 +123,10 @@ buildUI model = trace "Creating UI" widgetTree where
         label "Jj label"
       ],
       hstack [
-        label "test" `style` [bgColor gray]
-      ],
-      hstack [
         scroll $ image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
-      hstack [
-        label "Test"
-      ] `key` "label hstack" `style` [bgColor darkGray],
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20

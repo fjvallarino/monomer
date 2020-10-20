@@ -44,8 +44,8 @@ makeStack isHorizontal = widget where
     tmaxH = safeMaximum fixedH + safeMaximum flexH
     tsumW = sum fixedW + sum flexW
     tsumH = sum fixedH + sum flexH
-    factW = getFactorAvg vreqsW
-    factH = getFactorAvg vreqsH
+    factW = getFactorMax vreqsW
+    factH = getFactorMax vreqsH
     newSizeReqW
       | isVertical && Seq.null flexW = FixedSize (safeMaximum fixedW)
       | isVertical && Seq.null fixedW = FlexSize (safeMaximum flexW) factW
@@ -150,6 +150,13 @@ getFlexSize useFactor req = coord where
     FixedSize c -> 0
     FlexSize c _ -> c * factor
     RangeSize c1 c2 _ -> (c2 - c1) * factor
+
+getFactorMax :: Seq SizeReq -> Double
+getFactorMax reqs
+  | Seq.null flexReqs = 1
+  | otherwise = maximum (fmap getFactorReq flexReqs)
+  where
+    flexReqs = Seq.filter (not . isFixedSizeReq) reqs
 
 getFactorAvg :: Seq SizeReq -> Double
 getFactorAvg reqs

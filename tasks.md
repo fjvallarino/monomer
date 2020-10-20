@@ -218,8 +218,8 @@
   - Fix text size/cursor position issue
 
 - Pending
+  - Is overlay not being cleared up?
   - Create Layer widget
-  - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Add clickOutsideChild in box
   - Create Dialog
     - Receive Title + Message
@@ -228,6 +228,7 @@
     - Receive title, body and buttons (actions and labels)
   - Check if there's a 1px error in click handling
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
+  - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Multiline label

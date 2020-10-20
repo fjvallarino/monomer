@@ -12,6 +12,7 @@ module Monomer.Widgets.Container (
 
   Container(..),
   createContainer,
+  createThemed,
   initWrapper,
   mergeWrapper,
   handleEventWrapper,
@@ -149,6 +150,28 @@ createContainer Container{..} = Widget {
   widgetResize = resizeWrapper containerResize,
   widgetRender = renderWrapper containerRender
 }
+
+createThemed
+  :: WidgetType
+  -> (WidgetEnv s e -> WidgetInstance s e)
+  -> WidgetInstance s e
+createThemed widgetType factory = newInst where
+  --themedInit wenv inst = resultWidget $ factory wenv
+  createInst wenv inst = resultWidget themedInst where
+    tempInst = factory wenv
+    themedInst = inst {
+      _wiWidget = _wiWidget tempInst,
+      _wiChildren = _wiChildren tempInst,
+      _wiFocusable = _wiFocusable tempInst,
+      _wiStyle = _wiStyle tempInst <> _wiStyle inst
+    }
+  init = createInst
+  merge wenv oldState inst = createInst wenv inst
+  newWidget = createContainer def {
+    containerInit = createInst,
+    containerMerge = merge
+  }
+  newInst = defaultWidgetInstance widgetType newWidget
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
