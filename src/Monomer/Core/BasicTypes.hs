@@ -73,8 +73,8 @@ rectInRectV (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) =
 
 rectsOverlap :: Rect -> Rect -> Bool
 rectsOverlap (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) = overlapX && overlapY where
-  overlapX = x1 <= x2 + w2 && x1 + w1 >= x2
-  overlapY = y1 <= y2 + h2 && y1 + h1 >= y2
+  overlapX = x1 < x2 + w2 && x1 + w1 > x2
+  overlapY = y1 < y2 + h2 && y1 + h1 > y2
 
 addToRect :: Rect -> Double -> Double -> Double -> Double -> Rect
 addToRect (Rect x y w h) l r t b = Rect nx ny nw nh where

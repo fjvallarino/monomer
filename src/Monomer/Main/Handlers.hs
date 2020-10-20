@@ -269,7 +269,7 @@ handleOverlayReset
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleOverlayReset reqs previousStep =
-  case Seq.filter isSetOverlay reqs of
+  case Seq.filter isResetOverlay reqs of
     ResetOverlay :<| _ -> do
       L.pathOverlay .= Nothing
 
@@ -333,6 +333,10 @@ isSetClipboard _ = False
 isSetOverlay :: WidgetRequest s -> Bool
 isSetOverlay SetOverlay{} = True
 isSetOverlay _ = False
+
+isResetOverlay :: WidgetRequest s -> Bool
+isResetOverlay ResetOverlay{} = True
+isResetOverlay _ = False
 
 isSetFocus :: WidgetRequest s -> Bool
 isSetFocus SetFocus{} = True
