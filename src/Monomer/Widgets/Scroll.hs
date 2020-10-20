@@ -4,6 +4,7 @@ module Monomer.Widgets.Scroll (
   ScrollCfg,
   ScrollMessage(..),
   scroll,
+  scroll_,
   activeBarColor,
   idleBarColor,
   activeThumbColor,
@@ -36,10 +37,10 @@ data ScrollCfg = ScrollCfg {
 
 instance Default ScrollCfg where
   def = ScrollCfg {
-    _scActiveBarColor = Just $ darkGray & a .~ 0.4,
+    _scActiveBarColor = Nothing,
     _scIdleBarColor = Nothing,
-    _scActiveThumbColor = Just gray,
-    _scIdleThumbColor = Just $ darkGray & a .~ 0.4
+    _scActiveThumbColor = Nothing,
+    _scIdleThumbColor = Nothing
   }
 
 instance Semigroup ScrollCfg where
@@ -119,10 +120,10 @@ wheelRate :: Double
 wheelRate = 10
 
 scroll :: WidgetInstance s e -> WidgetInstance s e
-scroll managedWidget = scroll_ [def] managedWidget
+scroll managedWidget = scroll_ managedWidget [def]
 
-scroll_ :: [ScrollCfg] -> WidgetInstance s e -> WidgetInstance s e
-scroll_ configs managed = makeInstance (makeScroll config def) managed where
+scroll_ :: WidgetInstance s e -> [ScrollCfg] -> WidgetInstance s e
+scroll_ managed configs = makeInstance (makeScroll config def) managed where
   config = mconcat configs
 
 makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
@@ -165,8 +166,8 @@ makeScroll config state = widget where
       newState
         | startDrag && hMouseInThumb = state { _sstDragging = Just HBar }
         | startDrag && vMouseInThumb = state { _sstDragging = Just VBar }
-        | jumpScrollH = updateScrollThumb state HBar point viewport sctx
-        | jumpScrollV = updateScrollThumb state VBar point viewport sctx
+        | jumpScrollH = updateScrollThumb state HBar point renderArea sctx
+        | jumpScrollV = updateScrollThumb state VBar point renderArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
       newInstance = widgetInst {
@@ -185,13 +186,13 @@ makeScroll config state = widget where
         | hMouseInScroll || vMouseInScroll || isDragging = handledResult
         | otherwise = Nothing
     Move point -> result where
-      drag bar = updateScrollThumb state bar point viewport sctx
+      drag bar = updateScrollThumb state bar point renderArea sctx
       makeWidget state = rebuildWidget wenv state widgetInst
       makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
-      changedX = wx /= 0 && childWidth > vw
-      changedY = wy /= 0 && childHeight > vh
+      changedX = wx /= 0 && childWidth > rw
+      changedY = wy /= 0 && childHeight > rh
       needsUpdate = changedX || changedY
       makeWidget state = rebuildWidget wenv state widgetInst
       makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
@@ -205,14 +206,14 @@ makeScroll config state = widget where
         | wheelDirection == WheelNormal = wheelRate * wy
         | otherwise = -wheelRate * wy
       newState = state {
-        _sstDeltaX = scrollAxis (stepX + dx) childWidth vw,
-        _sstDeltaY = scrollAxis (stepY + dy) childHeight vh
+        _sstDeltaX = scrollAxis (stepX + dx) childWidth rw,
+        _sstDeltaY = scrollAxis (stepY + dy) childHeight rh
       }
     _ -> Nothing
     where
-      viewport = _wiViewport widgetInst
-      Rect vx vy vw vh = _wiViewport widgetInst
-      sctx@ScrollContext{..} = scrollStatus config wenv state viewport
+      renderArea = _wiRenderArea widgetInst
+      Rect rx ry rw rh = _wiRenderArea widgetInst
+      sctx@ScrollContext{..} = scrollStatus config wenv state renderArea
 
   scrollAxis reqDelta childLength vpLength
     | maxDelta == 0 = 0
@@ -226,19 +227,19 @@ makeScroll config state = widget where
     result = cast message >>= handleScrollMessage
 
   scrollTo wenv widgetInst rect = result where
-    viewport = _wiViewport widgetInst
+    renderArea = _wiRenderArea widgetInst
     Rect rx ry rw rh = rect
-    Rect vx vy vw vh = viewport
+    Rect vx vy vw vh = renderArea
     diffL = vx - rx
     diffR = vx + vw - (rx + rw)
     diffT = vy - ry
     diffB = vy + vh - (ry + rh)
     stepX
-      | rectInRectH rect viewport = dx
+      | rectInRectH rect renderArea = dx
       | abs diffL <= abs diffR = diffL + dx
       | otherwise = diffR + dx
     stepY
-      | rectInRectV rect viewport = dy
+      | rectInRectV rect renderArea = dy
       | abs diffT <= abs diffB = diffT + dy
       | otherwise = diffB + dy
     newState = state {
@@ -247,13 +248,13 @@ makeScroll config state = widget where
     }
     newInstance = rebuildWidget wenv newState widgetInst
     result
-      | rectInRect rect viewport = Nothing
+      | rectInRect rect renderArea = Nothing
       | otherwise = Just $ resultWidget newInstance
 
-  updateScrollThumb state activeBar point viewport sctx = newState where
+  updateScrollThumb state activeBar point renderArea sctx = newState where
     Point px py = point
     ScrollContext{..} = sctx
-    Rect rx ry rw rh = viewport
+    Rect rx ry rw rh = renderArea
     hMid = _rW hThumbRect / 2
     vMid = _rH vThumbRect / 2
     hDelta = (rx - px + hMid) / hScrollRatio
@@ -335,60 +336,66 @@ makeScroll config state = widget where
 
     where
       viewport = _wiViewport widgetInst
-      ScrollContext{..} = scrollStatus config wenv state viewport
+      renderArea = _wiRenderArea widgetInst
+      ScrollContext{..} = scrollStatus config wenv state renderArea
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
+      activeBarCol = _scActiveBarColor config <|> (Just $ darkGray & a .~ 0.4)
+      idleBarCol = _scIdleBarColor config <|> (Just $ darkGray & a .~ 0.2)
+      activeThumbCol = _scActiveThumbColor config <|> Just gray
+      idleThumbCol = _scIdleThumbColor config <|> (Just $ gray & a .~ 0.6)
+
       barColorH
-        | hMouseInScroll = _scActiveBarColor config
-        | otherwise = _scIdleBarColor config
+        | hMouseInScroll = activeBarCol
+        | otherwise = idleBarCol
       barColorV
-        | vMouseInScroll = _scActiveBarColor config
-        | otherwise = _scIdleBarColor config
+        | vMouseInScroll = activeBarCol
+        | otherwise = idleBarCol
       thumbColorH
-        | hMouseInThumb || draggingH = _scActiveThumbColor config
-        | otherwise =  _scIdleThumbColor config
+        | hMouseInThumb || draggingH = activeThumbCol
+        | otherwise = idleThumbCol
       thumbColorV
-        | vMouseInThumb || draggingV = _scActiveThumbColor config
-        | otherwise = _scIdleThumbColor config
+        | vMouseInThumb || draggingV = activeThumbCol
+        | otherwise = idleThumbCol
 
 scrollStatus
   :: ScrollCfg -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
-scrollStatus config wenv scrollState viewport = ScrollContext{..} where
+scrollStatus config wenv scrollState renderArea = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) = scrollState
   mousePos = _ipsMousePos (_weInputStatus wenv)
-  vpLeft = _rX viewport
-  vpTop = _rY viewport
-  vpWidth = _rW viewport
-  vpHeight = _rH viewport
-  hScrollTop = vpHeight - barThickness
-  vScrollLeft = vpWidth - barThickness
-  hScrollRatio = min (vpWidth / childWidth) 1
-  vScrollRatio = min (vpHeight / childHeight) 1
+  raLeft = _rX renderArea
+  raTop = _rY renderArea
+  raWidth = _rW renderArea
+  raHeight = _rH renderArea
+  hScrollTop = raHeight - barThickness
+  vScrollLeft = raWidth - barThickness
+  hScrollRatio = min (raWidth / childWidth) 1
+  vScrollRatio = min (raHeight / childHeight) 1
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
   hScrollRect = Rect {
-    _rX = vpLeft,
-    _rY = vpTop + hScrollTop,
-    _rW = vpLeft + vpWidth,
-    _rH = vpTop + vpHeight
+    _rX = raLeft,
+    _rY = raTop + hScrollTop,
+    _rW = raLeft + raWidth,
+    _rH = raTop + raHeight
   }
   vScrollRect = Rect {
-    _rX = vpLeft + vScrollLeft,
-    _rY = vpTop,
-    _rW = vpLeft + vpWidth,
-    _rH = vpTop + vpHeight
+    _rX = raLeft + vScrollLeft,
+    _rY = raTop,
+    _rW = raLeft + raWidth,
+    _rH = raTop + raHeight
   }
   hThumbRect = Rect {
-    _rX = vpLeft - hScrollRatio * dx,
-    _rY = vpTop + hScrollTop,
-    _rW = hScrollRatio * vpWidth,
+    _rX = raLeft - hScrollRatio * dx,
+    _rY = raTop + hScrollTop,
+    _rW = hScrollRatio * raWidth,
     _rH = barThickness
   }
   vThumbRect = Rect {
-    _rX = vpLeft + vScrollLeft,
-    _rY = vpTop - vScrollRatio * dy,
+    _rX = raLeft + vScrollLeft,
+    _rY = raTop - vScrollRatio * dy,
     _rW = barThickness,
-    _rH = vScrollRatio * vpHeight
+    _rH = vScrollRatio * raHeight
   }
   hMouseInScroll = pointInRect mousePos hScrollRect
   vMouseInScroll = pointInRect mousePos vScrollRect

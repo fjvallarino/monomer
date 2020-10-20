@@ -123,7 +123,10 @@ buildUI model = trace "Creating UI" widgetTree where
         label "Jj label"
       ],
       hstack [
-        scroll $ image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200],
+        scroll_ (
+          scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])
+        ) []
+        ,
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
