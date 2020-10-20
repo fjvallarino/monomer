@@ -47,12 +47,27 @@ instance Semigroup ConfirmCfg where
 instance Monoid ConfirmCfg where
   mempty = def
 
-confirm :: Text -> e -> e -> WidgetInstance s e
-confirm message acceptEvt cancelEvt = createThemed "confirm" factory where
-  factory wenv = confirm_ wenv message acceptEvt cancelEvt def
+instance AcceptCaption ConfirmCfg where
+  acceptCaption t = def {
+    _cfcAccept = Just t
+  }
 
-confirm_ :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetInstance s e
-confirm_ wenv message acceptEvt cancelEvt config = confirmBox where
+instance CancelCaption ConfirmCfg where
+  cancelCaption t = def {
+    _cfcCancel = Just t
+  }
+
+confirm :: Text -> e -> e -> WidgetInstance s e
+confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
+
+confirm_ :: Text -> e -> e -> [ConfirmCfg] -> WidgetInstance s e
+confirm_ message acceptEvt cancelEvt configs = newInst where
+  config = mconcat configs
+  factory wenv = makeConfirm wenv message acceptEvt cancelEvt config
+  newInst = createThemed "confirm" factory
+
+makeConfirm :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetInstance s e
+makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)

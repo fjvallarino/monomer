@@ -46,12 +46,21 @@ instance Semigroup AlertCfg where
 instance Monoid AlertCfg where
   mempty = def
 
-alert :: Text -> e -> WidgetInstance s e
-alert message evt = createThemed "alert" factory where
-  factory wenv = alert_ wenv message evt def
+instance CloseCaption AlertCfg where
+  closeCaption t = def {
+    _alcClose = Just t
+  }
 
-alert_ :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetInstance s e
-alert_ wenv message evt config = alertBox where
+alert :: Text -> e -> WidgetInstance s e
+alert message evt = alert_ message evt def
+
+alert_ :: Text -> e -> [AlertCfg] -> WidgetInstance s e
+alert_ message evt configs = createThemed "alert" factory where
+  config = mconcat configs
+  factory wenv = makeAlert wenv message evt config
+
+makeAlert :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetInstance s e
+makeAlert wenv message evt config = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv

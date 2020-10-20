@@ -18,10 +18,17 @@ class WindowSize t s | t -> s where
 class ValidInput t s where
   validInput :: ALens' s Bool -> t
 
--- Text
-class Caption t where
-  caption :: Text -> t
+-- Caption
+class AcceptCaption t where
+  acceptCaption :: Text -> t
 
+class CancelCaption t where
+  cancelCaption :: Text -> t
+
+class CloseCaption t where
+  closeCaption :: Text -> t
+
+-- Text
 class Decimals t where
   decimals :: Int -> t
 
