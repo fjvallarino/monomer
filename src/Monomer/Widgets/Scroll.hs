@@ -173,7 +173,7 @@ makeScroll config state = widget where
       newInstance = widgetInst {
         _wiWidget = makeScroll config newState
       }
-      handledResult = Just $ resultReqs [IgnoreChildrenEvents] newInstance
+      handledResult = Just $ resultReqs scrollReqs newInstance
       result
         | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
         | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
@@ -181,21 +181,21 @@ makeScroll config state = widget where
         | otherwise = Nothing
     Click point btn -> result where
       isDragging = isJust $ _sstDragging state
-      handledResult = Just $ resultReqs [IgnoreChildrenEvents] widgetInst
+      handledResult = Just $ resultReqs scrollReqs widgetInst
       result
         | hMouseInScroll || vMouseInScroll || isDragging = handledResult
         | otherwise = Nothing
     Move point -> result where
       drag bar = updateScrollThumb state bar point renderArea sctx
       makeWidget state = rebuildWidget wenv state widgetInst
-      makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
+      makeResult state = resultReqs scrollReqs (makeWidget state)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > rw
       changedY = wy /= 0 && childHeight > rh
       needsUpdate = changedX || changedY
       makeWidget state = rebuildWidget wenv state widgetInst
-      makeResult state = resultReqs [IgnoreChildrenEvents] (makeWidget state)
+      makeResult state = resultReqs scrollReqs (makeWidget state)
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
@@ -214,6 +214,7 @@ makeScroll config state = widget where
       renderArea = _wiRenderArea widgetInst
       Rect rx ry rw rh = _wiRenderArea widgetInst
       sctx@ScrollContext{..} = scrollStatus config wenv state renderArea
+      scrollReqs = [IgnoreChildrenEvents, IgnoreParentEvents]
 
   scrollAxis reqDelta childLength vpLength
     | maxDelta == 0 = 0
@@ -342,7 +343,7 @@ makeScroll config state = widget where
       draggingV = _sstDragging state == Just VBar
       activeBarCol = _scActiveBarColor config <|> (Just $ darkGray & a .~ 0.4)
       idleBarCol = _scIdleBarColor config <|> (Just $ darkGray & a .~ 0.2)
-      activeThumbCol = _scActiveThumbColor config <|> Just gray
+      activeThumbCol = _scActiveThumbColor config <|> (Just $ gray & a .~ 0.8)
       idleThumbCol = _scIdleThumbColor config <|> (Just $ gray & a .~ 0.6)
 
       barColorH
