@@ -227,6 +227,7 @@
       - Receive Actions and Labels
     - Receive title, body and buttons (actions and labels)
   - Check if there's a 1px error in click handling
+  - Review all uses of viewport
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)

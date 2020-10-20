@@ -130,7 +130,7 @@ makeBox config = widget where
   handleEvent wenv ctx evt inst = case evt of
     Click point btn -> result where
       child = Seq.index (_wiChildren inst) 0
-      childClicked = pointInRect point (_wiViewport child)
+      childClicked = pointInRect point (_wiRenderArea child)
       events
         | childClicked = _boxOnClick config
         | otherwise = _boxOnClickEmpty config

@@ -446,7 +446,12 @@ resizeWrapper handler wenv viewport renderArea widgetInst = newSize where
   contentArea = removeOuterBounds style renderArea
   children = _wiChildren widgetInst
   (tempInst, assigned) = handler wenv viewport contentArea children widgetInst
-  resize (child, (vp, ra)) = widgetResize (_wiWidget child) wenv vp ra child
+  resize (child, (vp, ra)) = newChildInst where
+    tempChildInst = widgetResize (_wiWidget child) wenv vp ra child
+    newChildInst = tempChildInst {
+      _wiViewport = vp,
+      _wiRenderArea = ra
+    }
   newChildren = resize <$> Seq.zip children assigned
   newSize = tempInst {
     _wiViewport = viewport,

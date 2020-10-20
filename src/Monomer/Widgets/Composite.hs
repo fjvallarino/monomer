@@ -288,7 +288,10 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = widgetResize widget cwenv viewport contentArea _cmpRoot
   newState = state {
-    _cmpRoot = newRoot
+    _cmpRoot = newRoot {
+      _wiViewport = viewport,
+      _wiRenderArea = contentArea
+    }
   }
   resized = widgetComp {
     _wiWidget = createComposite comp newState,

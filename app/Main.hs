@@ -79,7 +79,7 @@ handleAppEvent model evt = case evt of
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
       widgetTree3,
-      --alert "Message" CloseAlert `visible` model ^. showAlert
+      alert "Message" CloseAlert `visible` model ^. showAlert,
       confirm "Message" AcceptConfirm CancelConfirm `visible` model ^. showConfirm
       --confirm "Message" AcceptConfirm CancelConfirm
       --widgetTree2,

@@ -304,7 +304,11 @@ makeScroll config state = widget where
     }
     newWidget = fromMaybe defWidget uWidget
     cWidget = _wiWidget child
-    newChild = widgetResize cWidget wenv viewport cRenderArea child
+    tempChild = widgetResize cWidget wenv viewport cRenderArea child
+    newChild = tempChild {
+      _wiViewport = viewport,
+      _wiRenderArea = cRenderArea
+    }
 
     newInst = widgetInst {
       _wiViewport = viewport,

@@ -50,7 +50,6 @@ alert :: Text -> e -> WidgetInstance s e
 alert message evt = createThemed "alert" factory where
   factory wenv = alert_ wenv message evt def
 
--- Maybe add styles for dialog and color for inactive/empty background
 alert_ :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetInstance s e
 alert_ wenv message evt config = alertBox where
   title = fromMaybe "" (_alcTitle config)

@@ -51,7 +51,6 @@ confirm :: Text -> e -> e -> WidgetInstance s e
 confirm message acceptEvt cancelEvt = createThemed "confirm" factory where
   factory wenv = confirm_ wenv message acceptEvt cancelEvt def
 
--- Maybe add styles for dialog and color for inactive/empty background
 confirm_ :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetInstance s e
 confirm_ wenv message acceptEvt cancelEvt config = confirmBox where
   title = fromMaybe "" (_cfcTitle config)

@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -203,10 +202,7 @@ updateSizeReqWrapper handler wenv inst = newInst where
   }
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv viewport renderArea widgetInst = widgetInst {
-    _wiViewport = viewport,
-    _wiRenderArea = renderArea
-  }
+defaultResize wenv viewport renderArea widgetInst = widgetInst
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv widgetInst = return ()
