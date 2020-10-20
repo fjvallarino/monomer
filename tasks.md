@@ -216,9 +216,6 @@
     - Implement OnChange/OnChangeReq for listView and dropdown (currently they only implement the Idx versions)
   - Fix issue on scroll. If moved and later expanded, content remains displaced
   - Fix text size/cursor position issue
-
-- Pending
-  - Is overlay not being cleared up?
   - Create Layer widget
   - Add clickOutsideChild in box
   - Create Dialog
@@ -227,11 +224,19 @@
       - Receive Actions and Labels
     - Receive title, body and buttons (actions and labels)
   - Check if there's a 1px error in click handling
+    - Seems ok
+  - Is overlay not being cleared up? Fixed
   - Review all uses of viewport
+
+- Pending
+  - Add cursor handling
+    - Most likely handled as part of style. Discard margins, but consider border + padding
+    - Maybe also add an option like SetOverlay
+    - https://wiki.libsdl.org/SDL_CreateSystemCursor
+  - Use theme for all components
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Multiline label
   - Add testing
     - Delayed until this point to try to settle down interfaces
@@ -247,6 +252,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
@@ -257,6 +263,7 @@ Maybe postponed after release?
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Create Slider
   - Create Dial
+  - Create Split
   - Create self rendered version of dropdown and list
   - Create File Selector
   - Create Color Selector

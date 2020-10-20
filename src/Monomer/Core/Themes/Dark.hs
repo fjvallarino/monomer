@@ -40,6 +40,10 @@ darkBasic = def
   & L.fgColor .~ white
   & L.hlColor .~ blue
   & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
+  & L.scrollColor .~ (darkGray & L.a .~ 0.4)
+  & L.scrollIdleColor .~ (darkGray & L.a .~ 0.2)
+  & L.thumbColor .~ (gray & L.a .~ 0.8)
+  & L.thumbIdleColor .~ (gray & L.a .~ 0.6)
   & L.text .~ normalFont
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont

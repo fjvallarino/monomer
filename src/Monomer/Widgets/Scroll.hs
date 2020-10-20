@@ -5,14 +5,14 @@ module Monomer.Widgets.Scroll (
   ScrollMessage(..),
   scroll,
   scroll_,
-  activeBarColor,
-  idleBarColor,
-  activeThumbColor,
-  idleThumbColor
+  barColor,
+  barIdleColor,
+  thumbColor,
+  thumbIdleColor
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -20,8 +20,9 @@ import Data.Typeable
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Lens
 import Monomer.Widgets.Container
+
+import qualified Monomer.Lens as L
 
 data ActiveBar
   = HBar
@@ -29,34 +30,34 @@ data ActiveBar
   deriving (Eq)
 
 data ScrollCfg = ScrollCfg {
-  _scActiveBarColor :: Maybe Color,
-  _scIdleBarColor :: Maybe Color,
-  _scActiveThumbColor :: Maybe Color,
-  _scIdleThumbColor :: Maybe Color
+  _scBarColor :: Maybe Color,
+  _scBarIdleColor :: Maybe Color,
+  _scThumbColor :: Maybe Color,
+  _scThumbIdleColor :: Maybe Color
 }
 
 instance Default ScrollCfg where
   def = ScrollCfg {
-    _scActiveBarColor = Nothing,
-    _scIdleBarColor = Nothing,
-    _scActiveThumbColor = Nothing,
-    _scIdleThumbColor = Nothing
+    _scBarColor = Nothing,
+    _scBarIdleColor = Nothing,
+    _scThumbColor = Nothing,
+    _scThumbIdleColor = Nothing
   }
 
 instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
-    _scActiveBarColor = _scActiveBarColor t2 <|> _scActiveBarColor t1,
-    _scIdleBarColor = _scIdleBarColor t2 <|> _scIdleBarColor t1,
-    _scActiveThumbColor = _scActiveThumbColor t2 <|> _scActiveThumbColor t1,
-    _scIdleThumbColor = _scIdleThumbColor t2 <|> _scIdleThumbColor t1
+    _scBarColor = _scBarColor t2 <|> _scBarColor t1,
+    _scBarIdleColor = _scBarIdleColor t2 <|> _scBarIdleColor t1,
+    _scThumbColor = _scThumbColor t2 <|> _scThumbColor t1,
+    _scThumbIdleColor = _scThumbIdleColor t2 <|> _scThumbIdleColor t1
   }
 
 instance Monoid ScrollCfg where
   mempty = ScrollCfg {
-    _scActiveBarColor = Nothing,
-    _scIdleBarColor = Nothing,
-    _scActiveThumbColor = Nothing,
-    _scIdleThumbColor = Nothing
+    _scBarColor = Nothing,
+    _scBarIdleColor = Nothing,
+    _scThumbColor = Nothing,
+    _scThumbIdleColor = Nothing
   }
 
 data ScrollState = ScrollState {
@@ -93,24 +94,24 @@ instance Default ScrollState where
     _sstChildSize = def
   }
 
-activeBarColor :: Color -> ScrollCfg
-activeBarColor col = def {
-  _scActiveBarColor = Just col
+barColor :: Color -> ScrollCfg
+barColor col = def {
+  _scBarColor = Just col
 }
 
-idleBarColor :: Color -> ScrollCfg
-idleBarColor col = def {
-  _scIdleBarColor = Just col
+barIdleColor :: Color -> ScrollCfg
+barIdleColor col = def {
+  _scBarIdleColor = Just col
 }
 
-activeThumbColor :: Color -> ScrollCfg
-activeThumbColor col = def {
-  _scActiveThumbColor = Just col
+thumbColor :: Color -> ScrollCfg
+thumbColor col = def {
+  _scThumbColor = Just col
 }
 
-idleThumbColor :: Color -> ScrollCfg
-idleThumbColor col = def {
-  _scIdleThumbColor = Just col
+thumbIdleColor :: Color -> ScrollCfg
+thumbIdleColor col = def {
+  _scThumbIdleColor = Just col
 }
 
 barThickness :: Double
@@ -336,15 +337,16 @@ makeScroll config state = widget where
       drawRect renderer vThumbRect thumbColorV Nothing
 
     where
+      theme = activeTheme wenv widgetInst
       viewport = _wiViewport widgetInst
       renderArea = _wiRenderArea widgetInst
       ScrollContext{..} = scrollStatus config wenv state renderArea
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
-      activeBarCol = _scActiveBarColor config <|> (Just $ darkGray & a .~ 0.4)
-      idleBarCol = _scIdleBarColor config <|> (Just $ darkGray & a .~ 0.2)
-      activeThumbCol = _scActiveThumbColor config <|> (Just $ gray & a .~ 0.8)
-      idleThumbCol = _scIdleThumbColor config <|> (Just $ gray & a .~ 0.6)
+      activeBarCol = _scBarColor config <|> Just (theme ^. L.scrollColor)
+      idleBarCol = _scBarIdleColor config <|> Just (theme ^. L.scrollIdleColor)
+      activeThumbCol = _scThumbColor config <|> Just (theme ^. L.thumbColor)
+      idleThumbCol = _scThumbIdleColor config <|> Just (theme ^. L.thumbIdleColor)
 
       barColorH
         | hMouseInScroll = activeBarCol
