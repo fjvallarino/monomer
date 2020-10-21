@@ -7,6 +7,7 @@ import Data.Default
 import Data.Maybe
 
 import qualified Data.Sequence as Seq
+import qualified Data.Map as Map
 
 import Monomer.Core
 import Monomer.Main.Types
@@ -28,7 +29,8 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
   _mcPathHover = Nothing,
   _mcPathPressed = Nothing,
   _mcPathOverlay = Nothing,
-  _mcWidgetTasks = Seq.empty
+  _mcWidgetTasks = Seq.empty,
+  _mcCursorIcons = Map.empty
 }
 
 findNextFocus

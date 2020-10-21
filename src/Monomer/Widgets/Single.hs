@@ -178,7 +178,7 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper handler wenv target evt inst
-  | not (_wiVisible inst && _wiEnabled inst) = Nothing
+  | not (_wiVisible inst) = Nothing
   | otherwise = handleStyleChange handler wenv target evt inst
 
 defaultHandleMessage :: SingleMessageHandler s e

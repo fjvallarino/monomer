@@ -332,7 +332,7 @@ handleEventWrapper
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper pHandler wenv target event widgetInst
-  | not (_wiVisible widgetInst && _wiEnabled widgetInst) = Nothing
+  | not (_wiVisible widgetInst) = Nothing
   | targetReached = handleStyleChange pHandler wenv target event widgetInst
   | not targetValid = Nothing
   | otherwise = mergeParentChildEvts widgetInst pResponse cResponse childIdx

@@ -11,9 +11,12 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
 import Control.Monad.State
 import Data.Default
+import Data.Map (Map)
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
+
+import qualified SDL.Raw.Types as SDL
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
@@ -37,7 +40,8 @@ data MonomerContext s = MonomerContext {
   _mcPathHover :: Maybe Path,
   _mcPathPressed :: Maybe Path,
   _mcPathOverlay :: Maybe Path,
-  _mcWidgetTasks :: Seq WidgetTask
+  _mcWidgetTasks :: Seq WidgetTask,
+  _mcCursorIcons :: Map CursorIcon SDL.Cursor
 }
 
 data AppConfig e = AppConfig {

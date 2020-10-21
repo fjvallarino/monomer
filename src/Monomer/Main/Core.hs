@@ -114,6 +114,8 @@ runApp window theme fonts widgetRoot = do
   let pathReadyRoot = widgetRoot {
     _wiPath = Seq.singleton 0
   }
+
+  handleResourcesInit
   (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot
 
   let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot

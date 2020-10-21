@@ -48,9 +48,11 @@ darkBasic = def
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont
   & L.btnStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
+  & L.btnStyle . L.cursorIcon ?~ CursorHand
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
+  & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft

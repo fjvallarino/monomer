@@ -79,6 +79,17 @@ data SizeReq
 instance Default SizeReq where
   def = FlexSize 0 1
 
+data CursorIcon
+  = CursorArrow
+  | CursorHand
+  | CursorIBeam
+  | CursorInvalid
+  | CursorSizeH
+  | CursorSizeV
+  | CursorDiagTL
+  | CursorDiagTR
+  deriving (Eq, Ord, Enum, Show)
+
 data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
@@ -115,7 +126,8 @@ data StyleState = StyleState {
   _sstBgColor :: Maybe Color,
   _sstFgColor :: Maybe Color,
   _sstHlColor :: Maybe Color,
-  _sstText :: Maybe TextStyle
+  _sstText :: Maybe TextStyle,
+  _sstCursorIcon :: Maybe CursorIcon
 } deriving (Eq, Show)
 
 instance Default StyleState where
@@ -129,7 +141,8 @@ instance Default StyleState where
     _sstBgColor = Nothing,
     _sstFgColor = Nothing,
     _sstHlColor = Nothing,
-    _sstText = Nothing
+    _sstText = Nothing,
+    _sstCursorIcon = Nothing
   }
 
 instance Semigroup StyleState where
@@ -143,7 +156,8 @@ instance Semigroup StyleState where
     _sstBgColor = _sstBgColor s2 <|> _sstBgColor s1,
     _sstFgColor = _sstFgColor s2 <|> _sstFgColor s1,
     _sstHlColor = _sstHlColor s2 <|> _sstHlColor s1,
-    _sstText = _sstText s1 <> _sstText s2
+    _sstText = _sstText s1 <> _sstText s2,
+    _sstCursorIcon = _sstCursorIcon s2 <|> _sstCursorIcon s1
   }
 
 instance Monoid StyleState where

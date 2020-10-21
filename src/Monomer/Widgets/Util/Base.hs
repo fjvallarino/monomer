@@ -16,7 +16,10 @@ import Data.Sequence ((|>))
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Widget
+
+import qualified Data.Sequence as Seq
 
 type EventHandler s e
   = WidgetEnv s e
@@ -33,8 +36,12 @@ handleStyleChange
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleStyleChange handler wenv target evt inst = newResult where
-  hResult = handler wenv target evt inst
+  style = instanceStyle wenv inst
+  hResult
+    | _wiEnabled inst = handler wenv target evt inst
+    | otherwise = Nothing
   result = fromMaybe (resultWidget inst) hResult
+  -- Size
   checkSize = or $ fmap ($ evt) [isOnFocus, isOnBlur, isOnEnter, isOnLeave]
   instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   oldSizeReqW = _wiSizeReqW inst
@@ -42,9 +49,15 @@ handleStyleChange handler wenv target evt inst = newResult where
   newSizeReqW = _wiSizeReqW instReqs
   newSizeReqH = _wiSizeReqH instReqs
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
+  -- Cursor
+  setCursor = isOnEnter evt
+  cursorIcon = fromMaybe CursorArrow (_sstCursorIcon style)
+  -- Result
+  reqs = [ Resize | checkSize && sizeReqChanged ]
+    ++ [ SetCursorIcon cursorIcon | setCursor ]
   newResult
-    | checkSize && sizeReqChanged = Just result {
-        _wrRequests = _wrRequests result |> Resize
+    | not (null reqs) = Just result {
+        _wrRequests = _wrRequests result <> Seq.fromList reqs
       }
     | otherwise = hResult
 

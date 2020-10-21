@@ -57,6 +57,7 @@ data WidgetRequest s
   | StopTextInput
   | ResetOverlay
   | SetOverlay Path
+  | SetCursorIcon CursorIcon
   | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i
   | forall i . Typeable i => RunTask Path (IO i)

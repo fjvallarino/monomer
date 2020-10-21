@@ -4,11 +4,12 @@ module Monomer.Main.Handlers (
   HandlerStep,
   handleWidgetResult,
   handleSystemEvents,
+  handleResourcesInit,
   handleWidgetInit
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens (use, (.=))
+import Control.Lens ((.=), at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -18,8 +19,11 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
 
+import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified SDL
+import qualified SDL.Raw.Enum as SDLE
+import qualified SDL.Raw.Event as SDLE
 import qualified SDL.Raw.Types as SDL
 
 import Monomer.Core
@@ -99,6 +103,15 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       handleWidgetResult wenv widgetResult
         >>= handleFocusChange event stopProcessing
 
+handleResourcesInit :: MonomerM s m => m ()
+handleResourcesInit = do
+  cursors <- foldM insert Map.empty [toEnum 0 ..]
+  L.cursorIcons .= cursors
+  where
+    insert map icon = do
+      cursor <- SDLE.createSystemCursor (cursorToSDL icon)
+      return $ Map.insert icon cursor map
+
 handleWidgetInit
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -130,6 +143,7 @@ handleWidgetResult wenv (WidgetResult reqs events evtRoot) = do
     >>= handleSendMessages reqs
     >>= handleOverlaySet reqs
     >>= handleOverlayReset reqs
+    >>= handleCursorIconSet reqs
     >>= handleResize reqs
 
 handleFocusChange
@@ -276,6 +290,30 @@ handleOverlayReset reqs previousStep =
       return previousStep
     _ -> return previousStep
 
+handleCursorIconSet
+  :: (MonomerM s m)
+  => Seq (WidgetRequest s)
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleCursorIconSet reqs previousStep =
+  case Seq.filter isSetCursorIcon reqs of
+    SetCursorIcon icon :<| _ -> do
+      cursor <- (Map.! icon) <$> use L.cursorIcons
+      SDLE.setCursor cursor
+
+      return previousStep
+    _ -> return previousStep
+
+cursorToSDL :: CursorIcon -> SDLE.SystemCursor
+cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW
+cursorToSDL CursorHand = SDLE.SDL_SYSTEM_CURSOR_HAND
+cursorToSDL CursorIBeam = SDLE.SDL_SYSTEM_CURSOR_IBEAM
+cursorToSDL CursorInvalid = SDLE.SDL_SYSTEM_CURSOR_NO
+cursorToSDL CursorSizeH = SDLE.SDL_SYSTEM_CURSOR_SIZEWE
+cursorToSDL CursorSizeV = SDLE.SDL_SYSTEM_CURSOR_SIZENS
+cursorToSDL CursorDiagTL = SDLE.SDL_SYSTEM_CURSOR_SIZENWSE
+cursorToSDL CursorDiagTR = SDLE.SDL_SYSTEM_CURSOR_SIZENESW
+
 handleSendMessages
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
@@ -341,6 +379,10 @@ isResetOverlay _ = False
 isSetFocus :: WidgetRequest s -> Bool
 isSetFocus SetFocus{} = True
 isSetFocus _ = False
+
+isSetCursorIcon :: WidgetRequest s -> Bool
+isSetCursorIcon SetCursorIcon{} = True
+isSetCursorIcon _ = False
 
 isProducerHandler :: WidgetRequest s -> Bool
 isProducerHandler RunProducer{} = True
