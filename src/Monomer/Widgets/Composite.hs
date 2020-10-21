@@ -489,11 +489,10 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
 
 cascadeCtx :: WidgetInstance sp ep -> WidgetInstance s e -> WidgetInstance s e
 cascadeCtx parent child = newChild where
-  parentPath = _wiPath parent
   parentVisible = _wiVisible parent
   parentEnabled = _wiEnabled parent
   newChild = child {
-    _wiPath = parentPath |> 0,
+    _wiPath = firstChildPath parent,
     _wiVisible = _wiVisible child && parentVisible,
     _wiEnabled = _wiEnabled child && parentEnabled
   }

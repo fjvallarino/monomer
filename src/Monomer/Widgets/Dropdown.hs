@@ -228,8 +228,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | openRequired point widgetInst -> Just $ openDropdown wenv widgetInst
       | closeRequired point widgetInst -> Just $ closeDropdown wenv widgetInst
     KeyAction mode code status
-      | isKeyDown code && not isOpen -> Just $ openDropdown wenv widgetInst
+      | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv widgetInst
       | isKeyEsc code && isOpen -> Just $ closeDropdown wenv widgetInst
+      where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
       | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] widgetInst
       | otherwise -> Nothing
@@ -250,7 +251,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     path = _wiPath widgetInst
-    lvPath = firstChildPath widgetInst
+    -- listView is wrapped by a scroll
+    lvPath = path |> 0 |> 0
     requests = [SetOverlay path, SetFocus lvPath]
 
   closeDropdown wenv widgetInst = resultReqs requests newInstance where

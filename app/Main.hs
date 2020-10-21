@@ -75,7 +75,7 @@ handleAppEvent model evt = case evt of
     return Nothing
   _ -> Model model
 
-
+buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree where
   widgetTree = zstack [
       widgetTree3,

@@ -233,10 +233,10 @@
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
 
 - Pending
-  - Use theme for all components
   - Keyboard not working on dropdown
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+  - Use theme for all components
   - Multiline label
   - Add testing
     - Delayed until this point to try to settle down interfaces
@@ -252,6 +252,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Update style when merging to avoid recalculating/merging theme every time
   - Restore focus to previous widget when zstack changes (dialog situation)
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
