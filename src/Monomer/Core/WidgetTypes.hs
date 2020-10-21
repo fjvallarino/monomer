@@ -222,3 +222,42 @@ data WidgetInstance s e =
     -- | Style attributes of the widget instance
     _wiStyle :: Style
   }
+
+instance Show (WidgetRequest s) where
+  show IgnoreParentEvents = "IgnoreParentEvents"
+  show IgnoreChildrenEvents = "IgnoreChildrenEvents"
+  show Resize = "Resize"
+  show (SetFocus path) = "SetFocus: " ++ show path
+  show (GetClipboard path) = "GetClipboard: " ++ show path
+  show (SetClipboard _) = "SetClipboard"
+  show (StartTextInput rect) = "StartTextInput: " ++ show rect
+  show StopTextInput = "StopTextInput"
+  show ResetOverlay = "ResetOverlay"
+  show (SetOverlay path) = "SetOverlay: " ++ show path
+  show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show UpdateModel{} = "UpdateModel"
+  show SendMessage{} = "SendMessage"
+  show RunTask{} = "RunTask"
+  show RunProducer{} = "RunProducer"
+
+instance Show (WidgetEnv s e) where
+  show wenv = "WidgetEnv "
+    ++ "{ _weOS: " ++ show (_weOS wenv)
+    ++ ", _weAppWindowSize: " ++ show (_weAppWindowSize wenv)
+    ++ ", _weFocusedPath: " ++ show (_weFocusedPath wenv)
+    ++ ", _weTimestamp: " ++ show (_weTimestamp wenv)
+    ++ " }"
+
+instance Show (WidgetInstance s e) where
+  show inst = "WidgetInstance "
+    ++ "{ _wiWidgetType: " ++ show (_wiWidgetType inst)
+    ++ ", _wiKey: " ++ show (_wiKey inst)
+    ++ ", _wiPath: " ++ show (_wiPath inst)
+    ++ ", _wiSizeReqW: " ++ show (_wiSizeReqW inst)
+    ++ ", _wiSizeReqH: " ++ show (_wiSizeReqH inst)
+    ++ ", _wiEnabled: " ++ show (_wiEnabled inst)
+    ++ ", _wiVisible: " ++ show (_wiVisible inst)
+    ++ ", _wiFocusable: " ++ show (_wiFocusable inst)
+    ++ ", _wiViewport: " ++ show (_wiViewport inst)
+    ++ ", _wiRenderArea: " ++ show (_wiRenderArea inst)
+    ++ " }"
