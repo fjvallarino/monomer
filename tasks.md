@@ -227,12 +227,11 @@
     - Seems ok
   - Is overlay not being cleared up? Fixed
   - Review all uses of viewport
-
-- Pending
   - Add cursor handling
     - Most likely handled as part of style. Discard margins, but consider border + padding
     - Maybe also add an option like SetOverlay
-    - https://wiki.libsdl.org/SDL_CreateSystemCursor
+
+- Pending
   - Use theme for all components
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
@@ -252,6 +251,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version

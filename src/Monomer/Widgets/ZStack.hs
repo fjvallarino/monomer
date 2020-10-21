@@ -17,12 +17,18 @@ zstack children = (defaultWidgetInstance "zstack" (makeZStack False)) {
 makeZStack :: Bool -> Widget s e
 makeZStack isHorizontal = widget where
   baseWidget = createContainer def {
+    containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
   widget = baseWidget {
     widgetRender = render
   }
+
+  findNextFocus wenv direction start inst = result where
+    children = _wiChildren inst
+    vchildren = Seq.filter _wiVisible children
+    result = Seq.take 1 vchildren
 
   getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children

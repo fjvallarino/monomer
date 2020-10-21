@@ -37,8 +37,8 @@ titleFont = def
 
 darkBasic :: ThemeState
 darkBasic = def
-  & L.fgColor .~ white
-  & L.hlColor .~ blue
+  & L.fgColor .~ blue
+  & L.hlColor .~ white
   & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
   & L.scrollColor .~ (darkGray & L.a .~ 0.4)
   & L.scrollIdleColor .~ (darkGray & L.a .~ 0.2)

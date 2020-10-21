@@ -18,6 +18,7 @@ module Monomer.Widgets.Container (
   handleEventWrapper,
   handleMessageWrapper,
   updateSizeReqWrapper,
+  findNextFocusWrapper,
   resizeWrapper,
   renderWrapper,
   defaultRender
@@ -63,7 +64,7 @@ type ContainerFindNextFocusHandler s e
   -> FocusDirection
   -> Path
   -> WidgetInstance s e
-  -> Maybe Path
+  -> Seq (WidgetInstance s e)
 
 type ContainerFindByPointHandler s e
   = WidgetEnv s e
@@ -142,7 +143,7 @@ createContainer Container{..} = Widget {
   widgetMerge = mergeWrapper containerMerge,
   widgetDispose = disposeWrapper containerDispose,
   widgetGetState = containerGetState,
-  widgetFindNextFocus = containerFindNextFocus,
+  widgetFindNextFocus = findNextFocusWrapper containerFindNextFocus,
   widgetFindByPoint = containerFindByPoint,
   widgetHandleEvent = handleEventWrapper containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
@@ -283,12 +284,22 @@ defaultGetState :: ContainerGetStateHandler s e
 defaultGetState _ = Nothing
 
 -- | Find next focusable item
-defaultFindNextFocus
-  :: WidgetEnv s e -> FocusDirection -> Path -> WidgetInstance s e -> Maybe Path
-defaultFindNextFocus wenv direction start widgetInst = nextFocus where
+defaultFindNextFocus :: ContainerFindNextFocusHandler s e
+defaultFindNextFocus wenv direction start widgetInst = vchildren where
+  vchildren = Seq.filter _wiVisible (_wiChildren widgetInst)
+
+findNextFocusWrapper
+  :: ContainerFindNextFocusHandler s e
+  -> WidgetEnv s e
+  -> FocusDirection
+  -> Path
+  -> WidgetInstance s e
+  -> Maybe Path
+findNextFocusWrapper handler wenv direction start widgetInst = nextFocus where
+  handlerResult = handler wenv direction start widgetInst
   children
-    | direction == FocusFwd = _wiChildren widgetInst
-    | otherwise = Seq.reverse (_wiChildren widgetInst)
+    | direction == FocusFwd = handlerResult
+    | otherwise = Seq.reverse handlerResult
   isBeforeTarget ch
     | direction == FocusFwd = isTargetBeforeCurrent start ch
     | otherwise = isTargetAfterCurrent start ch
