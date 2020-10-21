@@ -71,7 +71,7 @@ type ContainerFindByPointHandler s e
   -> Path
   -> Point
   -> WidgetInstance s e
-  -> Maybe Path
+  -> Maybe Int
 
 type ContainerEventHandler s e
   = WidgetEnv s e
@@ -144,7 +144,7 @@ createContainer Container{..} = Widget {
   widgetDispose = disposeWrapper containerDispose,
   widgetGetState = containerGetState,
   widgetFindNextFocus = findNextFocusWrapper containerFindNextFocus,
-  widgetFindByPoint = containerFindByPoint,
+  widgetFindByPoint = findByPointWrapper containerFindByPoint,
   widgetHandleEvent = handleEventWrapper containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
@@ -312,16 +312,29 @@ findNextFocusWrapper handler wenv direction start widgetInst = nextFocus where
     | otherwise = Seq.lookup 0 focusedPaths
 
 -- | Find instance matching point
-defaultFindByPoint
-  :: WidgetEnv s e -> Path -> Point -> WidgetInstance s e -> Maybe Path
+defaultFindByPoint :: ContainerFindByPointHandler s e
 defaultFindByPoint wenv startPath point widgetInst = result where
   children = _wiChildren widgetInst
   pointInWidget wi = _wiVisible wi && pointInRect point (_wiViewport wi)
+  result = Seq.findIndexL pointInWidget children
+
+findByPointWrapper
+  :: ContainerFindByPointHandler s e
+  -> WidgetEnv s e
+  -> Path
+  -> Point
+  -> WidgetInstance s e
+  -> Maybe Path
+findByPointWrapper handler wenv startPath point widgetInst = result where
+  children = _wiChildren widgetInst
   newStartPath = Seq.drop 1 startPath
   childIdx = case newStartPath of
-    Empty -> Seq.findIndexL pointInWidget children
-    p :<| ps -> if Seq.length children > p then Just p else Nothing
-  resultPath = case childIdx of
+    Empty -> handler wenv startPath point widgetInst
+    p :<| ps -> Just p
+  validateIdx p
+    | Seq.length children > p = Just p
+    | otherwise = Nothing
+  resultPath = case childIdx >>= validateIdx of
     Just idx -> childPath where
       childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx

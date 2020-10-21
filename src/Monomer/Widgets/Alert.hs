@@ -8,7 +8,7 @@ module Monomer.Widgets.Alert (
 import Debug.Trace
 
 import Control.Applicative ((<|>))
-import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), non)
+import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)

@@ -230,10 +230,11 @@
   - Add cursor handling
     - Most likely handled as part of style. Discard margins, but consider border + padding
     - Maybe also add an option like SetOverlay
+  - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
 
 - Pending
   - Use theme for all components
-  - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
+  - Keyboard not working on dropdown
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Multiline label
@@ -251,6 +252,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Restore focus to previous widget when zstack changes (dialog situation)
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

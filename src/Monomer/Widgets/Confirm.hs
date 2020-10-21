@@ -6,7 +6,7 @@ module Monomer.Widgets.Confirm (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), non)
+import Control.Lens ((&), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -74,7 +74,7 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   emptyOverlayColor = themeEmptyOverlayColor wenv
   acceptBtn = button accept acceptEvt & L.style .~ themeBtnMain wenv
   cancelBtn = button cancel cancelEvt & L.style .~ themeBtn wenv
-  buttons = hstack [ acceptBtn, spacer, cancelBtn ] `style` [bgColor red]
+  buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   confirmTree = vstack [
       label title & L.style .~ themeDialogTitle wenv,
       label message & L.style .~ themeDialogBody wenv,
