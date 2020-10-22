@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Main.Handlers (
@@ -9,7 +10,7 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((.=), at, use)
+import Control.Lens ((&), (%~), (.=), at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -18,6 +19,7 @@ import Control.Monad.IO.Class
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
+import Data.Typeable (Typeable)
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -31,7 +33,7 @@ import Monomer.Event
 import Monomer.Main.Types
 import Monomer.Main.Util
 
-import qualified Monomer.Main.Lens as L
+import qualified Monomer.Lens as L
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 
@@ -128,53 +130,9 @@ handleWidgetResult
   => WidgetEnv s e
   -> WidgetResult s e
   -> m (HandlerStep s e)
-handleWidgetResult wenv (WidgetResult reqs events evtRoot) = do
-  let evtUpdates = getUpdateModelReqs reqs
-  let evtModel = foldr (.) id evtUpdates (_weModel wenv)
-  let evtWctx = wenv { _weModel = evtModel }
-
-  handleNewWidgetTasks reqs
-
-  handleSetFocus reqs (evtWctx, events, evtRoot)
-    >>= handleMoveFocus reqs
-    >>= handleGetClipboard reqs
-    >>= handleSetClipboard reqs
-    >>= handleStartTextInput reqs
-    >>= handleStopTextInput reqs
-    >>= handleSendMessages reqs
-    >>= handleSetOverlay reqs
-    >>= handleResetOverlay reqs
-    >>= handleSetCursorIcon reqs
+handleWidgetResult wenv (WidgetResult reqs events evtRoot) =
+  handleRequests reqs (wenv, events, evtRoot)
     >>= handleResize reqs
-
---handleRequest
---  :: (MonomerM s m)
---  -> WidgetRequest s
---  -> HandlerStep s e
---  -> m (HandlerStep s e)
---handleRequest SetFocus{} 
-
-changeFocus
-  :: (MonomerM s m)
-  => FocusDirection
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-changeFocus direction (wenv, events, widgetRoot) = do
-  oldFocus <- use L.pathFocus
-  overlay <- use L.pathOverlay
-  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
-
-  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
-  let tempWenv = wenv1 {
-    _weFocusedPath = newFocus
-  }
-
-  liftIO . putStrLn $ show (oldFocus, newFocus)
-
-  L.pathFocus .= newFocus
-  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
-
-  return (wenv2, events >< events1 >< events2, root2)
 
 handleFocusChange
   :: (MonomerM s m)
@@ -191,31 +149,29 @@ handleFocusChange systemEvent stopProcessing previousStep
       | isShiftPressed systemEvent = FocusBwd
       | otherwise = FocusFwd
 
-handleMoveFocus
+handleRequests
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleMoveFocus reqs previousStep =
-  case Seq.filter isMoveFocus reqs of
-    MoveFocus direction :<| _ -> do
-      liftIO . putStrLn $ "HOLA"
-      changeFocus direction previousStep
-    _ -> return previousStep
-
-handleSetFocus
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleSetFocus reqs previousStep@(wenv, events, root) =
-  case Seq.filter isSetFocus reqs of
-    SetFocus newFocus :<| _ -> do
-      L.pathFocus .= newFocus
-      (wenv2, events2, root2) <- handleSystemEvent wenv Focus newFocus root
-
-      return (wenv2, events >< events2, root2)
-    _ -> return previousStep
+handleRequests reqs step = foldM handleRequest step reqs where
+  handleRequest step req = case req of
+    IgnoreParentEvents -> return step
+    IgnoreChildrenEvents -> return step
+    Resize -> return step
+    MoveFocus dir -> handleMoveFocus dir step
+    SetFocus path -> handleSetFocus path step
+    GetClipboard path -> handleGetClipboard path step
+    SetClipboard cdata -> handleSetClipboard cdata step
+    StartTextInput rect -> handleStartTextInput rect step
+    StopTextInput -> handleStopTextInput step
+    SetOverlay path -> handleSetOverlay path step
+    ResetOverlay -> handleResetOverlay step
+    SetCursorIcon icon -> handleSetCursorIcon icon step
+    UpdateModel fn -> handleUpdateModel fn step
+    SendMessage path msg -> handleSendMessage path msg step
+    RunTask path handler -> handleRunTask path handler step
+    RunProducer path handler -> handleRunProducer path handler step
 
 handleResize
   :: (MonomerM s m)
@@ -233,155 +189,139 @@ handleResize reqs previousStep =
       return (wenv, events, newWidgetRoot)
     _ -> return previousStep
 
+handleMoveFocus
+  :: (MonomerM s m) => FocusDirection -> HandlerStep s e -> m (HandlerStep s e)
+handleMoveFocus direction previousStep =
+  changeFocus direction previousStep
+
+handleSetFocus
+  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
+handleSetFocus newFocus (wenv, events, root) =  do
+  L.pathFocus .= newFocus
+  (wenv2, events2, root2) <- handleSystemEvent wenv Focus newFocus root
+
+  return (wenv2, events >< events2, root2)
+
 handleGetClipboard
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleGetClipboard reqs previousStep = do
-    hasText <- SDL.hasClipboardText
-    contents <- if hasText
-                  then fmap ClipboardText SDL.getClipboardText
-                  else return ClipboardEmpty
+  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
+handleGetClipboard path (wenv, evts, root) = do
+  hasText <- SDL.hasClipboardText
+  contents <- if hasText
+                then fmap ClipboardText SDL.getClipboardText
+                else return ClipboardEmpty
 
-    foldM (reducer contents) previousStep reqs
-  where
-    reducer contents (wenv, events, widgetRoot) (GetClipboard path) = do
-      (newWenv2, newEvents2, newRoot2)
-        <- handleSystemEvent wenv (Clipboard contents) path widgetRoot
-
-      return (newWenv2, events >< newEvents2, newRoot2)
-    reducer contents prevStep _ = return prevStep
+  (wenv2, evts2, root2) <- handleSystemEvent wenv (Clipboard contents) path root
+  return (wenv2, evts >< evts2, root2)
 
 handleSetClipboard
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleSetClipboard reqs previousStep =
-  case Seq.filter isSetClipboard reqs of
-    SetClipboard (ClipboardText text) :<| _ -> do
-      SDL.setClipboardText text
-
-      return previousStep
-    _ -> return previousStep
+  :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
+handleSetClipboard (ClipboardText text) previousStep = do
+  SDL.setClipboardText text
+  return previousStep
+handleSetClipboard _ previousStep = return previousStep
 
 handleStartTextInput
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleStartTextInput reqs previousStep =
-  case Seq.filter isSetOverlay reqs of
-    StartTextInput (Rect x y w h) :<| _ -> do
-      SDL.startTextInput (SDL.Rect (c x) (c y) (c w) (c h))
-
-      return previousStep
-    _ -> return previousStep
+  :: (MonomerM s m) => Rect -> HandlerStep s e -> m (HandlerStep s e)
+handleStartTextInput (Rect x y w h) previousStep = do
+  SDL.startTextInput (SDL.Rect (c x) (c y) (c w) (c h))
+  return previousStep
   where
     c x = fromIntegral $ round x
 
-handleStopTextInput
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleStopTextInput reqs previousStep =
-  case Seq.filter isSetOverlay reqs of
-    StopTextInput :<| _ -> do
-      SDL.stopTextInput
-
-      return previousStep
-    _ -> return previousStep
+handleStopTextInput :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleStopTextInput previousStep = do
+  SDL.stopTextInput
+  return previousStep
 
 handleSetOverlay
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleSetOverlay reqs previousStep =
-  case Seq.filter isSetOverlay reqs of
-    SetOverlay path :<| _ -> do
-      L.pathOverlay .= Just path
+  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
+handleSetOverlay path previousStep = do
+  L.pathOverlay .= Just path
+  return previousStep
 
-      return previousStep
-    _ -> return previousStep
-
-handleResetOverlay
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleResetOverlay reqs previousStep =
-  case Seq.filter isResetOverlay reqs of
-    ResetOverlay :<| _ -> do
-      L.pathOverlay .= Nothing
-
-      return previousStep
-    _ -> return previousStep
+handleResetOverlay :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleResetOverlay previousStep = do
+  L.pathOverlay .= Nothing
+  return previousStep
 
 handleSetCursorIcon
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
+  :: (MonomerM s m) => CursorIcon -> HandlerStep s e -> m (HandlerStep s e)
+handleSetCursorIcon icon previousStep = do
+  cursor <- (Map.! icon) <$> use L.cursorIcons
+  SDLE.setCursor cursor
+
+  return previousStep
+
+handleUpdateModel
+  :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
+handleUpdateModel fn (wenv, evts, root) =
+  return (wenv & L.model %~ fn, evts, root)
+
+handleSendMessage
+  :: forall s e m msg . (MonomerM s m, Typeable msg)
+  => Path
+  -> msg
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSetCursorIcon reqs previousStep =
-  case Seq.filter isSetCursorIcon reqs of
-    SetCursorIcon icon :<| _ -> do
-      cursor <- (Map.! icon) <$> use L.cursorIcons
-      SDLE.setCursor cursor
+handleSendMessage path message (wenv, events, widgetRoot) = do
+  currentFocus <- use L.pathFocus
 
-      return previousStep
-    _ -> return previousStep
+  let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
+  let widget = _wiWidget widgetRoot
+  let msgResult = widgetHandleMessage widget wenv path message widgetRoot
+  let widgetResult = fromMaybe emptyResult msgResult
 
-cursorToSDL :: CursorIcon -> SDLE.SystemCursor
-cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW
-cursorToSDL CursorHand = SDLE.SDL_SYSTEM_CURSOR_HAND
-cursorToSDL CursorIBeam = SDLE.SDL_SYSTEM_CURSOR_IBEAM
-cursorToSDL CursorInvalid = SDLE.SDL_SYSTEM_CURSOR_NO
-cursorToSDL CursorSizeH = SDLE.SDL_SYSTEM_CURSOR_SIZEWE
-cursorToSDL CursorSizeV = SDLE.SDL_SYSTEM_CURSOR_SIZENS
-cursorToSDL CursorDiagTL = SDLE.SDL_SYSTEM_CURSOR_SIZENWSE
-cursorToSDL CursorDiagTR = SDLE.SDL_SYSTEM_CURSOR_SIZENESW
+  (newWenv, newEvents, newWidgetRoot)
+    <- handleWidgetResult wenv widgetResult
 
-handleSendMessages
-  :: (MonomerM s m)
-  => Seq (WidgetRequest s)
+  return (newWenv, events >< newEvents, newWidgetRoot)
+
+handleRunTask
+  :: forall s e m i . (MonomerM s m, Typeable i)
+  => Path
+  -> IO i
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSendMessages reqs previousStep = nextStep where
-  nextStep = foldM reducer previousStep reqs
-  reducer prevStep (SendMessage path message) = do
-    currentFocus <- use L.pathFocus
-
-    let (wenv, events, widgetRoot) = prevStep
-    let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
-    let widget = _wiWidget widgetRoot
-    let msgResult = widgetHandleMessage widget wenv path message widgetRoot
-    let widgetResult = fromMaybe emptyResult msgResult
-
-    (newWenv, newEvents, newWidgetRoot)
-      <- handleWidgetResult wenv widgetResult
-
-    return (newWenv, events >< newEvents, newWidgetRoot)
-  reducer prevStep _ = return prevStep
-
-handleNewWidgetTasks :: (MonomerM s m) => Seq (WidgetRequest s) -> m ()
-handleNewWidgetTasks reqs = do
-  let taskHandlers = Seq.filter isTaskHandler reqs
-  let producerHandlers = Seq.filter isProducerHandler reqs
-
-  singleTasks <- forM taskHandlers $ \(RunTask path handler) -> do
-    asyncTask <- liftIO $ async (liftIO handler)
-    return $ WidgetTask path asyncTask
-
-  producerTasks <- forM producerHandlers $ \(RunProducer path handler) -> do
-    newChannel <- liftIO newTChanIO
-    asyncTask <- liftIO $ async (liftIO $ handler (sendMessage newChannel))
-    return $ WidgetProducer path newChannel asyncTask
+handleRunTask path handler previousStep = do
+  asyncTask <- liftIO $ async (liftIO handler)
 
   previousTasks <- use L.widgetTasks
-  L.widgetTasks .= previousTasks >< singleTasks >< producerTasks
+  L.widgetTasks .= previousTasks |> WidgetTask path asyncTask
+  return previousStep
+
+handleRunProducer
+  :: forall s e m i . (MonomerM s m, Typeable i)
+  => Path
+  -> ((i -> IO ()) -> IO ())
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleRunProducer path handler previousStep = do
+  newChannel <- liftIO newTChanIO
+  asyncTask <- liftIO $ async (liftIO $ handler (sendMessage newChannel))
+
+  previousTasks <- use L.widgetTasks
+  L.widgetTasks .= previousTasks |> WidgetProducer path newChannel asyncTask
+  return previousStep
+
+changeFocus
+  :: (MonomerM s m)
+  => FocusDirection
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+changeFocus direction (wenv, events, widgetRoot) = do
+  oldFocus <- use L.pathFocus
+  overlay <- use L.pathOverlay
+  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
+
+  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
+  let tempWenv = wenv1 {
+    _weFocusedPath = newFocus
+  }
+
+  L.pathFocus .= newFocus
+  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
+
+  return (wenv2, events >< events1 >< events2, root2)
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
@@ -393,30 +333,6 @@ isIgnoreParentEvents _ = False
 isResize :: WidgetRequest s -> Bool
 isResize Resize = True
 isResize _ = False
-
-isSetClipboard :: WidgetRequest s -> Bool
-isSetClipboard SetClipboard{} = True
-isSetClipboard _ = False
-
-isSetOverlay :: WidgetRequest s -> Bool
-isSetOverlay SetOverlay{} = True
-isSetOverlay _ = False
-
-isResetOverlay :: WidgetRequest s -> Bool
-isResetOverlay ResetOverlay{} = True
-isResetOverlay _ = False
-
-isMoveFocus :: WidgetRequest s -> Bool
-isMoveFocus MoveFocus{} = True
-isMoveFocus _ = False
-
-isSetFocus :: WidgetRequest s -> Bool
-isSetFocus SetFocus{} = True
-isSetFocus _ = False
-
-isSetCursorIcon :: WidgetRequest s -> Bool
-isSetCursorIcon SetCursorIcon{} = True
-isSetCursorIcon _ = False
 
 isProducerHandler :: WidgetRequest s -> Bool
 isProducerHandler RunProducer{} = True
@@ -430,3 +346,13 @@ getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
 getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
+
+cursorToSDL :: CursorIcon -> SDLE.SystemCursor
+cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW
+cursorToSDL CursorHand = SDLE.SDL_SYSTEM_CURSOR_HAND
+cursorToSDL CursorIBeam = SDLE.SDL_SYSTEM_CURSOR_IBEAM
+cursorToSDL CursorInvalid = SDLE.SDL_SYSTEM_CURSOR_NO
+cursorToSDL CursorSizeH = SDLE.SDL_SYSTEM_CURSOR_SIZEWE
+cursorToSDL CursorSizeV = SDLE.SDL_SYSTEM_CURSOR_SIZENS
+cursorToSDL CursorDiagTL = SDLE.SDL_SYSTEM_CURSOR_SIZENWSE
+cursorToSDL CursorDiagTR = SDLE.SDL_SYSTEM_CURSOR_SIZENESW

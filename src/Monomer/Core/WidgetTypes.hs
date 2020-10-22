@@ -56,8 +56,8 @@ data WidgetRequest s
   | SetClipboard ClipboardData
   | StartTextInput Rect
   | StopTextInput
-  | ResetOverlay
   | SetOverlay Path
+  | ResetOverlay
   | SetCursorIcon CursorIcon
   | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i

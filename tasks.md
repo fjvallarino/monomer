@@ -233,11 +233,11 @@
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
   - Keyboard not working on dropdown
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+  - Return list of actions instead of Monoid in eventHandler
 
 - Pending
-  - Return list of actions instead of Monoid in eventHandler
   - Add way of requesting findNextFocus (needed on Dropdown)
-  - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
+  - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
   - Use theme for all components
   - Multiline label
   - Add testing
