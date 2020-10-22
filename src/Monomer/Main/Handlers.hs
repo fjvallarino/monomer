@@ -155,9 +155,10 @@ handleFocusChange
 handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
   | focusChangeRequested = do
       oldFocus <- use L.pathFocus
+      overlay <- use L.pathOverlay
       (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
 
-      let newFocus = findNextFocus wenv1 focusDirection oldFocus root1
+      let newFocus = findNextFocus wenv1 focusDirection oldFocus overlay root1
       let tempWenv = wenv1 {
         _weFocusedPath = newFocus
       }

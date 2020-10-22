@@ -23,7 +23,6 @@ import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Graphics.Color
-import Monomer.Main.Util
 import Monomer.Widgets
 
 data EditableItem = EditableItem {

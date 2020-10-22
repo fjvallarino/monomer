@@ -1,10 +1,19 @@
 module Monomer.Widgets.Util.Misc where
 
+import Data.Maybe (fromMaybe)
+
+import qualified Data.Map as M
+
 import Monomer.Core
 import Monomer.Event
 
 pointInViewport :: Point -> WidgetInstance s e -> Bool
 pointInViewport p inst = pointInRect p (_wiViewport inst)
+
+getKeyStatus :: InputStatus -> KeyCode -> KeyStatus
+getKeyStatus inputStatus code = status where
+  keys = _ipsKeys inputStatus
+  status = fromMaybe KeyReleased (M.lookup code keys)
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where

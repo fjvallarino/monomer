@@ -39,6 +39,9 @@ class OnTextOverflow t where
   textEllipsis :: t
   textClip :: t
 
+class SelectOnBlur t where
+  selectOnBlur :: Bool -> t
+
 class SelectOnFocus t where
   selectOnFocus :: Bool -> t
 
@@ -78,6 +81,12 @@ class Num a => MaxValue t a | t -> a where
   maxValue :: a -> t
 
 -- Events
+class OnBlur t e | t -> e  where
+  onBlur :: e -> t
+
+class OnBlurReq t s | t -> s where
+  onBlurReq :: WidgetRequest s -> t
+
 class OnClick t e | t -> e  where
   onClick :: e -> t
 

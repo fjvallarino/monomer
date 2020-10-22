@@ -112,8 +112,9 @@ newtype DropdownState = DropdownState {
   _isOpen :: Bool
 }
 
-newtype DropdownMessage
+data DropdownMessage
   = OnChangeMessage Int
+  | OnListBlur
   deriving Typeable
 
 dropdown
@@ -207,68 +208,70 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   isOpen = _isOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createDropdown wenv newState widgetInst = newInstance where
+  createDropdown wenv newState inst = newInstance where
     selected = currentValue wenv
-    path = _wiPath widgetInst
+    path = _wiPath inst
     listViewInst = makeListView widgetData items makeRow config path selected
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = newWidget,
       _wiChildren = Seq.singleton listViewInst
     }
 
-  init wenv widgetInst = resultWidget $ createDropdown wenv state widgetInst
+  init wenv inst = resultWidget $ createDropdown wenv state inst
 
   merge wenv oldState newInst = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget $ createDropdown wenv newState newInst
 
-  handleEvent wenv target evt widgetInst = case evt of
+  handleEvent wenv target evt inst = case evt of
     Click point _
-      | openRequired point widgetInst -> Just $ openDropdown wenv widgetInst
-      | closeRequired point widgetInst -> Just $ closeDropdown wenv widgetInst
+      | openRequired point inst -> Just $ openDropdown wenv inst
+      | closeRequired point inst -> Just $ closeDropdown wenv inst
     KeyAction mode code status
-      | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv widgetInst
-      | isKeyEsc code && isOpen -> Just $ closeDropdown wenv widgetInst
+      | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv inst
+      | isKeyEsc code && isOpen -> Just $ closeDropdown wenv inst
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
-      | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] widgetInst
+      | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] inst
       | otherwise -> Nothing
 
-  openRequired point widgetInst = not isOpen && inViewport where
-    inViewport = pointInRect point (_wiViewport widgetInst)
+  openRequired point inst = not isOpen && inViewport where
+    inViewport = pointInRect point (_wiViewport inst)
 
-  closeRequired point widgetInst = isOpen && not inOverlay where
-    inOverlay = case Seq.lookup 0 (_wiChildren widgetInst) of
+  closeRequired point inst = isOpen && not inOverlay where
+    inOverlay = case Seq.lookup 0 (_wiChildren inst) of
       Just inst -> pointInRect point (_wiViewport inst)
       Nothing -> False
 
-  openDropdown wenv widgetInst = resultReqs requests newInstance where
+  openDropdown wenv inst = resultReqs requests newInstance where
     selected = currentValue wenv
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
-    path = _wiPath widgetInst
+    path = _wiPath inst
     -- listView is wrapped by a scroll
     lvPath = path |> 0 |> 0
     requests = [SetOverlay path, SetFocus lvPath]
 
-  closeDropdown wenv widgetInst = resultReqs requests newInstance where
-    path = _wiPath widgetInst
+  closeDropdown wenv inst = resultReqs requests newInstance where
+    path = _wiPath inst
     newState = DropdownState False
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     requests = [ResetOverlay, SetFocus path]
 
-  handleMessage wenv target message widgetInst = cast message
-    >>= \(OnChangeMessage idx) -> Seq.lookup idx items
-    >>= \value -> Just $ onChange wenv idx value widgetInst
+  handleMessage wenv target msg inst = cast msg >>= handleLvMsg wenv inst
 
-  onChange wenv idx item widgetInst = result where
-    WidgetResult reqs events newInstance = closeDropdown wenv widgetInst
+  handleLvMsg wenv inst (OnChangeMessage idx) = Seq.lookup idx items
+    >>= \value -> Just $ onChange wenv idx value inst
+  handleLvMsg wenv inst OnListBlur = Just $ closeDropdown wenv inst
+
+  onChange wenv idx item inst = result where
+    WidgetResult reqs events newInstance = closeDropdown wenv inst
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
@@ -276,13 +279,13 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
-  getSizeReq wenv widgetInst children = sizeReq where
-    style = instanceStyle wenv widgetInst
+  getSizeReq wenv inst children = sizeReq where
+    style = instanceStyle wenv inst
     Size w h = getTextSize wenv style (dropdownLabel wenv)
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     Size winW winH = _weAppWindowSize wenv
     Rect rx ry rw rh = renderArea
     dropdownY dh
@@ -302,9 +305,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         }
       Nothing -> (viewport, renderArea)
     assignedArea = Seq.singleton area
-    resized = (widgetInst, assignedArea)
+    resized = (inst, assignedArea)
 
-  render renderer wenv widgetInst@WidgetInstance{..} = do
+  render renderer wenv inst@WidgetInstance{..} = do
     drawStyledBackground renderer renderArea style
     drawStyledText_ renderer renderArea style (dropdownLabel wenv)
 
@@ -314,7 +317,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     where
       listViewOverlay = Seq.lookup 0 _wiChildren
       renderArea = _wiRenderArea
-      style = instanceStyle wenv widgetInst
+      style = instanceStyle wenv inst
 
   renderOverlay renderer wenv overlayInstance = renderAction where
     widget = _wiWidget overlayInstance
@@ -334,6 +337,8 @@ makeListView
 makeListView value items makeRow config path selected = listViewInst where
   DropdownCfg{..} = config
   lvConfig = [
+      selectOnBlur True,
+      onBlurReq (SendMessage path OnListBlur),
       onChangeIdxReq (SendMessage path . OnChangeMessage),
       setStyle _ddcSelectedStyle selectedStyle,
       setStyle _ddcHoverStyle hoverStyle,

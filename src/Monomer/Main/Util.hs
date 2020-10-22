@@ -34,11 +34,19 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
 }
 
 findNextFocus
-  :: WidgetEnv s e -> FocusDirection -> Path -> WidgetInstance s e -> Path
-findNextFocus wenv direction focus widgetRoot = fromJust nextFocus where
+  :: WidgetEnv s e
+  -> FocusDirection
+  -> Path
+  -> Maybe Path
+  -> WidgetInstance s e
+  -> Path
+findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
   widget = _wiWidget widgetRoot
-  candidateFocus = widgetFindNextFocus widget wenv direction focus widgetRoot
-  fromRootFocus = widgetFindNextFocus widget wenv direction rootPath widgetRoot
+  restartPath = fromMaybe rootPath overlay
+  candidateFocus =
+    widgetFindNextFocus widget wenv direction focus widgetRoot
+  fromRootFocus =
+    widgetFindNextFocus widget wenv direction restartPath widgetRoot
   nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
 
 resizeWidget

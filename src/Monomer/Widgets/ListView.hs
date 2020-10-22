@@ -22,6 +22,7 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
 
+import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 
 import Monomer.Graphics.Lens
@@ -35,10 +36,13 @@ import Monomer.Widgets.Stack
 import qualified Monomer.Core.Lens as L
 
 data ListViewCfg s e a = ListViewCfg {
+  _lvcOnBlur :: [e],
+  _lvcOnBlurReq :: [WidgetRequest s],
   _lvcOnChange :: [a -> e],
   _lvcOnChangeReq :: [WidgetRequest s],
   _lvcOnChangeIdx :: [Int -> a -> e],
   _lvcOnChangeIdxReq :: [Int -> WidgetRequest s],
+  _lvcSelectedOnBlur :: Maybe Bool,
   _lvcSelectedStyle :: Maybe StyleState,
   _lvcHoverStyle :: Maybe StyleState,
   _lvcHighlightedColor :: Maybe Color
@@ -46,10 +50,13 @@ data ListViewCfg s e a = ListViewCfg {
 
 instance Default (ListViewCfg s e a) where
   def = ListViewCfg {
+    _lvcOnBlur = [],
+    _lvcOnBlurReq = [],
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeIdxReq = [],
+    _lvcSelectedOnBlur = Nothing,
     _lvcSelectedStyle = Just $ bgColor gray,
     _lvcHoverStyle = Just $ bgColor darkGray,
     _lvcHighlightedColor = Just lightGray
@@ -57,10 +64,13 @@ instance Default (ListViewCfg s e a) where
 
 instance Semigroup (ListViewCfg s e a) where
   (<>) t1 t2 = ListViewCfg {
+    _lvcOnBlur = _lvcOnBlur t1 <> _lvcOnBlur t2,
+    _lvcOnBlurReq = _lvcOnBlurReq t1 <> _lvcOnBlurReq t2,
     _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
     _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
     _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2,
+    _lvcSelectedOnBlur = _lvcSelectedOnBlur t2 <|> _lvcSelectedOnBlur t1,
     _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
     _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1,
     _lvcHighlightedColor = _lvcHighlightedColor t2 <|> _lvcHighlightedColor t1
@@ -68,13 +78,26 @@ instance Semigroup (ListViewCfg s e a) where
 
 instance Monoid (ListViewCfg s e a) where
   mempty = ListViewCfg {
+    _lvcOnBlur = [],
+    _lvcOnBlurReq = [],
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeIdxReq = [],
+    _lvcSelectedOnBlur = Nothing,
     _lvcSelectedStyle = Nothing,
     _lvcHoverStyle = Nothing,
     _lvcHighlightedColor = Nothing
+  }
+
+instance OnBlur (ListViewCfg s e a) e where
+  onBlur fn = def {
+    _lvcOnBlur = [fn]
+  }
+
+instance OnBlurReq (ListViewCfg s e a) s where
+  onBlurReq req = def {
+    _lvcOnBlurReq = [req]
   }
 
 instance OnChange (ListViewCfg s e a) a e where
@@ -95,6 +118,11 @@ instance OnChangeIdx (ListViewCfg s e a) a e where
 instance OnChangeIdxReq (ListViewCfg s e a) s where
   onChangeIdxReq req = def {
     _lvcOnChangeIdxReq = [req]
+  }
+
+instance SelectOnBlur (ListViewCfg s e a) where
+  selectOnBlur select = def {
+    _lvcSelectedOnBlur = Just select
   }
 
 instance SelectedStyle (ListViewCfg s e a) where
@@ -203,103 +231,115 @@ makeListView widgetData items makeRow config state = widget where
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createListView wenv newState widgetInst = newInstance where
+  createListView wenv newState inst = newInstance where
     selected = currentValue wenv
     highlighted = _highlighted newState
-    path = _wiPath widgetInst
+    path = _wiPath inst
     itemsList = makeItemsList items makeRow config path selected highlighted
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeListView widgetData items makeRow config newState,
       _wiChildren = Seq.singleton itemsList
     }
 
-  init wenv widgetInst = resultWidget $ createListView wenv state widgetInst
+  init wenv inst = resultWidget $ createListView wenv state inst
 
   merge wenv oldState newInstance = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget $ createListView wenv newState newInstance
 
-  handleEvent wenv target evt widgetInst = case evt of
+  handleEvent wenv target evt inst = case evt of
+    Blur -> result where
+      isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
+      changeReq = isTabPressed && fromMaybe False (_lvcSelectedOnBlur config)
+      WidgetResult tempReqs tempEvts tempInst
+        | changeReq = selectItem wenv inst (_highlighted state)
+        | otherwise = resultWidget inst
+      evts = tempEvts <> Seq.fromList (_lvcOnBlur config)
+      reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
+      mergedResult = Just $ WidgetResult reqs evts tempInst
+      result
+        | changeReq || not (null evts && null reqs) = mergedResult
+        | otherwise = Nothing
     KeyAction mode code status
-      | isKeyDown code && status == KeyPressed -> highlightNext wenv widgetInst
-      | isKeyUp code && status == KeyPressed -> highlightPrev wenv widgetInst
+      | isKeyDown code && status == KeyPressed -> highlightNext wenv inst
+      | isKeyUp code && status == KeyPressed -> highlightPrev wenv inst
       | isSelectKey code && status == KeyPressed -> resultSelected
       where
-        resultSelected = Just $ selectItem wenv widgetInst (_highlighted state)
+        resultSelected = Just $ selectItem wenv inst (_highlighted state)
         isSelectKey code = isKeyReturn code || isKeySpace code
     _ -> Nothing
 
-  highlightNext wenv widgetInst = highlightItem wenv widgetInst nextIdx where
+  highlightNext wenv inst = highlightItem wenv inst nextIdx where
     tempIdx = _highlighted state
     nextIdx
       | tempIdx < length items - 1 = tempIdx + 1
       | otherwise = tempIdx
 
-  highlightPrev wenv widgetInst = highlightItem wenv widgetInst nextIdx where
+  highlightPrev wenv inst = highlightItem wenv inst nextIdx where
     tempIdx = _highlighted state
     nextIdx
       | tempIdx > 0 = tempIdx - 1
       | otherwise = tempIdx
 
-  handleMessage wenv target message widgetInst = result where
-    handleSelect (OnClickMessage idx) = selectItem wenv widgetInst idx
+  handleMessage wenv target message inst = result where
+    handleSelect (OnClickMessage idx) = selectItem wenv inst idx
     result = fmap handleSelect (cast message)
 
-  highlightItem wenv widgetInst nextIdx = result where
+  highlightItem wenv inst nextIdx = result where
     newState = ListViewState nextIdx
     newWidget = makeListView widgetData items makeRow config newState
     -- ListView's merge uses the old widget's state. Since we want the newly
     -- created state, the old widget is replaced here
-    oldInstance = widgetInst {
+    oldInstance = inst {
       _wiWidget = newWidget
     }
     -- ListView's tree will be rebuilt in merge, before merging its children,
     -- so it does not matter what we currently have
     newInstance = oldInstance
     widgetResult = widgetMerge newWidget wenv oldInstance newInstance
-    scrollToReq = itemScrollTo widgetInst nextIdx
+    scrollToReq = itemScrollTo inst nextIdx
     requests = Seq.fromList scrollToReq
     result = Just $ widgetResult {
       _wrRequests = requests,
       _wrWidget = resizeInstance wenv (_wrWidget widgetResult)
     }
 
-  selectItem wenv widgetInst idx = result where
+  selectItem wenv inst idx = result where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
     valueSetReq = widgetDataSet widgetData value
-    scrollToReq = itemScrollTo widgetInst idx
+    scrollToReq = itemScrollTo inst idx
     events = fmap ($ value) (_lvcOnChange config)
       ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
     changeReqs = _lvcOnChangeReq config
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
-    focusReq = [SetFocus $ _wiPath widgetInst]
+    focusReq = [SetFocus $ _wiPath inst]
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
     newState = ListViewState idx
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
     }
     result = resultReqsEvents requests events newInstance
 
-  itemScrollTo widgetInst idx = maybeToList (fmap scrollReq renderArea) where
-    renderArea = itemRenderArea widgetInst idx
-    scrollPath =  parentPath widgetInst
+  itemScrollTo inst idx = maybeToList (fmap scrollReq renderArea) where
+    renderArea = itemRenderArea inst idx
+    scrollPath =  parentPath inst
     scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-  itemRenderArea widgetInst idx = renderArea where
+  itemRenderArea inst idx = renderArea where
     lookup idx inst = Seq.lookup idx (_wiChildren inst)
-    renderArea = fmap _wiRenderArea $ pure widgetInst
+    renderArea = fmap _wiRenderArea $ pure inst
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
-  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     child = Seq.index children 0
     newSizeReqW = _wiSizeReqW child
     newSizeReqH = _wiSizeReqH child
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
-    resized = (widgetInst, assignedArea)
+    resized = (inst, assignedArea)
 
   render renderer wenv inst = do
     renderWrapper defaultRender renderer wenv inst

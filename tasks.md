@@ -231,11 +231,13 @@
     - Most likely handled as part of style. Discard margins, but consider border + padding
     - Maybe also add an option like SetOverlay
   - Handle findNextFocus in zstack (only consider top layer, unless configured otherwise)
+  - Keyboard not working on dropdown
 
 - Pending
-  - Keyboard not working on dropdown
   - Add way of ignoring unassigned events in stack (or return nothing on findByPoint)
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
+  - Add way of requesting findNextFocus (needed on Dropdown)
+  - Return list of actions instead of Monoid in eventHandler
   - Use theme for all components
   - Multiline label
   - Add testing

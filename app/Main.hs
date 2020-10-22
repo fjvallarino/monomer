@@ -76,7 +76,12 @@ handleAppEvent model evt = case evt of
   _ -> Model model
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree5 where
+  widgetTree5 = vstack [
+      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
+      textField textField1 `style` [bgColor lightBlue, textLeft],
+      image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
+    ]
   widgetTree = zstack [
       widgetTree3,
       alert "Message" CloseAlert `visible` model ^. showAlert,

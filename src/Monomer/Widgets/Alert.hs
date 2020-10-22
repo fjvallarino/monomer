@@ -5,8 +5,6 @@ module Monomer.Widgets.Alert (
   alert_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (.~))
 import Data.Default

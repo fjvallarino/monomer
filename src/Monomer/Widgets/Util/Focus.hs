@@ -24,14 +24,14 @@ isFocusCandidate FocusBwd = isFocusBwdCandidate
 
 isFocusFwdCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusFwdCandidate startFrom widgetInst = isValid where
-  isBefore = isTargetBeforeCurrent startFrom widgetInst
+  isBefore = isTargetBeforeWidget startFrom widgetInst
   isFocusable = _wiFocusable widgetInst
   isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
   isValid = isBefore && isFocusable && isEnabled
 
 isFocusBwdCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusBwdCandidate startFrom widgetInst = isValid where
-  isAfter = isTargetAfterCurrent startFrom widgetInst
+  isAfter = isTargetAfterWidget startFrom widgetInst
   isFocusable = _wiFocusable widgetInst
   isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
   isValid = isAfter && isFocusable && isEnabled
@@ -46,8 +46,8 @@ isTargetValid target widgetInst = valid where
     Just step -> step < Seq.length children
     Nothing -> False
 
-isTargetBeforeCurrent :: Path -> WidgetInstance s e -> Bool
-isTargetBeforeCurrent target widgetInst = result where
+isTargetBeforeWidget :: Path -> WidgetInstance s e -> Bool
+isTargetBeforeWidget target widgetInst = result where
   currentPath = _wiPath widgetInst
   lenTarget = Seq.length target
   lenCurrent = Seq.length currentPath
@@ -56,8 +56,8 @@ isTargetBeforeCurrent target widgetInst = result where
     | lenTarget > lenCurrent = targetPrefix <= currentPath
     | otherwise = target < currentPath
 
-isTargetAfterCurrent :: Path -> WidgetInstance s e -> Bool
-isTargetAfterCurrent target widgetInst
+isTargetAfterWidget :: Path -> WidgetInstance s e -> Bool
+isTargetAfterWidget target widgetInst
   | target == rootPath = True
   | otherwise = target > currentPath
   where

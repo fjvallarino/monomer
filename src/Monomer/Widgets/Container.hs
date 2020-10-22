@@ -301,8 +301,8 @@ findNextFocusWrapper handler wenv direction start widgetInst = nextFocus where
     | direction == FocusFwd = handlerResult
     | otherwise = Seq.reverse handlerResult
   isBeforeTarget ch
-    | direction == FocusFwd = isTargetBeforeCurrent start ch
-    | otherwise = isTargetAfterCurrent start ch
+    | direction == FocusFwd = isTargetBeforeWidget start ch
+    | otherwise = isTargetAfterWidget start ch
   nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv direction start ch
   filtered = Seq.filter isBeforeTarget children
   candidates = fmap nextCandidate filtered
