@@ -43,20 +43,20 @@ data CompEvent
 testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
 
 handleCompositeEvent model evt = case evt of
-  InitComposite -> Task $ do
+  InitComposite -> [Task $ do
     threadDelay 1000
     putStrLn "Initialized composite"
-    return Nothing
-  MessageParent -> Report IncreaseMessage
-  CallSandbox -> Event (HandleProducer 20) <> (Task $ return Nothing)
-  StartTask -> Task $ do
+    return Nothing]
+  MessageParent -> [Report IncreaseMessage]
+  CallSandbox -> [Event (HandleProducer 20), Task $ return Nothing]
+  StartTask -> [Task $ do
     putStrLn "Composite event handler called"
-    return Nothing
-  StartProducer -> Producer $ \sendMessage ->
+    return Nothing]
+  StartProducer -> [Producer $ \sendMessage ->
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)
-      threadDelay $ 1000 * 1000
-  HandleProducer val -> Model $ model & csProduced %~ (+val)
+      threadDelay $ 1000 * 1000]
+  HandleProducer val -> [Model $ model & csProduced %~ (+val)]
 
 buildComposite model = trace "Created composite UI" $
   vgrid [

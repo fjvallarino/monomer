@@ -28,7 +28,7 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
 
-type EventHandler s e ep = s -> e -> EventResponse s e ep
+type EventHandler s e ep = s -> e -> [EventResponse s e ep]
 type UIBuilder s e = s -> WidgetInstance s e
 type TaskHandler e = IO (Maybe e)
 type ProducerHandler e = (e -> IO ()) -> IO ()
@@ -40,13 +40,6 @@ data EventResponse s e ep
   | forall i . Typeable i => Message WidgetKey i
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
-  | Multiple (Seq (EventResponse s e ep))
-
-instance Semigroup (EventResponse s e ep) where
-  Multiple seq1 <> Multiple seq2 = Multiple (seq1 <> seq2)
-  Multiple seq1 <> er2 = Multiple (seq1 |> er2)
-  er1 <> Multiple seq2 = Multiple (er1 <| seq2)
-  er1 <> er2 = Multiple (Seq.singleton er1 |> er2)
 
 data Composite s e ep = Composite {
   _widgetType :: WidgetType,
@@ -413,7 +406,7 @@ reduceCompEvents globalKeys eventHandler model events = result where
     ReducedEvents model Seq.empty Seq.empty Seq.empty Seq.empty Seq.empty
   reducer current event = foldl' reducer newCurrent newEvents where
     response = eventHandler (_reModel current) event
-    processed = reduceEvtResponse globalKeys current response
+    processed = foldl' (reduceEvtResponse globalKeys) current response
     newEvents = _reEvents processed
     newCurrent = processed { _reEvents = Seq.empty }
   result = foldl' reducer initial events
@@ -434,7 +427,6 @@ reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Report report -> curr { _reReports = _reReports |> report }
   Task task -> curr { _reTasks = _reTasks |> task }
   Producer producer -> curr { _reProducers = _reProducers |> producer }
-  Multiple ehs -> foldl' (reduceEvtResponse globalKeys) curr ehs
 
 tasksToRequests :: Typeable e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
 tasksToRequests path reqs = RunTask path <$> reqs

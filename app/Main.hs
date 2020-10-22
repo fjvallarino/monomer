@@ -42,38 +42,39 @@ main = do
   simpleApp_ model handleAppEvent buildUI config
   --simpleApp model handleAppEvent buildUI
 
+handleAppEvent :: App -> AppEvent -> [AppEventResponse App AppEvent]
 handleAppEvent model evt = case evt of
-  IncButton -> Model (model & clickCount %~ (+1))
+  IncButton -> [Model (model & clickCount %~ (+1))]
 --  PrintMessage txt -> Model (model & showAlert .~ True)
-  PrintMessage txt -> Task $ do
+  PrintMessage txt -> [Task $ do
     print txt
-    return Nothing
-  CheckboxSt st -> Task $ do
+    return Nothing]
+  CheckboxSt st -> [Task $ do
     putStrLn $ "Checkbox is: " ++ show st
-    return Nothing
+    return Nothing]
 --  RadioSt st -> Task $ do
 --    putStrLn $ "Radio is: " ++ show st
 --    return Nothing
-  RadioSt st -> Model (model & fruit .~ st)
-  ImageMsg msg -> Task $ do
+  RadioSt st -> [Model (model & fruit .~ st)]
+  ImageMsg msg -> [Task $ do
     putStrLn $ "Image msg is: " ++ show msg
-    return Nothing
-  DropdownVal txt -> Task $ do
+    return Nothing]
+  DropdownVal txt -> [Task $ do
     putStrLn $ "Dropdown txt is: " ++ show txt
-    return Nothing
-  DropdownIdx idx txt -> Task $ do
+    return Nothing]
+  DropdownIdx idx txt -> [Task $ do
     threadDelay 100
     putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
-    return Nothing
-  ShowAlert -> Model (model & showAlert .~ True)
-  CloseAlert -> Model (model & showAlert .~ False)
-  ShowConfirm -> Model (model & showConfirm .~ True)
-  AcceptConfirm -> Model (model & showConfirm .~ False)
-  CancelConfirm -> Model (model & showConfirm .~ False)
-  RunShortTask -> Task $ do
+    return Nothing]
+  ShowAlert -> [Model (model & showAlert .~ True)]
+  CloseAlert -> [Model (model & showAlert .~ False)]
+  ShowConfirm -> [Model (model & showConfirm .~ True)]
+  AcceptConfirm -> [Model (model & showConfirm .~ False)]
+  CancelConfirm -> [Model (model & showConfirm .~ False)]
+  RunShortTask -> [Task $ do
     putStrLn "Running!"
-    return Nothing
-  _ -> Model model
+    return Nothing]
+  _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree5 where

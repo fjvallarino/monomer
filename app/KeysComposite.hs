@@ -53,7 +53,7 @@ initialState = KeysCompState {
 keysComposite = composite "keysComposite" initialState Nothing handleKeysCompEvent buildKeysComp
 
 handleKeysCompEvent model evt = case evt of
-  RotateChildren -> Model (model & items %~ rotateSeq)
+  RotateChildren -> [Model (model & items %~ rotateSeq)]
 
 buildKeysComp model = trace "Created keys composite UI" $
   hgrid [

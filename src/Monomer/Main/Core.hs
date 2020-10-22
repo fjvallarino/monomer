@@ -3,6 +3,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Main.Core (
+  AppEventResponse,
+  AppEventHandler,
+  AppUIBuilder,
   EventResponse(..),
   simpleApp,
   simpleApp_,
@@ -36,6 +39,10 @@ import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
 
+type AppEventResponse s e = EventResponse s e ()
+type AppEventHandler s e = s -> e -> [AppEventResponse s e]
+type AppUIBuilder s e = UIBuilder s e
+
 data MainLoopArgs s e = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
@@ -49,8 +56,8 @@ data MainLoopArgs s e = MainLoopArgs {
 simpleApp
   :: (Eq s, Typeable s, Typeable e)
   => s
-  -> EventHandler s e ()
-  -> UIBuilder s e
+  -> AppEventHandler s e
+  -> AppUIBuilder s e
   -> IO ()
 simpleApp model eventHandler uiBuilder =
   simpleApp_ model eventHandler uiBuilder def
@@ -58,8 +65,8 @@ simpleApp model eventHandler uiBuilder =
 simpleApp_
   :: (Eq s, Typeable s, Typeable e)
   => s
-  -> EventHandler s e ()
-  -> UIBuilder s e
+  -> AppEventHandler s e
+  -> AppUIBuilder s e
   -> [AppConfig e]
   -> IO ()
 simpleApp_ model eventHandler uiBuilder configs = do
