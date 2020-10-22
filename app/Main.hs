@@ -60,11 +60,11 @@ handleAppEvent model evt = case evt of
     putStrLn $ "Image msg is: " ++ show msg
     return Nothing]
   DropdownVal txt -> [Task $ do
-    putStrLn $ "Dropdown txt is: " ++ show txt
+    --putStrLn $ "Dropdown txt is: " ++ show txt
     return Nothing]
   DropdownIdx idx txt -> [Task $ do
     threadDelay 100
-    putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
+    --putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
     return Nothing]
   ShowAlert -> [Model (model & showAlert .~ True)]
   CloseAlert -> [Model (model & showAlert .~ False)]
@@ -79,8 +79,8 @@ handleAppEvent model evt = case evt of
 buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree5 where
   widgetTree5 = vstack [
-      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
-      textField textField1 `style` [bgColor lightBlue, textLeft],
+      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
+      textField textField1 `style` [bgColor lightGray, textLeft],
       image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
     ]
   widgetTree = zstack [

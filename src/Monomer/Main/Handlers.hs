@@ -135,16 +135,46 @@ handleWidgetResult wenv (WidgetResult reqs events evtRoot) = do
 
   handleNewWidgetTasks reqs
 
-  handleFocusSet reqs (evtWctx, events, evtRoot)
-    >>= handleClipboardGet reqs
-    >>= handleClipboardSet reqs
+  handleSetFocus reqs (evtWctx, events, evtRoot)
+    >>= handleMoveFocus reqs
+    >>= handleGetClipboard reqs
+    >>= handleSetClipboard reqs
     >>= handleStartTextInput reqs
     >>= handleStopTextInput reqs
     >>= handleSendMessages reqs
-    >>= handleOverlaySet reqs
-    >>= handleOverlayReset reqs
-    >>= handleCursorIconSet reqs
+    >>= handleSetOverlay reqs
+    >>= handleResetOverlay reqs
+    >>= handleSetCursorIcon reqs
     >>= handleResize reqs
+
+--handleRequest
+--  :: (MonomerM s m)
+--  -> WidgetRequest s
+--  -> HandlerStep s e
+--  -> m (HandlerStep s e)
+--handleRequest SetFocus{} 
+
+changeFocus
+  :: (MonomerM s m)
+  => FocusDirection
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+changeFocus direction (wenv, events, widgetRoot) = do
+  oldFocus <- use L.pathFocus
+  overlay <- use L.pathOverlay
+  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
+
+  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
+  let tempWenv = wenv1 {
+    _weFocusedPath = newFocus
+  }
+
+  liftIO . putStrLn $ show (oldFocus, newFocus)
+
+  L.pathFocus .= newFocus
+  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
+
+  return (wenv2, events >< events1 >< events2, root2)
 
 handleFocusChange
   :: (MonomerM s m)
@@ -152,34 +182,33 @@ handleFocusChange
   -> Bool
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleFocusChange systemEvent stopProcessing (wenv, events, widgetRoot)
-  | focusChangeRequested = do
-      oldFocus <- use L.pathFocus
-      overlay <- use L.pathOverlay
-      (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
-
-      let newFocus = findNextFocus wenv1 focusDirection oldFocus overlay root1
-      let tempWenv = wenv1 {
-        _weFocusedPath = newFocus
-      }
-
-      L.pathFocus .= newFocus
-      (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
-
-      return (wenv2, events >< events1 >< events2, root2)
-  | otherwise = return (wenv, events, widgetRoot)
+handleFocusChange systemEvent stopProcessing previousStep
+  | changeRequested = changeFocus direction previousStep
+  | otherwise = return previousStep
   where
-    focusChangeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
-    focusDirection
+    changeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
+    direction
       | isShiftPressed systemEvent = FocusBwd
       | otherwise = FocusFwd
 
-handleFocusSet
+handleMoveFocus
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleFocusSet reqs previousStep@(wenv, events, root) =
+handleMoveFocus reqs previousStep =
+  case Seq.filter isMoveFocus reqs of
+    MoveFocus direction :<| _ -> do
+      liftIO . putStrLn $ "HOLA"
+      changeFocus direction previousStep
+    _ -> return previousStep
+
+handleSetFocus
+  :: (MonomerM s m)
+  => Seq (WidgetRequest s)
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleSetFocus reqs previousStep@(wenv, events, root) =
   case Seq.filter isSetFocus reqs of
     SetFocus newFocus :<| _ -> do
       L.pathFocus .= newFocus
@@ -204,12 +233,12 @@ handleResize reqs previousStep =
       return (wenv, events, newWidgetRoot)
     _ -> return previousStep
 
-handleClipboardGet
+handleGetClipboard
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleClipboardGet reqs previousStep = do
+handleGetClipboard reqs previousStep = do
     hasText <- SDL.hasClipboardText
     contents <- if hasText
                   then fmap ClipboardText SDL.getClipboardText
@@ -224,12 +253,12 @@ handleClipboardGet reqs previousStep = do
       return (newWenv2, events >< newEvents2, newRoot2)
     reducer contents prevStep _ = return prevStep
 
-handleClipboardSet
+handleSetClipboard
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleClipboardSet reqs previousStep =
+handleSetClipboard reqs previousStep =
   case Seq.filter isSetClipboard reqs of
     SetClipboard (ClipboardText text) :<| _ -> do
       SDL.setClipboardText text
@@ -265,12 +294,12 @@ handleStopTextInput reqs previousStep =
       return previousStep
     _ -> return previousStep
 
-handleOverlaySet
+handleSetOverlay
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleOverlaySet reqs previousStep =
+handleSetOverlay reqs previousStep =
   case Seq.filter isSetOverlay reqs of
     SetOverlay path :<| _ -> do
       L.pathOverlay .= Just path
@@ -278,12 +307,12 @@ handleOverlaySet reqs previousStep =
       return previousStep
     _ -> return previousStep
 
-handleOverlayReset
+handleResetOverlay
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleOverlayReset reqs previousStep =
+handleResetOverlay reqs previousStep =
   case Seq.filter isResetOverlay reqs of
     ResetOverlay :<| _ -> do
       L.pathOverlay .= Nothing
@@ -291,12 +320,12 @@ handleOverlayReset reqs previousStep =
       return previousStep
     _ -> return previousStep
 
-handleCursorIconSet
+handleSetCursorIcon
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleCursorIconSet reqs previousStep =
+handleSetCursorIcon reqs previousStep =
   case Seq.filter isSetCursorIcon reqs of
     SetCursorIcon icon :<| _ -> do
       cursor <- (Map.! icon) <$> use L.cursorIcons
@@ -376,6 +405,10 @@ isSetOverlay _ = False
 isResetOverlay :: WidgetRequest s -> Bool
 isResetOverlay ResetOverlay{} = True
 isResetOverlay _ = False
+
+isMoveFocus :: WidgetRequest s -> Bool
+isMoveFocus MoveFocus{} = True
+isMoveFocus _ = False
 
 isSetFocus :: WidgetRequest s -> Bool
 isSetFocus SetFocus{} = True

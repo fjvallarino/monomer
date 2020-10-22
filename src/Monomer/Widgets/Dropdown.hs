@@ -231,6 +231,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     KeyAction mode code status
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv inst
       | isKeyEsc code && isOpen -> Just $ closeDropdown wenv inst
+      | isKeyTab code && isOpen -> Just $ closeDropdown wenv inst
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
       | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] inst
@@ -262,13 +263,17 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newInstance = inst {
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
-    requests = [ResetOverlay, SetFocus path]
+    requests = [IgnoreParentEvents, ResetOverlay, SetFocus path]
 
   handleMessage wenv target msg inst = cast msg >>= handleLvMsg wenv inst
 
   handleLvMsg wenv inst (OnChangeMessage idx) = Seq.lookup idx items
     >>= \value -> Just $ onChange wenv idx value inst
-  handleLvMsg wenv inst OnListBlur = Just $ closeDropdown wenv inst
+  handleLvMsg wenv inst OnListBlur = Just result where
+    tempResult = closeDropdown wenv inst
+    result = tempResult {
+      _wrRequests = _wrRequests tempResult |> MoveFocus FocusFwd
+    }
 
   onChange wenv idx item inst = result where
     WidgetResult reqs events newInstance = closeDropdown wenv inst

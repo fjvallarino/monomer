@@ -50,6 +50,7 @@ data WidgetRequest s
   = IgnoreParentEvents
   | IgnoreChildrenEvents
   | Resize
+  | MoveFocus FocusDirection
   | SetFocus Path
   | GetClipboard Path
   | SetClipboard ClipboardData
@@ -227,6 +228,7 @@ instance Show (WidgetRequest s) where
   show IgnoreParentEvents = "IgnoreParentEvents"
   show IgnoreChildrenEvents = "IgnoreChildrenEvents"
   show Resize = "Resize"
+  show (MoveFocus dir) = "MoveFocus: " ++ show dir
   show (SetFocus path) = "SetFocus: " ++ show path
   show (GetClipboard path) = "GetClipboard: " ++ show path
   show (SetClipboard _) = "SetClipboard"
