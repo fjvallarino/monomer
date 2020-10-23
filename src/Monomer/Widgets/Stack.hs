@@ -1,8 +1,11 @@
 module Monomer.Widgets.Stack (
   hstack,
-  vstack
+  hstack_,
+  vstack,
+  vstack_
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default
 import Data.Foldable (toList)
 import Data.List (foldl')
@@ -12,23 +15,65 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
 
+newtype StackCfg = StackCfg {
+  _stcIgnoreEmptyClick :: Maybe Bool
+}
+
+instance Default StackCfg where
+  def = StackCfg Nothing
+
+instance Semigroup StackCfg where
+  (<>) s1 s2 = StackCfg {
+    _stcIgnoreEmptyClick = _stcIgnoreEmptyClick s2 <|> _stcIgnoreEmptyClick s1
+  }
+
+instance Monoid StackCfg where
+  mempty = def
+
+instance IgnoreEmptyClick StackCfg where
+  ignoreEmptyClick ignore = def {
+    _stcIgnoreEmptyClick = Just ignore
+  }
+
 hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
-hstack children = (defaultWidgetInstance "hstack" (makeStack True)) {
+hstack children = hstack_ children def
+
+hstack_
+  :: (Traversable t)
+  => t (WidgetInstance s e)
+  -> [StackCfg]
+  -> WidgetInstance s e
+hstack_ children configs = newInst where
+  config = mconcat configs
+  newInst = (defaultWidgetInstance "hstack" (makeStack True config)) {
   _wiChildren = foldl' (|>) Empty children
 }
 
 vstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
-vstack children = (defaultWidgetInstance "vstack" (makeStack False)) {
+vstack children = vstack_ children def
+
+vstack_
+  :: (Traversable t)
+  => t (WidgetInstance s e)
+  -> [StackCfg]
+  -> WidgetInstance s e
+vstack_ children configs = newInst where
+  config = mconcat configs
+  newInst = (defaultWidgetInstance "vstack" (makeStack False config)) {
   _wiChildren = foldl' (|>) Empty children
 }
 
-makeStack :: Bool -> Widget s e
-makeStack isHorizontal = widget where
-  widget = createContainer def {
+makeStack :: Bool -> StackCfg -> Widget s e
+makeStack isHorizontal config = widget where
+  baseWidget = createContainer def {
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
+  widget = baseWidget {
+    widgetFindByPoint = findByPointWrapper ignoreEmptyClick defaultFindByPoint
+  }
 
+  ignoreEmptyClick = _stcIgnoreEmptyClick config == Just True
   isVertical = not isHorizontal
 
   getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where

@@ -234,9 +234,9 @@
   - Keyboard not working on dropdown
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Return list of actions instead of Monoid in eventHandler
+  - Add way of requesting findNextFocus (needed on Dropdown)
 
 - Pending
-  - Add way of requesting findNextFocus (needed on Dropdown)
   - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
   - Use theme for all components
   - Multiline label
@@ -255,17 +255,19 @@
 
 Maybe postponed after release?
   - Update style when merging to avoid recalculating/merging theme every time
+  - Handle onBlur/onFocus in all focusable widgets
+  - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
+  - Further textField improvements
+    - Handle mouse selection
+    - Handle undo history
+    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
-  - Further textField improvements
-    - Handle mouse selection
-    - Handle undo history
-    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Create Slider
   - Create Dial
   - Create Split

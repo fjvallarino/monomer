@@ -78,7 +78,13 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree7 where
+  widgetTree7 = zstack [
+      widgetTree6,
+      hstack_ [
+        textField textField1 `style` [bgColor darkPink, textLeft, width 100]
+      ] [ignoreEmptyClick True]
+    ]
   widgetTree6 = vstack [
       textField textField1 `style` [bgColor orange, textLeft],
       textField textField1 `style` [bgColor red, textLeft],

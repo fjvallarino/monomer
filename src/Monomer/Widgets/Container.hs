@@ -18,9 +18,11 @@ module Monomer.Widgets.Container (
   handleEventWrapper,
   handleMessageWrapper,
   updateSizeReqWrapper,
+  findByPointWrapper,
   findNextFocusWrapper,
   resizeWrapper,
   renderWrapper,
+  defaultFindByPoint,
   defaultRender
 ) where
 
@@ -144,7 +146,7 @@ createContainer Container{..} = Widget {
   widgetDispose = disposeWrapper containerDispose,
   widgetGetState = containerGetState,
   widgetFindNextFocus = findNextFocusWrapper containerFindNextFocus,
-  widgetFindByPoint = findByPointWrapper containerFindByPoint,
+  widgetFindByPoint = findByPointWrapper False containerFindByPoint,
   widgetHandleEvent = handleEventWrapper containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
@@ -157,7 +159,6 @@ createThemed
   -> (WidgetEnv s e -> WidgetInstance s e)
   -> WidgetInstance s e
 createThemed widgetType factory = newInst where
-  --themedInit wenv inst = resultWidget $ factory wenv
   createInst wenv inst = resultWidget themedInst where
     tempInst = factory wenv
     themedInst = inst {
@@ -328,17 +329,18 @@ defaultFindByPoint wenv startPath point widgetInst = result where
   result = Seq.findIndexL pointInWidget children
 
 findByPointWrapper
-  :: ContainerFindByPointHandler s e
+  :: Bool
+  -> ContainerFindByPointHandler s e
   -> WidgetEnv s e
   -> Path
   -> Point
   -> WidgetInstance s e
   -> Maybe Path
-findByPointWrapper handler wenv startPath point widgetInst = result where
+findByPointWrapper ignoreEmptyClick handler wenv start point widgetInst = result where
   children = _wiChildren widgetInst
-  newStartPath = Seq.drop 1 startPath
+  newStartPath = Seq.drop 1 start
   childIdx = case newStartPath of
-    Empty -> handler wenv startPath point widgetInst
+    Empty -> handler wenv start point widgetInst
     p :<| ps -> Just p
   validateIdx p
     | Seq.length children > p = Just p
@@ -348,7 +350,9 @@ findByPointWrapper handler wenv startPath point widgetInst = result where
       childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx
       childWidget = _wiWidget child
-    Nothing -> Just $ _wiPath widgetInst
+    Nothing
+      | ignoreEmptyClick -> Nothing
+      | otherwise -> Just $ _wiPath widgetInst
   result
     | _wiVisible widgetInst = resultPath
     | otherwise = Nothing

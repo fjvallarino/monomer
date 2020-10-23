@@ -2,6 +2,7 @@ module Monomer.Widgets.ZStack where
 
 import Control.Monad (forM_, when)
 import Data.Default
+import Data.Maybe
 import Data.List (foldl')
 import Data.Sequence (Seq(..), (<|), (|>))
 
@@ -14,21 +15,36 @@ zstack children = (defaultWidgetInstance "zstack" (makeZStack False)) {
   _wiChildren = Seq.reverse $ foldl' (|>) Empty children
 }
 
+findFirstByPoint :: Seq (WidgetInstance s e) -> WidgetEnv s e -> Seq PathStep -> Point -> Maybe Path
+findFirstByPoint Empty _ _ _ = Nothing
+findFirstByPoint (ch :<| chs) wenv startPath point = result where
+  isVisible = _wiVisible ch
+  newPath = widgetFindByPoint (_wiWidget ch) wenv startPath point ch
+  result
+    | isVisible && isJust newPath = newPath
+    | otherwise = findFirstByPoint chs wenv startPath point
+
 makeZStack :: Bool -> Widget s e
 makeZStack isHorizontal = widget where
   baseWidget = createContainer def {
-    containerFindNextFocus = findNextFocus,
+--    containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
   widget = baseWidget {
+    widgetFindByPoint = findByPoint,
     widgetRender = render
   }
+
+  -- | Find instance matching point
+  findByPoint wenv startPath point widgetInst = result where
+    children = _wiChildren widgetInst
+    result = findFirstByPoint children wenv startPath point
 
   findNextFocus wenv direction start inst = result where
     children = _wiChildren inst
     vchildren = Seq.filter _wiVisible children
-    result = Seq.take 1 vchildren
+    result = vchildren -- Seq.take 1 vchildren
 
   getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children

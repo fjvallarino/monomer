@@ -18,6 +18,9 @@ class WindowSize t s | t -> s where
 class ValidInput t s where
   validInput :: ALens' s Bool -> t
 
+class SelectOnFocus t where
+  selectOnFocus :: Bool -> t
+
 -- Caption
 class AcceptCaption t where
   acceptCaption :: Text -> t
@@ -27,6 +30,17 @@ class CancelCaption t where
 
 class CloseCaption t where
   closeCaption :: Text -> t
+
+-- Numeric
+class Num a => MinValue t a | t -> a where
+  minValue :: a -> t
+
+class Num a => MaxValue t a | t -> a where
+  maxValue :: a -> t
+
+-- Container
+class IgnoreEmptyClick t where
+  ignoreEmptyClick :: Bool -> t
 
 -- Text
 class Decimals t where
@@ -41,9 +55,6 @@ class OnTextOverflow t where
 
 class SelectOnBlur t where
   selectOnBlur :: Bool -> t
-
-class SelectOnFocus t where
-  selectOnFocus :: Bool -> t
 
 -- Text style
 class TextFont t where
@@ -72,13 +83,6 @@ class TextMiddle t where
 
 class TextBottom t where
   textBottom :: t
-
--- Numeric
-class Num a => MinValue t a | t -> a where
-  minValue :: a -> t
-
-class Num a => MaxValue t a | t -> a where
-  maxValue :: a -> t
 
 -- Events
 class OnBlur t e | t -> e  where
