@@ -300,16 +300,25 @@ findNextFocusWrapper handler wenv direction start widgetInst = nextFocus where
   children
     | direction == FocusBwd = Seq.reverse handlerResult
     | otherwise = handlerResult
-  isWidgetAfterStart ch
-    | direction == FocusBwd = isWidgetBeforePath start ch
-    | otherwise = isWidgetParentOfPath start ch || isWidgetAfterPath start ch
-  findCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv direction start ch
-  filtered = Seq.filter isWidgetAfterStart children
-  candidates = fmap findCandidate filtered
-  focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus
     | isFocusCandidate direction start widgetInst = Just (_wiPath widgetInst)
-    | otherwise = Seq.lookup 0 focusedPaths
+    | otherwise = findFocusCandidate children wenv direction start
+
+findFocusCandidate
+  :: Seq (WidgetInstance s e)
+  -> WidgetEnv s e
+  -> FocusDirection
+  -> Path
+  -> Maybe Path
+findFocusCandidate Empty _ _ _ = Nothing
+findFocusCandidate (ch :<| chs) wenv dir start = result where
+  isWidgetAfterStart
+    | dir == FocusBwd = isWidgetBeforePath start ch
+    | otherwise = isWidgetParentOfPath start ch || isWidgetAfterPath start ch
+  candidate = widgetFindNextFocus (_wiWidget ch) wenv dir start ch
+  result
+    | isWidgetAfterStart && isJust candidate = candidate
+    | otherwise = findFocusCandidate chs wenv dir start
 
 -- | Find instance matching point
 defaultFindByPoint :: ContainerFindByPointHandler s e
