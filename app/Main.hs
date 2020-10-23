@@ -81,9 +81,9 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree7 where
   widgetTree7 = zstack [
       widgetTree6,
-      hstack_ [
+      hstack [
         textField textField1 `style` [bgColor darkPink, textLeft, width 100]
-      ] [ignoreEmptyClick True]
+      ] -- [ignoreEmptyClick True]
     ]
   widgetTree6 = vstack [
       textField textField1 `style` [bgColor orange, textLeft],

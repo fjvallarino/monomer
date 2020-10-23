@@ -258,6 +258,7 @@ Maybe postponed after release?
   - Handle onBlur/onFocus in all focusable widgets
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
+    - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history

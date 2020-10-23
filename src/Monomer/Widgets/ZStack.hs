@@ -1,5 +1,10 @@
-module Monomer.Widgets.ZStack where
+module Monomer.Widgets.ZStack (
+  zstack,
+  zstack_,
+  onlyTopFocusable
+) where
 
+import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
@@ -10,24 +15,44 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
 
+newtype ZStackCfg = ZStackCfg {
+  _zscOnlyTopFocusable :: Maybe Bool
+}
+
+instance Default ZStackCfg where
+  def = ZStackCfg Nothing
+
+instance Semigroup ZStackCfg where
+  (<>) z1 z2 = ZStackCfg {
+    _zscOnlyTopFocusable = _zscOnlyTopFocusable z2 <|> _zscOnlyTopFocusable z1
+  }
+
+instance Monoid ZStackCfg where
+  mempty = def
+
+onlyTopFocusable :: Bool -> ZStackCfg
+onlyTopFocusable onlyTop = def {
+  _zscOnlyTopFocusable = Just onlyTop
+}
+
 zstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
-zstack children = (defaultWidgetInstance "zstack" (makeZStack False)) {
+zstack children = zstack_ children def
+
+zstack_
+  :: (Traversable t)
+  => t (WidgetInstance s e)
+  -> [ZStackCfg]
+  -> WidgetInstance s e
+zstack_ children configs = newInst where
+  config = mconcat configs
+  newInst = (defaultWidgetInstance "zstack" (makeZStack config)) {
   _wiChildren = Seq.reverse $ foldl' (|>) Empty children
 }
 
-findFirstByPoint :: Seq (WidgetInstance s e) -> WidgetEnv s e -> Seq PathStep -> Point -> Maybe Path
-findFirstByPoint Empty _ _ _ = Nothing
-findFirstByPoint (ch :<| chs) wenv startPath point = result where
-  isVisible = _wiVisible ch
-  newPath = widgetFindByPoint (_wiWidget ch) wenv startPath point ch
-  result
-    | isVisible && isJust newPath = newPath
-    | otherwise = findFirstByPoint chs wenv startPath point
-
-makeZStack :: Bool -> Widget s e
-makeZStack isHorizontal = widget where
+makeZStack :: ZStackCfg -> Widget s e
+makeZStack config = widget where
   baseWidget = createContainer def {
---    containerFindNextFocus = findNextFocus,
+    containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
@@ -42,9 +67,12 @@ makeZStack isHorizontal = widget where
     result = findFirstByPoint children wenv startPath point
 
   findNextFocus wenv direction start inst = result where
+    onlyTop = fromMaybe True (_zscOnlyTopFocusable config)
     children = _wiChildren inst
     vchildren = Seq.filter _wiVisible children
-    result = vchildren -- Seq.take 1 vchildren
+    result
+      | onlyTop = Seq.take 1 vchildren
+      | otherwise = vchildren
 
   getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
@@ -62,10 +90,10 @@ makeZStack isHorizontal = widget where
       | Seq.null vreqsH = 0
       | otherwise = maximum $ fmap getMaxSizeReq vreqsH
     newSizeReqW
-      | not isHorizontal && fixedW = FixedSize width
+      | fixedW = FixedSize width
       | otherwise = FlexSize width factor
     newSizeReqH
-      | isHorizontal && fixedH = FixedSize height
+      | fixedH = FixedSize height
       | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children inst = resized where
@@ -83,3 +111,17 @@ makeZStack isHorizontal = widget where
       viewport = _wiViewport inst
       renderArea = _wiRenderArea inst
       isVisible c = _wiVisible c
+
+findFirstByPoint
+  :: Seq (WidgetInstance s e)
+  -> WidgetEnv s e
+  -> Seq PathStep
+  -> Point
+  -> Maybe Path
+findFirstByPoint Empty _ _ _ = Nothing
+findFirstByPoint (ch :<| chs) wenv startPath point = result where
+  isVisible = _wiVisible ch
+  newPath = widgetFindByPoint (_wiWidget ch) wenv startPath point ch
+  result
+    | isVisible && isJust newPath = newPath
+    | otherwise = findFirstByPoint chs wenv startPath point
