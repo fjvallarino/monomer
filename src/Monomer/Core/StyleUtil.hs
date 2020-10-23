@@ -39,7 +39,7 @@ infixl 5 `visible`
 infixl 5 `disabled`
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
-key widgetInst key = widgetInst & L.key ?~ WidgetKey key
+key inst key = inst & L.key ?~ WidgetKey key
 
 style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
 style inst states = inst & L.style .~ newStyle where
@@ -66,7 +66,7 @@ disabled inst states = inst & L.style .~ newStyle where
   newStyle = oldStyle & L.disabled ?~ state
 
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
-visible widgetInst visibility = widgetInst & L.visible .~ visibility
+visible inst visibility = inst & L.visible .~ visibility
 
 styleFont :: StyleState -> Font
 styleFont style = fromMaybe def font where

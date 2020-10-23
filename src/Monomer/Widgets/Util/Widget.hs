@@ -28,7 +28,7 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
 }
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isFocused wenv widgetInst = _weFocusedPath wenv == _wiPath widgetInst
+isFocused wenv inst = _weFocusedPath wenv == _wiPath inst
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value
@@ -40,20 +40,20 @@ widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
 resultWidget :: WidgetInstance s e -> WidgetResult s e
-resultWidget widgetInst = WidgetResult Seq.empty Seq.empty widgetInst
+resultWidget inst = WidgetResult Seq.empty Seq.empty inst
 
 resultEvents :: [e] -> WidgetInstance s e -> WidgetResult s e
-resultEvents events widgetInst = result where
-  result = WidgetResult Seq.empty (Seq.fromList events) widgetInst
+resultEvents events inst = result where
+  result = WidgetResult Seq.empty (Seq.fromList events) inst
 
 resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
-resultReqs requests widgetInst = result where
-  result = WidgetResult (Seq.fromList requests) Seq.empty widgetInst
+resultReqs requests inst = result where
+  result = WidgetResult (Seq.fromList requests) Seq.empty inst
 
 resultReqsEvents
   :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
-resultReqsEvents requests events widgetInst = result where
-  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) widgetInst
+resultReqsEvents requests events inst = result where
+  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) inst
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)

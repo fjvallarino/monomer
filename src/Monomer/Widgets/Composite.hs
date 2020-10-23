@@ -460,11 +460,11 @@ collectGlobalKeys
   :: Map WidgetKey (WidgetInstance s e)
   -> WidgetInstance s e
   -> Map WidgetKey (WidgetInstance s e)
-collectGlobalKeys keys widgetInst = foldl' collect updatedMap children where
-  children = _wiChildren widgetInst
+collectGlobalKeys keys inst = foldl' collect updatedMap children where
+  children = _wiChildren inst
   collect currKeys child = collectGlobalKeys currKeys child
-  updatedMap = case _wiKey widgetInst of
-    Just key -> M.insert key widgetInst keys
+  updatedMap = case _wiKey inst of
+    Just key -> M.insert key inst keys
     _ -> keys
 
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e

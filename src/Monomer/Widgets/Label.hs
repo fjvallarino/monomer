@@ -62,33 +62,33 @@ makeLabel config state = widget where
   textOverflow = fromMaybe Ellipsis (_lscTextOverflow config)
   LabelState caption captionFit = state
 
-  merge wenv oldState widgetInst = resultWidget newInstance where
+  merge wenv oldState inst = resultWidget newInstance where
     newState = fromMaybe state (useState oldState)
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeLabel config newState
     }
 
-  getSizeReq wenv widgetInst = sizeReq where
-    style = instanceStyle wenv widgetInst
+  getSizeReq wenv inst = sizeReq where
+    style = instanceStyle wenv inst
     Size w h = getTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
-  resize wenv viewport renderArea widgetInst = newInst where
-    style = instanceStyle wenv widgetInst
+  resize wenv viewport renderArea inst = newInst where
+    style = instanceStyle wenv inst
     (newCaptionFit, _) = case textOverflow of
       Ellipsis -> fitText wenv style renderArea caption
       _ -> (caption, def)
     newWidget
-      | captionFit == newCaptionFit = _wiWidget widgetInst
+      | captionFit == newCaptionFit = _wiWidget inst
       | otherwise = makeLabel config (LabelState caption newCaptionFit)
-    newInst = widgetInst {
+    newInst = inst {
       _wiWidget = newWidget
     }
 
-  render renderer wenv widgetInst =
+  render renderer wenv inst =
     drawInScissor renderer True contentRect $
       drawStyledText_ renderer contentRect style captionFit
     where
-      style = instanceStyle wenv widgetInst
-      contentRect = getContentRect style widgetInst
+      style = instanceStyle wenv inst
+      contentRect = getContentRect style inst

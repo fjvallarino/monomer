@@ -37,8 +37,8 @@ makeZStack isHorizontal = widget where
   }
 
   -- | Find instance matching point
-  findByPoint wenv startPath point widgetInst = result where
-    children = _wiChildren widgetInst
+  findByPoint wenv startPath point inst = result where
+    children = _wiChildren inst
     result = findFirstByPoint children wenv startPath point
 
   findNextFocus wenv direction start inst = result where
@@ -46,7 +46,7 @@ makeZStack isHorizontal = widget where
     vchildren = Seq.filter _wiVisible children
     result = vchildren -- Seq.take 1 vchildren
 
-  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
@@ -68,18 +68,18 @@ makeZStack isHorizontal = widget where
       | isHorizontal && fixedH = FixedSize height
       | otherwise = FlexSize height factor
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     assignedAreas = fmap (const (viewport, renderArea)) children
-    resized = (widgetInst, assignedAreas)
+    resized = (inst, assignedAreas)
 
-  render renderer wenv widgetInst =
+  render renderer wenv inst =
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \_ ->
         forM_ children $ \child -> when (isVisible child) $
           widgetRender (_wiWidget child) renderer wenv child
     where
-      style = instanceStyle wenv widgetInst
-      children = Seq.reverse $ _wiChildren widgetInst
-      viewport = _wiViewport widgetInst
-      renderArea = _wiRenderArea widgetInst
+      style = instanceStyle wenv inst
+      children = Seq.reverse $ _wiChildren inst
+      viewport = _wiViewport inst
+      renderArea = _wiRenderArea inst
       isVisible c = _wiVisible c

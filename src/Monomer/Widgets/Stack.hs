@@ -76,7 +76,7 @@ makeStack isHorizontal config = widget where
   ignoreEmptyClick = _stcIgnoreEmptyClick config == Just True
   isVertical = not isHorizontal
 
-  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
@@ -106,7 +106,7 @@ makeStack isHorizontal config = widget where
       | Seq.null fixedH = FlexSize (sum flexH) factH
       | otherwise = rangeOrFixed (sum fixedH) tsumH factH
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     Rect l t w h = renderArea
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then l else t
@@ -126,7 +126,7 @@ makeStack isHorizontal config = widget where
       newSize = resizeChild renderArea fExtra offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
-    resized = (widgetInst, assignedArea)
+    resized = (inst, assignedArea)
 
   resizeChild renderArea fExtra offset child = result where
     Rect l t w h = renderArea

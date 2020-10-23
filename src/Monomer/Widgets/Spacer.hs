@@ -61,7 +61,7 @@ makeSpacer config = widget where
     singleGetSizeReq = getSizeReq
   }
 
-  getSizeReq wenv widgetInst = sizeReq where
+  getSizeReq wenv inst = sizeReq where
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)

@@ -28,7 +28,7 @@ makeFixedGrid isHorizontal = widget where
     containerResize = resize
   }
 
-  getSizeReq wenv widgetInst children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
@@ -56,7 +56,7 @@ makeFixedGrid isHorizontal = widget where
       | isHorizontal && fixedH = FixedSize height
       | otherwise = FlexSize height factor
 
-  resize wenv viewport renderArea children widgetInst = resized where
+  resize wenv viewport renderArea children inst = resized where
     Rect l t w h = renderArea
     vchildren = Seq.filter _wiVisible children
     cols = if isHorizontal then length vchildren else 1
@@ -77,4 +77,4 @@ makeFixedGrid isHorizontal = widget where
       newAreas = currAreas |> newArea
     calcViewport i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) vchildren
-    resized = (widgetInst, assignedAreas)
+    resized = (inst, assignedAreas)

@@ -81,38 +81,38 @@ makeButton config state = widget where
   textOverflow = fromMaybe Ellipsis (_btnTextOverflow config)
   BtnState caption captionFit = state
 
-  handleEvent wenv ctx evt widgetInst = case evt of
+  handleEvent wenv ctx evt inst = case evt of
     Click p _
-      | pointInViewport p widgetInst -> Just result
+      | pointInViewport p inst -> Just result
       where
         requests = _btnOnClickReq config
         events = _btnOnClick config
-        result = resultReqsEvents requests events widgetInst
+        result = resultReqsEvents requests events inst
     _ -> Nothing
 
-  getSizeReq wenv widgetInst = sizeReq where
-    style = instanceStyle wenv widgetInst
+  getSizeReq wenv inst = sizeReq where
+    style = instanceStyle wenv inst
     Size w h = getTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
-  resize wenv viewport renderArea widgetInst = newInst where
-    style = instanceStyle wenv widgetInst
+  resize wenv viewport renderArea inst = newInst where
+    style = instanceStyle wenv inst
     size = getTextSize wenv style caption
     (newCaptionFit, _) = case textOverflow of
       Ellipsis -> fitText wenv style renderArea caption
       _ -> (caption, def)
     newWidget
-      | captionFit == newCaptionFit = _wiWidget widgetInst
+      | captionFit == newCaptionFit = _wiWidget inst
       | otherwise = makeButton config (BtnState caption newCaptionFit)
-    newInst = widgetInst {
+    newInst = inst {
       _wiWidget = newWidget
     }
 
-  render renderer wenv widgetInst = do
+  render renderer wenv inst = do
     setScissor renderer contentRect
     drawStyledText_ renderer contentRect style captionFit
     resetScissor renderer
     where
-      style = instanceStyle wenv widgetInst
-      contentRect = getContentRect style widgetInst
+      style = instanceStyle wenv inst
+      contentRect = getContentRect style inst

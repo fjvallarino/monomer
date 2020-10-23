@@ -150,13 +150,13 @@ makeScroll config state = widget where
   ScrollState dragging dx dy cs = state
   Size childWidth childHeight = cs
 
-  merge wenv oldState widgetInst = resultWidget newInstance where
+  merge wenv oldState inst = resultWidget newInstance where
     newState = fromMaybe state (useState oldState)
-    newInstance = widgetInst {
+    newInstance = inst {
       _wiWidget = makeScroll config newState
     }
 
-  handleEvent wenv target evt widgetInst = case evt of
+  handleEvent wenv target evt inst = case evt of
     ButtonAction point btn status -> result where
       leftPressed = status == PressedBtn && btn == LeftBtn
       btnReleased = status == ReleasedBtn
@@ -171,7 +171,7 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point renderArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newInstance = widgetInst {
+      newInstance = inst {
         _wiWidget = makeScroll config newState
       }
       handledResult = Just $ resultReqs scrollReqs newInstance
@@ -182,20 +182,20 @@ makeScroll config state = widget where
         | otherwise = Nothing
     Click point btn -> result where
       isDragging = isJust $ _sstDragging state
-      handledResult = Just $ resultReqs scrollReqs widgetInst
+      handledResult = Just $ resultReqs scrollReqs inst
       result
         | hMouseInScroll || vMouseInScroll || isDragging = handledResult
         | otherwise = Nothing
     Move point -> result where
       drag bar = updateScrollThumb state bar point renderArea sctx
-      makeWidget state = rebuildWidget wenv state widgetInst
+      makeWidget state = rebuildWidget wenv state inst
       makeResult state = resultReqs scrollReqs (makeWidget state)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > rw
       changedY = wy /= 0 && childHeight > rh
       needsUpdate = changedX || changedY
-      makeWidget state = rebuildWidget wenv state widgetInst
+      makeWidget state = rebuildWidget wenv state inst
       makeResult state = resultReqs scrollReqs (makeWidget state)
       result
         | needsUpdate = Just $ makeResult newState
@@ -212,8 +212,8 @@ makeScroll config state = widget where
       }
     _ -> Nothing
     where
-      renderArea = _wiRenderArea widgetInst
-      Rect rx ry rw rh = _wiRenderArea widgetInst
+      renderArea = _wiRenderArea inst
+      Rect rx ry rw rh = _wiRenderArea inst
       sctx@ScrollContext{..} = scrollStatus config wenv state renderArea
       scrollReqs = [IgnoreChildrenEvents, IgnoreParentEvents]
 
@@ -224,12 +224,12 @@ makeScroll config state = widget where
     where
       maxDelta = max 0 (childLength - vpLength)
 
-  handleMessage wenv ctx message widgetInst = result where
-    handleScrollMessage (ScrollTo rect) = scrollTo wenv widgetInst rect
+  handleMessage wenv ctx message inst = result where
+    handleScrollMessage (ScrollTo rect) = scrollTo wenv inst rect
     result = cast message >>= handleScrollMessage
 
-  scrollTo wenv widgetInst rect = result where
-    renderArea = _wiRenderArea widgetInst
+  scrollTo wenv inst rect = result where
+    renderArea = _wiRenderArea inst
     Rect rx ry rw rh = rect
     Rect vx vy vw vh = renderArea
     diffL = vx - rx
@@ -248,7 +248,7 @@ makeScroll config state = widget where
       _sstDeltaX = scrollAxis stepX childWidth vw,
       _sstDeltaY = scrollAxis stepY childHeight vh
     }
-    newInstance = rebuildWidget wenv newState widgetInst
+    newInstance = rebuildWidget wenv newState inst
     result
       | rectInRect rect renderArea = Nothing
       | otherwise = Just $ resultWidget newInstance
@@ -272,14 +272,14 @@ makeScroll config state = widget where
       _sstDeltaY = newDeltaY
     }
 
-  rebuildWidget wenv newState widgetInst = newInst where
+  rebuildWidget wenv newState inst = newInst where
     newWidget = makeScroll config newState
-    tempInst = widgetInst { _wiWidget = newWidget }
+    tempInst = inst { _wiWidget = newWidget }
     vp = _wiViewport tempInst
     ra = _wiRenderArea tempInst
     newInst = scrollResize (Just newWidget) newState wenv vp ra tempInst
 
-  getSizeReq wenv widgetInst children = sizeReq where
+  getSizeReq wenv inst children = sizeReq where
     child = Seq.index children 0
     w = getMinSizeReq $ _wiSizeReqW child
     h = getMinSizeReq $ _wiSizeReqH child
@@ -287,12 +287,12 @@ makeScroll config state = widget where
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
-  scrollResize uWidget state wenv viewport renderArea widgetInst = newInst where
+  scrollResize uWidget state wenv viewport renderArea inst = newInst where
     Rect l t w h = renderArea
     dx = _sstDeltaX state
     dy = _sstDeltaY state
 
-    child = Seq.index (_wiChildren widgetInst) 0
+    child = Seq.index (_wiChildren inst) 0
     childWidth2 = getMinSizeReq $ _wiSizeReqW child
     childHeight2 = getMinSizeReq $ _wiSizeReqH child
 
@@ -313,16 +313,16 @@ makeScroll config state = widget where
       _wiRenderArea = cRenderArea
     }
 
-    newInst = widgetInst {
+    newInst = inst {
       _wiViewport = viewport,
       _wiRenderArea = renderArea,
       _wiWidget = newWidget,
       _wiChildren = Seq.singleton newChild
     }
 
-  render renderer wenv widgetInst = do
+  render renderer wenv inst = do
     drawInScissor renderer True viewport $
-      renderWrapper defaultRender renderer wenv widgetInst
+      renderWrapper defaultRender renderer wenv inst
 
     when hScrollRequired $
       drawRect renderer hScrollRect barColorH Nothing
@@ -337,9 +337,9 @@ makeScroll config state = widget where
       drawRect renderer vThumbRect thumbColorV Nothing
 
     where
-      theme = activeTheme wenv widgetInst
-      viewport = _wiViewport widgetInst
-      renderArea = _wiRenderArea widgetInst
+      theme = activeTheme wenv inst
+      viewport = _wiViewport inst
+      renderArea = _wiRenderArea inst
       ScrollContext{..} = scrollStatus config wenv state renderArea
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar

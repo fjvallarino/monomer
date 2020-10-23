@@ -132,13 +132,13 @@ createSingle Single{..} = Widget {
 }
 
 defaultInit :: SingleInitHandler s e
-defaultInit _ widgetInst = resultWidget widgetInst
+defaultInit _ inst = resultWidget inst
 
 defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInst = resultWidget newInst
 
 defaultDispose :: SingleDisposeHandler s e
-defaultDispose _ widgetInst = resultWidget widgetInst
+defaultDispose _ inst = resultWidget inst
 
 defaultGetState :: SingleGetStateHandler s e
 defaultGetState _ = Nothing
@@ -158,17 +158,17 @@ mergeWrapper mergeHandler wenv oldInst newInst = result where
   result = mergeHandler wenv oldState tempInst
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
-defaultFindNextFocus wenv direction startFrom widgetInst
-  | isFocusCandidate direction startFrom widgetInst = Just (_wiPath widgetInst)
+defaultFindNextFocus wenv direction startFrom inst
+  | isFocusCandidate direction startFrom inst = Just (_wiPath inst)
   | otherwise = Nothing
 
 defaultFindByPoint :: SingleFindByPointHandler s e
-defaultFindByPoint wenv path point widgetInst
-  | _wiVisible widgetInst = Just (_wiPath widgetInst)
+defaultFindByPoint wenv path point inst
+  | _wiVisible inst = Just (_wiPath inst)
   | otherwise = Nothing
 
 defaultHandleEvent :: SingleEventHandler s e
-defaultHandleEvent wenv target evt widgetInst = Nothing
+defaultHandleEvent wenv target evt inst = Nothing
 
 handleEventWrapper
   :: SingleEventHandler s e
@@ -182,10 +182,10 @@ handleEventWrapper handler wenv target evt inst
   | otherwise = handleStyleChange handler wenv target evt inst
 
 defaultHandleMessage :: SingleMessageHandler s e
-defaultHandleMessage wenv target message widgetInst = Nothing
+defaultHandleMessage wenv target message inst = Nothing
 
 defaultGetSizeReq :: SingleGetSizeReqHandler s e
-defaultGetSizeReq wenv widgetInst = def
+defaultGetSizeReq wenv inst = def
 
 updateSizeReqWrapper
   :: SingleGetSizeReqHandler s e
@@ -202,10 +202,10 @@ updateSizeReqWrapper handler wenv inst = newInst where
   }
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv viewport renderArea widgetInst = widgetInst
+defaultResize wenv viewport renderArea inst = inst
 
 defaultRender :: SingleRenderHandler s e
-defaultRender renderer wenv widgetInst = return ()
+defaultRender renderer wenv inst = return ()
 
 renderWrapper
   :: SingleRenderHandler s e
@@ -213,9 +213,9 @@ renderWrapper
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> IO ()
-renderWrapper rHandler renderer wenv widgetInst =
+renderWrapper rHandler renderer wenv inst =
   drawStyledAction renderer renderArea style $ \_ ->
-    rHandler renderer wenv widgetInst
+    rHandler renderer wenv inst
   where
-    renderArea = _wiRenderArea widgetInst
-    style = instanceStyle wenv widgetInst
+    renderArea = _wiRenderArea inst
+    style = instanceStyle wenv inst
