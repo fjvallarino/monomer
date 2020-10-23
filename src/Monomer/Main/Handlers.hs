@@ -10,7 +10,7 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((&), (%~), (.=), at, use)
+import Control.Lens ((&), (^.), (%~), (.=), at, non, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -99,11 +99,10 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
-      let reqs = _wrRequests widgetResult
-      let stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
 
-      handleWidgetResult wenv widgetResult
-        >>= handleFocusChange event stopProcessing
+      handleWidgetResult wenv widgetResult {
+        _wrRequests = addFocusReq event (_wrRequests widgetResult)
+      }
 
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
@@ -133,21 +132,6 @@ handleWidgetResult
 handleWidgetResult wenv (WidgetResult reqs events evtRoot) =
   handleRequests reqs (wenv, events, evtRoot)
     >>= handleResize reqs
-
-handleFocusChange
-  :: (MonomerM s m)
-  => SystemEvent
-  -> Bool
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleFocusChange systemEvent stopProcessing previousStep
-  | changeRequested = changeFocus direction previousStep
-  | otherwise = return previousStep
-  where
-    changeRequested = not stopProcessing && isKeyPressed systemEvent keyTab
-    direction
-      | isShiftPressed systemEvent = FocusBwd
-      | otherwise = FocusFwd
 
 handleRequests
   :: (MonomerM s m)
@@ -191,16 +175,28 @@ handleResize reqs previousStep =
 
 handleMoveFocus
   :: (MonomerM s m) => FocusDirection -> HandlerStep s e -> m (HandlerStep s e)
-handleMoveFocus direction previousStep =
-  changeFocus direction previousStep
+handleMoveFocus direction  (wenv, events, root) = do
+  oldFocus <- use L.pathFocus
+  overlay <- use L.pathOverlay
+  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus root
+
+  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
+  let tempWenv = wenv1 { _weFocusedPath = newFocus }
+
+  L.pathFocus .= newFocus
+  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
+
+  return (wenv2, events >< events1 >< events2, root2)
 
 handleSetFocus
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
 handleSetFocus newFocus (wenv, events, root) =  do
+  oldFocus <- use L.pathFocus
+  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus root
   L.pathFocus .= newFocus
-  (wenv2, events2, root2) <- handleSystemEvent wenv Focus newFocus root
+  (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 
-  return (wenv2, events >< events2, root2)
+  return (wenv2, events >< events1 >< events2, root2)
 
 handleGetClipboard
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
@@ -303,49 +299,29 @@ handleRunProducer path handler previousStep = do
   L.widgetTasks .= previousTasks |> WidgetProducer path newChannel asyncTask
   return previousStep
 
-changeFocus
-  :: (MonomerM s m)
-  => FocusDirection
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-changeFocus direction (wenv, events, widgetRoot) = do
-  oldFocus <- use L.pathFocus
-  overlay <- use L.pathOverlay
-  (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus widgetRoot
-
-  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
-  let tempWenv = wenv1 {
-    _weFocusedPath = newFocus
-  }
-
-  L.pathFocus .= newFocus
-  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
-
-  return (wenv2, events >< events1 >< events2, root2)
+addFocusReq
+  :: SystemEvent
+  -> Seq (WidgetRequest s)
+  -> Seq (WidgetRequest s)
+addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
+  isTabPressed = isKeyTab code
+  stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
+  focusReqExists = isJust $ Seq.findIndexL isFocusRequest reqs
+  focusReqNeeded = isTabPressed && not stopProcessing && not focusReqExists
+  direction
+    | mod ^. L.leftShift = FocusBwd
+    | otherwise = FocusFwd
+  newReqs
+    | focusReqNeeded = reqs |> MoveFocus direction
+    | otherwise = reqs
+addFocusReq _ reqs = reqs
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
 
-isIgnoreParentEvents :: WidgetRequest s -> Bool
-isIgnoreParentEvents IgnoreParentEvents = True
-isIgnoreParentEvents _ = False
-
 isResize :: WidgetRequest s -> Bool
 isResize Resize = True
 isResize _ = False
-
-isProducerHandler :: WidgetRequest s -> Bool
-isProducerHandler RunProducer{} = True
-isProducerHandler _ = False
-
-isTaskHandler :: WidgetRequest s -> Bool
-isTaskHandler RunTask{} = True
-isTaskHandler _ = False
-
-getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
-getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
-  foldHelper acc (UpdateModel fn) = acc |> fn
-  foldHelper acc _ = acc
 
 cursorToSDL :: CursorIcon -> SDLE.SystemCursor
 cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW
@@ -356,3 +332,12 @@ cursorToSDL CursorSizeH = SDLE.SDL_SYSTEM_CURSOR_SIZEWE
 cursorToSDL CursorSizeV = SDLE.SDL_SYSTEM_CURSOR_SIZENS
 cursorToSDL CursorDiagTL = SDLE.SDL_SYSTEM_CURSOR_SIZENWSE
 cursorToSDL CursorDiagTR = SDLE.SDL_SYSTEM_CURSOR_SIZENESW
+
+isFocusRequest :: WidgetRequest s -> Bool
+isFocusRequest MoveFocus{} = True
+isFocusRequest SetFocus{} = True
+isFocusRequest _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False

@@ -298,14 +298,14 @@ findNextFocusWrapper
 findNextFocusWrapper handler wenv direction start widgetInst = nextFocus where
   handlerResult = handler wenv direction start widgetInst
   children
-    | direction == FocusFwd = handlerResult
-    | otherwise = Seq.reverse handlerResult
-  isBeforeTarget ch
-    | direction == FocusFwd = isTargetBeforeWidget start ch
-    | otherwise = isTargetAfterWidget start ch
-  nextCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv direction start ch
-  filtered = Seq.filter isBeforeTarget children
-  candidates = fmap nextCandidate filtered
+    | direction == FocusBwd = Seq.reverse handlerResult
+    | otherwise = handlerResult
+  isWidgetAfterStart ch
+    | direction == FocusBwd = isWidgetBeforePath start ch
+    | otherwise = isWidgetParentOfPath start ch || isWidgetAfterPath start ch
+  findCandidate ch = widgetFindNextFocus (_wiWidget ch) wenv direction start ch
+  filtered = Seq.filter isWidgetAfterStart children
+  candidates = fmap findCandidate filtered
   focusedPaths = fmap fromJust (Seq.filter isJust candidates)
   nextFocus
     | isFocusCandidate direction start widgetInst = Just (_wiPath widgetInst)
@@ -532,11 +532,3 @@ cascadeCtx parent child idx = newChild where
     _wiVisible = _wiVisible child && parentVisible,
     _wiEnabled = _wiEnabled child && parentEnabled
   }
-
-isIgnoreChildrenEvents :: WidgetRequest s -> Bool
-isIgnoreChildrenEvents IgnoreChildrenEvents = True
-isIgnoreChildrenEvents _ = False
-
-isIgnoreParentEvents :: WidgetRequest s -> Bool
-isIgnoreParentEvents IgnoreParentEvents = True
-isIgnoreParentEvents _ = False

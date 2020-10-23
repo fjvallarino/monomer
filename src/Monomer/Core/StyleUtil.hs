@@ -1,4 +1,10 @@
 module Monomer.Core.StyleUtil (
+  key,
+  style,
+  hover,
+  focus,
+  visible,
+  disabled,
   styleFont,
   styleFontSize,
   styleFontColor,
@@ -13,15 +19,54 @@ module Monomer.Core.StyleUtil (
   subtractMargin
 ) where
 
-import Control.Lens ((^.), (^?), _Just)
+import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just)
 import Data.Default
 import Data.Maybe
+import Data.Text (Text)
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
+import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
-import qualified Monomer.Core.Lens as L
+import qualified Monomer.Lens as L
+
+infixl 5 `key`
+infixl 5 `style`
+infixl 5 `hover`
+infixl 5 `focus`
+infixl 5 `visible`
+infixl 5 `disabled`
+
+key :: WidgetInstance s e -> Text -> WidgetInstance s e
+key widgetInst key = widgetInst & L.key ?~ WidgetKey key
+
+style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+style inst states = inst & L.style .~ newStyle where
+  state = mconcat states
+  oldStyle = inst ^. L.style
+  newStyle = oldStyle & L.basic ?~ state
+
+hover :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+hover inst states = inst & L.style .~ newStyle where
+  state = mconcat states
+  oldStyle = inst ^. L.style
+  newStyle = oldStyle & L.hover ?~ state
+
+focus :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+focus inst states = inst & L.style .~ newStyle where
+  state = mconcat states
+  oldStyle = inst ^. L.style
+  newStyle = oldStyle & L.focus ?~ state
+
+disabled :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
+disabled inst states = inst & L.style .~ newStyle where
+  state = mconcat states
+  oldStyle = inst ^. L.style
+  newStyle = oldStyle & L.disabled ?~ state
+
+visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
+visible widgetInst visibility = widgetInst & L.visible .~ visibility
 
 styleFont :: StyleState -> Font
 styleFont style = fromMaybe def font where

@@ -250,7 +250,7 @@ makeListView widgetData items makeRow config state = widget where
   handleEvent wenv target evt inst = case evt of
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
-      changeReq = isTabPressed && fromMaybe False (_lvcSelectedOnBlur config)
+      changeReq = isTabPressed && Just True == _lvcSelectedOnBlur config
       WidgetResult tempReqs tempEvts tempInst
         | changeReq = selectItem wenv inst (_highlighted state)
         | otherwise = resultWidget inst

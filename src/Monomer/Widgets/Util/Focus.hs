@@ -24,17 +24,17 @@ isFocusCandidate FocusBwd = isFocusBwdCandidate
 
 isFocusFwdCandidate :: Path -> WidgetInstance s e -> Bool
 isFocusFwdCandidate startFrom widgetInst = isValid where
-  isBefore = isTargetBeforeWidget startFrom widgetInst
-  isFocusable = _wiFocusable widgetInst
-  isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
-  isValid = isBefore && isFocusable && isEnabled
-
-isFocusBwdCandidate :: Path -> WidgetInstance s e -> Bool
-isFocusBwdCandidate startFrom widgetInst = isValid where
-  isAfter = isTargetAfterWidget startFrom widgetInst
+  isAfter = isWidgetAfterPath startFrom widgetInst
   isFocusable = _wiFocusable widgetInst
   isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
   isValid = isAfter && isFocusable && isEnabled
+
+isFocusBwdCandidate :: Path -> WidgetInstance s e -> Bool
+isFocusBwdCandidate startFrom widgetInst = isValid where
+  isBefore = isWidgetBeforePath startFrom widgetInst
+  isFocusable = _wiFocusable widgetInst
+  isEnabled = _wiVisible widgetInst && _wiEnabled widgetInst
+  isValid = isBefore && isFocusable && isEnabled
 
 isTargetReached :: Path -> WidgetInstance s e -> Bool
 isTargetReached target widgetInst = target == _wiPath widgetInst
@@ -46,19 +46,26 @@ isTargetValid target widgetInst = valid where
     Just step -> step < Seq.length children
     Nothing -> False
 
-isTargetBeforeWidget :: Path -> WidgetInstance s e -> Bool
-isTargetBeforeWidget target widgetInst = result where
-  currentPath = _wiPath widgetInst
-  lenTarget = Seq.length target
-  lenCurrent = Seq.length currentPath
-  targetPrefix = Seq.take lenCurrent target
-  result
-    | lenTarget > lenCurrent = targetPrefix <= currentPath
-    | otherwise = target < currentPath
+isWidgetParentOfPath :: Path -> WidgetInstance s e -> Bool
+isWidgetParentOfPath path widgetInst = result where
+  widgetPath = _wiPath widgetInst
+  lenWidgetPath = Seq.length widgetPath
+  pathPrefix = Seq.take lenWidgetPath path
+  result = widgetPath == pathPrefix
 
-isTargetAfterWidget :: Path -> WidgetInstance s e -> Bool
-isTargetAfterWidget target widgetInst
-  | target == rootPath = True
-  | otherwise = target > currentPath
-  where
-    currentPath = _wiPath widgetInst
+isWidgetAfterPath :: Path -> WidgetInstance s e -> Bool
+isWidgetAfterPath path widgetInst = result where
+  widgetPath = _wiPath widgetInst
+  lenPath = Seq.length path
+  lenWidgetPath = Seq.length widgetPath
+  widgetPathPrefix = Seq.take lenPath widgetPath
+  result
+    | lenWidgetPath > lenPath = path <= widgetPathPrefix
+    | otherwise = path < widgetPath
+
+isWidgetBeforePath :: Path -> WidgetInstance s e -> Bool
+isWidgetBeforePath path widgetInst = result where
+  widgetPath = _wiPath widgetInst
+  result
+    | path == rootPath = True
+    | otherwise = path > widgetPath

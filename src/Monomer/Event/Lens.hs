@@ -9,3 +9,4 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Monomer.Event.Types
 
 makeLensesWith abbreviatedFields ''InputStatus
+makeLensesWith abbreviatedFields ''KeyMod

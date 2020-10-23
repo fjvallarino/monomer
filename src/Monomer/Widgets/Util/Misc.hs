@@ -1,11 +1,14 @@
 module Monomer.Widgets.Util.Misc where
 
+import Control.Lens ((^.))
 import Data.Maybe (fromMaybe)
 
 import qualified Data.Map as M
 
 import Monomer.Core
 import Monomer.Event
+
+import qualified Monomer.Lens as L
 
 pointInViewport :: Point -> WidgetInstance s e -> Bool
 pointInViewport p inst = pointInRect p (_wiViewport inst)
@@ -27,6 +30,14 @@ isClipboardCopy wenv event = checkKeyboard event testFn where
 isClipboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
 isClipboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
+
+isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False
 
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOS wenv == "Mac OS X"
