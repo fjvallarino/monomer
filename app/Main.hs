@@ -81,7 +81,8 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree7 where
   wid = checkbox condition1 `style` [fgColor yellow, bgColor orange]
   widgetTree7 = hstack [
-      checkbox condition1 `style` [fgColor yellow, bgColor orange]
+      checkbox condition1 `style` [fgColor yellow, bgColor orange],
+      radio fruit Apple `style` [fgColor brown, bgColor yellow]
       --,
       --checkbox condition2,
       --checkbox condition3

@@ -12,6 +12,7 @@ import Data.Typeable (Typeable)
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
+import Monomer.Core.ThemeTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 

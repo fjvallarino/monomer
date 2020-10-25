@@ -1,5 +1,6 @@
 module Monomer.Core.Style (
   module Monomer.Core.StyleTypes,
+  module Monomer.Core.ThemeTypes,
   paddingH,
   paddingV
 ) where
@@ -9,6 +10,7 @@ import Data.Default
 
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
+import Monomer.Core.ThemeTypes
 import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L

@@ -46,6 +46,8 @@ darkBasic = def
   & L.thumbIdleColor .~ (gray & L.a .~ 0.6)
   & L.checkboxColor .~ blue
   & L.checkboxWidth .~ 25
+  & L.radioColor .~ red
+  & L.radioWidth .~ 25
   & L.text .~ normalFont
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont

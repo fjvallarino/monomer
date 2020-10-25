@@ -21,6 +21,7 @@ import qualified SDL.Raw.Types as SDL
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
+import Monomer.Core.ThemeTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
