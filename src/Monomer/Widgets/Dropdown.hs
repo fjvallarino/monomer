@@ -288,7 +288,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
 
   getSizeReq wenv inst children = sizeReq where
-    style = instanceStyle wenv inst
+    style = activeStyle wenv inst
     Size w h = getTextSize wenv style (dropdownLabel wenv)
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
@@ -325,7 +325,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     where
       listViewOverlay = Seq.lookup 0 _wiChildren
       renderArea = _wiRenderArea
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
 
   renderOverlay renderer wenv overlayInstance = renderAction where
     widget = _wiWidget overlayInstance

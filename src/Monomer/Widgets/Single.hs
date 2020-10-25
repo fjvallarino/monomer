@@ -36,6 +36,11 @@ type SingleDisposeHandler s e
   -> WidgetInstance s e
   -> WidgetResult s e
 
+type SingleGetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> Maybe Style
+
 type SingleGetStateHandler s e
   = WidgetEnv s e
   -> Maybe WidgetState
@@ -91,6 +96,7 @@ data Single s e = Single {
   singleInit :: SingleInitHandler s e,
   singleMerge :: SingleMergeHandler s e,
   singleDispose :: SingleDisposeHandler s e,
+  singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetState :: SingleGetStateHandler s e,
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
   singleFindByPoint :: SingleFindByPointHandler s e,
@@ -106,6 +112,7 @@ instance Default (Single s e) where
     singleInit = defaultInit,
     singleMerge = defaultMerge,
     singleDispose = defaultDispose,
+    singleGetBaseStyle = defaultGetBaseStyle,
     singleGetState = defaultGetState,
     singleFindNextFocus = defaultFindNextFocus,
     singleFindByPoint = defaultFindByPoint,
@@ -118,8 +125,8 @@ instance Default (Single s e) where
 
 createSingle :: Single s e -> Widget s e
 createSingle Single{..} = Widget {
-  widgetInit = singleInit,
-  widgetMerge = mergeWrapper singleMerge,
+  widgetInit = initWrapper singleInit singleGetBaseStyle,
+  widgetMerge = mergeWrapper singleMerge singleGetBaseStyle,
   widgetDispose = singleDispose,
   widgetGetState = singleGetState,
   widgetFindNextFocus = singleFindNextFocus,
@@ -134,28 +141,45 @@ createSingle Single{..} = Widget {
 defaultInit :: SingleInitHandler s e
 defaultInit _ inst = resultWidget inst
 
+initWrapper
+  :: SingleInitHandler s e
+  -> SingleGetBaseStyle s e
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+initWrapper initHandler getBaseStyle wenv inst = newResult where
+  baseStyle = getBaseStyle wenv inst
+  tempResult = initHandler wenv inst
+  newResult = baseStyleToResult wenv baseStyle tempResult
+
 defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInst = resultWidget newInst
 
-defaultDispose :: SingleDisposeHandler s e
-defaultDispose _ inst = resultWidget inst
-
-defaultGetState :: SingleGetStateHandler s e
-defaultGetState _ = Nothing
-
 mergeWrapper
   :: SingleMergeHandler s e
+  -> SingleGetBaseStyle s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper mergeHandler wenv oldInst newInst = result where
+mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
     _wiRenderArea = _wiRenderArea oldInst
   }
-  result = mergeHandler wenv oldState tempInst
+  baseStyle = getBaseStyle wenv tempInst
+  tempResult = mergeHandler wenv oldState tempInst
+  newResult = baseStyleToResult wenv baseStyle tempResult
+
+defaultDispose :: SingleDisposeHandler s e
+defaultDispose _ inst = resultWidget inst
+
+defaultGetBaseStyle :: SingleGetBaseStyle s e
+defaultGetBaseStyle wenv inst = Nothing
+
+defaultGetState :: SingleGetStateHandler s e
+defaultGetState _ = Nothing
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv direction startFrom inst
@@ -193,7 +217,7 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper handler wenv inst = newInst where
-  style = instanceStyle wenv inst
+  style = activeStyle wenv inst
   reqs = handler wenv inst
   (newReqW, newReqH) = handleSizeReqStyle style reqs
   newInst = inst {
@@ -218,4 +242,4 @@ renderWrapper rHandler renderer wenv inst =
     rHandler renderer wenv inst
   where
     renderArea = _wiRenderArea inst
-    style = instanceStyle wenv inst
+    style = activeStyle wenv inst

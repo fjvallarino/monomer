@@ -114,7 +114,7 @@ makeRadio field option config = widget where
       renderMark renderer config rarea fgColor
     where
       model = _weModel wenv
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       value = widgetDataGet model field
       rarea = removeOuterBounds style $ _wiRenderArea inst
       radioL = _rX rarea

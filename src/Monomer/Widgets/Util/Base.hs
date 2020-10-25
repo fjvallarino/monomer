@@ -1,4 +1,5 @@
 module Monomer.Widgets.Util.Base (
+  baseStyleToResult,
   handleSizeReqStyle,
   handleStyleChange,
   isFixedSizeReq,
@@ -6,8 +7,7 @@ module Monomer.Widgets.Util.Base (
   isBoundedSizeReq,
   getMinSizeReq,
   getMaxSizeReq,
-  getFactorReq,
-  modifySizeReq
+  getFactorReq
 ) where
 
 import Data.Default
@@ -28,6 +28,43 @@ type EventHandler s e
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 
+baseStyleFromTheme :: Theme -> Style
+baseStyleFromTheme theme = style where
+  style = Style {
+    _styleBasic = fromThemeState (_themeBasic theme),
+    _styleHover = fromThemeState (_themeHover theme),
+    _styleFocus = fromThemeState (_themeFocus theme),
+    _styleDisabled = fromThemeState (_themeDisabled theme)
+  }
+  fromThemeState tstate = Just $ def {
+    _sstFgColor = Just $ _thsFgColor tstate,
+    _sstHlColor = Just $ _thsHlColor tstate,
+    _sstText = Just $ _thsText tstate
+  }
+
+baseStyleToResult
+  :: WidgetEnv s e
+  -> Maybe Style
+  -> WidgetResult s e
+  -> WidgetResult s e
+baseStyleToResult wenv mbaseStyle result = newResult where
+  baseStyle = fromMaybe def mbaseStyle
+  themeStyle = baseStyleFromTheme (_weTheme wenv)
+  WidgetResult reqs evts inst = result
+  newInst = inst {
+    _wiStyle = mergeBasicStyle (themeStyle <> baseStyle <> _wiStyle inst)
+  }
+  newResult = WidgetResult reqs evts newInst
+
+mergeBasicStyle :: Style -> Style
+mergeBasicStyle st = newStyle where
+  newStyle = Style {
+    _styleBasic = _styleBasic st,
+    _styleHover = _styleBasic st <> _styleHover st,
+    _styleFocus = _styleBasic st <> _styleFocus st,
+    _styleDisabled = _styleBasic st <> _styleDisabled st
+  }
+
 handleStyleChange
   :: EventHandler s e
   -> WidgetEnv s e
@@ -36,7 +73,7 @@ handleStyleChange
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleStyleChange handler wenv target evt inst = newResult where
-  style = instanceStyle wenv inst
+  style = activeStyle wenv inst
   hResult
     | _wiEnabled inst = handler wenv target evt inst
     | otherwise = Nothing

@@ -109,7 +109,7 @@ makeCheckbox widgetData config = widget where
       renderMark renderer config rarea fgColor
     where
       model = _weModel wenv
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       value = widgetDataGet model widgetData
       rarea = removeOuterBounds style $ _wiRenderArea inst
       checkboxL = _rX rarea

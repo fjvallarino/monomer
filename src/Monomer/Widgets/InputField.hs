@@ -183,7 +183,7 @@ makeInputField config state = widget where
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> result where
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       rect = getContentRect style inst
       localX = x - _rX rect + _ifsOffset state
       textLen = getGlyphsMax (_ifsGlyphs state)
@@ -279,7 +279,7 @@ makeInputField config state = widget where
       end = max currPos (fromJust currSel)
 
   getSizeReq wenv inst = sizeReq where
-    style = instanceStyle wenv inst
+    style = activeStyle wenv inst
     Size w h = getTextSize wenv style currText
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
@@ -308,7 +308,7 @@ makeInputField config state = widget where
 
     resetScissor renderer
     where
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       contentRect = getContentRect style inst
       Rect cx cy cw ch = contentRect
       textMetrics = _ifsTextMetrics state
@@ -358,7 +358,7 @@ newTextState
   -> Maybe Int
   -> InputFieldState a
 newTextState wenv inst oldState value text cursor selection = newState where
-  style = instanceStyle wenv inst
+  style = activeStyle wenv inst
   contentRect = getContentRect style inst
   !(Rect cx cy cw ch) = contentRect
   !textMetrics = getTextMetrics wenv style contentRect align text

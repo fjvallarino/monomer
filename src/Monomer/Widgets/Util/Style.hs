@@ -1,12 +1,9 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
   getContentRect,
   activeStyle,
-  activeTheme,
-  instanceStyle,
-  mergeThemeStyle
+  activeTheme
 ) where
 
 import Control.Applicative ((<|>))
@@ -30,10 +27,10 @@ activeStyle wenv inst = fromMaybe def styleState where
   isHover = pointInViewport mousePos inst
   isFocus = isFocused wenv inst
   styleState
-    | not isEnabled = _styleBasic <> _styleDisabled
-    | isHover && isFocus = _styleBasic <> _styleFocus <> _styleHover
-    | isHover = _styleBasic <> _styleHover
-    | isFocus = _styleBasic <> _styleFocus
+    | not isEnabled = _styleDisabled
+    | isHover && isFocus = _styleFocus <> _styleHover
+    | isHover = _styleHover
+    | isFocus = _styleFocus
     | otherwise = _styleBasic
 
 activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
@@ -48,19 +45,3 @@ activeTheme wenv inst = themeState where
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
-
-instanceStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-instanceStyle wenv inst = mergeThemeStyle theme style where
-  style = activeStyle wenv inst
-  theme = activeTheme wenv inst
-
-mergeThemeStyle :: ThemeState -> StyleState -> StyleState
-mergeThemeStyle theme style = newStyle where
-  themeFgColor = Just $ _thsFgColor theme
-  themeHlColor = Just $ _thsHlColor theme
-  themeTextNormal = Just $ _thsText theme
-  !newStyle = style {
-    _sstFgColor = _sstFgColor style <|> themeFgColor,
-    _sstHlColor = _sstHlColor style <|> themeHlColor,
-    _sstText = themeTextNormal <> _sstText style
-  }

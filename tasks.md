@@ -235,9 +235,9 @@
   - Make sure that focus change requests do not leave overlay if active (most likely an if clause is needed in handleFocusChange)
   - Return list of actions instead of Monoid in eventHandler
   - Add way of requesting findNextFocus (needed on Dropdown)
+  - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
 
 - Pending
-  - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
   - Use theme for all components
   - Multiline label
   - Add testing
@@ -256,6 +256,7 @@
 Maybe postponed after release?
   - Update style when merging to avoid recalculating/merging theme every time
   - Handle onBlur/onFocus in all focusable widgets
+  - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)

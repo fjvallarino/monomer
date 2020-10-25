@@ -106,7 +106,7 @@ makeZStack config = widget where
         forM_ children $ \child -> when (isVisible child) $
           widgetRender (_wiWidget child) renderer wenv child
     where
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       children = Seq.reverse $ _wiChildren inst
       viewport = _wiViewport inst
       renderArea = _wiRenderArea inst

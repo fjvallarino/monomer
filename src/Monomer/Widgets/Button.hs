@@ -91,13 +91,13 @@ makeButton config state = widget where
     _ -> Nothing
 
   getSizeReq wenv inst = sizeReq where
-    style = instanceStyle wenv inst
+    style = activeStyle wenv inst
     Size w h = getTextSize wenv style caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
-    style = instanceStyle wenv inst
+    style = activeStyle wenv inst
     size = getTextSize wenv style caption
     (newCaptionFit, _) = case textOverflow of
       Ellipsis -> fitText wenv style renderArea caption
@@ -114,5 +114,5 @@ makeButton config state = widget where
     drawStyledText_ renderer contentRect style captionFit
     resetScissor renderer
     where
-      style = instanceStyle wenv inst
+      style = activeStyle wenv inst
       contentRect = getContentRect style inst
