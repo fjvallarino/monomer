@@ -121,9 +121,9 @@ buildUI model = trace "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack" `style` [bgColor gray],
-      hstack [
+      hgrid [
         button "Show Alert" ShowAlert,
-        button "Show Confirm" ShowConfirm
+        mainButton "Show Confirm" ShowConfirm
       ],
       hgrid [
         vstack [

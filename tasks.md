@@ -239,6 +239,7 @@
 
 - Pending
   - Use theme for all components
+  - Check 1px difference on right side of labels/buttons
   - Multiline label
   - Add testing
     - Delayed until this point to try to settle down interfaces

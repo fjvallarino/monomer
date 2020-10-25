@@ -62,7 +62,7 @@ makeAlert wenv message evt config = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
-  dismissButton = button close evt & L.style .~ themeBtnMain wenv
+  dismissButton = mainButton close evt
   alertTree = vstack [
       label title & L.style .~ themeDialogTitle wenv,
       label message & L.style .~ themeDialogBody wenv,

@@ -72,8 +72,8 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
-  acceptBtn = button accept acceptEvt & L.style .~ themeBtnMain wenv
-  cancelBtn = button cancel cancelEvt & L.style .~ themeBtn wenv
+  acceptBtn = mainButton accept acceptEvt
+  cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   confirmTree = vstack [
       label title & L.style .~ themeDialogTitle wenv,

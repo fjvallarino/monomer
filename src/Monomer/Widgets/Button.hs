@@ -4,7 +4,9 @@
 module Monomer.Widgets.Button (
   ButtonCfg,
   button,
-  button_
+  button_,
+  mainButton,
+  mainButton_
 ) where
 
 import Control.Applicative ((<|>))
@@ -14,7 +16,15 @@ import Data.Text (Text)
 
 import Monomer.Widgets.Single
 
+import qualified Monomer.Lens as L
+
+data ButtonType
+  = ButtonNormal
+  | ButtonMain
+  deriving (Eq, Show)
+
 data ButtonCfg s e = ButtonCfg {
+  _btnButtonType :: Maybe ButtonType,
   _btnTextOverflow :: Maybe TextOverflow,
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s]
@@ -22,6 +32,7 @@ data ButtonCfg s e = ButtonCfg {
 
 instance Default (ButtonCfg s e) where
   def = ButtonCfg {
+    _btnButtonType = Nothing,
     _btnTextOverflow = Nothing,
     _btnOnClick = [],
     _btnOnClickReq = []
@@ -29,6 +40,7 @@ instance Default (ButtonCfg s e) where
 
 instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
+    _btnButtonType = _btnButtonType t2 <|> _btnButtonType t1,
     _btnTextOverflow = _btnTextOverflow t2 <|> _btnTextOverflow t1,
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
@@ -60,6 +72,18 @@ data BtnState = BtnState {
   _btnCaptionFit :: Text
 } deriving (Eq, Show)
 
+mainConfig :: ButtonCfg s e
+mainConfig = def {
+  _btnButtonType = Just ButtonMain
+}
+
+mainButton :: Text -> e -> WidgetInstance s e
+mainButton caption handler = button_ caption handler [mainConfig]
+
+mainButton_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
+mainButton_ caption handler configs = button_ caption handler newConfigs where
+  newConfigs = mainConfig : configs
+
 button :: Text -> e -> WidgetInstance s e
 button caption handler = button_ caption handler def
 
@@ -72,14 +96,20 @@ button_ caption handler configs = defaultWidgetInstance "button" widget where
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
   widget = createSingle def {
+    singleGetBaseStyle = getBaseStyle,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
   }
 
+  buttonType = fromMaybe ButtonNormal (_btnButtonType config)
   textOverflow = fromMaybe Ellipsis (_btnTextOverflow config)
   BtnState caption captionFit = state
+
+  getBaseStyle wenv inst = case buttonType of
+    ButtonNormal -> Just (collectTheme wenv L.btnStyle)
+    ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
   handleEvent wenv ctx evt inst = case evt of
     Click p _
