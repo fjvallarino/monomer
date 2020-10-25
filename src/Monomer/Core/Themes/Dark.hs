@@ -44,6 +44,8 @@ darkBasic = def
   & L.scrollIdleColor .~ (darkGray & L.a .~ 0.2)
   & L.thumbColor .~ (gray & L.a .~ 0.8)
   & L.thumbIdleColor .~ (gray & L.a .~ 0.6)
+  & L.checkboxColor .~ blue
+  & L.checkboxWidth .~ 25
   & L.text .~ normalFont
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont

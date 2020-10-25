@@ -48,11 +48,12 @@ baseStyleToResult
   -> WidgetResult s e
   -> WidgetResult s e
 baseStyleToResult wenv mbaseStyle result = newResult where
-  baseStyle = fromMaybe def mbaseStyle
+  instStyle = mergeBasicStyle $ _wiStyle inst
+  baseStyle = mergeBasicStyle $ fromMaybe def mbaseStyle
   themeStyle = baseStyleFromTheme (_weTheme wenv)
   WidgetResult reqs evts inst = result
   newInst = inst {
-    _wiStyle = mergeBasicStyle (themeStyle <> baseStyle <> _wiStyle inst)
+    _wiStyle = themeStyle <> baseStyle <> instStyle
   }
   newResult = WidgetResult reqs evts newInst
 

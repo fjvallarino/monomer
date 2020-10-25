@@ -112,6 +112,7 @@ compositeInit comp state wenv widgetComp = newResult where
   WidgetResult reqs evts root = widgetInit widget cwenv tempRoot
   newEvts = maybe evts (evts |>) _cmpInitEvent
   newState = state {
+    _cmpRoot = root,
     _cmpGlobalKeys = collectGlobalKeys M.empty root
   }
   tempResult = WidgetResult reqs newEvts root
@@ -133,18 +134,19 @@ compositeMerge comp state wenv oldComposite newComposite = newResult where
   CompositeState oldModel oldRoot oldInit oldGlobalKeys = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created
   -- on _cmp_ has not yet been evaluated
-  newRoot = cascadeCtx newComposite (_uiBuilder comp oldModel)
+  tempRoot = cascadeCtx newComposite (_uiBuilder comp oldModel)
+  tempWidget = _wiWidget tempRoot
+  cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
+  mergeRequired = instanceMatches tempRoot oldRoot
+  tempResult
+    | mergeRequired = widgetMerge tempWidget cwenv oldRoot tempRoot
+    | otherwise = widgetInit tempWidget cwenv tempRoot
+  newRoot = _wrWidget tempResult
   newState = validState {
     _cmpRoot = newRoot,
     _cmpGlobalKeys = collectGlobalKeys M.empty newRoot
   }
-  newWidget = _wiWidget newRoot
-  cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
-  mergeRequired = instanceMatches newRoot oldRoot
-  widgetResult
-    | mergeRequired = widgetMerge newWidget cwenv oldRoot newRoot
-    | otherwise = widgetInit newWidget cwenv newRoot
-  result = reduceResult comp newState wenv newComposite widgetResult
+  result = reduceResult comp newState wenv newComposite tempResult
   newResult = baseStyleToResult wenv Nothing result
 
 -- | Dispose

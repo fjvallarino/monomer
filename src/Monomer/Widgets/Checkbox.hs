@@ -7,9 +7,11 @@ module Monomer.Widgets.Checkbox (
   checkbox_,
   checkboxV,
   checkboxV_,
-  checkboxD_
+  checkboxD_,
+  checkboxWidth
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~))
 import Control.Monad
 import Data.Default
@@ -18,19 +20,24 @@ import Data.Text (Text)
 
 import Monomer.Widgets.Single
 
+import qualified Monomer.Lens as L
+
 data CheckboxCfg s e = CheckboxCfg {
+  _ckcWidth :: Maybe Double,
   _ckcOnChange :: [Bool -> e],
   _ckcOnChangeReq :: [WidgetRequest s]
 }
 
 instance Default (CheckboxCfg s e) where
   def = CheckboxCfg {
+    _ckcWidth = Nothing,
     _ckcOnChange = [],
     _ckcOnChangeReq = []
   }
 
 instance Semigroup (CheckboxCfg s e) where
   (<>) t1 t2 = CheckboxCfg {
+    _ckcWidth = _ckcWidth t2 <|> _ckcWidth t1,
     _ckcOnChange = _ckcOnChange t1 <> _ckcOnChange t2,
     _ckcOnChangeReq = _ckcOnChangeReq t1 <> _ckcOnChangeReq t2
   }
@@ -48,11 +55,10 @@ instance OnChangeReq (CheckboxCfg s e) s where
     _ckcOnChangeReq = [req]
   }
 
-checkboxWidth :: Double
-checkboxWidth = 25
-
-checkboxBorderW :: Double
-checkboxBorderW = 2
+checkboxWidth :: Double -> CheckboxCfg s e
+checkboxWidth w = def {
+  _ckcWidth = Just w
+}
 
 checkbox :: ALens' s Bool -> WidgetInstance s e
 checkbox field = checkbox_ field def
@@ -78,10 +84,14 @@ checkboxD_ widgetData configs = checkboxInstance where
 makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
   widget = createSingle def {
+    singleGetBaseStyle = getBaseStyle,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
+
+  getBaseStyle wenv inst = Just style where
+    style = copyThemeField wenv def L.fgColor L.checkboxColor
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst
@@ -99,33 +109,38 @@ makeCheckbox widgetData config = widget where
       reqs = setValueReq ++ _ckcOnChangeReq config
       clickReqs = setFocusReq : reqs
 
-  getSizeReq wenv inst =
-    (FixedSize checkboxWidth, FixedSize checkboxWidth)
+  getSizeReq wenv inst = req where
+    theme = activeTheme wenv inst
+    style = activeStyle wenv inst
+    width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
+    req = (FixedSize width, FixedSize width)
 
   render renderer wenv inst = do
-    renderCheckbox renderer config rarea fgColor
+    renderCheckbox renderer checkboxBW checkboxArea fgColor
 
     when value $
-      renderMark renderer config rarea fgColor
+      renderMark renderer checkboxBW checkboxArea fgColor
     where
       model = _weModel wenv
+      theme = activeTheme wenv inst
       style = activeStyle wenv inst
       value = widgetDataGet model widgetData
       rarea = removeOuterBounds style $ _wiRenderArea inst
-      checkboxL = _rX rarea
-      checkboxT = _rY rarea
-      sz = min (_rW rarea) (_rH rarea)
-      checkboxArea = Rect checkboxL checkboxT sz sz
+      checkboxW = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
+      checkboxBW = max 1 (checkboxW * 0.1)
+      checkboxL = _rX rarea + (_rW rarea - checkboxW) / 2
+      checkboxT = _rY rarea + (_rH rarea - checkboxW) / 2
+      checkboxArea = Rect checkboxL checkboxT checkboxW checkboxW
       fgColor = styleFgColor style
 
-renderCheckbox :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
-renderCheckbox renderer config rect color = action where
-  side = Just $ BorderSide checkboxBorderW color
+renderCheckbox :: Renderer -> Double -> Rect -> Color -> IO ()
+renderCheckbox renderer checkboxBW rect color = action where
+  side = Just $ BorderSide checkboxBW color
   border = Border side side side side
   action = drawRectBorder renderer rect border Nothing
 
-renderMark :: Renderer -> CheckboxCfg s e -> Rect -> Color -> IO ()
-renderMark renderer config rect color = action where
-  w = checkboxBorderW * 2
+renderMark :: Renderer -> Double -> Rect -> Color -> IO ()
+renderMark renderer checkboxBW rect color = action where
+  w = checkboxBW * 2
   newRect = subtractFromRect rect w w w w
   action = drawRect renderer newRect (Just color) Nothing
