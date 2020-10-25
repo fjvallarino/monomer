@@ -104,7 +104,7 @@ compositeInit
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-compositeInit comp state wenv widgetComp = result where
+compositeInit comp state wenv widgetComp = newResult where
   CompositeState{..} = state
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   tempRoot = cascadeCtx widgetComp _cmpRoot
@@ -116,6 +116,7 @@ compositeInit comp state wenv widgetComp = result where
   }
   tempResult = WidgetResult reqs newEvts root
   result = reduceResult comp newState wenv widgetComp tempResult
+  newResult = baseStyleToResult wenv Nothing result
 
 -- | Merge
 compositeMerge
@@ -126,7 +127,7 @@ compositeMerge
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-compositeMerge comp state wenv oldComposite newComposite = result where
+compositeMerge comp state wenv oldComposite newComposite = newResult where
   oldState = widgetGetState (_wiWidget oldComposite) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldInit oldGlobalKeys = validState
@@ -144,6 +145,7 @@ compositeMerge comp state wenv oldComposite newComposite = result where
     | mergeRequired = widgetMerge newWidget cwenv oldRoot newRoot
     | otherwise = widgetInit newWidget cwenv newRoot
   result = reduceResult comp newState wenv newComposite widgetResult
+  newResult = baseStyleToResult wenv Nothing result
 
 -- | Dispose
 compositeDispose
