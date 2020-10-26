@@ -111,7 +111,6 @@ makeCheckbox widgetData config = widget where
 
   getSizeReq wenv inst = req where
     theme = activeTheme wenv inst
-    style = activeStyle wenv inst
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
     req = (FixedSize width, FixedSize width)
 

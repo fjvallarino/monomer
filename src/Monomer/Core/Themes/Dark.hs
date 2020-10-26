@@ -40,10 +40,9 @@ darkBasic = def
   & L.fgColor .~ blue
   & L.hlColor .~ white
   & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
-  & L.scrollColor .~ (darkGray & L.a .~ 0.4)
-  & L.scrollIdleColor .~ (darkGray & L.a .~ 0.2)
-  & L.thumbColor .~ (gray & L.a .~ 0.8)
-  & L.thumbIdleColor .~ (gray & L.a .~ 0.6)
+  & L.scrollBarColor .~ (gray & L.a .~ 0.2)
+  & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
+  & L.scrollWidth .~ 10
   & L.checkboxColor .~ blue
   & L.checkboxWidth .~ 25
   & L.radioColor .~ red
@@ -69,6 +68,8 @@ darkBasic = def
 
 darkHover :: ThemeState
 darkHover = darkBasic
+  & L.scrollBarColor .~ (gray & L.a .~ 0.4)
+  & L.scrollThumbColor .~ (darkGray & L.a .~ 0.8)
 
 darkFocus :: ThemeState
 darkFocus = darkBasic

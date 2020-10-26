@@ -5,10 +5,11 @@ module Monomer.Widgets.Scroll (
   ScrollMessage(..),
   scroll,
   scroll_,
+  barHoverColor,
   barColor,
-  barIdleColor,
+  thumbHoverColor,
   thumbColor,
-  thumbIdleColor
+  barWidth
 ) where
 
 import Control.Applicative ((<|>))
@@ -31,33 +32,37 @@ data ActiveBar
 
 data ScrollCfg = ScrollCfg {
   _scBarColor :: Maybe Color,
-  _scBarIdleColor :: Maybe Color,
+  _scBarHoverColor :: Maybe Color,
   _scThumbColor :: Maybe Color,
-  _scThumbIdleColor :: Maybe Color
+  _scThumbHoverColor :: Maybe Color,
+  _scWidth :: Maybe Double
 }
 
 instance Default ScrollCfg where
   def = ScrollCfg {
     _scBarColor = Nothing,
-    _scBarIdleColor = Nothing,
+    _scBarHoverColor = Nothing,
     _scThumbColor = Nothing,
-    _scThumbIdleColor = Nothing
+    _scThumbHoverColor = Nothing,
+    _scWidth = Nothing
   }
 
 instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
     _scBarColor = _scBarColor t2 <|> _scBarColor t1,
-    _scBarIdleColor = _scBarIdleColor t2 <|> _scBarIdleColor t1,
+    _scBarHoverColor = _scBarHoverColor t2 <|> _scBarHoverColor t1,
     _scThumbColor = _scThumbColor t2 <|> _scThumbColor t1,
-    _scThumbIdleColor = _scThumbIdleColor t2 <|> _scThumbIdleColor t1
+    _scThumbHoverColor = _scThumbHoverColor t2 <|> _scThumbHoverColor t1,
+    _scWidth = _scWidth t2 <|> _scWidth t1
   }
 
 instance Monoid ScrollCfg where
   mempty = ScrollCfg {
     _scBarColor = Nothing,
-    _scBarIdleColor = Nothing,
+    _scBarHoverColor = Nothing,
     _scThumbColor = Nothing,
-    _scThumbIdleColor = Nothing
+    _scThumbHoverColor = Nothing,
+    _scWidth = Nothing
   }
 
 data ScrollState = ScrollState {
@@ -99,9 +104,9 @@ barColor col = def {
   _scBarColor = Just col
 }
 
-barIdleColor :: Color -> ScrollCfg
-barIdleColor col = def {
-  _scBarIdleColor = Just col
+barHoverColor :: Color -> ScrollCfg
+barHoverColor col = def {
+  _scBarHoverColor = Just col
 }
 
 thumbColor :: Color -> ScrollCfg
@@ -109,13 +114,15 @@ thumbColor col = def {
   _scThumbColor = Just col
 }
 
-thumbIdleColor :: Color -> ScrollCfg
-thumbIdleColor col = def {
-  _scThumbIdleColor = Just col
+thumbHoverColor :: Color -> ScrollCfg
+thumbHoverColor col = def {
+  _scThumbHoverColor = Just col
 }
 
-barThickness :: Double
-barThickness = 10
+barWidth :: Double -> ScrollCfg
+barWidth w = def {
+  _scWidth = Just w
+}
 
 wheelRate :: Double
 wheelRate = 10
@@ -214,7 +221,7 @@ makeScroll config state = widget where
     where
       renderArea = _wiRenderArea inst
       Rect rx ry rw rh = _wiRenderArea inst
-      sctx@ScrollContext{..} = scrollStatus config wenv state renderArea
+      sctx@ScrollContext{..} = scrollStatus config wenv state inst
       scrollReqs = [IgnoreChildrenEvents, IgnoreParentEvents]
 
   scrollAxis reqDelta childLength vpLength
@@ -337,41 +344,53 @@ makeScroll config state = widget where
       drawRect renderer vThumbRect thumbColorV Nothing
 
     where
-      theme = activeTheme wenv inst
+      theme = wenv ^. L.theme
       viewport = _wiViewport inst
       renderArea = _wiRenderArea inst
-      ScrollContext{..} = scrollStatus config wenv state renderArea
+      ScrollContext{..} = scrollStatus config wenv state inst
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
-      activeBarCol = _scBarColor config <|> Just (theme ^. L.scrollColor)
-      idleBarCol = _scBarIdleColor config <|> Just (theme ^. L.scrollIdleColor)
-      activeThumbCol = _scThumbColor config <|> Just (theme ^. L.thumbColor)
-      idleThumbCol = _scThumbIdleColor config <|> Just (theme ^. L.thumbIdleColor)
+      instBarBCol = _scBarColor config
+      instBarHCol = _scBarHoverColor config
+      instThumbBCol = _scThumbColor config
+      instThumbHCol = _scThumbHoverColor config
+
+      barBCol = instBarBCol <|> Just (theme ^. L.basic . L.scrollBarColor)
+      barHCol = instBarHCol <|> Just (theme ^. L.hover . L.scrollBarColor)
+      thumbBCol = instThumbBCol <|> Just (theme ^. L.basic . L.scrollThumbColor)
+      thumbHCol = instThumbHCol <|> Just (theme ^. L.hover. L.scrollThumbColor)
 
       barColorH
-        | hMouseInScroll = activeBarCol
-        | otherwise = idleBarCol
+        | hMouseInScroll = barHCol
+        | otherwise = barBCol
       barColorV
-        | vMouseInScroll = activeBarCol
-        | otherwise = idleBarCol
+        | vMouseInScroll = barHCol
+        | otherwise = barBCol
       thumbColorH
-        | hMouseInThumb || draggingH = activeThumbCol
-        | otherwise = idleThumbCol
+        | hMouseInThumb || draggingH = thumbHCol
+        | otherwise = thumbBCol
       thumbColorV
-        | vMouseInThumb || draggingV = activeThumbCol
-        | otherwise = idleThumbCol
+        | vMouseInThumb || draggingV = thumbHCol
+        | otherwise = thumbBCol
 
 scrollStatus
-  :: ScrollCfg -> WidgetEnv s e -> ScrollState -> Rect -> ScrollContext
-scrollStatus config wenv scrollState renderArea = ScrollContext{..} where
+  :: ScrollCfg
+  -> WidgetEnv s e
+  -> ScrollState
+  -> WidgetInstance s e
+  -> ScrollContext
+scrollStatus config wenv scrollState inst = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) = scrollState
   mousePos = _ipsMousePos (_weInputStatus wenv)
+  theme = activeTheme wenv inst
+  renderArea = _wiRenderArea inst
+  barW = fromMaybe (theme ^. L.scrollWidth) (_scWidth config)
   raLeft = _rX renderArea
   raTop = _rY renderArea
   raWidth = _rW renderArea
   raHeight = _rH renderArea
-  hScrollTop = raHeight - barThickness
-  vScrollLeft = raWidth - barThickness
+  hScrollTop = raHeight - barW
+  vScrollLeft = raWidth - barW
   hScrollRatio = min (raWidth / childWidth) 1
   vScrollRatio = min (raHeight / childHeight) 1
   hScrollRequired = hScrollRatio < 1
@@ -392,12 +411,12 @@ scrollStatus config wenv scrollState renderArea = ScrollContext{..} where
     _rX = raLeft - hScrollRatio * dx,
     _rY = raTop + hScrollTop,
     _rW = hScrollRatio * raWidth,
-    _rH = barThickness
+    _rH = barW
   }
   vThumbRect = Rect {
     _rX = raLeft + vScrollLeft,
     _rY = raTop - vScrollRatio * dy,
-    _rW = barThickness,
+    _rW = barW,
     _rH = vScrollRatio * raHeight
   }
   hMouseInScroll = pointInRect mousePos hScrollRect
