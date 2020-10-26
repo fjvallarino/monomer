@@ -157,10 +157,13 @@ makeBox config = widget where
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
     raAligned = alignInRect ah av renderArea raChild
+    vpAligned
+      | rectInRect raAligned viewport = raAligned
+      | otherwise = viewport
     expand = fromMaybe False (_boxExpandContent config)
     resized
       | expand = (inst, Seq.singleton (viewport, renderArea))
-      | otherwise  = (inst, Seq.singleton (viewport, raAligned))
+      | otherwise  = (inst, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where

@@ -327,22 +327,21 @@ makeScroll config state = widget where
       _wiChildren = Seq.singleton newChild
     }
 
-  render renderer wenv inst = do
-    drawInScissor renderer True viewport $
+  render renderer wenv inst =
+    drawInScissor renderer True viewport $ do
       renderWrapper defaultRender renderer wenv inst
 
-    when hScrollRequired $
-      drawRect renderer hScrollRect barColorH Nothing
+      when hScrollRequired $
+        drawRect renderer hScrollRect barColorH Nothing
 
-    when vScrollRequired $
-      drawRect renderer vScrollRect barColorV Nothing
+      when vScrollRequired $
+        drawRect renderer vScrollRect barColorV Nothing
 
-    when hScrollRequired $
-      drawRect renderer hThumbRect thumbColorH Nothing
+      when hScrollRequired $
+        drawRect renderer hThumbRect thumbColorH Nothing
 
-    when vScrollRequired $
-      drawRect renderer vThumbRect thumbColorV Nothing
-
+      when vScrollRequired $
+        drawRect renderer vThumbRect thumbColorV Nothing
     where
       theme = wenv ^. L.theme
       viewport = _wiViewport inst

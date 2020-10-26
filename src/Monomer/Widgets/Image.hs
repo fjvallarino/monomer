@@ -159,8 +159,7 @@ makeImage imgPath config state = widget where
       addImage renderer imgPath ImageAddKeep imgSize imgBytes
 
     when imageLoaded $
-      drawInScissor renderer True contentRect $
-        drawImage renderer imgPath imageRect alpha
+      drawImage renderer imgPath imageRect alpha
     where
       style = activeStyle wenv inst
       contentRect = getContentRect style inst
