@@ -165,9 +165,6 @@ class HlColor t where
 class HighlightedColor t where
   highlightedColor :: Color -> t
 
-class HighlightedStyle t where
-  highlightedStyle :: StyleState -> t
-
 class HoverStyle t where
   hoverStyle :: StyleState -> t
 

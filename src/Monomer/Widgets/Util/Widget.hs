@@ -27,6 +27,9 @@ defaultWidgetInstance widgetType widget = WidgetInstance {
   _wiStyle = def
 }
 
+isWidgetVisible :: WidgetInstance s e -> Rect -> Bool
+isWidgetVisible inst vp = _wiVisible inst && rectsOverlap vp (_wiViewport inst)
+
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv inst = _weFocusedPath wenv == _wiPath inst
 

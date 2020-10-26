@@ -13,7 +13,7 @@ module Monomer.Widgets.ListView (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (.~))
+import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), ix, non)
 import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
@@ -42,7 +42,7 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcOnChangeReq :: [WidgetRequest s],
   _lvcOnChangeIdx :: [Int -> a -> e],
   _lvcOnChangeIdxReq :: [Int -> WidgetRequest s],
-  _lvcSelectedOnBlur :: Maybe Bool,
+  _lvcSelectOnBlur :: Maybe Bool,
   _lvcSelectedStyle :: Maybe StyleState,
   _lvcHoverStyle :: Maybe StyleState,
   _lvcHighlightedColor :: Maybe Color
@@ -56,7 +56,7 @@ instance Default (ListViewCfg s e a) where
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeIdxReq = [],
-    _lvcSelectedOnBlur = Nothing,
+    _lvcSelectOnBlur = Nothing,
     _lvcSelectedStyle = Just $ bgColor gray,
     _lvcHoverStyle = Just $ bgColor darkGray,
     _lvcHighlightedColor = Just lightGray
@@ -70,7 +70,7 @@ instance Semigroup (ListViewCfg s e a) where
     _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
     _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2,
-    _lvcSelectedOnBlur = _lvcSelectedOnBlur t2 <|> _lvcSelectedOnBlur t1,
+    _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
     _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
     _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1,
     _lvcHighlightedColor = _lvcHighlightedColor t2 <|> _lvcHighlightedColor t1
@@ -84,7 +84,7 @@ instance Monoid (ListViewCfg s e a) where
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeIdxReq = [],
-    _lvcSelectedOnBlur = Nothing,
+    _lvcSelectOnBlur = Nothing,
     _lvcSelectedStyle = Nothing,
     _lvcHoverStyle = Nothing,
     _lvcHighlightedColor = Nothing
@@ -122,7 +122,7 @@ instance OnChangeIdxReq (ListViewCfg s e a) s where
 
 instance SelectOnBlur (ListViewCfg s e a) where
   selectOnBlur select = def {
-    _lvcSelectedOnBlur = Just select
+    _lvcSelectOnBlur = Just select
   }
 
 instance SelectedStyle (ListViewCfg s e a) where
@@ -233,9 +233,8 @@ makeListView widgetData items makeRow config state = widget where
 
   createListView wenv newState inst = newInstance where
     selected = currentValue wenv
-    highlighted = _highlighted newState
     path = _wiPath inst
-    itemsList = makeItemsList items makeRow config path selected highlighted
+    itemsList = makeItemsList wenv items makeRow config path selected
     newInstance = inst {
       _wiWidget = makeListView widgetData items makeRow config newState,
       _wiChildren = Seq.singleton itemsList
@@ -250,7 +249,7 @@ makeListView widgetData items makeRow config state = widget where
   handleEvent wenv target evt inst = case evt of
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
-      changeReq = isTabPressed && Just True == _lvcSelectedOnBlur config
+      changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
       WidgetResult tempReqs tempEvts tempInst
         | changeReq = selectItem wenv inst (_highlighted state)
         | otherwise = resultWidget inst
@@ -341,47 +340,46 @@ makeListView widgetData items makeRow config state = widget where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (inst, assignedArea)
 
-  render renderer wenv inst = do
-    renderWrapper defaultRender renderer wenv inst
+  render renderer wenv inst =
+    renderWrapper defaultRender renderer wenv (buildRenderInst wenv inst)
 
-    when (isJust itemRect && isJust baseColor) $
-      drawRectBorder renderer (fromJust itemRect) itemBorder Nothing
-    where
-      children = _wiChildren inst
-      itemIdx = _highlighted state
-      itemRect = itemRenderArea inst itemIdx
-      baseColor = _lvcHighlightedColor config
-      highlightColor
-        | isFocused wenv inst = fromJust baseColor
-        | otherwise = fromJust baseColor & a .~ 0.4
-      bs = Just $ BorderSide 1 highlightColor
-      itemBorder = Border bs bs bs bs
+  buildRenderInst wenv inst = newInst where
+    viewport = _wiViewport inst
+    hlIdx = _highlighted state
+    foldItem items idx item
+      | isWidgetVisible item viewport = items |> updateStyle idx item
+      | otherwise = items
+    updateStyle idx item
+      | idx == hlIdx
+        = item & L.children . ix 0 . L.style . L.basic
+        .~ (item ^. L.children . ix 0 . L.style . L.focus)
+      | otherwise = item
+    children = inst ^. L.children . ix 0 . L.children
+    newChildren = Seq.foldlWithIndex foldItem Empty children
+    newInst = inst & L.children . ix 0 . L.children .~ newChildren
 
 makeItemsList
   :: (Eq a)
-  => Seq a
+  => WidgetEnv s e
+  -> Seq a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
   -> Path
   -> a
-  -> Int
   -> WidgetInstance s e
-makeItemsList items makeRow config path selected hlIdx = itemsList where
+makeItemsList wenv items makeRow config path selected = itemsList where
   ListViewCfg{..} = config
-  isSelected item = item == selected
-  selectedStyle item
-    | isSelected item = _lvcSelectedStyle
-    | otherwise = Nothing
-  itemStyle idx item = def
-    & L.basic .~ selectedStyle item
-    & L.hover .~ _lvcHoverStyle
+  normalStyle = collectTheme wenv L.listViewItemStyle
+  selectedStyle = collectTheme wenv L.listViewItemSelectedStyle
+  itemStyle idx item
+    | item == selected = selectedStyle
+    | otherwise = normalStyle
   makeItem idx item = newItem where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
     newItem = box_ (content & L.style .~ itemStyle idx item) itemCfg
-  pairs = Seq.zip (Seq.fromList [0..length items]) items
-  itemsList = vstack $ fmap (uncurry makeItem) pairs
+  itemsList = vstack $ Seq.mapWithIndex makeItem items
 
 resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 resizeInstance wenv inst = newInst where

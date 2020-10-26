@@ -78,9 +78,10 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree9 where
   --widgetTree8 = box (image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200])
   --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
+  widgetTree9 = listView dropdown1 items label
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
   widgetTree7 = hstack [
       checkbox condition1 `style` [fgColor yellow, bgColor orange],

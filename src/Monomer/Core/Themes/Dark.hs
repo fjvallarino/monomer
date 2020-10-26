@@ -54,6 +54,9 @@ darkBasic = def
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.checkboxStyle . L.fgColor ?~ gray
   & L.labelStyle . L.text ?~ normalFont
+  & L.listViewItemStyle . L.text ?~ normalFont
+  & L.listViewItemSelectedStyle . L.bgColor ?~ darkGray
+  & L.listViewItemSelectedStyle . L.text ?~ normalFont
   & L.radioStyle . L.fgColor ?~ gray
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
@@ -75,6 +78,7 @@ darkHover = darkBasic
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ white
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.listViewItemStyle . L.bgColor ?~ gray
   & L.radioStyle . L.fgColor ?~ white
   & L.radioStyle . L.cursorIcon ?~ CursorHand
 
@@ -82,6 +86,8 @@ darkFocus :: ThemeState
 darkFocus = darkBasic
   & L.checkboxStyle . L.fgColor ?~ white
   & L.radioStyle . L.fgColor ?~ white
+  & L.listViewItemStyle . L.bgColor ?~ lightGray
+  & L.listViewItemSelectedStyle . L.bgColor ?~ gray
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic

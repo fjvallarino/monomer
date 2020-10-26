@@ -22,12 +22,6 @@ instance Default Theme where
     _themeDisabled = def
   }
 
-instance Semigroup Theme where
-  (<>) t1 t2 = t2
-
-instance Monoid Theme where
-  mempty = def
-
 data ThemeState = ThemeState {
   _thsFgColor :: Color,
   _thsHlColor :: Color,
@@ -42,6 +36,8 @@ data ThemeState = ThemeState {
   _thsBtnMainStyle :: StyleState,
   _thsCheckboxStyle :: StyleState,
   _thsLabelStyle :: StyleState,
+  _thsListViewItemStyle :: StyleState,
+  _thsListViewItemSelectedStyle :: StyleState,
   _thsRadioStyle :: StyleState,
   _thsDialogFrameStyle :: StyleState,
   _thsDialogTitleStyle :: StyleState,
@@ -64,6 +60,8 @@ instance Default ThemeState where
     _thsBtnMainStyle = def,
     _thsCheckboxStyle = def,
     _thsLabelStyle = def,
+    _thsListViewItemStyle = def,
+    _thsListViewItemSelectedStyle = def,
     _thsRadioStyle = def,
     _thsDialogFrameStyle = def,
     _thsDialogTitleStyle = def,

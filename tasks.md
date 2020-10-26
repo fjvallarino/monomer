@@ -265,6 +265,7 @@ Maybe postponed after release?
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
+  - Find way of avoiding hover effects when widget is not in the top layer
   - Further textField improvements
     - Handle mouse selection
     - Handle undo history
