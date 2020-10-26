@@ -1,6 +1,5 @@
 module Monomer.Core.ThemeTypes where
 
-import Control.Applicative ((<|>))
 import Data.Default
 
 import Monomer.Core.BasicTypes
@@ -71,9 +70,3 @@ instance Default ThemeState where
     _thsDialogBodyStyle = def,
     _thsDialogButtonsStyle = def
   }
-
-instance Semigroup ThemeState where
-  (<>) ts1 ts2 = ts2
-
-instance Monoid ThemeState where
-  mempty = def

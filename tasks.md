@@ -256,6 +256,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Move combinators out of exported Core (but still export from Monomer)
   - Handle window title, maximize, etc
     - Also handle as requests?
   - Check scroll styling works correctly (contentRect being applied, etc)
