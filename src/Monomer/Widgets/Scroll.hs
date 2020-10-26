@@ -391,8 +391,13 @@ scrollStatus config wenv scrollState inst = ScrollContext{..} where
   raHeight = _rH renderArea
   hScrollTop = raHeight - barW
   vScrollLeft = raWidth - barW
-  hScrollRatio = min (raWidth / childWidth) 1
-  vScrollRatio = min (raHeight / childHeight) 1
+  hRatio = raWidth / childWidth
+  vRatio = raHeight / childHeight
+  hRatioR = (raWidth - barW) / childWidth
+  vRatioR = (raHeight - barW) / childHeight
+  (hScrollRatio, vScrollRatio)
+    | hRatio < 1 && vRatio < 1 = (hRatioR, vRatioR)
+    | otherwise = (hRatio, vRatio)
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
   hScrollRect = Rect {
