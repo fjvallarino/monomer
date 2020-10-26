@@ -178,20 +178,12 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point renderArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newInstance = inst {
-        _wiWidget = makeScroll config newState
-      }
+      newInstance = rebuildWidget wenv newState inst
       handledResult = Just $ resultReqs scrollReqs newInstance
       result
         | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
         | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
         | btnReleased && isDragging = handledResult
-        | otherwise = Nothing
-    Click point btn -> result where
-      isDragging = isJust $ _sstDragging state
-      handledResult = Just $ resultReqs scrollReqs inst
-      result
-        | hMouseInScroll || vMouseInScroll || isDragging = handledResult
         | otherwise = Nothing
     Move point -> result where
       drag bar = updateScrollThumb state bar point renderArea sctx
