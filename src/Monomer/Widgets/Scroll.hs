@@ -319,28 +319,26 @@ makeScroll config state = widget where
       _wiChildren = Seq.singleton newChild
     }
 
-  render renderer wenv inst =
-    drawInScissor renderer True viewport $ do
-      renderWrapper defaultRender renderer wenv inst
+  render renderer wenv inst = do
+    renderWrapper defaultRender renderer wenv inst
 
-      when hScrollRequired $
-        drawRect renderer hScrollRect barColorH Nothing
+    when hScrollRequired $
+      drawRect renderer hScrollRect barColorH Nothing
 
-      when vScrollRequired $
-        drawRect renderer vScrollRect barColorV Nothing
+    when vScrollRequired $
+      drawRect renderer vScrollRect barColorV Nothing
 
-      when hScrollRequired $
-        drawRect renderer hThumbRect thumbColorH Nothing
+    when hScrollRequired $
+      drawRect renderer hThumbRect thumbColorH Nothing
 
-      when vScrollRequired $
-        drawRect renderer vThumbRect thumbColorV Nothing
+    when vScrollRequired $
+      drawRect renderer vThumbRect thumbColorV Nothing
     where
-      theme = wenv ^. L.theme
-      viewport = _wiViewport inst
-      renderArea = _wiRenderArea inst
       ScrollContext{..} = scrollStatus config wenv state inst
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
+      theme = wenv ^. L.theme
+
       instBarBCol = _scBarColor config
       instBarHCol = _scBarHoverColor config
       instThumbBCol = _scThumbColor config
@@ -394,14 +392,14 @@ scrollStatus config wenv scrollState inst = ScrollContext{..} where
   hScrollRect = Rect {
     _rX = raLeft,
     _rY = raTop + hScrollTop,
-    _rW = raLeft + raWidth,
-    _rH = raTop + raHeight
+    _rW = raWidth,
+    _rH = barW
   }
   vScrollRect = Rect {
     _rX = raLeft + vScrollLeft,
     _rY = raTop,
-    _rW = raLeft + raWidth,
-    _rH = raTop + raHeight
+    _rW = barW,
+    _rH = raHeight
   }
   hThumbRect = Rect {
     _rX = raLeft - hScrollRatio * dx,
