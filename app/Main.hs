@@ -78,7 +78,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree8 where
+buildUI model = trace "Creating UI" widgetTree where
   --widgetTree8 = box (image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200])
   --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
@@ -124,7 +124,7 @@ buildUI model = trace "Creating UI" widgetTree8 where
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
-      ] `key` "radio hstack" `style` [bgColor gray],
+      ] `key` "radio hstack",
       hgrid [
         button "Show Alert" ShowAlert,
         mainButton "Show Confirm" ShowConfirm

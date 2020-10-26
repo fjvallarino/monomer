@@ -236,6 +236,7 @@
   - Return list of actions instead of Monoid in eventHandler
   - Add way of requesting findNextFocus (needed on Dropdown)
   - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
+  - Update style when merging to avoid recalculating/merging theme every time
 
 - Pending
   - Use theme for all components
@@ -255,7 +256,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Update style when merging to avoid recalculating/merging theme every time
+  - Handle window title, maximize, etc
+    - Also handle as requests?
+  - Check scroll styling works correctly (contentRect being applied, etc)
   - Handle onBlur/onFocus in all focusable widgets
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Avoid findNextFocus on unfocusable children (listView items)

@@ -43,19 +43,18 @@ darkBasic = def
   & L.scrollBarColor .~ (gray & L.a .~ 0.2)
   & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
   & L.scrollWidth .~ 10
-  & L.checkboxColor .~ blue
   & L.checkboxWidth .~ 25
-  & L.radioColor .~ red
   & L.radioWidth .~ 25
   & L.text .~ normalFont
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont
   & L.btnStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
-  & L.btnStyle . L.cursorIcon ?~ CursorHand
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
-  & L.btnMainStyle . L.cursorIcon ?~ CursorHand
+  & L.checkboxStyle . L.fgColor ?~ gray
+  & L.labelStyle . L.text ?~ normalFont
+  & L.radioStyle . L.fgColor ?~ gray
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
@@ -70,9 +69,19 @@ darkHover :: ThemeState
 darkHover = darkBasic
   & L.scrollBarColor .~ (gray & L.a .~ 0.4)
   & L.scrollThumbColor .~ (darkGray & L.a .~ 0.8)
+  & L.btnStyle . L.bgColor ?~ lightGray
+  & L.btnStyle . L.cursorIcon ?~ CursorHand
+  & L.btnMainStyle . L.bgColor ?~ lightBlue
+  & L.btnMainStyle . L.cursorIcon ?~ CursorHand
+  & L.checkboxStyle . L.fgColor ?~ white
+  & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.radioStyle . L.fgColor ?~ white
+  & L.radioStyle . L.cursorIcon ?~ CursorHand
 
 darkFocus :: ThemeState
 darkFocus = darkBasic
+  & L.checkboxStyle . L.fgColor ?~ white
+  & L.radioStyle . L.fgColor ?~ white
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic

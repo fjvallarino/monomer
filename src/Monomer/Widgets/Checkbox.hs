@@ -91,7 +91,7 @@ makeCheckbox widgetData config = widget where
   }
 
   getBaseStyle wenv inst = Just style where
-    style = copyThemeField wenv def L.fgColor L.checkboxColor
+    style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst

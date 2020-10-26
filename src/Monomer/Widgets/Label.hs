@@ -10,6 +10,8 @@ import Data.Text (Text)
 
 import Monomer.Widgets.Single
 
+import qualified Monomer.Lens as L
+
 newtype LabelCfg = LabelCfg {
   _lscTextOverflow :: Maybe TextOverflow
 }
@@ -52,6 +54,7 @@ label_ caption configs = defaultWidgetInstance "label" widget where
 makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
   widget = createSingle def {
+    singleGetBaseStyle = getBaseStyle,
     singleMerge = merge,
     singleGetState = makeState state,
     singleGetSizeReq = getSizeReq,
@@ -61,6 +64,9 @@ makeLabel config state = widget where
 
   textOverflow = fromMaybe Ellipsis (_lscTextOverflow config)
   LabelState caption captionFit = state
+
+  getBaseStyle wenv inst = Just style where
+    style = collectTheme wenv L.labelStyle
 
   merge wenv oldState inst = resultWidget newInstance where
     newState = fromMaybe state (useState oldState)

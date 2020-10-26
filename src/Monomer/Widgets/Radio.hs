@@ -99,7 +99,7 @@ makeRadio field option config = widget where
   }
 
   getBaseStyle wenv inst = Just style where
-    style = copyThemeField wenv def L.fgColor L.radioColor
+    style = collectTheme wenv L.radioStyle
 
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst
