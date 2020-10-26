@@ -64,7 +64,8 @@ makeZStack config = widget where
   -- | Find instance matching point
   findByPoint wenv startPath point inst = result where
     children = _wiChildren inst
-    result = findFirstByPoint children wenv startPath point
+    newStartPath = Seq.drop 1 startPath
+    result = findFirstByPoint children wenv newStartPath point
 
   findNextFocus wenv direction start inst = result where
     onlyTop = fromMaybe True (_zscOnlyTopFocusable config)
