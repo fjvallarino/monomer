@@ -96,12 +96,12 @@ instance BgColor (DropdownCfg s e a) where
     _ddcBgColor = Just col
   }
 
-instance SelectedStyle (DropdownCfg s e a) where
+instance SelectedStyle (DropdownCfg s e a) StyleState where
   selectedStyle style = def {
     _ddcSelectedStyle = Just style
   }
 
-instance HoverStyle (DropdownCfg s e a) where
+instance HoverStyle (DropdownCfg s e a) StyleState where
   hoverStyle style = def {
     _ddcHoverStyle = Just style
   }
@@ -347,10 +347,11 @@ makeListView value items makeRow config path selected = listViewInst where
   lvConfig = [
       selectOnBlur True,
       -- onBlurReq (SendMessage path OnListBlur),
-      onChangeIdxReq (SendMessage path . OnChangeMessage),
-      setStyle _ddcSelectedStyle selectedStyle,
-      setStyle _ddcHoverStyle hoverStyle,
-      maybe def highlightedColor _ddcHighlightedColor
+      onChangeIdxReq (SendMessage path . OnChangeMessage)
+      --,
+      --setStyle _ddcSelectedStyle selectedStyle,
+      --setStyle _ddcHoverStyle hoverStyle,
+      --maybe def highlightedColor _ddcHighlightedColor
     ]
   bgCol = fromMaybe black _ddcBgColor
   listViewInst = listViewD_ value items makeRow lvConfig `style` [bgColor bgCol]

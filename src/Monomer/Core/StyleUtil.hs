@@ -25,6 +25,7 @@ import Data.Maybe
 import Data.Text (Text)
 
 import Monomer.Core.BasicTypes
+import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
@@ -32,41 +33,57 @@ import Monomer.Graphics.Types
 import qualified Monomer.Lens as L
 
 infixl 5 `key`
-infixl 5 `style`
-infixl 5 `hover`
-infixl 5 `focus`
 infixl 5 `visible`
-infixl 5 `disabled`
 
 key :: WidgetInstance s e -> Text -> WidgetInstance s e
 key inst key = inst & L.key ?~ WidgetKey key
 
-style :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-style inst states = inst & L.style .~ newStyle where
-  state = mconcat states
-  oldStyle = inst ^. L.style
-  newStyle = oldStyle & L.basic ?~ state
-
-hover :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-hover inst states = inst & L.style .~ newStyle where
-  state = mconcat states
-  oldStyle = inst ^. L.style
-  newStyle = oldStyle & L.hover ?~ state
-
-focus :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-focus inst states = inst & L.style .~ newStyle where
-  state = mconcat states
-  oldStyle = inst ^. L.style
-  newStyle = oldStyle & L.focus ?~ state
-
-disabled :: WidgetInstance s e -> [StyleState] -> WidgetInstance s e
-disabled inst states = inst & L.style .~ newStyle where
-  state = mconcat states
-  oldStyle = inst ^. L.style
-  newStyle = oldStyle & L.disabled ?~ state
-
 visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible inst visibility = inst & L.visible .~ visibility
+
+instance Style_ Style where
+  style oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.basic ?~ state
+
+instance Hover_ Style where
+  hover oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.hover ?~ state
+
+instance Focus_ Style where
+  focus oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.focus ?~ state
+
+instance Disabled_ Style where
+  disabled oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.disabled ?~ state
+
+instance Style_ (WidgetInstance s e) where
+  style inst states = inst & L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = inst ^. L.style
+    newStyle = oldStyle & L.basic ?~ state
+
+instance Hover_ (WidgetInstance s e) where
+  hover inst states = inst & L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = inst ^. L.style
+    newStyle = oldStyle & L.hover ?~ state
+
+instance Focus_ (WidgetInstance s e) where
+  focus inst states = inst & L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = inst ^. L.style
+    newStyle = oldStyle & L.focus ?~ state
+
+instance Disabled_ (WidgetInstance s e) where
+  disabled inst states = inst & L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = inst ^. L.style
+    newStyle = oldStyle & L.disabled ?~ state
 
 styleFont :: StyleState -> Font
 styleFont style = fromMaybe def font where

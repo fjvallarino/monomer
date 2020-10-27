@@ -153,6 +153,23 @@ class ResizeFactor t where
   resizeFactor :: Double -> t
 
 -- Style
+infixl 5 `style`
+infixl 5 `hover`
+infixl 5 `focus`
+infixl 5 `disabled`
+
+class Style_ t where
+  style :: t -> [StyleState] -> t
+
+class Hover_ t where
+  hover :: t -> [StyleState] -> t
+
+class Focus_ t where
+  focus :: t -> [StyleState] -> t
+
+class Disabled_ t where
+  disabled :: t -> [StyleState] -> t
+
 class BgColor t where
   bgColor :: Color -> t
 
@@ -165,11 +182,14 @@ class HlColor t where
 class HighlightedColor t where
   highlightedColor :: Color -> t
 
-class HoverStyle t where
-  hoverStyle :: StyleState -> t
+class NormalStyle t s | t -> s where
+  normalStyle :: s -> t
 
-class SelectedStyle t where
-  selectedStyle :: StyleState -> t
+class HoverStyle t s | t -> s where
+  hoverStyle :: s -> t
+
+class SelectedStyle t s | t -> s where
+  selectedStyle :: s -> t
 
 class Transparency t where
   transparency :: Double -> t

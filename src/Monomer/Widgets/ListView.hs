@@ -36,58 +36,54 @@ import Monomer.Widgets.Stack
 import qualified Monomer.Core.Lens as L
 
 data ListViewCfg s e a = ListViewCfg {
+  _lvcSelectOnBlur :: Maybe Bool,
+  _lvcItemStyle :: Maybe Style,
+  _lvcItemSelectedStyle :: Maybe Style,
   _lvcOnBlur :: [e],
   _lvcOnBlurReq :: [WidgetRequest s],
   _lvcOnChange :: [a -> e],
   _lvcOnChangeReq :: [WidgetRequest s],
   _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s],
-  _lvcSelectOnBlur :: Maybe Bool,
-  _lvcSelectedStyle :: Maybe StyleState,
-  _lvcHoverStyle :: Maybe StyleState,
-  _lvcHighlightedColor :: Maybe Color
+  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s]
 }
 
 instance Default (ListViewCfg s e a) where
   def = ListViewCfg {
+    _lvcSelectOnBlur = Nothing,
+    _lvcItemStyle = Nothing,
+    _lvcItemSelectedStyle = Nothing,
     _lvcOnBlur = [],
     _lvcOnBlurReq = [],
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
-    _lvcOnChangeIdxReq = [],
-    _lvcSelectOnBlur = Nothing,
-    _lvcSelectedStyle = Just $ bgColor gray,
-    _lvcHoverStyle = Just $ bgColor darkGray,
-    _lvcHighlightedColor = Just lightGray
+    _lvcOnChangeIdxReq = []
   }
 
 instance Semigroup (ListViewCfg s e a) where
   (<>) t1 t2 = ListViewCfg {
+    _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
+    _lvcItemStyle = _lvcItemStyle t2 <|> _lvcItemStyle t1,
+    _lvcItemSelectedStyle = _lvcItemSelectedStyle t2 <|> _lvcItemSelectedStyle t1,
     _lvcOnBlur = _lvcOnBlur t1 <> _lvcOnBlur t2,
     _lvcOnBlurReq = _lvcOnBlurReq t1 <> _lvcOnBlurReq t2,
     _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
     _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
     _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
-    _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2,
-    _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
-    _lvcSelectedStyle = _lvcSelectedStyle t2 <|> _lvcSelectedStyle t1,
-    _lvcHoverStyle = _lvcHoverStyle t2 <|> _lvcHoverStyle t1,
-    _lvcHighlightedColor = _lvcHighlightedColor t2 <|> _lvcHighlightedColor t1
+    _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2
   }
 
 instance Monoid (ListViewCfg s e a) where
   mempty = ListViewCfg {
+    _lvcSelectOnBlur = Nothing,
+    _lvcItemStyle = Nothing,
+    _lvcItemSelectedStyle = Nothing,
     _lvcOnBlur = [],
     _lvcOnBlurReq = [],
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
-    _lvcOnChangeIdxReq = [],
-    _lvcSelectOnBlur = Nothing,
-    _lvcSelectedStyle = Nothing,
-    _lvcHoverStyle = Nothing,
-    _lvcHighlightedColor = Nothing
+    _lvcOnChangeIdxReq = []
   }
 
 instance OnBlur (ListViewCfg s e a) e where
@@ -125,19 +121,14 @@ instance SelectOnBlur (ListViewCfg s e a) where
     _lvcSelectOnBlur = Just select
   }
 
-instance SelectedStyle (ListViewCfg s e a) where
+instance NormalStyle (ListViewCfg s e a) Style where
+  normalStyle style = def {
+    _lvcItemStyle = Just style
+  }
+
+instance SelectedStyle (ListViewCfg s e a) Style where
   selectedStyle style = def {
-    _lvcSelectedStyle = Just style
-  }
-
-instance HoverStyle (ListViewCfg s e a) where
-  hoverStyle style = def {
-    _lvcHoverStyle = Just style
-  }
-
-instance HighlightedColor (ListViewCfg s e a) where
-  highlightedColor color = def {
-    _lvcHighlightedColor = Just color
+    _lvcItemSelectedStyle = Just style
   }
 
 newtype ListViewState = ListViewState {
@@ -352,7 +343,7 @@ makeListView widgetData items makeRow config state = widget where
     updateStyle idx item
       | idx == hlIdx
         = item & L.children . ix 0 . L.style . L.basic
-        .~ (item ^. L.children . ix 0 . L.style . L.focus)
+          .~ (item ^. L.children . ix 0 . L.style . L.focus)
       | otherwise = item
     children = inst ^. L.children . ix 0 . L.children
     newChildren = Seq.foldlWithIndex foldItem Empty children
@@ -368,9 +359,10 @@ makeItemsList
   -> a
   -> WidgetInstance s e
 makeItemsList wenv items makeRow config path selected = itemsList where
-  ListViewCfg{..} = config
-  normalStyle = collectTheme wenv L.listViewItemStyle
-  selectedStyle = collectTheme wenv L.listViewItemSelectedStyle
+  normalTheme = collectTheme wenv L.listViewItemStyle
+  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
+  normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
+  selectedStyle = fromJust (Just selectedTheme <> _lvcItemSelectedStyle config)
   itemStyle idx item
     | item == selected = selectedStyle
     | otherwise = normalStyle
