@@ -34,10 +34,7 @@ themeDialogButtons :: WidgetEnv s e -> Style
 themeDialogButtons wenv = collectTheme wenv L.dialogButtonsStyle
 
 collectThemeField
-  :: WidgetEnv s e
-  -> Lens' StyleState (Maybe t)
-  -> Lens' ThemeState t
-  -> Style
+  :: WidgetEnv s e -> Lens' StyleState (Maybe t) -> Lens' ThemeState t -> Style
 collectThemeField wenv fieldS fieldT = style where
   base = def :: Style
   basic = Just $ base ^. L.basic . non def
@@ -50,9 +47,7 @@ collectThemeField wenv fieldS fieldT = style where
     & fieldS ?~ wenv ^. L.theme . L.disabled . fieldT
   style = Style basic hover focus disabled
 
-collectTheme
-  :: WidgetEnv s e  -> Lens' ThemeState StyleState
-  -> Style
+collectTheme :: WidgetEnv s e  -> Lens' ThemeState StyleState -> Style
 collectTheme wenv fieldT = style where
   basic = Just $ wenv ^. L.theme . L.basic . fieldT
   hover = Just $ wenv ^. L.theme . L.hover . fieldT

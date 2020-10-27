@@ -121,13 +121,13 @@ instance SelectOnBlur (ListViewCfg s e a) where
     _lvcSelectOnBlur = Just select
   }
 
-instance NormalStyle (ListViewCfg s e a) Style where
-  normalStyle style = def {
+instance ItemNormalStyle (ListViewCfg s e a) Style where
+  itemNormalStyle style = def {
     _lvcItemStyle = Just style
   }
 
-instance SelectedStyle (ListViewCfg s e a) Style where
-  selectedStyle style = def {
+instance ItemSelectedStyle (ListViewCfg s e a) Style where
+  itemSelectedStyle style = def {
     _lvcItemSelectedStyle = Just style
   }
 

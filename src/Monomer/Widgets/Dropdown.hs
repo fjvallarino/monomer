@@ -34,7 +34,6 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcListStyle :: Maybe Style,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
-  _ddcHighlightedColor :: Maybe Color,
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcOnChangeIdx :: [Int -> a -> e],
@@ -47,7 +46,6 @@ instance Default (DropdownCfg s e a) where
     _ddcListStyle = Nothing,
     _ddcItemStyle = Nothing,
     _ddcItemSelectedStyle = Nothing,
-    _ddcHighlightedColor = Nothing,
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcOnChangeIdx = [],
@@ -60,7 +58,6 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcListStyle = _ddcListStyle t2 <|> _ddcListStyle t1,
     _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
-    _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1,
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
@@ -95,18 +92,18 @@ instance MaxHeight (DropdownCfg s e a) where
     _ddcMaxHeight = Just h
   }
 
-instance ListStyle (DropdownCfg s e a) Style where
-  listStyle style = def {
+instance ItemListStyle (DropdownCfg s e a) Style where
+  itemListStyle style = def {
     _ddcListStyle = Just style
   }
 
-instance NormalStyle (DropdownCfg s e a) Style where
-  normalStyle style = def {
+instance ItemNormalStyle (DropdownCfg s e a) Style where
+  itemNormalStyle style = def {
     _ddcItemStyle = Just style
   }
 
-instance SelectedStyle (DropdownCfg s e a) Style where
-  selectedStyle style = def {
+instance ItemSelectedStyle (DropdownCfg s e a) Style where
+  itemSelectedStyle style = def {
     _ddcItemSelectedStyle = Just style
   }
 
@@ -345,15 +342,15 @@ makeListView
   -> Path
   -> WidgetInstance s e
 makeListView wenv value items makeRow config path = listViewInst where
-  normalTheme = collectTheme wenv L.listViewItemStyle
-  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
+  normalTheme = collectTheme wenv L.dropdownItemStyle
+  selectedTheme = collectTheme wenv L.dropdownItemSelectedStyle
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   lvConfig = [
       selectOnBlur True,
       onChangeIdxReq (SendMessage path . OnChangeMessage),
-      normalStyle itemStyle,
-      selectedStyle itemSelStyle
+      itemNormalStyle itemStyle,
+      itemSelectedStyle itemSelStyle
     ]
   lvStyle = collectTheme wenv L.dropdownListStyle
   listViewInst = listViewD_ value items makeRow lvConfig & L.style .~ lvStyle

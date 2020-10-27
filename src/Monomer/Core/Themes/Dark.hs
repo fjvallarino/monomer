@@ -38,11 +38,12 @@ titleFont = def
 listViewItemStyle :: StyleState
 listViewItemStyle = def
   & L.text ?~ normalFont
+  & L.text . non def . L.alignH ?~ ALeft
+  & L.padding ?~ paddingH 10
 
 listViewItemSelectedStyle :: StyleState
-listViewItemSelectedStyle = def
+listViewItemSelectedStyle = listViewItemStyle
   & L.bgColor ?~ darkGray
-  & L.text ?~ normalFont
 
 darkBasic :: ThemeState
 darkBasic = def
@@ -72,9 +73,8 @@ darkBasic = def
   & L.dropdownItemStyle .~ listViewItemStyle
   & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle
   & L.labelStyle . L.text ?~ normalFont
-  & L.listViewItemStyle . L.text ?~ normalFont
-  & L.listViewItemSelectedStyle . L.bgColor ?~ darkGray
-  & L.listViewItemSelectedStyle . L.text ?~ normalFont
+  & L.listViewItemStyle .~ listViewItemStyle
+  & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle
   & L.radioWidth .~ 25
   & L.radioStyle . L.fgColor ?~ gray
   & L.scrollBarColor .~ (gray & L.a .~ 0.2)
@@ -91,6 +91,7 @@ darkHover = darkBasic
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ white
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.dropdownItemStyle . L.bgColor ?~ gray
   & L.listViewItemStyle . L.bgColor ?~ gray
   & L.radioStyle . L.fgColor ?~ white
   & L.radioStyle . L.cursorIcon ?~ CursorHand
@@ -98,9 +99,11 @@ darkHover = darkBasic
 darkFocus :: ThemeState
 darkFocus = darkBasic
   & L.checkboxStyle . L.fgColor ?~ white
-  & L.radioStyle . L.fgColor ?~ white
+  & L.dropdownItemStyle . L.bgColor ?~ lightGray
+  & L.dropdownItemSelectedStyle . L.bgColor ?~ gray
   & L.listViewItemStyle . L.bgColor ?~ lightGray
   & L.listViewItemSelectedStyle . L.bgColor ?~ gray
+  & L.radioStyle . L.fgColor ?~ white
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic

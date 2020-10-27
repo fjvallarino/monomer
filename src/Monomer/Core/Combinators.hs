@@ -179,23 +179,21 @@ class FgColor t where
 class HlColor t where
   hlColor :: Color -> t
 
-class HighlightedColor t where
-  highlightedColor :: Color -> t
-
-class ListStyle t s | t -> s where
-  listStyle :: s -> t
-
-class NormalStyle t s | t -> s where
-  normalStyle :: s -> t
-
-class HoverStyle t s | t -> s where
-  hoverStyle :: s -> t
-
-class SelectedStyle t s | t -> s where
-  selectedStyle :: s -> t
-
 class Transparency t where
   transparency :: Double -> t
+
+-- Item List
+class ItemListStyle t s | t -> s where
+  itemListStyle :: s -> t
+
+class ItemNormalStyle t s | t -> s where
+  itemNormalStyle :: s -> t
+
+class ItemHoverStyle t s | t -> s where
+  itemHoverStyle :: s -> t
+
+class ItemSelectedStyle t s | t -> s where
+  itemSelectedStyle :: s -> t
 
 -- Align
 class AlignLeft t where
