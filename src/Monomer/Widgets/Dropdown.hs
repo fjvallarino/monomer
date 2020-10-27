@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Dropdown (
   DropdownCfg,
@@ -13,7 +12,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.))
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (.~))
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -31,41 +30,41 @@ import Monomer.Widgets.ListView
 import qualified Monomer.Lens as L
 
 data DropdownCfg s e a = DropdownCfg {
+  _ddcMaxHeight :: Maybe Double,
+  _ddcListStyle :: Maybe Style,
+  _ddcItemStyle :: Maybe Style,
+  _ddcItemSelectedStyle :: Maybe Style,
+  _ddcHighlightedColor :: Maybe Color,
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcOnChangeIdx :: [Int -> a -> e],
-  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s],
-  _ddcMaxHeight :: Maybe Double,
-  _ddcBgColor :: Maybe Color,
-  _ddcSelectedStyle :: Maybe StyleState,
-  _ddcHoverStyle :: Maybe StyleState,
-  _ddcHighlightedColor :: Maybe Color
+  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s]
 }
 
 instance Default (DropdownCfg s e a) where
   def = DropdownCfg {
+    _ddcMaxHeight = Nothing,
+    _ddcListStyle = Nothing,
+    _ddcItemStyle = Nothing,
+    _ddcItemSelectedStyle = Nothing,
+    _ddcHighlightedColor = Nothing,
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcOnChangeIdx = [],
-    _ddcOnChangeIdxReq = [],
-    _ddcMaxHeight = Nothing,
-    _ddcBgColor = Nothing,
-    _ddcSelectedStyle = Nothing,
-    _ddcHoverStyle = Nothing,
-    _ddcHighlightedColor = Nothing
+    _ddcOnChangeIdxReq = []
   }
 
 instance Semigroup (DropdownCfg s e a) where
   (<>) t1 t2 = DropdownCfg {
+    _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
+    _ddcListStyle = _ddcListStyle t2 <|> _ddcListStyle t1,
+    _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
+    _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
+    _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1,
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
-    _ddcOnChangeIdxReq = _ddcOnChangeIdxReq t1 <> _ddcOnChangeIdxReq t2,
-    _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
-    _ddcBgColor = _ddcBgColor t2 <|> _ddcBgColor t1,
-    _ddcSelectedStyle = _ddcSelectedStyle t2 <|> _ddcSelectedStyle t1,
-    _ddcHoverStyle = _ddcHoverStyle t2 <|> _ddcHoverStyle t1,
-    _ddcHighlightedColor = _ddcHighlightedColor t2 <|> _ddcHighlightedColor t1
+    _ddcOnChangeIdxReq = _ddcOnChangeIdxReq t1 <> _ddcOnChangeIdxReq t2
   }
 
 instance Monoid (DropdownCfg s e a) where
@@ -91,24 +90,24 @@ instance OnChangeIdxReq (DropdownCfg s e a) s where
     _ddcOnChangeIdxReq = [req]
   }
 
-instance BgColor (DropdownCfg s e a) where
-  bgColor col = def {
-    _ddcBgColor = Just col
+instance MaxHeight (DropdownCfg s e a) where
+  maxHeight h = def {
+    _ddcMaxHeight = Just h
   }
 
-instance SelectedStyle (DropdownCfg s e a) StyleState where
+instance ListStyle (DropdownCfg s e a) Style where
+  listStyle style = def {
+    _ddcListStyle = Just style
+  }
+
+instance NormalStyle (DropdownCfg s e a) Style where
+  normalStyle style = def {
+    _ddcItemStyle = Just style
+  }
+
+instance SelectedStyle (DropdownCfg s e a) Style where
   selectedStyle style = def {
-    _ddcSelectedStyle = Just style
-  }
-
-instance HoverStyle (DropdownCfg s e a) StyleState where
-  hoverStyle style = def {
-    _ddcHoverStyle = Just style
-  }
-
-instance HighlightedColor (DropdownCfg s e a) where
-  highlightedColor color = def {
-    _ddcHighlightedColor = Just color
+    _ddcItemSelectedStyle = Just style
   }
 
 newtype DropdownState = DropdownState {
@@ -214,7 +213,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   createDropdown wenv newState inst = newInstance where
     selected = currentValue wenv
     path = _wiPath inst
-    listViewInst = makeListView widgetData items makeRow config path selected
+    listViewInst = makeListView wenv widgetData items makeRow config path
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
     newInstance = inst {
       _wiWidget = newWidget,
@@ -296,13 +295,16 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   resize wenv viewport renderArea children inst = resized where
     Size winW winH = _weAppWindowSize wenv
     Rect rx ry rw rh = renderArea
+    theme = activeTheme wenv inst
     dropdownY dh
       | ry + rh + dh <= winH = ry + rh
       | otherwise = ry - dh
     area = case Seq.lookup 0 children of
       Just child -> (oViewport, oRenderArea) where
+        maxHeightTheme = theme ^. L.dropdownMaxHeight
+        maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
         reqHeight = getMinSizeReq . _wiSizeReqH $ child
-        maxHeight = min reqHeight $ fromMaybe 200 (_ddcMaxHeight config)
+        maxHeight = min reqHeight maxHeightStyle
         oViewport = viewport {
           _rY = dropdownY maxHeight,
           _rH = maxHeight
@@ -315,7 +317,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     assignedArea = Seq.singleton area
     resized = (inst, assignedArea)
 
-  render renderer wenv inst@WidgetInstance{..} = do
+  render renderer wenv inst = do
     drawStyledBackground renderer renderArea style
     drawStyledText_ renderer renderArea style (dropdownLabel wenv)
 
@@ -323,8 +325,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       createOverlay renderer $
         renderOverlay renderer wenv (fromJust listViewOverlay)
     where
-      listViewOverlay = Seq.lookup 0 _wiChildren
-      renderArea = _wiRenderArea
+      listViewOverlay = Seq.lookup 0 (_wiChildren inst)
+      renderArea = _wiRenderArea inst
       style = activeStyle wenv inst
 
   renderOverlay renderer wenv overlayInstance = renderAction where
@@ -335,27 +337,23 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
 makeListView
   :: (Eq a)
-  => WidgetData s a
+  => WidgetEnv s e
+  -> WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
   -> DropdownCfg s e a
   -> Path
-  -> a
   -> WidgetInstance s e
-makeListView value items makeRow config path selected = listViewInst where
-  DropdownCfg{..} = config
+makeListView wenv value items makeRow config path = listViewInst where
+  normalTheme = collectTheme wenv L.listViewItemStyle
+  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
+  itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
+  itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   lvConfig = [
       selectOnBlur True,
-      -- onBlurReq (SendMessage path OnListBlur),
-      onChangeIdxReq (SendMessage path . OnChangeMessage)
-      --,
-      --setStyle _ddcSelectedStyle selectedStyle,
-      --setStyle _ddcHoverStyle hoverStyle,
-      --maybe def highlightedColor _ddcHighlightedColor
+      onChangeIdxReq (SendMessage path . OnChangeMessage),
+      normalStyle itemStyle,
+      selectedStyle itemSelStyle
     ]
-  bgCol = fromMaybe black _ddcBgColor
-  listViewInst = listViewD_ value items makeRow lvConfig `style` [bgColor bgCol]
-
-setStyle :: (Default a) => Maybe StyleState -> (StyleState -> a) -> a
-setStyle Nothing _ = def
-setStyle (Just st) fn = fn st
+  lvStyle = collectTheme wenv L.dropdownListStyle
+  listViewInst = listViewD_ value items makeRow lvConfig & L.style .~ lvStyle

@@ -257,6 +257,7 @@
 
 Maybe postponed after release?
   - Move combinators out of exported Core (but still export from Monomer)
+  - Button should receive focus
   - Handle window title, maximize, etc
     - Also handle as requests?
   - Check scroll styling works correctly (contentRect being applied, etc)
@@ -267,6 +268,7 @@ Maybe postponed after release?
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Find way of avoiding hover effects when widget is not in the top layer
   - Further textField improvements
+    - Double clicking on empty puts the cursor at the end of ghost character
     - Handle mouse selection
     - Handle undo history
     - Create numeric wrapper that allows increasing/decreasing with mouse

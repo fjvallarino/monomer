@@ -182,6 +182,9 @@ class HlColor t where
 class HighlightedColor t where
   highlightedColor :: Color -> t
 
+class ListStyle t s | t -> s where
+  listStyle :: s -> t
+
 class NormalStyle t s | t -> s where
   normalStyle :: s -> t
 

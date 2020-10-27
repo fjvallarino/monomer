@@ -81,7 +81,12 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree9 where
   --widgetTree8 = box (image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200])
   --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
-  widgetTree9 = listView_ dropdown1 items label [selectedStyle (def `style` [bgColor orange])]
+  widgetTree9 = vstack [
+      dropdown_ dropdown1 items id label [maxHeight 200],
+      image "assets/images/pecans.jpg"
+      --listView_ dropdown1 items label [selectedStyle (def `style` [bgColor orange])],
+      --dropdown dropdown1 items id label
+    ]
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
   widgetTree7 = hstack [
       checkbox condition1 `style` [fgColor yellow, bgColor orange],

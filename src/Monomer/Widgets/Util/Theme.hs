@@ -10,10 +10,10 @@ import Monomer.Core
 import qualified Monomer.Lens as L
 
 themeEmptyOverlayColor :: WidgetEnv s e -> Style
-themeEmptyOverlayColor wenv = copyThemeField wenv def L.bgColor L.emptyOverlayColor
+themeEmptyOverlayColor wenv = collectThemeField wenv L.bgColor L.emptyOverlayColor
 
 themeText :: WidgetEnv s e -> Style
-themeText wenv = copyThemeField wenv def L.text L.text
+themeText wenv = collectThemeField wenv L.text L.text
 
 themeBtn :: WidgetEnv s e -> Style
 themeBtn wenv = collectTheme wenv L.btnStyle
@@ -33,13 +33,13 @@ themeDialogBody wenv = collectTheme wenv L.dialogBodyStyle
 themeDialogButtons :: WidgetEnv s e -> Style
 themeDialogButtons wenv = collectTheme wenv L.dialogButtonsStyle
 
-copyThemeField
+collectThemeField
   :: WidgetEnv s e
-  -> Style
   -> Lens' StyleState (Maybe t)
   -> Lens' ThemeState t
   -> Style
-copyThemeField wenv base fieldS fieldT = style where
+collectThemeField wenv fieldS fieldT = style where
+  base = def :: Style
   basic = Just $ base ^. L.basic . non def
     & fieldS ?~ wenv ^. L.theme . L.basic . fieldT
   hover = Just $ base ^. L.hover . non def

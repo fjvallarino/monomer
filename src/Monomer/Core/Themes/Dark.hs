@@ -35,29 +35,29 @@ titleFont = def
   & L.fontSize ?~ FontSize 20
   & L.fontColor ?~ white
 
+listViewItemStyle :: StyleState
+listViewItemStyle = def
+  & L.text ?~ normalFont
+
+listViewItemSelectedStyle :: StyleState
+listViewItemSelectedStyle = def
+  & L.bgColor ?~ darkGray
+  & L.text ?~ normalFont
+
 darkBasic :: ThemeState
 darkBasic = def
   & L.fgColor .~ blue
   & L.hlColor .~ white
-  & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
-  & L.scrollBarColor .~ (gray & L.a .~ 0.2)
-  & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
-  & L.scrollWidth .~ 10
-  & L.checkboxWidth .~ 25
-  & L.radioWidth .~ 25
   & L.text .~ normalFont
+  & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont
   & L.btnStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
+  & L.checkboxWidth .~ 25
   & L.checkboxStyle . L.fgColor ?~ gray
-  & L.labelStyle . L.text ?~ normalFont
-  & L.listViewItemStyle . L.text ?~ normalFont
-  & L.listViewItemSelectedStyle . L.bgColor ?~ darkGray
-  & L.listViewItemSelectedStyle . L.text ?~ normalFont
-  & L.radioStyle . L.fgColor ?~ gray
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
@@ -67,6 +67,19 @@ darkBasic = def
   & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 200
   & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 100
   & L.dialogButtonsStyle . L.padding ?~ padding 5
+  & L.dropdownMaxHeight .~ 200
+  & L.dropdownListStyle . L.bgColor ?~ black
+  & L.dropdownItemStyle .~ listViewItemStyle
+  & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle
+  & L.labelStyle . L.text ?~ normalFont
+  & L.listViewItemStyle . L.text ?~ normalFont
+  & L.listViewItemSelectedStyle . L.bgColor ?~ darkGray
+  & L.listViewItemSelectedStyle . L.text ?~ normalFont
+  & L.radioWidth .~ 25
+  & L.radioStyle . L.fgColor ?~ gray
+  & L.scrollBarColor .~ (gray & L.a .~ 0.2)
+  & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
+  & L.scrollWidth .~ 10
 
 darkHover :: ThemeState
 darkHover = darkBasic
