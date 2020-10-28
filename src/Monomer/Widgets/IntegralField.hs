@@ -30,6 +30,8 @@ import Monomer.Core
 import Monomer.Widgets.InputField
 import Monomer.Widgets.Util
 
+import qualified Monomer.Lens as L
+
 type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
 
 data IntegralFieldCfg s e a = IntegralFieldCfg {
@@ -136,6 +138,7 @@ integralFieldD_ widgetData configs = newInst where
     _ifcToText = toText,
     _ifcAcceptInput = acceptIntegralInput,
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
+    _ifcStyle = Just L.inputIntegralStyle,
     _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }

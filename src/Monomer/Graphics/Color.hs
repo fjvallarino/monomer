@@ -15,13 +15,17 @@ lightGreen    = rgb 128 255 128
 green         = rgb   0 255   0
 darkGreen     = rgb   0 128   0
 -- Blue
-lightBlue     = rgb 128 128 255
+lighterBlue   = rgb 200 200 255
+
+lightSkyBlue  = rgb 135 206 250
+lightBlue     = rgb 173 216 230
 blue          = rgb   0   0 255
-darkBlue      = rgb   0   0 128
+darkBlue      = rgb   0   0 139
 -- Gray
 lightGray     = rgb 191 191 191
 gray          = rgb 127 127 127
 darkGray      = rgb  63  63  63
+darkerGray    = rgb  32  32  32
 -- Pink
 lightPink     = rgb 255 192 203
 pink          = rgb 255 105 180

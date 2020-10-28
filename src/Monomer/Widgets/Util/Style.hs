@@ -28,7 +28,7 @@ activeStyle wenv inst = fromMaybe def styleState where
   isFocus = isFocused wenv inst
   styleState
     | not isEnabled = _styleDisabled
-    | isHover && isFocus = _styleFocus <> _styleHover
+    | isHover && isFocus = _styleHover <> _styleFocus
     | isHover = _styleHover
     | isFocus = _styleFocus
     | otherwise = _styleBasic

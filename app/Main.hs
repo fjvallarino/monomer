@@ -83,6 +83,12 @@ buildUI model = trace "Creating UI" widgetTree9 where
   --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
   widgetTree9 = vstack [
       dropdown_ dropdown1 items id label [maxHeight 200],
+      label "Integral",
+      integralField integer1,
+      label "Floating",
+      floatingField float1,
+      label "Text",
+      textField textField1,
       image "assets/images/pecans.jpg"
       --listView_ dropdown1 items label [selectedStyle (def `style` [bgColor orange])],
       --dropdown dropdown1 items id label

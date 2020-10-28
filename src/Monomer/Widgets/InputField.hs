@@ -8,7 +8,7 @@ module Monomer.Widgets.InputField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, non)
+import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, cloneLens, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -29,7 +29,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcFromText :: Text -> Maybe a,
   _ifcToText :: a -> Text,
   _ifcAcceptInput :: Text -> Bool,
-  _ifcStyle :: Maybe Style,
+  _ifcStyle :: Maybe (ALens' ThemeState StyleState),
   _ifcOnChange :: [a -> e],
   _ifcOnChangeReq :: [WidgetRequest s]
 }
@@ -93,8 +93,8 @@ makeInputField config state = widget where
     | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
     | otherwise = const []
 
-  getBaseStyle wenv inst =
-    _ifcStyle config
+  getBaseStyle wenv inst = _ifcStyle config >>= handler where
+    handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
   init wenv inst = resultReqs reqs newInstance where
     newValue = getModelValue wenv

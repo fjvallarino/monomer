@@ -74,11 +74,11 @@ handleSystemEvents
   -> WidgetInstance s e
   -> m (HandlerStep s e)
 handleSystemEvents wenv systemEvents widgetRoot = nextStep where
-  reducer (cWctx, cEvents, cRoot) evt = do
+  reducer (currWctx, currEvents, currRoot) evt = do
     focused <- use L.pathFocus
 
-    (wenv2, evts2, wroot2) <- handleSystemEvent cWctx evt focused cRoot
-    return (wenv2, cEvents >< evts2, wroot2)
+    (wenv2, evts2, wroot2) <- handleSystemEvent currWctx evt focused currRoot
+    return (wenv2, currEvents >< evts2, wroot2)
   nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents
 
 handleSystemEvent
@@ -193,6 +193,8 @@ handleSetFocus
 handleSetFocus newFocus (wenv, events, root) =  do
   oldFocus <- use L.pathFocus
   (wenv1, events1, root1) <- handleSystemEvent wenv Blur oldFocus root
+  let tempWenv = wenv1 { _weFocusedPath = newFocus }
+
   L.pathFocus .= newFocus
   (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 

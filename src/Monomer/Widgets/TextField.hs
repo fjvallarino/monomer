@@ -23,6 +23,8 @@ import qualified Data.Text as T
 import Monomer.Core
 import Monomer.Widgets.InputField
 
+import qualified Monomer.Lens as L
+
 data TextFieldCfg s e = TextFieldCfg {
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcMaxLength :: Maybe Int,
@@ -105,6 +107,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcToText = id,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
+    _ifcStyle = Just L.inputTextStyle,
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }

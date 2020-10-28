@@ -23,6 +23,9 @@ darkTheme = Theme {
   _themeDisabled = darkDisabled
 }
 
+textPadding :: Padding
+textPadding = padding 3 <> paddingB 2
+
 normalFont :: TextStyle
 normalFont = def
   & L.font ?~ Font "Regular"
@@ -34,6 +37,17 @@ titleFont = def
   & L.font ?~ Font "Bold"
   & L.fontSize ?~ FontSize 20
   & L.fontColor ?~ white
+
+inputStyle :: StyleState
+inputStyle = def
+  & L.text ?~ normalFont
+  & L.bgColor ?~ darkGray
+  & L.border ?~ border 1 gray
+  & L.padding ?~ textPadding
+
+numericInputStyle :: StyleState
+numericInputStyle = inputStyle
+  & L.text . non def . L.alignH ?~ ARight
 
 listViewItemStyle :: StyleState
 listViewItemStyle = def
@@ -72,7 +86,11 @@ darkBasic = def
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle
   & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle
+  & L.inputFloatingStyle .~ numericInputStyle
+  & L.inputIntegralStyle .~ numericInputStyle
+  & L.inputTextStyle .~ inputStyle
   & L.labelStyle . L.text ?~ normalFont
+  & L.labelStyle . L.padding ?~ textPadding
   & L.listViewItemStyle .~ listViewItemStyle
   & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle
   & L.radioWidth .~ 25
@@ -101,6 +119,9 @@ darkFocus = darkBasic
   & L.checkboxStyle . L.fgColor ?~ white
   & L.dropdownItemStyle . L.bgColor ?~ lightGray
   & L.dropdownItemSelectedStyle . L.bgColor ?~ gray
+  & L.inputFloatingStyle . L.border ?~ border 1 lightSkyBlue
+  & L.inputIntegralStyle . L.border ?~ border 1 lightSkyBlue
+  & L.inputTextStyle . L.border ?~ border 1 lightSkyBlue
   & L.listViewItemStyle . L.bgColor ?~ lightGray
   & L.listViewItemSelectedStyle . L.bgColor ?~ gray
   & L.radioStyle . L.fgColor ?~ white

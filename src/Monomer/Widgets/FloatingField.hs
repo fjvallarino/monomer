@@ -31,6 +31,8 @@ import Monomer.Core
 import Monomer.Widgets.InputField
 import Monomer.Widgets.Util
 
+import qualified Monomer.Lens as L
+
 type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
 
 data FloatingFieldCfg s e a = FloatingFieldCfg {
@@ -150,6 +152,7 @@ floatingFieldD_ widgetData configs = newInst where
     _ifcToText = toText,
     _ifcAcceptInput = acceptFloatInput decimals,
     _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
+    _ifcStyle = Just L.inputFloatingStyle,
     _ifcOnChange = _ffcOnChange config,
     _ifcOnChangeReq = _ffcOnChangeReq config
   }
