@@ -194,6 +194,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   baseWidget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
+    containerFindNextFocus = findNextFocus,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -222,6 +223,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   merge wenv oldState newInst = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget $ createDropdown wenv newState newInst
+
+  findNextFocus wenv direction start inst
+    | _isOpen state = _wiChildren inst
+    | otherwise = Empty
 
   handleEvent wenv target evt inst = case evt of
     Click point _
