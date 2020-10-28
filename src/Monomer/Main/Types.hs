@@ -37,6 +37,7 @@ data MonomerContext s = MonomerContext {
   _mcHdpi :: Bool,
   _mcDpr :: Double,
   _mcInputStatus :: InputStatus,
+  _mcCurrentCursor :: CursorIcon,
   _mcPathFocus :: Path,
   _mcPathHover :: Maybe Path,
   _mcPathPressed :: Maybe Path,

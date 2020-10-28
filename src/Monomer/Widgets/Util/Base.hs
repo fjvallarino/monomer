@@ -10,16 +10,19 @@ module Monomer.Widgets.Util.Base (
   getFactorReq
 ) where
 
+import Control.Lens ((&), (^.), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Sequence ((|>))
+
+import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Event
 import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Widget
 
-import qualified Data.Sequence as Seq
+import qualified Monomer.Lens as L
 
 type EventHandler s e
   = WidgetEnv s e
@@ -66,6 +69,11 @@ mergeBasicStyle st = newStyle where
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
 
+isInOverlay :: WidgetEnv s e -> WidgetInstance s e -> Bool
+isInOverlay wenv inst = maybe False isPrefix (wenv ^. L.overlayPath) where
+  path = _wiPath inst
+  isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath
+
 handleStyleChange
   :: EventHandler s e
   -> WidgetEnv s e
@@ -88,15 +96,18 @@ handleStyleChange handler wenv target evt inst = newResult where
   newSizeReqH = _wiSizeReqH instReqs
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Cursor
-  setCursor = isOnEnter evt
-  cursorIcon = fromMaybe CursorArrow (_sstCursorIcon style)
+  curIcon = wenv ^. L.currentCursor
+  newIcon
+    | nonOverlay = CursorArrow
+    | otherwise = fromMaybe CursorArrow (_sstCursorIcon style)
+  nonOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv inst)
+  setCursor = newIcon /= curIcon && (isHovered wenv inst || nonOverlay)
   -- Result
-  reqs = [ Resize | checkSize && sizeReqChanged ]
-    ++ [ SetCursorIcon cursorIcon | setCursor ]
+  resizeReq = [ Resize | checkSize && sizeReqChanged ]
+  cursorReq = [ SetCursorIcon newIcon | setCursor ]
+  reqs = resizeReq ++ cursorReq
   newResult
-    | not (null reqs) = Just result {
-        _wrRequests = _wrRequests result <> Seq.fromList reqs
-      }
+    | not (null reqs) = Just (result & L.requests <>~ Seq.fromList reqs)
     | otherwise = hResult
 
 handleSizeReqStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)

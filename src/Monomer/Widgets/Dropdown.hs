@@ -192,6 +192,7 @@ makeDropdown
   -> Widget s e
 makeDropdown widgetData items makeMain makeRow config state = widget where
   baseWidget = createContainer def {
+    containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerGetState = makeState state,
     containerFindNextFocus = findNextFocus,
@@ -217,6 +218,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       _wiWidget = newWidget,
       _wiChildren = Seq.singleton listViewInst
     }
+
+  getBaseStyle wenv inst = Just style where
+    style = collectTheme wenv L.dropdownStyle
 
   init wenv inst = resultWidget $ createDropdown wenv state inst
 

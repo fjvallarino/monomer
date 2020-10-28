@@ -22,9 +22,8 @@ getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
-  mousePos = _ipsMousePos $ _weInputStatus wenv
   isEnabled = _wiEnabled inst
-  isHover = pointInViewport mousePos inst
+  isHover = isHovered wenv inst
   isFocus = isFocused wenv inst
   styleState
     | not isEnabled = _styleDisabled
@@ -36,9 +35,8 @@ activeStyle wenv inst = fromMaybe def styleState where
 activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
 activeTheme wenv inst = themeState where
   theme = _weTheme wenv
-  mousePos = _ipsMousePos $ _weInputStatus wenv
   isEnabled = _wiEnabled inst
-  isHover = pointInViewport mousePos inst
+  isHover = isHovered wenv inst
   isFocus = isFocused wenv inst
   themeState
     | not isEnabled = _themeDisabled theme

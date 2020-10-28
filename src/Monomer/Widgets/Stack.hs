@@ -107,9 +107,11 @@ makeStack isHorizontal config = widget where
       | otherwise = rangeOrFixed (sum fixedH) tsumH factH
 
   resize wenv viewport renderArea children inst = resized where
-    Rect l t w h = renderArea
+    style = activeStyle wenv inst
+    contentArea = removeOuterBounds style renderArea
+    Rect x y w h = contentArea
     mainSize = if isHorizontal then w else h
-    mainStart = if isHorizontal then l else t
+    mainStart = if isHorizontal then x else y
     vchildren = Seq.filter _wiVisible children
     reqs = fmap mainReqSelector vchildren
     sSize = sum $ fmap getFixedSize reqs
@@ -123,13 +125,13 @@ makeStack isHorizontal config = widget where
     assignedArea = Seq.zip newViewports newViewports
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
     foldHelper (accum, offset) child = (newAccum, newOffset) where
-      newSize = resizeChild renderArea fExtra offset child
+      newSize = resizeChild contentArea fExtra offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
     resized = (inst, assignedArea)
 
-  resizeChild renderArea fExtra offset child = result where
-    Rect l t w h = renderArea
+  resizeChild contentArea fExtra offset child = result where
+    Rect l t w h = contentArea
     emptyRect = Rect l t 0 0
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz

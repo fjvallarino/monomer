@@ -57,7 +57,9 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children inst = resized where
-    Rect l t w h = renderArea
+    style = activeStyle wenv inst
+    contentArea = removeOuterBounds style renderArea
+    Rect l t w h = contentArea
     vchildren = Seq.filter _wiVisible children
     cols = if isHorizontal then length vchildren else 1
     rows = if isHorizontal then 1 else length vchildren

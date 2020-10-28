@@ -149,20 +149,25 @@ makeBox config = widget where
     newReqH = _wiSizeReqH child
 
   resize wenv viewport renderArea children inst = resized where
-    Rect rx ry rw rh = renderArea
+    style = activeStyle wenv inst
+    contentArea = removeOuterBounds style renderArea
+    Rect cx cy cw ch = contentArea
     child = Seq.index children 0
     contentW = getMaxSizeReq $ _wiSizeReqW child
     contentH = getMaxSizeReq $ _wiSizeReqH child
-    raChild = Rect rx ry (min rw contentW) (min rh contentH)
+    raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
-    raAligned = alignInRect ah av renderArea raChild
+    vpContent
+      | rectInRect contentArea viewport = contentArea
+      | otherwise = viewport
+    raAligned = alignInRect ah av contentArea raChild
     vpAligned
       | rectInRect raAligned viewport = raAligned
       | otherwise = viewport
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (inst, Seq.singleton (viewport, renderArea))
+      | expand = (inst, Seq.singleton (vpContent, contentArea))
       | otherwise  = (inst, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect

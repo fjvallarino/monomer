@@ -1,7 +1,8 @@
 module Monomer.Widgets.Util.Widget where
 
-import Control.Lens ((&), (^#), (#~))
+import Control.Lens ((&), (^#), (#~), (^.))
 import Data.Default
+import Data.Maybe
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Sequence as Seq
@@ -9,6 +10,8 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event (checkKeyboard, isKeyC, isKeyV)
 import Monomer.Graphics.Types
+
+import qualified Monomer.Lens as L
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
@@ -32,6 +35,20 @@ isWidgetVisible inst vp = _wiVisible inst && rectsOverlap vp (_wiViewport inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv inst = _weFocusedPath wenv == _wiPath inst
+
+isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
+isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
+  path = _wiPath inst
+  isPrefix parent = Seq.take (Seq.length parent) path == parent
+
+isHovered :: WidgetEnv s e -> WidgetInstance s e -> Bool
+isHovered wenv inst = validPos && isTopLevel wenv inst where
+  style = inst ^. L.style . L.hover
+  viewport = inst ^. L.viewport
+  renderArea = inst ^. L.renderArea
+  contentArea = maybe renderArea (`removeOuterBounds` renderArea) style
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  validPos = pointInRect mousePos viewport && pointInRect mousePos contentArea
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value

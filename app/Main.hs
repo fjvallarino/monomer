@@ -89,8 +89,8 @@ buildUI model = trace "Creating UI" widgetTree9 where
       floatingField float1,
       label "Text",
       textField textField1,
-      image "assets/images/pecans.jpg"
-      --listView_ dropdown1 items label [selectedStyle (def `style` [bgColor orange])],
+      --image "assets/images/pecans.jpg"
+      listView_ dropdown1 items label [itemSelectedStyle (def `style` [bgColor orange])]
       --dropdown dropdown1 items id label
     ]
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
@@ -169,7 +169,7 @@ buildUI model = trace "Creating UI" widgetTree9 where
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
-      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
+      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   newLabel i = label ("New: " <> showt i) `style` [altColor i]

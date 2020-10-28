@@ -42,6 +42,7 @@ inputStyle :: StyleState
 inputStyle = def
   & L.text ?~ normalFont
   & L.bgColor ?~ darkGray
+  & L.hlColor ?~ blue
   & L.border ?~ border 1 gray
   & L.padding ?~ textPadding
 
@@ -82,6 +83,7 @@ darkBasic = def
   & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 200
   & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 100
   & L.dialogButtonsStyle . L.padding ?~ padding 5
+  & L.dropdownStyle .~ inputStyle
   & L.dropdownMaxHeight .~ 200
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle
@@ -109,14 +111,22 @@ darkHover = darkBasic
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ white
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.dropdownStyle . L.bgColor ?~ gray
+  & L.dropdownStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownItemStyle . L.bgColor ?~ gray
+  & L.dropdownItemStyle . L.cursorIcon ?~ CursorHand
+  & L.inputFloatingStyle . L.cursorIcon ?~ CursorIBeam
+  & L.inputIntegralStyle . L.cursorIcon ?~ CursorIBeam
+  & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
   & L.listViewItemStyle . L.bgColor ?~ gray
+  & L.listViewItemStyle . L.cursorIcon ?~ CursorHand
   & L.radioStyle . L.fgColor ?~ white
   & L.radioStyle . L.cursorIcon ?~ CursorHand
 
 darkFocus :: ThemeState
 darkFocus = darkBasic
   & L.checkboxStyle . L.fgColor ?~ white
+  & L.dropdownStyle . L.border ?~ border 1 lightSkyBlue
   & L.dropdownItemStyle . L.bgColor ?~ lightGray
   & L.dropdownItemSelectedStyle . L.bgColor ?~ gray
   & L.inputFloatingStyle . L.border ?~ border 1 lightSkyBlue

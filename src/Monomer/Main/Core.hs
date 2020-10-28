@@ -113,7 +113,9 @@ runApp window theme fonts widgetRoot = do
     _weTheme = theme,
     _weAppWindowSize = newWindowSize,
     _weGlobalKeys = M.empty,
+    _weCurrentCursor = CursorArrow,
     _weFocusedPath = rootPath,
+    _weOverlayPath = Nothing,
     _weModel = model,
     _weInputStatus = def,
     _weTimestamp = startTs
@@ -150,7 +152,9 @@ mainLoop window renderer loopArgs = do
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
   currentModel <- use mainModel
+  currentCursor <- use currentCursor
   focused <- use pathFocus
+  overlay <- use pathOverlay
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -170,7 +174,9 @@ mainLoop window renderer loopArgs = do
     _weTheme = _mlTheme,
     _weAppWindowSize = windowSize,
     _weGlobalKeys = M.empty,
+    _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
+    _weOverlayPath = overlay,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks

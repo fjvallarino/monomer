@@ -240,6 +240,10 @@
 
 - Pending
   - Use theme for all components
+  - Check provided renderArea is used correctly
+  - Hover should only be active for top level item
+  - Replace uses of Seq.zip with foldlWithIndex
+  - Provided viewport should consider parent viewport
   - Check 1px difference on right side of labels/buttons
   - Multiline label
   - Add testing
@@ -269,6 +273,7 @@ Maybe postponed after release?
   - Find way of avoiding hover effects when widget is not in the top layer
   - Further textField improvements
     - Double clicking on empty puts the cursor at the end of ghost character
+    - Right aligned version has cusor overlaid
     - Handle mouse selection
     - Handle undo history
     - Create numeric wrapper that allows increasing/decreasing with mouse

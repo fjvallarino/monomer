@@ -84,6 +84,8 @@ data WidgetEnv s e = WidgetEnv {
   _weAppWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
+  _weOverlayPath :: Maybe Path,
+  _weCurrentCursor :: CursorIcon,
   _weModel :: s,
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp

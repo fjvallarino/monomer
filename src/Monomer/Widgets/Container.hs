@@ -497,9 +497,8 @@ resizeWrapper
   -> WidgetInstance s e
 resizeWrapper handler wenv viewport renderArea inst = newSize where
   style = activeStyle wenv inst
-  contentArea = removeOuterBounds style renderArea
   children = _wiChildren inst
-  (tempInst, assigned) = handler wenv viewport contentArea children inst
+  (tempInst, assigned) = handler wenv viewport renderArea children inst
   resize (child, (vp, ra)) = newChildInst where
     tempChildInst = widgetResize (_wiWidget child) wenv vp ra child
     newChildInst = tempChildInst {

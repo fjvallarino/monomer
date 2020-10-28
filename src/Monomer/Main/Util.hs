@@ -25,6 +25,7 @@ initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
   _mcHdpi = useHiDPI,
   _mcDpr = devicePixelRate,
   _mcInputStatus = def,
+  _mcCurrentCursor = CursorArrow,
   _mcPathFocus = Seq.empty,
   _mcPathHover = Nothing,
   _mcPathPressed = Nothing,

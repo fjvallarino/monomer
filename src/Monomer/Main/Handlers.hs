@@ -245,6 +245,7 @@ handleResetOverlay previousStep = do
 handleSetCursorIcon
   :: (MonomerM s m) => CursorIcon -> HandlerStep s e -> m (HandlerStep s e)
 handleSetCursorIcon icon previousStep = do
+  L.currentCursor .= icon
   cursor <- (Map.! icon) <$> use L.cursorIcons
   SDLE.setCursor cursor
 

@@ -15,8 +15,6 @@ lightGreen    = rgb 128 255 128
 green         = rgb   0 255   0
 darkGreen     = rgb   0 128   0
 -- Blue
-lighterBlue   = rgb 200 200 255
-
 lightSkyBlue  = rgb 135 206 250
 lightBlue     = rgb 173 216 230
 blue          = rgb   0   0 255
