@@ -20,6 +20,11 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
 
+type SingleGetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> Maybe Style
+
 type SingleInitHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
@@ -35,11 +40,6 @@ type SingleDisposeHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetResult s e
-
-type SingleGetBaseStyle s e
-  = WidgetEnv s e
-  -> WidgetInstance s e
-  -> Maybe Style
 
 type SingleGetStateHandler s e
   = WidgetEnv s e
@@ -93,10 +93,10 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e = Single {
+  singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleInit :: SingleInitHandler s e,
   singleMerge :: SingleMergeHandler s e,
   singleDispose :: SingleDisposeHandler s e,
-  singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetState :: SingleGetStateHandler s e,
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
   singleFindByPoint :: SingleFindByPointHandler s e,
@@ -109,10 +109,10 @@ data Single s e = Single {
 
 instance Default (Single s e) where
   def = Single {
+    singleGetBaseStyle = defaultGetBaseStyle,
     singleInit = defaultInit,
     singleMerge = defaultMerge,
     singleDispose = defaultDispose,
-    singleGetBaseStyle = defaultGetBaseStyle,
     singleGetState = defaultGetState,
     singleFindNextFocus = defaultFindNextFocus,
     singleFindByPoint = defaultFindByPoint,
@@ -137,6 +137,9 @@ createSingle Single{..} = Widget {
   widgetResize = singleResize,
   widgetRender = renderWrapper singleRender
 }
+
+defaultGetBaseStyle :: SingleGetBaseStyle s e
+defaultGetBaseStyle wenv inst = Nothing
 
 defaultInit :: SingleInitHandler s e
 defaultInit _ inst = resultWidget inst
@@ -174,9 +177,6 @@ mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose _ inst = resultWidget inst
-
-defaultGetBaseStyle :: SingleGetBaseStyle s e
-defaultGetBaseStyle wenv inst = Nothing
 
 defaultGetState :: SingleGetStateHandler s e
 defaultGetState _ = Nothing

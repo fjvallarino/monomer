@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{- HLINT ignore "Use foldr" -}
 
 module Monomer.Widgets.TextField (
   TextFieldCfg,

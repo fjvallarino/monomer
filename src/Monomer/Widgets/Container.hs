@@ -41,6 +41,11 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
 
+type ContainerGetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> Maybe Style
+
 type ContainerInitHandler s e
   = WidgetEnv s e
   -> WidgetInstance s e
@@ -96,11 +101,6 @@ type ContainerGetSizeReqHandler s e
   -> Seq (WidgetInstance s e)
   -> (SizeReq, SizeReq)
 
-type ContainerGetBaseStyle s e
-  = WidgetEnv s e
-  -> WidgetInstance s e
-  -> Maybe Style
-
 type ContainerResizeHandler s e
   = WidgetEnv s e
   -> Rect
@@ -116,10 +116,10 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e = Container {
+  containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerInit :: ContainerInitHandler s e,
   containerMerge :: ContainerMergeHandler s e,
   containerDispose :: ContainerDisposeHandler s e,
-  containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerGetState :: ContainerGetStateHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
@@ -132,10 +132,10 @@ data Container s e = Container {
 
 instance Default (Container s e) where
   def = Container {
+    containerGetBaseStyle = defaultGetBaseStyle,
     containerInit = defaultInit,
     containerMerge = defaultMerge,
     containerDispose = defaultDispose,
-    containerGetBaseStyle = defaultGetBaseStyle,
     containerGetState = defaultGetState,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
@@ -181,6 +181,10 @@ createThemed widgetType factory = newInst where
     containerMerge = merge
   }
   newInst = defaultWidgetInstance widgetType newWidget
+
+-- | Get base style for component
+defaultGetBaseStyle :: ContainerGetBaseStyle s e
+defaultGetBaseStyle wenv inst = Nothing
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
@@ -292,10 +296,6 @@ disposeWrapper disposeHandler wenv inst = result where
   newReqs = fold $ fmap _wrRequests results
   newEvents = fold $ fmap _wrEvents results
   result = WidgetResult (reqs <> newReqs) (events <> newEvents) inst
-
--- | Get base style for component
-defaultGetBaseStyle :: ContainerGetBaseStyle s e
-defaultGetBaseStyle wenv inst = Nothing
 
 -- | State Handling helpers
 defaultGetState :: ContainerGetStateHandler s e

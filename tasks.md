@@ -272,6 +272,7 @@ Maybe postponed after release?
     - Handle mouse selection
     - Handle undo history
     - Create numeric wrapper that allows increasing/decreasing with mouse
+  - Add maps on Theme to handle user widget settings
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

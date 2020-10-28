@@ -9,3 +9,4 @@ Why functional dependencies instead of type families for widget combinators?
 Why do you use Lens style record field names for internal config types?
 Why do you use lawless typeclasses for combinators?
 Why isn't StyleState using Phantom Types? Those styleX functions could be made safer.
+Why did you add themes, considering you can easily create a customized version of a widget by just writing a function and using it across the application?
