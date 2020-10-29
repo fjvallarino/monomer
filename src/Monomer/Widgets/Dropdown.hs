@@ -12,7 +12,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.), (.~))
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), _Just, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -324,8 +324,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     resized = (inst, assignedArea)
 
   render renderer wenv inst = do
-    drawStyledBackground renderer renderArea style
-    drawStyledText_ renderer renderArea style (dropdownLabel wenv)
+    drawStyledAction renderer renderArea style $ \contentArea -> do
+      drawStyledText_ renderer renderArea style (dropdownLabel wenv)
+      renderArrow renderer style contentArea
 
     when (isOpen && isJust listViewOverlay) $
       createOverlay renderer $
@@ -334,6 +335,15 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       listViewOverlay = Seq.lookup 0 (_wiChildren inst)
       renderArea = _wiRenderArea inst
       style = activeStyle wenv inst
+
+  renderArrow renderer style contentArea =
+    drawArrowDown renderer arrowRect (_sstFgColor style)
+    where
+      Rect x y w h = contentArea
+      size = style ^. L.text . non def . L.fontSize . non def
+      arrowW = unFontSize size / 2
+      dh = (h - arrowW) / 2
+      arrowRect = Rect (x + w - arrowW - dh) (y + dh * 1.5) arrowW (arrowW / 2)
 
   renderOverlay renderer wenv overlayInstance = renderAction where
     widget = _wiWidget overlayInstance

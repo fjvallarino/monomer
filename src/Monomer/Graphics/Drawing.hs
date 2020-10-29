@@ -6,6 +6,7 @@ module Monomer.Graphics.Drawing (
   drawRectBorder,
   drawEllipse,
   drawEllipseBorder,
+  drawArrowDown,
   drawStyledAction,
   drawStyledBackground,
   drawStyledText,
@@ -69,6 +70,22 @@ drawEllipseBorder renderer rect (Just color) width = do
   where
     finalRect = subtractFromRect rect w w w w
     w = width / 2
+
+drawArrowDown :: Renderer -> Rect -> Maybe Color -> IO ()
+drawArrowDown renderer rect Nothing = return ()
+drawArrowDown renderer rect (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  renderLineTo renderer p1
+  fill renderer
+  where
+    Rect x y w h = rect
+    p1 = Point x y
+    p2 = Point (x + w) y
+    p3 = Point (x + w / 2) (y + h)
 
 drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
 drawStyledAction renderer rect style action = do

@@ -84,6 +84,7 @@ darkBasic = def
   & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 100
   & L.dialogButtonsStyle . L.padding ?~ padding 5
   & L.dropdownStyle .~ inputStyle
+  & L.dropdownStyle . L.fgColor ?~ white
   & L.dropdownMaxHeight .~ 200
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle
