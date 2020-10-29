@@ -267,9 +267,11 @@ preProcessEvent
   :: (MonomerM s m)
   => WidgetEnv s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent wenv widgetRoot evt@(Move point) = do
+  overlay <- use L.pathOverlay
   hover <- use pathHover
+  let startPath = fromMaybe rootPath overlay
   let widget = _wiWidget widgetRoot
-  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
+  let current = widgetFindByPoint widget wenv startPath point widgetRoot
   let hoverChanged = current /= hover
   let enter = [Enter (fromJust current) point | isJust current && hoverChanged]
   let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
@@ -279,15 +281,19 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
 
   return $ leave ++ enter ++ [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
+  overlay <- use L.pathOverlay
+  let startPath = fromMaybe rootPath overlay
   let widget = _wiWidget widgetRoot
-  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
+  let current = widgetFindByPoint widget wenv startPath point widgetRoot
 
   pathPressed .= current
   return [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
+  overlay <- use L.pathOverlay
   pressed <- use pathPressed
+  let startPath = fromMaybe rootPath overlay
   let widget = _wiWidget widgetRoot
-  let current = widgetFindByPoint widget wenv rootPath point widgetRoot
+  let current = widgetFindByPoint widget wenv startPath point widgetRoot
   let extraEvt = [Click point btn | current == pressed]
 
   pathPressed .= Nothing
