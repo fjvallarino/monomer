@@ -140,9 +140,9 @@ makeButton config state = widget where
     }
 
   render renderer wenv inst = do
-    setScissor renderer contentRect
-    drawStyledText_ renderer contentRect style captionFit
+    setScissor renderer contentArea
+    drawStyledText_ renderer contentArea style captionFit
     resetScissor renderer
     where
       style = activeStyle wenv inst
-      contentRect = getContentRect style inst
+      contentArea = getContentArea style inst

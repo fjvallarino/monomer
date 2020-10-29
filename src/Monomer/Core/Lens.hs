@@ -18,7 +18,6 @@ makeLensesWith abbreviatedFields ''Rect
 
 -- Style
 makeLensesWith abbreviatedFields ''SizeReq
-makeLensesWith abbreviatedFields ''Margin
 makeLensesWith abbreviatedFields ''Padding
 makeLensesWith abbreviatedFields ''BorderSide
 makeLensesWith abbreviatedFields ''Border

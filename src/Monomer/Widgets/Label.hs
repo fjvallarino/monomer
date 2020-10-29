@@ -93,7 +93,7 @@ makeLabel config state = widget where
     }
 
   render renderer wenv inst =
-    drawStyledText_ renderer contentRect style captionFit
+    drawStyledText_ renderer contentArea style captionFit
     where
       style = activeStyle wenv inst
-      contentRect = getContentRect style inst
+      contentArea = getContentArea style inst

@@ -162,10 +162,10 @@ makeImage imgPath config state = widget where
       drawImage renderer imgPath imageRect alpha
     where
       style = activeStyle wenv inst
-      contentRect = getContentRect style inst
+      contentArea = getContentArea style inst
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
-      imageRect = fitImage fitMode imgSize contentRect
+      imageRect = fitImage fitMode imgSize contentArea
       ImageState imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData

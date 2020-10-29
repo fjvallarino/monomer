@@ -189,8 +189,8 @@ makeInputField config state = widget where
   handleEvent wenv target evt inst = case evt of
     Click (Point x y) _ -> result where
       style = activeStyle wenv inst
-      rect = getContentRect style inst
-      localX = x - _rX rect + _ifsOffset state
+      contentArea = getContentArea style inst
+      localX = x - _rX contentArea + _ifsOffset state
       textLen = getGlyphsMax (_ifsGlyphs state)
       glyphs = _ifsGlyphs state |> GlyphPos textLen 0 0
       zipper i g = (i, abs (_glpXMin g - localX))
@@ -301,7 +301,7 @@ makeInputField config state = widget where
     }
 
   render renderer wenv inst = do
-    setScissor renderer contentRect
+    setScissor renderer contentArea
 
     when (selRequired && isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
@@ -314,8 +314,8 @@ makeInputField config state = widget where
     resetScissor renderer
     where
       style = activeStyle wenv inst
-      contentRect = getContentRect style inst
-      Rect cx cy cw ch = contentRect
+      contentArea = getContentArea style inst
+      Rect cx cy cw ch = contentArea
       textMetrics = _ifsTextMetrics state
       TextMetrics tx ty tw th ta td = textMetrics
       selRect = maybe def mkSelRect currSel
@@ -364,9 +364,9 @@ newTextState
   -> InputFieldState a
 newTextState wenv inst oldState value text cursor selection = newState where
   style = activeStyle wenv inst
-  contentRect = getContentRect style inst
-  !(Rect cx cy cw ch) = contentRect
-  !textMetrics = getTextMetrics wenv style contentRect align text
+  contentArea = getContentArea style inst
+  !(Rect cx cy cw ch) = contentArea
+  !textMetrics = getTextMetrics wenv style contentArea align text
   TextMetrics tx ty tw th ta ts = textMetrics
   glyphs = getTextGlyphs wenv style text
   g :<| gs = glyphs

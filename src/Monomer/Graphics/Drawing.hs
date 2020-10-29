@@ -73,15 +73,13 @@ drawEllipseBorder renderer rect (Just color) width = do
 drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
 drawStyledAction renderer rect style action = do
   let StyleState{..} = style
-  let margin = _sstMargin
-  let marginRect = subtractMargin rect margin
-  let contentRect = removeOuterBounds style marginRect
+  let contentRect = removeOuterBounds style rect
 
-  drawRect renderer marginRect _sstBgColor _sstRadius
+  drawRect renderer rect _sstBgColor _sstRadius
   action contentRect
 
   when (isJust _sstBorder) $
-    drawRectBorder renderer marginRect (fromJust _sstBorder) _sstRadius
+    drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
 drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
 drawStyledBackground renderer rect style =

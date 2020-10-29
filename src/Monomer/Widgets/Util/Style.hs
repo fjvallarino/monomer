@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
-  getContentRect,
   activeStyle,
   activeTheme
 ) where
@@ -15,9 +14,6 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Widget
-
-getContentRect :: StyleState -> WidgetInstance s e -> Rect
-getContentRect style inst = removeOuterBounds style (_wiRenderArea inst)
 
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where

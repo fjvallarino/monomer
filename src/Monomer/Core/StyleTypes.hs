@@ -57,7 +57,6 @@ instance Monoid Style where
 data StyleState = StyleState {
   _sstSizeReqW :: Maybe SizeReq,
   _sstSizeReqH :: Maybe SizeReq,
-  _sstMargin :: Maybe Margin,
   _sstPadding :: Maybe Padding,
   _sstBorder :: Maybe Border,
   _sstRadius :: Maybe Radius,
@@ -72,7 +71,6 @@ instance Default StyleState where
   def = StyleState {
     _sstSizeReqW = Nothing,
     _sstSizeReqH = Nothing,
-    _sstMargin = Nothing,
     _sstPadding = Nothing,
     _sstBorder = Nothing,
     _sstRadius = Nothing,
@@ -87,7 +85,6 @@ instance Semigroup StyleState where
   (<>) s1 s2 = StyleState {
     _sstSizeReqW = _sstSizeReqW s2 <|> _sstSizeReqW s1,
     _sstSizeReqH = _sstSizeReqH s2 <|> _sstSizeReqH s1,
-    _sstMargin = _sstMargin s1 <> _sstMargin s2,
     _sstPadding = _sstPadding s1 <> _sstPadding s2,
     _sstBorder = _sstBorder s1 <> _sstBorder s2,
     _sstRadius = _sstRadius s1 <> _sstRadius s2,
@@ -99,32 +96,6 @@ instance Semigroup StyleState where
   }
 
 instance Monoid StyleState where
-  mempty = def
-
-data Margin = Margin {
-  _mgnLeft :: Maybe Double,
-  _mgnRight :: Maybe Double,
-  _mgnTop :: Maybe Double,
-  _mgnBottom :: Maybe Double
-} deriving (Eq, Show)
-
-instance Default Margin where
-  def = Margin {
-    _mgnLeft = Nothing,
-    _mgnRight = Nothing,
-    _mgnTop = Nothing,
-    _mgnBottom = Nothing
-  }
-
-instance Semigroup Margin where
-  (<>) p1 p2 = Margin {
-    _mgnLeft = _mgnLeft p2 <|> _mgnLeft p1,
-    _mgnRight = _mgnRight p2 <|> _mgnRight p1,
-    _mgnTop = _mgnTop p2 <|> _mgnTop p1,
-    _mgnBottom = _mgnBottom p2 <|> _mgnBottom p1
-  }
-
-instance Monoid Margin where
   mempty = def
 
 data Padding = Padding {

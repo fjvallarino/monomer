@@ -80,24 +80,6 @@ instance TextMiddle TextStyle where
 instance TextBottom TextStyle where
   textBottom = textAlignV ABottom
 
--- Margin
-
-instance Margin_ Margin where
-  margin mar = Margin jm jm jm jm where
-    jm = Just mar
-
-instance MarginR Margin where
-  marginR mar = def & L.right ?~ mar
-
-instance MarginT Margin where
-  marginT mar = def & L.top ?~ mar
-
-instance MarginL Margin where
-  marginL mar = def & L.left ?~ mar
-
-instance MarginB Margin where
-  marginB mar = def & L.bottom ?~ mar
-
 -- Padding
 
 instance Padding_ Padding where
@@ -243,22 +225,6 @@ instance TextMiddle StyleState where
 
 instance TextBottom StyleState where
   textBottom = styleTextAlignV ABottom
-
--- Margin
-instance Margin_ StyleState where
-  margin mar = def & L.margin ?~ margin mar
-
-instance MarginL StyleState where
-  marginL mar = def & L.margin . non def . L.left ?~ mar
-
-instance MarginR StyleState where
-  marginR mar = def & L.margin . non def . L.right ?~ mar
-
-instance MarginT StyleState where
-  marginT mar = def & L.margin . non def . L.top ?~ mar
-
-instance MarginB StyleState where
-  marginB mar = def & L.margin . non def . L.bottom ?~ mar
 
 -- Padding
 instance Padding_ StyleState where

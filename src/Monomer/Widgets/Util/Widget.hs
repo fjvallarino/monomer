@@ -43,12 +43,9 @@ isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
 
 isHovered :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isHovered wenv inst = validPos && isTopLevel wenv inst where
-  style = inst ^. L.style . L.hover
   viewport = inst ^. L.viewport
-  renderArea = inst ^. L.renderArea
-  contentArea = maybe renderArea (`removeOuterBounds` renderArea) style
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInRect mousePos viewport && pointInRect mousePos contentArea
+  validPos = pointInRect mousePos viewport
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value

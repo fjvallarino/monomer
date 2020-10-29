@@ -265,6 +265,7 @@ Maybe postponed after release?
   - Handle window title, maximize, etc
     - Also handle as requests?
   - Check scroll styling works correctly (contentRect being applied, etc)
+    - Also handle hover so scrollbars get correct cursor
   - Handle onBlur/onFocus in all focusable widgets
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Avoid findNextFocus on unfocusable children (listView items)

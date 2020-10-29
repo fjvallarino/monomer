@@ -496,7 +496,6 @@ resizeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 resizeWrapper handler wenv viewport renderArea inst = newSize where
-  style = activeStyle wenv inst
   children = _wiChildren inst
   (tempInst, assigned) = handler wenv viewport renderArea children inst
   resize (child, (vp, ra)) = newChildInst where
