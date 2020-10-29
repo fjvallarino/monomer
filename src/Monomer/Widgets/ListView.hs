@@ -302,8 +302,7 @@ makeListView widgetData items makeRow config state = widget where
       ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
     changeReqs = _lvcOnChangeReq config
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
-    focusReq = [SetFocus $ _wiPath inst]
-    requests = valueSetReq ++ scrollToReq ++ changeReqs ++ focusReq
+    requests = valueSetReq ++ scrollToReq ++ changeReqs
     newState = ListViewState idx
     newInstance = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
