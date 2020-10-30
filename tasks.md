@@ -237,12 +237,12 @@
   - Add way of requesting findNextFocus (needed on Dropdown)
   - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
   - Update style when merging to avoid recalculating/merging theme every time
+  - Use theme for all components
 
 - Pending
-  - Use theme for all components
+  - Replace uses of Seq.zip with foldlWithIndex
   - Check provided renderArea is used correctly
   - Hover should only be active for top level item
-  - Replace uses of Seq.zip with foldlWithIndex
   - Provided viewport should consider parent viewport
   - Check 1px difference on right side of labels/buttons
   - Multiline label
