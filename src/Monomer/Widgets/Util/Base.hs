@@ -96,12 +96,13 @@ handleStyleChange handler wenv target evt inst = newResult where
   newSizeReqH = _wiSizeReqH instReqs
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Cursor
+  isTarget = _wiPath inst == target
   curIcon = wenv ^. L.currentCursor
   nonOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv inst)
   newIcon
     | nonOverlay = CursorArrow
     | otherwise = fromMaybe CursorArrow (_sstCursorIcon style)
-  setCursor = newIcon /= curIcon && (isOnEnter evt || nonOverlay)
+  setCursor = isTarget && newIcon /= curIcon && (isOnEnter evt || nonOverlay)
   -- Result
   resizeReq = [ Resize | checkSize && sizeReqChanged ]
   cursorReq = [ SetCursorIcon newIcon | setCursor ]

@@ -347,13 +347,21 @@ makeListView widgetData items makeRow config state = widget where
       | isWidgetVisible item viewport = items |> updateStyle idx item
       | otherwise = items
     updateStyle idx item
-      | idx == hlIdx
-        = item & L.children . ix 0 . L.style . L.basic
-          .~ (item ^. L.children . ix 0 . L.style . L.focus)
+      | idx == hlIdx = setFocusedItemStyle wenv item
       | otherwise = item
     children = inst ^. L.children . ix 0 . L.children
     newChildren = Seq.foldlWithIndex foldItem Empty children
     newInst = inst & L.children . ix 0 . L.children .~ newChildren
+
+setFocusedItemStyle :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+setFocusedItemStyle wenv item
+  | isHovered wenv item = item & hoverLens .~ (hoverStyle <> focusStyle)
+  | otherwise = item & basicLens .~ focusStyle
+  where
+    basicLens = L.children . ix 0 . L.style . L.basic
+    hoverLens = L.children . ix 0 . L.style . L.hover
+    hoverStyle = item ^. L.children . ix 0 . L.style . L.hover
+    focusStyle = item ^. L.children . ix 0 . L.style . L.focus
 
 makeItemsList
   :: (Eq a)
