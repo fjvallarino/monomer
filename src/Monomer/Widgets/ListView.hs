@@ -12,7 +12,7 @@ module Monomer.Widgets.ListView (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), ix, non)
+import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), (<>~), ix, non)
 import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
@@ -193,9 +193,10 @@ listViewD_ widgetData items makeRow configs = makeInstance widget where
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
-makeInstance widget = scroll $ (defaultWidgetInstance "listView" widget) {
-  _wiFocusable = True
-}
+makeInstance widget = scroll_ childInst [scrollStyle L.listViewStyle] where
+  childInst = (defaultWidgetInstance "listView" widget) {
+    _wiFocusable = True
+  }
 
 makeListView
   :: (Eq a)
@@ -271,8 +272,15 @@ makeListView widgetData items makeRow config state = widget where
       | otherwise = tempIdx
 
   handleMessage wenv target message inst = result where
-    handleSelect (OnClickMessage idx) = selectItem wenv inst idx
+    handleSelect (OnClickMessage idx) = handleItemClick wenv inst idx
     result = fmap handleSelect (cast message)
+
+  handleItemClick wenv inst idx = result where
+    focusReq = Seq.singleton (SetFocus $ inst ^. L.path)
+    tempResult = selectItem wenv inst idx
+    result
+      | isFocused wenv inst = tempResult
+      | otherwise = tempResult & L.requests <>~ focusReq
 
   highlightItem wenv inst nextIdx = result where
     newState = ListViewState nextIdx

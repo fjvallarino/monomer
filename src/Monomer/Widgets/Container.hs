@@ -154,7 +154,7 @@ createContainer Container{..} = Widget {
   widgetGetState = containerGetState,
   widgetFindNextFocus = findNextFocusWrapper containerFindNextFocus,
   widgetFindByPoint = findByPointWrapper False containerFindByPoint,
-  widgetHandleEvent = handleEventWrapper containerHandleEvent,
+  widgetHandleEvent = handleEventWrapper False containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
   widgetResize = resizeWrapper containerResize,
@@ -379,22 +379,25 @@ defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt inst = Nothing
 
 handleEventWrapper
-  :: ContainerEventHandler s e
+  :: Bool
+  -> ContainerEventHandler s e
   -> WidgetEnv s e
   -> Path
   -> SystemEvent
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper pHandler wenv target event inst
+handleEventWrapper styleOnMerge pHandler wenv target event inst
   | not (_wiVisible inst) = Nothing
   | targetReached = handleStyleChange pHandler wenv target event inst
-  | not targetValid = Nothing
+  | not targetValid = Nothing -- `not targetValid` applies to children only
+  | styleOnMerge = handleStyleChange sHandler wenv target event inst
   | otherwise = mergeParentChildEvts inst pResponse cResponse childIdx
   where
     -- Having targetValid = False means the next path step is not in
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
+    sHandler _ _ _ _ = mergeParentChildEvts inst pResponse cResponse childIdx
     targetReached = isTargetReached target inst
     targetValid = isTargetValid target inst
     childIdx = fromJust $ nextTargetStep target inst

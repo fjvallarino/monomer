@@ -2,6 +2,7 @@
 
 module Monomer.Widgets.Util.Style (
   activeStyle,
+  focusedStyle,
   activeTheme
 ) where
 
@@ -27,6 +28,14 @@ activeStyle wenv inst = fromMaybe def styleState where
     | isHover = _styleHover
     | isFocus = _styleFocus
     | otherwise = _styleBasic
+
+focusedStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
+focusedStyle wenv inst = fromMaybe def styleState where
+  Style{..} = _wiStyle inst
+  isHover = isHovered wenv inst
+  styleState
+    | isHover = _styleHover <> _styleFocus
+    | otherwise = _styleFocus
 
 activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
 activeTheme wenv inst = themeState where

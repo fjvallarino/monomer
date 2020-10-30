@@ -87,11 +87,11 @@ buildUI model = trace "Creating UI" widgetTree9 where
       integralField integer1,
       label "Floating",
       floatingField float1,
-      label "Text",
-      textField textField1,
       --image "assets/images/pecans.jpg"
-      listView_ dropdown1 items label [itemSelectedStyle (def `style` [bgColor orange])]
+      listView_ dropdown1 items label [itemSelectedStyle (def `style` [bgColor orange])],
       --dropdown dropdown1 items id label
+      label "Text",
+      textField textField1
     ]
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
   widgetTree7 = hstack [
