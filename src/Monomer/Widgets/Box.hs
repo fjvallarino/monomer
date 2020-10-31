@@ -150,7 +150,7 @@ makeBox config = widget where
 
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
-    contentArea = removeOuterBounds style renderArea
+    contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect cx cy cw ch = contentArea
     child = Seq.index children 0
     contentW = getMaxSizeReq $ _wiSizeReqW child
@@ -162,9 +162,7 @@ makeBox config = widget where
       | rectInRect contentArea viewport = contentArea
       | otherwise = viewport
     raAligned = alignInRect ah av contentArea raChild
-    vpAligned
-      | rectInRect raAligned viewport = raAligned
-      | otherwise = viewport
+    vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)
     resized
       | expand = (inst, Seq.singleton (vpContent, contentArea))

@@ -14,6 +14,7 @@ module Monomer.Widgets.Composite (
   composite
 ) where
 
+import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
@@ -280,7 +281,7 @@ compositeResize
 compositeResize comp state wenv viewport renderArea widgetComp = resized where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
-  contentArea = removeOuterBounds style renderArea
+  contentArea = fromMaybe def (removeOuterBounds style renderArea)
   widget = _wiWidget _cmpRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   newRoot = widgetResize widget cwenv viewport contentArea _cmpRoot

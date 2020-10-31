@@ -50,15 +50,21 @@ coordInRectH px (Rect x y w h) = px >= x && px < x + w
 coordInRectY :: Double -> Rect -> Bool
 coordInRectY py (Rect x y w h) = py >= y && py < y + h
 
-addToSize :: Size -> Double -> Double -> Size
-addToSize (Size w h) w2 h2 = Size nw nh where
-  nw = max 0 $ w + w2
-  nh = max 0 $ h + h2
+addToSize :: Size -> Double -> Double -> Maybe Size
+addToSize (Size w h) w2 h2 = newSize where
+  nw = w + w2
+  nh = h + h2
+  newSize
+    | nw > 0 && nh > 0 = Just $ Size nw nh
+    | otherwise = Nothing
 
-subtractFromSize :: Size -> Double -> Double -> Size
-subtractFromSize (Size w h) w2 h2 = Size nw nh where
-  nw = max 0 $ w - w2
-  nh = max 0 $ h - h2
+subtractFromSize :: Size -> Double -> Double -> Maybe Size
+subtractFromSize (Size w h) w2 h2 = newSize where
+  nw = w - w2
+  nh = h - h2
+  newSize
+    | nw > 0 && nh > 0 = Just $ Size nw nh
+    | otherwise = Nothing
 
 rectInRect :: Rect -> Rect -> Bool
 rectInRect inner outer = rectInRectH inner outer && rectInRectV inner outer
@@ -76,16 +82,34 @@ rectsOverlap (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) = overlapX && overlapY where
   overlapX = x1 < x2 + w2 && x1 + w1 > x2
   overlapY = y1 < y2 + h2 && y1 + h1 > y2
 
-addToRect :: Rect -> Double -> Double -> Double -> Double -> Rect
-addToRect (Rect x y w h) l r t b = Rect nx ny nw nh where
+addToRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
+addToRect (Rect x y w h) l r t b = newRect where
   nx = x - l
   ny = y - t
   nw = max 0 $ w + l + r
   nh = max 0 $ h + t + b
+  newRect
+    | nw > 0 && nh > 0 = Just $ Rect nx ny nw nh
+    | otherwise = Nothing
 
-subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Rect
-subtractFromRect (Rect x y w h) l r t b = Rect nx ny nw nh where
+subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
+subtractFromRect (Rect x y w h) l r t b = newRect where
   nx = x + l
   ny = y + t
   nw = max 0 $ w - l - r
   nh = max 0 $ h - t - b
+  newRect
+    | nw > 0 && nh > 0 = Just $ Rect nx ny nw nh
+    | otherwise = Nothing
+
+intersectRects :: Rect -> Rect -> Maybe Rect
+intersectRects (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) = newRect where
+  nx1 = max x1 x2
+  nx2 = min (x1 + w1) (x2 + w2)
+  ny1 = max y1 y2
+  ny2 = min (y1 + h1) (y2 + h2)
+  nw = nx2 - nx1
+  nh = ny2 - ny1
+  newRect
+    | nw > 0 && nh > 0 = Just $ Rect nx1 ny1 nw nh
+    | otherwise = Nothing

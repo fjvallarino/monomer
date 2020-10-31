@@ -119,7 +119,7 @@ handleSizeReqStyle style (reqW, reqH) = (newReqW, newReqH) where
 
 addOuterSizeReq :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 addOuterSizeReq style (reqW, reqH) = (newReqW, newReqH) where
-  Size w h = addOuterSize style def
+  Size w h = fromMaybe def (addOuterSize style def)
   newReqW = modifySizeReq reqW (+w)
   newReqH = modifySizeReq reqH (+h)
 

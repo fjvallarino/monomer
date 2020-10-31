@@ -301,14 +301,14 @@ makeScroll config state = widget where
     child = Seq.index children 0
     tw = getMinSizeReq $ _wiSizeReqW child
     th = getMinSizeReq $ _wiSizeReqH child
-    Size w h = addOuterSize style (Size tw th)
+    Size w h = fromMaybe def (addOuterSize style (Size tw th))
     factor = 1
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   scrollResize uWidget state wenv viewport renderArea inst = newInst where
     style = scrollActiveStyle wenv inst
-    Rect cl ct cw ch = removeOuterBounds style renderArea
+    Rect cl ct cw ch = fromMaybe def (removeOuterBounds style renderArea)
     dx = _sstDeltaX state
     dy = _sstDeltaY state
 
@@ -320,8 +320,8 @@ makeScroll config state = widget where
     areaH = max ch childHeight2
     newDx = scrollAxis dx areaW cw
     newDy = scrollAxis dy areaH ch
-    cViewport = removeOuterBounds style viewport
     cRenderArea = Rect (cl + newDx) (ct + newDy) areaW areaH
+    cViewport = fromMaybe def (intersectRects viewport cRenderArea)
 
     defWidget = makeScroll config $ state {
       _sstChildSize = Size areaW areaH
@@ -360,7 +360,7 @@ makeScroll config state = widget where
     where
       style = scrollActiveStyle wenv inst
       child = inst ^. L.children ^?! ix 0
-      viewport = removeOuterBounds style ( _wiViewport inst)
+      viewport = fromMaybe def (removeOuterBounds style ( _wiViewport inst))
       renderArea = _wiRenderArea inst
 
       ScrollContext{..} = scrollStatus config wenv state inst

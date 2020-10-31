@@ -9,6 +9,7 @@ import Control.Applicative ((<|>))
 import Data.Default
 import Data.Foldable (toList)
 import Data.List (foldl')
+import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
@@ -108,7 +109,7 @@ makeStack isHorizontal config = widget where
 
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
-    contentArea = removeOuterBounds style renderArea
+    contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect x y w h = contentArea
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then x else y

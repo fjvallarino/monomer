@@ -144,5 +144,5 @@ renderRadio renderer radioBW rect color = action where
 renderMark :: Renderer -> Double -> Rect -> Color -> IO ()
 renderMark renderer radioBW rect color = action where
   w = radioBW * 2
-  newRect = subtractFromRect rect w w w w
+  newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawEllipse renderer newRect (Just color)

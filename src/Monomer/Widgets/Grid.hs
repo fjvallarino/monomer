@@ -5,6 +5,7 @@ module Monomer.Widgets.Grid (
 
 import Data.Default
 import Data.List (foldl')
+import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
@@ -58,7 +59,7 @@ makeFixedGrid isHorizontal = widget where
 
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
-    contentArea = removeOuterBounds style renderArea
+    contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect l t w h = contentArea
     vchildren = Seq.filter _wiVisible children
     cols = if isHorizontal then length vchildren else 1

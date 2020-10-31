@@ -23,9 +23,6 @@ darkTheme = Theme {
   _themeDisabled = darkDisabled
 }
 
-borderTransparent :: Border
-borderTransparent = border 1 (Color 0 0 0 0)
-
 borderNormal :: Border
 borderNormal = border 1 gray
 
@@ -81,9 +78,8 @@ darkBasic = def
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
-  & L.checkboxWidth .~ 18
+  & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ gray
-  & L.checkboxStyle . L.padding ?~ padding 3
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
@@ -107,9 +103,8 @@ darkBasic = def
   & L.listViewStyle . L.border ?~ borderNormal
   & L.listViewItemStyle .~ listViewItemStyle
   & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle
-  & L.radioWidth .~ 18
+  & L.radioWidth .~ 20
   & L.radioStyle . L.fgColor ?~ gray
-  & L.radioStyle . L.padding ?~ padding 3
   & L.scrollBarColor .~ (gray & L.a .~ 0.2)
   & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
   & L.scrollWidth .~ 10
@@ -122,7 +117,7 @@ darkHover = darkBasic
   & L.btnStyle . L.cursorIcon ?~ CursorHand
   & L.btnMainStyle . L.bgColor ?~ lightBlue
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
-  & L.checkboxStyle . L.fgColor ?~ white
+  & L.checkboxStyle . L.fgColor ?~ lightGray
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ gray
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand
@@ -135,7 +130,7 @@ darkHover = darkBasic
   & L.listViewItemStyle . L.bgColor ?~ gray
   & L.listViewItemStyle . L.cursorIcon ?~ CursorHand
   & L.listViewItemSelectedStyle . L.cursorIcon ?~ CursorHand
-  & L.radioStyle . L.fgColor ?~ white
+  & L.radioStyle . L.fgColor ?~ lightGray
   & L.radioStyle . L.cursorIcon ?~ CursorHand
 
 darkFocus :: ThemeState

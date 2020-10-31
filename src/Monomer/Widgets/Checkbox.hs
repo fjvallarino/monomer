@@ -141,5 +141,5 @@ renderCheckbox renderer checkboxBW rect color = action where
 renderMark :: Renderer -> Double -> Rect -> Color -> IO ()
 renderMark renderer checkboxBW rect color = action where
   w = checkboxBW * 2
-  newRect = subtractFromRect rect w w w w
+  newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawRect renderer newRect (Just color) Nothing

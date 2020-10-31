@@ -16,7 +16,7 @@ module Monomer.Graphics.Drawing (
   drawStyledImage
 ) where
 
-import Control.Monad (when, void)
+import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -61,14 +61,15 @@ drawEllipse renderer rect (Just color) = do
 
 drawEllipseBorder :: Renderer -> Rect -> Maybe Color -> Double -> IO ()
 drawEllipseBorder renderer rect Nothing _ = return ()
-drawEllipseBorder renderer rect (Just color) width = do
-  beginPath renderer
-  setStrokeColor renderer color
-  setStrokeWidth renderer width
-  renderEllipse renderer finalRect
-  stroke renderer
+drawEllipseBorder renderer rect (Just color) width =
+  forM_ contentRect $ \finalRect -> do
+    beginPath renderer
+    setStrokeColor renderer color
+    setStrokeWidth renderer width
+    renderEllipse renderer finalRect
+    stroke renderer
   where
-    finalRect = subtractFromRect rect w w w w
+    contentRect = subtractFromRect rect w w w w
     w = width / 2
 
 drawArrowDown :: Renderer -> Rect -> Maybe Color -> IO ()
@@ -93,7 +94,8 @@ drawStyledAction renderer rect style action = do
   let contentRect = removeOuterBounds style rect
 
   drawRect renderer rect _sstBgColor _sstRadius
-  action contentRect
+
+  forM_ contentRect action
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
@@ -139,9 +141,9 @@ drawImage renderer imgName rect alpha = action where
   action = renderImage renderer imgName rect alpha
 
 drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
-drawStyledImage renderer imgName rect alpha style = action where
-  imgRect = removeOuterBounds style rect
-  action = renderImage renderer imgName imgRect alpha
+drawStyledImage renderer imgName rect alpha style = forM_ tempRect action where
+  tempRect = removeOuterBounds style rect
+  action imgRect = renderImage renderer imgName imgRect alpha
 
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =

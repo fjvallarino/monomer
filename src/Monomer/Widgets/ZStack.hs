@@ -98,7 +98,10 @@ makeZStack config = widget where
       | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children inst = resized where
-    assignedAreas = fmap (const (viewport, renderArea)) children
+    style = activeStyle wenv inst
+    raChild = fromMaybe def (removeOuterBounds style renderArea)
+    vpChild = fromMaybe def (intersectRects viewport raChild)
+    assignedAreas = fmap (const (vpChild, raChild)) children
     resized = (inst, assignedAreas)
 
   render renderer wenv inst =

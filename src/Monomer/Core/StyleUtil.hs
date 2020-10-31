@@ -42,7 +42,8 @@ visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
 visible inst visibility = inst & L.visible .~ visibility
 
 getContentArea :: StyleState -> WidgetInstance s e -> Rect
-getContentArea style inst = removeOuterBounds style (_wiRenderArea inst)
+getContentArea style inst = fromMaybe def area where
+  area = removeOuterBounds style (_wiRenderArea inst)
 
 instance Style_ Style where
   style oldStyle states = newStyle where
@@ -116,68 +117,64 @@ styleHlColor :: StyleState -> Color
 styleHlColor style = fromMaybe def hlColor where
   hlColor = style ^? L.hlColor . _Just
 
-addOuterSize :: StyleState -> Size -> Size
-addOuterSize style sz = final where
-  border = addBorderSize sz (_sstBorder style)
-  padding = addPaddingSize border (_sstPadding style)
-  final = padding
+addOuterSize :: StyleState -> Size -> Maybe Size
+addOuterSize style sz =
+  addBorderSize sz (_sstBorder style)
+    >>= (`addPaddingSize` _sstPadding style)
 
-removeOuterSize :: StyleState -> Size -> Size
-removeOuterSize style sz = final where
-  border = subtractBorderSize sz (_sstBorder style)
-  padding = subtractPaddingSize border (_sstPadding style)
-  final = padding
+removeOuterSize :: StyleState -> Size -> Maybe Size
+removeOuterSize style sz =
+  subtractBorderSize sz (_sstBorder style)
+    >>= (`subtractPaddingSize` _sstPadding style)
 
-addOuterBounds :: StyleState -> Rect -> Rect
-addOuterBounds style rect = final where
-  border = addBorder rect (_sstBorder style)
-  padding = addPadding border (_sstPadding style)
-  final = padding
+addOuterBounds :: StyleState -> Rect -> Maybe Rect
+addOuterBounds style rect =
+  addBorder rect (_sstBorder style)
+    >>= (`addPadding` _sstPadding style)
 
-removeOuterBounds :: StyleState -> Rect -> Rect
-removeOuterBounds style rect = final where
-  border = subtractBorder rect (_sstBorder style)
-  padding = subtractPadding border (_sstPadding style)
-  final = padding
+removeOuterBounds :: StyleState -> Rect -> Maybe Rect
+removeOuterBounds style rect =
+  subtractBorder rect (_sstBorder style)
+    >>= (`subtractPadding` _sstPadding style)
 
 -- Internal
-addBorderSize :: Size -> Maybe Border -> Size
+addBorderSize :: Size -> Maybe Border -> Maybe Size
 addBorderSize sz border = nSize where
   (bl, br, bt, bb) = borderWidths border
   nSize = addToSize sz (bl + br) (bt + bb)
 
-addPaddingSize :: Size -> Maybe Padding -> Size
-addPaddingSize sz Nothing = sz
+addPaddingSize :: Size -> Maybe Padding -> Maybe Size
+addPaddingSize sz Nothing = Just sz
 addPaddingSize sz (Just (Padding l r t b)) = nSize where
   nSize = addToSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-subtractBorderSize :: Size -> Maybe Border -> Size
+subtractBorderSize :: Size -> Maybe Border -> Maybe Size
 subtractBorderSize sz border = nSize where
   (bl, br, bt, bb) = borderWidths border
   nSize = subtractFromSize sz (bl + br) (bt + bb)
 
-subtractPaddingSize :: Size -> Maybe Padding -> Size
-subtractPaddingSize sz Nothing = sz
+subtractPaddingSize :: Size -> Maybe Padding -> Maybe Size
+subtractPaddingSize sz Nothing = Just sz
 subtractPaddingSize sz (Just (Padding l r t b)) = nSize where
   nSize = subtractFromSize sz (justDef l + justDef r) (justDef t + justDef b)
 
-addBorder :: Rect -> Maybe Border -> Rect
+addBorder :: Rect -> Maybe Border -> Maybe Rect
 addBorder rect border = nRect where
   (bl, br, bt, bb) = borderWidths border
   nRect = addToRect rect bl br bt bb
 
-addPadding :: Rect -> Maybe Padding -> Rect
-addPadding rect Nothing = rect
+addPadding :: Rect -> Maybe Padding -> Maybe Rect
+addPadding rect Nothing = Just rect
 addPadding rect (Just (Padding l r t b)) = nRect where
   nRect = addToRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
-subtractBorder :: Rect -> Maybe Border -> Rect
+subtractBorder :: Rect -> Maybe Border -> Maybe Rect
 subtractBorder rect border = nRect where
   (bl, br, bt, bb) = borderWidths border
   nRect = subtractFromRect rect bl br bt bb
 
-subtractPadding :: Rect -> Maybe Padding -> Rect
-subtractPadding rect Nothing = rect
+subtractPadding :: Rect -> Maybe Padding -> Maybe Rect
+subtractPadding rect Nothing = Just rect
 subtractPadding rect (Just (Padding l r t b)) = nRect where
   nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 

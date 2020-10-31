@@ -81,22 +81,24 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree9 where
   --widgetTree8 = box (image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200])
   --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
-  widgetTree9 = vstack [
-      hstack [
-        radio fruit Apple,
-        radio fruit Orange,
-        checkbox condition1
-      ],
-      dropdown_ dropdown1 items id label [maxHeight 200],
-      label "Integral",
-      integralField integer1,
-      label "Floating",
-      floatingField float1,
-      --image "assets/images/pecans.jpg"
-      listView_ dropdown1 items label [],
-      --dropdown dropdown1 items id label
-      label "Text",
-      textField textField1
+  widgetTree9 = zstack [
+      vstack [
+        hstack [
+          radio fruit Apple,
+          radio fruit Orange,
+          checkbox condition1
+        ],
+        dropdown_ dropdown1 items id label [maxHeight 200],
+        label "Integral",
+        integralField integer1,
+        label "Floating",
+        floatingField float1,
+        --image "assets/images/pecans.jpg"
+        listView_ dropdown1 items label [],
+        --dropdown dropdown1 items id label
+        label "Text",
+        textField textField1
+      ] -- `style` [padding 10]
     ]
   widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
   widgetTree7 = hstack [
