@@ -55,7 +55,7 @@ addToSize (Size w h) w2 h2 = newSize where
   nw = w + w2
   nh = h + h2
   newSize
-    | nw > 0 && nh > 0 = Just $ Size nw nh
+    | nw >= 0 && nh >= 0 = Just $ Size nw nh
     | otherwise = Nothing
 
 subtractFromSize :: Size -> Double -> Double -> Maybe Size
@@ -63,7 +63,7 @@ subtractFromSize (Size w h) w2 h2 = newSize where
   nw = w - w2
   nh = h - h2
   newSize
-    | nw > 0 && nh > 0 = Just $ Size nw nh
+    | nw >= 0 && nh >= 0 = Just $ Size nw nh
     | otherwise = Nothing
 
 rectInRect :: Rect -> Rect -> Bool
@@ -86,20 +86,20 @@ addToRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
 addToRect (Rect x y w h) l r t b = newRect where
   nx = x - l
   ny = y - t
-  nw = max 0 $ w + l + r
-  nh = max 0 $ h + t + b
+  nw = w + l + r
+  nh = h + t + b
   newRect
-    | nw > 0 && nh > 0 = Just $ Rect nx ny nw nh
+    | nw >= 0 && nh >= 0 = Just $ Rect nx ny nw nh
     | otherwise = Nothing
 
 subtractFromRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
 subtractFromRect (Rect x y w h) l r t b = newRect where
   nx = x + l
   ny = y + t
-  nw = max 0 $ w - l - r
-  nh = max 0 $ h - t - b
+  nw = w - l - r
+  nh = h - t - b
   newRect
-    | nw > 0 && nh > 0 = Just $ Rect nx ny nw nh
+    | nw >= 0 && nh >= 0 = Just $ Rect nx ny nw nh
     | otherwise = Nothing
 
 intersectRects :: Rect -> Rect -> Maybe Rect
@@ -111,5 +111,5 @@ intersectRects (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) = newRect where
   nw = nx2 - nx1
   nh = ny2 - ny1
   newRect
-    | nw > 0 && nh > 0 = Just $ Rect nx1 ny1 nw nh
+    | nw >= 0 && nh >= 0 = Just $ Rect nx1 ny1 nw nh
     | otherwise = Nothing

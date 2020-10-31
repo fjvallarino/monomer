@@ -158,9 +158,7 @@ makeBox config = widget where
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
-    vpContent
-      | rectInRect contentArea viewport = contentArea
-      | otherwise = viewport
+    vpContent = fromMaybe def (intersectRects viewport contentArea)
     raAligned = alignInRect ah av contentArea raChild
     vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)

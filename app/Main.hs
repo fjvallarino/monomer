@@ -30,7 +30,7 @@ main = do
   --      & L.hover . L.fgColor .~ white
   --      & L.focus . L.fgColor .~ white
   let config = [
-        --windowSize (1280, 960),
+        windowSize (1280, 960),
         --windowSize (320, 240),
         useHdpi True,
         appTheme theme,
@@ -78,10 +78,8 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree9 where
-  --widgetTree8 = box (image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200])
-  --widgetTree8 = hstack [image_ "assets/images/pecans.jpg" [fitFill] `style` [width 200]] --
-  widgetTree9 = zstack [
+buildUI model = trace "Creating UI" widgetTree2 where
+  widgetTree2 = zstack [
       vstack [
         hstack [
           radio fruit Apple,
@@ -98,47 +96,14 @@ buildUI model = trace "Creating UI" widgetTree9 where
         --dropdown dropdown1 items id label
         label "Text",
         textField textField1
-      ] -- `style` [padding 10]
-    ]
-  widgetTree8 = box (scroll (image_ "assets/images/beach.jpg" [fitFill]) `style` [width 400, height 300])
-  widgetTree7 = hstack [
-      checkbox condition1 `style` [fgColor yellow, bgColor orange],
-      radio fruit Apple `style` [fgColor brown, bgColor yellow]
-      --,
-      --checkbox condition2,
-      --checkbox condition3
-    ]
-  widgetTree6 = vstack [
-      textField textField1 `style` [bgColor orange, textLeft],
-      textField textField1 `style` [bgColor red, textLeft],
-      textField textField1 `style` [bgColor brown, textLeft],
-      hgrid [
-        textField textField1 `style` [bgColor lightBlue, textLeft],
-        textField textField1 `style` [bgColor blue, textLeft],
-        textField textField1 `style` [bgColor darkBlue, textLeft]
-      ]
-    ]
-  widgetTree5 = vstack [
-      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx] `style` [bgColor lightBlue],
-      textField textField1 `style` [bgColor lightBlue, textLeft],
-      image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
+      ]-- `style` [padding 10]
     ]
   widgetTree = zstack [
-      widgetTree3,
+      widgetTreeFull,
       alert "Message" CloseAlert `visible` model ^. showAlert,
       confirm "Message" AcceptConfirm CancelConfirm `visible` model ^. showConfirm
-      --confirm "Message" AcceptConfirm CancelConfirm
-      --widgetTree2,
-      --widgetTree1
     ]
-  widgetTree1 = vstack [
-      --label (model ^. textField1) `style` [bgColor lightBlue, textLeft]
-      alert "Message" RunShortTask
-      --,
-      --textField textField1 `style` [bgColor lightBlue, textLeft]
-    ]
-  widgetTree2 = textField textField1 `style` [bgColor lightBlue, textLeft]
-  widgetTree3 = vstack [
+  widgetTreeFull = vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,
@@ -179,7 +144,4 @@ buildUI model = trace "Creating UI" widgetTree9 where
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button "Click me" (PrintMessage "Button clicked")
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  newLabel i = label ("New: " <> showt i) `style` [altColor i]
-  altColor i = bgColor (if even i then gray else darkGray)
-  labels = newLabel <$> [0..(model ^. clickCount - 1)]
   items = fmap showt [1..100::Int]

@@ -238,12 +238,13 @@
   - Add way of ignoring unassigned events in stack (or return nothing from findByPoint)
   - Update style when merging to avoid recalculating/merging theme every time
   - Use theme for all components
-
-- Pending
   - Replace uses of Seq.zip with foldlWithIndex
   - Check provided renderArea is used correctly
-  - Hover should only be active for top level item
   - Provided viewport should consider parent viewport
+  - Check scroll styling works correctly (contentRect being applied, etc)
+    - Also handle hover so scrollbars get correct cursor
+
+- Pending
   - Check 1px difference on right side of labels/buttons
   - Multiline label
   - Add testing
@@ -264,21 +265,21 @@ Maybe postponed after release?
   - Button should receive focus
   - Handle window title, maximize, etc
     - Also handle as requests?
-  - Check scroll styling works correctly (contentRect being applied, etc)
-    - Also handle hover so scrollbars get correct cursor
   - Handle onBlur/onFocus in all focusable widgets
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Find way of avoiding hover effects when widget is not in the top layer
+    - Hover should only be active for top level item
+      - I need to think a way of setting a layer state for zstack
   - Further textField improvements
     - Double clicking on empty puts the cursor at the end of ghost character
     - Right aligned version has cusor overlaid
     - Handle mouse selection
     - Handle undo history
     - Create numeric wrapper that allows increasing/decreasing with mouse
-  - Add maps on Theme to handle user widget settings
+  - Add Maps on Theme to handle user widget settings
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

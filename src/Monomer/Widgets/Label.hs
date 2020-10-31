@@ -82,8 +82,9 @@ makeLabel config state = widget where
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
+    contentArea = fromMaybe def (removeOuterBounds style renderArea)
     (newCaptionFit, _) = case textOverflow of
-      Ellipsis -> fitText wenv style renderArea caption
+      Ellipsis -> fitText wenv style contentArea caption
       _ -> (caption, def)
     newWidget
       | captionFit == newCaptionFit = _wiWidget inst
