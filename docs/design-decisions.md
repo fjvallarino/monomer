@@ -11,4 +11,4 @@ Why do you use lawless typeclasses for combinators?
 Why isn't StyleState using Phantom Types? Those styleX functions could be made safer.
 Why did you add themes, considering you can easily create a customized version of a widget by just writing a function and using it across the application?
 Why did you remove Margin?
-Why return Maybe from rect/size operations? (word this question properly before answering)
+Why did you switch to returning Maybe from rect/size operations? Revise addOuterSizeReq (word this question properly before answering)

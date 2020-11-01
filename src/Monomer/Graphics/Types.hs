@@ -83,22 +83,17 @@ instance Default GlyphPos where
   }
 
 data TextMetrics = TextMetrics {
-  _txmX :: Double,
-  _txmY :: Double,
-  _txmW :: Double,
-  _txmH :: Double,
   _txhAsc :: Double,
-  _txhDesc :: Double
+  _txhDesc :: Double,
+  _txhLineH :: Double
+
 } deriving (Eq, Show)
 
 instance Default TextMetrics where
   def = TextMetrics {
-    _txmX = 0,
-    _txmY = 0,
-    _txmW = 0,
-    _txmH = 0,
     _txhAsc = 0,
-    _txhDesc = 0
+    _txhDesc = 0,
+    _txhLineH = 0
   }
 
 data ImageAddAction
@@ -139,9 +134,10 @@ data Renderer = Renderer {
   renderQuadTo :: Point -> Point -> IO (),
   renderEllipse :: Rect -> IO (),
   -- Text
+  computeTextMetrics :: Font -> FontSize -> TextMetrics,
   computeTextSize :: Font -> FontSize -> Text -> Size,
+  computeTextRect :: Rect -> Font -> FontSize -> Align -> Text -> Rect,
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
-  computeTextMetrics :: Rect -> Font -> FontSize -> Align -> Text -> TextMetrics,
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- Image
   addImage :: String -> ImageAddAction -> Size -> ByteString -> IO (),

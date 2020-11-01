@@ -235,13 +235,23 @@ newRenderer c dpr lock envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
+  computeTextMetrics font fontSize = unsafePerformIO $ do
+    setFont c envRef defaultDpr font fontSize
+    (asc, desc, lineh) <- getTextMetrics c
+
+    return $ TextMetrics {
+      _txhAsc = asc,
+      _txhDesc = desc,
+      _txhLineH = lineh
+    }
+
   computeTextSize font fontSize text = unsafePerformIO $ do
     setFont c envRef dpr font fontSize
     (x1, y1, x2, y2) <- getTextBounds c 0 0 text
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  computeTextMetrics !rect font fontSize align text = unsafePerformIO $ do
+  computeTextRect !containerRect font fontSize align text = unsafePerformIO $ do
     setFont c envRef defaultDpr font fontSize
     (x1, y1, x2, y2) <- getTextBounds c x y text
     (asc, desc, lineh) <- getTextMetrics c
@@ -256,17 +266,15 @@ newRenderer c dpr lock envRef = Renderer {..} where
          | va == AMiddle = y + h + desc - (h - th) / 2
          | otherwise = y + h + desc
 
-    return $ TextMetrics {
-      _txmX = tx,
-      _txmY = ty - th,
-      _txmW = tw,
-      _txmH = th,
-      _txhAsc = asc,
-      _txhDesc = desc
+    return $ Rect {
+      _rX = tx,
+      _rY = ty - th,
+      _rW = tw,
+      _rH = th
     }
     where
       Align ha va = align
-      Rect x y w h = rect
+      Rect x y w h = containerRect
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do

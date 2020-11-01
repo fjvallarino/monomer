@@ -30,7 +30,7 @@ main = do
   --      & L.hover . L.fgColor .~ white
   --      & L.focus . L.fgColor .~ white
   let config = [
-        windowSize (1280, 960),
+        --windowSize (1280, 960),
         --windowSize (320, 240),
         useHdpi True,
         appTheme theme,

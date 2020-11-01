@@ -245,8 +245,10 @@
     - Also handle hover so scrollbars get correct cursor
 
 - Pending
-  - Check 1px difference on right side of labels/buttons
   - Multiline label
+  - Check 1px difference on right side of labels/buttons
+  - Check displaced textField when adding characters on right align
+    - Also, when right is reached from left, everything is pushed out of screen
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -293,6 +295,7 @@ Maybe postponed after release?
   - Create File Selector
   - Create Color Selector
   - Create Layout with width/heights specified in percents
+  - Consider https://eugenkiss.github.io/7guis/tasks/
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

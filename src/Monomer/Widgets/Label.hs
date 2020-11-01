@@ -6,24 +6,31 @@ module Monomer.Widgets.Label (
 import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
+import Data.Sequence (Seq)
 import Data.Text (Text)
+
+import qualified Data.Sequence as Seq
+import qualified Data.Text as T
 
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-newtype LabelCfg = LabelCfg {
-  _lscTextOverflow :: Maybe TextOverflow
+data LabelCfg = LabelCfg {
+  _lscTextOverflow :: Maybe TextOverflow,
+  _lscMultiLine :: Maybe Bool
 }
 
 instance Default LabelCfg where
   def = LabelCfg {
-    _lscTextOverflow = Nothing
+    _lscTextOverflow = Nothing,
+    _lscMultiLine = Nothing
   }
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
-    _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1
+    _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
+    _lscMultiLine = _lscMultiLine l2 <|> _lscMultiLine l1
   }
 
 instance Monoid LabelCfg where

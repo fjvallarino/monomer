@@ -2,8 +2,9 @@
 
 module Monomer.Widgets.Util.Text (
   fitText,
-  getTextSize,
   getTextMetrics,
+  getTextSize,
+  getTextRect,
   getTextGlyphs,
   getGlyphsMin,
   getGlyphsMax,
@@ -20,17 +21,25 @@ import Monomer.Core
 import Monomer.Graphics
 import Monomer.Widgets.Util.Style
 
+getTextMetrics
+  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
+getTextMetrics wenv style !rect !align !text = textMetrics where
+  renderer = _weRenderer wenv
+  !textMetrics = computeTextMetrics renderer font fontSize
+  font = styleFont style
+  fontSize = styleFontSize style
+
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
 getTextSize wenv style !text = textBounds where
   font = styleFont style
   fontSize = styleFontSize style
   !textBounds = computeTextSize (_weRenderer wenv) font fontSize text
 
-getTextMetrics
-  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
-getTextMetrics wenv style !rect !align !text = textMetrics where
+getTextRect
+  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
+getTextRect wenv style !rect !align !text = textRect where
   renderer = _weRenderer wenv
-  !textMetrics = computeTextMetrics renderer rect font fontSize align text
+  !textRect = computeTextRect renderer rect font fontSize align text
   font = styleFont style
   fontSize = styleFontSize style
 

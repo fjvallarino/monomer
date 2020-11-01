@@ -104,7 +104,7 @@ drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
 drawStyledBackground renderer rect style =
   drawStyledAction renderer rect style (\_ -> return ())
 
-drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO TextMetrics
+drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer rect style txt = action where
   action = drawText renderer rect tsFontColor tsFont tsFontSize tsAlign txt
   tsFont = styleFont style
@@ -126,14 +126,14 @@ drawText
   -> FontSize
   -> Align
   -> Text
-  -> IO TextMetrics
+  -> IO Rect
 drawText renderer rect color font fontSize align txt = do
   setFillColor renderer color
   renderText renderer textPos font fontSize txt
-  return textMetrics
+  return textRect
   where
-    textMetrics = computeTextMetrics renderer rect font fontSize align txt
-    TextMetrics tx ty tw th ta td = textMetrics
+    textRect = computeTextRect renderer rect font fontSize align txt
+    Rect tx ty tw th = textRect
     textPos = Point tx (ty + th)
 
 drawImage :: Renderer -> String -> Rect -> Double -> IO ()

@@ -41,6 +41,7 @@ data InputFieldState a = InputFieldState {
   _ifsCursorPos :: !Int,
   _ifsSelStart :: Maybe Int,
   _ifsOffset :: !Double,
+  _ifsTextRect :: Rect,
   _ifsTextMetrics :: TextMetrics
 } deriving (Eq, Show, Typeable)
 
@@ -52,6 +53,7 @@ inputFieldState = InputFieldState {
   _ifsCursorPos = 0,
   _ifsSelStart = Nothing,
   _ifsOffset = 0,
+  _ifsTextRect = def,
   _ifsTextMetrics = def
 }
 
@@ -84,7 +86,12 @@ makeInputField config state = widget where
     singleRender = render
   }
 
-  InputFieldState currVal currText currGlyphs currPos currSel _ _ = state
+  currVal = _ifsCurrValue state
+  currText = _ifsCurrText state
+  currGlyphs = _ifsGlyphs state
+  currPos = _ifsCursorPos state
+  currSel = _ifsSelStart state
+
   fromText = _ifcFromText config
   toText = _ifcToText config
   getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
@@ -305,7 +312,7 @@ makeInputField config state = widget where
     when (selRequired && isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 
-    renderContent renderer textMetrics style currText
+    renderContent renderer state style currText
 
     when caretRequired $
       drawRect renderer caretRect (Just caretColor) Nothing
@@ -315,8 +322,10 @@ makeInputField config state = widget where
       style = activeStyle wenv inst
       contentArea = getContentArea style inst
       Rect cx cy cw ch = contentArea
+      textRect = _ifsTextRect state
       textMetrics = _ifsTextMetrics state
-      TextMetrics tx ty tw th ta td = textMetrics
+      Rect tx ty tw th = textRect
+      TextMetrics ta td tl = textMetrics
       selRect = maybe def mkSelRect currSel
       mkSelRect end
         | currPos > end = Rect (tx + gx end) (ty - td) (gw end (currPos - 1)) th
@@ -337,12 +346,15 @@ makeInputField config state = widget where
       caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
       caretRect = Rect (caretX tx) (ty - td) caretWidth th
 
-renderContent :: Renderer -> TextMetrics -> StyleState -> Text -> IO ()
-renderContent renderer textMetrics style currText = do
+renderContent
+  :: (Eq a, Default a, Typeable a)
+  => Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
+renderContent renderer state style currText = do
   setFillColor renderer tsFontColor
   renderText renderer textPos tsFont tsFontSize currText
   where
-    TextMetrics tx ty tw th ta td = textMetrics
+    Rect tx ty tw th = _ifsTextRect state
+    TextMetrics ta td tl = _ifsTextMetrics state
     textPos = Point tx (ty + th)
     textStyle = fromMaybe def (_sstText style)
     tsFont = styleFont style
@@ -366,7 +378,9 @@ newTextState wenv inst oldState value text cursor selection = newState where
   contentArea = getContentArea style inst
   !(Rect cx cy cw ch) = contentArea
   !textMetrics = getTextMetrics wenv style contentArea align text
-  TextMetrics tx ty tw th ta ts = textMetrics
+  !textRect = getTextRect wenv style contentArea align text
+  TextMetrics ta ts tl = textMetrics
+  Rect tx ty tw th = textRect
   glyphs = getTextGlyphs wenv style text
   g :<| gs = glyphs
   glyphX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
@@ -391,5 +405,6 @@ newTextState wenv inst oldState value text cursor selection = newState where
     _ifsCursorPos = cursor,
     _ifsSelStart = selection,
     _ifsOffset = newOffset,
-    _ifsTextMetrics = textMetrics & L.x .~ tx + newOffset
+    _ifsTextRect = textRect & L.x .~ tx + newOffset,
+    _ifsTextMetrics = textMetrics
   }
