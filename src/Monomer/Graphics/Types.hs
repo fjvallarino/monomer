@@ -70,6 +70,7 @@ instance Default AlignV where
   def = AMiddle
 
 data GlyphPos = GlyphPos {
+  _glpGlyph :: Char,
   _glpXMin :: Double,
   _glpXMax :: Double,
   _glpW :: Double
@@ -77,6 +78,7 @@ data GlyphPos = GlyphPos {
 
 instance Default GlyphPos where
   def = GlyphPos {
+    _glpGlyph = ' ',
     _glpXMin = 0,
     _glpXMax = 0,
     _glpW = 0

@@ -281,14 +281,19 @@ newRenderer c dpr lock envRef = Renderer {..} where
     -- Glyph position is usually used in local coord calculations, ignoring dpr
     setFont c envRef dpr font fontSize
 
-    glyphs <- textGlyphPositions c 0 0 text
-    return $ foldl' (\acc glyph -> acc |> convert glyph) Seq.empty glyphs
+    glyphsPos <- fmap vecToSeq (textGlyphPositions c 0 0 text)
+
+    return $ foldl' reducer Seq.empty (Seq.zip glyphs glyphsPos)
     where
       text = if message == "" then " " else message
-      convert glyph = GlyphPos {
-        _glpXMin = realToFrac (VG.glyphPosMinX glyph) / dpr,
-        _glpXMax = realToFrac (VG.glyphPosMaxX glyph) / dpr,
-        _glpW = realToFrac (VG.glyphPosMaxX glyph - VG.glyphPosMinX glyph) / dpr
+      vecToSeq = foldl' (|>) Seq.empty
+      glyphs = Seq.fromList $ T.unpack text
+      reducer acc glyph = acc |> convert glyph
+      convert (glyph, pos) = GlyphPos {
+        _glpGlyph = glyph,
+        _glpXMin = realToFrac (VG.glyphPosMinX pos) / dpr,
+        _glpXMax = realToFrac (VG.glyphPosMaxX pos) / dpr,
+        _glpW = realToFrac (VG.glyphPosMaxX pos - VG.glyphPosMinX pos) / dpr
       }
 
   renderText !point font fontSize message = do

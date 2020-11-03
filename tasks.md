@@ -247,6 +247,7 @@
 - Pending
   - Multiline label
   - Check 1px difference on right side of labels/buttons
+  - Move computeTextRect out of Renderer
   - Check displaced textField when adding characters on right align
     - Also, when right is reached from left, everything is pushed out of screen
   - Add testing
