@@ -111,7 +111,7 @@ makeLabel config state = widget where
     alignH = styleTextAlignH style
     alignV = styleTextAlignV style
     fontColor = styleFontColor style
-    tempTextLines = fitTextLines wenv style cw caption
+    tempTextLines = fitTextLines wenv style cw True caption
     newTextLines = alignTextLines contentArea alignH alignV tempTextLines
     newWidget = makeLabel config (LabelState caption newTextLines)
     newInst = inst {
@@ -119,21 +119,23 @@ makeLabel config state = widget where
     }
 
   render renderer wenv inst =
-    forM_ textLines (drawTextLine renderer style)
+    forM_ textLines (drawTextLine renderer style textMetrics)
     where
       style = activeStyle wenv inst
+      textMetrics = getTextMetrics wenv style
 
-drawTextLine :: Renderer -> StyleState -> TextLine -> IO ()
-drawTextLine renderer style textLine = do
+drawTextLine :: Renderer -> StyleState -> TextMetrics -> TextLine -> IO ()
+drawTextLine renderer style textMetrics textLine = do
   setFillColor renderer fontColor
   renderText renderer point font fontSize text
   where
+    TextMetrics asc desc lineH = textMetrics
     TextLine text size rect glyphs = textLine
     Rect tx ty tw th = rect
     font = styleFont style
     fontSize = styleFontSize style
     fontColor = styleFontColor style
-    point = Point tx (ty + th)
+    point = Point tx (ty + th + desc)
 
 type GlyphGroup = Seq GlyphPos
 
@@ -180,16 +182,17 @@ fitTextLines
   :: WidgetEnv s e
   -> StyleState
   -> Double
+  -> Bool
   -> Text
   -> Seq TextLine
-fitTextLines wenv style width text = resultLines where
+fitTextLines wenv style width trim text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
   metrics = computeTextMetrics (_weRenderer wenv) font fontSize
   lineH = _txhLineH metrics
   helper acc currLine = (currLines <> newLines, newTop) where
     (currLines, currTop) = acc
-    newLines = fitTextLine wenv font fontSize currTop width lineH currLine
+    newLines = fitTextLine wenv font fontSize currTop width lineH trim currLine
     newTop = currTop + fromIntegral (Seq.length newLines) * lineH
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
@@ -200,16 +203,23 @@ fitTextLine
   -> Double
   -> Double
   -> Double
+  -> Bool
   -> Text
   -> Seq TextLine
-fitTextLine wenv font fontSize top width lineH text = result where
+fitTextLine wenv font fontSize top width lineH trim text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   groups = fitGroups (splitGroups glyphs) width
-  --resetGroups = fmap (`resetGlyphsPos` 0) groups
-  resetGroups = fmap resetGlyphs groups
+  resetGroups
+    | trim = fmap (resetGlyphs . trimGlyphs) groups
+    | otherwise = fmap resetGlyphs groups
   result = Seq.mapWithIndex (buildTextLine top lineH) resetGroups
+
+trimGlyphs :: Seq GlyphPos -> Seq GlyphPos
+trimGlyphs glyphs = newGlyphs where
+  isSpaceGlyph g = _glpGlyph g == ' '
+  newGlyphs = Seq.dropWhileL isSpaceGlyph $ Seq.dropWhileR isSpaceGlyph glyphs
 
 buildTextLine :: Double -> Double -> Int -> Seq GlyphPos -> TextLine
 buildTextLine top lineH idx glyphs = textLine where

@@ -80,8 +80,8 @@ handleAppEvent model evt = case evt of
 buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetTree3 where
   widgetTree3 = hgrid [
-      label "Hola\nEsta\nes\nuna\nnueva\tprueba\n\n  Doble!" `style` [bgColor pink, textRight],
-      label "Este es un label bien largo para ver si se cortan bien las lineas" `style` [bgColor blue, textRight],
+      label "Hola\nEsta\nes\nuna\nnueva\tprueba\n\n  Doble!" `style` [bgColor pink, textBottom, textCenter],
+      label "Este es un label bien largo para ver si se cortan correctamentereallyverybien las lineas" `style` [bgColor blue, textBottom, textRight],
       label "",
       label ""
     ]

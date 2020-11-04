@@ -22,8 +22,8 @@ import Monomer.Graphics
 import Monomer.Widgets.Util.Style
 
 getTextMetrics
-  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> TextMetrics
-getTextMetrics wenv style !rect !align !text = textMetrics where
+  :: WidgetEnv s e -> StyleState -> TextMetrics
+getTextMetrics wenv style = textMetrics where
   renderer = _weRenderer wenv
   !textMetrics = computeTextMetrics renderer font fontSize
   font = styleFont style
