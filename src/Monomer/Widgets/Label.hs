@@ -108,7 +108,11 @@ makeLabel config state = widget where
     style = activeStyle wenv inst
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect cx cy cw ch = contentArea
-    (newTextLines, size) = fitTextLines wenv style cx cy cw caption
+    alignH = styleTextAlignH style
+    alignV = styleTextAlignV style
+    fontColor = styleFontColor style
+    tempTextLines = fitTextLines wenv style cw caption
+    newTextLines = alignTextLines contentArea alignH alignV tempTextLines
     newWidget = makeLabel config (LabelState caption newTextLines)
     newInst = inst {
       _wiWidget = newWidget
@@ -140,29 +144,54 @@ data TextLine = TextLine {
   _tlGlyphs :: Seq GlyphPos
 } deriving (Eq, Show)
 
+alignTextLines :: Rect -> AlignH -> AlignV -> Seq TextLine -> Seq TextLine
+alignTextLines parentRect alignH alignV textLines = newTextLines where
+  Rect _ py _ ph = parentRect
+  Size _ th = getTextLinesSize textLines
+  alignOffsetY = case alignV of
+    ATop -> 0
+    AMiddle -> (ph - th) / 2
+    ABottom -> ph - th
+  offsetY = py + alignOffsetY
+  newTextLines = fmap (alignTextLine parentRect offsetY alignH) textLines
+
+alignTextLine :: Rect -> Double -> AlignH -> TextLine -> TextLine
+alignTextLine parentRect offsetY alignH textLine = newTextLine where
+  Rect px _ pw _ = parentRect
+  Rect tx ty tw th = _tlRect textLine
+  alignOffsetX = case alignH of
+    ALeft -> 0
+    ACenter -> (pw - tw) / 2
+    ARight -> pw - tw
+  offsetX = px + alignOffsetX
+  newTextLine = textLine {
+    _tlRect = Rect (tx + offsetX) (ty + offsetY) tw th
+  }
+
+getTextLinesSize :: Seq TextLine -> Size
+getTextLinesSize textLines = size where
+  width = maximum (fmap (_sW . _tlSize) textLines)
+  height = sum (fmap (_sH . _tlSize) textLines)
+  size
+    | Seq.null textLines = def
+    | otherwise = Size width height
+
 fitTextLines
   :: WidgetEnv s e
   -> StyleState
   -> Double
-  -> Double
-  -> Double
   -> Text
-  -> (Seq TextLine, Size)
-fitTextLines wenv style left top width text = (resultLines, resultSize) where
+  -> Seq TextLine
+fitTextLines wenv style width text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
   metrics = computeTextMetrics (_weRenderer wenv) font fontSize
   lineH = _txhLineH metrics
   helper acc currLine = (currLines <> newLines, newTop) where
     (currLines, currTop) = acc
-    newLines = fitTextLine wenv font fontSize left currTop width lineH currLine
+    newLines = fitTextLine wenv font fontSize currTop width lineH currLine
     newTop = currTop + fromIntegral (Seq.length newLines) * lineH
-  (resultLines, _) = foldl' helper (Empty, top) (T.lines text)
-  resultWidth = maximum (fmap (_sW . _tlSize) resultLines)
-  resultHeight = lineH * fromIntegral (Seq.length resultLines)
-  resultSize
-    | Seq.null resultLines = def
-    | otherwise = Size resultWidth resultHeight
+  (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
 fitTextLine
   :: WidgetEnv s e
@@ -171,20 +200,20 @@ fitTextLine
   -> Double
   -> Double
   -> Double
-  -> Double
   -> Text
   -> Seq TextLine
-fitTextLine wenv font fontSize left top width lineH text = result where
+fitTextLine wenv font fontSize top width lineH text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   groups = fitGroups (splitGroups glyphs) width
-  resetGroups = fmap (`resetGlyphsPos` left) groups
-  result = Seq.mapWithIndex (buildTextLine left top lineH) resetGroups
+  --resetGroups = fmap (`resetGlyphsPos` 0) groups
+  resetGroups = fmap resetGlyphs groups
+  result = Seq.mapWithIndex (buildTextLine top lineH) resetGroups
 
-buildTextLine :: Double -> Double -> Double -> Int -> Seq GlyphPos -> TextLine
-buildTextLine left top lineH idx glyphs = textLine where
-  x = left
+buildTextLine :: Double -> Double -> Int -> Seq GlyphPos -> TextLine
+buildTextLine top lineH idx glyphs = textLine where
+  x = 0
   y = top + fromIntegral idx * lineH
   width = glyphSeqLen glyphs
   height = lineH
@@ -222,16 +251,19 @@ splitGroups glyphs = group <| splitGroups rest where
     | otherwise = Seq.spanl groupWordFn glyphs
 
 glyphSeqLen :: Seq GlyphPos -> Double
-glyphSeqLen glyphs = foldl' (\ac gl -> ac + _glpW gl) 0 glyphs
+glyphSeqLen glyphs = getGlyphsMax glyphs - getGlyphsMin glyphs
+
+resetGlyphs :: Seq GlyphPos -> Seq GlyphPos
+resetGlyphs Empty = Empty
+resetGlyphs gs@(g :<| _) = resetGlyphsPos gs (_glpXMin g)
 
 resetGlyphsPos :: Seq GlyphPos -> Double -> Seq GlyphPos
 resetGlyphsPos Empty _ = Empty
-resetGlyphsPos (g :<| gs) start = newG <| resetGlyphsPos gs newStart where
+resetGlyphsPos (g :<| gs) offset = newG <| resetGlyphsPos gs offset where
   newG = g {
-    _glpXMin = start,
-    _glpXMax = start + _glpW g
+    _glpXMin = _glpXMin g - offset,
+    _glpXMax = _glpXMax g - offset
   }
-  newStart = start + _glpW g
 
 isWordDelimiter :: Char -> Bool
 isWordDelimiter = (== ' ')

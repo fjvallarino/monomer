@@ -66,6 +66,9 @@ subtractFromSize (Size w h) w2 h2 = newSize where
     | nw >= 0 && nh >= 0 = Just $ Size nw nh
     | otherwise = Nothing
 
+moveRect :: Point -> Rect -> Rect
+moveRect (Point x y) (Rect rx ry rw rh) = Rect (rx + x) (ry + y) rw rh
+
 rectInRect :: Rect -> Rect -> Bool
 rectInRect inner outer = rectInRectH inner outer && rectInRectV inner outer
 
