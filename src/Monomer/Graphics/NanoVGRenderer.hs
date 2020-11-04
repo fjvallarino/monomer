@@ -251,31 +251,6 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  computeTextRect !containerRect font fontSize align text = unsafePerformIO $ do
-    setFont c envRef defaultDpr font fontSize
-    (x1, y1, x2, y2) <- getTextBounds c x y text
-    (asc, desc, lineh) <- getTextMetrics c
-
-    let
-      tw = x2 - x1
-      th = lineh
-      tx | ha == ALeft = x
-         | ha == ACenter = x + (w - tw) / 2
-         | otherwise = x + (w - tw)
-      ty | va == ATop = y + asc
-         | va == AMiddle = y + h + desc - (h - th) / 2
-         | otherwise = y + h + desc
-
-    return $ Rect {
-      _rX = tx,
-      _rY = ty - th,
-      _rW = tw,
-      _rH = th
-    }
-    where
-      Align ha va = align
-      Rect x y w h = containerRect
-
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
   computeGlyphsPos font fontSize message = unsafePerformIO $ do
     -- Glyph position is usually used in local coord calculations, ignoring dpr

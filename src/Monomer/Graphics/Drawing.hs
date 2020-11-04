@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.Drawing (
+  computeTextRect,
   drawInScissor,
   drawRect,
   drawRectBorder,
@@ -24,6 +25,28 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
+
+computeTextRect :: Renderer -> Rect -> Font -> FontSize -> Align -> Text -> Rect
+computeTextRect renderer containerRect font fontSize align text = textRect where
+  Align ha va = align
+  Rect x y w h = containerRect
+  Size tw _ = computeTextSize renderer font fontSize text
+  TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
+
+  th = lineh
+  tx | ha == ALeft = x
+     | ha == ACenter = x + (w - tw) / 2
+     | otherwise = x + (w - tw)
+  ty | va == ATop = y + asc
+     | va == AMiddle = y + h + desc - (h - th) / 2
+     | otherwise = y + h + desc
+
+  textRect = Rect {
+    _rX = tx,
+    _rY = ty - th,
+    _rW = tw,
+    _rH = th
+  }
 
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
 drawInScissor renderer False _ action = action

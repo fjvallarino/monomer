@@ -138,7 +138,6 @@ data Renderer = Renderer {
   -- Text
   computeTextMetrics :: Font -> FontSize -> TextMetrics,
   computeTextSize :: Font -> FontSize -> Text -> Size,
-  computeTextRect :: Rect -> Font -> FontSize -> Align -> Text -> Rect,
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- Image
