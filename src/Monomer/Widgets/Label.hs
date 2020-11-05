@@ -105,19 +105,17 @@ makeLabel config state = widget where
       _wiWidget = newWidget
     }
 
-  render renderer wenv inst =
-    forM_ textLines (drawTextLine renderer style textMetrics)
-    where
-      style = activeStyle wenv inst
-      textMetrics = getTextMetrics wenv style
+  render renderer wenv inst = action where
+    style = activeStyle wenv inst
+    action = forM_ textLines (drawTextLine renderer style)
 
-drawTextLine :: Renderer -> StyleState -> TextMetrics -> TextLine -> IO ()
-drawTextLine renderer style textMetrics textLine = do
+drawTextLine :: Renderer -> StyleState -> TextLine -> IO ()
+drawTextLine renderer style textLine = do
   setFillColor renderer fontColor
   renderText renderer point font fontSize text
   where
-    TextMetrics asc desc lineH = textMetrics
-    TextLine text size rect glyphs = textLine
+    TextLine text size rect glyphs metrics = textLine
+    TextMetrics asc desc lineH = metrics
     Rect tx ty tw th = rect
     font = styleFont style
     fontSize = styleFontSize style
@@ -135,7 +133,8 @@ data TextLine = TextLine {
   _tlText :: Text,
   _tlSize :: Size,
   _tlRect :: Rect,
-  _tlGlyphs :: Seq GlyphPos
+  _tlGlyphs :: Seq GlyphPos,
+  _tlMetrics :: TextMetrics
 } deriving (Eq, Show)
 
 fitTextToRect
@@ -230,24 +229,24 @@ fitTextToW wenv style width trim text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
   metrics = computeTextMetrics (_weRenderer wenv) font fontSize
-  lineH = _txhLineH metrics
-  helper acc line = (currLines <> newLines, newTop) where
-    (currLines, currTop) = acc
-    newLines = fitSingleTextToW wenv font fontSize currTop width lineH trim line
-    newTop = currTop + fromIntegral (Seq.length newLines) * lineH
+  lineH = _txmLineH metrics
+  helper acc line = (cLines <> newLines, newTop) where
+    (cLines, cTop) = acc
+    newLines = fitSingleTextToW wenv font fontSize metrics cTop width trim line
+    newTop = cTop + fromIntegral (Seq.length newLines) * lineH
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
 fitSingleTextToW
   :: WidgetEnv s e
   -> Font
   -> FontSize
-  -> Double
+  -> TextMetrics
   -> Double
   -> Double
   -> Bool
   -> Text
   -> Seq TextLine
-fitSingleTextToW wenv font fontSize top width lineH trim text = result where
+fitSingleTextToW wenv font fontSize metrics top width trim text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
@@ -255,15 +254,16 @@ fitSingleTextToW wenv font fontSize top width lineH trim text = result where
   resetGroups
     | trim = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
-  result = Seq.mapWithIndex (buildTextLine top lineH) resetGroups
+  result = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
 
 trimGlyphs :: Seq GlyphPos -> Seq GlyphPos
 trimGlyphs glyphs = newGlyphs where
   isSpaceGlyph g = _glpGlyph g == ' '
   newGlyphs = Seq.dropWhileL isSpaceGlyph $ Seq.dropWhileR isSpaceGlyph glyphs
 
-buildTextLine :: Double -> Double -> Int -> Seq GlyphPos -> TextLine
-buildTextLine top lineH idx glyphs = textLine where
+buildTextLine :: TextMetrics -> Double -> Int -> Seq GlyphPos -> TextLine
+buildTextLine metrics top idx glyphs = textLine where
+  lineH = _txmLineH metrics
   x = 0
   y = top + fromIntegral idx * lineH
   width = glyphSeqLen glyphs
@@ -273,7 +273,8 @@ buildTextLine top lineH idx glyphs = textLine where
     _tlText = text,
     _tlSize = Size width height,
     _tlRect = Rect x y width height,
-    _tlGlyphs = glyphs
+    _tlGlyphs = glyphs,
+    _tlMetrics = metrics
   }
 
 addEllipsisToTextLine
@@ -283,7 +284,7 @@ addEllipsisToTextLine
   -> TextLine
   -> TextLine
 addEllipsisToTextLine wenv style width textLine = newTextLine where
-  TextLine text textSize textRect textGlyphs = textLine
+  TextLine text textSize textRect textGlyphs textMetrics = textLine
   Size dw dh = getTextSize wenv style "."
   font = styleFont style
   fontSize = styleFontSize style
@@ -300,7 +301,8 @@ addEllipsisToTextLine wenv style width textLine = newTextLine where
     _tlText = newText,
     _tlSize = textSize { _sW = newW },
     _tlRect = textRect { _rW = newW },
-    _tlGlyphs = newGlyphs
+    _tlGlyphs = newGlyphs,
+    _tlMetrics = textMetrics
   }
 
 fitGroups :: Seq GlyphGroup -> Double -> Seq GlyphGroup

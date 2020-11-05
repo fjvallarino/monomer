@@ -85,17 +85,17 @@ instance Default GlyphPos where
   }
 
 data TextMetrics = TextMetrics {
-  _txhAsc :: Double,
-  _txhDesc :: Double,
-  _txhLineH :: Double
+  _txmAsc :: Double,
+  _txmDesc :: Double,
+  _txmLineH :: Double
 
 } deriving (Eq, Show)
 
 instance Default TextMetrics where
   def = TextMetrics {
-    _txhAsc = 0,
-    _txhDesc = 0,
-    _txhLineH = 0
+    _txmAsc = 0,
+    _txmDesc = 0,
+    _txmLineH = 0
   }
 
 data ImageAddAction

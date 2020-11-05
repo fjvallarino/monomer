@@ -240,9 +240,9 @@ newRenderer c dpr lock envRef = Renderer {..} where
     (asc, desc, lineh) <- getTextMetrics c
 
     return $ TextMetrics {
-      _txhAsc = asc,
-      _txhDesc = desc,
-      _txhLineH = lineh
+      _txmAsc = asc,
+      _txmDesc = desc,
+      _txmLineH = lineh
     }
 
   computeTextSize font fontSize text = unsafePerformIO $ do
