@@ -111,9 +111,8 @@ makeLabel config state = widget where
     alignH = styleTextAlignH style
     alignV = styleTextAlignV style
     fontColor = styleFontColor style
-    textLinesW = fitTextToWidth wenv style cw True caption
-    textLines = fitTextLinesToHeight wenv style textOverflow cw ch textLinesW
-    newTextLines = alignTextLines contentArea alignH alignV textLines
+    textMode = MultiLine -- SingleLine -- MultiLine
+    newTextLines = fitTextToRect wenv style textOverflow textMode True contentArea caption
     newWidget = makeLabel config (LabelState caption newTextLines)
     newInst = inst {
       _wiWidget = newWidget
@@ -140,12 +139,41 @@ drawTextLine renderer style textMetrics textLine = do
 
 type GlyphGroup = Seq GlyphPos
 
+data TextMode
+  = SingleLine
+  | MultiLine
+  deriving (Eq, Show)
+
 data TextLine = TextLine {
   _tlText :: Text,
   _tlSize :: Size,
   _tlRect :: Rect,
   _tlGlyphs :: Seq GlyphPos
 } deriving (Eq, Show)
+
+fitTextToRect
+  :: WidgetEnv s e
+  -> StyleState
+  -> TextOverflow
+  -> TextMode
+  -> Bool
+  -> Rect
+  -> Text
+  -> Seq TextLine
+fitTextToRect wenv style overflow mode trim rect text = newTextLines where
+  Rect cx cy cw ch = rect
+  alignH = styleTextAlignH style
+  alignV = styleTextAlignV style
+  textLinesW = fitTextToW wenv style cw trim text
+  textLinesLen = Seq.length textLinesW
+  firstLine = Seq.take 1 textLinesW
+  firstLineW = _sW (getTextLinesSize firstLine)
+  needsEllipsis = overflow == Ellipsis && (textLinesLen > 1 || firstLineW > cw)
+  textLines
+    | mode == MultiLine = fitTextLinesToH wenv style overflow cw ch textLinesW
+    | needsEllipsis = addEllipsisToTextLine wenv style cw <$> firstLine
+    | otherwise = firstLine
+  newTextLines = alignTextLines rect alignH alignV textLines
 
 alignTextLines :: Rect -> AlignH -> AlignV -> Seq TextLine -> Seq TextLine
 alignTextLines parentRect alignH alignV textLines = newTextLines where
@@ -179,7 +207,7 @@ getTextLinesSize textLines = size where
     | Seq.null textLines = def
     | otherwise = Size width height
 
-fitTextLinesToHeight
+fitTextLinesToH
   :: WidgetEnv s e
   -> StyleState
   -> TextOverflow
@@ -187,8 +215,8 @@ fitTextLinesToHeight
   -> Double
   -> Seq TextLine
   -> Seq TextLine
-fitTextLinesToHeight wenv style overflow w h Empty = Empty
-fitTextLinesToHeight wenv style overflow w h (g1 :<| g2 :<| gs)
+fitTextLinesToH wenv style overflow w h Empty = Empty
+fitTextLinesToH wenv style overflow w h (g1 :<| g2 :<| gs)
   | h >= g1H + g2H = g1 :<| g2 :<| rest
   | h >= g1H = Seq.singleton newG1
   | otherwise = Empty
@@ -196,33 +224,33 @@ fitTextLinesToHeight wenv style overflow w h (g1 :<| g2 :<| gs)
     g1H = _sH (_tlSize g1)
     g2H = _sH (_tlSize g2)
     newH = h - g1H - g2H
-    rest = fitTextLinesToHeight wenv style overflow w newH gs
+    rest = fitTextLinesToH wenv style overflow w newH gs
     newG1 = case overflow of
       Ellipsis -> addEllipsisToTextLine wenv style w g1
       _ -> g1
-fitTextLinesToHeight wenv style overflow w h (g :<| gs)
+fitTextLinesToH wenv style overflow w h (g :<| gs)
   | h < _sH (_tlSize g) = Empty
   | otherwise = Seq.singleton g
 
-fitTextToWidth
+fitTextToW
   :: WidgetEnv s e
   -> StyleState
   -> Double
   -> Bool
   -> Text
   -> Seq TextLine
-fitTextToWidth wenv style width trim text = resultLines where
+fitTextToW wenv style width trim text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
   metrics = computeTextMetrics (_weRenderer wenv) font fontSize
   lineH = _txhLineH metrics
   helper acc line = (currLines <> newLines, newTop) where
     (currLines, currTop) = acc
-    newLines = fitLineToWidth wenv font fontSize currTop width lineH trim line
+    newLines = fitSingleTextToW wenv font fontSize currTop width lineH trim line
     newTop = currTop + fromIntegral (Seq.length newLines) * lineH
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
-fitLineToWidth
+fitSingleTextToW
   :: WidgetEnv s e
   -> Font
   -> FontSize
@@ -232,7 +260,7 @@ fitLineToWidth
   -> Bool
   -> Text
   -> Seq TextLine
-fitLineToWidth wenv font fontSize top width lineH trim text = result where
+fitSingleTextToW wenv font fontSize top width lineH trim text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
   glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
