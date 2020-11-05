@@ -12,6 +12,7 @@ module Monomer.Widgets.Button (
 import Debug.Trace
 
 import Control.Applicative ((<|>))
+import Control.Lens ((^.))
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -30,6 +31,8 @@ data ButtonType
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
   _btnTextOverflow :: Maybe TextOverflow,
+  _btnTextMode :: Maybe TextMode,
+  _btnTrimSpaces :: Maybe Bool,
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s]
 }
@@ -38,6 +41,8 @@ instance Default (ButtonCfg s e) where
   def = ButtonCfg {
     _btnButtonType = Nothing,
     _btnTextOverflow = Nothing,
+    _btnTextMode = Nothing,
+    _btnTrimSpaces = Nothing,
     _btnOnClick = [],
     _btnOnClickReq = []
   }
@@ -46,6 +51,8 @@ instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
     _btnButtonType = _btnButtonType t2 <|> _btnButtonType t1,
     _btnTextOverflow = _btnTextOverflow t2 <|> _btnTextOverflow t1,
+    _btnTextMode = _btnTextMode t2 <|> _btnTextMode t1,
+    _btnTrimSpaces = _btnTrimSpaces t2 <|> _btnTrimSpaces t1,
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
   }
@@ -53,12 +60,28 @@ instance Semigroup (ButtonCfg s e) where
 instance Monoid (ButtonCfg s e) where
   mempty = def
 
-instance OnTextOverflow (ButtonCfg s e) where
+instance TextOverflow_ (ButtonCfg s e) where
   textEllipsis = def {
     _btnTextOverflow = Just Ellipsis
   }
   textClip = def {
     _btnTextOverflow = Just ClipText
+  }
+
+instance TextMode_ (ButtonCfg s e) where
+  textSingleLine = def {
+    _btnTextMode = Just SingleLine
+  }
+  textMultiLine = def {
+    _btnTextMode = Just MultiLine
+  }
+
+instance TextTrimSpaces (ButtonCfg s e) where
+  textTrimSpaces = def {
+    _btnTrimSpaces = Just True
+  }
+  textKeepSpaces = def {
+    _btnTrimSpaces = Just False
   }
 
 instance OnClick (ButtonCfg s e) e where
@@ -109,6 +132,8 @@ makeButton config state = widget where
 
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
   overflow = fromMaybe Ellipsis (_btnTextOverflow config)
+  mode = fromMaybe SingleLine (_btnTextMode config)
+  trimSpaces = fromMaybe True (_btnTrimSpaces config)
   BtnState caption textLines = state
 
   getBaseStyle wenv inst = case buttonType of
@@ -126,14 +151,15 @@ makeButton config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    Size w h = getTextSize wenv style caption
+    targetW = fmap getMinSizeReq (style ^. L.sizeReqW)
+    Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
     rect = fromMaybe def (removeOuterBounds style renderArea)
-    newLines = fitTextToRect wenv style overflow SingleLine True rect caption
+    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
     newWidget = makeButton config (BtnState caption newLines)
     newInst = inst {
       _wiWidget = newWidget

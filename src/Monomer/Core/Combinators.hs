@@ -49,9 +49,17 @@ class Decimals t where
 class MaxLength t where
   maxLength :: Int -> t
 
-class OnTextOverflow t where
+class TextMode_ t where
+  textSingleLine :: t
+  textMultiLine :: t
+
+class TextOverflow_ t where
   textEllipsis :: t
   textClip :: t
+
+class TextTrimSpaces t where
+  textTrimSpaces :: t
+  textKeepSpaces :: t
 
 class SelectOnBlur t where
   selectOnBlur :: Bool -> t

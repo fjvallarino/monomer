@@ -145,7 +145,7 @@ buildUI model = trace "Creating UI" widgetTree where
       label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
-        label_ "This is a really long label used to check what I did works fine" [textEllipsis] `style` [width 300],
+        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis] `style` [width 300],
         label "Jj label"
       ],
       hstack [
@@ -157,6 +157,6 @@ buildUI model = trace "Creating UI" widgetTree where
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
-      button "Click me" (PrintMessage "Button clicked")
+      button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   items = fmap showt [1..100::Int]

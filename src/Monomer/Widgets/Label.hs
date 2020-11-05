@@ -43,12 +43,28 @@ instance Semigroup LabelCfg where
 instance Monoid LabelCfg where
   mempty = def
 
-instance OnTextOverflow LabelCfg where
+instance TextOverflow_ LabelCfg where
   textEllipsis = def {
     _lscTextOverflow = Just Ellipsis
   }
   textClip = def {
     _lscTextOverflow = Just ClipText
+  }
+
+instance TextMode_ LabelCfg where
+  textSingleLine = def {
+    _lscTextMode = Just SingleLine
+  }
+  textMultiLine = def {
+    _lscTextMode = Just MultiLine
+  }
+
+instance TextTrimSpaces LabelCfg where
+  textTrimSpaces = def {
+    _lscTrimSpaces = Just True
+  }
+  textKeepSpaces = def {
+    _lscTrimSpaces = Just False
   }
 
 data LabelState = LabelState {
@@ -77,7 +93,7 @@ makeLabel config state = widget where
   }
 
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
-  mode = fromMaybe MultiLine (_lscTextMode config)
+  mode = fromMaybe SingleLine (_lscTextMode config)
   trimSpaces = fromMaybe True (_lscTrimSpaces config)
   LabelState caption textLines = state
 
