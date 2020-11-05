@@ -238,8 +238,10 @@ renderWrapper
   -> WidgetInstance s e
   -> IO ()
 renderWrapper rHandler renderer wenv inst =
-  drawStyledAction renderer renderArea style $ \_ ->
-    rHandler renderer wenv inst
+  drawInScissor renderer True viewport $
+    drawStyledAction renderer renderArea style $ \_ ->
+      rHandler renderer wenv inst
   where
-    renderArea = _wiRenderArea inst
     style = activeStyle wenv inst
+    viewport = _wiViewport inst
+    renderArea = _wiRenderArea inst

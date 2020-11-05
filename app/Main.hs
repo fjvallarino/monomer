@@ -78,10 +78,19 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree3 where
   widgetTree3 = hgrid [
       label "Hola\nEsta\nes\nuna\nnueva\tprueba\n\n  Doble!" `style` [bgColor pink, textBottom, textCenter],
-      label "Este es un label bien largo para ver si se cortan correctamentereallyverybien las lineas" `style` [bgColor blue, textBottom, textRight],
+      vgrid [
+        label "1",
+        label "2",
+        label "3",
+        label "4",
+        label "5",
+        label "This is a really long label used to check if line breaks and ellipsis are implemented correctly" `style` [bgColor blue],
+        label "6",
+        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" [textClip] `style` [bgColor blue, textBottom, textRight]
+      ],
       label "",
       label ""
     ]
