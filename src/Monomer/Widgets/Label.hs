@@ -6,6 +6,7 @@ module Monomer.Widgets.Label (
 import Debug.Trace
 
 import Control.Applicative ((<|>))
+import Control.Lens ((^.))
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -76,7 +77,7 @@ makeLabel config state = widget where
   }
 
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
-  mode = fromMaybe SingleLine (_lscTextMode config)
+  mode = fromMaybe MultiLine (_lscTextMode config)
   trimSpaces = fromMaybe True (_lscTrimSpaces config)
   LabelState caption textLines = state
 
@@ -91,7 +92,8 @@ makeLabel config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    Size w h = getTextSize wenv style caption
+    targetW = fmap getMinSizeReq (style ^. L.sizeReqW)
+    Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 

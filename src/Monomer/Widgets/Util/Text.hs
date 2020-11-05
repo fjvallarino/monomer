@@ -5,6 +5,7 @@ module Monomer.Widgets.Util.Text (
   TextLine(..),
   getTextMetrics,
   getTextSize,
+  getTextSize_,
   getTextRect,
   getTextGlyphs,
   getGlyphsMin,
@@ -25,6 +26,7 @@ import qualified Data.Text as T
 
 import Monomer.Core
 import Monomer.Graphics
+import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Style
 
 type GlyphGroup = Seq GlyphPos
@@ -51,10 +53,29 @@ getTextMetrics wenv style = textMetrics where
   fontSize = styleFontSize style
 
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
-getTextSize wenv style !text = textBounds where
+getTextSize wenv style !text = newSize where
+  newSize = getTextSize_ wenv style SingleLine False Nothing text
+
+getTextSize_
+  :: WidgetEnv s e
+  -> StyleState
+  -> TextMode
+  -> Bool
+  -> Maybe Double
+  -> Text
+  -> Size
+getTextSize_ wenv style mode trim mwidth text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
-  !textBounds = computeTextSize (_weRenderer wenv) font fontSize text
+  !metrics = computeTextMetrics (_weRenderer wenv) font fontSize
+  width = fromMaybe maxNumericValue mwidth
+  textLinesW = fitTextToW wenv style width trim text
+  textLines
+    | mode == SingleLine = Seq.take 1 textLinesW
+    | otherwise = textLinesW
+  newSize
+    | not (Seq.null textLines) = getTextLinesSize textLines
+    | otherwise = Size 0 (_txmLineH metrics)
 
 getTextRect
   :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
@@ -68,7 +89,7 @@ getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where
   font = styleFont style
   fontSize = styleFontSize style
-  glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
+  !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
 
 getGlyphsMin :: Seq GlyphPos -> Double
 getGlyphsMin Empty = 0
@@ -185,7 +206,7 @@ fitTextToW
 fitTextToW wenv style width trim text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
-  metrics = computeTextMetrics (_weRenderer wenv) font fontSize
+  !metrics = computeTextMetrics (_weRenderer wenv) font fontSize
   lineH = _txmLineH metrics
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
@@ -206,7 +227,7 @@ fitSingleTextToW
 fitSingleTextToW wenv font fontSize metrics top width trim text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
-  glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
+  !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   groups = fitGroups (splitGroups glyphs) width
   resetGroups
     | trim = fmap (resetGlyphs . trimGlyphs) groups
@@ -247,7 +268,7 @@ addEllipsisToTextLine wenv style width textLine = newTextLine where
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, 0) textGlyphs
   newText = T.dropEnd dropChars text <> "..."
-  newGlyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
+  !newGlyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {
     _tlText = newText,

@@ -35,8 +35,8 @@ dependencies:
 - extra
 - formatting
 - http-client
-- lens
 - JuicyPixels
+- lens
 - mtl
 - nanovg
 - OpenGL

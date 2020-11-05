@@ -127,8 +127,6 @@ makeButton config state = widget where
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
     Size w h = getTextSize wenv style caption
---    glyphs = getTextGlyphs wenv style caption
---    factor = traceShow (w, h, getGlyphsWidth glyphs) 1
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 

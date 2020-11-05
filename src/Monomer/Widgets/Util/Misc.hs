@@ -10,6 +10,13 @@ import Monomer.Event
 
 import qualified Monomer.Lens as L
 
+maxNumericValue :: (RealFloat a) => a
+maxNumericValue = x where
+  n = floatDigits x
+  b = floatRadix x
+  (_, u) = floatRange x
+  x = encodeFloat (b^n - 1) (u - n)
+
 pointInViewport :: Point -> WidgetInstance s e -> Bool
 pointInViewport p inst = pointInRect p (_wiViewport inst)
 

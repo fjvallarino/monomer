@@ -243,13 +243,14 @@
   - Provided viewport should consider parent viewport
   - Check scroll styling works correctly (contentRect being applied, etc)
     - Also handle hover so scrollbars get correct cursor
+  - Move computeTextRect out of Renderer
 
 - Pending
   - Multiline label
   - Check 1px difference on right side of labels/buttons
-  - Move computeTextRect out of Renderer
   - Check displaced textField when adding characters on right align
     - Also, when right is reached from left, everything is pushed out of screen
+  - Check dropdown width/ellipsis
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
