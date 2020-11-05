@@ -78,7 +78,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree3 where
+buildUI model = trace "Creating UI" widgetTree where
   widgetTree3 = hgrid [
       label "Hola\nEsta\nes\nuna\nnueva\tprueba\n\n  Doble!" `style` [bgColor pink, textBottom, textCenter],
       vgrid [

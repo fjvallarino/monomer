@@ -9,9 +9,13 @@ module Monomer.Widgets.Button (
   mainButton_
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
+import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
+import Data.Sequence (Seq(..))
 import Data.Text (Text)
 
 import Monomer.Widgets.Single
@@ -69,7 +73,7 @@ instance OnClickReq (ButtonCfg s e) s where
 
 data BtnState = BtnState {
   _btnCaption :: Text,
-  _btnCaptionFit :: Text
+  _btnTextLines :: Seq TextLine
 } deriving (Eq, Show)
 
 mainConfig :: ButtonCfg s e
@@ -90,7 +94,7 @@ button caption handler = button_ caption handler def
 button_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
 button_ caption handler configs = defaultWidgetInstance "button" widget where
   config = onClick handler <> mconcat configs
-  state = BtnState caption caption
+  state = BtnState caption Empty
   widget = makeButton config state
 
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
@@ -104,8 +108,8 @@ makeButton config state = widget where
   }
 
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
-  textOverflow = fromMaybe Ellipsis (_btnTextOverflow config)
-  BtnState caption captionFit = state
+  overflow = fromMaybe Ellipsis (_btnTextOverflow config)
+  BtnState caption textLines = state
 
   getBaseStyle wenv inst = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
@@ -123,26 +127,20 @@ makeButton config state = widget where
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
     Size w h = getTextSize wenv style caption
+--    glyphs = getTextGlyphs wenv style caption
+--    factor = traceShow (w, h, getGlyphsWidth glyphs) 1
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
-    size = getTextSize wenv style caption
-    (newCaptionFit, _) = case textOverflow of
-      Ellipsis -> fitText wenv style renderArea caption
-      _ -> (caption, def)
-    newWidget
-      | captionFit == newCaptionFit = _wiWidget inst
-      | otherwise = makeButton config (BtnState caption newCaptionFit)
+    rect = fromMaybe def (removeOuterBounds style renderArea)
+    newLines = fitTextToRect wenv style overflow SingleLine True rect caption
+    newWidget = makeButton config (BtnState caption newLines)
     newInst = inst {
       _wiWidget = newWidget
     }
 
-  render renderer wenv inst = do
-    setScissor renderer contentArea
-    drawStyledText_ renderer contentArea style captionFit
-    resetScissor renderer
-    where
-      style = activeStyle wenv inst
-      contentArea = getContentArea style inst
+  render renderer wenv inst = action where
+    style = activeStyle wenv inst
+    action = forM_ textLines (drawTextLine renderer style)
