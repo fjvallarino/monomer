@@ -87,7 +87,7 @@ buildUI model = trace "Creating UI" widgetTree3 where
         label "3",
         label "4",
         label "5",
-        label "This is a really long label used to check if line breaks and ellipsis are implemented correctly" `style` [bgColor blue],
+        label "This is a really long label used to check if line breaks and ellipsis areee implemented correctly" `style` [bgColor blue],
         label "6",
         label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" [textClip] `style` [bgColor blue, textBottom, textRight]
       ],

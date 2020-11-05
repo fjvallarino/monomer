@@ -268,20 +268,23 @@ addEllipsisToTextLine
   -> TextLine
   -> TextLine
 addEllipsisToTextLine wenv style width textLine = newTextLine where
-  TextLine text ts tr _ = textLine
+  TextLine text textSize textRect textGlyphs = textLine
+  Size dw dh = getTextSize wenv style "."
   font = styleFont style
   fontSize = styleFontSize style
-  textWidth = _sW ts
+  textWidth = _sW textSize
   textLen = max 1 $ fromIntegral (T.length text)
-  newText
-    | width >= (textLen + 1) * (textWidth / textLen) = text <> "..."
-    | otherwise = T.dropEnd 2 text <> "..."
+  dropHelper (idx, w) g
+    | _glpW g + w <= dw = (idx + 1, _glpW g + w)
+    | otherwise = (idx, w)
+  (dropChars, _) = foldl' dropHelper (0, 0) textGlyphs
+  newText = T.dropEnd dropChars text <> "..."
   newGlyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   newW = glyphSeqLen newGlyphs
   newTextLine = TextLine {
     _tlText = newText,
-    _tlSize = ts { _sW = newW },
-    _tlRect = tr { _rW = newW },
+    _tlSize = textSize { _sW = newW },
+    _tlRect = textRect { _rW = newW },
     _tlGlyphs = newGlyphs
   }
 
