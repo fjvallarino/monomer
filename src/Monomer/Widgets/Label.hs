@@ -22,19 +22,22 @@ import qualified Monomer.Lens as L
 
 data LabelCfg = LabelCfg {
   _lscTextOverflow :: Maybe TextOverflow,
-  _lscMultiLine :: Maybe Bool
+  _lscTextMode :: Maybe TextMode,
+  _lscTrimSpaces :: Maybe Bool
 }
 
 instance Default LabelCfg where
   def = LabelCfg {
     _lscTextOverflow = Nothing,
-    _lscMultiLine = Nothing
+    _lscTextMode = Nothing,
+    _lscTrimSpaces = Nothing
   }
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
     _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
-    _lscMultiLine = _lscMultiLine l2 <|> _lscMultiLine l1
+    _lscTextMode = _lscTextMode l2 <|> _lscTextMode l1,
+    _lscTrimSpaces = _lscTrimSpaces l2 <|> _lscTrimSpaces l1
   }
 
 instance Monoid LabelCfg where
@@ -73,7 +76,9 @@ makeLabel config state = widget where
     singleRender = render
   }
 
-  textOverflow = fromMaybe Ellipsis (_lscTextOverflow config)
+  overflow = fromMaybe Ellipsis (_lscTextOverflow config)
+  mode = fromMaybe SingleLine (_lscTextMode config)
+  trimSpaces = fromMaybe True (_lscTrimSpaces config)
   LabelState caption textLines = state
 
   getBaseStyle wenv inst = Just style where
@@ -91,29 +96,11 @@ makeLabel config state = widget where
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
---  resize wenv viewport renderArea inst = newInst where
---    style = activeStyle wenv inst
---    contentArea = fromMaybe def (removeOuterBounds style renderArea)
---    (newCaptionFit, _) = case textOverflow of
---      Ellipsis -> fitText wenv style contentArea caption
---      _ -> (caption, def)
---    newWidget
---      | captionFit == newCaptionFit = _wiWidget inst
---      | otherwise = makeLabel config (LabelState caption newCaptionFit)
---    newInst = inst {
---      _wiWidget = newWidget
---    }
-
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
-    contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    Rect cx cy cw ch = contentArea
-    alignH = styleTextAlignH style
-    alignV = styleTextAlignV style
-    fontColor = styleFontColor style
-    textMode = MultiLine -- SingleLine -- MultiLine
-    newTextLines = fitTextToRect wenv style textOverflow textMode True contentArea caption
-    newWidget = makeLabel config (LabelState caption newTextLines)
+    rect = fromMaybe def (removeOuterBounds style renderArea)
+    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newWidget = makeLabel config (LabelState caption newLines)
     newInst = inst {
       _wiWidget = newWidget
     }
