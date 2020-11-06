@@ -90,7 +90,8 @@ fitWidth = def { _imcFit = Just FitWidth }
 fitHeight :: ImageCfg s e
 fitHeight = def { _imcFit = Just FitHeight }
 
-newtype ImageState = ImageState {
+data ImageState = ImageState {
+  isImagePath :: String,
   isImageData :: Maybe (ByteString, Size)
 }
 
@@ -99,7 +100,7 @@ data ImageMessage
   | ImageFailed ImageLoadError
 
 imageState :: ImageState
-imageState = ImageState Nothing
+imageState = ImageState "" Nothing
 
 image :: String -> WidgetInstance s e
 image path = image_ path def
@@ -125,11 +126,19 @@ makeImage imgPath config state = widget where
     path = _wiPath inst
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
-  merge wenv oldState inst = resultWidget newInst where
+  merge wenv oldState inst = result where
     newState = fromMaybe state (useState oldState)
-    newInst = inst {
+    path = _wiPath inst
+    newImgReqs = [ RunTask path $ do
+        removeImage wenv imgPath
+        handleImageLoad wenv imgPath
+      ]
+    sameImgInst = inst {
       _wiWidget = makeImage imgPath config newState
     }
+    result
+      | isImagePath newState == imgPath = resultWidget sameImgInst
+      | otherwise = resultReqs newImgReqs inst
 
   dispose wenv inst = resultReqs reqs inst where
     path = _wiPath inst
@@ -158,15 +167,14 @@ makeImage imgPath config state = widget where
     when (imageLoaded && not imageExists) $
       addImage renderer imgPath ImageAddKeep imgSize imgBytes
 
-    when imageLoaded $
-      drawImage renderer imgPath imageRect alpha
+    drawImage renderer imgPath imageRect alpha
     where
       style = activeStyle wenv inst
       contentArea = getContentArea style inst
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
       imageRect = fitImage fitMode imgSize contentArea
-      ImageState imgData = state
+      ImageState imgPath imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
       imageExists = existsImage renderer imgPath
@@ -191,7 +199,7 @@ handleImageLoad wenv path = do
 
 loadImage :: String -> IO (Either ImageLoadError ByteString)
 loadImage path
-  | not (isUrl path) = loadLocal path -- Pic.readImage path
+  | not (isUrl path) = loadLocal path
   | otherwise = loadRemote path
 
 decodeImage :: ByteString -> Either ImageLoadError DynamicImage
@@ -252,6 +260,7 @@ registerImg wenv name dimg = do
     size = Size (fromIntegral cw) (fromIntegral ch)
     bs = vectorToByteString $ imageData img
     newState = ImageState {
+      isImagePath = name,
       isImageData = Just (bs, size)
     }
 
