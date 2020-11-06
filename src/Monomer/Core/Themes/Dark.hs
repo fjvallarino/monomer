@@ -137,6 +137,8 @@ darkHover = darkBasic
 
 darkFocus :: ThemeState
 darkFocus = darkBasic
+  & L.btnStyle . L.border ?~ borderFocus
+  & L.btnMainStyle . L.border ?~ borderFocus
   & L.checkboxStyle . L.fgColor ?~ lightSkyBlue
   & L.dropdownStyle . L.border ?~ borderFocus
   & L.dropdownListStyle . L.border ?~ borderFocus

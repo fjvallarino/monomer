@@ -113,10 +113,13 @@ button :: Text -> e -> WidgetInstance s e
 button caption handler = button_ caption handler def
 
 button_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
-button_ caption handler configs = defaultWidgetInstance "button" widget where
+button_ caption handler configs = buttonInstance where
   config = onClick handler <> mconcat configs
   state = BtnState caption Empty
   widget = makeButton config state
+  buttonInstance = (defaultWidgetInstance "button" widget) {
+    _wiFocusable = True
+  }
 
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
@@ -139,13 +142,17 @@ makeButton config state = widget where
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
   handleEvent wenv ctx evt inst = case evt of
+    KeyAction mode code status
+      | isSelectKey code && status == KeyPressed -> Just result
+      where
+        isSelectKey code = isKeyReturn code || isKeySpace code
     Click p _
       | pointInViewport p inst -> Just result
-      where
-        requests = _btnOnClickReq config
-        events = _btnOnClick config
-        result = resultReqsEvents requests events inst
     _ -> Nothing
+    where
+      requests = _btnOnClickReq config
+      events = _btnOnClick config
+      result = resultReqsEvents requests events inst
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst

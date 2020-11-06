@@ -244,13 +244,16 @@
   - Check scroll styling works correctly (contentRect being applied, etc)
     - Also handle hover so scrollbars get correct cursor
   - Move computeTextRect out of Renderer
+  - Multiline label
+  - Check dropdown width/ellipsis
 
 - Pending
-  - Multiline label
+  - Button should receive focus
+  - Move combinators out of exported Core (but still export from Monomer)
+  - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Check 1px difference on right side of labels/buttons
   - Check displaced textField when adding characters on right align
     - Also, when right is reached from left, everything is pushed out of screen
-  - Check dropdown width/ellipsis
   - Check getState/merge in all components
   - Add testing
     - Delayed until this point to try to settle down interfaces
@@ -266,18 +269,16 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Move combinators out of exported Core (but still export from Monomer)
-  - Button should receive focus
   - Handle window title, maximize, etc
     - Also handle as requests?
   - Handle onBlur/onFocus in all focusable widgets
-  - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Find way of avoiding hover effects when widget is not in the top layer
     - Hover should only be active for top level item
       - I need to think a way of setting a layer state for zstack
+  - Button should change color when clicked/actioned
   - Further textField improvements
     - Double clicking on empty puts the cursor at the end of ghost character
     - Right aligned version has cusor overlaid
