@@ -60,7 +60,7 @@ listViewItemStyle :: StyleState
 listViewItemStyle = def
   & L.text ?~ normalFont
   & L.text . non def . L.alignH ?~ ALeft
-  & L.padding ?~ paddingH 10
+  & L.padding ?~ paddingH 5
 
 listViewItemSelectedStyle :: StyleState
 listViewItemSelectedStyle = listViewItemStyle
@@ -91,6 +91,8 @@ darkBasic = def
   & L.dialogButtonsStyle . L.padding ?~ padding 5
   & L.dropdownStyle .~ inputStyle
   & L.dropdownStyle . L.fgColor ?~ white
+  & L.dropdownStyle . L.padding ?~ paddingH 5
+  & L.dropdownStyle . L.text . non def . L.alignH ?~ ALeft
   & L.dropdownMaxHeight .~ 200
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle

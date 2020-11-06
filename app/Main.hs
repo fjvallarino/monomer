@@ -78,9 +78,23 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree4 where
+  widgetTree4 = hgrid [
+      vstack [
+        label "1" `style` [bgColor pink, border 1 pink],
+        label "2" `style` [bgColor gray, border 1 gray],
+        textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
+        label "3" `style` [bgColor pink],
+        textField textField1 `style` [bgColor gray]
+      ],
+      vstack [
+        textField textField1 `style` [bgColor gray],
+        label "1" `style` [bgColor pink, border 1 pink]
+      ],
+      label ""
+    ]
   widgetTree3 = hgrid [
-      label "Hola\nEsta\nes\nuna\nnueva\tprueba\n\n  Doble!" `style` [bgColor pink, textBottom, textCenter],
+      label "Hi!\nThis\nis\na\nnew\ttest\n\n  Double!" `style` [bgColor pink, textBottom, textCenter],
       vgrid [
         label "1",
         label "2",
@@ -101,7 +115,7 @@ buildUI model = trace "Creating UI" widgetTree where
           radio fruit Orange,
           checkbox condition1
         ],
-        dropdown_ dropdown1 items id label [maxHeight 200],
+        dropdown_ dropdown1 items label label [maxHeight 200],
         label "Integral",
         integralField integer1,
         label "Floating",
@@ -159,4 +173,4 @@ buildUI model = trace "Creating UI" widgetTree where
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap showt [1..100::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

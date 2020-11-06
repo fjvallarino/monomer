@@ -251,6 +251,7 @@
   - Check displaced textField when adding characters on right align
     - Also, when right is reached from left, everything is pushed out of screen
   - Check dropdown width/ellipsis
+  - Check getState/merge in all components
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly

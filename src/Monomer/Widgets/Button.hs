@@ -9,8 +9,6 @@ module Monomer.Widgets.Button (
   mainButton_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Control.Monad (forM_)

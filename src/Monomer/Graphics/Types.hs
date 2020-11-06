@@ -88,7 +88,6 @@ data TextMetrics = TextMetrics {
   _txmAsc :: Double,
   _txmDesc :: Double,
   _txmLineH :: Double
-
 } deriving (Eq, Show)
 
 instance Default TextMetrics where

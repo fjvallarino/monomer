@@ -15,7 +15,7 @@ import Monomer.Widgets.Label
 import Monomer.Widgets.Dropdown
 
 textDropdown
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Show a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -24,7 +24,7 @@ textDropdown field items toText = newInst where
   newInst = textDropdown_ field items toText def
 
 textDropdown_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Show a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -34,7 +34,7 @@ textDropdown_ field items toText configs = newInst where
   newInst = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Show a)
   => a
   -> (a -> e)
   -> t a
@@ -44,7 +44,7 @@ textDropdownV value handler items toText = newInst where
   newInst = textDropdownV_ value handler items toText def
 
 textDropdownV_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Show a)
   => a
   -> (a -> e)
   -> t a
@@ -57,13 +57,13 @@ textDropdownV_ value handler items toText configs = newInst where
   newInst = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Show a)
   => WidgetData s a
   -> t a
   -> (a -> Text)
   -> [DropdownCfg s e a]
   -> WidgetInstance s e
 textDropdownD_ widgetData items toText configs = newInst where
-  makeMain = toText
+  makeMain = label . toText
   makeRow = label . toText
   newInst = dropdownD_ widgetData items makeMain makeRow configs

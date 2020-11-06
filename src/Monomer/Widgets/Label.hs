@@ -3,8 +3,6 @@ module Monomer.Widgets.Label (
   label_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Control.Monad (forM_)
@@ -86,7 +84,6 @@ makeLabel config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,
     singleMerge = merge,
-    singleGetState = makeState state,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
@@ -101,9 +98,8 @@ makeLabel config state = widget where
     style = collectTheme wenv L.labelStyle
 
   merge wenv oldState inst = resultWidget newInstance where
-    newState = fromMaybe state (useState oldState)
     newInstance = inst {
-      _wiWidget = makeLabel config newState
+      _wiWidget = makeLabel config state
     }
 
   getSizeReq wenv inst = sizeReq where
