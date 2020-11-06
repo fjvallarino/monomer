@@ -1,7 +1,7 @@
 module Monomer.Widgets.ZStack (
   zstack,
   zstack_,
-  onlyTopFocusable
+  onlyTopActive
 ) where
 
 import Control.Applicative ((<|>))
@@ -16,7 +16,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Widgets.Container
 
 newtype ZStackCfg = ZStackCfg {
-  _zscOnlyTopFocusable :: Maybe Bool
+  _zscOnlyTopActive :: Maybe Bool
 }
 
 instance Default ZStackCfg where
@@ -24,15 +24,15 @@ instance Default ZStackCfg where
 
 instance Semigroup ZStackCfg where
   (<>) z1 z2 = ZStackCfg {
-    _zscOnlyTopFocusable = _zscOnlyTopFocusable z2 <|> _zscOnlyTopFocusable z1
+    _zscOnlyTopActive = _zscOnlyTopActive z2 <|> _zscOnlyTopActive z1
   }
 
 instance Monoid ZStackCfg where
   mempty = def
 
-onlyTopFocusable :: Bool -> ZStackCfg
-onlyTopFocusable onlyTop = def {
-  _zscOnlyTopFocusable = Just onlyTop
+onlyTopActive :: Bool -> ZStackCfg
+onlyTopActive active = def {
+  _zscOnlyTopActive = Just active
 }
 
 zstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
@@ -63,12 +63,16 @@ makeZStack config = widget where
 
   -- | Find instance matching point
   findByPoint wenv startPath point inst = result where
+    onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = _wiChildren inst
+    vchildren
+      | onlyTop = Seq.take 1 $ Seq.filter _wiVisible children
+      | otherwise = Seq.filter _wiVisible children
     newStartPath = Seq.drop 1 startPath
-    result = findFirstByPoint children wenv newStartPath point
+    result = findFirstByPoint vchildren wenv newStartPath point
 
   findNextFocus wenv direction start inst = result where
-    onlyTop = fromMaybe True (_zscOnlyTopFocusable config)
+    onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = _wiChildren inst
     vchildren = Seq.filter _wiVisible children
     result

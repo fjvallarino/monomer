@@ -246,15 +246,16 @@
   - Move computeTextRect out of Renderer
   - Multiline label
   - Check dropdown width/ellipsis
-
-- Pending
   - Button should receive focus
   - Move combinators out of exported Core (but still export from Monomer)
+    - Cancelled, not sure if it's an improvement
+
+- Pending
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
+  - Check getState/merge in all components
   - Check 1px difference on right side of labels/buttons
   - Check displaced textField when adding characters on right align
     - Also, when right is reached from left, everything is pushed out of screen
-  - Check getState/merge in all components
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly

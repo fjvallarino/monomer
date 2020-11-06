@@ -78,7 +78,20 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetTree5 where
+  widgetTree5 = zstack_ [
+      hgrid [
+        label "test",
+        vstack [
+          textField textField1 `style` [bgColor blue],
+          textField textField1 `style` [bgColor pink],
+          textField textField1 `style` [bgColor orange]
+        ]
+      ],
+      hstack_ [
+        textField textField1 `style` [bgColor lightBlue, width 200]
+      ] [ignoreEmptyClick True]
+    ] [onlyTopActive False]
   widgetTree4 = hgrid [
       vstack [
         label "1" `style` [bgColor pink, border 1 pink],
@@ -127,11 +140,11 @@ buildUI model = trace "Creating UI" widgetTree where
         textField textField1
       ]-- `style` [padding 10]
     ]
-  widgetTree = zstack [
+  widgetTree = zstack_ [
       widgetTreeFull,
       alert "Message" CloseAlert `visible` model ^. showAlert,
       confirm "Message" AcceptConfirm CancelConfirm `visible` model ^. showConfirm
-    ]
+    ] [onlyTopActive False]
   widgetTreeFull = vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
