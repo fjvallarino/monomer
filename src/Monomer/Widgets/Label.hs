@@ -83,7 +83,6 @@ makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,
-    singleMerge = merge,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
@@ -96,11 +95,6 @@ makeLabel config state = widget where
 
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.labelStyle
-
-  merge wenv oldState inst = resultWidget newInstance where
-    newInstance = inst {
-      _wiWidget = makeLabel config state
-    }
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
