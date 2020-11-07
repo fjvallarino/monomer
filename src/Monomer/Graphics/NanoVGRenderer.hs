@@ -256,13 +256,12 @@ newRenderer c dpr lock envRef = Renderer {..} where
     -- Glyph position is usually used in local coord calculations, ignoring dpr
     setFont c envRef dpr font fontSize
 
-    glyphsPos <- fmap vecToSeq (textGlyphPositions c 0 0 text)
+    glyphsPos <- fmap vecToSeq (textGlyphPositions c 0 0 message)
 
     return $ foldl' reducer Seq.empty (Seq.zip glyphs glyphsPos)
     where
-      text = if message == "" then " " else message
       vecToSeq = foldl' (|>) Seq.empty
-      glyphs = Seq.fromList $ T.unpack text
+      glyphs = Seq.fromList $ T.unpack message
       reducer acc glyph = acc |> convert glyph
       convert (glyph, pos) = GlyphPos {
         _glpGlyph = glyph,
@@ -340,6 +339,9 @@ getTextBounds
   -> Double
   -> Text
   -> IO (Double, Double, Double, Double)
+getTextBounds c x y "" = do
+  (asc, desc, lineh) <- VG.textMetrics c
+  return (x, y, 0, realToFrac lineh)
 getTextBounds c x y text = do
   VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c cx cy text
   return (realToFrac x1, realToFrac y1, realToFrac x2, realToFrac y2)
@@ -370,6 +372,7 @@ handleImageRender c dpr rect alpha image = do
 
 textGlyphPositions
   :: VG.Context -> Double -> Double -> Text -> IO (V.Vector VG.GlyphPosition)
+textGlyphPositions c x y "" = return V.empty
 textGlyphPositions c x y text = withCStringLen text $ \(ptr, len) ->
     VG.textGlyphPositions c cx cy ptr (ptr `plusPtr` len) count
   where

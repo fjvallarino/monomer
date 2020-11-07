@@ -199,7 +199,9 @@ makeInputField config state = widget where
       contentArea = getContentArea style inst
       localX = x - _rX contentArea + _ifsOffset state
       textLen = getGlyphsMax (_ifsGlyphs state)
-      glyphs = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
+      glyphs
+        | Seq.null (_ifsGlyphs state) = Seq.empty
+        | otherwise = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
       glyphStart i g = (i, abs (_glpXMin g - localX))
       pairs = Seq.mapWithIndex glyphStart glyphs
       cpm (_, g1) (_, g2) = compare g1 g2
@@ -211,7 +213,7 @@ makeInputField config state = widget where
       }
       result
         | isFocused wenv inst = Just $ resultWidget newInst
-        | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] inst
+        | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] newInst
 
     KeyAction mod code KeyPressed -> Just result where
       (newText, newPos, newSel) = handleKeyPress wenv mod code

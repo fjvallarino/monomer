@@ -253,7 +253,6 @@
   - Check getState/merge in all components
 
 - Pending
-  - TextOverflow in TextStyle?
   - Check 1px difference on right side of labels/buttons
   - Further textField improvements
     - Check displaced textField when adding characters on right align
@@ -281,6 +280,7 @@ Maybe postponed after release?
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?
+  - TextOverflow in TextStyle?
   - Handle onBlur/onFocus in all focusable widgets
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
