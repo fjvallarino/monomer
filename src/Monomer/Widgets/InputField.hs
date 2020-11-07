@@ -362,8 +362,6 @@ renderContent renderer state style currText = do
     tsFont = styleFont style
     tsFontSize = styleFontSize style
     tsFontColor = styleFontColor style
-    tsAlignV = fromMaybe AMiddle (_txsAlignV textStyle)
-    tsAlign = Align ALeft tsAlignV
 
 newTextState
   :: (Eq a, Default a)
@@ -379,8 +377,15 @@ newTextState wenv inst oldState value text cursor selection = newState where
   style = activeStyle wenv inst
   contentArea = getContentArea style inst
   !(Rect cx cy cw ch) = contentArea
+  textStyle = fromMaybe def (_sstText style)
+  alignH = fromMaybe ALeft (_txsAlignH textStyle)
+  alignV = fromMaybe def (_txsAlignV textStyle)
+  align = Align alignH alignV
   !textMetrics = getTextMetrics wenv style
-  !textRect = getTextRect wenv style contentArea align text
+  !tempTextRect = getTextRect wenv style contentArea align text
+  textRect
+    | alignH == ARight = moveRect (Point (-caretWidth) 0) tempTextRect
+    | otherwise = tempTextRect
   TextMetrics ta ts tl = textMetrics
   Rect tx ty tw th = textRect
   glyphs = getTextGlyphs wenv style text
@@ -389,10 +394,6 @@ newTextState wenv inst oldState value text cursor selection = newState where
   glyphOffset = getGlyphsMin glyphs
   curX = tx + glyphX - glyphOffset
   oldOffset = _ifsOffset oldState
-  textStyle = fromMaybe def (_sstText style)
-  alignH = fromMaybe ALeft (_txsAlignH textStyle)
-  alignV = fromMaybe def (_txsAlignV textStyle)
-  align = Align alignH alignV
   textFits = cw >= tw
   newOffset
     | textFits = 0

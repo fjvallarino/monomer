@@ -275,8 +275,8 @@
 
 Maybe postponed after release?
   - Further textField improvements
-    - Handle mouse selection
     - Handle undo history
+    - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?

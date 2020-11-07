@@ -44,8 +44,7 @@ data TextLine = TextLine {
   _tlMetrics :: TextMetrics
 } deriving (Eq, Show)
 
-getTextMetrics
-  :: WidgetEnv s e -> StyleState -> TextMetrics
+getTextMetrics :: WidgetEnv s e -> StyleState -> TextMetrics
 getTextMetrics wenv style = textMetrics where
   renderer = _weRenderer wenv
   !textMetrics = computeTextMetrics renderer font fontSize
@@ -77,13 +76,12 @@ getTextSize_ wenv style mode trim mwidth text = newSize where
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
 
-getTextRect
-  :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
+getTextRect :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
 getTextRect wenv style !rect !align !text = textRect where
   renderer = _weRenderer wenv
-  !textRect = computeTextRect renderer rect font fontSize align text
   font = styleFont style
   fontSize = styleFontSize style
+  !textRect = computeTextRect renderer rect font fontSize align text
 
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where

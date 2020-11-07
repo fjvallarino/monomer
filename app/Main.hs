@@ -117,7 +117,7 @@ buildUI model = trace "Creating UI" widgetTree4 where
         label "2" `style` [bgColor gray, border 1 gray],
         textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
         label "3" `style` [bgColor pink],
-        textField textField1 `style` [bgColor gray]
+        textField textField1 `style` [textRight, bgColor gray]
       ],
       vstack [
         textField textField1 `style` [bgColor gray],
