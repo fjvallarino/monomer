@@ -78,7 +78,26 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree5 where
+buildUI model = trace "Creating UI" widgetTreeAlt where
+  widgetTreeAlt
+    | model ^. clickCount `mod` 2 == 0 = widgetTree10
+    | otherwise = widgetTree11
+  widgetTree10 = vstack [
+      hstack [
+        label ("Click count: " <> showt (model ^. clickCount)),
+        button "Increase" IncButton
+      ],
+      image "assets/images/beach.jpg" `visible` False `key` "Beach",
+      image "assets/images/pecans.jpg" `key` "Pecans"
+    ]
+  widgetTree11 = vstack [
+      hstack [
+        label ("Click count: " <> showt (model ^. clickCount)),
+        button "Increase" IncButton
+      ],
+      image "assets/images/pecans.jpg" `visible` False `key` "Pecans",
+      image "assets/images/beach.jpg" `key` "Beach"
+    ]
   widgetTree5 = zstack_ [
       hgrid [
         label "test",

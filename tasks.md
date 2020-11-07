@@ -249,19 +249,24 @@
   - Button should receive focus
   - Move combinators out of exported Core (but still export from Monomer)
     - Cancelled, not sure if it's an improvement
-
-- Pending
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Check getState/merge in all components
+
+- Pending
+  - TextOverflow in TextStyle?
   - Check 1px difference on right side of labels/buttons
-  - Check displaced textField when adding characters on right align
-    - Also, when right is reached from left, everything is pushed out of screen
+  - Further textField improvements
+    - Check displaced textField when adding characters on right align
+      - Also, when right is reached from left, everything is pushed out of screen
+    - Double clicking on empty puts the cursor at the end of ghost character
+    - Right aligned version has cusor overlaid
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Use weight to control allocations
     - Refactor modules where consistency is lacking
   - Add header in all files, indicating license and documenting what the module does
+    - Add license for used fonts, etc
   - Add examples
     - Basic event handling (maybe a form with input and button?)
     - Fetch content from url, show rows of data with embedded images
@@ -270,6 +275,10 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Further textField improvements
+    - Handle mouse selection
+    - Handle undo history
+    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?
   - Handle onBlur/onFocus in all focusable widgets
@@ -280,12 +289,6 @@ Maybe postponed after release?
     - Hover should only be active for top level item
       - I need to think a way of setting a layer state for zstack
   - Button should change color when clicked/actioned
-  - Further textField improvements
-    - Double clicking on empty puts the cursor at the end of ghost character
-    - Right aligned version has cusor overlaid
-    - Handle mouse selection
-    - Handle undo history
-    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Add Maps on Theme to handle user widget settings
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
@@ -293,6 +296,9 @@ Maybe postponed after release?
   - Image widget could also have a ByteString version
   - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
+  - Image
+    - Can performance be improved?
+    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
   - Create Slider
   - Create Dial
   - Create Split
