@@ -386,8 +386,7 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper styleOnMerge pHandler wenv target event inst
   | not (_wiVisible inst) = Nothing
---  | not targetValid = Nothing
-  | targetReached || not targetValid = parentResult
+  | targetReached || not targetValid = styledParentResult
   | styleOnMerge = styledChildrenResult
   | otherwise = childrenResult
   where
@@ -407,7 +406,7 @@ handleEventWrapper styleOnMerge pHandler wenv target event inst
       | childrenIgnored || not (_wiEnabled child) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
     sHandler _ _ _ _ = mergeParentChildEvts inst pResponse cResponse childIdx
-    parentResult = handleStyleChange pHandler wenv target event inst
+    styledParentResult = handleStyleChange pHandler wenv target event inst
     childrenResult = mergeParentChildEvts inst pResponse cResponse childIdx
     styledChildrenResult = handleStyleChange sHandler wenv target event inst
 

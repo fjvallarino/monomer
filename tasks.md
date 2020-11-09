@@ -251,16 +251,15 @@
     - Cancelled, not sure if it's an improvement
   - Maybe unify criteria on zstack? Top layer config for both focus/click?
   - Check getState/merge in all components
-
-- Pending
-  - Check 1px difference on right side of labels/buttons
   - Further textField improvements
     - Check displaced textField when adding characters on right align
       - Also, when right is reached from left, everything is pushed out of screen
     - Double clicking on empty puts the cursor at the end of ghost character
     - Right aligned version has cusor overlaid (add caret size to offset in specific cases)
-    - Make left added char visible
     - Check clipboard
+
+- Pending
+  - Check 1px difference on right side of labels/buttons
   - Check Container thing in hover adding columns (not targetValid = Nothing should be removed)
   - Add testing
     - Delayed until this point to try to settle down interfaces

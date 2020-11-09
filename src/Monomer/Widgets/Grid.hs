@@ -75,9 +75,9 @@ makeFixedGrid isHorizontal = widget where
     foldHelper (currAreas, index) child = (newAreas, newIndex) where
       (newIndex, newViewport)
         | _wiVisible child = (index + 1, calcViewport index)
-        | otherwise = (0, def)
+        | otherwise = (index, def)
       newArea = (newViewport, newViewport)
       newAreas = currAreas |> newArea
     calcViewport i = Rect (cx i) (cy i) cw ch
-    assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) vchildren
+    assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) children
     resized = (inst, assignedAreas)
