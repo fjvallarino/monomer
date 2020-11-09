@@ -58,7 +58,7 @@ inputFieldState = InputFieldState {
 }
 
 caretWidth :: Double
-caretWidth = 1
+caretWidth = 2
 
 inputField_
   :: (Eq a, Default a, Typeable a)
@@ -217,18 +217,22 @@ makeInputField config state = widget where
         | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] newInst
 
     KeyAction mod code KeyPressed -> result where
-      result = handleKeyRes <$> handleKeyPress wenv mod code
+      isPaste = isClipboardPaste wenv evt
+      isCopy = isClipboardCopy wenv evt
+      reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
+      reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
+      clipReqs = reqGetClipboard ++ reqSetClipboard
+      keyRes = handleKeyPress wenv mod code
       handleKeyRes (newText, newPos, newSel) = result where
-        isPaste = isClipboardPaste wenv evt
-        isCopy = isClipboardCopy wenv evt
-        reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
-        reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
-        reqs = reqGetClipboard ++ reqSetClipboard
-        result = genInputResult wenv inst False newText newPos newSel reqs
+        result = genInputResult wenv inst False newText newPos newSel clipReqs
+      result
+        | isJust keyRes = Just $ handleKeyRes (fromJust keyRes)
+        | not (null clipReqs) = Just $ resultReqs clipReqs inst
+        | otherwise = Nothing
 
     TextInput newText -> insertText wenv inst newText
 
-    Clipboard (ClipboardText newText) -> insertText wenv inst newText
+    Clipboard (ClipboardText newText) ->  insertText wenv inst newText
 
     Focus -> Just $ resultReqs [StartTextInput (_wiViewport inst)] newInst where
       newState = state {
@@ -402,11 +406,12 @@ newTextState wenv inst oldState value text cursor selection = newState where
   curX = tx + glyphX
   oldOffset = _ifsOffset oldState
   newOffset
+    | textFits && alignR = -caretWidth
     | textFits = 0
     | alignL && cursorL = cx - tx + caretWidth
     | alignL && curX + oldOffset > cx + cw = cx + cw - curX
     | alignL && curX + oldOffset < cx = cx - curX
-    | alignR && cursorR = 0
+    | alignR && cursorR = -caretWidth
     | alignR && curX + oldOffset > cx + cw = tw - glyphX
     | alignR && curX + oldOffset < cx = tw - cw - glyphX
     | alignC && curX + oldOffset > cx + cw = cx + cw - curX
