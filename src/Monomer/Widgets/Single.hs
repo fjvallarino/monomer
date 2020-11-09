@@ -152,8 +152,8 @@ initWrapper
   -> WidgetResult s e
 initWrapper initHandler getBaseStyle wenv inst = newResult where
   baseStyle = getBaseStyle wenv inst
-  tempResult = initHandler wenv inst
-  newResult = baseStyleToResult wenv baseStyle tempResult
+  styledInst = initInstanceStyle wenv baseStyle inst
+  newResult = initHandler wenv styledInst
 
 defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInst = resultWidget newInst
@@ -172,8 +172,8 @@ mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
     _wiRenderArea = _wiRenderArea oldInst
   }
   baseStyle = getBaseStyle wenv tempInst
-  tempResult = mergeHandler wenv oldState tempInst
-  newResult = baseStyleToResult wenv baseStyle tempResult
+  styledInst = initInstanceStyle wenv baseStyle tempInst
+  newResult = mergeHandler wenv oldState styledInst
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose _ inst = resultWidget inst

@@ -1,5 +1,5 @@
 module Monomer.Widgets.Util.Base (
-  baseStyleToResult,
+  initInstanceStyle,
   handleSizeReqStyle,
   handleStyleChange,
   isFixedSizeReq,
@@ -45,20 +45,18 @@ baseStyleFromTheme theme = style where
     _sstText = Just $ _thsText tstate
   }
 
-baseStyleToResult
+initInstanceStyle
   :: WidgetEnv s e
   -> Maybe Style
-  -> WidgetResult s e
-  -> WidgetResult s e
-baseStyleToResult wenv mbaseStyle result = newResult where
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+initInstanceStyle wenv mbaseStyle inst = newInst where
   instStyle = mergeBasicStyle $ _wiStyle inst
   baseStyle = mergeBasicStyle $ fromMaybe def mbaseStyle
   themeStyle = baseStyleFromTheme (_weTheme wenv)
-  WidgetResult reqs evts inst = result
   newInst = inst {
     _wiStyle = themeStyle <> baseStyle <> instStyle
   }
-  newResult = WidgetResult reqs evts newInst
 
 mergeBasicStyle :: Style -> Style
 mergeBasicStyle st = newStyle where

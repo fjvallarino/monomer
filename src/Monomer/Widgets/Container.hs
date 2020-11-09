@@ -209,9 +209,9 @@ initWrapper initHandler getBaseStyle wenv inst = newResult where
   newInstance = tempInstance {
     _wiChildren = newChildren
   }
-  result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
   baseStyle = getBaseStyle wenv newInstance
-  newResult = baseStyleToResult wenv baseStyle result
+  styledInst = initInstanceStyle wenv baseStyle newInstance
+  newResult = WidgetResult (reqs <> newReqs) (events <> newEvents) styledInst
 
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
@@ -247,9 +247,9 @@ mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
   }
   newReqs = uReqs <> mergedReqs <> removedReqs
   newEvents = uEvents <> mergedEvents <> removedEvents
-  result = WidgetResult newReqs newEvents mergedInstance
   baseStyle = getBaseStyle wenv uInstance
-  newResult = baseStyleToResult wenv baseStyle result
+  styledInst = initInstanceStyle wenv baseStyle mergedInstance
+  newResult = WidgetResult newReqs newEvents styledInst
 
 mergeChildren
   :: WidgetEnv s e
@@ -386,16 +386,15 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper styleOnMerge pHandler wenv target event inst
   | not (_wiVisible inst) = Nothing
-  | targetReached = handleStyleChange pHandler wenv target event inst
-  | not targetValid = Nothing -- `not targetValid` applies to children only
-  | styleOnMerge = handleStyleChange sHandler wenv target event inst
-  | otherwise = mergeParentChildEvts inst pResponse cResponse childIdx
+--  | not targetValid = Nothing
+  | targetReached || not targetValid = parentResult
+  | styleOnMerge = styledChildrenResult
+  | otherwise = childrenResult
   where
     -- Having targetValid = False means the next path step is not in
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
-    sHandler _ _ _ _ = mergeParentChildEvts inst pResponse cResponse childIdx
     targetReached = isTargetReached target inst
     targetValid = isTargetValid target inst
     childIdx = fromJust $ nextTargetStep target inst
@@ -407,6 +406,10 @@ handleEventWrapper styleOnMerge pHandler wenv target event inst
     cResponse
       | childrenIgnored || not (_wiEnabled child) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
+    sHandler _ _ _ _ = mergeParentChildEvts inst pResponse cResponse childIdx
+    parentResult = handleStyleChange pHandler wenv target event inst
+    childrenResult = mergeParentChildEvts inst pResponse cResponse childIdx
+    styledChildrenResult = handleStyleChange sHandler wenv target event inst
 
 mergeParentChildEvts
   :: WidgetInstance s e

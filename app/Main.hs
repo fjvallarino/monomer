@@ -112,18 +112,27 @@ buildUI model = trace "Creating UI" widgetTree4 where
       ] [ignoreEmptyClick True]
     ] [onlyTopActive False]
   widgetTree4 = hgrid [
+      label "" `style` [bgColor blue],
+      label "" `style` [bgColor gray],
+      label "" `style` [bgColor blue],
+      label "" `style` [bgColor orange],
       vstack [
         label "1" `style` [bgColor pink, border 1 pink],
-        label "2" `style` [bgColor gray, border 1 gray],
-        textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
+        textField textField1 `style` [bgColor gray],
+        label "2" `style` [bgColor pink, border 1 gray],
+        textField textField1 `style` [textCenter, bgColor gray],
         label "3" `style` [bgColor pink],
-        textField textField1 `style` [textRight, bgColor gray]
+        textField textField1 `style` [textRight, bgColor gray],
+        label "4" `style` [bgColor pink]
       ],
       vstack [
-        textField textField1 `style` [bgColor gray],
+        --textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
         label "1" `style` [bgColor pink, border 1 pink]
-      ],
-      label ""
+      ] `visible` False,
+      label "" `style` [bgColor orange],
+      label "" `style` [bgColor gray],
+      label "" `style` [bgColor blue],
+      label "" `style` [bgColor gray]
     ]
   widgetTree3 = hgrid [
       label "Hi!\nThis\nis\na\nnew\ttest\n\n  Double!" `style` [bgColor pink, textBottom, textCenter],

@@ -4,7 +4,7 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Control.Monad (foldM, unless, when)
+import Control.Monad (foldM, forM_, unless, when)
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
@@ -91,8 +91,6 @@ makeRenderer fonts dpr = do
 
 newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
-  defaultDpr = 1
-
   beginFrame w h = L.with lock $ do
     env <- readIORef envRef
     newMap <- handlePendingImages c (imagesMap env) (addedImages env)
@@ -235,24 +233,24 @@ newRenderer c dpr lock envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
-  computeTextMetrics font fontSize = unsafePerformIO $ do
-    setFont c envRef defaultDpr font fontSize
+  computeTextMetrics !font !fontSize = unsafePerformIO $ do
+    setFont c envRef dpr font fontSize
     (asc, desc, lineh) <- getTextMetrics c
 
     return $ TextMetrics {
-      _txmAsc = asc,
-      _txmDesc = desc,
-      _txmLineH = lineh
+      _txmAsc = asc / dpr,
+      _txmDesc = desc / dpr,
+      _txmLineH = lineh / dpr
     }
 
-  computeTextSize font fontSize text = unsafePerformIO $ do
+  computeTextSize !font !fontSize !text = unsafePerformIO $ do
     setFont c envRef dpr font fontSize
     (x1, y1, x2, y2) <- getTextBounds c 0 0 text
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
-  computeGlyphsPos font fontSize message = unsafePerformIO $ do
+  computeGlyphsPos !font !fontSize !message = unsafePerformIO $ do
     -- Glyph position is usually used in local coord calculations, ignoring dpr
     setFont c envRef dpr font fontSize
 

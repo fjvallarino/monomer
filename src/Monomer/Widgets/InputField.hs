@@ -58,7 +58,7 @@ inputFieldState = InputFieldState {
 }
 
 caretWidth :: Double
-caretWidth = 2
+caretWidth = 1
 
 inputField_
   :: (Eq a, Default a, Typeable a)
@@ -124,12 +124,12 @@ makeInputField config state = widget where
       | otherwise = oldText
     newTextL = T.length newText
     newPos
-      | newTextL < oldPos = T.length newText
+      | newTextL < oldPos = newTextL
       | otherwise = oldPos
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst state value newText newPos newSelStart
+    newState = newTextState wenv inst oldTextState value newText newPos newSelStart
     newInstance = inst {
       _wiWidget = makeInputField config newState
     }
@@ -137,21 +137,22 @@ makeInputField config state = widget where
     reqs = setModelValid (isJust parsedVal)
 
   handleKeyPress wenv mod code
-    | isBackspace && isNothing currSel = moveCursor removeText (tp - 1) Nothing
-    | isBackspace = moveCursor removeText (min currSelVal tp) Nothing
-    | isMoveLeft = moveCursor txt (tp - 1) Nothing
-    | isMoveRight = moveCursor txt (tp + 1) Nothing
-    | isMoveWordL = moveCursor txt prevWordStartIdx Nothing
-    | isMoveWordR = moveCursor txt nextWordEndIdx Nothing
-    | isSelectLeft = moveCursor txt (tp - 1) (Just tp)
-    | isSelectRight = moveCursor txt (tp + 1) (Just tp)
-    | isSelectWordL = moveCursor txt prevWordStartIdx (Just tp)
-    | isSelectWordR = moveCursor txt nextWordEndIdx (Just tp)
-    | otherwise = moveCursor txt tp currSel
+    | isBackspace && emptySel = Just $ moveCursor removeText (tp - 1) Nothing
+    | isBackspace = Just $ moveCursor removeText (min currSelVal tp) Nothing
+    | isMoveLeft = Just $ moveCursor txt (tp - 1) Nothing
+    | isMoveRight = Just $ moveCursor txt (tp + 1) Nothing
+    | isMoveWordL = Just $ moveCursor txt prevWordStartIdx Nothing
+    | isMoveWordR = Just $ moveCursor txt nextWordEndIdx Nothing
+    | isSelectLeft = Just $ moveCursor txt (tp - 1) (Just tp)
+    | isSelectRight = Just $ moveCursor txt (tp + 1) (Just tp)
+    | isSelectWordL = Just $ moveCursor txt prevWordStartIdx (Just tp)
+    | isSelectWordR = Just $ moveCursor txt nextWordEndIdx (Just tp)
+    | otherwise = Nothing
     where
       txt = currText
       txtLen = T.length txt
       tp = currPos
+      emptySel = isNothing currSel
       (part1, part2) = T.splitAt currPos currText
       prevWordStart = T.dropWhileEnd (not . delim) $ T.dropWhileEnd delim part1
       prevWordStartIdx = T.length prevWordStart
@@ -161,7 +162,7 @@ makeInputField config state = widget where
       isWordMod
         | isMacOS wenv = _kmLeftAlt mod
         | otherwise = _kmLeftCtrl mod
-      isBackspace = isKeyBackspace code && tp > 0
+      isBackspace = isKeyBackspace code && (tp > 0 || isJust currSel)
       isMove = not isShift && not isWordMod
       isMoveWord = not isShift && isWordMod
       isSelect = isShift && not isWordMod
@@ -215,14 +216,15 @@ makeInputField config state = widget where
         | isFocused wenv inst = Just $ resultWidget newInst
         | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] newInst
 
-    KeyAction mod code KeyPressed -> Just result where
-      (newText, newPos, newSel) = handleKeyPress wenv mod code
-      isPaste = isClipboardPaste wenv evt
-      isCopy = isClipboardCopy wenv evt
-      reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
-      reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
-      reqs = reqGetClipboard ++ reqSetClipboard
-      result = genInputResult wenv inst False newText newPos newSel reqs
+    KeyAction mod code KeyPressed -> result where
+      result = handleKeyRes <$> handleKeyPress wenv mod code
+      handleKeyRes (newText, newPos, newSel) = result where
+        isPaste = isClipboardPaste wenv evt
+        isCopy = isClipboardCopy wenv evt
+        reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
+        reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
+        reqs = reqGetClipboard ++ reqSetClipboard
+        result = genInputResult wenv inst False newText newPos newSel reqs
 
     TextInput newText -> insertText wenv inst newText
 
@@ -244,11 +246,26 @@ makeInputField config state = widget where
     _ -> Nothing
 
   insertText wenv inst addedText = Just result where
+    addedLen = T.length addedText
     newText = replaceText currText addedText
     newPos
-      | isJust currSel = 1 + min currPos (fromJust currSel)
-      | otherwise = currPos + T.length addedText
+      | isJust currSel = addedLen + min currPos (fromJust currSel)
+      | otherwise = addedLen + currPos
     result = genInputResult wenv inst True newText newPos Nothing []
+
+  replaceText txt newTxt
+    | isJust currSel = T.take start txt <> newTxt <> T.drop end txt
+    | otherwise = T.take currPos txt <> newTxt <> T.drop currPos txt
+    where
+      start = min currPos (fromJust currSel)
+      end = max currPos (fromJust currSel)
+
+  copyText
+    | isJust currSel = T.take (end - start) $ T.drop start currText
+    | otherwise = ""
+    where
+      start = min currPos (fromJust currSel)
+      end = max currPos (fromJust currSel)
 
   genInputResult wenv inst textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText
@@ -276,20 +293,6 @@ makeInputField config state = widget where
     result
       | isValid || not textAdd = resultReqsEvents reqs events newInstance
       | otherwise = resultReqsEvents reqs events inst
-
-  replaceText txt newTxt
-    | isJust currSel = T.take start txt <> newTxt <> T.drop end txt
-    | otherwise = T.take currPos txt <> newTxt <> T.drop currPos txt
-    where
-      start = min currPos (fromJust currSel)
-      end = max currPos (fromJust currSel)
-
-  copyText
-    | isJust currSel = T.take (end - start) $ T.drop start currText
-    | otherwise = ""
-    where
-      start = min currPos (fromJust currSel)
-      end = max currPos (fromJust currSel)
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
@@ -381,25 +384,33 @@ newTextState wenv inst oldState value text cursor selection = newState where
   alignH = fromMaybe ALeft (_txsAlignH textStyle)
   alignV = fromMaybe def (_txsAlignV textStyle)
   align = Align alignH alignV
+  alignL = alignH == ALeft
+  alignR = alignH == ARight
+  alignC = alignH == ACenter
+  cursorL = cursor == 0
+  cursorR = cursor == T.length text
   !textMetrics = getTextMetrics wenv style
-  !tempTextRect = getTextRect wenv style contentArea align text
-  textRect
-    | alignH == ARight = moveRect (Point (-caretWidth) 0) tempTextRect
-    | otherwise = tempTextRect
-  TextMetrics ta ts tl = textMetrics
-  Rect tx ty tw th = textRect
-  glyphs = getTextGlyphs wenv style text
-  g :<| gs = glyphs
-  glyphX = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
-  glyphOffset = getGlyphsMin glyphs
-  curX = tx + glyphX - glyphOffset
-  oldOffset = _ifsOffset oldState
+  !textRect = getTextRect wenv style contentArea align text
+  Rect _ _ tw th = textRect
   textFits = cw >= tw
+  TextMetrics ta ts tl = textMetrics
+  Rect tx ty _ _ = textRect
+  glyphs = getTextGlyphs wenv style text
+  glyphStart = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
+  glyphOffset = getGlyphsMin glyphs
+  glyphX = glyphStart - glyphOffset
+  curX = tx + glyphX
+  oldOffset = _ifsOffset oldState
   newOffset
     | textFits = 0
-    | cursor == 0 && not textFits = cx - tx
-    | curX + oldOffset > cx + cw = cx + cw - curX
-    | curX + oldOffset < cx = cx - curX
+    | alignL && cursorL = cx - tx + caretWidth
+    | alignL && curX + oldOffset > cx + cw = cx + cw - curX
+    | alignL && curX + oldOffset < cx = cx - curX
+    | alignR && cursorR = 0
+    | alignR && curX + oldOffset > cx + cw = tw - glyphX
+    | alignR && curX + oldOffset < cx = tw - cw - glyphX
+    | alignC && curX + oldOffset > cx + cw = cx + cw - curX
+    | alignC && curX + oldOffset < cx = cx - curX
     | otherwise = oldOffset
   newState = InputFieldState {
     _ifsCurrValue = value,
