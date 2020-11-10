@@ -2,10 +2,10 @@
 
 import Test.Hspec
 
-import qualified Monomer.Widget.Widgets.ButtonSpec as ButtonSpec
-import qualified Monomer.Widget.Widgets.GridSpec as GridSpec
-import qualified Monomer.Widget.Widgets.LabelSpec as LabelSpec
-import qualified Monomer.Widget.Widgets.StackSpec as StackSpec
+import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
+import qualified Monomer.Widgets.GridSpec as GridSpec
+import qualified Monomer.Widgets.LabelSpec as LabelSpec
+import qualified Monomer.Widgets.StackSpec as StackSpec
 
 main :: IO ()
 main = hspec spec

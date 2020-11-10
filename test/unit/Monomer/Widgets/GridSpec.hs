@@ -1,19 +1,15 @@
-{-# LANGUAGE RecordWildCards #-}
-
-module Monomer.Widget.Widgets.GridSpec (spec) where
+module Monomer.Widgets.GridSpec (spec) where
 
 import Data.Text (Text)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
-import Monomer.Event.Types
-import Monomer.Widget.Types
-import Monomer.Widget.TestUtil
-import Monomer.Widget.Util
-import Monomer.Widget.Widgets.Label
-import Monomer.Widget.Widgets.Grid
+import Monomer.Core
+import Monomer.Event
+import Monomer.TestUtil
+import Monomer.Widgets.Grid
+import Monomer.Widgets.Label
 
 spec :: Spec
 spec = describe "Grid" $ do
@@ -23,43 +19,56 @@ spec = describe "Grid" $ do
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
   updateSizeReqEmpty
-  updateSizeReqItems
+  updateSizeReqItemsH
+  updateSizeReqItemsV
 
 updateSizeReqEmpty :: Spec
 updateSizeReqEmpty = describe "empty" $ do
-  it "should return size (0, 0)" $
-    _srSize `shouldBe` Size 0 0
+  it "should return Fixed width = 0" $
+    sizeReqW `shouldBe` FixedSize 0
 
-  it "should return Flexible width policy" $
-    _srPolicyW `shouldBe` FlexibleSize
-
-  it "should return Strict height policy" $
-    _srPolicyH `shouldBe` FlexibleSize
+  it "should return Fixed height = 0" $
+    sizeReqH `shouldBe` FixedSize 0
 
   where
     wenv = mockWenv ()
     gridInst = vgrid []
-    SizeReq{..} = instanceUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
 
-updateSizeReqItems :: Spec
-updateSizeReqItems = describe "several items" $ do
-  it "should return size (80, 60)" $
-    _srSize `shouldBe` Size 80 60
+updateSizeReqItemsH :: Spec
+updateSizeReqItemsH = describe "several items, horizontal" $ do
+  it "should return Flex width = 240 (largest width * 3)" $
+    sizeReqW `shouldBe` FlexSize 240 1
 
-  it "should return Flexible width policy" $
-    _srPolicyW `shouldBe` FlexibleSize
+  it "should return Flex height = 20" $
+    sizeReqH `shouldBe` FixedSize 20
 
-  it "should return Strict height policy" $
-    _srPolicyH `shouldBe` FlexibleSize
+  where
+    wenv = mockWenv ()
+    gridInst = hgrid [
+        label "Hello",
+        label "how",
+        label "are you?"
+      ]
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+
+updateSizeReqItemsV :: Spec
+updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
+  it "should return Flex width = 80" $
+    sizeReqW `shouldBe` FlexSize 80 1
+
+  it "should return Flex height = 60" $
+    sizeReqH `shouldBe` FlexSize 60 1
 
   where
     wenv = mockWenv ()
     gridInst = vgrid [
         label "Hello",
         label "how",
+        label "" `visible` False,
         label "are you?"
       ]
-    SizeReq{..} = instanceUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
 
 resize :: Spec
 resize = describe "resize" $ do
@@ -79,12 +88,12 @@ resizeEmpty = describe "empty" $ do
     wenv = mockWenv ()
     vp = Rect 0 0 640 480
     gridInst = vgrid []
-    newInst = instanceResize wenv vp gridInst
+    newInst = instResize wenv vp gridInst
     viewport = _wiViewport newInst
     children = _wiChildren newInst
 
 resizeItemsH :: Spec
-resizeItemsH = describe "several items" $ do
+resizeItemsH = describe "several items, horizontal" $ do
   it "should have the provided viewport size" $
     viewport `shouldBe` vp
 
@@ -96,7 +105,7 @@ resizeItemsH = describe "several items" $ do
 
   where
     wenv = mockWenv ()
-    vp = Rect 0 0 480 640
+    vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 160 640
     cvp2 = Rect 160 0 160 640
     cvp3 = Rect 320 0 160 640
@@ -105,34 +114,36 @@ resizeItemsH = describe "several items" $ do
         label "Label Number Two",
         label "Label 3"
       ]
-    newInst = instanceResize wenv vp gridInst
+    newInst = instResize wenv vp gridInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
 
 resizeItemsV :: Spec
-resizeItemsV = describe "several items" $ do
+resizeItemsV = describe "several items, vertical, one not visible" $ do
   it "should have the provided viewport size" $
     viewport `shouldBe` vp
 
   it "should assign the same viewport size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4]
 
   it "should assign the same renderArea size to each children" $
-    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4]
 
   where
     wenv = mockWenv ()
-    vp = Rect 0 0 640 480
+    vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640 160
     cvp2 = Rect 0 160 640 160
-    cvp3 = Rect 0 320 640 160
+    cvp3 = Rect 0   0   0   0
+    cvp4 = Rect 0 320 640 160
     gridInst = vgrid [
         label "Label 1",
         label "Label Number Two",
+        label "Label invisible" `visible` False,
         label "Label 3"
       ]
-    newInst = instanceResize wenv vp gridInst
+    newInst = instResize wenv vp gridInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst

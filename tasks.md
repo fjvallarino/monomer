@@ -260,7 +260,6 @@
   - Check Container thing in hover adding columns (not targetValid = Nothing should be removed)
 
 - Pending
-  - Check 1px difference on right side of labels/buttons
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
@@ -276,6 +275,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection

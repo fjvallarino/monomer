@@ -113,11 +113,11 @@ makeInputField config state = widget where
     reqs = setModelValid (isJust parsedVal)
 
   merge wenv oldState inst = resultReqs reqs newInstance where
-    oldTextState = fromMaybe state (useState oldState)
-    oldValue = _ifsCurrValue oldTextState
-    oldText = _ifsCurrText oldTextState
-    oldPos = _ifsCursorPos oldTextState
-    oldSel = _ifsSelStart oldTextState
+    currState = fromMaybe state (useState oldState)
+    oldValue = _ifsCurrValue currState
+    oldText = _ifsCurrText currState
+    oldPos = _ifsCursorPos currState
+    oldSel = _ifsSelStart currState
     value = getModelValue wenv
     newText
       | oldValue /= getModelValue wenv = toText value
@@ -129,7 +129,7 @@ makeInputField config state = widget where
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst oldTextState value newText newPos newSelStart
+    newState = newTextState wenv inst currState value newText newPos newSelStart
     newInstance = inst {
       _wiWidget = makeInputField config newState
     }

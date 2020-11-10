@@ -52,9 +52,11 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = hMul * (maximum . fmap getMaxSizeReq) vreqsH
     newSizeReqW
       | not isHorizontal && fixedW = FixedSize width
+      | nReqs == 0 = FixedSize width
       | otherwise = FlexSize width factor
     newSizeReqH
       | isHorizontal && fixedH = FixedSize height
+      | nReqs == 0 = FixedSize width
       | otherwise = FlexSize height factor
 
   resize wenv viewport renderArea children inst = resized where

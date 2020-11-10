@@ -395,8 +395,12 @@ resizeResult state wenv result widgetComp = resizedResult where
   renderArea = _wiRenderArea widgetComp
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys _cmpModel
   widgetRoot = _wrWidget result
-  tempRoot = widgetUpdateSizeReq (_wiWidget widgetRoot) cwenv widgetRoot
-  newRoot = widgetResize (_wiWidget tempRoot) cwenv viewport renderArea tempRoot
+  reqRoot = widgetUpdateSizeReq (_wiWidget widgetRoot) cwenv widgetRoot
+  tempRoot = widgetResize (_wiWidget reqRoot) cwenv viewport renderArea reqRoot
+  newRoot = tempRoot {
+    _wiViewport = viewport,
+    _wiRenderArea = renderArea
+  }
   resizedResult = result {
     _wrWidget = newRoot
   }

@@ -498,7 +498,7 @@ resizeWrapper
   -> Rect
   -> WidgetInstance s e
   -> WidgetInstance s e
-resizeWrapper handler wenv viewport renderArea inst = newSize where
+resizeWrapper handler wenv viewport renderArea inst = newInst where
   children = _wiChildren inst
   (tempInst, assigned) = handler wenv viewport renderArea children inst
   resize (child, (vp, ra)) = newChildInst where
@@ -508,7 +508,7 @@ resizeWrapper handler wenv viewport renderArea inst = newSize where
       _wiRenderArea = ra
     }
   newChildren = resize <$> Seq.zip children assigned
-  newSize = tempInst {
+  newInst = tempInst {
     _wiViewport = viewport,
     _wiRenderArea = renderArea,
     _wiChildren = newChildren

@@ -1,4 +1,4 @@
-module Monomer.Widget.TestUtil where
+module Monomer.TestUtil where
 
 import Data.Default
 import Data.Text (Text)
@@ -8,21 +8,39 @@ import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Sequence as Seq
 
-import Monomer.Common.Geometry
-import Monomer.Common.Tree
-import Monomer.Event.Types
-import Monomer.Graphics.Renderer
-import Monomer.Graphics.Types
-import Monomer.Widget.Types
-import Monomer.Widget.Util
+import Monomer.Core
+import Monomer.Event
+import Monomer.Graphics
 
 testWindowSize :: Size
 testWindowSize = Size 640 480
 
-mockTextBounds :: Font -> FontSize -> Text -> Size
-mockTextBounds font size text = Size width height where
+mockTextMetrics :: Font -> FontSize -> TextMetrics
+mockTextMetrics font fontSize = TextMetrics {
+  _txmAsc = 15,
+  _txmDesc = 5,
+  _txmLineH = 20
+}
+
+mockTextSize :: Font -> FontSize -> Text -> Size
+mockTextSize font size text = Size width height where
   width = fromIntegral $ T.length text * 10
   height = 20
+
+mockGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
+mockGlyphsPos font fontSize text = glyphs where
+  w = 10
+  chars = Seq.fromList $ T.unpack text
+  mkGlyph idx chr = GlyphPos {
+    _glpGlyph = chr,
+    _glpXMin = fromIntegral idx * w,
+    _glpXMax = (fromIntegral idx + 1) * w,
+    _glpW = w
+  }
+  glyphs = Seq.mapWithIndex mkGlyph chars
+
+mockRenderText :: Point -> Font -> FontSize -> Text -> IO ()
+mockRenderText point font size text = return ()
 
 mockRenderer :: Renderer
 mockRenderer = Renderer {
@@ -57,30 +75,29 @@ mockRenderer = Renderer {
   renderQuadTo = \p1 p2 -> return (),
   renderEllipse = \rect -> return (),
   -- Text
-  computeTextSize = mockTextBounds,
-  renderText = \rect font size align text -> return def,
+  computeTextMetrics = mockTextMetrics,
+  computeTextSize = mockTextSize,
+  computeGlyphsPos = mockGlyphsPos,
+  renderText = mockRenderText,
+
   -- Image
-  addImage = \name w h replace imgData -> return (),
+  addImage = \name action size imgData -> return (),
   updateImage = \name imgData -> return (),
   deleteImage = \name -> return (),
-  renderImage = \rect name -> return ()
-}
-
-mockPlatform :: WidgetPlatform
-mockPlatform = WidgetPlatform {
-  _wpOS = "Linux",
-  _wpGetKeyCode = const Nothing,
-  _wpComputeTextSize = mockTextBounds
+  existsImage = const True,
+  renderImage = \name rect alpha -> return ()
 }
 
 mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
-  _wePlatform = mockPlatform,
+  _weOS = "Mac OS X",
   _weRenderer = mockRenderer,
   _weTheme = def,
   _weAppWindowSize = testWindowSize,
   _weGlobalKeys = M.empty,
   _weFocusedPath = rootPath,
+  _weOverlayPath = Nothing,
+  _weCurrentCursor = CursorArrow,
   _weModel = model,
   _weInputStatus = def,
   _weTimestamp = 0
@@ -92,26 +109,28 @@ initWidget wenv inst = newInst where
   Size w h = _weAppWindowSize wenv
   vp = Rect 0 0 w h
   reqInst = widgetUpdateSizeReq (_wiWidget inst2) wenv inst2
-  newInst = widgetResize (_wiWidget inst2) wenv vp vp reqInst
+  newInst = widgetResize (_wiWidget reqInst) wenv vp vp reqInst
 
-instanceUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> SizeReq
-instanceUpdateSizeReq wenv inst = _wiSizeReq reqInst where
+instUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> (SizeReq, SizeReq)
+instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
   widget = _wiWidget inst
   reqInst = widgetUpdateSizeReq widget wenv inst
+  sizeReqW = _wiSizeReqW reqInst
+  sizeReqH = _wiSizeReqH reqInst
 
-instanceResize
+instResize
   :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
-instanceResize wenv viewport inst = newInst where
+instResize wenv viewport inst = newInst where
   widget = _wiWidget inst
   reqInst = widgetUpdateSizeReq widget wenv inst
   newInst = widgetResize widget wenv viewport viewport reqInst
 
-instanceGetEvents
+instGetEvents
   :: WidgetEnv s e
   -> SystemEvent
   -> WidgetInstance s e
   -> Seq e
-instanceGetEvents wenv evt inst = events where
+instGetEvents wenv evt inst = events where
   widget = _wiWidget inst
   result = widgetHandleEvent widget wenv rootPath evt inst
   events = maybe Seq.empty _wrEvents result

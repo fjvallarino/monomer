@@ -134,7 +134,7 @@ createSingle Single{..} = Widget {
   widgetHandleEvent = handleEventWrapper singleHandleEvent,
   widgetHandleMessage = singleHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper singleGetSizeReq,
-  widgetResize = singleResize,
+  widgetResize = resizeHandlerWrapper singleResize,
   widgetRender = renderWrapper singleRender
 }
 
@@ -227,6 +227,20 @@ updateSizeReqWrapper handler wenv inst = newInst where
 
 defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport renderArea inst = inst
+
+resizeHandlerWrapper
+  :: SingleResizeHandler s e
+  -> WidgetEnv s e
+  -> Rect
+  -> Rect
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+resizeHandlerWrapper handler wenv viewport renderArea inst = newInst where
+  tempInst = handler wenv viewport renderArea inst
+  newInst = tempInst {
+    _wiViewport = viewport,
+    _wiRenderArea = renderArea
+  }
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv inst = return ()
