@@ -1,5 +1,6 @@
 module Monomer.Widgets.GridSpec (spec) where
 
+import Control.Lens ((&), (.~))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -10,6 +11,8 @@ import Monomer.Event
 import Monomer.TestUtil
 import Monomer.Widgets.Grid
 import Monomer.Widgets.Label
+
+import qualified Monomer.Lens as L
 
 spec :: Spec
 spec = describe "Grid" $ do
@@ -88,7 +91,7 @@ resizeEmpty = describe "empty" $ do
     wenv = mockWenv ()
     vp = Rect 0 0 640 480
     gridInst = vgrid []
-    newInst = instResize wenv vp gridInst
+    newInst = instInit wenv gridInst
     viewport = _wiViewport newInst
     children = _wiChildren newInst
 
@@ -104,7 +107,7 @@ resizeItemsH = describe "several items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenv () & L.appWindowSize .~ Size 480 640
     vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 160 640
     cvp2 = Rect 160 0 160 640
@@ -114,7 +117,7 @@ resizeItemsH = describe "several items, horizontal" $ do
         label "Label Number Two",
         label "Label 3"
       ]
-    newInst = instResize wenv vp gridInst
+    newInst = instInit wenv gridInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
@@ -143,7 +146,7 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
         label "Label invisible" `visible` False,
         label "Label 3"
       ]
-    newInst = instResize wenv vp gridInst
+    newInst = instInit wenv gridInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst

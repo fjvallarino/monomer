@@ -145,40 +145,9 @@ makeStack isHorizontal config = widget where
       | isHorizontal = hRect
       | otherwise = vRect
 
-  calcSize vchildren = calcSize_ vchildren False
-  calcSizeFactor vchildren = calcSize_ vchildren True
-
-  calcSize_ vchildren useFactor = Size width height where
-    (maxW, sumW, maxH, sumH) = calcDimensions vchildren useFactor
-    width
-      | isHorizontal = sumW
-      | otherwise = maxW
-    height
-      | isHorizontal = maxH
-      | otherwise = sumH
-
-  calcDimensions vchildren useFactor = (maxW, sumW, maxH, sumH) where
-    getReqSize
-      | useFactor = getReqFactored
-      | otherwise = getMinSizeReq
-    vreqsW = _wiSizeReqW <$> vchildren
-    vreqsH = _wiSizeReqH <$> vchildren
-    sumW = (sum . fmap getReqSize) vreqsW
-    sumH = (sum . fmap getReqSize) vreqsH
-    maxW = (safeMaximum . fmap getReqSize) vreqsW
-    maxH = (safeMaximum . fmap getReqSize) vreqsH
-
   mainReqSelector
     | isHorizontal = _wiSizeReqW
     | otherwise = _wiSizeReqH
-
-  sndReqSelector
-    | isHorizontal = _wiSizeReqH
-    | otherwise = _wiSizeReqW
-
-  sizeSelector
-    | isHorizontal = _sW
-    | otherwise = _sH
 
   rectSelector
     | isHorizontal = _rW
@@ -206,14 +175,6 @@ getFactorMax reqs
   where
     flexReqs = Seq.filter (not . isFixedSizeReq) reqs
 
-getFactorAvg :: Seq SizeReq -> Double
-getFactorAvg reqs
-  | Seq.null flexReqs = 1
-  | otherwise = sum (fmap getFactorReq flexReqs) / flexCount
-  where
-    flexReqs = Seq.filter (not . isFixedSizeReq) reqs
-    flexCount = fromIntegral (Seq.length flexReqs)
-
 getReqFactored :: SizeReq -> Double
 getReqFactored req = getFactorReq req * getMinSizeReq req
 
@@ -222,5 +183,6 @@ rangeOrFixed val1 val2 factor
   | abs (val2 - val1) < 0.01 = FixedSize val1
   | otherwise = RangeSize val1 val2 factor
 
+safeMaximum :: (Num p, Ord p) => Seq p -> p
 safeMaximum Empty = 0
 safeMaximum xs = maximum xs

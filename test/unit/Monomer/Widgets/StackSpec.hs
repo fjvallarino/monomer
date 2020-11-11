@@ -1,5 +1,6 @@
 module Monomer.Widgets.StackSpec (spec) where
 
+import Control.Lens ((&), (.~))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -11,6 +12,8 @@ import Monomer.TestUtil
 import Monomer.Widgets.Grid
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
+
+import qualified Monomer.Lens as L
 
 spec :: Spec
 spec = describe "Stack" $ do
@@ -72,7 +75,7 @@ resizeEmpty = describe "empty" $ do
     wenv = mockWenv ()
     vp = Rect 0 0 640 480
     vstackInst = vstack []
-    newInst = instResize wenv vp vstackInst
+    newInst = instInit wenv vstackInst
     viewport = _wiViewport newInst
     children = _wiChildren newInst
 
@@ -88,7 +91,7 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenv () & L.appWindowSize .~ Size 480 640
     vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 112 640
     cvp2 = Rect 112 0 256 640
@@ -98,7 +101,7 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
         label "Label Number Two",
         label "Label 3"
       ]
-    newInst = instResize wenv vp hstackInst
+    newInst = instInit wenv hstackInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
@@ -125,7 +128,7 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
         vgrid [ label "Label Number Two" ],
         vgrid [ label "Label 3" ]
       ]
-    newInst = instResize wenv vp vstackInst
+    newInst = instInit wenv vstackInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
@@ -154,7 +157,7 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
           label "Label 3"
         ]
       ]
-    newInst = instResize wenv vp hstackInst
+    newInst = instInit wenv hstackInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
@@ -183,7 +186,7 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
           label "Label 3"
         ]
       ]
-    newInst = instResize wenv vp vstackInst
+    newInst = instInit wenv vstackInst
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst

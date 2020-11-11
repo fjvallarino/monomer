@@ -103,13 +103,12 @@ mockWenv model = WidgetEnv {
   _weTimestamp = 0
 }
 
-initWidget :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
-initWidget wenv inst = newInst where
+instInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
+instInit wenv inst = newInst where
   WidgetResult _ _ inst2 = widgetInit (_wiWidget inst) wenv inst
   Size w h = _weAppWindowSize wenv
   vp = Rect 0 0 w h
-  reqInst = widgetUpdateSizeReq (_wiWidget inst2) wenv inst2
-  newInst = widgetResize (_wiWidget reqInst) wenv vp vp reqInst
+  newInst = instResize wenv vp inst2
 
 instUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> (SizeReq, SizeReq)
 instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where

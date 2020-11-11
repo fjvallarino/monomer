@@ -29,7 +29,7 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv ()
-    btn = initWidget wenv (button "Click" BtnClick)
+    btn = instInit wenv (button "Click" BtnClick)
     events p = instGetEvents wenv (Click p LeftBtn) btn
 
 updateSizeReq :: Spec
