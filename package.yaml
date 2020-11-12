@@ -87,6 +87,8 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -with-rtsopts=-T
+    - -O0
     dependencies:
     - call-stack
     - monomer

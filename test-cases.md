@@ -80,6 +80,7 @@
   - [ ] Click on empty spaces
 - Scroll
   - Tested through ListView
+  - [ ] Nest a box component to check viewport assignment
 - Single
   - Nothing for the time being; tested through other components
 - Spacer
