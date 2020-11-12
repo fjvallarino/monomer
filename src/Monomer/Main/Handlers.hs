@@ -37,36 +37,6 @@ import qualified Monomer.Lens as L
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
 
-getTargetPath
-  :: WidgetEnv s e
-  -> Maybe Path
-  -> Maybe Path
-  -> Path
-  -> SystemEvent
-  -> WidgetInstance s e
-  -> Maybe Path
-getTargetPath wenv pressed overlay target event widgetRoot = case event of
-    -- Keyboard
-    KeyAction{}            -> pathEvent target
-    TextInput _            -> pathEvent target
-    -- Clipboard
-    Clipboard _            -> pathEvent target
-    -- Mouse/touch
-    ButtonAction point _ _ -> pointEvent point
-    Click point _          -> pointEvent point
-    WheelScroll point _ _  -> pointEvent point
-    Focus                  -> pathEvent target
-    Blur                   -> pathEvent target
-    Enter newPath _        -> pathEvent newPath
-    Move point             -> pointEvent point
-    Leave oldPath _        -> pathEvent oldPath
-  where
-    widget = _wiWidget widgetRoot
-    startPath = fromMaybe rootPath overlay
-    pathEvent = Just
-    pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
-    pointEvent point = pressed <|> pathFromPoint point <|> overlay
-
 handleSystemEvents
   :: (MonomerM s m)
   => WidgetEnv s e

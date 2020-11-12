@@ -275,7 +275,10 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Add missing keyboard functions in Event
+  - Add Bold/Italic support (instead of different Font for each case)
   - Check 1px difference on right side of labels/buttons (probably already fixed)
+  - Maybe isPointInViewport should be replaced by something specific for each Widget
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection

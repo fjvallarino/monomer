@@ -78,7 +78,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree3 where
+buildUI model = trace "Creating UI" widgetTree where
   widgetTreeAlt
     | model ^. clickCount `mod` 2 == 0 = widgetTree10
     | otherwise = widgetTree11

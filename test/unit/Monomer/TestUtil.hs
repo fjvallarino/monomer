@@ -1,6 +1,7 @@
 module Monomer.TestUtil where
 
 import Data.Default
+import Data.Maybe
 import Data.Text (Text)
 import Data.Sequence (Seq)
 
@@ -11,9 +12,19 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Main.Util
+
+testW :: Double
+testW = 640
+
+testH :: Double
+testH = 480
 
 testWindowSize :: Size
-testWindowSize = Size 640 480
+testWindowSize = Size testW testH
+
+testWindowRect :: Rect
+testWindowRect = Rect 0 0 testW testH
 
 mockTextMetrics :: Font -> FontSize -> TextMetrics
 mockTextMetrics font fontSize = TextMetrics {
@@ -120,9 +131,8 @@ instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
 instResize
   :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instResize wenv viewport inst = newInst where
-  widget = _wiWidget inst
-  reqInst = widgetUpdateSizeReq widget wenv inst
-  newInst = widgetResize widget wenv viewport viewport reqInst
+  reqInst = widgetUpdateSizeReq (_wiWidget inst) wenv inst
+  newInst = widgetResize (_wiWidget reqInst) wenv viewport viewport reqInst
 
 instGetEvents
   :: WidgetEnv s e
@@ -131,5 +141,7 @@ instGetEvents
   -> Seq e
 instGetEvents wenv evt inst = events where
   widget = _wiWidget inst
-  result = widgetHandleEvent widget wenv rootPath evt inst
+  mtargetPath = getTargetPath wenv Nothing Nothing rootPath evt inst
+  targetPath = fromMaybe rootPath mtargetPath
+  result = widgetHandleEvent widget wenv targetPath evt inst
   events = maybe Seq.empty _wrEvents result

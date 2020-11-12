@@ -175,12 +175,12 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
 
   where
     wenv = mockWenv ()
-    vp   = Rect 0  0 640 480
-    cvp1 = Rect 0  0 640  20
-    cvp2 = Rect 0 20 640  20
-    cvp3 = Rect 0 40 640 440
+    vp   = Rect 0   0 640 480
+    cvp1 = Rect 0   0 640 100
+    cvp2 = Rect 0 100 640  20
+    cvp3 = Rect 0 120 640 360
     vstackInst = vstack [
-        label "Label 1",
+        label "Label 1" `style` [height 100],
         label "Label 2",
         vgrid [
           label "Label 3"
