@@ -25,12 +25,12 @@
   - [x] Click Close
   - [x] Click Outside
 - Box
-  - [ ] Click
-  - [ ] Expand (click)
-  - [ ] Align (click)
-- Button
-  - [ ] Currently covered
-  - [ ] Enter/space
+  - [x] Click
+  - [x] Expand (click)
+  - [x] Align (click)
+  - Button
+  - Currently covered
+  - [x] Enter/space
 - Checkbox
   - [ ] Click
   - [ ] Enter/space

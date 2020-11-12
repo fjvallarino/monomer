@@ -2,7 +2,18 @@ module Monomer.Event.Keyboard (
   keyboardEvent,
   textEvent,
 
+  keyBackspace,
+  keyEsc,
+  keyReturn,
+  keySpace,
   keyTab,
+  keyLeft,
+  keyRight,
+  keyUp,
+  keyDown,
+  keyC,
+  keyV,
+
   isKeyBackspace,
   isKeyEsc,
   isKeyReturn,

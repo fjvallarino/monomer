@@ -1,5 +1,6 @@
 module Monomer.Widgets.ButtonSpec (spec) where
 
+import Data.Default
 import Data.Text (Text)
 import Test.Hspec
 
@@ -22,15 +23,19 @@ spec = describe "Button" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate an event if clicked outside" $
-    events (Point 3000 3000) `shouldBe` Seq.empty
+    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
 
-  it "should generate a user provided event" $
-    events (Point 100 100) `shouldBe` Seq.singleton BtnClick
+  it "should generate a user provided event when clicked" $
+    clickEvts (Point 100 100) `shouldBe` Seq.singleton BtnClick
+
+  it "should generate a user provided event when Enter/Space is pressed" $
+    keyEvts keyReturn `shouldBe` Seq.singleton BtnClick
 
   where
     wenv = mockWenv ()
     btn = instInit wenv (button "Click" BtnClick)
-    events p = instGetEvents wenv (Click p LeftBtn) btn
+    clickEvts p = instGetEvents wenv (Click p LeftBtn) btn
+    keyEvts key = instGetEvents wenv (KeyAction def key KeyPressed) btn
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
