@@ -94,7 +94,8 @@ makeCheckbox widgetData config = widget where
     style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv target evt inst = case evt of
-    Click (Point x y) _ -> Just $ resultReqsEvents clickReqs events inst
+    Click p _
+      | pointInViewport p inst -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqsEvents reqs events inst
     _ -> Nothing

@@ -1,9 +1,11 @@
 module Monomer.TestUtil where
 
+import Control.Monad.State
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import Data.Sequence (Seq)
+import System.IO.Unsafe
 
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
@@ -12,6 +14,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Main.Handlers
 import Monomer.Main.Util
 
 testW :: Double
@@ -114,6 +117,9 @@ mockWenv model = WidgetEnv {
   _weTimestamp = 0
 }
 
+mockWenvEvtUnit :: s -> WidgetEnv s ()
+mockWenvEvtUnit model = mockWenv model
+
 instInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 instInit wenv inst = newInst where
   WidgetResult _ _ inst2 = widgetInit (_wiWidget inst) wenv inst
@@ -128,20 +134,40 @@ instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
   sizeReqW = _wiSizeReqW reqInst
   sizeReqH = _wiSizeReqH reqInst
 
-instResize
-  :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
+instResize :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instResize wenv viewport inst = newInst where
   reqInst = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   newInst = widgetResize (_wiWidget reqInst) wenv viewport viewport reqInst
 
-instGetEvents
-  :: WidgetEnv s e
-  -> SystemEvent
-  -> WidgetInstance s e
-  -> Seq e
+instGetEvents :: WidgetEnv s e -> SystemEvent -> WidgetInstance s e -> Seq e
 instGetEvents wenv evt inst = events where
   widget = _wiWidget inst
   mtargetPath = getTargetPath wenv Nothing Nothing rootPath evt inst
   targetPath = fromMaybe rootPath mtargetPath
   result = widgetHandleEvent widget wenv targetPath evt inst
   events = maybe Seq.empty _wrEvents result
+
+instRunEvent
+  :: (Eq s)
+  => WidgetEnv s e
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> HandlerStep s e
+instRunEvent wenv evt inst = instRunEvents wenv [evt] inst
+
+instRunEvents
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetInstance s e
+  -> HandlerStep s e
+instRunEvents wenv evts inst = unsafePerformIO $ do
+  let winSize = testWindowSize
+  let useHdpi = True
+  let dpr = 1
+  let model = _weModel wenv
+  let monomerContext = initMonomerContext model winSize useHdpi dpr
+  let newInst = instInit wenv inst
+
+  (step, ctx) <- runStateT (handleSystemEvents wenv evts newInst) monomerContext
+  return step

@@ -57,7 +57,6 @@ library:
   - -fPIC
   ghc-options:
   - -fwarn-incomplete-patterns
-  - -O0
   extra-libraries:
   - GLEW
 
@@ -71,7 +70,6 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -with-rtsopts=-T
-    - -O0
 
     dependencies:
     - ekg
@@ -84,11 +82,10 @@ tests:
     source-dirs:         test/unit
     ghc-options:
     - -fwarn-incomplete-patterns
-    - -threaded
+#    - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     - -with-rtsopts=-T
-    - -O0
     dependencies:
     - call-stack
     - monomer

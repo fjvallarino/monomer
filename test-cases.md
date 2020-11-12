@@ -32,8 +32,8 @@
   - Currently covered
   - [x] Enter/space
 - Checkbox
-  - [ ] Click
-  - [ ] Enter/space
+  - [x] Click
+  - [x] Enter/space
   - [ ] Click on empty spaces
 - Composite
   - [ ] Event handling

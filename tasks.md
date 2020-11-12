@@ -276,6 +276,7 @@
 
 Maybe postponed after release?
   - Add missing keyboard functions in Event
+  - Make WidgetState Generic (check if it's worth it)
   - Add Bold/Italic support (instead of different Font for each case)
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Maybe isPointInViewport should be replaced by something specific for each Widget
