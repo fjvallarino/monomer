@@ -11,10 +11,10 @@ import Monomer.TestUtil
 import Monomer.Widgets.Label
 
 spec :: Spec
-spec = fdescribe "Label" $ do
+spec = describe "Label" $ do
   updateSizeReq
   updateSizeReqMulti
-  --updateSizeReqMultiTrim
+  updateSizeReqMultiKeepSpaces
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -39,19 +39,19 @@ updateSizeReqMulti = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblInst = label_ "Line line line" [textMultiLine] `style` [width 50]
+    lblInst = label_ "Line    line    line" [textMultiLine] `style` [width 50]
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
 
-updateSizeReqMultiTrim :: Spec
-updateSizeReqMultiTrim = describe "updateSizeReq" $ do
-  it "should return Fixed width = 50" $
-    sizeReqW `shouldBe` FixedSize 50
+updateSizeReqMultiKeepSpaces :: Spec
+updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
+  it "should return Max width = 50" $
+    sizeReqW `shouldBe` MaxSize 50 1
 
   it "should return Fixed height = 60" $
-    sizeReqH `shouldBe` FixedSize 60
+    sizeReqH `shouldBe` FixedSize 100
 
   where
     wenv = mockWenv ()
-    caption = "Line line line"
-    lblInst = label_ caption [textMultiLine, textTrim] `style` [maxWidth 50]
+    caption = "Line    line    line"
+    lblInst = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst

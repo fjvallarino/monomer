@@ -11,6 +11,8 @@ import Monomer.Graphics.Types
 data SizeReq
   = FixedSize Double
   | FlexSize Double Factor
+  | MinSize Double Factor
+  | MaxSize Double Factor
   | RangeSize Double Double Factor
   deriving (Eq, Show)
 

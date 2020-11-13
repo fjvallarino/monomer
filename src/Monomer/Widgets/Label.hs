@@ -3,8 +3,6 @@ module Monomer.Widgets.Label (
   label_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Control.Monad (forM_)
@@ -100,13 +98,13 @@ makeLabel config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    targetW = fmap getMinSizeReq (style ^. L.sizeReqW)
+    targetW = fmap getMeanSizeReq (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
-    style = traceShow renderArea activeStyle wenv inst
+    style = activeStyle wenv inst
     rect = fromMaybe def (removeOuterBounds style renderArea)
     newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
     newWidget = makeLabel config (LabelState caption newLines)

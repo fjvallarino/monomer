@@ -137,6 +137,8 @@ makeStack isHorizontal config = widget where
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz
       FlexSize sz factor -> (1 + fExtra * factor) * sz
+      MinSize sz factor -> sz + (1 + fExtra * factor) * sz
+      MaxSize sz factor -> min sz (1 + fExtra * factor) * sz
       RangeSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
@@ -156,6 +158,8 @@ makeStack isHorizontal config = widget where
 getFixedSize :: SizeReq -> Double
 getFixedSize (FixedSize c) = c
 getFixedSize (FlexSize c _) = 0
+getFixedSize (MinSize c _) = c
+getFixedSize (MaxSize c _) = 0
 getFixedSize (RangeSize c1 _ _) = c1
 
 getFlexSize :: Bool -> SizeReq -> Double
@@ -166,6 +170,8 @@ getFlexSize useFactor req = coord where
   coord = case req of
     FixedSize c -> 0
     FlexSize c _ -> c * factor
+    MinSize c _ -> c * factor
+    MaxSize c _ -> c * factor
     RangeSize c1 c2 _ -> (c2 - c1) * factor
 
 getFactorMax :: Seq SizeReq -> Double

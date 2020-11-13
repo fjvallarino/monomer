@@ -4,9 +4,9 @@ module Monomer.Widgets.Util.Base (
   handleStyleChange,
   isFixedSizeReq,
   isFlexSizeReq,
-  isBoundedSizeReq,
   getMinSizeReq,
   getMaxSizeReq,
+  getMeanSizeReq,
   getFactorReq
 ) where
 
@@ -129,26 +129,37 @@ isFlexSizeReq :: SizeReq -> Bool
 isFlexSizeReq FlexSize{} = True
 isFlexSizeReq _ = False
 
-isBoundedSizeReq :: SizeReq -> Bool
-isBoundedSizeReq RangeSize{} = True
-isBoundedSizeReq _ = False
-
 getMinSizeReq :: SizeReq -> Double
 getMinSizeReq (FixedSize c) = c
 getMinSizeReq (FlexSize c _) = c
+getMinSizeReq (MinSize c _) = c
+getMinSizeReq (MaxSize c _) = c
 getMinSizeReq (RangeSize c1 c2 _) = c1
 
 getMaxSizeReq :: SizeReq -> Double
 getMaxSizeReq (FixedSize c) = c
 getMaxSizeReq (FlexSize c _) = c
+getMaxSizeReq (MinSize c _) = c
+getMaxSizeReq (MaxSize c _) = c
 getMaxSizeReq (RangeSize c1 c2 _) = c2
+
+getMeanSizeReq :: SizeReq -> Double
+getMeanSizeReq (FixedSize c) = c
+getMeanSizeReq (FlexSize c _) = c
+getMeanSizeReq (MinSize c _) = c
+getMeanSizeReq (MaxSize c _) = c
+getMeanSizeReq (RangeSize c1 c2 _) = (c1 + c2) / 2
 
 getFactorReq :: SizeReq -> Factor
 getFactorReq (FixedSize _) = 1
 getFactorReq (FlexSize _ f) = f
+getFactorReq (MinSize _ f) = f
+getFactorReq (MaxSize _ f) = f
 getFactorReq (RangeSize _ _ f) = f
 
 modifySizeReq :: SizeReq -> (Double -> Double) -> SizeReq
 modifySizeReq (FixedSize c) f = FixedSize (f c)
 modifySizeReq (FlexSize c factor) f = FlexSize (f c) factor
+modifySizeReq (MinSize c factor) f = MinSize (f c) factor
+modifySizeReq (MaxSize c factor) f = MaxSize (f c) factor
 modifySizeReq (RangeSize c1 c2 factor) f = RangeSize (f c1) (f c2) factor

@@ -226,7 +226,8 @@ fitSingleTextToW wenv font fontSize metrics top width trim text = result where
   spaces = "    "
   newText = T.replace "\t" spaces text
   !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
-  groups = fitGroups (splitGroups glyphs) width
+  keepTailSpaces = trim -- Do not break on trailing spaces (removed in next step)
+  groups = fitGroups (splitGroups glyphs) width keepTailSpaces
   resetGroups
     | trim = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
@@ -276,21 +277,31 @@ addEllipsisToTextLine wenv style width textLine = newTextLine where
     _tlMetrics = textMetrics
   }
 
-fitGroups :: Seq GlyphGroup -> Double -> Seq GlyphGroup
-fitGroups Empty _ = Empty
-fitGroups (g :<| gs) width = currentLine <| extraLines where
-  (lineGroups, remainingGroups) = fitExtraGroups gs (width - getGlyphsWidth g)
+fitGroups :: Seq GlyphGroup -> Double -> Bool -> Seq GlyphGroup
+fitGroups Empty _ _ = Empty
+fitGroups (g :<| gs) width keepTailSpaces = currentLine <| extraLines where
+  extraGroups = fitExtraGroups gs (width - getGlyphsWidth g) keepTailSpaces
+  (lineGroups, remainingGroups) = extraGroups
   currentLine = g <> lineGroups
-  extraLines = fitGroups remainingGroups width
+  extraLines = fitGroups remainingGroups width keepTailSpaces
 
-fitExtraGroups :: Seq GlyphGroup -> Double -> (Seq GlyphPos, Seq GlyphGroup)
-fitExtraGroups Empty _ = (Empty, Empty)
-fitExtraGroups (g :<| gs) width
-  | gw <= width = (g <> newFit, newRest)
+fitExtraGroups
+  :: Seq GlyphGroup
+  -> Double
+  -> Bool
+  -> (Seq GlyphPos, Seq GlyphGroup)
+fitExtraGroups Empty _ _ = (Empty, Empty)
+fitExtraGroups (g :<| gs) width keepTailSpaces
+  | gw <= width || keepSpace = (g <> newFit, newRest)
   | otherwise = (Empty, g :<| gs)
   where
     gw = getGlyphsWidth g
-    (newFit, newRest) = fitExtraGroups gs (width - gw)
+    keepSpace = keepTailSpaces && isSpaceGroup g
+    (newFit, newRest) = fitExtraGroups gs (width - gw) keepTailSpaces
+
+isSpaceGroup :: Seq GlyphPos -> Bool
+isSpaceGroup Empty = False
+isSpaceGroup (g :<| gs) = isSpace (_glpGlyph g)
 
 splitGroups :: Seq GlyphPos -> Seq GlyphGroup
 splitGroups Empty = Empty
@@ -320,3 +331,6 @@ trimGlyphs glyphs = newGlyphs where
 
 isWordDelimiter :: Char -> Bool
 isWordDelimiter = (== ' ')
+
+isSpace :: Char -> Bool
+isSpace = (== ' ')

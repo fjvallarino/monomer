@@ -41,16 +41,16 @@ instance RangeHeight SizeReq where
   rangeHeight h1 h2 = RangeSize h1 h2 1
 
 instance MinWidth SizeReq where
-  minWidth w = RangeSize w (2 * w) 1
+  minWidth w = MinSize w 1
 
 instance MinHeight SizeReq where
-  minHeight h = RangeSize h (2 * h) 1
+  minHeight h = MinSize h 1
 
 instance MaxWidth SizeReq where
-  maxWidth w = RangeSize 0 w 1
+  maxWidth w = MaxSize w 1
 
 instance MaxHeight SizeReq where
-  maxHeight h = RangeSize 0 h 1
+  maxHeight h = MaxSize h 1
 
 -- Text
 instance TextFont TextStyle where
@@ -176,16 +176,16 @@ instance RangeHeight StyleState where
   rangeHeight h1 h2 = def & L.sizeReqH ?~ RangeSize h1 h2 1
 
 instance MinWidth StyleState where
-  minWidth w = def & L.sizeReqW ?~ RangeSize w (2 * w) 1
+  minWidth w = def & L.sizeReqW ?~ MinSize w 1
 
 instance MinHeight StyleState where
-  minHeight h = def & L.sizeReqH ?~ RangeSize h (2 * h) 1
+  minHeight h = def & L.sizeReqH ?~ MinSize h 1
 
 instance MaxWidth StyleState where
-  maxWidth w = def & L.sizeReqW ?~ RangeSize 0 w 1
+  maxWidth w = def & L.sizeReqW ?~ MaxSize w 1
 
 instance MaxHeight StyleState where
-  maxHeight h = def & L.sizeReqH ?~ RangeSize 0 h 1
+  maxHeight h = def & L.sizeReqH ?~ MaxSize h 1
 
 -- Color
 
