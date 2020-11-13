@@ -34,7 +34,7 @@
 - Checkbox
   - [x] Click
   - [x] Enter/space
-  - [ ] Click on empty spaces
+  - [ ] Handle value version
 - Composite
   - [ ] Event handling
   - [ ] Message handling
@@ -75,9 +75,9 @@
   - [ ] Navigate/select with keyboard
   - [ ] Navigate/scroll/select with mouse
 - Radio
-  - [ ] Click (more than one instance)
-  - [ ] Enter/space
-  - [ ] Click on empty spaces
+  - [x] Click (more than one instance)
+  - [x] Enter/space
+  - [ ] Handle value version
 - Scroll
   - Tested through ListView
   - [ ] Nest a box component to check viewport assignment

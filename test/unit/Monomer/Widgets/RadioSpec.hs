@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Widgets.CheckboxSpec (spec) where
+module Monomer.Widgets.RadioSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
@@ -16,22 +16,28 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.TestUtil
-import Monomer.Widgets.Checkbox
+import Monomer.Widgets.Radio
 
 import qualified Monomer.Lens as L
 
-newtype TestEvt
-  = BoolSel Bool
+data Fruit
+  = Apple
+  | Orange
+  | Banana
+  deriving (Eq, Show)
+
+newtype FruitEvt
+  = FruitSel Fruit
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
-  _tmTestBool :: Bool
+  _tmFruit :: Fruit
 } deriving (Eq)
 
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = describe "Checkbox" $ do
+spec = describe "Radio" $ do
   handleEvent
   handleEventValue
   updateSizeReq
@@ -39,38 +45,36 @@ spec = describe "Checkbox" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) ^. testBool `shouldBe` False
+    clickModel (Point 3000 3000) orangeInst ^. fruit `shouldBe` Apple
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) ^. testBool `shouldBe` True
+    clickModel (Point 100 100) orangeInst ^. fruit `shouldBe` Orange
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn ^. testBool `shouldBe` True
+    keyModel keyReturn bananaInst ^. fruit `shouldBe` Banana
   where
-    wenv = mockWenvEvtUnit (TestModel False)
-    chkInst = checkbox testBool
-    clickModel p = _weModel wenv2 where
-      (wenv2, _, _) = instRunEvent wenv (Click p LeftBtn) chkInst
-    keyModel key = _weModel wenv2 where
-      (wenv2, _, _) = instRunEvent wenv (KeyAction def key KeyPressed) chkInst
+    wenv = mockWenvEvtUnit (TestModel Apple)
+    orangeInst = radio fruit Orange
+    bananaInst = radio fruit Banana
+    clickModel p inst = _weModel wenv2 where
+      (wenv2, _, _) = instRunEvent wenv (Click p LeftBtn) inst
+    keyModel key inst = _weModel wenv2 where
+      (wenv2, _, _) = instRunEvent wenv (KeyAction def key KeyPressed) inst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) chkInst `shouldBe` Seq.empty
+    clickModel (Point 3000 3000) orangeInst `shouldBe` Seq.empty
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) chkInst `shouldBe` Seq.singleton (BoolSel True)
-
-  it "should generate a user provided event when clicked (set to false)" $
-    clickModel (Point 100 100) chkInstT `shouldBe` Seq.singleton (BoolSel False)
+    clickModel (Point 100 100) orangeInst `shouldBe` Seq.singleton (FruitSel Orange)
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn chkInst `shouldBe` Seq.singleton (BoolSel True)
+    keyModel keyReturn bananaInst `shouldBe` Seq.singleton (FruitSel Banana)
   where
-    wenv = mockWenv (TestModel False)
-    chkInst = checkboxV False BoolSel
-    chkInstT = checkboxV True BoolSel
+    wenv = mockWenv (TestModel Apple)
+    orangeInst = radioV Apple FruitSel Orange
+    bananaInst = radioV Apple FruitSel Banana
     clickModel p inst = evts where
       (_, evts, _) = instRunEvent wenv (Click p LeftBtn) inst
     keyModel key inst = evts where
@@ -85,5 +89,5 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit (TestModel False) & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (checkbox testBool)
+    wenv = mockWenvEvtUnit (TestModel Apple) & L.theme .~ darkTheme
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (radio fruit Apple)
