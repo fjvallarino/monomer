@@ -129,8 +129,8 @@ instInit wenv inst = newInst where
 
 instUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> (SizeReq, SizeReq)
 instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
-  widget = _wiWidget inst
-  reqInst = widgetUpdateSizeReq widget wenv inst
+  WidgetResult _ _ inst2 = widgetInit (_wiWidget inst) wenv inst
+  reqInst = widgetUpdateSizeReq (_wiWidget inst2) wenv inst2
   sizeReqW = _wiSizeReqW reqInst
   sizeReqH = _wiSizeReqH reqInst
 

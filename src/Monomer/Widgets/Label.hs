@@ -3,6 +3,8 @@ module Monomer.Widgets.Label (
   label_
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Lens ((^.))
 import Control.Monad (forM_)
@@ -21,21 +23,21 @@ import qualified Monomer.Lens as L
 data LabelCfg = LabelCfg {
   _lscTextOverflow :: Maybe TextOverflow,
   _lscTextMode :: Maybe TextMode,
-  _lscTrimSpaces :: Maybe Bool
+  _lscTrim :: Maybe Bool
 }
 
 instance Default LabelCfg where
   def = LabelCfg {
     _lscTextOverflow = Nothing,
     _lscTextMode = Nothing,
-    _lscTrimSpaces = Nothing
+    _lscTrim = Nothing
   }
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
     _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
     _lscTextMode = _lscTextMode l2 <|> _lscTextMode l1,
-    _lscTrimSpaces = _lscTrimSpaces l2 <|> _lscTrimSpaces l1
+    _lscTrim = _lscTrim l2 <|> _lscTrim l1
   }
 
 instance Monoid LabelCfg where
@@ -57,12 +59,12 @@ instance TextMode_ LabelCfg where
     _lscTextMode = Just MultiLine
   }
 
-instance TextTrimSpaces LabelCfg where
-  textTrimSpaces = def {
-    _lscTrimSpaces = Just True
+instance TextTrim LabelCfg where
+  textTrim = def {
+    _lscTrim = Just True
   }
   textKeepSpaces = def {
-    _lscTrimSpaces = Just False
+    _lscTrim = Just False
   }
 
 data LabelState = LabelState {
@@ -90,7 +92,7 @@ makeLabel config state = widget where
 
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
-  trimSpaces = fromMaybe True (_lscTrimSpaces config)
+  trimSpaces = fromMaybe True (_lscTrim config)
   LabelState caption textLines = state
 
   getBaseStyle wenv inst = Just style where
@@ -104,7 +106,7 @@ makeLabel config state = widget where
     sizeReq = (FlexSize w factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
-    style = activeStyle wenv inst
+    style = traceShow renderArea activeStyle wenv inst
     rect = fromMaybe def (removeOuterBounds style renderArea)
     newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
     newWidget = makeLabel config (LabelState caption newLines)

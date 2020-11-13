@@ -57,8 +57,8 @@ class TextOverflow_ t where
   textEllipsis :: t
   textClip :: t
 
-class TextTrimSpaces t where
-  textTrimSpaces :: t
+class TextTrim t where
+  textTrim :: t
   textKeepSpaces :: t
 
 class SelectOnBlur t where

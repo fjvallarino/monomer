@@ -34,7 +34,7 @@
 - Checkbox
   - [x] Click
   - [x] Enter/space
-  - [ ] Handle value version
+  - [x] Handle value version
 - Composite
   - [ ] Event handling
   - [ ] Message handling
@@ -77,7 +77,7 @@
 - Radio
   - [x] Click (more than one instance)
   - [x] Enter/space
-  - [ ] Handle value version
+  - [x] Handle value version
 - Scroll
   - Tested through ListView
   - [ ] Nest a box component to check viewport assignment
