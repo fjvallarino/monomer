@@ -34,8 +34,8 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btn = instInit wenv (button "Click" BtnClick)
-    clickEvts p = instGetEvents wenv (Click p LeftBtn) btn
-    keyEvts key = instGetEvents wenv (KeyAction def key KeyPressed) btn
+    clickEvts p = instHandleEventEvts wenv (Click p LeftBtn) btn
+    keyEvts key = instHandleEventEvts wenv (KeyAction def key KeyPressed) btn
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

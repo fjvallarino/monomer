@@ -26,7 +26,7 @@ newtype TestEvt
 
 newtype TestModel = TestModel {
   _tmTestBool :: Bool
-} deriving (Eq)
+} deriving (Eq, Show)
 
 makeLensesWith abbreviatedFields ''TestModel
 
@@ -49,10 +49,8 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenvEvtUnit (TestModel False)
     chkInst = checkbox testBool
-    clickModel p = _weModel wenv2 where
-      (wenv2, _, _) = instRunEvent wenv (Click p LeftBtn) chkInst
-    keyModel key = _weModel wenv2 where
-      (wenv2, _, _) = instRunEvent wenv (KeyAction def key KeyPressed) chkInst
+    clickModel p = instHandleEventModel wenv (Click p LeftBtn) chkInst
+    keyModel key = instHandleEventModel wenv (KeyAction def key KeyPressed) chkInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
@@ -71,10 +69,8 @@ handleEventValue = describe "handleEventValue" $ do
     wenv = mockWenv (TestModel False)
     chkInst = checkboxV False BoolSel
     chkInstT = checkboxV True BoolSel
-    clickModel p inst = evts where
-      (_, evts, _) = instRunEvent wenv (Click p LeftBtn) inst
-    keyModel key inst = evts where
-      (_, evts, _) = instRunEvent wenv (KeyAction def key KeyPressed) inst
+    clickModel p inst = instHandleEventEvts wenv (Click p LeftBtn) inst
+    keyModel key inst = instHandleEventEvts wenv (KeyAction def key KeyPressed) inst
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

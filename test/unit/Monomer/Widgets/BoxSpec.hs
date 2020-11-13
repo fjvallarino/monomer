@@ -34,7 +34,7 @@ handleEvent = describe "handleEvent" $ do
     wenv = mockWenv ()
     btn = button "Click" BtnClick
     boxInst = instInit wenv (box btn)
-    events p = instGetEvents wenv (Click p LeftBtn) boxInst
+    events p = instHandleEventEvts wenv (Click p LeftBtn) boxInst
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

@@ -139,29 +139,48 @@ instResize wenv viewport inst = newInst where
   reqInst = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   newInst = widgetResize (_wiWidget reqInst) wenv viewport viewport reqInst
 
-instGetEvents :: WidgetEnv s e -> SystemEvent -> WidgetInstance s e -> Seq e
-instGetEvents wenv evt inst = events where
-  widget = _wiWidget inst
-  mtargetPath = getTargetPath wenv Nothing Nothing rootPath evt inst
-  targetPath = fromMaybe rootPath mtargetPath
-  result = widgetHandleEvent widget wenv targetPath evt inst
-  events = maybe Seq.empty _wrEvents result
+instHandleEventModel
+  :: (Eq s)
+  => WidgetEnv s e
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> s
+instHandleEventModel wenv evt inst = _weModel wenv2 where
+  (wenv2, _, _) = instHandleEvent wenv evt inst
 
-instRunEvent
+instHandleEventEvts
+  :: (Eq s)
+  => WidgetEnv s e
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> Seq e
+instHandleEventEvts wenv evt inst = events where
+  (_, events, _) = instHandleEvent wenv evt inst
+
+instHandleEventRoot
+  :: (Eq s)
+  => WidgetEnv s e
+  -> SystemEvent
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+instHandleEventRoot wenv evt inst = newRoot where
+  (_, _, newRoot) = instHandleEvent wenv evt inst
+
+instHandleEvent
   :: (Eq s)
   => WidgetEnv s e
   -> SystemEvent
   -> WidgetInstance s e
   -> HandlerStep s e
-instRunEvent wenv evt inst = instRunEvents wenv [evt] inst
+instHandleEvent wenv evt inst = instHandleEvents wenv [evt] inst
 
-instRunEvents
+instHandleEvents
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetInstance s e
   -> HandlerStep s e
-instRunEvents wenv evts inst = unsafePerformIO $ do
+instHandleEvents wenv evts inst = unsafePerformIO $ do
   let winSize = testWindowSize
   let useHdpi = True
   let dpr = 1
