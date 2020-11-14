@@ -200,7 +200,7 @@ buildUI model = trace "Creating UI" widgetTree where
       label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
-        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis] `style` [width 300],
+        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis] `style` [width 300, flexHeight 50],
         label "Jj label"
       ],
       hstack [

@@ -86,8 +86,8 @@ darkBasic = def
   & L.dialogTitleStyle . L.padding ?~ padding 5
   & L.dialogBodyStyle . L.text ?~ normalFont
   & L.dialogBodyStyle . L.padding ?~ padding 5
-  & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 200
-  & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 100
+  & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 400
+  & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 250
   & L.dialogButtonsStyle . L.padding ?~ padding 5
   & L.dropdownStyle .~ inputStyle
   & L.dropdownStyle . L.fgColor ?~ white

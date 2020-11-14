@@ -275,6 +275,7 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Check label with flexHeight
   - Add missing keyboard functions in Event
   - Make WidgetState Generic (check if it's worth it)
   - Add Bold/Italic support (instead of different Font for each case)

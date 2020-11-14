@@ -156,7 +156,7 @@ makeButton config state = widget where
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
-    targetW = fmap getMeanSizeReq (style ^. L.sizeReqW)
+    targetW = fmap getMaxSizeReq (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factor = 1
     sizeReq = (FlexSize w factor, FixedSize h)

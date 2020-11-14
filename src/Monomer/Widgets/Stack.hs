@@ -79,33 +79,15 @@ makeStack isHorizontal config = widget where
 
   getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
-    nReqs = length vchildren
-    vreqsW = _wiSizeReqW <$> vchildren
-    vreqsH = _wiSizeReqH <$> vchildren
-    fixedW = fmap getFixedSize vreqsW
-    fixedH = fmap getFixedSize vreqsH
-    flexW = fmap (getFlexSize False) vreqsW
-    flexH = fmap (getFlexSize False) vreqsH
-    tmaxW = safeMaximum fixedW + safeMaximum flexW
-    tmaxH = safeMaximum fixedH + safeMaximum flexH
-    tsumW = sum fixedW + sum flexW
-    tsumH = sum fixedH + sum flexH
-    factW = getFactorMax vreqsW
-    factH = getFactorMax vreqsH
-    newSizeReqW
-      | isVertical && Seq.null flexW = FixedSize (safeMaximum fixedW)
-      | isVertical && Seq.null fixedW = FlexSize (safeMaximum flexW) factW
-      | isVertical = rangeOrFixed (safeMaximum fixedW) tmaxW factW
-      | Seq.null flexW = FixedSize (sum fixedW)
-      | Seq.null fixedW = FlexSize (sum flexW) factW
-      | otherwise = rangeOrFixed (sum fixedW) tsumW factW
-    newSizeReqH
-      | isHorizontal && Seq.null flexH = FixedSize (safeMaximum fixedH)
-      | isHorizontal && Seq.null fixedH = FlexSize (safeMaximum flexH) factH
-      | isHorizontal = rangeOrFixed (safeMaximum fixedH) tmaxH factH
-      | Seq.null flexH = FixedSize (sum fixedH)
-      | Seq.null fixedH = FlexSize (sum flexH) factH
-      | otherwise = rangeOrFixed (sum fixedH) tsumH factH
+    newSizeReqW = getDimSizeReq isHorizontal _wiSizeReqW vchildren
+    newSizeReqH = getDimSizeReq isVertical _wiSizeReqH vchildren
+
+  getDimSizeReq mainAxis accesor vchildren
+    | Seq.null vreqs = FixedSize 0
+    | mainAxis = foldl1 mergeSizeReqSum vreqs
+    | otherwise = foldl1 mergeSizeReqMax vreqs
+    where
+      vreqs = accesor <$> vchildren
 
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
@@ -115,31 +97,40 @@ makeStack isHorizontal config = widget where
     mainStart = if isHorizontal then x else y
     vchildren = Seq.filter _wiVisible children
     reqs = fmap mainReqSelector vchildren
-    sSize = sum $ fmap getFixedSize reqs
-    fSize = sum $ fmap (getFlexSize False) reqs
-    fExists = fSize > 0
-    fSizeFactor = sum $ fmap (getFlexSize True) reqs
-    rSize = max 0 (mainSize - sSize)
-    fExtra
-      | fExists && fSize > 0 = (rSize - fSize) / fSizeFactor
+    sumSizes accum req = newStep where
+      (cFixed, cFlex, cFlexFac, cExtraFac) = accum
+      newFixed = cFixed + sizeFixed req
+      newFlex = cFlex + sizeFlex req
+      newFlexFac = cFlexFac + sizeFlex req * sizeFactor req
+      newExtraFac = cExtraFac + sizeExtra req * sizeFactor req
+      newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
+    (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
+    flexAvail = max 0 $ min flex (mainSize - fixed)
+    extraAvail = max 0 (mainSize - fixed - flex)
+    flexCoeff
+      | flexFac > 0 = flexAvail / flexFac
       | otherwise = 0
-    assignedArea = Seq.zip newViewports newViewports
-    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
+    extraCoeff
+      | extraFac > 0 = extraAvail / extraFac
+      | otherwise = 0
     foldHelper (accum, offset) child = (newAccum, newOffset) where
-      newSize = resizeChild contentArea fExtra offset child
+      newSize = resizeChild contentArea flexCoeff extraCoeff offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
+    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
+    assignedArea = Seq.zip newViewports newViewports
     resized = (inst, assignedArea)
 
-  resizeChild contentArea fExtra offset child = result where
+  resizeChild contentArea flexCoeff extraCoeff offset child = result where
     Rect l t w h = contentArea
     emptyRect = Rect l t 0 0
+    totalCoeff = flexCoeff + extraCoeff
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz
-      FlexSize sz factor -> (1 + fExtra * factor) * sz
-      MinSize sz factor -> sz + (1 + fExtra * factor) * sz
-      MaxSize sz factor -> min sz (1 + fExtra * factor) * sz
-      RangeSize sz1 sz2 factor -> sz1 + (1 + fExtra * factor) * (sz2 - sz1)
+      FlexSize sz factor -> (totalCoeff * factor) * sz
+      MinSize sz factor -> (1 + totalCoeff * factor) * sz
+      MaxSize sz factor -> flexCoeff * factor * sz
+      RangeSize sz1 sz2 factor -> sz1 + flexCoeff * factor * (sz2 - sz1)
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result
@@ -155,40 +146,28 @@ makeStack isHorizontal config = widget where
     | isHorizontal = _rW
     | otherwise = _rH
 
-getFixedSize :: SizeReq -> Double
-getFixedSize (FixedSize c) = c
-getFixedSize (FlexSize c _) = 0
-getFixedSize (MinSize c _) = c
-getFixedSize (MaxSize c _) = 0
-getFixedSize (RangeSize c1 _ _) = c1
+sizeFixed :: SizeReq -> Double
+sizeFixed (FixedSize s) = s
+sizeFixed (FlexSize s _) = 0
+sizeFixed (MinSize s _) = s
+sizeFixed (MaxSize s _) = 0
+sizeFixed (RangeSize s1 _ _) = s1
 
-getFlexSize :: Bool -> SizeReq -> Double
-getFlexSize useFactor req = coord where
-  factor
-    | useFactor = getFactorReq req
-    | otherwise = 1
-  coord = case req of
-    FixedSize c -> 0
-    FlexSize c _ -> c * factor
-    MinSize c _ -> c * factor
-    MaxSize c _ -> c * factor
-    RangeSize c1 c2 _ -> (c2 - c1) * factor
+sizeFlex :: SizeReq -> Double
+sizeFlex (FixedSize s) = 0
+sizeFlex (FlexSize s _) = s
+sizeFlex (MinSize s _) = s
+sizeFlex (MaxSize s _) = s
+sizeFlex (RangeSize s1 s2 _) = s2 - s1
 
-getFactorMax :: Seq SizeReq -> Double
-getFactorMax reqs
-  | Seq.null flexReqs = 1
-  | otherwise = maximum (fmap getFactorReq flexReqs)
-  where
-    flexReqs = Seq.filter (not . isFixedSizeReq) reqs
+sizeExtra :: SizeReq -> Double
+sizeExtra (FlexSize s _) = s
+sizeExtra (MinSize s _) = s
+sizeExtra _ = 0
 
-getReqFactored :: SizeReq -> Double
-getReqFactored req = getFactorReq req * getMinSizeReq req
-
-rangeOrFixed :: Double -> Double -> Factor -> SizeReq
-rangeOrFixed val1 val2 factor
-  | abs (val2 - val1) < 0.01 = FixedSize val1
-  | otherwise = RangeSize val1 val2 factor
-
-safeMaximum :: (Num p, Ord p) => Seq p -> p
-safeMaximum Empty = 0
-safeMaximum xs = maximum xs
+sizeFactor :: SizeReq -> Double
+sizeFactor (FixedSize _) = 1
+sizeFactor (FlexSize _ f) = f
+sizeFactor (MinSize _ f) = f
+sizeFactor (MaxSize _ f) = f
+sizeFactor (RangeSize _ _ f) = f

@@ -40,10 +40,10 @@ updateSizeReqEmpty = describe "empty" $ do
 
 updateSizeReqItems :: Spec
 updateSizeReqItems = describe "several items" $ do
-  it "should return Range width = (0, 80)" $
-    sizeReqW `shouldBe` RangeSize 0 80 1
+  it "should return width = Flex 80 1" $
+    sizeReqW `shouldBe` FlexSize 80 1
 
-  it "should return Fixed height = 60" $
+  it "should return height = Fixed 60" $
     sizeReqH `shouldBe` FixedSize 60
 
   where
