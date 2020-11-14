@@ -84,8 +84,8 @@ makeStack isHorizontal config = widget where
 
   getDimSizeReq mainAxis accesor vchildren
     | Seq.null vreqs = FixedSize 0
-    | mainAxis = foldl1 mergeSizeReqSum vreqs
-    | otherwise = foldl1 mergeSizeReqMax vreqs
+    | mainAxis = foldl1 sizeReqMergeSum vreqs
+    | otherwise = foldl1 sizeReqMergeMax vreqs
     where
       vreqs = accesor <$> vchildren
 
@@ -99,10 +99,10 @@ makeStack isHorizontal config = widget where
     reqs = fmap mainReqSelector vchildren
     sumSizes accum req = newStep where
       (cFixed, cFlex, cFlexFac, cExtraFac) = accum
-      newFixed = cFixed + sizeFixed req
-      newFlex = cFlex + sizeFlex req
-      newFlexFac = cFlexFac + sizeFlex req * sizeFactor req
-      newExtraFac = cExtraFac + sizeExtra req * sizeFactor req
+      newFixed = cFixed + sizeReqFixed req
+      newFlex = cFlex + sizeReqFlex req
+      newFlexFac = cFlexFac + sizeReqFlex req * sizeReqFactor req
+      newExtraFac = cExtraFac + sizeReqExtra req * sizeReqFactor req
       newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
     (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
     flexAvail = max 0 $ min flex (mainSize - fixed)
@@ -145,29 +145,3 @@ makeStack isHorizontal config = widget where
   rectSelector
     | isHorizontal = _rW
     | otherwise = _rH
-
-sizeFixed :: SizeReq -> Double
-sizeFixed (FixedSize s) = s
-sizeFixed (FlexSize s _) = 0
-sizeFixed (MinSize s _) = s
-sizeFixed (MaxSize s _) = 0
-sizeFixed (RangeSize s1 _ _) = s1
-
-sizeFlex :: SizeReq -> Double
-sizeFlex (FixedSize s) = 0
-sizeFlex (FlexSize s _) = s
-sizeFlex (MinSize s _) = s
-sizeFlex (MaxSize s _) = s
-sizeFlex (RangeSize s1 s2 _) = s2 - s1
-
-sizeExtra :: SizeReq -> Double
-sizeExtra (FlexSize s _) = s
-sizeExtra (MinSize s _) = s
-sizeExtra _ = 0
-
-sizeFactor :: SizeReq -> Double
-sizeFactor (FixedSize _) = 1
-sizeFactor (FlexSize _ f) = f
-sizeFactor (MinSize _ f) = f
-sizeFactor (MaxSize _ f) = f
-sizeFactor (RangeSize _ _ f) = f

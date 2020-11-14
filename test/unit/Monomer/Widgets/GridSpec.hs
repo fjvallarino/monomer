@@ -27,10 +27,10 @@ updateSizeReq = describe "updateSizeReq" $ do
 
 updateSizeReqEmpty :: Spec
 updateSizeReqEmpty = describe "empty" $ do
-  it "should return Fixed width = 0" $
+  it "should return width = Fixed 0" $
     sizeReqW `shouldBe` FixedSize 0
 
-  it "should return Fixed height = 0" $
+  it "should return height = Fixed 0" $
     sizeReqH `shouldBe` FixedSize 0
 
   where
@@ -40,10 +40,10 @@ updateSizeReqEmpty = describe "empty" $ do
 
 updateSizeReqItemsH :: Spec
 updateSizeReqItemsH = describe "several items, horizontal" $ do
-  it "should return Flex width = 240 (largest width * 3)" $
+  it "should return width = Flex 240 1 (largest width * 3)" $
     sizeReqW `shouldBe` FlexSize 240 1
 
-  it "should return Flex height = 20" $
+  it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
   where
@@ -57,10 +57,10 @@ updateSizeReqItemsH = describe "several items, horizontal" $ do
 
 updateSizeReqItemsV :: Spec
 updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
-  it "should return Flex width = 80" $
+  it "should return width = Flex 80 1" $
     sizeReqW `shouldBe` FlexSize 80 1
 
-  it "should return Flex height = 60" $
+  it "should return height = Flex 60 1" $
     sizeReqH `shouldBe` FlexSize 60 1
 
   where

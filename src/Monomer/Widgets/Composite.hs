@@ -259,7 +259,7 @@ compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   newRoot = widgetUpdateSizeReq widget cwenv _cmpRoot
   currReqW = _wiSizeReqW newRoot
   currReqH = _wiSizeReqH newRoot
-  (newReqW, newReqH) = handleSizeReqStyle style (currReqW, currReqH)
+  (newReqW, newReqH) = sizeReqAddStyle style (currReqW, currReqH)
   newState = state {
     _cmpRoot = newRoot
   }

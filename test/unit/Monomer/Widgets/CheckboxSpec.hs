@@ -74,10 +74,10 @@ handleEventValue = describe "handleEventValue" $ do
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
-  it "should return Fixed width = 20" $
+  it "should return width = Fixed 20" $
     sizeReqW `shouldBe` FixedSize 20
 
-  it "should return Fixed height = 20" $
+  it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
   where

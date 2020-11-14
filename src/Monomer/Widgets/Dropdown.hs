@@ -312,7 +312,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Just child -> (oViewport, oRenderArea) where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
         maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
-        reqHeight = getMinSizeReq . _wiSizeReqH $ child
+        reqHeight = sizeReqMin . _wiSizeReqH $ child
         maxHeight = min reqHeight maxHeightStyle
         oViewport = viewport {
           _rY = dropdownY maxHeight,

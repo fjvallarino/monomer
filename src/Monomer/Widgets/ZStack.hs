@@ -84,16 +84,16 @@ makeZStack config = widget where
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
-    fixedReqs reqs = Seq.filter isFixedSizeReq reqs
+    fixedReqs reqs = Seq.filter isSizeReqFixed reqs
     fixedW = nReqs > 0 && Seq.length (fixedReqs vreqsW) == nReqs
     fixedH = nReqs > 0 && Seq.length (fixedReqs vreqsH) == nReqs
     factor = 1
     width
       | Seq.null vreqsW = 0
-      | otherwise = maximum $ fmap getMaxSizeReq vreqsW
+      | otherwise = maximum $ fmap sizeReqMax vreqsW
     height
       | Seq.null vreqsH = 0
-      | otherwise = maximum $ fmap getMaxSizeReq vreqsH
+      | otherwise = maximum $ fmap sizeReqMax vreqsH
     newSizeReqW
       | fixedW = FixedSize width
       | otherwise = FlexSize width factor

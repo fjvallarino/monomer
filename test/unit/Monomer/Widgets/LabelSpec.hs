@@ -18,10 +18,10 @@ spec = describe "Label" $ do
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
-  it "should return Flex width = 100" $
+  it "should return width = Flex 100 1" $
     sizeReqW `shouldBe` FlexSize 100 1
 
-  it "should return Fixed height = 20" $
+  it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
   where
@@ -31,10 +31,10 @@ updateSizeReq = describe "updateSizeReq" $ do
 
 updateSizeReqMulti :: Spec
 updateSizeReqMulti = describe "updateSizeReq" $ do
-  it "should return Fixed width = 50" $
+  it "should return width = Fixed 50" $
     sizeReqW `shouldBe` FixedSize 50
 
-  it "should return Fixed height = 60" $
+  it "should return height = Fixed 60" $
     sizeReqH `shouldBe` FixedSize 60
 
   where
@@ -44,10 +44,10 @@ updateSizeReqMulti = describe "updateSizeReq" $ do
 
 updateSizeReqMultiKeepSpaces :: Spec
 updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
-  it "should return Max width = 50" $
+  it "should return width = Max 50 1" $
     sizeReqW `shouldBe` MaxSize 50 1
 
-  it "should return Fixed height = 60" $
+  it "should return height = Fixed 100" $
     sizeReqH `shouldBe` FixedSize 100
 
   where

@@ -219,7 +219,7 @@ updateSizeReqWrapper
 updateSizeReqWrapper handler wenv inst = newInst where
   style = activeStyle wenv inst
   reqs = handler wenv inst
-  (newReqW, newReqH) = handleSizeReqStyle style reqs
+  (newReqW, newReqH) = sizeReqAddStyle style reqs
   newInst = inst {
     _wiSizeReqW = newReqW,
     _wiSizeReqH = newReqH
