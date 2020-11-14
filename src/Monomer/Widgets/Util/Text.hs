@@ -26,7 +26,6 @@ import qualified Data.Text as T
 
 import Monomer.Core
 import Monomer.Graphics
-import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Style
 
 type GlyphGroup = Seq GlyphPos

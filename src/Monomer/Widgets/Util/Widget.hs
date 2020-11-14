@@ -1,4 +1,19 @@
-module Monomer.Widgets.Util.Widget where
+module Monomer.Widgets.Util.Widget (
+  pointInViewport,
+  defaultWidgetInstance,
+  isWidgetVisible,
+  isFocused,
+  isHovered,
+  widgetDataGet,
+  widgetDataSet,
+  resultWidget,
+  resultEvents,
+  resultReqs,
+  resultReqsEvents,
+  makeState,
+  useState,
+  instanceMatches
+) where
 
 import Control.Lens ((&), (^#), (#~), (^.))
 import Data.Default
@@ -12,6 +27,9 @@ import Monomer.Event (checkKeyboard, isKeyC, isKeyV)
 import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
+
+pointInViewport :: Point -> WidgetInstance s e -> Bool
+pointInViewport p inst = pointInRect p (_wiViewport inst)
 
 defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
 defaultWidgetInstance widgetType widget = WidgetInstance {
@@ -35,11 +53,6 @@ isWidgetVisible inst vp = _wiVisible inst && rectsOverlap vp (_wiViewport inst)
 
 isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isFocused wenv inst = _weFocusedPath wenv == _wiPath inst
-
-isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
-  path = _wiPath inst
-  isPrefix parent = Seq.take (Seq.length parent) path == parent
 
 isHovered :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isHovered wenv inst = validPos && isTopLevel wenv inst where
@@ -83,3 +96,8 @@ instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
 instanceMatches newInstance oldInstance = typeMatches && keyMatches where
   typeMatches = _wiWidgetType oldInstance == _wiWidgetType newInstance
   keyMatches = _wiKey oldInstance == _wiKey newInstance
+
+isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
+isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
+  path = _wiPath inst
+  isPrefix parent = Seq.take (Seq.length parent) path == parent

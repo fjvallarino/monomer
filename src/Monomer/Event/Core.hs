@@ -53,8 +53,3 @@ isOnEnter _ = False
 isOnLeave :: SystemEvent -> Bool
 isOnLeave Leave{} = True
 isOnLeave _ = False
-
-isButtonPressed :: InputStatus -> Button -> Bool
-isButtonPressed inputStatus button = status == PressedBtn where
-  currentStatus = M.lookup button (_ipsButtons inputStatus)
-  status = fromMaybe ReleasedBtn currentStatus

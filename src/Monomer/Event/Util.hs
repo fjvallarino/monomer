@@ -1,0 +1,33 @@
+module Monomer.Event.Util where
+
+import Data.Maybe (fromMaybe)
+
+import qualified Data.Map as M
+
+import Monomer.Core
+import Monomer.Event.Core
+import Monomer.Event.Keyboard
+import Monomer.Event.Types
+
+isButtonPressed :: InputStatus -> Button -> Bool
+isButtonPressed inputStatus button = status == PressedBtn where
+  currentStatus = M.lookup button (_ipsButtons inputStatus)
+  status = fromMaybe ReleasedBtn currentStatus
+
+getKeyStatus :: InputStatus -> KeyCode -> KeyStatus
+getKeyStatus inputStatus code = status where
+  keys = _ipsKeys inputStatus
+  status = fromMaybe KeyReleased (M.lookup code keys)
+
+isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
+isShortCutControl wenv mod = isControl || isCommand where
+  isControl = not (isMacOS wenv) && _kmLeftCtrl mod
+  isCommand = isMacOS wenv && _kmLeftGUI mod
+
+isClipboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
+isClipboardCopy wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod && isKeyC code
+
+isClipboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
+isClipboardPaste wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod && isKeyV code

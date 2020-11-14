@@ -562,3 +562,11 @@ cascadeCtx parent child idx = newChild where
     _wiVisible = _wiVisible child && parentVisible,
     _wiEnabled = _wiEnabled child && parentEnabled
   }
+
+isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False

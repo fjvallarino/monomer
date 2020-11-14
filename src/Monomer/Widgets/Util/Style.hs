@@ -18,7 +18,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
-import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L

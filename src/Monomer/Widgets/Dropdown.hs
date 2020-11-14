@@ -378,3 +378,9 @@ makeListView wenv value items makeRow config path = listViewInst where
     ]
   lvStyle = collectTheme wenv L.dropdownListStyle
   listViewInst = listViewD_ value items makeRow lvConfig & L.style .~ lvStyle
+
+createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
+createMoveFocusReq wenv = MoveFocus direction where
+  direction
+    | wenv ^. L.inputStatus . L.keyMod . L.leftShift = FocusBwd
+    | otherwise = FocusFwd

@@ -506,3 +506,6 @@ getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
 getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc (UpdateModel fn) = acc |> fn
   foldHelper acc _ = acc
+
+firstChildPath :: WidgetInstance s e -> Path
+firstChildPath inst = _wiPath inst |> 0

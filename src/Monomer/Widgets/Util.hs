@@ -1,6 +1,5 @@
 module Monomer.Widgets.Util (
   module Monomer.Widgets.Util.Focus,
-  module Monomer.Widgets.Util.Misc,
   module Monomer.Widgets.Util.SizeReq,
   module Monomer.Widgets.Util.Style,
   module Monomer.Widgets.Util.Text,
@@ -9,7 +8,6 @@ module Monomer.Widgets.Util (
 ) where
 
 import Monomer.Widgets.Util.Focus
-import Monomer.Widgets.Util.Misc
 import Monomer.Widgets.Util.SizeReq
 import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Text

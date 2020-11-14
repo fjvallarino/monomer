@@ -1,4 +1,13 @@
-module Monomer.Widgets.Util.Focus where
+module Monomer.Widgets.Util.Focus (
+  parentPath,
+  nextTargetStep,
+  isFocusCandidate,
+  isTargetReached,
+  isTargetValid,
+  isWidgetParentOfPath,
+  isWidgetBeforePath,
+  isWidgetAfterPath
+) where
 
 import Data.Sequence (Seq, (|>))
 
@@ -9,9 +18,6 @@ import Monomer.Core
 parentPath :: WidgetInstance s e -> Path
 parentPath inst = Seq.take (Seq.length path - 1) path where
   path = _wiPath inst
-
-firstChildPath :: WidgetInstance s e -> Path
-firstChildPath inst = _wiPath inst |> 0
 
 nextTargetStep :: Path -> WidgetInstance s e -> Maybe PathStep
 nextTargetStep target inst = nextStep where
