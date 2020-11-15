@@ -142,37 +142,29 @@ instResize wenv viewport inst = newInst where
 instHandleEventModel
   :: (Eq s)
   => WidgetEnv s e
-  -> SystemEvent
+  -> [SystemEvent]
   -> WidgetInstance s e
   -> s
-instHandleEventModel wenv evt inst = _weModel wenv2 where
-  (wenv2, _, _) = instHandleEvent wenv evt inst
+instHandleEventModel wenv evts inst = _weModel wenv2 where
+  (wenv2, _, _) = instHandleEvents wenv evts inst
 
 instHandleEventEvts
   :: (Eq s)
   => WidgetEnv s e
-  -> SystemEvent
+  -> [SystemEvent]
   -> WidgetInstance s e
   -> Seq e
-instHandleEventEvts wenv evt inst = events where
-  (_, events, _) = instHandleEvent wenv evt inst
+instHandleEventEvts wenv evts inst = events where
+  (_, events, _) = instHandleEvents wenv evts inst
 
 instHandleEventRoot
   :: (Eq s)
   => WidgetEnv s e
-  -> SystemEvent
+  -> [SystemEvent]
   -> WidgetInstance s e
   -> WidgetInstance s e
-instHandleEventRoot wenv evt inst = newRoot where
-  (_, _, newRoot) = instHandleEvent wenv evt inst
-
-instHandleEvent
-  :: (Eq s)
-  => WidgetEnv s e
-  -> SystemEvent
-  -> WidgetInstance s e
-  -> HandlerStep s e
-instHandleEvent wenv evt inst = instHandleEvents wenv [evt] inst
+instHandleEventRoot wenv evts inst = newRoot where
+  (_, _, newRoot) = instHandleEvents wenv evts inst
 
 instHandleEvents
   :: (Eq s)

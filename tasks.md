@@ -258,6 +258,7 @@
     - Right aligned version has cusor overlaid (add caret size to offset in specific cases)
     - Check clipboard
   - Check Container thing in hover adding columns (not targetValid = Nothing should be removed)
+  - Add missing keyboard functions in Event
 
 - Pending
   - Add testing
@@ -276,7 +277,6 @@
 
 Maybe postponed after release?
   - Check label with flexHeight
-  - Add missing keyboard functions in Event
   - Make WidgetState Generic (check if it's worth it)
   - Add Bold/Italic support (instead of different Font for each case)
   - Check 1px difference on right side of labels/buttons (probably already fixed)
@@ -287,7 +287,7 @@ Maybe postponed after release?
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?
-    - Provide a way of exiting application
+    - Provide a way of exiting application/close window handler
   - TextOverflow in TextStyle?
   - Handle onBlur/onFocus in all focusable widgets
   - Avoid findNextFocus on unfocusable children (listView items)

@@ -11,6 +11,7 @@ import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
+import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
 
 main :: IO ()
 main = hspec spec
@@ -26,3 +27,4 @@ spec = do
   LabelSpec.spec
   RadioSpec.spec
   StackSpec.spec
+  TextFieldSpec.spec

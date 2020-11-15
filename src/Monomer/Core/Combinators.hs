@@ -15,7 +15,7 @@ class WindowSize t s | t -> s where
   windowSize :: s -> t
 
 -- Input
-class ValidInput t s where
+class ValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
 
 class SelectOnFocus t where

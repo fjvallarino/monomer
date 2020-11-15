@@ -56,8 +56,8 @@ handleEvent = describe "handleEvent" $ do
     wenv = mockWenvEvtUnit (TestModel Apple)
     orangeInst = radio fruit Orange
     bananaInst = radio fruit Banana
-    clickModel p inst = instHandleEventModel wenv (Click p LeftBtn) inst
-    keyModel key inst = instHandleEventModel wenv (KeyAction def key KeyPressed) inst
+    clickModel p inst = instHandleEventModel wenv [Click p LeftBtn] inst
+    keyModel key inst = instHandleEventModel wenv [KeyAction def key KeyPressed] inst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
@@ -73,8 +73,8 @@ handleEventValue = describe "handleEventValue" $ do
     wenv = mockWenv (TestModel Apple)
     orangeInst = radioV Apple FruitSel Orange
     bananaInst = radioV Apple FruitSel Banana
-    clickModel p inst = instHandleEventEvts wenv (Click p LeftBtn) inst
-    keyModel key inst = instHandleEventEvts wenv (KeyAction def key KeyPressed) inst
+    clickModel p inst = instHandleEventEvts wenv [Click p LeftBtn] inst
+    keyModel key inst = instHandleEventEvts wenv [KeyAction def key KeyPressed] inst
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
