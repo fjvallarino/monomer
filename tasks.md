@@ -287,6 +287,7 @@ Maybe postponed after release?
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?
+    - Provide a way of exiting application
   - TextOverflow in TextStyle?
   - Handle onBlur/onFocus in all focusable widgets
   - Avoid findNextFocus on unfocusable children (listView items)

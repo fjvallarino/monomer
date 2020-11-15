@@ -242,7 +242,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | closeRequired point inst -> Just $ closeDropdown wenv inst
     KeyAction mode code status
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv inst
-      | isKeyEsc code && isOpen -> Just $ closeDropdown wenv inst
+      | isKeyEscape code && isOpen -> Just $ closeDropdown wenv inst
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
       | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] inst

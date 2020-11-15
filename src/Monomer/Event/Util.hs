@@ -31,3 +31,35 @@ isClipboardCopy wenv event = checkKeyboard event testFn where
 isClipboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
 isClipboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
+
+checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
+checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
+checkKeyboard _ _ = False
+
+isKeyboardEvent :: SystemEvent -> Bool
+isKeyboardEvent KeyAction{} = True
+isKeyboardEvent _ = False
+
+isKeyPressed :: SystemEvent -> KeyCode -> Bool
+isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
+isKeyPressed _ _ = False
+
+isShiftPressed :: SystemEvent -> Bool
+isShiftPressed (KeyAction keyMod _ _) = _kmLeftShift keyMod
+isShiftPressed _ = False
+
+isOnFocus :: SystemEvent -> Bool
+isOnFocus Focus = True
+isOnFocus _ = False
+
+isOnBlur :: SystemEvent -> Bool
+isOnBlur Blur = True
+isOnBlur _ = False
+
+isOnEnter :: SystemEvent -> Bool
+isOnEnter Enter{} = True
+isOnEnter _ = False
+
+isOnLeave :: SystemEvent -> Bool
+isOnLeave Leave{} = True
+isOnLeave _ = False

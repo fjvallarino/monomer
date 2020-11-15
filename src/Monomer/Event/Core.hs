@@ -1,4 +1,6 @@
-module Monomer.Event.Core where
+module Monomer.Event.Core (
+  convertEvents
+) where
 
 import Control.Applicative ((<|>))
 import Data.Maybe (catMaybes, fromMaybe)
@@ -8,7 +10,6 @@ import qualified SDL
 
 import Monomer.Core.BasicTypes
 import Monomer.Event.Keyboard
-import Monomer.Event.Mouse
 import Monomer.Event.Types
 
 convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
@@ -22,34 +23,66 @@ convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
     <|> keyboardEvent evt
     <|> textEvent evt
 
-checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
-checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
-checkKeyboard _ _ = False
+mouseClick :: Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
+    button = case SDL.mouseButtonEventButton eventData of
+      SDL.ButtonLeft -> Just LeftBtn
+      SDL.ButtonRight -> Just RightBtn
+      _ -> Nothing
+    action = case SDL.mouseButtonEventMotion eventData of
+      SDL.Pressed -> PressedBtn
+      SDL.Released -> ReleasedBtn
+    systemEvent = fmap (\btn -> ButtonAction mousePos btn action) button
+mouseClick _ _ = Nothing
 
-isKeyboardEvent :: SystemEvent -> Bool
-isKeyboardEvent KeyAction{} = True
-isKeyboardEvent _ = False
+mouseMoveEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseMoveEvent dpr mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
+mouseMoveEvent dpr mousePos _ = Nothing
 
-isKeyPressed :: SystemEvent -> KeyCode -> Bool
-isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
-isKeyPressed _ _ = False
+mouseMoveLeave :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseMoveLeave dpr mousePos SDL.WindowLostMouseFocusEvent{} = evt where
+  evt = Just $ Move (Point (-1) (-1))
+mouseMoveLeave dpr mousePos _ = Nothing
 
-isShiftPressed :: SystemEvent -> Bool
-isShiftPressed (KeyAction keyMod _ _) = _kmLeftShift keyMod
-isShiftPressed _ = False
+mouseWheelEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseWheelEvent dpr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
+  wheelDirection = case SDL.mouseWheelEventDirection eventData of
+    SDL.ScrollNormal -> WheelNormal
+    SDL.ScrollFlipped -> WheelFlipped
+  SDL.V2 x y = SDL.mouseWheelEventPos eventData
+  wheelDelta = Point (fromIntegral x * dpr) (fromIntegral y * dpr)
+  systemEvent = case SDL.mouseWheelEventWhich eventData of
+    SDL.Mouse _ -> Just $ WheelScroll mousePos wheelDelta wheelDirection
+    SDL.Touch -> Nothing
+mouseWheelEvent dpr mousePos _ = Nothing
 
-isOnFocus :: SystemEvent -> Bool
-isOnFocus Focus = True
-isOnFocus _ = False
+keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
+keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where
+  keySym = SDL.keyboardEventKeysym eventData
+  keyMod = convertKeyModifier $ SDL.keysymModifier keySym
+  keyCode = SDL.unwrapKeycode $ SDL.keysymKeycode keySym
+  keyStatus = case SDL.keyboardEventKeyMotion eventData of
+    SDL.Pressed -> KeyPressed
+    SDL.Released -> KeyReleased
+  keyAction = KeyAction keyMod (KeyCode $ fromIntegral keyCode) keyStatus
+keyboardEvent _ = Nothing
 
-isOnBlur :: SystemEvent -> Bool
-isOnBlur Blur = True
-isOnBlur _ = False
+textEvent :: SDL.EventPayload -> Maybe SystemEvent
+textEvent (SDL.TextInputEvent input) = Just textInput where
+  textInput = TextInput (SDL.textInputEventText input)
+textEvent _ = Nothing
 
-isOnEnter :: SystemEvent -> Bool
-isOnEnter Enter{} = True
-isOnEnter _ = False
-
-isOnLeave :: SystemEvent -> Bool
-isOnLeave Leave{} = True
-isOnLeave _ = False
+convertKeyModifier :: SDL.KeyModifier -> KeyMod
+convertKeyModifier keyMod = KeyMod {
+  _kmLeftShift = SDL.keyModifierLeftShift keyMod,
+  _kmRightShift = SDL.keyModifierRightShift keyMod,
+  _kmLeftCtrl = SDL.keyModifierLeftCtrl keyMod,
+  _kmRightCtrl = SDL.keyModifierRightCtrl keyMod,
+  _kmLeftAlt = SDL.keyModifierLeftAlt keyMod,
+  _kmRightAlt = SDL.keyModifierRightAlt keyMod,
+  _kmLeftGUI = SDL.keyModifierLeftGUI keyMod,
+  _kmRightGUI = SDL.keyModifierRightGUI keyMod,
+  _kmNumLock = SDL.keyModifierNumLock keyMod,
+  _kmCapsLock = SDL.keyModifierCapsLock keyMod,
+  _kmAltGr = SDL.keyModifierAltGr keyMod
+}
