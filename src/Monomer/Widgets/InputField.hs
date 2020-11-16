@@ -308,7 +308,7 @@ makeInputField config state = widget where
     newVal = fromText newText
     stateVal = fromMaybe currVal newVal
     onChangeEvts
-      | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
+      | isValid && stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
       | otherwise = []
     events = onChangeEvts
     reqValid

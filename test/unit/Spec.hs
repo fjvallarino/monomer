@@ -7,6 +7,7 @@ import qualified Monomer.Widgets.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.CheckboxSpec as CheckboxSpec
 import qualified Monomer.Widgets.ConfirmSpec as ConfirmSpec
+import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
@@ -24,6 +25,7 @@ spec = do
   ButtonSpec.spec
   CheckboxSpec.spec
   ConfirmSpec.spec
+  FloatingFieldSpec.spec
   GridSpec.spec
   LabelSpec.spec
   IntegralFieldSpec.spec

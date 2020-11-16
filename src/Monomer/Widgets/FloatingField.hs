@@ -20,7 +20,7 @@ import Data.Default
 import Data.Either
 import Data.Maybe
 import Data.Text (Text)
-import Data.Text.Read (rational)
+import Data.Text.Read (signed, rational)
 import Data.Typeable (Typeable)
 
 import qualified Data.Attoparsec.Text as A
@@ -159,7 +159,7 @@ floatingFieldD_ widgetData configs = newInst where
   newInst = inputField_ "floatingField" inputConfig
 
 floatFromText :: FormattableFloat a => Maybe a -> Maybe a -> Text -> Maybe a
-floatFromText minVal maxVal t = case rational t of
+floatFromText minVal maxVal t = case signed rational t of
   Right (val, _)
     | numberInBounds minVal maxVal val -> Just val
   _ -> Nothing
@@ -169,10 +169,11 @@ floatToText decimals val = F.sformat (F.fixed decimals) val
 
 acceptFloatInput :: Int -> Text -> Bool
 acceptFloatInput decimals text = isRight (A.parseOnly parser text) where
+  sign = A.option "" (single '-')
   number = A.takeWhile isDigit
   digit = T.singleton <$> A.digit
   rest = join [single '.', upto decimals digit]
-  parser = join [number, A.option "" rest] <* A.endOfInput
+  parser = join [sign, number, A.option "" rest] <* A.endOfInput
 
 -- Parsing helpers
 join :: [A.Parser Text] -> A.Parser Text

@@ -156,8 +156,9 @@ integralToText val = F.sformat F.int val
 
 acceptIntegralInput :: Text -> Bool
 acceptIntegralInput text = isRight (A.parseOnly parser text) where
+  sign = A.option "" (single '-')
   number = A.takeWhile isDigit
-  parser = join [A.option "" (single '-'), number] <* A.endOfInput
+  parser = join [sign, number] <* A.endOfInput
 
 join :: [A.Parser Text] -> A.Parser Text
 join [] = return T.empty

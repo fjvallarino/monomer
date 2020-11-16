@@ -33,7 +33,7 @@ data TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = fdescribe "IntegralField" $ do
+spec = describe "IntegralField" $ do
   handleEvent
   handleEventValue
   updateSizeReq
