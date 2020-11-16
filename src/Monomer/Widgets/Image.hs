@@ -93,14 +93,11 @@ fitHeight = def { _imcFit = Just FitHeight }
 data ImageState = ImageState {
   isImagePath :: String,
   isImageData :: Maybe (ByteString, Size)
-}
+} deriving (Eq, Show)
 
 data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
-
-imageState :: ImageState
-imageState = ImageState "" Nothing
 
 image :: String -> WidgetInstance s e
 image path = image_ path def
@@ -108,6 +105,7 @@ image path = image_ path def
 image_ :: String -> [ImageCfg s e] -> WidgetInstance s e
 image_ path configs = defaultWidgetInstance "image" widget where
   config = mconcat configs
+  imageState = ImageState path Nothing
   widget = makeImage path config imageState
 
 makeImage :: String -> ImageCfg s e -> ImageState -> Widget s e

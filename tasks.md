@@ -324,6 +324,7 @@ Maybe postponed after release?
     - Getting the types working for  meant extending that idea to Widget was logical
     - Interfaces got ugly quickly. Need to revisit
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
+  - Check threadDelay usage: https://stackoverflow.com/questions/33149324/haskell-ghc-per-thread-memory-costs
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
   - Implement SDL_Surface + Cairo backend
     - Can we cache some drawing operations?

@@ -174,11 +174,16 @@ instHandleEvents
   -> HandlerStep s e
 instHandleEvents wenv evts inst = unsafePerformIO $ do
   let winSize = testWindowSize
+  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
   let dpr = 1
   let model = _weModel wenv
   let monomerContext = initMonomerContext model winSize useHdpi dpr
-  let newInst = instInit wenv inst
 
-  (step, ctx) <- runStateT (handleSystemEvents wenv evts newInst) monomerContext
+  (step, newCtx) <- flip runStateT monomerContext $ do
+    (wenv2, _, newInst) <- handleWidgetInit wenv inst
+    let resizedInst = instResize wenv vp newInst
+
+    handleSystemEvents wenv2 evts resizedInst
+
   return step

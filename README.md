@@ -21,12 +21,13 @@ An easy to use, Elm/Flutter inspired, GUI library for writing native application
 - You want to write a native, not Electron based, application
 - You prefer not to use Gtk
 
-### Current limitations
-
-- Multi-platform features depend on what SDL already provides
-- Text input capabilities are basic, supporting only left to right editing at the moment
-
 ### These are not objectives for this project
 
 - Have a native look and feel
 - Be a research project pushing the boundaries on how GUIs are created
+
+### Current limitations
+
+- Multi-platform features depend on what SDL already provides
+  - Copy/paste is only supported for text, not images
+- Text input capabilities are basic, supporting only left to right editing at the moment

@@ -51,10 +51,10 @@
   - [ ] Open/close/select with keyboard
   - [ ] Select on blur
 - Floating field
-  - [ ] Input valid number
-  - [ ] Input two dots
-  - [ ] Event with letter
-  - [ ] Remove character
+  - [x] Input valid number
+  - [x] Input two dots
+  - [x] Event with letter
+  - [x] Remove character
 - Grid
   - Currently covered
 - Image
@@ -64,13 +64,13 @@
 - InputField
   - Tested through TextField and numeric related versions
 - Integral field
-  - [ ] Input valid number
-  - [ ] Input one dot
-  - [ ] Event with letter
-  - [ ] Remove character
+  - [x] Input valid number
+  - [x] Input one dot
+  - [x] Event with letter
+  - [x] Remove character
 - Label
-  - [ ] Size
-  - [ ] Size multiline
+  - [x] Size
+  - [x] Size multiline
 - ListView
   - [ ] Navigate/select with keyboard
   - [ ] Navigate/scroll/select with mouse
@@ -84,7 +84,7 @@
 - Single
   - Nothing for the time being; tested through other components
 - Spacer
-  - [ ] Size
+  - Tested in stack
 - Stack
   - Currently covered
   - [ ] Maybe add RangedSize tests?
@@ -92,9 +92,9 @@
 - Text dropdown
   - Already covered in dropdown
 - Textfield
-  - [ ] Select on focus (delete too)
-  - [ ] Add/remove characters
-  - [ ] Copy/Paste
+  - [x] Select on focus (delete too)
+  - [x] Add/remove characters
+  - [x] Copy/Paste
 - ZStack
   - [ ] Assign size
   - [ ] Handle click passthrough/focus
