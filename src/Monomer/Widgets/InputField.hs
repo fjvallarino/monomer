@@ -137,18 +137,25 @@ makeInputField config state = widget where
     reqs = setModelValid (isJust parsedVal)
 
   handleKeyPress wenv mod code
+    | isDelBackWord && emptySel = Just $ moveCursor removeWord prevWordStartIdx Nothing
+    | isDelBackWord = Just $ moveCursor removeText minTpSel Nothing
     | isBackspace && emptySel = Just $ moveCursor removeText (tp - 1) Nothing
-    | isBackspace = Just $ moveCursor removeText (min currSelVal tp) Nothing
+    | isBackspace = Just $ moveCursor removeText minTpSel Nothing
     | isMoveLeft = Just $ moveCursor txt (tp - 1) Nothing
     | isMoveRight = Just $ moveCursor txt (tp + 1) Nothing
-    | isDeselectLeft = Just $ moveCursor txt (min tp currSelVal) Nothing
-    | isDeselectRight = Just $ moveCursor txt (max tp currSelVal) Nothing
     | isMoveWordL = Just $ moveCursor txt prevWordStartIdx Nothing
     | isMoveWordR = Just $ moveCursor txt nextWordEndIdx Nothing
+    | isMoveLineL = Just $ moveCursor txt 0 Nothing
+    | isMoveLineR = Just $ moveCursor txt txtLen Nothing
+    | isSelectAll = Just $ moveCursor txt 0 (Just txtLen)
     | isSelectLeft = Just $ moveCursor txt (tp - 1) (Just tp)
     | isSelectRight = Just $ moveCursor txt (tp + 1) (Just tp)
     | isSelectWordL = Just $ moveCursor txt prevWordStartIdx (Just tp)
     | isSelectWordR = Just $ moveCursor txt nextWordEndIdx (Just tp)
+    | isSelectLineL = Just $ moveCursor txt 0 (Just tp)
+    | isSelectLineR = Just $ moveCursor txt txtLen (Just tp)
+    | isDeselectLeft = Just $ moveCursor txt minTpSel Nothing
+    | isDeselectRight = Just $ moveCursor txt maxTpSel Nothing
     | otherwise = Nothing
     where
       txt = currText
@@ -158,6 +165,8 @@ makeInputField config state = widget where
       (part1, part2) = T.splitAt currPos currText
       currSelVal = fromMaybe 0 currSel
       activeSel = isJust currSel
+      minTpSel = min tp currSelVal
+      maxTpSel = max tp currSelVal
       delim c = c == ' ' || c == '.' || c == ','
       prevWordStart = T.dropWhileEnd (not . delim) $ T.dropWhileEnd delim part1
       prevWordStartIdx = T.length prevWordStart
@@ -167,24 +176,41 @@ makeInputField config state = widget where
       isWordMod
         | isMacOS wenv = _kmLeftAlt mod
         | otherwise = _kmLeftCtrl mod
+      isLineMod
+        | isMacOS wenv = _kmLeftCtrl mod
+        | otherwise = _kmLeftAlt mod
+      isAllMod
+        | isMacOS wenv = _kmLeftGUI mod
+        | otherwise = _kmLeftCtrl mod
       isBackspace = isKeyBackspace code && (tp > 0 || isJust currSel)
-      isMove = not isShift && not isWordMod
-      isMoveWord = not isShift && isWordMod
-      isSelect = isShift && not isWordMod
-      isSelectWord = isShift && isWordMod
+      isDelBackWord = isBackspace && isWordMod
+      isMove = not isShift && not isWordMod && not isLineMod
+      isMoveWord = not isShift && isWordMod && not isLineMod
+      isMoveLine = not isShift && isLineMod && not isWordMod
+      isSelect = isShift && not isWordMod && not isLineMod
+      isSelectWord = isShift && isWordMod && not isLineMod
+      isSelectLine = isShift && isLineMod && not isWordMod
       isMoveLeft = isMove && not activeSel && isKeyLeft code
       isMoveRight = isMove && not activeSel && isKeyRight code
-      isDeselectLeft = isMove && activeSel && isKeyLeft code
-      isDeselectRight = isMove && activeSel && isKeyRight code
       isMoveWordL = isMoveWord && isKeyLeft code
       isMoveWordR = isMoveWord && isKeyRight code
+      isMoveLineL = isMoveLine && isKeyLeft code
+      isMoveLineR = isMoveLine && isKeyRight code
+      isSelectAll = isAllMod && isKeyA code
       isSelectLeft = isSelect && isKeyLeft code
       isSelectRight = isSelect && isKeyRight code
       isSelectWordL = isSelectWord && isKeyLeft code
       isSelectWordR = isSelectWord && isKeyRight code
+      isSelectLineL = isSelectLine && isKeyLeft code
+      isSelectLineR = isSelectLine && isKeyRight code
+      isDeselectLeft = isMove && activeSel && isKeyLeft code
+      isDeselectRight = isMove && activeSel && isKeyRight code
       removeText
         | isJust currSel = replaceText txt ""
         | otherwise = T.init part1 <> part2
+      removeWord
+        | isJust currSel = replaceText txt ""
+        | otherwise = prevWordStart <> part2
       moveCursor txt newPos newSel
         | isJust currSel && isNothing newSel = (txt, fixedPos, Nothing)
         | isJust currSel && Just fixedPos == currSel = (txt, fixedPos, Nothing)

@@ -16,6 +16,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.TestUtil
+import Monomer.TestKeyboardUtil
 import Monomer.Widgets.TextField
 
 import qualified Monomer.Lens as L
@@ -31,7 +32,7 @@ newtype TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = fdescribe "TextField" $ do
+spec = describe "TextField" $ do
   handleEvent
   handleEventValue
   updateSizeReq
@@ -64,7 +65,12 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, evtT " invalid"]
     model steps ^. textValue `shouldBe` "This string is"
 
-  it "should input 'This is text', receive focus and input 'No'" $ do
+  it "should input 'This is text', select all and input 'No'" $ do
+    let str = "This is text"
+    let steps = [evtT str, evtKG keyA, evtT "No"]
+    model steps ^. textValue `shouldBe` "No"
+
+  it "should input 'This is text', receive focus (with select on Focus) and input 'No'" $ do
     let str = "This is text"
     let steps = [evtT str, Focus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
@@ -80,7 +86,7 @@ handleEventValue = describe "handleEvent" $ do
 
   it "should input 'this is a dog', input '?', move to beginning and input 'Is '" $ do
     let str = "this is a dog"
-    let steps = [evtT str, evtT "?", evtT "is "]
+    let steps = [evtT str, evtT "?", moveLineL, evtT "Is "]
     lastEvt steps `shouldBe` TextChanged "Is this is a dog?"
 
   it "should input 'This is a dog', move before 'is', select 'is', deselect it and input 'nt'" $ do
@@ -90,8 +96,18 @@ handleEventValue = describe "handleEvent" $ do
 
   it "should input 'This is a dog', remove one word and input 'bird'" $ do
     let str = "This is a dog"
-    let steps = [evtT str, evtT "cat"]
+    let steps = [evtT str, evtKC keyBackspace, evtT "cat"]
     lastEvt steps `shouldBe` TextChanged "This is a cat"
+
+  it "should input 'This is a dog', select to beginning and input 'No'" $ do
+    let str = "This is a dog"
+    let steps = [evtT str, selLineL, evtT "No"]
+    lastEvt steps `shouldBe` TextChanged "No"
+
+  it "should input 'This is a dog', move to beginning, select until end and input 'No'" $ do
+    let str = "This is a dog"
+    let steps = [evtT str, moveLineL, selLineR, evtT "No"]
+    lastEvt steps `shouldBe` TextChanged "No"
   where
     wenv = mockWenv (TestModel "")
     txtInst = textFieldV "" TextChanged
@@ -110,56 +126,3 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel "Test value")
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (textField textValue)
-
-modC :: KeyMod
-modC = def
-  & L.leftCtrl .~ True
-  & L.leftAlt .~ True
-
-modS :: KeyMod
-modS = def & L.leftShift .~ True
-
-modCS :: KeyMod
-modCS = def
-  & L.leftCtrl .~ True
-  & L.leftAlt .~ True
-  & L.leftShift .~ True
-
-evtK :: KeyCode -> SystemEvent
-evtK k = KeyAction def k KeyPressed
-
-evtKC :: KeyCode -> SystemEvent
-evtKC k = KeyAction modC k KeyPressed
-
-evtKS :: KeyCode -> SystemEvent
-evtKS k = KeyAction modS k KeyPressed
-
-evtKCS :: KeyCode -> SystemEvent
-evtKCS k = KeyAction modCS k KeyPressed
-
-evtT :: Text -> SystemEvent
-evtT t = TextInput t
-
-moveCharL :: SystemEvent
-moveCharL = evtK keyLeft
-
-moveCharR :: SystemEvent
-moveCharR = evtK keyRight
-
-moveWordL :: SystemEvent
-moveWordL = evtKC keyLeft
-
-moveWordR :: SystemEvent
-moveWordR = evtKC keyRight
-
-selCharL :: SystemEvent
-selCharL = evtKS keyLeft
-
-selCharR :: SystemEvent
-selCharR = evtKS keyRight
-
-selWordL :: SystemEvent
-selWordL = evtKCS keyLeft
-
-selWordR :: SystemEvent
-selWordR = evtKCS keyRight
