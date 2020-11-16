@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{- HLINT ignore "Use foldr" -}
 
 module Monomer.Widgets.IntegralField (
   IntegralFieldCfg,
@@ -19,7 +20,7 @@ import Data.Default
 import Data.Either
 import Data.Maybe
 import Data.Text (Text)
-import Data.Text.Read (decimal)
+import Data.Text.Read (decimal, signed)
 import Data.Typeable (Typeable)
 
 import qualified Data.Attoparsec.Text as A
@@ -145,7 +146,7 @@ integralFieldD_ widgetData configs = newInst where
   newInst = inputField_ "integralField" inputConfig
 
 integralFromText :: FormattableInt a => Maybe a -> Maybe a -> Text -> Maybe a
-integralFromText minVal maxVal t = case decimal t of
+integralFromText minVal maxVal t = case signed decimal t of
   Right (val, _)
     | numberInBounds minVal maxVal val -> Just val
   _ -> Nothing
@@ -156,4 +157,11 @@ integralToText val = F.sformat F.int val
 acceptIntegralInput :: Text -> Bool
 acceptIntegralInput text = isRight (A.parseOnly parser text) where
   number = A.takeWhile isDigit
-  parser = number <* A.endOfInput
+  parser = join [A.option "" (single '-'), number] <* A.endOfInput
+
+join :: [A.Parser Text] -> A.Parser Text
+join [] = return T.empty
+join (x:xs) = (<>) <$> x <*> join xs
+
+single :: Char -> A.Parser Text
+single c = T.singleton <$> A.char c

@@ -74,6 +74,7 @@ handleEvent = describe "handleEvent" $ do
     let str = "This is text"
     let steps = [evtT str, Focus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
+
   where
     wenv = mockWenvEvtUnit (TestModel "")
     txtInst = textField_ textValue [maxLength 20, selectOnFocus True]
@@ -96,7 +97,7 @@ handleEventValue = describe "handleEvent" $ do
 
   it "should input 'This is a dog', remove one word and input 'bird'" $ do
     let str = "This is a dog"
-    let steps = [evtT str, evtKC keyBackspace, evtT "cat"]
+    let steps = [evtT str, delWordL, evtT "cat"]
     lastEvt steps `shouldBe` TextChanged "This is a cat"
 
   it "should input 'This is a dog', select to beginning and input 'No'" $ do

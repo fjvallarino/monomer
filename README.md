@@ -1,6 +1,6 @@
 # Monomer
 
-An easy to use, Elm inspired, GUI library for native applications.
+An easy to use, Elm/Flutter inspired, GUI library for writing native applications in Haskell.
 
 ## Objectives
 
@@ -14,6 +14,12 @@ An easy to use, Elm inspired, GUI library for native applications.
 
 - Be able to run in mobile
 - Support Vulkan/Metal
+
+### Why would I want to use this library
+
+- You want to write your application in Haskell
+- You want to write a native, not Electron based, application
+- You prefer not to use Gtk
 
 ### Current limitations
 

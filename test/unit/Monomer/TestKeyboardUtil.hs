@@ -93,3 +93,9 @@ selLineL = evtKAS keyLeft
 
 selLineR :: SystemEvent
 selLineR = evtKAS keyRight
+
+delCharL :: SystemEvent
+delCharL = evtK keyBackspace
+
+delWordL :: SystemEvent
+delWordL = evtKC keyBackspace
