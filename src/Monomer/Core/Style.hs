@@ -187,6 +187,12 @@ instance MaxWidth StyleState where
 instance MaxHeight StyleState where
   maxHeight h = def & L.sizeReqH ?~ MaxSize h 1
 
+instance SizeReqW StyleState where
+  sizeReqW srW = def & L.sizeReqW ?~ srW
+
+instance SizeReqH StyleState where
+  sizeReqH srH = def & L.sizeReqH ?~ srH
+
 -- Color
 
 instance BgColor StyleState where

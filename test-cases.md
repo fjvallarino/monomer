@@ -36,6 +36,7 @@
   - [x] Enter/space
   - [x] Handle value version
 - Composite
+  - Maybe tested as part of _real_ test application
   - [ ] Event handling
   - [ ] Message handling
   - [ ] Nested composites
@@ -58,8 +59,8 @@
 - Grid
   - Currently covered
 - Image
-  - [ ] Check load task request is created
-  - [ ] Check merging with new path creates new load task
+  - [x] Check load task request is created
+  - [x] Check merging with new path creates new load task
   - [ ] Check image is registered in renderer
 - InputField
   - Tested through TextField and numeric related versions

@@ -157,6 +157,12 @@ class MaxWidth t where
 class MaxHeight t where
   maxHeight :: Double -> t
 
+class SizeReqW t where
+  sizeReqW :: SizeReq -> t
+
+class SizeReqH t where
+  sizeReqH :: SizeReq -> t
+
 class ResizeFactor t where
   resizeFactor :: Double -> t
 
