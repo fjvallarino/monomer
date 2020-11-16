@@ -108,6 +108,16 @@ handleEventValue = describe "handleEvent" $ do
     let str = "This is a dog"
     let steps = [evtT str, moveLineL, selLineR, evtT "No"]
     lastEvt steps `shouldBe` TextChanged "No"
+
+  it "should input 'a', move to beginning, input 'H', move to end and input 't'" $ do
+    let steps = [evtT "a", evtK keyHome, evtT "H", evtK keyEnd, evtT "t"]
+    lastEvt steps `shouldBe` TextChanged "Hat"
+
+  it "should input 'abc', select to beginning, input 'def', move back twice, select to end and input 'dd'" $ do
+    let steps = [evtT "abc", evtKAS keyHome, evtT "def", moveCharL, moveCharL, evtKAS keyEnd, evtT "dd"]
+    lastEvt steps `shouldBe` TextChanged "ddd"
+
+  -- Copy/paste is not currently tested because SDL requires video initialized and mocking is not in place
   where
     wenv = mockWenv (TestModel "")
     txtInst = textFieldV "" TextChanged
