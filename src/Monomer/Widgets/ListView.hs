@@ -357,9 +357,7 @@ makeListView widgetData items makeRow config state = widget where
     resized = (inst, assignedArea)
 
   render renderer wenv inst =
-    renderContainer defaultGetChildWidgetEnv defaultRender renderer wenv newInst
-    where
-      newInst = buildRenderInst wenv inst
+    renderContainer defaultRender renderer wenv (buildRenderInst wenv inst)
 
   buildRenderInst wenv inst = newInst where
     viewport = _wiViewport inst
