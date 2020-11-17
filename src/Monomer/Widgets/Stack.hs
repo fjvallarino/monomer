@@ -66,12 +66,11 @@ vstack_ children configs = newInst where
 
 makeStack :: Bool -> StackCfg -> Widget s e
 makeStack isHorizontal config = widget where
-  baseWidget = createContainer def {
+  widget = createContainer def {
+    containerIgnoreEmptyClick = ignoreEmptyClick,
+    containerFindByPoint = defaultFindByPoint,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
-  }
-  widget = baseWidget {
-    widgetFindByPoint = findByPointWrapper ignoreEmptyClick defaultFindByPoint
   }
 
   ignoreEmptyClick = _stcIgnoreEmptyClick config == Just True

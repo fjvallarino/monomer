@@ -1,6 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Single (
   module Monomer.Core,
@@ -124,18 +123,18 @@ instance Default (Single s e) where
   }
 
 createSingle :: Single s e -> Widget s e
-createSingle Single{..} = Widget {
-  widgetInit = initWrapper singleInit singleGetBaseStyle,
-  widgetMerge = mergeWrapper singleMerge singleGetBaseStyle,
-  widgetDispose = singleDispose,
-  widgetGetState = singleGetState,
-  widgetFindNextFocus = singleFindNextFocus,
-  widgetFindByPoint = singleFindByPoint,
-  widgetHandleEvent = handleEventWrapper singleHandleEvent,
-  widgetHandleMessage = singleHandleMessage,
-  widgetUpdateSizeReq = updateSizeReqWrapper singleGetSizeReq,
-  widgetResize = resizeHandlerWrapper singleResize,
-  widgetRender = renderWrapper singleRender
+createSingle single = Widget {
+  widgetInit = initWrapper single,
+  widgetMerge = mergeWrapper single,
+  widgetDispose = singleDispose single,
+  widgetGetState = singleGetState single,
+  widgetFindNextFocus = singleFindNextFocus single,
+  widgetFindByPoint = singleFindByPoint single,
+  widgetHandleEvent = handleEventWrapper single,
+  widgetHandleMessage = singleHandleMessage single,
+  widgetUpdateSizeReq = updateSizeReqWrapper single,
+  widgetResize = resizeHandlerWrapper single,
+  widgetRender = renderWrapper single
 }
 
 defaultGetBaseStyle :: SingleGetBaseStyle s e
@@ -145,12 +144,13 @@ defaultInit :: SingleInitHandler s e
 defaultInit _ inst = resultWidget inst
 
 initWrapper
-  :: SingleInitHandler s e
-  -> SingleGetBaseStyle s e
+  :: Single s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetResult s e
-initWrapper initHandler getBaseStyle wenv inst = newResult where
+initWrapper single wenv inst = newResult where
+  initHandler = singleInit single
+  getBaseStyle = singleGetBaseStyle single
   baseStyle = getBaseStyle wenv inst
   styledInst = initInstanceStyle wenv baseStyle inst
   newResult = initHandler wenv styledInst
@@ -159,13 +159,14 @@ defaultMerge :: SingleMergeHandler s e
 defaultMerge wenv oldState newInst = resultWidget newInst
 
 mergeWrapper
-  :: SingleMergeHandler s e
-  -> SingleGetBaseStyle s e
+  :: Single s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
+mergeWrapper single wenv oldInst newInst = newResult where
+  mergeHandler = singleMerge single
+  getBaseStyle = singleGetBaseStyle single
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
@@ -195,15 +196,17 @@ defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt inst = Nothing
 
 handleEventWrapper
-  :: SingleEventHandler s e
+  :: Single s e
   -> WidgetEnv s e
   -> Path
   -> SystemEvent
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper handler wenv target evt inst
+handleEventWrapper single wenv target evt inst
   | not (_wiVisible inst) = Nothing
   | otherwise = handleStyleChange handler wenv target evt inst
+  where
+    handler = singleHandleEvent single
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message inst = Nothing
@@ -212,11 +215,12 @@ defaultGetSizeReq :: SingleGetSizeReqHandler s e
 defaultGetSizeReq wenv inst = def
 
 updateSizeReqWrapper
-  :: SingleGetSizeReqHandler s e
+  :: Single s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
-updateSizeReqWrapper handler wenv inst = newInst where
+updateSizeReqWrapper single wenv inst = newInst where
+  handler = singleGetSizeReq single
   style = activeStyle wenv inst
   reqs = handler wenv inst
   (newReqW, newReqH) = sizeReqAddStyle style reqs
@@ -229,13 +233,14 @@ defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport renderArea inst = inst
 
 resizeHandlerWrapper
-  :: SingleResizeHandler s e
+  :: Single s e
   -> WidgetEnv s e
   -> Rect
   -> Rect
   -> WidgetInstance s e
   -> WidgetInstance s e
-resizeHandlerWrapper handler wenv viewport renderArea inst = newInst where
+resizeHandlerWrapper single wenv viewport renderArea inst = newInst where
+  handler = singleResize single
   tempInst = handler wenv viewport renderArea inst
   newInst = tempInst {
     _wiViewport = viewport,
@@ -246,16 +251,17 @@ defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv inst = return ()
 
 renderWrapper
-  :: SingleRenderHandler s e
+  :: Single s e
   -> Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> IO ()
-renderWrapper rHandler renderer wenv inst =
+renderWrapper single renderer wenv inst =
   drawInScissor renderer True viewport $
     drawStyledAction renderer renderArea style $ \_ ->
       rHandler renderer wenv inst
   where
+    rHandler = singleRender single
     style = activeStyle wenv inst
     viewport = _wiViewport inst
     renderArea = _wiRenderArea inst

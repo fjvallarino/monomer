@@ -1,7 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Container (
@@ -22,6 +21,7 @@ module Monomer.Widgets.Container (
   findNextFocusWrapper,
   resizeWrapper,
   renderWrapper,
+  renderContainer,
   defaultFindByPoint,
   defaultRender
 ) where
@@ -116,6 +116,9 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e = Container {
+  containerIgnoreEmptyClick :: Bool,
+  containerStyleOnMerge :: Bool,
+  containerKeepChildrenSizes :: Bool,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerInit :: ContainerInitHandler s e,
   containerMerge :: ContainerMergeHandler s e,
@@ -132,6 +135,9 @@ data Container s e = Container {
 
 instance Default (Container s e) where
   def = Container {
+    containerIgnoreEmptyClick = False,
+    containerStyleOnMerge = False,
+    containerKeepChildrenSizes = False,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerInit = defaultInit,
     containerMerge = defaultMerge,
@@ -147,18 +153,18 @@ instance Default (Container s e) where
   }
 
 createContainer :: Container s e -> Widget s e
-createContainer Container{..} = Widget {
-  widgetInit = initWrapper containerInit containerGetBaseStyle,
-  widgetMerge = mergeWrapper containerMerge containerGetBaseStyle,
-  widgetDispose = disposeWrapper containerDispose,
-  widgetGetState = containerGetState,
-  widgetFindNextFocus = findNextFocusWrapper containerFindNextFocus,
-  widgetFindByPoint = findByPointWrapper False containerFindByPoint,
-  widgetHandleEvent = handleEventWrapper False containerHandleEvent,
-  widgetHandleMessage = handleMessageWrapper containerHandleMessage,
-  widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
-  widgetResize = resizeWrapper False containerResize,
-  widgetRender = renderWrapper containerRender
+createContainer container = Widget {
+  widgetInit = initWrapper container,
+  widgetMerge = mergeWrapper container,
+  widgetDispose = disposeWrapper container,
+  widgetGetState = containerGetState container,
+  widgetFindNextFocus = findNextFocusWrapper container,
+  widgetFindByPoint = findByPointWrapper container,
+  widgetHandleEvent = handleEventWrapper container,
+  widgetHandleMessage = handleMessageWrapper container,
+  widgetUpdateSizeReq = updateSizeReqWrapper container,
+  widgetResize = resizeWrapper container,
+  widgetRender = renderWrapper container
 }
 
 createThemed
@@ -191,12 +197,13 @@ defaultInit :: ContainerInitHandler s e
 defaultInit _ inst = resultWidget inst
 
 initWrapper
-  :: ContainerInitHandler s e
-  -> ContainerGetBaseStyle s e
+  :: Container s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetResult s e
-initWrapper initHandler getBaseStyle wenv inst = newResult where
+initWrapper container wenv inst = newResult where
+  initHandler = containerInit container
+  getBaseStyle = containerGetBaseStyle container
   WidgetResult reqs events tempInstance = initHandler wenv inst
   children = _wiChildren tempInstance
   initChild idx child = widgetInit newWidget wenv newChild where
@@ -218,13 +225,14 @@ defaultMerge :: ContainerMergeHandler s e
 defaultMerge wenv state newInstance = resultWidget newInstance
 
 mergeWrapper
-  :: ContainerMergeHandler s e
-  -> ContainerGetBaseStyle s e
+  :: Container s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper mergeHandler getBaseStyle wenv oldInst newInst = newResult where
+mergeWrapper container wenv oldInst newInst = newResult where
+  mergeHandler = containerMerge container
+  getBaseStyle = containerGetBaseStyle container
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
@@ -282,11 +290,12 @@ defaultDispose :: ContainerInitHandler s e
 defaultDispose _ inst = resultWidget inst
 
 disposeWrapper
-  :: ContainerDisposeHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetResult s e
-disposeWrapper disposeHandler wenv inst = result where
+disposeWrapper container wenv inst = result where
+  disposeHandler = containerDispose container
   WidgetResult reqs events tempInstance = disposeHandler wenv inst
   children = _wiChildren tempInstance
   dispose child = widgetDispose (_wiWidget child) wenv child
@@ -305,13 +314,14 @@ defaultFindNextFocus wenv direction start inst = vchildren where
   vchildren = Seq.filter _wiVisible (_wiChildren inst)
 
 findNextFocusWrapper
-  :: ContainerFindNextFocusHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> FocusDirection
   -> Path
   -> WidgetInstance s e
   -> Maybe Path
-findNextFocusWrapper handler wenv direction start inst = nextFocus where
+findNextFocusWrapper container wenv direction start inst = nextFocus where
+  handler = containerFindNextFocus container
   handlerResult = handler wenv direction start inst
   children
     | direction == FocusBwd = Seq.reverse handlerResult
@@ -344,14 +354,15 @@ defaultFindByPoint wenv startPath point inst = result where
   result = Seq.findIndexL pointInWidget children
 
 findByPointWrapper
-  :: Bool
-  -> ContainerFindByPointHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> Path
   -> Point
   -> WidgetInstance s e
   -> Maybe Path
-findByPointWrapper ignoreEmptyClick handler wenv start point inst = result where
+findByPointWrapper container wenv start point inst = result where
+  ignoreEmptyClick = containerIgnoreEmptyClick container
+  handler = containerFindByPoint container
   children = _wiChildren inst
   newStartPath = Seq.drop 1 start
   childIdx = case newStartPath of
@@ -377,14 +388,13 @@ defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt inst = Nothing
 
 handleEventWrapper
-  :: Bool
-  -> ContainerEventHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> Path
   -> SystemEvent
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper styleOnMerge pHandler wenv target event inst
+handleEventWrapper container wenv target event inst
   | not (_wiVisible inst) = Nothing
   | targetReached || not targetValid = styledParentResult
   | styleOnMerge = styledChildrenResult
@@ -394,6 +404,8 @@ handleEventWrapper styleOnMerge pHandler wenv target event inst
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
+    styleOnMerge = containerStyleOnMerge container
+    pHandler = containerHandleEvent container
     targetReached = isTargetReached target inst
     targetValid = isTargetValid target inst
     childIdx = fromJust $ nextTargetStep target inst
@@ -441,17 +453,18 @@ defaultHandleMessage wenv ctx message inst = Nothing
 
 handleMessageWrapper
   :: Typeable i
-  => ContainerMessageHandler s e
+  => Container s e
   -> WidgetEnv s e
   -> Path
   -> i
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleMessageWrapper mHandler wenv target arg inst
+handleMessageWrapper container wenv target arg inst
   | targetReached = mHandler wenv target arg inst
   | not targetValid = Nothing
   | otherwise = messageResult
   where
+    mHandler = containerHandleMessage container
     targetReached = isTargetReached target inst
     targetValid = isTargetValid target inst
     childIdx = fromJust $ nextTargetStep target inst
@@ -468,11 +481,12 @@ defaultGetSizeReq :: ContainerGetSizeReqHandler s e
 defaultGetSizeReq wenv inst children = def
 
 updateSizeReqWrapper
-  :: ContainerGetSizeReqHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
-updateSizeReqWrapper psHandler wenv inst = newInst where
+updateSizeReqWrapper container wenv inst = newInst where
+  psHandler = containerGetSizeReq container
   style = activeStyle wenv inst
   children = _wiChildren inst
   updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
@@ -492,14 +506,15 @@ defaultResize wenv viewport renderArea children inst = newSize where
   newSize = (inst, childrenSizes)
 
 resizeWrapper
-  :: Bool
-  -> ContainerResizeHandler s e
+  :: Container s e
   -> WidgetEnv s e
   -> Rect
   -> Rect
   -> WidgetInstance s e
   -> WidgetInstance s e
-resizeWrapper keepSizes handler wenv viewport renderArea inst = newInst where
+resizeWrapper container wenv viewport renderArea inst = newInst where
+  keepSizes = containerKeepChildrenSizes container
+  handler = containerResize container
   children = _wiChildren inst
   (tempInst, assigned) = handler wenv viewport renderArea children inst
   resize (child, (vp, ra)) = newChildInst where
@@ -524,12 +539,21 @@ defaultRender :: ContainerRenderHandler s e
 defaultRender renderer wenv inst = return ()
 
 renderWrapper
+  :: Container s e
+  -> Renderer
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> IO ()
+renderWrapper container renderer wenv inst =
+  renderContainer (containerRender container) renderer wenv inst
+
+renderContainer
   :: ContainerRenderHandler s e
   -> Renderer
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> IO ()
-renderWrapper rHandler renderer wenv inst =
+renderContainer rHandler renderer wenv inst =
   drawInScissor renderer True viewport $
     drawStyledAction renderer renderArea style $ \_ -> do
       rHandler renderer wenv inst

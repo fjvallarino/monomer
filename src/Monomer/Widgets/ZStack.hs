@@ -52,12 +52,13 @@ zstack_ children configs = newInst where
 makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
   baseWidget = createContainer def {
+    containerKeepChildrenSizes = True,
     containerFindNextFocus = findNextFocus,
-    containerGetSizeReq = getSizeReq
+    containerGetSizeReq = getSizeReq,
+    containerResize = resize
   }
   widget = baseWidget {
     widgetFindByPoint = findByPoint,
-    widgetResize = resizeWrapper True resize,
     widgetRender = render
   }
 
