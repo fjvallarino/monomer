@@ -41,6 +41,10 @@ data FloatingFieldCfg s e a = FloatingFieldCfg {
   _ffcMinValue :: Maybe a,
   _ffcMaxValue :: Maybe a,
   _ffcSelectOnFocus :: Maybe Bool,
+  _ffcOnFocus :: [e],
+  _ffcOnFocusReq :: [WidgetRequest s],
+  _ffcOnBlur :: [e],
+  _ffcOnBlurReq :: [WidgetRequest s],
   _ffcOnChange :: [a -> e],
   _ffcOnChangeReq :: [WidgetRequest s]
 }
@@ -52,6 +56,10 @@ instance Default (FloatingFieldCfg s e a) where
     _ffcMinValue = Nothing,
     _ffcMaxValue = Nothing,
     _ffcSelectOnFocus = Nothing,
+    _ffcOnFocus = [],
+    _ffcOnFocusReq = [],
+    _ffcOnBlur = [],
+    _ffcOnBlurReq = [],
     _ffcOnChange = [],
     _ffcOnChangeReq = []
   }
@@ -63,6 +71,10 @@ instance Semigroup (FloatingFieldCfg s e a) where
     _ffcMinValue = _ffcMinValue t2 <|> _ffcMinValue t1,
     _ffcMaxValue = _ffcMaxValue t2 <|> _ffcMaxValue t1,
     _ffcSelectOnFocus = _ffcSelectOnFocus t2 <|> _ffcSelectOnFocus t1,
+    _ffcOnFocus = _ffcOnFocus t1 <> _ffcOnFocus t2,
+    _ffcOnFocusReq = _ffcOnFocusReq t1 <> _ffcOnFocusReq t2,
+    _ffcOnBlur = _ffcOnBlur t1 <> _ffcOnBlur t2,
+    _ffcOnBlurReq = _ffcOnBlurReq t1 <> _ffcOnBlurReq t2,
     _ffcOnChange = _ffcOnChange t1 <> _ffcOnChange t2,
     _ffcOnChangeReq = _ffcOnChangeReq t1 <> _ffcOnChangeReq t2
   }
@@ -93,6 +105,26 @@ instance FormattableFloat a => MaxValue (FloatingFieldCfg s e a) a where
 instance Decimals (FloatingFieldCfg s e a) where
   decimals num = def {
     _ffcDecimals = Just num
+  }
+
+instance OnFocus (FloatingFieldCfg s e a) e where
+  onFocus fn = def {
+    _ffcOnFocus = [fn]
+  }
+
+instance OnFocusReq (FloatingFieldCfg s e a) s where
+  onFocusReq req = def {
+    _ffcOnFocusReq = [req]
+  }
+
+instance OnBlur (FloatingFieldCfg s e a) e where
+  onBlur fn = def {
+    _ffcOnBlur = [fn]
+  }
+
+instance OnBlurReq (FloatingFieldCfg s e a) s where
+  onBlurReq req = def {
+    _ffcOnBlurReq = [req]
   }
 
 instance OnChange (FloatingFieldCfg s e a) a e where
@@ -153,6 +185,10 @@ floatingFieldD_ widgetData configs = newInst where
     _ifcAcceptInput = acceptFloatInput decimals,
     _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
     _ifcStyle = Just L.inputFloatingStyle,
+    _ifcOnFocus = _ffcOnFocus config,
+    _ifcOnFocusReq = _ffcOnFocusReq config,
+    _ifcOnBlur = _ffcOnBlur config,
+    _ifcOnBlurReq = _ffcOnBlurReq config,
     _ifcOnChange = _ffcOnChange config,
     _ifcOnChangeReq = _ffcOnChangeReq config
   }

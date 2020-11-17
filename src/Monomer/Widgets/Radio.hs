@@ -24,6 +24,10 @@ import qualified Monomer.Lens as L
 
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
+  _rdcOnFocus :: [e],
+  _rdcOnFocusReq :: [WidgetRequest s],
+  _rdcOnBlur :: [e],
+  _rdcOnBlurReq :: [WidgetRequest s],
   _rdcOnChange :: [a -> e],
   _rdcOnChangeReq :: [WidgetRequest s]
 }
@@ -31,6 +35,10 @@ data RadioCfg s e a = RadioCfg {
 instance Default (RadioCfg s e a) where
   def = RadioCfg {
     _rdcWidth = Nothing,
+    _rdcOnFocus = [],
+    _rdcOnFocusReq = [],
+    _rdcOnBlur = [],
+    _rdcOnBlurReq = [],
     _rdcOnChange = [],
     _rdcOnChangeReq = []
   }
@@ -38,12 +46,36 @@ instance Default (RadioCfg s e a) where
 instance Semigroup (RadioCfg s e a) where
   (<>) t1 t2 = RadioCfg {
     _rdcWidth = _rdcWidth t2 <|> _rdcWidth t1,
+    _rdcOnFocus = _rdcOnFocus t1 <> _rdcOnFocus t2,
+    _rdcOnFocusReq = _rdcOnFocusReq t1 <> _rdcOnFocusReq t2,
+    _rdcOnBlur = _rdcOnBlur t1 <> _rdcOnBlur t2,
+    _rdcOnBlurReq = _rdcOnBlurReq t1 <> _rdcOnBlurReq t2,
     _rdcOnChange = _rdcOnChange t1 <> _rdcOnChange t2,
     _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
   }
 
 instance Monoid (RadioCfg s e a) where
   mempty = def
+
+instance OnFocus (RadioCfg s e a) e where
+  onFocus fn = def {
+    _rdcOnFocus = [fn]
+  }
+
+instance OnFocusReq (RadioCfg s e a) s where
+  onFocusReq req = def {
+    _rdcOnFocusReq = [req]
+  }
+
+instance OnBlur (RadioCfg s e a) e where
+  onBlur fn = def {
+    _rdcOnBlur = [fn]
+  }
+
+instance OnBlurReq (RadioCfg s e a) s where
+  onBlurReq req = def {
+    _rdcOnBlurReq = [req]
+  }
 
 instance OnChange (RadioCfg s e a) a e where
   onChange fn = def {
@@ -102,6 +134,8 @@ makeRadio field option config = widget where
     style = collectTheme wenv L.radioStyle
 
   handleEvent wenv target evt inst = case evt of
+    Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config inst
+    Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config inst
     Click p _
       | pointInViewport p inst -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed

@@ -20,8 +20,10 @@ import Monomer.Widgets.Checkbox
 
 import qualified Monomer.Lens as L
 
-newtype TestEvt
+data TestEvt
   = BoolSel Bool
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -46,11 +48,19 @@ handleEvent = describe "handleEvent" $ do
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn ^. testBool `shouldBe` True
+
+  it "should generate an event when focus is received" $
+    events Focus `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur `shouldBe` Seq.singleton LostFocus
+
   where
-    wenv = mockWenvEvtUnit (TestModel False)
-    chkInst = checkbox testBool
+    wenv = mockWenv (TestModel False)
+    chkInst = checkbox_ testBool [onFocus GotFocus, onBlur LostFocus]
     clickModel p = instHandleEventModel wenv [Click p LeftBtn] chkInst
     keyModel key = instHandleEventModel wenv [KeyAction def key KeyPressed] chkInst
+    events evt = instHandleEventEvts wenv [evt] chkInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
@@ -65,6 +75,7 @@ handleEventValue = describe "handleEventValue" $ do
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn chkInst `shouldBe` Seq.singleton (BoolSel True)
+
   where
     wenv = mockWenv (TestModel False)
     chkInst = checkboxV False BoolSel

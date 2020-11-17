@@ -51,6 +51,7 @@
   - [ ] Open/close/select with mouse
   - [ ] Open/close/select with keyboard
   - [ ] Select on blur
+  - [ ] Implement focus/blur
 - Floating field
   - [x] Input valid number
   - [x] Input two dots

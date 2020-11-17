@@ -21,8 +21,10 @@ import Monomer.Widgets.TextField
 
 import qualified Monomer.Lens as L
 
-newtype TestEvt
+data TestEvt
   = TextChanged Text
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -75,10 +77,18 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, Focus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
 
+  it "should generate an event when focus is received" $
+    events Focus `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur `shouldBe` Seq.singleton LostFocus
+
   where
-    wenv = mockWenvEvtUnit (TestModel "")
-    txtInst = textField_ textValue [maxLength 20, selectOnFocus True]
+    wenv = mockWenv (TestModel "")
+    txtCfg = [maxLength 20, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
+    txtInst = textField_ textValue txtCfg
     model es = instHandleEventModel wenv es txtInst
+    events evt = instHandleEventEvts wenv [evt] txtInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do

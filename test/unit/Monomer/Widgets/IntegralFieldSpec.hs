@@ -21,8 +21,10 @@ import Monomer.Widgets.IntegralField
 
 import qualified Monomer.Lens as L
 
-newtype TestEvt
+data TestEvt
   = NumberChanged Int
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 data TestModel = TestModel {
@@ -68,12 +70,20 @@ handleEvent = describe "handleEvent" $ do
     model [evtT "123", delWordL, evtT "456"] ^. integralValue `shouldBe` 456
     model [evtT "123", delWordL, evtT "456"] ^. integralValid `shouldBe` True
 
+  it "should generate an event when focus is received" $
+    events Focus `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur `shouldBe` Seq.singleton LostFocus
+
   where
-    wenv = mockWenvEvtUnit (TestModel 0 True)
+    wenv = mockWenv (TestModel 0 True)
     basicIntInst = integralField integralValue
-    intInst = integralField_ integralValue [maxValue 1501, selectOnFocus True, validInput integralValid]
+    intCfg = [maxValue 1501, selectOnFocus True, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
+    intInst = integralField_ integralValue intCfg
     model es = instHandleEventModel wenv (Focus : es) intInst
     modelBasic es = instHandleEventModel wenv es basicIntInst
+    events evt = instHandleEventEvts wenv [evt] intInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do

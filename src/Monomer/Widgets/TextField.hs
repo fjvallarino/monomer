@@ -29,6 +29,10 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcMaxLength :: Maybe Int,
   _tfcSelectOnFocus :: Maybe Bool,
+  _tfcOnFocus :: [e],
+  _tfcOnFocusReq :: [WidgetRequest s],
+  _tfcOnBlur :: [e],
+  _tfcOnBlurReq :: [WidgetRequest s],
   _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [WidgetRequest s]
 }
@@ -38,6 +42,10 @@ instance Default (TextFieldCfg s e) where
     _tfcValid = Nothing,
     _tfcMaxLength = Nothing,
     _tfcSelectOnFocus = Nothing,
+    _tfcOnFocus = [],
+    _tfcOnFocusReq = [],
+    _tfcOnBlur = [],
+    _tfcOnBlurReq = [],
     _tfcOnChange = [],
     _tfcOnChangeReq = []
   }
@@ -47,6 +55,10 @@ instance Semigroup (TextFieldCfg s e) where
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
+    _tfcOnFocus = _tfcOnFocus t1 <> _tfcOnFocus t2,
+    _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
+    _tfcOnBlur = _tfcOnBlur t1 <> _tfcOnBlur t2,
+    _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
     _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
   }
@@ -67,6 +79,26 @@ instance SelectOnFocus (TextFieldCfg s e) where
 instance MaxLength (TextFieldCfg s e) where
   maxLength len = def {
     _tfcMaxLength = Just len
+  }
+
+instance OnFocus (TextFieldCfg s e) e where
+  onFocus fn = def {
+    _tfcOnFocus = [fn]
+  }
+
+instance OnFocusReq (TextFieldCfg s e) s where
+  onFocusReq req = def {
+    _tfcOnFocusReq = [req]
+  }
+
+instance OnBlur (TextFieldCfg s e) e where
+  onBlur fn = def {
+    _tfcOnBlur = [fn]
+  }
+
+instance OnBlurReq (TextFieldCfg s e) s where
+  onBlurReq req = def {
+    _tfcOnBlurReq = [req]
   }
 
 instance OnChange (TextFieldCfg s e) Text e where
@@ -108,6 +140,10 @@ textFieldD_ widgetData configs = inputField where
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcStyle = Just L.inputTextStyle,
+    _ifcOnFocus = _tfcOnFocus config,
+    _ifcOnFocusReq = _tfcOnFocusReq config,
+    _ifcOnBlur = _tfcOnBlur config,
+    _ifcOnBlurReq = _tfcOnBlurReq config,
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }

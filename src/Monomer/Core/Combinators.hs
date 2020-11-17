@@ -93,6 +93,12 @@ class TextBottom t where
   textBottom :: t
 
 -- Events
+class OnFocus t e | t -> e  where
+  onFocus :: e -> t
+
+class OnFocusReq t s | t -> s where
+  onFocusReq :: WidgetRequest s -> t
+
 class OnBlur t e | t -> e  where
   onBlur :: e -> t
 

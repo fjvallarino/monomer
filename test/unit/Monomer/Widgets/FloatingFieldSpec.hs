@@ -21,8 +21,10 @@ import Monomer.Widgets.FloatingField
 
 import qualified Monomer.Lens as L
 
-newtype TestEvt
+data TestEvt
   = NumberChanged Double
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 data TestModel = TestModel {
@@ -76,12 +78,20 @@ handleEvent = describe "handleEvent" $ do
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. floatingValue `shouldBe` 56
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. floatingValid `shouldBe` True
 
+  it "should generate an event when focus is received" $
+    events Focus `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur `shouldBe` Seq.singleton LostFocus
+
   where
-    wenv = mockWenvEvtUnit (TestModel 0 True)
+    wenv = mockWenv (TestModel 0 True)
     basicFloatingInst = floatingField floatingValue
-    floatInst = floatingField_ floatingValue [maxValue 1501, selectOnFocus True, validInput floatingValid]
+    floatCfg = [maxValue 1501, selectOnFocus True, validInput floatingValid, onFocus GotFocus, onBlur LostFocus]
+    floatInst = floatingField_ floatingValue floatCfg
     model es = instHandleEventModel wenv (Focus : es) floatInst
     modelBasic es = instHandleEventModel wenv es basicFloatingInst
+    events evt = instHandleEventEvts wenv [evt] floatInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do

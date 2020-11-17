@@ -10,9 +10,11 @@ module Monomer.Widgets.Util.Widget (
   resultEvents,
   resultReqs,
   resultReqsEvents,
+  mergeResults,
   makeState,
   useState,
-  instanceMatches
+  instanceMatches,
+  handleFocusChange
 ) where
 
 import Control.Lens ((&), (^#), (#~), (^.))
@@ -85,6 +87,12 @@ resultReqsEvents
 resultReqsEvents requests events inst = result where
   result = WidgetResult (Seq.fromList requests) (Seq.fromList events) inst
 
+mergeResults :: WidgetResult s e -> WidgetResult s e -> WidgetResult s e
+mergeResults res1 res2 = newRes where
+  WidgetResult reqs1 evts1 inst1 = res1
+  WidgetResult reqs2 evts2 inst2 = res2
+  newRes = WidgetResult (reqs1 <> reqs2) (evts1 <> evts2) inst2
+
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
 
@@ -101,3 +109,16 @@ isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
 isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
   path = _wiPath inst
   isPrefix parent = Seq.take (Seq.length parent) path == parent
+
+handleFocusChange
+  :: (c -> [e])
+  -> (c -> [WidgetRequest s])
+  -> c
+  -> WidgetInstance s e
+  -> Maybe (WidgetResult s e)
+handleFocusChange evtFn reqFn config inst = result where
+  evts = evtFn config
+  reqs = reqFn config
+  result
+    | not (null evts && null reqs) = Just $ resultReqsEvents reqs evts inst
+    | otherwise = Nothing

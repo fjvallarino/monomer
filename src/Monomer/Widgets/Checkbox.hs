@@ -18,12 +18,18 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
+import qualified Data.Sequence as Seq
+
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
 data CheckboxCfg s e = CheckboxCfg {
   _ckcWidth :: Maybe Double,
+  _ckcOnFocus :: [e],
+  _ckcOnFocusReq :: [WidgetRequest s],
+  _ckcOnBlur :: [e],
+  _ckcOnBlurReq :: [WidgetRequest s],
   _ckcOnChange :: [Bool -> e],
   _ckcOnChangeReq :: [WidgetRequest s]
 }
@@ -31,6 +37,10 @@ data CheckboxCfg s e = CheckboxCfg {
 instance Default (CheckboxCfg s e) where
   def = CheckboxCfg {
     _ckcWidth = Nothing,
+    _ckcOnFocus = [],
+    _ckcOnFocusReq = [],
+    _ckcOnBlur = [],
+    _ckcOnBlurReq = [],
     _ckcOnChange = [],
     _ckcOnChangeReq = []
   }
@@ -38,12 +48,36 @@ instance Default (CheckboxCfg s e) where
 instance Semigroup (CheckboxCfg s e) where
   (<>) t1 t2 = CheckboxCfg {
     _ckcWidth = _ckcWidth t2 <|> _ckcWidth t1,
+    _ckcOnFocus = _ckcOnFocus t1 <> _ckcOnFocus t2,
+    _ckcOnFocusReq = _ckcOnFocusReq t1 <> _ckcOnFocusReq t2,
+    _ckcOnBlur = _ckcOnBlur t1 <> _ckcOnBlur t2,
+    _ckcOnBlurReq = _ckcOnBlurReq t1 <> _ckcOnBlurReq t2,
     _ckcOnChange = _ckcOnChange t1 <> _ckcOnChange t2,
     _ckcOnChangeReq = _ckcOnChangeReq t1 <> _ckcOnChangeReq t2
   }
 
 instance Monoid (CheckboxCfg s e) where
   mempty = def
+
+instance OnFocus (CheckboxCfg s e) e where
+  onFocus fn = def {
+    _ckcOnFocus = [fn]
+  }
+
+instance OnFocusReq (CheckboxCfg s e) s where
+  onFocusReq req = def {
+    _ckcOnFocusReq = [req]
+  }
+
+instance OnBlur (CheckboxCfg s e) e where
+  onBlur fn = def {
+    _ckcOnBlur = [fn]
+  }
+
+instance OnBlurReq (CheckboxCfg s e) s where
+  onBlurReq req = def {
+    _ckcOnBlurReq = [req]
+  }
 
 instance OnChange (CheckboxCfg s e) Bool e where
   onChange fn = def {
@@ -94,6 +128,8 @@ makeCheckbox widgetData config = widget where
     style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv target evt inst = case evt of
+    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config inst
+    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config inst
     Click p _
       | pointInViewport p inst -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed

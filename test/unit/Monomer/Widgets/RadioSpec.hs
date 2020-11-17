@@ -26,8 +26,10 @@ data Fruit
   | Banana
   deriving (Eq, Show)
 
-newtype FruitEvt
+data FruitEvt
   = FruitSel Fruit
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -52,12 +54,20 @@ handleEvent = describe "handleEvent" $ do
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn bananaInst ^. fruit `shouldBe` Banana
+
+  it "should generate an event when focus is received" $
+    events Focus orangeInst `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur orangeInst `shouldBe` Seq.singleton LostFocus
+
   where
-    wenv = mockWenvEvtUnit (TestModel Apple)
-    orangeInst = radio fruit Orange
+    wenv = mockWenv (TestModel Apple)
+    orangeInst = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
     bananaInst = radio fruit Banana
     clickModel p inst = instHandleEventModel wenv [Click p LeftBtn] inst
     keyModel key inst = instHandleEventModel wenv [KeyAction def key KeyPressed] inst
+    events evt inst = instHandleEventEvts wenv [evt] inst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
@@ -69,6 +79,7 @@ handleEventValue = describe "handleEventValue" $ do
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn bananaInst `shouldBe` Seq.singleton (FruitSel Banana)
+
   where
     wenv = mockWenv (TestModel Apple)
     orangeInst = radioV Apple FruitSel Orange

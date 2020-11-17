@@ -30,6 +30,10 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcToText :: a -> Text,
   _ifcAcceptInput :: Text -> Bool,
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
+  _ifcOnFocus :: [e],
+  _ifcOnFocusReq :: [WidgetRequest s],
+  _ifcOnBlur :: [e],
+  _ifcOnBlurReq :: [WidgetRequest s],
   _ifcOnChange :: [a -> e],
   _ifcOnChangeReq :: [WidgetRequest s]
 }
@@ -265,7 +269,7 @@ makeInputField config state = widget where
 
     Clipboard (ClipboardText newText) ->  insertText wenv inst newText
 
-    Focus -> Just $ resultReqs [StartTextInput (_wiViewport inst)] newInst where
+    Focus -> Just result where
       newState = state {
         _ifsSelStart = Just 0,
         _ifsCursorPos = T.length currText
@@ -275,8 +279,14 @@ makeInputField config state = widget where
             _wiWidget = makeInputField config newState
           }
         | otherwise = inst
+      newResult = resultReqs [StartTextInput (_wiViewport inst)] newInst
+      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newInst
+      result = maybe newResult (mergeResults newResult) focusResult
 
-    Blur -> Just $ resultReqs [StopTextInput] inst
+    Blur -> Just result where
+      newResult = resultReqs [StopTextInput] inst
+      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config inst
+      result = maybe newResult (mergeResults newResult) blurResult
 
     _ -> Nothing
 

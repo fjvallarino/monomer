@@ -40,6 +40,10 @@ data IntegralFieldCfg s e a = IntegralFieldCfg {
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
   _nfcSelectOnFocus :: Maybe Bool,
+  _nfcOnFocus :: [e],
+  _nfcOnFocusReq :: [WidgetRequest s],
+  _nfcOnBlur :: [e],
+  _nfcOnBlurReq :: [WidgetRequest s],
   _nfcOnChange :: [a -> e],
   _nfcOnChangeReq :: [WidgetRequest s]
 }
@@ -50,6 +54,10 @@ instance Default (IntegralFieldCfg s e a) where
     _nfcMinValue = Nothing,
     _nfcMaxValue = Nothing,
     _nfcSelectOnFocus = Nothing,
+    _nfcOnFocus = [],
+    _nfcOnFocusReq = [],
+    _nfcOnBlur = [],
+    _nfcOnBlurReq = [],
     _nfcOnChange = [],
     _nfcOnChangeReq = []
   }
@@ -60,6 +68,10 @@ instance Semigroup (IntegralFieldCfg s e a) where
     _nfcMinValue = _nfcMinValue t2 <|> _nfcMinValue t1,
     _nfcMaxValue = _nfcMaxValue t2 <|> _nfcMaxValue t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
+    _nfcOnFocus = _nfcOnFocus t1 <> _nfcOnFocus t2,
+    _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
+    _nfcOnBlur = _nfcOnBlur t1 <> _nfcOnBlur t2,
+    _nfcOnBlurReq = _nfcOnBlurReq t1 <> _nfcOnBlurReq t2,
     _nfcOnChange = _nfcOnChange t1 <> _nfcOnChange t2,
     _nfcOnChangeReq = _nfcOnChangeReq t1 <> _nfcOnChangeReq t2
   }
@@ -85,6 +97,26 @@ instance FormattableInt a => MinValue (IntegralFieldCfg s e a) a where
 instance FormattableInt a => MaxValue (IntegralFieldCfg s e a) a where
   maxValue len = def {
     _nfcMaxValue = Just len
+  }
+
+instance OnFocus (IntegralFieldCfg s e a) e where
+  onFocus fn = def {
+    _nfcOnFocus = [fn]
+  }
+
+instance OnFocusReq (IntegralFieldCfg s e a) s where
+  onFocusReq req = def {
+    _nfcOnFocusReq = [req]
+  }
+
+instance OnBlur (IntegralFieldCfg s e a) e where
+  onBlur fn = def {
+    _nfcOnBlur = [fn]
+  }
+
+instance OnBlurReq (IntegralFieldCfg s e a) s where
+  onBlurReq req = def {
+    _nfcOnBlurReq = [req]
   }
 
 instance OnChange (IntegralFieldCfg s e a) a e where
@@ -140,6 +172,10 @@ integralFieldD_ widgetData configs = newInst where
     _ifcAcceptInput = acceptIntegralInput,
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcStyle = Just L.inputIntegralStyle,
+    _ifcOnFocus = _nfcOnFocus config,
+    _ifcOnFocusReq = _nfcOnFocusReq config,
+    _ifcOnBlur = _nfcOnBlur config,
+    _ifcOnBlurReq = _nfcOnBlurReq config,
     _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }

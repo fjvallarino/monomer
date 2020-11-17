@@ -38,6 +38,8 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcSelectOnBlur :: Maybe Bool,
   _lvcItemStyle :: Maybe Style,
   _lvcItemSelectedStyle :: Maybe Style,
+  _lvcOnFocus :: [e],
+  _lvcOnFocusReq :: [WidgetRequest s],
   _lvcOnBlur :: [e],
   _lvcOnBlurReq :: [WidgetRequest s],
   _lvcOnChange :: [a -> e],
@@ -51,6 +53,8 @@ instance Default (ListViewCfg s e a) where
     _lvcSelectOnBlur = Nothing,
     _lvcItemStyle = Nothing,
     _lvcItemSelectedStyle = Nothing,
+    _lvcOnFocus = [],
+    _lvcOnFocusReq = [],
     _lvcOnBlur = [],
     _lvcOnBlurReq = [],
     _lvcOnChange = [],
@@ -64,6 +68,8 @@ instance Semigroup (ListViewCfg s e a) where
     _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
     _lvcItemStyle = _lvcItemStyle t2 <|> _lvcItemStyle t1,
     _lvcItemSelectedStyle = _lvcItemSelectedStyle t2 <|> _lvcItemSelectedStyle t1,
+    _lvcOnFocus = _lvcOnFocus t1 <> _lvcOnFocus t2,
+    _lvcOnFocusReq = _lvcOnFocusReq t1 <> _lvcOnFocusReq t2,
     _lvcOnBlur = _lvcOnBlur t1 <> _lvcOnBlur t2,
     _lvcOnBlurReq = _lvcOnBlurReq t1 <> _lvcOnBlurReq t2,
     _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
@@ -77,12 +83,24 @@ instance Monoid (ListViewCfg s e a) where
     _lvcSelectOnBlur = Nothing,
     _lvcItemStyle = Nothing,
     _lvcItemSelectedStyle = Nothing,
+    _lvcOnFocus = [],
+    _lvcOnFocusReq = [],
     _lvcOnBlur = [],
     _lvcOnBlurReq = [],
     _lvcOnChange = [],
     _lvcOnChangeReq = [],
     _lvcOnChangeIdx = [],
     _lvcOnChangeIdxReq = []
+  }
+
+instance OnFocus (ListViewCfg s e a) e where
+  onFocus fn = def {
+    _lvcOnFocus = [fn]
+  }
+
+instance OnFocusReq (ListViewCfg s e a) s where
+  onFocusReq req = def {
+    _lvcOnFocusReq = [req]
   }
 
 instance OnBlur (ListViewCfg s e a) e where
@@ -238,6 +256,7 @@ makeListView widgetData items makeRow config state = widget where
     result = resultWidget $ createListView wenv newState newInstance
 
   handleEvent wenv target evt inst = case evt of
+    Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config inst
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _lvcSelectOnBlur config == Just True

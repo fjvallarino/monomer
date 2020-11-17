@@ -31,6 +31,10 @@ data ButtonCfg s e = ButtonCfg {
   _btnTextOverflow :: Maybe TextOverflow,
   _btnTextMode :: Maybe TextMode,
   _btnTrim :: Maybe Bool,
+  _btnOnFocus :: [e],
+  _btnOnFocusReq :: [WidgetRequest s],
+  _btnOnBlur :: [e],
+  _btnOnBlurReq :: [WidgetRequest s],
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s]
 }
@@ -41,6 +45,10 @@ instance Default (ButtonCfg s e) where
     _btnTextOverflow = Nothing,
     _btnTextMode = Nothing,
     _btnTrim = Nothing,
+    _btnOnFocus = [],
+    _btnOnFocusReq = [],
+    _btnOnBlur = [],
+    _btnOnBlurReq = [],
     _btnOnClick = [],
     _btnOnClickReq = []
   }
@@ -51,6 +59,10 @@ instance Semigroup (ButtonCfg s e) where
     _btnTextOverflow = _btnTextOverflow t2 <|> _btnTextOverflow t1,
     _btnTextMode = _btnTextMode t2 <|> _btnTextMode t1,
     _btnTrim = _btnTrim t2 <|> _btnTrim t1,
+    _btnOnFocus = _btnOnFocus t1 <> _btnOnFocus t2,
+    _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
+    _btnOnBlur = _btnOnBlur t1 <> _btnOnBlur t2,
+    _btnOnBlurReq = _btnOnBlurReq t1 <> _btnOnBlurReq t2,
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
   }
@@ -80,6 +92,26 @@ instance TextTrim (ButtonCfg s e) where
   }
   textKeepSpaces = def {
     _btnTrim = Just False
+  }
+
+instance OnFocus (ButtonCfg s e) e where
+  onFocus fn = def {
+    _btnOnFocus = [fn]
+  }
+
+instance OnFocusReq (ButtonCfg s e) s where
+  onFocusReq req = def {
+    _btnOnFocusReq = [req]
+  }
+
+instance OnBlur (ButtonCfg s e) e where
+  onBlur fn = def {
+    _btnOnBlur = [fn]
+  }
+
+instance OnBlurReq (ButtonCfg s e) s where
+  onBlurReq req = def {
+    _btnOnBlurReq = [req]
   }
 
 instance OnClick (ButtonCfg s e) e where
@@ -142,6 +174,8 @@ makeButton config state = widget where
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
   handleEvent wenv ctx evt inst = case evt of
+    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config inst
+    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config inst
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where

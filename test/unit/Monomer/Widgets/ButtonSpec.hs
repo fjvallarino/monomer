@@ -13,6 +13,8 @@ import Monomer.Widgets.Button
 
 data BtnEvent
   = BtnClick
+  | GotFocus
+  | LostFocus
   deriving (Eq, Show)
 
 spec :: Spec
@@ -31,11 +33,18 @@ handleEvent = describe "handleEvent" $ do
   it "should generate a user provided event when Enter/Space is pressed" $
     keyEvts keyReturn `shouldBe` Seq.singleton BtnClick
 
+  it "should generate an event when focus is received" $
+    events Focus `shouldBe` Seq.singleton GotFocus
+
+  it "should generate an event when focus is lost" $
+    events Blur `shouldBe` Seq.singleton LostFocus
+
   where
     wenv = mockWenv ()
-    btn = instInit wenv (button "Click" BtnClick)
-    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] btn
-    keyEvts key = instHandleEventEvts wenv [KeyAction def key KeyPressed] btn
+    btnInst = button_ "Click" BtnClick [onFocus GotFocus, onBlur LostFocus]
+    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] btnInst
+    keyEvts key = instHandleEventEvts wenv [KeyAction def key KeyPressed] btnInst
+    events evt = instHandleEventEvts wenv [evt] btnInst
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
