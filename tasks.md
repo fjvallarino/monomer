@@ -280,10 +280,10 @@ Maybe postponed after release?
   - Find way of avoiding hover effects when widget is not in the top layer
     - Hover should only be active for top level item
       - I need to think a way of setting a layer state for zstack
+  - Maybe isPointInViewport should be replaced by something specific for each Widget
   - Check label with flexHeight
   - TextOverflow in TextStyle?
   - Add Bold/Italic support (instead of different Font for each case)
-  - Maybe isPointInViewport should be replaced by something specific for each Widget
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Further textField improvements
     - Handle undo history
@@ -292,6 +292,8 @@ Maybe postponed after release?
   - Handle window title, maximize, etc
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
+  - VStack should set itself to a fixed size if all children are fixed
+    - ZStack should set _weIsTopLayer based on used space
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)

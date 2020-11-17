@@ -5,7 +5,7 @@ module Monomer.Widgets.ZStack (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (forM_, when)
+import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
 import Data.List (foldl')
@@ -112,14 +112,22 @@ makeZStack config = widget where
   render renderer wenv inst =
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \_ ->
-        forM_ children $ \child -> when (isVisible child) $
-          widgetRender (_wiWidget child) renderer wenv child
+        void $ Seq.traverseWithIndex renderChild children
     where
       style = activeStyle wenv inst
       children = Seq.reverse $ _wiChildren inst
       viewport = _wiViewport inst
       renderArea = _wiRenderArea inst
       isVisible c = _wiVisible c
+      topVisibleIdx = fromMaybe 0 (Seq.findIndexR _wiVisible children)
+      isTopLayer idx child point = prevTopLayer && isTopChild where
+        isTopChild = idx == topVisibleIdx
+        prevTopLayer = _weInTopLayer wenv point
+      cWenv idx child = wenv {
+        _weInTopLayer = isTopLayer idx child
+      }
+      renderChild idx child = when (isVisible child) $
+        widgetRender (_wiWidget child) renderer (cWenv idx child) child
 
 findFirstByPoint
   :: Seq (WidgetInstance s e)
