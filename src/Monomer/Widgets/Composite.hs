@@ -489,7 +489,8 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weOverlayPath = _weOverlayPath wenv,
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
-  _weTimestamp = _weTimestamp wenv
+  _weTimestamp = _weTimestamp wenv,
+  _weInTopLayer = _weInTopLayer wenv
 }
 
 cascadeCtx :: WidgetInstance sp ep -> WidgetInstance s e -> WidgetInstance s e

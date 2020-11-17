@@ -118,7 +118,8 @@ runApp window theme fonts widgetRoot = do
     _weOverlayPath = Nothing,
     _weModel = model,
     _weInputStatus = def,
-    _weTimestamp = startTs
+    _weTimestamp = startTs,
+    _weInTopLayer = const True
   }
   let pathReadyRoot = widgetRoot {
     _wiPath = Seq.singleton 0
@@ -179,7 +180,8 @@ mainLoop window renderer loopArgs = do
     _weOverlayPath = overlay,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
-    _weTimestamp = startTicks
+    _weTimestamp = startTicks,
+    _weInTopLayer = const True
   }
 
   --when newSecond $

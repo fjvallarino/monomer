@@ -259,6 +259,7 @@
     - Check clipboard
   - Check Container thing in hover adding columns (not targetValid = Nothing should be removed)
   - Add missing keyboard functions in Event
+  - Handle onBlur/onFocus in all focusable widgets
 
 - Pending
   - Add testing
@@ -276,11 +277,14 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Find way of avoiding hover effects when widget is not in the top layer
+    - Hover should only be active for top level item
+      - I need to think a way of setting a layer state for zstack
   - Check label with flexHeight
-  - Make WidgetState Generic (check if it's worth it)
+  - TextOverflow in TextStyle?
   - Add Bold/Italic support (instead of different Font for each case)
-  - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Maybe isPointInViewport should be replaced by something specific for each Widget
+  - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection
@@ -288,14 +292,9 @@ Maybe postponed after release?
   - Handle window title, maximize, etc
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
-  - TextOverflow in TextStyle?
-  - Handle onBlur/onFocus in all focusable widgets
   - Avoid findNextFocus on unfocusable children (listView items)
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
-  - Find way of avoiding hover effects when widget is not in the top layer
-    - Hover should only be active for top level item
-      - I need to think a way of setting a layer state for zstack
   - Button should change color when clicked/actioned
   - Add Maps on Theme to handle user widget settings
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)

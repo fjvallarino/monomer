@@ -53,11 +53,11 @@ makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
   baseWidget = createContainer def {
     containerFindNextFocus = findNextFocus,
-    containerGetSizeReq = getSizeReq,
-    containerResize = resize
+    containerGetSizeReq = getSizeReq
   }
   widget = baseWidget {
     widgetFindByPoint = findByPoint,
+    widgetResize = resizeWrapper True resize,
     widgetRender = render
   }
 

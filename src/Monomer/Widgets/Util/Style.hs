@@ -32,8 +32,9 @@ type EventHandler s e
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
 activeStyle wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
+  mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = _wiEnabled inst
-  isHover = isHovered wenv inst
+  isHover = _weInTopLayer wenv mousePos && isHovered wenv inst
   isFocus = isFocused wenv inst
   styleState
     | not isEnabled = _styleDisabled
@@ -53,8 +54,9 @@ focusedStyle wenv inst = fromMaybe def styleState where
 activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
 activeTheme wenv inst = themeState where
   theme = _weTheme wenv
+  mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = _wiEnabled inst
-  isHover = isHovered wenv inst
+  isHover = _weInTopLayer wenv mousePos && isHovered wenv inst
   isFocus = isFocused wenv inst
   themeState
     | not isEnabled = _themeDisabled theme

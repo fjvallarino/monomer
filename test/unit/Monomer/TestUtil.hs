@@ -114,7 +114,8 @@ mockWenv model = WidgetEnv {
   _weCurrentCursor = CursorArrow,
   _weModel = model,
   _weInputStatus = def,
-  _weTimestamp = 0
+  _weTimestamp = 0,
+  _weInTopLayer = const True
 }
 
 mockWenvEvtUnit :: s -> WidgetEnv s ()

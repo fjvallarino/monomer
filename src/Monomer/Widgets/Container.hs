@@ -157,7 +157,7 @@ createContainer Container{..} = Widget {
   widgetHandleEvent = handleEventWrapper False containerHandleEvent,
   widgetHandleMessage = handleMessageWrapper containerHandleMessage,
   widgetUpdateSizeReq = updateSizeReqWrapper containerGetSizeReq,
-  widgetResize = resizeWrapper containerResize,
+  widgetResize = resizeWrapper False containerResize,
   widgetRender = renderWrapper containerRender
 }
 
@@ -492,20 +492,25 @@ defaultResize wenv viewport renderArea children inst = newSize where
   newSize = (inst, childrenSizes)
 
 resizeWrapper
-  :: ContainerResizeHandler s e
+  :: Bool
+  -> ContainerResizeHandler s e
   -> WidgetEnv s e
   -> Rect
   -> Rect
   -> WidgetInstance s e
   -> WidgetInstance s e
-resizeWrapper handler wenv viewport renderArea inst = newInst where
+resizeWrapper keepSizes handler wenv viewport renderArea inst = newInst where
   children = _wiChildren inst
   (tempInst, assigned) = handler wenv viewport renderArea children inst
   resize (child, (vp, ra)) = newChildInst where
     tempChildInst = widgetResize (_wiWidget child) wenv vp ra child
+    cvp = _wiViewport tempChildInst
+    cra = _wiRenderArea tempChildInst
+    icvp = fromMaybe vp (intersectRects vp cvp)
+    icra = fromMaybe ra (intersectRects ra cra)
     newChildInst = tempChildInst {
-      _wiViewport = vp,
-      _wiRenderArea = ra
+      _wiViewport = if keepSizes then icvp else vp,
+      _wiRenderArea = if keepSizes then icra else ra
     }
   newChildren = resize <$> Seq.zip children assigned
   newInst = tempInst {

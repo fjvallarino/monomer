@@ -88,7 +88,8 @@ data WidgetEnv s e = WidgetEnv {
   _weCurrentCursor :: CursorIcon,
   _weModel :: s,
   _weInputStatus :: InputStatus,
-  _weTimestamp :: Timestamp
+  _weTimestamp :: Timestamp,
+  _weInTopLayer :: Point -> Bool
 }
 
 data Widget s e =
