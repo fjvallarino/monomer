@@ -90,6 +90,12 @@ newtype StyleChangeCfg = StyleChangeCfg {
   _sccHandleCursorEvt :: SystemEvent -> Bool
 }
 
+instance Default StyleChangeCfg where {
+  def = StyleChangeCfg {
+    _sccHandleCursorEvt = isOnEnter
+  }
+}
+
 handleStyleChange
   :: WidgetEnv s e
   -> Path
