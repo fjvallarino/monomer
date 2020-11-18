@@ -10,8 +10,8 @@ module Monomer.Widgets.Button (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((^.))
-import Control.Monad (forM_)
+import Control.Lens ((&), (^.))
+import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
@@ -204,6 +204,14 @@ makeButton config state = widget where
       _wiWidget = newWidget
     }
 
-  render renderer wenv inst = action where
-    style = activeStyle wenv inst
-    action = forM_ textLines (drawTextLine renderer style)
+  render renderer wenv inst = do
+    when isPressed $
+      drawRect renderer renderArea bgColor (_sstRadius style)
+    forM_ textLines (drawTextLine renderer style)
+
+    where
+      style = activeStyle wenv inst
+      inputStatus = wenv ^. L.inputStatus
+      renderArea = _wiRenderArea inst
+      isPressed = isButtonPressedInRect inputStatus LeftBtn renderArea
+      bgColor = Just $ Color 0 0 0 0.2

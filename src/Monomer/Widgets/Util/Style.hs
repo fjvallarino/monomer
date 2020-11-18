@@ -105,8 +105,7 @@ handleStyleChange
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
 handleStyleChange wenv target evt style result inst = newResult where
-  cfg = StyleChangeCfg isOnEnter
-  newResult = handleStyleChange_ wenv target evt style result cfg inst
+  newResult = handleStyleChange_ wenv target evt style result def inst
 
 handleStyleChange_
   :: WidgetEnv s e

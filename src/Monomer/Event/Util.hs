@@ -14,6 +14,12 @@ isButtonPressed inputStatus button = status == PressedBtn where
   currentStatus = M.lookup button (_ipsButtons inputStatus)
   status = fromMaybe ReleasedBtn currentStatus
 
+isButtonPressedInRect :: InputStatus -> Button -> Rect -> Bool
+isButtonPressedInRect inputStatus button rect = pressed && inRect where
+  mousePos = _ipsMousePos inputStatus
+  inRect = pointInRect mousePos rect
+  pressed = isButtonPressed inputStatus button
+
 getKeyStatus :: InputStatus -> KeyCode -> KeyStatus
 getKeyStatus inputStatus code = status where
   keys = _ipsKeys inputStatus

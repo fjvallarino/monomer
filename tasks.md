@@ -263,6 +263,12 @@
   - Find way of avoiding hover effects when widget is not in the top layer
     - Hover should only be active for top level item
       - I need to think a way of setting a layer state for zstack
+  - Maybe isPointInViewport should be replaced by something specific for each Widget
+    - Generalized utility functions to use them in specific widgets
+    - The findWidgetByPoint route is problematic, since it can lead to mutual recursion
+  - TextStyle changes **CANCELLED**
+    - TextOverflow in TextStyle?
+    - Add Bold/Italic support (instead of different Font for each case)
 
 - Pending
   - Add testing
@@ -280,10 +286,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Maybe isPointInViewport should be replaced by something specific for each Widget
   - Check label with flexHeight
-  - TextOverflow in TextStyle?
-  - Add Bold/Italic support (instead of different Font for each case)
+  - Button should change color when clicked/actioned
+  - Add Maps on Theme to handle user widget settings
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Further textField improvements
     - Handle undo history
@@ -295,15 +300,15 @@ Maybe postponed after release?
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
   - Avoid findNextFocus on unfocusable children (listView items)
+    - Does this make sense? Check with a composite listView item
+    - Focus event may need to be handled to update highlighted item
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
-  - Button should change color when clicked/actioned
-  - Add Maps on Theme to handle user widget settings
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
-  - Compare Cairo/Skia interfaces to make Renderer able to handle future implementations
+  - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Image
     - Can performance be improved?
@@ -327,8 +332,10 @@ Maybe postponed after release?
   - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
   - Check threadDelay usage: https://stackoverflow.com/questions/33149324/haskell-ghc-per-thread-memory-costs
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Implement SDL_Surface + Cairo backend
-    - Can we cache some drawing operations?
-    - Add new request types (drag started, drag stopped, drag cancelled)
-    - Add new events (drag hover)
-    - SDL supports Drag and Drop integration with OS
+  - Look for alternatives to NanoVG
+    - Check ImDrawList. Support for OpenGL/Metal/Vulkan out of the box
+    - Check SDL_Surface + Cairo backend. It most likely won't happen
+  - Can we cache some drawing operations?
+  - Add new request types (drag started, drag stopped, drag cancelled)
+  - Add new events (drag hover)
+  - SDL supports Drag and Drop integration with OS
