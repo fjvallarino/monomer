@@ -202,7 +202,7 @@ buildUI model = trace "Creating UI" widgetTree where
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis] `style` [width 300, flexHeight 50],
         label "Jj label"
-      ],
+      ] `hover` [bgColor red],
       hstack [
         scroll_ (
           scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])

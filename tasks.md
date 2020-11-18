@@ -260,6 +260,9 @@
   - Check Container thing in hover adding columns (not targetValid = Nothing should be removed)
   - Add missing keyboard functions in Event
   - Handle onBlur/onFocus in all focusable widgets
+  - Find way of avoiding hover effects when widget is not in the top layer
+    - Hover should only be active for top level item
+      - I need to think a way of setting a layer state for zstack
 
 - Pending
   - Add testing
@@ -277,9 +280,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Find way of avoiding hover effects when widget is not in the top layer
-    - Hover should only be active for top level item
-      - I need to think a way of setting a layer state for zstack
   - Maybe isPointInViewport should be replaced by something specific for each Widget
   - Check label with flexHeight
   - TextOverflow in TextStyle?

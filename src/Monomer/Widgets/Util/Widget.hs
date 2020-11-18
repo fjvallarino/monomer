@@ -14,6 +14,7 @@ module Monomer.Widgets.Util.Widget (
   makeState,
   useState,
   instanceMatches,
+  isTopLevel,
   handleFocusChange
 ) where
 
@@ -106,7 +107,9 @@ instanceMatches newInstance oldInstance = typeMatches && keyMatches where
   keyMatches = _wiKey oldInstance == _wiKey newInstance
 
 isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isTopLevel wenv inst = maybe True isPrefix (wenv ^. L.overlayPath) where
+isTopLevel wenv inst = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  inTopLayer = wenv ^. L.inTopLayer $ mousePos
   path = _wiPath inst
   isPrefix parent = Seq.take (Seq.length parent) path == parent
 

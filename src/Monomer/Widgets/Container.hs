@@ -396,14 +396,15 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper container wenv target event inst
   | not (_wiVisible inst) = Nothing
-  | targetReached || not targetValid = styledParentResult
-  | styleOnMerge = styledChildrenResult
-  | otherwise = childrenResult
+  | targetReached || not targetValid = pResultStyled
+  | styleOnMerge = cResultStyled
+  | otherwise = cResult
   where
     -- Having targetValid = False means the next path step is not in
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
+    style = activeStyle wenv inst
     styleOnMerge = containerStyleOnMerge container
     pHandler = containerHandleEvent container
     targetReached = isTargetReached target inst
@@ -417,10 +418,9 @@ handleEventWrapper container wenv target event inst
     cResponse
       | childrenIgnored || not (_wiEnabled child) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
-    sHandler _ _ _ _ = mergeParentChildEvts inst pResponse cResponse childIdx
-    styledParentResult = handleStyleChange pHandler wenv target event inst
-    childrenResult = mergeParentChildEvts inst pResponse cResponse childIdx
-    styledChildrenResult = handleStyleChange sHandler wenv target event inst
+    pResultStyled = handleStyleChange wenv target event style pResponse inst
+    cResult = mergeParentChildEvts inst pResponse cResponse childIdx
+    cResultStyled = handleStyleChange wenv target event style cResult inst
 
 mergeParentChildEvts
   :: WidgetInstance s e

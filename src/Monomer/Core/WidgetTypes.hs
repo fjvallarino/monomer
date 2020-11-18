@@ -71,6 +71,7 @@ data WidgetResult s e = WidgetResult {
   _wrWidget :: WidgetInstance s e
 }
 
+-- This instance is lawless (there is not an empty widget): use with caution
 instance Semigroup (WidgetResult s e) where
   er1 <> er2 = WidgetResult reqs evts widget where
     reqs = _wrRequests er1 <> _wrRequests er2

@@ -63,3 +63,7 @@ isOnEnter _ = False
 isOnLeave :: SystemEvent -> Bool
 isOnLeave Leave{} = True
 isOnLeave _ = False
+
+isOnMove :: SystemEvent -> Bool
+isOnMove Move{} = True
+isOnMove _ = False

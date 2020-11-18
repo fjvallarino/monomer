@@ -237,6 +237,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     | otherwise = Empty
 
   handleEvent wenv target evt inst = case evt of
+    Enter{} -> Nothing -- to have handleStyleChange applied
     Click point _
       | openRequired point inst -> Just $ openDropdown wenv inst
       | closeRequired point inst -> Just $ closeDropdown wenv inst

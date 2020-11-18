@@ -123,25 +123,43 @@ radioD_ widgetData option configs = radioInstance where
 
 makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
-  widget = createSingle def {
+  baseWidget = createSingle def {
     singleGetBaseStyle = getBaseStyle,
-    singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
+  }
+  widget = baseWidget {
+    widgetHandleEvent = localEventWrapper
   }
 
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.radioStyle
 
+  localEventWrapper wenv target evt inst
+    | not (_wiVisible inst) = Nothing
+    | otherwise = handleStyleChange_ wenv target evt style_ result cfg inst
+    where
+      theme = activeTheme wenv inst
+      style = activeStyle wenv inst
+      style_ = activeStyle_ (isHoveredEllipse_ radioArea) wenv inst
+      contentArea = getContentArea style inst
+      radioArea = getRadioArea theme style config contentArea
+      cfg = StyleChangeCfg isOnMove
+      result = handleEvent wenv target evt inst
+
   handleEvent wenv target evt inst = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config inst
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config inst
     Click p _
-      | pointInViewport p inst -> Just $ resultReqsEvents clickReqs events inst
+      | pointInEllipse p rarea -> Just $ resultReqsEvents clickReqs events inst
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqsEvents reqs events inst
     _ -> Nothing
     where
+      theme = activeTheme wenv inst
+      style = activeStyle wenv inst
+      contentArea = getContentArea style inst
+      rarea = getRadioArea theme style config contentArea
       isSelectKey code = isKeyReturn code || isKeySpace code
       events = fmap ($ option) (_rdcOnChange config)
       setValueReq = widgetDataSet field option
@@ -163,14 +181,19 @@ makeRadio field option config = widget where
       model = _weModel wenv
       theme = activeTheme wenv inst
       style = activeStyle wenv inst
+      contentArea = getContentArea style inst
       value = widgetDataGet model field
-      rarea = getContentArea style inst
-      radioW = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
-      radioBW = max 1 (radioW * 0.1)
-      radioL = _rX rarea + (_rW rarea - radioW) / 2
-      radioT = _rY rarea + (_rH rarea - radioW) / 2
-      radioArea = Rect radioL radioT radioW radioW
-      fgColor = styleFgColor style
+      radioArea = getRadioArea theme style config contentArea
+      radioBW = max 1 (_rW radioArea * 0.1)
+      style_ = activeStyle_ (isHoveredEllipse_ radioArea) wenv inst
+      fgColor = styleFgColor style_
+
+getRadioArea :: ThemeState -> StyleState -> RadioCfg s e a -> Rect -> Rect
+getRadioArea theme style config rarea = radioArea where
+  radioW = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
+  radioL = _rX rarea + (_rW rarea - radioW) / 2
+  radioT = _rY rarea + (_rH rarea - radioW) / 2
+  radioArea = Rect radioL radioT radioW radioW
 
 renderRadio :: Renderer -> Double -> Rect -> Color -> IO ()
 renderRadio renderer radioBW rect color = action where
@@ -181,3 +204,8 @@ renderMark renderer radioBW rect color = action where
   w = radioBW * 2
   newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawEllipse renderer newRect (Just color)
+
+isHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetInstance s e -> Bool
+isHoveredEllipse_ area wenv inst = validPos && isTopLevel wenv inst where
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  validPos = pointInEllipse mousePos area

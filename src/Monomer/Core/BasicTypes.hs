@@ -41,6 +41,15 @@ rootPath = Seq.empty
 pointInRect :: Point -> Rect -> Bool
 pointInRect (Point px py) rect = coordInRectH px rect && coordInRectY py rect
 
+pointInEllipse :: Point -> Rect -> Bool
+pointInEllipse (Point px py) rect = ellipseTest <= 1 where
+  Rect rx ry rw rh = rect
+  ew = rw / 2
+  eh = rh / 2
+  cx = rx + ew
+  cy = ry + eh
+  ellipseTest = ((px - cx) ^ 2) / ew ^ 2  + ((py - cy) ^ 2) / eh ^ 2
+
 addPoint :: Point -> Point -> Point
 addPoint (Point x1 y1) (Point x2 y2) = Point (x1 + x2) (y1 + y2)
 

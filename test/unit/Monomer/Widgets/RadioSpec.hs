@@ -50,7 +50,7 @@ handleEvent = describe "handleEvent" $ do
     clickModel (Point 3000 3000) orangeInst ^. fruit `shouldBe` Apple
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) orangeInst ^. fruit `shouldBe` Orange
+    clickModel (Point 320 240) orangeInst ^. fruit `shouldBe` Orange
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn bananaInst ^. fruit `shouldBe` Banana
@@ -62,7 +62,7 @@ handleEvent = describe "handleEvent" $ do
     events Blur orangeInst `shouldBe` Seq.singleton LostFocus
 
   where
-    wenv = mockWenv (TestModel Apple)
+    wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
     orangeInst = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
     bananaInst = radio fruit Banana
     clickModel p inst = instHandleEventModel wenv [Click p LeftBtn] inst
@@ -75,13 +75,13 @@ handleEventValue = describe "handleEventValue" $ do
     clickModel (Point 3000 3000) orangeInst `shouldBe` Seq.empty
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) orangeInst `shouldBe` Seq.singleton (FruitSel Orange)
+    clickModel (Point 320 240) orangeInst `shouldBe` Seq.singleton (FruitSel Orange)
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn bananaInst `shouldBe` Seq.singleton (FruitSel Banana)
 
   where
-    wenv = mockWenv (TestModel Apple)
+    wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
     orangeInst = radioV Apple FruitSel Orange
     bananaInst = radioV Apple FruitSel Banana
     clickModel p inst = instHandleEventEvts wenv [Click p LeftBtn] inst

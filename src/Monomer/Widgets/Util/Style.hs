@@ -1,11 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
-  activeStyle,
-  focusedStyle,
+  StyleChangeCfg(..),
   activeTheme,
+  activeTheme_,
+  activeStyle,
+  activeStyle_,
+  focusedStyle,
   initInstanceStyle,
-  handleStyleChange
+  handleStyleChange,
+  handleStyleChange_
 ) where
 
 import Control.Applicative ((<|>))
@@ -22,19 +26,18 @@ import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
-type EventHandler s e
-  = WidgetEnv s e
-  -> Path
-  -> SystemEvent
-  -> WidgetInstance s e
-  -> Maybe (WidgetResult s e)
+type IsHovered s e = WidgetEnv s e -> WidgetInstance s e -> Bool
 
+-- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-activeStyle wenv inst = fromMaybe def styleState where
+activeStyle wenv inst = activeStyle_ isHovered wenv inst
+
+activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> StyleState
+activeStyle_ isHoveredFn wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = _wiEnabled inst
-  isHover = _weInTopLayer wenv mousePos && isHovered wenv inst
+  isHover = isHoveredFn wenv inst
   isFocus = isFocused wenv inst
   styleState
     | not isEnabled = _styleDisabled
@@ -44,19 +47,25 @@ activeStyle wenv inst = fromMaybe def styleState where
     | otherwise = _styleBasic
 
 focusedStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-focusedStyle wenv inst = fromMaybe def styleState where
+focusedStyle wenv inst = focusedStyle_ isHovered wenv inst
+
+focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> StyleState
+focusedStyle_ isHoveredFn wenv inst = fromMaybe def styleState where
   Style{..} = _wiStyle inst
-  isHover = isHovered wenv inst
+  isHover = isHoveredFn wenv inst
   styleState
     | isHover = _styleHover <> _styleFocus
     | otherwise = _styleFocus
 
 activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
-activeTheme wenv inst = themeState where
+activeTheme wenv inst = activeTheme_ isHovered wenv inst
+
+activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> ThemeState
+activeTheme_ isHoveredFn wenv inst = themeState where
   theme = _weTheme wenv
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = _wiEnabled inst
-  isHover = _weInTopLayer wenv mousePos && isHovered wenv inst
+  isHover = isHoveredFn wenv inst
   isFocus = isFocused wenv inst
   themeState
     | not isEnabled = _themeDisabled theme
@@ -77,19 +86,48 @@ initInstanceStyle wenv mbaseStyle inst = newInst where
     _wiStyle = themeStyle <> baseStyle <> instStyle
   }
 
+newtype StyleChangeCfg = StyleChangeCfg {
+  _sccHandleCursorEvt :: SystemEvent -> Bool
+}
+
 handleStyleChange
-  :: EventHandler s e
-  -> WidgetEnv s e
+  :: WidgetEnv s e
   -> Path
   -> SystemEvent
+  -> StyleState
+  -> Maybe (WidgetResult s e)
   -> WidgetInstance s e
   -> Maybe (WidgetResult s e)
-handleStyleChange handler wenv target evt inst = newResult where
-  style = activeStyle wenv inst
-  hResult
-    | _wiEnabled inst = handler wenv target evt inst
-    | otherwise = Nothing
-  result = fromMaybe (resultWidget inst) hResult
+handleStyleChange wenv target evt style result inst = newResult where
+  cfg = StyleChangeCfg isOnEnter
+  newResult = handleStyleChange_ wenv target evt style result cfg inst
+
+handleStyleChange_
+  :: WidgetEnv s e
+  -> Path
+  -> SystemEvent
+  -> StyleState
+  -> Maybe (WidgetResult s e)
+  -> StyleChangeCfg
+  -> WidgetInstance s e
+  -> Maybe (WidgetResult s e)
+handleStyleChange_ wenv target evt style result cfg inst = newResult where
+  baseResult = fromMaybe (resultWidget inst) result
+  sizeReqs = handleSizeChange wenv target evt cfg inst
+  cursorReqs = handleCursorChange wenv target evt style cfg inst
+  reqs = sizeReqs ++ cursorReqs
+  newResult
+    | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
+    | otherwise = result
+
+handleSizeChange
+  :: WidgetEnv s e
+  -> Path
+  -> SystemEvent
+  -> StyleChangeCfg
+  -> WidgetInstance s e
+  -> [WidgetRequest s]
+handleSizeChange wenv target evt cfg inst = reqs where
   -- Size
   checkSize = or $ fmap ($ evt) [isOnFocus, isOnBlur, isOnEnter, isOnLeave]
   instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
@@ -98,21 +136,29 @@ handleStyleChange handler wenv target evt inst = newResult where
   newSizeReqW = _wiSizeReqW instReqs
   newSizeReqH = _wiSizeReqH instReqs
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
+  -- Result
+  reqs = [ Resize | checkSize && sizeReqChanged ]
+
+handleCursorChange
+  :: WidgetEnv s e
+  -> Path
+  -> SystemEvent
+  -> StyleState
+  -> StyleChangeCfg
+  -> WidgetInstance s e
+  -> [WidgetRequest s]
+handleCursorChange wenv target evt style cfg inst = reqs where
   -- Cursor
+  isCursorEvt = _sccHandleCursorEvt cfg
   isTarget = _wiPath inst == target
   curIcon = wenv ^. L.currentCursor
-  nonOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv inst)
+  notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv inst)
   newIcon
-    | nonOverlay = CursorArrow
+    | notInOverlay = CursorArrow
     | otherwise = fromMaybe CursorArrow (_sstCursorIcon style)
-  setCursor = isTarget && newIcon /= curIcon && (isOnEnter evt || nonOverlay)
+  setCursor = isTarget && newIcon /= curIcon && (isCursorEvt evt || notInOverlay)
   -- Result
-  resizeReq = [ Resize | checkSize && sizeReqChanged ]
-  cursorReq = [ SetCursorIcon newIcon | setCursor ]
-  reqs = resizeReq ++ cursorReq
-  newResult
-    | not (null reqs) = Just (result & L.requests <>~ Seq.fromList reqs)
-    | otherwise = hResult
+  reqs = [ SetCursorIcon newIcon | setCursor ]
 
 baseStyleFromTheme :: Theme -> Style
 baseStyleFromTheme theme = style where
