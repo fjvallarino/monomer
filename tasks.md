@@ -269,6 +269,7 @@
   - TextStyle changes **CANCELLED**
     - TextOverflow in TextStyle?
     - Add Bold/Italic support (instead of different Font for each case)
+  - Button should change color when clicked/actioned
 
 - Pending
   - Add testing
@@ -287,7 +288,6 @@
 
 Maybe postponed after release?
   - Check label with flexHeight
-  - Button should change color when clicked/actioned
   - Add Maps on Theme to handle user widget settings
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Further textField improvements

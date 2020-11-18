@@ -138,8 +138,9 @@ fitTextToRect wenv style overflow mode trim rect text = newTextLines where
   firstLine = Seq.take 1 textLinesW
   firstLineW = _sW (getTextLinesSize firstLine)
   needsEllipsis = overflow == Ellipsis && (textLinesLen > 1 || firstLineW > cw)
+  fittedLines = fitTextLinesToH wenv style overflow cw ch textLinesW
   textLines
-    | mode == MultiLine = fitTextLinesToH wenv style overflow cw ch textLinesW
+    | mode == MultiLine && not (Seq.null fittedLines) = fittedLines
     | needsEllipsis = addEllipsisToTextLine wenv style cw <$> firstLine
     | otherwise = firstLine
   newTextLines = alignTextLines rect alignH alignV textLines
