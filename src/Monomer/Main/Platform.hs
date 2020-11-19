@@ -1,4 +1,5 @@
 module Monomer.Main.Platform where
+{- HLint Ignore: Use forM_ -}
 
 import Control.Monad.State
 import Data.Maybe
@@ -29,7 +30,7 @@ defaultWindowSize = (640, 480)
 defaultUseHdpi :: Bool
 defaultUseHdpi = True
 
-initSDLWindow :: AppConfig e -> IO SDL.Window
+initSDLWindow :: AppConfig e -> IO (SDL.Window, Double)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
@@ -37,17 +38,6 @@ initSDLWindow config = do
   do renderQuality <- SDL.get SDL.HintRenderScaleQuality
      when (renderQuality /= SDL.ScaleLinear) $
        putStrLn "Warning: Linear texture filtering not enabled!"
-
-  let customOpenGL = SDL.OpenGLConfig {
-    SDL.glColorPrecision = SDL.V4 8 8 8 0,
-    SDL.glDepthPrecision = 24,
-    SDL.glStencilPrecision = 8,
-    SDL.glProfile = SDL.Core SDL.Debug 3 2,
-    SDL.glMultisampleSamples = 1
-  }
-
-  let (winW, winH) = fromMaybe defaultWindowSize (_apcWindowSize config)
-  let windowHiDPI = fromMaybe defaultUseHdpi (_apcHdpi config)
 
   window <-
     SDL.createWindow
@@ -59,6 +49,19 @@ initSDLWindow config = do
         SDL.windowGraphicsContext = SDL.OpenGLContext customOpenGL
       }
 
+  -- Get device pixel rate
+  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+  let dpr = fromIntegral fbWidth / fromIntegral winW
+
+  when (isJust (_apcWindowTitle config)) $
+    SDL.windowTitle window $= fromJust (_apcWindowTitle config)
+
+  when windowFullscreen $
+    SDL.setWindowMode window SDL.FullscreenDesktop
+
+  when windowMaximized $
+    SDL.setWindowMode window SDL.Maximized
+
   err <- SRE.getError
   err <- STR.peekCString err
   putStrLn err
@@ -67,12 +70,32 @@ initSDLWindow config = do
 
   _ <- glewInit
 
-  return window
+  return (window, dpr)
+  where
+    customOpenGL = SDL.OpenGLConfig {
+      SDL.glColorPrecision = SDL.V4 8 8 8 0,
+      SDL.glDepthPrecision = 24,
+      SDL.glStencilPrecision = 8,
+      SDL.glProfile = SDL.Core SDL.Debug 3 2,
+      SDL.glMultisampleSamples = 1
+    }
+    (winW, winH) = case _apcWindowState config of
+      Just (MainWindowNormal size) -> size
+      _ -> defaultWindowSize
+    windowHiDPI = fromMaybe defaultUseHdpi (_apcHdpi config)
+    windowFullscreen = case _apcWindowState config of
+      Just MainWindowFullScreen -> True
+      _ -> False
+    windowMaximized = case _apcWindowState config of
+      Just MainWindowMaximized -> True
+      _ -> False
+
 
 detroySDLWindow :: SDL.Window -> IO ()
 detroySDLWindow window = do
   putStrLn "About to destroyWindow"
   SDL.destroyWindow window
+  Raw.quitSubSystem Raw.SDL_INIT_VIDEO
   SDL.quit
 
 getCurrentMousePos :: (MonadIO m) => m Point

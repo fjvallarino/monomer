@@ -30,8 +30,8 @@ data TextOverflow
   deriving (Eq, Show)
 
 data WindowRequest
-  = WindowTitle Text
-  | WindowFullScreen
+  = WindowSetTitle Text
+  | WindowSetFullScreen
   | WindowMaximize
   | WindowMinimize
   | WindowRestore

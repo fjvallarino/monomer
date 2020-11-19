@@ -32,6 +32,10 @@ main = do
   let config = [
         --windowSize (1280, 960),
         --windowSize (320, 240),
+        --mainWindowState MainWindowFullScreen,
+        --mainWindowState MainWindowMaximized,
+        --mainWindowState $ MainWindowNormal (640, 480),
+        mainWindowTitle "This is my title",
         useHdpi True,
         appTheme theme,
         appInitEvent InitApp,
@@ -75,9 +79,9 @@ handleAppEvent model evt = case evt of
   RunShortTask -> [Task $ do
     putStrLn "Running!"
     return $ Just (PrintMessage "Done!")]
-  ChangeTitle title -> [Request (UpdateWindow (WindowTitle title))]
+  ChangeTitle title -> [Request (UpdateWindow (WindowSetTitle title))]
   ExitApp -> [Request ExitApplication]
-  FullWindow -> [Request (UpdateWindow WindowFullScreen)]
+  FullWindow -> [Request (UpdateWindow WindowSetFullScreen)]
   MaxWindow -> [Request (UpdateWindow WindowMaximize)]
   MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]
   RestoreWindowSchedule -> [Task $ do

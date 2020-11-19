@@ -242,8 +242,8 @@ handleUpdateWindow
 handleUpdateWindow windowRequest previousStep = do
   window <- use L.window
   case windowRequest of
-    WindowTitle title -> SDL.windowTitle window $= title
-    WindowFullScreen -> SDL.setWindowMode window SDL.FullscreenDesktop
+    WindowSetTitle title -> SDL.windowTitle window $= title
+    WindowSetFullScreen -> SDL.setWindowMode window SDL.FullscreenDesktop
     WindowMaximize -> SDL.setWindowMode window SDL.Maximized
     WindowMinimize -> SDL.setWindowMode window SDL.Minimized
     WindowRestore -> SDL.setWindowMode window SDL.Windowed

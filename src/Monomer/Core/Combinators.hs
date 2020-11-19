@@ -10,10 +10,6 @@ import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
--- Config
-class WindowSize t s | t -> s where
-  windowSize :: s -> t
-
 -- Input
 class ValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t

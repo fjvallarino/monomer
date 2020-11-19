@@ -70,17 +70,15 @@ simpleApp_
   -> [AppConfig e]
   -> IO ()
 simpleApp_ model eventHandler uiBuilder configs = do
-  window <- initSDLWindow config
+  (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
-  let dpr = _sW winSize / fromIntegral winW
   let monomerContext = initMonomerContext () window winSize useHdpi dpr
 
   runStateT (runApp window theme fonts appWidget) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
-    (winW, winH) = fromMaybe defaultWindowSize (_apcWindowSize config)
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
     fonts = _apcFonts config
     theme = fromMaybe def (_apcTheme config)

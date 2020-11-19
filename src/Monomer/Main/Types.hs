@@ -48,8 +48,15 @@ data MonomerContext s = MonomerContext {
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor
 }
 
+data MainWindowState
+  = MainWindowNormal (Int, Int)
+  | MainWindowMaximized
+  | MainWindowFullScreen
+  deriving (Eq, Show)
+
 data AppConfig e = AppConfig {
-  _apcWindowSize :: Maybe (Int, Int),
+  _apcWindowState :: Maybe MainWindowState,
+  _apcWindowTitle :: Maybe Text,
   _apcHdpi :: Maybe Bool,
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
@@ -58,7 +65,8 @@ data AppConfig e = AppConfig {
 
 instance Default (AppConfig e) where
   def = AppConfig {
-    _apcWindowSize = Nothing,
+    _apcWindowState = Nothing,
+    _apcWindowTitle = Nothing,
     _apcHdpi = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
@@ -67,7 +75,8 @@ instance Default (AppConfig e) where
 
 instance Semigroup (AppConfig e) where
   (<>) a1 a2 = AppConfig {
-    _apcWindowSize = _apcWindowSize a2 <|> _apcWindowSize a1,
+    _apcWindowState = _apcWindowState a2 <|> _apcWindowState a1,
+    _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
     _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
@@ -77,10 +86,15 @@ instance Semigroup (AppConfig e) where
 instance Monoid (AppConfig e) where
   mempty = def
 
-instance WindowSize (AppConfig e) (Int, Int) where
-  windowSize size = def {
-    _apcWindowSize = Just size
-  }
+mainWindowState :: MainWindowState -> AppConfig e
+mainWindowState title = def {
+  _apcWindowState = Just title
+}
+
+mainWindowTitle :: Text -> AppConfig e
+mainWindowTitle title = def {
+  _apcWindowTitle = Just title
+}
 
 useHdpi :: Bool -> AppConfig e
 useHdpi use = def {
