@@ -2,6 +2,8 @@ module Monomer.Core.ThemeTypes where
 
 import Data.Default
 
+import qualified Data.Map.Strict as M
+
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.Color
@@ -51,7 +53,8 @@ data ThemeState = ThemeState {
   _thsRadioStyle :: StyleState,
   _thsScrollBarColor :: Color,
   _thsScrollThumbColor :: Color,
-  _thsScrollWidth :: Double
+  _thsScrollWidth :: Double,
+  _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show)
 
 instance Default ThemeState where
@@ -84,5 +87,6 @@ instance Default ThemeState where
     _thsRadioStyle = def,
     _thsScrollBarColor = def,
     _thsScrollThumbColor = def,
-    _thsScrollWidth = def
+    _thsScrollWidth = def,
+    _thsUserStyleMap = M.empty
   }

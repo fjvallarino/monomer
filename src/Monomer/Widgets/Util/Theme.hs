@@ -2,8 +2,9 @@
 
 module Monomer.Widgets.Util.Theme where
 
-import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), non)
+import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), at, non)
 import Data.Default
+import Data.Maybe
 
 import Monomer.Core
 
@@ -53,4 +54,12 @@ collectTheme wenv fieldT = style where
   hover = Just $ wenv ^. L.theme . L.hover . fieldT
   focus = Just $ wenv ^. L.theme . L.focus . fieldT
   disabled = Just $ wenv ^. L.theme . L.disabled . fieldT
+  style = Style basic hover focus disabled
+
+collectUserTheme :: WidgetEnv s e  -> String -> Style
+collectUserTheme wenv name = style where
+  basic = wenv ^. L.theme . L.basic . L.userStyleMap . at name
+  hover = wenv ^. L.theme . L.hover . L.userStyleMap . at name
+  focus = wenv ^. L.theme . L.focus . L.userStyleMap . at name
+  disabled = wenv ^. L.theme . L.disabled . L.userStyleMap . at name
   style = Style basic hover focus disabled

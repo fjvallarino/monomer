@@ -270,6 +270,7 @@
     - TextOverflow in TextStyle?
     - Add Bold/Italic support (instead of different Font for each case)
   - Button should change color when clicked/actioned
+  - Check label with flexHeight (multilabel was not showing first line if it did not fit)
 
 - Pending
   - Add testing
@@ -287,23 +288,22 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check label with flexHeight
   - Add Maps on Theme to handle user widget settings
   - Check 1px difference on right side of labels/buttons (probably already fixed)
-  - Further textField improvements
-    - Handle undo history
-    - Handle mouse selection
-    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Handle window title, maximize, etc
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
+  - Restore focus to previous widget when zstack changes (dialog situation)
+    - Also think about not losing focus because of click (when onlyTopFocusable is active)
+  - Further textField improvements
+    - Handle undo history
+    - Handle mouse selection
+    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
-  - Restore focus to previous widget when zstack changes (dialog situation)
-    - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
