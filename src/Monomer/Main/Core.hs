@@ -74,7 +74,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
   winSize <- getDrawableSize window
 
   let dpr = _sW winSize / fromIntegral winW
-  let monomerContext = initMonomerContext () winSize useHdpi dpr
+  let monomerContext = initMonomerContext () window winSize useHdpi dpr
 
   runStateT (runApp window theme fonts appWidget) monomerContext
   detroySDLWindow window
@@ -238,25 +238,6 @@ renderWidgets !window renderer wenv widgetRoot = do
 
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
-
-resizeWindow
-  :: (MonomerM s m)
-  => SDL.Window
-  -> WidgetEnv s e
-  -> WidgetInstance s e
-  -> m (WidgetInstance s e)
-resizeWindow window wenv widgetRoot = do
-  dpr <- use dpr
-  drawableSize <- getDrawableSize window
-  newWindowSize <- getWindowSize window dpr
-
-  let position = GL.Position 0 0
-  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
-
-  L.windowSize .= newWindowSize
-  liftIO $ GL.viewport GL.$= (position, size)
-
-  return $ resizeWidget wenv newWindowSize widgetRoot
 
 -- Pre process events (change focus, add Enter/Leave events, etc)
 preProcessEvents

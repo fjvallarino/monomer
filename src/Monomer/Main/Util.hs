@@ -3,25 +3,28 @@
 module Monomer.Main.Util where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((.=), use)
+import Control.Monad.Extra
+import Control.Monad.State
 import Data.Default
 import Data.Maybe
 
 import qualified Data.Sequence as Seq
 import qualified Data.Map as Map
+import qualified Graphics.Rendering.OpenGL as GL
+import qualified SDL
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Main.Platform
 import Monomer.Main.Types
 
-defaultWindowSize :: (Int, Int)
-defaultWindowSize = (640, 480)
+import qualified Monomer.Lens as L
 
-defaultUseHdpi :: Bool
-defaultUseHdpi = True
-
-initMonomerContext :: s -> Size -> Bool -> Double -> MonomerContext s
-initMonomerContext model winSize useHiDPI devicePixelRate = MonomerContext {
+initMonomerContext :: s -> SDL.Window -> Size -> Bool -> Double -> MonomerContext s
+initMonomerContext model win winSize useHiDPI devicePixelRate = MonomerContext {
   _mcMainModel = model,
+  _mcWindow = win,
   _mcWindowSize = winSize,
   _mcHdpi = useHiDPI,
   _mcDpr = devicePixelRate,
@@ -58,6 +61,25 @@ resizeWidget wenv windowSize widgetRoot = newRoot where
   assigned = Rect 0 0 w h
   instReqs = widgetUpdateSizeReq (_wiWidget widgetRoot) wenv widgetRoot
   newRoot = widgetResize (_wiWidget instReqs) wenv assigned assigned instReqs
+
+resizeWindow
+  :: (MonomerM s m)
+  => SDL.Window
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> m (WidgetInstance s e)
+resizeWindow window wenv widgetRoot = do
+  dpr <- use L.dpr
+  drawableSize <- getDrawableSize window
+  newWindowSize <- getWindowSize window dpr
+
+  let position = GL.Position 0 0
+  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
+
+  L.windowSize .= newWindowSize
+  liftIO $ GL.viewport GL.$= (position, size)
+
+  return $ resizeWidget wenv newWindowSize widgetRoot
 
 getTargetPath
   :: WidgetEnv s e

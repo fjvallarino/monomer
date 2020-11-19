@@ -38,6 +38,7 @@ data EventResponse s e ep
   = Model s
   | Event e
   | Report ep
+  | Request (WidgetRequest s)
   | forall i . Typeable i => Message WidgetKey i
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
@@ -58,8 +59,9 @@ data CompositeState s e = CompositeState {
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,
   _reEvents :: Seq e,
-  _reMessages :: Seq (WidgetRequest sp),
   _reReports :: Seq ep,
+  _reRequests :: Seq (WidgetRequest s),
+  _reMessages :: Seq (WidgetRequest sp),
   _reTasks :: Seq (TaskHandler e),
   _reProducers :: Seq (ProducerHandler e)
 }
@@ -234,9 +236,9 @@ compositeHandleMessage
   -> Maybe (WidgetResult sp ep)
 compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
   | isTargetReached target widgetComp = case cast arg of
-      Just evt -> Just $ reduceResult comp state wenv widgetComp evtResult where
+      Just (Just evt) -> Just $ reduceResult comp state wenv widgetComp evtResult where
         evtResult = WidgetResult Seq.empty (Seq.singleton evt) _cmpRoot
-      Nothing -> Nothing
+      _ -> Nothing
   | otherwise = fmap processEvent result where
       processEvent = reduceResult comp state wenv widgetComp
       cmpWidget = _wiWidget _cmpRoot
@@ -334,6 +336,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
          <> tasksToRequests currentPath _reTasks
          <> producersToRequests currentPath _reProducers
          <> toParentReqs uReqs
+         <> toParentReqs _reRequests
          <> _reMessages
   newEvts = _reReports <> uEvts
   newResult = WidgetResult newReqs newEvts uWidget
@@ -412,8 +415,15 @@ reduceCompEvents
   -> Seq e
   -> ReducedEvents s e sp ep
 reduceCompEvents globalKeys eventHandler model events = result where
-  initial =
-    ReducedEvents model Seq.empty Seq.empty Seq.empty Seq.empty Seq.empty
+  initial = ReducedEvents {
+    _reModel = model,
+    _reEvents = Seq.empty,
+    _reReports = Seq.empty,
+    _reRequests = Seq.empty,
+    _reMessages = Seq.empty,
+    _reTasks = Seq.empty,
+    _reProducers = Seq.empty
+  }
   reducer current event = foldl' reducer newCurrent newEvents where
     response = eventHandler (_reModel current) event
     processed = foldl' (reduceEvtResponse globalKeys) current response
@@ -429,12 +439,13 @@ reduceEvtResponse
 reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Model newModel -> curr { _reModel = newModel }
   Event event -> curr { _reEvents = _reEvents |> event }
+  Report report -> curr { _reReports = _reReports |> report }
+  Request req -> curr { _reRequests = _reRequests |> req }
   Message key message -> case M.lookup key globalKeys of
     Just inst -> curr {
         _reMessages = _reMessages |> SendMessage (_wiPath inst) message
       }
     Nothing -> curr
-  Report report -> curr { _reReports = _reReports |> report }
   Task task -> curr { _reTasks = _reTasks |> task }
   Producer producer -> curr { _reProducers = _reProducers |> producer }
 
@@ -464,6 +475,7 @@ toParentReq (SetCursorIcon icon) = Just (SetCursorIcon icon)
 toParentReq (SendMessage path message) = Just (SendMessage path message)
 toParentReq (RunTask path action) = Just (RunTask path action)
 toParentReq (RunProducer path action) = Just (RunProducer path action)
+toParentReq (UpdateWindow req) = Just (UpdateWindow req)
 toParentReq (UpdateModel fn) = Nothing
 
 collectGlobalKeys

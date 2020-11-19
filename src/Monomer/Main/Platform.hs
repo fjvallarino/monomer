@@ -18,11 +18,16 @@ import qualified SDL.Raw.Error as SRE
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Main.Types
-import Monomer.Main.Util
 import Monomer.Event.Types
 import Monomer.Widgets.Composite
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
+
+defaultWindowSize :: (Int, Int)
+defaultWindowSize = (640, 480)
+
+defaultUseHdpi :: Bool
+defaultUseHdpi = True
 
 initSDLWindow :: AppConfig e -> IO SDL.Window
 initSDLWindow config = do

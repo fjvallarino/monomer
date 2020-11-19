@@ -1,4 +1,4 @@
-module TestUtils where
+module HedgehogUtils where
 
 import Control.Monad (unless)
 import Control.Monad.IO.Class

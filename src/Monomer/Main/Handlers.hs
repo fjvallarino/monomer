@@ -20,6 +20,7 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
 import Data.Typeable (Typeable)
+import SDL (($=))
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -122,6 +123,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetOverlay path -> handleSetOverlay path step
     ResetOverlay -> handleResetOverlay step
     SetCursorIcon icon -> handleSetCursorIcon icon step
+    UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
     SendMessage path msg -> handleSendMessage path msg step
     RunTask path handler -> handleRunTask path handler step
@@ -221,6 +223,19 @@ handleSetCursorIcon icon previousStep = do
   cursor <- (Map.! icon) <$> use L.cursorIcons
   SDLE.setCursor cursor
 
+  return previousStep
+
+handleUpdateWindow
+  :: (MonomerM s m) => WindowRequest -> HandlerStep s e -> m (HandlerStep s e)
+handleUpdateWindow windowRequest previousStep = do
+  window <- use L.window
+  case windowRequest of
+    WindowTitle title -> SDL.windowTitle window $= title
+    WindowFullScreen -> SDL.setWindowMode window SDL.FullscreenDesktop
+    WindowMaximize -> SDL.setWindowMode window SDL.Maximized
+    WindowMinimize -> SDL.setWindowMode window SDL.Minimized
+    WindowRestore -> SDL.setWindowMode window SDL.Windowed
+    WindowBringToFront -> SDL.raiseWindow window
   return previousStep
 
 handleUpdateModel

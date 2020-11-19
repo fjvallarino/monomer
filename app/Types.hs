@@ -76,4 +76,12 @@ data AppEvent
   | ShowConfirm
   | AcceptConfirm
   | CancelConfirm
+  | ChangeTitle Text
+  | MaxWindow
+  | MinWindow
+  | FullWindow
+  | RestoreWindow
+  | RestoreWindowSchedule
+  | ToFrontWindow
+  | ToFrontWindowSchedule
   deriving (Show, Eq)

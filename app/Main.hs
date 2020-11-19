@@ -74,11 +74,37 @@ handleAppEvent model evt = case evt of
   CancelConfirm -> [Model (model & showConfirm .~ False)]
   RunShortTask -> [Task $ do
     putStrLn "Running!"
-    return Nothing]
+    return $ Just (PrintMessage "Done!")]
+  ChangeTitle title -> [Request (UpdateWindow (WindowTitle title))]
+  FullWindow -> [Request (UpdateWindow WindowFullScreen)]
+  MaxWindow -> [Request (UpdateWindow WindowMaximize)]
+  MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]
+  RestoreWindowSchedule -> [Task $ do
+    threadDelay 2000000
+    return $ Just RestoreWindow]
+  RestoreWindow -> [Request (UpdateWindow WindowRestore)]
+  ToFrontWindow -> [Request (UpdateWindow WindowBringToFront)]
+  ToFrontWindowSchedule -> [Task $ do
+    threadDelay 2000000
+    return $ Just ToFrontWindow]
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetWindow where
+  widgetWindow = vstack [
+      hstack [
+        label "Title: " `style` [width 100],
+        textField_ textField1 [onChange ChangeTitle]
+      ],
+      hstack [
+        button "Fullscreen" FullWindow,
+        button "Maximize" MaxWindow,
+        button "Minimize" MinWindow,
+        button "Restore" RestoreWindow,
+        button "To Front" ToFrontWindowSchedule,
+        button "Short" RunShortTask
+      ]
+    ]
   widgetTreeAlt
     | model ^. clickCount `mod` 2 == 0 = widgetTree10
     | otherwise = widgetTree11

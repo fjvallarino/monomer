@@ -29,6 +29,15 @@ data TextOverflow
   | ClipText
   deriving (Eq, Show)
 
+data WindowRequest
+  = WindowTitle Text
+  | WindowFullScreen
+  | WindowMaximize
+  | WindowMinimize
+  | WindowRestore
+  | WindowBringToFront
+  deriving (Eq, Show)
+
 newtype WidgetType
   = WidgetType { unWidgetType :: String }
   deriving (Eq, Show)
@@ -42,7 +51,7 @@ data WidgetData s a
 
 newtype WidgetKey
   = WidgetKey Text
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 data WidgetState
   = forall i . Typeable i => WidgetState i
@@ -60,6 +69,7 @@ data WidgetRequest s
   | SetOverlay Path
   | ResetOverlay
   | SetCursorIcon CursorIcon
+  | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i
   | forall i . Typeable i => RunTask Path (IO i)
@@ -242,6 +252,7 @@ instance Show (WidgetRequest s) where
   show ResetOverlay = "ResetOverlay"
   show (SetOverlay path) = "SetOverlay: " ++ show path
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"

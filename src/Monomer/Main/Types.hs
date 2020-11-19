@@ -16,7 +16,8 @@ import Data.Text (Text)
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
 
-import qualified SDL.Raw.Types as SDL
+import qualified SDL
+import qualified SDL.Raw.Types as SDLR
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
@@ -33,6 +34,7 @@ data WidgetTask
 
 data MonomerContext s = MonomerContext {
   _mcMainModel :: s,
+  _mcWindow :: SDL.Window,
   _mcWindowSize :: Size,
   _mcHdpi :: Bool,
   _mcDpr :: Double,
@@ -43,7 +45,7 @@ data MonomerContext s = MonomerContext {
   _mcPathPressed :: Maybe Path,
   _mcPathOverlay :: Maybe Path,
   _mcWidgetTasks :: Seq WidgetTask,
-  _mcCursorIcons :: Map CursorIcon SDL.Cursor
+  _mcCursorIcons :: Map CursorIcon SDLR.Cursor
 }
 
 data AppConfig e = AppConfig {

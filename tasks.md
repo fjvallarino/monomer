@@ -286,9 +286,9 @@
     - Composite example
     - Something of generative art (OpenGL example)
   - Add user documentation
+  - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
-  - Add Maps on Theme to handle user widget settings
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - Handle window title, maximize, etc
     - Also handle as requests?

@@ -179,7 +179,8 @@ instHandleEvents wenv evts inst = unsafePerformIO $ do
   let useHdpi = True
   let dpr = 1
   let model = _weModel wenv
-  let monomerContext = initMonomerContext model winSize useHdpi dpr
+  -- Do NOT test code involving SDL Window functions
+  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
   (step, newCtx) <- flip runStateT monomerContext $ do
     (wenv2, _, newInst) <- handleWidgetInit wenv inst
