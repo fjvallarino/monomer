@@ -43,14 +43,15 @@ type AppEventResponse s e = EventResponse s e ()
 type AppEventHandler s e = s -> e -> [AppEventResponse s e]
 type AppUIBuilder s e = UIBuilder s e
 
-data MainLoopArgs s e = MainLoopArgs {
+data MainLoopArgs s e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
   _mlFrameStartTs :: Int,
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
-  _mlWidgetRoot :: WidgetInstance s e
+  _mlExitEvent :: Maybe e,
+  _mlWidgetRoot :: WidgetInstance s ep
 }
 
 simpleApp
@@ -75,7 +76,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
 
   let monomerContext = initMonomerContext () window winSize useHdpi dpr
 
-  runStateT (runApp window theme fonts appWidget) monomerContext
+  runStateT (runApp window theme fonts exitEvent appWidget) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
@@ -83,16 +84,18 @@ simpleApp_ model eventHandler uiBuilder configs = do
     fonts = _apcFonts config
     theme = fromMaybe def (_apcTheme config)
     initEvent = _apcInitEvent config
+    exitEvent = _apcExitEvent config
     appWidget = composite "app" model initEvent eventHandler uiBuilder
 
 runApp
-  :: (MonomerM s m)
+  :: (MonomerM s m, Typeable e)
   => SDL.Window
   -> Theme
   -> [FontDef]
-  -> WidgetInstance s e
+  -> Maybe e
+  -> WidgetInstance s ep
   -> m ()
-runApp window theme fonts widgetRoot = do
+runApp window theme fonts exitEvent widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use L.windowSize
@@ -134,6 +137,7 @@ runApp window theme fonts widgetRoot = do
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
+    _mlExitEvent = exitEvent,
     _mlWidgetRoot = resizedRoot
   }
 
@@ -142,7 +146,12 @@ runApp window theme fonts widgetRoot = do
 
   mainLoop window renderer loopArgs
 
-mainLoop :: (MonomerM s m) => SDL.Window -> Renderer -> MainLoopArgs s e -> m ()
+mainLoop
+  :: (MonomerM s m, Typeable e)
+  => SDL.Window
+  -> Renderer
+  -> MainLoopArgs s e ep
+  -> m ()
 mainLoop window renderer loopArgs = do
   windowSize <- use L.windowSize
   useHiDPI <- use hdpi
@@ -167,6 +176,8 @@ mainLoop window renderer loopArgs = do
 
   inputStatus <- updateInputStatus baseSystemEvents
 
+  when quit $ exitApplication .= True
+
   let wenv = WidgetEnv {
     _weOS = _mlOS,
     _weRenderer = renderer,
@@ -188,12 +199,17 @@ mainLoop window renderer loopArgs = do
   sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
   isMouseFocused <- fmap isJust (use pathPressed)
 
-  let isLeftPressed = isButtonPressed inputStatus LeftBtn
+  let isMainBtnPressed = isButtonPressed inputStatus LeftBtn
+  -- Exit handler
+  let exitMsg = SendMessage (Seq.fromList [0]) _mlExitEvent
+  let baseReqs = Seq.fromList [ exitMsg | quit ]
+  let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
-  when (mouseEntered && isLeftPressed && isMouseFocused) $
+  when (mouseEntered && isMainBtnPressed && isMouseFocused) $
     pathPressed .= Nothing
 
-  (wtWenv, _, wtRoot) <- handleWidgetTasks wenv _mlWidgetRoot
+  (rqWenv, _, rqRoot) <- handleRequests baseReqs baseStep
+  (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
   (seWenv, _, seRoot) <- handleSystemEvents wtWenv sysEvents wtRoot
 
   newRoot <- if windowResized then resizeWindow window seWenv seRoot
@@ -215,8 +231,13 @@ mainLoop window renderer loopArgs = do
     _mlWidgetRoot = newRoot
   }
 
+  shouldQuit <- use exitApplication
   liftIO $ threadDelay nextFrameDelay
-  unless quit (mainLoop window renderer newLoopArgs)
+
+  when shouldQuit $
+    void $ handleWidgetDispose seWenv seRoot
+
+  unless shouldQuit (mainLoop window renderer newLoopArgs)
 
 renderWidgets
   :: (MonomerM s m)

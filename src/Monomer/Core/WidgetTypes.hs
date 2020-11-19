@@ -69,7 +69,7 @@ data WidgetRequest s
   | SetOverlay Path
   | ResetOverlay
   | SetCursorIcon CursorIcon
-  | ExitApplication
+  | ExitApplication Bool
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i
@@ -259,6 +259,13 @@ instance Show (WidgetRequest s) where
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"
   show RunProducer{} = "RunProducer"
+
+instance Show (WidgetResult s e) where
+  show result = "WidgetResult "
+    ++ "{ _wrRequests: " ++ show (_wrRequests result)
+    ++ ", _wrEvents: " ++ show (length (_wrEvents result))
+    ++ ", _wrWidget: " ++ show (_wrWidget result)
+    ++ " }"
 
 instance Show (WidgetEnv s e) where
   show wenv = "WidgetEnv "

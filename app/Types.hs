@@ -78,6 +78,7 @@ data AppEvent
   | CancelConfirm
   | ChangeTitle Text
   | ExitApp
+  | CancelExitApp
   | MaxWindow
   | MinWindow
   | FullWindow

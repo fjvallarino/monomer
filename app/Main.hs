@@ -39,6 +39,7 @@ main = do
         useHdpi True,
         appTheme theme,
         appInitEvent InitApp,
+        appExitEvent CancelExitApp,
         fontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         fontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         fontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
@@ -80,7 +81,8 @@ handleAppEvent model evt = case evt of
     putStrLn "Running!"
     return $ Just (PrintMessage "Done!")]
   ChangeTitle title -> [Request (UpdateWindow (WindowSetTitle title))]
-  ExitApp -> [Request ExitApplication]
+  ExitApp -> [Request $ ExitApplication True]
+  CancelExitApp -> [Request $ ExitApplication False]
   FullWindow -> [Request (UpdateWindow WindowSetFullScreen)]
   MaxWindow -> [Request (UpdateWindow WindowMaximize)]
   MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]

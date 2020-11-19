@@ -6,7 +6,9 @@ module Monomer.Main.Handlers (
   handleWidgetResult,
   handleSystemEvents,
   handleResourcesInit,
-  handleWidgetInit
+  handleWidgetInit,
+  handleWidgetDispose,
+  handleRequests
 ) where
 
 import Control.Concurrent.Async (async)
@@ -96,6 +98,17 @@ handleWidgetInit wenv widgetRoot = do
 
   handleWidgetResult wenv widgetResult
 
+handleWidgetDispose
+  :: (MonomerM s m)
+  => WidgetEnv s e
+  -> WidgetInstance s e
+  -> m (HandlerStep s e)
+handleWidgetDispose wenv widgetRoot = do
+  let widget = _wiWidget widgetRoot
+  let widgetResult = widgetDispose widget wenv widgetRoot
+
+  handleWidgetResult wenv widgetResult
+
 handleWidgetResult
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -124,7 +137,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetOverlay path -> handleSetOverlay path step
     ResetOverlay -> handleResetOverlay step
     SetCursorIcon icon -> handleSetCursorIcon icon step
-    ExitApplication -> handleExitApplication step
+    ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
     SendMessage path msg -> handleSendMessage path msg step
@@ -227,14 +240,9 @@ handleSetCursorIcon icon previousStep = do
 
   return previousStep
 
-handleExitApplication :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
-handleExitApplication previousStep = do
-  let quitEvent = SDLT.QuitEvent SDLEnum.SDL_QUIT 0
-
-  liftIO . alloca $ \eventPtr -> do
-    poke eventPtr quitEvent
-    SDLE.pushEvent eventPtr
-
+handleExitApplication :: (MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
+handleExitApplication exit previousStep = do
+  L.exitApplication .= exit
   return previousStep
 
 handleUpdateWindow
@@ -262,15 +270,12 @@ handleSendMessage
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleSendMessage path message (wenv, events, widgetRoot) = do
-  currentFocus <- use L.pathFocus
-
   let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
   let widget = _wiWidget widgetRoot
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 
-  (newWenv, newEvents, newWidgetRoot)
-    <- handleWidgetResult wenv widgetResult
+  (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv widgetResult
 
   return (newWenv, events >< newEvents, newWidgetRoot)
 

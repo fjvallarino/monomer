@@ -90,7 +90,6 @@ initSDLWindow config = do
       Just MainWindowMaximized -> True
       _ -> False
 
-
 detroySDLWindow :: SDL.Window -> IO ()
 detroySDLWindow window = do
   putStrLn "About to destroyWindow"

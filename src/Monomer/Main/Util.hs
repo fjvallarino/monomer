@@ -35,7 +35,8 @@ initMonomerContext model win winSize useHiDPI devicePixelRate = MonomerContext {
   _mcPathPressed = Nothing,
   _mcPathOverlay = Nothing,
   _mcWidgetTasks = Seq.empty,
-  _mcCursorIcons = Map.empty
+  _mcCursorIcons = Map.empty,
+  _mcExitApplication = False
 }
 
 findNextFocus

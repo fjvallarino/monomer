@@ -45,7 +45,8 @@ data MonomerContext s = MonomerContext {
   _mcPathPressed :: Maybe Path,
   _mcPathOverlay :: Maybe Path,
   _mcWidgetTasks :: Seq WidgetTask,
-  _mcCursorIcons :: Map CursorIcon SDLR.Cursor
+  _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
+  _mcExitApplication :: Bool
 }
 
 data MainWindowState
@@ -60,7 +61,8 @@ data AppConfig e = AppConfig {
   _apcHdpi :: Maybe Bool,
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
-  _apcInitEvent :: Maybe e
+  _apcInitEvent :: Maybe e,
+  _apcExitEvent :: Maybe e
 }
 
 instance Default (AppConfig e) where
@@ -70,7 +72,8 @@ instance Default (AppConfig e) where
     _apcHdpi = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
-    _apcInitEvent = Nothing
+    _apcInitEvent = Nothing,
+    _apcExitEvent = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -80,7 +83,8 @@ instance Semigroup (AppConfig e) where
     _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
-    _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1
+    _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1,
+    _apcExitEvent = _apcExitEvent a2 <|> _apcExitEvent a1
   }
 
 instance Monoid (AppConfig e) where
@@ -109,6 +113,11 @@ appTheme t = def {
 appInitEvent :: e -> AppConfig e
 appInitEvent e = def {
   _apcInitEvent = Just e
+}
+
+appExitEvent :: e -> AppConfig e
+appExitEvent e = def {
+  _apcExitEvent = Just e
 }
 
 fontDef :: Text -> Text -> AppConfig e
