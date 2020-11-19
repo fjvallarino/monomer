@@ -69,6 +69,7 @@ data WidgetRequest s
   | SetOverlay Path
   | ResetOverlay
   | SetCursorIcon CursorIcon
+  | ExitApplication
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
   | forall i . Typeable i => SendMessage Path i
@@ -252,6 +253,7 @@ instance Show (WidgetRequest s) where
   show ResetOverlay = "ResetOverlay"
   show (SetOverlay path) = "SetOverlay: " ++ show path
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"
   show SendMessage{} = "SendMessage"

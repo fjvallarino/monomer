@@ -76,6 +76,7 @@ handleAppEvent model evt = case evt of
     putStrLn "Running!"
     return $ Just (PrintMessage "Done!")]
   ChangeTitle title -> [Request (UpdateWindow (WindowTitle title))]
+  ExitApp -> [Request ExitApplication]
   FullWindow -> [Request (UpdateWindow WindowFullScreen)]
   MaxWindow -> [Request (UpdateWindow WindowMaximize)]
   MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]
@@ -102,7 +103,8 @@ buildUI model = trace "Creating UI" widgetWindow where
         button "Minimize" MinWindow,
         button "Restore" RestoreWindow,
         button "To Front" ToFrontWindowSchedule,
-        button "Short" RunShortTask
+        button "Short" RunShortTask,
+        button "Exit" ExitApp
       ]
     ]
   widgetTreeAlt

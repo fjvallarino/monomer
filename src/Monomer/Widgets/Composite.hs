@@ -475,6 +475,7 @@ toParentReq (SetCursorIcon icon) = Just (SetCursorIcon icon)
 toParentReq (SendMessage path message) = Just (SendMessage path message)
 toParentReq (RunTask path action) = Just (RunTask path action)
 toParentReq (RunProducer path action) = Just (RunProducer path action)
+toParentReq ExitApplication = Just ExitApplication
 toParentReq (UpdateWindow req) = Just (UpdateWindow req)
 toParentReq (UpdateModel fn) = Nothing
 

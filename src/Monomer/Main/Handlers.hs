@@ -20,14 +20,15 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
 import Data.Typeable (Typeable)
+import Foreign (alloca, poke)
 import SDL (($=))
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified SDL
-import qualified SDL.Raw.Enum as SDLE
+import qualified SDL.Raw.Enum as SDLEnum
 import qualified SDL.Raw.Event as SDLE
-import qualified SDL.Raw.Types as SDL
+import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
@@ -123,6 +124,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetOverlay path -> handleSetOverlay path step
     ResetOverlay -> handleResetOverlay step
     SetCursorIcon icon -> handleSetCursorIcon icon step
+    ExitApplication -> handleExitApplication step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
     SendMessage path msg -> handleSendMessage path msg step
@@ -195,7 +197,7 @@ handleSetClipboard _ previousStep = return previousStep
 handleStartTextInput
   :: (MonomerM s m) => Rect -> HandlerStep s e -> m (HandlerStep s e)
 handleStartTextInput (Rect x y w h) previousStep = do
-  SDL.startTextInput (SDL.Rect (c x) (c y) (c w) (c h))
+  SDL.startTextInput (SDLT.Rect (c x) (c y) (c w) (c h))
   return previousStep
   where
     c x = fromIntegral $ round x
@@ -222,6 +224,16 @@ handleSetCursorIcon icon previousStep = do
   L.currentCursor .= icon
   cursor <- (Map.! icon) <$> use L.cursorIcons
   SDLE.setCursor cursor
+
+  return previousStep
+
+handleExitApplication :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleExitApplication previousStep = do
+  let quitEvent = SDLT.QuitEvent SDLEnum.SDL_QUIT 0
+
+  liftIO . alloca $ \eventPtr -> do
+    poke eventPtr quitEvent
+    SDLE.pushEvent eventPtr
 
   return previousStep
 
@@ -313,15 +325,15 @@ isResizeWidgets :: WidgetRequest s -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False
 
-cursorToSDL :: CursorIcon -> SDLE.SystemCursor
-cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW
-cursorToSDL CursorHand = SDLE.SDL_SYSTEM_CURSOR_HAND
-cursorToSDL CursorIBeam = SDLE.SDL_SYSTEM_CURSOR_IBEAM
-cursorToSDL CursorInvalid = SDLE.SDL_SYSTEM_CURSOR_NO
-cursorToSDL CursorSizeH = SDLE.SDL_SYSTEM_CURSOR_SIZEWE
-cursorToSDL CursorSizeV = SDLE.SDL_SYSTEM_CURSOR_SIZENS
-cursorToSDL CursorDiagTL = SDLE.SDL_SYSTEM_CURSOR_SIZENWSE
-cursorToSDL CursorDiagTR = SDLE.SDL_SYSTEM_CURSOR_SIZENESW
+cursorToSDL :: CursorIcon -> SDLEnum.SystemCursor
+cursorToSDL CursorArrow = SDLEnum.SDL_SYSTEM_CURSOR_ARROW
+cursorToSDL CursorHand = SDLEnum.SDL_SYSTEM_CURSOR_HAND
+cursorToSDL CursorIBeam = SDLEnum.SDL_SYSTEM_CURSOR_IBEAM
+cursorToSDL CursorInvalid = SDLEnum.SDL_SYSTEM_CURSOR_NO
+cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
+cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
+cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
+cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
 
 isFocusRequest :: WidgetRequest s -> Bool
 isFocusRequest MoveFocus{} = True
