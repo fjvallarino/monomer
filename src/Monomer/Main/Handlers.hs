@@ -102,7 +102,7 @@ handleWidgetResult
   -> m (HandlerStep s e)
 handleWidgetResult wenv (WidgetResult reqs events evtRoot) =
   handleRequests reqs (wenv, events, evtRoot)
-    >>= handleResize reqs
+    >>= handleResizeWidgets reqs
 
 handleRequests
   :: (MonomerM s m)
@@ -113,7 +113,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
   handleRequest step req = case req of
     IgnoreParentEvents -> return step
     IgnoreChildrenEvents -> return step
-    Resize -> return step
+    ResizeWidgets -> return step
     MoveFocus dir -> handleMoveFocus dir step
     SetFocus path -> handleSetFocus path step
     GetClipboard path -> handleGetClipboard path step
@@ -129,14 +129,14 @@ handleRequests reqs step = foldM handleRequest step reqs where
     RunTask path handler -> handleRunTask path handler step
     RunProducer path handler -> handleRunProducer path handler step
 
-handleResize
+handleResizeWidgets
   :: (MonomerM s m)
   => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleResize reqs previousStep =
-  case Seq.filter isResize reqs of
-    Resize :<| _ -> do
+handleResizeWidgets reqs previousStep =
+  case Seq.filter isResizeWidgets reqs of
+    ResizeWidgets :<| _ -> do
       windowSize <- use L.windowSize
 
       let (wenv, events, widgetRoot) = previousStep
@@ -309,9 +309,9 @@ addFocusReq _ reqs = reqs
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
 
-isResize :: WidgetRequest s -> Bool
-isResize Resize = True
-isResize _ = False
+isResizeWidgets :: WidgetRequest s -> Bool
+isResizeWidgets ResizeWidgets = True
+isResizeWidgets _ = False
 
 cursorToSDL :: CursorIcon -> SDLE.SystemCursor
 cursorToSDL CursorArrow = SDLE.SDL_SYSTEM_CURSOR_ARROW

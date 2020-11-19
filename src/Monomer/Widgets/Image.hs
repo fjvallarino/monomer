@@ -153,7 +153,7 @@ makeImage imgPath config state = widget where
     newInst = inst {
       _wiWidget = makeImage imgPath config newState
     }
-    result = Just $ resultReqs [Resize] newInst
+    result = Just $ resultReqs [ResizeWidgets] newInst
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst

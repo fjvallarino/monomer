@@ -293,6 +293,7 @@ Maybe postponed after release?
   - Handle window title, maximize, etc
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
+  - Think about label size (fixed by default? lower factor)
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)

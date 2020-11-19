@@ -462,7 +462,7 @@ toParentReqs reqs = fmap fromJust $ Seq.filter isJust $ fmap toParentReq reqs
 toParentReq :: WidgetRequest s -> Maybe (WidgetRequest sp)
 toParentReq IgnoreParentEvents = Just IgnoreParentEvents
 toParentReq IgnoreChildrenEvents = Just IgnoreChildrenEvents
-toParentReq Resize = Just Resize
+toParentReq ResizeWidgets = Just ResizeWidgets
 toParentReq (MoveFocus dir) = Just (MoveFocus dir)
 toParentReq (SetFocus path) = Just (SetFocus path)
 toParentReq (GetClipboard path) = Just (GetClipboard path)
