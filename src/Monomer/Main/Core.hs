@@ -47,6 +47,7 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
+  _mlMaxFps :: Int,
   _mlFrameStartTs :: Int,
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
@@ -76,11 +77,12 @@ simpleApp_ model eventHandler uiBuilder configs = do
 
   let monomerContext = initMonomerContext () window winSize useHdpi dpr
 
-  runStateT (runApp window theme fonts exitEvent appWidget) monomerContext
+  runStateT (runApp window maxFps fonts theme exitEvent appWidget) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
+    maxFps = fromMaybe 30 (_apcMaxFps config)
     fonts = _apcFonts config
     theme = fromMaybe def (_apcTheme config)
     initEvent = _apcInitEvent config
@@ -90,12 +92,13 @@ simpleApp_ model eventHandler uiBuilder configs = do
 runApp
   :: (MonomerM s m, Typeable e)
   => SDL.Window
-  -> Theme
+  -> Int
   -> [FontDef]
+  -> Theme
   -> Maybe e
   -> WidgetInstance s ep
   -> m ()
-runApp window theme fonts exitEvent widgetRoot = do
+runApp window maxFps fonts theme exitEvent widgetRoot = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use L.windowSize
@@ -133,6 +136,7 @@ runApp window theme fonts exitEvent widgetRoot = do
   let loopArgs = MainLoopArgs {
     _mlOS = os,
     _mlTheme = theme,
+    _mlMaxFps = maxFps,
     _mlAppStartTs = 0,
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
@@ -219,7 +223,7 @@ mainLoop window renderer loopArgs = do
 
   endTicks <- fmap fromIntegral SDL.ticks
 
-  let fps = 30
+  let fps = realToFrac _mlMaxFps
   let frameLength = 1000000 / fps
   let newTs = fromIntegral $ endTicks - startTicks
   let tempDelay = abs (frameLength - newTs * 1000)

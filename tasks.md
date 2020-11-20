@@ -275,6 +275,8 @@
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
   - Think about label size (fixed by default? lower factor)
+  - Avoid excessive delay on window resize
+  - Check 1px difference on right side of labels/buttons (probably already fixed)
 
 - Pending
   - Add testing
@@ -293,8 +295,6 @@
   - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
-  - Avoid excessive delay on window resize
-  - Check 1px difference on right side of labels/buttons (probably already fixed)
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)
@@ -306,6 +306,8 @@ Maybe postponed after release?
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
+  - Remember use case for containerStyleOnMerge (scroll size, but can't replicate)
+    - Using it makes everything painfully slow
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

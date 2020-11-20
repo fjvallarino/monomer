@@ -59,6 +59,7 @@ data AppConfig e = AppConfig {
   _apcWindowState :: Maybe MainWindowState,
   _apcWindowTitle :: Maybe Text,
   _apcHdpi :: Maybe Bool,
+  _apcMaxFps :: Maybe Int,
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
   _apcInitEvent :: Maybe e,
@@ -70,6 +71,7 @@ instance Default (AppConfig e) where
     _apcWindowState = Nothing,
     _apcWindowTitle = Nothing,
     _apcHdpi = Nothing,
+    _apcMaxFps = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
     _apcInitEvent = Nothing,
@@ -81,6 +83,7 @@ instance Semigroup (AppConfig e) where
     _apcWindowState = _apcWindowState a2 <|> _apcWindowState a1,
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
     _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
+    _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1,
@@ -103,6 +106,11 @@ mainWindowTitle title = def {
 useHdpi :: Bool -> AppConfig e
 useHdpi use = def {
   _apcHdpi = Just use
+}
+
+maxFps :: Int -> AppConfig e
+maxFps fps = def {
+  _apcMaxFps = Just fps
 }
 
 appTheme :: Theme -> AppConfig e
