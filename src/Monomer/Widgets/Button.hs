@@ -31,6 +31,8 @@ data ButtonCfg s e = ButtonCfg {
   _btnTextOverflow :: Maybe TextOverflow,
   _btnTextMode :: Maybe TextMode,
   _btnTrim :: Maybe Bool,
+  _btnFactorW :: Maybe Double,
+  _btnFactorH :: Maybe Double,
   _btnOnFocus :: [e],
   _btnOnFocusReq :: [WidgetRequest s],
   _btnOnBlur :: [e],
@@ -45,6 +47,8 @@ instance Default (ButtonCfg s e) where
     _btnTextOverflow = Nothing,
     _btnTextMode = Nothing,
     _btnTrim = Nothing,
+    _btnFactorW = Nothing,
+    _btnFactorH = Nothing,
     _btnOnFocus = [],
     _btnOnFocusReq = [],
     _btnOnBlur = [],
@@ -59,6 +63,8 @@ instance Semigroup (ButtonCfg s e) where
     _btnTextOverflow = _btnTextOverflow t2 <|> _btnTextOverflow t1,
     _btnTextMode = _btnTextMode t2 <|> _btnTextMode t1,
     _btnTrim = _btnTrim t2 <|> _btnTrim t1,
+    _btnFactorW = _btnFactorW t2 <|> _btnFactorW t1,
+    _btnFactorH = _btnFactorH t2 <|> _btnFactorH t1,
     _btnOnFocus = _btnOnFocus t1 <> _btnOnFocus t2,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
     _btnOnBlur = _btnOnBlur t1 <> _btnOnBlur t2,
@@ -122,6 +128,14 @@ instance OnClick (ButtonCfg s e) e where
 instance OnClickReq (ButtonCfg s e) s where
   onClickReq req = def {
     _btnOnClickReq = [req]
+  }
+
+instance ResizeFactorDim (ButtonCfg s e) where
+  resizeFactorW w = def {
+    _btnFactorW = Just w
+  }
+  resizeFactorH h = def {
+    _btnFactorH = Just h
   }
 
 data BtnState = BtnState {
@@ -188,12 +202,18 @@ makeButton config state = widget where
       events = _btnOnClick config
       result = resultReqsEvents requests events inst
 
-  getSizeReq wenv inst = sizeReq where
+  getSizeReq wenv inst = (sizeW, sizeH) where
     style = activeStyle wenv inst
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
-    factor = 1
-    sizeReq = (FlexSize w factor, FixedSize h)
+    factorW = fromMaybe 0.01 (_btnFactorW config)
+    factorH = fromMaybe 0 (_btnFactorH config)
+    sizeW
+      | abs factorW < 0.01 = FixedSize w
+      | otherwise = FlexSize w factorW
+    sizeH
+      | abs factorH < 0.01 = FixedSize h
+      | otherwise = FlexSize h factorH
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst

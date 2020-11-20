@@ -27,10 +27,13 @@ updateSizeReq = describe "updateSizeReq" $ do
   it "should return width = Flex 120 1" $
     sizeReq2W `shouldBe` FlexSize 120 1
 
+  it "should return height = Flex 20 2" $
+    sizeReq2H `shouldBe` FlexSize 20 2
+
   where
     wenv = mockWenv ()
     lblInst = label "Test label"
-    lblInst2 = label_ "Test label 2" [resizeFactorW 1]
+    lblInst2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
     (sizeReq2W, sizeReq2H) = instUpdateSizeReq wenv lblInst2
 
