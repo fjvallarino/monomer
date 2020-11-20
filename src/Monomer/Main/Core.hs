@@ -172,7 +172,7 @@ mainLoop window renderer loopArgs = do
   let mouseEntered = isMouseEntered eventsPayload
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
-  let newSecond = _mlFrameStartTs + ts > 1000
+  let newSecond = _mlFrameAccumTs > 1000
 
   inputStatus <- updateInputStatus baseSystemEvents
 
@@ -193,8 +193,8 @@ mainLoop window renderer loopArgs = do
     _weInTopLayer = const True
   }
 
-  --when newSecond $
-  --  liftIO . putStrLn $ "Frames: " ++ (show frames)
+  when newSecond $
+    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
 
   sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
   isMouseFocused <- fmap isJust (use pathPressed)
@@ -220,9 +220,10 @@ mainLoop window renderer loopArgs = do
   endTicks <- fmap fromIntegral SDL.ticks
 
   let fps = 30
-  let frameLength = 0.9 * 1000000 / fps
+  let frameLength = 1000000 / fps
   let newTs = fromIntegral $ endTicks - startTicks
-  let nextFrameDelay = round . abs $ (frameLength - newTs * 1000)
+  let tempDelay = abs (frameLength - newTs * 1000)
+  let nextFrameDelay = round $ min frameLength tempDelay
   let newLoopArgs = loopArgs {
     _mlAppStartTs = _mlAppStartTs + ts,
     _mlFrameStartTs = startTicks,

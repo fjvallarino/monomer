@@ -97,7 +97,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetWindow where
+buildUI model = trace "Creating UI" widgetTree where
   widgetWindow = vstack [
       hstack [
         label "Title: ",

@@ -271,6 +271,10 @@
     - Add Bold/Italic support (instead of different Font for each case)
   - Button should change color when clicked/actioned
   - Check label with flexHeight (multilabel was not showing first line if it did not fit)
+  - Handle window title, maximize, etc
+    - Also handle as requests?
+    - Provide a way of exiting application/close window handler
+  - Think about label size (fixed by default? lower factor)
 
 - Pending
   - Add testing
@@ -289,11 +293,8 @@
   - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
+  - Avoid excessive delay on window resize
   - Check 1px difference on right side of labels/buttons (probably already fixed)
-  - Handle window title, maximize, etc
-    - Also handle as requests?
-    - Provide a way of exiting application/close window handler
-  - Think about label size (fixed by default? lower factor)
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)
@@ -326,6 +327,9 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+  - Improve window resize situation
+    - SDL does not send resize until operation has finished, making content look ugly because it's not updated
+    - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - Should StyleState be a phantom type?
     - A branch was created and got it working
     - Getting the types working for  meant extending that idea to Widget was logical
