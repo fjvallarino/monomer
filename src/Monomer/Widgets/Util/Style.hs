@@ -14,6 +14,7 @@ module Monomer.Widgets.Util.Style (
 
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (<>~))
+import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
 
@@ -133,8 +134,16 @@ handleSizeChange
   -> WidgetInstance s e
   -> [WidgetRequest s]
 handleSizeChange wenv target evt cfg inst = reqs where
+  -- Hover
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
+  vp = inst ^. L.viewport
+  vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
+  hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
+  -- Focus
+  focusChanged = isOnFocus evt || isOnBlur evt
   -- Size
-  checkSize = or $ fmap ($ evt) [isOnFocus, isOnBlur, isOnEnter, isOnLeave]
+  checkSize = hoverChanged || focusChanged
   instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   oldSizeReqW = _wiSizeReqW inst
   oldSizeReqH = _wiSizeReqH inst

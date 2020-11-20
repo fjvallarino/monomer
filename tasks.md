@@ -308,6 +308,7 @@ Maybe postponed after release?
     - Focus event may need to be handled to update highlighted item
   - Remember use case for containerStyleOnMerge (scroll size, but can't replicate)
     - Using it makes everything painfully slow
+    - Most likely related to focus of nested components. Maybe filtering move/hover out is enough?
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

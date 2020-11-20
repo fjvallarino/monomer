@@ -56,6 +56,7 @@ data SystemEvent
 
 data InputStatus = InputStatus {
   _ipsMousePos :: Point,
+  _ipsMousePosPrev :: Point,
   _ipsKeyMod :: KeyMod,
   _ipsKeys :: Map KeyCode KeyStatus,
   _ipsButtons :: Map Button ButtonState
@@ -64,6 +65,7 @@ data InputStatus = InputStatus {
 instance Default InputStatus where
   def = InputStatus {
     _ipsMousePos = Point (-1) (-1),
+    _ipsMousePosPrev = Point (-1) (-1),
     _ipsKeyMod = def,
     _ipsKeys = M.empty,
     _ipsButtons = M.empty

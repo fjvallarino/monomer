@@ -314,7 +314,9 @@ updateInputStatus systemEvents = do
   use inputStatus
 
 evtToInputStatus :: (MonomerM s m) => SystemEvent -> m ()
-evtToInputStatus (Move point) =
+evtToInputStatus (Move point) = do
+  status <- use inputStatus
+  inputStatus . mousePosPrev .= status ^. mousePos
   inputStatus . mousePos .= point
 evtToInputStatus (ButtonAction _ btn btnState) =
   inputStatus . buttons . at btn ?= btnState
