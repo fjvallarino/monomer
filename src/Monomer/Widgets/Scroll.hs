@@ -155,7 +155,7 @@ makeInstance widget managedWidget = (defaultWidgetInstance "scroll" widget) {
 makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer def {
-    containerStyleOnMerge = True,
+    containerStyleOnMerge = False,
     containerGetBaseStyle = getBaseStyle,
     containerGetState = makeState state,
     containerMerge = merge,
