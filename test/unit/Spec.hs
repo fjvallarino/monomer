@@ -11,6 +11,7 @@ import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
+import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
@@ -30,6 +31,7 @@ spec = do
   GridSpec.spec
   ImageSpec.spec
   LabelSpec.spec
+  ListViewSpec.spec
   IntegralFieldSpec.spec
   RadioSpec.spec
   StackSpec.spec

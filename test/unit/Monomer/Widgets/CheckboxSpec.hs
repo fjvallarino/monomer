@@ -40,13 +40,13 @@ spec = describe "Checkbox" $ do
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
-  it "should not generate an event if clicked outside" $
+  it "should not update the model if not clicked" $
     clickModel (Point 3000 3000) ^. testBool `shouldBe` False
 
-  it "should generate a user provided event when clicked" $
+  it "should update the model when clicked" $
     clickModel (Point 100 100) ^. testBool `shouldBe` True
 
-  it "should generate a user provided event when Enter/Space is pressed" $
+  it "should update the model when Enter/Space is pressed" $
     keyModel keyReturn ^. testBool `shouldBe` True
 
   it "should generate an event when focus is received" $
@@ -70,7 +70,7 @@ handleEventValue = describe "handleEventValue" $ do
   it "should generate a user provided event when clicked" $
     clickModel (Point 100 100) chkInst `shouldBe` Seq.singleton (BoolSel True)
 
-  it "should generate a user provided event when clicked (set to false)" $
+  it "should generate a user provided event when clicked (True -> False)" $
     clickModel (Point 100 100) chkInstT `shouldBe` Seq.singleton (BoolSel False)
 
   it "should generate a user provided event when Enter/Space is pressed" $

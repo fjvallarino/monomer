@@ -74,8 +74,8 @@
   - [x] Size
   - [x] Size multiline
 - ListView
-  - [ ] Navigate/select with keyboard
-  - [ ] Navigate/scroll/select with mouse
+  - [x] Navigate/select with keyboard
+  - [x] Navigate/scroll/select with mouse
 - Radio
   - [x] Click (more than one instance)
   - [x] Enter/space

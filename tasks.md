@@ -295,6 +295,8 @@
   - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
+  - Improve listView performance (avoid merge/resize)
+  - Avoid forced resize after merge (if an item needs more space, it should request it)
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)
@@ -309,6 +311,8 @@ Maybe postponed after release?
   - Remember use case for containerStyleOnMerge (scroll size, but can't replicate)
     - Using it makes everything painfully slow
     - Most likely related to focus of nested components. Maybe filtering move/hover out is enough?
+    - Now fixed, but still need to test old use cases work fine
+  - Scroll wheel rate should be configurable, or even depend on content size
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

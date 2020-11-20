@@ -46,13 +46,13 @@ spec = describe "Radio" $ do
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
-  it "should not generate an event if clicked outside" $
+  it "should not update the model if not clicked" $
     clickModel (Point 3000 3000) orangeInst ^. fruit `shouldBe` Apple
 
-  it "should generate a user provided event when clicked" $
+  it "should update the model when clicked" $
     clickModel (Point 320 240) orangeInst ^. fruit `shouldBe` Orange
 
-  it "should generate a user provided event when Enter/Space is pressed" $
+  it "should update the model when Enter/Space is pressed" $
     keyModel keyReturn bananaInst ^. fruit `shouldBe` Banana
 
   it "should generate an event when focus is received" $

@@ -1,9 +1,10 @@
-module Monomer.TestKeyboardUtil where
+module Monomer.TestEventUtil where
 
 import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Text (Text)
 
+import Monomer.Core
 import Monomer.Event
 
 import qualified Monomer.Lens as L
@@ -33,6 +34,9 @@ modCS :: KeyMod
 modCS = def
   & L.leftAlt .~ True
   & L.leftShift .~ True
+
+evtClick :: Point -> SystemEvent
+evtClick p = Click p LeftBtn
 
 evtK :: KeyCode -> SystemEvent
 evtK k = KeyAction def k KeyPressed
