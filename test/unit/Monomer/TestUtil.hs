@@ -189,3 +189,10 @@ instHandleEvents wenv evts inst = unsafePerformIO $ do
     handleSystemEvents wenv2 evts resizedInst
 
   return step
+
+roundRectUnits :: Rect -> Rect
+roundRectUnits (Rect x y w h) = Rect nx ny nw nh where
+  nx = fromIntegral (round x)
+  ny = fromIntegral (round y)
+  nw = fromIntegral (round w)
+  nh = fromIntegral (round h)

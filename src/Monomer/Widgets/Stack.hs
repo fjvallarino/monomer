@@ -104,10 +104,10 @@ makeStack isHorizontal config = widget where
       newExtraFac = cExtraFac + sizeReqExtra req * sizeReqFactor req
       newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
     (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
-    flexAvail = max 0 $ min flex (mainSize - fixed)
-    extraAvail = max 0 (mainSize - fixed - flex)
+    flexAvail = min flex (mainSize - fixed)
+    extraAvail = max 0 (mainSize - fixed - flexAvail)
     flexCoeff
-      | flexFac > 0 = flexAvail / flexFac
+      | flexAvail < flex = (flexAvail - flex) / flexFac
       | otherwise = 0
     extraCoeff
       | extraFac > 0 = extraAvail / extraFac
@@ -126,10 +126,10 @@ makeStack isHorizontal config = widget where
     totalCoeff = flexCoeff + extraCoeff
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz
-      FlexSize sz factor -> (totalCoeff * factor) * sz
-      MinSize sz factor -> (1 + totalCoeff * factor) * sz
-      MaxSize sz factor -> flexCoeff * factor * sz
-      RangeSize sz1 sz2 factor -> sz1 + flexCoeff * factor * (sz2 - sz1)
+      FlexSize sz factor -> (1 + totalCoeff * factor) * sz
+      MinSize sz factor -> sz + (1 + totalCoeff * factor) * sz
+      MaxSize sz factor -> (1 + flexCoeff * factor) * sz
+      RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result

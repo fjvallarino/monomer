@@ -12,3 +12,4 @@ Why isn't StyleState using Phantom Types? Those styleX functions could be made s
 Why did you add themes, considering you can easily create a customized version of a widget by just writing a function and using it across the application?
 Why did you remove Margin?
 Why did you switch to returning Maybe from rect/size operations? Revise addOuterSizeReq (word this question properly before answering)
+Why does exit event works this way? Why not use dispose? Talk about the need for broadcast, the intention of not providing more events to widgets than needed, etc

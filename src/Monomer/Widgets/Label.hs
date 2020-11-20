@@ -21,21 +21,27 @@ import qualified Monomer.Lens as L
 data LabelCfg = LabelCfg {
   _lscTextOverflow :: Maybe TextOverflow,
   _lscTextMode :: Maybe TextMode,
-  _lscTrim :: Maybe Bool
+  _lscTrim :: Maybe Bool,
+  _lscFactorW :: Maybe Double,
+  _lscFactorH :: Maybe Double
 }
 
 instance Default LabelCfg where
   def = LabelCfg {
     _lscTextOverflow = Nothing,
     _lscTextMode = Nothing,
-    _lscTrim = Nothing
+    _lscTrim = Nothing,
+    _lscFactorW = Nothing,
+    _lscFactorH = Nothing
   }
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
     _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
     _lscTextMode = _lscTextMode l2 <|> _lscTextMode l1,
-    _lscTrim = _lscTrim l2 <|> _lscTrim l1
+    _lscTrim = _lscTrim l2 <|> _lscTrim l1,
+    _lscFactorW = _lscFactorW l2 <|> _lscFactorW l1,
+    _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1
   }
 
 instance Monoid LabelCfg where
@@ -63,6 +69,14 @@ instance TextTrim LabelCfg where
   }
   textKeepSpaces = def {
     _lscTrim = Just False
+  }
+
+instance ResizeFactorDim LabelCfg where
+  resizeFactorW w = def {
+    _lscFactorW = Just w
+  }
+  resizeFactorH h = def {
+    _lscFactorH = Just h
   }
 
 data LabelState = LabelState {
@@ -96,12 +110,18 @@ makeLabel config state = widget where
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.labelStyle
 
-  getSizeReq wenv inst = sizeReq where
+  getSizeReq wenv inst = (sizeW, sizeH) where
     style = activeStyle wenv inst
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
-    factor = 1
-    sizeReq = (FlexSize w factor, FixedSize h)
+    factorW = fromMaybe 0.01 (_lscFactorW config)
+    factorH = fromMaybe 0 (_lscFactorH config)
+    sizeW
+      | abs factorW < 0.01 = FixedSize w
+      | otherwise = FlexSize w factorW
+    sizeH
+      | abs factorH < 0.01 = FixedSize h
+      | otherwise = FlexSize h factorH
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst

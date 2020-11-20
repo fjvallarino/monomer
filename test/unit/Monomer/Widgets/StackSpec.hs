@@ -1,6 +1,12 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Monomer.Widgets.StackSpec (spec) where
 
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (^.), (.~))
+import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -12,8 +18,15 @@ import Monomer.TestUtil
 import Monomer.Widgets.Grid
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
+import Monomer.Widgets.TextField
 
 import qualified Monomer.Lens as L
+
+newtype TestModel = TestModel {
+  _tmTextValue :: Text
+} deriving (Eq, Show)
+
+makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
 spec = describe "Stack" $ do
@@ -40,8 +53,8 @@ updateSizeReqEmpty = describe "empty" $ do
 
 updateSizeReqItems :: Spec
 updateSizeReqItems = describe "several items" $ do
-  it "should return width = Flex 80 1" $
-    sizeReqW `shouldBe` FlexSize 80 1
+  it "should return width = Flex 80 0.01" $
+    sizeReqW `shouldBe` FlexSize 80 0.01
 
   it "should return height = Fixed 60" $
     sizeReqH `shouldBe` FixedSize 60
@@ -62,6 +75,7 @@ resize = describe "resize" $ do
   resizeFlexibleV
   resizeStrictFlexH
   resizeStrictFlexV
+  resizeMixedH
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
@@ -103,8 +117,8 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
       ]
     newInst = instInit wenv hstackInst
     viewport = _wiViewport newInst
-    childrenVp = _wiViewport <$> _wiChildren newInst
-    childrenRa = _wiRenderArea <$> _wiChildren newInst
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren newInst
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren newInst
 
 resizeFlexibleV :: Spec
 resizeFlexibleV = describe "flexible items, vertical" $ do
@@ -190,3 +204,31 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
     viewport = _wiViewport newInst
     childrenVp = _wiViewport <$> _wiChildren newInst
     childrenRa = _wiRenderArea <$> _wiChildren newInst
+
+resizeMixedH :: Spec
+resizeMixedH = describe "mixed items, horizontal" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2]
+
+  where
+    wenv = mockWenv (TestModel "") & L.theme .~ darkTheme
+    vp   = Rect   0 0 640 480
+    cvp1 = Rect   0 0  69  27
+    cvp2 = Rect  69 0 571  27
+    hstackInst = vstack [
+        hstack [
+          label "Title: ",
+          textField textValue
+        ]
+      ]
+    newInst = instInit wenv hstackInst
+    viewport = _wiViewport newInst
+    firstChild = Seq.index (_wiChildren newInst) 0
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren firstChild
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren firstChild

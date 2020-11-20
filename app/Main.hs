@@ -82,7 +82,7 @@ handleAppEvent model evt = case evt of
     return $ Just (PrintMessage "Done!")]
   ChangeTitle title -> [Request (UpdateWindow (WindowSetTitle title))]
   ExitApp -> [Request $ ExitApplication True]
-  CancelExitApp -> [Request $ ExitApplication False]
+  CancelExitApp -> [] --[Request $ ExitApplication False]
   FullWindow -> [Request (UpdateWindow WindowSetFullScreen)]
   MaxWindow -> [Request (UpdateWindow WindowMaximize)]
   MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]
@@ -100,7 +100,7 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetWindow where
   widgetWindow = vstack [
       hstack [
-        label "Title: " `style` [width 100],
+        label "Title: ",
         textField_ textField1 [onChange ChangeTitle]
       ],
       hstack [
@@ -234,7 +234,7 @@ buildUI model = trace "Creating UI" widgetWindow where
       label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
-        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis] `style` [width 300],
+        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
         label "Jj label"
       ] `hover` [bgColor red],
       hstack [

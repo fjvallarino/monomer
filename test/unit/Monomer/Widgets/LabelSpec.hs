@@ -18,16 +18,21 @@ spec = describe "Label" $ do
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
-  it "should return width = Flex 100 1" $
-    sizeReqW `shouldBe` FlexSize 100 1
+  it "should return width = Flex 100 0.01" $
+    sizeReqW `shouldBe` FlexSize 100 0.01
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
+  it "should return width = Flex 120 1" $
+    sizeReq2W `shouldBe` FlexSize 120 1
+
   where
     wenv = mockWenv ()
     lblInst = label "Test label"
+    lblInst2 = label_ "Test label 2" [resizeFactorW 1]
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
+    (sizeReq2W, sizeReq2H) = instUpdateSizeReq wenv lblInst2
 
 updateSizeReqMulti :: Spec
 updateSizeReqMulti = describe "updateSizeReq" $ do

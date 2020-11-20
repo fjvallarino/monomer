@@ -342,8 +342,9 @@ makeInputField config state = widget where
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst
     Size w h = getTextSize wenv style currText
+    targetW = max w 100
     factor = 1
-    sizeReq = (FlexSize w factor, FixedSize h)
+    sizeReq = (FlexSize targetW factor, FixedSize h)
 
   resize wenv viewport renderArea inst = newInst where
     -- newTextState depends on having correct viewport/renderArea

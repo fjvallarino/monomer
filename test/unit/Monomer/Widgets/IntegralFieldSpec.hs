@@ -119,12 +119,12 @@ handleEventValue = describe "handleEvent" $ do
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
-  it "should return width = Flex 40 1" $
-    sizeReqW `shouldBe` FlexSize 40 1
+  it "should return width = Flex 110 1" $
+    sizeReqW `shouldBe` FlexSize 110 1
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit (TestModel 1000 True)
+    wenv = mockWenvEvtUnit (TestModel 10000000000 True)
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (integralField integralValue)

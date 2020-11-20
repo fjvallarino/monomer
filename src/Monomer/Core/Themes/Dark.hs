@@ -100,7 +100,7 @@ darkBasic = def
   & L.inputFloatingStyle .~ numericInputStyle
   & L.inputIntegralStyle .~ numericInputStyle
   & L.inputTextStyle .~ inputStyle
-  & L.labelStyle . L.text ?~ normalFont
+  & L.labelStyle . L.text ?~ (normalFont <> textLeft)
   & L.labelStyle . L.padding ?~ textPadding
   & L.listViewStyle . L.border ?~ borderNormal
   & L.listViewItemStyle .~ listViewItemStyle

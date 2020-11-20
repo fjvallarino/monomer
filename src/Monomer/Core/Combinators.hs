@@ -168,6 +168,10 @@ class SizeReqH t where
 class ResizeFactor t where
   resizeFactor :: Double -> t
 
+class ResizeFactorDim t where
+  resizeFactorW :: Double -> t
+  resizeFactorH :: Double -> t
+
 -- Style
 infixl 5 `style`
 infixl 5 `hover`

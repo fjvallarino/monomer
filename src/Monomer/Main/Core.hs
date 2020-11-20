@@ -231,8 +231,9 @@ mainLoop window renderer loopArgs = do
     _mlWidgetRoot = newRoot
   }
 
-  shouldQuit <- use exitApplication
   liftIO $ threadDelay nextFrameDelay
+
+  shouldQuit <- use exitApplication
 
   when shouldQuit $
     void $ handleWidgetDispose seWenv seRoot
