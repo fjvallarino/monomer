@@ -82,6 +82,17 @@ makeZStack config = widget where
 
   getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
+    newSizeReqW = getDimSizeReq _wiSizeReqW vchildren
+    newSizeReqH = getDimSizeReq _wiSizeReqH vchildren
+
+  getDimSizeReq accesor vchildren
+    | Seq.null vreqs = FixedSize 0
+    | otherwise = foldl1 sizeReqMergeMax vreqs
+    where
+      vreqs = accesor <$> vchildren
+{--
+  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
+    vchildren = Seq.filter _wiVisible children
     nReqs = length vchildren
     vreqsW = _wiSizeReqW <$> vchildren
     vreqsH = _wiSizeReqH <$> vchildren
@@ -101,7 +112,7 @@ makeZStack config = widget where
     newSizeReqH
       | fixedH = FixedSize height
       | otherwise = FlexSize height factor
-
+--}
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
     raChild = fromMaybe def (removeOuterBounds style renderArea)

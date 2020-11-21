@@ -81,24 +81,24 @@ sizeReqMergeSum :: SizeReq -> SizeReq -> SizeReq
 sizeReqMergeSum req1 req2 = case (req1, req2) of
   -- Fixed
   (FixedSize s1, FixedSize s2) -> FixedSize (s1 + s2)
-  (FixedSize s1, FlexSize s2 f2) -> RangeSize s1 (s1 + s2) f2
+  (FixedSize s1, FlexSize s2 f2) -> mkRangeSize s1 (s1 + s2) f2
   (FixedSize s1, MinSize s2 f2) -> MinSize (s1 + s2) f2
-  (FixedSize s1, MaxSize s2 f2) -> RangeSize s1 (s1 + s2) f2
-  (FixedSize s1, RangeSize sa2 sb2 f2) -> RangeSize sa2 (s1 + sb2) f2
+  (FixedSize s1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2) f2
+  (FixedSize s1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) f2
   -- Flex
   (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (s1 + s2)  (max f1 f2)
-  (FlexSize s1 f1, MinSize s2 f2) -> RangeSize s2 (s1 + s2)  (max f1 f2)
+  (FlexSize s1 f1, MinSize s2 f2) -> mkRangeSize s2 (s1 + s2)  (max f1 f2)
   (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (s1 + s2)  (max f1 f2)
-  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> RangeSize sa2 (s1 + sb2)  (max f1 f2)
+  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2)  (max f1 f2)
   -- Min
   (MinSize s1 f1, MinSize s2 f2) -> MinSize (s1 + s2)  (max f1 f2)
-  (MinSize s1 f1, MaxSize s2 f2) -> RangeSize s1 (s1 + s2)  (max f1 f2)
-  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> RangeSize (s1 + sa2) (s1 + sb2)  (max f1 f2)
+  (MinSize s1 f1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2)  (max f1 f2)
+  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (s1 + sa2) (s1 + sb2)  (max f1 f2)
   -- Max
   (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (s1 + s2)  (max f1 f2)
-  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> RangeSize sa2 (s1 + sb2)  (max f1 f2)
+  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2)  (max f1 f2)
   -- Range
-  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> RangeSize (sa1 + sa2) (sb1 + sb2)  (max f1 f2)
+  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (sa1 + sa2) (sb1 + sb2)  (max f1 f2)
   -- Reverse handled with existing cases
   (pending1, pending2) -> sizeReqMergeSum pending2 pending1
 
@@ -106,24 +106,24 @@ sizeReqMergeMax :: SizeReq -> SizeReq -> SizeReq
 sizeReqMergeMax req1 req2 = case (req1, req2) of
   -- Fixed
   (FixedSize s1, FixedSize s2) -> FixedSize (max s1 s2)
-  (FixedSize s1, FlexSize s2 f2) -> RangeSize s1 (max s1 s2) f2
+  (FixedSize s1, FlexSize s2 f2) -> mkRangeSize s1 (max s1 s2) f2
   (FixedSize s1, MinSize s2 f2) -> MinSize (max s1 s2) f2
-  (FixedSize s1, MaxSize s2 f2) -> RangeSize s1 (max s1 s2) f2
-  (FixedSize s1, RangeSize sa2 sb2 f2) -> RangeSize (max s1 sa2) (max s1 sb2) f2
+  (FixedSize s1, MaxSize s2 f2) -> mkRangeSize s1 (max s1 s2) f2
+  (FixedSize s1, RangeSize sa2 sb2 f2) -> mkRangeSize (max s1 sa2) (max s1 sb2) f2
   -- Flex
   (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (max s1 s2) (max f1 f2)
   (FlexSize s1 f1, MinSize s2 f2) -> MinSize s2 (max f1 f2)
   (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (max s1 s2) f1
-  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> RangeSize sa2 (max s1 sb2) (max f1 f2)
+  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (max s1 sb2) (max f1 f2)
   -- Min
   (MinSize s1 f1, MinSize s2 f2) -> MinSize (max s1 s2) (max f1 f2)
   (MinSize s1 f1, MaxSize s2 f2) -> MinSize s1 f1
   (MinSize s1 f1, RangeSize sa2 sb2 f2) -> MinSize (max s1 sa2) f1
   -- Max
   (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (max s1 s2) (max f1 f2)
-  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> RangeSize sa2 (max s1 sb2) (max f1 f2)
+  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (max s1 sb2) (max f1 f2)
   -- Range
-  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> RangeSize (max sa1 sa2) (max sb1 sb2) (max f1 f2)
+  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (max sa1 sa2) (max sb1 sb2) (max f1 f2)
   -- Reverse handled with existing cases
   (pending1, pending2) -> sizeReqMergeMax pending2 pending1
 
@@ -133,3 +133,8 @@ modifySizeReq (FlexSize c factor) f = FlexSize (f c) factor
 modifySizeReq (MinSize c factor) f = MinSize (f c) factor
 modifySizeReq (MaxSize c factor) f = MaxSize (f c) factor
 modifySizeReq (RangeSize c1 c2 factor) f = RangeSize (f c1) (f c2) factor
+
+mkRangeSize :: Double -> Double -> Double -> SizeReq
+mkRangeSize s1 s2 f
+  | abs (s2 - s1) < 0.01 = FixedSize s1
+  | otherwise = RangeSize s1 s2 f

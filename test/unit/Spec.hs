@@ -16,6 +16,7 @@ import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
+import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
 main :: IO ()
 main = hspec spec
@@ -36,3 +37,4 @@ spec = do
   RadioSpec.spec
   StackSpec.spec
   TextFieldSpec.spec
+  ZStackSpec.spec

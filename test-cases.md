@@ -98,6 +98,6 @@
   - [x] Add/remove characters
   - [x] Copy/Paste
 - ZStack
-  - [ ] Assign size
+  - [x] Assign size
   - [ ] Handle click passthrough/focus
   - [ ] stack's ignore empty click
