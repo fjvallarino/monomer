@@ -10,10 +10,12 @@ import Monomer.Core
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.Widgets.Label
+import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
+-- Event handling (ignoreEmptyClick) is tested in zstack
 spec :: Spec
 spec = describe "Stack" $ do
   updateSizeReq
@@ -64,6 +66,8 @@ resize = describe "resize" $ do
   resizeMixedH
   resizeMixedV
   resizeAllV
+  resizeSpacerFlexH
+  resizeSpacerFixedH
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
@@ -274,6 +278,60 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
         label "Label 5" `style` [rangeWidth 90 100, rangeHeight 90 100]
       ]
     newInst = instInit wenv vstackInst
+    viewport = _wiViewport newInst
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren newInst
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren newInst
+
+resizeSpacerFlexH :: Spec
+resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  where
+    wenv = mockWenv ()
+    vp   = Rect   0 0 640 480
+    cvp1 = Rect   0 0 211 480
+    cvp2 = Rect 211 0   8 480
+    cvp3 = Rect 219 0 421 480
+    hstackInst = hstack [
+        label "Label" `style` [flexWidth 100],
+        spacer,
+        label "Label" `style` [flexWidth 200]
+      ]
+    newInst = instInit wenv hstackInst
+    viewport = _wiViewport newInst
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren newInst
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren newInst
+
+resizeSpacerFixedH :: Spec
+resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  where
+    wenv = mockWenv ()
+    vp   = Rect   0 0 640 480
+    cvp1 = Rect   0 0 100 480
+    cvp2 = Rect 100 0 340 480
+    cvp3 = Rect 440 0 200 480
+    hstackInst = hstack [
+        label "Label" `style` [width 100],
+        spacer,
+        label "Label" `style` [width 200]
+      ]
+    newInst = instInit wenv hstackInst
     viewport = _wiViewport newInst
     childrenVp = roundRectUnits . _wiViewport <$> _wiChildren newInst
     childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren newInst

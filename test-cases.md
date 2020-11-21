@@ -89,8 +89,8 @@
   - Tested in stack
 - Stack
   - Currently covered
-  - [ ] Maybe add RangedSize tests?
-  - [ ] Ignore empty click (mention it's tested in zstack)
+  - [x] Add RangedSize tests?
+  - [x] Ignore empty click (mention it's tested in zstack)
 - Text dropdown
   - Already covered in dropdown
 - Textfield
