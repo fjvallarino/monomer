@@ -1,6 +1,12 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Monomer.Widgets.ZStackSpec (spec) where
 
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (^.), (.~))
+import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -8,17 +14,105 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Button
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
+import Monomer.Widgets.TextField
 import Monomer.Widgets.ZStack
 
 import qualified Monomer.Lens as L
 
+newtype BtnEvent
+  = BtnClick Int
+  deriving (Eq, Show)
+
+data TestModel = TestModel {
+  _tmTextValue1 :: Text,
+  _tmTextValue2 :: Text
+} deriving (Eq, Show)
+
+makeLensesWith abbreviatedFields ''TestModel
+
 spec :: Spec
 spec = describe "ZStack" $ do
+  handleEvent
   updateSizeReq
   resize
+
+handleEvent :: Spec
+handleEvent = describe "handleEvent" $ do
+  handleEventFirstVisible
+  handleEventAllLayersActive
+  handleEventFocusTop
+  handleEventFocusAll
+
+handleEventFirstVisible :: Spec
+handleEventFirstVisible = describe "handleEventFirstVisible" $ do
+  it "should not generate an event if clicked outside" $
+    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+
+  it "should click the second layer, since top is not visible" $
+    clickEvts (Point 100 100) `shouldBe` Seq.singleton (BtnClick 2)
+
+  where
+    wenv = mockWenv ()
+    zstackInst = zstack [
+        button "Click 1" (BtnClick 1),
+        button "Click 2" (BtnClick 2),
+        button "Click 3" (BtnClick 3) `visible` False
+      ]
+    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] zstackInst
+
+handleEventAllLayersActive :: Spec
+handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
+  it "should not generate an event if clicked outside" $
+    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+
+  it "should click the first layer, since top is not visible and second does not have widgets in that location" $
+    clickEvts (Point 200 100) `shouldBe` Seq.singleton (BtnClick 1)
+
+  where
+    wenv = mockWenv ()
+    zstackInst = zstack_ [
+        button "Click 1" (BtnClick 1),
+        hstack_ [
+          button "Click 2" (BtnClick 2) `style` [width 100]
+        ] [ignoreEmptyClick True],
+        button "Click 3" (BtnClick 3) `visible` False
+      ] [onlyTopActive False]
+    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] zstackInst
+
+handleEventFocusTop :: Spec
+handleEventFocusTop = describe "handleEventFocusTop" $
+  it "should click the second layer, since top is not visible" $ do
+    let steps = [evtK keyTab, evtK keyTab, evtT "abc"]
+    model steps ^. textValue1 `shouldBe` ""
+    model steps ^. textValue2 `shouldBe` "abc"
+
+  where
+    wenv = mockWenv (TestModel "" "")
+    zstackInst = zstack [
+        textField textValue1,
+        textField textValue2
+      ]
+    model es = instHandleEventModel wenv es zstackInst
+
+handleEventFocusAll :: Spec
+handleEventFocusAll = describe "handleEventFocusAll" $
+  it "should click the second layer, since top is not visible" $ do
+    let steps = [evtK keyTab, evtK keyTab, evtT "abc"]
+    model steps ^. textValue1 `shouldBe` "abc"
+    model steps ^. textValue2 `shouldBe` ""
+
+  where
+    wenv = mockWenv (TestModel "" "")
+    zstackInst = zstack_ [
+        textField textValue1,
+        textField textValue2
+      ] [onlyTopActive False]
+    model es = instHandleEventModel wenv es zstackInst
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
