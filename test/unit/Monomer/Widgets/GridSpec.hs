@@ -24,6 +24,8 @@ updateSizeReq = describe "updateSizeReq" $ do
   updateSizeReqEmpty
   updateSizeReqItemsH
   updateSizeReqItemsV
+  updateSizeReqMixedH
+  updateSizeReqMixedV
 
 updateSizeReqEmpty :: Spec
 updateSizeReqEmpty = describe "empty" $ do
@@ -40,8 +42,8 @@ updateSizeReqEmpty = describe "empty" $ do
 
 updateSizeReqItemsH :: Spec
 updateSizeReqItemsH = describe "several items, horizontal" $ do
-  it "should return width = Flex 240 1 (largest width * 3)" $
-    sizeReqW `shouldBe` FlexSize 240 1
+  it "should return width = Flex 240 0.01 (largest width * 3)" $
+    sizeReqW `shouldBe` FlexSize 240 0.01
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
@@ -57,11 +59,11 @@ updateSizeReqItemsH = describe "several items, horizontal" $ do
 
 updateSizeReqItemsV :: Spec
 updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
-  it "should return width = Flex 80 1" $
-    sizeReqW `shouldBe` FlexSize 80 1
+  it "should return width = Flex 80 0.01" $
+    sizeReqW `shouldBe` FlexSize 80 0.01
 
-  it "should return height = Flex 60 1" $
-    sizeReqH `shouldBe` FlexSize 60 1
+  it "should return height = Fixed 60" $
+    sizeReqH `shouldBe` FixedSize 60
 
   where
     wenv = mockWenv ()
@@ -70,6 +72,40 @@ updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
         label "how",
         label "" `visible` False,
         label "are you?"
+      ]
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+
+updateSizeReqMixedH :: Spec
+updateSizeReqMixedH = describe "several items, different reqSizes" $ do
+  it "should return width = Range 300 900 1 (3 * Range 100 300)" $
+    sizeReqW `shouldBe` RangeSize 300 900 1
+
+  it "should return height = Range 100 300 1" $
+    sizeReqH `shouldBe` RangeSize 100 300 1
+
+  where
+    wenv = mockWenv ()
+    gridInst = hgrid [
+        label "Label 1" `style` [width 100, height 100],
+        label "Label 2" `style` [maxWidth 300, maxHeight 300],
+        label "Label 3"
+      ]
+    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+
+updateSizeReqMixedV :: Spec
+updateSizeReqMixedV = describe "several items, different reqSizes" $ do
+  it "should return width = Min 100 1" $
+    sizeReqW `shouldBe` MinSize 100 1
+
+  it "should return height = Min 300 1 (3 * Min 100)" $
+    sizeReqH `shouldBe` MinSize 300 1
+
+  where
+    wenv = mockWenv ()
+    gridInst = vgrid [
+        label "Label 1" `style` [minWidth 100, minHeight 100],
+        label "Label 2" `style` [maxWidth 300, maxHeight 300],
+        label "Label 3"
       ]
     (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
 

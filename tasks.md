@@ -296,6 +296,8 @@
 
 Maybe postponed after release?
   - Improve listView performance (avoid merge/resize)
+    - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
+    - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
   - VStack should set itself to a fixed size if all children are fixed
     - ZStack should set _weIsTopLayer based on used space

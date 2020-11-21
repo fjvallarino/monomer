@@ -90,29 +90,7 @@ makeZStack config = widget where
     | otherwise = foldl1 sizeReqMergeMax vreqs
     where
       vreqs = accesor <$> vchildren
-{--
-  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter _wiVisible children
-    nReqs = length vchildren
-    vreqsW = _wiSizeReqW <$> vchildren
-    vreqsH = _wiSizeReqH <$> vchildren
-    fixedReqs reqs = Seq.filter isSizeReqFixed reqs
-    fixedW = nReqs > 0 && Seq.length (fixedReqs vreqsW) == nReqs
-    fixedH = nReqs > 0 && Seq.length (fixedReqs vreqsH) == nReqs
-    factor = 1
-    width
-      | Seq.null vreqsW = 0
-      | otherwise = maximum $ fmap sizeReqMax vreqsW
-    height
-      | Seq.null vreqsH = 0
-      | otherwise = maximum $ fmap sizeReqMax vreqsH
-    newSizeReqW
-      | fixedW = FixedSize width
-      | otherwise = FlexSize width factor
-    newSizeReqH
-      | fixedH = FixedSize height
-      | otherwise = FlexSize height factor
---}
+
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst
     raChild = fromMaybe def (removeOuterBounds style renderArea)

@@ -61,7 +61,8 @@ sizeReqFixed (RangeSize s1 _ _) = s1
 sizeReqFlex :: SizeReq -> Double
 sizeReqFlex (FixedSize s) = 0
 sizeReqFlex (FlexSize s _) = s
-sizeReqFlex (MinSize s _) = s
+-- This one is 0 to avoid MinSize claiming the same space again in extra
+sizeReqFlex (MinSize s _) = 0
 sizeReqFlex (MaxSize s _) = s
 sizeReqFlex (RangeSize s1 s2 _) = s2 - s1
 
@@ -86,19 +87,19 @@ sizeReqMergeSum req1 req2 = case (req1, req2) of
   (FixedSize s1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2) f2
   (FixedSize s1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) f2
   -- Flex
-  (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (s1 + s2)  (max f1 f2)
-  (FlexSize s1 f1, MinSize s2 f2) -> mkRangeSize s2 (s1 + s2)  (max f1 f2)
-  (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (s1 + s2)  (max f1 f2)
-  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2)  (max f1 f2)
+  (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (s1 + s2) (max f1 f2)
+  (FlexSize s1 f1, MinSize s2 f2) -> mkRangeSize s2 (s1 + s2) (max f1 f2)
+  (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (s1 + s2) (max f1 f2)
+  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) (max f1 f2)
   -- Min
-  (MinSize s1 f1, MinSize s2 f2) -> MinSize (s1 + s2)  (max f1 f2)
-  (MinSize s1 f1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2)  (max f1 f2)
-  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (s1 + sa2) (s1 + sb2)  (max f1 f2)
+  (MinSize s1 f1, MinSize s2 f2) -> MinSize (s1 + s2) (max f1 f2)
+  (MinSize s1 f1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2) (max f1 f2)
+  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (s1 + sa2) (s1 + sb2) (max f1 f2)
   -- Max
-  (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (s1 + s2)  (max f1 f2)
-  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2)  (max f1 f2)
+  (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (s1 + s2) (max f1 f2)
+  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) (max f1 f2)
   -- Range
-  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (sa1 + sa2) (sb1 + sb2)  (max f1 f2)
+  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (sa1 + sa2) (sb1 + sb2) (max f1 f2)
   -- Reverse handled with existing cases
   (pending1, pending2) -> sizeReqMergeSum pending2 pending1
 

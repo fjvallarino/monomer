@@ -1,12 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Monomer.Widgets.StackSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -15,18 +9,10 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.TestUtil
-import Monomer.Widgets.Grid
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
-import Monomer.Widgets.TextField
 
 import qualified Monomer.Lens as L
-
-newtype TestModel = TestModel {
-  _tmTextValue :: Text
-} deriving (Eq, Show)
-
-makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
 spec = describe "Stack" $ do
@@ -76,6 +62,8 @@ resize = describe "resize" $ do
   resizeStrictFlexH
   resizeStrictFlexV
   resizeMixedH
+  resizeMixedV
+  resizeAllV
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
@@ -138,9 +126,9 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
     cvp2 = Rect 0 160 640 160
     cvp3 = Rect 0 320 640 160
     vstackInst = vstack [
-        vgrid [ label "Label 1" ],
-        vgrid [ label "Label Number Two" ],
-        vgrid [ label "Label 3" ]
+        label "Label 1" `style` [flexHeight 20],
+        label "Label Number Two" `style` [flexHeight 20],
+        label "Label 3" `style` [flexHeight 20]
       ]
     newInst = instInit wenv vstackInst
     viewport = _wiViewport newInst
@@ -167,9 +155,7 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
     hstackInst = hstack [
         label "Label 1" `style` [width 100],
         label "Label 2" `style` [width 100],
-        hgrid [
-          label "Label 3"
-        ]
+        label "Label 3"
       ]
     newInst = instInit wenv hstackInst
     viewport = _wiViewport newInst
@@ -196,9 +182,7 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
     vstackInst = vstack [
         label "Label 1" `style` [height 100],
         label "Label 2",
-        vgrid [
-          label "Label 3"
-        ]
+        label "Label 3" `style` [flexHeight 100]
       ]
     newInst = instInit wenv vstackInst
     viewport = _wiViewport newInst
@@ -217,14 +201,14 @@ resizeMixedH = describe "mixed items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2]
 
   where
-    wenv = mockWenv (TestModel "") & L.theme .~ darkTheme
+    wenv = mockWenv ()
     vp   = Rect   0 0 640 480
-    cvp1 = Rect   0 0  69  27
-    cvp2 = Rect  69 0 571  27
+    cvp1 = Rect   0 0 196  20
+    cvp2 = Rect 196 0 444  20
     hstackInst = vstack [
         hstack [
-          label "Title: ",
-          textField textValue
+          label "Short label",
+          label "This label is much longer"
         ]
       ]
     newInst = instInit wenv hstackInst
@@ -232,3 +216,64 @@ resizeMixedH = describe "mixed items, horizontal" $ do
     firstChild = Seq.index (_wiChildren newInst) 0
     childrenVp = roundRectUnits . _wiViewport <$> _wiChildren firstChild
     childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren firstChild
+
+resizeMixedV :: Spec
+resizeMixedV = describe "mixed items, vertical" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+
+  where
+    wenv = mockWenv ()
+    vp   = Rect 0   0 640 480
+    cvp1 = Rect 0   0 640  20
+    cvp2 = Rect 0  20 640 426
+    cvp3 = Rect 0 446 640  34
+    vstackInst = hstack [
+        vstack [
+          label "Label 1",
+          label "Label 2" `style` [minHeight 250],
+          label "Label 3" `style` [flexHeight 20]
+        ]
+      ]
+    newInst = instInit wenv vstackInst
+    viewport = _wiViewport newInst
+    firstChild = Seq.index (_wiChildren newInst) 0
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren firstChild
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren firstChild
+
+resizeAllV :: Spec
+resizeAllV = describe "all kinds of sizeReq, vertical" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+
+  where
+    wenv = mockWenv ()
+    vp   = Rect 0   0 640 480
+    cvp1 = Rect 0   0 640  50
+    cvp2 = Rect 0  50 640 115
+    cvp3 = Rect 0 165 640 135
+    cvp4 = Rect 0 300 640  80
+    cvp5 = Rect 0 380 640 100
+    vstackInst = vstack [
+        label "Label 1" `style` [width 50, height 50],
+        label "Label 2" `style` [flexWidth 60, flexHeight 60],
+        label "Label 3" `style` [minWidth 70, minHeight 70],
+        label "Label 4" `style` [maxWidth 80, maxHeight 80],
+        label "Label 5" `style` [rangeWidth 90 100, rangeHeight 90 100]
+      ]
+    newInst = instInit wenv vstackInst
+    viewport = _wiViewport newInst
+    childrenVp = roundRectUnits . _wiViewport <$> _wiChildren newInst
+    childrenRa = roundRectUnits . _wiRenderArea <$> _wiChildren newInst

@@ -29,35 +29,21 @@ makeFixedGrid isHorizontal = widget where
     containerResize = resize
   }
 
+  isVertical = not isHorizontal
+
   getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter _wiVisible children
-    nReqs = length vchildren
-    vreqsW = _wiSizeReqW <$> vchildren
-    vreqsH = _wiSizeReqH <$> vchildren
-    fixedReqs reqs = Seq.filter isSizeReqFixed reqs
-    fixedW = nReqs > 0 && Seq.length (fixedReqs vreqsW) == nReqs
-    fixedH = nReqs > 0 && Seq.length (fixedReqs vreqsH) == nReqs
-    factor = 1
-    wMul
-      | isHorizontal = fromIntegral (length vchildren)
-      | otherwise = 1
-    hMul
-      | isHorizontal = 1
-      | otherwise = fromIntegral (length vchildren)
-    width
-      | Seq.null vreqsW = 0
-      | otherwise = wMul * (maximum . fmap sizeReqMax) vreqsW
-    height
-      | Seq.null vreqsH = 0
-      | otherwise = hMul * (maximum . fmap sizeReqMax) vreqsH
-    newSizeReqW
-      | not isHorizontal && fixedW = FixedSize width
-      | nReqs == 0 = FixedSize width
-      | otherwise = FlexSize width factor
-    newSizeReqH
-      | isHorizontal && fixedH = FixedSize height
-      | nReqs == 0 = FixedSize width
-      | otherwise = FlexSize height factor
+    newSizeReqW = getDimSizeReq isHorizontal _wiSizeReqW vchildren
+    newSizeReqH = getDimSizeReq isVertical _wiSizeReqH vchildren
+
+  getDimSizeReq mainAxis accesor vchildren
+    | Seq.null vreqs = FixedSize 0
+    | mainAxis = foldl1 sizeReqMergeSum (Seq.replicate nreqs maxSize)
+    | otherwise = maxSize
+    where
+      vreqs = accesor <$> vchildren
+      nreqs = Seq.length vreqs
+      maxSize = foldl1 sizeReqMergeMax vreqs
 
   resize wenv viewport renderArea children inst = resized where
     style = activeStyle wenv inst

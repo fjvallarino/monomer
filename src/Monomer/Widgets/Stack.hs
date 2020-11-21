@@ -106,11 +106,12 @@ makeStack isHorizontal config = widget where
     (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
     flexAvail = min flex (mainSize - fixed)
     extraAvail = max 0 (mainSize - fixed - flexAvail)
+    -- flexCoeff can only be negative
     flexCoeff
       | flexAvail < flex = (flexAvail - flex) / flexFac
       | otherwise = 0
     extraCoeff
-      | extraFac > 0 = extraAvail / extraFac
+      | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
       | otherwise = 0
     foldHelper (accum, offset) child = (newAccum, newOffset) where
       newSize = resizeChild contentArea flexCoeff extraCoeff offset child
@@ -123,11 +124,13 @@ makeStack isHorizontal config = widget where
   resizeChild contentArea flexCoeff extraCoeff offset child = result where
     Rect l t w h = contentArea
     emptyRect = Rect l t 0 0
+    -- Only one is active (flex is negative or extra is >= 0)
     totalCoeff = flexCoeff + extraCoeff
     mainSize = case mainReqSelector child of
       FixedSize sz -> sz
       FlexSize sz factor -> (1 + totalCoeff * factor) * sz
-      MinSize sz factor -> sz + (1 + totalCoeff * factor) * sz
+      -- Since flex does not apply to min, there's nothing to remove from (no '1 +')
+      MinSize sz factor -> sz + extraCoeff * factor * sz
       MaxSize sz factor -> (1 + flexCoeff * factor) * sz
       RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
     hRect = Rect offset t mainSize h
