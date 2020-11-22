@@ -121,15 +121,10 @@ fitTextToRect wenv style overflow mode trim rect text = newTextLines where
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
   textLinesW = fitTextToW wenv style cw trim text
-  textLinesLen = Seq.length textLinesW
-  firstLine = Seq.take 1 textLinesW
-  firstLineW = _sW (getTextLinesSize firstLine)
-  needsEllipsis = overflow == Ellipsis && (textLinesLen > 1 || firstLineW > cw)
   fittedLines = fitTextLinesToH wenv style overflow cw ch textLinesW
   textLines
-    | mode == MultiLine && not (Seq.null fittedLines) = fittedLines
-    | needsEllipsis = addEllipsisToTextLine wenv style cw <$> firstLine
-    | otherwise = firstLine
+    | mode == MultiLine = fittedLines
+    | otherwise = Seq.take 1 fittedLines
   newTextLines = alignTextLines rect alignH alignV textLines
 
 alignTextLines :: Rect -> AlignH -> AlignV -> Seq TextLine -> Seq TextLine
@@ -166,20 +161,23 @@ fitTextLinesToH
   -> Seq TextLine
 fitTextLinesToH wenv style overflow w h Empty = Empty
 fitTextLinesToH wenv style overflow w h (g1 :<| g2 :<| gs)
-  | h >= g1H + g2H = g1 :<| rest
-  | h >= g1H = Seq.singleton newG1
-  | otherwise = Empty
+  | overflow == Ellipsis && h >= g1H + g2H = g1 :<| rest
+  | overflow == Ellipsis && h >= g1H = Seq.singleton ellipsisG1
+  | overflow == ClipText && h >= g1H = g1 :<| rest
   where
     g1H = _sH (_tlSize g1)
     g2H = _sH (_tlSize g2)
     newH = h - g1H
     rest = fitTextLinesToH wenv style overflow w newH (g2 :<| gs)
-    newG1 = case overflow of
-      Ellipsis -> addEllipsisToTextLine wenv style w g1
-      _ -> g1
+    ellipsisG1 = addEllipsisToTextLine wenv style w g1
 fitTextLinesToH wenv style overflow w h (g :<| gs)
-  | h < _sH (_tlSize g) = Empty
-  | otherwise = Seq.singleton g
+  | h > 0 = Seq.singleton newG
+  | otherwise = Empty
+  where
+    gW = _sW (_tlSize g)
+    newG
+      | overflow == Ellipsis && w < gW = addEllipsisToTextLine wenv style w g
+      | otherwise = g
 
 fitTextToW
   :: WidgetEnv s e
@@ -211,7 +209,10 @@ fitSingleTextToW
   -> Seq TextLine
 fitSingleTextToW wenv font fontSize metrics top width trim text = result where
   spaces = T.replicate 4 " "
-  newText = T.replace "\t" spaces text
+  -- Temporary solution. It should return empty line, not one with space
+  newText
+    | text /= "" = T.replace "\t" spaces text
+    | otherwise = " "
   !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   -- Do not break line on trailing spaces, since they are removed in next step
   -- In the case of KeepSpaces, lines with only spaces can be generated

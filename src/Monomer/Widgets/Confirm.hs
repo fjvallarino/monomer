@@ -77,7 +77,7 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   confirmTree = vstack [
       label title & L.style .~ themeDialogTitle wenv,
-      label message & L.style .~ themeDialogBody wenv,
+      label_ message [textMultiLine] & L.style .~ themeDialogBody wenv,
       box_ buttons [alignLeft] & L.style <>~ themeDialogButtons wenv
     ] & L.style .~ themeDialogFrame wenv
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]

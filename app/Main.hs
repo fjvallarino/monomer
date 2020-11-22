@@ -10,6 +10,8 @@ import Control.Lens ((&), (^.), (.~), (%~))
 import Data.Default
 import TextShow
 
+import qualified Data.Text as T
+
 import System.Remote.Monitoring
 
 import Monomer
@@ -207,10 +209,11 @@ buildUI model = trace "Creating UI" widgetTree where
         textField textField1
       ]-- `style` [padding 10]
     ]
+  longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
   widgetTree = zstack_ [
       widgetTreeFull,
-      alert "Message" CloseAlert `visible` model ^. showAlert,
-      confirm "Message" AcceptConfirm CancelConfirm `visible` model ^. showConfirm
+      alert (longMessage "Alert") CloseAlert `visible` model ^. showAlert,
+      confirm (longMessage "Confirm") AcceptConfirm CancelConfirm `visible` model ^. showConfirm
     ] [onlyTopActive False]
   widgetTreeFull = vstack [
       hstack [
