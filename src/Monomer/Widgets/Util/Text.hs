@@ -1,8 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 
 module Monomer.Widgets.Util.Text (
-  TextMode(..),
-  TextLine(..),
   getTextMetrics,
   getTextSize,
   getTextSize_,
@@ -14,6 +12,8 @@ module Monomer.Widgets.Util.Text (
   drawTextLine,
   fitTextToRect
 ) where
+
+import Debug.Trace
 
 import Data.Default
 import Data.List (foldl')
@@ -30,19 +30,6 @@ import Monomer.Widgets.Util.Style
 
 type GlyphGroup = Seq GlyphPos
 
-data TextMode
-  = SingleLine
-  | MultiLine
-  deriving (Eq, Show)
-
-data TextLine = TextLine {
-  _tlText :: Text,
-  _tlSize :: Size,
-  _tlRect :: Rect,
-  _tlGlyphs :: Seq GlyphPos,
-  _tlMetrics :: TextMetrics
-} deriving (Eq, Show)
-
 getTextMetrics :: WidgetEnv s e -> StyleState -> TextMetrics
 getTextMetrics wenv style = textMetrics where
   renderer = _weRenderer wenv
@@ -52,13 +39,13 @@ getTextMetrics wenv style = textMetrics where
 
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
 getTextSize wenv style !text = newSize where
-  newSize = getTextSize_ wenv style SingleLine False Nothing text
+  newSize = getTextSize_ wenv style SingleLine KeepSpaces Nothing text
 
 getTextSize_
   :: WidgetEnv s e
   -> StyleState
   -> TextMode
-  -> Bool
+  -> TextTrim
   -> Maybe Double
   -> Text
   -> Size
@@ -125,7 +112,7 @@ fitTextToRect
   -> StyleState
   -> TextOverflow
   -> TextMode
-  -> Bool
+  -> TextTrim
   -> Rect
   -> Text
   -> Seq TextLine
@@ -179,14 +166,14 @@ fitTextLinesToH
   -> Seq TextLine
 fitTextLinesToH wenv style overflow w h Empty = Empty
 fitTextLinesToH wenv style overflow w h (g1 :<| g2 :<| gs)
-  | h >= g1H + g2H = g1 :<| g2 :<| rest
+  | h >= g1H + g2H = g1 :<| rest
   | h >= g1H = Seq.singleton newG1
   | otherwise = Empty
   where
     g1H = _sH (_tlSize g1)
     g2H = _sH (_tlSize g2)
-    newH = h - g1H - g2H
-    rest = fitTextLinesToH wenv style overflow w newH gs
+    newH = h - g1H
+    rest = fitTextLinesToH wenv style overflow w newH (g2 :<| gs)
     newG1 = case overflow of
       Ellipsis -> addEllipsisToTextLine wenv style w g1
       _ -> g1
@@ -198,7 +185,7 @@ fitTextToW
   :: WidgetEnv s e
   -> StyleState
   -> Double
-  -> Bool
+  -> TextTrim
   -> Text
   -> Seq TextLine
 fitTextToW wenv style width trim text = resultLines where
@@ -219,17 +206,19 @@ fitSingleTextToW
   -> TextMetrics
   -> Double
   -> Double
-  -> Bool
+  -> TextTrim
   -> Text
   -> Seq TextLine
 fitSingleTextToW wenv font fontSize metrics top width trim text = result where
-  spaces = "    "
+  spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
   !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
-  keepTailSpaces = trim -- Do not break on trailing spaces (removed in next step)
+  -- Do not break line on trailing spaces, since they are removed in next step
+  -- In the case of KeepSpaces, lines with only spaces can be generated
+  keepTailSpaces = trim == TrimSpaces
   groups = fitGroups (splitGroups glyphs) width keepTailSpaces
   resetGroups
-    | trim = fmap (resetGlyphs . trimGlyphs) groups
+    | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
   result = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
 
@@ -257,15 +246,15 @@ addEllipsisToTextLine
   -> TextLine
 addEllipsisToTextLine wenv style width textLine = newTextLine where
   TextLine text textSize textRect textGlyphs textMetrics = textLine
-  Size dw dh = getTextSize wenv style "."
+  Size tw th = textSize
+  Size dw dh = getTextSize wenv style "..."
   font = styleFont style
   fontSize = styleFontSize style
-  textWidth = _sW textSize
-  textLen = max 1 $ fromIntegral (T.length text)
+  targetW = width - tw
   dropHelper (idx, w) g
     | _glpW g + w <= dw = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
-  (dropChars, _) = foldl' dropHelper (0, 0) textGlyphs
+  (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse textGlyphs)
   newText = T.dropEnd dropChars text <> "..."
   !newGlyphs = computeGlyphsPos (_weRenderer wenv) font fontSize newText
   newW = getGlyphsWidth newGlyphs

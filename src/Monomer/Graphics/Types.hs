@@ -84,6 +84,16 @@ instance Default GlyphPos where
     _glpW = 0
   }
 
+data TextMode
+  = SingleLine
+  | MultiLine
+  deriving (Eq, Show)
+
+data TextTrim
+  = TrimSpaces
+  | KeepSpaces
+  deriving (Eq, Show)
+
 data TextMetrics = TextMetrics {
   _txmAsc :: !Double,
   _txmDesc :: !Double,
@@ -96,6 +106,14 @@ instance Default TextMetrics where
     _txmDesc = 0,
     _txmLineH = 0
   }
+
+data TextLine = TextLine {
+  _tlText :: Text,
+  _tlSize :: Size,
+  _tlRect :: Rect,
+  _tlGlyphs :: Seq GlyphPos,
+  _tlMetrics :: TextMetrics
+} deriving (Eq, Show)
 
 data ImageAddAction
   = ImageAddKeep

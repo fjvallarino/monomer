@@ -86,9 +86,9 @@
 - Single
   - Nothing for the time being; tested through other components
 - Spacer
-  - Tested in stack
+  - [x] Tested in stack
 - Stack
-  - Currently covered
+  - [x] Currently covered
   - [x] Add RangedSize tests?
   - [x] Ignore empty click (mention it's tested in zstack)
 - Text dropdown
@@ -99,5 +99,5 @@
   - [x] Copy/Paste
 - ZStack
   - [x] Assign size
-  - [ ] Handle click passthrough/focus
-  - [ ] stack's ignore empty click
+  - [x] Handle click passthrough/focus
+  - [x] stack's ignore empty click

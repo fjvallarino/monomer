@@ -18,11 +18,17 @@ import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
+import qualified Monomer.Widgets.Util.TextSpec as TextSpec
+
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
+  widgets
+
+widgets :: Spec
+widgets = describe "Widgets" $ do
   AlertSpec.spec
   BoxSpec.spec
   ButtonSpec.spec
@@ -38,3 +44,8 @@ spec = do
   StackSpec.spec
   TextFieldSpec.spec
   ZStackSpec.spec
+  widgetsUtil
+
+widgetsUtil :: Spec
+widgetsUtil = describe "Util"
+  TextSpec.spec

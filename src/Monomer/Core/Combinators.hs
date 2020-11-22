@@ -53,7 +53,7 @@ class TextOverflow_ t where
   textEllipsis :: t
   textClip :: t
 
-class TextTrim t where
+class TextTrim_ t where
   textTrim :: t
   textKeepSpaces :: t
 

@@ -277,6 +277,7 @@
   - Think about label size (fixed by default? lower factor)
   - Avoid excessive delay on window resize
   - Check 1px difference on right side of labels/buttons (probably already fixed)
+  - VStack should set itself to a fixed size if all children are fixed
 
 - Pending
   - Add testing
@@ -295,12 +296,13 @@
   - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
+  - Check if SDL can be initialized headless (for tests that involve the API)
+    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Improve listView performance (avoid merge/resize)
     - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
-  - VStack should set itself to a fixed size if all children are fixed
-    - ZStack should set _weIsTopLayer based on used space
+  - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Further textField improvements

@@ -30,7 +30,7 @@ data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
   _btnTextOverflow :: Maybe TextOverflow,
   _btnTextMode :: Maybe TextMode,
-  _btnTrim :: Maybe Bool,
+  _btnTrim :: Maybe TextTrim,
   _btnFactorW :: Maybe Double,
   _btnFactorH :: Maybe Double,
   _btnOnFocus :: [e],
@@ -92,12 +92,12 @@ instance TextMode_ (ButtonCfg s e) where
     _btnTextMode = Just MultiLine
   }
 
-instance TextTrim (ButtonCfg s e) where
+instance TextTrim_ (ButtonCfg s e) where
   textTrim = def {
-    _btnTrim = Just True
+    _btnTrim = Just TrimSpaces
   }
   textKeepSpaces = def {
-    _btnTrim = Just False
+    _btnTrim = Just KeepSpaces
   }
 
 instance OnFocus (ButtonCfg s e) e where
@@ -180,7 +180,7 @@ makeButton config state = widget where
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
   overflow = fromMaybe Ellipsis (_btnTextOverflow config)
   mode = fromMaybe SingleLine (_btnTextMode config)
-  trimSpaces = fromMaybe True (_btnTrim config)
+  trimSpaces = fromMaybe TrimSpaces (_btnTrim config)
   BtnState caption textLines = state
 
   getBaseStyle wenv inst = case buttonType of

@@ -13,3 +13,4 @@ makeLensesWith abbreviatedFields ''Color
 makeLensesWith abbreviatedFields ''FontDef
 makeLensesWith abbreviatedFields ''GlyphPos
 makeLensesWith abbreviatedFields ''TextMetrics
+makeLensesWith abbreviatedFields ''TextLine

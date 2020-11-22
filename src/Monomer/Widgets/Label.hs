@@ -21,7 +21,7 @@ import qualified Monomer.Lens as L
 data LabelCfg = LabelCfg {
   _lscTextOverflow :: Maybe TextOverflow,
   _lscTextMode :: Maybe TextMode,
-  _lscTrim :: Maybe Bool,
+  _lscTrim :: Maybe TextTrim,
   _lscFactorW :: Maybe Double,
   _lscFactorH :: Maybe Double
 }
@@ -63,12 +63,12 @@ instance TextMode_ LabelCfg where
     _lscTextMode = Just MultiLine
   }
 
-instance TextTrim LabelCfg where
+instance TextTrim_ LabelCfg where
   textTrim = def {
-    _lscTrim = Just True
+    _lscTrim = Just TrimSpaces
   }
   textKeepSpaces = def {
-    _lscTrim = Just False
+    _lscTrim = Just KeepSpaces
   }
 
 instance ResizeFactorDim LabelCfg where
@@ -104,7 +104,7 @@ makeLabel config state = widget where
 
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
-  trimSpaces = fromMaybe True (_lscTrim config)
+  trimSpaces = fromMaybe TrimSpaces (_lscTrim config)
   LabelState caption textLines = state
 
   getBaseStyle wenv inst = Just style where
