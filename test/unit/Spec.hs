@@ -18,6 +18,8 @@ import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
+import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
+import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
 import qualified Monomer.Widgets.Util.TextSpec as TextSpec
 
 main :: IO ()
@@ -47,5 +49,7 @@ widgets = describe "Widgets" $ do
   widgetsUtil
 
 widgetsUtil :: Spec
-widgetsUtil = describe "Util"
+widgetsUtil = describe "Util" $ do
+  FocusSpec.spec
+  StyleSpec.spec
   TextSpec.spec
