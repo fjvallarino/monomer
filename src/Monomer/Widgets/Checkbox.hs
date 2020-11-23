@@ -59,32 +59,32 @@ instance Semigroup (CheckboxCfg s e) where
 instance Monoid (CheckboxCfg s e) where
   mempty = def
 
-instance OnFocus (CheckboxCfg s e) e where
+instance CmbOnFocus (CheckboxCfg s e) e where
   onFocus fn = def {
     _ckcOnFocus = [fn]
   }
 
-instance OnFocusReq (CheckboxCfg s e) s where
+instance CmbOnFocusReq (CheckboxCfg s e) s where
   onFocusReq req = def {
     _ckcOnFocusReq = [req]
   }
 
-instance OnBlur (CheckboxCfg s e) e where
+instance CmbOnBlur (CheckboxCfg s e) e where
   onBlur fn = def {
     _ckcOnBlur = [fn]
   }
 
-instance OnBlurReq (CheckboxCfg s e) s where
+instance CmbOnBlurReq (CheckboxCfg s e) s where
   onBlurReq req = def {
     _ckcOnBlurReq = [req]
   }
 
-instance OnChange (CheckboxCfg s e) Bool e where
+instance CmbOnChange (CheckboxCfg s e) Bool e where
   onChange fn = def {
     _ckcOnChange = [fn]
   }
 
-instance OnChangeReq (CheckboxCfg s e) s where
+instance CmbOnChangeReq (CheckboxCfg s e) s where
   onChangeReq req = def {
     _ckcOnChangeReq = [req]
   }

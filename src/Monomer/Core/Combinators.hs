@@ -11,164 +11,164 @@ import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
 -- Input
-class ValidInput t s | t -> s where
+class CmbValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
 
-class SelectOnFocus t where
+class CmbSelectOnFocus t where
   selectOnFocus :: Bool -> t
 
 -- Caption
-class AcceptCaption t where
+class CmbAcceptCaption t where
   acceptCaption :: Text -> t
 
-class CancelCaption t where
+class CmbCancelCaption t where
   cancelCaption :: Text -> t
 
-class CloseCaption t where
+class CmbCloseCaption t where
   closeCaption :: Text -> t
 
 -- Numeric
-class Num a => MinValue t a | t -> a where
+class Num a => CmbMinValue t a | t -> a where
   minValue :: a -> t
 
-class Num a => MaxValue t a | t -> a where
+class Num a => CmbMaxValue t a | t -> a where
   maxValue :: a -> t
 
 -- Container
-class IgnoreEmptyClick t where
+class CmbIgnoreEmptyClick t where
   ignoreEmptyClick :: Bool -> t
 
 -- Text
-class Decimals t where
+class CmbDecimals t where
   decimals :: Int -> t
 
-class MaxLength t where
+class CmbMaxLength t where
   maxLength :: Int -> t
 
-class TextMode_ t where
+class CmbTextMode t where
   textSingleLine :: t
   textMultiLine :: t
 
-class TextOverflow_ t where
+class CmbTextOverflow t where
   textEllipsis :: t
   textClip :: t
 
-class TextTrim_ t where
+class CmbTextTrim t where
   textTrim :: t
   textKeepSpaces :: t
 
-class SelectOnBlur t where
+class CmbSelectOnBlur t where
   selectOnBlur :: Bool -> t
 
 -- Text style
-class TextFont t where
+class CmbTextFont t where
   textFont :: Font -> t
 
-class TextSize t where
+class CmbTextSize t where
   textSize :: Double -> t
 
-class TextColor t where
+class CmbTextColor t where
   textColor :: Color -> t
 
-class TextLeft t where
+class CmbTextLeft t where
   textLeft :: t
 
-class TextCenter t where
+class CmbTextCenter t where
   textCenter :: t
 
-class TextRight t where
+class CmbTextRight t where
   textRight :: t
 
-class TextTop t where
+class CmbTextTop t where
   textTop :: t
 
-class TextMiddle t where
+class CmbTextMiddle t where
   textMiddle :: t
 
-class TextBottom t where
+class CmbTextBottom t where
   textBottom :: t
 
 -- Events
-class OnFocus t e | t -> e  where
+class CmbOnFocus t e | t -> e  where
   onFocus :: e -> t
 
-class OnFocusReq t s | t -> s where
+class CmbOnFocusReq t s | t -> s where
   onFocusReq :: WidgetRequest s -> t
 
-class OnBlur t e | t -> e  where
+class CmbOnBlur t e | t -> e  where
   onBlur :: e -> t
 
-class OnBlurReq t s | t -> s where
+class CmbOnBlurReq t s | t -> s where
   onBlurReq :: WidgetRequest s -> t
 
-class OnClick t e | t -> e  where
+class CmbOnClick t e | t -> e  where
   onClick :: e -> t
 
-class OnClickReq t s | t -> s where
+class CmbOnClickReq t s | t -> s where
   onClickReq :: WidgetRequest s -> t
 
-class OnClickEmpty t e | t -> e  where
+class CmbOnClickEmpty t e | t -> e  where
   onClickEmpty :: e -> t
 
-class OnClickEmptyReq t s | t -> s where
+class CmbOnClickEmptyReq t s | t -> s where
   onClickEmptyReq :: WidgetRequest s -> t
 
-class OnChange t a e | t -> e where
+class CmbOnChange t a e | t -> e where
   onChange :: (a -> e) -> t
 
-class OnChangeIdx t a e | t -> e where
+class CmbOnChangeIdx t a e | t -> e where
   onChangeIdx :: (Int -> a -> e) -> t
 
-class OnChangeReq t s | t -> s where
+class CmbOnChangeReq t s | t -> s where
   onChangeReq :: WidgetRequest s -> t
 
-class OnChangeIdxReq t s | t -> s where
+class CmbOnChangeIdxReq t s | t -> s where
   onChangeIdxReq :: (Int -> WidgetRequest s) -> t
 
-class OnLoadError t a e | t -> e where
+class CmbOnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t
 
 -- Size
-class RangeWidth t where
+class CmbRangeWidth t where
   rangeWidth :: Double -> Double -> t
 
-class RangeHeight t where
+class CmbRangeHeight t where
   rangeHeight :: Double -> Double -> t
 
-class FlexWidth t where
+class CmbFlexWidth t where
   flexWidth :: Double -> t
 
-class FlexHeight t where
+class CmbFlexHeight t where
   flexHeight :: Double -> t
 
-class Width t where
+class CmbWidth t where
   width :: Double -> t
 
-class Height t where
+class CmbHeight t where
   height :: Double -> t
 
-class MinWidth t where
+class CmbMinWidth t where
   minWidth :: Double -> t
 
-class MinHeight t where
+class CmbMinHeight t where
   minHeight :: Double -> t
 
-class MaxWidth t where
+class CmbMaxWidth t where
   maxWidth :: Double -> t
 
-class MaxHeight t where
+class CmbMaxHeight t where
   maxHeight :: Double -> t
 
-class SizeReqW t where
+class CmbSizeReqW t where
   sizeReqW :: SizeReq -> t
 
-class SizeReqH t where
+class CmbSizeReqH t where
   sizeReqH :: SizeReq -> t
 
-class ResizeFactor t where
+class CmbResizeFactor t where
   resizeFactor :: Double -> t
 
-class ResizeFactorDim t where
+class CmbResizeFactorDim t where
   resizeFactorW :: Double -> t
   resizeFactorH :: Double -> t
 
@@ -178,138 +178,138 @@ infixl 5 `hover`
 infixl 5 `focus`
 infixl 5 `disabled`
 
-class Style_ t where
+class CmbStyle t where
   style :: t -> [StyleState] -> t
 
-class Hover_ t where
+class CmbHover t where
   hover :: t -> [StyleState] -> t
 
-class Focus_ t where
+class CmbFocus t where
   focus :: t -> [StyleState] -> t
 
-class Disabled_ t where
+class CmbDisabled t where
   disabled :: t -> [StyleState] -> t
 
-class BgColor t where
+class CmbBgColor t where
   bgColor :: Color -> t
 
-class FgColor t where
+class CmbFgColor t where
   fgColor :: Color -> t
 
-class HlColor t where
+class CmbHlColor t where
   hlColor :: Color -> t
 
-class Transparency t where
+class CmbTransparency t where
   transparency :: Double -> t
 
 -- Item List
-class ItemListStyle t s | t -> s where
+class CmbItemListStyle t s | t -> s where
   itemListStyle :: s -> t
 
-class ItemNormalStyle t s | t -> s where
+class CmbItemNormalStyle t s | t -> s where
   itemNormalStyle :: s -> t
 
-class ItemHoverStyle t s | t -> s where
+class CmbItemHoverStyle t s | t -> s where
   itemHoverStyle :: s -> t
 
-class ItemSelectedStyle t s | t -> s where
+class CmbItemSelectedStyle t s | t -> s where
   itemSelectedStyle :: s -> t
 
 -- Align
-class AlignLeft t where
+class CmbAlignLeft t where
   alignLeft :: t
 
-class AlignCenter t where
+class CmbAlignCenter t where
   alignCenter :: t
 
-class AlignRight t where
+class CmbAlignRight t where
   alignRight :: t
 
-class AlignTop t where
+class CmbAlignTop t where
   alignTop :: t
 
-class AlignMiddle t where
+class CmbAlignMiddle t where
   alignMiddle :: t
 
-class AlignBottom t where
+class CmbAlignBottom t where
   alignBottom :: t
 
 -- Margin
-class Margin_ t where
+class CmbMargin t where
   margin :: Double -> t
 
-class MarginL t where
+class CmbMarginL t where
   marginL :: Double -> t
 
-class MarginR t where
+class CmbMarginR t where
   marginR :: Double -> t
 
-class MarginT t where
+class CmbMarginT t where
   marginT :: Double -> t
 
-class MarginB t where
+class CmbMarginB t where
   marginB :: Double -> t
 
 -- Padding
-class Padding_ t where
+class CmbPadding t where
   padding :: Double -> t
 
-class PaddingL t where
+class CmbPaddingL t where
   paddingL :: Double -> t
 
-class PaddingR t where
+class CmbPaddingR t where
   paddingR :: Double -> t
 
-class PaddingT t where
+class CmbPaddingT t where
   paddingT :: Double -> t
 
-class PaddingB t where
+class CmbPaddingB t where
   paddingB :: Double -> t
 
 -- Border
-class Border_ t where
+class CmbBorder t where
   border :: Double -> Color -> t
 
-class BorderL t where
+class CmbBorderL t where
   borderL :: Double -> Color -> t
 
-class BorderR t where
+class CmbBorderR t where
   borderR :: Double -> Color -> t
 
-class BorderT t where
+class CmbBorderT t where
   borderT :: Double -> Color -> t
 
-class BorderB t where
+class CmbBorderB t where
   borderB :: Double -> Color -> t
 
 -- Radius
-class Radius_ t where
+class CmbRadius t where
   radius :: Double -> t
 
-class RadiusTL t where
+class CmbRadiusTL t where
   radiusTL :: Double -> t
 
-class RadiusTR t where
+class CmbRadiusTR t where
   radiusTR :: Double -> t
 
-class RadiusBL t where
+class CmbRadiusBL t where
   radiusBL :: Double -> t
 
-class RadiusBR t where
+class CmbRadiusBR t where
   radiusBR :: Double -> t
 
 -- Inner Radius
-class InnerRadius_ t where
+class CmbInnerRadius t where
   iradius :: Double -> t
 
-class InnerRadiusTL t where
+class CmbInnerRadiusTL t where
   iradiusTL :: Double -> t
 
-class InnerRadiusTR t where
+class CmbInnerRadiusTR t where
   iradiusTR :: Double -> t
 
-class InnerRadiusBL t where
+class CmbInnerRadiusBL t where
   iradiusBL :: Double -> t
 
-class InnerRadiusBR t where
+class CmbInnerRadiusBR t where
   iradiusBR :: Double -> t

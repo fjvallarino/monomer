@@ -76,7 +76,7 @@ instance Semigroup (ButtonCfg s e) where
 instance Monoid (ButtonCfg s e) where
   mempty = def
 
-instance TextOverflow_ (ButtonCfg s e) where
+instance CmbTextOverflow (ButtonCfg s e) where
   textEllipsis = def {
     _btnTextOverflow = Just Ellipsis
   }
@@ -84,7 +84,7 @@ instance TextOverflow_ (ButtonCfg s e) where
     _btnTextOverflow = Just ClipText
   }
 
-instance TextMode_ (ButtonCfg s e) where
+instance CmbTextMode (ButtonCfg s e) where
   textSingleLine = def {
     _btnTextMode = Just SingleLine
   }
@@ -92,7 +92,7 @@ instance TextMode_ (ButtonCfg s e) where
     _btnTextMode = Just MultiLine
   }
 
-instance TextTrim_ (ButtonCfg s e) where
+instance CmbTextTrim (ButtonCfg s e) where
   textTrim = def {
     _btnTrim = Just TrimSpaces
   }
@@ -100,37 +100,37 @@ instance TextTrim_ (ButtonCfg s e) where
     _btnTrim = Just KeepSpaces
   }
 
-instance OnFocus (ButtonCfg s e) e where
+instance CmbOnFocus (ButtonCfg s e) e where
   onFocus fn = def {
     _btnOnFocus = [fn]
   }
 
-instance OnFocusReq (ButtonCfg s e) s where
+instance CmbOnFocusReq (ButtonCfg s e) s where
   onFocusReq req = def {
     _btnOnFocusReq = [req]
   }
 
-instance OnBlur (ButtonCfg s e) e where
+instance CmbOnBlur (ButtonCfg s e) e where
   onBlur fn = def {
     _btnOnBlur = [fn]
   }
 
-instance OnBlurReq (ButtonCfg s e) s where
+instance CmbOnBlurReq (ButtonCfg s e) s where
   onBlurReq req = def {
     _btnOnBlurReq = [req]
   }
 
-instance OnClick (ButtonCfg s e) e where
+instance CmbOnClick (ButtonCfg s e) e where
   onClick handler = def {
     _btnOnClick = [handler]
   }
 
-instance OnClickReq (ButtonCfg s e) s where
+instance CmbOnClickReq (ButtonCfg s e) s where
   onClickReq req = def {
     _btnOnClickReq = [req]
   }
 
-instance ResizeFactorDim (ButtonCfg s e) where
+instance CmbResizeFactorDim (ButtonCfg s e) where
   resizeFactorW w = def {
     _btnFactorW = Just w
   }

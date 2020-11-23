@@ -68,12 +68,12 @@ instance Semigroup (ImageCfg s e) where
 instance Monoid (ImageCfg s e) where
   mempty = def
 
-instance Transparency (ImageCfg s e) where
+instance CmbTransparency (ImageCfg s e) where
   transparency alpha = def {
     _imcTransparency = Just alpha
   }
 
-instance OnLoadError (ImageCfg s e) ImageLoadError e where
+instance CmbOnLoadError (ImageCfg s e) ImageLoadError e where
   onLoadError err = def {
     _imcLoadError = [err]
   }

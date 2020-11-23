@@ -47,7 +47,7 @@ instance Semigroup LabelCfg where
 instance Monoid LabelCfg where
   mempty = def
 
-instance TextOverflow_ LabelCfg where
+instance CmbTextOverflow LabelCfg where
   textEllipsis = def {
     _lscTextOverflow = Just Ellipsis
   }
@@ -55,7 +55,7 @@ instance TextOverflow_ LabelCfg where
     _lscTextOverflow = Just ClipText
   }
 
-instance TextMode_ LabelCfg where
+instance CmbTextMode LabelCfg where
   textSingleLine = def {
     _lscTextMode = Just SingleLine
   }
@@ -63,7 +63,7 @@ instance TextMode_ LabelCfg where
     _lscTextMode = Just MultiLine
   }
 
-instance TextTrim_ LabelCfg where
+instance CmbTextTrim LabelCfg where
   textTrim = def {
     _lscTrim = Just TrimSpaces
   }
@@ -71,7 +71,7 @@ instance TextTrim_ LabelCfg where
     _lscTrim = Just KeepSpaces
   }
 
-instance ResizeFactorDim LabelCfg where
+instance CmbResizeFactorDim LabelCfg where
   resizeFactorW w = def {
     _lscFactorW = Just w
   }

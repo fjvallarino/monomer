@@ -45,45 +45,45 @@ getContentArea :: StyleState -> WidgetInstance s e -> Rect
 getContentArea style inst = fromMaybe def area where
   area = removeOuterBounds style (_wiRenderArea inst)
 
-instance Style_ Style where
+instance CmbStyle Style where
   style oldStyle states = newStyle where
     state = mconcat states
     newStyle = oldStyle & L.basic ?~ state
 
-instance Hover_ Style where
+instance CmbHover Style where
   hover oldStyle states = newStyle where
     state = mconcat states
     newStyle = oldStyle & L.hover ?~ state
 
-instance Focus_ Style where
+instance CmbFocus Style where
   focus oldStyle states = newStyle where
     state = mconcat states
     newStyle = oldStyle & L.focus ?~ state
 
-instance Disabled_ Style where
+instance CmbDisabled Style where
   disabled oldStyle states = newStyle where
     state = mconcat states
     newStyle = oldStyle & L.disabled ?~ state
 
-instance Style_ (WidgetInstance s e) where
+instance CmbStyle (WidgetInstance s e) where
   style inst states = inst & L.style .~ newStyle where
     state = mconcat states
     oldStyle = inst ^. L.style
     newStyle = oldStyle & L.basic ?~ state
 
-instance Hover_ (WidgetInstance s e) where
+instance CmbHover (WidgetInstance s e) where
   hover inst states = inst & L.style .~ newStyle where
     state = mconcat states
     oldStyle = inst ^. L.style
     newStyle = oldStyle & L.hover ?~ state
 
-instance Focus_ (WidgetInstance s e) where
+instance CmbFocus (WidgetInstance s e) where
   focus inst states = inst & L.style .~ newStyle where
     state = mconcat states
     oldStyle = inst ^. L.style
     newStyle = oldStyle & L.focus ?~ state
 
-instance Disabled_ (WidgetInstance s e) where
+instance CmbDisabled (WidgetInstance s e) where
   disabled inst states = inst & L.style .~ newStyle where
     state = mconcat states
     oldStyle = inst ^. L.style

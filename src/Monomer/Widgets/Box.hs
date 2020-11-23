@@ -51,52 +51,52 @@ instance Semigroup (BoxCfg s e) where
 instance Monoid (BoxCfg s e) where
   mempty = def
 
-instance AlignLeft (BoxCfg s e) where
+instance CmbAlignLeft (BoxCfg s e) where
   alignLeft = def {
     _boxAlignH = Just ALeft
   }
 
-instance AlignCenter (BoxCfg s e) where
+instance CmbAlignCenter (BoxCfg s e) where
   alignCenter = def {
     _boxAlignH = Just ACenter
   }
 
-instance AlignRight (BoxCfg s e) where
+instance CmbAlignRight (BoxCfg s e) where
   alignRight = def {
     _boxAlignH = Just ARight
   }
 
-instance AlignTop (BoxCfg s e) where
+instance CmbAlignTop (BoxCfg s e) where
   alignTop = def {
     _boxAlignV = Just ATop
   }
 
-instance AlignMiddle (BoxCfg s e) where
+instance CmbAlignMiddle (BoxCfg s e) where
   alignMiddle = def {
     _boxAlignV = Just AMiddle
   }
 
-instance AlignBottom (BoxCfg s e) where
+instance CmbAlignBottom (BoxCfg s e) where
   alignBottom = def {
     _boxAlignV = Just ABottom
   }
 
-instance OnClick (BoxCfg s e) e where
+instance CmbOnClick (BoxCfg s e) e where
   onClick handler = def {
     _boxOnClick = [handler]
   }
 
-instance OnClickReq (BoxCfg s e) s where
+instance CmbOnClickReq (BoxCfg s e) s where
   onClickReq req = def {
     _boxOnClickReq = [req]
   }
 
-instance OnClickEmpty (BoxCfg s e) e where
+instance CmbOnClickEmpty (BoxCfg s e) e where
   onClickEmpty handler = def {
     _boxOnClickEmpty = [handler]
   }
 
-instance OnClickEmptyReq (BoxCfg s e) s where
+instance CmbOnClickEmptyReq (BoxCfg s e) s where
   onClickEmptyReq req = def {
     _boxOnClickEmptyReq = [req]
   }

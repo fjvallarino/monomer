@@ -67,42 +67,42 @@ instance Semigroup (DropdownCfg s e a) where
 instance Monoid (DropdownCfg s e a) where
   mempty = def
 
-instance OnChange (DropdownCfg s e a) a e where
+instance CmbOnChange (DropdownCfg s e a) a e where
   onChange fn = def {
     _ddcOnChange = [fn]
   }
 
-instance OnChangeReq (DropdownCfg s e a) s where
+instance CmbOnChangeReq (DropdownCfg s e a) s where
   onChangeReq req = def {
     _ddcOnChangeReq = [req]
   }
 
-instance OnChangeIdx (DropdownCfg s e a) a e where
+instance CmbOnChangeIdx (DropdownCfg s e a) a e where
   onChangeIdx fn = def {
     _ddcOnChangeIdx = [fn]
   }
 
-instance OnChangeIdxReq (DropdownCfg s e a) s where
+instance CmbOnChangeIdxReq (DropdownCfg s e a) s where
   onChangeIdxReq req = def {
     _ddcOnChangeIdxReq = [req]
   }
 
-instance MaxHeight (DropdownCfg s e a) where
+instance CmbMaxHeight (DropdownCfg s e a) where
   maxHeight h = def {
     _ddcMaxHeight = Just h
   }
 
-instance ItemListStyle (DropdownCfg s e a) Style where
+instance CmbItemListStyle (DropdownCfg s e a) Style where
   itemListStyle style = def {
     _ddcListStyle = Just style
   }
 
-instance ItemNormalStyle (DropdownCfg s e a) Style where
+instance CmbItemNormalStyle (DropdownCfg s e a) Style where
   itemNormalStyle style = def {
     _ddcItemStyle = Just style
   }
 
-instance ItemSelectedStyle (DropdownCfg s e a) Style where
+instance CmbItemSelectedStyle (DropdownCfg s e a) Style where
   itemSelectedStyle style = def {
     _ddcItemSelectedStyle = Just style
   }

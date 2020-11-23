@@ -79,52 +79,52 @@ instance Semigroup (IntegralFieldCfg s e a) where
 instance Monoid (IntegralFieldCfg s e a) where
   mempty = def
 
-instance ValidInput (IntegralFieldCfg s e a) s where
+instance CmbValidInput (IntegralFieldCfg s e a) s where
   validInput field = def {
     _nfcValid = Just (WidgetLens field)
   }
 
-instance SelectOnFocus (IntegralFieldCfg s e a) where
+instance CmbSelectOnFocus (IntegralFieldCfg s e a) where
   selectOnFocus sel = def {
     _nfcSelectOnFocus = Just sel
   }
 
-instance FormattableInt a => MinValue (IntegralFieldCfg s e a) a where
+instance FormattableInt a => CmbMinValue (IntegralFieldCfg s e a) a where
   minValue len = def {
     _nfcMinValue = Just len
   }
 
-instance FormattableInt a => MaxValue (IntegralFieldCfg s e a) a where
+instance FormattableInt a => CmbMaxValue (IntegralFieldCfg s e a) a where
   maxValue len = def {
     _nfcMaxValue = Just len
   }
 
-instance OnFocus (IntegralFieldCfg s e a) e where
+instance CmbOnFocus (IntegralFieldCfg s e a) e where
   onFocus fn = def {
     _nfcOnFocus = [fn]
   }
 
-instance OnFocusReq (IntegralFieldCfg s e a) s where
+instance CmbOnFocusReq (IntegralFieldCfg s e a) s where
   onFocusReq req = def {
     _nfcOnFocusReq = [req]
   }
 
-instance OnBlur (IntegralFieldCfg s e a) e where
+instance CmbOnBlur (IntegralFieldCfg s e a) e where
   onBlur fn = def {
     _nfcOnBlur = [fn]
   }
 
-instance OnBlurReq (IntegralFieldCfg s e a) s where
+instance CmbOnBlurReq (IntegralFieldCfg s e a) s where
   onBlurReq req = def {
     _nfcOnBlurReq = [req]
   }
 
-instance OnChange (IntegralFieldCfg s e a) a e where
+instance CmbOnChange (IntegralFieldCfg s e a) a e where
   onChange fn = def {
     _nfcOnChange = [fn]
   }
 
-instance OnChangeReq (IntegralFieldCfg s e a) s where
+instance CmbOnChangeReq (IntegralFieldCfg s e a) s where
   onChangeReq req = def {
     _nfcOnChangeReq = [req]
   }

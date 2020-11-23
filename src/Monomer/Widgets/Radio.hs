@@ -57,32 +57,32 @@ instance Semigroup (RadioCfg s e a) where
 instance Monoid (RadioCfg s e a) where
   mempty = def
 
-instance OnFocus (RadioCfg s e a) e where
+instance CmbOnFocus (RadioCfg s e a) e where
   onFocus fn = def {
     _rdcOnFocus = [fn]
   }
 
-instance OnFocusReq (RadioCfg s e a) s where
+instance CmbOnFocusReq (RadioCfg s e a) s where
   onFocusReq req = def {
     _rdcOnFocusReq = [req]
   }
 
-instance OnBlur (RadioCfg s e a) e where
+instance CmbOnBlur (RadioCfg s e a) e where
   onBlur fn = def {
     _rdcOnBlur = [fn]
   }
 
-instance OnBlurReq (RadioCfg s e a) s where
+instance CmbOnBlurReq (RadioCfg s e a) s where
   onBlurReq req = def {
     _rdcOnBlurReq = [req]
   }
 
-instance OnChange (RadioCfg s e a) a e where
+instance CmbOnChange (RadioCfg s e a) a e where
   onChange fn = def {
     _rdcOnChange = [fn]
   }
 
-instance OnChangeReq (RadioCfg s e a) s where
+instance CmbOnChangeReq (RadioCfg s e a) s where
   onChangeReq req = def {
     _rdcOnChangeReq = [req]
   }

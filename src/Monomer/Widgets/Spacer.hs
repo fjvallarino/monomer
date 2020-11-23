@@ -32,17 +32,17 @@ instance Semigroup SpacerCfg where
 instance Monoid SpacerCfg where
   mempty = def
 
-instance Width SpacerCfg where
+instance CmbWidth SpacerCfg where
   width w = def {
     _spcWidth = Just w
   }
 
-instance Height SpacerCfg where
+instance CmbHeight SpacerCfg where
   height h = def {
     _spcHeight = Just h
   }
 
-instance ResizeFactor SpacerCfg where
+instance CmbResizeFactor SpacerCfg where
   resizeFactor f = def {
     _spcFactor = Just f
   }

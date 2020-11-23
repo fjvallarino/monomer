@@ -66,47 +66,47 @@ instance Semigroup (TextFieldCfg s e) where
 instance Monoid (TextFieldCfg s e) where
   mempty = def
 
-instance ValidInput (TextFieldCfg s e) s where
+instance CmbValidInput (TextFieldCfg s e) s where
   validInput field = def {
     _tfcValid = Just (WidgetLens field)
   }
 
-instance SelectOnFocus (TextFieldCfg s e) where
+instance CmbSelectOnFocus (TextFieldCfg s e) where
   selectOnFocus sel = def {
     _tfcSelectOnFocus = Just sel
   }
 
-instance MaxLength (TextFieldCfg s e) where
+instance CmbMaxLength (TextFieldCfg s e) where
   maxLength len = def {
     _tfcMaxLength = Just len
   }
 
-instance OnFocus (TextFieldCfg s e) e where
+instance CmbOnFocus (TextFieldCfg s e) e where
   onFocus fn = def {
     _tfcOnFocus = [fn]
   }
 
-instance OnFocusReq (TextFieldCfg s e) s where
+instance CmbOnFocusReq (TextFieldCfg s e) s where
   onFocusReq req = def {
     _tfcOnFocusReq = [req]
   }
 
-instance OnBlur (TextFieldCfg s e) e where
+instance CmbOnBlur (TextFieldCfg s e) e where
   onBlur fn = def {
     _tfcOnBlur = [fn]
   }
 
-instance OnBlurReq (TextFieldCfg s e) s where
+instance CmbOnBlurReq (TextFieldCfg s e) s where
   onBlurReq req = def {
     _tfcOnBlurReq = [req]
   }
 
-instance OnChange (TextFieldCfg s e) Text e where
+instance CmbOnChange (TextFieldCfg s e) Text e where
   onChange fn = def {
     _tfcOnChange = [fn]
   }
 
-instance OnChangeReq (TextFieldCfg s e) s where
+instance CmbOnChangeReq (TextFieldCfg s e) s where
   onChangeReq req = def {
     _tfcOnChangeReq = [req]
   }

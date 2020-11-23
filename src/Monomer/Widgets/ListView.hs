@@ -93,57 +93,57 @@ instance Monoid (ListViewCfg s e a) where
     _lvcOnChangeIdxReq = []
   }
 
-instance OnFocus (ListViewCfg s e a) e where
+instance CmbOnFocus (ListViewCfg s e a) e where
   onFocus fn = def {
     _lvcOnFocus = [fn]
   }
 
-instance OnFocusReq (ListViewCfg s e a) s where
+instance CmbOnFocusReq (ListViewCfg s e a) s where
   onFocusReq req = def {
     _lvcOnFocusReq = [req]
   }
 
-instance OnBlur (ListViewCfg s e a) e where
+instance CmbOnBlur (ListViewCfg s e a) e where
   onBlur fn = def {
     _lvcOnBlur = [fn]
   }
 
-instance OnBlurReq (ListViewCfg s e a) s where
+instance CmbOnBlurReq (ListViewCfg s e a) s where
   onBlurReq req = def {
     _lvcOnBlurReq = [req]
   }
 
-instance OnChange (ListViewCfg s e a) a e where
+instance CmbOnChange (ListViewCfg s e a) a e where
   onChange fn = def {
     _lvcOnChange = [fn]
   }
 
-instance OnChangeReq (ListViewCfg s e a) s where
+instance CmbOnChangeReq (ListViewCfg s e a) s where
   onChangeReq req = def {
     _lvcOnChangeReq = [req]
   }
 
-instance OnChangeIdx (ListViewCfg s e a) a e where
+instance CmbOnChangeIdx (ListViewCfg s e a) a e where
   onChangeIdx fn = def {
     _lvcOnChangeIdx = [fn]
   }
 
-instance OnChangeIdxReq (ListViewCfg s e a) s where
+instance CmbOnChangeIdxReq (ListViewCfg s e a) s where
   onChangeIdxReq req = def {
     _lvcOnChangeIdxReq = [req]
   }
 
-instance SelectOnBlur (ListViewCfg s e a) where
+instance CmbSelectOnBlur (ListViewCfg s e a) where
   selectOnBlur select = def {
     _lvcSelectOnBlur = Just select
   }
 
-instance ItemNormalStyle (ListViewCfg s e a) Style where
+instance CmbItemNormalStyle (ListViewCfg s e a) Style where
   itemNormalStyle style = def {
     _lvcItemStyle = Just style
   }
 
-instance ItemSelectedStyle (ListViewCfg s e a) Style where
+instance CmbItemSelectedStyle (ListViewCfg s e a) Style where
   itemSelectedStyle style = def {
     _lvcItemSelectedStyle = Just style
   }

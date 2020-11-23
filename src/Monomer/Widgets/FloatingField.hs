@@ -82,57 +82,57 @@ instance Semigroup (FloatingFieldCfg s e a) where
 instance Monoid (FloatingFieldCfg s e a) where
   mempty = def
 
-instance ValidInput (FloatingFieldCfg s e a) s where
+instance CmbValidInput (FloatingFieldCfg s e a) s where
   validInput field = def {
     _ffcValid = Just (WidgetLens field)
   }
 
-instance SelectOnFocus (FloatingFieldCfg s e a) where
+instance CmbSelectOnFocus (FloatingFieldCfg s e a) where
   selectOnFocus sel = def {
     _ffcSelectOnFocus = Just sel
   }
 
-instance FormattableFloat a => MinValue (FloatingFieldCfg s e a) a where
+instance FormattableFloat a => CmbMinValue (FloatingFieldCfg s e a) a where
   minValue len = def {
     _ffcMinValue = Just len
   }
 
-instance FormattableFloat a => MaxValue (FloatingFieldCfg s e a) a where
+instance FormattableFloat a => CmbMaxValue (FloatingFieldCfg s e a) a where
   maxValue len = def {
     _ffcMaxValue = Just len
   }
 
-instance Decimals (FloatingFieldCfg s e a) where
+instance CmbDecimals (FloatingFieldCfg s e a) where
   decimals num = def {
     _ffcDecimals = Just num
   }
 
-instance OnFocus (FloatingFieldCfg s e a) e where
+instance CmbOnFocus (FloatingFieldCfg s e a) e where
   onFocus fn = def {
     _ffcOnFocus = [fn]
   }
 
-instance OnFocusReq (FloatingFieldCfg s e a) s where
+instance CmbOnFocusReq (FloatingFieldCfg s e a) s where
   onFocusReq req = def {
     _ffcOnFocusReq = [req]
   }
 
-instance OnBlur (FloatingFieldCfg s e a) e where
+instance CmbOnBlur (FloatingFieldCfg s e a) e where
   onBlur fn = def {
     _ffcOnBlur = [fn]
   }
 
-instance OnBlurReq (FloatingFieldCfg s e a) s where
+instance CmbOnBlurReq (FloatingFieldCfg s e a) s where
   onBlurReq req = def {
     _ffcOnBlurReq = [req]
   }
 
-instance OnChange (FloatingFieldCfg s e a) a e where
+instance CmbOnChange (FloatingFieldCfg s e a) a e where
   onChange fn = def {
     _ffcOnChange = [fn]
   }
 
-instance OnChangeReq (FloatingFieldCfg s e a) s where
+instance CmbOnChangeReq (FloatingFieldCfg s e a) s where
   onChangeReq req = def {
     _ffcOnChangeReq = [req]
   }

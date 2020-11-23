@@ -31,7 +31,7 @@ instance Semigroup StackCfg where
 instance Monoid StackCfg where
   mempty = def
 
-instance IgnoreEmptyClick StackCfg where
+instance CmbIgnoreEmptyClick StackCfg where
   ignoreEmptyClick ignore = def {
     _stcIgnoreEmptyClick = Just ignore
   }
