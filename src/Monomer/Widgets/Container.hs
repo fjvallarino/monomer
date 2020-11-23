@@ -5,6 +5,7 @@
 
 module Monomer.Widgets.Container (
   module Monomer.Core,
+  module Monomer.Core.Combinators,
   module Monomer.Event,
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
@@ -37,6 +38,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util

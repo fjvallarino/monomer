@@ -3,6 +3,7 @@
 
 module Monomer.Widgets.Single (
   module Monomer.Core,
+  module Monomer.Core.Combinators,
   module Monomer.Event,
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
@@ -15,6 +16,7 @@ import Data.Default
 import Data.Typeable (Typeable)
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util

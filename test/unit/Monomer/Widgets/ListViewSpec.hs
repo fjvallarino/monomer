@@ -17,6 +17,7 @@ import TextShow
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil

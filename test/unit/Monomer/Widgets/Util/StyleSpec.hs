@@ -13,6 +13,7 @@ import Test.Hspec
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Label

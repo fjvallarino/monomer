@@ -11,6 +11,7 @@ import Data.Default
 import Data.Text (Text)
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Widgets.Label
 import Monomer.Widgets.Dropdown
 

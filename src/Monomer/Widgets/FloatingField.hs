@@ -28,6 +28,7 @@ import qualified Data.Text as T
 import qualified Formatting as F
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Widgets.InputField
 import Monomer.Widgets.Util
 
