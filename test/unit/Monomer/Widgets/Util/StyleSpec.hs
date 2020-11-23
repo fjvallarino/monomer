@@ -58,7 +58,8 @@ testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
   it "should request Resize widgets if sizeReq changed" $ do
     resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isResizeWidgets
-    resHover ^? _Just . L.requests `shouldSatisfy` (==1) . maybeLength
+    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isSetCursorIcon
+    resHover ^? _Just . L.requests `shouldSatisfy` (==2) . maybeLength
 
   it "should not request Resize widgets if sizeReq has not changed" $
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
@@ -67,6 +68,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     wenv = mockWenv ()
     style = createStyle
       & L.hover ?~ padding 10
+      & L.hover . non def . L.cursorIcon ?~ CursorHand
     hoverStyle = style ^?! L.hover . _Just
     focusStyle = style ^?! L.focus . _Just
     baseInst = createInst True & L.style .~ style
@@ -82,6 +84,10 @@ testHandleSizeChange = describe "handleSizeChange" $ do
 isResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isResizeWidgets (Just ResizeWidgets) = True
 isResizeWidgets _ = False
+
+isSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
+isSetCursorIcon (Just SetCursorIcon{}) = True
+isSetCursorIcon _ = False
 
 maybeLength :: Maybe (Seq a) -> Int
 maybeLength Nothing = 0

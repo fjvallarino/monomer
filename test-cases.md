@@ -13,12 +13,15 @@
   Some sort of _real_ application, with nested Composites
 
 # Widget Utils
-- Base functions
 - Focus functions
+  - [x] Next Target
+  - [x] Focus Candidate
 - Style functions
+  - [x] activeStyle
+  - [x] handleStyleChange
 - Text functions
-  [ ] Ellipsis
-  [ ] Multiline
+  - [x] Ellipsis
+  - [x] Multiline
 
 # Widgets
 - Alert
