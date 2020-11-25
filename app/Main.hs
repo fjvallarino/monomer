@@ -37,7 +37,7 @@ main = do
         --mainWindowState MainWindowFullScreen,
         --mainWindowState MainWindowMaximized,
         --mainWindowState $ MainWindowNormal (640, 480),
-        maxFps 30,
+        maxFps 10,
         mainWindowTitle "This is my title",
         useHdpi True,
         appTheme theme,

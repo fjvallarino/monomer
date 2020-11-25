@@ -240,20 +240,20 @@ makeListView widgetData items makeRow config state = widget where
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createListView wenv newState inst = newInstance where
+  createListView wenv newState inst = newInst where
     selected = currentValue wenv
     path = _wiPath inst
     itemsList = makeItemsList wenv items makeRow config path selected
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState,
       _wiChildren = Seq.singleton itemsList
     }
 
   init wenv inst = resultWidget $ createListView wenv state inst
 
-  merge wenv oldState newInstance = result where
+  merge wenv oldState oldInst newInst = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget $ createListView wenv newState newInstance
+    result = resultWidget $ createListView wenv newState newInst
 
   handleEvent wenv target evt inst = case evt of
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config inst
@@ -311,8 +311,8 @@ makeListView widgetData items makeRow config state = widget where
     }
     -- ListView's tree will be rebuilt in merge, before merging its children,
     -- so it does not matter what we currently have
-    newInstance = oldInstance
-    widgetResult = widgetMerge newWidget wenv oldInstance newInstance
+    newInst = oldInstance
+    widgetResult = widgetMerge newWidget wenv oldInstance newInst
     scrollToReq = itemScrollTo inst nextIdx
     requests = Seq.fromList scrollToReq
     result = Just $ widgetResult {
@@ -331,10 +331,10 @@ makeListView widgetData items makeRow config state = widget where
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
     requests = valueSetReq ++ scrollToReq ++ changeReqs
     newState = ListViewState idx
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
     }
-    result = resultReqsEvents requests events newInstance
+    result = resultReqsEvents requests events newInst
 
   itemScrollTo inst idx = maybeToList (fmap scrollReq renderArea) where
     renderArea = itemRenderArea inst idx

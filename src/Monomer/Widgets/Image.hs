@@ -124,7 +124,7 @@ makeImage imgPath config state = widget where
     path = _wiPath inst
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
-  merge wenv oldState inst = result where
+  merge wenv oldState oldInst inst = result where
     newState = fromMaybe state (useState oldState)
     path = _wiPath inst
     newImgReqs = [ RunTask path $ do

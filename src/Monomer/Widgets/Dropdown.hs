@@ -228,7 +228,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   init wenv inst = resultWidget $ createDropdown wenv state inst
 
-  merge wenv oldState newInst = result where
+  merge wenv oldState oldInst newInst = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget $ createDropdown wenv newState newInst
 

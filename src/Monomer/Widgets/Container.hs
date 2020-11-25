@@ -57,6 +57,7 @@ type ContainerMergeHandler s e
   = WidgetEnv s e
   -> Maybe WidgetState
   -> WidgetInstance s e
+  -> WidgetInstance s e
   -> WidgetResult s e
 
 type ContainerDisposeHandler s e
@@ -183,7 +184,7 @@ createThemed widgetType factory = newInst where
       _wiStyle = _wiStyle tempInst <> _wiStyle inst
     }
   init = createInst
-  merge wenv oldState inst = createInst wenv inst
+  merge wenv oldState oldInst inst = createInst wenv inst
   newWidget = createContainer def {
     containerInit = createInst,
     containerMerge = merge
@@ -215,16 +216,16 @@ initWrapper container wenv inst = newResult where
   newReqs = fold $ fmap _wrRequests results
   newEvents = fold $ fmap _wrEvents results
   newChildren = fmap _wrWidget results
-  newInstance = tempInstance {
+  newInst = tempInstance {
     _wiChildren = newChildren
   }
-  baseStyle = getBaseStyle wenv newInstance
-  styledInst = initInstanceStyle wenv baseStyle newInstance
+  baseStyle = getBaseStyle wenv newInst
+  styledInst = initInstanceStyle wenv baseStyle newInst
   newResult = WidgetResult (reqs <> newReqs) (events <> newEvents) styledInst
 
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
-defaultMerge wenv state newInstance = resultWidget newInstance
+defaultMerge wenv state oldInst newInst = resultWidget newInst
 
 mergeWrapper
   :: Container s e
@@ -240,9 +241,9 @@ mergeWrapper container wenv oldInst newInst = newResult where
     _wiViewport = _wiViewport oldInst,
     _wiRenderArea = _wiRenderArea oldInst
   }
-  WidgetResult uReqs uEvents uInstance = mergeHandler wenv oldState tempInst
+  WidgetResult uReqs uEvents uInst = mergeHandler wenv oldState oldInst tempInst
   oldChildren = _wiChildren oldInst
-  updatedChildren = _wiChildren uInstance
+  updatedChildren = _wiChildren uInst
   mergeChild idx child = cascadeCtx tempInst child idx
   newChildren = Seq.mapWithIndex mergeChild updatedChildren
   (mergedResults, removedResults) = mergeChildren wenv oldChildren newChildren
@@ -252,12 +253,12 @@ mergeWrapper container wenv oldInst newInst = newResult where
   mergedEvents = concatSeq $ fmap _wrEvents mergedResults
   removedReqs = concatSeq $ fmap _wrRequests removedResults
   removedEvents = concatSeq $ fmap _wrEvents removedResults
-  mergedInstance = uInstance {
+  mergedInstance = uInst {
     _wiChildren = mergedChildren
   }
   newReqs = uReqs <> mergedReqs <> removedReqs
   newEvents = uEvents <> mergedEvents <> removedEvents
-  baseStyle = getBaseStyle wenv uInstance
+  baseStyle = getBaseStyle wenv uInst
   styledInst = initInstanceStyle wenv baseStyle mergedInstance
   newResult = WidgetResult newReqs newEvents styledInst
 
