@@ -58,9 +58,10 @@ testActiveStyle = describe "activeStyle" $ do
 testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
   it "should request Resize widgets if sizeReq changed" $ do
+    resHover ^? _Just . L.requests `shouldSatisfy` (==3) . maybeLength
     resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isResizeWidgets
-    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isSetCursorIcon
-    resHover ^? _Just . L.requests `shouldSatisfy` (==2) . maybeLength
+    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isRenderOnce
+    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isSetCursorIcon
 
   it "should not request Resize widgets if sizeReq has not changed" $
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
@@ -85,6 +86,10 @@ testHandleSizeChange = describe "handleSizeChange" $ do
 isResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isResizeWidgets (Just ResizeWidgets) = True
 isResizeWidgets _ = False
+
+isRenderOnce :: Maybe (WidgetRequest s) -> Bool
+isRenderOnce (Just RenderOnce{}) = True
+isRenderOnce _ = False
 
 isSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
 isSetCursorIcon (Just SetCursorIcon{}) = True

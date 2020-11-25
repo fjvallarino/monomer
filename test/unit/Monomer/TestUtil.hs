@@ -15,6 +15,7 @@ import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Main.Handlers
+import Monomer.Main.Types
 import Monomer.Main.Util
 
 testW :: Double
@@ -140,6 +141,15 @@ instResize wenv viewport inst = newInst where
   reqInst = widgetUpdateSizeReq (_wiWidget inst) wenv inst
   newInst = widgetResize (_wiWidget reqInst) wenv viewport viewport reqInst
 
+instHandleEventCtx
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetInstance s e
+  -> MonomerContext s
+instHandleEventCtx wenv evts inst = ctx where
+  ctx = snd $ instHandleEvents wenv evts inst
+
 instHandleEventModel
   :: (Eq s)
   => WidgetEnv s e
@@ -147,7 +157,7 @@ instHandleEventModel
   -> WidgetInstance s e
   -> s
 instHandleEventModel wenv evts inst = _weModel wenv2 where
-  (wenv2, _, _) = instHandleEvents wenv evts inst
+  (wenv2, _, _) = fst $ instHandleEvents wenv evts inst
 
 instHandleEventEvts
   :: (Eq s)
@@ -156,7 +166,7 @@ instHandleEventEvts
   -> WidgetInstance s e
   -> Seq e
 instHandleEventEvts wenv evts inst = events where
-  (_, events, _) = instHandleEvents wenv evts inst
+  (_, events, _) = fst $ instHandleEvents wenv evts inst
 
 instHandleEventRoot
   :: (Eq s)
@@ -165,14 +175,14 @@ instHandleEventRoot
   -> WidgetInstance s e
   -> WidgetInstance s e
 instHandleEventRoot wenv evts inst = newRoot where
-  (_, _, newRoot) = instHandleEvents wenv evts inst
+  (_, _, newRoot) = fst $ instHandleEvents wenv evts inst
 
 instHandleEvents
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetInstance s e
-  -> HandlerStep s e
+  -> (HandlerStep s e, MonomerContext s)
 instHandleEvents wenv evts inst = unsafePerformIO $ do
   let winSize = testWindowSize
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
@@ -182,13 +192,11 @@ instHandleEvents wenv evts inst = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
-  (step, newCtx) <- flip runStateT monomerContext $ do
+  flip runStateT monomerContext $ do
     (wenv2, _, newInst) <- handleWidgetInit wenv inst
     let resizedInst = instResize wenv vp newInst
 
     handleSystemEvents wenv2 evts resizedInst
-
-  return step
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where

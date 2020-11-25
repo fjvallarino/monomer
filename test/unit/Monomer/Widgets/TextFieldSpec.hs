@@ -42,8 +42,10 @@ spec = describe "TextField" $ do
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
-  it "should input an 'a'" $
+  it "should input an 'a'" $ do
     model [evtT "a"] ^. textValue `shouldBe` "a"
+    ctx [evtT "a"] ^. L.renderSchedule `shouldSatisfy` null
+    ctx [Focus, evtT "a"] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
   it "should input 'ababa', remove the middle 'a' and input 'c'" $ do
     let steps = [evtT "ababa", moveCharL, moveCharL, evtK keyBackspace, evtT "c"]
@@ -78,11 +80,13 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, Focus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
 
-  it "should generate an event when focus is received" $
+  it "should generate an event when focus is received" $ do
     events Focus `shouldBe` Seq.singleton GotFocus
+    ctx [Focus] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
-  it "should generate an event when focus is lost" $
+  it "should generate an event when focus is lost" $ do
     events Blur `shouldBe` Seq.singleton LostFocus
+    ctx [Focus, Blur] ^. L.renderSchedule `shouldSatisfy` null
 
   where
     wenv = mockWenv (TestModel "")
@@ -90,6 +94,7 @@ handleEvent = describe "handleEvent" $ do
     txtInst = textField_ textValue txtCfg
     model es = instHandleEventModel wenv es txtInst
     events evt = instHandleEventEvts wenv [evt] txtInst
+    ctx evts = instHandleEventCtx wenv evts txtInst
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do

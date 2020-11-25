@@ -64,6 +64,9 @@ inputFieldState = InputFieldState {
 caretWidth :: Double
 caretWidth = 2
 
+caretMs :: Int
+caretMs = 500
+
 inputField_
   :: (Eq a, Default a, Typeable a)
   => WidgetType
@@ -84,6 +87,7 @@ makeInputField config state = widget where
     singleInit = init,
     singleGetState = makeState state,
     singleMerge = merge,
+    singleDispose = dispose,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
@@ -138,7 +142,17 @@ makeInputField config state = widget where
       _wiWidget = makeInputField config newState
     }
     parsedVal = fromText newText
-    reqs = setModelValid (isJust parsedVal)
+    oldPath = _wiPath oldInst
+    newPath = _wiPath inst
+    focused = isFocused wenv oldInst
+    renderReqs
+      | focused = [ RenderStop oldPath, RenderEvery newPath caretMs ]
+      | otherwise = []
+    reqs = setModelValid (isJust parsedVal) ++ renderReqs
+
+  dispose wenv inst = resultReqs reqs inst where
+    path = _wiPath inst
+    reqs = [ RenderStop path ]
 
   handleKeyPress wenv mod code
     | isDelBackWord && emptySel = Just $ moveCursor removeWord prevWordStartIdx Nothing
