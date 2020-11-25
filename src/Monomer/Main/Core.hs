@@ -12,16 +12,19 @@ module Monomer.Main.Core (
   runApp
 ) where
 
+import Debug.Trace
+
 import Control.Concurrent (threadDelay)
 import Control.Lens
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
+import Data.List (foldl')
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 
-import qualified Data.Map as M
+import qualified Data.Map as Map
 import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
@@ -48,6 +51,7 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
   _mlMaxFps :: Int,
+  _mlLatestRenderTs :: Int,
   _mlFrameStartTs :: Int,
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
@@ -116,7 +120,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weRenderer = renderer,
     _weTheme = theme,
     _weAppWindowSize = newWindowSize,
-    _weGlobalKeys = M.empty,
+    _weGlobalKeys = Map.empty,
     _weCurrentCursor = CursorArrow,
     _weFocusedPath = rootPath,
     _weOverlayPath = Nothing,
@@ -138,6 +142,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _mlTheme = theme,
     _mlMaxFps = maxFps,
     _mlAppStartTs = 0,
+    _mlLatestRenderTs = 0,
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
@@ -187,7 +192,7 @@ mainLoop window renderer loopArgs = do
     _weRenderer = renderer,
     _weTheme = _mlTheme,
     _weAppWindowSize = windowSize,
-    _weGlobalKeys = M.empty,
+    _weGlobalKeys = Map.empty,
     _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
@@ -219,17 +224,28 @@ mainLoop window renderer loopArgs = do
   newRoot <- if windowResized then resizeWindow window seWenv seRoot
                               else return seRoot
 
-  renderWidgets window renderer seWenv newRoot
-
   endTicks <- fmap fromIntegral SDL.ticks
 
+  -- Rendering
+  renderCurrentReq <- checkRenderCurrent startTicks _mlFrameStartTs
+
+  let renderEvent = any isActionEvent eventsPayload
+  let renderNeeded = windowResized || renderEvent || renderCurrentReq
+
+  when renderNeeded $
+    renderWidgets window renderer seWenv newRoot
+
+  renderRequested .= windowResized
+
   let fps = realToFrac _mlMaxFps
-  let frameLength = 1000000 / fps
-  let newTs = fromIntegral $ endTicks - startTicks
+  let frameLength = round (1000000 / fps)
+  let newTs = endTicks - startTicks
   let tempDelay = abs (frameLength - newTs * 1000)
-  let nextFrameDelay = round $ min frameLength tempDelay
+  let nextFrameDelay = min frameLength tempDelay
+  let latestRenderTs = if renderNeeded then startTicks else _mlLatestRenderTs
   let newLoopArgs = loopArgs {
     _mlAppStartTs = _mlAppStartTs + ts,
+    _mlLatestRenderTs = latestRenderTs,
     _mlFrameStartTs = startTicks,
     _mlFrameAccumTs = if newSecond then 0 else _mlFrameAccumTs + ts,
     _mlFrameCount = if newSecond then 0 else _mlFrameCount + 1,
@@ -244,6 +260,24 @@ mainLoop window renderer loopArgs = do
     void $ handleWidgetDispose seWenv seRoot
 
   unless shouldQuit (mainLoop window renderer newLoopArgs)
+
+checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
+checkRenderCurrent currTs renderTs = do
+  renderNext <- use renderRequested
+  schedule <- use renderSchedule
+  return (renderNext || nextRender schedule)
+  where
+    foldHelper acc curr = acc || renderScheduleDone currTs renderTs curr
+    nextRender schedule = foldl' foldHelper False schedule
+
+renderScheduleDone :: Int -> Int -> RenderSchedule -> Bool
+renderScheduleDone currTs renderTs schedule = nextStep < currTs where
+  RenderSchedule _ start ms = schedule
+  stepsDone = round (fromIntegral (renderTs - start) / fromIntegral ms)
+  currStep = start + ms * stepsDone
+  nextStep
+    | currStep >= renderTs = currStep
+    | otherwise = currStep + ms
 
 renderWidgets
   :: (MonomerM s m)

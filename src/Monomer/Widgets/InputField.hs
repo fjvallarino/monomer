@@ -279,12 +279,16 @@ makeInputField config state = widget where
             _wiWidget = makeInputField config newState
           }
         | otherwise = inst
-      newResult = resultReqs [StartTextInput (_wiViewport inst)] newInst
+      path = _wiPath inst
+      reqs = [RenderEvery path 500, StartTextInput (_wiViewport inst)]
+      newResult = resultReqs reqs newInst
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newInst
       result = maybe newResult (mergeResults newResult) focusResult
 
     Blur -> Just result where
-      newResult = resultReqs [StopTextInput] inst
+      path = _wiPath inst
+      reqs = [RenderStop path, StopTextInput]
+      newResult = resultReqs reqs inst
       blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config inst
       result = maybe newResult (mergeResults newResult) blurResult
 

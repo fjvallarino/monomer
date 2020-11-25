@@ -69,6 +69,9 @@ data WidgetRequest s
   | SetOverlay Path
   | ResetOverlay
   | SetCursorIcon CursorIcon
+  | RenderOnce
+  | RenderEvery Path Int
+  | RenderStop Path
   | ExitApplication Bool
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
@@ -253,6 +256,9 @@ instance Show (WidgetRequest s) where
   show ResetOverlay = "ResetOverlay"
   show (SetOverlay path) = "SetOverlay: " ++ show path
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show RenderOnce = "RenderOnce"
+  show (RenderEvery path ms) = "RenderEvery: " ++ show path ++ " - " ++ show ms
+  show (RenderStop path) = "RenderStop: " ++ show path
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"

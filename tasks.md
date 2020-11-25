@@ -271,6 +271,7 @@
     - Add Bold/Italic support (instead of different Font for each case)
   - Button should change color when clicked/actioned
   - Check label with flexHeight (multilabel was not showing first line if it did not fit)
+  - Add Maps on Theme to handle user widget settings
   - Handle window title, maximize, etc
     - Also handle as requests?
     - Provide a way of exiting application/close window handler
@@ -278,6 +279,12 @@
   - Avoid excessive delay on window resize
   - Check 1px difference on right side of labels/buttons (probably already fixed)
   - VStack should set itself to a fixed size if all children are fixed
+  - Remember use case for containerStyleOnMerge (scroll size, but can't replicate)
+    - Using it makes everything painfully slow
+    - Most likely related to focus of nested components. Maybe filtering move/hover out is enough?
+    - Now fixed, but still need to test old use cases work fine
+  - Default to integrated graphics
+    - http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching/
 
 - Pending
   - Add testing
@@ -293,11 +300,9 @@
     - Composite example
     - Something of generative art (OpenGL example)
   - Add user documentation
-  - Add Maps on Theme to handle user widget settings
 
 Maybe postponed after release?
-  - Check if SDL can be initialized headless (for tests that involve the API)
-    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
+  - Can we avoid redrawing if no event happened?
   - Improve listView performance (avoid merge/resize)
     - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
     - Still need to provide method for custom mergeNeeded check
@@ -309,19 +314,18 @@ Maybe postponed after release?
     - Handle undo history
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
+  - Check if SDL can be initialized headless (for tests that involve the API)
+    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
-  - Remember use case for containerStyleOnMerge (scroll size, but can't replicate)
-    - Using it makes everything painfully slow
-    - Most likely related to focus of nested components. Maybe filtering move/hover out is enough?
-    - Now fixed, but still need to test old use cases work fine
   - Scroll wheel rate should be configurable, or even depend on content size
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
+    - https://github.com/ollix/MetalNanoVG
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Image
     - Can performance be improved?

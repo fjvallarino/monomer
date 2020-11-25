@@ -205,7 +205,7 @@ makeScroll config state = widget where
     Move point -> result where
       drag bar = updateScrollThumb state bar point contentArea sctx
       makeWidget state = rebuildWidget wenv state inst
-      makeResult state = resultReqs scrollReqs (makeWidget state)
+      makeResult state = resultReqs (RenderOnce : scrollReqs) (makeWidget state)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > cw

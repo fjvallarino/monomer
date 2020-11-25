@@ -9,5 +9,6 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Monomer.Core.Lens
 import Monomer.Main.Types
 
-makeLensesWith abbreviatedFields ''MonomerContext
 makeLensesWith abbreviatedFields ''AppConfig
+makeLensesWith abbreviatedFields ''MonomerContext
+makeLensesWith abbreviatedFields ''RenderSchedule

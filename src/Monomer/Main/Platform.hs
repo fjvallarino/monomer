@@ -76,7 +76,8 @@ initSDLWindow config = do
       SDL.glColorPrecision = SDL.V4 8 8 8 0,
       SDL.glDepthPrecision = 24,
       SDL.glStencilPrecision = 8,
-      SDL.glProfile = SDL.Core SDL.Debug 3 2,
+      --SDL.glProfile = SDL.Core SDL.Debug 3 2,
+      SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
     (winW, winH) = case _apcWindowState config of

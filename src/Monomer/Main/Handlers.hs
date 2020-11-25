@@ -137,6 +137,9 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetOverlay path -> handleSetOverlay path step
     ResetOverlay -> handleResetOverlay step
     SetCursorIcon icon -> handleSetCursorIcon icon step
+    RenderOnce -> handleRenderOnce step
+    RenderEvery path ms -> handleRenderEvery path ms step
+    RenderStop path -> handleRenderStop path step
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
@@ -156,6 +159,8 @@ handleResizeWidgets reqs previousStep =
 
       let (wenv, events, widgetRoot) = previousStep
       let newWidgetRoot = resizeWidget wenv windowSize widgetRoot
+
+      L.renderRequested .= True
 
       return (wenv, events, newWidgetRoot)
     _ -> return previousStep
@@ -240,7 +245,36 @@ handleSetCursorIcon icon previousStep = do
 
   return previousStep
 
-handleExitApplication :: (MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
+handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleRenderOnce previousStep = do
+  L.renderRequested .= True
+  return previousStep
+
+handleRenderEvery
+  :: (MonomerM s m) => Path -> Int -> HandlerStep s e -> m (HandlerStep s e)
+handleRenderEvery path ms previousStep = do
+  schedule <- use L.renderSchedule
+  L.renderSchedule .= addSchedule schedule
+  return previousStep
+  where
+    (wenv, _, _) = previousStep
+    newValue = RenderSchedule {
+      _rsPath = path,
+      _rsStart = _weTimestamp wenv,
+      _rsMs = ms
+    }
+    addSchedule schedule
+      | ms > 0 = Map.insert path newValue schedule
+      | otherwise = schedule
+
+handleRenderStop :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
+handleRenderStop path previousStep = do
+  schedule <- use L.renderSchedule
+  L.renderSchedule .= Map.delete path schedule
+  return previousStep
+
+handleExitApplication
+  :: (MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleExitApplication exit previousStep = do
   L.exitApplication .= exit
   return previousStep

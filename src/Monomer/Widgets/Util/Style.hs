@@ -151,7 +151,9 @@ handleSizeChange wenv target evt cfg inst = reqs where
   newSizeReqH = _wiSizeReqH instReqs
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Result
-  reqs = [ ResizeWidgets | checkSize && sizeReqChanged ]
+  resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]
+  enterReq = [ RenderOnce | isOnEnter evt ]
+  reqs = resizeReq ++ enterReq
 
 handleCursorChange
   :: WidgetEnv s e

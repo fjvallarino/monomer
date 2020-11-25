@@ -28,6 +28,12 @@ import Monomer.Graphics.Types
 
 type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
 
+data RenderSchedule = RenderSchedule {
+  _rsPath :: Path,
+  _rsStart :: Int,
+  _rsMs :: Int
+} deriving (Eq, Show)
+
 data WidgetTask
   = forall i . Typeable i => WidgetTask Path (Async i)
   | forall i . Typeable i => WidgetProducer Path (TChan i) (Async ())
@@ -46,6 +52,8 @@ data MonomerContext s = MonomerContext {
   _mcPathOverlay :: Maybe Path,
   _mcWidgetTasks :: Seq WidgetTask,
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
+  _mcRenderRequested :: Bool,
+  _mcRenderSchedule :: Map Path RenderSchedule,
   _mcExitApplication :: Bool
 }
 

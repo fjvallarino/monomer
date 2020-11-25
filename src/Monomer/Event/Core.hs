@@ -1,4 +1,5 @@
 module Monomer.Event.Core (
+  isActionEvent,
   convertEvents
 ) where
 
@@ -11,6 +12,13 @@ import qualified SDL
 import Monomer.Core.BasicTypes
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
+
+isActionEvent :: SDL.EventPayload -> Bool
+isActionEvent SDL.MouseButtonEvent{} = True
+isActionEvent SDL.MouseWheelEvent{} = True
+isActionEvent SDL.KeyboardEvent{} = True
+isActionEvent SDL.TextInputEvent{} = True
+isActionEvent _ = False
 
 convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
 convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
