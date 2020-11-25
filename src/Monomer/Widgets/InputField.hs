@@ -144,9 +144,9 @@ makeInputField config state = widget where
     parsedVal = fromText newText
     oldPath = _wiPath oldInst
     newPath = _wiPath inst
-    focused = isFocused wenv oldInst
+    updateFocus = isFocused wenv oldInst && oldPath /= newPath
     renderReqs
-      | focused = [ RenderStop oldPath, RenderEvery newPath caretMs ]
+      | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
       | otherwise = []
     reqs = setModelValid (isJust parsedVal) ++ renderReqs
 
@@ -155,7 +155,7 @@ makeInputField config state = widget where
     reqs = [ RenderStop path ]
 
   handleKeyPress wenv mod code
-    | isDelBackWord && emptySel = Just $ moveCursor removeWord prevWordStartIdx Nothing
+    | isDelBackWordNoSel = Just $ moveCursor removeWord prevWordStartIdx Nothing
     | isDelBackWord = Just $ moveCursor removeText minTpSel Nothing
     | isBackspace && emptySel = Just $ moveCursor removeText (tp - 1) Nothing
     | isBackspace = Just $ moveCursor removeText minTpSel Nothing
@@ -191,6 +191,10 @@ makeInputField config state = widget where
       nextWordEnd = T.dropWhile (not . delim) $ T.dropWhile delim part2
       nextWordEndIdx = txtLen - T.length nextWordEnd
       isShift = _kmLeftShift mod
+      isLeft = isKeyLeft code
+      isRight = isKeyRight code
+      isHome = isKeyHome code
+      isEnd = isKeyEnd code
       isWordMod
         | isMacOS wenv = _kmLeftAlt mod
         | otherwise = _kmLeftCtrl mod
@@ -202,27 +206,28 @@ makeInputField config state = widget where
         | otherwise = _kmLeftCtrl mod
       isBackspace = isKeyBackspace code && (tp > 0 || isJust currSel)
       isDelBackWord = isBackspace && isWordMod
+      isDelBackWordNoSel = isDelBackWord && emptySel
       isMove = not isShift && not isWordMod && not isLineMod
       isMoveWord = not isShift && isWordMod && not isLineMod
       isMoveLine = not isShift && isLineMod && not isWordMod
       isSelect = isShift && not isWordMod && not isLineMod
       isSelectWord = isShift && isWordMod && not isLineMod
       isSelectLine = isShift && isLineMod && not isWordMod
-      isMoveLeft = isMove && not activeSel && isKeyLeft code
-      isMoveRight = isMove && not activeSel && isKeyRight code
-      isMoveWordL = isMoveWord && isKeyLeft code
-      isMoveWordR = isMoveWord && isKeyRight code
-      isMoveLineL = (isMoveLine && isKeyLeft code) || (not isShift && isKeyHome code)
-      isMoveLineR = (isMoveLine && isKeyRight code) || (not isShift && isKeyEnd code)
+      isMoveLeft = isMove && not activeSel && isLeft
+      isMoveRight = isMove && not activeSel && isRight
+      isMoveWordL = isMoveWord && isLeft
+      isMoveWordR = isMoveWord && isRight
+      isMoveLineL = (isMoveLine && isLeft) || (not isShift && isHome)
+      isMoveLineR = (isMoveLine && isRight) || (not isShift && isEnd)
       isSelectAll = isAllMod && isKeyA code
-      isSelectLeft = isSelect && isKeyLeft code
-      isSelectRight = isSelect && isKeyRight code
-      isSelectWordL = isSelectWord && isKeyLeft code
-      isSelectWordR = isSelectWord && isKeyRight code
-      isSelectLineL = (isSelectLine && isKeyLeft code) || (isShift && isKeyHome code)
-      isSelectLineR = (isSelectLine && isKeyRight code) || (isShift && isKeyEnd code)
-      isDeselectLeft = isMove && activeSel && isKeyLeft code
-      isDeselectRight = isMove && activeSel && isKeyRight code
+      isSelectLeft = isSelect && isLeft
+      isSelectRight = isSelect && isRight
+      isSelectWordL = isSelectWord && isLeft
+      isSelectWordR = isSelectWord && isRight
+      isSelectLineL = (isSelectLine && isLeft) || (isShift && isHome)
+      isSelectLineR = (isSelectLine && isRight) || (isShift && isEnd)
+      isDeselectLeft = isMove && activeSel && isLeft
+      isDeselectRight = isMove && activeSel && isRight
       removeText
         | isJust currSel = replaceText txt ""
         | otherwise = T.init part1 <> part2
@@ -294,7 +299,8 @@ makeInputField config state = widget where
           }
         | otherwise = inst
       path = _wiPath inst
-      reqs = [RenderEvery path 500, StartTextInput (_wiViewport inst)]
+      viewport = _wiViewport inst
+      reqs = [RenderEvery path caretMs, StartTextInput viewport]
       newResult = resultReqs reqs newInst
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newInst
       result = maybe newResult (mergeResults newResult) focusResult
