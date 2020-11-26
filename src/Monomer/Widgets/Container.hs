@@ -236,19 +236,19 @@ mergeWrapper
   -> WidgetResult s e
 mergeWrapper container wenv oldModel oldInst newInst = cResult where
   getBaseStyle = containerGetBaseStyle container
+  mergeHandler = containerMerge container
   styledInst = initInstanceStyle getBaseStyle wenv newInst
-  pResult = mergeParent container wenv oldModel oldInst styledInst
+  pResult = mergeParent mergeHandler wenv oldModel oldInst styledInst
   cResult = mergeChildren wenv oldModel oldInst pResult
 
 mergeParent
-  :: Container s e
+  :: ContainerMergeHandler s e
   -> WidgetEnv s e
   -> s
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeParent container wenv oldModel oldInst newInst = result where
-  mergeHandler = containerMerge container
+mergeParent mergeHandler wenv oldModel oldInst newInst = result where
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,

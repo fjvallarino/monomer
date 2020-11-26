@@ -117,7 +117,7 @@ data DropdownMessage
   deriving Typeable
 
 dropdown
-  :: (Traversable t, Eq a, Show a)
+  :: (Traversable t, Eq a, Typeable a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -127,7 +127,7 @@ dropdown field items makeMain makeRow = newInst where
   newInst = dropdown_ field items makeMain makeRow def
 
 dropdown_
-  :: (Traversable t, Eq a, Show a)
+  :: (Traversable t, Eq a, Typeable a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -139,7 +139,7 @@ dropdown_ field items makeMain makeRow configs = newInst where
   newInst = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
-  :: (Traversable t, Eq a, Show a)
+  :: (Traversable t, Eq a, Typeable a)
   => a
   -> (a -> e)
   -> t a
@@ -150,7 +150,7 @@ dropdownV value handler items makeMain makeRow = newInst where
   newInst = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
-  :: (Traversable t, Eq a, Show a)
+  :: (Traversable t, Eq a, Typeable a)
   => a
   -> (a -> e)
   -> t a
@@ -163,7 +163,7 @@ dropdownV_ value handler items makeMain makeRow configs = newInst where
   newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
-  :: (Traversable t, Eq a, Show a)
+  :: (Traversable t, Eq a, Typeable a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -182,7 +182,7 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 }
 
 makeDropdown
-  :: (Eq a, Show a)
+  :: (Eq a, Typeable a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
@@ -358,7 +358,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget renderer wenv overlayInstance
 
 makeListView
-  :: (Eq a)
+  :: (Eq a, Typeable a)
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a

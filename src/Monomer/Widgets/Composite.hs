@@ -430,9 +430,9 @@ rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
-  mergeRequired = _mergeRequired comp _cmpModel newModel
   mergedResult = widgetMerge builtWidget cwenv _cmpModel widgetRoot builtRoot
   resizedResult = resizeResult state wenv mergedResult widgetComp
+  mergeRequired = _mergeRequired comp _cmpModel newModel
   newWidget
     | mergeRequired = _wrWidget resizedResult
     | otherwise = widgetRoot

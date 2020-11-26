@@ -148,7 +148,8 @@ instance CmbItemSelectedStyle (ListViewCfg s e a) Style where
     _lvcItemSelectedStyle = Just style
   }
 
-newtype ListViewState = ListViewState {
+data ListViewState a = ListViewState {
+  _prevItems :: Seq a,
   _highlighted :: Int
 }
 
@@ -157,7 +158,7 @@ newtype ListViewMessage
   deriving Typeable
 
 listView
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Typeable a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -165,7 +166,7 @@ listView
 listView field items makeRow = listView_ field items makeRow def
 
 listView_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Typeable a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -175,7 +176,7 @@ listView_ field items makeRow configs = newInst where
   newInst = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Typeable a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -185,7 +186,7 @@ listViewV value handler items makeRow = newInst where
   newInst = listViewV_ value handler items makeRow def
 
 listViewV_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Typeable a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -198,7 +199,7 @@ listViewV_ value handler items makeRow configs = newInst where
   newInst = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
-  :: (Traversable t, Eq a)
+  :: (Traversable t, Eq a, Typeable a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -207,7 +208,7 @@ listViewD_
 listViewD_ widgetData items makeRow configs = makeInstance widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState 0
+  newState = ListViewState newItems 0
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -217,12 +218,12 @@ makeInstance widget = scroll_ childInst [scrollStyle L.listViewStyle] where
   }
 
 makeListView
-  :: (Eq a)
+  :: (Eq a, Typeable a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
   -> ListViewCfg s e a
-  -> ListViewState
+  -> ListViewState a
   -> Widget s e
 makeListView widgetData items makeRow config state = widget where
   baseWidget = createContainer def {
@@ -302,7 +303,9 @@ makeListView widgetData items makeRow config state = widget where
       | otherwise = tempResult & L.requests <>~ focusReq
 
   highlightItem wenv inst nextIdx = result where
-    newState = ListViewState nextIdx
+    newState = state {
+      _highlighted = nextIdx
+    }
     newWidget = makeListView widgetData items makeRow config newState
     -- ListView's merge uses the old widget's state. Since we want the newly
     -- created state, the old widget is replaced here
@@ -331,7 +334,9 @@ makeListView widgetData items makeRow config state = widget where
     changeReqs = _lvcOnChangeReq config
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
     requests = valueSetReq ++ scrollToReq ++ changeReqs
-    newState = ListViewState idx
+    newState = state {
+      _highlighted = idx
+    }
     newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
     }
