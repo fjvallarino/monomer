@@ -1,4 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -14,6 +16,7 @@ module Monomer.Widgets.Composite (
   composite
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -25,12 +28,14 @@ import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
 
 type EventHandler s e ep = s -> e -> [EventResponse s e ep]
 type UIBuilder s e = s -> WidgetInstance s e
+type MergeRequired s = s -> s -> Bool
 type TaskHandler e = IO (Maybe e)
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
@@ -43,10 +48,33 @@ data EventResponse s e ep
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
 
+newtype CompositeCfg s = CompositeCfg {
+  _cmcMergeRequired :: Maybe (MergeRequired s)
+}
+
+instance Default (CompositeCfg s) where
+  def = CompositeCfg {
+    _cmcMergeRequired = Nothing
+  }
+
+instance Semigroup (CompositeCfg s) where
+  (<>) c1 c2 = CompositeCfg {
+    _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1
+  }
+
+instance Monoid (CompositeCfg s) where
+  mempty = def
+
+instance CmbMergeRequired (CompositeCfg s) s where
+  mergeRequired fn = CompositeCfg {
+    _cmcMergeRequired = Just fn
+  }
+
 data Composite s e ep = Composite {
   _widgetType :: WidgetType,
   _eventHandler :: EventHandler s e ep,
-  _uiBuilder :: UIBuilder s e
+  _uiBuilder :: UIBuilder s e,
+  _mergeRequired :: MergeRequired s
 }
 
 data CompositeState s e = CompositeState {
@@ -74,12 +102,26 @@ composite
   -> EventHandler s e ep
   -> UIBuilder s e
   -> WidgetInstance sp ep
-composite widgetType model initEvent eventHandler uiBuilder = newInstance where
+composite widgetType model initEvt evtHandler uiBuilder = newInst where
+  newInst = composite_ widgetType model initEvt evtHandler uiBuilder def
+
+composite_
+  :: (Eq s, Typeable s, Typeable e)
+  => WidgetType
+  -> s
+  -> Maybe e
+  -> EventHandler s e ep
+  -> UIBuilder s e
+  -> [CompositeCfg s]
+  -> WidgetInstance sp ep
+composite_ widgetType model initEvt evtHandler uiBuilder configs = newInst where
+  config = mconcat configs
+  mergeRequired = fromMaybe (/=) (_cmcMergeRequired config)
   widgetRoot = uiBuilder model
-  composite = Composite widgetType eventHandler uiBuilder
-  state = CompositeState model widgetRoot initEvent M.empty
+  composite = Composite widgetType evtHandler uiBuilder mergeRequired
+  state = CompositeState model widgetRoot initEvt M.empty
   widget = createComposite composite state
-  newInstance = defaultWidgetInstance widgetType widget
+  newInst = defaultWidgetInstance widgetType widget
 
 createComposite
   :: (Eq s, Typeable s, Typeable e)
@@ -143,11 +185,14 @@ compositeMerge comp state wenv oldModel oldComp newComp = newResult where
   tempWidget = _wiWidget tempRoot
   cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
   cOldModel = _weModel cwenv
-  mergeRequired = instanceMatches tempRoot oldRoot
-  -- Is this really needed? Child model only changes after handling events
+  -- Needed in case the user references something outside model when building UI
+  -- The same model is provided as old since nothing else is available, but
+  -- mergeRequired may be using data from a closure
+  mergeRequired = _mergeRequired comp cOldModel cOldModel
+  initRequired = not (instanceMatches tempRoot oldRoot)
   tempResult
-    | mergeRequired = widgetMerge tempWidget cwenv cOldModel oldRoot tempRoot
-    | otherwise = widgetInit tempWidget cwenv tempRoot
+    | initRequired = widgetInit tempWidget cwenv tempRoot
+    | otherwise = widgetMerge tempWidget cwenv cOldModel oldRoot tempRoot
   newRoot = _wrWidget tempResult
   newState = validState {
     _cmpRoot = newRoot,
@@ -155,7 +200,11 @@ compositeMerge comp state wenv oldModel oldComp newComp = newResult where
   }
   getBaseStyle wenv inst = Nothing
   styledComp = initInstanceStyle getBaseStyle wenv newComp
-  newResult = reduceResult comp newState wenv styledComp tempResult
+  newResult
+    | mergeRequired = reduceResult comp newState wenv styledComp tempResult
+    | otherwise = resultWidget styledComp {
+        _wiWidget = _wiWidget oldComp
+      }
 
 -- | Dispose
 compositeDispose
@@ -381,11 +430,15 @@ rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
+  mergeRequired = _mergeRequired comp _cmpModel newModel
   mergedResult = widgetMerge builtWidget cwenv _cmpModel widgetRoot builtRoot
   resizedResult = resizeResult state wenv mergedResult widgetComp
+  newWidget
+    | mergeRequired = _wrWidget resizedResult
+    | otherwise = widgetRoot
   mergedState = state {
     _cmpModel = newModel,
-    _cmpRoot = _wrWidget resizedResult
+    _cmpRoot = newWidget
   }
   result = reduceResult comp mergedState wenv widgetComp resizedResult
 

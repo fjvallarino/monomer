@@ -10,6 +10,10 @@ import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
+-- Lifecycle
+class CmbMergeRequired t s | t -> s where
+  mergeRequired :: (s -> s -> Bool) -> t
+
 -- Input
 class CmbValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
