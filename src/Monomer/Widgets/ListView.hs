@@ -251,7 +251,7 @@ makeListView widgetData items makeRow config state = widget where
 
   init wenv inst = resultWidget $ createListView wenv state inst
 
-  merge wenv oldState oldInst newInst = result where
+  merge wenv oldModel oldState oldInst newInst = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget $ createListView wenv newState newInst
 
@@ -312,7 +312,8 @@ makeListView widgetData items makeRow config state = widget where
     -- ListView's tree will be rebuilt in merge, before merging its children,
     -- so it does not matter what we currently have
     newInst = oldInstance
-    widgetResult = widgetMerge newWidget wenv oldInstance newInst
+    oldModel =  _weModel wenv
+    widgetResult = widgetMerge newWidget wenv oldModel oldInstance newInst
     scrollToReq = itemScrollTo inst nextIdx
     requests = Seq.fromList scrollToReq
     result = Just $ widgetResult {

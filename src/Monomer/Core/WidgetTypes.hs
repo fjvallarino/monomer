@@ -121,6 +121,7 @@ data Widget s e =
     -- New instance
     widgetMerge
       :: WidgetEnv s e
+      -> s
       -> WidgetInstance s e
       -> WidgetInstance s e
       -> WidgetResult s e,

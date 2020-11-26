@@ -174,7 +174,7 @@ makeScroll config state = widget where
   getBaseStyle wenv inst = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv oldState oldInst inst = resultWidget newInstance where
+  merge wenv oldModel oldState oldInst inst = resultWidget newInstance where
     newState = fromMaybe state (useState oldState)
     newInstance = inst {
       _wiWidget = makeScroll config newState

@@ -12,8 +12,6 @@ module Monomer.Main.Core (
   runApp
 ) where
 
-import Debug.Trace
-
 import Control.Concurrent (threadDelay)
 import Control.Lens
 import Control.Monad.Extra

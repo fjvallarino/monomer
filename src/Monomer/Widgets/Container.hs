@@ -55,6 +55,7 @@ type ContainerInitHandler s e
 
 type ContainerMergeHandler s e
   = WidgetEnv s e
+  -> s
   -> Maybe WidgetState
   -> WidgetInstance s e
   -> WidgetInstance s e
@@ -184,7 +185,7 @@ createThemed widgetType factory = newInst where
       _wiStyle = _wiStyle tempInst <> _wiStyle inst
     }
   init = createInst
-  merge wenv oldState oldInst inst = createInst wenv inst
+  merge wenv oldModel oldState oldInst inst = createInst wenv inst
   newWidget = createContainer def {
     containerInit = createInst,
     containerMerge = merge
@@ -224,44 +225,51 @@ initWrapper container wenv inst = result where
 
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
-defaultMerge wenv state oldInst newInst = resultWidget newInst
+defaultMerge wenv oldModel oldState oldInst newInst = resultWidget newInst
 
 mergeWrapper
   :: Container s e
   -> WidgetEnv s e
+  -> s
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper container wenv oldInst newInst = cResult where
+mergeWrapper container wenv oldModel oldInst newInst = cResult where
   getBaseStyle = containerGetBaseStyle container
   styledInst = initInstanceStyle getBaseStyle wenv newInst
-  pResult = mergeParent container wenv oldInst styledInst
-  cResult = mergeChildren wenv oldInst pResult
+  pResult = mergeParent container wenv oldModel oldInst styledInst
+  cResult = mergeChildren wenv oldModel oldInst pResult
 
 mergeParent
   :: Container s e
   -> WidgetEnv s e
+  -> s
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeParent container wenv oldInst newInst = result where
+mergeParent container wenv oldModel oldInst newInst = result where
   mergeHandler = containerMerge container
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
     _wiRenderArea = _wiRenderArea oldInst
   }
-  result = mergeHandler wenv oldState oldInst tempInst
+  result = mergeHandler wenv oldModel oldState oldInst tempInst
 
 mergeChildren
-  :: WidgetEnv s e -> WidgetInstance s e -> WidgetResult s e -> WidgetResult s e
-mergeChildren wenv oldInst result = newResult where
+  :: WidgetEnv s e
+  -> s
+  -> WidgetInstance s e
+  -> WidgetResult s e
+  -> WidgetResult s e
+mergeChildren wenv oldModel oldInst result = newResult where
   WidgetResult uReqs uEvents uInst = result
   oldChildren = _wiChildren oldInst
   updatedChildren = _wiChildren uInst
   mergeChild idx child = cascadeCtx uInst child idx
   newChildren = Seq.mapWithIndex mergeChild updatedChildren
-  (mergedResults, removedResults) = mergeChildrenSeq wenv oldChildren newChildren
+  cResult = mergeChildrenSeq wenv oldModel oldChildren newChildren
+  (mergedResults, removedResults) = cResult
   mergedChildren = fmap _wrWidget mergedResults
   concatSeq seqs = fold seqs
   mergedReqs = concatSeq $ fmap _wrRequests mergedResults
@@ -277,28 +285,29 @@ mergeChildren wenv oldInst result = newResult where
 
 mergeChildrenSeq
   :: WidgetEnv s e
+  -> s
   -> Seq (WidgetInstance s e)
   -> Seq (WidgetInstance s e)
   -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
-mergeChildrenSeq wenv oldItems Empty = (Empty, removed) where
+mergeChildrenSeq wenv oldModel oldItems Empty = (Empty, removed) where
   dispose child = widgetDispose (_wiWidget child) wenv child
   removed = fmap dispose oldItems
-mergeChildrenSeq wenv Empty newItems = (added, Empty) where
+mergeChildrenSeq wenv oldModel Empty newItems = (added, Empty) where
   init child = widgetInit (_wiWidget child) wenv child
   added = fmap init newItems
-mergeChildrenSeq wenv oldItems newItems = (added, cremoved) where
+mergeChildrenSeq wenv oldModel oldItems newItems = (added, cremoved) where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems
   newWidget = _wiWidget newChild
   oldKeyMatch = _wiKey newChild >>= flip M.lookup (_weGlobalKeys wenv)
-  mergedOld = widgetMerge newWidget wenv oldChild newChild
-  mergedKey = widgetMerge newWidget wenv (fromJust oldKeyMatch) newChild
+  mergedOld = widgetMerge newWidget wenv oldModel oldChild newChild
+  mergedKey = widgetMerge newWidget wenv oldModel (fromJust oldKeyMatch) newChild
   initNew = widgetInit newWidget wenv newChild
   (child, oldRest)
     | instanceMatches newChild oldChild = (mergedOld, oldChildren)
     | isJust oldKeyMatch = (mergedKey, oldItems)
     | otherwise = (initNew, oldItems)
-  (cadded, cremoved) = mergeChildrenSeq wenv oldRest newChildren
+  (cadded, cremoved) = mergeChildrenSeq wenv oldModel oldRest newChildren
   added = child <| cadded
 
 -- | Dispose handler

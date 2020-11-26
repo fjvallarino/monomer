@@ -123,28 +123,30 @@ compositeInit comp state wenv widgetComp = newResult where
   styledComp = initInstanceStyle getBaseStyle wenv widgetComp
   newResult = reduceResult comp newState wenv styledComp tempResult
 
-
 -- | Merge
 compositeMerge
   :: (Eq s, Typeable s, Typeable e)
   => Composite s e ep
   -> CompositeState s e
   -> WidgetEnv sp ep
+  -> sp
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-compositeMerge comp state wenv oldComposite newComposite = newResult where
-  oldState = widgetGetState (_wiWidget oldComposite) wenv
+compositeMerge comp state wenv oldModel oldComp newComp = newResult where
+  oldState = widgetGetState (_wiWidget oldComp) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldInit oldGlobalKeys = validState
   -- Duplicate widget tree creation is avoided because the widgetRoot created
   -- on _cmp_ has not yet been evaluated
-  tempRoot = cascadeCtx newComposite (_uiBuilder comp oldModel)
+  tempRoot = cascadeCtx newComp (_uiBuilder comp oldModel)
   tempWidget = _wiWidget tempRoot
   cwenv = convertWidgetEnv wenv oldGlobalKeys oldModel
+  cOldModel = _weModel cwenv
   mergeRequired = instanceMatches tempRoot oldRoot
+  -- Is this really needed? Child model only changes after handling events
   tempResult
-    | mergeRequired = widgetMerge tempWidget cwenv oldRoot tempRoot
+    | mergeRequired = widgetMerge tempWidget cwenv cOldModel oldRoot tempRoot
     | otherwise = widgetInit tempWidget cwenv tempRoot
   newRoot = _wrWidget tempResult
   newState = validState {
@@ -152,7 +154,7 @@ compositeMerge comp state wenv oldComposite newComposite = newResult where
     _cmpGlobalKeys = collectGlobalKeys M.empty newRoot
   }
   getBaseStyle wenv inst = Nothing
-  styledComp = initInstanceStyle getBaseStyle wenv newComposite
+  styledComp = initInstanceStyle getBaseStyle wenv newComp
   newResult = reduceResult comp newState wenv styledComp tempResult
 
 -- | Dispose
@@ -379,7 +381,7 @@ rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
-  mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
+  mergedResult = widgetMerge builtWidget cwenv _cmpModel widgetRoot builtRoot
   resizedResult = resizeResult state wenv mergedResult widgetComp
   mergedState = state {
     _cmpModel = newModel,
