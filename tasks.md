@@ -285,6 +285,9 @@
     - Now fixed, but still need to test old use cases work fine
   - Default to integrated graphics
     - http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching/
+  - Can we avoid redrawing if no event happened?
+    - Action events still cause rendering to happen (otherwise it's painful for widget developers)
+    - Move events need to request rendering
 
 - Pending
   - Add testing
@@ -302,11 +305,11 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Can we avoid redrawing if no event happened?
   - Improve listView performance (avoid merge/resize)
     - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
+  - Set focus on ButtonDown, not Click
   - ZStack should set _weIsTopLayer based on used space
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
@@ -314,18 +317,16 @@ Maybe postponed after release?
     - Handle undo history
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
-  - Check if SDL can be initialized headless (for tests that involve the API)
-    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
   - Scroll wheel rate should be configurable, or even depend on content size
+  - Check if SDL can be initialized headless (for tests that involve the API)
+    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Image widget could also have a ByteString version
-  - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
-    - https://github.com/ollix/MetalNanoVG
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Image
     - Can performance be improved?
@@ -342,6 +343,8 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+  - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
+    - https://github.com/ollix/MetalNanoVG
   - Improve window resize situation
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)

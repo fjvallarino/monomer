@@ -119,7 +119,8 @@ compositeInit comp state wenv widgetComp = newResult where
     _cmpGlobalKeys = collectGlobalKeys M.empty root
   }
   tempResult = WidgetResult reqs newEvts root
-  styledComp = initInstanceStyle wenv Nothing widgetComp
+  getBaseStyle wenv inst = Nothing
+  styledComp = initInstanceStyle getBaseStyle wenv widgetComp
   newResult = reduceResult comp newState wenv styledComp tempResult
 
 
@@ -150,7 +151,8 @@ compositeMerge comp state wenv oldComposite newComposite = newResult where
     _cmpRoot = newRoot,
     _cmpGlobalKeys = collectGlobalKeys M.empty newRoot
   }
-  styledComp = initInstanceStyle wenv Nothing newComposite
+  getBaseStyle wenv inst = Nothing
+  styledComp = initInstanceStyle getBaseStyle wenv newComposite
   newResult = reduceResult comp newState wenv styledComp tempResult
 
 -- | Dispose

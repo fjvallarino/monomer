@@ -2,6 +2,7 @@
 
 module Monomer.Widgets.Util.Style (
   StyleChangeCfg(..),
+  GetBaseStyle(..),
   activeTheme,
   activeTheme_,
   activeStyle,
@@ -28,6 +29,21 @@ import Monomer.Widgets.Util.Widget
 import qualified Monomer.Lens as L
 
 type IsHovered s e = WidgetEnv s e -> WidgetInstance s e -> Bool
+
+type GetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetInstance s e
+  -> Maybe Style
+
+newtype StyleChangeCfg = StyleChangeCfg {
+  _sccHandleCursorEvt :: SystemEvent -> Bool
+}
+
+instance Default StyleChangeCfg where {
+  def = StyleChangeCfg {
+    _sccHandleCursorEvt = isOnEnter
+  }
+}
 
 -- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
@@ -75,27 +91,17 @@ activeTheme_ isHoveredFn wenv inst = themeState where
     | otherwise = _themeBasic theme
 
 initInstanceStyle
-  :: WidgetEnv s e
-  -> Maybe Style
+  :: GetBaseStyle s e
+  -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetInstance s e
-initInstanceStyle wenv mbaseStyle inst = newInst where
+initInstanceStyle getBaseStyle wenv inst = newInst where
   instStyle = mergeBasicStyle $ _wiStyle inst
-  baseStyle = mergeBasicStyle $ fromMaybe def mbaseStyle
+  baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv inst)
   themeStyle = baseStyleFromTheme (_weTheme wenv)
   newInst = inst {
     _wiStyle = themeStyle <> baseStyle <> instStyle
   }
-
-newtype StyleChangeCfg = StyleChangeCfg {
-  _sccHandleCursorEvt :: SystemEvent -> Bool
-}
-
-instance Default StyleChangeCfg where {
-  def = StyleChangeCfg {
-    _sccHandleCursorEvt = isOnEnter
-  }
-}
 
 handleStyleChange
   :: WidgetEnv s e

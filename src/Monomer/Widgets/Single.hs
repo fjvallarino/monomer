@@ -22,9 +22,7 @@ import Monomer.Graphics
 import Monomer.Widgets.Util
 
 type SingleGetBaseStyle s e
-  = WidgetEnv s e
-  -> WidgetInstance s e
-  -> Maybe Style
+  = GetBaseStyle s e
 
 type SingleInitHandler s e
   = WidgetEnv s e
@@ -154,8 +152,7 @@ initWrapper
 initWrapper single wenv inst = newResult where
   initHandler = singleInit single
   getBaseStyle = singleGetBaseStyle single
-  baseStyle = getBaseStyle wenv inst
-  styledInst = initInstanceStyle wenv baseStyle inst
+  styledInst = initInstanceStyle getBaseStyle wenv inst
   newResult = initHandler wenv styledInst
 
 defaultMerge :: SingleMergeHandler s e
@@ -175,8 +172,7 @@ mergeWrapper single wenv oldInst newInst = newResult where
     _wiViewport = _wiViewport oldInst,
     _wiRenderArea = _wiRenderArea oldInst
   }
-  baseStyle = getBaseStyle wenv tempInst
-  styledInst = initInstanceStyle wenv baseStyle tempInst
+  styledInst = initInstanceStyle getBaseStyle wenv tempInst
   newResult = mergeHandler wenv oldState oldInst styledInst
 
 defaultDispose :: SingleDisposeHandler s e
