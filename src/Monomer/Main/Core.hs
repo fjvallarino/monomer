@@ -176,6 +176,7 @@ mainLoop window renderer loopArgs = do
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
   let windowResized = isWindowResized eventsPayload
+  let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
@@ -228,7 +229,8 @@ mainLoop window renderer loopArgs = do
   renderCurrentReq <- checkRenderCurrent startTicks _mlFrameStartTs
 
   let renderEvent = any isActionEvent eventsPayload
-  let renderNeeded = windowResized || renderEvent || renderCurrentReq
+  let windowRedrawEvt = windowResized || windowExposed
+  let renderNeeded = windowRedrawEvt || renderEvent || renderCurrentReq
 
   when renderNeeded $
     renderWidgets window renderer seWenv newRoot
@@ -360,6 +362,10 @@ evtToInputStatus _ = return ()
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where
   status = null [ e | e@SDL.WindowResizedEvent {} <- eventsPayload ]
+
+isWindowExposed :: [SDL.EventPayload] -> Bool
+isWindowExposed eventsPayload = not status where
+  status = null [ e | e@SDL.WindowExposedEvent {} <- eventsPayload ]
 
 isMouseEntered :: [SDL.EventPayload] -> Bool
 isMouseEntered eventsPayload = not status where
