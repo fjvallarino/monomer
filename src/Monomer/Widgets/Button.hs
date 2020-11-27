@@ -171,6 +171,8 @@ makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,
+    singleMerge = merge,
+    singleGetState = makeState state,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
@@ -186,6 +188,12 @@ makeButton config state = widget where
   getBaseStyle wenv inst = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
+
+  merge wenv oldModel oldState oldInst newInst = result where
+    newState = fromMaybe state (useState oldState)
+    result = resultWidget newInst {
+      _wiWidget = makeButton config newState
+    }
 
   handleEvent wenv ctx evt inst = case evt of
     Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config inst
