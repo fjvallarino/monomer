@@ -53,7 +53,7 @@ testItem7 = testItems!!7
 testItem70 = testItems!!70
 
 spec :: Spec
-spec = describe "ListView" $ do
+spec = fdescribe "ListView" $ do
   handleEvent
   handleEventValue
   updateSizeReq
@@ -78,7 +78,7 @@ handleEvent = describe "handleEvent" $ do
 
   -- Move back to 70 and fix performance issue
   it "should update the model when Enter/Space is pressed, after navigating to an element" $ do
-    let steps = [evtK keyTab] ++ replicate 8 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
+    let steps = [evtK keyTab] ++ replicate 80 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
     model steps ^. selectedItem `shouldBe` testItem7
 
   it "should generate an event when focus is received" $ do

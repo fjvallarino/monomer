@@ -38,6 +38,7 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcSelectOnBlur :: Maybe Bool,
   _lvcItemStyle :: Maybe Style,
   _lvcItemSelectedStyle :: Maybe Style,
+  _lvcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
   _lvcOnFocus :: [e],
   _lvcOnFocusReq :: [WidgetRequest s],
   _lvcOnBlur :: [e],
@@ -53,6 +54,7 @@ instance Default (ListViewCfg s e a) where
     _lvcSelectOnBlur = Nothing,
     _lvcItemStyle = Nothing,
     _lvcItemSelectedStyle = Nothing,
+    _lvcMergeRequired = Nothing,
     _lvcOnFocus = [],
     _lvcOnFocusReq = [],
     _lvcOnBlur = [],
@@ -68,6 +70,7 @@ instance Semigroup (ListViewCfg s e a) where
     _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
     _lvcItemStyle = _lvcItemStyle t2 <|> _lvcItemStyle t1,
     _lvcItemSelectedStyle = _lvcItemSelectedStyle t2 <|> _lvcItemSelectedStyle t1,
+    _lvcMergeRequired = _lvcMergeRequired t2 <|> _lvcMergeRequired t1,
     _lvcOnFocus = _lvcOnFocus t1 <> _lvcOnFocus t2,
     _lvcOnFocusReq = _lvcOnFocusReq t1 <> _lvcOnFocusReq t2,
     _lvcOnBlur = _lvcOnBlur t1 <> _lvcOnBlur t2,
@@ -79,19 +82,7 @@ instance Semigroup (ListViewCfg s e a) where
   }
 
 instance Monoid (ListViewCfg s e a) where
-  mempty = ListViewCfg {
-    _lvcSelectOnBlur = Nothing,
-    _lvcItemStyle = Nothing,
-    _lvcItemSelectedStyle = Nothing,
-    _lvcOnFocus = [],
-    _lvcOnFocusReq = [],
-    _lvcOnBlur = [],
-    _lvcOnBlurReq = [],
-    _lvcOnChange = [],
-    _lvcOnChangeReq = [],
-    _lvcOnChangeIdx = [],
-    _lvcOnChangeIdxReq = []
-  }
+  mempty = def
 
 instance CmbOnFocus (ListViewCfg s e a) e where
   onFocus fn = def {
@@ -146,6 +137,11 @@ instance CmbItemNormalStyle (ListViewCfg s e a) Style where
 instance CmbItemSelectedStyle (ListViewCfg s e a) Style where
   itemSelectedStyle style = def {
     _lvcItemSelectedStyle = Just style
+  }
+
+instance CmbMergeRequired (ListViewCfg s e a) (Seq a) where
+  mergeRequired fn = def {
+    _lvcMergeRequired = Just fn
   }
 
 data ListViewState a = ListViewState {
@@ -229,32 +225,50 @@ makeListView widgetData items makeRow config state = widget where
   baseWidget = createContainer def {
     containerInit = init,
     containerGetState = makeState state,
-    containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
   widget = baseWidget {
+    widgetMerge = mergeWrapper,
     widgetRender = render
   }
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createListView wenv newState inst = newInst where
-    selected = currentValue wenv
+  createListViewChildren wenv inst = children where
     path = _wiPath inst
+    selected = currentValue wenv
     itemsList = makeItemsList wenv items makeRow config path selected
+    children = Seq.singleton itemsList
+
+  init wenv inst = resultWidget newInst where
+    children = createListViewChildren wenv inst
     newInst = inst {
-      _wiWidget = makeListView widgetData items makeRow config newState,
-      _wiChildren = Seq.singleton itemsList
+      _wiChildren = children
     }
 
-  init wenv inst = resultWidget $ createListView wenv state inst
-
-  merge wenv oldModel oldState oldInst newInst = result where
+  mergeHandler wenv oldModel oldState oldInst newInst = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget $ createListView wenv newState newInst
+    result = resultWidget newInst {
+      _wiWidget = makeListView widgetData items makeRow config newState
+    }
+
+  mergeWrapper wenv oldModel oldInst newInst = newResult where
+    oldItems = _prevItems state
+    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
+    mergeRequired = mergeRequiredFn oldItems items
+    getBaseStyle _ _ = Nothing
+    styledInst = initInstanceStyle getBaseStyle wenv newInst
+    tempResult = mergeParent mergeHandler wenv oldModel oldInst styledInst
+    children
+      | mergeRequired = createListViewChildren wenv (tempResult ^. L.widget)
+      | otherwise = oldInst ^. L.children
+    pResult = tempResult & L.widget . L.children .~ children
+    newResult
+      | mergeRequired = mergeChildren wenv oldModel oldInst pResult
+      | otherwise = pResult
 
   handleEvent wenv target evt inst = case evt of
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config inst

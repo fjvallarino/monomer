@@ -66,7 +66,7 @@ instance Monoid (CompositeCfg s) where
   mempty = def
 
 instance CmbMergeRequired (CompositeCfg s) s where
-  mergeRequired fn = CompositeCfg {
+  mergeRequired fn = def {
     _cmcMergeRequired = Just fn
   }
 
