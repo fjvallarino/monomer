@@ -22,6 +22,7 @@ instanceDesc level inst = instDesc inst where
   spaces = replicate (level * 2) ' '
   instDesc i =
     spaces ++ "type: " ++ unWidgetType (_wiWidgetType inst) ++ "\n" ++
+    spaces ++ "path: " ++ show (_wiPath inst) ++ "\n" ++
     spaces ++ "vp: " ++ rectDesc (_wiViewport inst) ++ "\n" ++
     spaces ++ "req: " ++ show (_wiSizeReqW inst, _wiSizeReqH inst) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)

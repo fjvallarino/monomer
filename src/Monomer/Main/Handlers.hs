@@ -157,6 +157,8 @@ handleResizeWidgets reqs previousStep =
     ResizeWidgets :<| _ -> do
       windowSize <- use L.windowSize
 
+      liftIO . putStrLn $ "Resizing widgets"
+
       let (wenv, events, widgetRoot) = previousStep
       let newWidgetRoot = resizeWidget wenv windowSize widgetRoot
 

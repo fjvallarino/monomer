@@ -172,7 +172,9 @@ mergeWrapper single wenv oldModel oldInst newInst = newResult where
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
-    _wiRenderArea = _wiRenderArea oldInst
+    _wiRenderArea = _wiRenderArea oldInst,
+    _wiSizeReqW = _wiSizeReqW oldInst,
+    _wiSizeReqH = _wiSizeReqH oldInst
   }
   styledInst = initInstanceStyle getBaseStyle wenv tempInst
   newResult = mergeHandler wenv oldModel oldState oldInst styledInst

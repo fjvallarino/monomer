@@ -17,6 +17,7 @@ module Monomer.Widgets.Composite (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((&), (^.), (%~))
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -32,6 +33,8 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
+
+import qualified Monomer.Lens as L
 
 type EventHandler s e ep = s -> e -> [EventResponse s e ep]
 type UIBuilder s e = s -> WidgetInstance s e
@@ -405,18 +408,18 @@ updateComposite
   -> WidgetResult sp ep
 updateComposite comp state wenv newModel widgetRoot widgetComp = result where
   CompositeState{..} = state
-  changed = _cmpModel /= newModel
+  mergeRequired = _mergeRequired comp _cmpModel newModel
   newState = state {
     _cmpModel = newModel,
     _cmpRoot = widgetRoot
   }
   result
-    | changed = rebuildComposite comp state wenv newModel widgetRoot widgetComp
+    | mergeRequired = mergeChild comp state wenv newModel widgetRoot widgetComp
     | otherwise = resultWidget $ widgetComp {
         _wiWidget = createComposite comp newState
       }
 
-rebuildComposite
+mergeChild
   :: (Eq s, Typeable s, Typeable e)
   => Composite s e ep
   -> CompositeState s e
@@ -425,22 +428,23 @@ rebuildComposite
   -> WidgetInstance s e
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-rebuildComposite comp state wenv newModel widgetRoot widgetComp = result where
+mergeChild comp state wenv newModel widgetRoot widgetComp = result where
   CompositeState{..} = state
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
   mergedResult = widgetMerge builtWidget cwenv _cmpModel widgetRoot builtRoot
-  resizedResult = resizeResult state wenv mergedResult widgetComp
-  mergeRequired = _mergeRequired comp _cmpModel newModel
-  newWidget
-    | mergeRequired = _wrWidget resizedResult
-    | otherwise = widgetRoot
+  mergedReqs = _wrRequests mergedResult
+  resizeRequired = isJust (Seq.findIndexL isResizeWidgets mergedReqs)
+  resizedResult
+    | resizeRequired = resizeResult state wenv mergedResult widgetComp
+    | otherwise = mergedResult
+  renderResult = resizedResult & L.requests %~ (|> RenderOnce)
   mergedState = state {
     _cmpModel = newModel,
-    _cmpRoot = newWidget
+    _cmpRoot = renderResult ^. L.widget
   }
-  result = reduceResult comp mergedState wenv widgetComp resizedResult
+  result = reduceResult comp mergedState wenv widgetComp renderResult
 
 resizeResult
   :: (Eq s, Typeable s, Typeable e)
@@ -583,3 +587,7 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 
 firstChildPath :: WidgetInstance s e -> Path
 firstChildPath inst = _wiPath inst |> 0
+
+isResizeWidgets :: WidgetRequest s -> Bool
+isResizeWidgets ResizeWidgets = True
+isResizeWidgets _ = False

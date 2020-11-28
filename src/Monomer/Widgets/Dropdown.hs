@@ -1,9 +1,11 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Dropdown (
   DropdownCfg,
+  DropdownItem(..),
   dropdown,
   dropdown_,
   dropdownV,
@@ -28,6 +30,8 @@ import Monomer.Widgets.Label
 import Monomer.Widgets.ListView
 
 import qualified Monomer.Lens as L
+
+type DropdownItem a = ListItem a
 
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
@@ -117,7 +121,7 @@ data DropdownMessage
   deriving Typeable
 
 dropdown
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -127,7 +131,7 @@ dropdown field items makeMain makeRow = newInst where
   newInst = dropdown_ field items makeMain makeRow def
 
 dropdown_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -139,7 +143,7 @@ dropdown_ field items makeMain makeRow configs = newInst where
   newInst = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -150,7 +154,7 @@ dropdownV value handler items makeMain makeRow = newInst where
   newInst = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -163,7 +167,7 @@ dropdownV_ value handler items makeMain makeRow configs = newInst where
   newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, DropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetInstance s e)
@@ -182,7 +186,7 @@ makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
 }
 
 makeDropdown
-  :: (Eq a, Typeable a)
+  :: DropdownItem a
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetInstance s e)
@@ -358,7 +362,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget renderer wenv overlayInstance
 
 makeListView
-  :: (Eq a, Typeable a)
+  :: DropdownItem a
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a

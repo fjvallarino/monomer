@@ -252,7 +252,9 @@ mergeParent mergeHandler wenv oldModel oldInst newInst = result where
   oldState = widgetGetState (_wiWidget oldInst) wenv
   tempInst = newInst {
     _wiViewport = _wiViewport oldInst,
-    _wiRenderArea = _wiRenderArea oldInst
+    _wiRenderArea = _wiRenderArea oldInst,
+    _wiSizeReqW = _wiSizeReqW oldInst,
+    _wiSizeReqH = _wiSizeReqH oldInst
   }
   result = mergeHandler wenv oldModel oldState oldInst tempInst
 

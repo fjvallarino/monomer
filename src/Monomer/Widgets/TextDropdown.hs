@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 module Monomer.Widgets.TextDropdown (
   textDropdown,
   textDropdown_,
@@ -16,8 +17,10 @@ import Monomer.Core.Combinators
 import Monomer.Widgets.Label
 import Monomer.Widgets.Dropdown
 
+type TextDropdownItem a = DropdownItem a
+
 textDropdown
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, TextDropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -26,7 +29,7 @@ textDropdown field items toText = newInst where
   newInst = textDropdown_ field items toText def
 
 textDropdown_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, TextDropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -36,7 +39,7 @@ textDropdown_ field items toText configs = newInst where
   newInst = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, TextDropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -46,7 +49,7 @@ textDropdownV value handler items toText = newInst where
   newInst = textDropdownV_ value handler items toText def
 
 textDropdownV_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, TextDropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -59,7 +62,7 @@ textDropdownV_ value handler items toText configs = newInst where
   newInst = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, TextDropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> Text)

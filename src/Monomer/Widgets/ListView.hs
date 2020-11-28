@@ -1,9 +1,11 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.ListView (
   ListViewCfg,
+  ListItem(..),
   listView,
   listView_,
   listViewV,
@@ -12,7 +14,7 @@ module Monomer.Widgets.ListView (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), (<>~), ix, non)
+import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), ix, non)
 import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
@@ -33,6 +35,9 @@ import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Core.Lens as L
+
+type ListItem a = (Eq a, Show a, Typeable a)
+type MakeRow s e a = a -> WidgetInstance s e
 
 data ListViewCfg s e a = ListViewCfg {
   _lvcSelectOnBlur :: Maybe Bool,
@@ -146,6 +151,7 @@ instance CmbMergeRequired (ListViewCfg s e a) (Seq a) where
 
 data ListViewState a = ListViewState {
   _prevItems :: Seq a,
+  _selected :: Maybe a,
   _highlighted :: Int
 }
 
@@ -154,39 +160,39 @@ newtype ListViewMessage
   deriving Typeable
 
 listView
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, ListItem a)
   => ALens' s a
   -> t a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> WidgetInstance s e
 listView field items makeRow = listView_ field items makeRow def
 
 listView_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, ListItem a)
   => ALens' s a
   -> t a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> [ListViewCfg s e a]
   -> WidgetInstance s e
 listView_ field items makeRow configs = newInst where
   newInst = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> WidgetInstance s e
 listViewV value handler items makeRow = newInst where
   newInst = listViewV_ value handler items makeRow def
 
 listViewV_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> [ListViewCfg s e a]
   -> WidgetInstance s e
 listViewV_ value handler items makeRow configs = newInst where
@@ -195,16 +201,16 @@ listViewV_ value handler items makeRow configs = newInst where
   newInst = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
-  :: (Traversable t, Eq a, Typeable a)
+  :: (Traversable t, ListItem a)
   => WidgetData s a
   -> t a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> [ListViewCfg s e a]
   -> WidgetInstance s e
 listViewD_ widgetData items makeRow configs = makeInstance widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState newItems 0
+  newState = ListViewState newItems Nothing 0
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -214,10 +220,10 @@ makeInstance widget = scroll_ childInst [scrollStyle L.listViewStyle] where
   }
 
 makeListView
-  :: (Eq a, Typeable a)
+  :: (ListItem a)
   => WidgetData s a
   -> Seq a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> ListViewCfg s e a
   -> ListViewState a
   -> Widget s e
@@ -245,27 +251,34 @@ makeListView widgetData items makeRow config state = widget where
 
   init wenv inst = resultWidget newInst where
     children = createListViewChildren wenv inst
-    newInst = inst {
+    sel = Just $ currentValue wenv
+    tmpInst = inst {
       _wiChildren = children
     }
-
-  mergeHandler wenv oldModel oldState oldInst newInst = result where
-    newState = fromMaybe state (useState oldState)
-    result = resultWidget newInst {
-      _wiWidget = makeListView widgetData items makeRow config newState
-    }
+    newInst = updateSelStyle makeRow config Empty items Nothing sel wenv tmpInst
 
   mergeWrapper wenv oldModel oldInst newInst = newResult where
-    oldItems = _prevItems state
+    sel = Just $ currentValue wenv
+    oldInstState = widgetGetState (_wiWidget oldInst) wenv
+    oldState = fromMaybe state (useState oldInstState)
+    oldSel = _selected oldState
+    oldItems = _prevItems oldState
+    newState = oldState { _selected = sel }
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
     getBaseStyle _ _ = Nothing
     styledInst = initInstanceStyle getBaseStyle wenv newInst
-    tempResult = mergeParent mergeHandler wenv oldModel oldInst styledInst
+    tempWidget = styledInst {
+      _wiViewport = _wiViewport oldInst,
+      _wiRenderArea = _wiRenderArea oldInst,
+      _wiWidget = makeListView widgetData items makeRow config newState
+    }
     children
-      | mergeRequired = createListViewChildren wenv (tempResult ^. L.widget)
+      | mergeRequired = createListViewChildren wenv tempWidget
       | otherwise = oldInst ^. L.children
-    pResult = tempResult & L.widget . L.children .~ children
+    inst2 = tempWidget & L.children .~ children
+    inst3 = updateSelStyle makeRow config oldItems items oldSel sel wenv inst2
+    pResult = resultWidget inst3
     newResult
       | mergeRequired = mergeChildren wenv oldModel oldInst pResult
       | otherwise = pResult
@@ -316,27 +329,15 @@ makeListView widgetData items makeRow config state = widget where
       | isFocused wenv inst = tempResult
       | otherwise = tempResult & L.requests <>~ focusReq
 
-  highlightItem wenv inst nextIdx = result where
+  highlightItem wenv inst nextIdx = Just result where
     newState = state {
       _highlighted = nextIdx
     }
-    newWidget = makeListView widgetData items makeRow config newState
-    -- ListView's merge uses the old widget's state. Since we want the newly
-    -- created state, the old widget is replaced here
-    oldInstance = inst {
-      _wiWidget = newWidget
+    newInst = inst {
+      _wiWidget = makeListView widgetData items makeRow config newState
     }
-    -- ListView's tree will be rebuilt in merge, before merging its children,
-    -- so it does not matter what we currently have
-    newInst = oldInstance
-    oldModel =  _weModel wenv
-    widgetResult = widgetMerge newWidget wenv oldModel oldInstance newInst
-    scrollToReq = itemScrollTo inst nextIdx
-    requests = Seq.fromList scrollToReq
-    result = Just $ widgetResult {
-      _wrRequests = requests,
-      _wrWidget = resizeInstance wenv (_wrWidget widgetResult)
-    }
+    reqs = itemScrollTo inst nextIdx
+    result = resultReqs reqs newInst
 
   selectItem wenv inst idx = result where
     selected = currentValue wenv
@@ -349,7 +350,8 @@ makeListView widgetData items makeRow config state = widget where
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
     requests = valueSetReq ++ scrollToReq ++ changeReqs
     newState = state {
-      _highlighted = idx
+      _highlighted = idx,
+      _selected = Just selected
     }
     newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
@@ -392,6 +394,75 @@ makeListView widgetData items makeRow config state = widget where
     newChildren = Seq.foldlWithIndex foldItem Empty children
     newInst = inst & L.children . ix 0 . L.children .~ newChildren
 
+setChildStyle
+  :: Seq a
+  -> MakeRow s e a
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> Int
+  -> Style
+  -> WidgetInstance s e
+setChildStyle items makeRow wenv parent idx style = newParent where
+  makeItem v = makeRow v & L.style .~ style
+  newChild = fmap makeItem (Seq.lookup idx items)
+  merge newItem oldItem = newWidget where
+    res = widgetMerge (_wiWidget newItem) wenv (_weModel wenv) oldItem newItem
+    widget = _wrWidget res
+    newWidget = widget
+      & L.path .~ oldItem ^. L.path
+      & L.viewport .~ oldItem ^. L.viewport
+      & L.renderArea .~ oldItem ^. L.renderArea
+  listLens = L.children . ix 0
+  boxLens = L.children . ix idx
+  itemLens = L.children . ix 0
+  newParent = case newChild of
+    Just newInst -> parent & listLens . boxLens . itemLens %~ merge newInst
+    _ -> parent
+
+updateSelStyle
+  :: ListItem a
+  => MakeRow s e a
+  -> ListViewCfg s e a
+  -> Seq a
+  -> Seq a
+  -> Maybe a
+  -> Maybe a
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+updateSelStyle makeRow cfg oldIs newIs oldSel newSel wenv inst = ins3 where
+  oldIdx = oldSel >>= flip Seq.elemIndexL oldIs
+  newIdx = newSel >>= flip Seq.elemIndexL newIs
+  ins2 = maybe inst (setDefChildStyle oldIs makeRow cfg wenv inst) oldIdx
+  ins3 = maybe ins2 (setSelChildStyle newIs makeRow cfg wenv ins2) newIdx
+
+setDefChildStyle
+  :: Seq a
+  -> MakeRow s e a
+  -> ListViewCfg s e a
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> Int
+  -> WidgetInstance s e
+setDefChildStyle items makeRow config wenv parent idx = newParent where
+  normalTheme = collectTheme wenv L.listViewItemStyle
+  normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
+  newParent = setChildStyle items makeRow wenv parent idx normalStyle
+
+setSelChildStyle
+  :: Seq a
+  -> MakeRow s e a
+  -> ListViewCfg s e a
+  -> WidgetEnv s e
+  -> WidgetInstance s e
+  -> Int
+  -> WidgetInstance s e
+setSelChildStyle items makeRow config wenv parent idx = newParent where
+  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
+  selectedStyleCfg = _lvcItemSelectedStyle config
+  selectedStyle = fromJust (Just selectedTheme <> selectedStyleCfg)
+  newParent = setChildStyle items makeRow wenv parent idx selectedStyle
+
 setFocusedItemStyle :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
 setFocusedItemStyle wenv item
   | isHovered wenv item = item & hoverLens .~ (hoverStyle <> focusStyle)
@@ -406,29 +477,17 @@ makeItemsList
   :: (Eq a)
   => WidgetEnv s e
   -> Seq a
-  -> (a -> WidgetInstance s e)
+  -> MakeRow s e a
   -> ListViewCfg s e a
   -> Path
   -> a
   -> WidgetInstance s e
 makeItemsList wenv items makeRow config path selected = itemsList where
   normalTheme = collectTheme wenv L.listViewItemStyle
-  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
   normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
-  selectedStyle = fromJust (Just selectedTheme <> _lvcItemSelectedStyle config)
-  itemStyle idx item
-    | item == selected = selectedStyle
-    | otherwise = normalStyle
   makeItem idx item = newItem where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ (content & L.style .~ itemStyle idx item) itemCfg
+    newItem = box_ (content & L.style .~ normalStyle) itemCfg
   itemsList = vstack $ Seq.mapWithIndex makeItem items
-
-resizeInstance :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
-resizeInstance wenv inst = newInst where
-  viewport = _wiViewport inst
-  renderArea = _wiRenderArea inst
-  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
-  newInst = widgetResize (_wiWidget instReqs) wenv viewport renderArea instReqs
