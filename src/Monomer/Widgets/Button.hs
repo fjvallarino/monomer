@@ -189,7 +189,7 @@ makeButton config state = widget where
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
-  merge wenv oldModel oldState oldInst newInst = result where
+  merge wenv oldState oldInst newInst = result where
     newState = fromMaybe state (useState oldState)
     result = resultWidget newInst {
       _wiWidget = makeButton config newState

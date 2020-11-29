@@ -264,7 +264,7 @@ makeListView widgetData items makeRow config state = widget where
     }
     newInst = updateSelStyle makeRow config Empty items Nothing sel wenv tmpInst
 
-  mergeWrapper wenv oldModel oldInst newInst = newResult where
+  mergeWrapper wenv oldInst newInst = newResult where
     sel = Just $ currentValue wenv
     oldInstState = widgetGetState (_wiWidget oldInst) wenv
     oldState = fromMaybe state (useState oldInstState)
@@ -292,7 +292,7 @@ makeListView widgetData items makeRow config state = widget where
     inst3 = updateSelStyle makeRow config oldItems items oldSel sel wenv inst2
     pResult = resultWidget inst3
     newResult
-      | mergeRequired = mergeChildren wenv oldModel oldInst pResult
+      | mergeRequired = mergeChildren wenv oldInst pResult
       | otherwise = pResult
 
   handleEvent wenv target evt inst = case evt of
@@ -418,7 +418,7 @@ setChildStyle items makeRow wenv parent idx style = newParent where
   makeItem v = makeRow v & L.style .~ style
   newChild = fmap makeItem (Seq.lookup idx items)
   merge newItem oldItem = newWidget where
-    res = widgetMerge (_wiWidget newItem) wenv (_weModel wenv) oldItem newItem
+    res = widgetMerge (_wiWidget newItem) wenv oldItem newItem
     widget = _wrWidget res
     newWidget = widget
       & L.path .~ oldItem ^. L.path

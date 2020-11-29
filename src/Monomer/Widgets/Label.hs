@@ -112,7 +112,7 @@ makeLabel config state = widget where
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.labelStyle
 
-  merge wenv oldModel oldState oldInst newInst = result where
+  merge wenv oldState oldInst newInst = result where
     prevState = fromMaybe state (useState oldState)
     newState = prevState {
       _lstCaption = caption

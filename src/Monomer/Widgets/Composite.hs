@@ -174,11 +174,10 @@ compositeMerge
   => Composite s e ep
   -> CompositeState s e
   -> WidgetEnv sp ep
-  -> sp
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-compositeMerge comp state wenv oldModel oldComp newComp = newResult where
+compositeMerge comp state wenv oldComp newComp = newResult where
   oldState = widgetGetState (_wiWidget oldComp) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldInit oldGlobalKeys = validState
@@ -195,7 +194,7 @@ compositeMerge comp state wenv oldModel oldComp newComp = newResult where
   initRequired = not (instanceMatches tempRoot oldRoot)
   tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
-    | otherwise = widgetMerge tempWidget cwenv cOldModel oldRoot tempRoot
+    | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
   newRoot = _wrWidget tempResult
   newState = validState {
     _cmpRoot = newRoot,
@@ -433,7 +432,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = result where
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
   cwenv = convertWidgetEnv wenv _cmpGlobalKeys newModel
-  mergedResult = widgetMerge builtWidget cwenv _cmpModel widgetRoot builtRoot
+  mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
   mergedReqs = _wrRequests mergedResult
   resizeRequired = isJust (Seq.findIndexL isResizeWidgets mergedReqs)
   resizedResult

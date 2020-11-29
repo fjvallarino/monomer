@@ -31,7 +31,6 @@ type SingleInitHandler s e
 
 type SingleMergeHandler s e
   = WidgetEnv s e
-  -> s
   -> Maybe WidgetState
   -> WidgetInstance s e
   -> WidgetInstance s e
@@ -157,16 +156,15 @@ initWrapper single wenv inst = newResult where
   newResult = initHandler wenv styledInst
 
 defaultMerge :: SingleMergeHandler s e
-defaultMerge wenv oldModel oldState oldInst newInst = resultWidget newInst
+defaultMerge wenv oldState oldInst newInst = resultWidget newInst
 
 mergeWrapper
   :: Single s e
   -> WidgetEnv s e
-  -> s
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper single wenv oldModel oldInst newInst = newResult where
+mergeWrapper single wenv oldInst newInst = newResult where
   mergeHandler = singleMerge single
   getBaseStyle = singleGetBaseStyle single
   oldState = widgetGetState (_wiWidget oldInst) wenv
@@ -177,7 +175,7 @@ mergeWrapper single wenv oldModel oldInst newInst = newResult where
     _wiSizeReqH = _wiSizeReqH oldInst
   }
   styledInst = initInstanceStyle getBaseStyle wenv tempInst
-  newResult = mergeHandler wenv oldModel oldState oldInst styledInst
+  newResult = mergeHandler wenv oldState oldInst styledInst
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose _ inst = resultWidget inst

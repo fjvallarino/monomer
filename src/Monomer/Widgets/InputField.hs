@@ -120,7 +120,7 @@ makeInputField config state = widget where
     parsedVal = fromText (toText newValue)
     reqs = setModelValid (isJust parsedVal)
 
-  merge wenv oldModel oldState oldInst inst = resultReqs reqs newInstance where
+  merge wenv oldState oldInst inst = resultReqs reqs newInstance where
     currState = fromMaybe state (useState oldState)
     oldValue = _ifsCurrValue currState
     oldText = _ifsCurrText currState

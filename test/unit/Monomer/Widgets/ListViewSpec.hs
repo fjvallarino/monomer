@@ -76,10 +76,9 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtK keyTab] ++ replicate 26 (evtK keyDown) ++ [evtClick p]
     model steps ^. selectedItem `shouldBe` testItem3
 
-  -- Move back to 70 and fix performance issue
   it "should update the model when Enter/Space is pressed, after navigating to an element" $ do
-    let steps = [evtK keyTab] ++ replicate 8 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
-    model steps ^. selectedItem `shouldBe` testItem7
+    let steps = [evtK keyTab] ++ replicate 71 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
+    model steps ^. selectedItem `shouldBe` testItem70
 
   it "should generate an event when focus is received" $ do
     let p = Point 100 10
