@@ -103,7 +103,8 @@ buildUI :: App -> WidgetInstance App AppEvent
 buildUI model = trace "Creating UI" widgetLV where
   widgetLV = vstack [
       listView dropdown1 items label
-      , dropdown_ dropdown1 items label label [maxHeight 200]
+      ,
+      dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
       hstack [

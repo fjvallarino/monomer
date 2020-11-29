@@ -211,7 +211,7 @@ listViewD_
 listViewD_ widgetData items makeRow configs = makeInstance widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState newItems Nothing 0 True
+  newState = ListViewState newItems Nothing 0 False
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -254,7 +254,12 @@ makeListView widgetData items makeRow config state = widget where
   init wenv inst = resultWidget newInst where
     children = createListViewChildren wenv inst
     sel = Just $ currentValue wenv
+    newState = state {
+      _prevSel = sel,
+      _resizeReq = True
+    }
     tmpInst = inst {
+      _wiWidget = makeListView widgetData items makeRow config newState,
       _wiChildren = children
     }
     newInst = updateSelStyle makeRow config Empty items Nothing sel wenv tmpInst
