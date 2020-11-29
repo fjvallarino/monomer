@@ -100,10 +100,10 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetLV where
   widgetLV = vstack [
-      listView dropdown1 items label,
-      dropdown_ dropdown1 items label label [maxHeight 200]
+      listView dropdown1 items label
+      , dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
       hstack [

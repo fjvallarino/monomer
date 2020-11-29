@@ -151,8 +151,9 @@ instance CmbMergeRequired (ListViewCfg s e a) (Seq a) where
 
 data ListViewState a = ListViewState {
   _prevItems :: Seq a,
-  _selected :: Maybe a,
-  _highlighted :: Int
+  _prevSel :: Maybe a,
+  _highlighted :: Int,
+  _resizeReq :: Bool
 }
 
 newtype ListViewMessage
@@ -210,7 +211,7 @@ listViewD_
 listViewD_ widgetData items makeRow configs = makeInstance widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState newItems Nothing 0
+  newState = ListViewState newItems Nothing 0 True
   widget = makeListView widgetData newItems makeRow config newState
 
 makeInstance :: Widget s e -> WidgetInstance s e
@@ -229,6 +230,7 @@ makeListView
   -> Widget s e
 makeListView widgetData items makeRow config state = widget where
   baseWidget = createContainer def {
+    containerResizeRequired = _resizeReq state,
     containerInit = init,
     containerGetState = makeState state,
     containerHandleEvent = handleEvent,
@@ -261,17 +263,22 @@ makeListView widgetData items makeRow config state = widget where
     sel = Just $ currentValue wenv
     oldInstState = widgetGetState (_wiWidget oldInst) wenv
     oldState = fromMaybe state (useState oldInstState)
-    oldSel = _selected oldState
+    oldSel = _prevSel oldState
     oldItems = _prevItems oldState
-    newState = oldState { _selected = sel }
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
     getBaseStyle _ _ = Nothing
     styledInst = initInstanceStyle getBaseStyle wenv newInst
+    newState = oldState {
+      _prevSel = sel,
+      _resizeReq = mergeRequired
+    }
     tempWidget = styledInst {
+      _wiWidget = makeListView widgetData items makeRow config newState,
       _wiViewport = _wiViewport oldInst,
       _wiRenderArea = _wiRenderArea oldInst,
-      _wiWidget = makeListView widgetData items makeRow config newState
+      _wiSizeReqW = _wiSizeReqW oldInst,
+      _wiSizeReqH = _wiSizeReqH oldInst
     }
     children
       | mergeRequired = createListViewChildren wenv tempWidget
@@ -351,7 +358,7 @@ makeListView widgetData items makeRow config state = widget where
     requests = valueSetReq ++ scrollToReq ++ changeReqs
     newState = state {
       _highlighted = idx,
-      _selected = Just selected
+      _prevSel = Just selected
     }
     newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState

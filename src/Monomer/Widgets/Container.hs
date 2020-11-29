@@ -122,6 +122,7 @@ type ContainerRenderHandler s e
 data Container s e = Container {
   containerIgnoreEmptyClick :: Bool,
   containerStyleOnMerge :: Bool,
+  containerResizeRequired :: Bool,
   containerKeepChildrenSizes :: Bool,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerInit :: ContainerInitHandler s e,
@@ -141,6 +142,7 @@ instance Default (Container s e) where
   def = Container {
     containerIgnoreEmptyClick = False,
     containerStyleOnMerge = False,
+    containerResizeRequired = True,
     containerKeepChildrenSizes = False,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerInit = defaultInit,
@@ -513,6 +515,7 @@ updateSizeReqWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 updateSizeReqWrapper container wenv inst = newInst where
+  resizeRequired = containerResizeRequired container
   psHandler = containerGetSizeReq container
   style = activeStyle wenv inst
   children = _wiChildren inst
@@ -520,11 +523,13 @@ updateSizeReqWrapper container wenv inst = newInst where
   newChildren = fmap updateChild children
   reqs = psHandler wenv inst newChildren
   (newReqW, newReqH) = sizeReqAddStyle style reqs
-  newInst = inst {
-    _wiChildren = newChildren,
-    _wiSizeReqW = newReqW,
-    _wiSizeReqH = newReqH
-  }
+  newInst
+    | resizeRequired = inst {
+        _wiChildren = newChildren,
+        _wiSizeReqW = newReqW,
+        _wiSizeReqH = newReqH
+      }
+    | otherwise = inst
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
@@ -540,6 +545,9 @@ resizeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
 resizeWrapper container wenv viewport renderArea inst = newInst where
+  resizeRequired = containerResizeRequired container
+  vpChanged = viewport /= _wiViewport inst
+  raChanged = renderArea /= _wiRenderArea inst
   keepSizes = containerKeepChildrenSizes container
   handler = containerResize container
   children = _wiChildren inst
@@ -555,11 +563,13 @@ resizeWrapper container wenv viewport renderArea inst = newInst where
       _wiRenderArea = if keepSizes then icra else ra
     }
   newChildren = resize <$> Seq.zip children assigned
-  newInst = tempInst {
-    _wiViewport = viewport,
-    _wiRenderArea = renderArea,
-    _wiChildren = newChildren
-  }
+  newInst
+    | resizeRequired || vpChanged || raChanged = tempInst {
+        _wiViewport = viewport,
+        _wiRenderArea = renderArea,
+        _wiChildren = newChildren
+      }
+    | otherwise = inst
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e

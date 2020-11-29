@@ -310,6 +310,7 @@ Maybe postponed after release?
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
   - Resize on change for label (update textDropdown)
+  - Fix selectOnBlur for dropdown
   - Test nested composites
   - Set focus on ButtonDown, not Click
   - ZStack should set _weIsTopLayer based on used space
