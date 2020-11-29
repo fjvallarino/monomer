@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -35,6 +36,10 @@ import Monomer.Graphics
 import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
+
+type ParentModel sp = Typeable sp
+type CompositeModel s = (Eq s, Typeable s)
+type CompositeEvent e = Typeable e
 
 type EventHandler s e ep = s -> e -> [EventResponse s e ep]
 type UIBuilder s e = s -> WidgetInstance s e
@@ -80,7 +85,7 @@ data Composite s e ep = Composite {
   _mergeRequired :: MergeRequired s
 }
 
-data CompositeState s e = CompositeState {
+data CompositeState s e sp = CompositeState {
   _cmpModel :: s,
   _cmpRoot :: WidgetInstance s e,
   _cmpInitEvent :: Maybe e,
@@ -98,7 +103,7 @@ data ReducedEvents s e sp ep = ReducedEvents {
 }
 
 composite
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
   -> Maybe e
@@ -109,7 +114,7 @@ composite widgetType model initEvt evtHandler uiBuilder = newInst where
   newInst = composite_ widgetType model initEvt evtHandler uiBuilder def
 
 composite_
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
   -> Maybe e
@@ -127,8 +132,8 @@ composite_ widgetType model initEvt evtHandler uiBuilder configs = newInst where
   newInst = defaultWidgetInstance widgetType widget
 
 createComposite
-  :: (Eq s, Typeable s, Typeable e)
-  => Composite s e ep -> CompositeState s e -> Widget sp ep
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  => Composite s e ep -> CompositeState s e sp -> Widget sp ep
 createComposite comp state = widget where
   widget = Widget {
     widgetInit = compositeInit comp state,
@@ -146,9 +151,9 @@ createComposite comp state = widget where
 
 -- | Init
 compositeInit
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
@@ -170,9 +175,9 @@ compositeInit comp state wenv widgetComp = newResult where
 
 -- | Merge
 compositeMerge
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
@@ -210,9 +215,9 @@ compositeMerge comp state wenv oldComp newComp = newResult where
 
 -- | Dispose
 compositeDispose
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
@@ -227,7 +232,7 @@ compositeDispose comp state wenv widgetComp = result where
 -- | Next focusable
 compositeFindNextFocus
   :: Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> FocusDirection
   -> Path
@@ -241,7 +246,7 @@ compositeFindNextFocus comp state wenv dir start widgetComp = nextFocus where
 
 -- | Find
 compositeFindByPoint
-  :: CompositeState s e
+  :: CompositeState s e sp
   -> WidgetEnv sp ep
   -> Path
   -> Point
@@ -259,9 +264,9 @@ compositeFindByPoint CompositeState{..} wenv startPath point widgetComp
 
 -- | Event handling
 compositeHandleEvent
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> Path
   -> SystemEvent
@@ -281,9 +286,9 @@ compositeHandleEvent comp state wenv target evt widgetComp = result where
 
 -- | Message handling
 compositeHandleMessage
-  :: (Eq s, Typeable i, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, Typeable i)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> Path
   -> i
@@ -302,9 +307,9 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
 
 -- Preferred size
 compositeUpdateSizeReq
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetInstance sp ep
@@ -328,9 +333,9 @@ compositeUpdateSizeReq comp state wenv widgetComp = newComp where
 
 -- Resize
 compositeResize
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> Rect
   -> Rect
@@ -358,7 +363,7 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
 -- Render
 compositeRender
   :: Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> Renderer
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
@@ -370,9 +375,9 @@ compositeRender comp state renderer wenv _ = action where
   action = widgetRender widget renderer cwenv _cmpRoot
 
 reduceResult
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
   -> WidgetResult s e
@@ -397,9 +402,9 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   newResult = WidgetResult newReqs newEvts uWidget
 
 updateComposite
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> s
   -> WidgetInstance s e
@@ -419,9 +424,9 @@ updateComposite comp state wenv newModel widgetRoot widgetComp = result where
       }
 
 mergeChild
-  :: (Eq s, Typeable s, Typeable e)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e ep
-  -> CompositeState s e
+  -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> s
   -> WidgetInstance s e
@@ -446,8 +451,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = result where
   result = reduceResult comp mergedState wenv widgetComp renderResult
 
 resizeResult
-  :: (Eq s, Typeable s, Typeable e)
-  => CompositeState s e
+  :: (CompositeModel s, CompositeEvent e)
+  => CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetResult s e
   -> WidgetInstance sp ep
@@ -509,11 +514,11 @@ reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Task task -> curr { _reTasks = _reTasks |> task }
   Producer producer -> curr { _reProducers = _reProducers |> producer }
 
-tasksToRequests :: Typeable e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
+tasksToRequests :: CompositeEvent e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
 tasksToRequests path reqs = RunTask path <$> reqs
 
 producersToRequests
-  :: Typeable e => Path -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
+  :: CompositeEvent e => Path -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
 producersToRequests path reqs = RunProducer path <$> reqs
 
 toParentReqs :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)

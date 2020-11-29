@@ -313,10 +313,14 @@ Maybe postponed after release?
   - Fix dialog not generating RenderOnce
   - Review composite initialization. View creation can be moved to init
     - Check if passing model directly is still correct
-  - Fix selectOnBlur for dropdown
   - Test nested composites
+  - Can _wiChildren be removed from Widget and only be kept in Container?
+  - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
   - ZStack should set _weIsTopLayer based on used space
+  - Image
+    - Can performance be improved? Use sbt functions?
+    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - Further textField improvements
@@ -333,11 +337,6 @@ Maybe postponed after release?
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
-  - Image widget could also have a ByteString version
-  - Can _wiChildren be removed from Widget and only be kept in Container?
-  - Image
-    - Can performance be improved?
-    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
   - Create Slider
   - Create Dial
   - Create Split
