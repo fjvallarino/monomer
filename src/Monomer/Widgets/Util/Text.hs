@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE BangPatterns #-}
 
 module Monomer.Widgets.Util.Text (
@@ -9,12 +10,14 @@ module Monomer.Widgets.Util.Text (
   getGlyphsMin,
   getGlyphsMax,
   getGlyphsWidth,
+  moveTextLines,
   drawTextLine,
   fitTextToRect
 ) where
 
 import Debug.Trace
 
+import Control.Lens ((&), (+~))
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
@@ -27,6 +30,8 @@ import qualified Data.Text as T
 import Monomer.Core
 import Monomer.Graphics
 import Monomer.Widgets.Util.Style
+
+import Monomer.Lens as L
 
 type GlyphGroup = Seq GlyphPos
 
@@ -93,6 +98,13 @@ getTextLinesSize textLines = size where
   size
     | Seq.null textLines = def
     | otherwise = Size width height
+
+moveTextLines :: Double -> Double -> Seq TextLine -> Seq TextLine
+moveTextLines offsetX offsetY textLines = newTextLines where
+  moveTextLine tl = tl
+    & L.rect . L.x +~ offsetX
+    & L.rect . L.y +~ offsetY
+  newTextLines = fmap moveTextLine textLines
 
 drawTextLine :: Renderer -> StyleState -> TextLine -> IO ()
 drawTextLine renderer style textLine = do

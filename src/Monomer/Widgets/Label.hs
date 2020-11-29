@@ -81,6 +81,7 @@ instance CmbResizeFactorDim LabelCfg where
 
 data LabelState = LabelState {
   _lstCaption :: Text,
+  _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine
 } deriving (Eq, Show)
 
@@ -90,7 +91,7 @@ label caption = label_ caption def
 label_ :: Text -> [LabelCfg] -> WidgetInstance s e
 label_ caption configs = defaultWidgetInstance "label" widget where
   config = mconcat configs
-  state = LabelState caption Seq.Empty
+  state = LabelState caption def Seq.Empty
   widget = makeLabel config state
 
 makeLabel :: LabelCfg -> LabelState -> Widget s e
@@ -107,17 +108,21 @@ makeLabel config state = widget where
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
   trimSpaces = fromMaybe TrimSpaces (_lscTrim config)
-  LabelState caption textLines = state
+  LabelState caption textRect textLines = state
 
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.labelStyle
 
   merge wenv oldState oldInst newInst = result where
     prevState = fromMaybe state (useState oldState)
-    newState = prevState {
-      _lstCaption = caption
-    }
     captionChanged = _lstCaption prevState /= caption
+    newRect
+      | captionChanged = def
+      | otherwise = _lstTextRect prevState
+    newState = prevState {
+      _lstCaption = caption,
+      _lstTextRect = newRect
+    }
     reqs = [ ResizeWidgets | captionChanged ]
     result = resultReqs reqs newInst {
       _wiWidget = makeLabel config newState
@@ -139,8 +144,13 @@ makeLabel config state = widget where
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
     rect = fromMaybe def (removeOuterBounds style renderArea)
-    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
-    newWidget = makeLabel config (LabelState caption newLines)
+    Rect px py pw ph = textRect
+    Rect nx ny nw nh = rect
+    fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newLines
+      | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
+      | otherwise = fittedLines
+    newWidget = makeLabel config (LabelState caption rect newLines)
     newInst = inst {
       _wiWidget = newWidget
     }

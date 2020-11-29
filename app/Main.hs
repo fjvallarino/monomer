@@ -24,7 +24,7 @@ import Types
 
 main :: IO ()
 main = do
-  forkServer "localhost" 28000
+  --forkServer "localhost" 28000
 
   let model = def
   let theme :: Theme = darkTheme
@@ -257,4 +257,4 @@ buildUI model = trace "Creating UI" widgetTree where
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap (\i -> "This is a long label: " <> showt i) [1..10::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

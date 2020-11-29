@@ -65,7 +65,6 @@
 - Image
   - [x] Check load task request is created
   - [x] Check merging with new path creates new load task
-  - [ ] Check image is registered in renderer
 - InputField
   - Tested through TextField and numeric related versions
 - Integral field

@@ -292,7 +292,7 @@
     - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
-  - Resize on change for label (update textDropdown)
+  - Avoid rebuilding glyphs if renderArea did not change for label
 
 - Pending
   - Add testing
@@ -310,9 +310,9 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Fix dialog not generating RenderOnce
   - Review composite initialization. View creation can be moved to init
     - Check if passing model directly is still correct
-  - Fix dialog not generating RenderOnce
   - Fix selectOnBlur for dropdown
   - Test nested composites
   - Set focus on ButtonDown, not Click
@@ -323,6 +323,7 @@ Maybe postponed after release?
     - Handle undo history
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
+  - Avoid resizing non visible elements (stack/grid)
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
