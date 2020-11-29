@@ -112,16 +112,14 @@ makeLabel config state = widget where
   getBaseStyle wenv inst = Just style where
     style = collectTheme wenv L.labelStyle
 
-  merge wenv oldModel oldState oldInst newInst = resultReqs reqs mergedInst where
-    style = activeStyle wenv newInst
-    renderArea = _wiRenderArea newInst
-    tempState = fromMaybe state (useState oldState)
-    captionChanged = _lstCaption tempState /= caption
-    newState
-      | captionChanged = rebuildState wenv style renderArea
-      | otherwise = tempState
+  merge wenv oldModel oldState oldInst newInst = result where
+    prevState = fromMaybe state (useState oldState)
+    newState = prevState {
+      _lstCaption = caption
+    }
+    captionChanged = _lstCaption prevState /= caption
     reqs = [ ResizeWidgets | captionChanged ]
-    mergedInst = newInst {
+    result = resultReqs reqs newInst {
       _wiWidget = makeLabel config newState
     }
 
@@ -140,15 +138,12 @@ makeLabel config state = widget where
 
   resize wenv viewport renderArea inst = newInst where
     style = activeStyle wenv inst
-    newWidget = makeLabel config (rebuildState wenv style renderArea)
+    rect = fromMaybe def (removeOuterBounds style renderArea)
+    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newWidget = makeLabel config (LabelState caption newLines)
     newInst = inst {
       _wiWidget = newWidget
     }
-
-  rebuildState wenv style renderArea = newState where
-    rect = fromMaybe def (removeOuterBounds style renderArea)
-    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
-    newState = LabelState caption newLines
 
   render renderer wenv inst = action where
     style = activeStyle wenv inst
