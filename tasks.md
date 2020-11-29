@@ -288,6 +288,11 @@
   - Can we avoid redrawing if no event happened?
     - Action events still cause rendering to happen (otherwise it's painful for widget developers)
     - Move events need to request rendering
+  - Improve listView performance (avoid merge/resize)
+    - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
+    - Still need to provide method for custom mergeNeeded check
+  - Avoid forced resize after merge (if an item needs more space, it should request it)
+  - Resize on change for label (update textDropdown)
 
 - Pending
   - Add testing
@@ -305,13 +310,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Improve listView performance (avoid merge/resize)
-    - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
-    - Still need to provide method for custom mergeNeeded check
-  - Avoid forced resize after merge (if an item needs more space, it should request it)
   - Review composite initialization. View creation can be moved to init
     - Check if passing model directly is still correct
-  - Resize on change for label (update textDropdown)
+  - Fix dialog not generating RenderOnce
   - Fix selectOnBlur for dropdown
   - Test nested composites
   - Set focus on ButtonDown, not Click

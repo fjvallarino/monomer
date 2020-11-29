@@ -16,10 +16,10 @@ data Winding
   deriving (Eq, Show)
 
 data Color = Color {
-  _colorR :: !Int,
-  _colorG :: !Int,
-  _colorB :: !Int,
-  _colorA :: !Double
+  _colorR :: {-# UNPACK #-} !Int,
+  _colorG :: {-# UNPACK #-} !Int,
+  _colorB :: {-# UNPACK #-} !Int,
+  _colorA :: {-# UNPACK #-} !Double
 } deriving (Show, Eq)
 
 instance Default Color where
@@ -70,10 +70,10 @@ instance Default AlignV where
   def = AMiddle
 
 data GlyphPos = GlyphPos {
-  _glpGlyph :: !Char,
-  _glpXMin :: !Double,
-  _glpXMax :: !Double,
-  _glpW :: !Double
+  _glpGlyph :: {-# UNPACK #-} !Char,
+  _glpXMin :: {-# UNPACK #-} !Double,
+  _glpXMax :: {-# UNPACK #-} !Double,
+  _glpW :: {-# UNPACK #-} !Double
 } deriving (Eq, Show)
 
 instance Default GlyphPos where
@@ -95,9 +95,9 @@ data TextTrim
   deriving (Eq, Show)
 
 data TextMetrics = TextMetrics {
-  _txmAsc :: !Double,
-  _txmDesc :: !Double,
-  _txmLineH :: !Double
+  _txmAsc :: {-# UNPACK #-} !Double,
+  _txmDesc :: {-# UNPACK #-} !Double,
+  _txmLineH :: {-# UNPACK #-} !Double
 } deriving (Eq, Show)
 
 instance Default TextMetrics where

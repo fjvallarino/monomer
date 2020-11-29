@@ -24,7 +24,7 @@ import Types
 
 main :: IO ()
 main = do
-  --forkServer "localhost" 28000
+  forkServer "localhost" 28000
 
   let model = def
   let theme :: Theme = darkTheme
@@ -100,7 +100,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetInstance App AppEvent
-buildUI model = trace "Creating UI" widgetLV where
+buildUI model = trace "Creating UI" widgetTree where
   widgetLV = vstack [
       listView dropdown1 items label
       ,
@@ -257,4 +257,4 @@ buildUI model = trace "Creating UI" widgetLV where
       textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap (\i -> "This is a long label: " <> showt i) [1..1000::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..10::Int]

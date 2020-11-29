@@ -10,26 +10,26 @@ type Path = Seq PathStep
 type Factor = Double
 
 data Point = Point {
-  _pX :: !Double,
-  _pY :: !Double
+  _pX :: {-# UNPACK #-} !Double,
+  _pY :: {-# UNPACK #-} !Double
 } deriving (Show, Eq)
 
 instance Default Point where
   def = Point 0 0
 
 data Size = Size {
-  _sW :: !Double,
-  _sH :: !Double
+  _sW :: {-# UNPACK #-} !Double,
+  _sH :: {-# UNPACK #-} !Double
 } deriving (Show, Eq)
 
 instance Default Size where
   def = Size 0 0
 
 data Rect = Rect {
-  _rX :: !Double,
-  _rY :: !Double,
-  _rW :: !Double,
-  _rH :: !Double
+  _rX :: {-# UNPACK #-} !Double,
+  _rY :: {-# UNPACK #-} !Double,
+  _rW :: {-# UNPACK #-} !Double,
+  _rH :: {-# UNPACK #-} !Double
 } deriving (Show, Eq)
 
 instance Default Rect where

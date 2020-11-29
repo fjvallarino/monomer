@@ -2,4 +2,7 @@
 .vscode/
 monomer.cabal
 *~
+*.aux
+*.hp
 *.prof
+*.ps
