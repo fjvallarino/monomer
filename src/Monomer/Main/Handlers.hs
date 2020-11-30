@@ -296,8 +296,11 @@ handleUpdateWindow windowRequest previousStep = do
 
 handleUpdateModel
   :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
-handleUpdateModel fn (wenv, evts, root) =
-  return (wenv & L.model %~ fn, evts, root)
+handleUpdateModel fn (wenv, evts, root) = do
+  L.mainModel .= _weModel wenv2
+  return (wenv2, evts, root)
+  where
+    wenv2 = wenv & L.model %~ fn
 
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)

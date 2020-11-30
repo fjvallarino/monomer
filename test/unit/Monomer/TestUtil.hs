@@ -150,6 +150,15 @@ instHandleEventCtx
 instHandleEventCtx wenv evts inst = ctx where
   ctx = snd $ instHandleEvents wenv evts inst
 
+instHandleEventCtxModel
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetInstance s e
+  -> s
+instHandleEventCtxModel wenv evts inst = ctx where
+  ctx = _mcMainModel (instHandleEventCtx wenv evts inst)
+
 instHandleEventModel
   :: (Eq s)
   => WidgetEnv s e

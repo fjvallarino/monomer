@@ -40,9 +40,9 @@
   - [x] Handle value version
 - Composite
   - Maybe tested as part of _real_ test application
-  - [ ] Event handling
+  - [x] Event handling
   - [ ] Message handling
-  - [ ] Nested composites
+  - [x] Nested composites
 - Confirm
   - [x] Click Accept
   - [x] Click Cancel

@@ -293,6 +293,10 @@
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
   - Avoid rebuilding glyphs if renderArea did not change for label
+  - Fix dialog not generating RenderOnce
+    - The issue was in zstack, where changing visible items should generate a resize request
+  - Review composite initialization. View creation can be moved to init
+    - Check if passing model directly is still correct
 
 - Pending
   - Add testing
@@ -310,10 +314,14 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Fix dialog not generating RenderOnce
-  - Review composite initialization. View creation can be moved to init
-    - Check if passing model directly is still correct
   - Test nested composites
+  - Split WidgetInstance into Definition and Instance, in order to:
+    - Be able to get information about the whole widget tree, even hidden items (inside composite)
+      - This is needed for testing composite
+      - It can be used to create debugging tools/widgets
+    - Have clearer interfaces. A method should not be able to modify its instance, since those changes will be ignored anyway
+    - Pave the way for removing children from WidgetInstance
+    - Pave the way for removing widget from WidgetInstance
   - Can _wiChildren be removed from Widget and only be kept in Container?
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
@@ -340,11 +348,10 @@ Maybe postponed after release?
   - Create Slider
   - Create Dial
   - Create Split
-  - Create self rendered version of dropdown and list
+  - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector
-  - Create Layout with width/heights specified in percents
-  - Consider https://eugenkiss.github.io/7guis/tasks/
+  - Create self rendered version of dropdown and list
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
@@ -354,17 +361,10 @@ Maybe postponed after release?
   - Improve window resize situation
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
-  - Should StyleState be a phantom type?
-    - A branch was created and got it working
-    - Getting the types working for  meant extending that idea to Widget was logical
-    - Interfaces got ugly quickly. Need to revisit
-  - Look for opportunities to reduce code duplication (CompositeWidget and BaseContainer)
-  - Check threadDelay usage: https://stackoverflow.com/questions/33149324/haskell-ghc-per-thread-memory-costs
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
   - Look for alternatives to NanoVG
     - Check ImDrawList. Support for OpenGL/Metal/Vulkan out of the box
     - Check SDL_Surface + Cairo backend. It most likely won't happen
-  - Can we cache some drawing operations?
   - Add new request types (drag started, drag stopped, drag cancelled)
   - Add new events (drag hover)
   - SDL supports Drag and Drop integration with OS

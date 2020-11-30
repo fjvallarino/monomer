@@ -6,6 +6,7 @@ import qualified Monomer.Widgets.AlertSpec as AlertSpec
 import qualified Monomer.Widgets.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.CheckboxSpec as CheckboxSpec
+import qualified Monomer.Widgets.CompositeSpec as CompositeSpec
 import qualified Monomer.Widgets.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
@@ -28,6 +29,7 @@ main = hspec spec
 spec :: Spec
 spec = do
   widgets
+  widgetsUtil
 
 widgets :: Spec
 widgets = describe "Widgets" $ do
@@ -35,6 +37,7 @@ widgets = describe "Widgets" $ do
   BoxSpec.spec
   ButtonSpec.spec
   CheckboxSpec.spec
+  CompositeSpec.spec
   ConfirmSpec.spec
   FloatingFieldSpec.spec
   GridSpec.spec
@@ -46,10 +49,9 @@ widgets = describe "Widgets" $ do
   StackSpec.spec
   TextFieldSpec.spec
   ZStackSpec.spec
-  widgetsUtil
 
 widgetsUtil :: Spec
-widgetsUtil = describe "Util" $ do
+widgetsUtil = describe "Widgets Util" $ do
   FocusSpec.spec
   StyleSpec.spec
   TextSpec.spec

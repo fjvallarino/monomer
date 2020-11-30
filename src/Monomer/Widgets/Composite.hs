@@ -491,7 +491,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   newReqs = toParentReqs reqs
          <> tasksToRequests currentPath _reTasks
          <> producersToRequests currentPath _reProducers
-         <> toParentReqs uReqs
+         <> uReqs
          <> toParentReqs _reRequests
          <> _reMessages
   newEvts = _reReports <> uEvts
