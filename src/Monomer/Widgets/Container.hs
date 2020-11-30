@@ -17,6 +17,7 @@ module Monomer.Widgets.Container (
   mergeWrapper,
   mergeParent,
   mergeChildren,
+  mergeChildrenCheckVisible,
   handleEventWrapper,
   handleMessageWrapper,
   updateSizeReqWrapper,
@@ -29,6 +30,7 @@ module Monomer.Widgets.Container (
   defaultRender
 ) where
 
+import Control.Lens ((&), (%~))
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
@@ -44,6 +46,8 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
+
+import qualified Monomer.Lens as L
 
 type ContainerGetBaseStyle s e
   = GetBaseStyle s e
@@ -234,12 +238,13 @@ mergeWrapper
   -> WidgetInstance s e
   -> WidgetInstance s e
   -> WidgetResult s e
-mergeWrapper container wenv oldInst newInst = cResult where
+mergeWrapper container wenv oldInst newInst = result where
   getBaseStyle = containerGetBaseStyle container
   mergeHandler = containerMerge container
   styledInst = initInstanceStyle getBaseStyle wenv newInst
   pResult = mergeParent mergeHandler wenv oldInst styledInst
   cResult = mergeChildren wenv oldInst pResult
+  result = mergeChildrenCheckVisible oldInst newInst cResult
 
 mergeParent
   :: ContainerMergeHandler s e
@@ -308,6 +313,19 @@ mergeChildrenSeq wenv oldItems newItems = (added, cremoved) where
     | otherwise = (initNew, oldItems)
   (cadded, cremoved) = mergeChildrenSeq wenv oldRest newChildren
   added = child <| cadded
+
+mergeChildrenCheckVisible
+  :: WidgetInstance s e
+  -> WidgetInstance s e
+  -> WidgetResult s e
+  -> WidgetResult s e
+mergeChildrenCheckVisible oldInst newInst result = newResult where
+  oldVisible = fmap _wiVisible (_wiChildren oldInst)
+  newVisible = fmap _wiVisible (_wiChildren newInst)
+  resizeRequired = oldVisible /= newVisible
+  newResult
+    | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
+    | otherwise = result
 
 -- | Dispose handler
 defaultDispose :: ContainerInitHandler s e
