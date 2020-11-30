@@ -18,7 +18,7 @@ module Monomer.Widgets.Composite (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (%~))
+import Control.Lens (ALens', (&), (^.), (%~), (<>~))
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -468,7 +468,7 @@ mergeChild
   -> WidgetInstance s e
   -> WidgetInstance sp ep
   -> WidgetResult sp ep
-mergeChild comp state wenv newModel widgetRoot widgetComp = result where
+mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
   builtRoot = cascadeCtx widgetComp (_uiBuilder comp newModel)
   builtWidget = _wiWidget builtRoot
@@ -485,6 +485,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = result where
     _cmpRoot = renderResult ^. L.widget
   }
   result = reduceResult comp mergedState wenv widgetComp renderResult
+  newReqs = widgetDataSet (_widgetData comp) newModel
+  newResult = result & L.requests <>~ Seq.fromList newReqs
 
 resizeResult
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
