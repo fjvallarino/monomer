@@ -41,7 +41,7 @@ data CompEvent
   deriving (Eq, Show)
 
 testComposite :: WidgetInstance CompState AppEvent
-testComposite = composite "testComposite" def (Just InitComposite) handleCompositeEvent buildComposite
+testComposite = composite "testComposite" id (Just InitComposite) handleCompositeEvent buildComposite
 
 handleCompositeEvent model evt = case evt of
   InitComposite -> [Task $ do

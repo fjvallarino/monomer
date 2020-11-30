@@ -77,7 +77,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
   (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
-  let monomerContext = initMonomerContext () window winSize useHdpi dpr
+  let monomerContext = initMonomerContext model window winSize useHdpi dpr
 
   runStateT (runApp window maxFps fonts theme exitEvent appWidget) monomerContext
   detroySDLWindow window
@@ -89,7 +89,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
     theme = fromMaybe def (_apcTheme config)
     initEvent = _apcInitEvent config
     exitEvent = _apcExitEvent config
-    appWidget = composite "app" model initEvent eventHandler uiBuilder
+    appWidget = composite "app" id initEvent eventHandler uiBuilder
 
 runApp
   :: (MonomerM s m, Typeable e)
