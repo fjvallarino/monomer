@@ -14,10 +14,11 @@ module Monomer.Widgets.Util.Widget (
   useState,
   instanceMatches,
   isTopLevel,
-  handleFocusChange
+  handleFocusChange,
+  resizeWidget
 ) where
 
-import Control.Lens ((&), (^#), (#~), (^.))
+import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast, Typeable)
@@ -118,3 +119,17 @@ handleFocusChange evtFn reqFn config inst = result where
   result
     | not (null evts && null reqs) = Just $ resultReqsEvts inst reqs evts
     | otherwise = Nothing
+
+resizeWidget
+  :: WidgetEnv s e
+  -> Rect
+  -> Rect
+  -> WidgetInstance s e
+  -> WidgetInstance s e
+resizeWidget wenv viewport renderArea widgetRoot = newRoot where
+  sizeReq = widgetGetSizeReq (_wiWidget widgetRoot) wenv widgetRoot
+  reqRoot = sizeReq ^. L.widget
+    & L.sizeReqW .~ sizeReq ^. L.sizeReqW
+    & L.sizeReqH .~ sizeReq ^. L.sizeReqH
+
+  newRoot = widgetResize (_wiWidget reqRoot) wenv viewport renderArea reqRoot

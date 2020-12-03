@@ -12,6 +12,7 @@ module Monomer.Widgets.Single (
   createSingle
 ) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Typeable (Typeable)
 
@@ -20,6 +21,8 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util
+
+import qualified Monomer.Lens as L
 
 type SingleGetBaseStyle s e
   = GetBaseStyle s e
@@ -133,7 +136,7 @@ createSingle single = Widget {
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = singleHandleMessage single,
-  widgetUpdateSizeReq = updateSizeReqWrapper single,
+  widgetGetSizeReq = getSizeReqWrapper single,
   widgetResize = resizeHandlerWrapper single,
   widgetRender = renderWrapper single
 }
@@ -217,19 +220,19 @@ defaultHandleMessage wenv target message inst = Nothing
 defaultGetSizeReq :: SingleGetSizeReqHandler s e
 defaultGetSizeReq wenv inst = def
 
-updateSizeReqWrapper
+getSizeReqWrapper
   :: Single s e
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> WidgetInstance s e
-updateSizeReqWrapper single wenv inst = newInst where
+  -> WidgetSizeReq s e
+getSizeReqWrapper single wenv inst = newSizeReq & L.widget .~ newInst where
   handler = singleGetSizeReq single
   style = activeStyle wenv inst
-  reqs = handler wenv inst
-  (newReqW, newReqH) = sizeReqAddStyle style reqs
+  (sizeReqW, sizeReqH) = handler wenv inst
+  newSizeReq = sizeReqAddStyle style (WidgetSizeReq inst sizeReqW sizeReqH)
   newInst = inst {
-    _wiSizeReqW = newReqW,
-    _wiSizeReqH = newReqH
+    _wiSizeReqW = newSizeReq ^. L.sizeReqW,
+    _wiSizeReqH = newSizeReq ^. L.sizeReqH
   }
 
 defaultResize :: SingleResizeHandler s e

@@ -301,10 +301,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult newInst (reqs <> newReqs) (events <> newEvents)
 
-  getSizeReq wenv inst children = sizeReq where
+  getSizeReq wenv inst children = (newReqW, newReqH) where
     child = Seq.index children 0
-    newChild = widgetUpdateSizeReq (_wiWidget child) wenv child
-    sizeReq = (_wiSizeReqW newChild, _wiSizeReqH newChild)
+    newChild = widgetGetSizeReq (_wiWidget child) wenv child
+    newReqW = newChild ^. L.sizeReqW
+    newReqH = newChild ^. L.sizeReqH
 
   resize wenv viewport renderArea children inst = resized where
     Size winW winH = _weAppWindowSize wenv

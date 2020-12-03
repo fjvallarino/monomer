@@ -93,6 +93,12 @@ instance Semigroup (WidgetResult s e) where
     _wrEvents = _wrEvents er1 <> _wrEvents er2
   }
 
+data WidgetSizeReq s e = WidgetSizeReq {
+  _wsrWidget :: WidgetInstance s e,
+  _wsrSizeReqW :: SizeReq,
+  _wsrSizeReqH :: SizeReq
+} deriving (Show)
+
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
@@ -180,10 +186,10 @@ data Widget s e =
       -> WidgetInstance s e
       -> Maybe (WidgetResult s e),
     -- | Updates the sizeReq field for the widget
-    widgetUpdateSizeReq
+    widgetGetSizeReq
       :: WidgetEnv s e
       -> WidgetInstance s e
-      -> WidgetInstance s e,
+      -> WidgetSizeReq s e,
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget

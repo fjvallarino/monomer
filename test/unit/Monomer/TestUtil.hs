@@ -1,5 +1,6 @@
 module Monomer.TestUtil where
 
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
@@ -17,6 +18,9 @@ import Monomer.Graphics
 import Monomer.Main.Handlers
 import Monomer.Main.Types
 import Monomer.Main.Util
+import Monomer.Widgets.Util.Widget
+
+import qualified Monomer.Lens as L
 
 testW :: Double
 testW = 640
@@ -132,14 +136,13 @@ instInit wenv inst = newInst where
 instUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> (SizeReq, SizeReq)
 instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
   WidgetResult inst2 _ _ = widgetInit (_wiWidget inst) wenv inst
-  reqInst = widgetUpdateSizeReq (_wiWidget inst2) wenv inst2
-  sizeReqW = _wiSizeReqW reqInst
-  sizeReqH = _wiSizeReqH reqInst
+  reqInst = widgetGetSizeReq (_wiWidget inst2) wenv inst2
+  sizeReqW = reqInst ^. L.sizeReqW
+  sizeReqH = reqInst ^. L.sizeReqH
 
 instResize :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
 instResize wenv viewport inst = newInst where
-  reqInst = widgetUpdateSizeReq (_wiWidget inst) wenv inst
-  newInst = widgetResize (_wiWidget reqInst) wenv viewport viewport reqInst
+  newInst = resizeWidget wenv viewport viewport inst
 
 instHandleEventCtx
   :: (Eq s)

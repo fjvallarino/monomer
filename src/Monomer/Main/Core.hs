@@ -134,7 +134,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
   handleResourcesInit
   (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot
 
-  let resizedRoot = resizeWidget newWenv newWindowSize initializedRoot
+  let resizedRoot = resizeRoot newWenv newWindowSize initializedRoot
   let loopArgs = MainLoopArgs {
     _mlOS = os,
     _mlTheme = theme,

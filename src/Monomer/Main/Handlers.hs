@@ -160,7 +160,7 @@ handleResizeWidgets reqs previousStep =
       liftIO . putStrLn $ "Resizing widgets"
 
       let (wenv, events, widgetRoot) = previousStep
-      let newWidgetRoot = resizeWidget wenv windowSize widgetRoot
+      let newWidgetRoot = resizeRoot wenv windowSize widgetRoot
 
       L.renderRequested .= True
 

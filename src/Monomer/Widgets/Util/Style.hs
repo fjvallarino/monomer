@@ -150,11 +150,11 @@ handleSizeChange wenv target evt cfg inst = reqs where
   focusChanged = isOnFocus evt || isOnBlur evt
   -- Size
   checkSize = hoverChanged || focusChanged
-  instReqs = widgetUpdateSizeReq (_wiWidget inst) wenv inst
-  oldSizeReqW = _wiSizeReqW inst
-  oldSizeReqH = _wiSizeReqH inst
-  newSizeReqW = _wiSizeReqW instReqs
-  newSizeReqH = _wiSizeReqH instReqs
+  instReqs = widgetGetSizeReq (_wiWidget inst) wenv inst
+  oldSizeReqW = inst ^. L.sizeReqW
+  oldSizeReqH = inst ^. L.sizeReqH
+  newSizeReqW = instReqs ^. L.sizeReqW
+  newSizeReqH = instReqs ^. L.sizeReqH
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Result
   resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]

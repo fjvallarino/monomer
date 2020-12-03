@@ -21,7 +21,7 @@ module Monomer.Widgets.Composite (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (%~), (<>~))
+import Control.Lens (ALens', (&), (^.), (.~), (%~), (<>~))
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -216,7 +216,7 @@ createComposite comp state = widget where
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
-    widgetUpdateSizeReq = compositeUpdateSizeReq comp state,
+    widgetGetSizeReq = compositeGetSizeReq comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -393,31 +393,36 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
       result = widgetHandleMessage cmpWidget cwenv target arg _cpsRoot
 
 -- Preferred size
-compositeUpdateSizeReq
+compositeGetSizeReq
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetInstance sp ep
-  -> WidgetInstance sp ep
-compositeUpdateSizeReq comp state wenv widgetComp = newComp where
+  -> WidgetSizeReq sp ep
+compositeGetSizeReq comp state wenv widgetComp = newSizeReq where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   widget = _wiWidget _cpsRoot
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  newRoot = widgetUpdateSizeReq widget cwenv _cpsRoot
-  currReqW = _wiSizeReqW newRoot
-  currReqH = _wiSizeReqH newRoot
-  (newReqW, newReqH) = sizeReqAddStyle style (currReqW, currReqH)
+  tempChildReq = widgetGetSizeReq widget cwenv _cpsRoot
+  newChildReq = sizeReqAddStyle style tempChildReq
+  childRoot = newChildReq ^. L.widget
+  childReqW = newChildReq ^. L.sizeReqW
+  childReqH = newChildReq ^. L.sizeReqH
+  newRoot = childRoot
+    & L.sizeReqW .~ childReqW
+    & L.sizeReqH .~ childReqH
   newState = state {
     _cpsRoot = newRoot
   }
   newComp = widgetComp {
     _wiWidget = createComposite comp newState,
-    _wiSizeReqW = newReqW,
-    _wiSizeReqH = newReqH
+    _wiSizeReqW = childReqW,
+    _wiSizeReqH = childReqH
   }
+  newSizeReq = WidgetSizeReq newComp childReqW childReqH
 
 -- Resize
 compositeResize
@@ -569,7 +574,10 @@ resizeResult comp state wenv result widgetComp = resizedResult where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   widgetRoot = _wrWidget result
-  reqRoot = widgetUpdateSizeReq (_wiWidget widgetRoot) cwenv widgetRoot
+  sizeReq = widgetGetSizeReq (_wiWidget widgetRoot) cwenv widgetRoot
+  reqRoot = sizeReq ^. L.widget
+    & L.sizeReqW .~ sizeReq ^. L.sizeReqW
+    & L.sizeReqH .~ sizeReq ^. L.sizeReqH
   tempRoot = widgetResize (_wiWidget reqRoot) cwenv viewport renderArea reqRoot
   newRoot = tempRoot {
     _wiViewport = viewport,

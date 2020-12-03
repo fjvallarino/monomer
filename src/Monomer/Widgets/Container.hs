@@ -20,7 +20,7 @@ module Monomer.Widgets.Container (
   mergeChildrenCheckVisible,
   handleEventWrapper,
   handleMessageWrapper,
-  updateSizeReqWrapper,
+  getSizeReqWrapper,
   findByPointWrapper,
   findNextFocusWrapper,
   resizeWrapper,
@@ -30,7 +30,7 @@ module Monomer.Widgets.Container (
   defaultRender
 ) where
 
-import Control.Lens ((&), (%~))
+import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
@@ -171,7 +171,7 @@ createContainer container = Widget {
   widgetFindByPoint = findByPointWrapper container,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
-  widgetUpdateSizeReq = updateSizeReqWrapper container,
+  widgetGetSizeReq = getSizeReqWrapper container,
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
@@ -522,25 +522,30 @@ handleMessageWrapper container wenv target arg inst
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e
 defaultGetSizeReq wenv inst children = def
 
-updateSizeReqWrapper
+getSizeReqWrapper
   :: Container s e
   -> WidgetEnv s e
   -> WidgetInstance s e
-  -> WidgetInstance s e
-updateSizeReqWrapper container wenv inst = newInst where
+  -> WidgetSizeReq s e
+getSizeReqWrapper container wenv inst = newSizeReq & L.widget .~ newInst where
   resizeRequired = containerResizeRequired container
   psHandler = containerGetSizeReq container
   style = activeStyle wenv inst
   children = _wiChildren inst
-  updateChild child = widgetUpdateSizeReq (_wiWidget child) wenv child
+  updateChild child = newChild where
+    childReq = widgetGetSizeReq (_wiWidget child) wenv child
+    WidgetSizeReq cWidget cReqW cReqH = childReq
+    newChild = cWidget
+      & L.sizeReqW .~ cReqW
+      & L.sizeReqH .~ cReqH
   newChildren = fmap updateChild children
-  reqs = psHandler wenv inst newChildren
-  (newReqW, newReqH) = sizeReqAddStyle style reqs
+  (sizeReqW, sizeReqH) = psHandler wenv inst newChildren
+  newSizeReq = sizeReqAddStyle style (WidgetSizeReq inst sizeReqW sizeReqH)
   newInst
     | resizeRequired = inst {
         _wiChildren = newChildren,
-        _wiSizeReqW = newReqW,
-        _wiSizeReqH = newReqH
+        _wiSizeReqW = newSizeReq ^. L.sizeReqW,
+        _wiSizeReqH = newSizeReq ^. L.sizeReqH
       }
     | otherwise = inst
 

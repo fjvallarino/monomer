@@ -18,6 +18,7 @@ import Monomer.Core
 import Monomer.Event
 import Monomer.Main.Platform
 import Monomer.Main.Types
+import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
@@ -57,13 +58,12 @@ findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
     widgetFindNextFocus widget wenv direction restartPath widgetRoot
   nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
 
-resizeWidget
+resizeRoot
   :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
-resizeWidget wenv windowSize widgetRoot = newRoot where
+resizeRoot wenv windowSize widgetRoot = newRoot where
   Size w h = windowSize
   assigned = Rect 0 0 w h
-  instReqs = widgetUpdateSizeReq (_wiWidget widgetRoot) wenv widgetRoot
-  newRoot = widgetResize (_wiWidget instReqs) wenv assigned assigned instReqs
+  newRoot = resizeWidget wenv assigned assigned widgetRoot
 
 resizeWindow
   :: (MonomerM s m)
@@ -82,7 +82,7 @@ resizeWindow window wenv widgetRoot = do
   L.windowSize .= newWindowSize
   liftIO $ GL.viewport GL.$= (position, size)
 
-  return $ resizeWidget wenv newWindowSize widgetRoot
+  return $ resizeRoot wenv newWindowSize widgetRoot
 
 getTargetPath
   :: WidgetEnv s e
