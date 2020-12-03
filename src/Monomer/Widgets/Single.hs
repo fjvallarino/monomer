@@ -225,15 +225,11 @@ getSizeReqWrapper
   -> WidgetEnv s e
   -> WidgetInstance s e
   -> WidgetSizeReq s e
-getSizeReqWrapper single wenv inst = newSizeReq & L.widget .~ newInst where
+getSizeReqWrapper single wenv inst = newSizeReq where
   handler = singleGetSizeReq single
   style = activeStyle wenv inst
   (sizeReqW, sizeReqH) = handler wenv inst
   newSizeReq = sizeReqAddStyle style (WidgetSizeReq inst sizeReqW sizeReqH)
-  newInst = inst {
-    _wiSizeReqW = newSizeReq ^. L.sizeReqW,
-    _wiSizeReqH = newSizeReq ^. L.sizeReqH
-  }
 
 defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport renderArea inst = inst

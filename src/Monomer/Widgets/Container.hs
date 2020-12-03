@@ -543,9 +543,7 @@ getSizeReqWrapper container wenv inst = newSizeReq & L.widget .~ newInst where
   newSizeReq = sizeReqAddStyle style (WidgetSizeReq inst sizeReqW sizeReqH)
   newInst
     | resizeRequired = inst {
-        _wiChildren = newChildren,
-        _wiSizeReqW = newSizeReq ^. L.sizeReqW,
-        _wiSizeReqH = newSizeReq ^. L.sizeReqH
+        _wiChildren = newChildren
       }
     | otherwise = inst
 
