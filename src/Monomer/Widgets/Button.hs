@@ -208,7 +208,7 @@ makeButton config state = widget where
     where
       requests = _btnOnClickReq config
       events = _btnOnClick config
-      result = resultReqsEvents requests events inst
+      result = resultReqsEvts inst requests events
 
   getSizeReq wenv inst = (sizeW, sizeH) where
     style = activeStyle wenv inst

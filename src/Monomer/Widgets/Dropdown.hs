@@ -215,14 +215,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   isOpen = _isOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createDropdown wenv newState inst = newInstance where
+  createDropdown wenv newState inst = newInst where
     selected = currentValue wenv
     mainStyle = collectTheme wenv L.dropdownStyle
     mainInst = makeMain selected & L.style .~ mainStyle
     path = _wiPath inst
     listViewInst = makeListView wenv widgetData items makeRow config path
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = newWidget,
       _wiChildren = Seq.fromList [mainInst, listViewInst]
     }
@@ -250,7 +250,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv inst
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
-      | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents] inst
+      | not isOpen -> Just $ resultReqs inst [IgnoreChildrenEvents]
       | otherwise -> Nothing
 
   openRequired point inst = not isOpen && inViewport where
@@ -261,11 +261,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Just inst -> pointInRect point (_wiViewport inst)
       Nothing -> False
 
-  openDropdown wenv inst = resultReqs requests newInstance where
+  openDropdown wenv inst = resultReqs newInst requests where
     selected = currentValue wenv
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     path = _wiPath inst
@@ -273,10 +273,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     lvPath = path |> listIdx |> 0
     requests = [SetOverlay path, SetFocus lvPath]
 
-  closeDropdown wenv inst = resultReqs requests newInstance where
+  closeDropdown wenv inst = resultReqs newInst requests where
     path = _wiPath inst
     newState = DropdownState False
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
     }
     requests = [ResetOverlay, SetFocus path]
@@ -293,13 +293,13 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     }
 
   onChange wenv idx item inst = result where
-    WidgetResult reqs events newInstance = closeDropdown wenv inst
+    WidgetResult newInst reqs events = closeDropdown wenv inst
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
-    result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInstance
+    result = WidgetResult newInst (reqs <> newReqs) (events <> newEvents)
 
   getSizeReq wenv inst children = sizeReq where
     child = Seq.index children 0

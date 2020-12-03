@@ -7,10 +7,9 @@ module Monomer.Widgets.Util.Widget (
   widgetDataGet,
   widgetDataSet,
   resultWidget,
-  resultEvents,
+  resultEvts,
   resultReqs,
-  resultReqsEvents,
-  mergeResults,
+  resultReqsEvts,
   makeState,
   useState,
   instanceMatches,
@@ -73,26 +72,20 @@ widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
 resultWidget :: WidgetInstance s e -> WidgetResult s e
-resultWidget inst = WidgetResult Seq.empty Seq.empty inst
+resultWidget inst = WidgetResult inst Seq.empty Seq.empty
 
-resultEvents :: [e] -> WidgetInstance s e -> WidgetResult s e
-resultEvents events inst = result where
-  result = WidgetResult Seq.empty (Seq.fromList events) inst
+resultEvts :: WidgetInstance s e -> [e] -> WidgetResult s e
+resultEvts inst events = result where
+  result = WidgetResult inst Seq.empty (Seq.fromList events)
 
-resultReqs :: [WidgetRequest s] -> WidgetInstance s e -> WidgetResult s e
-resultReqs requests inst = result where
-  result = WidgetResult (Seq.fromList requests) Seq.empty inst
+resultReqs :: WidgetInstance s e -> [WidgetRequest s] -> WidgetResult s e
+resultReqs inst requests = result where
+  result = WidgetResult inst (Seq.fromList requests) Seq.empty
 
-resultReqsEvents
-  :: [WidgetRequest s] -> [e] -> WidgetInstance s e -> WidgetResult s e
-resultReqsEvents requests events inst = result where
-  result = WidgetResult (Seq.fromList requests) (Seq.fromList events) inst
-
-mergeResults :: WidgetResult s e -> WidgetResult s e -> WidgetResult s e
-mergeResults res1 res2 = newRes where
-  WidgetResult reqs1 evts1 inst1 = res1
-  WidgetResult reqs2 evts2 inst2 = res2
-  newRes = WidgetResult (reqs1 <> reqs2) (evts1 <> evts2) inst2
+resultReqsEvts
+  :: WidgetInstance s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
+resultReqsEvts inst requests events = result where
+  result = WidgetResult inst (Seq.fromList requests) (Seq.fromList events)
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
@@ -123,5 +116,5 @@ handleFocusChange evtFn reqFn config inst = result where
   evts = evtFn config
   reqs = reqFn config
   result
-    | not (null evts && null reqs) = Just $ resultReqsEvents reqs evts inst
+    | not (null evts && null reqs) = Just $ resultReqsEvts inst reqs evts
     | otherwise = Nothing

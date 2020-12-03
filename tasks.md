@@ -297,6 +297,7 @@
     - The issue was in zstack, where changing visible items should generate a resize request
   - Review composite initialization. View creation can be moved to init
     - Check if passing model directly is still correct
+  - Test nested composites
 
 - Pending
   - Add testing
@@ -314,7 +315,20 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Test nested composites
+  - Change interfaces
+    - ??? Change WidgetResult so WidgetInstance is Maybe
+      - ??? This allows having a Default instance and later use lenses instead of the resultX functions
+    - ??? Remove Maybe from handleEvent/handleMessage return type
+    - Change return type and the moment when widgetUpdateSizeReq is called
+    - Comment GlobalKeys out and have Container use its local list of children for merging
+    - Create WidgetNode type, move Widget/children into it
+      - Remove type constraints on WidgetInstance
+      - Change type signatures to use WidgetNode
+    - Restore GlobalKeys
+      - Add method to collect tree of WidgetInstances
+      - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
+        -  This is necessary because s/e types may not match
+    - Remove children from WidgetNode
   - Split WidgetInstance into Definition and Instance, in order to:
     - Be able to get information about the whole widget tree, even hidden items (inside composite)
       - This is needed for testing composite

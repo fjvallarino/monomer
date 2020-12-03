@@ -214,7 +214,7 @@ initWrapper container wenv inst = result where
   initHandler = containerInit container
   getBaseStyle = containerGetBaseStyle container
   styledInst = initInstanceStyle getBaseStyle wenv inst
-  WidgetResult reqs events tempInst = initHandler wenv styledInst
+  WidgetResult tempInst reqs events = initHandler wenv styledInst
   children = _wiChildren tempInst
   initChild idx child = widgetInit newWidget wenv newChild where
     newChild = cascadeCtx tempInst child idx
@@ -226,7 +226,7 @@ initWrapper container wenv inst = result where
   newInst = tempInst {
     _wiChildren = newChildren
   }
-  result = WidgetResult (reqs <> newReqs) (events <> newEvents) newInst
+  result = WidgetResult newInst (reqs <> newReqs) (events <> newEvents)
 
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
@@ -268,7 +268,7 @@ mergeChildren
   -> WidgetResult s e
   -> WidgetResult s e
 mergeChildren wenv oldInst result = newResult where
-  WidgetResult uReqs uEvents uInst = result
+  WidgetResult uInst uReqs uEvents = result
   oldChildren = _wiChildren oldInst
   updatedChildren = _wiChildren uInst
   mergeChild idx child = cascadeCtx uInst child idx
@@ -286,7 +286,7 @@ mergeChildren wenv oldInst result = newResult where
   }
   newReqs = uReqs <> mergedReqs <> removedReqs
   newEvents = uEvents <> mergedEvents <> removedEvents
-  newResult = WidgetResult newReqs newEvents mergedInst
+  newResult = WidgetResult mergedInst newReqs newEvents
 
 mergeChildrenSeq
   :: WidgetEnv s e
@@ -338,13 +338,13 @@ disposeWrapper
   -> WidgetResult s e
 disposeWrapper container wenv inst = result where
   disposeHandler = containerDispose container
-  WidgetResult reqs events tempInst = disposeHandler wenv inst
+  WidgetResult tempInst reqs events = disposeHandler wenv inst
   children = _wiChildren tempInst
   dispose child = widgetDispose (_wiWidget child) wenv child
   results = fmap dispose children
   newReqs = fold $ fmap _wrRequests results
   newEvents = fold $ fmap _wrEvents results
-  result = WidgetResult (reqs <> newReqs) (events <> newEvents) inst
+  result = WidgetResult inst (reqs <> newReqs) (events <> newEvents)
 
 -- | State Handling helpers
 defaultGetState :: ContainerGetStateHandler s e
@@ -478,7 +478,7 @@ mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
-  | otherwise = Just $ WidgetResult requests userEvents newWidget
+  | otherwise = Just $ WidgetResult newWidget requests userEvents
   where
     pWidget = _wrWidget pResponse
     cWidget = _wrWidget cResponse

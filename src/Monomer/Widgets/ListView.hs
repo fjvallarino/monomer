@@ -300,12 +300,12 @@ makeListView widgetData items makeRow config state = widget where
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
-      WidgetResult tempReqs tempEvts tempInst
+      WidgetResult tempInst tempReqs tempEvts
         | changeReq = selectItem wenv inst (_highlighted state)
         | otherwise = resultWidget inst
       evts = tempEvts <> Seq.fromList (_lvcOnBlur config)
       reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
-      mergedResult = Just $ WidgetResult reqs evts tempInst
+      mergedResult = Just $ WidgetResult tempInst reqs evts
       result
         | changeReq || not (null evts && null reqs) = mergedResult
         | otherwise = Nothing
@@ -349,7 +349,7 @@ makeListView widgetData items makeRow config state = widget where
       _wiWidget = makeListView widgetData items makeRow config newState
     }
     reqs = itemScrollTo inst nextIdx
-    result = resultReqs reqs newInst
+    result = resultReqs newInst reqs
 
   selectItem wenv inst idx = result where
     selected = currentValue wenv
@@ -368,7 +368,7 @@ makeListView widgetData items makeRow config state = widget where
     newInst = inst {
       _wiWidget = makeListView widgetData items makeRow config newState
     }
-    result = resultReqsEvents requests events newInst
+    result = resultReqsEvts newInst requests events
 
   itemScrollTo inst idx = maybeToList (fmap scrollReq renderArea) where
     renderArea = itemRenderArea inst idx

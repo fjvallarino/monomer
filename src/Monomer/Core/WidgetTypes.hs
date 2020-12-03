@@ -80,17 +80,18 @@ data WidgetRequest s
   | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
+  _wrWidget :: WidgetInstance s e,
   _wrRequests :: Seq (WidgetRequest s),
-  _wrEvents :: Seq e,
-  _wrWidget :: WidgetInstance s e
+  _wrEvents :: Seq e
 }
 
 -- This instance is lawless (there is not an empty widget): use with caution
 instance Semigroup (WidgetResult s e) where
-  er1 <> er2 = WidgetResult reqs evts widget where
-    reqs = _wrRequests er1 <> _wrRequests er2
-    evts = _wrEvents er1 <> _wrEvents er2
-    widget = _wrWidget er2
+  er1 <> er2 = WidgetResult {
+    _wrWidget = _wrWidget er2,
+    _wrRequests = _wrRequests er1 <> _wrRequests er2,
+    _wrEvents = _wrEvents er1 <> _wrEvents er2
+  }
 
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,

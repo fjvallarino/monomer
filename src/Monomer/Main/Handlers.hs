@@ -70,7 +70,7 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
     Nothing -> return (wenv, Seq.empty, widgetRoot)
     Just target -> do
       let widget = _wiWidget widgetRoot
-      let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
+      let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
 
@@ -114,7 +114,7 @@ handleWidgetResult
   => WidgetEnv s e
   -> WidgetResult s e
   -> m (HandlerStep s e)
-handleWidgetResult wenv (WidgetResult reqs events evtRoot) =
+handleWidgetResult wenv (WidgetResult evtRoot reqs events) =
   handleRequests reqs (wenv, events, evtRoot)
     >>= handleResizeWidgets reqs
 
@@ -309,7 +309,7 @@ handleSendMessage
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleSendMessage path message (wenv, events, widgetRoot) = do
-  let emptyResult = WidgetResult Seq.empty Seq.empty widgetRoot
+  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
   let widget = _wiWidget widgetRoot
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult

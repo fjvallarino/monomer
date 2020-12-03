@@ -111,16 +111,17 @@ makeInputField config state = widget where
   getBaseStyle wenv inst = _ifcStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  init wenv inst = resultReqs reqs newInstance where
+  init wenv inst = result where
     newValue = getModelValue wenv
     newState = newTextState wenv inst state newValue (toText newValue) 0 Nothing
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeInputField config newState
     }
     parsedVal = fromText (toText newValue)
     reqs = setModelValid (isJust parsedVal)
+    result = resultReqs newInst reqs
 
-  merge wenv oldState oldInst inst = resultReqs reqs newInstance where
+  merge wenv oldState oldInst inst = resultReqs newInst reqs where
     currState = fromMaybe state (useState oldState)
     oldValue = _ifsCurrValue currState
     oldText = _ifsCurrText currState
@@ -138,7 +139,7 @@ makeInputField config state = widget where
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
     newState = newTextState wenv inst currState value newText newPos newSelStart
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeInputField config newState
     }
     parsedVal = fromText newText
@@ -150,7 +151,7 @@ makeInputField config state = widget where
       | otherwise = []
     reqs = setModelValid (isJust parsedVal) ++ renderReqs
 
-  dispose wenv inst = resultReqs reqs inst where
+  dispose wenv inst = resultReqs inst reqs where
     path = _wiPath inst
     reqs = [ RenderStop path ]
 
@@ -268,7 +269,7 @@ makeInputField config state = widget where
       }
       result
         | isFocused wenv inst = Just $ resultWidget newInst
-        | otherwise = Just $ resultReqs [SetFocus $ _wiPath inst] newInst
+        | otherwise = Just $ resultReqs newInst [SetFocus $ _wiPath inst]
 
     KeyAction mod code KeyPressed -> result where
       isPaste = isClipboardPaste wenv evt
@@ -281,7 +282,7 @@ makeInputField config state = widget where
         result = genInputResult wenv inst False newText newPos newSel clipReqs
       result
         | isJust keyRes = Just $ handleKeyRes (fromJust keyRes)
-        | not (null clipReqs) = Just $ resultReqs clipReqs inst
+        | not (null clipReqs) = Just $ resultReqs inst clipReqs
         | otherwise = Nothing
 
     TextInput newText -> insertText wenv inst newText
@@ -301,16 +302,16 @@ makeInputField config state = widget where
       path = _wiPath inst
       viewport = _wiViewport inst
       reqs = [RenderEvery path caretMs, StartTextInput viewport]
-      newResult = resultReqs reqs newInst
+      newResult = resultReqs newInst reqs
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newInst
-      result = maybe newResult (mergeResults newResult) focusResult
+      result = maybe newResult (newResult <>) focusResult
 
     Blur -> Just result where
       path = _wiPath inst
       reqs = [RenderStop path, StopTextInput]
-      newResult = resultReqs reqs inst
+      newResult = resultReqs inst reqs
       blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config inst
-      result = maybe newResult (mergeResults newResult) blurResult
+      result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing
 
@@ -356,12 +357,12 @@ makeInputField config state = widget where
       | otherwise = []
     reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
     newState = newTextState wenv inst state stateVal newText newPos newSel
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeInputField config newState
     }
     result
-      | isValid || not textAdd = resultReqsEvents reqs events newInstance
-      | otherwise = resultReqsEvents reqs events inst
+      | isValid || not textAdd = resultReqsEvts newInst reqs events
+      | otherwise = resultReqsEvts inst reqs events
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst

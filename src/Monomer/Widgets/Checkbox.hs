@@ -131,9 +131,9 @@ makeCheckbox widgetData config = widget where
     Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config inst
     Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config inst
     Click p _
-      | pointInViewport p inst -> Just $ resultReqsEvents clickReqs events inst
+      | pointInViewport p inst -> Just $ resultReqsEvts inst clickReqs events
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvents reqs events inst
+      | isSelectKey code -> Just $ resultReqsEvts inst reqs events
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code

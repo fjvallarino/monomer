@@ -236,14 +236,14 @@ compositeInit comp state wenv widgetComp = newResult where
   -- Creates UI using provided function
   builtRoot = _cmpUiBuilder comp model
   tempRoot = cascadeCtx widgetComp builtRoot
-  WidgetResult reqs evts root = widgetInit (_wiWidget tempRoot) cwenv tempRoot
+  WidgetResult root reqs evts = widgetInit (_wiWidget tempRoot) cwenv tempRoot
   newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsGlobalKeys = collectGlobalKeys M.empty root
   }
-  tempResult = WidgetResult reqs newEvts root
+  tempResult = WidgetResult root reqs newEvts
   getBaseStyle wenv inst = Nothing
   styledComp = initInstanceStyle getBaseStyle wenv widgetComp
   newResult = reduceResult comp newState wenv styledComp tempResult
@@ -303,8 +303,8 @@ compositeDispose comp state wenv widgetComp = result where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   widget = _wiWidget _cpsRoot
-  WidgetResult reqs evts _ = widgetDispose widget cwenv _cpsRoot
-  tempResult = WidgetResult reqs evts _cpsRoot
+  WidgetResult _ reqs evts = widgetDispose widget cwenv _cpsRoot
+  tempResult = WidgetResult _cpsRoot reqs evts
   result = reduceResult comp state wenv widgetComp tempResult
 
 -- | Next focusable
@@ -382,7 +382,7 @@ compositeHandleMessage
 compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
   | isTargetReached target widgetComp = case cast arg of
       Just (Just evt) -> reducedResult where
-        evtResult = WidgetResult Seq.empty (Seq.singleton evt) _cpsRoot
+        evtResult = WidgetResult _cpsRoot Seq.empty (Seq.singleton evt)
         reducedResult = Just $ reduceResult comp state wenv widgetComp evtResult
       _ -> Nothing
   | otherwise = fmap processEvent result where
@@ -475,7 +475,7 @@ reduceResult
   -> WidgetResult sp ep
 reduceResult comp state wenv widgetComp widgetResult = newResult where
   CompositeState{..} = state
-  WidgetResult reqs evts evtsRoot = widgetResult
+  WidgetResult evtsRoot reqs evts = widgetResult
   -- Since composite may reduce several times before giving control back, its
   -- copy of _cpsModel may be more up to date than WidgetEnv's model
   model
@@ -485,7 +485,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   evtModel = foldr (.) id evtUpdates model
   evtHandler = _cmpEventHandler comp
   ReducedEvents{..} = reduceCompEvents _cpsGlobalKeys evtHandler evtModel evts
-  WidgetResult uReqs uEvts uWidget =
+  WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
   currentPath = _wiPath widgetComp
   newReqs = toParentReqs reqs
@@ -495,7 +495,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
          <> toParentReqs _reRequests
          <> _reMessages
   newEvts = _reReports <> uEvts
-  newResult = WidgetResult newReqs newEvts uWidget
+  newResult = WidgetResult uWidget newReqs newEvts
 
 updateComposite
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)

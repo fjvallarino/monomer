@@ -148,9 +148,9 @@ makeRadio field option config = widget where
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config inst
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config inst
     Click p _
-      | pointInEllipse p rdArea -> Just $ resultReqsEvents clickReqs events inst
+      | pointInEllipse p rdArea -> Just $ resultReqsEvts inst clickReqs events
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvents reqs events inst
+      | isSelectKey code -> Just $ resultReqsEvts inst reqs events
     _ -> Nothing
     where
       rdArea = getRadioArea wenv inst config

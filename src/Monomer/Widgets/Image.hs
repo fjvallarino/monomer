@@ -120,7 +120,7 @@ makeImage imgPath config state = widget where
     singleRender = render
   }
 
-  init wenv inst = resultReqs reqs inst where
+  init wenv inst = resultReqs inst reqs where
     path = _wiPath inst
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
@@ -136,9 +136,9 @@ makeImage imgPath config state = widget where
     }
     result
       | isImagePath newState == imgPath = resultWidget sameImgInst
-      | otherwise = resultReqs newImgReqs inst
+      | otherwise = resultReqs inst newImgReqs
 
-  dispose wenv inst = resultReqs reqs inst where
+  dispose wenv inst = resultReqs inst reqs where
     path = _wiPath inst
     renderer = _weRenderer wenv
     reqs = [RunTask path $ removeImage wenv imgPath]
@@ -148,12 +148,12 @@ makeImage imgPath config state = widget where
 
   useImage inst (ImageFailed msg) = result where
     evts = fmap ($ msg) (_imcLoadError config)
-    result = Just $ resultEvents evts inst
+    result = Just $ resultEvts inst evts
   useImage inst (ImageLoaded newState) = result where
     newInst = inst {
       _wiWidget = makeImage imgPath config newState
     }
-    result = Just $ resultReqs [ResizeWidgets] newInst
+    result = Just $ resultReqs newInst [ResizeWidgets]
 
   getSizeReq wenv inst = sizeReq where
     style = activeStyle wenv inst

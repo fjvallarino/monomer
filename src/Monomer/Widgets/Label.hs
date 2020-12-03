@@ -124,9 +124,10 @@ makeLabel config state = widget where
       _lstTextRect = newRect
     }
     reqs = [ ResizeWidgets | captionChanged ]
-    result = resultReqs reqs newInst {
+    resInst =  newInst {
       _wiWidget = makeLabel config newState
     }
+    result = resultReqs resInst reqs
 
   getSizeReq wenv inst = (sizeW, sizeH) where
     style = activeStyle wenv inst

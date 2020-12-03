@@ -174,9 +174,9 @@ makeScroll config state = widget where
   getBaseStyle wenv inst = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv oldState oldInst inst = resultWidget newInstance where
+  merge wenv oldState oldInst inst = resultWidget newInst where
     newState = fromMaybe state (useState oldState)
-    newInstance = inst {
+    newInst = inst {
       _wiWidget = makeScroll config newState
     }
 
@@ -195,8 +195,8 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newInstance = rebuildWidget wenv newState inst
-      handledResult = Just $ resultReqs scrollReqs newInstance
+      newInst = rebuildWidget wenv newState inst
+      handledResult = Just $ resultReqs newInst scrollReqs
       result
         | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
         | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
@@ -205,14 +205,14 @@ makeScroll config state = widget where
     Move point -> result where
       drag bar = updateScrollThumb state bar point contentArea sctx
       makeWidget state = rebuildWidget wenv state inst
-      makeResult state = resultReqs (RenderOnce : scrollReqs) (makeWidget state)
+      makeResult state = resultReqs (makeWidget state) (RenderOnce : scrollReqs)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > cw
       changedY = wy /= 0 && childHeight > ch
       needsUpdate = changedX || changedY
       makeWidget state = rebuildWidget wenv state inst
-      makeResult state = resultReqs scrollReqs (makeWidget state)
+      makeResult state = resultReqs (makeWidget state) scrollReqs
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
@@ -266,10 +266,10 @@ makeScroll config state = widget where
       _sstDeltaX = scrollAxis stepX childWidth cw,
       _sstDeltaY = scrollAxis stepY childHeight ch
     }
-    newInstance = rebuildWidget wenv newState inst
+    newInst = rebuildWidget wenv newState inst
     result
       | rectInRect rect contentArea = Nothing
-      | otherwise = Just $ resultWidget newInstance
+      | otherwise = Just $ resultWidget newInst
 
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point
