@@ -354,6 +354,9 @@ Maybe postponed after release?
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
   - Scroll wheel rate should be configurable, or even depend on content size
+  - Add IgnoreMerge (or similar name) request, to avoid rebuilding tree if not needed
+    - InputField may have a setting for using it
+    - A wrapping widget could be added too
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)

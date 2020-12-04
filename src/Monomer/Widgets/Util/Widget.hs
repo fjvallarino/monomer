@@ -15,14 +15,20 @@ module Monomer.Widgets.Util.Widget (
   instanceMatches,
   isTopLevel,
   handleFocusChange,
-  resizeWidget
+  resizeWidget,
+  buildLocalMap,
+  findWidgetByKey
 ) where
 
 import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.Default
+import Data.Foldable (foldl')
 import Data.Maybe
+import Data.Map.Strict (Map)
+import Data.Sequence (Seq)
 import Data.Typeable (cast, Typeable)
 
+import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
@@ -133,3 +139,16 @@ resizeWidget wenv viewport renderArea widgetRoot = newRoot where
     & L.sizeReqH .~ sizeReq ^. L.sizeReqH
 
   newRoot = widgetResize (_wiWidget reqRoot) wenv viewport renderArea reqRoot
+
+buildLocalMap :: Seq (WidgetInstance s e) -> Map WidgetKey (WidgetInstance s e)
+buildLocalMap widgets = newMap where
+  addWidget map widget
+    | isJust (_wiKey widget) = M.insert (fromJust $ _wiKey widget) widget map
+    | otherwise = map
+  newMap = foldl' addWidget M.empty widgets
+
+findWidgetByKey
+  :: WidgetKey
+  -> Map WidgetKey (WidgetInstance s e)
+  -> Maybe (WidgetInstance s e)
+findWidgetByKey key map = M.lookup key map

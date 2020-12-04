@@ -104,7 +104,7 @@ data WidgetEnv s e = WidgetEnv {
   _weRenderer :: Renderer,
   _weTheme :: Theme,
   _weAppWindowSize :: Size,
-  _weGlobalKeys :: GlobalKeys s e,
+--  _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
   _weOverlayPath :: Maybe Path,
   _weCurrentCursor :: CursorIcon,

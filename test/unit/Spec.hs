@@ -7,6 +7,7 @@ import qualified Monomer.Widgets.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.CheckboxSpec as CheckboxSpec
 import qualified Monomer.Widgets.CompositeSpec as CompositeSpec
+import qualified Monomer.Widgets.ContainerSpec as ContainerSpec
 import qualified Monomer.Widgets.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
@@ -38,6 +39,7 @@ widgets = describe "Widgets" $ do
   ButtonSpec.spec
   CheckboxSpec.spec
   CompositeSpec.spec
+  ContainerSpec.spec
   ConfirmSpec.spec
   FloatingFieldSpec.spec
   GridSpec.spec

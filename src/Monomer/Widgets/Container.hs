@@ -35,6 +35,7 @@ import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
 import Data.Maybe
+import Data.Map.Strict (Map)
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq(..), (<|), (|>), (><))
 
@@ -273,7 +274,8 @@ mergeChildren wenv oldInst result = newResult where
   updatedChildren = _wiChildren uInst
   mergeChild idx child = cascadeCtx uInst child idx
   newChildren = Seq.mapWithIndex mergeChild updatedChildren
-  cResult = mergeChildrenSeq wenv oldChildren newChildren
+  localKeys = buildLocalMap oldChildren
+  cResult = mergeChildrenSeq wenv localKeys oldChildren newChildren
   (mergedResults, removedResults) = cResult
   mergedChildren = fmap _wrWidget mergedResults
   concatSeq seqs = fold seqs
@@ -290,29 +292,32 @@ mergeChildren wenv oldInst result = newResult where
 
 mergeChildrenSeq
   :: WidgetEnv s e
+  -> Map WidgetKey (WidgetInstance s e)
   -> Seq (WidgetInstance s e)
   -> Seq (WidgetInstance s e)
   -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
-mergeChildrenSeq wenv oldItems Empty = (Empty, removed) where
+mergeChildrenSeq wenv localKeys oldItems Empty = (Empty, removed) where
   dispose child = widgetDispose (_wiWidget child) wenv child
   removed = fmap dispose oldItems
-mergeChildrenSeq wenv Empty newItems = (added, Empty) where
+mergeChildrenSeq wenv localKeys Empty newItems = (merged, Empty) where
   init child = widgetInit (_wiWidget child) wenv child
-  added = fmap init newItems
-mergeChildrenSeq wenv oldItems newItems = (added, cremoved) where
+  merged = fmap init newItems
+mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems
   newWidget = _wiWidget newChild
-  oldKeyMatch = _wiKey newChild >>= flip M.lookup (_weGlobalKeys wenv)
+  oldKeyMatch = _wiKey newChild >>= flip findWidgetByKey localKeys
+  oldMatch = fromJust oldKeyMatch
   mergedOld = widgetMerge newWidget wenv oldChild newChild
-  mergedKey = widgetMerge newWidget wenv (fromJust oldKeyMatch) newChild
+  mergedKey = widgetMerge newWidget wenv oldMatch newChild
   initNew = widgetInit newWidget wenv newChild
+  isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
   (child, oldRest)
     | instanceMatches newChild oldChild = (mergedOld, oldChildren)
-    | isJust oldKeyMatch = (mergedKey, oldItems)
+    | isMergeKey = (mergedKey, oldItems)
     | otherwise = (initNew, oldItems)
-  (cadded, cremoved) = mergeChildrenSeq wenv oldRest newChildren
-  added = child <| cadded
+  (cmerged, cremoved) = mergeChildrenSeq wenv localKeys oldRest newChildren
+  merged = child <| cmerged
 
 mergeChildrenCheckVisible
   :: WidgetInstance s e

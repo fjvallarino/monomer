@@ -113,7 +113,7 @@ mockWenv model = WidgetEnv {
   _weRenderer = mockRenderer,
   _weTheme = def,
   _weAppWindowSize = testWindowSize,
-  _weGlobalKeys = M.empty,
+--  _weGlobalKeys = M.empty,
   _weFocusedPath = rootPath,
   _weOverlayPath = Nothing,
   _weCurrentCursor = CursorArrow,
@@ -209,6 +209,32 @@ instHandleEvents wenv evts inst = unsafePerformIO $ do
     let resizedInst = instResize wenv vp newInst
 
     handleSystemEvents wenv2 evts resizedInst
+
+instHandleEventModelNoInit
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetInstance s e
+  -> s
+instHandleEventModelNoInit wenv evts inst = _weModel wenv2 where
+  (wenv2, _, _) = fst $ instHandleEventsNoInit wenv evts inst
+
+instHandleEventsNoInit
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetInstance s e
+  -> (HandlerStep s e, MonomerContext s)
+instHandleEventsNoInit wenv evts inst = unsafePerformIO $ do
+  let winSize = testWindowSize
+  let useHdpi = True
+  let dpr = 1
+  let model = _weModel wenv
+  -- Do NOT test code involving SDL Window functions
+  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+
+  flip runStateT monomerContext $
+    handleSystemEvents wenv evts inst
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where
