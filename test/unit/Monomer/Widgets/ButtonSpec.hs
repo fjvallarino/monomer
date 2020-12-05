@@ -26,19 +26,19 @@ spec = describe "Button" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate an event if clicked outside" $
-    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+    clickEvts (Point 3000 3000) `shouldBe` []
 
   it "should generate a user provided event when clicked" $
-    clickEvts (Point 100 100) `shouldBe` Seq.singleton BtnClick
+    clickEvts (Point 100 100) `shouldBe` [BtnClick]
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyEvts keyReturn `shouldBe` Seq.singleton BtnClick
+    keyEvts keyReturn `shouldBe` [BtnClick]
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events Focus `shouldBe` [GotFocus]
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events Blur `shouldBe` [LostFocus]
 
   where
     wenv = mockWenv ()

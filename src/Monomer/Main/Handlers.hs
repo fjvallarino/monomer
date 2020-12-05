@@ -18,7 +18,7 @@ import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.List (foldl')
+import Data.List (find, foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
 import Data.Typeable (Typeable)
@@ -39,7 +39,7 @@ import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
 
-type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetNode s e)
+type HandlerStep s e = (WidgetEnv s e, [e], WidgetNode s e)
 
 handleSystemEvents
   :: (MonomerM s m)
@@ -52,8 +52,8 @@ handleSystemEvents wenv systemEvents widgetRoot = nextStep where
     focused <- use L.pathFocus
 
     (wenv2, evts2, wroot2) <- handleSystemEvent currWctx evt focused currRoot
-    return (wenv2, currEvents >< evts2, wroot2)
-  nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents
+    return (wenv2, currEvents <> evts2, wroot2)
+  nextStep = foldM reducer (wenv, [], widgetRoot) systemEvents
 
 handleSystemEvent
   :: (MonomerM s m)
@@ -67,10 +67,10 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
   overlay <- use L.pathOverlay
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
-    Nothing -> return (wenv, Seq.empty, widgetRoot)
+    Nothing -> return (wenv, [], widgetRoot)
     Just target -> do
       let widget = widgetRoot ^. L.widget
-      let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+      let emptyResult = WidgetResult widgetRoot [] []
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
 
@@ -120,7 +120,7 @@ handleWidgetResult wenv (WidgetResult evtRoot reqs events) =
 
 handleRequests
   :: (MonomerM s m)
-  => Seq (WidgetRequest s)
+  => [WidgetRequest s]
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRequests reqs step = foldM handleRequest step reqs where
@@ -149,12 +149,12 @@ handleRequests reqs step = foldM handleRequest step reqs where
 
 handleResizeWidgets
   :: (MonomerM s m)
-  => Seq (WidgetRequest s)
+  => [WidgetRequest s]
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleResizeWidgets reqs previousStep =
-  case Seq.filter isResizeWidgets reqs of
-    ResizeWidgets :<| _ -> do
+  case filter isResizeWidgets reqs of
+    ResizeWidgets : _ -> do
       windowSize <- use L.windowSize
 
       liftIO . putStrLn $ "Resizing widgets"
@@ -181,7 +181,7 @@ handleMoveFocus direction  (wenv, events, root) = do
   L.pathFocus .= newFocus
   (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
-  return (wenv2, events >< events1 >< events2, root2)
+  return (wenv2, events <> events1 <> events2, root2)
 
 handleSetFocus
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
@@ -194,7 +194,7 @@ handleSetFocus newFocus (wenv, events, root) =  do
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
   (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 
-  return (wenv2, events >< events1 >< events2, root2)
+  return (wenv2, events <> events1 <> events2, root2)
 
 handleGetClipboard
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
@@ -205,7 +205,7 @@ handleGetClipboard path (wenv, evts, root) = do
                 else return ClipboardEmpty
 
   (wenv2, evts2, root2) <- handleSystemEvent wenv (Clipboard contents) path root
-  return (wenv2, evts >< evts2, root2)
+  return (wenv2, evts <> evts2, root2)
 
 handleSetClipboard
   :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
@@ -309,14 +309,14 @@ handleSendMessage
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleSendMessage path message (wenv, events, widgetRoot) = do
-  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+  let emptyResult = WidgetResult widgetRoot [] []
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 
   (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv widgetResult
 
-  return (newWenv, events >< newEvents, newWidgetRoot)
+  return (newWenv, events <> newEvents, newWidgetRoot)
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)
@@ -347,18 +347,18 @@ handleRunProducer path handler previousStep = do
 
 addFocusReq
   :: SystemEvent
-  -> Seq (WidgetRequest s)
-  -> Seq (WidgetRequest s)
+  -> [WidgetRequest s]
+  -> [WidgetRequest s]
 addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
   isTabPressed = isKeyTab code
-  stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
-  focusReqExists = isJust $ Seq.findIndexL isFocusRequest reqs
+  stopProcessing = isJust $ find isIgnoreParentEvents reqs
+  focusReqExists = isJust $ find isFocusRequest reqs
   focusReqNeeded = isTabPressed && not stopProcessing && not focusReqExists
   direction
     | mod ^. L.leftShift = FocusBwd
     | otherwise = FocusFwd
   newReqs
-    | focusReqNeeded = reqs |> MoveFocus direction
+    | focusReqNeeded = reqs ++ [MoveFocus direction]
     | otherwise = reqs
 addFocusReq _ reqs = reqs
 

@@ -51,10 +51,10 @@ handleEvent = describe "handleEvent" $ do
     keyModel keyReturn ^. testBool `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events Focus `shouldBe` [GotFocus]
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events Blur `shouldBe` [LostFocus]
 
   where
     wenv = mockWenv (TestModel False)
@@ -66,16 +66,16 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) chkNode `shouldBe` Seq.empty
+    clickModel (Point 3000 3000) chkNode `shouldBe` []
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) chkNode `shouldBe` Seq.singleton (BoolSel True)
+    clickModel (Point 100 100) chkNode `shouldBe` [BoolSel True]
 
   it "should generate a user provided event when clicked (True -> False)" $
-    clickModel (Point 100 100) chkNodeT `shouldBe` Seq.singleton (BoolSel False)
+    clickModel (Point 100 100) chkNodeT `shouldBe` [BoolSel False]
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn chkNode `shouldBe` Seq.singleton (BoolSel True)
+    keyModel keyReturn chkNode `shouldBe` [BoolSel True]
 
   where
     wenv = mockWenv (TestModel False)

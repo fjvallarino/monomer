@@ -29,10 +29,10 @@ spec = describe "Box" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate an event if clicked outside" $
-    events (Point 3000 3000) `shouldBe` Seq.empty
+    events (Point 3000 3000) `shouldBe` []
 
   it "should generate an event if the button (centered) is clicked" $
-    events (Point 320 240) `shouldBe` Seq.singleton BtnClick
+    events (Point 320 240) `shouldBe` [BtnClick]
 
   where
     wenv = mockWenv ()

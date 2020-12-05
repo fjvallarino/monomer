@@ -72,10 +72,10 @@ handleEvent = describe "handleEvent" $ do
     model [evtT "123", delWordL, evtT "456"] ^. integralValid `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events Focus `shouldBe` [GotFocus]
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events Blur `shouldBe` [LostFocus]
 
   where
     wenv = mockWenv (TestModel 0 True)
@@ -89,7 +89,7 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
   it "should input an '10'" $
-    evts [evtT "1", evtT "0"] `shouldBe` Seq.fromList [NumberChanged 1, NumberChanged 10]
+    evts [evtT "1", evtT "0"] `shouldBe` [NumberChanged 1, NumberChanged 10]
 
   it "should input '1', move to beginning and input '5'" $ do
     let steps = [evtT "1", moveLineL, evtT "5"]
@@ -115,8 +115,7 @@ handleEventValue = describe "handleEvent" $ do
     intNode = integralFieldV_ 0 NumberChanged [maxValue 2345, selectOnFocus True, validInput integralValid]
     evts es = nodeHandleEventEvts wenv (Focus : es) intNode
     model es = nodeHandleEventModel wenv (Focus : es) intNode
-    lastIdx es = Seq.index es (Seq.length es - 1)
-    lastEvt es = lastIdx (evts es)
+    lastEvt es = last (evts es)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

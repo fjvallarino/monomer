@@ -176,7 +176,7 @@ nodeHandleEventEvts
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> Seq e
+  -> [e]
 nodeHandleEventEvts wenv evts node = events where
   (_, events, _) = fst $ nodeHandleEvents wenv evts node
 

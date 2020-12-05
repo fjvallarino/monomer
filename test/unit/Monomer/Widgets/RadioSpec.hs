@@ -57,10 +57,10 @@ handleEvent = describe "handleEvent" $ do
     keyModel keyReturn bananaNode ^. fruit `shouldBe` Banana
 
   it "should generate an event when focus is received" $
-    events Focus orangeNode `shouldBe` Seq.singleton GotFocus
+    events Focus orangeNode `shouldBe` [GotFocus]
 
   it "should generate an event when focus is lost" $
-    events Blur orangeNode `shouldBe` Seq.singleton LostFocus
+    events Blur orangeNode `shouldBe` [LostFocus]
 
   where
     wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
@@ -73,13 +73,13 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) orangeNode `shouldBe` Seq.empty
+    clickModel (Point 3000 3000) orangeNode `shouldBe` []
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 320 240) orangeNode `shouldBe` Seq.singleton (FruitSel Orange)
+    clickModel (Point 320 240) orangeNode `shouldBe` [FruitSel Orange]
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn bananaNode `shouldBe` Seq.singleton (FruitSel Banana)
+    keyModel keyReturn bananaNode `shouldBe` [FruitSel Banana]
 
   where
     wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme

@@ -96,9 +96,9 @@ isSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
 isSetCursorIcon (Just SetCursorIcon{}) = True
 isSetCursorIcon _ = False
 
-maybeLength :: Maybe (Seq a) -> Int
+maybeLength :: Maybe [a] -> Int
 maybeLength Nothing = 0
-maybeLength (Just s) = Seq.length s
+maybeLength (Just s) = length s
 
 createStyle :: Style
 createStyle = newStyle where

@@ -208,8 +208,8 @@ mainLoop window renderer loopArgs = do
   let isMainBtnPressed = isButtonPressed inputStatus LeftBtn
   -- Exit handler
   let exitMsg = SendMessage (Seq.fromList [0]) _mlExitEvent
-  let baseReqs = Seq.fromList [ exitMsg | quit ]
-  let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
+  let baseReqs = [ exitMsg | quit ]
+  let baseStep = (wenv, [], _mlWidgetRoot)
 
   when (mouseEntered && isMainBtnPressed && isMouseFocused) $
     pathPressed .= Nothing

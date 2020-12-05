@@ -82,8 +82,8 @@ data WidgetRequest s
 
 data WidgetResult s e = WidgetResult {
   _wrWidget :: WidgetNode s e,
-  _wrRequests :: Seq (WidgetRequest s),
-  _wrEvents :: Seq e
+  _wrRequests :: [WidgetRequest s],
+  _wrEvents :: [e]
 }
 
 -- This instance is lawless (there is not an empty widget): use with caution

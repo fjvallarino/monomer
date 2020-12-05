@@ -42,8 +42,8 @@ processTasks
 processTasks wenv widgetRoot tasks = nextStep where
   reducer (wWctx, wEvts, wRoot) task = do
     (wWctx2, wEvts2, wRoot2) <- processTask wWctx wRoot task
-    return (wWctx2, wEvts >< wEvts2, wRoot2)
-  nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) tasks
+    return (wWctx2, wEvts <> wEvts2, wRoot2)
+  nextStep = foldM reducer (wenv, [], widgetRoot) tasks
 
 processTask
   :: (MonomerM s m)
@@ -56,13 +56,13 @@ processTask wenv widgetRoot (WidgetTask path task) = do
 
   case taskStatus of
     Just taskRes -> processTaskResult wenv widgetRoot path taskRes
-    Nothing -> return (wenv, Seq.empty, widgetRoot)
+    Nothing -> return (wenv, [], widgetRoot)
 processTask model widgetRoot (WidgetProducer path channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
     Just taskMsg -> processTaskEvent model widgetRoot path taskMsg
-    Nothing -> return (model, Seq.empty, widgetRoot)
+    Nothing -> return (model, [], widgetRoot)
 
 processTaskResult
   :: (MonomerM s m, Typeable a)
@@ -73,7 +73,7 @@ processTaskResult
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
-  return (wenv, Seq.empty, widgetRoot)
+  return (wenv, [], widgetRoot)
 processTaskResult wenv widgetRoot path (Right taskResult)
   = processTaskEvent wenv widgetRoot path taskResult
 
@@ -87,7 +87,7 @@ processTaskEvent
 processTaskEvent wenv widgetRoot path event = do
   currentFocus <- use pathFocus
 
-  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+  let emptyResult = WidgetResult widgetRoot [] []
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path event widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult

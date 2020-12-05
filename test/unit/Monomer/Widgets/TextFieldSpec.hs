@@ -81,11 +81,11 @@ handleEvent = describe "handleEvent" $ do
     model steps ^. textValue `shouldBe` "No"
 
   it "should generate an event when focus is received" $ do
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events Focus `shouldBe` [GotFocus]
     ctx [Focus] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
   it "should generate an event when focus is lost" $ do
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events Blur `shouldBe` [LostFocus]
     ctx [Focus, Blur] ^. L.renderSchedule `shouldSatisfy` null
 
   where
@@ -99,7 +99,7 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
   it "should input an 'ab'" $
-    evts [evtT "a", evtT "b"] `shouldBe` Seq.fromList [TextChanged "a", TextChanged "ab"]
+    evts [evtT "a", evtT "b"] `shouldBe` [TextChanged "a", TextChanged "ab"]
 
   it "should input 'this is a dog', input '?', move to beginning and input 'Is '" $ do
     let str = "this is a dog"
@@ -139,8 +139,7 @@ handleEventValue = describe "handleEvent" $ do
     wenv = mockWenv (TestModel "")
     txtNode = textFieldV "" TextChanged
     evts es = nodeHandleEventEvts wenv es txtNode
-    lastIdx es = Seq.index es (Seq.length es - 1)
-    lastEvt es = lastIdx (evts es)
+    lastEvt es = last (evts es)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

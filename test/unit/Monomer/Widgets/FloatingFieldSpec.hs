@@ -80,10 +80,10 @@ handleEvent = describe "handleEvent" $ do
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. floatingValid `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events Focus `shouldBe` [GotFocus]
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events Blur `shouldBe` [LostFocus]
 
   where
     wenv = mockWenv (TestModel 0 True)
@@ -97,10 +97,10 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
   it "should input an '100'" $
-    evts [evtT "1", evtT "0", evtT "0"] `shouldBe` Seq.fromList [NumberChanged 10, NumberChanged 100]
+    evts [evtT "1", evtT "0", evtT "0"] `shouldBe` [NumberChanged 10, NumberChanged 100]
 
   it "should input a '1' and be considered invalid" $ do
-    evts [evtT "1"] `shouldBe` Seq.fromList []
+    evts [evtT "1"] `shouldBe` []
     model [evtT "1"] ^. floatingValid `shouldBe` False
 
   it "should input '1', move to beginning and input '5'" $ do
@@ -138,9 +138,8 @@ handleEventValue = describe "handleEvent" $ do
     evts es = nodeHandleEventEvts wenv (Focus : es) floatNode
     evtsAlt es = nodeHandleEventEvts wenv (Focus : es) floatDecimalsNode
     model es = nodeHandleEventModel wenv (Focus : es) floatNode
-    lastIdx es = Seq.index es (Seq.length es - 1)
-    lastEvt es = lastIdx (evts es)
-    lastEvtDecimals es = lastIdx (evtsAlt es)
+    lastEvt es = last (evts es)
+    lastEvtDecimals es = last (evtsAlt es)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

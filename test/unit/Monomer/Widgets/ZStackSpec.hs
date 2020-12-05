@@ -52,10 +52,10 @@ handleEvent = describe "handleEvent" $ do
 handleEventFirstVisible :: Spec
 handleEventFirstVisible = describe "handleEventFirstVisible" $ do
   it "should not generate an event if clicked outside" $
-    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+    clickEvts (Point 3000 3000) `shouldBe` []
 
   it "should click the second layer, since top is not visible" $
-    clickEvts (Point 100 100) `shouldBe` Seq.singleton (BtnClick 2)
+    clickEvts (Point 100 100) `shouldBe` [BtnClick 2]
 
   where
     wenv = mockWenv ()
@@ -69,10 +69,10 @@ handleEventFirstVisible = describe "handleEventFirstVisible" $ do
 handleEventAllLayersActive :: Spec
 handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
   it "should not generate an event if clicked outside" $
-    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+    clickEvts (Point 3000 3000) `shouldBe` []
 
   it "should click the first layer, since top is not visible and second does not have widgets in that location" $
-    clickEvts (Point 200 100) `shouldBe` Seq.singleton (BtnClick 1)
+    clickEvts (Point 200 100) `shouldBe` [BtnClick 1]
 
   where
     wenv = mockWenv ()

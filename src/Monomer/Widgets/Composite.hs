@@ -23,7 +23,7 @@ module Monomer.Widgets.Composite (
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (%~), (<>~))
 import Data.Default
-import Data.List (foldl')
+import Data.List (find, foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
@@ -116,12 +116,12 @@ data CompositeState s e sp = CompositeState {
 
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,
-  _reEvents :: Seq e,
-  _reReports :: Seq ep,
-  _reRequests :: Seq (WidgetRequest s),
-  _reMessages :: Seq (WidgetRequest sp),
-  _reTasks :: Seq (TaskHandler e),
-  _reProducers :: Seq (ProducerHandler e)
+  _reEvents :: [e],
+  _reReports :: [ep],
+  _reRequests :: [WidgetRequest s],
+  _reMessages :: [WidgetRequest sp],
+  _reTasks :: [TaskHandler e],
+  _reProducers :: [ProducerHandler e]
 }
 
 composite
@@ -237,7 +237,7 @@ compositeInit comp state wenv widgetComp = newResult where
   builtRoot = _cmpUiBuilder comp model
   tempRoot = cascadeCtx widgetComp builtRoot
   WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
-  newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
+  newEvts = maybe evts (: evts) (_cmpInitEvent comp)
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
@@ -383,7 +383,7 @@ compositeHandleMessage
 compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
   | isTargetReached target widgetComp = case cast arg of
       Just (Just evt) -> reducedResult where
-        evtResult = WidgetResult _cpsRoot Seq.empty (Seq.singleton evt)
+        evtResult = WidgetResult _cpsRoot [] [evt]
         reducedResult = Just $ reduceResult comp state wenv widgetComp evtResult
       _ -> Nothing
   | otherwise = fmap processEvent result where
@@ -489,12 +489,14 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
   currentPath = widgetComp ^. L.widgetInstance . L.path
-  newReqs = toParentReqs reqs
-         <> tasksToRequests currentPath _reTasks
-         <> producersToRequests currentPath _reProducers
-         <> uReqs
-         <> toParentReqs _reRequests
-         <> _reMessages
+  newReqs = concat [
+      toParentReqs reqs,
+      tasksToRequests currentPath _reTasks,
+      producersToRequests currentPath _reProducers,
+      uReqs,
+      toParentReqs _reRequests,
+      _reMessages
+    ]
   newEvts = _reReports <> uEvts
   newResult = WidgetResult uWidget newReqs newEvts
 
@@ -538,11 +540,11 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
   mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
   mergedReqs = _wrRequests mergedResult
-  resizeRequired = isJust (Seq.findIndexL isResizeWidgets mergedReqs)
+  resizeRequired = isJust (find isResizeWidgets mergedReqs)
   resizedResult
     | resizeRequired = resizeResult comp state wenv mergedResult widgetComp
     | otherwise = mergedResult
-  renderResult = resizedResult & L.requests %~ (|> RenderOnce)
+  renderResult = resizedResult & L.requests %~ (RenderOnce :)
   mergedState = state {
     _cpsModel = Just newModel,
     _cpsRoot = renderResult ^. L.widget
@@ -551,8 +553,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   newEvents = fmap ($ newModel) (_cmpOnChange comp)
   newReqs = widgetDataSet (_cmpWidgetData comp) newModel ++ _cmpOnChangeReq comp
   newResult = result
-    & L.requests <>~ Seq.fromList newReqs
-    & L.events <>~ Seq.fromList newEvents
+    & L.requests <>~ newReqs
+    & L.events <>~ newEvents
 
 resizeResult
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -581,24 +583,24 @@ reduceCompEvents
   :: GlobalKeys s e
   -> EventHandler s e ep
   -> s
-  -> Seq e
+  -> [e]
   -> ReducedEvents s e sp ep
 reduceCompEvents globalKeys eventHandler model events = result where
   initial = ReducedEvents {
     _reModel = model,
-    _reEvents = Seq.empty,
-    _reReports = Seq.empty,
-    _reRequests = Seq.empty,
-    _reMessages = Seq.empty,
-    _reTasks = Seq.empty,
-    _reProducers = Seq.empty
+    _reEvents = [],
+    _reReports = [],
+    _reRequests = [],
+    _reMessages = [],
+    _reTasks = [],
+    _reProducers = []
   }
   reducer current event = foldl' reducer newCurrent newEvents where
     response = eventHandler (_reModel current) event
     processed = foldl' (reduceEvtResponse globalKeys) current response
     newEvents = _reEvents processed
-    newCurrent = processed { _reEvents = Seq.empty }
-  result = foldl' reducer initial events
+    newCurrent = processed { _reEvents = [] }
+  result = foldl' reducer initial (reverse events)
 
 reduceEvtResponse
   :: GlobalKeys s e
@@ -607,16 +609,16 @@ reduceEvtResponse
   -> ReducedEvents s e sp ep
 reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Model newModel -> curr { _reModel = newModel }
-  Event event -> curr { _reEvents = _reEvents |> event }
-  Report report -> curr { _reReports = _reReports |> report }
-  Request req -> curr { _reRequests = _reRequests |> req }
+  Event event -> curr { _reEvents = event : _reEvents }
+  Report report -> curr { _reReports = report : _reReports }
+  Request req -> curr { _reRequests = req : _reRequests }
   Message key message -> case M.lookup key globalKeys of
     Just node -> curr {
-        _reMessages = _reMessages |> SendMessage (node ^. L.widgetInstance . L.path) message
+        _reMessages = SendMessage (node ^. L.widgetInstance . L.path) message : _reMessages
       }
     Nothing -> curr
-  Task task -> curr { _reTasks = _reTasks |> task }
-  Producer producer -> curr { _reProducers = _reProducers |> producer }
+  Task task -> curr { _reTasks = task : _reTasks }
+  Producer producer -> curr { _reProducers = producer : _reProducers }
 
 getModel
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -625,15 +627,15 @@ getModel
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
-tasksToRequests :: CompositeEvent e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
+tasksToRequests :: CompositeEvent e => Path -> [IO e] -> [WidgetRequest sp]
 tasksToRequests path reqs = RunTask path <$> reqs
 
 producersToRequests
-  :: CompositeEvent e => Path -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
+  :: CompositeEvent e => Path -> [ProducerHandler e] -> [WidgetRequest sp]
 producersToRequests path reqs = RunProducer path <$> reqs
 
-toParentReqs :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
-toParentReqs reqs = fmap fromJust $ Seq.filter isJust $ fmap toParentReq reqs
+toParentReqs :: [WidgetRequest s] -> [WidgetRequest sp]
+toParentReqs reqs = fmap fromJust $ filter isJust $ fmap toParentReq reqs
 
 toParentReq :: WidgetRequest s -> Maybe (WidgetRequest sp)
 toParentReq IgnoreParentEvents = Just IgnoreParentEvents
