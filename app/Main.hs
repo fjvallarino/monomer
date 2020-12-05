@@ -99,7 +99,7 @@ handleAppEvent model evt = case evt of
     return $ Just ToFrontWindow]
   _ -> []
 
-buildUI :: App -> WidgetInstance App AppEvent
+buildUI :: App -> WidgetNode App AppEvent
 buildUI model = trace "Creating UI" widgetTree where
   widgetLV = vstack [
       listView dropdown1 items label

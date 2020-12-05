@@ -52,8 +52,8 @@ testActiveStyle = describe "activeStyle" $ do
     wenvHoverFocus = wenvHover
       & L.inputStatus . L.mousePos .~ Point 200 200
       & L.focusedPath .~ Seq.fromList [0]
-    instNormal = createInst True
-    instDisabled = createInst False
+    instNormal = createNode True
+    instDisabled = createNode False
 
 testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
@@ -73,15 +73,16 @@ testHandleSizeChange = describe "handleSizeChange" $ do
       & L.hover . non def . L.cursorIcon ?~ CursorHand
     hoverStyle = style ^?! L.hover . _Just
     focusStyle = style ^?! L.focus . _Just
-    baseInst = createInst True & L.style .~ style
-    inst = instInit wenv baseInst
+    baseNode = createNode True
+      & L.widgetInstance . L.style .~ style
+    node = nodeInit wenv baseNode
     point = Point 200 200
     path = Seq.fromList [0]
     wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
     wenvFocus = mockWenv () & L.focusedPath .~ path
     evtEnter = Enter path point
-    resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing inst
-    resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing inst
+    resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing node
+    resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing node
 
 isResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isResizeWidgets (Just ResizeWidgets) = True
@@ -111,15 +112,14 @@ createStyleState :: Double -> Color -> Maybe StyleState
 createStyleState size col = Just newState where
   newState = textSize size <> bgColor col
 
-createInst :: Bool -> WidgetInstance s e
-createInst enabled = newInst where
+createNode :: Bool -> WidgetNode s e
+createNode enabled = newNode where
   viewport = Rect 100 100 200 200
-  newInst = (label "Test") {
-    _wiPath = Seq.fromList [0],
-    _wiViewport = viewport,
-    _wiRenderArea = viewport,
-    _wiStyle = createStyle,
-    _wiVisible = True,
-    _wiEnabled = enabled,
-    _wiFocusable = True
-  }
+  newNode = label "Test"
+    & L.widgetInstance . L.path .~ Seq.fromList [0]
+    & L.widgetInstance . L.viewport .~ viewport
+    & L.widgetInstance . L.renderArea .~ viewport
+    & L.widgetInstance . L.style .~ createStyle
+    & L.widgetInstance . L.visible .~ True
+    & L.widgetInstance . L.enabled .~ enabled
+    & L.widgetInstance . L.focusable .~ True

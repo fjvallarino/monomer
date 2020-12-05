@@ -124,73 +124,72 @@ dropdown
   :: (Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
-  -> WidgetInstance s e
-dropdown field items makeMain makeRow = newInst where
-  newInst = dropdown_ field items makeMain makeRow def
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
+  -> WidgetNode s e
+dropdown field items makeMain makeRow = newNode where
+  newNode = dropdown_ field items makeMain makeRow def
 
 dropdown_
   :: (Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
-dropdown_ field items makeMain makeRow configs = newInst where
+  -> WidgetNode s e
+dropdown_ field items makeMain makeRow configs = newNode where
   widgetData = WidgetLens field
-  newInst = dropdownD_ widgetData items makeMain makeRow configs
+  newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
   :: (Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
-  -> WidgetInstance s e
-dropdownV value handler items makeMain makeRow = newInst where
-  newInst = dropdownV_ value handler items makeMain makeRow def
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
+  -> WidgetNode s e
+dropdownV value handler items makeMain makeRow = newNode where
+  newNode = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
   :: (Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
-dropdownV_ value handler items makeMain makeRow configs = newInst where
+  -> WidgetNode s e
+dropdownV_ value handler items makeMain makeRow configs = newNode where
   newConfigs = onChange handler : configs
-  newInst = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
+  newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
   :: (Traversable t, DropdownItem a)
   => WidgetData s a
   -> t a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
+  -> WidgetNode s e
 dropdownD_ widgetData items makeMain makeRow configs = makeInstance widget where
   config = mconcat configs
   newState = DropdownState False
   newItems = foldl' (|>) Empty items
   widget = makeDropdown widgetData newItems makeMain makeRow config newState
 
-makeInstance :: Widget s e -> WidgetInstance s e
-makeInstance widget = (defaultWidgetInstance "dropdown" widget) {
-  _wiFocusable = True
-}
+makeInstance :: Widget s e -> WidgetNode s e
+makeInstance widget = defaultWidgetNode "dropdown" widget
+  & L.widgetInstance . L.focusable .~ True
 
 makeDropdown
   :: DropdownItem a
   => WidgetData s a
   -> Seq a
-  -> (a -> WidgetInstance s e)
-  -> (a -> WidgetInstance s e)
+  -> (a -> WidgetNode s e)
+  -> (a -> WidgetNode s e)
   -> DropdownCfg s e a
   -> DropdownState
   -> Widget s e
@@ -215,102 +214,100 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   isOpen = _isOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createDropdown wenv newState inst = newInst where
+  createDropdown wenv newState node = newNode where
     selected = currentValue wenv
     mainStyle = collectTheme wenv L.dropdownStyle
-    mainInst = makeMain selected & L.style .~ mainStyle
-    path = _wiPath inst
-    listViewInst = makeListView wenv widgetData items makeRow config path
+    mainNode = makeMain selected
+      & L.widgetInstance . L.style .~ mainStyle
+    path = node ^. L.widgetInstance . L.path
+    listViewNode = makeListView wenv widgetData items makeRow config path
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
-    newInst = inst {
-      _wiWidget = newWidget,
-      _wiChildren = Seq.fromList [mainInst, listViewInst]
-    }
+    newNode = node
+      & L.widget .~ newWidget
+      & L.children .~ Seq.fromList [mainNode, listViewNode]
 
-  getBaseStyle wenv inst = Just style where
+  getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dropdownStyle
 
-  init wenv inst = resultWidget $ createDropdown wenv state inst
+  init wenv node = resultWidget $ createDropdown wenv state node
 
-  merge wenv oldState oldInst newInst = result where
+  merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget $ createDropdown wenv newState newInst
+    result = resultWidget $ createDropdown wenv newState newNode
 
-  findNextFocus wenv direction start inst
-    | _isOpen state = _wiChildren inst
+  findNextFocus wenv direction start node
+    | _isOpen state = node ^. L.children
     | otherwise = Empty
 
-  handleEvent wenv target evt inst = case evt of
+  handleEvent wenv target evt node = case evt of
     Enter{} -> Nothing -- to have handleStyleChange applied
     Click point _
-      | openRequired point inst -> Just $ openDropdown wenv inst
-      | closeRequired point inst -> Just $ closeDropdown wenv inst
+      | openRequired point node -> Just $ openDropdown wenv node
+      | closeRequired point node -> Just $ closeDropdown wenv node
     KeyAction mode code status
-      | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv inst
-      | isKeyEscape code && isOpen -> Just $ closeDropdown wenv inst
+      | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv node
+      | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
-      | not isOpen -> Just $ resultReqs inst [IgnoreChildrenEvents]
+      | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
 
-  openRequired point inst = not isOpen && inViewport where
-    inViewport = pointInRect point (_wiViewport inst)
+  openRequired point node = not isOpen && inViewport where
+    inViewport = pointInRect point (node ^. L.widgetInstance . L.viewport)
 
-  closeRequired point inst = isOpen && not inOverlay where
-    inOverlay = case Seq.lookup listIdx (_wiChildren inst) of
-      Just inst -> pointInRect point (_wiViewport inst)
+  closeRequired point node = isOpen && not inOverlay where
+    inOverlay = case Seq.lookup listIdx (node ^. L.children) of
+      Just node -> pointInRect point (node ^. L.widgetInstance . L.viewport)
       Nothing -> False
 
-  openDropdown wenv inst = resultReqs newInst requests where
+  openDropdown wenv node = resultReqs newNode requests where
     selected = currentValue wenv
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
-    newInst = inst {
-      _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
-    }
-    path = _wiPath inst
+    newNode = node
+      & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
+    path = node ^. L.widgetInstance . L.path
     -- listView is wrapped by a scroll widget
     lvPath = path |> listIdx |> 0
     requests = [SetOverlay path, SetFocus lvPath]
 
-  closeDropdown wenv inst = resultReqs newInst requests where
-    path = _wiPath inst
+  closeDropdown wenv node = resultReqs newNode requests where
+    path = node ^. L.widgetInstance . L.path
     newState = DropdownState False
-    newInst = inst {
-      _wiWidget = makeDropdown widgetData items makeMain makeRow config newState
-    }
+    newNode = node
+      & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay, SetFocus path]
 
-  handleMessage wenv target msg inst =
-    cast msg >>= handleLvMsg wenv inst
+  handleMessage wenv target msg node =
+    cast msg >>= handleLvMsg wenv node
 
-  handleLvMsg wenv inst (OnChangeMessage idx) =
-    Seq.lookup idx items >>= \value -> Just $ onChange wenv idx value inst
-  handleLvMsg wenv inst OnListBlur = Just result where
-    tempResult = closeDropdown wenv inst
+  handleLvMsg wenv node (OnChangeMessage idx) =
+    Seq.lookup idx items >>= \value -> Just $ onChange wenv idx value node
+  handleLvMsg wenv node OnListBlur = Just result where
+    tempResult = closeDropdown wenv node
     result = tempResult {
       _wrRequests = _wrRequests tempResult |> createMoveFocusReq wenv
     }
 
-  onChange wenv idx item inst = result where
-    WidgetResult newInst reqs events = closeDropdown wenv inst
+  onChange wenv idx item node = result where
+    WidgetResult newNode reqs events = closeDropdown wenv node
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
-    result = WidgetResult newInst (reqs <> newReqs) (events <> newEvents)
+    result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
-  getSizeReq wenv inst children = (newReqW, newReqH) where
+  getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0
-    newChild = widgetGetSizeReq (_wiWidget child) wenv child
-    newReqW = newChild ^. L.sizeReqW
-    newReqH = newChild ^. L.sizeReqH
+    childReq = widgetGetSizeReq (child ^. L.widget) wenv child
+    newReqW = childReq ^. L.sizeReqW
+    newReqH = childReq ^. L.sizeReqH
 
-  resize wenv viewport renderArea children inst = resized where
+  resize wenv viewport renderArea children node = resized where
     Size winW winH = _weAppWindowSize wenv
     Rect rx ry rw rh = renderArea
-    theme = activeTheme wenv inst
+    theme = activeTheme wenv node
     dropdownY dh
       | ry + rh + dh <= winH = ry + rh
       | otherwise = ry - dh
@@ -318,7 +315,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Just child -> (oViewport, oRenderArea) where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
         maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
-        reqHeight = sizeReqMin . _wiSizeReqH $ child
+        reqHeight = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqH
         maxHeight = min reqHeight maxHeightStyle
         oViewport = viewport {
           _rY = dropdownY maxHeight,
@@ -331,23 +328,23 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Nothing -> (viewport, renderArea)
     mainArea = (viewport, renderArea)
     assignedAreas = Seq.fromList [mainArea, listArea]
-    resized = (inst, assignedAreas)
+    resized = (node, assignedAreas)
 
-  render renderer wenv inst = do
+  render renderer wenv node = do
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \contentArea -> do
-        widgetRender (_wiWidget mainInst) renderer wenv mainInst
+        widgetRender (mainNode ^. L.widget) renderer wenv mainNode
         renderArrow renderer style contentArea
 
     when (isOpen && isJust listViewOverlay) $
       createOverlay renderer $
         renderOverlay renderer wenv (fromJust listViewOverlay)
     where
-      style = activeStyle wenv inst
-      viewport = _wiViewport inst
-      renderArea = _wiRenderArea inst
-      mainInst = Seq.index (_wiChildren inst) mainIdx
-      listViewOverlay = Seq.lookup listIdx (_wiChildren inst)
+      style = activeStyle wenv node
+      viewport = node ^. L.widgetInstance . L.viewport
+      renderArea = node ^. L.widgetInstance . L.renderArea
+      mainNode = Seq.index (node ^. L.children) mainIdx
+      listViewOverlay = Seq.lookup listIdx (node ^. L.children)
 
   renderArrow renderer style contentArea =
     drawArrowDown renderer arrowRect (_sstFgColor style)
@@ -359,7 +356,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       arrowRect = Rect (x + w - dh) (y + dh * 1.25) arrowW (arrowW / 2)
 
   renderOverlay renderer wenv overlayInstance = renderAction where
-    widget = _wiWidget overlayInstance
+    widget = overlayInstance ^. L.widget
     renderAction = widgetRender widget renderer wenv overlayInstance
 
 makeListView
@@ -367,11 +364,11 @@ makeListView
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a
-  -> (a -> WidgetInstance s e)
+  -> (a -> WidgetNode s e)
   -> DropdownCfg s e a
   -> Path
-  -> WidgetInstance s e
-makeListView wenv value items makeRow config path = listViewInst where
+  -> WidgetNode s e
+makeListView wenv value items makeRow config path = listViewNode where
   normalTheme = collectTheme wenv L.dropdownItemStyle
   selectedTheme = collectTheme wenv L.dropdownItemSelectedStyle
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
@@ -383,7 +380,8 @@ makeListView wenv value items makeRow config path = listViewInst where
       itemSelectedStyle itemSelStyle
     ]
   lvStyle = collectTheme wenv L.dropdownListStyle
-  listViewInst = listViewD_ value items makeRow lvConfig & L.style .~ lvStyle
+  listViewNode = listViewD_ value items makeRow lvConfig
+    & L.widgetInstance . L.style .~ lvStyle
 
 createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
 createMoveFocusReq wenv = MoveFocus direction where

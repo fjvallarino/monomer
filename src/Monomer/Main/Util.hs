@@ -3,7 +3,7 @@
 module Monomer.Main.Util where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((.=), use)
+import Control.Lens ((&), (^.), (.~), (.=), use)
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
@@ -47,10 +47,10 @@ findNextFocus
   -> FocusDirection
   -> Path
   -> Maybe Path
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Path
 findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
-  widget = _wiWidget widgetRoot
+  widget = widgetRoot ^. L.widget
   restartPath = fromMaybe rootPath overlay
   candidateFocus =
     widgetFindNextFocus widget wenv direction focus widgetRoot
@@ -59,7 +59,7 @@ findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
   nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
 
 resizeRoot
-  :: WidgetEnv s e -> Size -> WidgetInstance s e -> WidgetInstance s e
+  :: WidgetEnv s e -> Size -> WidgetNode s e -> WidgetNode s e
 resizeRoot wenv windowSize widgetRoot = newRoot where
   Size w h = windowSize
   assigned = Rect 0 0 w h
@@ -69,8 +69,8 @@ resizeWindow
   :: (MonomerM s m)
   => SDL.Window
   -> WidgetEnv s e
-  -> WidgetInstance s e
-  -> m (WidgetInstance s e)
+  -> WidgetNode s e
+  -> m (WidgetNode s e)
 resizeWindow window wenv widgetRoot = do
   dpr <- use L.dpr
   drawableSize <- getDrawableSize window
@@ -90,7 +90,7 @@ getTargetPath
   -> Maybe Path
   -> Path
   -> SystemEvent
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Maybe Path
 getTargetPath wenv pressed overlay target event widgetRoot = case event of
     -- Keyboard
@@ -108,7 +108,7 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     Move point             -> pointEvent point
     Leave oldPath _        -> pathEvent oldPath
   where
-    widget = _wiWidget widgetRoot
+    widget = widgetRoot ^. L.widget
     startPath = fromMaybe rootPath overlay
     pathEvent = Just
     pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot

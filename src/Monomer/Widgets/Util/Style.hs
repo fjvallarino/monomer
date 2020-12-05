@@ -14,7 +14,7 @@ module Monomer.Widgets.Util.Style (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (<>~))
+import Control.Lens ((&), (^.), (.~), (<>~))
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
@@ -28,11 +28,11 @@ import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
-type IsHovered s e = WidgetEnv s e -> WidgetInstance s e -> Bool
+type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
 
 type GetBaseStyle s e
   = WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Maybe Style
 
 newtype StyleChangeCfg = StyleChangeCfg {
@@ -46,16 +46,17 @@ instance Default StyleChangeCfg where {
 }
 
 -- Do not use in findByPoint
-activeStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-activeStyle wenv inst = activeStyle_ isHovered wenv inst
+activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
+activeStyle wenv node = activeStyle_ isHovered wenv node
 
-activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> StyleState
-activeStyle_ isHoveredFn wenv inst = fromMaybe def styleState where
-  Style{..} = _wiStyle inst
+activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
+activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
+  inst = node ^. L.widgetInstance
+  Style{..} = node ^. L.widgetInstance . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = _wiEnabled inst
-  isHover = isHoveredFn wenv inst
-  isFocus = isFocused wenv inst
+  isHover = isHoveredFn wenv node
+  isFocus = isFocused wenv node
   styleState
     | not isEnabled = _styleDisabled
     | isHover && isFocus = _styleHover <> _styleFocus
@@ -63,27 +64,27 @@ activeStyle_ isHoveredFn wenv inst = fromMaybe def styleState where
     | isFocus = _styleFocus
     | otherwise = _styleBasic
 
-focusedStyle :: WidgetEnv s e -> WidgetInstance s e -> StyleState
-focusedStyle wenv inst = focusedStyle_ isHovered wenv inst
+focusedStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
+focusedStyle wenv node = focusedStyle_ isHovered wenv node
 
-focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> StyleState
-focusedStyle_ isHoveredFn wenv inst = fromMaybe def styleState where
-  Style{..} = _wiStyle inst
-  isHover = isHoveredFn wenv inst
+focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
+focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
+  Style{..} = node ^. L.widgetInstance . L.style
+  isHover = isHoveredFn wenv node
   styleState
     | isHover = _styleHover <> _styleFocus
     | otherwise = _styleFocus
 
-activeTheme :: WidgetEnv s e -> WidgetInstance s e -> ThemeState
-activeTheme wenv inst = activeTheme_ isHovered wenv inst
+activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
+activeTheme wenv node = activeTheme_ isHovered wenv node
 
-activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetInstance s e -> ThemeState
-activeTheme_ isHoveredFn wenv inst = themeState where
+activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
+activeTheme_ isHoveredFn wenv node = themeState where
   theme = _weTheme wenv
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  isEnabled = _wiEnabled inst
-  isHover = isHoveredFn wenv inst
-  isFocus = isFocused wenv inst
+  isEnabled = node ^. L.widgetInstance . L.enabled
+  isHover = isHoveredFn wenv node
+  isFocus = isFocused wenv node
   themeState
     | not isEnabled = _themeDisabled theme
     | isHover = _themeHover theme
@@ -93,15 +94,14 @@ activeTheme_ isHoveredFn wenv inst = themeState where
 initInstanceStyle
   :: GetBaseStyle s e
   -> WidgetEnv s e
-  -> WidgetInstance s e
-  -> WidgetInstance s e
-initInstanceStyle getBaseStyle wenv inst = newInst where
-  instStyle = mergeBasicStyle $ _wiStyle inst
-  baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv inst)
+  -> WidgetNode s e
+  -> WidgetNode s e
+initInstanceStyle getBaseStyle wenv node = newNode where
+  instStyle = mergeBasicStyle $ node ^. L.widgetInstance . L.style
+  baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv node)
   themeStyle = baseStyleFromTheme (_weTheme wenv)
-  newInst = inst {
-    _wiStyle = themeStyle <> baseStyle <> instStyle
-  }
+  newNode = node
+    & L.widgetInstance . L.style .~ (themeStyle <> baseStyle <> instStyle)
 
 handleStyleChange
   :: WidgetEnv s e
@@ -109,10 +109,10 @@ handleStyleChange
   -> SystemEvent
   -> StyleState
   -> Maybe (WidgetResult s e)
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleStyleChange wenv target evt style result inst = newResult where
-  newResult = handleStyleChange_ wenv target evt style result def inst
+handleStyleChange wenv target evt style result node = newResult where
+  newResult = handleStyleChange_ wenv target evt style result def node
 
 handleStyleChange_
   :: WidgetEnv s e
@@ -121,12 +121,12 @@ handleStyleChange_
   -> StyleState
   -> Maybe (WidgetResult s e)
   -> StyleChangeCfg
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleStyleChange_ wenv target evt style result cfg inst = newResult where
-  baseResult = fromMaybe (resultWidget inst) result
-  sizeReqs = handleSizeChange wenv target evt cfg inst
-  cursorReqs = handleCursorChange wenv target evt style cfg inst
+handleStyleChange_ wenv target evt style result cfg node = newResult where
+  baseResult = fromMaybe (resultWidget node) result
+  sizeReqs = handleSizeChange wenv target evt cfg node
+  cursorReqs = handleCursorChange wenv target evt style cfg node
   reqs = sizeReqs ++ cursorReqs
   newResult
     | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
@@ -137,9 +137,11 @@ handleSizeChange
   -> Path
   -> SystemEvent
   -> StyleChangeCfg
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> [WidgetRequest s]
-handleSizeChange wenv target evt cfg inst = reqs where
+handleSizeChange wenv target evt cfg node = reqs where
+  widget = node ^. L.widget
+  inst = node ^. L.widgetInstance
   -- Hover
   mousePos = wenv ^. L.inputStatus . L.mousePos
   mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
@@ -150,7 +152,7 @@ handleSizeChange wenv target evt cfg inst = reqs where
   focusChanged = isOnFocus evt || isOnBlur evt
   -- Size
   checkSize = hoverChanged || focusChanged
-  instReqs = widgetGetSizeReq (_wiWidget inst) wenv inst
+  instReqs = widgetGetSizeReq widget wenv node
   oldSizeReqW = inst ^. L.sizeReqW
   oldSizeReqH = inst ^. L.sizeReqH
   newSizeReqW = instReqs ^. L.sizeReqW
@@ -167,14 +169,14 @@ handleCursorChange
   -> SystemEvent
   -> StyleState
   -> StyleChangeCfg
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> [WidgetRequest s]
-handleCursorChange wenv target evt style cfg inst = reqs where
+handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
   isCursorEvt = _sccHandleCursorEvt cfg
-  isTarget = _wiPath inst == target
+  isTarget = node ^. L.widgetInstance . L.path == target
   curIcon = wenv ^. L.currentCursor
-  notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv inst)
+  notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv node)
   newIcon
     | notInOverlay = CursorArrow
     | otherwise = fromMaybe CursorArrow (_sstCursorIcon style)
@@ -205,7 +207,7 @@ mergeBasicStyle st = newStyle where
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
 
-isInOverlay :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isInOverlay wenv inst = maybe False isPrefix (wenv ^. L.overlayPath) where
-  path = _wiPath inst
+isInOverlay :: WidgetEnv s e -> WidgetNode s e -> Bool
+isInOverlay wenv node = maybe False isPrefix (wenv ^. L.overlayPath) where
+  path = node ^. L.widgetInstance . L.path
   isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath

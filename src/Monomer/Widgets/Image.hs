@@ -33,6 +33,8 @@ import qualified Network.Wreq as Wreq
 
 import Monomer.Widgets.Single
 
+import qualified Monomer.Lens as L
+
 data ImageFit
   = FitNone
   | FitFill
@@ -99,11 +101,11 @@ data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
 
-image :: String -> WidgetInstance s e
+image :: String -> WidgetNode s e
 image path = image_ path def
 
-image_ :: String -> [ImageCfg s e] -> WidgetInstance s e
-image_ path configs = defaultWidgetInstance "image" widget where
+image_ :: String -> [ImageCfg s e] -> WidgetNode s e
+image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
   imageState = ImageState path Nothing
   widget = makeImage path config imageState
@@ -120,55 +122,53 @@ makeImage imgPath config state = widget where
     singleRender = render
   }
 
-  init wenv inst = resultReqs inst reqs where
-    path = _wiPath inst
+  init wenv node = resultReqs node reqs where
+    path = node ^. L.widgetInstance . L.path
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
-  merge wenv oldState oldInst inst = result where
+  merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    path = _wiPath inst
+    path = newNode ^. L.widgetInstance . L.path
     newImgReqs = [ RunTask path $ do
         removeImage wenv imgPath
         handleImageLoad wenv imgPath
       ]
-    sameImgInst = inst {
-      _wiWidget = makeImage imgPath config newState
-    }
+    sameImgNode = newNode
+      & L.widget .~ makeImage imgPath config newState
     result
-      | isImagePath newState == imgPath = resultWidget sameImgInst
-      | otherwise = resultReqs inst newImgReqs
+      | isImagePath newState == imgPath = resultWidget sameImgNode
+      | otherwise = resultReqs newNode newImgReqs
 
-  dispose wenv inst = resultReqs inst reqs where
-    path = _wiPath inst
+  dispose wenv node = resultReqs node reqs where
+    path = node ^. L.widgetInstance . L.path
     renderer = _weRenderer wenv
     reqs = [RunTask path $ removeImage wenv imgPath]
 
-  handleMessage wenv target message inst = result where
-    result = cast message >>= useImage inst
+  handleMessage wenv target message node = result where
+    result = cast message >>= useImage node
 
-  useImage inst (ImageFailed msg) = result where
+  useImage node (ImageFailed msg) = result where
     evts = fmap ($ msg) (_imcLoadError config)
-    result = Just $ resultEvts inst evts
-  useImage inst (ImageLoaded newState) = result where
-    newInst = inst {
-      _wiWidget = makeImage imgPath config newState
-    }
-    result = Just $ resultReqs newInst [ResizeWidgets]
+    result = Just $ resultEvts node evts
+  useImage node (ImageLoaded newState) = result where
+    newNode = node
+      & L.widget .~ makeImage imgPath config newState
+    result = Just $ resultReqs newNode [ResizeWidgets]
 
-  getSizeReq wenv inst = sizeReq where
-    style = activeStyle wenv inst
+  getSizeReq wenv node = sizeReq where
+    style = activeStyle wenv node
     Size w h = maybe def snd (isImageData state)
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
-  render renderer wenv inst = do
+  render renderer wenv node = do
     when (imageLoaded && not imageExists) $
       addImage renderer imgPath ImageAddKeep imgSize imgBytes
 
     drawImage renderer imgPath imageRect alpha
     where
-      style = activeStyle wenv inst
-      contentArea = getContentArea style inst
+      style = activeStyle wenv node
+      contentArea = getContentArea style node
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
       imageRect = fitImage fitMode imgSize contentArea

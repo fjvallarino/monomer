@@ -4,7 +4,7 @@ module Monomer.Widgets.Label (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((^.))
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -85,11 +85,11 @@ data LabelState = LabelState {
   _lstTextLines :: Seq TextLine
 } deriving (Eq, Show)
 
-label :: Text -> WidgetInstance s e
+label :: Text -> WidgetNode s e
 label caption = label_ caption def
 
-label_ :: Text -> [LabelCfg] -> WidgetInstance s e
-label_ caption configs = defaultWidgetInstance "label" widget where
+label_ :: Text -> [LabelCfg] -> WidgetNode s e
+label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
   state = LabelState caption def Seq.Empty
   widget = makeLabel config state
@@ -110,10 +110,10 @@ makeLabel config state = widget where
   trimSpaces = fromMaybe TrimSpaces (_lscTrim config)
   LabelState caption textRect textLines = state
 
-  getBaseStyle wenv inst = Just style where
+  getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.labelStyle
 
-  merge wenv oldState oldInst newInst = result where
+  merge wenv oldState oldNode newNode = result where
     prevState = fromMaybe state (useState oldState)
     captionChanged = _lstCaption prevState /= caption
     newRect
@@ -124,13 +124,12 @@ makeLabel config state = widget where
       _lstTextRect = newRect
     }
     reqs = [ ResizeWidgets | captionChanged ]
-    resInst =  newInst {
-      _wiWidget = makeLabel config newState
-    }
-    result = resultReqs resInst reqs
+    resNode = newNode
+      & L.widget .~ makeLabel config newState
+    result = resultReqs resNode reqs
 
-  getSizeReq wenv inst = (sizeW, sizeH) where
-    style = activeStyle wenv inst
+  getSizeReq wenv node = (sizeW, sizeH) where
+    style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factorW = fromMaybe 0.01 (_lscFactorW config)
@@ -142,8 +141,8 @@ makeLabel config state = widget where
       | abs factorH < 0.01 = FixedSize h
       | otherwise = FlexSize h factorH
 
-  resize wenv viewport renderArea inst = newInst where
-    style = activeStyle wenv inst
+  resize wenv viewport renderArea node = newNode where
+    style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
@@ -152,10 +151,9 @@ makeLabel config state = widget where
       | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
       | otherwise = fittedLines
     newWidget = makeLabel config (LabelState caption rect newLines)
-    newInst = inst {
-      _wiWidget = newWidget
-    }
+    newNode = node
+      & L.widget .~ newWidget
 
-  render renderer wenv inst = action where
-    style = activeStyle wenv inst
+  render renderer wenv node = action where
+    style = activeStyle wenv node
     action = forM_ textLines (drawTextLine renderer style)

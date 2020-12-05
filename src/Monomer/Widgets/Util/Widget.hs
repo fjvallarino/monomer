@@ -1,6 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.Util.Widget (
   pointInViewport,
-  defaultWidgetInstance,
+  defaultWidgetNode,
   isWidgetVisible,
   isFocused,
   isHovered,
@@ -37,34 +39,28 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
 
-pointInViewport :: Point -> WidgetInstance s e -> Bool
-pointInViewport p inst = pointInRect p (_wiViewport inst)
+pointInViewport :: Point -> WidgetNode s e -> Bool
+pointInViewport p node = pointInRect p (node ^. L.widgetInstance . L.viewport)
 
-defaultWidgetInstance :: WidgetType -> Widget s e -> WidgetInstance s e
-defaultWidgetInstance widgetType widget = WidgetInstance {
-  _wiWidgetType = widgetType,
-  _wiKey = Nothing,
-  _wiPath = Seq.empty,
-  _wiWidget = widget,
-  _wiChildren = Seq.empty,
-  _wiSizeReqW = def,
-  _wiSizeReqH = def,
-  _wiEnabled = True,
-  _wiVisible = True,
-  _wiFocusable = False,
-  _wiViewport = def,
-  _wiRenderArea = def,
-  _wiStyle = def
+defaultWidgetNode :: WidgetType -> Widget s e -> WidgetNode s e
+defaultWidgetNode widgetType widget = WidgetNode {
+  _wnWidget = widget,
+  _wnWidgetInstance = def & L.widgetType .~ widgetType,
+  _wnChildren = Seq.empty
 }
 
-isWidgetVisible :: WidgetInstance s e -> Rect -> Bool
-isWidgetVisible inst vp = _wiVisible inst && rectsOverlap vp (_wiViewport inst)
+isWidgetVisible :: WidgetNode s e -> Rect -> Bool
+isWidgetVisible node vp = isVisible && isOverlapped where
+  inst = node ^. L.widgetInstance
+  isVisible = inst ^. L.visible
+  isOverlapped = rectsOverlap vp (inst ^. L.viewport)
 
-isFocused :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isFocused wenv inst = _weFocusedPath wenv == _wiPath inst
+isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
+isFocused wenv node = wenv ^. L.focusedPath == node ^. L.widgetInstance . L.path
 
-isHovered :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isHovered wenv inst = validPos && isTopLevel wenv inst where
+isHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
+isHovered wenv node = validPos && isTopLevel wenv node where
+  inst = node ^. L.widgetInstance
   viewport = inst ^. L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
@@ -78,21 +74,20 @@ widgetDataSet WidgetValue{} _ = []
 widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
-resultWidget :: WidgetInstance s e -> WidgetResult s e
-resultWidget inst = WidgetResult inst Seq.empty Seq.empty
+resultWidget :: WidgetNode s e -> WidgetResult s e
+resultWidget node = WidgetResult node Seq.empty Seq.empty
 
-resultEvts :: WidgetInstance s e -> [e] -> WidgetResult s e
-resultEvts inst events = result where
-  result = WidgetResult inst Seq.empty (Seq.fromList events)
+resultEvts :: WidgetNode s e -> [e] -> WidgetResult s e
+resultEvts node events = result where
+  result = WidgetResult node Seq.empty (Seq.fromList events)
 
-resultReqs :: WidgetInstance s e -> [WidgetRequest s] -> WidgetResult s e
-resultReqs inst requests = result where
-  result = WidgetResult inst (Seq.fromList requests) Seq.empty
+resultReqs :: WidgetNode s e -> [WidgetRequest s] -> WidgetResult s e
+resultReqs node requests = result where
+  result = WidgetResult node (Seq.fromList requests) Seq.empty
 
-resultReqsEvts
-  :: WidgetInstance s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
-resultReqsEvts inst requests events = result where
-  result = WidgetResult inst (Seq.fromList requests) (Seq.fromList events)
+resultReqsEvts :: WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
+resultReqsEvts node requests events = result where
+  result = WidgetResult node (Seq.fromList requests) (Seq.fromList events)
 
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
@@ -101,54 +96,59 @@ useState ::  Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
 
-instanceMatches :: WidgetInstance s e -> WidgetInstance s e -> Bool
-instanceMatches newInstance oldInstance = typeMatches && keyMatches where
-  typeMatches = _wiWidgetType oldInstance == _wiWidgetType newInstance
-  keyMatches = _wiKey oldInstance == _wiKey newInstance
+instanceMatches :: WidgetNode s e -> WidgetNode s e -> Bool
+instanceMatches newNode oldNode = typeMatches && keyMatches where
+  oldInst = oldNode ^. L.widgetInstance
+  newInst = newNode ^. L.widgetInstance
+  typeMatches = oldInst ^. L.widgetType == newInst ^. L.widgetType
+  keyMatches = oldInst ^. L.key == newInst ^. L.key
 
-isTopLevel :: WidgetEnv s e -> WidgetInstance s e -> Bool
-isTopLevel wenv inst = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
+isTopLevel :: WidgetEnv s e -> WidgetNode s e -> Bool
+isTopLevel wenv node = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   inTopLayer = wenv ^. L.inTopLayer $ mousePos
-  path = _wiPath inst
+  path = node ^. L.widgetInstance . L.path
   isPrefix parent = Seq.take (Seq.length parent) path == parent
 
 handleFocusChange
   :: (c -> [e])
   -> (c -> [WidgetRequest s])
   -> c
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleFocusChange evtFn reqFn config inst = result where
+handleFocusChange evtFn reqFn config node = result where
   evts = evtFn config
   reqs = reqFn config
   result
-    | not (null evts && null reqs) = Just $ resultReqsEvts inst reqs evts
+    | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
     | otherwise = Nothing
 
 resizeWidget
   :: WidgetEnv s e
   -> Rect
   -> Rect
-  -> WidgetInstance s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
+  -> WidgetNode s e
 resizeWidget wenv viewport renderArea widgetRoot = newRoot where
-  sizeReq = widgetGetSizeReq (_wiWidget widgetRoot) wenv widgetRoot
+  sizeReq = widgetGetSizeReq (_wnWidget widgetRoot) wenv widgetRoot
   reqRoot = sizeReq ^. L.widget
-    & L.sizeReqW .~ sizeReq ^. L.sizeReqW
-    & L.sizeReqH .~ sizeReq ^. L.sizeReqH
+    & L.widgetInstance . L.sizeReqW .~ sizeReq ^. L.sizeReqW
+    & L.widgetInstance . L.sizeReqH .~ sizeReq ^. L.sizeReqH
+  reqRootWidget = sizeReq ^. L.widget . L.widget
 
-  newRoot = widgetResize (_wiWidget reqRoot) wenv viewport renderArea reqRoot
-
-buildLocalMap :: Seq (WidgetInstance s e) -> Map WidgetKey (WidgetInstance s e)
-buildLocalMap widgets = newMap where
-  addWidget map widget
-    | isJust (_wiKey widget) = M.insert (fromJust $ _wiKey widget) widget map
-    | otherwise = map
-  newMap = foldl' addWidget M.empty widgets
+  newRoot = widgetResize reqRootWidget wenv viewport renderArea reqRoot
 
 findWidgetByKey
   :: WidgetKey
-  -> Map WidgetKey (WidgetInstance s e)
-  -> Maybe (WidgetInstance s e)
+  -> Map WidgetKey (WidgetNode s e)
+  -> Maybe (WidgetNode s e)
 findWidgetByKey key map = M.lookup key map
+
+buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
+buildLocalMap widgets = newMap where
+  addWidget map widget
+    | isJust key = M.insert (fromJust key) widget map
+    | otherwise = map
+    where
+      key = widget ^. L.widgetInstance . L.key
+  newMap = foldl' addWidget M.empty widgets

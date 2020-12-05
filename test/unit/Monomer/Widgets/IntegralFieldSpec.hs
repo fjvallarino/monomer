@@ -79,12 +79,12 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 True)
-    basicIntInst = integralField integralValue
+    basicIntNode = integralField integralValue
     intCfg = [maxValue 1501, selectOnFocus True, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
-    intInst = integralField_ integralValue intCfg
-    model es = instHandleEventModel wenv (Focus : es) intInst
-    modelBasic es = instHandleEventModel wenv es basicIntInst
-    events evt = instHandleEventEvts wenv [evt] intInst
+    intNode = integralField_ integralValue intCfg
+    model es = nodeHandleEventModel wenv (Focus : es) intNode
+    modelBasic es = nodeHandleEventModel wenv es basicIntNode
+    events evt = nodeHandleEventEvts wenv [evt] intNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
@@ -112,9 +112,9 @@ handleEventValue = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 False)
-    intInst = integralFieldV_ 0 NumberChanged [maxValue 2345, selectOnFocus True, validInput integralValid]
-    evts es = instHandleEventEvts wenv (Focus : es) intInst
-    model es = instHandleEventModel wenv (Focus : es) intInst
+    intNode = integralFieldV_ 0 NumberChanged [maxValue 2345, selectOnFocus True, validInput integralValid]
+    evts es = nodeHandleEventEvts wenv (Focus : es) intNode
+    model es = nodeHandleEventModel wenv (Focus : es) intNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
 
@@ -128,4 +128,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel 10000000000 True)
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (integralField integralValue)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (integralField integralValue)

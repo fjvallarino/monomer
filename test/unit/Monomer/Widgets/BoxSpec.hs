@@ -1,5 +1,6 @@
 module Monomer.Widgets.BoxSpec (spec) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -12,6 +13,8 @@ import Monomer.TestUtil
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Label
+
+import qualified Monomer.Lens as L
 
 data BtnEvent
   = BtnClick
@@ -34,8 +37,8 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btn = button "Click" BtnClick
-    boxInst = instInit wenv (box btn)
-    events p = instHandleEventEvts wenv [Click p LeftBtn] boxInst
+    boxNode = nodeInit wenv (box btn)
+    events p = nodeHandleEventEvts wenv [Click p LeftBtn] boxNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -47,8 +50,8 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    boxInst = box (label "Label")
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv boxInst
+    boxNode = box (label "Label")
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv boxNode
 
 resize :: Spec
 resize = describe "resize" $ do
@@ -71,10 +74,10 @@ resizeDefault = describe "default" $ do
     wenv = mockWenv ()
     vp  = Rect   0   0 640 480
     cvp = Rect 295 230  50  20
-    boxInst = box (label "Label")
-    newInst = instInit wenv boxInst
-    children = _wiChildren newInst
-    viewport = _wiViewport newInst
+    boxNode = box (label "Label")
+    newNode = nodeInit wenv boxNode
+    children = newNode ^. L.children
+    viewport = newNode ^. L.widgetInstance . L.viewport
     cViewport = getChildVp wenv []
 
 resizeExpand :: Spec
@@ -123,7 +126,7 @@ resizeAlign = describe "align" $ do
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
 getChildVp :: WidgetEnv s e -> [BoxCfg s e] -> Rect
-getChildVp wenv cfgs = _wiViewport childLC where
-  lblInst = label "Label"
-  boxInstLC = instInit wenv (box_ lblInst cfgs)
-  childLC = Seq.index (_wiChildren boxInstLC) 0
+getChildVp wenv cfgs = childLC ^. L.widgetInstance . L.viewport where
+  lblNode = label "Label"
+  boxNodeLC = nodeInit wenv (box_ lblNode cfgs)
+  childLC = Seq.index (boxNodeLC ^. L.children) 0

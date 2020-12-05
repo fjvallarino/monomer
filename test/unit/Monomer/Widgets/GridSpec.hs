@@ -1,6 +1,6 @@
 module Monomer.Widgets.GridSpec (spec) where
 
-import Control.Lens ((&), (.~))
+import Control.Lens ((&), (^.), (.~))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -38,8 +38,8 @@ updateSizeReqEmpty = describe "empty" $ do
 
   where
     wenv = mockWenv ()
-    gridInst = vgrid []
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+    gridNode = vgrid []
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
 updateSizeReqItemsH :: Spec
 updateSizeReqItemsH = describe "several items, horizontal" $ do
@@ -51,12 +51,12 @@ updateSizeReqItemsH = describe "several items, horizontal" $ do
 
   where
     wenv = mockWenv ()
-    gridInst = hgrid [
+    gridNode = hgrid [
         label "Hello",
         label "how",
         label "are you?"
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
 updateSizeReqItemsV :: Spec
 updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
@@ -68,13 +68,13 @@ updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
 
   where
     wenv = mockWenv ()
-    gridInst = vgrid [
+    gridNode = vgrid [
         label "Hello",
         label "how",
         label "" `visible` False,
         label "are you?"
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
 updateSizeReqMixedH :: Spec
 updateSizeReqMixedH = describe "several items, different reqSizes" $ do
@@ -86,12 +86,12 @@ updateSizeReqMixedH = describe "several items, different reqSizes" $ do
 
   where
     wenv = mockWenv ()
-    gridInst = hgrid [
+    gridNode = hgrid [
         label "Label 1" `style` [width 100, height 100],
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
 updateSizeReqMixedV :: Spec
 updateSizeReqMixedV = describe "several items, different reqSizes" $ do
@@ -103,12 +103,12 @@ updateSizeReqMixedV = describe "several items, different reqSizes" $ do
 
   where
     wenv = mockWenv ()
-    gridInst = vgrid [
+    gridNode = vgrid [
         label "Label 1" `style` [minWidth 100, minHeight 100],
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv gridInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
 resize :: Spec
 resize = describe "resize" $ do
@@ -127,10 +127,10 @@ resizeEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     vp = Rect 0 0 640 480
-    gridInst = vgrid []
-    newInst = instInit wenv gridInst
-    viewport = _wiViewport newInst
-    children = _wiChildren newInst
+    gridNode = vgrid []
+    newNode = nodeInit wenv gridNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    children = newNode ^. L.children
 
 resizeItemsH :: Spec
 resizeItemsH = describe "several items, horizontal" $ do
@@ -149,15 +149,15 @@ resizeItemsH = describe "several items, horizontal" $ do
     cvp1 = Rect   0 0 160 640
     cvp2 = Rect 160 0 160 640
     cvp3 = Rect 320 0 160 640
-    gridInst = hgrid [
+    gridNode = hgrid [
         label "Label 1",
         label "Label Number Two",
         label "Label 3"
       ]
-    newInst = instInit wenv gridInst
-    viewport = _wiViewport newInst
-    childrenVp = _wiViewport <$> _wiChildren newInst
-    childrenRa = _wiRenderArea <$> _wiChildren newInst
+    newNode = nodeInit wenv gridNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children
 
 resizeItemsV :: Spec
 resizeItemsV = describe "several items, vertical, one not visible" $ do
@@ -177,13 +177,13 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
     cvp2 = Rect 0 160 640 160
     cvp3 = Rect 0   0   0   0
     cvp4 = Rect 0 320 640 160
-    gridInst = vgrid [
+    gridNode = vgrid [
         label "Label 1",
         label "Label Number Two",
         label "Label invisible" `visible` False,
         label "Label 3"
       ]
-    newInst = instInit wenv gridInst
-    viewport = _wiViewport newInst
-    childrenVp = _wiViewport <$> _wiChildren newInst
-    childrenRa = _wiRenderArea <$> _wiChildren newInst
+    newNode = nodeInit wenv gridNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children

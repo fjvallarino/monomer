@@ -9,59 +9,64 @@ module Monomer.Widgets.Util.Focus (
   isWidgetAfterPath
 ) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Sequence (Seq, (|>))
 
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
 
-parentPath :: WidgetInstance s e -> Path
-parentPath inst = Seq.take (Seq.length path - 1) path where
-  path = _wiPath inst
+import qualified Monomer.Lens as L
 
-nextTargetStep :: Path -> WidgetInstance s e -> Maybe PathStep
-nextTargetStep target inst = nextStep where
-  currentPath = _wiPath inst
+parentPath :: WidgetNode s e -> Path
+parentPath node = Seq.take (Seq.length path - 1) path where
+  path = node ^. L.widgetInstance . L.path
+
+nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
+nextTargetStep target node = nextStep where
+  currentPath = node ^. L.widgetInstance . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
 
-isFocusCandidate :: FocusDirection -> Path -> WidgetInstance s e -> Bool
+isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
 isFocusCandidate FocusFwd = isFocusFwdCandidate
 isFocusCandidate FocusBwd = isFocusBwdCandidate
 
-isFocusFwdCandidate :: Path -> WidgetInstance s e -> Bool
-isFocusFwdCandidate startFrom inst = isValid where
-  isAfter = isWidgetAfterPath startFrom inst
+isFocusFwdCandidate :: Path -> WidgetNode s e -> Bool
+isFocusFwdCandidate startFrom node = isValid where
+  inst = node ^. L.widgetInstance
+  isAfter = isWidgetAfterPath startFrom node
   isFocusable = _wiFocusable inst
   isEnabled = _wiVisible inst && _wiEnabled inst
   isValid = isAfter && isFocusable && isEnabled
 
-isFocusBwdCandidate :: Path -> WidgetInstance s e -> Bool
-isFocusBwdCandidate startFrom inst = isValid where
-  isBefore = isWidgetBeforePath startFrom inst
+isFocusBwdCandidate :: Path -> WidgetNode s e -> Bool
+isFocusBwdCandidate startFrom node = isValid where
+  inst = node ^. L.widgetInstance
+  isBefore = isWidgetBeforePath startFrom node
   isFocusable = _wiFocusable inst
   isEnabled = _wiVisible inst && _wiEnabled inst
   isValid = isBefore && isFocusable && isEnabled
 
-isTargetReached :: Path -> WidgetInstance s e -> Bool
-isTargetReached target inst = target == _wiPath inst
+isTargetReached :: Path -> WidgetNode s e -> Bool
+isTargetReached target node = target == node ^. L.widgetInstance . L.path
 
-isTargetValid :: Path -> WidgetInstance s e -> Bool
-isTargetValid target inst = valid where
-  children = _wiChildren inst
-  valid = case nextTargetStep target inst of
+isTargetValid :: Path -> WidgetNode s e -> Bool
+isTargetValid target node = valid where
+  children = node ^. L.children
+  valid = case nextTargetStep target node of
     Just step -> step < Seq.length children
     Nothing -> False
 
-isWidgetParentOfPath :: Path -> WidgetInstance s e -> Bool
-isWidgetParentOfPath path inst = result where
-  widgetPath = _wiPath inst
+isWidgetParentOfPath :: Path -> WidgetNode s e -> Bool
+isWidgetParentOfPath path node = result where
+  widgetPath = node ^. L.widgetInstance . L.path
   lenWidgetPath = Seq.length widgetPath
   pathPrefix = Seq.take lenWidgetPath path
   result = widgetPath == pathPrefix
 
-isWidgetAfterPath :: Path -> WidgetInstance s e -> Bool
-isWidgetAfterPath path inst = result where
-  widgetPath = _wiPath inst
+isWidgetAfterPath :: Path -> WidgetNode s e -> Bool
+isWidgetAfterPath path node = result where
+  widgetPath = node ^. L.widgetInstance . L.path
   lenPath = Seq.length path
   lenWidgetPath = Seq.length widgetPath
   widgetPathPrefix = Seq.take lenPath widgetPath
@@ -69,9 +74,9 @@ isWidgetAfterPath path inst = result where
     | lenWidgetPath > lenPath = path <= widgetPathPrefix
     | otherwise = path < widgetPath
 
-isWidgetBeforePath :: Path -> WidgetInstance s e -> Bool
-isWidgetBeforePath path inst = result where
-  widgetPath = _wiPath inst
+isWidgetBeforePath :: Path -> WidgetNode s e -> Bool
+isWidgetBeforePath path node = result where
+  widgetPath = node ^. L.widgetInstance . L.path
   result
     | path == rootPath = True
     | otherwise = path > widgetPath

@@ -47,11 +47,11 @@ instance CmbResizeFactor SpacerCfg where
     _spcFactor = Just f
   }
 
-spacer :: WidgetInstance s e
+spacer :: WidgetNode s e
 spacer = spacer_ def
 
-spacer_ :: [SpacerCfg] -> WidgetInstance s e
-spacer_ configs = defaultWidgetInstance "spacer" widget where
+spacer_ :: [SpacerCfg] -> WidgetNode s e
+spacer_ configs = defaultWidgetNode "spacer" widget where
   config = mconcat configs
   widget = makeSpacer config
 
@@ -61,7 +61,7 @@ makeSpacer config = widget where
     singleGetSizeReq = getSizeReq
   }
 
-  getSizeReq wenv inst = sizeReq where
+  getSizeReq wenv node = sizeReq where
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)

@@ -42,10 +42,10 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv ()
-    btnInst = button_ "Click" BtnClick [onFocus GotFocus, onBlur LostFocus]
-    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] btnInst
-    keyEvts key = instHandleEventEvts wenv [KeyAction def key KeyPressed] btnInst
-    events evt = instHandleEventEvts wenv [evt] btnInst
+    btnNode = button_ "Click" BtnClick [onFocus GotFocus, onBlur LostFocus]
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] btnNode
+    keyEvts key = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] btnNode
+    events evt = nodeHandleEventEvts wenv [evt] btnNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -63,7 +63,7 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    btnInst = button "Click" BtnClick
-    btnInst2 = button_ "Click 2" BtnClick [resizeFactorW 1, resizeFactorH 2]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv btnInst
-    (sizeReq2W, sizeReq2H) = instUpdateSizeReq wenv btnInst2
+    btnNode = button "Click" BtnClick
+    btnNode2 = button_ "Click 2" BtnClick [resizeFactorW 1, resizeFactorH 2]
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv btnNode
+    (sizeReq2W, sizeReq2H) = nodeUpdateSizeReq wenv btnNode2

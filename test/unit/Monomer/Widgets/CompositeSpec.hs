@@ -83,8 +83,8 @@ handleEventBasic = describe "handleEventBasic" $ do
     handleEvent :: MainModel -> MainEvt -> [EventResponse MainModel MainEvt ()]
     handleEvent model evt = [Model (model & clicks %~ (+1))]
     buildUI model = button "Click" MainBtnClicked
-    cmpInst = composite "main" id Nothing handleEvent buildUI
-    model es = instHandleEventCtxModel wenv es cmpInst
+    cmpNode = composite "main" id Nothing handleEvent buildUI
+    model es = nodeHandleEventCtxModel wenv es cmpNode
 
 handleEventChild :: Spec
 handleEventChild = describe "handleEventChild" $ do
@@ -111,8 +111,8 @@ handleEventChild = describe "handleEventChild" $ do
         button "Click" MainBtnClicked,
         composite "child" child Nothing handleChild buildChild
       ]
-    cmpInst = composite "main" id Nothing handleEvent buildUI
-    model es = instHandleEventCtxModel wenv es cmpInst
+    cmpNode = composite "main" id Nothing handleEvent buildUI
+    model es = nodeHandleEventCtxModel wenv es cmpNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -125,13 +125,13 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenv ()
     handleEvent model evt = []
-    buildUI :: () -> WidgetInstance () ()
+    buildUI :: () -> WidgetNode () ()
     buildUI model = vstack [
         label "label 1",
         label "label 2"
       ]
-    cmpInst = composite "main" id Nothing handleEvent buildUI
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv cmpInst
+    cmpNode = composite "main" id Nothing handleEvent buildUI
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv cmpNode
 
 resize :: Spec
 resize = describe "resize" $ do
@@ -152,10 +152,10 @@ resize = describe "resize" $ do
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
     handleEvent model evt = []
-    buildUI :: () -> WidgetInstance () ()
+    buildUI :: () -> WidgetNode () ()
     buildUI model = hstack []
-    cmpInst = composite "main" id Nothing handleEvent buildUI
-    newInst = instInit wenv cmpInst
-    viewport = _wiViewport newInst
-    childrenVp = _wiViewport <$> _wiChildren newInst
-    childrenRa = _wiRenderArea <$> _wiChildren newInst
+    cmpNode = composite "main" id Nothing handleEvent buildUI
+    newNode = nodeInit wenv cmpNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children

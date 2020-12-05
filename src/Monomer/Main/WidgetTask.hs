@@ -5,7 +5,7 @@ module Monomer.Main.WidgetTask (handleWidgetTasks) where
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
-import Control.Lens
+import Control.Lens ((&), (^.), (.=), use)
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
@@ -21,9 +21,11 @@ import Monomer.Main.Handlers
 import Monomer.Main.Lens
 import Monomer.Main.Types
 
+import qualified Monomer.Lens as L
+
 handleWidgetTasks
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetInstance s e -> m (HandlerStep s e)
+  => WidgetEnv s e -> WidgetNode s e -> m (HandlerStep s e)
 handleWidgetTasks wenv widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM isThreadActive (toList tasks)
@@ -34,7 +36,7 @@ handleWidgetTasks wenv widgetRoot = do
 processTasks
   :: (MonomerM s m, Traversable t)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> t WidgetTask
   -> m (HandlerStep s e)
 processTasks wenv widgetRoot tasks = nextStep where
@@ -46,7 +48,7 @@ processTasks wenv widgetRoot tasks = nextStep where
 processTask
   :: (MonomerM s m)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> WidgetTask
   -> m (HandlerStep s e)
 processTask wenv widgetRoot (WidgetTask path task) = do
@@ -65,7 +67,7 @@ processTask model widgetRoot (WidgetProducer path channel task) = do
 processTaskResult
   :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Path
   -> Either SomeException a
   -> m (HandlerStep s e)
@@ -78,7 +80,7 @@ processTaskResult wenv widgetRoot path (Right taskResult)
 processTaskEvent
   :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Path
   -> a
   -> m (HandlerStep s e)
@@ -86,7 +88,7 @@ processTaskEvent wenv widgetRoot path event = do
   currentFocus <- use pathFocus
 
   let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path event widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 

@@ -48,45 +48,45 @@ spec = describe "Radio" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not update the model if not clicked" $
-    clickModel (Point 3000 3000) orangeInst ^. fruit `shouldBe` Apple
+    clickModel (Point 3000 3000) orangeNode ^. fruit `shouldBe` Apple
 
   it "should update the model when clicked" $
-    clickModel (Point 320 240) orangeInst ^. fruit `shouldBe` Orange
+    clickModel (Point 320 240) orangeNode ^. fruit `shouldBe` Orange
 
   it "should update the model when Enter/Space is pressed" $
-    keyModel keyReturn bananaInst ^. fruit `shouldBe` Banana
+    keyModel keyReturn bananaNode ^. fruit `shouldBe` Banana
 
   it "should generate an event when focus is received" $
-    events Focus orangeInst `shouldBe` Seq.singleton GotFocus
+    events Focus orangeNode `shouldBe` Seq.singleton GotFocus
 
   it "should generate an event when focus is lost" $
-    events Blur orangeInst `shouldBe` Seq.singleton LostFocus
+    events Blur orangeNode `shouldBe` Seq.singleton LostFocus
 
   where
     wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
-    orangeInst = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
-    bananaInst = radio fruit Banana
-    clickModel p inst = instHandleEventModel wenv [Click p LeftBtn] inst
-    keyModel key inst = instHandleEventModel wenv [KeyAction def key KeyPressed] inst
-    events evt inst = instHandleEventEvts wenv [evt] inst
+    orangeNode = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
+    bananaNode = radio fruit Banana
+    clickModel p node = nodeHandleEventModel wenv [Click p LeftBtn] node
+    keyModel key node = nodeHandleEventModel wenv [KeyAction def key KeyPressed] node
+    events evt node = nodeHandleEventEvts wenv [evt] node
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) orangeInst `shouldBe` Seq.empty
+    clickModel (Point 3000 3000) orangeNode `shouldBe` Seq.empty
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 320 240) orangeInst `shouldBe` Seq.singleton (FruitSel Orange)
+    clickModel (Point 320 240) orangeNode `shouldBe` Seq.singleton (FruitSel Orange)
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn bananaInst `shouldBe` Seq.singleton (FruitSel Banana)
+    keyModel keyReturn bananaNode `shouldBe` Seq.singleton (FruitSel Banana)
 
   where
     wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
-    orangeInst = radioV Apple FruitSel Orange
-    bananaInst = radioV Apple FruitSel Banana
-    clickModel p inst = instHandleEventEvts wenv [Click p LeftBtn] inst
-    keyModel key inst = instHandleEventEvts wenv [KeyAction def key KeyPressed] inst
+    orangeNode = radioV Apple FruitSel Orange
+    bananaNode = radioV Apple FruitSel Banana
+    clickModel p node = nodeHandleEventEvts wenv [Click p LeftBtn] node
+    keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -98,4 +98,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel Apple) & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (radio fruit Apple)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (radio fruit Apple)

@@ -1,5 +1,7 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Box (
   BoxCfg,
@@ -9,12 +11,15 @@ module Monomer.Widgets.Box (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+
+import qualified Monomer.Lens as L
 
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
@@ -106,18 +111,17 @@ expandContent = def {
   _boxExpandContent = Just True
 }
 
-box :: WidgetInstance s e -> WidgetInstance s e
+box :: WidgetNode s e -> WidgetNode s e
 box managed = box_ managed def
 
-box_ :: WidgetInstance s e -> [BoxCfg s e] -> WidgetInstance s e
+box_ :: WidgetNode s e -> [BoxCfg s e] -> WidgetNode s e
 box_ managed configs = makeInstance (makeBox config) managed where
   config = mconcat configs
 
-makeInstance :: Widget s e -> WidgetInstance s e -> WidgetInstance s e
-makeInstance widget managedWidget = (defaultWidgetInstance "box" widget) {
-  _wiChildren = Seq.singleton managedWidget,
-  _wiFocusable = False
-}
+makeInstance :: Widget s e -> WidgetNode s e -> WidgetNode s e
+makeInstance widget managedWidget = defaultWidgetNode "box" widget
+  & L.widgetInstance . L.focusable .~ False
+  & L.children .~ Seq.singleton managedWidget
 
 makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
@@ -127,10 +131,10 @@ makeBox config = widget where
     containerResize = resize
   }
 
-  handleEvent wenv ctx evt inst = case evt of
+  handleEvent wenv ctx evt node = case evt of
     Click point btn -> result where
-      child = Seq.index (_wiChildren inst) 0
-      childClicked = pointInRect point (_wiRenderArea child)
+      child = Seq.index (node ^. L.children) 0
+      childClicked = pointInRect point (child ^. L.widgetInstance . L.renderArea)
       events
         | childClicked = _boxOnClick config
         | otherwise = _boxOnClickEmpty config
@@ -139,22 +143,24 @@ makeBox config = widget where
         | otherwise = _boxOnClickEmptyReq config
       needsUpdate = btn == LeftBtn && not (null events && null requests)
       result
-        | needsUpdate = Just $ resultReqsEvts inst requests events
+        | needsUpdate = Just $ resultReqsEvts node requests events
         | otherwise = Nothing
     _ -> Nothing
 
-  getSizeReq wenv inst children = (newReqW, newReqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0
-    newReqW = _wiSizeReqW child
-    newReqH = _wiSizeReqH child
+    newReqW = child ^. L.widgetInstance . L.sizeReqW
+    newReqH = child ^. L.widgetInstance . L.sizeReqH
 
-  resize wenv viewport renderArea children inst = resized where
-    style = activeStyle wenv inst
+  resize :: ContainerResizeHandler s e
+  resize wenv viewport renderArea children node = resized where
+    style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect cx cy cw ch = contentArea
     child = Seq.index children 0
-    contentW = sizeReqMax $ _wiSizeReqW child
-    contentH = sizeReqMax $ _wiSizeReqH child
+    contentW = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
+    contentH = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
@@ -163,8 +169,8 @@ makeBox config = widget where
     vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (inst, Seq.singleton (vpContent, contentArea))
-      | otherwise  = (inst, Seq.singleton (vpAligned, raAligned))
+      | expand = (node, Seq.singleton (vpContent, contentArea))
+      | otherwise = (node, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where

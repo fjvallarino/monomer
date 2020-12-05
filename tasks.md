@@ -324,11 +324,13 @@ Maybe postponed after release?
     - Create WidgetNode type, move Widget/children into it
       - Remove type constraints on WidgetInstance
       - Change type signatures to use WidgetNode
+    - Update signatures of methods to use Widget/WidgetInstance as needed (restrict what can be changed)
     - Restore GlobalKeys
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
         -  This is necessary because s/e types may not match
     - Remove children from WidgetNode
+    - Use Widget instead of WidgetNode wherever possible
   - Split WidgetInstance into Definition and Instance, in order to:
     - Be able to get information about the whole widget tree, even hidden items (inside composite)
       - This is needed for testing composite
@@ -337,6 +339,7 @@ Maybe postponed after release?
     - Pave the way for removing children from WidgetInstance
     - Pave the way for removing widget from WidgetInstance
   - Can _wiChildren be removed from Widget and only be kept in Container?
+  - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
   - ZStack should set _weIsTopLayer based on used space

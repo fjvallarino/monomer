@@ -40,7 +40,7 @@ data CompEvent
   | HandleProducer Int
   deriving (Eq, Show)
 
-testComposite :: WidgetInstance CompState AppEvent
+testComposite :: WidgetNode CompState AppEvent
 testComposite = composite "testComposite" id (Just InitComposite) handleCompositeEvent buildComposite
 
 handleCompositeEvent model evt = case evt of

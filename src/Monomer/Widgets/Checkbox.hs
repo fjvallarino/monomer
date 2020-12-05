@@ -94,26 +94,25 @@ checkboxWidth w = def {
   _ckcWidth = Just w
 }
 
-checkbox :: ALens' s Bool -> WidgetInstance s e
+checkbox :: ALens' s Bool -> WidgetNode s e
 checkbox field = checkbox_ field def
 
-checkbox_ :: ALens' s Bool -> [CheckboxCfg s e] -> WidgetInstance s e
+checkbox_ :: ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
-checkboxV :: Bool -> (Bool -> e) -> WidgetInstance s e
+checkboxV :: Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
-checkboxV_ :: Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetInstance s e
+checkboxV_ :: Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
-checkboxD_ :: WidgetData s Bool -> [CheckboxCfg s e] -> WidgetInstance s e
-checkboxD_ widgetData configs = checkboxInstance where
+checkboxD_ :: WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config
-  checkboxInstance = (defaultWidgetInstance "checkbox" widget) {
-    _wiFocusable = True
-  }
+  checkboxNode = defaultWidgetNode "checkbox" widget
+    & L.widgetInstance . L.focusable .~ True
 
 makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
@@ -124,44 +123,45 @@ makeCheckbox widgetData config = widget where
     singleRender = render
   }
 
-  getBaseStyle wenv inst = Just style where
+  getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.checkboxStyle
 
-  handleEvent wenv target evt inst = case evt of
-    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config inst
-    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config inst
+  handleEvent wenv target evt node = case evt of
+    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
+    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
     Click p _
-      | pointInViewport p inst -> Just $ resultReqsEvts inst clickReqs events
+      | pointInViewport p node -> Just $ resultReqsEvts node clickReqs events
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvts inst reqs events
+      | isSelectKey code -> Just $ resultReqsEvts node reqs events
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
+      path = node ^. L.widgetInstance . L.path
       value = widgetDataGet model widgetData
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)
       setValueReq = widgetDataSet widgetData newValue
-      setFocusReq = SetFocus $ _wiPath inst
+      setFocusReq = SetFocus path
       reqs = setValueReq ++ _ckcOnChangeReq config
       clickReqs = setFocusReq : reqs
 
-  getSizeReq wenv inst = req where
-    theme = activeTheme wenv inst
+  getSizeReq wenv node = req where
+    theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
     req = (FixedSize width, FixedSize width)
 
-  render renderer wenv inst = do
+  render renderer wenv node = do
     renderCheckbox renderer checkboxBW checkboxArea fgColor
 
     when value $
       renderMark renderer checkboxBW checkboxArea fgColor
     where
       model = _weModel wenv
-      theme = activeTheme wenv inst
-      style = activeStyle wenv inst
+      theme = activeTheme wenv node
+      style = activeStyle wenv node
       value = widgetDataGet model widgetData
-      rarea = getContentArea style inst
+      rarea = getContentArea style node
       checkboxW = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
       checkboxBW = max 1 (checkboxW * 0.1)
       checkboxL = _rX rarea + (_rW rarea - checkboxW) / 2

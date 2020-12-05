@@ -6,6 +6,7 @@ module Monomer.Widgets.Stack (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Foldable (toList)
 import Data.List (foldl')
@@ -15,6 +16,8 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+
+import qualified Monomer.Lens as L
 
 newtype StackCfg = StackCfg {
   _stcIgnoreEmptyClick :: Maybe Bool
@@ -36,33 +39,31 @@ instance CmbIgnoreEmptyClick StackCfg where
     _stcIgnoreEmptyClick = Just ignore
   }
 
-hstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
+hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 hstack children = hstack_ children def
 
 hstack_
   :: (Traversable t)
-  => t (WidgetInstance s e)
+  => t (WidgetNode s e)
   -> [StackCfg]
-  -> WidgetInstance s e
-hstack_ children configs = newInst where
+  -> WidgetNode s e
+hstack_ children configs = newNode where
   config = mconcat configs
-  newInst = (defaultWidgetInstance "hstack" (makeStack True config)) {
-  _wiChildren = foldl' (|>) Empty children
-}
+  newNode = defaultWidgetNode "hstack" (makeStack True config)
+    & L.children .~ foldl' (|>) Empty children
 
-vstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
+vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 vstack children = vstack_ children def
 
 vstack_
   :: (Traversable t)
-  => t (WidgetInstance s e)
+  => t (WidgetNode s e)
   -> [StackCfg]
-  -> WidgetInstance s e
-vstack_ children configs = newInst where
+  -> WidgetNode s e
+vstack_ children configs = newNode where
   config = mconcat configs
-  newInst = (defaultWidgetInstance "vstack" (makeStack False config)) {
-  _wiChildren = foldl' (|>) Empty children
-}
+  newNode = defaultWidgetNode "vstack" (makeStack False config)
+    & L.children .~ foldl' (|>) Empty children
 
 makeStack :: Bool -> StackCfg -> Widget s e
 makeStack isHorizontal config = widget where
@@ -76,10 +77,10 @@ makeStack isHorizontal config = widget where
   ignoreEmptyClick = _stcIgnoreEmptyClick config == Just True
   isVertical = not isHorizontal
 
-  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter _wiVisible children
-    newSizeReqW = getDimSizeReq isHorizontal _wiSizeReqW vchildren
-    newSizeReqH = getDimSizeReq isVertical _wiSizeReqH vchildren
+  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
+    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
+    newSizeReqW = getDimSizeReq isHorizontal (_wiSizeReqW . _wnWidgetInstance) vchildren
+    newSizeReqH = getDimSizeReq isVertical (_wiSizeReqH . _wnWidgetInstance) vchildren
 
   getDimSizeReq mainAxis accesor vchildren
     | Seq.null vreqs = FixedSize 0
@@ -88,13 +89,13 @@ makeStack isHorizontal config = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv viewport renderArea children inst = resized where
-    style = activeStyle wenv inst
+  resize wenv viewport renderArea children node = resized where
+    style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect x y w h = contentArea
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then x else y
-    vchildren = Seq.filter _wiVisible children
+    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
     reqs = fmap mainReqSelector vchildren
     sumSizes accum req = newStep where
       (cFixed, cFlex, cFlexFac, cExtraFac) = accum
@@ -119,7 +120,7 @@ makeStack isHorizontal config = widget where
       newOffset = offset + rectSelector newSize
     (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
     assignedArea = Seq.zip newViewports newViewports
-    resized = (inst, assignedArea)
+    resized = (node, assignedArea)
 
   resizeChild contentArea flexCoeff extraCoeff offset child = result where
     Rect l t w h = contentArea
@@ -136,13 +137,13 @@ makeStack isHorizontal config = widget where
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result
-      | not $ _wiVisible child = emptyRect
+      | not $ (_wiVisible . _wnWidgetInstance) child = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
 
   mainReqSelector
-    | isHorizontal = _wiSizeReqW
-    | otherwise = _wiSizeReqH
+    | isHorizontal = _wiSizeReqW . _wnWidgetInstance
+    | otherwise = _wiSizeReqH . _wnWidgetInstance
 
   rectSelector
     | isHorizontal = _rW

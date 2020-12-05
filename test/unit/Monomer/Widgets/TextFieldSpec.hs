@@ -91,10 +91,10 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel "")
     txtCfg = [maxLength 20, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
-    txtInst = textField_ textValue txtCfg
-    model es = instHandleEventModel wenv es txtInst
-    events evt = instHandleEventEvts wenv [evt] txtInst
-    ctx evts = instHandleEventCtx wenv evts txtInst
+    txtNode = textField_ textValue txtCfg
+    model es = nodeHandleEventModel wenv es txtNode
+    events evt = nodeHandleEventEvts wenv [evt] txtNode
+    ctx evts = nodeHandleEventCtx wenv evts txtNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
@@ -137,8 +137,8 @@ handleEventValue = describe "handleEvent" $ do
   -- Copy/paste is not currently tested because SDL requires video initialized and mocking is not in place
   where
     wenv = mockWenv (TestModel "")
-    txtInst = textFieldV "" TextChanged
-    evts es = instHandleEventEvts wenv es txtInst
+    txtNode = textFieldV "" TextChanged
+    evts es = nodeHandleEventEvts wenv es txtNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
 
@@ -152,4 +152,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel "Test value")
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (textField textValue)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (textField textValue)

@@ -90,10 +90,10 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel testItem0)
-    lvInst = listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
-    clickModel p = instHandleEventModel wenv [Click p LeftBtn] lvInst
-    model keys = instHandleEventModel wenv keys lvInst
-    events evts = instHandleEventEvts wenv evts lvInst
+    lvNode = listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+    clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] lvNode
+    model keys = nodeHandleEventModel wenv keys lvNode
+    events evts = nodeHandleEventEvts wenv evts lvNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
@@ -109,10 +109,10 @@ handleEventValue = describe "handleEventValue" $ do
 
   where
     wenv = mockWenv (TestModel testItem0)
-    lvInst = listViewV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
-    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] lvInst
+    lvNode = listViewV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
     events evts = Seq.drop (Seq.length res - 1) res where
-      res = instHandleEventEvts wenv evts lvInst
+      res = nodeHandleEventEvts wenv evts lvNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -124,5 +124,5 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)
-    lvInst = listView selectedItem testItems (label . showt)
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lvInst
+    lvNode = listView selectedItem testItems (label . showt)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lvNode

@@ -39,13 +39,13 @@ import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
 
-type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetInstance s e)
+type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetNode s e)
 
 handleSystemEvents
   :: (MonomerM s m)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> m (HandlerStep s e)
 handleSystemEvents wenv systemEvents widgetRoot = nextStep where
   reducer (currWctx, currEvents, currRoot) evt = do
@@ -60,7 +60,7 @@ handleSystemEvent
   => WidgetEnv s e
   -> SystemEvent
   -> Path
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> m (HandlerStep s e)
 handleSystemEvent wenv event currentTarget widgetRoot = do
   pressed <- use L.pathPressed
@@ -69,7 +69,7 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)
     Just target -> do
-      let widget = _wiWidget widgetRoot
+      let widget = widgetRoot ^. L.widget
       let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
@@ -90,10 +90,10 @@ handleResourcesInit = do
 handleWidgetInit
   :: (MonomerM s m)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> m (HandlerStep s e)
 handleWidgetInit wenv widgetRoot = do
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let widgetResult = widgetInit widget wenv widgetRoot
 
   handleWidgetResult wenv widgetResult
@@ -101,10 +101,10 @@ handleWidgetInit wenv widgetRoot = do
 handleWidgetDispose
   :: (MonomerM s m)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> m (HandlerStep s e)
 handleWidgetDispose wenv widgetRoot = do
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let widgetResult = widgetDispose widget wenv widgetRoot
 
   handleWidgetResult wenv widgetResult
@@ -310,7 +310,7 @@ handleSendMessage
   -> m (HandlerStep s e)
 handleSendMessage path message (wenv, events, widgetRoot) = do
   let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 

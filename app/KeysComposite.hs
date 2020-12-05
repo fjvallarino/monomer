@@ -50,7 +50,7 @@ initialState = KeysCompState {
   ]
 }
 
-keysComposite :: WidgetInstance KeysCompState ep
+keysComposite :: WidgetNode KeysCompState ep
 keysComposite = composite "keysComposite" id Nothing handleKeysCompEvent buildKeysComp
 
 handleKeysCompEvent model evt = case evt of

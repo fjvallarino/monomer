@@ -54,7 +54,7 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
   _mlExitEvent :: Maybe e,
-  _mlWidgetRoot :: WidgetInstance s ep
+  _mlWidgetRoot :: WidgetNode s ep
 }
 
 simpleApp
@@ -98,7 +98,7 @@ runApp
   -> [FontDef]
   -> Theme
   -> Maybe e
-  -> WidgetInstance s ep
+  -> WidgetNode s ep
   -> m ()
 runApp window maxFps fonts theme exitEvent widgetRoot = do
   useHiDPI <- use hdpi
@@ -127,9 +127,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weTimestamp = startTs,
     _weInTopLayer = const True
   }
-  let pathReadyRoot = widgetRoot {
-    _wiPath = Seq.singleton 0
-  }
+  let pathReadyRoot = widgetRoot & L.widgetInstance . L.path .~ Seq.singleton 0
 
   handleResourcesInit
   (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot
@@ -284,7 +282,7 @@ renderWidgets
   => SDL.Window
   -> Renderer
   -> WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> m ()
 renderWidgets !window renderer wenv widgetRoot = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
@@ -292,7 +290,7 @@ renderWidgets !window renderer wenv widgetRoot = do
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
 
-  liftIO $ widgetRender (_wiWidget widgetRoot) renderer wenv widgetRoot
+  liftIO $ widgetRender (widgetRoot ^. L.widget) renderer wenv widgetRoot
   liftIO $ renderOverlays renderer
 
   liftIO $ endFrame renderer
@@ -301,18 +299,18 @@ renderWidgets !window renderer wenv widgetRoot = do
 -- Pre process events (change focus, add Enter/Leave events, etc)
 preProcessEvents
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetInstance s e -> [SystemEvent] -> m [SystemEvent]
+  => WidgetEnv s e -> WidgetNode s e -> [SystemEvent] -> m [SystemEvent]
 preProcessEvents wenv widgets events =
   concatMapM (preProcessEvent wenv widgets) events
 
 preProcessEvent
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetInstance s e -> SystemEvent -> m [SystemEvent]
+  => WidgetEnv s e -> WidgetNode s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent wenv widgetRoot evt@(Move point) = do
   overlay <- use L.pathOverlay
   hover <- use pathHover
   let startPath = fromMaybe rootPath overlay
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
   let hoverChanged = current /= hover
   let enter = [Enter (fromJust current) point | isJust current && hoverChanged]
@@ -325,7 +323,7 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
   overlay <- use L.pathOverlay
   let startPath = fromMaybe rootPath overlay
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
 
   pathPressed .= current
@@ -334,7 +332,7 @@ preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
   overlay <- use L.pathOverlay
   pressed <- use pathPressed
   let startPath = fromMaybe rootPath overlay
-  let widget = _wiWidget widgetRoot
+  let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
   let extraEvt = [Click point btn | current == pressed]
 

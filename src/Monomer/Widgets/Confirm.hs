@@ -57,16 +57,16 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-confirm :: Text -> e -> e -> WidgetInstance s e
+confirm :: Text -> e -> e -> WidgetNode s e
 confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
 
-confirm_ :: Text -> e -> e -> [ConfirmCfg] -> WidgetInstance s e
-confirm_ message acceptEvt cancelEvt configs = newInst where
+confirm_ :: Text -> e -> e -> [ConfirmCfg] -> WidgetNode s e
+confirm_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   factory wenv = makeConfirm wenv message acceptEvt cancelEvt config
-  newInst = createThemed "confirm" factory
+  newNode = createThemed "confirm" factory
 
-makeConfirm :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetInstance s e
+makeConfirm :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetNode s e
 makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
@@ -76,9 +76,12 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   confirmTree = vstack [
-      label title & L.style .~ themeDialogTitle wenv,
-      label_ message [textMultiLine] & L.style .~ themeDialogBody wenv,
-      box_ buttons [alignLeft] & L.style <>~ themeDialogButtons wenv
-    ] & L.style .~ themeDialogFrame wenv
+      label title
+        & L.widgetInstance . L.style .~ themeDialogTitle wenv,
+      label_ message [textMultiLine]
+        & L.widgetInstance . L.style .~ themeDialogBody wenv,
+      box_ buttons [alignLeft]
+        & L.widgetInstance . L.style <>~ themeDialogButtons wenv
+    ] & L.widgetInstance . L.style .~ themeDialogFrame wenv
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
-    & L.style .~ emptyOverlayColor
+    & L.widgetInstance . L.style .~ emptyOverlayColor

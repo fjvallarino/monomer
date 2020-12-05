@@ -49,23 +49,27 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-alert :: Text -> e -> WidgetInstance s e
+alert :: Text -> e -> WidgetNode s e
 alert message evt = alert_ message evt def
 
-alert_ :: Text -> e -> [AlertCfg] -> WidgetInstance s e
+alert_ :: Text -> e -> [AlertCfg] -> WidgetNode s e
 alert_ message evt configs = createThemed "alert" factory where
   config = mconcat configs
   factory wenv = makeAlert wenv message evt config
 
-makeAlert :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetInstance s e
+makeAlert :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetNode s e
 makeAlert wenv message evt config = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
   dismissButton = mainButton close evt
   alertTree = vstack [
-      label title & L.style .~ themeDialogTitle wenv,
-      label_ message [textMultiLine] & L.style .~ themeDialogBody wenv,
-      box_ dismissButton [alignLeft] & L.style .~ themeDialogButtons wenv
-    ] & L.style .~ themeDialogFrame wenv
-  alertBox = box_ alertTree [onClickEmpty evt] & L.style .~ emptyOverlayColor
+      label title
+        & L.widgetInstance . L.style .~ themeDialogTitle wenv,
+      label_ message [textMultiLine]
+        & L.widgetInstance . L.style .~ themeDialogBody wenv,
+      box_ dismissButton [alignLeft]
+        & L.widgetInstance . L.style .~ themeDialogButtons wenv
+    ] & L.widgetInstance . L.style .~ themeDialogFrame wenv
+  alertBox = box_ alertTree [onClickEmpty evt]
+    & L.widgetInstance . L.style .~ emptyOverlayColor

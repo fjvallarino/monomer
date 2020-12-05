@@ -87,12 +87,12 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 True)
-    basicFloatingInst = floatingField floatingValue
+    basicFloatingNode = floatingField floatingValue
     floatCfg = [maxValue 1501, selectOnFocus True, validInput floatingValid, onFocus GotFocus, onBlur LostFocus]
-    floatInst = floatingField_ floatingValue floatCfg
-    model es = instHandleEventModel wenv (Focus : es) floatInst
-    modelBasic es = instHandleEventModel wenv es basicFloatingInst
-    events evt = instHandleEventEvts wenv [evt] floatInst
+    floatNode = floatingField_ floatingValue floatCfg
+    model es = nodeHandleEventModel wenv (Focus : es) floatNode
+    modelBasic es = nodeHandleEventModel wenv es basicFloatingNode
+    events evt = nodeHandleEventEvts wenv [evt] floatNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEvent" $ do
@@ -133,11 +133,11 @@ handleEventValue = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 False)
-    floatInst = floatingFieldV_ 0 NumberChanged [minValue 10, maxValue 2345, selectOnFocus True, validInput floatingValid]
-    floatDecimalsInst = floatingFieldV_ 0 NumberChanged [selectOnFocus True, decimals 3]
-    evts es = instHandleEventEvts wenv (Focus : es) floatInst
-    evtsAlt es = instHandleEventEvts wenv (Focus : es) floatDecimalsInst
-    model es = instHandleEventModel wenv (Focus : es) floatInst
+    floatNode = floatingFieldV_ 0 NumberChanged [minValue 10, maxValue 2345, selectOnFocus True, validInput floatingValid]
+    floatDecimalsNode = floatingFieldV_ 0 NumberChanged [selectOnFocus True, decimals 3]
+    evts es = nodeHandleEventEvts wenv (Focus : es) floatNode
+    evtsAlt es = nodeHandleEventEvts wenv (Focus : es) floatDecimalsNode
+    model es = nodeHandleEventModel wenv (Focus : es) floatNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
     lastEvtDecimals es = lastIdx (evtsAlt es)
@@ -152,4 +152,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel 10000000 True)
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (floatingField floatingValue)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (floatingField floatingValue)

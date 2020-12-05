@@ -71,12 +71,11 @@ inputField_
   :: (Eq a, Default a, Typeable a)
   => WidgetType
   -> InputFieldCfg s e a
-  -> WidgetInstance s e
-inputField_ widgetType config = inst where
+  -> WidgetNode s e
+inputField_ widgetType config = node where
   widget = makeInputField config inputFieldState
-  inst = (defaultWidgetInstance widgetType widget) {
-    _wiFocusable = True
-  }
+  node = defaultWidgetNode widgetType widget
+    & L.widgetInstance . L.focusable .~ True
 
 makeInputField
   :: (Eq a, Default a, Typeable a)
@@ -108,20 +107,19 @@ makeInputField config state = widget where
     | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
     | otherwise = const []
 
-  getBaseStyle wenv inst = _ifcStyle config >>= handler where
+  getBaseStyle wenv node = _ifcStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  init wenv inst = result where
+  init wenv node = result where
     newValue = getModelValue wenv
-    newState = newTextState wenv inst state newValue (toText newValue) 0 Nothing
-    newInst = inst {
-      _wiWidget = makeInputField config newState
-    }
+    newState = newTextState wenv node state newValue (toText newValue) 0 Nothing
+    newNode = node
+      & L.widget .~ makeInputField config newState
     parsedVal = fromText (toText newValue)
     reqs = setModelValid (isJust parsedVal)
-    result = resultReqs newInst reqs
+    result = resultReqs newNode reqs
 
-  merge wenv oldState oldInst inst = resultReqs newInst reqs where
+  merge wenv oldState oldNode node = resultReqs newNode reqs where
     currState = fromMaybe state (useState oldState)
     oldValue = _ifsCurrValue currState
     oldText = _ifsCurrText currState
@@ -138,21 +136,20 @@ makeInputField config state = widget where
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv inst currState value newText newPos newSelStart
-    newInst = inst {
-      _wiWidget = makeInputField config newState
-    }
+    newState = newTextState wenv node currState value newText newPos newSelStart
+    newNode = node
+      & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
-    oldPath = _wiPath oldInst
-    newPath = _wiPath inst
-    updateFocus = isFocused wenv oldInst && oldPath /= newPath
+    oldPath = oldNode ^. L.widgetInstance . L.path
+    newPath = node ^. L.widgetInstance . L.path
+    updateFocus = isFocused wenv oldNode && oldPath /= newPath
     renderReqs
       | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
       | otherwise = []
     reqs = setModelValid (isJust parsedVal) ++ renderReqs
 
-  dispose wenv inst = resultReqs inst reqs where
-    path = _wiPath inst
+  dispose wenv node = resultReqs node reqs where
+    path = node ^. L.widgetInstance . L.path
     reqs = [ RenderStop path ]
 
   handleKeyPress wenv mod code
@@ -249,10 +246,10 @@ makeInputField config state = widget where
         | idx >= txtLen = txtLen
         | otherwise = idx
 
-  handleEvent wenv target evt inst = case evt of
+  handleEvent wenv target evt node = case evt of
     Click (Point x y) _ -> result where
-      style = activeStyle wenv inst
-      contentArea = getContentArea style inst
+      style = activeStyle wenv node
+      contentArea = getContentArea style node
       localX = x - _rX contentArea + _ifsOffset state
       textLen = getGlyphsMax (_ifsGlyphs state)
       glyphs
@@ -263,65 +260,65 @@ makeInputField config state = widget where
       cpm (_, g1) (_, g2) = compare g1 g2
       diffs = Seq.sortBy cpm pairs
       newPos = maybe 0 fst (Seq.lookup 0 diffs)
-      newState = newTextState wenv inst state currVal currText newPos Nothing
-      newInst = inst {
-        _wiWidget = makeInputField config newState
-      }
+      newState = newTextState wenv node state currVal currText newPos Nothing
+      newNode = node
+        & L.widget .~ makeInputField config newState
       result
-        | isFocused wenv inst = Just $ resultWidget newInst
-        | otherwise = Just $ resultReqs newInst [SetFocus $ _wiPath inst]
+        | isFocused wenv node = Just $ resultWidget newNode
+        | otherwise = Just $ resultReqs newNode [SetFocus path]
 
     KeyAction mod code KeyPressed -> result where
       isPaste = isClipboardPaste wenv evt
       isCopy = isClipboardCopy wenv evt
-      reqGetClipboard = [GetClipboard (_wiPath inst) | isPaste]
+      reqGetClipboard = [GetClipboard path | isPaste]
       reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
       clipReqs = reqGetClipboard ++ reqSetClipboard
       keyRes = handleKeyPress wenv mod code
       handleKeyRes (newText, newPos, newSel) = result where
-        result = genInputResult wenv inst False newText newPos newSel clipReqs
+        result = genInputResult wenv node False newText newPos newSel clipReqs
       result
         | isJust keyRes = Just $ handleKeyRes (fromJust keyRes)
-        | not (null clipReqs) = Just $ resultReqs inst clipReqs
+        | not (null clipReqs) = Just $ resultReqs node clipReqs
         | otherwise = Nothing
 
-    TextInput newText -> insertText wenv inst newText
+    TextInput newText -> result where
+      result = insertText wenv node newText
 
-    Clipboard (ClipboardText newText) ->  insertText wenv inst newText
+    Clipboard (ClipboardText newText) -> result where
+      result = insertText wenv node newText
 
     Focus -> Just result where
       newState = state {
         _ifsSelStart = Just 0,
         _ifsCursorPos = T.length currText
       }
-      newInst
-        | _ifcSelectOnFocus config && T.length currText > 0 = inst {
-            _wiWidget = makeInputField config newState
-          }
-        | otherwise = inst
-      path = _wiPath inst
-      viewport = _wiViewport inst
+      newNode
+        | _ifcSelectOnFocus config && T.length currText > 0 = node
+            & L.widget .~ makeInputField config newState
+        | otherwise = node
       reqs = [RenderEvery path caretMs, StartTextInput viewport]
-      newResult = resultReqs newInst reqs
-      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newInst
+      newResult = resultReqs newNode reqs
+      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
       result = maybe newResult (newResult <>) focusResult
 
     Blur -> Just result where
-      path = _wiPath inst
       reqs = [RenderStop path, StopTextInput]
-      newResult = resultReqs inst reqs
-      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config inst
+      newResult = resultReqs node reqs
+      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config node
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing
+    where
+      path = node ^. L.widgetInstance . L.path
+      viewport = node ^. L.widgetInstance . L.viewport
 
-  insertText wenv inst addedText = Just result where
+  insertText wenv node addedText = Just result where
     addedLen = T.length addedText
     newText = replaceText currText addedText
     newPos
       | isJust currSel = addedLen + min currPos (fromJust currSel)
       | otherwise = addedLen + currPos
-    result = genInputResult wenv inst True newText newPos Nothing []
+    result = genInputResult wenv node True newText newPos Nothing []
 
   replaceText txt newTxt
     | isJust currSel = T.take start txt <> newTxt <> T.drop end txt
@@ -337,7 +334,7 @@ makeInputField config state = widget where
       start = min currPos (fromJust currSel)
       end = max currPos (fromJust currSel)
 
-  genInputResult wenv inst textAdd newText newPos newSel newReqs = result where
+  genInputResult wenv node textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText
     hasChanged = currText /= newText
     newVal = fromText newText
@@ -356,33 +353,30 @@ makeInputField config state = widget where
       | stateVal /= currVal = _ifcOnChangeReq config
       | otherwise = []
     reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
-    newState = newTextState wenv inst state stateVal newText newPos newSel
-    newInst = inst {
-      _wiWidget = makeInputField config newState
-    }
+    newState = newTextState wenv node state stateVal newText newPos newSel
+    newNode = node
+      & L.widget .~ makeInputField config newState
     result
-      | isValid || not textAdd = resultReqsEvts newInst reqs events
-      | otherwise = resultReqsEvts inst reqs events
+      | isValid || not textAdd = resultReqsEvts newNode reqs events
+      | otherwise = resultReqsEvts node reqs events
 
-  getSizeReq wenv inst = sizeReq where
-    style = activeStyle wenv inst
+  getSizeReq wenv node = sizeReq where
+    style = activeStyle wenv node
     Size w h = getTextSize wenv style currText
     targetW = max w 100
     factor = 1
     sizeReq = (FlexSize targetW factor, FixedSize h)
 
-  resize wenv viewport renderArea inst = newInst where
+  resize wenv viewport renderArea node = newNode where
     -- newTextState depends on having correct viewport/renderArea
-    tempInst = inst {
-      _wiViewport = viewport,
-      _wiRenderArea = renderArea
-    }
-    newState = newTextState wenv tempInst state currVal currText currPos currSel
-    newInst = tempInst {
-      _wiWidget = makeInputField config newState
-    }
+    tempNode = node
+      & L.widgetInstance . L.viewport .~ viewport
+      & L.widgetInstance . L.renderArea .~ renderArea
+    newState = newTextState wenv tempNode state currVal currText currPos currSel
+    newNode = tempNode
+      & L.widget .~ makeInputField config newState
 
-  render renderer wenv inst = do
+  render renderer wenv node = do
     setScissor renderer contentArea
 
     when (selRequired && isJust currSel) $
@@ -395,8 +389,8 @@ makeInputField config state = widget where
 
     resetScissor renderer
     where
-      style = activeStyle wenv inst
-      contentArea = getContentArea style inst
+      style = activeStyle wenv node
+      contentArea = getContentArea style node
       Rect cx cy cw ch = contentArea
       textRect = _ifsTextRect state
       textMetrics = _ifsTextMetrics state
@@ -411,9 +405,9 @@ makeInputField config state = widget where
       nglyphs = Seq.length currGlyphs
       glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
-      selRequired = isFocused wenv inst
+      selRequired = isFocused wenv node
       selColor = styleHlColor style
-      caretRequired = isFocused wenv inst && ts `mod` 1000 < 500
+      caretRequired = isFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
       caretPos
         | currPos == 0 = 0
@@ -440,16 +434,16 @@ renderContent renderer state style currText = do
 newTextState
   :: (Eq a, Default a)
   => WidgetEnv s e
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> InputFieldState a
   -> a
   -> Text
   -> Int
   -> Maybe Int
   -> InputFieldState a
-newTextState wenv inst oldState value text cursor selection = newState where
-  style = activeStyle wenv inst
-  contentArea = getContentArea style inst
+newTextState wenv node oldState value text cursor selection = newState where
+  style = activeStyle wenv node
+  contentArea = getContentArea style node
   !(Rect cx cy cw ch) = contentArea
   textStyle = fromMaybe def (_sstText style)
   alignH = fromMaybe ALeft (_txsAlignH textStyle)

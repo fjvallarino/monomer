@@ -126,76 +126,76 @@ mockWenv model = WidgetEnv {
 mockWenvEvtUnit :: s -> WidgetEnv s ()
 mockWenvEvtUnit model = mockWenv model
 
-instInit :: WidgetEnv s e -> WidgetInstance s e -> WidgetInstance s e
-instInit wenv inst = newInst where
-  WidgetResult inst2 _ _ = widgetInit (_wiWidget inst) wenv inst
+nodeInit :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
+nodeInit wenv node = newNode where
+  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   Size w h = _weAppWindowSize wenv
   vp = Rect 0 0 w h
-  newInst = instResize wenv vp inst2
+  newNode = nodeResize wenv vp node2
 
-instUpdateSizeReq :: WidgetEnv s e -> WidgetInstance s e -> (SizeReq, SizeReq)
-instUpdateSizeReq wenv inst = (sizeReqW,  sizeReqH) where
-  WidgetResult inst2 _ _ = widgetInit (_wiWidget inst) wenv inst
-  reqInst = widgetGetSizeReq (_wiWidget inst2) wenv inst2
-  sizeReqW = reqInst ^. L.sizeReqW
-  sizeReqH = reqInst ^. L.sizeReqH
+nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
+nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
+  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
+  reqNode = widgetGetSizeReq (node2 ^. L.widget) wenv node2
+  sizeReqW = reqNode ^. L.sizeReqW
+  sizeReqH = reqNode ^. L.sizeReqH
 
-instResize :: WidgetEnv s e -> Rect -> WidgetInstance s e -> WidgetInstance s e
-instResize wenv viewport inst = newInst where
-  newInst = resizeWidget wenv viewport viewport inst
+nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
+nodeResize wenv viewport node = newNode where
+  newNode = resizeWidget wenv viewport viewport node
 
-instHandleEventCtx
+nodeHandleEventCtx
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> MonomerContext s
-instHandleEventCtx wenv evts inst = ctx where
-  ctx = snd $ instHandleEvents wenv evts inst
+nodeHandleEventCtx wenv evts node = ctx where
+  ctx = snd $ nodeHandleEvents wenv evts node
 
-instHandleEventCtxModel
+nodeHandleEventCtxModel
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> s
-instHandleEventCtxModel wenv evts inst = ctx where
-  ctx = _mcMainModel (instHandleEventCtx wenv evts inst)
+nodeHandleEventCtxModel wenv evts node = ctx where
+  ctx = _mcMainModel (nodeHandleEventCtx wenv evts node)
 
-instHandleEventModel
+nodeHandleEventModel
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> s
-instHandleEventModel wenv evts inst = _weModel wenv2 where
-  (wenv2, _, _) = fst $ instHandleEvents wenv evts inst
+nodeHandleEventModel wenv evts node = _weModel wenv2 where
+  (wenv2, _, _) = fst $ nodeHandleEvents wenv evts node
 
-instHandleEventEvts
+nodeHandleEventEvts
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> Seq e
-instHandleEventEvts wenv evts inst = events where
-  (_, events, _) = fst $ instHandleEvents wenv evts inst
+nodeHandleEventEvts wenv evts node = events where
+  (_, events, _) = fst $ nodeHandleEvents wenv evts node
 
-instHandleEventRoot
+nodeHandleEventRoot
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
-  -> WidgetInstance s e
-instHandleEventRoot wenv evts inst = newRoot where
-  (_, _, newRoot) = fst $ instHandleEvents wenv evts inst
+  -> WidgetNode s e
+  -> WidgetNode s e
+nodeHandleEventRoot wenv evts node = newRoot where
+  (_, _, newRoot) = fst $ nodeHandleEvents wenv evts node
 
-instHandleEvents
+nodeHandleEvents
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> (HandlerStep s e, MonomerContext s)
-instHandleEvents wenv evts inst = unsafePerformIO $ do
+nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let winSize = testWindowSize
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
@@ -205,27 +205,27 @@ instHandleEvents wenv evts inst = unsafePerformIO $ do
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
   flip runStateT monomerContext $ do
-    (wenv2, _, newInst) <- handleWidgetInit wenv inst
-    let resizedInst = instResize wenv vp newInst
+    (wenv2, _, newNode) <- handleWidgetInit wenv node
+    let resizedNode = nodeResize wenv vp newNode
 
-    handleSystemEvents wenv2 evts resizedInst
+    handleSystemEvents wenv2 evts resizedNode
 
-instHandleEventModelNoInit
+nodeHandleEventModelNoInit
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> s
-instHandleEventModelNoInit wenv evts inst = _weModel wenv2 where
-  (wenv2, _, _) = fst $ instHandleEventsNoInit wenv evts inst
+nodeHandleEventModelNoInit wenv evts node = _weModel wenv2 where
+  (wenv2, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
 
-instHandleEventsNoInit
+nodeHandleEventsNoInit
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
-  -> WidgetInstance s e
+  -> WidgetNode s e
   -> (HandlerStep s e, MonomerContext s)
-instHandleEventsNoInit wenv evts inst = unsafePerformIO $ do
+nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   let winSize = testWindowSize
   let useHdpi = True
   let dpr = 1
@@ -234,7 +234,7 @@ instHandleEventsNoInit wenv evts inst = unsafePerformIO $ do
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
   flip runStateT monomerContext $
-    handleSystemEvents wenv evts inst
+    handleSystemEvents wenv evts node
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where

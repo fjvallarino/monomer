@@ -10,7 +10,7 @@ module Monomer.Widgets.Button (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.))
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
@@ -148,24 +148,23 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
-mainButton :: Text -> e -> WidgetInstance s e
+mainButton :: Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
-mainButton_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
+mainButton_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
   newConfigs = mainConfig : configs
 
-button :: Text -> e -> WidgetInstance s e
+button :: Text -> e -> WidgetNode s e
 button caption handler = button_ caption handler def
 
-button_ :: Text -> e -> [ButtonCfg s e] -> WidgetInstance s e
-button_ caption handler configs = buttonInstance where
+button_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
   state = BtnState caption Empty
   widget = makeButton config state
-  buttonInstance = (defaultWidgetInstance "button" widget) {
-    _wiFocusable = True
-  }
+  buttonNode = defaultWidgetNode "button" widget
+    & L.widgetInstance . L.focusable .~ True
 
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
@@ -185,33 +184,32 @@ makeButton config state = widget where
   trimSpaces = fromMaybe TrimSpaces (_btnTrim config)
   BtnState caption textLines = state
 
-  getBaseStyle wenv inst = case buttonType of
+  getBaseStyle wenv node = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
-  merge wenv oldState oldInst newInst = result where
+  merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget newInst {
-      _wiWidget = makeButton config newState
-    }
+    result = resultWidget $ newNode
+      & L.widget .~ makeButton config newState
 
-  handleEvent wenv ctx evt inst = case evt of
-    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config inst
-    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config inst
+  handleEvent wenv ctx evt node = case evt of
+    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
+    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config node
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where
         isSelectKey code = isKeyReturn code || isKeySpace code
     Click p _
-      | pointInViewport p inst -> Just result
+      | pointInViewport p node -> Just result
     _ -> Nothing
     where
       requests = _btnOnClickReq config
       events = _btnOnClick config
-      result = resultReqsEvts inst requests events
+      result = resultReqsEvts node requests events
 
-  getSizeReq wenv inst = (sizeW, sizeH) where
-    style = activeStyle wenv inst
+  getSizeReq wenv node = (sizeW, sizeH) where
+    style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
     factorW = fromMaybe 0.01 (_btnFactorW config)
@@ -223,23 +221,22 @@ makeButton config state = widget where
       | abs factorH < 0.01 = FixedSize h
       | otherwise = FlexSize h factorH
 
-  resize wenv viewport renderArea inst = newInst where
-    style = activeStyle wenv inst
+  resize wenv viewport renderArea node = newNode where
+    style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
     newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
     newWidget = makeButton config (BtnState caption newLines)
-    newInst = inst {
-      _wiWidget = newWidget
-    }
+    newNode = node
+      & L.widget .~ newWidget
 
-  render renderer wenv inst = do
+  render renderer wenv node = do
     when isPressed $
       drawRect renderer renderArea bgColor (_sstRadius style)
     forM_ textLines (drawTextLine renderer style)
 
     where
-      style = activeStyle wenv inst
+      style = activeStyle wenv node
       inputStatus = wenv ^. L.inputStatus
-      renderArea = _wiRenderArea inst
+      renderArea = node ^. L.widgetInstance . L.renderArea
       isPressed = isButtonPressedInRect inputStatus LeftBtn renderArea
       bgColor = Just $ Color 0 0 0 0.2

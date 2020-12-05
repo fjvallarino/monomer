@@ -35,15 +35,15 @@ import qualified Monomer.Lens as L
 infixl 5 `key`
 infixl 5 `visible`
 
-key :: WidgetInstance s e -> Text -> WidgetInstance s e
-key inst key = inst & L.key ?~ WidgetKey key
+key :: WidgetNode s e -> Text -> WidgetNode s e
+key node key = node & L.widgetInstance . L.key ?~ WidgetKey key
 
-visible :: WidgetInstance s e -> Bool -> WidgetInstance s e
-visible inst visibility = inst & L.visible .~ visibility
+visible :: WidgetNode s e -> Bool -> WidgetNode s e
+visible node visibility = node & L.widgetInstance . L.visible .~ visibility
 
-getContentArea :: StyleState -> WidgetInstance s e -> Rect
-getContentArea style inst = fromMaybe def area where
-  area = removeOuterBounds style (_wiRenderArea inst)
+getContentArea :: StyleState -> WidgetNode s e -> Rect
+getContentArea style node = fromMaybe def area where
+  area = removeOuterBounds style (node ^. L.widgetInstance . L.renderArea)
 
 instance CmbStyle Style where
   style oldStyle states = newStyle where
@@ -65,28 +65,28 @@ instance CmbDisabled Style where
     state = mconcat states
     newStyle = oldStyle & L.disabled ?~ state
 
-instance CmbStyle (WidgetInstance s e) where
-  style inst states = inst & L.style .~ newStyle where
+instance CmbStyle (WidgetNode s e) where
+  style node states = node & L.widgetInstance . L.style .~ newStyle where
     state = mconcat states
-    oldStyle = inst ^. L.style
+    oldStyle = node ^. L.widgetInstance . L.style
     newStyle = oldStyle & L.basic ?~ state
 
-instance CmbHover (WidgetInstance s e) where
-  hover inst states = inst & L.style .~ newStyle where
+instance CmbHover (WidgetNode s e) where
+  hover node states = node & L.widgetInstance . L.style .~ newStyle where
     state = mconcat states
-    oldStyle = inst ^. L.style
+    oldStyle = node ^. L.widgetInstance . L.style
     newStyle = oldStyle & L.hover ?~ state
 
-instance CmbFocus (WidgetInstance s e) where
-  focus inst states = inst & L.style .~ newStyle where
+instance CmbFocus (WidgetNode s e) where
+  focus node states = node & L.widgetInstance . L.style .~ newStyle where
     state = mconcat states
-    oldStyle = inst ^. L.style
+    oldStyle = node ^. L.widgetInstance . L.style
     newStyle = oldStyle & L.focus ?~ state
 
-instance CmbDisabled (WidgetInstance s e) where
-  disabled inst states = inst & L.style .~ newStyle where
+instance CmbDisabled (WidgetNode s e) where
+  disabled node states = node & L.widgetInstance . L.style .~ newStyle where
     state = mconcat states
-    oldStyle = inst ^. L.style
+    oldStyle = node ^. L.widgetInstance . L.style
     newStyle = oldStyle & L.disabled ?~ state
 
 styleFont :: StyleState -> Font

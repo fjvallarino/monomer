@@ -130,17 +130,17 @@ instance CmbOnChangeReq (IntegralFieldCfg s e a) s where
     _nfcOnChangeReq = [req]
   }
 
-integralField :: FormattableInt a => ALens' s a -> WidgetInstance s e
+integralField :: FormattableInt a => ALens' s a -> WidgetNode s e
 integralField field = integralField_ field def
 
 integralField_
   :: FormattableInt a
   => ALens' s a
   -> [IntegralFieldCfg s e a]
-  -> WidgetInstance s e
+  -> WidgetNode s e
 integralField_ field configs = integralFieldD_ (WidgetLens field) configs
 
-integralFieldV :: FormattableInt a => a -> (a -> e) -> WidgetInstance s e
+integralFieldV :: FormattableInt a => a -> (a -> e) -> WidgetNode s e
 integralFieldV value handler = integralFieldV_ value handler def
 
 integralFieldV_
@@ -148,18 +148,18 @@ integralFieldV_
   => a
   -> (a -> e)
   -> [IntegralFieldCfg s e a]
-  -> WidgetInstance s e
-integralFieldV_ value handler configs = newInst where
+  -> WidgetNode s e
+integralFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
-  newInst = integralFieldD_ widgetData newConfigs
+  newNode = integralFieldD_ widgetData newConfigs
 
 integralFieldD_
   :: FormattableInt a
   => WidgetData s a
   -> [IntegralFieldCfg s e a]
-  -> WidgetInstance s e
-integralFieldD_ widgetData configs = newInst where
+  -> WidgetNode s e
+integralFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
@@ -180,7 +180,7 @@ integralFieldD_ widgetData configs = newInst where
     _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }
-  newInst = inputField_ "integralField" inputConfig
+  newNode = inputField_ "integralField" inputConfig
 
 integralFromText :: FormattableInt a => Maybe a -> Maybe a -> Text -> Maybe a
 integralFromText minVal maxVal t = case signed decimal t of

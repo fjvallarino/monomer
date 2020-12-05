@@ -59,12 +59,12 @@ handleEventFirstVisible = describe "handleEventFirstVisible" $ do
 
   where
     wenv = mockWenv ()
-    zstackInst = zstack [
+    zstackNode = zstack [
         button "Click 1" (BtnClick 1),
         button "Click 2" (BtnClick 2),
         button "Click 3" (BtnClick 3) `visible` False
       ]
-    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] zstackInst
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] zstackNode
 
 handleEventAllLayersActive :: Spec
 handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
@@ -76,14 +76,14 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
 
   where
     wenv = mockWenv ()
-    zstackInst = zstack_ [
+    zstackNode = zstack_ [
         button "Click 1" (BtnClick 1),
         hstack_ [
           button "Click 2" (BtnClick 2) `style` [width 100]
         ] [ignoreEmptyClick True],
         button "Click 3" (BtnClick 3) `visible` False
       ] [onlyTopActive False]
-    clickEvts p = instHandleEventEvts wenv [Click p LeftBtn] zstackInst
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] zstackNode
 
 handleEventFocusTop :: Spec
 handleEventFocusTop = describe "handleEventFocusTop" $
@@ -94,11 +94,11 @@ handleEventFocusTop = describe "handleEventFocusTop" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    zstackInst = zstack [
+    zstackNode = zstack [
         textField textValue1,
         textField textValue2
       ]
-    model es = instHandleEventModel wenv es zstackInst
+    model es = nodeHandleEventModel wenv es zstackNode
 
 handleEventFocusAll :: Spec
 handleEventFocusAll = describe "handleEventFocusAll" $
@@ -109,11 +109,11 @@ handleEventFocusAll = describe "handleEventFocusAll" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    zstackInst = zstack_ [
+    zstackNode = zstack_ [
         textField textValue1,
         textField textValue2
       ] [onlyTopActive False]
-    model es = instHandleEventModel wenv es zstackInst
+    model es = nodeHandleEventModel wenv es zstackNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -131,8 +131,8 @@ updateSizeReqEmpty = describe "empty" $ do
 
   where
     wenv = mockWenv ()
-    zstackInst = zstack []
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv zstackInst
+    zstackNode = zstack []
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
 
 updateSizeReqItems :: Spec
 updateSizeReqItems = describe "several items, horizontal" $ do
@@ -144,7 +144,7 @@ updateSizeReqItems = describe "several items, horizontal" $ do
 
   where
     wenv = mockWenv ()
-    zstackInst = zstack [
+    zstackNode = zstack [
         vstack [
           label "Label a1"
         ],
@@ -158,7 +158,7 @@ updateSizeReqItems = describe "several items, horizontal" $ do
           label "Label c3"
         ]
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv zstackInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
 
 updateSizeReqItemsFixed :: Spec
 updateSizeReqItemsFixed = describe "several items, horizontal" $ do
@@ -170,7 +170,7 @@ updateSizeReqItemsFixed = describe "several items, horizontal" $ do
 
   where
     wenv = mockWenv ()
-    zstackInst = zstack [
+    zstackNode = zstack [
         vstack [
           label "Label a1",
           label "Label a2"
@@ -180,7 +180,7 @@ updateSizeReqItemsFixed = describe "several items, horizontal" $ do
           label "Long b2"
         ] `style` [width 300]
       ]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv zstackInst
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
 
 resize :: Spec
 resize = describe "resize" $ do
@@ -198,10 +198,10 @@ resizeEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     vp = Rect 0 0 640 480
-    zstackInst = zstack []
-    newInst = instInit wenv zstackInst
-    viewport = _wiViewport newInst
-    children = _wiChildren newInst
+    zstackNode = zstack []
+    newNode = nodeInit wenv zstackNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    children = newNode ^. L.children
 
 resizeItems :: Spec
 resizeItems = describe "several items, horizontal" $ do
@@ -217,12 +217,12 @@ resizeItems = describe "several items, horizontal" $ do
   where
     wenv = mockWenv ()
     vp   = Rect 0 0 640 480
-    zstackInst = zstack [
+    zstackNode = zstack [
         label "Label 1",
         label "Label Number Two",
         label "Label 3"
       ]
-    newInst = instInit wenv zstackInst
-    viewport = _wiViewport newInst
-    childrenVp = _wiViewport <$> _wiChildren newInst
-    childrenRa = _wiRenderArea <$> _wiChildren newInst
+    newNode = nodeInit wenv zstackNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
+    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children

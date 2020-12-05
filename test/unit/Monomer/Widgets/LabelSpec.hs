@@ -33,10 +33,10 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblInst = label "Test label"
-    lblInst2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
-    (sizeReq2W, sizeReq2H) = instUpdateSizeReq wenv lblInst2
+    lblNode = label "Test label"
+    lblNode2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
+    (sizeReq2W, sizeReq2H) = nodeUpdateSizeReq wenv lblNode2
 
 updateSizeReqMulti :: Spec
 updateSizeReqMulti = describe "updateSizeReq" $ do
@@ -48,8 +48,8 @@ updateSizeReqMulti = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblInst = label_ "Line    line    line" [textMultiLine] `style` [width 50]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
+    lblNode = label_ "Line    line    line" [textMultiLine] `style` [width 50]
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
 
 updateSizeReqMultiKeepSpaces :: Spec
 updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
@@ -62,5 +62,5 @@ updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line"
-    lblInst = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv lblInst
+    lblNode = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode

@@ -24,9 +24,9 @@ textDropdown
   => ALens' s a
   -> t a
   -> (a -> Text)
-  -> WidgetInstance s e
-textDropdown field items toText = newInst where
-  newInst = textDropdown_ field items toText def
+  -> WidgetNode s e
+textDropdown field items toText = newNode where
+  newNode = textDropdown_ field items toText def
 
 textDropdown_
   :: (Traversable t, TextDropdownItem a)
@@ -34,9 +34,9 @@ textDropdown_
   -> t a
   -> (a -> Text)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
-textDropdown_ field items toText configs = newInst where
-  newInst = textDropdownD_ (WidgetLens field) items toText configs
+  -> WidgetNode s e
+textDropdown_ field items toText configs = newNode where
+  newNode = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
   :: (Traversable t, TextDropdownItem a)
@@ -44,9 +44,9 @@ textDropdownV
   -> (a -> e)
   -> t a
   -> (a -> Text)
-  -> WidgetInstance s e
-textDropdownV value handler items toText = newInst where
-  newInst = textDropdownV_ value handler items toText def
+  -> WidgetNode s e
+textDropdownV value handler items toText = newNode where
+  newNode = textDropdownV_ value handler items toText def
 
 textDropdownV_
   :: (Traversable t, TextDropdownItem a)
@@ -55,11 +55,11 @@ textDropdownV_
   -> t a
   -> (a -> Text)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
-textDropdownV_ value handler items toText configs = newInst where
+  -> WidgetNode s e
+textDropdownV_ value handler items toText configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
-  newInst = textDropdownD_ widgetData items toText newConfigs
+  newNode = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
   :: (Traversable t, TextDropdownItem a)
@@ -67,8 +67,8 @@ textDropdownD_
   -> t a
   -> (a -> Text)
   -> [DropdownCfg s e a]
-  -> WidgetInstance s e
-textDropdownD_ widgetData items toText configs = newInst where
+  -> WidgetNode s e
+textDropdownD_ widgetData items toText configs = newNode where
   makeMain = label . toText
   makeRow = label . toText
-  newInst = dropdownD_ widgetData items makeMain makeRow configs
+  newNode = dropdownD_ widgetData items makeMain makeRow configs

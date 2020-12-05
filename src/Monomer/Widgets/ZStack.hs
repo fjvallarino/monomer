@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.ZStack (
   zstack,
   zstack_,
@@ -5,6 +7,7 @@ module Monomer.Widgets.ZStack (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
@@ -14,6 +17,8 @@ import Data.Sequence (Seq(..), (<|), (|>))
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+
+import qualified Monomer.Lens as L
 
 newtype ZStackCfg = ZStackCfg {
   _zscOnlyTopActive :: Maybe Bool
@@ -35,19 +40,18 @@ onlyTopActive active = def {
   _zscOnlyTopActive = Just active
 }
 
-zstack :: (Traversable t) => t (WidgetInstance s e) -> WidgetInstance s e
+zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ children def
 
 zstack_
   :: (Traversable t)
-  => t (WidgetInstance s e)
+  => t (WidgetNode s e)
   -> [ZStackCfg]
-  -> WidgetInstance s e
-zstack_ children configs = newInst where
+  -> WidgetNode s e
+zstack_ children configs = newNode where
   config = mconcat configs
-  newInst = (defaultWidgetInstance "zstack" (makeZStack config)) {
-  _wiChildren = Seq.reverse $ foldl' (|>) Empty children
-}
+  newNode = defaultWidgetNode "zstack" (makeZStack config)
+    & L.children .~ Seq.reverse (foldl' (|>) Empty children)
 
 makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
@@ -63,27 +67,27 @@ makeZStack config = widget where
   }
 
   -- | Find instance matching point
-  findByPoint wenv startPath point inst = result where
+  findByPoint wenv startPath point node = result where
     onlyTop = fromMaybe True (_zscOnlyTopActive config)
-    children = _wiChildren inst
+    children = node ^. L.children
     vchildren
-      | onlyTop = Seq.take 1 $ Seq.filter _wiVisible children
-      | otherwise = Seq.filter _wiVisible children
+      | onlyTop = Seq.take 1 $ Seq.filter (_wiVisible . _wnWidgetInstance) children
+      | otherwise = Seq.filter (_wiVisible . _wnWidgetInstance) children
     newStartPath = Seq.drop 1 startPath
     result = findFirstByPoint vchildren wenv newStartPath point
 
-  findNextFocus wenv direction start inst = result where
+  findNextFocus wenv direction start node = result where
     onlyTop = fromMaybe True (_zscOnlyTopActive config)
-    children = _wiChildren inst
-    vchildren = Seq.filter _wiVisible children
+    children = node ^. L.children
+    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
     result
       | onlyTop = Seq.take 1 vchildren
       | otherwise = vchildren
 
-  getSizeReq wenv inst children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter _wiVisible children
-    newSizeReqW = getDimSizeReq _wiSizeReqW vchildren
-    newSizeReqH = getDimSizeReq _wiSizeReqH vchildren
+  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
+    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
+    newSizeReqW = getDimSizeReq (_wiSizeReqW . _wnWidgetInstance) vchildren
+    newSizeReqH = getDimSizeReq (_wiSizeReqH . _wnWidgetInstance) vchildren
 
   getDimSizeReq accesor vchildren
     | Seq.null vreqs = FixedSize 0
@@ -91,24 +95,24 @@ makeZStack config = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv viewport renderArea children inst = resized where
-    style = activeStyle wenv inst
+  resize wenv viewport renderArea children node = resized where
+    style = activeStyle wenv node
     raChild = fromMaybe def (removeOuterBounds style renderArea)
     vpChild = fromMaybe def (intersectRects viewport raChild)
     assignedAreas = fmap (const (vpChild, raChild)) children
-    resized = (inst, assignedAreas)
+    resized = (node, assignedAreas)
 
-  render renderer wenv inst =
+  render renderer wenv node =
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \_ ->
         void $ Seq.traverseWithIndex renderChild children
     where
-      style = activeStyle wenv inst
-      children = Seq.reverse $ _wiChildren inst
-      viewport = _wiViewport inst
-      renderArea = _wiRenderArea inst
-      isVisible c = _wiVisible c
-      topVisibleIdx = fromMaybe 0 (Seq.findIndexR _wiVisible children)
+      style = activeStyle wenv node
+      children = Seq.reverse $ node ^. L.children
+      viewport = node ^. L.widgetInstance . L.viewport
+      renderArea = node ^. L.widgetInstance . L.renderArea
+      isVisible c = c ^. L.widgetInstance . L.visible
+      topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wiVisible . _wnWidgetInstance) children)
       isTopLayer idx child point = prevTopLayer && isTopChild where
         isTopChild = idx == topVisibleIdx
         prevTopLayer = _weInTopLayer wenv point
@@ -116,18 +120,18 @@ makeZStack config = widget where
         _weInTopLayer = isTopLayer idx child
       }
       renderChild idx child = when (isVisible child) $
-        widgetRender (_wiWidget child) renderer (cWenv idx child) child
+        widgetRender (child ^. L.widget) renderer (cWenv idx child) child
 
 findFirstByPoint
-  :: Seq (WidgetInstance s e)
+  :: Seq (WidgetNode s e)
   -> WidgetEnv s e
   -> Seq PathStep
   -> Point
   -> Maybe Path
 findFirstByPoint Empty _ _ _ = Nothing
 findFirstByPoint (ch :<| chs) wenv startPath point = result where
-  isVisible = _wiVisible ch
-  newPath = widgetFindByPoint (_wiWidget ch) wenv startPath point ch
+  isVisible = ch ^. L.widgetInstance . L.visible
+  newPath = widgetFindByPoint (ch ^. L.widget) wenv startPath point ch
   result
     | isVisible && isJust newPath = newPath
     | otherwise = findFirstByPoint chs wenv startPath point

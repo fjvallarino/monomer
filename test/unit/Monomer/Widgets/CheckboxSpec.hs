@@ -58,31 +58,31 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel False)
-    chkInst = checkbox_ testBool [onFocus GotFocus, onBlur LostFocus]
-    clickModel p = instHandleEventModel wenv [Click p LeftBtn] chkInst
-    keyModel key = instHandleEventModel wenv [KeyAction def key KeyPressed] chkInst
-    events evt = instHandleEventEvts wenv [evt] chkInst
+    chkNode = checkbox_ testBool [onFocus GotFocus, onBlur LostFocus]
+    clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] chkNode
+    keyModel key = nodeHandleEventModel wenv [KeyAction def key KeyPressed] chkNode
+    events evt = nodeHandleEventEvts wenv [evt] chkNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickModel (Point 3000 3000) chkInst `shouldBe` Seq.empty
+    clickModel (Point 3000 3000) chkNode `shouldBe` Seq.empty
 
   it "should generate a user provided event when clicked" $
-    clickModel (Point 100 100) chkInst `shouldBe` Seq.singleton (BoolSel True)
+    clickModel (Point 100 100) chkNode `shouldBe` Seq.singleton (BoolSel True)
 
   it "should generate a user provided event when clicked (True -> False)" $
-    clickModel (Point 100 100) chkInstT `shouldBe` Seq.singleton (BoolSel False)
+    clickModel (Point 100 100) chkNodeT `shouldBe` Seq.singleton (BoolSel False)
 
   it "should generate a user provided event when Enter/Space is pressed" $
-    keyModel keyReturn chkInst `shouldBe` Seq.singleton (BoolSel True)
+    keyModel keyReturn chkNode `shouldBe` Seq.singleton (BoolSel True)
 
   where
     wenv = mockWenv (TestModel False)
-    chkInst = checkboxV False BoolSel
-    chkInstT = checkboxV True BoolSel
-    clickModel p inst = instHandleEventEvts wenv [Click p LeftBtn] inst
-    keyModel key inst = instHandleEventEvts wenv [KeyAction def key KeyPressed] inst
+    chkNode = checkboxV False BoolSel
+    chkNodeT = checkboxV True BoolSel
+    clickModel p node = nodeHandleEventEvts wenv [Click p LeftBtn] node
+    keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -94,4 +94,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel False) & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = instUpdateSizeReq wenv (checkbox testBool)
+    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (checkbox testBool)

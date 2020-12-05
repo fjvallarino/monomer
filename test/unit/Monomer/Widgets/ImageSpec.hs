@@ -1,5 +1,6 @@
 module Monomer.Widgets.ImageSpec (spec) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -9,6 +10,8 @@ import Monomer.Core
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.Widgets.Image
+
+import qualified Monomer.Lens as L
 
 spec :: Spec
 spec = describe "Image"
@@ -32,9 +35,9 @@ initMergeWidget = describe "init/merge" $ do
     inst1 = image "assets/images/beach.jpg"
     inst2 = image "assets/images/beach.jpg"
     inst3 = image "assets/images/beach2.jpg"
-    WidgetResult newInst1 reqs1 _ = widgetInit (_wiWidget inst1) wenv inst1
-    WidgetResult _ reqs2 _ = widgetMerge (_wiWidget inst2) wenv newInst1 inst2
-    WidgetResult _ reqs3 _ = widgetMerge (_wiWidget inst3) wenv newInst1 inst3
+    WidgetResult newInst1 reqs1 _ = widgetInit (inst1 ^. L.widget) wenv inst1
+    WidgetResult _ reqs2 _ = widgetMerge (inst2 ^. L.widget) wenv newInst1 inst2
+    WidgetResult _ reqs3 _ = widgetMerge (inst3 ^. L.widget) wenv newInst1 inst3
 
 isRunTask :: WidgetRequest s -> Bool
 isRunTask RunTask{} = True

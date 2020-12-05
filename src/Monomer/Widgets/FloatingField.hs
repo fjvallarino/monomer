@@ -140,19 +140,19 @@ instance CmbOnChangeReq (FloatingFieldCfg s e a) s where
 
 floatingField
   :: FormattableFloat a
-  => ALens' s a -> WidgetInstance s e
+  => ALens' s a -> WidgetNode s e
 floatingField field = floatingField_ field def
 
 floatingField_
   :: FormattableFloat a
   => ALens' s a
   -> [FloatingFieldCfg s e a]
-  -> WidgetInstance s e
+  -> WidgetNode s e
 floatingField_ field configs = floatingFieldD_ (WidgetLens field) configs
 
 floatingFieldV
   :: FormattableFloat a
-  => a -> (a -> e) -> WidgetInstance s e
+  => a -> (a -> e) -> WidgetNode s e
 floatingFieldV value handler = floatingFieldV_ value handler def
 
 floatingFieldV_
@@ -160,18 +160,18 @@ floatingFieldV_
   => a
   -> (a -> e)
   -> [FloatingFieldCfg s e a]
-  -> WidgetInstance s e
-floatingFieldV_ value handler configs = newInst where
+  -> WidgetNode s e
+floatingFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
-  newInst = floatingFieldD_ widgetData newConfigs
+  newNode = floatingFieldD_ widgetData newConfigs
 
 floatingFieldD_
   :: FormattableFloat a
   => WidgetData s a
   -> [FloatingFieldCfg s e a]
-  -> WidgetInstance s e
-floatingFieldD_ widgetData configs = newInst where
+  -> WidgetNode s e
+floatingFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _ffcMinValue config
   maxVal = _ffcMaxValue config
@@ -193,7 +193,7 @@ floatingFieldD_ widgetData configs = newInst where
     _ifcOnChange = _ffcOnChange config,
     _ifcOnChangeReq = _ffcOnChangeReq config
   }
-  newInst = inputField_ "floatingField" inputConfig
+  newNode = inputField_ "floatingField" inputConfig
 
 floatFromText :: FormattableFloat a => Maybe a -> Maybe a -> Text -> Maybe a
 floatFromText minVal maxVal t = case signed rational t of

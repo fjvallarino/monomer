@@ -12,15 +12,15 @@ import qualified Monomer.Lens as L
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOS wenv == "Mac OS X"
 
-widgetTreeDesc :: Int -> WidgetInstance s e -> String
-widgetTreeDesc level inst = desc where
-  desc = instanceDesc level inst ++ "\n" ++ childDesc
-  childDesc = foldMap (widgetTreeDesc (level + 1)) (_wiChildren inst)
+widgetTreeDesc :: Int -> WidgetNode s e -> String
+widgetTreeDesc level node = desc where
+  desc = instanceDesc level node ++ "\n" ++ childDesc
+  childDesc = foldMap (widgetTreeDesc (level + 1)) (_wnChildren node)
 
-instanceDesc :: Int -> WidgetInstance s e -> String
-instanceDesc level inst = instDesc inst where
+instanceDesc :: Int -> WidgetNode s e -> String
+instanceDesc level node = instDesc (_wnWidgetInstance node) where
   spaces = replicate (level * 2) ' '
-  instDesc i =
+  instDesc inst =
     spaces ++ "type: " ++ unWidgetType (_wiWidgetType inst) ++ "\n" ++
     spaces ++ "path: " ++ show (_wiPath inst) ++ "\n" ++
     spaces ++ "vp: " ++ rectDesc (_wiViewport inst) ++ "\n" ++

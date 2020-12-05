@@ -4,6 +4,7 @@
 module Monomer.Core.WidgetTypes where
 
 import Control.Lens (ALens')
+import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq)
 import Data.String (IsString(..))
@@ -17,7 +18,7 @@ import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 type Timestamp = Int
-type GlobalKeys s e = Map WidgetKey (WidgetInstance s e)
+type GlobalKeys s e = Map WidgetKey (WidgetNode s e)
 
 data FocusDirection
   = FocusFwd
@@ -80,7 +81,7 @@ data WidgetRequest s
   | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
-  _wrWidget :: WidgetInstance s e,
+  _wrWidget :: WidgetNode s e,
   _wrRequests :: Seq (WidgetRequest s),
   _wrEvents :: Seq e
 }
@@ -94,7 +95,7 @@ instance Semigroup (WidgetResult s e) where
   }
 
 data WidgetSizeReq s e = WidgetSizeReq {
-  _wsrWidget :: WidgetInstance s e,
+  _wsrWidget :: WidgetNode s e,
   _wsrSizeReqW :: SizeReq,
   _wsrSizeReqH :: SizeReq
 } deriving (Show)
@@ -114,12 +115,21 @@ data WidgetEnv s e = WidgetEnv {
   _weInTopLayer :: Point -> Bool
 }
 
+data WidgetNode s e = WidgetNode {
+  -- | The actual widget
+  _wnWidget :: Widget s e,
+  -- | Common information about the instance
+  _wnWidgetInstance :: WidgetInstance,
+  -- | The children widget, if any
+  _wnChildren :: Seq (WidgetNode s e)
+}
+
 data Widget s e =
   Widget {
     -- | Performs widget initialization
     widgetInit
       :: WidgetEnv s e
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> WidgetResult s e,
     -- | Merges the current widget tree with the old one
     --
@@ -128,13 +138,13 @@ data Widget s e =
     -- New instance
     widgetMerge
       :: WidgetEnv s e
-      -> WidgetInstance s e
-      -> WidgetInstance s e
+      -> WidgetNode s e
+      -> WidgetNode s e
       -> WidgetResult s e,
     -- | Performs widget release
     widgetDispose
       :: WidgetEnv s e
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> WidgetResult s e,
     -- | Returns the current internal state, which can later be used when
     -- | merging widget trees
@@ -147,7 +157,7 @@ data Widget s e =
       :: WidgetEnv s e
       -> FocusDirection
       -> Path
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> Maybe Path,
     -- | Returns the path of the child item with the given coordinates, starting
     -- | on the given path
@@ -155,7 +165,7 @@ data Widget s e =
       :: WidgetEnv s e
       -> Path
       -> Point
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> Maybe Path,
     -- | Handles an event
     --
@@ -170,7 +180,7 @@ data Widget s e =
       :: WidgetEnv s e
       -> Path
       -> SystemEvent
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
@@ -183,12 +193,12 @@ data Widget s e =
       => WidgetEnv s e
       -> Path
       -> i
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> Maybe (WidgetResult s e),
     -- | Updates the sizeReq field for the widget
     widgetGetSizeReq
       :: WidgetEnv s e
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> WidgetSizeReq s e,
     -- | Resizes the children of this widget
     --
@@ -202,8 +212,8 @@ data Widget s e =
       :: WidgetEnv s e
       -> Rect
       -> Rect
-      -> WidgetInstance s e
-      -> WidgetInstance s e,
+      -> WidgetNode s e
+      -> WidgetNode s e,
     -- | Renders the widget
     --
     -- Renderer
@@ -214,12 +224,12 @@ data Widget s e =
     widgetRender
       :: Renderer
       -> WidgetEnv s e
-      -> WidgetInstance s e
+      -> WidgetNode s e
       -> IO ()
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
-data WidgetInstance s e =
+data WidgetInstance =
   WidgetInstance {
     -- | Type of the widget
     _wiWidgetType :: !WidgetType,
@@ -227,10 +237,6 @@ data WidgetInstance s e =
     _wiKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
     _wiPath :: !Path,
-    -- | The actual widget
-    _wiWidget :: Widget s e,
-    -- | The children widget, if any
-    _wiChildren :: Seq (WidgetInstance s e),
     -- | The preferred size for the widget
     _wiSizeReqW :: SizeReq,
     _wiSizeReqH :: SizeReq,
@@ -248,6 +254,21 @@ data WidgetInstance s e =
     _wiRenderArea :: !Rect,
     -- | Style attributes of the widget instance
     _wiStyle :: Style
+  } deriving (Eq, Show)
+
+instance Default WidgetInstance where
+  def = WidgetInstance {
+    _wiWidgetType = "",
+    _wiKey = Nothing,
+    _wiPath = rootPath,
+    _wiSizeReqW = def,
+    _wiSizeReqH = def,
+    _wiEnabled = True,
+    _wiVisible = True,
+    _wiFocusable = False,
+    _wiViewport = def,
+    _wiRenderArea = def,
+    _wiStyle = def
   }
 
 instance Show (WidgetRequest s) where
@@ -288,16 +309,8 @@ instance Show (WidgetEnv s e) where
     ++ ", _weTimestamp: " ++ show (_weTimestamp wenv)
     ++ " }"
 
-instance Show (WidgetInstance s e) where
-  show inst = "WidgetInstance "
-    ++ "{ _wiWidgetType: " ++ show (_wiWidgetType inst)
-    ++ ", _wiKey: " ++ show (_wiKey inst)
-    ++ ", _wiPath: " ++ show (_wiPath inst)
-    ++ ", _wiSizeReqW: " ++ show (_wiSizeReqW inst)
-    ++ ", _wiSizeReqH: " ++ show (_wiSizeReqH inst)
-    ++ ", _wiEnabled: " ++ show (_wiEnabled inst)
-    ++ ", _wiVisible: " ++ show (_wiVisible inst)
-    ++ ", _wiFocusable: " ++ show (_wiFocusable inst)
-    ++ ", _wiViewport: " ++ show (_wiViewport inst)
-    ++ ", _wiRenderArea: " ++ show (_wiRenderArea inst)
+instance Show (WidgetNode s e) where
+  show node = "WidgetNode "
+    ++ "{ _wnWidgetInstance: " ++ show (_wnWidgetInstance node)
+    ++ ", _wnChildren: " ++ show (_wnChildren node)
     ++ " }"
