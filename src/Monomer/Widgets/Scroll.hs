@@ -16,7 +16,7 @@ module Monomer.Widgets.Scroll (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (^?!), cloneLens, ix)
+import Control.Lens (ALens', (&), (^.), (.~), (?~), (^?!), cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -174,10 +174,9 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv oldState oldNode node = resultWidget newNode where
+  merge wenv oldState oldNode node = resultWidget newWidget where
     newState = fromMaybe state (useState oldState)
-    newNode = node
-      & L.widget .~ makeScroll config newState
+    newWidget = makeScroll config newState
 
   handleEvent wenv target evt node = case evt of
     ButtonAction point btn status -> result where
@@ -194,26 +193,21 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newNode = rebuildWidget wenv newState node
-      handledResult = Just $ resultReqs newNode scrollReqs
+      handledResult = Just $ makeResult wenv node newState scrollReqs
       result
         | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
         | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
         | btnReleased && isDragging = handledResult
         | otherwise = Nothing
-    Move point -> result where
+    Move point -> fmap (result . drag) dragging where
       drag bar = updateScrollThumb state bar point contentArea sctx
-      makeWidget state = rebuildWidget wenv state node
-      makeResult state = resultReqs (makeWidget state) (RenderOnce : scrollReqs)
-      result = fmap (makeResult . drag) dragging
+      result newState = makeResult wenv node newState (RenderOnce : scrollReqs)
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > cw
       changedY = wy /= 0 && childHeight > ch
       needsUpdate = changedX || changedY
-      makeWidget state = rebuildWidget wenv state node
-      makeResult state = resultReqs (makeWidget state) scrollReqs
       result
-        | needsUpdate = Just $ makeResult newState
+        | needsUpdate = Just $ makeResult wenv node newState scrollReqs
         | otherwise = Nothing
       stepX
         | wheelDirection == WheelNormal = -wheelRate * wx
@@ -232,6 +226,13 @@ makeScroll config state = widget where
       Rect cx cy cw ch = contentArea
       sctx@ScrollContext{..} = scrollStatus config wenv state node
       scrollReqs = [IgnoreChildrenEvents, IgnoreParentEvents]
+
+  makeResult wenv node newState reqs = result where
+    newNode = rebuildWidget wenv newState node
+    result = def
+      & L.widget ?~ newNode ^. L.widget
+      & L.children ?~ newNode ^. L.children
+      & L.requests .~ Seq.fromList reqs
 
   scrollAxis reqDelta childLength vpLength
     | maxDelta == 0 = 0
@@ -265,10 +266,9 @@ makeScroll config state = widget where
       _sstDeltaX = scrollAxis stepX childWidth cw,
       _sstDeltaY = scrollAxis stepY childHeight ch
     }
-    newNode = rebuildWidget wenv newState node
     result
       | rectInRect rect contentArea = Nothing
-      | otherwise = Just $ resultWidget newNode
+      | otherwise = Just $ makeResult wenv node newState []
 
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point

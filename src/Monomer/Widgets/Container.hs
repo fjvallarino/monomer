@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -32,7 +33,7 @@ module Monomer.Widgets.Container (
   defaultRender
 ) where
 
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (.~), (?~), (%~))
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
@@ -184,15 +185,14 @@ createThemed
   -> (WidgetEnv s e -> WidgetNode s e)
   -> WidgetNode s e
 createThemed widgetType factory = newNode where
-  createNode wenv node = resultWidget themedNode where
+  createNode wenv node = result where
     inst = node ^. L.widgetInstance
     tempNode = factory wenv
     tempInst = tempNode ^. L.widgetInstance
-    themedNode = node
-      & L.widget .~ tempNode ^. L.widget
-      & L.children .~ tempNode ^. L.children
-      & L.widgetInstance . L.focusable .~ tempInst ^. L.focusable
-      & L.widgetInstance . L.style .~ (tempInst ^. L.style <> inst ^. L.style)
+    result = def
+      & L.widget ?~ tempNode ^. L.widget
+      & L.children ?~ tempNode ^. L.children
+      & L.style ?~ (tempInst ^. L.style <> inst ^. L.style)
   init = createNode
   merge wenv oldState oldNode newNode = createNode wenv newNode
   newWidget = createContainer def {
@@ -207,7 +207,7 @@ defaultGetBaseStyle wenv inst = Nothing
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
-defaultInit wenv node = resultWidget node
+defaultInit wenv node = def
 
 initWrapper
   :: Container s e
@@ -218,21 +218,28 @@ initWrapper container wenv node = result where
   initHandler = containerInit container
   getBaseStyle = containerGetBaseStyle container
   styledNode = initInstanceStyle getBaseStyle wenv node
-  WidgetResult tempNode reqs events = initHandler wenv styledNode
+  styledRes = initHandler wenv styledNode
+  WidgetResultNode tempNode reqs events = mergeWidgetResult styledNode styledRes
   children = tempNode ^. L.children
-  initChild idx child = widgetInit newWidget wenv newChild where
+  initChild idx child = mergeWidgetResult newChild childRes where
     newChild = cascadeCtx tempNode child idx
     newWidget = newChild ^. L.widget
+    childRes = widgetInit newWidget wenv newChild
   results = Seq.mapWithIndex initChild children
-  newReqs = fold $ fmap _wrRequests results
-  newEvents = fold $ fmap _wrEvents results
-  newChildren = fmap _wrWidget results
-  newNode = tempNode & L.children .~ newChildren
-  result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
+  newChildren = fmap (^. L.widgetNode) results
+  newReqs = fold $ fmap (^. L.requests) results
+  newEvents = fold $ fmap (^. L.events) results
+  --newNode = tempNode & L.children .~ newChildren
+  result = def
+    & L.widget ?~ tempNode ^. L.widget
+    & L.style ?~ tempNode ^. L.widgetInstance . L.style
+    & L.children ?~ newChildren
+    & L.requests .~ reqs <> newReqs
+    & L.events .~ events <> newEvents
 
 -- | Merging
 defaultMerge :: ContainerMergeHandler s e
-defaultMerge wenv oldState oldNode newNode = resultWidget newNode
+defaultMerge wenv oldState oldNode newNode = def
 
 mergeWrapper
   :: Container s e
@@ -240,7 +247,7 @@ mergeWrapper
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
-mergeWrapper container wenv oldNode newNode = result where
+mergeWrapper container wenv oldNode newNode = toWidgetResult result where
   getBaseStyle = containerGetBaseStyle container
   mergeHandler = containerMerge container
   styledNode = initInstanceStyle getBaseStyle wenv newNode
@@ -253,25 +260,23 @@ mergeParent
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
-  -> WidgetResult s e
-mergeParent mergeHandler wenv oldNode newNode = result where
+  -> WidgetResultNode s e
+mergeParent mergeHandler wenv oldNode newNode = mergedResult where
   oldInst = oldNode ^. L.widgetInstance
   newInst = newNode ^. L.widgetInstance
   oldState = widgetGetState (oldNode ^. L.widget) wenv
-  tempNode = newNode
-    & L.widgetInstance . L.viewport .~ oldInst ^. L.viewport
-    & L.widgetInstance . L.renderArea .~ oldInst ^. L.renderArea
-    & L.widgetInstance . L.sizeReqW .~ oldInst ^. L.sizeReqW
-    & L.widgetInstance . L.sizeReqH .~ oldInst ^. L.sizeReqH
+  tempInst = oldInst & L.style .~ newInst ^. L.style
+  tempNode = newNode & L.widgetInstance .~ tempInst
   result = mergeHandler wenv oldState oldNode tempNode
+  mergedResult = mergeWidgetResult tempNode result
 
 mergeChildren
   :: WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetResult s e
-  -> WidgetResult s e
+  -> WidgetResultNode s e
+  -> WidgetResultNode s e
 mergeChildren wenv oldNode result = newResult where
-  WidgetResult uNode uReqs uEvents = result
+  WidgetResultNode uNode uReqs uEvents = result
   oldChildren = oldNode ^. L.children
   updatedChildren = uNode ^. L.children
   mergeChild idx child = cascadeCtx uNode child idx
@@ -279,28 +284,30 @@ mergeChildren wenv oldNode result = newResult where
   localKeys = buildLocalMap oldChildren
   cResult = mergeChildrenSeq wenv localKeys oldChildren newChildren
   (mergedResults, removedResults) = cResult
-  mergedChildren = fmap _wrWidget mergedResults
+  mergedChildren = fmap _wrnWidgetNode mergedResults
   concatSeq seqs = fold seqs
-  mergedReqs = concatSeq $ fmap _wrRequests mergedResults
-  mergedEvents = concatSeq $ fmap _wrEvents mergedResults
-  removedReqs = concatSeq $ fmap _wrRequests removedResults
-  removedEvents = concatSeq $ fmap _wrEvents removedResults
+  mergedReqs = concatSeq $ fmap (^. L.requests) mergedResults
+  mergedEvents = concatSeq $ fmap (^. L.events) mergedResults
+  removedReqs = concatSeq $ fmap (^. L.requests) removedResults
+  removedEvents = concatSeq $ fmap (^. L.events) removedResults
   mergedNode = uNode & L.children .~ mergedChildren
   newReqs = uReqs <> mergedReqs <> removedReqs
   newEvents = uEvents <> mergedEvents <> removedEvents
-  newResult = WidgetResult mergedNode newReqs newEvents
+  newResult = WidgetResultNode mergedNode newReqs newEvents
 
 mergeChildrenSeq
   :: WidgetEnv s e
   -> Map WidgetKey (WidgetNode s e)
   -> Seq (WidgetNode s e)
   -> Seq (WidgetNode s e)
-  -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
+  -> (Seq (WidgetResultNode s e), Seq (WidgetResultNode s e))
 mergeChildrenSeq wenv localKeys oldItems Empty = (Empty, removed) where
-  dispose child = widgetDispose (child ^. L.widget) wenv child
+  dispose child = mergeWidgetResult child childRes where
+    childRes = widgetDispose (child ^. L.widget) wenv child
   removed = fmap dispose oldItems
 mergeChildrenSeq wenv localKeys Empty newItems = (merged, Empty) where
-  init child = widgetInit (child ^. L.widget) wenv child
+  init child = mergeWidgetResult child childRes where
+    childRes = widgetInit (child ^. L.widget) wenv child
   merged = fmap init newItems
 mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
   oldChild :<| oldChildren = oldItems
@@ -309,9 +316,12 @@ mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
   newChildKey = newChild ^. L.widgetInstance . L.key
   oldKeyMatch = newChildKey >>= flip findWidgetByKey localKeys
   oldMatch = fromJust oldKeyMatch
-  mergedOld = widgetMerge newWidget wenv oldChild newChild
-  mergedKey = widgetMerge newWidget wenv oldMatch newChild
-  initNew = widgetInit newWidget wenv newChild
+  mergedOld = mergeWidgetResult newChild oldRes where
+    oldRes = widgetMerge newWidget wenv oldChild newChild
+  mergedKey = mergeWidgetResult newChild keyRes where
+    keyRes = widgetMerge newWidget wenv oldMatch newChild
+  initNew = mergeWidgetResult newChild initRes where
+    initRes = widgetInit newWidget wenv newChild
   isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
   (child, oldRest)
     | instanceMatches newChild oldChild = (mergedOld, oldChildren)
@@ -323,8 +333,8 @@ mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
 mergeChildrenCheckVisible
   :: WidgetNode s e
   -> WidgetNode s e
-  -> WidgetResult s e
-  -> WidgetResult s e
+  -> WidgetResultNode s e
+  -> WidgetResultNode s e
 mergeChildrenCheckVisible oldNode newNode result = newResult where
   newVisible = fmap (^. L.widgetInstance . L.visible) (newNode ^. L.children)
   oldVisible = fmap (^. L.widgetInstance . L.visible) (oldNode ^. L.children)
@@ -335,7 +345,7 @@ mergeChildrenCheckVisible oldNode newNode result = newResult where
 
 -- | Dispose handler
 defaultDispose :: ContainerInitHandler s e
-defaultDispose wenv node = resultWidget node
+defaultDispose wenv node = def
 
 disposeWrapper
   :: Container s e
@@ -344,13 +354,16 @@ disposeWrapper
   -> WidgetResult s e
 disposeWrapper container wenv node = result where
   disposeHandler = containerDispose container
-  WidgetResult tempNode reqs events = disposeHandler wenv node
+  tempResult = disposeHandler wenv node
+  WidgetResultNode tempNode reqs events = mergeWidgetResult node tempResult
   children = tempNode ^. L.children
   dispose child = widgetDispose (child ^. L.widget) wenv child
   results = fmap dispose children
   newReqs = fold $ fmap _wrRequests results
   newEvents = fold $ fmap _wrEvents results
-  result = WidgetResult node (reqs <> newReqs) (events <> newEvents)
+  result = def
+    & L.requests .~ reqs <> newReqs
+    & L.events .~ events <> newEvents
 
 -- | State Handling helpers
 defaultGetState :: ContainerGetStateHandler s e
@@ -464,38 +477,39 @@ handleEventWrapper container wenv target event node
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
     pResponse = pHandler wenv target event node
-    childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
+    pResponseN = fmap (mergeWidgetResult node) pResponse
+    childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponseN)
     cResponse
       | childrenIgnored || not (child ^. L.widgetInstance . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
+    cResponseN = fmap (mergeWidgetResult child) cResponse
     pResultStyled = handleStyleChange wenv target event style pResponse node
-    cResult = mergeParentChildEvts node pResponse cResponse childIdx
+    cResultN = mergeParentChildEvts node pResponseN cResponseN childIdx
+    cResult = fmap toWidgetResult cResultN
     cResultStyled = handleStyleChange wenv target event style cResult node
 
 mergeParentChildEvts
   :: WidgetNode s e
-  -> Maybe (WidgetResult s e)
-  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResultNode s e)
+  -> Maybe (WidgetResultNode s e)
   -> Int
-  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResultNode s e)
 mergeParentChildEvts _ Nothing Nothing _ = Nothing
 mergeParentChildEvts _ pResponse Nothing _ = pResponse
-mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
-    _wrWidget = replaceChild original (_wrWidget cResponse) idx
-  }
+mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse
+    & L.widgetNode .~ replaceChild original (cResponse ^. L.widgetNode) idx
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
-  | otherwise = Just $ WidgetResult newWidget requests userEvents
+  | otherwise = Just $ WidgetResultNode newWidget requests userEvents
   where
-    pWidget = _wrWidget pResponse
-    cWidget = _wrWidget cResponse
-    requests = _wrRequests pResponse >< _wrRequests cResponse
-    userEvents = _wrEvents pResponse >< _wrEvents cResponse
+    pWidget = pResponse ^. L.widgetNode
+    cWidget = cResponse ^. L.widgetNode
+    requests = pResponse ^. L.requests <> cResponse ^. L.requests
+    userEvents = pResponse ^. L.events <> cResponse ^. L.events
     newWidget = replaceChild pWidget cWidget idx
-    newChildResponse = cResponse {
-      _wrWidget = replaceChild original (_wrWidget cResponse) idx
-    }
+    newChildResponse = cResponse
+      & L.widgetNode .~ replaceChild original (cResponse ^. L.widgetNode) idx
 
 -- | Message Handling
 defaultHandleMessage :: ContainerMessageHandler s e
@@ -512,7 +526,7 @@ handleMessageWrapper
 handleMessageWrapper container wenv target arg node
   | targetReached = mHandler wenv target arg node
   | not targetValid = Nothing
-  | otherwise = messageResult
+  | otherwise = fmap toWidgetResult messageResult
   where
     mHandler = containerHandleMessage container
     targetReached = isTargetReached target node
@@ -521,10 +535,9 @@ handleMessageWrapper container wenv target arg node
     children = node ^. L.children
     child = Seq.index children childIdx
     message = widgetHandleMessage (child ^. L.widget) wenv target arg child
-    messageResult = updateChild <$> message
-    updateChild cr = cr {
-      _wrWidget = replaceChild node (_wrWidget cr) childIdx
-    }
+    messageResult = updateChild . mergeWidgetResult child <$> message
+    updateChild cr = cr
+      & L.widgetNode .~ replaceChild node (cr ^. L.widgetNode) childIdx
 
 -- | Preferred size
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e
@@ -624,13 +637,13 @@ renderContainer rHandler renderer wenv node =
     renderArea = node ^. L.widgetInstance . L.renderArea
 
 -- | Event Handling Helpers
-ignoreChildren :: WidgetResult s e -> Bool
+ignoreChildren :: WidgetResultNode s e -> Bool
 ignoreChildren result = not (Seq.null ignoreReqs) where
-  ignoreReqs = Seq.filter isIgnoreChildrenEvents (_wrRequests result)
+  ignoreReqs = Seq.filter isIgnoreChildrenEvents (result ^. L.requests)
 
-ignoreParent :: WidgetResult s e -> Bool
+ignoreParent :: WidgetResultNode s e -> Bool
 ignoreParent result = not (Seq.null ignoreReqs) where
-  ignoreReqs = Seq.filter isIgnoreParentEvents (_wrRequests result)
+  ignoreReqs = Seq.filter isIgnoreParentEvents (result ^. L.requests)
 
 replaceChild
   :: WidgetNode s e -> WidgetNode s e -> Int -> WidgetNode s e

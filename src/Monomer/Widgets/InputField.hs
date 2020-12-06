@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.InputField (
@@ -8,7 +9,7 @@ module Monomer.Widgets.InputField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, cloneLens, non)
+import Control.Lens (ALens', (&), (.~), (?~), (%~), (^.), (^?), _Just, cloneLens, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -113,13 +114,13 @@ makeInputField config state = widget where
   init wenv node = result where
     newValue = getModelValue wenv
     newState = newTextState wenv node state newValue (toText newValue) 0 Nothing
-    newNode = node
-      & L.widget .~ makeInputField config newState
     parsedVal = fromText (toText newValue)
     reqs = setModelValid (isJust parsedVal)
-    result = resultReqs newNode reqs
+    result = def
+      & L.widget ?~ makeInputField config newState
+      & L.requests .~ Seq.fromList reqs
 
-  merge wenv oldState oldNode node = resultReqs newNode reqs where
+  merge wenv oldState oldNode node = result where
     currState = fromMaybe state (useState oldState)
     oldValue = _ifsCurrValue currState
     oldText = _ifsCurrText currState
@@ -137,8 +138,6 @@ makeInputField config state = widget where
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
     newState = newTextState wenv node currState value newText newPos newSelStart
-    newNode = node
-      & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
     oldPath = oldNode ^. L.widgetInstance . L.path
     newPath = node ^. L.widgetInstance . L.path
@@ -147,8 +146,11 @@ makeInputField config state = widget where
       | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
       | otherwise = []
     reqs = setModelValid (isJust parsedVal) ++ renderReqs
+    result = def
+      & L.widget ?~ makeInputField config newState
+      & L.requests .~ Seq.fromList reqs
 
-  dispose wenv node = resultReqs node reqs where
+  dispose wenv node = resultReqs reqs where
     path = node ^. L.widgetInstance . L.path
     reqs = [ RenderStop path ]
 
@@ -261,11 +263,11 @@ makeInputField config state = widget where
       diffs = Seq.sortBy cpm pairs
       newPos = maybe 0 fst (Seq.lookup 0 diffs)
       newState = newTextState wenv node state currVal currText newPos Nothing
-      newNode = node
-        & L.widget .~ makeInputField config newState
+      tempResult = def
+        & L.widget ?~ makeInputField config newState
       result
-        | isFocused wenv node = Just $ resultWidget newNode
-        | otherwise = Just $ resultReqs newNode [SetFocus path]
+        | isFocused wenv node = Just tempResult
+        | otherwise = Just $ tempResult & L.requests %~ (|> SetFocus path)
 
     KeyAction mod code KeyPressed -> result where
       isPaste = isClipboardPaste wenv evt
@@ -278,7 +280,7 @@ makeInputField config state = widget where
         result = genInputResult wenv node False newText newPos newSel clipReqs
       result
         | isJust keyRes = Just $ handleKeyRes (fromJust keyRes)
-        | not (null clipReqs) = Just $ resultReqs node clipReqs
+        | not (null clipReqs) = Just $ resultReqs clipReqs
         | otherwise = Nothing
 
     TextInput newText -> result where
@@ -292,19 +294,19 @@ makeInputField config state = widget where
         _ifsSelStart = Just 0,
         _ifsCursorPos = T.length currText
       }
-      newNode
-        | _ifcSelectOnFocus config && T.length currText > 0 = node
-            & L.widget .~ makeInputField config newState
-        | otherwise = node
+      tempResult
+        | _ifcSelectOnFocus config && T.length currText > 0 = def
+            & L.widget ?~ makeInputField config newState
+        | otherwise = def
       reqs = [RenderEvery path caretMs, StartTextInput viewport]
-      newResult = resultReqs newNode reqs
-      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
+      newResult = tempResult & L.requests .~ Seq.fromList reqs
+      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config
       result = maybe newResult (newResult <>) focusResult
 
     Blur -> Just result where
       reqs = [RenderStop path, StopTextInput]
-      newResult = resultReqs node reqs
-      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config node
+      newResult = resultReqs reqs
+      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing
@@ -354,11 +356,12 @@ makeInputField config state = widget where
       | otherwise = []
     reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
     newState = newTextState wenv node state stateVal newText newPos newSel
-    newNode = node
-      & L.widget .~ makeInputField config newState
     result
-      | isValid || not textAdd = resultReqsEvts newNode reqs events
-      | otherwise = resultReqsEvts node reqs events
+      | isValid || not textAdd = def
+        & L.widget ?~ makeInputField config newState
+        & L.requests .~ Seq.fromList reqs
+        & L.events .~ Seq.fromList events
+      | otherwise = resultReqsEvts reqs events
 
   getSizeReq wenv node = sizeReq where
     style = activeStyle wenv node

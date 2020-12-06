@@ -124,7 +124,7 @@ handleStyleChange_
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 handleStyleChange_ wenv target evt style result cfg node = newResult where
-  baseResult = fromMaybe (resultWidget node) result
+  baseResult = fromMaybe def result
   sizeReqs = handleSizeChange wenv target evt cfg node
   cursorReqs = handleCursorChange wenv target evt style cfg node
   reqs = sizeReqs ++ cursorReqs

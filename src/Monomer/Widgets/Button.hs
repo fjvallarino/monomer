@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -10,7 +11,7 @@ module Monomer.Widgets.Button (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (?~))
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Maybe
@@ -190,12 +191,12 @@ makeButton config state = widget where
 
   merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget $ newNode
-      & L.widget .~ makeButton config newState
+    result = def
+      & L.widget ?~ makeButton config newState
 
   handleEvent wenv ctx evt node = case evt of
-    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
-    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config node
+    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config
+    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where
@@ -206,7 +207,7 @@ makeButton config state = widget where
     where
       requests = _btnOnClickReq config
       events = _btnOnClick config
-      result = resultReqsEvts node requests events
+      result = resultReqsEvts requests events
 
   getSizeReq wenv node = (sizeW, sizeH) where
     style = activeStyle wenv node

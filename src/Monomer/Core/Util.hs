@@ -1,13 +1,54 @@
 module Monomer.Core.Util where
 
 import Control.Lens ((&), (^.), (.~), (?~))
+import Data.Default
+import Data.Maybe
+import Data.Sequence (Seq)
 import Data.Text (Text)
+
+import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 
 import qualified Monomer.Lens as L
+
+mergeWidgetResult :: WidgetNode s e -> WidgetResult s e -> WidgetResultNode s e
+mergeWidgetResult node result = WidgetResultNode newNode requests events where
+  newStyle = fromMaybe (node ^. L.widgetInstance . L.style) (result ^. L.style)
+  newNode = node
+    & L.widget .~ fromMaybe (node ^. L.widget) (result ^. L.widget)
+    & L.widgetInstance . L.style .~ newStyle
+    & L.children .~ fromMaybe (node ^. L.children) (result ^. L.children)
+  requests = result ^. L.requests
+  events = result ^. L.events
+
+toWidgetResult :: WidgetResultNode s e -> WidgetResult s e
+toWidgetResult merged = result where
+  result = def
+    & L.widget ?~ merged ^. L.widgetNode . L.widget
+    & L.children ?~ merged ^. L.widgetNode . L.children
+    & L.style ?~ merged ^. L.widgetNode . L.widgetInstance . L.style
+    & L.requests .~ merged ^. L.requests
+    & L.events .~ merged ^. L.events
+
+resultWidget :: Widget s e -> WidgetResult s e
+resultWidget widget = def
+  & L.widget ?~ widget
+
+resultEvts :: [e] -> WidgetResult s e
+resultEvts events = def
+  & L.events .~ Seq.fromList events
+
+resultReqs :: [WidgetRequest s] -> WidgetResult s e
+resultReqs requests = def
+  & L.requests .~ Seq.fromList requests
+
+resultReqsEvts :: [WidgetRequest s] -> [e] -> WidgetResult s e
+resultReqsEvts requests events = def
+  & L.events .~ Seq.fromList events
+  & L.requests .~ Seq.fromList requests
 
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOS wenv == "Mac OS X"

@@ -328,7 +328,8 @@ Maybe postponed after release?
     - Restore GlobalKeys
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
-        -  This is necessary because s/e types may not match
+        - This is necessary because s/e types may not match
+    - Move/copy focusable/widgetType to Widget?
     - Remove children from WidgetNode
     - Use Widget instead of WidgetNode wherever possible
   - Split WidgetInstance into Definition and Instance, in order to:

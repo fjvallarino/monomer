@@ -12,8 +12,9 @@ module Monomer.Widgets.Single (
   createSingle
 ) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (?~))
 import Data.Default
+import Data.Maybe
 import Data.Typeable (Typeable)
 
 import Monomer.Core
@@ -145,7 +146,7 @@ defaultGetBaseStyle :: SingleGetBaseStyle s e
 defaultGetBaseStyle wenv node = Nothing
 
 defaultInit :: SingleInitHandler s e
-defaultInit wenv node = resultWidget node
+defaultInit wenv node = def
 
 initWrapper
   :: Single s e
@@ -156,10 +157,13 @@ initWrapper single wenv node = newResult where
   initHandler = singleInit single
   getBaseStyle = singleGetBaseStyle single
   styledNode = initInstanceStyle getBaseStyle wenv node
-  newResult = initHandler wenv styledNode
+  nodeStyle = styledNode ^. L.widgetInstance . L.style
+  tempResult = initHandler wenv styledNode
+  newResult = tempResult
+    & L.style ?~ fromMaybe nodeStyle (tempResult ^. L.style)
 
 defaultMerge :: SingleMergeHandler s e
-defaultMerge wenv oldState oldNode newNode = resultWidget newNode
+defaultMerge wenv oldState oldNode newNode = def
 
 mergeWrapper
   :: Single s e
@@ -172,16 +176,17 @@ mergeWrapper single wenv oldNode newNode = newResult where
   getBaseStyle = singleGetBaseStyle single
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   oldInst = oldNode ^. L.widgetInstance
-  tempNode = newNode
-    & L.widgetInstance . L.viewport .~ oldInst ^. L.viewport
-    & L.widgetInstance . L.renderArea .~ oldInst ^. L.renderArea
-    & L.widgetInstance . L.sizeReqW .~ oldInst ^. L.sizeReqW
-    & L.widgetInstance . L.sizeReqH .~ oldInst ^. L.sizeReqH
+  newInst = newNode ^. L.widgetInstance
+  tempInst = oldInst & L.style .~ newInst ^. L.style
+  tempNode = newNode & L.widgetInstance .~ tempInst
   styledNode = initInstanceStyle getBaseStyle wenv tempNode
-  newResult = mergeHandler wenv oldState oldNode styledNode
+  nodeStyle = styledNode ^. L.widgetInstance . L.style
+  tempResult = mergeHandler wenv oldState oldNode styledNode
+  newResult = tempResult
+    & L.style ?~ fromMaybe nodeStyle (tempResult ^. L.style)
 
 defaultDispose :: SingleDisposeHandler s e
-defaultDispose wenv node = resultWidget node
+defaultDispose wenv node = def
 
 defaultGetState :: SingleGetStateHandler s e
 defaultGetState wenv = Nothing

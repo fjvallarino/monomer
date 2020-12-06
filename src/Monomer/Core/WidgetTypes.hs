@@ -3,6 +3,7 @@
 
 module Monomer.Core.WidgetTypes where
 
+import Control.Applicative ((<|>))
 import Control.Lens (ALens')
 import Data.Default
 import Data.Map.Strict (Map)
@@ -81,18 +82,37 @@ data WidgetRequest s
   | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
-  _wrWidget :: WidgetNode s e,
+  _wrWidget :: Maybe (Widget s e),
+  _wrStyle :: Maybe Style,
+  _wrChildren :: Maybe (Seq (WidgetNode s e)),
   _wrRequests :: Seq (WidgetRequest s),
   _wrEvents :: Seq e
 }
 
+instance Default (WidgetResult s e) where
+  def = WidgetResult {
+    _wrWidget = Nothing,
+    _wrStyle = Nothing,
+    _wrChildren = Nothing,
+    _wrRequests = def,
+    _wrEvents = def
+  }
+
 -- This instance is lawless (there is not an empty widget): use with caution
 instance Semigroup (WidgetResult s e) where
   er1 <> er2 = WidgetResult {
-    _wrWidget = _wrWidget er2,
+    _wrWidget = _wrWidget er2 <|> _wrWidget er1,
+    _wrChildren = _wrChildren er2 <|> _wrChildren er1,
+    _wrStyle = _wrStyle er2 <|> _wrStyle er1,
     _wrRequests = _wrRequests er1 <> _wrRequests er2,
     _wrEvents = _wrEvents er1 <> _wrEvents er2
   }
+
+data WidgetResultNode s e = WidgetResultNode {
+  _wrnWidgetNode :: WidgetNode s e,
+  _wrnRequests :: Seq (WidgetRequest s),
+  _wrnEvents :: Seq e
+}
 
 data WidgetSizeReq s e = WidgetSizeReq {
   _wsrWidget :: WidgetNode s e,
@@ -298,7 +318,6 @@ instance Show (WidgetResult s e) where
   show result = "WidgetResult "
     ++ "{ _wrRequests: " ++ show (_wrRequests result)
     ++ ", _wrEvents: " ++ show (length (_wrEvents result))
-    ++ ", _wrWidget: " ++ show (_wrWidget result)
     ++ " }"
 
 instance Show (WidgetEnv s e) where

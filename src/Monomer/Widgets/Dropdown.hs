@@ -14,7 +14,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), _Just, non)
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (?~), (<>~), _Just, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -214,7 +214,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   isOpen = _isOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createDropdown wenv newState node = newNode where
+  createDropdown wenv newState node = result where
     selected = currentValue wenv
     mainStyle = collectTheme wenv L.dropdownStyle
     mainNode = makeMain selected
@@ -222,18 +222,18 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     path = node ^. L.widgetInstance . L.path
     listViewNode = makeListView wenv widgetData items makeRow config path
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
-    newNode = node
-      & L.widget .~ newWidget
-      & L.children .~ Seq.fromList [mainNode, listViewNode]
+    result = def
+      & L.widget ?~ newWidget
+      & L.children ?~ Seq.fromList [mainNode, listViewNode]
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dropdownStyle
 
-  init wenv node = resultWidget $ createDropdown wenv state node
+  init wenv node = createDropdown wenv state node
 
   merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    result = resultWidget $ createDropdown wenv newState newNode
+    result = createDropdown wenv newState newNode
 
   findNextFocus wenv direction start node
     | _isOpen state = node ^. L.children
@@ -249,7 +249,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
       where isKeyOpenDropdown = isKeyDown code || isKeyUp code
     _
-      | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
+      | not isOpen -> Just $ resultReqs [IgnoreChildrenEvents]
       | otherwise -> Nothing
 
   openRequired point node = not isOpen && inViewport where
@@ -260,23 +260,25 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Just node -> pointInRect point (node ^. L.widgetInstance . L.viewport)
       Nothing -> False
 
-  openDropdown wenv node = resultReqs newNode requests where
+  openDropdown wenv node = result where
     selected = currentValue wenv
     selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
-    newNode = node
-      & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     path = node ^. L.widgetInstance . L.path
     -- listView is wrapped by a scroll widget
     lvPath = path |> listIdx |> 0
     requests = [SetOverlay path, SetFocus lvPath]
+    result = def
+      & L.widget ?~ makeDropdown widgetData items makeMain makeRow config newState
+      & L.requests .~ Seq.fromList requests
 
-  closeDropdown wenv node = resultReqs newNode requests where
+  closeDropdown wenv node = result where
     path = node ^. L.widgetInstance . L.path
     newState = DropdownState False
-    newNode = node
-      & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay, SetFocus path]
+    result = def
+      & L.widget ?~ makeDropdown widgetData items makeMain makeRow config newState
+      & L.requests .~ Seq.fromList requests
 
   handleMessage wenv target msg node =
     cast msg >>= handleLvMsg wenv node
@@ -290,13 +292,16 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     }
 
   onChange wenv idx item node = result where
-    WidgetResult newNode reqs events = closeDropdown wenv node
+    --WidgetResult newNode reqs events = closeDropdown wenv node
+    tempResult = closeDropdown wenv node
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
     newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
-    result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
+    result = tempResult
+      & L.requests <>~ newReqs
+      & L.events <>~ newEvents
 
   getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0

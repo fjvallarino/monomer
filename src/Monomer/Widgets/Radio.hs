@@ -144,12 +144,12 @@ makeRadio field option config = widget where
       result = handleEvent wenv target evt node
 
   handleEvent wenv target evt node = case evt of
-    Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
-    Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
+    Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config
+    Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config
     Click p _
-      | pointInEllipse p rdArea -> Just $ resultReqsEvts node clickReqs events
+      | pointInEllipse p rdArea -> Just $ resultReqsEvts clickReqs events
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvts node reqs events
+      | isSelectKey code -> Just $ resultReqsEvts reqs events
     _ -> Nothing
     where
       rdArea = getRadioArea wenv node config

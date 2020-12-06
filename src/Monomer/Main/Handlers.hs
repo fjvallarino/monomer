@@ -18,6 +18,7 @@ import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (><), (|>))
@@ -70,13 +71,12 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
     Nothing -> return (wenv, Seq.empty, widgetRoot)
     Just target -> do
       let widget = widgetRoot ^. L.widget
-      let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
-      let widgetResult = fromMaybe emptyResult evtResult
+      let widgetResult = fromMaybe def evtResult
+      let widgetResultNode = mergeWidgetResult widgetRoot widgetResult
+            & L.requests %~ addFocusReq event
 
-      handleWidgetResult wenv widgetResult {
-        _wrRequests = addFocusReq event (_wrRequests widgetResult)
-      }
+      handleWidgetResult wenv widgetResultNode
 
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
@@ -95,8 +95,9 @@ handleWidgetInit
 handleWidgetInit wenv widgetRoot = do
   let widget = widgetRoot ^. L.widget
   let widgetResult = widgetInit widget wenv widgetRoot
+  let widgetResultNode = mergeWidgetResult widgetRoot widgetResult
 
-  handleWidgetResult wenv widgetResult
+  handleWidgetResult wenv widgetResultNode
 
 handleWidgetDispose
   :: (MonomerM s m)
@@ -106,15 +107,16 @@ handleWidgetDispose
 handleWidgetDispose wenv widgetRoot = do
   let widget = widgetRoot ^. L.widget
   let widgetResult = widgetDispose widget wenv widgetRoot
+  let widgetResultNode = mergeWidgetResult widgetRoot widgetResult
 
-  handleWidgetResult wenv widgetResult
+  handleWidgetResult wenv widgetResultNode
 
 handleWidgetResult
   :: (MonomerM s m)
   => WidgetEnv s e
-  -> WidgetResult s e
+  -> WidgetResultNode s e
   -> m (HandlerStep s e)
-handleWidgetResult wenv (WidgetResult evtRoot reqs events) =
+handleWidgetResult wenv (WidgetResultNode evtRoot reqs events) =
   handleRequests reqs (wenv, events, evtRoot)
     >>= handleResizeWidgets reqs
 
@@ -309,14 +311,15 @@ handleSendMessage
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleSendMessage path message (wenv, events, widgetRoot) = do
-  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+  let emptyResult = WidgetResultNode widgetRoot Seq.empty Seq.empty
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
-  let widgetResult = fromMaybe emptyResult msgResult
+  let widgetResult = fromMaybe def msgResult
+  let widgetResultNode = mergeWidgetResult widgetRoot widgetResult
 
-  (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv widgetResult
+  (newWenv, newEvents, newRoot) <- handleWidgetResult wenv widgetResultNode
 
-  return (newWenv, events >< newEvents, newWidgetRoot)
+  return (newWenv, events >< newEvents, newRoot)
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)

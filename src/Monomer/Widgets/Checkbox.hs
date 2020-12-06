@@ -127,12 +127,12 @@ makeCheckbox widgetData config = widget where
     style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv target evt node = case evt of
-    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
-    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
+    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config
+    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config
     Click p _
-      | pointInViewport p node -> Just $ resultReqsEvts node clickReqs events
+      | pointInViewport p node -> Just $ resultReqsEvts clickReqs events
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvts node reqs events
+      | isSelectKey code -> Just $ resultReqsEvts reqs events
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code

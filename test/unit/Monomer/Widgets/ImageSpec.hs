@@ -35,9 +35,10 @@ initMergeWidget = describe "init/merge" $ do
     inst1 = image "assets/images/beach.jpg"
     inst2 = image "assets/images/beach.jpg"
     inst3 = image "assets/images/beach2.jpg"
-    WidgetResult newInst1 reqs1 _ = widgetInit (inst1 ^. L.widget) wenv inst1
-    WidgetResult _ reqs2 _ = widgetMerge (inst2 ^. L.widget) wenv newInst1 inst2
-    WidgetResult _ reqs3 _ = widgetMerge (inst3 ^. L.widget) wenv newInst1 inst3
+    initRes = widgetInit (inst1 ^. L.widget) wenv inst1
+    WidgetResultNode newInst1 reqs1 _ = mergeWidgetResult inst1 initRes
+    reqs2 = widgetMerge (inst2 ^. L.widget) wenv newInst1 inst2 ^. L.requests
+    reqs3 = widgetMerge (inst3 ^. L.widget) wenv newInst1 inst3 ^. L.requests
 
 isRunTask :: WidgetRequest s -> Bool
 isRunTask RunTask{} = True

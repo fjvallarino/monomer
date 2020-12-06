@@ -8,10 +8,6 @@ module Monomer.Widgets.Util.Widget (
   isHovered,
   widgetDataGet,
   widgetDataSet,
-  resultWidget,
-  resultEvts,
-  resultReqs,
-  resultReqsEvts,
   makeState,
   useState,
   instanceMatches,
@@ -22,7 +18,7 @@ module Monomer.Widgets.Util.Widget (
   findWidgetByKey
 ) where
 
-import Control.Lens ((&), (^#), (#~), (^.), (.~))
+import Control.Lens ((&), (^#), (#~), (^.), (.~), (?~))
 import Data.Default
 import Data.Foldable (foldl')
 import Data.Maybe
@@ -74,21 +70,6 @@ widgetDataSet WidgetValue{} _ = []
 widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
-resultWidget :: WidgetNode s e -> WidgetResult s e
-resultWidget node = WidgetResult node Seq.empty Seq.empty
-
-resultEvts :: WidgetNode s e -> [e] -> WidgetResult s e
-resultEvts node events = result where
-  result = WidgetResult node Seq.empty (Seq.fromList events)
-
-resultReqs :: WidgetNode s e -> [WidgetRequest s] -> WidgetResult s e
-resultReqs node requests = result where
-  result = WidgetResult node (Seq.fromList requests) Seq.empty
-
-resultReqsEvts :: WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
-resultReqsEvts node requests events = result where
-  result = WidgetResult node (Seq.fromList requests) (Seq.fromList events)
-
 makeState :: Typeable i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
 
@@ -114,13 +95,14 @@ handleFocusChange
   :: (c -> [e])
   -> (c -> [WidgetRequest s])
   -> c
-  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleFocusChange evtFn reqFn config node = result where
+handleFocusChange evtFn reqFn config = result where
   evts = evtFn config
   reqs = reqFn config
   result
-    | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
+    | not (null evts && null reqs) = Just $ def
+        & L.requests .~ Seq.fromList reqs
+        & L.events .~ Seq.fromList evts
     | otherwise = Nothing
 
 resizeWidget
