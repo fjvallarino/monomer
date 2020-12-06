@@ -132,6 +132,7 @@ createSingle single = Widget {
   widgetMerge = mergeWrapper single,
   widgetDispose = singleDispose single,
   widgetGetState = singleGetState single,
+  widgetGetInstanceTree = getInstanceTree,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,

@@ -170,6 +170,7 @@ createContainer container = Widget {
   widgetMerge = mergeWrapper container,
   widgetDispose = disposeWrapper container,
   widgetGetState = containerGetState container,
+  widgetGetInstanceTree = getInstanceTree,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
   widgetHandleEvent = handleEventWrapper container,

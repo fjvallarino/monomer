@@ -212,6 +212,7 @@ createComposite comp state = widget where
     widgetMerge = compositeMerge comp state,
     widgetDispose = compositeDispose comp state,
     widgetGetState = makeState state,
+    widgetGetInstanceTree = getInstanceTree,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,

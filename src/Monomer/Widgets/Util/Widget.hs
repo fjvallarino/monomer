@@ -19,7 +19,8 @@ module Monomer.Widgets.Util.Widget (
   handleFocusChange,
   resizeWidget,
   buildLocalMap,
-  findWidgetByKey
+  findWidgetByKey,
+  getInstanceTree
 ) where
 
 import Control.Lens ((&), (^#), (#~), (^.), (.~))
@@ -152,3 +153,14 @@ buildLocalMap widgets = newMap where
     where
       key = widget ^. L.widgetInstance . L.key
   newMap = foldl' addWidget M.empty widgets
+
+getInstanceTree
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetInstanceNode
+getInstanceTree wenv node = instNode where
+  instNode = WidgetInstanceNode {
+    _winInst = node ^. L.widgetInstance,
+    _winChildren = fmap (getChildNode wenv) (node ^. L.children)
+  }
+  getChildNode wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child

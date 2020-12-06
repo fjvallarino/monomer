@@ -124,6 +124,13 @@ data WidgetNode s e = WidgetNode {
   _wnChildren :: Seq (WidgetNode s e)
 }
 
+data WidgetInstanceNode = WidgetInstanceNode {
+  -- | The instance
+  _winInst :: WidgetInstance,
+  -- | The children widget, if any
+  _winChildren :: Seq WidgetInstanceNode
+}
+
 data Widget s e =
   Widget {
     -- | Performs widget initialization
@@ -151,6 +158,11 @@ data Widget s e =
     widgetGetState
       :: WidgetEnv s e
       -> Maybe WidgetState,
+    -- | Returns information about the instance and its children
+    widgetGetInstanceTree
+      :: WidgetEnv s e
+      -> WidgetNode s e
+      -> WidgetInstanceNode,
     -- | Returns the list of focusable paths, if any
     --
     widgetFindNextFocus

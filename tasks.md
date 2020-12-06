@@ -298,6 +298,13 @@
   - Review composite initialization. View creation can be moved to init
     - Check if passing model directly is still correct
   - Test nested composites
+  - Update signatures of methods to use Widget/WidgetInstance as needed (restrict what can be changed)
+    - Change WidgetResult so WidgetInstance is Maybe
+      - This allows having a Default instance and later use lenses instead of the resultX functions
+    - Remove Maybe from handleEvent/handleMessage return type
+    - Reverted. Reward was low, and getSizeReq/resize were still inconsistent
+  - Can _wiChildren be removed from Widget and only be kept in Container?
+    - Postponed/cancelled. After all the refactoring attempts regarding WidgetResult, I'm not sure about the benefits
 
 - Pending
   - Add testing
@@ -316,29 +323,15 @@
 
 Maybe postponed after release?
   - Change interfaces
-    - ??? Change WidgetResult so WidgetInstance is Maybe
-      - ??? This allows having a Default instance and later use lenses instead of the resultX functions
-    - ??? Remove Maybe from handleEvent/handleMessage return type
     - Change return type and the moment when widgetUpdateSizeReq is called
     - Comment GlobalKeys out and have Container use its local list of children for merging
     - Create WidgetNode type, move Widget/children into it
       - Remove type constraints on WidgetInstance
       - Change type signatures to use WidgetNode
-    - Update signatures of methods to use Widget/WidgetInstance as needed (restrict what can be changed)
     - Restore GlobalKeys
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
         -  This is necessary because s/e types may not match
-    - Remove children from WidgetNode
-    - Use Widget instead of WidgetNode wherever possible
-  - Split WidgetInstance into Definition and Instance, in order to:
-    - Be able to get information about the whole widget tree, even hidden items (inside composite)
-      - This is needed for testing composite
-      - It can be used to create debugging tools/widgets
-    - Have clearer interfaces. A method should not be able to modify its instance, since those changes will be ignored anyway
-    - Pave the way for removing children from WidgetInstance
-    - Pave the way for removing widget from WidgetInstance
-  - Can _wiChildren be removed from Widget and only be kept in Container?
   - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
