@@ -21,7 +21,7 @@ module Monomer.Widgets.Composite (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (?~), (%~), (<>~))
+import Control.Lens (ALens', (&), (^.), (.~), (%~), (<>~))
 import Data.Default
 import Data.List (foldl')
 import Data.Map.Strict (Map)
@@ -236,21 +236,17 @@ compositeInit comp state wenv widgetComp = newResult where
   -- Creates UI using provided function
   builtRoot = _cmpUiBuilder comp model
   tempRoot = cascadeCtx widgetComp builtRoot
-  initRes = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
-  WidgetResultNode root reqs evts = mergeWidgetResult tempRoot initRes
+  WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsGlobalKeys = collectGlobalKeys M.empty root
   }
-  cTempResult = initRes & L.events .~ newEvts
-  cTempResultNode = mergeWidgetResult root cTempResult
+  tempResult = WidgetResult root reqs newEvts
   getBaseStyle wenv node = Nothing
   styledComp = initInstanceStyle getBaseStyle wenv widgetComp
-  tempResult = reduceResult comp newState wenv styledComp cTempResultNode
-  newResult = tempResult
-    & L.style ?~ styledComp ^. L.widgetInstance . L.style
+  newResult = reduceResult comp newState wenv styledComp tempResult
 
 -- | Merge
 compositeMerge
@@ -277,11 +273,10 @@ compositeMerge comp state wenv oldComp newComp = newResult where
     | isJust oldModel = _cmpMergeRequired comp (fromJust oldModel) model
     | otherwise = True
   initRequired = not (instanceMatches tempRoot oldRoot)
-  cTempResult
+  tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
     | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
-  cTempResultNode = mergeWidgetResult tempRoot cTempResult
-  newRoot = cTempResultNode ^. L.widgetNode
+  newRoot = _wrWidget tempResult
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
@@ -289,12 +284,10 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   }
   getBaseStyle wenv node = Nothing
   styledComp = initInstanceStyle getBaseStyle wenv newComp
-  tempResult
-    | mergeRequired = reduceResult comp newState wenv styledComp cTempResultNode
-    | otherwise = def
-      & L.widget ?~ oldComp ^. L.widget
-  newResult = tempResult
-    & L.style ?~ styledComp ^. L.widgetInstance . L.style
+  newResult
+    | mergeRequired = reduceResult comp newState wenv styledComp tempResult
+    | otherwise = resultWidget $ styledComp
+        & L.widget .~ oldComp ^. L.widget
 
 -- | Dispose
 compositeDispose
@@ -309,8 +302,8 @@ compositeDispose comp state wenv widgetComp = result where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   widget = _cpsRoot ^. L.widget
-  res = widgetDispose widget cwenv _cpsRoot
-  tempResult = WidgetResultNode _cpsRoot (res ^. L.requests) (res ^. L.events)
+  WidgetResult _ reqs evts = widgetDispose widget cwenv _cpsRoot
+  tempResult = WidgetResult _cpsRoot reqs evts
   result = reduceResult comp state wenv widgetComp tempResult
 
 -- | Next focusable
@@ -371,10 +364,9 @@ compositeHandleEvent comp state wenv target evt widgetComp = result where
   compVisible = widgetComp ^. L.widgetInstance . L.visible
   compEnabled = widgetComp ^. L.widgetInstance . L.enabled
   processEvent = reduceResult comp state wenv widgetComp
-  tempResult = widgetHandleEvent widget cwenv target evt _cpsRoot
   evtResult
     | not (compVisible && compEnabled) = Nothing
-    | rootEnabled = fmap (mergeWidgetResult _cpsRoot) tempResult
+    | rootEnabled = widgetHandleEvent widget cwenv target evt _cpsRoot
     | otherwise = Nothing
   result = fmap processEvent evtResult
 
@@ -391,16 +383,15 @@ compositeHandleMessage
 compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
   | isTargetReached target widgetComp = case cast arg of
       Just (Just evt) -> reducedResult where
-        evtResult = WidgetResultNode _cpsRoot Seq.empty (Seq.singleton evt)
+        evtResult = WidgetResult _cpsRoot Seq.empty (Seq.singleton evt)
         reducedResult = Just $ reduceResult comp state wenv widgetComp evtResult
       _ -> Nothing
-  | otherwise = fmap processEvent resultNode where
+  | otherwise = fmap processEvent result where
       processEvent = reduceResult comp state wenv widgetComp
       cmpWidget = _cpsRoot ^. L.widget
       model = getModel comp wenv
       cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
       result = widgetHandleMessage cmpWidget cwenv target arg _cpsRoot
-      resultNode = fmap (mergeWidgetResult _cpsRoot) result
 
 -- Preferred size
 compositeGetSizeReq
@@ -481,11 +472,11 @@ reduceResult
   -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
-  -> WidgetResultNode s e
+  -> WidgetResult s e
   -> WidgetResult sp ep
 reduceResult comp state wenv widgetComp widgetResult = newResult where
   CompositeState{..} = state
-  WidgetResultNode evtsRoot reqs evts = widgetResult
+  WidgetResult evtsRoot reqs evts = widgetResult
   -- Since composite may reduce several times before giving control back, its
   -- copy of _cpsModel may be more up to date than WidgetEnv's model
   model
@@ -495,7 +486,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   evtModel = foldr (.) id evtUpdates model
   evtHandler = _cmpEventHandler comp
   ReducedEvents{..} = reduceCompEvents _cpsGlobalKeys evtHandler evtModel evts
-  WidgetResultNode uWidget uReqs uEvts =
+  WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
   currentPath = widgetComp ^. L.widgetInstance . L.path
   newReqs = toParentReqs reqs
@@ -505,8 +496,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
          <> toParentReqs _reRequests
          <> _reMessages
   newEvts = _reReports <> uEvts
-  newResultNode = WidgetResultNode uWidget newReqs newEvts
-  newResult = toWidgetResult newResultNode
+  newResult = WidgetResult uWidget newReqs newEvts
 
 updateComposite
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -516,7 +506,7 @@ updateComposite
   -> s
   -> WidgetNode s e
   -> WidgetNode sp ep
-  -> WidgetResultNode sp ep
+  -> WidgetResult sp ep
 updateComposite comp state wenv newModel widgetRoot widgetComp = result where
   CompositeState{..} = state
   model
@@ -527,10 +517,10 @@ updateComposite comp state wenv newModel widgetRoot widgetComp = result where
     _cpsModel = Just newModel,
     _cpsRoot = widgetRoot
   }
-  newComp = widgetComp & L.widget .~ createComposite comp newState
   result
     | mergeRequired = mergeChild comp state wenv newModel widgetRoot widgetComp
-    | otherwise = WidgetResultNode newComp Empty Empty
+    | otherwise = resultWidget $ widgetComp
+      & L.widget .~ createComposite comp newState
 
 mergeChild
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -540,29 +530,27 @@ mergeChild
   -> s
   -> WidgetNode s e
   -> WidgetNode sp ep
-  -> WidgetResultNode sp ep
+  -> WidgetResult sp ep
 mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
   builtRoot = cascadeCtx widgetComp (_cmpUiBuilder comp newModel)
   builtWidget = builtRoot ^. L.widget
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
-  mergedResultNode = mergeWidgetResult builtRoot mergedResult where
-    mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
-  mergedReqs = mergedResultNode ^. L.requests
+  mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
+  mergedReqs = _wrRequests mergedResult
   resizeRequired = isJust (Seq.findIndexL isResizeWidgets mergedReqs)
-  resizedResultNode
-    | resizeRequired = resizeResult comp state wenv mergedResultNode widgetComp
-    | otherwise = mergedResultNode
-  renderResultNode = resizedResultNode & L.requests %~ (|> RenderOnce)
+  resizedResult
+    | resizeRequired = resizeResult comp state wenv mergedResult widgetComp
+    | otherwise = mergedResult
+  renderResult = resizedResult & L.requests %~ (|> RenderOnce)
   mergedState = state {
     _cpsModel = Just newModel,
-    _cpsRoot = renderResultNode ^. L.widgetNode
+    _cpsRoot = renderResult ^. L.widget
   }
-  result = reduceResult comp mergedState wenv widgetComp renderResultNode
-  resultNode = mergeWidgetResult widgetComp result
+  result = reduceResult comp mergedState wenv widgetComp renderResult
   newEvents = fmap ($ newModel) (_cmpOnChange comp)
   newReqs = widgetDataSet (_cmpWidgetData comp) newModel ++ _cmpOnChangeReq comp
-  newResult = resultNode
+  newResult = result
     & L.requests <>~ Seq.fromList newReqs
     & L.events <>~ Seq.fromList newEvents
 
@@ -571,22 +559,23 @@ resizeResult
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
-  -> WidgetResultNode s e
+  -> WidgetResult s e
   -> WidgetNode sp ep
-  -> WidgetResultNode s e
+  -> WidgetResult s e
 resizeResult comp state wenv result widgetComp = resizedResult where
   CompositeState{..} = state
   viewport = widgetComp ^. L.widgetInstance . L.viewport
   renderArea = widgetComp ^. L.widgetInstance . L.renderArea
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  widgetRoot = result ^. L.widgetNode
+  widgetRoot = _wrWidget result
   tempRoot = resizeWidget cwenv viewport renderArea widgetRoot
   newRoot = tempRoot
     & L.widgetInstance . L.viewport .~ viewport
     & L.widgetInstance . L.renderArea .~ renderArea
-  resizedResult = result
-    & L.widgetNode .~ newRoot
+  resizedResult = result {
+    _wrWidget = newRoot
+  }
 
 reduceCompEvents
   :: GlobalKeys s e

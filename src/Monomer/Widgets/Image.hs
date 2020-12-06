@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -15,7 +14,7 @@ module Monomer.Widgets.Image (
 import Codec.Picture (DynamicImage, Image(..))
 import Control.Applicative ((<|>))
 import Control.Exception (try)
-import Control.Lens ((&), (^.), (.~), (?~), (%~))
+import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
@@ -30,7 +29,6 @@ import Network.Wreq
 import qualified Codec.Picture as Pic
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Sequence as Seq
 import qualified Network.Wreq as Wreq
 
 import Monomer.Widgets.Single
@@ -124,7 +122,7 @@ makeImage imgPath config state = widget where
     singleRender = render
   }
 
-  init wenv node = resultReqs reqs where
+  init wenv node = resultReqs node reqs where
     path = node ^. L.widgetInstance . L.path
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
@@ -135,13 +133,13 @@ makeImage imgPath config state = widget where
         removeImage wenv imgPath
         handleImageLoad wenv imgPath
       ]
-    sameImgNode = def
-      & L.widget ?~ makeImage imgPath config newState
+    sameImgNode = newNode
+      & L.widget .~ makeImage imgPath config newState
     result
-      | isImagePath newState == imgPath = sameImgNode
-      | otherwise = resultReqs newImgReqs
+      | isImagePath newState == imgPath = resultWidget sameImgNode
+      | otherwise = resultReqs newNode newImgReqs
 
-  dispose wenv node = resultReqs reqs where
+  dispose wenv node = resultReqs node reqs where
     path = node ^. L.widgetInstance . L.path
     renderer = _weRenderer wenv
     reqs = [RunTask path $ removeImage wenv imgPath]
@@ -151,11 +149,11 @@ makeImage imgPath config state = widget where
 
   useImage node (ImageFailed msg) = result where
     evts = fmap ($ msg) (_imcLoadError config)
-    result = Just $ resultEvts evts
+    result = Just $ resultEvts node evts
   useImage node (ImageLoaded newState) = result where
-    result = Just $ def
-      & L.widget ?~ makeImage imgPath config newState
-      & L.requests .~ Seq.fromList [ResizeWidgets]
+    newNode = node
+      & L.widget .~ makeImage imgPath config newState
+    result = Just $ resultReqs newNode [ResizeWidgets]
 
   getSizeReq wenv node = sizeReq where
     style = activeStyle wenv node

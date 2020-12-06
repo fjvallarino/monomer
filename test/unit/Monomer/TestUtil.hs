@@ -128,16 +128,14 @@ mockWenvEvtUnit model = mockWenv model
 
 nodeInit :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
 nodeInit wenv node = newNode where
-  result = widgetInit (node ^. L.widget) wenv node
-  WidgetResultNode node2 _ _ = mergeWidgetResult node result
+  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   Size w h = _weAppWindowSize wenv
   vp = Rect 0 0 w h
   newNode = nodeResize wenv vp node2
 
 nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
-  result = widgetInit (node ^. L.widget) wenv node
-  WidgetResultNode node2 _ _ = mergeWidgetResult node result
+  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   reqNode = widgetGetSizeReq (node2 ^. L.widget) wenv node2
   sizeReqW = reqNode ^. L.sizeReqW
   sizeReqH = reqNode ^. L.sizeReqH

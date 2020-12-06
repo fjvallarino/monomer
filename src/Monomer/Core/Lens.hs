@@ -32,7 +32,6 @@ makeLensesWith abbreviatedFields ''Theme
 makeLensesWith abbreviatedFields ''WidgetEnv
 makeLensesWith abbreviatedFields ''WidgetRequest
 makeLensesWith abbreviatedFields ''WidgetResult
-makeLensesWith abbreviatedFields ''WidgetResultNode
 makeLensesWith abbreviatedFields ''WidgetSizeReq
 makeLensesWith abbreviatedFields ''WidgetData
 makeLensesWith abbreviatedFields ''WidgetNode

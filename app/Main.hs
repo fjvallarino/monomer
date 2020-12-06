@@ -168,7 +168,7 @@ buildUI model = trace "Creating UI" widgetTree where
         label "4" `style` [bgColor pink]
       ],
       vstack [
-        --textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
+        --textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
         label "1" `style` [bgColor pink, border 1 pink]
       ] `visible` False,
       label "" `style` [bgColor orange],
@@ -230,7 +230,7 @@ buildUI model = trace "Creating UI" widgetTree where
         vstack [
           label "jLabel 1" `style` [bgColor darkGray],
           label "Label 12" `style` [bgColor lightGray],
-          --label "Label 123" `style` [bgColor darkGray],
+          label "Label 123" `style` [bgColor darkGray],
           label "Label 1234" `style` [bgColor lightGray]
         ] `style` [bgColor red],
         vstack [
@@ -254,7 +254,7 @@ buildUI model = trace "Creating UI" widgetTree where
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],
-      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
+      textDropdown_ textField1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

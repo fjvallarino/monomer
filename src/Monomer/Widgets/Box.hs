@@ -143,7 +143,7 @@ makeBox config = widget where
         | otherwise = _boxOnClickEmptyReq config
       needsUpdate = btn == LeftBtn && not (null events && null requests)
       result
-        | needsUpdate = Just $ resultReqsEvts requests events
+        | needsUpdate = Just $ resultReqsEvts node requests events
         | otherwise = Nothing
     _ -> Nothing
 

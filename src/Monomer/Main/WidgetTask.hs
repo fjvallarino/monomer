@@ -9,7 +9,6 @@ import Control.Lens ((&), (^.), (.=), use)
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
-import Data.Default
 import Data.Foldable (toList)
 import Data.Maybe
 import Data.Sequence ((><))
@@ -88,12 +87,12 @@ processTaskEvent
 processTaskEvent wenv widgetRoot path event = do
   currentFocus <- use pathFocus
 
+  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path event widgetRoot
-  let widgetResult = fromMaybe def msgResult
-  let widgetResultNode = mergeWidgetResult widgetRoot widgetResult
+  let widgetResult = fromMaybe emptyResult msgResult
 
-  handleWidgetResult wenv widgetResultNode
+  handleWidgetResult wenv widgetResult
 
 isThreadActive :: (MonomerM s m) => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)

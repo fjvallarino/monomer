@@ -250,18 +250,17 @@ makeListView widgetData items makeRow config state = widget where
     itemsList = makeItemsList wenv items makeRow config path selected
     children = Seq.singleton itemsList
 
-  init wenv node = result where
+  init wenv node = resultWidget newNode where
     children = createListViewChildren wenv node
     sel = Just $ currentValue wenv
     newState = state {
       _prevSel = sel,
       _resizeReq = True
     }
-    tmpNode = updateSelStyle makeRow config Empty items Nothing sel wenv node
-    result = def
-      & L.widget ?~ makeListView widgetData items makeRow config newState
-      & L.children ?~ children
-      & L.style ?~ tmpNode ^. L.widgetInstance . L.style
+    tmpNode = node
+      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.children .~ children
+    newNode = updateSelStyle makeRow config Empty items Nothing sel wenv tmpNode
 
   mergeWrapper wenv oldNode newNode = newResult where
     sel = Just $ currentValue wenv
@@ -288,25 +287,22 @@ makeListView widgetData items makeRow config state = widget where
       | otherwise = oldNode ^. L.children
     node2 = tempNode & L.children .~ children
     node3 = updateSelStyle makeRow config oldItems items oldSel sel wenv node2
-    pResult = WidgetResultNode node3 Empty Empty
-    newResultNode
+    pResult = resultWidget node3
+    newResult
       | mergeRequired = mergeChildren wenv oldNode pResult
       | otherwise = pResult
-    newResult = toWidgetResult newResultNode
 
   handleEvent wenv target evt node = case evt of
-    Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config
+    Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
-      tempResult
+      WidgetResult tempNode tempReqs tempEvts
         | changeReq = selectItem wenv node (_highlighted state)
-        | otherwise = def
-      evts = Seq.fromList (_lvcOnBlur config)
-      reqs = Seq.fromList (_lvcOnBlurReq config)
-      mergedResult = Just $ tempResult
-        & L.events <>~ evts
-        & L.requests <>~ reqs
+        | otherwise = resultWidget node
+      evts = tempEvts <> Seq.fromList (_lvcOnBlur config)
+      reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
+      mergedResult = Just $ WidgetResult tempNode reqs evts
       result
         | changeReq || not (null evts && null reqs) = mergedResult
         | otherwise = Nothing
@@ -346,10 +342,10 @@ makeListView widgetData items makeRow config state = widget where
     newState = state {
       _highlighted = nextIdx
     }
+    newNode = node
+      & L.widget .~ makeListView widgetData items makeRow config newState
     reqs = itemScrollTo node nextIdx
-    result = def
-      & L.widget ?~ makeListView widgetData items makeRow config newState
-      & L.requests .~ Seq.fromList reqs
+    result = resultReqs newNode reqs
 
   selectItem wenv node idx = result where
     selected = currentValue wenv
@@ -365,10 +361,9 @@ makeListView widgetData items makeRow config state = widget where
       _highlighted = idx,
       _prevSel = Just selected
     }
-    result = def
-      & L.widget ?~ makeListView widgetData items makeRow config newState
-      & L.requests .~ Seq.fromList requests
-      & L.events .~ Seq.fromList events
+    newNode = node
+      & L.widget .~ makeListView widgetData items makeRow config newState
+    result = resultReqsEvts newNode requests events
 
   itemScrollTo node idx = maybeToList (fmap scrollReq renderArea) where
     renderArea = itemRenderArea node idx
@@ -419,8 +414,7 @@ setChildStyle items makeRow wenv parent idx style = newParent where
   newChild = fmap makeItem (Seq.lookup idx items)
   merge newItem oldItem = newWidget where
     res = widgetMerge (newItem ^. L.widget) wenv oldItem newItem
-    resNode = mergeWidgetResult newItem res
-    widget = resNode ^. L.widgetNode
+    widget = res ^. L.widget
     newWidget = widget
       & L.widgetInstance . L.path .~ oldItem ^. L.widgetInstance . L.path
       & L.widgetInstance . L.viewport .~ oldItem ^. L.widgetInstance . L.viewport

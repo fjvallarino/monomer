@@ -1,12 +1,10 @@
-{-# LANGUAGE FlexibleContexts #-}
-
 module Monomer.Widgets.Label (
   label,
   label_
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (?~))
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -126,9 +124,9 @@ makeLabel config state = widget where
       _lstTextRect = newRect
     }
     reqs = [ ResizeWidgets | captionChanged ]
-    result = def
-      & L.widget ?~ makeLabel config newState
-      & L.requests .~ Seq.fromList reqs
+    resNode = newNode
+      & L.widget .~ makeLabel config newState
+    result = resultReqs resNode reqs
 
   getSizeReq wenv node = (sizeW, sizeH) where
     style = activeStyle wenv node
