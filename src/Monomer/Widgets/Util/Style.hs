@@ -129,7 +129,7 @@ handleStyleChange_ wenv target evt style result cfg node = newResult where
   cursorReqs = handleCursorChange wenv target evt style cfg node
   reqs = sizeReqs ++ cursorReqs
   newResult
-    | not (null reqs) = Just (baseResult & L.requests <>~ reqs)
+    | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
     | otherwise = result
 
 handleSizeChange

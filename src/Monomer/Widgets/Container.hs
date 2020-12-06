@@ -330,7 +330,7 @@ mergeChildrenCheckVisible oldNode newNode result = newResult where
   oldVisible = fmap (^. L.widgetInstance . L.visible) (oldNode ^. L.children)
   resizeRequired = oldVisible /= newVisible
   newResult
-    | resizeRequired = result & L.requests %~ (ResizeWidgets :)
+    | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
     | otherwise = result
 
 -- | Dispose handler
@@ -490,8 +490,8 @@ mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   where
     pWidget = _wrWidget pResponse
     cWidget = _wrWidget cResponse
-    requests = _wrRequests pResponse <> _wrRequests cResponse
-    userEvents = _wrEvents pResponse <> _wrEvents cResponse
+    requests = _wrRequests pResponse >< _wrRequests cResponse
+    userEvents = _wrEvents pResponse >< _wrEvents cResponse
     newWidget = replaceChild pWidget cWidget idx
     newChildResponse = cResponse {
       _wrWidget = replaceChild original (_wrWidget cResponse) idx
@@ -625,12 +625,12 @@ renderContainer rHandler renderer wenv node =
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
-ignoreChildren result = not (null ignoreReqs) where
-  ignoreReqs = filter isIgnoreChildrenEvents (_wrRequests result)
+ignoreChildren result = not (Seq.null ignoreReqs) where
+  ignoreReqs = Seq.filter isIgnoreChildrenEvents (_wrRequests result)
 
 ignoreParent :: WidgetResult s e -> Bool
-ignoreParent result = not (null ignoreReqs) where
-  ignoreReqs = filter isIgnoreParentEvents (_wrRequests result)
+ignoreParent result = not (Seq.null ignoreReqs) where
+  ignoreReqs = Seq.filter isIgnoreParentEvents (_wrRequests result)
 
 replaceChild
   :: WidgetNode s e -> WidgetNode s e -> Int -> WidgetNode s e

@@ -82,11 +82,11 @@ handleEvent = describe "handleEvent" $ do
 
   it "should generate an event when focus is received" $ do
     let p = Point 100 10
-    events [evtClick p] `shouldBe` [GotFocus]
+    events [evtClick p] `shouldBe` Seq.singleton GotFocus
 
   it "should generate an event when focus is lost" $ do
     let p = Point 100 10
-    events [evtClick p, Blur] `shouldBe` [GotFocus, LostFocus]
+    events [evtClick p, Blur] `shouldBe` Seq.fromList [GotFocus, LostFocus]
 
   where
     wenv = mockWenv (TestModel testItem0)
@@ -98,20 +98,20 @@ handleEvent = describe "handleEvent" $ do
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
   it "should not generate an event if clicked outside" $
-    clickEvts (Point 3000 3000) `shouldBe` []
+    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
 
   it "should generate an event when clicked" $
-    lastEvt [evtK keyTab, evtClick (Point 100 70)] `shouldBe` ItemSel 3 testItem3
+    events [evtK keyTab, evtClick (Point 100 70)] `shouldBe` Seq.singleton (ItemSel 3 testItem3)
 
   it "should generate an event when Enter/Space is pressed, after navigating to an element" $ do
     let steps = [evtK keyTab] ++ replicate 7 (evtK keyDown) ++ [evtK keySpace]
-    lastEvt steps `shouldBe` ItemSel 7 testItem7
+    events steps `shouldBe` Seq.singleton (ItemSel 7 testItem7)
 
   where
     wenv = mockWenv (TestModel testItem0)
     lvNode = listViewV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
-    lastEvt evts = last res where
+    events evts = Seq.drop (Seq.length res - 1) res where
       res = nodeHandleEventEvts wenv evts lvNode
 
 updateSizeReq :: Spec

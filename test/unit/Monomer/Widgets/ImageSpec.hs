@@ -20,15 +20,15 @@ spec = describe "Image"
 initMergeWidget :: Spec
 initMergeWidget = describe "init/merge" $ do
   it "should create a RunTask on init" $ do
-    length reqs1 `shouldBe` 1
-    head reqs1 `shouldSatisfy` isRunTask
+    Seq.length reqs1 `shouldBe` 1
+    Seq.index reqs1 0 `shouldSatisfy` isRunTask
 
   it "should not create a task when merging to the same path" $
-    length reqs2 `shouldBe` 0
+    Seq.length reqs2 `shouldBe` 0
 
   it "should create a task when merging to a different path" $ do
-    length reqs3 `shouldBe` 1
-    head reqs3 `shouldSatisfy` isRunTask
+    Seq.length reqs3 `shouldBe` 1
+    Seq.index reqs3 0 `shouldSatisfy` isRunTask
 
   where
     wenv = mockWenv ()

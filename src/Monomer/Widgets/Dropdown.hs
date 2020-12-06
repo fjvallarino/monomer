@@ -286,15 +286,15 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   handleLvMsg wenv node OnListBlur = Just result where
     tempResult = closeDropdown wenv node
     result = tempResult {
-      _wrRequests = _wrRequests tempResult ++ [createMoveFocusReq wenv]
+      _wrRequests = _wrRequests tempResult |> createMoveFocusReq wenv
     }
 
   onChange wenv idx item node = result where
     WidgetResult newNode reqs events = closeDropdown wenv node
-    newReqs = widgetDataSet widgetData item
+    newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
-    newEvents = fmap ($ item) (_ddcOnChange config)
+    newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 

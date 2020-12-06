@@ -300,8 +300,8 @@ makeListView widgetData items makeRow config state = widget where
       WidgetResult tempNode tempReqs tempEvts
         | changeReq = selectItem wenv node (_highlighted state)
         | otherwise = resultWidget node
-      evts = tempEvts <> _lvcOnBlur config
-      reqs = tempReqs <> _lvcOnBlurReq config
+      evts = tempEvts <> Seq.fromList (_lvcOnBlur config)
+      reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
       mergedResult = Just $ WidgetResult tempNode reqs evts
       result
         | changeReq || not (null evts && null reqs) = mergedResult
@@ -332,7 +332,7 @@ makeListView widgetData items makeRow config state = widget where
     result = fmap handleSelect (cast message)
 
   handleItemClick wenv node idx = result where
-    focusReq = [SetFocus $ node ^. L.widgetInstance . L.path]
+    focusReq = Seq.singleton (SetFocus $ node ^. L.widgetInstance . L.path)
     tempResult = selectItem wenv node idx
     result
       | isFocused wenv node = tempResult
