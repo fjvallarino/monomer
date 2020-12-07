@@ -1,7 +1,12 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Core.Util where
 
 import Control.Lens ((&), (^.), (.~), (?~))
+import Data.List (foldl')
 import Data.Text (Text)
+
+import qualified Data.Map as Map
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
@@ -39,3 +44,12 @@ numberInBounds Nothing Nothing _ = True
 numberInBounds (Just minVal) Nothing val = val >= minVal
 numberInBounds Nothing (Just maxVal) val = val <= maxVal
 numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
+
+buildGlobalKeysMap :: WidgetEnv s e -> WidgetNode s e -> GlobalKeys
+buildGlobalKeysMap wenv node = buildMap Map.empty instTree where
+  instTree = widgetGetInstanceTree (_wnWidget node) wenv node
+  buildMap map inst = newMap where
+    tempMap = case inst ^. L.inst . L.key of
+      Just (WidgetGlobalKey key) -> Map.insert (WidgetGlobalKey key) inst map
+      _ -> map
+    newMap = foldl' buildMap tempMap (inst ^. L.children)

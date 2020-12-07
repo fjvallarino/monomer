@@ -332,6 +332,7 @@ Maybe postponed after release?
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
         -  This is necessary because s/e types may not match
+  - Do not request render from Composite's resize
   - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
