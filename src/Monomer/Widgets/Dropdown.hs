@@ -310,20 +310,23 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     theme = activeTheme wenv node
     dropdownY dh
       | ry + rh + dh <= winH = ry + rh
-      | otherwise = ry - dh
+      | ry - dh >= 0 = ry - dh
+      | otherwise = 0
     listArea = case Seq.lookup 1 children of
       Just child -> (oViewport, oRenderArea) where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
         maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
         reqHeight = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqH
-        maxHeight = min reqHeight maxHeightStyle
+        maxHeight = min winH (min reqHeight maxHeightStyle)
+        dy = dropdownY maxHeight
+        dh = min maxHeight (winH - dy)
         oViewport = viewport {
-          _rY = dropdownY maxHeight,
-          _rH = maxHeight
+          _rY = dy,
+          _rH = dh
         }
         oRenderArea = renderArea {
-          _rY = dropdownY maxHeight,
-          _rH = maxHeight
+          _rY = dy,
+          _rH = dh
         }
       Nothing -> (viewport, renderArea)
     mainArea = (viewport, renderArea)

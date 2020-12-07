@@ -305,6 +305,18 @@
     - Reverted. Reward was low, and getSizeReq/resize were still inconsistent
   - Can _wiChildren be removed from Widget and only be kept in Container?
     - Postponed/cancelled. After all the refactoring attempts regarding WidgetResult, I'm not sure about the benefits
+  - Change interfaces
+    - Several items were dropped or implemented and then reverted
+      - Main reason was requiring explicit Typeable annotations on s and e, which leads to pain on the user's side
+      - Code complexity also increased for a really small payoff (if any)
+    - Change return type and the moment when widgetUpdateSizeReq is called
+    - Comment GlobalKeys out and have Container use its local list of children for merging
+    - Create WidgetNode type, move Widget/children into it
+      - Remove type constraints on WidgetInstance
+      - Change type signatures to use WidgetNode
+    - Restore GlobalKeys
+      - Add method to collect tree of WidgetInstances
+      - Also return map of GlobalKeys
 
 - Pending
   - Add testing
@@ -322,16 +334,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Change interfaces
-    - Change return type and the moment when widgetUpdateSizeReq is called
-    - Comment GlobalKeys out and have Container use its local list of children for merging
-    - Create WidgetNode type, move Widget/children into it
-      - Remove type constraints on WidgetInstance
-      - Change type signatures to use WidgetNode
-    - Restore GlobalKeys
-      - Add method to collect tree of WidgetInstances
-      - Also return map of GlobalKeys, whose value is an existential wrapping the WidgetNode
-        -  This is necessary because s/e types may not match
   - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click

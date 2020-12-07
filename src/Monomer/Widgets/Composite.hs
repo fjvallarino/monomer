@@ -542,46 +542,17 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   builtWidget = builtRoot ^. L.widget
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
   mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
-  mergedReqs = _wrRequests mergedResult
-  resizeRequired = isJust (Seq.findIndexL isResizeWidgets mergedReqs)
-  resizedResult
-    | resizeRequired = resizeResult comp state wenv mergedResult widgetComp
-    | otherwise = mergedResult
-  renderResult = resizedResult & L.requests %~ (|> RenderOnce)
   mergedState = state {
     _cpsModel = Just newModel,
-    _cpsRoot = renderResult ^. L.widget,
-    _cpsGlobalKeys = collectGlobalKeys M.empty (renderResult ^. L.widget)
+    _cpsRoot = mergedResult ^. L.widget,
+    _cpsGlobalKeys = collectGlobalKeys M.empty (mergedResult ^. L.widget)
   }
-  result = reduceResult comp mergedState wenv widgetComp renderResult
+  result = reduceResult comp mergedState wenv widgetComp mergedResult
   newEvents = fmap ($ newModel) (_cmpOnChange comp)
   newReqs = widgetDataSet (_cmpWidgetData comp) newModel ++ _cmpOnChangeReq comp
   newResult = result
     & L.requests <>~ Seq.fromList newReqs
     & L.events <>~ Seq.fromList newEvents
-
-resizeResult
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
-  => Composite s e sp ep
-  -> CompositeState s e sp
-  -> WidgetEnv sp ep
-  -> WidgetResult s e
-  -> WidgetNode sp ep
-  -> WidgetResult s e
-resizeResult comp state wenv result widgetComp = resizedResult where
-  CompositeState{..} = state
-  viewport = widgetComp ^. L.widgetInstance . L.viewport
-  renderArea = widgetComp ^. L.widgetInstance . L.renderArea
-  model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  widgetRoot = _wrWidget result
-  tempRoot = resizeWidget cwenv viewport renderArea widgetRoot
-  newRoot = tempRoot
-    & L.widgetInstance . L.viewport .~ viewport
-    & L.widgetInstance . L.renderArea .~ renderArea
-  resizedResult = result {
-    _wrWidget = newRoot
-  }
 
 reduceCompEvents
   :: GlobalKeys s e
@@ -710,7 +681,3 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
 
 firstChildPath :: WidgetNode s e -> Path
 firstChildPath node = node ^. L.widgetInstance . L.path |> 0
-
-isResizeWidgets :: WidgetRequest s -> Bool
-isResizeWidgets ResizeWidgets = True
-isResizeWidgets _ = False

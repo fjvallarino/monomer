@@ -247,7 +247,7 @@ mergeWrapper container wenv oldNode newNode = result where
   styledNode = initInstanceStyle getBaseStyle wenv newNode
   pResult = mergeParent mergeHandler wenv oldNode styledNode
   cResult = mergeChildren wenv oldNode pResult
-  result = mergeChildrenCheckVisible oldNode newNode cResult
+  result = mergeChildrenCheckVisible oldNode cResult
 
 mergeParent
   :: ContainerMergeHandler s e
@@ -324,10 +324,10 @@ mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
 
 mergeChildrenCheckVisible
   :: WidgetNode s e
-  -> WidgetNode s e
   -> WidgetResult s e
   -> WidgetResult s e
-mergeChildrenCheckVisible oldNode newNode result = newResult where
+mergeChildrenCheckVisible oldNode result = newResult where
+  newNode = result ^. L.widget
   newVisible = fmap (^. L.widgetInstance . L.visible) (newNode ^. L.children)
   oldVisible = fmap (^. L.widgetInstance . L.visible) (oldNode ^. L.children)
   resizeRequired = oldVisible /= newVisible
