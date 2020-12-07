@@ -127,13 +127,14 @@ makeStack isHorizontal config = widget where
     emptyRect = Rect l t 0 0
     -- Only one is active (flex is negative or extra is >= 0)
     totalCoeff = flexCoeff + extraCoeff
-    mainSize = case mainReqSelector child of
+    tempMainSize = case mainReqSelector child of
       FixedSize sz -> sz
       FlexSize sz factor -> (1 + totalCoeff * factor) * sz
       -- Since flex does not apply to min, there's nothing to remove from (no '1 +')
       MinSize sz factor -> sz + extraCoeff * factor * sz
       MaxSize sz factor -> (1 + flexCoeff * factor) * sz
       RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
+    mainSize = max 0 tempMainSize
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result
