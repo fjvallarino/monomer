@@ -300,8 +300,8 @@ makeScroll config state = widget where
   getSizeReq wenv node children = sizeReq where
     style = scrollActiveStyle wenv node
     child = Seq.index children 0
-    tw = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqW
-    th = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqH
+    tw = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
+    th = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
     Size w h = fromMaybe def (addOuterSize style (Size tw th))
     factor = 1
 
@@ -314,8 +314,8 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (node ^. L.children) 0
-    childWidth2 = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqW
-    childHeight2 = sizeReqMin $ child ^. L.widgetInstance . L.sizeReqH
+    childWidth2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
+    childHeight2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
 
     areaW = max cw childWidth2
     areaH = max ch childHeight2
