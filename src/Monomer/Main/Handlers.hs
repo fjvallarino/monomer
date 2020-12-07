@@ -49,7 +49,7 @@ handleSystemEvents
   -> m (HandlerStep s e)
 handleSystemEvents wenv systemEvents widgetRoot = nextStep where
   reducer (currWctx, currEvents, currRoot) evt = do
-    focused <- use L.pathFocus
+    focused <- use L.focusedPath
 
     (wenv2, evts2, wroot2) <- handleSystemEvent currWctx evt focused currRoot
     return (wenv2, currEvents >< evts2, wroot2)
@@ -63,8 +63,8 @@ handleSystemEvent
   -> WidgetNode s e
   -> m (HandlerStep s e)
 handleSystemEvent wenv event currentTarget widgetRoot = do
-  pressed <- use L.pathPressed
-  overlay <- use L.pathOverlay
+  pressed <- use L.pressedPath
+  overlay <- use L.overlayPath
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)
@@ -170,15 +170,15 @@ handleResizeWidgets reqs previousStep =
 handleMoveFocus
   :: (MonomerM s m) => FocusDirection -> HandlerStep s e -> m (HandlerStep s e)
 handleMoveFocus direction  (wenv, events, root) = do
-  oldFocus <- use L.pathFocus
-  overlay <- use L.pathOverlay
+  oldFocus <- use L.focusedPath
+  overlay <- use L.overlayPath
   let wenv0 = wenv { _weFocusedPath = rootPath }
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
 
   let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
   let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
-  L.pathFocus .= newFocus
+  L.focusedPath .= newFocus
   (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
   return (wenv2, events >< events1 >< events2, root2)
@@ -188,8 +188,8 @@ handleSetFocus
 handleSetFocus newFocus (wenv, events, root) =  do
   let wenv0 = wenv { _weFocusedPath = newFocus }
 
-  oldFocus <- use L.pathFocus
-  L.pathFocus .= newFocus
+  oldFocus <- use L.focusedPath
+  L.focusedPath .= newFocus
 
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
   (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
@@ -230,12 +230,12 @@ handleStopTextInput previousStep = do
 handleSetOverlay
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
 handleSetOverlay path previousStep = do
-  L.pathOverlay .= Just path
+  L.overlayPath .= Just path
   return previousStep
 
 handleResetOverlay :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
 handleResetOverlay previousStep = do
-  L.pathOverlay .= Nothing
+  L.overlayPath .= Nothing
   return previousStep
 
 handleSetCursorIcon

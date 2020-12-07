@@ -148,7 +148,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
   }
 
   mainModel .= _weModel newWenv
-  pathFocus .= findNextFocus newWenv FocusFwd rootPath Nothing resizedRoot
+  focusedPath .= findNextFocus newWenv FocusFwd rootPath Nothing resizedRoot
 
   mainLoop window renderer loopArgs
 
@@ -167,9 +167,9 @@ mainLoop window renderer loopArgs = do
   mousePos <- getCurrentMousePos
   currentModel <- use mainModel
   currentCursor <- use currentCursor
-  focused <- use pathFocus
-  overlay <- use pathOverlay
-  pressed <- use pathPressed
+  focused <- use focusedPath
+  overlay <- use overlayPath
+  pressed <- use pressedPath
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -215,7 +215,7 @@ mainLoop window renderer loopArgs = do
   let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
   when (mouseEntered && isMainBtnPressed && isMouseFocused) $
-    pathPressed .= Nothing
+    pressedPath .= Nothing
 
   (rqWenv, _, rqRoot) <- handleRequests baseReqs baseStep
   (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
@@ -310,8 +310,8 @@ preProcessEvent
   :: (MonomerM s m)
   => WidgetEnv s e -> WidgetNode s e -> SystemEvent -> m [SystemEvent]
 preProcessEvent wenv widgetRoot evt@(Move point) = do
-  overlay <- use L.pathOverlay
-  hover <- use pathHover
+  overlay <- use L.overlayPath
+  hover <- use hoveredPath
   let startPath = fromMaybe rootPath overlay
   let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
@@ -320,26 +320,26 @@ preProcessEvent wenv widgetRoot evt@(Move point) = do
   let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
 
   when hoverChanged $
-    pathHover .= current
+    hoveredPath .= current
 
   return $ leave ++ enter ++ [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
-  overlay <- use L.pathOverlay
+  overlay <- use L.overlayPath
   let startPath = fromMaybe rootPath overlay
   let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
 
-  pathPressed .= current
+  pressedPath .= current
   return [evt]
 preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
-  overlay <- use L.pathOverlay
-  pressed <- use pathPressed
+  overlay <- use L.overlayPath
+  pressed <- use pressedPath
   let startPath = fromMaybe rootPath overlay
   let widget = widgetRoot ^. L.widget
   let current = widgetFindByPoint widget wenv startPath point widgetRoot
   let extraEvt = [Click point btn | current == pressed]
 
-  pathPressed .= Nothing
+  pressedPath .= Nothing
   return $ extraEvt ++ [evt]
 preProcessEvent wenv widgetRoot event = return [event]
 
