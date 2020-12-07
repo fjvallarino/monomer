@@ -171,17 +171,22 @@ handleMoveFocus
   :: (MonomerM s m) => FocusDirection -> HandlerStep s e -> m (HandlerStep s e)
 handleMoveFocus direction  (wenv, events, root) = do
   oldFocus <- use L.focusedPath
-  overlay <- use L.overlayPath
   let wenv0 = wenv { _weFocusedPath = rootPath }
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
+  currFocus <- use L.focusedPath
+  currOverlay <- use L.overlayPath
 
-  let newFocus = findNextFocus wenv1 direction oldFocus overlay root1
-  let tempWenv = wenv1 { _weFocusedPath = newFocus }
+  if oldFocus == currFocus
+    then do
+      let newFocus = findNextFocus wenv1 direction currFocus currOverlay root1
+      let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
-  L.focusedPath .= newFocus
-  (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
+      L.focusedPath .= newFocus
+      (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
-  return (wenv2, events >< events1 >< events2, root2)
+      return (wenv2, events >< events1 >< events2, root2)
+    else
+      return (wenv1, events1, root1)
 
 handleSetFocus
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)

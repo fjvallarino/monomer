@@ -317,6 +317,7 @@
     - Restore GlobalKeys
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys
+  - Do not hover if mouse drag on different widget
 
 - Pending
   - Add testing
@@ -334,10 +335,10 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Set focus on ButtonDown, not Click
   - ZStack should set _weIsTopLayer based on used space
+  - Rename WidgetInstance to WidgetNodeStatus (or similar)
   - Image
     - Can performance be improved? Use sbt functions?
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
@@ -351,6 +352,7 @@ Maybe postponed after release?
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
+  - Check dropdown's list not being properly located after resize/scroll (not clear)
   - Scroll wheel rate should be configurable, or even depend on content size
   - Add IgnoreMerge (or similar name) request, to avoid rebuilding tree if not needed
     - InputField may have a setting for using it

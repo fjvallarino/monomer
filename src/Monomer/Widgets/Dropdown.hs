@@ -14,7 +14,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), _Just, non)
+import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (%~), _Just, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -285,9 +285,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Seq.lookup idx items >>= \value -> Just $ onChange wenv idx value node
   handleLvMsg wenv node OnListBlur = Just result where
     tempResult = closeDropdown wenv node
-    result = tempResult {
-      _wrRequests = _wrRequests tempResult |> createMoveFocusReq wenv
-    }
+    result = tempResult & L.requests %~ (|> createMoveFocusReq wenv)
 
   onChange wenv idx item node = result where
     WidgetResult newNode reqs events = closeDropdown wenv node
@@ -378,6 +376,7 @@ makeListView wenv value items makeRow config path = listViewNode where
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   lvConfig = [
       selectOnBlur True,
+      onBlurReq (SendMessage path OnListBlur),
       onChangeIdxReq (SendMessage path . OnChangeMessage),
       itemNormalStyle itemStyle,
       itemSelectedStyle itemSelStyle
