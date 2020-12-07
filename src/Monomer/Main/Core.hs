@@ -118,7 +118,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weRenderer = renderer,
     _weTheme = theme,
     _weAppWindowSize = newWindowSize,
-    _weGlobalKeys = Map.empty,
+--    _weGlobalKeys = Map.empty,
     _weCurrentCursor = CursorArrow,
     _weFocusedPath = rootPath,
     _weOverlayPath = Nothing,
@@ -168,7 +168,6 @@ mainLoop window renderer loopArgs = do
   currentCursor <- use currentCursor
   focused <- use pathFocus
   overlay <- use pathOverlay
-  currentGlobalKeys <- use globalKeys
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -190,7 +189,7 @@ mainLoop window renderer loopArgs = do
     _weRenderer = renderer,
     _weTheme = _mlTheme,
     _weAppWindowSize = windowSize,
-    _weGlobalKeys = currentGlobalKeys,
+--    _weGlobalKeys = Map.empty,
     _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,

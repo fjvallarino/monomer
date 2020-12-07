@@ -162,7 +162,6 @@ handleResizeWidgets reqs previousStep =
       let (wenv, events, widgetRoot) = previousStep
       let newWidgetRoot = resizeRoot wenv windowSize widgetRoot
 
-      L.globalKeys .= buildGlobalKeysMap wenv newWidgetRoot
       L.renderRequested .= True
 
       return (wenv, events, newWidgetRoot)

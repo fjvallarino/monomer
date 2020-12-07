@@ -23,7 +23,6 @@ import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
-import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
@@ -52,7 +51,6 @@ data MonomerContext s = MonomerContext {
   _mcPathPressed :: Maybe Path,
   _mcPathOverlay :: Maybe Path,
   _mcWidgetTasks :: Seq WidgetTask,
-  _mcGlobalKeys :: GlobalKeys,
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
   _mcRenderRequested :: Bool,
   _mcRenderSchedule :: Map Path RenderSchedule,

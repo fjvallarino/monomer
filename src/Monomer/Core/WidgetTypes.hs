@@ -22,7 +22,7 @@ import Monomer.Graphics.Types
 type Timestamp = Int
 type WidgetModel s = Typeable s
 type WidgetEvent e = Typeable e
-type GlobalKeys = Map WidgetKey WidgetInstanceNode
+type GlobalKeys s e = Map WidgetKey (WidgetNode s e)
 
 data FocusDirection
   = FocusFwd
@@ -54,9 +54,8 @@ data WidgetData s a
   = WidgetValue a
   | WidgetLens (ALens' s a)
 
-data WidgetKey
-  = WidgetLocalKey Text
-  | WidgetGlobalKey Text
+newtype WidgetKey
+  = WidgetKey Text
   deriving (Eq, Ord, Show)
 
 data WidgetState
@@ -110,7 +109,7 @@ data WidgetEnv s e = WidgetEnv {
   _weRenderer :: Renderer,
   _weTheme :: Theme,
   _weAppWindowSize :: Size,
-  _weGlobalKeys :: GlobalKeys,
+--  _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
   _weOverlayPath :: Maybe Path,
   _weCurrentCursor :: CursorIcon,
