@@ -513,10 +513,14 @@ updateComposite comp state wenv newModel widgetRoot widgetComp = result where
   model
     | isJust _cpsModel = fromJust _cpsModel
     | otherwise = getModel comp wenv
-  mergeRequired = _cmpMergeRequired comp model newModel
+  -- _cmpMergeRequired is not used here for two reasons
+  --   - 1) This function is called on events internal to the composite,
+  --        so external changes do not affect it (those are handled in merge)
+  --   - 2) It could cause an infinite loop
+  mergeRequired = model /= newModel
   newState = state {
-    _cpsModel = Just newModel,
-    _cpsRoot = widgetRoot
+    _cpsRoot = widgetRoot,
+    _cpsGlobalKeys = collectGlobalKeys M.empty widgetRoot
   }
   result
     | mergeRequired = mergeChild comp state wenv newModel widgetRoot widgetComp
@@ -546,7 +550,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   renderResult = resizedResult & L.requests %~ (|> RenderOnce)
   mergedState = state {
     _cpsModel = Just newModel,
-    _cpsRoot = renderResult ^. L.widget
+    _cpsRoot = renderResult ^. L.widget,
+    _cpsGlobalKeys = collectGlobalKeys M.empty (renderResult ^. L.widget)
   }
   result = reduceResult comp mergedState wenv widgetComp renderResult
   newEvents = fmap ($ newModel) (_cmpOnChange comp)
@@ -663,12 +668,13 @@ collectGlobalKeys
   :: Map WidgetKey (WidgetNode s e)
   -> WidgetNode s e
   -> Map WidgetKey (WidgetNode s e)
-collectGlobalKeys keys node = foldl' collect updatedMap children where
+collectGlobalKeys keys node = newMap where
   children = node ^. L.children
   collect currKeys child = collectGlobalKeys currKeys child
   updatedMap = case node ^. L.widgetInstance . L.key of
-    Just key -> M.insert key node keys
+    Just (WidgetKeyGlobal key) -> M.insert (WidgetKeyGlobal key) node keys
     _ -> keys
+  newMap = foldl' collect updatedMap children
 
 convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
@@ -676,7 +682,7 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weRenderer = _weRenderer wenv,
   _weTheme = _weTheme wenv,
   _weAppWindowSize = _weAppWindowSize wenv,
---  _weGlobalKeys = globalKeys,
+  _weGlobalKeys = globalKeys,
   _weCurrentCursor = _weCurrentCursor wenv,
   _weFocusedPath = _weFocusedPath wenv,
   _weOverlayPath = _weOverlayPath wenv,

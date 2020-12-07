@@ -23,6 +23,7 @@ module Monomer.Widgets.Util.Widget (
   getInstanceTree
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.Default
 import Data.Foldable (foldl')
@@ -141,9 +142,14 @@ resizeWidget wenv viewport renderArea widgetRoot = newRoot where
 
 findWidgetByKey
   :: WidgetKey
-  -> Map WidgetKey (WidgetNode s e)
+  -> LocalKeys s e
+  -> GlobalKeys s e
   -> Maybe (WidgetNode s e)
-findWidgetByKey key map = M.lookup key map
+findWidgetByKey key localMap globalMap = local <|> global where
+  local = M.lookup key localMap
+  global = case key of
+    WidgetKeyGlobal{} -> M.lookup key globalMap
+    _ -> Nothing
 
 buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
 buildLocalMap widgets = newMap where

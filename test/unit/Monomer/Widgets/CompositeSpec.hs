@@ -23,6 +23,7 @@ import Monomer.TestUtil
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
+import Monomer.Widgets.TextField
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
@@ -56,8 +57,14 @@ instance Default ChildModel where
     _cmClicks = 0
   }
 
+data TestModel = TestModel {
+  _tmText1 :: Text,
+  _tmText2 :: Text
+} deriving (Eq, Show)
+
 makeLensesWith abbreviatedFields ''MainModel
 makeLensesWith abbreviatedFields ''ChildModel
+makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
 spec = describe "Composite" $ do
@@ -69,6 +76,8 @@ handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventBasic
   handleEventChild
+  handleEventLocalKey
+  handleEventGlobalKey
 
 handleEventBasic :: Spec
 handleEventBasic = describe "handleEventBasic" $ do
@@ -113,6 +122,80 @@ handleEventChild = describe "handleEventChild" $ do
       ]
     cmpNode = composite "main" id Nothing handleEvent buildUI
     model es = nodeHandleEventCtxModel wenv es cmpNode
+
+handleEventLocalKey :: Spec
+handleEventLocalKey = describe "handleEventLocalKey" $
+  it "should insert new text at the beginning, since its merged with a local key" $ do
+    model1 ^. text1 `shouldBe` "aacc"
+    model1 ^. text2 `shouldBe` ""
+    modelM ^. text1 `shouldBe` "bbaacc"
+    modelM ^. text2 `shouldBe` ""
+
+  where
+    wenv = mockWenv (TestModel "" "")
+    handleEvent :: TestModel -> () -> [EventResponse TestModel () ()]
+    handleEvent model evt = []
+    buildUI1 model = hstack [
+        vstack [
+          textField text1 `key` "localTxt1"
+        ],
+        vstack [
+          textField text1 `key` "localTxt2"
+        ]
+      ]
+    buildUI2 model = hstack [
+        vstack [
+          textField text1 `key` "localTxt2"
+        ],
+        vstack [
+          textField text1 `key` "localTxt1"
+        ]
+      ]
+    cmpNode1 = composite "main" id Nothing handleEvent buildUI1
+    cmpNode2 = composite_ "main" id Nothing handleEvent buildUI2 [mergeRequired (\_ _ -> True)]
+    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    model1 = nodeHandleEventModel wenv evts1 cmpNode1
+    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
+    cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
+    evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+
+handleEventGlobalKey :: Spec
+handleEventGlobalKey = describe "handleEventGlobalKey" $
+  it "should insert new text at the correct location, since its merged with a global key" $ do
+    model1 ^. text1 `shouldBe` "aacc"
+    model1 ^. text2 `shouldBe` ""
+    modelM ^. text1 `shouldBe` "aabbcc"
+    modelM ^. text2 `shouldBe` ""
+
+  where
+    wenv = mockWenv (TestModel "" "")
+    handleEvent :: TestModel -> () -> [EventResponse TestModel () ()]
+    handleEvent model evt = []
+    buildUI1 model = hstack [
+        vstack [
+          textField text1 `globalKey` "globalTxt1"
+        ],
+        vstack [
+          textField text1 `globalKey` "globalTxt2"
+        ]
+      ]
+    buildUI2 model = hstack [
+        vstack [
+          textField text1 `globalKey` "globalTxt2"
+        ],
+        vstack [
+          textField text1 `globalKey` "globalTxt1"
+        ]
+      ]
+    cmpNode1 = composite "main" id Nothing handleEvent buildUI1
+    cmpNode2 = composite_ "main" id Nothing handleEvent buildUI2 [mergeRequired (\_ _ -> True)]
+    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    model1 = nodeHandleEventModel wenv evts1 cmpNode1
+    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
+    cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
+    evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

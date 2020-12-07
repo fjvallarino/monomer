@@ -306,9 +306,10 @@ mergeChildrenSeq wenv localKeys Empty newItems = (merged, Empty) where
 mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
   oldChild :<| oldChildren = oldItems
   newChild :<| newChildren = newItems
+  globalKeys = wenv ^. L.globalKeys
   newWidget = newChild ^. L.widget
   newChildKey = newChild ^. L.widgetInstance . L.key
-  oldKeyMatch = newChildKey >>= flip findWidgetByKey localKeys
+  oldKeyMatch = newChildKey >>= \key -> findWidgetByKey key localKeys globalKeys
   oldMatch = fromJust oldKeyMatch
   mergedOld = widgetMerge newWidget wenv oldChild newChild
   mergedKey = widgetMerge newWidget wenv oldMatch newChild

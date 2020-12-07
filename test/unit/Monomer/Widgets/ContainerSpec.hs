@@ -41,7 +41,7 @@ handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventNormal
   handleEventNoKey
-  handleEventWithKey
+  handleEventLocalKey
 
 handleEventNormal :: Spec
 handleEventNormal = describe "handleEventNormal" $
@@ -93,8 +93,8 @@ handleEventNoKey = describe "handleEventNoKey" $
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
 
-handleEventWithKey :: Spec
-handleEventWithKey = describe "handleEventWithKey" $
+handleEventLocalKey :: Spec
+handleEventLocalKey = describe "handleEventLocalKey" $
   it "should insert new text at the correct location, since its merged with a key" $ do
     model1 ^. text1 `shouldBe` "aacc"
     model1 ^. text2 `shouldBe` ""
