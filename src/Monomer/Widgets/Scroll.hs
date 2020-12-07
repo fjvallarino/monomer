@@ -7,6 +7,10 @@ module Monomer.Widgets.Scroll (
   ScrollMessage(..),
   scroll,
   scroll_,
+  hscroll,
+  hscroll_,
+  vscroll,
+  vscroll_,
   barHoverColor,
   barColor,
   thumbHoverColor,
@@ -29,12 +33,19 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+data ScrollType
+  = ScrollH
+  | ScrollV
+  | ScrollBoth
+  deriving (Eq, Show)
+
 data ActiveBar
   = HBar
   | VBar
   deriving (Eq)
 
 data ScrollCfg = ScrollCfg {
+  _scScrollType :: Maybe ScrollType,
   _scBarColor :: Maybe Color,
   _scBarHoverColor :: Maybe Color,
   _scThumbColor :: Maybe Color,
@@ -45,6 +56,7 @@ data ScrollCfg = ScrollCfg {
 
 instance Default ScrollCfg where
   def = ScrollCfg {
+    _scScrollType = Nothing,
     _scBarColor = Nothing,
     _scBarHoverColor = Nothing,
     _scThumbColor = Nothing,
@@ -55,6 +67,7 @@ instance Default ScrollCfg where
 
 instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
+    _scScrollType = _scScrollType t2 <|> _scScrollType t1,
     _scBarColor = _scBarColor t2 <|> _scBarColor t1,
     _scBarHoverColor = _scBarHoverColor t2 <|> _scBarHoverColor t1,
     _scThumbColor = _scThumbColor t2 <|> _scThumbColor t1,
@@ -64,14 +77,7 @@ instance Semigroup ScrollCfg where
   }
 
 instance Monoid ScrollCfg where
-  mempty = ScrollCfg {
-    _scBarColor = Nothing,
-    _scBarHoverColor = Nothing,
-    _scThumbColor = Nothing,
-    _scThumbHoverColor = Nothing,
-    _scStyle = Nothing,
-    _scWidth = Nothing
-  }
+  mempty = def
 
 data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
@@ -106,6 +112,11 @@ instance Default ScrollState where
     _sstDeltaY = 0,
     _sstChildSize = def
   }
+
+scrollType :: ScrollType -> ScrollCfg
+scrollType st = def {
+  _scScrollType = Just st
+}
 
 barColor :: Color -> ScrollCfg
 barColor col = def {
@@ -146,6 +157,20 @@ scroll managedWidget = scroll_ managedWidget [def]
 scroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
 scroll_ managed configs = makeInstance (makeScroll config def) managed where
   config = mconcat configs
+
+hscroll :: WidgetNode s e -> WidgetNode s e
+hscroll managedWidget = hscroll_ managedWidget [def]
+
+hscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
+hscroll_ managed configs = makeInstance (makeScroll config def) managed where
+  config = mconcat (scrollType ScrollH : configs)
+
+vscroll :: WidgetNode s e -> WidgetNode s e
+vscroll managedWidget = vscroll_ managedWidget [def]
+
+vscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
+vscroll_ managed configs = makeInstance (makeScroll config def) managed where
+  config = mconcat (scrollType ScrollV : configs)
 
 makeInstance :: Widget s e -> WidgetNode s e -> WidgetNode s e
 makeInstance widget managedWidget = defaultWidgetNode "scroll" widget
@@ -309,6 +334,8 @@ makeScroll config state = widget where
 
   scrollResize uWidget state wenv viewport renderArea node = newNode where
     style = scrollActiveStyle wenv node
+    scrollType = fromMaybe ScrollBoth (_scScrollType config)
+
     Rect cl ct cw ch = fromMaybe def (removeOuterBounds style renderArea)
     dx = _sstDeltaX state
     dy = _sstDeltaY state
@@ -317,8 +344,12 @@ makeScroll config state = widget where
     childWidth2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
     childHeight2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
 
-    areaW = max cw childWidth2
-    areaH = max ch childHeight2
+    areaW
+      | scrollType == ScrollV = cw
+      | otherwise = max cw childWidth2
+    areaH
+      | scrollType == ScrollH = ch
+      | otherwise = max ch childHeight2
     newDx = scrollAxis dx areaW cw
     newDy = scrollAxis dy areaH ch
     cRenderArea = Rect (cl + newDx) (ct + newDy) areaW areaH
