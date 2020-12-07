@@ -148,17 +148,27 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
-mainButton :: Text -> e -> WidgetNode s e
+mainButton :: (WidgetModel s, WidgetEvent e) => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
-mainButton_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+mainButton_
+  :: (WidgetModel s, WidgetEvent e)
+  => Text
+  -> e
+  -> [ButtonCfg s e]
+  -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
   newConfigs = mainConfig : configs
 
-button :: Text -> e -> WidgetNode s e
+button :: (WidgetModel s, WidgetEvent e) => Text -> e -> WidgetNode s e
 button caption handler = button_ caption handler def
 
-button_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+button_
+  :: (WidgetModel s, WidgetEvent e)
+  => Text
+  -> e
+  -> [ButtonCfg s e]
+  -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
   state = BtnState caption Empty
@@ -166,7 +176,11 @@ button_ caption handler configs = buttonNode where
   buttonNode = defaultWidgetNode "button" widget
     & L.widgetInstance . L.focusable .~ True
 
-makeButton :: ButtonCfg s e -> BtnState -> Widget s e
+makeButton
+  :: (WidgetModel s, WidgetEvent e)
+  => ButtonCfg s e
+  -> BtnState
+  -> Widget s e
 makeButton config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,

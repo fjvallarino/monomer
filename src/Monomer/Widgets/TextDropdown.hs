@@ -20,7 +20,7 @@ import Monomer.Widgets.Dropdown
 type TextDropdownItem a = DropdownItem a
 
 textDropdown
-  :: (Traversable t, TextDropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -29,7 +29,7 @@ textDropdown field items toText = newNode where
   newNode = textDropdown_ field items toText def
 
 textDropdown_
-  :: (Traversable t, TextDropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -39,7 +39,7 @@ textDropdown_ field items toText configs = newNode where
   newNode = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
-  :: (Traversable t, TextDropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -49,7 +49,7 @@ textDropdownV value handler items toText = newNode where
   newNode = textDropdownV_ value handler items toText def
 
 textDropdownV_
-  :: (Traversable t, TextDropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -62,7 +62,7 @@ textDropdownV_ value handler items toText configs = newNode where
   newNode = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
-  :: (Traversable t, TextDropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> Text)

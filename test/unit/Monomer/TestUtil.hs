@@ -107,7 +107,7 @@ mockRenderer = Renderer {
   renderImage = \name rect alpha -> return ()
 }
 
-mockWenv :: s -> WidgetEnv s e
+mockWenv :: (WidgetModel s, WidgetEvent e, Eq s) => s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOS = "Mac OS X",
   _weRenderer = mockRenderer,
@@ -123,29 +123,42 @@ mockWenv model = WidgetEnv {
   _weInTopLayer = const True
 }
 
-mockWenvEvtUnit :: s -> WidgetEnv s ()
+mockWenvEvtUnit :: (WidgetModel s, Eq s) => s -> WidgetEnv s ()
 mockWenvEvtUnit model = mockWenv model
 
-nodeInit :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
+nodeInit
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetNode s e
 nodeInit wenv node = newNode where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   Size w h = _weAppWindowSize wenv
   vp = Rect 0 0 w h
   newNode = nodeResize wenv vp node2
 
-nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
+nodeUpdateSizeReq
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   reqNode = widgetGetSizeReq (node2 ^. L.widget) wenv node2
   sizeReqW = reqNode ^. L.sizeReqW
   sizeReqH = reqNode ^. L.sizeReqH
 
-nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
+nodeResize
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetEnv s e
+  -> Rect
+  -> WidgetNode s e
+  -> WidgetNode s e
 nodeResize wenv viewport node = newNode where
   newNode = resizeWidget wenv viewport viewport node
 
 nodeHandleEventCtx
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -154,7 +167,7 @@ nodeHandleEventCtx wenv evts node = ctx where
   ctx = snd $ nodeHandleEvents wenv evts node
 
 nodeHandleEventCtxModel
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -163,7 +176,7 @@ nodeHandleEventCtxModel wenv evts node = ctx where
   ctx = _mcMainModel (nodeHandleEventCtx wenv evts node)
 
 nodeHandleEventModel
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -172,7 +185,7 @@ nodeHandleEventModel wenv evts node = _weModel wenv2 where
   (wenv2, _, _) = fst $ nodeHandleEvents wenv evts node
 
 nodeHandleEventEvts
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -181,7 +194,7 @@ nodeHandleEventEvts wenv evts node = events where
   (_, events, _) = fst $ nodeHandleEvents wenv evts node
 
 nodeHandleEventRoot
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -190,7 +203,7 @@ nodeHandleEventRoot wenv evts node = newRoot where
   (_, _, newRoot) = fst $ nodeHandleEvents wenv evts node
 
 nodeHandleEvents
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -211,7 +224,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
     handleSystemEvents wenv2 evts resizedNode
 
 nodeHandleEventModelNoInit
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -220,7 +233,7 @@ nodeHandleEventModelNoInit wenv evts node = _weModel wenv2 where
   (wenv2, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
 
 nodeHandleEventsNoInit
-  :: (Eq s)
+  :: (WidgetModel s, WidgetEvent e, Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e

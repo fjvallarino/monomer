@@ -130,21 +130,28 @@ instance CmbOnChangeReq (IntegralFieldCfg s e a) s where
     _nfcOnChangeReq = [req]
   }
 
-integralField :: FormattableInt a => ALens' s a -> WidgetNode s e
+integralField
+  :: (WidgetModel s, WidgetEvent e, FormattableInt a)
+  => ALens' s a
+  -> WidgetNode s e
 integralField field = integralField_ field def
 
 integralField_
-  :: FormattableInt a
+  :: (WidgetModel s, WidgetEvent e, FormattableInt a)
   => ALens' s a
   -> [IntegralFieldCfg s e a]
   -> WidgetNode s e
 integralField_ field configs = integralFieldD_ (WidgetLens field) configs
 
-integralFieldV :: FormattableInt a => a -> (a -> e) -> WidgetNode s e
+integralFieldV
+  :: (WidgetModel s, WidgetEvent e, FormattableInt a)
+  => a
+  -> (a -> e)
+  -> WidgetNode s e
 integralFieldV value handler = integralFieldV_ value handler def
 
 integralFieldV_
-  :: FormattableInt a
+  :: (WidgetModel s, WidgetEvent e, FormattableInt a)
   => a
   -> (a -> e)
   -> [IntegralFieldCfg s e a]
@@ -155,7 +162,7 @@ integralFieldV_ value handler configs = newNode where
   newNode = integralFieldD_ widgetData newConfigs
 
 integralFieldD_
-  :: FormattableInt a
+  :: (WidgetModel s, WidgetEvent e, FormattableInt a)
   => WidgetData s a
   -> [IntegralFieldCfg s e a]
   -> WidgetNode s e

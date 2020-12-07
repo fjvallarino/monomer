@@ -39,11 +39,14 @@ instance CmbIgnoreEmptyClick StackCfg where
     _stcIgnoreEmptyClick = Just ignore
   }
 
-hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+hstack
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
+  => t (WidgetNode s e)
+  -> WidgetNode s e
 hstack children = hstack_ children def
 
 hstack_
-  :: (Traversable t)
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
   => t (WidgetNode s e)
   -> [StackCfg]
   -> WidgetNode s e
@@ -52,11 +55,14 @@ hstack_ children configs = newNode where
   newNode = defaultWidgetNode "hstack" (makeStack True config)
     & L.children .~ foldl' (|>) Empty children
 
-vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+vstack
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
+  => t (WidgetNode s e)
+  -> WidgetNode s e
 vstack children = vstack_ children def
 
 vstack_
-  :: (Traversable t)
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
   => t (WidgetNode s e)
   -> [StackCfg]
   -> WidgetNode s e
@@ -65,7 +71,7 @@ vstack_ children configs = newNode where
   newNode = defaultWidgetNode "vstack" (makeStack False config)
     & L.children .~ foldl' (|>) Empty children
 
-makeStack :: Bool -> StackCfg -> Widget s e
+makeStack :: (WidgetModel s, WidgetEvent e) => Bool -> StackCfg -> Widget s e
 makeStack isHorizontal config = widget where
   widget = createContainer def {
     containerIgnoreEmptyClick = ignoreEmptyClick,

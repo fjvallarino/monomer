@@ -140,10 +140,14 @@ scrollStyle style = def {
 wheelRate :: Double
 wheelRate = 10
 
-scroll :: WidgetNode s e -> WidgetNode s e
+scroll :: (WidgetModel s, WidgetEvent e) => WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ managedWidget [def]
 
-scroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
+scroll_
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetNode s e
+  -> [ScrollCfg]
+  -> WidgetNode s e
 scroll_ managed configs = makeInstance (makeScroll config def) managed where
   config = mconcat configs
 
@@ -152,7 +156,11 @@ makeInstance widget managedWidget = defaultWidgetNode "scroll" widget
   & L.widgetInstance . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeScroll :: ScrollCfg -> ScrollState -> Widget s e
+makeScroll
+  :: (WidgetModel s, WidgetEvent e)
+  => ScrollCfg
+  -> ScrollState
+  -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer def {
     containerStyleOnMerge = True,

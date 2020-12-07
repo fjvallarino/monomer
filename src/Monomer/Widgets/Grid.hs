@@ -17,15 +17,21 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-hgrid :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+hgrid
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
+  => t (WidgetNode s e)
+  -> WidgetNode s e
 hgrid children = defaultWidgetNode "hgrid" (makeFixedGrid True)
   & L.children .~ foldl' (|>) Empty children
 
-vgrid :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
+vgrid
+  :: (WidgetModel s, WidgetEvent e, Traversable t)
+  => t (WidgetNode s e)
+  -> WidgetNode s e
 vgrid children = defaultWidgetNode "vgrid" (makeFixedGrid False)
   & L.children .~ foldl' (|>) Empty children
 
-makeFixedGrid :: Bool -> Widget s e
+makeFixedGrid :: (WidgetModel s, WidgetEvent e) => Bool -> Widget s e
 makeFixedGrid isHorizontal = widget where
   widget = createContainer def {
     containerGetSizeReq = getSizeReq,

@@ -121,7 +121,7 @@ data DropdownMessage
   deriving Typeable
 
 dropdown
-  :: (Traversable t, DropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -131,7 +131,7 @@ dropdown field items makeMain makeRow = newNode where
   newNode = dropdown_ field items makeMain makeRow def
 
 dropdown_
-  :: (Traversable t, DropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -143,7 +143,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
-  :: (Traversable t, DropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -154,7 +154,7 @@ dropdownV value handler items makeMain makeRow = newNode where
   newNode = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
-  :: (Traversable t, DropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -167,7 +167,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
-  :: (Traversable t, DropdownItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -185,7 +185,7 @@ makeInstance widget = defaultWidgetNode "dropdown" widget
   & L.widgetInstance . L.focusable .~ True
 
 makeDropdown
-  :: DropdownItem a
+  :: (WidgetModel s, WidgetEvent e, DropdownItem a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetNode s e)
@@ -360,7 +360,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget renderer wenv overlayInstance
 
 makeListView
-  :: DropdownItem a
+  :: (WidgetModel s, WidgetEvent e, DropdownItem a)
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a

@@ -139,24 +139,27 @@ instance CmbOnChangeReq (FloatingFieldCfg s e a) s where
   }
 
 floatingField
-  :: FormattableFloat a
-  => ALens' s a -> WidgetNode s e
+  :: (WidgetModel s, WidgetEvent e, FormattableFloat a)
+  => ALens' s a
+  -> WidgetNode s e
 floatingField field = floatingField_ field def
 
 floatingField_
-  :: FormattableFloat a
+  :: (WidgetModel s, WidgetEvent e, FormattableFloat a)
   => ALens' s a
   -> [FloatingFieldCfg s e a]
   -> WidgetNode s e
 floatingField_ field configs = floatingFieldD_ (WidgetLens field) configs
 
 floatingFieldV
-  :: FormattableFloat a
-  => a -> (a -> e) -> WidgetNode s e
+  :: (WidgetModel s, WidgetEvent e, FormattableFloat a)
+  => a
+  -> (a -> e)
+  -> WidgetNode s e
 floatingFieldV value handler = floatingFieldV_ value handler def
 
 floatingFieldV_
-  :: FormattableFloat a
+  :: (WidgetModel s, WidgetEvent e, FormattableFloat a)
   => a
   -> (a -> e)
   -> [FloatingFieldCfg s e a]
@@ -167,7 +170,7 @@ floatingFieldV_ value handler configs = newNode where
   newNode = floatingFieldD_ widgetData newConfigs
 
 floatingFieldD_
-  :: FormattableFloat a
+  :: (WidgetModel s, WidgetEvent e, FormattableFloat a)
   => WidgetData s a
   -> [FloatingFieldCfg s e a]
   -> WidgetNode s e

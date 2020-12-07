@@ -93,7 +93,7 @@ handleEventFocusTop = describe "handleEventFocusTop" $
     model steps ^. textValue2 `shouldBe` "abc"
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenvEvtUnit (TestModel "" "")
     zstackNode = zstack [
         textField textValue1,
         textField textValue2
@@ -108,7 +108,7 @@ handleEventFocusAll = describe "handleEventFocusAll" $
     model steps ^. textValue2 `shouldBe` ""
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenvEvtUnit (TestModel "" "")
     zstackNode = zstack_ [
         textField textValue1,
         textField textValue2
@@ -130,7 +130,7 @@ updateSizeReqEmpty = describe "empty" $ do
     sizeReqH `shouldBe` FixedSize 0
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     zstackNode = zstack []
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
 
@@ -143,7 +143,7 @@ updateSizeReqItems = describe "several items, horizontal" $ do
     sizeReqH `shouldBe` FixedSize 60
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     zstackNode = zstack [
         vstack [
           label "Label a1"
@@ -169,7 +169,7 @@ updateSizeReqItemsFixed = describe "several items, horizontal" $ do
     sizeReqH `shouldBe` FixedSize 40
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     zstackNode = zstack [
         vstack [
           label "Label a1",
@@ -196,7 +196,7 @@ resizeEmpty = describe "empty" $ do
     children `shouldSatisfy` Seq.null
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp = Rect 0 0 640 480
     zstackNode = zstack []
     newNode = nodeInit wenv zstackNode
@@ -215,7 +215,7 @@ resizeItems = describe "several items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [vp, vp, vp]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect 0 0 640 480
     zstackNode = zstack [
         label "Label 1",

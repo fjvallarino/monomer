@@ -41,9 +41,10 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
-type ParentModel sp = Typeable sp
-type CompositeModel s = (Eq s, Typeable s)
-type CompositeEvent e = Typeable e
+type ParentModel sp = (WidgetModel sp, Eq sp)
+type ParentEvent ep = WidgetEvent ep
+type CompositeModel s = (WidgetModel s, Eq s)
+type CompositeEvent e = WidgetEvent e
 
 type EventHandler s e ep = s -> e -> [EventResponse s e ep]
 type UIBuilder s e = s -> WidgetNode s e
@@ -125,7 +126,7 @@ data ReducedEvents s e sp ep = ReducedEvents {
 }
 
 composite
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => WidgetType
   -> ALens' sp s
   -> Maybe e
@@ -136,7 +137,7 @@ composite widgetType field initEvt evtHandler uiBuilder = newNode where
   newNode = composite_ widgetType field initEvt evtHandler uiBuilder def
 
 composite_
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => WidgetType
   -> ALens' sp s
   -> Maybe e
@@ -149,7 +150,7 @@ composite_ widgetType field initEvt evtHandler uiBuilder cfgs = newNode where
   newNode = compositeD_ widgetType widgetData initEvt evtHandler uiBuilder cfgs
 
 compositeV
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => WidgetType
   -> s
   -> (s -> ep)
@@ -161,7 +162,7 @@ compositeV wType val handler initEvt evtHandler uiBuilder = newNode where
   newNode = compositeV_ wType val handler initEvt evtHandler uiBuilder def
 
 compositeV_
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => WidgetType
   -> s
   -> (s -> ep)
@@ -176,7 +177,7 @@ compositeV_ wType val handler initEvt evtHandler uiBuilder cfgs = newNode where
   newNode = compositeD_ wType widgetData initEvt evtHandler uiBuilder newCfgs
 
 compositeD_
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => WidgetType
   -> WidgetData sp s
   -> Maybe e
@@ -202,7 +203,7 @@ compositeD_ wType wData initEvt evtHandler uiBuilder configs = newNode where
   newNode = defaultWidgetNode wType widget
 
 createComposite
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> Widget sp ep
@@ -224,7 +225,7 @@ createComposite comp state = widget where
 
 -- | Init
 compositeInit
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -251,7 +252,7 @@ compositeInit comp state wenv widgetComp = newResult where
 
 -- | Merge
 compositeMerge
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -292,7 +293,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
 
 -- | Dispose
 compositeDispose
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -309,7 +310,7 @@ compositeDispose comp state wenv widgetComp = result where
 
 -- | Next focusable
 compositeFindNextFocus
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -326,7 +327,7 @@ compositeFindNextFocus comp state wenv dir start widgetComp = nextFocus where
 
 -- | Find
 compositeFindByPoint
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -348,7 +349,7 @@ compositeFindByPoint comp state wenv startPath point widgetComp
 
 -- | Event handling
 compositeHandleEvent
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -373,7 +374,7 @@ compositeHandleEvent comp state wenv target evt widgetComp = result where
 
 -- | Message handling
 compositeHandleMessage
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp, Typeable i)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep, Typeable i)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -396,7 +397,7 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
 
 -- Preferred size
 compositeGetSizeReq
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -425,7 +426,7 @@ compositeGetSizeReq comp state wenv widgetComp = newSizeReq where
 
 -- Resize
 compositeResize
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -453,7 +454,7 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
 
 -- Render
 compositeRender
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> Renderer
@@ -468,7 +469,7 @@ compositeRender comp state renderer wenv _ = action where
   action = widgetRender widget renderer cwenv _cpsRoot
 
 reduceResult
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -500,7 +501,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   newResult = WidgetResult uWidget newReqs newEvts
 
 updateComposite
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -524,7 +525,7 @@ updateComposite comp state wenv newModel widgetRoot widgetComp = result where
       & L.widget .~ createComposite comp newState
 
 mergeChild
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -556,7 +557,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
     & L.events <>~ Seq.fromList newEvents
 
 resizeResult
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
@@ -620,17 +621,24 @@ reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Producer producer -> curr { _reProducers = _reProducers |> producer }
 
 getModel
-  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp, ParentEvent ep)
   => Composite s e sp ep
   -> WidgetEnv sp ep
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
-tasksToRequests :: CompositeEvent e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
+tasksToRequests
+  :: CompositeEvent e
+  => Path
+  -> Seq (IO e)
+  -> Seq (WidgetRequest sp)
 tasksToRequests path reqs = RunTask path <$> reqs
 
 producersToRequests
-  :: CompositeEvent e => Path -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
+  :: CompositeEvent e
+  => Path
+  -> Seq (ProducerHandler e)
+  -> Seq (WidgetRequest sp)
 producersToRequests path reqs = RunProducer path <$> reqs
 
 toParentReqs :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)

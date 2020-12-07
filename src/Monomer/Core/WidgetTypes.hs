@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -5,6 +6,7 @@ module Monomer.Core.WidgetTypes where
 
 import Control.Lens (ALens')
 import Data.Default
+import Data.Dynamic
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq)
 import Data.String (IsString(..))
@@ -18,6 +20,8 @@ import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 type Timestamp = Int
+type WidgetModel s = Typeable s
+type WidgetEvent e = Typeable e
 type GlobalKeys s e = Map WidgetKey (WidgetNode s e)
 
 data FocusDirection
@@ -125,6 +129,8 @@ data WidgetNode s e = WidgetNode {
 }
 
 data WidgetInstanceNode = WidgetInstanceNode {
+  -- | The widget itself, wrapped in dynamic to avoid requiring type information
+  _winWidgetNode :: Dynamic,
   -- | The instance
   _winInst :: WidgetInstance,
   -- | The children widget, if any

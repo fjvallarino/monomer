@@ -126,7 +126,7 @@ instance Default (Single s e) where
     singleRender = defaultRender
   }
 
-createSingle :: Single s e -> Widget s e
+createSingle :: (WidgetModel s, WidgetEvent e) => Single s e -> Widget s e
 createSingle single = Widget {
   widgetInit = initWrapper single,
   widgetMerge = mergeWrapper single,

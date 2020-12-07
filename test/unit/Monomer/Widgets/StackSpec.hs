@@ -36,7 +36,7 @@ updateSizeReqEmpty = describe "empty" $ do
     sizeReqH `shouldBe` FixedSize 0
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vstackNode = vstack []
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv vstackNode
 
@@ -49,7 +49,7 @@ updateSizeReqItems = describe "several items" $ do
     sizeReqH `shouldBe` FixedSize 60
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vstackNode = vstack [
         label "Hello",
         label "how",
@@ -79,7 +79,7 @@ resizeEmpty = describe "empty" $ do
     children `shouldSatisfy` Seq.null
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp = Rect 0 0 640 480
     vstackNode = vstack []
     newNode = nodeInit wenv vstackNode
@@ -98,7 +98,7 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv () & L.appWindowSize .~ Size 480 640
+    wenv = mockWenvEvtUnit () & L.appWindowSize .~ Size 480 640
     vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 112 640
     cvp2 = Rect 112 0 256 640
@@ -125,7 +125,7 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640 160
     cvp2 = Rect 0 160 640 160
@@ -152,7 +152,7 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect   0 0 640 480
     cvp1 = Rect   0 0 100 480
     cvp2 = Rect 100 0 100 480
@@ -179,7 +179,7 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640 100
     cvp2 = Rect 0 100 640  20
@@ -206,7 +206,7 @@ resizeMixedH = describe "mixed items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect   0 0 640 480
     cvp1 = Rect   0 0 196  20
     cvp2 = Rect 196 0 444  20
@@ -234,7 +234,7 @@ resizeMixedV = describe "mixed items, vertical" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640  20
     cvp2 = Rect 0  20 640 426
@@ -264,7 +264,7 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640  50
     cvp2 = Rect 0  50 640 115
@@ -295,7 +295,7 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect   0 0 640 480
     cvp1 = Rect   0 0 211 480
     cvp2 = Rect 211 0   8 480
@@ -322,7 +322,7 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp   = Rect   0 0 640 480
     cvp1 = Rect   0 0 100 480
     cvp2 = Rect 100 0 340 480

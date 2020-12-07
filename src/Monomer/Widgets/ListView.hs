@@ -161,7 +161,7 @@ newtype ListViewMessage
   deriving Typeable
 
 listView
-  :: (Traversable t, ListItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, ListItem a)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -169,7 +169,7 @@ listView
 listView field items makeRow = listView_ field items makeRow def
 
 listView_
-  :: (Traversable t, ListItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, ListItem a)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -179,7 +179,7 @@ listView_ field items makeRow configs = newNode where
   newNode = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
-  :: (Traversable t, ListItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -189,7 +189,7 @@ listViewV value handler items makeRow = newNode where
   newNode = listViewV_ value handler items makeRow def
 
 listViewV_
-  :: (Traversable t, ListItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -202,7 +202,7 @@ listViewV_ value handler items makeRow configs = newNode where
   newNode = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
-  :: (Traversable t, ListItem a)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, ListItem a)
   => WidgetData s a
   -> t a
   -> MakeRow s e a
@@ -214,13 +214,16 @@ listViewD_ widgetData items makeRow configs = makeInstance widget where
   newState = ListViewState newItems Nothing 0 False
   widget = makeListView widgetData newItems makeRow config newState
 
-makeInstance :: Widget s e -> WidgetNode s e
+makeInstance
+  :: (WidgetModel s, WidgetEvent e)
+  => Widget s e
+  -> WidgetNode s e
 makeInstance widget = scroll_ childNode [scrollStyle L.listViewStyle] where
   childNode = defaultWidgetNode "listView" widget
     & L.widgetInstance . L.focusable .~ True
 
 makeListView
-  :: (ListItem a)
+  :: (WidgetModel s, WidgetEvent e, ListItem a)
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
@@ -481,7 +484,7 @@ setFocusedItemStyle wenv item
     focusStyle = item ^. L.children . ix 0 . L.widgetInstance . L.style . L.focus
 
 makeItemsList
-  :: (Eq a)
+  :: (WidgetModel s, WidgetEvent e, Eq a)
   => WidgetEnv s e
   -> Seq a
   -> MakeRow s e a

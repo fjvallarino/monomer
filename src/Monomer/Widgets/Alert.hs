@@ -49,15 +49,30 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-alert :: Text -> e -> WidgetNode s e
+alert
+  :: (WidgetModel s, WidgetEvent e)
+  => Text
+  -> e
+  -> WidgetNode s e
 alert message evt = alert_ message evt def
 
-alert_ :: Text -> e -> [AlertCfg] -> WidgetNode s e
+alert_
+  :: (WidgetModel s, WidgetEvent e)
+  => Text
+  -> e
+  -> [AlertCfg]
+  -> WidgetNode s e
 alert_ message evt configs = createThemed "alert" factory where
   config = mconcat configs
   factory wenv = makeAlert wenv message evt config
 
-makeAlert :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetNode s e
+makeAlert
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetEnv s e
+  -> Text
+  -> e
+  -> AlertCfg
+  -> WidgetNode s e
 makeAlert wenv message evt config = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
