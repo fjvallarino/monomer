@@ -45,7 +45,8 @@ initSDLWindow config = do
       SDL.defaultWindow {
         SDL.windowInitialSize = SDL.V2 (fromIntegral winW) (fromIntegral winH),
         SDL.windowHighDPI = windowHiDPI,
-        SDL.windowResizable = True,
+        SDL.windowResizable = windowResizable,
+        SDL.windowBorder = windowBorder,
         SDL.windowGraphicsContext = SDL.OpenGLContext customOpenGL
       }
 
@@ -83,6 +84,8 @@ initSDLWindow config = do
     (winW, winH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize
+    windowResizable = fromMaybe True (_apcWindowResizable config)
+    windowBorder = fromMaybe True (_apcWindowBorder config)
     windowHiDPI = fromMaybe defaultUseHdpi (_apcHdpi config)
     windowFullscreen = case _apcWindowState config of
       Just MainWindowFullScreen -> True

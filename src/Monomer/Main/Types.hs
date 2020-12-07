@@ -66,6 +66,8 @@ data MainWindowState
 data AppConfig e = AppConfig {
   _apcWindowState :: Maybe MainWindowState,
   _apcWindowTitle :: Maybe Text,
+  _apcWindowResizable :: Maybe Bool,
+  _apcWindowBorder :: Maybe Bool,
   _apcHdpi :: Maybe Bool,
   _apcMaxFps :: Maybe Int,
   _apcFonts :: [FontDef],
@@ -78,6 +80,8 @@ instance Default (AppConfig e) where
   def = AppConfig {
     _apcWindowState = Nothing,
     _apcWindowTitle = Nothing,
+    _apcWindowResizable = Nothing,
+    _apcWindowBorder = Nothing,
     _apcHdpi = Nothing,
     _apcMaxFps = Nothing,
     _apcFonts = [],
@@ -90,6 +94,8 @@ instance Semigroup (AppConfig e) where
   (<>) a1 a2 = AppConfig {
     _apcWindowState = _apcWindowState a2 <|> _apcWindowState a1,
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
+    _apcWindowResizable = _apcWindowResizable a2 <|> _apcWindowResizable a1,
+    _apcWindowBorder = _apcWindowBorder a2 <|> _apcWindowBorder a1,
     _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
@@ -109,6 +115,16 @@ mainWindowState title = def {
 mainWindowTitle :: Text -> AppConfig e
 mainWindowTitle title = def {
   _apcWindowTitle = Just title
+}
+
+mainWindowResizable :: Bool -> AppConfig e
+mainWindowResizable resizable = def {
+  _apcWindowResizable = Just resizable
+}
+
+mainWindowBorder :: Bool -> AppConfig e
+mainWindowBorder border = def {
+  _apcWindowBorder = Just border
 }
 
 useHdpi :: Bool -> AppConfig e
