@@ -68,7 +68,7 @@ caretMs :: Int
 caretMs = 500
 
 inputField_
-  :: (WidgetModel s, WidgetEvent e, Eq a, Default a, Typeable a)
+  :: (Eq a, Default a, Typeable a)
   => WidgetType
   -> InputFieldCfg s e a
   -> WidgetNode s e
@@ -78,10 +78,8 @@ inputField_ widgetType config = node where
     & L.widgetInstance . L.focusable .~ True
 
 makeInputField
-  :: (WidgetModel s, WidgetEvent e, Eq a, Default a, Typeable a)
-  => InputFieldCfg s e a
-  -> InputFieldState a
-  -> Widget s e
+  :: (Eq a, Default a, Typeable a)
+  => InputFieldCfg s e a -> InputFieldState a -> Widget s e
 makeInputField config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,

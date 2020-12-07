@@ -57,34 +57,16 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-confirm
-  :: (WidgetModel s, WidgetEvent e)
-  => Text
-  -> e
-  -> e
-  -> WidgetNode s e
+confirm :: Text -> e -> e -> WidgetNode s e
 confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
 
-confirm_
-  :: (WidgetModel s, WidgetEvent e)
-  => Text
-  -> e
-  -> e
-  -> [ConfirmCfg]
-  -> WidgetNode s e
+confirm_ :: Text -> e -> e -> [ConfirmCfg] -> WidgetNode s e
 confirm_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   factory wenv = makeConfirm wenv message acceptEvt cancelEvt config
   newNode = createThemed "confirm" factory
 
-makeConfirm
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetEnv s e
-  -> Text
-  -> e
-  -> e
-  -> ConfirmCfg
-  -> WidgetNode s e
+makeConfirm :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetNode s e
 makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)

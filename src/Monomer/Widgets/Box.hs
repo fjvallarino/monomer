@@ -111,14 +111,10 @@ expandContent = def {
   _boxExpandContent = Just True
 }
 
-box :: (WidgetModel s, WidgetEvent e) => WidgetNode s e -> WidgetNode s e
+box :: WidgetNode s e -> WidgetNode s e
 box managed = box_ managed def
 
-box_
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetNode s e
-  -> [BoxCfg s e]
-  -> WidgetNode s e
+box_ :: WidgetNode s e -> [BoxCfg s e] -> WidgetNode s e
 box_ managed configs = makeInstance (makeBox config) managed where
   config = mconcat configs
 
@@ -127,7 +123,7 @@ makeInstance widget managedWidget = defaultWidgetNode "box" widget
   & L.widgetInstance . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeBox :: (WidgetModel s, WidgetEvent e) => BoxCfg s e -> Widget s e
+makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
   widget = createContainer def {
     containerHandleEvent = handleEvent,

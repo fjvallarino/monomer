@@ -40,14 +40,11 @@ onlyTopActive active = def {
   _zscOnlyTopActive = Just active
 }
 
-zstack
-  :: (WidgetModel s, WidgetEvent e, Traversable t)
-  => t (WidgetNode s e)
-  -> WidgetNode s e
+zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ children def
 
 zstack_
-  :: (WidgetModel s, WidgetEvent e, Traversable t)
+  :: (Traversable t)
   => t (WidgetNode s e)
   -> [ZStackCfg]
   -> WidgetNode s e
@@ -56,7 +53,7 @@ zstack_ children configs = newNode where
   newNode = defaultWidgetNode "zstack" (makeZStack config)
     & L.children .~ Seq.reverse (foldl' (|>) Empty children)
 
-makeZStack :: (WidgetModel s, WidgetEvent e) => ZStackCfg -> Widget s e
+makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
   baseWidget = createContainer def {
     containerKeepChildrenSizes = True,

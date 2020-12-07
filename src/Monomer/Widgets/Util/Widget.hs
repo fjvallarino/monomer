@@ -25,7 +25,6 @@ module Monomer.Widgets.Util.Widget (
 
 import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.Default
-import Data.Dynamic
 import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
@@ -156,13 +155,11 @@ buildLocalMap widgets = newMap where
   newMap = foldl' addWidget M.empty widgets
 
 getInstanceTree
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetEnv s e
+  :: WidgetEnv s e
   -> WidgetNode s e
   -> WidgetInstanceNode
 getInstanceTree wenv node = instNode where
   instNode = WidgetInstanceNode {
-    _winWidgetNode = toDyn node,
     _winInst = node ^. L.widgetInstance,
     _winChildren = fmap (getChildNode wenv) (node ^. L.children)
   }

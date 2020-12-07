@@ -10,7 +10,6 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
@@ -86,16 +85,16 @@ data LabelState = LabelState {
   _lstTextLines :: Seq TextLine
 } deriving (Eq, Show)
 
-label :: (WidgetModel s, WidgetEvent e) => Text -> WidgetNode s e
+label :: Text -> WidgetNode s e
 label caption = label_ caption def
 
-label_ :: (WidgetModel s, WidgetEvent e) => Text -> [LabelCfg] -> WidgetNode s e
+label_ :: Text -> [LabelCfg] -> WidgetNode s e
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
   state = LabelState caption def Seq.Empty
   widget = makeLabel config state
 
-makeLabel :: (WidgetModel s, WidgetEvent e) => LabelCfg -> LabelState -> Widget s e
+makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,

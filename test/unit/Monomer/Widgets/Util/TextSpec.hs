@@ -70,7 +70,7 @@ fitTextSingle = describe "fitTextToRect single line" $ do
     clipKeep "This is a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is a "
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     style = def
     rectE = Rect 0 0 120 20
     rectC = Rect 0 0 120 10
@@ -141,7 +141,7 @@ fitTextMulti = describe "fitTextToRect single line" $ do
     clipKeep "This is    a tad bit longer\nMore" ^. ix 2 . L.text `shouldBe` " bit "
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     style = def
     rectE = Rect 0 0 80 40
     rectC = Rect 0 0 80 50

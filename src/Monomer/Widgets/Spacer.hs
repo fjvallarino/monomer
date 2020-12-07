@@ -47,15 +47,15 @@ instance CmbResizeFactor SpacerCfg where
     _spcFactor = Just f
   }
 
-spacer :: (WidgetModel s, WidgetEvent e) => WidgetNode s e
+spacer :: WidgetNode s e
 spacer = spacer_ def
 
-spacer_ :: (WidgetModel s, WidgetEvent e) => [SpacerCfg] -> WidgetNode s e
+spacer_ :: [SpacerCfg] -> WidgetNode s e
 spacer_ configs = defaultWidgetNode "spacer" widget where
   config = mconcat configs
   widget = makeSpacer config
 
-makeSpacer :: (WidgetModel s, WidgetEvent e) => SpacerCfg  -> Widget s e
+makeSpacer :: SpacerCfg  -> Widget s e
 makeSpacer config = widget where
   widget = createSingle def {
     singleGetSizeReq = getSizeReq

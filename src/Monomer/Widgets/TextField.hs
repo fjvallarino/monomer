@@ -115,38 +115,21 @@ instance CmbOnChangeReq (TextFieldCfg s e) s where
 instance Default Text where
   def = T.empty
 
-textField :: (WidgetModel s, WidgetEvent e) => ALens' s Text -> WidgetNode s e
+textField :: ALens' s Text -> WidgetNode s e
 textField field = textField_ field def
 
-textField_
-  :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Text
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+textField_ :: ALens' s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textField_ field configs = textFieldD_ (WidgetLens field) configs
 
-textFieldV
-  :: (WidgetModel s, WidgetEvent e)
-  => Text
-  -> (Text -> e)
-  -> WidgetNode s e
+textFieldV :: Text -> (Text -> e) -> WidgetNode s e
 textFieldV value handler = textFieldV_ value handler def
 
-textFieldV_
-  :: (WidgetModel s, WidgetEvent e)
-  => Text
-  -> (Text -> e)
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+textFieldV_ :: Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldV_ value handler configs = textFieldD_ widgetData newConfig where
   widgetData = WidgetValue value
   newConfig = onChange handler : configs
 
-textFieldD_
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetData s Text
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+textFieldD_ :: WidgetData s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldD_ widgetData configs = inputField where
   config = mconcat configs
   fromText = textToText (_tfcMaxLength config)

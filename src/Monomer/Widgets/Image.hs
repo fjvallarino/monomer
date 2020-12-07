@@ -101,21 +101,16 @@ data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
 
-image :: (WidgetModel s, WidgetEvent e) => String -> WidgetNode s e
+image :: String -> WidgetNode s e
 image path = image_ path def
 
-image_ :: (WidgetModel s, WidgetEvent e) => String -> [ImageCfg s e] -> WidgetNode s e
+image_ :: String -> [ImageCfg s e] -> WidgetNode s e
 image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
   imageState = ImageState path Nothing
   widget = makeImage path config imageState
 
-makeImage
-  :: (WidgetModel s, WidgetEvent e)
-  => String
-  -> ImageCfg s e
-  -> ImageState
-  -> Widget s e
+makeImage :: String -> ImageCfg s e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle def {
     singleInit = init,

@@ -37,7 +37,7 @@ updateSizeReqEmpty = describe "empty" $ do
     sizeReqH `shouldBe` FixedSize 0
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     gridNode = vgrid []
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
 
@@ -50,7 +50,7 @@ updateSizeReqItemsH = describe "several items, horizontal" $ do
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     gridNode = hgrid [
         label "Hello",
         label "how",
@@ -67,7 +67,7 @@ updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
     sizeReqH `shouldBe` FixedSize 60
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     gridNode = vgrid [
         label "Hello",
         label "how",
@@ -85,7 +85,7 @@ updateSizeReqMixedH = describe "several items, different reqSizes" $ do
     sizeReqH `shouldBe` RangeSize 100 300 1
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     gridNode = hgrid [
         label "Label 1" `style` [width 100, height 100],
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
@@ -102,7 +102,7 @@ updateSizeReqMixedV = describe "several items, different reqSizes" $ do
     sizeReqH `shouldBe` MinSize 300 1
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     gridNode = vgrid [
         label "Label 1" `style` [minWidth 100, minHeight 100],
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
@@ -125,7 +125,7 @@ resizeEmpty = describe "empty" $ do
     children `shouldSatisfy` Seq.null
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     vp = Rect 0 0 640 480
     gridNode = vgrid []
     newNode = nodeInit wenv gridNode
@@ -144,7 +144,7 @@ resizeItemsH = describe "several items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenvEvtUnit () & L.appWindowSize .~ Size 480 640
+    wenv = mockWenv () & L.appWindowSize .~ Size 480 640
     vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 160 640
     cvp2 = Rect 160 0 160 640
@@ -171,7 +171,7 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4]
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     vp   = Rect 0   0 640 480
     cvp1 = Rect 0   0 640 160
     cvp2 = Rect 0 160 640 160

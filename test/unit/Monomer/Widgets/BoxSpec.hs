@@ -49,7 +49,7 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     boxNode = box (label "Label")
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv boxNode
 
@@ -71,7 +71,7 @@ resizeDefault = describe "default" $ do
     cViewport `shouldBe` cvp
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     vp  = Rect   0   0 640 480
     cvp = Rect 295 230  50  20
     boxNode = box (label "Label")
@@ -86,7 +86,7 @@ resizeExpand = describe "expand" $
     cViewport `shouldBe` vp
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     vp  = Rect   0   0 640 480
     cViewport = getChildVp wenv [expandContent]
 
@@ -111,7 +111,7 @@ resizeAlign = describe "align" $ do
     childVpBR `shouldBe` cvpbr
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     cvpl  = Rect   0 230 50 20
     cvpr  = Rect 590 230 50 20
     cvpt  = Rect 295   0 50 20
@@ -125,11 +125,7 @@ resizeAlign = describe "align" $ do
     childVpTL = getChildVp wenv [alignTop, alignLeft]
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
-getChildVp
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetEnv s e
-  -> [BoxCfg s e]
-  -> Rect
+getChildVp :: WidgetEnv s e -> [BoxCfg s e] -> Rect
 getChildVp wenv cfgs = childLC ^. L.widgetInstance . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ lblNode cfgs)

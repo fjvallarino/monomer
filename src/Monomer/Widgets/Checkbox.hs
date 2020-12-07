@@ -94,51 +94,27 @@ checkboxWidth w = def {
   _ckcWidth = Just w
 }
 
-checkbox
-  :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Bool
-  -> WidgetNode s e
+checkbox :: ALens' s Bool -> WidgetNode s e
 checkbox field = checkbox_ field def
 
-checkbox_
-  :: (WidgetModel s, WidgetEvent e)
-  => ALens' s Bool
-  -> [CheckboxCfg s e]
-  -> WidgetNode s e
+checkbox_ :: ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
-checkboxV
-  :: (WidgetModel s, WidgetEvent e)
-  => Bool
-  -> (Bool -> e)
-  -> WidgetNode s e
+checkboxV :: Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
-checkboxV_
-  :: (WidgetModel s, WidgetEvent e)
-  => Bool
-  -> (Bool -> e)
-  -> [CheckboxCfg s e]
-  -> WidgetNode s e
+checkboxV_ :: Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
-checkboxD_
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetData s Bool
-  -> [CheckboxCfg s e]
-  -> WidgetNode s e
+checkboxD_ :: WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config
   checkboxNode = defaultWidgetNode "checkbox" widget
     & L.widgetInstance . L.focusable .~ True
 
-makeCheckbox
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetData s Bool
-  -> CheckboxCfg s e
-  -> Widget s e
+makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
   widget = createSingle def {
     singleGetBaseStyle = getBaseStyle,

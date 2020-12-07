@@ -123,7 +123,7 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 40
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     handleEvent model evt = []
     buildUI :: () -> WidgetNode () ()
     buildUI model = vstack [
@@ -148,7 +148,7 @@ resize = describe "resize" $ do
     pendingWith "Instance tree data not yet implemented"
 
   where
-    wenv = mockWenvEvtUnit () & L.appWindowSize .~ Size 640 480
+    wenv = mockWenv () & L.appWindowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
     handleEvent model evt = []

@@ -164,7 +164,7 @@ instance Default (Container s e) where
     containerRender = defaultRender
   }
 
-createContainer :: (WidgetModel s, WidgetEvent e) => Container s e -> Widget s e
+createContainer :: Container s e -> Widget s e
 createContainer container = Widget {
   widgetInit = initWrapper container,
   widgetMerge = mergeWrapper container,
@@ -181,8 +181,7 @@ createContainer container = Widget {
 }
 
 createThemed
-  :: (WidgetModel s, WidgetEvent e)
-  => WidgetType
+  :: WidgetType
   -> (WidgetEnv s e -> WidgetNode s e)
   -> WidgetNode s e
 createThemed widgetType factory = newNode where

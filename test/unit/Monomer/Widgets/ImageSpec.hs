@@ -31,7 +31,7 @@ initMergeWidget = describe "init/merge" $ do
     Seq.index reqs3 0 `shouldSatisfy` isRunTask
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     inst1 = image "assets/images/beach.jpg"
     inst2 = image "assets/images/beach.jpg"
     inst3 = image "assets/images/beach2.jpg"

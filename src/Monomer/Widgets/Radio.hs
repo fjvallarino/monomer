@@ -92,43 +92,24 @@ radioWidth w = def {
   _rdcWidth = Just w
 }
 
-radio
-  :: (WidgetModel s, WidgetEvent e, Eq a)
-  => ALens' s a
-  -> a
-  -> WidgetNode s e
+radio :: (Eq a) => ALens' s a -> a -> WidgetNode s e
 radio field option = radio_ field option def
 
-radio_
-  :: (WidgetModel s, WidgetEvent e, Eq a)
-  => ALens' s a
-  -> a
-  -> [RadioCfg s e a]
-  -> WidgetNode s e
+radio_ :: (Eq a) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
 radio_ field option configs = radioD_ (WidgetLens field) option configs
 
-radioV
-  :: (WidgetModel s, WidgetEvent e, Eq a)
-  => a
-  -> (a -> e)
-  -> a
-  -> WidgetNode s e
+radioV :: (Eq a) => a -> (a -> e) -> a -> WidgetNode s e
 radioV value handler option = radioV_ value handler option def
 
 radioV_
-  :: (WidgetModel s, WidgetEvent e, Eq a)
-  => a
-  -> (a -> e)
-  -> a
-  -> [RadioCfg s e a]
-  -> WidgetNode s e
+  :: (Eq a) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
 radioV_ value handler option configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
   newNode = radioD_ widgetData option newConfigs
 
 radioD_
-  :: (WidgetModel s, WidgetEvent e, Eq a)
+  :: (Eq a)
   => WidgetData s a
   -> a
   -> [RadioCfg s e a]
@@ -139,12 +120,7 @@ radioD_ widgetData option configs = radioNode where
   radioNode = defaultWidgetNode "radio" widget
     & L.widgetInstance . L.focusable .~ True
 
-makeRadio
-  :: (WidgetModel s, WidgetEvent e, Eq a)
-  => WidgetData s a
-  -> a
-  -> RadioCfg s e a
-  -> Widget s e
+makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
   baseWidget = createSingle def {
     singleGetBaseStyle = getBaseStyle,

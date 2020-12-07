@@ -75,10 +75,10 @@ testIsFocusCandidate = describe "isFocusCandidate" $ do
 path :: [PathStep] -> Path
 path p = Seq.fromList p
 
-pathNode :: [PathStep] -> WidgetNode () ()
+pathNode :: [PathStep] -> WidgetNode s e
 pathNode path = pathNode_ path 0
 
-pathNode_ :: [PathStep] -> Int -> WidgetNode () ()
+pathNode_ :: [PathStep] -> Int -> WidgetNode s e
 pathNode_ path childCount = newNode where
   mkChild idx = pathNode_ (path ++ [idx]) 0
   newNode = label "Test"

@@ -32,7 +32,7 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReq2H `shouldBe` FlexSize 20 2
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     lblNode = label "Test label"
     lblNode2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
@@ -47,7 +47,7 @@ updateSizeReqMulti = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 60
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     lblNode = label_ "Line    line    line" [textMultiLine] `style` [width 50]
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
 
@@ -60,7 +60,7 @@ updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 100
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     caption = "Line    line    line"
     lblNode = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode

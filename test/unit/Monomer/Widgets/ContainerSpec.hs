@@ -52,7 +52,7 @@ handleEventNormal = describe "handleEventNormal" $
     modelM ^. text2 `shouldBe` ""
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenv (TestModel "" "")
     cntInst1 = vstack [
         textField text1,
         textField text2
@@ -77,7 +77,7 @@ handleEventNoKey = describe "handleEventNoKey" $
     modelM ^. text2 `shouldBe` ""
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenv (TestModel "" "")
     cntInst1 = vstack [
         textField text1,
         textField text2
@@ -102,7 +102,7 @@ handleEventWithKey = describe "handleEventWithKey" $
     modelM ^. text2 `shouldBe` ""
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenv (TestModel "" "")
     cntInst1 = vstack [
         textField text1 `key` "txt1",
         textField text2 `key` "txt2"

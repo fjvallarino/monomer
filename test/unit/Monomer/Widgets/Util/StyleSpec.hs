@@ -46,9 +46,9 @@ testActiveStyle = describe "activeStyle" $ do
     activeStyle wenvHoverFocus instDisabled ^. L.bgColor `shouldBe` Just gray
 
   where
-    wenvBasic = mockWenvEvtUnit () & L.inputStatus . L.mousePos .~ Point 0 0
+    wenvBasic = mockWenv () & L.inputStatus . L.mousePos .~ Point 0 0
     wenvFocus = wenvBasic & L.focusedPath .~ Seq.fromList [0]
-    wenvHover = mockWenvEvtUnit () & L.inputStatus . L.mousePos .~ Point 200 200
+    wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ Point 200 200
     wenvHoverFocus = wenvHover
       & L.inputStatus . L.mousePos .~ Point 200 200
       & L.focusedPath .~ Seq.fromList [0]
@@ -67,7 +67,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenv ()
     style = createStyle
       & L.hover ?~ padding 10
       & L.hover . non def . L.cursorIcon ?~ CursorHand
@@ -78,8 +78,8 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     node = nodeInit wenv baseNode
     point = Point 200 200
     path = Seq.fromList [0]
-    wenvHover = mockWenvEvtUnit () & L.inputStatus . L.mousePos .~ point
-    wenvFocus = mockWenvEvtUnit () & L.focusedPath .~ path
+    wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
+    wenvFocus = mockWenv () & L.focusedPath .~ path
     evtEnter = Enter path point
     resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing node
     resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing node
@@ -112,7 +112,7 @@ createStyleState :: Double -> Color -> Maybe StyleState
 createStyleState size col = Just newState where
   newState = textSize size <> bgColor col
 
-createNode :: (WidgetModel s, WidgetEvent e) => Bool -> WidgetNode s e
+createNode :: Bool -> WidgetNode s e
 createNode enabled = newNode where
   viewport = Rect 100 100 200 200
   newNode = label "Test"
