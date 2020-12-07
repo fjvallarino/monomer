@@ -4,6 +4,7 @@ module Monomer.Widgets.Util.Widget (
   pointInViewport,
   defaultWidgetNode,
   isWidgetVisible,
+  isPressed,
   isFocused,
   isHovered,
   widgetDataGet,
@@ -57,15 +58,23 @@ isWidgetVisible node vp = isVisible && isOverlapped where
   isVisible = inst ^. L.visible
   isOverlapped = rectsOverlap vp (inst ^. L.viewport)
 
+isPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
+isPressed wenv node = validPress where
+  inst = node ^. L.widgetInstance
+  path = inst ^. L.path
+  pressed = wenv ^. L.pressedPath
+  validPress = isNothing pressed || Just path == pressed
+
 isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
 isFocused wenv node = wenv ^. L.focusedPath == node ^. L.widgetInstance . L.path
 
 isHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
-isHovered wenv node = validPos && isTopLevel wenv node where
+isHovered wenv node = validPos && validPress && isTopLevel wenv node where
   inst = node ^. L.widgetInstance
   viewport = inst ^. L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
+  validPress = isPressed wenv node
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value

@@ -109,6 +109,7 @@ data WidgetEnv s e = WidgetEnv {
   _weAppWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
+  _wePressedPath :: Maybe Path,
   _weOverlayPath :: Maybe Path,
   _weCurrentCursor :: CursorIcon,
   _weModel :: s,

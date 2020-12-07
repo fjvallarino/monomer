@@ -122,6 +122,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weCurrentCursor = CursorArrow,
     _weFocusedPath = rootPath,
     _weOverlayPath = Nothing,
+    _wePressedPath = Nothing,
     _weModel = model,
     _weInputStatus = def,
     _weTimestamp = startTs,
@@ -168,6 +169,7 @@ mainLoop window renderer loopArgs = do
   currentCursor <- use currentCursor
   focused <- use pathFocus
   overlay <- use pathOverlay
+  pressed <- use pathPressed
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -179,6 +181,7 @@ mainLoop window renderer loopArgs = do
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
   let newSecond = _mlFrameAccumTs > 1000
+  let isMouseFocused = isJust pressed
 
   inputStatus <- updateInputStatus baseSystemEvents
 
@@ -193,6 +196,7 @@ mainLoop window renderer loopArgs = do
     _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
+    _wePressedPath = pressed,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks,
@@ -203,7 +207,6 @@ mainLoop window renderer loopArgs = do
     liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
 
   sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
-  isMouseFocused <- fmap isJust (use pathPressed)
 
   let isMainBtnPressed = isButtonPressed inputStatus LeftBtn
   -- Exit handler

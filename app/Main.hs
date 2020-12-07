@@ -218,7 +218,7 @@ buildUI model = trace "Creating UI" widgetTree where
       alert (longMessage "Alert") CloseAlert `visible` model ^. showAlert,
       confirm (longMessage "Confirm") AcceptConfirm CancelConfirm `visible` model ^. showConfirm
     ] [onlyTopActive False]
-  widgetTreeFull = scroll $ vstack [
+  widgetTreeFull = vscroll $ vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,

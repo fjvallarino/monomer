@@ -67,6 +67,7 @@ resize = describe "resize" $ do
   resizeMixedH
   resizeMixedV
   resizeAllV
+  resizeNoSpaceV
   resizeSpacerFlexH
   resizeSpacerFixedH
 
@@ -280,6 +281,37 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.widgetInstance . L.viewport 
+    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+
+resizeNoSpaceV :: Spec
+resizeNoSpaceV = describe "vertical, without enough space" $ do
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
+
+  it "should assign size proportional to requested size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+
+  it "should assign size proportional to requested size to each children" $
+    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+
+  where
+    wenv = mockWenv ()
+    vp   = Rect 0   0 640 480
+    cvp1 = Rect 0   0 640 200
+    cvp2 = Rect 0 200 640 200
+    cvp3 = Rect 0 400 640   0
+    cvp4 = Rect 0 400 640 200
+    cvp5 = Rect 0 600 640 200
+    vstackNode = vstack [
+        label "Label 1" `style` [height 200],
+        label "Label 2" `style` [height 200],
+        label "Label 3" `style` [flexHeight 200],
+        label "Label 4" `style` [height 200],
+        label "Label 5" `style` [height 200]
+      ]
+    newNode = nodeInit wenv vstackNode
+    viewport = newNode ^. L.widgetInstance . L.viewport
     childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
     childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
 

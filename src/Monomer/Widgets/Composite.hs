@@ -656,6 +656,7 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weGlobalKeys = globalKeys,
   _weCurrentCursor = _weCurrentCursor wenv,
   _weFocusedPath = _weFocusedPath wenv,
+  _wePressedPath = _wePressedPath wenv,
   _weOverlayPath = _weOverlayPath wenv,
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
