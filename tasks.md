@@ -319,6 +319,7 @@
       - Also return map of GlobalKeys
   - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
+  - Rename WidgetInstance to WidgetNodeStatus (or similar)
 
 - Pending
   - Add testing
@@ -339,18 +340,21 @@ Maybe postponed after release?
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - ZStack should set _weIsTopLayer based on used space
-  - Rename WidgetInstance to WidgetNodeStatus (or similar)
   - Avoid resizing non visible elements (stack/grid)
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
   - Check dropdown's list not being properly located after resize/scroll (not clear)
+  - Draw close button on Dialog
+  - Remove createThemed and move Alert/Dialog to use composite
   - Set focus on ButtonDown, not Click
+    - Can it be handled in Single/Container?
   - Image
     - Can performance be improved? Use sbt functions?
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
     - Remove delay logic when adding an image
     - When adding image, on failure remove an the least used image and retry
+  - Make sure WidgetTask/Node association is preserved if node location changes
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection

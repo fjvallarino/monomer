@@ -9,11 +9,11 @@ import Monomer.Graphics.Types
 
 -- | Basic styling attributes
 data SizeReq
-  = FixedSize Double
-  | FlexSize Double Factor
-  | MinSize Double Factor
-  | MaxSize Double Factor
-  | RangeSize Double Double Factor
+  = FixedSize !Double
+  | FlexSize !Double !Factor
+  | MinSize !Double !Factor
+  | MaxSize !Double !Factor
+  | RangeSize !Double !Double !Factor
   deriving (Eq, Show)
 
 instance Default SizeReq where

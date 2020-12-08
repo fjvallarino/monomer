@@ -106,7 +106,7 @@ data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
   _weTheme :: Theme,
-  _weAppWindowSize :: Size,
+  _weWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
   _wePressedPath :: Maybe Path,
@@ -253,8 +253,8 @@ data WidgetNodeInfo =
     -- | The path of the instance in the widget tree
     _wniPath :: !Path,
     -- | The preferred size for the widget
-    _wniSizeReqW :: SizeReq,
-    _wniSizeReqH :: SizeReq,
+    _wniSizeReqW :: !SizeReq,
+    _wniSizeReqH :: !SizeReq,
     -- | Indicates if the widget is enabled for user interaction
     _wniEnabled :: !Bool,
     -- | Indicates if the widget is visible
@@ -319,7 +319,7 @@ instance Show (WidgetResult s e) where
 instance Show (WidgetEnv s e) where
   show wenv = "WidgetEnv "
     ++ "{ _weOS: " ++ show (_weOS wenv)
-    ++ ", _weAppWindowSize: " ++ show (_weAppWindowSize wenv)
+    ++ ", _weWindowSize: " ++ show (_weWindowSize wenv)
     ++ ", _weFocusedPath: " ++ show (_weFocusedPath wenv)
     ++ ", _weTimestamp: " ++ show (_weTimestamp wenv)
     ++ " }"

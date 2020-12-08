@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -303,31 +304,31 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newReqH = childReq ^. L.sizeReqH
 
   resize wenv viewport renderArea children node = resized where
-    Size winW winH = _weAppWindowSize wenv
+    Size winW winH = _weWindowSize wenv
     Rect rx ry rw rh = renderArea
     theme = activeTheme wenv node
     dropdownY dh
       | ry + rh + dh <= winH = ry + rh
       | ry - dh >= 0 = ry - dh
       | otherwise = 0
-    listArea = case Seq.lookup 1 children of
+    !listArea = case Seq.lookup 1 children of
       Just child -> (oViewport, oRenderArea) where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
         maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
         reqHeight = sizeReqMin $ child ^. L.info . L.sizeReqH
         maxHeight = min winH (min reqHeight maxHeightStyle)
         dy = dropdownY maxHeight
-        dh = min maxHeight (winH - dy)
-        oViewport = viewport {
+        dh = maxHeight
+        !oViewport = viewport {
           _rY = dy,
           _rH = dh
         }
-        oRenderArea = renderArea {
+        !oRenderArea = renderArea {
           _rY = dy,
           _rH = dh
         }
       Nothing -> (viewport, renderArea)
-    mainArea = (viewport, renderArea)
+    !mainArea = (viewport, renderArea)
     assignedAreas = Seq.fromList [mainArea, listArea]
     resized = (node, assignedAreas)
 

@@ -112,7 +112,7 @@ mockWenv model = WidgetEnv {
   _weOS = "Mac OS X",
   _weRenderer = mockRenderer,
   _weTheme = def,
-  _weAppWindowSize = testWindowSize,
+  _weWindowSize = testWindowSize,
   _weGlobalKeys = M.empty,
   _weFocusedPath = rootPath,
   _weOverlayPath = Nothing,
@@ -130,7 +130,7 @@ mockWenvEvtUnit model = mockWenv model
 nodeInit :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
 nodeInit wenv node = newNode where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
-  Size w h = _weAppWindowSize wenv
+  Size w h = _weWindowSize wenv
   vp = Rect 0 0 w h
   newNode = nodeResize wenv vp node2
 
