@@ -208,16 +208,16 @@ listViewD_
   -> MakeRow s e a
   -> [ListViewCfg s e a]
   -> WidgetNode s e
-listViewD_ widgetData items makeRow configs = makeInstance widget where
+listViewD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
   newState = ListViewState newItems Nothing 0 False
   widget = makeListView widgetData newItems makeRow config newState
 
-makeInstance :: Widget s e -> WidgetNode s e
-makeInstance widget = scroll_ childNode [scrollStyle L.listViewStyle] where
+makeNode :: Widget s e -> WidgetNode s e
+makeNode widget = scroll_ childNode [scrollStyle L.listViewStyle] where
   childNode = defaultWidgetNode "listView" widget
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.focusable .~ True
 
 makeListView
   :: (ListItem a)
@@ -245,7 +245,7 @@ makeListView widgetData items makeRow config state = widget where
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
   createListViewChildren wenv node = children where
-    path = node ^. L.widgetInstance . L.path
+    path = node ^. L.info . L.path
     selected = currentValue wenv
     itemsList = makeItemsList wenv items makeRow config path selected
     children = Seq.singleton itemsList
@@ -271,17 +271,17 @@ makeListView widgetData items makeRow config state = widget where
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
     getBaseStyle _ _ = Nothing
-    styledNode = initInstanceStyle getBaseStyle wenv newNode
+    styledNode = initNodeStyle getBaseStyle wenv newNode
     newState = oldState {
       _prevSel = sel,
       _resizeReq = mergeRequired
     }
     tempNode = styledNode
       & L.widget .~ makeListView widgetData items makeRow config newState
-      & L.widgetInstance . L.viewport .~ oldNode ^. L.widgetInstance . L.viewport
-      & L.widgetInstance . L.renderArea .~ oldNode ^. L.widgetInstance . L.renderArea
-      & L.widgetInstance . L.sizeReqW .~ oldNode ^. L.widgetInstance . L.sizeReqW
-      & L.widgetInstance . L.sizeReqH .~ oldNode ^. L.widgetInstance . L.sizeReqH
+      & L.info . L.viewport .~ oldNode ^. L.info . L.viewport
+      & L.info . L.renderArea .~ oldNode ^. L.info . L.renderArea
+      & L.info . L.sizeReqW .~ oldNode ^. L.info . L.sizeReqW
+      & L.info . L.sizeReqH .~ oldNode ^. L.info . L.sizeReqH
     children
       | mergeRequired = createListViewChildren wenv tempNode
       | otherwise = oldNode ^. L.children
@@ -332,7 +332,7 @@ makeListView widgetData items makeRow config state = widget where
     result = fmap handleSelect (cast message)
 
   handleItemClick wenv node idx = result where
-    focusReq = Seq.singleton (SetFocus $ node ^. L.widgetInstance . L.path)
+    focusReq = Seq.singleton (SetFocus $ node ^. L.info . L.path)
     tempResult = selectItem wenv node idx
     result
       | isFocused wenv node = tempResult
@@ -372,14 +372,14 @@ makeListView widgetData items makeRow config state = widget where
 
   itemRenderArea node idx = renderArea where
     lookup idx node = Seq.lookup idx (node ^. L.children)
-    renderArea = fmap (_wiRenderArea . _wnWidgetInstance) $ pure node
+    renderArea = fmap (_wniRenderArea . _wnInfo) $ pure node
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
     child = Seq.index children 0
-    newSizeReqW = _wiSizeReqW . _wnWidgetInstance $ child
-    newSizeReqH = _wiSizeReqH . _wnWidgetInstance $ child
+    newSizeReqW = _wniSizeReqW . _wnInfo $ child
+    newSizeReqH = _wniSizeReqH . _wnInfo $ child
 
   resize wenv viewport renderArea children node = resized where
     assignedArea = Seq.singleton (viewport, renderArea)
@@ -389,7 +389,7 @@ makeListView widgetData items makeRow config state = widget where
     renderContainer defaultRender renderer wenv (buildRenderNode wenv node)
 
   buildRenderNode wenv node = newNode where
-    viewport = node ^. L.widgetInstance . L.viewport
+    viewport = node ^. L.info . L.viewport
     hlIdx = _highlighted state
     foldItem items idx item
       | isWidgetVisible item viewport = items |> updateStyle idx item
@@ -410,15 +410,15 @@ setChildStyle
   -> Style
   -> WidgetNode s e
 setChildStyle items makeRow wenv parent idx style = newParent where
-  makeItem v = makeRow v & L.widgetInstance . L.style .~ style
+  makeItem v = makeRow v & L.info . L.style .~ style
   newChild = fmap makeItem (Seq.lookup idx items)
   merge newItem oldItem = newWidget where
     res = widgetMerge (newItem ^. L.widget) wenv oldItem newItem
     widget = res ^. L.widget
     newWidget = widget
-      & L.widgetInstance . L.path .~ oldItem ^. L.widgetInstance . L.path
-      & L.widgetInstance . L.viewport .~ oldItem ^. L.widgetInstance . L.viewport
-      & L.widgetInstance . L.renderArea .~ oldItem ^. L.widgetInstance . L.renderArea
+      & L.info . L.path .~ oldItem ^. L.info . L.path
+      & L.info . L.viewport .~ oldItem ^. L.info . L.viewport
+      & L.info . L.renderArea .~ oldItem ^. L.info . L.renderArea
   listLens = L.children . ix 0
   boxLens = L.children . ix idx
   itemLens = L.children . ix 0
@@ -475,10 +475,10 @@ setFocusedItemStyle wenv item
   | isHovered wenv item = item & hoverLens .~ (hoverStyle <> focusStyle)
   | otherwise = item & basicLens .~ focusStyle
   where
-    basicLens = L.children . ix 0 . L.widgetInstance . L.style . L.basic
-    hoverLens = L.children . ix 0 . L.widgetInstance . L.style . L.hover
-    hoverStyle = item ^. L.children . ix 0 . L.widgetInstance . L.style . L.hover
-    focusStyle = item ^. L.children . ix 0 . L.widgetInstance . L.style . L.focus
+    basicLens = L.children . ix 0 . L.info . L.style . L.basic
+    hoverLens = L.children . ix 0 . L.info . L.style . L.hover
+    hoverStyle = item ^. L.children . ix 0 . L.info . L.style . L.hover
+    focusStyle = item ^. L.children . ix 0 . L.info . L.style . L.focus
 
 makeItemsList
   :: (Eq a)
@@ -496,5 +496,5 @@ makeItemsList wenv items makeRow config path selected = itemsList where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ (content & L.widgetInstance . L.style .~ normalStyle) itemCfg
+    newItem = box_ (content & L.info . L.style .~ normalStyle) itemCfg
   itemsList = vstack $ Seq.mapWithIndex makeItem items

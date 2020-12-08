@@ -74,7 +74,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     hoverStyle = style ^?! L.hover . _Just
     focusStyle = style ^?! L.focus . _Just
     baseNode = createNode True
-      & L.widgetInstance . L.style .~ style
+      & L.info . L.style .~ style
     node = nodeInit wenv baseNode
     point = Point 200 200
     path = Seq.fromList [0]
@@ -116,10 +116,10 @@ createNode :: Bool -> WidgetNode s e
 createNode enabled = newNode where
   viewport = Rect 100 100 200 200
   newNode = label "Test"
-    & L.widgetInstance . L.path .~ Seq.fromList [0]
-    & L.widgetInstance . L.viewport .~ viewport
-    & L.widgetInstance . L.renderArea .~ viewport
-    & L.widgetInstance . L.style .~ createStyle
-    & L.widgetInstance . L.visible .~ True
-    & L.widgetInstance . L.enabled .~ enabled
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.path .~ Seq.fromList [0]
+    & L.info . L.viewport .~ viewport
+    & L.info . L.renderArea .~ viewport
+    & L.info . L.style .~ createStyle
+    & L.info . L.visible .~ True
+    & L.info . L.enabled .~ enabled
+    & L.info . L.focusable .~ True

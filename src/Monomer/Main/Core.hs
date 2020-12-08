@@ -128,7 +128,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weTimestamp = startTs,
     _weInTopLayer = const True
   }
-  let pathReadyRoot = widgetRoot & L.widgetInstance . L.path .~ Seq.singleton 0
+  let pathReadyRoot = widgetRoot & L.info . L.path .~ Seq.singleton 0
 
   handleResourcesInit
   (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot

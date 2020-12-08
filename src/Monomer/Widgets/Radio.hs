@@ -118,7 +118,7 @@ radioD_ widgetData option configs = radioNode where
   config = mconcat configs
   widget = makeRadio widgetData option config
   radioNode = defaultWidgetNode "radio" widget
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.focusable .~ True
 
 makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
@@ -135,7 +135,7 @@ makeRadio field option config = widget where
     style = collectTheme wenv L.radioStyle
 
   localEventWrapper wenv target evt node
-    | not (node ^. L.widgetInstance . L.visible) = Nothing
+    | not (node ^. L.info . L.visible) = Nothing
     | otherwise = handleStyleChange_ wenv target evt style_ result cfg node
     where
       cfg = StyleChangeCfg isOnMove
@@ -153,7 +153,7 @@ makeRadio field option config = widget where
     _ -> Nothing
     where
       rdArea = getRadioArea wenv node config
-      path = node ^. L.widgetInstance . L.path
+      path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code
       events = fmap ($ option) (_rdcOnChange config)
       setValueReq = widgetDataSet field option

@@ -71,23 +71,23 @@ makeZStack config = widget where
     onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = node ^. L.children
     vchildren
-      | onlyTop = Seq.take 1 $ Seq.filter (_wiVisible . _wnWidgetInstance) children
-      | otherwise = Seq.filter (_wiVisible . _wnWidgetInstance) children
+      | onlyTop = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
+      | otherwise = Seq.filter (_wniVisible . _wnInfo) children
     newStartPath = Seq.drop 1 startPath
     result = findFirstByPoint vchildren wenv newStartPath point
 
   findNextFocus wenv direction start node = result where
     onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = node ^. L.children
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
     result
       | onlyTop = Seq.take 1 vchildren
       | otherwise = vchildren
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
-    newSizeReqW = getDimSizeReq (_wiSizeReqW . _wnWidgetInstance) vchildren
-    newSizeReqH = getDimSizeReq (_wiSizeReqH . _wnWidgetInstance) vchildren
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
+    newSizeReqW = getDimSizeReq (_wniSizeReqW . _wnInfo) vchildren
+    newSizeReqH = getDimSizeReq (_wniSizeReqH . _wnInfo) vchildren
 
   getDimSizeReq accesor vchildren
     | Seq.null vreqs = FixedSize 0
@@ -109,10 +109,10 @@ makeZStack config = widget where
     where
       style = activeStyle wenv node
       children = Seq.reverse $ node ^. L.children
-      viewport = node ^. L.widgetInstance . L.viewport
-      renderArea = node ^. L.widgetInstance . L.renderArea
-      isVisible c = c ^. L.widgetInstance . L.visible
-      topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wiVisible . _wnWidgetInstance) children)
+      viewport = node ^. L.info . L.viewport
+      renderArea = node ^. L.info . L.renderArea
+      isVisible c = c ^. L.info . L.visible
+      topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
       isTopLayer idx child point = prevTopLayer && isTopChild where
         isTopChild = idx == topVisibleIdx
         prevTopLayer = _weInTopLayer wenv point
@@ -130,7 +130,7 @@ findFirstByPoint
   -> Maybe Path
 findFirstByPoint Empty _ _ _ = Nothing
 findFirstByPoint (ch :<| chs) wenv startPath point = result where
-  isVisible = ch ^. L.widgetInstance . L.visible
+  isVisible = ch ^. L.info . L.visible
   newPath = widgetFindByPoint (ch ^. L.widget) wenv startPath point ch
   result
     | isVisible && isJust newPath = newPath

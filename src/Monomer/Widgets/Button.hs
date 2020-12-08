@@ -164,7 +164,7 @@ button_ caption handler configs = buttonNode where
   state = BtnState caption Empty
   widget = makeButton config state
   buttonNode = defaultWidgetNode "button" widget
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.focusable .~ True
 
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
@@ -237,6 +237,6 @@ makeButton config state = widget where
     where
       style = activeStyle wenv node
       inputStatus = wenv ^. L.inputStatus
-      renderArea = node ^. L.widgetInstance . L.renderArea
+      renderArea = node ^. L.info . L.renderArea
       isHoverPressed = isButtonPressedInRect inputStatus LeftBtn renderArea
       bgColor = Just $ Color 0 0 0 0.2

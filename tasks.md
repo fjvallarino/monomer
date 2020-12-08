@@ -318,6 +318,7 @@
       - Add method to collect tree of WidgetInstances
       - Also return map of GlobalKeys
   - Do not hover if mouse drag on different widget
+  - Fix selectOnBlur for dropdown
 
 - Pending
   - Add testing
@@ -335,28 +336,26 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Fix selectOnBlur for dropdown
-  - Set focus on ButtonDown, not Click
-  - ZStack should set _weIsTopLayer based on used space
-  - Rename WidgetInstance to WidgetNodeStatus (or similar)
-  - Image
-    - Can performance be improved? Use sbt functions?
-    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
-  - Further textField improvements
-    - Handle undo history
-    - Handle mouse selection
-    - Create numeric wrapper that allows increasing/decreasing with mouse
+  - ZStack should set _weIsTopLayer based on used space
+  - Rename WidgetInstance to WidgetNodeStatus (or similar)
   - Avoid resizing non visible elements (stack/grid)
   - Avoid findNextFocus on unfocusable children (listView items)
     - Does this make sense? Check with a composite listView item
     - Focus event may need to be handled to update highlighted item
   - Check dropdown's list not being properly located after resize/scroll (not clear)
+  - Set focus on ButtonDown, not Click
+  - Image
+    - Can performance be improved? Use sbt functions?
+    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
+    - Remove delay logic when adding an image
+    - When adding image, on failure remove an the least used image and retry
+  - Further textField improvements
+    - Handle undo history
+    - Handle mouse selection
+    - Create numeric wrapper that allows increasing/decreasing with mouse
   - Scroll wheel rate should be configurable, or even depend on content size
-  - Add IgnoreMerge (or similar name) request, to avoid rebuilding tree if not needed
-    - InputField may have a setting for using it
-    - A wrapping widget could be added too
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)

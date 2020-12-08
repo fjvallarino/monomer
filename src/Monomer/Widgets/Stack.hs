@@ -78,9 +78,9 @@ makeStack isHorizontal config = widget where
   isVertical = not isHorizontal
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
-    newSizeReqW = getDimSizeReq isHorizontal (_wiSizeReqW . _wnWidgetInstance) vchildren
-    newSizeReqH = getDimSizeReq isVertical (_wiSizeReqH . _wnWidgetInstance) vchildren
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
+    newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
+    newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
 
   getDimSizeReq mainAxis accesor vchildren
     | Seq.null vreqs = FixedSize 0
@@ -95,7 +95,7 @@ makeStack isHorizontal config = widget where
     Rect x y w h = contentArea
     mainSize = if isHorizontal then w else h
     mainStart = if isHorizontal then x else y
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
     reqs = fmap mainReqSelector vchildren
     sumSizes accum req = newStep where
       (cFixed, cFlex, cFlexFac, cExtraFac) = accum
@@ -138,13 +138,13 @@ makeStack isHorizontal config = widget where
     hRect = Rect offset t mainSize h
     vRect = Rect l offset w mainSize
     result
-      | not $ (_wiVisible . _wnWidgetInstance) child = emptyRect
+      | not $ (_wniVisible . _wnInfo) child = emptyRect
       | isHorizontal = hRect
       | otherwise = vRect
 
   mainReqSelector
-    | isHorizontal = _wiSizeReqW . _wnWidgetInstance
-    | otherwise = _wiSizeReqH . _wnWidgetInstance
+    | isHorizontal = _wniSizeReqW . _wnInfo
+    | otherwise = _wniSizeReqH . _wnInfo
 
   rectSelector
     | isHorizontal = _rW

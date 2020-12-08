@@ -35,9 +35,9 @@ makeFixedGrid isHorizontal = widget where
   isVertical = not isHorizontal
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
-    newSizeReqW = getDimSizeReq isHorizontal (_wiSizeReqW . _wnWidgetInstance) vchildren
-    newSizeReqH = getDimSizeReq isVertical (_wiSizeReqH . _wnWidgetInstance) vchildren
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
+    newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
+    newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
 
   getDimSizeReq mainAxis accesor vchildren
     | Seq.null vreqs = FixedSize 0
@@ -52,7 +52,7 @@ makeFixedGrid isHorizontal = widget where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect l t w h = contentArea
-    vchildren = Seq.filter (_wiVisible . _wnWidgetInstance) children
+    vchildren = Seq.filter (_wniVisible . _wnInfo) children
     cols = if isHorizontal then length vchildren else 1
     rows = if isHorizontal then 1 else length vchildren
     cw = if cols > 0 then w / fromIntegral cols else 0
@@ -65,7 +65,7 @@ makeFixedGrid isHorizontal = widget where
       | otherwise = 0
     foldHelper (currAreas, index) child = (newAreas, newIndex) where
       (newIndex, newViewport)
-        | child ^. L.widgetInstance . L.visible = (index + 1, calcViewport index)
+        | child ^. L.info . L.visible = (index + 1, calcViewport index)
         | otherwise = (index, def)
       newArea = (newViewport, newViewport)
       newAreas = currAreas |> newArea

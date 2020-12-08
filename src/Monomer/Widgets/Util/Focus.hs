@@ -20,11 +20,11 @@ import qualified Monomer.Lens as L
 
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where
-  path = node ^. L.widgetInstance . L.path
+  path = node ^. L.info . L.path
 
 nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
 nextTargetStep target node = nextStep where
-  currentPath = node ^. L.widgetInstance . L.path
+  currentPath = node ^. L.info . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
 
 isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
@@ -33,22 +33,22 @@ isFocusCandidate FocusBwd = isFocusBwdCandidate
 
 isFocusFwdCandidate :: Path -> WidgetNode s e -> Bool
 isFocusFwdCandidate startFrom node = isValid where
-  inst = node ^. L.widgetInstance
+  info = node ^. L.info
   isAfter = isWidgetAfterPath startFrom node
-  isFocusable = _wiFocusable inst
-  isEnabled = _wiVisible inst && _wiEnabled inst
+  isFocusable = info ^. L.focusable
+  isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isAfter && isFocusable && isEnabled
 
 isFocusBwdCandidate :: Path -> WidgetNode s e -> Bool
 isFocusBwdCandidate startFrom node = isValid where
-  inst = node ^. L.widgetInstance
+  info = node ^. L.info
   isBefore = isWidgetBeforePath startFrom node
-  isFocusable = _wiFocusable inst
-  isEnabled = _wiVisible inst && _wiEnabled inst
+  isFocusable = info ^. L.focusable
+  isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isBefore && isFocusable && isEnabled
 
 isTargetReached :: Path -> WidgetNode s e -> Bool
-isTargetReached target node = target == node ^. L.widgetInstance . L.path
+isTargetReached target node = target == node ^. L.info . L.path
 
 isTargetValid :: Path -> WidgetNode s e -> Bool
 isTargetValid target node = valid where
@@ -59,14 +59,14 @@ isTargetValid target node = valid where
 
 isWidgetParentOfPath :: Path -> WidgetNode s e -> Bool
 isWidgetParentOfPath path node = result where
-  widgetPath = node ^. L.widgetInstance . L.path
+  widgetPath = node ^. L.info . L.path
   lenWidgetPath = Seq.length widgetPath
   pathPrefix = Seq.take lenWidgetPath path
   result = widgetPath == pathPrefix
 
 isWidgetAfterPath :: Path -> WidgetNode s e -> Bool
 isWidgetAfterPath path node = result where
-  widgetPath = node ^. L.widgetInstance . L.path
+  widgetPath = node ^. L.info . L.path
   lenPath = Seq.length path
   lenWidgetPath = Seq.length widgetPath
   widgetPathPrefix = Seq.take lenPath widgetPath
@@ -76,7 +76,7 @@ isWidgetAfterPath path node = result where
 
 isWidgetBeforePath :: Path -> WidgetNode s e -> Bool
 isWidgetBeforePath path node = result where
-  widgetPath = node ^. L.widgetInstance . L.path
+  widgetPath = node ^. L.info . L.path
   result
     | path == rootPath = True
     | otherwise = path > widgetPath

@@ -84,7 +84,7 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 480
     vstackNode = vstack []
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
+    viewport = newNode ^. L.info . L.viewport
     children = newNode ^. L.children
 
 resizeFlexibleH :: Spec
@@ -110,9 +110,9 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeFlexibleV :: Spec
 resizeFlexibleV = describe "flexible items, vertical" $ do
@@ -137,9 +137,9 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
         label "Label 3" `style` [flexHeight 20]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeStrictFlexH :: Spec
 resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
@@ -164,9 +164,9 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children 
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children 
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeStrictFlexV :: Spec
 resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
@@ -191,9 +191,9 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
         label "Label 3" `style` [flexHeight 100]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children 
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children 
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeMixedH :: Spec
 resizeMixedH = describe "mixed items, horizontal" $ do
@@ -218,10 +218,10 @@ resizeMixedH = describe "mixed items, horizontal" $ do
         ]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
+    viewport = newNode ^. L.info . L.viewport
     firstChild = Seq.index (newNode ^. L.children) 0
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> firstChild ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> firstChild ^. L.children
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> firstChild ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> firstChild ^. L.children
 
 resizeMixedV :: Spec
 resizeMixedV = describe "mixed items, vertical" $ do
@@ -248,10 +248,10 @@ resizeMixedV = describe "mixed items, vertical" $ do
         ]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
+    viewport = newNode ^. L.info . L.viewport
     firstChild = Seq.index (newNode ^. L.children) 0
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> firstChild ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> firstChild ^. L.children
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> firstChild ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> firstChild ^. L.children
 
 resizeAllV :: Spec
 resizeAllV = describe "all kinds of sizeReq, vertical" $ do
@@ -280,9 +280,9 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
         label "Label 5" `style` [rangeWidth 90 100, rangeHeight 90 100]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeNoSpaceV :: Spec
 resizeNoSpaceV = describe "vertical, without enough space" $ do
@@ -311,9 +311,9 @@ resizeNoSpaceV = describe "vertical, without enough space" $ do
         label "Label 5" `style` [height 200]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeSpacerFlexH :: Spec
 resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
@@ -338,9 +338,9 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
         label "Label" `style` [flexWidth 200]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeSpacerFixedH :: Spec
 resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
@@ -365,6 +365,6 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
         label "Label" `style` [width 200]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport 
-    childrenVp = roundRectUnits . _wiViewport . _wnWidgetInstance <$> newNode ^. L.children
-    childrenRa = roundRectUnits . _wiRenderArea . _wnWidgetInstance <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children

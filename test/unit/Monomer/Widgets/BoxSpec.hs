@@ -77,7 +77,7 @@ resizeDefault = describe "default" $ do
     boxNode = box (label "Label")
     newNode = nodeInit wenv boxNode
     children = newNode ^. L.children
-    viewport = newNode ^. L.widgetInstance . L.viewport
+    viewport = newNode ^. L.info . L.viewport
     cViewport = getChildVp wenv []
 
 resizeExpand :: Spec
@@ -126,7 +126,7 @@ resizeAlign = describe "align" $ do
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
 getChildVp :: WidgetEnv s e -> [BoxCfg s e] -> Rect
-getChildVp wenv cfgs = childLC ^. L.widgetInstance . L.viewport where
+getChildVp wenv cfgs = childLC ^. L.info . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ lblNode cfgs)
   childLC = Seq.index (boxNodeLC ^. L.children) 0

@@ -122,14 +122,14 @@ data WidgetNode s e = WidgetNode {
   -- | The actual widget
   _wnWidget :: Widget s e,
   -- | Common information about the instance
-  _wnWidgetInstance :: WidgetInstance,
+  _wnInfo :: WidgetNodeInfo,
   -- | The children widget, if any
   _wnChildren :: Seq (WidgetNode s e)
 }
 
 data WidgetInstanceNode = WidgetInstanceNode {
   -- | The instance
-  _winInst :: WidgetInstance,
+  _winInfo :: WidgetNodeInfo,
   -- | The children widget, if any
   _winChildren :: Seq WidgetInstanceNode
 }
@@ -244,46 +244,46 @@ data Widget s e =
   }
 
 -- | Complementary information to a Widget, forming a node in the view tree
-data WidgetInstance =
-  WidgetInstance {
+data WidgetNodeInfo =
+  WidgetNodeInfo {
     -- | Type of the widget
-    _wiWidgetType :: !WidgetType,
+    _wniWidgetType :: !WidgetType,
     -- | Key/Identifier of the widget
-    _wiKey :: Maybe WidgetKey,
+    _wniKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
-    _wiPath :: !Path,
+    _wniPath :: !Path,
     -- | The preferred size for the widget
-    _wiSizeReqW :: SizeReq,
-    _wiSizeReqH :: SizeReq,
+    _wniSizeReqW :: SizeReq,
+    _wniSizeReqH :: SizeReq,
     -- | Indicates if the widget is enabled for user interaction
-    _wiEnabled :: !Bool,
+    _wniEnabled :: !Bool,
     -- | Indicates if the widget is visible
-    _wiVisible :: !Bool,
+    _wniVisible :: !Bool,
     -- | Indicates whether the widget can receive focus
-    _wiFocusable :: !Bool,
+    _wniFocusable :: !Bool,
     -- | The visible area of the screen assigned to the widget
-    _wiViewport :: !Rect,
+    _wniViewport :: !Rect,
     -- | The area of the screen where the widget can draw
-    -- | Usually equal to _wiViewport, but may be larger if the widget is
+    -- | Usually equal to _wniViewport, but may be larger if the widget is
     -- | wrapped in a scrollable container
-    _wiRenderArea :: !Rect,
+    _wniRenderArea :: !Rect,
     -- | Style attributes of the widget instance
-    _wiStyle :: Style
+    _wniStyle :: Style
   } deriving (Eq, Show)
 
-instance Default WidgetInstance where
-  def = WidgetInstance {
-    _wiWidgetType = "",
-    _wiKey = Nothing,
-    _wiPath = rootPath,
-    _wiSizeReqW = def,
-    _wiSizeReqH = def,
-    _wiEnabled = True,
-    _wiVisible = True,
-    _wiFocusable = False,
-    _wiViewport = def,
-    _wiRenderArea = def,
-    _wiStyle = def
+instance Default WidgetNodeInfo where
+  def = WidgetNodeInfo {
+    _wniWidgetType = "",
+    _wniKey = Nothing,
+    _wniPath = rootPath,
+    _wniSizeReqW = def,
+    _wniSizeReqH = def,
+    _wniEnabled = True,
+    _wniVisible = True,
+    _wniFocusable = False,
+    _wniViewport = def,
+    _wniRenderArea = def,
+    _wniStyle = def
   }
 
 instance Show (WidgetRequest s) where
@@ -326,6 +326,6 @@ instance Show (WidgetEnv s e) where
 
 instance Show (WidgetNode s e) where
   show node = "WidgetNode "
-    ++ "{ _wnWidgetInstance: " ++ show (_wnWidgetInstance node)
+    ++ "{ _wnInfo: " ++ show (_wnInfo node)
     ++ ", _wnChildren: " ++ show (_wnChildren node)
     ++ " }"

@@ -123,12 +123,12 @@ makeImage imgPath config state = widget where
   }
 
   init wenv node = resultReqs node reqs where
-    path = node ^. L.widgetInstance . L.path
+    path = node ^. L.info . L.path
     reqs = [RunTask path $ handleImageLoad wenv imgPath]
 
   merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
-    path = newNode ^. L.widgetInstance . L.path
+    path = newNode ^. L.info . L.path
     newImgReqs = [ RunTask path $ do
         removeImage wenv imgPath
         handleImageLoad wenv imgPath
@@ -140,7 +140,7 @@ makeImage imgPath config state = widget where
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
-    path = node ^. L.widgetInstance . L.path
+    path = node ^. L.info . L.path
     renderer = _weRenderer wenv
     reqs = [RunTask path $ removeImage wenv imgPath]
 

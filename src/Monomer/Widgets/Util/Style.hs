@@ -8,7 +8,7 @@ module Monomer.Widgets.Util.Style (
   activeStyle,
   activeStyle_,
   focusedStyle,
-  initInstanceStyle,
+  initNodeStyle,
   handleStyleChange,
   handleStyleChange_
 ) where
@@ -51,10 +51,9 @@ activeStyle wenv node = activeStyle_ isHovered wenv node
 
 activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
-  inst = node ^. L.widgetInstance
-  Style{..} = node ^. L.widgetInstance . L.style
+  Style{..} = node ^. L.info . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  isEnabled = _wiEnabled inst
+  isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isFocused wenv node
   styleState
@@ -69,7 +68,7 @@ focusedStyle wenv node = focusedStyle_ isHovered wenv node
 
 focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
-  Style{..} = node ^. L.widgetInstance . L.style
+  Style{..} = node ^. L.info . L.style
   isHover = isHoveredFn wenv node
   styleState
     | isHover = _styleHover <> _styleFocus
@@ -82,7 +81,7 @@ activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
 activeTheme_ isHoveredFn wenv node = themeState where
   theme = _weTheme wenv
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  isEnabled = node ^. L.widgetInstance . L.enabled
+  isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isFocused wenv node
   themeState
@@ -91,17 +90,17 @@ activeTheme_ isHoveredFn wenv node = themeState where
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
 
-initInstanceStyle
+initNodeStyle
   :: GetBaseStyle s e
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
-initInstanceStyle getBaseStyle wenv node = newNode where
-  instStyle = mergeBasicStyle $ node ^. L.widgetInstance . L.style
+initNodeStyle getBaseStyle wenv node = newNode where
+  nodeStyle = mergeBasicStyle $ node ^. L.info . L.style
   baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv node)
   themeStyle = baseStyleFromTheme (_weTheme wenv)
   newNode = node
-    & L.widgetInstance . L.style .~ (themeStyle <> baseStyle <> instStyle)
+    & L.info . L.style .~ (themeStyle <> baseStyle <> nodeStyle)
 
 handleStyleChange
   :: WidgetEnv s e
@@ -141,22 +140,22 @@ handleSizeChange
   -> [WidgetRequest s]
 handleSizeChange wenv target evt cfg node = reqs where
   widget = node ^. L.widget
-  inst = node ^. L.widgetInstance
+  info = node ^. L.info
   -- Hover
   mousePos = wenv ^. L.inputStatus . L.mousePos
   mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
-  vp = inst ^. L.viewport
+  vp = info ^. L.viewport
   vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
   hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
   -- Size
   checkSize = hoverChanged || focusChanged
-  instReqs = widgetGetSizeReq widget wenv node
-  oldSizeReqW = inst ^. L.sizeReqW
-  oldSizeReqH = inst ^. L.sizeReqH
-  newSizeReqW = instReqs ^. L.sizeReqW
-  newSizeReqH = instReqs ^. L.sizeReqH
+  nodeReqs = widgetGetSizeReq widget wenv node
+  oldSizeReqW = info ^. L.sizeReqW
+  oldSizeReqH = info ^. L.sizeReqH
+  newSizeReqW = nodeReqs ^. L.sizeReqW
+  newSizeReqH = nodeReqs ^. L.sizeReqH
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Result
   resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]
@@ -174,7 +173,7 @@ handleCursorChange
 handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
   isCursorEvt = _sccHandleCursorEvt cfg
-  isTarget = node ^. L.widgetInstance . L.path == target
+  isTarget = node ^. L.info . L.path == target
   curIcon = wenv ^. L.currentCursor
   notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv node)
   newIcon
@@ -209,5 +208,5 @@ mergeBasicStyle st = newStyle where
 
 isInOverlay :: WidgetEnv s e -> WidgetNode s e -> Bool
 isInOverlay wenv node = maybe False isPrefix (wenv ^. L.overlayPath) where
-  path = node ^. L.widgetInstance . L.path
+  path = node ^. L.info . L.path
   isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath

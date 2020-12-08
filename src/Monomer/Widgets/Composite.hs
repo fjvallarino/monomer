@@ -246,7 +246,7 @@ compositeInit comp state wenv widgetComp = newResult where
   }
   tempResult = WidgetResult root reqs newEvts
   getBaseStyle wenv node = Nothing
-  styledComp = initInstanceStyle getBaseStyle wenv widgetComp
+  styledComp = initNodeStyle getBaseStyle wenv widgetComp
   newResult = reduceResult comp newState wenv styledComp tempResult
 
 -- | Merge
@@ -284,7 +284,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
     _cpsGlobalKeys = collectGlobalKeys M.empty newRoot
   }
   getBaseStyle wenv node = Nothing
-  styledComp = initInstanceStyle getBaseStyle wenv newComp
+  styledComp = initNodeStyle getBaseStyle wenv newComp
   newResult
     | mergeRequired = reduceResult comp newState wenv styledComp tempResult
     | otherwise = resultWidget $ styledComp
@@ -335,7 +335,7 @@ compositeFindByPoint
   -> WidgetNode sp ep
   -> Maybe Path
 compositeFindByPoint comp state wenv startPath point widgetComp
-  | widgetComp ^. L.widgetInstance . L.visible && validStep = resultPath
+  | widgetComp ^. L.info . L.visible && validStep = resultPath
   | otherwise = Nothing
   where
     CompositeState{..} = state
@@ -361,9 +361,9 @@ compositeHandleEvent comp state wenv target evt widgetComp = result where
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  rootEnabled = _cpsRoot ^. L.widgetInstance . L.enabled
-  compVisible = widgetComp ^. L.widgetInstance . L.visible
-  compEnabled = widgetComp ^. L.widgetInstance . L.enabled
+  rootEnabled = _cpsRoot ^. L.info . L.enabled
+  compVisible = widgetComp ^. L.info . L.visible
+  compEnabled = widgetComp ^. L.info . L.enabled
   processEvent = reduceResult comp state wenv widgetComp
   evtResult
     | not (compVisible && compEnabled) = Nothing
@@ -414,8 +414,8 @@ compositeGetSizeReq comp state wenv widgetComp = newSizeReq where
   childReqW = newChildReq ^. L.sizeReqW
   childReqH = newChildReq ^. L.sizeReqH
   newRoot = childRoot
-    & L.widgetInstance . L.sizeReqW .~ childReqW
-    & L.widgetInstance . L.sizeReqH .~ childReqH
+    & L.info . L.sizeReqW .~ childReqW
+    & L.info . L.sizeReqH .~ childReqH
   newState = state {
     _cpsRoot = newRoot
   }
@@ -443,13 +443,13 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
   newRoot = widgetResize widget cwenv viewport contentArea _cpsRoot
   newState = state {
     _cpsRoot = newRoot
-      & L.widgetInstance . L.viewport .~ viewport
-      & L.widgetInstance . L.renderArea .~ contentArea
+      & L.info . L.viewport .~ viewport
+      & L.info . L.renderArea .~ contentArea
   }
   resized = widgetComp
     & L.widget .~ createComposite comp newState
-    & L.widgetInstance . L.viewport .~ viewport
-    & L.widgetInstance . L.renderArea .~ renderArea
+    & L.info . L.viewport .~ viewport
+    & L.info . L.renderArea .~ renderArea
 
 -- Render
 compositeRender
@@ -489,7 +489,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   ReducedEvents{..} = reduceCompEvents _cpsGlobalKeys evtHandler evtModel evts
   WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
-  currentPath = widgetComp ^. L.widgetInstance . L.path
+  currentPath = widgetComp ^. L.info . L.path
   newReqs = toParentReqs reqs
          <> tasksToRequests currentPath _reTasks
          <> producersToRequests currentPath _reProducers
@@ -589,7 +589,7 @@ reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Request req -> curr { _reRequests = _reRequests |> req }
   Message key message -> case M.lookup key globalKeys of
     Just node -> curr {
-        _reMessages = _reMessages |> SendMessage (node ^. L.widgetInstance . L.path) message
+        _reMessages = _reMessages |> SendMessage (node ^. L.info . L.path) message
       }
     Nothing -> curr
   Task task -> curr { _reTasks = _reTasks |> task }
@@ -642,7 +642,7 @@ collectGlobalKeys
 collectGlobalKeys keys node = newMap where
   children = node ^. L.children
   collect currKeys child = collectGlobalKeys currKeys child
-  updatedMap = case node ^. L.widgetInstance . L.key of
+  updatedMap = case node ^. L.info . L.key of
     Just (WidgetKeyGlobal key) -> M.insert (WidgetKeyGlobal key) node keys
     _ -> keys
   newMap = foldl' collect updatedMap children
@@ -666,14 +666,14 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
 
 cascadeCtx :: WidgetNode sp ep -> WidgetNode s e -> WidgetNode s e
 cascadeCtx parent child = newChild where
-  pVisible = parent ^. L.widgetInstance . L.visible
-  pEnabled = parent ^. L.widgetInstance . L.enabled
-  cVisible = child ^. L.widgetInstance . L.visible
-  cEnabled = child ^. L.widgetInstance . L.enabled
+  pVisible = parent ^. L.info . L.visible
+  pEnabled = parent ^. L.info . L.enabled
+  cVisible = child ^. L.info . L.visible
+  cEnabled = child ^. L.info . L.enabled
   newChild = child
-    & L.widgetInstance . L.path .~ firstChildPath parent
-    & L.widgetInstance . L.visible .~ (cVisible && pVisible)
-    & L.widgetInstance . L.enabled .~ (cEnabled && pEnabled)
+    & L.info . L.path .~ firstChildPath parent
+    & L.info . L.visible .~ (cVisible && pVisible)
+    & L.info . L.enabled .~ (cEnabled && pEnabled)
 
 getUpdateModelReqs :: (Traversable t) => t (WidgetRequest s) -> Seq (s -> s)
 getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
@@ -681,4 +681,4 @@ getUpdateModelReqs reqs = foldl' foldHelper Seq.empty reqs where
   foldHelper acc _ = acc
 
 firstChildPath :: WidgetNode s e -> Path
-firstChildPath node = node ^. L.widgetInstance . L.path |> 0
+firstChildPath node = node ^. L.info . L.path |> 0

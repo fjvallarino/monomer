@@ -75,7 +75,7 @@ inputField_
 inputField_ widgetType config = node where
   widget = makeInputField config inputFieldState
   node = defaultWidgetNode widgetType widget
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.focusable .~ True
 
 makeInputField
   :: (Eq a, Default a, Typeable a)
@@ -140,8 +140,8 @@ makeInputField config state = widget where
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
-    oldPath = oldNode ^. L.widgetInstance . L.path
-    newPath = node ^. L.widgetInstance . L.path
+    oldPath = oldNode ^. L.info . L.path
+    newPath = node ^. L.info . L.path
     updateFocus = isFocused wenv oldNode && oldPath /= newPath
     renderReqs
       | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
@@ -149,7 +149,7 @@ makeInputField config state = widget where
     reqs = setModelValid (isJust parsedVal) ++ renderReqs
 
   dispose wenv node = resultReqs node reqs where
-    path = node ^. L.widgetInstance . L.path
+    path = node ^. L.info . L.path
     reqs = [ RenderStop path ]
 
   handleKeyPress wenv mod code
@@ -309,8 +309,8 @@ makeInputField config state = widget where
 
     _ -> Nothing
     where
-      path = node ^. L.widgetInstance . L.path
-      viewport = node ^. L.widgetInstance . L.viewport
+      path = node ^. L.info . L.path
+      viewport = node ^. L.info . L.viewport
 
   insertText wenv node addedText = Just result where
     addedLen = T.length addedText
@@ -370,8 +370,8 @@ makeInputField config state = widget where
   resize wenv viewport renderArea node = newNode where
     -- newTextState depends on having correct viewport/renderArea
     tempNode = node
-      & L.widgetInstance . L.viewport .~ viewport
-      & L.widgetInstance . L.renderArea .~ renderArea
+      & L.info . L.viewport .~ viewport
+      & L.info . L.renderArea .~ renderArea
     newState = newTextState wenv tempNode state currVal currText currPos currSel
     newNode = tempNode
       & L.widget .~ makeInputField config newState

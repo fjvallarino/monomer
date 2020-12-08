@@ -35,4 +35,5 @@ makeLensesWith abbreviatedFields ''WidgetResult
 makeLensesWith abbreviatedFields ''WidgetSizeReq
 makeLensesWith abbreviatedFields ''WidgetData
 makeLensesWith abbreviatedFields ''WidgetNode
-makeLensesWith abbreviatedFields ''WidgetInstance
+makeLensesWith abbreviatedFields ''WidgetNodeInfo
+makeLensesWith abbreviatedFields ''WidgetInstanceNode

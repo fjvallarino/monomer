@@ -112,7 +112,7 @@ checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config
   checkboxNode = defaultWidgetNode "checkbox" widget
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.focusable .~ True
 
 makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
@@ -137,7 +137,7 @@ makeCheckbox widgetData config = widget where
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
-      path = node ^. L.widgetInstance . L.path
+      path = node ^. L.info . L.path
       value = widgetDataGet model widgetData
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)

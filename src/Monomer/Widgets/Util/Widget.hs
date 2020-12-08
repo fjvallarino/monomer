@@ -43,35 +43,33 @@ import Monomer.Graphics.Types
 import qualified Monomer.Lens as L
 
 pointInViewport :: Point -> WidgetNode s e -> Bool
-pointInViewport p node = pointInRect p (node ^. L.widgetInstance . L.viewport)
+pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
 
 defaultWidgetNode :: WidgetType -> Widget s e -> WidgetNode s e
 defaultWidgetNode widgetType widget = WidgetNode {
   _wnWidget = widget,
-  _wnWidgetInstance = def & L.widgetType .~ widgetType,
+  _wnInfo = def & L.widgetType .~ widgetType,
   _wnChildren = Seq.empty
 }
 
 isWidgetVisible :: WidgetNode s e -> Rect -> Bool
 isWidgetVisible node vp = isVisible && isOverlapped where
-  inst = node ^. L.widgetInstance
-  isVisible = inst ^. L.visible
-  isOverlapped = rectsOverlap vp (inst ^. L.viewport)
+  info = node ^. L.info
+  isVisible = info ^. L.visible
+  isOverlapped = rectsOverlap vp (info ^. L.viewport)
 
 isPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
 isPressed wenv node = validPress where
-  inst = node ^. L.widgetInstance
-  path = inst ^. L.path
+  path = node ^. L.info . L.path
   pressed = wenv ^. L.pressedPath
   validPress = isNothing pressed || Just path == pressed
 
 isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
-isFocused wenv node = wenv ^. L.focusedPath == node ^. L.widgetInstance . L.path
+isFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
 
 isHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
 isHovered wenv node = validPos && validPress && isTopLevel wenv node where
-  inst = node ^. L.widgetInstance
-  viewport = inst ^. L.viewport
+  viewport = node ^. L.info . L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
   validPress = isPressed wenv node
@@ -109,16 +107,16 @@ useState (Just (WidgetState state)) = cast state
 
 instanceMatches :: WidgetNode s e -> WidgetNode s e -> Bool
 instanceMatches newNode oldNode = typeMatches && keyMatches where
-  oldInst = oldNode ^. L.widgetInstance
-  newInst = newNode ^. L.widgetInstance
-  typeMatches = oldInst ^. L.widgetType == newInst ^. L.widgetType
-  keyMatches = oldInst ^. L.key == newInst ^. L.key
+  oldInfo = oldNode ^. L.info
+  newInfo = newNode ^. L.info
+  typeMatches = oldInfo ^. L.widgetType == newInfo ^. L.widgetType
+  keyMatches = oldInfo ^. L.key == newInfo ^. L.key
 
 isTopLevel :: WidgetEnv s e -> WidgetNode s e -> Bool
 isTopLevel wenv node = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   inTopLayer = wenv ^. L.inTopLayer $ mousePos
-  path = node ^. L.widgetInstance . L.path
+  path = node ^. L.info . L.path
   isPrefix parent = Seq.take (Seq.length parent) path == parent
 
 handleFocusChange
@@ -143,8 +141,8 @@ resizeWidget
 resizeWidget wenv viewport renderArea widgetRoot = newRoot where
   sizeReq = widgetGetSizeReq (_wnWidget widgetRoot) wenv widgetRoot
   reqRoot = sizeReq ^. L.widget
-    & L.widgetInstance . L.sizeReqW .~ sizeReq ^. L.sizeReqW
-    & L.widgetInstance . L.sizeReqH .~ sizeReq ^. L.sizeReqH
+    & L.info . L.sizeReqW .~ sizeReq ^. L.sizeReqW
+    & L.info . L.sizeReqH .~ sizeReq ^. L.sizeReqH
   reqRootWidget = sizeReq ^. L.widget . L.widget
 
   newRoot = widgetResize reqRootWidget wenv viewport renderArea reqRoot
@@ -166,7 +164,7 @@ buildLocalMap widgets = newMap where
     | isJust key = M.insert (fromJust key) widget map
     | otherwise = map
     where
-      key = widget ^. L.widgetInstance . L.key
+      key = widget ^. L.info . L.key
   newMap = foldl' addWidget M.empty widgets
 
 getInstanceTree
@@ -175,7 +173,7 @@ getInstanceTree
   -> WidgetInstanceNode
 getInstanceTree wenv node = instNode where
   instNode = WidgetInstanceNode {
-    _winInst = node ^. L.widgetInstance,
+    _winInfo = node ^. L.info,
     _winChildren = fmap (getChildNode wenv) (node ^. L.children)
   }
   getChildNode wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child

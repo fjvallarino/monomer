@@ -129,7 +129,7 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 480
     gridNode = vgrid []
     newNode = nodeInit wenv gridNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
+    viewport = newNode ^. L.info . L.viewport
     children = newNode ^. L.children
 
 resizeItemsH :: Spec
@@ -155,9 +155,9 @@ resizeItemsH = describe "several items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv gridNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeItemsV :: Spec
 resizeItemsV = describe "several items, vertical, one not visible" $ do
@@ -184,6 +184,6 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv gridNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

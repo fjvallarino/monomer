@@ -77,11 +77,11 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   confirmTree = vstack [
       label title
-        & L.widgetInstance . L.style .~ themeDialogTitle wenv,
+        & L.info . L.style .~ themeDialogTitle wenv,
       label_ message [textMultiLine]
-        & L.widgetInstance . L.style .~ themeDialogBody wenv,
+        & L.info . L.style .~ themeDialogBody wenv,
       box_ buttons [alignLeft]
-        & L.widgetInstance . L.style <>~ themeDialogButtons wenv
-    ] & L.widgetInstance . L.style .~ themeDialogFrame wenv
+        & L.info . L.style <>~ themeDialogButtons wenv
+    ] & L.info . L.style .~ themeDialogFrame wenv
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
-    & L.widgetInstance . L.style .~ emptyOverlayColor
+    & L.info . L.style .~ emptyOverlayColor

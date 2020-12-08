@@ -82,8 +82,8 @@ pathNode_ :: [PathStep] -> Int -> WidgetNode s e
 pathNode_ path childCount = newNode where
   mkChild idx = pathNode_ (path ++ [idx]) 0
   newNode = label "Test"
-    & L.widgetInstance . L.path .~ Seq.fromList path
-    & L.widgetInstance . L.visible .~ True
-    & L.widgetInstance . L.enabled .~ True
-    & L.widgetInstance . L.focusable .~ True
+    & L.info . L.path .~ Seq.fromList path
+    & L.info . L.visible .~ True
+    & L.info . L.enabled .~ True
+    & L.info . L.focusable .~ True
     & L.children .~ Seq.fromList (fmap mkChild [0..childCount - 1])

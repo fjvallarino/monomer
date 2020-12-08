@@ -53,18 +53,18 @@ handleEventNormal = describe "handleEventNormal" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    cntInst1 = vstack [
+    cntNode1 = vstack [
         textField text1,
         textField text2
       ]
-    cntInst2 = vstack [
+    cntNode2 = vstack [
         textField text1,
         textField text2
       ]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    model1 = nodeHandleEventModel wenv evts1 cntInst1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntInst1
-    cntResM = widgetMerge (cntInst2 ^. L.widget) wenv1 oldRoot1 cntInst2
+    model1 = nodeHandleEventModel wenv evts1 cntNode1
+    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
 
@@ -78,18 +78,18 @@ handleEventNoKey = describe "handleEventNoKey" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    cntInst1 = vstack [
+    cntNode1 = vstack [
         textField text1,
         textField text2
       ]
-    cntInst2 = vstack [
+    cntNode2 = vstack [
         textField text2,
         textField text1
       ]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    model1 = nodeHandleEventModel wenv evts1 cntInst1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntInst1
-    cntResM = widgetMerge (cntInst2 ^. L.widget) wenv1 oldRoot1 cntInst2
+    model1 = nodeHandleEventModel wenv evts1 cntNode1
+    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
 
@@ -103,17 +103,17 @@ handleEventLocalKey = describe "handleEventLocalKey" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    cntInst1 = vstack [
+    cntNode1 = vstack [
         textField text1 `key` "txt1",
         textField text2 `key` "txt2"
       ]
-    cntInst2 = vstack [
+    cntNode2 = vstack [
         textField text2 `key` "txt2",
         textField text1 `key` "txt1"
       ]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    model1 = nodeHandleEventModel wenv evts1 cntInst1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntInst1
-    cntResM = widgetMerge (cntInst2 ^. L.widget) wenv1 oldRoot1 cntInst2
+    model1 = nodeHandleEventModel wenv evts1 cntNode1
+    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)

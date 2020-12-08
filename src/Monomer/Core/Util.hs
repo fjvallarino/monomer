@@ -14,17 +14,17 @@ isMacOS wenv = _weOS wenv == "Mac OS X"
 
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
-  desc = instanceDesc level node ++ "\n" ++ childDesc
+  desc = nodeDesc level node ++ "\n" ++ childDesc
   childDesc = foldMap (widgetTreeDesc (level + 1)) (_wnChildren node)
 
-instanceDesc :: Int -> WidgetNode s e -> String
-instanceDesc level node = instDesc (_wnWidgetInstance node) where
+nodeDesc :: Int -> WidgetNode s e -> String
+nodeDesc level node = infoDesc (_wnInfo node) where
   spaces = replicate (level * 2) ' '
-  instDesc inst =
-    spaces ++ "type: " ++ unWidgetType (_wiWidgetType inst) ++ "\n" ++
-    spaces ++ "path: " ++ show (_wiPath inst) ++ "\n" ++
-    spaces ++ "vp: " ++ rectDesc (_wiViewport inst) ++ "\n" ++
-    spaces ++ "req: " ++ show (_wiSizeReqW inst, _wiSizeReqH inst) ++ "\n"
+  infoDesc info =
+    spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
+    spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
+    spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
+    spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
 maxNumericValue :: (RealFloat a) => a

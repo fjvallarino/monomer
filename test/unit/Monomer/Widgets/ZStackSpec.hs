@@ -200,7 +200,7 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 480
     zstackNode = zstack []
     newNode = nodeInit wenv zstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
+    viewport = newNode ^. L.info . L.viewport
     children = newNode ^. L.children
 
 resizeItems :: Spec
@@ -223,6 +223,6 @@ resizeItems = describe "several items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv zstackNode
-    viewport = newNode ^. L.widgetInstance . L.viewport
-    childrenVp = (^. L.widgetInstance . L.viewport) <$> newNode ^. L.children
-    childrenRa = (^. L.widgetInstance . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

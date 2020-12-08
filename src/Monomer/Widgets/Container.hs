@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -186,14 +187,14 @@ createThemed
   -> WidgetNode s e
 createThemed widgetType factory = newNode where
   createNode wenv node = resultWidget themedNode where
-    inst = node ^. L.widgetInstance
+    info = node ^. L.info
     tempNode = factory wenv
-    tempInst = tempNode ^. L.widgetInstance
+    tempInfo = tempNode ^. L.info
     themedNode = node
       & L.widget .~ tempNode ^. L.widget
       & L.children .~ tempNode ^. L.children
-      & L.widgetInstance . L.focusable .~ tempInst ^. L.focusable
-      & L.widgetInstance . L.style .~ (tempInst ^. L.style <> inst ^. L.style)
+      & L.info . L.focusable .~ tempInfo ^. L.focusable
+      & L.info . L.style .~ (tempInfo ^. L.style <> info ^. L.style)
   init = createNode
   merge wenv oldState oldNode newNode = createNode wenv newNode
   newWidget = createContainer def {
@@ -204,7 +205,7 @@ createThemed widgetType factory = newNode where
 
 -- | Get base style for component
 defaultGetBaseStyle :: ContainerGetBaseStyle s e
-defaultGetBaseStyle wenv inst = Nothing
+defaultGetBaseStyle wenv node = Nothing
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
@@ -218,7 +219,7 @@ initWrapper
 initWrapper container wenv node = result where
   initHandler = containerInit container
   getBaseStyle = containerGetBaseStyle container
-  styledNode = initInstanceStyle getBaseStyle wenv node
+  styledNode = initNodeStyle getBaseStyle wenv node
   WidgetResult tempNode reqs events = initHandler wenv styledNode
   children = tempNode ^. L.children
   initChild idx child = widgetInit newWidget wenv newChild where
@@ -244,7 +245,7 @@ mergeWrapper
 mergeWrapper container wenv oldNode newNode = result where
   getBaseStyle = containerGetBaseStyle container
   mergeHandler = containerMerge container
-  styledNode = initInstanceStyle getBaseStyle wenv newNode
+  styledNode = initNodeStyle getBaseStyle wenv newNode
   pResult = mergeParent mergeHandler wenv oldNode styledNode
   cResult = mergeChildren wenv oldNode pResult
   result = mergeChildrenCheckVisible oldNode cResult
@@ -256,14 +257,13 @@ mergeParent
   -> WidgetNode s e
   -> WidgetResult s e
 mergeParent mergeHandler wenv oldNode newNode = result where
-  oldInst = oldNode ^. L.widgetInstance
-  newInst = newNode ^. L.widgetInstance
+  oldInfo = oldNode ^. L.info
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   tempNode = newNode
-    & L.widgetInstance . L.viewport .~ oldInst ^. L.viewport
-    & L.widgetInstance . L.renderArea .~ oldInst ^. L.renderArea
-    & L.widgetInstance . L.sizeReqW .~ oldInst ^. L.sizeReqW
-    & L.widgetInstance . L.sizeReqH .~ oldInst ^. L.sizeReqH
+    & L.info . L.viewport .~ oldInfo ^. L.viewport
+    & L.info . L.renderArea .~ oldInfo ^. L.renderArea
+    & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
+    & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   result = mergeHandler wenv oldState oldNode tempNode
 
 mergeChildren
@@ -308,7 +308,7 @@ mergeChildrenSeq wenv localKeys oldItems newItems = (merged, cremoved) where
   newChild :<| newChildren = newItems
   globalKeys = wenv ^. L.globalKeys
   newWidget = newChild ^. L.widget
-  newChildKey = newChild ^. L.widgetInstance . L.key
+  newChildKey = newChild ^. L.info . L.key
   oldKeyMatch = newChildKey >>= \key -> findWidgetByKey key localKeys globalKeys
   oldMatch = fromJust oldKeyMatch
   mergedOld = widgetMerge newWidget wenv oldChild newChild
@@ -328,8 +328,8 @@ mergeChildrenCheckVisible
   -> WidgetResult s e
 mergeChildrenCheckVisible oldNode result = newResult where
   newNode = result ^. L.widget
-  newVisible = fmap (^. L.widgetInstance . L.visible) (newNode ^. L.children)
-  oldVisible = fmap (^. L.widgetInstance . L.visible) (oldNode ^. L.children)
+  newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
+  oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
   resizeRequired = oldVisible /= newVisible
   newResult
     | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
@@ -361,7 +361,7 @@ defaultGetState _ = Nothing
 -- | Find next focusable item
 defaultFindNextFocus :: ContainerFindNextFocusHandler s e
 defaultFindNextFocus wenv direction start node = vchildren where
-  vchildren = Seq.filter (^. L.widgetInstance . L.visible) (node ^. L.children)
+  vchildren = Seq.filter (^. L.info . L.visible) (node ^. L.children)
 
 findNextFocusWrapper
   :: Container s e
@@ -380,7 +380,7 @@ findNextFocusWrapper container wenv direction start node = nextFocus where
     | isFocusCandidate direction start node = Just path
     | otherwise = findFocusCandidate children wenv direction start
     where
-      path = node ^. L.widgetInstance . L.path
+      path = node ^. L.info . L.path
 
 findFocusCandidate
   :: Seq (WidgetNode s e)
@@ -402,8 +402,8 @@ findFocusCandidate (ch :<| chs) wenv dir start = result where
 defaultFindByPoint :: ContainerFindByPointHandler s e
 defaultFindByPoint wenv startPath point node = result where
   children = node ^. L.children
-  pointInWidget wi = _wiVisible wi && pointInRect point (_wiViewport wi)
-  result = Seq.findIndexL (pointInWidget . _wnWidgetInstance) children
+  pointInWidget wi = wi ^. L.visible && pointInRect point (wi ^. L.viewport)
+  result = Seq.findIndexL (pointInWidget . _wnInfo) children
 
 findByPointWrapper
   :: Container s e
@@ -430,9 +430,9 @@ findByPointWrapper container wenv start point node = result where
       childWidget = child ^. L.widget
     Nothing
       | ignoreEmptyClick -> Nothing
-      | otherwise -> Just $ node ^. L.widgetInstance . L.path
+      | otherwise -> Just $ node ^. L.info . L.path
   result
-    | node ^. L.widgetInstance . L.visible = resultPath
+    | node ^. L.info . L.visible = resultPath
     | otherwise = Nothing
 
 -- | Event Handling
@@ -447,7 +447,7 @@ handleEventWrapper
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper container wenv target event node
-  | not (node ^. L.widgetInstance . L.visible) = Nothing
+  | not (node ^. L.info . L.visible) = Nothing
   | targetReached || not targetValid = pResultStyled
   | styleOnMerge = cResultStyled
   | otherwise = cResult
@@ -468,7 +468,7 @@ handleEventWrapper container wenv target event node
     pResponse = pHandler wenv target event node
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
-      | childrenIgnored || not (child ^. L.widgetInstance . L.enabled) = Nothing
+      | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
     pResultStyled = handleStyleChange wenv target event style pResponse node
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
@@ -546,8 +546,8 @@ getSizeReqWrapper container wenv node = newSizeReq & L.widget .~ newNode where
     childReq = widgetGetSizeReq (child ^. L.widget) wenv child
     WidgetSizeReq cWidget cReqW cReqH = childReq
     newChild = cWidget
-      & L.widgetInstance . L.sizeReqW .~ cReqW
-      & L.widgetInstance . L.sizeReqH .~ cReqH
+      & L.info . L.sizeReqW .~ cReqW
+      & L.info . L.sizeReqH .~ cReqH
   newChildren = fmap updateChild children
   (sizeReqW, sizeReqH) = psHandler wenv node newChildren
   newSizeReq = sizeReqAddStyle style (WidgetSizeReq node sizeReqW sizeReqH)
@@ -570,26 +570,26 @@ resizeWrapper
   -> WidgetNode s e
 resizeWrapper container wenv viewport renderArea node = newNode where
   resizeRequired = containerResizeRequired container
-  vpChanged = viewport /= node ^. L.widgetInstance . L.viewport
-  raChanged = renderArea /= node ^. L.widgetInstance . L.renderArea
+  vpChanged = viewport /= node ^. L.info . L.viewport
+  raChanged = renderArea /= node ^. L.info . L.renderArea
   keepSizes = containerKeepChildrenSizes container
   handler = containerResize container
   children = node ^. L.children
-  (tempInst, assigned) = handler wenv viewport renderArea children node
+  (tempNode, assigned) = handler wenv viewport renderArea children node
   resize (child, (vp, ra)) = newChildNode where
     tempChildNode = widgetResize (child ^. L.widget) wenv vp ra child
-    cvp = tempChildNode ^. L.widgetInstance . L.viewport
-    cra = tempChildNode ^. L.widgetInstance . L.renderArea
+    cvp = tempChildNode ^. L.info . L.viewport
+    cra = tempChildNode ^. L.info . L.renderArea
     icvp = fromMaybe vp (intersectRects vp cvp)
     icra = fromMaybe ra (intersectRects ra cra)
     newChildNode = tempChildNode
-      & L.widgetInstance . L.viewport .~ (if keepSizes then icvp else vp)
-      & L.widgetInstance . L.renderArea .~ (if keepSizes then icra else ra)
+      & L.info . L.viewport .~ (if keepSizes then icvp else vp)
+      & L.info . L.renderArea .~ (if keepSizes then icra else ra)
   newChildren = resize <$> Seq.zip children assigned
   newNode
-    | resizeRequired || vpChanged || raChanged = tempInst
-      & L.widgetInstance . L.viewport .~ viewport
-      & L.widgetInstance . L.renderArea .~ renderArea
+    | resizeRequired || vpChanged || raChanged = tempNode
+      & L.info . L.viewport .~ viewport
+      & L.info . L.renderArea .~ renderArea
       & L.children .~ newChildren
     | otherwise = node
 
@@ -622,8 +622,8 @@ renderContainer rHandler renderer wenv node =
   where
     style = activeStyle wenv node
     children = node ^. L.children
-    viewport = node ^. L.widgetInstance . L.viewport
-    renderArea = node ^. L.widgetInstance . L.renderArea
+    viewport = node ^. L.info . L.viewport
+    renderArea = node ^. L.info . L.renderArea
 
 -- | Event Handling Helpers
 ignoreChildren :: WidgetResult s e -> Bool
@@ -642,15 +642,15 @@ replaceChild parent child idx = parent & L.children .~ newChildren where
 cascadeCtx
   :: WidgetNode s e -> WidgetNode s e -> Int -> WidgetNode s e
 cascadeCtx parent child idx = newChild where
-  pInst = parent ^. L.widgetInstance
-  cInst = child ^. L.widgetInstance
-  parentPath = _wiPath pInst
-  parentVisible = _wiVisible pInst
-  parentEnabled = _wiEnabled pInst
+  pInfo = parent ^. L.info
+  cInfo = child ^. L.info
+  parentPath = pInfo ^. L.path
+  parentVisible = pInfo ^. L.visible
+  parentEnabled = pInfo ^. L.enabled
   newChild = child
-    & L.widgetInstance . L.path .~ parentPath |> idx
-    & L.widgetInstance . L.visible .~ (cInst ^. L.visible && parentVisible)
-    & L.widgetInstance . L.enabled .~ (cInst ^. L.enabled && parentEnabled)
+    & L.info . L.path .~ parentPath |> idx
+    & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
+    & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
 
 isIgnoreChildrenEvents :: WidgetRequest s -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True

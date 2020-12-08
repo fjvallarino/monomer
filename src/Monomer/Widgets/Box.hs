@@ -115,12 +115,12 @@ box :: WidgetNode s e -> WidgetNode s e
 box managed = box_ managed def
 
 box_ :: WidgetNode s e -> [BoxCfg s e] -> WidgetNode s e
-box_ managed configs = makeInstance (makeBox config) managed where
+box_ managed configs = makeNode (makeBox config) managed where
   config = mconcat configs
 
-makeInstance :: Widget s e -> WidgetNode s e -> WidgetNode s e
-makeInstance widget managedWidget = defaultWidgetNode "box" widget
-  & L.widgetInstance . L.focusable .~ False
+makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
+makeNode widget managedWidget = defaultWidgetNode "box" widget
+  & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
 makeBox :: BoxCfg s e -> Widget s e
@@ -134,7 +134,7 @@ makeBox config = widget where
   handleEvent wenv ctx evt node = case evt of
     Click point btn -> result where
       child = Seq.index (node ^. L.children) 0
-      childClicked = pointInRect point (child ^. L.widgetInstance . L.renderArea)
+      childClicked = pointInRect point (child ^. L.info . L.renderArea)
       events
         | childClicked = _boxOnClick config
         | otherwise = _boxOnClickEmpty config
@@ -150,8 +150,8 @@ makeBox config = widget where
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0
-    newReqW = child ^. L.widgetInstance . L.sizeReqW
-    newReqH = child ^. L.widgetInstance . L.sizeReqH
+    newReqW = child ^. L.info . L.sizeReqW
+    newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
   resize wenv viewport renderArea children node = resized where
@@ -159,8 +159,8 @@ makeBox config = widget where
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect cx cy cw ch = contentArea
     child = Seq.index children 0
-    contentW = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
-    contentH = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
+    contentW = sizeReqMax $ child ^. L.info . L.sizeReqW
+    contentH = sizeReqMax $ child ^. L.info . L.sizeReqH
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)

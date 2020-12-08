@@ -65,11 +65,11 @@ makeAlert wenv message evt config = alertBox where
   dismissButton = mainButton close evt
   alertTree = vstack [
       label title
-        & L.widgetInstance . L.style .~ themeDialogTitle wenv,
+        & L.info . L.style .~ themeDialogTitle wenv,
       label_ message [textMultiLine]
-        & L.widgetInstance . L.style .~ themeDialogBody wenv,
+        & L.info . L.style .~ themeDialogBody wenv,
       box_ dismissButton [alignLeft]
-        & L.widgetInstance . L.style .~ themeDialogButtons wenv
-    ] & L.widgetInstance . L.style .~ themeDialogFrame wenv
+        & L.info . L.style .~ themeDialogButtons wenv
+    ] & L.info . L.style .~ themeDialogFrame wenv
   alertBox = box_ alertTree [onClickEmpty evt]
-    & L.widgetInstance . L.style .~ emptyOverlayColor
+    & L.info . L.style .~ emptyOverlayColor

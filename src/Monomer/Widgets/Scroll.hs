@@ -155,26 +155,26 @@ scroll :: WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ managedWidget [def]
 
 scroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-scroll_ managed configs = makeInstance (makeScroll config def) managed where
+scroll_ managed configs = makeNode (makeScroll config def) managed where
   config = mconcat configs
 
 hscroll :: WidgetNode s e -> WidgetNode s e
 hscroll managedWidget = hscroll_ managedWidget [def]
 
 hscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-hscroll_ managed configs = makeInstance (makeScroll config def) managed where
+hscroll_ managed configs = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollH : configs)
 
 vscroll :: WidgetNode s e -> WidgetNode s e
 vscroll managedWidget = vscroll_ managedWidget [def]
 
 vscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-vscroll_ managed configs = makeInstance (makeScroll config def) managed where
+vscroll_ managed configs = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollV : configs)
 
-makeInstance :: Widget s e -> WidgetNode s e -> WidgetNode s e
-makeInstance widget managedWidget = defaultWidgetNode "scroll" widget
-  & L.widgetInstance . L.focusable .~ False
+makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
+makeNode widget managedWidget = defaultWidgetNode "scroll" widget
+  & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
 makeScroll :: ScrollCfg -> ScrollState -> Widget s e
@@ -317,16 +317,16 @@ makeScroll config state = widget where
   rebuildWidget wenv newState node = newNode where
     newWidget = makeScroll config newState
     tempNode = node & L.widget .~ newWidget
-    vp = tempNode ^. L.widgetInstance . L.viewport
-    ra = tempNode ^. L.widgetInstance . L.renderArea
+    vp = tempNode ^. L.info . L.viewport
+    ra = tempNode ^. L.info . L.renderArea
     newNode = scrollResize (Just newWidget) newState wenv vp ra tempNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = sizeReq where
     style = scrollActiveStyle wenv node
     child = Seq.index children 0
-    tw = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
-    th = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
+    tw = sizeReqMax $ child ^. L.info . L.sizeReqW
+    th = sizeReqMax $ child ^. L.info . L.sizeReqH
     Size w h = fromMaybe def (addOuterSize style (Size tw th))
     factor = 1
 
@@ -341,8 +341,8 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (node ^. L.children) 0
-    childWidth2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqW
-    childHeight2 = sizeReqMax $ child ^. L.widgetInstance . L.sizeReqH
+    childWidth2 = sizeReqMax $ child ^. L.info . L.sizeReqW
+    childHeight2 = sizeReqMax $ child ^. L.info . L.sizeReqH
 
     areaW
       | scrollType == ScrollV = cw
@@ -362,13 +362,13 @@ makeScroll config state = widget where
     cWidget = child ^. L.widget
     tempChild = widgetResize cWidget wenv viewport cRenderArea child
     newChild = tempChild
-      & L.widgetInstance . L.viewport .~ cViewport
-      & L.widgetInstance . L.renderArea .~ cRenderArea
+      & L.info . L.viewport .~ cViewport
+      & L.info . L.renderArea .~ cRenderArea
 
     newNode = node
       & L.widget .~ newWidget
-      & L.widgetInstance . L.viewport .~ viewport
-      & L.widgetInstance . L.renderArea .~ renderArea
+      & L.info . L.viewport .~ viewport
+      & L.info . L.renderArea .~ renderArea
       & L.children .~ Seq.singleton newChild
 
   render renderer wenv node =
@@ -390,9 +390,9 @@ makeScroll config state = widget where
     where
       style = scrollActiveStyle wenv node
       child = node ^. L.children ^?! ix 0
-      vp = node ^. L.widgetInstance . L.viewport
+      vp = node ^. L.info . L.viewport
       viewport = fromMaybe def (removeOuterBounds style vp)
-      renderArea = node ^. L.widgetInstance . L.renderArea
+      renderArea = node ^. L.info . L.renderArea
 
       ScrollContext{..} = scrollStatus config wenv state node
       draggingH = _sstDragging state == Just HBar

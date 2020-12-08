@@ -32,12 +32,12 @@ initMergeWidget = describe "init/merge" $ do
 
   where
     wenv = mockWenv ()
-    inst1 = image "assets/images/beach.jpg"
-    inst2 = image "assets/images/beach.jpg"
-    inst3 = image "assets/images/beach2.jpg"
-    WidgetResult newInst1 reqs1 _ = widgetInit (inst1 ^. L.widget) wenv inst1
-    WidgetResult _ reqs2 _ = widgetMerge (inst2 ^. L.widget) wenv newInst1 inst2
-    WidgetResult _ reqs3 _ = widgetMerge (inst3 ^. L.widget) wenv newInst1 inst3
+    node1 = image "assets/images/beach.jpg"
+    node2 = image "assets/images/beach.jpg"
+    node3 = image "assets/images/beach2.jpg"
+    WidgetResult newNode1 reqs1 _ = widgetInit (node1 ^. L.widget) wenv node1
+    WidgetResult _ reqs2 _ = widgetMerge (node2 ^. L.widget) wenv newNode1 node2
+    WidgetResult _ reqs3 _ = widgetMerge (node3 ^. L.widget) wenv newNode1 node3
 
 isRunTask :: WidgetRequest s -> Bool
 isRunTask RunTask{} = True

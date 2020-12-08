@@ -156,7 +156,7 @@ initWrapper
 initWrapper single wenv node = newResult where
   initHandler = singleInit single
   getBaseStyle = singleGetBaseStyle single
-  styledNode = initInstanceStyle getBaseStyle wenv node
+  styledNode = initNodeStyle getBaseStyle wenv node
   newResult = initHandler wenv styledNode
 
 defaultMerge :: SingleMergeHandler s e
@@ -172,13 +172,13 @@ mergeWrapper single wenv oldNode newNode = newResult where
   mergeHandler = singleMerge single
   getBaseStyle = singleGetBaseStyle single
   oldState = widgetGetState (oldNode ^. L.widget) wenv
-  oldInst = oldNode ^. L.widgetInstance
+  oldInfo = oldNode ^. L.info
   tempNode = newNode
-    & L.widgetInstance . L.viewport .~ oldInst ^. L.viewport
-    & L.widgetInstance . L.renderArea .~ oldInst ^. L.renderArea
-    & L.widgetInstance . L.sizeReqW .~ oldInst ^. L.sizeReqW
-    & L.widgetInstance . L.sizeReqH .~ oldInst ^. L.sizeReqH
-  styledNode = initInstanceStyle getBaseStyle wenv tempNode
+    & L.info . L.viewport .~ oldInfo ^. L.viewport
+    & L.info . L.renderArea .~ oldInfo ^. L.renderArea
+    & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
+    & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
+  styledNode = initNodeStyle getBaseStyle wenv tempNode
   newResult = mergeHandler wenv oldState oldNode styledNode
 
 defaultDispose :: SingleDisposeHandler s e
@@ -192,15 +192,15 @@ defaultFindNextFocus wenv direction startFrom node
   | isFocusCandidate direction startFrom node = Just path
   | otherwise = Nothing
   where
-    path = node ^. L.widgetInstance . L.path
+    path = node ^. L.info . L.path
 
 defaultFindByPoint :: SingleFindByPointHandler s e
 defaultFindByPoint wenv path point node
   | isVisible && pointInViewport point node = Just path
   | otherwise = Nothing
   where
-    isVisible = node ^. L.widgetInstance . L.visible
-    path = node ^. L.widgetInstance . L.path
+    isVisible = node ^. L.info . L.visible
+    path = node ^. L.info . L.path
 
 defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
@@ -213,7 +213,7 @@ handleEventWrapper
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
-  | not (node ^. L.widgetInstance . L.visible) = Nothing
+  | not (node ^. L.info . L.visible) = Nothing
   | otherwise = handleStyleChange wenv target evt style result node
   where
     style = activeStyle wenv node
@@ -251,8 +251,8 @@ resizeHandlerWrapper single wenv viewport renderArea node = newNode where
   handler = singleResize single
   tempNode = handler wenv viewport renderArea node
   newNode = tempNode
-    & L.widgetInstance . L.viewport .~ viewport
-    & L.widgetInstance . L.renderArea .~ renderArea
+    & L.info . L.viewport .~ viewport
+    & L.info . L.renderArea .~ renderArea
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv node = return ()
@@ -270,5 +270,5 @@ renderWrapper single renderer wenv node =
   where
     rHandler = singleRender single
     style = activeStyle wenv node
-    viewport = node ^. L.widgetInstance . L.viewport
-    renderArea = node ^. L.widgetInstance . L.renderArea
+    viewport = node ^. L.info . L.viewport
+    renderArea = node ^. L.info . L.renderArea
