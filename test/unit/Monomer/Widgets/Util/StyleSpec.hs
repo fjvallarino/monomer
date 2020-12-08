@@ -30,20 +30,20 @@ spec = describe "Style" $ do
 testActiveStyle :: Spec
 testActiveStyle = describe "activeStyle" $ do
   it "should return basic style" $
-    activeStyle wenvBasic instNormal ^. L.bgColor `shouldBe` Just white
+    activeStyle wenvBasic nodeNormal ^. L.bgColor `shouldBe` Just white
 
   it "should return hover style" $
-    activeStyle wenvHover instNormal ^. L.bgColor `shouldBe` Just green
+    activeStyle wenvHover nodeNormal ^. L.bgColor `shouldBe` Just green
 
   it "should return focus style" $ do
-    activeStyle wenvFocus instNormal ^. L.bgColor `shouldBe` Just blue
-    activeStyle wenvHoverFocus instNormal ^. L.bgColor `shouldBe` Just blue
+    activeStyle wenvFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
+    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
 
   it "should return disabled style" $ do
-    activeStyle wenvBasic instDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvHover instDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvFocus instDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvHoverFocus instDisabled ^. L.bgColor `shouldBe` Just gray
+    activeStyle wenvBasic nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    activeStyle wenvHover nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    activeStyle wenvFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    activeStyle wenvHoverFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
 
   where
     wenvBasic = mockWenv () & L.inputStatus . L.mousePos .~ Point 0 0
@@ -52,8 +52,8 @@ testActiveStyle = describe "activeStyle" $ do
     wenvHoverFocus = wenvHover
       & L.inputStatus . L.mousePos .~ Point 200 200
       & L.focusedPath .~ Seq.fromList [0]
-    instNormal = createNode True
-    instDisabled = createNode False
+    nodeNormal = createNode True
+    nodeDisabled = createNode False
 
 testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
