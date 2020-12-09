@@ -585,7 +585,6 @@ resizeWrapper container wenv viewport renderArea node = newNode where
     newChildNode = tempChildNode
       & L.info . L.viewport .~ (if keepSizes then icvp else vp)
       & L.info . L.renderArea .~ (if keepSizes then icra else ra)
-      & L.info . L.visible .~ isWidgetVisible tempChildNode viewport
   newChildren = resize <$> Seq.zip children assigned
   newNode
     | resizeRequired || vpChanged || raChanged = tempNode
@@ -618,7 +617,7 @@ renderContainer rHandler renderer wenv node =
     drawStyledAction renderer renderArea style $ \_ -> do
       rHandler renderer wenv node
 
-      forM_ children $ \child -> when (child ^. L.info . L.visible) $
+      forM_ children $ \child -> when (isWidgetVisible child viewport) $
         widgetRender (child ^. L.widget) renderer wenv child
   where
     style = activeStyle wenv node
