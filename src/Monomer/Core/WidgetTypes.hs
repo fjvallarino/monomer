@@ -115,6 +115,8 @@ data WidgetEnv s e = WidgetEnv {
   _weModel :: s,
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
+  _weOffset :: Point,
+  _weOffsetAccum :: Point,
   _weInTopLayer :: Point -> Bool
 }
 

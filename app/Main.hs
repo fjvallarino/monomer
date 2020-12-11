@@ -102,11 +102,27 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: App -> WidgetNode App AppEvent
-buildUI model = trace "Creating UI" widgetTree where
+buildUI model = trace "Creating UI" widgetLV where
+  widgetButton = button "Test" RunLongTask
+  widgetScroll = scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minHeight 1200])
+  iiiits = (\i -> "Label: " <> showt i) <$> [0..100::Int]
   widgetLV = vstack [
-      listView dropdown1 items label
+      scroll (vstack [
+        image_ "assets/images/pecans.jpg" [fitFill] `style` [minHeight 800],
+        button "Print!" (PrintMessage "Button in scroll!")
+--        ,
+--        hstack [
+--          listView dropdown1 items (\it -> label it `style` [border 1 red]) `style` [maxHeight 400, maxWidth 400],
+--          scroll (vstack $ (\i -> label ("Label: " <> showt i)) <$> [0..100::Int]) `style` [maxHeight 400]
+--        ]
+        --scroll (vstack $ (\i -> label ("Label: " <> showt i)) <$> [0..100::Int]) `style` [maxHeight 400]
+      ])
       ,
-      dropdown_ dropdown1 items label label [maxHeight 200]
+      listView dropdown1 items (\it -> label it `style` [border 1 red])
+
+--      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
+--      ,
+--      dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
       hstack [
@@ -249,9 +265,10 @@ buildUI model = trace "Creating UI" widgetTree where
         label "Jj label"
       ] `hover` [bgColor red],
       hstack [
-        scroll_ (
-          scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])
-        ) []
+        scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])
+--        scroll_ (
+--          scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])
+--        ) []
         ,
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
@@ -259,4 +276,4 @@ buildUI model = trace "Creating UI" widgetTree where
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap (\i -> "This is a long label: " <> showt i) [1..1000::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

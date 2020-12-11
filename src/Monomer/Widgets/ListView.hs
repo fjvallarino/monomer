@@ -385,21 +385,29 @@ makeListView widgetData items makeRow config state = widget where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (node, assignedArea)
 
-  render renderer wenv node =
-    renderContainer defaultRender renderer wenv (buildRenderNode wenv node)
+  render renderer wenv node = action where
+    drawBefore = defaultRender
+    drawAfter = defaultRender
+    newNode = buildRenderNode wenv node
+    action = renderContainer renderer wenv newNode Nothing drawBefore drawAfter
 
   buildRenderNode wenv node = newNode where
-    viewport = node ^. L.info . L.viewport
+    info = node ^. L.info
+    viewport = info ^. L.viewport -- node ^. L.info . L.viewport
     hlIdx = _highlighted state
     foldItem items idx item
-      | isWidgetVisible item viewport = items |> updateStyle idx item
+      | isWidgetVisible wenv item viewport = items |> updateStyle idx item
+--      | True = items |> updateStyle idx item
       | otherwise = items
     updateStyle idx item
       | idx == hlIdx = setFocusedItemStyle wenv item
       | otherwise = item
-    children = node ^. L.children . ix 0 . L.children
+    stackNode = Seq.index (node ^. L.children) 0
+    children = stackNode ^. L.children
     newChildren = Seq.foldlWithIndex foldItem Empty children
-    newNode = node & L.children . ix 0 . L.children .~ newChildren
+    newNode = stackNode
+      & L.info .~ _wnInfo node -- info
+      & L.children .~ newChildren
 
 setChildStyle
   :: Seq a
@@ -496,5 +504,6 @@ makeItemsList wenv items makeRow config path selected = itemsList where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ (content & L.info . L.style .~ normalStyle) itemCfg
+    mergedStyle = normalStyle <> content ^. L.info . L.style
+    newItem = box_ (content & L.info . L.style .~ mergedStyle) itemCfg
   itemsList = vstack $ Seq.mapWithIndex makeItem items

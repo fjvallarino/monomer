@@ -13,6 +13,8 @@ module Monomer.Widgets.Util.Style (
   handleStyleChange_
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (<>~))
 import Data.Bits (xor)
@@ -52,7 +54,6 @@ activeStyle wenv node = activeStyle_ isHovered wenv node
 activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
-  mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isFocused wenv node
@@ -145,7 +146,7 @@ handleSizeChange wenv target evt cfg node = reqs where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
   vp = info ^. L.viewport
-  vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
+  vpChanged = traceShow (vp, mousePos, mousePosPrev) $ pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
   hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt

@@ -2,6 +2,7 @@
 
 module Monomer.Graphics.Drawing (
   computeTextRect,
+  drawInOffset,
   drawInScissor,
   drawRect,
   drawRectBorder,
@@ -48,8 +49,15 @@ computeTextRect renderer containerRect font fontSize align text = textRect where
     _rH = th
   }
 
+drawInOffset :: Renderer -> Maybe Point -> IO () -> IO ()
+drawInOffset renderer Nothing action = action
+drawInOffset renderer (Just point) action = do
+  pushTranslation renderer point
+  action
+  popTranslation renderer
+
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
-drawInScissor renderer False _ action = action
+drawInScissor renderer False rect action = action
 drawInScissor renderer True rect action = do
   setScissor renderer rect
   action

@@ -136,6 +136,10 @@ data Renderer = Renderer {
   -- Scissor operations
   setScissor :: Rect -> IO (),
   resetScissor :: IO (),
+  -- Transforms
+  pushTranslation :: Point -> IO (),
+  popTranslation :: IO (),
+  resetTranslation :: IO (),
   -- Strokes
   stroke :: IO (),
   setStrokeColor :: Color -> IO (),
