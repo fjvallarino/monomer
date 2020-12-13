@@ -414,7 +414,7 @@ setChildStyle items makeRow wenv parent idx style = newParent where
   newChild = fmap makeItem (Seq.lookup idx items)
   merge newItem oldItem = newWidget where
     res = widgetMerge (newItem ^. L.widget) wenv oldItem newItem
-    widget = res ^. L.widget
+    widget = res ^. L.node
     newWidget = widget
       & L.info . L.path .~ oldItem ^. L.info . L.path
       & L.info . L.viewport .~ oldItem ^. L.info . L.viewport

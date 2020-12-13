@@ -226,9 +226,9 @@ initWrapper container wenv node = result where
     newChild = cascadeCtx tempNode child idx
     newWidget = newChild ^. L.widget
   results = Seq.mapWithIndex initChild children
-  newReqs = fold $ fmap _wrRequests results
-  newEvents = fold $ fmap _wrEvents results
-  newChildren = fmap _wrWidget results
+  newReqs = foldMap _wrRequests results
+  newEvents = foldMap _wrEvents results
+  newChildren = fmap _wrNode results
   newNode = tempNode & L.children .~ newChildren
   result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
@@ -280,7 +280,7 @@ mergeChildren wenv oldNode result = newResult where
   localKeys = buildLocalMap oldChildren
   cResult = mergeChildrenSeq wenv localKeys oldChildren newChildren
   (mergedResults, removedResults) = cResult
-  mergedChildren = fmap _wrWidget mergedResults
+  mergedChildren = fmap _wrNode mergedResults
   concatSeq seqs = fold seqs
   mergedReqs = concatSeq $ fmap _wrRequests mergedResults
   mergedEvents = concatSeq $ fmap _wrEvents mergedResults
@@ -327,7 +327,7 @@ mergeChildrenCheckVisible
   -> WidgetResult s e
   -> WidgetResult s e
 mergeChildrenCheckVisible oldNode result = newResult where
-  newNode = result ^. L.widget
+  newNode = result ^. L.node
   newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
   oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
   resizeRequired = oldVisible /= newVisible
@@ -350,8 +350,8 @@ disposeWrapper container wenv node = result where
   children = tempNode ^. L.children
   dispose child = widgetDispose (child ^. L.widget) wenv child
   results = fmap dispose children
-  newReqs = fold $ fmap _wrRequests results
-  newEvents = fold $ fmap _wrEvents results
+  newReqs = foldMap _wrRequests results
+  newEvents = foldMap _wrEvents results
   result = WidgetResult node (reqs <> newReqs) (events <> newEvents)
 
 -- | State Handling helpers
@@ -483,20 +483,20 @@ mergeParentChildEvts
 mergeParentChildEvts _ Nothing Nothing _ = Nothing
 mergeParentChildEvts _ pResponse Nothing _ = pResponse
 mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
-    _wrWidget = replaceChild original (_wrWidget cResponse) idx
+    _wrNode = replaceChild original (_wrNode cResponse) idx
   }
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
   | otherwise = Just $ WidgetResult newWidget requests userEvents
   where
-    pWidget = _wrWidget pResponse
-    cWidget = _wrWidget cResponse
+    pWidget = _wrNode pResponse
+    cWidget = _wrNode cResponse
     requests = _wrRequests pResponse >< _wrRequests cResponse
     userEvents = _wrEvents pResponse >< _wrEvents cResponse
     newWidget = replaceChild pWidget cWidget idx
     newChildResponse = cResponse {
-      _wrWidget = replaceChild original (_wrWidget cResponse) idx
+      _wrNode = replaceChild original (_wrNode cResponse) idx
     }
 
 -- | Message Handling
@@ -525,7 +525,7 @@ handleMessageWrapper container wenv target arg node
     message = widgetHandleMessage (child ^. L.widget) wenv target arg child
     messageResult = updateChild <$> message
     updateChild cr = cr {
-      _wrWidget = replaceChild node (_wrWidget cr) childIdx
+      _wrNode = replaceChild node (_wrNode cr) childIdx
     }
 
 -- | Preferred size

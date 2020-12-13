@@ -277,7 +277,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
     | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
-  newRoot = _wrWidget tempResult
+  newRoot = _wrNode tempResult
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
@@ -544,8 +544,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
   mergedState = state {
     _cpsModel = Just newModel,
-    _cpsRoot = mergedResult ^. L.widget,
-    _cpsGlobalKeys = collectGlobalKeys M.empty (mergedResult ^. L.widget)
+    _cpsRoot = mergedResult ^. L.node,
+    _cpsGlobalKeys = collectGlobalKeys M.empty (mergedResult ^. L.node)
   }
   result = reduceResult comp mergedState wenv widgetComp mergedResult
   newEvents = fmap ($ newModel) (_cmpOnChange comp)
