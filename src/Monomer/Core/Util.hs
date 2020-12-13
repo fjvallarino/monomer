@@ -1,6 +1,7 @@
 module Monomer.Core.Util where
 
 import Control.Lens ((&), (^.), (.~), (?~))
+import Data.Sequence (Seq(..))
 import Data.Text (Text)
 
 import Monomer.Core.BasicTypes

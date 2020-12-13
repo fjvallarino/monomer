@@ -8,8 +8,6 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Debug.Trace
-
 import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Control.Monad (foldM, forM_, unless, when)
@@ -40,8 +38,6 @@ import Monomer.Core.BasicTypes
 import Monomer.Graphics.Types
 
 import qualified Monomer.Graphics.RobotoRegular as RBTReg
-
-import qualified Monomer.Lens as L
 
 type ImagesMap = M.Map String Image
 
@@ -203,8 +199,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
           it1 :<| it2 :<| its -> (it1, it2)
           it1 :<| its -> (it1, def)
           _ -> (def, def)
-        --newRect = rectToCRect (fst $ headOrVal def (env ^. scissors)) dpr
-        o3 = negPoint (o1 ^. accum) -- addPoint o2 (negPoint o1)
+        o3 = negPoint (o1 ^. accum)
         newRect = rectToCRect (moveRect o3 r2) dpr
 
   -- Transforms
@@ -219,7 +214,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
           _offAccum = addPoint (prevOffset ^. accum) p,
           _offCurrent = p
         }
-      newOffsetC env = pointToCPoint (newOffset env ^. current) dpr where
+      newOffsetC env = pointToCPoint (newOffset env ^. current) dpr
 
   popTranslation = do
     prevEnv <- readIORef envRef
@@ -230,7 +225,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       else setTranslationVG c (reverseOffset prevEnv)
     where
       reverseOffset env = pointToCPoint (negPoint curr) dpr where
-        Offset accum curr = (headOrVal def (env ^. offsets))
+        Offset accum curr = headOrVal def (env ^. offsets)
 
   resetTranslation = do
     modifyIORef envRef $ \env -> env & offsets .~ Seq.empty

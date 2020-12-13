@@ -42,7 +42,10 @@ data WindowRequest
 
 newtype WidgetType
   = WidgetType { unWidgetType :: String }
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show WidgetType where
+  show (WidgetType t) = t
 
 instance IsString WidgetType where
   fromString = WidgetType
@@ -116,7 +119,7 @@ data WidgetEnv s e = WidgetEnv {
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
   _weOffset :: Point,
-  _weOffsetAccum :: Point,
+  _weOffsetAccum :: Seq Point,
   _weInTopLayer :: Point -> Bool
 }
 

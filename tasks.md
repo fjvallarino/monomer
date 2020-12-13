@@ -349,6 +349,7 @@ Maybe postponed after release?
     - We need to set transform on render (and clear it)
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
+  - Rename WidgetResult's widget to node
   - Remove createThemed and move Alert/Dialog to use composite
   - Draw close button on Dialog
   - Check scroll in scroll (one with max height)

@@ -1,5 +1,6 @@
 module Monomer.Widgets.Util.Focus (
   parentPath,
+  lastStep,
   nextTargetStep,
   isFocusCandidate,
   isTargetReached,
@@ -21,6 +22,11 @@ import qualified Monomer.Lens as L
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where
   path = node ^. L.info . L.path
+
+lastStep :: WidgetNode s e -> Maybe PathStep
+lastStep node = nextStep where
+  path = node ^. L.info . L.path
+  nextStep = Seq.lookup (Seq.length path - 1) path
 
 nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
 nextTargetStep target node = nextStep where

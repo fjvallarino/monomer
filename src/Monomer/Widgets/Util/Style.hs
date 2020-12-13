@@ -146,7 +146,8 @@ handleSizeChange wenv target evt cfg node = reqs where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
   vp = info ^. L.viewport
-  vpChanged = traceShow (vp, mousePos, mousePosPrev) $ pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
+  --vpChanged = traceShow (vp, mousePos, mousePosPrev) $ pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
+  vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
   hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
