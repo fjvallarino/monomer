@@ -57,7 +57,7 @@ handleAppEvent model evt = case evt of
   IncButton -> [Model (model & clickCount %~ (+1))]
 --  PrintMessage txt -> Model (model & showAlert .~ True)
   PrintMessage txt -> [Task $ do
-    putStrLn $ T.unpack txt
+    print txt
     return Nothing]
   CheckboxSt st -> [Task $ do
     putStrLn $ "Checkbox is: " ++ show st
@@ -109,16 +109,14 @@ buildUI model = trace "Creating UI" widgetLV where
   widgetLV = vstack [
       scroll (vstack [
         image_ "assets/images/pecans.jpg" [fitFill] `style` [minHeight 800],
-        button "Print!" (PrintMessage "Button in scroll!\n\n\n\n\n\n\n\n\n")
-        ,
+        button "Print!" (PrintMessage "Button in scroll!")
+--        ,
 --        hstack [
 --          listView dropdown1 items (\it -> label it `style` [border 1 red]) `style` [maxHeight 400, maxWidth 400],
 --          scroll (vstack $ (\i -> label ("Label: " <> showt i)) <$> [0..100::Int]) `style` [maxHeight 400]
 --        ]
-        scroll (vstack $ (\i -> label ("Label: " <> showt i)) <$> [0..100::Int]) `style` [maxHeight 400]
+        --scroll (vstack $ (\i -> label ("Label: " <> showt i)) <$> [0..100::Int]) `style` [maxHeight 400]
       ])
-      ,
-      button "Print out!" (PrintMessage "\n\n\n\n\nButton out of scroll!\n\n\n\n")
       ,
       listView dropdown1 items (\it -> label it `style` [border 1 red])
 

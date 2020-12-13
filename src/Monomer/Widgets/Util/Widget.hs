@@ -24,8 +24,6 @@ module Monomer.Widgets.Util.Widget (
   getInstanceTree
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.Default
@@ -44,15 +42,15 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
 
+pointInViewport :: Point -> WidgetNode s e -> Bool
+pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
+
 defaultWidgetNode :: WidgetType -> Widget s e -> WidgetNode s e
 defaultWidgetNode widgetType widget = WidgetNode {
   _wnWidget = widget,
   _wnInfo = def & L.widgetType .~ widgetType,
   _wnChildren = Seq.empty
 }
-
-pointInViewport :: Point -> WidgetNode s e -> Bool
-pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
 
 isWidgetVisible :: WidgetEnv s e -> WidgetNode s e -> Rect -> Bool
 isWidgetVisible wenv node vp = isVisible && isOverlapped where

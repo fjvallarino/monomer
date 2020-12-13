@@ -5,8 +5,9 @@ module Monomer.Event.Core (
 ) where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 
+import qualified Data.Map.Strict as M
 import qualified SDL
 
 import Monomer.Core.BasicTypes

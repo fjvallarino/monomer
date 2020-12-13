@@ -13,8 +13,6 @@ module Monomer.Widgets.ListView (
   listViewD_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), ix, non)
 import Control.Monad (when)
@@ -36,7 +34,7 @@ import Monomer.Widgets.Scroll
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 type ListItem a = (Eq a, Show a, Typeable a)
 type MakeRow s e a = a -> WidgetNode s e
@@ -232,13 +230,7 @@ makeListView
 makeListView widgetData items makeRow config state = widget where
   baseWidget = createContainer def {
     containerResizeRequired = _resizeReq state,
-    containerChildrenOffsetFwd = True,
---    containerUpdateCWenv = updateCWenv,
     containerInit = init,
-    containerMerge = merge,
-    containerMergeChildrenRequired = mergeChildrenRequired,
-    containerMergePost = mergePost,
---    containerFindByPoint = lvFindByPoint2,
     containerGetState = makeState state,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -246,6 +238,7 @@ makeListView widgetData items makeRow config state = widget where
     containerResize = resize
   }
   widget = baseWidget {
+    widgetMerge = mergeWrapper,
     widgetRender = render
   }
 
@@ -256,27 +249,6 @@ makeListView widgetData items makeRow config state = widget where
     selected = currentValue wenv
     itemsList = makeItemsList wenv items makeRow config path selected
     children = Seq.singleton itemsList
-
-  -- | Find instance matching point
-  lvFindByPoint2 wenv startPath point node = Just 0
-
-  lvFindByPoint wenv startPath point node = traceShow ("GAAAA", result) result where
-    accum = wenv ^. L.offsetAccum
-    prevOffset = traceShowId $ Seq.index accum (length accum - 1)
-    children = node ^. L.children
-    newPoint = addPoint (negPoint prevOffset) point
-    pointInWidget wi = wi ^. L.visible && pointInRect newPoint (wi ^. L.viewport)
-    result = Seq.findIndexL (pointInWidget . _wnInfo) children
-
-  updateCWenv :: ContainerUpdateCWenvHandler s e
-  updateCWenv wenv idx child node = cWenv where
-    accum = wenv ^. L.offsetAccum
-    prevOffset = traceShowId $ Seq.index accum (length accum - 2)
-    cWenv = wenv
-      & L.inputStatus . L.mousePos %~ addPoint (negPoint prevOffset)
-      & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint prevOffset)
-      & L.offset .~ negPoint prevOffset
-      & L.offsetAccum %~ (|> negPoint prevOffset)
 
   init wenv node = resultWidget newNode where
     children = createListViewChildren wenv node
@@ -290,34 +262,6 @@ makeListView widgetData items makeRow config state = widget where
       & L.children .~ children
     newNode = updateSelStyle makeRow config Empty items Nothing sel wenv tmpNode
 
-  mergeChildrenRequired wenv oldState oldNode node = result where
-    prevState = fromMaybe state (useState oldState)
-    oldItems = _prevItems prevState
-    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
-    result = mergeRequiredFn oldItems items
-
-  merge wenv oldState oldNode node = resultWidget newNode where
-    prevState = fromMaybe state (useState oldState)
-    sel = Just $ currentValue wenv
-    oldItems = _prevItems prevState
-    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
-    newState = prevState {
-      _prevSel = sel,
-      _resizeReq = mergeRequiredFn oldItems items
-    }
-    newNode = node
-      & L.widget .~ makeListView widgetData items makeRow config newState
-
-  mergePost wenv result oldState oldNode node = newResult where
-    prevState = fromMaybe state (useState oldState)
-    sel = Just $ currentValue wenv
-    oldSel = _prevSel prevState
-    oldItems = _prevItems prevState
-    newNode = updateSelStyle makeRow config oldItems items oldSel sel wenv node
-    newResult = result
-      & L.widget .~ newNode
-
-{--
   mergeWrapper wenv oldNode newNode = newResult where
     sel = Just $ currentValue wenv
     oldNodeState = widgetGetState (oldNode ^. L.widget) wenv
@@ -347,7 +291,7 @@ makeListView widgetData items makeRow config state = widget where
     newResult
       | mergeRequired = mergeChildren wenv oldNode pResult
       | otherwise = pResult
---}
+
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
     Blur -> result where
@@ -445,17 +389,15 @@ makeListView widgetData items makeRow config state = widget where
     drawBefore = defaultRender
     drawAfter = defaultRender
     newNode = buildRenderNode wenv node
-    vp = node ^. L.info . L.viewport
-    newVp = moveRect (negPoint (wenv ^. L.offset)) vp
-    action = do
-      renderContainer renderer wenv newNode Nothing True drawBefore drawAfter
-      drawRect renderer newVp (Just (Color 0 0 255 0.5)) Nothing
+    action = renderContainer renderer wenv newNode Nothing drawBefore drawAfter
 
   buildRenderNode wenv node = newNode where
-    viewport = node ^. L.info . L.viewport
+    info = node ^. L.info
+    viewport = info ^. L.viewport -- node ^. L.info . L.viewport
     hlIdx = _highlighted state
     foldItem items idx item
       | isWidgetVisible wenv item viewport = items |> updateStyle idx item
+--      | True = items |> updateStyle idx item
       | otherwise = items
     updateStyle idx item
       | idx == hlIdx = setFocusedItemStyle wenv item
@@ -464,9 +406,7 @@ makeListView widgetData items makeRow config state = widget where
     children = stackNode ^. L.children
     newChildren = Seq.foldlWithIndex foldItem Empty children
     newNode = stackNode
-      & L.info .~ _wnInfo node
-      & L.info . L.style . L.basic . non def . L.bgColor ?~ orange
-      & L.info . L.style . L.hover . non def . L.bgColor ?~ green
+      & L.info .~ _wnInfo node -- info
       & L.children .~ newChildren
 
 setChildStyle
