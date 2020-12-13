@@ -126,8 +126,6 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
     _weModel = model,
     _weInputStatus = def,
     _weTimestamp = startTs,
-    _weOffset = def,
-    _weOffsetAccum = def,
     _weInTopLayer = const True
   }
   let pathReadyRoot = widgetRoot & L.info . L.path .~ Seq.singleton 0
@@ -202,13 +200,11 @@ mainLoop window renderer loopArgs = do
     _weModel = currentModel,
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks,
-    _weOffset = def,
-    _weOffsetAccum = def,
     _weInTopLayer = const True
   }
 
---  when newSecond $
---    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
+  when newSecond $
+    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
 
   sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
 

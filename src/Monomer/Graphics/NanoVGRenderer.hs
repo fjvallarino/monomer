@@ -1,19 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
-import Debug.Trace
-
-import Control.Lens ((&), (^.), (.~), (%~))
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Control.Monad (foldM, forM_, unless, when)
-import Data.Default
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
@@ -41,8 +32,6 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Graphics.RobotoRegular as RBTReg
 
-import qualified Monomer.Lens as L
-
 type ImagesMap = M.Map String Image
 
 data Action
@@ -65,40 +54,13 @@ data ImageReq = ImageReq {
   _irAction :: Action
 }
 
-data Offset = Offset {
-  _offAccum :: Point,
-  _offCurrent :: Point
-} deriving (Eq, Show)
-
-instance Default Offset where
-  def = Offset def def
-
-data Scissor = Scissor {
-  _scsArea :: Rect,
-  _scsOffset :: Offset
-} deriving (Eq, Show)
-
-instance Default Scissor where
-  def = Scissor def def
-
 data Env = Env {
-  _envScissors :: Seq Scissor,
-  _envOffsets :: Seq Offset,
-  _envOverlays :: Seq (IO ()),
-  _envValidFonts :: Set Text,
-  _envImagesMap :: ImagesMap,
-  _envAddedImages :: Seq ImageReq
+  scissors :: Seq CRect,
+  overlays :: Seq (IO ()),
+  validFonts :: Set Text,
+  imagesMap :: ImagesMap,
+  addedImages :: Seq ImageReq
 }
-
-instance Default Env where
-  def = Env {
-    _envScissors = Seq.empty,
-    _envOffsets = Seq.empty,
-    _envOverlays = Seq.empty,
-    _envValidFonts = Set.empty,
-    _envImagesMap = M.empty,
-    _envAddedImages = Seq.empty
-  }
 
 data CPoint
   = CPoint CFloat CFloat
@@ -108,20 +70,22 @@ data CRect
   = CRect CFloat CFloat CFloat CFloat
   deriving (Eq, Show)
 
-makeLensesWith abbreviatedFields ''Scissor
-makeLensesWith abbreviatedFields ''Offset
-makeLensesWith abbreviatedFields ''Env
-
 makeRenderer :: [FontDef] -> Double -> IO Renderer
 makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
 
   lock <- L.new
-  loadedFonts <- if null fonts
+  validFonts <- if null fonts
     then useDefaultFont c
     else foldM (loadFont c) Set.empty fonts
 
-  envRef <- newIORef $ def & validFonts .~ loadedFonts
+  envRef <- newIORef $ Env {
+    scissors = Seq.empty,
+    overlays = Seq.empty,
+    validFonts = validFonts,
+    imagesMap = M.empty,
+    addedImages = Seq.empty
+  }
 
   return $ newRenderer c dpr lock envRef
 
@@ -129,18 +93,12 @@ newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
   beginFrame w h = L.with lock $ do
     env <- readIORef envRef
-    newMap <- handlePendingImages c (env ^. imagesMap) (env ^. addedImages)
-    writeIORef envRef $ env
-      & scissors .~ Seq.empty
-      & offsets .~ Seq.empty
-      & overlays .~ Seq.empty
-      & imagesMap .~ newMap
-      & addedImages .~ Seq.empty
+    newMap <- handlePendingImages c (imagesMap env) (addedImages env)
+    writeIORef envRef env {
+      imagesMap = newMap,
+      addedImages = Seq.empty
+    }
 
-    putStrLn "Frame started"
-
-    VG.resetTransform c
-    VG.resetScissor c
     VG.beginFrame c cw ch cdpr
     where
       cw = fromIntegral w
@@ -165,76 +123,40 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   -- Overlays
   createOverlay overlay = L.with lock $
-    modifyIORef' envRef $ \env -> env & overlays %~ (|> overlay)
+    modifyIORef envRef $ \env -> env {
+      overlays = overlays env |> overlay
+    }
 
   renderOverlays = L.with lock $ do
     env <- readIORef envRef
-    sequence_ $ env ^. overlays
-    writeIORef envRef $ env & overlays .~ Seq.empty
+    sequence_ $ overlays env
+    writeIORef envRef env {
+      overlays = Seq.empty
+    }
 
   -- Scissor operations
-  setScissor rect = do
+  setScissor !rect = do
     env <- readIORef envRef
-    let newScissor = scissorPair env
-    modifyIORef' envRef $ \env -> env & scissors %~ (newScissor <|)
-    setScissorVG c (newRectC newScissor)
+    modifyIORef envRef $ \env -> env {
+      scissors = crect <| scissors env
+    }
+    handleScissor $ scissors env
     where
-      scissorPair env = Scissor newRect latestOffset where
-        Scissor prevScissor prevOffset = headOrVal (Scissor rect def) (env ^. scissors)
-        latestOffset = headOrVal def (env ^. offsets)
-        newOffset
-          | latestOffset == prevOffset = def
-          | otherwise = latestOffset
-        oldRect = moveRect (negPoint (newOffset ^. current)) prevScissor
-        tempRect = moveRect (negPoint (newOffset ^. current)) rect
-        newRect = fromMaybe def (intersectRects oldRect tempRect)
-      newRectC sc = rectToCRect (sc ^. area) dpr
+      crect = rectToCRect rect dpr
+      handleScissor scissors
+        | Seq.null scissors = setScissorVG c crect
+        | otherwise = intersectScissorVG c crect
 
   resetScissor = do
-    prevEnv <- readIORef envRef
-    modifyIORef' envRef $ \env -> env & scissors %~ Seq.drop 1
+    modifyIORef envRef $ \env -> env {
+      scissors = Seq.drop 1 (scissors env)
+    }
     env <- readIORef envRef
-    if null (env ^. scissors)
-      then VG.resetScissor c
-      else setScissorVG c (currRect prevEnv)
+    handleScissor $ scissors env
     where
-      currRect env = newRect where
-        (Scissor r1 o1, Scissor r2 o2) = case env ^. scissors of
-          it1 :<| it2 :<| its -> (it1, it2)
-          it1 :<| its -> (it1, def)
-          _ -> (def, def)
-        --newRect = rectToCRect (fst $ headOrVal def (env ^. scissors)) dpr
-        o3 = negPoint (o1 ^. accum) -- addPoint o2 (negPoint o1)
-        newRect = rectToCRect (moveRect o3 r2) dpr
-
-  -- Transforms
-  pushTranslation p = do
-    env <- readIORef envRef
-    setTranslationVG c (newOffsetC env)
-    modifyIORef' envRef $ \env -> env & offsets %~ (newOffset env <|)
-    where
-      newOffset env = offset where
-        prevOffset = headOrVal def (env ^. offsets)
-        offset = Offset {
-          _offAccum = addPoint (prevOffset ^. accum) p,
-          _offCurrent = p
-        }
-      newOffsetC env = pointToCPoint (newOffset env ^. current) dpr where
-
-  popTranslation = do
-    prevEnv <- readIORef envRef
-    modifyIORef envRef $ \env -> env & offsets %~ Seq.drop 1
-    env <- readIORef envRef
-    if null (env ^. offsets)
-      then VG.resetTransform c
-      else setTranslationVG c (reverseOffset prevEnv)
-    where
-      reverseOffset env = pointToCPoint (negPoint curr) dpr where
-        Offset accum curr = (headOrVal def (env ^. offsets))
-
-  resetTranslation = do
-    modifyIORef envRef $ \env -> env & offsets .~ Seq.empty
-    VG.resetTransform c
+      handleScissor scissors
+        | Seq.null scissors = VG.resetScissor c
+        | otherwise = applyScissorsVG c scissors
 
   -- Strokes
   stroke =
@@ -369,11 +291,11 @@ newRenderer c dpr lock envRef = Renderer {..} where
 
   existsImage name = unsafePerformIO $ do
     env <- readIORef envRef
-    return $ M.member name (env ^. imagesMap)
+    return $ M.member name (imagesMap env)
 
   renderImage name rect alpha = do
     env <- readIORef envRef
-    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (env ^. imagesMap)
+    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
 
 useDefaultFont :: VG.Context -> IO (Set Text)
 useDefaultFont c = do
@@ -396,10 +318,10 @@ loadFont c fonts (FontDef name path) = do
 setFont :: VG.Context -> IORef Env -> Double -> Font -> FontSize -> IO ()
 setFont c envRef dpr (Font name) (FontSize size) = do
   env <- readIORef envRef
-  handleSetFont (env ^. validFonts)
+  handleSetFont (validFonts env)
   where
-    handleSetFont fonts
-      | Set.member name fonts = do
+    handleSetFont validFonts
+      | Set.member name validFonts = do
           VG.fontFace c name
           VG.fontSize c $ realToFrac $ size * dpr
       | otherwise = return ()
@@ -430,7 +352,9 @@ addPending :: L.Lock -> IORef Env -> ImageReq -> IO ()
 addPending lock envRef imageReq = L.with lock $ do
   env <- readIORef envRef
 
-  writeIORef envRef $ env & addedImages %~ (|> imageReq)
+  writeIORef envRef env {
+    addedImages = addedImages env |> imageReq
+  }
 
 handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
 handleImageRender c dpr rect alpha image = do
@@ -531,7 +455,6 @@ setScissorVG :: VG.Context -> CRect -> IO ()
 setScissorVG c crect = VG.scissor c x y w h where
   CRect x y w h = crect
 
-{--
 intersectScissorVG :: VG.Context -> CRect -> IO ()
 intersectScissorVG c crect = VG.intersectScissor c x y w h where
   CRect x y w h = crect
@@ -541,14 +464,3 @@ applyScissorsVG c Empty = return ()
 applyScissorsVG c (x :<| xs) = do
   setScissorVG c x
   mapM_ (intersectScissorVG c) xs
---}
-
-setTranslationVG :: VG.Context -> CPoint -> IO ()
---setTranslationVG c (CPoint x y) = VG.translate c x y
-setTranslationVG c (CPoint x y) = do
---  VG.resetTransform c
-  VG.translate c x y
-
-headOrVal :: a -> Seq a -> a
-headOrVal val items = offset where
-  offset = fromMaybe val (Seq.lookup 0 items)

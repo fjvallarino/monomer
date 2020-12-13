@@ -661,8 +661,6 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
   _weTimestamp = _weTimestamp wenv,
-  _weOffset = _weOffset wenv,
-  _weOffsetAccum = _weOffsetAccum wenv,
   _weInTopLayer = _weInTopLayer wenv
 }
 

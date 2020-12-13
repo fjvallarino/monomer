@@ -52,12 +52,11 @@ defaultWidgetNode widgetType widget = WidgetNode {
   _wnChildren = Seq.empty
 }
 
-isWidgetVisible :: WidgetEnv s e -> WidgetNode s e -> Rect -> Bool
-isWidgetVisible wenv node vp = isVisible && isOverlapped where
+isWidgetVisible :: WidgetNode s e -> Rect -> Bool
+isWidgetVisible node vp = isVisible && isOverlapped where
   info = node ^. L.info
   isVisible = info ^. L.visible
-  nodeVp = moveRect (wenv ^. L.offset) (info ^. L.viewport)
-  isOverlapped = rectsOverlap vp nodeVp
+  isOverlapped = rectsOverlap vp (info ^. L.viewport)
 
 isPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
 isPressed wenv node = validPress where
