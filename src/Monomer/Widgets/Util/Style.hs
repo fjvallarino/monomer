@@ -151,11 +151,11 @@ handleSizeChange wenv target evt cfg node = reqs where
   focusChanged = isOnFocus evt || isOnBlur evt
   -- Size
   checkSize = hoverChanged || focusChanged
-  nodeReqs = widgetGetSizeReq widget wenv node
+  newReqs = widgetUpdateSizeReq widget wenv node
   oldSizeReqW = info ^. L.sizeReqW
   oldSizeReqH = info ^. L.sizeReqH
-  newSizeReqW = nodeReqs ^. L.sizeReqW
-  newSizeReqH = nodeReqs ^. L.sizeReqH
+  newSizeReqW = newReqs ^. L.info . L.sizeReqW
+  newSizeReqH = newReqs ^. L.info . L.sizeReqH
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Result
   resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]

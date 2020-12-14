@@ -139,13 +139,8 @@ resizeWidget
   -> WidgetNode s e
   -> WidgetNode s e
 resizeWidget wenv viewport renderArea widgetRoot = newRoot where
-  sizeReq = widgetGetSizeReq (_wnWidget widgetRoot) wenv widgetRoot
-  reqRoot = sizeReq ^. L.widget
-    & L.info . L.sizeReqW .~ sizeReq ^. L.sizeReqW
-    & L.info . L.sizeReqH .~ sizeReq ^. L.sizeReqH
-  reqRootWidget = sizeReq ^. L.widget . L.widget
-
-  newRoot = widgetResize reqRootWidget wenv viewport renderArea reqRoot
+  reqNode = widgetUpdateSizeReq (_wnWidget widgetRoot) wenv widgetRoot
+  newRoot = widgetResize (reqNode ^. L.widget) wenv viewport renderArea reqNode
 
 findWidgetByKey
   :: WidgetKey

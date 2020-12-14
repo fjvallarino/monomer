@@ -217,7 +217,7 @@ createComposite comp state = widget where
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
-    widgetGetSizeReq = compositeGetSizeReq comp state,
+    widgetUpdateSizeReq = compositeUpdateSizeReq comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -395,33 +395,30 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
       result = widgetHandleMessage cmpWidget cwenv target arg _cpsRoot
 
 -- Preferred size
-compositeGetSizeReq
+compositeUpdateSizeReq
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
-  -> WidgetSizeReq sp ep
-compositeGetSizeReq comp state wenv widgetComp = newSizeReq where
+  -> WidgetNode sp ep
+compositeUpdateSizeReq comp state wenv widgetComp = newComp where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  tempChildReq = widgetGetSizeReq widget cwenv _cpsRoot
-  newChildReq = sizeReqAddStyle style tempChildReq
-  childRoot = newChildReq ^. L.widget
-  childReqW = newChildReq ^. L.sizeReqW
-  childReqH = newChildReq ^. L.sizeReqH
-  newRoot = childRoot
-    & L.info . L.sizeReqW .~ childReqW
-    & L.info . L.sizeReqH .~ childReqH
+  newRoot = widgetUpdateSizeReq widget cwenv _cpsRoot
+  currReqW = newRoot ^. L.info . L.sizeReqW
+  currReqH = newRoot ^. L.info . L.sizeReqH
+  (newReqW, newReqH) = sizeReqAddStyle style (currReqW, currReqH)
   newState = state {
     _cpsRoot = newRoot
   }
   newComp = widgetComp
     & L.widget .~ createComposite comp newState
-  newSizeReq = WidgetSizeReq newComp childReqW childReqH
+    & L.info . L.sizeReqW .~ newReqW
+    & L.info . L.sizeReqH .~ newReqH
 
 -- Resize
 compositeResize

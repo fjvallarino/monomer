@@ -299,9 +299,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0
-    childReq = widgetGetSizeReq (child ^. L.widget) wenv child
-    newReqW = childReq ^. L.sizeReqW
-    newReqH = childReq ^. L.sizeReqH
+    childReq = widgetUpdateSizeReq (child ^. L.widget) wenv child
+    newReqW = childReq ^. L.info . L.sizeReqW
+    newReqH = childReq ^. L.info . L.sizeReqH
 
   resize wenv viewport renderArea children node = resized where
     Size winW winH = _weWindowSize wenv

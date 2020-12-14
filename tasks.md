@@ -320,6 +320,8 @@
   - Do not hover if mouse drag on different widget
   - Fix selectOnBlur for dropdown
   - Rename WidgetInstance to WidgetNodeStatus (or similar)
+  - Check dropdown's list not being properly located after resize/scroll (not clear)
+  - Rename WidgetResult's widget to node
 
 - Pending
   - Add testing
@@ -337,24 +339,21 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Remove createThemed and move Alert/Dialog to use composite
+  - Draw close button on Dialog
+  - Check why putting box reduces label's space
+    - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
+  - Set focus on ButtonDown, not Click
+    - Can it be handled in Single/Container?
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - ZStack should set _weIsTopLayer based on used space
-  - Avoid resizing non visible elements (stack/grid)
-  - Avoid findNextFocus on unfocusable children (listView items)
-    - Does this make sense? Check with a composite listView item
-    - Focus event may need to be handled to update highlighted item
-  - Check dropdown's list not being properly located after resize/scroll (not clear)
-  - Draw close button on Dialog
-  - Remove createThemed and move Alert/Dialog to use composite
-  - Set focus on ButtonDown, not Click
-    - Can it be handled in Single/Container?
   - Image
     - Can performance be improved? Use sbt functions?
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
     - Remove delay logic when adding an image
     - When adding image, on failure remove an the least used image and retry
-  - Make sure WidgetTask/Node association is preserved if node location changes
+  - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection
@@ -362,6 +361,18 @@ Maybe postponed after release?
   - Scroll wheel rate should be configurable, or even depend on content size
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
+  - Does it make sense to handle offset
+    - It would avoid resizing on scroll
+    - We need transform stack on Renderer (also rotate?)
+    - We need to transform events
+      - This way we avoid having to translate widgets
+    - We need current transform in WidgetEnv
+      - Only used for rendering
+      - hovered would also use it
+    - We need to set transform on render (and clear it)
+    - Check scroll in scroll (one with max height)
+  - Remove getSizeReq from Widget interface. Keep it in Single/Container
+    - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme

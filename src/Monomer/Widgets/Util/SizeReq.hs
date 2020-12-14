@@ -29,15 +29,13 @@ isSizeReqFlex :: SizeReq -> Bool
 isSizeReqFlex FlexSize{} = True
 isSizeReqFlex _ = False
 
-sizeReqAddStyle :: StyleState -> WidgetSizeReq s e -> WidgetSizeReq s e
-sizeReqAddStyle style sizeReq = newSizeReq where
-  WidgetSizeReq widget reqW reqH = sizeReq
+sizeReqAddStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
+sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
   Size w h = fromMaybe def (addOuterSize style def)
   realReqW = fromMaybe reqW (_sstSizeReqW style)
   realReqH = fromMaybe reqH (_sstSizeReqH style)
   newReqW = modifySizeReq realReqW (+w)
   newReqH = modifySizeReq realReqH (+h)
-  newSizeReq = WidgetSizeReq widget newReqW newReqH
 
 sizeReqMin :: SizeReq -> Double
 sizeReqMin (FixedSize c) = c

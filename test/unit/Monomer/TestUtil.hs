@@ -137,7 +137,7 @@ nodeInit wenv node = newNode where
 nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
-  reqNode = widgetGetSizeReq (node2 ^. L.widget) wenv node2
+  reqNode = widgetUpdateSizeReq (node2 ^. L.widget) wenv node2
   sizeReqW = reqNode ^. L.sizeReqW
   sizeReqH = reqNode ^. L.sizeReqH
 

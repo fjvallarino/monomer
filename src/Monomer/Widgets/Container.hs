@@ -176,7 +176,7 @@ createContainer container = Widget {
   widgetFindByPoint = findByPointWrapper container,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
-  widgetGetSizeReq = getSizeReqWrapper container,
+  widgetUpdateSizeReq = getSizeReqWrapper container,
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
@@ -536,23 +536,21 @@ getSizeReqWrapper
   :: Container s e
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetSizeReq s e
-getSizeReqWrapper container wenv node = newSizeReq & L.widget .~ newNode where
+  -> WidgetNode s e
+getSizeReqWrapper container wenv node = newNode where
   resizeRequired = containerResizeRequired container
   psHandler = containerGetSizeReq container
   style = activeStyle wenv node
   children = node ^. L.children
-  updateChild child = newChild where
-    childReq = widgetGetSizeReq (child ^. L.widget) wenv child
-    WidgetSizeReq cWidget cReqW cReqH = childReq
-    newChild = cWidget
-      & L.info . L.sizeReqW .~ cReqW
-      & L.info . L.sizeReqH .~ cReqH
+  updateChild child = widgetUpdateSizeReq (child ^. L.widget) wenv child
   newChildren = fmap updateChild children
-  (sizeReqW, sizeReqH) = psHandler wenv node newChildren
-  newSizeReq = sizeReqAddStyle style (WidgetSizeReq node sizeReqW sizeReqH)
+  reqs = psHandler wenv node newChildren
+  (newReqW, newReqH) = sizeReqAddStyle style reqs
   newNode
-    | resizeRequired = node & L.children .~ newChildren
+    | resizeRequired = node
+      & L.children .~ newChildren
+      & L.info . L.sizeReqW .~ newReqW
+      & L.info . L.sizeReqH .~ newReqH
     | otherwise = node
 
 -- | Resize

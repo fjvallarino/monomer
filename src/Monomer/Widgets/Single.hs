@@ -137,7 +137,7 @@ createSingle single = Widget {
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = singleHandleMessage single,
-  widgetGetSizeReq = getSizeReqWrapper single,
+  widgetUpdateSizeReq = getSizeReqWrapper single,
   widgetResize = resizeHandlerWrapper single,
   widgetRender = renderWrapper single
 }
@@ -230,12 +230,15 @@ getSizeReqWrapper
   :: Single s e
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetSizeReq s e
-getSizeReqWrapper single wenv node = newSizeReq where
+  -> WidgetNode s e
+getSizeReqWrapper single wenv node = newNode where
   handler = singleGetSizeReq single
   style = activeStyle wenv node
-  (sizeReqW, sizeReqH) = handler wenv node
-  newSizeReq = sizeReqAddStyle style (WidgetSizeReq node sizeReqW sizeReqH)
+  reqs = handler wenv node
+  (newReqW, newReqH) = sizeReqAddStyle style reqs
+  newNode = node
+    & L.info . L.sizeReqW .~ newReqW
+    & L.info . L.sizeReqH .~ newReqH
 
 defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport renderArea node = node
