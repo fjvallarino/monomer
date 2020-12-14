@@ -2,7 +2,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Composite (
@@ -17,7 +16,9 @@ module Monomer.Widgets.Composite (
   composite,
   composite_,
   compositeV,
-  compositeV_
+  compositeV_,
+  compositeExt,
+  compositeExt_
 ) where
 
 import Control.Applicative ((<|>))
@@ -46,7 +47,7 @@ type CompositeModel s = (Eq s, Typeable s)
 type CompositeEvent e = Typeable e
 
 type EventHandler s e ep = s -> e -> [EventResponse s e ep]
-type UIBuilder s e = s -> WidgetNode s e
+type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 type MergeRequired s = s -> s -> Bool
 type TaskHandler e = IO (Maybe e)
 type ProducerHandler e = (e -> IO ()) -> IO ()
@@ -129,24 +130,24 @@ composite
   => WidgetType
   -> ALens' sp s
   -> Maybe e
-  -> EventHandler s e ep
   -> UIBuilder s e
+  -> EventHandler s e ep
   -> WidgetNode sp ep
-composite widgetType field initEvt evtHandler uiBuilder = newNode where
-  newNode = composite_ widgetType field initEvt evtHandler uiBuilder def
+composite widgetType field initEvt uiBuilder evtHandler = newNode where
+  newNode = composite_ widgetType field initEvt uiBuilder evtHandler def
 
 composite_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> ALens' sp s
   -> Maybe e
-  -> EventHandler s e ep
   -> UIBuilder s e
+  -> EventHandler s e ep
   -> [CompositeCfg s ep sp]
   -> WidgetNode sp ep
-composite_ widgetType field initEvt evtHandler uiBuilder cfgs = newNode where
+composite_ widgetType field initEvt uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetLens field
-  newNode = compositeD_ widgetType widgetData initEvt evtHandler uiBuilder cfgs
+  newNode = compositeD_ widgetType widgetData initEvt uiBuilder evtHandler cfgs
 
 compositeV
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -154,11 +155,11 @@ compositeV
   -> s
   -> (s -> ep)
   -> Maybe e
-  -> EventHandler s e ep
   -> UIBuilder s e
+  -> EventHandler s e ep
   -> WidgetNode sp ep
-compositeV wType val handler initEvt evtHandler uiBuilder = newNode where
-  newNode = compositeV_ wType val handler initEvt evtHandler uiBuilder def
+compositeV wType val handler initEvt uiBuilder evtHandler = newNode where
+  newNode = compositeV_ wType val handler initEvt uiBuilder evtHandler def
 
 compositeV_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
@@ -166,25 +167,49 @@ compositeV_
   -> s
   -> (s -> ep)
   -> Maybe e
-  -> EventHandler s e ep
   -> UIBuilder s e
+  -> EventHandler s e ep
   -> [CompositeCfg s ep sp]
   -> WidgetNode sp ep
-compositeV_ wType val handler initEvt evtHandler uiBuilder cfgs = newNode where
+compositeV_ wType val handler initEvt uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
   newCfgs = onChange handler : cfgs
-  newNode = compositeD_ wType widgetData initEvt evtHandler uiBuilder newCfgs
+  newNode = compositeD_ wType widgetData initEvt uiBuilder evtHandler newCfgs
+
+compositeExt
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  => WidgetType
+  -> s
+  -> Maybe e
+  -> UIBuilder s e
+  -> EventHandler s e ep
+  -> WidgetNode sp ep
+compositeExt wType val initEvt uiBuilder evtHandler = newNode where
+  newNode = compositeExt_ wType val initEvt uiBuilder evtHandler []
+
+compositeExt_
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  => WidgetType
+  -> s
+  -> Maybe e
+  -> UIBuilder s e
+  -> EventHandler s e ep
+  -> [CompositeCfg s ep sp]
+  -> WidgetNode sp ep
+compositeExt_ wType val initEvt uiBuilder evtHandler cfgs = newNode where
+  widgetData = WidgetValue val
+  newNode = compositeD_ wType widgetData initEvt uiBuilder evtHandler cfgs
 
 compositeD_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> WidgetData sp s
   -> Maybe e
-  -> EventHandler s e ep
   -> UIBuilder s e
+  -> EventHandler s e ep
   -> [CompositeCfg s ep sp]
   -> WidgetNode sp ep
-compositeD_ wType wData initEvt evtHandler uiBuilder configs = newNode where
+compositeD_ wType wData initEvt uiBuilder evtHandler configs = newNode where
   config = mconcat configs
   mergeReq = fromMaybe (/=) (_cmcMergeRequired config)
   widgetRoot = spacer
@@ -235,7 +260,7 @@ compositeInit comp state wenv widgetComp = newResult where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   -- Creates UI using provided function
-  builtRoot = _cmpUiBuilder comp model
+  builtRoot = _cmpUiBuilder comp cwenv model
   tempRoot = cascadeCtx widgetComp builtRoot
   WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
@@ -264,14 +289,17 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   CompositeState oldModel oldRoot oldGlobalKeys = validState
   model = getModel comp wenv
   -- Creates new UI using provided function
-  tempRoot = cascadeCtx newComp (_cmpUiBuilder comp model)
+  tempRoot = cascadeCtx newComp (_cmpUiBuilder comp cwenv model)
   tempWidget = tempRoot ^. L.widget
   cwenv = convertWidgetEnv wenv oldGlobalKeys model
   -- Needed in case the user references something outside model when building UI
   -- The same model is provided as old since nothing else is available, but
   -- mergeRequired may be using data from a closure
+  oldFlags = [oldComp ^. L.info . L.visible, oldComp ^. L.info . L.enabled]
+  newFlags = [newComp ^. L.info . L.visible, newComp ^. L.info . L.enabled]
+  modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
   mergeRequired
-    | isJust oldModel = _cmpMergeRequired comp (fromJust oldModel) model
+    | isJust oldModel = modelChanged || (oldFlags /= newFlags)
     | otherwise = True
   initRequired = not (instanceMatches tempRoot oldRoot)
   tempResult
@@ -535,9 +563,9 @@ mergeChild
   -> WidgetResult sp ep
 mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
-  builtRoot = cascadeCtx widgetComp (_cmpUiBuilder comp newModel)
-  builtWidget = builtRoot ^. L.widget
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
+  builtRoot = cascadeCtx widgetComp (_cmpUiBuilder comp cwenv newModel)
+  builtWidget = builtRoot ^. L.widget
   mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
   mergedState = state {
     _cpsModel = Just newModel,

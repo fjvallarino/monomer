@@ -1,6 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -15,7 +14,6 @@ module Monomer.Widgets.Container (
   ContainerGetSizeReqHandler(..),
   ContainerResizeHandler(..),
   createContainer,
-  createThemed,
   initWrapper,
   mergeWrapper,
   mergeParent,
@@ -180,28 +178,6 @@ createContainer container = Widget {
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
-
-createThemed
-  :: WidgetType
-  -> (WidgetEnv s e -> WidgetNode s e)
-  -> WidgetNode s e
-createThemed widgetType factory = newNode where
-  createNode wenv node = resultWidget themedNode where
-    info = node ^. L.info
-    tempNode = factory wenv
-    tempInfo = tempNode ^. L.info
-    themedNode = node
-      & L.widget .~ tempNode ^. L.widget
-      & L.children .~ tempNode ^. L.children
-      & L.info . L.focusable .~ tempInfo ^. L.focusable
-      & L.info . L.style .~ (tempInfo ^. L.style <> info ^. L.style)
-  init = createNode
-  merge wenv oldState oldNode newNode = createNode wenv newNode
-  newWidget = createContainer def {
-    containerInit = init,
-    containerMerge = merge
-  }
-  newNode = defaultWidgetNode widgetType newWidget
 
 -- | Get base style for component
 defaultGetBaseStyle :: ContainerGetBaseStyle s e

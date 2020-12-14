@@ -89,7 +89,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
     theme = fromMaybe def (_apcTheme config)
     initEvent = _apcInitEvent config
     exitEvent = _apcExitEvent config
-    appWidget = composite "app" id initEvent eventHandler uiBuilder
+    appWidget = composite "app" id initEvent uiBuilder eventHandler
 
 runApp
   :: (MonomerM s m, Typeable e)

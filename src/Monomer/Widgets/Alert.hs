@@ -1,5 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
-
 module Monomer.Widgets.Alert (
   alert,
   alert_
@@ -10,16 +8,15 @@ import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 
 import Monomer.Core
-import Monomer.Event
-import Monomer.Graphics
+import Monomer.Core.Combinators
 
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
-import Monomer.Widgets.Container
+import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
-import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
@@ -49,16 +46,18 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-alert :: Text -> e -> WidgetNode s e
+alert :: (Typeable s, Typeable e) => Text -> e -> WidgetNode s e
 alert message evt = alert_ message evt def
 
-alert_ :: Text -> e -> [AlertCfg] -> WidgetNode s e
-alert_ message evt configs = createThemed "alert" factory where
+alert_
+  :: (Typeable s, Typeable e) => Text -> e -> [AlertCfg] -> WidgetNode s e
+alert_ message evt configs = newNode where
   config = mconcat configs
-  factory wenv = makeAlert wenv message evt config
+  createUI = buildUI message evt config
+  newNode = compositeExt "alert" () Nothing createUI handleEvent
 
-makeAlert :: WidgetEnv s e -> Text -> e -> AlertCfg -> WidgetNode s e
-makeAlert wenv message evt config = alertBox where
+buildUI :: Text -> e -> AlertCfg -> WidgetEnv s e -> s -> WidgetNode s e
+buildUI message evt config wenv model = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
@@ -73,3 +72,6 @@ makeAlert wenv message evt config = alertBox where
     ] & L.info . L.style .~ themeDialogFrame wenv
   alertBox = box_ alertTree [onClickEmpty evt]
     & L.info . L.style .~ emptyOverlayColor
+
+handleEvent :: s -> e -> [EventResponse s e e]
+handleEvent model evt = [Report evt]

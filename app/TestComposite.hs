@@ -41,7 +41,7 @@ data CompEvent
   deriving (Eq, Show)
 
 testComposite :: WidgetNode CompState AppEvent
-testComposite = composite "testComposite" id (Just InitComposite) handleCompositeEvent buildComposite
+testComposite = composite "testComposite" id (Just InitComposite) buildComposite handleCompositeEvent
 
 handleCompositeEvent model evt = case evt of
   InitComposite -> [Task $ do
@@ -59,7 +59,7 @@ handleCompositeEvent model evt = case evt of
       threadDelay $ 1000 * 1000]
   HandleProducer val -> [Model $ model & csProduced %~ (+val)]
 
-buildComposite model = trace "Created composite UI" $
+buildComposite wenv model = trace "Created composite UI" $
   vgrid [
     scroll $ label "This is a composite label!",
     scroll $ label "This is a composite label again!",

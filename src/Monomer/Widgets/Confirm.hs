@@ -10,14 +10,14 @@ import Control.Lens ((&), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 
 import Monomer.Core
-import Monomer.Event
-import Monomer.Graphics
+import Monomer.Core.Combinators
 
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
-import Monomer.Widgets.Container
+import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
@@ -57,17 +57,23 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-confirm :: Text -> e -> e -> WidgetNode s e
+confirm :: (Typeable s, Typeable e) => Text -> e -> e -> WidgetNode s e
 confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
 
-confirm_ :: Text -> e -> e -> [ConfirmCfg] -> WidgetNode s e
+confirm_
+  :: (Typeable s, Typeable e)
+  => Text
+  -> e
+  -> e
+  -> [ConfirmCfg]
+  -> WidgetNode s e
 confirm_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
-  factory wenv = makeConfirm wenv message acceptEvt cancelEvt config
-  newNode = createThemed "confirm" factory
+  createUI = buildUI message acceptEvt cancelEvt config
+  newNode = compositeExt "confirm" () Nothing createUI handleEvent
 
-makeConfirm :: WidgetEnv s e -> Text -> e -> e -> ConfirmCfg -> WidgetNode s e
-makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
+buildUI :: Text -> e -> e -> ConfirmCfg -> WidgetEnv s e -> s -> WidgetNode s e
+buildUI message acceptEvt cancelEvt config wenv model = confirmBox where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
@@ -85,3 +91,6 @@ makeConfirm wenv message acceptEvt cancelEvt config = confirmBox where
     ] & L.info . L.style .~ themeDialogFrame wenv
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
+
+handleEvent :: s -> e -> [EventResponse s e e]
+handleEvent model evt = [Report evt]

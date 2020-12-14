@@ -51,12 +51,12 @@ initialState = KeysCompState {
 }
 
 keysComposite :: WidgetNode KeysCompState ep
-keysComposite = composite "keysComposite" id Nothing handleKeysCompEvent buildKeysComp
+keysComposite = composite "keysComposite" id Nothing buildKeysComp handleKeysCompEvent
 
 handleKeysCompEvent model evt = case evt of
   RotateChildren -> [Model (model & items %~ rotateSeq)]
 
-buildKeysComp model = trace "Created keys composite UI" $
+buildKeysComp wenv model = trace "Created keys composite UI" $
   hgrid [
     button "Rotate" RotateChildren,
     vgrid $ fmap (editableItem model) [0..(length (_items model) - 1)]
