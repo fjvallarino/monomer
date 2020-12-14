@@ -235,7 +235,6 @@ makeListView widgetData items makeRow config state = widget where
     containerInit = init,
     containerMerge = merge,
     containerMergeChildrenRequired = mergeChildrenRequired,
-    containerMergePost = mergePost,
     containerGetState = makeState state,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -261,10 +260,9 @@ makeListView widgetData items makeRow config state = widget where
       _prevSel = sel,
       _resizeReq = True
     }
-    tmpNode = node
+    newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
       & L.children .~ children
-    newNode = updateSelStyle makeRow config Empty items Nothing sel wenv tmpNode
 
   mergeChildrenRequired wenv oldState oldNode node = result where
     prevState = fromMaybe state (useState oldState)
@@ -288,15 +286,6 @@ makeListView widgetData items makeRow config state = widget where
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
       & L.children .~ children
-
-  mergePost wenv result oldState oldNode node = newResult where
-    prevState = fromMaybe state (useState oldState)
-    sel = Just $ currentValue wenv
-    oldSel = _prevSel prevState
-    oldItems = _prevItems prevState
-    newNode = updateSelStyle makeRow config oldItems items oldSel sel wenv node
-    newResult = result
-      & L.node .~ newNode
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
@@ -398,86 +387,20 @@ makeListView widgetData items makeRow config state = widget where
     action = renderContainer renderer wenv newNode before after
 
   buildRenderNode wenv node = newNode where
-    viewport = node ^. L.info . L.viewport
+    selected = currentValue wenv
+    slIdx = fromMaybe (-1) (Seq.elemIndexL selected items)
     hlIdx = _highlighted state
+    viewport = node ^. L.info . L.viewport
     foldItem items idx item
       | isWidgetVisible item viewport = items |> updateStyle idx item
       | otherwise = items
     updateStyle idx item
+      | idx == slIdx = setSelectedItemStyle wenv item (slIdx == hlIdx) config
       | idx == hlIdx = setFocusedItemStyle wenv item
       | otherwise = item
     children = node ^. L.children . ix 0 . L.children
     newChildren = Seq.foldlWithIndex foldItem Empty children
     newNode = node & L.children . ix 0 . L.children .~ newChildren
-
-setChildStyle
-  :: Seq a
-  -> MakeRow s e a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> Int
-  -> Style
-  -> WidgetNode s e
-setChildStyle items makeRow wenv parent idx style = newParent where
-  makeItem v = makeRow v & L.info . L.style .~ style
-  newChild = fmap makeItem (Seq.lookup idx items)
-  merge newItem oldItem = newWidget where
-    res = widgetMerge (newItem ^. L.widget) wenv oldItem newItem
-    widget = res ^. L.node
-    newWidget = widget
-      & L.info . L.path .~ oldItem ^. L.info . L.path
-      & L.info . L.viewport .~ oldItem ^. L.info . L.viewport
-      & L.info . L.renderArea .~ oldItem ^. L.info . L.renderArea
-  listLens = L.children . ix 0
-  boxLens = L.children . ix idx
-  itemLens = L.children . ix 0
-  newParent = case newChild of
-    Just newNode -> parent & listLens . boxLens . itemLens %~ merge newNode
-    _ -> parent
-
-updateSelStyle
-  :: ListItem a
-  => MakeRow s e a
-  -> ListViewCfg s e a
-  -> Seq a
-  -> Seq a
-  -> Maybe a
-  -> Maybe a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-updateSelStyle makeRow cfg oldIs newIs oldSel newSel wenv node1 = node3 where
-  oldIdx = oldSel >>= flip Seq.elemIndexL oldIs
-  newIdx = newSel >>= flip Seq.elemIndexL newIs
-  node2 = maybe node1 (setDefChildStyle oldIs makeRow cfg wenv node1) oldIdx
-  node3 = maybe node2 (setSelChildStyle newIs makeRow cfg wenv node2) newIdx
-
-setDefChildStyle
-  :: Seq a
-  -> MakeRow s e a
-  -> ListViewCfg s e a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> Int
-  -> WidgetNode s e
-setDefChildStyle items makeRow config wenv parent idx = newParent where
-  normalTheme = collectTheme wenv L.listViewItemStyle
-  normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
-  newParent = setChildStyle items makeRow wenv parent idx normalStyle
-
-setSelChildStyle
-  :: Seq a
-  -> MakeRow s e a
-  -> ListViewCfg s e a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> Int
-  -> WidgetNode s e
-setSelChildStyle items makeRow config wenv parent idx = newParent where
-  selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
-  selectedStyleCfg = _lvcItemSelectedStyle config
-  selectedStyle = fromJust (Just selectedTheme <> selectedStyleCfg)
-  newParent = setChildStyle items makeRow wenv parent idx selectedStyle
 
 setFocusedItemStyle :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
 setFocusedItemStyle wenv item
@@ -488,6 +411,28 @@ setFocusedItemStyle wenv item
     hoverLens = L.children . ix 0 . L.info . L.style . L.hover
     hoverStyle = item ^. L.children . ix 0 . L.info . L.style . L.hover
     focusStyle = item ^. L.children . ix 0 . L.info . L.style . L.focus
+
+setSelectedItemStyle
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> Bool
+  -> ListViewCfg s e a
+  -> WidgetNode s e
+setSelectedItemStyle wenv item hl config
+  | isHovered wenv item && hl = newItem & hoverLens .~ hoverStyle <> focusStyle
+  | isHovered wenv item = newItem & hoverLens .~ hoverStyle
+  | hl = newItem & basicLens .~ focusStyle
+  | otherwise = newItem
+  where
+    selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
+    selectedStyleCfg = _lvcItemSelectedStyle config
+    selectedStyle = fromJust (Just selectedTheme <> selectedStyleCfg)
+    styleLens = L.children . ix 0 . L.info . L.style
+    basicLens = L.children . ix 0 . L.info . L.style . L.basic
+    hoverLens = L.children . ix 0 . L.info . L.style . L.hover
+    hoverStyle = selectedStyle ^. L.hover
+    focusStyle = selectedStyle ^. L.focus
+    newItem = item & styleLens .~ selectedStyle
 
 makeItemsList
   :: (Eq a)
