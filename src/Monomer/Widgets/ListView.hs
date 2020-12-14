@@ -376,7 +376,7 @@ makeListView widgetData items makeRow config state = widget where
     newNode = buildRenderNode wenv node
     before = defaultRender
     after =  defaultRender
-    action = renderContainer renderer wenv newNode before after
+    action = renderContainer renderer wenv newNode False before after
 
   buildRenderNode wenv node = newNode where
     selected = currentValue wenv

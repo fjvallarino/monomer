@@ -137,6 +137,7 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e = Container {
+  containerUseScissor :: Bool,
   containerIgnoreEmptyClick :: Bool,
   containerStyleOnMerge :: Bool,
   containerResizeRequired :: Bool,
@@ -160,6 +161,7 @@ data Container s e = Container {
 
 instance Default (Container s e) where
   def = Container {
+    containerUseScissor = True,
     containerIgnoreEmptyClick = False,
     containerStyleOnMerge = False,
     containerResizeRequired = True,
@@ -619,19 +621,21 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node = action where
+  useScissor = containerUseScissor container
   before = containerRender container
   after = containerRenderAfter container
-  action = renderContainer renderer wenv node before after
+  action = renderContainer renderer wenv node useScissor before after
 
 renderContainer
   :: Renderer
   -> WidgetEnv s e
   -> WidgetNode s e
+  -> Bool
   -> ContainerRenderHandler s e
   -> ContainerRenderHandler s e
   -> IO ()
-renderContainer renderer wenv node renderBefore renderAfter =
-  drawInScissor renderer True viewport $
+renderContainer renderer wenv node useScissor renderBefore renderAfter =
+  drawInScissor renderer useScissor viewport $
     drawStyledAction renderer renderArea style $ \_ -> do
       renderBefore renderer wenv node
 
