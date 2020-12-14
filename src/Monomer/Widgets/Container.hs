@@ -251,16 +251,17 @@ mergeWrapper container wenv oldNode newNode = result where
   mergePostHandler = containerMergePost container
 
   mergeRequired = mergeRequiredHandler wenv oldState oldNode newNode
+  oldFlags = [oldNode ^. L.info . L.visible, oldNode ^. L.info . L.enabled]
+  newFlags = [newNode ^. L.info . L.visible, newNode ^. L.info . L.enabled]
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   styledNode = initNodeStyle getBaseStyle wenv newNode
   pResult = mergeParent mergeHandler wenv oldState oldNode styledNode
-  cResult
-    | mergeRequired = mergeChildren wenv oldNode newNode pResult
+  cResult = mergeChildren wenv oldNode newNode pResult
+  vResult = mergeChildrenCheckVisible oldNode cResult
+  tempResult
+    | mergeRequired || oldFlags /= newFlags = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
-  vResult
-    | mergeRequired = mergeChildrenCheckVisible oldNode cResult
-    | otherwise = cResult
-  result = mergePostHandler wenv vResult oldState oldNode (vResult ^. L.node)
+  result = mergePostHandler wenv tempResult oldState oldNode (vResult ^. L.node)
 
 mergeParent
   :: ContainerMergeHandler s e
