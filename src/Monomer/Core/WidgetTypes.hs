@@ -42,8 +42,10 @@ data WindowRequest
 
 newtype WidgetType
   = WidgetType { unWidgetType :: String }
-  deriving (Eq, Show)
+  deriving (Eq)
 
+instance Show WidgetType where
+  show (WidgetType t) = t
 instance IsString WidgetType where
   fromString = WidgetType
 

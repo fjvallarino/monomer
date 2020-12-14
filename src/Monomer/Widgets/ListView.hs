@@ -13,6 +13,8 @@ module Monomer.Widgets.ListView (
   listViewD_
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), ix, non)
 import Control.Monad (when)
@@ -231,6 +233,9 @@ makeListView widgetData items makeRow config state = widget where
   baseWidget = createContainer def {
     containerResizeRequired = _resizeReq state,
     containerInit = init,
+    containerMerge = merge,
+    containerMergeChildrenRequired = mergeChildrenRequired,
+    containerMergePost = mergePost,
     containerGetState = makeState state,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -238,7 +243,6 @@ makeListView widgetData items makeRow config state = widget where
     containerResize = resize
   }
   widget = baseWidget {
-    widgetMerge = mergeWrapper,
     widgetRender = render
   }
 
@@ -262,35 +266,37 @@ makeListView widgetData items makeRow config state = widget where
       & L.children .~ children
     newNode = updateSelStyle makeRow config Empty items Nothing sel wenv tmpNode
 
-  mergeWrapper wenv oldNode newNode = newResult where
+  mergeChildrenRequired wenv oldState oldNode node = result where
+    prevState = fromMaybe state (useState oldState)
+    oldItems = _prevItems prevState
+    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
+    result = mergeRequiredFn oldItems items
+
+  merge wenv oldState oldNode node = resultWidget newNode where
+    prevState = fromMaybe state (useState oldState)
     sel = Just $ currentValue wenv
-    oldNodeState = widgetGetState (oldNode ^. L.widget) wenv
-    oldState = fromMaybe state (useState oldNodeState)
-    oldSel = _prevSel oldState
-    oldItems = _prevItems oldState
+    oldItems = _prevItems prevState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
-    getBaseStyle _ _ = Nothing
-    styledNode = initNodeStyle getBaseStyle wenv newNode
-    newState = oldState {
+    children
+      | mergeRequired = createListViewChildren wenv node
+      | otherwise = oldNode ^. L.children
+    newState = prevState {
       _prevSel = sel,
       _resizeReq = mergeRequired
     }
-    tempNode = styledNode
+    newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
-      & L.info . L.viewport .~ oldNode ^. L.info . L.viewport
-      & L.info . L.renderArea .~ oldNode ^. L.info . L.renderArea
-      & L.info . L.sizeReqW .~ oldNode ^. L.info . L.sizeReqW
-      & L.info . L.sizeReqH .~ oldNode ^. L.info . L.sizeReqH
-    children
-      | mergeRequired = createListViewChildren wenv tempNode
-      | otherwise = oldNode ^. L.children
-    node2 = tempNode & L.children .~ children
-    node3 = updateSelStyle makeRow config oldItems items oldSel sel wenv node2
-    pResult = resultWidget node3
-    newResult
-      | mergeRequired = mergeChildren wenv oldNode pResult
-      | otherwise = pResult
+      & L.children .~ children
+
+  mergePost wenv result oldState oldNode node = newResult where
+    prevState = fromMaybe state (useState oldState)
+    sel = Just $ currentValue wenv
+    oldSel = _prevSel prevState
+    oldItems = _prevItems prevState
+    newNode = updateSelStyle makeRow config oldItems items oldSel sel wenv node
+    newResult = result
+      & L.node .~ newNode
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
