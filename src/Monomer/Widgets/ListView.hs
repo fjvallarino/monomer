@@ -385,8 +385,11 @@ makeListView widgetData items makeRow config state = widget where
     assignedArea = Seq.singleton (viewport, renderArea)
     resized = (node, assignedArea)
 
-  render renderer wenv node =
-    renderContainer defaultRender renderer wenv (buildRenderNode wenv node)
+  render renderer wenv node = action where
+    newNode = buildRenderNode wenv node
+    before = defaultRender
+    after =  defaultRender
+    action = renderContainer renderer wenv newNode before after
 
   buildRenderNode wenv node = newNode where
     viewport = node ^. L.info . L.viewport

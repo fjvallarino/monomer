@@ -140,7 +140,8 @@ data Container s e = Container {
   containerHandleMessage :: ContainerMessageHandler s e,
   containerGetSizeReq :: ContainerGetSizeReqHandler s e,
   containerResize :: ContainerResizeHandler s e,
-  containerRender :: ContainerRenderHandler s e
+  containerRender :: ContainerRenderHandler s e,
+  containerRenderAfter :: ContainerRenderHandler s e
 }
 
 instance Default (Container s e) where
@@ -160,7 +161,8 @@ instance Default (Container s e) where
     containerHandleMessage = defaultHandleMessage,
     containerGetSizeReq = defaultGetSizeReq,
     containerResize = defaultResize,
-    containerRender = defaultRender
+    containerRender = defaultRender,
+    containerRenderAfter = defaultRender
   }
 
 createContainer :: Container s e -> Widget s e
@@ -577,22 +579,27 @@ renderWrapper
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-renderWrapper container renderer wenv node =
-  renderContainer (containerRender container) renderer wenv node
+renderWrapper container renderer wenv node = action where
+  before = containerRender container
+  after = containerRenderAfter container
+  action = renderContainer renderer wenv node before after
 
 renderContainer
-  :: ContainerRenderHandler s e
-  -> Renderer
+  :: Renderer
   -> WidgetEnv s e
   -> WidgetNode s e
+  -> ContainerRenderHandler s e
+  -> ContainerRenderHandler s e
   -> IO ()
-renderContainer rHandler renderer wenv node =
+renderContainer renderer wenv node renderBefore renderAfter =
   drawInScissor renderer True viewport $
     drawStyledAction renderer renderArea style $ \_ -> do
-      rHandler renderer wenv node
+      renderBefore renderer wenv node
 
       forM_ children $ \child -> when (isWidgetVisible child viewport) $
         widgetRender (child ^. L.widget) renderer wenv child
+
+      renderAfter renderer wenv node
   where
     style = activeStyle wenv node
     children = node ^. L.children

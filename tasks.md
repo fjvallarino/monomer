@@ -322,6 +322,7 @@
   - Rename WidgetInstance to WidgetNodeStatus (or similar)
   - Check dropdown's list not being properly located after resize/scroll (not clear)
   - Rename WidgetResult's widget to node
+  - Remove createThemed and move Alert/Dialog to use composite
 
 - Pending
   - Add testing
@@ -339,7 +340,7 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Remove createThemed and move Alert/Dialog to use composite
+  - Restore container changes for controlling merge of children (part of reverted scroll changes)
   - Draw close button on Dialog
   - Check why putting box reduces label's space
     - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]

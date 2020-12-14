@@ -186,11 +186,11 @@ makeScroll config state = widget where
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
-    containerGetSizeReq = getSizeReq
+    containerGetSizeReq = getSizeReq,
+    containerRenderAfter = renderAfter
   }
   widget = baseWidget {
-    widgetResize = scrollResize Nothing state,
-    widgetRender = render
+    widgetResize = scrollResize Nothing state
   }
 
   ScrollState dragging dx dy cs = state
@@ -371,29 +371,19 @@ makeScroll config state = widget where
       & L.info . L.renderArea .~ renderArea
       & L.children .~ Seq.singleton newChild
 
-  render renderer wenv node =
-    drawStyledAction renderer renderArea style $ \_ ->
-      drawInScissor renderer True viewport $ do
-        widgetRender (child ^. L.widget) renderer wenv child
+  renderAfter renderer wenv node = do
+    when hScrollRequired $
+      drawRect renderer hScrollRect barColorH Nothing
 
-        when hScrollRequired $
-          drawRect renderer hScrollRect barColorH Nothing
+    when vScrollRequired $
+      drawRect renderer vScrollRect barColorV Nothing
 
-        when vScrollRequired $
-          drawRect renderer vScrollRect barColorV Nothing
+    when hScrollRequired $
+      drawRect renderer hThumbRect thumbColorH Nothing
 
-        when hScrollRequired $
-          drawRect renderer hThumbRect thumbColorH Nothing
-
-        when vScrollRequired $
-          drawRect renderer vThumbRect thumbColorV Nothing
+    when vScrollRequired $
+      drawRect renderer vThumbRect thumbColorV Nothing
     where
-      style = scrollActiveStyle wenv node
-      child = node ^. L.children ^?! ix 0
-      vp = node ^. L.info . L.viewport
-      viewport = fromMaybe def (removeOuterBounds style vp)
-      renderArea = node ^. L.info . L.renderArea
-
       ScrollContext{..} = scrollStatus config wenv state node
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
