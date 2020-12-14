@@ -47,49 +47,49 @@ data ImageLoadError
   | ImageInvalid String
   deriving (Eq, Show)
 
-data ImageCfg s e = ImageCfg {
+data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFit :: Maybe ImageFit,
   _imcTransparency :: Maybe Double
 }
 
-instance Default (ImageCfg s e) where
+instance Default (ImageCfg e) where
   def = ImageCfg {
     _imcLoadError = [],
     _imcFit = Nothing,
     _imcTransparency = Nothing
   }
 
-instance Semigroup (ImageCfg s e) where
+instance Semigroup (ImageCfg e) where
   (<>) i1 i2 = ImageCfg {
     _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
     _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
   }
 
-instance Monoid (ImageCfg s e) where
+instance Monoid (ImageCfg e) where
   mempty = def
 
-instance CmbTransparency (ImageCfg s e) where
+instance CmbTransparency (ImageCfg e) where
   transparency alpha = def {
     _imcTransparency = Just alpha
   }
 
-instance CmbOnLoadError (ImageCfg s e) ImageLoadError e where
+instance CmbOnLoadError (ImageCfg e) ImageLoadError e where
   onLoadError err = def {
     _imcLoadError = [err]
   }
 
-fitNone :: ImageCfg s e
+fitNone :: ImageCfg e
 fitNone = def { _imcFit = Just FitNone }
 
-fitFill :: ImageCfg s e
+fitFill :: ImageCfg e
 fitFill = def { _imcFit = Just FitFill }
 
-fitWidth :: ImageCfg s e
+fitWidth :: ImageCfg e
 fitWidth = def { _imcFit = Just FitWidth }
 
-fitHeight :: ImageCfg s e
+fitHeight :: ImageCfg e
 fitHeight = def { _imcFit = Just FitHeight }
 
 data ImageState = ImageState {
@@ -104,13 +104,13 @@ data ImageMessage
 image :: String -> WidgetNode s e
 image path = image_ path def
 
-image_ :: String -> [ImageCfg s e] -> WidgetNode s e
+image_ :: String -> [ImageCfg e] -> WidgetNode s e
 image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
   imageState = ImageState path Nothing
   widget = makeImage path config imageState
 
-makeImage :: String -> ImageCfg s e -> ImageState -> Widget s e
+makeImage :: String -> ImageCfg e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle def {
     singleInit = init,
@@ -156,7 +156,6 @@ makeImage imgPath config state = widget where
     result = Just $ resultReqs newNode [ResizeWidgets]
 
   getSizeReq wenv node = sizeReq where
-    style = activeStyle wenv node
     Size w h = maybe def snd (isImageData state)
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)

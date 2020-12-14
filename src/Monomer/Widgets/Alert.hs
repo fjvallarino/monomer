@@ -16,6 +16,7 @@ import Monomer.Core.Combinators
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
+import Monomer.Widgets.Icon
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
 
@@ -62,9 +63,12 @@ buildUI message evt config wenv model = alertBox where
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
   dismissButton = mainButton close evt
+  closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
   alertTree = vstack [
-      label title
-        & L.info . L.style .~ themeDialogTitle wenv,
+      hstack [
+        label title & L.info . L.style .~ themeDialogTitle wenv,
+        box_ closeIcon [onClick evt]
+      ],
       label_ message [textMultiLine]
         & L.info . L.style .~ themeDialogBody wenv,
       box_ dismissButton [alignLeft]

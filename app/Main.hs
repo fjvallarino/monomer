@@ -102,7 +102,7 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetLV where
+buildUI wenv model = trace "Creating UI" widgetTree where
   widgetLV = vstack [
       listView dropdown1 items label
       ,

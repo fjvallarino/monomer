@@ -84,6 +84,10 @@ darkBasic = def
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
   & L.dialogTitleStyle . L.padding ?~ padding 5
+  & L.dialogCloseIconStyle . L.fgColor ?~ black
+  & L.dialogCloseIconStyle . L.sizeReqW ?~ width 16
+  & L.dialogCloseIconStyle . L.sizeReqH ?~ width 16
+  & L.dialogCloseIconStyle . L.padding ?~ padding 5
   & L.dialogBodyStyle . L.text ?~ normalFont
   & L.dialogBodyStyle . L.padding ?~ padding 5
   & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 400
@@ -121,6 +125,7 @@ darkHover = darkBasic
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ lightGray
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.dialogCloseIconStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ gray
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownItemStyle . L.bgColor ?~ gray

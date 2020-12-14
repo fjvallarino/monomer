@@ -8,6 +8,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Dropdown,
   module Monomer.Widgets.FloatingField,
   module Monomer.Widgets.Grid,
+  module Monomer.Widgets.Icon,
   module Monomer.Widgets.Image,
   module Monomer.Widgets.IntegralField,
   module Monomer.Widgets.Label,
@@ -30,6 +31,7 @@ import Monomer.Widgets.Confirm
 import Monomer.Widgets.Dropdown
 import Monomer.Widgets.FloatingField
 import Monomer.Widgets.Grid
+import Monomer.Widgets.Icon
 import Monomer.Widgets.Image
 import Monomer.Widgets.IntegralField
 import Monomer.Widgets.Label

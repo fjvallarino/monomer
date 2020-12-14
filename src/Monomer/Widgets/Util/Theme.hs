@@ -28,6 +28,9 @@ themeDialogFrame wenv = collectTheme wenv L.dialogFrameStyle
 themeDialogTitle :: WidgetEnv s e -> Style
 themeDialogTitle wenv = collectTheme wenv L.dialogTitleStyle
 
+themeDialogCloseIcon :: WidgetEnv s e -> Style
+themeDialogCloseIcon wenv = collectTheme wenv L.dialogCloseIconStyle
+
 themeDialogBody :: WidgetEnv s e -> Style
 themeDialogBody wenv = collectTheme wenv L.dialogBodyStyle
 

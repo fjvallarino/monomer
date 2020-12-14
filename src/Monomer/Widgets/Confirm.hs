@@ -18,6 +18,7 @@ import Monomer.Core.Combinators
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
+import Monomer.Widgets.Icon
 import Monomer.Widgets.Label
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
@@ -81,9 +82,12 @@ buildUI message acceptEvt cancelEvt config wenv model = confirmBox where
   acceptBtn = mainButton accept acceptEvt
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
+  closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
   confirmTree = vstack [
-      label title
-        & L.info . L.style .~ themeDialogTitle wenv,
+      hstack [
+        label title & L.info . L.style .~ themeDialogTitle wenv,
+        box_ closeIcon [onClick cancelEvt]
+      ],
       label_ message [textMultiLine]
         & L.info . L.style .~ themeDialogBody wenv,
       box_ buttons [alignLeft]
