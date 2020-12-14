@@ -46,6 +46,7 @@ newtype WidgetType
 
 instance Show WidgetType where
   show (WidgetType t) = t
+
 instance IsString WidgetType where
   fromString = WidgetType
 

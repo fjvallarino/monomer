@@ -323,6 +323,7 @@
   - Check dropdown's list not being properly located after resize/scroll (not clear)
   - Rename WidgetResult's widget to node
   - Remove createThemed and move Alert/Dialog to use composite
+  - Restore container changes for controlling merge of children (part of reverted scroll changes)
 
 - Pending
   - Add testing
@@ -340,7 +341,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Restore container changes for controlling merge of children (part of reverted scroll changes)
   - Draw close button on Dialog
   - Check why putting box reduces label's space
     - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
@@ -355,6 +355,8 @@ Maybe postponed after release?
     - Remove delay logic when adding an image
     - When adding image, on failure remove an the least used image and retry
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
+  - Add config to invert mouse buttons (Core.hs:211)
+  - Check why after click focus is not immediately shown in listView items
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection

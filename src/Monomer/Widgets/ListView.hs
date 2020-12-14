@@ -13,8 +13,6 @@ module Monomer.Widgets.ListView (
   listViewD_
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), ix, non)
 import Control.Monad (when)
@@ -153,7 +151,6 @@ instance CmbMergeRequired (ListViewCfg s e a) (Seq a) where
 
 data ListViewState a = ListViewState {
   _prevItems :: Seq a,
-  _prevSel :: Maybe a,
   _highlighted :: Int,
   _resizeReq :: Bool
 }
@@ -213,7 +210,7 @@ listViewD_
 listViewD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState newItems Nothing 0 False
+  newState = ListViewState newItems 0 False
   widget = makeListView widgetData newItems makeRow config newState
 
 makeNode :: Widget s e -> WidgetNode s e
@@ -255,9 +252,7 @@ makeListView widgetData items makeRow config state = widget where
 
   init wenv node = resultWidget newNode where
     children = createListViewChildren wenv node
-    sel = Just $ currentValue wenv
     newState = state {
-      _prevSel = sel,
       _resizeReq = True
     }
     newNode = node
@@ -272,7 +267,6 @@ makeListView widgetData items makeRow config state = widget where
 
   merge wenv oldState oldNode node = resultWidget newNode where
     prevState = fromMaybe state (useState oldState)
-    sel = Just $ currentValue wenv
     oldItems = _prevItems prevState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
@@ -280,7 +274,6 @@ makeListView widgetData items makeRow config state = widget where
       | mergeRequired = createListViewChildren wenv node
       | otherwise = oldNode ^. L.children
     newState = prevState {
-      _prevSel = sel,
       _resizeReq = mergeRequired
     }
     newNode = node
@@ -327,11 +320,11 @@ makeListView widgetData items makeRow config state = widget where
     result = fmap handleSelect (cast message)
 
   handleItemClick wenv node idx = result where
-    focusReq = Seq.singleton (SetFocus $ node ^. L.info . L.path)
+    focusReq = SetFocus $ node ^. L.info . L.path
     tempResult = selectItem wenv node idx
     result
       | isFocused wenv node = tempResult
-      | otherwise = tempResult & L.requests <>~ focusReq
+      | otherwise = tempResult & L.requests %~ (|> focusReq)
 
   highlightItem wenv node nextIdx = Just result where
     newState = state {
@@ -353,8 +346,7 @@ makeListView widgetData items makeRow config state = widget where
       ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
     requests = valueSetReq ++ scrollToReq ++ changeReqs
     newState = state {
-      _highlighted = idx,
-      _prevSel = Just selected
+      _highlighted = idx
     }
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
@@ -432,7 +424,7 @@ setSelectedItemStyle wenv item hl config
     hoverLens = L.children . ix 0 . L.info . L.style . L.hover
     hoverStyle = selectedStyle ^. L.hover
     focusStyle = selectedStyle ^. L.focus
-    newItem = item & styleLens .~ selectedStyle
+    newItem = item & styleLens <>~ selectedStyle
 
 makeItemsList
   :: (Eq a)
