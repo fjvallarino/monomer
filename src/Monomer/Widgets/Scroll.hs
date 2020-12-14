@@ -186,11 +186,11 @@ makeScroll config state = widget where
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
-    containerGetSizeReq = getSizeReq,
-    containerRenderAfter = renderAfter
+    containerGetSizeReq = getSizeReq
   }
   widget = baseWidget {
-    widgetResize = scrollResize Nothing state
+    widgetResize = scrollResize Nothing state,
+    widgetRender = render
   }
 
   ScrollState dragging dx dy cs = state
@@ -370,6 +370,17 @@ makeScroll config state = widget where
       & L.info . L.viewport .~ viewport
       & L.info . L.renderArea .~ renderArea
       & L.children .~ Seq.singleton newChild
+
+  render renderer wenv node =
+    drawInScissor renderer True viewport $
+      drawStyledAction renderer renderArea style $ \_ -> do
+        widgetRender (child ^. L.widget) renderer wenv child
+        renderAfter renderer wenv node
+    where
+      style = scrollActiveStyle wenv node
+      child = node ^. L.children ^?! ix 0
+      viewport = node ^. L.info . L.viewport
+      renderArea = node ^. L.info . L.renderArea
 
   renderAfter renderer wenv node = do
     when hScrollRequired $
