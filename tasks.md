@@ -325,6 +325,8 @@
   - Remove createThemed and move Alert/Dialog to use composite
   - Restore container changes for controlling merge of children (part of reverted scroll changes)
   - Draw close button on Dialog
+  - Check why putting box reduces label's space
+    - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
 
 - Pending
   - Add testing
@@ -342,8 +344,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check why putting box reduces label's space
-    - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
   - Set focus on ButtonDown, not Click
     - Can it be handled in Single/Container?
   - Restore focus to previous widget when zstack changes (dialog situation)

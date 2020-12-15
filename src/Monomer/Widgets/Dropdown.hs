@@ -242,6 +242,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   handleEvent wenv target evt node = case evt of
     Enter{} -> Nothing -- to have handleStyleChange applied
+    ButtonAction _ _ PressedBtn
+      | not isOpen -> Just $ resultReqs node [SetFocus (node ^. L.info.L.path)]
     Click point _
       | openRequired point node -> Just $ openDropdown wenv node
       | closeRequired point node -> Just $ closeDropdown wenv node
@@ -262,8 +264,6 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Nothing -> False
 
   openDropdown wenv node = resultReqs newNode requests where
-    selected = currentValue wenv
-    selectedIdx = fromMaybe 0 (Seq.elemIndexL selected items)
     newState = DropdownState True
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState

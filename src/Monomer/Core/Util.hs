@@ -39,3 +39,24 @@ numberInBounds Nothing Nothing _ = True
 numberInBounds (Just minVal) Nothing val = val >= minVal
 numberInBounds Nothing (Just maxVal) val = val <= maxVal
 numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
+
+isFocusRequest :: WidgetRequest s -> Bool
+isFocusRequest MoveFocus{} = True
+isFocusRequest SetFocus{} = True
+isFocusRequest _ = False
+
+isResizeWidgets :: WidgetRequest s -> Bool
+isResizeWidgets ResizeWidgets = True
+isResizeWidgets _ = False
+
+isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents IgnoreParentEvents = True
+isIgnoreParentEvents _ = False
+
+isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents IgnoreChildrenEvents = True
+isIgnoreChildrenEvents _ = False
+
+isRunTask :: WidgetRequest s -> Bool
+isRunTask RunTask{} = True
+isRunTask _ = False

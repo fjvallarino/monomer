@@ -194,12 +194,17 @@ handleSetFocus newFocus (wenv, events, root) =  do
   let wenv0 = wenv { _weFocusedPath = newFocus }
 
   oldFocus <- use L.focusedPath
-  L.focusedPath .= newFocus
 
-  (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
-  (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
+  if oldFocus /= newFocus
+    then do
+      L.focusedPath .= newFocus
 
-  return (wenv2, events >< events1 >< events2, root2)
+      (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
+      (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
+
+      return (wenv2, events >< events1 >< events2, root2)
+    else
+      return (wenv, events, root)
 
 handleGetClipboard
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
@@ -370,10 +375,6 @@ addFocusReq _ reqs = reqs
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
 
-isResizeWidgets :: WidgetRequest s -> Bool
-isResizeWidgets ResizeWidgets = True
-isResizeWidgets _ = False
-
 cursorToSDL :: CursorIcon -> SDLEnum.SystemCursor
 cursorToSDL CursorArrow = SDLEnum.SDL_SYSTEM_CURSOR_ARROW
 cursorToSDL CursorHand = SDLEnum.SDL_SYSTEM_CURSOR_HAND
@@ -383,12 +384,3 @@ cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
 cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
 cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
 cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
-
-isFocusRequest :: WidgetRequest s -> Bool
-isFocusRequest MoveFocus{} = True
-isFocusRequest SetFocus{} = True
-isFocusRequest _ = False
-
-isIgnoreParentEvents :: WidgetRequest s -> Bool
-isIgnoreParentEvents IgnoreParentEvents = True
-isIgnoreParentEvents _ = False

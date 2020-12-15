@@ -281,6 +281,8 @@ makeListView widgetData items makeRow config state = widget where
       & L.children .~ children
 
   handleEvent wenv target evt node = case evt of
+    ButtonAction _ _ PressedBtn
+      -> Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed

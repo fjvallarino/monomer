@@ -136,12 +136,13 @@ makeRadio field option config = widget where
 
   localEventWrapper wenv target evt node
     | not (node ^. L.info . L.visible) = Nothing
-    | otherwise = handleStyleChange_ wenv target evt style_ result cfg node
+    | otherwise = handleStyleChange_ wenv target evt style_ resultFocus cfg node
     where
       cfg = StyleChangeCfg isOnMove
       radioArea = getRadioArea wenv node config
       style_ = activeStyle_ (isHoveredEllipse_ radioArea) wenv node
       result = handleEvent wenv target evt node
+      resultFocus = handleFocusRequest wenv evt node result
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node

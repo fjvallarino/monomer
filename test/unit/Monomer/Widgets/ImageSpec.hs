@@ -38,7 +38,3 @@ initMergeWidget = describe "init/merge" $ do
     WidgetResult newNode1 reqs1 _ = widgetInit (node1 ^. L.widget) wenv node1
     WidgetResult _ reqs2 _ = widgetMerge (node2 ^. L.widget) wenv newNode1 node2
     WidgetResult _ reqs3 _ = widgetMerge (node3 ^. L.widget) wenv newNode1 node3
-
-isRunTask :: WidgetRequest s -> Bool
-isRunTask RunTask{} = True
-isRunTask _ = False

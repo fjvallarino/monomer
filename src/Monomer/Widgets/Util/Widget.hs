@@ -17,6 +17,7 @@ module Monomer.Widgets.Util.Widget (
   useState,
   instanceMatches,
   isTopLevel,
+  handleFocusRequest,
   handleFocusChange,
   resizeWidget,
   buildLocalMap,
@@ -25,12 +26,12 @@ module Monomer.Widgets.Util.Widget (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^#), (#~), (^.), (.~))
+import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
 import Data.Default
 import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
-import Data.Sequence (Seq)
+import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Map.Strict as M
@@ -38,6 +39,8 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Event (checkKeyboard, isKeyC, isKeyV)
+import Monomer.Event.Types
+import Monomer.Event.Util
 import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
@@ -118,6 +121,26 @@ isTopLevel wenv node = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
   inTopLayer = wenv ^. L.inTopLayer $ mousePos
   path = node ^. L.info . L.path
   isPrefix parent = Seq.take (Seq.length parent) path == parent
+
+handleFocusRequest
+  :: WidgetEnv s e
+  -> SystemEvent
+  -> WidgetNode s e
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleFocusRequest wenv evt node mResult = newResult where
+  prevReqs = maybe Empty (^. L.requests) mResult
+  isFocusable = node ^. L.info . L.focusable
+  isFocusReq = isButtonPressedEvent evt
+    && isFocusable
+    && not (isFocused wenv node)
+    && isTopLevel wenv node
+    && isNothing (Seq.findIndexL isFocusRequest prevReqs)
+  focusReq = SetFocus (node ^. L.info . L.path)
+  newResult
+    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
+    | isFocusReq = Just $ resultReqs node [focusReq]
+    | otherwise = mResult
 
 handleFocusChange
   :: (c -> [e])

@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -165,23 +164,23 @@ makeBox config = widget where
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
-    !vpContent = fromMaybe def (intersectRects viewport contentArea)
-    !raAligned = alignInRect ah av contentArea raChild
-    !vpAligned = fromMaybe def (intersectRects viewport raAligned)
+    vpContent = fromMaybe def (intersectRects viewport contentArea)
+    raAligned = alignInRect ah av contentArea raChild
+    vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)
-    !resized
+    resized
       | expand = (node, Seq.singleton (vpContent, contentArea))
       | otherwise = (node, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
-alignInRect !ah !av !parent !child = newRect where
+alignInRect ah av parent child = newRect where
   tempRect = alignVInRect av parent child
   newRect = alignHInRect ah parent tempRect
 
 alignHInRect :: AlignH -> Rect -> Rect -> Rect
 alignHInRect ah parent child = newRect where
-  Rect !px _ !pw _ = parent
-  Rect _ !cy !cw !ch = child
+  Rect px _ pw _ = parent
+  Rect _ cy cw ch = child
   newX = case ah of
     ALeft -> px
     ACenter -> px + (pw - cw) / 2
@@ -190,8 +189,8 @@ alignHInRect ah parent child = newRect where
 
 alignVInRect :: AlignV -> Rect -> Rect -> Rect
 alignVInRect av parent child = newRect where
-  Rect _ !py _ !ph = parent
-  Rect !cx _ !cw !ch = child
+  Rect _ py _ ph = parent
+  Rect cx _ cw ch = child
   newY = case av of
     ATop -> py
     AMiddle -> py + (ph - ch) / 2

@@ -214,11 +214,12 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
-  | otherwise = handleStyleChange wenv target evt style result node
+  | otherwise = handleStyleChange wenv target evt style resultFocus node
   where
     style = activeStyle wenv node
     handler = singleHandleEvent single
     result = handler wenv target evt node
+    resultFocus = handleFocusRequest wenv evt node result
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message node = Nothing

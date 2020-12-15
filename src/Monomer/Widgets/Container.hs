@@ -676,11 +676,3 @@ cascadeCtx parent child idx = newChild where
     & L.info . L.path .~ parentPath |> idx
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
-
-isIgnoreChildrenEvents :: WidgetRequest s -> Bool
-isIgnoreChildrenEvents IgnoreChildrenEvents = True
-isIgnoreChildrenEvents _ = False
-
-isIgnoreParentEvents :: WidgetRequest s -> Bool
-isIgnoreParentEvents IgnoreParentEvents = True
-isIgnoreParentEvents _ = False
