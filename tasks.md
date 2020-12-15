@@ -330,6 +330,7 @@
   - Set focus on ButtonDown, not Click
     - Can it be handled in Single/Container?
     - Handled in Single, not in Container, since it clashes with children. Handle explicitly on Containers that need it.
+  - Restore focus to previous widget when zstack changes (dialog situation)
 
 - Pending
   - Add testing
@@ -347,9 +348,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Restore focus to previous widget when zstack changes (dialog situation)
-    - Also think about not losing focus because of click (when onlyTopFocusable is active)
-  - ZStack should set _weIsTopLayer based on used space
   - Add config to invert mouse buttons (Core.hs:211)
   - Scroll wheel rate should be configurable, or even depend on content size
   - Image
@@ -365,21 +363,14 @@ Maybe postponed after release?
     - Create numeric wrapper that allows increasing/decreasing with mouse
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
-  - Does it make sense to handle offset
-    - It would avoid resizing on scroll
-    - We need transform stack on Renderer (also rotate?)
-    - We need to transform events
-      - This way we avoid having to translate widgets
-    - We need current transform in WidgetEnv
-      - Only used for rendering
-      - hovered would also use it
-    - We need to set transform on render (and clear it)
-    - Check scroll in scroll (one with max height)
+  - ZStack should set _weIsTopLayer based on used space
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
+  - Create Focus Memorizer (?)
+    - It should handle the situation of closing a dialog and returning to the previous focused widget
   - Create Slider
   - Create Dial
   - Create Split
@@ -403,3 +394,13 @@ Maybe postponed after release?
   - Add new request types (drag started, drag stopped, drag cancelled)
   - Add new events (drag hover)
   - SDL supports Drag and Drop integration with OS
+  - Does it make sense to handle offset
+    - It would avoid resizing on scroll
+    - We need transform stack on Renderer (also rotate?)
+    - We need to transform events
+      - This way we avoid having to translate widgets
+    - We need current transform in WidgetEnv
+      - Only used for rendering
+      - hovered would also use it
+    - We need to set transform on render (and clear it)
+    - Check scroll in scroll (one with max height)

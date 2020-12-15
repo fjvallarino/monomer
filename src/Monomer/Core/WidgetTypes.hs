@@ -102,6 +102,7 @@ instance Semigroup (WidgetResult s e) where
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
+  _weMainButton :: Button,
   _weTheme :: Theme,
   _weWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,

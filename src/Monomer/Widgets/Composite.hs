@@ -676,6 +676,7 @@ convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weOS = _weOS wenv,
   _weRenderer = _weRenderer wenv,
+  _weMainButton = _weMainButton wenv,
   _weTheme = _weTheme wenv,
   _weWindowSize = _weWindowSize wenv,
   _weGlobalKeys = globalKeys,

@@ -73,7 +73,8 @@ data AppConfig e = AppConfig {
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
   _apcInitEvent :: Maybe e,
-  _apcExitEvent :: Maybe e
+  _apcExitEvent :: Maybe e,
+  _apcMainButton :: Maybe Button
 }
 
 instance Default (AppConfig e) where
@@ -87,7 +88,8 @@ instance Default (AppConfig e) where
     _apcFonts = [],
     _apcTheme = Nothing,
     _apcInitEvent = Nothing,
-    _apcExitEvent = Nothing
+    _apcExitEvent = Nothing,
+    _apcMainButton = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -101,40 +103,46 @@ instance Semigroup (AppConfig e) where
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1,
-    _apcExitEvent = _apcExitEvent a2 <|> _apcExitEvent a1
+    _apcExitEvent = _apcExitEvent a2 <|> _apcExitEvent a1,
+    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1
   }
 
 instance Monoid (AppConfig e) where
   mempty = def
 
-mainWindowState :: MainWindowState -> AppConfig e
-mainWindowState title = def {
+appWindowState :: MainWindowState -> AppConfig e
+appWindowState title = def {
   _apcWindowState = Just title
 }
 
-mainWindowTitle :: Text -> AppConfig e
-mainWindowTitle title = def {
+appWindowTitle :: Text -> AppConfig e
+appWindowTitle title = def {
   _apcWindowTitle = Just title
 }
 
-mainWindowResizable :: Bool -> AppConfig e
-mainWindowResizable resizable = def {
+appWindowResizable :: Bool -> AppConfig e
+appWindowResizable resizable = def {
   _apcWindowResizable = Just resizable
 }
 
-mainWindowBorder :: Bool -> AppConfig e
-mainWindowBorder border = def {
+appWindowBorder :: Bool -> AppConfig e
+appWindowBorder border = def {
   _apcWindowBorder = Just border
 }
 
-useHdpi :: Bool -> AppConfig e
-useHdpi use = def {
+appUseHdpi :: Bool -> AppConfig e
+appUseHdpi use = def {
   _apcHdpi = Just use
 }
 
-maxFps :: Int -> AppConfig e
-maxFps fps = def {
+appMaxFps :: Int -> AppConfig e
+appMaxFps fps = def {
   _apcMaxFps = Just fps
+}
+
+appFontDef :: Text -> Text -> AppConfig e
+appFontDef name path = def {
+  _apcFonts = [ FontDef name path ]
 }
 
 appTheme :: Theme -> AppConfig e
@@ -152,7 +160,7 @@ appExitEvent e = def {
   _apcExitEvent = Just e
 }
 
-fontDef :: Text -> Text -> AppConfig e
-fontDef name path = def {
-  _apcFonts = [ FontDef name path ]
+appMainButton :: Button -> AppConfig e
+appMainButton btn = def {
+  _apcMainButton = Just btn
 }

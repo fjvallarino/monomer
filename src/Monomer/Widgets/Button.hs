@@ -237,6 +237,7 @@ makeButton config state = widget where
     where
       style = activeStyle wenv node
       inputStatus = wenv ^. L.inputStatus
+      mainBtn = wenv ^. L.mainButton
       renderArea = node ^. L.info . L.renderArea
-      isHoverPressed = isButtonPressedInRect inputStatus LeftBtn renderArea
+      isHoverPressed = isButtonPressedInRect inputStatus mainBtn renderArea
       bgColor = Just $ Color 0 0 0 0.2

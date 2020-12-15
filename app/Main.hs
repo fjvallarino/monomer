@@ -34,20 +34,21 @@ main = do
   let config = [
         --windowSize (1280, 960),
         --windowSize (320, 240),
-        --mainWindowState MainWindowFullScreen,
-        --mainWindowState MainWindowMaximized,
-        --mainWindowState $ MainWindowNormal (640, 480),
-        --mainWindowResizable False,
-        --mainWindowBorder False,
-        maxFps 10,
-        mainWindowTitle "This is my title",
-        useHdpi True,
+        --appWindowState MainWindowFullScreen,
+        --appWindowState MainWindowMaximized,
+        --appWindowState $ MainWindowNormal (640, 480),
+        --appWindowResizable False,
+        --appWindowBorder False,
+        appMaxFps 10,
+        appWindowTitle "This is my title",
+        appUseHdpi True,
         appTheme theme,
         appInitEvent InitApp,
         appExitEvent CancelExitApp,
-        fontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
-        fontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
-        fontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
+        appMainButton LeftBtn,
+        appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+        appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+        appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
   simpleApp_ model handleAppEvent buildUI config
   --simpleApp model handleAppEvent buildUI

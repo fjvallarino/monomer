@@ -79,34 +79,32 @@ simpleApp_ model eventHandler uiBuilder configs = do
 
   let monomerContext = initMonomerContext model window winSize useHdpi dpr
 
-  runStateT (runApp window maxFps fonts theme exitEvent appWidget) monomerContext
+  runStateT (runApp window appWidget config) monomerContext
   detroySDLWindow window
   where
     config = mconcat configs
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
-    maxFps = fromMaybe 30 (_apcMaxFps config)
-    fonts = _apcFonts config
-    theme = fromMaybe def (_apcTheme config)
     initEvent = _apcInitEvent config
-    exitEvent = _apcExitEvent config
     appWidget = composite "app" id initEvent uiBuilder eventHandler
 
 runApp
   :: (MonomerM s m, Typeable e)
   => SDL.Window
-  -> Int
-  -> [FontDef]
-  -> Theme
-  -> Maybe e
   -> WidgetNode s ep
+  -> AppConfig e
   -> m ()
-runApp window maxFps fonts theme exitEvent widgetRoot = do
+runApp window widgetRoot config = do
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
   Size rw rh <- use L.windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
   let newWindowSize = Size (rw / dpr) (rh / dpr)
+  let maxFps = fromMaybe 30 (_apcMaxFps config)
+  let fonts = _apcFonts config
+  let theme = fromMaybe def (_apcTheme config)
+  let exitEvent = _apcExitEvent config
+  let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
 
   L.windowSize .= newWindowSize
   startTs <- fmap fromIntegral SDL.ticks
@@ -116,6 +114,7 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
   let wenv = WidgetEnv {
     _weOS = os,
     _weRenderer = renderer,
+    _weMainButton = mainBtn,
     _weTheme = theme,
     _weWindowSize = newWindowSize,
     _weGlobalKeys = Map.empty,
@@ -150,15 +149,16 @@ runApp window maxFps fonts theme exitEvent widgetRoot = do
   mainModel .= _weModel newWenv
   focusedPath .= findNextFocus newWenv FocusFwd rootPath Nothing resizedRoot
 
-  mainLoop window renderer loopArgs
+  mainLoop window renderer config loopArgs
 
 mainLoop
   :: (MonomerM s m, Typeable e)
   => SDL.Window
   -> Renderer
+  -> AppConfig e
   -> MainLoopArgs s e ep
   -> m ()
-mainLoop window renderer loopArgs = do
+mainLoop window renderer config loopArgs = do
   windowSize <- use L.windowSize
   useHiDPI <- use hdpi
   devicePixelRate <- use dpr
@@ -187,9 +187,12 @@ mainLoop window renderer loopArgs = do
 
   when quit $ exitApplication .= True
 
+  let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
+  let isMainBtnPressed = isButtonPressed inputStatus mainBtn
   let wenv = WidgetEnv {
     _weOS = _mlOS,
     _weRenderer = renderer,
+    _weMainButton = mainBtn,
     _weTheme = _mlTheme,
     _weWindowSize = windowSize,
     _weGlobalKeys = Map.empty,
@@ -206,9 +209,8 @@ mainLoop window renderer loopArgs = do
   when newSecond $
     liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
 
-  sysEvents <- preProcessEvents wenv _mlWidgetRoot baseSystemEvents
+  sysEvents <- preProcessEvents wenv mainBtn _mlWidgetRoot baseSystemEvents
 
-  let isMainBtnPressed = isButtonPressed inputStatus LeftBtn
   -- Exit handler
   let exitMsg = SendMessage (Seq.fromList [0]) _mlExitEvent
   let baseReqs = Seq.fromList [ exitMsg | quit ]
@@ -260,7 +262,7 @@ mainLoop window renderer loopArgs = do
   when shouldQuit $
     void $ handleWidgetDispose seWenv seRoot
 
-  unless shouldQuit (mainLoop window renderer newLoopArgs)
+  unless shouldQuit (mainLoop window renderer config newLoopArgs)
 
 checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
@@ -302,46 +304,59 @@ renderWidgets !window renderer wenv widgetRoot = do
 -- Pre process events (change focus, add Enter/Leave events, etc)
 preProcessEvents
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetNode s e -> [SystemEvent] -> m [SystemEvent]
-preProcessEvents wenv widgets events =
-  concatMapM (preProcessEvent wenv widgets) events
+  => WidgetEnv s e
+  -> Button
+  -> WidgetNode s e
+  -> [SystemEvent]
+  -> m [SystemEvent]
+preProcessEvents wenv mainBtn widgets events =
+  concatMapM (preProcessEvent wenv mainBtn widgets) events
 
 preProcessEvent
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetNode s e -> SystemEvent -> m [SystemEvent]
-preProcessEvent wenv widgetRoot evt@(Move point) = do
-  overlay <- use L.overlayPath
-  hover <- use hoveredPath
-  let startPath = fromMaybe rootPath overlay
-  let widget = widgetRoot ^. L.widget
-  let current = widgetFindByPoint widget wenv startPath point widgetRoot
-  let hoverChanged = current /= hover
-  let enter = [Enter (fromJust current) point | isJust current && hoverChanged]
-  let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
+  => WidgetEnv s e
+  -> Button
+  -> WidgetNode s e
+  -> SystemEvent
+  -> m [SystemEvent]
+preProcessEvent wenv mainBtn widgetRoot evt = case evt of
+  Move point -> do
+    overlay <- use L.overlayPath
+    hover <- use hoveredPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    let hoverChanged = curr /= hover
+    let enter = [Enter (fromJust curr) point | isJust curr && hoverChanged]
+    let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
 
-  when hoverChanged $
-    hoveredPath .= current
+    when hoverChanged $
+      hoveredPath .= curr
 
-  return $ leave ++ enter ++ [evt]
-preProcessEvent wenv widgetRoot evt@(ButtonAction point btn PressedBtn) = do
-  overlay <- use L.overlayPath
-  let startPath = fromMaybe rootPath overlay
-  let widget = widgetRoot ^. L.widget
-  let current = widgetFindByPoint widget wenv startPath point widgetRoot
+    return $ leave ++ enter ++ [evt]
+  ButtonAction point btn PressedBtn -> do
+    overlay <- use L.overlayPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
 
-  pressedPath .= current
-  return [evt]
-preProcessEvent wenv widgetRoot evt@(ButtonAction point btn ReleasedBtn) = do
-  overlay <- use L.overlayPath
-  pressed <- use pressedPath
-  let startPath = fromMaybe rootPath overlay
-  let widget = widgetRoot ^. L.widget
-  let current = widgetFindByPoint widget wenv startPath point widgetRoot
-  let extraEvt = [Click point btn | current == pressed]
+    when (btn == mainBtn) $
+      pressedPath .= curr
 
-  pressedPath .= Nothing
-  return $ extraEvt ++ [evt]
-preProcessEvent wenv widgetRoot event = return [event]
+    return [evt]
+  ButtonAction point btn ReleasedBtn -> do
+    overlay <- use L.overlayPath
+    pressed <- use pressedPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    let extraEvt = [Click point btn | btn == mainBtn && curr == pressed]
+
+    when (btn == mainBtn) $
+      pressedPath .= Nothing
+
+    return $ extraEvt ++ [evt]
+  _ -> return [evt]
 
 updateInputStatus :: (MonomerM s m) => [SystemEvent] -> m InputStatus
 updateInputStatus systemEvents = do

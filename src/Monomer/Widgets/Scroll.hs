@@ -206,8 +206,8 @@ makeScroll config state = widget where
 
   handleEvent wenv target evt node = case evt of
     ButtonAction point btn status -> result where
-      leftPressed = status == PressedBtn && btn == LeftBtn
-      btnReleased = status == ReleasedBtn
+      leftPressed = status == PressedBtn && btn == wenv ^. L.mainButton
+      btnReleased = status == ReleasedBtn && btn == wenv ^. L.mainButton
       isDragging = isJust $ _sstDragging state
       startDrag = leftPressed && not isDragging
       jumpScrollH = btnReleased && not isDragging && hMouseInScroll
