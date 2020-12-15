@@ -299,8 +299,9 @@ fitExtraGroups (g :<| gs) !width !prevGMax !keepTailSpaces
   | otherwise = (Empty, g :<| gs)
   where
     gW = getGlyphsWidth g
-    gMax = getGlyphsWidth g
-    wDiff = gMax - prevGMax
+    gMin = getGlyphsMin g
+    gMax = getGlyphsMax g
+    wDiff = gMin - prevGMax
     remWidth = width - (gW + wDiff)
     keepSpace = keepTailSpaces && isSpaceGroup g
     (newFit, newRest) = fitExtraGroups gs remWidth gMax keepTailSpaces
