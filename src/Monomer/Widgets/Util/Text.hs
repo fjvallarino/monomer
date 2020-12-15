@@ -15,8 +15,6 @@ module Monomer.Widgets.Util.Text (
   fitTextToRect
 ) where
 
-import Debug.Trace
-
 import Control.Lens ((&), (+~))
 import Data.Default
 import Data.List (foldl')
@@ -128,7 +126,7 @@ fitTextToRect
   -> Rect
   -> Text
   -> Seq TextLine
-fitTextToRect wenv style overflow mode trim rect text = newTextLines where
+fitTextToRect wenv style overflow mode trim !rect !text = newTextLines where
   Rect cx cy cw ch = rect
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
@@ -137,7 +135,7 @@ fitTextToRect wenv style overflow mode trim rect text = newTextLines where
   textLines
     | mode == MultiLine = fittedLines
     | otherwise = Seq.take 1 fittedLines
-  newTextLines = alignTextLines rect alignH alignV textLines
+  !newTextLines = alignTextLines rect alignH alignV textLines
 
 alignTextLines :: Rect -> AlignH -> AlignV -> Seq TextLine -> Seq TextLine
 alignTextLines parentRect alignH alignV textLines = newTextLines where
@@ -281,8 +279,10 @@ addEllipsisToTextLine wenv style width textLine = newTextLine where
 
 fitGroups :: Seq GlyphGroup -> Double -> Bool -> Seq GlyphGroup
 fitGroups Empty _ _ = Empty
-fitGroups (g :<| gs) width keepTailSpaces = currentLine <| extraLines where
-  extraGroups = fitExtraGroups gs (width - getGlyphsWidth g) keepTailSpaces
+fitGroups (g :<| gs) !width !keepTailSpaces = currentLine <| extraLines where
+  gW = getGlyphsWidth g
+  gMax = getGlyphsMax g
+  extraGroups = fitExtraGroups gs (width - gW) gMax keepTailSpaces
   (lineGroups, remainingGroups) = extraGroups
   currentLine = g <> lineGroups
   extraLines = fitGroups remainingGroups width keepTailSpaces
@@ -290,16 +290,20 @@ fitGroups (g :<| gs) width keepTailSpaces = currentLine <| extraLines where
 fitExtraGroups
   :: Seq GlyphGroup
   -> Double
+  -> Double
   -> Bool
   -> (Seq GlyphPos, Seq GlyphGroup)
-fitExtraGroups Empty _ _ = (Empty, Empty)
-fitExtraGroups (g :<| gs) width keepTailSpaces
-  | gw <= width || keepSpace = (g <> newFit, newRest)
+fitExtraGroups Empty _ _ _ = (Empty, Empty)
+fitExtraGroups (g :<| gs) !width !prevGMax !keepTailSpaces
+  | gW + wDiff <= width || keepSpace = (g <> newFit, newRest)
   | otherwise = (Empty, g :<| gs)
   where
-    gw = getGlyphsWidth g
+    gW = getGlyphsWidth g
+    gMax = getGlyphsWidth g
+    wDiff = gMax - prevGMax
+    remWidth = width - (gW + wDiff)
     keepSpace = keepTailSpaces && isSpaceGroup g
-    (newFit, newRest) = fitExtraGroups gs (width - gw) keepTailSpaces
+    (newFit, newRest) = fitExtraGroups gs remWidth gMax keepTailSpaces
 
 isSpaceGroup :: Seq GlyphPos -> Bool
 isSpaceGroup Empty = False

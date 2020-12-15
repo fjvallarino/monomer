@@ -108,11 +108,11 @@ instance Default TextMetrics where
   }
 
 data TextLine = TextLine {
-  _tlText :: Text,
-  _tlSize :: Size,
-  _tlRect :: Rect,
-  _tlGlyphs :: Seq GlyphPos,
-  _tlMetrics :: TextMetrics
+  _tlText :: !Text,
+  _tlSize :: !Size,
+  _tlRect :: !Rect,
+  _tlGlyphs :: !(Seq GlyphPos),
+  _tlMetrics :: !TextMetrics
 } deriving (Eq, Show)
 
 data ImageAddAction

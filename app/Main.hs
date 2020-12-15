@@ -102,11 +102,13 @@ handleAppEvent model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetTree where
+buildUI wenv model = trace "Creating UI" widgetLV where
   widgetLV = vstack [
-      listView dropdown1 items label
-      ,
-      dropdown_ dropdown1 items label label [maxHeight 200]
+      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
+
+--      listView dropdown1 items label
+--      ,
+--      dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
       hstack [
