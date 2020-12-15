@@ -128,7 +128,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     IgnoreParentEvents -> return step
     IgnoreChildrenEvents -> return step
     ResizeWidgets -> return step
-    MoveFocus dir -> handleMoveFocus dir step
+    MoveFocus start dir -> handleMoveFocus start dir step
     SetFocus path -> handleSetFocus path step
     GetClipboard path -> handleGetClipboard path step
     SetClipboard cdata -> handleSetClipboard cdata step
@@ -168,8 +168,12 @@ handleResizeWidgets reqs previousStep =
     _ -> return previousStep
 
 handleMoveFocus
-  :: (MonomerM s m) => FocusDirection -> HandlerStep s e -> m (HandlerStep s e)
-handleMoveFocus direction  (wenv, events, root) = do
+  :: (MonomerM s m)
+  => Maybe Path
+  -> FocusDirection
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleMoveFocus startFrom direction (wenv, events, root) = do
   oldFocus <- use L.focusedPath
   let wenv0 = wenv { _weFocusedPath = rootPath }
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
@@ -178,7 +182,8 @@ handleMoveFocus direction  (wenv, events, root) = do
 
   if oldFocus == currFocus
     then do
-      let newFocus = findNextFocus wenv1 direction currFocus currOverlay root1
+      let searchFrom = fromMaybe currFocus startFrom
+      let newFocus = findNextFocus wenv1 direction searchFrom currOverlay root1
       let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
       L.focusedPath .= newFocus
@@ -368,7 +373,7 @@ addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
     | mod ^. L.leftShift = FocusBwd
     | otherwise = FocusFwd
   newReqs
-    | focusReqNeeded = reqs |> MoveFocus direction
+    | focusReqNeeded = reqs |> MoveFocus Nothing direction
     | otherwise = reqs
 addFocusReq _ reqs = reqs
 

@@ -327,6 +327,9 @@
   - Draw close button on Dialog
   - Check why putting box reduces label's space
     - scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..100::Int]
+  - Set focus on ButtonDown, not Click
+    - Can it be handled in Single/Container?
+    - Handled in Single, not in Container, since it clashes with children. Handle explicitly on Containers that need it.
 
 - Pending
   - Add testing
@@ -344,24 +347,22 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Set focus on ButtonDown, not Click
-    - Can it be handled in Single/Container?
   - Restore focus to previous widget when zstack changes (dialog situation)
     - Also think about not losing focus because of click (when onlyTopFocusable is active)
   - ZStack should set _weIsTopLayer based on used space
+  - Add config to invert mouse buttons (Core.hs:211)
+  - Scroll wheel rate should be configurable, or even depend on content size
   - Image
     - Can performance be improved? Use sbt functions?
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
     - Remove delay logic when adding an image
     - When adding image, on failure remove an the least used image and retry
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
-  - Add config to invert mouse buttons (Core.hs:211)
   - Check why after click focus is not immediately shown in listView items
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
-  - Scroll wheel rate should be configurable, or even depend on content size
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - Does it make sense to handle offset

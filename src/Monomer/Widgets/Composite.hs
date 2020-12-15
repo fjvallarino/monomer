@@ -641,7 +641,7 @@ toParentReq :: WidgetRequest s -> Maybe (WidgetRequest sp)
 toParentReq IgnoreParentEvents = Just IgnoreParentEvents
 toParentReq IgnoreChildrenEvents = Just IgnoreChildrenEvents
 toParentReq ResizeWidgets = Just ResizeWidgets
-toParentReq (MoveFocus dir) = Just (MoveFocus dir)
+toParentReq (MoveFocus start dir) = Just (MoveFocus start dir)
 toParentReq (SetFocus path) = Just (SetFocus path)
 toParentReq (GetClipboard path) = Just (GetClipboard path)
 toParentReq (SetClipboard clipboard) = Just (SetClipboard clipboard)

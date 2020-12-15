@@ -1,12 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Util.Widget (
-  pointInViewport,
   defaultWidgetNode,
+  pointInViewport,
   isWidgetVisible,
   isPressed,
   isFocused,
   isHovered,
+  visibleChildrenChanged,
   widgetDataGet,
   widgetDataSet,
   resultWidget,
@@ -45,15 +46,15 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
 
-pointInViewport :: Point -> WidgetNode s e -> Bool
-pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
-
 defaultWidgetNode :: WidgetType -> Widget s e -> WidgetNode s e
 defaultWidgetNode widgetType widget = WidgetNode {
   _wnWidget = widget,
   _wnInfo = def & L.widgetType .~ widgetType,
   _wnChildren = Seq.empty
 }
+
+pointInViewport :: Point -> WidgetNode s e -> Bool
+pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
 
 isWidgetVisible :: WidgetNode s e -> Rect -> Bool
 isWidgetVisible node vp = isVisible && isOverlapped where
@@ -76,6 +77,11 @@ isHovered wenv node = validPos && validPress && isTopLevel wenv node where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
   validPress = isPressed wenv node
+
+visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where
+  oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
+  newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value

@@ -247,10 +247,12 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Click point _
       | openRequired point node -> Just $ openDropdown wenv node
       | closeRequired point node -> Just $ closeDropdown wenv node
-    KeyAction mode code status
+    KeyAction mode code KeyPressed
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv node
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
-      where isKeyOpenDropdown = isKeyDown code || isKeyUp code
+      where
+        activationKeys = [isKeyDown, isKeyUp, isKeySpace, isKeyReturn]
+        isKeyOpenDropdown = or (fmap ($ code) activationKeys)
     _
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
@@ -387,7 +389,7 @@ makeListView wenv value items makeRow config path = listViewNode where
     & L.info . L.style .~ lvStyle
 
 createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
-createMoveFocusReq wenv = MoveFocus direction where
+createMoveFocusReq wenv = MoveFocus Nothing direction where
   direction
     | wenv ^. L.inputStatus . L.keyMod . L.leftShift = FocusBwd
     | otherwise = FocusFwd

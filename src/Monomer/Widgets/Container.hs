@@ -348,9 +348,7 @@ mergeChildrenCheckVisible
   -> WidgetResult s e
 mergeChildrenCheckVisible oldNode result = newResult where
   newNode = result ^. L.node
-  newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
-  oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
-  resizeRequired = oldVisible /= newVisible
+  resizeRequired = visibleChildrenChanged oldNode newNode
   newResult
     | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
     | otherwise = result

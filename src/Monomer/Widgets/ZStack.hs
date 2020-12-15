@@ -7,7 +7,7 @@ module Monomer.Widgets.ZStack (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
@@ -57,6 +57,7 @@ makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
   baseWidget = createContainer def {
     containerKeepChildrenSizes = True,
+    containerMergePost = mergePost,
     containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -65,6 +66,20 @@ makeZStack config = widget where
     widgetFindByPoint = findByPoint,
     widgetRender = render
   }
+
+  mergePost wenv result oldState oldNode newNode = newResult where
+    children = newNode ^. L.children
+    focusedPath = wenv ^. L.focusedPath
+    isFocusParent = isWidgetParentOfPath focusedPath newNode
+    topLevel = isTopLevel wenv newNode
+    childrenChanged = visibleChildrenChanged oldNode newNode
+    topVisibleIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
+    needsFocus = isFocusParent && topLevel && childrenChanged
+    newPath = Just $ newNode ^. L.info . L.path |> topVisibleIdx
+
+    newResult
+      | needsFocus = result & L.requests %~ (|> MoveFocus newPath FocusFwd)
+      | otherwise = result
 
   -- | Find instance matching point
   findByPoint wenv startPath point node = result where
