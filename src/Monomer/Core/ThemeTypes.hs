@@ -54,7 +54,10 @@ data ThemeState = ThemeState {
   _thsRadioStyle :: StyleState,
   _thsScrollBarColor :: Color,
   _thsScrollThumbColor :: Color,
-  _thsScrollWidth :: Double,
+  _thsScrollBarWidth :: Double,
+  _thsScrollThumbWidth :: Double,
+  _thsScrollThumbRadius :: Double,
+  _thsScrollWheelRate :: Double,
   _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show)
 
@@ -89,6 +92,9 @@ instance Default ThemeState where
     _thsRadioStyle = def,
     _thsScrollBarColor = def,
     _thsScrollThumbColor = def,
-    _thsScrollWidth = def,
+    _thsScrollBarWidth = 10,
+    _thsScrollThumbWidth = 8,
+    _thsScrollThumbRadius = 0,
+    _thsScrollWheelRate = 10,
     _thsUserStyleMap = M.empty
   }

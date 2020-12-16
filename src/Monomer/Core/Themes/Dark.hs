@@ -113,7 +113,10 @@ darkBasic = def
   & L.radioStyle . L.fgColor ?~ gray
   & L.scrollBarColor .~ (gray & L.a .~ 0.2)
   & L.scrollThumbColor .~ (darkGray & L.a .~ 0.6)
-  & L.scrollWidth .~ 10
+  & L.scrollBarWidth .~ 10
+  & L.scrollThumbWidth .~ 8
+  & L.scrollThumbRadius .~ 4
+  & L.scrollWheelRate .~ 10
 
 darkHover :: ThemeState
 darkHover = darkBasic

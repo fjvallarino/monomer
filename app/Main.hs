@@ -253,7 +253,7 @@ buildUI wenv model = trace "Creating UI" widgetTree where
       ] `hover` [bgColor red],
       hstack [
         scroll_ (
-          scroll (image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200])
+          image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
         ) []
         ,
         spacer_ [resizeFactor 1],

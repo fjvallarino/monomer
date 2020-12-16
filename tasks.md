@@ -331,6 +331,7 @@
     - Can it be handled in Single/Container?
     - Handled in Single, not in Container, since it clashes with children. Handle explicitly on Containers that need it.
   - Restore focus to previous widget when zstack changes (dialog situation)
+  - Add config to invert mouse buttons (Core.hs:211)
 
 - Pending
   - Add testing
@@ -348,7 +349,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add config to invert mouse buttons (Core.hs:211)
   - Scroll wheel rate should be configurable, or even depend on content size
   - Image
     - Can performance be improved? Use sbt functions?
@@ -356,7 +356,6 @@ Maybe postponed after release?
     - Remove delay logic when adding an image
     - When adding image, on failure remove an the least used image and retry
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
-  - Check why after click focus is not immediately shown in listView items
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection
@@ -364,6 +363,7 @@ Maybe postponed after release?
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - ZStack should set _weIsTopLayer based on used space
+  - Check why after click focus is not immediately shown in listView items
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
@@ -384,6 +384,7 @@ Maybe postponed after release?
     - SDL supports Drag and Drop integration with OS
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
+  - Implement ImDrawList based Renderer
   - Improve window resize situation
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
