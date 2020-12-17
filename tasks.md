@@ -332,6 +332,8 @@
     - Handled in Single, not in Container, since it clashes with children. Handle explicitly on Containers that need it.
   - Restore focus to previous widget when zstack changes (dialog situation)
   - Add config to invert mouse buttons (Core.hs:211)
+  - Scroll wheel rate should be configurable, or even depend on content size
+    - Added a few extra config options (rounded thumb)
 
 - Pending
   - Add testing
@@ -349,7 +351,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Scroll wheel rate should be configurable, or even depend on content size
   - Image
     - Can performance be improved? Use sbt functions?
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?

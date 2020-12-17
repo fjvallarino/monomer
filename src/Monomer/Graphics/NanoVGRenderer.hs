@@ -4,7 +4,9 @@
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (foldM, forM_, unless, when)
+import Data.Default
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
@@ -31,27 +33,27 @@ import Monomer.Core.BasicTypes
 import Monomer.Graphics.Types
 
 import qualified Monomer.Graphics.RobotoRegular as RBTReg
+import qualified Monomer.Lens as L
 
 type ImagesMap = M.Map String Image
 
-data Action
-  = AddKeep
-  | AddReplace
-  | Update
-  | Delete
+data ImageAction
+  = ImageAdd
+  | ImageUpdate
+  | ImageDelete
   deriving (Eq, Show)
 
 data Image = Image {
+  _imImageDef :: ImageDef,
   _imNvImage :: VG.Image,
   _imCount :: Int
 }
 
 data ImageReq = ImageReq {
   _irName :: String,
-  _irWidth :: Double,
-  _irHeight :: Double,
+  _irSize :: Size,
   _irImgData :: Maybe BS.ByteString,
-  _irAction :: Action
+  _irAction :: ImageAction
 }
 
 data Env = Env {
@@ -276,22 +278,19 @@ newRenderer c dpr lock envRef = Renderer {..} where
     where
       CPoint tx ty = pointToCPoint point dpr
 
-  addImage name action size imgData = addPending lock envRef imageReq where
-    newAction = case action of
-      ImageAddKeep -> AddKeep
-      _ -> AddReplace
-    Size w h = size
-    imageReq = ImageReq name w h (Just imgData) newAction
+  getImage name = unsafePerformIO $ do
+    env <- readIORef envRef
+    let image = M.lookup name (imagesMap env)
+    return $ fmap _imImageDef image
 
-  updateImage name imgData = addPending lock envRef imageReq where
-    imageReq = ImageReq name 0 0 (Just imgData) Update
+  addImage name size imgData = addPending lock envRef imageReq where
+    imageReq = ImageReq name size (Just imgData) ImageAdd
+
+  updateImage name size imgData = addPending lock envRef imageReq where
+    imageReq = ImageReq name size (Just imgData) ImageUpdate
 
   deleteImage name = addPending lock envRef imageReq where
-    imageReq = ImageReq name 0 0 Nothing Delete
-
-  existsImage name = unsafePerformIO $ do
-    env <- readIORef envRef
-    return $ M.member name (imagesMap env)
+    imageReq = ImageReq name def Nothing ImageDelete
 
   renderImage name rect alpha = do
     env <- readIORef envRef
@@ -384,15 +383,15 @@ handlePendingImages c imagesMap addedImages =
 
 handlePendingImage :: VG.Context -> ImagesMap -> ImageReq -> IO ImagesMap
 handlePendingImage c imagesMap imageReq
-  | action == AddKeep && imageExists =
+  | action == ImageAdd && imageExists =
       return $ imgIncreaseCount name imagesMap
-  | action `elem` [AddKeep, AddReplace] && not imageExists = do
+  | action `elem` [ImageAdd, ImageUpdate] && not imageExists = do
       nvImg <- VG.createImageRGBA c cw ch VGI.ImageNearest imgData
-      return $ maybe imagesMap (imgInsertNew name imagesMap) nvImg
-  | action `elem` [AddReplace, Update] && imageExists = do
+      return $ maybe imagesMap (imgInsertNew name imgDef imagesMap) nvImg
+  | action == ImageUpdate && imageExists = do
       VG.updateImage c (_imNvImage image) imgData
       return imagesMap
-  | action == Delete && imageExists = do
+  | action == ImageDelete && imageExists = do
       when (_imCount image == 1) $
         VG.deleteImage c (_imNvImage image)
       return $ imgDelete name imagesMap
@@ -401,9 +400,11 @@ handlePendingImage c imagesMap imageReq
   where
     name = _irName imageReq
     action = _irAction imageReq
-    cw = round $ _irWidth imageReq
-    ch = round $ _irHeight imageReq
+    size = _irSize imageReq
+    cw = round (size ^. L.w)
+    ch = round (size ^. L.h)
     imgData = fromJust $ _irImgData imageReq
+    imgDef = ImageDef name size imgData
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
     image = fromJust mimage
@@ -413,9 +414,9 @@ imgIncreaseCount name imagesMap = newImageMap where
   incCount img = img { _imCount = _imCount img + 1 }
   newImageMap = M.adjust incCount name imagesMap
 
-imgInsertNew :: String -> ImagesMap -> VG.Image -> ImagesMap
-imgInsertNew name imagesMap nvImg = newImagesMap where
-  image = Image nvImg 0
+imgInsertNew :: String -> ImageDef -> ImagesMap -> VG.Image -> ImagesMap
+imgInsertNew name imageDef imagesMap nvImg = newImagesMap where
+  image = Image imageDef nvImg 0
   newImagesMap = M.insert name image imagesMap
 
 imgDelete :: String -> ImagesMap -> ImagesMap

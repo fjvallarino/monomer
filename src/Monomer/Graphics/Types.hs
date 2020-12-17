@@ -5,6 +5,8 @@ import Data.Default
 import Data.Text (Text)
 import Data.Sequence (Seq)
 
+import qualified Data.ByteString as BS
+
 import Monomer.Core.BasicTypes
 
 defaultFontName :: Text
@@ -115,10 +117,11 @@ data TextLine = TextLine {
   _tlMetrics :: !TextMetrics
 } deriving (Eq, Show)
 
-data ImageAddAction
-  = ImageAddKeep
-  | ImageAddReplace
-  deriving (Eq, Show)
+data ImageDef = ImageDef {
+  _idfName :: String,
+  _idfSize :: Size,
+  _idfImgData :: BS.ByteString
+}
 
 data Renderer = Renderer {
   -- Frame
@@ -158,9 +161,9 @@ data Renderer = Renderer {
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- Image
-  addImage :: String -> ImageAddAction -> Size -> ByteString -> IO (),
-  updateImage :: String -> ByteString -> IO (),
+  getImage :: String -> Maybe ImageDef,
+  addImage :: String -> Size -> ByteString -> IO (),
+  updateImage :: String -> Size -> ByteString -> IO (),
   deleteImage :: String -> IO (),
-  existsImage :: String -> Bool,
   renderImage :: String -> Rect -> Double -> IO ()
 }

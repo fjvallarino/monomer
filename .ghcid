@@ -1,1 +1,3 @@
---command "stack repl" --test ":main"
+--command "stack repl"
+--test ":main"
+--restart=package.yaml

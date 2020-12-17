@@ -14,7 +14,7 @@ module Monomer.Widgets.Image (
 import Codec.Picture (DynamicImage, Image(..))
 import Control.Applicative ((<|>))
 import Control.Exception (try)
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (.~), (%~), (?~))
 import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
@@ -162,7 +162,7 @@ makeImage imgPath config state = widget where
 
   render renderer wenv node = do
     when (imageLoaded && not imageExists) $
-      addImage renderer imgPath ImageAddKeep imgSize imgBytes
+      addImage renderer imgPath imgSize imgBytes
 
     drawImage renderer imgPath imageRect alpha
     where
@@ -174,7 +174,7 @@ makeImage imgPath config state = widget where
       ImageState _ imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
-      imageExists = existsImage renderer imgPath
+      imageExists = isJust (getImage renderer imgPath)
 
 fitImage :: ImageFit -> Size -> Rect -> Rect
 fitImage fitMode imageSize renderArea = case fitMode of
@@ -219,7 +219,7 @@ loadRemote path = do
     Right r -> Right $ respBody r
   where
     respBody r = BSL.toStrict $ r ^. responseBody
-    getUrl = getWith (defaults & checkResponse .~ (Just $ \_ _ -> return ()))
+    getUrl = getWith (defaults & checkResponse ?~ (\_ _ -> return ()))
 
 remoteException
   :: String -> HttpException -> Either ImageLoadError ByteString
@@ -247,7 +247,7 @@ registerImg
   -> DynamicImage
   -> IO ImageMessage
 registerImg wenv name dimg = do
-  addImage renderer name ImageAddKeep size bs
+  addImage renderer name size bs
   return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
