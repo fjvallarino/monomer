@@ -256,6 +256,14 @@ buildUI wenv model = trace "Creating UI" widgetTree where
           image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
         ) []
         ,
+        scroll_ (
+          image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
+        ) []
+        ,
+        scroll_ (
+          image_ "assets/images/pecans.jpg" [fitFill] `style` [minWidth 200]
+        ) []
+        ,
         spacer_ [resizeFactor 1],
         image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
       ],

@@ -359,16 +359,9 @@ addPending :: VG.Context -> L.Lock -> IORef Env -> ImageReq -> IO ()
 addPending c lock envRef imageReq = L.with lock $ do
   env <- readIORef envRef
 
-  if inFrame env
-    then do
-      newImagesMap <- handlePendingImage c (imagesMap env) imageReq
-      modifyIORef' envRef (\env -> env {
-        imagesMap = newImagesMap
-      })
-    else do
-      writeIORef envRef env {
-        addedImages = addedImages env |> imageReq
-      }
+  writeIORef envRef env {
+    addedImages = addedImages env |> imageReq
+  }
 
 handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
 handleImageRender c dpr rect alpha image = do

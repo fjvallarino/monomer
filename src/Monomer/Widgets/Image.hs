@@ -187,12 +187,25 @@ fitImage fitMode imageSize renderArea = case fitMode of
     Size iw ih = imageSize
 
 handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage
-handleImageLoad wenv path = do
-  res <- loadImage path
+handleImageLoad wenv path =
+  if isNothing prevImage
+    then do
+      res <- loadImage path
 
-  case res >>= decodeImage of
-    Left loadError -> return (ImageFailed loadError)
-    Right dimg -> registerImg wenv path dimg
+      case res >>= decodeImage of
+        Left loadError -> return (ImageFailed loadError)
+        Right dimg -> registerImg wenv path dimg
+    else do
+      addImage renderer path size imgData
+      return $ ImageLoaded newState
+  where
+    renderer = _weRenderer wenv
+    prevImage = getImage renderer path
+    ImageDef _ size imgData = fromJust prevImage
+    newState = ImageState {
+      isImagePath = path,
+      isImageData = Just (imgData, size)
+    }
 
 loadImage :: String -> IO (Either ImageLoadError ByteString)
 loadImage path
