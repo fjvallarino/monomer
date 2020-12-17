@@ -334,6 +334,9 @@
   - Add config to invert mouse buttons (Core.hs:211)
   - Scroll wheel rate should be configurable, or even depend on content size
     - Added a few extra config options (rounded thumb)
+  - Image
+    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
+    - Remove delay logic when adding an image
 
 - Pending
   - Add testing
@@ -351,11 +354,7 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Image
-    - Can performance be improved? Use sbt functions?
-    - Does adding function to return imgData from Renderer make sense? Replace imageExists?
-    - Remove delay logic when adding an image
-    - When adding image, on failure remove an the least used image and retry
+  - Check why after click focus is not immediately shown in listView items
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
     - Handle undo history
@@ -364,7 +363,13 @@ Maybe postponed after release?
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - ZStack should set _weIsTopLayer based on used space
-  - Check why after click focus is not immediately shown in listView items
+  - Listview is not properly changing styles
+    - Label needs to rebuild its glyphs if style/renderArea changes
+    - Listview needs to update sizeReq of modified items
+    - If sizeReq changes, it should request ResizeWidgets
+    - Further improvements
+      - Stack resizing should exclude invisible items (outside of viewprot)
+      - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
@@ -378,7 +383,6 @@ Maybe postponed after release?
   - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector
-  - Create self rendered version of dropdown and list
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
@@ -396,6 +400,10 @@ Maybe postponed after release?
   - Add new request types (drag started, drag stopped, drag cancelled)
   - Add new events (drag hover)
   - SDL supports Drag and Drop integration with OS
+  - Image
+    - Can performance be improved? Use sbt functions?
+    - When adding image, on failure remove an the least used image and retry
+  - Create self rendered version of dropdown and list
   - Does it make sense to handle offset
     - It would avoid resizing on scroll
     - We need transform stack on Renderer (also rotate?)

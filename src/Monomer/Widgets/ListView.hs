@@ -14,7 +14,7 @@ module Monomer.Widgets.ListView (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), ix, non)
+import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), at, ix, non, _Just)
 import Control.Monad (when)
 import Data.Default
 import Data.List (foldl')
@@ -34,7 +34,7 @@ import Monomer.Widgets.Scroll
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
-import qualified Monomer.Core.Lens as L
+import qualified Monomer.Lens as L
 
 type ListItem a = (Eq a, Show a, Typeable a)
 type MakeRow s e a = a -> WidgetNode s e
@@ -414,11 +414,12 @@ setSelectedItemStyle
   -> ListViewCfg s e a
   -> WidgetNode s e
 setSelectedItemStyle wenv item hl config
-  | isHovered wenv item && hl = newItem & hoverLens .~ hoverStyle <> focusStyle
-  | isHovered wenv item = newItem & hoverLens .~ hoverStyle
+  | isHovered wenv cItem && hl = newItem & hoverLens .~ hoverStyle <> focusStyle
+  | isHovered wenv cItem = newItem & hoverLens .~ hoverStyle
   | hl = newItem & basicLens .~ focusStyle
   | otherwise = newItem
   where
+    cItem = item ^?! L.children . ix 0
     selectedTheme = collectTheme wenv L.listViewItemSelectedStyle
     selectedStyleCfg = _lvcItemSelectedStyle config
     selectedStyle = fromJust (Just selectedTheme <> selectedStyleCfg)
