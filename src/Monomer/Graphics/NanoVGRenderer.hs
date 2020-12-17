@@ -57,6 +57,7 @@ data ImageReq = ImageReq {
 }
 
 data Env = Env {
+  inFrame :: Bool,
   scissors :: Seq CRect,
   overlays :: Seq (IO ()),
   validFonts :: Set Text,
@@ -82,6 +83,7 @@ makeRenderer fonts dpr = do
     else foldM (loadFont c) Set.empty fonts
 
   envRef <- newIORef $ Env {
+    inFrame = False,
     scissors = Seq.empty,
     overlays = Seq.empty,
     validFonts = validFonts,
@@ -96,18 +98,24 @@ newRenderer c dpr lock envRef = Renderer {..} where
   beginFrame w h = L.with lock $ do
     env <- readIORef envRef
     newMap <- handlePendingImages c (imagesMap env) (addedImages env)
+
+    VG.beginFrame c cw ch cdpr
+
     writeIORef envRef env {
+      inFrame = True,
       imagesMap = newMap,
       addedImages = Seq.empty
     }
-
-    VG.beginFrame c cw ch cdpr
     where
       cw = fromIntegral w
       ch = fromIntegral h
       cdpr = realToFrac dpr
 
-  endFrame =
+  endFrame = L.with lock $ do
+    modifyIORef' envRef (\env -> env {
+      inFrame = False
+    })
+
     VG.endFrame c
 
   beginPath =
@@ -283,13 +291,13 @@ newRenderer c dpr lock envRef = Renderer {..} where
     let image = M.lookup name (imagesMap env)
     return $ fmap _imImageDef image
 
-  addImage name size imgData = addPending lock envRef imageReq where
+  addImage name size imgData = addPending c lock envRef imageReq where
     imageReq = ImageReq name size (Just imgData) ImageAdd
 
-  updateImage name size imgData = addPending lock envRef imageReq where
+  updateImage name size imgData = addPending c lock envRef imageReq where
     imageReq = ImageReq name size (Just imgData) ImageUpdate
 
-  deleteImage name = addPending lock envRef imageReq where
+  deleteImage name = addPending c lock envRef imageReq where
     imageReq = ImageReq name def Nothing ImageDelete
 
   renderImage name rect alpha = do
@@ -347,13 +355,20 @@ getTextBounds c x y text = do
     cx = realToFrac x
     cy = realToFrac y
 
-addPending :: L.Lock -> IORef Env -> ImageReq -> IO ()
-addPending lock envRef imageReq = L.with lock $ do
+addPending :: VG.Context -> L.Lock -> IORef Env -> ImageReq -> IO ()
+addPending c lock envRef imageReq = L.with lock $ do
   env <- readIORef envRef
 
-  writeIORef envRef env {
-    addedImages = addedImages env |> imageReq
-  }
+  if inFrame env
+    then do
+      newImagesMap <- handlePendingImage c (imagesMap env) imageReq
+      modifyIORef' envRef (\env -> env {
+        imagesMap = newImagesMap
+      })
+    else do
+      writeIORef envRef env {
+        addedImages = addedImages env |> imageReq
+      }
 
 handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
 handleImageRender c dpr rect alpha image = do
