@@ -59,9 +59,9 @@ testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
   it "should request Resize widgets if sizeReq changed" $ do
     resHover ^? _Just . L.requests `shouldSatisfy` (==3) . maybeLength
-    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isResizeWidgets
-    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isRenderOnce
-    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isSetCursorIcon
+    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isMResizeWidgets
+    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isMRenderOnce
+    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isMSetCursorIcon
 
   it "should not request Resize widgets if sizeReq has not changed" $
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
@@ -84,17 +84,17 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing node
     resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing node
 
-isResizeWidgets :: Maybe (WidgetRequest s) -> Bool
-isResizeWidgets (Just ResizeWidgets) = True
-isResizeWidgets _ = False
+isMResizeWidgets :: Maybe (WidgetRequest s) -> Bool
+isMResizeWidgets (Just ResizeWidgets) = True
+isMResizeWidgets _ = False
 
-isRenderOnce :: Maybe (WidgetRequest s) -> Bool
-isRenderOnce (Just RenderOnce{}) = True
-isRenderOnce _ = False
+isMRenderOnce :: Maybe (WidgetRequest s) -> Bool
+isMRenderOnce (Just RenderOnce{}) = True
+isMRenderOnce _ = False
 
-isSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
-isSetCursorIcon (Just SetCursorIcon{}) = True
-isSetCursorIcon _ = False
+isMSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
+isMSetCursorIcon (Just SetCursorIcon{}) = True
+isMSetCursorIcon _ = False
 
 maybeLength :: Maybe (Seq a) -> Int
 maybeLength Nothing = 0

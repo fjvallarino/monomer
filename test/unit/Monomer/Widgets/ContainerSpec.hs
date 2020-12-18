@@ -66,7 +66,7 @@ handleEventNormal = describe "handleEventNormal" $
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
 
 handleEventNoKey :: Spec
 handleEventNoKey = describe "handleEventNoKey" $
@@ -91,7 +91,7 @@ handleEventNoKey = describe "handleEventNoKey" $
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
@@ -116,4 +116,4 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)

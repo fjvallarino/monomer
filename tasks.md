@@ -337,6 +337,7 @@
   - Image
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
     - Remove delay logic when adding an image
+  - Check why after click focus is not immediately shown in listView items
 
 - Pending
   - Add testing
@@ -354,7 +355,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check why after click focus is not immediately shown in listView items
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
     - Handle undo history

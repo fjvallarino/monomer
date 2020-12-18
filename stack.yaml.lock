@@ -5,13 +5,6 @@
 
 packages:
 - completed:
-    hackage: hedgehog-classes-0.2.5@sha256:a37e4af8b8ddb3e92120d0a5ddd892f669fe75fc13dcfd9723850574530d1f2b,5723
-    pantry-tree:
-      size: 5192
-      sha256: 965b5001ec24cddf85cf72f15ab99d335d0b19c0c8515f8b09fdc8b8d68c89b4
-  original:
-    hackage: hedgehog-classes-0.2.5
-- completed:
     hackage: nanovg-0.6.0.0@sha256:326e73fe2c4ec56656fa42894c53a8e26b3e60449c69578f5f6da50c0ad60ed2,4146
     pantry-tree:
       size: 2477

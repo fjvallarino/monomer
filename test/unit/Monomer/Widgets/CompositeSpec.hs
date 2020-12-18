@@ -91,8 +91,8 @@ handleEventBasic = describe "handleEventBasic" $ do
     wenv = mockWenv def
     handleEvent :: MainModel -> MainEvt -> [EventResponse MainModel MainEvt ()]
     handleEvent model evt = [Model (model & clicks %~ (+1))]
-    buildUI model = button "Click" MainBtnClicked
-    cmpNode = composite "main" id Nothing handleEvent buildUI
+    buildUI wenv model = button "Click" MainBtnClicked
+    cmpNode = composite "main" id Nothing buildUI handleEvent
     model es = nodeHandleEventCtxModel wenv es cmpNode
 
 handleEventChild :: Spec
@@ -113,14 +113,14 @@ handleEventChild = describe "handleEventChild" $ do
     wenv = mockWenv def
     handleChild :: ChildModel -> ChildEvt -> [EventResponse ChildModel ChildEvt MainEvt]
     handleChild model evt = [Model (model & clicks %~ (+1))]
-    buildChild model = button "Click" ChildBtnClicked
+    buildChild wenv model = button "Click" ChildBtnClicked
     handleEvent :: MainModel -> MainEvt -> [EventResponse MainModel MainEvt ()]
     handleEvent model evt = [Model (model & clicks %~ (+1))]
-    buildUI model = vstack [
+    buildUI wenv model = vstack [
         button "Click" MainBtnClicked,
-        composite "child" child Nothing handleChild buildChild
+        composite "child" child Nothing buildChild handleChild
       ]
-    cmpNode = composite "main" id Nothing handleEvent buildUI
+    cmpNode = composite "main" id Nothing buildUI handleEvent
     model es = nodeHandleEventCtxModel wenv es cmpNode
 
 handleEventLocalKey :: Spec
@@ -135,7 +135,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     wenv = mockWenv (TestModel "" "")
     handleEvent :: TestModel -> () -> [EventResponse TestModel () ()]
     handleEvent model evt = []
-    buildUI1 model = hstack [
+    buildUI1 wenv model = hstack [
         vstack [
           textField text1 `key` "localTxt1"
         ],
@@ -143,7 +143,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
           textField text1 `key` "localTxt2"
         ]
       ]
-    buildUI2 model = hstack [
+    buildUI2 wenv model = hstack [
         vstack [
           textField text1 `key` "localTxt2"
         ],
@@ -151,14 +151,14 @@ handleEventLocalKey = describe "handleEventLocalKey" $
           textField text1 `key` "localTxt1"
         ]
       ]
-    cmpNode1 = composite "main" id Nothing handleEvent buildUI1
-    cmpNode2 = composite_ "main" id Nothing handleEvent buildUI2 [mergeRequired (\_ _ -> True)]
+    cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
+    cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cmpNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
     cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
 
 handleEventGlobalKey :: Spec
 handleEventGlobalKey = describe "handleEventGlobalKey" $
@@ -172,7 +172,7 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     wenv = mockWenv (TestModel "" "")
     handleEvent :: TestModel -> () -> [EventResponse TestModel () ()]
     handleEvent model evt = []
-    buildUI1 model = hstack [
+    buildUI1 wenv model = hstack [
         vstack [
           textField text1 `globalKey` "globalTxt1"
         ],
@@ -180,7 +180,7 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
           textField text1 `globalKey` "globalTxt2"
         ]
       ]
-    buildUI2 model = hstack [
+    buildUI2 wenv model = hstack [
         vstack [
           textField text1 `globalKey` "globalTxt2"
         ],
@@ -188,14 +188,14 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
           textField text1 `globalKey` "globalTxt1"
         ]
       ]
-    cmpNode1 = composite "main" id Nothing handleEvent buildUI1
-    cmpNode2 = composite_ "main" id Nothing handleEvent buildUI2 [mergeRequired (\_ _ -> True)]
+    cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
+    cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cmpNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
     cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.widget)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
@@ -208,12 +208,12 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenv ()
     handleEvent model evt = []
-    buildUI :: () -> WidgetNode () ()
-    buildUI model = vstack [
+    buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
+    buildUI wenv model = vstack [
         label "label 1",
         label "label 2"
       ]
-    cmpNode = composite "main" id Nothing handleEvent buildUI
+    cmpNode = composite "main" id Nothing buildUI handleEvent
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv cmpNode
 
 resize :: Spec
@@ -231,13 +231,13 @@ resize = describe "resize" $ do
     pendingWith "Instance tree data not yet implemented"
 
   where
-    wenv = mockWenv () & L.appWindowSize .~ Size 640 480
+    wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
     handleEvent model evt = []
-    buildUI :: () -> WidgetNode () ()
-    buildUI model = hstack []
-    cmpNode = composite "main" id Nothing handleEvent buildUI
+    buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
+    buildUI wenv model = hstack []
+    cmpNode = composite "main" id Nothing buildUI handleEvent
     newNode = nodeInit wenv cmpNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children

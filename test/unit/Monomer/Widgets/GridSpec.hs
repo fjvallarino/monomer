@@ -144,7 +144,7 @@ resizeItemsH = describe "several items, horizontal" $ do
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
-    wenv = mockWenv () & L.appWindowSize .~ Size 480 640
+    wenv = mockWenv () & L.windowSize .~ Size 480 640
     vp   = Rect   0 0 480 640
     cvp1 = Rect   0 0 160 640
     cvp2 = Rect 160 0 160 640

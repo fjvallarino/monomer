@@ -8,6 +8,7 @@ import Data.Text (Text)
 import Data.Sequence (Seq)
 import System.IO.Unsafe
 
+import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Sequence as Seq
@@ -100,10 +101,10 @@ mockRenderer = Renderer {
   renderText = mockRenderText,
 
   -- Image
-  addImage = \name action size imgData -> return (),
-  updateImage = \name imgData -> return (),
+  getImage = const . Just $ ImageDef "test" def BS.empty,
+  addImage = \name size imgData -> return (),
+  updateImage = \name size imgData -> return (),
   deleteImage = \name -> return (),
-  existsImage = const True,
   renderImage = \name rect alpha -> return ()
 }
 
@@ -111,6 +112,7 @@ mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOS = "Mac OS X",
   _weRenderer = mockRenderer,
+  _weMainButton = LeftBtn,
   _weTheme = def,
   _weWindowSize = testWindowSize,
   _weGlobalKeys = M.empty,
@@ -138,8 +140,8 @@ nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   reqNode = widgetUpdateSizeReq (node2 ^. L.widget) wenv node2
-  sizeReqW = reqNode ^. L.sizeReqW
-  sizeReqH = reqNode ^. L.sizeReqH
+  sizeReqW = reqNode ^. L.info ^. L.sizeReqW
+  sizeReqH = reqNode ^. L.info ^. L.sizeReqH
 
 nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
 nodeResize wenv viewport node = newNode where

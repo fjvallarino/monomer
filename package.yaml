@@ -90,7 +90,6 @@ tests:
     - call-stack
     - monomer
     - hedgehog
-    - hedgehog-classes
     - hspec
     - HUnit
     - silently
