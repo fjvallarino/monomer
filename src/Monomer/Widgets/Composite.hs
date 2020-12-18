@@ -46,7 +46,7 @@ type ParentModel sp = Typeable sp
 type CompositeModel s = (Eq s, Typeable s)
 type CompositeEvent e = Typeable e
 
-type EventHandler s e ep = s -> e -> [EventResponse s e ep]
+type EventHandler s e ep = WidgetEnv s e -> s -> e -> [EventResponse s e ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 type MergeRequired s = s -> s -> Bool
 type TaskHandler e = IO (Maybe e)
@@ -509,9 +509,11 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
     | isJust _cpsModel = fromJust _cpsModel
     | otherwise = getModel comp wenv
   evtUpdates = getUpdateModelReqs reqs
-  evtModel = foldr (.) id evtUpdates model
+  evtModel = foldr ($) model evtUpdates
   evtHandler = _cmpEventHandler comp
-  ReducedEvents{..} = reduceCompEvents _cpsGlobalKeys evtHandler evtModel evts
+  cwenv = convertWidgetEnv wenv _cpsGlobalKeys evtModel
+  ReducedEvents{..} =
+      reduceCompEvents _cpsGlobalKeys evtHandler cwenv evtModel evts
   WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
   currentPath = widgetComp ^. L.info . L.path
@@ -582,10 +584,11 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
 reduceCompEvents
   :: GlobalKeys s e
   -> EventHandler s e ep
+  -> WidgetEnv s e
   -> s
   -> Seq e
   -> ReducedEvents s e sp ep
-reduceCompEvents globalKeys eventHandler model events = result where
+reduceCompEvents globalKeys eventHandler cwenv model events = result where
   initial = ReducedEvents {
     _reModel = model,
     _reEvents = Seq.empty,
@@ -596,7 +599,7 @@ reduceCompEvents globalKeys eventHandler model events = result where
     _reProducers = Seq.empty
   }
   reducer current event = foldl' reducer newCurrent newEvents where
-    response = eventHandler (_reModel current) event
+    response = eventHandler cwenv (_reModel current) event
     processed = foldl' (reduceEvtResponse globalKeys) current response
     newEvents = _reEvents processed
     newCurrent = processed { _reEvents = Seq.empty }

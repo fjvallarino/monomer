@@ -53,8 +53,12 @@ main = do
   simpleApp_ model handleAppEvent buildUI config
   --simpleApp model handleAppEvent buildUI
 
-handleAppEvent :: App -> AppEvent -> [AppEventResponse App AppEvent]
-handleAppEvent model evt = case evt of
+handleAppEvent
+  :: WidgetEnv App AppEvent
+  -> App
+  -> AppEvent
+  -> [AppEventResponse App AppEvent]
+handleAppEvent wenv model evt = case evt of
   IncButton -> [Model (model & clickCount %~ (+1))]
 --  PrintMessage txt -> Model (model & showAlert .~ True)
   PrintMessage txt -> [Task $ do

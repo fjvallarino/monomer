@@ -43,7 +43,7 @@ data CompEvent
 testComposite :: WidgetNode CompState AppEvent
 testComposite = composite "testComposite" id (Just InitComposite) buildComposite handleCompositeEvent
 
-handleCompositeEvent model evt = case evt of
+handleCompositeEvent wenv model evt = case evt of
   InitComposite -> [Task $ do
     threadDelay 1000
     putStrLn "Initialized composite"

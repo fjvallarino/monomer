@@ -96,5 +96,5 @@ buildUI message acceptEvt cancelEvt config wenv model = confirmBox where
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
 
-handleEvent :: s -> e -> [EventResponse s e e]
-handleEvent model evt = [Report evt]
+handleEvent :: WidgetEnv s e -> s -> e -> [EventResponse s e e]
+handleEvent wenv model evt = [Report evt]
