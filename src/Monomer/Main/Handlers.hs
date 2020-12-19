@@ -97,6 +97,7 @@ handleWidgetInit wenv widgetRoot = do
   let widgetResult = widgetInit widget wenv widgetRoot
 
   handleWidgetResult wenv widgetResult
+    >>= handleMoveFocus Nothing FocusFwd
 
 handleWidgetDispose
   :: (MonomerM s m)

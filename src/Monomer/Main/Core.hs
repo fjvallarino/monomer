@@ -147,7 +147,6 @@ runApp window widgetRoot config = do
   }
 
   mainModel .= _weModel newWenv
-  focusedPath .= findNextFocus newWenv FocusFwd rootPath Nothing resizedRoot
 
   mainLoop window renderer config loopArgs
 
@@ -276,7 +275,7 @@ checkRenderCurrent currTs renderTs = do
 renderScheduleDone :: Int -> Int -> RenderSchedule -> Bool
 renderScheduleDone currTs renderTs schedule = nextStep < currTs where
   RenderSchedule _ start ms = schedule
-  stepsDone = round (fromIntegral (renderTs - start) / fromIntegral ms)
+  stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
   currStep = start + ms * stepsDone
   nextStep
     | currStep >= renderTs = currStep
