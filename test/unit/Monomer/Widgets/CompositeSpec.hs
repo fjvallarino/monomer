@@ -197,12 +197,12 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
           textField text1 `globalKey` "globalTxt1"
         ],
         vstack [
-          textField text1 `globalKey` "globalTxt2"
+          textField text2 `globalKey` "globalTxt2"
         ]
       ]
     buildUI2 wenv model = hstack [
         vstack [
-          textField text1 `globalKey` "globalTxt2"
+          textField text2 `globalKey` "globalTxt2"
         ],
         vstack [
           textField text1 `globalKey` "globalTxt1"
@@ -210,7 +210,7 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
       ]
     cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
     cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
-    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cmpNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
     cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2

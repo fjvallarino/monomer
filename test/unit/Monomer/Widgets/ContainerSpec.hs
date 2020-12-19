@@ -61,7 +61,7 @@ handleEventNormal = describe "handleEventNormal" $
         textField text1,
         textField text2
       ]
-    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
@@ -86,7 +86,7 @@ handleEventNoKey = describe "handleEventNoKey" $
         textField text2,
         textField text1
       ]
-    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
@@ -111,7 +111,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
         textField text2 `key` "txt2",
         textField text1 `key` "txt1"
       ]
-    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
+    evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2

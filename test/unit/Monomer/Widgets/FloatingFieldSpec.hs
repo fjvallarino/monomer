@@ -87,10 +87,10 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 True)
-    basicFloatingNode = floatingField floatingValue
-    floatCfg = [maxValue 1501, selectOnFocus True, validInput floatingValid, onFocus GotFocus, onBlur LostFocus]
+    basicFloatingNode = floatingField_ floatingValue [selectOnFocus False]
+    floatCfg = [maxValue 1501, validInput floatingValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = floatingField_ floatingValue floatCfg
-    model es = nodeHandleEventModel wenv (Focus : es) floatNode
+    model es = nodeHandleEventModel wenv es floatNode
     modelBasic es = nodeHandleEventModel wenv es basicFloatingNode
     events evt = nodeHandleEventEvts wenv [evt] floatNode
 

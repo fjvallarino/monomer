@@ -44,8 +44,7 @@ handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should input an 'a'" $ do
     model [evtT "a"] ^. textValue `shouldBe` "a"
-    ctx [evtT "a"] ^. L.renderSchedule `shouldSatisfy` null
-    ctx [Focus, evtT "a"] ^. L.renderSchedule `shouldSatisfy` (==1) . length
+    ctx [evtT "a"] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
   it "should input 'ababa', remove the middle 'a' and input 'c'" $ do
     let steps = [evtT "ababa", moveCharL, moveCharL, evtK keyBackspace, evtT "c"]

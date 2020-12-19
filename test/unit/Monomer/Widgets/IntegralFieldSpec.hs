@@ -79,8 +79,8 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel 0 True)
-    basicIntNode = integralField integralValue
-    intCfg = [maxValue 1501, selectOnFocus True, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
+    basicIntNode = integralField_ integralValue [selectOnFocus False]
+    intCfg = [maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = integralField_ integralValue intCfg
     model es = nodeHandleEventModel wenv (Focus : es) intNode
     modelBasic es = nodeHandleEventModel wenv es basicIntNode

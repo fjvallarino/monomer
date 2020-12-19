@@ -21,8 +21,10 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Button
 import Monomer.Widgets.Label
 import Monomer.Widgets.ListView
+import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
@@ -81,19 +83,24 @@ handleEvent = describe "handleEvent" $ do
     model steps ^. selectedItem `shouldBe` testItem70
 
   it "should generate an event when focus is received" $ do
-    let p = Point 100 10
-    events [evtClick p] `shouldBe` Seq.singleton GotFocus
+    let p = Point 100 30
+    eventsCnt [evtClick p] `shouldBe` Seq.singleton GotFocus
 
   it "should generate an event when focus is lost" $ do
-    let p = Point 100 10
-    events [evtClick p, Blur] `shouldBe` Seq.fromList [GotFocus, LostFocus]
+    let p = Point 100 30
+    eventsCnt [evtClick p, Blur] `shouldBe` Seq.fromList [GotFocus, LostFocus]
 
   where
     wenv = mockWenv (TestModel testItem0)
     lvNode = listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+    cntNode = vstack [
+        button "Test" GotFocus,
+        listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+      ]
     clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] lvNode
     model keys = nodeHandleEventModel wenv keys lvNode
     events evts = nodeHandleEventEvts wenv evts lvNode
+    eventsCnt evts = nodeHandleEventEvts wenv evts cntNode
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do

@@ -87,7 +87,7 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
 
 handleEventFocusTop :: Spec
 handleEventFocusTop = describe "handleEventFocusTop" $
-  it "should click the second layer, since top is not visible" $ do
+  it "should not attempt to set focus on lower layers" $ do
     let steps = [evtK keyTab, evtK keyTab, evtT "abc"]
     model steps ^. textValue1 `shouldBe` ""
     model steps ^. textValue2 `shouldBe` "abc"
@@ -102,8 +102,8 @@ handleEventFocusTop = describe "handleEventFocusTop" $
 
 handleEventFocusAll :: Spec
 handleEventFocusAll = describe "handleEventFocusAll" $
-  it "should click the second layer, since top is not visible" $ do
-    let steps = [evtK keyTab, evtK keyTab, evtT "abc"]
+  it "should set focus on second layer, since it's enabled" $ do
+    let steps = [evtK keyTab, evtT "abc"]
     model steps ^. textValue1 `shouldBe` "abc"
     model steps ^. textValue2 `shouldBe` ""
 

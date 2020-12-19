@@ -230,14 +230,17 @@ nodeHandleEventsNoInit
   -> (HandlerStep s e, MonomerContext s)
 nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   let winSize = testWindowSize
+  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
   let dpr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
-  flip runStateT monomerContext $
-    handleSystemEvents wenv evts node
+  flip runStateT monomerContext $ do
+    let resizedNode = nodeResize wenv vp node
+
+    handleSystemEvents wenv evts resizedNode
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where
