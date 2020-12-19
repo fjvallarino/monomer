@@ -30,13 +30,25 @@ isShortCutControl wenv mod = isControl || isCommand where
   isControl = not (isMacOS wenv) && _kmLeftCtrl mod
   isCommand = isMacOS wenv && _kmLeftGUI mod
 
-isClipboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
-isClipboardCopy wenv event = checkKeyboard event testFn where
+isKeyboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
+isKeyboardCopy wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyC code
 
-isClipboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
-isClipboardPaste wenv event = checkKeyboard event testFn where
+isKeyboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
+isKeyboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
+
+isKeyboardUndo :: WidgetEnv s e -> SystemEvent -> Bool
+isKeyboardUndo wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod
+    && not (_kmLeftShift mod)
+    && isKeyZ code
+
+isKeyboardRedo :: WidgetEnv s e -> SystemEvent -> Bool
+isKeyboardRedo wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod
+    && _kmLeftShift mod
+    && isKeyZ code
 
 checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion

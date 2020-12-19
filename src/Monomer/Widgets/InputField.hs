@@ -38,6 +38,23 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcOnChangeReq :: [WidgetRequest s]
 }
 
+data HistoryStep a = HistoryStep {
+  _ihsCurrValue :: a,
+  _ihsCurrText :: !Text,
+  _ihsCursorPos :: !Int,
+  _ihsSelStart :: Maybe Int,
+  _ihsOffset :: !Double
+} deriving (Eq, Show, Typeable)
+
+instance Default a => Default (HistoryStep a) where
+  def = HistoryStep {
+  _ihsCurrValue = def,
+  _ihsCurrText = "",
+  _ihsCursorPos = 0,
+  _ihsSelStart = Nothing,
+  _ihsOffset = 0
+}
+
 data InputFieldState a = InputFieldState {
   _ifsCurrValue :: a,
   _ifsCurrText :: !Text,
@@ -46,20 +63,24 @@ data InputFieldState a = InputFieldState {
   _ifsSelStart :: Maybe Int,
   _ifsOffset :: !Double,
   _ifsTextRect :: Rect,
-  _ifsTextMetrics :: TextMetrics
+  _ifsTextMetrics :: TextMetrics,
+  _ifsHistory :: Seq (HistoryStep a),
+  _ifsHistIdx :: Int
 } deriving (Eq, Show, Typeable)
 
-inputFieldState :: Default a => InputFieldState a
-inputFieldState = InputFieldState {
-  _ifsCurrValue = def,
-  _ifsCurrText = "",
-  _ifsGlyphs = Seq.empty,
-  _ifsCursorPos = 0,
-  _ifsSelStart = Nothing,
-  _ifsOffset = 0,
-  _ifsTextRect = def,
-  _ifsTextMetrics = def
-}
+instance Default a => Default (InputFieldState a) where
+  def = InputFieldState {
+    _ifsCurrValue = def,
+    _ifsCurrText = "",
+    _ifsGlyphs = Seq.empty,
+    _ifsCursorPos = 0,
+    _ifsSelStart = Nothing,
+    _ifsOffset = 0,
+    _ifsTextRect = def,
+    _ifsTextMetrics = def,
+    _ifsHistory = Seq.empty,
+    _ifsHistIdx = 0
+  }
 
 caretWidth :: Double
 caretWidth = 2
@@ -73,7 +94,7 @@ inputField_
   -> InputFieldCfg s e a
   -> WidgetNode s e
 inputField_ widgetType config = node where
-  widget = makeInputField config inputFieldState
+  widget = makeInputField config def
   node = defaultWidgetNode widgetType widget
     & L.info . L.focusable .~ True
 
@@ -98,6 +119,9 @@ makeInputField config state = widget where
   currGlyphs = _ifsGlyphs state
   currPos = _ifsCursorPos state
   currSel = _ifsSelStart state
+  currOffset = _ifsOffset state
+  currHistory = _ifsHistory state
+  currHistIdx = _ifsHistIdx state
 
   fromText = _ifcFromText config
   toText = _ifcToText config
@@ -267,19 +291,17 @@ makeInputField config state = widget where
         | isFocused wenv node = Just $ resultWidget newNode
         | otherwise = Just $ resultReqs newNode [SetFocus path]
 
-    KeyAction mod code KeyPressed -> result where
-      isPaste = isClipboardPaste wenv evt
-      isCopy = isClipboardCopy wenv evt
-      reqGetClipboard = [GetClipboard path | isPaste]
-      reqSetClipboard = [SetClipboard (ClipboardText copyText) | isCopy]
-      clipReqs = reqGetClipboard ++ reqSetClipboard
-      keyRes = handleKeyPress wenv mod code
-      handleKeyRes (newText, newPos, newSel) = result where
-        result = genInputResult wenv node False newText newPos newSel clipReqs
-      result
-        | isJust keyRes = Just $ handleKeyRes (fromJust keyRes)
-        | not (null clipReqs) = Just $ resultReqs node clipReqs
-        | otherwise = Nothing
+    KeyAction mod code KeyPressed
+      | isKeyboardCopy wenv evt
+          -> Just $ resultReqs node [GetClipboard path]
+      | isKeyboardPaste wenv evt
+          -> Just $ resultReqs node [SetClipboard (ClipboardText copyText)]
+      | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
+      | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
+      | otherwise -> fmap handleKeyRes keyRes where
+          keyRes = handleKeyPress wenv mod code
+          handleKeyRes (newText, newPos, newSel) = result where
+            result = genInputResult wenv node False newText newPos newSel []
 
     TextInput newText -> result where
       result = insertText wenv node newText
@@ -353,7 +375,21 @@ makeInputField config state = widget where
       | stateVal /= currVal = _ifcOnChangeReq config
       | otherwise = []
     reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
-    newState = newTextState wenv node state stateVal newText newPos newSel
+    tempState = newTextState wenv node state stateVal newText newPos newSel
+    newOffset = _ifsOffset tempState
+    history = _ifsHistory tempState
+    histIdx = _ifsHistIdx tempState
+    newStep = HistoryStep stateVal newText newPos newSel newOffset
+    newState
+      | currText == newText = tempState
+      | length history == histIdx = tempState {
+          _ifsHistory = history |> newStep,
+          _ifsHistIdx = histIdx + 1
+        }
+      | otherwise = tempState {
+          _ifsHistory = Seq.take (histIdx - 1) history |> newStep,
+          _ifsHistIdx = histIdx
+        }
     newNode = node
       & L.widget .~ makeInputField config newState
     result
@@ -368,7 +404,7 @@ makeInputField config state = widget where
     sizeReq = (FlexSize targetW factor, FixedSize h)
 
   resize wenv viewport renderArea node = newNode where
-    -- newTextState depends on having correct viewport/renderArea
+    -- newTextState depends on having correct viewport/renderArea in the node
     tempNode = node
       & L.info . L.viewport .~ viewport
       & L.info . L.renderArea .~ renderArea
@@ -431,6 +467,44 @@ renderContent renderer state style currText = do
     tsFontSize = styleFontSize style
     tsFontColor = styleFontColor style
 
+moveHistory
+  :: (Eq a, Default a, Typeable a)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> InputFieldState a
+  -> InputFieldCfg s e a
+  -> Int
+  -> Maybe (WidgetResult s e)
+moveHistory wenv node state config steps = result where
+  currHistory = _ifsHistory state
+  currHistIdx = _ifsHistIdx state
+  lenHistory = length currHistory
+  reqHistIdx
+    | steps == -1 && currHistIdx == lenHistory = currHistIdx - 2
+    | otherwise = currHistIdx + steps
+  histStep = Seq.lookup reqHistIdx currHistory
+  result
+    | null currHistory || currHistIdx <= 0 = Just (createNode def)
+    | otherwise = fmap createNode histStep
+  createNode histStep = resultWidget newNode where
+    tempState = newStateFromHistory wenv node state histStep
+    newState = tempState {
+      _ifsHistIdx = clamp 0 lenHistory reqHistIdx
+    }
+    newNode = node & L.widget .~ makeInputField config newState
+
+newStateFromHistory
+  :: (Eq a, Default a)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> InputFieldState a
+  -> HistoryStep a
+  -> InputFieldState a
+newStateFromHistory wenv node oldState inputHist = newState where
+  HistoryStep hValue hText hPos hSel hOffset = inputHist
+  tempState = oldState { _ifsOffset = hOffset }
+  newState = newTextState wenv node oldState hValue hText hPos hSel
+
 newTextState
   :: (Eq a, Default a)
   => WidgetEnv s e
@@ -478,7 +552,7 @@ newTextState wenv node oldState value text cursor selection = newState where
     | alignC && curX + oldOffset > cx + cw = cx + cw - curX
     | alignC && curX + oldOffset < cx = cx - curX
     | otherwise = oldOffset
-  newState = InputFieldState {
+  newState = oldState {
     _ifsCurrValue = value,
     _ifsCurrText = text,
     _ifsGlyphs = glyphs,

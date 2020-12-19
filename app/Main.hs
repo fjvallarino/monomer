@@ -107,7 +107,13 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetLV where
+buildUI wenv model = trace "Creating UI" widgetInput where
+  widgetInput = vstack [
+      hstack [
+        label "Username: ",
+        textField textField1
+      ] `style` [padding 5]
+    ]
   widgetLV = vstack [
 --      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
 
