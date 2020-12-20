@@ -338,6 +338,12 @@
     - Does adding function to return imgData from Renderer make sense? Replace imageExists?
     - Remove delay logic when adding an image
   - Check why after click focus is not immediately shown in listView items
+  - Further textField improvements
+    - Handle undo history
+  - Check if SDL can be initialized headless (for tests that involve the API)
+    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
+    - Window not created for the moment, since it's not currently needed
+    - SDL initialized and clipboard related functionality is now tested
 
 - Pending
   - Add testing
@@ -357,11 +363,8 @@
 Maybe postponed after release?
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
-    - Handle undo history
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
-  - Check if SDL can be initialized headless (for tests that involve the API)
-    - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes

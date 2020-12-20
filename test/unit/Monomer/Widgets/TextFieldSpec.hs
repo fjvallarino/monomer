@@ -85,6 +85,11 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, selWordL, selWordL, selCharL, evtKG keyC, moveWordL, moveWordL, moveCharL, evtKG keyV]
     model steps ^. textValue `shouldBe` "This long text is some long text"
 
+  it "should cut and paste text around" $ do
+    let str = "This is long text"
+    let steps = [evtT str, selWordL, selCharL, evtKG keyX, moveWordL, moveWordL, moveCharL, evtKG keyV]
+    model steps ^. textValue `shouldBe` "This text is long"
+
   it "should generate an event when focus is received" $ do
     events [Focus] `shouldBe` Seq.singleton GotFocus
     ctx [Focus] ^. L.renderSchedule `shouldSatisfy` (==1) . length

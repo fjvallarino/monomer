@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.InputField (
@@ -8,7 +9,7 @@ module Monomer.Widgets.InputField (
 ) where
 
 import Control.Monad
-import Control.Lens (ALens', (&), (.~), (^.), (^?), _Just, cloneLens, non)
+import Control.Lens (ALens', (&), (.~), (%~), (^.), (^?), _Just, cloneLens, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -292,6 +293,7 @@ makeInputField config state = widget where
           -> Just $ resultReqs node [SetClipboard (ClipboardText copyText)]
       | isKeyboardPaste wenv evt
           -> Just $ resultReqs node [GetClipboard path]
+      | isKeyboardCut wenv evt -> cutText wenv node
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
       | otherwise -> fmap handleKeyRes keyRes where
@@ -351,6 +353,11 @@ makeInputField config state = widget where
     where
       start = min currPos (fromJust currSel)
       end = max currPos (fromJust currSel)
+
+  cutText wenv node = Just result where
+    tmpResult = fromMaybe (resultWidget node) (insertText wenv node "")
+    result = tmpResult
+      & L.requests %~ (|> SetClipboard (ClipboardText copyText))
 
   genInputResult wenv node textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText

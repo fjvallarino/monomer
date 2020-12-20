@@ -38,6 +38,10 @@ isKeyboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
 isKeyboardPaste wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod && isKeyV code
 
+isKeyboardCut :: WidgetEnv s e -> SystemEvent -> Bool
+isKeyboardCut wenv event = checkKeyboard event testFn where
+  testFn mod code motion = isShortCutControl wenv mod && isKeyX code
+
 isKeyboardUndo :: WidgetEnv s e -> SystemEvent -> Bool
 isKeyboardUndo wenv event = checkKeyboard event testFn where
   testFn mod code motion = isShortCutControl wenv mod
