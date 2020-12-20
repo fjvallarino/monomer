@@ -35,6 +35,11 @@ modCS = def
   & L.leftAlt .~ True
   & L.leftShift .~ True
 
+modGS :: KeyMod
+modGS = def
+  & L.leftGUI .~ True
+  & L.leftShift .~ True
+
 evtClick :: Point -> SystemEvent
 evtClick p = Click p LeftBtn
 
@@ -58,6 +63,9 @@ evtKAS k = KeyAction modAS k KeyPressed
 
 evtKCS :: KeyCode -> SystemEvent
 evtKCS k = KeyAction modCS k KeyPressed
+
+evtKGS :: KeyCode -> SystemEvent
+evtKGS k = KeyAction modGS k KeyPressed
 
 evtT :: Text -> SystemEvent
 evtT t = TextInput t

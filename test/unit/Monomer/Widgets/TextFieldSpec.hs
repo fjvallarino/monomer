@@ -38,6 +38,7 @@ spec :: Spec
 spec = describe "TextField" $ do
   handleEvent
   handleEventValue
+  handleEventHistory
   updateSizeReq
 
 handleEvent :: Spec
@@ -137,6 +138,49 @@ handleEventValue = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel "")
     txtNode = textFieldV "" TextChanged
+    evts es = nodeHandleEventEvts wenv es txtNode
+    lastIdx es = Seq.index es (Seq.length es - 1)
+    lastEvt es = lastIdx (evts es)
+
+handleEventHistory :: Spec
+handleEventHistory = describe "handleEventHistory" $ do
+  it "should input 'This is text', have the last word removed and then undo" $ do
+    let str = "This is text"
+    let steps1 = [evtT str, evtKC keyBackspace]
+    let steps2 = steps1 ++ [evtKG keyZ]
+    model steps1 ^. textValue `shouldBe` "This is "
+    model steps2 ^. textValue `shouldBe` "This is text"
+    lastEvt steps2 `shouldBe` TextChanged "This is text"
+
+  it "should input 'This is text', have the last two words removed, undo and redo" $ do
+    let str = "This is text"
+    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace]
+    let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKGS keyZ]
+    model steps1 ^. textValue `shouldBe` "This "
+    model steps2 ^. textValue `shouldBe` "This is "
+    lastEvt steps2 `shouldBe` TextChanged "This is "
+
+  it "should input 'This is just a string', play around with history and come end up with 'This is just text" $ do
+    let str = "This is just a string"
+    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace]
+    let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKGS keyZ, evtKGS keyZ, evtT "text"]
+    model steps1 ^. textValue `shouldBe` ""
+    model steps2 ^. textValue `shouldBe` "This is just text"
+    lastEvt steps2 `shouldBe` TextChanged "This is just text"
+
+  it "should input 'This is text', remove two words, undo, input 'not' and fail to redo" $ do
+    let str = "This is text"
+    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace]
+    let steps2 = steps1 ++ [evtKG keyZ, evtT "not", evtKGS keyZ]
+    model steps1 ^. textValue `shouldBe` "This "
+    model steps2 ^. textValue `shouldBe` "This is not"
+    lastEvt steps2 `shouldBe` TextChanged "This is not"
+
+  where
+    wenv = mockWenv (TestModel "")
+    txtCfg = [onChange TextChanged, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
+    txtNode = textField_ textValue txtCfg
+    model es = nodeHandleEventModel wenv es txtNode
     evts es = nodeHandleEventEvts wenv es txtNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)

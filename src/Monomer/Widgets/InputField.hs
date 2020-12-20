@@ -39,8 +39,8 @@ data InputFieldCfg s e a = InputFieldCfg {
 }
 
 data HistoryStep a = HistoryStep {
-  _ihsCurrValue :: a,
-  _ihsCurrText :: !Text,
+  _ihsValue :: a,
+  _ihsText :: !Text,
   _ihsCursorPos :: !Int,
   _ihsSelStart :: Maybe Int,
   _ihsOffset :: !Double
@@ -48,8 +48,8 @@ data HistoryStep a = HistoryStep {
 
 instance Default a => Default (HistoryStep a) where
   def = HistoryStep {
-  _ihsCurrValue = def,
-  _ihsCurrText = "",
+  _ihsValue = def,
+  _ihsText = "",
   _ihsCursorPos = 0,
   _ihsSelStart = Nothing,
   _ihsOffset = 0
@@ -126,10 +126,6 @@ makeInputField config state = widget where
   fromText = _ifcFromText config
   toText = _ifcToText config
   getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
-  setModelValue = widgetDataSet (_ifcValue config)
-  setModelValid
-    | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
-    | otherwise = const []
 
   getBaseStyle wenv node = _ifcStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
@@ -140,7 +136,7 @@ makeInputField config state = widget where
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText (toText newValue)
-    reqs = setModelValid (isJust parsedVal)
+    reqs = setModelValid config (isJust parsedVal)
     result = resultReqs newNode reqs
 
   merge wenv oldState oldNode node = resultReqs newNode reqs where
@@ -170,7 +166,7 @@ makeInputField config state = widget where
     renderReqs
       | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
       | otherwise = []
-    reqs = setModelValid (isJust parsedVal) ++ renderReqs
+    reqs = setModelValid config (isJust parsedVal) ++ renderReqs
 
   dispose wenv node = resultReqs node reqs where
     path = node ^. L.info . L.path
@@ -293,9 +289,9 @@ makeInputField config state = widget where
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
-          -> Just $ resultReqs node [GetClipboard path]
-      | isKeyboardPaste wenv evt
           -> Just $ resultReqs node [SetClipboard (ClipboardText copyText)]
+      | isKeyboardPaste wenv evt
+          -> Just $ resultReqs node [GetClipboard path]
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
       | otherwise -> fmap handleKeyRes keyRes where
@@ -358,23 +354,8 @@ makeInputField config state = widget where
 
   genInputResult wenv node textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText
-    hasChanged = currText /= newText
     newVal = fromText newText
     stateVal = fromMaybe currVal newVal
-    onChangeEvts
-      | isValid && stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
-      | otherwise = []
-    events = onChangeEvts
-    reqValid
-      | isValid = setModelValid (isJust newVal)
-      | otherwise = []
-    reqUpdateModel
-      | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
-      | otherwise = []
-    reqOnChange
-      | stateVal /= currVal = _ifcOnChangeReq config
-      | otherwise = []
-    reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
     tempState = newTextState wenv node state stateVal newText newPos newSel
     newOffset = _ifsOffset tempState
     history = _ifsHistory tempState
@@ -392,6 +373,7 @@ makeInputField config state = widget where
         }
     newNode = node
       & L.widget .~ makeInputField config newState
+    (reqs, events) = genReqsEvents config state newText newReqs
     result
       | isValid || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
@@ -467,6 +449,42 @@ renderContent renderer state style currText = do
     tsFontSize = styleFontSize style
     tsFontColor = styleFontColor style
 
+setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s]
+setModelValid config
+  | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
+  | otherwise = const []
+
+genReqsEvents
+  :: (Eq a)
+  => InputFieldCfg s e a
+  -> InputFieldState a
+  -> Text
+  -> [WidgetRequest s]
+  -> ([WidgetRequest s], [e])
+genReqsEvents config state newText newReqs = result where
+  fromText = _ifcFromText config
+  setModelValue = widgetDataSet (_ifcValue config)
+  currVal = _ifsCurrValue state
+  currText = _ifsCurrText state
+  isValid = _ifcAcceptInput config newText
+  hasChanged = currText /= newText
+  newVal = fromText newText
+  stateVal = fromMaybe currVal newVal
+  events
+    | isValid && stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
+    | otherwise = []
+  reqValid
+    | isValid = setModelValid config (isJust newVal)
+    | otherwise = []
+  reqUpdateModel
+    | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
+    | otherwise = []
+  reqOnChange
+    | stateVal /= currVal = _ifcOnChangeReq config
+    | otherwise = []
+  reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
+  result = (reqs, events)
+
 moveHistory
   :: (Eq a, Default a, Typeable a)
   => WidgetEnv s e
@@ -484,9 +502,10 @@ moveHistory wenv node state config steps = result where
     | otherwise = currHistIdx + steps
   histStep = Seq.lookup reqHistIdx currHistory
   result
-    | null currHistory || currHistIdx <= 0 = Just (createNode def)
-    | otherwise = fmap createNode histStep
-  createNode histStep = resultWidget newNode where
+    | null currHistory || reqHistIdx < 0 = Just (createResult def)
+    | otherwise = fmap createResult histStep
+  createResult histStep = resultReqsEvts newNode reqs evts where
+    (reqs, evts) = genReqsEvents config state (_ihsText histStep) []
     tempState = newStateFromHistory wenv node state histStep
     newState = tempState {
       _ifsHistIdx = clamp 0 lenHistory reqHistIdx
