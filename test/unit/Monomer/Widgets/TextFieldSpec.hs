@@ -65,10 +65,10 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, selWordL, moveCharL, evtT "big "]
     model steps ^. textValue `shouldBe` "This is a big dog"
 
-  it "should input 'This string is', and reject ' invalid' since maxLength == 20" $ do
-    let str = "This string is"
+  it "should input 'This string very long text is', and reject ' invalid' since maxLength == 40" $ do
+    let str = "This string very very long text is"
     let steps = [evtT str, evtT " invalid"]
-    model steps ^. textValue `shouldBe` "This string is"
+    model steps ^. textValue `shouldBe` "This string very very long text is"
 
   it "should input 'This is text', select all and input 'No'" $ do
     let str = "This is text"
@@ -80,20 +80,25 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, Focus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
 
+  it "should copy and paste text around" $ do
+    let str = "This is some long text"
+    let steps = [evtT str, selWordL, selWordL, selCharL, evtKG keyC, moveWordL, moveWordL, moveCharL, evtKG keyV]
+    model steps ^. textValue `shouldBe` "This long text is some long text"
+
   it "should generate an event when focus is received" $ do
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events [Focus] `shouldBe` Seq.singleton GotFocus
     ctx [Focus] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
   it "should generate an event when focus is lost" $ do
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events [Blur] `shouldBe` Seq.singleton LostFocus
     ctx [Focus, Blur] ^. L.renderSchedule `shouldSatisfy` null
 
   where
     wenv = mockWenv (TestModel "")
-    txtCfg = [maxLength 20, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
+    txtCfg = [maxLength 40, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
     txtNode = textField_ textValue txtCfg
     model es = nodeHandleEventModel wenv es txtNode
-    events evt = nodeHandleEventEvts wenv [evt] txtNode
+    events es = nodeHandleEventEvts wenv es txtNode
     ctx evts = nodeHandleEventCtx wenv evts txtNode
 
 handleEventValue :: Spec

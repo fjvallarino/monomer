@@ -2,6 +2,9 @@
 
 import Test.Hspec
 
+import qualified SDL
+import qualified SDL.Raw as Raw
+
 import qualified Monomer.Widgets.AlertSpec as AlertSpec
 import qualified Monomer.Widgets.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
@@ -25,7 +28,14 @@ import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
 import qualified Monomer.Widgets.Util.TextSpec as TextSpec
 
 main :: IO ()
-main = hspec spec
+main = do
+  -- Initialize SDL
+  SDL.initialize [SDL.InitVideo]
+  -- Run tests
+  hspec spec
+  -- Shutdown SDL
+  Raw.quitSubSystem Raw.SDL_INIT_VIDEO
+  SDL.quit
 
 spec :: Spec
 spec = do
