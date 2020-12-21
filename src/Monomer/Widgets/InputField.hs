@@ -290,10 +290,10 @@ makeInputField config state = widget where
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
-          -> Just $ resultReqs node [SetClipboard (ClipboardText copyText)]
+          -> Just $ resultReqs node [SetClipboard (ClipboardText selectedText)]
       | isKeyboardPaste wenv evt
           -> Just $ resultReqs node [GetClipboard path]
-      | isKeyboardCut wenv evt -> cutText wenv node
+      | isKeyboardCut wenv evt -> cutTextRes wenv node
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
       | otherwise -> fmap handleKeyRes keyRes where
@@ -302,10 +302,10 @@ makeInputField config state = widget where
             result = genInputResult wenv node False newText newPos newSel []
 
     TextInput newText -> result where
-      result = insertText wenv node newText
+      result = insertTextRes wenv node newText
 
     Clipboard (ClipboardText newText) -> result where
-      result = insertText wenv node newText
+      result = insertTextRes wenv node newText
 
     Focus -> Just result where
       newState = state {
@@ -332,13 +332,18 @@ makeInputField config state = widget where
       path = node ^. L.info . L.path
       viewport = node ^. L.info . L.viewport
 
-  insertText wenv node addedText = Just result where
+  insertTextRes wenv node addedText = Just result where
     addedLen = T.length addedText
     newText = replaceText currText addedText
     newPos
       | isJust currSel = addedLen + min currPos (fromJust currSel)
       | otherwise = addedLen + currPos
     result = genInputResult wenv node True newText newPos Nothing []
+
+  cutTextRes wenv node = Just result where
+    tmpResult = fromMaybe (resultWidget node) (insertTextRes wenv node "")
+    result = tmpResult
+      & L.requests %~ (|> SetClipboard (ClipboardText selectedText))
 
   replaceText txt newTxt
     | isJust currSel = T.take start txt <> newTxt <> T.drop end txt
@@ -347,17 +352,12 @@ makeInputField config state = widget where
       start = min currPos (fromJust currSel)
       end = max currPos (fromJust currSel)
 
-  copyText
+  selectedText
     | isJust currSel = T.take (end - start) $ T.drop start currText
     | otherwise = ""
     where
       start = min currPos (fromJust currSel)
       end = max currPos (fromJust currSel)
-
-  cutText wenv node = Just result where
-    tmpResult = fromMaybe (resultWidget node) (insertText wenv node "")
-    result = tmpResult
-      & L.requests %~ (|> SetClipboard (ClipboardText copyText))
 
   genInputResult wenv node textAdd newText newPos newSel newReqs = result where
     isValid = _ifcAcceptInput config newText
