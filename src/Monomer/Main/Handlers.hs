@@ -63,8 +63,9 @@ handleSystemEvent
   -> WidgetNode s e
   -> m (HandlerStep s e)
 handleSystemEvent wenv event currentTarget widgetRoot = do
-  pressed <- use L.pressedPath
+  mainStart <- use L.mainBtnPress
   overlay <- use L.overlayPath
+  let pressed = fmap fst mainStart
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
     Nothing -> return (wenv, Seq.empty, widgetRoot)

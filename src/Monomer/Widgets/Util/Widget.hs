@@ -27,7 +27,7 @@ module Monomer.Widgets.Util.Widget (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
+import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _1, _Just)
 import Data.Default
 import Data.Foldable (foldl')
 import Data.Maybe
@@ -63,10 +63,9 @@ isWidgetVisible node vp = isVisible && isOverlapped where
   isOverlapped = rectsOverlap vp (info ^. L.viewport)
 
 isPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isPressed wenv node = validPress where
+isPressed wenv node = Just path == pressed where
   path = node ^. L.info . L.path
-  pressed = wenv ^. L.pressedPath
-  validPress = isNothing pressed || Just path == pressed
+  pressed = wenv ^. L.mainBtnPress ^? _Just . _1
 
 isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
 isFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
@@ -76,7 +75,8 @@ isHovered wenv node = validPos && validPress && isTopLevel wenv node where
   viewport = node ^. L.info . L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
-  validPress = isPressed wenv node
+  pressed = wenv ^. L.mainBtnPress ^? _Just . _1
+  validPress = isNothing pressed || isPressed wenv node
 
 visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where

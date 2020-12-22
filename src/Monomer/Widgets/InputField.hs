@@ -8,6 +8,7 @@ module Monomer.Widgets.InputField (
   makeInputField
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Lens (ALens', (&), (.~), (%~), (^.), (^?), _Just, cloneLens, non)
 import Data.Default
@@ -268,25 +269,24 @@ makeInputField config state = widget where
         | otherwise = idx
 
   handleEvent wenv target evt node = case evt of
-    Click (Point x y) _ -> result where
-      style = activeStyle wenv node
-      contentArea = getContentArea style node
-      localX = x - _rX contentArea + _ifsOffset state
-      textLen = getGlyphsMax (_ifsGlyphs state)
-      glyphs
-        | Seq.null (_ifsGlyphs state) = Seq.empty
-        | otherwise = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
-      glyphStart i g = (i, abs (_glpXMin g - localX))
-      pairs = Seq.mapWithIndex glyphStart glyphs
-      cpm (_, g1) (_, g2) = compare g1 g2
-      diffs = Seq.sortBy cpm pairs
-      newPos = maybe 0 fst (Seq.lookup 0 diffs)
-      newState = newTextState wenv node state currVal currText newPos Nothing
-      newNode = node
-        & L.widget .~ makeInputField config newState
-      result
-        | isFocused wenv node = Just $ resultWidget newNode
-        | otherwise = Just $ resultReqs newNode [SetFocus path]
+    ButtonAction point btn PressedBtn
+      | wenv ^. L.mainButton == btn -> Just $ resultWidget newNode where
+        style = activeStyle wenv node
+        contentArea = getContentArea style node
+        newPos = findClosestGlyphPos state contentArea point
+        newState = newTextState wenv node state currVal currText newPos Nothing
+        newNode = node
+          & L.widget .~ makeInputField config newState
+
+    Move point
+      | isPressed wenv node -> Just $ resultReqs newNode [RenderOnce] where
+        style = activeStyle wenv node
+        contentArea = getContentArea style node
+        newPos = findClosestGlyphPos state contentArea point
+        newSel = currSel <|> Just currPos
+        newState = newTextState wenv node state currVal currText newPos newSel
+        newNode = node
+          & L.widget .~ makeInputField config newState
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
@@ -519,6 +519,20 @@ moveHistory wenv node state config steps = result where
     }
     newNode = node & L.widget .~ makeInputField config newState
 
+findClosestGlyphPos :: InputFieldState a -> Rect -> Point -> Int
+findClosestGlyphPos state contentArea point = newPos where
+  Point x y = point
+  localX = x - _rX contentArea - _ifsOffset state
+  textLen = getGlyphsMax (_ifsGlyphs state)
+  glyphs
+    | Seq.null (_ifsGlyphs state) = Seq.empty
+    | otherwise = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
+  glyphStart i g = (i, abs (_glpXMin g - localX))
+  pairs = Seq.mapWithIndex glyphStart glyphs
+  cpm (_, g1) (_, g2) = compare g1 g2
+  diffs = Seq.sortBy cpm pairs
+  newPos = maybe 0 fst (Seq.lookup 0 diffs)
+
 newStateFromHistory
   :: (Eq a, Default a)
   => WidgetEnv s e
@@ -578,12 +592,17 @@ newTextState wenv node oldState value text cursor selection = newState where
     | alignC && curX + oldOffset > cx + cw = cx + cw - curX
     | alignC && curX + oldOffset < cx = cx - curX
     | otherwise = oldOffset
+  justSel = fromJust selection
+  newSel
+    | Just cursor == selection = Nothing
+    | isJust selection && justSel < 0 && justSel > T.length text = Nothing
+    | otherwise = selection
   newState = oldState {
     _ifsCurrValue = value,
     _ifsCurrText = text,
     _ifsGlyphs = glyphs,
     _ifsCursorPos = cursor,
-    _ifsSelStart = selection,
+    _ifsSelStart = newSel,
     _ifsOffset = newOffset,
     _ifsTextRect = textRect & L.x .~ tx + newOffset,
     _ifsTextMetrics = textMetrics

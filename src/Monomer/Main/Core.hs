@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -121,7 +122,7 @@ runApp window widgetRoot config = do
     _weCurrentCursor = CursorArrow,
     _weFocusedPath = rootPath,
     _weOverlayPath = Nothing,
-    _wePressedPath = Nothing,
+    _weMainBtnPress = Nothing,
     _weModel = model,
     _weInputStatus = def,
     _weTimestamp = startTs,
@@ -168,7 +169,7 @@ mainLoop window renderer config loopArgs = do
   currentCursor <- use currentCursor
   focused <- use focusedPath
   overlay <- use overlayPath
-  pressed <- use pressedPath
+  mainPress <- use mainBtnPress
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
@@ -180,7 +181,6 @@ mainLoop window renderer config loopArgs = do
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
   let newSecond = _mlFrameAccumTs > 1000
-  let isMouseFocused = isJust pressed
 
   inputStatus <- updateInputStatus baseSystemEvents
 
@@ -198,7 +198,7 @@ mainLoop window renderer config loopArgs = do
     _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
-    _wePressedPath = pressed,
+    _weMainBtnPress = mainPress,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks,
@@ -215,8 +215,8 @@ mainLoop window renderer config loopArgs = do
   let baseReqs = Seq.fromList [ exitMsg | quit ]
   let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
-  when (mouseEntered && isMainBtnPressed && isMouseFocused) $
-    pressedPath .= Nothing
+  when (windowExposed && isMainBtnPressed) $
+    mainBtnPress .= Nothing
 
   (rqWenv, _, rqRoot) <- handleRequests baseReqs baseStep
   (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
@@ -340,19 +340,20 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
 
     when (btn == mainBtn) $
-      pressedPath .= curr
+      mainBtnPress .= fmap (, point) curr
 
     return [evt]
   ButtonAction point btn ReleasedBtn -> do
     overlay <- use L.overlayPath
-    pressed <- use pressedPath
+    mainPress <- use mainBtnPress
+    let pressed = fmap fst mainPress
     let startPath = fromMaybe rootPath overlay
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
     let extraEvt = [Click point btn | btn == mainBtn && curr == pressed]
 
     when (btn == mainBtn) $
-      pressedPath .= Nothing
+      mainBtnPress .= Nothing
 
     return $ extraEvt ++ [evt]
   _ -> return [evt]
