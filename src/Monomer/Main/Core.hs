@@ -159,35 +159,32 @@ mainLoop
   -> MainLoopArgs s e ep
   -> m ()
 mainLoop window renderer config loopArgs = do
-  windowSize <- use L.windowSize
-  useHiDPI <- use hdpi
-  devicePixelRate <- use dpr
   startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
   mousePos <- getCurrentMousePos
-  currentModel <- use mainModel
-  currentCursor <- use currentCursor
-  focused <- use focusedPath
-  overlay <- use overlayPath
-  mainPress <- use mainBtnPress
+
+  windowSize <- use L.windowSize
+  useHiDPI <- use L.hdpi
+  devicePixelRate <- use L.dpr
+  currentModel <- use L.mainModel
+  currentCursor <- use L.currentCursor
+  focused <- use L.focusedPath
+  overlay <- use L.overlayPath
+  mainPress <- use L.mainBtnPress
+  inputStatus <- use L.inputStatus
 
   let MainLoopArgs{..} = loopArgs
   let !ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
-  let quit = SDL.QuitEvent `elem` eventsPayload
+
   let windowResized = isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
+
   let newSecond = _mlFrameAccumTs > 1000
-
-  inputStatus <- updateInputStatus baseSystemEvents
-
-  when quit $ exitApplication .= True
-
   let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
-  let isMainBtnPressed = isButtonPressed inputStatus mainBtn
   let wenv = WidgetEnv {
     _weOS = _mlOS,
     _weRenderer = renderer,
@@ -204,26 +201,28 @@ mainLoop window renderer config loopArgs = do
     _weTimestamp = startTicks,
     _weInTopLayer = const True
   }
-
-  when newSecond $
-    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
-
-  sysEvents <- preProcessEvents wenv mainBtn _mlWidgetRoot baseSystemEvents
-
   -- Exit handler
+  let quit = SDL.QuitEvent `elem` eventsPayload
   let exitMsg = SendMessage (Seq.fromList [0]) _mlExitEvent
   let baseReqs = Seq.fromList [ exitMsg | quit ]
   let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
-  when (windowExposed && isMainBtnPressed) $
+  when newSecond $
+    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
+
+  when quit $
+    exitApplication .= True
+
+  when windowExposed $
     mainBtnPress .= Nothing
 
   (rqWenv, _, rqRoot) <- handleRequests baseReqs baseStep
   (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
-  (seWenv, _, seRoot) <- handleSystemEvents wtWenv sysEvents wtRoot
+  (seWenv, _, seRoot) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
 
-  newRoot <- if windowResized then resizeWindow window seWenv seRoot
-                              else return seRoot
+  newRoot <- if windowResized
+    then resizeWindow window seWenv seRoot
+    else return seRoot
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -299,81 +298,6 @@ renderWidgets !window renderer wenv widgetRoot = do
 
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
-
--- Pre process events (change focus, add Enter/Leave events, etc)
-preProcessEvents
-  :: (MonomerM s m)
-  => WidgetEnv s e
-  -> Button
-  -> WidgetNode s e
-  -> [SystemEvent]
-  -> m [SystemEvent]
-preProcessEvents wenv mainBtn widgets events =
-  concatMapM (preProcessEvent wenv mainBtn widgets) events
-
-preProcessEvent
-  :: (MonomerM s m)
-  => WidgetEnv s e
-  -> Button
-  -> WidgetNode s e
-  -> SystemEvent
-  -> m [SystemEvent]
-preProcessEvent wenv mainBtn widgetRoot evt = case evt of
-  Move point -> do
-    overlay <- use L.overlayPath
-    hover <- use hoveredPath
-    let startPath = fromMaybe rootPath overlay
-    let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let hoverChanged = curr /= hover
-    let enter = [Enter (fromJust curr) point | isJust curr && hoverChanged]
-    let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
-
-    when hoverChanged $
-      hoveredPath .= curr
-
-    return $ leave ++ enter ++ [evt]
-  ButtonAction point btn PressedBtn -> do
-    overlay <- use L.overlayPath
-    let startPath = fromMaybe rootPath overlay
-    let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-
-    when (btn == mainBtn) $
-      mainBtnPress .= fmap (, point) curr
-
-    return [evt]
-  ButtonAction point btn ReleasedBtn -> do
-    overlay <- use L.overlayPath
-    mainPress <- use mainBtnPress
-    let pressed = fmap fst mainPress
-    let startPath = fromMaybe rootPath overlay
-    let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let extraEvt = [Click point btn | btn == mainBtn && curr == pressed]
-
-    when (btn == mainBtn) $
-      mainBtnPress .= Nothing
-
-    return $ extraEvt ++ [evt]
-  _ -> return [evt]
-
-updateInputStatus :: (MonomerM s m) => [SystemEvent] -> m InputStatus
-updateInputStatus systemEvents = do
-  mapM_ evtToInputStatus systemEvents
-  use inputStatus
-
-evtToInputStatus :: (MonomerM s m) => SystemEvent -> m ()
-evtToInputStatus (Move point) = do
-  status <- use inputStatus
-  inputStatus . mousePosPrev .= status ^. mousePos
-  inputStatus . mousePos .= point
-evtToInputStatus (ButtonAction _ btn btnState) =
-  inputStatus . buttons . at btn ?= btnState
-evtToInputStatus (KeyAction kMod kCode kStatus) = do
-  inputStatus . keyMod .= kMod
-  inputStatus . keys . at kCode ?= kStatus
-evtToInputStatus _ = return ()
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

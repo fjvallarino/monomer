@@ -1,5 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 
 module Monomer.Main.Handlers (
   HandlerStep,
@@ -12,11 +13,12 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((&), (^.), (%~), (.=), at, non, use)
+import Control.Lens ((&), (^.), (.~), (%~), (.=), (?=), at, non, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
+import Control.Monad.Extra(concatMapM)
 import Control.Monad.IO.Class
 import Data.List (foldl')
 import Data.Maybe
@@ -47,13 +49,25 @@ handleSystemEvents
   -> [SystemEvent]
   -> WidgetNode s e
   -> m (HandlerStep s e)
-handleSystemEvents wenv systemEvents widgetRoot = nextStep where
-  reducer (currWctx, currEvents, currRoot) evt = do
-    focused <- use L.focusedPath
+handleSystemEvents wenv baseEvents widgetRoot = nextStep where
+  mainBtn = wenv ^. L.mainButton
+  reduceBaseEvt currStep evt = do
+    let (currWenv, currEvents, currRoot) = currStep
+    systemEvents <- preProcessEvent currWenv mainBtn currRoot evt
+    mainBtnPress <- use L.mainBtnPress
+    inputStatus <- use L.inputStatus
 
-    (wenv2, evts2, wroot2) <- handleSystemEvent currWctx evt focused currRoot
+    let newWenv = currWenv
+          & L.mainBtnPress .~ mainBtnPress
+          & L.inputStatus .~ inputStatus
+
+    foldM reduceSysEvt (newWenv, currEvents, currRoot) systemEvents
+  reduceSysEvt (currWenv, currEvents, currRoot) evt = do
+    focused <- use L.focusedPath
+    (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt focused currRoot
+
     return (wenv2, currEvents >< evts2, wroot2)
-  nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) systemEvents
+  nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) baseEvents
 
 handleSystemEvent
   :: (MonomerM s m)
@@ -378,6 +392,67 @@ addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
     | focusReqNeeded = reqs |> MoveFocus Nothing direction
     | otherwise = reqs
 addFocusReq _ reqs = reqs
+
+preProcessEvent
+  :: (MonomerM s m)
+  => WidgetEnv s e
+  -> Button
+  -> WidgetNode s e
+  -> SystemEvent
+  -> m [SystemEvent]
+preProcessEvent wenv mainBtn widgetRoot evt = case evt of
+  Move point -> do
+    overlay <- use L.overlayPath
+    hover <- use L.hoveredPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    let hoverChanged = curr /= hover
+    let enter = [Enter (fromJust curr) point | isJust curr && hoverChanged]
+    let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
+
+    when hoverChanged $
+      L.hoveredPath .= curr
+
+    -- Update input status
+    status <- use L.inputStatus
+    L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
+    L.inputStatus . L.mousePos .= point
+
+    return $ leave ++ enter ++ [evt]
+  ButtonAction point btn PressedBtn -> do
+    overlay <- use L.overlayPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+
+    when (btn == mainBtn) $
+      L.mainBtnPress .= fmap (, point) curr
+
+    L.inputStatus . L.buttons . at btn ?= PressedBtn
+
+    return [evt]
+  ButtonAction point btn ReleasedBtn -> do
+    overlay <- use L.overlayPath
+    mainPress <- use L.mainBtnPress
+    let pressed = fmap fst mainPress
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    let extraEvt = [Click point btn | btn == mainBtn && curr == pressed]
+
+    when (btn == mainBtn) $
+      L.mainBtnPress .= Nothing
+
+    L.inputStatus . L.buttons . at btn ?= ReleasedBtn
+
+    return $ extraEvt ++ [evt]
+  KeyAction mod code status -> do
+    L.inputStatus . L.keyMod .= mod
+    L.inputStatus . L.keys . at code ?= status
+
+    return [evt]
+  _ -> return [evt]
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message

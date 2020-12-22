@@ -18,6 +18,7 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
+import Monomer.Widgets.Stack
 import Monomer.Widgets.TextField
 
 import qualified Monomer.Lens as L
@@ -38,6 +39,7 @@ spec :: Spec
 spec = describe "TextField" $ do
   handleEvent
   handleEventValue
+  handleEventMouseSelect
   handleEventHistory
   updateSizeReq
 
@@ -151,6 +153,58 @@ handleEventValue = describe "handleEvent" $ do
     evts es = nodeHandleEventEvts wenv es txtNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleEventMouseSelect :: Spec
+handleEventMouseSelect = describe "handleEvent" $ do
+  it "should add text at the end, since click + drag started outside of viewport" $ do
+    let str = "This is text"
+    let selStart = Point 50 100
+    let selEnd = Point 120 10
+    let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "!"]
+    model steps ^. textValue `shouldBe` "This is text!"
+
+  it "should drag around and input 'Text'" $ do
+    let str = ""
+    let selStart = Point 50 10
+    let selMid1 = Point 0 10
+    let selMid2 = Point 200 10
+    let selMid3 = Point (-200) 10
+    let selEnd = Point 120 10
+    let moves = [evtMove selMid1, evtMove selMid2, evtMove selMid3, evtMove selEnd]
+    let steps = [evtT str, evtPress selStart] ++ moves ++ [evtRelease selEnd, evtT "Text"]
+    model steps ^. textValue `shouldBe` "Text"
+
+  it "should input 'This is text', select 'is text' and input 'test'" $ do
+    let str = "This is text"
+    let selStart = Point 40 10
+    let selEnd = Point 120 10
+    let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "test"]
+    model steps ^. textValue `shouldBe` "This test"
+
+  it "should input 'This is text', select all from beginning and input 'New'" $ do
+    let str = "This is new"
+    let selStart = Point 0 10
+    let selEnd = Point 200 10
+    let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "New"]
+    model steps ^. textValue `shouldBe` "New"
+
+  it "should input 'This is text', select all from the end and input 'New'" $ do
+    let str = "This is"
+    let selStart = Point 70 10
+    let selEnd = Point 0 10
+    let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "New"]
+    model steps ^. textValue `shouldBe` "New"
+
+  where
+    wenv = mockWenv (TestModel "")
+    txtNode = vstack [
+        hstack [
+          textField textValue `style` [width 105],
+          hstack []
+        ]
+      ]
+    model es = nodeHandleEventModel wenv es txtNode
+    events es = nodeHandleEventEvts wenv es txtNode
 
 handleEventHistory :: Spec
 handleEventHistory = describe "handleEventHistory" $ do

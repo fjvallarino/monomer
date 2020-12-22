@@ -43,6 +43,15 @@ modGS = def
 evtClick :: Point -> SystemEvent
 evtClick p = Click p LeftBtn
 
+evtPress :: Point -> SystemEvent
+evtPress p = ButtonAction p LeftBtn PressedBtn
+
+evtRelease :: Point -> SystemEvent
+evtRelease p = ButtonAction p LeftBtn ReleasedBtn
+
+evtMove :: Point -> SystemEvent
+evtMove p = Move p
+
 evtK :: KeyCode -> SystemEvent
 evtK k = KeyAction def k KeyPressed
 

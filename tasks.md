@@ -365,6 +365,7 @@ Maybe postponed after release?
   - Further textField improvements
     - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
+  - Use new mousePress flags in scroll (instead of custom attributes)
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
