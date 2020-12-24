@@ -42,16 +42,17 @@ data ClipboardData
 
 data SystemEvent
   = Click Point Button
-  | ButtonAction Point Button ButtonState
+  | DblClick Point Button
+  | ButtonAction Point Button ButtonState Int
   | WheelScroll Point Point WheelDirection
   | KeyAction KeyMod KeyCode KeyStatus
   | TextInput Text
   | Clipboard ClipboardData
   | Focus
   | Blur
-  | Enter Path Point
+  | Enter Point
   | Move Point
-  | Leave Path Point
+  | Leave Point
   deriving (Show, Eq)
 
 data InputStatus = InputStatus {

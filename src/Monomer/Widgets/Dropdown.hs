@@ -242,7 +242,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   handleEvent wenv target evt node = case evt of
     Enter{} -> Nothing -- to have handleStyleChange applied
-    ButtonAction _ btn PressedBtn
+    ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
     Click point _

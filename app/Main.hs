@@ -118,6 +118,16 @@ buildUI wenv model = trace "Creating UI" widgetInput where
         label "Password: ",
         textField textField2,
         label ""
+      ] `style` [padding 5, paddingT 0],
+      hgrid [
+        label "Integral: ",
+        integralField_ integer1 [minValue 0],
+        label ""
+      ] `style` [padding 5, paddingT 0],
+      hgrid [
+        label "Floating: ",
+        floatingField_ float1 [minValue (-20), maxValue 20],
+        label ""
       ] `style` [padding 5, paddingT 0]
     ]
   widgetLV = vstack [

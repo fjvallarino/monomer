@@ -34,12 +34,13 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
-type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a)
+type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a, Show a)
 
 data IntegralFieldCfg s e a = IntegralFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
+  _nfcDragRate :: Maybe Double,
   _nfcSelectOnFocus :: Maybe Bool,
   _nfcOnFocus :: [e],
   _nfcOnFocusReq :: [WidgetRequest s],
@@ -54,6 +55,7 @@ instance Default (IntegralFieldCfg s e a) where
     _nfcValid = Nothing,
     _nfcMinValue = Nothing,
     _nfcMaxValue = Nothing,
+    _nfcDragRate = Nothing,
     _nfcSelectOnFocus = Nothing,
     _nfcOnFocus = [],
     _nfcOnFocusReq = [],
@@ -68,6 +70,7 @@ instance Semigroup (IntegralFieldCfg s e a) where
     _nfcValid = _nfcValid t2 <|> _nfcValid t1,
     _nfcMinValue = _nfcMinValue t2 <|> _nfcMinValue t1,
     _nfcMaxValue = _nfcMaxValue t2 <|> _nfcMaxValue t1,
+    _nfcDragRate = _nfcDragRate t2 <|> _nfcDragRate t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
     _nfcOnFocus = _nfcOnFocus t1 <> _nfcOnFocus t2,
     _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
@@ -172,7 +175,9 @@ integralFieldD_ widgetData configs = newNode where
     _ifcToText = toText,
     _ifcAcceptInput = acceptIntegralInput,
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
+    _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputIntegralStyle,
+    _ifcDragHandler = Just (handleDrag config),
     _ifcOnFocus = _nfcOnFocus config,
     _ifcOnFocusReq = _nfcOnFocusReq config,
     _ifcOnBlur = _nfcOnBlur config,
@@ -181,6 +186,33 @@ integralFieldD_ widgetData configs = newNode where
     _ifcOnChangeReq = _nfcOnChangeReq config
   }
   newNode = inputField_ "integralField" inputConfig
+
+handleDrag
+  :: FormattableInt a
+  => IntegralFieldCfg s e a
+  -> InputFieldState a
+  -> Point
+  -> Point
+  -> (Text, Int, Maybe Int)
+handleDrag config state clickPos currPos = result where
+  Point _ dy = addPoint clickPos (negPoint currPos)
+  minVal = _nfcMinValue config
+  maxVal = _nfcMaxValue config
+  dragRate = fromMaybe 1 (_nfcDragRate config)
+  fromText = integralFromText minVal maxVal
+  toText = integralToText
+  tmpValue = _ifsDragSelValue state + round (dy * dragRate)
+  mParsedVal = fromText (toText tmpValue)
+  parsedVal = fromJust mParsedVal
+  newVal
+    | isJust mParsedVal = parsedVal
+    | dy > 0 && isJust maxVal = fromJust maxVal
+    | dy < 0 && isJust minVal = fromJust minVal
+    | otherwise = _ifsCurrValue state
+  newText = toText newVal
+  newPos = _ifsCursorPos state
+  newSel = _ifsSelStart state
+  result = (newText, newPos, newSel)
 
 integralFromText :: FormattableInt a => Maybe a -> Maybe a -> Text -> Maybe a
 integralFromText minVal maxVal t = case signed decimal t of

@@ -228,7 +228,7 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config newState
 
   handleEvent wenv target evt node = case evt of
-    ButtonAction point btn status -> result where
+    ButtonAction point btn status _ -> result where
       leftPressed = status == PressedBtn && btn == wenv ^. L.mainButton
       btnReleased = status == ReleasedBtn && btn == wenv ^. L.mainButton
       isDragging = isJust $ _sstDragging state

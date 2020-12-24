@@ -34,13 +34,14 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
-type FormattableFloat a = (Eq a, Default a, Typeable a, Fractional a, Real a)
+type FormattableFloat a = (Eq a, Show a, Default a, Typeable a, Fractional a, Real a)
 
 data FloatingFieldCfg s e a = FloatingFieldCfg {
   _ffcValid :: Maybe (WidgetData s Bool),
   _ffcDecimals :: Maybe Int,
   _ffcMinValue :: Maybe a,
   _ffcMaxValue :: Maybe a,
+  _ffcDragRate :: Maybe Double,
   _ffcSelectOnFocus :: Maybe Bool,
   _ffcOnFocus :: [e],
   _ffcOnFocusReq :: [WidgetRequest s],
@@ -56,6 +57,7 @@ instance Default (FloatingFieldCfg s e a) where
     _ffcDecimals = Nothing,
     _ffcMinValue = Nothing,
     _ffcMaxValue = Nothing,
+    _ffcDragRate = Nothing,
     _ffcSelectOnFocus = Nothing,
     _ffcOnFocus = [],
     _ffcOnFocusReq = [],
@@ -71,6 +73,7 @@ instance Semigroup (FloatingFieldCfg s e a) where
     _ffcDecimals = _ffcDecimals t2 <|> _ffcDecimals t1,
     _ffcMinValue = _ffcMinValue t2 <|> _ffcMinValue t1,
     _ffcMaxValue = _ffcMaxValue t2 <|> _ffcMaxValue t1,
+    _ffcDragRate = _ffcDragRate t2 <|> _ffcDragRate t1,
     _ffcSelectOnFocus = _ffcSelectOnFocus t2 <|> _ffcSelectOnFocus t1,
     _ffcOnFocus = _ffcOnFocus t1 <> _ffcOnFocus t2,
     _ffcOnFocusReq = _ffcOnFocusReq t1 <> _ffcOnFocusReq t2,
@@ -185,7 +188,9 @@ floatingFieldD_ widgetData configs = newNode where
     _ifcToText = toText,
     _ifcAcceptInput = acceptFloatInput decimals,
     _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
+    _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputFloatingStyle,
+    _ifcDragHandler = Just (handleDrag config),
     _ifcOnFocus = _ffcOnFocus config,
     _ifcOnFocusReq = _ffcOnFocusReq config,
     _ifcOnBlur = _ffcOnBlur config,
@@ -194,6 +199,34 @@ floatingFieldD_ widgetData configs = newNode where
     _ifcOnChangeReq = _ffcOnChangeReq config
   }
   newNode = inputField_ "floatingField" inputConfig
+
+handleDrag
+  :: FormattableFloat a
+  => FloatingFieldCfg s e a
+  -> InputFieldState a
+  -> Point
+  -> Point
+  -> (Text, Int, Maybe Int)
+handleDrag config state clickPos currPos = result where
+  Point _ dy = addPoint clickPos (negPoint currPos)
+  decimals = max 0 $ fromMaybe 2 (_ffcDecimals config)
+  minVal = _ffcMinValue config
+  maxVal = _ffcMaxValue config
+  dragRate = fromMaybe 0.1 (_ffcDragRate config)
+  fromText = floatFromText minVal maxVal
+  toText = floatToText
+  tmpValue = _ifsDragSelValue state + realToFrac (dy * dragRate)
+  mParsedVal = fromText (toText decimals tmpValue)
+  parsedVal = fromJust mParsedVal
+  newVal
+    | isJust mParsedVal = parsedVal
+    | dy > 0 && isJust maxVal = fromJust maxVal
+    | dy < 0 && isJust minVal = fromJust minVal
+    | otherwise = _ifsCurrValue state
+  newText = toText decimals newVal
+  newPos = _ifsCursorPos state
+  newSel = _ifsSelStart state
+  result = (newText, newPos, newSel)
 
 floatFromText :: FormattableFloat a => Maybe a -> Maybe a -> Text -> Maybe a
 floatFromText minVal maxVal t = case signed rational t of

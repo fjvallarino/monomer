@@ -138,7 +138,7 @@ handleFocusRequest wenv evt node mResult = newResult where
   prevReqs = maybe Empty (^. L.requests) mResult
   isFocusable = node ^. L.info . L.focusable
   btnPressed = case evt of
-    ButtonAction _ btn PressedBtn -> Just btn
+    ButtonAction _ btn PressedBtn _ -> Just btn
     _ -> Nothing
   isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
     && isFocusable

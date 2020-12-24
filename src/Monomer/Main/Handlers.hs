@@ -43,6 +43,39 @@ import qualified Monomer.Lens as L
 
 type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetNode s e)
 
+getTargetPath
+  :: WidgetEnv s e
+  -> Maybe Path
+  -> Maybe Path
+  -> Path
+  -> SystemEvent
+  -> WidgetNode s e
+  -> Maybe Path
+getTargetPath wenv pressed overlay target event widgetRoot = case event of
+    -- Keyboard
+    KeyAction{}                       -> pathEvent target
+    TextInput _                       -> pathEvent target
+    -- Clipboard
+    Clipboard _                       -> pathEvent target
+    -- Mouse/touch
+    ButtonAction point _ PressedBtn _ -> pointEvent point
+    ButtonAction _ _ ReleasedBtn _    -> pathEvent target
+    Click{}                           -> pathEvent target
+    DblClick{}                        -> pathEvent target
+    WheelScroll point _ _             -> pointEvent point
+    Focus                             -> pathEvent target
+    Blur                              -> pathEvent target
+    Enter{}                           -> pathEvent target
+    Move point                        -> pointEvent point
+    Leave{}                           -> pathEvent target
+  where
+    widget = widgetRoot ^. L.widget
+    startPath = fromMaybe rootPath overlay
+    pathEvent = Just
+    pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
+    -- pressed is only really used for Move
+    pointEvent point = pressed <|> pathFromPoint point <|> overlay
+
 handleSystemEvents
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -62,9 +95,11 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
           & L.inputStatus .~ inputStatus
 
     foldM reduceSysEvt (newWenv, currEvents, currRoot) systemEvents
-  reduceSysEvt (currWenv, currEvents, currRoot) evt = do
+  reduceSysEvt (currWenv, currEvents, currRoot) (evt, evtTarget) = do
     focused <- use L.focusedPath
-    (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt focused currRoot
+    let target = fromMaybe focused evtTarget
+
+    (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt target currRoot
 
     return (wenv2, currEvents >< evts2, wroot2)
   nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) baseEvents
@@ -399,7 +434,7 @@ preProcessEvent
   -> Button
   -> WidgetNode s e
   -> SystemEvent
-  -> m [SystemEvent]
+  -> m [(SystemEvent, Maybe Path)]
 preProcessEvent wenv mainBtn widgetRoot evt = case evt of
   Move point -> do
     overlay <- use L.overlayPath
@@ -408,8 +443,8 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
     let hoverChanged = curr /= hover
-    let enter = [Enter (fromJust curr) point | isJust curr && hoverChanged]
-    let leave = [Leave (fromJust hover) point | isJust hover && hoverChanged]
+    let enter = [(Enter point, curr) | isJust curr && hoverChanged]
+    let leave = [(Leave point, hover) | isJust hover && hoverChanged]
 
     when hoverChanged $
       L.hoveredPath .= curr
@@ -419,8 +454,8 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
     L.inputStatus . L.mousePos .= point
 
-    return $ leave ++ enter ++ [evt]
-  ButtonAction point btn PressedBtn -> do
+    return $ leave ++ enter ++ [(evt, Nothing)]
+  ButtonAction point btn PressedBtn _ -> do
     overlay <- use L.overlayPath
     let startPath = fromMaybe rootPath overlay
     let widget = widgetRoot ^. L.widget
@@ -431,28 +466,31 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
 
     L.inputStatus . L.buttons . at btn ?= PressedBtn
 
-    return [evt]
-  ButtonAction point btn ReleasedBtn -> do
+    return [(evt, Nothing)]
+  ButtonAction point btn ReleasedBtn clicks -> do
     overlay <- use L.overlayPath
     mainPress <- use L.mainBtnPress
     let pressed = fmap fst mainPress
     let startPath = fromMaybe rootPath overlay
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let extraEvt = [Click point btn | btn == mainBtn && curr == pressed]
+    let isPressed = btn == mainBtn && curr == pressed
+    let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
+    let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
+    let releasedEvt = [(evt, pressed <|> curr)]
 
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
 
     L.inputStatus . L.buttons . at btn ?= ReleasedBtn
 
-    return $ extraEvt ++ [evt]
+    return $ clickEvt ++ dblClickEvt ++ releasedEvt
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status
 
-    return [evt]
-  _ -> return [evt]
+    return [(evt, Nothing)]
+  _ -> return [(evt, Nothing)]
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message

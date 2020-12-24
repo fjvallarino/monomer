@@ -84,33 +84,3 @@ resizeWindow window wenv widgetRoot = do
   liftIO $ GL.viewport GL.$= (position, size)
 
   return $ resizeRoot wenv newWindowSize widgetRoot
-
-getTargetPath
-  :: WidgetEnv s e
-  -> Maybe Path
-  -> Maybe Path
-  -> Path
-  -> SystemEvent
-  -> WidgetNode s e
-  -> Maybe Path
-getTargetPath wenv pressed overlay target event widgetRoot = case event of
-    -- Keyboard
-    KeyAction{}            -> pathEvent target
-    TextInput _            -> pathEvent target
-    -- Clipboard
-    Clipboard _            -> pathEvent target
-    -- Mouse/touch
-    ButtonAction point _ _ -> pointEvent point
-    Click point _          -> pointEvent point
-    WheelScroll point _ _  -> pointEvent point
-    Focus                  -> pathEvent target
-    Blur                   -> pathEvent target
-    Enter newPath _        -> pathEvent newPath
-    Move point             -> pointEvent point
-    Leave oldPath _        -> pathEvent oldPath
-  where
-    widget = widgetRoot ^. L.widget
-    startPath = fromMaybe rootPath overlay
-    pathEvent = Just
-    pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
-    pointEvent point = pressed <|> pathFromPoint point <|> overlay

@@ -96,6 +96,7 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e = Single {
+  singleFocusOnPressedBtn :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleInit :: SingleInitHandler s e,
   singleMerge :: SingleMergeHandler s e,
@@ -112,6 +113,7 @@ data Single s e = Single {
 
 instance Default (Single s e) where
   def = Single {
+    singleFocusOnPressedBtn = True,
     singleGetBaseStyle = defaultGetBaseStyle,
     singleInit = defaultInit,
     singleMerge = defaultMerge,
@@ -219,7 +221,9 @@ handleEventWrapper single wenv target evt node
     style = activeStyle wenv node
     handler = singleHandleEvent single
     result = handler wenv target evt node
-    resultFocus = handleFocusRequest wenv evt node result
+    resultFocus
+      | singleFocusOnPressedBtn single = handleFocusRequest wenv evt node result
+      | otherwise = result
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message node = Nothing

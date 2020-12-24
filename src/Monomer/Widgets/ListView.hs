@@ -281,7 +281,7 @@ makeListView widgetData items makeRow config state = widget where
       & L.children .~ children
 
   handleEvent wenv target evt node = case evt of
-    ButtonAction _ btn PressedBtn
+    ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node

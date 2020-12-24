@@ -40,7 +40,8 @@ mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
     action = case SDL.mouseButtonEventMotion eventData of
       SDL.Pressed -> PressedBtn
       SDL.Released -> ReleasedBtn
-    systemEvent = fmap (\btn -> ButtonAction mousePos btn action) button
+    clicks = fromIntegral $ SDL.mouseButtonEventClicks eventData
+    systemEvent = fmap (\btn -> ButtonAction mousePos btn action clicks) button
 mouseClick _ _ = Nothing
 
 mouseMoveEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent

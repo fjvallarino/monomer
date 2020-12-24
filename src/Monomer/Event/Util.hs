@@ -59,7 +59,7 @@ checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False
 
 isButtonPressedEvent :: SystemEvent -> Bool
-isButtonPressedEvent (ButtonAction _ _ PressedBtn) = True
+isButtonPressedEvent (ButtonAction _ _ PressedBtn _) = True
 isButtonPressedEvent _ = False
 
 isKeyboardEvent :: SystemEvent -> Bool

@@ -340,6 +340,7 @@
   - Check why after click focus is not immediately shown in listView items
   - Further textField improvements
     - Handle undo history
+    - Handle mouse selection
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
     - Window not created for the moment, since it's not currently needed
@@ -363,8 +364,9 @@
 Maybe postponed after release?
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
-    - Handle mouse selection
     - Create numeric wrapper that allows increasing/decreasing with mouse
+    - Cmd + arrow should select all
+    - Capture mouse (when outside the window)
   - Use new mousePress flags in scroll (instead of custom attributes)
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles
@@ -376,6 +378,11 @@ Maybe postponed after release?
       - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
+  - Add serialization logic for Widget Tree
+    - Store state in Widget Tree
+    - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
+    - Add setState method
+    - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
