@@ -341,6 +341,7 @@
   - Further textField improvements
     - Handle undo history
     - Handle mouse selection
+    - Capture mouse (when outside the window)
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
     - Window not created for the moment, since it's not currently needed
@@ -362,11 +363,10 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Further textField improvements
     - Create numeric wrapper that allows increasing/decreasing with mouse
     - Cmd + arrow should select all
-    - Capture mouse (when outside the window)
+  - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Use new mousePress flags in scroll (instead of custom attributes)
   - Add flag in Single to handle Cursor (for inputField)
     - Or maybe do as in Radio

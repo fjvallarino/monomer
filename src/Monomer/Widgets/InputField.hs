@@ -226,7 +226,6 @@ makeInputField config state = widget where
       activeSel = isJust currSel
       minTpSel = min tp currSelVal
       maxTpSel = max tp currSelVal
-      delim c = c == ' ' || c == '.' || c == ','
       prevWordStart = T.dropWhileEnd (not . delim) $ T.dropWhileEnd delim part1
       prevWordStartIdx = T.length prevWordStart
       nextWordEnd = T.dropWhile (not . delim) $ T.dropWhile delim part2
@@ -240,7 +239,7 @@ makeInputField config state = widget where
         | isMacOS wenv = _kmLeftAlt mod
         | otherwise = _kmLeftCtrl mod
       isLineMod
-        | isMacOS wenv = _kmLeftCtrl mod
+        | isMacOS wenv = _kmLeftCtrl mod || _kmLeftGUI mod
         | otherwise = _kmLeftAlt mod
       isAllMod
         | isMacOS wenv = _kmLeftGUI mod
@@ -290,59 +289,84 @@ makeInputField config state = widget where
         | otherwise = idx
 
   handleEvent wenv target evt node = case evt of
+    -- Enter regular edit mode if widget has custom drag handler
     DblClick point btn
       | dragHandleExt btn -> Just (resultReqs node reqs) where
         reqs = [SetFocus path | not (isFocused wenv node)]
 
-    ButtonAction point btn PressedBtn _
-      -- Begin regular text selection
-      | dragSelectText btn ->
-        let
-          style = activeStyle wenv node
-          contentArea = getContentArea style node
-          newPos = findClosestGlyphPos state contentArea point
-          newState = newTextState wenv node state currVal currText newPos Nothing
-          newNode = node
-            & L.widget .~ makeInputField config newState
-          newReqs = [ SetFocus path | not (isFocused wenv node) ]
-        in Just (resultReqs newNode newReqs)
-      -- Begin custom drag
-      | dragHandleExt btn ->
-        let
-          newState = state { _ifsDragSelValue = currVal }
-          newNode = node
-            & L.widget .~ makeInputField config newState
-        in Just (resultWidget newNode)
+    -- Begin regular text selection
+    ButtonAction point btn PressedBtn clicks
+      | dragSelectText btn && clicks == 1 -> Just result where
+        style = activeStyle wenv node
+        contentArea = getContentArea style node
+        newPos = findClosestGlyphPos state contentArea point
+        newState = newTextState wenv node state currVal currText newPos Nothing
+        newNode = node
+          & L.widget .~ makeInputField config newState
+        newReqs = [ SetFocus path | not (isFocused wenv node) ]
+        result = resultReqs newNode newReqs
 
-    ButtonAction point btn ReleasedBtn _
-      | dragHandleExt btn -> Just result where
+    -- Begin custom drag
+    ButtonAction point btn PressedBtn clicks
+      | dragHandleExt btn && clicks == 1 -> Just (resultWidget newNode) where
+        newState = state { _ifsDragSelValue = currVal }
+        newNode = node
+          & L.widget .~ makeInputField config newState
+
+    -- Select one word if clicked twice in a row
+    ButtonAction point btn ReleasedBtn clicks
+      | dragSelectText btn && clicks == 2 -> Just result where
+        (part1, part2) = T.splitAt currPos currText
+        txtLen = T.length currText
+        wordStart = T.dropWhileEnd (not . delim) part1
+        wordStartIdx = T.length wordStart
+        wordEnd = T.dropWhile (not . delim) part2
+        wordEndIdx = txtLen - T.length wordEnd
+        newPos = wordStartIdx
+        newSel = Just wordEndIdx
+        newState = newTextState wenv node state currVal currText newPos newSel
+        newNode = node
+          & L.widget .~ makeInputField config newState
+        result = resultReqs newNode [RenderOnce]
+
+    -- Select all if clicked three times in a row
+    ButtonAction point btn ReleasedBtn clicks
+      | dragSelectText btn && clicks == 3 -> Just result where
+        newPos = 0
+        newSel = Just (T.length currText)
+        newState = newTextState wenv node state currVal currText newPos newSel
+        newNode = node
+          & L.widget .~ makeInputField config newState
+        result = resultReqs newNode [RenderOnce]
+
+    -- If a custom drag handler is used, generate onChange events and history
+    ButtonAction point btn ReleasedBtn clicks
+      | dragHandleExt btn && clicks == 1 -> Just result where
         reqs = [RenderOnce]
         result = genInputResult wenv node True currText currPos currSel reqs
 
+    -- Handle regular text selection
     Move point
-      -- Handle regular text selection
-      | isPressed wenv node && dragSelActive ->
-        let
-          style = activeStyle wenv node
-          contentArea = getContentArea style node
-          newPos = findClosestGlyphPos state contentArea point
-          newSel = currSel <|> Just currPos
-          newState = newTextState wenv node state currVal currText newPos newSel
-          newNode = node
-            & L.widget .~ makeInputField config newState
-          result = resultReqs newNode [RenderOnce]
-        in Just result
-      -- Handle custom drag
-      | isPressed wenv node && not dragSelActive ->
-        let
-          (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
-          handlerRes = fromJust dragHandler state stPoint point
-          (newText, newPos, newSel) = handlerRes
-          newState = newTextState wenv node state currVal newText newPos newSel
-          newNode = node
-            & L.widget .~ makeInputField config newState
-          result = resultReqs newNode [RenderOnce]
-        in Just result
+      | isPressed wenv node && dragSelActive -> Just result where
+        style = activeStyle wenv node
+        contentArea = getContentArea style node
+        newPos = findClosestGlyphPos state contentArea point
+        newSel = currSel <|> Just currPos
+        newState = newTextState wenv node state currVal currText newPos newSel
+        newNode = node
+          & L.widget .~ makeInputField config newState
+        result = resultReqs newNode [RenderOnce]
+
+    -- Handle custom drag
+    Move point
+      | isPressed wenv node && not dragSelActive -> Just result where
+        (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
+        handlerRes = fromJust dragHandler state stPoint point
+        (newText, newPos, newSel) = handlerRes
+        newState = newTextState wenv node state currVal newText newPos newSel
+        newNode = node
+          & L.widget .~ makeInputField config newState
+        result = resultReqs newNode [RenderOnce]
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
@@ -357,12 +381,15 @@ makeInputField config state = widget where
           handleKeyRes (newText, newPos, newSel) = result where
             result = genInputResult wenv node False newText newPos newSel []
 
+    -- Text input has unicode already processed (it's not the same as KeyAction)
     TextInput newText -> result where
       result = insertTextRes wenv node newText
 
+    -- Paste clipboard contents
     Clipboard (ClipboardText newText) -> result where
       result = insertTextRes wenv node newText
 
+    -- Handle focus, maybe select all and disable custom drag handlers
     Focus -> Just result where
       tmpState
         | _ifcSelectOnFocus config && T.length currText > 0 = state {
@@ -378,6 +405,7 @@ makeInputField config state = widget where
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
       result = maybe newResult (newResult <>) focusResult
 
+    -- Handle blur and disable custom drag handlers
     Blur -> Just result where
       newState = state { _ifsDragSelActive = False }
       newNode = node & L.widget .~ makeInputField config newState
@@ -523,6 +551,9 @@ renderContent renderer state style currText = do
     tsFontSize = styleFontSize style
     tsFontColor = styleFontColor style
 
+delim :: Char -> Bool
+delim c = c == ' ' || c == '.' || c == ','
+
 setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s]
 setModelValid config
   | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
@@ -662,7 +693,7 @@ newTextState wenv node oldState value text cursor selection = newState where
   justSel = fromJust selection
   newSel
     | Just cursor == selection = Nothing
-    | isJust selection && justSel < 0 && justSel > T.length text = Nothing
+    | isJust selection && (justSel < 0 || justSel > T.length text) = Nothing
     | otherwise = selection
   newState = oldState {
     _ifsCurrValue = value,
