@@ -368,6 +368,9 @@ Maybe postponed after release?
     - Cmd + arrow should select all
     - Capture mouse (when outside the window)
   - Use new mousePress flags in scroll (instead of custom attributes)
+  - Add flag in Single to handle Cursor (for inputField)
+    - Or maybe do as in Radio
+  - Check multiple resize when opening dialogs
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes

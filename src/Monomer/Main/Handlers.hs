@@ -466,6 +466,8 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
 
     L.inputStatus . L.buttons . at btn ?= PressedBtn
 
+    SDLE.captureMouse True
+
     return [(evt, Nothing)]
   ButtonAction point btn ReleasedBtn clicks -> do
     overlay <- use L.overlayPath
@@ -483,6 +485,8 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
       L.mainBtnPress .= Nothing
 
     L.inputStatus . L.buttons . at btn ?= ReleasedBtn
+
+    SDLE.captureMouse False
 
     return $ clickEvt ++ dblClickEvt ++ releasedEvt
   KeyAction mod code status -> do
