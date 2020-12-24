@@ -439,10 +439,11 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
   Move point -> do
     overlay <- use L.overlayPath
     hover <- use L.hoveredPath
+    mainBtnPress <- use L.mainBtnPress
     let startPath = fromMaybe rootPath overlay
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let hoverChanged = curr /= hover
+    let hoverChanged = curr /= hover && isNothing mainBtnPress
     let enter = [(Enter point, curr) | isJust curr && hoverChanged]
     let leave = [(Leave point, hover) | isJust hover && hoverChanged]
 
@@ -470,6 +471,7 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
 
     return [(evt, Nothing)]
   ButtonAction point btn ReleasedBtn clicks -> do
+    hover <- use L.hoveredPath
     overlay <- use L.overlayPath
     mainPress <- use L.mainBtnPress
     let pressed = fmap fst mainPress
@@ -480,6 +482,10 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
     let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
     let releasedEvt = [(evt, pressed <|> curr)]
+    -- Hover changes need to be handled here too
+    let hoverChanged = curr /= hover
+    let enter = [(Enter point, curr) | isJust curr && hoverChanged]
+    let leave = [(Leave point, hover) | isJust hover && hoverChanged]
 
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
@@ -488,7 +494,7 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
 
     SDLE.captureMouse False
 
-    return $ clickEvt ++ dblClickEvt ++ releasedEvt
+    return $ clickEvt ++ dblClickEvt ++ releasedEvt ++ leave ++ enter
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status
