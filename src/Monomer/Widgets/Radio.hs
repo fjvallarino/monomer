@@ -122,27 +122,21 @@ radioD_ widgetData option configs = radioNode where
 
 makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
-  baseWidget = createSingle def {
+  widget = createSingle def {
+    singleStyleChangeCfg = def & L.cursorEvt .~ isOnMove,
     singleGetBaseStyle = getBaseStyle,
+    singleGetActiveStyle = getActiveStyle,
+    singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
-  }
-  widget = baseWidget {
-    widgetHandleEvent = localEventWrapper
   }
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.radioStyle
 
-  localEventWrapper wenv target evt node
-    | not (node ^. L.info . L.visible) = Nothing
-    | otherwise = handleStyleChange_ wenv target evt style_ resultFocus cfg node
-    where
-      cfg = def & L.cursorEvt .~ isOnMove
-      radioArea = getRadioArea wenv node config
-      style_ = activeStyle_ (isHoveredEllipse_ radioArea) wenv node
-      result = handleEvent wenv target evt node
-      resultFocus = handleFocusRequest wenv evt node result
+  getActiveStyle wenv node = style where
+    radioArea = getRadioArea wenv node config
+    style = activeStyle_ (isHoveredEllipse_ radioArea) wenv node
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
@@ -199,8 +193,3 @@ renderMark renderer radioBW rect color = action where
   w = radioBW * 2
   newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawEllipse renderer newRect (Just color)
-
-isHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetNode s e -> Bool
-isHoveredEllipse_ area wenv node = validPos && isTopLevel wenv node where
-  mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInEllipse mousePos area

@@ -7,6 +7,7 @@ module Monomer.Widgets.Util.Widget (
   isPressed,
   isFocused,
   isHovered,
+  isHoveredEllipse_,
   visibleChildrenChanged,
   widgetDataGet,
   widgetDataSet,
@@ -77,6 +78,11 @@ isHovered wenv node = validPos && validPress && isTopLevel wenv node where
   validPos = pointInRect mousePos viewport
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
   validPress = isNothing pressed || isPressed wenv node
+
+isHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetNode s e -> Bool
+isHoveredEllipse_ area wenv node = validPos && isTopLevel wenv node where
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  validPos = pointInEllipse mousePos area
 
 visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where

@@ -168,7 +168,9 @@ handleCursorChange wenv target evt style cfg node = reqs where
     | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon <|> cfgIcon)
   setCursor = isTarget && newIcon /= curIcon && (isCursorEvt evt || notInOverlay)
   -- Result
-  reqs = [ SetCursorIcon newIcon | setCursor ]
+  reqs
+   | setCursor = [SetCursorIcon newIcon, RenderOnce]
+   | otherwise = []
 
 baseStyleFromTheme :: Theme -> Style
 baseStyleFromTheme theme = style where

@@ -107,7 +107,7 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetInput where
+buildUI wenv model = trace "Creating UI" widgetTree where
   widgetInput = vstack [
       hgrid [
         label "Username: ",

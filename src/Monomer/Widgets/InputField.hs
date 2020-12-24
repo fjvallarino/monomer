@@ -118,7 +118,7 @@ makeInputField
   :: InputFieldValue a => InputFieldCfg s e a -> InputFieldState a -> Widget s e
 makeInputField config state = widget where
   widget = createSingle def {
-    singleCursorIgnore = True,
+    singleStyleChangeCfg = def & L.cursorIgnore .~ True,
     singleFocusOnPressedBtn = False,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,

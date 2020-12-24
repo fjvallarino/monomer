@@ -27,6 +27,11 @@ import qualified Monomer.Lens as L
 type SingleGetBaseStyle s e
   = GetBaseStyle s e
 
+type SingleGetActiveStyle s e
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> StyleState
+
 type SingleInitHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
@@ -96,10 +101,10 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e = Single {
-  singleCursorIgnore :: Bool,
-  singleCursorIcon :: Maybe CursorIcon,
+  singleStyleChangeCfg :: StyleChangeCfg,
   singleFocusOnPressedBtn :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
+  singleGetActiveStyle :: SingleGetActiveStyle s e,
   singleInit :: SingleInitHandler s e,
   singleMerge :: SingleMergeHandler s e,
   singleDispose :: SingleDisposeHandler s e,
@@ -115,10 +120,10 @@ data Single s e = Single {
 
 instance Default (Single s e) where
   def = Single {
-    singleCursorIgnore = False,
-    singleCursorIcon = Nothing,
+    singleStyleChangeCfg = def,
     singleFocusOnPressedBtn = True,
     singleGetBaseStyle = defaultGetBaseStyle,
+    singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,
     singleMerge = defaultMerge,
     singleDispose = defaultDispose,
@@ -150,6 +155,9 @@ createSingle single = Widget {
 
 defaultGetBaseStyle :: SingleGetBaseStyle s e
 defaultGetBaseStyle wenv node = Nothing
+
+defaultGetActiveStyle :: SingleGetActiveStyle s e
+defaultGetActiveStyle wenv node = activeStyle wenv node
 
 defaultInit :: SingleInitHandler s e
 defaultInit wenv node = resultWidget node
@@ -220,15 +228,13 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
-  | otherwise = handleStyleChange_ wenv target evt style resultFocus styleCfg node
+  | otherwise = handleStyleChange_ wenv target evt style resFocus styleCfg node
   where
-    style = activeStyle wenv node
-    styleCfg = def
-      & L.cursorIgnore .~ singleCursorIgnore single
-      & L.cursorIcon .~ singleCursorIcon single
+    style = singleGetActiveStyle single wenv node
+    styleCfg = singleStyleChangeCfg single
     handler = singleHandleEvent single
     result = handler wenv target evt node
-    resultFocus
+    resFocus
       | singleFocusOnPressedBtn single = handleFocusRequest wenv evt node result
       | otherwise = result
 
@@ -245,7 +251,7 @@ getSizeReqWrapper
   -> WidgetNode s e
 getSizeReqWrapper single wenv node = newNode where
   handler = singleGetSizeReq single
-  style = activeStyle wenv node
+  style = singleGetActiveStyle single wenv node
   reqs = handler wenv node
   (newReqW, newReqH) = sizeReqAddStyle style reqs
   newNode = node
@@ -284,6 +290,6 @@ renderWrapper single renderer wenv node =
       rHandler renderer wenv node
   where
     rHandler = singleRender single
-    style = activeStyle wenv node
+    style = singleGetActiveStyle single wenv node
     viewport = node ^. L.info . L.viewport
     renderArea = node ^. L.info . L.renderArea
