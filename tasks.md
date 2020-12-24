@@ -366,6 +366,8 @@ Maybe postponed after release?
   - Further textField improvements
     - Create numeric wrapper that allows increasing/decreasing with mouse
     - Cmd + arrow should select all
+  - Refactor radio (activeStyle thing)
+  - Does having Cursor in style make sense?
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Use new mousePress flags in scroll (instead of custom attributes)
   - Add flag in Single to handle Cursor (for inputField)
@@ -397,6 +399,7 @@ Maybe postponed after release?
   - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector
+  - Add arrow icon similar to Renoise's
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

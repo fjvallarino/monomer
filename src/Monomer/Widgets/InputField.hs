@@ -44,6 +44,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcAcceptInput :: Text -> Bool,
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
   _ifcDragHandler :: Maybe (InputDragHandler a),
+  _ifcDragCursor :: Maybe CursorIcon,
   _ifcOnFocus :: [e],
   _ifcOnFocusReq :: [WidgetRequest s],
   _ifcOnBlur :: [e],
@@ -117,6 +118,7 @@ makeInputField
   :: InputFieldValue a => InputFieldCfg s e a -> InputFieldState a -> Widget s e
 makeInputField config state = widget where
   widget = createSingle def {
+    singleCursorIgnore = True,
     singleFocusOnPressedBtn = False,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
@@ -145,6 +147,7 @@ makeInputField config state = widget where
   -- Mouse select handling options
   selectDragOnlyFocused = _ifcSelectDragOnlyFocused config
   dragHandler = _ifcDragHandler config
+  dragCursor = _ifcDragCursor config
   dragSelActive
     = _ifsDragSelActive state
     || not selectDragOnlyFocused
@@ -289,10 +292,17 @@ makeInputField config state = widget where
         | otherwise = idx
 
   handleEvent wenv target evt node = case evt of
+    Enter point -> Just (resultReqs node reqs) where
+      cursorIcon
+        | dragSelActive = CursorIBeam
+        | otherwise = fromMaybe CursorArrow dragCursor
+      reqs = [SetCursorIcon cursorIcon]
+
     -- Enter regular edit mode if widget has custom drag handler
     DblClick point btn
       | dragHandleExt btn -> Just (resultReqs node reqs) where
-        reqs = [SetFocus path | not (isFocused wenv node)]
+        focusReq = [SetFocus path | not (isFocused wenv node)]
+        reqs = SetCursorIcon CursorIBeam : focusReq
 
     -- Begin regular text selection
     ButtonAction point btn PressedBtn clicks

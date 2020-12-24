@@ -96,6 +96,8 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e = Single {
+  singleCursorIgnore :: Bool,
+  singleCursorIcon :: Maybe CursorIcon,
   singleFocusOnPressedBtn :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleInit :: SingleInitHandler s e,
@@ -113,6 +115,8 @@ data Single s e = Single {
 
 instance Default (Single s e) where
   def = Single {
+    singleCursorIgnore = False,
+    singleCursorIcon = Nothing,
     singleFocusOnPressedBtn = True,
     singleGetBaseStyle = defaultGetBaseStyle,
     singleInit = defaultInit,
@@ -216,9 +220,12 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
-  | otherwise = handleStyleChange wenv target evt style resultFocus node
+  | otherwise = handleStyleChange_ wenv target evt style resultFocus styleCfg node
   where
     style = activeStyle wenv node
+    styleCfg = def
+      & L.cursorIgnore .~ singleCursorIgnore single
+      & L.cursorIcon .~ singleCursorIcon single
     handler = singleHandleEvent single
     result = handler wenv target evt node
     resultFocus

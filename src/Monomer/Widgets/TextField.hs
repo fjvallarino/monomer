@@ -143,6 +143,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcSelectDragOnlyFocused = False,
     _ifcStyle = Just L.inputTextStyle,
     _ifcDragHandler = Nothing,
+    _ifcDragCursor = Nothing,
     _ifcOnFocus = _tfcOnFocus config,
     _ifcOnFocusReq = _tfcOnFocusReq config,
     _ifcOnBlur = _tfcOnBlur config,

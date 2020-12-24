@@ -1,0 +1,32 @@
+{-# LANGUAGE LambdaCase #-}
+
+module Monomer.Widgets.Util.Types where
+
+import Data.Default
+
+import Monomer.Core.StyleTypes
+import Monomer.Core.WidgetTypes
+import Monomer.Event.Types
+
+type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
+
+type GetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> Maybe Style
+
+data StyleChangeCfg = StyleChangeCfg {
+  _sccCursorIgnore :: Bool,
+  _sccCursorIcon :: Maybe CursorIcon,
+  _sccCursorEvt :: SystemEvent -> Bool
+}
+
+instance Default StyleChangeCfg where {
+  def = StyleChangeCfg {
+    _sccCursorIgnore = False,
+    _sccCursorIcon = Nothing,
+    _sccCursorEvt = \case
+      Enter{} -> True
+      _ -> False
+  }
+}

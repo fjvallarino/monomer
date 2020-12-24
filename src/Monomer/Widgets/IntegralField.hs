@@ -178,6 +178,7 @@ integralFieldD_ widgetData configs = newNode where
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputIntegralStyle,
     _ifcDragHandler = Just (handleDrag config),
+    _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocus = _nfcOnFocus config,
     _ifcOnFocusReq = _nfcOnFocusReq config,
     _ifcOnBlur = _nfcOnBlur config,

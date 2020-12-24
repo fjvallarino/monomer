@@ -1,5 +1,3 @@
-{-# LANGUAGE ExistentialQuantification #-}
-
 module Monomer.Event.Types where
 
 import Data.Default

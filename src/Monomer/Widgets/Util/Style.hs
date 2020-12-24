@@ -24,26 +24,10 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Widgets.Util.Types
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
-
-type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
-
-type GetBaseStyle s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Maybe Style
-
-newtype StyleChangeCfg = StyleChangeCfg {
-  _sccHandleCursorEvt :: SystemEvent -> Bool
-}
-
-instance Default StyleChangeCfg where {
-  def = StyleChangeCfg {
-    _sccHandleCursorEvt = isOnEnter
-  }
-}
 
 -- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
@@ -125,7 +109,9 @@ handleStyleChange_
 handleStyleChange_ wenv target evt style result cfg node = newResult where
   baseResult = fromMaybe (resultWidget node) result
   sizeReqs = handleSizeChange wenv target evt cfg node
-  cursorReqs = handleCursorChange wenv target evt style cfg node
+  cursorReqs
+    | cfg ^. L.cursorIgnore = []
+    | otherwise = handleCursorChange wenv target evt style cfg node
   reqs = sizeReqs ++ cursorReqs
   newResult
     | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
@@ -172,13 +158,14 @@ handleCursorChange
   -> [WidgetRequest s]
 handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
-  isCursorEvt = _sccHandleCursorEvt cfg
+  cfgIcon = cfg ^. L.cursorIcon
+  isCursorEvt = cfg ^. L.cursorEvt
   isTarget = node ^. L.info . L.path == target
   curIcon = wenv ^. L.currentCursor
   notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv node)
   newIcon
     | notInOverlay = CursorArrow
-    | otherwise = fromMaybe CursorArrow (_sstCursorIcon style)
+    | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon <|> cfgIcon)
   setCursor = isTarget && newIcon /= curIcon && (isCursorEvt evt || notInOverlay)
   -- Result
   reqs = [ SetCursorIcon newIcon | setCursor ]

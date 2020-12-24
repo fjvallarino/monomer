@@ -191,6 +191,7 @@ floatingFieldD_ widgetData configs = newNode where
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputFloatingStyle,
     _ifcDragHandler = Just (handleDrag config),
+    _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocus = _ffcOnFocus config,
     _ifcOnFocusReq = _ffcOnFocusReq config,
     _ifcOnBlur = _ffcOnBlur config,
