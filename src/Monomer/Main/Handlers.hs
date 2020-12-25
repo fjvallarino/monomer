@@ -500,6 +500,14 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     L.inputStatus . L.keys . at code ?= status
 
     return [(evt, Nothing)]
+  -- This handler is only here to help with testing functions
+  -- This will only be reached from `handleSystemEvents`
+  Click point btn -> do
+    overlay <- use L.overlayPath
+    let startPath = fromMaybe rootPath overlay
+    let widget = widgetRoot ^. L.widget
+    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    return [(evt, curr)]
   _ -> return [(evt, Nothing)]
 
 sendMessage :: TChan e -> e -> IO ()
