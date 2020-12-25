@@ -342,10 +342,14 @@
     - Handle undo history
     - Handle mouse selection
     - Capture mouse (when outside the window)
+    - Cmd + arrow should select all
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
     - Window not created for the moment, since it's not currently needed
     - SDL initialized and clipboard related functionality is now tested
+  - Add flag in Single to handle Cursor (for inputField)
+    - Or maybe do as in Radio
+  - Refactor radio (activeStyle thing)
 
 - Pending
   - Add testing
@@ -363,16 +367,10 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Check multiple resize when opening dialogs
   - Further textField improvements
     - Create numeric wrapper that allows increasing/decreasing with mouse
-    - Cmd + arrow should select all
-  - Refactor radio (activeStyle thing)
-  - Does having Cursor in style make sense?
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
-  - Use new mousePress flags in scroll (instead of custom attributes)
-  - Add flag in Single to handle Cursor (for inputField)
-    - Or maybe do as in Radio
-  - Check multiple resize when opening dialogs
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
@@ -381,6 +379,7 @@ Maybe postponed after release?
     - Further improvements
       - Stack resizing should exclude invisible items (outside of viewprot)
       - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
+  - Does having Cursor in style make sense?
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Add serialization logic for Widget Tree

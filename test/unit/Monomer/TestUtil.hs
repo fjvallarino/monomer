@@ -208,6 +208,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
 
   flip runStateT monomerContext $ do
+    handleResourcesInit
     (wenv2, _, newNode) <- handleWidgetInit wenv node
     let resizedNode = nodeResize wenv vp newNode
 

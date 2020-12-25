@@ -130,7 +130,7 @@ data WidgetInstanceNode = WidgetInstanceNode {
   _winInfo :: WidgetNodeInfo,
   -- | The children widget, if any
   _winChildren :: Seq WidgetInstanceNode
-}
+} deriving (Eq, Show)
 
 data Widget s e =
   Widget {

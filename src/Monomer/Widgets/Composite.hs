@@ -237,7 +237,7 @@ createComposite comp state = widget where
     widgetMerge = compositeMerge comp state,
     widgetDispose = compositeDispose comp state,
     widgetGetState = makeState state,
-    widgetGetInstanceTree = getInstanceTree,
+    widgetGetInstanceTree = compositeGetInstanceTree comp state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
@@ -334,6 +334,24 @@ compositeDispose comp state wenv widgetComp = result where
   WidgetResult _ reqs evts = widgetDispose widget cwenv _cpsRoot
   tempResult = WidgetResult _cpsRoot reqs evts
   result = reduceResult comp state wenv widgetComp tempResult
+
+compositeGetInstanceTree
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  => Composite s e sp ep
+  -> CompositeState s e sp
+  -> WidgetEnv sp ep
+  -> WidgetNode sp ep
+  -> WidgetInstanceNode
+compositeGetInstanceTree comp state wenv node = instTree where
+  CompositeState{..} = state
+  widget = _cpsRoot ^. L.widget
+  model = getModel comp wenv
+  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cInstTree = widgetGetInstanceTree widget cwenv _cpsRoot
+  tempTree = getInstanceTree wenv node
+  instTree = tempTree {
+    _winChildren = Seq.singleton cInstTree
+  }
 
 -- | Next focusable
 compositeFindNextFocus

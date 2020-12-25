@@ -27,6 +27,21 @@ nodeDesc level node = infoDesc (_wnInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
+widgetInstTreeDesc :: Int -> WidgetInstanceNode -> String
+widgetInstTreeDesc level node = desc where
+  desc = nodeInstDesc level node ++ "\n" ++ childDesc
+  childDesc = foldMap (widgetInstTreeDesc (level + 1)) (_winChildren node)
+
+nodeInstDesc :: Int -> WidgetInstanceNode -> String
+nodeInstDesc level node = infoDesc (_winInfo node) where
+  spaces = replicate (level * 2) ' '
+  infoDesc info =
+    spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
+    spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
+    spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
+    spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
+  rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
+
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where
   n = floatDigits x

@@ -44,10 +44,10 @@ evtClick :: Point -> SystemEvent
 evtClick p = Click p LeftBtn
 
 evtPress :: Point -> SystemEvent
-evtPress p = ButtonAction p LeftBtn PressedBtn
+evtPress p = ButtonAction p LeftBtn PressedBtn 1
 
 evtRelease :: Point -> SystemEvent
-evtRelease p = ButtonAction p LeftBtn ReleasedBtn
+evtRelease p = ButtonAction p LeftBtn ReleasedBtn 1
 
 evtMove :: Point -> SystemEvent
 evtMove p = Move p
