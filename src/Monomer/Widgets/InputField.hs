@@ -309,7 +309,7 @@ makeInputField config state = widget where
       | dragSelectText btn && clicks == 1 -> Just result where
         style = activeStyle wenv node
         contentArea = getContentArea style node
-        newPos = findClosestGlyphPos state contentArea point
+        newPos = findClosestGlyphPos state point
         newState = newTextState wenv node state currVal currText newPos Nothing
         newNode = node
           & L.widget .~ makeInputField config newState
@@ -360,7 +360,7 @@ makeInputField config state = widget where
       | isPressed wenv node && dragSelActive -> Just result where
         style = activeStyle wenv node
         contentArea = getContentArea style node
-        newPos = findClosestGlyphPos state contentArea point
+        newPos = findClosestGlyphPos state point
         newSel = currSel <|> Just currPos
         newState = newTextState wenv node state currVal currText newPos newSel
         newNode = node
@@ -507,8 +507,6 @@ makeInputField config state = widget where
       & L.widget .~ makeInputField config newState
 
   render renderer wenv node = do
-    setScissor renderer contentArea
-
     when (selRequired && isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 
@@ -516,8 +514,6 @@ makeInputField config state = widget where
 
     when caretRequired $
       drawRect renderer caretRect (Just caretColor) Nothing
-
-    resetScissor renderer
     where
       style = activeStyle wenv node
       contentArea = getContentArea style node
@@ -627,10 +623,11 @@ moveHistory wenv node state config steps = result where
     }
     newNode = node & L.widget .~ makeInputField config newState
 
-findClosestGlyphPos :: InputFieldState a -> Rect -> Point -> Int
-findClosestGlyphPos state contentArea point = newPos where
+findClosestGlyphPos :: InputFieldState a -> Point -> Int
+findClosestGlyphPos state point = newPos where
   Point x y = point
-  localX = x - _rX contentArea - _ifsOffset state
+  textRect = _ifsTextRect state
+  localX = x - _rX textRect
   textLen = getGlyphsMax (_ifsGlyphs state)
   glyphs
     | Seq.null (_ifsGlyphs state) = Seq.empty
@@ -689,6 +686,7 @@ newTextState wenv node oldState value text cursor selection = newState where
   curX = tx + glyphX
   oldOffset = _ifsOffset oldState
   newOffset
+    | round cw == 0 = 0
     | textFits && alignR = -caretWidth
     | textFits = 0
     | alignL && cursorL = cx - tx + caretWidth

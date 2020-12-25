@@ -370,6 +370,7 @@ Maybe postponed after release?
   - Check multiple resize when opening dialogs
   - Further textField improvements
     - Create numeric wrapper that allows increasing/decreasing with mouse
+    - Check drag select on numeric fields
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles

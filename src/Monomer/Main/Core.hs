@@ -207,8 +207,8 @@ mainLoop window renderer config loopArgs = do
   let baseReqs = Seq.fromList [ exitMsg | quit ]
   let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
-  when newSecond $
-    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
+--  when newSecond $
+--    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
 
   when quit $
     exitApplication .= True
