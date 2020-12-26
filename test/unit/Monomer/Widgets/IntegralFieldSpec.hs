@@ -137,6 +137,20 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` -200
 
+  it "should drag downwards 1000 pixels, staying at -500 (the minimum)" $ do
+    let str = "This is text"
+    let selStart = Point 50 50
+    let selEnd = Point 50 1050
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. integralValue `shouldBe` -500
+
+  it "should drag upwnwards 1000 pixels, staying at 500 (the maximum)" $ do
+    let str = "This is text"
+    let selStart = Point 50 50
+    let selEnd = Point 50 (-950)
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. integralValue `shouldBe` 500
+
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
     let str = "This is text"
     let selStart = Point 50 30
@@ -167,7 +181,7 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     integralNode = vstack [
         button "Test" (NumberChanged 0), -- Used only to have focus
         integralField integralValue,
-        integralField_ integralValue [dragRate 2]
+        integralField_ integralValue [dragRate 2, minValue (-500), maxValue 500]
       ]
     evts es = nodeHandleEventEvts wenv es integralNode
     model es = nodeHandleEventModel wenv es integralNode

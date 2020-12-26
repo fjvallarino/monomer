@@ -352,13 +352,13 @@
   - Add flag in Single to handle Cursor (for inputField)
     - Or maybe do as in Radio
   - Refactor radio (activeStyle thing)
-
-- Pending
+  - Add max/min tests drag on integralField
   - Add testing
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
-    - Use weight to control allocations
     - Refactor modules where consistency is lacking
+
+- Pending
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
   - Add examples
@@ -369,7 +369,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add max/min tests drag on integralField
   - Check multiple resize when opening dialogs
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - ZStack should set _weIsTopLayer based on used space
@@ -419,7 +418,8 @@ Maybe postponed after release?
   - SDL supports Drag and Drop integration with OS
   - Image
     - Can performance be improved? Use sbt functions?
-    - When adding image, on failure remove an the least used image and retry
+    - When adding image, on failure remove the least used image and retry
+  - Use weight to control allocations (check if applicable)
   - Create self rendered version of dropdown and list
   - Does it make sense to handle offset
     - It would avoid resizing on scroll

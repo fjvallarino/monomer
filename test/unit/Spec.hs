@@ -20,6 +20,7 @@ import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
+import qualified Monomer.Widgets.ScrollSpec as ScrollSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
@@ -60,6 +61,7 @@ widgets = describe "Widgets" $ do
   ListViewSpec.spec
   IntegralFieldSpec.spec
   RadioSpec.spec
+  ScrollSpec.spec
   StackSpec.spec
   TextFieldSpec.spec
   ZStackSpec.spec

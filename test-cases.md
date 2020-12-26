@@ -52,8 +52,8 @@
 - Dropdown
   - [x] Open/close/select with mouse
   - [x] Open/close/select with keyboard
-  - [ ] Select on blur
-  - [ ] Implement focus/blur
+  - [x] Select on blur
+  - [x] Implement focus/blur
 - Floating field
   - [x] Input valid number
   - [x] Input two dots
@@ -83,7 +83,7 @@
   - [x] Handle value version
 - Scroll
   - Tested through ListView
-  - [ ] Nest a box component to check viewport assignment
+  - [x] Nest a sized label component to check viewport assignment
 - Single
   - Nothing for the time being; tested through other components
 - Spacer
