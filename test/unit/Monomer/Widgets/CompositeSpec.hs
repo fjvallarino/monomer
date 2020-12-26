@@ -242,7 +242,7 @@ handleMessage = describe "handleMessage" $ do
     wenv = mockWenv def
     msg :: String
     msg = "Test"
-    path = Seq.fromList [0, 1, 0, 0]
+    path = Seq.fromList [0, 0, 1, 0, 0]
     handleChild
       :: WidgetEnv ChildModel ChildEvt
       -> ChildModel

@@ -15,7 +15,7 @@ module Monomer.Widgets.Dropdown (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^#), (#~), (^.), (^?), (.~), (%~), _Just, non)
+import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), _Just, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
@@ -281,7 +281,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Focus
       | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq node
     Blur
-      | not isOpen -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
+      | not isOpen && not (seqStartsWith path focusedPath)
+        -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
     Enter{} -> Nothing -- to have handleStyleChange applied
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
@@ -298,6 +299,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     _
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
+    where
+      path = node ^. L.info . L.path
+      focusedPath = wenv ^. L.focusedPath
 
   openRequired point node = not isOpen && inViewport where
     inViewport = pointInRect point (node ^. L.info . L.viewport)

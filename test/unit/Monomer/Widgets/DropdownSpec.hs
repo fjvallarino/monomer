@@ -55,7 +55,7 @@ testItem7 = testItems!!7
 testItem10 = testItems!!10
 
 spec :: Spec
-spec = fdescribe "Dropdown" $ do
+spec = describe "Dropdown" $ do
   handleEvent
   handleEventValue
   updateSizeReq
@@ -106,12 +106,17 @@ handleEvent = describe "handleEvent" $ do
 
 handleEventValue :: Spec
 handleEventValue = describe "handleEventValue" $ do
+  let outP = Point 3000 3000
   let mainP = Point 50 10
 
   it "should not generate an event if clicked outside" $
-    clickEvts (Point 3000 3000) `shouldBe` Seq.empty
+    clickEvts outP `shouldBe` Seq.empty
 
-  it "should generate an event when, after being opened with keyboard" $ do
+  it "should not generate an event when clicked outside, after being opened with keyboard" $ do
+    let itemP = Point 50 90
+    events [evtK keyDown, evtClick outP, evtClick itemP] `shouldBe` Seq.empty
+
+  it "should generate an event when clicked, after being opened with keyboard" $ do
     let itemP = Point 50 90
     events [evtK keyDown, evtClick itemP] `shouldBe` Seq.singleton (ItemSel 3 testItem3)
 
@@ -119,16 +124,18 @@ handleEventValue = describe "handleEventValue" $ do
     let steps = [evtK keyDown] ++ replicate 7 (evtK keyDown) ++ [evtK keySpace]
     events steps `shouldBe` Seq.singleton (ItemSel 7 testItem7)
 
-{--
+  it "should generate a focus lost event when opened, canceled, and navigated away" $ do
+    let steps = [evtK keyDown, evtK keyEscape, evtK keyTab]
+    events steps `shouldBe` Seq.singleton LostFocus
+
   it "should generate an event when focus is lost and list is open. The navigation also generates a change event" $ do
     let steps = [evtK keyDown] ++ replicate 3 (evtK keyDown) ++ [evtK keyTab]
-    events steps `shouldBe` Seq.fromList [GotFocus, LostFocus]
---}
+    events steps `shouldBe` Seq.fromList [ItemSel 3 testItem3, LostFocus]
   where
     wenv = mockWenv (TestModel testItem0)
     labelItem = label . showt
     lvNode = vstack [
-        dropdownV_ testItem0 ItemSel testItems labelItem labelItem [maxHeight 200],
+        dropdownV_ testItem0 ItemSel testItems labelItem labelItem [maxHeight 200, onBlur LostFocus],
         button "Test" (ItemSel 0 testItem0)
       ]
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
