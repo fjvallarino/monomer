@@ -10,7 +10,9 @@ import Debug.Trace
 import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
+import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (cast)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -25,8 +27,10 @@ import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
 import Monomer.Widgets.TextField
 import Monomer.Widgets.Stack
+import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
+import qualified Monomer.Widgets.Single as SG
 
 data MainEvt
   = MainBtnClicked
@@ -35,6 +39,7 @@ data MainEvt
 
 data ChildEvt
   = ChildBtnClicked
+  | ChildMessage String
   deriving (Eq, Show)
 
 data MainModel = MainModel {
@@ -48,19 +53,29 @@ instance Default MainModel where
     _tmChild = def
   }
 
-newtype ChildModel = ChildModel {
-  _cmClicks :: Int
+data ChildModel = ChildModel {
+  _cmClicks :: Int,
+  _cmMessage :: String
 } deriving (Eq, Show)
 
 instance Default ChildModel where
   def = ChildModel {
-    _cmClicks = 0
+    _cmClicks = 0,
+    _cmMessage = ""
   }
 
 data TestModel = TestModel {
   _tmText1 :: Text,
   _tmText2 :: Text
 } deriving (Eq, Show)
+
+msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle def {
+  SG.singleHandleMessage = msgWidgetHandleMessage
+}
+
+msgWidgetHandleMessage wenv ctx message node = Just (resultEvts node evts) where
+  val = fromMaybe "" (cast message)
+  evts = [ChildMessage val]
 
 makeLensesWith abbreviatedFields ''MainModel
 makeLensesWith abbreviatedFields ''ChildModel
@@ -69,6 +84,7 @@ makeLensesWith abbreviatedFields ''TestModel
 spec :: Spec
 spec = describe "Composite" $ do
   handleEvent
+  handleMessage
   updateSizeReq
   resize
 
@@ -97,7 +113,7 @@ handleEventBasic = describe "handleEventBasic" $ do
     handleEvent wenv model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = button "Click" MainBtnClicked
     cmpNode = composite "main" id Nothing buildUI handleEvent
-    model es = nodeHandleEventCtxModel wenv es cmpNode
+    model es = nodeHandleEventModel wenv es cmpNode
 
 handleEventChild :: Spec
 handleEventChild = describe "handleEventChild" $ do
@@ -133,7 +149,7 @@ handleEventChild = describe "handleEventChild" $ do
         composite "child" child Nothing buildChild handleChild
       ]
     cmpNode = composite "main" id Nothing buildUI handleEvent
-    model es = nodeHandleEventCtxModel wenv es cmpNode
+    model es = nodeHandleEventModel wenv es cmpNode
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
@@ -217,6 +233,38 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
 
+handleMessage :: Spec
+handleMessage = describe "handleMessage" $ do
+  it "should not generate an event if clicked outside" $ do
+    model [evtClick (Point 50 10)] ^. child . message `shouldBe` "Test"
+
+  where
+    wenv = mockWenv def
+    msg :: String
+    msg = "Test"
+    path = Seq.fromList [0, 1, 0, 0]
+    handleChild
+      :: WidgetEnv ChildModel ChildEvt
+      -> ChildModel
+      -> ChildEvt
+      -> [EventResponse ChildModel ChildEvt MainEvt]
+    handleChild wenv model evt = case evt of
+      ChildMessage m -> [Model (model & message .~ m)]
+      _ -> []
+    buildChild wenv model = vstack [ msgWidget ]
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt ()]
+    handleEvent wenv model evt = [Request (SendMessage path msg)]
+    buildUI wenv model = vstack [
+        button "Start" MainBtnClicked,
+        composite "child" child Nothing buildChild handleChild
+      ]
+    cmpNode = composite "main" id Nothing buildUI handleEvent
+    model es = nodeHandleEventModel wenv es cmpNode
+
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do
   it "should return width = Flex 70 0.01" $
@@ -239,16 +287,13 @@ updateSizeReq = describe "updateSizeReq" $ do
 resize :: Spec
 resize = describe "resize" $ do
   it "should have the provided viewport size" $
-    --viewport `shouldBe` vp
-    pendingWith "Instance tree data not yet implemented"
+    viewport `shouldBe` vp
 
   it "should assign the same viewport size to its child" $
-    --childrenVp `shouldBe` Seq.singleton cvp1
-    pendingWith "Instance tree data not yet implemented"
+    childrenVp `shouldBe` Seq.singleton cvp1
 
   it "should assign the same renderArea size to its child" $
-    --childrenRa `shouldBe` Seq.singleton cvp1
-    pendingWith "Instance tree data not yet implemented"
+    childrenRa `shouldBe` Seq.singleton cvp1
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 640 480
@@ -258,7 +303,8 @@ resize = describe "resize" $ do
     buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
     buildUI wenv model = hstack []
     cmpNode = composite "main" id Nothing buildUI handleEvent
-    newNode = nodeInit wenv cmpNode
+    tmpNode = nodeInit wenv cmpNode
+    newNode = widgetGetInstanceTree (tmpNode ^. L.widget) wenv tmpNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

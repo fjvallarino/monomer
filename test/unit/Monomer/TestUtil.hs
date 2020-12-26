@@ -156,15 +156,6 @@ nodeHandleEventCtx
 nodeHandleEventCtx wenv evts node = ctx where
   ctx = snd $ nodeHandleEvents wenv evts node
 
-nodeHandleEventCtxModel
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> s
-nodeHandleEventCtxModel wenv evts node = ctx where
-  ctx = _mcMainModel (nodeHandleEventCtx wenv evts node)
-
 nodeHandleEventModel
   :: (Eq s)
   => WidgetEnv s e
