@@ -109,6 +109,7 @@ handleAppEvent wenv model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = trace "Creating UI" widgetInput where
   widgetInput = vstack [
+      dropdown_ dropdown1 items label label [maxHeight 200],
       hgrid [
         label "Username: ",
         textField textField1,

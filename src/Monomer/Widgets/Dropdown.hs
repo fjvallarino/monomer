@@ -39,6 +39,10 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcListStyle :: Maybe Style,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
+  _ddcOnFocus :: [e],
+  _ddcOnFocusReq :: [WidgetRequest s],
+  _ddcOnBlur :: [e],
+  _ddcOnBlurReq :: [WidgetRequest s],
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s],
   _ddcOnChangeIdx :: [Int -> a -> e],
@@ -51,6 +55,10 @@ instance Default (DropdownCfg s e a) where
     _ddcListStyle = Nothing,
     _ddcItemStyle = Nothing,
     _ddcItemSelectedStyle = Nothing,
+    _ddcOnFocus = [],
+    _ddcOnFocusReq = [],
+    _ddcOnBlur = [],
+    _ddcOnBlurReq = [],
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
     _ddcOnChangeIdx = [],
@@ -63,6 +71,10 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcListStyle = _ddcListStyle t2 <|> _ddcListStyle t1,
     _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
+    _ddcOnFocus = _ddcOnFocus t1 <> _ddcOnFocus t2,
+    _ddcOnFocusReq = _ddcOnFocusReq t1 <> _ddcOnFocusReq t2,
+    _ddcOnBlur = _ddcOnBlur t1 <> _ddcOnBlur t2,
+    _ddcOnBlurReq = _ddcOnBlurReq t1 <> _ddcOnBlurReq t2,
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
     _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
@@ -71,6 +83,26 @@ instance Semigroup (DropdownCfg s e a) where
 
 instance Monoid (DropdownCfg s e a) where
   mempty = def
+
+instance CmbOnFocus (DropdownCfg s e a) e where
+  onFocus fn = def {
+    _ddcOnFocus = [fn]
+  }
+
+instance CmbOnFocusReq (DropdownCfg s e a) s where
+  onFocusReq req = def {
+    _ddcOnFocusReq = [req]
+  }
+
+instance CmbOnBlur (DropdownCfg s e a) e where
+  onBlur fn = def {
+    _ddcOnBlur = [fn]
+  }
+
+instance CmbOnBlurReq (DropdownCfg s e a) s where
+  onBlurReq req = def {
+    _ddcOnBlurReq = [req]
+  }
 
 instance CmbOnChange (DropdownCfg s e a) a e where
   onChange fn = def {
@@ -146,7 +178,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
 dropdownV
   :: (Traversable t, DropdownItem a)
   => a
-  -> (a -> e)
+  -> (Int -> a -> e)
   -> t a
   -> (a -> WidgetNode s e)
   -> (a -> WidgetNode s e)
@@ -157,14 +189,14 @@ dropdownV value handler items makeMain makeRow = newNode where
 dropdownV_
   :: (Traversable t, DropdownItem a)
   => a
-  -> (a -> e)
+  -> (Int -> a -> e)
   -> t a
   -> (a -> WidgetNode s e)
   -> (a -> WidgetNode s e)
   -> [DropdownCfg s e a]
   -> WidgetNode s e
 dropdownV_ value handler items makeMain makeRow configs = newNode where
-  newConfigs = onChange handler : configs
+  newConfigs = onChangeIdx handler : configs
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
@@ -237,10 +269,19 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     result = resultWidget $ createDropdown wenv newState newNode
 
   findNextFocus wenv direction start node
-    | _isOpen state = node ^. L.children
+    | isOpen = node ^. L.children
     | otherwise = Empty
 
+  ddFocusChange evts reqs node = Just newResult where
+    tmpResult = handleFocusChange evts reqs config node
+    newResult = fromMaybe (resultWidget node) tmpResult
+      & L.requests %~ (|> IgnoreChildrenEvents)
+
   handleEvent wenv target evt node = case evt of
+    Focus
+      | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq node
+    Blur
+      | not isOpen -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
     Enter{} -> Nothing -- to have handleStyleChange applied
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
@@ -301,10 +342,19 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
   getSizeReq wenv node children = (newReqW, newReqH) where
-    child = Seq.index children 0
-    childReq = widgetUpdateSizeReq (child ^. L.widget) wenv child
-    newReqW = childReq ^. L.info . L.sizeReqW
-    newReqH = childReq ^. L.info . L.sizeReqH
+    -- Main section reqs
+    mainC = Seq.index children 0
+    mainReq = widgetUpdateSizeReq (mainC ^. L.widget) wenv mainC
+    mainReqW = mainReq ^. L.info . L.sizeReqW
+    mainReqH = mainReq ^. L.info . L.sizeReqH
+    -- List items reqs
+    listC = Seq.index children 1
+    listReq = widgetUpdateSizeReq (listC ^. L.widget) wenv listC
+    listReqW = listReq ^. L.info . L.sizeReqW
+    -- Items other than main could be wider
+    -- Height only matters for the selected item, since the rest is in a scroll
+    newReqW = sizeReqMergeMax mainReqW listReqW
+    newReqH = mainReqH
 
   resize wenv viewport renderArea children node = resized where
     Size winW winH = _weWindowSize wenv
@@ -317,7 +367,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     !listArea = case Seq.lookup 1 children of
       Just child -> (oViewport, oRenderArea) where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
-        maxHeightStyle = fromMaybe maxHeightTheme (_ddcMaxHeight config)
+        cfgMaxHeight = _ddcMaxHeight config
+        -- Avoid having an invisible list if style/theme as not set
+        maxHeightStyle = max 20 $ fromMaybe maxHeightTheme cfgMaxHeight
         reqHeight = sizeReqMin $ child ^. L.info . L.sizeReqH
         maxHeight = min winH (min reqHeight maxHeightStyle)
         dy = dropdownY maxHeight

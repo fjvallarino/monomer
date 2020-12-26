@@ -3,6 +3,8 @@ module Monomer.Core.Util where
 import Control.Lens ((&), (^.), (.~), (?~))
 import Data.Text (Text)
 
+import qualified Data.Sequence as Seq
+
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
@@ -75,3 +77,6 @@ isIgnoreChildrenEvents _ = False
 isRunTask :: WidgetRequest s -> Bool
 isRunTask RunTask{} = True
 isRunTask _ = False
+
+seqStartsWith :: Eq a => Seq.Seq a -> Seq.Seq a -> Bool
+seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix

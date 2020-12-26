@@ -197,11 +197,13 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let pathReadyRoot = node
+        & L.info . L.path .~ Seq.singleton 0
 
   flip runStateT monomerContext $ do
     handleResourcesInit
-    (wenv2, _, newNode) <- handleWidgetInit wenv node
-    let resizedNode = nodeResize wenv vp newNode
+    (wenv2, _, newNode) <- handleWidgetInit wenv pathReadyRoot
+    let resizedNode = nodeResize wenv2 vp newNode
 
     handleSystemEvents wenv2 evts resizedNode
 

@@ -41,7 +41,7 @@
 - Composite
   - Maybe tested as part of _real_ test application
   - [x] Event handling
-  - [ ] Message handling
+  - [x] Message handling
   - [x] Nested composites
 - Confirm
   - [x] Click Accept
@@ -50,9 +50,8 @@
 - Container
   - Nothing for the time being; tested through other components
 - Dropdown
-  - Manual overlay handling (not going) through Core's Handlers
-  - [ ] Open/close/select with mouse
-  - [ ] Open/close/select with keyboard
+  - [x] Open/close/select with mouse
+  - [x] Open/close/select with keyboard
   - [ ] Select on blur
   - [ ] Implement focus/blur
 - Floating field
