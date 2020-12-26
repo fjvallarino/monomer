@@ -43,6 +43,9 @@ modGS = def
 evtClick :: Point -> SystemEvent
 evtClick p = Click p LeftBtn
 
+evtDblClick :: Point -> SystemEvent
+evtDblClick p = DblClick p LeftBtn
+
 evtPress :: Point -> SystemEvent
 evtPress p = ButtonAction p LeftBtn PressedBtn 1
 

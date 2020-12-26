@@ -106,6 +106,11 @@ instance FormattableFloat a => CmbMaxValue (FloatingFieldCfg s e a) a where
     _ffcMaxValue = Just len
   }
 
+instance CmbDragRate (FloatingFieldCfg s e a) Double where
+  dragRate rate = def {
+    _ffcDragRate = Just rate
+  }
+
 instance CmbDecimals (FloatingFieldCfg s e a) where
   decimals num = def {
     _ffcDecimals = Just num

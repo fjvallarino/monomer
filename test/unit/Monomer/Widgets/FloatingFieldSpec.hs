@@ -18,7 +18,9 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
+import Monomer.Widgets.Button
 import Monomer.Widgets.FloatingField
+import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
@@ -39,6 +41,7 @@ spec :: Spec
 spec = describe "FloatingField" $ do
   handleEvent
   handleEventValue
+  handleEventMouseDrag
   updateSizeReq
 
 handleEvent :: Spec
@@ -95,7 +98,7 @@ handleEvent = describe "handleEvent" $ do
     events evt = nodeHandleEventEvts wenv [evt] floatNode
 
 handleEventValue :: Spec
-handleEventValue = describe "handleEvent" $ do
+handleEventValue = describe "handleEventValue" $ do
   it "should input an '100'" $
     evts [evtT "1", evtT "0", evtT "0"] `shouldBe` Seq.fromList [NumberChanged 10, NumberChanged 100]
 
@@ -141,6 +144,59 @@ handleEventValue = describe "handleEvent" $ do
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
     lastEvtDecimals es = lastIdx (evtsAlt es)
+
+handleEventMouseDrag :: Spec
+handleEventMouseDrag = describe "handleEventMouseDrag" $ do
+  it "should drag upwards 100 pixels, setting the value to 10" $ do
+    let str = "This is text"
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. floatingValue `shouldBe` 10
+
+  it "should drag downwards 100 pixels, setting the value to -20 (dragRate = 0.2)" $ do
+    let str = "This is text"
+    let selStart = Point 50 50
+    let selEnd = Point 50 150
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. floatingValue `shouldBe` -20
+
+  it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
+    let str = "This is text"
+    let selStart = Point 50 30
+    let selMid = Point 50 60
+    let selEnd = Point 50 50
+    let steps = [
+          evtPress selStart, evtMove selMid, evtRelease selMid,
+          evtPress selStart, evtMove selEnd, evtRelease selEnd
+          ]
+    model steps ^. floatingValue `shouldBe` -5
+
+  it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
+    let str = "This is text"
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. floatingValue `shouldBe` 0
+
+  it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
+    let str = "This is text"
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. floatingValue `shouldBe` 0
+
+  where
+    wenv = mockWenv (TestModel 0 False)
+    floatNode = vstack [
+        button "Test" (NumberChanged 0), -- Used only to have focus
+        floatingField floatingValue,
+        floatingField_ floatingValue [dragRate 0.2]
+      ]
+    evts es = nodeHandleEventEvts wenv es floatNode
+    model es = nodeHandleEventModel wenv es floatNode
+    lastIdx es = Seq.index es (Seq.length es - 1)
+    lastEvt es = lastIdx (evts es)
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

@@ -38,6 +38,9 @@ class Num a => CmbMinValue t a | t -> a where
 class Num a => CmbMaxValue t a | t -> a where
   maxValue :: a -> t
 
+class Num a => CmbDragRate t a | t -> a where
+  dragRate :: a -> t
+
 -- Container
 class CmbIgnoreEmptyClick t where
   ignoreEmptyClick :: Bool -> t

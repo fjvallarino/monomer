@@ -578,11 +578,11 @@ genReqsEvents config state newText newReqs = result where
   currVal = _ifsCurrValue state
   currText = _ifsCurrText state
   isValid = _ifcAcceptInput config newText
-  hasChanged = currText /= newText
   newVal = fromText newText
   stateVal = fromMaybe currVal newVal
+  hasChanged = stateVal /= currVal
   events
-    | isValid && stateVal /= currVal = fmap ($ stateVal) (_ifcOnChange config)
+    | isValid && hasChanged = fmap ($ stateVal) (_ifcOnChange config)
     | otherwise = []
   reqValid
     | isValid = setModelValid config (isJust newVal)

@@ -343,6 +343,7 @@
     - Handle mouse selection
     - Capture mouse (when outside the window)
     - Cmd + arrow should select all
+    - Check drag select on numeric fields
   - Check if SDL can be initialized headless (for tests that involve the API)
     - https://discourse.libsdl.org/t/possible-to-run-sdl2-headless/25665/2
     - Window not created for the moment, since it's not currently needed
@@ -370,7 +371,6 @@ Maybe postponed after release?
   - Check multiple resize when opening dialogs
   - Further textField improvements
     - Create numeric wrapper that allows increasing/decreasing with mouse
-    - Check drag select on numeric fields
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - ZStack should set _weIsTopLayer based on used space
   - Listview is not properly changing styles

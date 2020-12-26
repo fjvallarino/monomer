@@ -103,6 +103,11 @@ instance FormattableInt a => CmbMaxValue (IntegralFieldCfg s e a) a where
     _nfcMaxValue = Just len
   }
 
+instance CmbDragRate (IntegralFieldCfg s e a) Double where
+  dragRate rate = def {
+    _nfcDragRate = Just rate
+  }
+
 instance CmbOnFocus (IntegralFieldCfg s e a) e where
   onFocus fn = def {
     _nfcOnFocus = [fn]

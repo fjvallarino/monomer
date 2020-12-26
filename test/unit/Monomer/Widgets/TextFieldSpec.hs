@@ -109,7 +109,7 @@ handleEvent = describe "handleEvent" $ do
     ctx evts = nodeHandleEventCtx wenv evts txtNode
 
 handleEventValue :: Spec
-handleEventValue = describe "handleEvent" $ do
+handleEventValue = describe "handleEventValue" $ do
   it "should input an 'ab'" $
     evts [evtT "a", evtT "b"] `shouldBe` Seq.fromList [TextChanged "a", TextChanged "ab"]
 
@@ -155,7 +155,7 @@ handleEventValue = describe "handleEvent" $ do
     lastEvt es = lastIdx (evts es)
 
 handleEventMouseSelect :: Spec
-handleEventMouseSelect = describe "handleEvent" $ do
+handleEventMouseSelect = describe "handleEventMouseSelect" $ do
   it "should add text at the end, since click + drag started outside of viewport" $ do
     let str = "This is text"
     let selStart = Point 50 100
