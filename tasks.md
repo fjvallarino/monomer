@@ -369,9 +369,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check multiple resize when opening dialogs
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - ZStack should set _weIsTopLayer based on used space
+  - Check multiple resize when opening dialogs
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items

@@ -28,7 +28,7 @@ module Monomer.Widgets.Container (
   defaultRender
 ) where
 
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold)
@@ -219,7 +219,7 @@ initWrapper container wenv node = result where
   WidgetResult tempNode reqs events = initHandler wenv styledNode
   children = tempNode ^. L.children
   initChild idx child = widgetInit newWidget wenv newChild where
-    newChild = cascadeCtx tempNode child idx
+    newChild = cascadeCtx wenv tempNode child idx
     newWidget = newChild ^. L.widget
   results = Seq.mapWithIndex initChild children
   newReqs = foldMap _wrRequests results
@@ -290,7 +290,7 @@ mergeChildren wenv oldNode newNode result = newResult where
   oldChildren = oldNode ^. L.children
   oldCsIdx = Seq.mapWithIndex (,) oldChildren
   updatedChildren = uNode ^. L.children
-  mergeChild idx child = (idx, cascadeCtx uNode child idx)
+  mergeChild idx child = (idx, cascadeCtx wenv uNode child idx)
   newCsIdx = Seq.mapWithIndex mergeChild updatedChildren
   localKeys = buildLocalMap oldChildren
   cResult = mergeChildrenSeq wenv localKeys newNode oldCsIdx newCsIdx
@@ -329,8 +329,10 @@ mergeChildrenSeq wenv localKeys newNode oldItems newItems = res where
   newChildKey = newChild ^. L.info . L.key
   oldKeyMatch = newChildKey >>= \key -> findWidgetByKey key localKeys globalKeys
   oldMatch = fromJust oldKeyMatch
-  mergedOld = widgetMerge newWidget wenv oldChild newChild
-  mergedKey = widgetMerge newWidget wenv oldMatch newChild
+  mergedOld = widgetMerge newWidget wenv oldChild $ newChild
+    & L.info . L.widgetId .~ oldChild ^. L.info . L.widgetId
+  mergedKey = widgetMerge newWidget wenv oldMatch $ newChild
+    & L.info . L.widgetId .~ oldMatch ^. L.info . L.widgetId
   initNew = widgetInit newWidget wenv newChild
   isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
   (child, oldRest)
@@ -663,14 +665,16 @@ replaceChild parent child idx = parent & L.children .~ newChildren where
   newChildren = Seq.update idx child (parent ^. L.children)
 
 cascadeCtx
-  :: WidgetNode s e -> WidgetNode s e -> Int -> WidgetNode s e
-cascadeCtx parent child idx = newChild where
+  :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> Int -> WidgetNode s e
+cascadeCtx wenv parent child idx = newChild where
   pInfo = parent ^. L.info
   cInfo = child ^. L.info
   parentPath = pInfo ^. L.path
   parentVisible = pInfo ^. L.visible
   parentEnabled = pInfo ^. L.enabled
+  newPath = parentPath |> idx
   newChild = child
-    & L.info . L.path .~ parentPath |> idx
+    & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
+    & L.info . L.path .~ newPath
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)

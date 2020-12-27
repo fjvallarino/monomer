@@ -54,6 +54,14 @@ data WidgetData s a
   = WidgetValue a
   | WidgetLens (ALens' s a)
 
+data WidgetId = WidgetId {
+  _widTs :: Int,
+  _widPath :: Path
+} deriving (Eq, Show)
+
+instance Default WidgetId where
+  def = WidgetId 0 rootPath
+
 data WidgetKey
   = WidgetKeyLocal Text
   | WidgetKeyGlobal Text
@@ -246,6 +254,8 @@ data WidgetNodeInfo =
   WidgetNodeInfo {
     -- | Type of the widget
     _wniWidgetType :: !WidgetType,
+    -- | The identifier at creation time of the widget
+    _wniWidgetId :: WidgetId,
     -- | Key/Identifier of the widget
     _wniKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree
@@ -272,6 +282,7 @@ data WidgetNodeInfo =
 instance Default WidgetNodeInfo where
   def = WidgetNodeInfo {
     _wniWidgetType = "",
+    _wniWidgetId = def,
     _wniKey = Nothing,
     _wniPath = rootPath,
     _wniSizeReqW = def,

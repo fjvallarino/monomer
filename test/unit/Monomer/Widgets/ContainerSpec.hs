@@ -6,8 +6,7 @@
 
 module Monomer.Widgets.ContainerSpec (spec) where
 
-import Debug.Trace
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (^?), (.~), (%~), ix)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Text (Text)
@@ -32,6 +31,9 @@ data TestModel = TestModel {
 
 makeLensesWith abbreviatedFields ''TestModel
 
+pathLens idx = L.children . ix idx . L.info . L.path
+widLens idx = L.children . ix idx . L.info . L.widgetId
+
 -- This uses Stack for testing, since Container is a template and not a real container
 spec :: Spec
 spec = describe "Container"
@@ -50,6 +52,10 @@ handleEventNormal = describe "handleEventNormal" $
     model1 ^. text2 `shouldBe` ""
     modelM ^. text1 `shouldBe` "aabbcc"
     modelM ^. text2 `shouldBe` ""
+    newRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0])
+    newRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 1])
+    newRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0]))
+    newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 1]))
 
   where
     wenv = mockWenv (TestModel "" "")
@@ -64,9 +70,10 @@ handleEventNormal = describe "handleEventNormal" $
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
+    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
+    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
 
 handleEventNoKey :: Spec
 handleEventNoKey = describe "handleEventNoKey" $
@@ -75,6 +82,10 @@ handleEventNoKey = describe "handleEventNoKey" $
     model1 ^. text2 `shouldBe` ""
     modelM ^. text1 `shouldBe` "bbaacc"
     modelM ^. text2 `shouldBe` ""
+    newRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0])
+    newRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 1])
+    newRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0]))
+    newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 1]))
 
   where
     wenv = mockWenv (TestModel "" "")
@@ -89,9 +100,10 @@ handleEventNoKey = describe "handleEventNoKey" $
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
+    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
+    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
@@ -100,6 +112,11 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     model1 ^. text2 `shouldBe` ""
     modelM ^. text1 `shouldBe` "aabbcc"
     modelM ^. text2 `shouldBe` ""
+    -- WidgetId stays the same even after path changed
+    newRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0])
+    newRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 1])
+    newRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 1]))
+    newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0]))
 
   where
     wenv = mockWenv (TestModel "" "")
@@ -114,6 +131,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntResM = widgetMerge (cntNode2 ^. L.widget) wenv1 oldRoot1 cntNode2
+    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
+    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM

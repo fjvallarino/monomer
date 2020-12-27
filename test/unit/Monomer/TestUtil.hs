@@ -136,6 +136,11 @@ nodeInit wenv node = newNode where
   vp = Rect 0 0 w h
   newNode = nodeResize wenv vp node2
 
+nodeMerge :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
+nodeMerge wenv oldNode node = newNode where
+  WidgetResult newNode _ _ = widgetMerge (node ^. L.widget) wenv oldNode $ node
+    & L.info . L.path .~ oldNode ^. L.info . L.path
+
 nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
@@ -199,6 +204,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
   let pathReadyRoot = node
         & L.info . L.path .~ Seq.singleton 0
+        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
 
   flip runStateT monomerContext $ do
     handleResourcesInit
@@ -216,6 +222,15 @@ nodeHandleEventModelNoInit
 nodeHandleEventModelNoInit wenv evts node = _weModel wenv2 where
   (wenv2, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
 
+nodeHandleEventRootNoInit
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> WidgetNode s e
+nodeHandleEventRootNoInit wenv evts node = newRoot where
+  (_, _, newRoot) = fst $ nodeHandleEventsNoInit wenv evts node
+
 nodeHandleEventsNoInit
   :: (Eq s)
   => WidgetEnv s e
@@ -230,9 +245,12 @@ nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let pathReadyRoot = node
+        & L.info . L.path .~ Seq.singleton 0
+        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
 
   flip runStateT monomerContext $ do
-    let resizedNode = nodeResize wenv vp node
+    let resizedNode = nodeResize wenv vp pathReadyRoot
 
     handleSystemEvents wenv evts resizedNode
 

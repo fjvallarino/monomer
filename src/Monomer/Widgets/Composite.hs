@@ -261,7 +261,7 @@ compositeInit comp state wenv widgetComp = newResult where
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   -- Creates UI using provided function
   builtRoot = _cmpUiBuilder comp cwenv model
-  tempRoot = cascadeCtx widgetComp builtRoot
+  tempRoot = cascadeCtx wenv widgetComp builtRoot
   WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
   newState = state {
@@ -289,7 +289,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   CompositeState oldModel oldRoot oldGlobalKeys = validState
   model = getModel comp wenv
   -- Creates new UI using provided function
-  tempRoot = cascadeCtx newComp (_cmpUiBuilder comp cwenv model)
+  tempRoot = cascadeCtx wenv newComp (_cmpUiBuilder comp cwenv model)
   tempWidget = tempRoot ^. L.widget
   cwenv = convertWidgetEnv wenv oldGlobalKeys model
   -- Needed in case the user references something outside model when building UI
@@ -304,8 +304,9 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   initRequired = not (instanceMatches tempRoot oldRoot)
   tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
-    | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
-  newRoot = _wrNode tempResult
+    | otherwise = widgetMerge tempWidget cwenv oldRoot $ tempRoot
+        & L.info . L.widgetId .~ oldRoot ^. L.info . L.widgetId
+  newRoot = tempResult ^. L.node
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
@@ -584,9 +585,10 @@ mergeChild
 mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
-  builtRoot = cascadeCtx widgetComp (_cmpUiBuilder comp cwenv newModel)
+  builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
   builtWidget = builtRoot ^. L.widget
-  mergedResult = widgetMerge builtWidget cwenv widgetRoot builtRoot
+  mergedResult = widgetMerge builtWidget cwenv widgetRoot $ builtRoot
+      & L.info . L.widgetId .~ _cpsRoot ^. L.info . L.widgetId
   mergedState = state {
     _cpsModel = Just newModel,
     _cpsRoot = mergedResult ^. L.node,
@@ -711,14 +713,17 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weInTopLayer = _weInTopLayer wenv
 }
 
-cascadeCtx :: WidgetNode sp ep -> WidgetNode s e -> WidgetNode s e
-cascadeCtx parent child = newChild where
+cascadeCtx
+  :: WidgetEnv sp ep -> WidgetNode sp ep -> WidgetNode s e -> WidgetNode s e
+cascadeCtx wenv parent child = newChild where
   pVisible = parent ^. L.info . L.visible
   pEnabled = parent ^. L.info . L.enabled
   cVisible = child ^. L.info . L.visible
   cEnabled = child ^. L.info . L.enabled
+  newPath = firstChildPath parent
   newChild = child
-    & L.info . L.path .~ firstChildPath parent
+    & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
+    & L.info . L.path .~ newPath
     & L.info . L.visible .~ (cVisible && pVisible)
     & L.info . L.enabled .~ (cEnabled && pEnabled)
 

@@ -6,8 +6,7 @@
 
 module Monomer.Widgets.CompositeSpec (spec) where
 
-import Debug.Trace
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (^?), (.~), (%~), ix)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
@@ -80,6 +79,10 @@ msgWidgetHandleMessage wenv ctx message node = Just (resultEvts node evts) where
 makeLensesWith abbreviatedFields ''MainModel
 makeLensesWith abbreviatedFields ''ChildModel
 makeLensesWith abbreviatedFields ''TestModel
+
+baseLens idx = L.children . ix 0 . L.children . ix idx . L.children . ix 0
+pathLens idx = baseLens idx . L.info . L.path
+widLens idx = baseLens idx . L.info . L.widgetId
 
 spec :: Spec
 spec = describe "Composite" $ do
@@ -158,6 +161,10 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     model1 ^. text2 `shouldBe` ""
     modelM ^. text1 `shouldBe` "bbaacc"
     modelM ^. text2 `shouldBe` ""
+    newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
+    newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
+    newInstRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 0, 0]))
+    newInstRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 1, 0]))
 
   where
     wenv = mockWenv (TestModel "" "")
@@ -188,9 +195,11 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cmpNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
-    cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
+    cntNodeM = nodeMerge wenv1 oldRoot1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
+    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
+    newInstRoot = widgetGetInstanceTree (newRoot ^. L.widget) wenv1 newRoot
 
 handleEventGlobalKey :: Spec
 handleEventGlobalKey = describe "handleEventGlobalKey" $
@@ -199,6 +208,10 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     model1 ^. text2 `shouldBe` ""
     modelM ^. text1 `shouldBe` "aabbcc"
     modelM ^. text2 `shouldBe` ""
+    newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
+    newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
+    newInstRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 1, 0]))
+    newInstRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 0, 0]))
 
   where
     wenv = mockWenv (TestModel "" "")
@@ -229,9 +242,11 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cmpNode1
     (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
-    cntResM = widgetMerge (cmpNode2 ^. L.widget) wenv1 oldRoot1 cmpNode2
+    cntNodeM = nodeMerge wenv1 oldRoot1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 (cntResM ^. L.node)
+    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
+    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
+    newInstRoot = widgetGetInstanceTree (newRoot ^. L.widget) wenv1 newRoot
 
 handleMessage :: Spec
 handleMessage = describe "handleMessage" $ do
