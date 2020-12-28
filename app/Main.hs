@@ -59,7 +59,16 @@ handleAppEvent
   -> AppEvent
   -> [AppEventResponse App AppEvent]
 handleAppEvent wenv model evt = case evt of
-  IncButton -> [Model (model & clickCount %~ (+1))]
+  IncButton -> [Model (model & clickCount %~ (+1)),
+    Task $ do
+      threadDelay 1000000
+      putStrLn "Done 1"
+      return Nothing,
+    Task $ do
+      threadDelay 2000000
+      putStrLn "Done 2"
+      return Nothing
+    ]
 --  PrintMessage txt -> Model (model & showAlert .~ True)
   PrintMessage txt -> [Task $ do
     print txt
@@ -107,7 +116,14 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetTree where
+buildUI wenv model = trace "Creating UI" widgetIdChanged where
+  widgetIdChanged = vstack [
+      button "Show label" IncButton,
+      hstack $ [label "First" | model ^. clickCount > 0] ++ [
+        label "Test",
+        image_ "https://picsum.photos/600/400" [fitFill, onLoadError ImageMsg]
+      ]
+    ]
   widgetInput = vstack [
       dropdown_ dropdown1 items label label [maxHeight 200],
       hgrid [

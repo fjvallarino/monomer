@@ -57,7 +57,7 @@ data WidgetData s a
 data WidgetId = WidgetId {
   _widTs :: Int,
   _widPath :: Path
-} deriving (Eq, Show)
+} deriving (Eq, Show, Ord)
 
 instance Default WidgetId where
   def = WidgetId 0 rootPath
@@ -89,9 +89,10 @@ data WidgetRequest s
   | ExitApplication Bool
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
+  | UpdateWidgetPath WidgetId Path
   | forall i . Typeable i => SendMessage Path i
-  | forall i . Typeable i => RunTask Path (IO i)
-  | forall i . Typeable i => RunProducer Path ((i -> IO ()) -> IO ())
+  | forall i . Typeable i => RunTask WidgetId Path (IO i)
+  | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,
@@ -314,6 +315,7 @@ instance Show (WidgetRequest s) where
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"
+  show (UpdateWidgetPath wid path) = "UpdateWidgetPath: " ++ show (wid, path)
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"
   show RunProducer{} = "RunProducer"

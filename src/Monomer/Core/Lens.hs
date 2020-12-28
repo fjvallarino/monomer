@@ -33,6 +33,7 @@ makeLensesWith abbreviatedFields ''WidgetEnv
 makeLensesWith abbreviatedFields ''WidgetRequest
 makeLensesWith abbreviatedFields ''WidgetResult
 makeLensesWith abbreviatedFields ''WidgetData
+makeLensesWith abbreviatedFields ''WidgetId
 makeLensesWith abbreviatedFields ''WidgetNode
 makeLensesWith abbreviatedFields ''WidgetNodeInfo
 makeLensesWith abbreviatedFields ''WidgetInstanceNode

@@ -13,7 +13,8 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((&), (^.), (.~), (%~), (.=), (?=), at, non, use)
+import Control.Lens (
+  (&), (^.), (.~), (%~), (.=), (%=), (?=), ix, at, non, use, _1)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -194,9 +195,10 @@ handleRequests reqs step = foldM handleRequest step reqs where
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
+    UpdateWidgetPath wid path -> handleUpdateWidgetPath wid path step
     SendMessage path msg -> handleSendMessage path msg step
-    RunTask path handler -> handleRunTask path handler step
-    RunProducer path handler -> handleRunProducer path handler step
+    RunTask wid path handler -> handleRunTask wid path handler step
+    RunProducer wid path handler -> handleRunProducer wid path handler step
 
 handleResizeWidgets
   :: (MonomerM s m)
@@ -368,6 +370,12 @@ handleUpdateModel fn (wenv, evts, root) = do
   where
     wenv2 = wenv & L.model %~ fn
 
+handleUpdateWidgetPath
+  :: (MonomerM s m) => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
+handleUpdateWidgetPath wid path step = do
+  setWidgetIdPath wid path
+  return step
+
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)
   => Path
@@ -386,29 +394,35 @@ handleSendMessage path message (wenv, events, widgetRoot) = do
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)
-  => Path
+  => WidgetId
+  -> Path
   -> IO i
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleRunTask path handler previousStep = do
+handleRunTask widgetId path handler previousStep = do
   asyncTask <- liftIO $ async (liftIO handler)
 
   previousTasks <- use L.widgetTasks
-  L.widgetTasks .= previousTasks |> WidgetTask path asyncTask
+  L.widgetTasks .= previousTasks |> WidgetTask widgetId asyncTask
+  addWidgetIdPath widgetId path
+
   return previousStep
 
 handleRunProducer
   :: forall s e m i . (MonomerM s m, Typeable i)
-  => Path
+  => WidgetId
+  -> Path
   -> ((i -> IO ()) -> IO ())
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleRunProducer path handler previousStep = do
+handleRunProducer widgetId path handler previousStep = do
   newChannel <- liftIO newTChanIO
   asyncTask <- liftIO $ async (liftIO $ handler (sendMessage newChannel))
 
   previousTasks <- use L.widgetTasks
-  L.widgetTasks .= previousTasks |> WidgetProducer path newChannel asyncTask
+  L.widgetTasks .= previousTasks |> WidgetProducer widgetId newChannel asyncTask
+  addWidgetIdPath widgetId path
+
   return previousStep
 
 addFocusReq
@@ -532,3 +546,11 @@ cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
 cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
 cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
 cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
+
+setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+setWidgetIdPath widgetId path =
+  L.widgetPaths . ix widgetId . _1 .= path
+
+addWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+addWidgetIdPath widgetId path =
+  L.widgetPaths . at widgetId . non (path, 0) %= \(_, c) -> (path, c + 1)

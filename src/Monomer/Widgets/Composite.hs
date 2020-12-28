@@ -283,7 +283,7 @@ compositeMerge
   -> WidgetNode sp ep
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeMerge comp state wenv oldComp newComp = newResult where
+compositeMerge comp state wenv oldComp newComp = result where
   oldState = widgetGetState (oldComp ^. L.widget) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldGlobalKeys = validState
@@ -318,6 +318,10 @@ compositeMerge comp state wenv oldComp newComp = newResult where
     | mergeRequired = reduceResult comp newState wenv styledComp tempResult
     | otherwise = resultWidget $ styledComp
         & L.widget .~ oldComp ^. L.widget
+  widgetId = newComp ^. L.info . L.widgetId
+  path = newComp ^. L.info . L.path
+  result = newResult
+    & L.requests %~ (UpdateWidgetPath widgetId path <|)
 
 -- | Dispose
 compositeDispose
@@ -535,10 +539,11 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
       reduceCompEvents _cpsGlobalKeys evtHandler cwenv evtModel evts
   WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
-  currentPath = widgetComp ^. L.info . L.path
+  widgetId = widgetComp ^. L.info . L.widgetId
+  path = widgetComp ^. L.info . L.path
   newReqs = toParentReqs reqs
-         <> tasksToRequests currentPath _reTasks
-         <> producersToRequests currentPath _reProducers
+         <> tasksToRequests widgetId path _reTasks
+         <> producersToRequests widgetId path _reProducers
          <> uReqs
          <> toParentReqs _reRequests
          <> _reMessages
@@ -650,12 +655,21 @@ getModel
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
-tasksToRequests :: CompositeEvent e => Path -> Seq (IO e) -> Seq (WidgetRequest sp)
-tasksToRequests path reqs = RunTask path <$> reqs
+tasksToRequests
+  :: CompositeEvent e
+  => WidgetId
+  -> Path
+  -> Seq (IO e)
+  -> Seq (WidgetRequest sp)
+tasksToRequests widgetId path reqs = RunTask widgetId path <$> reqs
 
 producersToRequests
-  :: CompositeEvent e => Path -> Seq (ProducerHandler e) -> Seq (WidgetRequest sp)
-producersToRequests path reqs = RunProducer path <$> reqs
+  :: CompositeEvent e
+  => WidgetId
+  -> Path
+  -> Seq (ProducerHandler e)
+  -> Seq (WidgetRequest sp)
+producersToRequests widgetId path reqs = RunProducer widgetId path <$> reqs
 
 toParentReqs :: Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
 toParentReqs reqs = fmap fromJust $ Seq.filter isJust $ fmap toParentReq reqs
@@ -674,13 +688,14 @@ toParentReq ResetOverlay = Just ResetOverlay
 toParentReq (SetOverlay path) = Just (SetOverlay path)
 toParentReq (SetCursorIcon icon) = Just (SetCursorIcon icon)
 toParentReq (SendMessage path message) = Just (SendMessage path message)
-toParentReq (RunTask path action) = Just (RunTask path action)
-toParentReq (RunProducer path action) = Just (RunProducer path action)
+toParentReq (RunTask wid path action) = Just (RunTask wid path action)
+toParentReq (RunProducer wid path action) = Just (RunProducer wid path action)
 toParentReq RenderOnce = Just RenderOnce
 toParentReq (RenderEvery path ms) = Just (RenderEvery path ms)
 toParentReq (RenderStop path) = Just (RenderStop path)
 toParentReq (ExitApplication exit) = Just (ExitApplication exit)
 toParentReq (UpdateWindow req) = Just (UpdateWindow req)
+toParentReq (UpdateWidgetPath wid path) = Just (UpdateWidgetPath wid path)
 toParentReq (UpdateModel fn) = Nothing
 
 collectGlobalKeys

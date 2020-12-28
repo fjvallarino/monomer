@@ -23,12 +23,12 @@ initMergeWidget = describe "init/merge" $ do
     Seq.length reqs1 `shouldBe` 1
     Seq.index reqs1 0 `shouldSatisfy` isRunTask
 
-  it "should not create a task when merging to the same path" $
-    Seq.length reqs2 `shouldBe` 0
+  it "should not create a task when merging to the same path (UpdateWidgetPath is still added)" $
+    Seq.length reqs2 `shouldBe` 1
 
-  it "should create a task when merging to a different path" $ do
-    Seq.length reqs3 `shouldBe` 1
-    Seq.index reqs3 0 `shouldSatisfy` isRunTask
+  it "should create a task when merging to a different path (UpdateWidgetPath is still added)" $ do
+    Seq.length reqs3 `shouldBe` 2
+    Seq.index reqs3 1 `shouldSatisfy` isRunTask
 
   where
     wenv = mockWenv ()

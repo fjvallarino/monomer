@@ -123,26 +123,30 @@ makeImage imgPath config state = widget where
   }
 
   init wenv node = resultReqs node reqs where
+    wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
-    reqs = [RunTask path $ handleImageLoad wenv imgPath]
+    reqs = [RunTask wid path $ handleImageLoad wenv imgPath]
 
   merge wenv oldState oldNode newNode = result where
     newState = fromMaybe state (useState oldState)
+    wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
-    newImgReqs = [ RunTask path $ do
+    widgetPathReq = UpdateWidgetPath wid path
+    newImgReqs = [ widgetPathReq, RunTask wid path $ do
         removeImage wenv imgPath
         handleImageLoad wenv imgPath
       ]
     sameImgNode = newNode
       & L.widget .~ makeImage imgPath config newState
     result
-      | isImagePath newState == imgPath = resultWidget sameImgNode
+      | isImagePath newState == imgPath = resultReqs sameImgNode [widgetPathReq]
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
+    wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
     renderer = _weRenderer wenv
-    reqs = [RunTask path $ removeImage wenv imgPath]
+    reqs = [RunTask wid path $ removeImage wenv imgPath]
 
   handleMessage wenv target message node = result where
     result = cast message >>= useImage node

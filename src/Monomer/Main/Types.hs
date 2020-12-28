@@ -23,6 +23,7 @@ import Monomer.Core.BasicTypes
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
+import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
@@ -35,8 +36,8 @@ data RenderSchedule = RenderSchedule {
 } deriving (Eq, Show)
 
 data WidgetTask
-  = forall i . Typeable i => WidgetTask Path (Async i)
-  | forall i . Typeable i => WidgetProducer Path (TChan i) (Async ())
+  = forall i . Typeable i => WidgetTask WidgetId (Async i)
+  | forall i . Typeable i => WidgetProducer WidgetId (TChan i) (Async ())
 
 data MonomerContext s = MonomerContext {
   _mcMainModel :: s,
@@ -51,6 +52,7 @@ data MonomerContext s = MonomerContext {
   _mcOverlayPath :: Maybe Path,
   _mcMainBtnPress :: Maybe (Path, Point),
   _mcWidgetTasks :: Seq WidgetTask,
+  _mcWidgetPaths :: Map WidgetId (Path, Int),
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
   _mcRenderRequested :: Bool,
   _mcRenderSchedule :: Map Path RenderSchedule,

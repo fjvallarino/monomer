@@ -5,7 +5,7 @@ module Monomer.Main.WidgetTask (handleWidgetTasks) where
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
-import Control.Lens ((&), (^.), (.=), use)
+import Control.Lens ((&), (^.), (.=), (%=), use, at, non, _1)
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
@@ -19,6 +19,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Main.Handlers
 import Monomer.Main.Lens
+import Monomer.Main.Util
 import Monomer.Main.Types
 
 import qualified Monomer.Lens as L
@@ -31,7 +32,9 @@ handleWidgetTasks wenv widgetRoot = do
   (active, finished) <- partitionM isThreadActive (toList tasks)
   widgetTasks .= Seq.fromList active
 
-  processTasks wenv widgetRoot tasks
+  result <- processTasks wenv widgetRoot tasks
+  mapM_ handleFinishedTask finished
+  return result
 
 processTasks
   :: (MonomerM s m, Traversable t)
@@ -51,41 +54,41 @@ processTask
   -> WidgetNode s e
   -> WidgetTask
   -> m (HandlerStep s e)
-processTask wenv widgetRoot (WidgetTask path task) = do
+processTask wenv widgetRoot (WidgetTask widgetId task) = do
   taskStatus <- liftIO $ poll task
 
   case taskStatus of
-    Just taskRes -> processTaskResult wenv widgetRoot path taskRes
+    Just taskRes -> processTaskResult wenv widgetRoot widgetId taskRes
     Nothing -> return (wenv, Seq.empty, widgetRoot)
-processTask model widgetRoot (WidgetProducer path channel task) = do
+processTask model widgetRoot (WidgetProducer widgetId channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
-    Just taskMsg -> processTaskEvent model widgetRoot path taskMsg
+    Just taskMsg -> processTaskEvent model widgetRoot widgetId taskMsg
     Nothing -> return (model, Seq.empty, widgetRoot)
 
 processTaskResult
   :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
   -> WidgetNode s e
-  -> Path
+  -> WidgetId
   -> Either SomeException a
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
   return (wenv, Seq.empty, widgetRoot)
-processTaskResult wenv widgetRoot path (Right taskResult)
-  = processTaskEvent wenv widgetRoot path taskResult
+processTaskResult wenv widgetRoot widgetId (Right taskResult)
+  = processTaskEvent wenv widgetRoot widgetId taskResult
 
 processTaskEvent
   :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
   -> WidgetNode s e
-  -> Path
+  -> WidgetId
   -> a
   -> m (HandlerStep s e)
-processTaskEvent wenv widgetRoot path event = do
-  currentFocus <- use L.focusedPath
+processTaskEvent wenv widgetRoot widgetId event = do
+  path <- getWidgetIdPath widgetId
 
   let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
   let widget = widgetRoot ^. L.widget
@@ -94,6 +97,25 @@ processTaskEvent wenv widgetRoot path event = do
 
   handleWidgetResult wenv widgetResult
 
-isThreadActive :: (MonomerM s m) => WidgetTask -> m Bool
+handleFinishedTask :: MonomerM s m => WidgetTask -> m ()
+handleFinishedTask task = delWidgetIdPath (taskWidgetId task)
+
+isThreadActive :: MonomerM s m => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)
 isThreadActive (WidgetProducer _ _ task) = fmap isNothing (liftIO $ poll task)
+
+taskWidgetId :: WidgetTask -> WidgetId
+taskWidgetId (WidgetTask widgetId _) = widgetId
+taskWidgetId (WidgetProducer widgetId _ _) = widgetId
+
+getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
+getWidgetIdPath widgetId =
+  use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path, 0) . _1
+
+delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
+delWidgetIdPath widgetId =
+  L.widgetPaths . at widgetId %= remVal
+  where
+    remVal (Just (path, c))
+      | c > 1 = Just (path, c - 1)
+    remVal _ = Nothing
