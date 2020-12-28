@@ -357,6 +357,7 @@
     - Delayed until this point to try to settle down interfaces
     - Validate stack assigns space correctly
     - Refactor modules where consistency is lacking
+  - Make sure WidgetTask/Node association is preserved if node location in tree changes
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -369,7 +370,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - ZStack should set _weIsTopLayer based on used space
   - Button should handle ReleaseBtn instead of Click (allow multi click)
   - Check multiple resize when opening dialogs
