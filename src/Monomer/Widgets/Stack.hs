@@ -1,6 +1,8 @@
 module Monomer.Widgets.Stack (
   hstack,
-  vstack
+  hstack_,
+  vstack,
+  vstack_
 ) where
 
 import Control.Applicative ((<|>))
@@ -17,19 +19,56 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+newtype StackCfg = StackCfg {
+  _stcIgnoreEmptyArea :: Maybe Bool
+}
+
+instance Default StackCfg where
+  def = StackCfg Nothing
+
+instance Semigroup StackCfg where
+  (<>) s1 s2 = StackCfg {
+    _stcIgnoreEmptyArea = _stcIgnoreEmptyArea s2 <|> _stcIgnoreEmptyArea s1
+  }
+
+instance Monoid StackCfg where
+  mempty = def
+
+instance CmbIgnoreEmptyArea StackCfg where
+  ignoreEmptyArea ignore = def {
+    _stcIgnoreEmptyArea = Just ignore
+  }
+
 hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-hstack children = newNode where
-  newNode = defaultWidgetNode "hstack" (makeStack True)
+hstack children = hstack_ children def
+
+hstack_
+  :: (Traversable t)
+  => t (WidgetNode s e)
+  -> [StackCfg]
+  -> WidgetNode s e
+hstack_ children configs = newNode where
+  config = mconcat configs
+  newNode = defaultWidgetNode "hstack" (makeStack True config)
     & L.children .~ foldl' (|>) Empty children
 
 vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-vstack children = newNode where
-  newNode = defaultWidgetNode "vstack" (makeStack False)
+vstack children = vstack_ children def
+
+vstack_
+  :: (Traversable t)
+  => t (WidgetNode s e)
+  -> [StackCfg]
+  -> WidgetNode s e
+vstack_ children configs = newNode where
+  config = mconcat configs
+  newNode = defaultWidgetNode "vstack" (makeStack False config)
     & L.children .~ foldl' (|>) Empty children
 
-makeStack :: Bool -> Widget s e
-makeStack isHorizontal = widget where
+makeStack :: Bool -> StackCfg -> Widget s e
+makeStack isHorizontal config = widget where
   widget = createContainer def {
+    containerIgnoreEmptyArea = ignoreEmptyArea,
     containerUseCustomSize = True,
     containerFindByPoint = defaultFindByPoint,
     containerGetSizeReq = getSizeReq,
@@ -37,6 +76,7 @@ makeStack isHorizontal = widget where
   }
 
   isVertical = not isHorizontal
+  ignoreEmptyArea = fromMaybe True (_stcIgnoreEmptyArea config)
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter (_wniVisible . _wnInfo) children

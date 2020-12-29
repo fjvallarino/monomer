@@ -13,16 +13,19 @@ import Monomer.TestUtil
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Label
+import Monomer.Widgets.ZStack
 
 import qualified Monomer.Lens as L
 
-data BtnEvent
-  = BtnClick
+newtype BtnEvent
+  = BtnClick Int
   deriving (Eq, Show)
 
 spec :: Spec
 spec = describe "Box" $ do
   handleEvent
+  handleEventIgnoreEmpty
+  handleEventSinkEmpty
   updateSizeReq
   resize
 
@@ -32,13 +35,46 @@ handleEvent = describe "handleEvent" $ do
     events (Point 3000 3000) `shouldBe` Seq.empty
 
   it "should generate an event if the button (centered) is clicked" $
-    events (Point 320 240) `shouldBe` Seq.singleton BtnClick
+    events (Point 320 240) `shouldBe` Seq.singleton (BtnClick 0)
 
   where
     wenv = mockWenv ()
-    btn = button "Click" BtnClick
+    btn = button "Click" (BtnClick 0)
     boxNode = nodeInit wenv (box btn)
     events p = nodeHandleEventEvts wenv [Click p LeftBtn] boxNode
+
+handleEventIgnoreEmpty :: Spec
+handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
+  it "should click the bottom layer, since nothing is handled on top" $
+    clickIgnored (Point 200 15) `shouldBe` Seq.singleton (BtnClick 1)
+
+  it "should click the top layer, since pointer is on the button" $
+    clickIgnored (Point 320 240) `shouldBe` Seq.singleton (BtnClick 2)
+
+  where
+    wenv = mockWenv ()
+    ignoredNode = zstack_ [
+        button "Click 1" (BtnClick 1),
+        box (button "Click 2" (BtnClick 2) `style` [height 10])
+      ] [onlyTopActive False]
+    clickIgnored p = nodeHandleEventEvts wenv [Click p LeftBtn] ignoredNode
+
+handleEventSinkEmpty :: Spec
+handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
+  it "should do nothing, since event is not passed down" $
+    clickSunk (Point 200 15) `shouldBe` Seq.empty
+
+  it "should click the top layer, since pointer is on the button" $
+    clickSunk (Point 320 240) `shouldBe` Seq.singleton (BtnClick 2)
+
+  where
+    wenv = mockWenv ()
+    centeredBtn = button "Click 2" (BtnClick 2) `style` [height 10]
+    sunkNode = zstack_ [
+        button "Click 1" (BtnClick 1),
+        box_ centeredBtn [ignoreEmptyArea False]
+      ] [onlyTopActive False]
+    clickSunk p = nodeHandleEventEvts wenv [Click p LeftBtn] sunkNode
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

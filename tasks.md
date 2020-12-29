@@ -359,6 +359,7 @@
     - Refactor modules where consistency is lacking
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Button should handle ReleaseBtn instead of Click (allow multi click)
+  - ZStack should set _weIsTopLayer based on used space
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -371,7 +372,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - ZStack should set _weIsTopLayer based on used space
   - Reimplement containerIgnoreEmptyClick
   - Box should allow setting size of children and ignore the rest
   - Check multiple resize when opening dialogs

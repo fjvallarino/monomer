@@ -198,12 +198,14 @@ buildUI wenv model = trace "Creating UI" widgetTree where
           textField textField1 `style` [bgColor orange]
         ]
       ],
-      hstack [
-        vgrid [
-          label "",
-          textField textField1 `style` [bgColor lightBlue, width 200]
-        ]
-      ]
+      box_ (
+        hstack [
+          vgrid [
+            label "",
+            textField textField1 `style` [bgColor lightBlue, width 200]
+          ]
+        ] `style` [height 480]
+       ) [alignRight]
     ] [onlyTopActive False]
   widgetTree4 = hgrid [
       label "" `style` [bgColor blue],

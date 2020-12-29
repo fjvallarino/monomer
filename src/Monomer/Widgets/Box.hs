@@ -23,6 +23,7 @@ import qualified Monomer.Lens as L
 
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
+  _boxIgnoreEmptyArea :: Maybe Bool,
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
@@ -34,6 +35,7 @@ data BoxCfg s e = BoxCfg {
 instance Default (BoxCfg s e) where
   def = BoxCfg {
     _boxExpandContent = Nothing,
+    _boxIgnoreEmptyArea = Nothing,
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
     _boxOnClick = [],
@@ -45,6 +47,7 @@ instance Default (BoxCfg s e) where
 instance Semigroup (BoxCfg s e) where
   (<>) t1 t2 = BoxCfg {
     _boxExpandContent = _boxExpandContent t2 <|> _boxExpandContent t1,
+    _boxIgnoreEmptyArea = _boxIgnoreEmptyArea t2 <|> _boxIgnoreEmptyArea t1,
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
     _boxOnClick = _boxOnClick t1 <> _boxOnClick t2,
@@ -55,6 +58,11 @@ instance Semigroup (BoxCfg s e) where
 
 instance Monoid (BoxCfg s e) where
   mempty = def
+
+instance CmbIgnoreEmptyArea (BoxCfg s e) where
+  ignoreEmptyArea ignore = def {
+    _boxIgnoreEmptyArea = Just ignore
+  }
 
 instance CmbAlignLeft (BoxCfg s e) where
   alignLeft = def {
@@ -126,10 +134,15 @@ makeNode widget managedWidget = defaultWidgetNode "box" widget
 makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
   widget = createContainer def {
+    containerIgnoreEmptyArea = ignoreEmptyArea && emptyHandlersCount == 0,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
+
+  ignoreEmptyArea = fromMaybe True (_boxIgnoreEmptyArea config)
+  emptyHandlersCount
+    = length (_boxOnClickEmpty config) + length (_boxOnClickEmptyReq config)
 
   handleEvent wenv ctx evt node = case evt of
     Click point btn -> result where

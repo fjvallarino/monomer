@@ -131,7 +131,7 @@ type ContainerResizeHandler s e
   -> (WidgetNode s e, Seq (Rect, Rect))
 
 type ContainerRenderHandler s e
-  =  Renderer
+  = Renderer
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
@@ -140,6 +140,7 @@ data Container s e = Container {
   containerUseScissor :: Bool,
   containerStyleOnMerge :: Bool,
   containerResizeRequired :: Bool,
+  containerIgnoreEmptyArea :: Bool,
   containerUseCustomSize :: Bool,
   containerUseChildrenSizes :: Bool,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
@@ -164,6 +165,7 @@ instance Default (Container s e) where
     containerUseScissor = True,
     containerStyleOnMerge = False,
     containerResizeRequired = True,
+    containerIgnoreEmptyArea = False,
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
     containerGetBaseStyle = defaultGetBaseStyle,
@@ -433,6 +435,7 @@ findByPointWrapper
   -> WidgetNode s e
   -> Maybe Path
 findByPointWrapper container wenv start point node = result where
+  ignoreEmpty = containerIgnoreEmptyArea container
   handler = containerFindByPoint container
   isVisible = node ^. L.info . L.visible
   inVp = pointInViewport point node
@@ -450,7 +453,9 @@ findByPointWrapper container wenv start point node = result where
       childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx
       childWidget = child ^. L.widget
-    Nothing -> Just $ node ^. L.info . L.path
+    Nothing
+      | not ignoreEmpty -> Just $ node ^. L.info . L.path
+      | otherwise -> Nothing
   result
     | isVisible && (inVp || resultPath /= Just path) = resultPath
     | otherwise = Nothing
