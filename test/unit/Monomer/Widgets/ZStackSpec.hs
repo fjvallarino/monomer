@@ -72,15 +72,15 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
     clickEvts (Point 3000 3000) `shouldBe` Seq.empty
 
   it "should click the first layer, since top is not visible and second does not have widgets in that location" $
-    clickEvts (Point 200 100) `shouldBe` Seq.singleton (BtnClick 1)
+    clickEvts (Point 200 15) `shouldBe` Seq.singleton (BtnClick 1)
 
   where
     wenv = mockWenv ()
     zstackNode = zstack_ [
         button "Click 1" (BtnClick 1),
-        hstack_ [
-          button "Click 2" (BtnClick 2) `style` [width 100]
-        ] [ignoreEmptyClick True],
+        vstack [
+          button "Click 2" (BtnClick 2) `style` [height 10]
+        ],
         button "Click 3" (BtnClick 3) `visible` False
       ] [onlyTopActive False]
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] zstackNode

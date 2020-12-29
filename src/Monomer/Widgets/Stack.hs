@@ -1,8 +1,6 @@
 module Monomer.Widgets.Stack (
   hstack,
-  hstack_,
-  vstack,
-  vstack_
+  vstack
 ) where
 
 import Control.Applicative ((<|>))
@@ -19,62 +17,25 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-newtype StackCfg = StackCfg {
-  _stcIgnoreEmptyClick :: Maybe Bool
-}
-
-instance Default StackCfg where
-  def = StackCfg Nothing
-
-instance Semigroup StackCfg where
-  (<>) s1 s2 = StackCfg {
-    _stcIgnoreEmptyClick = _stcIgnoreEmptyClick s2 <|> _stcIgnoreEmptyClick s1
-  }
-
-instance Monoid StackCfg where
-  mempty = def
-
-instance CmbIgnoreEmptyClick StackCfg where
-  ignoreEmptyClick ignore = def {
-    _stcIgnoreEmptyClick = Just ignore
-  }
-
 hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-hstack children = hstack_ children def
-
-hstack_
-  :: (Traversable t)
-  => t (WidgetNode s e)
-  -> [StackCfg]
-  -> WidgetNode s e
-hstack_ children configs = newNode where
-  config = mconcat configs
-  newNode = defaultWidgetNode "hstack" (makeStack True config)
+hstack children = newNode where
+  newNode = defaultWidgetNode "hstack" (makeStack True)
     & L.children .~ foldl' (|>) Empty children
 
 vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-vstack children = vstack_ children def
-
-vstack_
-  :: (Traversable t)
-  => t (WidgetNode s e)
-  -> [StackCfg]
-  -> WidgetNode s e
-vstack_ children configs = newNode where
-  config = mconcat configs
-  newNode = defaultWidgetNode "vstack" (makeStack False config)
+vstack children = newNode where
+  newNode = defaultWidgetNode "vstack" (makeStack False)
     & L.children .~ foldl' (|>) Empty children
 
-makeStack :: Bool -> StackCfg -> Widget s e
-makeStack isHorizontal config = widget where
+makeStack :: Bool -> Widget s e
+makeStack isHorizontal = widget where
   widget = createContainer def {
-    containerIgnoreEmptyClick = ignoreEmptyClick,
+    containerUseCustomSize = True,
     containerFindByPoint = defaultFindByPoint,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
 
-  ignoreEmptyClick = _stcIgnoreEmptyClick config == Just True
   isVertical = not isHorizontal
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
@@ -118,9 +79,16 @@ makeStack isHorizontal config = widget where
       newSize = resizeChild contentArea flexCoeff extraCoeff offset child
       newAccum = accum |> newSize
       newOffset = offset + rectSelector newSize
-    (newViewports, _) = foldl' foldHelper (Seq.empty, mainStart) children
+    (newViewports, newDim) = foldl' foldHelper (Seq.empty, mainStart) children
+    newCa
+      | isHorizontal = contentArea & L.w .~ newDim
+      | otherwise = contentArea & L.h .~ newDim
+    newRa = fromMaybe newCa (addOuterBounds style newCa)
+    newNode = node
+      & L.info . L.viewport .~ newRa
+      & L.info . L.renderArea .~ newRa
     assignedArea = Seq.zip newViewports newViewports
-    resized = (node, assignedArea)
+    resized = (newNode, assignedArea)
 
   resizeChild contentArea flexCoeff extraCoeff offset child = result where
     Rect l t w h = contentArea

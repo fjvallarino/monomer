@@ -103,6 +103,7 @@ type SingleRenderHandler s e
 data Single s e = Single {
   singleStyleChangeCfg :: StyleChangeCfg,
   singleFocusOnPressedBtn :: Bool,
+  singleUseCustomSize :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetActiveStyle :: SingleGetActiveStyle s e,
   singleInit :: SingleInitHandler s e,
@@ -122,6 +123,7 @@ instance Default (Single s e) where
   def = Single {
     singleStyleChangeCfg = def,
     singleFocusOnPressedBtn = True,
+    singleUseCustomSize = False,
     singleGetBaseStyle = defaultGetBaseStyle,
     singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,
@@ -269,11 +271,20 @@ resizeHandlerWrapper
   -> WidgetNode s e
   -> WidgetNode s e
 resizeHandlerWrapper single wenv viewport renderArea node = newNode where
+  useCustomSize = singleUseCustomSize single
   handler = singleResize single
   tempNode = handler wenv viewport renderArea node
+  lensVp = L.info . L.viewport
+  lensRa = L.info . L.renderArea
+  newVp
+    | useCustomSize = tempNode ^. lensVp
+    | otherwise = viewport
+  newRa
+    | useCustomSize = tempNode ^. lensRa
+    | otherwise = renderArea
   newNode = tempNode
-    & L.info . L.viewport .~ viewport
-    & L.info . L.renderArea .~ renderArea
+    & L.info . L.viewport .~ newVp
+    & L.info . L.renderArea .~ newRa
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv node = return ()

@@ -358,6 +358,7 @@
     - Validate stack assigns space correctly
     - Refactor modules where consistency is lacking
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
+  - Button should handle ReleaseBtn instead of Click (allow multi click)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -371,7 +372,8 @@
 
 Maybe postponed after release?
   - ZStack should set _weIsTopLayer based on used space
-  - Button should handle ReleaseBtn instead of Click (allow multi click)
+  - Reimplement containerIgnoreEmptyClick
+  - Box should allow setting size of children and ignore the rest
   - Check multiple resize when opening dialogs
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes

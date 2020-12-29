@@ -81,7 +81,8 @@ resizeEmpty = describe "empty" $ do
 
   where
     wenv = mockWenv ()
-    vp = Rect 0 0 640 480
+    -- Main axis is adjusted to content
+    vp = Rect 0 0 640 0
     vstackNode = vstack []
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -208,7 +209,7 @@ resizeMixedH = describe "mixed items, horizontal" $ do
 
   where
     wenv = mockWenv ()
-    vp   = Rect   0 0 640 480
+    vp   = Rect   0 0 640  20
     cvp1 = Rect   0 0 196  20
     cvp2 = Rect 196 0 444  20
     hstackNode = vstack [
@@ -286,8 +287,9 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
 
 resizeNoSpaceV :: Spec
 resizeNoSpaceV = describe "vertical, without enough space" $ do
-  it "should have the provided viewport size" $
+  it "should have a larger viewport size (parent should fix it)" $ do
     viewport `shouldBe` vp
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
@@ -297,7 +299,7 @@ resizeNoSpaceV = describe "vertical, without enough space" $ do
 
   where
     wenv = mockWenv ()
-    vp   = Rect 0   0 640 480
+    vp   = Rect 0   0 640 800
     cvp1 = Rect 0   0 640 200
     cvp2 = Rect 0 200 640 200
     cvp3 = Rect 0 400 640   0
@@ -312,13 +314,14 @@ resizeNoSpaceV = describe "vertical, without enough space" $ do
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
+    renderArea = newNode ^. L.info . L.renderArea
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeSpacerFlexH :: Spec
 resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
   it "should have the provided viewport size" $
-    viewport `shouldBe` vp
+    roundRectUnits viewport `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]

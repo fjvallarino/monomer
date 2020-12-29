@@ -41,10 +41,6 @@ class Num a => CmbMaxValue t a | t -> a where
 class Num a => CmbDragRate t a | t -> a where
   dragRate :: a -> t
 
--- Container
-class CmbIgnoreEmptyClick t where
-  ignoreEmptyClick :: Bool -> t
-
 -- Text
 class CmbDecimals t where
   decimals :: Int -> t

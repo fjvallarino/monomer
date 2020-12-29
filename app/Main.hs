@@ -116,7 +116,7 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetIdChanged where
+buildUI wenv model = trace "Creating UI" widgetTree where
   widgetIdChanged = vstack [
       button "Show label" IncButton,
       hstack $ [label "First" | model ^. clickCount > 0] ++ [
@@ -170,7 +170,7 @@ buildUI wenv model = trace "Creating UI" widgetIdChanged where
       ]
     ]
   widgetTreeAlt
-    | model ^. clickCount `mod` 2 == 0 = widgetTree10
+    | even (model ^. clickCount) = widgetTree10
     | otherwise = widgetTree11
   widgetTree10 = vstack [
       hstack [
@@ -190,16 +190,20 @@ buildUI wenv model = trace "Creating UI" widgetIdChanged where
     ]
   widgetTree5 = zstack_ [
       hgrid [
-        label "test",
         vstack [
+          label "test",
+          button "Test" IncButton,
           textField textField1 `style` [bgColor blue],
           textField textField1 `style` [bgColor pink],
           textField textField1 `style` [bgColor orange]
         ]
       ],
-      hstack_ [
-        textField textField1 `style` [bgColor lightBlue, width 200]
-      ] [ignoreEmptyClick True]
+      hstack [
+        vgrid [
+          label "",
+          textField textField1 `style` [bgColor lightBlue, width 200]
+        ]
+      ]
     ] [onlyTopActive False]
   widgetTree4 = hgrid [
       label "" `style` [bgColor blue],

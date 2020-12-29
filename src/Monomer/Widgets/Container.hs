@@ -138,10 +138,10 @@ type ContainerRenderHandler s e
 
 data Container s e = Container {
   containerUseScissor :: Bool,
-  containerIgnoreEmptyClick :: Bool,
   containerStyleOnMerge :: Bool,
   containerResizeRequired :: Bool,
-  containerKeepChildrenSizes :: Bool,
+  containerUseCustomSize :: Bool,
+  containerUseChildrenSizes :: Bool,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerInit :: ContainerInitHandler s e,
   containerMerge :: ContainerMergeHandler s e,
@@ -162,10 +162,10 @@ data Container s e = Container {
 instance Default (Container s e) where
   def = Container {
     containerUseScissor = True,
-    containerIgnoreEmptyClick = False,
     containerStyleOnMerge = False,
     containerResizeRequired = True,
-    containerKeepChildrenSizes = False,
+    containerUseCustomSize = False,
+    containerUseChildrenSizes = False,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerInit = defaultInit,
     containerMerge = defaultMerge,
@@ -433,8 +433,10 @@ findByPointWrapper
   -> WidgetNode s e
   -> Maybe Path
 findByPointWrapper container wenv start point node = result where
-  ignoreEmptyClick = containerIgnoreEmptyClick container
   handler = containerFindByPoint container
+  isVisible = node ^. L.info . L.visible
+  inVp = pointInViewport point node
+  path = node ^. L.info . L.path
   children = node ^. L.children
   newStartPath = Seq.drop 1 start
   childIdx = case newStartPath of
@@ -448,11 +450,9 @@ findByPointWrapper container wenv start point node = result where
       childPath = widgetFindByPoint childWidget wenv newStartPath point child
       child = Seq.index children idx
       childWidget = child ^. L.widget
-    Nothing
-      | ignoreEmptyClick -> Nothing
-      | otherwise -> Just $ node ^. L.info . L.path
+    Nothing -> Just $ node ^. L.info . L.path
   result
-    | node ^. L.info . L.visible = resultPath
+    | isVisible && (inVp || resultPath /= Just path) = resultPath
     | otherwise = Nothing
 
 -- | Event Handling
@@ -588,10 +588,13 @@ resizeWrapper
   -> WidgetNode s e
 resizeWrapper container wenv viewport renderArea node = newNode where
   resizeRequired = containerResizeRequired container
-  vpChanged = viewport /= node ^. L.info . L.viewport
-  raChanged = renderArea /= node ^. L.info . L.renderArea
-  keepSizes = containerKeepChildrenSizes container
+  useCustomSize = containerUseCustomSize container
+  useChildrenSizes = containerUseChildrenSizes container
   handler = containerResize container
+  lensVp = L.info . L.viewport
+  lensRa = L.info . L.renderArea
+  vpChanged = viewport /= node ^. lensVp
+  raChanged = renderArea /= node ^. lensRa
   children = node ^. L.children
   (tempNode, assigned) = handler wenv viewport renderArea children node
   resize (child, (vp, ra)) = newChildNode where
@@ -601,13 +604,19 @@ resizeWrapper container wenv viewport renderArea node = newNode where
     icvp = fromMaybe vp (intersectRects vp cvp)
     icra = fromMaybe ra (intersectRects ra cra)
     newChildNode = tempChildNode
-      & L.info . L.viewport .~ (if keepSizes then icvp else vp)
-      & L.info . L.renderArea .~ (if keepSizes then icra else ra)
+      & L.info . L.viewport .~ (if useChildrenSizes then icvp else vp)
+      & L.info . L.renderArea .~ (if useChildrenSizes then icra else ra)
   newChildren = resize <$> Seq.zip children assigned
+  newVp
+    | useCustomSize = tempNode ^. lensVp
+    | otherwise = viewport
+  newRa
+    | useCustomSize = tempNode ^. lensRa
+    | otherwise = renderArea
   newNode
     | resizeRequired || vpChanged || raChanged = tempNode
-      & L.info . L.viewport .~ viewport
-      & L.info . L.renderArea .~ renderArea
+      & L.info . L.viewport .~ newVp
+      & L.info . L.renderArea .~ newRa
       & L.children .~ newChildren
     | otherwise = node
 

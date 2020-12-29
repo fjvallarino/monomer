@@ -53,6 +53,7 @@
 
 - ignore: {name: Eta reduce}
 - ignore: {name: Reduce duplication}
+- ignore: {name: Use Just}
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~

@@ -11,7 +11,7 @@ import Control.Lens ((&), (^.), (.~), (%~))
 import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
-import Data.List (foldl')
+import Data.List (foldl', any)
 import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
@@ -56,7 +56,7 @@ zstack_ children configs = newNode where
 makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
   baseWidget = createContainer def {
-    containerKeepChildrenSizes = True,
+    containerUseChildrenSizes = True,
     containerMergePost = mergePost,
     containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
@@ -66,6 +66,8 @@ makeZStack config = widget where
     widgetFindByPoint = findByPoint,
     widgetRender = render
   }
+
+  onlyTopActive = fromMaybe True (_zscOnlyTopActive config)
 
   mergePost wenv result oldState oldNode newNode = newResult where
     children = newNode ^. L.children
@@ -83,20 +85,18 @@ makeZStack config = widget where
 
   -- | Find instance matching point
   findByPoint wenv startPath point node = result where
-    onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = node ^. L.children
     vchildren
-      | onlyTop = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
+      | onlyTopActive = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
       | otherwise = Seq.filter (_wniVisible . _wnInfo) children
     newStartPath = Seq.drop 1 startPath
     result = findFirstByPoint vchildren wenv newStartPath point
 
   findNextFocus wenv direction start node = result where
-    onlyTop = fromMaybe True (_zscOnlyTopActive config)
     children = node ^. L.children
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     result
-      | onlyTop = Seq.take 1 vchildren
+      | onlyTopActive = Seq.take 1 vchildren
       | otherwise = vchildren
 
   getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
@@ -128,9 +128,15 @@ makeZStack config = widget where
       renderArea = node ^. L.info . L.renderArea
       isVisible c = c ^. L.info . L.visible
       topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
-      isTopLayer idx child point = prevTopLayer && isTopChild where
-        isTopChild = idx == topVisibleIdx
+      isPointEmpty point idx = not covered where
+        prevs = Seq.drop (idx + 1) children
+        isCovered c = isVisible c && pointInViewport point c
+        covered = any isCovered prevs
+      isTopLayer idx child point = prevTopLayer && isValid where
         prevTopLayer = _weInTopLayer wenv point
+        isValid
+          | onlyTopActive = idx == topVisibleIdx
+          | otherwise = isPointEmpty point idx
       cWenv idx child = wenv {
         _weInTopLayer = isTopLayer idx child
       }
