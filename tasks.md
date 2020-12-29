@@ -360,6 +360,10 @@
   - Make sure WidgetTask/Node association is preserved if node location in tree changes
   - Button should handle ReleaseBtn instead of Click (allow multi click)
   - ZStack should set _weIsTopLayer based on used space
+  - Reimplement containerIgnoreEmptyClick
+  - Box should allow setting size of children and ignore the rest
+  - Does having Cursor in style make sense?
+    - Keeping it for the moment
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -372,8 +376,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Reimplement containerIgnoreEmptyClick
-  - Box should allow setting size of children and ignore the rest
   - Check multiple resize when opening dialogs
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
@@ -382,7 +384,6 @@ Maybe postponed after release?
     - Further improvements
       - Stack resizing should exclude invisible items (outside of viewprot)
       - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
-  - Does having Cursor in style make sense?
   - Remove getSizeReq from Widget interface. Keep it in Single/Container
     - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Add serialization logic for Widget Tree
