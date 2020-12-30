@@ -23,14 +23,11 @@ darkTheme = Theme {
   _themeDisabled = darkDisabled
 }
 
-borderNormal :: Border
-borderNormal = border 1 gray
-
 borderFocus :: Border
 borderFocus = border 1 lightSkyBlue
 
 textPadding :: Padding
-textPadding = padding 3 <> paddingB 2
+textPadding = padding 3 <> paddingB 1
 
 normalFont :: TextStyle
 normalFont = def
@@ -49,7 +46,7 @@ inputStyle = def
   & L.text ?~ normalFont
   & L.bgColor ?~ darkGray
   & L.hlColor ?~ blue
-  & L.border ?~ borderNormal
+  & L.border ?~ border 1 darkGray
   & L.padding ?~ textPadding
 
 numericInputStyle :: StyleState
@@ -60,11 +57,14 @@ listViewItemStyle :: StyleState
 listViewItemStyle = def
   & L.text ?~ normalFont
   & L.text . non def . L.alignH ?~ ALeft
+  & L.bgColor ?~ black
+  & L.border ?~ border 1 black
   & L.padding ?~ paddingH 5
 
 listViewItemSelectedStyle :: StyleState
 listViewItemSelectedStyle = listViewItemStyle
   & L.bgColor ?~ darkGray
+  & L.border ?~ border 1 darkGray
 
 darkBasic :: ThemeState
 darkBasic = def
@@ -74,9 +74,11 @@ darkBasic = def
   & L.emptyOverlayColor .~ (darkGray & L.a .~ 0.8)
   & L.btnStyle . L.bgColor ?~ darkGray
   & L.btnStyle . L.text ?~ normalFont
+  & L.btnStyle . L.border ?~ border 1 darkGray
   & L.btnStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.btnMainStyle . L.bgColor ?~ blue
   & L.btnMainStyle . L.text ?~ normalFont
+  & L.btnMainStyle . L.border ?~ border 1 blue
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ gray
@@ -106,7 +108,7 @@ darkBasic = def
   & L.inputTextStyle .~ inputStyle
   & L.labelStyle . L.text ?~ (normalFont <> textLeft)
   & L.labelStyle . L.padding ?~ textPadding
-  & L.listViewStyle . L.border ?~ borderNormal
+  & L.listViewStyle . L.border ?~ border 1 gray
   & L.listViewItemStyle .~ listViewItemStyle
   & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle
   & L.radioWidth .~ 20
@@ -138,6 +140,7 @@ darkHover = darkBasic
   & L.inputIntegralStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
   & L.listViewItemStyle . L.bgColor ?~ gray
+  & L.listViewItemStyle . L.border ?~ border 1 gray
   & L.listViewItemStyle . L.cursorIcon ?~ CursorHand
   & L.listViewItemSelectedStyle . L.cursorIcon ?~ CursorHand
   & L.radioStyle . L.fgColor ?~ lightGray
@@ -156,7 +159,7 @@ darkFocus = darkBasic
   & L.inputIntegralStyle . L.border ?~ borderFocus
   & L.inputTextStyle . L.border ?~ borderFocus
   & L.listViewStyle . L.border ?~ borderFocus
-  & L.listViewItemStyle . L.bgColor ?~ lightGray
+  & L.listViewItemStyle . L.border ?~ border 1 gray
   & L.listViewItemSelectedStyle . L.border ?~ border 1 lightGray
   & L.radioStyle . L.fgColor ?~ lightSkyBlue
 

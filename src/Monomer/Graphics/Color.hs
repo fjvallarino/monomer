@@ -2,6 +2,8 @@ module Monomer.Graphics.Color where
 
 import Monomer.Graphics.Types
 
+transparent   = rgba 0 0 0 0
+
 white         = rgb 255 255 255
 black         = rgb   0   0   0
 -- Red

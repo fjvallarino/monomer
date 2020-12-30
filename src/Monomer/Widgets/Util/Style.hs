@@ -145,7 +145,7 @@ handleSizeChange wenv target evt cfg node = reqs where
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Result
   resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]
-  enterReq = [ RenderOnce | isOnEnter evt ]
+  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt ]
   reqs = resizeReq ++ enterReq
 
 handleCursorChange

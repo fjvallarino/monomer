@@ -75,7 +75,7 @@ data CRect
 
 makeRenderer :: [FontDef] -> Double -> IO Renderer
 makeRenderer fonts dpr = do
-  c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes, VG.Debug])
+  c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes])
 
   lock <- L.new
   validFonts <- if null fonts

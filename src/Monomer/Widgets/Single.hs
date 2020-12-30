@@ -12,7 +12,7 @@ module Monomer.Widgets.Single (
   createSingle
 ) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (^?), (.~), _Just)
 import Data.Default
 import Data.Typeable (Typeable)
 
@@ -150,7 +150,7 @@ createSingle single = Widget {
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = singleHandleMessage single,
-  widgetUpdateSizeReq = getSizeReqWrapper single,
+  widgetUpdateSizeReq = updateSizeReqWrapper single,
   widgetResize = resizeHandlerWrapper single,
   widgetRender = renderWrapper single
 }
@@ -246,12 +246,12 @@ defaultHandleMessage wenv target message node = Nothing
 defaultGetSizeReq :: SingleGetSizeReqHandler s e
 defaultGetSizeReq wenv node = def
 
-getSizeReqWrapper
+updateSizeReqWrapper
   :: Single s e
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
-getSizeReqWrapper single wenv node = newNode where
+updateSizeReqWrapper single wenv node = newNode where
   handler = singleGetSizeReq single
   style = singleGetActiveStyle single wenv node
   reqs = handler wenv node
