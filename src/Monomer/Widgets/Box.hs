@@ -140,7 +140,7 @@ makeBox config = widget where
     containerResize = resize
   }
 
-  ignoreEmptyArea = fromMaybe True (_boxIgnoreEmptyArea config)
+  ignoreEmptyArea = fromMaybe False (_boxIgnoreEmptyArea config)
   emptyHandlersCount
     = length (_boxOnClickEmpty config) + length (_boxOnClickEmptyReq config)
 
