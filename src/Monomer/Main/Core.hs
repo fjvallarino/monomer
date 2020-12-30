@@ -112,6 +112,10 @@ runApp window widgetRoot config = do
   model <- use mainModel
   os <- getPlatform
   renderer <- liftIO $ makeRenderer fonts dpr
+  -- Hack, otherwise glyph positions are invalid until nanovg is initialized
+  liftIO $ beginFrame renderer (round rw) (round rh)
+  liftIO $ endFrame renderer
+
   let wenv = WidgetEnv {
     _weOS = os,
     _weRenderer = renderer,
