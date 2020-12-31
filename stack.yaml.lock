@@ -5,12 +5,16 @@
 
 packages:
 - completed:
-    hackage: nanovg-0.6.0.0@sha256:326e73fe2c4ec56656fa42894c53a8e26b3e60449c69578f5f6da50c0ad60ed2,4146
+    name: nanovg
+    version: 0.7.0.0
+    git: https://github.com/fjvallarino/nanovg-hs
     pantry-tree:
-      size: 2477
-      sha256: a5e327e2216aea778723aeb77d8868376ff4999d1b3cd4d4fe17d38d0ff04265
+      size: 5707
+      sha256: a9471540404d76a1747d9c32e786d4a3f95e5debf30a7873a122857b24accd99
+    commit: 89a33f177a7dc59c017d7ce916da89ee4a02ffbf
   original:
-    hackage: nanovg-0.6.0.0
+    git: https://github.com/fjvallarino/nanovg-hs
+    commit: 89a33f177a7dc59c017d7ce916da89ee4a02ffbf
 snapshots:
 - completed:
     size: 533252

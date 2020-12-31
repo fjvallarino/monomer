@@ -364,6 +364,9 @@
   - Box should allow setting size of children and ignore the rest
   - Does having Cursor in style make sense?
     - Keeping it for the moment
+  - Check multiple resize when opening dialogs
+    - This was caused by an unexpected need to call beginFrame before any calls to text related functions
+    - This is most likely a bug, but before this call the reported sizes are different than afterwards
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -376,7 +379,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check multiple resize when opening dialogs
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items
