@@ -53,9 +53,10 @@ handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
 
   where
     wenv = mockWenv ()
+    btn2 = button "Click 2" (BtnClick 2) `style` [height 10]
     ignoredNode = zstack_ [
         button "Click 1" (BtnClick 1),
-        box (button "Click 2" (BtnClick 2) `style` [height 10])
+        box_ btn2 [ignoreEmptyArea True]
       ] [onlyTopActive False]
     clickIgnored p = nodeHandleEventEvts wenv [Click p LeftBtn] ignoredNode
 
