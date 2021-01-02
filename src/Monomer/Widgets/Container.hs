@@ -495,9 +495,9 @@ handleEventWrapper container wenv target event node
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target event child
-    pResultStyled = handleStyleChange wenv target event style pResponse node
+    pResultStyled = handleStyleChange wenv target event style pResponse def node
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange wenv target event style cResult node
+    cResultStyled = handleStyleChange wenv target event style cResult def node
 
 mergeParentChildEvts
   :: WidgetNode s e

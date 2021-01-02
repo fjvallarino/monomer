@@ -9,12 +9,11 @@ module Monomer.Widgets.Util.Style (
   activeStyle_,
   focusedStyle,
   initNodeStyle,
-  handleStyleChange,
-  handleStyleChange_
+  handleStyleChange
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (<>~))
+import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just)
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
@@ -92,23 +91,13 @@ handleStyleChange
   -> SystemEvent
   -> StyleState
   -> Maybe (WidgetResult s e)
-  -> WidgetNode s e
-  -> Maybe (WidgetResult s e)
-handleStyleChange wenv target evt style result node = newResult where
-  newResult = handleStyleChange_ wenv target evt style result def node
-
-handleStyleChange_
-  :: WidgetEnv s e
-  -> Path
-  -> SystemEvent
-  -> StyleState
-  -> Maybe (WidgetResult s e)
   -> StyleChangeCfg
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleStyleChange_ wenv target evt style result cfg node = newResult where
+handleStyleChange wenv target evt style result cfg node = newResult where
   baseResult = fromMaybe (resultWidget node) result
-  sizeReqs = handleSizeChange wenv target evt cfg node
+  baseNode = baseResult ^. L.node
+  sizeReqs = handleSizeChange wenv target evt cfg baseNode node
   cursorReqs
     | cfg ^. L.cursorIgnore = []
     | otherwise = handleCursorChange wenv target evt style cfg node
@@ -123,30 +112,49 @@ handleSizeChange
   -> SystemEvent
   -> StyleChangeCfg
   -> WidgetNode s e
+  -> WidgetNode s e
   -> [WidgetRequest s]
-handleSizeChange wenv target evt cfg node = reqs where
-  widget = node ^. L.widget
-  info = node ^. L.info
+handleSizeChange wenv target evt cfg oldNode newNode = reqs where
+  -- Size
+  oldSizeReqW = oldNode ^. L.info . L.sizeReqW
+  oldSizeReqH = oldNode ^. L.info . L.sizeReqH
+  newSizeReqW = newNode ^. L.info . L.sizeReqW
+  newSizeReqH = newNode ^. L.info . L.sizeReqH
+  sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
+  -- Result
+  resizeReq = [ ResizeWidgets | sizeReqChanged ]
+  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt ]
+  reqs = resizeReq ++ enterReq
+
+styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool
+styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Hover
   mousePos = wenv ^. L.inputStatus . L.mousePos
   mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
-  vp = info ^. L.viewport
+  vp = node ^. L.info . L.viewport
   vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
   hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
-  -- Size
-  checkSize = hoverChanged || focusChanged
-  newReqs = widgetUpdateSizeReq widget wenv node
-  oldSizeReqW = info ^. L.sizeReqW
-  oldSizeReqH = info ^. L.sizeReqH
-  newSizeReqW = newReqs ^. L.info . L.sizeReqW
-  newSizeReqH = newReqs ^. L.info . L.sizeReqH
-  sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
-  -- Result
-  resizeReq = [ ResizeWidgets | checkSize && sizeReqChanged ]
-  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt ]
-  reqs = resizeReq ++ enterReq
+
+styleStateSizeChanged :: StyleState -> StyleState -> Bool
+styleStateSizeChanged st1 st2 = borderChg || paddChg || textChg where
+  fontLens = L.text . _Just . L.font
+  fontSizeLens = L.text . _Just . L.fontSize
+  bs1 = borderSizes <$> st1 ^. L.border
+  bs2 = borderSizes <$> st2 ^. L.border
+  fontChg = st1 ^? fontLens /= st2 ^? fontLens
+  fontSizeChg = st1 ^? fontSizeLens /= st2 ^? fontSizeLens
+  borderChg = bs1 /= bs2
+  paddChg = st1 ^. L.padding /= st2 ^. L.padding
+  textChg = fontChg || fontSizeChg
+
+borderSizes :: Border -> (Double, Double, Double, Double)
+borderSizes border = (sl, sr, st, sb) where
+  sl = fromMaybe 0 (border ^? L.left . _Just . L.width)
+  sr = fromMaybe 0 (border ^? L.right . _Just . L.width)
+  st = fromMaybe 0 (border ^? L.top . _Just . L.width)
+  sb = fromMaybe 0 (border ^? L.bottom . _Just . L.width)
 
 handleCursorChange
   :: WidgetEnv s e

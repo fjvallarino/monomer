@@ -58,11 +58,10 @@ testActiveStyle = describe "activeStyle" $ do
 testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
   it "should request Resize widgets if sizeReq changed" $ do
-    resHover ^? _Just . L.requests `shouldSatisfy` (==4) . maybeLength
-    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isMResizeWidgets
-    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isMRenderOnce
-    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isMSetCursorIcon
-    resHover ^? _Just . L.requests . ix 3 `shouldSatisfy` isMRenderOnce
+    resHover ^? _Just . L.requests `shouldSatisfy` (==3) . maybeLength
+    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isMRenderOnce
+    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isMSetCursorIcon
+    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isMRenderOnce
 
   it "should not request Resize widgets if sizeReq has not changed" $
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
@@ -82,8 +81,8 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
     wenvFocus = mockWenv () & L.focusedPath .~ path
     evtEnter = Enter point
-    resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing node
-    resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing node
+    resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing def node
+    resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing def node
 
 isMResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isMResizeWidgets (Just ResizeWidgets) = True
