@@ -350,6 +350,7 @@ mergeChildrenSeq wenv localKeys newNode oldItems newItems = res where
   mergedKey = widgetMerge newWidget wenv oldMatch $ newChild
     & L.info . L.widgetId .~ oldMatch ^. L.info . L.widgetId
   initNew = widgetInit newWidget wenv newChild
+    & L.requests %~ (|> ResizeWidgets)
   isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
   (child, oldRest)
     | instanceMatches newChild oldChild = (mergedOld, oldChildren)
