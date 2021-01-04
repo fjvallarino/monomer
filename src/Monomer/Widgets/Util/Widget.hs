@@ -21,7 +21,6 @@ module Monomer.Widgets.Util.Widget (
   isTopLevel,
   handleFocusRequest,
   handleFocusChange,
-  resizeWidget,
   buildLocalMap,
   findWidgetByKey,
   getInstanceTree
@@ -169,16 +168,6 @@ handleFocusChange evtFn reqFn config node = result where
   result
     | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
     | otherwise = Nothing
-
-resizeWidget
-  :: WidgetEnv s e
-  -> Rect
-  -> Rect
-  -> WidgetNode s e
-  -> WidgetNode s e
-resizeWidget wenv viewport renderArea widgetRoot = newRoot where
-  reqNode = widgetUpdateSizeReq (_wnWidget widgetRoot) wenv widgetRoot
-  newRoot = widgetResize (reqNode ^. L.widget) wenv viewport renderArea reqNode
 
 findWidgetByKey
   :: WidgetKey

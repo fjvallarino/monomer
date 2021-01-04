@@ -78,7 +78,7 @@ makeStack isHorizontal config = widget where
   isVertical = not isHorizontal
   ignoreEmptyArea = fromMaybe False (_stcIgnoreEmptyArea config)
 
-  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren

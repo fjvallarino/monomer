@@ -379,6 +379,17 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Remove getSizeReq from Widget interface. Keep it in Single/Container
+    - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
+    - Remove Widget.resizeWidget
+    - Remove Widget.widgetUpdateSizeReq
+    - Update Style.handleSizeChange
+    - Remove old code from Single, Container and Composite
+    - Make sure Single, Container and Composite update size when needed
+  - Copy merge logic from Label to Button
+  - Add containerGetActiveStyle
+    - Review handleSizeReqChange
+  - Rethink containerStyleOnMerge (it should really be containerStyleOnMerge and yes we need it)
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items
@@ -386,8 +397,6 @@ Maybe postponed after release?
     - Further improvements
       - Stack resizing should exclude invisible items (outside of viewprot)
       - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
-  - Remove getSizeReq from Widget interface. Keep it in Single/Container
-    - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?

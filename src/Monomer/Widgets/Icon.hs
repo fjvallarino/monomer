@@ -60,7 +60,7 @@ makeImage iconType config = widget where
     singleRender = render
   }
 
-  getSizeReq wenv node = sizeReq where
+  getSizeReq wenv currState node = sizeReq where
     (w, h) = (16, 16)
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)

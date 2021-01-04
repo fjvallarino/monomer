@@ -347,7 +347,7 @@ makeScroll config state = widget where
     newNode = scrollResize (Just newWidget) newState wenv vp ra tempNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e
-  getSizeReq wenv node children = sizeReq where
+  getSizeReq wenv currState node children = sizeReq where
     style = scrollActiveStyle wenv node
     child = Seq.index children 0
     tw = sizeReqMax $ child ^. L.info . L.sizeReqW

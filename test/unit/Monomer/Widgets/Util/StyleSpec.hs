@@ -6,7 +6,7 @@ module Monomer.Widgets.Util.StyleSpec (spec) where
 
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), (?~), _Just, ix, non)
 import Data.Default
-import Data.Sequence (Seq)
+import Data.Sequence (Seq(..))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -58,10 +58,11 @@ testActiveStyle = describe "activeStyle" $ do
 testHandleSizeChange :: Spec
 testHandleSizeChange = describe "handleSizeChange" $ do
   it "should request Resize widgets if sizeReq changed" $ do
-    resHover ^? _Just . L.requests `shouldSatisfy` (==3) . maybeLength
-    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isMRenderOnce
-    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isMSetCursorIcon
-    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isMRenderOnce
+    resHover ^? _Just . L.requests `shouldSatisfy` (==4) . maybeLength
+    resHover ^? _Just . L.requests . ix 0 `shouldSatisfy` isMResizeWidgets
+    resHover ^? _Just . L.requests . ix 1 `shouldSatisfy` isMRenderOnce
+    resHover ^? _Just . L.requests . ix 2 `shouldSatisfy` isMSetCursorIcon
+    resHover ^? _Just . L.requests . ix 3 `shouldSatisfy` isMRenderOnce
 
   it "should not request Resize widgets if sizeReq has not changed" $
     resFocus ^? _Just . L.requests `shouldSatisfy` (==0) . maybeLength
@@ -76,13 +77,16 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     baseNode = createNode True
       & L.info . L.style .~ style
     node = nodeInit wenv baseNode
+    modNode = node & L.info . L.sizeReqW .~ FixedSize 100
+    res1 = Just $ WidgetResult modNode Empty Empty
+    res2 = Just $ WidgetResult node Empty Empty
     point = Point 200 200
     path = Seq.fromList [0]
     wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
     wenvFocus = mockWenv () & L.focusedPath .~ path
-    evtEnter = Enter point
-    resHover = handleStyleChange wenvHover path evtEnter hoverStyle Nothing def node
-    resFocus = handleStyleChange wenvFocus path Focus focusStyle Nothing def node
+    evEnter = Enter point
+    resHover = handleStyleChange wenvHover path hoverStyle def node evEnter res1
+    resFocus = handleStyleChange wenvFocus path focusStyle def node Focus res2
 
 isMResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isMResizeWidgets (Just ResizeWidgets) = True

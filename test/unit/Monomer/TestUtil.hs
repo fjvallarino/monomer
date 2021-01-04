@@ -144,13 +144,13 @@ nodeMerge wenv oldNode node = newNode where
 nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
-  reqNode = widgetUpdateSizeReq (node2 ^. L.widget) wenv node2
-  sizeReqW = reqNode ^. L.info ^. L.sizeReqW
-  sizeReqH = reqNode ^. L.info ^. L.sizeReqH
+  sizeReqW = node2 ^. L.info . L.sizeReqW
+  sizeReqH = node2 ^. L.info . L.sizeReqH
 
 nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
 nodeResize wenv viewport node = newNode where
-  newNode = resizeWidget wenv viewport viewport node
+  widget = node ^. L.widget
+  newNode = widgetResize widget wenv viewport viewport node
 
 nodeHandleEventCtx
   :: (Eq s)

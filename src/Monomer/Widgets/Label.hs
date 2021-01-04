@@ -117,6 +117,7 @@ makeLabel config state = widget where
   merge wenv oldState oldNode newNode = result where
     prevState = fromMaybe state (useState oldState)
     captionChanged = _lstCaption prevState /= caption
+    -- This is used in resize to have glyphs recalculated
     newRect
       | captionChanged = def
       | otherwise = _lstTextRect prevState
@@ -129,7 +130,9 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs
 
-  getSizeReq wenv node = (sizeW, sizeH) where
+  getSizeReq wenv currState node = (sizeW, sizeH) where
+    newState = fromMaybe state (useState currState)
+    caption = _lstCaption newState
     style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption

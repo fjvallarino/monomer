@@ -242,7 +242,6 @@ createComposite comp state = widget where
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
-    widgetUpdateSizeReq = compositeUpdateSizeReq comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -446,28 +445,20 @@ compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
       result = widgetHandleMessage cmpWidget cwenv target arg _cpsRoot
 
 -- Preferred size
-compositeUpdateSizeReq
+updateSizeReq
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
-  => Composite s e sp ep
-  -> CompositeState s e sp
+  => CompositeState s e sp
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
   -> WidgetNode sp ep
-compositeUpdateSizeReq comp state wenv widgetComp = newComp where
+updateSizeReq state wenv widgetComp = newComp where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   widget = _cpsRoot ^. L.widget
-  model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  newRoot = widgetUpdateSizeReq widget cwenv _cpsRoot
-  currReqW = newRoot ^. L.info . L.sizeReqW
-  currReqH = newRoot ^. L.info . L.sizeReqH
+  currReqW = _cpsRoot ^. L.info . L.sizeReqW
+  currReqH = _cpsRoot ^. L.info . L.sizeReqH
   (newReqW, newReqH) = sizeReqAddStyle style (currReqW, currReqH)
-  newState = state {
-    _cpsRoot = newRoot
-  }
   newComp = widgetComp
-    & L.widget .~ createComposite comp newState
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
 
@@ -575,7 +566,7 @@ updateComposite comp state wenv newModel widgetRoot widgetComp = result where
   }
   result
     | mergeRequired = mergeChild comp state wenv newModel widgetRoot widgetComp
-    | otherwise = resultWidget $ widgetComp
+    | otherwise = resultWidget $ updateSizeReq newState wenv widgetComp
       & L.widget .~ createComposite comp newState
 
 mergeChild

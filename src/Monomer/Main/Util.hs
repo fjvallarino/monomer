@@ -64,7 +64,8 @@ resizeRoot
 resizeRoot wenv windowSize widgetRoot = newRoot where
   Size w h = windowSize
   assigned = Rect 0 0 w h
-  newRoot = resizeWidget wenv assigned assigned widgetRoot
+  widget = widgetRoot ^. L.widget
+  newRoot =  widgetResize widget wenv assigned assigned widgetRoot
 
 resizeWindow
   :: (MonomerM s m)

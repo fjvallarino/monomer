@@ -9,7 +9,9 @@ module Monomer.Widgets.Util.Style (
   activeStyle_,
   focusedStyle,
   initNodeStyle,
-  handleStyleChange
+  handleStyleChange,
+  styleStateChanged,
+  isResizeResult
 ) where
 
 import Control.Applicative ((<|>))
@@ -17,6 +19,7 @@ import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just)
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
+import Data.Sequence (Seq(..))
 
 import qualified Data.Sequence as Seq
 
@@ -88,13 +91,13 @@ initNodeStyle getBaseStyle wenv node = newNode where
 handleStyleChange
   :: WidgetEnv s e
   -> Path
-  -> SystemEvent
   -> StyleState
-  -> Maybe (WidgetResult s e)
   -> StyleChangeCfg
   -> WidgetNode s e
+  -> SystemEvent
   -> Maybe (WidgetResult s e)
-handleStyleChange wenv target evt style result cfg node = newResult where
+  -> Maybe (WidgetResult s e)
+handleStyleChange wenv target style cfg node evt result = newResult where
   baseResult = fromMaybe (resultWidget node) result
   baseNode = baseResult ^. L.node
   sizeReqs = handleSizeChange wenv target evt cfg baseNode node
@@ -137,24 +140,10 @@ styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
 
-styleStateSizeChanged :: StyleState -> StyleState -> Bool
-styleStateSizeChanged st1 st2 = borderChg || paddChg || textChg where
-  fontLens = L.text . _Just . L.font
-  fontSizeLens = L.text . _Just . L.fontSize
-  bs1 = borderSizes <$> st1 ^. L.border
-  bs2 = borderSizes <$> st2 ^. L.border
-  fontChg = st1 ^? fontLens /= st2 ^? fontLens
-  fontSizeChg = st1 ^? fontSizeLens /= st2 ^? fontSizeLens
-  borderChg = bs1 /= bs2
-  paddChg = st1 ^. L.padding /= st2 ^. L.padding
-  textChg = fontChg || fontSizeChg
-
-borderSizes :: Border -> (Double, Double, Double, Double)
-borderSizes border = (sl, sr, st, sb) where
-  sl = fromMaybe 0 (border ^? L.left . _Just . L.width)
-  sr = fromMaybe 0 (border ^? L.right . _Just . L.width)
-  st = fromMaybe 0 (border ^? L.top . _Just . L.width)
-  sb = fromMaybe 0 (border ^? L.bottom . _Just . L.width)
+isResizeResult ::  Maybe (WidgetResult s e) -> Bool
+isResizeResult result = isJust resizeReq where
+  requests = maybe Empty (^. L.requests) result
+  resizeReq = Seq.findIndexL isResizeWidgets requests
 
 handleCursorChange
   :: WidgetEnv s e

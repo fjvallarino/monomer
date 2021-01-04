@@ -18,7 +18,6 @@ module Monomer.Widgets.Container (
   mergeWrapper,
   handleEventWrapper,
   handleMessageWrapper,
-  getSizeReqWrapper,
   findByPointWrapper,
   findNextFocusWrapper,
   resizeWrapper,
@@ -118,6 +117,7 @@ type ContainerMessageHandler s e
 
 type ContainerGetSizeReqHandler s e
   = WidgetEnv s e
+  -> Maybe WidgetState
   -> WidgetNode s e
   -> Seq (WidgetNode s e)
   -> (SizeReq, SizeReq)
@@ -196,7 +196,6 @@ createContainer container = Widget {
   widgetFindByPoint = findByPointWrapper container,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
-  widgetUpdateSizeReq = getSizeReqWrapper container,
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
@@ -227,7 +226,8 @@ initWrapper container wenv node = result where
   newReqs = foldMap _wrRequests results
   newEvents = foldMap _wrEvents results
   newChildren = fmap _wrNode results
-  newNode = tempNode & L.children .~ newChildren
+  newNode = updateSizeReq container wenv $ tempNode
+    & L.children .~ newChildren
   result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
 -- | Merging
@@ -260,10 +260,14 @@ mergeWrapper container wenv oldNode newNode = result where
   pResult = mergeParent mergeHandler wenv oldState oldNode styledNode
   cResult = mergeChildren wenv oldNode newNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
-  tempResult
+  tmpRes
     | mergeRequired || oldFlags /= newFlags = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
-  result = mergePostHandler wenv tempResult oldState oldNode (vResult ^. L.node)
+  postRes = mergePostHandler wenv tmpRes oldState oldNode (tmpRes ^. L.node)
+  result
+    | isResizeResult (Just postRes) = postRes
+        & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
+    | otherwise = postRes
 
 mergeParent
   :: ContainerMergeHandler s e
@@ -471,7 +475,7 @@ handleEventWrapper
   -> SystemEvent
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper container wenv target event node
+handleEventWrapper container wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
   | targetReached || not targetValid = pResultStyled
   | styleOnMerge = cResultStyled
@@ -490,14 +494,16 @@ handleEventWrapper container wenv target event node
     children = node ^. L.children
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
-    pResponse = pHandler wenv target event node
+    pResponse = pHandler wenv target evt node
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
-      | otherwise = widgetHandleEvent childWidget wenv target event child
-    pResultStyled = handleStyleChange wenv target event style pResponse def node
+      | otherwise = widgetHandleEvent childWidget wenv target evt child
+    pResultStyled = handleStyleChange wenv target style def node evt
+      $ handleSizeReqChange container wenv node (Just evt) pResponse
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange wenv target event style cResult def node
+    cResultStyled = handleStyleChange wenv target style def node evt
+      $ handleSizeReqChange container wenv node (Just evt) cResult
 
 mergeParentChildEvts
   :: WidgetNode s e
@@ -537,9 +543,8 @@ handleMessageWrapper
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 handleMessageWrapper container wenv target arg node
-  | targetReached = mHandler wenv target arg node
-  | not targetValid = Nothing
-  | otherwise = messageResult
+  | not targetReached && not targetValid = Nothing
+  | otherwise = handleSizeReqChange container wenv node Nothing result
   where
     mHandler = containerHandleMessage container
     targetReached = isTargetReached target node
@@ -552,31 +557,46 @@ handleMessageWrapper container wenv target arg node
     updateChild cr = cr {
       _wrNode = replaceChild node (_wrNode cr) childIdx
     }
+    result
+      | targetReached = mHandler wenv target arg node
+      | otherwise = messageResult
 
 -- | Preferred size
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e
 defaultGetSizeReq wenv node children = def
 
-getSizeReqWrapper
+updateSizeReq
   :: Container s e
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
-getSizeReqWrapper container wenv node = newNode where
-  resizeRequired = containerResizeRequired container
+updateSizeReq container wenv node = newNode where
   psHandler = containerGetSizeReq container
+  currState = widgetGetState (node ^. L.widget) wenv
   style = activeStyle wenv node
   children = node ^. L.children
-  updateChild child = widgetUpdateSizeReq (child ^. L.widget) wenv child
-  newChildren = fmap updateChild children
-  reqs = psHandler wenv node newChildren
+  reqs = psHandler wenv currState node children
   (newReqW, newReqH) = sizeReqAddStyle style reqs
-  newNode
-    | resizeRequired = node
-      & L.children .~ newChildren
-      & L.info . L.sizeReqW .~ newReqW
-      & L.info . L.sizeReqH .~ newReqH
-    | otherwise = node
+  newNode = node
+    & L.info . L.sizeReqW .~ newReqW
+    & L.info . L.sizeReqH .~ newReqH
+
+handleSizeReqChange
+  :: Container s e
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> Maybe SystemEvent
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleSizeReqChange container wenv node evt mResult = result where
+  baseResult = fromMaybe (resultWidget node) mResult
+  newNode = baseResult ^. L.node
+  resizeReq = isResizeResult mResult
+  styleChanged = isJust evt && styleStateChanged wenv newNode (fromJust evt)
+  result
+    | styleChanged || resizeReq = Just $ baseResult
+      & L.node .~ updateSizeReq container wenv newNode
+    | otherwise = mResult
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e

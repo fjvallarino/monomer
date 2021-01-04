@@ -214,7 +214,9 @@ makeButton config state = widget where
       events = _btnOnClick config
       result = resultReqsEvts node requests events
 
-  getSizeReq wenv node = (sizeW, sizeH) where
+  getSizeReq wenv currState node = (sizeW, sizeH) where
+    newState = fromMaybe state (useState currState)
+    caption = _btnCaption newState
     style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption

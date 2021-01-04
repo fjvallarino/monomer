@@ -490,7 +490,9 @@ makeInputField config state = widget where
       | isValid || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
 
-  getSizeReq wenv node = sizeReq where
+  getSizeReq wenv currState node = sizeReq where
+    newState = fromMaybe state (useState currState)
+    currText = _ifsCurrText newState
     style = activeStyle wenv node
     Size w h = getTextSize wenv style currText
     targetW = max w 100

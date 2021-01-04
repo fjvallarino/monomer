@@ -161,7 +161,7 @@ makeBox config = widget where
     _ -> Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e
-  getSizeReq wenv node children = (newReqW, newReqH) where
+  getSizeReq wenv currState node children = (newReqW, newReqH) where
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH

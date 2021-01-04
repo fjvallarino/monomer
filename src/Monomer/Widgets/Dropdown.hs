@@ -345,16 +345,15 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
-  getSizeReq wenv node children = (newReqW, newReqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv currState node children = (newReqW, newReqH) where
     -- Main section reqs
     mainC = Seq.index children 0
-    mainReq = widgetUpdateSizeReq (mainC ^. L.widget) wenv mainC
-    mainReqW = mainReq ^. L.info . L.sizeReqW
-    mainReqH = mainReq ^. L.info . L.sizeReqH
+    mainReqW = mainC ^. L.info . L.sizeReqW
+    mainReqH = mainC ^. L.info . L.sizeReqH
     -- List items reqs
     listC = Seq.index children 1
-    listReq = widgetUpdateSizeReq (listC ^. L.widget) wenv listC
-    listReqW = listReq ^. L.info . L.sizeReqW
+    listReqW = listC ^. L.info . L.sizeReqW
     -- Items other than main could be wider
     -- Height only matters for the selected item, since the rest is in a scroll
     newReqW = sizeReqMergeMax mainReqW listReqW

@@ -99,7 +99,7 @@ makeZStack config = widget where
       | onlyTopActive = Seq.take 1 vchildren
       | otherwise = vchildren
 
-  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq (_wniSizeReqH . _wnInfo) vchildren

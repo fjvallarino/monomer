@@ -294,7 +294,7 @@ buildUI wenv model = trace "Creating UI" widgetTree where
           label "Label 1234" `style` [bgColor darkGray]
         ] `style` [bgColor blue]
       ] `style` [bgColor green],
-      --label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
+      label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
@@ -319,4 +319,4 @@ buildUI wenv model = trace "Creating UI" widgetTree where
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap (\i -> "This is a long label: " <> showt i) [1..3::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..30::Int]
