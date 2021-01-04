@@ -141,6 +141,7 @@ instance CmbResizeFactorDim (ButtonCfg s e) where
 
 data BtnState = BtnState {
   _btsCaption :: Text,
+  _btsTextStyle :: Maybe TextStyle,
   _btsTextRect :: Rect,
   _btsTextLines :: Seq TextLine
 } deriving (Eq, Show)
@@ -163,7 +164,7 @@ button caption handler = button_ caption handler def
 button_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
-  state = BtnState caption def Empty
+  state = BtnState caption Nothing def Empty
   widget = makeButton config state
   buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
@@ -184,7 +185,7 @@ makeButton config state = widget where
   overflow = fromMaybe Ellipsis (_btnTextOverflow config)
   mode = fromMaybe SingleLine (_btnTextMode config)
   trimSpaces = fromMaybe TrimSpaces (_btnTrim config)
-  BtnState caption textRect textLines = state
+  BtnState caption textStyle textRect textLines = state
 
   getBaseStyle wenv node = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
@@ -244,13 +245,15 @@ makeButton config state = widget where
   resize wenv viewport renderArea node = newNode where
     style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
+    newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
     fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines
-      | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
+      | not newGlyphsReq = moveTextLines (nx - px) (ny - py) textLines
       | otherwise = fittedLines
-    newWidget = makeButton config (BtnState caption rect newLines)
+    newWidget = makeButton config (BtnState caption newTextStyle rect newLines)
     newNode = node
       & L.widget .~ newWidget
 

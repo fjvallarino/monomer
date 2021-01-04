@@ -377,6 +377,7 @@
   - Copy merge logic from Label to Button
   - Add containerGetActiveStyle
     - Review handleSizeReqChange
+  - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -389,7 +390,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items

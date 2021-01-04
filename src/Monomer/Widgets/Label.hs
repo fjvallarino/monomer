@@ -81,6 +81,7 @@ instance CmbResizeFactorDim LabelCfg where
 
 data LabelState = LabelState {
   _lstCaption :: Text,
+  _lstTextStyle :: Maybe TextStyle,
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine
 } deriving (Eq, Show)
@@ -91,7 +92,7 @@ label caption = label_ caption def
 label_ :: Text -> [LabelCfg] -> WidgetNode s e
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
-  state = LabelState caption def Seq.Empty
+  state = LabelState caption Nothing def Seq.Empty
   widget = makeLabel config state
 
 makeLabel :: LabelCfg -> LabelState -> Widget s e
@@ -108,7 +109,7 @@ makeLabel config state = widget where
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
   trimSpaces = fromMaybe TrimSpaces (_lscTrim config)
-  LabelState caption textRect textLines = state
+  LabelState caption textStyle textRect textLines = state
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.labelStyle
@@ -147,13 +148,15 @@ makeLabel config state = widget where
   resize wenv viewport renderArea node = newNode where
     style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
+    newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
     fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines
-      | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
+      | not newGlyphsReq = moveTextLines (nx - px) (ny - py) textLines
       | otherwise = fittedLines
-    newWidget = makeLabel config (LabelState caption rect newLines)
+    newWidget = makeLabel config (LabelState caption newTextStyle rect newLines)
     newNode = node
       & L.widget .~ newWidget
 
