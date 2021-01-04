@@ -140,8 +140,9 @@ instance CmbResizeFactorDim (ButtonCfg s e) where
   }
 
 data BtnState = BtnState {
-  _btnCaption :: Text,
-  _btnTextLines :: Seq TextLine
+  _btsCaption :: Text,
+  _btsTextRect :: Rect,
+  _btsTextLines :: Seq TextLine
 } deriving (Eq, Show)
 
 mainConfig :: ButtonCfg s e
@@ -162,7 +163,7 @@ button caption handler = button_ caption handler def
 button_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
-  state = BtnState caption Empty
+  state = BtnState caption def Empty
   widget = makeButton config state
   buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
@@ -183,16 +184,27 @@ makeButton config state = widget where
   overflow = fromMaybe Ellipsis (_btnTextOverflow config)
   mode = fromMaybe SingleLine (_btnTextMode config)
   trimSpaces = fromMaybe TrimSpaces (_btnTrim config)
-  BtnState caption textLines = state
+  BtnState caption textRect textLines = state
 
   getBaseStyle wenv node = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
   merge wenv oldState oldNode newNode = result where
-    newState = fromMaybe state (useState oldState)
-    result = resultWidget $ newNode
+    prevState = fromMaybe state (useState oldState)
+    captionChanged = _btsCaption prevState /= caption
+    -- This is used in resize to have glyphs recalculated
+    newRect
+      | captionChanged = def
+      | otherwise = _btsTextRect prevState
+    newState = prevState {
+      _btsCaption = caption,
+      _btsTextRect = newRect
+    }
+    reqs = [ ResizeWidgets | captionChanged ]
+    resNode = newNode
       & L.widget .~ makeButton config newState
+    result = resultReqs resNode reqs
 
   handleEvent wenv ctx evt node = case evt of
     Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
@@ -216,7 +228,7 @@ makeButton config state = widget where
 
   getSizeReq wenv currState node = (sizeW, sizeH) where
     newState = fromMaybe state (useState currState)
-    caption = _btnCaption newState
+    caption = _btsCaption newState
     style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
@@ -232,8 +244,13 @@ makeButton config state = widget where
   resize wenv viewport renderArea node = newNode where
     style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
-    newLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
-    newWidget = makeButton config (BtnState caption newLines)
+    Rect px py pw ph = textRect
+    Rect nx ny nw nh = rect
+    fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newLines
+      | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
+      | otherwise = fittedLines
+    newWidget = makeButton config (BtnState caption rect newLines)
     newNode = node
       & L.widget .~ newWidget
 

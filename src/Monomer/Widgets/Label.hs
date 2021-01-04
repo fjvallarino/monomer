@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Monomer.Widgets.Label (
   label,
   label_
@@ -150,7 +149,7 @@ makeLabel config state = widget where
     rect = fromMaybe def (removeOuterBounds style renderArea)
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
-    !fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
     newLines
       | pw == nw && ph == nh = moveTextLines (nx - px) (ny - py) textLines
       | otherwise = fittedLines

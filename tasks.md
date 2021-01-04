@@ -367,6 +367,13 @@
   - Check multiple resize when opening dialogs
     - This was caused by an unexpected need to call beginFrame before any calls to text related functions
     - This is most likely a bug, but before this call the reported sizes are different than afterwards
+  - Remove getSizeReq from Widget interface. Keep it in Single/Container
+    - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
+    - Remove Widget.resizeWidget
+    - Remove Widget.widgetUpdateSizeReq
+    - Update Style.handleSizeChange
+    - Remove old code from Single, Container and Composite
+    - Make sure Single, Container and Composite update size when needed
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -379,17 +386,10 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Remove getSizeReq from Widget interface. Keep it in Single/Container
-    - Other Widgets should take care of updating those fields during init/merge/handleEvent/handleMessage
-    - Remove Widget.resizeWidget
-    - Remove Widget.widgetUpdateSizeReq
-    - Update Style.handleSizeChange
-    - Remove old code from Single, Container and Composite
-    - Make sure Single, Container and Composite update size when needed
   - Copy merge logic from Label to Button
   - Add containerGetActiveStyle
     - Review handleSizeReqChange
-  - Rethink containerStyleOnMerge (it should really be containerStyleOnMerge and yes we need it)
+  - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items
