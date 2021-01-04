@@ -50,6 +50,11 @@ import qualified Monomer.Lens as L
 type ContainerGetBaseStyle s e
   = GetBaseStyle s e
 
+type ContainerGetActiveStyle s e
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> StyleState
+
 type ContainerInitHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
@@ -144,6 +149,7 @@ data Container s e = Container {
   containerUseCustomSize :: Bool,
   containerUseChildrenSizes :: Bool,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
+  containerGetActiveStyle :: ContainerGetActiveStyle s e,
   containerInit :: ContainerInitHandler s e,
   containerMerge :: ContainerMergeHandler s e,
   containerMergeChildrenRequired :: ContainerMergeChildrenRequiredHandler s e,
@@ -169,6 +175,7 @@ instance Default (Container s e) where
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
     containerGetBaseStyle = defaultGetBaseStyle,
+    containerGetActiveStyle = defaultGetActiveStyle,
     containerInit = defaultInit,
     containerMerge = defaultMerge,
     containerMergeChildrenRequired = defaultMergeRequired,
@@ -203,6 +210,9 @@ createContainer container = Widget {
 -- | Get base style for component
 defaultGetBaseStyle :: ContainerGetBaseStyle s e
 defaultGetBaseStyle wenv node = Nothing
+
+defaultGetActiveStyle :: ContainerGetActiveStyle s e
+defaultGetActiveStyle wenv node = activeStyle wenv node
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
@@ -485,7 +495,7 @@ handleEventWrapper container wenv target evt node
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
-    style = activeStyle wenv node
+    style = containerGetActiveStyle container wenv node
     styleOnMerge = containerStyleOnMerge container
     pHandler = containerHandleEvent container
     targetReached = isTargetReached target node
@@ -573,7 +583,7 @@ updateSizeReq
 updateSizeReq container wenv node = newNode where
   psHandler = containerGetSizeReq container
   currState = widgetGetState (node ^. L.widget) wenv
-  style = activeStyle wenv node
+  style = containerGetActiveStyle container wenv node
   children = node ^. L.children
   reqs = psHandler wenv currState node children
   (newReqW, newReqH) = sizeReqAddStyle style reqs
@@ -656,20 +666,22 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node = action where
+  style = containerGetActiveStyle container wenv node
   useScissor = containerUseScissor container
   before = containerRender container
   after = containerRenderAfter container
-  action = renderContainer renderer wenv node useScissor before after
+  action = renderContainer renderer wenv style node useScissor before after
 
 renderContainer
   :: Renderer
   -> WidgetEnv s e
+  -> StyleState
   -> WidgetNode s e
   -> Bool
   -> ContainerRenderHandler s e
   -> ContainerRenderHandler s e
   -> IO ()
-renderContainer renderer wenv node useScissor renderBefore renderAfter =
+renderContainer renderer wenv style node useScissor renderBefore renderAfter =
   drawInScissor renderer useScissor viewport $
     drawStyledAction renderer renderArea style $ \_ -> do
       renderBefore renderer wenv node
@@ -679,7 +691,6 @@ renderContainer renderer wenv node useScissor renderBefore renderAfter =
 
       renderAfter renderer wenv node
   where
-    style = activeStyle wenv node
     children = node ^. L.children
     viewport = node ^. L.info . L.viewport
     renderArea = node ^. L.info . L.renderArea

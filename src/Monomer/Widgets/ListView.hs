@@ -379,10 +379,11 @@ makeListView widgetData items makeRow config state = widget where
     resized = (newNode, assignedArea)
 
   render renderer wenv node = action where
+    style = activeStyle wenv node
     newNode = buildRenderNode wenv node
     before = defaultRender
     after =  defaultRender
-    action = renderContainer renderer wenv newNode False before after
+    action = renderContainer renderer wenv style newNode False before after
 
   buildRenderNode wenv node = newNode where
     selected = currentValue wenv

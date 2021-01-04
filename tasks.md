@@ -374,6 +374,7 @@
     - Update Style.handleSizeChange
     - Remove old code from Single, Container and Composite
     - Make sure Single, Container and Composite update size when needed
+  - Copy merge logic from Label to Button
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -386,7 +387,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Copy merge logic from Label to Button
   - Add containerGetActiveStyle
     - Review handleSizeReqChange
   - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
