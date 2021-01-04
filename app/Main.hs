@@ -116,13 +116,14 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetTree where
+buildUI wenv model = trace "Creating UI" widgetHover where
   widgetHover = vstack [
       hstack [
         label "Test" `hover` [bgColor red, textSize 32],
         label "Test" `hover` [bgColor green],
         textField textField1 `hover` [bgColor orange, textSize 32]
-      ]
+      ],
+      listView dropdown1 items label
     ]
   widgetIdChanged = vstack [
       button "Show label" IncButton,
@@ -326,4 +327,4 @@ buildUI wenv model = trace "Creating UI" widgetTree where
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
-  items = fmap (\i -> "This is a long label: " <> showt i) [1..30::Int]
+  items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

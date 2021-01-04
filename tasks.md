@@ -378,6 +378,9 @@
   - Add containerGetActiveStyle
     - Review handleSizeReqChange
   - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
+    - Removed, no longer needed (performance issue gone with removal of getSizeReq)
+  - Listview is not properly changing styles
+    - Label needs to rebuild its glyphs if style/renderArea changes
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -391,7 +394,6 @@
 
 Maybe postponed after release?
   - Listview is not properly changing styles
-    - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items
     - If sizeReq changes, it should request ResizeWidgets
     - Further improvements
@@ -403,6 +405,7 @@ Maybe postponed after release?
     - Add setState method
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Test disabled state on widgets
+  - Check Single/Container flags (can some be removed?)
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
