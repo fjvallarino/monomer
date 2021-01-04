@@ -44,7 +44,7 @@ activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   isFocus = isFocused wenv node
   styleState
     | not isEnabled = _styleDisabled
-    | isHover && isFocus = _styleHover <> _styleFocus
+    | isHover && isFocus = _styleFocus <> _styleHover
     | isHover = _styleHover
     | isFocus = _styleFocus
     | otherwise = _styleBasic
@@ -57,7 +57,7 @@ focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   isHover = isHoveredFn wenv node
   styleState
-    | isHover = _styleHover <> _styleFocus
+    | isHover = _styleFocus <> _styleHover
     | otherwise = _styleFocus
 
 activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState

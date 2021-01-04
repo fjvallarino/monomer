@@ -35,9 +35,11 @@ testActiveStyle = describe "activeStyle" $ do
   it "should return hover style" $
     activeStyle wenvHover nodeNormal ^. L.bgColor `shouldBe` Just green
 
-  it "should return focus style" $ do
+  it "should return hover style" $
     activeStyle wenvFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
-    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
+
+  it "should return hover style (takes precedence over focus)" $
+    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just green
 
   it "should return disabled style" $ do
     activeStyle wenvBasic nodeDisabled ^. L.bgColor `shouldBe` Just gray
