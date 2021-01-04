@@ -143,7 +143,7 @@ type ContainerRenderHandler s e
 
 data Container s e = Container {
   containerUseScissor :: Bool,
-  containerStyleOnMerge :: Bool,
+  containerStyleOnEvent :: Bool,
   containerResizeRequired :: Bool,
   containerIgnoreEmptyArea :: Bool,
   containerUseCustomSize :: Bool,
@@ -169,7 +169,7 @@ data Container s e = Container {
 instance Default (Container s e) where
   def = Container {
     containerUseScissor = True,
-    containerStyleOnMerge = False,
+    containerStyleOnEvent = False,
     containerResizeRequired = True,
     containerIgnoreEmptyArea = False,
     containerUseCustomSize = False,
@@ -496,7 +496,7 @@ handleEventWrapper container wenv target evt node
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
     style = containerGetActiveStyle container wenv node
-    styleOnMerge = containerStyleOnMerge container
+    styleOnMerge = containerStyleOnEvent container
     pHandler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node

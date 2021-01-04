@@ -203,7 +203,7 @@ makeNode widget managedWidget = defaultWidgetNode "scroll" widget
 makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer def {
-    containerStyleOnMerge = True,
+    containerStyleOnEvent = True,
     containerGetBaseStyle = getBaseStyle,
     containerGetState = makeState state,
     containerMerge = merge,

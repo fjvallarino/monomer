@@ -375,6 +375,8 @@
     - Remove old code from Single, Container and Composite
     - Make sure Single, Container and Composite update size when needed
   - Copy merge logic from Label to Button
+  - Add containerGetActiveStyle
+    - Review handleSizeReqChange
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -387,8 +389,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add containerGetActiveStyle
-    - Review handleSizeReqChange
   - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
@@ -402,6 +402,7 @@ Maybe postponed after release?
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
     - Add setState method
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
+  - Test disabled state on widgets
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
