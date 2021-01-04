@@ -117,6 +117,13 @@ handleAppEvent wenv model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = trace "Creating UI" widgetTree where
+  widgetHover = vstack [
+      hstack [
+        label "Test" `hover` [bgColor red, textSize 32],
+        label "Test" `hover` [bgColor green],
+        textField textField1 `hover` [bgColor orange, textSize 32]
+      ]
+    ]
   widgetIdChanged = vstack [
       button "Show label" IncButton,
       hstack $ [label "First" | model ^. clickCount > 0] ++ [
@@ -294,11 +301,11 @@ buildUI wenv model = trace "Creating UI" widgetTree where
           label "Label 1234" `style` [bgColor darkGray]
         ] `style` [bgColor blue]
       ] `style` [bgColor green],
-      label (model ^. textField1) `style` [bgColor lightBlue, textLeft],
+      label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
-        label "Jj label"
+        label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
       hstack [
         scroll_ (

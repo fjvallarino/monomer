@@ -240,7 +240,7 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
-  | otherwise = handleStyleChange wenv target style styleCfg newNode evt result
+  | otherwise = handleStyleChange wenv target style styleCfg node evt result
   where
     style = singleGetActiveStyle single wenv node
     styleCfg = singleStyleChangeCfg single

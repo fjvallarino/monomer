@@ -143,7 +143,6 @@ type ContainerRenderHandler s e
 
 data Container s e = Container {
   containerUseScissor :: Bool,
-  containerStyleOnEvent :: Bool,
   containerResizeRequired :: Bool,
   containerIgnoreEmptyArea :: Bool,
   containerUseCustomSize :: Bool,
@@ -169,7 +168,6 @@ data Container s e = Container {
 instance Default (Container s e) where
   def = Container {
     containerUseScissor = True,
-    containerStyleOnEvent = False,
     containerResizeRequired = True,
     containerIgnoreEmptyArea = False,
     containerUseCustomSize = False,
@@ -489,15 +487,13 @@ handleEventWrapper
 handleEventWrapper container wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
   | targetReached || not targetValid = pResultStyled
-  | styleOnMerge = cResultStyled
-  | otherwise = cResult
+  | otherwise = cResultStyled
   where
     -- Having targetValid = False means the next path step is not in
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
     style = containerGetActiveStyle container wenv node
-    styleOnMerge = containerStyleOnEvent container
     pHandler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
@@ -505,13 +501,15 @@ handleEventWrapper container wenv target evt node
     children = node ^. L.children
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
+    -- Event targeted at parent
     pResponse = pHandler wenv target evt node
+    pResultStyled = handleStyleChange wenv target style def node evt
+      $ handleSizeReqChange container wenv node (Just evt) pResponse
+    -- Event targeted at children
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget wenv target evt child
-    pResultStyled = handleStyleChange wenv target style def node evt
-      $ handleSizeReqChange container wenv node (Just evt) pResponse
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
     cResultStyled = handleStyleChange wenv target style def node evt
       $ handleSizeReqChange container wenv node (Just evt) cResult
