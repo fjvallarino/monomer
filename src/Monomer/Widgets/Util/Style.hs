@@ -140,11 +140,6 @@ styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
 
-isResizeResult ::  Maybe (WidgetResult s e) -> Bool
-isResizeResult result = isJust resizeReq where
-  requests = maybe Empty (^. L.requests) result
-  resizeReq = Seq.findIndexL isResizeWidgets requests
-
 handleCursorChange
   :: WidgetEnv s e
   -> Path

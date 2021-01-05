@@ -95,7 +95,7 @@ processTaskEvent wenv widgetRoot widgetId event = do
   let msgResult = widgetHandleMessage widget wenv path event widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult
 
-  handleWidgetResult wenv widgetResult
+  handleWidgetResult wenv True widgetResult
 
 handleFinishedTask :: MonomerM s m => WidgetTask -> m ()
 handleFinishedTask task = delWidgetIdPath (taskWidgetId task)

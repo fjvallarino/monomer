@@ -1,7 +1,9 @@
 module Monomer.Core.Util where
 
 import Control.Lens ((&), (^.), (.~), (?~))
+import Data.Maybe
 import Data.Text (Text)
+import Data.Sequence (Seq(..))
 
 import qualified Data.Sequence as Seq
 
@@ -82,3 +84,8 @@ isRunTask _ = False
 
 seqStartsWith :: Eq a => Seq.Seq a -> Seq.Seq a -> Bool
 seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix
+
+isResizeResult ::  Maybe (WidgetResult s e) -> Bool
+isResizeResult result = isJust resizeReq where
+  requests = maybe Empty (^. L.requests) result
+  resizeReq = Seq.findIndexL isResizeWidgets requests

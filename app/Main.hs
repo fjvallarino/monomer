@@ -118,11 +118,12 @@ handleAppEvent wenv model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = trace "Creating UI" widgetHover where
   widgetHover = vstack [
-      hstack [
-        label "Test" `hover` [bgColor red, textSize 32],
-        label "Test" `hover` [bgColor green],
-        textField textField1 `hover` [bgColor orange, textSize 32]
-      ],
+--      hstack [
+--        label "Test" `hover` [bgColor red, textSize 32],
+--        label "Test" `hover` [bgColor green],
+--        textField textField1 `hover` [bgColor orange, textSize 32]
+--      ],
+      vstack $ fmap (\i -> label ("AAAA: " <> showt i) `hover` [textSize 40]) [1..10::Int],
       listView dropdown1 items label
     ]
   widgetIdChanged = vstack [
@@ -290,10 +291,10 @@ buildUI wenv model = trace "Creating UI" widgetHover where
       ],
       hgrid [
         vstack [
-          label "jLabel 1" `style` [bgColor darkGray],
-          label "Label 12" `style` [bgColor lightGray],
-          label "Label 123" `style` [bgColor darkGray],
-          label "Label 1234" `style` [bgColor lightGray]
+          label "jLabel 1" `style` [bgColor darkGray] `hover` [textSize 40],
+          label "Label 12" `style` [bgColor lightGray] `hover` [textSize 40],
+          label "Label 123" `style` [bgColor darkGray] `hover` [textSize 40],
+          label "Label 1234" `style` [bgColor lightGray] `hover` [textSize 40]
         ] `style` [bgColor red],
         vstack [
           label "jLabel 1" `style` [bgColor lightGray, textBottom],

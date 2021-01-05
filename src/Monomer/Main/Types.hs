@@ -54,6 +54,9 @@ data MonomerContext s = MonomerContext {
   _mcWidgetTasks :: Seq WidgetTask,
   _mcWidgetPaths :: Map WidgetId (Path, Int),
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
+  -- Hacky flag to avoid resizing when transitioning hover
+  -- Needed because sizes may change and new target of hover should not change
+  _mcLeaveEnterPair :: Bool,
   _mcRenderRequested :: Bool,
   _mcRenderSchedule :: Map Path RenderSchedule,
   _mcExitApplication :: Bool

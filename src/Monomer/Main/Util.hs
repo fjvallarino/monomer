@@ -38,6 +38,7 @@ initMonomerContext model win winSize useHiDPI devicePixelRate = MonomerContext {
   _mcWidgetTasks = Seq.empty,
   _mcWidgetPaths = Map.empty,
   _mcCursorIcons = Map.empty,
+  _mcLeaveEnterPair = False,
   _mcRenderRequested = False,
   _mcRenderSchedule = Map.empty,
   _mcExitApplication = False

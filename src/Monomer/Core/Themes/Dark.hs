@@ -139,6 +139,7 @@ darkHover = darkBasic
   & L.inputFloatingStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputIntegralStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
+  & L.listViewItemStyle . L.text . non def . L.fontSize ?~ FontSize 50
   & L.listViewItemStyle . L.bgColor ?~ gray
   & L.listViewItemStyle . L.border ?~ border 1 gray
   & L.listViewItemStyle . L.cursorIcon ?~ CursorHand

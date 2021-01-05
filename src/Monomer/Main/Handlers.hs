@@ -115,6 +115,7 @@ handleSystemEvent
 handleSystemEvent wenv event currentTarget widgetRoot = do
   mainStart <- use L.mainBtnPress
   overlay <- use L.overlayPath
+  leaveEnterPair <- use L.leaveEnterPair
   let pressed = fmap fst mainStart
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
@@ -124,8 +125,9 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
+      let resizeWidgets = not (leaveEnterPair && isOnLeave event)
 
-      handleWidgetResult wenv widgetResult {
+      handleWidgetResult wenv resizeWidgets widgetResult {
         _wrRequests = addFocusReq event (_wrRequests widgetResult)
       }
 
@@ -147,7 +149,7 @@ handleWidgetInit wenv widgetRoot = do
   let widget = widgetRoot ^. L.widget
   let widgetResult = widgetInit widget wenv widgetRoot
 
-  handleWidgetResult wenv widgetResult
+  handleWidgetResult wenv True widgetResult
     >>= handleMoveFocus Nothing FocusFwd
 
 handleWidgetDispose
@@ -159,16 +161,20 @@ handleWidgetDispose wenv widgetRoot = do
   let widget = widgetRoot ^. L.widget
   let widgetResult = widgetDispose widget wenv widgetRoot
 
-  handleWidgetResult wenv widgetResult
+  handleWidgetResult wenv False widgetResult
 
 handleWidgetResult
   :: (MonomerM s m)
   => WidgetEnv s e
+  -> Bool
   -> WidgetResult s e
   -> m (HandlerStep s e)
-handleWidgetResult wenv (WidgetResult evtRoot reqs events) =
-  handleRequests reqs (wenv, events, evtRoot)
-    >>= handleResizeWidgets reqs
+handleWidgetResult wenv resizeWidgets (WidgetResult evtRoot reqs events) = do
+  res <- handleRequests reqs (wenv, events, evtRoot)
+
+  if resizeWidgets
+    then handleResizeWidgets reqs res
+    else return res
 
 handleRequests
   :: (MonomerM s m)
@@ -386,9 +392,9 @@ handleSendMessage path message (wenv, events, widgetRoot) = do
   let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message widgetRoot
-  let widgetResult = fromMaybe emptyResult msgResult
+  let result = fromMaybe emptyResult msgResult
 
-  (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv widgetResult
+  (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv True result
 
   return (newWenv, events >< newEvents, newWidgetRoot)
 
@@ -464,6 +470,7 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     when hoverChanged $
       L.hoveredPath .= curr
 
+    L.leaveEnterPair .= not (null leave || null enter)
     -- Update input status
     status <- use L.inputStatus
     L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
@@ -504,6 +511,7 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
 
+    L.leaveEnterPair .= not (null leave || null enter)
     L.inputStatus . L.buttons . at btn ?= ReleasedBtn
 
     SDLE.captureMouse False
