@@ -14,6 +14,7 @@ module Monomer.Core.StyleUtil (
   styleFgColor,
   styleHlColor,
   getContentArea,
+  getOuterSize,
   addOuterSize,
   addOuterBounds,
   removeOuterSize,
@@ -121,6 +122,10 @@ styleFgColor style = fromMaybe def fgColor where
 styleHlColor :: StyleState -> Color
 styleHlColor style = fromMaybe def hlColor where
   hlColor = style ^? L.hlColor . _Just
+
+getOuterSize :: StyleState -> Size
+getOuterSize style = fromMaybe def size where
+  size = addOuterSize style def
 
 addOuterSize :: StyleState -> Size -> Maybe Size
 addOuterSize style sz =

@@ -399,6 +399,12 @@ Maybe postponed after release?
     - Further improvements
       - Stack resizing should exclude invisible items (outside of viewprot)
       - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
+    - Maybe restore widgetUpdateSizeReq?
+  - Rethink, again, order of style merging (focus/hover)
+    - Focus border gets lost
+    - Maybe a FocusHover style is needed?
+      - Merged as: focus <> hover <> focusHover
+    - Maybe having Active style is a good idea?
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
