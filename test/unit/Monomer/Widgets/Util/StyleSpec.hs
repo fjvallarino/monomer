@@ -4,7 +4,7 @@
 
 module Monomer.Widgets.Util.StyleSpec (spec) where
 
-import Control.Lens ((&), (^.), (^?), (^?!), (.~), (?~), _Just, ix, non)
+import Control.Lens ((&), (^.), (^?), (^?!), (.~), (?~), _Just, at, ix, non)
 import Data.Default
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
@@ -38,8 +38,11 @@ testActiveStyle = describe "activeStyle" $ do
   it "should return hover style" $
     activeStyle wenvFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
 
-  it "should return hover style (takes precedence over focus)" $
-    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just green
+  it "should return focusHover style" $
+    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just orange
+
+  it "should return active style" $
+    activeStyle wenvActive nodeNormal ^. L.bgColor `shouldBe` Just pink
 
   it "should return disabled style" $ do
     activeStyle wenvBasic nodeDisabled ^. L.bgColor `shouldBe` Just gray
@@ -54,6 +57,9 @@ testActiveStyle = describe "activeStyle" $ do
     wenvHoverFocus = wenvHover
       & L.inputStatus . L.mousePos .~ Point 200 200
       & L.focusedPath .~ Seq.fromList [0]
+    wenvActive = mockWenv ()
+      & L.inputStatus . L.mousePos .~ Point 200 200
+      & L.inputStatus . L.buttons . at LeftBtn ?~ PressedBtn
     nodeNormal = createNode True
     nodeDisabled = createNode False
 
@@ -111,8 +117,10 @@ createStyle = newStyle where
   basic = createStyleState 10 white
   hover = createStyleState 20 green
   focus = createStyleState 30 blue
+  focusHover = createStyleState 30 orange
+  active = createStyleState 30 pink
   disabled = createStyleState 40 gray
-  newStyle = Style basic hover focus disabled
+  newStyle = Style basic hover focus focusHover active disabled
 
 createStyleState :: Double -> Color -> Maybe StyleState
 createStyleState size col = Just newState where
