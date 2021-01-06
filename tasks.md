@@ -391,6 +391,9 @@
     - Maybe a FocusHover style is needed?
       - Merged as: focus <> hover <> focusHover
     - Maybe having Active style is a good idea?
+  - Test disabled state on widgets
+  - Check Single/Container flags (can some be removed?)
+    - Reordered and tried to match options in both
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -403,8 +406,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Test disabled state on widgets
-  - Check Single/Container flags (can some be removed?)
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
@@ -424,6 +425,7 @@ Maybe postponed after release?
   - Add arrow icon similar to Renoise's
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
+  - Validate nested structures update correctly when disabling/enabling parent
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

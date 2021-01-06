@@ -106,9 +106,10 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e = Single {
-  singleStyleChangeCfg :: StyleChangeCfg,
   singleFocusOnPressedBtn :: Bool,
+  singleStyleChangeCfg :: StyleChangeCfg,
   singleUseCustomSize :: Bool,
+  singleUseScissor :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetActiveStyle :: SingleGetActiveStyle s e,
   singleInit :: SingleInitHandler s e,
@@ -126,9 +127,10 @@ data Single s e = Single {
 
 instance Default (Single s e) where
   def = Single {
-    singleStyleChangeCfg = def,
     singleFocusOnPressedBtn = True,
+    singleStyleChangeCfg = def,
     singleUseCustomSize = False,
+    singleUseScissor = True,
     singleGetBaseStyle = defaultGetBaseStyle,
     singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,
@@ -339,11 +341,12 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper single renderer wenv node =
-  drawInScissor renderer True viewport $
+  drawInScissor renderer useScissor viewport $
     drawStyledAction renderer renderArea style $ \_ ->
-      rHandler renderer wenv node
+      handler renderer wenv node
   where
-    rHandler = singleRender single
+    handler = singleRender single
+    useScissor = singleUseScissor single
     style = singleGetActiveStyle single wenv node
     viewport = node ^. L.info . L.viewport
     renderArea = node ^. L.info . L.renderArea
