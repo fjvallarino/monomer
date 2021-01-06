@@ -116,7 +116,6 @@ handleSystemEvent
 handleSystemEvent wenv event currentTarget widgetRoot = do
   mainStart <- use L.mainBtnPress
   overlay <- use L.overlayPath
-  hover <- use L.hoveredPath
   leaveEnterPair <- use L.leaveEnterPair
   let pressed = fmap fst mainStart
 
@@ -129,10 +128,9 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let widgetResult = fromMaybe emptyResult evtResult
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
 
-      step <- handleWidgetResult wenv resizeWidgets widgetResult {
+      handleWidgetResult wenv resizeWidgets widgetResult {
         _wrRequests = addFocusReq event (_wrRequests widgetResult)
       }
-      postProcessEvent event hover step
 
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
@@ -457,68 +455,6 @@ preProcessEvents (e:es) = case e of
   WheelScroll p _ _ -> e : Move p : preProcessEvents es
   _ -> e : preProcessEvents es
 
-postProcessEvent
-  :: (MonomerM s m)
-  => SystemEvent
-  -> Maybe Path
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
---postProcessEvent (WheelScroll point _ _) prevHover step = do
---  handleHoverChange point prevHover step
-postProcessEvent _ _ step = do
-  return step
-
-handleHoverChange
-  :: (MonomerM s m)
-  => Point
-  -> Maybe Path
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
-handleHoverChange point prevHover (wenv0, events0, root0) = do
-  overlay <- use L.overlayPath
-  mainBtnPress <- use L.mainBtnPress
-
-  let startPath = fromMaybe rootPath overlay
-  let widget = root0 ^. L.widget
-  let currHover = widgetFindByPoint widget wenv0 startPath point root0
-  let hoverChanged = currHover /= prevHover && isNothing mainBtnPress
-
-  L.leaveEnterPair .= (isJust prevHover && isJust currHover && hoverChanged)
-
-  (wenv1, events1, root1) <- if isJust prevHover && hoverChanged
-    then handleSystemEvent wenv0 (Leave point) (fromJust prevHover) root0
-    else return (wenv0, events0, root0)
-
-  (wenv2, events2, root2) <- if isJust currHover && hoverChanged
-    then handleSystemEvent wenv1 (Enter point) (fromJust currHover) root1
-    else return (wenv1, events1, root1)
-
-  return (wenv2, events0 >< events1 >< events2, root2)
-
-addHoverEvents
-  :: (MonomerM s m)
-  => WidgetEnv s e
-  -> WidgetNode s e
-  -> Point
-  -> m (Maybe Path, [(SystemEvent, Maybe Path)])
-addHoverEvents wenv widgetRoot point = do
-  overlay <- use L.overlayPath
-  hover <- use L.hoveredPath
-  mainBtnPress <- use L.mainBtnPress
-  let startPath = fromMaybe rootPath overlay
-  let widget = widgetRoot ^. L.widget
-  let target = widgetFindByPoint widget wenv startPath point widgetRoot
-  let hoverChanged = target /= hover && isNothing mainBtnPress
-  let enter = [(Enter point, target) | isJust target && hoverChanged]
-  let leave = [(Leave point, hover) | isJust hover && hoverChanged]
-
-  when hoverChanged $
-    L.hoveredPath .= target
-
-  L.leaveEnterPair .= not (null leave || null enter)
-
-  return (target, leave ++ enter)
-
 addRelatedEvents
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -579,6 +515,30 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   Click point btn -> findEvtTargetByPoint wenv widgetRoot evt point
   DblClick point btn -> findEvtTargetByPoint wenv widgetRoot evt point
   _ -> return [(evt, Nothing)]
+
+addHoverEvents
+  :: (MonomerM s m)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> Point
+  -> m (Maybe Path, [(SystemEvent, Maybe Path)])
+addHoverEvents wenv widgetRoot point = do
+  overlay <- use L.overlayPath
+  hover <- use L.hoveredPath
+  mainBtnPress <- use L.mainBtnPress
+  let startPath = fromMaybe rootPath overlay
+  let widget = widgetRoot ^. L.widget
+  let target = widgetFindByPoint widget wenv startPath point widgetRoot
+  let hoverChanged = target /= hover && isNothing mainBtnPress
+  let enter = [(Enter point, target) | isJust target && hoverChanged]
+  let leave = [(Leave point, hover) | isJust hover && hoverChanged]
+
+  when hoverChanged $
+    L.hoveredPath .= target
+
+  L.leaveEnterPair .= not (null leave || null enter)
+
+  return (target, leave ++ enter)
 
 findEvtTargetByPoint
   :: (MonomerM s m)

@@ -381,6 +381,8 @@
     - Removed, no longer needed (performance issue gone with removal of getSizeReq)
   - Listview is not properly changing styles
     - Label needs to rebuild its glyphs if style/renderArea changes
+    - Listview needs to update sizeReq of modified items
+    - If sizeReq changes, it should request ResizeWidgets
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -393,19 +395,13 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Listview is not properly changing styles
-    - Listview needs to update sizeReq of modified items
-    - If sizeReq changes, it should request ResizeWidgets
-    - Further improvements
-      - Stack resizing should exclude invisible items (outside of viewprot)
-      - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
-    - Maybe restore widgetUpdateSizeReq?
+  - When hover is lost, size is not reduced/recalculated
+  - Handle Window Lost Focus
   - Rethink, again, order of style merging (focus/hover)
     - Focus border gets lost
     - Maybe a FocusHover style is needed?
       - Merged as: focus <> hover <> focusHover
     - Maybe having Active style is a good idea?
-    - Handle Window Lost Focus
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
@@ -457,3 +453,8 @@ Maybe postponed after release?
       - hovered would also use it
     - We need to set transform on render (and clear it)
     - Check scroll in scroll (one with max height)
+  - Listview is not properly changing styles
+    - Further improvements
+      - Stack resizing should exclude invisible items (outside of viewprot)
+      - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
+    - Maybe restore widgetUpdateSizeReq?

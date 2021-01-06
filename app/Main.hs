@@ -116,7 +116,7 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetHover where
+buildUI wenv model = trace "Creating UI" widgetTree where
   widgetHover = vstack [
 --      hstack [
 --        label "Test" `hover` [bgColor red, textSize 32],
