@@ -180,10 +180,16 @@ class CmbResizeFactorDim t where
   resizeFactorH :: Double -> t
 
 -- Style
+infixl 5 `enabled`
 infixl 5 `style`
 infixl 5 `hover`
 infixl 5 `focus`
+infixl 5 `focusHover`
+infixl 5 `active`
 infixl 5 `disabled`
+
+class CmbEnabled t where
+  enabled :: t -> Bool -> t
 
 class CmbStyle t where
   style :: t -> [StyleState] -> t
@@ -193,6 +199,12 @@ class CmbHover t where
 
 class CmbFocus t where
   focus :: t -> [StyleState] -> t
+
+class CmbFocusHover t where
+  focusHover :: t -> [StyleState] -> t
+
+class CmbActive t where
+  active :: t -> [StyleState] -> t
 
 class CmbDisabled t where
   disabled :: t -> [StyleState] -> t

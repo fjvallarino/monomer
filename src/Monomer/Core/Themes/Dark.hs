@@ -177,3 +177,12 @@ darkActive = darkHover
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic
+  & L.btnMainStyle . L.text . non def . L.fontColor ?~ darkGray
+  & L.btnMainStyle . L.bgColor ?~ silver
+  & L.btnMainStyle . L.border ?~ border 1 lightGray
+  & L.btnStyle . L.text . non def . L.fontColor ?~ darkGray
+  & L.btnStyle . L.bgColor ?~ silver
+  & L.btnStyle . L.border ?~ border 1 lightGray
+  & L.dropdownStyle . L.text . non def . L.fontColor ?~ darkGray
+  & L.dropdownStyle . L.bgColor ?~ silver
+  & L.dropdownStyle . L.border ?~ border 1 lightGray

@@ -386,6 +386,11 @@
   - When hover is lost, size is not reduced/recalculated
   - Handle Window Lost Focus
     - Not needed; I thought it was part of the previous issue
+  - Rethink, again, order of style merging (focus/hover)
+    - Focus border gets lost
+    - Maybe a FocusHover style is needed?
+      - Merged as: focus <> hover <> focusHover
+    - Maybe having Active style is a good idea?
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -398,11 +403,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Rethink, again, order of style merging (focus/hover)
-    - Focus border gets lost
-    - Maybe a FocusHover style is needed?
-      - Merged as: focus <> hover <> focusHover
-    - Maybe having Active style is a good idea?
   - Test disabled state on widgets
   - Check Single/Container flags (can some be removed?)
   - Add serialization logic for Widget Tree

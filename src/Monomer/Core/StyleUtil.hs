@@ -66,10 +66,23 @@ instance CmbFocus Style where
     state = mconcat states
     newStyle = oldStyle & L.focus ?~ state
 
+instance CmbFocusHover Style where
+  focusHover oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.focusHover ?~ state
+
+instance CmbActive Style where
+  active oldStyle states = newStyle where
+    state = mconcat states
+    newStyle = oldStyle & L.active ?~ state
+
 instance CmbDisabled Style where
   disabled oldStyle states = newStyle where
     state = mconcat states
     newStyle = oldStyle & L.disabled ?~ state
+
+instance CmbEnabled (WidgetNode s e) where
+  enabled node state = node & L.info . L.enabled .~ state
 
 instance CmbStyle (WidgetNode s e) where
   style node states = node & L.info . L.style .~ newStyle where
@@ -88,6 +101,18 @@ instance CmbFocus (WidgetNode s e) where
     state = mconcat states
     oldStyle = node ^. L.info . L.style
     newStyle = oldStyle & L.focus ?~ state
+
+instance CmbFocusHover (WidgetNode s e) where
+  focusHover node states = node & L.info . L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = node ^. L.info . L.style
+    newStyle = oldStyle & L.focusHover ?~ state
+
+instance CmbActive (WidgetNode s e) where
+  active node states = node & L.info . L.style .~ newStyle where
+    state = mconcat states
+    oldStyle = node ^. L.info . L.style
+    newStyle = oldStyle & L.active ?~ state
 
 instance CmbDisabled (WidgetNode s e) where
   disabled node states = node & L.info . L.style .~ newStyle where
