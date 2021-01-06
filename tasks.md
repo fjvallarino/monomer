@@ -405,6 +405,7 @@ Maybe postponed after release?
     - Maybe a FocusHover style is needed?
       - Merged as: focus <> hover <> focusHover
     - Maybe having Active style is a good idea?
+    - Handle Window Lost Focus
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?

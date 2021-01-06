@@ -132,11 +132,7 @@ handleSizeChange wenv target evt cfg oldNode newNode = reqs where
 styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool
 styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Hover
-  mousePos = wenv ^. L.inputStatus . L.mousePos
-  mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
-  vp = node ^. L.info . L.viewport
-  vpChanged = pointInRect mousePos vp `xor` pointInRect mousePosPrev vp
-  hoverChanged = vpChanged && (isOnEnter evt || isOnLeave evt)
+  hoverChanged = isOnEnter evt || isOnLeave evt
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
 

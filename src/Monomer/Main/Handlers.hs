@@ -87,7 +87,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceBaseEvt currStep evt = do
     let (currWenv, currEvents, currRoot) = currStep
-    systemEvents <- preProcessEvent currWenv mainBtn currRoot evt
+    systemEvents <- addRelatedEvents currWenv mainBtn currRoot evt
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
 
@@ -103,7 +103,8 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt target currRoot
 
     return (wenv2, currEvents >< evts2, wroot2)
-  nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) baseEvents
+  processedEvents = preProcessEvents baseEvents
+  nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) processedEvents
 
 handleSystemEvent
   :: (MonomerM s m)
@@ -115,6 +116,7 @@ handleSystemEvent
 handleSystemEvent wenv event currentTarget widgetRoot = do
   mainStart <- use L.mainBtnPress
   overlay <- use L.overlayPath
+  hover <- use L.hoveredPath
   leaveEnterPair <- use L.leaveEnterPair
   let pressed = fmap fst mainStart
 
@@ -127,9 +129,10 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let widgetResult = fromMaybe emptyResult evtResult
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
 
-      handleWidgetResult wenv resizeWidgets widgetResult {
+      step <- handleWidgetResult wenv resizeWidgets widgetResult {
         _wrRequests = addFocusReq event (_wrRequests widgetResult)
       }
+      postProcessEvent event hover step
 
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
@@ -448,35 +451,90 @@ addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
     | otherwise = reqs
 addFocusReq _ reqs = reqs
 
-preProcessEvent
+preProcessEvents :: [SystemEvent] -> [SystemEvent]
+preProcessEvents [] = []
+preProcessEvents (e:es) = case e of
+  WheelScroll p _ _ -> e : Move p : preProcessEvents es
+  _ -> e : preProcessEvents es
+
+postProcessEvent
+  :: (MonomerM s m)
+  => SystemEvent
+  -> Maybe Path
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+--postProcessEvent (WheelScroll point _ _) prevHover step = do
+--  handleHoverChange point prevHover step
+postProcessEvent _ _ step = do
+  return step
+
+handleHoverChange
+  :: (MonomerM s m)
+  => Point
+  -> Maybe Path
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleHoverChange point prevHover (wenv0, events0, root0) = do
+  overlay <- use L.overlayPath
+  mainBtnPress <- use L.mainBtnPress
+
+  let startPath = fromMaybe rootPath overlay
+  let widget = root0 ^. L.widget
+  let currHover = widgetFindByPoint widget wenv0 startPath point root0
+  let hoverChanged = currHover /= prevHover && isNothing mainBtnPress
+
+  L.leaveEnterPair .= (isJust prevHover && isJust currHover && hoverChanged)
+
+  (wenv1, events1, root1) <- if isJust prevHover && hoverChanged
+    then handleSystemEvent wenv0 (Leave point) (fromJust prevHover) root0
+    else return (wenv0, events0, root0)
+
+  (wenv2, events2, root2) <- if isJust currHover && hoverChanged
+    then handleSystemEvent wenv1 (Enter point) (fromJust currHover) root1
+    else return (wenv1, events1, root1)
+
+  return (wenv2, events0 >< events1 >< events2, root2)
+
+addHoverEvents
+  :: (MonomerM s m)
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> Point
+  -> m (Maybe Path, [(SystemEvent, Maybe Path)])
+addHoverEvents wenv widgetRoot point = do
+  overlay <- use L.overlayPath
+  hover <- use L.hoveredPath
+  mainBtnPress <- use L.mainBtnPress
+  let startPath = fromMaybe rootPath overlay
+  let widget = widgetRoot ^. L.widget
+  let target = widgetFindByPoint widget wenv startPath point widgetRoot
+  let hoverChanged = target /= hover && isNothing mainBtnPress
+  let enter = [(Enter point, target) | isJust target && hoverChanged]
+  let leave = [(Leave point, hover) | isJust hover && hoverChanged]
+
+  when hoverChanged $
+    L.hoveredPath .= target
+
+  L.leaveEnterPair .= not (null leave || null enter)
+
+  return (target, leave ++ enter)
+
+addRelatedEvents
   :: (MonomerM s m)
   => WidgetEnv s e
   -> Button
   -> WidgetNode s e
   -> SystemEvent
   -> m [(SystemEvent, Maybe Path)]
-preProcessEvent wenv mainBtn widgetRoot evt = case evt of
+addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   Move point -> do
-    overlay <- use L.overlayPath
-    hover <- use L.hoveredPath
-    mainBtnPress <- use L.mainBtnPress
-    let startPath = fromMaybe rootPath overlay
-    let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let hoverChanged = curr /= hover && isNothing mainBtnPress
-    let enter = [(Enter point, curr) | isJust curr && hoverChanged]
-    let leave = [(Leave point, hover) | isJust hover && hoverChanged]
-
-    when hoverChanged $
-      L.hoveredPath .= curr
-
-    L.leaveEnterPair .= not (null leave || null enter)
+    (_, hoverEvts) <- addHoverEvents wenv widgetRoot point
     -- Update input status
     status <- use L.inputStatus
     L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
     L.inputStatus . L.mousePos .= point
 
-    return $ leave ++ enter ++ [(evt, Nothing)]
+    return $ hoverEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
     overlay <- use L.overlayPath
     let startPath = fromMaybe rootPath overlay
@@ -492,31 +550,25 @@ preProcessEvent wenv mainBtn widgetRoot evt = case evt of
 
     return [(evt, Nothing)]
   ButtonAction point btn ReleasedBtn clicks -> do
-    hover <- use L.hoveredPath
-    overlay <- use L.overlayPath
-    mainPress <- use L.mainBtnPress
-    let pressed = fmap fst mainPress
-    let startPath = fromMaybe rootPath overlay
-    let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
-    let isPressed = btn == mainBtn && curr == pressed
-    let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
-    let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
-    let releasedEvt = [(evt, pressed <|> curr)]
     -- Hover changes need to be handled here too
-    let hoverChanged = curr /= hover
-    let enter = [(Enter point, curr) | isJust curr && hoverChanged]
-    let leave = [(Leave point, hover) | isJust hover && hoverChanged]
+    mainPress <- use L.mainBtnPress
 
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
 
-    L.leaveEnterPair .= not (null leave || null enter)
+    (target, hoverEvts) <- addHoverEvents wenv widgetRoot point
+
+    let pressed = fmap fst mainPress
+    let isPressed = btn == mainBtn && target == pressed
+    let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
+    let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
+    let releasedEvt = [(evt, pressed <|> target)]
+
     L.inputStatus . L.buttons . at btn ?= ReleasedBtn
 
     SDLE.captureMouse False
 
-    return $ clickEvt ++ dblClickEvt ++ releasedEvt ++ leave ++ enter
+    return $ clickEvt ++ dblClickEvt ++ releasedEvt ++ hoverEvts
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status
