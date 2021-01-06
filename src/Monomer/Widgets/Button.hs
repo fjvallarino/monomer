@@ -258,14 +258,7 @@ makeButton config state = widget where
       & L.widget .~ newWidget
 
   render renderer wenv node = do
-    when (isHoverPressed && isPressed wenv node) $
-      drawRect renderer renderArea bgColor (_sstRadius style)
     forM_ textLines (drawTextLine renderer style)
 
     where
       style = activeStyle wenv node
-      inputStatus = wenv ^. L.inputStatus
-      mainBtn = wenv ^. L.mainButton
-      renderArea = node ^. L.info . L.renderArea
-      isHoverPressed = isButtonPressedInRect inputStatus mainBtn renderArea
-      bgColor = Just $ Color 0 0 0 0.2

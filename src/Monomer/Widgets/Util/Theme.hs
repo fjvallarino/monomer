@@ -49,9 +49,11 @@ collectThemeField wenv fieldS fieldT = style where
     & fieldS ?~ wenv ^. L.theme . L.focus . fieldT
   focusHover = Just $ base ^. L.focusHover . non def
     & fieldS ?~ wenv ^. L.theme . L.focusHover . fieldT
+  active = Just $ base ^. L.active . non def
+    & fieldS ?~ wenv ^. L.theme . L.active . fieldT
   disabled = Just $ base ^. L.disabled . non def
     & fieldS ?~ wenv ^. L.theme . L.disabled . fieldT
-  style = Style basic hover focus focusHover disabled
+  style = Style basic hover focus focusHover active disabled
 
 collectTheme :: WidgetEnv s e  -> Lens' ThemeState StyleState -> Style
 collectTheme wenv fieldT = style where
@@ -59,8 +61,9 @@ collectTheme wenv fieldT = style where
   hover = Just $ wenv ^. L.theme . L.hover . fieldT
   focus = Just $ wenv ^. L.theme . L.focus . fieldT
   focusHover = Just $ wenv ^. L.theme . L.focusHover . fieldT
+  active = Just $ wenv ^. L.theme . L.active . fieldT
   disabled = Just $ wenv ^. L.theme . L.disabled . fieldT
-  style = Style basic hover focus focusHover disabled
+  style = Style basic hover focus focusHover active disabled
 
 collectUserTheme :: WidgetEnv s e  -> String -> Style
 collectUserTheme wenv name = style where
@@ -68,5 +71,6 @@ collectUserTheme wenv name = style where
   hover = wenv ^. L.theme . L.hover . L.userStyleMap . at name
   focus = wenv ^. L.theme . L.focus . L.userStyleMap . at name
   focusHover = wenv ^. L.theme . L.focusHover . L.userStyleMap . at name
+  active = wenv ^. L.theme . L.active . L.userStyleMap . at name
   disabled = wenv ^. L.theme . L.disabled . L.userStyleMap . at name
-  style = Style basic hover focus focusHover disabled
+  style = Style basic hover focus focusHover active disabled

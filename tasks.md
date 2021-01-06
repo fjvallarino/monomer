@@ -403,13 +403,13 @@ Maybe postponed after release?
     - Maybe a FocusHover style is needed?
       - Merged as: focus <> hover <> focusHover
     - Maybe having Active style is a good idea?
+  - Test disabled state on widgets
+  - Check Single/Container flags (can some be removed?)
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
     - Add setState method
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
-  - Test disabled state on widgets
-  - Check Single/Container flags (can some be removed?)
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
@@ -422,6 +422,8 @@ Maybe postponed after release?
   - Create File Selector
   - Create Color Selector
   - Add arrow icon similar to Renoise's
+  - Create consistent, good looking, themes: dark, light, pastel
+    - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

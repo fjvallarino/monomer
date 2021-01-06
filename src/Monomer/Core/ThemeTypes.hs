@@ -14,6 +14,7 @@ data Theme = Theme {
   _themeHover :: ThemeState,
   _themeFocus :: ThemeState,
   _themeFocusHover :: ThemeState,
+  _themeActive :: ThemeState,
   _themeDisabled :: ThemeState
 } deriving (Eq, Show)
 
@@ -23,6 +24,7 @@ instance Default Theme where
     _themeHover = def,
     _themeFocus = def,
     _themeFocusHover = def,
+    _themeActive = def,
     _themeDisabled = def
   }
 

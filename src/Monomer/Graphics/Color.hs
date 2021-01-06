@@ -19,10 +19,13 @@ darkGreen     = rgb   0 128   0
 -- Blue
 lightSkyBlue  = rgb 135 206 250
 lightBlue     = rgb 173 216 230
+dodgerBlue    = rgb  30 144 255
+royalBlue     = rgb  65 105 225
 blue          = rgb   0   0 255
 darkBlue      = rgb   0   0 139
 -- Gray
 lightGray     = rgb 191 191 191
+silver        = rgb 192 192 192
 gray          = rgb 127 127 127
 darkGray      = rgb  63  63  63
 darkerGray    = rgb  32  32  32

@@ -42,8 +42,10 @@ activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isFocused wenv node
+  isPressed = isMainBtnPressed wenv node
   styleState
     | not isEnabled = _styleDisabled
+    | isHover && isPressed = _styleActive
     | isHover && isFocus = _styleFocusHover
     | isHover = _styleHover
     | isFocus = _styleFocus
@@ -70,8 +72,10 @@ activeTheme_ isHoveredFn wenv node = themeState where
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isFocused wenv node
+  isPressed = isMainBtnPressed wenv node
   themeState
     | not isEnabled = _themeDisabled theme
+    | isHover && isPressed = _themeActive theme
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
@@ -167,6 +171,7 @@ baseStyleFromTheme theme = style where
     _styleHover = fromThemeState (_themeHover theme),
     _styleFocus = fromThemeState (_themeFocus theme),
     _styleFocusHover = fromThemeState (_themeFocusHover theme),
+    _styleActive = fromThemeState (_themeActive theme),
     _styleDisabled = fromThemeState (_themeDisabled theme)
   }
   fromThemeState tstate = Just $ def {
@@ -178,11 +183,13 @@ baseStyleFromTheme theme = style where
 mergeBasicStyle :: Style -> Style
 mergeBasicStyle st = newStyle where
   focusHover = _styleHover st <> _styleFocus st <> _styleFocusHover st
+  active = _styleHover st <> _styleActive st
   newStyle = Style {
     _styleBasic = _styleBasic st,
     _styleHover = _styleBasic st <> _styleHover st,
     _styleFocus = _styleBasic st <> _styleFocus st,
     _styleFocusHover = _styleBasic st <> focusHover,
+    _styleActive = _styleBasic st <> active,
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
 
@@ -190,3 +197,10 @@ isInOverlay :: WidgetEnv s e -> WidgetNode s e -> Bool
 isInOverlay wenv node = maybe False isPrefix (wenv ^. L.overlayPath) where
   path = node ^. L.info . L.path
   isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath
+
+isMainBtnPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
+isMainBtnPressed wenv node = isPressed where
+  inputStatus = wenv ^. L.inputStatus
+  mainBtn = wenv ^. L.mainButton
+  viewport = node ^. L.info . L.viewport
+  isPressed = isButtonPressedInRect inputStatus mainBtn viewport

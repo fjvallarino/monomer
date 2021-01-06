@@ -21,6 +21,7 @@ darkTheme = Theme {
   _themeHover = darkHover,
   _themeFocus = darkFocus,
   _themeFocusHover = darkFocusHover,
+  _themeActive = darkActive,
   _themeDisabled = darkDisabled
 }
 
@@ -127,7 +128,8 @@ darkHover = darkBasic
   & L.scrollThumbColor .~ (darkGray & L.a .~ 0.8)
   & L.btnStyle . L.bgColor ?~ lightGray
   & L.btnStyle . L.cursorIcon ?~ CursorHand
-  & L.btnMainStyle . L.bgColor ?~ lightBlue
+  & L.btnMainStyle . L.border ?~ border 1 dodgerBlue
+  & L.btnMainStyle . L.bgColor ?~ dodgerBlue
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ lightGray
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
@@ -166,6 +168,12 @@ darkFocus = darkBasic
 
 darkFocusHover :: ThemeState
 darkFocusHover = darkFocus
+
+darkActive :: ThemeState
+darkActive = darkHover
+  & L.btnMainStyle . L.bgColor ?~ royalBlue
+  & L.btnStyle . L.bgColor ?~ silver
+  & L.dropdownStyle . L.bgColor ?~ silver
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic
