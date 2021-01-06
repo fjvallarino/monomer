@@ -383,6 +383,9 @@
     - Label needs to rebuild its glyphs if style/renderArea changes
     - Listview needs to update sizeReq of modified items
     - If sizeReq changes, it should request ResizeWidgets
+  - When hover is lost, size is not reduced/recalculated
+  - Handle Window Lost Focus
+    - Not needed; I thought it was part of the previous issue
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -395,8 +398,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - When hover is lost, size is not reduced/recalculated
-  - Handle Window Lost Focus
   - Rethink, again, order of style merging (focus/hover)
     - Focus border gets lost
     - Maybe a FocusHover style is needed?

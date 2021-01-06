@@ -20,6 +20,7 @@ darkTheme = Theme {
   _themeBasic = darkBasic,
   _themeHover = darkHover,
   _themeFocus = darkFocus,
+  _themeFocusHover = darkFocusHover,
   _themeDisabled = darkDisabled
 }
 
@@ -153,7 +154,7 @@ darkFocus = darkBasic
   & L.checkboxStyle . L.fgColor ?~ lightSkyBlue
   & L.dropdownStyle . L.border ?~ borderFocus
   & L.dropdownListStyle . L.border ?~ borderFocus
-  & L.dropdownItemStyle . L.bgColor ?~ lightGray
+  & L.dropdownItemStyle . L.border ?~ border 1 gray
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 lightGray
   & L.inputFloatingStyle . L.border ?~ borderFocus
   & L.inputIntegralStyle . L.border ?~ borderFocus
@@ -162,6 +163,9 @@ darkFocus = darkBasic
   & L.listViewItemStyle . L.border ?~ border 1 gray
   & L.listViewItemSelectedStyle . L.border ?~ border 1 lightGray
   & L.radioStyle . L.fgColor ?~ lightSkyBlue
+
+darkFocusHover :: ThemeState
+darkFocusHover = darkFocus
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic

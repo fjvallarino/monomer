@@ -457,17 +457,19 @@ getItemStyle node idx = itStyle where
 
 getSlStyle :: WidgetEnv s e -> ListViewCfg s e a -> Style
 getSlStyle wenv config = slStyle where
-  slTheme = collectTheme wenv L.listViewItemSelectedStyle
-  slStyleCfg = _lvcItemSelectedStyle config
-  slStyle = fromJust (Just slTheme <> slStyleCfg)
+  theme = collectTheme wenv L.listViewItemSelectedStyle
+  style = fromJust (Just theme <> _lvcItemSelectedStyle config)
+  slStyle = style
+    & L.hover .~ style ^. L.focusHover
+    & L.basic .~ style ^. L.focus
 
 getHlStyle :: WidgetEnv s e -> ListViewCfg s e a -> Style
 getHlStyle wenv config = hlStyle where
-  normalTheme = collectTheme wenv L.listViewItemStyle
-  normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
-  hlStyle = normalStyle
-    & L.hover .~ normalStyle ^. L.focus <> normalStyle ^. L.hover
-    & L.basic .~ normalStyle ^. L.focus
+  theme = collectTheme wenv L.listViewItemStyle
+  style = fromJust (Just theme <> _lvcItemStyle config)
+  hlStyle = style
+    & L.hover .~ style ^. L.focusHover
+    & L.basic .~ style ^. L.focus
 
 makeItemsList
   :: (Eq a)

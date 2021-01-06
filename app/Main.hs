@@ -116,13 +116,14 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetTree where
+buildUI wenv model = trace "Creating UI" widgetHover where
   widgetHover = vstack [
---      hstack [
---        label "Test" `hover` [bgColor red, textSize 32],
---        label "Test" `hover` [bgColor green],
---        textField textField1 `hover` [bgColor orange, textSize 32]
---      ],
+      hstack [
+        label "Test" `hover` [bgColor red, textSize 32],
+        label "Test" `hover` [bgColor green],
+        textField textField1 `hover` [bgColor orange, textSize 32]
+      ],
+      textDropdown dropdown1 items id,
       vstack $ fmap (\i -> label ("AAAA: " <> showt i) `hover` [textSize 40]) [1..10::Int],
       listView dropdown1 items label
     ]

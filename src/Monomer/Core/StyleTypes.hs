@@ -34,6 +34,7 @@ data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
   _styleFocus :: Maybe StyleState,
+  _styleFocusHover :: Maybe StyleState,
   _styleDisabled :: Maybe StyleState
 } deriving (Eq, Show)
 
@@ -42,6 +43,7 @@ instance Default Style where
     _styleBasic = Nothing,
     _styleHover = Nothing,
     _styleFocus = Nothing,
+    _styleFocusHover = Nothing,
     _styleDisabled = Nothing
   }
 
@@ -50,6 +52,7 @@ instance Semigroup Style where
     _styleBasic = _styleBasic style1 <> _styleBasic style2,
     _styleHover = _styleHover style1 <> _styleHover style2,
     _styleFocus = _styleFocus style1 <> _styleFocus style2,
+    _styleFocusHover = _styleFocusHover style1 <> _styleFocusHover style2,
     _styleDisabled = _styleDisabled style1 <> _styleDisabled style2
   }
 

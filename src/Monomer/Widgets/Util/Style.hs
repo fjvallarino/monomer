@@ -44,7 +44,7 @@ activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   isFocus = isFocused wenv node
   styleState
     | not isEnabled = _styleDisabled
-    | isHover && isFocus = _styleFocus <> _styleHover
+    | isHover && isFocus = _styleFocusHover
     | isHover = _styleHover
     | isFocus = _styleFocus
     | otherwise = _styleBasic
@@ -57,7 +57,7 @@ focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   isHover = isHoveredFn wenv node
   styleState
-    | isHover = _styleFocus <> _styleHover
+    | isHover = _styleFocusHover
     | otherwise = _styleFocus
 
 activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
@@ -166,6 +166,7 @@ baseStyleFromTheme theme = style where
     _styleBasic = fromThemeState (_themeBasic theme),
     _styleHover = fromThemeState (_themeHover theme),
     _styleFocus = fromThemeState (_themeFocus theme),
+    _styleFocusHover = fromThemeState (_themeFocusHover theme),
     _styleDisabled = fromThemeState (_themeDisabled theme)
   }
   fromThemeState tstate = Just $ def {
@@ -176,10 +177,12 @@ baseStyleFromTheme theme = style where
 
 mergeBasicStyle :: Style -> Style
 mergeBasicStyle st = newStyle where
+  focusHover = _styleHover st <> _styleFocus st <> _styleFocusHover st
   newStyle = Style {
     _styleBasic = _styleBasic st,
     _styleHover = _styleBasic st <> _styleHover st,
     _styleFocus = _styleBasic st <> _styleFocus st,
+    _styleFocusHover = _styleBasic st <> focusHover,
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
 
