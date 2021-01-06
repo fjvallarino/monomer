@@ -57,6 +57,7 @@ data MonomerContext s = MonomerContext {
   -- Hacky flag to avoid resizing when transitioning hover
   -- Needed because sizes may change and new target of hover should not change
   _mcLeaveEnterPair :: Bool,
+  _mcResizePending :: Bool,
   _mcRenderRequested :: Bool,
   _mcRenderSchedule :: Map Path RenderSchedule,
   _mcExitApplication :: Bool

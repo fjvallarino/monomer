@@ -126,6 +126,7 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let widgetResult = fromMaybe emptyResult evtResult
+      -- Do not resize if event is Leave and follow-up is Enter
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
 
       handleWidgetResult wenv resizeWidgets widgetResult {
@@ -170,12 +171,18 @@ handleWidgetResult
   -> Bool
   -> WidgetResult s e
   -> m (HandlerStep s e)
-handleWidgetResult wenv resizeWidgets (WidgetResult evtRoot reqs events) = do
-  res <- handleRequests reqs (wenv, events, evtRoot)
+handleWidgetResult wenv resizeWidgets result = do
+  let WidgetResult evtRoot reqs events = result
+  let resizeReq = isResizeResult (Just result)
 
-  if resizeWidgets
-    then handleResizeWidgets reqs res
-    else return res
+  resizePending <- use L.resizePending
+  step <- handleRequests reqs (wenv, events, evtRoot)
+
+  if resizeWidgets && (resizeReq || resizePending)
+    then handleResizeWidgets step
+    else do
+      L.resizePending .= resizeReq
+      return step
 
 handleRequests
   :: (MonomerM s m)
@@ -209,23 +216,20 @@ handleRequests reqs step = foldM handleRequest step reqs where
 
 handleResizeWidgets
   :: (MonomerM s m)
-  => Seq (WidgetRequest s)
-  -> HandlerStep s e
+  => HandlerStep s e
   -> m (HandlerStep s e)
-handleResizeWidgets reqs previousStep =
-  case Seq.filter isResizeWidgets reqs of
-    ResizeWidgets :<| _ -> do
-      windowSize <- use L.windowSize
+handleResizeWidgets previousStep = do
+  windowSize <- use L.windowSize
 
-      liftIO . putStrLn $ "Resizing widgets"
+  liftIO . putStrLn $ "Resizing widgets"
 
-      let (wenv, events, widgetRoot) = previousStep
-      let newWidgetRoot = resizeRoot wenv windowSize widgetRoot
+  let (wenv, events, widgetRoot) = previousStep
+  let newWidgetRoot = resizeRoot wenv windowSize widgetRoot
 
-      L.renderRequested .= True
+  L.renderRequested .= True
+  L.resizePending .= False
 
-      return (wenv, events, newWidgetRoot)
-    _ -> return previousStep
+  return (wenv, events, newWidgetRoot)
 
 handleMoveFocus
   :: (MonomerM s m)
