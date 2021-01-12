@@ -394,6 +394,8 @@
   - Test disabled state on widgets
   - Check Single/Container flags (can some be removed?)
     - Reordered and tried to match options in both
+  - Implement state simplifications on Single/Container
+    - Also pass state directly to getSizeReq
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -406,9 +408,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Implement state simplifications on Single/Container
-    - Also pass state directly to getSizeReq
-    - Automatically set new WidgetId/Path on Container
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
@@ -416,13 +415,8 @@ Maybe postponed after release?
     - Make handling state on Container as easy as in Single
     - Add tests for ListView
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
-<<<<<<< HEAD
-  - Implement state simplifications on Single/Container
-    - Also pass state directly to getSizeReq
-    - Automatically set new WidgetId/Path on Container
-=======
->>>>>>> master
   - Rename tree methods
+  - Automatically set new WidgetId/Path on Container
   - Image
     - Fix crash when adding images
       - If called from render, immediate add seems to work.
@@ -442,6 +436,8 @@ Maybe postponed after release?
   - Create File Selector
   - Create Color Selector
   - Add arrow icon similar to Renoise's
+  - Improve test utilities
+    - Some way to combine them, avoid this noInit thing, losing of focus, etc
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Validate nested structures update correctly when disabling/enabling parent

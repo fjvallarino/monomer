@@ -1,5 +1,4 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -33,7 +32,6 @@ import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
-import GHC.Generics
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -118,7 +116,7 @@ data CompositeState s e = CompositeState {
   _cpsModel :: Maybe s,
   _cpsRoot :: WidgetNode s e,
   _cpsGlobalKeys :: GlobalKeys s e
-} deriving (Generic)
+}
 
 instance Serialise s => Serialise (CompositeState s e) where
   encode state = encodeListLen 2 <> encodeWord 0 <> encode (_cpsModel state)

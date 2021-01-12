@@ -85,6 +85,8 @@ data WidgetState
 instance Show WidgetState where
   show =  show . typeOf
 
+-- Serialized as ByteString, since at deserialization time the real type is
+-- not known (since it's Typeable). It needs to be deserialized when used
 instance Serialise WidgetState where
   encode (WidgetState state) = encodeWord 0 <> encode stateBS where
     stateBS = serialise state
@@ -148,7 +150,7 @@ data WidgetEnv s e = WidgetEnv {
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
   _weInTopLayer :: Point -> Bool
-} deriving (Generic)
+}
 
 data WidgetNode s e = WidgetNode {
   -- | The actual widget

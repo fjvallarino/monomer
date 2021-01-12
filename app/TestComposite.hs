@@ -12,7 +12,6 @@ import Control.Lens
 import Control.Monad (forM_)
 
 import Data.Default
-import Data.Typeable (Typeable)
 import GHC.Generics
 import TextShow
 
