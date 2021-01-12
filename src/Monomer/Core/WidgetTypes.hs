@@ -77,7 +77,7 @@ instance Default WidgetId where
 data WidgetKey
   = WidgetKeyLocal Text
   | WidgetKeyGlobal Text
-  deriving (Eq, Ord, Show, Generic, Serialise)
+  deriving (Eq, Show, Ord, Generic, Serialise)
 
 data WidgetState
   = forall i . (Typeable i, Serialise i) => WidgetState i
@@ -167,7 +167,7 @@ data WidgetInstanceNode = WidgetInstanceNode {
   _winState :: Maybe WidgetState,
   -- | The children widget, if any
   _winChildren :: Seq WidgetInstanceNode
-} deriving (Generic, Serialise)
+} deriving (Show, Generic, Serialise)
 
 data Widget s e =
   Widget {

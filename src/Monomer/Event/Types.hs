@@ -15,23 +15,23 @@ newtype KeyCode
 data KeyStatus
   = KeyPressed
   | KeyReleased
-  deriving (Show, Eq)
+  deriving (Eq, Show)
 
 data Button
   = LeftBtn
   | MiddleBtn
   | RightBtn
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Show, Ord)
 
 data ButtonState
   = PressedBtn
   | ReleasedBtn
-  deriving (Show, Eq)
+  deriving (Eq, Show)
 
 data WheelDirection
   = WheelNormal
   | WheelFlipped
-  deriving (Show, Eq)
+  deriving (Eq, Show)
 
 data ClipboardData
   = ClipboardEmpty
@@ -51,7 +51,7 @@ data SystemEvent
   | Enter Point
   | Move Point
   | Leave Point
-  deriving (Show, Eq)
+  deriving (Eq, Show)
 
 data InputStatus = InputStatus {
   _ipsMousePos :: Point,
@@ -82,7 +82,7 @@ data KeyMod = KeyMod {
   _kmNumLock :: Bool,
   _kmCapsLock :: Bool,
   _kmAltGr :: Bool
-} deriving (Show, Eq)
+} deriving (Eq, Show)
 
 instance Default KeyMod where
   def = KeyMod {

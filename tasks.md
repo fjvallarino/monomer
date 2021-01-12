@@ -415,6 +415,9 @@ Maybe postponed after release?
     - Make handling state on Container as easy as in Single
     - Add tests for ListView
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
+  - Rename MonomerContextPersist
+  - Make save/restore configurable (app)
+  - Rebuild composite globalKeys
   - Rename tree methods
   - Automatically set new WidgetId/Path on Container
   - Image

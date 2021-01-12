@@ -21,7 +21,7 @@ data Theme = Theme {
   _themeFocusHover :: ThemeState,
   _themeActive :: ThemeState,
   _themeDisabled :: ThemeState
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default Theme where
   def = Theme {
@@ -68,7 +68,7 @@ data ThemeState = ThemeState {
   _thsScrollThumbRadius :: Double,
   _thsScrollWheelRate :: Double,
   _thsUserStyleMap :: M.Map String StyleState
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default ThemeState where
   def = ThemeState {

@@ -31,11 +31,11 @@ import Monomer.Widgets
 data EditableItem = EditableItem {
   _itemId :: Text,
   _itemDesc :: Text
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 newtype KeysCompState = KeysCompState {
   _items :: Seq EditableItem
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 makeLenses ''EditableItem
 makeLenses ''KeysCompState

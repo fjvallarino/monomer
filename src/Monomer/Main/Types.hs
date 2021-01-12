@@ -33,7 +33,7 @@ import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
-type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m, MonadCatch m)
+type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadCatch m, MonadIO m)
 
 data RenderSchedule = RenderSchedule {
   _rsPath :: Path,

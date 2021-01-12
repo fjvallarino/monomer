@@ -27,7 +27,7 @@ import Types
 data CompState = CompState {
   _csCounter :: Int,
   _csProduced :: Int
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default CompState where
   def = CompState 0 0

@@ -36,7 +36,7 @@ data App = App {
   _condition3 :: Bool,
   _showAlert :: Bool,
   _showConfirm :: Bool
-} deriving (Show, Eq, Generic, Serialise)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default App where
   def = App {
@@ -91,4 +91,4 @@ data AppEvent
   | RestoreWindowSchedule
   | ToFrontWindow
   | ToFrontWindowSchedule
-  deriving (Show, Eq)
+  deriving (Eq, Show)
