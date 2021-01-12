@@ -273,7 +273,7 @@ mainLoop window renderer config loopArgs = do
   shouldQuit <- use exitApplication
 
   when shouldQuit $ do
-    let instNode = widgetGetInstanceTree (newRoot ^. L.widget) wenv newRoot
+    let instNode = widgetSave (newRoot ^. L.widget) wenv newRoot
     ctxp <- saveMonomerContext
     liftIO . print $ "Saving"
     liftIO $ writeFileSerialise "tree.ser" (ctxp, instNode)

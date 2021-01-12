@@ -203,7 +203,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
     newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
-    newInstRoot = widgetGetInstanceTree (newRoot ^. L.widget) wenv1 newRoot
+    newInstRoot = widgetSave (newRoot ^. L.widget) wenv1 newRoot
 
 handleEventGlobalKey :: Spec
 handleEventGlobalKey = describe "handleEventGlobalKey" $
@@ -250,7 +250,7 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
     newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
-    newInstRoot = widgetGetInstanceTree (newRoot ^. L.widget) wenv1 newRoot
+    newInstRoot = widgetSave (newRoot ^. L.widget) wenv1 newRoot
 
 handleMessage :: Spec
 handleMessage = describe "handleMessage" $ do
@@ -323,7 +323,7 @@ resize = describe "resize" $ do
     buildUI wenv model = hstack []
     cmpNode = composite "main" id Nothing buildUI handleEvent
     tmpNode = nodeInit wenv cmpNode
-    newNode = widgetGetInstanceTree (tmpNode ^. L.widget) wenv tmpNode
+    newNode = widgetSave (tmpNode ^. L.widget) wenv tmpNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

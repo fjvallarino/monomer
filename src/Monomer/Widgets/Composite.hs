@@ -250,8 +250,8 @@ createComposite comp state = widget where
     widgetMerge = compositeMerge comp state,
     widgetDispose = compositeDispose comp state,
     widgetGetState = makeState state,
-    widgetGetInstanceTree = compositeGetInstanceTree comp state,
-    widgetRestoreInstanceTree = compositeRestoreInstanceTree comp state,
+    widgetSave = compositeSave comp state,
+    widgetRestore = compositeRestore comp state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
@@ -353,26 +353,26 @@ compositeDispose comp state wenv widgetComp = result where
   tempResult = WidgetResult _cpsRoot reqs evts
   result = reduceResult comp state wenv widgetComp tempResult
 
-compositeGetInstanceTree
+compositeSave
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
   -> WidgetInstanceNode
-compositeGetInstanceTree comp state wenv node = instTree where
+compositeSave comp state wenv node = instTree where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  cInstTree = widgetGetInstanceTree widget cwenv _cpsRoot
+  cInstTree = widgetSave widget cwenv _cpsRoot
   instTree = WidgetInstanceNode {
     _winInfo = node ^. L.info,
     _winState = Just (WidgetState state),
     _winChildren = Seq.singleton cInstTree
   }
 
-compositeRestoreInstanceTree
+compositeRestore
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
@@ -380,7 +380,7 @@ compositeRestoreInstanceTree
   -> WidgetInstanceNode
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeRestoreInstanceTree comp state wenv win newComp = result where
+compositeRestore comp state wenv win newComp = result where
   oldState = loadState (win ^. L.state)
   validState = fromMaybe state oldState
   oldGlobalKeys = M.empty
@@ -391,7 +391,7 @@ compositeRestoreInstanceTree comp state wenv win newComp = result where
   tempRoot = cascadeCtx wenv newComp (_cmpUiBuilder comp cwenv model)
   tempWidget = tempRoot ^. L.widget
   tempResult = case Seq.lookup 0 (win ^. L.children) of
-    Just cwin -> widgetRestoreInstanceTree tempWidget cwenv cwin tempRoot
+    Just cwin -> widgetRestore tempWidget cwenv cwin tempRoot
     _ -> resultWidget tempRoot
   newRoot = tempResult ^. L.node
   newState = validState {

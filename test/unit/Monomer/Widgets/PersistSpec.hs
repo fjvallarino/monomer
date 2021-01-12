@@ -80,8 +80,8 @@ saveSingle = describe "saveSingle" $ do
   where
     wenv = mockWenv ()
     node = label "Test label"
-    inst = widgetGetInstanceTree (node ^. L.widget) wenv node
-    rest = widgetRestoreInstanceTree (node ^. L.widget) wenv inst node
+    inst = widgetSave (node ^. L.widget) wenv node
+    rest = widgetRestore (node ^. L.widget) wenv inst node
 
 restoreSingle :: Spec
 restoreSingle = describe "restoreSingle" $ do
@@ -130,7 +130,7 @@ restoreComposite = describe "restoreComposite" $ do
 handleRestoredEvents wenv node1 = (model2, oldInfo, rstInfo) where
   oldNode = nodeHandleEventRoot wenv (replicate 4 (evtK keyRight)) node1
   newNode = node1 `style` [textColor red]
-  inst1 = widgetGetInstanceTree (oldNode ^. L.widget) wenv oldNode
+  inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
   inst2 = deserialise (serialise inst1)
   ((wenv2, evts2, node2), ctx) = nodeHandleRestore wenv inst2 newNode
   model2 = nodeHandleEventModelNoInit wenv2 [evtK keyTab, evtT " restore"] node2

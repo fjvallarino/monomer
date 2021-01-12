@@ -23,8 +23,7 @@ module Monomer.Widgets.Util.Widget (
   handleFocusRequest,
   handleFocusChange,
   buildLocalMap,
-  findWidgetByKey,
-  getInstanceTree
+  findWidgetByKey
 ) where
 
 import Codec.Serialise
@@ -199,15 +198,3 @@ buildLocalMap widgets = newMap where
     where
       key = widget ^. L.info . L.key
   newMap = foldl' addWidget M.empty widgets
-
-getInstanceTree
-  :: WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetInstanceNode
-getInstanceTree wenv node = instNode where
-  instNode = WidgetInstanceNode {
-    _winInfo = node ^. L.info,
-    _winState = widgetGetState (node ^. L.widget) wenv,
-    _winChildren = fmap (getChildNode wenv) (node ^. L.children)
-  }
-  getChildNode wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child

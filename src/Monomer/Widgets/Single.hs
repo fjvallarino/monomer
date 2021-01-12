@@ -156,8 +156,8 @@ createSingle state single = Widget {
   widgetMerge = mergeWrapper single,
   widgetDispose = singleDispose single,
   widgetGetState = makeState state,
-  widgetGetInstanceTree = getInstanceTree,
-  widgetRestoreInstanceTree = restoreInstanceTreeWrapper single,
+  widgetSave = saveWrapper single,
+  widgetRestore = restoreWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,
@@ -221,17 +221,31 @@ mergeWithRestore restore wenv oldState oldNode newNode = result where
   info = oldNode ^. L.info
   result = restore wenv oldState info newNode
 
+saveWrapper
+  :: (Typeable a, Serialise a)
+  => Single s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetInstanceNode
+saveWrapper container wenv node = instNode where
+  instNode = WidgetInstanceNode {
+    _winInfo = node ^. L.info,
+    _winState = widgetGetState (node ^. L.widget) wenv,
+    _winChildren = fmap (saveChildNode wenv) (node ^. L.children)
+  }
+  saveChildNode wenv child = widgetSave (child ^. L.widget) wenv child
+
 defaultRestore :: SingleRestoreHandler s e a
 defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
 
-restoreInstanceTreeWrapper
+restoreWrapper
   :: (Typeable a, Serialise a)
   => Single s e a
   -> WidgetEnv s e
   -> WidgetInstanceNode
   -> WidgetNode s e
   -> WidgetResult s e
-restoreInstanceTreeWrapper single wenv win newNode = newResult where
+restoreWrapper single wenv win newNode = newResult where
   restoreHandler = singleRestore single
   oldInfo = win ^. L.info
   nodeHandler styledNode = case loadState (win ^. L.state) of

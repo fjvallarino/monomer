@@ -153,7 +153,7 @@ handleEventRestored = describe "handleEventRestored" $ do
       ]
     startEvts = evtK keyTab : replicate 30 (evtK keyDown)
     oldNode = nodeHandleEventRoot wenv startEvts node1
-    inst1 = widgetGetInstanceTree (oldNode ^. L.widget) wenv oldNode
+    inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
     inst2 = deserialise (serialise inst1)
     ((wenv2, evts2, node2), ctx) = nodeHandleRestore wenv inst2 node1
     clickModel p = nodeHandleEventModelNoInit wenv2 [Click p LeftBtn] node2

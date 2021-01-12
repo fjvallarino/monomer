@@ -163,7 +163,7 @@ handleWidgetRestore
   -> m (HandlerStep s e)
 handleWidgetRestore wenv widgetInst widgetRoot = do
   let widget = widgetRoot ^. L.widget
-  let widgetResult = widgetRestoreInstanceTree widget wenv widgetInst widgetRoot
+  let widgetResult = widgetRestore widget wenv widgetInst widgetRoot
 
   handleWidgetResult wenv True widgetResult
 

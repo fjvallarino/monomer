@@ -216,8 +216,8 @@ createContainer state container = Widget {
   widgetMerge = mergeWrapper container,
   widgetDispose = disposeWrapper container,
   widgetGetState = makeState state,
-  widgetRestoreInstanceTree = restoreInstanceTreeWrapper container,
-  widgetGetInstanceTree = getInstanceTree,
+  widgetRestore = restoreWrapper container,
+  widgetSave = saveWrapper container,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
   widgetHandleEvent = handleEventWrapper container,
@@ -419,20 +419,34 @@ mergeWithRestore restore wenv oldState oldNode newNode = result where
   info = oldNode ^. L.info
   result = restore wenv oldState info newNode
 
+saveWrapper
+  :: (Typeable a, Serialise a)
+  => Container s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetInstanceNode
+saveWrapper container wenv node = instNode where
+  instNode = WidgetInstanceNode {
+    _winInfo = node ^. L.info,
+    _winState = widgetGetState (node ^. L.widget) wenv,
+    _winChildren = fmap (saveChildNode wenv) (node ^. L.children)
+  }
+  saveChildNode wenv child = widgetSave (child ^. L.widget) wenv child
+
 defaultRestore :: ContainerRestoreHandler s e a
 defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
 
 defaultRestorePost :: ContainerRestorePostHandler s e a
 defaultRestorePost wenv result oldState oldNode node = result
 
-restoreInstanceTreeWrapper
+restoreWrapper
   :: (Typeable a, Serialise a)
   => Container s e a
   -> WidgetEnv s e
   -> WidgetInstanceNode
   -> WidgetNode s e
   -> WidgetResult s e
-restoreInstanceTreeWrapper container wenv win newNode = newResult where
+restoreWrapper container wenv win newNode = newResult where
   getBaseStyle = containerGetBaseStyle container
   restoreHandler = containerRestore container
   restorePostHandler = containerRestorePost container
@@ -448,7 +462,7 @@ restoreInstanceTreeWrapper container wenv win newNode = newResult where
     _ -> resultWidget styledNode
   -- Process children
   updateChildCtx idx child = cascadeCtx wenv pNode child idx
-  restoreChild inst ch = widgetRestoreInstanceTree (ch ^. L.widget) wenv inst ch
+  restoreChild inst ch = widgetRestore (ch ^. L.widget) wenv inst ch
   tmpChildren = Seq.mapWithIndex updateChildCtx (pNode ^. L.children)
   restoredChildren = Seq.zipWith restoreChild (win ^. L.children) tmpChildren
   -- Join results
