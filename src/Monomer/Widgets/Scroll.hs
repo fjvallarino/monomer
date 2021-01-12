@@ -201,9 +201,8 @@ makeNode widget managedWidget = defaultWidgetNode "scroll" widget
 
 makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
-  baseWidget = createContainer def {
+  baseWidget = createContainer state def {
     containerGetBaseStyle = getBaseStyle,
-    containerGetState = makeState state,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -221,9 +220,8 @@ makeScroll config state = widget where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
   merge wenv oldState oldNode node = resultWidget newNode where
-    newState = fromMaybe state (useState oldState)
     newNode = node
-      & L.widget .~ makeScroll config newState
+      & L.widget .~ makeScroll config oldState
 
   handleEvent wenv target evt node = case evt of
     ButtonAction point btn status _ -> result where
@@ -344,7 +342,7 @@ makeScroll config state = widget where
     ra = tempNode ^. L.info . L.renderArea
     newNode = scrollResize (Just newWidget) newState wenv vp ra tempNode
 
-  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = sizeReq where
     style = scrollActiveStyle wenv node
     child = Seq.index children 0

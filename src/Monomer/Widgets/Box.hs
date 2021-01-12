@@ -133,7 +133,7 @@ makeNode widget managedWidget = defaultWidgetNode "box" widget
 
 makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
-  widget = createContainer def {
+  widget = createContainer () def {
     containerIgnoreEmptyArea = ignoreEmptyArea && emptyHandlersCount == 0,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
@@ -160,7 +160,7 @@ makeBox config = widget where
         | otherwise = Nothing
     _ -> Nothing
 
-  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = (newReqW, newReqH) where
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW

@@ -67,7 +67,7 @@ vstack_ children configs = newNode where
 
 makeStack :: Bool -> StackCfg -> Widget s e
 makeStack isHorizontal config = widget where
-  widget = createContainer def {
+  widget = createContainer () def {
     containerIgnoreEmptyArea = ignoreEmptyArea,
     containerUseCustomSize = True,
     containerFindByPoint = defaultFindByPoint,

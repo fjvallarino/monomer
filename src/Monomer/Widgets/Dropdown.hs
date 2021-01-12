@@ -226,10 +226,9 @@ makeDropdown
   -> DropdownState
   -> Widget s e
 makeDropdown widgetData items makeMain makeRow config state = widget where
-  baseWidget = createContainer def {
+  baseWidget = createContainer state def {
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
-    containerGetState = makeState state,
     containerFindNextFocus = findNextFocus,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
@@ -264,8 +263,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   init wenv node = resultWidget $ createDropdown wenv state node
 
   merge wenv oldState oldNode newNode = result where
-    newState = fromMaybe state (useState oldState)
-    result = resultWidget $ createDropdown wenv newState newNode
+    result = resultWidget $ createDropdown wenv oldState newNode
 
   findNextFocus wenv direction start node
     | isOpen = node ^. L.children
@@ -344,7 +342,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
-  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = (newReqW, newReqH) where
     -- Main section reqs
     mainC = Seq.index children 0

@@ -229,12 +229,11 @@ makeListView
   -> ListViewState a
   -> Widget s e
 makeListView widgetData items makeRow config state = widget where
-  widget = createContainer def {
+  widget = createContainer state def {
     containerResizeRequired = _resizeReq state,
     containerInit = init,
     containerMerge = merge,
-    containerMergeChildrenRequired = mergeChildrenRequired,
-    containerGetState = makeState state,
+    containerMergeChildrenReq = mergeChildrenReq,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -258,21 +257,19 @@ makeListView widgetData items makeRow config state = widget where
       & L.widget .~ makeListView widgetData items makeRow config newState
       & L.children .~ children
 
-  mergeChildrenRequired wenv oldState oldNode node = result where
-    prevState = fromMaybe state (useState oldState)
-    oldItems = _prevItems prevState
+  mergeChildrenReq wenv oldState oldNode node = result where
+    oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     result = mergeRequiredFn oldItems items
 
   merge wenv oldState oldNode node = resultReqs newNode reqs where
-    prevState = fromMaybe state (useState oldState)
-    oldItems = _prevItems prevState
+    oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
     children
       | mergeRequired = createListViewChildren wenv node
       | otherwise = oldNode ^. L.children
-    newState = prevState {
+    newState = oldState {
       _resizeReq = mergeRequired
     }
     tmpNode = node

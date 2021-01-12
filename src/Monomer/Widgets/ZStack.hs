@@ -55,7 +55,7 @@ zstack_ children configs = newNode where
 
 makeZStack :: ZStackCfg -> Widget s e
 makeZStack config = widget where
-  baseWidget = createContainer def {
+  baseWidget = createContainer () def {
     containerUseChildrenSizes = True,
     containerMergePost = mergePost,
     containerFindNextFocus = findNextFocus,

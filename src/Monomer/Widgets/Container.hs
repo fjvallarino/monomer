@@ -60,24 +60,24 @@ type ContainerInitHandler s e
   -> WidgetNode s e
   -> WidgetResult s e
 
-type ContainerMergeHandler s e
+type ContainerMergeChildrenReqHandler s e a
   = WidgetEnv s e
-  -> Maybe WidgetState
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-
-type ContainerMergeChildrenRequiredHandler s e
-  = WidgetEnv s e
-  -> Maybe WidgetState
+  -> a
   -> WidgetNode s e
   -> WidgetNode s e
   -> Bool
 
-type ContainerMergePostHandler s e
+type ContainerMergeHandler s e a
+  = WidgetEnv s e
+  -> a
+  -> WidgetNode s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+
+type ContainerMergePostHandler s e a
   = WidgetEnv s e
   -> WidgetResult s e
-  -> Maybe WidgetState
+  -> a
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
@@ -86,10 +86,6 @@ type ContainerDisposeHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
-
-type ContainerGetStateHandler s e
-  = WidgetEnv s e
-  -> Maybe WidgetState
 
 type ContainerFindNextFocusHandler s e
   = WidgetEnv s e
@@ -120,9 +116,9 @@ type ContainerMessageHandler s e
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 
-type ContainerGetSizeReqHandler s e
+type ContainerGetSizeReqHandler s e a
   = WidgetEnv s e
-  -> Maybe WidgetState
+  -> a
   -> WidgetNode s e
   -> Seq (WidgetNode s e)
   -> (SizeReq, SizeReq)
@@ -141,7 +137,7 @@ type ContainerRenderHandler s e
   -> WidgetNode s e
   -> IO ()
 
-data Container s e = Container {
+data Container s e a = Container {
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
   containerStyleChangeCfg :: StyleChangeCfg,
@@ -151,22 +147,21 @@ data Container s e = Container {
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerGetActiveStyle :: ContainerGetActiveStyle s e,
   containerInit :: ContainerInitHandler s e,
-  containerMerge :: ContainerMergeHandler s e,
-  containerMergeChildrenRequired :: ContainerMergeChildrenRequiredHandler s e,
-  containerMergePost :: ContainerMergePostHandler s e,
+  containerMergeChildrenReq :: ContainerMergeChildrenReqHandler s e a,
+  containerMerge :: ContainerMergeHandler s e a,
+  containerMergePost :: ContainerMergePostHandler s e a,
   containerDispose :: ContainerDisposeHandler s e,
-  containerGetState :: ContainerGetStateHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
   containerHandleMessage :: ContainerMessageHandler s e,
-  containerGetSizeReq :: ContainerGetSizeReqHandler s e,
+  containerGetSizeReq :: ContainerGetSizeReqHandler s e a,
   containerResize :: ContainerResizeHandler s e,
   containerRender :: ContainerRenderHandler s e,
   containerRenderAfter :: ContainerRenderHandler s e
 }
 
-instance Default (Container s e) where
+instance Default (Container s e a) where
   def = Container {
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
@@ -177,11 +172,10 @@ instance Default (Container s e) where
     containerGetBaseStyle = defaultGetBaseStyle,
     containerGetActiveStyle = defaultGetActiveStyle,
     containerInit = defaultInit,
+    containerMergeChildrenReq = defaultMergeRequired,
     containerMerge = defaultMerge,
-    containerMergeChildrenRequired = defaultMergeRequired,
     containerMergePost = defaultMergePost,
     containerDispose = defaultDispose,
-    containerGetState = defaultGetState,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
     containerHandleEvent = defaultHandleEvent,
@@ -192,12 +186,12 @@ instance Default (Container s e) where
     containerRenderAfter = defaultRender
   }
 
-createContainer :: Container s e -> Widget s e
-createContainer container = Widget {
+createContainer :: Typeable a => a -> Container s e a -> Widget s e
+createContainer state container = Widget {
   widgetInit = initWrapper container,
   widgetMerge = mergeWrapper container,
   widgetDispose = disposeWrapper container,
-  widgetGetState = containerGetState container,
+  widgetGetState = makeState state,
   widgetGetInstanceTree = getInstanceTree,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
@@ -219,7 +213,8 @@ defaultInit :: ContainerInitHandler s e
 defaultInit wenv node = resultWidget node
 
 initWrapper
-  :: Container s e
+  :: Typeable a
+  => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
@@ -241,28 +236,31 @@ initWrapper container wenv node = result where
   result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
 -- | Merging
-defaultMerge :: ContainerMergeHandler s e
+defaultMerge :: ContainerMergeHandler s e a
 defaultMerge wenv oldState oldNode newNode = resultWidget newNode
 
-defaultMergeRequired :: ContainerMergeChildrenRequiredHandler s e
+defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
 defaultMergeRequired wenv oldState oldNode newNode = True
 
-defaultMergePost :: ContainerMergePostHandler s e
+defaultMergePost :: ContainerMergePostHandler s e a
 defaultMergePost wenv result oldState oldNode node = result
 
 mergeWrapper
-  :: Container s e
+  :: Typeable a
+  => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
 mergeWrapper container wenv oldNode newNode = result where
   getBaseStyle = containerGetBaseStyle container
-  mergeRequiredHandler = containerMergeChildrenRequired container
+  mergeRequiredHandler = containerMergeChildrenReq container
   mergeHandler = containerMerge container
   mergePostHandler = containerMergePost container
 
-  mergeRequired = mergeRequiredHandler wenv oldState oldNode newNode
+  mergeRequired = case useState oldState of
+    Just state -> mergeRequiredHandler wenv state oldNode newNode
+    _ -> True
   oldFlags = [oldNode ^. L.info . L.visible, oldNode ^. L.info . L.enabled]
   newFlags = [newNode ^. L.info . L.visible, newNode ^. L.info . L.enabled]
   oldState = widgetGetState (oldNode ^. L.widget) wenv
@@ -273,14 +271,17 @@ mergeWrapper container wenv oldNode newNode = result where
   tmpRes
     | mergeRequired || oldFlags /= newFlags = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
-  postRes = mergePostHandler wenv tmpRes oldState oldNode (tmpRes ^. L.node)
+  postRes = case useState oldState of
+    Just state -> mergePostHandler wenv tmpRes state oldNode (tmpRes ^. L.node)
+    _ -> resultWidget (tmpRes ^. L.node)
   result
     | isResizeResult (Just postRes) = postRes
         & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
     | otherwise = postRes
 
 mergeParent
-  :: ContainerMergeHandler s e
+  :: Typeable a
+  => ContainerMergeHandler s e a
   -> WidgetEnv s e
   -> Maybe WidgetState
   -> WidgetNode s e
@@ -293,7 +294,9 @@ mergeParent mergeHandler wenv oldState oldNode newNode = result where
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
-  result = mergeHandler wenv oldState oldNode tempNode
+  result = case useState oldState of
+    Just state -> mergeHandler wenv state oldNode tempNode
+    _ -> resultWidget tempNode
 
 mergeChildren
   :: WidgetEnv s e
@@ -377,7 +380,7 @@ defaultDispose :: ContainerInitHandler s e
 defaultDispose wenv node = resultWidget node
 
 disposeWrapper
-  :: Container s e
+  :: Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
@@ -391,17 +394,13 @@ disposeWrapper container wenv node = result where
   newEvents = foldMap _wrEvents results
   result = WidgetResult node (reqs <> newReqs) (events <> newEvents)
 
--- | State Handling helpers
-defaultGetState :: ContainerGetStateHandler s e
-defaultGetState _ = Nothing
-
 -- | Find next focusable item
 defaultFindNextFocus :: ContainerFindNextFocusHandler s e
 defaultFindNextFocus wenv direction start node = vchildren where
   vchildren = Seq.filter (^. L.info . L.visible) (node ^. L.children)
 
 findNextFocusWrapper
-  :: Container s e
+  :: Container s e a
   -> WidgetEnv s e
   -> FocusDirection
   -> Path
@@ -443,7 +442,7 @@ defaultFindByPoint wenv startPath point node = result where
   result = Seq.findIndexL (pointInWidget . _wnInfo) children
 
 findByPointWrapper
-  :: Container s e
+  :: Container s e a
   -> WidgetEnv s e
   -> Path
   -> Point
@@ -480,7 +479,8 @@ defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
 
 handleEventWrapper
-  :: Container s e
+  :: Typeable a
+  => Container s e a
   -> WidgetEnv s e
   -> Path
   -> SystemEvent
@@ -547,8 +547,8 @@ defaultHandleMessage :: ContainerMessageHandler s e
 defaultHandleMessage wenv ctx message node = Nothing
 
 handleMessageWrapper
-  :: Typeable i
-  => Container s e
+  :: (Typeable a, Typeable i)
+  => Container s e a
   -> WidgetEnv s e
   -> Path
   -> i
@@ -574,11 +574,12 @@ handleMessageWrapper container wenv target arg node
       | otherwise = messageResult
 
 -- | Preferred size
-defaultGetSizeReq :: ContainerGetSizeReqHandler s e
+defaultGetSizeReq :: ContainerGetSizeReqHandler s e a
 defaultGetSizeReq wenv node children = def
 
 updateSizeReq
-  :: Container s e
+  :: Typeable a
+  => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
@@ -587,14 +588,17 @@ updateSizeReq container wenv node = newNode where
   currState = widgetGetState (node ^. L.widget) wenv
   style = containerGetActiveStyle container wenv node
   children = node ^. L.children
-  reqs = psHandler wenv currState node children
+  reqs = case useState currState of
+    Just state -> psHandler wenv state node children
+    _ -> def
   (newReqW, newReqH) = sizeReqAddStyle style reqs
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
 
 handleSizeReqChange
-  :: Container s e
+  :: Typeable a
+  => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> Maybe SystemEvent
@@ -617,7 +621,7 @@ defaultResize wenv viewport renderArea children node = newSize where
   newSize = (node, childrenSizes)
 
 resizeWrapper
-  :: Container s e
+  :: Container s e a
   -> WidgetEnv s e
   -> Rect
   -> Rect
@@ -662,7 +666,7 @@ defaultRender :: ContainerRenderHandler s e
 defaultRender renderer wenv node = return ()
 
 renderWrapper
-  :: Container s e
+  :: Container s e a
   -> Renderer
   -> WidgetEnv s e
   -> WidgetNode s e
