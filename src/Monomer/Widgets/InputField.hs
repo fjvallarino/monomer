@@ -117,12 +117,11 @@ inputField_ widgetType config = node where
 makeInputField
   :: InputFieldValue a => InputFieldCfg s e a -> InputFieldState a -> Widget s e
 makeInputField config state = widget where
-  widget = createSingle def {
+  widget = createSingle state def {
     singleStyleChangeCfg = def & L.cursorIgnore .~ True,
     singleFocusOnPressedBtn = False,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
-    singleGetState = makeState state,
     singleMerge = merge,
     singleDispose = dispose,
     singleHandleEvent = handleEvent,
@@ -166,11 +165,10 @@ makeInputField config state = widget where
     result = resultReqs newNode reqs
 
   merge wenv oldState oldNode node = resultReqs newNode reqs where
-    currState = fromMaybe state (useState oldState)
-    oldValue = _ifsCurrValue currState
-    oldText = _ifsCurrText currState
-    oldPos = _ifsCursorPos currState
-    oldSel = _ifsSelStart currState
+    oldValue = _ifsCurrValue oldState
+    oldText = _ifsCurrText oldState
+    oldPos = _ifsCursorPos oldState
+    oldSel = _ifsSelStart oldState
     value = getModelValue wenv
     newText
       | oldValue /= getModelValue wenv = toText value
@@ -182,7 +180,7 @@ makeInputField config state = widget where
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv node currState value newText newPos newSelStart
+    newState = newTextState wenv node oldState value newText newPos newSelStart
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
@@ -491,8 +489,7 @@ makeInputField config state = widget where
       | otherwise = resultReqsEvts node reqs events
 
   getSizeReq wenv currState node = sizeReq where
-    newState = fromMaybe state (useState currState)
-    currText = _ifsCurrText newState
+    currText = _ifsCurrText currState
     style = activeStyle wenv node
     Size w h = getTextSize wenv style currText
     targetW = max w 100

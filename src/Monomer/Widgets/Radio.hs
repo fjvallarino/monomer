@@ -122,7 +122,7 @@ radioD_ widgetData option configs = radioNode where
 
 makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
-  widget = createSingle def {
+  widget = createSingle () def {
     singleStyleChangeCfg = def & L.cursorEvt .~ isOnMove,
     singleGetBaseStyle = getBaseStyle,
     singleGetActiveStyle = getActiveStyle,

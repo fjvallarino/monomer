@@ -55,7 +55,7 @@ icon_ iconType configs = defaultWidgetNode widgetType widget where
 
 makeImage :: IconType -> IconCfg -> Widget s e
 makeImage iconType config = widget where
-  widget = createSingle def {
+  widget = createSingle () def {
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }

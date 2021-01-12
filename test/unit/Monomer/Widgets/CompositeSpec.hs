@@ -68,7 +68,7 @@ data TestModel = TestModel {
   _tmText2 :: Text
 } deriving (Eq, Show)
 
-msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle def {
+msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle () def {
   SG.singleHandleMessage = msgWidgetHandleMessage
 }
 

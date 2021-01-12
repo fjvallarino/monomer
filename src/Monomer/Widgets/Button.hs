@@ -171,10 +171,9 @@ button_ caption handler configs = buttonNode where
 
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
-  widget = createSingle def {
+  widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
     singleMerge = merge,
-    singleGetState = makeState state,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
@@ -192,13 +191,12 @@ makeButton config state = widget where
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
   merge wenv oldState oldNode newNode = result where
-    prevState = fromMaybe state (useState oldState)
-    captionChanged = _btsCaption prevState /= caption
+    captionChanged = _btsCaption oldState /= caption
     -- This is used in resize to have glyphs recalculated
     newRect
       | captionChanged = def
-      | otherwise = _btsTextRect prevState
-    newState = prevState {
+      | otherwise = _btsTextRect oldState
+    newState = oldState {
       _btsCaption = caption,
       _btsTextRect = newRect
     }
@@ -228,8 +226,7 @@ makeButton config state = widget where
       result = resultReqsEvts node requests events
 
   getSizeReq wenv currState node = (sizeW, sizeH) where
-    newState = fromMaybe state (useState currState)
-    caption = _btsCaption newState
+    caption = _btsCaption currState
     style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption

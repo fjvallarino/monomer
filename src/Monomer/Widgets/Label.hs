@@ -97,10 +97,9 @@ label_ caption configs = defaultWidgetNode "label" widget where
 
 makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
-  widget = createSingle def {
+  widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
     singleMerge = merge,
-    singleGetState = makeState state,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
@@ -115,13 +114,12 @@ makeLabel config state = widget where
     style = collectTheme wenv L.labelStyle
 
   merge wenv oldState oldNode newNode = result where
-    prevState = fromMaybe state (useState oldState)
-    captionChanged = _lstCaption prevState /= caption
+    captionChanged = _lstCaption oldState /= caption
     -- This is used in resize to have glyphs recalculated
     newRect
       | captionChanged = def
-      | otherwise = _lstTextRect prevState
-    newState = prevState {
+      | otherwise = _lstTextRect oldState
+    newState = oldState {
       _lstCaption = caption,
       _lstTextRect = newRect
     }
@@ -131,8 +129,7 @@ makeLabel config state = widget where
     result = resultReqs resNode reqs
 
   getSizeReq wenv currState node = (sizeW, sizeH) where
-    newState = fromMaybe state (useState currState)
-    caption = _lstCaption newState
+    caption = _lstCaption currState
     style = activeStyle wenv node
     targetW = fmap sizeReqMax (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trimSpaces targetW caption

@@ -116,7 +116,7 @@ checkboxD_ widgetData configs = checkboxNode where
 
 makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
-  widget = createSingle def {
+  widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,

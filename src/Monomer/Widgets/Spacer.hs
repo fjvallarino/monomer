@@ -57,7 +57,7 @@ spacer_ configs = defaultWidgetNode "spacer" widget where
 
 makeSpacer :: SpacerCfg  -> Widget s e
 makeSpacer config = widget where
-  widget = createSingle def {
+  widget = createSingle () def {
     singleGetSizeReq = getSizeReq
   }
 

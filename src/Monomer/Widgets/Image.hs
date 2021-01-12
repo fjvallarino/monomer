@@ -112,9 +112,8 @@ image_ path configs = defaultWidgetNode "image" widget where
 
 makeImage :: String -> ImageCfg e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
-  widget = createSingle def {
+  widget = createSingle state def {
     singleInit = init,
-    singleGetState = makeState state,
     singleMerge = merge,
     singleDispose = dispose,
     singleHandleMessage = handleMessage,
@@ -128,7 +127,6 @@ makeImage imgPath config state = widget where
     reqs = [RunTask wid path $ handleImageLoad wenv imgPath]
 
   merge wenv oldState oldNode newNode = result where
-    newState = fromMaybe state (useState oldState)
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
     widgetPathReq = UpdateWidgetPath wid path
@@ -137,9 +135,9 @@ makeImage imgPath config state = widget where
         handleImageLoad wenv imgPath
       ]
     sameImgNode = newNode
-      & L.widget .~ makeImage imgPath config newState
+      & L.widget .~ makeImage imgPath config oldState
     result
-      | isImagePath newState == imgPath = resultReqs sameImgNode [widgetPathReq]
+      | isImagePath oldState == imgPath = resultReqs sameImgNode [widgetPathReq]
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
@@ -160,8 +158,7 @@ makeImage imgPath config state = widget where
     result = Just $ resultReqs newNode [ResizeWidgets]
 
   getSizeReq wenv currState node = sizeReq where
-    newState = fromMaybe state (useState currState)
-    Size w h = maybe def snd (isImageData newState)
+    Size w h = maybe def snd (isImageData currState)
     factor = 1
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
