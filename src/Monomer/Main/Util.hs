@@ -54,7 +54,7 @@ findNextFocus
   -> Path
 findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
   widget = widgetRoot ^. L.widget
-  restartPath = fromMaybe rootPath overlay
+  restartPath = fromMaybe emptyPath overlay
   candidateFocus =
     widgetFindNextFocus widget wenv direction focus widgetRoot
   fromRootFocus =

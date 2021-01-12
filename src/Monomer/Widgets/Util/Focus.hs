@@ -78,5 +78,5 @@ isWidgetBeforePath :: Path -> WidgetNode s e -> Bool
 isWidgetBeforePath path node = result where
   widgetPath = node ^. L.info . L.path
   result
-    | path == rootPath = True
+    | path == emptyPath = True
     | otherwise = path > widgetPath

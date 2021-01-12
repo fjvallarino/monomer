@@ -35,8 +35,11 @@ data Rect = Rect {
 instance Default Rect where
   def = Rect 0 0 0 0
 
+emptyPath :: Path
+emptyPath = Seq.empty
+
 rootPath :: Path
-rootPath = Seq.empty
+rootPath = Seq.singleton 0
 
 pointInRect :: Point -> Rect -> Bool
 pointInRect (Point px py) rect = coordInRectH px rect && coordInRectY py rect

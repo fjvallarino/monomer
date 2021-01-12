@@ -23,8 +23,8 @@ spec = describe "Focus" $ do
 testParentPath :: Spec
 testParentPath = describe "parentPath" $ do
   it "should return root path" $ do
-    parentPath (pathNode []) `shouldBe` rootPath
-    parentPath (pathNode [0]) `shouldBe` rootPath
+    parentPath (pathNode []) `shouldBe` emptyPath
+    parentPath (pathNode [0]) `shouldBe` emptyPath
 
   it "should return a single element path" $ do
     parentPath (pathNode [0, 1]) `shouldBe` Seq.fromList [0]

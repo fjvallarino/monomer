@@ -71,7 +71,7 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     Leave{}                           -> pathEvent target
   where
     widget = widgetRoot ^. L.widget
-    startPath = fromMaybe rootPath overlay
+    startPath = fromMaybe emptyPath overlay
     pathEvent = Just
     pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
     -- pressed is only really used for Move
@@ -239,7 +239,7 @@ handleMoveFocus
   -> m (HandlerStep s e)
 handleMoveFocus startFrom direction (wenv, events, root) = do
   oldFocus <- use L.focusedPath
-  let wenv0 = wenv { _weFocusedPath = rootPath }
+  let wenv0 = wenv { _weFocusedPath = emptyPath }
   (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
   currFocus <- use L.focusedPath
   currOverlay <- use L.overlayPath
@@ -477,7 +477,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     return $ hoverEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
     overlay <- use L.overlayPath
-    let startPath = fromMaybe rootPath overlay
+    let startPath = fromMaybe emptyPath overlay
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
 
@@ -530,7 +530,7 @@ addHoverEvents wenv widgetRoot point = do
   overlay <- use L.overlayPath
   hover <- use L.hoveredPath
   mainBtnPress <- use L.mainBtnPress
-  let startPath = fromMaybe rootPath overlay
+  let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
   let target = widgetFindByPoint widget wenv startPath point widgetRoot
   let hoverChanged = target /= hover && isNothing mainBtnPress
@@ -553,7 +553,7 @@ findEvtTargetByPoint
   -> m [(SystemEvent, Maybe Path)]
 findEvtTargetByPoint wenv widgetRoot evt point = do
   overlay <- use L.overlayPath
-  let startPath = fromMaybe rootPath overlay
+  let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
   let curr = widgetFindByPoint widget wenv startPath point widgetRoot
   return [(evt, curr)]

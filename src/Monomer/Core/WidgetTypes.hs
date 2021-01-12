@@ -60,7 +60,7 @@ data WidgetId = WidgetId {
 } deriving (Eq, Show, Ord)
 
 instance Default WidgetId where
-  def = WidgetId 0 rootPath
+  def = WidgetId 0 emptyPath
 
 data WidgetKey
   = WidgetKeyLocal Text
@@ -280,7 +280,7 @@ instance Default WidgetNodeInfo where
     _wniWidgetType = "",
     _wniWidgetId = def,
     _wniKey = Nothing,
-    _wniPath = rootPath,
+    _wniPath = emptyPath,
     _wniSizeReqW = def,
     _wniSizeReqH = def,
     _wniEnabled = True,
