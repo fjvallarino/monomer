@@ -1,8 +1,12 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Monomer.Widgets.Label (
   label,
   label_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_)
@@ -10,6 +14,7 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
+import GHC.Generics
 
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
@@ -84,7 +89,7 @@ data LabelState = LabelState {
   _lstTextStyle :: Maybe TextStyle,
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 label :: Text -> WidgetNode s e
 label caption = label_ caption def
@@ -99,7 +104,7 @@ makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
   widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
-    singleMerge = merge,
+    singleRestore = restore,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
@@ -113,7 +118,7 @@ makeLabel config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.labelStyle
 
-  merge wenv oldState oldNode newNode = result where
+  restore wenv oldState oldNode newNode = result where
     captionChanged = _lstCaption oldState /= caption
     -- This is used in resize to have glyphs recalculated
     newRect

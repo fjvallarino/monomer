@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -6,12 +8,14 @@
 
 module Monomer.Widgets.CompositeSpec (spec) where
 
+import Codec.Serialise
 import Control.Lens ((&), (^.), (^?), (.~), (%~), ix)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable (cast)
+import GHC.Generics
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -44,7 +48,7 @@ data ChildEvt
 data MainModel = MainModel {
   _tmClicks :: Int,
   _tmChild :: ChildModel
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default MainModel where
   def = MainModel {
@@ -55,7 +59,7 @@ instance Default MainModel where
 data ChildModel = ChildModel {
   _cmClicks :: Int,
   _cmMessage :: String
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default ChildModel where
   def = ChildModel {
@@ -66,7 +70,7 @@ instance Default ChildModel where
 data TestModel = TestModel {
   _tmText1 :: Text,
   _tmText2 :: Text
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle () def {
   SG.singleHandleMessage = msgWidgetHandleMessage

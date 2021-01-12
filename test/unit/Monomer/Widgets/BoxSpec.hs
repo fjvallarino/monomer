@@ -162,7 +162,7 @@ resizeAlign = describe "align" $ do
     childVpTL = getChildVp wenv [alignTop, alignLeft]
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
-getChildVp :: WidgetEnv s e -> [BoxCfg s e] -> Rect
+getChildVp :: Eq s => WidgetEnv s e -> [BoxCfg s e] -> Rect
 getChildVp wenv cfgs = childLC ^. L.info . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ lblNode cfgs)

@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -12,6 +14,7 @@ module Monomer.Widgets.Image (
 ) where
 
 import Codec.Picture (DynamicImage, Image(..))
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Exception (try)
 import Control.Lens ((&), (^.), (.~), (%~), (?~))
@@ -23,6 +26,7 @@ import Data.Maybe
 import Data.List (isPrefixOf)
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)
+import GHC.Generics
 import Network.HTTP.Client (HttpException(..), HttpExceptionContent(..))
 import Network.Wreq
 
@@ -95,7 +99,7 @@ fitHeight = def { _imcFit = Just FitHeight }
 data ImageState = ImageState {
   isImagePath :: String,
   isImageData :: Maybe (ByteString, Size)
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 data ImageMessage
   = ImageLoaded ImageState
@@ -114,7 +118,7 @@ makeImage :: String -> ImageCfg e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle state def {
     singleInit = init,
-    singleMerge = merge,
+    singleRestore = restore,
     singleDispose = dispose,
     singleHandleMessage = handleMessage,
     singleGetSizeReq = getSizeReq,
@@ -126,7 +130,7 @@ makeImage imgPath config state = widget where
     path = node ^. L.info . L.path
     reqs = [RunTask wid path $ handleImageLoad wenv imgPath]
 
-  merge wenv oldState oldNode newNode = result where
+  restore wenv oldState oldInfo newNode = result where
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
     widgetPathReq = UpdateWidgetPath wid path

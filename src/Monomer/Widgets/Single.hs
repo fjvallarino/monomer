@@ -12,11 +12,12 @@ module Monomer.Widgets.Single (
   createSingle
 ) where
 
+import Codec.Serialise
 import Control.Lens ((&), (^.), (^?), (.~), _Just)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
-import Data.Typeable (Typeable)
+import Data.Typeable (Typeable, cast)
 
 import qualified Data.Sequence as Seq
 
@@ -45,6 +46,13 @@ type SingleMergeHandler s e a
   = WidgetEnv s e
   -> a
   -> WidgetNode s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+
+type SingleRestoreHandler s e a
+  = WidgetEnv s e
+  -> a
+  -> WidgetNodeInfo
   -> WidgetNode s e
   -> WidgetResult s e
 
@@ -109,7 +117,8 @@ data Single s e a = Single {
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetActiveStyle :: SingleGetActiveStyle s e,
   singleInit :: SingleInitHandler s e,
-  singleMerge :: SingleMergeHandler s e a,
+  singleMerge :: Maybe (SingleMergeHandler s e a),
+  singleRestore :: SingleRestoreHandler s e a,
   singleDispose :: SingleDisposeHandler s e,
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
   singleFindByPoint :: SingleFindByPointHandler s e,
@@ -129,7 +138,8 @@ instance Default (Single s e a) where
     singleGetBaseStyle = defaultGetBaseStyle,
     singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,
-    singleMerge = defaultMerge,
+    singleMerge = Nothing,
+    singleRestore = defaultRestore,
     singleDispose = defaultDispose,
     singleFindNextFocus = defaultFindNextFocus,
     singleFindByPoint = defaultFindByPoint,
@@ -140,13 +150,14 @@ instance Default (Single s e a) where
     singleRender = defaultRender
   }
 
-createSingle :: Typeable a => a -> Single s e a -> Widget s e
+createSingle :: (Typeable a, Serialise a) => a -> Single s e a -> Widget s e
 createSingle state single = Widget {
   widgetInit = initWrapper single,
   widgetMerge = mergeWrapper single,
   widgetDispose = singleDispose single,
   widgetGetState = makeState state,
   widgetGetInstanceTree = getInstanceTree,
+  widgetRestoreInstanceTree = restoreInstanceTreeWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
   widgetHandleEvent = handleEventWrapper single,
@@ -182,26 +193,69 @@ defaultMerge :: SingleMergeHandler s e a
 defaultMerge wenv oldState oldNode newNode = resultWidget newNode
 
 mergeWrapper
-  :: Typeable a
+  :: (Typeable a, Serialise a)
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
 mergeWrapper single wenv oldNode newNode = newResult where
-  mergeHandler = singleMerge single
-  getBaseStyle = singleGetBaseStyle single
+  mergeHandler = case singleMerge single of
+    Just handler -> handler
+    _ -> mergeWithRestore (singleRestore single)
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   oldInfo = oldNode ^. L.info
+  nodeHandler styledNode = case useState oldState of
+    Just state -> mergeHandler wenv state oldNode styledNode
+    _ -> resultWidget styledNode
+  newResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+
+mergeWithRestore
+  :: SingleRestoreHandler s e a
+  -> WidgetEnv s e
+  -> a
+  -> WidgetNode s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+mergeWithRestore restore wenv oldState oldNode newNode = result where
+  info = oldNode ^. L.info
+  result = restore wenv oldState info newNode
+
+defaultRestore :: SingleRestoreHandler s e a
+defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
+
+restoreInstanceTreeWrapper
+  :: (Typeable a, Serialise a)
+  => Single s e a
+  -> WidgetEnv s e
+  -> WidgetInstanceNode
+  -> WidgetNode s e
+  -> WidgetResult s e
+restoreInstanceTreeWrapper single wenv win newNode = newResult where
+  restoreHandler = singleRestore single
+  oldInfo = win ^. L.info
+  nodeHandler styledNode = case loadState (win ^. L.state) of
+    Just state -> restoreHandler wenv state oldInfo styledNode
+    _ -> resultWidget styledNode
+  newResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+
+loadStateHandler
+  :: (Typeable a, Serialise a)
+  => Single s e a
+  -> WidgetEnv s e
+  -> WidgetNodeInfo
+  -> WidgetNode s e
+  -> (WidgetNode s e -> WidgetResult s e)
+  -> WidgetResult s e
+loadStateHandler single wenv oldInfo newNode nodeHandler = newResult where
+  getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
     & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   styledNode = initNodeStyle getBaseStyle wenv tempNode
-  tmpResult = case useState oldState of
-    Just state -> mergeHandler wenv state oldNode styledNode
-    _ -> resultWidget styledNode
+  tmpResult = nodeHandler styledNode
   newResult
     | isResizeResult (Just tmpResult) = tmpResult
         & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
@@ -254,8 +308,7 @@ handleEventWrapper single wenv target evt node
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message node = Nothing
 
-handleMessageWrapper :: forall s e a i . Typeable i
-  => Typeable a
+handleMessageWrapper :: forall s e a i . (Typeable a, Typeable i)
   => Single s e a
   -> WidgetEnv s e
   -> Path

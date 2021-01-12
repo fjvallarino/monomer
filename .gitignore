@@ -6,3 +6,4 @@ monomer.cabal
 *.hp
 *.prof
 *.ps
+*.ser

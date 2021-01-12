@@ -1,16 +1,17 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.ListViewSpec (spec) where
 
+import Codec.Serialise
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Functor ((<&>))
 import Data.Text (Text)
+import GHC.Generics
 import Test.Hspec
 import TextShow
 
@@ -36,7 +37,7 @@ data TestEvt
 
 newtype TestItem = TestItem {
   _tiCode :: Int
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance TextShow TestItem where
   showb (TestItem c) = "TestItem: " <> showb c
@@ -52,12 +53,14 @@ testItems = [0..99] <&> TestItem
 testItem0 = head testItems
 testItem3 = testItems!!3
 testItem7 = testItems!!7
+testItem10 = testItems!!10
 testItem70 = testItems!!70
 
 spec :: Spec
 spec = describe "ListView" $ do
   handleEvent
   handleEventValue
+  handleEventRestored
   updateSizeReq
 
 handleEvent :: Spec
@@ -120,6 +123,41 @@ handleEventValue = describe "handleEventValue" $ do
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
     events evts = Seq.drop (Seq.length res - 1) res where
       res = nodeHandleEventEvts wenv evts lvNode
+
+handleEventRestored :: Spec
+handleEventRestored = describe "handleEventRestored" $ do
+  it "should not update the model if not clicked" $
+    clickModel (Point 3000 3000) ^. selectedItem `shouldBe` testItem0
+
+  it "should update the model when clicked" $
+    clickModel (Point 100 70) ^. selectedItem `shouldBe` testItem10
+
+  it "should update the model when clicked, after wheel scrolled" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 (-125)) WheelNormal, evtClick p]
+    model steps ^. selectedItem `shouldBe` testItem70
+
+  it "should update the model when clicked, after list is displaced because of arrow press" $ do
+    let p = Point 100 10
+    let steps = [evtK keyTab] ++ replicate 3 (evtK keyDown) ++ [evtClick p]
+    model steps ^. selectedItem `shouldBe` testItem10
+
+  it "should update the model when Enter/Space is pressed, after navigating to an element" $ do
+    let steps = [evtK keyTab] ++ replicate 41 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
+    model steps ^. selectedItem `shouldBe` testItem70
+
+  where
+    wenv = mockWenv (TestModel testItem0)
+    node1 = vstack [
+        listView selectedItem testItems (label . showt)
+      ]
+    startEvts = evtK keyTab : replicate 30 (evtK keyDown)
+    oldNode = nodeHandleEventRoot wenv startEvts node1
+    inst1 = widgetGetInstanceTree (oldNode ^. L.widget) wenv oldNode
+    inst2 = deserialise (serialise inst1)
+    ((wenv2, evts2, node2), ctx) = nodeHandleRestore wenv inst2 node1
+    clickModel p = nodeHandleEventModelNoInit wenv2 [Click p LeftBtn] node2
+    model evts = nodeHandleEventModelNoInit wenv2 evts node2
 
 updateSizeReq :: Spec
 updateSizeReq = describe "updateSizeReq" $ do

@@ -17,6 +17,7 @@ module Monomer.Widgets.Util.Widget (
   resultReqsEvts,
   makeState,
   useState,
+  loadState,
   instanceMatches,
   isTopLevel,
   handleFocusRequest,
@@ -26,14 +27,17 @@ module Monomer.Widgets.Util.Widget (
   getInstanceTree
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _1, _Just)
+import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (cast, Typeable)
+import GHC.Generics
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -112,12 +116,19 @@ resultReqsEvts :: WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
 resultReqsEvts node requests events = result where
   result = WidgetResult node (Seq.fromList requests) (Seq.fromList events)
 
-makeState :: Typeable i => i -> s -> Maybe WidgetState
+makeState :: (Typeable i, Serialise i) => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
 
-useState ::  Typeable i => Maybe WidgetState -> Maybe i
+useState :: Typeable i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
+
+loadState :: (Typeable i, Serialise i) => Maybe WidgetState -> Maybe i
+loadState state = state >>= wsVal >>= fromBS where
+  wsVal (WidgetState val) = cast val
+  fromBS bs = case deserialiseOrFail bs of
+    Left _ -> Nothing
+    Right val -> Just val
 
 instanceMatches :: WidgetNode s e -> WidgetNode s e -> Bool
 instanceMatches newNode oldNode = typeMatches && keyMatches where
@@ -196,6 +207,7 @@ getInstanceTree
 getInstanceTree wenv node = instNode where
   instNode = WidgetInstanceNode {
     _winInfo = node ^. L.info,
+    _winState = widgetGetState (node ^. L.widget) wenv,
     _winChildren = fmap (getChildNode wenv) (node ^. L.children)
   }
   getChildNode wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child

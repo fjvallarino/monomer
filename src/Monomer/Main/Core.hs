@@ -13,8 +13,10 @@ module Monomer.Main.Core (
   runApp
 ) where
 
+import Codec.Serialise
 import Control.Concurrent (threadDelay)
 import Control.Lens
+import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
@@ -133,9 +135,18 @@ runApp window widgetRoot config = do
   }
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ Seq.singleton 0
+  let restore = False
+  let restoreAction = do
+        (ctxp, widgetInst) <- liftIO $ readFileDeserialise "tree.ser"
+        step <- handleWidgetRestore wenv widgetInst pathReadyRoot
+        restoreMonomerContext ctxp
+        return step
+  let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, _, initializedRoot) <- handleWidgetInit wenv pathReadyRoot
+  (newWenv, _, initializedRoot) <- if restore
+    then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
+    else initAction
 
   let resizedRoot = resizeRoot newWenv newWindowSize initializedRoot
   let loopArgs = MainLoopArgs {
@@ -261,7 +272,12 @@ mainLoop window renderer config loopArgs = do
 
   shouldQuit <- use exitApplication
 
-  when shouldQuit $
+  when shouldQuit $ do
+    let instNode = widgetGetInstanceTree (newRoot ^. L.widget) wenv newRoot
+    ctxp <- saveMonomerContext
+    liftIO . print $ "Saving"
+    liftIO $ writeFileSerialise "tree.ser" (ctxp, instNode)
+    liftIO . print $ "Saved"
     void $ handleWidgetDispose seWenv seRoot
 
   unless shouldQuit (mainLoop window renderer config newLoopArgs)
@@ -302,6 +318,27 @@ renderWidgets !window renderer wenv widgetRoot = do
 
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
+
+saveMonomerContext :: (MonomerM s m) => m MonomerContextPersist
+saveMonomerContext = do
+  ctx <- get
+  return $ def
+    & L.currentCursor .~ ctx ^. L.currentCursor
+    & L.focusedPath .~ ctx ^. L.focusedPath
+    & L.hoveredPath .~ ctx ^. L.hoveredPath
+    & L.overlayPath .~ ctx ^. L.overlayPath
+    & L.resizePending .~ ctx ^. L.resizePending
+    & L.renderSchedule .~ ctx ^. L.renderSchedule
+
+restoreMonomerContext :: (MonomerM s m) => MonomerContextPersist -> m ()
+restoreMonomerContext ctxp = do
+  L.currentCursor .= ctxp ^. L.currentCursor
+  L.focusedPath .= ctxp ^. L.focusedPath
+  L.hoveredPath .= ctxp ^. L.hoveredPath
+  L.overlayPath .= ctxp ^. L.overlayPath
+  L.resizePending .= ctxp ^. L.resizePending
+  L.renderRequested .= True
+  L.renderSchedule .= ctxp ^. L.renderSchedule
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

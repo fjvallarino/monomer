@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -10,6 +12,7 @@ module Monomer.Widgets.Button (
   mainButton_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_, when)
@@ -17,6 +20,7 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
+import GHC.Generics
 
 import Monomer.Widgets.Single
 
@@ -144,7 +148,7 @@ data BtnState = BtnState {
   _btsTextStyle :: Maybe TextStyle,
   _btsTextRect :: Rect,
   _btsTextLines :: Seq TextLine
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 mainConfig :: ButtonCfg s e
 mainConfig = def {
@@ -173,7 +177,7 @@ makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
   widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
-    singleMerge = merge,
+    singleRestore = restore,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
@@ -190,7 +194,7 @@ makeButton config state = widget where
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
-  merge wenv oldState oldNode newNode = result where
+  restore wenv oldState oldNode newNode = result where
     captionChanged = _btsCaption oldState /= caption
     -- This is used in resize to have glyphs recalculated
     newRect

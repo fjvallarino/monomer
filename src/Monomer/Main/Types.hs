@@ -1,21 +1,27 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Main.Types where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
+import Control.Monad.Catch
 import Control.Monad.State
 import Data.Default
 import Data.Map (Map)
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 import Data.Sequence (Seq)
+import GHC.Generics
 
+import qualified Data.Map as M
 import qualified SDL
 import qualified SDL.Raw.Types as SDLR
 
@@ -27,13 +33,13 @@ import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
-type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m)
+type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadIO m, MonadCatch m)
 
 data RenderSchedule = RenderSchedule {
   _rsPath :: Path,
   _rsStart :: Int,
   _rsMs :: Int
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 data WidgetTask
   = forall i . Typeable i => WidgetTask WidgetId (Async i)
@@ -62,6 +68,27 @@ data MonomerContext s = MonomerContext {
   _mcRenderSchedule :: Map Path RenderSchedule,
   _mcExitApplication :: Bool
 }
+
+data MonomerContextPersist = MonomerContextPersist {
+  _mcpCurrentCursor :: CursorIcon,
+  _mcpFocusedPath :: Path,
+  _mcpHoveredPath :: Maybe Path,
+  _mcpOverlayPath :: Maybe Path,
+  _mcpResizePending :: Bool,
+  _mcpRenderRequested :: Bool,
+  _mcpRenderSchedule :: Map Path RenderSchedule
+} deriving (Eq, Show, Generic, Serialise)
+
+instance Default MonomerContextPersist where
+  def = MonomerContextPersist {
+    _mcpCurrentCursor = CursorArrow,
+    _mcpFocusedPath = rootPath,
+    _mcpHoveredPath = Nothing,
+    _mcpOverlayPath = Nothing,
+    _mcpResizePending = False,
+    _mcpRenderRequested = False,
+    _mcpRenderSchedule = M.empty
+  }
 
 data MainWindowState
   = MainWindowNormal (Int, Int)

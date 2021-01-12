@@ -13,6 +13,7 @@ module Monomer.Widgets.IntegralField (
   integralFieldD_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')
 import Data.Char
@@ -34,7 +35,8 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
-type FormattableInt a = (Eq a, Default a, Typeable a, Integral a, Real a, Show a)
+type FormattableInt a
+  = (Eq a, Default a, Typeable a, Integral a, Real a, Show a, Serialise a)
 
 data IntegralFieldCfg s e a = IntegralFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Core.StyleUtil (
   key,
   globalKey,
@@ -18,10 +20,11 @@ module Monomer.Core.StyleUtil (
   addOuterSize,
   addOuterBounds,
   removeOuterSize,
-  removeOuterBounds
+  removeOuterBounds,
+  setStyleValue
 ) where
 
-import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just)
+import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just, non)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -223,3 +226,14 @@ borderWidths (Just border) = (bl, br, bt, bb) where
 
 justDef :: (Default a) => Maybe a -> a
 justDef val = fromMaybe def val
+
+
+setStyleValue style fieldL op value = newStyle where
+  val = _styleActive style
+  newStyle = style
+    & op (L.basic . non def . fieldL) value
+    & op (L.hover . non def . fieldL) value
+    & op (L.focus . non def . fieldL) value
+    & op (L.focusHover . non def . fieldL) value
+    & op (L.active . non def . fieldL) value
+    & op (L.disabled . non def . fieldL) value

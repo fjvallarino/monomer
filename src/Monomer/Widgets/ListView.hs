@@ -1,4 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -13,6 +15,7 @@ module Monomer.Widgets.ListView (
   listViewD_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), at, ix, non, _Just)
 import Control.Monad (when)
@@ -22,6 +25,7 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
+import GHC.Generics
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -36,7 +40,7 @@ import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
-type ListItem a = (Eq a, Show a, Typeable a)
+type ListItem a = (Eq a, Show a, Typeable a, Serialise a)
 type MakeRow s e a = a -> WidgetNode s e
 
 data ListViewCfg s e a = ListViewCfg {
@@ -156,7 +160,7 @@ data ListViewState a = ListViewState {
   _slStyle :: Maybe Style,
   _hlStyle :: Maybe Style,
   _resizeReq :: Bool
-}
+} deriving (Eq, Show, Generic, Serialise)
 
 newtype ListViewMessage
   = OnClickMessage Int
@@ -221,7 +225,7 @@ makeNode widget = scroll_ childNode [scrollStyle L.listViewStyle] where
     & L.info . L.focusable .~ True
 
 makeListView
-  :: (ListItem a)
+  :: ListItem a
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
@@ -232,8 +236,9 @@ makeListView widgetData items makeRow config state = widget where
   widget = createContainer state def {
     containerResizeRequired = _resizeReq state,
     containerInit = init,
-    containerMerge = merge,
     containerMergeChildrenReq = mergeChildrenReq,
+    containerMerge = Just merge,
+    containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -262,15 +267,23 @@ makeListView widgetData items makeRow config state = widget where
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     result = mergeRequiredFn oldItems items
 
-  merge wenv oldState oldNode node = resultReqs newNode reqs where
+  merge wenv oldState oldNode node = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     mergeRequired = mergeRequiredFn oldItems items
     children
       | mergeRequired = createListViewChildren wenv node
       | otherwise = oldNode ^. L.children
+    result = updateState wenv oldState mergeRequired children node
+
+  restore wenv oldState oldInfo node = result where
+    resizeReq = True
+    children = createListViewChildren wenv node
+    result = updateState wenv oldState resizeReq children node
+
+  updateState wenv oldState resizeReq children node = result where
     newState = oldState {
-      _resizeReq = mergeRequired
+      _resizeReq = resizeReq
     }
     tmpNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
@@ -278,6 +291,7 @@ makeListView widgetData items makeRow config state = widget where
     slIdx = _slIdx newState
     hlIdx = _hlIdx newState
     (newNode, reqs) = updateStyles wenv config newState tmpNode slIdx hlIdx
+    result = resultReqs newNode reqs
 
   handleEvent wenv target evt node = case evt of
     ButtonAction _ btn PressedBtn _

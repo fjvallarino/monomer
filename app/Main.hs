@@ -116,7 +116,16 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetTree where
+buildUI wenv model = trace "Creating UI" widgetSave where
+  widgetSave = vstack [
+      textField textField1,
+      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items id,
+      scroll $ image_ "assets/images/pecans.jpg" [fitFill] `style` [width 1000, height 1000]
+    ]
   widgetHover = vstack [
       hstack [
         label "Test" `hover` [bgColor red, textSize 32],

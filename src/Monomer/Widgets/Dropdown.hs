@@ -1,5 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -14,6 +16,7 @@ module Monomer.Widgets.Dropdown (
   dropdownD_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), _Just, non)
 import Control.Monad
@@ -23,6 +26,7 @@ import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (cast)
+import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
@@ -146,7 +150,7 @@ instance CmbItemSelectedStyle (DropdownCfg s e a) Style where
 
 newtype DropdownState = DropdownState {
   _isOpen :: Bool
-}
+} deriving (Eq, Show, Generic, Serialise)
 
 data DropdownMessage
   = OnChangeMessage Int
@@ -230,7 +234,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerFindNextFocus = findNextFocus,
-    containerMerge = merge,
+    containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -262,7 +266,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   init wenv node = resultWidget $ createDropdown wenv state node
 
-  merge wenv oldState oldNode newNode = result where
+  restore wenv oldState oldNode newNode = result where
     result = resultWidget $ createDropdown wenv oldState newNode
 
   findNextFocus wenv direction start node

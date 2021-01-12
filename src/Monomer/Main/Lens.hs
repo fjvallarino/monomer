@@ -11,4 +11,5 @@ import Monomer.Main.Types
 
 makeLensesWith abbreviatedFields ''AppConfig
 makeLensesWith abbreviatedFields ''MonomerContext
+makeLensesWith abbreviatedFields ''MonomerContextPersist
 makeLensesWith abbreviatedFields ''RenderSchedule

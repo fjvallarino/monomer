@@ -1,6 +1,11 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Monomer.Core.ThemeTypes where
 
+import Codec.Serialise
 import Data.Default
+import GHC.Generics
 
 import qualified Data.Map.Strict as M
 
@@ -16,7 +21,7 @@ data Theme = Theme {
   _themeFocusHover :: ThemeState,
   _themeActive :: ThemeState,
   _themeDisabled :: ThemeState
-} deriving (Eq, Show)
+} deriving (Show, Eq, Generic, Serialise)
 
 instance Default Theme where
   def = Theme {
@@ -63,7 +68,7 @@ data ThemeState = ThemeState {
   _thsScrollThumbRadius :: Double,
   _thsScrollWheelRate :: Double,
   _thsUserStyleMap :: M.Map String StyleState
-} deriving (Eq, Show)
+} deriving (Show, Eq, Generic, Serialise)
 
 instance Default ThemeState where
   def = ThemeState {

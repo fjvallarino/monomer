@@ -1,7 +1,12 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Monomer.Core.StyleTypes where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Data.Default
+import GHC.Generics
 
 import Monomer.Core.BasicTypes
 import Monomer.Graphics.Color
@@ -14,7 +19,7 @@ data SizeReq
   | MinSize !Double !Factor
   | MaxSize !Double !Factor
   | RangeSize !Double !Double !Factor
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default SizeReq where
   def = FlexSize 0 1
@@ -28,7 +33,7 @@ data CursorIcon
   | CursorSizeV
   | CursorDiagTL
   | CursorDiagTR
-  deriving (Eq, Ord, Enum, Show)
+  deriving (Eq, Ord, Enum, Show, Generic, Serialise)
 
 data Style = Style {
   _styleBasic :: Maybe StyleState,
@@ -37,7 +42,7 @@ data Style = Style {
   _styleFocusHover :: Maybe StyleState,
   _styleActive :: Maybe StyleState,
   _styleDisabled :: Maybe StyleState
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default Style where
   def = Style {
@@ -73,7 +78,7 @@ data StyleState = StyleState {
   _sstHlColor :: Maybe Color,
   _sstText :: Maybe TextStyle,
   _sstCursorIcon :: Maybe CursorIcon
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default StyleState where
   def = StyleState {
@@ -111,7 +116,7 @@ data Padding = Padding {
   _padRight :: Maybe Double,
   _padTop :: Maybe Double,
   _padBottom :: Maybe Double
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default Padding where
   def = Padding {
@@ -135,7 +140,7 @@ instance Monoid Padding where
 data BorderSide = BorderSide {
   _bsWidth :: Double,
   _bsColor :: Color
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default BorderSide where
   def = BorderSide {
@@ -154,7 +159,7 @@ data Border = Border {
   _brdRight :: Maybe BorderSide,
   _brdTop :: Maybe BorderSide,
   _brdBottom :: Maybe BorderSide
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default Border where
   def = Border {
@@ -178,7 +183,7 @@ instance Monoid Border where
 data RadiusType
   = RadiusInner
   | RadiusBoth
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default RadiusType where
   def = RadiusBoth
@@ -192,7 +197,7 @@ instance Monoid RadiusType where
 data RadiusCorner = RadiusCorner {
   _rcrType :: RadiusType,
   _rcrWidth :: Double
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default RadiusCorner where
   def = RadiusCorner {
@@ -211,7 +216,7 @@ data Radius = Radius {
   _radTopRight :: Maybe RadiusCorner,
   _radBottomLeft :: Maybe RadiusCorner,
   _radBottomRight :: Maybe RadiusCorner
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default Radius where
   def = Radius {
@@ -238,7 +243,7 @@ data TextStyle = TextStyle {
   _txsFontColor :: Maybe Color,
   _txsAlignH :: Maybe AlignH,
   _txsAlignV :: Maybe AlignV
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default TextStyle where
   def = TextStyle {

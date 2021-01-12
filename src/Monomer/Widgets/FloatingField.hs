@@ -13,6 +13,7 @@ module Monomer.Widgets.FloatingField (
   floatingFieldD_
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')
 import Data.Char
@@ -34,7 +35,8 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
-type FormattableFloat a = (Eq a, Show a, Default a, Typeable a, Fractional a, Real a)
+type FormattableFloat a
+  = (Eq a, Show a, Default a, Typeable a, Fractional a, Real a, Serialise a)
 
 data FloatingFieldCfg s e a = FloatingFieldCfg {
   _ffcValid :: Maybe (WidgetData s Bool),

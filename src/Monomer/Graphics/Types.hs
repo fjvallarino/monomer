@@ -1,9 +1,14 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Monomer.Graphics.Types where
 
+import Codec.Serialise
 import Data.ByteString (ByteString)
 import Data.Default
 import Data.Text (Text)
 import Data.Sequence (Seq)
+import GHC.Generics
 
 import qualified Data.ByteString as BS
 
@@ -22,7 +27,7 @@ data Color = Color {
   _colorG :: {-# UNPACK #-} !Int,
   _colorB :: {-# UNPACK #-} !Int,
   _colorA :: {-# UNPACK #-} !Double
-} deriving (Show, Eq)
+} deriving (Show, Eq, Generic, Serialise)
 
 instance Default Color where
   def = Color 255 255 255 1.0
@@ -30,15 +35,15 @@ instance Default Color where
 data FontDef = FontDef {
   _fntName :: !Text,
   _fntPath :: !Text
-}
+} deriving (Eq, Show, Generic, Serialise)
 
 newtype Font
   = Font { unFont :: Text }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 newtype FontSize
   = FontSize { unFontSize :: Double }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default Font where
   def = Font defaultFontName
@@ -48,7 +53,7 @@ instance Default FontSize where
 
 data Align
   = Align AlignH AlignV
-  deriving (Show, Eq)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default Align where
   def = Align ACenter AMiddle
@@ -57,7 +62,7 @@ data AlignH
   = ALeft
   | ACenter
   | ARight
-  deriving (Show, Eq)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default AlignH where
   def = ACenter
@@ -66,7 +71,7 @@ data AlignV
   = ATop
   | AMiddle
   | ABottom
-  deriving (Show, Eq)
+  deriving (Eq, Show, Generic, Serialise)
 
 instance Default AlignV where
   def = AMiddle
@@ -76,7 +81,7 @@ data GlyphPos = GlyphPos {
   _glpXMin :: {-# UNPACK #-} !Double,
   _glpXMax :: {-# UNPACK #-} !Double,
   _glpW :: {-# UNPACK #-} !Double
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default GlyphPos where
   def = GlyphPos {
@@ -89,18 +94,18 @@ instance Default GlyphPos where
 data TextMode
   = SingleLine
   | MultiLine
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 data TextTrim
   = TrimSpaces
   | KeepSpaces
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 data TextMetrics = TextMetrics {
   _txmAsc :: {-# UNPACK #-} !Double,
   _txmDesc :: {-# UNPACK #-} !Double,
   _txmLineH :: {-# UNPACK #-} !Double
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default TextMetrics where
   def = TextMetrics {
@@ -115,13 +120,13 @@ data TextLine = TextLine {
   _tlRect :: !Rect,
   _tlGlyphs :: !(Seq GlyphPos),
   _tlMetrics :: !TextMetrics
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 data ImageDef = ImageDef {
   _idfName :: String,
   _idfSize :: Size,
   _idfImgData :: BS.ByteString
-}
+} deriving (Eq, Show, Generic, Serialise)
 
 data Renderer = Renderer {
   -- Frame

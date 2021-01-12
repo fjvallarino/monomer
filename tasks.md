@@ -416,6 +416,12 @@ Maybe postponed after release?
     - Make handling state on Container as easy as in Single
     - Add tests for ListView
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
+<<<<<<< HEAD
+  - Implement state simplifications on Single/Container
+    - Also pass state directly to getSizeReq
+    - Automatically set new WidgetId/Path on Container
+=======
+>>>>>>> master
   - Rename tree methods
   - Image
     - Fix crash when adding images

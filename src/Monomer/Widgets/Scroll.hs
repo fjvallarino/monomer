@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -22,12 +24,14 @@ module Monomer.Widgets.Scroll (
   scrollThumbRadius
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (^?!), cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Typeable (cast)
+import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
@@ -44,7 +48,7 @@ data ScrollType
 data ActiveBar
   = HBar
   | VBar
-  deriving (Eq)
+  deriving (Eq, Show, Generic, Serialise)
 
 data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
@@ -95,7 +99,7 @@ data ScrollState = ScrollState {
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
   _sstChildSize :: Size
-}
+} deriving (Eq, Show, Generic, Serialise)
 
 newtype ScrollMessage
   = ScrollTo Rect
@@ -203,7 +207,7 @@ makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer state def {
     containerGetBaseStyle = getBaseStyle,
-    containerMerge = merge,
+    containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq
@@ -219,7 +223,7 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv oldState oldNode node = resultWidget newNode where
+  restore wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
 

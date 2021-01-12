@@ -29,9 +29,11 @@ dependencies:
 - base64-bytestring
 - bytestring
 - bytestring-to-vector
+- cborg
 - containers
 - concurrent-extra
 - data-default
+- exceptions
 - extra
 - formatting
 - http-client
@@ -41,6 +43,7 @@ dependencies:
 - nanovg
 - OpenGL
 - sdl2
+- serialise
 - stm
 - text
 - text-show
@@ -88,6 +91,7 @@ tests:
     - -with-rtsopts=-T
     dependencies:
     - call-stack
+    - directory
     - monomer
     - hedgehog
     - hspec

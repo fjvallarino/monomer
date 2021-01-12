@@ -1,11 +1,14 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Types where
 
+import Codec.Serialise
 import Control.Lens (makeLenses)
-
 import Data.Default
 import Data.Text (Text)
+import GHC.Generics
 
 import Monomer
 
@@ -13,7 +16,7 @@ data Fruit
   = Apple
   | Orange
   | Pear
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 data App = App {
   _clickCount :: !Int,
@@ -33,7 +36,7 @@ data App = App {
   _condition3 :: Bool,
   _showAlert :: Bool,
   _showConfirm :: Bool
-} deriving (Show, Eq)
+} deriving (Show, Eq, Generic, Serialise)
 
 instance Default App where
   def = App {

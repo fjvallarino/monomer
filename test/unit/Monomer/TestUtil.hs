@@ -129,12 +129,8 @@ mockWenv model = WidgetEnv {
 mockWenvEvtUnit :: s -> WidgetEnv s ()
 mockWenvEvtUnit model = mockWenv model
 
-nodeInit :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
-nodeInit wenv node = newNode where
-  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
-  Size w h = _weWindowSize wenv
-  vp = Rect 0 0 w h
-  newNode = nodeResize wenv vp node2
+nodeInit :: (Eq s) => WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
+nodeInit wenv node = nodeHandleEventRoot wenv [] node
 
 nodeMerge :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
 nodeMerge wenv oldNode node = newNode where
@@ -195,7 +191,7 @@ nodeHandleEvents
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerContext s)
 nodeHandleEvents wenv evts node = unsafePerformIO $ do
-  let winSize = testWindowSize
+  let winSize = _weWindowSize wenv
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
   let dpr = 1
@@ -238,7 +234,7 @@ nodeHandleEventsNoInit
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerContext s)
 nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
-  let winSize = testWindowSize
+  let winSize = _weWindowSize wenv
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
   let dpr = 1
@@ -253,6 +249,27 @@ nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
     let resizedNode = nodeResize wenv vp pathReadyRoot
 
     handleSystemEvents wenv evts resizedNode
+
+nodeHandleRestore
+  :: (Eq s)
+  => WidgetEnv s e
+  -> WidgetInstanceNode
+  -> WidgetNode s e
+  -> (HandlerStep s e, MonomerContext s)
+nodeHandleRestore wenv inst node = unsafePerformIO $ do
+  let winSize = _weWindowSize wenv
+  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
+  let useHdpi = True
+  let dpr = 1
+  let model = _weModel wenv
+  -- Do NOT test code involving SDL Window functions
+  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let pathReadyRoot = node
+        & L.info . L.path .~ Seq.singleton 0
+        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
+
+  flip runStateT monomerContext $
+    handleWidgetRestore wenv inst pathReadyRoot
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where

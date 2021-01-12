@@ -1,5 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -10,6 +12,7 @@ module Monomer.Widgets.InputField (
   makeInputField
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Lens (ALens', (&), (.~), (%~), (^.), (^?), _Just, cloneLens, non)
@@ -18,6 +21,7 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable
+import GHC.Generics
 
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
@@ -26,7 +30,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type InputFieldValue a = (Eq a, Show a, Default a, Typeable a)
+type InputFieldValue a = (Eq a, Show a, Default a, Typeable a, Serialise a)
 
 type InputDragHandler a
   = InputFieldState a
@@ -59,7 +63,7 @@ data HistoryStep a = HistoryStep {
   _ihsCursorPos :: !Int,
   _ihsSelStart :: Maybe Int,
   _ihsOffset :: !Double
-} deriving (Eq, Show)
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default a => Default (HistoryStep a) where
   def = HistoryStep {
@@ -83,7 +87,7 @@ data InputFieldState a = InputFieldState {
   _ifsTextMetrics :: TextMetrics,
   _ifsHistory :: Seq (HistoryStep a),
   _ifsHistIdx :: Int
-} deriving (Eq, Show, Typeable)
+} deriving (Eq, Show, Typeable, Generic, Serialise)
 
 instance Default a => Default (InputFieldState a) where
   def = InputFieldState {
@@ -122,7 +126,7 @@ makeInputField config state = widget where
     singleFocusOnPressedBtn = False,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
-    singleMerge = merge,
+    singleRestore = restore,
     singleDispose = dispose,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -164,7 +168,7 @@ makeInputField config state = widget where
     reqs = setModelValid config (isJust parsedVal)
     result = resultReqs newNode reqs
 
-  merge wenv oldState oldNode node = resultReqs newNode reqs where
+  restore wenv oldState oldInfo node = resultReqs newNode reqs where
     oldValue = _ifsCurrValue oldState
     oldText = _ifsCurrText oldState
     oldPos = _ifsCursorPos oldState
@@ -184,9 +188,9 @@ makeInputField config state = widget where
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
-    oldPath = oldNode ^. L.info . L.path
+    oldPath = oldInfo ^. L.path
     newPath = node ^. L.info . L.path
-    updateFocus = isFocused wenv oldNode && oldPath /= newPath
+    updateFocus = wenv ^. L.focusedPath == oldPath && oldPath /= newPath
     renderReqs
       | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
       | otherwise = []
