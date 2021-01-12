@@ -8,7 +8,6 @@ import Control.Lens ((&), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import Monomer.Core
 import Monomer.Core.Combinators
@@ -47,11 +46,11 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-alert :: (Typeable s, Typeable e) => Text -> e -> WidgetNode s e
+alert :: (WidgetModel s, WidgetEvent e) => Text -> e -> WidgetNode s e
 alert message evt = alert_ message evt def
 
 alert_
-  :: (Typeable s, Typeable e) => Text -> e -> [AlertCfg] -> WidgetNode s e
+  :: (WidgetModel s, WidgetEvent e) => Text -> e -> [AlertCfg] -> WidgetNode s e
 alert_ message evt configs = newNode where
   config = mconcat configs
   createUI = buildUI message evt config

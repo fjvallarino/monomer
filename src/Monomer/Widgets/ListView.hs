@@ -160,7 +160,6 @@ data ListViewState a = ListViewState {
 
 newtype ListViewMessage
   = OnClickMessage Int
-  deriving Typeable
 
 listView
   :: (Traversable t, ListItem a)

@@ -43,8 +43,8 @@ import Monomer.Widgets.Util
 import qualified Monomer.Lens as L
 
 type ParentModel sp = Typeable sp
-type CompositeModel s = (Eq s, Typeable s)
-type CompositeEvent e = Typeable e
+type CompositeModel s = (Eq s, WidgetModel s)
+type CompositeEvent e = WidgetEvent e
 
 type EventHandler s e ep = WidgetEnv s e -> s -> e -> [EventResponse s e ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e

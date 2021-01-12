@@ -59,7 +59,7 @@ data HistoryStep a = HistoryStep {
   _ihsCursorPos :: !Int,
   _ihsSelStart :: Maybe Int,
   _ihsOffset :: !Double
-} deriving (Eq, Show, Typeable)
+} deriving (Eq, Show)
 
 instance Default a => Default (HistoryStep a) where
   def = HistoryStep {

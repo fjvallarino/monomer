@@ -10,7 +10,6 @@ import Control.Lens ((&), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import Monomer.Core
 import Monomer.Core.Combinators
@@ -58,11 +57,11 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-confirm :: (Typeable s, Typeable e) => Text -> e -> e -> WidgetNode s e
+confirm :: (WidgetModel s, WidgetEvent e) => Text -> e -> e -> WidgetNode s e
 confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
 
 confirm_
-  :: (Typeable s, Typeable e)
+  :: (WidgetModel s, WidgetEvent e)
   => Text
   -> e
   -> e

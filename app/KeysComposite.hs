@@ -14,7 +14,6 @@ import Control.Monad (forM_)
 import Data.Default
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 import TextShow
 
 import qualified Data.Sequence as Seq

@@ -22,7 +22,7 @@ import Data.List (foldl')
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (cast)
 
 import qualified Data.Sequence as Seq
 
@@ -151,7 +151,6 @@ newtype DropdownState = DropdownState {
 data DropdownMessage
   = OnChangeMessage Int
   | OnListBlur
-  deriving Typeable
 
 dropdown
   :: (Traversable t, DropdownItem a)

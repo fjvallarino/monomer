@@ -9,7 +9,6 @@ import Control.Lens
 import Control.Monad (forM_)
 
 import Data.Default
-import Data.Typeable (Typeable)
 import TextShow
 
 import Monomer.Core.Combinators

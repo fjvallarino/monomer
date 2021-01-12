@@ -27,7 +27,7 @@ import Control.Lens (ALens', (&), (^.), (.~), (^?!), cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
-import Data.Typeable
+import Data.Typeable (cast)
 
 import qualified Data.Sequence as Seq
 
@@ -95,11 +95,10 @@ data ScrollState = ScrollState {
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
   _sstChildSize :: Size
-} deriving (Typeable)
+}
 
 newtype ScrollMessage
   = ScrollTo Rect
-  deriving Typeable
 
 data ScrollContext = ScrollContext {
   hScrollRatio :: Double,

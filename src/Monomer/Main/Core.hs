@@ -21,7 +21,6 @@ import Data.Default
 import Data.Maybe
 import Data.List (foldl')
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import qualified Data.Map as Map
 import qualified Graphics.Rendering.OpenGL as GL
@@ -59,7 +58,7 @@ data MainLoopArgs s e ep = MainLoopArgs {
 }
 
 simpleApp
-  :: (Eq s, Typeable s, Typeable e)
+  :: (Eq s, WidgetModel s, WidgetEvent e)
   => s
   -> AppEventHandler s e
   -> AppUIBuilder s e
@@ -68,7 +67,7 @@ simpleApp model eventHandler uiBuilder =
   simpleApp_ model eventHandler uiBuilder def
 
 simpleApp_
-  :: (Eq s, Typeable s, Typeable e)
+  :: (Eq s, WidgetModel s, WidgetEvent e)
   => s
   -> AppEventHandler s e
   -> AppUIBuilder s e
@@ -89,7 +88,7 @@ simpleApp_ model eventHandler uiBuilder configs = do
     appWidget = composite "app" id initEvent uiBuilder eventHandler
 
 runApp
-  :: (MonomerM s m, Typeable e)
+  :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> WidgetNode s ep
   -> AppConfig e
@@ -157,7 +156,7 @@ runApp window widgetRoot config = do
   mainLoop window renderer config loopArgs
 
 mainLoop
-  :: (MonomerM s m, Typeable e)
+  :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> Renderer
   -> AppConfig e

@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -18,6 +19,10 @@ import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 type Timestamp = Int
+
+type WidgetModel s = (Eq s, Typeable s)
+type WidgetEvent e = Typeable e
+
 type LocalKeys s e = Map WidgetKey (WidgetNode s e)
 type GlobalKeys s e = Map WidgetKey (WidgetNode s e)
 

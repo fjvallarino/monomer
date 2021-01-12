@@ -406,11 +406,24 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Implement state simplifications on Single/Container
+    - Also pass state directly to getSizeReq
+    - Automatically set new WidgetId/Path on Container
   - Add serialization logic for Widget Tree
     - Store state in Widget Tree
     - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
     - Add setState method
+    - Make handling state on Container as easy as in Single
+    - Add tests for ListView
     - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
+  - Rename tree methods
+  - Image
+    - Fix crash when adding images
+      - If called from render, immediate add seems to work.
+      - Immediate add causes a crash if called from a task (nanovg is not thread safe, so it makes sense)
+      - Maybe have two versions of add? Two versions of render?
+    - Can performance be improved? Use sbt functions?
+    - When adding image, on failure remove the least used image and retry
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
@@ -443,9 +456,6 @@ Maybe postponed after release?
   - Add new request types (drag started, drag stopped, drag cancelled)
   - Add new events (drag hover)
   - SDL supports Drag and Drop integration with OS
-  - Image
-    - Can performance be improved? Use sbt functions?
-    - When adding image, on failure remove the least used image and retry
   - Use weight to control allocations (check if applicable)
   - Create self rendered version of dropdown and list
   - Does it make sense to handle offset

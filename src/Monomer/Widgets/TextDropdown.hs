@@ -10,7 +10,6 @@ module Monomer.Widgets.TextDropdown (
 import Control.Lens (ALens')
 import Data.Default
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import Monomer.Core
 import Monomer.Core.Combinators
