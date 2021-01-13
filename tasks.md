@@ -396,6 +396,16 @@
     - Reordered and tried to match options in both
   - Implement state simplifications on Single/Container
     - Also pass state directly to getSizeReq
+  - Add serialization logic for Widget Tree
+    - Store state in Widget Tree
+    - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
+    - Add setState method
+    - Make handling state on Container as easy as in Single
+    - Add tests for ListView
+    - Rename tree methods
+    - Rename MonomerContextPersist
+    - Make save/restore configurable (app)
+    - Rebuild composite globalKeys
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -408,19 +418,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add serialization logic for Widget Tree
-    - Store state in Widget Tree
-    - Rethink merge. Maybe we can provide WidgetInstanceNode instead of WidgetNode?
-    - Add setState method
-    - Make handling state on Container as easy as in Single
-    - Add tests for ListView
-    - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
-  - Rename MonomerContextPersist
-  - Make save/restore configurable (app)
-  - Rebuild composite globalKeys
-  - Rename tree methods
   - Automatically set new WidgetId/Path on Container
   - Remove embedded fonts. Rely on loaded fonts, template will also include them
+  - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Image
     - Fix crash when adding images
       - If called from render, immediate add seems to work.
