@@ -153,7 +153,7 @@ nodeHandleEventCtx
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> MonomerContext s
+  -> MonomerCtx s
 nodeHandleEventCtx wenv evts node = ctx where
   ctx = snd $ nodeHandleEvents wenv evts node
 
@@ -189,7 +189,7 @@ nodeHandleEvents
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> (HandlerStep s e, MonomerContext s)
+  -> (HandlerStep s e, MonomerCtx s)
 nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let winSize = _weWindowSize wenv
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
@@ -197,7 +197,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   let dpr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
         & L.info . L.path .~ Seq.singleton 0
         & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
@@ -232,7 +232,7 @@ nodeHandleEventsNoInit
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> (HandlerStep s e, MonomerContext s)
+  -> (HandlerStep s e, MonomerCtx s)
 nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   let winSize = _weWindowSize wenv
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
@@ -240,7 +240,7 @@ nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   let dpr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
         & L.info . L.path .~ Seq.singleton 0
         & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
@@ -255,7 +255,7 @@ nodeHandleRestore
   => WidgetEnv s e
   -> WidgetInstanceNode
   -> WidgetNode s e
-  -> (HandlerStep s e, MonomerContext s)
+  -> (HandlerStep s e, MonomerCtx s)
 nodeHandleRestore wenv inst node = unsafePerformIO $ do
   let winSize = _weWindowSize wenv
   let vp = Rect 0 0 (_sW winSize) (_sH winSize)
@@ -263,7 +263,7 @@ nodeHandleRestore wenv inst node = unsafePerformIO $ do
   let dpr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerContext model undefined winSize useHdpi dpr
+  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
         & L.info . L.path .~ Seq.singleton 0
         & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)

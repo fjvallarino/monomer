@@ -420,6 +420,7 @@ Maybe postponed after release?
   - Rebuild composite globalKeys
   - Rename tree methods
   - Automatically set new WidgetId/Path on Container
+  - Remove embedded fonts. Rely on loaded fonts, template will also include them
   - Image
     - Fix crash when adding images
       - If called from render, immediate add seems to work.

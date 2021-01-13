@@ -22,8 +22,8 @@ import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
-initMonomerContext :: s -> SDL.Window -> Size -> Bool -> Double -> MonomerContext s
-initMonomerContext model win winSize useHiDPI devicePixelRate = MonomerContext {
+initMonomerCtx :: s -> SDL.Window -> Size -> Bool -> Double -> MonomerCtx s
+initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,

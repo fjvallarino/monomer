@@ -33,7 +33,7 @@ import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
-type MonomerM s m = (Eq s, MonadState (MonomerContext s) m, MonadCatch m, MonadIO m)
+type MonomerM s m = (Eq s, MonadState (MonomerCtx s) m, MonadCatch m, MonadIO m)
 
 data RenderSchedule = RenderSchedule {
   _rsPath :: Path,
@@ -45,7 +45,7 @@ data WidgetTask
   = forall i . Typeable i => WidgetTask WidgetId (Async i)
   | forall i . Typeable i => WidgetProducer WidgetId (TChan i) (Async ())
 
-data MonomerContext s = MonomerContext {
+data MonomerCtx s = MonomerCtx {
   _mcMainModel :: s,
   _mcWindow :: SDL.Window,
   _mcWindowSize :: Size,
@@ -69,7 +69,7 @@ data MonomerContext s = MonomerContext {
   _mcExitApplication :: Bool
 }
 
-data MonomerContextPersist = MonomerContextPersist {
+data MonomerCtxPersist = MonomerCtxPersist {
   _mcpCurrentCursor :: CursorIcon,
   _mcpFocusedPath :: Path,
   _mcpHoveredPath :: Maybe Path,
@@ -79,8 +79,8 @@ data MonomerContextPersist = MonomerContextPersist {
   _mcpRenderSchedule :: Map Path RenderSchedule
 } deriving (Eq, Show, Generic, Serialise)
 
-instance Default MonomerContextPersist where
-  def = MonomerContextPersist {
+instance Default MonomerCtxPersist where
+  def = MonomerCtxPersist {
     _mcpCurrentCursor = CursorArrow,
     _mcpFocusedPath = rootPath,
     _mcpHoveredPath = Nothing,
@@ -107,7 +107,8 @@ data AppConfig e = AppConfig {
   _apcTheme :: Maybe Theme,
   _apcInitEvent :: Maybe e,
   _apcExitEvent :: Maybe e,
-  _apcMainButton :: Maybe Button
+  _apcMainButton :: Maybe Button,
+  _apcStateFileMain :: Maybe String
 }
 
 instance Default (AppConfig e) where
@@ -122,7 +123,8 @@ instance Default (AppConfig e) where
     _apcTheme = Nothing,
     _apcInitEvent = Nothing,
     _apcExitEvent = Nothing,
-    _apcMainButton = Nothing
+    _apcMainButton = Nothing,
+    _apcStateFileMain = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -137,7 +139,8 @@ instance Semigroup (AppConfig e) where
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1,
     _apcExitEvent = _apcExitEvent a2 <|> _apcExitEvent a1,
-    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1
+    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
+    _apcStateFileMain = _apcStateFileMain a2 <|> _apcStateFileMain a1
   }
 
 instance Monoid (AppConfig e) where
@@ -196,4 +199,9 @@ appExitEvent e = def {
 appMainButton :: Button -> AppConfig e
 appMainButton btn = def {
   _apcMainButton = Just btn
+}
+
+appStateFileMain :: String -> AppConfig e
+appStateFileMain file = def {
+  _apcStateFileMain = Just file
 }

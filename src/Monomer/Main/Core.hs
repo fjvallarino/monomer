@@ -15,7 +15,7 @@ module Monomer.Main.Core (
 
 import Codec.Serialise
 import Control.Concurrent (threadDelay)
-import Control.Lens
+import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
@@ -79,9 +79,9 @@ simpleApp_ model eventHandler uiBuilder configs = do
   (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
-  let monomerContext = initMonomerContext model window winSize useHdpi dpr
+  let monomerCtx = initMonomerCtx model window winSize useHdpi dpr
 
-  runStateT (runApp window appWidget config) monomerContext
+  runStateT (runApp window appWidget config) monomerCtx
   detroySDLWindow window
   where
     config = mconcat configs
@@ -135,16 +135,11 @@ runApp window widgetRoot config = do
   }
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ Seq.singleton 0
-  let restore = False
-  let restoreAction = do
-        (ctxp, widgetInst) <- liftIO $ readFileDeserialise "tree.ser"
-        step <- handleWidgetRestore wenv widgetInst pathReadyRoot
-        restoreMonomerContext ctxp
-        return step
+  let restoreAction = loadMonomerCtx wenv pathReadyRoot config
   let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, _, initializedRoot) <- if restore
+  (newWenv, _, initializedRoot) <- if isJust (config ^. L.stateFileMain)
     then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
     else initAction
 
@@ -273,12 +268,10 @@ mainLoop window renderer config loopArgs = do
   shouldQuit <- use exitApplication
 
   when shouldQuit $ do
-    let instNode = widgetSave (newRoot ^. L.widget) wenv newRoot
-    ctxp <- saveMonomerContext
-    liftIO . print $ "Saving"
-    liftIO $ writeFileSerialise "tree.ser" (ctxp, instNode)
-    liftIO . print $ "Saved"
-    void $ handleWidgetDispose seWenv seRoot
+    when (isJust (config ^. L.stateFileMain)) $
+      saveMonomerCtx wenv newRoot config
+
+    void $ handleWidgetDispose seWenv newRoot
 
   unless shouldQuit (mainLoop window renderer config newLoopArgs)
 
@@ -319,8 +312,34 @@ renderWidgets !window renderer wenv widgetRoot = do
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
 
-saveMonomerContext :: (MonomerM s m) => m MonomerContextPersist
-saveMonomerContext = do
+saveMonomerCtx
+  :: MonomerM s m
+  => WidgetEnv s ep
+  -> WidgetNode s ep
+  -> AppConfig e
+  -> m ()
+saveMonomerCtx wenv root config = do
+  let file = fromMaybe "main-tree.ser" (config ^. L.stateFileMain)
+  let instNode = widgetSave (root ^. L.widget) wenv root
+  ctxp <- toMonomerCtxPersist
+  liftIO $ writeFileSerialise file (ctxp, instNode)
+
+loadMonomerCtx
+  :: MonomerM s m
+  => WidgetEnv s ep
+  -> WidgetNode s ep
+  -> AppConfig e
+  -> m (HandlerStep s ep)
+loadMonomerCtx wenv root config = do
+  let file = fromMaybe "main-tree.ser" (config ^. L.stateFileMain)
+
+  (ctxp, widgetInst) <- liftIO $ readFileDeserialise file
+  step <- handleWidgetRestore wenv widgetInst root
+  fromMonomerCtxPersist ctxp
+  return step
+
+toMonomerCtxPersist :: (MonomerM s m) => m MonomerCtxPersist
+toMonomerCtxPersist = do
   ctx <- get
   return $ def
     & L.currentCursor .~ ctx ^. L.currentCursor
@@ -330,8 +349,8 @@ saveMonomerContext = do
     & L.resizePending .~ ctx ^. L.resizePending
     & L.renderSchedule .~ ctx ^. L.renderSchedule
 
-restoreMonomerContext :: (MonomerM s m) => MonomerContextPersist -> m ()
-restoreMonomerContext ctxp = do
+fromMonomerCtxPersist :: (MonomerM s m) => MonomerCtxPersist -> m ()
+fromMonomerCtxPersist ctxp = do
   L.currentCursor .= ctxp ^. L.currentCursor
   L.focusedPath .= ctxp ^. L.focusedPath
   L.hoveredPath .= ctxp ^. L.hoveredPath

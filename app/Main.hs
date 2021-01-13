@@ -48,7 +48,8 @@ main = do
         appMainButton LeftBtn,
         appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
-        appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
+        appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
+        appStateFileMain "main-tree.ser" ]
 
   simpleApp_ model handleAppEvent buildUI config
   --simpleApp model handleAppEvent buildUI
