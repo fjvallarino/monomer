@@ -20,7 +20,6 @@ import System.IO.Unsafe
 
 import qualified Control.Concurrent.Lock as L
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -32,7 +31,6 @@ import qualified NanoVG.Internal.Image as VGI
 import Monomer.Core.BasicTypes
 import Monomer.Graphics.Types
 
-import qualified Monomer.Graphics.RobotoRegular as RBTReg
 import qualified Monomer.Lens as L
 
 type ImagesMap = M.Map String Image
@@ -78,9 +76,10 @@ makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes])
 
   lock <- L.new
-  validFonts <- if null fonts
-    then useDefaultFont c
-    else foldM (loadFont c) Set.empty fonts
+  validFonts <- foldM (loadFont c) Set.empty fonts
+
+  when (null validFonts) $
+    putStrLn "Could not find any valid fonts. Text will fail to be displayed."
 
   envRef <- newIORef $ Env {
     inFrame = False,
@@ -303,17 +302,6 @@ newRenderer c dpr lock envRef = Renderer {..} where
   renderImage name rect alpha = do
     env <- readIORef envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
-
-useDefaultFont :: VG.Context -> IO (Set Text)
-useDefaultFont c = do
-  font <- VG.createFontMem c defaultFontName fontMem
-
-  when (isNothing font) $
-    putStrLn "Failed to load default font"
-
-  return $ Set.singleton defaultFontName
-  where
-    fontMem = B64.decodeLenient RBTReg.fontBase64
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
 loadFont c fonts (FontDef name path) = do

@@ -406,6 +406,7 @@
     - Rename MonomerContextPersist
     - Make save/restore configurable (app)
     - Rebuild composite globalKeys
+  - Automatically set new WidgetId/Path on Container
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -418,7 +419,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Automatically set new WidgetId/Path on Container
   - Remove embedded fonts. Rely on loaded fonts, template will also include them
   - Image
     - Fix crash when adding images
@@ -444,6 +444,7 @@ Maybe postponed after release?
     - Test image updating WidgetId/Path
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
+  - Restoring should fail if widget tree structure is different
   - Validate nested structures update correctly when disabling/enabling parent
   - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Drag & drop for user (add attribute indicating if component supports being source/target)
