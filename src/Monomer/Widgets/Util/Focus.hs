@@ -1,20 +1,27 @@
 module Monomer.Widgets.Util.Focus (
   parentPath,
   nextTargetStep,
+  isFocused,
   isFocusCandidate,
   isTargetReached,
   isTargetValid,
   isWidgetParentOfPath,
   isWidgetBeforePath,
-  isWidgetAfterPath
+  isWidgetAfterPath,
+  handleFocusRequest,
+  handleFocusChange
 ) where
 
-import Control.Lens ((&), (^.), (.~))
-import Data.Sequence (Seq, (|>))
+import Control.Lens ((&), (^.), (.~), (%~))
+import Data.Maybe
+import Data.Sequence (Seq(..), (|>))
 
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Event.Types
+import Monomer.Widgets.Util.Hover
+import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
@@ -26,6 +33,9 @@ nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
 nextTargetStep target node = nextStep where
   currentPath = node ^. L.info . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
+
+isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
+isFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
 
 isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
 isFocusCandidate FocusFwd = isFocusFwdCandidate
@@ -80,3 +90,39 @@ isWidgetBeforePath path node = result where
   result
     | path == emptyPath = True
     | otherwise = path > widgetPath
+
+handleFocusRequest
+  :: WidgetEnv s e
+  -> SystemEvent
+  -> WidgetNode s e
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleFocusRequest wenv evt node mResult = newResult where
+  prevReqs = maybe Empty (^. L.requests) mResult
+  isFocusable = node ^. L.info . L.focusable
+  btnPressed = case evt of
+    ButtonAction _ btn PressedBtn _ -> Just btn
+    _ -> Nothing
+  isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
+    && isFocusable
+    && not (isFocused wenv node)
+    && isTopLevel wenv node
+    && isNothing (Seq.findIndexL isFocusRequest prevReqs)
+  focusReq = SetFocus (node ^. L.info . L.path)
+  newResult
+    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
+    | isFocusReq = Just $ resultReqs node [focusReq]
+    | otherwise = mResult
+
+handleFocusChange
+  :: (c -> [e])
+  -> (c -> [WidgetRequest s])
+  -> c
+  -> WidgetNode s e
+  -> Maybe (WidgetResult s e)
+handleFocusChange evtFn reqFn config node = result where
+  evts = evtFn config
+  reqs = reqFn config
+  result
+    | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
+    | otherwise = Nothing

@@ -2,12 +2,7 @@
 
 module Monomer.Widgets.Util.Widget (
   defaultWidgetNode,
-  pointInViewport,
   isWidgetVisible,
-  isPressed,
-  isFocused,
-  isHovered,
-  isHoveredEllipse_,
   visibleChildrenChanged,
   widgetDataGet,
   widgetDataSet,
@@ -18,25 +13,17 @@ module Monomer.Widgets.Util.Widget (
   makeState,
   useState,
   loadState,
-  instanceMatches,
-  isTopLevel,
-  handleFocusRequest,
-  handleFocusChange,
-  buildLocalMap,
-  findWidgetByKey
+  instanceMatches
 ) where
 
 import Codec.Serialise
-import Control.Applicative ((<|>))
-import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _1, _Just)
+import Control.Lens ((&), (^#), (#~), (^.), (.~))
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
-import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
-import Data.Sequence (Seq(..), (|>))
+import Data.Sequence (Seq(..))
 import Data.Typeable (cast, Typeable)
-import GHC.Generics
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -56,35 +43,11 @@ defaultWidgetNode widgetType widget = WidgetNode {
   _wnChildren = Seq.empty
 }
 
-pointInViewport :: Point -> WidgetNode s e -> Bool
-pointInViewport p node = pointInRect p (node ^. L.info . L.viewport)
-
 isWidgetVisible :: WidgetNode s e -> Rect -> Bool
 isWidgetVisible node vp = isVisible && isOverlapped where
   info = node ^. L.info
   isVisible = info ^. L.visible
   isOverlapped = rectsOverlap vp (info ^. L.viewport)
-
-isPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isPressed wenv node = Just path == pressed where
-  path = node ^. L.info . L.path
-  pressed = wenv ^. L.mainBtnPress ^? _Just . _1
-
-isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
-isFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
-
-isHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
-isHovered wenv node = validPos && validPress && isTopLevel wenv node where
-  viewport = node ^. L.info . L.viewport
-  mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInRect mousePos viewport
-  pressed = wenv ^. L.mainBtnPress ^? _Just . _1
-  validPress = isNothing pressed || isPressed wenv node
-
-isHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetNode s e -> Bool
-isHoveredEllipse_ area wenv node = validPos && isTopLevel wenv node where
-  mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInEllipse mousePos area
 
 visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where
@@ -135,66 +98,3 @@ instanceMatches newNode oldNode = typeMatches && keyMatches where
   newInfo = newNode ^. L.info
   typeMatches = oldInfo ^. L.widgetType == newInfo ^. L.widgetType
   keyMatches = oldInfo ^. L.key == newInfo ^. L.key
-
-isTopLevel :: WidgetEnv s e -> WidgetNode s e -> Bool
-isTopLevel wenv node = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
-  mousePos = wenv ^. L.inputStatus . L.mousePos
-  inTopLayer = wenv ^. L.inTopLayer $ mousePos
-  path = node ^. L.info . L.path
-  isPrefix parent = Seq.take (Seq.length parent) path == parent
-
-handleFocusRequest
-  :: WidgetEnv s e
-  -> SystemEvent
-  -> WidgetNode s e
-  -> Maybe (WidgetResult s e)
-  -> Maybe (WidgetResult s e)
-handleFocusRequest wenv evt node mResult = newResult where
-  prevReqs = maybe Empty (^. L.requests) mResult
-  isFocusable = node ^. L.info . L.focusable
-  btnPressed = case evt of
-    ButtonAction _ btn PressedBtn _ -> Just btn
-    _ -> Nothing
-  isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
-    && isFocusable
-    && not (isFocused wenv node)
-    && isTopLevel wenv node
-    && isNothing (Seq.findIndexL isFocusRequest prevReqs)
-  focusReq = SetFocus (node ^. L.info . L.path)
-  newResult
-    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
-    | isFocusReq = Just $ resultReqs node [focusReq]
-    | otherwise = mResult
-
-handleFocusChange
-  :: (c -> [e])
-  -> (c -> [WidgetRequest s])
-  -> c
-  -> WidgetNode s e
-  -> Maybe (WidgetResult s e)
-handleFocusChange evtFn reqFn config node = result where
-  evts = evtFn config
-  reqs = reqFn config
-  result
-    | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
-    | otherwise = Nothing
-
-findWidgetByKey
-  :: WidgetKey
-  -> LocalKeys s e
-  -> GlobalKeys s e
-  -> Maybe (WidgetNode s e)
-findWidgetByKey key localMap globalMap = local <|> global where
-  local = M.lookup key localMap
-  global = case key of
-    WidgetKeyGlobal{} -> M.lookup key globalMap
-    _ -> Nothing
-
-buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
-buildLocalMap widgets = newMap where
-  addWidget map widget
-    | isJust key = M.insert (fromJust key) widget map
-    | otherwise = map
-    where
-      key = widget ^. L.info . L.key
-  newMap = foldl' addWidget M.empty widgets

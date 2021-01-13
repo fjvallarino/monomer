@@ -28,10 +28,11 @@ module Monomer.Widgets.Container (
 ) where
 
 import Codec.Serialise
+import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
 import Control.Monad
 import Data.Default
-import Data.Foldable (fold)
+import Data.Foldable (fold, foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Typeable (Typeable)
@@ -834,3 +835,23 @@ cascadeCtx wenv parent child idx = newChild where
     & L.info . L.path .~ newPath
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
+
+findWidgetByKey
+  :: WidgetKey
+  -> LocalKeys s e
+  -> GlobalKeys s e
+  -> Maybe (WidgetNode s e)
+findWidgetByKey key localMap globalMap = local <|> global where
+  local = M.lookup key localMap
+  global = case key of
+    WidgetKeyGlobal{} -> M.lookup key globalMap
+    _ -> Nothing
+
+buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
+buildLocalMap widgets = newMap where
+  addWidget map widget
+    | isJust key = M.insert (fromJust key) widget map
+    | otherwise = map
+    where
+      key = widget ^. L.info . L.key
+  newMap = foldl' addWidget M.empty widgets

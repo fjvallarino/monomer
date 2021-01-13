@@ -26,6 +26,8 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Widgets.Util.Focus
+import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Types
 import Monomer.Widgets.Util.Widget
 
@@ -192,15 +194,3 @@ mergeBasicStyle st = newStyle where
     _styleActive = _styleBasic st <> active,
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
-
-isInOverlay :: WidgetEnv s e -> WidgetNode s e -> Bool
-isInOverlay wenv node = maybe False isPrefix (wenv ^. L.overlayPath) where
-  path = node ^. L.info . L.path
-  isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath
-
-isMainBtnPressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isMainBtnPressed wenv node = isPressed where
-  inputStatus = wenv ^. L.inputStatus
-  mainBtn = wenv ^. L.mainButton
-  viewport = node ^. L.info . L.viewport
-  isPressed = isButtonPressedInRect inputStatus mainBtn viewport
