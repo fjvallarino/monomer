@@ -208,7 +208,8 @@ mergeWrapper single wenv oldNode newNode = newResult where
   nodeHandler styledNode = case useState oldState of
     Just state -> mergeHandler wenv state oldNode styledNode
     _ -> resultWidget styledNode
-  newResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+  tmpResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+  newResult = handleWidgetIdChange oldNode tmpResult
 
 mergeWithRestore
   :: SingleRestoreHandler s e a
@@ -264,6 +265,7 @@ loadStateHandler
 loadStateHandler single wenv oldInfo newNode nodeHandler = newResult where
   getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
+    & L.info . L.widgetId .~ oldInfo ^. L.widgetId
     & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW

@@ -285,7 +285,7 @@ mergeWrapper
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
-mergeWrapper container wenv oldNode newNode = result where
+mergeWrapper container wenv oldNode newNode = newResult where
   getBaseStyle = containerGetBaseStyle container
   mergeRequiredHandler = containerMergeChildrenReq container
   mergeHandler = case containerMerge container of
@@ -303,16 +303,17 @@ mergeWrapper container wenv oldNode newNode = result where
   pResult = mergeParent mergeHandler wenv oldState oldNode styledNode
   cResult = mergeChildren wenv oldNode newNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
-  tmpRes
+  mResult
     | mergeRequired || oldFlags /= newFlags = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
   postRes = case useState oldState of
-    Just state -> mergePostHandler wenv tmpRes state oldNode (tmpRes ^. L.node)
-    Nothing -> resultWidget (tmpRes ^. L.node)
-  result
+    Just state -> mergePostHandler wenv mResult state oldNode (mResult^.L.node)
+    Nothing -> resultWidget (mResult ^. L.node)
+  tmpResult
     | isResizeResult (Just postRes) = postRes
         & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
     | otherwise = postRes
+  newResult = handleWidgetIdChange oldNode tmpResult
 
 mergeParent
   :: (Typeable a, Serialise a)
@@ -325,6 +326,7 @@ mergeParent
 mergeParent mergeHandler wenv oldState oldNode newNode = result where
   oldInfo = oldNode ^. L.info
   tempNode = newNode
+    & L.info . L.widgetId .~ oldInfo ^. L.widgetId
     & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
@@ -382,10 +384,8 @@ mergeChildrenSeq wenv localKeys newNode oldItems newItems = res where
   newChildKey = newChild ^. L.info . L.key
   oldKeyMatch = newChildKey >>= \key -> findWidgetByKey key localKeys globalKeys
   oldMatch = fromJust oldKeyMatch
-  mergedOld = widgetMerge newWidget wenv oldChild $ newChild
-    & L.info . L.widgetId .~ oldChild ^. L.info . L.widgetId
-  mergedKey = widgetMerge newWidget wenv oldMatch $ newChild
-    & L.info . L.widgetId .~ oldMatch ^. L.info . L.widgetId
+  mergedOld = widgetMerge newWidget wenv oldChild newChild
+  mergedKey = widgetMerge newWidget wenv oldMatch newChild
   initNew = widgetInit newWidget wenv newChild
     & L.requests %~ (|> ResizeWidgets)
   isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
@@ -453,6 +453,7 @@ restoreWrapper container wenv win newNode = newResult where
   restorePostHandler = containerRestorePost container
   oldInfo = win ^. L.info
   tempNode = newNode
+    & L.info . L.widgetId .~ oldInfo ^. L.widgetId
     & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW

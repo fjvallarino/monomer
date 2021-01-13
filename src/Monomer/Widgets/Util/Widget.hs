@@ -13,16 +13,17 @@ module Monomer.Widgets.Util.Widget (
   makeState,
   useState,
   loadState,
-  instanceMatches
+  instanceMatches,
+  handleWidgetIdChange
 ) where
 
 import Codec.Serialise
-import Control.Lens ((&), (^#), (#~), (^.), (.~))
+import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Map.Strict (Map)
-import Data.Sequence (Seq(..))
+import Data.Sequence (Seq(..), (<|))
 import Data.Typeable (cast, Typeable)
 
 import qualified Data.Map.Strict as M
@@ -98,3 +99,13 @@ instanceMatches newNode oldNode = typeMatches && keyMatches where
   newInfo = newNode ^. L.info
   typeMatches = oldInfo ^. L.widgetType == newInfo ^. L.widgetType
   keyMatches = oldInfo ^. L.key == newInfo ^. L.key
+
+handleWidgetIdChange :: WidgetNode s e -> WidgetResult s e -> WidgetResult s e
+handleWidgetIdChange oldNode result = newResult where
+  oldPath = oldNode ^. L.info . L.path
+  newPath = result ^. L.node . L.info . L.path
+  widgetId = result ^. L.node . L.info . L.widgetId
+  newResult
+    | oldPath /= newPath = result
+        & L.requests %~ (UpdateWidgetPath widgetId newPath <|)
+    | otherwise = result

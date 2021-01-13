@@ -133,15 +133,14 @@ makeImage imgPath config state = widget where
   restore wenv oldState oldInfo newNode = result where
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
-    widgetPathReq = UpdateWidgetPath wid path
-    newImgReqs = [ widgetPathReq, RunTask wid path $ do
+    newImgReqs = [ RunTask wid path $ do
         removeImage wenv imgPath
         handleImageLoad wenv imgPath
       ]
     sameImgNode = newNode
       & L.widget .~ makeImage imgPath config oldState
     result
-      | isImagePath oldState == imgPath = resultReqs sameImgNode [widgetPathReq]
+      | isImagePath oldState == imgPath = resultWidget sameImgNode
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where

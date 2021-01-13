@@ -46,10 +46,10 @@ main = do
         appInitEvent InitApp,
         appExitEvent CancelExitApp,
         appMainButton LeftBtn,
+        --appStateFileMain "main-tree.ser",
         appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
-        appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
-        appStateFileMain "main-tree.ser" ]
+        appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
   simpleApp_ model handleAppEvent buildUI config
   --simpleApp model handleAppEvent buildUI
@@ -117,7 +117,7 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetSave where
+buildUI wenv model = trace "Creating UI" widgetIdChanged where
   widgetSave = vstack [
       textField textField1,
       textDropdown dropdown1 items id,

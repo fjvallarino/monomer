@@ -296,7 +296,7 @@ compositeMerge
   -> WidgetNode sp ep
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeMerge comp state wenv oldComp newComp = result where
+compositeMerge comp state wenv oldComp newComp = newResult where
   oldState = widgetGetState (oldComp ^. L.widget) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldGlobalKeys = validState
@@ -317,8 +317,7 @@ compositeMerge comp state wenv oldComp newComp = result where
   initRequired = not (instanceMatches tempRoot oldRoot)
   tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
-    | otherwise = widgetMerge tempWidget cwenv oldRoot $ tempRoot
-        & L.info . L.widgetId .~ oldRoot ^. L.info . L.widgetId
+    | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
   newRoot = tempResult ^. L.node
   newState = validState {
     _cpsModel = Just model,
@@ -327,14 +326,16 @@ compositeMerge comp state wenv oldComp newComp = result where
   }
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv newComp
-  newResult
+    & L.info . L.widgetId .~ oldComp ^. L.info . L.widgetId
+    & L.info . L.viewport .~ oldComp ^. L.info . L.viewport
+    & L.info . L.renderArea .~ oldComp ^. L.info . L.renderArea
+    & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
+    & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
+  reducedResult
     | mergeRequired = reduceResult comp newState wenv styledComp tempResult
     | otherwise = resultWidget $ styledComp
         & L.widget .~ oldComp ^. L.widget
-  widgetId = newComp ^. L.info . L.widgetId
-  path = newComp ^. L.info . L.path
-  result = newResult
-    & L.requests %~ (UpdateWidgetPath widgetId path <|)
+  newResult = handleWidgetIdChange oldComp reducedResult
 
 -- | Dispose
 compositeDispose
@@ -405,6 +406,7 @@ compositeRestore comp state wenv win newComp = result where
   widgetId = newComp ^. L.info . L.widgetId
   path = newComp ^. L.info . L.path
   result = newResult
+    & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
     & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.node . L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW

@@ -161,10 +161,10 @@ handleEventChild = describe "handleEventChild" $ do
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
   it "should insert new text at the beginning, since its merged with a local key" $ do
-    model1 ^. text1 `shouldBe` "aacc"
-    model1 ^. text2 `shouldBe` ""
-    modelM ^. text1 `shouldBe` "bbaacc"
-    modelM ^. text2 `shouldBe` ""
+    wenv1 ^. L.model . text1 `shouldBe` "aacc"
+    wenv1 ^. L.model . text2 `shouldBe` ""
+    wenv2 ^. L.model . text1 `shouldBe` "bbaacc"
+    wenv2 ^. L.model . text2 `shouldBe` ""
     newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
     newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
     newInstRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 0, 0]))
@@ -197,21 +197,19 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
     cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    model1 = nodeHandleEventModel wenv evts1 cmpNode1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
-    cntNodeM = nodeMerge wenv1 oldRoot1 cmpNode2
+    ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
+    cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
-    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
-    newInstRoot = widgetSave (newRoot ^. L.widget) wenv1 newRoot
+    ((wenv2, _, root2), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
+    newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleEventGlobalKey :: Spec
 handleEventGlobalKey = describe "handleEventGlobalKey" $
   it "should insert new text at the correct location, since its merged with a global key" $ do
-    model1 ^. text1 `shouldBe` "aacc"
-    model1 ^. text2 `shouldBe` ""
-    modelM ^. text1 `shouldBe` "aabbcc"
-    modelM ^. text2 `shouldBe` ""
+    wenv1 ^. L.model . text1 `shouldBe` "aacc"
+    wenv1 ^. L.model . text2 `shouldBe` ""
+    wenv2 ^. L.model . text1 `shouldBe` "aabbcc"
+    wenv2 ^. L.model . text2 `shouldBe` ""
     newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
     newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
     newInstRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 1, 0]))
@@ -244,13 +242,11 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
     cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
-    model1 = nodeHandleEventModel wenv evts1 cmpNode1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cmpNode1
-    cntNodeM = nodeMerge wenv1 oldRoot1 cmpNode2
+    ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
+    cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
-    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
-    newInstRoot = widgetSave (newRoot ^. L.widget) wenv1 newRoot
+    ((wenv2, _, root2), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
+    newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleMessage :: Spec
 handleMessage = describe "handleMessage" $ do

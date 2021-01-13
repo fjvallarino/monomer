@@ -420,7 +420,6 @@
 Maybe postponed after release?
   - Automatically set new WidgetId/Path on Container
   - Remove embedded fonts. Rely on loaded fonts, template will also include them
-  - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Image
     - Fix crash when adding images
       - If called from render, immediate add seems to work.
@@ -442,9 +441,11 @@ Maybe postponed after release?
   - Add arrow icon similar to Renoise's
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
+    - Test image updating WidgetId/Path
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Validate nested structures update correctly when disabling/enabling parent
+  - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
