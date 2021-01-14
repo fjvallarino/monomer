@@ -290,18 +290,31 @@ newRenderer c dpr lock envRef = Renderer {..} where
     let image = M.lookup name (imagesMap env)
     return $ fmap _imImageDef image
 
-  addImage name size imgData = addPending c lock envRef imageReq where
-    imageReq = ImageReq name size (Just imgData) ImageAdd
+  addImage name size imgData = L.with lock (addPending c envRef imgReq) where
+    imgReq = ImageReq name size (Just imgData) ImageAdd
 
-  updateImage name size imgData = addPending c lock envRef imageReq where
-    imageReq = ImageReq name size (Just imgData) ImageUpdate
+  updateImage name size imgData = L.with lock (addPending c envRef imgReq) where
+    imgReq = ImageReq name size (Just imgData) ImageUpdate
 
-  deleteImage name = addPending c lock envRef imageReq where
-    imageReq = ImageReq name def Nothing ImageDelete
+  deleteImage name = L.with lock (addPending c envRef imgReq) where
+    imgReq = ImageReq name def Nothing ImageDelete
 
   renderImage name rect alpha = do
     env <- readIORef envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
+
+  renderNewImage name size imgData rect alpha = L.with lock $ do
+    addPending c envRef imgReq
+    env <- readIORef envRef
+    newMap <- handlePendingImages c (imagesMap env) (addedImages env)
+    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name newMap
+
+    writeIORef envRef env {
+      imagesMap = newMap,
+      addedImages = Seq.empty
+    }
+    where
+      imgReq = ImageReq name size (Just imgData) ImageUpdate
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
 loadFont c fonts (FontDef name path) = do
@@ -343,8 +356,8 @@ getTextBounds c x y text = do
     cx = realToFrac x
     cy = realToFrac y
 
-addPending :: VG.Context -> L.Lock -> IORef Env -> ImageReq -> IO ()
-addPending c lock envRef imageReq = L.with lock $ do
+addPending :: VG.Context -> IORef Env -> ImageReq -> IO ()
+addPending c envRef imageReq = do
   env <- readIORef envRef
 
   writeIORef envRef env {

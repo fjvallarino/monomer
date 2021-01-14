@@ -408,6 +408,12 @@
     - Rebuild composite globalKeys
   - Automatically set new WidgetId/Path on Container
   - Remove embedded fonts. Rely on loaded fonts, template will also include them
+  - Restoring should fail if widget tree structure is different
+  - Image
+    - Fix crash when adding images
+      - If called from render, immediate add seems to work.
+      - Immediate add causes a crash if called from a task (nanovg is not thread safe, so it makes sense)
+      - Maybe have two versions of add? Two versions of render?
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -420,14 +426,9 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Restoring should fail if widget tree structure is different
   - Image
-    - Fix crash when adding images
-      - If called from render, immediate add seems to work.
-      - Immediate add causes a crash if called from a task (nanovg is not thread safe, so it makes sense)
-      - Maybe have two versions of add? Two versions of render?
-    - Can performance be improved? Use sbt functions?
     - When adding image, on failure remove the least used image and retry
+      - https://hackage.haskell.org/package/lrucache
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
@@ -447,6 +448,7 @@ Maybe postponed after release?
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Validate nested structures update correctly when disabling/enabling parent
   - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
+  - Think about dashed lines (could be made with an image paint)
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)

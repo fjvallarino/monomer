@@ -20,7 +20,7 @@ defaultFontName = "Regular"
 data Winding
   = CW
   | CCW
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic, Serialise)
 
 data Color = Color {
   _colorR :: {-# UNPACK #-} !Int,
@@ -170,5 +170,6 @@ data Renderer = Renderer {
   addImage :: String -> Size -> ByteString -> IO (),
   updateImage :: String -> Size -> ByteString -> IO (),
   deleteImage :: String -> IO (),
-  renderImage :: String -> Rect -> Double -> IO ()
+  renderImage :: String -> Rect -> Double -> IO (),
+  renderNewImage :: String -> Size -> ByteString -> Rect -> Double -> IO ()
 }

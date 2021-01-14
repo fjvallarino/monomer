@@ -46,7 +46,7 @@ main = do
         appInitEvent InitApp,
         appExitEvent CancelExitApp,
         appMainButton LeftBtn,
-        --appStateFileMain "main-tree.ser",
+        appStateFileMain "main-tree.ser",
         appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]

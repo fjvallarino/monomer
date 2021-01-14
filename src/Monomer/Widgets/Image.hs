@@ -166,10 +166,9 @@ makeImage imgPath config state = widget where
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   render renderer wenv node = do
-    when (imageLoaded && not imageExists) $
-      addImage renderer imgPath imgSize imgBytes
-
-    drawImage renderer imgPath imageRect alpha
+    if imageLoaded && not imageExists
+      then drawNewImage renderer imgPath imgSize imgBytes imageRect alpha
+      else drawImage renderer imgPath imageRect alpha
     where
       style = activeStyle wenv node
       contentArea = getContentArea style node

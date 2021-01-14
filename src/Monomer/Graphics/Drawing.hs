@@ -14,10 +14,12 @@ module Monomer.Graphics.Drawing (
   drawStyledText_,
   drawText,
   drawImage,
+  drawNewImage,
   drawStyledImage
 ) where
 
 import Control.Monad (forM_, void, when)
+import Data.ByteString (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -162,6 +164,11 @@ drawText renderer rect color font fontSize align txt = do
 drawImage :: Renderer -> String -> Rect -> Double -> IO ()
 drawImage renderer imgName rect alpha = action where
   action = renderImage renderer imgName rect alpha
+
+drawNewImage
+  :: Renderer -> String -> Size -> ByteString -> Rect -> Double -> IO ()
+drawNewImage renderer imgName size imgData rect alpha = action where
+  action = renderNewImage renderer imgName size imgData rect alpha
 
 drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
 drawStyledImage renderer imgName rect alpha style = forM_ tempRect action where

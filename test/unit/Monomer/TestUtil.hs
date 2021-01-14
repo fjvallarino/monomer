@@ -105,7 +105,8 @@ mockRenderer = Renderer {
   addImage = \name size imgData -> return (),
   updateImage = \name size imgData -> return (),
   deleteImage = \name -> return (),
-  renderImage = \name rect alpha -> return ()
+  renderImage = \name rect alpha -> return (),
+  renderNewImage = \name size imgData rect alpha -> return ()
 }
 
 mockWenv :: s -> WidgetEnv s e
