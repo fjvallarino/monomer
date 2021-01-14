@@ -13,6 +13,7 @@ module Monomer.Widgets.Single (
 ) where
 
 import Codec.Serialise
+import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens ((&), (^.), (^?), (.~), _Just)
 import Data.Default
 import Data.Maybe
@@ -252,7 +253,11 @@ restoreWrapper single wenv win newNode = newResult where
   nodeHandler styledNode = case loadState (win ^. L.state) of
     Just state -> restoreHandler wenv state oldInfo styledNode
     _ -> resultWidget styledNode
-  newResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+  valid = infoMatches (win ^. L.info) (newNode ^. L.info)
+  message = matchFailedMsg (win ^. L.info) (newNode ^. L.info)
+  newResult
+    | valid = loadStateHandler single wenv oldInfo newNode nodeHandler
+    | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
 loadStateHandler
   :: (Typeable a, Serialise a)

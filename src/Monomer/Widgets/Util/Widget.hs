@@ -13,7 +13,9 @@ module Monomer.Widgets.Util.Widget (
   makeState,
   useState,
   loadState,
-  instanceMatches,
+  matchFailedMsg,
+  infoMatches,
+  nodeMatches,
   handleWidgetIdChange
 ) where
 
@@ -93,12 +95,21 @@ loadState state = state >>= wsVal >>= fromBS where
     Left _ -> Nothing
     Right val -> Just val
 
-instanceMatches :: WidgetNode s e -> WidgetNode s e -> Bool
-instanceMatches newNode oldNode = typeMatches && keyMatches where
-  oldInfo = oldNode ^. L.info
-  newInfo = newNode ^. L.info
+matchFailedMsg :: WidgetNodeInfo -> WidgetNodeInfo -> String
+matchFailedMsg oldInfo newInfo = message where
+  oldData = (oldInfo ^. L.widgetType, oldInfo ^. L.key)
+  newData = (newInfo ^. L.widgetType, newInfo ^. L.key)
+  message = "Nodes do not match: " ++ show oldData ++ " - " ++ show newData
+
+infoMatches :: WidgetNodeInfo -> WidgetNodeInfo -> Bool
+infoMatches oldInfo newInfo = typeMatches && keyMatches where
   typeMatches = oldInfo ^. L.widgetType == newInfo ^. L.widgetType
   keyMatches = oldInfo ^. L.key == newInfo ^. L.key
+
+nodeMatches :: WidgetNode s e -> WidgetNode s e -> Bool
+nodeMatches oldNode newNode = infoMatches oldInfo newInfo where
+  oldInfo = oldNode ^. L.info
+  newInfo = newNode ^. L.info
 
 handleWidgetIdChange :: WidgetNode s e -> WidgetResult s e -> WidgetResult s e
 handleWidgetIdChange oldNode result = newResult where

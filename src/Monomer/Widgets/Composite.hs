@@ -25,6 +25,7 @@ import Codec.CBOR.Decoding
 import Codec.CBOR.Encoding
 import Codec.Serialise
 import Control.Applicative ((<|>))
+import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
 import Data.Default
 import Data.List (foldl')
@@ -314,7 +315,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   mergeRequired
     | isJust oldModel = modelChanged || (oldFlags /= newFlags)
     | otherwise = True
-  initRequired = not (instanceMatches tempRoot oldRoot)
+  initRequired = not (nodeMatches tempRoot oldRoot)
   tempResult
     | initRequired = widgetInit tempWidget cwenv tempRoot
     | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
@@ -402,16 +403,18 @@ compositeRestore comp state wenv win newComp = result where
   }
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv newComp
-  newResult = reduceResult comp newState wenv styledComp tempResult
+  reducedResult = reduceResult comp newState wenv styledComp tempResult
   widgetId = newComp ^. L.info . L.widgetId
-  path = newComp ^. L.info . L.path
-  result = newResult
-    & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
-    & L.node . L.info . L.renderArea .~ oldInfo ^. L.renderArea
-    & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
-    & L.node . L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
-    & L.requests %~ (UpdateWidgetPath widgetId path <|)
+  valid = infoMatches (win ^. L.info) (newComp ^. L.info)
+  message = matchFailedMsg (win ^. L.info) (newComp ^. L.info)
+  result
+    | valid = reducedResult
+        & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
+        & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
+        & L.node . L.info . L.renderArea .~ oldInfo ^. L.renderArea
+        & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
+        & L.node . L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
+    | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
 -- | Next focusable
 compositeFindNextFocus

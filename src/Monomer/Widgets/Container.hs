@@ -29,6 +29,7 @@ module Monomer.Widgets.Container (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
+import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
 import Control.Monad
 import Data.Default
@@ -388,9 +389,9 @@ mergeChildrenSeq wenv localKeys newNode oldItems newItems = res where
   mergedKey = widgetMerge newWidget wenv oldMatch newChild
   initNew = widgetInit newWidget wenv newChild
     & L.requests %~ (|> ResizeWidgets)
-  isMergeKey = isJust oldKeyMatch && instanceMatches newChild oldMatch
+  isMergeKey = isJust oldKeyMatch && nodeMatches newChild oldMatch
   (child, oldRest)
-    | instanceMatches newChild oldChild = (mergedOld, oldChildren)
+    | nodeMatches newChild oldChild = (mergedOld, oldChildren)
     | isMergeKey = (mergedKey, oldItems)
     | otherwise = (initNew, oldItems)
   (cmerged, cremoved)
@@ -477,7 +478,10 @@ restoreWrapper container wenv win newNode = newResult where
   postRes = case loadState (win ^. L.state) of
     Just state -> restorePostHandler wenv tmpRes state oldInfo newParent
     Nothing -> resultWidget newParent
+  valid = infoMatches (win ^. L.info) (newNode ^. L.info)
+  message = matchFailedMsg (win ^. L.info) (newNode ^. L.info)
   newResult
+    | not valid = throw (AssertionFailed $ "Restore failed. " ++ message)
     | isResizeResult (Just postRes) = postRes
         & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
     | otherwise = postRes
