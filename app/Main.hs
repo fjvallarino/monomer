@@ -117,7 +117,12 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetIdChanged where
+buildUI wenv model = trace "Creating UI" widgetHover where
+  mkImg i = vstack [
+      label ("Image: " <> showt i),
+      image ("https://picsum.photos/600/400?ts=" ++ show i)
+    ]
+  widgetImages = scroll $ vstack (mkImg <$> [0..9::Int])
   widgetSave = vstack [
       textField textField1,
       textDropdown dropdown1 items id,

@@ -1,12 +1,14 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where
 
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad (foldM, forM_, unless, when)
 import Data.Default
+import Data.Functor ((<&>))
 import Data.IORef
 import Data.List (foldl')
 import Data.Maybe
@@ -391,8 +393,13 @@ handlePendingImage c imagesMap imageReq
   | action == ImageAdd && imageExists =
       return $ imgIncreaseCount name imagesMap
   | action `elem` [ImageAdd, ImageUpdate] && not imageExists = do
-      nvImg <- VG.createImageRGBA c cw ch VGI.ImageNearest imgData
-      return $ maybe imagesMap (imgInsertNew name imgDef imagesMap) nvImg
+      -- Attempt to create image. If it fails, remove existing images and retry.
+      -- Ideally only LRU should be removed.
+      tmpImg <- createImage
+      (newImgMap, nvImg) <- if isNothing tmpImg
+        then clearImagesMap c imagesMap >> createImage <&> (M.empty, )
+        else return (imagesMap, tmpImg)
+      return $ maybe newImgMap (imgInsertNew name imgDef newImgMap) nvImg
   | action == ImageUpdate && imageExists && sizeMatches = do
       VG.updateImage c (_imNvImage image) imgData
       return imagesMap
@@ -414,6 +421,7 @@ handlePendingImage c imagesMap imageReq
     imageExists = isJust mimage
     image = fromJust mimage
     sizeMatches = size == _imImageDef image ^. L.size
+    createImage = VG.createImageRGBA c cw ch VGI.ImageNearest imgData
 
 imgIncreaseCount :: String -> ImagesMap -> ImagesMap
 imgIncreaseCount name imagesMap = newImageMap where
@@ -431,6 +439,12 @@ imgDelete name imagesMap = newImageMap where
     | _imCount img > 1 = Just $ img { _imCount = _imCount img - 1 }
     | otherwise = Nothing
   newImageMap = M.update deleteInstance name imagesMap
+
+clearImagesMap :: VG.Context -> ImagesMap -> IO ()
+clearImagesMap c imagesMap = do
+  putStrLn "Clearing images map"
+  forM_ (M.elems imagesMap) $ \image ->
+    VG.deleteImage c (_imNvImage image)
 
 colorToPaint :: Color -> VG.Color
 colorToPaint (Color r g b a)
