@@ -95,15 +95,12 @@ makeRenderer fonts dpr = do
 newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
   beginFrame w h = L.with lock $ do
-    env <- readIORef envRef
-    newMap <- handlePendingImages c (imagesMap env) (addedImages env)
+    newEnv <- handlePendingImages c envRef
 
     VG.beginFrame c cw ch cdpr
 
-    writeIORef envRef env {
-      inFrame = True,
-      imagesMap = newMap,
-      addedImages = Seq.empty
+    writeIORef envRef newEnv {
+      inFrame = True
     }
     where
       cw = fromIntegral w
@@ -304,17 +301,11 @@ newRenderer c dpr lock envRef = Renderer {..} where
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
 
   renderNewImage name size imgData rect alpha = L.with lock $ do
-    addPending c envRef imgReq
-    env <- readIORef envRef
-    newMap <- handlePendingImages c (imagesMap env) (addedImages env)
-    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name newMap
+    addPending c envRef $ ImageReq name size (Just imgData) ImageUpdate
+    newEnv <- handlePendingImages c envRef
+    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap newEnv)
 
-    writeIORef envRef env {
-      imagesMap = newMap,
-      addedImages = Seq.empty
-    }
-    where
-      imgReq = ImageReq name size (Just imgData) ImageUpdate
+    writeIORef envRef newEnv
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
 loadFont c fonts (FontDef name path) = do
@@ -386,9 +377,14 @@ textGlyphPositions c x y text = withCStringLen text $ \(ptr, len) ->
     cy = fromIntegral $ round y
     count = fromIntegral $ T.length text
 
-handlePendingImages :: VG.Context -> ImagesMap -> Seq ImageReq -> IO ImagesMap
-handlePendingImages c imagesMap addedImages =
-  foldM (handlePendingImage c) imagesMap addedImages
+handlePendingImages :: VG.Context -> IORef Env -> IO Env
+handlePendingImages c envRef = do
+  env <- readIORef envRef
+  newImagesMap <- foldM (handlePendingImage c) (imagesMap env) (addedImages env)
+  return env {
+    imagesMap = newImagesMap,
+    addedImages = Seq.empty
+  }
 
 handlePendingImage :: VG.Context -> ImagesMap -> ImageReq -> IO ImagesMap
 handlePendingImage c imagesMap imageReq
@@ -397,7 +393,7 @@ handlePendingImage c imagesMap imageReq
   | action `elem` [ImageAdd, ImageUpdate] && not imageExists = do
       nvImg <- VG.createImageRGBA c cw ch VGI.ImageNearest imgData
       return $ maybe imagesMap (imgInsertNew name imgDef imagesMap) nvImg
-  | action == ImageUpdate && imageExists = do
+  | action == ImageUpdate && imageExists && sizeMatches = do
       VG.updateImage c (_imNvImage image) imgData
       return imagesMap
   | action == ImageDelete && imageExists = do
@@ -417,6 +413,7 @@ handlePendingImage c imagesMap imageReq
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
     image = fromJust mimage
+    sizeMatches = size == _imImageDef image ^. L.size
 
 imgIncreaseCount :: String -> ImagesMap -> ImagesMap
 imgIncreaseCount name imagesMap = newImageMap where
