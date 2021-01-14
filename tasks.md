@@ -414,6 +414,8 @@
       - If called from render, immediate add seems to work.
       - Immediate add causes a crash if called from a task (nanovg is not thread safe, so it makes sense)
       - Maybe have two versions of add? Two versions of render?
+    - When adding image, on failure remove the least used image and retry
+      - https://hackage.haskell.org/package/lrucache
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -426,9 +428,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Image
-    - When adding image, on failure remove the least used image and retry
-      - https://hackage.haskell.org/package/lrucache
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
@@ -460,14 +459,7 @@ Maybe postponed after release?
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
-  - Look for alternatives to NanoVG
-    - Check ImDrawList. Support for OpenGL/Metal/Vulkan out of the box
-    - Check SDL_Surface + Cairo backend. It most likely won't happen
-  - Add new request types (drag started, drag stopped, drag cancelled)
-  - Add new events (drag hover)
-  - SDL supports Drag and Drop integration with OS
   - Use weight to control allocations (check if applicable)
-  - Create self rendered version of dropdown and list
   - Does it make sense to handle offset
     - It would avoid resizing on scroll
     - We need transform stack on Renderer (also rotate?)
@@ -478,8 +470,3 @@ Maybe postponed after release?
       - hovered would also use it
     - We need to set transform on render (and clear it)
     - Check scroll in scroll (one with max height)
-  - Listview is not properly changing styles
-    - Further improvements
-      - Stack resizing should exclude invisible items (outside of viewprot)
-      - Refactor Stack code, so sizeReq/resizing functions can be used from ListView directly
-    - Maybe restore widgetUpdateSizeReq?
