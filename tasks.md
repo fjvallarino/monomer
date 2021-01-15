@@ -429,7 +429,9 @@
 
 Maybe postponed after release?
   - Create Split
+    - Use space proportional to what widgets request
   - Does widgetResize need to return WidgetResult?
+    - User may want to listen for resize events
   - Create Slider
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay

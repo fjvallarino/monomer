@@ -1,9 +1,9 @@
 module Monomer.Widgets.Util.SizeReq (
-  isSizeReqFixed,
-  isSizeReqFlex,
+  sizeReqBound,
   sizeReqAddStyle,
   sizeReqMin,
   sizeReqMax,
+  sizeReqMaxBounded,
   sizeReqFixed,
   sizeReqFlex,
   sizeReqExtra,
@@ -21,13 +21,10 @@ import Monomer.Event
 import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Widget
 
-isSizeReqFixed :: SizeReq -> Bool
-isSizeReqFixed FixedSize{} = True
-isSizeReqFixed _ = False
-
-isSizeReqFlex :: SizeReq -> Bool
-isSizeReqFlex FlexSize{} = True
-isSizeReqFlex _ = False
+sizeReqBound :: SizeReq -> Double -> Double -> Double
+sizeReqBound sizeReq offset value = max minSize . min maxSize $ value where
+  minSize = offset + sizeReqMin sizeReq
+  maxSize = offset + sizeReqMax sizeReq
 
 sizeReqAddStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
@@ -39,17 +36,24 @@ sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
 
 sizeReqMin :: SizeReq -> Double
 sizeReqMin (FixedSize c) = c
-sizeReqMin (FlexSize c _) = c
+sizeReqMin (FlexSize c _) = 0
 sizeReqMin (MinSize c _) = c
-sizeReqMin (MaxSize c _) = c
+sizeReqMin (MaxSize c _) = 0
 sizeReqMin (RangeSize c1 c2 _) = c1
 
 sizeReqMax :: SizeReq -> Double
 sizeReqMax (FixedSize c) = c
-sizeReqMax (FlexSize c _) = c
-sizeReqMax (MinSize c _) = c
+sizeReqMax (FlexSize c _) = maxNumericValue
+sizeReqMax (MinSize c _) = maxNumericValue
 sizeReqMax (MaxSize c _) = c
 sizeReqMax (RangeSize c1 c2 _) = c2
+
+sizeReqMaxBounded :: SizeReq -> Double
+sizeReqMaxBounded (FixedSize c) = c
+sizeReqMaxBounded (FlexSize c _) = c
+sizeReqMaxBounded (MinSize c _) = c
+sizeReqMaxBounded (MaxSize c _) = c
+sizeReqMaxBounded (RangeSize c1 c2 _) = c2
 
 sizeReqFixed :: SizeReq -> Double
 sizeReqFixed (FixedSize s) = s

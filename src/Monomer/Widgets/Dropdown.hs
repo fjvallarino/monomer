@@ -374,7 +374,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         cfgMaxHeight = _ddcMaxHeight config
         -- Avoid having an invisible list if style/theme as not set
         maxHeightStyle = max 20 $ fromMaybe maxHeightTheme cfgMaxHeight
-        reqHeight = sizeReqMin $ child ^. L.info . L.sizeReqH
+        reqHeight = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
         maxHeight = min winH (min reqHeight maxHeightStyle)
         dy = dropdownY maxHeight
         dh = maxHeight
