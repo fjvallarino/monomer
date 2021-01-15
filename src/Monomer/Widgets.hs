@@ -16,6 +16,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Radio,
   module Monomer.Widgets.Scroll,
   module Monomer.Widgets.Spacer,
+  module Monomer.Widgets.Split,
   module Monomer.Widgets.Stack,
   module Monomer.Widgets.TextDropdown,
   module Monomer.Widgets.TextField,
@@ -39,6 +40,7 @@ import Monomer.Widgets.ListView
 import Monomer.Widgets.Radio
 import Monomer.Widgets.Scroll
 import Monomer.Widgets.Spacer
+import Monomer.Widgets.Split
 import Monomer.Widgets.Stack
 import Monomer.Widgets.TextDropdown
 import Monomer.Widgets.TextField

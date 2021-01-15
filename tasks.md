@@ -428,14 +428,15 @@
   - Add user documentation
 
 Maybe postponed after release?
+  - Create Split
+  - Does widgetResize need to return WidgetResult?
+  - Create Slider
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
-  - Create Slider
   - Create Dial
-  - Create Split
   - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector
@@ -446,12 +447,12 @@ Maybe postponed after release?
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Validate nested structures update correctly when disabling/enabling parent
-  - Create DevelMain, take care of saving/loading state. Also provide a way of ignoring it.
   - Think about dashed lines (could be made with an image paint)
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+    - Add support for nanovg transforms (translate mainly, and alpha)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer

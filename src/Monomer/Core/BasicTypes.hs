@@ -105,6 +105,11 @@ rectsOverlap (Rect x1 y1 w1 h1) (Rect x2 y2 w2 h2) = overlapX && overlapY where
   overlapX = x1 < x2 + w2 && x1 + w1 > x2
   overlapY = y1 < y2 + h2 && y1 + h1 > y2
 
+rectBoundedPoint :: Rect -> Point -> Point
+rectBoundedPoint (Rect rx ry rw rh) (Point px py) = Point px2 py2 where
+  px2 = max rx . min (rx + rw) $ px
+  py2 = max ry . min (ry + rh) $ py
+
 addToRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
 addToRect (Rect x y w h) l r t b = newRect where
   nx = x - l
