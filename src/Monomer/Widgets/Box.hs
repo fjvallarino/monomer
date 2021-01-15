@@ -144,7 +144,7 @@ makeBox config = widget where
   emptyHandlersCount
     = length (_boxOnClickEmpty config) + length (_boxOnClickEmptyReq config)
 
-  handleEvent wenv ctx evt node = case evt of
+  handleEvent wenv target evt node = case evt of
     Click point btn -> result where
       child = Seq.index (node ^. L.children) 0
       childClicked = pointInRect point (child ^. L.info . L.renderArea)

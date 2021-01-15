@@ -209,7 +209,7 @@ makeButton config state = widget where
       & L.widget .~ makeButton config newState
     result = resultReqs resNode reqs
 
-  handleEvent wenv ctx evt node = case evt of
+  handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
     Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config node
     KeyAction mode code status
