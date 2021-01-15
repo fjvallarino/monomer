@@ -2,7 +2,8 @@ module Monomer.Widgets.Stack (
   hstack,
   hstack_,
   vstack,
-  vstack_
+  vstack_,
+  assignStackAreas
 ) where
 
 import Control.Applicative ((<|>))
@@ -93,33 +94,7 @@ makeStack isHorizontal config = widget where
   resize wenv viewport renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    Rect x y w h = contentArea
-    mainSize = if isHorizontal then w else h
-    mainStart = if isHorizontal then x else y
-    vchildren = Seq.filter (_wniVisible . _wnInfo) children
-    reqs = fmap mainReqSelector vchildren
-    sumSizes accum req = newStep where
-      (cFixed, cFlex, cFlexFac, cExtraFac) = accum
-      newFixed = cFixed + sizeReqFixed req
-      newFlex = cFlex + sizeReqFlex req
-      newFlexFac = cFlexFac + sizeReqFlex req * sizeReqFactor req
-      newExtraFac = cExtraFac + sizeReqExtra req * sizeReqFactor req
-      newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
-    (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
-    flexAvail = min flex (mainSize - fixed)
-    extraAvail = max 0 (mainSize - fixed - flexAvail)
-    -- flexCoeff can only be negative
-    flexCoeff
-      | flexAvail < flex = (flexAvail - flex) / flexFac
-      | otherwise = 0
-    extraCoeff
-      | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
-      | otherwise = 0
-    foldHelper (accum, offset) child = (newAccum, newOffset) where
-      newSize = resizeChild contentArea flexCoeff extraCoeff offset child
-      newAccum = accum |> newSize
-      newOffset = offset + rectSelector newSize
-    (newViewports, newDim) = foldl' foldHelper (Seq.empty, mainStart) children
+    (newViewports, newDim) = assignStackAreas isHorizontal contentArea children
     newCa
       | isHorizontal = contentArea & L.w .~ newDim
       | otherwise = contentArea & L.h .~ newDim
@@ -130,30 +105,60 @@ makeStack isHorizontal config = widget where
     assignedArea = Seq.zip newViewports newViewports
     resized = (newNode, assignedArea)
 
-  resizeChild contentArea flexCoeff extraCoeff offset child = result where
-    Rect l t w h = contentArea
-    emptyRect = Rect l t 0 0
-    -- Only one is active (flex is negative or extra is >= 0)
-    totalCoeff = flexCoeff + extraCoeff
-    tempMainSize = case mainReqSelector child of
-      FixedSize sz -> sz
-      FlexSize sz factor -> (1 + totalCoeff * factor) * sz
-      -- Since flex does not apply to min, there's nothing to remove from (no '1 +')
-      MinSize sz factor -> sz + extraCoeff * factor * sz
-      MaxSize sz factor -> (1 + flexCoeff * factor) * sz
-      RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
-    mainSize = max 0 tempMainSize
-    hRect = Rect offset t mainSize h
-    vRect = Rect l offset w mainSize
-    result
-      | not $ (_wniVisible . _wnInfo) child = emptyRect
-      | isHorizontal = hRect
-      | otherwise = vRect
-
-  mainReqSelector
-    | isHorizontal = _wniSizeReqW . _wnInfo
-    | otherwise = _wniSizeReqH . _wnInfo
-
+assignStackAreas :: Bool -> Rect -> Seq (WidgetNode s e) -> (Seq Rect, Double)
+assignStackAreas isHorizontal contentArea children = result where
+  Rect x y w h = contentArea
+  mainSize = if isHorizontal then w else h
+  mainStart = if isHorizontal then x else y
   rectSelector
     | isHorizontal = _rW
     | otherwise = _rH
+  vchildren = Seq.filter (_wniVisible . _wnInfo) children
+  reqs = fmap (mainReqSelector isHorizontal) vchildren
+  sumSizes accum req = newStep where
+    (cFixed, cFlex, cFlexFac, cExtraFac) = accum
+    newFixed = cFixed + sizeReqFixed req
+    newFlex = cFlex + sizeReqFlex req
+    newFlexFac = cFlexFac + sizeReqFlex req * sizeReqFactor req
+    newExtraFac = cExtraFac + sizeReqExtra req * sizeReqFactor req
+    newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
+  (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
+  flexAvail = min flex (mainSize - fixed)
+  extraAvail = max 0 (mainSize - fixed - flexAvail)
+  -- flexCoeff can only be negative
+  flexCoeff
+    | flexAvail < flex = (flexAvail - flex) / flexFac
+    | otherwise = 0
+  extraCoeff
+    | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
+    | otherwise = 0
+  foldHelper (accum, offset) child = (newAccum, newOffset) where
+    newSize = resizeChild isHorizontal contentArea flexCoeff extraCoeff offset child
+    newAccum = accum |> newSize
+    newOffset = offset + rectSelector newSize
+  result = foldl' foldHelper (Seq.empty, mainStart) children
+
+resizeChild :: Bool -> Rect -> Factor -> Factor -> Double -> WidgetNode s e -> Rect
+resizeChild horizontal contentArea flexCoeff extraCoeff offset child = result where
+  Rect l t w h = contentArea
+  emptyRect = Rect l t 0 0
+  -- Only one is active (flex is negative or extra is >= 0)
+  totalCoeff = flexCoeff + extraCoeff
+  tempMainSize = case mainReqSelector horizontal child of
+    FixedSize sz -> sz
+    FlexSize sz factor -> (1 + totalCoeff * factor) * sz
+    -- Flex does not apply to min, so there's nothing to remove from (no '1 +')
+    MinSize sz factor -> sz + extraCoeff * factor * sz
+    MaxSize sz factor -> (1 + flexCoeff * factor) * sz
+    RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
+  mainSize = max 0 tempMainSize
+  hRect = Rect offset t mainSize h
+  vRect = Rect l offset w mainSize
+  result
+    | not $ (_wniVisible . _wnInfo) child = emptyRect
+    | horizontal = hRect
+    | otherwise = vRect
+
+mainReqSelector isHorizontal
+  | isHorizontal = _wniSizeReqW . _wnInfo
+  | otherwise = _wniSizeReqH . _wnInfo
