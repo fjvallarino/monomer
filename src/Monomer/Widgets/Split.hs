@@ -8,6 +8,8 @@ module Monomer.Widgets.Split (
   handleWidth
 ) where
 
+import Debug.Trace
+
 import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
@@ -19,6 +21,7 @@ import GHC.Generics
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+import Monomer.Widgets.Stack (assignStackAreas)
 
 import qualified Monomer.Lens as L
 
@@ -45,6 +48,7 @@ handleWidth w = def {
 }
 
 data SplitState = SplitState {
+  _spsHandleDragged :: Bool,
   _spsHandlePos :: Double,
   _spsHandleRect :: Rect
 } deriving (Eq, Show, Generic, Serialise)
@@ -55,7 +59,7 @@ hsplit nodes = hsplit_ nodes def
 hsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
 hsplit_ (node1, node2) configs = newNode where
   config = mconcat configs
-  state = SplitState 0.5 def
+  state = SplitState False 0 def
   widget = makeSplit True config state
   newNode = defaultWidgetNode "hsplit" widget
     & L.children .~ Seq.fromList [node1, node2]
@@ -69,7 +73,6 @@ makeSplit isHorizontal config state = widget where
     containerResize = resize
   }
 
-  SplitState handlePos handleRect = state
   handleW = fromMaybe 5 (_spcHandleWidth config)
 
   restore wenv oldState oldNode newNode = result where
@@ -81,11 +84,14 @@ makeSplit isHorizontal config state = widget where
       | isTarget && isDragging -> Just resultDrag
       | isTarget && isHandle p -> Just resultHover
       where
-        Point px py = rectBoundedPoint ra p
+        Point px py = validHandlePos ra p (node ^. L.children)
         newHandlePos
           | isHorizontal = (px - ra ^. L.x) / ra ^. L.w
           | otherwise = (py - ra ^. L.y) / ra ^. L.h
-        newState = state { _spsHandlePos = newHandlePos }
+        newState = state {
+          _spsHandleDragged = True,
+          _spsHandlePos = newHandlePos
+        }
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
         newNode = widgetResize (tmpNode ^. L.widget) wenv vp ra tmpNode
@@ -93,6 +99,7 @@ makeSplit isHorizontal config state = widget where
         resultHover = resultReqs node [cursorIconReq]
     _ -> Nothing
     where
+      SplitState _ _ handleRect = state
       vp = node ^. L.info . L.viewport
       ra = node ^. L.info . L.renderArea
       isTarget = target == node ^. L.info . L.path
@@ -117,7 +124,12 @@ makeSplit isHorizontal config state = widget where
 
   -- Consider contentRect
   resize wenv viewport renderArea children node = resized where
-    Rect rx ry rw rh = renderArea
+    style = activeStyle wenv node
+    contentArea = fromMaybe def (removeOuterBounds style renderArea)
+    Rect rx ry rw rh = contentArea
+    handlePos
+      | _spsHandleDragged state = _spsHandlePos state
+      | otherwise = calcHandlePos contentArea children
     (w1, h1)
       | isHorizontal = ((rw - handleW) * handlePos, rh)
       | otherwise = (rw, (rh - handleW) * handlePos)
@@ -131,9 +143,33 @@ makeSplit isHorizontal config state = widget where
     newHandleRect
       | isHorizontal = Rect (rx + w1) ry handleW h1
       | otherwise = Rect rx (ry + h1) w1 handleW
-    newState = SplitState handlePos newHandleRect
+    newState = state {
+      _spsHandlePos = handlePos,
+      _spsHandleRect = newHandleRect
+    }
     newNode = node
       & L.widget .~ makeSplit isHorizontal config newState
     newRas = Seq.fromList [rect1, rect2]
     assignedArea = Seq.zip newRas newRas
     resized = (newNode, assignedArea)
+
+  calcHandlePos contentArea children = newPos where
+    (areas, _) = assignStackAreas isHorizontal contentArea children
+    selector
+      | isHorizontal = _rW
+      | otherwise = _rH
+    childSize = selector $ Seq.index areas 0
+    newPos = childSize / selector contentArea
+
+  validHandlePos rect point children = traceShowId newPoint where
+    Rect rx ry rw rh = rect
+    Point px py = point
+    Point vx vy = rectBoundedPoint rect point
+    child1 = Seq.index children 0
+    sizeReq
+      | isHorizontal = child1 ^. L.info . L.sizeReqW
+      | otherwise = child1 ^. L.info . L.sizeReqH
+    (minSize, maxSize) = (rx + sizeReqMin sizeReq, rx + sizeReqMax sizeReq)
+    newPoint
+      | isHorizontal = Point (max minSize . min maxSize $ vx) vy
+      | otherwise = Point vx (max minSize . min maxSize $ vy)
