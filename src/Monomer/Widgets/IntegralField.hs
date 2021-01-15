@@ -203,7 +203,7 @@ handleDrag
   -> Point
   -> (Text, Int, Maybe Int)
 handleDrag config state clickPos currPos = result where
-  Point _ dy = addPoint clickPos (negPoint currPos)
+  Point _ dy = subPoint clickPos currPos
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
   dragRate = fromMaybe 1 (_nfcDragRate config)

@@ -216,7 +216,7 @@ handleDrag
   -> Point
   -> (Text, Int, Maybe Int)
 handleDrag config state clickPos currPos = result where
-  Point _ dy = addPoint clickPos (negPoint currPos)
+  Point _ dy = subPoint clickPos currPos
   decimals = max 0 $ fromMaybe 2 (_ffcDecimals config)
   minVal = _ffcMinValue config
   maxVal = _ffcMaxValue config

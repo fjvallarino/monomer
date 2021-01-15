@@ -61,6 +61,9 @@ pointInEllipse (Point px py) rect = ellipseTest <= 1 where
 addPoint :: Point -> Point -> Point
 addPoint (Point x1 y1) (Point x2 y2) = Point (x1 + x2) (y1 + y2)
 
+subPoint :: Point -> Point -> Point
+subPoint (Point x1 y1) (Point x2 y2) = Point (x1 - x2) (y1 - y2)
+
 negPoint :: Point -> Point
 negPoint (Point x y) = Point (-x) (-y)
 

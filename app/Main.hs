@@ -117,8 +117,9 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = trace "Creating UI" widgetSplit where
-  widgetSplit = hsplit (image "assets/images/pecans.jpg" `style` [maxWidth 200], widgetTree `style` [maxWidth 200])
+buildUI wenv model = trace "Creating UI" widgetHSplit where
+  widgetHSplit = hsplit_ (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree `style` [rangeWidth 200 500]) [splitHandleSize 10]
+  widgetVSplit = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 500], widgetTree `style` [rangeHeight 200 500])
   mkImg i = vstack [
       label ("Image: " <> showt i),
       image ("https://picsum.photos/600/400?ts=" ++ show i)

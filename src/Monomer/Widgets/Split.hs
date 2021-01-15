@@ -5,10 +5,10 @@
 module Monomer.Widgets.Split (
   hsplit,
   hsplit_,
-  handleWidth
+  vsplit,
+  vsplit_,
+  splitHandleSize
 ) where
-
-import Debug.Trace
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
@@ -26,42 +26,54 @@ import Monomer.Widgets.Stack (assignStackAreas)
 import qualified Monomer.Lens as L
 
 newtype SplitCfg = SplitCfg {
-  _spcHandleWidth :: Maybe Double
+  _spcHandleSize :: Maybe Double
 }
 
 instance Default SplitCfg where
   def = SplitCfg {
-    _spcHandleWidth = Nothing
+    _spcHandleSize = Nothing
   }
 
 instance Semigroup SplitCfg where
   (<>) s1 s2 = SplitCfg {
-    _spcHandleWidth = _spcHandleWidth s2 <|> _spcHandleWidth s1
+    _spcHandleSize = _spcHandleSize s2 <|> _spcHandleSize s1
   }
 
 instance Monoid SplitCfg where
   mempty = def
 
-handleWidth :: Double -> SplitCfg
-handleWidth w = def {
-  _spcHandleWidth = Just w
+splitHandleSize :: Double -> SplitCfg
+splitHandleSize w = def {
+  _spcHandleSize = Just w
 }
 
 data SplitState = SplitState {
   _spsHandleDragged :: Bool,
   _spsHandlePos :: Double,
-  _spsHandleRect :: Rect
+  _spsHandleRect :: Rect,
+  _spsMaxDim :: Double
 } deriving (Eq, Show, Generic, Serialise)
 
 hsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ nodes def
 
 hsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
-hsplit_ (node1, node2) configs = newNode where
+hsplit_ nodes configs = split_ True nodes configs
+
+vsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+vsplit nodes = vsplit_ nodes def
+
+vsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
+vsplit_ nodes configs = split_ False nodes configs
+
+split_
+  :: Bool -> (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
+split_ isHorizontal (node1, node2) configs = newNode where
   config = mconcat configs
-  state = SplitState False 0 def
-  widget = makeSplit True config state
-  newNode = defaultWidgetNode "hsplit" widget
+  state = SplitState False 0 def 0
+  widget = makeSplit isHorizontal config state
+  widgetName = if isHorizontal then "hsplit" else "vsplit"
+  newNode = defaultWidgetNode widgetName widget
     & L.children .~ Seq.fromList [node1, node2]
 
 makeSplit :: Bool -> SplitCfg -> SplitState -> Widget s e
@@ -73,7 +85,7 @@ makeSplit isHorizontal config state = widget where
     containerResize = resize
   }
 
-  handleW = fromMaybe 5 (_spcHandleWidth config)
+  handleW = fromMaybe 5 (_spcHandleSize config)
 
   restore wenv oldState oldNode newNode = result where
     result = resultWidget $ newNode
@@ -84,10 +96,10 @@ makeSplit isHorizontal config state = widget where
       | isTarget && isDragging -> Just resultDrag
       | isTarget && isHandle p -> Just resultHover
       where
-        Point px py = validHandlePos ra p (node ^. L.children)
+        Point px py = validHandlePos maxDim ra p (node ^. L.children)
         newHandlePos
-          | isHorizontal = (px - ra ^. L.x) / ra ^. L.w
-          | otherwise = (py - ra ^. L.y) / ra ^. L.h
+          | isHorizontal = (px - ra ^. L.x) / maxDim
+          | otherwise = (py - ra ^. L.y) / maxDim
         newState = state {
           _spsHandleDragged = True,
           _spsHandlePos = newHandlePos
@@ -99,7 +111,7 @@ makeSplit isHorizontal config state = widget where
         resultHover = resultReqs node [cursorIconReq]
     _ -> Nothing
     where
-      SplitState _ _ handleRect = state
+      SplitState _ _ handleRect maxDim = state
       vp = node ^. L.info . L.viewport
       ra = node ^. L.info . L.renderArea
       isTarget = target == node ^. L.info . L.path
@@ -119,23 +131,24 @@ makeSplit isHorizontal config state = widget where
     reqH2 = node2 ^. L.info . L.sizeReqH
     reqOrder = if isHorizontal then id else swap
     (reqWS, reqHS) = reqOrder (FixedSize handleW, FixedSize 0)
-    reqW = sizeReqMergeSum reqWS $ sizeReqMergeSum reqW1 reqW1
-    reqH = sizeReqMergeSum reqHS $ sizeReqMergeSum reqH1 reqH1
+    reqW = sizeReqMergeSum reqWS $ sizeReqMergeSum reqW1 reqW2
+    reqH = sizeReqMergeSum reqHS $ sizeReqMergeSum reqH1 reqH2
 
   -- Consider contentRect
   resize wenv viewport renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect rx ry rw rh = contentArea
+    (areas, newDim) = assignStackAreas isHorizontal contentArea children
     handlePos
       | _spsHandleDragged state = _spsHandlePos state
-      | otherwise = calcHandlePos contentArea children
+      | otherwise = calcHandlePos areas newDim
     (w1, h1)
-      | isHorizontal = ((rw - handleW) * handlePos, rh)
-      | otherwise = (rw, (rh - handleW) * handlePos)
+      | isHorizontal = ((newDim - handleW) * handlePos, rh)
+      | otherwise = (rw, (newDim - handleW) * handlePos)
     (w2, h2)
-      | isHorizontal = (rw - w1 - handleW, rh)
-      | otherwise = (rw, rh - h1 - handleW)
+      | isHorizontal = (newDim - w1 - handleW, rh)
+      | otherwise = (rw, newDim - h1 - handleW)
     rect1 = Rect rx ry w1 h1
     rect2
       | isHorizontal = Rect (rx + w1 + handleW) ry w2 h2
@@ -145,7 +158,8 @@ makeSplit isHorizontal config state = widget where
       | otherwise = Rect rx (ry + h1) w1 handleW
     newState = state {
       _spsHandlePos = handlePos,
-      _spsHandleRect = newHandleRect
+      _spsHandleRect = newHandleRect,
+      _spsMaxDim = newDim
     }
     newNode = node
       & L.widget .~ makeSplit isHorizontal config newState
@@ -153,23 +167,33 @@ makeSplit isHorizontal config state = widget where
     assignedArea = Seq.zip newRas newRas
     resized = (newNode, assignedArea)
 
-  calcHandlePos contentArea children = newPos where
-    (areas, _) = assignStackAreas isHorizontal contentArea children
+  calcHandlePos areas newDim = newPos where
     selector
       | isHorizontal = _rW
       | otherwise = _rH
     childSize = selector $ Seq.index areas 0
-    newPos = childSize / selector contentArea
+    newPos = childSize / newDim
 
-  validHandlePos rect point children = traceShowId newPoint where
+  validHandlePos maxDim rect point children = addPoint origin newPoint where
     Rect rx ry rw rh = rect
-    Point px py = point
     Point vx vy = rectBoundedPoint rect point
+    origin = Point rx ry
+    isVertical = not isHorizontal
     child1 = Seq.index children 0
+    child2 = Seq.index children 1
     sizeReq
-      | isHorizontal = child1 ^. L.info . L.sizeReqW
-      | otherwise = child1 ^. L.info . L.sizeReqH
-    (minSize, maxSize) = (rx + sizeReqMin sizeReq, rx + sizeReqMax sizeReq)
+      | isHorizontal = (^. L.info . L.sizeReqW)
+      | otherwise = (^. L.info . L.sizeReqH)
+    minSize1 = sizeReqMin (sizeReq child1)
+    maxSize1 = sizeReqMax (sizeReq child1)
+    minSize2 = sizeReqMin (sizeReq child2)
+    maxSize2 = sizeReqMax (sizeReq child2)
+    Point tx ty
+      | isHorizontal = Point (max minSize1 (min maxSize1 $ vx - rx)) 0
+      | otherwise = Point 0 (max minSize1 (min maxSize1 $ vy - ry))
     newPoint
-      | isHorizontal = Point (max minSize . min maxSize $ vx) vy
-      | otherwise = Point vx (max minSize . min maxSize $ vy)
+      | isHorizontal && tx + minSize2 > maxDim = Point (maxDim - minSize2) ty
+      | isHorizontal && maxDim - tx > maxSize2 = Point (maxDim - maxSize2) ty
+      | isVertical && ty + minSize2 > maxDim = Point tx (maxDim - minSize2)
+      | isVertical && maxDim - ty > maxSize2 = Point tx (maxDim - maxSize2)
+      | otherwise = Point tx ty

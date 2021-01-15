@@ -8,8 +8,6 @@
 
 module Monomer.Widgets.PersistSpec (spec) where
 
-import Debug.Trace
-
 import Codec.Serialise
 import Control.Lens ((&), (^.), (^?), (.~), (?~), (%~), non, _Just)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
