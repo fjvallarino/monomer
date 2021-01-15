@@ -455,7 +455,7 @@ makeScroll config state = widget where
 
 scrollActiveStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
 scrollActiveStyle wenv node
-  | isFocused wenv child = focusedStyle wenv node
+  | isNodeFocused wenv child = focusedStyle wenv node
   | otherwise = activeStyle wenv node
   where
     child = node ^. L.children ^?! ix 0

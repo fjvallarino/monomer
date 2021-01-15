@@ -294,7 +294,7 @@ defaultFindNextFocus wenv direction startFrom node
 
 defaultFindByPoint :: SingleFindByPointHandler s e
 defaultFindByPoint wenv path point node
-  | isVisible && pointInViewport point node = Just path
+  | isVisible && isPointInNodeVp point node = Just path
   | otherwise = Nothing
   where
     isVisible = node ^. L.info . L.visible

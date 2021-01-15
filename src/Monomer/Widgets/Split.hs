@@ -96,7 +96,7 @@ makeSplit isHorizontal config state = widget where
       vp = node ^. L.info . L.viewport
       ra = node ^. L.info . L.renderArea
       isTarget = target == node ^. L.info . L.path
-      isDragging = isPressed wenv node
+      isDragging = isNodePressed wenv node
       isHandle p = pointInRect p handleRect
       cursorIconReq
         | isHorizontal = SetCursorIcon CursorSizeH

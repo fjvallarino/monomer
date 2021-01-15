@@ -136,7 +136,7 @@ makeRadio field option config = widget where
 
   getActiveStyle wenv node = style where
     radioArea = getRadioArea wenv node config
-    style = activeStyle_ (isHoveredEllipse_ radioArea) wenv node
+    style = activeStyle_ (isNodeHoveredEllipse_ radioArea) wenv node
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
@@ -171,7 +171,7 @@ makeRadio field option config = widget where
       value = widgetDataGet model field
       radioArea = getRadioArea wenv node config
       radioBW = max 1 (_rW radioArea * 0.1)
-      style_ = activeStyle_ (isHoveredEllipse_ radioArea) wenv node
+      style_ = activeStyle_ (isNodeHoveredEllipse_ radioArea) wenv node
       fgColor = styleFgColor style_
 
 getRadioArea :: WidgetEnv s e -> WidgetNode s e -> RadioCfg s e a -> Rect

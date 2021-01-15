@@ -339,7 +339,7 @@ makeListView widgetData items makeRow config state = widget where
     focusReq = SetFocus $ node ^. L.info . L.path
     tempResult = selectItem wenv node idx
     result
-      | isFocused wenv node = tempResult
+      | isNodeFocused wenv node = tempResult
       | otherwise = tempResult & L.requests %~ (|> focusReq)
 
   highlightItem wenv node nextIdx = Just result where

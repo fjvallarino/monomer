@@ -1,7 +1,7 @@
 module Monomer.Widgets.Util.Focus (
+  isNodeFocused,
   parentPath,
   nextTargetStep,
-  isFocused,
   isFocusCandidate,
   isTargetReached,
   isTargetValid,
@@ -25,6 +25,9 @@ import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 
+isNodeFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
+
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where
   path = node ^. L.info . L.path
@@ -33,9 +36,6 @@ nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
 nextTargetStep target node = nextStep where
   currentPath = node ^. L.info . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
-
-isFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
-isFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
 
 isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
 isFocusCandidate FocusFwd = isFocusFwdCandidate
@@ -105,8 +105,8 @@ handleFocusRequest wenv evt node mResult = newResult where
     _ -> Nothing
   isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
     && isFocusable
-    && not (isFocused wenv node)
-    && isTopLevel wenv node
+    && not (isNodeFocused wenv node)
+    && isNodeTopLevel wenv node
     && isNothing (Seq.findIndexL isFocusRequest prevReqs)
   focusReq = SetFocus (node ^. L.info . L.path)
   newResult

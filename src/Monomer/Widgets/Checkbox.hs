@@ -130,7 +130,7 @@ makeCheckbox widgetData config = widget where
     Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
     Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
     Click p _
-      | pointInViewport p node -> Just $ resultReqsEvts node clickReqs events
+      | isPointInNodeVp p node -> Just $ resultReqsEvts node clickReqs events
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqsEvts node reqs events
     _ -> Nothing

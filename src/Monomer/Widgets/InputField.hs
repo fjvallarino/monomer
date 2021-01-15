@@ -303,7 +303,7 @@ makeInputField config state = widget where
     -- Enter regular edit mode if widget has custom drag handler
     DblClick point btn
       | dragHandleExt btn -> Just (resultReqs node reqs) where
-        focusReq = [SetFocus path | not (isFocused wenv node)]
+        focusReq = [SetFocus path | not (isNodeFocused wenv node)]
         reqs = SetCursorIcon CursorIBeam : focusReq
 
     -- Begin regular text selection
@@ -315,7 +315,7 @@ makeInputField config state = widget where
         newState = newTextState wenv node state currVal currText newPos Nothing
         newNode = node
           & L.widget .~ makeInputField config newState
-        newReqs = [ SetFocus path | not (isFocused wenv node) ]
+        newReqs = [ SetFocus path | not (isNodeFocused wenv node) ]
         result = resultReqs newNode newReqs
 
     -- Begin custom drag
@@ -359,7 +359,7 @@ makeInputField config state = widget where
 
     -- Handle regular text selection
     Move point
-      | isPressed wenv node && dragSelActive -> Just result where
+      | isNodePressed wenv node && dragSelActive -> Just result where
         style = activeStyle wenv node
         contentArea = getContentArea style node
         newPos = findClosestGlyphPos state point
@@ -371,7 +371,7 @@ makeInputField config state = widget where
 
     -- Handle custom drag
     Move point
-      | isPressed wenv node && not dragSelActive -> Just result where
+      | isNodePressed wenv node && not dragSelActive -> Just result where
         (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
         handlerRes = fromJust dragHandler state stPoint point
         (newText, newPos, newSel) = handlerRes
@@ -430,7 +430,7 @@ makeInputField config state = widget where
     where
       path = node ^. L.info . L.path
       viewport = node ^. L.info . L.viewport
-      focused = isFocused wenv node
+      focused = isNodeFocused wenv node
       dragSelectText btn
         = wenv ^. L.mainButton == btn
         && dragSelActive
@@ -534,9 +534,9 @@ makeInputField config state = widget where
       nglyphs = Seq.length currGlyphs
       glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
-      selRequired = isFocused wenv node
+      selRequired = isNodeFocused wenv node
       selColor = styleHlColor style
-      caretRequired = isFocused wenv node && ts `mod` 1000 < 500
+      caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
       caretPos
         | currPos == 0 = 0

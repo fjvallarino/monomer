@@ -217,14 +217,14 @@ makeButton config state = widget where
       where
         isSelectKey code = isKeyReturn code || isKeySpace code
     Click p _
-      | pointInViewport p node -> Just result
+      | isPointInNodeVp p node -> Just result
     ButtonAction p btn ReleasedBtn clicks
       | mainBtn btn && focused && pointInVp p && clicks > 1 -> Just result
     _ -> Nothing
     where
       mainBtn btn = btn == wenv ^. L.mainButton
-      focused = isFocused wenv node
-      pointInVp p = pointInViewport p node
+      focused = isNodeFocused wenv node
+      pointInVp p = isPointInNodeVp p node
       requests = _btnOnClickReq config
       events = _btnOnClick config
       result = resultReqsEvts node requests events

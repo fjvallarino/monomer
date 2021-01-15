@@ -35,7 +35,7 @@ import qualified Monomer.Lens as L
 
 -- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
-activeStyle wenv node = activeStyle_ isHovered wenv node
+activeStyle wenv node = activeStyle_ isNodeHovered wenv node
 
 activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
@@ -43,18 +43,18 @@ activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
-  isFocus = isFocused wenv node
-  isPressed = isMainBtnPressed wenv node
+  isFocus = isNodeFocused wenv node
+  isPress = isNodePressed wenv node
   styleState
     | not isEnabled = _styleDisabled
-    | isHover && isPressed = _styleActive
+    | isHover && isPress = _styleActive
     | isHover && isFocus = _styleFocusHover
     | isHover = _styleHover
     | isFocus = _styleFocus
     | otherwise = _styleBasic
 
 focusedStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
-focusedStyle wenv node = focusedStyle_ isHovered wenv node
+focusedStyle wenv node = focusedStyle_ isNodeHovered wenv node
 
 focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
@@ -65,7 +65,7 @@ focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
     | otherwise = _styleFocus
 
 activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
-activeTheme wenv node = activeTheme_ isHovered wenv node
+activeTheme wenv node = activeTheme_ isNodeHovered wenv node
 
 activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
 activeTheme_ isHoveredFn wenv node = themeState where
@@ -73,11 +73,11 @@ activeTheme_ isHoveredFn wenv node = themeState where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
-  isFocus = isFocused wenv node
-  isPressed = isMainBtnPressed wenv node
+  isFocus = isNodeFocused wenv node
+  isPress = isNodePressed wenv node
   themeState
     | not isEnabled = _themeDisabled theme
-    | isHover && isPressed = _themeActive theme
+    | isHover && isPress = _themeActive theme
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
@@ -156,7 +156,8 @@ handleCursorChange wenv target evt style cfg node = reqs where
   isCursorEvt = cfg ^. L.cursorEvt
   isTarget = node ^. L.info . L.path == target
   curIcon = wenv ^. L.currentCursor
-  notInOverlay = isJust (wenv ^. L.overlayPath) && not (isInOverlay wenv node)
+  inOverlay = isNodeInOverlay wenv node
+  notInOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
   newIcon
     | notInOverlay = CursorArrow
     | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon <|> cfgIcon)
