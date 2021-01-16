@@ -403,7 +403,7 @@ makeListView widgetData items makeRow config state = widget where
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
     assignedArea = Seq.singleton (viewport, renderArea)
-    resized = (newNode, assignedArea)
+    resized = (resultWidget newNode, assignedArea)
 
 updateStyles
   :: WidgetEnv s e

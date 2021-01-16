@@ -147,7 +147,7 @@ makeLabel config state = widget where
       | abs factorH < 0.01 = FixedSize h
       | otherwise = FlexSize h factorH
 
-  resize wenv viewport renderArea node = newNode where
+  resize wenv viewport renderArea node = resultWidget newNode where
     style = activeStyle wenv node
     rect = fromMaybe def (removeOuterBounds style renderArea)
     newTextStyle = style ^. L.text

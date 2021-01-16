@@ -182,8 +182,8 @@ makeBox config = widget where
     vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (node, Seq.singleton (vpContent, contentArea))
-      | otherwise = (node, Seq.singleton (vpAligned, raAligned))
+      | expand = (resultWidget node, Seq.singleton (vpContent, contentArea))
+      | otherwise = (resultWidget node, Seq.singleton (vpAligned, raAligned))
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where

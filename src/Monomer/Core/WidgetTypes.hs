@@ -264,7 +264,7 @@ data Widget s e =
       -> Rect
       -> Rect
       -> WidgetNode s e
-      -> WidgetNode s e,
+      -> WidgetResult s e,
     -- | Renders the widget
     --
     -- Renderer

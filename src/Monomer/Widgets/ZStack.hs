@@ -115,7 +115,7 @@ makeZStack config = widget where
     raChild = fromMaybe def (removeOuterBounds style renderArea)
     vpChild = fromMaybe def (intersectRects viewport raChild)
     assignedAreas = fmap (const (vpChild, raChild)) children
-    resized = (node, assignedAreas)
+    resized = (resultWidget node, assignedAreas)
 
   render renderer wenv node =
     drawInScissor renderer True viewport $

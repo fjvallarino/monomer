@@ -237,12 +237,12 @@ handleResizeWidgets previousStep = do
   liftIO . putStrLn $ "Resizing widgets"
 
   let (wenv, events, widgetRoot) = previousStep
-  let newWidgetRoot = resizeRoot wenv windowSize widgetRoot
+  let newResult = resizeRoot wenv windowSize widgetRoot
 
   L.renderRequested .= True
   L.resizePending .= False
 
-  return (wenv, events, newWidgetRoot)
+  handleWidgetResult wenv True newResult
 
 handleMoveFocus
   :: (MonomerM s m)

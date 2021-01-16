@@ -33,6 +33,7 @@ sizeReqValid sizeReq offset value = validMin && validMax where
   maxSize = offset + sizeReqMax sizeReq
   minDiff = value - minSize
   maxDiff = maxSize - value
+  -- Some calculations may leave small differences in otherwise valid results
   validMin = minDiff >= 0 || abs minDiff < 0.0001
   validMax = maxDiff >= 0 || abs maxDiff < 0.0001
 

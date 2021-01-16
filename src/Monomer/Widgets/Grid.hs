@@ -71,4 +71,4 @@ makeFixedGrid isHorizontal = widget where
       newAreas = currAreas |> newArea
     calcViewport i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) children
-    resized = (node, assignedAreas)
+    resized = (resultWidget node, assignedAreas)

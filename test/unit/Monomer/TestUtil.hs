@@ -145,9 +145,9 @@ nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
   sizeReqH = node2 ^. L.info . L.sizeReqH
 
 nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
-nodeResize wenv viewport node = newNode where
+nodeResize wenv viewport node = result ^. L.node where
   widget = node ^. L.widget
-  newNode = widgetResize widget wenv viewport viewport node
+  result = widgetResize widget wenv viewport viewport node
 
 nodeHandleEventCtx
   :: (Eq s)

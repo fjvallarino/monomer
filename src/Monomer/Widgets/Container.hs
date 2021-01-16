@@ -30,7 +30,7 @@ module Monomer.Widgets.Container (
 import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
-import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), (<>~), _Just)
 import Control.Monad
 import Data.Default
 import Data.Foldable (fold, foldl')
@@ -147,7 +147,7 @@ type ContainerResizeHandler s e
   -> Rect
   -> Seq (WidgetNode s e)
   -> WidgetNode s e
-  -> (WidgetNode s e, Seq (Rect, Rect))
+  -> (WidgetResult s e, Seq (Rect, Rect))
 
 type ContainerRenderHandler s e
   = Renderer
@@ -729,7 +729,7 @@ handleSizeReqChange container wenv node evt mResult = result where
 defaultResize :: ContainerResizeHandler s e
 defaultResize wenv viewport renderArea children node = newSize where
   childrenSizes = Seq.replicate (Seq.length children) def
-  newSize = (node, childrenSizes)
+  newSize = (resultWidget node, childrenSizes)
 
 resizeWrapper
   :: Container s e a
@@ -737,40 +737,45 @@ resizeWrapper
   -> Rect
   -> Rect
   -> WidgetNode s e
-  -> WidgetNode s e
-resizeWrapper container wenv viewport renderArea node = newNode where
+  -> WidgetResult s e
+resizeWrapper container wenv viewport renderArea node = result where
   resizeRequired = containerResizeRequired container
   useCustomSize = containerUseCustomSize container
-  useChildrenSizes = containerUseChildrenSizes container
+  useChildSize = containerUseChildrenSizes container
   handler = containerResize container
   lensVp = L.info . L.viewport
   lensRa = L.info . L.renderArea
   vpChanged = viewport /= node ^. lensVp
   raChanged = renderArea /= node ^. lensRa
   children = node ^. L.children
-  (tempNode, assigned) = handler wenv viewport renderArea children node
-  resize (child, (vp, ra)) = newChildNode where
-    tempChildNode = widgetResize (child ^. L.widget) wenv vp ra child
-    cvp = tempChildNode ^. L.info . L.viewport
-    cra = tempChildNode ^. L.info . L.renderArea
+  (tempRes, assigned) = handler wenv viewport renderArea children node
+  resize (child, (vp, ra)) = newChildRes where
+    tempChildRes = widgetResize (child ^. L.widget) wenv vp ra child
+    cvp = tempChildRes ^. L.node . L.info . L.viewport
+    cra = tempChildRes ^. L.node . L.info . L.renderArea
     icvp = fromMaybe vp (intersectRects vp cvp)
     icra = fromMaybe ra (intersectRects ra cra)
-    newChildNode = tempChildNode
-      & L.info . L.viewport .~ (if useChildrenSizes then icvp else vp)
-      & L.info . L.renderArea .~ (if useChildrenSizes then icra else ra)
-  newChildren = resize <$> Seq.zip children assigned
+    newChildRes = tempChildRes
+      & L.node . L.info . L.viewport .~ (if useChildSize then icvp else vp)
+      & L.node . L.info . L.renderArea .~ (if useChildSize then icra else ra)
+  newChildrenRes = resize <$> Seq.zip children assigned
+  newChildren = fmap _wrNode newChildrenRes
+  newChildrenReqs = foldMap _wrRequests newChildrenRes
+  newChildrenEvts = foldMap _wrEvents newChildrenRes
   newVp
-    | useCustomSize = tempNode ^. lensVp
+    | useCustomSize = tempRes ^. L.node . lensVp
     | otherwise = viewport
   newRa
-    | useCustomSize = tempNode ^. lensRa
+    | useCustomSize = tempRes ^. L.node . lensRa
     | otherwise = renderArea
-  newNode
-    | resizeRequired || vpChanged || raChanged = tempNode
-      & L.info . L.viewport .~ newVp
-      & L.info . L.renderArea .~ newRa
-      & L.children .~ newChildren
-    | otherwise = node
+  result
+    | resizeRequired || vpChanged || raChanged = tempRes
+      & L.node . L.info . L.viewport .~ newVp
+      & L.node . L.info . L.renderArea .~ newRa
+      & L.node . L.children .~ newChildren
+      & L.requests <>~ newChildrenReqs
+      & L.events <>~ newChildrenEvts
+    | otherwise = resultWidget node
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e

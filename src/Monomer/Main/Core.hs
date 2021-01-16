@@ -143,7 +143,8 @@ runApp window widgetRoot config = do
     then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
     else initAction
 
-  let resizedRoot = resizeRoot newWenv newWindowSize initializedRoot
+  (_, _, resizedRoot) <- resizeWindow window newWenv initializedRoot
+
   let loopArgs = MainLoopArgs {
     _mlOS = os,
     _mlTheme = theme,
@@ -230,9 +231,9 @@ mainLoop window renderer config loopArgs = do
   (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
   (seWenv, _, seRoot) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
 
-  newRoot <- if windowResized
+  (newWenv, _, newRoot) <- if windowResized
     then resizeWindow window seWenv seRoot
-    else return seRoot
+    else return (seWenv, Seq.empty, seRoot)
 
   endTicks <- fmap fromIntegral SDL.ticks
 
@@ -244,7 +245,7 @@ mainLoop window renderer config loopArgs = do
   let renderNeeded = windowRedrawEvt || renderEvent || renderCurrentReq
 
   when renderNeeded $
-    renderWidgets window renderer seWenv newRoot
+    renderWidgets window renderer newWenv newRoot
 
   renderRequested .= windowResized
 
@@ -271,7 +272,7 @@ mainLoop window renderer config loopArgs = do
     when (isJust (config ^. L.stateFileMain)) $
       saveMonomerCtx wenv newRoot config
 
-    void $ handleWidgetDispose seWenv newRoot
+    void $ handleWidgetDispose newWenv newRoot
 
   unless shouldQuit (mainLoop window renderer config newLoopArgs)
 
@@ -311,6 +312,27 @@ renderWidgets !window renderer wenv widgetRoot = do
 
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
+
+resizeWindow
+  :: (MonomerM s m)
+  => SDL.Window
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> m (HandlerStep s e)
+resizeWindow window wenv widgetRoot = do
+  dpr <- use L.dpr
+  drawableSize <- getDrawableSize window
+  windowSize <- getWindowSize window dpr
+
+  let position = GL.Position 0 0
+  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
+  let newWenv = wenv & L.windowSize .~ windowSize
+
+  L.windowSize .= windowSize
+  liftIO $ GL.viewport GL.$= (position, size)
+
+  let resizeRes = resizeRoot wenv windowSize widgetRoot
+  handleWidgetResult wenv True resizeRes
 
 saveMonomerCtx
   :: MonomerM s m

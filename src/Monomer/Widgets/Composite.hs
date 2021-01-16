@@ -530,7 +530,7 @@ compositeResize
   -> Rect
   -> Rect
   -> WidgetNode sp ep
-  -> WidgetNode sp ep
+  -> WidgetResult sp ep
 compositeResize comp state wenv viewport renderArea widgetComp = resized where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
@@ -538,16 +538,13 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  newRoot = widgetResize widget cwenv viewport contentArea _cpsRoot
-  newState = state {
-    _cpsRoot = newRoot
-      & L.info . L.viewport .~ viewport
-      & L.info . L.renderArea .~ contentArea
-  }
-  resized = widgetComp
-    & L.widget .~ createComposite comp newState
-    & L.info . L.viewport .~ viewport
-    & L.info . L.renderArea .~ renderArea
+  tmpRes = widgetResize widget cwenv viewport contentArea _cpsRoot
+  newRes = reduceResult comp state wenv widgetComp $ tmpRes
+    & L.node . L.info . L.viewport .~ viewport
+    & L.node . L.info . L.renderArea .~ contentArea
+  resized = newRes
+    & L.node . L.info . L.viewport .~ viewport
+    & L.node . L.info . L.renderArea .~ renderArea
 
 -- Render
 compositeRender

@@ -500,7 +500,7 @@ makeInputField config state = widget where
     factor = 1
     sizeReq = (FlexSize targetW factor, FixedSize h)
 
-  resize wenv viewport renderArea node = newNode where
+  resize wenv viewport renderArea node = resultWidget newNode where
     -- newTextState depends on having correct viewport/renderArea in the node
     tempNode = node
       & L.info . L.viewport .~ viewport

@@ -13,7 +13,7 @@ module Monomer.Widgets.Split (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Tuple (swap)
@@ -123,7 +123,8 @@ makeSplit isHorizontal config state = widget where
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
         newNode = widgetResize (tmpNode ^. L.widget) wenv vp ra tmpNode
-        resultDrag = resultReqs newNode [cursorIconReq, RenderOnce]
+        resultDrag = newNode
+          & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
         resultHover = resultReqs node [cursorIconReq]
     _ -> Nothing
     where
@@ -152,7 +153,6 @@ makeSplit isHorizontal config state = widget where
     reqW = sizeReqMergeSum reqWS $ sizeReqMergeSum reqW1 reqW2
     reqH = sizeReqMergeSum reqHS $ sizeReqMergeSum reqH1 reqH2
 
-  -- Consider contentRect
   resize wenv viewport renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
@@ -193,7 +193,7 @@ makeSplit isHorizontal config state = widget where
       & L.widget .~ makeSplit isHorizontal config newState
     newRas = Seq.fromList [rect1, rect2]
     assignedArea = Seq.zip newRas newRas
-    resized = (newNode, assignedArea)
+    resized = (resultWidget newNode, assignedArea)
 
   getValidHandlePos maxDim rect point children = addPoint origin newPoint where
     Rect rx ry rw rh = rect

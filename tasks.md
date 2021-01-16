@@ -417,6 +417,8 @@
     - When adding image, on failure remove the least used image and retry
       - https://hackage.haskell.org/package/lrucache
   - Active state not working correctly (click button and drag outside)
+  - Does widgetResize need to return WidgetResult?
+    - User may want to listen for resize events
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -431,8 +433,6 @@
 Maybe postponed after release?
   - Create Split
     - Use space proportional to what widgets request
-  - Does widgetResize need to return WidgetResult?
-    - User may want to listen for resize events
   - Create Dial
   - Create Slider
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
@@ -443,7 +443,9 @@ Maybe postponed after release?
   - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector
+  - Create GridView
   - Add arrow icon similar to Renoise's
+  - Make overlays be drawn in separate beginFrame/endFrame calls
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -451,11 +453,14 @@ Maybe postponed after release?
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Validate nested structures update correctly when disabling/enabling parent
   - Think about dashed lines (could be made with an image paint)
+  - Check text baseline
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-    - Add support for nanovg transforms (translate mainly, and alpha)
+  - Add support for nanovg transforms
+    - nvgGlobalAlpha
+    - Composite operations?
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer

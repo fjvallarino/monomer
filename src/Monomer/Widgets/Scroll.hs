@@ -26,7 +26,7 @@ module Monomer.Widgets.Scroll (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (^?!), cloneLens, ix)
+import Control.Lens (ALens', (&), (^.), (.~), (^?!), (<>~), cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -242,8 +242,9 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newNode = rebuildWidget wenv newState node
-      handledResult = Just $ resultReqs newNode scrollReqs
+      newRes = rebuildWidget wenv newState node
+      handledResult = Just $ newRes
+        & L.requests <>~ Seq.fromList scrollReqs
       result
         | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
         | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
@@ -252,14 +253,16 @@ makeScroll config state = widget where
     Move point -> result where
       drag bar = updateScrollThumb state bar point contentArea sctx
       makeWidget state = rebuildWidget wenv state node
-      makeResult state = resultReqs (makeWidget state) (RenderOnce : scrollReqs)
+      makeResult state = makeWidget state
+        & L.requests <>~ Seq.fromList (RenderOnce : scrollReqs)
       result = fmap (makeResult . drag) dragging
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > cw
       changedY = wy /= 0 && childHeight > ch
       needsUpdate = changedX || changedY
       makeWidget state = rebuildWidget wenv state node
-      makeResult state = resultReqs (makeWidget state) scrollReqs
+      makeResult state = makeWidget state
+        & L.requests <>~ Seq.fromList scrollReqs
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
@@ -315,10 +318,9 @@ makeScroll config state = widget where
       _sstDeltaX = scrollAxis stepX childWidth cw,
       _sstDeltaY = scrollAxis stepY childHeight ch
     }
-    newNode = rebuildWidget wenv newState node
     result
       | rectInRect rect contentArea = Nothing
-      | otherwise = Just $ resultWidget newNode
+      | otherwise = Just $ rebuildWidget wenv newState node
 
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point
@@ -339,12 +341,12 @@ makeScroll config state = widget where
       _sstDeltaY = newDeltaY
     }
 
-  rebuildWidget wenv newState node = newNode where
+  rebuildWidget wenv newState node = result where
     newWidget = makeScroll config newState
     tempNode = node & L.widget .~ newWidget
     vp = tempNode ^. L.info . L.viewport
     ra = tempNode ^. L.info . L.renderArea
-    newNode = scrollResize (Just newWidget) newState wenv vp ra tempNode
+    result = scrollResize (Just newWidget) newState wenv vp ra tempNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = sizeReq where
@@ -357,7 +359,7 @@ makeScroll config state = widget where
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
-  scrollResize uWidget state wenv viewport renderArea node = newNode where
+  scrollResize uWidget state wenv viewport renderArea node = resized where
     style = scrollActiveStyle wenv node
     scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
@@ -385,16 +387,18 @@ makeScroll config state = widget where
     }
     newWidget = fromMaybe defWidget uWidget
     cWidget = child ^. L.widget
-    tempChild = widgetResize cWidget wenv viewport cRenderArea child
-    newChild = tempChild
+    childRes = widgetResize cWidget wenv viewport cRenderArea child
+    newChild = childRes ^. L.node
       & L.info . L.viewport .~ cViewport
       & L.info . L.renderArea .~ cRenderArea
 
-    newNode = node
-      & L.widget .~ newWidget
-      & L.info . L.viewport .~ viewport
-      & L.info . L.renderArea .~ renderArea
-      & L.children .~ Seq.singleton newChild
+    resized = resultWidget node
+      & L.node . L.widget .~ newWidget
+      & L.node . L.info . L.viewport .~ viewport
+      & L.node . L.info . L.renderArea .~ renderArea
+      & L.node . L.children .~ Seq.singleton newChild
+      & L.requests <>~ childRes ^. L.requests
+      & L.events <>~ childRes ^. L.events
 
   render renderer wenv node =
     drawInScissor renderer True viewport $

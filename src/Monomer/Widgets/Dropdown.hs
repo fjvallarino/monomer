@@ -389,7 +389,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Nothing -> (viewport, renderArea)
     !mainArea = (viewport, renderArea)
     assignedAreas = Seq.fromList [mainArea, listArea]
-    resized = (node, assignedAreas)
+    resized = (resultWidget node, assignedAreas)
 
   render renderer wenv node = do
     drawInScissor renderer True viewport $

@@ -103,7 +103,7 @@ makeStack isHorizontal config = widget where
       & L.info . L.viewport .~ newRa
       & L.info . L.renderArea .~ newRa
     assignedArea = Seq.zip newViewports newViewports
-    resized = (newNode, assignedArea)
+    resized = (resultWidget newNode, assignedArea)
 
 assignStackAreas :: Bool -> Rect -> Seq (WidgetNode s e) -> (Seq Rect, Double)
 assignStackAreas isHorizontal contentArea children = result where

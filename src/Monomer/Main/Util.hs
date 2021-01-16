@@ -62,29 +62,9 @@ findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
   nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
 
 resizeRoot
-  :: WidgetEnv s e -> Size -> WidgetNode s e -> WidgetNode s e
-resizeRoot wenv windowSize widgetRoot = newRoot where
+  :: WidgetEnv s e -> Size -> WidgetNode s e -> WidgetResult s e
+resizeRoot wenv windowSize widgetRoot = result where
   Size w h = windowSize
   assigned = Rect 0 0 w h
   widget = widgetRoot ^. L.widget
-  newRoot =  widgetResize widget wenv assigned assigned widgetRoot
-
-resizeWindow
-  :: (MonomerM s m)
-  => SDL.Window
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> m (WidgetNode s e)
-resizeWindow window wenv widgetRoot = do
-  dpr <- use L.dpr
-  drawableSize <- getDrawableSize window
-  newWindowSize <- getWindowSize window dpr
-
-  let position = GL.Position 0 0
-  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
-  let newWenv = wenv & L.windowSize .~ newWindowSize
-
-  L.windowSize .= newWindowSize
-  liftIO $ GL.viewport GL.$= (position, size)
-
-  return $ resizeRoot wenv newWindowSize widgetRoot
+  result = widgetResize widget wenv assigned assigned widgetRoot

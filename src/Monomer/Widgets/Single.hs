@@ -102,7 +102,7 @@ type SingleResizeHandler s e
   -> Rect
   -> Rect
   -> WidgetNode s e
-  -> WidgetNode s e
+  -> WidgetResult s e
 
 type SingleRenderHandler s e
   =  Renderer
@@ -381,7 +381,7 @@ handleSizeReqChange single wenv node evt mResult = result where
     | otherwise = mResult
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv viewport renderArea node = node
+defaultResize wenv viewport renderArea node = resultWidget node
 
 resizeHandlerWrapper
   :: Single s e a
@@ -389,22 +389,22 @@ resizeHandlerWrapper
   -> Rect
   -> Rect
   -> WidgetNode s e
-  -> WidgetNode s e
-resizeHandlerWrapper single wenv viewport renderArea node = newNode where
+  -> WidgetResult s e
+resizeHandlerWrapper single wenv viewport renderArea node = result where
   useCustomSize = singleUseCustomSize single
   handler = singleResize single
-  tempNode = handler wenv viewport renderArea node
+  tmpRes = handler wenv viewport renderArea node
   lensVp = L.info . L.viewport
   lensRa = L.info . L.renderArea
   newVp
-    | useCustomSize = tempNode ^. lensVp
+    | useCustomSize = tmpRes ^. L.node . lensVp
     | otherwise = viewport
   newRa
-    | useCustomSize = tempNode ^. lensRa
+    | useCustomSize = tmpRes ^. L.node . lensRa
     | otherwise = renderArea
-  newNode = tempNode
-    & L.info . L.viewport .~ newVp
-    & L.info . L.renderArea .~ newRa
+  result = tmpRes
+    & L.node . L.info . L.viewport .~ newVp
+    & L.node . L.info . L.renderArea .~ newRa
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv node = return ()
