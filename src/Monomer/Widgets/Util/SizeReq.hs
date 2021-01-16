@@ -23,14 +23,18 @@ import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Widget
 
 sizeReqBound :: SizeReq -> Double -> Double -> Double
-sizeReqBound sizeReq offset value = max minSize . min maxSize $ value where
+sizeReqBound sizeReq offset value = max minSize (min maxSize value) where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
 
 sizeReqValid :: SizeReq -> Double -> Double -> Bool
-sizeReqValid sizeReq offset value = minSize <= value && value <= maxSize where
+sizeReqValid sizeReq offset value = validMin && validMax where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
+  minDiff = value - minSize
+  maxDiff = maxSize - value
+  validMin = minDiff >= 0 || abs minDiff < 0.0001
+  validMax = maxDiff >= 0 || abs maxDiff < 0.0001
 
 sizeReqAddStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where

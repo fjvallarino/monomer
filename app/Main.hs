@@ -118,23 +118,7 @@ handleAppEvent wenv model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = trace "Creating UI" widgetHSplit where
-  widgetSplitAlt = hsplit (
-    hstack [
-      scroll_ (
-        image_ "assets/images/pecans.jpg" [fitFill]
-      ) [] `style` [minWidth 200]
-      ,
-      scroll_ (
-        image_ "assets/images/pecans.jpg" [fitFill]
-      ) [] `style` [minWidth 200]
-      ,
-      scroll_ (
-        image_ "assets/images/pecans.jpg" [fitFill]
-      ) [] `style` [minWidth 200]
-    ],
-    image_ "https://picsum.photos/800/600" [fitFill, onLoadError ImageMsg])
-
-  widgetHSplit = hsplit (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree)
+  widgetHSplit = hsplit_ (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree)  [splitIgnoreChildResize False]
   widgetVSplit = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 500], widgetTree `style` [rangeHeight 200 500])
   mkImg i = vstack [
       label ("Image: " <> showt i),
@@ -343,8 +327,7 @@ buildUI wenv model = trace "Creating UI" widgetHSplit where
         label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
         label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
-      hsplit (
-        hstack [
+      hstack [
           scroll_ (
             image_ "assets/images/pecans.jpg" [fitFill]
           ) []
@@ -355,9 +338,9 @@ buildUI wenv model = trace "Creating UI" widgetHSplit where
           ,
           scroll_ (
             image_ "assets/images/pecans.jpg" [fitFill]
-          ) []
+          ) [],
+          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg]
         ],
-        image_ "https://picsum.photos/800/600" [fitFill, onLoadError ImageMsg]),
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20

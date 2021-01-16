@@ -7,7 +7,8 @@ module Monomer.Widgets.Split (
   hsplit_,
   vsplit,
   vsplit_,
-  splitHandleSize
+  splitHandleSize,
+  splitIgnoreChildResize
 ) where
 
 import Codec.Serialise
@@ -25,18 +26,21 @@ import Monomer.Widgets.Stack (assignStackAreas)
 
 import qualified Monomer.Lens as L
 
-newtype SplitCfg = SplitCfg {
-  _spcHandleSize :: Maybe Double
+data SplitCfg = SplitCfg {
+  _spcHandleSize :: Maybe Double,
+  _spcIgnoreChildResize :: Maybe Bool
 }
 
 instance Default SplitCfg where
   def = SplitCfg {
-    _spcHandleSize = Nothing
+    _spcHandleSize = Nothing,
+    _spcIgnoreChildResize = Nothing 
   }
 
 instance Semigroup SplitCfg where
   (<>) s1 s2 = SplitCfg {
-    _spcHandleSize = _spcHandleSize s2 <|> _spcHandleSize s1
+    _spcHandleSize = _spcHandleSize s2 <|> _spcHandleSize s1,
+    _spcIgnoreChildResize = _spcIgnoreChildResize s2 <|> _spcIgnoreChildResize s1
   }
 
 instance Monoid SplitCfg where
@@ -45,6 +49,11 @@ instance Monoid SplitCfg where
 splitHandleSize :: Double -> SplitCfg
 splitHandleSize w = def {
   _spcHandleSize = Just w
+}
+
+splitIgnoreChildResize :: Bool -> SplitCfg
+splitIgnoreChildResize ignore = def {
+  _spcIgnoreChildResize = Just ignore
 }
 
 data SplitState = SplitState {
@@ -71,7 +80,13 @@ split_
   :: Bool -> (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
 split_ isHorizontal (node1, node2) configs = newNode where
   config = mconcat configs
-  state = SplitState def 0 False 0 def
+  state = SplitState {
+    _spsPrevReqs = def,
+    _spsMaxSize = 0,
+    _spsHandleDragged = False,
+    _spsHandlePos = 0,
+    _spsHandleRect = def
+  }
   widget = makeSplit isHorizontal config state
   widgetName = if isHorizontal then "hsplit" else "vsplit"
   newNode = defaultWidgetNode widgetName widget
@@ -148,10 +163,12 @@ makeSplit isHorizontal config state = widget where
     sizeReq2 = sizeReq $ Seq.index children 1
     valid1 = sizeReqValid sizeReq1 0 (newSize * oldHandlePos)
     valid2 = sizeReqValid sizeReq2 0 (newSize * (1 - oldHandlePos))
-    keepHandlePos = _spsHandleDragged state || valid1 && valid2
-    sizeReqChanged = (sizeReq1, sizeReq2) /= _spsPrevReqs state
+    handleDragged = _spsHandleDragged state
+    ignoreSizeReq = Just True == _spcIgnoreChildResize config
+    sizeReqEquals = (sizeReq1, sizeReq2) == _spsPrevReqs state
     handlePos
-      | keepHandlePos && not sizeReqChanged = oldHandlePos
+      | ignoreSizeReq && handleDragged && valid1 && valid2 = oldHandlePos
+      | sizeReqEquals && handleDragged && valid1 && valid2 = oldHandlePos
       | otherwise = calcHandlePos areas newSize
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)
@@ -167,7 +184,6 @@ makeSplit isHorizontal config state = widget where
       | isHorizontal = Rect (rx + w1) ry handleW h1
       | otherwise = Rect rx (ry + h1) w1 handleW
     newState = state {
-      _spsHandleDragged = False,
       _spsHandlePos = handlePos,
       _spsHandleRect = newHandleRect,
       _spsMaxSize = newSize,
