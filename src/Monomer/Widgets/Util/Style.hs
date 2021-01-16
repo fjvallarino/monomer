@@ -15,7 +15,7 @@ module Monomer.Widgets.Util.Style (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just)
+import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just, _1)
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
@@ -44,10 +44,10 @@ activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isNodeFocused wenv node
-  isPress = isNodePressed wenv node
+  isActive = isNodeActive wenv node
   styleState
     | not isEnabled = _styleDisabled
-    | isHover && isPress = _styleActive
+    | isActive = _styleActive
     | isHover && isFocus = _styleFocusHover
     | isHover = _styleHover
     | isFocus = _styleFocus
@@ -74,10 +74,10 @@ activeTheme_ isHoveredFn wenv node = themeState where
   isEnabled = node ^. L.info . L.enabled
   isHover = isHoveredFn wenv node
   isFocus = isNodeFocused wenv node
-  isPress = isNodePressed wenv node
+  isActive = isNodeActive wenv node
   themeState
     | not isEnabled = _themeDisabled theme
-    | isHover && isPress = _themeActive theme
+    | isActive = _themeActive theme
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
@@ -130,9 +130,15 @@ handleSizeChange wenv target evt cfg oldNode newNode = reqs where
   newSizeReqW = newNode ^. L.info . L.sizeReqW
   newSizeReqH = newNode ^. L.info . L.sizeReqH
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
+  -- Hover drag changed (if dragging, Enter/Leave is not sent)
+  prevInVp = isPointInNodeVp (wenv ^. L.inputStatus . L.mousePosPrev) newNode
+  currInVp = isPointInNodeVp (wenv ^. L.inputStatus . L.mousePos) newNode
+  path = newNode ^. L.info . L.path
+  pressedPath = wenv ^. L.mainBtnPress ^? _Just . _1
+  hoverDragChanged = Just path == pressedPath && prevInVp /= currInVp
   -- Result
   resizeReq = [ ResizeWidgets | sizeReqChanged ]
-  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt ]
+  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt || hoverDragChanged ]
   reqs = resizeReq ++ enterReq
 
 styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool

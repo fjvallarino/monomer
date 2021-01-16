@@ -1,5 +1,6 @@
 module Monomer.Widgets.Util.SizeReq (
   sizeReqBound,
+  sizeReqValid,
   sizeReqAddStyle,
   sizeReqMin,
   sizeReqMax,
@@ -23,6 +24,11 @@ import Monomer.Widgets.Util.Widget
 
 sizeReqBound :: SizeReq -> Double -> Double -> Double
 sizeReqBound sizeReq offset value = max minSize . min maxSize $ value where
+  minSize = offset + sizeReqMin sizeReq
+  maxSize = offset + sizeReqMax sizeReq
+
+sizeReqValid :: SizeReq -> Double -> Double -> Bool
+sizeReqValid sizeReq offset value = minSize <= value && value <= maxSize where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
 

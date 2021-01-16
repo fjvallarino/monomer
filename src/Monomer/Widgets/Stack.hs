@@ -136,7 +136,8 @@ assignStackAreas isHorizontal contentArea children = result where
     newSize = resizeChild isHorizontal contentArea flexCoeff extraCoeff offset child
     newAccum = accum |> newSize
     newOffset = offset + rectSelector newSize
-  result = foldl' foldHelper (Seq.empty, mainStart) children
+  (areas, usedDim) = foldl' foldHelper (Seq.empty, mainStart) children
+  result = (areas, usedDim - mainStart)
 
 resizeChild :: Bool -> Rect -> Factor -> Factor -> Double -> WidgetNode s e -> Rect
 resizeChild horizontal contentArea flexCoeff extraCoeff offset child = result where

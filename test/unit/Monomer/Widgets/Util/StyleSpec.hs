@@ -59,7 +59,7 @@ testActiveStyle = describe "activeStyle" $ do
       & L.focusedPath .~ Seq.fromList [0]
     wenvActive = mockWenv ()
       & L.inputStatus . L.mousePos .~ Point 200 200
-      & L.inputStatus . L.buttons . at LeftBtn ?~ PressedBtn
+      & L.mainBtnPress ?~ (Seq.fromList [0], Point 200 200)
     nodeNormal = createNode True
     nodeDisabled = createNode False
 

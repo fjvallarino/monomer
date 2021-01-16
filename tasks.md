@@ -416,6 +416,7 @@
       - Maybe have two versions of add? Two versions of render?
     - When adding image, on failure remove the least used image and retry
       - https://hackage.haskell.org/package/lrucache
+  - Active state not working correctly (click button and drag outside)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -432,13 +433,13 @@ Maybe postponed after release?
     - Use space proportional to what widgets request
   - Does widgetResize need to return WidgetResult?
     - User may want to listen for resize events
+  - Create Dial
   - Create Slider
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Create Theme widget to override global theme
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
-  - Create Dial
   - Create Layout with width/heights specified in percents
   - Create File Selector
   - Create Color Selector

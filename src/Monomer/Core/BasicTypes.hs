@@ -92,6 +92,9 @@ subtractFromSize (Size w h) w2 h2 = newSize where
 moveRect :: Point -> Rect -> Rect
 moveRect (Point x y) (Rect rx ry rw rh) = Rect (rx + x) (ry + y) rw rh
 
+rectCenter :: Rect -> Point
+rectCenter (Rect rx ry rw rh) = Point (rx + rw / 2) (ry + rh / 2)
+
 rectInRect :: Rect -> Rect -> Bool
 rectInRect inner outer = rectInRectH inner outer && rectInRectV inner outer
 
