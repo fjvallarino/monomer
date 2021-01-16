@@ -35,7 +35,8 @@ data App = App {
   _condition2 :: Bool,
   _condition3 :: Bool,
   _showAlert :: Bool,
-  _showConfirm :: Bool
+  _showConfirm :: Bool,
+  _splitPos :: Double
 } deriving (Eq, Show, Generic, Serialise)
 
 instance Default App where
@@ -56,7 +57,8 @@ instance Default App where
     _condition2 = False,
     _condition3 = False,
     _showAlert = False,
-    _showConfirm = False
+    _showConfirm = False,
+    _splitPos = 0.5
   }
 
 makeLenses ''App
@@ -82,6 +84,7 @@ data AppEvent
   | AcceptConfirm
   | CancelConfirm
   | ChangeTitle Text
+  | SliderPos Double
   | ExitApp
   | CancelExitApp
   | MaxWindow

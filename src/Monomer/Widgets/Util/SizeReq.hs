@@ -28,14 +28,9 @@ sizeReqBound sizeReq offset value = max minSize (min maxSize value) where
   maxSize = offset + sizeReqMax sizeReq
 
 sizeReqValid :: SizeReq -> Double -> Double -> Bool
-sizeReqValid sizeReq offset value = validMin && validMax where
+sizeReqValid sizeReq offset value = doubleInRange minSize maxSize value where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
-  minDiff = value - minSize
-  maxDiff = maxSize - value
-  -- Some calculations may leave small differences in otherwise valid results
-  validMin = minDiff >= 0 || abs minDiff < 0.0001
-  validMax = maxDiff >= 0 || abs maxDiff < 0.0001
 
 sizeReqAddStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where

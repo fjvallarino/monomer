@@ -60,6 +60,9 @@ handleAppEvent
   -> AppEvent
   -> [AppEventResponse App AppEvent]
 handleAppEvent wenv model evt = case evt of
+  SliderPos pos -> [Task $ do
+    print pos
+    return Nothing]
   IncButton -> [Model (model & clickCount %~ (+1)),
     Task $ do
       threadDelay 1000000
@@ -118,7 +121,7 @@ handleAppEvent wenv model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = trace "Creating UI" widgetHSplit where
-  widgetHSplit = hsplit_ (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree)  [splitIgnoreChildResize False]
+  widgetHSplit = hsplit (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree)
   widgetVSplit = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 500], widgetTree `style` [rangeHeight 200 500])
   mkImg i = vstack [
       label ("Image: " <> showt i),

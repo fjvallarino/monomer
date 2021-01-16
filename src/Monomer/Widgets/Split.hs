@@ -1,19 +1,23 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Split (
   hsplit,
   hsplit_,
   vsplit,
   vsplit_,
+  splitHandlePos,
+  splitHandlePosV,
   splitHandleSize,
   splitIgnoreChildResize
 ) where
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (<>~))
+import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Tuple (swap)
@@ -26,32 +30,61 @@ import Monomer.Widgets.Stack (assignStackAreas)
 
 import qualified Monomer.Lens as L
 
-data SplitCfg = SplitCfg {
+data SplitCfg s e = SplitCfg {
+  _spcHandlePos :: Maybe (WidgetData s Double),
   _spcHandleSize :: Maybe Double,
-  _spcIgnoreChildResize :: Maybe Bool
+  _spcIgnoreChildResize :: Maybe Bool,
+  _spcOnChange :: [Double -> e],
+  _spcOnChangeReq :: [WidgetRequest s]
 }
 
-instance Default SplitCfg where
+instance Default (SplitCfg s e) where
   def = SplitCfg {
+    _spcHandlePos = Nothing,
     _spcHandleSize = Nothing,
-    _spcIgnoreChildResize = Nothing 
+    _spcIgnoreChildResize = Nothing,
+    _spcOnChange = [],
+    _spcOnChangeReq = []
   }
 
-instance Semigroup SplitCfg where
+instance Semigroup (SplitCfg s e) where
   (<>) s1 s2 = SplitCfg {
+    _spcHandlePos = _spcHandlePos s2 <|> _spcHandlePos s1,
     _spcHandleSize = _spcHandleSize s2 <|> _spcHandleSize s1,
-    _spcIgnoreChildResize = _spcIgnoreChildResize s2 <|> _spcIgnoreChildResize s1
+    _spcIgnoreChildResize = _spcIgnoreChildResize s2 <|> _spcIgnoreChildResize s1,
+    _spcOnChange = _spcOnChange s2 <|> _spcOnChange s1,
+    _spcOnChangeReq = _spcOnChangeReq s2 <|> _spcOnChangeReq s1
   }
 
-instance Monoid SplitCfg where
+instance Monoid (SplitCfg s e) where
   mempty = def
 
-splitHandleSize :: Double -> SplitCfg
+instance CmbOnChange (SplitCfg s e) Double e where
+  onChange fn = def {
+    _spcOnChange = [fn]
+  }
+
+instance CmbOnChangeReq (SplitCfg s e) s where
+  onChangeReq req = def {
+    _spcOnChangeReq = [req]
+  }
+
+splitHandlePos :: ALens' s Double -> SplitCfg s e
+splitHandlePos field = def {
+  _spcHandlePos = Just (WidgetLens field)
+}
+
+splitHandlePosV :: Double -> SplitCfg s e
+splitHandlePosV value = def {
+  _spcHandlePos = Just (WidgetValue value)
+}
+
+splitHandleSize :: Double -> SplitCfg s e
 splitHandleSize w = def {
   _spcHandleSize = Just w
 }
 
-splitIgnoreChildResize :: Bool -> SplitCfg
+splitIgnoreChildResize :: Bool -> SplitCfg s e
 splitIgnoreChildResize ignore = def {
   _spcIgnoreChildResize = Just ignore
 }
@@ -59,7 +92,7 @@ splitIgnoreChildResize ignore = def {
 data SplitState = SplitState {
   _spsPrevReqs :: (SizeReq, SizeReq),
   _spsMaxSize :: Double,
-  _spsHandleDragged :: Bool,
+  _spsHandlePosSet :: Bool,
   _spsHandlePos :: Double,
   _spsHandleRect :: Rect
 } deriving (Eq, Show, Generic, Serialise)
@@ -67,23 +100,26 @@ data SplitState = SplitState {
 hsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ nodes def
 
-hsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
+hsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg s e] -> WidgetNode s e
 hsplit_ nodes configs = split_ True nodes configs
 
 vsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 vsplit nodes = vsplit_ nodes def
 
-vsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
+vsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg s e] -> WidgetNode s e
 vsplit_ nodes configs = split_ False nodes configs
 
 split_
-  :: Bool -> (WidgetNode s e, WidgetNode s e) -> [SplitCfg] -> WidgetNode s e
+  :: Bool
+  -> (WidgetNode s e, WidgetNode s e)
+  -> [SplitCfg s e]
+  -> WidgetNode s e
 split_ isHorizontal (node1, node2) configs = newNode where
   config = mconcat configs
   state = SplitState {
     _spsPrevReqs = def,
     _spsMaxSize = 0,
-    _spsHandleDragged = False,
+    _spsHandlePosSet = False,
     _spsHandlePos = 0,
     _spsHandleRect = def
   }
@@ -92,9 +128,10 @@ split_ isHorizontal (node1, node2) configs = newNode where
   newNode = defaultWidgetNode widgetName widget
     & L.children .~ Seq.fromList [node1, node2]
 
-makeSplit :: Bool -> SplitCfg -> SplitState -> Widget s e
+makeSplit :: Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
+    containerInit = init,
     containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
@@ -103,9 +140,27 @@ makeSplit isHorizontal config state = widget where
 
   handleW = fromMaybe 5 (_spcHandleSize config)
 
+  init wenv node = result where
+    useModelValue value = resultWidget newNode where
+      newState = state {
+        _spsHandlePosSet = True,
+        _spsHandlePos = value
+      }
+      newNode = node
+        & L.widget .~ makeSplit isHorizontal config newState
+    result = case getModelPos wenv config of
+      Just val
+        | val >= 0 && val <= 1 -> useModelValue val
+      _ -> resultWidget node
+
   restore wenv oldState oldNode newNode = result where
+    oldHandlePos = _spsHandlePos oldState
+    modelPos = getModelPos wenv config
+    newState = oldState {
+      _spsHandlePos = fromMaybe oldHandlePos modelPos
+    }
     result = resultWidget $ newNode
-      & L.widget .~ makeSplit isHorizontal config oldState
+      & L.widget .~ makeSplit isHorizontal config newState
 
   handleEvent wenv target evt node = case evt of
     Move point
@@ -117,18 +172,21 @@ makeSplit isHorizontal config state = widget where
           | isHorizontal = (px - ra ^. L.x) / maxSize
           | otherwise = (py - ra ^. L.y) / maxSize
         newState = state {
-          _spsHandleDragged = True,
+          _spsHandlePosSet = True,
           _spsHandlePos = newHandlePos
         }
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
         newNode = widgetResize (tmpNode ^. L.widget) wenv vp ra tmpNode
-        resultDrag = newNode
-          & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
+        resultDrag
+          | handlePos /= newHandlePos = newNode
+              & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
+          | otherwise = resultReqs node [cursorIconReq]
         resultHover = resultReqs node [cursorIconReq]
     _ -> Nothing
     where
       maxSize = _spsMaxSize state
+      handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
       vp = node ^. L.info . L.viewport
       ra = node ^. L.info . L.renderArea
@@ -163,12 +221,14 @@ makeSplit isHorizontal config state = widget where
     sizeReq2 = sizeReq $ Seq.index children 1
     valid1 = sizeReqValid sizeReq1 0 (newSize * oldHandlePos)
     valid2 = sizeReqValid sizeReq2 0 (newSize * (1 - oldHandlePos))
-    handleDragged = _spsHandleDragged state
+    validSize = valid1 && valid2
+    handlePosSet = _spsHandlePosSet state
+    customPos = isJust (_spcHandlePos config)
     ignoreSizeReq = Just True == _spcIgnoreChildResize config
     sizeReqEquals = (sizeReq1, sizeReq2) == _spsPrevReqs state
+    useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     handlePos
-      | ignoreSizeReq && handleDragged && valid1 && valid2 = oldHandlePos
-      | sizeReqEquals && handleDragged && valid1 && valid2 = oldHandlePos
+      | useOldPos && handlePosSet && validSize = oldHandlePos
       | otherwise = calcHandlePos areas newSize
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)
@@ -189,11 +249,16 @@ makeSplit isHorizontal config state = widget where
       _spsMaxSize = newSize,
       _spsPrevReqs = (sizeReq1, sizeReq2)
     }
-    newNode = node
-      & L.widget .~ makeSplit isHorizontal config newState
+    events = fmap ($ handlePos) (_spcOnChange config)
+    reqOnChange = _spcOnChangeReq config
+    requestPos = setModelPos config handlePos
+    result = resultWidget node
+      & L.node . L.widget .~ makeSplit isHorizontal config newState
+      & L.events .~ Seq.fromList events
+      & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
     newRas = Seq.fromList [rect1, rect2]
     assignedArea = Seq.zip newRas newRas
-    resized = (resultWidget newNode, assignedArea)
+    resized = (result, assignedArea)
 
   getValidHandlePos maxDim rect point children = addPoint origin newPoint where
     Rect rx ry rw rh = rect
@@ -207,8 +272,8 @@ makeSplit isHorizontal config state = widget where
     minSize2 = sizeReqMin (sizeReq child2)
     maxSize2 = sizeReqMax (sizeReq child2)
     (tw, th)
-      | isHorizontal = (max minSize1 (min maxSize1 $ vx - rx), 0)
-      | otherwise = (0, max minSize1 (min maxSize1 $ vy - ry))
+      | isHorizontal = (max minSize1 (min maxSize1 $ abs (vx - rx)), 0)
+      | otherwise = (0, max minSize1 (min maxSize1 $ abs (vy - ry)))
     newPoint
       | isHorizontal && tw + minSize2 > maxDim = Point (maxDim - minSize2) th
       | isHorizontal && maxDim - tw > maxSize2 = Point (maxDim - maxSize2) th
@@ -227,3 +292,16 @@ makeSplit isHorizontal config state = widget where
   sizeReq
     | isHorizontal = (^. L.info . L.sizeReqW)
     | otherwise = (^. L.info . L.sizeReqH)
+
+setModelPos :: SplitCfg s e -> Double -> [WidgetRequest s]
+setModelPos cfg
+  | isJust (_spcHandlePos cfg) = widgetDataSet (fromJust $ _spcHandlePos cfg)
+  | otherwise = const []
+
+getModelPos :: WidgetEnv s e -> SplitCfg s e -> Maybe Double
+getModelPos wenv cfg
+  | isJust handlePosL = Just $ widgetDataGet model (fromJust handlePosL)
+  | otherwise = Nothing
+  where
+    model = wenv ^. L.model
+    handlePosL = _spcHandlePos cfg

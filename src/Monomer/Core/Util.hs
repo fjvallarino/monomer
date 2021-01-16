@@ -61,6 +61,18 @@ numberInBounds (Just minVal) Nothing val = val >= minVal
 numberInBounds Nothing (Just maxVal) val = val <= maxVal
 numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
 
+-- This is meant to be used in coordinate calculations only
+doubleCloseTo :: Double -> Double -> Bool
+doubleCloseTo val1 val2 = abs (val2 - val1) < 0.0001
+
+doubleInRange :: Double -> Double -> Double -> Bool
+doubleInRange minValue maxValue curValue = validMin && validMax where
+  minDiff = curValue - minValue
+  maxDiff = maxValue - curValue
+  -- Some calculations may leave small differences in otherwise valid results
+  validMin = minDiff >= 0 || abs minDiff < 0.0001
+  validMax = maxDiff >= 0 || abs maxDiff < 0.0001
+
 isFocusRequest :: WidgetRequest s -> Bool
 isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True
