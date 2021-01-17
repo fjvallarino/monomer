@@ -229,7 +229,7 @@ makeSplit isHorizontal config state = widget where
     useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     handlePos
       | useOldPos && handlePosSet && validSize = oldHandlePos
-      | otherwise = calcHandlePos areas newSize
+      | otherwise = calcHandlePos newSize oldHandlePos renderArea children
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)
       | otherwise = (rw, (newSize - handleW) * handlePos)
@@ -261,7 +261,7 @@ makeSplit isHorizontal config state = widget where
     resized = (result, assignedArea)
 
   getValidHandlePos maxDim rect point children = addPoint origin newPoint where
-    Rect rx ry rw rh = rect
+    Rect rx ry _ _ = rect
     Point vx vy = rectBoundedPoint rect point
     origin = Point rx ry
     isVertical = not isHorizontal
@@ -281,9 +281,15 @@ makeSplit isHorizontal config state = widget where
       | isVertical && maxDim - th > maxSize2 = Point tw (maxDim - maxSize2)
       | otherwise = Point tw th
 
-  calcHandlePos areas newDim = newPos where
-    childSize = selector $ Seq.index areas 0
-    newPos = childSize / newDim
+  calcHandlePos maxDim handlePos rect children = newPos where
+    Rect rx ry _ _ = rect
+    point
+      | isHorizontal = Point (rx + maxDim * handlePos) 0
+      | otherwise = Point 0 (ry + maxDim * handlePos)
+    Point px py = getValidHandlePos maxDim rect point children
+    newPos
+      | isHorizontal = (px - rx) / maxDim
+      | otherwise = (py - ry) / maxDim
 
   selector
     | isHorizontal = _rW
