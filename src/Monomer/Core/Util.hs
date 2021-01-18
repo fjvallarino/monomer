@@ -55,6 +55,9 @@ maxNumericValue = x where
   (_, u) = floatRange x
   x = encodeFloat (b^n - 1) (u - n)
 
+restrictValue :: Ord a => a -> a -> a -> a
+restrictValue minVal maxVal value = max minVal (min maxVal value)
+
 numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
 numberInBounds Nothing Nothing _ = True
 numberInBounds (Just minVal) Nothing val = val >= minVal

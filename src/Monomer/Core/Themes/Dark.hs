@@ -84,6 +84,8 @@ darkBasic = def
   & L.btnMainStyle . L.padding ?~ (paddingV 3 <> paddingH 5)
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ gray
+  & L.dialWidth .~ 50
+  & L.dialStyle . L.fgColor ?~ gray
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft

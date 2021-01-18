@@ -434,6 +434,7 @@ Maybe postponed after release?
   - Create Split
     - Use space proportional to what widgets request
   - Create Dial
+  - Check Input drag release
   - Create Slider
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
@@ -446,6 +447,7 @@ Maybe postponed after release?
   - Create GridView
   - Add arrow icon similar to Renoise's
   - Make overlays be drawn in separate beginFrame/endFrame calls
+  - ZStack should consider all visible layers when requesting size (split modal issue)
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

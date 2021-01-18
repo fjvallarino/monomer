@@ -5,6 +5,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Checkbox,
   module Monomer.Widgets.Composite,
   module Monomer.Widgets.Confirm,
+  module Monomer.Widgets.Dial,
   module Monomer.Widgets.Dropdown,
   module Monomer.Widgets.FloatingField,
   module Monomer.Widgets.Grid,
@@ -29,6 +30,7 @@ import Monomer.Widgets.Button
 import Monomer.Widgets.Checkbox
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Confirm
+import Monomer.Widgets.Dial
 import Monomer.Widgets.Dropdown
 import Monomer.Widgets.FloatingField
 import Monomer.Widgets.Grid
