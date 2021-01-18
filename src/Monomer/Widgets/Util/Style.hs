@@ -124,6 +124,7 @@ handleSizeChange
   -> WidgetNode s e
   -> [WidgetRequest s]
 handleSizeChange wenv target evt cfg oldNode newNode = reqs where
+  isCursorEvt = cfg ^. L.cursorEvt
   -- Size
   oldSizeReqW = oldNode ^. L.info . L.sizeReqW
   oldSizeReqH = oldNode ^. L.info . L.sizeReqH
@@ -135,10 +136,11 @@ handleSizeChange wenv target evt cfg oldNode newNode = reqs where
   currInVp = isPointInNodeVp (wenv ^. L.inputStatus . L.mousePos) newNode
   path = newNode ^. L.info . L.path
   pressedPath = wenv ^. L.mainBtnPress ^? _Just . _1
-  hoverDragChanged = Just path == pressedPath && prevInVp /= currInVp
+  hoverDragChg = Just path == pressedPath && prevInVp /= currInVp
   -- Result
+  renderReq = isOnEnter evt || isOnLeave evt || isCursorEvt evt || hoverDragChg
   resizeReq = [ ResizeWidgets | sizeReqChanged ]
-  enterReq = [ RenderOnce | isOnEnter evt || isOnLeave evt || hoverDragChanged ]
+  enterReq = [ RenderOnce | renderReq ]
   reqs = resizeReq ++ enterReq
 
 styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool

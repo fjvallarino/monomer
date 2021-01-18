@@ -13,6 +13,7 @@ module Monomer.Core.StyleUtil (
   styleFontColor,
   styleTextAlignH,
   styleTextAlignV,
+  styleBgColor,
   styleFgColor,
   styleHlColor,
   getContentArea,
@@ -142,6 +143,10 @@ styleTextAlignH style = fromMaybe def alignH where
 styleTextAlignV :: StyleState -> AlignV
 styleTextAlignV style = fromMaybe def alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
+
+styleBgColor :: StyleState -> Color
+styleBgColor style = fromMaybe def bgColor where
+  bgColor = style ^? L.bgColor . _Just
 
 styleFgColor :: StyleState -> Color
 styleFgColor style = fromMaybe def fgColor where

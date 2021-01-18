@@ -120,10 +120,11 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow ("Creating UI", model ^. float1) widgetDial where
+buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetDial = vstack [
       label "Test",
-      dial float1 (-100) 1000,
+      dial double1 (-100) 100,
+      button "Test" RunShortTask,
       image "assets/images/pecans.jpg"
     ]
   widgetHSplit = hsplit (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree `style` [rangeWidth 200 500])

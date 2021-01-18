@@ -5,6 +5,8 @@ module Monomer.Graphics.Drawing (
   drawInScissor,
   drawRect,
   drawRectBorder,
+  drawArc,
+  drawArcBorder,
   drawEllipse,
   drawEllipseBorder,
   drawArrowDown,
@@ -75,6 +77,40 @@ drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
   drawRectRoundedBorder renderer rect border radius
+
+drawArc
+  :: Renderer -> Rect -> Double -> Double -> Winding -> Maybe Color -> IO ()
+drawArc renderer rect start end winding Nothing = return ()
+drawArc renderer rect start end winding (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  renderArc renderer center radius start end winding
+  fill renderer
+  where
+    Rect rx ry rw rh = rect
+    radius = min (rw / 2) (rh / 2)
+    center = Point (rx + rw / 2) (ry + rh / 2)
+
+drawArcBorder
+  :: Renderer
+  -> Rect
+  -> Double
+  -> Double
+  -> Winding
+  -> Maybe Color
+  -> Double
+  -> IO ()
+drawArcBorder renderer rect start end winding Nothing width = return ()
+drawArcBorder renderer rect start end winding (Just color) width = do
+  beginPath renderer
+  setStrokeColor renderer color
+  setStrokeWidth renderer width
+  renderArc renderer center radius start end winding
+  stroke renderer
+  where
+    Rect rx ry rw rh = rect
+    radius = min ((rw - width) / 2) ((rh - width) / 2)
+    center = Point (rx + rw / 2) (ry + rh / 2)
 
 drawEllipse :: Renderer -> Rect -> Maybe Color -> IO ()
 drawEllipse renderer rect Nothing = return ()

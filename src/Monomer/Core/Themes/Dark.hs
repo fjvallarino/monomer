@@ -85,7 +85,8 @@ darkBasic = def
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ gray
   & L.dialWidth .~ 50
-  & L.dialStyle . L.fgColor ?~ gray
+  & L.dialStyle . L.fgColor ?~ darkGray
+  & L.dialStyle . L.hlColor ?~ gray
   & L.dialogFrameStyle . L.bgColor ?~ gray
   & L.dialogFrameStyle . L.border ?~ border 1 darkGray
   & L.dialogTitleStyle . L.text ?~ titleFont <> textLeft
@@ -135,6 +136,8 @@ darkHover = darkBasic
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ lightGray
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.dialStyle . L.fgColor ?~ gray
+  & L.dialStyle . L.hlColor ?~ lightGray
   & L.dialogCloseIconStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ gray
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand
@@ -156,6 +159,8 @@ darkFocus = darkBasic
   & L.btnStyle . L.border ?~ borderFocus
   & L.btnMainStyle . L.border ?~ borderFocus
   & L.checkboxStyle . L.fgColor ?~ lightSkyBlue
+  & L.dialStyle . L.fgColor ?~ gray
+  & L.dialStyle . L.hlColor ?~ lightSkyBlue
   & L.dropdownStyle . L.border ?~ borderFocus
   & L.dropdownListStyle . L.border ?~ borderFocus
   & L.dropdownItemStyle . L.border ?~ border 1 gray
@@ -175,6 +180,8 @@ darkActive :: ThemeState
 darkActive = darkHover
   & L.btnMainStyle . L.bgColor ?~ royalBlue
   & L.btnStyle . L.bgColor ?~ silver
+  & L.dialStyle . L.fgColor ?~ gray
+  & L.dialStyle . L.hlColor ?~ lightSkyBlue
   & L.dropdownStyle . L.bgColor ?~ silver
 
 darkDisabled :: ThemeState

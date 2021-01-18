@@ -137,12 +137,13 @@ dialD_
   -> WidgetNode s e
 dialD_ widgetData minVal maxVal configs = dialNode where
   config = mconcat configs
-  state = DialState 0
+  state = DialState 0 0
   widget = makeDial widgetData minVal maxVal config state
   dialNode = defaultWidgetNode "dial" widget
     & L.info . L.focusable .~ True
 
-newtype DialState = DialState {
+data DialState = DialState {
+  _dlsMaxPos :: Integer,
   _dlsPos :: Integer
 } deriving (Eq, Show, Generic, Serialise)
 
@@ -183,16 +184,18 @@ makeDial field minVal maxVal config state = widget where
       & L.widget .~ makeDial field minVal maxVal config newState
 
   restore wenv oldState oldNode newNode = resultWidget resNode where
-    newState = newStateFromModel wenv newNode oldState
+    newState
+      | isNodePressed wenv newNode = oldState
+      | otherwise = newStateFromModel wenv newNode oldState
     resNode = newNode
       & L.widget .~ makeDial field minVal maxVal config newState
 
   newStateFromModel wenv node oldState = newState where
     currVal = widgetDataGet (wenv ^. L.model) field
-    newPos
-      | isNodePressed wenv node = _dlsPos oldState
-      | otherwise = getPosFromValue minVal maxVal currVal dragRate
+    newMaxPos = numToIntegral (numMulFrac (maxVal - minVal) (1.0 / dragRate))
+    newPos = numToIntegral $ numMulFrac (currVal - minVal) (1.0 / dragRate)
     newState = oldState {
+      _dlsMaxPos = newMaxPos,
       _dlsPos = newPos
     }
 
@@ -201,9 +204,8 @@ makeDial field minVal maxVal config state = widget where
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
     Move point
       | isNodePressed wenv node -> Just result where
-        curPos = _dlsPos state
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
-        (_, newVal) = getPosFromPoint minVal maxVal curPos dragRate start point
+        (_, newVal) = posFromPoint minVal maxVal state dragRate start point
         setValueReq = widgetDataSet field newVal
         reqs = RenderOnce : setValueReq
         result = resultReqs node reqs
@@ -226,48 +228,37 @@ makeDial field minVal maxVal config state = widget where
     req = (FixedSize width, FixedSize width)
 
   render renderer wenv node = do
-    renderRadio renderer dialBW dialArea fgColor
-
---    when (value == option) $
---      renderMark renderer dialBW dialArea fgColor
+    drawArcBorder renderer dialArea start endBg CW (Just fgColor) dialBW
+    drawArcBorder renderer dialArea start endVal CW (Just hlColor) dialBW
     where
       model = _weModel wenv
       value = widgetDataGet model field
       (dialCenter, dialArea) = getDialInfo wenv node config
+      DialState maxPos pos = newStateFromModel wenv node state
+      posPct = fromIntegral pos / fromIntegral maxPos
       dialBW = max 1 (_rW dialArea * 0.1)
-      style_ = activeStyle_ (isNodeHoveredEllipse_ dialArea) wenv node
-      fgColor = styleFgColor style_
+      style = getActiveStyle wenv node
+      fgColor = styleFgColor style
+      hlColor = styleHlColor style
+      start = 90 + 45
+      endBg = 45
+      endVal = start + 270 * posPct
 
-getPosFromValue
+posFromPoint
   :: DialValue a
   => a
   -> a
-  -> a
-  -> Double
-  -> Integer
-getPosFromValue minVal maxVal value dragRate = newPos where
-  newPos = numToIntegral $ numMulFrac (value - minVal) (1.0 / dragRate)
-
-getPosFromPoint
-  :: DialValue a
-  => a
-  -> a
-  -> Integer
+  -> DialState
   -> Double
   -> Point
   -> Point
   -> (Integer, a)
-getPosFromPoint minVal maxVal pos dragRate stPoint point = (newPos, newVal) where
+posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
+  DialState maxPos pos = state
   Point _ dy = subPoint stPoint point
-  maxPos = numToIntegral (numMulFrac (maxVal - minVal) (1.0 / dragRate))
   tmpPos = pos + round dy
   newPos = restrictValue 0 maxPos tmpPos
   newVal = numAddFrac minVal (dragRate * fromIntegral newPos)
-
-integralPos :: (NumRangeable a, RealFrac b) => a -> a -> b -> Integer
-integralPos minVal value rate = numToIntegral pos where
-  range = value - minVal
-  pos = numMulFrac range (1 / rate)
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where
@@ -279,13 +270,3 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   dialT = _rY rarea + (_rH rarea - dialW) / 2
   dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
   dialArea = Rect dialL dialT dialW dialW
-
-renderRadio :: Renderer -> Double -> Rect -> Color -> IO ()
-renderRadio renderer dialBW rect color = action where
-  action = drawEllipseBorder renderer rect (Just color) dialBW
-
-renderMark :: Renderer -> Double -> Rect -> Color -> IO ()
-renderMark renderer dialBW rect color = action where
-  w = dialBW * 2
-  newRect = fromMaybe def (subtractFromRect rect w w w w)
-  action = drawEllipse renderer newRect (Just color)
