@@ -127,28 +127,28 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
-    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` 100
 
   it "should drag downwards 100 pixels, setting the value to -200 (dragRate = 2)" $ do
     let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 150
-    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` -200
 
   it "should drag downwards 1000 pixels, staying at -500 (the minimum)" $ do
     let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 1050
-    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` -500
 
   it "should drag upwnwards 1000 pixels, staying at 500 (the maximum)" $ do
     let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 (-950)
-    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` 500
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
@@ -157,8 +157,8 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     let selMid = Point 50 60
     let selEnd = Point 50 50
     let steps = [
-          evtPress selStart, evtMove selMid, evtRelease selMid,
-          evtPress selStart, evtMove selEnd, evtRelease selEnd
+          evtPress selStart, evtMove selMid, evtReleaseDrag selMid,
+          evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd
           ]
     model steps ^. integralValue `shouldBe` -50
 

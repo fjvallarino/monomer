@@ -353,7 +353,7 @@ makeInputField config state = widget where
 
     -- If a custom drag handler is used, generate onChange events and history
     ButtonAction point btn ReleasedBtn clicks
-      | dragHandleExt btn && clicks == 1 -> Just result where
+      | dragHandleExt btn && clicks == 0 -> Just result where
         reqs = [RenderOnce]
         result = genInputResult wenv node True currText currPos currSel reqs
 

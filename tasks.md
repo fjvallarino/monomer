@@ -436,6 +436,7 @@ Maybe postponed after release?
     - Use space proportional to what widgets request
     - Pending tests
   - Create Dial
+    - Scientific instance
     - Pending tests
   - Check Input drag release
   - ZStack should consider all visible layers when requesting size (split modal issue)

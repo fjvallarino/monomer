@@ -52,6 +52,9 @@ evtPress p = ButtonAction p LeftBtn PressedBtn 1
 evtRelease :: Point -> SystemEvent
 evtRelease p = ButtonAction p LeftBtn ReleasedBtn 1
 
+evtReleaseDrag :: Point -> SystemEvent
+evtReleaseDrag p = ButtonAction p LeftBtn ReleasedBtn 0
+
 evtMove :: Point -> SystemEvent
 evtMove p = Move p
 

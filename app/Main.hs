@@ -131,6 +131,7 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
         checkbox condition1,
         checkbox condition2
       ],
+      floatingField float1,
       label "Test",
       dial double1 (-100) 100,
       button "Test" RunShortTask,
