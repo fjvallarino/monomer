@@ -202,6 +202,29 @@ makeDial field minVal maxVal config state = widget where
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
+    KeyAction mod code KeyPressed
+      | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
+      | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)
+      | isShiftPressed evt && isKeyUp code -> handleNewPos (pos + baseSpeed)
+      | isShiftPressed evt && isKeyDown code -> handleNewPos (pos - baseSpeed)
+      | isKeyUp code -> handleNewPos (pos + fastSpeed)
+      | isKeyDown code -> handleNewPos (pos - fastSpeed)
+      where
+        DialState maxPos pos = state
+        isCtrl = isShortCutControl wenv mod
+        baseSpeed = max 1 $ round (fromIntegral maxPos / 1000)
+        fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
+        warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
+        vPos pos = restrictValue 0 maxPos pos
+        newResult newPos = resultReqs newNode newReqs where
+          newVal = valueFromPos minVal dragRate newPos
+          newReqs = widgetDataSet field newVal
+          newState = state { _dlsPos = newPos }
+          newNode = node
+            & L.widget .~ makeDial field minVal maxVal config newState
+        handleNewPos newPos
+          | vPos newPos /= pos = Just $ newResult (vPos newPos)
+          | otherwise = Nothing
     Move point
       | isNodePressed wenv node -> Just result where
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
@@ -228,8 +251,8 @@ makeDial field minVal maxVal config state = widget where
     req = (FixedSize width, FixedSize width)
 
   render renderer wenv node = do
-    drawArcBorder renderer dialArea start endBg CW (Just fgColor) dialBW
-    drawArcBorder renderer dialArea start endVal CW (Just hlColor) dialBW
+    drawArcBorder renderer dialArea start endFg CW (Just fgColor) dialBW
+    drawArcBorder renderer dialArea start endHl CW (Just hlColor) dialBW
     where
       model = _weModel wenv
       value = widgetDataGet model field
@@ -241,8 +264,8 @@ makeDial field minVal maxVal config state = widget where
       fgColor = styleFgColor style
       hlColor = styleHlColor style
       start = 90 + 45
-      endBg = 45
-      endVal = start + 270 * posPct
+      endFg = 45
+      endHl = start + 270 * posPct
 
 posFromPoint
   :: DialValue a
@@ -258,6 +281,10 @@ posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
   Point _ dy = subPoint stPoint point
   tmpPos = pos + round dy
   newPos = restrictValue 0 maxPos tmpPos
+  newVal = valueFromPos minVal dragRate newPos
+
+valueFromPos :: DialValue a => a -> Double -> Integer -> a
+valueFromPos minVal dragRate newPos = newVal where
   newVal = numAddFrac minVal (dragRate * fromIntegral newPos)
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)

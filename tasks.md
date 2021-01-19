@@ -433,36 +433,42 @@
 Maybe postponed after release?
   - Create Split
     - Use space proportional to what widgets request
+    - Pending tests
   - Create Dial
+    - Pending events
+    - Pending tests
   - Check Input drag release
-  - Create Slider
-  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Create Theme widget to override global theme
+  - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
-  - Create Layout with width/heights specified in percents
-  - Create File Selector
-  - Create Color Selector
-  - Create GridView
-  - Add arrow icon similar to Renoise's
-  - Make overlays be drawn in separate beginFrame/endFrame calls
-  - ZStack should consider all visible layers when requesting size (split modal issue)
+    - Maybe zstack itself could handle it?
+  - Create Slider
+  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
+  - Create Theme widget to override global theme
+  - Validate nested structures update correctly when disabling/enabling parent
+  - Check text baseline
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
-  - Validate nested structures update correctly when disabling/enabling parent
-  - Think about dashed lines (could be made with an image paint)
-  - Check text baseline
+  - Make overlays be drawn in separate beginFrame/endFrame calls
+  - Add support for nanovg transforms
+    - nvgGlobalAlpha
+    - Composite operations?
   - Drag & drop for user (add attribute indicating if component supports being source/target)
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-  - Add support for nanovg transforms
-    - nvgGlobalAlpha
-    - Composite operations?
+  - Create File Selector
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Create Layout with width/heights specified in percents
+  - Create Color Selector
+  - Create GridView
+
+Future
+  - Add arrow icon similar to Renoise's
+  - Think about dashed lines (could be made with an image paint)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer
