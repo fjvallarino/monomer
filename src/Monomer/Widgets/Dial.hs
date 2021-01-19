@@ -27,16 +27,16 @@ import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.NumUtil
+import Monomer.Core.FractionalToReal
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type DialValue a = (Eq a, Show a, NumRangeable a)
+type DialValue a = (Eq a, Show a, Real a, Fractional a, FractionalToReal a)
 
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
-  _dlcDragRate :: Maybe Double,
+  _dlcDragRate :: Maybe Rational,
   _dlcOnFocus :: [e],
   _dlcOnFocusReq :: [WidgetRequest s],
   _dlcOnBlur :: [e],
@@ -72,7 +72,7 @@ instance Semigroup (DialCfg s e a) where
 instance Monoid (DialCfg s e a) where
   mempty = def
 
-instance CmbDragRate (DialCfg s e a) Double where
+instance CmbDragRate (DialCfg s e a) Rational where
   dragRate rate = def {
     _dlcDragRate = Just rate
   }
@@ -170,7 +170,7 @@ makeDial field minVal maxVal config state = widget where
 
   dragRate
     | isJust (_dlcDragRate config) = fromJust (_dlcDragRate config)
-    | otherwise = numToFrac (maxVal - minVal) / 1000
+    | otherwise = toRational (maxVal - minVal) / 1000
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dialStyle
@@ -193,8 +193,8 @@ makeDial field minVal maxVal config state = widget where
 
   newStateFromModel wenv node oldState = newState where
     currVal = widgetDataGet (wenv ^. L.model) field
-    newMaxPos = numToIntegral (numMulFrac (maxVal - minVal) (1.0 / dragRate))
-    newPos = numToIntegral $ numMulFrac (currVal - minVal) (1.0 / dragRate)
+    newMaxPos = round (fractionalToReal (maxVal - minVal) / dragRate)
+    newPos = round (fractionalToReal (currVal - minVal) / dragRate)
     newState = oldState {
       _dlsMaxPos = newMaxPos,
       _dlsPos = newPos
@@ -263,7 +263,7 @@ makeDial field minVal maxVal config state = widget where
       (dialCenter, dialArea) = getDialInfo wenv node config
       DialState maxPos pos = newStateFromModel wenv node state
       posPct = fromIntegral pos / fromIntegral maxPos
-      dialBW = max 1 (_rW dialArea * 0.1)
+      dialBW = max 1 (_rW dialArea * 0.15)
       style = getActiveStyle wenv node
       fgColor = styleFgColor style
       hlColor = styleHlColor style
@@ -276,7 +276,7 @@ posFromPoint
   => a
   -> a
   -> DialState
-  -> Double
+  -> Rational
   -> Point
   -> Point
   -> (Integer, a)
@@ -287,9 +287,9 @@ posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
   newPos = restrictValue 0 maxPos tmpPos
   newVal = valueFromPos minVal dragRate newPos
 
-valueFromPos :: DialValue a => a -> Double -> Integer -> a
+valueFromPos :: DialValue a => a -> Rational -> Integer -> a
 valueFromPos minVal dragRate newPos = newVal where
-  newVal = numAddFrac minVal (dragRate * fromIntegral newPos)
+  newVal = minVal + fromRational (dragRate * fromIntegral newPos)
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where

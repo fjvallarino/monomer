@@ -420,6 +420,7 @@
   - Does widgetResize need to return WidgetResult?
     - User may want to listen for resize events
   - Remove SetFocus from single components (already handled in template)
+  - Check Input drag release
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -438,12 +439,12 @@ Maybe postponed after release?
   - Create Dial
     - Scientific instance
     - Pending tests
-  - Check Input drag release
   - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
     - Maybe zstack itself could handle it?
   - Create Slider
+  - Unify integralField/floatingField
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Theme widget to override global theme
   - Validate nested structures update correctly when disabling/enabling parent
