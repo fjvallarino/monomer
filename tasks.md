@@ -437,6 +437,7 @@ Maybe postponed after release?
   - Create Dial
     - Pending events
     - Pending tests
+  - Remove SetFocus from single components (already handled in template)
   - Check Input drag release
   - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)

@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -15,16 +16,16 @@ module Monomer.Widgets.Dial (
   dialWidth
 ) where
 
-import Debug.Trace
-
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~))
+import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import GHC.Generics
+
+import qualified Data.Sequence as Seq
 
 import Monomer.Core.NumUtil
 import Monomer.Widgets.Single
@@ -34,38 +35,38 @@ import qualified Monomer.Lens as L
 type DialValue a = (Eq a, Show a, NumRangeable a)
 
 data DialCfg s e a = DialCfg {
-  _rdcWidth :: Maybe Double,
-  _rdcDragRate :: Maybe Double,
-  _rdcOnFocus :: [e],
-  _rdcOnFocusReq :: [WidgetRequest s],
-  _rdcOnBlur :: [e],
-  _rdcOnBlurReq :: [WidgetRequest s],
-  _rdcOnChange :: [a -> e],
-  _rdcOnChangeReq :: [WidgetRequest s]
+  _dlcWidth :: Maybe Double,
+  _dlcDragRate :: Maybe Double,
+  _dlcOnFocus :: [e],
+  _dlcOnFocusReq :: [WidgetRequest s],
+  _dlcOnBlur :: [e],
+  _dlcOnBlurReq :: [WidgetRequest s],
+  _dlcOnChange :: [a -> e],
+  _dlcOnChangeReq :: [WidgetRequest s]
 }
 
 instance Default (DialCfg s e a) where
   def = DialCfg {
-    _rdcWidth = Nothing,
-    _rdcDragRate = Nothing,
-    _rdcOnFocus = [],
-    _rdcOnFocusReq = [],
-    _rdcOnBlur = [],
-    _rdcOnBlurReq = [],
-    _rdcOnChange = [],
-    _rdcOnChangeReq = []
+    _dlcWidth = Nothing,
+    _dlcDragRate = Nothing,
+    _dlcOnFocus = [],
+    _dlcOnFocusReq = [],
+    _dlcOnBlur = [],
+    _dlcOnBlurReq = [],
+    _dlcOnChange = [],
+    _dlcOnChangeReq = []
   }
 
 instance Semigroup (DialCfg s e a) where
   (<>) t1 t2 = DialCfg {
-    _rdcWidth = _rdcWidth t2 <|> _rdcWidth t1,
-    _rdcDragRate = _rdcDragRate t2 <|> _rdcDragRate t1,
-    _rdcOnFocus = _rdcOnFocus t1 <> _rdcOnFocus t2,
-    _rdcOnFocusReq = _rdcOnFocusReq t1 <> _rdcOnFocusReq t2,
-    _rdcOnBlur = _rdcOnBlur t1 <> _rdcOnBlur t2,
-    _rdcOnBlurReq = _rdcOnBlurReq t1 <> _rdcOnBlurReq t2,
-    _rdcOnChange = _rdcOnChange t1 <> _rdcOnChange t2,
-    _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
+    _dlcWidth = _dlcWidth t2 <|> _dlcWidth t1,
+    _dlcDragRate = _dlcDragRate t2 <|> _dlcDragRate t1,
+    _dlcOnFocus = _dlcOnFocus t1 <> _dlcOnFocus t2,
+    _dlcOnFocusReq = _dlcOnFocusReq t1 <> _dlcOnFocusReq t2,
+    _dlcOnBlur = _dlcOnBlur t1 <> _dlcOnBlur t2,
+    _dlcOnBlurReq = _dlcOnBlurReq t1 <> _dlcOnBlurReq t2,
+    _dlcOnChange = _dlcOnChange t1 <> _dlcOnChange t2,
+    _dlcOnChangeReq = _dlcOnChangeReq t1 <> _dlcOnChangeReq t2
   }
 
 instance Monoid (DialCfg s e a) where
@@ -73,42 +74,42 @@ instance Monoid (DialCfg s e a) where
 
 instance CmbDragRate (DialCfg s e a) Double where
   dragRate rate = def {
-    _rdcDragRate = Just rate
+    _dlcDragRate = Just rate
   }
 
 instance CmbOnFocus (DialCfg s e a) e where
   onFocus fn = def {
-    _rdcOnFocus = [fn]
+    _dlcOnFocus = [fn]
   }
 
 instance CmbOnFocusReq (DialCfg s e a) s where
   onFocusReq req = def {
-    _rdcOnFocusReq = [req]
+    _dlcOnFocusReq = [req]
   }
 
 instance CmbOnBlur (DialCfg s e a) e where
   onBlur fn = def {
-    _rdcOnBlur = [fn]
+    _dlcOnBlur = [fn]
   }
 
 instance CmbOnBlurReq (DialCfg s e a) s where
   onBlurReq req = def {
-    _rdcOnBlurReq = [req]
+    _dlcOnBlurReq = [req]
   }
 
 instance CmbOnChange (DialCfg s e a) a e where
   onChange fn = def {
-    _rdcOnChange = [fn]
+    _dlcOnChange = [fn]
   }
 
 instance CmbOnChangeReq (DialCfg s e a) s where
   onChangeReq req = def {
-    _rdcOnChangeReq = [req]
+    _dlcOnChangeReq = [req]
   }
 
 dialWidth :: Double -> DialCfg s e a
 dialWidth w = def {
-  _rdcWidth = Just w
+  _dlcWidth = Just w
 }
 
 dial :: DialValue a => ALens' s a -> a -> a -> WidgetNode s e
@@ -168,7 +169,7 @@ makeDial field minVal maxVal config state = widget where
   }
 
   dragRate
-    | isJust (_rdcDragRate config) = fromJust (_rdcDragRate config)
+    | isJust (_dlcDragRate config) = fromJust (_dlcDragRate config)
     | otherwise = numToFrac (maxVal - minVal) / 1000
 
   getBaseStyle wenv node = Just style where
@@ -200,8 +201,8 @@ makeDial field minVal maxVal config state = widget where
     }
 
   handleEvent wenv target evt node = case evt of
-    Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
-    Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
+    Focus -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config node
+    Blur -> handleFocusChange _dlcOnBlur _dlcOnBlurReq config node
     KeyAction mod code KeyPressed
       | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)
@@ -216,9 +217,8 @@ makeDial field minVal maxVal config state = widget where
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
         vPos pos = restrictValue 0 maxPos pos
-        newResult newPos = resultReqs newNode newReqs where
+        newResult newPos = addReqsEvts (resultWidget newNode) newVal where
           newVal = valueFromPos minVal dragRate newPos
-          newReqs = widgetDataSet field newVal
           newState = state { _dlsPos = newPos }
           newNode = node
             & L.widget .~ makeDial field minVal maxVal config newState
@@ -229,9 +229,7 @@ makeDial field minVal maxVal config state = widget where
       | isNodePressed wenv node -> Just result where
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
         (_, newVal) = posFromPoint minVal maxVal state dragRate start point
-        setValueReq = widgetDataSet field newVal
-        reqs = RenderOnce : setValueReq
-        result = resultReqs node reqs
+        result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     ButtonAction point btn ReleasedBtn clicks
       | clicks == 0 -> Just result where
         reqs = [RenderOnce]
@@ -244,10 +242,16 @@ makeDial field minVal maxVal config state = widget where
       (_, dialArea) = getDialInfo wenv node config
       path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code
+      addReqsEvts result newVal = newResult where
+        evts = fmap ($ newVal) (_dlcOnChange config)
+        reqs = widgetDataSet field newVal ++ _dlcOnChangeReq config
+        newResult = result
+          & L.events .~ Seq.fromList evts
+          & L.requests <>~ Seq.fromList reqs
 
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node
-    width = fromMaybe (theme ^. L.dialWidth) (_rdcWidth config)
+    width = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
     req = (FixedSize width, FixedSize width)
 
   render renderer wenv node = do
@@ -292,7 +296,7 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   theme = activeTheme wenv node
   style = activeStyle wenv node
   rarea = getContentArea style node
-  dialW = fromMaybe (theme ^. L.dialWidth) (_rdcWidth config)
+  dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
   dialL = _rX rarea + (_rW rarea - dialW) / 2
   dialT = _rY rarea + (_rH rarea - dialW) / 2
   dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
