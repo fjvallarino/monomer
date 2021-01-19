@@ -58,6 +58,9 @@ evtReleaseDrag p = ButtonAction p LeftBtn ReleasedBtn 0
 evtMove :: Point -> SystemEvent
 evtMove p = Move p
 
+evtDrag :: Point -> Point -> [SystemEvent]
+evtDrag start end = [evtPress start, evtMove end, evtReleaseDrag end]
+
 evtK :: KeyCode -> SystemEvent
 evtK k = KeyAction def k KeyPressed
 

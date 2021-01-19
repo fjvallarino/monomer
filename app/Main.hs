@@ -120,7 +120,7 @@ handleAppEvent wenv model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetDial where
+buildUI wenv model = traceShow "Creating UI" widgetSplitH where
   widgetDial = vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
@@ -137,8 +137,9 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
       button "Test" RunShortTask,
       image "assets/images/pecans.jpg"
     ]
-  widgetHSplit = hsplit (image "assets/images/pecans.jpg" `style` [rangeWidth 200 500], widgetTree `style` [rangeWidth 200 500])
-  widgetVSplit = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
+  widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
+  widgetSplitH = hsplit (image "assets/images/pecans.jpg" `style` [rangeWidth 200 250], widgetTree `style` [rangeWidth 200 500])
+  widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
   mkImg i = vstack [
       label ("Image: " <> showt i),
       image ("https://picsum.photos/600/400?ts=" ++ show i)

@@ -120,7 +120,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
     _spsPrevReqs = def,
     _spsMaxSize = 0,
     _spsHandlePosSet = False,
-    _spsHandlePos = 0,
+    _spsHandlePos = 0.5,
     _spsHandleRect = def
   }
   widget = makeSplit isHorizontal config state
@@ -206,10 +206,13 @@ makeSplit isHorizontal config state = widget where
     reqH1 = node1 ^. L.info . L.sizeReqH
     reqW2 = node2 ^. L.info . L.sizeReqW
     reqH2 = node2 ^. L.info . L.sizeReqH
-    reqOrder = if isHorizontal then id else swap
-    (reqWS, reqHS) = reqOrder (FixedSize handleW, FixedSize 0)
-    reqW = sizeReqMergeSum reqWS $ sizeReqMergeSum reqW1 reqW2
-    reqH = sizeReqMergeSum reqHS $ sizeReqMergeSum reqH1 reqH2
+    reqWS = FixedSize handleW
+    reqW
+      | isHorizontal = foldl1 sizeReqMergeSum [reqWS, reqW1, reqW2]
+      | otherwise = foldl1 sizeReqMergeMax [reqW1, reqW2]
+    reqH
+      | isHorizontal = foldl1 sizeReqMergeMax [reqH1, reqH2]
+      | otherwise = foldl1 sizeReqMergeSum [reqWS, reqH1, reqH2]
 
   resize wenv viewport renderArea children node = resized where
     style = activeStyle wenv node

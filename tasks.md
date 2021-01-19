@@ -437,8 +437,8 @@ Maybe postponed after release?
     - Use space proportional to what widgets request
     - Pending tests
   - Create Dial
-    - Scientific instance
     - Pending tests
+  - Rename updateSizeReq/nodeUpdateSizeReq in tests
   - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
@@ -462,13 +462,13 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-  - Create File Selector
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Create Layout with width/heights specified in percents
-  - Create Color Selector
-  - Create GridView
 
 Future
+  - Create File Selector
+  - Create GridView
+  - Create Layout with width/heights specified in percents
+  - Create Color Selector
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations

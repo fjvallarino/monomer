@@ -175,6 +175,8 @@ darkFocus = darkBasic
 
 darkFocusHover :: ThemeState
 darkFocusHover = darkFocus
+  & L.btnStyle . L.bgColor ?~ lightGray
+  & L.btnMainStyle . L.bgColor ?~ dodgerBlue
 
 darkActive :: ThemeState
 darkActive = darkHover
