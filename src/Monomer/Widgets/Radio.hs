@@ -142,7 +142,7 @@ makeRadio field option config = widget where
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
     Click p _
-      | pointInEllipse p rdArea -> Just $ resultReqsEvts node clickReqs events
+      | pointInEllipse p rdArea -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqsEvts node reqs events
     _ -> Nothing
@@ -152,9 +152,7 @@ makeRadio field option config = widget where
       isSelectKey code = isKeyReturn code || isKeySpace code
       events = fmap ($ option) (_rdcOnChange config)
       setValueReq = widgetDataSet field option
-      setFocusReq = SetFocus path
       reqs = setValueReq ++ _rdcOnChangeReq config
-      clickReqs = setFocusReq : reqs
 
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node

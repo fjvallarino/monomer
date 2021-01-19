@@ -122,6 +122,15 @@ handleAppEvent wenv model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetDial = vstack [
+      hstack [
+        radioV (model ^. fruit) RadioSt Apple,
+        radioV (model ^. fruit) RadioSt Orange,
+        radioV (model ^. fruit) RadioSt Pear
+      ] `key` "radio hstack",
+      hstack [
+        checkbox condition1,
+        checkbox condition2
+      ],
       label "Test",
       dial double1 (-100) 100,
       button "Test" RunShortTask,

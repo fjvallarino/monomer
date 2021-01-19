@@ -180,9 +180,11 @@ darkActive :: ThemeState
 darkActive = darkHover
   & L.btnMainStyle . L.bgColor ?~ royalBlue
   & L.btnStyle . L.bgColor ?~ silver
+  & L.checkboxStyle . L.fgColor ?~ lightSkyBlue
   & L.dialStyle . L.fgColor ?~ gray
   & L.dialStyle . L.hlColor ?~ lightSkyBlue
   & L.dropdownStyle . L.bgColor ?~ silver
+  & L.radioStyle . L.fgColor ?~ lightSkyBlue
 
 darkDisabled :: ThemeState
 darkDisabled = darkBasic

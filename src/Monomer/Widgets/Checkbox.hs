@@ -130,7 +130,7 @@ makeCheckbox widgetData config = widget where
     Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
     Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
     Click p _
-      | isPointInNodeVp p node -> Just $ resultReqsEvts node clickReqs events
+      | isPointInNodeVp p node -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqsEvts node reqs events
     _ -> Nothing
@@ -142,9 +142,7 @@ makeCheckbox widgetData config = widget where
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)
       setValueReq = widgetDataSet widgetData newValue
-      setFocusReq = SetFocus path
       reqs = setValueReq ++ _ckcOnChangeReq config
-      clickReqs = setFocusReq : reqs
 
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node

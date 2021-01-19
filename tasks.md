@@ -419,6 +419,7 @@
   - Active state not working correctly (click button and drag outside)
   - Does widgetResize need to return WidgetResult?
     - User may want to listen for resize events
+  - Remove SetFocus from single components (already handled in template)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -435,9 +436,7 @@ Maybe postponed after release?
     - Use space proportional to what widgets request
     - Pending tests
   - Create Dial
-    - Pending events
     - Pending tests
-  - Remove SetFocus from single components (already handled in template)
   - Check Input drag release
   - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)
