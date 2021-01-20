@@ -325,7 +325,7 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack",
       hgrid [
-        button "Show Alert" ShowAlert `enabled` False,
+        button "Show Alert" ShowAlert,
         mainButton "Show Confirm" ShowConfirm
       ],
       hgrid [

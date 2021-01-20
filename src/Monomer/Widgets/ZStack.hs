@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.ZStack (
@@ -6,14 +8,17 @@ module Monomer.Widgets.ZStack (
   onlyTopActive
 ) where
 
+import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (.~), (%~), (?~), at)
 import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
 import Data.List (foldl', any)
 import Data.Sequence (Seq(..), (<|), (|>))
+import GHC.Generics
 
+import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
@@ -40,6 +45,11 @@ onlyTopActive active = def {
   _zscOnlyTopActive = Just active
 }
 
+data ZStackState = ZStackState {
+  _zssFocusMap :: M.Map PathStep Path,
+  _zssTopIdx :: Int
+} deriving (Eq, Show, Generic, Serialise)
+
 zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ children def
 
@@ -50,13 +60,15 @@ zstack_
   -> WidgetNode s e
 zstack_ children configs = newNode where
   config = mconcat configs
-  newNode = defaultWidgetNode "zstack" (makeZStack config)
+  state = ZStackState M.empty 0
+  newNode = defaultWidgetNode "zstack" (makeZStack config state)
     & L.children .~ Seq.reverse (foldl' (|>) Empty children)
 
-makeZStack :: ZStackCfg -> Widget s e
-makeZStack config = widget where
-  baseWidget = createContainer () def {
+makeZStack :: ZStackCfg -> ZStackState -> Widget s e
+makeZStack config state = widget where
+  baseWidget = createContainer state def {
     containerUseChildrenSizes = True,
+    containerInit = init,
     containerMergePost = mergePost,
     containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
@@ -69,18 +81,38 @@ makeZStack config = widget where
 
   onlyTopActive = fromMaybe True (_zscOnlyTopActive config)
 
+  init wenv node = resultWidget newNode where
+    children = node ^. L.children
+    focusedPath = wenv ^. L.focusedPath
+    newState = state {
+      _zssTopIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
+    }
+    newNode = node
+      & L.widget .~ makeZStack config newState
+
   mergePost wenv result oldState oldNode newNode = newResult where
+    ZStackState oldFocusMap oldTopIdx = oldState
     children = newNode ^. L.children
     focusedPath = wenv ^. L.focusedPath
     isFocusParent = isWidgetParentOfPath focusedPath newNode
     topLevel = isNodeTopLevel wenv newNode
     childrenChanged = visibleChildrenChanged oldNode newNode
-    topVisibleIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
+    newTopIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
     needsFocus = isFocusParent && topLevel && childrenChanged
-    newPath = Just $ newNode ^. L.info . L.path |> topVisibleIdx
-
+    oldTopPath = M.lookup newTopIdx oldFocusMap
+    fstTopPath = Just $ newNode ^. L.info . L.path |> newTopIdx
+    newState = oldState {
+      _zssFocusMap = oldFocusMap & at oldTopIdx ?~ focusedPath,
+      _zssTopIdx = newTopIdx
+    }
+    newWidget = makeZStack config newState
     newResult
-      | needsFocus = result & L.requests %~ (|> MoveFocus newPath FocusFwd)
+      | needsFocus && isJust oldTopPath = result
+        & L.node . L.widget .~ newWidget
+        & L.requests %~ (|> SetFocus (fromJust oldTopPath))
+      | needsFocus = result
+        & L.node . L.widget .~ newWidget
+        & L.requests %~ (|> MoveFocus fstTopPath FocusFwd)
       | otherwise = result
 
   -- | Find instance matching point

@@ -279,9 +279,9 @@ handleSetFocus newFocus (wenv, events, root) =  do
 
   if oldFocus /= newFocus
     then do
-      L.focusedPath .= newFocus
-
       (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
+
+      L.focusedPath .= newFocus
       (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 
       return (wenv2, events >< events1 >< events2, root2)
