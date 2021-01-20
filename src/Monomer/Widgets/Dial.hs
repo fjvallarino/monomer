@@ -163,6 +163,7 @@ makeDial field minVal maxVal config state = widget where
     singleGetActiveStyle = getActiveStyle,
     singleInit = init,
     singleRestore = restore,
+    singleFindByPoint = findByPoint,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
@@ -191,14 +192,13 @@ makeDial field minVal maxVal config state = widget where
     resNode = newNode
       & L.widget .~ makeDial field minVal maxVal config newState
 
-  newStateFromModel wenv node oldState = newState where
-    currVal = widgetDataGet (wenv ^. L.model) field
-    newMaxPos = round (fractionalToReal (maxVal - minVal) / dragRate)
-    newPos = round (fractionalToReal (currVal - minVal) / dragRate)
-    newState = oldState {
-      _dlsMaxPos = newMaxPos,
-      _dlsPos = newPos
-    }
+  findByPoint wenv path point node
+    | isVisible && pointInEllipse point dialArea = Just path
+    | otherwise = Nothing
+    where
+      isVisible = node ^. L.info . L.visible
+      path = node ^. L.info . L.path
+      (_, dialArea) = getDialInfo wenv node config
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config node
@@ -243,11 +243,14 @@ makeDial field minVal maxVal config state = widget where
       path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code
       addReqsEvts result newVal = newResult where
+        currVal = widgetDataGet (wenv ^. L.model) field
         evts = fmap ($ newVal) (_dlcOnChange config)
         reqs = widgetDataSet field newVal ++ _dlcOnChangeReq config
-        newResult = result
-          & L.events .~ Seq.fromList evts
-          & L.requests <>~ Seq.fromList reqs
+        newResult
+          | currVal /= newVal = result
+              & L.events .~ Seq.fromList evts
+              & L.requests <>~ Seq.fromList reqs
+          | otherwise = result
 
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node
@@ -270,6 +273,15 @@ makeDial field minVal maxVal config state = widget where
       start = 90 + 45
       endFg = 45
       endHl = start + 270 * posPct
+
+  newStateFromModel wenv node oldState = newState where
+    currVal = widgetDataGet (wenv ^. L.model) field
+    newMaxPos = round (fractionalToReal (maxVal - minVal) / dragRate)
+    newPos = round (fractionalToReal (currVal - minVal) / dragRate)
+    newState = oldState {
+      _dlsMaxPos = newMaxPos,
+      _dlsPos = newPos
+    }
 
 posFromPoint
   :: DialValue a

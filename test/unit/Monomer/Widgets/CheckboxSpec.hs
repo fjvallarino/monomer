@@ -93,5 +93,6 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit (TestModel False) & L.theme .~ darkTheme
+    wenv = mockWenvEvtUnit (TestModel False)
+      & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (checkbox testBool)

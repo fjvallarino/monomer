@@ -63,7 +63,8 @@ handleEvent = describe "handleEvent" $ do
     events Blur orangeNode `shouldBe` Seq.singleton LostFocus
 
   where
-    wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
+    wenv = mockWenv (TestModel Apple)
+      & L.theme .~ darkTheme
     orangeNode = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
     bananaNode = radio fruit Banana
     clickModel p node = nodeHandleEventModel wenv [Click p LeftBtn] node
@@ -82,7 +83,8 @@ handleEventValue = describe "handleEventValue" $ do
     keyModel keyReturn bananaNode `shouldBe` Seq.singleton (FruitSel Banana)
 
   where
-    wenv = mockWenv (TestModel Apple) & L.theme .~ darkTheme
+    wenv = mockWenv (TestModel Apple)
+      & L.theme .~ darkTheme
     orangeNode = radioV Apple FruitSel Orange
     bananaNode = radioV Apple FruitSel Banana
     clickModel p node = nodeHandleEventEvts wenv [Click p LeftBtn] node
@@ -97,5 +99,6 @@ updateSizeReq = describe "updateSizeReq" $ do
     sizeReqH `shouldBe` FixedSize 20
 
   where
-    wenv = mockWenvEvtUnit (TestModel Apple) & L.theme .~ darkTheme
+    wenv = mockWenvEvtUnit (TestModel Apple)
+      & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (radio fruit Apple)

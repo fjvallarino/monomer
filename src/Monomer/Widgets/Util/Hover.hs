@@ -1,5 +1,6 @@
 module Monomer.Widgets.Util.Hover (
   isPointInNodeVp,
+  isPointInNodeEllipse,
   isNodeActive,
   isNodePressed,
   isNodeHovered,
@@ -24,6 +25,9 @@ import qualified Monomer.Lens as L
 isPointInNodeVp :: Point -> WidgetNode s e -> Bool
 isPointInNodeVp p node = pointInRect p (node ^. L.info . L.viewport)
 
+isPointInNodeEllipse :: Point -> WidgetNode s e -> Bool
+isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.viewport)
+
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeActive wenv node = validPos && pressed where
   viewport = node ^. L.info . L.viewport
@@ -46,9 +50,11 @@ isNodeHovered wenv node = validPos && validPress && topLevel where
   topLevel = isNodeTopLevel wenv node
 
 isNodeHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeHoveredEllipse_ area wenv node = validPos && topLevel where
+isNodeHoveredEllipse_ area wenv node = validPos && validPress && topLevel where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInEllipse mousePos area
+  pressed = wenv ^. L.mainBtnPress ^? _Just . _1
+  validPress = isNothing pressed || isNodePressed wenv node
   topLevel = isNodeTopLevel wenv node
 
 isNodeTopLevel :: WidgetEnv s e -> WidgetNode s e -> Bool
