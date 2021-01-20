@@ -424,6 +424,9 @@
   - Create Split
     - Use space proportional to what widgets request
   - Create Dial
+  - Rename updateSizeReq/nodeUpdateSizeReq in tests
+  - ZStack should consider all visible layers when requesting size (split modal issue)
+    - It already works this way. Non issue
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -436,22 +439,19 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Rename updateSizeReq/nodeUpdateSizeReq in tests
-  - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
     - Maybe zstack itself could handle it?
   - Create Slider
-  - Unify integralField/floatingField
-  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Create Theme widget to override global theme
+  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Validate nested structures update correctly when disabling/enabling parent
   - Check text baseline
+  - Create consistent, good looking, themes: dark, light, pastel
+    - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
-  - Create consistent, good looking, themes: dark, light, pastel
-    - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
   - Make overlays be drawn in separate beginFrame/endFrame calls
   - Add support for nanovg transforms
     - nvgGlobalAlpha
@@ -461,6 +461,7 @@ Maybe postponed after release?
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Unify integralField/floatingField
 
 Future
   - Create File Selector

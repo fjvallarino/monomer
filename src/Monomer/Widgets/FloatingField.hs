@@ -265,3 +265,9 @@ upto n p
 
 single :: Char -> A.Parser Text
 single c = T.singleton <$> A.char c
+
+numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
+numberInBounds Nothing Nothing _ = True
+numberInBounds (Just minVal) Nothing val = val >= minVal
+numberInBounds Nothing (Just maxVal) val = val <= maxVal
+numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal

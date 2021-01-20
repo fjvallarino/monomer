@@ -5,6 +5,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Data.Sequence (Seq(..))
 
+import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
 
 import Monomer.Core.BasicTypes
@@ -13,8 +14,10 @@ import Monomer.Core.WidgetTypes
 
 import qualified Monomer.Lens as L
 
-isMacOS :: WidgetEnv s e -> Bool
-isMacOS wenv = _weOS wenv == "Mac OS X"
+globalKeyPath :: WidgetEnv s e -> WidgetKey -> Maybe Path
+globalKeyPath _ (WidgetKeyLocal _) = Nothing
+globalKeyPath wenv key = fmap (^. L.info . L.path) node where
+  node = Map.lookup key (wenv ^. L.globalKeys)
 
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
@@ -48,34 +51,6 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
-maxNumericValue :: (RealFloat a) => a
-maxNumericValue = x where
-  n = floatDigits x
-  b = floatRadix x
-  (_, u) = floatRange x
-  x = encodeFloat (b^n - 1) (u - n)
-
-restrictValue :: Ord a => a -> a -> a -> a
-restrictValue minVal maxVal value = max minVal (min maxVal value)
-
-numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
-numberInBounds Nothing Nothing _ = True
-numberInBounds (Just minVal) Nothing val = val >= minVal
-numberInBounds Nothing (Just maxVal) val = val <= maxVal
-numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
-
--- This is meant to be used in coordinate calculations only
-doubleCloseTo :: Double -> Double -> Bool
-doubleCloseTo val1 val2 = abs (val2 - val1) < 0.0001
-
-doubleInRange :: Double -> Double -> Double -> Bool
-doubleInRange minValue maxValue curValue = validMin && validMax where
-  minDiff = curValue - minValue
-  maxDiff = maxValue - curValue
-  -- Some calculations may leave small differences in otherwise valid results
-  validMin = minDiff >= 0 || abs minDiff < 0.0001
-  validMax = maxDiff >= 0 || abs maxDiff < 0.0001
-
 isFocusRequest :: WidgetRequest s -> Bool
 isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True
@@ -97,10 +72,23 @@ isRunTask :: WidgetRequest s -> Bool
 isRunTask RunTask{} = True
 isRunTask _ = False
 
-seqStartsWith :: Eq a => Seq.Seq a -> Seq.Seq a -> Bool
-seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix
-
 isResizeResult ::  Maybe (WidgetResult s e) -> Bool
 isResizeResult result = isJust resizeReq where
   requests = maybe Empty (^. L.requests) result
   resizeReq = Seq.findIndexL isResizeWidgets requests
+
+isMacOS :: WidgetEnv s e -> Bool
+isMacOS wenv = _weOS wenv == "Mac OS X"
+
+seqStartsWith :: Eq a => Seq.Seq a -> Seq.Seq a -> Bool
+seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix
+
+maxNumericValue :: (RealFloat a) => a
+maxNumericValue = x where
+  n = floatDigits x
+  b = floatRadix x
+  (_, u) = floatRange x
+  x = encodeFloat (b^n - 1) (u - n)
+
+restrictValue :: Ord a => a -> a -> a -> a
+restrictValue minVal maxVal value = max minVal (min maxVal value)

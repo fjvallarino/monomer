@@ -83,9 +83,9 @@ data WidgetState
   = forall i . (Typeable i, Serialise i) => WidgetState i
 
 instance Show WidgetState where
-  show =  show . typeOf
+  show (WidgetState state) = "WidgetState: " ++ show (typeOf state)
 
--- Serialized as ByteString, since at deserialization time the real type is
+-- Serialized as ByteString because at deserialization time the real type is
 -- not known (since it's Typeable). It needs to be deserialized when used
 instance Serialise WidgetState where
   encode (WidgetState state) = encodeWord 0 <> encode stateBS where
@@ -151,6 +151,52 @@ data WidgetEnv s e = WidgetEnv {
   _weTimestamp :: Timestamp,
   _weInTopLayer :: Point -> Bool
 }
+
+-- | Complementary information to a Widget, forming a node in the view tree
+data WidgetNodeInfo =
+  WidgetNodeInfo {
+    -- | Type of the widget
+    _wniWidgetType :: !WidgetType,
+    -- | The identifier at creation time of the widget
+    _wniWidgetId :: WidgetId,
+    -- | Key/Identifier of the widget
+    _wniKey :: Maybe WidgetKey,
+    -- | The path of the instance in the widget tree
+    _wniPath :: !Path,
+    -- | The preferred size for the widget
+    _wniSizeReqW :: !SizeReq,
+    _wniSizeReqH :: !SizeReq,
+    -- | Indicates if the widget is enabled for user interaction
+    _wniEnabled :: !Bool,
+    -- | Indicates if the widget is visible
+    _wniVisible :: !Bool,
+    -- | Indicates whether the widget can receive focus
+    _wniFocusable :: !Bool,
+    -- | The visible area of the screen assigned to the widget
+    _wniViewport :: !Rect,
+    -- | The area of the screen where the widget can draw
+    -- | Usually equal to _wniViewport, but may be larger if the widget is
+    -- | wrapped in a scrollable container
+    _wniRenderArea :: !Rect,
+    -- | Style attributes of the widget instance
+    _wniStyle :: Style
+  } deriving (Eq, Show, Generic, Serialise)
+
+instance Default WidgetNodeInfo where
+  def = WidgetNodeInfo {
+    _wniWidgetType = "",
+    _wniWidgetId = def,
+    _wniKey = Nothing,
+    _wniPath = emptyPath,
+    _wniSizeReqW = def,
+    _wniSizeReqH = def,
+    _wniEnabled = True,
+    _wniVisible = True,
+    _wniFocusable = False,
+    _wniViewport = def,
+    _wniRenderArea = def,
+    _wniStyle = def
+  }
 
 data WidgetNode s e = WidgetNode {
   -- | The actual widget
@@ -277,52 +323,6 @@ data Widget s e =
       -> WidgetEnv s e
       -> WidgetNode s e
       -> IO ()
-  }
-
--- | Complementary information to a Widget, forming a node in the view tree
-data WidgetNodeInfo =
-  WidgetNodeInfo {
-    -- | Type of the widget
-    _wniWidgetType :: !WidgetType,
-    -- | The identifier at creation time of the widget
-    _wniWidgetId :: WidgetId,
-    -- | Key/Identifier of the widget
-    _wniKey :: Maybe WidgetKey,
-    -- | The path of the instance in the widget tree
-    _wniPath :: !Path,
-    -- | The preferred size for the widget
-    _wniSizeReqW :: !SizeReq,
-    _wniSizeReqH :: !SizeReq,
-    -- | Indicates if the widget is enabled for user interaction
-    _wniEnabled :: !Bool,
-    -- | Indicates if the widget is visible
-    _wniVisible :: !Bool,
-    -- | Indicates whether the widget can receive focus
-    _wniFocusable :: !Bool,
-    -- | The visible area of the screen assigned to the widget
-    _wniViewport :: !Rect,
-    -- | The area of the screen where the widget can draw
-    -- | Usually equal to _wniViewport, but may be larger if the widget is
-    -- | wrapped in a scrollable container
-    _wniRenderArea :: !Rect,
-    -- | Style attributes of the widget instance
-    _wniStyle :: Style
-  } deriving (Eq, Show, Generic, Serialise)
-
-instance Default WidgetNodeInfo where
-  def = WidgetNodeInfo {
-    _wniWidgetType = "",
-    _wniWidgetId = def,
-    _wniKey = Nothing,
-    _wniPath = emptyPath,
-    _wniSizeReqW = def,
-    _wniSizeReqH = def,
-    _wniEnabled = True,
-    _wniVisible = True,
-    _wniFocusable = False,
-    _wniViewport = def,
-    _wniRenderArea = def,
-    _wniStyle = def
   }
 
 instance Show (WidgetRequest s) where

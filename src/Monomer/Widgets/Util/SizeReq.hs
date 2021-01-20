@@ -149,3 +149,11 @@ mkRangeSize :: Double -> Double -> Double -> SizeReq
 mkRangeSize s1 s2 f
   | abs (s2 - s1) < 0.01 = FixedSize s1
   | otherwise = RangeSize s1 s2 f
+
+doubleInRange :: Double -> Double -> Double -> Bool
+doubleInRange minValue maxValue curValue = validMin && validMax where
+  minDiff = curValue - minValue
+  maxDiff = maxValue - curValue
+  -- Some calculations may leave small differences in otherwise valid results
+  validMin = minDiff >= 0 || abs minDiff < 0.0001
+  validMax = maxDiff >= 0 || abs maxDiff < 0.0001

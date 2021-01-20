@@ -101,32 +101,6 @@ data ScrollState = ScrollState {
   _sstChildSize :: Size
 } deriving (Eq, Show, Generic, Serialise)
 
-newtype ScrollMessage
-  = ScrollTo Rect
-
-data ScrollContext = ScrollContext {
-  hScrollRatio :: Double,
-  vScrollRatio :: Double,
-  hScrollRequired :: Bool,
-  vScrollRequired :: Bool,
-  hMouseInScroll :: Bool,
-  vMouseInScroll :: Bool,
-  hMouseInThumb :: Bool,
-  vMouseInThumb :: Bool,
-  hScrollRect :: Rect,
-  vScrollRect :: Rect,
-  hThumbRect :: Rect,
-  vThumbRect :: Rect
-}
-
-instance Default ScrollState where
-  def = ScrollState {
-    _sstDragging = Nothing,
-    _sstDeltaX = 0,
-    _sstDeltaY = 0,
-    _sstChildSize = def
-  }
-
 scrollType :: ScrollType -> ScrollCfg
 scrollType st = def {
   _scScrollType = Just st
@@ -176,6 +150,32 @@ scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg
 scrollStyle style = def {
   _scStyle = Just style
 }
+
+data ScrollContext = ScrollContext {
+  hScrollRatio :: Double,
+  vScrollRatio :: Double,
+  hScrollRequired :: Bool,
+  vScrollRequired :: Bool,
+  hMouseInScroll :: Bool,
+  vMouseInScroll :: Bool,
+  hMouseInThumb :: Bool,
+  vMouseInThumb :: Bool,
+  hScrollRect :: Rect,
+  vScrollRect :: Rect,
+  hThumbRect :: Rect,
+  vThumbRect :: Rect
+}
+
+instance Default ScrollState where
+  def = ScrollState {
+    _sstDragging = Nothing,
+    _sstDeltaX = 0,
+    _sstDeltaY = 0,
+    _sstChildSize = def
+  }
+
+newtype ScrollMessage
+  = ScrollTo Rect
 
 scroll :: WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ managedWidget [def]

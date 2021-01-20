@@ -112,6 +112,11 @@ dialWidth w = def {
   _dlcWidth = Just w
 }
 
+data DialState = DialState {
+  _dlsMaxPos :: Integer,
+  _dlsPos :: Integer
+} deriving (Eq, Show, Generic, Serialise)
+
 dial :: DialValue a => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
 
@@ -142,11 +147,6 @@ dialD_ widgetData minVal maxVal configs = dialNode where
   widget = makeDial widgetData minVal maxVal config state
   dialNode = defaultWidgetNode "dial" widget
     & L.info . L.focusable .~ True
-
-data DialState = DialState {
-  _dlsMaxPos :: Integer,
-  _dlsPos :: Integer
-} deriving (Eq, Show, Generic, Serialise)
 
 makeDial
   :: DialValue a
