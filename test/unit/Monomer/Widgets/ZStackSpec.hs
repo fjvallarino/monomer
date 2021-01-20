@@ -39,7 +39,7 @@ makeLensesWith abbreviatedFields ''TestModel
 spec :: Spec
 spec = describe "ZStack" $ do
   handleEvent
-  updateSizeReq
+  getSizeReq
   resize
 
 handleEvent :: Spec
@@ -115,14 +115,14 @@ handleEventFocusAll = describe "handleEventFocusAll" $
       ] [onlyTopActive False]
     model es = nodeHandleEventModel wenv es zstackNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
-  updateSizeReqEmpty
-  updateSizeReqItems
-  updateSizeReqItemsFixed
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
+  getSizeReqEmpty
+  getSizeReqItems
+  getSizeReqItemsFixed
 
-updateSizeReqEmpty :: Spec
-updateSizeReqEmpty = describe "empty" $ do
+getSizeReqEmpty :: Spec
+getSizeReqEmpty = describe "empty" $ do
   it "should return width = Fixed 0" $
     sizeReqW `shouldBe` FixedSize 0
 
@@ -132,10 +132,10 @@ updateSizeReqEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     zstackNode = zstack []
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv zstackNode
 
-updateSizeReqItems :: Spec
-updateSizeReqItems = describe "several items, horizontal" $ do
+getSizeReqItems :: Spec
+getSizeReqItems = describe "several items, horizontal" $ do
   it "should return width = Flex 130 0.01" $
     sizeReqW `shouldBe` FlexSize 130 0.01
 
@@ -158,10 +158,10 @@ updateSizeReqItems = describe "several items, horizontal" $ do
           label "Label c3"
         ]
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv zstackNode
 
-updateSizeReqItemsFixed :: Spec
-updateSizeReqItemsFixed = describe "several items, horizontal" $ do
+getSizeReqItemsFixed :: Spec
+getSizeReqItemsFixed = describe "several items, horizontal" $ do
   it "should return width = Fixed 300" $
     sizeReqW `shouldBe` FixedSize 300
 
@@ -180,7 +180,7 @@ updateSizeReqItemsFixed = describe "several items, horizontal" $ do
           label "Long b2"
         ] `style` [width 300]
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv zstackNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv zstackNode
 
 resize :: Spec
 resize = describe "resize" $ do

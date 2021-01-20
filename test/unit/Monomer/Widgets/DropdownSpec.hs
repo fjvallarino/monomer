@@ -60,7 +60,7 @@ spec :: Spec
 spec = describe "Dropdown" $ do
   handleEvent
   handleEventValue
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -143,8 +143,8 @@ handleEventValue = describe "handleEventValue" $ do
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
     events es = nodeHandleEventEvts wenv es lvNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 120" $
     sizeReqW `shouldBe` FlexSize 120 1
 
@@ -155,4 +155,4 @@ updateSizeReq = describe "updateSizeReq" $ do
     wenv = mockWenvEvtUnit (TestModel testItem0)
     labelItem = label . showt
     lvNode = dropdown selectedItem testItems labelItem labelItem
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lvNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lvNode

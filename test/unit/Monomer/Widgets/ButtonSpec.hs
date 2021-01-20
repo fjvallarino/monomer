@@ -21,7 +21,7 @@ data BtnEvent
 spec :: Spec
 spec = describe "Button" $ do
   handleEvent
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -47,8 +47,8 @@ handleEvent = describe "handleEvent" $ do
     keyEvts key = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] btnNode
     events evt = nodeHandleEventEvts wenv [evt] btnNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 50 0.01" $
     sizeReqW `shouldBe` FlexSize 50 0.01
 
@@ -65,5 +65,5 @@ updateSizeReq = describe "updateSizeReq" $ do
     wenv = mockWenv ()
     btnNode = button "Click" BtnClick
     btnNode2 = button_ "Click 2" BtnClick [resizeFactorW 1, resizeFactorH 2]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv btnNode
-    (sizeReq2W, sizeReq2H) = nodeUpdateSizeReq wenv btnNode2
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv btnNode
+    (sizeReq2W, sizeReq2H) = nodeGetSizeReq wenv btnNode2

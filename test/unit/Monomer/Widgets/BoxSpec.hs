@@ -26,7 +26,7 @@ spec = describe "Box" $ do
   handleEvent
   handleEventIgnoreEmpty
   handleEventSinkEmpty
-  updateSizeReq
+  getSizeReq
   resize
 
 handleEvent :: Spec
@@ -77,8 +77,8 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
       ] [onlyTopActive False]
     clickSunk p = nodeHandleEventEvts wenv [Click p LeftBtn] sunkNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 50 0.01" $
     sizeReqW `shouldBe` FlexSize 50 0.01
 
@@ -88,7 +88,7 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenv ()
     boxNode = box (label "Label")
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv boxNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
 
 resize :: Spec
 resize = describe "resize" $ do

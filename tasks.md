@@ -421,6 +421,9 @@
     - User may want to listen for resize events
   - Remove SetFocus from single components (already handled in template)
   - Check Input drag release
+  - Create Split
+    - Use space proportional to what widgets request
+  - Create Dial
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -433,11 +436,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Create Split
-    - Use space proportional to what widgets request
-    - Pending tests
-  - Create Dial
-    - Pending tests
   - Rename updateSizeReq/nodeUpdateSizeReq in tests
   - ZStack should consider all visible layers when requesting size (split modal issue)
   - Create Focus Memorizer (?)

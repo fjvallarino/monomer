@@ -37,7 +37,7 @@ spec :: Spec
 spec = describe "Checkbox" $ do
   handleEvent
   handleEventValue
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -84,8 +84,8 @@ handleEventValue = describe "handleEventValue" $ do
     clickModel p node = nodeHandleEventEvts wenv [Click p LeftBtn] node
     keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Fixed 20" $
     sizeReqW `shouldBe` FixedSize 20
 
@@ -95,4 +95,4 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel False)
       & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (checkbox testBool)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (checkbox testBool)

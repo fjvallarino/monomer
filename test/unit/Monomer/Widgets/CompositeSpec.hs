@@ -92,7 +92,7 @@ spec :: Spec
 spec = describe "Composite" $ do
   handleEvent
   handleMessage
-  updateSizeReq
+  getSizeReq
   resize
 
 handleEvent :: Spec
@@ -280,8 +280,8 @@ handleMessage = describe "handleMessage" $ do
     cmpNode = composite "main" id Nothing buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 70 0.01" $
     sizeReqW `shouldBe` FlexSize 70 0.01
 
@@ -297,7 +297,7 @@ updateSizeReq = describe "updateSizeReq" $ do
         label "label 2"
       ]
     cmpNode = composite "main" id Nothing buildUI handleEvent
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv cmpNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv cmpNode
 
 resize :: Spec
 resize = describe "resize" $ do

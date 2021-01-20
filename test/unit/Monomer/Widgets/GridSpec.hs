@@ -17,19 +17,19 @@ import qualified Monomer.Lens as L
 
 spec :: Spec
 spec = describe "Grid" $ do
-  updateSizeReq
+  getSizeReq
   resize
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
-  updateSizeReqEmpty
-  updateSizeReqItemsH
-  updateSizeReqItemsV
-  updateSizeReqMixedH
-  updateSizeReqMixedV
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
+  getSizeReqEmpty
+  getSizeReqItemsH
+  getSizeReqItemsV
+  getSizeReqMixedH
+  getSizeReqMixedV
 
-updateSizeReqEmpty :: Spec
-updateSizeReqEmpty = describe "empty" $ do
+getSizeReqEmpty :: Spec
+getSizeReqEmpty = describe "empty" $ do
   it "should return width = Fixed 0" $
     sizeReqW `shouldBe` FixedSize 0
 
@@ -39,10 +39,10 @@ updateSizeReqEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     gridNode = vgrid []
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
 
-updateSizeReqItemsH :: Spec
-updateSizeReqItemsH = describe "several items, horizontal" $ do
+getSizeReqItemsH :: Spec
+getSizeReqItemsH = describe "several items, horizontal" $ do
   it "should return width = Flex 240 0.01 (largest width * 3)" $
     sizeReqW `shouldBe` FlexSize 240 0.01
 
@@ -56,10 +56,10 @@ updateSizeReqItemsH = describe "several items, horizontal" $ do
         label "how",
         label "are you?"
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
 
-updateSizeReqItemsV :: Spec
-updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
+getSizeReqItemsV :: Spec
+getSizeReqItemsV = describe "several items, vertical, one not visible" $ do
   it "should return width = Flex 80 0.01" $
     sizeReqW `shouldBe` FlexSize 80 0.01
 
@@ -74,10 +74,10 @@ updateSizeReqItemsV = describe "several items, vertical, one not visible" $ do
         label "" `visible` False,
         label "are you?"
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
 
-updateSizeReqMixedH :: Spec
-updateSizeReqMixedH = describe "several items, different reqSizes" $ do
+getSizeReqMixedH :: Spec
+getSizeReqMixedH = describe "several items, different reqSizes" $ do
   it "should return width = Range 300 900 1 (3 * Range 100 300)" $
     sizeReqW `shouldBe` RangeSize 300 900 1
 
@@ -91,10 +91,10 @@ updateSizeReqMixedH = describe "several items, different reqSizes" $ do
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
 
-updateSizeReqMixedV :: Spec
-updateSizeReqMixedV = describe "several items, different reqSizes" $ do
+getSizeReqMixedV :: Spec
+getSizeReqMixedV = describe "several items, different reqSizes" $ do
   it "should return width = Min 100 1" $
     sizeReqW `shouldBe` MinSize 100 1
 
@@ -108,7 +108,7 @@ updateSizeReqMixedV = describe "several items, different reqSizes" $ do
         label "Label 2" `style` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv gridNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
 
 resize :: Spec
 resize = describe "resize" $ do

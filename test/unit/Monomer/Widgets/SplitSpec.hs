@@ -40,7 +40,7 @@ spec :: Spec
 spec = describe "Split" $ do
   handleEventMouseDragH
   handleEventMouseDragV
-  updateSizeReq
+  getSizeReq
 
 handleEventMouseDragH :: Spec
 handleEventMouseDragH = describe "handleEventMouseDragH" $ do
@@ -137,8 +137,8 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
       root = nodeHandleEventRoot wenv es splitNode
       ra = fmap (roundRectUnits . _wniRenderArea . _wnInfo) (root ^. L.children)
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Range 5 125 0.01" $
     hsizeReqW `shouldBe` RangeSize 5 125 0.01
 
@@ -155,5 +155,5 @@ updateSizeReq = describe "updateSizeReq" $ do
     wenv = mockWenv (TestModel 0)
     btn1 = button "Button" Button1
     btn2 = button "Button" Button2
-    (hsizeReqW, hsizeReqH) = nodeUpdateSizeReq wenv (hsplit (btn1, btn2))
-    (vsizeReqW, vsizeReqH) = nodeUpdateSizeReq wenv (vsplit (btn1, btn2))
+    (hsizeReqW, hsizeReqH) = nodeGetSizeReq wenv (hsplit (btn1, btn2))
+    (vsizeReqW, vsizeReqH) = nodeGetSizeReq wenv (vsplit (btn1, btn2))

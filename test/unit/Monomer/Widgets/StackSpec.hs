@@ -19,16 +19,16 @@ import qualified Monomer.Lens as L
 -- Event handling (ignoreEmptyClick) is tested in zstack
 spec :: Spec
 spec = describe "Stack" $ do
-  updateSizeReq
+  getSizeReq
   resize
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
-  updateSizeReqEmpty
-  updateSizeReqItems
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
+  getSizeReqEmpty
+  getSizeReqItems
 
-updateSizeReqEmpty :: Spec
-updateSizeReqEmpty = describe "empty" $ do
+getSizeReqEmpty :: Spec
+getSizeReqEmpty = describe "empty" $ do
   it "should return Fixed width = 0" $
     sizeReqW `shouldBe` FixedSize 0
 
@@ -38,10 +38,10 @@ updateSizeReqEmpty = describe "empty" $ do
   where
     wenv = mockWenv ()
     vstackNode = vstack []
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv vstackNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
 
-updateSizeReqItems :: Spec
-updateSizeReqItems = describe "several items" $ do
+getSizeReqItems :: Spec
+getSizeReqItems = describe "several items" $ do
   it "should return width = Flex 80 0.01" $
     sizeReqW `shouldBe` FlexSize 80 0.01
 
@@ -55,7 +55,7 @@ updateSizeReqItems = describe "several items" $ do
         label "how",
         label "are you?"
       ]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv vstackNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
 
 resize :: Spec
 resize = describe "resize" $ do

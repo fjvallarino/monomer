@@ -42,7 +42,7 @@ spec = describe "IntegralField" $ do
   handleEvent
   handleEventValue
   handleEventMouseDrag
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -188,8 +188,8 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 110 1" $
     sizeReqW `shouldBe` FlexSize 110 1
 
@@ -198,4 +198,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel 10000000000 True)
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (integralField integralValue)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (integralField integralValue)

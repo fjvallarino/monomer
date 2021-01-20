@@ -41,7 +41,7 @@ spec = describe "TextField" $ do
   handleEventValue
   handleEventMouseSelect
   handleEventHistory
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -249,8 +249,8 @@ handleEventHistory = describe "handleEventHistory" $ do
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 100 1" $
     sizeReqW `shouldBe` FlexSize 100 1
 
@@ -259,4 +259,4 @@ updateSizeReq = describe "updateSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel "Test value")
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (textField textValue)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (textField textValue)

@@ -40,7 +40,7 @@ spec = describe "Dial" $ do
   handleEventKeyboard
   handleEventMouseDrag
   handleEventMouseDragVal
-  updateSizeReq
+  getSizeReq
 
 handleEventKeyboard :: Spec
 handleEventKeyboard = describe "handleEventKeyboard" $ do
@@ -156,8 +156,8 @@ handleEventMouseDragVal = describe "handleEventMouseDragVal" $ do
     dialNode = dialV_ 10 DialChanged (-500) 500 [dragRate 1, onFocus GotFocus, onBlur LostFocus]
     evts es = nodeHandleEventEvts wenv es dialNode
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Fixed 50" $
     sizeReqW `shouldBe` FixedSize 50
 
@@ -167,4 +167,4 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenv (TestModel 0)
       & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv (dial dialVal 0 100)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (dial dialVal 0 100)

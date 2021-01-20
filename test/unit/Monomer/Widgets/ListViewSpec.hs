@@ -61,7 +61,7 @@ spec = describe "ListView" $ do
   handleEvent
   handleEventValue
   handleEventRestored
-  updateSizeReq
+  getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -159,8 +159,8 @@ handleEventRestored = describe "handleEventRestored" $ do
     clickModel p = nodeHandleEventModelNoInit wenv2 [Click p LeftBtn] node2
     model evts = nodeHandleEventModelNoInit wenv2 evts node2
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 120" $
     sizeReqW `shouldBe` FlexSize 120 1
 
@@ -170,4 +170,4 @@ updateSizeReq = describe "updateSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)
     lvNode = listView selectedItem testItems (label . showt)
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lvNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lvNode

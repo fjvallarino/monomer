@@ -138,8 +138,8 @@ nodeMerge wenv oldNode node = newNode where
   WidgetResult newNode _ _ = widgetMerge (node ^. L.widget) wenv oldNode $ node
     & L.info . L.path .~ oldNode ^. L.info . L.path
 
-nodeUpdateSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
-nodeUpdateSizeReq wenv node = (sizeReqW,  sizeReqH) where
+nodeGetSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
+nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
   WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
   sizeReqW = node2 ^. L.info . L.sizeReqW
   sizeReqH = node2 ^. L.info . L.sizeReqH

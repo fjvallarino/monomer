@@ -13,12 +13,12 @@ import Monomer.Widgets.Label
 
 spec :: Spec
 spec = describe "Label" $ do
-  updateSizeReq
-  updateSizeReqMulti
-  updateSizeReqMultiKeepSpaces
+  getSizeReq
+  getSizeReqMulti
+  getSizeReqMultiKeepSpaces
 
-updateSizeReq :: Spec
-updateSizeReq = describe "updateSizeReq" $ do
+getSizeReq :: Spec
+getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 100 0.01" $
     sizeReqW `shouldBe` FlexSize 100 0.01
 
@@ -35,11 +35,11 @@ updateSizeReq = describe "updateSizeReq" $ do
     wenv = mockWenv ()
     lblNode = label "Test label"
     lblNode2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
-    (sizeReq2W, sizeReq2H) = nodeUpdateSizeReq wenv lblNode2
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
+    (sizeReq2W, sizeReq2H) = nodeGetSizeReq wenv lblNode2
 
-updateSizeReqMulti :: Spec
-updateSizeReqMulti = describe "updateSizeReq" $ do
+getSizeReqMulti :: Spec
+getSizeReqMulti = describe "getSizeReq" $ do
   it "should return width = Fixed 50" $
     sizeReqW `shouldBe` FixedSize 50
 
@@ -49,10 +49,10 @@ updateSizeReqMulti = describe "updateSizeReq" $ do
   where
     wenv = mockWenv ()
     lblNode = label_ "Line    line    line" [textMultiLine] `style` [width 50]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
-updateSizeReqMultiKeepSpaces :: Spec
-updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
+getSizeReqMultiKeepSpaces :: Spec
+getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   it "should return width = Max 50 1" $
     sizeReqW `shouldBe` MaxSize 50 1
 
@@ -63,4 +63,4 @@ updateSizeReqMultiKeepSpaces = describe "updateSizeReq" $ do
     wenv = mockWenv ()
     caption = "Line    line    line"
     lblNode = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
-    (sizeReqW, sizeReqH) = nodeUpdateSizeReq wenv lblNode
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
