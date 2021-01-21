@@ -56,10 +56,11 @@ main = do
 
 handleAppEvent
   :: WidgetEnv App AppEvent
+  -> WidgetNode App AppEvent
   -> App
   -> AppEvent
   -> [AppEventResponse App AppEvent]
-handleAppEvent wenv model evt = case evt of
+handleAppEvent wenv node model evt = case evt of
   SliderPos pos -> [Task $ do
     print pos
     return Nothing]

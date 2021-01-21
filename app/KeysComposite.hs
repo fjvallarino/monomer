@@ -56,7 +56,7 @@ initialState = KeysCompState {
 keysComposite :: WidgetNode KeysCompState ep
 keysComposite = composite "keysComposite" id buildKeysComp handleKeysCompEvent
 
-handleKeysCompEvent wenv model evt = case evt of
+handleKeysCompEvent wenv node model evt = case evt of
   RotateChildren -> [Model (model & items %~ rotateSeq)]
 
 buildKeysComp wenv model = trace "Created keys composite UI" $

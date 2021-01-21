@@ -442,6 +442,7 @@ Maybe postponed after release?
   - Create Focus Memorizer (?)
     - It should handle the situation of closing a dialog and returning to the previous focused widget
     - Maybe zstack itself could handle it?
+  - Rename isWidget... to isNode
   - Create Slider
   - Create Theme widget to override global theme
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)

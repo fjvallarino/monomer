@@ -6,7 +6,7 @@ module Monomer.Widgets.Confirm (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (.~), (<>~))
+import Control.Lens ((&), (^.), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -60,6 +60,7 @@ instance CmbCancelCaption ConfirmCfg where
 data ConfirmEvt e
   = ParentEvt e
   | VisibleChanged
+  | SetFocusAccept
   deriving (Eq, Show)
 
 confirm
@@ -98,7 +99,7 @@ buildUI message pAcceptEvt pCancelEvt config wenv model = confirmBox where
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
-  acceptBtn = mainButton accept acceptEvt
+  acceptBtn = mainButton accept acceptEvt `globalKey` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
   closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
@@ -117,9 +118,15 @@ buildUI message pAcceptEvt pCancelEvt config wenv model = confirmBox where
 
 handleEvent
   :: WidgetEnv s (ConfirmEvt ep)
+  -> WidgetNode s (ConfirmEvt ep)
   -> s
   -> ConfirmEvt ep
-  -> [EventResponse s e ep]
-handleEvent wenv model evt = case evt of
+  -> [EventResponse s (ConfirmEvt ep) ep]
+handleEvent wenv node model evt = case evt of
   ParentEvt pevt -> [Report pevt]
-  VisibleChanged -> []
+  VisibleChanged -> [Task $ return (Just SetFocusAccept) | nodeVisible]
+  SetFocusAccept -> catMaybes [acceptPath | ownsFocus]
+  where
+    acceptPath = Request . SetFocus <$> globalKeyPath wenv "acceptBtn"
+    ownsFocus = isNodeParentOfFocused wenv node
+    nodeVisible = node ^. L.info . L.visible

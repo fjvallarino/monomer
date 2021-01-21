@@ -14,10 +14,9 @@ import Monomer.Core.WidgetTypes
 
 import qualified Monomer.Lens as L
 
-globalKeyPath :: WidgetEnv s e -> WidgetKey -> Maybe Path
-globalKeyPath _ (WidgetKeyLocal _) = Nothing
+globalKeyPath :: WidgetEnv s e -> Text -> Maybe Path
 globalKeyPath wenv key = fmap (^. L.info . L.path) node where
-  node = Map.lookup key (wenv ^. L.globalKeys)
+  node = Map.lookup (WidgetKeyGlobal key) (wenv ^. L.globalKeys)
 
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where

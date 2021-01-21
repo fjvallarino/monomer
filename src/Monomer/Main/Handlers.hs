@@ -264,6 +264,7 @@ handleMoveFocus startFrom direction (wenv, events, root) = do
       let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
       L.focusedPath .= newFocus
+      L.renderRequested .= True
       (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
       return (wenv2, events >< events1 >< events2, root2)
@@ -282,6 +283,7 @@ handleSetFocus newFocus (wenv, events, root) =  do
       (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
 
       L.focusedPath .= newFocus
+      L.renderRequested .= True
       (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 
       return (wenv2, events >< events1 >< events2, root2)

@@ -46,11 +46,6 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-data AlertEvt e
-  = ParentEvt e
-  | VisibleChanged
-  deriving (Eq, Show)
-
 alert
   :: (WidgetModel sp, WidgetEvent ep)
   => Text
@@ -73,11 +68,10 @@ buildUI
   :: Text
   -> ep
   -> AlertCfg
-  -> WidgetEnv s (AlertEvt ep)
+  -> WidgetEnv s ep
   -> s
-  -> WidgetNode s (AlertEvt ep)
-buildUI message pCancelEvt config wenv model = alertBox where
-  cancelEvt = ParentEvt pCancelEvt
+  -> WidgetNode s ep
+buildUI message cancelEvt config wenv model = alertBox where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
@@ -97,10 +91,9 @@ buildUI message pCancelEvt config wenv model = alertBox where
     & L.info . L.style .~ emptyOverlayColor
 
 handleEvent
-  :: WidgetEnv s (AlertEvt ep)
+  :: WidgetEnv s ep
+  -> WidgetNode s ep
   -> s
-  -> AlertEvt ep
+  -> ep
   -> [EventResponse s e ep]
-handleEvent wenv model evt = case evt of
-  ParentEvt pevt -> [Report pevt]
-  VisibleChanged -> []
+handleEvent wenv node model evt = [Report evt]

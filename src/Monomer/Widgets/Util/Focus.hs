@@ -1,5 +1,6 @@
 module Monomer.Widgets.Util.Focus (
   isNodeFocused,
+  isNodeParentOfFocused,
   parentPath,
   nextTargetStep,
   isFocusCandidate,
@@ -27,6 +28,11 @@ import qualified Monomer.Lens as L
 
 isNodeFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
+
+isNodeParentOfFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeParentOfFocused wenv node = seqStartsWith parentPath focusedPath where
+  parentPath = node ^. L.info . L.path
+  focusedPath = wenv ^. L.focusedPath
 
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where

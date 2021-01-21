@@ -50,7 +50,8 @@ type ParentModel sp = Typeable sp
 type CompositeModel s = (Eq s, WidgetModel s)
 type CompositeEvent e = WidgetEvent e
 
-type EventHandler s e ep = WidgetEnv s e -> s -> e -> [EventResponse s e ep]
+type EventHandler s e ep
+  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 type MergeRequired s = s -> s -> Bool
 type TaskHandler e = IO (Maybe e)
@@ -605,7 +606,7 @@ reduceResult comp state wenv widgetComp widgetResult = newResult where
   evtHandler = _cmpEventHandler comp
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys evtModel
   ReducedEvents{..} =
-      reduceCompEvents _cpsGlobalKeys evtHandler cwenv evtModel evts
+      reduceCompEvents _cpsGlobalKeys evtHandler cwenv evtsRoot evtModel evts
   WidgetResult uWidget uReqs uEvts =
     updateComposite comp state wenv _reModel evtsRoot widgetComp
   widgetId = widgetComp ^. L.info . L.widgetId
@@ -679,10 +680,11 @@ reduceCompEvents
   :: GlobalKeys s e
   -> EventHandler s e ep
   -> WidgetEnv s e
+  -> WidgetNode s e
   -> s
   -> Seq e
   -> ReducedEvents s e sp ep
-reduceCompEvents globalKeys eventHandler cwenv model events = result where
+reduceCompEvents globalKeys eventHandler cwenv node model events = result where
   initial = ReducedEvents {
     _reModel = model,
     _reEvents = Seq.empty,
@@ -693,7 +695,7 @@ reduceCompEvents globalKeys eventHandler cwenv model events = result where
     _reProducers = Seq.empty
   }
   reducer current event = foldl' reducer newCurrent newEvents where
-    response = eventHandler cwenv (_reModel current) event
+    response = eventHandler cwenv node (_reModel current) event
     processed = foldl' (reduceEvtResponse globalKeys) current response
     newEvents = _reEvents processed
     newCurrent = processed { _reEvents = Seq.empty }

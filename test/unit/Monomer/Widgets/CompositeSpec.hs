@@ -114,10 +114,11 @@ handleEventBasic = describe "handleEventBasic" $ do
     wenv = mockWenv def
     handleEvent
       :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
       -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv model evt = [Model (model & clicks %~ (+1))]
+    handleEvent wenv node model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = button "Click" MainBtnClicked
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
@@ -140,17 +141,19 @@ handleEventChild = describe "handleEventChild" $ do
     wenv = mockWenv def
     handleChild
       :: WidgetEnv ChildModel ChildEvt
+      -> WidgetNode ChildModel ChildEvt
       -> ChildModel
       -> ChildEvt
       -> [EventResponse ChildModel ChildEvt MainEvt]
-    handleChild wenv model evt = [Model (model & clicks %~ (+1))]
+    handleChild wenv node model evt = [Model (model & clicks %~ (+1))]
     buildChild wenv model = button "Click" ChildBtnClicked
     handleEvent
       :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
       -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv model evt = [Model (model & clicks %~ (+1))]
+    handleEvent wenv node model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = vstack [
         button "Click" MainBtnClicked,
         composite "child" child buildChild handleChild
@@ -174,10 +177,11 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     wenv = mockWenv (TestModel "" "")
     handleEvent
       :: WidgetEnv TestModel ()
+      -> WidgetNode TestModel ()
       -> TestModel
       -> ()
       -> [EventResponse TestModel () ()]
-    handleEvent wenv model evt = []
+    handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
           textField text1 `key` "localTxt1"
@@ -219,10 +223,11 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     wenv = mockWenv (TestModel "" "")
     handleEvent
       :: WidgetEnv TestModel ()
+      -> WidgetNode TestModel ()
       -> TestModel
       -> ()
       -> [EventResponse TestModel () ()]
-    handleEvent wenv model evt = []
+    handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
           textField text1 `globalKey` "globalTxt1"
@@ -260,19 +265,21 @@ handleMessage = describe "handleMessage" $ do
     path = Seq.fromList [0, 0, 1, 0, 0]
     handleChild
       :: WidgetEnv ChildModel ChildEvt
+      -> WidgetNode ChildModel ChildEvt
       -> ChildModel
       -> ChildEvt
       -> [EventResponse ChildModel ChildEvt MainEvt]
-    handleChild wenv model evt = case evt of
+    handleChild wenv node model evt = case evt of
       ChildMessage m -> [Model (model & message .~ m)]
       _ -> []
     buildChild wenv model = vstack [ msgWidget ]
     handleEvent
       :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
       -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv model evt = [Request (SendMessage path msg)]
+    handleEvent wenv node model evt = [Request (SendMessage path msg)]
     buildUI wenv model = vstack [
         button "Start" MainBtnClicked,
         composite "child" child buildChild handleChild
@@ -290,7 +297,7 @@ getSizeReq = describe "getSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    handleEvent wenv model evt = []
+    handleEvent wenv node model evt = []
     buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
     buildUI wenv model = vstack [
         label "label 1",
@@ -314,7 +321,7 @@ resize = describe "resize" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
-    handleEvent wenv model evt = []
+    handleEvent wenv node model evt = []
     buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
     buildUI wenv model = hstack []
     cmpNode = composite "main" id buildUI handleEvent

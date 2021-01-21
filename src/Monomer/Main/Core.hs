@@ -43,7 +43,8 @@ import Monomer.Widgets.Composite
 import qualified Monomer.Lens as L
 
 type AppEventResponse s e = EventResponse s e ()
-type AppEventHandler s e = WidgetEnv s e -> s -> e -> [AppEventResponse s e]
+type AppEventHandler s e
+  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [AppEventResponse s e]
 type AppUIBuilder s e = UIBuilder s e
 
 data MainLoopArgs s e ep = MainLoopArgs {

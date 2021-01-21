@@ -115,10 +115,11 @@ restoreComposite = describe "restoreComposite" $ do
     wenv = mockWenv (MainModel "Test")
     handleEvent
       :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
       -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv model evt = []
+    handleEvent wenv node model evt = []
     buildUI wenv model = vstack [
         textField text1
       ]
