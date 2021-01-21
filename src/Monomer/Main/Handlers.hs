@@ -24,7 +24,7 @@ import Control.Monad.Extra(concatMapM)
 import Control.Monad.IO.Class
 import Data.List (foldl')
 import Data.Maybe
-import Data.Sequence (Seq(..), (><), (|>))
+import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (Typeable)
 import Foreign (alloca, poke)
 import SDL (($=))
@@ -103,7 +103,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
 
     (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt target currRoot
 
-    return (wenv2, currEvents >< evts2, wroot2)
+    return (wenv2, currEvents <> evts2, wroot2)
   processedEvents = preProcessEvents baseEvents
   nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) processedEvents
 
@@ -237,7 +237,9 @@ handleResizeWidgets previousStep = do
   liftIO . putStrLn $ "Resizing widgets"
 
   let (wenv, events, widgetRoot) = previousStep
-  let newResult = resizeRoot wenv windowSize widgetRoot
+  let tmpResult = resizeRoot wenv windowSize widgetRoot
+  let newResult = tmpResult
+        & L.events .~ events <> tmpResult ^. L.events
 
   L.renderRequested .= True
   L.resizePending .= False
@@ -267,7 +269,7 @@ handleMoveFocus startFrom direction (wenv, events, root) = do
       L.renderRequested .= True
       (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
 
-      return (wenv2, events >< events1 >< events2, root2)
+      return (wenv2, events <> events1 <> events2, root2)
     else
       return (wenv1, events1, root1)
 
@@ -286,7 +288,7 @@ handleSetFocus newFocus (wenv, events, root) =  do
       L.renderRequested .= True
       (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
 
-      return (wenv2, events >< events1 >< events2, root2)
+      return (wenv2, events <> events1 <> events2, root2)
     else
       return (wenv, events, root)
 
@@ -299,7 +301,7 @@ handleGetClipboard path (wenv, evts, root) = do
                 else return ClipboardEmpty
 
   (wenv2, evts2, root2) <- handleSystemEvent wenv (Clipboard contents) path root
-  return (wenv2, evts >< evts2, root2)
+  return (wenv2, evts <> evts2, root2)
 
 handleSetClipboard
   :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
@@ -416,7 +418,7 @@ handleSendMessage path message (wenv, events, widgetRoot) = do
 
   (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv True result
 
-  return (newWenv, events >< newEvents, newWidgetRoot)
+  return (newWenv, events <> newEvents, newWidgetRoot)
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)

@@ -18,6 +18,7 @@ import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Button
+import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
 import Monomer.Widgets.TextField
@@ -48,6 +49,7 @@ handleEvent = describe "handleEvent" $ do
   handleEventAllLayersActive
   handleEventFocusTop
   handleEventFocusAll
+  handleEventFocusChange
 
 handleEventFirstVisible :: Spec
 handleEventFirstVisible = describe "handleEventFirstVisible" $ do
@@ -114,6 +116,34 @@ handleEventFocusAll = describe "handleEventFocusAll" $
         textField textValue2
       ] [onlyTopActive False]
     model es = nodeHandleEventModel wenv es zstackNode
+
+handleEventFocusChange :: Spec
+handleEventFocusChange = describe "handleEventFocusChange" $
+  it "should keep focus when switching between layers" $ do
+    let steps = [ evtK keyTab, evtK keyReturn, evtK keyTab, evtK keyReturn, evtK keyReturn, evtK keyReturn ]
+    evts steps `shouldBe` Seq.fromList [BtnClick 2, BtnClick 4, BtnClick 2, BtnClick 4]
+
+  where
+    wenv = mockWenv 10
+    handleEvent
+      :: WidgetEnv Int BtnEvent
+      -> WidgetNode Int BtnEvent
+      -> Int
+      -> BtnEvent
+      -> [EventResponse Int BtnEvent BtnEvent]
+    handleEvent wenv _ model (BtnClick idx) = [Report (BtnClick idx), Model idx]
+    buildUI wenv model = zstack [
+        hstack [
+          button "3" (BtnClick 3),
+          button "4" (BtnClick 4)
+        ],
+        hstack [
+          button "1" (BtnClick 1),
+          button "2" (BtnClick 2)
+        ] `visible` (model > 2)
+      ]
+    cmpNode = composite "main" id buildUI handleEvent
+    evts es = nodeHandleEventEvts wenv es cmpNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
