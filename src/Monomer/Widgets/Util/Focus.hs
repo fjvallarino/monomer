@@ -6,10 +6,9 @@ module Monomer.Widgets.Util.Focus (
   isFocusCandidate,
   isTargetReached,
   isTargetValid,
-  isWidgetParentOfPath,
-  isWidgetBeforePath,
-  isWidgetAfterPath,
-  handleFocusRequest,
+  isNodeParentOfPath,
+  isNodeBeforePath,
+  isNodeAfterPath,
   handleFocusChange
 ) where
 
@@ -50,7 +49,7 @@ isFocusCandidate FocusBwd = isFocusBwdCandidate
 isFocusFwdCandidate :: Path -> WidgetNode s e -> Bool
 isFocusFwdCandidate startFrom node = isValid where
   info = node ^. L.info
-  isAfter = isWidgetAfterPath startFrom node
+  isAfter = isNodeAfterPath startFrom node
   isFocusable = info ^. L.focusable
   isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isAfter && isFocusable && isEnabled
@@ -58,7 +57,7 @@ isFocusFwdCandidate startFrom node = isValid where
 isFocusBwdCandidate :: Path -> WidgetNode s e -> Bool
 isFocusBwdCandidate startFrom node = isValid where
   info = node ^. L.info
-  isBefore = isWidgetBeforePath startFrom node
+  isBefore = isNodeBeforePath startFrom node
   isFocusable = info ^. L.focusable
   isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isBefore && isFocusable && isEnabled
@@ -73,15 +72,15 @@ isTargetValid target node = valid where
     Just step -> step < Seq.length children
     Nothing -> False
 
-isWidgetParentOfPath :: Path -> WidgetNode s e -> Bool
-isWidgetParentOfPath path node = result where
+isNodeParentOfPath :: Path -> WidgetNode s e -> Bool
+isNodeParentOfPath path node = result where
   widgetPath = node ^. L.info . L.path
   lenWidgetPath = Seq.length widgetPath
   pathPrefix = Seq.take lenWidgetPath path
   result = widgetPath == pathPrefix
 
-isWidgetAfterPath :: Path -> WidgetNode s e -> Bool
-isWidgetAfterPath path node = result where
+isNodeAfterPath :: Path -> WidgetNode s e -> Bool
+isNodeAfterPath path node = result where
   widgetPath = node ^. L.info . L.path
   lenPath = Seq.length path
   lenWidgetPath = Seq.length widgetPath
@@ -90,35 +89,12 @@ isWidgetAfterPath path node = result where
     | lenWidgetPath > lenPath = path <= widgetPathPrefix
     | otherwise = path < widgetPath
 
-isWidgetBeforePath :: Path -> WidgetNode s e -> Bool
-isWidgetBeforePath path node = result where
+isNodeBeforePath :: Path -> WidgetNode s e -> Bool
+isNodeBeforePath path node = result where
   widgetPath = node ^. L.info . L.path
   result
     | path == emptyPath = True
     | otherwise = path > widgetPath
-
-handleFocusRequest
-  :: WidgetEnv s e
-  -> SystemEvent
-  -> WidgetNode s e
-  -> Maybe (WidgetResult s e)
-  -> Maybe (WidgetResult s e)
-handleFocusRequest wenv evt node mResult = newResult where
-  prevReqs = maybe Empty (^. L.requests) mResult
-  isFocusable = node ^. L.info . L.focusable
-  btnPressed = case evt of
-    ButtonAction _ btn PressedBtn _ -> Just btn
-    _ -> Nothing
-  isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
-    && isFocusable
-    && not (isNodeFocused wenv node)
-    && isNodeTopLevel wenv node
-    && isNothing (Seq.findIndexL isFocusRequest prevReqs)
-  focusReq = SetFocus (node ^. L.info . L.path)
-  newResult
-    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
-    | isFocusReq = Just $ resultReqs node [focusReq]
-    | otherwise = mResult
 
 handleFocusChange
   :: (c -> [e])

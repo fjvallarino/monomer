@@ -427,29 +427,31 @@
   - Rename updateSizeReq/nodeUpdateSizeReq in tests
   - ZStack should consider all visible layers when requesting size (split modal issue)
     - It already works this way. Non issue
+  - Create Focus Memorizer (cancelled, zstack takes care)
+    - It should handle the situation of closing a dialog and returning to the previous focused widget
+    - Maybe zstack itself could handle it?
+  - Rename isWidget... to isNode
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
   - Add examples
     - Basic event handling (maybe a form with input and button?)
+    - Validate nested structures update correctly when disabling/enabling parent
     - Fetch content from url, show rows of data with embedded images
     - Composite example
     - Something of generative art (OpenGL example)
   - Add user documentation
 
 Maybe postponed after release?
-  - Create Focus Memorizer (?)
-    - It should handle the situation of closing a dialog and returning to the previous focused widget
-    - Maybe zstack itself could handle it?
-  - Rename isWidget... to isNode
   - Create Slider
   - Create Theme widget to override global theme
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
-  - Validate nested structures update correctly when disabling/enabling parent
   - Check text baseline
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Unify integralField/floatingField
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -461,8 +463,6 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Unify integralField/floatingField
 
 Future
   - Create File Selector

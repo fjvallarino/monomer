@@ -538,8 +538,8 @@ findFocusCandidate
 findFocusCandidate Empty _ _ _ = Nothing
 findFocusCandidate (ch :<| chs) wenv dir start = result where
   isWidgetAfterStart
-    | dir == FocusBwd = isWidgetBeforePath start ch
-    | otherwise = isWidgetParentOfPath start ch || isWidgetAfterPath start ch
+    | dir == FocusBwd = isNodeBeforePath start ch
+    | otherwise = isNodeParentOfPath start ch || isNodeAfterPath start ch
   candidate = widgetFindNextFocus (ch ^. L.widget) wenv dir start ch
   result
     | isWidgetAfterStart && isJust candidate = candidate

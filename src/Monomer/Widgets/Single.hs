@@ -14,10 +14,10 @@ module Monomer.Widgets.Single (
 
 import Codec.Serialise
 import Control.Exception (AssertionFailed(..), throw)
-import Control.Lens ((&), (^.), (^?), (.~), _Just)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
 import Data.Default
 import Data.Maybe
-import Data.Sequence (Seq(..))
+import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (Typeable, cast)
 
 import qualified Data.Sequence as Seq
@@ -325,6 +325,29 @@ handleEventWrapper single wenv target evt node
     result
       | focusOnPressed = handleFocusRequest wenv evt newNode sizeResult
       | otherwise = sizeResult
+
+handleFocusRequest
+  :: WidgetEnv s e
+  -> SystemEvent
+  -> WidgetNode s e
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleFocusRequest wenv evt node mResult = newResult where
+  prevReqs = maybe Empty (^. L.requests) mResult
+  isFocusable = node ^. L.info . L.focusable
+  btnPressed = case evt of
+    ButtonAction _ btn PressedBtn _ -> Just btn
+    _ -> Nothing
+  isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
+    && isFocusable
+    && not (isNodeFocused wenv node)
+    && isNodeTopLevel wenv node
+    && isNothing (Seq.findIndexL isFocusRequest prevReqs)
+  focusReq = SetFocus (node ^. L.info . L.path)
+  newResult
+    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
+    | isFocusReq = Just $ resultReqs node [focusReq]
+    | otherwise = mResult
 
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message node = Nothing
