@@ -314,11 +314,11 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
       ]-- `style` [padding 10]
     ]
   longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
-  widgetTree = zstack_ [
+  widgetTree = zstack [
       widgetTreeFull,
       alert (longMessage "Alert") CloseAlert `visible` model ^. showAlert,
       confirm (longMessage "Confirm") AcceptConfirm CancelConfirm `visible` model ^. showConfirm
-    ] [onlyTopActive False]
+    ]
   widgetTreeFull = vstack [
       hstack [
         radioV (model ^. fruit) RadioSt Apple,

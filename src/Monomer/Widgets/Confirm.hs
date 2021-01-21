@@ -60,7 +60,6 @@ instance CmbCancelCaption ConfirmCfg where
 data ConfirmEvt e
   = ParentEvt e
   | VisibleChanged
-  | SetFocusAccept
   deriving (Eq, Show)
 
 confirm
@@ -124,8 +123,7 @@ handleEvent
   -> [EventResponse s (ConfirmEvt ep) ep]
 handleEvent wenv node model evt = case evt of
   ParentEvt pevt -> [Report pevt]
-  VisibleChanged -> [Task $ return (Just SetFocusAccept) | nodeVisible]
-  SetFocusAccept -> catMaybes [acceptPath | ownsFocus]
+  VisibleChanged -> catMaybes [acceptPath | nodeVisible]
   where
     acceptPath = Request . SetFocus <$> globalKeyPath wenv "acceptBtn"
     ownsFocus = isNodeParentOfFocused wenv node

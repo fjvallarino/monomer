@@ -69,7 +69,7 @@ makeZStack config state = widget where
   baseWidget = createContainer state def {
     containerUseChildrenSizes = True,
     containerInit = init,
-    containerMerge = Just merge,
+    containerMergePost = mergePost,
     containerFindNextFocus = findNextFocus,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -90,7 +90,7 @@ makeZStack config state = widget where
     newNode = node
       & L.widget .~ makeZStack config newState
 
-  merge wenv oldState oldNode node = newResult where
+  mergePost wenv result oldState oldNode node = newResult where
     ZStackState oldFocusMap oldTopIdx = oldState
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
@@ -98,7 +98,8 @@ makeZStack config state = widget where
     topLevel = isNodeTopLevel wenv node
     childrenChanged = visibleChildrenChanged oldNode node
     newTopIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
-    needsFocus = isFocusParent && topLevel && childrenChanged
+    focusReq = isJust $ Seq.findIndexL isFocusRequest (result ^. L.requests)
+    needsFocus = isFocusParent && topLevel && childrenChanged && not focusReq
     oldFocus = fromJust oldTopPath
     oldTopPath = M.lookup newTopIdx oldFocusMap
     fstTopPath = Just $ node ^. L.info . L.path |> newTopIdx
@@ -106,12 +107,15 @@ makeZStack config state = widget where
       _zssFocusMap = oldFocusMap & at oldTopIdx ?~ focusedPath,
       _zssTopIdx = newTopIdx
     }
-    newNode = node
-      & L.widget .~ makeZStack config newState
+    tmpResult = result
+      & L.node . L.widget .~ makeZStack config newState
     newResult
-      | needsFocus && isJust oldTopPath = resultReqs newNode [SetFocus oldFocus]
-      | needsFocus = resultReqs newNode [MoveFocus fstTopPath FocusFwd]
-      | otherwise = resultWidget node
+      | needsFocus && isJust oldTopPath = tmpResult
+          & L.requests %~ (|> SetFocus (fromJust oldTopPath))
+      | needsFocus = tmpResult
+          & L.requests %~ (|> MoveFocus fstTopPath FocusFwd)
+      | isFocusParent = tmpResult
+      | otherwise = result
 
   -- | Find instance matching point
   findByPoint wenv startPath point node = result where
