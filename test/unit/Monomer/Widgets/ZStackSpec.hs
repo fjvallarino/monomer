@@ -18,6 +18,7 @@ import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Button
+import Monomer.Widgets.Confirm
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
@@ -50,6 +51,7 @@ handleEvent = describe "handleEvent" $ do
   handleEventFocusTop
   handleEventFocusAll
   handleEventFocusChange
+  handleEventFocusKeep
 
 handleEventFirstVisible :: Spec
 handleEventFirstVisible = describe "handleEventFirstVisible" $ do
@@ -119,7 +121,7 @@ handleEventFocusAll = describe "handleEventFocusAll" $
 
 handleEventFocusChange :: Spec
 handleEventFocusChange = describe "handleEventFocusChange" $
-  it "should keep focus when switching between layers" $ do
+  it "should restore focus when switching between layers" $ do
     let steps = [ evtK keyTab, evtK keyReturn, evtK keyTab, evtK keyReturn, evtK keyReturn, evtK keyReturn ]
     evts steps `shouldBe` Seq.fromList [BtnClick 2, BtnClick 4, BtnClick 2, BtnClick 4]
 
@@ -137,6 +139,33 @@ handleEventFocusChange = describe "handleEventFocusChange" $
           button "3" (BtnClick 3),
           button "4" (BtnClick 4)
         ],
+        hstack [
+          button "1" (BtnClick 1),
+          button "2" (BtnClick 2)
+        ] `visible` (model > 2)
+      ]
+    cmpNode = composite "main" id buildUI handleEvent
+    evts es = nodeHandleEventEvts wenv es cmpNode
+
+handleEventFocusKeep :: Spec
+handleEventFocusKeep = describe "handleEventFocusKeep" $
+  it "should not restore focus when switching between layers if a focus change request is detected" $ do
+    let steps = [ evtK keyTab, evtK keyReturn, evtK keyTab, evtK keyReturn, evtK keyReturn, evtK keyReturn ]
+    evts steps `shouldBe` Seq.fromList [BtnClick 2, BtnClick 4, BtnClick 2, BtnClick 3]
+
+  where
+    wenv = mockWenv 10
+    handleEvent
+      :: WidgetEnv Int BtnEvent
+      -> WidgetNode Int BtnEvent
+      -> Int
+      -> BtnEvent
+      -> [EventResponse Int BtnEvent BtnEvent]
+    handleEvent wenv _ model (BtnClick idx) = [Report (BtnClick idx), Model idx]
+    buildUI wenv model = zstack [
+        hstack [
+          confirm "Message" (BtnClick 3) (BtnClick 4)
+        ] `visible` (model <= 2),
         hstack [
           button "1" (BtnClick 1),
           button "2" (BtnClick 2)
