@@ -96,6 +96,9 @@ class CmbTextBottom t where
   textBottom :: t
 
 -- Events
+class CmbOnInit t e | t -> e  where
+  onInit :: e -> t
+
 class CmbOnFocus t e | t -> e  where
   onFocus :: e -> t
 
@@ -119,6 +122,12 @@ class CmbOnClickEmpty t e | t -> e  where
 
 class CmbOnClickEmptyReq t s | t -> s where
   onClickEmptyReq :: WidgetRequest s -> t
+
+class CmbOnEnabledChange t e | t -> e where
+  onEnabledChange :: e -> t
+
+class CmbOnVisibleChange t e | t -> e where
+  onVisibleChange :: e -> t
 
 class CmbOnChange t a e | t -> e where
   onChange :: (a -> e) -> t

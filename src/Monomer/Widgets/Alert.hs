@@ -46,35 +46,61 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
-alert :: (WidgetModel s, WidgetEvent e) => Text -> e -> WidgetNode s e
+data AlertEvt e
+  = ParentEvt e
+  | VisibleChanged
+  deriving (Eq, Show)
+
+alert
+  :: (WidgetModel sp, WidgetEvent ep)
+  => Text
+  -> ep
+  -> WidgetNode sp ep
 alert message evt = alert_ message evt def
 
 alert_
-  :: (WidgetModel s, WidgetEvent e) => Text -> e -> [AlertCfg] -> WidgetNode s e
+  :: (WidgetModel sp, WidgetEvent ep)
+  => Text
+  -> ep
+  -> [AlertCfg]
+  -> WidgetNode sp ep
 alert_ message evt configs = newNode where
   config = mconcat configs
   createUI = buildUI message evt config
-  newNode = compositeExt "alert" () Nothing createUI handleEvent
+  newNode = compositeExt "alert" () createUI handleEvent
 
-buildUI :: Text -> e -> AlertCfg -> WidgetEnv s e -> s -> WidgetNode s e
-buildUI message evt config wenv model = alertBox where
+buildUI
+  :: Text
+  -> ep
+  -> AlertCfg
+  -> WidgetEnv s (AlertEvt ep)
+  -> s
+  -> WidgetNode s (AlertEvt ep)
+buildUI message pCancelEvt config wenv model = alertBox where
+  cancelEvt = ParentEvt pCancelEvt
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
-  dismissButton = mainButton close evt
+  dismissButton = mainButton close cancelEvt
   closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
   alertTree = vstack [
       hstack [
         label title & L.info . L.style .~ themeDialogTitle wenv,
-        box_ closeIcon [onClick evt]
+        box_ closeIcon [onClick cancelEvt]
       ],
       label_ message [textMultiLine]
         & L.info . L.style .~ themeDialogBody wenv,
       box_ dismissButton [alignLeft]
         & L.info . L.style .~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
-  alertBox = box_ alertTree [onClickEmpty evt]
+  alertBox = box_ alertTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
 
-handleEvent :: WidgetEnv s e -> s -> e -> [EventResponse s e e]
-handleEvent wenv model evt = [Report evt]
+handleEvent
+  :: WidgetEnv s (AlertEvt ep)
+  -> s
+  -> AlertEvt ep
+  -> [EventResponse s e ep]
+handleEvent wenv model evt = case evt of
+  ParentEvt pevt -> [Report pevt]
+  VisibleChanged -> []

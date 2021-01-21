@@ -65,42 +65,66 @@ data EventResponse s e ep
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
 
-data CompositeCfg s ep sp = CompositeCfg {
+data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
+  _cmcOnInit :: [e],
   _cmcOnChange :: [s -> ep],
-  _cmcOnChangeReq :: [WidgetRequest sp]
+  _cmcOnChangeReq :: [WidgetRequest sp],
+  _cmcOnEnabledChange :: [e],
+  _cmcOnVisibleChange :: [e]
 }
 
-instance Default (CompositeCfg s ep sp) where
+instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
     _cmcMergeRequired = Nothing,
+    _cmcOnInit = [],
     _cmcOnChange = [],
-    _cmcOnChangeReq = []
+    _cmcOnChangeReq = [],
+    _cmcOnEnabledChange = [],
+    _cmcOnVisibleChange = []
   }
 
-instance Semigroup (CompositeCfg s ep sp) where
+instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
+    _cmcOnInit = _cmcOnInit c2 <|> _cmcOnInit c1,
     _cmcOnChange = _cmcOnChange c2 <|> _cmcOnChange c1,
-    _cmcOnChangeReq = _cmcOnChangeReq c2 <|> _cmcOnChangeReq c1
+    _cmcOnChangeReq = _cmcOnChangeReq c2 <|> _cmcOnChangeReq c1,
+    _cmcOnEnabledChange = _cmcOnEnabledChange c2 <|> _cmcOnEnabledChange c1,
+    _cmcOnVisibleChange = _cmcOnVisibleChange c2 <|> _cmcOnVisibleChange c1
   }
 
-instance Monoid (CompositeCfg s ep sp) where
+instance Monoid (CompositeCfg s e sp ep) where
   mempty = def
 
-instance CmbMergeRequired (CompositeCfg s ep sp) s where
+instance CmbMergeRequired (CompositeCfg s e sp ep) s where
   mergeRequired fn = def {
     _cmcMergeRequired = Just fn
   }
 
-instance CmbOnChange (CompositeCfg s ep sp) s ep where
+instance CmbOnInit (CompositeCfg s e sp ep) e where
+  onInit fn = def {
+    _cmcOnInit = [fn]
+  }
+
+instance CmbOnChange (CompositeCfg s e sp ep) s ep where
   onChange fn = def {
     _cmcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (CompositeCfg s ep sp) sp where
+instance CmbOnChangeReq (CompositeCfg s e sp ep) sp where
   onChangeReq req = def {
     _cmcOnChangeReq = [req]
+  }
+
+instance CmbOnEnabledChange (CompositeCfg s e sp ep) e where
+  onEnabledChange fn = def {
+    _cmcOnEnabledChange = [fn]
+  }
+
+instance CmbOnVisibleChange (CompositeCfg s e sp ep) e where
+  onVisibleChange fn = def {
+    _cmcOnVisibleChange = [fn]
   }
 
 data Composite s e sp ep = Composite {
@@ -108,9 +132,11 @@ data Composite s e sp ep = Composite {
   _cmpEventHandler :: EventHandler s e ep,
   _cmpUiBuilder :: UIBuilder s e,
   _cmpMergeRequired :: MergeRequired s,
-  _cmpInitEvent :: Maybe e,
+  _cmpInitEvent :: [e],
   _cmpOnChange :: [s -> ep],
-  _cmpOnChangeReq :: [WidgetRequest sp]
+  _cmpOnChangeReq :: [WidgetRequest sp],
+  _cmpOnEnabledChange :: [e],
+  _cmpOnVisibleChange :: [e]
 }
 
 data CompositeState s e = CompositeState {
@@ -143,87 +169,80 @@ composite
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> ALens' sp s
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
   -> WidgetNode sp ep
-composite widgetType field initEvt uiBuilder evtHandler = newNode where
-  newNode = composite_ widgetType field initEvt uiBuilder evtHandler def
+composite widgetType field uiBuilder evtHandler = newNode where
+  newNode = composite_ widgetType field uiBuilder evtHandler def
 
 composite_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> ALens' sp s
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
-  -> [CompositeCfg s ep sp]
+  -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
-composite_ widgetType field initEvt uiBuilder evtHandler cfgs = newNode where
+composite_ widgetType field uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetLens field
-  newNode = compositeD_ widgetType widgetData initEvt uiBuilder evtHandler cfgs
+  newNode = compositeD_ widgetType widgetData uiBuilder evtHandler cfgs
 
 compositeV
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
   -> (s -> ep)
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
   -> WidgetNode sp ep
-compositeV wType val handler initEvt uiBuilder evtHandler = newNode where
-  newNode = compositeV_ wType val handler initEvt uiBuilder evtHandler def
+compositeV wType val handler uiBuilder evtHandler = newNode where
+  newNode = compositeV_ wType val handler uiBuilder evtHandler def
 
 compositeV_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
   -> (s -> ep)
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
-  -> [CompositeCfg s ep sp]
+  -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
-compositeV_ wType val handler initEvt uiBuilder evtHandler cfgs = newNode where
+compositeV_ wType val handler uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
   newCfgs = onChange handler : cfgs
-  newNode = compositeD_ wType widgetData initEvt uiBuilder evtHandler newCfgs
+  newNode = compositeD_ wType widgetData uiBuilder evtHandler newCfgs
 
 compositeExt
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
   -> WidgetNode sp ep
-compositeExt wType val initEvt uiBuilder evtHandler = newNode where
-  newNode = compositeExt_ wType val initEvt uiBuilder evtHandler []
+compositeExt wType val uiBuilder evtHandler = newNode where
+  newNode = compositeExt_ wType val uiBuilder evtHandler []
 
 compositeExt_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> s
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
-  -> [CompositeCfg s ep sp]
+  -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
-compositeExt_ wType val initEvt uiBuilder evtHandler cfgs = newNode where
+compositeExt_ wType val uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
-  newNode = compositeD_ wType widgetData initEvt uiBuilder evtHandler cfgs
+  newNode = compositeD_ wType widgetData uiBuilder evtHandler cfgs
 
 compositeD_
   :: (CompositeModel s, CompositeEvent e, ParentModel sp)
   => WidgetType
   -> WidgetData sp s
-  -> Maybe e
   -> UIBuilder s e
   -> EventHandler s e ep
-  -> [CompositeCfg s ep sp]
+  -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
-compositeD_ wType wData initEvt uiBuilder evtHandler configs = newNode where
+compositeD_ wType wData uiBuilder evtHandler configs = newNode where
   config = mconcat configs
   mergeReq = fromMaybe (/=) (_cmcMergeRequired config)
   widgetRoot = spacer
@@ -232,9 +251,11 @@ compositeD_ wType wData initEvt uiBuilder evtHandler configs = newNode where
     _cmpEventHandler = evtHandler,
     _cmpUiBuilder = uiBuilder,
     _cmpMergeRequired = mergeReq,
-    _cmpInitEvent = initEvt,
+    _cmpInitEvent = _cmcOnInit config,
     _cmpOnChange = _cmcOnChange config,
-    _cmpOnChangeReq = _cmcOnChangeReq config
+    _cmpOnChangeReq = _cmcOnChangeReq config,
+    _cmpOnEnabledChange = _cmcOnEnabledChange config,
+    _cmpOnVisibleChange = _cmcOnVisibleChange config
   }
   state = CompositeState Nothing widgetRoot M.empty
   widget = createComposite composite state
@@ -277,13 +298,13 @@ compositeInit comp state wenv widgetComp = newResult where
   builtRoot = _cmpUiBuilder comp cwenv model
   tempRoot = cascadeCtx wenv widgetComp builtRoot
   WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
-  newEvts = maybe evts (evts |>) (_cmpInitEvent comp)
+  newEvts = Seq.fromList (_cmpInitEvent comp)
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsGlobalKeys = collectGlobalKeys M.empty root
   }
-  tempResult = WidgetResult root reqs newEvts
+  tempResult = WidgetResult root reqs (evts <> newEvts)
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv widgetComp
   newResult = reduceResult comp newState wenv styledComp tempResult
@@ -309,17 +330,17 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   -- Needed in case the user references something outside model when building UI
   -- The same model is provided as old since nothing else is available, but
   -- mergeRequired may be using data from a closure
-  oldFlags = [oldComp ^. L.info . L.visible, oldComp ^. L.info . L.enabled]
-  newFlags = [newComp ^. L.info . L.visible, newComp ^. L.info . L.enabled]
+  visibleChg = oldComp ^. L.info . L.visible /= newComp ^. L.info . L.visible
+  enabledChg = oldComp ^. L.info . L.enabled /= newComp ^. L.info . L.enabled
   modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
   mergeRequired
-    | isJust oldModel = modelChanged || (oldFlags /= newFlags)
+    | isJust oldModel = modelChanged || visibleChg || enabledChg
     | otherwise = True
   initRequired = not (nodeMatches tempRoot oldRoot)
-  tempResult
+  WidgetResult newRoot tmpReqs tmpEvts
     | initRequired = widgetInit tempWidget cwenv tempRoot
-    | otherwise = widgetMerge tempWidget cwenv oldRoot tempRoot
-  newRoot = tempResult ^. L.node
+    | mergeRequired = widgetMerge tempWidget cwenv oldRoot tempRoot
+    | otherwise = resultWidget oldRoot
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
@@ -332,10 +353,11 @@ compositeMerge comp state wenv oldComp newComp = newResult where
     & L.info . L.renderArea .~ oldComp ^. L.info . L.renderArea
     & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
-  reducedResult
-    | mergeRequired = reduceResult comp newState wenv styledComp tempResult
-    | otherwise = resultWidget $ styledComp
-        & L.widget .~ oldComp ^. L.widget
+  visibleEvts = if visibleChg then _cmpOnVisibleChange comp else []
+  enabledEvts = if enabledChg then _cmpOnEnabledChange comp else []
+  evts = Seq.fromList (visibleEvts ++ enabledEvts)
+  tmpResult = WidgetResult newRoot tmpReqs (tmpEvts <> evts)
+  reducedResult = reduceResult comp newState wenv styledComp tmpResult
   newResult = handleWidgetIdChange oldComp reducedResult
 
 -- | Dispose

@@ -119,7 +119,7 @@ handleEventBasic = describe "handleEventBasic" $ do
       -> [EventResponse MainModel MainEvt ()]
     handleEvent wenv model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = button "Click" MainBtnClicked
-    cmpNode = composite "main" id Nothing buildUI handleEvent
+    cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
 
 handleEventChild :: Spec
@@ -153,9 +153,9 @@ handleEventChild = describe "handleEventChild" $ do
     handleEvent wenv model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = vstack [
         button "Click" MainBtnClicked,
-        composite "child" child Nothing buildChild handleChild
+        composite "child" child buildChild handleChild
       ]
-    cmpNode = composite "main" id Nothing buildUI handleEvent
+    cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
 
 handleEventLocalKey :: Spec
@@ -194,8 +194,8 @@ handleEventLocalKey = describe "handleEventLocalKey" $
           textField text1 `key` "localTxt1"
         ]
       ]
-    cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
-    cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
+    cmpNode1 = composite "main" id buildUI1 handleEvent
+    cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
@@ -239,8 +239,8 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
           textField text1 `globalKey` "globalTxt1"
         ]
       ]
-    cmpNode1 = composite "main" id Nothing buildUI1 handleEvent
-    cmpNode2 = composite_ "main" id Nothing buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
+    cmpNode1 = composite "main" id buildUI1 handleEvent
+    cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
@@ -275,9 +275,9 @@ handleMessage = describe "handleMessage" $ do
     handleEvent wenv model evt = [Request (SendMessage path msg)]
     buildUI wenv model = vstack [
         button "Start" MainBtnClicked,
-        composite "child" child Nothing buildChild handleChild
+        composite "child" child buildChild handleChild
       ]
-    cmpNode = composite "main" id Nothing buildUI handleEvent
+    cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
 
 getSizeReq :: Spec
@@ -296,7 +296,7 @@ getSizeReq = describe "getSizeReq" $ do
         label "label 1",
         label "label 2"
       ]
-    cmpNode = composite "main" id Nothing buildUI handleEvent
+    cmpNode = composite "main" id buildUI handleEvent
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv cmpNode
 
 resize :: Spec
@@ -317,7 +317,7 @@ resize = describe "resize" $ do
     handleEvent wenv model evt = []
     buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
     buildUI wenv model = hstack []
-    cmpNode = composite "main" id Nothing buildUI handleEvent
+    cmpNode = composite "main" id buildUI handleEvent
     tmpNode = nodeInit wenv cmpNode
     newNode = widgetSave (tmpNode ^. L.widget) wenv tmpNode
     viewport = newNode ^. L.info . L.viewport

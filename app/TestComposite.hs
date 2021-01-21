@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module TestComposite (testComposite) where
+module TestComposite (testComp) where
 
 import Debug.Trace
 
@@ -35,7 +35,7 @@ instance Default CompState where
 makeLenses ''CompState
 
 data CompEvent
-  = InitComposite
+  = InitComp
   | MessageParent
   | CallSandbox
   | StartTask
@@ -43,11 +43,11 @@ data CompEvent
   | HandleProducer Int
   deriving (Eq, Show)
 
-testComposite :: WidgetNode CompState AppEvent
-testComposite = composite "testComposite" id (Just InitComposite) buildComposite handleCompositeEvent
+testComp :: WidgetNode CompState AppEvent
+testComp = composite_ "testComp" id buildComp handleCompEvt [onInit InitComp]
 
-handleCompositeEvent wenv model evt = case evt of
-  InitComposite -> [Task $ do
+handleCompEvt wenv model evt = case evt of
+  InitComp -> [Task $ do
     threadDelay 1000
     putStrLn "Initialized composite"
     return Nothing]
@@ -62,7 +62,7 @@ handleCompositeEvent wenv model evt = case evt of
       threadDelay $ 1000 * 1000]
   HandleProducer val -> [Model $ model & csProduced %~ (+val)]
 
-buildComposite wenv model = trace "Created composite UI" $
+buildComp wenv model = trace "Created composite UI" $
   vgrid [
     scroll $ label "This is a composite label!",
     scroll $ label "This is a composite label again!",

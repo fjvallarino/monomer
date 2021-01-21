@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -30,6 +29,7 @@ import qualified SDL
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Lens
 import Monomer.Main.Handlers
@@ -55,7 +55,7 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlFrameStartTs :: Int,
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
-  _mlExitEvent :: Maybe e,
+  _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode s ep
 }
 
@@ -86,8 +86,8 @@ simpleApp_ model eventHandler uiBuilder configs = do
   where
     config = mconcat configs
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
-    initEvent = _apcInitEvent config
-    appWidget = composite "app" id initEvent uiBuilder eventHandler
+    compCfgs = onInit <$> _apcInitEvent config
+    appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runApp
   :: (MonomerM s m, WidgetEvent e)
@@ -105,7 +105,7 @@ runApp window widgetRoot config = do
   let maxFps = fromMaybe 30 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
-  let exitEvent = _apcExitEvent config
+  let exitEvents = _apcExitEvent config
   let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
 
   L.windowSize .= newWindowSize
@@ -154,7 +154,7 @@ runApp window widgetRoot config = do
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
-    _mlExitEvent = exitEvent,
+    _mlExitEvents = exitEvents,
     _mlWidgetRoot = resizedRoot
   }
 
@@ -214,8 +214,10 @@ mainLoop window renderer config loopArgs = do
   }
   -- Exit handler
   let quit = SDL.QuitEvent `elem` eventsPayload
-  let exitMsg = SendMessage (Seq.fromList [0]) _mlExitEvent
-  let baseReqs = Seq.fromList [ exitMsg | quit ]
+  let exitMsgs = SendMessage (Seq.fromList [0]) <$> _mlExitEvents
+  let baseReqs
+        | quit = Seq.fromList exitMsgs
+        | otherwise = Seq.Empty
   let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
 
 --  when newSecond $

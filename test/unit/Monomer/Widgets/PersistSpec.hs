@@ -122,7 +122,7 @@ restoreComposite = describe "restoreComposite" $ do
     buildUI wenv model = vstack [
         textField text1
       ]
-    node1 = composite "main" id Nothing buildUI handleEvent
+    node1 = composite "main" id buildUI handleEvent
     (model2, oldInfo, rstInfo) = handleRestoredEvents wenv node1
 
 handleRestoredEvents wenv node1 = (model2, oldInfo, rstInfo) where

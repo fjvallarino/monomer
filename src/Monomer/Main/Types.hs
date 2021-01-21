@@ -105,8 +105,8 @@ data AppConfig e = AppConfig {
   _apcMaxFps :: Maybe Int,
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
-  _apcInitEvent :: Maybe e,
-  _apcExitEvent :: Maybe e,
+  _apcInitEvent :: [e],
+  _apcExitEvent :: [e],
   _apcMainButton :: Maybe Button,
   _apcStateFileMain :: Maybe String
 }
@@ -121,8 +121,8 @@ instance Default (AppConfig e) where
     _apcMaxFps = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
-    _apcInitEvent = Nothing,
-    _apcExitEvent = Nothing,
+    _apcInitEvent = [],
+    _apcExitEvent = [],
     _apcMainButton = Nothing,
     _apcStateFileMain = Nothing
   }
@@ -137,8 +137,8 @@ instance Semigroup (AppConfig e) where
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
-    _apcInitEvent = _apcInitEvent a2 <|> _apcInitEvent a1,
-    _apcExitEvent = _apcExitEvent a2 <|> _apcExitEvent a1,
+    _apcInitEvent = _apcInitEvent a1 ++ _apcInitEvent a2,
+    _apcExitEvent = _apcExitEvent a1 ++ _apcExitEvent a2,
     _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
     _apcStateFileMain = _apcStateFileMain a2 <|> _apcStateFileMain a1
   }
@@ -187,13 +187,13 @@ appTheme t = def {
 }
 
 appInitEvent :: e -> AppConfig e
-appInitEvent e = def {
-  _apcInitEvent = Just e
+appInitEvent evt = def {
+  _apcInitEvent = [evt]
 }
 
 appExitEvent :: e -> AppConfig e
-appExitEvent e = def {
-  _apcExitEvent = Just e
+appExitEvent evt = def {
+  _apcExitEvent = [evt]
 }
 
 appMainButton :: Button -> AppConfig e

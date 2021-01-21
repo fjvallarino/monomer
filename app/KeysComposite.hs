@@ -54,7 +54,7 @@ initialState = KeysCompState {
 }
 
 keysComposite :: WidgetNode KeysCompState ep
-keysComposite = composite "keysComposite" id Nothing buildKeysComp handleKeysCompEvent
+keysComposite = composite "keysComposite" id buildKeysComp handleKeysCompEvent
 
 handleKeysCompEvent wenv model evt = case evt of
   RotateChildren -> [Model (model & items %~ rotateSeq)]

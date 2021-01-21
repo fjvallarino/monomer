@@ -57,23 +57,43 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-confirm :: (WidgetModel s, WidgetEvent e) => Text -> e -> e -> WidgetNode s e
+data ConfirmEvt e
+  = ParentEvt e
+  | VisibleChanged
+  deriving (Eq, Show)
+
+confirm
+  :: (WidgetModel sp, WidgetEvent ep)
+  => Text
+  -> ep
+  -> ep
+  -> WidgetNode sp ep
 confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
 
 confirm_
-  :: (WidgetModel s, WidgetEvent e)
+  :: (WidgetModel sp, WidgetEvent ep)
   => Text
-  -> e
-  -> e
+  -> ep
+  -> ep
   -> [ConfirmCfg]
-  -> WidgetNode s e
+  -> WidgetNode sp ep
 confirm_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   createUI = buildUI message acceptEvt cancelEvt config
-  newNode = compositeExt "confirm" () Nothing createUI handleEvent
+  evts = [onVisibleChange VisibleChanged]
+  newNode = compositeExt_ "confirm" () createUI handleEvent evts
 
-buildUI :: Text -> e -> e -> ConfirmCfg -> WidgetEnv s e -> s -> WidgetNode s e
-buildUI message acceptEvt cancelEvt config wenv model = confirmBox where
+buildUI
+  :: Text
+  -> ep
+  -> ep
+  -> ConfirmCfg
+  -> WidgetEnv s (ConfirmEvt ep)
+  -> s
+  -> WidgetNode s (ConfirmEvt ep)
+buildUI message pAcceptEvt pCancelEvt config wenv model = confirmBox where
+  acceptEvt = ParentEvt pAcceptEvt
+  cancelEvt = ParentEvt pCancelEvt
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
@@ -95,5 +115,11 @@ buildUI message acceptEvt cancelEvt config wenv model = confirmBox where
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
 
-handleEvent :: WidgetEnv s e -> s -> e -> [EventResponse s e e]
-handleEvent wenv model evt = [Report evt]
+handleEvent
+  :: WidgetEnv s (ConfirmEvt ep)
+  -> s
+  -> ConfirmEvt ep
+  -> [EventResponse s e ep]
+handleEvent wenv model evt = case evt of
+  ParentEvt pevt -> [Report pevt]
+  VisibleChanged -> []
