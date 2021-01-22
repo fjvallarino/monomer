@@ -12,6 +12,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Icon,
   module Monomer.Widgets.Image,
   module Monomer.Widgets.IntegralField,
+  module Monomer.Widgets.Keystroke,
   module Monomer.Widgets.Label,
   module Monomer.Widgets.ListView,
   module Monomer.Widgets.Radio,
@@ -37,6 +38,7 @@ import Monomer.Widgets.Grid
 import Monomer.Widgets.Icon
 import Monomer.Widgets.Image
 import Monomer.Widgets.IntegralField
+import Monomer.Widgets.Keystroke
 import Monomer.Widgets.Label
 import Monomer.Widgets.ListView
 import Monomer.Widgets.Radio

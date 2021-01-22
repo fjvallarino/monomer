@@ -206,8 +206,8 @@ makeDial field minVal maxVal config state = widget where
     KeyAction mod code KeyPressed
       | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)
-      | isShiftPressed evt && isKeyUp code -> handleNewPos (pos + baseSpeed)
-      | isShiftPressed evt && isKeyDown code -> handleNewPos (pos - baseSpeed)
+      | isShiftPressed mod && isKeyUp code -> handleNewPos (pos + baseSpeed)
+      | isShiftPressed mod && isKeyDown code -> handleNewPos (pos - baseSpeed)
       | isKeyUp code -> handleNewPos (pos + fastSpeed)
       | isKeyDown code -> handleNewPos (pos - fastSpeed)
       where

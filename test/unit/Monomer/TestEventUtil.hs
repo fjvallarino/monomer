@@ -85,6 +85,30 @@ evtKCS k = KeyAction modCS k KeyPressed
 evtKGS :: KeyCode -> SystemEvent
 evtKGS k = KeyAction modGS k KeyPressed
 
+evtRK :: KeyCode -> SystemEvent
+evtRK k = KeyAction def k KeyReleased
+
+evtRKA :: KeyCode -> SystemEvent
+evtRKA k = KeyAction modA k KeyReleased
+
+evtRKC :: KeyCode -> SystemEvent
+evtRKC k = KeyAction modC k KeyReleased
+
+evtRKG :: KeyCode -> SystemEvent
+evtRKG k = KeyAction modG k KeyReleased
+
+evtRKS :: KeyCode -> SystemEvent
+evtRKS k = KeyAction modS k KeyReleased
+
+evtRKAS :: KeyCode -> SystemEvent
+evtRKAS k = KeyAction modAS k KeyReleased
+
+evtRKCS :: KeyCode -> SystemEvent
+evtRKCS k = KeyAction modCS k KeyReleased
+
+evtRKGS :: KeyCode -> SystemEvent
+evtRKGS k = KeyAction modGS k KeyReleased
+
 evtT :: Text -> SystemEvent
 evtT t = TextInput t
 

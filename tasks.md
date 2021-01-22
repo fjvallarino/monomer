@@ -444,14 +444,13 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Create Slider
-  - Create Theme widget to override global theme
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
+  - Change modA/modC helpers to be predictable (not Mac OS specific things)
+  - Unify integralField/floatingField
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Check text baseline
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
-  - Unify integralField/floatingField
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -465,6 +464,8 @@ Maybe postponed after release?
     - SDL supports Drag and Drop integration with OS
 
 Future
+  - Create Slider
+  - Create Theme widget to override global theme
   - Create File Selector
   - Create GridView
   - Create Layout with width/heights specified in percents

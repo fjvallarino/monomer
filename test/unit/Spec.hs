@@ -17,6 +17,7 @@ import qualified Monomer.Widgets.DropdownSpec as DropdownSpec
 import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.ImageSpec as ImageSpec
+import qualified Monomer.Widgets.KeystrokeSpec as KeystrokeSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
@@ -61,6 +62,7 @@ widgets = describe "Widgets" $ do
   FloatingFieldSpec.spec
   GridSpec.spec
   ImageSpec.spec
+  KeystrokeSpec.spec
   LabelSpec.spec
   ListViewSpec.spec
   IntegralFieldSpec.spec

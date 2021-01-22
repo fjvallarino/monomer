@@ -21,8 +21,8 @@ getKeyStatus inputStatus code = status where
 
 isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
 isShortCutControl wenv mod = isControl || isCommand where
-  isControl = not (isMacOS wenv) && _kmLeftCtrl mod
-  isCommand = isMacOS wenv && _kmLeftGUI mod
+  isControl = not (isMacOS wenv) && isCtrlPressed mod
+  isCommand = isMacOS wenv && isGUIPressed mod
 
 isKeyboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
 isKeyboardCopy wenv event = checkKeyboard event testFn where
@@ -64,9 +64,17 @@ isKeyPressed :: SystemEvent -> KeyCode -> Bool
 isKeyPressed (KeyAction _ code KeyPressed) codeChecked = code == codeChecked
 isKeyPressed _ _ = False
 
-isShiftPressed :: SystemEvent -> Bool
-isShiftPressed (KeyAction keyMod _ _) = _kmLeftShift keyMod
-isShiftPressed _ = False
+isGUIPressed :: KeyMod -> Bool
+isGUIPressed mod = _kmLeftGUI mod || _kmRightGUI mod
+
+isCtrlPressed :: KeyMod -> Bool
+isCtrlPressed keyMod = _kmLeftCtrl keyMod || _kmRightCtrl keyMod
+
+isShiftPressed :: KeyMod -> Bool
+isShiftPressed keyMod = _kmLeftShift keyMod || _kmRightShift keyMod
+
+isAltPressed :: KeyMod -> Bool
+isAltPressed keyMod = _kmLeftAlt keyMod || _kmRightAlt keyMod
 
 isOnFocus :: SystemEvent -> Bool
 isOnFocus Focus = True
