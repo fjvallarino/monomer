@@ -18,6 +18,7 @@ import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Icon
+import Monomer.Widgets.Keystroke
 import Monomer.Widgets.Label
 import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
@@ -91,7 +92,7 @@ buildUI
   -> WidgetEnv s (ConfirmEvt ep)
   -> s
   -> WidgetNode s (ConfirmEvt ep)
-buildUI message pAcceptEvt pCancelEvt config wenv model = confirmBox where
+buildUI message pAcceptEvt pCancelEvt config wenv model = mainTree where
   acceptEvt = ParentEvt pAcceptEvt
   cancelEvt = ParentEvt pCancelEvt
   title = fromMaybe "" (_cfcTitle config)
@@ -114,6 +115,7 @@ buildUI message pAcceptEvt pCancelEvt config wenv model = confirmBox where
     ] & L.info . L.style .~ themeDialogFrame wenv
   confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
+  mainTree = keystroke [("Esc", cancelEvt)] confirmBox
 
 handleEvent
   :: WidgetEnv s (ConfirmEvt ep)

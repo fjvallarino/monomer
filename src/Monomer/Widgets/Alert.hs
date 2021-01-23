@@ -16,6 +16,7 @@ import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Icon
+import Monomer.Widgets.Keystroke
 import Monomer.Widgets.Label
 import Monomer.Widgets.Stack
 
@@ -71,7 +72,7 @@ buildUI
   -> WidgetEnv s ep
   -> s
   -> WidgetNode s ep
-buildUI message cancelEvt config wenv model = alertBox where
+buildUI message cancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
@@ -89,6 +90,7 @@ buildUI message cancelEvt config wenv model = alertBox where
     ] & L.info . L.style .~ themeDialogFrame wenv
   alertBox = box_ alertTree [onClickEmpty cancelEvt]
     & L.info . L.style .~ emptyOverlayColor
+  mainTree = keystroke [("Esc", cancelEvt)] alertBox
 
 handleEvent
   :: WidgetEnv s ep

@@ -140,7 +140,7 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
       image "assets/images/pecans.jpg"
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
-  widgetSplitH = hsplit (image "assets/images/pecans.jpg", widgetTree)
+  widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)
   widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
   mkImg i = vstack [
       label ("Image: " <> showt i),

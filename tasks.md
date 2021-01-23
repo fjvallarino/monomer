@@ -446,6 +446,7 @@
 Maybe postponed after release?
   - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
   - Change modA/modC helpers to be predictable (not Mac OS specific things)
+  - Maybe inputField should put cursor in the end?
   - Unify integralField/floatingField
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Check text baseline

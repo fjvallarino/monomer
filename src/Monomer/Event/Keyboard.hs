@@ -7,6 +7,31 @@ import Monomer.Event.Types
 getKeyCode :: SDL.Keycode -> KeyCode
 getKeyCode keyCode = KeyCode $ fromIntegral (SDL.unwrapKeycode keyCode)
 
+-- Mod Keys
+keyLAlt :: KeyCode
+keyLAlt = getKeyCode SDL.KeycodeLAlt
+
+keyRAlt :: KeyCode
+keyRAlt = getKeyCode SDL.KeycodeLAlt
+
+keyLCtrl :: KeyCode
+keyLCtrl = getKeyCode SDL.KeycodeLCtrl
+
+keyRCtrl :: KeyCode
+keyRCtrl = getKeyCode SDL.KeycodeLCtrl
+
+keyLGUI :: KeyCode
+keyLGUI = getKeyCode SDL.KeycodeLGUI
+
+keyRGUI :: KeyCode
+keyRGUI = getKeyCode SDL.KeycodeLGUI
+
+keyLShift :: KeyCode
+keyLShift = getKeyCode SDL.KeycodeLShift
+
+keyRShift :: KeyCode
+keyRShift = getKeyCode SDL.KeycodeLShift
+
 -- General keys
 keyUnknown :: KeyCode
 keyUnknown = getKeyCode SDL.KeycodeUnknown
@@ -303,6 +328,31 @@ keyZ :: KeyCode
 keyZ = getKeyCode SDL.KeycodeZ
 
 --
+
+-- Mod keys
+isKeyLAlt :: KeyCode -> Bool
+isKeyLAlt = (== keyLAlt)
+
+isKeyRAlt :: KeyCode -> Bool
+isKeyRAlt = (== keyRAlt)
+
+isKeyLCtrl :: KeyCode -> Bool
+isKeyLCtrl = (== keyLCtrl)
+
+isKeyRCtrl :: KeyCode -> Bool
+isKeyRCtrl = (== keyRCtrl)
+
+isKeyLGUI :: KeyCode -> Bool
+isKeyLGUI = (== keyLGUI)
+
+isKeyRGUI :: KeyCode -> Bool
+isKeyRGUI = (== keyRGUI)
+
+isKeyLShift :: KeyCode -> Bool
+isKeyLShift = (== keyLShift)
+
+isKeyRShift :: KeyCode -> Bool
+isKeyRShift = (== keyRShift)
 
 -- General keys
 isKeyUnknown :: KeyCode -> Bool

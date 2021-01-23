@@ -10,10 +10,10 @@ module Monomer.Widgets.Keystroke (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Bifunctor (first)
-import Data.Char (isAscii, isPrint, ord)
+import Data.Char (chr, isAscii, isPrint, ord)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
@@ -46,6 +46,11 @@ instance Semigroup KeystrokeCfg where
 instance Monoid KeystrokeCfg where
   mempty = def
 
+instance CmbIgnoreChildrenEvts KeystrokeCfg where
+  ignoreChildrenEvts = def {
+    _kscIgnoreChildren = Just True
+  }
+
 data KeyStroke = KeyStroke {
   _kstKsC :: Bool,
   _kstKsCtrl :: Bool,
@@ -67,11 +72,11 @@ instance Default KeyStroke where
 
 makeLensesWith abbreviatedFields ''KeyStroke
 
-keystroke :: Show e => [(Text, e)] -> WidgetNode s e -> WidgetNode s e
+keystroke :: [(Text, e)] -> WidgetNode s e -> WidgetNode s e
 keystroke bindings managed = keystroke_ bindings managed def
 
 keystroke_
-  :: Show e => [(Text, e)] -> WidgetNode s e -> [KeystrokeCfg] -> WidgetNode s e
+  :: [(Text, e)] -> WidgetNode s e -> [KeystrokeCfg] -> WidgetNode s e
 keystroke_ bindings managed configs = makeNode widget managed where
   config = mconcat configs
   newBindings = fmap (first textToStroke) bindings
@@ -92,8 +97,13 @@ makeKeystroke bindings config = widget where
 
   handleEvent wenv target evt node = case evt of
     KeyAction mod code KeyPressed -> Just result where
-      events = snd <$> filter (keyStrokeActive wenv code . fst) bindings
-      result = resultEvts node events
+      ignoreChildren = Just True == _kscIgnoreChildren config
+      newWenv = wenv & L.inputStatus %~ removeMods
+      evts = snd <$> filter (keyStrokeActive newWenv code . fst) bindings
+      reqs
+        | ignoreChildren && not (null evts) = [IgnoreChildrenEvents]
+        | otherwise = []
+      result = resultReqsEvts node reqs evts
     _ -> Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
@@ -113,18 +123,17 @@ keyStrokeActive wenv code ks = currValid && allPressed && validMods where
   status = wenv ^. L.inputStatus
   keyMod = status ^. L.keyMod
   isPressed code = Just KeyPressed == M.lookup code (status ^. L.keys)
-  currValid = Set.member code (ks ^. ksKeys)
-  pressedKeys = M.filter (==KeyPressed) (status ^. L.keys)
+  currValid = code `elem` (ks ^. ksKeys) || code `elem` modKeys
+  pressedKeys = M.filter (== KeyPressed) (status ^. L.keys)
   allPressed = M.keysSet pressedKeys == ks ^. ksKeys
   ctrlPressed = isCtrlPressed keyMod
   cmdPressed = isMacOS wenv && isGUIPressed keyMod
-  validC = ks ^. ksC == (ctrlPressed || cmdPressed)
-  validCtrl = ks ^. ksCtrl == ctrlPressed
-  validCmd = ks ^. ksCmd == cmdPressed
+  validC = not (ks ^. ksC) || ks ^. ksC == (ctrlPressed || cmdPressed)
+  validCtrl = ks ^. ksCtrl == ctrlPressed || ctrlPressed && validC
+  validCmd = ks ^. ksCmd == cmdPressed || cmdPressed && validC
   validShift = ks ^. ksShift == isShiftPressed keyMod
   validAlt = ks ^. ksAlt == isAltPressed keyMod
-
-  validMods = (validC || validCtrl || validCmd) && validShift && validAlt
+  validMods = (validC && validCtrl && validCmd) && validShift && validAlt
 
 textToStroke :: Text -> KeyStroke
 textToStroke text = ks where
@@ -132,11 +141,11 @@ textToStroke text = ks where
   ks = foldl' partToStroke def parts
 
 partToStroke :: KeyStroke -> Text -> KeyStroke
+partToStroke ks "A" = ks & ksAlt .~ True
+partToStroke ks "Alt" = ks & ksAlt .~ True
 partToStroke ks "C" = ks & ksC .~ True
 partToStroke ks "Ctrl" = ks & ksCtrl .~ True
 partToStroke ks "Cmd" = ks & ksCmd .~ True
-partToStroke ks "A" = ks & ksAlt .~ True
-partToStroke ks "Alt" = ks & ksAlt .~ True
 partToStroke ks "O" = ks & ksAlt .~ True
 partToStroke ks "Option" = ks & ksAlt .~ True
 partToStroke ks "S" = ks & ksShift .~ True
@@ -174,3 +183,12 @@ partToStroke ks txt
   where
     isValid = T.length txt == 1 && isAscii txtHead && isPrint txtHead
     txtHead = T.index txt 0
+
+removeMods :: InputStatus -> InputStatus
+removeMods status = status
+  & L.keys %~ M.filterWithKey (\k v -> k `notElem` modKeys)
+
+modKeys :: [KeyCode]
+modKeys = [
+    keyLAlt, keyRAlt, keyLCtrl, keyRCtrl, keyLGUI, keyRGUI, keyLShift, keyRShift
+  ]

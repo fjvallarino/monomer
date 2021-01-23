@@ -25,7 +25,8 @@ import Monomer.Widgets.TextField
 import qualified Monomer.Lens as L
 
 data TestEvt
-  = CtrlSpace
+  = CtrlA
+  | CtrlSpace
   | CtrlShiftSpace
   | MultiKey Int
   | FunctionKey Int
@@ -71,6 +72,14 @@ handleEvent = describe "handleEvent" $ do
       evtRKA keyA, evtRKA keyB, evtRKA keyC,
       evtKA keyD, evtKA keyE] `shouldBe` Seq.fromList [MultiKey 1, MultiKey 2]
 
+  it "should not ignore children events if not explicitly requested" $ do
+    events1 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
+    model1 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "d"
+
+  it "should ignore children events if requested" $ do
+    events2 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
+    model2 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "dabc"
+
   where
     wenv = mockWenv (TestModel "")
     bindings = [
@@ -85,6 +94,13 @@ handleEvent = describe "handleEvent" $ do
       ]
     kstNode = keystroke bindings (textField textValue)
     events es = nodeHandleEventEvts wenv es kstNode
+    wenv2 = mockWenv (TestModel "abc")
+    kstModel1 = keystroke [("C-a", CtrlA)] (textField textValue)
+    kstModel2 = keystroke_ [("C-a", CtrlA)] (textField textValue) [ignoreChildrenEvts]
+    model1 es = nodeHandleEventModel wenv2 es kstModel1
+    model2 es = nodeHandleEventModel wenv2 es kstModel2
+    events1 es = nodeHandleEventEvts wenv2 es kstModel1
+    events2 es = nodeHandleEventEvts wenv2 es kstModel2
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

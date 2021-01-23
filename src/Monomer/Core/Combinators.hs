@@ -96,28 +96,31 @@ class CmbTextBottom t where
   textBottom :: t
 
 -- Events
-class CmbOnInit t e | t -> e  where
+class CmbIgnoreChildrenEvts t where
+  ignoreChildrenEvts :: t
+
+class CmbOnInit t e | t -> e where
   onInit :: e -> t
 
-class CmbOnFocus t e | t -> e  where
+class CmbOnFocus t e | t -> e where
   onFocus :: e -> t
 
 class CmbOnFocusReq t s | t -> s where
   onFocusReq :: WidgetRequest s -> t
 
-class CmbOnBlur t e | t -> e  where
+class CmbOnBlur t e | t -> e where
   onBlur :: e -> t
 
 class CmbOnBlurReq t s | t -> s where
   onBlurReq :: WidgetRequest s -> t
 
-class CmbOnClick t e | t -> e  where
+class CmbOnClick t e | t -> e where
   onClick :: e -> t
 
 class CmbOnClickReq t s | t -> s where
   onClickReq :: WidgetRequest s -> t
 
-class CmbOnClickEmpty t e | t -> e  where
+class CmbOnClickEmpty t e | t -> e where
   onClickEmpty :: e -> t
 
 class CmbOnClickEmptyReq t s | t -> s where
