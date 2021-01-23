@@ -139,6 +139,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcFromText = fromText,
     _ifcToText = id,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
+    _ifcDefCursorEnd = True,
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = False,
     _ifcStyle = Just L.inputTextStyle,

@@ -194,6 +194,7 @@ floatingFieldD_ widgetData configs = newNode where
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptFloatInput decimals,
+    _ifcDefCursorEnd = False,
     _ifcSelectOnFocus = fromMaybe True (_ffcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputFloatingStyle,

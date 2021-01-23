@@ -77,10 +77,10 @@ handleEventNormal = describe "handleEventNormal" $
 
 handleEventNoKey :: Spec
 handleEventNoKey = describe "handleEventNoKey" $
-  it "should insert new text at the beginning, since its merged without a key and state is lost" $ do
+  it "should insert new text at the end, since its merged without a key and state is lost" $ do
     model1 ^. text1 `shouldBe` "aacc"
     model1 ^. text2 `shouldBe` ""
-    modelM ^. text1 `shouldBe` "bbaacc"
+    modelM ^. text1 `shouldBe` "aaccbb"
     modelM ^. text2 `shouldBe` ""
     newRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0])
     newRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 1])

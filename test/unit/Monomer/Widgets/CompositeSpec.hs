@@ -163,10 +163,10 @@ handleEventChild = describe "handleEventChild" $ do
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
-  it "should insert new text at the beginning, since its merged with a local key" $ do
+  it "should insert new text at the end, since its merged with a local key" $ do
     wenv1 ^. L.model . text1 `shouldBe` "aacc"
     wenv1 ^. L.model . text2 `shouldBe` ""
-    wenv2 ^. L.model . text1 `shouldBe` "bbaacc"
+    wenv2 ^. L.model . text1 `shouldBe` "aaccbb"
     wenv2 ^. L.model . text2 `shouldBe` ""
     newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
     newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])

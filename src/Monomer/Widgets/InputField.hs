@@ -41,6 +41,7 @@ type InputDragHandler a
 data InputFieldCfg s e a = InputFieldCfg {
   _ifcValue :: WidgetData s a,
   _ifcValid :: Maybe (WidgetData s Bool),
+  _ifcDefCursorEnd :: Bool,
   _ifcSelectOnFocus :: Bool,
   _ifcSelectDragOnlyFocused :: Bool,
   _ifcFromText :: Text -> Maybe a,
@@ -161,7 +162,11 @@ makeInputField config state = widget where
 
   init wenv node = result where
     newValue = getModelValue wenv
-    newState = newTextState wenv node state newValue (toText newValue) 0 Nothing
+    txtValue = toText newValue
+    txtPos
+      | _ifcDefCursorEnd config = T.length txtValue
+      | otherwise = 0
+    newState = newTextState wenv node state newValue txtValue txtPos Nothing
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText (toText newValue)
@@ -179,8 +184,9 @@ makeInputField config state = widget where
       | otherwise = oldText
     newTextL = T.length newText
     newPos
-      | newTextL < oldPos = newTextL
-      | otherwise = oldPos
+      | oldText == newText = oldPos
+      | _ifcDefCursorEnd config = newTextL
+      | otherwise = 0
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel

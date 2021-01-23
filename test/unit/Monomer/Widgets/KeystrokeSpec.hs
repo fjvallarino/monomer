@@ -78,7 +78,7 @@ handleEvent = describe "handleEvent" $ do
 
   it "should ignore children events if requested" $ do
     events2 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
-    model2 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "dabc"
+    model2 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "abcd"
 
   where
     wenv = mockWenv (TestModel "")

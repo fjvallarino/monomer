@@ -181,6 +181,7 @@ integralFieldD_ widgetData configs = newNode where
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptIntegralInput,
+    _ifcDefCursorEnd = False,
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputIntegralStyle,
