@@ -9,14 +9,16 @@ import Monomer.Event
 
 import qualified Monomer.Lens as L
 
+-- Tests were written assuming Mac OS is the host
 -- For Mac OS, Meta acts as Windows' Ctrl (and viceversa) on text movement/selection
+
 modA :: KeyMod
 modA = def
-  & L.leftCtrl .~ True
+  & L.leftAlt .~ True
 
 modC :: KeyMod
 modC = def
-  & L.leftAlt .~ True
+  & L.leftCtrl .~ True
 
 modG :: KeyMod
 modG = def
@@ -27,12 +29,12 @@ modS = def & L.leftShift .~ True
 
 modAS :: KeyMod
 modAS = def
-  & L.leftCtrl .~ True
+  & L.leftAlt .~ True
   & L.leftShift .~ True
 
 modCS :: KeyMod
 modCS = def
-  & L.leftAlt .~ True
+  & L.leftCtrl .~ True
   & L.leftShift .~ True
 
 modGS :: KeyMod
@@ -119,16 +121,16 @@ moveCharR :: SystemEvent
 moveCharR = evtK keyRight
 
 moveWordL :: SystemEvent
-moveWordL = evtKC keyLeft
+moveWordL = evtKA keyLeft
 
 moveWordR :: SystemEvent
-moveWordR = evtKC keyRight
+moveWordR = evtKA keyRight
 
 moveLineL :: SystemEvent
-moveLineL = evtKA keyLeft
+moveLineL = evtKC keyLeft
 
 moveLineR :: SystemEvent
-moveLineR = evtKA keyRight
+moveLineR = evtKC keyRight
 
 selCharL :: SystemEvent
 selCharL = evtKS keyLeft
@@ -137,19 +139,19 @@ selCharR :: SystemEvent
 selCharR = evtKS keyRight
 
 selWordL :: SystemEvent
-selWordL = evtKCS keyLeft
+selWordL = evtKAS keyLeft
 
 selWordR :: SystemEvent
-selWordR = evtKCS keyRight
+selWordR = evtKAS keyRight
 
 selLineL :: SystemEvent
-selLineL = evtKAS keyLeft
+selLineL = evtKCS keyLeft
 
 selLineR :: SystemEvent
-selLineR = evtKAS keyRight
+selLineR = evtKCS keyRight
 
 delCharL :: SystemEvent
 delCharL = evtK keyBackspace
 
 delWordL :: SystemEvent
-delWordL = evtKC keyBackspace
+delWordL = evtKA keyBackspace

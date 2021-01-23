@@ -143,10 +143,13 @@ handleEventValue = describe "handleEventValue" $ do
     lastEvt steps `shouldBe` TextChanged "Hat"
 
   it "should input 'abc', select to beginning, input 'def', move back twice, select to end and input 'dd'" $ do
-    let steps = [evtT "abc", evtKAS keyHome, evtT "def", moveCharL, moveCharL, evtKAS keyEnd, evtT "dd"]
+    let steps = [evtT "abc", evtKCS keyHome, evtT "def", moveCharL, moveCharL, evtKCS keyEnd, evtT "dd"]
     lastEvt steps `shouldBe` TextChanged "ddd"
 
-  -- Copy/paste is not currently tested because SDL requires video initialized and mocking is not in place
+  it "should input 'abc123', move to beginning, select three letters, copy, move to end, paste" $ do
+    let steps = [evtT "abc123", evtKC keyHome, selCharR, selCharR, selCharR, evtKG keyC, evtK keyEnd, evtKG keyV]
+    lastEvt steps `shouldBe` TextChanged "abc123abc"
+
   where
     wenv = mockWenv (TestModel "")
     txtNode = textFieldV "" TextChanged
@@ -210,7 +213,7 @@ handleEventHistory :: Spec
 handleEventHistory = describe "handleEventHistory" $ do
   it "should input 'This is text', have the last word removed and then undo" $ do
     let str = "This is text"
-    let steps1 = [evtT str, evtKC keyBackspace]
+    let steps1 = [evtT str, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ]
     model steps1 ^. textValue `shouldBe` "This is "
     model steps2 ^. textValue `shouldBe` "This is text"
@@ -218,7 +221,7 @@ handleEventHistory = describe "handleEventHistory" $ do
 
   it "should input 'This is text', have the last two words removed, undo and redo" $ do
     let str = "This is text"
-    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace]
+    let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKGS keyZ]
     model steps1 ^. textValue `shouldBe` "This "
     model steps2 ^. textValue `shouldBe` "This is "
@@ -226,7 +229,7 @@ handleEventHistory = describe "handleEventHistory" $ do
 
   it "should input 'This is just a string', play around with history and come end up with 'This is just text" $ do
     let str = "This is just a string"
-    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace, evtKC keyBackspace]
+    let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKG keyZ, evtKGS keyZ, evtKGS keyZ, evtT "text"]
     model steps1 ^. textValue `shouldBe` ""
     model steps2 ^. textValue `shouldBe` "This is just text"
@@ -234,7 +237,7 @@ handleEventHistory = describe "handleEventHistory" $ do
 
   it "should input 'This is text', remove two words, undo, input 'not' and fail to redo" $ do
     let str = "This is text"
-    let steps1 = [evtT str, evtKC keyBackspace, evtKC keyBackspace]
+    let steps1 = [evtT str, evtKA keyBackspace, evtKA keyBackspace]
     let steps2 = steps1 ++ [evtKG keyZ, evtT "not", evtKGS keyZ]
     model steps1 ^. textValue `shouldBe` "This "
     model steps2 ^. textValue `shouldBe` "This is not"

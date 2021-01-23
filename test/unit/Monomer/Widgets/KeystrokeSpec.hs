@@ -49,28 +49,28 @@ handleEvent = describe "handleEvent" $ do
     events [] `shouldBe` Seq.empty
 
   it "should generate an event when Ctrl-Space is pressed" $ do
-    events [evtKA keySpace] `shouldBe` Seq.fromList [CtrlSpace]
+    events [evtKC keySpace] `shouldBe` Seq.fromList [CtrlSpace]
 
   it "should generate an event when Ctrl-Shift-Space is pressed" $ do
-    events [evtKAS keySpace] `shouldBe` Seq.fromList [CtrlShiftSpace]
+    events [evtKCS keySpace] `shouldBe` Seq.fromList [CtrlShiftSpace]
 
   it "should generate events when function keys are pressed" $ do
     events [evtK keyF1] `shouldBe` Seq.fromList [FunctionKey 1]
-    events [evtKA keyF3] `shouldBe` Seq.fromList [FunctionKey 3]
+    events [evtKC keyF3] `shouldBe` Seq.fromList [FunctionKey 3]
     events [evtKG keyF7] `shouldBe` Seq.fromList [FunctionKey 7]
     events [evtKS keyF12] `shouldBe` Seq.fromList [FunctionKey 12]
 
   it "should only generate events when the exact keys are pressed" $ do
-    events [evtKA keyA, evtKA keyB] `shouldBe` Seq.fromList []
-    events [evtKA keyA, evtKA keyB, evtKA keyD, evtKA keyC] `shouldBe` Seq.fromList []
-    events [evtKA keyA, evtKA keyB, evtKA keyC] `shouldBe` Seq.fromList [MultiKey 1]
+    events [evtKC keyA, evtKC keyB] `shouldBe` Seq.fromList []
+    events [evtKC keyA, evtKC keyB, evtKC keyD, evtKC keyC] `shouldBe` Seq.fromList []
+    events [evtKC keyA, evtKC keyB, evtKC keyC] `shouldBe` Seq.fromList [MultiKey 1]
     events [
-      evtKA keyA, evtKA keyB, evtKA keyC,
-      evtKA keyD, evtKA keyE] `shouldBe` Seq.fromList [MultiKey 1]
+      evtKC keyA, evtKC keyB, evtKC keyC,
+      evtKC keyD, evtKC keyE] `shouldBe` Seq.fromList [MultiKey 1]
     events [
-      evtKA keyA, evtKA keyB, evtKA keyC,
-      evtRKA keyA, evtRKA keyB, evtRKA keyC,
-      evtKA keyD, evtKA keyE] `shouldBe` Seq.fromList [MultiKey 1, MultiKey 2]
+      evtKC keyA, evtKC keyB, evtKC keyC,
+      evtRKC keyA, evtRKC keyB, evtRKC keyC,
+      evtKC keyD, evtKC keyE] `shouldBe` Seq.fromList [MultiKey 1, MultiKey 2]
 
   it "should not ignore children events if not explicitly requested" $ do
     events1 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
