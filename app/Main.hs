@@ -121,7 +121,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree2 where
+buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
       hstack [
@@ -134,7 +134,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree2 where
         checkbox condition2
       ],
       numericField_ rational1 [minValue (-100), maxValue 100],
-      label "Test",
+      tooltip "Hello!" $ label "Test",
       dial rational1 (-100) 100,
       button "Test" RunShortTask,
       image "assets/images/pecans.jpg"

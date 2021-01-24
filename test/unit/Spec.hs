@@ -26,6 +26,7 @@ import qualified Monomer.Widgets.ScrollSpec as ScrollSpec
 import qualified Monomer.Widgets.SplitSpec as SplitSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
+import qualified Monomer.Widgets.TooltipSpec as TooltipSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
 import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
@@ -70,6 +71,7 @@ widgets = describe "Widgets" $ do
   SplitSpec.spec
   StackSpec.spec
   TextFieldSpec.spec
+  TooltipSpec.spec
   ZStackSpec.spec
 
 widgetsUtil :: Spec

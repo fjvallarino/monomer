@@ -31,6 +31,12 @@ borderFocus = border 1 lightSkyBlue
 textPadding :: Padding
 textPadding = padding 3 <> paddingB 1
 
+smallFont :: TextStyle
+smallFont = def
+  & L.font ?~ Font "Regular"
+  & L.fontSize ?~ FontSize 12
+  & L.fontColor ?~ white
+
 normalFont :: TextStyle
 normalFont = def
   & L.font ?~ Font "Regular"
@@ -48,7 +54,7 @@ inputStyle = def
   & L.text ?~ normalFont
   & L.bgColor ?~ darkGray
   & L.hlColor ?~ blue
-  & L.border ?~ border 1 darkGray
+  & L.border ?~ border 1 gray
   & L.padding ?~ textPadding
 
 numericInputStyle :: StyleState
@@ -123,6 +129,10 @@ darkBasic = def
   & L.scrollThumbWidth .~ 8
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
+  & L.tooltipStyle . L.text ?~ smallFont
+  & L.tooltipStyle . L.bgColor ?~ darkGray
+  & L.tooltipStyle . L.border ?~ border 1 gray
+  & L.tooltipStyle . L.padding ?~ textPadding
 
 darkHover :: ThemeState
 darkHover = darkBasic

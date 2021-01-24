@@ -21,6 +21,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Stack,
   module Monomer.Widgets.TextDropdown,
   module Monomer.Widgets.TextField,
+  module Monomer.Widgets.Tooltip,
   module Monomer.Widgets.ZStack
 ) where
 
@@ -46,4 +47,5 @@ import Monomer.Widgets.Split
 import Monomer.Widgets.Stack
 import Monomer.Widgets.TextDropdown
 import Monomer.Widgets.TextField
+import Monomer.Widgets.Tooltip
 import Monomer.Widgets.ZStack

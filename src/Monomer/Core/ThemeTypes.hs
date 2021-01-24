@@ -68,6 +68,7 @@ data ThemeState = ThemeState {
   _thsScrollThumbWidth :: Double,
   _thsScrollThumbRadius :: Double,
   _thsScrollWheelRate :: Double,
+  _thsTooltipStyle :: StyleState,
   _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show, Generic, Serialise)
 
@@ -107,5 +108,6 @@ instance Default ThemeState where
     _thsScrollThumbWidth = 8,
     _thsScrollThumbRadius = 0,
     _thsScrollWheelRate = 10,
+    _thsTooltipStyle = def,
     _thsUserStyleMap = M.empty
   }

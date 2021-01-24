@@ -451,6 +451,7 @@
 
 Maybe postponed after release?
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Do something about TextDropdown
   - Check text baseline
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html

@@ -11,7 +11,6 @@ module Monomer.Graphics.Drawing (
   drawEllipseBorder,
   drawArrowDown,
   drawStyledAction,
-  drawStyledBackground,
   drawStyledText,
   drawStyledText_,
   drawText,
@@ -160,10 +159,6 @@ drawStyledAction renderer rect style action = do
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
-
-drawStyledBackground :: Renderer -> Rect -> StyleState -> IO ()
-drawStyledBackground renderer rect style =
-  drawStyledAction renderer rect style (\_ -> return ())
 
 drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
 drawStyledText renderer rect style txt = action where
