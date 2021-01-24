@@ -1,5 +1,6 @@
 module Monomer.Core (
   module Monomer.Core.BasicTypes,
+  module Monomer.Core.FromFractional,
   module Monomer.Core.Style,
   module Monomer.Core.StyleUtil,
   module Monomer.Core.Themes.Dark,
@@ -8,6 +9,7 @@ module Monomer.Core (
 ) where
 
 import Monomer.Core.BasicTypes
+import Monomer.Core.FromFractional
 import Monomer.Core.Style
 import Monomer.Core.StyleUtil
 import Monomer.Core.Themes.Dark

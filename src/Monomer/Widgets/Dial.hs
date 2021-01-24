@@ -27,12 +27,11 @@ import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core.FractionalToReal
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type DialValue a = (Eq a, Show a, Real a, Fractional a, FractionalToReal a)
+type DialValue a = (Eq a, Show a, Real a, FromFractional a)
 
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
@@ -276,8 +275,8 @@ makeDial field minVal maxVal config state = widget where
 
   newStateFromModel wenv node oldState = newState where
     currVal = widgetDataGet (wenv ^. L.model) field
-    newMaxPos = round (fractionalToReal (maxVal - minVal) / dragRate)
-    newPos = round (fractionalToReal (currVal - minVal) / dragRate)
+    newMaxPos = round (toRational (maxVal - minVal) / dragRate)
+    newPos = round (toRational (currVal - minVal) / dragRate)
     newState = oldState {
       _dlsMaxPos = newMaxPos,
       _dlsPos = newPos
@@ -301,7 +300,7 @@ posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
 
 valueFromPos :: DialValue a => a -> Rational -> Integer -> a
 valueFromPos minVal dragRate newPos = newVal where
-  newVal = minVal + fromRational (dragRate * fromIntegral newPos)
+  newVal = minVal + fromFractional (dragRate * fromIntegral newPos)
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where

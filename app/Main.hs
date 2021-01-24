@@ -121,7 +121,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+buildUI wenv model = traceShow "Creating UI" widgetTree2 where
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
       hstack [
@@ -133,9 +133,9 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
         checkbox condition1,
         checkbox condition2
       ],
-      floatingField float1,
+      numericField_ rational1 [minValue (-100), maxValue 100],
       label "Test",
-      dial double1 (-100) 100,
+      dial rational1 (-100) 100,
       button "Test" RunShortTask,
       image "assets/images/pecans.jpg"
     ]
@@ -187,12 +187,12 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
       ] `style` [padding 5, paddingT 0],
       hgrid [
         label "Integral: ",
-        integralField_ integer1 [minValue 0],
+        numericField_ integer1 [minValue 0],
         label ""
       ] `style` [padding 5, paddingT 0],
       hgrid [
         label "Floating: ",
-        floatingField_ float1 [minValue (-20), maxValue 20],
+        numericField_ float1 [minValue (-20), maxValue 20],
         label ""
       ] `style` [padding 5, paddingT 0]
     ]
@@ -303,9 +303,9 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
         ],
         dropdown_ dropdown1 items label label [maxHeight 200],
         label "Integral",
-        integralField integer1,
+        numericField integer1,
         label "Floating",
-        floatingField float1,
+        numericField float1,
         --image "assets/images/pecans.jpg"
         listView_ dropdown1 items label [],
         --dropdown dropdown1 items id label

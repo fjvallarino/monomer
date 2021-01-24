@@ -21,6 +21,7 @@ data Fruit
 data App = App {
   _clickCount :: !Int,
   _msgCount :: !Int,
+  _rational1 :: Rational,
   _int1 :: Int,
   _validInt1 :: Bool,
   _integer1 :: Integer,
@@ -44,6 +45,7 @@ instance Default App where
   def = App {
     _clickCount = 0,
     _msgCount = 0,
+    _rational1 = 0,
     _int1 = 0,
     _validInt1 = True,
     _integer1 = 0,

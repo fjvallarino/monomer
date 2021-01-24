@@ -108,8 +108,7 @@ darkBasic = def
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle
   & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle
-  & L.inputFloatingStyle .~ numericInputStyle
-  & L.inputIntegralStyle .~ numericInputStyle
+  & L.inputNumericStyle .~ numericInputStyle
   & L.inputTextStyle .~ inputStyle
   & L.labelStyle . L.text ?~ (normalFont <> textLeft)
   & L.labelStyle . L.padding ?~ textPadding
@@ -144,8 +143,7 @@ darkHover = darkBasic
   & L.dropdownItemStyle . L.bgColor ?~ gray
   & L.dropdownItemStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownItemSelectedStyle . L.cursorIcon ?~ CursorHand
-  & L.inputFloatingStyle . L.cursorIcon ?~ CursorIBeam
-  & L.inputIntegralStyle . L.cursorIcon ?~ CursorIBeam
+  & L.inputNumericStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
   & L.listViewItemStyle . L.bgColor ?~ gray
   & L.listViewItemStyle . L.border ?~ border 1 gray
@@ -165,8 +163,7 @@ darkFocus = darkBasic
   & L.dropdownListStyle . L.border ?~ borderFocus
   & L.dropdownItemStyle . L.border ?~ border 1 gray
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 lightGray
-  & L.inputFloatingStyle . L.border ?~ borderFocus
-  & L.inputIntegralStyle . L.border ?~ borderFocus
+  & L.inputNumericStyle . L.border ?~ borderFocus
   & L.inputTextStyle . L.border ?~ borderFocus
   & L.listViewStyle . L.border ?~ borderFocus
   & L.listViewItemStyle . L.border ?~ border 1 gray

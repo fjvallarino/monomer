@@ -431,6 +431,12 @@
     - It should handle the situation of closing a dialog and returning to the previous focused widget
     - Maybe zstack itself could handle it?
   - Rename isWidget... to isNode
+  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
+  - Change modA/modC helpers to be predictable (not Mac OS specific things)
+  - Maybe inputField should put cursor in the end?
+  - Unify integralField/floatingField
+    - Remove Integral
+    - Add FromFractional instance of Scientific
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -444,14 +450,11 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Create Keystroke component (shortcuts and general key handling like Esc for dialog)
-  - Change modA/modC helpers to be predictable (not Mac OS specific things)
-  - Maybe inputField should put cursor in the end?
-  - Unify integralField/floatingField
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Check text baseline
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
+    - Check active style vs focus (border disappears)
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -465,6 +468,7 @@ Maybe postponed after release?
     - SDL supports Drag and Drop integration with OS
 
 Future
+  - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider
   - Create Theme widget to override global theme
   - Create File Selector

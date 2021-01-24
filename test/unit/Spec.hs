@@ -14,13 +14,12 @@ import qualified Monomer.Widgets.ContainerSpec as ContainerSpec
 import qualified Monomer.Widgets.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.DialSpec as DialSpec
 import qualified Monomer.Widgets.DropdownSpec as DropdownSpec
-import qualified Monomer.Widgets.FloatingFieldSpec as FloatingFieldSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.KeystrokeSpec as KeystrokeSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
-import qualified Monomer.Widgets.IntegralFieldSpec as IntegralFieldSpec
+import qualified Monomer.Widgets.NumericFieldSpec as NumericFieldSpec
 import qualified Monomer.Widgets.PersistSpec as PersistSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.ScrollSpec as ScrollSpec
@@ -59,13 +58,12 @@ widgets = describe "Widgets" $ do
   ConfirmSpec.spec
   DialSpec.spec
   DropdownSpec.spec
-  FloatingFieldSpec.spec
   GridSpec.spec
   ImageSpec.spec
   KeystrokeSpec.spec
   LabelSpec.spec
   ListViewSpec.spec
-  IntegralFieldSpec.spec
+  NumericFieldSpec.spec
   PersistSpec.spec
   RadioSpec.spec
   ScrollSpec.spec
