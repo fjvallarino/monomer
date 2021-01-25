@@ -217,7 +217,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     ResetOverlay -> handleResetOverlay step
     SetCursorIcon icon -> handleSetCursorIcon icon step
     RenderOnce -> handleRenderOnce step
-    RenderEvery path ms -> handleRenderEvery path ms step
+    RenderEvery path ms repeat -> handleRenderEvery path ms repeat step
     RenderStop path -> handleRenderStop path step
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
@@ -349,8 +349,13 @@ handleRenderOnce previousStep = do
   return previousStep
 
 handleRenderEvery
-  :: (MonomerM s m) => Path -> Int -> HandlerStep s e -> m (HandlerStep s e)
-handleRenderEvery path ms previousStep = do
+  :: (MonomerM s m)
+  => Path
+  -> Int
+  -> Maybe Int
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleRenderEvery path ms repeat previousStep = do
   schedule <- use L.renderSchedule
   L.renderSchedule .= addSchedule schedule
   return previousStep
@@ -359,7 +364,8 @@ handleRenderEvery path ms previousStep = do
     newValue = RenderSchedule {
       _rsPath = path,
       _rsStart = _weTimestamp wenv,
-      _rsMs = ms
+      _rsMs = ms,
+      _rsRepeat = repeat
     }
     addSchedule schedule
       | ms > 0 = Map.insert path newValue schedule

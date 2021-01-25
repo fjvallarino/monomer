@@ -198,7 +198,7 @@ makeInputField config state = widget where
     newPath = node ^. L.info . L.path
     updateFocus = wenv ^. L.focusedPath == oldPath && oldPath /= newPath
     renderReqs
-      | updateFocus = [ RenderStop oldPath, RenderEvery newPath caretMs ]
+      | updateFocus = [RenderStop oldPath, RenderEvery newPath caretMs Nothing]
       | otherwise = []
     reqs = setModelValid config (isJust parsedVal) ++ renderReqs
 
@@ -418,7 +418,7 @@ makeInputField config state = widget where
       newState = tmpState { _ifsDragSelActive = True }
       newNode = node
         & L.widget .~ makeInputField config newState
-      reqs = [RenderEvery path caretMs, StartTextInput viewport]
+      reqs = [RenderEvery path caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs newNode reqs
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
       result = maybe newResult (newResult <>) focusResult

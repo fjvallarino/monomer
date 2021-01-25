@@ -283,19 +283,26 @@ checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
   renderNext <- use renderRequested
   schedule <- use renderSchedule
+  renderSchedule .= Map.filter (renderScheduleActive currTs renderTs) schedule
   return (renderNext || nextRender schedule)
   where
-    foldHelper acc curr = acc || renderScheduleDone currTs renderTs curr
+    foldHelper acc curr = acc || renderScheduleReq currTs renderTs curr
     nextRender schedule = foldl' foldHelper False schedule
 
-renderScheduleDone :: Int -> Int -> RenderSchedule -> Bool
-renderScheduleDone currTs renderTs schedule = nextStep < currTs where
-  RenderSchedule _ start ms = schedule
+renderScheduleReq :: Int -> Int -> RenderSchedule -> Bool
+renderScheduleReq currTs renderTs schedule = nextStep < currTs where
+  RenderSchedule _ start ms _ = schedule
   stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
   currStep = start + ms * stepsDone
   nextStep
     | currStep >= renderTs = currStep
     | otherwise = currStep + ms
+
+renderScheduleActive :: Int -> Int -> RenderSchedule -> Bool
+renderScheduleActive currTs renderTs schedule = scheduleActive where
+  RenderSchedule _ start ms count = schedule
+  stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
+  scheduleActive = maybe True (> stepsDone) count
 
 renderWidgets
   :: (MonomerM s m)

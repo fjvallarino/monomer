@@ -1,12 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.TooltipSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Text (Text)
 import Test.Hspec
@@ -23,22 +20,8 @@ import Monomer.Widgets.Tooltip
 
 import qualified Monomer.Lens as L
 
-data TestEvt
-  = CtrlA
-  | CtrlSpace
-  | CtrlShiftSpace
-  | MultiKey Int
-  | FunctionKey Int
-  deriving (Eq, Show)
-
-newtype TestModel = TestModel {
-  _tmTextValue :: Text
-} deriving (Eq, Show)
-
-makeLensesWith abbreviatedFields ''TestModel
-
 spec :: Spec
-spec = fdescribe "Keystroke" $ do
+spec = fdescribe "Tooltip" $ do
   handleEvent
   getSizeReq
 
@@ -48,7 +31,7 @@ handleEvent = describe "handleEvent" $ do
     events [] `shouldBe` Seq.empty
 
   where
-    wenv = mockWenvEvtUnit (TestModel "")
+    wenv = mockWenvEvtUnit ()
     ttNode = tooltip "" (label "Test")
     events es = nodeHandleEventEvts wenv es ttNode
 
@@ -61,7 +44,7 @@ getSizeReq = describe "getSizeReq" $ do
     tSizeReqH `shouldBe` lSizeReqH
 
   where
-    wenv = mockWenvEvtUnit (TestModel "Test value")
+    wenv = mockWenvEvtUnit ()
     lblNode = label "Test label"
     (lSizeReqW, lSizeReqH) = nodeGetSizeReq wenv lblNode
     (tSizeReqW, tSizeReqH) = nodeGetSizeReq wenv (tooltip "" lblNode)

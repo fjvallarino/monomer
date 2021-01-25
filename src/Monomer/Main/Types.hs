@@ -38,7 +38,8 @@ type MonomerM s m = (Eq s, MonadState (MonomerCtx s) m, MonadCatch m, MonadIO m)
 data RenderSchedule = RenderSchedule {
   _rsPath :: Path,
   _rsStart :: Int,
-  _rsMs :: Int
+  _rsMs :: Int,
+  _rsRepeat :: Maybe Int
 } deriving (Eq, Show, Generic, Serialise)
 
 data WidgetTask
