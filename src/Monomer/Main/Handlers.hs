@@ -14,8 +14,7 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens (
-  (&), (^.), (.~), (%~), (.=), (%=), (?=), ix, at, non, use, _1)
+import Control.Lens ((&), (^.), (.~), (%~), (.=), (?=), ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -117,7 +116,7 @@ handleSystemEvent
   -> m (HandlerStep s e)
 handleSystemEvent wenv event currentTarget widgetRoot = do
   mainStart <- use L.mainBtnPress
-  overlay <- use L.overlayPath
+  overlay <- getOverlayPath
   leaveEnterPair <- use L.leaveEnterPair
   let pressed = fmap fst mainStart
 
@@ -210,16 +209,16 @@ handleRequests reqs step = foldM handleRequest step reqs where
     ResizeWidgets -> return step
     MoveFocus start dir -> handleMoveFocus start dir step
     SetFocus path -> handleSetFocus path step
-    GetClipboard path -> handleGetClipboard path step
+    GetClipboard wid -> handleGetClipboard wid step
     SetClipboard cdata -> handleSetClipboard cdata step
     StartTextInput rect -> handleStartTextInput rect step
     StopTextInput -> handleStopTextInput step
-    SetOverlay path -> handleSetOverlay path step
-    ResetOverlay -> handleResetOverlay step
+    SetOverlay wid path -> handleSetOverlay wid path step
+    ResetOverlay wid -> handleResetOverlay wid step
     SetCursorIcon icon -> handleSetCursorIcon icon step
     RenderOnce -> handleRenderOnce step
-    RenderEvery path ms repeat -> handleRenderEvery path ms repeat step
-    RenderStop path -> handleRenderStop path step
+    RenderEvery wid ms repeat -> handleRenderEvery wid ms repeat step
+    RenderStop wid -> handleRenderStop wid step
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
@@ -260,7 +259,7 @@ handleMoveFocus startFrom direction (wenv, root, reqs, evts) = do
   let wenv0 = wenv { _weFocusedPath = emptyPath }
   (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
   currFocus <- use L.focusedPath
-  currOverlay <- use L.overlayPath
+  currOverlay <- getOverlayPath
 
   if oldFocus == currFocus
     then do
@@ -296,8 +295,9 @@ handleSetFocus newFocus (wenv, root, reqs, evts) =  do
       return (wenv, root, reqs, evts)
 
 handleGetClipboard
-  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleGetClipboard path (wenv, root, reqs, evts) = do
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+handleGetClipboard widgetId (wenv, root, reqs, evts) = do
+  path <- getWidgetIdPath widgetId
   hasText <- SDL.hasClipboardText
   contents <- fmap Clipboard $ if hasText
                 then fmap ClipboardText SDL.getClipboardText
@@ -327,14 +327,30 @@ handleStopTextInput previousStep = do
   return previousStep
 
 handleSetOverlay
-  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleSetOverlay path previousStep = do
-  L.overlayPath .= Just path
+  :: (MonomerM s m)
+  => WidgetId
+  -> Path
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleSetOverlay widgetId path previousStep = do
+  overlay <- use L.overlayWidgetId
+
+  when (isJust overlay) $ do
+    delWidgetIdPath (fromJust overlay)
+
+  L.overlayWidgetId .= Just widgetId
+  addWidgetIdPath widgetId path
   return previousStep
 
-handleResetOverlay :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
-handleResetOverlay previousStep = do
-  L.overlayPath .= Nothing
+handleResetOverlay
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+handleResetOverlay widgetId previousStep = do
+  overlay <- use L.overlayWidgetId
+
+  when (overlay == Just widgetId) $ do
+    L.overlayWidgetId .= Nothing
+    delWidgetIdPath widgetId
+
   return previousStep
 
 handleSetCursorIcon
@@ -353,31 +369,32 @@ handleRenderOnce previousStep = do
 
 handleRenderEvery
   :: (MonomerM s m)
-  => Path
+  => WidgetId
   -> Int
   -> Maybe Int
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleRenderEvery path ms repeat previousStep = do
+handleRenderEvery widgetId ms repeat previousStep = do
   schedule <- use L.renderSchedule
   L.renderSchedule .= addSchedule schedule
   return previousStep
   where
     (wenv, _, _, _) = previousStep
     newValue = RenderSchedule {
-      _rsPath = path,
+      _rsWidgetId = widgetId,
       _rsStart = _weTimestamp wenv,
       _rsMs = ms,
       _rsRepeat = repeat
     }
     addSchedule schedule
-      | ms > 0 = Map.insert path newValue schedule
+      | ms > 0 = Map.insert widgetId newValue schedule
       | otherwise = schedule
 
-handleRenderStop :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleRenderStop path previousStep = do
+handleRenderStop
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+handleRenderStop widgetId previousStep = do
   schedule <- use L.renderSchedule
-  L.renderSchedule .= Map.delete path schedule
+  L.renderSchedule .= Map.delete widgetId schedule
   return previousStep
 
 handleExitApplication
@@ -502,7 +519,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
 
     return $ hoverEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
-    overlay <- use L.overlayPath
+    overlay <- getOverlayPath
     let startPath = fromMaybe emptyPath overlay
     let widget = widgetRoot ^. L.widget
     let curr = widgetFindByPoint widget wenv startPath point widgetRoot
@@ -553,7 +570,7 @@ addHoverEvents
   -> Point
   -> m (Maybe Path, [(SystemEvent, Maybe Path)])
 addHoverEvents wenv widgetRoot point = do
-  overlay <- use L.overlayPath
+  overlay <- getOverlayPath
   hover <- use L.hoveredPath
   mainBtnPress <- use L.mainBtnPress
   let startPath = fromMaybe emptyPath overlay
@@ -578,7 +595,7 @@ findEvtTargetByPoint
   -> Point
   -> m [(SystemEvent, Maybe Path)]
 findEvtTargetByPoint wenv widgetRoot evt point = do
-  overlay <- use L.overlayPath
+  overlay <- getOverlayPath
   let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
   let curr = widgetFindByPoint widget wenv startPath point widgetRoot
@@ -596,11 +613,3 @@ cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
 cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
 cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
 cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
-
-setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
-setWidgetIdPath widgetId path =
-  L.widgetPaths . ix widgetId . _1 .= path
-
-addWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
-addWidgetIdPath widgetId path =
-  L.widgetPaths . at widgetId . non (path, 0) %= \(_, c) -> (path, c + 1)

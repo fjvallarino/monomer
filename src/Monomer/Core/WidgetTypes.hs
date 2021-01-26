@@ -103,16 +103,16 @@ data WidgetRequest s
   | ResizeWidgets
   | MoveFocus (Maybe Path) FocusDirection
   | SetFocus Path
-  | GetClipboard Path
+  | GetClipboard WidgetId
   | SetClipboard ClipboardData
   | StartTextInput Rect
   | StopTextInput
-  | SetOverlay Path
-  | ResetOverlay
+  | SetOverlay WidgetId Path
+  | ResetOverlay WidgetId
   | SetCursorIcon CursorIcon
   | RenderOnce
-  | RenderEvery Path Int (Maybe Int)
-  | RenderStop Path
+  | RenderEvery WidgetId Int (Maybe Int)
+  | RenderStop WidgetId
   | ExitApplication Bool
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
@@ -127,12 +127,12 @@ instance Eq (WidgetRequest s) where
   ResizeWidgets == ResizeWidgets = True
   MoveFocus p1 fd1 == MoveFocus p2 fd2 = (p1, fd1) == (p2, fd2)
   SetFocus p1 == SetFocus p2 = p1 == p2
-  GetClipboard p1 == GetClipboard p2 = p1 == p2
+  GetClipboard w1 == GetClipboard w2 = w1 == w2
   SetClipboard c1 == SetClipboard c2 = c1 == c2
   StartTextInput r1 == StartTextInput r2 = r1 == r2
   StopTextInput == StopTextInput = True
-  SetOverlay p1 == SetOverlay p2 = p1 == p2
-  ResetOverlay == ResetOverlay = True
+  SetOverlay w1 p1 == SetOverlay w2 p2 = (w1, p1) == (w2, p2)
+  ResetOverlay w1 == ResetOverlay w2 = w1 == w2
   SetCursorIcon c1 == SetCursorIcon c2 = c1 == c2
   RenderOnce == RenderOnce = True
   RenderEvery p1 c1 r1 == RenderEvery p2 c2 r2 = (p1, c1, r1) == (p2, c2, r2)
@@ -356,8 +356,8 @@ instance Show (WidgetRequest s) where
   show (SetClipboard _) = "SetClipboard"
   show (StartTextInput rect) = "StartTextInput: " ++ show rect
   show StopTextInput = "StopTextInput"
-  show ResetOverlay = "ResetOverlay"
-  show (SetOverlay path) = "SetOverlay: " ++ show path
+  show (SetOverlay wid path) = "SetOverlay: " ++ show (wid, path)
+  show (ResetOverlay wid) = "ResetOverlay: " ++ show wid
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
   show RenderOnce = "RenderOnce"
   show (RenderEvery path ms repeat)

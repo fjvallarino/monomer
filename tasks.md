@@ -437,6 +437,7 @@
   - Unify integralField/floatingField
     - Remove Integral
     - Add FromFractional instance of Scientific
+  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -450,10 +451,11 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Do something about TextDropdown
   - Should Render operations use WidgetId? Review other WidgetRequests
   - Check text baseline
+  - Prettier mark for checkbox
+  - Add onResize, onDispose to composite
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
     - Check active style vs focus (border disappears)

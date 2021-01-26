@@ -235,6 +235,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     containerInit = init,
     containerFindNextFocus = findNextFocus,
     containerRestore = restore,
+    containerDispose = dispose,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -268,6 +269,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   restore wenv oldState oldNode newNode = result where
     result = resultWidget $ createDropdown wenv oldState newNode
+
+  dispose wenv node = resultReqs node reqs where
+    widgetId = node ^. L.info . L.widgetId
+    reqs = [ ResetOverlay widgetId | isOpen ]
 
   findNextFocus wenv direction start node
     | isOpen = node ^. L.children
@@ -317,16 +322,18 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     path = node ^. L.info . L.path
+    widgetId = node ^. L.info . L.widgetId
     -- listView is wrapped by a scroll widget
     lvPath = path |> listIdx |> 0
-    requests = [SetOverlay path, SetFocus lvPath]
+    requests = [SetOverlay widgetId path, SetFocus lvPath]
 
   closeDropdown wenv node = resultReqs newNode requests where
     path = node ^. L.info . L.path
+    widgetId = node ^. L.info . L.widgetId
     newState = DropdownState False
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
-    requests = [ResetOverlay, SetFocus path]
+    requests = [ResetOverlay widgetId, SetFocus path]
 
   handleMessage wenv target msg node =
     cast msg >>= handleLvMsg wenv node

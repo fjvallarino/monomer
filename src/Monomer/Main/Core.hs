@@ -181,7 +181,7 @@ mainLoop window renderer config loopArgs = do
   currentModel <- use L.mainModel
   currentCursor <- use L.currentCursor
   focused <- use L.focusedPath
-  overlay <- use L.overlayPath
+  overlay <- getOverlayPath
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
 
@@ -377,7 +377,7 @@ toMonomerCtxPersist = do
     & L.currentCursor .~ ctx ^. L.currentCursor
     & L.focusedPath .~ ctx ^. L.focusedPath
     & L.hoveredPath .~ ctx ^. L.hoveredPath
-    & L.overlayPath .~ ctx ^. L.overlayPath
+    & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
     & L.resizePending .~ ctx ^. L.resizePending
     & L.renderSchedule .~ ctx ^. L.renderSchedule
 
@@ -386,7 +386,7 @@ fromMonomerCtxPersist ctxp = do
   L.currentCursor .= ctxp ^. L.currentCursor
   L.focusedPath .= ctxp ^. L.focusedPath
   L.hoveredPath .= ctxp ^. L.hoveredPath
-  L.overlayPath .= ctxp ^. L.overlayPath
+  L.overlayWidgetId .= ctxp ^. L.overlayWidgetId
   L.resizePending .= ctxp ^. L.resizePending
   L.renderRequested .= True
   L.renderSchedule .= ctxp ^. L.renderSchedule

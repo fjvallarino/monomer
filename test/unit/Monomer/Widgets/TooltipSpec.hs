@@ -37,15 +37,15 @@ handleEvent = describe "handleEvent" $ do
 
   it "should generate a render schedule after moving" $ do
     let evt = Move (Point 10 10)
-    let path = Seq.fromList [0]
-    let renderEveryReq = RenderEvery path 1000 (Just 1)
+    let widgetId = WidgetId 0 rootPath
+    let renderEveryReq = RenderEvery widgetId 1000 (Just 1)
     reqs [evt] `shouldBe` Seq.fromList [renderEveryReq]
 
   it "should ony generate a render schedule even after moving, since delay has not passed" $ do
     let evt1 = Move (Point 10 10)
     let evt2 = Move (Point 50 50)
-    let path = Seq.fromList [0]
-    let renderEveryReq = RenderEvery path 1000 (Just 1)
+    let widgetId = WidgetId 0 rootPath
+    let renderEveryReq = RenderEvery widgetId 1000 (Just 1)
     reqs [evt1, evt2] `shouldBe` Seq.fromList [renderEveryReq]
 
   where
@@ -60,15 +60,15 @@ handleEventFollow = describe "handleEventFollow" $ do
 
   it "should generate a render schedule after moving" $ do
     let evt = Move (Point 10 10)
-    let path = Seq.fromList [0]
-    let renderEveryReq = RenderEvery path 500 (Just 1)
+    let widgetId = WidgetId 0 rootPath
+    let renderEveryReq = RenderEvery widgetId 500 (Just 1)
     reqs [evt] `shouldBe` Seq.fromList [renderEveryReq]
 
   it "should generate a render schedule even after moving, and RenderOnce after" $ do
     let evt1 = Move (Point 10 10)
     let evt2 = Move (Point 50 50)
-    let path = Seq.fromList [0]
-    let renderEveryReq = RenderEvery path 500 (Just 1)
+    let widgetId = WidgetId 0 rootPath
+    let renderEveryReq = RenderEvery widgetId 500 (Just 1)
     reqs [evt1, evt2] `shouldBe` Seq.fromList [renderEveryReq, RenderOnce]
 
   where

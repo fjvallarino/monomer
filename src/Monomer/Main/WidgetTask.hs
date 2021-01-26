@@ -5,7 +5,7 @@ module Monomer.Main.WidgetTask (handleWidgetTasks) where
 import Control.Concurrent.Async (poll)
 import Control.Concurrent.STM.TChan (tryReadTChan)
 import Control.Exception.Base
-import Control.Lens ((&), (^.), (.=), (%=), use, at, non, _1)
+import Control.Lens ((&), (^.), (.=), use)
 import Control.Monad.Extra
 import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
@@ -106,15 +106,3 @@ isThreadActive (WidgetProducer _ _ task) = fmap isNothing (liftIO $ poll task)
 taskWidgetId :: WidgetTask -> WidgetId
 taskWidgetId (WidgetTask widgetId _) = widgetId
 taskWidgetId (WidgetProducer widgetId _ _) = widgetId
-
-getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
-getWidgetIdPath widgetId =
-  use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path, 0) . _1
-
-delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
-delWidgetIdPath widgetId =
-  L.widgetPaths . at widgetId %= remVal
-  where
-    remVal (Just (path, c))
-      | c > 1 = Just (path, c - 1)
-    remVal _ = Nothing

@@ -36,7 +36,7 @@ import Monomer.Graphics.Types
 type MonomerM s m = (Eq s, MonadState (MonomerCtx s) m, MonadCatch m, MonadIO m)
 
 data RenderSchedule = RenderSchedule {
-  _rsPath :: Path,
+  _rsWidgetId :: WidgetId,
   _rsStart :: Int,
   _rsMs :: Int,
   _rsRepeat :: Maybe Int
@@ -56,7 +56,7 @@ data MonomerCtx s = MonomerCtx {
   _mcCurrentCursor :: CursorIcon,
   _mcFocusedPath :: Path,
   _mcHoveredPath :: Maybe Path,
-  _mcOverlayPath :: Maybe Path,
+  _mcOverlayWidgetId :: Maybe WidgetId,
   _mcMainBtnPress :: Maybe (Path, Point),
   _mcWidgetTasks :: Seq WidgetTask,
   _mcWidgetPaths :: Map WidgetId (Path, Int),
@@ -66,7 +66,7 @@ data MonomerCtx s = MonomerCtx {
   _mcLeaveEnterPair :: Bool,
   _mcResizePending :: Bool,
   _mcRenderRequested :: Bool,
-  _mcRenderSchedule :: Map Path RenderSchedule,
+  _mcRenderSchedule :: Map WidgetId RenderSchedule,
   _mcExitApplication :: Bool
 }
 
@@ -74,10 +74,10 @@ data MonomerCtxPersist = MonomerCtxPersist {
   _mcpCurrentCursor :: CursorIcon,
   _mcpFocusedPath :: Path,
   _mcpHoveredPath :: Maybe Path,
-  _mcpOverlayPath :: Maybe Path,
+  _mcpOverlayWidgetId :: Maybe WidgetId,
   _mcpResizePending :: Bool,
   _mcpRenderRequested :: Bool,
-  _mcpRenderSchedule :: Map Path RenderSchedule
+  _mcpRenderSchedule :: Map WidgetId RenderSchedule
 } deriving (Eq, Show, Generic, Serialise)
 
 instance Default MonomerCtxPersist where
@@ -85,7 +85,7 @@ instance Default MonomerCtxPersist where
     _mcpCurrentCursor = CursorArrow,
     _mcpFocusedPath = rootPath,
     _mcpHoveredPath = Nothing,
-    _mcpOverlayPath = Nothing,
+    _mcpOverlayWidgetId = Nothing,
     _mcpResizePending = False,
     _mcpRenderRequested = False,
     _mcpRenderSchedule = M.empty

@@ -123,7 +123,7 @@ makeTooltip caption config state = widget where
         & L.widget .~ makeTooltip caption config newState
     Move point
       | isPointInNodeVp point node -> Just result where
-        path = node ^. L.info . L.path
+        widgetId = node ^. L.info . L.widgetId
         prevDisplayed = tooltipDisplayed wenv node
         newState = state {
           _ttsLastPos = point,
@@ -131,7 +131,7 @@ makeTooltip caption config state = widget where
         }
         newNode = node
           & L.widget .~ makeTooltip caption config newState
-        delayedRender = RenderEvery path delay (Just 1)
+        delayedRender = RenderEvery widgetId delay (Just 1)
         result
           | not prevDisplayed = resultReqs newNode [delayedRender]
           | prevDisplayed && followCursor = resultReqs node [RenderOnce]

@@ -195,16 +195,18 @@ makeInputField config state = widget where
       & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
     oldPath = oldInfo ^. L.path
+    oldWid = oldInfo ^. L.widgetId
     newPath = node ^. L.info . L.path
+    newWid = node ^. L.info . L.widgetId
     updateFocus = wenv ^. L.focusedPath == oldPath && oldPath /= newPath
     renderReqs
-      | updateFocus = [RenderStop oldPath, RenderEvery newPath caretMs Nothing]
+      | updateFocus = [RenderStop oldWid, RenderEvery newWid caretMs Nothing]
       | otherwise = []
     reqs = setModelValid config (isJust parsedVal) ++ renderReqs
 
   dispose wenv node = resultReqs node reqs where
-    path = node ^. L.info . L.path
-    reqs = [ RenderStop path ]
+    widgetId = node ^. L.info . L.widgetId
+    reqs = [ RenderStop widgetId ]
 
   handleKeyPress wenv mod code
     | isDelBackWordNoSel = Just $ moveCursor removeWord prevWordStartIdx Nothing
@@ -390,7 +392,7 @@ makeInputField config state = widget where
       | isKeyboardCopy wenv evt
           -> Just $ resultReqs node [SetClipboard (ClipboardText selectedText)]
       | isKeyboardPaste wenv evt
-          -> Just $ resultReqs node [GetClipboard path]
+          -> Just $ resultReqs node [GetClipboard widgetId]
       | isKeyboardCut wenv evt -> cutTextRes wenv node
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
@@ -418,7 +420,7 @@ makeInputField config state = widget where
       newState = tmpState { _ifsDragSelActive = True }
       newNode = node
         & L.widget .~ makeInputField config newState
-      reqs = [RenderEvery path caretMs Nothing, StartTextInput viewport]
+      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs newNode reqs
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
       result = maybe newResult (newResult <>) focusResult
@@ -427,7 +429,7 @@ makeInputField config state = widget where
     Blur -> Just result where
       newState = state { _ifsDragSelActive = False }
       newNode = node & L.widget .~ makeInputField config newState
-      reqs = [RenderStop path, StopTextInput]
+      reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs newNode reqs
       blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config newNode
       result = maybe newResult (newResult <>) blurResult
@@ -435,6 +437,7 @@ makeInputField config state = widget where
     _ -> Nothing
     where
       path = node ^. L.info . L.path
+      widgetId = node ^. L.info . L.widgetId
       viewport = node ^. L.info . L.viewport
       focused = isNodeFocused wenv node
       dragSelectText btn

@@ -121,7 +121,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetDial where
+buildUI wenv model = traceShow "Creating UI" widgetSplitH where
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",

@@ -3,7 +3,7 @@
 module Monomer.Main.Util where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (.=), use)
+import Control.Lens ((&), (^.), (.=), (%=), ix, at, non, use, _1)
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
@@ -33,7 +33,7 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcCurrentCursor = CursorArrow,
   _mcFocusedPath = Seq.empty,
   _mcHoveredPath = Nothing,
-  _mcOverlayPath = Nothing,
+  _mcOverlayWidgetId = Nothing,
   _mcMainBtnPress = Nothing,
   _mcWidgetTasks = Seq.empty,
   _mcWidgetPaths = Map.empty,
@@ -68,3 +68,30 @@ resizeRoot wenv windowSize widgetRoot = result where
   assigned = Rect 0 0 w h
   widget = widgetRoot ^. L.widget
   result = widgetResize widget wenv assigned assigned widgetRoot
+
+setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+setWidgetIdPath widgetId path =
+  L.widgetPaths . ix widgetId . _1 .= path
+
+addWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+addWidgetIdPath widgetId path =
+  L.widgetPaths . at widgetId . non (path, 0) %= \(_, c) -> (path, c + 1)
+
+getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
+getWidgetIdPath widgetId =
+  use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path, 0) . _1
+
+delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
+delWidgetIdPath widgetId =
+  L.widgetPaths . at widgetId %= remVal
+  where
+    remVal (Just (path, c))
+      | c > 1 = Just (path, c - 1)
+    remVal _ = Nothing
+
+getOverlayPath :: (MonomerM s m) => m (Maybe Path)
+getOverlayPath = do
+  overlayWidgetId <- use L.overlayWidgetId
+  case overlayWidgetId of
+    Just wid -> Just <$> getWidgetIdPath wid
+    Nothing -> return Nothing
