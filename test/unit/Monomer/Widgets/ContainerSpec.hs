@@ -69,7 +69,7 @@ handleEventNormal = describe "handleEventNormal" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
@@ -99,7 +99,7 @@ handleEventNoKey = describe "handleEventNoKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
@@ -130,7 +130,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, _, oldRoot1) = fst $ nodeHandleEvents wenv evts1 cntNode1
+    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
     cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM

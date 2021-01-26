@@ -37,7 +37,7 @@ import Data.Foldable (fold, foldl')
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Typeable (Typeable)
-import Data.Sequence (Seq(..), (<|), (|>), (><))
+import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -642,12 +642,12 @@ mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
-  | otherwise = Just $ WidgetResult newWidget requests userEvents
+  | otherwise = Just $ WidgetResult newWidget requests events
   where
     pWidget = _wrNode pResponse
     cWidget = _wrNode cResponse
-    requests = _wrRequests pResponse >< _wrRequests cResponse
-    userEvents = _wrEvents pResponse >< _wrEvents cResponse
+    requests = _wrRequests pResponse <> _wrRequests cResponse
+    events = _wrEvents pResponse <> _wrEvents cResponse
     newWidget = replaceChild pWidget cWidget idx
     newChildResponse = cResponse {
       _wrNode = replaceChild original (_wrNode cResponse) idx

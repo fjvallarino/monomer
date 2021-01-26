@@ -11,7 +11,6 @@ import Control.Monad.IO.Class
 import Control.Monad.STM (atomically)
 import Data.Foldable (toList)
 import Data.Maybe
-import Data.Sequence ((><))
 import Data.Typeable
 
 import qualified Data.Sequence as Seq
@@ -43,10 +42,10 @@ processTasks
   -> t WidgetTask
   -> m (HandlerStep s e)
 processTasks wenv widgetRoot tasks = nextStep where
-  reducer (wWctx, wEvts, wRoot) task = do
-    (wWctx2, wEvts2, wRoot2) <- processTask wWctx wRoot task
-    return (wWctx2, wEvts >< wEvts2, wRoot2)
-  nextStep = foldM reducer (wenv, Seq.empty, widgetRoot) tasks
+  reducer (wWctx, wRoot, wReqs, wEvts) task = do
+    (wWctx2, wRoot2, wReqs2, wEvts2) <- processTask wWctx wRoot task
+    return (wWctx2, wRoot2, wReqs <> wReqs2, wEvts <> wEvts2)
+  nextStep = foldM reducer (wenv, widgetRoot, Seq.empty, Seq.empty) tasks
 
 processTask
   :: (MonomerM s m)
@@ -59,13 +58,13 @@ processTask wenv widgetRoot (WidgetTask widgetId task) = do
 
   case taskStatus of
     Just taskRes -> processTaskResult wenv widgetRoot widgetId taskRes
-    Nothing -> return (wenv, Seq.empty, widgetRoot)
+    Nothing -> return (wenv, widgetRoot, Seq.empty, Seq.empty)
 processTask model widgetRoot (WidgetProducer widgetId channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
     Just taskMsg -> processTaskEvent model widgetRoot widgetId taskMsg
-    Nothing -> return (model, Seq.empty, widgetRoot)
+    Nothing -> return (model, widgetRoot, Seq.empty, Seq.empty)
 
 processTaskResult
   :: (MonomerM s m, Typeable a)
@@ -76,7 +75,7 @@ processTaskResult
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
-  return (wenv, Seq.empty, widgetRoot)
+  return (wenv, widgetRoot, Seq.empty, Seq.empty)
 processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult
 

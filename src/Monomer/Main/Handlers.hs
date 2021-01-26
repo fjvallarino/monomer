@@ -43,7 +43,8 @@ import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
 
-type HandlerStep s e = (WidgetEnv s e, Seq e, WidgetNode s e)
+type HandlerStep s e
+  = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s), Seq e)
 
 getTargetPath
   :: WidgetEnv s e
@@ -86,8 +87,8 @@ handleSystemEvents
   -> m (HandlerStep s e)
 handleSystemEvents wenv baseEvents widgetRoot = nextStep where
   mainBtn = wenv ^. L.mainButton
-  reduceBaseEvt currStep evt = do
-    let (currWenv, currEvents, currRoot) = currStep
+  reduceEvt currStep evt = do
+    let (currWenv, currRoot, currReqs, currEvents) = currStep
     systemEvents <- addRelatedEvents currWenv mainBtn currRoot evt
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
@@ -96,16 +97,16 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
 
-    foldM reduceSysEvt (newWenv, currEvents, currRoot) systemEvents
-  reduceSysEvt (currWenv, currEvents, currRoot) (evt, evtTarget) = do
+    foldM reduceSysEvt (newWenv, currRoot, currReqs, currEvents) systemEvents
+  reduceSysEvt (currWenv, currRoot, currReqs, currEvents) (evt, evtTarget) = do
     focused <- use L.focusedPath
-    let target = fromMaybe focused evtTarget
+    let trgt = fromMaybe focused evtTarget
 
-    (wenv2, evts2, wroot2) <- handleSystemEvent currWenv evt target currRoot
+    (wenv2, root2, reqs2, evts2) <- handleSystemEvent currWenv evt trgt currRoot
 
-    return (wenv2, currEvents <> evts2, wroot2)
-  processedEvents = preProcessEvents baseEvents
-  nextStep = foldM reduceBaseEvt (wenv, Seq.empty, widgetRoot) processedEvents
+    return (wenv2, root2, currReqs <> reqs2, currEvents <> evts2)
+  newEvents = preProcessEvents baseEvents
+  nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty, Seq.empty) newEvents
 
 handleSystemEvent
   :: (MonomerM s m)
@@ -121,7 +122,7 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
   let pressed = fmap fst mainStart
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
-    Nothing -> return (wenv, Seq.empty, widgetRoot)
+    Nothing -> return (wenv, widgetRoot, Seq.empty, Seq.empty)
     Just target -> do
       let widget = widgetRoot ^. L.widget
       let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
@@ -189,7 +190,7 @@ handleWidgetResult wenv resizeWidgets result = do
   let resizeReq = isResizeResult (Just result)
 
   resizePending <- use L.resizePending
-  step <- handleRequests reqs (wenv, events, evtRoot)
+  step <- handleRequests reqs (wenv, evtRoot, reqs, events)
 
   if resizeWidgets && (resizeReq || resizePending)
     then handleResizeWidgets step
@@ -236,9 +237,11 @@ handleResizeWidgets previousStep = do
 
   liftIO . putStrLn $ "Resizing widgets"
 
-  let (wenv, events, widgetRoot) = previousStep
+  let (wenv, widgetRoot, requests, events) = previousStep
+  let reqsNoResize = Seq.filter (not . isResizeWidgets) requests
   let tmpResult = resizeRoot wenv windowSize widgetRoot
   let newResult = tmpResult
+        & L.requests .~ reqsNoResize <> tmpResult ^. L.requests
         & L.events .~ events <> tmpResult ^. L.events
 
   L.renderRequested .= True
@@ -252,10 +255,10 @@ handleMoveFocus
   -> FocusDirection
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleMoveFocus startFrom direction (wenv, events, root) = do
+handleMoveFocus startFrom direction (wenv, root, reqs, evts) = do
   oldFocus <- use L.focusedPath
   let wenv0 = wenv { _weFocusedPath = emptyPath }
-  (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
+  (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
   currFocus <- use L.focusedPath
   currOverlay <- use L.overlayPath
 
@@ -267,41 +270,41 @@ handleMoveFocus startFrom direction (wenv, events, root) = do
 
       L.focusedPath .= newFocus
       L.renderRequested .= True
-      (wenv2, events2, root2) <- handleSystemEvent tempWenv Focus newFocus root1
+      (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
 
-      return (wenv2, events <> events1 <> events2, root2)
+      return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else
-      return (wenv1, events1, root1)
+      return (wenv1, root1, reqs1, evts1)
 
 handleSetFocus
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleSetFocus newFocus (wenv, events, root) =  do
+handleSetFocus newFocus (wenv, root, reqs, evts) =  do
   let wenv0 = wenv { _weFocusedPath = newFocus }
 
   oldFocus <- use L.focusedPath
 
   if oldFocus /= newFocus
     then do
-      (wenv1, events1, root1) <- handleSystemEvent wenv0 Blur oldFocus root
+      (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
 
       L.focusedPath .= newFocus
       L.renderRequested .= True
-      (wenv2, events2, root2) <- handleSystemEvent wenv1 Focus newFocus root1
+      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenv1 Focus newFocus root1
 
-      return (wenv2, events <> events1 <> events2, root2)
+      return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else
-      return (wenv, events, root)
+      return (wenv, root, reqs, evts)
 
 handleGetClipboard
   :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleGetClipboard path (wenv, evts, root) = do
+handleGetClipboard path (wenv, root, reqs, evts) = do
   hasText <- SDL.hasClipboardText
-  contents <- if hasText
+  contents <- fmap Clipboard $ if hasText
                 then fmap ClipboardText SDL.getClipboardText
                 else return ClipboardEmpty
 
-  (wenv2, evts2, root2) <- handleSystemEvent wenv (Clipboard contents) path root
-  return (wenv2, evts <> evts2, root2)
+  (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenv contents path root
+  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
 
 handleSetClipboard
   :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
@@ -360,7 +363,7 @@ handleRenderEvery path ms repeat previousStep = do
   L.renderSchedule .= addSchedule schedule
   return previousStep
   where
-    (wenv, _, _) = previousStep
+    (wenv, _, _, _) = previousStep
     newValue = RenderSchedule {
       _rsPath = path,
       _rsStart = _weTimestamp wenv,
@@ -398,9 +401,9 @@ handleUpdateWindow windowRequest previousStep = do
 
 handleUpdateModel
   :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
-handleUpdateModel fn (wenv, evts, root) = do
+handleUpdateModel fn (wenv, root, reqs, evts) = do
   L.mainModel .= _weModel wenv2
-  return (wenv2, evts, root)
+  return (wenv2, root, reqs, evts)
   where
     wenv2 = wenv & L.model %~ fn
 
@@ -416,15 +419,15 @@ handleSendMessage
   -> msg
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSendMessage path message (wenv, events, widgetRoot) = do
-  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
-  let widget = widgetRoot ^. L.widget
-  let msgResult = widgetHandleMessage widget wenv path message widgetRoot
+handleSendMessage path message (wenv, root, reqs, evts) = do
+  let emptyResult = WidgetResult root Seq.empty Seq.empty
+  let widget = root ^. L.widget
+  let msgResult = widgetHandleMessage widget wenv path message root
   let result = fromMaybe emptyResult msgResult
 
-  (newWenv, newEvents, newWidgetRoot) <- handleWidgetResult wenv True result
+  (newWenv, newRoot, newReqs, newEvts) <- handleWidgetResult wenv True result
 
-  return (newWenv, events <> newEvents, newWidgetRoot)
+  return (newWenv, newRoot, reqs <> newReqs, evts <> newEvts)
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)

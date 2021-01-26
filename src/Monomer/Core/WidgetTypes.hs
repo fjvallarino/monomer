@@ -121,6 +121,27 @@ data WidgetRequest s
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
+instance Eq (WidgetRequest s) where
+  IgnoreParentEvents == IgnoreParentEvents = True
+  IgnoreChildrenEvents == IgnoreChildrenEvents = True
+  ResizeWidgets == ResizeWidgets = True
+  MoveFocus p1 fd1 == MoveFocus p2 fd2 = (p1, fd1) == (p2, fd2)
+  SetFocus p1 == SetFocus p2 = p1 == p2
+  GetClipboard p1 == GetClipboard p2 = p1 == p2
+  SetClipboard c1 == SetClipboard c2 = c1 == c2
+  StartTextInput r1 == StartTextInput r2 = r1 == r2
+  StopTextInput == StopTextInput = True
+  SetOverlay p1 == SetOverlay p2 = p1 == p2
+  ResetOverlay == ResetOverlay = True
+  SetCursorIcon c1 == SetCursorIcon c2 = c1 == c2
+  RenderOnce == RenderOnce = True
+  RenderEvery p1 c1 r1 == RenderEvery p2 c2 r2 = (p1, c1, r1) == (p2, c2, r2)
+  RenderStop p1 == RenderStop p2 = p1 == p2
+  ExitApplication e1 == ExitApplication e2 = e1 == e2
+  UpdateWindow w1 == UpdateWindow w2 = w1 == w2
+  UpdateWidgetPath w1 p1 == UpdateWidgetPath w2 p2 = (w1, p1) == (w2, p2)
+  _ == _ = False
+
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,
   _wrRequests :: Seq (WidgetRequest s),

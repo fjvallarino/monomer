@@ -201,10 +201,10 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     cmpNode1 = composite "main" id buildUI1 handleEvent
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
+    ((wenv1, root1, _, _), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    ((wenv2, _, root2), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
+    ((wenv2, root2, _, _), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleEventGlobalKey :: Spec
@@ -247,10 +247,10 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     cmpNode1 = composite "main" id buildUI1 handleEvent
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
-    ((wenv1, _, root1), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
+    ((wenv1, root1, _, _), ctx1) = nodeHandleEvents wenv evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    ((wenv2, _, root2), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
+    ((wenv2, root2, _, _), ctx2) = nodeHandleEventsNoInit wenv1 evts2 cntNodeM
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleMessage :: Spec

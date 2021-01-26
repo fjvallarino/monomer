@@ -140,11 +140,11 @@ runApp window widgetRoot config = do
   let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, _, initializedRoot) <- if isJust (config ^. L.stateFileMain)
+  (newWenv, initializedRoot, _, _) <- if isJust (config ^. L.stateFileMain)
     then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
     else initAction
 
-  (_, _, resizedRoot) <- resizeWindow window newWenv initializedRoot
+  (_, resizedRoot, _, _) <- resizeWindow window newWenv initializedRoot
 
   let loopArgs = MainLoopArgs {
     _mlOS = os,
@@ -219,7 +219,7 @@ mainLoop window renderer config loopArgs = do
   let baseReqs
         | quit = Seq.fromList exitMsgs
         | otherwise = Seq.Empty
-  let baseStep = (wenv, Seq.empty, _mlWidgetRoot)
+  let baseStep = (wenv, _mlWidgetRoot, Seq.empty, Seq.empty)
 
 --  when newSecond $
 --    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
@@ -230,13 +230,13 @@ mainLoop window renderer config loopArgs = do
   when windowExposed $
     mainBtnPress .= Nothing
 
-  (rqWenv, _, rqRoot) <- handleRequests baseReqs baseStep
-  (wtWenv, _, wtRoot) <- handleWidgetTasks rqWenv rqRoot
-  (seWenv, _, seRoot) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
+  (rqWenv, rqRoot, _, _) <- handleRequests baseReqs baseStep
+  (wtWenv, wtRoot, _, _) <- handleWidgetTasks rqWenv rqRoot
+  (seWenv, seRoot, _, _) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
 
-  (newWenv, _, newRoot) <- if windowResized
+  (newWenv, newRoot, _, _) <- if windowResized
     then resizeWindow window seWenv seRoot
-    else return (seWenv, Seq.empty, seRoot)
+    else return (seWenv, seRoot, Seq.empty, Seq.empty)
 
   endTicks <- fmap fromIntegral SDL.ticks
 

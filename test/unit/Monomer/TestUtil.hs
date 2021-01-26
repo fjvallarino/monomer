@@ -165,16 +165,7 @@ nodeHandleEventModel
   -> WidgetNode s e
   -> s
 nodeHandleEventModel wenv evts node = _weModel wenv2 where
-  (wenv2, _, _) = fst $ nodeHandleEvents wenv evts node
-
-nodeHandleEventEvts
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> Seq e
-nodeHandleEventEvts wenv evts node = events where
-  (_, events, _) = fst $ nodeHandleEvents wenv evts node
+  (wenv2, _, _, _) = fst $ nodeHandleEvents wenv evts node
 
 nodeHandleEventRoot
   :: (Eq s)
@@ -183,7 +174,25 @@ nodeHandleEventRoot
   -> WidgetNode s e
   -> WidgetNode s e
 nodeHandleEventRoot wenv evts node = newRoot where
-  (_, _, newRoot) = fst $ nodeHandleEvents wenv evts node
+  (_, newRoot, _, _) = fst $ nodeHandleEvents wenv evts node
+
+nodeHandleEventReqs
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> Seq (WidgetRequest s)
+nodeHandleEventReqs wenv evts node = reqs where
+  (_, _, reqs, _) = fst $ nodeHandleEvents wenv evts node
+
+nodeHandleEventEvts
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> Seq e
+nodeHandleEventEvts wenv evts node = events where
+  (_, _, _, events) = fst $ nodeHandleEvents wenv evts node
 
 nodeHandleEvents
   :: (Eq s)
@@ -205,7 +214,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
 
   flip runStateT monomerContext $ do
     handleResourcesInit
-    (wenv2, _, newNode) <- handleWidgetInit wenv pathReadyRoot
+    (wenv2, newNode, _, _) <- handleWidgetInit wenv pathReadyRoot
     let resizedNode = nodeResize wenv2 vp newNode
 
     handleSystemEvents wenv2 evts resizedNode
@@ -217,7 +226,7 @@ nodeHandleEventModelNoInit
   -> WidgetNode s e
   -> s
 nodeHandleEventModelNoInit wenv evts node = _weModel wenv2 where
-  (wenv2, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
+  (wenv2, _, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
 
 nodeHandleEventRootNoInit
   :: (Eq s)
@@ -226,7 +235,16 @@ nodeHandleEventRootNoInit
   -> WidgetNode s e
   -> WidgetNode s e
 nodeHandleEventRootNoInit wenv evts node = newRoot where
-  (_, _, newRoot) = fst $ nodeHandleEventsNoInit wenv evts node
+  (_, newRoot, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
+
+nodeHandleEventReqsNoInit
+  :: (Eq s)
+  => WidgetEnv s e
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> Seq (WidgetRequest s)
+nodeHandleEventReqsNoInit wenv evts node = newReqs where
+  (_, _, newReqs, _) = fst $ nodeHandleEventsNoInit wenv evts node
 
 nodeHandleEventsNoInit
   :: (Eq s)

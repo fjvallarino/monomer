@@ -155,7 +155,7 @@ handleEventRestored = describe "handleEventRestored" $ do
     oldNode = nodeHandleEventRoot wenv startEvts node1
     inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
     inst2 = deserialise (serialise inst1)
-    ((wenv2, evts2, node2), ctx) = nodeHandleRestore wenv inst2 node1
+    ((wenv2, node2, reqs2, evts2), ctx) = nodeHandleRestore wenv inst2 node1
     clickModel p = nodeHandleEventModelNoInit wenv2 [Click p LeftBtn] node2
     model evts = nodeHandleEventModelNoInit wenv2 evts node2
 

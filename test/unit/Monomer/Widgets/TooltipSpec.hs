@@ -3,8 +3,9 @@
 
 module Monomer.Widgets.TooltipSpec (spec) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (%~))
 import Data.Default
+import Data.Sequence (Seq(..))
 import Data.Text (Text)
 import Test.Hspec
 
@@ -26,35 +27,69 @@ import qualified Monomer.Lens as L
 spec :: Spec
 spec = describe "Tooltip" $ do
   handleEvent
+  handleEventFollow
   getSizeReq
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate a render schedule" $ do
-    ctx [] ^. L.renderRequested `shouldBe` True
-    ctx [] ^. L.renderSchedule `shouldBe` M.empty
+    reqs [] `shouldBe` Seq.empty
 
   it "should generate a render schedule after moving" $ do
     let evt = Move (Point 10 10)
-    let path = Seq.fromList [0, 0]
-    let schedule = RenderSchedule path 0 1000 (Just 1)
-    ctx [evt] ^. L.renderRequested `shouldBe` True
-    ctx [evt] ^. L.renderSchedule `shouldBe` M.fromList [(path, schedule)]
+    let path = Seq.fromList [0]
+    let renderEveryReq = RenderEvery path 1000 (Just 1)
+    reqs [evt] `shouldBe` Seq.fromList [renderEveryReq]
+
+  it "should ony generate a render schedule even after moving, since delay has not passed" $ do
+    let evt1 = Move (Point 10 10)
+    let evt2 = Move (Point 50 50)
+    let path = Seq.fromList [0]
+    let renderEveryReq = RenderEvery path 1000 (Just 1)
+    reqs [evt1, evt2] `shouldBe` Seq.fromList [renderEveryReq]
+
+  where
+    wenv = mockWenvEvtUnit ()
+    ttNode = tooltip "" (label "Test")
+    reqs es = getReqs wenv ttNode es
+
+handleEventFollow :: Spec
+handleEventFollow = describe "handleEventFollow" $ do
+  it "should not generate a render schedule" $ do
+    reqs [] `shouldBe` Seq.empty
+
+  it "should generate a render schedule after moving" $ do
+    let evt = Move (Point 10 10)
+    let path = Seq.fromList [0]
+    let renderEveryReq = RenderEvery path 500 (Just 1)
+    reqs [evt] `shouldBe` Seq.fromList [renderEveryReq]
 
   it "should generate a render schedule even after moving, and RenderOnce after" $ do
     let evt1 = Move (Point 10 10)
     let evt2 = Move (Point 50 50)
-    let path = Seq.fromList [0, 0]
-    let schedule = RenderSchedule path 0 1000 (Just 1)
-    ctx [evt1, evt2] ^. L.renderRequested `shouldBe` True
-    ctx [evt1, evt2] ^. L.renderSchedule `shouldBe` M.fromList [(path, schedule)]
+    let path = Seq.fromList [0]
+    let renderEveryReq = RenderEvery path 500 (Just 1)
+    reqs [evt1, evt2] `shouldBe` Seq.fromList [renderEveryReq, RenderOnce]
 
   where
     wenv = mockWenvEvtUnit ()
-    ttNode = vstack [
-        tooltip "" (label "Test")
-      ]
-    ctx es = nodeHandleEventCtx wenv es ttNode
+    ttNode = tooltip_ "" (label "Test") [tooltipDelay 500, tooltipFollow]
+    reqs es = getReqs wenv ttNode es
+
+getReqs
+  :: Eq s
+  => WidgetEnv s e
+  -> WidgetNode s e
+  -> [SystemEvent]
+  -> Seq (WidgetRequest s)
+getReqs wenv node [] = Seq.empty
+getReqs wenv node (e:es) = tmpReqs <> newReqs where
+  -- Each component generates a RenderOnce request when Enter event is received
+  tmpNode = nodeHandleEventRoot wenv [e] node
+  tmpReqs = Seq.drop 2 $ nodeHandleEventReqs wenv [e] node
+  newWenv = wenv & L.timestamp %~ (+1000)
+  newNode = nodeHandleEventRootNoInit newWenv es tmpNode
+  newReqs = Seq.drop 2 $ nodeHandleEventReqsNoInit newWenv es tmpNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
