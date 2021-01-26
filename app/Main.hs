@@ -124,6 +124,7 @@ buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
+      tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,
@@ -134,10 +135,11 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
         checkbox condition2
       ],
       numericField_ rational1 [minValue (-100), maxValue 100],
-      tooltip "Hello!" $ label "Test",
+      tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       dial rational1 (-100) 100,
       button "Test" RunShortTask,
-      image "assets/images/pecans.jpg"
+      image "assets/images/pecans.jpg",
+      tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test") `style` [bgColor orange, textSize 20]
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
   widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)

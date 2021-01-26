@@ -5,7 +5,8 @@
 module Monomer.Widgets.Tooltip (
   tooltip,
   tooltip_,
-  tooltipDelay
+  tooltipDelay,
+  tooltipFollow
 ) where
 
 import Codec.Serialise
@@ -25,27 +26,48 @@ import qualified Monomer.Lens as L
 
 data TooltipCfg = TooltipCfg {
   _ttcDelay :: Maybe Int,
-  _ttcFollowCursor :: Maybe Bool
+  _ttcFollowCursor :: Maybe Bool,
+  _ttcWidth :: Maybe Double,
+  _ttcHeight :: Maybe Double
 }
 
 instance Default TooltipCfg where
   def = TooltipCfg {
     _ttcDelay = Nothing,
-    _ttcFollowCursor = Nothing
+    _ttcFollowCursor = Nothing,
+    _ttcWidth = Nothing,
+    _ttcHeight = Nothing
   }
 
 instance Semigroup TooltipCfg where
   (<>) s1 s2 = TooltipCfg {
     _ttcDelay = _ttcDelay s2 <|> _ttcDelay s1,
-    _ttcFollowCursor = _ttcFollowCursor s2 <|> _ttcFollowCursor s1
+    _ttcFollowCursor = _ttcFollowCursor s2 <|> _ttcFollowCursor s1,
+    _ttcWidth = _ttcWidth s2 <|> _ttcWidth s1,
+    _ttcHeight = _ttcHeight s2 <|> _ttcHeight s1
   }
 
 instance Monoid TooltipCfg where
   mempty = def
 
+instance CmbWidth TooltipCfg where
+  width w = def {
+    _ttcWidth = Just w
+  }
+
+instance CmbHeight TooltipCfg where
+  height h = def {
+    _ttcHeight = Just h
+  }
+
 tooltipDelay :: Int -> TooltipCfg
 tooltipDelay ms = def {
   _ttcDelay = Just ms
+}
+
+tooltipFollow :: TooltipCfg
+tooltipFollow = def {
+  _ttcFollowCursor = Just True
 }
 
 data TooltipState = TooltipState {
@@ -125,28 +147,41 @@ makeTooltip caption config state = widget where
   resize :: ContainerResizeHandler s e
   resize wenv viewport renderArea children node = resized where
     resized = (resultWidget node, Seq.singleton (renderArea, renderArea))
-  
+
   render renderer wenv node = do
-    forM_ children $ \child -> when (isWidgetVisible child viewport) $
+    forM_ children $ \child ->
       widgetRender (child ^. L.widget) renderer wenv child
 
     when tooltipVisible $
       createOverlay renderer $ do
         drawStyledAction renderer rect style $ \textRect ->
-          drawStyledText_ renderer textRect style caption
+          forM_ textLines (drawTextLine renderer style)
     where
       style = activeStyle wenv node
       children = node ^. L.children
-      viewport = node ^. L.info . L.viewport
       mousePos = wenv ^. L.inputStatus . L.mousePos
-      textSize = getTextSize wenv style caption
+      maxW = wenv^. L.windowSize . L.w
+      maxH = wenv^. L.windowSize . L.h
+      targetW = fromMaybe maxW (_ttcWidth config)
+      targetH = fromMaybe maxH (_ttcHeight config)
+      targetR = Rect 0 0 targetW targetH
+      fittedLines
+        = fitTextToRect wenv style Ellipsis MultiLine TrimSpaces targetR caption
+      textSize = getTextLinesSize fittedLines
       Size tw th = fromMaybe def (addOuterSize style textSize)
       TooltipState lastPos _ = state
       Point mx my
         | followCursor = mousePos
         | otherwise = lastPos
-      dy = 24
-      rect = Rect mx (my + dy) tw th
+      rx
+        | wenv ^. L.windowSize . L.w - mx > tw = mx
+        | otherwise = wenv ^. L.windowSize . L.w - tw
+      -- Add offset to have space between the tooltip and the cursor
+      ry
+        | wenv ^. L.windowSize . L.h - my > th = my + 20
+        | otherwise = my - th - 5
+      rect = Rect rx ry tw th
+      textLines = alignTextLines style rect fittedLines
       tooltipVisible = tooltipDisplayed wenv node
 
   tooltipDisplayed wenv node = displayed where

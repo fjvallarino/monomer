@@ -250,10 +250,11 @@ makeButton config state = widget where
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
     fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    newTextLines = alignTextLines style rect fittedLines
     newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines
       | not newGlyphsReq = moveTextLines (nx - px) (ny - py) textLines
-      | otherwise = fittedLines
+      | otherwise = newTextLines
     newWidget = makeButton config (BtnState caption newTextStyle rect newLines)
     newNode = node
       & L.widget .~ newWidget

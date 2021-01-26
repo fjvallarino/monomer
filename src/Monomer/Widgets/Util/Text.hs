@@ -7,12 +7,15 @@ module Monomer.Widgets.Util.Text (
   getTextSize_,
   getTextRect,
   getTextGlyphs,
+  getTextLinesSize,
   getGlyphsMin,
   getGlyphsMax,
   getGlyphsWidth,
   moveTextLines,
   drawTextLine,
-  fitTextToRect
+  fitTextToRect,
+  fitTextToWidth,
+  alignTextLines
 ) where
 
 import Control.Lens ((&), (+~))
@@ -57,7 +60,7 @@ getTextSize_ wenv style mode trim mwidth text = newSize where
   fontSize = styleFontSize style
   !metrics = computeTextMetrics (_weRenderer wenv) font fontSize
   width = fromMaybe maxNumericValue mwidth
-  textLinesW = fitTextToW wenv style width trim text
+  textLinesW = fitTextToWidth wenv style width trim text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
     | otherwise = textLinesW
@@ -126,21 +129,20 @@ fitTextToRect
   -> Rect
   -> Text
   -> Seq TextLine
-fitTextToRect wenv style overflow mode trim !rect !text = newTextLines where
+fitTextToRect wenv style overflow mode trim !rect !text = textLines where
   Rect cx cy cw ch = rect
-  alignH = styleTextAlignH style
-  alignV = styleTextAlignV style
-  textLinesW = fitTextToW wenv style cw trim text
+  textLinesW = fitTextToWidth wenv style cw trim text
   fittedLines = fitTextLinesToH wenv style overflow cw ch textLinesW
   textLines
     | mode == MultiLine = fittedLines
     | otherwise = Seq.take 1 fittedLines
-  !newTextLines = alignTextLines rect alignH alignV textLines
 
-alignTextLines :: Rect -> AlignH -> AlignV -> Seq TextLine -> Seq TextLine
-alignTextLines parentRect alignH alignV textLines = newTextLines where
+alignTextLines :: StyleState -> Rect -> Seq TextLine -> Seq TextLine
+alignTextLines style parentRect textLines = newTextLines where
   Rect _ py _ ph = parentRect
   Size _ th = getTextLinesSize textLines
+  alignH = styleTextAlignH style
+  alignV = styleTextAlignV style
   alignOffsetY = case alignV of
     ATop -> 0
     AMiddle -> (ph - th) / 2
@@ -189,14 +191,14 @@ fitTextLinesToH wenv style overflow w h (g :<| gs)
       | overflow == Ellipsis && w < gW = addEllipsisToTextLine wenv style w g
       | otherwise = g
 
-fitTextToW
+fitTextToWidth
   :: WidgetEnv s e
   -> StyleState
   -> Double
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitTextToW wenv style width trim text = resultLines where
+fitTextToWidth wenv style width trim text = resultLines where
   font = styleFont style
   fontSize = styleFontSize style
   !metrics = computeTextMetrics (_weRenderer wenv) font fontSize
