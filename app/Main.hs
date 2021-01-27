@@ -121,7 +121,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
@@ -132,7 +132,7 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
       ] `key` "radio hstack",
       hstack [
         checkbox condition1,
-        checkbox condition2
+        checkbox_ condition2 [checkboxMark CheckboxTimes]
       ],
       numericField_ rational1 [minValue (-100), maxValue 100],
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",

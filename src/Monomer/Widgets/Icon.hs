@@ -81,23 +81,8 @@ centeredSquare (Rect x y w h) = Rect newX newY dim dim where
 
 drawIcon :: Renderer -> StyleState -> IconType -> Rect -> Double -> IO ()
 drawIcon renderer style iconType viewport lw = case iconType of
-  IconClose -> do
-    beginPath renderer
-    setFillColor renderer fgColor
-    moveTo renderer (Point (x + hw) y)
-    renderLineTo renderer (Point cx (cy - hw))
-    renderLineTo renderer (Point (mx - hw) y)
-    renderLineTo renderer (Point mx (y + hw))
-    renderLineTo renderer (Point (cx + hw) cy)
-    renderLineTo renderer (Point mx (my - hw))
-    renderLineTo renderer (Point (mx - hw) my)
-    renderLineTo renderer (Point cx (cy + hw))
-    renderLineTo renderer (Point (x + hw) my)
-    renderLineTo renderer (Point x (my - hw))
-    renderLineTo renderer (Point (cx - hw) cy)
-    renderLineTo renderer (Point x (y + hw))
-    renderLineTo renderer (Point (x + hw) y)
-    fill renderer
+  IconClose ->
+    drawTimesX renderer viewport lw (Just fgColor)
   IconPlus -> do
     beginPath renderer
     setFillColor renderer fgColor

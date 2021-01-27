@@ -10,6 +10,7 @@ module Monomer.Graphics.Drawing (
   drawEllipse,
   drawEllipseBorder,
   drawArrowDown,
+  drawTimesX,
   drawStyledAction,
   drawStyledText,
   drawStyledText_,
@@ -147,6 +148,33 @@ drawArrowDown renderer rect (Just color) = do
     p1 = Point x y
     p2 = Point (x + w) y
     p3 = Point (x + w / 2) (y + h)
+
+drawTimesX :: Renderer -> Rect -> Double -> Maybe Color -> IO ()
+drawTimesX renderer rect lw Nothing = return ()
+drawTimesX renderer rect lw (Just fgColor) = do
+  beginPath renderer
+  setFillColor renderer fgColor
+  moveTo renderer (Point (x + hw) y)
+  renderLineTo renderer (Point cx (cy - hw))
+  renderLineTo renderer (Point (mx - hw) y)
+  renderLineTo renderer (Point mx (y + hw))
+  renderLineTo renderer (Point (cx + hw) cy)
+  renderLineTo renderer (Point mx (my - hw))
+  renderLineTo renderer (Point (mx - hw) my)
+  renderLineTo renderer (Point cx (cy + hw))
+  renderLineTo renderer (Point (x + hw) my)
+  renderLineTo renderer (Point x (my - hw))
+  renderLineTo renderer (Point (cx - hw) cy)
+  renderLineTo renderer (Point x (y + hw))
+  renderLineTo renderer (Point (x + hw) y)
+  fill renderer
+  where
+    Rect x y w h = rect
+    hw = lw / 2
+    cx = x + w / 2
+    cy = y + h / 2
+    mx = x + w
+    my = y + h
 
 drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
 drawStyledAction renderer rect style action = do

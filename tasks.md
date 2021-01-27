@@ -438,6 +438,7 @@
     - Remove Integral
     - Add FromFractional instance of Scientific
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
+  - Should Render operations use WidgetId? Review other WidgetRequests
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -452,7 +453,6 @@
 
 Maybe postponed after release?
   - Do something about TextDropdown
-  - Should Render operations use WidgetId? Review other WidgetRequests
   - Check text baseline
   - Prettier mark for checkbox
   - Add onResize, onDispose to composite

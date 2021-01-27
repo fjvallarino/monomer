@@ -2,12 +2,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Checkbox (
-  CheckboxCfg,
+  CheckboxMark(..),
   checkbox,
   checkbox_,
   checkboxV,
   checkboxV_,
   checkboxD_,
+  checkboxMark,
   checkboxWidth
 ) where
 
@@ -24,7 +25,13 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+data CheckboxMark
+  = CheckboxSquare
+  | CheckboxTimes
+  deriving (Eq, Show)
+
 data CheckboxCfg s e = CheckboxCfg {
+  _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
   _ckcOnFocus :: [e],
   _ckcOnFocusReq :: [WidgetRequest s],
@@ -36,6 +43,7 @@ data CheckboxCfg s e = CheckboxCfg {
 
 instance Default (CheckboxCfg s e) where
   def = CheckboxCfg {
+    _ckcMark = Nothing,
     _ckcWidth = Nothing,
     _ckcOnFocus = [],
     _ckcOnFocusReq = [],
@@ -47,6 +55,7 @@ instance Default (CheckboxCfg s e) where
 
 instance Semigroup (CheckboxCfg s e) where
   (<>) t1 t2 = CheckboxCfg {
+    _ckcMark = _ckcMark t2 <|> _ckcMark t1,
     _ckcWidth = _ckcWidth t2 <|> _ckcWidth t1,
     _ckcOnFocus = _ckcOnFocus t1 <> _ckcOnFocus t2,
     _ckcOnFocusReq = _ckcOnFocusReq t1 <> _ckcOnFocusReq t2,
@@ -88,6 +97,11 @@ instance CmbOnChangeReq (CheckboxCfg s e) s where
   onChangeReq req = def {
     _ckcOnChangeReq = [req]
   }
+
+checkboxMark :: CheckboxMark -> CheckboxCfg s e
+checkboxMark mark = def {
+  _ckcMark = Just mark
+}
 
 checkboxWidth :: Double -> CheckboxCfg s e
 checkboxWidth w = def {
@@ -153,7 +167,7 @@ makeCheckbox widgetData config = widget where
     renderCheckbox renderer checkboxBW checkboxArea fgColor
 
     when value $
-      renderMark renderer checkboxBW checkboxArea fgColor
+      renderMark renderer checkboxBW checkboxArea fgColor mark
     where
       model = _weModel wenv
       theme = activeTheme wenv node
@@ -166,6 +180,7 @@ makeCheckbox widgetData config = widget where
       checkboxT = _rY rarea + (_rH rarea - checkboxW) / 2
       checkboxArea = Rect checkboxL checkboxT checkboxW checkboxW
       fgColor = styleFgColor style
+      mark = fromMaybe CheckboxSquare (_ckcMark config)
 
 renderCheckbox :: Renderer -> Double -> Rect -> Color -> IO ()
 renderCheckbox renderer checkboxBW rect color = action where
@@ -173,8 +188,11 @@ renderCheckbox renderer checkboxBW rect color = action where
   border = Border side side side side
   action = drawRectBorder renderer rect border Nothing
 
-renderMark :: Renderer -> Double -> Rect -> Color -> IO ()
-renderMark renderer checkboxBW rect color = action where
+renderMark :: Renderer -> Double -> Rect -> Color -> CheckboxMark -> IO ()
+renderMark renderer checkboxBW rect color mark = action where
   w = checkboxBW * 2
+  lw = checkboxBW * 2
   newRect = fromMaybe def (subtractFromRect rect w w w w)
-  action = drawRect renderer newRect (Just color) Nothing
+  action
+    | mark == CheckboxSquare = drawRect renderer newRect (Just color) Nothing
+    | otherwise = drawTimesX renderer newRect lw (Just color)
