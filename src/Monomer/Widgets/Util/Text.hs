@@ -68,12 +68,13 @@ getTextSize_ wenv style mode trim mwidth text = newSize where
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
 
-getTextRect :: WidgetEnv s e -> StyleState -> Rect -> Align -> Text -> Rect
-getTextRect wenv style !rect !align !text = textRect where
+getTextRect
+  :: WidgetEnv s e -> StyleState -> Rect -> AlignTH -> AlignTV -> Text -> Rect
+getTextRect wenv style !rect !alignH !alignV !text = textRect where
   renderer = _weRenderer wenv
   font = styleFont style
   fontSize = styleFontSize style
-  !textRect = computeTextRect renderer rect font fontSize align text
+  !textRect = computeTextRect renderer rect font fontSize alignH alignV text
 
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where
@@ -118,7 +119,39 @@ drawTextLine renderer style textLine = do
     font = styleFont style
     fontSize = styleFontSize style
     fontColor = styleFontColor style
-    point = Point tx (ty + th + desc)
+    alignV = styleTextAlignV style
+    offset
+      | alignV == ATBaseline = 0
+      | otherwise = desc
+    point = Point tx (ty + th + offset)
+
+computeTextRect
+  :: Renderer
+  -> Rect
+  -> Font
+  -> FontSize
+  -> AlignTH
+  -> AlignTV
+  -> Text
+  -> Rect
+computeTextRect renderer containerRect font fontSize ha va text = textRect where
+  Rect x y w h = containerRect
+  Size tw _ = computeTextSize renderer font fontSize text
+  TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
+  th = lineh
+  tx | ha == ATLeft = x
+     | ha == ATCenter = x + (w - tw) / 2
+     | otherwise = x + (w - tw)
+  ty | va == ATTop = y + asc
+     | va == ATMiddle = y + h + desc - (h - th) / 2
+     | otherwise = y + h + desc
+
+  textRect = Rect {
+    _rX = tx,
+    _rY = ty - th,
+    _rW = tw,
+    _rH = th
+  }
 
 fitTextToRect
   :: WidgetEnv s e
@@ -144,20 +177,20 @@ alignTextLines style parentRect textLines = newTextLines where
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
   alignOffsetY = case alignV of
-    ATop -> 0
-    AMiddle -> (ph - th) / 2
-    ABottom -> ph - th
+    ATTop -> 0
+    ATMiddle -> (ph - th) / 2
+    _ -> ph - th
   offsetY = py + alignOffsetY
   newTextLines = fmap (alignTextLine parentRect offsetY alignH) textLines
 
-alignTextLine :: Rect -> Double -> AlignH -> TextLine -> TextLine
+alignTextLine :: Rect -> Double -> AlignTH -> TextLine -> TextLine
 alignTextLine parentRect offsetY alignH textLine = newTextLine where
   Rect px _ pw _ = parentRect
   Rect tx ty tw th = _tlRect textLine
   alignOffsetX = case alignH of
-    ALeft -> 0
-    ACenter -> (pw - tw) / 2
-    ARight -> pw - tw
+    ATLeft -> 0
+    ATCenter -> (pw - tw) / 2
+    ATRight -> pw - tw
   offsetX = px + alignOffsetX
   newTextLine = textLine {
     _tlRect = Rect (tx + offsetX) (ty + offsetY) tw th

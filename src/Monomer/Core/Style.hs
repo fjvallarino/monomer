@@ -63,22 +63,25 @@ instance CmbTextColor TextStyle where
   textColor col = def & L.fontColor ?~ col
 
 instance CmbTextLeft TextStyle where
-  textLeft = textAlignH ALeft
+  textLeft = textAlignH ATLeft
 
 instance CmbTextCenter TextStyle where
-  textCenter = textAlignH ACenter
+  textCenter = textAlignH ATCenter
 
 instance CmbTextRight TextStyle where
-  textRight = textAlignH ARight
+  textRight = textAlignH ATRight
 
 instance CmbTextTop TextStyle where
-  textTop = textAlignV ATop
+  textTop = textAlignV ATTop
 
 instance CmbTextMiddle TextStyle where
-  textMiddle = textAlignV AMiddle
+  textMiddle = textAlignV ATMiddle
 
 instance CmbTextBottom TextStyle where
-  textBottom = textAlignV ABottom
+  textBottom = textAlignV ATBottom
+
+instance CmbTextBaseline TextStyle where
+  textBaseline = textAlignV ATBaseline
 
 -- Padding
 
@@ -215,22 +218,25 @@ instance CmbTextColor StyleState where
   textColor col = def & L.text ?~ textColor col
 
 instance CmbTextLeft StyleState where
-  textLeft = styleTextAlignH ALeft
+  textLeft = styleTextAlignH ATLeft
 
 instance CmbTextCenter StyleState where
-  textCenter = styleTextAlignH ACenter
+  textCenter = styleTextAlignH ATCenter
 
 instance CmbTextRight StyleState where
-  textRight = styleTextAlignH ARight
+  textRight = styleTextAlignH ATRight
 
 instance CmbTextTop StyleState where
-  textTop = styleTextAlignV ATop
+  textTop = styleTextAlignV ATTop
 
 instance CmbTextMiddle StyleState where
-  textMiddle = styleTextAlignV AMiddle
+  textMiddle = styleTextAlignV ATMiddle
 
 instance CmbTextBottom StyleState where
-  textBottom = styleTextAlignV ABottom
+  textBottom = styleTextAlignV ATBottom
+
+instance CmbTextBaseline StyleState where
+  textBaseline = styleTextAlignV ATBaseline
 
 -- Padding
 instance CmbPadding StyleState where
@@ -304,14 +310,14 @@ radiusCorner rad = RadiusCorner RadiusBoth rad
 iradiusCorner :: Double -> RadiusCorner
 iradiusCorner rad = RadiusCorner RadiusInner rad
 
-textAlignH :: AlignH -> TextStyle
+textAlignH :: AlignTH -> TextStyle
 textAlignH align = def & L.alignH ?~ align
 
-textAlignV :: AlignV -> TextStyle
+textAlignV :: AlignTV -> TextStyle
 textAlignV align = def & L.alignV ?~ align
 
-styleTextAlignH :: AlignH -> StyleState
+styleTextAlignH :: AlignTH -> StyleState
 styleTextAlignH align = def & L.text . non def . L.alignH ?~ align
 
-styleTextAlignV :: AlignV -> StyleState
+styleTextAlignV :: AlignTV -> StyleState
 styleTextAlignV align = def & L.text . non def . L.alignV ?~ align

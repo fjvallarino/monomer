@@ -51,13 +51,6 @@ instance Default Font where
 instance Default FontSize where
   def = FontSize 32
 
-data Align
-  = Align AlignH AlignV
-  deriving (Eq, Show, Generic, Serialise)
-
-instance Default Align where
-  def = Align ACenter AMiddle
-
 data AlignH
   = ALeft
   | ACenter
@@ -75,6 +68,25 @@ data AlignV
 
 instance Default AlignV where
   def = AMiddle
+
+data AlignTH
+  = ATLeft
+  | ATCenter
+  | ATRight
+  deriving (Eq, Show, Generic, Serialise)
+
+instance Default AlignTH where
+  def = ATCenter
+
+data AlignTV
+  = ATTop
+  | ATMiddle
+  | ATBottom
+  | ATBaseline
+  deriving (Eq, Show, Generic, Serialise)
+
+instance Default AlignTV where
+  def = ATMiddle
 
 data GlyphPos = GlyphPos {
   _glpGlyph :: {-# UNPACK #-} !Char,

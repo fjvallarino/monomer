@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.Drawing (
-  computeTextRect,
   drawInScissor,
   drawRect,
   drawRectBorder,
@@ -12,9 +11,6 @@ module Monomer.Graphics.Drawing (
   drawArrowDown,
   drawTimesX,
   drawStyledAction,
-  drawStyledText,
-  drawStyledText_,
-  drawText,
   drawImage,
   drawNewImage,
   drawStyledImage
@@ -29,28 +25,6 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
-
-computeTextRect :: Renderer -> Rect -> Font -> FontSize -> Align -> Text -> Rect
-computeTextRect renderer containerRect font fontSize align text = textRect where
-  Align ha va = align
-  Rect x y w h = containerRect
-  Size tw _ = computeTextSize renderer font fontSize text
-  TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
-
-  th = lineh
-  tx | ha == ALeft = x
-     | ha == ACenter = x + (w - tw) / 2
-     | otherwise = x + (w - tw)
-  ty | va == ATop = y + asc
-     | va == AMiddle = y + h + desc - (h - th) / 2
-     | otherwise = y + h + desc
-
-  textRect = Rect {
-    _rX = tx,
-    _rY = ty - th,
-    _rW = tw,
-    _rH = th
-  }
 
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
 drawInScissor renderer False _ action = action
@@ -187,38 +161,6 @@ drawStyledAction renderer rect style action = do
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
-
-drawStyledText :: Renderer -> Rect -> StyleState -> Text -> IO Rect
-drawStyledText renderer rect style txt = action where
-  action = drawText renderer rect tsFontColor tsFont tsFontSize tsAlign txt
-  tsFont = styleFont style
-  tsFontSize = styleFontSize style
-  tsFontColor = styleFontColor style
-  tsAlignH = styleTextAlignH style
-  tsAlignV = styleTextAlignV style
-  tsAlign = Align tsAlignH tsAlignV
-
-drawStyledText_ :: Renderer -> Rect -> StyleState -> Text -> IO ()
-drawStyledText_ renderer rect style txt =
-  void $ drawStyledText renderer rect style txt
-
-drawText
-  :: Renderer
-  -> Rect
-  -> Color
-  -> Font
-  -> FontSize
-  -> Align
-  -> Text
-  -> IO Rect
-drawText renderer rect color font fontSize align txt = do
-  setFillColor renderer color
-  renderText renderer textPos font fontSize txt
-  return textRect
-  where
-    textRect = computeTextRect renderer rect font fontSize align txt
-    Rect tx ty tw th = textRect
-    textPos = Point tx (ty + th)
 
 drawImage :: Renderer -> String -> Rect -> Double -> IO ()
 drawImage renderer imgName rect alpha = action where

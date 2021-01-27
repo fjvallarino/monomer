@@ -241,8 +241,8 @@ data TextStyle = TextStyle {
   _txsFont :: Maybe Font,
   _txsFontSize :: Maybe FontSize,
   _txsFontColor :: Maybe Color,
-  _txsAlignH :: Maybe AlignH,
-  _txsAlignV :: Maybe AlignV
+  _txsAlignH :: Maybe AlignTH,
+  _txsAlignV :: Maybe AlignTV
 } deriving (Eq, Show, Generic, Serialise)
 
 instance Default TextStyle where

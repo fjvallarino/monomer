@@ -95,6 +95,9 @@ class CmbTextMiddle t where
 class CmbTextBottom t where
   textBottom :: t
 
+class CmbTextBaseline t where
+  textBaseline :: t
+
 -- Events
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t

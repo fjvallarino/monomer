@@ -59,12 +59,12 @@ inputStyle = def
 
 numericInputStyle :: StyleState
 numericInputStyle = inputStyle
-  & L.text . non def . L.alignH ?~ ARight
+  & L.text . non def . L.alignH ?~ ATRight
 
 listViewItemStyle :: StyleState
 listViewItemStyle = def
   & L.text ?~ normalFont
-  & L.text . non def . L.alignH ?~ ALeft
+  & L.text . non def . L.alignH ?~ ATLeft
   & L.bgColor ?~ black
   & L.border ?~ border 1 black
   & L.padding ?~ paddingH 5
@@ -109,7 +109,7 @@ darkBasic = def
   & L.dropdownStyle .~ inputStyle
   & L.dropdownStyle . L.fgColor ?~ white
   & L.dropdownStyle . L.padding ?~ paddingH 5
-  & L.dropdownStyle . L.text . non def . L.alignH ?~ ALeft
+  & L.dropdownStyle . L.text . non def . L.alignH ?~ ATLeft
   & L.dropdownMaxHeight .~ 200
   & L.dropdownListStyle . L.bgColor ?~ black
   & L.dropdownItemStyle .~ listViewItemStyle

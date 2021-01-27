@@ -563,7 +563,9 @@ renderContent renderer state style currText = do
   where
     Rect tx ty tw th = _ifsTextRect state
     TextMetrics ta td tl = _ifsTextMetrics state
-    textPos = Point tx (ty + th)
+    textPos = case styleTextAlignV style of
+      ATBaseline -> Point tx (ty + th - td)
+      _ -> Point tx (ty + th)
     textStyle = fromMaybe def (_sstText style)
     tsFont = styleFont style
     tsFontSize = styleFontSize style
@@ -677,16 +679,15 @@ newTextState wenv node oldState value text cursor selection = newState where
   contentArea = getContentArea style node
   !(Rect cx cy cw ch) = contentArea
   textStyle = fromMaybe def (_sstText style)
-  alignH = fromMaybe ALeft (_txsAlignH textStyle)
-  alignV = fromMaybe def (_txsAlignV textStyle)
-  align = Align alignH alignV
-  alignL = alignH == ALeft
-  alignR = alignH == ARight
-  alignC = alignH == ACenter
+  alignH = fromMaybe ATLeft (_txsAlignH textStyle)
+  alignV = fromMaybe ATMiddle (_txsAlignV textStyle)
+  alignL = alignH == ATLeft
+  alignR = alignH == ATRight
+  alignC = alignH == ATCenter
   cursorL = cursor == 0
   cursorR = cursor == T.length text
   !textMetrics = getTextMetrics wenv style
-  !textRect = getTextRect wenv style contentArea align text
+  !textRect = getTextRect wenv style contentArea alignH alignV text
   Rect _ _ tw th = textRect
   textFits = cw >= tw
   TextMetrics ta ts tl = textMetrics

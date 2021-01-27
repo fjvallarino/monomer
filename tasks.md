@@ -439,6 +439,7 @@
     - Add FromFractional instance of Scientific
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Should Render operations use WidgetId? Review other WidgetRequests
+  - Prettier mark for checkbox
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -452,13 +453,13 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Do something about TextDropdown
   - Check text baseline
-  - Prettier mark for checkbox
   - Add onResize, onDispose to composite
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
     - Check active style vs focus (border disappears)
+    - https://visme.co/blog/website-color-schemes/
+    - https://coolors.co/91a6ff-ff8811-667761-b80c09-eaf8bf
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -472,6 +473,7 @@ Maybe postponed after release?
     - SDL supports Drag and Drop integration with OS
 
 Future
+  - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider
   - Create Theme widget to override global theme

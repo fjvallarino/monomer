@@ -121,7 +121,14 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetDial where
+buildUI wenv model = traceShow "Creating UI" widgetAlign where
+  widgetAlign = vstack [
+      hstack [
+        label "Label 1 - ja - ^&~@$" `style` [textSize 10, textBottom],
+        label "Label 2 - ja - ^&~@$" `style` [textSize 20, textBottom],
+        label "Label 3 - ja - ^&~@$" `style` [textSize 40, textBottom]
+      ] `style` [bgColor orange]
+    ]
   widgetDialSingle = dial double1 (-100) 100
   widgetDial = vstack [
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",

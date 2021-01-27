@@ -136,11 +136,11 @@ styleFontColor :: StyleState -> Color
 styleFontColor style = fromMaybe def fontColor where
   fontColor = style ^? L.text . _Just . L.fontColor . _Just
 
-styleTextAlignH :: StyleState -> AlignH
+styleTextAlignH :: StyleState -> AlignTH
 styleTextAlignH style = fromMaybe def alignH where
   alignH = style ^? L.text . _Just . L.alignH . _Just
 
-styleTextAlignV :: StyleState -> AlignV
+styleTextAlignV :: StyleState -> AlignTV
 styleTextAlignV style = fromMaybe def alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
 
