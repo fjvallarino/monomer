@@ -360,8 +360,7 @@ instance Show (WidgetRequest s) where
   show (ResetOverlay wid) = "ResetOverlay: " ++ show wid
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
   show RenderOnce = "RenderOnce"
-  show (RenderEvery path ms repeat)
-    = "RenderEvery: " ++ show path ++ " - " ++ show ms ++ " - " ++ show repeat
+  show (RenderEvery path ms repeat) = "RenderEvery: " ++ show (path, ms, repeat)
   show (RenderStop path) = "RenderStop: " ++ show path
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
