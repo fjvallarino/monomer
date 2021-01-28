@@ -31,7 +31,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
-import Monomer.Graphics
 import Monomer.Lens
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
@@ -88,7 +87,10 @@ simpleApp_ model eventHandler uiBuilder configs = do
   where
     config = mconcat configs
     useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
-    compCfgs = onInit <$> _apcInitEvent config
+    compCfgs
+      = (onInit <$> _apcInitEvent config)
+      ++ (onDispose <$> _apcDisposeEvent config)
+      ++ (onResize <$> _apcResizeEvent config)
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runApp

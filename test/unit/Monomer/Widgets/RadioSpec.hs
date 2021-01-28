@@ -15,6 +15,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.Widgets.Radio

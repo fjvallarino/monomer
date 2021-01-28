@@ -69,6 +69,8 @@ data EventResponse s e ep
 data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcOnInit :: [e],
+  _cmcOnDispose :: [e],
+  _cmcOnResize :: [(Rect, Rect) -> e],
   _cmcOnChange :: [s -> ep],
   _cmcOnChangeReq :: [WidgetRequest sp],
   _cmcOnEnabledChange :: [e],
@@ -79,6 +81,8 @@ instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
     _cmcMergeRequired = Nothing,
     _cmcOnInit = [],
+    _cmcOnDispose = [],
+    _cmcOnResize = [],
     _cmcOnChange = [],
     _cmcOnChangeReq = [],
     _cmcOnEnabledChange = [],
@@ -88,11 +92,13 @@ instance Default (CompositeCfg s e sp ep) where
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
-    _cmcOnInit = _cmcOnInit c2 <|> _cmcOnInit c1,
-    _cmcOnChange = _cmcOnChange c2 <|> _cmcOnChange c1,
-    _cmcOnChangeReq = _cmcOnChangeReq c2 <|> _cmcOnChangeReq c1,
-    _cmcOnEnabledChange = _cmcOnEnabledChange c2 <|> _cmcOnEnabledChange c1,
-    _cmcOnVisibleChange = _cmcOnVisibleChange c2 <|> _cmcOnVisibleChange c1
+    _cmcOnInit = _cmcOnInit c1 <> _cmcOnInit c2,
+    _cmcOnDispose = _cmcOnDispose c1 <> _cmcOnDispose c2,
+    _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
+    _cmcOnChange = _cmcOnChange c1 <> _cmcOnChange c2,
+    _cmcOnChangeReq = _cmcOnChangeReq c1 <> _cmcOnChangeReq c2,
+    _cmcOnEnabledChange = _cmcOnEnabledChange c1 <> _cmcOnEnabledChange c2,
+    _cmcOnVisibleChange = _cmcOnVisibleChange c1 <> _cmcOnVisibleChange c2
   }
 
 instance Monoid (CompositeCfg s e sp ep) where
@@ -106,6 +112,16 @@ instance CmbMergeRequired (CompositeCfg s e sp ep) s where
 instance CmbOnInit (CompositeCfg s e sp ep) e where
   onInit fn = def {
     _cmcOnInit = [fn]
+  }
+
+instance CmbOnDispose (CompositeCfg s e sp ep) e where
+  onDispose fn = def {
+    _cmcOnDispose = [fn]
+  }
+
+instance CmbOnResize (CompositeCfg s e sp ep) (Rect, Rect) e where
+  onResize fn = def {
+    _cmcOnResize = [fn]
   }
 
 instance CmbOnChange (CompositeCfg s e sp ep) s ep where
@@ -133,7 +149,9 @@ data Composite s e sp ep = Composite {
   _cmpEventHandler :: EventHandler s e ep,
   _cmpUiBuilder :: UIBuilder s e,
   _cmpMergeRequired :: MergeRequired s,
-  _cmpInitEvent :: [e],
+  _cmpOnInit :: [e],
+  _cmpOnDispose :: [e],
+  _cmpOnResize :: [(Rect, Rect) -> e],
   _cmpOnChange :: [s -> ep],
   _cmpOnChangeReq :: [WidgetRequest sp],
   _cmpOnEnabledChange :: [e],
@@ -252,7 +270,9 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpEventHandler = evtHandler,
     _cmpUiBuilder = uiBuilder,
     _cmpMergeRequired = mergeReq,
-    _cmpInitEvent = _cmcOnInit config,
+    _cmpOnInit = _cmcOnInit config,
+    _cmpOnDispose = _cmcOnDispose config,
+    _cmpOnResize = _cmcOnResize config,
     _cmpOnChange = _cmcOnChange config,
     _cmpOnChangeReq = _cmcOnChangeReq config,
     _cmpOnEnabledChange = _cmcOnEnabledChange config,
@@ -299,7 +319,7 @@ compositeInit comp state wenv widgetComp = newResult where
   builtRoot = _cmpUiBuilder comp cwenv model
   tempRoot = cascadeCtx wenv widgetComp builtRoot
   WidgetResult root reqs evts = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
-  newEvts = Seq.fromList (_cmpInitEvent comp)
+  newEvts = Seq.fromList (_cmpOnInit comp)
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
@@ -374,8 +394,9 @@ compositeDispose comp state wenv widgetComp = result where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   widget = _cpsRoot ^. L.widget
+  newEvts = Seq.fromList (_cmpOnDispose comp)
   WidgetResult _ reqs evts = widgetDispose widget cwenv _cpsRoot
-  tempResult = WidgetResult _cpsRoot reqs evts
+  tempResult = WidgetResult _cpsRoot reqs (evts <> newEvts)
   result = reduceResult comp state wenv widgetComp tempResult
 
 compositeSave
@@ -562,9 +583,11 @@ compositeResize comp state wenv viewport renderArea widgetComp = resized where
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   tmpRes = widgetResize widget cwenv viewport contentArea _cpsRoot
+  newEvts = Seq.fromList (fmap ($ (viewport, renderArea)) (_cmpOnResize comp))
   newRes = reduceResult comp state wenv widgetComp $ tmpRes
     & L.node . L.info . L.viewport .~ viewport
     & L.node . L.info . L.renderArea .~ contentArea
+    & L.events .~ tmpRes ^. L.events <> newEvts
   resized = newRes
     & L.node . L.info . L.viewport .~ viewport
     & L.node . L.info . L.renderArea .~ renderArea

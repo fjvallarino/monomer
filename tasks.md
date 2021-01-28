@@ -441,6 +441,12 @@
   - Should Render operations use WidgetId? Review other WidgetRequests
   - Prettier mark for checkbox
   - Check text baseline
+  - Create consistent dark and light themes
+    - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
+    - Check active style vs focus (border disappears)
+    - https://visme.co/blog/website-color-schemes/
+    - https://coolors.co/91a6ff-ff8811-667761-b80c09-eaf8bf
+  - Add onResize, onDispose to composite
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -454,12 +460,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Add onResize, onDispose to composite
-  - Create consistent, good looking, themes: dark, light, pastel
-    - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
-    - Check active style vs focus (border disappears)
-    - https://visme.co/blog/website-color-schemes/
-    - https://coolors.co/91a6ff-ff8811-667761-b80c09-eaf8bf
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

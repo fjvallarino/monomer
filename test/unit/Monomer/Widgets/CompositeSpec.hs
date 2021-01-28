@@ -38,6 +38,7 @@ import qualified Monomer.Widgets.Single as SG
 data MainEvt
   = MainBtnClicked
   | ChildClicked
+  | MainResize (Rect, Rect)
   deriving (Eq, Show)
 
 data ChildEvt
@@ -110,6 +111,9 @@ handleEventBasic = describe "handleEventBasic" $ do
   it "should generate a user provided event when clicked" $
     model [evtClick (Point 10 10)] ^. clicks `shouldBe` 1
 
+  it "should generate a resize event on init" $
+    events [] `shouldBe` Seq.fromList [MainResize (vp, vp)]
+
   where
     wenv = mockWenv def
     handleEvent
@@ -117,11 +121,16 @@ handleEventBasic = describe "handleEventBasic" $ do
       -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
-      -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv node model evt = [Model (model & clicks %~ (+1))]
+      -> [EventResponse MainModel MainEvt MainEvt]
+    handleEvent wenv node model evt = case evt of
+      MainBtnClicked -> [Model (model & clicks %~ (+1))]
+      MainResize size -> [Report (MainResize size)]
+      _ -> []
     buildUI wenv model = button "Click" MainBtnClicked
-    cmpNode = composite "main" id buildUI handleEvent
+    cmpNode = composite_ "main" id buildUI handleEvent [onResize MainResize]
     model es = nodeHandleEventModel wenv es cmpNode
+    events es = nodeHandleEventEvts wenv es cmpNode
+    vp = Rect 0 0 640 480
 
 handleEventChild :: Spec
 handleEventChild = describe "handleEventChild" $ do

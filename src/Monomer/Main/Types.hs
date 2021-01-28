@@ -107,7 +107,9 @@ data AppConfig e = AppConfig {
   _apcFonts :: [FontDef],
   _apcTheme :: Maybe Theme,
   _apcInitEvent :: [e],
+  _apcDisposeEvent :: [e],
   _apcExitEvent :: [e],
+  _apcResizeEvent :: [(Rect, Rect) -> e],
   _apcMainButton :: Maybe Button,
   _apcStateFileMain :: Maybe String
 }
@@ -123,7 +125,9 @@ instance Default (AppConfig e) where
     _apcFonts = [],
     _apcTheme = Nothing,
     _apcInitEvent = [],
+    _apcDisposeEvent = [],
     _apcExitEvent = [],
+    _apcResizeEvent = [],
     _apcMainButton = Nothing,
     _apcStateFileMain = Nothing
   }
@@ -139,7 +143,9 @@ instance Semigroup (AppConfig e) where
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a1 ++ _apcInitEvent a2,
+    _apcDisposeEvent = _apcDisposeEvent a1 ++ _apcDisposeEvent a2,
     _apcExitEvent = _apcExitEvent a1 ++ _apcExitEvent a2,
+    _apcResizeEvent = _apcResizeEvent a1 ++ _apcResizeEvent a2,
     _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
     _apcStateFileMain = _apcStateFileMain a2 <|> _apcStateFileMain a1
   }
@@ -192,9 +198,19 @@ appInitEvent evt = def {
   _apcInitEvent = [evt]
 }
 
+appDisposeEvent :: e -> AppConfig e
+appDisposeEvent evt = def {
+  _apcDisposeEvent = [evt]
+}
+
 appExitEvent :: e -> AppConfig e
 appExitEvent evt = def {
   _apcExitEvent = [evt]
+}
+
+appResizeEvent :: ((Rect, Rect) -> e) -> AppConfig e
+appResizeEvent evt = def {
+  _apcResizeEvent = [evt]
 }
 
 appMainButton :: Button -> AppConfig e

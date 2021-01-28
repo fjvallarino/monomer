@@ -68,8 +68,7 @@ instance Default App where
 makeLenses ''App
 
 data AppEvent
-  = InitApp
-  | RunShortTask
+  = RunShortTask
   | RunLongTask
   | PrintTextFields
   | AppButton
@@ -89,7 +88,10 @@ data AppEvent
   | CancelConfirm
   | ChangeTitle Text
   | SliderPos Double
+  | InitApp
+  | DisposeApp
   | ExitApp
+  | ResizeApp (Rect, Rect)
   | CancelExitApp
   | MaxWindow
   | MinWindow

@@ -108,6 +108,12 @@ class CmbIgnoreChildrenEvts t where
 class CmbOnInit t e | t -> e where
   onInit :: e -> t
 
+class CmbOnDispose t e | t -> e where
+  onDispose :: e -> t
+
+class CmbOnResize t a e | t -> e where
+  onResize :: (a -> e) -> t
+
 class CmbOnFocus t e | t -> e where
   onFocus :: e -> t
 

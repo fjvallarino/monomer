@@ -215,9 +215,12 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   flip runStateT monomerContext $ do
     handleResourcesInit
     (wenv2, newNode, _, _) <- handleWidgetInit wenv pathReadyRoot
-    let resizedNode = nodeResize wenv2 vp newNode
 
-    handleSystemEvents wenv2 evts resizedNode
+    let resizeRes = resizeRoot wenv2 winSize newNode
+    (wenv3, sizedNode, reqs1, evts1) <- handleWidgetResult wenv2 True resizeRes
+    (wenv4, newRoot, reqs2, evts2) <- handleSystemEvents wenv2 evts sizedNode
+
+    return (wenv4, newRoot, reqs1 <> reqs2, evts1 <> evts2)
 
 nodeHandleEventModelNoInit
   :: (Eq s)

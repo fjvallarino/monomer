@@ -16,6 +16,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Graphics.ColorTable
 import Monomer.Widgets.Label
 import Monomer.Widgets.Util.Style
 import Monomer.TestUtil

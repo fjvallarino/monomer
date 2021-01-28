@@ -92,7 +92,7 @@ splitIgnoreChildResize ignore = def {
 data SplitState = SplitState {
   _spsPrevReqs :: (SizeReq, SizeReq),
   _spsMaxSize :: Double,
-  _spsHandlePosSet :: Bool,
+  _spsHandlePosUserSet :: Bool,
   _spsHandlePos :: Double,
   _spsHandleRect :: Rect
 } deriving (Eq, Show, Generic, Serialise)
@@ -119,7 +119,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
   state = SplitState {
     _spsPrevReqs = def,
     _spsMaxSize = 0,
-    _spsHandlePosSet = False,
+    _spsHandlePosUserSet = False,
     _spsHandlePos = 0.5,
     _spsHandleRect = def
   }
@@ -143,7 +143,7 @@ makeSplit isHorizontal config state = widget where
   init wenv node = result where
     useModelValue value = resultWidget newNode where
       newState = state {
-        _spsHandlePosSet = True,
+        _spsHandlePosUserSet = True,
         _spsHandlePos = value
       }
       newNode = node
@@ -172,7 +172,7 @@ makeSplit isHorizontal config state = widget where
           | isHorizontal = (px - ra ^. L.x) / maxSize
           | otherwise = (py - ra ^. L.y) / maxSize
         newState = state {
-          _spsHandlePosSet = True,
+          _spsHandlePosUserSet = True,
           _spsHandlePos = newHandlePos
         }
         tmpNode = node
@@ -225,13 +225,13 @@ makeSplit isHorizontal config state = widget where
     valid1 = sizeReqValid sizeReq1 0 (newSize * oldHandlePos)
     valid2 = sizeReqValid sizeReq2 0 (newSize * (1 - oldHandlePos))
     validSize = valid1 && valid2
-    handlePosSet = _spsHandlePosSet state
+    handlePosUserSet = _spsHandlePosUserSet state
     customPos = isJust (_spcHandlePos config)
     ignoreSizeReq = Just True == _spcIgnoreChildResize config
     sizeReqEquals = (sizeReq1, sizeReq2) == _spsPrevReqs state
     useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     handlePos
-      | useOldPos && handlePosSet && validSize = oldHandlePos
+      | useOldPos && handlePosUserSet && validSize = oldHandlePos
       | otherwise = calcHandlePos newSize oldHandlePos renderArea children
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)

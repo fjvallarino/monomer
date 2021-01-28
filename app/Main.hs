@@ -44,7 +44,9 @@ main = do
         appUseHdpi True,
         appTheme theme,
         appInitEvent InitApp,
+        appDisposeEvent DisposeApp,
         appExitEvent CancelExitApp,
+        appResizeEvent ResizeApp,
         appMainButton LeftBtn,
         --appStateFileMain "main-tree.ser",
         appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
@@ -105,6 +107,9 @@ handleAppEvent wenv node model evt = case evt of
     putStrLn "Running!"
     return $ Just (PrintMessage "Done!")]
   ChangeTitle title -> [Request (UpdateWindow (WindowSetTitle title))]
+  InitApp -> [Task $ putStrLn "Init" >> return Nothing ]
+  DisposeApp -> [Task $ putStrLn "Dispose" >> return Nothing ]
+  ResizeApp newSize -> [Task $ print ("Resize", newSize) >> return Nothing ]
   ExitApp -> [Request $ ExitApplication True]
   CancelExitApp -> [] --[Request $ ExitApplication False]
   FullWindow -> [Request (UpdateWindow WindowSetFullScreen)]
