@@ -12,6 +12,8 @@ import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
 
+import Monomer.Graphics.Color
+
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
@@ -96,7 +98,7 @@ drawIcon renderer style iconType viewport lw = case iconType of
     fill renderer
   where
     Rect x y w h = viewport
-    fgColor = fromMaybe black (style ^. L.fgColor)
+    fgColor = fromMaybe (rgb 0 0 0) (style ^. L.fgColor)
     hw = lw / 2
     cx = x + w / 2
     cy = y + h / 2

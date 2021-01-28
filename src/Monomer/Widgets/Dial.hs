@@ -257,8 +257,8 @@ makeDial field minVal maxVal config state = widget where
     req = (FixedSize width, FixedSize width)
 
   render renderer wenv node = do
+    drawArcBorder renderer dialArea start endSnd CW (Just sndColor) dialBW
     drawArcBorder renderer dialArea start endFg CW (Just fgColor) dialBW
-    drawArcBorder renderer dialArea start endHl CW (Just hlColor) dialBW
     where
       model = _weModel wenv
       value = widgetDataGet model field
@@ -268,10 +268,10 @@ makeDial field minVal maxVal config state = widget where
       dialBW = max 1 (_rW dialArea * 0.15)
       style = getActiveStyle wenv node
       fgColor = styleFgColor style
-      hlColor = styleHlColor style
+      sndColor = styleSndColor style
       start = 90 + 45
-      endFg = 45
-      endHl = start + 270 * posPct
+      endFg = start + 270 * posPct
+      endSnd = 45
 
   newStateFromModel wenv node oldState = newState where
     currVal = widgetDataGet (wenv ^. L.model) field

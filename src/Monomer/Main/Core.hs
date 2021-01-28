@@ -31,6 +31,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.Graphics
 import Monomer.Lens
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
@@ -248,7 +249,7 @@ mainLoop window renderer config loopArgs = do
   let renderNeeded = windowRedrawEvt || renderEvent || renderCurrentReq
 
   when renderNeeded $
-    renderWidgets window renderer newWenv newRoot
+    renderWidgets window renderer (_themeClearColor _mlTheme) newWenv newRoot
 
   renderRequested .= windowResized
 
@@ -308,12 +309,14 @@ renderWidgets
   :: (MonomerM s m)
   => SDL.Window
   -> Renderer
+  -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
   -> m ()
-renderWidgets !window renderer wenv widgetRoot = do
+renderWidgets !window renderer clearColor wenv widgetRoot = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
 
+  liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
 
@@ -322,6 +325,12 @@ renderWidgets !window renderer wenv widgetRoot = do
 
   liftIO $ endFrame renderer
   SDL.glSwapWindow window
+  where
+    r = fromIntegral (clearColor ^. L.r) / 255
+    g = fromIntegral (clearColor ^. L.g) / 255
+    b = fromIntegral (clearColor ^. L.b) / 255
+    a = clearColor ^. L.a
+    clearColor4 = GL.Color4 r g b (realToFrac a)
 
 resizeWindow
   :: (MonomerM s m)

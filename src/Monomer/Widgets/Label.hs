@@ -120,15 +120,17 @@ makeLabel config state = widget where
 
   restore wenv oldState oldNode newNode = result where
     captionChanged = _lstCaption oldState /= caption
+    styleChanged = _lstTextStyle oldState /= textStyle
+    changeReq = captionChanged || styleChanged
     -- This is used in resize to have glyphs recalculated
     newRect
-      | captionChanged = def
+      | changeReq = def
       | otherwise = _lstTextRect oldState
     newState = oldState {
       _lstCaption = caption,
       _lstTextRect = newRect
     }
-    reqs = [ ResizeWidgets | captionChanged ]
+    reqs = [ ResizeWidgets | changeReq ]
     resNode = newNode
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs

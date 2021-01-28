@@ -519,7 +519,7 @@ makeInputField config state = widget where
       & L.widget .~ makeInputField config newState
 
   render renderer wenv node = do
-    when (selRequired && isJust currSel) $
+    when (isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 
     renderContent renderer state style currText
@@ -543,7 +543,6 @@ makeInputField config state = widget where
       nglyphs = Seq.length currGlyphs
       glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
       ts = _weTimestamp wenv
-      selRequired = isNodeFocused wenv node
       selColor = styleHlColor style
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style

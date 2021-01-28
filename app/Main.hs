@@ -121,7 +121,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetAlign where
+buildUI wenv model = traceShow "Creating UI" widgetSplitH where
   widgetAlign = vstack [
       hstack [
         label "Label 1 - ja - ^&~@$" `style` [textSize 10, textBottom],
@@ -137,6 +137,8 @@ buildUI wenv model = traceShow "Creating UI" widgetAlign where
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack",
+      textDropdown dropdown1 items id,
+      textField textField1,
       hstack [
         checkbox condition1,
         checkbox_ condition2 [checkboxMark CheckboxTimes]
@@ -144,7 +146,10 @@ buildUI wenv model = traceShow "Creating UI" widgetAlign where
       numericField_ rational1 [minValue (-100), maxValue 100],
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       dial rational1 (-100) 100,
-      button "Test" RunShortTask,
+      hstack [
+        button "Test" RunShortTask,
+        mainButton "Test" RunShortTask
+      ],
       image "assets/images/pecans.jpg",
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test") `style` [bgColor orange, textSize 20]
     ]
@@ -325,8 +330,8 @@ buildUI wenv model = traceShow "Creating UI" widgetAlign where
   longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
   widgetTree = zstack [
       widgetTreeFull,
-      alert (longMessage "Alert") CloseAlert `visible` model ^. showAlert,
-      confirm (longMessage "Confirm") AcceptConfirm CancelConfirm `visible` model ^. showConfirm
+      alert_ (longMessage "Alert") CloseAlert [titleCaption "Hey!"] `visible` model ^. showAlert,
+      confirm_ (longMessage "Confirm") AcceptConfirm CancelConfirm [titleCaption "Hey!"] `visible` model ^. showConfirm
     ]
   widgetTreeFull = vstack [
       hstack [

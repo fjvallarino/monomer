@@ -75,6 +75,7 @@ data StyleState = StyleState {
   _sstRadius :: Maybe Radius,
   _sstBgColor :: Maybe Color,
   _sstFgColor :: Maybe Color,
+  _sstSndColor :: Maybe Color,
   _sstHlColor :: Maybe Color,
   _sstText :: Maybe TextStyle,
   _sstCursorIcon :: Maybe CursorIcon
@@ -89,6 +90,7 @@ instance Default StyleState where
     _sstRadius = Nothing,
     _sstBgColor = Nothing,
     _sstFgColor = Nothing,
+    _sstSndColor = Nothing,
     _sstHlColor = Nothing,
     _sstText = Nothing,
     _sstCursorIcon = Nothing
@@ -103,6 +105,7 @@ instance Semigroup StyleState where
     _sstRadius = _sstRadius s1 <> _sstRadius s2,
     _sstBgColor = _sstBgColor s2 <|> _sstBgColor s1,
     _sstFgColor = _sstFgColor s2 <|> _sstFgColor s1,
+    _sstSndColor = _sstSndColor s2 <|> _sstSndColor s1,
     _sstHlColor = _sstHlColor s2 <|> _sstHlColor s1,
     _sstText = _sstText s1 <> _sstText s2,
     _sstCursorIcon = _sstCursorIcon s2 <|> _sstCursorIcon s1

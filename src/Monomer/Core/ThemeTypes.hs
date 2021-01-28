@@ -15,6 +15,7 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 data Theme = Theme {
+  _themeClearColor :: Color,
   _themeBasic :: ThemeState,
   _themeHover :: ThemeState,
   _themeFocus :: ThemeState,
@@ -25,6 +26,7 @@ data Theme = Theme {
 
 instance Default Theme where
   def = Theme {
+    _themeClearColor = def,
     _themeBasic = def,
     _themeHover = def,
     _themeFocus = def,

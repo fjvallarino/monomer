@@ -440,6 +440,7 @@
   - Create Tooltip component. It just wraps a given component and draws the tooltip with renderOverlay
   - Should Render operations use WidgetId? Review other WidgetRequests
   - Prettier mark for checkbox
+  - Check text baseline
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -453,7 +454,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Check text baseline
   - Add onResize, onDispose to composite
   - Create consistent, good looking, themes: dark, light, pastel
     - Import HTML color names: https://www.rapidtables.com/web/color/RGB_Color.html
@@ -467,7 +467,9 @@ Maybe postponed after release?
   - Add support for nanovg transforms
     - nvgGlobalAlpha
     - Composite operations?
-  - Drag & drop for user (add attribute indicating if component supports being source/target)
+  - Drag & drop for user
+    - Add attribute indicating if component supports being source/target
+      - Not needed, draggable component should start a drag operation
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
@@ -475,6 +477,7 @@ Maybe postponed after release?
 Future
   - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
+  - Add support for multiline text editing
   - Create Slider
   - Create Theme widget to override global theme
   - Create File Selector

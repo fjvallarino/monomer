@@ -470,7 +470,6 @@ getSlStyle wenv config = slStyle where
   theme = collectTheme wenv L.listViewItemSelectedStyle
   style = fromJust (Just theme <> _lvcItemSelectedStyle config)
   slStyle = style
-    & L.hover .~ style ^. L.focusHover
     & L.basic .~ style ^. L.focus
 
 getHlStyle :: WidgetEnv s e -> ListViewCfg s e a -> Style
@@ -478,7 +477,6 @@ getHlStyle wenv config = hlStyle where
   theme = collectTheme wenv L.listViewItemStyle
   style = fromJust (Just theme <> _lvcItemStyle config)
   hlStyle = style
-    & L.hover .~ style ^. L.focusHover
     & L.basic .~ style ^. L.focus
 
 makeItemsList

@@ -48,6 +48,11 @@ instance Semigroup ConfirmCfg where
 instance Monoid ConfirmCfg where
   mempty = def
 
+instance CmbTitleCaption ConfirmCfg where
+  titleCaption t = def {
+    _cfcTitle = Just t
+  }
+
 instance CmbAcceptCaption ConfirmCfg where
   acceptCaption t = def {
     _cfcAccept = Just t

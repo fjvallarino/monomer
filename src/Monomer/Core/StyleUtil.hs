@@ -15,6 +15,7 @@ module Monomer.Core.StyleUtil (
   styleTextAlignV,
   styleBgColor,
   styleFgColor,
+  styleSndColor,
   styleHlColor,
   getContentArea,
   getOuterSize,
@@ -152,6 +153,10 @@ styleFgColor :: StyleState -> Color
 styleFgColor style = fromMaybe def fgColor where
   fgColor = style ^? L.fgColor . _Just
 
+styleSndColor :: StyleState -> Color
+styleSndColor style = fromMaybe def sndColor where
+  sndColor = style ^? L.sndColor . _Just
+
 styleHlColor :: StyleState -> Color
 styleHlColor style = fromMaybe def hlColor where
   hlColor = style ^? L.hlColor . _Just
@@ -231,7 +236,6 @@ borderWidths (Just border) = (bl, br, bt, bb) where
 
 justDef :: (Default a) => Maybe a -> a
 justDef val = fromMaybe def val
-
 
 setStyleValue style fieldL op value = newStyle where
   val = _styleActive style

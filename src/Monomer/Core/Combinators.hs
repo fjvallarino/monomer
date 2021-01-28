@@ -22,6 +22,9 @@ class CmbSelectOnFocus t where
   selectOnFocus :: Bool -> t
 
 -- Caption
+class CmbTitleCaption t where
+  titleCaption :: Text -> t
+
 class CmbAcceptCaption t where
   acceptCaption :: Text -> t
 

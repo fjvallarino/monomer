@@ -42,6 +42,11 @@ instance Semigroup AlertCfg where
 instance Monoid AlertCfg where
   mempty = def
 
+instance CmbTitleCaption AlertCfg where
+  titleCaption t = def {
+    _alcTitle = Just t
+  }
+
 instance CmbCloseCaption AlertCfg where
   closeCaption t = def {
     _alcClose = Just t
