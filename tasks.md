@@ -460,9 +460,6 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Improve test utilities
-    - Some way to combine them, avoid this noInit thing, losing of focus, etc
-    - Test image updating WidgetId/Path
   - Make overlays be drawn in separate beginFrame/endFrame calls
   - Add support for nanovg transforms
     - nvgGlobalAlpha
@@ -473,6 +470,9 @@ Maybe postponed after release?
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
     - SDL supports Drag and Drop integration with OS
+  - Improve test utilities
+    - Some way to combine them, avoid this noInit thing, losing of focus, etc
+    - Test image updating WidgetId/Path
 
 Future
   - Do something about TextDropdown
