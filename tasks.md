@@ -483,6 +483,9 @@ Maybe postponed after release?
 
 Future
   - Do something about Serialise. Temporarily hide from composite?
+  - Rethink Composite event handling.
+    - Maybe send them up as requests and process them as messages?
+    - This would avoid some unexpected ordering issues
   - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Add support for multiline text editing

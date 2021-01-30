@@ -207,6 +207,11 @@ instance CmbFgColor StyleState where
 instance CmbHlColor StyleState where
   hlColor col = def & L.hlColor ?~ col
 
+-- Cursor
+
+instance CmbCursorIcon StyleState where
+  cursorIcon icon = def & L.cursorIcon ?~ icon
+
 -- Text
 instance CmbTextFont StyleState where
   textFont font = def & L.text ?~ textFont font

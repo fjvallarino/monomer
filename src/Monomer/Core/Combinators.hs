@@ -248,6 +248,9 @@ class CmbHlColor t where
 class CmbTransparency t where
   transparency :: Double -> t
 
+class CmbCursorIcon t where
+  cursorIcon :: CursorIcon -> t
+
 -- Item List
 class CmbItemListStyle t s | t -> s where
   itemListStyle :: s -> t
