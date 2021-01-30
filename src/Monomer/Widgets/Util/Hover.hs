@@ -42,7 +42,8 @@ isNodePressed wenv node = Just path == pressed where
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
 
 isNodeDragged :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeDragged wenv node = draggedPath == Just nodePath where
+isNodeDragged wenv node = mainPressed && draggedPath == Just nodePath where
+  mainPressed = isJust (wenv ^. L.mainBtnPress)
   draggedPath = wenv ^? L.dragStatus . _Just . _1
   nodePath = node ^. L.info . L.path
 

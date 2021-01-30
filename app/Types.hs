@@ -87,6 +87,7 @@ data AppEvent
   | DropdownIdx Int Text
   | DropTo1 Int
   | DropTo2 Int
+  | DropDone Int Bool
   | ShowAlert
   | CloseAlert
   | ShowConfirm

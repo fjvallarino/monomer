@@ -8,8 +8,7 @@ module Monomer.Widgets.Checkbox (
   checkboxV,
   checkboxV_,
   checkboxD_,
-  checkboxMark,
-  checkboxWidth
+  checkboxMark
 ) where
 
 import Control.Applicative ((<|>))
@@ -68,6 +67,11 @@ instance Semigroup (CheckboxCfg s e) where
 instance Monoid (CheckboxCfg s e) where
   mempty = def
 
+instance CmbWidth (CheckboxCfg s e) where
+  width w = def {
+    _ckcWidth = Just w
+  }
+
 instance CmbOnFocus (CheckboxCfg s e) e where
   onFocus fn = def {
     _ckcOnFocus = [fn]
@@ -101,11 +105,6 @@ instance CmbOnChangeReq (CheckboxCfg s e) s where
 checkboxMark :: CheckboxMark -> CheckboxCfg s e
 checkboxMark mark = def {
   _ckcMark = Just mark
-}
-
-checkboxWidth :: Double -> CheckboxCfg s e
-checkboxWidth w = def {
-  _ckcWidth = Just w
 }
 
 checkbox :: ALens' s Bool -> WidgetNode s e

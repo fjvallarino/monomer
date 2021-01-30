@@ -7,8 +7,7 @@ module Monomer.Widgets.Radio (
   radio_,
   radioV,
   radioV_,
-  radioD_,
-  radioWidth
+  radioD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -57,6 +56,11 @@ instance Semigroup (RadioCfg s e a) where
 instance Monoid (RadioCfg s e a) where
   mempty = def
 
+instance CmbWidth (RadioCfg s e a) where
+  width w = def {
+    _rdcWidth = Just w
+  }
+
 instance CmbOnFocus (RadioCfg s e a) e where
   onFocus fn = def {
     _rdcOnFocus = [fn]
@@ -86,11 +90,6 @@ instance CmbOnChangeReq (RadioCfg s e a) s where
   onChangeReq req = def {
     _rdcOnChangeReq = [req]
   }
-
-radioWidth :: Double -> RadioCfg s e a
-radioWidth w = def {
-  _rdcWidth = Just w
-}
 
 radio :: (Eq a) => ALens' s a -> a -> WidgetNode s e
 radio field option = radio_ field option def

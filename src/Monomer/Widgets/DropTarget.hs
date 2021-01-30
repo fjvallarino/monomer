@@ -4,54 +4,43 @@
 
 module Monomer.Widgets.DropTarget (
   dropTarget,
-  dropTarget_
+  dropTarget_,
+  dropTargetStyle
 ) where
 
-import Debug.Trace
-
-import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (.~))
 import Control.Monad (when)
-import Data.Bifunctor (first)
-import Data.Char (chr, isAscii, isPrint, ord)
 import Data.Default
-import Data.List (foldl')
 import Data.Maybe
-import Data.Set (Set)
-import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
 
-import qualified Data.Map as M
 import qualified Data.Sequence as Seq
-import qualified Data.Set as Set
-import qualified Data.Text as T
 
-import Monomer.Graphics.ColorTable
 import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
 newtype DropTargetCfg = DropTargetCfg {
-  _dgcIgnoreChildren :: Maybe Bool
+  _dtcDragStyle :: Maybe StyleState
 }
 
 instance Default DropTargetCfg where
   def = DropTargetCfg {
-    _dgcIgnoreChildren = Nothing
+    _dtcDragStyle = Nothing
   }
 
 instance Semigroup DropTargetCfg where
   (<>) t1 t2 = DropTargetCfg {
-    _dgcIgnoreChildren = _dgcIgnoreChildren t2 <|> _dgcIgnoreChildren t1
+    _dtcDragStyle = _dtcDragStyle t1 <> _dtcDragStyle t2
   }
 
 instance Monoid DropTargetCfg where
   mempty = def
 
-instance CmbIgnoreChildrenEvts DropTargetCfg where
-  ignoreChildrenEvts = def {
-    _dgcIgnoreChildren = Just True
-  }
+dropTargetStyle :: [StyleState] -> DropTargetCfg
+dropTargetStyle styles = def {
+  _dtcDragStyle = Just (mconcat styles)
+}
 
 dropTarget :: DragMsg a => (a -> e) -> WidgetNode s e -> WidgetNode s e
 dropTarget dropEvt managed = dropTarget_ dropEvt managed def
@@ -74,15 +63,19 @@ makeNode  widget managedWidget = defaultWidgetNode "dropTarget" widget
 makeDropTarget :: DragMsg a => (a -> e) -> DropTargetCfg -> Widget s e
 makeDropTarget dropEvt config = widget where
   widget = createContainer () def {
+    containerGetActiveStyle = getActiveStyle,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
-    containerResize = resize,
-    containerRender = render
+    containerResize = resize
   }
 
-  msgToEvts (WidgetDragMsg dragMsg) = case cast dragMsg of
-    Just msg -> [dropEvt msg]
-    _ -> []
+  getActiveStyle wenv node
+    | isDropTarget wenv node && isHovered && isJust style = fromJust style
+    | otherwise = activeStyle wenv node
+    where
+      mousePos = wenv ^. L.inputStatus . L.mousePos
+      isHovered = isPointInNodeVp mousePos node
+      style = _dtcDragStyle config
 
   handleEvent wenv target evt node = case evt of
     Drop point path dragMsg
@@ -105,16 +98,12 @@ makeDropTarget dropEvt config = widget where
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
 
-  render renderer wenv node = do
-    when (isDropTarget wenv node && isHovered) $
-      drawRect renderer viewport (Just blue) Nothing
-    where
-      viewport = node ^. L.info . L.viewport
-      mousePos = wenv ^. L.inputStatus . L.mousePos
-      isHovered = isPointInNodeVp mousePos node
-
   isDropTarget wenv node = case wenv ^. L.dragStatus of
     Just (path, msg) -> not (isNodeParentOfPath path node) && isValidMsg msg
     _ -> False
+    where
+      isValidMsg = not . null . msgToEvts
 
-  isValidMsg = not . null . msgToEvts
+  msgToEvts (WidgetDragMsg dragMsg) = case cast dragMsg of
+    Just msg -> [dropEvt msg]
+    _ -> []

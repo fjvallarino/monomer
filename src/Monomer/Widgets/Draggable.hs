@@ -4,53 +4,70 @@
 
 module Monomer.Widgets.Draggable (
   draggable,
-  draggable_
+  draggable_,
+  draggableStyle,
+  draggableRender
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (^?!), (.~), _Just, _1, _2, at, ix)
 import Control.Monad (when)
-import Data.Bifunctor (first)
-import Data.Char (chr, isAscii, isPrint, ord)
 import Data.Default
-import Data.List (foldl')
 import Data.Maybe
-import Data.Set (Set)
-import Data.Text (Text)
 
-import qualified Data.Map as M
 import qualified Data.Sequence as Seq
-import qualified Data.Set as Set
-import qualified Data.Text as T
 
-import Monomer.Graphics.ColorTable
 import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-newtype DraggableCfg = DraggableCfg {
-  _dgcIgnoreChildren :: Maybe Bool
+type DraggableRender s e = Renderer -> WidgetEnv s e -> WidgetNode s e -> IO ()
+
+data DraggableCfg s e = DraggableCfg {
+  _dgcMaxDim :: Maybe Double,
+  _dgcDragStyle :: Maybe StyleState,
+  _dgcCustomRender :: Maybe (DraggableRender s e),
+  _dgcOnFinished :: [Bool -> e]
 }
 
-instance Default DraggableCfg where
+instance Default (DraggableCfg s e) where
   def = DraggableCfg {
-    _dgcIgnoreChildren = Nothing
+    _dgcMaxDim = Nothing,
+    _dgcDragStyle = Nothing,
+    _dgcCustomRender = Nothing,
+    _dgcOnFinished = []
   }
 
-instance Semigroup DraggableCfg where
+instance Semigroup (DraggableCfg s e) where
   (<>) t1 t2 = DraggableCfg {
-    _dgcIgnoreChildren = _dgcIgnoreChildren t2 <|> _dgcIgnoreChildren t1
+    _dgcMaxDim = _dgcMaxDim t2 <|> _dgcMaxDim t1,
+    _dgcDragStyle = _dgcDragStyle t2 <|> _dgcDragStyle t1,
+    _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1,
+    _dgcOnFinished = _dgcOnFinished t2 <|> _dgcOnFinished t1
   }
 
-instance Monoid DraggableCfg where
+instance Monoid (DraggableCfg s e) where
   mempty = def
 
-instance CmbIgnoreChildrenEvts DraggableCfg where
-  ignoreChildrenEvts = def {
-    _dgcIgnoreChildren = Just True
+instance CmbMaxDim (DraggableCfg s e) where
+  maxDim dim = def {
+    _dgcMaxDim = Just dim
   }
+
+instance CmbOnDragFinished (DraggableCfg s e) Bool e where
+  onDragFinished evt = def {
+    _dgcOnFinished = [evt]
+  }
+
+draggableStyle :: [StyleState] -> DraggableCfg s e
+draggableStyle styles = def {
+  _dgcDragStyle = Just (mconcat styles)
+}
+
+draggableRender :: DraggableRender s e -> DraggableCfg s e
+draggableRender render = def {
+  _dgcCustomRender = Just render
+}
 
 draggable :: DragMsg a => a -> WidgetNode s e -> WidgetNode s e
 draggable msg managed = draggable_ msg managed def
@@ -59,7 +76,7 @@ draggable_
   :: DragMsg a
   => a
   -> WidgetNode s e
-  -> [DraggableCfg]
+  -> [DraggableCfg s e]
   -> WidgetNode s e
 draggable_ msg managed configs = makeNode widget managed where
   config = mconcat configs
@@ -70,7 +87,7 @@ makeNode widget managedWidget = defaultWidgetNode "draggable" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeDraggable :: DragMsg a => a -> DraggableCfg -> Widget s e
+makeDraggable :: DragMsg a => a -> DraggableCfg s e -> Widget s e
 makeDraggable msg config = widget where
   widget = createContainer () def {
     containerHandleEvent = handleEvent,
@@ -83,8 +100,10 @@ makeDraggable msg config = widget where
     ButtonAction p btn PressedBtn 1 -> Just result where
       result = resultReqs node [StartDrag wid path dragMsg]
     ButtonAction p btn ReleasedBtn _ -> Just result where
-      result = trace "Cancelled" resultReqs node [CancelDrag wid]
-    DragFinished accepted -> traceShow ("accepted", accepted) Nothing
+      result = resultReqs node [CancelDrag wid]
+    DragFinished accepted -> Just result where
+      evts = fmap ($ isJust accepted) (_dgcOnFinished config)
+      result = resultEvts node evts
     _ -> Nothing
     where
       wid = node ^. L.info . L.widgetId
@@ -103,11 +122,23 @@ makeDraggable msg config = widget where
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
 
+  defaultRender renderer wenv node =
+    drawStyledAction renderer rect style (const $ return ())
+    where
+      cnode = node ^?! L.children . ix 0
+      Rect cx cy cw ch = cnode ^. L.info . L.viewport
+      Point mx my = wenv ^. L.inputStatus . L.mousePos
+      Point px py = wenv ^?! L.mainBtnPress . _Just . _2
+      dim = fromMaybe (max cw ch) (_dgcMaxDim config)
+      rt = dim / max cw ch
+      (dx, dy) = (cx - px, cy - py)
+      rect = Rect (mx + dx * rt) (my + dy * rt) (cw * rt) (ch * rt)
+      style = fromMaybe def (_dgcDragStyle config)
+
   render renderer wenv node = do
     when dragged $
       createOverlay renderer $ do
-        drawRect renderer rect (Just red) Nothing
+        renderAction renderer wenv node
     where
       dragged = isNodeDragged wenv node
-      Point mx my = wenv ^. L.inputStatus . L.mousePos
-      rect = Rect mx my 20 20
+      renderAction = fromMaybe defaultRender (_dgcCustomRender config)
