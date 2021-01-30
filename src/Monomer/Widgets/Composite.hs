@@ -787,9 +787,9 @@ toParentReq StopTextInput = Just StopTextInput
 toParentReq (ResetOverlay wid) = Just (ResetOverlay wid)
 toParentReq (SetOverlay wid path) = Just (SetOverlay wid path)
 toParentReq (SetCursorIcon icon) = Just (SetCursorIcon icon)
-toParentReq (SendMessage path message) = Just (SendMessage path message)
-toParentReq (RunTask wid path action) = Just (RunTask wid path action)
-toParentReq (RunProducer wid path action) = Just (RunProducer wid path action)
+toParentReq (StartDrag wid path info) = Just (StartDrag wid path info)
+toParentReq (CancelDrag wid) = Just (CancelDrag wid)
+toParentReq (AcceptDrop wid) = Just (AcceptDrop wid)
 toParentReq RenderOnce = Just RenderOnce
 toParentReq (RenderEvery path ms repeat) = Just (RenderEvery path ms repeat)
 toParentReq (RenderStop path) = Just (RenderStop path)
@@ -797,6 +797,9 @@ toParentReq (ExitApplication exit) = Just (ExitApplication exit)
 toParentReq (UpdateWindow req) = Just (UpdateWindow req)
 toParentReq (UpdateWidgetPath wid path) = Just (UpdateWidgetPath wid path)
 toParentReq (UpdateModel fn) = Nothing
+toParentReq (SendMessage path message) = Just (SendMessage path message)
+toParentReq (RunTask wid path action) = Just (RunTask wid path action)
+toParentReq (RunProducer wid path action) = Just (RunProducer wid path action)
 
 collectGlobalKeys
   :: Map WidgetKey (WidgetNode s e)
@@ -820,6 +823,7 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weGlobalKeys = globalKeys,
   _weCurrentCursor = _weCurrentCursor wenv,
   _weFocusedPath = _weFocusedPath wenv,
+  _weDragStatus = _weDragStatus wenv,
   _weMainBtnPress = _weMainBtnPress wenv,
   _weOverlayPath = _weOverlayPath wenv,
   _weModel = model,

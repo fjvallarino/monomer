@@ -42,6 +42,11 @@ data RenderSchedule = RenderSchedule {
   _rsRepeat :: Maybe Int
 } deriving (Eq, Show, Generic, Serialise)
 
+data DragAction = DragAction {
+  _dgaWidgetId :: WidgetId,
+  _dgaDragData :: WidgetDragMsg
+} deriving (Eq, Show)
+
 data WidgetTask
   = forall i . Typeable i => WidgetTask WidgetId (Async i)
   | forall i . Typeable i => WidgetProducer WidgetId (TChan i) (Async ())
@@ -57,6 +62,7 @@ data MonomerCtx s = MonomerCtx {
   _mcFocusedPath :: Path,
   _mcHoveredPath :: Maybe Path,
   _mcOverlayWidgetId :: Maybe WidgetId,
+  _mcDragAction :: Maybe DragAction,
   _mcMainBtnPress :: Maybe (Path, Point),
   _mcWidgetTasks :: Seq WidgetTask,
   _mcWidgetPaths :: Map WidgetId (Path, Int),

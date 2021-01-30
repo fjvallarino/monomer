@@ -460,22 +460,26 @@
   - Add user documentation
 
 Maybe postponed after release?
-  - Make overlays be drawn in separate beginFrame/endFrame calls
-  - Add support for nanovg transforms
-    - nvgGlobalAlpha
-    - Composite operations?
   - Drag & drop for user
     - Add attribute indicating if component supports being source/target
       - Not needed, draggable component should start a drag operation
     - Add new request types (drag started, drag stopped, drag cancelled)
     - Add new events (drag hover)
-    - SDL supports Drag and Drop integration with OS
+  - Make overlays be drawn in separate beginFrame/endFrame calls
+  - Add support for nanovg transforms
+    - nvgGlobalAlpha
+    - Composite operations?
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
 
 Future
   - Do something about TextDropdown
+  - What about WidgetEnv using Path vs WidgetId?
+    - Makes sense in a way, but is it possible to switch (for consistency)?
+    - New Drag/Drop events also using Path. Review.
+    - Provide a way to get Path from WidgetId
+    - This situation also happens in MonomerCtx
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Add support for multiline text editing
   - Create Slider
@@ -492,6 +496,7 @@ Future
   - Improve window resize situation
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
+  - SDL supports Drag and Drop integration with OS
   - Check if using [lifted-async](https://github.com/maoe/lifted-async) is worth it
   - Use weight to control allocations (check if applicable)
   - Does it make sense to handle offset

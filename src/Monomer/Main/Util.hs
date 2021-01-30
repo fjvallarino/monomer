@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
 
 module Monomer.Main.Util where
 
@@ -34,6 +35,7 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcFocusedPath = Seq.empty,
   _mcHoveredPath = Nothing,
   _mcOverlayWidgetId = Nothing,
+  _mcDragAction = Nothing,
   _mcMainBtnPress = Nothing,
   _mcWidgetTasks = Seq.empty,
   _mcWidgetPaths = Map.empty,
@@ -94,4 +96,11 @@ getOverlayPath = do
   overlayWidgetId <- use L.overlayWidgetId
   case overlayWidgetId of
     Just wid -> Just <$> getWidgetIdPath wid
+    Nothing -> return Nothing
+
+getDraggedMsgInfo :: (MonomerM s m) => m (Maybe (Path, WidgetDragMsg))
+getDraggedMsgInfo = do
+  dragAction <- use L.dragAction
+  case dragAction of
+    Just (DragAction wid msg) -> Just . (, msg) <$> getWidgetIdPath wid
     Nothing -> return Nothing

@@ -56,6 +56,14 @@ isButtonPressedEvent :: SystemEvent -> Bool
 isButtonPressedEvent (ButtonAction _ _ PressedBtn _) = True
 isButtonPressedEvent _ = False
 
+isButtonReleasedEvent :: SystemEvent -> Bool
+isButtonReleasedEvent (ButtonAction _ _ ReleasedBtn _) = True
+isButtonReleasedEvent _ = False
+
+isDropEvent :: SystemEvent -> Bool
+isDropEvent Drop{} = True
+isDropEvent _ = False
+
 isKeyboardEvent :: SystemEvent -> Bool
 isKeyboardEvent KeyAction{} = True
 isKeyboardEvent _ = False

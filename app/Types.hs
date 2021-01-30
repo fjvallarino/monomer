@@ -38,7 +38,9 @@ data App = App {
   _condition3 :: Bool,
   _showAlert :: Bool,
   _showConfirm :: Bool,
-  _splitPos :: Double
+  _splitPos :: Double,
+  _dragList1 :: [Int],
+  _dragList2 :: [Int]
 } deriving (Eq, Show, Generic, Serialise)
 
 instance Default App where
@@ -62,7 +64,9 @@ instance Default App where
     _condition3 = False,
     _showAlert = False,
     _showConfirm = False,
-    _splitPos = 0.5
+    _splitPos = 0.5,
+    _dragList1 = [1..10],
+    _dragList2 = []
   }
 
 makeLenses ''App
@@ -81,6 +85,8 @@ data AppEvent
   | ImageMsg ImageLoadError
   | DropdownVal Text
   | DropdownIdx Int Text
+  | DropTo1 Int
+  | DropTo2 Int
   | ShowAlert
   | CloseAlert
   | ShowConfirm

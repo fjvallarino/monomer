@@ -50,14 +50,18 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
+isResizeWidgets :: WidgetRequest s -> Bool
+isResizeWidgets ResizeWidgets = True
+isResizeWidgets _ = False
+
 isFocusRequest :: WidgetRequest s -> Bool
 isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True
 isFocusRequest _ = False
 
-isResizeWidgets :: WidgetRequest s -> Bool
-isResizeWidgets ResizeWidgets = True
-isResizeWidgets _ = False
+isAcceptDrop :: WidgetRequest s -> Bool
+isAcceptDrop AcceptDrop{} = True
+isAcceptDrop _ = False
 
 isIgnoreParentEvents :: WidgetRequest s -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True

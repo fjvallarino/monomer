@@ -8,6 +8,7 @@ import Debug.Trace
 import Control.Concurrent (threadDelay)
 import Control.Lens ((&), (^.), (.~), (%~))
 import Data.Default
+import Data.List (delete)
 import TextShow
 
 import qualified Data.Text as T
@@ -123,10 +124,21 @@ handleAppEvent wenv node model evt = case evt of
   ToFrontWindowSchedule -> [Task $ do
     threadDelay 2000000
     return $ Just ToFrontWindow]
+  DropTo1 idx -> [Model $ model
+    & dragList2 .~ delete idx (model ^. dragList2)
+    & dragList1 .~ model ^. dragList1 ++ [idx]]
+  DropTo2 idx -> [Model $ model
+    & dragList1 .~ delete idx (model ^. dragList1)
+    & dragList2 .~ model ^. dragList2 ++ [idx]]
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+buildUI wenv model = traceShow "Creating UI" widgetDrag where
+  labelDrag idx = draggable idx (label ("Label: " <> showt idx))
+  widgetDrag = hgrid [
+      dropTarget DropTo1 $ vstack (fmap labelDrag (model ^. dragList1)),
+      dropTarget DropTo2 $ vstack (fmap labelDrag (model ^. dragList2))
+    ]
   widgetAlign = vstack [
       hstack [
         label "Label 1 - ja - ^&~@$" `style` [textSize 10, textBottom],

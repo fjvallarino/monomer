@@ -14,7 +14,7 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((&), (^.), (.~), (%~), (.=), (?=), ix, at, use)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), (.=), (?=), _1, ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -41,6 +41,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
+import Control.Monad.Trans.Maybe
 
 type HandlerStep s e
   = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s), Seq e)
@@ -53,7 +54,7 @@ getTargetPath
   -> SystemEvent
   -> WidgetNode s e
   -> Maybe Path
-getTargetPath wenv pressed overlay target event widgetRoot = case event of
+getTargetPath wenv pressed overlay target event root = case event of
     -- Keyboard
     KeyAction{}                       -> pathEvent target
     TextInput _                       -> pathEvent target
@@ -70,11 +71,15 @@ getTargetPath wenv pressed overlay target event widgetRoot = case event of
     Enter{}                           -> pathEvent target
     Move point                        -> pointEvent point
     Leave{}                           -> pathEvent target
+    -- Drag/drop
+    Drag point _ _                    -> pointEvent point
+    Drop point _ _                    -> pointEvent point
+    DragFinished _                    -> pathEvent target
   where
-    widget = widgetRoot ^. L.widget
+    widget = root ^. L.widget
     startPath = fromMaybe emptyPath overlay
     pathEvent = Just
-    pathFromPoint p = widgetFindByPoint widget wenv startPath p widgetRoot
+    pathFromPoint p = widgetFindByPoint widget wenv startPath p root
     -- pressed is only really used for Move
     pointEvent point = pressed <|> pathFromPoint point <|> overlay
 
@@ -129,10 +134,16 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let widgetResult = fromMaybe emptyResult evtResult
       -- Do not resize if event is Leave and follow-up is Enter
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
+      let requests = _wrRequests widgetResult
+      let dropAccepted = isJust (Seq.findIndexL isAcceptDrop requests)
 
-      handleWidgetResult wenv resizeWidgets widgetResult {
-        _wrRequests = addFocusReq event (_wrRequests widgetResult)
+      step <- handleWidgetResult wenv resizeWidgets widgetResult {
+        _wrRequests = addFocusReq event requests
       }
+
+      if isDropEvent event && not dropAccepted
+        then handleFinalizeDrop Nothing step
+        else return step
 
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
@@ -216,6 +227,9 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetOverlay wid path -> handleSetOverlay wid path step
     ResetOverlay wid -> handleResetOverlay wid step
     SetCursorIcon icon -> handleSetCursorIcon icon step
+    StartDrag wid path info -> handleStartDrag wid path info step
+    CancelDrag wid -> handleCancelDrag wid step
+    AcceptDrop wid -> handleFinalizeDrop (Just wid) step
     RenderOnce -> handleRenderOnce step
     RenderEvery wid ms repeat -> handleRenderEvery wid ms repeat step
     RenderStop wid -> handleRenderStop wid step
@@ -361,6 +375,64 @@ handleSetCursorIcon icon previousStep = do
   SDLE.setCursor cursor
 
   return previousStep
+
+handleStartDrag
+  :: (MonomerM s m)
+  => WidgetId
+  -> Path
+  -> WidgetDragMsg
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleStartDrag widgetId path dragData previousStep = do
+  oldDragAction <- use L.dragAction
+  let prevWidgetId = fmap (^. L.widgetId) oldDragAction
+
+  when (isJust prevWidgetId) $ do
+    delWidgetIdPath (fromJust prevWidgetId)
+
+  L.dragAction .= Just (DragAction widgetId dragData)
+  addWidgetIdPath widgetId path
+  return previousStep
+
+handleCancelDrag
+  :: (MonomerM s m)
+  => WidgetId
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleCancelDrag widgetId previousStep = do
+  oldDragAction <- use L.dragAction
+  let prevWidgetId = fmap (^. L.widgetId) oldDragAction
+
+  if prevWidgetId == Just widgetId
+    then do
+      L.renderRequested .= True
+      L.dragAction .= Nothing
+      delWidgetIdPath widgetId
+      return $ previousStep & _1 . L.dragStatus .~ Nothing
+  else return previousStep
+
+handleFinalizeDrop
+  :: (MonomerM s m)
+  => Maybe WidgetId
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleFinalizeDrop dropTargetWid previousStep = do
+  dragAction <- use L.dragAction
+  dropTargetPath <- mapM getWidgetIdPath dropTargetWid
+  let widgetId = fmap (^. L.widgetId) dragAction
+
+  if isJust widgetId
+    then do
+      let (tmpWenv, root, reqs, evts) = previousStep
+      let wenv = tmpWenv & L.dragStatus .~ Nothing
+      path <- getWidgetIdPath (fromJust widgetId)
+      delWidgetIdPath (fromJust widgetId)
+      L.renderRequested .= True
+      L.dragAction .= Nothing
+      (wenv2, root2, reqs2, evts2)
+        <- handleSystemEvent wenv (DragFinished dropTargetPath) path root
+      return (wenv2, root2, reqs <> reqs2, evts <> evts2)
+    else return previousStep
 
 handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
 handleRenderOnce previousStep = do
@@ -511,13 +583,21 @@ addRelatedEvents
   -> m [(SystemEvent, Maybe Path)]
 addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   Move point -> do
-    (_, hoverEvts) <- addHoverEvents wenv widgetRoot point
+    (target, hoverEvts) <- addHoverEvents wenv widgetRoot point
     -- Update input status
     status <- use L.inputStatus
     L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
     L.inputStatus . L.mousePos .= point
+    -- Drag event
+    mainPress <- use L.mainBtnPress
+    draggedMsg <- getDraggedMsgInfo
+    let pressed = fmap fst mainPress
+    let isPressed = target == pressed
+    let dragEvts = case draggedMsg of
+          Just (path, msg) -> [(Drag point path msg, target) | not isPressed]
+          _ -> []
 
-    return $ hoverEvts ++ [(evt, Nothing)]
+    return $ hoverEvts ++ dragEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
     overlay <- getOverlayPath
     let startPath = fromMaybe emptyPath overlay
@@ -535,6 +615,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   ButtonAction point btn ReleasedBtn clicks -> do
     -- Hover changes need to be handled here too
     mainPress <- use L.mainBtnPress
+    draggedMsg <- getDraggedMsgInfo
 
     when (btn == mainBtn) $
       L.mainBtnPress .= Nothing
@@ -546,12 +627,15 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
     let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
     let releasedEvt = [(evt, pressed <|> target)]
+    let dropEvts = case draggedMsg of
+          Just (path, msg) -> [(Drop point path msg, target) | not isPressed]
+          _ -> []
 
     L.inputStatus . L.buttons . at btn ?= ReleasedBtn
 
     SDLE.captureMouse False
 
-    return $ clickEvt ++ dblClickEvt ++ releasedEvt ++ hoverEvts
+    return $ dropEvts ++ clickEvt ++ dblClickEvt ++ releasedEvt ++ hoverEvts
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status

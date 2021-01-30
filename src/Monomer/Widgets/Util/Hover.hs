@@ -3,6 +3,7 @@ module Monomer.Widgets.Util.Hover (
   isPointInNodeEllipse,
   isNodeActive,
   isNodePressed,
+  isNodeDragged,
   isNodeHovered,
   isNodeHoveredEllipse_,
   isNodeTopLevel,
@@ -39,6 +40,11 @@ isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodePressed wenv node = Just path == pressed where
   path = node ^. L.info . L.path
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
+
+isNodeDragged :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeDragged wenv node = draggedPath == Just nodePath where
+  draggedPath = wenv ^? L.dragStatus . _Just . _1
+  nodePath = node ^. L.info . L.path
 
 isNodeHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeHovered wenv node = validPos && validPress && topLevel where

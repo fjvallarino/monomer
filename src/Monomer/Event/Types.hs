@@ -1,7 +1,11 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ExistentialQuantification #-}
+
 module Monomer.Event.Types where
 
 import Data.Default
 import Data.Text (Text)
+import Data.Typeable (Typeable, cast, typeOf)
 import Data.Map.Strict (Map)
 
 import qualified Data.Map.Strict as M
@@ -38,6 +42,19 @@ data ClipboardData
   | ClipboardText Text
   deriving (Eq, Show)
 
+type DragMsg i = (Typeable i, Eq i)
+
+data WidgetDragMsg
+  = forall i . DragMsg i => WidgetDragMsg i
+
+instance Eq WidgetDragMsg where
+  WidgetDragMsg d1 == WidgetDragMsg d2 = case cast d1 of
+    Just d -> d == d2
+    _ -> False
+
+instance Show WidgetDragMsg where
+  show (WidgetDragMsg info) = "WidgetDragMsg: " ++ show (typeOf info)
+
 data SystemEvent
   = Click Point Button
   | DblClick Point Button
@@ -51,6 +68,9 @@ data SystemEvent
   | Enter Point
   | Move Point
   | Leave Point
+  | Drag Point Path WidgetDragMsg
+  | Drop Point Path WidgetDragMsg
+  | DragFinished (Maybe Path)
   deriving (Eq, Show)
 
 data InputStatus = InputStatus {

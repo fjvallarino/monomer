@@ -110,6 +110,9 @@ data WidgetRequest s
   | SetOverlay WidgetId Path
   | ResetOverlay WidgetId
   | SetCursorIcon CursorIcon
+  | StartDrag WidgetId Path WidgetDragMsg
+  | CancelDrag WidgetId
+  | AcceptDrop WidgetId
   | RenderOnce
   | RenderEvery WidgetId Int (Maybe Int)
   | RenderStop WidgetId
@@ -134,6 +137,9 @@ instance Eq (WidgetRequest s) where
   SetOverlay w1 p1 == SetOverlay w2 p2 = (w1, p1) == (w2, p2)
   ResetOverlay w1 == ResetOverlay w2 = w1 == w2
   SetCursorIcon c1 == SetCursorIcon c2 = c1 == c2
+  StartDrag w1 p1 m1 == StartDrag w2 p2 m2 = (w1, p1, m1) == (w2, p2, m2)
+  CancelDrag w1 == CancelDrag w2 = w1 == w2
+  AcceptDrop w1 == AcceptDrop w2 = w1 == w2
   RenderOnce == RenderOnce = True
   RenderEvery p1 c1 r1 == RenderEvery p2 c2 r2 = (p1, c1, r1) == (p2, c2, r2)
   RenderStop p1 == RenderStop p2 = p1 == p2
@@ -165,6 +171,7 @@ data WidgetEnv s e = WidgetEnv {
   _weGlobalKeys :: GlobalKeys s e,
   _weFocusedPath :: Path,
   _weOverlayPath :: Maybe Path,
+  _weDragStatus :: Maybe (Path, WidgetDragMsg),
   _weMainBtnPress :: Maybe (Path, Point),
   _weCurrentCursor :: CursorIcon,
   _weModel :: s,
@@ -359,6 +366,9 @@ instance Show (WidgetRequest s) where
   show (SetOverlay wid path) = "SetOverlay: " ++ show (wid, path)
   show (ResetOverlay wid) = "ResetOverlay: " ++ show wid
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show (StartDrag wid path info) = "StartDrag: " ++ show (wid, path, info)
+  show (CancelDrag wid) = "CancelDrag: " ++ show wid
+  show (AcceptDrop wid) = "AcceptDrop: " ++ show wid
   show RenderOnce = "RenderOnce"
   show (RenderEvery path ms repeat) = "RenderEvery: " ++ show (path, ms, repeat)
   show (RenderStop path) = "RenderStop: " ++ show path

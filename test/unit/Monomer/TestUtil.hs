@@ -119,6 +119,7 @@ mockWenv model = WidgetEnv {
   _weGlobalKeys = M.empty,
   _weFocusedPath = emptyPath,
   _weOverlayPath = Nothing,
+  _weDragStatus = Nothing,
   _weMainBtnPress = Nothing,
   _weCurrentCursor = CursorArrow,
   _weModel = model,

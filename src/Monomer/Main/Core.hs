@@ -131,6 +131,7 @@ runApp window widgetRoot config = do
     _weCurrentCursor = CursorArrow,
     _weFocusedPath = emptyPath,
     _weOverlayPath = Nothing,
+    _weDragStatus = Nothing,
     _weMainBtnPress = Nothing,
     _weModel = model,
     _weInputStatus = def,
@@ -185,6 +186,7 @@ mainLoop window renderer config loopArgs = do
   currentCursor <- use L.currentCursor
   focused <- use L.focusedPath
   overlay <- getOverlayPath
+  dragged <- getDraggedMsgInfo
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
 
@@ -210,6 +212,7 @@ mainLoop window renderer config loopArgs = do
     _weCurrentCursor = currentCursor,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
+    _weDragStatus = dragged,
     _weMainBtnPress = mainPress,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
@@ -247,8 +250,9 @@ mainLoop window renderer config loopArgs = do
   renderCurrentReq <- checkRenderCurrent startTicks _mlFrameStartTs
 
   let renderEvent = any isActionEvent eventsPayload
-  let windowRedrawEvt = windowResized || windowExposed
-  let renderNeeded = windowRedrawEvt || renderEvent || renderCurrentReq
+  let winRedrawEvt = windowResized || windowExposed
+  let dragEvt = isJust dragged
+  let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq || dragEvt
 
   when renderNeeded $
     renderWidgets window renderer (_themeClearColor _mlTheme) newWenv newRoot
