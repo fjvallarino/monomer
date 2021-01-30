@@ -74,7 +74,6 @@ getTargetPath wenv pressed overlay target event root = case event of
     -- Drag/drop
     Drag point _ _                    -> pointEvent point
     Drop point _ _                    -> pointEvent point
-    DragFinished _                    -> pathEvent target
   where
     widget = root ^. L.widget
     startPath = fromMaybe emptyPath overlay
@@ -423,15 +422,10 @@ handleFinalizeDrop dropTargetWid previousStep = do
 
   if isJust widgetId
     then do
-      let (tmpWenv, root, reqs, evts) = previousStep
-      let wenv = tmpWenv & L.dragStatus .~ Nothing
-      path <- getWidgetIdPath (fromJust widgetId)
       delWidgetIdPath (fromJust widgetId)
       L.renderRequested .= True
       L.dragAction .= Nothing
-      (wenv2, root2, reqs2, evts2)
-        <- handleSystemEvent wenv (DragFinished dropTargetPath) path root
-      return (wenv2, root2, reqs <> reqs2, evts <> evts2)
+      return $ previousStep & _1 . L.dragStatus .~ Nothing
     else return previousStep
 
 handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)

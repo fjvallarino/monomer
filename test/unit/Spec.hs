@@ -14,6 +14,7 @@ import qualified Monomer.Widgets.ContainerSpec as ContainerSpec
 import qualified Monomer.Widgets.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.DialSpec as DialSpec
 import qualified Monomer.Widgets.DropdownSpec as DropdownSpec
+import qualified Monomer.Widgets.DragDropSpec as DragDropSpec
 import qualified Monomer.Widgets.GridSpec as GridSpec
 import qualified Monomer.Widgets.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.KeystrokeSpec as KeystrokeSpec
@@ -59,6 +60,7 @@ widgets = describe "Widgets" $ do
   ConfirmSpec.spec
   DialSpec.spec
   DropdownSpec.spec
+  DragDropSpec.spec
   GridSpec.spec
   ImageSpec.spec
   KeystrokeSpec.spec

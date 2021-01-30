@@ -70,7 +70,6 @@ data SystemEvent
   | Leave Point
   | Drag Point Path WidgetDragMsg
   | Drop Point Path WidgetDragMsg
-  | DragFinished (Maybe Path)
   deriving (Eq, Show)
 
 data InputStatus = InputStatus {

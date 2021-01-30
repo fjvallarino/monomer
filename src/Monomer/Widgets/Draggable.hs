@@ -26,24 +26,21 @@ type DraggableRender s e = Renderer -> WidgetEnv s e -> WidgetNode s e -> IO ()
 data DraggableCfg s e = DraggableCfg {
   _dgcMaxDim :: Maybe Double,
   _dgcDragStyle :: Maybe StyleState,
-  _dgcCustomRender :: Maybe (DraggableRender s e),
-  _dgcOnFinished :: [Bool -> e]
+  _dgcCustomRender :: Maybe (DraggableRender s e)
 }
 
 instance Default (DraggableCfg s e) where
   def = DraggableCfg {
     _dgcMaxDim = Nothing,
     _dgcDragStyle = Nothing,
-    _dgcCustomRender = Nothing,
-    _dgcOnFinished = []
+    _dgcCustomRender = Nothing
   }
 
 instance Semigroup (DraggableCfg s e) where
   (<>) t1 t2 = DraggableCfg {
     _dgcMaxDim = _dgcMaxDim t2 <|> _dgcMaxDim t1,
     _dgcDragStyle = _dgcDragStyle t2 <|> _dgcDragStyle t1,
-    _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1,
-    _dgcOnFinished = _dgcOnFinished t2 <|> _dgcOnFinished t1
+    _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1
   }
 
 instance Monoid (DraggableCfg s e) where
@@ -52,11 +49,6 @@ instance Monoid (DraggableCfg s e) where
 instance CmbMaxDim (DraggableCfg s e) where
   maxDim dim = def {
     _dgcMaxDim = Just dim
-  }
-
-instance CmbOnDragFinished (DraggableCfg s e) Bool e where
-  onDragFinished evt = def {
-    _dgcOnFinished = [evt]
   }
 
 draggableStyle :: [StyleState] -> DraggableCfg s e
@@ -101,9 +93,6 @@ makeDraggable msg config = widget where
       result = resultReqs node [StartDrag wid path dragMsg]
     ButtonAction p btn ReleasedBtn _ -> Just result where
       result = resultReqs node [CancelDrag wid]
-    DragFinished accepted -> Just result where
-      evts = fmap ($ isJust accepted) (_dgcOnFinished config)
-      result = resultEvts node evts
     _ -> Nothing
     where
       wid = node ^. L.info . L.widgetId

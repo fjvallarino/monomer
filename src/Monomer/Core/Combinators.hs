@@ -159,9 +159,6 @@ class CmbOnChangeIdxReq t s | t -> s where
 class CmbOnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t
 
-class CmbOnDragFinished t a e | t -> e where
-  onDragFinished :: (a -> e) -> t
-
 -- Size
 class CmbRangeWidth t where
   rangeWidth :: Double -> Double -> t

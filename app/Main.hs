@@ -130,14 +130,11 @@ handleAppEvent wenv node model evt = case evt of
   DropTo2 idx -> [Model $ model
     & dragList1 .~ delete idx (model ^. dragList1)
     & dragList2 .~ model ^. dragList2 ++ [idx]]
-  DropDone idx accepted -> [Task $ do
-    print (idx, accepted)
-    return Nothing]
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDrag where
-  labelDrag idx = draggable_ idx (label ("Label: " <> showt idx)) [onDragFinished (DropDone idx), maxDim 200, draggableStyle [bgColor pink, border 2 orange]]
+  labelDrag idx = draggable_ idx (label ("Label: " <> showt idx)) [maxDim 200, draggableStyle [bgColor pink, border 2 orange]]
   widgetDrag = hgrid [
       dropTarget DropTo1 (vstack (fmap labelDrag (model ^. dragList1))),
       dropTarget_ DropTo2 (vstack (fmap labelDrag (model ^. dragList2))) [dropTargetStyle [bgColor orange]]
