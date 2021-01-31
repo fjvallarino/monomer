@@ -130,18 +130,14 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
       let widget = widgetRoot ^. L.widget
       let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
-      let widgetResult = fromMaybe emptyResult evtResult
-      -- Do not resize if event is Leave and follow-up is Enter
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
-      let requests = _wrRequests widgetResult
-      let dropAccepted = isJust (Seq.findIndexL isAcceptDrop requests)
+      let widgetResult = fromMaybe emptyResult evtResult
+            & L.requests %~ addFocusReq event
 
-      step <- handleWidgetResult wenv resizeWidgets widgetResult {
-        _wrRequests = addFocusReq event requests
-      }
+      step <- handleWidgetResult wenv resizeWidgets widgetResult
 
-      if isDropEvent event && not dropAccepted
-        then handleFinalizeDrop Nothing step
+      if isDropEvent event
+        then handleFinalizeDrop step
         else return step
 
 handleResourcesInit :: MonomerM s m => m ()
@@ -228,7 +224,6 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetCursorIcon icon -> handleSetCursorIcon icon step
     StartDrag wid path info -> handleStartDrag wid path info step
     CancelDrag wid -> handleCancelDrag wid step
-    AcceptDrop wid -> handleFinalizeDrop (Just wid) step
     RenderOnce -> handleRenderOnce step
     RenderEvery wid ms repeat -> handleRenderEvery wid ms repeat step
     RenderStop wid -> handleRenderStop wid step
@@ -412,12 +407,10 @@ handleCancelDrag widgetId previousStep = do
 
 handleFinalizeDrop
   :: (MonomerM s m)
-  => Maybe WidgetId
-  -> HandlerStep s e
+  => HandlerStep s e
   -> m (HandlerStep s e)
-handleFinalizeDrop dropTargetWid previousStep = do
+handleFinalizeDrop previousStep = do
   dragAction <- use L.dragAction
-  dropTargetPath <- mapM getWidgetIdPath dropTargetWid
   let widgetId = fmap (^. L.widgetId) dragAction
 
   if isJust widgetId

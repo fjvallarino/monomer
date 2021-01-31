@@ -81,9 +81,8 @@ makeDropTarget dropEvt config = widget where
     Drop point path dragMsg
       | not (isNodeParentOfPath path node) -> Just result where
         widgetId = node ^. L.info . L.widgetId
-        reqs = [AcceptDrop widgetId]
         evts = msgToEvts dragMsg
-        result = resultReqsEvts node reqs evts
+        result = resultEvts node evts
     _ -> Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e a

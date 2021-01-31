@@ -59,10 +59,6 @@ isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True
 isFocusRequest _ = False
 
-isAcceptDrop :: WidgetRequest s -> Bool
-isAcceptDrop AcceptDrop{} = True
-isAcceptDrop _ = False
-
 isIgnoreParentEvents :: WidgetRequest s -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
 isIgnoreParentEvents _ = False

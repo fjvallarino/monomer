@@ -455,6 +455,7 @@
   - Add support for nanovg transforms
     - nvgGlobalAlpha
     - Composite operations?
+  - Draw child node in Draggable
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -470,19 +471,14 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
-  - Draw miniature node in Draggable
-  - What about WidgetEnv using Path vs WidgetId?
-    - Makes sense in a way, but is it possible to switch (for consistency)?
-    - New Drag/Drop events also using Path. Review.
-    - Provide a way to get Path from WidgetId
-    - This situation also happens in MonomerCtx
+  - Move config of Box before managed widget (and other containers too)
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
 
 Future
+  - Request scissoring only if needed (review components)
   - Do something about Serialise. Temporarily hide from composite?
-  - Move config of Box before managed widget
   - Rethink Composite event handling.
     - Maybe send them up as requests and process them as messages?
     - This would avoid some unexpected ordering issues

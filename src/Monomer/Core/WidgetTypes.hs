@@ -112,7 +112,6 @@ data WidgetRequest s
   | SetCursorIcon CursorIcon
   | StartDrag WidgetId Path WidgetDragMsg
   | CancelDrag WidgetId
-  | AcceptDrop WidgetId
   | RenderOnce
   | RenderEvery WidgetId Int (Maybe Int)
   | RenderStop WidgetId
@@ -139,7 +138,6 @@ instance Eq (WidgetRequest s) where
   SetCursorIcon c1 == SetCursorIcon c2 = c1 == c2
   StartDrag w1 p1 m1 == StartDrag w2 p2 m2 = (w1, p1, m1) == (w2, p2, m2)
   CancelDrag w1 == CancelDrag w2 = w1 == w2
-  AcceptDrop w1 == AcceptDrop w2 = w1 == w2
   RenderOnce == RenderOnce = True
   RenderEvery p1 c1 r1 == RenderEvery p2 c2 r2 = (p1, c1, r1) == (p2, c2, r2)
   RenderStop p1 == RenderStop p2 = p1 == p2
@@ -359,7 +357,7 @@ instance Show (WidgetRequest s) where
   show ResizeWidgets = "ResizeWidgets"
   show (MoveFocus start dir) = "MoveFocus: " ++ show (start, dir)
   show (SetFocus path) = "SetFocus: " ++ show path
-  show (GetClipboard path) = "GetClipboard: " ++ show path
+  show (GetClipboard wid) = "GetClipboard: " ++ show wid
   show (SetClipboard _) = "SetClipboard"
   show (StartTextInput rect) = "StartTextInput: " ++ show rect
   show StopTextInput = "StopTextInput"
@@ -368,10 +366,9 @@ instance Show (WidgetRequest s) where
   show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
   show (StartDrag wid path info) = "StartDrag: " ++ show (wid, path, info)
   show (CancelDrag wid) = "CancelDrag: " ++ show wid
-  show (AcceptDrop wid) = "AcceptDrop: " ++ show wid
   show RenderOnce = "RenderOnce"
-  show (RenderEvery path ms repeat) = "RenderEvery: " ++ show (path, ms, repeat)
-  show (RenderStop path) = "RenderStop: " ++ show path
+  show (RenderEvery wid ms repeat) = "RenderEvery: " ++ show (wid, ms, repeat)
+  show (RenderStop wid) = "RenderStop: " ++ show wid
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"

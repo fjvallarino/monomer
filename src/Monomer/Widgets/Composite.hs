@@ -789,7 +789,6 @@ toParentReq (SetOverlay wid path) = Just (SetOverlay wid path)
 toParentReq (SetCursorIcon icon) = Just (SetCursorIcon icon)
 toParentReq (StartDrag wid path info) = Just (StartDrag wid path info)
 toParentReq (CancelDrag wid) = Just (CancelDrag wid)
-toParentReq (AcceptDrop wid) = Just (AcceptDrop wid)
 toParentReq RenderOnce = Just RenderOnce
 toParentReq (RenderEvery path ms repeat) = Just (RenderEvery path ms repeat)
 toParentReq (RenderStop path) = Just (RenderStop path)
