@@ -57,8 +57,6 @@ data ImageReq = ImageReq {
 }
 
 data Env = Env {
-  inFrame :: Bool,
-  scissors :: Seq CRect,
   overlays :: Seq (IO ()),
   validFonts :: Set Text,
   imagesMap :: ImagesMap,
@@ -84,8 +82,6 @@ makeRenderer fonts dpr = do
     putStrLn "Could not find any valid fonts. Text will fail to be displayed."
 
   envRef <- newIORef $ Env {
-    inFrame = False,
-    scissors = Seq.empty,
     overlays = Seq.empty,
     validFonts = validFonts,
     imagesMap = M.empty,
@@ -100,20 +96,12 @@ newRenderer c dpr lock envRef = Renderer {..} where
     newEnv <- handlePendingImages c envRef
 
     VG.beginFrame c cw ch cdpr
-
-    writeIORef envRef newEnv {
-      inFrame = True
-    }
     where
       cw = fromIntegral w
       ch = fromIntegral h
       cdpr = realToFrac dpr
 
-  endFrame = L.with lock $ do
-    modifyIORef' envRef (\env -> env {
-      inFrame = False
-    })
-
+  endFrame =
     VG.endFrame c
 
   beginPath =
@@ -142,29 +130,56 @@ newRenderer c dpr lock envRef = Renderer {..} where
       overlays = Seq.empty
     }
 
-  -- Scissor operations
-  setScissor !rect = do
-    env <- readIORef envRef
-    modifyIORef envRef $ \env -> env {
-      scissors = crect <| scissors env
-    }
-    handleScissor $ scissors env
+  -- Scissor
+  pushScissor rect = do
+    VG.save c
+    VG.intersectScissor c cx cy cw ch
     where
-      crect = rectToCRect rect dpr
-      handleScissor scissors
-        | Seq.null scissors = setScissorVG c crect
-        | otherwise = intersectScissorVG c crect
+      CRect cx cy cw ch = rectToCRect rect dpr
 
-  resetScissor = do
-    modifyIORef envRef $ \env -> env {
-      scissors = Seq.drop 1 (scissors env)
-    }
-    env <- readIORef envRef
-    handleScissor $ scissors env
+  popScissor = do
+    VG.restore c
+
+  -- Translation
+  pushTranslation point = do
+    VG.save c
+    VG.translate c px py
     where
-      handleScissor scissors
-        | Seq.null scissors = VG.resetScissor c
-        | otherwise = applyScissorsVG c scissors
+      CPoint px py = pointToCPoint point dpr
+
+  popTranslation =
+    VG.restore c
+
+  -- Scale
+  pushScale point = do
+    VG.save c
+    VG.scale c px py
+    where
+      px = realToFrac (point ^. L.x)
+      py = realToFrac (point ^. L.y)
+
+  popScale =
+    VG.restore c
+
+  -- Rotation
+  pushRotation angle = do
+    VG.save c
+    VG.rotate c cangle
+    where
+      cangle = VG.degToRad $ realToFrac angle
+
+  popRotation =
+    VG.restore c
+
+  -- Alpha
+  pushGlobalAlpha alpha = do
+    VG.save c
+    VG.globalAlpha c calpha
+    where
+      calpha = max 0 . min 1 $ realToFrac alpha
+
+  popGlobalAlpha =
+    VG.restore c
 
   -- Strokes
   stroke =
@@ -471,17 +486,3 @@ rectToCRect (Rect x y w h) dpr = CRect cx cy cw ch where
   cy = realToFrac $ y * dpr
   ch = realToFrac $ h * dpr
   cw = realToFrac $ w * dpr
-
-setScissorVG :: VG.Context -> CRect -> IO ()
-setScissorVG c crect = VG.scissor c x y w h where
-  CRect x y w h = crect
-
-intersectScissorVG :: VG.Context -> CRect -> IO ()
-intersectScissorVG c crect = VG.intersectScissor c x y w h where
-  CRect x y w h = crect
-
-applyScissorsVG :: VG.Context -> Seq CRect -> IO ()
-applyScissorsVG c Empty = return ()
-applyScissorsVG c (x :<| xs) = do
-  setScissorVG c x
-  mapM_ (intersectScissorVG c) xs

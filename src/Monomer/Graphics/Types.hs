@@ -140,6 +140,7 @@ data ImageDef = ImageDef {
   _idfImgData :: BS.ByteString
 } deriving (Eq, Show, Generic, Serialise)
 
+-- Angles are always expressed in degrees, not radians
 data Renderer = Renderer {
   -- Frame
   beginFrame :: Int -> Int -> IO (),
@@ -153,9 +154,21 @@ data Renderer = Renderer {
   -- Overlays
   createOverlay :: IO () -> IO (),
   renderOverlays :: IO (),
-  -- Scissor operations
-  setScissor :: Rect -> IO (),
-  resetScissor :: IO (),
+  -- Scissor
+  pushScissor :: Rect -> IO (),
+  popScissor :: IO (),
+  -- Translation
+  pushTranslation :: Point -> IO (),
+  popTranslation :: IO (),
+  -- Scale
+  pushScale :: Point -> IO (),
+  popScale :: IO (),
+  -- Rotation
+  pushRotation :: Double -> IO (),
+  popRotation :: IO (),
+  -- Alpha
+  pushGlobalAlpha :: Double -> IO (),
+  popGlobalAlpha :: IO (),
   -- Strokes
   stroke :: IO (),
   setStrokeColor :: Color -> IO (),

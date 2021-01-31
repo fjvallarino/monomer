@@ -447,6 +447,11 @@
     - https://visme.co/blog/website-color-schemes/
     - https://coolors.co/91a6ff-ff8811-667761-b80c09-eaf8bf
   - Add onResize, onDispose to composite
+  - Drag & drop for user
+    - Add attribute indicating if component supports being source/target
+      - Not needed, draggable component should start a drag operation
+    - Add new request types (drag started, drag stopped, drag cancelled)
+    - Add new events (drag hover)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -462,12 +467,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
-  - Drag & drop for user
-    - Add attribute indicating if component supports being source/target
-      - Not needed, draggable component should start a drag operation
-    - Add new request types (drag started, drag stopped, drag cancelled)
-    - Add new events (drag hover)
-  - Make overlays be drawn in separate beginFrame/endFrame calls
   - Add support for nanovg transforms
     - nvgGlobalAlpha
     - Composite operations?
