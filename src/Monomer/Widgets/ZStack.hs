@@ -51,14 +51,14 @@ data ZStackState = ZStackState {
 } deriving (Eq, Show, Generic, Serialise)
 
 zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-zstack children = zstack_ children def
+zstack children = zstack_ def children
 
 zstack_
   :: (Traversable t)
-  => t (WidgetNode s e)
-  -> [ZStackCfg]
+  => [ZStackCfg]
+  -> t (WidgetNode s e)
   -> WidgetNode s e
-zstack_ children configs = newNode where
+zstack_ configs children = newNode where
   config = mconcat configs
   state = ZStackState M.empty 0
   newNode = defaultWidgetNode "zstack" (makeZStack config state)

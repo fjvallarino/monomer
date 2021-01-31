@@ -43,15 +43,15 @@ dropTargetStyle styles = def {
 }
 
 dropTarget :: DragMsg a => (a -> e) -> WidgetNode s e -> WidgetNode s e
-dropTarget dropEvt managed = dropTarget_ dropEvt managed def
+dropTarget dropEvt managed = dropTarget_ dropEvt def managed
 
 dropTarget_
   :: DragMsg a
   => (a -> e)
-  -> WidgetNode s e
   -> [DropTargetCfg]
   -> WidgetNode s e
-dropTarget_ dropEvt managed configs = makeNode widget managed where
+  -> WidgetNode s e
+dropTarget_ dropEvt configs managed = makeNode widget managed where
   config = mconcat configs
   widget = makeDropTarget dropEvt config
 

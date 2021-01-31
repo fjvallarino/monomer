@@ -111,14 +111,14 @@ buildUI message pAcceptEvt pCancelEvt config wenv model = mainTree where
   confirmTree = vstack [
       hstack [
         label title & L.info . L.style .~ themeDialogTitle wenv,
-        box_ closeIcon [onClick cancelEvt]
+        box_ [onClick cancelEvt] closeIcon
       ],
       label_ message [textMultiLine]
         & L.info . L.style .~ themeDialogBody wenv,
-      box_ buttons [alignLeft]
+      box_ [alignLeft] buttons
         & L.info . L.style <>~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
-  confirmBox = box_ confirmTree [onClickEmpty cancelEvt]
+  confirmBox = box_ [onClickEmpty cancelEvt] confirmTree
     & L.info . L.style .~ emptyOverlayColor
   mainTree = keystroke [("Esc", cancelEvt)] confirmBox
 

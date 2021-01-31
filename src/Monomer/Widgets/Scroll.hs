@@ -178,24 +178,24 @@ newtype ScrollMessage
   = ScrollTo Rect
 
 scroll :: WidgetNode s e -> WidgetNode s e
-scroll managedWidget = scroll_ managedWidget [def]
+scroll managedWidget = scroll_ def managedWidget
 
-scroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-scroll_ managed configs = makeNode (makeScroll config def) managed where
+scroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+scroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat configs
 
 hscroll :: WidgetNode s e -> WidgetNode s e
-hscroll managedWidget = hscroll_ managedWidget [def]
+hscroll managedWidget = hscroll_ def managedWidget
 
-hscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-hscroll_ managed configs = makeNode (makeScroll config def) managed where
+hscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+hscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollH : configs)
 
 vscroll :: WidgetNode s e -> WidgetNode s e
-vscroll managedWidget = vscroll_ managedWidget [def]
+vscroll managedWidget = vscroll_ def managedWidget
 
-vscroll_ :: WidgetNode s e -> [ScrollCfg] -> WidgetNode s e
-vscroll_ managed configs = makeNode (makeScroll config def) managed where
+vscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+vscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollV : configs)
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e

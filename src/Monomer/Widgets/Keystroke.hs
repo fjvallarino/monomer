@@ -73,11 +73,11 @@ instance Default KeyStroke where
 makeLensesWith abbreviatedFields ''KeyStroke
 
 keystroke :: [(Text, e)] -> WidgetNode s e -> WidgetNode s e
-keystroke bindings managed = keystroke_ bindings managed def
+keystroke bindings managed = keystroke_ bindings def managed
 
 keystroke_
-  :: [(Text, e)] -> WidgetNode s e -> [KeystrokeCfg] -> WidgetNode s e
-keystroke_ bindings managed configs = makeNode widget managed where
+  :: [(Text, e)] -> [KeystrokeCfg] -> WidgetNode s e -> WidgetNode s e
+keystroke_ bindings configs managed = makeNode widget managed where
   config = mconcat configs
   newBindings = fmap (first textToStroke) bindings
   widget = makeKeystroke newBindings config

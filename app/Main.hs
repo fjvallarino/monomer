@@ -134,10 +134,10 @@ handleAppEvent wenv node model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDrag where
-  labelDrag idx = draggable_ idx (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand]) [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]]
+  labelDrag idx = draggable_ idx [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]] (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand])
   widgetDrag = hgrid [
       dropTarget DropTo1 (vstack (fmap labelDrag (model ^. dragList1))),
-      dropTarget_ DropTo2 (vstack (fmap labelDrag (model ^. dragList2))) [dropTargetStyle [bgColor orange]]
+      dropTarget_ DropTo2 [dropTargetStyle [bgColor orange]] (vstack (fmap labelDrag (model ^. dragList2)))
     ]
   widgetAlign = vstack [
       hstack [
@@ -268,7 +268,7 @@ buildUI wenv model = traceShow "Creating UI" widgetDrag where
       image "assets/images/pecans.jpg" `visible` False `key` "Pecans",
       image "assets/images/beach.jpg" `key` "Beach"
     ]
-  widgetTree5 = zstack_ [
+  widgetTree5 = zstack_ [onlyTopActive False] [
       hgrid [
         vstack [
           label "test",
@@ -278,15 +278,14 @@ buildUI wenv model = traceShow "Creating UI" widgetDrag where
           textField textField1 `style` [bgColor orange]
         ]
       ],
-      box_ (
+      box_ [alignRight] $
         hstack [
           vgrid [
             label "",
             textField textField1 `style` [bgColor lightBlue, width 200]
           ]
         ] `style` [height 480]
-       ) [alignRight]
-    ] [onlyTopActive False]
+    ]
   widgetTree4 = hgrid [
       label "" `style` [bgColor blue],
       label "" `style` [bgColor gray],
@@ -381,17 +380,9 @@ buildUI wenv model = traceShow "Creating UI" widgetDrag where
         label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
       hstack [
-          scroll_ (
-            image_ "assets/images/pecans.jpg" [fitFill]
-          ) []
-          ,
-          scroll_ (
-            image_ "assets/images/pecans.jpg" [fitFill]
-          ) []
-          ,
-          scroll_ (
-            image_ "assets/images/pecans.jpg" [fitFill]
-          ) [],
+          scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
+          scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
+          scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],

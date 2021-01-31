@@ -80,13 +80,13 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
 
   where
     wenv = mockWenv ()
-    zstackNode = zstack_ [
+    zstackNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
         vstack [
           button "Click 2" (BtnClick 2) `style` [height 10]
         ],
         button "Click 3" (BtnClick 3) `visible` False
-      ] [onlyTopActive False]
+      ]
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] zstackNode
 
 handleEventFocusTop :: Spec
@@ -113,10 +113,10 @@ handleEventFocusAll = describe "handleEventFocusAll" $
 
   where
     wenv = mockWenv (TestModel "" "")
-    zstackNode = zstack_ [
+    zstackNode = zstack_ [onlyTopActive False] [
         textField textValue1,
         textField textValue2
-      ] [onlyTopActive False]
+      ]
     model es = nodeHandleEventModel wenv es zstackNode
 
 handleEventFocusChange :: Spec

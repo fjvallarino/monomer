@@ -86,14 +86,14 @@ buildUI message cancelEvt config wenv model = mainTree where
   alertTree = vstack [
       hstack [
         label title & L.info . L.style .~ themeDialogTitle wenv,
-        box_ closeIcon [onClick cancelEvt]
+        box_ [onClick cancelEvt] closeIcon
       ],
       label_ message [textMultiLine]
         & L.info . L.style .~ themeDialogBody wenv,
-      box_ dismissButton [alignLeft]
+      box_ [alignLeft] dismissButton
         & L.info . L.style .~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
-  alertBox = box_ alertTree [onClickEmpty cancelEvt]
+  alertBox = box_ [onClickEmpty cancelEvt] alertTree
     & L.info . L.style .~ emptyOverlayColor
   mainTree = keystroke [("Esc", cancelEvt)] alertBox
 

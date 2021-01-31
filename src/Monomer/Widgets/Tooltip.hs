@@ -76,10 +76,10 @@ data TooltipState = TooltipState {
 } deriving (Eq, Show, Generic, Serialise)
 
 tooltip :: Text -> WidgetNode s e -> WidgetNode s e
-tooltip caption managed = tooltip_ caption managed def
+tooltip caption managed = tooltip_ caption def managed
 
-tooltip_ :: Text -> WidgetNode s e -> [TooltipCfg] -> WidgetNode s e
-tooltip_ caption managed configs = makeNode widget managed where
+tooltip_ :: Text -> [TooltipCfg] -> WidgetNode s e -> WidgetNode s e
+tooltip_ caption configs managed = makeNode widget managed where
   config = mconcat configs
   state = TooltipState def maxBound
   widget = makeTooltip caption config state

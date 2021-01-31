@@ -73,7 +73,7 @@ handleEventFollow = describe "handleEventFollow" $ do
 
   where
     wenv = mockWenvEvtUnit ()
-    ttNode = tooltip_ "" (label "Test") [tooltipDelay 500, tooltipFollow]
+    ttNode = tooltip_ "" [tooltipDelay 500, tooltipFollow] (label "Test")
     reqs es = getReqs wenv ttNode es
 
 getReqs

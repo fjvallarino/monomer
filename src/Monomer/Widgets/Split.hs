@@ -98,16 +98,16 @@ data SplitState = SplitState {
 } deriving (Eq, Show, Generic, Serialise)
 
 hsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
-hsplit nodes = hsplit_ nodes def
+hsplit nodes = hsplit_ def nodes
 
-hsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg s e] -> WidgetNode s e
-hsplit_ nodes configs = split_ True nodes configs
+hsplit_ :: [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+hsplit_ configs nodes = split_ True nodes configs
 
 vsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
-vsplit nodes = vsplit_ nodes def
+vsplit nodes = vsplit_ def nodes
 
-vsplit_ :: (WidgetNode s e, WidgetNode s e) -> [SplitCfg s e] -> WidgetNode s e
-vsplit_ nodes configs = split_ False nodes configs
+vsplit_ :: [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+vsplit_ configs nodes = split_ False nodes configs
 
 split_
   :: Bool

@@ -83,7 +83,7 @@ handleEventMouseDragH = describe "handleEventMouseDragH" $ do
     wenv = mockWenv (TestModel 0.5)
     btn1 = button "Text" Button1 `style` [rangeWidth 200 400]
     btn2 = button "Longer" Button2
-    splitNode = hsplit_ (btn1, btn2) [splitHandlePos sliderPos]
+    splitNode = hsplit_ [splitHandlePos sliderPos] (btn1, btn2)
     model es = nodeHandleEventModel wenv es splitNode
     areas es = ra where
       root = nodeHandleEventRoot wenv es splitNode
@@ -131,7 +131,7 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
     -- Uses flexHeight otherwise buttons are fixed size and split will not move
     btn1 = button "Text" Button1 `style` [flexHeight 20]
     btn2 = button "Longer" Button2 `style` [rangeHeight 200 400]
-    splitNode = vsplit_ (btn1, btn2) [splitHandlePosV 0.5, onChange SliderChanged]
+    splitNode = vsplit_ [splitHandlePosV 0.5, onChange SliderChanged] (btn1, btn2)
     evts es = nodeHandleEventEvts wenv es splitNode
     areas es = ra where
       root = nodeHandleEventRoot wenv es splitNode

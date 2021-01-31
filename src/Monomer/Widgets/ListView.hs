@@ -220,7 +220,7 @@ listViewD_ widgetData items makeRow configs = makeNode widget where
   widget = makeListView widgetData newItems makeRow config newState
 
 makeNode :: Widget s e -> WidgetNode s e
-makeNode widget = scroll_ childNode [scrollStyle L.listViewStyle] where
+makeNode widget = scroll_ [scrollStyle L.listViewStyle] childNode where
   childNode = defaultWidgetNode "listView" widget
     & L.info . L.focusable .~ True
 
@@ -495,5 +495,5 @@ makeItemsList wenv items makeRow config path selected = itemsList where
     clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ (content & L.info . L.style .~ normalStyle) itemCfg
+    newItem = box_ itemCfg (content & L.info . L.style .~ normalStyle)
   itemsList = vstack $ Seq.mapWithIndex makeItem items

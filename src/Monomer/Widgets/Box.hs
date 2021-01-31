@@ -120,10 +120,10 @@ expandContent = def {
 }
 
 box :: WidgetNode s e -> WidgetNode s e
-box managed = box_ managed def
+box managed = box_ def managed
 
-box_ :: WidgetNode s e -> [BoxCfg s e] -> WidgetNode s e
-box_ managed configs = makeNode (makeBox config) managed where
+box_ :: [BoxCfg s e] -> WidgetNode s e -> WidgetNode s e
+box_ configs managed = makeNode (makeBox config) managed where
   config = mconcat configs
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e

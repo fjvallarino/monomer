@@ -70,15 +70,15 @@ draggableRender render = def {
 }
 
 draggable :: DragMsg a => a -> WidgetNode s e -> WidgetNode s e
-draggable msg managed = draggable_ msg managed def
+draggable msg managed = draggable_ msg def managed
 
 draggable_
   :: DragMsg a
   => a
-  -> WidgetNode s e
   -> [DraggableCfg s e]
   -> WidgetNode s e
-draggable_ msg managed configs = makeNode widget managed where
+  -> WidgetNode s e
+draggable_ msg configs managed = makeNode widget managed where
   config = mconcat configs
   widget = makeDraggable msg config
 
