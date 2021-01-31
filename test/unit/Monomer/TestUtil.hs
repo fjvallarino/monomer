@@ -76,20 +76,15 @@ mockRenderer = Renderer {
   createOverlay  = \overlay -> return (),
   renderOverlays = return (),
   -- Scissor operations
-  pushScissor = \rect -> return (),
-  popScissor = return (),
+  intersectScissor = \rect -> return (),
   -- Translation
-  pushTranslation = \point -> return (),
-  popTranslation = return (),
+  setTranslation = \point -> return (),
   -- Scale
-  pushScale = \point -> return (),
-  popScale = return (),
+  setScale = \point -> return (),
   -- Rotation
-  pushRotation = \angle -> return (),
-  popRotation = return (),
+  setRotation = \angle -> return (),
   -- Global Alpha
-  pushGlobalAlpha = \alpha -> return (),
-  popGlobalAlpha = return (),
+  setGlobalAlpha = \alpha -> return (),
   -- Strokes
   stroke = return (),
   setStrokeColor = \color -> return (),

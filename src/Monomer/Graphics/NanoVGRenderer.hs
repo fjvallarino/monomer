@@ -131,55 +131,35 @@ newRenderer c dpr lock envRef = Renderer {..} where
     }
 
   -- Scissor
-  pushScissor rect = do
-    VG.save c
+  intersectScissor rect = do
     VG.intersectScissor c cx cy cw ch
     where
       CRect cx cy cw ch = rectToCRect rect dpr
 
-  popScissor = do
-    VG.restore c
-
   -- Translation
-  pushTranslation point = do
-    VG.save c
-    VG.translate c px py
+  setTranslation offset = do
+    VG.translate c tx ty
     where
-      CPoint px py = pointToCPoint point dpr
-
-  popTranslation =
-    VG.restore c
+      CPoint tx ty = pointToCPoint offset dpr
 
   -- Scale
-  pushScale point = do
-    VG.save c
-    VG.scale c px py
+  setScale point = do
+    VG.scale c sx sy
     where
-      px = realToFrac (point ^. L.x)
-      py = realToFrac (point ^. L.y)
-
-  popScale =
-    VG.restore c
+      sx = realToFrac (point ^. L.x)
+      sy = realToFrac (point ^. L.y)
 
   -- Rotation
-  pushRotation angle = do
-    VG.save c
+  setRotation angle = do
     VG.rotate c cangle
     where
       cangle = VG.degToRad $ realToFrac angle
 
-  popRotation =
-    VG.restore c
-
   -- Alpha
-  pushGlobalAlpha alpha = do
-    VG.save c
+  setGlobalAlpha alpha = do
     VG.globalAlpha c calpha
     where
       calpha = max 0 . min 1 $ realToFrac alpha
-
-  popGlobalAlpha =
-    VG.restore c
 
   -- Strokes
   stroke =

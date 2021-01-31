@@ -155,20 +155,15 @@ data Renderer = Renderer {
   createOverlay :: IO () -> IO (),
   renderOverlays :: IO (),
   -- Scissor
-  pushScissor :: Rect -> IO (),
-  popScissor :: IO (),
+  intersectScissor :: Rect -> IO (),
   -- Translation
-  pushTranslation :: Point -> IO (),
-  popTranslation :: IO (),
+  setTranslation :: Point -> IO (),
   -- Scale
-  pushScale :: Point -> IO (),
-  popScale :: IO (),
+  setScale :: Point -> IO (),
   -- Rotation
-  pushRotation :: Double -> IO (),
-  popRotation :: IO (),
+  setRotation :: Double -> IO (),
   -- Alpha
-  pushGlobalAlpha :: Double -> IO (),
-  popGlobalAlpha :: IO (),
+  setGlobalAlpha :: Double -> IO (),
   -- Strokes
   stroke :: IO (),
   setStrokeColor :: Color -> IO (),

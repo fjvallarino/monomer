@@ -4,6 +4,7 @@ module Monomer.Graphics.Drawing (
   drawInScissor,
   drawInTranslation,
   drawInScale,
+  drawInRotation,
   drawInAlpha,
   drawRect,
   drawRectBorder,
@@ -32,27 +33,38 @@ import Monomer.Graphics.Types
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
 drawInScissor renderer False _ action = action
 drawInScissor renderer True rect action = do
-  pushScissor renderer rect
+  saveContext renderer
+  intersectScissor renderer rect
   action
-  popScissor renderer
+  restoreContext renderer
 
 drawInTranslation :: Renderer -> Point -> IO () -> IO ()
-drawInTranslation renderer point action = do
-  pushTranslation renderer point
+drawInTranslation renderer offset action = do
+  saveContext renderer
+  setTranslation renderer offset
   action
-  popTranslation renderer
+  restoreContext renderer
 
 drawInScale :: Renderer -> Point -> IO () -> IO ()
-drawInScale renderer point action = do
-  pushScale renderer point
+drawInScale renderer scale action = do
+  saveContext renderer
+  setScale renderer scale
   action
-  popScale renderer
+  restoreContext renderer
+
+drawInRotation :: Renderer -> Double -> IO () -> IO ()
+drawInRotation renderer angle action = do
+  saveContext renderer
+  setRotation renderer angle
+  action
+  restoreContext renderer
 
 drawInAlpha :: Renderer -> Double -> IO () -> IO ()
 drawInAlpha renderer alpha action = do
-  pushGlobalAlpha renderer alpha
+  saveContext renderer
+  setGlobalAlpha renderer alpha
   action
-  popGlobalAlpha renderer
+  restoreContext renderer
 
 drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
 drawRect _ _ Nothing _ = pure ()
