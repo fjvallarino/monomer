@@ -24,6 +24,7 @@ import qualified Monomer.Lens as L
 type DraggableRender s e = Renderer -> WidgetEnv s e -> WidgetNode s e -> IO ()
 
 data DraggableCfg s e = DraggableCfg {
+  _dgcTransparency :: Maybe Double,
   _dgcMaxDim :: Maybe Double,
   _dgcDragStyle :: Maybe StyleState,
   _dgcCustomRender :: Maybe (DraggableRender s e)
@@ -31,6 +32,7 @@ data DraggableCfg s e = DraggableCfg {
 
 instance Default (DraggableCfg s e) where
   def = DraggableCfg {
+    _dgcTransparency = Nothing,
     _dgcMaxDim = Nothing,
     _dgcDragStyle = Nothing,
     _dgcCustomRender = Nothing
@@ -38,6 +40,7 @@ instance Default (DraggableCfg s e) where
 
 instance Semigroup (DraggableCfg s e) where
   (<>) t1 t2 = DraggableCfg {
+    _dgcTransparency = _dgcTransparency t2 <|> _dgcTransparency t1,
     _dgcMaxDim = _dgcMaxDim t2 <|> _dgcMaxDim t1,
     _dgcDragStyle = _dgcDragStyle t2 <|> _dgcDragStyle t1,
     _dgcCustomRender = _dgcCustomRender t2 <|> _dgcCustomRender t1
@@ -45,6 +48,11 @@ instance Semigroup (DraggableCfg s e) where
 
 instance Monoid (DraggableCfg s e) where
   mempty = def
+
+instance CmbTransparency (DraggableCfg s e) where
+  transparency transp = def {
+    _dgcTransparency = Just transp
+  }
 
 instance CmbMaxDim (DraggableCfg s e) where
   maxDim dim = def {
@@ -112,17 +120,25 @@ makeDraggable msg config = widget where
     resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
 
   defaultRender renderer wenv node =
-    drawStyledAction renderer rect style (const $ return ())
+    drawStyledAction renderer draggedRect style $ \_ ->
+      drawInTranslation renderer offset $
+        drawInScale renderer (Point scale scale) $
+          drawInAlpha renderer transparency $
+            widgetRender (cnode ^. L.widget) renderer wenv cnode
     where
-      cnode = node ^?! L.children . ix 0
+      style = fromMaybe def (_dgcDragStyle config)
+      transparency = fromMaybe 1 (_dgcTransparency config)
+      cnode = Seq.index (_wnChildren node) 0
       Rect cx cy cw ch = cnode ^. L.info . L.viewport
       Point mx my = wenv ^. L.inputStatus . L.mousePos
       Point px py = wenv ^?! L.mainBtnPress . _Just . _2
       dim = fromMaybe (max cw ch) (_dgcMaxDim config)
-      rt = dim / max cw ch
+      scale = dim / max cw ch
+      offset = Point (mx - px * scale) (my - py * scale)
+      -- Background rectangle (using draggable style)
       (dx, dy) = (cx - px, cy - py)
-      rect = Rect (mx + dx * rt) (my + dy * rt) (cw * rt) (ch * rt)
-      style = fromMaybe def (_dgcDragStyle config)
+      rect = Rect (mx + dx * scale) (my + dy * scale) (cw * scale) (ch * scale)
+      draggedRect = fromMaybe rect (addOuterBounds style rect)
 
   render renderer wenv node = do
     when dragged $

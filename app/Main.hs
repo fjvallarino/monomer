@@ -134,7 +134,7 @@ handleAppEvent wenv node model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDrag where
-  labelDrag idx = draggable_ idx (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand]) [maxDim 200, draggableStyle [bgColor pink, border 2 orange]]
+  labelDrag idx = box $ draggable_ idx (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand]) [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]]
   widgetDrag = hgrid [
       dropTarget DropTo1 (vstack (fmap labelDrag (model ^. dragList1))),
       dropTarget_ DropTo2 (vstack (fmap labelDrag (model ^. dragList2))) [dropTargetStyle [bgColor orange]]
