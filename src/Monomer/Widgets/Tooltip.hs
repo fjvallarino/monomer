@@ -89,7 +89,7 @@ makeNode widget managedWidget = defaultWidgetNode "tooltip" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeTooltip :: Text -> TooltipCfg -> TooltipState-> Widget s e
+makeTooltip :: Text -> TooltipCfg -> TooltipState -> Widget s e
 makeTooltip caption config state = widget where
   baseWidget = createContainer state def {
     containerGetBaseStyle = getBaseStyle,

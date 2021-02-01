@@ -6,7 +6,7 @@ module Main where
 import Debug.Trace
 
 import Control.Concurrent (threadDelay)
-import Control.Lens ((&), (^.), (.~), (%~))
+import Control.Lens ((&), (^.), (.~), (?~), (%~))
 import Data.Default
 import Data.List (delete)
 import TextShow
@@ -134,6 +134,10 @@ handleAppEvent wenv node model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDrag where
+  widgetThemeSwitch = hstack [
+      label "Test",
+      themeSwitch (darkTheme & L.basic . L.labelStyle . L.bgColor ?~ red) (label "Test")
+    ]
   labelDrag idx = draggable_ idx [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]] (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand])
   widgetDrag = hgrid [
       dropTarget DropTo1 (vstack (fmap labelDrag (model ^. dragList1))),

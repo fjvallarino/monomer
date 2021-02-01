@@ -472,17 +472,26 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
+  - Does it make sense to handle offset
+    - It would avoid resizing on scroll
+    - We need to transform events
+      - This way we avoid having to translate widgets
+    - We need current transform in WidgetEnv
+      - Only used for rendering
+      - hovered would also use it
+    - We need to set transform on render (and clear it)
+    - Check scroll in scroll (one with max height)
+  - Request scissoring only if needed (review components)
+    - Do after scroll changes are in place (validation purposes)
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
 
 Future
-  - Request scissoring only if needed (review components)
-    - Do after scroll changes are in place (validation purposes)
+  - Add support for multiline text editing
   - Do something about Serialise. Temporarily hide from composite?
   - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
-  - Add support for multiline text editing
   - Create Slider
   - Create Theme widget to override global theme
   - Create File Selector
@@ -498,13 +507,3 @@ Future
     - SDL does not send resize until operation has finished, making content look ugly because it's not updated
     - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - SDL supports Drag and Drop integration with OS
-  - Does it make sense to handle offset
-    - It would avoid resizing on scroll
-    - We need transform stack on Renderer (also rotate?)
-    - We need to transform events
-      - This way we avoid having to translate widgets
-    - We need current transform in WidgetEnv
-      - Only used for rendering
-      - hovered would also use it
-    - We need to set transform on render (and clear it)
-    - Check scroll in scroll (one with max height)
