@@ -210,10 +210,10 @@ makeScroll config state = widget where
     containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
-    containerGetSizeReq = getSizeReq
+    containerGetSizeReq = getSizeReq,
+    containerResize = resize
   }
   widget = baseWidget {
-    widgetResize = scrollResize Nothing state,
     widgetRender = render
   }
 
@@ -342,11 +342,14 @@ makeScroll config state = widget where
     }
 
   rebuildWidget wenv newState node = result where
-    newWidget = makeScroll config newState
-    tempNode = node & L.widget .~ newWidget
-    vp = tempNode ^. L.info . L.viewport
-    ra = tempNode ^. L.info . L.renderArea
-    result = scrollResize (Just newWidget) newState wenv vp ra tempNode
+    ScrollState _ dx dy _ = newState
+    offset = Point dx dy
+    pviewport = node ^. L.info . L.viewport
+    cviewport = moveRect (negPoint offset) pviewport
+    newNode = node
+      & L.widget .~ makeScroll config newState
+      & L.children . ix 0 . L.info . L.viewport .~ cviewport
+    result = resultWidget newNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = sizeReq where
@@ -359,7 +362,8 @@ makeScroll config state = widget where
 
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
-  scrollResize uWidget state wenv viewport renderArea node = resized where
+  resize :: ContainerResizeHandler s e
+  resize wenv viewport renderArea children node = result where
     style = scrollActiveStyle wenv node
     scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
@@ -379,37 +383,29 @@ makeScroll config state = widget where
       | otherwise = max ch childHeight2
     newDx = scrollAxis dx areaW cw
     newDy = scrollAxis dy areaH ch
-    cRenderArea = Rect (cl + newDx) (ct + newDy) areaW areaH
+    cRenderArea = Rect cl ct areaW areaH
     cViewport = fromMaybe def (intersectRects viewport cRenderArea)
-
-    defWidget = makeScroll config $ state {
+    newState = state {
+      _sstDeltaX = newDx,
+      _sstDeltaY = newDy,
       _sstChildSize = Size areaW areaH
     }
-    newWidget = fromMaybe defWidget uWidget
-    cWidget = child ^. L.widget
-    childRes = widgetResize cWidget wenv viewport cRenderArea child
-    newChild = childRes ^. L.node
-      & L.info . L.viewport .~ cViewport
-      & L.info . L.renderArea .~ cRenderArea
-
-    resized = resultWidget node
-      & L.node . L.widget .~ newWidget
-      & L.node . L.info . L.viewport .~ viewport
-      & L.node . L.info . L.renderArea .~ renderArea
-      & L.node . L.children .~ Seq.singleton newChild
-      & L.requests <>~ childRes ^. L.requests
-      & L.events <>~ childRes ^. L.events
+    newNode = resultWidget $ node
+      & L.widget .~ makeScroll config newState
+    result = (newNode, Seq.singleton (cViewport, cRenderArea))
 
   render renderer wenv node =
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \_ -> do
-        widgetRender (child ^. L.widget) renderer wenv child
+        drawInTranslation renderer offset $
+          widgetRender (child ^. L.widget) renderer wenv child
         renderAfter renderer wenv node
     where
       style = scrollActiveStyle wenv node
       child = node ^. L.children ^?! ix 0
       viewport = node ^. L.info . L.viewport
       renderArea = node ^. L.info . L.renderArea
+      offset = Point dx dy
 
   renderAfter renderer wenv node = do
     when hScrollRequired $

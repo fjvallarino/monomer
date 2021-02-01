@@ -31,6 +31,21 @@ convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
     <|> keyboardEvent evt
     <|> textEvent evt
 
+translateEvent :: SystemEvent -> Point -> SystemEvent
+translateEvent evt txy = case evt of
+  Click p btn -> Click (addPoint p offset) btn
+  DblClick p btn -> DblClick (addPoint p offset) btn
+  ButtonAction p btn st cl -> ButtonAction (addPoint p offset) btn st cl
+  WheelScroll p wxy dir -> WheelScroll (addPoint p offset) wxy dir
+  Enter p -> Enter (addPoint p offset)
+  Move p -> Move (addPoint p offset)
+  Leave p -> Leave (addPoint p offset)
+  Drag p path msg -> Drag (addPoint p offset) path msg
+  Drop p path msg -> Drop (addPoint p offset) path msg
+  _ -> evt
+  where
+    offset = negPoint txy
+
 mouseClick :: Point -> SDL.EventPayload -> Maybe SystemEvent
 mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
     button = case SDL.mouseButtonEventButton eventData of

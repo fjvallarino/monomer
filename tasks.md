@@ -457,6 +457,7 @@
     - Composite operations?
   - Draw child node in Draggable
   - Move config of Box before managed widget (and other containers too)
+  - Create Theme widget to override global theme
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -488,12 +489,13 @@ Maybe postponed after release?
     - Test image updating WidgetId/Path
 
 Future
+  - Remove Default req from NumericField. Add handling of up/down arrows
+  - Test drag outside window, release button, come back in
   - Add support for multiline text editing
   - Do something about Serialise. Temporarily hide from composite?
   - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider
-  - Create Theme widget to override global theme
   - Create File Selector
   - Create GridView
   - Create Layout with width/heights specified in percents

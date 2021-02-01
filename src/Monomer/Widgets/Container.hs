@@ -125,6 +125,12 @@ type ContainerFindByPointHandler s e
   -> WidgetNode s e
   -> Maybe Int
 
+type ContainerUpdateEventHandler s e
+  = WidgetEnv s e
+  -> SystemEvent
+  -> WidgetNode s e
+  -> SystemEvent
+
 type ContainerEventHandler s e
   = WidgetEnv s e
   -> Path
@@ -180,6 +186,7 @@ data Container s e a = Container {
   containerDispose :: ContainerDisposeHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
+  containerUpdateEvent :: ContainerUpdateEventHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
   containerHandleMessage :: ContainerMessageHandler s e,
   containerGetSizeReq :: ContainerGetSizeReqHandler s e a,
@@ -208,6 +215,7 @@ instance Default (Container s e a) where
     containerDispose = defaultDispose,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
+    containerUpdateEvent = defaultUpdateEvent,
     containerHandleEvent = defaultHandleEvent,
     containerHandleMessage = defaultHandleMessage,
     containerGetSizeReq = defaultGetSizeReq,
@@ -619,6 +627,9 @@ findByPointWrapper container wenv start point node = result where
     | otherwise = Nothing
 
 -- | Event Handling
+defaultUpdateEvent :: ContainerUpdateEventHandler s e
+defaultUpdateEvent wenv evt node = evt
+
 defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
 
@@ -642,7 +653,8 @@ handleEventWrapper container wenv target evt node
     style = containerGetActiveStyle container wenv node
     styleCfg = containerStyleChangeCfg container
     updateCWenv = containerUpdateCWenv container
-    pHandler = containerHandleEvent container
+    updateEvt = containerUpdateEvent container
+    handler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
     childIdx = fromJust $ nextTargetStep target node
@@ -650,18 +662,19 @@ handleEventWrapper container wenv target evt node
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
     cwenv = updateCWenv wenv childIdx child node
+    cevt = updateEvt wenv evt node
     -- Event targeted at parent
-    pResponse = pHandler wenv target evt node
+    pResponse = handler wenv target evt node
     pResultStyled = handleStyleChange wenv target style styleCfg node evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
-      | otherwise = widgetHandleEvent childWidget cwenv target evt child
+      | otherwise = widgetHandleEvent childWidget cwenv target cevt child
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange wenv target style styleCfg node evt
-      $ handleSizeReqChange container wenv node (Just evt) cResult
+    cResultStyled = handleStyleChange wenv target style styleCfg node cevt
+      $ handleSizeReqChange container wenv node (Just cevt) cResult
 
 mergeParentChildEvts
   :: WidgetNode s e

@@ -133,7 +133,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetDrag where
+buildUI wenv model = traceShow "Creating UI" widgetLV where
   widgetThemeSwitch = hstack [
       label "Test",
       themeSwitch (darkTheme & L.basic . L.labelStyle . L.bgColor ?~ red) (label "Test")
@@ -233,10 +233,10 @@ buildUI wenv model = traceShow "Creating UI" widgetDrag where
     ]
   widgetLV = vstack [
 --      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
-
-      listView dropdown1 items label
-      ,
-      dropdown_ dropdown1 items label label [maxHeight 200]
+      label "aaa"
+--      , listView dropdown1 items label
+      , scroll $ image "assets/images/pecans.jpg"
+--      , dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
       hstack [
