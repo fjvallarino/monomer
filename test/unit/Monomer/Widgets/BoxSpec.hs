@@ -98,14 +98,14 @@ resize = describe "resize" $ do
 
 resizeDefault :: Spec
 resizeDefault = describe "default" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
   it "should have one child" $
     children `shouldSatisfy` (== 1) . Seq.length
 
-  it "should have its children assigned a renderArea" $
-    cRenderArea `shouldBe` cvp
+  it "should have its children assigned a viewport" $
+    cViewport `shouldBe` cvp
 
   where
     wenv = mockWenv ()
@@ -114,38 +114,38 @@ resizeDefault = describe "default" $ do
     boxNode = box (label "Label")
     newNode = nodeInit wenv boxNode
     children = newNode ^. L.children
-    renderArea = newNode ^. L.info . L.renderArea
-    cRenderArea = getChildRa wenv []
+    viewport = newNode ^. L.info . L.viewport
+    cViewport = getChildVp wenv []
 
 resizeExpand :: Spec
 resizeExpand = describe "expand" $
-  it "should have its children assigned a valid renderArea" $
-    cRenderArea `shouldBe` vp
+  it "should have its children assigned a valid viewport" $
+    cViewport `shouldBe` vp
 
   where
     wenv = mockWenv ()
     vp  = Rect   0   0 640 480
-    cRenderArea = getChildRa wenv [expandContent]
+    cViewport = getChildVp wenv [expandContent]
 
 resizeAlign :: Spec
 resizeAlign = describe "align" $ do
   it "should align its child left" $
-    childRaL `shouldBe` cvpl
+    childVpL `shouldBe` cvpl
 
   it "should align its child right" $
-    childRaR `shouldBe` cvpr
+    childVpR `shouldBe` cvpr
 
   it "should align its child top" $
-    childRaT `shouldBe` cvpt
+    childVpT `shouldBe` cvpt
 
   it "should align its child bottom" $
-    childRaB `shouldBe` cvpb
+    childVpB `shouldBe` cvpb
 
   it "should align its child top-left" $
-    childRaTL `shouldBe` cvplt
+    childVpTL `shouldBe` cvplt
 
   it "should align its child bottom-right" $
-    childRaBR `shouldBe` cvpbr
+    childVpBR `shouldBe` cvpbr
 
   where
     wenv = mockWenv ()
@@ -155,15 +155,15 @@ resizeAlign = describe "align" $ do
     cvpb  = Rect 295 460 50 20
     cvplt = Rect   0   0 50 20
     cvpbr = Rect 590 460 50 20
-    childRaL = getChildRa wenv [alignLeft]
-    childRaR = getChildRa wenv [alignRight]
-    childRaT = getChildRa wenv [alignTop]
-    childRaB = getChildRa wenv [alignBottom]
-    childRaTL = getChildRa wenv [alignTop, alignLeft]
-    childRaBR = getChildRa wenv [alignBottom, alignRight]
+    childVpL = getChildVp wenv [alignLeft]
+    childVpR = getChildVp wenv [alignRight]
+    childVpT = getChildVp wenv [alignTop]
+    childVpB = getChildVp wenv [alignBottom]
+    childVpTL = getChildVp wenv [alignTop, alignLeft]
+    childVpBR = getChildVp wenv [alignBottom, alignRight]
 
-getChildRa :: Eq s => WidgetEnv s e -> [BoxCfg s e] -> Rect
-getChildRa wenv cfgs = childLC ^. L.info . L.renderArea where
+getChildVp :: Eq s => WidgetEnv s e -> [BoxCfg s e] -> Rect
+getChildVp wenv cfgs = childLC ^. L.info . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ cfgs lblNode)
   childLC = Seq.index (boxNodeLC ^. L.children) 0

@@ -51,7 +51,7 @@ isWidgetVisible wenv node = isVisible && isOverlapped where
   info = node ^. L.info
   isVisible = info ^. L.visible
   viewport = wenv ^. L.viewport
-  isOverlapped = rectsOverlap viewport (info ^. L.renderArea)
+  isOverlapped = rectsOverlap viewport (info ^. L.viewport)
 
 visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where

@@ -145,8 +145,8 @@ makeTooltip caption config state = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv renderArea children node = resized where
-    resized = (resultWidget node, Seq.singleton renderArea)
+  resize wenv viewport children node = resized where
+    resized = (resultWidget node, Seq.singleton viewport)
 
   render renderer wenv node = do
     forM_ children $ \child ->
@@ -187,7 +187,7 @@ makeTooltip caption config state = widget where
   tooltipDisplayed wenv node = displayed where
     TooltipState lastPos lastPosTs = state
     ts = wenv ^. L.timestamp
-    renderArea = node ^. L.info . L.renderArea
-    inRenderArea = pointInRect lastPos renderArea
+    viewport = node ^. L.info . L.viewport
+    inViewport = pointInRect lastPos viewport
     delayEllapsed = ts - lastPosTs >= delay
-    displayed = inRenderArea && delayEllapsed
+    displayed = inViewport && delayEllapsed

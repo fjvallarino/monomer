@@ -360,11 +360,11 @@ makeScroll config state = widget where
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   resize :: ContainerResizeHandler s e
-  resize wenv renderArea children node = result where
+  resize wenv viewport children node = result where
     style = scrollActiveStyle wenv node
     scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
-    Rect cl ct cw ch = fromMaybe def (removeOuterBounds style renderArea)
+    Rect cl ct cw ch = fromMaybe def (removeOuterBounds style viewport)
     dx = _sstDeltaX state
     dy = _sstDeltaY state
 
@@ -380,7 +380,7 @@ makeScroll config state = widget where
       | otherwise = max ch childHeight2
     newDx = scrollAxis dx areaW cw
     newDy = scrollAxis dy areaH ch
-    cRenderArea = Rect cl ct areaW areaH
+    cViewport = Rect cl ct areaW areaH
     newState = state {
       _sstDeltaX = newDx,
       _sstDeltaY = newDy,
@@ -388,7 +388,7 @@ makeScroll config state = widget where
     }
     newNode = resultWidget $ node
       & L.widget .~ makeScroll config newState
-    result = (newNode, Seq.singleton cRenderArea)
+    result = (newNode, Seq.singleton cViewport)
 
   renderAfter renderer wenv node = do
     when hScrollRequired $

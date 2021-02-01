@@ -21,11 +21,11 @@ spec = describe "Scroll"
 
 resize :: Spec
 resize = describe "resize" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
   it "should assign all the requested space" $
-    childrenRa `shouldBe` Seq.fromList [cra1]
+    childrenVp `shouldBe` Seq.fromList [cra1]
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 640 480
@@ -34,5 +34,5 @@ resize = describe "resize" $ do
     cra1 = Rect   0 0 3000 2000
     scrollNode = scroll (label "" `style` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
-    renderArea = newNode ^. L.info . L.renderArea
-    childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children

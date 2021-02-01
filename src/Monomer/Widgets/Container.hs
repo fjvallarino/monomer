@@ -265,9 +265,9 @@ getUpdateCWenv container wenv cidx cnode node = newWenv where
   updateCWenv = containerUpdateCWenv container
   offset = fromMaybe def cOffset
   accumOffset = wenv ^. L.offset
-  renderArea = node ^. L.info . L.renderArea
+  viewport = node ^. L.info . L.viewport
   tmpWenv = wenv
-    & L.viewport .~ moveRect (negPoint accumOffset) renderArea
+    & L.viewport .~ moveRect (negPoint accumOffset) viewport
     & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)
     & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint offset)
     & L.offset %~ addPoint offset
@@ -372,7 +372,7 @@ mergeParent mergeHandler wenv oldState oldNode newNode = result where
   oldInfo = oldNode ^. L.info
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.renderArea .~ oldInfo ^. L.renderArea
+    & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   result = case useState oldState of
@@ -504,7 +504,7 @@ restoreWrapper container wenv win newNode = newResult where
   oldInfo = win ^. L.info
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.renderArea .~ oldInfo ^. L.renderArea
+    & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   styledNode = initNodeStyle getBaseStyle wenv tempNode
@@ -607,7 +607,7 @@ findFocusCandidate container wenv dir start node (ch :<| chs) = result where
 defaultFindByPoint :: ContainerFindByPointHandler s e
 defaultFindByPoint wenv startPath point node = result where
   children = node ^. L.children
-  pointInWidget wi = wi ^. L.visible && pointInRect point (wi ^. L.renderArea)
+  pointInWidget wi = wi ^. L.visible && pointInRect point (wi ^. L.viewport)
   result = Seq.findIndexL (pointInWidget . _wnInfo) children
 
 findByPointWrapper
@@ -795,7 +795,7 @@ handleSizeReqChange container wenv node evt mResult = result where
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv renderArea children node = newSize where
+defaultResize wenv viewport children node = newSize where
   childrenSizes = Seq.replicate (Seq.length children) def
   newSize = (resultWidget node, childrenSizes)
 
@@ -805,33 +805,33 @@ resizeWrapper
   -> Rect
   -> WidgetNode s e
   -> WidgetResult s e
-resizeWrapper container wenv renderArea node = result where
+resizeWrapper container wenv viewport node = result where
   updateCWenv = getUpdateCWenv container
   resizeRequired = containerResizeRequired container
   useCustomSize = containerUseCustomSize container
   useChildSize = containerUseChildrenSizes container
   handler = containerResize container
-  lensRa = L.info . L.renderArea
-  raChanged = renderArea /= node ^. lensRa
+  lensVp = L.info . L.viewport
+  vpChanged = viewport /= node ^. lensVp
   children = node ^. L.children
-  (tempRes, assigned) = handler wenv renderArea children node
-  resize idx (child, ra) = newChildRes where
+  (tempRes, assigned) = handler wenv viewport children node
+  resize idx (child, vp) = newChildRes where
     cwenv = updateCWenv wenv idx child node
-    tempChildRes = widgetResize (child ^. L.widget) cwenv ra child
-    cra = tempChildRes ^. L.node . L.info . L.renderArea
-    icra = fromMaybe ra (intersectRects ra cra)
+    tempChildRes = widgetResize (child ^. L.widget) cwenv vp child
+    cvp = tempChildRes ^. L.node . L.info . L.viewport
+    icvp = fromMaybe vp (intersectRects vp cvp)
     newChildRes = tempChildRes
-      & L.node . L.info . L.renderArea .~ (if useChildSize then icra else ra)
+      & L.node . L.info . L.viewport .~ (if useChildSize then icvp else vp)
   newChildrenRes = Seq.mapWithIndex resize (Seq.zip children assigned)
   newChildren = fmap _wrNode newChildrenRes
   newChildrenReqs = foldMap _wrRequests newChildrenRes
   newChildrenEvts = foldMap _wrEvents newChildrenRes
-  newRa
-    | useCustomSize = tempRes ^. L.node . lensRa
-    | otherwise = renderArea
+  newVp
+    | useCustomSize = tempRes ^. L.node . lensVp
+    | otherwise = viewport
   result
-    | resizeRequired || raChanged = tempRes
-      & L.node . L.info . L.renderArea .~ newRa
+    | resizeRequired || vpChanged = tempRes
+      & L.node . L.info . L.viewport .~ newVp
       & L.node . L.children .~ newChildren
       & L.requests <>~ newChildrenReqs
       & L.events <>~ newChildrenEvts
@@ -848,8 +848,8 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node =
-  drawInScissor renderer useScissor renderArea $
-    drawStyledAction renderer renderArea style $ \_ -> do
+  drawInScissor renderer useScissor viewport $
+    drawStyledAction renderer viewport style $ \_ -> do
       renderBefore renderer wenv node
 
       when (isJust offset) $ do
@@ -872,7 +872,7 @@ renderWrapper container renderer wenv node =
     renderBefore = containerRender container
     renderAfter = containerRenderAfter container
     children = node ^. L.children
-    renderArea = node ^. L.info . L.renderArea
+    viewport = node ^. L.info . L.viewport
     pairs = Seq.mapWithIndex (,) children
     cwenv idx child = updateCWenv wenv idx child node
 

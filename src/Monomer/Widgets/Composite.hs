@@ -370,7 +370,7 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv newComp
     & L.info . L.widgetId .~ oldComp ^. L.info . L.widgetId
-    & L.info . L.renderArea .~ oldComp ^. L.info . L.renderArea
+    & L.info . L.viewport .~ oldComp ^. L.info . L.viewport
     & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
   visibleEvts = if visibleChg then _cmpOnVisibleChange comp else []
@@ -453,7 +453,7 @@ compositeRestore comp state wenv win newComp = result where
   result
     | valid = reducedResult
         & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
-        & L.node . L.info . L.renderArea .~ oldInfo ^. L.renderArea
+        & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
         & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
         & L.node . L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
     | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
@@ -572,25 +572,25 @@ compositeResize
   -> Rect
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeResize comp state wenv renderArea widgetComp = resized where
+compositeResize comp state wenv viewport widgetComp = resized where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
-  contentArea = fromMaybe def (removeOuterBounds style renderArea)
+  contentArea = fromMaybe def (removeOuterBounds style viewport)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
   tmpRes = widgetResize widget cwenv contentArea _cpsRoot
-  oldRa = widgetComp ^. L.info . L.renderArea
-  sizeChanged = renderArea /= oldRa
-  resizeEvts = fmap ($ renderArea) (_cmpOnResize comp)
+  oldRa = widgetComp ^. L.info . L.viewport
+  sizeChanged = viewport /= oldRa
+  resizeEvts = fmap ($ viewport) (_cmpOnResize comp)
   newEvts
     | sizeChanged = Seq.fromList resizeEvts
     | otherwise = Empty
   newRes = reduceResult comp state wenv widgetComp $ tmpRes
-    & L.node . L.info . L.renderArea .~ contentArea
+    & L.node . L.info . L.viewport .~ contentArea
     & L.events .~ tmpRes ^. L.events <> newEvts
   resized = newRes
-    & L.node . L.info . L.renderArea .~ renderArea
+    & L.node . L.info . L.viewport .~ viewport
 
 -- Render
 compositeRender

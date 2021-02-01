@@ -382,14 +382,14 @@ makeListView widgetData items makeRow config state = widget where
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ resizeReq
     result = resultReqsEvts newNode requests events
 
-  itemScrollTo node idx = maybeToList (fmap scrollReq renderArea) where
-    renderArea = itemRenderArea node idx
+  itemScrollTo node idx = maybeToList (fmap scrollReq viewport) where
+    viewport = itemViewport node idx
     scrollPath =  parentPath node
     scrollReq rect = SendMessage scrollPath (ScrollTo rect)
 
-  itemRenderArea node idx = renderArea where
+  itemViewport node idx = viewport where
     lookup idx node = Seq.lookup idx (node ^. L.children)
-    renderArea = fmap (_wniRenderArea . _wnInfo) $ pure node
+    viewport = fmap (_wniViewport . _wnInfo) $ pure node
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
@@ -398,11 +398,11 @@ makeListView widgetData items makeRow config state = widget where
     newSizeReqW = _wniSizeReqW . _wnInfo $ child
     newSizeReqH = _wniSizeReqH . _wnInfo $ child
 
-  resize wenv renderArea children node = resized where
+  resize wenv viewport children node = resized where
     newState = state { _resizeReq = False }
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
-    assignedArea = Seq.singleton renderArea
+    assignedArea = Seq.singleton viewport
     resized = (resultWidget newNode, assignedArea)
 
 updateStyles

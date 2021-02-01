@@ -144,20 +144,20 @@ makeZStack config state = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv renderArea children node = resized where
+  resize wenv viewport children node = resized where
     style = activeStyle wenv node
-    raChild = fromMaybe def (removeOuterBounds style renderArea)
-    assignedAreas = fmap (const raChild) children
+    vpChild = fromMaybe def (removeOuterBounds style viewport)
+    assignedAreas = fmap (const vpChild) children
     resized = (resultWidget node, assignedAreas)
 
   render renderer wenv node =
-    drawInScissor renderer True renderArea $
-      drawStyledAction renderer renderArea style $ \_ ->
+    drawInScissor renderer True viewport $
+      drawStyledAction renderer viewport style $ \_ ->
         void $ Seq.traverseWithIndex renderChild children
     where
       style = activeStyle wenv node
       children = Seq.reverse $ node ^. L.children
-      renderArea = node ^. L.info . L.renderArea
+      viewport = node ^. L.info . L.viewport
       isVisible c = c ^. L.info . L.visible
       topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
       isPointEmpty point idx = not covered where

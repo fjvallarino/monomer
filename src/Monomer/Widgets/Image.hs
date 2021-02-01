@@ -182,13 +182,13 @@ makeImage imgPath config state = widget where
       imageExists = isJust (getImage renderer imgPath)
 
 fitImage :: ImageFit -> Size -> Rect -> Rect
-fitImage fitMode imageSize renderArea = case fitMode of
+fitImage fitMode imageSize viewport = case fitMode of
   FitNone -> Rect x y iw ih
   FitFill -> Rect x y w h
   FitWidth -> Rect x y w ih
   FitHeight -> Rect x y iw h
   where
-    Rect x y w h = renderArea
+    Rect x y w h = viewport
     Size iw ih = imageSize
 
 handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage

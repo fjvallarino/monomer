@@ -54,7 +54,7 @@ visible node visibility = node & L.info . L.visible .~ visibility
 
 getContentArea :: StyleState -> WidgetNode s e -> Rect
 getContentArea style node = fromMaybe def area where
-  area = removeOuterBounds style (node ^. L.info . L.renderArea)
+  area = removeOuterBounds style (node ^. L.info . L.viewport)
 
 instance CmbStyle Style where
   style oldStyle states = newStyle where

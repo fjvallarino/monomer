@@ -129,10 +129,10 @@ createStyleState size col = Just newState where
 
 createNode :: Bool -> WidgetNode s e
 createNode enabled = newNode where
-  renderArea = Rect 100 100 200 200
+  viewport = Rect 100 100 200 200
   newNode = label "Test"
     & L.info . L.path .~ Seq.fromList [0]
-    & L.info . L.renderArea .~ renderArea
+    & L.info . L.viewport .~ viewport
     & L.info . L.style .~ createStyle
     & L.info . L.visible .~ True
     & L.info . L.enabled .~ enabled

@@ -159,7 +159,7 @@ handleEventValue = describe "handleEventValue" $ do
 
 handleEventMouseSelect :: Spec
 handleEventMouseSelect = describe "handleEventMouseSelect" $ do
-  it "should add text at the end, since click + drag started outside of renderArea" $ do
+  it "should add text at the end, since click + drag started outside of viewport" $ do
     let str = "This is text"
     let selStart = Point 50 100
     let selEnd = Point 120 10

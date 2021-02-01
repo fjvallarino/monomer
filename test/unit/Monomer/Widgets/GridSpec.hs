@@ -118,8 +118,8 @@ resize = describe "resize" $ do
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
   it "should not have children" $
     children `shouldSatisfy` Seq.null
@@ -129,16 +129,16 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 480
     gridNode = vgrid []
     newNode = nodeInit wenv gridNode
-    renderArea = newNode ^. L.info . L.renderArea
+    viewport = newNode ^. L.info . L.viewport
     children = newNode ^. L.children
 
 resizeItemsH :: Spec
 resizeItemsH = describe "several items, horizontal" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
-  it "should assign the same renderArea size to each children" $
-    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should assign the same viewport size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 480 640
@@ -152,16 +152,16 @@ resizeItemsH = describe "several items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv gridNode
-    renderArea = newNode ^. L.info . L.renderArea
-    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
 
 resizeItemsV :: Spec
 resizeItemsV = describe "several items, vertical, one not visible" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
-  it "should assign the same renderArea size to each children" $
-    childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4]
+  it "should assign the same viewport size to each children" $
+    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4]
 
   where
     wenv = mockWenv ()
@@ -177,5 +177,5 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv gridNode
-    renderArea = newNode ^. L.info . L.renderArea
-    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children

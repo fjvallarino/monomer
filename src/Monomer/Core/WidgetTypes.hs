@@ -201,7 +201,7 @@ data WidgetNodeInfo =
     -- | Indicates whether the widget can receive focus
     _wniFocusable :: !Bool,
     -- | The area of the screen where the widget can draw
-    _wniRenderArea :: !Rect,
+    _wniViewport :: !Rect,
     -- | Style attributes of the widget instance
     _wniStyle :: Style
   } deriving (Eq, Show, Generic, Serialise)
@@ -217,7 +217,7 @@ instance Default WidgetNodeInfo where
     _wniEnabled = True,
     _wniVisible = True,
     _wniFocusable = False,
-    _wniRenderArea = def,
+    _wniViewport = def,
     _wniStyle = def
   }
 

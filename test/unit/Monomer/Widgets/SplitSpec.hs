@@ -85,9 +85,9 @@ handleEventMouseDragH = describe "handleEventMouseDragH" $ do
     btn2 = button "Longer" Button2
     splitNode = hsplit_ [splitHandlePos sliderPos] (btn1, btn2)
     model es = nodeHandleEventModel wenv es splitNode
-    areas es = ra where
+    areas es = vp where
       root = nodeHandleEventRoot wenv es splitNode
-      ra = fmap (roundRectUnits . _wniRenderArea . _wnInfo) (root ^. L.children)
+      vp = fmap (roundRectUnits . _wniViewport . _wnInfo) (root ^. L.children)
 
 handleEventMouseDragV :: Spec
 handleEventMouseDragV = describe "handleEventMouseDragV" $ do
@@ -133,9 +133,9 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
     btn2 = button "Longer" Button2 `style` [rangeHeight 200 400]
     splitNode = vsplit_ [splitHandlePosV 0.5, onChange SliderChanged] (btn1, btn2)
     evts es = nodeHandleEventEvts wenv es splitNode
-    areas es = ra where
+    areas es = vp where
       root = nodeHandleEventRoot wenv es splitNode
-      ra = fmap (roundRectUnits . _wniRenderArea . _wnInfo) (root ^. L.children)
+      vp = fmap (roundRectUnits . _wniViewport . _wnInfo) (root ^. L.children)
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

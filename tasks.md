@@ -239,7 +239,7 @@
   - Update style when merging to avoid recalculating/merging theme every time
   - Use theme for all components
   - Replace uses of Seq.zip with foldlWithIndex
-  - Check provided renderArea is used correctly
+  - Check provided viewport is used correctly
   - Provided viewport should consider parent viewport
   - Check scroll styling works correctly (contentRect being applied, etc)
     - Also handle hover so scrollbars get correct cursor
@@ -292,7 +292,7 @@
     - Maybe some composites could have a typeclass for its constructor, and react differently if provided Eq?
     - Still need to provide method for custom mergeNeeded check
   - Avoid forced resize after merge (if an item needs more space, it should request it)
-  - Avoid rebuilding glyphs if renderArea did not change for label
+  - Avoid rebuilding glyphs if viewport did not change for label
   - Fix dialog not generating RenderOnce
     - The issue was in zstack, where changing visible items should generate a resize request
   - Review composite initialization. View creation can be moved to init
@@ -380,7 +380,7 @@
   - Rethink containerStyleOnMerge (it should really be containerStyleOnEvent and yes we need it)
     - Removed, no longer needed (performance issue gone with removal of getSizeReq)
   - Listview is not properly changing styles
-    - Label needs to rebuild its glyphs if style/renderArea changes
+    - Label needs to rebuild its glyphs if style/viewport changes
     - Listview needs to update sizeReq of modified items
     - If sizeReq changes, it should request ResizeWidgets
   - When hover is lost, size is not reduced/recalculated

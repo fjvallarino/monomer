@@ -24,16 +24,16 @@ import Monomer.Graphics.Types
 import qualified Monomer.Lens as L
 
 isPointInNodeVp :: Point -> WidgetNode s e -> Bool
-isPointInNodeVp p node = pointInRect p (node ^. L.info . L.renderArea)
+isPointInNodeVp p node = pointInRect p (node ^. L.info . L.viewport)
 
 isPointInNodeEllipse :: Point -> WidgetNode s e -> Bool
-isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.renderArea)
+isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.viewport)
 
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeActive wenv node = validPos && pressed where
-  renderArea = node ^. L.info . L.renderArea
+  viewport = node ^. L.info . L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInRect mousePos renderArea
+  validPos = pointInRect mousePos viewport
   pressed = isNodePressed wenv node
 
 isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
@@ -49,9 +49,9 @@ isNodeDragged wenv node = mainPressed && draggedPath == Just nodePath where
 
 isNodeHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeHovered wenv node = validPos && validPress && topLevel where
-  renderArea = node ^. L.info . L.renderArea
+  viewport = node ^. L.info . L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
-  validPos = pointInRect mousePos renderArea
+  validPos = pointInRect mousePos viewport
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
   validPress = isNothing pressed || isNodePressed wenv node
   topLevel = isNodeTopLevel wenv node

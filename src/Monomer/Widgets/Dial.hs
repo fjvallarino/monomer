@@ -306,9 +306,9 @@ getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where
   theme = activeTheme wenv node
   style = activeStyle wenv node
-  rarea = getContentArea style node
+  carea = getContentArea style node
   dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
-  dialL = _rX rarea + (_rW rarea - dialW) / 2
-  dialT = _rY rarea + (_rH rarea - dialW) / 2
+  dialL = _rX carea + (_rW carea - dialW) / 2
+  dialT = _rY carea + (_rH carea - dialW) / 2
   dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
   dialArea = Rect dialL dialT dialW dialW

@@ -167,17 +167,17 @@ makeSplit isHorizontal config state = widget where
       | isTarget && isDragging -> Just resultDrag
       | isTarget && isInHandle point -> Just resultHover
       where
-        Point px py = getValidHandlePos maxSize ra point children
+        Point px py = getValidHandlePos maxSize vp point children
         newHandlePos
-          | isHorizontal = (px - ra ^. L.x) / maxSize
-          | otherwise = (py - ra ^. L.y) / maxSize
+          | isHorizontal = (px - vp ^. L.x) / maxSize
+          | otherwise = (py - vp ^. L.y) / maxSize
         newState = state {
           _spsHandlePosUserSet = True,
           _spsHandlePos = newHandlePos
         }
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
-        newNode = widgetResize (tmpNode ^. L.widget) wenv ra tmpNode
+        newNode = widgetResize (tmpNode ^. L.widget) wenv vp tmpNode
         resultDrag
           | handlePos /= newHandlePos = newNode
               & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
@@ -188,7 +188,7 @@ makeSplit isHorizontal config state = widget where
       maxSize = _spsMaxSize state
       handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
-      ra = node ^. L.info . L.renderArea
+      vp = node ^. L.info . L.viewport
       children = node ^. L.children
       isTarget = target == node ^. L.info . L.path
       isDragging = isNodePressed wenv node
@@ -213,9 +213,9 @@ makeSplit isHorizontal config state = widget where
       | isHorizontal = foldl1 sizeReqMergeMax [reqH1, reqH2]
       | otherwise = foldl1 sizeReqMergeSum [reqWS, reqH1, reqH2]
 
-  resize wenv renderArea children node = resized where
+  resize wenv viewport children node = resized where
     style = activeStyle wenv node
-    contentArea = fromMaybe def (removeOuterBounds style renderArea)
+    contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect rx ry rw rh = contentArea
     (areas, newSize) = assignStackAreas isHorizontal contentArea children
     oldHandlePos = _spsHandlePos state
@@ -231,7 +231,7 @@ makeSplit isHorizontal config state = widget where
     useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     handlePos
       | useOldPos && handlePosUserSet && validSize = oldHandlePos
-      | otherwise = calcHandlePos newSize oldHandlePos renderArea children
+      | otherwise = calcHandlePos newSize oldHandlePos viewport children
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)
       | otherwise = (rw, (newSize - handleW) * handlePos)
@@ -258,8 +258,8 @@ makeSplit isHorizontal config state = widget where
       & L.node . L.widget .~ makeSplit isHorizontal config newState
       & L.events .~ Seq.fromList events
       & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
-    newRas = Seq.fromList [rect1, rect2]
-    resized = (result, newRas)
+    newVps = Seq.fromList [rect1, rect2]
+    resized = (result, newVps)
 
   getValidHandlePos maxDim rect point children = addPoint origin newPoint where
     Rect rx ry _ _ = rect

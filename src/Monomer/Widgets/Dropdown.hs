@@ -309,12 +309,12 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath
 
-  openRequired point node = not isOpen && inRenderArea where
-    inRenderArea = pointInRect point (node ^. L.info . L.renderArea)
+  openRequired point node = not isOpen && inViewport where
+    inViewport = pointInRect point (node ^. L.info . L.viewport)
 
   closeRequired point node = isOpen && not inOverlay where
     inOverlay = case Seq.lookup listIdx (node ^. L.children) of
-      Just node -> pointInRect point (node ^. L.info . L.renderArea)
+      Just node -> pointInRect point (node ^. L.info . L.viewport)
       Nothing -> False
 
   openDropdown wenv node = resultReqs newNode requests where
@@ -367,16 +367,16 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newReqW = sizeReqMergeMax mainReqW listReqW
     newReqH = mainReqH
 
-  resize wenv renderArea children node = resized where
+  resize wenv viewport children node = resized where
     Size winW winH = _weWindowSize wenv
-    Rect rx ry rw rh = renderArea
+    Rect rx ry rw rh = viewport
     theme = activeTheme wenv node
     dropdownY dh
       | ry + rh + dh <= winH = ry + rh
       | ry - dh >= 0 = ry - dh
       | otherwise = 0
     !listArea = case Seq.lookup 1 children of
-      Just child -> oRenderArea where
+      Just child -> oViewport where
         maxHeightTheme = theme ^. L.dropdownMaxHeight
         cfgMaxHeight = _ddcMaxHeight config
         -- Avoid having an invisible list if style/theme as not set
@@ -385,18 +385,18 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         maxHeight = min winH (min reqHeight maxHeightStyle)
         dy = dropdownY maxHeight
         dh = maxHeight
-        !oRenderArea = renderArea {
+        !oViewport = viewport {
           _rY = dy,
           _rH = dh
         }
-      Nothing -> renderArea
-    !mainArea = renderArea
+      Nothing -> viewport
+    !mainArea = viewport
     assignedAreas = Seq.fromList [mainArea, listArea]
     resized = (resultWidget node, assignedAreas)
 
   render renderer wenv node = do
-    drawInScissor renderer True renderArea $
-      drawStyledAction renderer renderArea style $ \contentArea -> do
+    drawInScissor renderer True viewport $
+      drawStyledAction renderer viewport style $ \contentArea -> do
         widgetRender (mainNode ^. L.widget) renderer wenv mainNode
         renderArrow renderer style contentArea
 
@@ -405,7 +405,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         renderOverlay renderer wenv (fromJust listViewOverlay)
     where
       style = activeStyle wenv node
-      renderArea = node ^. L.info . L.renderArea
+      viewport = node ^. L.info . L.viewport
       mainNode = Seq.index (node ^. L.children) mainIdx
       listViewOverlay = Seq.lookup listIdx (node ^. L.children)
 

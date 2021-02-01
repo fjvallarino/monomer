@@ -91,17 +91,16 @@ makeStack isHorizontal config = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv renderArea children node = resized where
+  resize wenv viewport children node = resized where
     style = activeStyle wenv node
-    contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    (newRas, newDim) = assignStackAreas isHorizontal contentArea children
+    contentArea = fromMaybe def (removeOuterBounds style viewport)
+    (newVps, newDim) = assignStackAreas isHorizontal contentArea children
     newCa
       | isHorizontal = contentArea & L.w .~ newDim
       | otherwise = contentArea & L.h .~ newDim
-    newRenderArea = fromMaybe newCa (addOuterBounds style newCa)
     newNode = node
-      & L.info . L.renderArea .~ newRenderArea
-    resized = (resultWidget newNode, newRas)
+      & L.info . L.viewport .~ fromMaybe newCa (addOuterBounds style newCa)
+    resized = (resultWidget newNode, newVps)
 
 assignStackAreas :: Bool -> Rect -> Seq (WidgetNode s e) -> (Seq Rect, Double)
 assignStackAreas isHorizontal contentArea children = result where

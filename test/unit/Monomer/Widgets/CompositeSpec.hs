@@ -317,11 +317,11 @@ getSizeReq = describe "getSizeReq" $ do
 
 resize :: Spec
 resize = describe "resize" $ do
-  it "should have the provided renderArea size" $
-    renderArea `shouldBe` vp
+  it "should have the provided viewport size" $
+    viewport `shouldBe` vp
 
-  it "should assign the same renderArea size to its child" $
-    childrenRa `shouldBe` Seq.singleton cvp1
+  it "should assign the same viewport size to its child" $
+    childrenVp `shouldBe` Seq.singleton cvp1
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 640 480
@@ -333,5 +333,5 @@ resize = describe "resize" $ do
     cmpNode = composite "main" id buildUI handleEvent
     tmpNode = nodeInit wenv cmpNode
     newNode = widgetSave (tmpNode ^. L.widget) wenv tmpNode
-    renderArea = newNode ^. L.info . L.renderArea
-    childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
+    viewport = newNode ^. L.info . L.viewport
+    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
