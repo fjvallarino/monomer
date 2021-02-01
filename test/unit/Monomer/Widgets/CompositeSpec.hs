@@ -38,7 +38,7 @@ import qualified Monomer.Widgets.Single as SG
 data MainEvt
   = MainBtnClicked
   | ChildClicked
-  | MainResize (Rect, Rect)
+  | MainResize Rect
   deriving (Eq, Show)
 
 data ChildEvt
@@ -112,7 +112,7 @@ handleEventBasic = describe "handleEventBasic" $ do
     model [evtClick (Point 10 10)] ^. clicks `shouldBe` 1
 
   it "should generate a resize event on init" $
-    events [] `shouldBe` Seq.fromList [MainResize (vp, vp)]
+    events [] `shouldBe` Seq.fromList [MainResize vp]
 
   where
     wenv = mockWenv def
@@ -317,11 +317,8 @@ getSizeReq = describe "getSizeReq" $ do
 
 resize :: Spec
 resize = describe "resize" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign the same viewport size to its child" $
-    childrenVp `shouldBe` Seq.singleton cvp1
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign the same renderArea size to its child" $
     childrenRa `shouldBe` Seq.singleton cvp1
@@ -336,6 +333,5 @@ resize = describe "resize" $ do
     cmpNode = composite "main" id buildUI handleEvent
     tmpNode = nodeInit wenv cmpNode
     newNode = widgetSave (tmpNode ^. L.widget) wenv tmpNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

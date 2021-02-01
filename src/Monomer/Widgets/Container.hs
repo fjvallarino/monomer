@@ -156,10 +156,9 @@ type ContainerGetSizeReqHandler s e a
 type ContainerResizeHandler s e
   = WidgetEnv s e
   -> Rect
-  -> Rect
   -> Seq (WidgetNode s e)
   -> WidgetNode s e
-  -> (WidgetResult s e, Seq (Rect, Rect))
+  -> (WidgetResult s e, Seq Rect)
 
 type ContainerRenderHandler s e
   = Renderer
@@ -168,6 +167,7 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e a = Container {
+  containerChildrenOffset :: Maybe Point,
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
   containerStyleChangeCfg :: StyleChangeCfg,
@@ -186,7 +186,6 @@ data Container s e a = Container {
   containerDispose :: ContainerDisposeHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
-  containerUpdateEvent :: ContainerUpdateEventHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
   containerHandleMessage :: ContainerMessageHandler s e,
   containerGetSizeReq :: ContainerGetSizeReqHandler s e a,
@@ -197,6 +196,7 @@ data Container s e a = Container {
 
 instance Default (Container s e a) where
   def = Container {
+    containerChildrenOffset = Nothing,
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
     containerStyleChangeCfg = def,
@@ -215,7 +215,6 @@ instance Default (Container s e a) where
     containerDispose = defaultDispose,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
-    containerUpdateEvent = defaultUpdateEvent,
     containerHandleEvent = defaultHandleEvent,
     containerHandleMessage = defaultHandleMessage,
     containerGetSizeReq = defaultGetSizeReq,
@@ -254,6 +253,28 @@ defaultGetActiveStyle wenv node = activeStyle wenv node
 defaultUpdateCWenv :: ContainerUpdateCWenvHandler s e
 defaultUpdateCWenv wenv cidx cnode node = wenv
 
+getUpdateCWenv
+  :: Container s e a
+  -> WidgetEnv s e
+  -> Int
+  -> WidgetNode s e
+  -> WidgetNode s e
+  -> WidgetEnv s e
+getUpdateCWenv container wenv cidx cnode node = newWenv where
+  cOffset = containerChildrenOffset container
+  updateCWenv = containerUpdateCWenv container
+  offset = fromMaybe def cOffset
+  accumOffset = wenv ^. L.offset
+  renderArea = node ^. L.info . L.renderArea
+  tmpWenv = wenv
+    & L.viewport .~ moveRect (negPoint accumOffset) renderArea
+    & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)
+    & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint offset)
+    & L.offset %~ addPoint offset
+  newWenv
+    | isJust cOffset = updateCWenv tmpWenv cidx cnode node
+    | otherwise = updateCWenv wenv cidx cnode node
+
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
 defaultInit wenv node = resultWidget node
@@ -267,7 +288,7 @@ initWrapper
 initWrapper container wenv node = result where
   initHandler = containerInit container
   getBaseStyle = containerGetBaseStyle container
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   styledNode = initNodeStyle getBaseStyle wenv node
   WidgetResult tempNode reqs events = initHandler wenv styledNode
   children = tempNode ^. L.children
@@ -309,7 +330,7 @@ mergeWrapper
   -> WidgetResult s e
 mergeWrapper container wenv oldNode newNode = newResult where
   getBaseStyle = containerGetBaseStyle container
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   cWenvHelper idx child = updateCWenv wenv idx child newNode
   mergeRequiredHandler = containerMergeChildrenReq container
   mergeHandler = case containerMerge container of
@@ -351,7 +372,6 @@ mergeParent mergeHandler wenv oldState oldNode newNode = result where
   oldInfo = oldNode ^. L.info
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
@@ -454,7 +474,7 @@ saveWrapper
   -> WidgetNode s e
   -> WidgetInstanceNode
 saveWrapper container wenv node = instNode where
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   instNode = WidgetInstanceNode {
     _winInfo = node ^. L.info,
     _winState = widgetGetState (node ^. L.widget) wenv,
@@ -478,13 +498,12 @@ restoreWrapper
   -> WidgetResult s e
 restoreWrapper container wenv win newNode = newResult where
   getBaseStyle = containerGetBaseStyle container
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   restoreHandler = containerRestore container
   restorePostHandler = containerRestorePost container
   oldInfo = win ^. L.info
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
@@ -527,7 +546,7 @@ disposeWrapper
   -> WidgetNode s e
   -> WidgetResult s e
 disposeWrapper container wenv node = result where
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   disposeHandler = containerDispose container
   WidgetResult tempNode reqs events = disposeHandler wenv node
   children = tempNode ^. L.children
@@ -572,7 +591,7 @@ findFocusCandidate
   -> Maybe Path
 findFocusCandidate _ _ _ _ _ Empty = Nothing
 findFocusCandidate container wenv dir start node (ch :<| chs) = result where
-  updateCWenv = containerUpdateCWenv container
+  updateCWenv = getUpdateCWenv container
   path = node ^. L.info . L.path
   idx = fromMaybe 0 (Seq.lookup (length path - 1) path)
   cwenv = updateCWenv wenv idx ch node
@@ -588,7 +607,7 @@ findFocusCandidate container wenv dir start node (ch :<| chs) = result where
 defaultFindByPoint :: ContainerFindByPointHandler s e
 defaultFindByPoint wenv startPath point node = result where
   children = node ^. L.children
-  pointInWidget wi = wi ^. L.visible && pointInRect point (wi ^. L.viewport)
+  pointInWidget wi = wi ^. L.visible && pointInRect point (wi ^. L.renderArea)
   result = Seq.findIndexL (pointInWidget . _wnInfo) children
 
 findByPointWrapper
@@ -599,16 +618,18 @@ findByPointWrapper
   -> WidgetNode s e
   -> Maybe Path
 findByPointWrapper container wenv start point node = result where
-  updateCWenv = containerUpdateCWenv container
+  offset = fromMaybe def (containerChildrenOffset container)
+  updateCWenv = getUpdateCWenv container
   ignoreEmpty = containerIgnoreEmptyArea container
   handler = containerFindByPoint container
   isVisible = node ^. L.info . L.visible
   inVp = isPointInNodeVp point node
+  cpoint = addPoint (negPoint offset) point
   path = node ^. L.info . L.path
   children = node ^. L.children
   newStartPath = Seq.drop 1 start
   childIdx = case newStartPath of
-    Empty -> handler wenv start point node
+    Empty -> handler wenv start cpoint node
     p :<| ps -> Just p
   validateIdx p
     | Seq.length children > p = Just p
@@ -616,7 +637,7 @@ findByPointWrapper container wenv start point node = result where
   resultPath = case childIdx >>= validateIdx of
     Just idx -> childPath where
       cwenv = updateCWenv wenv idx child node
-      childPath = widgetFindByPoint childWidget cwenv newStartPath point child
+      childPath = widgetFindByPoint childWidget cwenv newStartPath cpoint child
       child = Seq.index children idx
       childWidget = child ^. L.widget
     Nothing
@@ -627,9 +648,6 @@ findByPointWrapper container wenv start point node = result where
     | otherwise = Nothing
 
 -- | Event Handling
-defaultUpdateEvent :: ContainerUpdateEventHandler s e
-defaultUpdateEvent wenv evt node = evt
-
 defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
 
@@ -650,10 +668,10 @@ handleEventWrapper container wenv target evt node
     -- _wiChildren, but may still be valid in the receiving widget
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
+    offset = fromMaybe def (containerChildrenOffset container)
     style = containerGetActiveStyle container wenv node
     styleCfg = containerStyleChangeCfg container
-    updateCWenv = containerUpdateCWenv container
-    updateEvt = containerUpdateEvent container
+    updateCWenv = getUpdateCWenv container
     handler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
@@ -662,7 +680,7 @@ handleEventWrapper container wenv target evt node
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
     cwenv = updateCWenv wenv childIdx child node
-    cevt = updateEvt wenv evt node
+    cevt = translateEvent (negPoint offset) evt
     -- Event targeted at parent
     pResponse = handler wenv target evt node
     pResultStyled = handleStyleChange wenv target style styleCfg node evt
@@ -673,8 +691,8 @@ handleEventWrapper container wenv target evt node
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget cwenv target cevt child
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange wenv target style styleCfg node cevt
-      $ handleSizeReqChange container wenv node (Just cevt) cResult
+    cResultStyled = handleStyleChange cwenv target style styleCfg node cevt
+      $ handleSizeReqChange container cwenv node (Just cevt) cResult
 
 mergeParentChildEvts
   :: WidgetNode s e
@@ -717,7 +735,7 @@ handleMessageWrapper container wenv target arg node
   | not targetReached && not targetValid = Nothing
   | otherwise = handleSizeReqChange container wenv node Nothing result
   where
-    updateCWenv = containerUpdateCWenv container
+    updateCWenv = getUpdateCWenv container
     handler = containerHandleMessage container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
@@ -777,7 +795,7 @@ handleSizeReqChange container wenv node evt mResult = result where
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv viewport renderArea children node = newSize where
+defaultResize wenv renderArea children node = newSize where
   childrenSizes = Seq.replicate (Seq.length children) def
   newSize = (resultWidget node, childrenSizes)
 
@@ -785,44 +803,34 @@ resizeWrapper
   :: Container s e a
   -> WidgetEnv s e
   -> Rect
-  -> Rect
   -> WidgetNode s e
   -> WidgetResult s e
-resizeWrapper container wenv viewport renderArea node = result where
-  updateCWenv = containerUpdateCWenv container
+resizeWrapper container wenv renderArea node = result where
+  updateCWenv = getUpdateCWenv container
   resizeRequired = containerResizeRequired container
   useCustomSize = containerUseCustomSize container
   useChildSize = containerUseChildrenSizes container
   handler = containerResize container
-  lensVp = L.info . L.viewport
   lensRa = L.info . L.renderArea
-  vpChanged = viewport /= node ^. lensVp
   raChanged = renderArea /= node ^. lensRa
   children = node ^. L.children
-  (tempRes, assigned) = handler wenv viewport renderArea children node
-  resize idx (child, (vp, ra)) = newChildRes where
+  (tempRes, assigned) = handler wenv renderArea children node
+  resize idx (child, ra) = newChildRes where
     cwenv = updateCWenv wenv idx child node
-    tempChildRes = widgetResize (child ^. L.widget) cwenv vp ra child
-    cvp = tempChildRes ^. L.node . L.info . L.viewport
+    tempChildRes = widgetResize (child ^. L.widget) cwenv ra child
     cra = tempChildRes ^. L.node . L.info . L.renderArea
-    icvp = fromMaybe vp (intersectRects vp cvp)
     icra = fromMaybe ra (intersectRects ra cra)
     newChildRes = tempChildRes
-      & L.node . L.info . L.viewport .~ (if useChildSize then icvp else vp)
       & L.node . L.info . L.renderArea .~ (if useChildSize then icra else ra)
   newChildrenRes = Seq.mapWithIndex resize (Seq.zip children assigned)
   newChildren = fmap _wrNode newChildrenRes
   newChildrenReqs = foldMap _wrRequests newChildrenRes
   newChildrenEvts = foldMap _wrEvents newChildrenRes
-  newVp
-    | useCustomSize = tempRes ^. L.node . lensVp
-    | otherwise = viewport
   newRa
     | useCustomSize = tempRes ^. L.node . lensRa
     | otherwise = renderArea
   result
-    | resizeRequired || vpChanged || raChanged = tempRes
-      & L.node . L.info . L.viewport .~ newVp
+    | resizeRequired || raChanged = tempRes
       & L.node . L.info . L.renderArea .~ newRa
       & L.node . L.children .~ newChildren
       & L.requests <>~ newChildrenReqs
@@ -840,22 +848,30 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node =
-  drawInScissor renderer useScissor viewport $
+  drawInScissor renderer useScissor renderArea $
     drawStyledAction renderer renderArea style $ \_ -> do
       renderBefore renderer wenv node
 
-      forM_ pairs $ \(idx, child) -> when (isWidgetVisible child viewport) $
-        widgetRender (child ^. L.widget) renderer (cwenv idx child) child
+      when (isJust offset) $ do
+        saveContext renderer
+        setTranslation renderer (fromJust offset)
+
+      forM_ pairs $ \(idx, child) ->
+        when (isWidgetVisible (cwenv idx child) child) $
+          widgetRender (child ^. L.widget) renderer (cwenv idx child) child
+
+      when (isJust offset) $
+        restoreContext renderer
 
       renderAfter renderer wenv node
   where
     style = containerGetActiveStyle container wenv node
-    updateCWenv = containerUpdateCWenv container
+    updateCWenv = getUpdateCWenv container
     useScissor = containerUseScissor container
+    offset = containerChildrenOffset container
     renderBefore = containerRender container
     renderAfter = containerRenderAfter container
     children = node ^. L.children
-    viewport = node ^. L.info . L.viewport
     renderArea = node ^. L.info . L.renderArea
     pairs = Seq.mapWithIndex (,) children
     cwenv idx child = updateCWenv wenv idx child node

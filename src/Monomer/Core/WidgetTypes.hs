@@ -200,11 +200,7 @@ data WidgetNodeInfo =
     _wniVisible :: !Bool,
     -- | Indicates whether the widget can receive focus
     _wniFocusable :: !Bool,
-    -- | The visible area of the screen assigned to the widget
-    _wniViewport :: !Rect,
     -- | The area of the screen where the widget can draw
-    -- | Usually equal to _wniViewport, but may be larger if the widget is
-    -- | wrapped in a scrollable container
     _wniRenderArea :: !Rect,
     -- | Style attributes of the widget instance
     _wniStyle :: Style
@@ -221,7 +217,6 @@ instance Default WidgetNodeInfo where
     _wniEnabled = True,
     _wniVisible = True,
     _wniFocusable = False,
-    _wniViewport = def,
     _wniRenderArea = def,
     _wniStyle = def
   }
@@ -335,7 +330,6 @@ data Widget s e =
     -- Returns: the size assigned to each of the children
     widgetResize
       :: WidgetEnv s e
-      -> Rect
       -> Rect
       -> WidgetNode s e
       -> WidgetResult s e,

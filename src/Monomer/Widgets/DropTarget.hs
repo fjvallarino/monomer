@@ -92,10 +92,10 @@ makeDropTarget dropEvt config = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
+    resized = (resultWidget node, Seq.singleton contentArea)
 
   isDropTarget wenv node = case wenv ^. L.dragStatus of
     Just (path, msg) -> not (isNodeParentOfPath path node) && isValidMsg msg

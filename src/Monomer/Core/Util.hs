@@ -29,7 +29,6 @@ nodeDesc level node = infoDesc (_wnInfo node) where
   infoDesc info =
     spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
     spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
-    spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
     spaces ++ "ra: " ++ rectDesc (_wniRenderArea info) ++ "\n" ++
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
@@ -45,7 +44,6 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
   infoDesc info =
     spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
     spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
-    spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
     spaces ++ "ra: " ++ rectDesc (_wniRenderArea info) ++ "\n" ++
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)

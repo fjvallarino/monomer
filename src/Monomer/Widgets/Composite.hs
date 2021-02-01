@@ -70,7 +70,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcOnInit :: [e],
   _cmcOnDispose :: [e],
-  _cmcOnResize :: [(Rect, Rect) -> e],
+  _cmcOnResize :: [Rect -> e],
   _cmcOnChange :: [s -> ep],
   _cmcOnChangeReq :: [WidgetRequest sp],
   _cmcOnEnabledChange :: [e],
@@ -119,7 +119,7 @@ instance CmbOnDispose (CompositeCfg s e sp ep) e where
     _cmcOnDispose = [fn]
   }
 
-instance CmbOnResize (CompositeCfg s e sp ep) (Rect, Rect) e where
+instance CmbOnResize (CompositeCfg s e sp ep) Rect e where
   onResize fn = def {
     _cmcOnResize = [fn]
   }
@@ -151,7 +151,7 @@ data Composite s e sp ep = Composite {
   _cmpMergeRequired :: MergeRequired s,
   _cmpOnInit :: [e],
   _cmpOnDispose :: [e],
-  _cmpOnResize :: [(Rect, Rect) -> e],
+  _cmpOnResize :: [Rect -> e],
   _cmpOnChange :: [s -> ep],
   _cmpOnChangeReq :: [WidgetRequest sp],
   _cmpOnEnabledChange :: [e],
@@ -370,7 +370,6 @@ compositeMerge comp state wenv oldComp newComp = newResult where
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv newComp
     & L.info . L.widgetId .~ oldComp ^. L.info . L.widgetId
-    & L.info . L.viewport .~ oldComp ^. L.info . L.viewport
     & L.info . L.renderArea .~ oldComp ^. L.info . L.renderArea
     & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
@@ -454,7 +453,6 @@ compositeRestore comp state wenv win newComp = result where
   result
     | valid = reducedResult
         & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
-        & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
         & L.node . L.info . L.renderArea .~ oldInfo ^. L.renderArea
         & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
         & L.node . L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
@@ -572,30 +570,26 @@ compositeResize
   -> CompositeState s e
   -> WidgetEnv sp ep
   -> Rect
-  -> Rect
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeResize comp state wenv viewport renderArea widgetComp = resized where
+compositeResize comp state wenv renderArea widgetComp = resized where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   contentArea = fromMaybe def (removeOuterBounds style renderArea)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  tmpRes = widgetResize widget cwenv viewport contentArea _cpsRoot
-  oldVp = widgetComp ^. L.info . L.viewport
+  tmpRes = widgetResize widget cwenv contentArea _cpsRoot
   oldRa = widgetComp ^. L.info . L.renderArea
-  sizeChanged = viewport /= oldVp || renderArea /= oldRa
-  resizeEvts = fmap ($ (viewport, renderArea)) (_cmpOnResize comp)
+  sizeChanged = renderArea /= oldRa
+  resizeEvts = fmap ($ renderArea) (_cmpOnResize comp)
   newEvts
     | sizeChanged = Seq.fromList resizeEvts
     | otherwise = Empty
   newRes = reduceResult comp state wenv widgetComp $ tmpRes
-    & L.node . L.info . L.viewport .~ viewport
     & L.node . L.info . L.renderArea .~ contentArea
     & L.events .~ tmpRes ^. L.events <> newEvts
   resized = newRes
-    & L.node . L.info . L.viewport .~ viewport
     & L.node . L.info . L.renderArea .~ renderArea
 
 -- Render

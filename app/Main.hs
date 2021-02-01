@@ -133,7 +133,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetLV where
+buildUI wenv model = traceShow "Creating UI" widgetTree where
   widgetThemeSwitch = hstack [
       label "Test",
       themeSwitch (darkTheme & L.basic . L.labelStyle . L.bgColor ?~ red) (label "Test")
@@ -234,8 +234,8 @@ buildUI wenv model = traceShow "Creating UI" widgetLV where
   widgetLV = vstack [
 --      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
       label "aaa"
---      , listView dropdown1 items label
-      , scroll $ image "assets/images/pecans.jpg"
+      , listView dropdown1 items label `style` [height 300]
+--      , scroll $ image "assets/images/pecans.jpg"
 --      , dropdown_ dropdown1 items label label [maxHeight 200]
     ]
   widgetWindow = vstack [
@@ -377,12 +377,12 @@ buildUI wenv model = traceShow "Creating UI" widgetLV where
           label "Label 1234" `style` [bgColor darkGray]
         ] `style` [bgColor blue]
       ] `style` [bgColor green],
-      label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
-      textField textField1 `style` [bgColor lightBlue, textLeft],
       hgrid [
         label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
         label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
+      label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
+      textField textField1 `style` [bgColor lightBlue, textLeft],
       hstack [
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],

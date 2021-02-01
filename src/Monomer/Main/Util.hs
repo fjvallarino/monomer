@@ -69,7 +69,7 @@ resizeRoot wenv windowSize widgetRoot = result where
   Size w h = windowSize
   assigned = Rect 0 0 w h
   widget = widgetRoot ^. L.widget
-  result = widgetResize widget wenv assigned assigned widgetRoot
+  result = widgetResize widget wenv assigned widgetRoot
 
 setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
 setWidgetIdPath widgetId path =

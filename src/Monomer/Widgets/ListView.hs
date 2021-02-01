@@ -398,11 +398,11 @@ makeListView widgetData items makeRow config state = widget where
     newSizeReqW = _wniSizeReqW . _wnInfo $ child
     newSizeReqH = _wniSizeReqH . _wnInfo $ child
 
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     newState = state { _resizeReq = False }
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
-    assignedArea = Seq.singleton (viewport, renderArea)
+    assignedArea = Seq.singleton renderArea
     resized = (resultWidget newNode, assignedArea)
 
 updateStyles

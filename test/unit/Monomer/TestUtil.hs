@@ -132,7 +132,9 @@ mockWenv model = WidgetEnv {
   _weModel = model,
   _weInputStatus = def,
   _weTimestamp = 0,
-  _weInTopLayer = const True
+  _weInTopLayer = const True,
+  _weViewport = Rect 0 0 testW testH,
+  _weOffset = def
 }
 
 mockWenvEvtUnit :: s -> WidgetEnv s ()
@@ -153,9 +155,9 @@ nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
   sizeReqH = node2 ^. L.info . L.sizeReqH
 
 nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
-nodeResize wenv viewport node = result ^. L.node where
+nodeResize wenv renderArea node = result ^. L.node where
   widget = node ^. L.widget
-  result = widgetResize widget wenv viewport viewport node
+  result = widgetResize widget wenv renderArea node
 
 nodeHandleEventCtx
   :: (Eq s)

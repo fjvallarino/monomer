@@ -420,7 +420,7 @@ makeInputField config state = widget where
       newState = tmpState { _ifsDragSelActive = True }
       newNode = node
         & L.widget .~ makeInputField config newState
-      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
+      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput renderArea]
       newResult = resultReqs newNode reqs
       focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
       result = maybe newResult (newResult <>) focusResult
@@ -438,7 +438,7 @@ makeInputField config state = widget where
     where
       path = node ^. L.info . L.path
       widgetId = node ^. L.info . L.widgetId
-      viewport = node ^. L.info . L.viewport
+      renderArea = node ^. L.info . L.renderArea
       focused = isNodeFocused wenv node
       dragSelectText btn
         = wenv ^. L.mainButton == btn
@@ -509,10 +509,9 @@ makeInputField config state = widget where
     factor = 1
     sizeReq = (FlexSize targetW factor, FixedSize h)
 
-  resize wenv viewport renderArea node = resultWidget newNode where
-    -- newTextState depends on having correct viewport/renderArea in the node
+  resize wenv renderArea node = resultWidget newNode where
+    -- newTextState depends on having correct renderArea in the node
     tempNode = node
-      & L.info . L.viewport .~ viewport
       & L.info . L.renderArea .~ renderArea
     newState = newTextState wenv tempNode state currVal currText currPos currSel
     newNode = tempNode

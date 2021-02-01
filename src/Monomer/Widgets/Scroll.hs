@@ -205,41 +205,28 @@ makeNode widget managedWidget = defaultWidgetNode "scroll" widget
 
 makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
-  baseWidget = createContainer state def {
+  widget = createContainer state def {
+    containerChildrenOffset = Just offset,
+    containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
-    containerUpdateCWenv = updateCWenv,
     containerRestore = restore,
-    containerUpdateEvent = updateEvent,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
-    containerResize = resize
-  }
-  widget = baseWidget {
-    widgetRender = render
+    containerResize = resize,
+    containerRenderAfter = renderAfter
   }
 
   ScrollState dragging dx dy cs = state
   Size childWidth childHeight = cs
+  offset = Point dx dy
 
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  updateCWenv wenv cidx cnode node = newWenv where
-    offset = Point dx dy
-    viewport = node ^. L.info . L.viewport
-    newWenv = wenv
-      & L.viewport .~ moveRect (negPoint offset) viewport
-      & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)
-      & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint offset)
-      & L.offset .~ offset
-
   restore wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
-
-  updateEvent wenv evt node = translateEvent (negPoint offset) evt where
-    offset = Point dx dy
 
   handleEvent wenv target evt node = case evt of
     ButtonAction point btn status _ -> result where
@@ -311,9 +298,10 @@ makeScroll config state = widget where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv node rect
     result = cast message >>= handleScrollMessage
 
-  scrollTo wenv node rect = result where
+  scrollTo wenv node targetRect = result where
     style = scrollActiveStyle wenv node
     contentArea = getContentArea style node
+    rect = moveRect offset targetRect
     Rect rx ry rw rh = rect
     Rect cx cy cw ch = contentArea
     diffL = cx - rx
@@ -356,13 +344,8 @@ makeScroll config state = widget where
     }
 
   rebuildWidget wenv newState node = result where
-    ScrollState _ dx dy _ = newState
-    offset = Point dx dy
-    pviewport = node ^. L.info . L.viewport
-    cviewport = moveRect (negPoint offset) pviewport
     newNode = node
       & L.widget .~ makeScroll config newState
-      & L.children . ix 0 . L.info . L.viewport .~ cviewport
     result = resultWidget newNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
@@ -377,7 +360,7 @@ makeScroll config state = widget where
     sizeReq = (FlexSize w factor, FlexSize h factor)
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport renderArea children node = result where
+  resize wenv renderArea children node = result where
     style = scrollActiveStyle wenv node
     scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
@@ -398,7 +381,6 @@ makeScroll config state = widget where
     newDx = scrollAxis dx areaW cw
     newDy = scrollAxis dy areaH ch
     cRenderArea = Rect cl ct areaW areaH
-    cViewport = fromMaybe def (intersectRects viewport cRenderArea)
     newState = state {
       _sstDeltaX = newDx,
       _sstDeltaY = newDy,
@@ -406,21 +388,7 @@ makeScroll config state = widget where
     }
     newNode = resultWidget $ node
       & L.widget .~ makeScroll config newState
-    result = (newNode, Seq.singleton (cViewport, cRenderArea))
-
-  render renderer wenv node =
-    drawInScissor renderer True viewport $
-      drawStyledAction renderer renderArea style $ \_ -> do
-        drawInTranslation renderer offset $
-          widgetRender (child ^. L.widget) renderer cwenv child
-        renderAfter renderer wenv node
-    where
-      style = scrollActiveStyle wenv node
-      child = node ^. L.children ^?! ix 0
-      viewport = node ^. L.info . L.viewport
-      renderArea = node ^. L.info . L.renderArea
-      cwenv = updateCWenv wenv 0 child node
-      offset = Point dx dy
+    result = (newNode, Seq.singleton cRenderArea)
 
   renderAfter renderer wenv node = do
     when hScrollRequired $

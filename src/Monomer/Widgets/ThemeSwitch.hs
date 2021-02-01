@@ -41,7 +41,7 @@ makeTheme theme = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
+    resized = (resultWidget node, Seq.singleton contentArea)

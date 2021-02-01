@@ -115,7 +115,7 @@ data AppConfig e = AppConfig {
   _apcInitEvent :: [e],
   _apcDisposeEvent :: [e],
   _apcExitEvent :: [e],
-  _apcResizeEvent :: [(Rect, Rect) -> e],
+  _apcResizeEvent :: [Rect -> e],
   _apcMainButton :: Maybe Button,
   _apcStateFileMain :: Maybe String
 }
@@ -214,7 +214,7 @@ appExitEvent evt = def {
   _apcExitEvent = [evt]
 }
 
-appResizeEvent :: ((Rect, Rect) -> e) -> AppConfig e
+appResizeEvent :: (Rect -> e) -> AppConfig e
 appResizeEvent evt = def {
   _apcResizeEvent = [evt]
 }

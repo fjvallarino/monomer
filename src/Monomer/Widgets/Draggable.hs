@@ -114,10 +114,10 @@ makeDraggable msg config = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
-    resized = (resultWidget node, Seq.singleton (contentArea, contentArea))
+    resized = (resultWidget node, Seq.singleton contentArea)
 
   defaultRender renderer wenv node =
     drawStyledAction renderer draggedRect style $ \_ -> do
@@ -131,7 +131,7 @@ makeDraggable msg config = widget where
       style = fromMaybe def (_dgcDragStyle config)
       transparency = fromMaybe 1 (_dgcTransparency config)
       cnode = Seq.index (_wnChildren node) 0
-      Rect cx cy cw ch = cnode ^. L.info . L.viewport
+      Rect cx cy cw ch = cnode ^. L.info . L.renderArea
       Point mx my = wenv ^. L.inputStatus . L.mousePos
       Point px py = wenv ^?! L.mainBtnPress . _Just . _2
       dim = fromMaybe (max cw ch) (_dgcMaxDim config)

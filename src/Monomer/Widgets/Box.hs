@@ -167,7 +167,7 @@ makeBox config = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect cx cy cw ch = contentArea
@@ -177,13 +177,11 @@ makeBox config = widget where
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
-    vpContent = fromMaybe def (intersectRects viewport contentArea)
     raAligned = alignInRect ah av contentArea raChild
-    vpAligned = fromMaybe def (intersectRects viewport raAligned)
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (resultWidget node, Seq.singleton (vpContent, contentArea))
-      | otherwise = (resultWidget node, Seq.singleton (vpAligned, raAligned))
+      | expand = (resultWidget node, Seq.singleton contentArea)
+      | otherwise = (resultWidget node, Seq.singleton raAligned)
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where

@@ -73,8 +73,8 @@ resize = describe "resize" $ do
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should not have children" $
     children `shouldSatisfy` Seq.null
@@ -85,16 +85,13 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 0
     vstackNode = vstack []
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
+    renderArea = newNode ^. L.info . L.renderArea
     children = newNode ^. L.children
 
 resizeFlexibleH :: Spec
 resizeFlexibleH = describe "flexible items, horizontal" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -111,17 +108,13 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeFlexibleV :: Spec
 resizeFlexibleV = describe "flexible items, vertical" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -138,14 +131,13 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
         label "Label 3" `style` [flexHeight 20]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeStrictFlexH :: Spec
 resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign requested size to the main labels and the rest to grid" $
     childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -165,17 +157,14 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
+    childrenVp = (^. L.info . L.renderArea) <$> newNode ^. L.children
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeStrictFlexV :: Spec
 resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign requested size to the main labels and the rest to grid" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign requested size to the main labels and the rest to grid" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -192,17 +181,13 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
         label "Label 3" `style` [flexHeight 100]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children
 
 resizeMixedH :: Spec
 resizeMixedH = describe "mixed items, horizontal" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2]
@@ -219,18 +204,14 @@ resizeMixedH = describe "mixed items, horizontal" $ do
         ]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.info . L.viewport
+    renderArea = newNode ^. L.info . L.renderArea
     firstChild = Seq.index (newNode ^. L.children) 0
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> firstChild ^. L.children
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> firstChild ^. L.children
 
 resizeMixedV :: Spec
 resizeMixedV = describe "mixed items, vertical" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -249,18 +230,14 @@ resizeMixedV = describe "mixed items, vertical" $ do
         ]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
+    renderArea = newNode ^. L.info . L.renderArea
     firstChild = Seq.index (newNode ^. L.children) 0
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> firstChild ^. L.children
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> firstChild ^. L.children
 
 resizeAllV :: Spec
 resizeAllV = describe "all kinds of sizeReq, vertical" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
@@ -281,18 +258,14 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
         label "Label 5" `style` [rangeWidth 90 100, rangeHeight 90 100]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeNoSpaceV :: Spec
 resizeNoSpaceV = describe "vertical, without enough space" $ do
-  it "should have a larger viewport size (parent should fix it)" $ do
-    viewport `shouldBe` vp
+  it "should have a larger renderArea size (parent should fix it)" $ do
     renderArea `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3, cvp4, cvp5]
@@ -313,18 +286,13 @@ resizeNoSpaceV = describe "vertical, without enough space" $ do
         label "Label 5" `style` [height 200]
       ]
     newNode = nodeInit wenv vstackNode
-    viewport = newNode ^. L.info . L.viewport
     renderArea = newNode ^. L.info . L.renderArea
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeSpacerFlexH :: Spec
 resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
-  it "should have the provided viewport size" $
-    roundRectUnits viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    roundRectUnits renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -341,17 +309,13 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
         label "Label" `style` [flexWidth 200]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children
 
 resizeSpacerFixedH :: Spec
 resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign size proportional to requested size to each children" $
-    childrenVp `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign size proportional to requested size to each children" $
     childrenRa `shouldBe` Seq.fromList [cvp1, cvp2, cvp3]
@@ -368,6 +332,5 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
         label "Label" `style` [width 200]
       ]
     newNode = nodeInit wenv hstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = roundRectUnits . _wniRenderArea . _wnInfo <$> newNode ^. L.children

@@ -177,7 +177,7 @@ makeSplit isHorizontal config state = widget where
         }
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
-        newNode = widgetResize (tmpNode ^. L.widget) wenv vp ra tmpNode
+        newNode = widgetResize (tmpNode ^. L.widget) wenv ra tmpNode
         resultDrag
           | handlePos /= newHandlePos = newNode
               & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
@@ -188,7 +188,6 @@ makeSplit isHorizontal config state = widget where
       maxSize = _spsMaxSize state
       handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
-      vp = node ^. L.info . L.viewport
       ra = node ^. L.info . L.renderArea
       children = node ^. L.children
       isTarget = target == node ^. L.info . L.path
@@ -214,7 +213,7 @@ makeSplit isHorizontal config state = widget where
       | isHorizontal = foldl1 sizeReqMergeMax [reqH1, reqH2]
       | otherwise = foldl1 sizeReqMergeSum [reqWS, reqH1, reqH2]
 
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect rx ry rw rh = contentArea
@@ -260,8 +259,7 @@ makeSplit isHorizontal config state = widget where
       & L.events .~ Seq.fromList events
       & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
     newRas = Seq.fromList [rect1, rect2]
-    assignedArea = Seq.zip newRas newRas
-    resized = (result, assignedArea)
+    resized = (result, newRas)
 
   getValidHandlePos maxDim rect point children = addPoint origin newPoint where
     Rect rx ry _ _ = rect

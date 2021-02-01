@@ -100,7 +100,6 @@ type SingleGetSizeReqHandler s e a
 type SingleResizeHandler s e
   = WidgetEnv s e
   -> Rect
-  -> Rect
   -> WidgetNode s e
   -> WidgetResult s e
 
@@ -271,7 +270,6 @@ loadStateHandler single wenv oldInfo newNode nodeHandler = newResult where
   getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.viewport .~ oldInfo ^. L.viewport
     & L.info . L.renderArea .~ oldInfo ^. L.renderArea
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
@@ -404,29 +402,23 @@ handleSizeReqChange single wenv node evt mResult = result where
     | otherwise = mResult
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv viewport renderArea node = resultWidget node
+defaultResize wenv renderArea node = resultWidget node
 
 resizeHandlerWrapper
   :: Single s e a
   -> WidgetEnv s e
   -> Rect
-  -> Rect
   -> WidgetNode s e
   -> WidgetResult s e
-resizeHandlerWrapper single wenv viewport renderArea node = result where
+resizeHandlerWrapper single wenv renderArea node = result where
   useCustomSize = singleUseCustomSize single
   handler = singleResize single
-  tmpRes = handler wenv viewport renderArea node
-  lensVp = L.info . L.viewport
+  tmpRes = handler wenv renderArea node
   lensRa = L.info . L.renderArea
-  newVp
-    | useCustomSize = tmpRes ^. L.node . lensVp
-    | otherwise = viewport
   newRa
     | useCustomSize = tmpRes ^. L.node . lensRa
     | otherwise = renderArea
   result = tmpRes
-    & L.node . L.info . L.viewport .~ newVp
     & L.node . L.info . L.renderArea .~ newRa
 
 defaultRender :: SingleRenderHandler s e
@@ -439,12 +431,11 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper single renderer wenv node =
-  drawInScissor renderer useScissor viewport $
+  drawInScissor renderer useScissor renderArea $
     drawStyledAction renderer renderArea style $ \_ ->
       handler renderer wenv node
   where
     handler = singleRender single
     useScissor = singleUseScissor single
     style = singleGetActiveStyle single wenv node
-    viewport = node ^. L.info . L.viewport
     renderArea = node ^. L.info . L.renderArea

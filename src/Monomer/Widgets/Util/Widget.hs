@@ -46,11 +46,12 @@ defaultWidgetNode widgetType widget = WidgetNode {
   _wnChildren = Seq.empty
 }
 
-isWidgetVisible :: WidgetNode s e -> Rect -> Bool
-isWidgetVisible node vp = isVisible && isOverlapped where
+isWidgetVisible :: WidgetEnv s e -> WidgetNode s e -> Bool
+isWidgetVisible wenv node = isVisible && isOverlapped where
   info = node ^. L.info
   isVisible = info ^. L.visible
-  isOverlapped = rectsOverlap vp (info ^. L.viewport)
+  viewport = wenv ^. L.viewport
+  isOverlapped = rectsOverlap viewport (info ^. L.renderArea)
 
 visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where

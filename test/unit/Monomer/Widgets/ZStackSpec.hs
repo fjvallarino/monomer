@@ -248,8 +248,8 @@ resize = describe "resize" $ do
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should not have children" $
     children `shouldSatisfy` Seq.null
@@ -259,16 +259,13 @@ resizeEmpty = describe "empty" $ do
     vp = Rect 0 0 640 480
     zstackNode = zstack []
     newNode = nodeInit wenv zstackNode
-    viewport = newNode ^. L.info . L.viewport
+    renderArea = newNode ^. L.info . L.renderArea
     children = newNode ^. L.children
 
 resizeItems :: Spec
 resizeItems = describe "several items, horizontal" $ do
-  it "should have the provided viewport size" $
-    viewport `shouldBe` vp
-
-  it "should assign the same viewport size to each children" $
-    childrenVp `shouldBe` Seq.fromList [vp, vp, vp]
+  it "should have the provided renderArea size" $
+    renderArea `shouldBe` vp
 
   it "should assign the same renderArea size to each children" $
     childrenRa `shouldBe` Seq.fromList [vp, vp, vp]
@@ -282,6 +279,5 @@ resizeItems = describe "several items, horizontal" $ do
         label "Label 3"
       ]
     newNode = nodeInit wenv zstackNode
-    viewport = newNode ^. L.info . L.viewport
-    childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+    renderArea = newNode ^. L.info . L.renderArea
     childrenRa = (^. L.info . L.renderArea) <$> newNode ^. L.children

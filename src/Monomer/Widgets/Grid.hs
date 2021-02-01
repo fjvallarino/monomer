@@ -48,7 +48,7 @@ makeFixedGrid isHorizontal = widget where
       nreqs = Seq.length vreqs
       maxSize = foldl1 sizeReqMergeMax vreqs
 
-  resize wenv viewport renderArea children node = resized where
+  resize wenv renderArea children node = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style renderArea)
     Rect l t w h = contentArea
@@ -64,11 +64,11 @@ makeFixedGrid isHorizontal = widget where
       | cols > 0 = t + fromIntegral (i `div` cols) * ch
       | otherwise = 0
     foldHelper (currAreas, index) child = (newAreas, newIndex) where
-      (newIndex, newViewport)
-        | child ^. L.info . L.visible = (index + 1, calcViewport index)
+      (newIndex, newRenderArea)
+        | child ^. L.info . L.visible = (index + 1, calcRenderArea index)
         | otherwise = (index, def)
-      newArea = (newViewport, newViewport)
+      newArea = newRenderArea
       newAreas = currAreas |> newArea
-    calcViewport i = Rect (cx i) (cy i) cw ch
+    calcRenderArea i = Rect (cx i) (cy i) cw ch
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) children
     resized = (resultWidget node, assignedAreas)

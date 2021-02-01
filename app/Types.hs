@@ -97,7 +97,7 @@ data AppEvent
   | InitApp
   | DisposeApp
   | ExitApp
-  | ResizeApp (Rect, Rect)
+  | ResizeApp Rect
   | CancelExitApp
   | MaxWindow
   | MinWindow
