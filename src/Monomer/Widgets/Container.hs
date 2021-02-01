@@ -264,7 +264,7 @@ getUpdateCWenv container wenv cidx cnode node = newWenv where
   cOffset = containerChildrenOffset container
   updateCWenv = containerUpdateCWenv container
   offset = fromMaybe def cOffset
-  accumOffset = wenv ^. L.offset
+  accumOffset = addPoint offset (wenv ^. L.offset)
   viewport = node ^. L.info . L.viewport
   tmpWenv = wenv
     & L.viewport .~ moveRect (negPoint accumOffset) viewport
