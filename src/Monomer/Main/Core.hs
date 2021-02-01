@@ -136,7 +136,9 @@ runApp window widgetRoot config = do
     _weModel = model,
     _weInputStatus = def,
     _weTimestamp = startTs,
-    _weInTopLayer = const True
+    _weInTopLayer = const True,
+    _weViewport = Rect 0 0 rw rh,
+    _weOffset = def
   }
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ Seq.singleton 0
@@ -191,7 +193,8 @@ mainLoop window renderer config loopArgs = do
   inputStatus <- use L.inputStatus
 
   let MainLoopArgs{..} = loopArgs
-  let !ts = startTicks - _mlFrameStartTs
+  let Size rw rh = windowSize
+  let ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
 
   let windowResized = isWindowResized eventsPayload
@@ -217,7 +220,9 @@ mainLoop window renderer config loopArgs = do
     _weModel = currentModel,
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks,
-    _weInTopLayer = const True
+    _weInTopLayer = const True,
+    _weViewport = Rect 0 0 rw rh,
+    _weOffset = def
   }
   -- Exit handler
   let quit = SDL.QuitEvent `elem` eventsPayload

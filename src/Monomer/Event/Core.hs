@@ -1,6 +1,7 @@
 module Monomer.Event.Core (
   isActionEvent,
-  convertEvents
+  convertEvents,
+  translateEvent
 ) where
 
 import Control.Applicative ((<|>))
@@ -31,8 +32,8 @@ convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
     <|> keyboardEvent evt
     <|> textEvent evt
 
-translateEvent :: SystemEvent -> Point -> SystemEvent
-translateEvent evt txy = case evt of
+translateEvent :: Point -> SystemEvent -> SystemEvent
+translateEvent offset evt = case evt of
   Click p btn -> Click (addPoint p offset) btn
   DblClick p btn -> DblClick (addPoint p offset) btn
   ButtonAction p btn st cl -> ButtonAction (addPoint p offset) btn st cl
@@ -43,8 +44,6 @@ translateEvent evt txy = case evt of
   Drag p path msg -> Drag (addPoint p offset) path msg
   Drop p path msg -> Drop (addPoint p offset) path msg
   _ -> evt
-  where
-    offset = negPoint txy
 
 mouseClick :: Point -> SDL.EventPayload -> Maybe SystemEvent
 mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where

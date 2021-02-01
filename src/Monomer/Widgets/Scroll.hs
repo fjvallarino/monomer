@@ -26,7 +26,7 @@ module Monomer.Widgets.Scroll (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (^?!), (<>~), cloneLens, ix)
+import Control.Lens (ALens', (&), (^.), (.~), (^?!), (<>~), (%~), cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -207,7 +207,9 @@ makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   baseWidget = createContainer state def {
     containerGetBaseStyle = getBaseStyle,
+    containerUpdateCWenv = updateCWenv,
     containerRestore = restore,
+    containerUpdateEvent = updateEvent,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -223,9 +225,21 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
+  updateCWenv wenv cidx cnode node = newWenv where
+    offset = Point dx dy
+    viewport = node ^. L.info . L.viewport
+    newWenv = wenv
+      & L.viewport .~ moveRect (negPoint offset) viewport
+      & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)
+      & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint offset)
+      & L.offset .~ offset
+
   restore wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
+
+  updateEvent wenv evt node = translateEvent (negPoint offset) evt where
+    offset = Point dx dy
 
   handleEvent wenv target evt node = case evt of
     ButtonAction point btn status _ -> result where
@@ -398,13 +412,14 @@ makeScroll config state = widget where
     drawInScissor renderer True viewport $
       drawStyledAction renderer renderArea style $ \_ -> do
         drawInTranslation renderer offset $
-          widgetRender (child ^. L.widget) renderer wenv child
+          widgetRender (child ^. L.widget) renderer cwenv child
         renderAfter renderer wenv node
     where
       style = scrollActiveStyle wenv node
       child = node ^. L.children ^?! ix 0
       viewport = node ^. L.info . L.viewport
       renderArea = node ^. L.info . L.renderArea
+      cwenv = updateCWenv wenv 0 child node
       offset = Point dx dy
 
   renderAfter renderer wenv node = do

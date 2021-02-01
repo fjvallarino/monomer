@@ -828,7 +828,9 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
   _weTimestamp = _weTimestamp wenv,
-  _weInTopLayer = _weInTopLayer wenv
+  _weInTopLayer = _weInTopLayer wenv,
+  _weViewport = _weViewport wenv,
+  _weOffset = _weOffset wenv
 }
 
 cascadeCtx

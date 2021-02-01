@@ -175,7 +175,9 @@ data WidgetEnv s e = WidgetEnv {
   _weModel :: s,
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
-  _weInTopLayer :: Point -> Bool
+  _weInTopLayer :: Point -> Bool,
+  _weViewport :: Rect,
+  _weOffset :: Point
 }
 
 -- | Complementary information to a Widget, forming a node in the view tree
