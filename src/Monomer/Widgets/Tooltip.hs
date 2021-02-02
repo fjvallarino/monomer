@@ -161,6 +161,7 @@ makeTooltip caption config state = widget where
       children = node ^. L.children
       mousePos = wenv ^. L.inputStatus . L.mousePos
       scOffset = wenv ^. L.offset
+      isDragging = isJust (wenv ^. L.dragStatus)
       maxW = wenv^. L.windowSize . L.w
       maxH = wenv^. L.windowSize . L.h
       targetW = fromMaybe maxW (_ttcWidth config)
@@ -183,7 +184,7 @@ makeTooltip caption config state = widget where
         | otherwise = my - th - 5
       rect = Rect rx ry tw th
       textLines = alignTextLines style rect fittedLines
-      tooltipVisible = tooltipDisplayed wenv node
+      tooltipVisible = tooltipDisplayed wenv node && not isDragging
 
   tooltipDisplayed wenv node = displayed where
     TooltipState lastPos lastPosTs = state

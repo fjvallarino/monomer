@@ -162,7 +162,6 @@ numericField_
 numericField_ field configs = widget where
   widget = numericFieldD_ (WidgetLens field) configs
 
-
 numericFieldV
   :: FormattableNumber a
   => a -> (a -> e) -> WidgetNode s e

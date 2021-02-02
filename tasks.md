@@ -469,6 +469,8 @@
     - Check scroll in scroll (one with max height)
   - Request scissoring only if needed (review components)
     - Do after scroll changes are in place (validation purposes)
+  - Remove Default req from NumericField. Add handling of up/down arrows
+  - Test drag outside window, release button, come back in
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -488,16 +490,14 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
+  - Add option to avoid adding styles (Container)
+  - Return widgetInfo instead of just path in widgetFindByPoint
+  - Add widgetFindByPath
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
 
 Future
-  - Remove Default req from NumericField. Add handling of up/down arrows
-  - Test drag outside window, release button, come back in
-  - Add option to avoid adding styles (Container)
-  - Return widgetInfo instead of just path in widgetFindByPoint
-  - Add widgetFindByPath
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Add support for multiline text editing
