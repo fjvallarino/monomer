@@ -204,7 +204,7 @@ instance Default (Container s e a) where
     containerStyleChangeCfg = def,
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
-    containerUseScissor = True,
+    containerUseScissor = False,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerGetActiveStyle = defaultGetActiveStyle,
     containerUpdateCWenv = defaultUpdateCWenv,

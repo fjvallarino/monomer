@@ -134,7 +134,7 @@ instance Default (Single s e a) where
     singleFocusOnPressedBtn = True,
     singleStyleChangeCfg = def,
     singleUseCustomSize = False,
-    singleUseScissor = True,
+    singleUseScissor = False,
     singleGetBaseStyle = defaultGetBaseStyle,
     singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,

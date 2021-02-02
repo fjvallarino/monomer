@@ -3,8 +3,6 @@
 
 module Monomer.Widgets.ThemeSwitchSpec (spec) where
 
-import Debug.Trace
-
 import Control.Lens ((&), (^.), (.~), (?~))
 import Data.Default
 import Data.Text (Text)

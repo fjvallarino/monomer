@@ -176,6 +176,7 @@ button_ caption handler configs = buttonNode where
 makeButton :: ButtonCfg s e -> BtnState -> Widget s e
 makeButton config state = widget where
   widget = createSingle state def {
+    singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
     singleRestore = restore,
     singleHandleEvent = handleEvent,

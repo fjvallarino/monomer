@@ -458,6 +458,17 @@
   - Draw child node in Draggable
   - Move config of Box before managed widget (and other containers too)
   - Create Theme widget to override global theme
+  - Does it make sense to handle offset
+    - It would avoid resizing on scroll
+    - We need to transform events
+      - This way we avoid having to translate widgets
+    - We need current transform in WidgetEnv
+      - Only used for rendering
+      - hovered would also use it
+    - We need to set transform on render (and clear it)
+    - Check scroll in scroll (one with max height)
+  - Request scissoring only if needed (review components)
+    - Do after scroll changes are in place (validation purposes)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -477,17 +488,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
-  - Does it make sense to handle offset
-    - It would avoid resizing on scroll
-    - We need to transform events
-      - This way we avoid having to translate widgets
-    - We need current transform in WidgetEnv
-      - Only used for rendering
-      - hovered would also use it
-    - We need to set transform on render (and clear it)
-    - Check scroll in scroll (one with max height)
-  - Request scissoring only if needed (review components)
-    - Do after scroll changes are in place (validation purposes)
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

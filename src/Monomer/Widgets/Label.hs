@@ -103,6 +103,7 @@ label_ caption configs = defaultWidgetNode "label" widget where
 makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
   widget = createSingle state def {
+    singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
     singleRestore = restore,
     singleGetSizeReq = getSizeReq,
