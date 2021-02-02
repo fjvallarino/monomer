@@ -14,6 +14,8 @@ module Monomer.Widgets.Container (
   ContainerGetSizeReqHandler(..),
   ContainerResizeHandler(..),
   createContainer,
+  getUpdateCWenv,
+  updateWenvOffset,
   initWrapper,
   mergeWrapper,
   handleEventWrapper,
@@ -263,17 +265,30 @@ getUpdateCWenv
 getUpdateCWenv container wenv cidx cnode node = newWenv where
   cOffset = containerChildrenOffset container
   updateCWenv = containerUpdateCWenv container
+  tmpWenv
+    | isJust cOffset = updateWenvOffset container wenv node
+    | otherwise = wenv
+  newWenv = updateCWenv tmpWenv cidx cnode node
+
+updateWenvOffset
+  :: Container s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetEnv s e
+updateWenvOffset container wenv node = newWenv where
+  cOffset = containerChildrenOffset container
   offset = fromMaybe def cOffset
   accumOffset = addPoint offset (wenv ^. L.offset)
   viewport = node ^. L.info . L.viewport
-  tmpWenv = wenv
-    & L.viewport .~ moveRect (negPoint accumOffset) viewport
+  updateMain (path, point)
+    | isNodeParentOfPath path node = (path, addPoint (negPoint offset) point)
+    | otherwise = (path, point)
+  newWenv = wenv
+    & L.viewport .~ moveRect (negPoint offset) viewport
     & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)
     & L.inputStatus . L.mousePosPrev %~ addPoint (negPoint offset)
     & L.offset %~ addPoint offset
-  newWenv
-    | isJust cOffset = updateCWenv tmpWenv cidx cnode node
-    | otherwise = updateCWenv wenv cidx cnode node
+    & L.mainBtnPress %~ fmap updateMain
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e

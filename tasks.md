@@ -464,6 +464,10 @@
     - Add license for used fonts, etc
   - Add examples
     - Basic event handling (maybe a form with input and button?)
+    - Todo List
+      - Use scroll
+      - Scroll should auto-scroll to focus
+      - Think about implementing arrow key navigation (how do I find the viewport of selected item?)
     - Validate nested structures update correctly when disabling/enabling parent
     - Fetch content from url, show rows of data with embedded images
     - Composite example
@@ -491,6 +495,11 @@ Maybe postponed after release?
 Future
   - Remove Default req from NumericField. Add handling of up/down arrows
   - Test drag outside window, release button, come back in
+  - Add option to avoid adding styles (Container)
+  - Return widgetInfo instead of just path in widgetFindByPoint
+  - Add widgetFindByPath
+  - Rename ListView -> SelectList
+    - Add support for multiple selection
   - Add support for multiline text editing
   - Do something about Serialise. Temporarily hide from composite?
   - Do something about TextDropdown

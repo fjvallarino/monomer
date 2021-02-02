@@ -148,8 +148,9 @@ instance CmbItemSelectedStyle (DropdownCfg s e a) Style where
     _ddcItemSelectedStyle = Just style
   }
 
-newtype DropdownState = DropdownState {
-  _isOpen :: Bool
+data DropdownState = DropdownState {
+  _ddsOpen :: Bool,
+  _ddsOffset :: Point
 } deriving (Eq, Show, Generic, Serialise)
 
 data DropdownMessage
@@ -212,7 +213,7 @@ dropdownD_
   -> WidgetNode s e
 dropdownD_ widgetData items makeMain makeRow configs = makeNode widget where
   config = mconcat configs
-  newState = DropdownState False
+  newState = DropdownState False def
   newItems = foldl' (|>) Empty items
   widget = makeDropdown widgetData newItems makeMain makeRow config newState
 
@@ -230,7 +231,8 @@ makeDropdown
   -> DropdownState
   -> Widget s e
 makeDropdown widgetData items makeMain makeRow config state = widget where
-  baseWidget = createContainer state def {
+  container = def {
+    containerChildrenOffset = Just (_ddsOffset state),
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerFindNextFocus = findNextFocus,
@@ -241,13 +243,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
+  baseWidget = createContainer state container
   widget = baseWidget {
     widgetRender = render
   }
 
   mainIdx = 0
   listIdx = 1
-  isOpen = _isOpen state
+  isOpen = _ddsOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
   createDropdown wenv newState node = newNode where
@@ -318,7 +321,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Nothing -> False
 
   openDropdown wenv node = resultReqs newNode requests where
-    newState = DropdownState True
+    newState = state {
+      _ddsOpen = True,
+      _ddsOffset = listOffset wenv node
+    }
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     path = node ^. L.info . L.path
@@ -330,7 +336,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   closeDropdown wenv node = resultReqs newNode requests where
     path = node ^. L.info . L.path
     widgetId = node ^. L.info . L.widgetId
-    newState = DropdownState False
+    newState = state {
+      _ddsOpen = False,
+      _ddsOffset = def
+    }
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay widgetId, SetFocus path]
@@ -367,30 +376,35 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newReqW = sizeReqMergeMax mainReqW listReqW
     newReqH = mainReqH
 
-  resize wenv viewport children node = resized where
-    Size winW winH = _weWindowSize wenv
-    Rect rx ry rw rh = viewport
+  listHeight wenv node = maxHeight where
+    Size _ winH = _weWindowSize wenv
     theme = activeTheme wenv node
-    dropdownY dh
-      | ry + rh + dh <= winH = ry + rh
-      | ry - dh >= 0 = ry - dh
+    maxHeightTheme = theme ^. L.dropdownMaxHeight
+    cfgMaxHeight = _ddcMaxHeight config
+    -- Avoid having an invisible list if style/theme as not set
+    maxHeightStyle = max 20 $ fromMaybe maxHeightTheme cfgMaxHeight
+    reqHeight = case Seq.lookup 1 (node ^. L.children) of
+      Just child -> sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
+      _ -> 0
+    maxHeight = min winH (min reqHeight maxHeightStyle)
+
+  listOffset wenv node = Point 0 newOffset where
+    Size _ winH = _weWindowSize wenv
+    viewport = node ^. L.info . L.viewport
+    scOffset = wenv ^. L.offset
+    Rect rx ry rw rh = moveRect scOffset viewport
+    lh = listHeight wenv node
+    newOffset
+      | ry + rh + lh > winH = - (rh + lh)
       | otherwise = 0
-    !listArea = case Seq.lookup 1 children of
-      Just child -> oViewport where
-        maxHeightTheme = theme ^. L.dropdownMaxHeight
-        cfgMaxHeight = _ddcMaxHeight config
-        -- Avoid having an invisible list if style/theme as not set
-        maxHeightStyle = max 20 $ fromMaybe maxHeightTheme cfgMaxHeight
-        reqHeight = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
-        maxHeight = min winH (min reqHeight maxHeightStyle)
-        dy = dropdownY maxHeight
-        dh = maxHeight
-        !oViewport = viewport {
-          _rY = dy,
-          _rH = dh
-        }
-      Nothing -> viewport
+
+  resize wenv viewport children node = resized where
+    Rect rx ry rw rh = viewport
     !mainArea = viewport
+    !listArea = viewport {
+      _rY = ry + rh,
+      _rH = listHeight wenv node
+    }
     assignedAreas = Seq.fromList [mainArea, listArea]
     resized = (resultWidget node, assignedAreas)
 
@@ -400,14 +414,22 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         widgetRender (mainNode ^. L.widget) renderer wenv mainNode
         renderArrow renderer style contentArea
 
-    when (isOpen && isJust listViewOverlay) $
+    when isOpen $
       createOverlay renderer $
-        renderOverlay renderer wenv (fromJust listViewOverlay)
+        drawInTranslation renderer totalOffset $ do
+          renderOverlay renderer cwenv listOverlay
     where
       style = activeStyle wenv node
       viewport = node ^. L.info . L.viewport
       mainNode = Seq.index (node ^. L.children) mainIdx
-      listViewOverlay = Seq.lookup listIdx (node ^. L.children)
+      -- List view is rendered with an offset to accommodate for window height
+      listOverlay = Seq.index (node ^. L.children) listIdx
+      listOverlayVp = listOverlay ^. L.info . L.viewport
+      scOffset = wenv ^. L.offset
+      offset = _ddsOffset state
+      totalOffset = addPoint scOffset offset
+      cwenv = updateWenvOffset container wenv node
+        & L.viewport .~ listOverlayVp
 
   renderArrow renderer style contentArea =
     drawArrowDown renderer arrowRect (_sstFgColor style)

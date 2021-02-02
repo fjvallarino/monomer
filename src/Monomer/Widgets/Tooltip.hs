@@ -160,6 +160,7 @@ makeTooltip caption config state = widget where
       style = activeStyle wenv node
       children = node ^. L.children
       mousePos = wenv ^. L.inputStatus . L.mousePos
+      scOffset = wenv ^. L.offset
       maxW = wenv^. L.windowSize . L.w
       maxH = wenv^. L.windowSize . L.h
       targetW = fromMaybe maxW (_ttcWidth config)
@@ -171,8 +172,8 @@ makeTooltip caption config state = widget where
       Size tw th = fromMaybe def (addOuterSize style textSize)
       TooltipState lastPos _ = state
       Point mx my
-        | followCursor = mousePos
-        | otherwise = lastPos
+        | followCursor = addPoint scOffset mousePos
+        | otherwise = addPoint scOffset lastPos
       rx
         | wenv ^. L.windowSize . L.w - mx > tw = mx
         | otherwise = wenv ^. L.windowSize . L.w - tw

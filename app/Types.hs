@@ -65,7 +65,7 @@ instance Default App where
     _showAlert = False,
     _showConfirm = False,
     _splitPos = 0.5,
-    _dragList1 = [1..10],
+    _dragList1 = [1..100],
     _dragList2 = []
   }
 

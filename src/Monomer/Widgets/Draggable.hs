@@ -120,9 +120,9 @@ makeDraggable msg config = widget where
     resized = (resultWidget node, Seq.singleton contentArea)
 
   defaultRender renderer wenv node =
-    drawStyledAction renderer draggedRect style $ \_ -> do
+    drawStyledAction renderer (moveRect scOffset draggedRect) style $ \_ -> do
       saveContext renderer
-      setTranslation renderer offset
+      setTranslation renderer (addPoint scOffset offset)
       setScale renderer (Point scale scale)
       setGlobalAlpha renderer transparency
       widgetRender (cnode ^. L.widget) renderer wenv cnode
@@ -141,6 +141,7 @@ makeDraggable msg config = widget where
       (dx, dy) = (cx - px, cy - py)
       rect = Rect (mx + dx * scale) (my + dy * scale) (cw * scale) (ch * scale)
       draggedRect = fromMaybe rect (addOuterBounds style rect)
+      scOffset = wenv ^. L.offset
 
   render renderer wenv node = do
     when dragged $

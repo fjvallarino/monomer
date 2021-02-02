@@ -133,15 +133,38 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree where
+buildUI wenv model = traceShow "Creating UI" widgetScroll where
+  widgetScroll = vscroll (hgrid [
+      vstack [
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        widgetDrag,
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        widgetLVs,
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        listView dropdown1 items label `style` [height 300],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200],
+        scroll (image "assets/images/pecans.jpg") `style` [height 200]
+      ],
+      label "Test"
+    ])
+  mkDd i = textDropdown dropdown1 items id
+  widgetLVs = scroll $ vstack (mkDd <$> [1..40::Int])
   widgetThemeSwitch = hstack [
       label "Test",
       themeSwitch (darkTheme & L.basic . L.labelStyle . L.bgColor ?~ red) (label "Test")
     ]
-  labelDrag idx = draggable_ idx [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]] (label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand])
+  labelDrag idx = draggable_ idx [transparency 0.8, draggableStyle [bgColor pink, border 20 blue]] (tooltip ("TT: " <> showt idx) $ label ("Label: " <> showt idx) `hover` [cursorIcon CursorHand])
   widgetDrag = hgrid [
-      dropTarget DropTo1 (vstack (fmap labelDrag (model ^. dragList1))),
-      dropTarget_ DropTo2 [dropTargetStyle [bgColor orange]] (vstack (fmap labelDrag (model ^. dragList2)))
+      dropTarget DropTo1 (scroll $ vstack (fmap labelDrag (model ^. dragList1))),
+      dropTarget_ DropTo2 [dropTargetStyle [bgColor orange]] (scroll $ vstack (fmap labelDrag (model ^. dragList2)))
     ]
   widgetAlign = vstack [
       hstack [

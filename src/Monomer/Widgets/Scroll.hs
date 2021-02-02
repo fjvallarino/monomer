@@ -284,7 +284,7 @@ makeScroll config state = widget where
       contentArea = getContentArea style node
       Rect cx cy cw ch = contentArea
       sctx@ScrollContext{..} = scrollStatus config wenv state node
-      scrollReqs = [IgnoreChildrenEvents, IgnoreParentEvents]
+      scrollReqs = [IgnoreParentEvents]
       wheelRate = fromMaybe (theme ^. L.scrollWheelRate) (_scWheelRate config)
 
   scrollAxis reqDelta childLength vpLength
