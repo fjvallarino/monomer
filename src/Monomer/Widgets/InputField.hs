@@ -30,7 +30,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type InputFieldValue a = (Eq a, Show a, Default a, Typeable a, Serialise a)
+type InputFieldValue a = (Eq a, Show a, Typeable a, Serialise a)
 
 type InputDragHandler a
   = InputFieldState a
@@ -39,6 +39,7 @@ type InputDragHandler a
   -> (Text, Int, Maybe Int)
 
 data InputFieldCfg s e a = InputFieldCfg {
+  _ifcInitialValue :: a,
   _ifcValue :: WidgetData s a,
   _ifcValid :: Maybe (WidgetData s Bool),
   _ifcDefCursorEnd :: Bool,
@@ -66,9 +67,9 @@ data HistoryStep a = HistoryStep {
   _ihsOffset :: !Double
 } deriving (Eq, Show, Generic, Serialise)
 
-instance Default a => Default (HistoryStep a) where
-  def = HistoryStep {
-  _ihsValue = def,
+initialHistoryStep :: a -> HistoryStep a
+initialHistoryStep value = HistoryStep {
+  _ihsValue = value,
   _ihsText = "",
   _ihsCursorPos = 0,
   _ihsSelStart = Nothing,
@@ -90,21 +91,21 @@ data InputFieldState a = InputFieldState {
   _ifsHistIdx :: Int
 } deriving (Eq, Show, Typeable, Generic, Serialise)
 
-instance Default a => Default (InputFieldState a) where
-  def = InputFieldState {
-    _ifsCurrValue = def,
-    _ifsCurrText = "",
-    _ifsGlyphs = Seq.empty,
-    _ifsCursorPos = 0,
-    _ifsSelStart = Nothing,
-    _ifsDragSelActive = False,
-    _ifsDragSelValue = def,
-    _ifsOffset = 0,
-    _ifsTextRect = def,
-    _ifsTextMetrics = def,
-    _ifsHistory = Seq.empty,
-    _ifsHistIdx = 0
-  }
+initialState :: a -> InputFieldState a
+initialState value = InputFieldState {
+  _ifsCurrValue = value,
+  _ifsCurrText = "",
+  _ifsGlyphs = Seq.empty,
+  _ifsCursorPos = 0,
+  _ifsSelStart = Nothing,
+  _ifsDragSelActive = False,
+  _ifsDragSelValue = value,
+  _ifsOffset = 0,
+  _ifsTextRect = def,
+  _ifsTextMetrics = def,
+  _ifsHistory = Seq.empty,
+  _ifsHistIdx = 0
+}
 
 caretWidth :: Double
 caretWidth = 2
@@ -115,7 +116,8 @@ caretMs = 500
 inputField_
   :: InputFieldValue a => WidgetType -> InputFieldCfg s e a -> WidgetNode s e
 inputField_ widgetType config = node where
-  widget = makeInputField config def
+  value = _ifcInitialValue config
+  widget = makeInputField config (initialState value)
   node = defaultWidgetNode widgetType widget
     & L.info . L.focusable .~ True
 
@@ -552,9 +554,7 @@ makeInputField config state = widget where
       caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
       caretRect = Rect (caretX tx) (ty - td) caretWidth th
 
-renderContent
-  :: (Eq a, Default a, Typeable a)
-  => Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
+renderContent :: Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
 renderContent renderer state style currText = do
   setFillColor renderer tsFontColor
   renderText renderer textPos tsFont tsFontSize currText
@@ -617,6 +617,7 @@ moveHistory
   -> Int
   -> Maybe (WidgetResult s e)
 moveHistory wenv node state config steps = result where
+  historyStep = initialHistoryStep (_ifcInitialValue config)
   currHistory = _ifsHistory state
   currHistIdx = _ifsHistIdx state
   lenHistory = length currHistory
@@ -625,7 +626,7 @@ moveHistory wenv node state config steps = result where
     | otherwise = currHistIdx + steps
   histStep = Seq.lookup reqHistIdx currHistory
   result
-    | null currHistory || reqHistIdx < 0 = Just (createResult def)
+    | null currHistory || reqHistIdx < 0 = Just (createResult historyStep)
     | otherwise = fmap createResult histStep
   createResult histStep = resultReqsEvts newNode reqs evts where
     (reqs, evts) = genReqsEvents config state (_ihsText histStep) []
@@ -651,8 +652,7 @@ findClosestGlyphPos state point = newPos where
   newPos = maybe 0 fst (Seq.lookup 0 diffs)
 
 newStateFromHistory
-  :: (Eq a, Default a)
-  => WidgetEnv s e
+  :: WidgetEnv s e
   -> WidgetNode s e
   -> InputFieldState a
   -> HistoryStep a
@@ -663,8 +663,7 @@ newStateFromHistory wenv node oldState inputHist = newState where
   newState = newTextState wenv node oldState hValue hText hPos hSel
 
 newTextState
-  :: (Eq a, Default a)
-  => WidgetEnv s e
+  :: WidgetEnv s e
   -> WidgetNode s e
   -> InputFieldState a
   -> a

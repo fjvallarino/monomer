@@ -37,7 +37,7 @@ import Monomer.Widgets.Util
 import qualified Monomer.Lens as L
 
 type FormattableNumber a
-  = (Eq a, Show a, Default a, Typeable a, Real a, FromFractional a, Serialise a)
+  = (Eq a, Show a, Typeable a, Real a, FromFractional a, Serialise a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),
@@ -159,7 +159,9 @@ numericField_
   => ALens' s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e
-numericField_ field configs = numericFieldD_ def (WidgetLens field) configs
+numericField_ field configs = widget where
+  widget = numericFieldD_ (WidgetLens field) configs
+
 
 numericFieldV
   :: FormattableNumber a
@@ -175,24 +177,25 @@ numericFieldV_
 numericFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
-  newNode = numericFieldD_ def widgetData newConfigs
+  newNode = numericFieldD_ widgetData newConfigs
 
 numericFieldD_
   :: FormattableNumber a
-  => a
-  -> WidgetData s a
+  => WidgetData s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e
-numericFieldD_ defVal widgetData configs = newNode where
+numericFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
+  initialValue = fromFractional 0
   decimals
-    | isIntegral defVal = 0
+    | isIntegral initialValue = 0
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   fromText = numberFromText minVal maxVal
   toText = numberToText decimals
   inputConfig = InputFieldCfg {
+    _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _nfcValid config,
     _ifcFromText = fromText,

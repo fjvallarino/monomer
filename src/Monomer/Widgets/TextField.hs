@@ -134,6 +134,7 @@ textFieldD_ widgetData configs = inputField where
   config = mconcat configs
   fromText = textToText (_tfcMaxLength config)
   inputConfig = InputFieldCfg {
+    _ifcInitialValue = "",
     _ifcValue = widgetData,
     _ifcValid = _tfcValid config,
     _ifcFromText = fromText,
