@@ -92,7 +92,7 @@ makeRenderer fonts dpr = do
 
 newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
 newRenderer c dpr lock envRef = Renderer {..} where
-  beginFrame w h = L.with lock $ do
+  beginFrame w h = do
     newEnv <- handlePendingImages c envRef
 
     VG.beginFrame c cw ch cdpr
@@ -123,7 +123,7 @@ newRenderer c dpr lock envRef = Renderer {..} where
       overlays = overlays env |> overlay
     }
 
-  renderOverlays = L.with lock $ do
+  renderOverlays = do
     env <- readIORef envRef
     sequence_ $ overlays env
     writeIORef envRef env {
