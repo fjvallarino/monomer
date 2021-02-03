@@ -9,8 +9,7 @@
 module Monomer.Widgets.CompositeSpec (spec) where
 
 import Codec.Serialise
---import Control.Lens ((&), (^.), (^?), (^?!), (^..), (.~), (%~), _Just, ix, folded, traverse)
-import Control.Lens
+import Control.Lens ((&), (^.), (^?), (^..), (.~), (%~), _Just, ix, traverse)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
@@ -99,6 +98,7 @@ spec = describe "Composite" $ do
   handleMessage
   findByPoint
   findByPath
+  findNextFocus
   getSizeReq
   resize
 
@@ -307,19 +307,19 @@ findByPoint = describe "findByPoint" $ do
   it "should return Nothing" $
     wni emptyPath (Point 3000 3000) `shouldBe` Nothing
 
-  it "should return label number 5" $ do
+  it "should return item number 5" $ do
     let res = wni emptyPath (Point 320 240)
     res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 1, 1]
 
-  it "should return label number 8" $ do
+  it "should return item number 8" $ do
     let res = wni emptyPath (Point 600 240)
     res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 1, 2]
 
-  it "should return background label" $ do
+  it "should return background item" $ do
     let res = wni emptyPath (Point 560 400)
     res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 1]
 
-  it "should return label number 9 when starting from the second level" $ do
+  it "should return item number 9 when starting from the second level" $ do
     let res = wni (Seq.fromList [0, 0]) (Point 560 340)
     res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 2, 2, 0, 1]
 
@@ -328,7 +328,7 @@ findByPoint = describe "findByPoint" $ do
     res `shouldBe` Nothing
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenvEvtUnit (TestModel "" "")
     cmpNode = findByHelperUI
     wni start point = res where
       inode = nodeInit wenv cmpNode
@@ -341,44 +341,83 @@ findByPath = describe "findByPath" $ do
     wni (Seq.fromList [1]) `shouldBe` Nothing
     wni (Seq.fromList [0, 100]) `shouldBe` Nothing
 
-  it "should return label number 5" $ do
+  it "should return item number 5" $ do
     let res = wni (Seq.fromList [0, 0, 0, 0, 1, 1])
     roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 213 160 213 160)
 
-  it "should return label number 8" $ do
+  it "should return item number 8" $ do
     let res = wni (Seq.fromList [0, 0, 0, 0, 1, 2])
     roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 160 213 160)
 
-  it "should return background label" $ do
+  it "should return background item" $ do
     let res = wni (Seq.fromList [0, 0, 0, 1])
     roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 0 0 640 480)
 
-  it "should return label number 9 when starting from the second level" $ do
+  it "should return item number 9 when starting from the second level" $ do
     let res = wni (Seq.fromList [0, 0, 0, 0, 2, 2, 0, 1])
     roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 340 213 20)
 
   where
-    wenv = mockWenvEvtUnit ()
+    wenv = mockWenvEvtUnit (TestModel "" "")
     cmpNode = findByHelperUI
     wni path = res where
       inode = nodeInit wenv cmpNode
       res = widgetFindByPath (inode ^. L.widget) wenv path inode
 
-findByHelperUI :: WidgetNode () ep
+findNextFocus :: Spec
+findNextFocus = describe "findNextFocus" $ do
+  it "should return the first textfield" $ do
+    let res = wni FocusFwd emptyPath
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 0 0 213 160)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 0, 0])
+
+  it "should return the second textfield" $ do
+    let res = wni FocusFwd (Seq.fromList [0, 0, 0, 0, 0, 0])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 213 160 213 160)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 1, 1])
+
+  it "should return the third textfield" $ do
+    let res = wni FocusFwd (Seq.fromList [0, 0, 0, 0, 1, 1])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 360 213 20)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 2, 2, 0, 2])
+
+  it "should return the third textfield (starts backwards)" $ do
+    let res = wni FocusBwd emptyPath
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 360 213 20)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 2, 2, 0, 2])
+
+  it "should return the second textfield (starts backwards)" $ do
+    let res = wni FocusBwd (Seq.fromList [0, 0, 0, 0, 2, 2, 0, 2])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 213 160 213 160)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 1, 1])
+
+  it "should return the first textfield (starts backwards)" $ do
+    let res = wni FocusBwd (Seq.fromList [0, 0, 0, 0, 1, 1])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 0 0 213 160)
+    res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 0, 0])
+
+  where
+    wenv = mockWenvEvtUnit (TestModel "" "")
+    cmpNode = findByHelperUI
+    wni dir start = res where
+      inode = nodeInit wenv cmpNode
+      res = widgetFindNextFocus (inode ^. L.widget) wenv dir start inode
+
+findByHelperUI :: WidgetNode TestModel ep
 findByHelperUI = composite "main" id buildUI handleEvent where
   handleEvent wenv node model evt = []
-  buildLabels :: WidgetEnv () () -> () -> WidgetNode () ()
+  buildLabels :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
   buildLabels wenv model = vstack_ [ignoreEmptyArea True] [
-      label "a", label "b", label "c"
+      label "a", label "b", textField text1
     ]
   cmpLabels = composite "main" id buildLabels handleEvent
-  buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
+  buildUI :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
   buildUI wenv model = box_ [ignoreEmptyArea True, expandContent] $
     zstack_ [onlyTopActive False] [
       label "Background",
       vgrid [
-          hgrid [ label "1", label "2", label "3" ],
-          hgrid [ label "4", label "5", label "6" ],
+          hgrid [ textField text1, label "2", label "3" ],
+          hgrid [ label "4", textField text1, label "6" ],
           hgrid [ label "7", label "8", cmpLabels ]
         ]
     ]

@@ -47,22 +47,6 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcExitApplication = False
 }
 
-findNextFocus
-  :: WidgetEnv s e
-  -> FocusDirection
-  -> Path
-  -> Maybe Path
-  -> WidgetNode s e
-  -> Path
-findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
-  widget = widgetRoot ^. L.widget
-  restartPath = fromMaybe emptyPath overlay
-  candidateFocus =
-    widgetFindNextFocus widget wenv direction focus widgetRoot
-  fromRootFocus =
-    widgetFindNextFocus widget wenv direction restartPath widgetRoot
-  nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
-
 resizeRoot
   :: WidgetEnv s e -> Size -> WidgetNode s e -> WidgetResult s e
 resizeRoot wenv windowSize widgetRoot = result where

@@ -468,7 +468,7 @@ compositeFindNextFocus
   -> FocusDirection
   -> Path
   -> WidgetNode sp ep
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 compositeFindNextFocus comp state wenv dir start widgetComp = nextFocus where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget

@@ -676,6 +676,22 @@ findEvtTargetByPoint wenv widgetRoot evt point = do
   let curr = fmap (^. L.path) wni
   return [(evt, curr)]
 
+findNextFocus
+  :: WidgetEnv s e
+  -> FocusDirection
+  -> Path
+  -> Maybe Path
+  -> WidgetNode s e
+  -> Path
+findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
+  widget = widgetRoot ^. L.widget
+  restartPath = fromMaybe emptyPath overlay
+  candidateWni = widgetFindNextFocus widget wenv direction focus widgetRoot
+  candidateFocus = (^. L.path) <$> candidateWni
+  fromRootWni = widgetFindNextFocus widget wenv direction restartPath widgetRoot
+  fromRootFocus = (^. L.path) <$> fromRootWni
+  nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
+
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
 

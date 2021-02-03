@@ -283,7 +283,7 @@ data Widget s e =
       -> FocusDirection
       -> Path
       -> WidgetNode s e
-      -> Maybe Path,
+      -> Maybe WidgetNodeInfo,
     -- | Returns the path of the child item with the given coordinates, starting
     -- | on the given path
     widgetFindByPoint

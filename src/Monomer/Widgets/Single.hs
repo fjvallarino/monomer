@@ -67,7 +67,7 @@ type SingleFindNextFocusHandler s e
   -> FocusDirection
   -> Path
   -> WidgetNode s e
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 
 type SingleFindByPointHandler s e
   = WidgetEnv s e
@@ -288,10 +288,8 @@ defaultDispose wenv node = resultWidget node
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv direction startFrom node
-  | isFocusCandidate direction startFrom node = Just path
+  | isFocusCandidate direction startFrom node = Just (node ^. L.info)
   | otherwise = Nothing
-  where
-    path = node ^. L.info . L.path
 
 defaultFindByPoint :: SingleFindByPointHandler s e
 defaultFindByPoint wenv start point node

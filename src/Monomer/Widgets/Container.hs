@@ -586,18 +586,16 @@ findNextFocusWrapper
   -> FocusDirection
   -> Path
   -> WidgetNode s e
-  -> Maybe Path
-findNextFocusWrapper container wenv direction start node = nextFocus where
+  -> Maybe WidgetNodeInfo
+findNextFocusWrapper container wenv dir start node = nextFocus where
   handler = containerFindNextFocus container
-  handlerResult = handler wenv direction start node
+  handlerResult = handler wenv dir start node
   children
-    | direction == FocusBwd = Seq.reverse handlerResult
+    | dir == FocusBwd = Seq.reverse handlerResult
     | otherwise = handlerResult
   nextFocus
-    | isFocusCandidate direction start node = Just path
-    | otherwise = findFocusCandidate container wenv direction start node children
-    where
-      path = node ^. L.info . L.path
+    | isFocusCandidate dir start node = Just (node ^. L.info)
+    | otherwise = findFocusCandidate container wenv dir start node children
 
 findFocusCandidate
   :: Container s e a
@@ -606,7 +604,7 @@ findFocusCandidate
   -> Path
   -> WidgetNode s e
   -> Seq (WidgetNode s e)
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 findFocusCandidate _ _ _ _ _ Empty = Nothing
 findFocusCandidate container wenv dir start node (ch :<| chs) = result where
   updateCWenv = getUpdateCWenv container
