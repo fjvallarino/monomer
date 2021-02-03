@@ -291,7 +291,7 @@ data Widget s e =
       -> Path
       -> Point
       -> WidgetNode s e
-      -> Maybe Path,
+      -> Maybe WidgetNodeInfo,
     -- | Handles an event
     --
     -- Current user state

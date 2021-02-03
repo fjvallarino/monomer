@@ -192,11 +192,11 @@ makeDial field minVal maxVal config state = widget where
       & L.widget .~ makeDial field minVal maxVal config newState
 
   findByPoint wenv path point node
-    | isVisible && pointInEllipse point dialArea = Just path
+    | isVisible && pointInEllipse point dialArea = Just wni
     | otherwise = Nothing
     where
       isVisible = node ^. L.info . L.visible
-      path = node ^. L.info . L.path
+      wni = node ^. L.info
       (_, dialArea) = getDialInfo wenv node config
 
   handleEvent wenv target evt node = case evt of

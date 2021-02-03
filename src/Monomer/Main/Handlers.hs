@@ -78,7 +78,8 @@ getTargetPath wenv pressed overlay target event root = case event of
     widget = root ^. L.widget
     startPath = fromMaybe emptyPath overlay
     pathEvent = Just
-    pathFromPoint p = widgetFindByPoint widget wenv startPath p root
+    pathFromPoint p = fmap (^. L.path) wni where
+      wni = widgetFindByPoint widget wenv startPath p root
     -- pressed is only really used for Move
     pointEvent point = pressed <|> pathFromPoint point <|> overlay
 
@@ -589,7 +590,8 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     overlay <- getOverlayPath
     let startPath = fromMaybe emptyPath overlay
     let widget = widgetRoot ^. L.widget
-    let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+    let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+    let curr = fmap (^. L.path) wni
 
     when (btn == mainBtn) $
       L.mainBtnPress .= fmap (, point) curr
@@ -646,7 +648,8 @@ addHoverEvents wenv widgetRoot point = do
   mainBtnPress <- use L.mainBtnPress
   let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
-  let target = widgetFindByPoint widget wenv startPath point widgetRoot
+  let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+  let target = fmap (^. L.path) wni
   let hoverChanged = target /= hover && isNothing mainBtnPress
   let enter = [(Enter point, target) | isJust target && hoverChanged]
   let leave = [(Leave point, hover) | isJust hover && hoverChanged]
@@ -669,7 +672,8 @@ findEvtTargetByPoint wenv widgetRoot evt point = do
   overlay <- getOverlayPath
   let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
-  let curr = widgetFindByPoint widget wenv startPath point widgetRoot
+  let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+  let curr = fmap (^. L.path) wni
   return [(evt, curr)]
 
 sendMessage :: TChan e -> e -> IO ()

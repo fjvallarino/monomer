@@ -633,7 +633,7 @@ findByPointWrapper
   -> Path
   -> Point
   -> WidgetNode s e
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 findByPointWrapper container wenv start point node = result where
   offset = fromMaybe def (containerChildrenOffset container)
   updateCWenv = getUpdateCWenv container
@@ -651,17 +651,17 @@ findByPointWrapper container wenv start point node = result where
   validateIdx p
     | Seq.length children > p = Just p
     | otherwise = Nothing
-  resultPath = case childIdx >>= validateIdx of
-    Just idx -> childPath where
+  win = case childIdx >>= validateIdx of
+    Just idx -> childWni where
       cwenv = updateCWenv wenv idx child node
-      childPath = widgetFindByPoint childWidget cwenv newStartPath cpoint child
       child = Seq.index children idx
       childWidget = child ^. L.widget
+      childWni = widgetFindByPoint childWidget cwenv newStartPath cpoint child
     Nothing
-      | not ignoreEmpty -> Just $ node ^. L.info . L.path
+      | not ignoreEmpty -> Just $ node ^. L.info
       | otherwise -> Nothing
   result
-    | isVisible && (inVp || resultPath /= Just path) = resultPath
+    | isVisible && (inVp || fmap (^. L.path) win /= Just path) = win
     | otherwise = Nothing
 
 -- | Event Handling

@@ -181,7 +181,7 @@ findFirstByPoint
   -> WidgetEnv s e
   -> Seq PathStep
   -> Point
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 findFirstByPoint Empty _ _ _ = Nothing
 findFirstByPoint (ch :<| chs) wenv startPath point = result where
   isVisible = ch ^. L.info . L.visible

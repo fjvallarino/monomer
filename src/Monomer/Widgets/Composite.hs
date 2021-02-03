@@ -484,9 +484,9 @@ compositeFindByPoint
   -> Path
   -> Point
   -> WidgetNode sp ep
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 compositeFindByPoint comp state wenv startPath point widgetComp
-  | widgetComp ^. L.info . L.visible && validStep = resultPath
+  | widgetComp ^. L.info . L.visible && validStep = resultInfo
   | otherwise = Nothing
   where
     CompositeState{..} = state
@@ -495,7 +495,7 @@ compositeFindByPoint comp state wenv startPath point widgetComp
     cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
     validStep = Seq.null startPath || Seq.index startPath 0 == 0
     newStartPath = Seq.drop 1 startPath
-    resultPath = widgetFindByPoint widget cwenv newStartPath point _cpsRoot
+    resultInfo = widgetFindByPoint widget cwenv newStartPath point _cpsRoot
 
 -- | Event handling
 compositeHandleEvent

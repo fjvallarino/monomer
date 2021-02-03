@@ -74,7 +74,7 @@ type SingleFindByPointHandler s e
   -> Path
   -> Point
   -> WidgetNode s e
-  -> Maybe Path
+  -> Maybe WidgetNodeInfo
 
 type SingleEventHandler s e
   = WidgetEnv s e
@@ -294,11 +294,11 @@ defaultFindNextFocus wenv direction startFrom node
 
 defaultFindByPoint :: SingleFindByPointHandler s e
 defaultFindByPoint wenv path point node
-  | isVisible && isPointInNodeVp point node = Just path
+  | isVisible && isPointInNodeVp point node = Just info
   | otherwise = Nothing
   where
     isVisible = node ^. L.info . L.visible
-    path = node ^. L.info . L.path
+    info = node ^. L.info
 
 defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
