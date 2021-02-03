@@ -472,6 +472,7 @@
   - Remove Default req from NumericField. Add handling of up/down arrows
   - Test drag outside window, release button, come back in
   - Add option to avoid adding styles (Container)
+  - Return widgetInfo instead of just path in widgetFindByPoint
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -491,7 +492,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
-  - Return widgetInfo instead of just path in widgetFindByPoint
   - Add widgetFindByPath
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc

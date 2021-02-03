@@ -89,7 +89,7 @@ data MonomerCtxPersist = MonomerCtxPersist {
 instance Default MonomerCtxPersist where
   def = MonomerCtxPersist {
     _mcpCurrentCursor = CursorArrow,
-    _mcpFocusedPath = rootPath,
+    _mcpFocusedPath = emptyPath,
     _mcpHoveredPath = Nothing,
     _mcpOverlayWidgetId = Nothing,
     _mcpResizePending = False,

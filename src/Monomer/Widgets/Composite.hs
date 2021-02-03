@@ -297,6 +297,7 @@ createComposite comp state = widget where
     widgetRestore = compositeRestore comp state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
+    widgetFindByPath = compositeFindByPath comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
     widgetResize = compositeResize comp state,
@@ -493,9 +494,29 @@ compositeFindByPoint comp state wenv startPath point widgetComp
     widget = _cpsRoot ^. L.widget
     model = getModel comp wenv
     cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-    validStep = Seq.null startPath || Seq.index startPath 0 == 0
-    newStartPath = Seq.drop 1 startPath
-    resultInfo = widgetFindByPoint widget cwenv newStartPath point _cpsRoot
+    next = nextTargetStep startPath widgetComp
+    validStep = isNothing next || next == Just 0
+    resultInfo = widgetFindByPoint widget cwenv startPath point _cpsRoot
+
+compositeFindByPath
+  :: (CompositeModel s, CompositeEvent e, ParentModel sp)
+  => Composite s e sp ep
+  -> CompositeState s e
+  -> WidgetEnv sp ep
+  -> Path
+  -> WidgetNode sp ep
+  -> Maybe WidgetNodeInfo
+compositeFindByPath comp state wenv path widgetComp
+  | info ^. L.path == path = Just info
+  | nextStep == Just 0 = widgetFindByPath (child ^. L.widget) cwenv path child
+  | otherwise = Nothing
+  where
+    CompositeState{..} = state
+    model = getModel comp wenv
+    cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+    info = widgetComp ^. L.info
+    nextStep = nextTargetStep path widgetComp
+    child = _cpsRoot
 
 -- | Event handling
 compositeHandleEvent

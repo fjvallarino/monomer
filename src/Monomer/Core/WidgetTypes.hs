@@ -292,6 +292,12 @@ data Widget s e =
       -> Point
       -> WidgetNode s e
       -> Maybe WidgetNodeInfo,
+    -- | Returns the path of the child item with the given path
+    widgetFindByPath
+      :: WidgetEnv s e
+      -> Path
+      -> WidgetNode s e
+      -> Maybe WidgetNodeInfo,
     -- | Handles an event
     --
     -- Current user state

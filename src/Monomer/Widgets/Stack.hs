@@ -41,27 +41,27 @@ instance CmbIgnoreEmptyArea StackCfg where
   }
 
 hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-hstack children = hstack_ children def
+hstack children = hstack_ def children
 
 hstack_
   :: (Traversable t)
-  => t (WidgetNode s e)
-  -> [StackCfg]
+  => [StackCfg]
+  -> t (WidgetNode s e)
   -> WidgetNode s e
-hstack_ children configs = newNode where
+hstack_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "hstack" (makeStack True config)
     & L.children .~ foldl' (|>) Empty children
 
 vstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-vstack children = vstack_ children def
+vstack children = vstack_ def children
 
 vstack_
   :: (Traversable t)
-  => t (WidgetNode s e)
-  -> [StackCfg]
+  => [StackCfg]
+  -> t (WidgetNode s e)
   -> WidgetNode s e
-vstack_ children configs = newNode where
+vstack_ configs children = newNode where
   config = mconcat configs
   newNode = defaultWidgetNode "vstack" (makeStack False config)
     & L.children .~ foldl' (|>) Empty children

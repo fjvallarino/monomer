@@ -9,7 +9,8 @@
 module Monomer.Widgets.CompositeSpec (spec) where
 
 import Codec.Serialise
-import Control.Lens ((&), (^.), (^?), (.~), (%~), ix)
+--import Control.Lens ((&), (^.), (^?), (^?!), (^..), (.~), (%~), _Just, ix, folded, traverse)
+import Control.Lens
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
@@ -25,12 +26,15 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
+import Monomer.Widgets.Grid
 import Monomer.Widgets.Label
 import Monomer.Widgets.TextField
 import Monomer.Widgets.Stack
 import Monomer.Widgets.Util.Widget
+import Monomer.Widgets.ZStack
 
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Single as SG
@@ -93,6 +97,8 @@ spec :: Spec
 spec = describe "Composite" $ do
   handleEvent
   handleMessage
+  findByPoint
+  findByPath
   getSizeReq
   resize
 
@@ -295,6 +301,87 @@ handleMessage = describe "handleMessage" $ do
       ]
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
+
+findByPoint :: Spec
+findByPoint = describe "findByPoint" $ do
+  it "should return Nothing" $
+    wni emptyPath (Point 3000 3000) `shouldBe` Nothing
+
+  it "should return label number 5" $ do
+    let res = wni emptyPath (Point 320 240)
+    res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 1, 1]
+
+  it "should return label number 8" $ do
+    let res = wni emptyPath (Point 600 240)
+    res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 1, 2]
+
+  it "should return background label" $ do
+    let res = wni emptyPath (Point 560 400)
+    res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 1]
+
+  it "should return label number 9 when starting from the second level" $ do
+    let res = wni (Seq.fromList [0, 0]) (Point 560 340)
+    res ^? _Just . L.path ^.. traverse . traverse `shouldBe` [0, 0, 0, 0, 2, 2, 0, 1]
+
+  it "should return Nothing if start path is not valid" $ do
+    let res = wni (Seq.fromList [0, 1]) (Point 600 400)
+    res `shouldBe` Nothing
+
+  where
+    wenv = mockWenvEvtUnit ()
+    cmpNode = findByHelperUI
+    wni start point = res where
+      inode = nodeInit wenv cmpNode
+      res = widgetFindByPoint (inode ^. L.widget) wenv start point inode
+
+findByPath :: Spec
+findByPath = describe "findByPath" $ do
+  it "should return Nothing" $ do
+    wni emptyPath `shouldBe` Nothing
+    wni (Seq.fromList [1]) `shouldBe` Nothing
+    wni (Seq.fromList [0, 100]) `shouldBe` Nothing
+
+  it "should return label number 5" $ do
+    let res = wni (Seq.fromList [0, 0, 0, 0, 1, 1])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 213 160 213 160)
+
+  it "should return label number 8" $ do
+    let res = wni (Seq.fromList [0, 0, 0, 0, 1, 2])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 160 213 160)
+
+  it "should return background label" $ do
+    let res = wni (Seq.fromList [0, 0, 0, 1])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 0 0 640 480)
+
+  it "should return label number 9 when starting from the second level" $ do
+    let res = wni (Seq.fromList [0, 0, 0, 0, 2, 2, 0, 1])
+    roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 340 213 20)
+
+  where
+    wenv = mockWenvEvtUnit ()
+    cmpNode = findByHelperUI
+    wni path = res where
+      inode = nodeInit wenv cmpNode
+      res = widgetFindByPath (inode ^. L.widget) wenv path inode
+
+findByHelperUI :: WidgetNode () ep
+findByHelperUI = composite "main" id buildUI handleEvent where
+  handleEvent wenv node model evt = []
+  buildLabels :: WidgetEnv () () -> () -> WidgetNode () ()
+  buildLabels wenv model = vstack_ [ignoreEmptyArea True] [
+      label "a", label "b", label "c"
+    ]
+  cmpLabels = composite "main" id buildLabels handleEvent
+  buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
+  buildUI wenv model = box_ [ignoreEmptyArea True, expandContent] $
+    zstack_ [onlyTopActive False] [
+      label "Background",
+      vgrid [
+          hgrid [ label "1", label "2", label "3" ],
+          hgrid [ label "4", label "5", label "6" ],
+          hgrid [ label "7", label "8", cmpLabels ]
+        ]
+    ]
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

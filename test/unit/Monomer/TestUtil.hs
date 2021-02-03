@@ -219,8 +219,8 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
-        & L.info . L.path .~ Seq.singleton 0
-        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
+        & L.info . L.path .~ rootPath
+        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
 
   flip runStateT monomerContext $ do
     handleResourcesInit
@@ -274,8 +274,8 @@ nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
-        & L.info . L.path .~ Seq.singleton 0
-        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
+        & L.info . L.path .~ rootPath
+        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
 
   flip runStateT monomerContext $ do
     let resizedNode = nodeResize wenv vp pathReadyRoot
@@ -297,8 +297,8 @@ nodeHandleRestore wenv inst node = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
   let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
   let pathReadyRoot = node
-        & L.info . L.path .~ Seq.singleton 0
-        & L.info . L.widgetId .~ WidgetId (wenv ^.L.timestamp) (Seq.singleton 0)
+        & L.info . L.path .~ rootPath
+        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
 
   flip runStateT monomerContext $
     handleWidgetRestore wenv inst pathReadyRoot

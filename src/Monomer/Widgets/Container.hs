@@ -241,6 +241,7 @@ createContainer state container = Widget {
   widgetSave = saveWrapper container,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
+  widgetFindByPath = containerFindByPath,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
   widgetResize = resizeWrapper container,
@@ -644,25 +645,39 @@ findByPointWrapper container wenv start point node = result where
   cpoint = addPoint (negPoint offset) point
   path = node ^. L.info . L.path
   children = node ^. L.children
-  newStartPath = Seq.drop 1 start
-  childIdx = case newStartPath of
-    Empty -> handler wenv start cpoint node
-    p :<| ps -> Just p
+  childIdx = case nextTargetStep start node of
+    Just p -> Just p
+    Nothing -> handler wenv start cpoint node
   validateIdx p
-    | Seq.length children > p = Just p
+    | Seq.length children > p && p >= 0 = Just p
     | otherwise = Nothing
   win = case childIdx >>= validateIdx of
     Just idx -> childWni where
       cwenv = updateCWenv wenv idx child node
       child = Seq.index children idx
       childWidget = child ^. L.widget
-      childWni = widgetFindByPoint childWidget cwenv newStartPath cpoint child
+      childWni = widgetFindByPoint childWidget cwenv start cpoint child
     Nothing
       | not ignoreEmpty -> Just $ node ^. L.info
       | otherwise -> Nothing
   result
     | isVisible && (inVp || fmap (^. L.path) win /= Just path) = win
     | otherwise = Nothing
+
+containerFindByPath
+  :: WidgetEnv s e
+  -> Path
+  -> WidgetNode s e
+  -> Maybe WidgetNodeInfo
+containerFindByPath wenv path node
+  | info ^. L.path == path = Just info
+  | isJust nextStep = widgetFindByPath (child ^. L.widget) wenv path child
+  | otherwise = Nothing
+  where
+    children = node ^. L.children
+    info = node ^. L.info
+    nextStep = nextTargetStep path node
+    child = Seq.index children (fromJust nextStep)
 
 -- | Event Handling
 defaultHandleEvent :: ContainerEventHandler s e

@@ -18,7 +18,7 @@ module Monomer.Widgets.Dropdown (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), _Just, non)
+import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (<>~), _Just, ix, non)
 import Control.Monad
 import Data.Default
 import Data.List (foldl')

@@ -118,13 +118,20 @@ makeZStack config state = widget where
       | otherwise = result
 
   -- | Find instance matching point
-  findByPoint wenv startPath point node = result where
+  findByPoint wenv start point node = result where
     children = node ^. L.children
     vchildren
       | onlyTopActive = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
       | otherwise = Seq.filter (_wniVisible . _wnInfo) children
-    newStartPath = Seq.drop 1 startPath
-    result = findFirstByPoint vchildren wenv newStartPath point
+    nextStep = nextTargetStep start node
+    ch = Seq.index children (fromJust nextStep)
+    visible = node ^. L.info . L.visible
+    childVisible = ch ^. L.info . L.visible
+    isNextValid = isJust nextStep && visible && childVisible
+    result
+      | isNextValid = widgetFindByPoint (ch ^. L.widget) wenv start point ch
+      | visible = findFirstByPoint vchildren wenv start point
+      | otherwise = Nothing
 
   findNextFocus wenv direction start node = result where
     children = node ^. L.children
@@ -162,7 +169,7 @@ makeZStack config state = widget where
       topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
       isPointEmpty point idx = not covered where
         prevs = Seq.drop (idx + 1) children
-        target c = widgetFindByPoint (c ^. L.widget) wenv Empty point c
+        target c = widgetFindByPoint (c ^. L.widget) wenv emptyPath point c
         isCovered c = isVisible c && isJust (target c)
         covered = any isCovered prevs
       isTopLayer idx child point = prevTopLayer && isValid where
@@ -183,9 +190,9 @@ findFirstByPoint
   -> Point
   -> Maybe WidgetNodeInfo
 findFirstByPoint Empty _ _ _ = Nothing
-findFirstByPoint (ch :<| chs) wenv startPath point = result where
+findFirstByPoint (ch :<| chs) wenv start point = result where
   isVisible = ch ^. L.info . L.visible
-  newPath = widgetFindByPoint (ch ^. L.widget) wenv startPath point ch
+  newPath = widgetFindByPoint (ch ^. L.widget) wenv start point ch
   result
     | isVisible && isJust newPath = newPath
-    | otherwise = findFirstByPoint chs wenv startPath point
+    | otherwise = findFirstByPoint chs wenv start point

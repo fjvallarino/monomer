@@ -141,7 +141,8 @@ runApp window widgetRoot config = do
     _weOffset = def
   }
   let pathReadyRoot = widgetRoot
-        & L.info . L.path .~ Seq.singleton 0
+        & L.info . L.path .~ rootPath
+        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
   let restoreAction = loadMonomerCtx wenv pathReadyRoot config
   let initAction = handleWidgetInit wenv pathReadyRoot
 

@@ -162,6 +162,7 @@ createSingle state single = Widget {
   widgetRestore = restoreWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
+  widgetFindByPath = singleFindByPath,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = handleMessageWrapper single,
   widgetResize = resizeHandlerWrapper single,
@@ -293,11 +294,24 @@ defaultFindNextFocus wenv direction startFrom node
     path = node ^. L.info . L.path
 
 defaultFindByPoint :: SingleFindByPointHandler s e
-defaultFindByPoint wenv path point node
-  | isVisible && isPointInNodeVp point node = Just info
+defaultFindByPoint wenv start point node
+  | visible && validPath && isPointInNodeVp point node = Just info
   | otherwise = Nothing
   where
-    isVisible = node ^. L.info . L.visible
+    info = node ^. L.info
+    visible = info ^. L.visible
+    path = node ^. L.info . L.path
+    validPath = seqStartsWith start path
+
+singleFindByPath
+  :: WidgetEnv s e
+  -> Path
+  -> WidgetNode s e
+  -> Maybe WidgetNodeInfo
+singleFindByPath wenv path node
+  | info ^. L.path == path = Just info
+  | otherwise = Nothing
+  where
     info = node ^. L.info
 
 defaultHandleEvent :: SingleEventHandler s e
