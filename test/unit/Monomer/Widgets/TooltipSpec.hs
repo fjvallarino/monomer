@@ -14,6 +14,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
 import Monomer.Main
 import Monomer.TestUtil
@@ -101,6 +102,7 @@ getSizeReq = describe "getSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit ()
+      & L.theme .~ darkTheme
     lblNode = label "Test label"
     (lSizeReqW, lSizeReqH) = nodeGetSizeReq wenv lblNode
     (tSizeReqW, tSizeReqH) = nodeGetSizeReq wenv (tooltip "" lblNode)

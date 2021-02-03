@@ -110,6 +110,7 @@ type SingleRenderHandler s e
   -> IO ()
 
 data Single s e a = Single {
+  singleAddStyleReq :: Bool,
   singleFocusOnPressedBtn :: Bool,
   singleStyleChangeCfg :: StyleChangeCfg,
   singleUseCustomSize :: Bool,
@@ -131,6 +132,7 @@ data Single s e a = Single {
 
 instance Default (Single s e a) where
   def = Single {
+    singleAddStyleReq = True,
     singleFocusOnPressedBtn = True,
     singleStyleChangeCfg = def,
     singleUseCustomSize = False,
@@ -372,13 +374,16 @@ updateSizeReq
   -> WidgetNode s e
   -> WidgetNode s e
 updateSizeReq single wenv node = newNode where
+  addStyleReq = singleAddStyleReq single
   handler = singleGetSizeReq single
   style = singleGetActiveStyle single wenv node
   currState = widgetGetState (node ^. L.widget) wenv
   reqs = case useState currState of
     Just state -> handler wenv state node
     _ -> def
-  (newReqW, newReqH) = sizeReqAddStyle style reqs
+  (newReqW, newReqH)
+    | addStyleReq = sizeReqAddStyle style reqs
+    | otherwise = reqs
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH

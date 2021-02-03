@@ -169,6 +169,7 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e a = Container {
+  containerAddStyleReq :: Bool,
   containerChildrenOffset :: Maybe Point,
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
@@ -198,6 +199,7 @@ data Container s e a = Container {
 
 instance Default (Container s e a) where
   def = Container {
+    containerAddStyleReq = True,
     containerChildrenOffset = Nothing,
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
@@ -778,14 +780,17 @@ updateSizeReq
   -> WidgetNode s e
   -> WidgetNode s e
 updateSizeReq container wenv node = newNode where
-  psHandler = containerGetSizeReq container
+  addStyleReq = containerAddStyleReq container
+  handler = containerGetSizeReq container
   currState = widgetGetState (node ^. L.widget) wenv
   style = containerGetActiveStyle container wenv node
   children = node ^. L.children
   reqs = case useState currState of
-    Just state -> psHandler wenv state node children
+    Just state -> handler wenv state node children
     _ -> def
-  (newReqW, newReqH) = sizeReqAddStyle style reqs
+  (newReqW, newReqH)
+    | addStyleReq = sizeReqAddStyle style reqs
+    | otherwise = reqs
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH

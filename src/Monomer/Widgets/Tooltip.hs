@@ -92,6 +92,7 @@ makeNode widget managedWidget = defaultWidgetNode "tooltip" widget
 makeTooltip :: Text -> TooltipCfg -> TooltipState -> Widget s e
 makeTooltip caption config state = widget where
   baseWidget = createContainer state def {
+    containerAddStyleReq = False,
     containerGetBaseStyle = getBaseStyle,
     containerRestore = restore,
     containerHandleEvent = handleEvent,
