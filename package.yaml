@@ -1,18 +1,18 @@
-name:                monomer
-version:             0.1.0.0
-github:              "fjvallarino/monomer"
-license:             BSD3
-author:              "Francisco Vallarino"
-maintainer:          "fjvallarino@gmail.com"
-copyright:           "2018 Francisco Vallarino"
+name: monomer
+version: 0.1.0.0
+github: "fjvallarino/monomer"
+license: BSD3
+author: "Francisco Vallarino"
+maintainer: "fjvallarino@gmail.com"
+copyright: "2018 Francisco Vallarino"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
-# synopsis:            GUI Library
-# category:            GUI
+synopsis:            GUI Library
+category:            GUI
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -64,8 +64,8 @@ library:
 
 executables:
   monomer-exe:
-    main:                Main.hs
-    source-dirs:         app
+    main: Main.hs
+    source-dirs: app
     ghc-options:
     - -fwarn-incomplete-patterns
     - -threaded
@@ -75,6 +75,13 @@ executables:
 
     dependencies:
     - ekg
+    - lens
+    - monomer
+
+  todo:
+    main: Main.hs
+    source-dirs: examples/todo
+    dependencies:
     - lens
     - monomer
 
