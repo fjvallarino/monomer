@@ -173,8 +173,8 @@ instance WidgetModel s => Serialise (CompositeState s e) where
   decode = do
     len <- decodeListLen
     tag <- decodeWord
-    modelBS <- decodeBytes
-    let model = fromRight Nothing (byteStringToModel (BSL.fromStrict modelBS))
+    modelBS <- decode
+    let model = fromRight Nothing (byteStringToModel modelBS)
     case (len, tag) of
       (2, 0) -> return $ CompositeState model spacer M.empty
       _ -> fail "Invalid Composite state"

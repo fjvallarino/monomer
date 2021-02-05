@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Monomer.Core.WidgetModel where
@@ -5,6 +6,7 @@ module Monomer.Core.WidgetModel where
 import Codec.CBOR.Decoding
 import Codec.CBOR.Encoding
 import Codec.Serialise
+import Data.Bifunctor
 import Data.ByteString.Lazy (ByteString)
 import Data.Int
 import Data.Text (Text)
@@ -27,11 +29,38 @@ bsToSerialiseModel bs = case deserialiseOrFail bs of
   Right val -> Right val
   Left err -> Left (show err)
 
+traversableToSerialiseModel
+  :: (Traversable t, Serialise (t ByteString), WidgetModel s)
+  => ByteString
+  -> Either String (t s)
+traversableToSerialiseModel tr = case deserialiseOrFail tr of
+  Right val -> traverse byteStringToModel val
+  Left err -> Left (show err)
+
 instance WidgetModel a => WidgetModel (Maybe a) where
   modelToByteString val = serialise (modelToByteString <$> val)
-  byteStringToModel bs = deserialise bs >>= byteStringToModel
+  byteStringToModel = traversableToSerialiseModel
+
+instance (WidgetModel a, WidgetModel b) => WidgetModel (Either a b) where
+  modelToByteString val = serialise (bimap modelToByteString modelToByteString val)
+  byteStringToModel bs = case deserialiseOrFail bs of
+    Right (Right val) -> Right <$> byteStringToModel val
+    Right (Left val) -> Left <$> byteStringToModel val
+    Left err -> Left (show err)
+
+instance WidgetModel a => WidgetModel [a] where
+  modelToByteString val = serialise (modelToByteString <$> val)
+  byteStringToModel = traversableToSerialiseModel
 
 instance WidgetModel () where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
+instance WidgetModel Bool where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
+instance WidgetModel Char where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 

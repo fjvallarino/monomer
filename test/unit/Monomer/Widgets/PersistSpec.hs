@@ -45,14 +45,10 @@ data ChildEvt
   | ChildMessage String
   deriving (Eq, Show)
 
-newtype MainModel = MainModel {
-  _tmText1 :: Text
+data MainModel = MainModel {
+  _tmText1 :: Text,
+  _tmCount1 :: Int
 } deriving (Eq, Show, Generic, Serialise)
-
-instance Default MainModel where
-  def = MainModel {
-    _tmText1 = ""
-  }
 
 instance WidgetModel MainModel where
   modelToByteString = serialise
@@ -64,10 +60,26 @@ setFontColorL = L.text . non def . L.fontColor
 
 spec :: Spec
 spec = describe "Persist" $ do
+  widgetModel
   saveSingle
   restoreSingle
   restoreContainer
   restoreComposite
+
+widgetModel :: Spec
+widgetModel = describe "widgetModel" $ do
+  it "should return the same value" $ do
+    byteStringToModel textBS `shouldBe` Right ("Text" :: Text)
+    byteStringToModel maybeBS `shouldBe` Right (Just 10 :: Maybe Rational)
+    byteStringToModel listBS `shouldBe` Right ([1, 2, 3] :: [Int])
+    byteStringToModel rightBS `shouldBe` Right (Right 20 :: Either Int Int)
+    byteStringToModel leftBS `shouldBe` Right (Left 30 :: Either Int Int)
+  where
+    textBS = modelToByteString ("Text" :: Text)
+    maybeBS = modelToByteString (Just 10 :: Maybe Rational)
+    listBS = modelToByteString ([1, 2, 3] :: [Int])
+    rightBS = modelToByteString (Right 20 :: Either Int Int)
+    leftBS = modelToByteString (Left 30 :: Either Int Int)
 
 saveSingle :: Spec
 saveSingle = describe "saveSingle" $ do
@@ -91,9 +103,11 @@ restoreSingle = describe "restoreSingle" $ do
   it "should have same info" $ do
     oldInfo `shouldBe` rstInfo
     model2 ^. text1 `shouldBe` "Test restore"
+    model2 ^. count1 `shouldBe` 0
+
   where
     wenv :: WidgetEnv MainModel ()
-    wenv = mockWenv (MainModel "Test")
+    wenv = mockWenv (MainModel "Test" 10)
     node1 = textField text1
     (model2, oldInfo, rstInfo) = handleRestoredEvents wenv node1
 
@@ -102,9 +116,10 @@ restoreContainer = describe "restoreContainer" $ do
   it "should have same info" $ do
     oldInfo `shouldBe` rstInfo
     model2 ^. text1 `shouldBe` "Test restore"
+    model2 ^. count1 `shouldBe` 0
 
   where
-    wenv = mockWenv (MainModel "Test")
+    wenv = mockWenv (MainModel "Test" 10)
     node1 = vstack [
         textField text1
       ]
@@ -115,9 +130,10 @@ restoreComposite = describe "restoreComposite" $ do
   it "should have same info" $ do
     oldInfo `shouldBe` rstInfo
     model2 ^. text1 `shouldBe` "Test restore"
+    model2 ^. count1 `shouldBe` 10
 
   where
-    wenv = mockWenv (MainModel "Test")
+    wenv = mockWenv (MainModel "Test" 10)
     handleEvent
       :: WidgetEnv MainModel MainEvt
       -> WidgetNode MainModel MainEvt
@@ -136,7 +152,8 @@ handleRestoredEvents wenv node1 = (model2, oldInfo, rstInfo) where
   newNode = node1 `style` [textColor red]
   inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
   inst2 = deserialise (serialise inst1)
-  ((wenv2, node2, reqs2, evts2), ctx) = nodeHandleRestore wenv inst2 newNode
+  wenvRest = mockWenv (MainModel "Test" 0)
+  ((wenv2, node2, reqs2, evts2), ctx) = nodeHandleRestore wenvRest inst2 newNode
   model2 = nodeHandleEventModelNoInit wenv2 [evtK keyTab, evtT " restore"] node2
   oldStyle = setStyleValue (oldNode ^. L.info . L.style) setFontColorL (?~) red
   oldInfo = oldNode ^. L.info

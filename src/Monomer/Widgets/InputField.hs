@@ -30,7 +30,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type InputFieldValue a = (Eq a, Show a, Typeable a, WidgetModel a, Serialise a)
+type InputFieldValue a = (Eq a, Show a, Typeable a, Serialise a)
 
 type InputDragHandler a
   = InputFieldState a

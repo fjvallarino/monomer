@@ -164,7 +164,8 @@ data ListViewState a = ListViewState {
 
 instance Serialise (ListViewState a) where
   encode ListViewState{..} = encodeListLen 5 <> encodeTag 0
-    <> encode _slIdx <> encode _hlIdx <> encode _slStyle <> encode _hlStyle
+    <> encode _slIdx <> encode _hlIdx
+    <> encode _slStyle <> encode _hlStyle
     <> encode _resizeReq
   decode = do
     len <- decodeListLen
