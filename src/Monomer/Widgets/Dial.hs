@@ -31,7 +31,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type DialValue a = (Eq a, Show a, Real a, FromFractional a)
+type DialValue a = (Eq a, Show a, Real a, FromFractional a, WidgetModel a)
 
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
@@ -115,6 +115,10 @@ data DialState = DialState {
   _dlsMaxPos :: Integer,
   _dlsPos :: Integer
 } deriving (Eq, Show, Generic, Serialise)
+
+instance WidgetModel DialState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
 
 dial :: DialValue a => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def

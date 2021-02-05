@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Util.Widget (
   defaultWidgetNode,
@@ -19,14 +20,13 @@ module Monomer.Widgets.Util.Widget (
   handleWidgetIdChange
 ) where
 
-import Codec.Serialise
 import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq(..), (<|))
-import Data.Typeable (cast, Typeable)
+import Data.Typeable (Typeable, cast)
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
@@ -82,19 +82,19 @@ resultReqsEvts :: WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
 resultReqsEvts node requests events = result where
   result = WidgetResult node (Seq.fromList requests) (Seq.fromList events)
 
-makeState :: (Typeable i, Serialise i) => i -> s -> Maybe WidgetState
+makeState :: WidgetModel i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)
 
-useState :: Typeable i => Maybe WidgetState -> Maybe i
+useState :: WidgetModel i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
 
-loadState :: (Typeable i, Serialise i) => Maybe WidgetState -> Maybe i
+loadState :: WidgetModel i => Maybe WidgetState -> Maybe i
 loadState state = state >>= wsVal >>= fromBS where
   wsVal (WidgetState val) = cast val
-  fromBS bs = case deserialiseOrFail bs of
-    Left _ -> Nothing
+  fromBS bs = case byteStringToModel bs of
     Right val -> Just val
+    Left _ -> Nothing
 
 matchFailedMsg :: WidgetNodeInfo -> WidgetNodeInfo -> String
 matchFailedMsg oldInfo newInfo = message where

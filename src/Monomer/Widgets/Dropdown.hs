@@ -153,6 +153,10 @@ data DropdownState = DropdownState {
   _ddsOffset :: Point
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel DropdownState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 data DropdownMessage
   = OnChangeMessage Int
   | OnListBlur

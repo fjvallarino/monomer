@@ -91,6 +91,10 @@ data LabelState = LabelState {
   _lstTextLines :: Seq TextLine
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel LabelState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 label :: Text -> WidgetNode s e
 label caption = label_ caption def
 

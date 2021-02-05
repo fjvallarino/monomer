@@ -101,6 +101,10 @@ data ImageState = ImageState {
   isImageData :: Maybe (ByteString, Size)
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel ImageState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError

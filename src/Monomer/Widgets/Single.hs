@@ -152,7 +152,7 @@ instance Default (Single s e a) where
     singleRender = defaultRender
   }
 
-createSingle :: (Typeable a, Serialise a) => a -> Single s e a -> Widget s e
+createSingle :: WidgetModel a => a -> Single s e a -> Widget s e
 createSingle state single = Widget {
   widgetInit = initWrapper single,
   widgetMerge = mergeWrapper single,
@@ -179,7 +179,7 @@ defaultInit :: SingleInitHandler s e
 defaultInit wenv node = resultWidget node
 
 initWrapper
-  :: Typeable a
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -196,7 +196,7 @@ defaultMerge :: SingleMergeHandler s e a
 defaultMerge wenv oldState oldNode newNode = resultWidget newNode
 
 mergeWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -226,7 +226,7 @@ mergeWithRestore restore wenv oldState oldNode newNode = result where
   result = restore wenv oldState info newNode
 
 saveWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -243,7 +243,7 @@ defaultRestore :: SingleRestoreHandler s e a
 defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
 
 restoreWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetInstanceNode
@@ -262,7 +262,7 @@ restoreWrapper single wenv win newNode = newResult where
     | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
 loadStateHandler
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNodeInfo
@@ -316,7 +316,7 @@ defaultHandleEvent :: SingleEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
 
 handleEventWrapper
-  :: Typeable a
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> Path
@@ -364,7 +364,7 @@ handleFocusRequest wenv evt node mResult = newResult where
 defaultHandleMessage :: SingleMessageHandler s e
 defaultHandleMessage wenv target message node = Nothing
 
-handleMessageWrapper :: forall s e a i . (Typeable a, Typeable i)
+handleMessageWrapper :: forall s e a i . (WidgetModel a, Typeable i)
   => Single s e a
   -> WidgetEnv s e
   -> Path
@@ -380,7 +380,7 @@ defaultGetSizeReq :: SingleGetSizeReqHandler s e a
 defaultGetSizeReq wenv node = def
 
 updateSizeReq
-  :: Typeable a
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -401,7 +401,7 @@ updateSizeReq single wenv node = newNode where
     & L.info . L.sizeReqH .~ newReqH
 
 handleSizeReqChange
-  :: Typeable a
+  :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e

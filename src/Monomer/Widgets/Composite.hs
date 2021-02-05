@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Composite (
   module Monomer.Core,
@@ -28,12 +29,14 @@ import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
 import Data.Default
+import Data.Either
 import Data.List (foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
 
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
@@ -164,15 +167,21 @@ data CompositeState s e = CompositeState {
   _cpsGlobalKeys :: GlobalKeys s e
 }
 
-instance Serialise s => Serialise (CompositeState s e) where
-  encode state = encodeListLen 2 <> encodeWord 0 <> encode (_cpsModel state)
+instance WidgetModel s => Serialise (CompositeState s e) where
+  encode state = encodeListLen 2 <> encodeWord 0 <> encode modelBS where
+    modelBS = modelToByteString (_cpsModel state)
   decode = do
     len <- decodeListLen
     tag <- decodeWord
-    model <- decode
+    modelBS <- decodeBytes
+    let model = fromRight Nothing (byteStringToModel (BSL.fromStrict modelBS))
     case (len, tag) of
       (2, 0) -> return $ CompositeState model spacer M.empty
       _ -> fail "Invalid Composite state"
+
+instance (WidgetModel s, Typeable e) => WidgetModel (CompositeState s e) where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
 
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,

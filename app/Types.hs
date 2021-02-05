@@ -69,6 +69,10 @@ instance Default App where
     _dragList2 = []
   }
 
+instance WidgetModel App where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 makeLenses ''App
 
 data AppEvent

@@ -50,6 +50,10 @@ data ZStackState = ZStackState {
   _zssTopIdx :: Int
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel ZStackState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ def children
 

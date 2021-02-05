@@ -22,12 +22,12 @@ import GHC.Generics
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
+import Monomer.Core.WidgetModel
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 type Timestamp = Int
 
-type WidgetModel s = (Eq s, Typeable s, Serialise s)
 type WidgetEvent e = Typeable e
 
 type LocalKeys s e = Map WidgetKey (WidgetNode s e)
@@ -80,7 +80,7 @@ data WidgetKey
   deriving (Eq, Show, Ord, Generic, Serialise)
 
 data WidgetState
-  = forall i . (Typeable i, Serialise i) => WidgetState i
+  = forall i . (Typeable i, WidgetModel i) => WidgetState i
 
 instance Show WidgetState where
   show (WidgetState state) = "WidgetState: " ++ show (typeOf state)
@@ -89,7 +89,7 @@ instance Show WidgetState where
 -- not known (since it's Typeable). It needs to be deserialized when used
 instance Serialise WidgetState where
   encode (WidgetState state) = encodeWord 0 <> encode stateBS where
-    stateBS = serialise state
+    stateBS = modelToByteString state
   decode = do
     tag <- decodeWord
     model <- decode

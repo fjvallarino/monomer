@@ -30,7 +30,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type InputFieldValue a = (Eq a, Show a, Typeable a, Serialise a)
+type InputFieldValue a = (Eq a, Show a, Typeable a, WidgetModel a, Serialise a)
 
 type InputDragHandler a
   = InputFieldState a
@@ -90,6 +90,10 @@ data InputFieldState a = InputFieldState {
   _ifsHistory :: Seq (HistoryStep a),
   _ifsHistIdx :: Int
 } deriving (Eq, Show, Typeable, Generic, Serialise)
+
+instance (Typeable a, Serialise a) => WidgetModel (InputFieldState a) where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
 
 initialState :: a -> InputFieldState a
 initialState value = InputFieldState {

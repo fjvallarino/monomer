@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -8,14 +6,12 @@
 
 module Monomer.Widgets.DragDropSpec (spec) where
 
-import Codec.Serialise
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.List (delete)
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
-import GHC.Generics
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -43,12 +39,14 @@ data TestEvt
 data TestItem = TestItem {
   _tiIdx :: Int,
   _tiMsg :: Text
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
 
 data TestModel = TestModel {
   _tmItems1 :: [Int],
   _tmItems2 :: [Int]
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
+
+instance WidgetModel TestModel
 
 makeLensesWith abbreviatedFields ''TestItem
 makeLensesWith abbreviatedFields ''TestModel

@@ -174,6 +174,10 @@ instance Default ScrollState where
     _sstChildSize = def
   }
 
+instance WidgetModel ScrollState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 newtype ScrollMessage
   = ScrollTo Rect
 

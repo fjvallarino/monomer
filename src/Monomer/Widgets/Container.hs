@@ -228,7 +228,7 @@ instance Default (Container s e a) where
   }
 
 createContainer
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => a
   -> Container s e a
   -> Widget s e
@@ -298,7 +298,7 @@ defaultInit :: ContainerInitHandler s e
 defaultInit wenv node = resultWidget node
 
 initWrapper
-  :: Typeable a
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -323,7 +323,7 @@ initWrapper container wenv node = result where
   result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
 defaultGetState
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => a
   -> WidgetEnv s e
   -> Maybe WidgetState
@@ -340,7 +340,7 @@ defaultMergePost :: ContainerMergePostHandler s e a
 defaultMergePost wenv result oldState oldNode node = result
 
 mergeWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -379,7 +379,7 @@ mergeWrapper container wenv oldNode newNode = newResult where
   newResult = handleWidgetIdChange oldNode tmpResult
 
 mergeParent
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => ContainerMergeHandler s e a
   -> WidgetEnv s e
   -> Maybe WidgetState
@@ -486,7 +486,7 @@ mergeWithRestore restore wenv oldState oldNode newNode = result where
   result = restore wenv oldState info newNode
 
 saveWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -508,7 +508,7 @@ defaultRestorePost :: ContainerRestorePostHandler s e a
 defaultRestorePost wenv result oldState oldNode node = result
 
 restoreWrapper
-  :: (Typeable a, Serialise a)
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetInstanceNode
@@ -682,7 +682,7 @@ defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv target evt node = Nothing
 
 handleEventWrapper
-  :: Typeable a
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> Path
@@ -754,7 +754,7 @@ defaultHandleMessage :: ContainerMessageHandler s e
 defaultHandleMessage wenv ctx message node = Nothing
 
 handleMessageWrapper
-  :: (Typeable a, Typeable i)
+  :: (WidgetModel a, Typeable i)
   => Container s e a
   -> WidgetEnv s e
   -> Path
@@ -787,7 +787,7 @@ defaultGetSizeReq :: ContainerGetSizeReqHandler s e a
 defaultGetSizeReq wenv node children = def
 
 updateSizeReq
-  :: Typeable a
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -809,7 +809,7 @@ updateSizeReq container wenv node = newNode where
     & L.info . L.sizeReqH .~ newReqH
 
 handleSizeReqChange
-  :: Typeable a
+  :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e

@@ -37,6 +37,10 @@ newtype KeysCompState = KeysCompState {
   _items :: Seq EditableItem
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel KeysCompState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 makeLenses ''EditableItem
 makeLenses ''KeysCompState
 

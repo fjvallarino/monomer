@@ -54,6 +54,10 @@ instance Default MainModel where
     _tmText1 = ""
   }
 
+instance WidgetModel MainModel where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 makeLensesWith abbreviatedFields ''MainModel
 
 setFontColorL = L.text . non def . L.fontColor

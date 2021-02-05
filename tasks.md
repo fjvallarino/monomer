@@ -493,6 +493,8 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Maybe postponed after release?
+  - Do something about Serialise. Temporarily hide from composite?
+    - Check Serialise requirement on InputField
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -501,7 +503,6 @@ Future
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Add support for multiline text editing
-  - Do something about Serialise. Temporarily hide from composite?
   - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider

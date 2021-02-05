@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -11,7 +9,6 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Functor ((<&>))
 import Data.Text (Text)
-import GHC.Generics
 import Test.Hspec
 import TextShow
 
@@ -37,7 +34,7 @@ data TestEvt
 
 newtype TestItem = TestItem {
   _tiCode :: Int
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
 
 instance TextShow TestItem where
   showb (TestItem c) = "TestItem: " <> showb c

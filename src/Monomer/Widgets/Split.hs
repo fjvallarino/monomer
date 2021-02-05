@@ -97,6 +97,10 @@ data SplitState = SplitState {
   _spsHandleRect :: Rect
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel SplitState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 hsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ def nodes
 

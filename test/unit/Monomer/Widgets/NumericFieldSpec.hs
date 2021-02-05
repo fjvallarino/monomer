@@ -41,6 +41,9 @@ data FractionalModel = FractionalModel {
   _fmFractionalValid :: Bool
 } deriving (Eq, Show)
 
+instance WidgetModel IntegralModel
+instance WidgetModel FractionalModel
+
 makeLensesWith abbreviatedFields ''IntegralModel
 makeLensesWith abbreviatedFields ''FractionalModel
 

@@ -150,6 +150,10 @@ data BtnState = BtnState {
   _btsTextLines :: Seq TextLine
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel BtnState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 mainConfig :: ButtonCfg s e
 mainConfig = def {
   _btnButtonType = Just ButtonMain

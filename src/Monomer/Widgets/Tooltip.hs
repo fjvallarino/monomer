@@ -75,6 +75,10 @@ data TooltipState = TooltipState {
   _ttsLastPosTs :: Int
 } deriving (Eq, Show, Generic, Serialise)
 
+instance WidgetModel TooltipState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 tooltip :: Text -> WidgetNode s e -> WidgetNode s e
 tooltip caption managed = tooltip_ caption def managed
 

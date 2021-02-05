@@ -33,6 +33,10 @@ data CompState = CompState {
 instance Default CompState where
   def = CompState 0 0
 
+instance WidgetModel CompState where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
+
 makeLenses ''CompState
 
 data CompEvent

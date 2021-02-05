@@ -1,9 +1,8 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.ListView (
   ListViewCfg,
@@ -15,6 +14,8 @@ module Monomer.Widgets.ListView (
   listViewD_
 ) where
 
+import Codec.CBOR.Decoding
+import Codec.CBOR.Encoding
 import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), at, ix, non, _Just)
@@ -25,7 +26,6 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
-import GHC.Generics
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -40,7 +40,7 @@ import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
-type ListItem a = (Eq a, Show a, Typeable a, Serialise a)
+type ListItem a = (Eq a, Show a, Typeable a)
 type MakeRow s e a = a -> WidgetNode s e
 
 data ListViewCfg s e a = ListViewCfg {
@@ -160,7 +160,23 @@ data ListViewState a = ListViewState {
   _slStyle :: Maybe Style,
   _hlStyle :: Maybe Style,
   _resizeReq :: Bool
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
+
+instance Serialise (ListViewState a) where
+  encode ListViewState{..} = encodeListLen 5 <> encodeTag 0
+    <> encode _slIdx <> encode _hlIdx <> encode _slStyle <> encode _hlStyle
+    <> encode _resizeReq
+  decode = do
+    len <- decodeListLen
+    tag <- decodeTag
+    case (len, tag) of
+      (5, 0) -> ListViewState Empty
+                  <$> decode <*> decode <*> decode <*> decode <*> decode
+      _ -> fail "Invalid ListViewState encoding"
+
+instance Typeable a => WidgetModel (ListViewState a) where
+  modelToByteString = serialise
+  byteStringToModel = bsToSerialiseModel
 
 newtype ListViewMessage
   = OnClickMessage Int
@@ -283,6 +299,7 @@ makeListView widgetData items makeRow config state = widget where
 
   updateState wenv oldState resizeReq children node = result where
     newState = oldState {
+      _prevItems = items,
       _resizeReq = resizeReq
     }
     tmpNode = node
