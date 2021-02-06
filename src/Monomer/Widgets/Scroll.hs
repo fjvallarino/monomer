@@ -213,6 +213,7 @@ makeScroll config state = widget where
     containerChildrenOffset = Just offset,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
+    containerGetActiveStyle = scrollActiveStyle,
     containerRestore = restore,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
