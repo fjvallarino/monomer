@@ -1,6 +1,8 @@
 module Monomer.Widgets.Spacer (
   spacer,
-  spacer_
+  spacer_,
+  filler,
+  filler_
 ) where
 
 import Control.Applicative ((<|>))
@@ -52,6 +54,14 @@ spacer = spacer_ def
 
 spacer_ :: [SpacerCfg] -> WidgetNode s e
 spacer_ configs = defaultWidgetNode "spacer" widget where
+  config = mconcat (resizeFactor 0 : configs)
+  widget = makeSpacer config
+
+filler :: WidgetNode s e
+filler = filler_ def
+
+filler_ :: [SpacerCfg] -> WidgetNode s e
+filler_ configs = defaultWidgetNode "filler" widget where
   config = mconcat configs
   widget = makeSpacer config
 
@@ -65,4 +75,6 @@ makeSpacer config = widget where
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)
-    sizeReq = (FlexSize width factor, FlexSize height factor)
+    sizeReq
+      | factor >= 0.01 = (FlexSize width factor, FlexSize height factor)
+      | otherwise = (FixedSize width, FixedSize height)

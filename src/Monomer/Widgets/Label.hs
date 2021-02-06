@@ -3,7 +3,9 @@
 
 module Monomer.Widgets.Label (
   label,
-  label_
+  label_,
+  labelS,
+  labelS_
 ) where
 
 import Codec.Serialise
@@ -103,6 +105,12 @@ label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
   state = LabelState caption Nothing def Seq.Empty
   widget = makeLabel config state
+
+labelS :: Show a => a -> WidgetNode s e
+labelS caption = labelS_ caption def
+
+labelS_ :: Show a => a -> [LabelCfg] -> WidgetNode s e
+labelS_ caption configs = label_ (T.pack . show $ caption) configs
 
 makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
