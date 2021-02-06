@@ -1,43 +1,131 @@
-{-# LANGUAGE  DeriveAnyClass #-}
-{-# LANGUAGE  DeriveGeneric #-}
-{-# LANGUAGE  ScopedTypeVariables #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
-import Codec.Serialise
+import Control.Lens
 import Data.Default
+import Data.Maybe
 import Data.Text (Text)
-import GHC.Generics
+import TextShow
 
 import Monomer
 
-data TodoModel = TodoModel {
-  _active :: [Todo],
-  _complete :: [Todo]
-} deriving (Eq, Show, Generic, Serialise)
+import TodoTypes
 
-data Todo = Todo {
-  _todoDesc :: Text,
-  _todoComplete :: Bool
-} deriving (Eq, Show, Generic, Serialise)
-
-data TodoEvt
-  = TodoInit
-  deriving (Eq, Show)
-
+buildUI
+  :: WidgetEnv TodoModel TodoEvt
+  -> TodoModel
+  -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
-  widgetTree = vstack [
-      label "Test"
+  todoView idx t = hstack [
+      labelS (t ^. todoType) `style` [width 50],
+      label (t ^. description),
+      labelS (t ^. status) `style` [width 100],
+      button "Edit" (TodoEdit idx t) `style` [width 50],
+      spacer,
+      button "Delete" (TodoDelete idx) `style` [width 50]
+    ] `style` [paddingV 2]
+  todoEdit = vstack [
+      hgrid [
+        hstack [
+          label "Type: ",
+          spacer,
+          textDropdownS (activeTodo . todoType) todoTypes `key` "todoType",
+          spacer
+        ],
+        hstack [
+          label "Status: ",
+          spacer,
+          textDropdownS (activeTodo . status) todoStatuses
+        ]
+      ],
+      spacer,
+      hstack [
+        label "Description: ",
+        spacer,
+        textField (activeTodo . description) `key` "todoDesc"
+      ],
+      spacer,
+      hstack [
+        case model ^. action of
+          TodoAdding -> button "Add" TodoAdd `style` [width 100]
+          TodoEditing idx -> button "Save" (TodoSave idx) `style` [width 100]
+          _ -> spacer,
+        spacer,
+        button "Cancel" TodoCancel `style` [width 100],
+        filler
+        ]
     ]
+  widgetTree = vstack [
+      keystroke [("Esc", TodoCancel)]
+        (todoEdit `style` [padding 4]) `visible` (model ^. action /= TodoNone),
+      scroll $ vstack (zipWith todoView [0..] (model ^. todos)),
+      filler,
+      box_ [expandContent] (button "New" TodoNew `key` "todoNew")
+    ] `style` [padding 4, paddingT 0]
 
+handleEvent
+  :: WidgetEnv TodoModel TodoEvt
+  -> WidgetNode TodoModel TodoEvt
+  -> TodoModel
+  -> TodoEvt
+  -> [EventResponse TodoModel TodoEvt ()]
 handleEvent wenv node model evt = case evt of
-  TodoInit -> []
+  TodoInit -> [setFocus wenv "todoNew"]
+  TodoNew -> [
+    Model $ model
+      & action .~ TodoAdding
+      & activeTodo .~ def,
+    setFocus wenv "todoType"]
+  TodoEdit idx td -> [
+    Model $ model
+      & action .~ TodoEditing idx
+      & activeTodo .~ td,
+    setFocus wenv "todoType"]
+  TodoAdd -> [
+    Model $ model
+      & action .~ TodoNone
+      & todos .~ (model ^. activeTodo : model ^. todos),
+    setFocus wenv "todoNew"]
+  TodoSave idx -> [
+    Model $ model
+      & action .~ TodoNone
+      & todos . ix idx .~ (model ^. activeTodo),
+    setFocus wenv "todoNew"]
+  TodoDelete idx -> [
+    Model $ model
+      & action .~ TodoNone
+      & todos .~ remove idx (model ^. todos),
+    setFocus wenv "todoNew"]
+  TodoCancel -> [
+    Model $ model
+      & action .~ TodoNone
+      & activeTodo .~ def,
+    setFocus wenv "todoNew"]
 
+remove :: Int -> [a] -> [a]
+remove idx ls = take idx ls ++ drop (idx + 1) ls
+
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus wenv key = Request (SetFocus path) where
+  path = fromMaybe rootPath (globalKeyPath wenv key)
+
+initialTodos = mconcat $ replicate 5 [
+    Todo Home Done "Tidy up the room",
+    Todo Home Pending "Buy groceries",
+    Todo Home Pending "Pay the bills",
+    Todo Work Pending "Check the status of project A",
+    Todo Work Pending "Finish project B"
+  ]
+
+main :: IO ()
 main = do
-  simpleApp_ model handleEvent buildUI config
+  simpleApp (TodoModel initialTodos def TodoNone) handleEvent buildUI config
   where
-    model = TodoModel [] []
     config = [
+      appWindowTitle "Todo list",
       appTheme darkTheme,
-      appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf"
+      appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+      appInitEvent TodoInit
       ]

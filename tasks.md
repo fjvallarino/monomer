@@ -481,7 +481,6 @@
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
   - Add examples
-    - Basic event handling (maybe a form with input and button?)
     - Todo List
       - Use scroll
       - Scroll should auto-scroll to focus
@@ -494,7 +493,13 @@
   - Windows build fix
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
-Maybe postponed after release?
+Next
+  - Add scroll focus following
+  - Allow opting out of scroll bar overlaid on top of content
+  - Add combinator to affect size factor only
+  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
+    - This could avoid rebuilding listView items when hidden/shown
+  - Check resize requests on Todo when entering text in description
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

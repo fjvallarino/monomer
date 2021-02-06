@@ -84,6 +84,7 @@ executables:
     dependencies:
     - lens
     - monomer
+    - text-show
 
 tests:
   monomer-test:

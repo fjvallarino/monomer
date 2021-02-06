@@ -301,7 +301,7 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
     cvp3 = Rect 219 0 421 480
     hstackNode = hstack [
         label "Label" `style` [flexWidth 100],
-        spacer,
+        filler,
         label "Label" `style` [flexWidth 200]
       ]
     newNode = nodeInit wenv hstackNode
@@ -324,7 +324,7 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
     cvp3 = Rect 440 0 200 480
     hstackNode = hstack [
         label "Label" `style` [width 100],
-        spacer,
+        filler,
         label "Label" `style` [width 200]
       ]
     newNode = nodeInit wenv hstackNode

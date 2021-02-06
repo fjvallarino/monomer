@@ -260,6 +260,7 @@ baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = baseFocus themeMod
   & L.btnStyle . L.bgColor ?~ btnBgHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.dropdownListStyle . L.border ?~ borderFocus themeMod
 
 baseActive :: BaseThemeColors -> ThemeState
 baseActive themeMod = baseHover themeMod
