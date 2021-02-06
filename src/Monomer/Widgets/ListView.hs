@@ -287,7 +287,9 @@ makeListView widgetData items makeRow config state = widget where
   merge wenv oldState oldNode node = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
-    mergeRequired = mergeRequiredFn oldItems items
+    visibleChg = visibleChildrenChanged oldNode node
+    enabledChg = enabledChildrenChanged oldNode node
+    mergeRequired = mergeRequiredFn oldItems items || visibleChg || enabledChg
     children
       | mergeRequired = createListViewChildren wenv node
       | otherwise = oldNode ^. L.children

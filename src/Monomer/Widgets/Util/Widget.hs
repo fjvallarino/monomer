@@ -5,6 +5,7 @@ module Monomer.Widgets.Util.Widget (
   defaultWidgetNode,
   isWidgetVisible,
   visibleChildrenChanged,
+  enabledChildrenChanged,
   widgetDataGet,
   widgetDataSet,
   resultWidget,
@@ -57,6 +58,11 @@ visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where
   oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
   newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
+
+enabledChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+enabledChildrenChanged oldNode newNode = oldVisible /= newVisible  where
+  oldVisible = fmap (^. L.info . L.enabled) (oldNode ^. L.children)
+  newVisible = fmap (^. L.info . L.enabled) (newNode ^. L.children)
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value
