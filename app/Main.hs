@@ -54,8 +54,7 @@ main = do
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
-  simpleApp_ model handleAppEvent buildUI config
-  --simpleApp model handleAppEvent buildUI
+  simpleApp model handleAppEvent buildUI config
 
 handleAppEvent
   :: WidgetEnv App AppEvent
@@ -155,7 +154,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       ],
       label "Test"
     ])
-  mkDd i = textDropdown dropdown1 items id
+  mkDd i = textDropdown dropdown1 items
   widgetLVs = scroll $ vstack (mkDd <$> [1..40::Int])
   widgetThemeSwitch = hstack [
       label "Test",
@@ -181,7 +180,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack",
-      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items,
       textField textField1,
       hstack [
         checkbox condition1,
@@ -207,11 +206,11 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
   widgetImages = scroll $ vstack (mkImg <$> [0..9::Int])
   widgetSave = vstack [
       textField textField1,
-      textDropdown dropdown1 items id,
-      textDropdown dropdown1 items id,
-      textDropdown dropdown1 items id,
-      textDropdown dropdown1 items id,
-      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items,
+      textDropdown dropdown1 items,
+      textDropdown dropdown1 items,
+      textDropdown dropdown1 items,
+      textDropdown dropdown1 items,
       scroll $ image_ "assets/images/pecans.jpg" [fitFill] `style` [width 1000, height 1000]
     ]
   widgetHover = vstack [
@@ -220,7 +219,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "Test" `hover` [bgColor green],
         textField textField1 `hover` [bgColor orange, textSize 32]
       ],
-      textDropdown dropdown1 items id,
+      textDropdown dropdown1 items,
       vstack $ fmap (\i -> label ("AAAA: " <> showt i) `hover` [textSize 40]) [1..10::Int],
       listView dropdown1 items label
     ]
@@ -412,7 +411,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg]
         ],
-      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
+      textDropdown_ dropdown1 items [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

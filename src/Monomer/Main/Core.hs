@@ -8,7 +8,6 @@ module Monomer.Main.Core (
   AppUIBuilder,
   EventResponse(..),
   simpleApp,
-  simpleApp_,
   runApp
 ) where
 
@@ -65,18 +64,9 @@ simpleApp
   => s
   -> AppEventHandler s e
   -> AppUIBuilder s e
-  -> IO ()
-simpleApp model eventHandler uiBuilder =
-  simpleApp_ model eventHandler uiBuilder def
-
-simpleApp_
-  :: (Eq s, WidgetModel s, WidgetEvent e)
-  => s
-  -> AppEventHandler s e
-  -> AppUIBuilder s e
   -> [AppConfig e]
   -> IO ()
-simpleApp_ model eventHandler uiBuilder configs = do
+simpleApp model eventHandler uiBuilder configs = do
   (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
