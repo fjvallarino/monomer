@@ -2,7 +2,7 @@
 
 module Monomer.Core.StyleUtil (
   key,
-  globalKey,
+  localKey,
   style,
   hover,
   focus,
@@ -40,14 +40,14 @@ import Monomer.Graphics.Types
 import qualified Monomer.Lens as L
 
 infixl 5 `key`
-infixl 5 `globalKey`
+infixl 5 `localKey`
 infixl 5 `visible`
 
 key :: WidgetNode s e -> Text -> WidgetNode s e
-key node key = node & L.info . L.key ?~ WidgetKeyLocal key
+key node key = node & L.info . L.key ?~ WidgetKeyGlobal key
 
-globalKey :: WidgetNode s e -> Text -> WidgetNode s e
-globalKey node key = node & L.info . L.key ?~ WidgetKeyGlobal key
+localKey :: WidgetNode s e -> Text -> WidgetNode s e
+localKey node key = node & L.info . L.key ?~ WidgetKeyLocal key
 
 visible :: WidgetNode s e -> Bool -> WidgetNode s e
 visible node visibility = node & L.info . L.visible .~ visibility

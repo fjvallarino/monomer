@@ -201,18 +201,18 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
-          textField text1 `key` "localTxt1"
+          textField text1 `localKey` "localTxt1"
         ],
         vstack [
-          textField text1 `key` "localTxt2"
+          textField text1 `localKey` "localTxt2"
         ]
       ]
     buildUI2 wenv model = hstack [
         vstack [
-          textField text1 `key` "localTxt2"
+          textField text1 `localKey` "localTxt2"
         ],
         vstack [
-          textField text1 `key` "localTxt1"
+          textField text1 `localKey` "localTxt1"
         ]
       ]
     cmpNode1 = composite "main" id buildUI1 handleEvent
@@ -247,18 +247,18 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
-          textField text1 `globalKey` "globalTxt1"
+          textField text1 `key` "globalTxt1"
         ],
         vstack [
-          textField text2 `globalKey` "globalTxt2"
+          textField text2 `key` "globalTxt2"
         ]
       ]
     buildUI2 wenv model = hstack [
         vstack [
-          textField text2 `globalKey` "globalTxt2"
+          textField text2 `key` "globalTxt2"
         ],
         vstack [
-          textField text1 `globalKey` "globalTxt1"
+          textField text1 `key` "globalTxt1"
         ]
       ]
     cmpNode1 = composite "main" id buildUI1 handleEvent
