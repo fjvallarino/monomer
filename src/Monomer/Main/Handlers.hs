@@ -158,9 +158,14 @@ handleWidgetInit
 handleWidgetInit wenv widgetRoot = do
   let widget = widgetRoot ^. L.widget
   let widgetResult = widgetInit widget wenv widgetRoot
+  let reqs = widgetResult ^. L.requests
+  let focusReqExists = isJust $ Seq.findIndexL isFocusRequest reqs
 
-  handleWidgetResult wenv True widgetResult
-    >>= handleMoveFocus Nothing FocusFwd
+  step <- handleWidgetResult wenv True widgetResult
+
+  if not focusReqExists
+    then handleMoveFocus Nothing FocusFwd step
+    else return step
 
 handleWidgetRestore
   :: (MonomerM s m)
