@@ -10,7 +10,8 @@ module Monomer.Main.Handlers (
   handleWidgetInit,
   handleWidgetRestore,
   handleWidgetDispose,
-  handleRequests
+  handleRequests,
+  handleResizeWidgets
 ) where
 
 import Control.Concurrent.Async (async)
@@ -246,13 +247,14 @@ handleResizeWidgets
   => HandlerStep s e
   -> m (HandlerStep s e)
 handleResizeWidgets previousStep = do
-  windowSize <- use L.windowSize
+  Size w h <- use L.windowSize
 
   liftIO . putStrLn $ "Resizing widgets"
 
-  let (wenv, widgetRoot, requests, events) = previousStep
+  let winRect = Rect 0 0 w h
+  let (wenv, root, requests, events) = previousStep
   let reqsNoResize = Seq.filter (not . isResizeWidgets) requests
-  let tmpResult = resizeRoot wenv windowSize widgetRoot
+  let tmpResult = widgetResize (root ^. L.widget) wenv winRect root
   let newResult = tmpResult
         & L.requests .~ reqsNoResize <> tmpResult ^. L.requests
         & L.events .~ events <> tmpResult ^. L.events

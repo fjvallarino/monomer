@@ -352,8 +352,7 @@ resizeWindow window wenv widgetRoot = do
   L.windowSize .= windowSize
   liftIO $ GL.viewport GL.$= (position, size)
 
-  let resizeRes = resizeRoot wenv windowSize widgetRoot
-  handleWidgetResult wenv True resizeRes
+  handleResizeWidgets (wenv, widgetRoot, Seq.Empty, Seq.Empty)
 
 saveMonomerCtx
   :: MonomerM s m

@@ -477,6 +477,9 @@
   - Do something about Serialise. Temporarily hide from composite?
     - Added WidgetModel typeclass. Provides a way of not forcing users to implement Serialise
   - Allow opting out of scroll bar overlaid on top of content
+  - Add scroll focus following
+  - Resize called multiple times after window resize?
+    - Not a bug (there were two dropdowns besides the main scroll, hence the three logged resizes)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -485,7 +488,6 @@
     - Todo List
       - Use scroll
       - Scroll should auto-scroll to focus
-      - Think about implementing arrow key navigation (how do I find the viewport of selected item?)
     - Validate nested structures update correctly when disabling/enabling parent
     - Fetch content from url, show rows of data with embedded images
     - Composite example
@@ -495,8 +497,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Add scroll focus following
-  - Resize called multiple times after window resize?
   - Add combinator to affect size factor only
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown

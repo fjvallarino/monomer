@@ -226,7 +226,7 @@ nodeHandleEvents wenv evts node = unsafePerformIO $ do
     handleResourcesInit
     (wenv2, newNode, _, _) <- handleWidgetInit wenv pathReadyRoot
 
-    let resizeRes = resizeRoot wenv2 winSize newNode
+    let resizeRes = widgetResize (newNode ^. L.widget) wenv vp newNode
     (wenv3, sizedNode, reqs1, evts1) <- handleWidgetResult wenv2 True resizeRes
     (wenv4, newRoot, reqs2, evts2) <- handleSystemEvents wenv2 evts sizedNode
 

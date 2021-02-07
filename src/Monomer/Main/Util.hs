@@ -47,14 +47,6 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcExitApplication = False
 }
 
-resizeRoot
-  :: WidgetEnv s e -> Size -> WidgetNode s e -> WidgetResult s e
-resizeRoot wenv windowSize widgetRoot = result where
-  Size w h = windowSize
-  assigned = Rect 0 0 w h
-  widget = widgetRoot ^. L.widget
-  result = widgetResize widget wenv assigned widgetRoot
-
 setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
 setWidgetIdPath widgetId path =
   L.widgetPaths . ix widgetId . _1 .= path
