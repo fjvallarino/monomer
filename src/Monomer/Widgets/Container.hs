@@ -177,6 +177,7 @@ data Container s e a = Container {
   containerUseCustomSize :: Bool,
   containerUseChildrenSizes :: Bool,
   containerUseScissor :: Bool,
+  containerScissor :: Rect,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerGetActiveStyle :: ContainerGetActiveStyle s e,
   containerUpdateCWenv :: ContainerUpdateCWenvHandler s e,
@@ -207,6 +208,7 @@ instance Default (Container s e a) where
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
     containerUseScissor = False,
+    containerScissor = def,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerGetActiveStyle = defaultGetActiveStyle,
     containerUpdateCWenv = defaultUpdateCWenv,
@@ -881,10 +883,10 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node =
-  drawInScissor renderer useScissor viewport $
-    drawStyledAction renderer viewport style $ \_ -> do
-      renderBefore renderer wenv node
+  drawStyledAction renderer viewport style $ \_ -> do
+    renderBefore renderer wenv node
 
+    drawInScissor renderer useScissor scissor $ do
       when (isJust offset) $ do
         saveContext renderer
         setTranslation renderer (fromJust offset)
@@ -896,11 +898,13 @@ renderWrapper container renderer wenv node =
       when (isJust offset) $
         restoreContext renderer
 
-      renderAfter renderer wenv node
+    -- Outside scissor
+    renderAfter renderer wenv node
   where
     style = containerGetActiveStyle container wenv node
     updateCWenv = getUpdateCWenv container
     useScissor = containerUseScissor container
+    scissor = containerScissor container
     offset = containerChildrenOffset container
     renderBefore = containerRender container
     renderAfter = containerRenderAfter container

@@ -494,8 +494,9 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Add scroll focus following
   - Allow opting out of scroll bar overlaid on top of content
+  - Add scroll focus following
+  - Resize called multiple times after window resize?
   - Add combinator to affect size factor only
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown

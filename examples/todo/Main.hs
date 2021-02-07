@@ -60,10 +60,10 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       keystroke [("Esc", TodoCancel)]
         (todoEdit `style` [padding 4]) `visible` (model ^. action /= TodoNone),
-      scroll $ vstack (zipWith todoView [0..] (model ^. todos)),
+      scroll $ vstack (zipWith todoView [0..] (model ^. todos)) `style` [paddingH 4],
       filler,
-      box_ [expandContent] (button "New" TodoNew `key` "todoNew")
-    ] `style` [padding 4, paddingT 0]
+      box_ [expandContent] (button "New" TodoNew `key` "todoNew") `style` [padding 4]
+    ]
 
 handleEvent
   :: WidgetEnv TodoModel TodoEvt
@@ -111,6 +111,7 @@ setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus path) where
   path = fromMaybe rootPath (globalKeyPath wenv key)
 
+initialTodos :: [Todo]
 initialTodos = mconcat $ replicate 5 [
     Todo Home Done "Tidy up the room",
     Todo Home Pending "Buy groceries",

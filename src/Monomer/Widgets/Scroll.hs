@@ -13,6 +13,7 @@ module Monomer.Widgets.Scroll (
   hscroll_,
   vscroll,
   vscroll_,
+  scrollOverlay,
   scrollWheelRate,
   scrollBarHoverColor,
   scrollBarColor,
@@ -52,6 +53,7 @@ data ActiveBar
 
 data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
+  _scScrollOverlay :: Maybe Bool,
   _scWheelRate :: Maybe Double,
   _scBarColor :: Maybe Color,
   _scBarHoverColor :: Maybe Color,
@@ -66,6 +68,7 @@ data ScrollCfg = ScrollCfg {
 instance Default ScrollCfg where
   def = ScrollCfg {
     _scScrollType = Nothing,
+    _scScrollOverlay = Nothing,
     _scWheelRate = Nothing,
     _scBarColor = Nothing,
     _scBarHoverColor = Nothing,
@@ -80,6 +83,7 @@ instance Default ScrollCfg where
 instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
     _scScrollType = _scScrollType t2 <|> _scScrollType t1,
+    _scScrollOverlay = _scScrollOverlay t2 <|> _scScrollOverlay t1,
     _scWheelRate = _scWheelRate t2 <|> _scWheelRate t1,
     _scBarColor = _scBarColor t2 <|> _scBarColor t1,
     _scBarHoverColor = _scBarHoverColor t2 <|> _scBarHoverColor t1,
@@ -98,12 +102,18 @@ data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
-  _sstChildSize :: Size
+  _sstChildSize :: Size,
+  _sstScissor :: Rect
 } deriving (Eq, Show, Generic, Serialise)
 
 scrollType :: ScrollType -> ScrollCfg
 scrollType st = def {
   _scScrollType = Just st
+}
+
+scrollOverlay :: Bool -> ScrollCfg
+scrollOverlay overlay = def {
+  _scScrollOverlay = Just overlay
 }
 
 scrollWheelRate :: Double -> ScrollCfg
@@ -171,7 +181,8 @@ instance Default ScrollState where
     _sstDragging = Nothing,
     _sstDeltaX = 0,
     _sstDeltaY = 0,
-    _sstChildSize = def
+    _sstChildSize = def,
+    _sstScissor = def
   }
 
 instance WidgetModel ScrollState where
@@ -212,6 +223,7 @@ makeScroll config state = widget where
   widget = createContainer state def {
     containerChildrenOffset = Just offset,
     containerUseScissor = True,
+    containerScissor = _sstScissor state,
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
     containerRestore = restore,
@@ -222,7 +234,7 @@ makeScroll config state = widget where
     containerRenderAfter = renderAfter
   }
 
-  ScrollState dragging dx dy cs = state
+  ScrollState dragging dx dy cs _ = state
   Size childWidth childHeight = cs
   offset = Point dx dy
 
@@ -366,6 +378,7 @@ makeScroll config state = widget where
 
   resize :: ContainerResizeHandler s e
   resize wenv viewport children node = result where
+    theme = activeTheme wenv node
     style = scrollActiveStyle wenv node
     scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
@@ -377,19 +390,32 @@ makeScroll config state = widget where
     childWidth2 = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
     childHeight2 = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
 
-    areaW
-      | scrollType == ScrollV = cw
-      | otherwise = max cw childWidth2
-    areaH
-      | scrollType == ScrollH = ch
-      | otherwise = max ch childHeight2
-    newDx = scrollAxis dx areaW cw
-    newDy = scrollAxis dy areaH ch
+    barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
+    overlay = fromMaybe (theme ^. L.scrollOverlay) (_scScrollOverlay config)
+    (ncw, nch)
+      | not overlay = (cw - barW, ch - barW)
+      | otherwise = (cw, ch)
+    (maxW, areaW)
+      | scrollType == ScrollV && childHeight2 > ch = (ncw, ncw)
+      | scrollType == ScrollV = (cw, cw)
+      | childHeight2 <= ch && childWidth2 <= cw = (cw, cw)
+      | childHeight2 <= ch = (cw, max cw childWidth2)
+      | otherwise = (ncw, max ncw childWidth2)
+    (maxH, areaH)
+      | scrollType == ScrollH && childWidth2 > cw = (nch, nch)
+      | scrollType == ScrollH = (ch, ch)
+      | childWidth2 <= cw && childHeight2 <= ch = (ch, ch)
+      | childWidth2 <= cw = (ch, max ch childHeight2)
+      | otherwise = (nch, max nch childHeight2)
+    newDx = scrollAxis dx areaW maxW
+    newDy = scrollAxis dy areaH maxH
+    scissor = Rect cl ct maxW maxH
     cViewport = Rect cl ct areaW areaH
     newState = state {
       _sstDeltaX = newDx,
       _sstDeltaY = newDy,
-      _sstChildSize = Size areaW areaH
+      _sstChildSize = Size areaW areaH,
+      _sstScissor = scissor
     }
     newNode = resultWidget $ node
       & L.widget .~ makeScroll config newState
@@ -455,7 +481,7 @@ scrollStatus
   -> WidgetNode s e
   -> ScrollContext
 scrollStatus config wenv scrollState node = ScrollContext{..} where
-  ScrollState _ dx dy (Size childWidth childHeight) = scrollState
+  ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   mousePos = _ipsMousePos (_weInputStatus wenv)
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node

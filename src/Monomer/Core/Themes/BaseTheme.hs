@@ -191,10 +191,11 @@ baseBasic themeMod = def
   & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle themeMod
   & L.radioWidth .~ 20
   & L.radioStyle . L.fgColor ?~ inputFgBasic themeMod
+  & L.scrollOverlay .~ False
   & L.scrollBarColor .~ scrollBarBasic themeMod
   & L.scrollThumbColor .~ scrollThumbBasic themeMod
   & L.scrollBarWidth .~ 10
-  & L.scrollThumbWidth .~ 8
+  & L.scrollThumbWidth .~ 10
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
   & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
