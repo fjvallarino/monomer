@@ -131,6 +131,7 @@ makeInputField config state = widget where
   widget = createSingle state def {
     singleStyleChangeCfg = def & L.cursorIgnore .~ True,
     singleFocusOnPressedBtn = False,
+    singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
     singleRestore = restore,

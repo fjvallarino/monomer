@@ -222,8 +222,7 @@ makeScroll :: ScrollCfg -> ScrollState -> Widget s e
 makeScroll config state = widget where
   widget = createContainer state def {
     containerChildrenOffset = Just offset,
-    containerUseScissor = True,
-    containerScissor = _sstScissor state,
+    containerChildrenScissor = Just (_sstScissor state),
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
     containerRestore = restore,

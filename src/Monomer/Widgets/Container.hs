@@ -171,13 +171,13 @@ type ContainerRenderHandler s e
 data Container s e a = Container {
   containerAddStyleReq :: Bool,
   containerChildrenOffset :: Maybe Point,
+  containerChildrenScissor :: Maybe Rect,
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
   containerStyleChangeCfg :: StyleChangeCfg,
   containerUseCustomSize :: Bool,
   containerUseChildrenSizes :: Bool,
   containerUseScissor :: Bool,
-  containerScissor :: Rect,
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
   containerGetActiveStyle :: ContainerGetActiveStyle s e,
   containerUpdateCWenv :: ContainerUpdateCWenvHandler s e,
@@ -202,13 +202,13 @@ instance Default (Container s e a) where
   def = Container {
     containerAddStyleReq = True,
     containerChildrenOffset = Nothing,
+    containerChildrenScissor = Nothing,
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
     containerStyleChangeCfg = def,
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
     containerUseScissor = False,
-    containerScissor = def,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerGetActiveStyle = defaultGetActiveStyle,
     containerUpdateCWenv = defaultUpdateCWenv,
@@ -883,33 +883,36 @@ renderWrapper
   -> WidgetNode s e
   -> IO ()
 renderWrapper container renderer wenv node =
-  drawStyledAction renderer viewport style $ \_ -> do
-    renderBefore renderer wenv node
+  drawInScissor renderer useScissor viewport $
+    drawStyledAction renderer viewport style $ \_ -> do
+      renderBefore renderer wenv node
 
-    drawInScissor renderer useScissor scissor $ do
-      when (isJust offset) $ do
-        saveContext renderer
-        setTranslation renderer (fromJust offset)
+      drawInScissor renderer useChildrenScissor childrenScissorRect $ do
+        when (isJust offset) $ do
+          saveContext renderer
+          setTranslation renderer (fromJust offset)
 
-      forM_ pairs $ \(idx, child) ->
-        when (isWidgetVisible (cwenv idx child) child) $
-          widgetRender (child ^. L.widget) renderer (cwenv idx child) child
+        forM_ pairs $ \(idx, child) ->
+          when (isWidgetVisible (cwenv idx child) child) $
+            widgetRender (child ^. L.widget) renderer (cwenv idx child) child
 
-      when (isJust offset) $
-        restoreContext renderer
+        when (isJust offset) $
+          restoreContext renderer
 
-    -- Outside scissor
-    renderAfter renderer wenv node
+      -- Outside children scissor
+      renderAfter renderer wenv node
   where
     style = containerGetActiveStyle container wenv node
     updateCWenv = getUpdateCWenv container
     useScissor = containerUseScissor container
-    scissor = containerScissor container
+    childrenScissor = containerChildrenScissor container
     offset = containerChildrenOffset container
     renderBefore = containerRender container
     renderAfter = containerRenderAfter container
     children = node ^. L.children
     viewport = node ^. L.info . L.viewport
+    useChildrenScissor = isJust childrenScissor
+    childrenScissorRect = fromMaybe def childrenScissor
     pairs = Seq.mapWithIndex (,) children
     cwenv idx child = updateCWenv wenv idx child node
 
