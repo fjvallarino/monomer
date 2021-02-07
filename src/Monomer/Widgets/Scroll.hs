@@ -14,6 +14,7 @@ module Monomer.Widgets.Scroll (
   vscroll,
   vscroll_,
   scrollOverlay,
+  scrollFollowFocus,
   scrollWheelRate,
   scrollBarHoverColor,
   scrollBarColor,
@@ -27,7 +28,7 @@ module Monomer.Widgets.Scroll (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (.~), (^?!), (<>~), (%~), cloneLens, ix)
+import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), (%~), _Just, cloneLens, ix)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -54,6 +55,7 @@ data ActiveBar
 data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
   _scScrollOverlay :: Maybe Bool,
+  _scFollowFocus :: Maybe Bool,
   _scWheelRate :: Maybe Double,
   _scBarColor :: Maybe Color,
   _scBarHoverColor :: Maybe Color,
@@ -69,6 +71,7 @@ instance Default ScrollCfg where
   def = ScrollCfg {
     _scScrollType = Nothing,
     _scScrollOverlay = Nothing,
+    _scFollowFocus = Nothing,
     _scWheelRate = Nothing,
     _scBarColor = Nothing,
     _scBarHoverColor = Nothing,
@@ -84,6 +87,7 @@ instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
     _scScrollType = _scScrollType t2 <|> _scScrollType t1,
     _scScrollOverlay = _scScrollOverlay t2 <|> _scScrollOverlay t1,
+    _scFollowFocus = _scFollowFocus t2 <|> _scFollowFocus t1,
     _scWheelRate = _scWheelRate t2 <|> _scWheelRate t1,
     _scBarColor = _scBarColor t2 <|> _scBarColor t1,
     _scBarHoverColor = _scBarHoverColor t2 <|> _scBarHoverColor t1,
@@ -114,6 +118,11 @@ scrollType st = def {
 scrollOverlay :: Bool -> ScrollCfg
 scrollOverlay overlay = def {
   _scScrollOverlay = Just overlay
+}
+
+scrollFollowFocus :: Bool -> ScrollCfg
+scrollFollowFocus follow = def {
+  _scFollowFocus = Just follow
 }
 
 scrollWheelRate :: Double -> ScrollCfg
@@ -245,6 +254,14 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config oldState
 
   handleEvent wenv target evt node = case evt of
+    Focus -> result where
+      follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
+      focusPath = wenv ^. L.focusedPath
+      focusInst = widgetFindByPath (node ^. L.widget) wenv focusPath node
+      focusVp = focusInst ^? _Just . L.viewport
+      result
+        | follow = focusVp >>= scrollTo wenv node
+        | otherwise = Nothing
     ButtonAction point btn status _ -> result where
       leftPressed = status == PressedBtn && btn == wenv ^. L.mainButton
       btnReleased = status == ReleasedBtn && btn == wenv ^. L.mainButton

@@ -192,6 +192,7 @@ baseBasic themeMod = def
   & L.radioWidth .~ 20
   & L.radioStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.scrollOverlay .~ False
+  & L.scrollFollowFocus .~ True
   & L.scrollBarColor .~ scrollBarBasic themeMod
   & L.scrollThumbColor .~ scrollThumbBasic themeMod
   & L.scrollBarWidth .~ 10

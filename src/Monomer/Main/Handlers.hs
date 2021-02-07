@@ -299,10 +299,11 @@ handleSetFocus newFocus (wenv, root, reqs, evts) =  do
   if oldFocus /= newFocus
     then do
       (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
+      let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
       L.focusedPath .= newFocus
       L.renderRequested .= True
-      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenv1 Focus newFocus root1
+      (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else

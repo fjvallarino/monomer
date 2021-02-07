@@ -476,6 +476,7 @@
   - Add widgetFindByPath
   - Do something about Serialise. Temporarily hide from composite?
     - Added WidgetModel typeclass. Provides a way of not forcing users to implement Serialise
+  - Allow opting out of scroll bar overlaid on top of content
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -494,13 +495,13 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Allow opting out of scroll bar overlaid on top of content
   - Add scroll focus following
   - Resize called multiple times after window resize?
   - Add combinator to affect size factor only
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
   - Check resize requests on Todo when entering text in description
+    - Review how sizeReq is updated. Custom user value may be ignored on further resizes
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

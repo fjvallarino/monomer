@@ -9,15 +9,53 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Button
 import Monomer.Widgets.Label
 import Monomer.Widgets.Scroll
+import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
+data ButtonEvt
+  = Button1
+  | Button2
+  deriving (Eq, Show)
+
 spec :: Spec
 spec = describe "Scroll" $ do
+  handleEvent
   resize
+
+handleEvent :: Spec
+handleEvent = describe "handleEvent" $ do
+  handleChildrenFocus
+
+handleChildrenFocus :: Spec
+handleChildrenFocus = describe "handleChildrenFocus" $ do
+  it "should not follow focus events" $
+    evtsIgnore evts `shouldBe` Seq.fromList [Button1]
+
+  it "should follow focus events" $
+    evtsFollow evts `shouldBe` Seq.fromList [Button2]
+
+  where
+    wenv = mockWenv () & L.windowSize .~ Size 640 480
+    point = Point 320 200
+    evts = [evtK keyTab, evtClick point]
+    stackNode = vstack [
+        button "Button 1" Button1 `style` [width 640, height 480],
+        button "Button 2" Button2 `style` [width 640, height 480]
+      ]
+    ignoreNode = scroll_ [scrollFollowFocus False] stackNode
+    followNode = scroll stackNode
+    evtsIgnore es = nodeHandleEventEvts wenv es ignoreNode
+    evtsFollow es = nodeHandleEventEvts wenv es followNode
+
+resize :: Spec
+resize = describe "resize" $ do
+  resizeLarge
   resizeSmall
   resizeOverlaySmall
   resizeH
@@ -25,8 +63,8 @@ spec = describe "Scroll" $ do
   resizeOverlayH
   resizeOverlayV
 
-resize :: Spec
-resize = describe "resize" $ do
+resizeLarge :: Spec
+resizeLarge = describe "resizeLarge" $ do
   it "should have the provided viewport size" $
     viewport `shouldBe` vp
 
