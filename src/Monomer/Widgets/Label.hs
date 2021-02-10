@@ -117,6 +117,7 @@ makeLabel config state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
+    singleInit = init,
     singleRestore = restore,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
@@ -131,9 +132,19 @@ makeLabel config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.labelStyle
 
+  init wenv node = resultWidget newNode where
+    style = activeStyle wenv node
+    newState = state {
+      _lstTextStyle = style ^. L.text
+    }
+    newNode = node
+      & L.widget .~ makeLabel config newState
+
   restore wenv oldState oldNode newNode = result where
+    style = activeStyle wenv newNode
+    newTextStyle = style ^. L.text
     captionChanged = _lstCaption oldState /= caption
-    styleChanged = _lstTextStyle oldState /= textStyle
+    styleChanged = _lstTextStyle oldState /= newTextStyle
     changeReq = captionChanged || styleChanged
     -- This is used in resize to have glyphs recalculated
     newRect
@@ -141,7 +152,8 @@ makeLabel config state = widget where
       | otherwise = _lstTextRect oldState
     newState = oldState {
       _lstCaption = caption,
-      _lstTextRect = newRect
+      _lstTextRect = newRect,
+      _lstTextStyle = newTextStyle
     }
     reqs = [ ResizeWidgets | changeReq ]
     resNode = newNode

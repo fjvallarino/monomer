@@ -22,9 +22,9 @@ buildUI wenv model = widgetTree where
       labelS (t ^. todoType) `style` [width 50],
       label (t ^. description),
       labelS (t ^. status) `style` [width 100],
-      button "Edit" (TodoEdit idx t) `style` [width 50],
+      button "Edit" (TodoEdit idx t) `style` [width 60],
       spacer,
-      button "Delete" (TodoDelete idx) `style` [width 50]
+      button "Delete" (TodoDelete idx) `style` [width 60]
     ] `style` [paddingV 2]
   todoEdit = vstack [
       hgrid [
