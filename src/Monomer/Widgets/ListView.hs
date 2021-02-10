@@ -255,7 +255,9 @@ makeListView widgetData items makeRow config state = widget where
     containerInit = init,
     containerMergeChildrenReq = mergeChildrenReq,
     containerMerge = Just merge,
+    containerMergePost = mergePost,
     containerRestore = restore,
+    containerRestorePost = restorePost,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -294,23 +296,32 @@ makeListView widgetData items makeRow config state = widget where
       | otherwise = oldNode ^. L.children
     result = updateState wenv oldState mergeRequired children node
 
+  mergePost wenv result oldState oldNode node = newResult where
+    newResult = updateResultStyle wenv result oldState
+
   restore wenv oldState oldInfo node = result where
     resizeReq = True
     children = createListViewChildren wenv node
     result = updateState wenv oldState resizeReq children node
 
-  updateState wenv oldState resizeReq children node = result where
+  restorePost wenv result oldState oldNode node = newResult where
+    newResult = updateResultStyle wenv result oldState
+
+  updateState wenv oldState resizeReq children node = resultWidget newNode where
     newState = oldState {
       _prevItems = items,
       _resizeReq = resizeReq
     }
-    tmpNode = node
+    newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState
       & L.children .~ children
-    slIdx = _slIdx newState
-    hlIdx = _hlIdx newState
-    (newNode, reqs) = updateStyles wenv config newState tmpNode slIdx hlIdx
-    result = resultReqs newNode reqs
+
+  updateResultStyle wenv result state = newResult where
+    slIdx = _slIdx state
+    hlIdx = _hlIdx state
+    tmpNode = result ^. L.node
+    (newNode, reqs) = updateStyles wenv config state tmpNode slIdx hlIdx
+    newResult = resultReqs newNode reqs
 
   handleEvent wenv target evt node = case evt of
     ButtonAction _ btn PressedBtn _
