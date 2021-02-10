@@ -42,14 +42,15 @@ mockTextMetrics font fontSize = TextMetrics {
   _txmLineH = 20
 }
 
-mockTextSize :: Font -> FontSize -> Text -> Size
-mockTextSize font size text = Size width height where
-  width = fromIntegral $ T.length text * 10
+mockTextSize :: Maybe Double -> Font -> FontSize -> Text -> Size
+mockTextSize mw font (FontSize fs) text = Size width height where
+  w = fromMaybe fs mw
+  width = fromIntegral (T.length text) * w
   height = 20
 
-mockGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
-mockGlyphsPos font fontSize text = glyphs where
-  w = 10
+mockGlyphsPos :: Maybe Double -> Font -> FontSize -> Text -> Seq GlyphPos
+mockGlyphsPos mw font (FontSize fs) text = glyphs where
+  w = fromMaybe fs mw
   chars = Seq.fromList $ T.unpack text
   mkGlyph idx chr = GlyphPos {
     _glpGlyph = chr,
@@ -103,8 +104,8 @@ mockRenderer = Renderer {
   renderEllipse = \rect -> return (),
   -- Text
   computeTextMetrics = mockTextMetrics,
-  computeTextSize = mockTextSize,
-  computeGlyphsPos = mockGlyphsPos,
+  computeTextSize = mockTextSize (Just 10),
+  computeGlyphsPos = mockGlyphsPos (Just 10),
   renderText = mockRenderText,
 
   -- Image

@@ -486,6 +486,10 @@
       - Scroll should auto-scroll to focus
   - Add combinator to affect size factor only
     - Discarded. A combinator (CmbResizeFactorDim) already exists
+  - Do something about TextDropdown
+    - Added S version for Show instances
+  - Check resize requests on Todo when entering text in description
+    - Review how sizeReq is updated. Custom user value may be ignored on further resizes
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -500,10 +504,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Check resize requests on Todo when entering text in description
-    - Review how sizeReq is updated. Custom user value may be ignored on further resizes
-  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
-    - This could avoid rebuilding listView items when hidden/shown
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
@@ -511,8 +511,9 @@ Next
 Future
   - Rename ListView -> SelectList
     - Add support for multiple selection
+  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
+    - This could avoid rebuilding listView items when hidden/shown
   - Add support for multiline text editing
-  - Do something about TextDropdown
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider
   - Create File Selector

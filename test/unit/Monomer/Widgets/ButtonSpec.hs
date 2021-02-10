@@ -1,16 +1,21 @@
 module Monomer.Widgets.ButtonSpec (spec) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Text (Text)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
 
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.Graphics
 import Monomer.TestUtil
 import Monomer.Widgets.Button
+
+import qualified Monomer.Lens as L
 
 data BtnEvent
   = BtnClick
@@ -22,6 +27,7 @@ spec :: Spec
 spec = describe "Button" $ do
   handleEvent
   getSizeReq
+  getSizeReqMerge
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -67,3 +73,33 @@ getSizeReq = describe "getSizeReq" $ do
     btnNode2 = button_ "Click 2" BtnClick [resizeFactorW 1, resizeFactorH 2]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv btnNode
     (sizeReq2W, sizeReq2H) = nodeGetSizeReq wenv btnNode2
+
+getSizeReqMerge :: Spec
+getSizeReqMerge = describe "getSizeReqMerge" $ do
+  it "should return width = Flex 192 0.01" $
+    sizeReqW `shouldBe` FlexSize 192 0.01
+
+  it "should return height = Fixed 20" $
+    sizeReqH `shouldBe` FixedSize 20
+
+  it "should return width = Flex 360 0.01" $
+    sizeReq2W `shouldBe` FlexSize 360 0.01
+
+  it "should return height = Fixed 20" $
+    sizeReq2H `shouldBe` FixedSize 20
+
+  where
+    renderer = mockRenderer {
+      computeTextSize = mockTextSize Nothing,
+      computeGlyphsPos = mockGlyphsPos Nothing
+    }
+    wenv = mockWenv ()
+      & L.renderer .~ renderer
+    btnNode = nodeInit wenv (button "Button" BtnClick)
+    btnNode2 = button "Button" BtnClick `style` [textSize 60]
+    btnRes = widgetMerge (btnNode ^. L.widget) wenv btnNode btnNode2
+    WidgetResult btnMerged _ _ = btnRes
+    btnInfo = btnNode ^. L.info
+    mrgInfo = btnMerged ^. L.info
+    (sizeReqW, sizeReqH) = (btnInfo ^. L.sizeReqW, btnInfo ^. L.sizeReqH)
+    (sizeReq2W, sizeReq2H) = (mrgInfo ^. L.sizeReqW, mrgInfo ^. L.sizeReqH)

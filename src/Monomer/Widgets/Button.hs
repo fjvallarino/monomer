@@ -182,6 +182,7 @@ makeButton config state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
+    singleInit = init,
     singleRestore = restore,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -199,17 +200,30 @@ makeButton config state = widget where
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
 
+  init wenv node = resultWidget newNode where
+    style = activeStyle wenv node
+    newState = state {
+      _btsTextStyle = style ^. L.text
+    }
+    newNode = node
+      & L.widget .~ makeButton config newState
+
   restore wenv oldState oldNode newNode = result where
+    style = activeStyle wenv newNode
+    newTextStyle = style ^. L.text
     captionChanged = _btsCaption oldState /= caption
+    styleChanged = _btsTextStyle oldState /= newTextStyle
+    changeReq = captionChanged || styleChanged
     -- This is used in resize to have glyphs recalculated
     newRect
       | captionChanged = def
       | otherwise = _btsTextRect oldState
     newState = oldState {
       _btsCaption = caption,
-      _btsTextRect = newRect
+      _btsTextRect = newRect,
+      _btsTextStyle = newTextStyle
     }
-    reqs = [ ResizeWidgets | captionChanged ]
+    reqs = [ ResizeWidgets | changeReq ]
     resNode = newNode
       & L.widget .~ makeButton config newState
     result = resultReqs resNode reqs
