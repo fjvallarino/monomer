@@ -21,6 +21,9 @@ class CmbValidInput t s | t -> s where
 class CmbSelectOnFocus t where
   selectOnFocus :: Bool -> t
 
+class CmbResizeOnChange t where
+  resizeOnChange :: Bool -> t
+
 -- Caption
 class CmbTitleCaption t where
   titleCaption :: Text -> t

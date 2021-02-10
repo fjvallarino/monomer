@@ -29,6 +29,7 @@ import qualified Monomer.Lens as L
 data TextFieldCfg s e = TextFieldCfg {
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcMaxLength :: Maybe Int,
+  _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnFocus :: [e],
   _tfcOnFocusReq :: [WidgetRequest s],
@@ -42,6 +43,7 @@ instance Default (TextFieldCfg s e) where
   def = TextFieldCfg {
     _tfcValid = Nothing,
     _tfcMaxLength = Nothing,
+    _tfcResizeOnChange = Nothing,
     _tfcSelectOnFocus = Nothing,
     _tfcOnFocus = [],
     _tfcOnFocusReq = [],
@@ -55,6 +57,7 @@ instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
+    _tfcResizeOnChange = _tfcResizeOnChange t2 <|> _tfcResizeOnChange t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
     _tfcOnFocus = _tfcOnFocus t1 <> _tfcOnFocus t2,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
@@ -70,6 +73,11 @@ instance Monoid (TextFieldCfg s e) where
 instance CmbValidInput (TextFieldCfg s e) s where
   validInput field = def {
     _tfcValid = Just (WidgetLens field)
+  }
+
+instance CmbResizeOnChange (TextFieldCfg s e) where
+  resizeOnChange resize = def {
+    _tfcResizeOnChange = Just resize
   }
 
 instance CmbSelectOnFocus (TextFieldCfg s e) where
@@ -141,6 +149,8 @@ textFieldD_ widgetData configs = inputField where
     _ifcToText = id,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
     _ifcDefCursorEnd = True,
+    _ifcDefWidth = 100,
+    _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = False,
     _ifcStyle = Just L.inputTextStyle,

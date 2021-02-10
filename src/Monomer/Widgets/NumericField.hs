@@ -45,6 +45,7 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
   _nfcDragRate :: Maybe Double,
+  _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
   _nfcOnFocus :: [e],
   _nfcOnFocusReq :: [WidgetRequest s],
@@ -61,6 +62,7 @@ instance Default (NumericFieldCfg s e a) where
     _nfcMinValue = Nothing,
     _nfcMaxValue = Nothing,
     _nfcDragRate = Nothing,
+    _nfcResizeOnChange = Nothing,
     _nfcSelectOnFocus = Nothing,
     _nfcOnFocus = [],
     _nfcOnFocusReq = [],
@@ -77,6 +79,7 @@ instance Semigroup (NumericFieldCfg s e a) where
     _nfcMinValue = _nfcMinValue t2 <|> _nfcMinValue t1,
     _nfcMaxValue = _nfcMaxValue t2 <|> _nfcMaxValue t1,
     _nfcDragRate = _nfcDragRate t2 <|> _nfcDragRate t1,
+    _nfcResizeOnChange = _nfcResizeOnChange t2 <|> _nfcResizeOnChange t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
     _nfcOnFocus = _nfcOnFocus t1 <> _nfcOnFocus t2,
     _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
@@ -92,6 +95,11 @@ instance Monoid (NumericFieldCfg s e a) where
 instance CmbValidInput (NumericFieldCfg s e a) s where
   validInput field = def {
     _nfcValid = Just (WidgetLens field)
+  }
+
+instance CmbResizeOnChange (NumericFieldCfg s e a) where
+  resizeOnChange resize = def {
+    _nfcResizeOnChange = Just resize
   }
 
 instance CmbSelectOnFocus (NumericFieldCfg s e a) where
@@ -191,6 +199,9 @@ numericFieldD_ widgetData configs = newNode where
   decimals
     | isIntegral initialValue = 0
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
+  defWidth
+    | isIntegral initialValue = 50
+    | otherwise = 70
   fromText = numberFromText minVal maxVal
   toText = numberToText decimals
   inputConfig = InputFieldCfg {
@@ -201,6 +212,8 @@ numericFieldD_ widgetData configs = newNode where
     _ifcToText = toText,
     _ifcAcceptInput = acceptNumberInput decimals,
     _ifcDefCursorEnd = False,
+    _ifcDefWidth = defWidth,
+    _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputNumericStyle,

@@ -43,6 +43,8 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcValue :: WidgetData s a,
   _ifcValid :: Maybe (WidgetData s Bool),
   _ifcDefCursorEnd :: Bool,
+  _ifcDefWidth :: Double,
+  _ifcResizeOnChange :: Bool,
   _ifcSelectOnFocus :: Bool,
   _ifcSelectDragOnlyFocused :: Bool,
   _ifcFromText :: Text -> Maybe a,
@@ -509,10 +511,14 @@ makeInputField config state = widget where
       | otherwise = resultReqsEvts node reqs events
 
   getSizeReq wenv currState node = sizeReq where
+    defWidth = _ifcDefWidth config
+    resizeOnChange = _ifcResizeOnChange config
     currText = _ifsCurrText currState
     style = activeStyle wenv node
     Size w h = getTextSize wenv style currText
-    targetW = max w 100
+    targetW
+      | resizeOnChange = max w 100
+      | otherwise = defWidth
     factor = 1
     sizeReq = (FlexSize targetW factor, FixedSize h)
 
@@ -590,6 +596,7 @@ genReqsEvents
   -> [WidgetRequest s]
   -> ([WidgetRequest s], [e])
 genReqsEvents config state newText newReqs = result where
+  resizeOnChange = _ifcResizeOnChange config
   fromText = _ifcFromText config
   setModelValue = widgetDataSet (_ifcValue config)
   currVal = _ifsCurrValue state
@@ -607,10 +614,13 @@ genReqsEvents config state newText newReqs = result where
   reqUpdateModel
     | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
     | otherwise = []
+  reqResize
+    | resizeOnChange && hasChanged = [ResizeWidgets]
+    | otherwise = []
   reqOnChange
     | stateVal /= currVal = _ifcOnChangeReq config
     | otherwise = []
-  reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqOnChange
+  reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqResize ++ reqOnChange
   result = (reqs, events)
 
 moveHistory
