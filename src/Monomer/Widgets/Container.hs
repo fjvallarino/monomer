@@ -127,12 +127,6 @@ type ContainerFindByPointHandler s e
   -> WidgetNode s e
   -> Maybe Int
 
-type ContainerUpdateEventHandler s e
-  = WidgetEnv s e
-  -> SystemEvent
-  -> WidgetNode s e
-  -> SystemEvent
-
 type ContainerEventHandler s e
   = WidgetEnv s e
   -> Path
@@ -324,17 +318,7 @@ initWrapper container wenv node = result where
     & L.children .~ newChildren
   result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
 
-defaultGetState
-  :: WidgetModel a
-  => a
-  -> WidgetEnv s e
-  -> Maybe WidgetState
-defaultGetState state wenv = Just (WidgetState state)
-
 -- | Merging
-defaultMerge :: ContainerMergeHandler s e a
-defaultMerge wenv oldState oldNode newNode = resultWidget newNode
-
 defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
 defaultMergeRequired wenv oldState oldNode newNode = True
 
@@ -357,19 +341,16 @@ mergeWrapper container wenv oldNode newNode = newResult where
     Just handler -> handler
     Nothing -> mergeWithRestore (containerRestore container)
   mergePostHandler = containerMergePost container
-
   mergeRequired = case useState oldState of
     Just state -> mergeRequiredHandler wenv state oldNode newNode
     Nothing -> True
-  oldFlags = [oldNode ^. L.info . L.visible, oldNode ^. L.info . L.enabled]
-  newFlags = [newNode ^. L.info . L.visible, newNode ^. L.info . L.enabled]
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   styledNode = initNodeStyle getBaseStyle wenv newNode
   pResult = mergeParent mergeHandler wenv oldState oldNode styledNode
   cResult = mergeChildren cWenvHelper wenv oldNode newNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
   mResult
-    | mergeRequired || oldFlags /= newFlags = vResult
+    | mergeRequired || nodeFlagsChanged oldNode newNode = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
   postRes = case useState oldState of
     Just state -> mergePostHandler wenv mResult state oldNode (mResult^.L.node)
@@ -471,7 +452,7 @@ mergeChildrenCheckVisible
   -> WidgetResult s e
 mergeChildrenCheckVisible oldNode result = newResult where
   newNode = result ^. L.node
-  resizeRequired = visibleChildrenChanged oldNode newNode
+  resizeRequired = childrenVisibleChanged oldNode newNode
   newResult
     | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
     | otherwise = result
@@ -803,9 +784,12 @@ updateSizeReq container wenv node = newNode where
   reqs = case useState currState of
     Just state -> handler wenv state node children
     _ -> def
-  (newReqW, newReqH)
+  (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
     | otherwise = reqs
+  -- User settings take precedence
+  newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
+  newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
@@ -820,12 +804,12 @@ handleSizeReqChange
   -> Maybe (WidgetResult s e)
 handleSizeReqChange container wenv node evt mResult = result where
   baseResult = fromMaybe (resultWidget node) mResult
-  newNode = baseResult ^. L.node
+  baseNode = baseResult ^. L.node
   resizeReq = isResizeResult mResult
-  styleChanged = isJust evt && styleStateChanged wenv newNode (fromJust evt)
+  styleChanged = isJust evt && styleStateChanged wenv baseNode (fromJust evt)
   result
     | styleChanged || resizeReq = Just $ baseResult
-      & L.node .~ updateSizeReq container wenv newNode
+      & L.node .~ updateSizeReq container wenv baseNode
     | otherwise = mResult
 
 -- | Resize

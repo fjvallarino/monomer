@@ -588,7 +588,10 @@ updateSizeReq state wenv widgetComp = newComp where
   widget = _cpsRoot ^. L.widget
   currReqW = _cpsRoot ^. L.info . L.sizeReqW
   currReqH = _cpsRoot ^. L.info . L.sizeReqH
-  (newReqW, newReqH) = sizeReqAddStyle style (currReqW, currReqH)
+  (tmpReqW, tmpReqH) = sizeReqAddStyle style (currReqW, currReqH)
+  -- User settings take precedence
+  newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
+  newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
   newComp = widgetComp
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH

@@ -208,10 +208,10 @@ mergeWrapper single wenv oldNode newNode = newResult where
     _ -> mergeWithRestore (singleRestore single)
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   oldInfo = oldNode ^. L.info
-  nodeHandler styledNode = case useState oldState of
+  nodeHandler wenv styledNode = case useState oldState of
     Just state -> mergeHandler wenv state oldNode styledNode
     _ -> resultWidget styledNode
-  tmpResult = loadStateHandler single wenv oldInfo newNode nodeHandler
+  tmpResult = runNodeHandler single wenv oldInfo newNode nodeHandler
   newResult = handleWidgetIdChange oldNode tmpResult
 
 mergeWithRestore
@@ -252,24 +252,24 @@ restoreWrapper
 restoreWrapper single wenv win newNode = newResult where
   restoreHandler = singleRestore single
   oldInfo = win ^. L.info
-  nodeHandler styledNode = case loadState (win ^. L.state) of
+  nodeHandler wenv styledNode = case loadState (win ^. L.state) of
     Just state -> restoreHandler wenv state oldInfo styledNode
     _ -> resultWidget styledNode
   valid = infoMatches (win ^. L.info) (newNode ^. L.info)
   message = matchFailedMsg (win ^. L.info) (newNode ^. L.info)
   newResult
-    | valid = loadStateHandler single wenv oldInfo newNode nodeHandler
+    | valid = runNodeHandler single wenv oldInfo newNode nodeHandler
     | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
-loadStateHandler
+runNodeHandler
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNodeInfo
   -> WidgetNode s e
-  -> (WidgetNode s e -> WidgetResult s e)
+  -> (WidgetEnv s e -> WidgetNode s e -> WidgetResult s e)
   -> WidgetResult s e
-loadStateHandler single wenv oldInfo newNode nodeHandler = newResult where
+runNodeHandler single wenv oldInfo newNode nodeHandler = newResult where
   getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
@@ -277,7 +277,7 @@ loadStateHandler single wenv oldInfo newNode nodeHandler = newResult where
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   styledNode = initNodeStyle getBaseStyle wenv tempNode
-  tmpResult = nodeHandler styledNode
+  tmpResult = nodeHandler wenv styledNode
   newResult
     | isResizeResult (Just tmpResult) = tmpResult
         & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
@@ -331,11 +331,10 @@ handleEventWrapper single wenv target evt node
     styleCfg = singleStyleChangeCfg single
     focusOnPressed = singleFocusOnPressedBtn single
     handler = singleHandleEvent single
-    sizeResult = handleSizeReqChange single wenv node (Just evt)
-      $ handler wenv target evt node
-    newNode = maybe node (^. L.node) sizeResult
+    handlerRes = handler wenv target evt node
+    sizeResult = handleSizeReqChange single wenv node (Just evt) handlerRes
     result
-      | focusOnPressed = handleFocusRequest wenv evt newNode sizeResult
+      | focusOnPressed = handleFocusRequest wenv evt node sizeResult
       | otherwise = sizeResult
 
 handleFocusRequest
@@ -344,7 +343,8 @@ handleFocusRequest
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
-handleFocusRequest wenv evt node mResult = newResult where
+handleFocusRequest wenv evt oldNode mResult = newResult where
+  node = maybe oldNode (^. L.node) mResult
   prevReqs = maybe Empty (^. L.requests) mResult
   isFocusable = node ^. L.info . L.focusable
   btnPressed = case evt of
@@ -393,9 +393,12 @@ updateSizeReq single wenv node = newNode where
   reqs = case useState currState of
     Just state -> handler wenv state node
     _ -> def
-  (newReqW, newReqH)
+  (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
     | otherwise = reqs
+  -- User settings take precedence
+  newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
+  newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH

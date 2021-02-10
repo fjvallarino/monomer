@@ -480,14 +480,17 @@
   - Add scroll focus following
   - Resize called multiple times after window resize?
     - Not a bug (there were two dropdowns besides the main scroll, hence the three logged resizes)
+  - Add examples
+    - Todo List
+      - Use scroll
+      - Scroll should auto-scroll to focus
+  - Add combinator to affect size factor only
+    - Discarded. A combinator (CmbResizeFactorDim) already exists
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
   - Add examples
-    - Todo List
-      - Use scroll
-      - Scroll should auto-scroll to focus
     - Validate nested structures update correctly when disabling/enabling parent
     - Fetch content from url, show rows of data with embedded images
     - Composite example
@@ -497,11 +500,10 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Add combinator to affect size factor only
-  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
-    - This could avoid rebuilding listView items when hidden/shown
   - Check resize requests on Todo when entering text in description
     - Review how sizeReq is updated. Custom user value may be ignored on further resizes
+  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
+    - This could avoid rebuilding listView items when hidden/shown
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path

@@ -4,8 +4,12 @@
 module Monomer.Widgets.Util.Widget (
   defaultWidgetNode,
   isWidgetVisible,
-  visibleChildrenChanged,
-  enabledChildrenChanged,
+  nodeVisibleChanged,
+  nodeEnabledChanged,
+  nodeFlagsChanged,
+  childrenVisibleChanged,
+  childrenEnabledChanged,
+  childrenFlagsChanged,
   widgetDataGet,
   widgetDataSet,
   resultWidget,
@@ -54,15 +58,37 @@ isWidgetVisible wenv node = isVisible && isOverlapped where
   viewport = wenv ^. L.viewport
   isOverlapped = rectsOverlap viewport (info ^. L.viewport)
 
-visibleChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
-visibleChildrenChanged oldNode newNode = oldVisible /= newVisible  where
+nodeVisibleChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+nodeVisibleChanged oldNode newNode = oldVisible /= newVisible where
+  oldVisible = oldNode ^. L.info . L.visible
+  newVisible = newNode ^. L.info . L.visible
+
+nodeEnabledChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+nodeEnabledChanged oldNode newNode = oldEnabled /= newEnabled where
+  oldEnabled = oldNode ^. L.info . L.enabled
+  newEnabled = newNode ^. L.info . L.enabled
+
+nodeFlagsChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+nodeFlagsChanged oldNode newNode = visibleChanged || enabledChanged where
+  visibleChanged = nodeVisibleChanged oldNode newNode
+  enabledChanged = nodeEnabledChanged oldNode newNode
+
+childrenVisibleChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+childrenVisibleChanged oldNode newNode = oldVisible /= newVisible where
   oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
   newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
 
-enabledChildrenChanged :: WidgetNode s e -> WidgetNode s e -> Bool
-enabledChildrenChanged oldNode newNode = oldVisible /= newVisible  where
+childrenEnabledChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+childrenEnabledChanged oldNode newNode = oldVisible /= newVisible where
   oldVisible = fmap (^. L.info . L.enabled) (oldNode ^. L.children)
   newVisible = fmap (^. L.info . L.enabled) (newNode ^. L.children)
+
+childrenFlagsChanged :: WidgetNode s e -> WidgetNode s e -> Bool
+childrenFlagsChanged oldNode newNode = lenChanged || flagsChanged where
+  oldChildren = oldNode ^. L.children
+  newChildren = newNode ^. L.children
+  flagsChanged = or (Seq.zipWith nodeFlagsChanged oldChildren newChildren)
+  lenChanged = length oldChildren /= length newChildren
 
 widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value
