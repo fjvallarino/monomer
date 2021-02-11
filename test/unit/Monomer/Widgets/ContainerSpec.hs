@@ -69,11 +69,12 @@ handleEventNormal = describe "handleEventNormal" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
+    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
-    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
+    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    modelM = wenv2 ^. L.model
+    newRoot = root2
 
 handleEventNoKey :: Spec
 handleEventNoKey = describe "handleEventNoKey" $
@@ -99,11 +100,12 @@ handleEventNoKey = describe "handleEventNoKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
+    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
-    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
+    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    modelM = wenv2 ^. L.model
+    newRoot = root2
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $
@@ -130,8 +132,9 @@ handleEventLocalKey = describe "handleEventLocalKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, oldRoot1, _, _) = fst $ nodeHandleEvents wenv evts1 cntNode1
-    cntNodeM = nodeMerge wenv1 oldRoot1 cntNode2
+    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    modelM = nodeHandleEventModelNoInit wenv1 evts2 cntNodeM
-    newRoot = nodeHandleEventRootNoInit wenv1 evts2 cntNodeM
+    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    modelM = wenv2 ^. L.model
+    newRoot = root2

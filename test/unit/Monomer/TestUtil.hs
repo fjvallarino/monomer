@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.TestUtil where
 
 import Control.Lens ((&), (^.), (.~))
@@ -22,6 +24,11 @@ import Monomer.Main.Util
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
+
+data InitWidget
+  = WInit
+  | WNoInit
+  deriving (Eq, Show)
 
 testW :: Double
 testW = 640
@@ -167,7 +174,7 @@ nodeHandleEventCtx
   -> WidgetNode s e
   -> MonomerCtx s
 nodeHandleEventCtx wenv evts node = ctx where
-  ctx = snd $ nodeHandleEvents wenv evts node
+  ctx = snd $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventModel
   :: (Eq s)
@@ -176,7 +183,7 @@ nodeHandleEventModel
   -> WidgetNode s e
   -> s
 nodeHandleEventModel wenv evts node = _weModel wenv2 where
-  (wenv2, _, _, _) = fst $ nodeHandleEvents wenv evts node
+  (wenv2, _, _, _) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventRoot
   :: (Eq s)
@@ -185,7 +192,7 @@ nodeHandleEventRoot
   -> WidgetNode s e
   -> WidgetNode s e
 nodeHandleEventRoot wenv evts node = newRoot where
-  (_, newRoot, _, _) = fst $ nodeHandleEvents wenv evts node
+  (_, newRoot, _, _) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventReqs
   :: (Eq s)
@@ -194,7 +201,7 @@ nodeHandleEventReqs
   -> WidgetNode s e
   -> Seq (WidgetRequest s)
 nodeHandleEventReqs wenv evts node = reqs where
-  (_, _, reqs, _) = fst $ nodeHandleEvents wenv evts node
+  (_, _, reqs, _) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventEvts
   :: (Eq s)
@@ -203,95 +210,74 @@ nodeHandleEventEvts
   -> WidgetNode s e
   -> Seq e
 nodeHandleEventEvts wenv evts node = events where
-  (_, _, _, events) = fst $ nodeHandleEvents wenv evts node
+  (_, _, _, events) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEvents
   :: (Eq s)
   => WidgetEnv s e
+  -> InitWidget
   -> [SystemEvent]
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerCtx s)
-nodeHandleEvents wenv evts node = unsafePerformIO $ do
-  let winSize = _weWindowSize wenv
-  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
-  let useHdpi = True
-  let dpr = 1
-  let model = _weModel wenv
-  -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
-  let pathReadyRoot = node
-        & L.info . L.path .~ rootPath
-        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+nodeHandleEvents wenv init evts node = result where
+  steps = nodeHandleEvents_ wenv init [evts] node
+  result = foldl1 stepper steps
+  stepper step1 step2 = result where
+    ((_, _, reqs1, evts1), _) = step1
+    ((wenv2, root2, reqs2, evts2), ctx2) = step2
+    result = ((wenv2, root2, reqs1 <> reqs2, evts1 <> evts2), ctx2)
 
-  flip runStateT monomerContext $ do
-    handleResourcesInit
-    (wenv2, newNode, _, _) <- handleWidgetInit wenv pathReadyRoot
+nodeHandleEvents_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [[SystemEvent]]
+  -> WidgetNode s e
+  -> [(HandlerStep s e, MonomerCtx s)]
+nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
+  -- Do NOT test code involving SDL Window functions
+  fmap fst $ flip runStateT monomerContext $ do
+    (wenv2, newNode, _, _) <- if init == WInit
+      then do
+        handleResourcesInit
+        handleWidgetInit wenv pathReadyRoot
+      else
+        return (wenv, pathReadyRoot, Seq.empty, Seq.empty)
 
     let resizeRes = widgetResize (newNode ^. L.widget) wenv vp newNode
-    (wenv3, sizedNode, reqs1, evts1) <- handleWidgetResult wenv2 True resizeRes
-    (wenv4, newRoot, reqs2, evts2) <- handleSystemEvents wenv2 evts sizedNode
+    step <- handleWidgetResult wenv2 True resizeRes
+    ctx <- get
+    let (wenvr, rootr, reqsr, evtsr) = step
 
-    return (wenv4, newRoot, reqs1 <> reqs2, evts1 <> evts2)
+    (_, _, steps) <- foldM runStep (wenvr, rootr, [(step, ctx)]) evtsG
 
-nodeHandleEventModelNoInit
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> s
-nodeHandleEventModelNoInit wenv evts node = _weModel wenv2 where
-  (wenv2, _, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
+    return (reverse steps)
+  where
+    winSize = _weWindowSize wenv
+    vp = Rect 0 0 (_sW winSize) (_sH winSize)
+    useHdpi = True
+    dpr = 1
+    model = _weModel wenv
+    monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
+    pathReadyRoot = node
+      & L.info . L.path .~ rootPath
+      & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+    runStep (wenv, root, accum) evts = do
+      step <- handleSystemEvents wenv evts root
+      ctx <- get
+      let (wenv2, root2, reqs2, evts2) = step
 
-nodeHandleEventRootNoInit
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> WidgetNode s e
-nodeHandleEventRootNoInit wenv evts node = newRoot where
-  (_, newRoot, _, _) = fst $ nodeHandleEventsNoInit wenv evts node
-
-nodeHandleEventReqsNoInit
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> Seq (WidgetRequest s)
-nodeHandleEventReqsNoInit wenv evts node = newReqs where
-  (_, _, newReqs, _) = fst $ nodeHandleEventsNoInit wenv evts node
-
-nodeHandleEventsNoInit
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetNode s e
-  -> (HandlerStep s e, MonomerCtx s)
-nodeHandleEventsNoInit wenv evts node = unsafePerformIO $ do
-  let winSize = _weWindowSize wenv
-  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
-  let useHdpi = True
-  let dpr = 1
-  let model = _weModel wenv
-  -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
-  let pathReadyRoot = node
-        & L.info . L.path .~ rootPath
-        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
-
-  flip runStateT monomerContext $ do
-    let resizedNode = nodeResize wenv vp pathReadyRoot
-
-    handleSystemEvents wenv evts resizedNode
+      return (wenv2, root2, (step, ctx) : accum)
 
 nodeHandleRestore
   :: (Eq s)
   => WidgetEnv s e
+  -> [SystemEvent]
   -> WidgetInstanceNode
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerCtx s)
-nodeHandleRestore wenv inst node = unsafePerformIO $ do
+nodeHandleRestore wenv evts inst node = unsafePerformIO $ do
   let winSize = _weWindowSize wenv
-  let vp = Rect 0 0 (_sW winSize) (_sH winSize)
   let useHdpi = True
   let dpr = 1
   let model = _weModel wenv
@@ -301,8 +287,26 @@ nodeHandleRestore wenv inst node = unsafePerformIO $ do
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
 
-  flip runStateT monomerContext $
-    handleWidgetRestore wenv inst pathReadyRoot
+  flip runStateT monomerContext $ do
+    (wenv2, root2, reqs2, evts2) <- handleWidgetRestore wenv inst pathReadyRoot
+    (wenv3, root3, reqs3, evts3) <- handleSystemEvents wenv2 evts root2
+    return (wenv3, root3, reqs2 <> reqs3, evts2 <> evts3)
+
+nodeHandleResult
+  :: (Eq s)
+  => WidgetEnv s e
+  -> WidgetResult s e
+  -> (HandlerStep s e, MonomerCtx s)
+nodeHandleResult wenv result = unsafePerformIO $ do
+  let winSize = _weWindowSize wenv
+  let useHdpi = True
+  let dpr = 1
+  let model = _weModel wenv
+  -- Do NOT test code involving SDL Window functions
+  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
+
+  flip runStateT monomerContext $ do
+    handleWidgetResult wenv True result
 
 roundRectUnits :: Rect -> Rect
 roundRectUnits (Rect x y w h) = Rect nx ny nw nh where

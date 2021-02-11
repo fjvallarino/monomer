@@ -89,8 +89,7 @@ getReqs wenv node (e:es) = tmpReqs <> newReqs where
   tmpNode = nodeHandleEventRoot wenv [e] node
   tmpReqs = Seq.drop 2 $ nodeHandleEventReqs wenv [e] node
   newWenv = wenv & L.timestamp %~ (+1000)
-  newNode = nodeHandleEventRootNoInit newWenv es tmpNode
-  newReqs = Seq.drop 2 $ nodeHandleEventReqsNoInit newWenv es tmpNode
+  newReqs = Seq.drop 2 $ nodeHandleEventReqs newWenv es tmpNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

@@ -4,7 +4,7 @@
 module Monomer.Widgets.ListViewSpec (spec) where
 
 import Codec.Serialise
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), _1)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Functor ((<&>))
@@ -152,9 +152,10 @@ handleEventRestored = describe "handleEventRestored" $ do
     oldNode = nodeHandleEventRoot wenv startEvts node1
     inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
     inst2 = deserialise (serialise inst1)
-    ((wenv2, node2, reqs2, evts2), ctx) = nodeHandleRestore wenv inst2 node1
-    clickModel p = nodeHandleEventModelNoInit wenv2 [Click p LeftBtn] node2
-    model evts = nodeHandleEventModelNoInit wenv2 evts node2
+    clickModel p = res ^. _1 . _1 . L.model where
+      res = nodeHandleRestore wenv [Click p LeftBtn] inst2 node1
+    model evts = res ^. _1 . _1 . L.model where
+      res = nodeHandleRestore wenv evts inst2 node1
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

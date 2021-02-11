@@ -153,8 +153,9 @@ handleRestoredEvents wenv node1 = (model2, oldInfo, rstInfo) where
   inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
   inst2 = deserialise (serialise inst1)
   wenvRest = mockWenv (MainModel "Test" 0)
-  ((wenv2, node2, reqs2, evts2), ctx) = nodeHandleRestore wenvRest inst2 newNode
-  model2 = nodeHandleEventModelNoInit wenv2 [evtK keyTab, evtT " restore"] node2
+  evts = [evtK keyTab, evtT " restore"]
+  ((wenv2, node2, _, _), ctx) = nodeHandleRestore wenvRest evts inst2 newNode
+  model2 = wenv2 ^. L.model
   oldStyle = setStyleValue (oldNode ^. L.info . L.style) setFontColorL (?~) red
   oldInfo = oldNode ^. L.info
     & L.style .~ oldStyle
