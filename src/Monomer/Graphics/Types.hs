@@ -6,11 +6,13 @@ module Monomer.Graphics.Types where
 import Codec.Serialise
 import Data.ByteString (ByteString)
 import Data.Default
+import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Sequence (Seq)
 import GHC.Generics
 
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 
 import Monomer.Core.BasicTypes
 
@@ -40,6 +42,9 @@ data FontDef = FontDef {
 newtype Font
   = Font { unFont :: Text }
   deriving (Eq, Show, Generic, Serialise)
+
+instance IsString Font where
+  fromString s = Font (T.pack s)
 
 newtype FontSize
   = FontSize { unFontSize :: Double }

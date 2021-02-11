@@ -507,6 +507,8 @@ Next
     - Fetch content from url, show rows of data with embedded images
     - Composite example
     - Something of generative art (OpenGL example)
+  - Add scrollInvisible option (just set the values in cfg)
+  - Add underline and strikethrough
 
 Future
   - Rename ListView -> SelectList

@@ -86,10 +86,20 @@ executables:
     - monomer
     - text-show
 
+  books:
+    main: Main.hs
+    source-dirs: examples/books
+    dependencies:
+    - aeson
+    - lens
+    - monomer
+    - text-show
+    - wreq
+
 tests:
   monomer-test:
-    main:                Spec.hs
-    source-dirs:         test/unit
+    main: Spec.hs
+    source-dirs: test/unit
     ghc-options:
     - -fwarn-incomplete-patterns
 #    - -threaded

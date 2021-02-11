@@ -201,7 +201,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
   widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
   mkImg i = vstack [
       label ("Image: " <> showt i),
-      image ("https://picsum.photos/600/400?ts=" ++ show i)
+      image ("https://picsum.photos/600/400?ts=" <> showt i)
     ]
   widgetImages = scroll $ vstack (mkImg <$> [0..9::Int])
   widgetSave = vstack [
@@ -411,7 +411,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg]
         ],
-      textDropdown_ dropdown1 items [onChange DropdownVal, onChangeIdx DropdownIdx],
+      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

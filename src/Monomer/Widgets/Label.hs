@@ -78,6 +78,12 @@ instance CmbTextTrim LabelCfg where
     _lscTrim = Just KeepSpaces
   }
 
+instance CmbResizeFactor LabelCfg where
+  resizeFactor s = def {
+    _lscFactorW = Just s,
+    _lscFactorH = Just s
+  }
+
 instance CmbResizeFactorDim LabelCfg where
   resizeFactorW w = def {
     _lscFactorW = Just w

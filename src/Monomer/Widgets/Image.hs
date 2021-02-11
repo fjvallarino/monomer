@@ -24,6 +24,7 @@ import Data.Char (toLower)
 import Data.Default
 import Data.Maybe
 import Data.List (isPrefixOf)
+import Data.Text (Text)
 import Data.Typeable (cast)
 import Data.Vector.Storable.ByteString (vectorToByteString)
 import GHC.Generics
@@ -34,6 +35,7 @@ import qualified Codec.Picture as Pic
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Network.Wreq as Wreq
+import qualified Data.Text as T
 
 import Monomer.Widgets.Single
 
@@ -109,11 +111,12 @@ data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
 
-image :: String -> WidgetNode s e
+image :: Text -> WidgetNode s e
 image path = image_ path def
 
-image_ :: String -> [ImageCfg e] -> WidgetNode s e
-image_ path configs = defaultWidgetNode "image" widget where
+image_ :: Text -> [ImageCfg e] -> WidgetNode s e
+image_ tpath configs = defaultWidgetNode "image" widget where
+  path = T.unpack tpath
   config = mconcat configs
   imageState = ImageState path Nothing
   widget = makeImage path config imageState
