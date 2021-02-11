@@ -490,23 +490,23 @@
     - Added S version for Show instances
   - Check resize requests on Todo when entering text in description
     - Review how sizeReq is updated. Custom user value may be ignored on further resizes
+  - Improve test utilities
+    - Some way to combine them, avoid this noInit thing, losing of focus, etc
+    - Test image updating WidgetId/Path
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
-  - Add examples
-    - Validate nested structures update correctly when disabling/enabling parent
-    - Fetch content from url, show rows of data with embedded images
-    - Composite example
-    - Something of generative art (OpenGL example)
   - Add user documentation
   - Windows build fix
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Improve test utilities
-    - Some way to combine them, avoid this noInit thing, losing of focus, etc
-    - Test image updating WidgetId/Path
+  - Add examples
+    - Validate nested structures update correctly when disabling/enabling parent
+    - Fetch content from url, show rows of data with embedded images
+    - Composite example
+    - Something of generative art (OpenGL example)
 
 Future
   - Rename ListView -> SelectList
