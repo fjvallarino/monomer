@@ -15,16 +15,18 @@ import qualified Network.Wreq as W
 import BookTypes
 import Monomer
 
+import qualified Monomer.Lens as L
+
 buildUI
   :: WidgetEnv BooksModel BooksEvt
   -> BooksModel
   -> WidgetNode BooksModel BooksEvt
 buildUI wenv model = widgetTree where
-  bookThumb i = maybe spacer coverImg i where
-    baseUrl = "http://covers.openlibrary.org/b/id/<id>-S.jpg"
-    imgUrl i = T.replace "<id>" (showt i) baseUrl
+  bookImage imgId size = maybe spacer coverImg imgId where
+    baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
+    imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
     coverImg i = image_ (imgUrl i) [fitHeight]
-  book b = hstack [
+  bookRow b = box_ [expandContent, onClick (BooksShowDetails b)] $ hstack [
       vstack [
         hstack [
           label_ "Title: " [resizeFactor 0] `style` [textFont "Bold"],
@@ -42,8 +44,36 @@ buildUI wenv model = widgetTree where
           label $ maybe "" showt (b ^. year)
         ]
       ] `style` [width 100],
-      bookThumb (b ^. cover) `style` [width 50]
-    ] `style` [height 50, padding 5, paddingT 0]
+      bookImage (b ^. cover) "S" `style` [width 50]
+    ] `style` [height 50, padding 5] `hover` [bgColor gray, cursorIcon CursorHand]
+  bookDetail b = hstack [
+      vstack [
+        hstack [
+          label_ "Title: " [resizeFactor 0] `style` [textFont "Bold"],
+          label (b ^. title)
+        ],
+        hstack [
+          label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold"],
+          label (T.intercalate ", " (b ^. authors))
+        ],
+        hstack [
+          label_ "Year: " [resizeFactor 0] `style` [textFont "Bold"],
+          label $ maybe "" showt (b ^. year)
+        ]
+      ] `style` [width 300],
+      filler,
+      bookImage (b ^. cover) "M" `style` [width 200]
+    ] `style` []
+  bookOverlay = keystroke [("Esc", BooksCloseDetails)] overlay where
+    content = vstack [
+        maybe spacer bookDetail (model ^. selected),
+        spacer,
+        hstack [button "Close" BooksCloseDetails, filler]
+      ] `style` [bgColor gray, border 2 dimGray, padding 5]
+    overlay = box_ [onClick BooksCloseDetails] content
+      `style` [bgColor (darkGray & L.a .~ 0.8)]
+  searchOverlay = box (label "Searching" `style` [textSize 20, textColor black])
+    `style` [bgColor (darkGray & L.a .~ 0.8)]
   searchForm = keystroke [("Enter", BooksSearch)] $ vstack [
       hstack [
         label "Query: ",
@@ -55,9 +85,13 @@ buildUI wenv model = widgetTree where
         filler
       ]
     ] `style` [padding 5]
-  widgetTree = vstack [
-      searchForm,
-      vscroll $ vstack (book <$> model ^. books)
+  widgetTree = zstack [
+      vstack [
+        searchForm,
+        vscroll $ vstack (bookRow <$> model ^. books)
+      ],
+      bookOverlay `visible` isJust (model ^. selected),
+      searchOverlay `visible` model ^. searching
     ]
 
 handleEvent
@@ -68,9 +102,17 @@ handleEvent
   -> [EventResponse BooksModel BooksEvt ()]
 handleEvent wenv node model evt = case evt of
   BooksInit -> [setFocus wenv "query"]
-  BooksSearch -> [ Task $ searchBooks (model ^. query)]
-  BooksSearchResult resp -> [Model $ model & books .~ resp ^. docs]
+  BooksSearch -> [
+    Model $ model & searching .~ True,
+    Task $ searchBooks (model ^. query)
+    ]
+  BooksSearchResult resp -> [Model $ model
+    & searching .~ False
+    & books .~ resp ^. docs
+    ]
   BooksSearchError msg -> []
+  BooksShowDetails book -> [Model $ model & selected ?~ book]
+  BooksCloseDetails -> [Model $ model & selected .~ Nothing]
 
 searchBooks :: Text -> IO (Maybe BooksEvt)
 searchBooks query = do
@@ -84,7 +126,7 @@ searchBooks query = do
 
 main :: IO ()
 main = do
-  simpleApp (BooksModel "" []) handleEvent buildUI config
+  simpleApp initModel handleEvent buildUI config
   where
     config = [
       appWindowTitle "Todo list",
@@ -93,6 +135,7 @@ main = do
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appInitEvent BooksInit
       ]
+    initModel = BooksModel "borges-bioy" False Nothing []
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus path) where

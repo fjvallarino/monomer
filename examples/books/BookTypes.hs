@@ -40,6 +40,8 @@ instance FromJSON BookResp where
 
 data BooksModel = BooksModel {
   _bkmQuery :: Text,
+  _bmkSearching :: Bool,
+  _bmkSelected :: Maybe Book,
   _bkmBooks :: [Book]
 } deriving (Eq, Show, WidgetModel)
 
@@ -48,6 +50,8 @@ data BooksEvt
   | BooksSearch
   | BooksSearchResult BookResp
   | BooksSearchError Text
+  | BooksShowDetails Book
+  | BooksCloseDetails
   deriving (Eq, Show)
 
 makeLensesWith abbreviatedFields 'Book

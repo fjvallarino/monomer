@@ -105,7 +105,7 @@ instance CmbPaddingB Padding where
 
 instance CmbBorder Border where
   border w col = Border bs bs bs bs where
-    bs =  Just (BorderSide w col)
+    bs = Just (BorderSide w col)
 
 instance CmbBorderL Border where
   borderL w col = def & L.left ?~ BorderSide w col
