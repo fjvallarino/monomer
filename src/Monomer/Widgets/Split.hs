@@ -135,6 +135,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
 makeSplit :: Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
+    containerStyleChangeCfg = def & L.cursorIgnore .~ True,
     containerInit = init,
     containerRestore = restore,
     containerHandleEvent = handleEvent,
@@ -170,6 +171,7 @@ makeSplit isHorizontal config state = widget where
     Move point
       | isTarget && isDragging -> Just resultDrag
       | isTarget && isInHandle point -> Just resultHover
+      | curPath == path -> Just resultReset
       where
         Point px py = getValidHandlePos maxSize vp point children
         newHandlePos
@@ -187,15 +189,18 @@ makeSplit isHorizontal config state = widget where
               & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
           | otherwise = resultReqs node [cursorIconReq]
         resultHover = resultReqs node [cursorIconReq]
+        resultReset = resultReqs node [ResetCursorIcon widgetId]
     _ -> Nothing
     where
       maxSize = _spsMaxSize state
       handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
       widgetId = node ^. L.info . L.widgetId
+      path = node ^. L.info . L.path
       vp = node ^. L.info . L.viewport
       children = node ^. L.children
       isTarget = target == node ^. L.info . L.path
+      (curPath, _) = fromMaybe def (wenv ^. L.cursor)
       isDragging = isNodePressed wenv node
       isInHandle p = pointInRect p handleRect
       cursorIconReq
