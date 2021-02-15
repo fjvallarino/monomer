@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
-  StyleChangeCfg(..),
   GetBaseStyle(..),
   activeTheme,
   activeTheme_,
@@ -28,10 +27,16 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util.Focus
 import Monomer.Widgets.Util.Hover
-import Monomer.Widgets.Util.Types
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
+
+type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
+
+type GetBaseStyle s e
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> Maybe Style
 
 -- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
@@ -99,18 +104,18 @@ handleStyleChange
   :: WidgetEnv s e
   -> Path
   -> StyleState
-  -> StyleChangeCfg
+  -> Bool
   -> WidgetNode s e
   -> SystemEvent
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
-handleStyleChange wenv target style cfg node evt result = newResult where
+handleStyleChange wenv target style doCursor node evt result = newResult where
   baseResult = fromMaybe (resultWidget node) result
   baseNode = baseResult ^. L.node
   sizeReqs = handleSizeChange wenv target evt baseNode node
   cursorReqs
-    | cfg ^. L.cursorIgnore = []
-    | otherwise = handleCursorChange wenv target evt style cfg node
+    | doCursor = handleCursorChange wenv target evt style node
+    | otherwise = []
   reqs = sizeReqs ++ cursorReqs
   newResult
     | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
@@ -154,10 +159,9 @@ handleCursorChange
   -> Path
   -> SystemEvent
   -> StyleState
-  -> StyleChangeCfg
   -> WidgetNode s e
   -> [WidgetRequest s]
-handleCursorChange wenv target evt style cfg node = reqs where
+handleCursorChange wenv target evt style node = reqs where
   -- Cursor
   widgetId = node ^. L.info . L.widgetId
   isTarget = node ^. L.info . L.path == target

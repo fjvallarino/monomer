@@ -135,7 +135,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
 makeSplit :: Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
-    containerStyleChangeCfg = def & L.cursorIgnore .~ True,
+    containerUseCustomCursor = True,
     containerInit = init,
     containerRestore = restore,
     containerHandleEvent = handleEvent,

@@ -112,7 +112,7 @@ type SingleRenderHandler s e
 data Single s e a = Single {
   singleAddStyleReq :: Bool,
   singleFocusOnPressedBtn :: Bool,
-  singleStyleChangeCfg :: StyleChangeCfg,
+  singleUseCustomCursor :: Bool,
   singleUseCustomSize :: Bool,
   singleUseScissor :: Bool,
   singleGetBaseStyle :: SingleGetBaseStyle s e,
@@ -134,7 +134,7 @@ instance Default (Single s e a) where
   def = Single {
     singleAddStyleReq = True,
     singleFocusOnPressedBtn = True,
-    singleStyleChangeCfg = def,
+    singleUseCustomCursor = False,
     singleUseCustomSize = False,
     singleUseScissor = False,
     singleGetBaseStyle = defaultGetBaseStyle,
@@ -325,10 +325,10 @@ handleEventWrapper
   -> Maybe (WidgetResult s e)
 handleEventWrapper single wenv target evt node
   | not (node ^. L.info . L.visible) = Nothing
-  | otherwise = handleStyleChange wenv target style styleCfg node evt result
+  | otherwise = handleStyleChange wenv target style handleCursor node evt result
   where
     style = singleGetActiveStyle single wenv node
-    styleCfg = singleStyleChangeCfg single
+    handleCursor = not (singleUseCustomCursor single)
     focusOnPressed = singleFocusOnPressedBtn single
     handler = singleHandleEvent single
     handlerRes = handler wenv target evt node

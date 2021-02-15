@@ -168,7 +168,7 @@ data Container s e a = Container {
   containerChildrenScissor :: Maybe Rect,
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
-  containerStyleChangeCfg :: StyleChangeCfg,
+  containerUseCustomCursor :: Bool,
   containerUseCustomSize :: Bool,
   containerUseChildrenSizes :: Bool,
   containerUseScissor :: Bool,
@@ -199,7 +199,7 @@ instance Default (Container s e a) where
     containerChildrenScissor = Nothing,
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
-    containerStyleChangeCfg = def,
+    containerUseCustomCursor = False,
     containerUseCustomSize = False,
     containerUseChildrenSizes = False,
     containerUseScissor = False,
@@ -681,7 +681,7 @@ handleEventWrapper container wenv target evt node
     -- different types for Model and Events, and is candidate for the next step
     offset = fromMaybe def (containerChildrenOffset container)
     style = containerGetActiveStyle container wenv node
-    styleCfg = containerStyleChangeCfg container
+    handleCursor = not (containerUseCustomCursor container)
     updateCWenv = getUpdateCWenv container
     handler = containerHandleEvent container
     targetReached = isTargetReached target node
@@ -694,7 +694,7 @@ handleEventWrapper container wenv target evt node
     cevt = translateEvent (negPoint offset) evt
     -- Event targeted at parent
     pResponse = handler wenv target evt node
-    pResultStyled = handleStyleChange wenv target style styleCfg node evt
+    pResultStyled = handleStyleChange wenv target style handleCursor node evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
@@ -702,7 +702,7 @@ handleEventWrapper container wenv target evt node
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget cwenv target cevt child
     cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange cwenv target style styleCfg node cevt
+    cResultStyled = handleStyleChange cwenv target style handleCursor node cevt
       $ handleSizeReqChange container cwenv node (Just cevt) cResult
 
 mergeParentChildEvts
