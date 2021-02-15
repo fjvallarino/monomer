@@ -41,6 +41,7 @@ dependencies:
 - mtl
 - nanovg
 - OpenGL
+- safe
 - sdl2
 - serialise
 - stm

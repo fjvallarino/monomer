@@ -216,6 +216,7 @@ baseHover themeMod = baseBasic themeMod
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
   & L.dialStyle . L.fgColor ?~ inputFgHover themeMod
   & L.dialStyle . L.sndColor ?~ inputSndHover themeMod
+  & L.dialStyle . L.cursorIcon ?~ CursorSizeV
   & L.dialogCloseIconStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ inputBgHover themeMod
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand

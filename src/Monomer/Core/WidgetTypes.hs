@@ -109,7 +109,8 @@ data WidgetRequest s
   | StopTextInput
   | SetOverlay WidgetId Path
   | ResetOverlay WidgetId
-  | SetCursorIcon CursorIcon
+  | SetCursorIcon WidgetId CursorIcon
+  | ResetCursorIcon WidgetId
   | StartDrag WidgetId Path WidgetDragMsg
   | CancelDrag WidgetId
   | RenderOnce
@@ -135,7 +136,8 @@ instance Eq (WidgetRequest s) where
   StopTextInput == StopTextInput = True
   SetOverlay w1 p1 == SetOverlay w2 p2 = (w1, p1) == (w2, p2)
   ResetOverlay w1 == ResetOverlay w2 = w1 == w2
-  SetCursorIcon c1 == SetCursorIcon c2 = c1 == c2
+  SetCursorIcon w1 c1 == SetCursorIcon w2 c2 = (w1, c1) == (w2, c2)
+  ResetCursorIcon w1 == ResetCursorIcon w2 = w1 == w2
   StartDrag w1 p1 m1 == StartDrag w2 p2 m2 = (w1, p1, m1) == (w2, p2, m2)
   CancelDrag w1 == CancelDrag w2 = w1 == w2
   RenderOnce == RenderOnce = True
@@ -167,11 +169,12 @@ data WidgetEnv s e = WidgetEnv {
   _weTheme :: Theme,
   _weWindowSize :: Size,
   _weGlobalKeys :: GlobalKeys s e,
+  _weHoveredPath :: Maybe Path,
   _weFocusedPath :: Path,
   _weOverlayPath :: Maybe Path,
   _weDragStatus :: Maybe (Path, WidgetDragMsg),
   _weMainBtnPress :: Maybe (Path, Point),
-  _weCurrentCursor :: CursorIcon,
+  _weCursor :: Maybe (CursorIcon, Path),
   _weModel :: s,
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
@@ -365,7 +368,8 @@ instance Show (WidgetRequest s) where
   show StopTextInput = "StopTextInput"
   show (SetOverlay wid path) = "SetOverlay: " ++ show (wid, path)
   show (ResetOverlay wid) = "ResetOverlay: " ++ show wid
-  show (SetCursorIcon icon) = "SetCursorIcon: " ++ show icon
+  show (SetCursorIcon wid icon) = "SetCursorIcon: " ++ show (wid, icon)
+  show (ResetCursorIcon wid) = "ResetCursorIcon: " ++ show wid
   show (StartDrag wid path info) = "StartDrag: " ++ show (wid, path, info)
   show (CancelDrag wid) = "CancelDrag: " ++ show wid
   show RenderOnce = "RenderOnce"

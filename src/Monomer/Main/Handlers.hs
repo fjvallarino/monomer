@@ -15,13 +15,15 @@ module Monomer.Main.Handlers (
 ) where
 
 import Control.Concurrent.Async (async)
-import Control.Lens ((&), (^.), (^?), (.~), (%~), (.=), (?=), _1, ix, at, use)
+import Control.Lens
+  ((&), (^.), (^?), (.~), (%~), (.=), (?=), _Just, _1, ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.Extra(concatMapM)
 import Control.Monad.IO.Class
+import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -92,24 +94,37 @@ handleSystemEvents
   -> m (HandlerStep s e)
 handleSystemEvents wenv baseEvents widgetRoot = nextStep where
   mainBtn = wenv ^. L.mainButton
-  reduceEvt currStep evt = do
-    let (currWenv, currRoot, currReqs, currEvents) = currStep
-    systemEvents <- addRelatedEvents currWenv mainBtn currRoot evt
+  reduceEvt curStep evt = do
+    let (curWenv, curRoot, curReqs, curEvents) = curStep
+    systemEvents <- addRelatedEvents curWenv mainBtn curRoot evt
+
+    foldM reduceSysEvt (curWenv, curRoot, curReqs, curEvents) systemEvents
+  reduceSysEvt curStep (evt, evtTarget) = do
+    focused <- use L.focusedPath
+    let (curWenv, curRoot, curReqs, curEvents) = curStep
+    let target = fromMaybe focused evtTarget
+
+    when (isOnEnter evt) $
+      L.hoveredPath .= evtTarget
+
+    curCursor <- getCurrentCursor
+    hoveredPath <- use L.hoveredPath
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
 
-    let newWenv = currWenv
+    let newWenv = curWenv
+          & L.cursor .~ curCursor
+          & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
 
-    foldM reduceSysEvt (newWenv, currRoot, currReqs, currEvents) systemEvents
-  reduceSysEvt (currWenv, currRoot, currReqs, currEvents) (evt, evtTarget) = do
-    focused <- use L.focusedPath
-    let trgt = fromMaybe focused evtTarget
+    (wenv2, root2, reqs2, evts2) <- handleSystemEvent newWenv evt target curRoot
 
-    (wenv2, root2, reqs2, evts2) <- handleSystemEvent currWenv evt trgt currRoot
+    when (isOnLeave evt) $ do
+      resetCursorIfOut evt evtTarget curStep
+      L.hoveredPath .= Nothing
 
-    return (wenv2, root2, currReqs <> reqs2, currEvents <> evts2)
+    return (wenv2, root2, curReqs <> reqs2, curEvents <> evts2)
   newEvents = preProcessEvents baseEvents
   nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty, Seq.empty) newEvents
 
@@ -228,7 +243,8 @@ handleRequests reqs step = foldM handleRequest step reqs where
     StopTextInput -> handleStopTextInput step
     SetOverlay wid path -> handleSetOverlay wid path step
     ResetOverlay wid -> handleResetOverlay wid step
-    SetCursorIcon icon -> handleSetCursorIcon icon step
+    SetCursorIcon wid icon -> handleSetCursorIcon wid icon step
+    ResetCursorIcon wid -> handleResetCursorIcon wid step
     StartDrag wid path info -> handleStartDrag wid path info step
     CancelDrag wid -> handleCancelDrag wid step
     RenderOnce -> handleRenderOnce step
@@ -371,10 +387,32 @@ handleResetOverlay widgetId previousStep = do
   return previousStep
 
 handleSetCursorIcon
-  :: (MonomerM s m) => CursorIcon -> HandlerStep s e -> m (HandlerStep s e)
-handleSetCursorIcon icon previousStep = do
-  L.currentCursor .= icon
+  :: (MonomerM s m)
+  => WidgetId
+  -> CursorIcon
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleSetCursorIcon wid icon previousStep = do
+  cursors <- use L.cursorStack >>= dropNonParentWidgetId wid
+  L.cursorStack .= (icon, wid) : cursors
   cursor <- (Map.! icon) <$> use L.cursorIcons
+  SDLE.setCursor cursor
+
+  return previousStep
+
+handleResetCursorIcon
+  :: (MonomerM s m)
+  => WidgetId
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleResetCursorIcon wid previousStep = do
+  cursors <- use L.cursorStack >>= dropNonParentWidgetId wid
+  let newCursors = dropWhile ((==wid) . snd) cursors
+  let newCursorIcon
+        | null newCursors = CursorArrow
+        | otherwise = fst . head $ newCursors
+  L.cursorStack .= newCursors
+  cursor <- (Map.! newCursorIcon) <$> use L.cursorIcons
   SDLE.setCursor cursor
 
   return previousStep
@@ -662,9 +700,6 @@ addHoverEvents wenv widgetRoot point = do
   let enter = [(Enter point, target) | isJust target && hoverChanged]
   let leave = [(Leave point, hover) | isJust hover && hoverChanged]
 
-  when hoverChanged $
-    L.hoveredPath .= target
-
   L.leaveEnterPair .= not (null leave || null enter)
 
   return (target, leave ++ enter)
@@ -712,3 +747,38 @@ cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
 cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
 cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
 cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
+
+dropNonParentWidgetId
+  :: (MonomerM s m)
+  => WidgetId
+  -> [(CursorIcon, WidgetId)]
+  -> m [(CursorIcon, WidgetId)]
+dropNonParentWidgetId wid [] = return []
+dropNonParentWidgetId wid (x:xs) = do
+  path <- getWidgetIdPath wid
+  cpath <- getWidgetIdPath cwid
+  if isParentPath cpath path
+    then return (x:xs)
+    else dropNonParentWidgetId wid xs
+  where
+    (cursor, cwid) = x
+    isParentPath parent child = seqStartsWith parent child && parent /= child
+
+resetCursorIfOut
+  :: (MonomerM s m)
+  => SystemEvent
+  -> Maybe Path
+  -> HandlerStep s e
+  -> m ()
+resetCursorIfOut evt mpath step = do
+  when (isOnLeave evt && isJust targetNode && not inTargetVp) $
+    void $ handleResetCursorIcon (fromJust targetNode ^. L.widgetId) step
+  where
+    (wenv, root, _, _) = step
+    widget = root ^. L.widget
+    targetNode = mpath >>= \path -> widgetFindByPath widget wenv path root
+    targetVp = targetNode ^? _Just . L.viewport
+    inTargetVp = Just True == (pointInRect point <$> targetVp)
+    point = case evt of
+      Leave p -> p
+      _ -> def

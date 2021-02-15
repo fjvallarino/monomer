@@ -21,6 +21,7 @@ import Data.Default
 import Data.Maybe
 import Data.List (foldl')
 import Data.Text (Text)
+import Safe
 
 import qualified Data.Map as Map
 import qualified Graphics.Rendering.OpenGL as GL
@@ -30,7 +31,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
-import Monomer.Lens
+--import Monomer.Lens
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
@@ -90,8 +91,8 @@ runApp
   -> AppConfig e
   -> m ()
 runApp window widgetRoot config = do
-  useHiDPI <- use hdpi
-  devicePixelRate <- use dpr
+  useHiDPI <- use L.hdpi
+  devicePixelRate <- use L.dpr
   Size rw rh <- use L.windowSize
 
   let dpr = if useHiDPI then devicePixelRate else 1
@@ -104,7 +105,7 @@ runApp window widgetRoot config = do
 
   L.windowSize .= newWindowSize
   startTs <- fmap fromIntegral SDL.ticks
-  model <- use mainModel
+  model <- use L.mainModel
   os <- getPlatform
   renderer <- liftIO $ makeRenderer fonts dpr
   -- Hack, otherwise glyph positions are invalid until nanovg is initialized
@@ -118,7 +119,8 @@ runApp window widgetRoot config = do
     _weTheme = theme,
     _weWindowSize = newWindowSize,
     _weGlobalKeys = Map.empty,
-    _weCurrentCursor = CursorArrow,
+    _weCursor = Nothing,
+    _weHoveredPath = Nothing,
     _weFocusedPath = emptyPath,
     _weOverlayPath = Nothing,
     _weDragStatus = Nothing,
@@ -156,7 +158,7 @@ runApp window widgetRoot config = do
     _mlWidgetRoot = resizedRoot
   }
 
-  mainModel .= _weModel newWenv
+  L.mainModel .= _weModel newWenv
 
   mainLoop window renderer config loopArgs
 
@@ -176,7 +178,8 @@ mainLoop window renderer config loopArgs = do
   useHiDPI <- use L.hdpi
   devicePixelRate <- use L.dpr
   currentModel <- use L.mainModel
-  currentCursor <- use L.currentCursor
+  currCursor <- getCurrentCursor
+  hovered <- use L.hoveredPath
   focused <- use L.focusedPath
   overlay <- getOverlayPath
   dragged <- getDraggedMsgInfo
@@ -187,12 +190,22 @@ mainLoop window renderer config loopArgs = do
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
+  let quit = SDL.QuitEvent `elem` eventsPayload
 
   let windowResized = isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
   let mousePixelRate = if not useHiDPI then devicePixelRate else 1
   let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
+
+--  when newSecond $
+--    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
+
+  when quit $
+    L.exitApplication .= True
+
+  when windowExposed $
+    L.mainBtnPress .= Nothing
 
   let newSecond = _mlFrameAccumTs > 1000
   let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
@@ -203,7 +216,8 @@ mainLoop window renderer config loopArgs = do
     _weTheme = _mlTheme,
     _weWindowSize = windowSize,
     _weGlobalKeys = Map.empty,
-    _weCurrentCursor = currentCursor,
+    _weCursor = currCursor,
+    _weHoveredPath = hovered,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
     _weDragStatus = dragged,
@@ -216,21 +230,11 @@ mainLoop window renderer config loopArgs = do
     _weOffset = def
   }
   -- Exit handler
-  let quit = SDL.QuitEvent `elem` eventsPayload
   let exitMsgs = SendMessage (Seq.fromList [0]) <$> _mlExitEvents
   let baseReqs
         | quit = Seq.fromList exitMsgs
         | otherwise = Seq.Empty
   let baseStep = (wenv, _mlWidgetRoot, Seq.empty, Seq.empty)
-
---  when newSecond $
---    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
-
-  when quit $
-    exitApplication .= True
-
-  when windowExposed $
-    mainBtnPress .= Nothing
 
   (rqWenv, rqRoot, _, _) <- handleRequests baseReqs baseStep
   (wtWenv, wtRoot, _, _) <- handleWidgetTasks rqWenv rqRoot
@@ -253,7 +257,7 @@ mainLoop window renderer config loopArgs = do
   when renderNeeded $
     renderWidgets window renderer (_themeClearColor _mlTheme) newWenv newRoot
 
-  renderRequested .= windowResized
+  L.renderRequested .= windowResized
 
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
@@ -272,7 +276,7 @@ mainLoop window renderer config loopArgs = do
 
   liftIO $ threadDelay nextFrameDelay
 
-  shouldQuit <- use exitApplication
+  shouldQuit <- use L.exitApplication
 
   when shouldQuit $ do
     when (isJust (config ^. L.stateFileMain)) $
@@ -284,9 +288,9 @@ mainLoop window renderer config loopArgs = do
 
 checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
-  renderNext <- use renderRequested
-  schedule <- use renderSchedule
-  renderSchedule .= Map.filter (renderScheduleActive currTs renderTs) schedule
+  renderNext <- use L.renderRequested
+  schedule <- use L.renderSchedule
+  L.renderSchedule .= Map.filter (renderScheduleActive currTs renderTs) schedule
   return (renderNext || nextRender schedule)
   where
     foldHelper acc curr = acc || renderScheduleReq currTs renderTs curr
@@ -384,7 +388,7 @@ toMonomerCtxPersist :: (MonomerM s m) => m MonomerCtxPersist
 toMonomerCtxPersist = do
   ctx <- get
   return $ def
-    & L.currentCursor .~ ctx ^. L.currentCursor
+    & L.cursorStack .~ ctx ^. L.cursorStack
     & L.focusedPath .~ ctx ^. L.focusedPath
     & L.hoveredPath .~ ctx ^. L.hoveredPath
     & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
@@ -393,7 +397,7 @@ toMonomerCtxPersist = do
 
 fromMonomerCtxPersist :: (MonomerM s m) => MonomerCtxPersist -> m ()
 fromMonomerCtxPersist ctxp = do
-  L.currentCursor .= ctxp ^. L.currentCursor
+  L.cursorStack .= ctxp ^. L.cursorStack
   L.focusedPath .= ctxp ^. L.focusedPath
   L.hoveredPath .= ctxp ^. L.hoveredPath
   L.overlayWidgetId .= ctxp ^. L.overlayWidgetId

@@ -132,7 +132,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree where
+buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetScroll = vscroll (hgrid [
       vstack [
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
@@ -180,7 +180,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack",
-      textDropdown dropdown1 items,
+      textDropdown_ dropdown1 items id [],
       textField textField1,
       hstack [
         checkbox condition1,
@@ -385,6 +385,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         button "Show Alert" ShowAlert,
         mainButton "Show Confirm" ShowConfirm
       ],
+      textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       hgrid [
         vstack [
           label "jLabel 1" `style` [bgColor darkGray] `hover` [textSize 40],

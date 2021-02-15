@@ -626,9 +626,7 @@ findByPointWrapper container wenv start point node = result where
   cpoint = addPoint (negPoint offset) point
   path = node ^. L.info . L.path
   children = node ^. L.children
-  childIdx = case nextTargetStep start node of
-    Just p -> Just p
-    Nothing -> handler wenv start cpoint node
+  childIdx = nextTargetStep start node <|> handler wenv start cpoint node
   validateIdx p
     | Seq.length children > p && p >= 0 = Just p
     | otherwise = Nothing

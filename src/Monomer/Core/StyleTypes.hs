@@ -35,6 +35,9 @@ data CursorIcon
   | CursorDiagTR
   deriving (Eq, Ord, Enum, Show, Generic, Serialise)
 
+instance Default CursorIcon where
+  def = CursorArrow
+
 data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,

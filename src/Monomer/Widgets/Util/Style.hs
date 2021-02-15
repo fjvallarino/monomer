@@ -162,17 +162,31 @@ handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
   cfgIcon = cfg ^. L.cursorIcon
   isCursorEvt = cfg ^. L.cursorEvt
-  isTarget = node ^. L.info . L.path == target
-  curIcon = wenv ^. L.currentCursor
+  isCursorInside = cfg ^. L.cursorInside
+  hoveredPath = fromMaybe rootPath (wenv ^. L.hoveredPath)
+  mousePos = wenv ^. L.inputStatus . L.mousePos
+  widgetId = node ^. L.info . L.widgetId
+  path = node ^. L.info . L.path
+  isTarget = path == target
+  hasCursor = isJust (style ^. L.cursorIcon)
+  isHoveredParent = seqStartsWith target hoveredPath
+    && notElem target [hoveredPath, rootPath]
+  (curIcon, _) = fromMaybe def (wenv ^. L.cursor)
   inOverlay = isNodeInOverlay wenv node
-  notInOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
+  outsideActiveOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
   newIcon
-    | notInOverlay = CursorArrow
+    | outsideActiveOverlay = CursorArrow
     | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon <|> cfgIcon)
-  setCursor = isTarget && newIcon /= curIcon && (isCursorEvt evt || notInOverlay)
+  setCursor = isTarget
+    && (hasCursor || outsideActiveOverlay)
+    && isCursorEvt evt
+    && isCursorInside mousePos
+    && curIcon /= newIcon
+  resetCursor = not isHoveredParent && not (isCursorInside mousePos)
   -- Result
   reqs
-   | setCursor = [SetCursorIcon newIcon, RenderOnce]
+   | setCursor = [SetCursorIcon widgetId newIcon, RenderOnce]
+   | resetCursor = [ResetCursorIcon widgetId, RenderOnce]
    | otherwise = []
 
 baseStyleFromTheme :: Theme -> Style

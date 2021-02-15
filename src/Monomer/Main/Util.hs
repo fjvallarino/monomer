@@ -9,6 +9,7 @@ import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
+import Safe (headMay)
 
 import qualified Data.Sequence as Seq
 import qualified Data.Map as Map
@@ -31,7 +32,7 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcHdpi = useHiDPI,
   _mcDpr = devicePixelRate,
   _mcInputStatus = def,
-  _mcCurrentCursor = CursorArrow,
+  _mcCursorStack = [],
   _mcFocusedPath = Seq.empty,
   _mcHoveredPath = Nothing,
   _mcOverlayWidgetId = Nothing,
@@ -80,3 +81,12 @@ getDraggedMsgInfo = do
   case dragAction of
     Just (DragAction wid msg) -> Just . (, msg) <$> getWidgetIdPath wid
     Nothing -> return Nothing
+
+getCurrentCursor :: (MonomerM s m) => m (Maybe (CursorIcon, Path))
+getCurrentCursor = do
+  cursorHead <- fmap headMay (use L.cursorStack)
+  case cursorHead of
+    Just (icon, wid) -> do
+      path <- getWidgetIdPath wid
+      return $ Just (icon, path)
+    otherwhise -> return Nothing

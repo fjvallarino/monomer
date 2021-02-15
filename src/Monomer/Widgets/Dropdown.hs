@@ -240,6 +240,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerFindNextFocus = findNextFocus,
+    containerFindByPoint = findByPoint,
     containerRestore = restore,
     containerDispose = dispose,
     containerHandleEvent = handleEvent,
@@ -285,6 +286,15 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     | isOpen = node ^. L.children
     | otherwise = Empty
 
+  findByPoint wenv start point node = result where
+    children = node ^. L.children
+    mainNode = Seq.index children mainIdx
+    listNode = Seq.index children listIdx
+    result
+      | isOpen && isPointInNodeVp point listNode = Just listIdx
+      | not isOpen && isPointInNodeVp point mainNode = Just mainIdx
+      | otherwise = Nothing
+
   ddFocusChange evts reqs node = Just newResult where
     tmpResult = handleFocusChange evts reqs config node
     newResult = fromMaybe (resultWidget node) tmpResult
@@ -320,9 +330,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     inViewport = pointInRect point (node ^. L.info . L.viewport)
 
   closeRequired point node = isOpen && not inOverlay where
-    inOverlay = case Seq.lookup listIdx (node ^. L.children) of
-      Just node -> pointInRect point (node ^. L.info . L.viewport)
-      Nothing -> False
+    offset = _ddsOffset state
+    listNode = Seq.index (node ^. L.children) listIdx
+    listVp = moveRect offset (listNode ^. L.info . L.viewport)
+    inOverlay = pointInRect point listVp
 
   openDropdown wenv node = resultReqs newNode requests where
     newState = state {

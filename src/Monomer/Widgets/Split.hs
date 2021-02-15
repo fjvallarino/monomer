@@ -192,14 +192,15 @@ makeSplit isHorizontal config state = widget where
       maxSize = _spsMaxSize state
       handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
+      widgetId = node ^. L.info . L.widgetId
       vp = node ^. L.info . L.viewport
       children = node ^. L.children
       isTarget = target == node ^. L.info . L.path
       isDragging = isNodePressed wenv node
       isInHandle p = pointInRect p handleRect
       cursorIconReq
-        | isHorizontal = SetCursorIcon CursorSizeH
-        | otherwise = SetCursorIcon CursorSizeV
+        | isHorizontal = SetCursorIcon widgetId CursorSizeH
+        | otherwise = SetCursorIcon widgetId CursorSizeV
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = (reqW, reqH) where
