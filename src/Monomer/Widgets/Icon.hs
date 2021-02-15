@@ -65,14 +65,16 @@ makeImage iconType config = widget where
   getSizeReq wenv currState node = sizeReq where
     (w, h) = (16, 16)
     factor = 1
-    sizeReq = (FlexSize w factor, FlexSize h factor)
+    sizeReq = (MinSize w factor, MinSize h factor)
 
   render renderer wenv node = do
     drawIcon renderer style iconType iconVp width
     where
       style = activeStyle wenv node
       contentArea = getContentArea style node
-      width = fromMaybe 8 (_icWidth config)
+      vp = node ^. L.info . L.viewport
+      dim = min (vp ^. L.w) (vp ^. L.h)
+      width = fromMaybe (dim / 2) (_icWidth config)
       iconVp = centeredSquare contentArea
 
 centeredSquare :: Rect -> Rect
