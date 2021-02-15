@@ -161,7 +161,6 @@ makeDial
   -> Widget s e
 makeDial field minVal maxVal config state = widget where
   widget = createSingle state def {
-    singleStyleChangeCfg = def & L.cursorEvt .~ isOnMove,
     singleGetBaseStyle = getBaseStyle,
     singleGetActiveStyle = getActiveStyle,
     singleInit = init,

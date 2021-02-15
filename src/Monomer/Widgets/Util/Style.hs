@@ -107,7 +107,7 @@ handleStyleChange
 handleStyleChange wenv target style cfg node evt result = newResult where
   baseResult = fromMaybe (resultWidget node) result
   baseNode = baseResult ^. L.node
-  sizeReqs = handleSizeChange wenv target evt cfg baseNode node
+  sizeReqs = handleSizeChange wenv target evt baseNode node
   cursorReqs
     | cfg ^. L.cursorIgnore = []
     | otherwise = handleCursorChange wenv target evt style cfg node
@@ -120,12 +120,10 @@ handleSizeChange
   :: WidgetEnv s e
   -> Path
   -> SystemEvent
-  -> StyleChangeCfg
   -> WidgetNode s e
   -> WidgetNode s e
   -> [WidgetRequest s]
-handleSizeChange wenv target evt cfg oldNode newNode = reqs where
-  isCursorEvt = cfg ^. L.cursorEvt
+handleSizeChange wenv target evt oldNode newNode = reqs where
   -- Size
   oldSizeReqW = oldNode ^. L.info . L.sizeReqW
   oldSizeReqH = oldNode ^. L.info . L.sizeReqH
@@ -139,7 +137,7 @@ handleSizeChange wenv target evt cfg oldNode newNode = reqs where
   pressedPath = wenv ^. L.mainBtnPress ^? _Just . _1
   hoverDragChg = Just path == pressedPath && prevInVp /= currInVp
   -- Result
-  renderReq = isOnEnter evt || isOnLeave evt || isCursorEvt evt || hoverDragChg
+  renderReq = isOnEnter evt || isOnLeave evt || hoverDragChg
   resizeReq = [ ResizeWidgets | sizeReqChanged ]
   enterReq = [ RenderOnce | renderReq ]
   reqs = resizeReq ++ enterReq
@@ -161,7 +159,6 @@ handleCursorChange
   -> [WidgetRequest s]
 handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
-  isCursorEvt = cfg ^. L.cursorEvt
   widgetId = node ^. L.info . L.widgetId
   isTarget = node ^. L.info . L.path == target
   hasCursor = isJust (style ^. L.cursorIcon)
@@ -206,3 +203,11 @@ mergeBasicStyle st = newStyle where
     _styleActive = _styleBasic st <> active,
     _styleDisabled = _styleBasic st <> _styleDisabled st
   }
+
+isCursorEvt :: SystemEvent -> Bool
+isCursorEvt Enter{} = True
+isCursorEvt Click{} = True
+isCursorEvt DblClick{} = True
+isCursorEvt ButtonAction{} = True
+isCursorEvt Move{} = True
+isCursorEvt _ = False

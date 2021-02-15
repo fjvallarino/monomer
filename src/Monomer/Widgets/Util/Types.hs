@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Monomer.Widgets.Util.Types where
 
 import Data.Default
@@ -16,19 +14,12 @@ type GetBaseStyle s e
   -> WidgetNode s e
   -> Maybe Style
 
-data StyleChangeCfg = StyleChangeCfg {
-  _sccCursorIgnore :: Bool,
-  _sccCursorEvt :: SystemEvent -> Bool
+newtype StyleChangeCfg = StyleChangeCfg {
+  _sccCursorIgnore :: Bool
 }
 
 instance Default StyleChangeCfg where {
   def = StyleChangeCfg {
-    _sccCursorIgnore = False,
-    _sccCursorEvt = \case
-      Enter{} -> True
-      Click{} -> True
-      ButtonAction{} -> True
-      Move{} -> True
-      _ -> False
+    _sccCursorIgnore = False
   }
 }
