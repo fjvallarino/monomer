@@ -493,6 +493,13 @@
   - Improve test utilities
     - Some way to combine them, avoid this noInit thing, losing of focus, etc
     - Test image updating WidgetId/Path
+  - Fix cursor change handling
+    - Children should not change it if they don't have their own icon
+    - OnLeave should restore the previous icon (use a stack)
+    - Check StyleChangeCfg
+  - Add scissor to image
+  - Check split handle size
+  - Add scrollInvisible option (just set the values in cfg)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -512,15 +519,9 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Fix cursor change handling
-    - Children should not change it if they don't have their own icon
-    - OnLeave should restore the previous icon (use a stack)
-    - Check StyleChangeCfg
-  - Add scrollInvisible option (just set the values in cfg)
-  - Auto scroll affects dropdown
-  - Check split handle size
-  - Add scissor to image
   - Check icon not drawing correctly
+  - Check cursor after click (most likely caused by "active" style)
+  - Auto scroll affects dropdown
   - Add underline and strikethrough
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181

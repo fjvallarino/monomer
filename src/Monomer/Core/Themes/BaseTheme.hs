@@ -159,19 +159,17 @@ baseBasic themeMod = def
   & L.dialStyle . L.sndColor ?~ inputSndBasic themeMod
   & L.dialogTitleStyle . L.text
     ?~ (titleFont & L.fontColor ?~ dialogTitleText themeMod) <> textLeft
+  & L.dialogFrameStyle . L.padding ?~ padding 5
   & L.dialogFrameStyle . L.bgColor ?~ dialogBg themeMod
   & L.dialogFrameStyle . L.border ?~ border 1 (dialogBorder themeMod)
-  & L.dialogTitleStyle . L.padding ?~ padding 5
   & L.dialogCloseIconStyle . L.fgColor ?~ iconFg themeMod
   & L.dialogCloseIconStyle . L.sizeReqW ?~ width 16
   & L.dialogCloseIconStyle . L.sizeReqH ?~ width 16
-  & L.dialogCloseIconStyle . L.padding ?~ padding 5
   & L.dialogBodyStyle . L.text
     ?~ (normalFont & L.fontColor ?~ dialogText themeMod)
-  & L.dialogBodyStyle . L.padding ?~ padding 5
   & L.dialogBodyStyle . L.sizeReqW ?~ minWidth 400
   & L.dialogBodyStyle . L.sizeReqH ?~ minHeight 250
-  & L.dialogButtonsStyle . L.padding ?~ padding 5
+  & L.dialogButtonsStyle . L.padding ?~ paddingT 5
   & L.dropdownStyle .~ inputStyle themeMod
   & L.dropdownStyle . L.fgColor ?~ iconFg themeMod
   & L.dropdownStyle . L.padding ?~ paddingH 5
