@@ -160,29 +160,21 @@ handleCursorChange
   -> [WidgetRequest s]
 handleCursorChange wenv target evt style cfg node = reqs where
   -- Cursor
-  cfgIcon = cfg ^. L.cursorIcon
   isCursorEvt = cfg ^. L.cursorEvt
-  isCursorInside = cfg ^. L.cursorInside
-  hoveredPath = fromMaybe rootPath (wenv ^. L.hoveredPath)
-  mousePos = wenv ^. L.inputStatus . L.mousePos
   widgetId = node ^. L.info . L.widgetId
-  path = node ^. L.info . L.path
-  isTarget = path == target
+  isTarget = node ^. L.info . L.path == target
   hasCursor = isJust (style ^. L.cursorIcon)
-  isHoveredParent = seqStartsWith target hoveredPath
-    && notElem target [hoveredPath, rootPath]
   (curIcon, _) = fromMaybe def (wenv ^. L.cursor)
   inOverlay = isNodeInOverlay wenv node
   outsideActiveOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
   newIcon
     | outsideActiveOverlay = CursorArrow
-    | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon <|> cfgIcon)
+    | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon)
   setCursor = isTarget
     && (hasCursor || outsideActiveOverlay)
     && isCursorEvt evt
-    && isCursorInside mousePos
     && curIcon /= newIcon
-  resetCursor = not isHoveredParent && not (isCursorInside mousePos)
+  resetCursor = isTarget && not hasCursor
   -- Result
   reqs
    | setCursor = [SetCursorIcon widgetId newIcon, RenderOnce]
