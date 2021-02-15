@@ -82,11 +82,11 @@ getDraggedMsgInfo = do
     Just (DragAction wid msg) -> Just . (, msg) <$> getWidgetIdPath wid
     Nothing -> return Nothing
 
-getCurrentCursor :: (MonomerM s m) => m (Maybe (CursorIcon, Path))
+getCurrentCursor :: (MonomerM s m) => m (Maybe (Path, CursorIcon))
 getCurrentCursor = do
   cursorHead <- fmap headMay (use L.cursorStack)
   case cursorHead of
-    Just (icon, wid) -> do
+    Just (wid, icon) -> do
       path <- getWidgetIdPath wid
-      return $ Just (icon, path)
+      return $ Just (path, icon)
     otherwhise -> return Nothing

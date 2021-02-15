@@ -58,7 +58,7 @@ data MonomerCtx s = MonomerCtx {
   _mcHdpi :: Bool,
   _mcDpr :: Double,
   _mcInputStatus :: InputStatus,
-  _mcCursorStack :: [(CursorIcon, WidgetId)],
+  _mcCursorStack :: [(WidgetId, CursorIcon)],
   _mcFocusedPath :: Path,
   _mcHoveredPath :: Maybe Path,
   _mcOverlayWidgetId :: Maybe WidgetId,
@@ -77,7 +77,7 @@ data MonomerCtx s = MonomerCtx {
 }
 
 data MonomerCtxPersist = MonomerCtxPersist {
-  _mcpCursorStack :: [(CursorIcon, WidgetId)],
+  _mcpCursorStack :: [(WidgetId, CursorIcon)],
   _mcpFocusedPath :: Path,
   _mcpHoveredPath :: Maybe Path,
   _mcpOverlayWidgetId :: Maybe WidgetId,

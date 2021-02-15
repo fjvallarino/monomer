@@ -394,7 +394,7 @@ handleSetCursorIcon
   -> m (HandlerStep s e)
 handleSetCursorIcon wid icon previousStep = do
   cursors <- use L.cursorStack >>= dropNonParentWidgetId wid
-  L.cursorStack .= (icon, wid) : cursors
+  L.cursorStack .= (wid, icon) : cursors
   cursor <- (Map.! icon) <$> use L.cursorIcons
   SDLE.setCursor cursor
 
@@ -407,10 +407,10 @@ handleResetCursorIcon
   -> m (HandlerStep s e)
 handleResetCursorIcon wid previousStep = do
   cursors <- use L.cursorStack >>= dropNonParentWidgetId wid
-  let newCursors = dropWhile ((==wid) . snd) cursors
+  let newCursors = dropWhile ((==wid) . fst) cursors
   let newCursorIcon
         | null newCursors = CursorArrow
-        | otherwise = fst . head $ newCursors
+        | otherwise = snd . head $ newCursors
   L.cursorStack .= newCursors
   cursor <- (Map.! newCursorIcon) <$> use L.cursorIcons
   SDLE.setCursor cursor
@@ -751,8 +751,8 @@ cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
 dropNonParentWidgetId
   :: (MonomerM s m)
   => WidgetId
-  -> [(CursorIcon, WidgetId)]
-  -> m [(CursorIcon, WidgetId)]
+  -> [(WidgetId, a)]
+  -> m [(WidgetId, a)]
 dropNonParentWidgetId wid [] = return []
 dropNonParentWidgetId wid (x:xs) = do
   path <- getWidgetIdPath wid
@@ -761,7 +761,7 @@ dropNonParentWidgetId wid (x:xs) = do
     then return (x:xs)
     else dropNonParentWidgetId wid xs
   where
-    (cursor, cwid) = x
+    (cwid, _) = x
     isParentPath parent child = seqStartsWith parent child && parent /= child
 
 resetCursorIfOut

@@ -164,7 +164,7 @@ handleCursorChange wenv target evt style cfg node = reqs where
   widgetId = node ^. L.info . L.widgetId
   isTarget = node ^. L.info . L.path == target
   hasCursor = isJust (style ^. L.cursorIcon)
-  (curIcon, _) = fromMaybe def (wenv ^. L.cursor)
+  (_, curIcon) = fromMaybe def (wenv ^. L.cursor)
   inOverlay = isNodeInOverlay wenv node
   outsideActiveOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
   newIcon

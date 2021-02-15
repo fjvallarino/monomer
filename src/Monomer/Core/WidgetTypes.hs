@@ -174,7 +174,7 @@ data WidgetEnv s e = WidgetEnv {
   _weOverlayPath :: Maybe Path,
   _weDragStatus :: Maybe (Path, WidgetDragMsg),
   _weMainBtnPress :: Maybe (Path, Point),
-  _weCursor :: Maybe (CursorIcon, Path),
+  _weCursor :: Maybe (Path, CursorIcon),
   _weModel :: s,
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
