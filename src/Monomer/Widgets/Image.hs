@@ -124,6 +124,7 @@ image_ tpath configs = defaultWidgetNode "image" widget where
 makeImage :: String -> ImageCfg e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle state def {
+    singleUseScissor = True,
     singleInit = init,
     singleRestore = restore,
     singleDispose = dispose,
