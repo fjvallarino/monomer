@@ -258,13 +258,13 @@ baseFocus themeMod = baseBasic themeMod
   & L.radioStyle . L.fgColor ?~ inputFgFocus themeMod
 
 baseFocusHover :: BaseThemeColors -> ThemeState
-baseFocusHover themeMod = baseFocus themeMod
+baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
   & L.btnStyle . L.bgColor ?~ btnBgHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgHover themeMod
   & L.dropdownListStyle . L.border ?~ borderFocus themeMod
 
 baseActive :: BaseThemeColors -> ThemeState
-baseActive themeMod = baseHover themeMod
+baseActive themeMod = baseFocusHover themeMod
   & L.btnStyle . L.bgColor ?~ btnBgActive themeMod
   & L.btnStyle . L.border ?~ borderFocus themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgActive themeMod

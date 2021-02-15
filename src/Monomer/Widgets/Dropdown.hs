@@ -307,6 +307,18 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen && not (seqStartsWith path focusedPath)
         -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
     Enter{} -> Nothing -- to have handleStyleChange applied
+    Move point -> result where
+      mainNode = Seq.index (node ^. L.children) mainIdx
+      listNode = Seq.index (node ^. L.children) listIdx
+      lvPoint = addPoint (negPoint (_ddsOffset state)) point
+      validMainPos = isPointInNodeVp point mainNode
+      validListPos = isOpen && isPointInNodeVp lvPoint listNode
+      validPos = validMainPos || validListPos
+      isArrow = Just CursorArrow == (snd <$> wenv ^. L.cursor)
+      resetRes = resultReqs node [SetCursorIcon widgetId CursorArrow]
+      result
+        | not validPos && not isArrow = Just resetRes
+        | otherwise = Nothing
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
@@ -323,6 +335,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
     where
+      widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath
 

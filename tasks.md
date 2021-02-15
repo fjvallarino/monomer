@@ -500,6 +500,7 @@
   - Add scissor to image
   - Check split handle size
   - Add scrollInvisible option (just set the values in cfg)
+  - Check icon not drawing correctly
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -519,8 +520,10 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Check icon not drawing correctly
   - Check cursor after click (most likely caused by "active" style)
+  - Remove StyleChangeCfg if possible
+  - Check dial
+    - What's the purpose of custom findByPoint? Handling in event may be better.
   - Auto scroll affects dropdown
   - Add underline and strikethrough
   - Add externalLink component

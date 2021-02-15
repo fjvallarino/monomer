@@ -78,6 +78,7 @@ activeTheme_ isHoveredFn wenv node = themeState where
   themeState
     | not isEnabled = _themeDisabled theme
     | isActive = _themeActive theme
+    | isHover && isFocus = _themeFocusHover theme
     | isHover = _themeHover theme
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
@@ -165,16 +166,12 @@ handleCursorChange wenv target evt style cfg node = reqs where
   isTarget = node ^. L.info . L.path == target
   hasCursor = isJust (style ^. L.cursorIcon)
   (_, curIcon) = fromMaybe def (wenv ^. L.cursor)
-  inOverlay = isNodeInOverlay wenv node
-  outsideActiveOverlay = isJust (wenv ^. L.overlayPath) && not inOverlay
-  newIcon
-    | outsideActiveOverlay = CursorArrow
-    | otherwise = fromMaybe CursorArrow (style ^. L.cursorIcon)
+  newIcon = fromMaybe CursorArrow (style ^. L.cursorIcon)
   setCursor = isTarget
-    && (hasCursor || outsideActiveOverlay)
+    && hasCursor
     && isCursorEvt evt
     && curIcon /= newIcon
-  resetCursor = isTarget && not hasCursor
+  resetCursor = isTarget && isCursorEvt evt && not hasCursor
   -- Result
   reqs
    | setCursor = [SetCursorIcon widgetId newIcon, RenderOnce]
@@ -200,7 +197,7 @@ baseStyleFromTheme theme = style where
 mergeBasicStyle :: Style -> Style
 mergeBasicStyle st = newStyle where
   focusHover = _styleHover st <> _styleFocus st <> _styleFocusHover st
-  active = _styleHover st <> _styleActive st
+  active = focusHover <> _styleActive st
   newStyle = Style {
     _styleBasic = _styleBasic st,
     _styleHover = _styleBasic st <> _styleHover st,

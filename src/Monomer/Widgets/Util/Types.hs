@@ -26,6 +26,9 @@ instance Default StyleChangeCfg where {
     _sccCursorIgnore = False,
     _sccCursorEvt = \case
       Enter{} -> True
+      Click{} -> True
+      ButtonAction{} -> True
+      Move{} -> True
       _ -> False
   }
 }
