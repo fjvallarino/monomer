@@ -770,15 +770,12 @@ resetCursorIfOut
   -> Maybe Path
   -> HandlerStep s e
   -> m ()
-resetCursorIfOut evt mpath step = do
-  when (isOnLeave evt && isJust targetNode && not inTargetVp) $
+resetCursorIfOut (Leave point) (Just path) step = do
+  when (isNothing childNode && isJust targetNode) $
     void $ handleResetCursorIcon (fromJust targetNode ^. L.widgetId) step
   where
     (wenv, root, _, _) = step
     widget = root ^. L.widget
-    targetNode = mpath >>= \path -> widgetFindByPath widget wenv path root
-    targetVp = targetNode ^? _Just . L.viewport
-    inTargetVp = Just True == (pointInRect point <$> targetVp)
-    point = case evt of
-      Leave p -> p
-      _ -> def
+    targetNode = widgetFindByPath widget wenv path root
+    childNode = widgetFindByPoint widget wenv path point root
+resetCursorIfOut _ _ step = return ()
