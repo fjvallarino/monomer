@@ -14,6 +14,7 @@ module Monomer.Widgets.Scroll (
   vscroll,
   vscroll_,
   scrollOverlay,
+  scrollInvisible,
   scrollFollowFocus,
   scrollWheelRate,
   scrollBarHoverColor,
@@ -118,6 +119,15 @@ scrollType st = def {
 scrollOverlay :: Bool -> ScrollCfg
 scrollOverlay overlay = def {
   _scScrollOverlay = Just overlay
+}
+
+scrollInvisible :: ScrollCfg
+scrollInvisible = def {
+  _scScrollOverlay = Just True,
+  _scBarColor = Just transparent,
+  _scBarHoverColor = Just transparent,
+  _scThumbColor = Just transparent,
+  _scThumbHoverColor = Just transparent
 }
 
 scrollFollowFocus :: Bool -> ScrollCfg
