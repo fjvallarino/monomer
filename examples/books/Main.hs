@@ -63,7 +63,7 @@ buildUI wenv model = widgetTree where
       ] `style` [width 300],
       filler,
       bookImage (b ^. cover) "M" `style` [width 200]
-    ] `style` []
+    ]
   bookOverlay = keystroke [("Esc", BooksCloseDetails)] overlay where
     content = vstack [
         maybe spacer bookDetail (model ^. selected),

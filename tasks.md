@@ -497,14 +497,21 @@
     - Children should not change it if they don't have their own icon
     - OnLeave should restore the previous icon (use a stack)
     - Check StyleChangeCfg
+    - Check cursor after click (most likely caused by "active" style)
+    - Remove StyleChangeCfg if possible
+    - Check dial cursor change
+    - Restore cursor when it goes outside the window
+    - Rethink cursor handling
+      - Maybe wrap result, check if set already posted, etc?
+    - Restore Widget/Util Types/Lens
   - Add scissor to image
   - Check split handle size
   - Add scrollInvisible option (just set the values in cfg)
-  - Check icon not drawing correctly
-  - Check cursor after click (most likely caused by "active" style)
-  - Remove StyleChangeCfg if possible
-  - Check dial cursor change
-  - Restore cursor when it goes outside the window
+  - Check icon widget not drawing correctly
+  - Add examples
+    - Fetch content from url, show rows of data with embedded images
+      - Check why border was not shown in some cases (may be ok)
+      - Improve cursor handling (if children do not have cursor settings they should not change it)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -514,20 +521,15 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Rethink cursor handling
-    - Maybe wrap result, check if set already posted, etc?
-  - Restore Widget/Util Types/Lens
-  - Auto scroll affects dropdown
   - Add examples
     - Fetch content from url, show rows of data with embedded images
-      - Check why border was not shown in some cases (may be ok)
-      - Improve cursor handling (if children do not have cursor settings they should not change it)
       - Re-import Color Table and keep it in original order
       - Does it make sense to have Alert/Dialog accept a widget?
       - Maybe internally handle focus as widgetId? (use findWidgetByPath)
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
+  - Auto scroll affects dropdown when listView is displayed
   - Add underline and strikethrough
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181

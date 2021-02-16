@@ -4,283 +4,143 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 -- Colors (imported from https://www.rapidtables.com/web/color/RGB_Color.html)
-aliceBlue :: Color
-aliceBlue = rgb 240 248 255
-antiqueWhite :: Color
-antiqueWhite = rgb 250 235 215
-aqua :: Color
-aqua = rgb 0 255 255
-aquaMarine :: Color
-aquaMarine = rgb 127 255 212
-azure :: Color
-azure = rgb 240 255 255
-beige :: Color
-beige = rgb 245 245 220
-bisque :: Color
-bisque = rgb 255 228 196
-black :: Color
-black = rgb 0 0 0
-blanchedAlmond :: Color
-blanchedAlmond = rgb 255 235 205
-blue :: Color
-blue = rgb 0 0 255
-blueViolet :: Color
-blueViolet = rgb 138 43 226
-brown :: Color
-brown = rgb 165 42 42
-burlyWood :: Color
-burlyWood = rgb 222 184 135
-cadetBlue :: Color
-cadetBlue = rgb 95 158 160
-chartReuse :: Color
-chartReuse = rgb 127 255 0
-chocolate :: Color
-chocolate = rgb 210 105 30
-coral :: Color
-coral = rgb 255 127 80
-cornFlowerBlue :: Color
-cornFlowerBlue = rgb 100 149 237
-cornSilk :: Color
-cornSilk = rgb 255 248 220
-crimson :: Color
-crimson = rgb 220 20 60
-cyan :: Color
-cyan = rgb 0 255 255
-darkBlue :: Color
-darkBlue = rgb 0 0 139
-darkCyan :: Color
-darkCyan = rgb 0 139 139
-darkGoldenRod :: Color
-darkGoldenRod = rgb 184 134 11
-darkGray :: Color
-darkGray = rgb 169 169 169
-darkGreen :: Color
-darkGreen = rgb 0 100 0
-darkKhaki :: Color
-darkKhaki = rgb 189 183 107
-darkMagenta :: Color
-darkMagenta = rgb 139 0 139
-darkOliveGreen :: Color
-darkOliveGreen = rgb 85 107 47
-darkOrange :: Color
-darkOrange = rgb 255 140 0
-darkOrchid :: Color
-darkOrchid = rgb 153 50 204
-darkRed :: Color
-darkRed = rgb 139 0 0
-darkSalmon :: Color
-darkSalmon = rgb 233 150 122
-darkSeaGreen :: Color
-darkSeaGreen = rgb 143 188 143
-darkSlateBlue :: Color
-darkSlateBlue = rgb 72 61 139
-darkSlateGray :: Color
-darkSlateGray = rgb 47 79 79
-darkTurquoise :: Color
-darkTurquoise = rgb 0 206 209
-darkViolet :: Color
-darkViolet = rgb 148 0 211
-deepPink :: Color
-deepPink = rgb 255 20 147
-deepSkyBlue :: Color
-deepSkyBlue = rgb 0 191 255
-dimGray :: Color
-dimGray = rgb 105 105 105
-dodgerBlue :: Color
-dodgerBlue = rgb 30 144 255
-firebrick :: Color
-firebrick = rgb 178 34 34
-floralWhite :: Color
-floralWhite = rgb 255 250 240
-forestGreen :: Color
-forestGreen = rgb 34 139 34
-fuchsia :: Color
-fuchsia = rgb 255 0 255
-gainsboro :: Color
-gainsboro = rgb 220 220 220
-ghostWhite :: Color
-ghostWhite = rgb 248 248 255
-gold :: Color
-gold = rgb 255 215 0
-goldenRod :: Color
-goldenRod = rgb 218 165 32
-gray :: Color
-gray = rgb 128 128 128
-green :: Color
-green = rgb 0 128 0
-greenYellow :: Color
-greenYellow = rgb 173 255 47
-honeydew :: Color
-honeydew = rgb 240 255 240
-hotPink :: Color
-hotPink = rgb 255 105 180
-indianRed :: Color
-indianRed = rgb 205 92 92
-indigo :: Color
-indigo = rgb 75 0 130
-ivory :: Color
-ivory = rgb 255 255 240
-khaki :: Color
-khaki = rgb 240 230 140
-lavender :: Color
-lavender = rgb 230 230 250
-lavenderBlush :: Color
-lavenderBlush = rgb 255 240 245
-lawnGreen :: Color
-lawnGreen = rgb 124 252 0
-lemonChiffon :: Color
-lemonChiffon = rgb 255 250 205
-lightBlue :: Color
-lightBlue = rgb 173 216 230
-lightCoral :: Color
-lightCoral = rgb 240 128 128
-lightCyan :: Color
-lightCyan = rgb 224 255 255
-lightGoldenRodYellow :: Color
-lightGoldenRodYellow = rgb 250 250 210
-lightGray :: Color
-lightGray = rgb 211 211 211
-lightGreen :: Color
-lightGreen = rgb 144 238 144
-lightPink :: Color
-lightPink = rgb 255 182 193
-lightSalmon :: Color
-lightSalmon = rgb 255 160 122
-lightSeaGreen :: Color
-lightSeaGreen = rgb 32 178 170
-lightSkyBlue :: Color
-lightSkyBlue = rgb 135 206 250
-lightSlateGray :: Color
-lightSlateGray = rgb 119 136 153
-lightSteelBlue :: Color
-lightSteelBlue = rgb 176 196 222
-lightYellow :: Color
-lightYellow = rgb 255 255 224
-lime :: Color
-lime = rgb 0 255 0
-limeGreen :: Color
-limeGreen = rgb 50 205 50
-linen :: Color
-linen = rgb 250 240 230
-magenta :: Color
-magenta = rgb 255 0 255
-maroon :: Color
-maroon = rgb 128 0 0
-mediumAquaMarine :: Color
-mediumAquaMarine = rgb 102 205 170
-mediumBlue :: Color
-mediumBlue = rgb 0 0 205
-mediumOrchid :: Color
-mediumOrchid = rgb 186 85 211
-mediumPurple :: Color
-mediumPurple = rgb 147 112 219
-mediumSeaGreen :: Color
-mediumSeaGreen = rgb 60 179 113
-mediumSlateBlue :: Color
-mediumSlateBlue = rgb 123 104 238
-mediumSpringGreen :: Color
-mediumSpringGreen = rgb 0 250 154
-mediumTurquoise :: Color
-mediumTurquoise = rgb 72 209 204
-mediumVioletRed :: Color
-mediumVioletRed = rgb 199 21 133
-midnightBlue :: Color
-midnightBlue = rgb 25 25 112
-mintCream :: Color
-mintCream = rgb 245 255 250
-mistyRose :: Color
-mistyRose = rgb 255 228 225
-moccasin :: Color
-moccasin = rgb 255 228 181
-navajoWhite :: Color
-navajoWhite = rgb 255 222 173
-navy :: Color
-navy = rgb 0 0 128
-oldLace :: Color
-oldLace = rgb 253 245 230
-olive :: Color
-olive = rgb 128 128 0
-oliveDrab :: Color
-oliveDrab = rgb 107 142 35
-orange :: Color
-orange = rgb 255 165 0
-orangeRed :: Color
-orangeRed = rgb 255 69 0
-orchid :: Color
-orchid = rgb 218 112 214
-paleGoldenRod :: Color
-paleGoldenRod = rgb 238 232 170
-paleGreen :: Color
-paleGreen = rgb 152 251 152
-paleTurquoise :: Color
-paleTurquoise = rgb 175 238 238
-paleVioletRed :: Color
-paleVioletRed = rgb 219 112 147
-papayaWhip :: Color
-papayaWhip = rgb 255 239 213
-peachPuff :: Color
-peachPuff = rgb 255 218 185
-peru :: Color
-peru = rgb 205 133 63
-pink :: Color
-pink = rgb 255 192 203
-plum :: Color
-plum = rgb 221 160 221
-powderBlue :: Color
-powderBlue = rgb 176 224 230
-purple :: Color
-purple = rgb 128 0 128
-red :: Color
-red = rgb 255 0 0
-rosyBrown :: Color
-rosyBrown = rgb 188 143 143
-royalBlue :: Color
-royalBlue = rgb 65 105 225
-saddleBrown :: Color
-saddleBrown = rgb 139 69 19
-salmon :: Color
-salmon = rgb 250 128 114
-sandyBrown :: Color
-sandyBrown = rgb 244 164 96
-seaGreen :: Color
-seaGreen = rgb 46 139 87
-seaShell :: Color
-seaShell = rgb 255 245 238
-sienna :: Color
-sienna = rgb 160 82 45
-silver :: Color
-silver = rgb 192 192 192
-skyBlue :: Color
-skyBlue = rgb 135 206 235
-slateBlue :: Color
-slateBlue = rgb 106 90 205
-slateGray :: Color
-slateGray = rgb 112 128 144
-snow :: Color
-snow = rgb 255 250 250
-springGreen :: Color
-springGreen = rgb 0 255 127
-steelBlue :: Color
-steelBlue = rgb 70 130 180
-tanBrown :: Color
-tanBrown = rgb 210 180 140
-teal :: Color
-teal = rgb 0 128 128
-thistle :: Color
-thistle = rgb 216 191 216
-tomato :: Color
-tomato = rgb 255 99 71
-turquoise :: Color
-turquoise = rgb 64 224 208
-violet :: Color
-violet = rgb 238 130 238
-wheat :: Color
-wheat = rgb 245 222 179
-white :: Color
-white = rgb 255 255 255
-whiteSmoke :: Color
-whiteSmoke = rgb 245 245 245
-yellow :: Color
-yellow = rgb 255 255 0
-yellowGreen :: Color
-yellowGreen = rgb 154 205 50
+maroon = rgbHex "800000"
+darkRed = rgbHex "8B0000"
+brown = rgbHex "A52A2A"
+firebrick = rgbHex "B22222"
+crimson = rgbHex "DC143C"
+red = rgbHex "FF0000"
+tomato = rgbHex "FF6347"
+coral = rgbHex "FF7F50"
+indianRed = rgbHex "CD5C5C"
+lightCoral = rgbHex "F08080"
+darkSalmon = rgbHex "E9967A"
+salmon = rgbHex "FA8072"
+lightSalmon = rgbHex "FFA07A"
+orangeRed = rgbHex "FF4500"
+darkOrange = rgbHex "FF8C00"
+orange = rgbHex "FFA500"
+gold = rgbHex "FFD700"
+darkGoldenRod = rgbHex "B8860B"
+goldenRod = rgbHex "DAA520"
+paleGoldenRod = rgbHex "EEE8AA"
+darkKhaki = rgbHex "BDB76B"
+khaki = rgbHex "F0E68C"
+olive = rgbHex "808000"
+yellow = rgbHex "FFFF00"
+yellowGreen = rgbHex "9ACD32"
+darkOliveGreen = rgbHex "556B2F"
+oliveDrab = rgbHex "6B8E23"
+lawnGreen = rgbHex "7CFC00"
+chartReuse = rgbHex "7FFF00"
+greenYellow = rgbHex "ADFF2F"
+darkGreen = rgbHex "006400"
+green = rgbHex "008000"
+forestGreen = rgbHex "228B22"
+lime = rgbHex "00FF00"
+limeGreen = rgbHex "32CD32"
+lightGreen = rgbHex "90EE90"
+paleGreen = rgbHex "98FB98"
+darkSeaGreen = rgbHex "8FBC8F"
+mediumSpringGreen = rgbHex "00FA9A"
+springGreen = rgbHex "00FF7F"
+seaGreen = rgbHex "2E8B57"
+mediumAquaMarine = rgbHex "66CDAA"
+mediumSeaGreen = rgbHex "3CB371"
+lightSeaGreen = rgbHex "20B2AA"
+darkSlateGray = rgbHex "2F4F4F"
+teal = rgbHex "008080"
+darkCyan = rgbHex "008B8B"
+aqua = rgbHex "00FFFF"
+cyan = rgbHex "00FFFF"
+lightCyan = rgbHex "E0FFFF"
+darkTurquoise = rgbHex "00CED1"
+turquoise = rgbHex "40E0D0"
+mediumTurquoise = rgbHex "48D1CC"
+paleTurquoise = rgbHex "AFEEEE"
+aquaMarine = rgbHex "7FFFD4"
+powderBlue = rgbHex "B0E0E6"
+cadetBlue = rgbHex "5F9EA0"
+steelBlue = rgbHex "4682B4"
+cornFlowerBlue = rgbHex "6495ED"
+deepSkyBlue = rgbHex "00BFFF"
+dodgerBlue = rgbHex "1E90FF"
+lightBlue = rgbHex "ADD8E6"
+skyBlue = rgbHex "87CEEB"
+lightSkyBlue = rgbHex "87CEFA"
+midnightBlue = rgbHex "191970"
+navy = rgbHex "000080"
+darkBlue = rgbHex "00008B"
+mediumBlue = rgbHex "0000CD"
+blue = rgbHex "0000FF"
+royalBlue = rgbHex "4169E1"
+blueViolet = rgbHex "8A2BE2"
+indigo = rgbHex "4B0082"
+darkSlateBlue = rgbHex "483D8B"
+slateBlue = rgbHex "6A5ACD"
+mediumSlateBlue = rgbHex "7B68EE"
+mediumPurple = rgbHex "9370DB"
+darkMagenta = rgbHex "8B008B"
+darkViolet = rgbHex "9400D3"
+darkOrchid = rgbHex "9932CC"
+mediumOrchid = rgbHex "BA55D3"
+purple = rgbHex "800080"
+thistle = rgbHex "D8BFD8"
+plum = rgbHex "DDA0DD"
+violet = rgbHex "EE82EE"
+magenta = rgbHex "FF00FF"
+fuchsia = rgbHex "FF00FF"
+orchid = rgbHex "DA70D6"
+mediumViolet= rgbHex "red"
+paleViolet= rgbHex "red"
+deepPink = rgbHex "FF1493"
+hotPink = rgbHex "FF69B4"
+lightPink = rgbHex "FFB6C1"
+pink = rgbHex "FFC0CB"
+antiqueWhite = rgbHex "FAEBD7"
+beige = rgbHex "F5F5DC"
+bisque = rgbHex "FFE4C4"
+blanchedAlmond = rgbHex "FFEBCD"
+wheat = rgbHex "F5DEB3"
+cornSilk = rgbHex "FFF8DC"
+lemonChiffon = rgbHex "FFFACD"
+lightGoldenRodYellow = rgbHex "FAFAD2"
+lightYellow = rgbHex "FFFFE0"
+saddleBrown = rgbHex "8B4513"
+sienna = rgbHex "A0522D"
+chocolate = rgbHex "D2691E"
+peru = rgbHex "CD853F"
+sandyBrown = rgbHex "F4A460"
+burlyWood = rgbHex "DEB887"
+tan = rgbHex "D2B48C"
+rosyBrown = rgbHex "BC8F8F"
+moccasin = rgbHex "FFE4B5"
+navajoWhite = rgbHex "FFDEAD"
+peachPuff = rgbHex "FFDAB9"
+mistyRose = rgbHex "FFE4E1"
+lavenderBlush = rgbHex "FFF0F5"
+linen = rgbHex "FAF0E6"
+oldLace = rgbHex "FDF5E6"
+papayaWhip = rgbHex "FFEFD5"
+seaShell = rgbHex "FFF5EE"
+mintCream = rgbHex "F5FFFA"
+slateGray = rgbHex "708090"
+lightSlateGray = rgbHex "778899"
+lightSteelBlue = rgbHex "B0C4DE"
+lavender = rgbHex "E6E6FA"
+floralWhite = rgbHex "FFFAF0"
+aliceBlue = rgbHex "F0F8FF"
+ghostWhite = rgbHex "F8F8FF"
+honeydew = rgbHex "F0FFF0"
+ivory = rgbHex "FFFFF0"
+azure = rgbHex "F0FFFF"
+snow = rgbHex "FFFAFA"
+black = rgbHex "000000"
+dimGray = rgbHex "696969"
+gray = rgbHex "808080"
+darkGray = rgbHex "A9A9A9"
+silver = rgbHex "C0C0C0"
+lightGray = rgbHex "D3D3D3"
+gainsboro = rgbHex "DCDCDC"
+whiteSmoke = rgbHex "F5F5F5"
+white = rgbHex "FFFFFF"
