@@ -8,10 +8,9 @@ module Monomer.Widgets.Util.Style (
   activeStyle,
   activeStyle_,
   focusedStyle,
-  initNodeStyle,
-  handleStyleChange,
   styleStateChanged,
-  isResizeResult
+  initNodeStyle,
+  handleStyleChange
 ) where
 
 import Control.Applicative ((<|>))
@@ -19,7 +18,7 @@ import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just, _1)
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
-import Data.Sequence (Seq(..))
+import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
@@ -104,6 +103,13 @@ activeTheme_ isHoveredFn wenv node = themeState where
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
 
+styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool
+styleStateChanged wenv node evt = hoverChanged || focusChanged where
+  -- Hover
+  hoverChanged = isOnEnter evt || isOnLeave evt
+  -- Focus
+  focusChanged = isOnFocus evt || isOnBlur evt
+
 initNodeStyle
   :: GetBaseStyle s e
   -> WidgetEnv s e
@@ -126,25 +132,19 @@ handleStyleChange
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
 handleStyleChange wenv target style doCursor node evt result = newResult where
-  baseResult = fromMaybe (resultWidget node) result
-  baseNode = baseResult ^. L.node
-  sizeReqs = handleSizeChange wenv target evt baseNode node
-  cursorReqs
-    | doCursor = handleCursorChange wenv target evt style node
-    | otherwise = []
-  reqs = sizeReqs ++ cursorReqs
-  newResult
-    | not (null reqs) = Just (baseResult & L.requests <>~ Seq.fromList reqs)
-    | otherwise = result
+  newResult = handleSizeChange wenv target evt node result
+    & handleCursorChange wenv target evt style node
 
 handleSizeChange
   :: WidgetEnv s e
   -> Path
   -> SystemEvent
   -> WidgetNode s e
-  -> WidgetNode s e
-  -> [WidgetRequest s]
-handleSizeChange wenv target evt oldNode newNode = reqs where
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleSizeChange wenv target evt oldNode result = newResult where
+  baseResult = fromMaybe (resultWidget oldNode) result
+  newNode = baseResult ^. L.node
   -- Size
   oldSizeReqW = oldNode ^. L.info . L.sizeReqW
   oldSizeReqH = oldNode ^. L.info . L.sizeReqH
@@ -162,13 +162,10 @@ handleSizeChange wenv target evt oldNode newNode = reqs where
   resizeReq = [ ResizeWidgets | sizeReqChanged ]
   enterReq = [ RenderOnce | renderReq ]
   reqs = resizeReq ++ enterReq
-
-styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool
-styleStateChanged wenv node evt = hoverChanged || focusChanged where
-  -- Hover
-  hoverChanged = isOnEnter evt || isOnLeave evt
-  -- Focus
-  focusChanged = isOnFocus evt || isOnBlur evt
+  newResult
+    | not (null reqs) = Just $ baseResult
+      & L.requests <>~ Seq.fromList reqs
+    | otherwise = result
 
 handleCursorChange
   :: WidgetEnv s e
@@ -176,8 +173,12 @@ handleCursorChange
   -> SystemEvent
   -> StyleState
   -> WidgetNode s e
-  -> [WidgetRequest s]
-handleCursorChange wenv target evt style node = reqs where
+  -> Maybe (WidgetResult s e)
+  -> Maybe (WidgetResult s e)
+handleCursorChange wenv target evt style oldNode result = newResult where
+  baseResult = fromMaybe (resultWidget oldNode) result
+  baseReqs = baseResult ^. L.requests
+  node = baseResult ^. L.node
   -- Cursor
   widgetId = node ^. L.info . L.widgetId
   path = node ^. L.info . L.path
@@ -186,8 +187,7 @@ handleCursorChange wenv target evt style node = reqs where
   isPressed = isNodePressed wenv node
   (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
   newIcon = fromMaybe CursorArrow (style ^. L.cursorIcon)
-  setCursor = isTarget
-    && hasCursor
+  setCursor = hasCursor
     && isCursorEvt evt
     && curIcon /= newIcon
   resetCursor = isTarget
@@ -196,10 +196,12 @@ handleCursorChange wenv target evt style node = reqs where
     && not isPressed
     && curPath == path
   -- Result
-  reqs
-   | setCursor = [SetCursorIcon widgetId newIcon, RenderOnce]
-   | resetCursor = [ResetCursorIcon widgetId, RenderOnce]
-   | otherwise = []
+  newResult
+    | setCursor = Just $ baseResult
+      & L.requests .~ SetCursorIcon widgetId newIcon <| baseReqs
+    | resetCursor = Just $ baseResult
+      & L.requests .~ baseReqs |> ResetCursorIcon widgetId
+    | otherwise = result
 
 baseStyleFromTheme :: Theme -> Style
 baseStyleFromTheme theme = style where

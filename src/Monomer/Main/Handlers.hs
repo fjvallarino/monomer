@@ -125,7 +125,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     (wenv2, root2, reqs2, evts2) <- handleSystemEvent newWenv evt target curRoot
 
     when (isOnLeave evt) $ do
-      resetCursorOnNodeLeave evt evtTarget curStep
+      resetCursorOnNodeLeave evt curStep
       L.hoveredPath .= Nothing
 
     return (wenv2, root2, curReqs <> reqs2, curEvents <> evts2)
@@ -764,23 +764,18 @@ dropNonParentWidgetId wid (x:xs) = do
 resetCursorOnNodeLeave
   :: (MonomerM s m)
   => SystemEvent
-  -> Maybe Path
   -> HandlerStep s e
   -> m ()
-resetCursorOnNodeLeave (Leave point) (Just path) step = do
-  cursorPair <- headMay <$> use L.cursorStack
-
-  -- If mouse pointer is outside the node, reset it. If a child is hovered,
-  -- keep it in the stack
-  when (isNothing childNode && isJust targetNode && activeCursor cursorPair) $
-    void $ handleResetCursorIcon (fromJust targetNode ^. L.widgetId) step
+resetCursorOnNodeLeave (Leave point) step = do
+  void $ handleResetCursorIcon widgetId step
   where
     (wenv, root, _, _) = step
     widget = root ^. L.widget
-    targetNode = widgetFindByPath widget wenv path root
-    childNode = widgetFindByPoint widget wenv path point root
-    activeCursor pair = fmap fst pair == targetNode ^? _Just . L.widgetId
-resetCursorOnNodeLeave _ _ step = return ()
+    childNode = widgetFindByPoint widget wenv emptyPath point root
+    widgetId = case childNode of
+      Just info -> info ^. L.widgetId
+      Nothing -> root ^. L.info . L.widgetId
+resetCursorOnNodeLeave _ step = return ()
 
 restoreCursorOnWindowEnter :: MonomerM s m => m ()
 restoreCursorOnWindowEnter = do

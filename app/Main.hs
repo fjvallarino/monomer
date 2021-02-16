@@ -173,6 +173,14 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
       ] `style` [bgColor orange]
     ]
   widgetDialSingle = dial double1 (-100) 100
+  widgetRow = hstack [
+      vstack [
+        label "Label 1",
+        label "Label 2"
+      ],
+      filler,
+      image "assets/images/pecans.jpg" `style` [width 50, height 50]
+    ]
   widgetDial = vstack [
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       hstack [
@@ -188,6 +196,7 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
       ],
       numericField_ rational1 [minValue (-100), maxValue 100],
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
+      box_ [expandContent] widgetRow `hover` [bgColor gray, cursorIcon CursorHand],
       dial rational1 (-100) 100,
       hstack [
         button "Test" RunShortTask,
