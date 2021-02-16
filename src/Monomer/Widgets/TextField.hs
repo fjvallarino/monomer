@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.TextField (
-  TextFieldCfg,
   textField,
   textField_,
   textFieldV,

@@ -6,7 +6,6 @@
 {- HLINT ignore "Use foldr" -}
 
 module Monomer.Widgets.NumericField (
-  NumericFieldCfg,
   numericField,
   numericField_,
   numericFieldV,

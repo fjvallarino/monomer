@@ -5,7 +5,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Scroll (
-  ScrollCfg,
   ScrollMessage(..),
   scroll,
   scroll_,

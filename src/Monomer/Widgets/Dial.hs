@@ -7,7 +7,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Dial (
-  DialCfg,
   dial,
   dial_,
   dialV,

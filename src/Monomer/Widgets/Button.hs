@@ -5,7 +5,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Button (
-  ButtonCfg,
   button,
   button_,
   mainButton,

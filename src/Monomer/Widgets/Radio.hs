@@ -2,7 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Radio (
-  RadioCfg,
   radio,
   radio_,
   radioV,
