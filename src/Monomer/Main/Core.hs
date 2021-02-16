@@ -251,8 +251,7 @@ mainLoop window renderer config loopArgs = do
 
   let renderEvent = any isActionEvent eventsPayload
   let winRedrawEvt = windowResized || windowExposed
-  let dragEvt = isJust dragged
-  let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq || dragEvt
+  let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
 
   when renderNeeded $
     renderWidgets window renderer (_themeClearColor _mlTheme) newWenv newRoot

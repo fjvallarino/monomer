@@ -77,7 +77,7 @@ isResizeResult result = isJust resizeReq where
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOS wenv == "Mac OS X"
 
-seqStartsWith :: Eq a => Seq.Seq a -> Seq.Seq a -> Bool
+seqStartsWith :: Eq a => Seq a -> Seq a -> Bool
 seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix
 
 maxNumericValue :: (RealFloat a) => a

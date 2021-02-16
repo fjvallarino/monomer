@@ -3,6 +3,8 @@ module Monomer.Widgets.Util.Hover (
   isPointInNodeEllipse,
   isNodeActive,
   isNodePressed,
+  isNodeTreeActive,
+  isNodeTreePressed,
   isNodeDragged,
   isNodeHovered,
   isNodeHoveredEllipse_,
@@ -30,16 +32,31 @@ isPointInNodeEllipse :: Point -> WidgetNode s e -> Bool
 isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.viewport)
 
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeActive wenv node = validPos && pressed where
+isNodeActive = isNodeActive_ False
+
+isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodePressed = isNodePressed_ False
+
+isNodeTreeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeTreeActive = isNodeActive_ True
+
+isNodeTreePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeTreePressed = isNodePressed_ True
+
+isNodeActive_ :: Bool -> WidgetEnv s e -> WidgetNode s e -> Bool
+isNodeActive_ includeChildren wenv node = validPos && pressed where
   viewport = node ^. L.info . L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
-  pressed = isNodePressed wenv node
+  pressed = isNodePressed_ includeChildren wenv node
 
-isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodePressed wenv node = Just path == pressed where
+isNodePressed_ :: Bool -> WidgetEnv s e -> WidgetNode s e -> Bool
+isNodePressed_ includeChildren wenv node = result == Just True where
   path = node ^. L.info . L.path
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
+  result
+    | includeChildren = seqStartsWith path <$> pressed
+    | otherwise = (path ==) <$> pressed
 
 isNodeDragged :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeDragged wenv node = mainPressed && draggedPath == Just nodePath where

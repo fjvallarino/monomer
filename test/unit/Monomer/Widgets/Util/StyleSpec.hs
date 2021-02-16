@@ -94,8 +94,8 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
     wenvFocus = mockWenv () & L.focusedPath .~ path
     evEnter = Enter point
-    resHover = handleStyleChange wenvHover path hoverStyle def node evEnter res1
-    resFocus = handleStyleChange wenvFocus path focusStyle def node Focus res2
+    resHover = handleStyleChange wenvHover path hoverStyle True node evEnter res1
+    resFocus = handleStyleChange wenvFocus path focusStyle True node Focus res2
 
 isMResizeWidgets :: Maybe (WidgetRequest s) -> Bool
 isMResizeWidgets (Just ResizeWidgets) = True

@@ -638,6 +638,9 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
           Just (path, msg) -> [(Drag point path msg, target) | not isPressed]
           _ -> []
 
+    when (isJust mainPress || isJust draggedMsg) $
+      L.renderRequested .= True
+
     return $ hoverEvts ++ dragEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
     overlay <- getOverlayPath

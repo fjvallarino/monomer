@@ -180,7 +180,7 @@ makeDial field minVal maxVal config state = widget where
 
   getActiveStyle wenv node = style where
     (_, dialArea) = getDialInfo wenv node config
-    style = activeStyle_ (isNodeHoveredEllipse_ dialArea) wenv node
+    style = activeStyle_ (activeStyleConfig dialArea) wenv node
 
   init wenv node = resultWidget resNode where
     newState = newStateFromModel wenv node state
@@ -315,3 +315,8 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   dialT = _rY carea + (_rH carea - dialW) / 2
   dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
   dialArea = Rect dialL dialT dialW dialW
+
+activeStyleConfig :: Rect -> ActiveStyleCfg s e
+activeStyleConfig dialArea = def {
+  _ascIsHovered = isNodeHoveredEllipse_ dialArea
+}

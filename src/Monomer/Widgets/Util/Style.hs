@@ -2,6 +2,7 @@
 
 module Monomer.Widgets.Util.Style (
   GetBaseStyle(..),
+  ActiveStyleCfg(..),
   activeTheme,
   activeTheme_,
   activeStyle,
@@ -32,24 +33,39 @@ import Monomer.Widgets.Util.Widget
 import qualified Monomer.Lens as L
 
 type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
+type IsFocused s e = WidgetEnv s e -> WidgetNode s e -> Bool
+type IsActive s e = WidgetEnv s e -> WidgetNode s e -> Bool
 
 type GetBaseStyle s e
   = WidgetEnv s e
   -> WidgetNode s e
   -> Maybe Style
 
+data ActiveStyleCfg s e = ActiveStyleCfg {
+  _ascIsHovered :: IsHovered s e,
+  _ascIsFocused :: IsFocused s e,
+  _ascIsActive :: IsActive s e
+}
+
+instance Default (ActiveStyleCfg s e) where
+  def = ActiveStyleCfg {
+    _ascIsHovered = isNodeHovered,
+    _ascIsFocused = isNodeFocused,
+    _ascIsActive = isNodeActive
+  }
+
 -- Do not use in findByPoint
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
-activeStyle wenv node = activeStyle_ isNodeHovered wenv node
+activeStyle wenv node = activeStyle_ def wenv node
 
-activeStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
-activeStyle_ isHoveredFn wenv node = fromMaybe def styleState where
+activeStyle_ :: ActiveStyleCfg s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
+activeStyle_ config wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
-  isHover = isHoveredFn wenv node
-  isFocus = isNodeFocused wenv node
-  isActive = isNodeActive wenv node
+  isHover = _ascIsHovered config wenv node
+  isFocus = _ascIsFocused config wenv node
+  isActive = _ascIsActive config wenv node
   styleState
     | not isEnabled = _styleDisabled
     | isActive = _styleActive

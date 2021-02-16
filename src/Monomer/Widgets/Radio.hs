@@ -134,7 +134,7 @@ makeRadio field option config = widget where
 
   getActiveStyle wenv node = style where
     radioArea = getRadioArea wenv node config
-    style = activeStyle_ (isNodeHoveredEllipse_ radioArea) wenv node
+    style = activeStyle_ (activeStyleConfig radioArea) wenv node
 
   handleEvent wenv target evt node = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
@@ -167,7 +167,7 @@ makeRadio field option config = widget where
       value = widgetDataGet model field
       radioArea = getRadioArea wenv node config
       radioBW = max 1 (_rW radioArea * 0.1)
-      style_ = activeStyle_ (isNodeHoveredEllipse_ radioArea) wenv node
+      style_ = activeStyle_ (activeStyleConfig radioArea) wenv node
       fgColor = styleFgColor style_
 
 getRadioArea :: WidgetEnv s e -> WidgetNode s e -> RadioCfg s e a -> Rect
@@ -189,3 +189,8 @@ renderMark renderer radioBW rect color = action where
   w = radioBW * 2
   newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawEllipse renderer newRect (Just color)
+
+activeStyleConfig :: Rect -> ActiveStyleCfg s e
+activeStyleConfig radioArea = def {
+  _ascIsHovered = isNodeHoveredEllipse_ radioArea
+}

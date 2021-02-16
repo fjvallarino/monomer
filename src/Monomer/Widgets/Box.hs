@@ -135,14 +135,21 @@ makeBox :: BoxCfg s e -> Widget s e
 makeBox config = widget where
   widget = createContainer () def {
     containerIgnoreEmptyArea = ignoreEmptyArea && emptyHandlersCount == 0,
+    containerGetActiveStyle = getActiveStyle,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
 
-  ignoreEmptyArea = fromMaybe False (_boxIgnoreEmptyArea config)
+  ignoreEmptyArea = Just True == _boxIgnoreEmptyArea config
   emptyHandlersCount
-    = length (_boxOnClickEmpty config) + length (_boxOnClickEmptyReq config)
+    = length (_boxOnClickEmpty config)
+    + length (_boxOnClickEmptyReq config)
+
+  getActiveStyle = activeStyle_ activeStyleConfig where
+    activeStyleConfig = def {
+      _ascIsActive = isNodeTreeActive
+    }
 
   handleEvent wenv target evt node = case evt of
     Click point btn -> result where
@@ -168,7 +175,7 @@ makeBox config = widget where
 
   resize :: ContainerResizeHandler s e
   resize wenv viewport children node = resized where
-    style = activeStyle wenv node
+    style = getActiveStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea
     child = Seq.index children 0
