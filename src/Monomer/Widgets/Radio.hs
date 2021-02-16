@@ -190,6 +190,5 @@ renderMark renderer radioBW rect color = action where
   action = drawEllipse renderer newRect (Just color)
 
 activeStyleConfig :: Rect -> ActiveStyleCfg s e
-activeStyleConfig radioArea = def {
-  _ascIsHovered = isNodeHoveredEllipse_ radioArea
-}
+activeStyleConfig radioArea = def &
+  L.isHovered .~ isNodeHoveredEllipse_ radioArea

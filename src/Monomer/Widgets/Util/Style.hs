@@ -1,8 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
-  GetBaseStyle(..),
-  ActiveStyleCfg(..),
   activeTheme,
   activeTheme_,
   activeStyle,
@@ -27,24 +25,10 @@ import Monomer.Event
 import Monomer.Graphics
 import Monomer.Widgets.Util.Focus
 import Monomer.Widgets.Util.Hover
+import Monomer.Widgets.Util.Types
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
-
-type IsHovered s e = WidgetEnv s e -> WidgetNode s e -> Bool
-type IsFocused s e = WidgetEnv s e -> WidgetNode s e -> Bool
-type IsActive s e = WidgetEnv s e -> WidgetNode s e -> Bool
-
-type GetBaseStyle s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Maybe Style
-
-data ActiveStyleCfg s e = ActiveStyleCfg {
-  _ascIsHovered :: IsHovered s e,
-  _ascIsFocused :: IsFocused s e,
-  _ascIsActive :: IsActive s e
-}
 
 instance Default (ActiveStyleCfg s e) where
   def = ActiveStyleCfg {

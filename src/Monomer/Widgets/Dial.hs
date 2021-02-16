@@ -316,6 +316,5 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   dialArea = Rect dialL dialT dialW dialW
 
 activeStyleConfig :: Rect -> ActiveStyleCfg s e
-activeStyleConfig dialArea = def {
-  _ascIsHovered = isNodeHoveredEllipse_ dialArea
-}
+activeStyleConfig dialArea = def
+  & L.isHovered .~ isNodeHoveredEllipse_ dialArea
