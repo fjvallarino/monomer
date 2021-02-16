@@ -29,6 +29,7 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Typeable (Typeable)
 import Foreign (alloca, poke)
+import Safe (headMay)
 import SDL (($=))
 
 import qualified Data.Map as Map
@@ -107,6 +108,9 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     when (isOnEnter evt) $
       L.hoveredPath .= evtTarget
 
+    when (isOnMove evt)
+      restoreCursorOnWindowEnter
+
     curCursor <- getCurrentCursor
     hoveredPath <- use L.hoveredPath
     mainBtnPress <- use L.mainBtnPress
@@ -121,7 +125,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     (wenv2, root2, reqs2, evts2) <- handleSystemEvent newWenv evt target curRoot
 
     when (isOnLeave evt) $ do
-      resetCursorIfOut evt evtTarget curStep
+      resetCursorOnNodeLeave evt evtTarget curStep
       L.hoveredPath .= Nothing
 
     return (wenv2, root2, curReqs <> reqs2, curEvents <> evts2)
@@ -585,6 +589,9 @@ handleRunProducer widgetId path handler previousStep = do
 
   return previousStep
 
+sendMessage :: TChan e -> e -> IO ()
+sendMessage channel message = atomically $ writeTChan channel message
+
 addFocusReq
   :: SystemEvent
   -> Seq (WidgetRequest s)
@@ -735,19 +742,6 @@ findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
   fromRootFocus = (^. L.path) <$> fromRootWni
   nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
 
-sendMessage :: TChan e -> e -> IO ()
-sendMessage channel message = atomically $ writeTChan channel message
-
-cursorToSDL :: CursorIcon -> SDLEnum.SystemCursor
-cursorToSDL CursorArrow = SDLEnum.SDL_SYSTEM_CURSOR_ARROW
-cursorToSDL CursorHand = SDLEnum.SDL_SYSTEM_CURSOR_HAND
-cursorToSDL CursorIBeam = SDLEnum.SDL_SYSTEM_CURSOR_IBEAM
-cursorToSDL CursorInvalid = SDLEnum.SDL_SYSTEM_CURSOR_NO
-cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
-cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
-cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
-cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW
-
 dropNonParentWidgetId
   :: (MonomerM s m)
   => WidgetId
@@ -764,18 +758,48 @@ dropNonParentWidgetId wid (x:xs) = do
     (cwid, _) = x
     isParentPath parent child = seqStartsWith parent child && parent /= child
 
-resetCursorIfOut
+resetCursorOnNodeLeave
   :: (MonomerM s m)
   => SystemEvent
   -> Maybe Path
   -> HandlerStep s e
   -> m ()
-resetCursorIfOut (Leave point) (Just path) step = do
-  when (isNothing childNode && isJust targetNode) $
+resetCursorOnNodeLeave (Leave point) (Just path) step = do
+  cursorPair <- headMay <$> use L.cursorStack
+
+  -- If mouse pointer is outside the node, reset it. If a child is hovered,
+  -- keep it in the stack
+  when (isNothing childNode && isJust targetNode && activeCursor cursorPair) $
     void $ handleResetCursorIcon (fromJust targetNode ^. L.widgetId) step
   where
     (wenv, root, _, _) = step
     widget = root ^. L.widget
     targetNode = widgetFindByPath widget wenv path root
     childNode = widgetFindByPoint widget wenv path point root
-resetCursorIfOut _ _ step = return ()
+    activeCursor pair = fmap fst pair == targetNode ^? _Just . L.widgetId
+resetCursorOnNodeLeave _ _ step = return ()
+
+restoreCursorOnWindowEnter :: MonomerM s m => m ()
+restoreCursorOnWindowEnter = do
+  -- Restore old icon if needed
+  Size ww wh <- use L.windowSize
+  status <- use L.inputStatus
+  cursorIcons <- use L.cursorIcons
+  cursorPair <- headMay <$> use L.cursorStack
+  let windowRect = Rect 0 0 ww wh
+  let prevInside = pointInRect (status ^. L.mousePosPrev) windowRect
+  let currInside = pointInRect (status ^. L.mousePos) windowRect
+  let sdlCursor = cursorIcons Map.! snd (fromJust cursorPair)
+
+  when (not prevInside && currInside && isJust cursorPair) $ do
+    SDLE.setCursor sdlCursor
+
+cursorToSDL :: CursorIcon -> SDLEnum.SystemCursor
+cursorToSDL CursorArrow = SDLEnum.SDL_SYSTEM_CURSOR_ARROW
+cursorToSDL CursorHand = SDLEnum.SDL_SYSTEM_CURSOR_HAND
+cursorToSDL CursorIBeam = SDLEnum.SDL_SYSTEM_CURSOR_IBEAM
+cursorToSDL CursorInvalid = SDLEnum.SDL_SYSTEM_CURSOR_NO
+cursorToSDL CursorSizeH = SDLEnum.SDL_SYSTEM_CURSOR_SIZEWE
+cursorToSDL CursorSizeV = SDLEnum.SDL_SYSTEM_CURSOR_SIZENS
+cursorToSDL CursorDiagTL = SDLEnum.SDL_SYSTEM_CURSOR_SIZENWSE
+cursorToSDL CursorDiagTR = SDLEnum.SDL_SYSTEM_CURSOR_SIZENESW

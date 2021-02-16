@@ -164,16 +164,21 @@ handleCursorChange
 handleCursorChange wenv target evt style node = reqs where
   -- Cursor
   widgetId = node ^. L.info . L.widgetId
-  isTarget = node ^. L.info . L.path == target
+  path = node ^. L.info . L.path
+  isTarget = path == target
   hasCursor = isJust (style ^. L.cursorIcon)
   isPressed = isNodePressed wenv node
-  (_, curIcon) = fromMaybe def (wenv ^. L.cursor)
+  (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
   newIcon = fromMaybe CursorArrow (style ^. L.cursorIcon)
   setCursor = isTarget
     && hasCursor
     && isCursorEvt evt
     && curIcon /= newIcon
-  resetCursor = isTarget && not isPressed && isCursorEvt evt && not hasCursor
+  resetCursor = isTarget
+    && not hasCursor
+    && isCursorEvt evt
+    && not isPressed
+    && curPath == path
   -- Result
   reqs
    | setCursor = [SetCursorIcon widgetId newIcon, RenderOnce]
