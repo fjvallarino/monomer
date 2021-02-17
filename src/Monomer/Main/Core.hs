@@ -180,7 +180,7 @@ mainLoop window renderer config loopArgs = do
   currentModel <- use L.mainModel
   currCursor <- getCurrentCursor
   hovered <- use L.hoveredPath
-  focused <- use L.focusedPath
+  focused <- getFocusedPath
   overlay <- getOverlayPath
   dragged <- getDraggedMsgInfo
   mainPress <- use L.mainBtnPress
@@ -388,7 +388,7 @@ toMonomerCtxPersist = do
   ctx <- get
   return $ def
     & L.cursorStack .~ ctx ^. L.cursorStack
-    & L.focusedPath .~ ctx ^. L.focusedPath
+    & L.focusedWidgetId .~ ctx ^. L.focusedWidgetId
     & L.hoveredPath .~ ctx ^. L.hoveredPath
     & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
     & L.resizePending .~ ctx ^. L.resizePending
@@ -397,7 +397,7 @@ toMonomerCtxPersist = do
 fromMonomerCtxPersist :: (MonomerM s m) => MonomerCtxPersist -> m ()
 fromMonomerCtxPersist ctxp = do
   L.cursorStack .= ctxp ^. L.cursorStack
-  L.focusedPath .= ctxp ^. L.focusedPath
+  L.focusedWidgetId .= ctxp ^. L.focusedWidgetId
   L.hoveredPath .= ctxp ^. L.hoveredPath
   L.overlayWidgetId .= ctxp ^. L.overlayWidgetId
   L.resizePending .= ctxp ^. L.resizePending

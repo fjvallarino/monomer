@@ -101,7 +101,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
 
     foldM reduceSysEvt (curWenv, curRoot, curReqs, curEvents) systemEvents
   reduceSysEvt curStep (evt, evtTarget) = do
-    focused <- use L.focusedPath
+    focused <- getFocusedPath
     let (curWenv, curRoot, curReqs, curEvents) = curStep
     let target = fromMaybe focused evtTarget
 
@@ -290,20 +290,21 @@ handleMoveFocus
   -> FocusDirection
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleMoveFocus startFrom direction (wenv, root, reqs, evts) = do
-  oldFocus <- use L.focusedPath
+handleMoveFocus startFrom dir (wenv, root, reqs, evts) = do
+  oldFocus <- getFocusedPath
   let wenv0 = wenv { _weFocusedPath = emptyPath }
   (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
-  currFocus <- use L.focusedPath
+  currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 
   if oldFocus == currFocus
     then do
       let searchFrom = fromMaybe currFocus startFrom
-      let newFocus = findNextFocus wenv1 direction searchFrom currOverlay root1
+      let newFocusWni = findNextFocus wenv1 dir searchFrom currOverlay root1
+      let newFocus = newFocusWni ^. L.path
       let tempWenv = wenv1 { _weFocusedPath = newFocus }
 
-      L.focusedPath .= newFocus
+      L.focusedWidgetId .= newFocusWni ^. L.widgetId
       L.renderRequested .= True
       (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
 
@@ -316,14 +317,16 @@ handleSetFocus
 handleSetFocus newFocus (wenv, root, reqs, evts) =  do
   let wenv0 = wenv { _weFocusedPath = newFocus }
 
-  oldFocus <- use L.focusedPath
+  oldFocus <- getFocusedPath
 
   if oldFocus /= newFocus
     then do
       (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
       let tempWenv = wenv1 { _weFocusedPath = newFocus }
+      let widget1 = root1 ^. L.widget
+      let wni = fromMaybe def (widgetFindByPath widget1 wenv newFocus root1)
 
-      L.focusedPath .= newFocus
+      L.focusedWidgetId .= wni ^. L.widgetId
       L.renderRequested .= True
       (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
 
@@ -735,15 +738,14 @@ findNextFocus
   -> Path
   -> Maybe Path
   -> WidgetNode s e
-  -> Path
-findNextFocus wenv direction focus overlay widgetRoot = fromJust nextFocus where
+  -> WidgetNodeInfo
+findNextFocus wenv dir start overlay widgetRoot = fromJust nextFocus where
   widget = widgetRoot ^. L.widget
   restartPath = fromMaybe emptyPath overlay
-  candidateWni = widgetFindNextFocus widget wenv direction focus widgetRoot
-  candidateFocus = (^. L.path) <$> candidateWni
-  fromRootWni = widgetFindNextFocus widget wenv direction restartPath widgetRoot
-  fromRootFocus = (^. L.path) <$> fromRootWni
-  nextFocus = candidateFocus <|> fromRootFocus <|> Just focus
+  candidateWni = widgetFindNextFocus widget wenv dir start widgetRoot
+  fromRootWni = widgetFindNextFocus widget wenv dir restartPath widgetRoot
+  focusWni = fromMaybe def (widgetFindByPath widget wenv start widgetRoot)
+  nextFocus = candidateWni <|> fromRootWni <|> Just focusWni
 
 dropNonParentWidgetId
   :: (MonomerM s m)

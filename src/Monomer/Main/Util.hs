@@ -33,7 +33,7 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcDpr = devicePixelRate,
   _mcInputStatus = def,
   _mcCursorStack = [],
-  _mcFocusedPath = Seq.empty,
+  _mcFocusedWidgetId = def,
   _mcHoveredPath = Nothing,
   _mcOverlayWidgetId = Nothing,
   _mcDragAction = Nothing,
@@ -67,6 +67,9 @@ delWidgetIdPath widgetId =
     remVal (Just (path, c))
       | c > 1 = Just (path, c - 1)
     remVal _ = Nothing
+
+getFocusedPath :: (MonomerM s m) => m Path
+getFocusedPath = getWidgetIdPath =<< use L.focusedWidgetId
 
 getOverlayPath :: (MonomerM s m) => m (Maybe Path)
 getOverlayPath = do

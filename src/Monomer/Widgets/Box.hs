@@ -4,6 +4,7 @@
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Box (
+  BoxCfg(..),
   box,
   box_,
   expandContent

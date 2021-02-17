@@ -512,6 +512,7 @@
     - Fetch content from url, show rows of data with embedded images
       - Check why border was not shown in some cases (may be ok)
       - Improve cursor handling (if children do not have cursor settings they should not change it)
+      - Re-import Color Table and keep it in original order
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -523,9 +524,9 @@
 Next
   - Add examples
     - Fetch content from url, show rows of data with embedded images
-      - Re-import Color Table and keep it in original order
       - Does it make sense to have Alert/Dialog accept a widget?
       - Maybe internally handle focus as widgetId? (use findWidgetByPath)
+      - Add cursor icon unit tests
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
