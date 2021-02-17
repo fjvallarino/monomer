@@ -104,15 +104,19 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     focused <- getFocusedPath
     let (curWenv, curRoot, curReqs, curEvents) = curStep
     let target = fromMaybe focused evtTarget
+    let curWidget = curRoot ^. L.widget
+    let targetWni = evtTarget
+          >>= flip (widgetFindByPath curWidget curWenv) curRoot
+    let targetWid = (^. L.widgetId) <$> targetWni
 
     when (isOnEnter evt) $
-      L.hoveredPath .= evtTarget
+      L.hoveredWidgetId .= targetWid
 
     when (isOnMove evt)
       restoreCursorOnWindowEnter
 
     curCursor <- getCurrentCursor
-    hoveredPath <- use L.hoveredPath
+    hoveredPath <- getHoveredPath
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
 
@@ -126,7 +130,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
 
     when (isOnLeave evt) $ do
       resetCursorOnNodeLeave evt curStep
-      L.hoveredPath .= Nothing
+      L.hoveredWidgetId .= Nothing
 
     return (wenv2, root2, curReqs <> reqs2, curEvents <> evts2)
   newEvents = preProcessEvents baseEvents
@@ -703,7 +707,7 @@ addHoverEvents
   -> m (Maybe Path, [(SystemEvent, Maybe Path)])
 addHoverEvents wenv widgetRoot point = do
   overlay <- getOverlayPath
-  hover <- use L.hoveredPath
+  hover <- getHoveredPath
   mainBtnPress <- use L.mainBtnPress
   let startPath = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget

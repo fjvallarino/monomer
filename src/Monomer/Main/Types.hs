@@ -60,7 +60,7 @@ data MonomerCtx s = MonomerCtx {
   _mcInputStatus :: InputStatus,
   _mcCursorStack :: [(WidgetId, CursorIcon)],
   _mcFocusedWidgetId :: WidgetId,
-  _mcHoveredPath :: Maybe Path,
+  _mcHoveredWidgetId :: Maybe WidgetId,
   _mcOverlayWidgetId :: Maybe WidgetId,
   _mcDragAction :: Maybe DragAction,
   _mcMainBtnPress :: Maybe (Path, Point),
@@ -79,7 +79,7 @@ data MonomerCtx s = MonomerCtx {
 data MonomerCtxPersist = MonomerCtxPersist {
   _mcpCursorStack :: [(WidgetId, CursorIcon)],
   _mcpFocusedWidgetId :: WidgetId,
-  _mcpHoveredPath :: Maybe Path,
+  _mcpHoveredWidgetId :: Maybe WidgetId,
   _mcpOverlayWidgetId :: Maybe WidgetId,
   _mcpResizePending :: Bool,
   _mcpRenderRequested :: Bool,
@@ -90,7 +90,7 @@ instance Default MonomerCtxPersist where
   def = MonomerCtxPersist {
     _mcpCursorStack = [],
     _mcpFocusedWidgetId = def,
-    _mcpHoveredPath = Nothing,
+    _mcpHoveredWidgetId = Nothing,
     _mcpOverlayWidgetId = Nothing,
     _mcpResizePending = False,
     _mcpRenderRequested = False,

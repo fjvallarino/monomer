@@ -179,7 +179,7 @@ mainLoop window renderer config loopArgs = do
   devicePixelRate <- use L.dpr
   currentModel <- use L.mainModel
   currCursor <- getCurrentCursor
-  hovered <- use L.hoveredPath
+  hovered <- getHoveredPath
   focused <- getFocusedPath
   overlay <- getOverlayPath
   dragged <- getDraggedMsgInfo
@@ -389,7 +389,7 @@ toMonomerCtxPersist = do
   return $ def
     & L.cursorStack .~ ctx ^. L.cursorStack
     & L.focusedWidgetId .~ ctx ^. L.focusedWidgetId
-    & L.hoveredPath .~ ctx ^. L.hoveredPath
+    & L.hoveredWidgetId .~ ctx ^. L.hoveredWidgetId
     & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
     & L.resizePending .~ ctx ^. L.resizePending
     & L.renderSchedule .~ ctx ^. L.renderSchedule
@@ -398,7 +398,7 @@ fromMonomerCtxPersist :: (MonomerM s m) => MonomerCtxPersist -> m ()
 fromMonomerCtxPersist ctxp = do
   L.cursorStack .= ctxp ^. L.cursorStack
   L.focusedWidgetId .= ctxp ^. L.focusedWidgetId
-  L.hoveredPath .= ctxp ^. L.hoveredPath
+  L.hoveredWidgetId .= ctxp ^. L.hoveredWidgetId
   L.overlayWidgetId .= ctxp ^. L.overlayWidgetId
   L.resizePending .= ctxp ^. L.resizePending
   L.renderRequested .= True
