@@ -147,9 +147,8 @@ makeBox config = widget where
     + length (_boxOnClickEmptyReq config)
 
   getActiveStyle = activeStyle_ activeStyleConfig where
-    activeStyleConfig = def {
-      _ascIsActive = isNodeTreeActive
-    }
+    activeStyleConfig = def
+      & L.isActive .~ isNodeTreeActive
 
   handleEvent wenv target evt node = case evt of
     Click point btn -> result where

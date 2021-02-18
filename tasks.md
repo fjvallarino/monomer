@@ -513,6 +513,7 @@
       - Check why border was not shown in some cases (may be ok)
       - Improve cursor handling (if children do not have cursor settings they should not change it)
       - Re-import Color Table and keep it in original order
+      - Maybe internally handle focus as widgetId? (use findWidgetByPath)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -525,12 +526,15 @@ Next
   - Add examples
     - Fetch content from url, show rows of data with embedded images
       - Does it make sense to have Alert/Dialog accept a widget?
-      - Maybe internally handle focus as widgetId? (use findWidgetByPath)
+      - Think about using stack resize logic in box
+        - Maybe whats needed are custom min/max options for box content
       - Add cursor icon unit tests
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
   - Auto scroll affects dropdown when listView is displayed
+  - Maybe label resizeFactor should default to zero? What about button/others?
+  - Maybe do not resize Single if size did not change? First step towards resize improvements
   - Add underline and strikethrough
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181

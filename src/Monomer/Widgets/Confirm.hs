@@ -1,8 +1,11 @@
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Confirm (
+  ConfirmEvt(..),
   confirm,
-  confirm_
+  confirm_,
+  confirmMsg,
+  confirmMsg_
 ) where
 
 import Control.Applicative ((<|>))
@@ -64,42 +67,66 @@ instance CmbCancelCaption ConfirmCfg where
   }
 
 data ConfirmEvt e
-  = ParentEvt e
-  | VisibleChanged
+  = ConfirmParentEvt e
+  | ConfirmVisibleChanged
   deriving (Eq, Show)
 
 confirm
+  :: (WidgetModel sp, WidgetEvent ep)
+  => WidgetNode () (ConfirmEvt ep)
+  -> ep
+  -> ep
+  -> WidgetNode sp ep
+confirm dialogBody acceptEvt cancelEvt = newNode where
+  newNode = confirm_ dialogBody acceptEvt cancelEvt def
+
+confirm_
+  :: (WidgetModel sp, WidgetEvent ep)
+  => WidgetNode () (ConfirmEvt ep)
+  -> ep
+  -> ep
+  -> [ConfirmCfg]
+  -> WidgetNode sp ep
+confirm_ dialogBody acceptEvt cancelEvt configs = newNode where
+  config = mconcat configs
+  createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
+  evts = [onVisibleChange ConfirmVisibleChanged]
+  newNode = compositeExt_ "confirm" () createUI handleEvent evts
+
+confirmMsg
   :: (WidgetModel sp, WidgetEvent ep)
   => Text
   -> ep
   -> ep
   -> WidgetNode sp ep
-confirm message acceptEvt cancelEvt = confirm_ message acceptEvt cancelEvt def
+confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
-confirm_
+confirmMsg_
   :: (WidgetModel sp, WidgetEvent ep)
   => Text
   -> ep
   -> ep
   -> [ConfirmCfg]
   -> WidgetNode sp ep
-confirm_ message acceptEvt cancelEvt configs = newNode where
+confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
-  createUI = buildUI message acceptEvt cancelEvt config
-  evts = [onVisibleChange VisibleChanged]
+  dialogBody wenv = label_ message [textMultiLine]
+    & L.info . L.style .~ themeDialogMsgBody wenv
+  createUI = buildUI dialogBody acceptEvt cancelEvt config
+  evts = [onVisibleChange ConfirmVisibleChanged]
   newNode = compositeExt_ "confirm" () createUI handleEvent evts
 
 buildUI
-  :: Text
+  :: (WidgetEnv s (ConfirmEvt ep) -> WidgetNode s (ConfirmEvt ep))
   -> ep
   -> ep
   -> ConfirmCfg
   -> WidgetEnv s (ConfirmEvt ep)
   -> s
   -> WidgetNode s (ConfirmEvt ep)
-buildUI message pAcceptEvt pCancelEvt config wenv model = mainTree where
-  acceptEvt = ParentEvt pAcceptEvt
-  cancelEvt = ParentEvt pCancelEvt
+buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
+  acceptEvt = ConfirmParentEvt pAcceptEvt
+  cancelEvt = ConfirmParentEvt pCancelEvt
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
@@ -113,8 +140,7 @@ buildUI message pAcceptEvt pCancelEvt config wenv model = mainTree where
         label title & L.info . L.style .~ themeDialogTitle wenv,
         box_ [onClick cancelEvt] closeIcon
       ],
-      label_ message [textMultiLine]
-        & L.info . L.style .~ themeDialogBody wenv,
+      dialogBody wenv,
       box_ [alignLeft] buttons
         & L.info . L.style <>~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
@@ -129,8 +155,8 @@ handleEvent
   -> ConfirmEvt ep
   -> [EventResponse s (ConfirmEvt ep) ep]
 handleEvent wenv node model evt = case evt of
-  ParentEvt pevt -> [Report pevt]
-  VisibleChanged -> catMaybes [acceptPath | nodeVisible]
+  ConfirmParentEvt pevt -> [Report pevt]
+  ConfirmVisibleChanged -> catMaybes [acceptPath | nodeVisible]
   where
     acceptPath = Request . SetFocus <$> globalKeyPath wenv "acceptBtn"
     ownsFocus = isNodeParentOfFocused wenv node

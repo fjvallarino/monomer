@@ -35,5 +35,5 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv () & L.theme .~ darkTheme
-    alertNode = alert "Alert!" CloseClick
+    alertNode = alertMsg "Alert!" CloseClick
     events p = nodeHandleEventEvts wenv [Click p LeftBtn] alertNode

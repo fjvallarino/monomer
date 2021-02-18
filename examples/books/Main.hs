@@ -26,7 +26,10 @@ buildUI wenv model = widgetTree where
     baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
     imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
     coverImg i = image_ (imgUrl i) [fitHeight]
-  bookRow b = box_ [expandContent, onClick (BooksShowDetails b)] $ hstack [
+  bookRow b = box_ [expandContent, onClick (BooksShowDetails b)]
+    (bookRowContent b)
+    `hover` [bgColor gray, cursorIcon CursorHand]
+  bookRowContent b = hstack [
       vstack [
         hstack [
           label_ "Title: " [resizeFactor 0] `style` [textFont "Bold"],
@@ -34,7 +37,7 @@ buildUI wenv model = widgetTree where
         ],
         hstack [
           label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold"],
-          label (T.intercalate ", " (b ^. authors))
+          label_ (T.intercalate ", " (b ^. authors)) [resizeFactor 1]
         ]
       ],
       filler,
@@ -45,35 +48,29 @@ buildUI wenv model = widgetTree where
         ]
       ] `style` [width 100],
       bookImage (b ^. cover) "S" `style` [width 50]
-    ] `style` [height 50, padding 5] `hover` [bgColor gray, cursorIcon CursorHand]
+    ] `style` [height 50, padding 5]
   bookDetail b = hstack [
       vstack [
         hstack [
-          label_ "Title: " [resizeFactor 0] `style` [textFont "Bold"],
-          label (b ^. title)
+          label_ "Title: " [resizeFactor 0] `style` [textFont "Bold", textTop],
+          label_ (b ^. title) [textMultiLine] `style` [width 300]
         ],
         hstack [
-          label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold"],
-          label (T.intercalate ", " (b ^. authors))
+          label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold", textTop],
+          label_ (T.intercalate ", " (b ^. authors)) [textMultiLine] `style` [width 300]
         ],
         hstack [
           label_ "Year: " [resizeFactor 0] `style` [textFont "Bold"],
           label $ maybe "" showt (b ^. year)
         ]
-      ] `style` [width 300],
+      ],
       filler,
       bookImage (b ^. cover) "M" `style` [width 200]
     ]
-  bookOverlay = keystroke [("Esc", BooksCloseDetails)] overlay where
-    content = vstack [
-        maybe spacer bookDetail (model ^. selected),
-        spacer,
-        hstack [button "Close" BooksCloseDetails, filler]
-      ] `style` [bgColor gray, border 2 dimGray, padding 5]
-    overlay = box_ [onClick BooksCloseDetails] content
-      `style` [bgColor (darkGray & L.a .~ 0.8)]
-  searchOverlay = box (label "Searching" `style` [textSize 20, textColor black])
-    `style` [bgColor (darkGray & L.a .~ 0.8)]
+  bookOverlay = alert content BooksCloseDetails where
+    content = maybe spacer bookDetail (model ^. selected)
+  searchOverlay = box content `style` [bgColor (darkGray & L.a .~ 0.8)] where
+    content = label "Searching" `style` [textSize 20, textColor black]
   searchForm = keystroke [("Enter", BooksSearch)] $ vstack [
       hstack [
         label "Query: ",

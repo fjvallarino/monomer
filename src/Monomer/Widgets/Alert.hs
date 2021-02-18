@@ -1,6 +1,8 @@
 module Monomer.Widgets.Alert (
   alert,
-  alert_
+  alert_,
+  alertMsg,
+  alertMsg_
 ) where
 
 import Control.Applicative ((<|>))
@@ -54,30 +56,50 @@ instance CmbCloseCaption AlertCfg where
 
 alert
   :: (WidgetModel sp, WidgetEvent ep)
+  => WidgetNode () ep
+  -> ep
+  -> WidgetNode sp ep
+alert dialogBody evt = alert_ dialogBody evt def
+
+alert_
+  :: (WidgetModel sp, WidgetEvent ep)
+  => WidgetNode () ep
+  -> ep
+  -> [AlertCfg]
+  -> WidgetNode sp ep
+alert_ dialogBody evt configs = newNode where
+  config = mconcat configs
+  createUI = buildUI (const dialogBody) evt config
+  newNode = compositeExt "alert" () createUI handleEvent
+
+alertMsg
+  :: (WidgetModel sp, WidgetEvent ep)
   => Text
   -> ep
   -> WidgetNode sp ep
-alert message evt = alert_ message evt def
+alertMsg message evt = alertMsg_ message evt def
 
-alert_
+alertMsg_
   :: (WidgetModel sp, WidgetEvent ep)
   => Text
   -> ep
   -> [AlertCfg]
   -> WidgetNode sp ep
-alert_ message evt configs = newNode where
+alertMsg_ message evt configs = newNode where
   config = mconcat configs
-  createUI = buildUI message evt config
+  dialogBody wenv = label_ message [textMultiLine]
+    & L.info . L.style .~ themeDialogMsgBody wenv
+  createUI = buildUI dialogBody evt config
   newNode = compositeExt "alert" () createUI handleEvent
 
 buildUI
-  :: Text
+  :: (WidgetEnv s ep -> WidgetNode s ep)
   -> ep
   -> AlertCfg
   -> WidgetEnv s ep
   -> s
   -> WidgetNode s ep
-buildUI message cancelEvt config wenv model = mainTree where
+buildUI dialogBody cancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
   emptyOverlayColor = themeEmptyOverlayColor wenv
@@ -88,8 +110,7 @@ buildUI message cancelEvt config wenv model = mainTree where
         label title & L.info . L.style .~ themeDialogTitle wenv,
         box_ [onClick cancelEvt] closeIcon
       ],
-      label_ message [textMultiLine]
-        & L.info . L.style .~ themeDialogBody wenv,
+      dialogBody wenv,
       box_ [alignLeft] dismissButton
         & L.info . L.style .~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv

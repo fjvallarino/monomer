@@ -132,7 +132,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetDial where
+buildUI wenv model = traceShow "Creating UI" widgetTree where
   widgetScroll = vscroll (hgrid [
       vstack [
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
@@ -381,8 +381,8 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
   longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
   widgetTree = zstack [
       widgetTreeFull,
-      alert_ (longMessage "Alert") CloseAlert [titleCaption "Hey!"] `visible` model ^. showAlert,
-      confirm_ (longMessage "Confirm") AcceptConfirm CancelConfirm [titleCaption "Hey!"] `visible` model ^. showConfirm
+      alertMsg_ (longMessage "Alert") CloseAlert [titleCaption "Hey!"] `visible` model ^. showAlert,
+      confirmMsg_ (longMessage "Confirm") AcceptConfirm CancelConfirm [titleCaption "Hey!"] `visible` model ^. showConfirm
     ]
   widgetTreeFull = vstack [
       hstack [

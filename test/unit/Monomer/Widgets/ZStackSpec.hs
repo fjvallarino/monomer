@@ -164,7 +164,7 @@ handleEventFocusKeep = describe "handleEventFocusKeep" $
     handleEvent wenv _ model (BtnClick idx) = [Report (BtnClick idx), Model idx]
     buildUI wenv model = zstack [
         hstack [
-          confirm "Message" (BtnClick 3) (BtnClick 4)
+          confirmMsg "Message" (BtnClick 3) (BtnClick 4)
         ] `visible` (model <= 2),
         hstack [
           button "1" (BtnClick 1),

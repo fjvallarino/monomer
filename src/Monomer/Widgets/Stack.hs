@@ -157,6 +157,7 @@ resizeChild horizontal contentArea flexCoeff extraCoeff offset child = result wh
     | horizontal = hRect
     | otherwise = vRect
 
+mainReqSelector :: Bool -> WidgetNode s e -> SizeReq
 mainReqSelector isHorizontal
   | isHorizontal = _wniSizeReqW . _wnInfo
   | otherwise = _wniSizeReqH . _wnInfo
