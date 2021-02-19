@@ -5,6 +5,9 @@ import Test.Hspec
 import qualified SDL
 import qualified SDL.Raw as Raw
 
+import qualified Monomer.Common.CursorIconSpec as CursorIconSpec
+import qualified Monomer.Common.PersistSpec as PersistSpec
+
 import qualified Monomer.Widgets.AlertSpec as AlertSpec
 import qualified Monomer.Widgets.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.ButtonSpec as ButtonSpec
@@ -21,7 +24,6 @@ import qualified Monomer.Widgets.KeystrokeSpec as KeystrokeSpec
 import qualified Monomer.Widgets.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.NumericFieldSpec as NumericFieldSpec
-import qualified Monomer.Widgets.PersistSpec as PersistSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.ScrollSpec as ScrollSpec
 import qualified Monomer.Widgets.SplitSpec as SplitSpec
@@ -47,8 +49,14 @@ main = do
 
 spec :: Spec
 spec = do
+  common
   widgets
   widgetsUtil
+
+common :: Spec
+common = describe "Common" $ do
+  CursorIconSpec.spec
+  PersistSpec.spec
 
 widgets :: Spec
 widgets = describe "Widgets" $ do
@@ -68,7 +76,6 @@ widgets = describe "Widgets" $ do
   LabelSpec.spec
   ListViewSpec.spec
   NumericFieldSpec.spec
-  PersistSpec.spec
   RadioSpec.spec
   ScrollSpec.spec
   SplitSpec.spec

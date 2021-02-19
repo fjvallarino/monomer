@@ -388,14 +388,22 @@ handleSetOverlay widgetId path previousStep = do
 
 handleResetOverlay
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
-handleResetOverlay widgetId previousStep = do
+handleResetOverlay widgetId step = do
+  let (wenv, root, reqs, evts) = step
+  let mousePos = wenv ^. L.inputStatus . L.mousePos
+
   overlay <- use L.overlayWidgetId
 
-  when (overlay == Just widgetId) $ do
-    L.overlayWidgetId .= Nothing
-    delWidgetIdPath widgetId
+  (wenv2, root2, reqs2, evts2) <- if overlay == Just widgetId
+    then do
+      L.overlayWidgetId .= Nothing
+      delWidgetIdPath widgetId
+      void $ handleResetCursorIcon widgetId step
+      handleSystemEvents wenv [Move mousePos] root
+    else
+      return (wenv, root, Empty, Empty)
 
-  return previousStep
+  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
 
 handleSetCursorIcon
   :: (MonomerM s m)

@@ -419,7 +419,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
-          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg]
+          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]

@@ -237,6 +237,7 @@ makeDropdown
 makeDropdown widgetData items makeMain makeRow config state = widget where
   container = def {
     containerChildrenOffset = Just (_ddsOffset state),
+    containerUseCustomCursor = True,
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerFindNextFocus = findNextFocus,
@@ -306,7 +307,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Blur
       | not isOpen && not (seqStartsWith path focusedPath)
         -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
-    Enter{} -> Nothing -- to have handleStyleChange applied
+    Enter{} -> Just result where
+      newIcon = fromMaybe CursorHand (style ^. L.cursorIcon)
+      result = resultReqs node [SetCursorIcon widgetId CursorHand]
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
@@ -335,6 +338,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
     where
+      style = activeStyle wenv node
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath

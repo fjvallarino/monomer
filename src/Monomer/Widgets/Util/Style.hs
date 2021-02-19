@@ -170,9 +170,11 @@ handleCursorChange wenv target evt style oldNode result = newResult where
   hasCursor = isJust (style ^. L.cursorIcon)
   isPressed = isNodePressed wenv node
   (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
+  isParent = seqStartsWith path curPath && path /= curPath
   newIcon = fromMaybe CursorArrow (style ^. L.cursorIcon)
   setCursor = hasCursor
     && isCursorEvt evt
+    && not isParent
     && curIcon /= newIcon
   resetCursor = isTarget
     && not hasCursor

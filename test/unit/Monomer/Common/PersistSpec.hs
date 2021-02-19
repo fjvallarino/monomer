@@ -6,7 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Widgets.PersistSpec (spec) where
+module Monomer.Common.PersistSpec (spec) where
 
 import Codec.Serialise
 import Control.Lens ((&), (^.), (^?), (.~), (?~), (%~), non, _Just)
