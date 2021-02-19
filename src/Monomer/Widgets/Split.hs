@@ -143,7 +143,7 @@ makeSplit isHorizontal config state = widget where
     containerResize = resize
   }
 
-  handleW = fromMaybe 5 (_spcHandleSize config)
+  handleW = fromMaybe 3 (_spcHandleSize config)
 
   init wenv node = result where
     useModelValue value = resultWidget newNode where
@@ -170,8 +170,8 @@ makeSplit isHorizontal config state = widget where
   handleEvent wenv target evt node = case evt of
     Move point
       | isTarget && isDragging -> Just resultDrag
-      | isTarget && isInHandle point -> Just resultHover
-      | curPath == path -> Just resultReset
+      | isInHandle point && curIcon /= dragIcon -> Just resultHover
+      | not (isInHandle point) && curPath == path -> Just resultReset
       where
         Point px py = getValidHandlePos maxSize vp point children
         newHandlePos
@@ -200,12 +200,13 @@ makeSplit isHorizontal config state = widget where
       vp = node ^. L.info . L.viewport
       children = node ^. L.children
       isTarget = target == node ^. L.info . L.path
-      (curPath, _) = fromMaybe def (wenv ^. L.cursor)
+      (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
       isDragging = isNodePressed wenv node
       isInHandle p = pointInRect p handleRect
-      cursorIconReq
-        | isHorizontal = SetCursorIcon widgetId CursorSizeH
-        | otherwise = SetCursorIcon widgetId CursorSizeV
+      dragIcon
+        | isHorizontal = CursorSizeH
+        | otherwise = CursorSizeV
+      cursorIconReq = SetCursorIcon widgetId dragIcon
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = (reqW, reqH) where

@@ -49,21 +49,21 @@ handleEventMouseDragH = describe "handleEventMouseDragH" $ do
     let selEnd = Point 220 100
     let steps = evtDrag selStart selEnd
     model steps ^. sliderPos `shouldBe` (220 / 640)
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 218 480, Rect 223 0 417 480]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 219 480, Rect 222 0 418 480]
 
   it "should drag left 200 pixels, but move the slider only 120" $ do
     let selStart = Point 320 240
     let selEnd = Point 120 100
     let steps = evtDrag selStart selEnd
     model steps ^. sliderPos `shouldBe` (200 / 640)
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 198 480, Rect 203 0 437 480]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 199 480, Rect 202 0 438 480]
 
   it "should drag right 100 pixels, but move the slider only 80" $ do
     let selStart = Point 320 240
     let selEnd = Point 420 100
     let steps = evtDrag selStart selEnd
     model steps ^. sliderPos `shouldBe` (400 / 640)
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 397 480, Rect 402 0 238 480]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 398 480, Rect 401 0 239 480]
 
   it "should drag up 100 pixels, keeping the slider intact" $ do
     let selStart = Point 320 240
@@ -96,21 +96,21 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
     let selEnd = Point 320 140
     let steps = evtDrag selStart selEnd
     evts steps `shouldBe` Seq.fromList [SliderChanged 0.5, SliderChanged (140 / 480)]
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 139, Rect 0 144 640 336]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 139, Rect 0 142 640 338]
 
   it "should drag up 200 pixels, but move the slider only 100" $ do
     let selStart = Point 320 240
     let selEnd = Point 320 40
     let steps = evtDrag selStart selEnd
     evts steps `shouldBe` Seq.fromList [SliderChanged 0.5, SliderChanged (80 / 480)]
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 79, Rect 0 84 640 396]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 80, Rect 0 82 640 398]
 
   it "should drag down 100 pixels, but move the slider only 40" $ do
     let selStart = Point 320 240
     let selEnd = Point 320 340
     let steps = evtDrag selStart selEnd
     evts steps `shouldBe` Seq.fromList [SliderChanged 0.5, SliderChanged (280 / 480)]
-    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 277, Rect 0 282 640 198]
+    areas steps `shouldBe` Seq.fromList [Rect 0 0 640 278, Rect 0 281 640 199]
 
   it "should drag left 100 pixels, keeping the slider intact" $ do
     let selStart = Point 320 240
@@ -140,7 +140,7 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Range 5 125 0.01" $
-    hsizeReqW `shouldBe` RangeSize 5 125 0.01
+    hsizeReqW `shouldBe` RangeSize 3 123 0.01
 
   it "should return height = Fixed 20" $
     hsizeReqH `shouldBe` FixedSize 20
@@ -149,7 +149,7 @@ getSizeReq = describe "getSizeReq" $ do
     vsizeReqW `shouldBe` FlexSize 60 0.01
 
   it "should return height = Fixed 45" $
-    vsizeReqH `shouldBe` FixedSize 45
+    vsizeReqH `shouldBe` FixedSize 43
 
   where
     wenv = mockWenv (TestModel 0)
