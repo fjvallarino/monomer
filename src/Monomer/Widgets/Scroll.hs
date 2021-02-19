@@ -276,11 +276,13 @@ makeScroll config state = widget where
       btnReleased = status == ReleasedBtn && btn == wenv ^. L.mainButton
       isDragging = isJust $ _sstDragging state
       startDrag = leftPressed && not isDragging
-      jumpScrollH = btnReleased && not isDragging && hMouseInScroll
-      jumpScrollV = btnReleased && not isDragging && vMouseInScroll
+      jumpScrollH = btnReleased && not isDragging && hMouseInScroll sctx
+      jumpScrollV = btnReleased && not isDragging && vMouseInScroll sctx
+      mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
+      mouseInThumb = hMouseInThumb sctx || vMouseInThumb sctx
       newState
-        | startDrag && hMouseInThumb = state { _sstDragging = Just HBar }
-        | startDrag && vMouseInThumb = state { _sstDragging = Just VBar }
+        | startDrag && hMouseInThumb sctx = state { _sstDragging = Just HBar }
+        | startDrag && vMouseInThumb sctx = state { _sstDragging = Just VBar }
         | jumpScrollH = updateScrollThumb state HBar point contentArea sctx
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | btnReleased = state { _sstDragging = Nothing }
@@ -289,16 +291,27 @@ makeScroll config state = widget where
       handledResult = Just $ newRes
         & L.requests <>~ Seq.fromList scrollReqs
       result
-        | leftPressed && (hMouseInThumb || vMouseInThumb) = handledResult
-        | btnReleased && (hMouseInScroll || vMouseInScroll) = handledResult
+        | leftPressed && mouseInThumb = handledResult
+        | btnReleased && mouseInScroll = handledResult
         | btnReleased && isDragging = handledResult
         | otherwise = Nothing
-    Move point -> result where
+    Move point | isJust dragging -> result where
       drag bar = updateScrollThumb state bar point contentArea sctx
       makeWidget state = rebuildWidget wenv state node
       makeResult state = makeWidget state
         & L.requests <>~ Seq.fromList (RenderOnce : scrollReqs)
       result = fmap (makeResult . drag) dragging
+    Move point | isNothing dragging -> result where
+      mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
+      psctx = scrollStatus config wenv state mousePosPrev node
+      changed
+        = hMouseInThumb sctx /= hMouseInThumb psctx
+        || vMouseInThumb sctx /= vMouseInThumb psctx
+        || hMouseInScroll sctx /= hMouseInScroll psctx
+        || vMouseInScroll sctx /= vMouseInScroll psctx
+      result
+        | changed = Just $ resultReqs node [RenderOnce]
+        | otherwise = Nothing
     WheelScroll _ (Point wx wy) wheelDirection -> result where
       changedX = wx /= 0 && childWidth > cw
       changedY = wy /= 0 && childHeight > ch
@@ -324,8 +337,9 @@ makeScroll config state = widget where
       theme = activeTheme wenv node
       style = scrollActiveStyle wenv node
       contentArea = getContentArea style node
+      mousePos = wenv ^. L.inputStatus . L.mousePos
       Rect cx cy cw ch = contentArea
-      sctx@ScrollContext{..} = scrollStatus config wenv state node
+      sctx = scrollStatus config wenv state mousePos node
       scrollReqs = [IgnoreParentEvents]
       wheelRate = fromMaybe (theme ^. L.scrollWheelRate) (_scWheelRate config)
 
@@ -459,7 +473,8 @@ makeScroll config state = widget where
     when vScrollRequired $
       drawRect renderer vThumbRect thumbColorV thumbRadius
     where
-      ScrollContext{..} = scrollStatus config wenv state node
+      ScrollContext{..} = scrollStatus config wenv state mousePos node
+      mousePos = wenv ^. L.inputStatus . L.mousePos
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
       theme = wenv ^. L.theme
@@ -503,11 +518,11 @@ scrollStatus
   :: ScrollCfg
   -> WidgetEnv s e
   -> ScrollState
+  -> Point
   -> WidgetNode s e
   -> ScrollContext
-scrollStatus config wenv scrollState node = ScrollContext{..} where
+scrollStatus config wenv scrollState mousePos node = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
-  mousePos = _ipsMousePos (_weInputStatus wenv)
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node
   contentArea = getContentArea style node
