@@ -695,7 +695,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
 
     SDLE.captureMouse False
 
-    return $ dropEvts ++ clickEvt ++ dblClickEvt ++ releasedEvt ++ hoverEvts
+    return $ releasedEvt ++ dropEvts ++ clickEvt ++ dblClickEvt ++ hoverEvts
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status

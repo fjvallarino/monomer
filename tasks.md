@@ -515,6 +515,8 @@
       - Re-import Color Table and keep it in original order
       - Maybe internally handle focus as widgetId? (use findWidgetByPath)
       - Does it make sense to have Alert/Dialog accept a widget?
+      - Request render when hovering on scroll/thumb
+      - Add cursor icon unit tests
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -525,16 +527,14 @@
 
 Next
   - Add examples
-    - Fetch content from url, show rows of data with embedded images
-      - Add cursor icon unit tests
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Auto scroll affects dropdown when listView is displayed
+  - Check order of BtnReleased/Click/DblClick
   - Think about using stack resize logic in box
     - Maybe label resizeFactor should default to zero? What about button/others?
     - Maybe whats needed are custom min/max options for box content
-  - Check order of BtnReleased/Click/DblClick
+  - Auto scroll affects dropdown when listView is displayed
   - Add underline and strikethrough
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
