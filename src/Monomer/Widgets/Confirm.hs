@@ -130,7 +130,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
-  emptyOverlayColor = themeEmptyOverlayColor wenv
+  emptyOverlay = themeEmptyOverlay wenv
   acceptBtn = mainButton accept acceptEvt `key` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
@@ -145,7 +145,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
         & L.info . L.style <>~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
   confirmBox = box_ [onClickEmpty cancelEvt] confirmTree
-    & L.info . L.style .~ emptyOverlayColor
+    & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] confirmBox
 
 handleEvent

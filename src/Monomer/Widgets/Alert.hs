@@ -102,7 +102,7 @@ buildUI
 buildUI dialogBody cancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
-  emptyOverlayColor = themeEmptyOverlayColor wenv
+  emptyOverlay = themeEmptyOverlay wenv
   dismissButton = mainButton close cancelEvt
   closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
   alertTree = vstack [
@@ -115,7 +115,7 @@ buildUI dialogBody cancelEvt config wenv model = mainTree where
         & L.info . L.style .~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv
   alertBox = box_ [onClickEmpty cancelEvt] alertTree
-    & L.info . L.style .~ emptyOverlayColor
+    & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] alertBox
 
 handleEvent

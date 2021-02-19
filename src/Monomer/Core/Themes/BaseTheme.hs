@@ -149,7 +149,7 @@ listViewItemSelectedStyle themeMod = listViewItemStyle themeMod
 
 baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
-  & L.emptyOverlayColor .~ emptyOverlay themeMod
+  & L.emptyOverlay .~ bgColor (emptyOverlay themeMod)
   & L.btnStyle .~ btnStyle themeMod
   & L.btnMainStyle .~ btnMainStyle themeMod
   & L.checkboxWidth .~ 20
