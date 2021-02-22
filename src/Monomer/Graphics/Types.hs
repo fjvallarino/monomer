@@ -118,6 +118,11 @@ data TextTrim
   | KeepSpaces
   deriving (Eq, Show, Generic, Serialise)
 
+data TextOverflow
+  = Ellipsis
+  | ClipText
+  deriving (Eq, Show)
+
 data TextMetrics = TextMetrics {
   _txmAsc :: {-# UNPACK #-} !Double,
   _txmDesc :: {-# UNPACK #-} !Double,

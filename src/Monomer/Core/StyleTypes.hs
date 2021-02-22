@@ -247,6 +247,9 @@ data TextStyle = TextStyle {
   _txsFont :: Maybe Font,
   _txsFontSize :: Maybe FontSize,
   _txsFontColor :: Maybe Color,
+  _txsUnderline :: Maybe Bool,
+  _txsOverline :: Maybe Bool,
+  _txsThroughline :: Maybe Bool,
   _txsAlignH :: Maybe AlignTH,
   _txsAlignV :: Maybe AlignTV
 } deriving (Eq, Show, Generic, Serialise)
@@ -256,6 +259,9 @@ instance Default TextStyle where
     _txsFont = Nothing,
     _txsFontSize = Nothing,
     _txsFontColor = Nothing,
+    _txsUnderline = Nothing,
+    _txsOverline = Nothing,
+    _txsThroughline = Nothing,
     _txsAlignH = Nothing,
     _txsAlignV = Nothing
   }
@@ -265,6 +271,9 @@ instance Semigroup TextStyle where
     _txsFont = _txsFont ts2 <|> _txsFont ts1,
     _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
     _txsFontColor = _txsFontColor ts2 <|> _txsFontColor ts1,
+    _txsUnderline = _txsUnderline ts2 <|> _txsUnderline ts1,
+    _txsOverline = _txsOverline ts2 <|> _txsOverline ts1,
+    _txsThroughline = _txsThroughline ts2 <|> _txsThroughline ts1,
     _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
     _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
   }

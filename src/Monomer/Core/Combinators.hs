@@ -104,6 +104,15 @@ class CmbTextBottom t where
 class CmbTextBaseline t where
   textBaseline :: t
 
+class CmbTextUnderline t where
+  textUnderline :: t
+
+class CmbTextOverline t where
+  textOverline :: t
+
+class CmbTextThroughline t where
+  textThroughline :: t
+
 -- Events
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t

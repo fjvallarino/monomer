@@ -83,6 +83,15 @@ instance CmbTextBottom TextStyle where
 instance CmbTextBaseline TextStyle where
   textBaseline = textAlignV ATBaseline
 
+instance CmbTextUnderline TextStyle where
+  textUnderline = def & L.underline ?~ True
+
+instance CmbTextOverline TextStyle where
+  textOverline = def & L.overline ?~ True
+
+instance CmbTextThroughline TextStyle where
+  textThroughline = def & L.throughline ?~ True
+
 -- Padding
 
 instance CmbPadding Padding where
@@ -242,6 +251,15 @@ instance CmbTextBottom StyleState where
 
 instance CmbTextBaseline StyleState where
   textBaseline = styleTextAlignV ATBaseline
+
+instance CmbTextUnderline StyleState where
+  textUnderline = def & L.text ?~ textUnderline
+
+instance CmbTextOverline StyleState where
+  textOverline = def & L.text ?~ textOverline
+
+instance CmbTextThroughline StyleState where
+  textThroughline = def & L.text ?~ textThroughline
 
 -- Padding
 instance CmbPadding StyleState where

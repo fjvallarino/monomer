@@ -71,14 +71,14 @@ fitTextSingle = describe "fitTextToRect single line" $ do
 
   where
     wenv = mockWenv ()
+    renderer = wenv ^. L.renderer
     style = def
     rectE = Rect 0 0 120 20
     rectC = Rect 0 0 120 10
-    fitText = fitTextToRect
-    elpsTrim text = fitText wenv style Ellipsis SingleLine TrimSpaces rectE text
-    elpsKeep text = fitText wenv style Ellipsis SingleLine KeepSpaces rectE text
-    clipTrim text = fitText wenv style ClipText SingleLine TrimSpaces rectC text
-    clipKeep text = fitText wenv style ClipText SingleLine KeepSpaces rectC text
+    elpsTrim text = fitTextToRect renderer style Ellipsis SingleLine TrimSpaces rectE text
+    elpsKeep text = fitTextToRect renderer style Ellipsis SingleLine KeepSpaces rectE text
+    clipTrim text = fitTextToRect renderer style ClipText SingleLine TrimSpaces rectC text
+    clipKeep text = fitTextToRect renderer style ClipText SingleLine KeepSpaces rectC text
     singleElement sq = Seq.length sq == 1
 
 fitTextMulti :: Spec
@@ -142,17 +142,17 @@ fitTextMulti = describe "fitTextToRect single line" $ do
 
   where
     wenv = mockWenv ()
+    renderer = wenv ^. L.renderer
     style = def
     rectE = Rect 0 0 80 40
     rectC = Rect 0 0 80 50
     rectTall = Rect 0 0 80 200
-    fitText = fitTextToRect
     elpsTrim text = elpsTrim_ rectE text
     elpsKeep text = elpsKeep_ rectE text
     clipTrim text = clipTrim_ rectC text
     clipKeep text = clipKeep_ rectC text
-    elpsTrim_ rect text = fitText wenv style Ellipsis MultiLine TrimSpaces rect text
-    elpsKeep_ rect text = fitText wenv style Ellipsis MultiLine KeepSpaces rect text
-    clipTrim_ rect text = fitText wenv style ClipText MultiLine TrimSpaces rect text
-    clipKeep_ rect text = fitText wenv style ClipText MultiLine KeepSpaces rect text
+    elpsTrim_ rect text = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces rect text
+    elpsKeep_ rect text = fitTextToRect renderer style Ellipsis MultiLine KeepSpaces rect text
+    clipTrim_ rect text = fitTextToRect renderer style ClipText MultiLine TrimSpaces rect text
+    clipKeep_ rect text = fitTextToRect renderer style ClipText MultiLine KeepSpaces rect text
     elementCount count sq = Seq.length sq == count

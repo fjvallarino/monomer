@@ -132,7 +132,13 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+buildUI wenv model = traceShow "Creating UI" widgetLabels where
+  widgetLabels = vstack [
+      label "Underline |" `style` [textFont "Italic", textSize 100, textUnderline],
+      label "Overline |" `style` [textFont "Italic", textSize 100, textOverline],
+      label "Through |" `style` [textFont "Italic", textSize 100, textThroughline],
+      label "This is a test: All styles |" `style` [textFont "Italic", textSize 100, textUnderline, textOverline, textThroughline]
+    ]
   widgetScroll = vscroll (hgrid [
       vstack [
         scroll (image "assets/images/pecans.jpg") `style` [height 200],

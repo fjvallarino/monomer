@@ -6,6 +6,7 @@ module Monomer.Graphics.Drawing (
   drawInScale,
   drawInRotation,
   drawInAlpha,
+  drawTextLine,
   drawRect,
   drawRectBorder,
   drawArc,
@@ -20,6 +21,7 @@ module Monomer.Graphics.Drawing (
   drawStyledImage
 ) where
 
+import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
 import Control.Monad (forM_, void, when)
 import Data.ByteString (ByteString)
 import Data.Default
@@ -29,6 +31,8 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
+
+import qualified Monomer.Lens as L
 
 drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
 drawInScissor renderer False _ action = action
@@ -65,6 +69,51 @@ drawInAlpha renderer alpha action = do
   setGlobalAlpha renderer alpha
   action
   restoreContext renderer
+
+drawTextLine :: Renderer -> StyleState -> TextLine -> IO ()
+drawTextLine renderer style textLine = do
+  setFillColor renderer fontColor
+  renderText renderer txtOrigin font fontSize text
+
+  when underline $ do
+    drawLine renderer (Point tx uy) (Point tr uy) lw (Just fontColor)
+
+  when overline $ do
+    drawLine renderer (Point tx oy) (Point tr oy) lw (Just fontColor)
+
+  when throughline $ do
+    drawLine renderer (Point tx hy) (Point tr hy) lw (Just fontColor)
+  where
+    TextLine text size rect glyphs metrics = textLine
+    TextMetrics asc desc lineH = metrics
+    Rect tx ty tw th = rect
+    tr = tx + tw
+    tb = ty + th
+    font = styleFont style
+    fontSize = styleFontSize style
+    fontColor = styleFontColor style
+    alignV = styleTextAlignV style
+    underline = style ^?! L.text . non def . L.underline . non False
+    overline = style ^?! L.text . non def . L.overline . non False
+    throughline = style ^?! L.text . non def . L.throughline . non False
+    offset
+      | alignV == ATBaseline = 0
+      | otherwise = desc
+    lw = max 0.5 (unFontSize fontSize / 20)
+    by = ty + th + offset
+    uy = by + 1.5 * lw
+    oy = ty
+    hy = by - asc * 0.35
+    txtOrigin = Point tx by
+
+drawLine :: Renderer -> Point -> Point -> Double -> Maybe Color -> IO ()
+drawLine _ _ _ _ Nothing = pure ()
+drawLine renderer p1 p2 width (Just color) = do
+  beginPath renderer
+  setStrokeColor renderer color
+  setStrokeWidth renderer width
+  renderLine renderer p1 p2
+  stroke renderer
 
 drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
 drawRect _ _ Nothing _ = pure ()

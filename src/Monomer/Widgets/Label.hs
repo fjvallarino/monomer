@@ -132,7 +132,7 @@ makeLabel config state = widget where
 
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
-  trimSpaces = fromMaybe TrimSpaces (_lscTrim config)
+  trim = fromMaybe TrimSpaces (_lscTrim config)
   LabelState caption textStyle textRect textLines = state
 
   getBaseStyle wenv node = Just style where
@@ -170,7 +170,7 @@ makeLabel config state = widget where
     caption = _lstCaption currState
     style = activeStyle wenv node
     targetW = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
+    Size w h = getTextSize_ wenv style mode trim targetW caption
     factorW = fromMaybe 0.01 (_lscFactorW config)
     factorH = fromMaybe 0 (_lscFactorH config)
     sizeW
@@ -186,7 +186,8 @@ makeLabel config state = widget where
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
-    fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    renderer = wenv ^. L.renderer
+    fittedLines = fitTextToRect renderer style overflow mode trim rect caption
     newTextLines = alignTextLines style rect fittedLines
     newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines

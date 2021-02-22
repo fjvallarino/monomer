@@ -38,11 +38,6 @@ data FocusDirection
   | FocusBwd
   deriving (Eq, Show)
 
-data TextOverflow
-  = Ellipsis
-  | ClipText
-  deriving (Eq, Show)
-
 data WindowRequest
   = WindowSetTitle Text
   | WindowSetFullScreen

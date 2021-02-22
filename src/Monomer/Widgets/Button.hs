@@ -192,7 +192,7 @@ makeButton config state = widget where
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
   overflow = fromMaybe Ellipsis (_btnTextOverflow config)
   mode = fromMaybe SingleLine (_btnTextMode config)
-  trimSpaces = fromMaybe TrimSpaces (_btnTrim config)
+  trim = fromMaybe TrimSpaces (_btnTrim config)
   BtnState caption textStyle textRect textLines = state
 
   getBaseStyle wenv node = case buttonType of
@@ -251,7 +251,7 @@ makeButton config state = widget where
     caption = _btsCaption currState
     style = activeStyle wenv node
     targetW = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trimSpaces targetW caption
+    Size w h = getTextSize_ wenv style mode trim targetW caption
     factorW = fromMaybe 0.01 (_btnFactorW config)
     factorH = fromMaybe 0 (_btnFactorH config)
     sizeW
@@ -267,7 +267,8 @@ makeButton config state = widget where
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
-    fittedLines = fitTextToRect wenv style overflow mode trimSpaces rect caption
+    renderer = wenv ^. L.renderer
+    fittedLines = fitTextToRect renderer style overflow mode trim rect caption
     newTextLines = alignTextLines style rect fittedLines
     newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines
