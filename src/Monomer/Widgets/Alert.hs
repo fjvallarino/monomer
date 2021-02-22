@@ -20,6 +20,7 @@ import Monomer.Widgets.Composite
 import Monomer.Widgets.Icon
 import Monomer.Widgets.Keystroke
 import Monomer.Widgets.Label
+import Monomer.Widgets.Spacer
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
@@ -108,7 +109,8 @@ buildUI dialogBody cancelEvt config wenv model = mainTree where
   alertTree = vstack [
       hstack [
         label title & L.info . L.style .~ themeDialogTitle wenv,
-        box_ [onClick cancelEvt] closeIcon
+        filler,
+        box_ [alignTop, onClick cancelEvt] closeIcon
       ],
       dialogBody wenv,
       box_ [alignLeft] dismissButton
