@@ -36,7 +36,7 @@ instance Monoid StackCfg where
   mempty = def
 
 instance CmbIgnoreEmptyArea StackCfg where
-  ignoreEmptyArea ignore = def {
+  ignoreEmptyArea_ ignore = def {
     _stcIgnoreEmptyArea = Just ignore
   }
 

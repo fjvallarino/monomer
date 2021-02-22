@@ -134,7 +134,7 @@ instance CmbOnChangeIdxReq (ListViewCfg s e a) s where
   }
 
 instance CmbSelectOnBlur (ListViewCfg s e a) where
-  selectOnBlur select = def {
+  selectOnBlur_ select = def {
     _lvcSelectOnBlur = Just select
   }
 

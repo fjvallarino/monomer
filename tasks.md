@@ -518,6 +518,7 @@
       - Request render when hovering on scroll/thumb
       - Add cursor icon unit tests
   - Check order of BtnReleased/Click/DblClick
+  - Add underline and strikethrough
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -527,9 +528,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Add underline and strikethrough
-  - Add externalLink component
-    - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Add examples
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
@@ -553,6 +551,8 @@ Future
   - Create GridView
   - Create Layout with width/heights specified in percents
   - Create Color Selector
+  - Add externalLink component
+    - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations

@@ -47,8 +47,8 @@ instance Monoid KeystrokeCfg where
   mempty = def
 
 instance CmbIgnoreChildrenEvts KeystrokeCfg where
-  ignoreChildrenEvts = def {
-    _kscIgnoreChildren = Just True
+  ignoreChildrenEvts_ ignore = def {
+    _kscIgnoreChildren = Just ignore
   }
 
 data KeyStroke = KeyStroke {

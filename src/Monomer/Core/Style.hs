@@ -63,34 +63,41 @@ instance CmbTextColor TextStyle where
   textColor col = def & L.fontColor ?~ col
 
 instance CmbTextLeft TextStyle where
-  textLeft = textAlignH ATLeft
+  textLeft_ False = def
+  textLeft_ True = textAlignH ATLeft
 
 instance CmbTextCenter TextStyle where
-  textCenter = textAlignH ATCenter
+  textCenter_ False = def
+  textCenter_ True = textAlignH ATCenter
 
 instance CmbTextRight TextStyle where
-  textRight = textAlignH ATRight
+  textRight_ False = def
+  textRight_ True = textAlignH ATRight
 
 instance CmbTextTop TextStyle where
-  textTop = textAlignV ATTop
+  textTop_ False = def
+  textTop_ True = textAlignV ATTop
 
 instance CmbTextMiddle TextStyle where
-  textMiddle = textAlignV ATMiddle
+  textMiddle_ False = def
+  textMiddle_ True = textAlignV ATMiddle
 
 instance CmbTextBottom TextStyle where
-  textBottom = textAlignV ATBottom
+  textBottom_ False = def
+  textBottom_ True = textAlignV ATBottom
 
 instance CmbTextBaseline TextStyle where
-  textBaseline = textAlignV ATBaseline
+  textBaseline_ False = def
+  textBaseline_ True = textAlignV ATBaseline
 
 instance CmbTextUnderline TextStyle where
-  textUnderline = def & L.underline ?~ True
+  textUnderline_ under = def & L.underline ?~ under
 
 instance CmbTextOverline TextStyle where
-  textOverline = def & L.overline ?~ True
+  textOverline_ over = def & L.overline ?~ over
 
 instance CmbTextThroughline TextStyle where
-  textThroughline = def & L.throughline ?~ True
+  textThroughline_ through = def & L.throughline ?~ through
 
 -- Padding
 
@@ -232,34 +239,44 @@ instance CmbTextColor StyleState where
   textColor col = def & L.text ?~ textColor col
 
 instance CmbTextLeft StyleState where
-  textLeft = styleTextAlignH ATLeft
+  textLeft_ False = def
+  textLeft_ True = styleTextAlignH ATLeft
 
 instance CmbTextCenter StyleState where
-  textCenter = styleTextAlignH ATCenter
+  textCenter_ False = def
+  textCenter_ True = styleTextAlignH ATCenter
 
 instance CmbTextRight StyleState where
-  textRight = styleTextAlignH ATRight
+  textRight_ False = def
+  textRight_ True = styleTextAlignH ATRight
 
 instance CmbTextTop StyleState where
-  textTop = styleTextAlignV ATTop
+  textTop_ False = def
+  textTop_ True = styleTextAlignV ATTop
 
 instance CmbTextMiddle StyleState where
-  textMiddle = styleTextAlignV ATMiddle
+  textMiddle_ False = def
+  textMiddle_ True = styleTextAlignV ATMiddle
 
 instance CmbTextBottom StyleState where
-  textBottom = styleTextAlignV ATBottom
+  textBottom_ False = def
+  textBottom_ True = styleTextAlignV ATBottom
 
 instance CmbTextBaseline StyleState where
-  textBaseline = styleTextAlignV ATBaseline
+  textBaseline_ False = def
+  textBaseline_ True = styleTextAlignV ATBaseline
 
 instance CmbTextUnderline StyleState where
-  textUnderline = def & L.text ?~ textUnderline
+  textUnderline_ False = def
+  textUnderline_ True = def & L.text ?~ textUnderline
 
 instance CmbTextOverline StyleState where
-  textOverline = def & L.text ?~ textOverline
+  textOverline_ False = def
+  textOverline_ True = def & L.text ?~ textOverline
 
 instance CmbTextThroughline StyleState where
-  textThroughline = def & L.text ?~ textThroughline
+  textThroughline_ False = def
+  textThroughline_ True = def & L.text ?~ textThroughline
 
 -- Padding
 instance CmbPadding StyleState where

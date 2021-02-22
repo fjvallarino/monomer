@@ -75,12 +75,12 @@ instance CmbValidInput (TextFieldCfg s e) s where
   }
 
 instance CmbResizeOnChange (TextFieldCfg s e) where
-  resizeOnChange resize = def {
+  resizeOnChange_ resize = def {
     _tfcResizeOnChange = Just resize
   }
 
 instance CmbSelectOnFocus (TextFieldCfg s e) where
-  selectOnFocus sel = def {
+  selectOnFocus_ sel = def {
     _tfcSelectOnFocus = Just sel
   }
 

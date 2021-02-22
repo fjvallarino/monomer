@@ -102,7 +102,7 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel "")
-    txtCfg = [maxLength 40, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
+    txtCfg = [maxLength 40, selectOnFocus, onFocus GotFocus, onBlur LostFocus]
     txtNode = textField_ textValue txtCfg
     model es = nodeHandleEventModel wenv es txtNode
     events es = nodeHandleEventEvts wenv es txtNode
@@ -245,7 +245,7 @@ handleEventHistory = describe "handleEventHistory" $ do
 
   where
     wenv = mockWenv (TestModel "")
-    txtCfg = [onChange TextChanged, selectOnFocus True, onFocus GotFocus, onBlur LostFocus]
+    txtCfg = [onChange TextChanged, selectOnFocus, onFocus GotFocus, onBlur LostFocus]
     txtNode = textField_ textValue txtCfg
     model es = nodeHandleEventModel wenv es txtNode
     evts es = nodeHandleEventEvts wenv es txtNode

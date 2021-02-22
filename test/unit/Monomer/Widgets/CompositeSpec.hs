@@ -409,12 +409,12 @@ findByHelperUI :: WidgetNode TestModel ep
 findByHelperUI = composite "main" id buildUI handleEvent where
   handleEvent wenv node model evt = []
   buildLabels :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
-  buildLabels wenv model = vstack_ [ignoreEmptyArea True] [
+  buildLabels wenv model = vstack_ [ignoreEmptyArea] [
       label "a", label "b", textField text1
     ]
   cmpLabels = composite "main" id buildLabels handleEvent
   buildUI :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
-  buildUI wenv model = box_ [ignoreEmptyArea True, expandContent] $
+  buildUI wenv model = box_ [ignoreEmptyArea, expandContent] $
     zstack_ [onlyTopActive False] [
       label "Background",
       vgrid [

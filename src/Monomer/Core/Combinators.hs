@@ -19,10 +19,14 @@ class CmbValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
 
 class CmbSelectOnFocus t where
-  selectOnFocus :: Bool -> t
+  selectOnFocus :: t
+  selectOnFocus = selectOnFocus_ True
+  selectOnFocus_ :: Bool -> t
 
 class CmbResizeOnChange t where
-  resizeOnChange :: Bool -> t
+  resizeOnChange :: t
+  resizeOnChange = resizeOnChange_ True
+  resizeOnChange_ :: Bool -> t
 
 -- Caption
 class CmbTitleCaption t where
@@ -49,7 +53,9 @@ class Num a => CmbDragRate t a | t -> a where
 
 -- Container
 class CmbIgnoreEmptyArea t where
-  ignoreEmptyArea :: Bool -> t
+  ignoreEmptyArea :: t
+  ignoreEmptyArea = ignoreEmptyArea_ True
+  ignoreEmptyArea_ :: Bool -> t
 
 -- Text
 class CmbDecimals t where
@@ -71,7 +77,9 @@ class CmbTextTrim t where
   textKeepSpaces :: t
 
 class CmbSelectOnBlur t where
-  selectOnBlur :: Bool -> t
+  selectOnBlur :: t
+  selectOnBlur = selectOnBlur_ True
+  selectOnBlur_ :: Bool -> t
 
 -- Text style
 class CmbTextFont t where
@@ -85,37 +93,59 @@ class CmbTextColor t where
 
 class CmbTextLeft t where
   textLeft :: t
+  textLeft = textLeft_ True
+  textLeft_ :: Bool -> t
 
 class CmbTextCenter t where
   textCenter :: t
+  textCenter = textCenter_ True
+  textCenter_ :: Bool -> t
 
 class CmbTextRight t where
   textRight :: t
+  textRight = textRight_ True
+  textRight_ :: Bool -> t
 
 class CmbTextTop t where
   textTop :: t
+  textTop = textTop_ True
+  textTop_ :: Bool -> t
 
 class CmbTextMiddle t where
   textMiddle :: t
+  textMiddle = textMiddle_ True
+  textMiddle_ :: Bool -> t
 
 class CmbTextBottom t where
   textBottom :: t
+  textBottom = textBottom_ True
+  textBottom_ :: Bool -> t
 
 class CmbTextBaseline t where
   textBaseline :: t
+  textBaseline = textBaseline_ True
+  textBaseline_ :: Bool -> t
 
 class CmbTextUnderline t where
   textUnderline :: t
+  textUnderline = textUnderline_ True
+  textUnderline_ :: Bool -> t
 
 class CmbTextOverline t where
   textOverline :: t
+  textOverline = textOverline_ True
+  textOverline_ :: Bool -> t
 
 class CmbTextThroughline t where
   textThroughline :: t
+  textThroughline = textThroughline_ True
+  textThroughline_ :: Bool -> t
 
 -- Events
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t
+  ignoreChildrenEvts = ignoreChildrenEvts_ True
+  ignoreChildrenEvts_ :: Bool -> t
 
 class CmbOnInit t e | t -> e where
   onInit :: e -> t
@@ -279,21 +309,33 @@ class CmbItemSelectedStyle t s | t -> s where
 -- Align
 class CmbAlignLeft t where
   alignLeft :: t
+  alignLeft = alignLeft_ True
+  alignLeft_ :: Bool -> t
 
 class CmbAlignCenter t where
   alignCenter :: t
+  alignCenter = alignCenter_ True
+  alignCenter_ :: Bool -> t
 
 class CmbAlignRight t where
   alignRight :: t
+  alignRight = alignRight_ True
+  alignRight_ :: Bool -> t
 
 class CmbAlignTop t where
   alignTop :: t
+  alignTop = alignTop_ True
+  alignTop_ :: Bool -> t
 
 class CmbAlignMiddle t where
   alignMiddle :: t
+  alignMiddle = alignMiddle_ True
+  alignMiddle_ :: Bool -> t
 
 class CmbAlignBottom t where
   alignBottom :: t
+  alignBottom = alignBottom_ True
+  alignBottom_ :: Bool -> t
 
 -- Margin
 class CmbMargin t where

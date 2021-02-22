@@ -60,37 +60,43 @@ instance Monoid (BoxCfg s e) where
   mempty = def
 
 instance CmbIgnoreEmptyArea (BoxCfg s e) where
-  ignoreEmptyArea ignore = def {
+  ignoreEmptyArea_ ignore = def {
     _boxIgnoreEmptyArea = Just ignore
   }
 
 instance CmbAlignLeft (BoxCfg s e) where
-  alignLeft = def {
+  alignLeft_ False = def
+  alignLeft_ True = def {
     _boxAlignH = Just ALeft
   }
 
 instance CmbAlignCenter (BoxCfg s e) where
-  alignCenter = def {
+  alignCenter_ False = def
+  alignCenter_ True = def {
     _boxAlignH = Just ACenter
   }
 
 instance CmbAlignRight (BoxCfg s e) where
-  alignRight = def {
+  alignRight_ False = def
+  alignRight_ True = def {
     _boxAlignH = Just ARight
   }
 
 instance CmbAlignTop (BoxCfg s e) where
-  alignTop = def {
+  alignTop_ False = def
+  alignTop_ True = def {
     _boxAlignV = Just ATop
   }
 
 instance CmbAlignMiddle (BoxCfg s e) where
-  alignMiddle = def {
+  alignMiddle_ False = def
+  alignMiddle_ True = def {
     _boxAlignV = Just AMiddle
   }
 
 instance CmbAlignBottom (BoxCfg s e) where
-  alignBottom = def {
+  alignBottom_ False = def
+  alignBottom_ True = def {
     _boxAlignV = Just ABottom
   }
 

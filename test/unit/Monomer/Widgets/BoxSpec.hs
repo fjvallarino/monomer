@@ -56,7 +56,7 @@ handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
     btn2 = button "Click 2" (BtnClick 2) `style` [height 10]
     ignoredNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
-        box_ [ignoreEmptyArea True] btn2
+        box_ [ignoreEmptyArea_ True] btn2
       ]
     clickIgnored p = nodeHandleEventEvts wenv [Click p LeftBtn] ignoredNode
 
@@ -73,7 +73,7 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
     centeredBtn = button "Click 2" (BtnClick 2) `style` [height 10]
     sunkNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
-        box_ [ignoreEmptyArea False] centeredBtn
+        box_ [ignoreEmptyArea_ False] centeredBtn
       ]
     clickSunk p = nodeHandleEventEvts wenv [Click p LeftBtn] sunkNode
 

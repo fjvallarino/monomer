@@ -491,7 +491,7 @@ makeListView wenv value items makeRow config path = listViewNode where
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   lvConfig = [
-      selectOnBlur True,
+      selectOnBlur,
       onBlurReq (SendMessage path OnListBlur),
       onChangeIdxReq (SendMessage path . OnChangeMessage),
       itemNormalStyle itemStyle,

@@ -97,12 +97,12 @@ instance CmbValidInput (NumericFieldCfg s e a) s where
   }
 
 instance CmbResizeOnChange (NumericFieldCfg s e a) where
-  resizeOnChange resize = def {
+  resizeOnChange_ resize = def {
     _nfcResizeOnChange = Just resize
   }
 
 instance CmbSelectOnFocus (NumericFieldCfg s e a) where
-  selectOnFocus sel = def {
+  selectOnFocus_ sel = def {
     _nfcSelectOnFocus = Just sel
   }
 

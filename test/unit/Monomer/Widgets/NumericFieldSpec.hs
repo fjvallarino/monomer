@@ -97,7 +97,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
 
   where
     wenv = mockWenv (IntegralModel 0 True)
-    basicIntNode = numericField_ integralValue [selectOnFocus False]
+    basicIntNode = numericField_ integralValue [selectOnFocus_ False]
     intCfg = [maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
     model es = nodeHandleEventModel wenv (Focus : es) intNode
@@ -130,7 +130,7 @@ handleEventValueIntegral = describe "handleEventIntegral" $ do
 
   where
     wenv = mockWenv (IntegralModel 0 False)
-    intNode = numericFieldV_ 0 IntegralChanged [maxValue 2345, selectOnFocus True, validInput integralValid]
+    intNode = numericFieldV_ 0 IntegralChanged [maxValue 2345, selectOnFocus, validInput integralValid]
     evts es = nodeHandleEventEvts wenv (Focus : es) intNode
     model es = nodeHandleEventModel wenv (Focus : es) intNode
     lastIdx es = Seq.index es (Seq.length es - 1)
@@ -220,7 +220,7 @@ getSizeReqIntegral = describe "getSizeReqIntegral" $ do
   where
     wenv = mockWenvEvtUnit (IntegralModel 10000000000 True)
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (numericField integralValue)
-    numericResize = numericField_ integralValue [resizeOnChange True]
+    numericResize = numericField_ integralValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv numericResize
 
 -- ------------------------------
@@ -279,7 +279,7 @@ handleEventFractional = describe "handleEventFractional" $ do
 
   where
     wenv = mockWenv (FractionalModel 0 True)
-    basicFractionalNode = numericField_ fractionalValue [selectOnFocus False]
+    basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False]
     floatCfg = [maxValue 1501, validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = numericField_ fractionalValue floatCfg
     model es = nodeHandleEventModel wenv es floatNode
@@ -325,8 +325,8 @@ handleEventValueFractional = describe "handleEventValueFractional" $ do
 
   where
     wenv = mockWenv (FractionalModel 0 False)
-    floatNode = numericFieldV_ 0 FractionalChanged [minValue 10, maxValue 2345, selectOnFocus True, validInput fractionalValid]
-    floatDecimalsNode = numericFieldV_ 0 FractionalChanged [selectOnFocus True, decimals 3]
+    floatNode = numericFieldV_ 0 FractionalChanged [minValue 10, maxValue 2345, selectOnFocus, validInput fractionalValid]
+    floatDecimalsNode = numericFieldV_ 0 FractionalChanged [selectOnFocus, decimals 3]
     evts es = nodeHandleEventEvts wenv (Focus : es) floatNode
     evtsAlt es = nodeHandleEventEvts wenv (Focus : es) floatDecimalsNode
     model es = nodeHandleEventModel wenv (Focus : es) floatNode
@@ -404,5 +404,5 @@ getSizeReqFractional = describe "getSizeReqFractional" $ do
   where
     wenv = mockWenvEvtUnit (FractionalModel 10000000 True)
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (numericField fractionalValue)
-    numericResize = numericField_ fractionalValue [resizeOnChange True]
+    numericResize = numericField_ fractionalValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv numericResize
