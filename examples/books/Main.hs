@@ -32,41 +32,46 @@ buildUI wenv model = widgetTree where
   bookRowContent b = hstack [
       vstack [
         hstack [
-          label_ "Title: " [resizeFactor 0] `style` [textFont "Bold"],
-          label (b ^. title)
+          label "Title: " `style` [textFont "Bold"],
+          label_ (b ^. title) [resizeFactor 1]
         ],
         hstack [
-          label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold"],
+          label "Authors: " `style` [textFont "Bold"],
           label_ (T.intercalate ", " (b ^. authors)) [resizeFactor 1]
         ]
       ],
       filler,
       vstack [
         hstack [
-          label_ "Year: " [resizeFactor 0] `style` [textFont "Bold"],
+          label "Year: " `style` [textFont "Bold"],
           label $ maybe "" showt (b ^. year)
         ]
       ] `style` [width 100],
       bookImage (b ^. cover) "S" `style` [width 50]
     ] `style` [height 50, padding 5]
-  bookDetail b = hstack [
+  bookDetail b = content where
+    hasCover = isJust (b ^. cover)
+    shortLabel value = label value `style` [width 100, textFont "Bold", textTop]
+    longLabelW = if hasCover then 300 else 500
+    longLabel value = label_ value [textMultiLine] `style` [flexWidth longLabelW]
+    content = hstack . concat $ [[
       vstack [
         hstack [
-          label_ "Title: " [resizeFactor 0] `style` [textFont "Bold", textTop],
-          label_ (b ^. title) [textMultiLine] `style` [width 300]
+          shortLabel "Title: ",
+          longLabel (b ^. title)
         ],
         hstack [
-          label_ "Authors: " [resizeFactor 0] `style` [textFont "Bold", textTop],
-          label_ (T.intercalate ", " (b ^. authors)) [textMultiLine] `style` [width 300]
+          shortLabel "Authors: ",
+          longLabel (T.intercalate ", " (b ^. authors))
         ],
         hstack [
-          label_ "Year: " [resizeFactor 0] `style` [textFont "Bold"],
+          shortLabel "Year: ",
           label $ maybe "" showt (b ^. year)
         ]
-      ],
-      filler,
-      bookImage (b ^. cover) "M" `style` [width 200]
-    ]
+      ]],
+      [spacer | hasCover],
+      [bookImage (b ^. cover) "M" `style` [width 200] | hasCover]
+      ]
   bookOverlay = alert content BooksCloseDetails where
     content = maybe spacer bookDetail (model ^. selected)
   searchOverlay = box content `style` [bgColor (darkGray & L.a .~ 0.8)] where

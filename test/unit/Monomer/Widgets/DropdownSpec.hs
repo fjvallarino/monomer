@@ -149,6 +149,6 @@ getSizeReq = describe "getSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)
-    labelItem = label . showt
+    labelItem l = label_ (showt l) [resizeFactorW 0.01]
     lvNode = dropdown selectedItem testItems labelItem labelItem
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lvNode

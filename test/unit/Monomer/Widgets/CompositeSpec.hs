@@ -426,8 +426,8 @@ findByHelperUI = composite "main" id buildUI handleEvent where
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Flex 70 0.01" $
-    sizeReqW `shouldBe` FlexSize 70 0.01
+  it "should return width = Fixed 70" $
+    sizeReqW `shouldBe` FixedSize 70
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 40

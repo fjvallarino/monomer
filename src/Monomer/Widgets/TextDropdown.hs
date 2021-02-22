@@ -71,8 +71,8 @@ textDropdownD_
   -> [DropdownCfg s e a]
   -> WidgetNode s e
 textDropdownD_ widgetData items toText configs = newNode where
-  makeMain = label . toText
-  makeRow = label . toText
+  makeMain t = label_ (toText t) [resizeFactorW 0.01]
+  makeRow t = label_ (toText t) [resizeFactorW 0.01]
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 textDropdownS
@@ -120,6 +120,7 @@ textDropdownDS_
   -> [DropdownCfg s e a]
   -> WidgetNode s e
 textDropdownDS_ widgetData items configs = newNode where
-  makeMain = label . pack . show
-  makeRow = label . pack . show
+  toText = pack . show
+  makeMain t = label_ (toText t) [resizeFactorW 0.01]
+  makeRow t = label_ (toText t) [resizeFactorW 0.01]
   newNode = dropdownD_ widgetData items makeMain makeRow configs

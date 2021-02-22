@@ -79,8 +79,8 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Flex 50 0.01" $
-    sizeReqW `shouldBe` FlexSize 50 0.01
+  it "should return width = Fixed 50" $
+    sizeReqW `shouldBe` FixedSize 50
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20

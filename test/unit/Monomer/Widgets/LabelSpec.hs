@@ -25,8 +25,8 @@ spec = describe "Label" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Flex 100 0.01" $
-    sizeReqW `shouldBe` FlexSize 100 0.01
+  it "should return width = Fixed 100" $
+    sizeReqW `shouldBe` FixedSize 100
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
@@ -73,14 +73,14 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
 
 getSizeReqMerge :: Spec
 getSizeReqMerge = describe "getSizeReqMerge" $ do
-  it "should return width = Flex 320 0.01" $
-    sizeReqW `shouldBe` FlexSize 320 0.01
+  it "should return width = Fixed 320" $
+    sizeReqW `shouldBe` FixedSize 320
 
   it "should return height = Fixed 20" $
     sizeReqH `shouldBe` FixedSize 20
 
-  it "should return width = Flex 600 0.01" $
-    sizeReq2W `shouldBe` FlexSize 600 0.01
+  it "should return width = Fixed 600" $
+    sizeReq2W `shouldBe` FixedSize 600
 
   it "should return height = Fixed 20" $
     sizeReq2H `shouldBe` FixedSize 20

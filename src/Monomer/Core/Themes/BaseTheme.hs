@@ -157,8 +157,7 @@ baseBasic themeMod = def
   & L.dialWidth .~ 50
   & L.dialStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.dialStyle . L.sndColor ?~ inputSndBasic themeMod
-  & L.dialogTitleStyle . L.text
-    ?~ (titleFont & L.fontColor ?~ dialogTitleText themeMod) <> textLeft
+  & L.dialogTitleStyle . L.text ?~ (titleFont & L.fontColor ?~ dialogTitleText themeMod)
   & L.dialogFrameStyle . L.padding ?~ padding 5
   & L.dialogFrameStyle . L.bgColor ?~ dialogBg themeMod
   & L.dialogFrameStyle . L.border ?~ border 1 (dialogBorder themeMod)

@@ -519,6 +519,7 @@
       - Add cursor icon unit tests
   - Check order of BtnReleased/Click/DblClick
   - Add underline and strikethrough
+  - Boolean combinators should have a default non-argument version and an underscore one that receives a boolean
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -532,7 +533,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Boolean combinators should have a default non-argument version and an underscore one that receives a boolean
   - Think about using stack resize logic in box
     - Maybe label resizeFactor should default to zero? What about button/others?
     - Maybe whats needed are custom min/max options for box content

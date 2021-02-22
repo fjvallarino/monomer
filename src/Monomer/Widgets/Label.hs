@@ -171,7 +171,7 @@ makeLabel config state = widget where
     style = activeStyle wenv node
     targetW = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trim targetW caption
-    factorW = fromMaybe 0.01 (_lscFactorW config)
+    factorW = fromMaybe 0 (_lscFactorW config)
     factorH = fromMaybe 0 (_lscFactorH config)
     sizeW
       | abs factorW < 0.01 = FixedSize w

@@ -195,8 +195,8 @@ getSizeReqEmpty = describe "empty" $ do
 
 getSizeReqItems :: Spec
 getSizeReqItems = describe "several items, horizontal" $ do
-  it "should return width = Flex 130 0.01" $
-    sizeReqW `shouldBe` FlexSize 130 0.01
+  it "should return width = Fixed 130" $
+    sizeReqW `shouldBe` FixedSize 130
 
   it "should return height = Fixed 60" $
     sizeReqH `shouldBe` FixedSize 60
