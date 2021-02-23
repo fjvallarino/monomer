@@ -134,6 +134,12 @@ instance CmbOnClickReq (ButtonCfg s e) s where
     _btnOnClickReq = [req]
   }
 
+instance CmbResizeFactor (ButtonCfg s e) where
+  resizeFactor s = def {
+    _btnFactorW = Just s,
+    _btnFactorH = Just s
+  }
+
 instance CmbResizeFactorDim (ButtonCfg s e) where
   resizeFactorW w = def {
     _btnFactorW = Just w

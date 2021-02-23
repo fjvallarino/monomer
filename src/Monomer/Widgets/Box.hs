@@ -18,6 +18,7 @@ import Data.Maybe
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
 
@@ -184,8 +185,8 @@ makeBox config = widget where
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea
     child = Seq.index children 0
-    contentW = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
-    contentH = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
+    contentW = snd $ assignStackAreas True contentArea children
+    contentH = snd $ assignStackAreas False contentArea children
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)

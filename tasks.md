@@ -520,6 +520,7 @@
   - Check order of BtnReleased/Click/DblClick
   - Add underline and strikethrough
   - Boolean combinators should have a default non-argument version and an underscore one that receives a boolean
+  - Maybe label resizeFactor should default to zero?
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -533,12 +534,15 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Maybe label resizeFactor should default to zero? What about button/others?
-  - Add maxLines config option to label
   - Think about using stack resize logic in box
     - Maybe whats needed are custom min/max options for box content
+    - Add option to modify size req
+  - Add maxLines config option to label
   - Add resize limit in Handlers (to avoid infinite loop)
   - Make button use label + box (way too much duplicated code)
+  - Move SizeReq to Core
+    - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
+    - Review dialogs after change is in place
   - Auto scroll affects dropdown when listView is displayed
   - Maybe do not resize Single if size did not change? First step towards resize improvements
 

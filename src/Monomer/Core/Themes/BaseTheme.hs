@@ -150,6 +150,7 @@ listViewItemSelectedStyle themeMod = listViewItemStyle themeMod
 baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
   & L.emptyOverlay .~ bgColor (emptyOverlay themeMod)
+  & L.emptyOverlay . L.padding ?~ padding 10
   & L.btnStyle .~ btnStyle themeMod
   & L.btnMainStyle .~ btnMainStyle themeMod
   & L.checkboxWidth .~ 20
@@ -167,8 +168,8 @@ baseBasic themeMod = def
   & L.dialogButtonsStyle . L.padding ?~ paddingT 5
   & L.dialogMsgBodyStyle . L.text
     ?~ (normalFont & L.fontColor ?~ dialogText themeMod)
-  & L.dialogMsgBodyStyle . L.sizeReqW ?~ minWidth 400
-  & L.dialogMsgBodyStyle . L.sizeReqH ?~ minHeight 250
+  & L.dialogMsgBodyStyle . L.sizeReqW ?~ rangeWidth 300 600
+  & L.dialogMsgBodyStyle . L.sizeReqH ?~ rangeHeight 250 400
   & L.dropdownStyle .~ inputStyle themeMod
   & L.dropdownStyle . L.fgColor ?~ iconFg themeMod
   & L.dropdownStyle . L.padding ?~ paddingH 5
