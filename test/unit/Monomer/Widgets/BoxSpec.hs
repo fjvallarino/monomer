@@ -27,6 +27,7 @@ spec = describe "Box" $ do
   handleEventIgnoreEmpty
   handleEventSinkEmpty
   getSizeReq
+  getSizeReqUpdater
   resize
 
 handleEvent :: Spec
@@ -88,6 +89,21 @@ getSizeReq = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     boxNode = box (label "Label")
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
+
+getSizeReqUpdater :: Spec
+getSizeReqUpdater = describe "getSizeReqUpdater" $ do
+  it "should return width = Min 50 2" $
+    sizeReqW `shouldBe` MinSize 50 2
+
+  it "should return height = Max 20" $
+    sizeReqH `shouldBe` MaxSize 20 3
+
+  where
+    wenv = mockWenv ()
+    updater (FixedSize w, FixedSize h) = (MinSize w 2, MaxSize h 3)
+    updater other = other
+    boxNode = box_ [sizeReqUpdater updater] (label "Label")
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
 
 resize :: Spec

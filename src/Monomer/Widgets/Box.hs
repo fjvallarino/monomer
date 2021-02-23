@@ -25,6 +25,7 @@ import qualified Monomer.Lens as L
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
+  _boxSizeReqUpdater :: Maybe ((SizeReq, SizeReq) -> (SizeReq, SizeReq)),
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
@@ -37,6 +38,7 @@ instance Default (BoxCfg s e) where
   def = BoxCfg {
     _boxExpandContent = Nothing,
     _boxIgnoreEmptyArea = Nothing,
+    _boxSizeReqUpdater = Nothing,
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
     _boxOnClick = [],
@@ -49,6 +51,7 @@ instance Semigroup (BoxCfg s e) where
   (<>) t1 t2 = BoxCfg {
     _boxExpandContent = _boxExpandContent t2 <|> _boxExpandContent t1,
     _boxIgnoreEmptyArea = _boxIgnoreEmptyArea t2 <|> _boxIgnoreEmptyArea t1,
+    _boxSizeReqUpdater = _boxSizeReqUpdater t2 <|> _boxSizeReqUpdater t1,
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
     _boxOnClick = _boxOnClick t1 <> _boxOnClick t2,
@@ -63,6 +66,11 @@ instance Monoid (BoxCfg s e) where
 instance CmbIgnoreEmptyArea (BoxCfg s e) where
   ignoreEmptyArea_ ignore = def {
     _boxIgnoreEmptyArea = Just ignore
+  }
+
+instance CmbSizeReqUpdater (BoxCfg s e) where
+  sizeReqUpdater updater = def {
+    _boxSizeReqUpdater = Just updater
   }
 
 instance CmbAlignLeft (BoxCfg s e) where
@@ -174,10 +182,12 @@ makeBox config = widget where
     _ -> Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
+  getSizeReq wenv currState node children = newSizeReq where
+    updateSizeReq = fromMaybe id (_boxSizeReqUpdater config)
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH
+    newSizeReq = updateSizeReq (newReqW, newReqH)
 
   resize :: ContainerResizeHandler s e
   resize wenv viewport children node = resized where

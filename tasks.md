@@ -535,7 +535,6 @@ Next
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
   - Think about using stack resize logic in box
-    - Maybe whats needed are custom min/max options for box content
     - Add option to modify size req
   - Add maxLines config option to label
   - Add resize limit in Handlers (to avoid infinite loop)
@@ -544,7 +543,6 @@ Next
     - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
     - Review dialogs after change is in place
   - Auto scroll affects dropdown when listView is displayed
-  - Maybe do not resize Single if size did not change? First step towards resize improvements
 
 Future
   - Rename ListView -> SelectList

@@ -238,6 +238,9 @@ class CmbSizeReqW t where
 class CmbSizeReqH t where
   sizeReqH :: SizeReq -> t
 
+class CmbSizeReqUpdater t where
+  sizeReqUpdater :: ((SizeReq, SizeReq) -> (SizeReq, SizeReq)) -> t
+
 class CmbResizeFactor t where
   resizeFactor :: Double -> t
 
