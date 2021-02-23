@@ -22,6 +22,7 @@ spec = describe "Label" $ do
   getSizeReqMulti
   getSizeReqMultiKeepSpaces
   getSizeReqMerge
+  resize
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
@@ -49,8 +50,8 @@ getSizeReqMulti = describe "getSizeReq" $ do
   it "should return width = Fixed 50" $
     sizeReqW `shouldBe` FixedSize 50
 
-  it "should return height = Fixed 60" $
-    sizeReqH `shouldBe` FixedSize 60
+  it "should return height = Flex 60 0.01" $
+    sizeReqH `shouldBe` FlexSize 60 0.01
 
   where
     wenv = mockWenv ()
@@ -62,8 +63,8 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   it "should return width = Max 50 1" $
     sizeReqW `shouldBe` MaxSize 50 1
 
-  it "should return height = Fixed 100" $
-    sizeReqH `shouldBe` FixedSize 100
+  it "should return height = Flex 100 0.01" $
+    sizeReqH `shouldBe` FlexSize 100 0.01
 
   where
     wenv = mockWenv ()
@@ -100,3 +101,22 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
     mrgInfo = lblMerged ^. L.info
     (sizeReqW, sizeReqH) = (lblInfo ^. L.sizeReqW, lblInfo ^. L.sizeReqH)
     (sizeReq2W, sizeReq2H) = (mrgInfo ^. L.sizeReqW, mrgInfo ^. L.sizeReqH)
+
+
+resize :: Spec
+resize = describe "resize" $ do
+  it "should resize single line in a single step" $
+    reqsSingle `shouldBe` Seq.Empty
+
+  it "should resize multi line in two steps" $
+    reqsMulti `shouldBe` Seq.singleton ResizeWidgets
+
+  where
+    wenv = mockWenv ()
+    vp = Rect 0 0 640 480
+    single = label "Test label"
+    resSingle = widgetResize (single ^. L.widget) wenv vp single
+    reqsSingle = resSingle ^. L.requests
+    multi = label_ "Test label" [textMultiLine]
+    resMulti = widgetResize (multi ^. L.widget) wenv vp multi
+    reqsMulti = resMulti ^. L.requests

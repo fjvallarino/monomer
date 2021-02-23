@@ -96,7 +96,8 @@ data LabelState = LabelState {
   _lstCaption :: Text,
   _lstTextStyle :: Maybe TextStyle,
   _lstTextRect :: Rect,
-  _lstTextLines :: Seq TextLine
+  _lstTextLines :: Seq TextLine,
+  _lstPrevResize :: (Int, Bool)
 } deriving (Eq, Show, Generic, Serialise)
 
 instance WidgetModel LabelState where
@@ -109,7 +110,7 @@ label caption = label_ caption def
 label_ :: Text -> [LabelCfg] -> WidgetNode s e
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
-  state = LabelState caption Nothing def Seq.Empty
+  state = LabelState caption Nothing def Seq.Empty (0, False)
   widget = makeLabel config state
 
 labelS :: Show a => a -> WidgetNode s e
@@ -133,7 +134,7 @@ makeLabel config state = widget where
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
   trim = fromMaybe TrimSpaces (_lscTrim config)
-  LabelState caption textStyle textRect textLines = state
+  LabelState caption textStyle textRect textLines prevResize = state
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.labelStyle
@@ -168,11 +169,19 @@ makeLabel config state = widget where
 
   getSizeReq wenv currState node = (sizeW, sizeH) where
     caption = _lstCaption currState
+    prevResize = _lstPrevResize currState
+    ts = wenv ^. L.timestamp
     style = activeStyle wenv node
-    targetW = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
+    cw = getContentArea style node ^. L.w
+    targetW
+      | mode == MultiLine && prevResize == (ts, True) = Just cw
+      | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trim targetW caption
-    factorW = fromMaybe 0 (_lscFactorW config)
-    factorH = fromMaybe 0 (_lscFactorH config)
+    defaultFactor
+      | mode == MultiLine = 0.01
+      | otherwise = 0
+    factorW = fromMaybe defaultFactor (_lscFactorW config)
+    factorH = fromMaybe defaultFactor (_lscFactorH config)
     sizeW
       | abs factorW < 0.01 = FixedSize w
       | otherwise = FlexSize w factorW
@@ -180,22 +189,31 @@ makeLabel config state = widget where
       | abs factorH < 0.01 = FixedSize h
       | otherwise = FlexSize h factorH
 
-  resize wenv viewport node = resultWidget newNode where
+  resize wenv viewport node = result where
+    ts = wenv ^. L.timestamp
     style = activeStyle wenv node
-    rect = fromMaybe def (removeOuterBounds style viewport)
+    crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
-    Rect nx ny nw nh = rect
+    Rect cx cy cw ch = crect
     renderer = wenv ^. L.renderer
-    fittedLines = fitTextToRect renderer style overflow mode trim rect caption
-    newTextLines = alignTextLines style rect fittedLines
-    newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
+    fittedLines = fitTextToRect renderer style overflow mode trim crect caption
+    newTextLines = alignTextLines style crect fittedLines
+    newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines
-      | not newGlyphsReq = moveTextLines (nx - px) (ny - py) textLines
+      | not newGlyphsReq = moveTextLines (cx - px) (cy - py) textLines
       | otherwise = newTextLines
-    newWidget = makeLabel config (LabelState caption newTextStyle rect newLines)
+    (prevTs, prevStep) = prevResize
+    needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
+    newState = state {
+      _lstTextStyle = newTextStyle,
+      _lstTextRect = crect,
+      _lstTextLines = newLines,
+      _lstPrevResize = (ts, needsSndResize && prevTs == ts)
+    }
     newNode = node
-      & L.widget .~ newWidget
+      & L.widget .~ makeLabel config newState
+    result = resultReqs newNode [ResizeWidgets | needsSndResize]
 
   render renderer wenv node = action where
     style = activeStyle wenv node

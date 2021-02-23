@@ -22,6 +22,13 @@ buildUI
   -> BooksModel
   -> WidgetNode BooksModel BooksEvt
 buildUI wenv model = widgetTree where
+  longText = mconcat $ replicate 50 "Hello "
+  widgetTree2 = box $ vstack [
+      hstack [
+        label "Title: " `style` [textFont "Bold", textTop],
+        label_ longText [textMultiLine] `style` [minWidth 200]
+      ]
+    ]
   bookImage imgId size = maybe spacer coverImg imgId where
     baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
     imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
@@ -51,25 +58,23 @@ buildUI wenv model = widgetTree where
     ] `style` [height 50, padding 5]
   bookDetail b = content where
     hasCover = isJust (b ^. cover)
-    shortLabel value = label value `style` [width 100, textFont "Bold", textTop]
-    longLabelW = if hasCover then 300 else 500
-    longLabel value = label_ value [textMultiLine] `style` [flexWidth longLabelW]
+    shortLabel value = label value `style` [width 80, textFont "Bold", textTop]
     content = hstack . concat $ [[
       vstack [
         hstack [
           shortLabel "Title: ",
-          longLabel (b ^. title)
+          label_ (b ^. title) [textMultiLine]
         ],
         hstack [
           shortLabel "Authors: ",
-          longLabel (T.intercalate ", " (b ^. authors))
+          label_ (T.intercalate ", " (b ^. authors)) [textMultiLine]
         ],
         hstack [
           shortLabel "Year: ",
           label $ maybe "" showt (b ^. year)
         ]
       ]],
-      [spacer | hasCover],
+      [filler | hasCover],
       [bookImage (b ^. cover) "M" `style` [width 200] | hasCover]
       ]
   bookOverlay = alert content BooksCloseDetails where
@@ -131,7 +136,7 @@ main = do
   simpleApp initModel handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Todo list",
+      appWindowTitle "Book search",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

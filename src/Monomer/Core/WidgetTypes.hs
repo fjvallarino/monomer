@@ -184,7 +184,7 @@ data WidgetNodeInfo =
     -- | Type of the widget
     _wniWidgetType :: !WidgetType,
     -- | The identifier at creation time of the widget
-    _wniWidgetId :: WidgetId,
+    _wniWidgetId :: !WidgetId,
     -- | Key/Identifier of the widget
     _wniKey :: Maybe WidgetKey,
     -- | The path of the instance in the widget tree

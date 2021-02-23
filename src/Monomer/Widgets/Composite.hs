@@ -612,17 +612,17 @@ compositeResize comp state wenv viewport widgetComp = resized where
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  tmpRes = widgetResize widget cwenv contentArea _cpsRoot
+  childRes = widgetResize widget cwenv contentArea _cpsRoot
   oldRa = widgetComp ^. L.info . L.viewport
   sizeChanged = viewport /= oldRa
   resizeEvts = fmap ($ viewport) (_cmpOnResize comp)
   newEvts
     | sizeChanged = Seq.fromList resizeEvts
     | otherwise = Empty
-  newRes = reduceResult comp state wenv widgetComp $ tmpRes
+  compRes = reduceResult comp state wenv widgetComp $ childRes
     & L.node . L.info . L.viewport .~ contentArea
-    & L.events .~ tmpRes ^. L.events <> newEvts
-  resized = newRes
+    & L.events .~ childRes ^. L.events <> newEvts
+  resized = compRes
     & L.node . L.info . L.viewport .~ viewport
 
 -- Render

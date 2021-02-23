@@ -533,9 +533,12 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
+  - Maybe label resizeFactor should default to zero? What about button/others?
+  - Add maxLines config option to label
   - Think about using stack resize logic in box
-    - Maybe label resizeFactor should default to zero? What about button/others?
     - Maybe whats needed are custom min/max options for box content
+  - Add resize limit in Handlers (to avoid infinite loop)
+  - Make button use label + box (way too much duplicated code)
   - Auto scroll affects dropdown when listView is displayed
   - Maybe do not resize Single if size did not change? First step towards resize improvements
 
@@ -549,6 +552,7 @@ Future
   - Create Slider
   - Create File Selector
   - Create GridView
+    - Adjusts column width and row height (not possible to have both combining hstack/vstack)
   - Create Layout with width/heights specified in percents
   - Create Color Selector
   - Add externalLink component

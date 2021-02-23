@@ -273,8 +273,6 @@ handleResizeWidgets
 handleResizeWidgets previousStep = do
   Size w h <- use L.windowSize
 
-  liftIO . putStrLn $ "Resizing widgets"
-
   let winRect = Rect 0 0 w h
   let (wenv, root, requests, events) = previousStep
   let reqsNoResize = Seq.filter (not . isResizeWidgets) requests

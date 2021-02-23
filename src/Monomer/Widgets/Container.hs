@@ -817,7 +817,8 @@ defaultResize wenv viewport children node = newSize where
   newSize = (resultWidget node, childrenSizes)
 
 resizeWrapper
-  :: Container s e a
+  :: WidgetModel a
+  => Container s e a
   -> WidgetEnv s e
   -> Rect
   -> WidgetNode s e
@@ -846,13 +847,14 @@ resizeWrapper container wenv viewport node = result where
   newVp
     | useCustomSize = tempRes ^. L.node . lensVp
     | otherwise = viewport
-  result
-    | resizeRequired || vpChanged = tempRes
+  tmpResult
+    | resizeRequired || vpChanged = Just $ tempRes
       & L.node . L.info . L.viewport .~ newVp
       & L.node . L.children .~ newChildren
       & L.requests <>~ newChildrenReqs
       & L.events <>~ newChildrenEvts
-    | otherwise = resultWidget node
+    | otherwise = Just $ resultWidget node
+  result = fromJust $ handleSizeReqChange container wenv (tempRes ^. L.node) Nothing tmpResult
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e

@@ -9,7 +9,8 @@ module Monomer.Widgets.Single (
   module Monomer.Widgets.Util,
 
   Single(..),
-  createSingle
+  createSingle,
+  updateSizeReq
 ) where
 
 import Codec.Serialise
@@ -425,7 +426,8 @@ defaultResize :: SingleResizeHandler s e
 defaultResize wenv viewport node = resultWidget node
 
 resizeHandlerWrapper
-  :: Single s e a
+  :: WidgetModel a
+  => Single s e a
   -> WidgetEnv s e
   -> Rect
   -> WidgetNode s e
@@ -438,8 +440,10 @@ resizeHandlerWrapper single wenv viewport node = result where
   newVp
     | useCustomSize = tmpRes ^. L.node . lensVp
     | otherwise = viewport
-  result = tmpRes
+  tmpResult = Just $ tmpRes
     & L.node . L.info . L.viewport .~ newVp
+  newNode = tmpRes ^. L.node
+  result = fromJust $ handleSizeReqChange single wenv newNode Nothing tmpResult
 
 defaultRender :: SingleRenderHandler s e
 defaultRender renderer wenv node = return ()
