@@ -172,8 +172,8 @@ makeTooltip caption config state = widget where
       targetW = fromMaybe maxW (_ttcWidth config)
       targetH = fromMaybe maxH (_ttcHeight config)
       targetR = Rect 0 0 targetW targetH
-      fittedLines
-        = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces targetR caption
+      fittedLines = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces
+        Nothing targetR caption
       textSize = getTextLinesSize fittedLines
       Size tw th = fromMaybe def (addOuterSize style textSize)
       TooltipState lastPos _ = state

@@ -75,10 +75,10 @@ fitTextSingle = describe "fitTextToRect single line" $ do
     style = def
     rectE = Rect 0 0 120 20
     rectC = Rect 0 0 120 10
-    elpsTrim text = fitTextToRect renderer style Ellipsis SingleLine TrimSpaces rectE text
-    elpsKeep text = fitTextToRect renderer style Ellipsis SingleLine KeepSpaces rectE text
-    clipTrim text = fitTextToRect renderer style ClipText SingleLine TrimSpaces rectC text
-    clipKeep text = fitTextToRect renderer style ClipText SingleLine KeepSpaces rectC text
+    elpsTrim text = fitTextToRect renderer style Ellipsis SingleLine TrimSpaces Nothing rectE text
+    elpsKeep text = fitTextToRect renderer style Ellipsis SingleLine KeepSpaces Nothing rectE text
+    clipTrim text = fitTextToRect renderer style ClipText SingleLine TrimSpaces Nothing rectC text
+    clipKeep text = fitTextToRect renderer style ClipText SingleLine KeepSpaces Nothing rectC text
     singleElement sq = Seq.length sq == 1
 
 fitTextMulti :: Spec
@@ -151,8 +151,8 @@ fitTextMulti = describe "fitTextToRect single line" $ do
     elpsKeep text = elpsKeep_ rectE text
     clipTrim text = clipTrim_ rectC text
     clipKeep text = clipKeep_ rectC text
-    elpsTrim_ rect text = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces rect text
-    elpsKeep_ rect text = fitTextToRect renderer style Ellipsis MultiLine KeepSpaces rect text
-    clipTrim_ rect text = fitTextToRect renderer style ClipText MultiLine TrimSpaces rect text
-    clipKeep_ rect text = fitTextToRect renderer style ClipText MultiLine KeepSpaces rect text
+    elpsTrim_ rect text = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces Nothing rect text
+    elpsKeep_ rect text = fitTextToRect renderer style Ellipsis MultiLine KeepSpaces Nothing rect text
+    clipTrim_ rect text = fitTextToRect renderer style ClipText MultiLine TrimSpaces Nothing rect text
+    clipKeep_ rect text = fitTextToRect renderer style ClipText MultiLine KeepSpaces Nothing rect text
     elementCount count sq = Seq.length sq == count

@@ -64,6 +64,9 @@ class CmbDecimals t where
 class CmbMaxLength t where
   maxLength :: Int -> t
 
+class CmbMaxLines t where
+  maxLines :: Int -> t
+
 class CmbTextMode t where
   textSingleLine :: t
   textMultiLine :: t

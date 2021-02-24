@@ -14,7 +14,7 @@ module Monomer.Graphics.Text (
   getGlyphsMax
 ) where
 
-import Control.Lens ((&), (+~))
+import Control.Lens ((&), (^.), (+~))
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
@@ -35,8 +35,8 @@ import Monomer.Lens as L
 type GlyphGroup = Seq GlyphPos
 
 calcTextSize :: Renderer -> StyleState -> Text -> Size
-calcTextSize renderer style !text = newSize where
-  newSize = calcTextSize_ renderer style SingleLine KeepSpaces Nothing text
+calcTextSize renderer style !text = size where
+  size = calcTextSize_ renderer style SingleLine KeepSpaces Nothing Nothing text
 
 calcTextSize_
   :: Renderer
@@ -44,9 +44,10 @@ calcTextSize_
   -> TextMode
   -> TextTrim
   -> Maybe Double
+  -> Maybe Int
   -> Text
   -> Size
-calcTextSize_ renderer style mode trim mwidth text = newSize where
+calcTextSize_ renderer style mode trim mwidth mlines text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
   !metrics = computeTextMetrics renderer font fontSize
@@ -54,6 +55,7 @@ calcTextSize_ renderer style mode trim mwidth text = newSize where
   textLinesW = fitTextToWidth renderer style width trim text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
+    | isJust mlines = Seq.take (fromJust mlines) textLinesW
     | otherwise = textLinesW
   newSize
     | not (Seq.null textLines) = getTextLinesSize textLines
@@ -93,14 +95,21 @@ fitTextToRect
   -> TextOverflow
   -> TextMode
   -> TextTrim
+  -> Maybe Int
   -> Rect
   -> Text
   -> Seq TextLine
-fitTextToRect renderer style overflow mode trim !rect !text = textLines where
+fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
   Rect cx cy cw ch = rect
+  font = styleFont style
+  fontSize = styleFontSize style
+  textMetrics = computeTextMetrics renderer font fontSize
+  maxHeight = case mlines of
+    Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
+    _ -> ch
   textLinesW = fitTextToWidth renderer style cw trim text
-  fittedLines = fitTextLinesToH renderer style overflow cw ch textLinesW
-  textLines
+  fittedLines = fitTextLinesToH renderer style ovf cw maxHeight textLinesW
+  newLines
     | mode == MultiLine = fittedLines
     | otherwise = Seq.take 1 fittedLines
 

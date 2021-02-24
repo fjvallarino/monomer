@@ -26,6 +26,7 @@ import Monomer.Widgets.Single
 import qualified Monomer.Lens as L
 
 data LabelCfg = LabelCfg {
+  _lscMaxLines :: Maybe Int,
   _lscTextOverflow :: Maybe TextOverflow,
   _lscTextMode :: Maybe TextMode,
   _lscTrim :: Maybe TextTrim,
@@ -35,6 +36,7 @@ data LabelCfg = LabelCfg {
 
 instance Default LabelCfg where
   def = LabelCfg {
+    _lscMaxLines = Nothing,
     _lscTextOverflow = Nothing,
     _lscTextMode = Nothing,
     _lscTrim = Nothing,
@@ -44,6 +46,7 @@ instance Default LabelCfg where
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
+    _lscMaxLines = _lscMaxLines l2 <|> _lscMaxLines l1,
     _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
     _lscTextMode = _lscTextMode l2 <|> _lscTextMode l1,
     _lscTrim = _lscTrim l2 <|> _lscTrim l1,
@@ -53,6 +56,11 @@ instance Semigroup LabelCfg where
 
 instance Monoid LabelCfg where
   mempty = def
+
+instance CmbMaxLines LabelCfg where
+  maxLines count = def {
+    _lscMaxLines = Just count
+  }
 
 instance CmbTextOverflow LabelCfg where
   textEllipsis = def {
@@ -134,6 +142,7 @@ makeLabel config state = widget where
   overflow = fromMaybe Ellipsis (_lscTextOverflow config)
   mode = fromMaybe SingleLine (_lscTextMode config)
   trim = fromMaybe TrimSpaces (_lscTrim config)
+  maxLines = _lscMaxLines config
   LabelState caption textStyle textRect textLines prevResize = state
 
   getBaseStyle wenv node = Just style where
@@ -176,7 +185,7 @@ makeLabel config state = widget where
     targetW
       | mode == MultiLine && prevResize == (ts, True) = Just cw
       | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trim targetW caption
+    Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
     defaultFactor
       | mode == MultiLine = 0.01
       | otherwise = 0
@@ -197,7 +206,7 @@ makeLabel config state = widget where
     Rect px py pw ph = textRect
     Rect cx cy cw ch = crect
     renderer = wenv ^. L.renderer
-    fittedLines = fitTextToRect renderer style overflow mode trim crect caption
+    fittedLines = fitTextToRect renderer style overflow mode trim maxLines crect caption
     newTextLines = alignTextLines style crect fittedLines
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines

@@ -25,9 +25,9 @@ getTextMetrics wenv style = textMetrics where
   fontSize = styleFontSize style
 
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
-getTextSize wenv style !text = newSize where
+getTextSize wenv style !text = size where
   renderer = wenv ^. L.renderer
-  newSize = calcTextSize_ renderer style SingleLine KeepSpaces Nothing text
+  size = calcTextSize_ renderer style SingleLine KeepSpaces Nothing Nothing text
 
 getTextSize_
   :: WidgetEnv s e
@@ -35,11 +35,12 @@ getTextSize_
   -> TextMode
   -> TextTrim
   -> Maybe Double
+  -> Maybe Int
   -> Text
   -> Size
-getTextSize_ wenv style mode trim mwidth text = newSize where
+getTextSize_ wenv style mode trim mwidth mlines text = newSize where
   renderer = wenv ^. L.renderer
-  newSize = calcTextSize_ renderer style mode trim mwidth text
+  newSize = calcTextSize_ renderer style mode trim mwidth mlines text
 
 getTextRect
   :: WidgetEnv s e -> StyleState -> Rect -> AlignTH -> AlignTV -> Text -> Rect

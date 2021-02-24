@@ -257,7 +257,7 @@ makeButton config state = widget where
     caption = _btsCaption currState
     style = activeStyle wenv node
     targetW = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trim targetW caption
+    Size w h = getTextSize_ wenv style mode trim targetW Nothing caption
     factorW = fromMaybe 0.01 (_btnFactorW config)
     factorH = fromMaybe 0 (_btnFactorH config)
     sizeW
@@ -274,7 +274,7 @@ makeButton config state = widget where
     Rect px py pw ph = textRect
     Rect nx ny nw nh = rect
     renderer = wenv ^. L.renderer
-    fittedLines = fitTextToRect renderer style overflow mode trim rect caption
+    fittedLines = fitTextToRect renderer style overflow mode trim Nothing rect caption
     newTextLines = alignTextLines style rect fittedLines
     newGlyphsReq = pw /= nw || ph /= nh || textStyle /= newTextStyle
     newLines

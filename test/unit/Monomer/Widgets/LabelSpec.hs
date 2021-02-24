@@ -21,6 +21,7 @@ spec = describe "Label" $ do
   getSizeReq
   getSizeReqMulti
   getSizeReqMultiKeepSpaces
+  getSizeReqMultiMaxLines
   getSizeReqMerge
   resize
 
@@ -72,6 +73,20 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
     lblNode = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
+getSizeReqMultiMaxLines :: Spec
+getSizeReqMultiMaxLines = describe "getSizeReq" $ do
+  it "should return width = Max 50 1" $
+    sizeReqW `shouldBe` MaxSize 50 1
+
+  it "should return height = Flex 80 0.01" $
+    sizeReqH `shouldBe` FlexSize 80 0.01
+
+  where
+    wenv = mockWenv ()
+    caption = "Line    line    line    line    line"
+    lblNode = label_ caption [textMultiLine, textKeepSpaces, maxLines 4] `style` [maxWidth 50]
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
+
 getSizeReqMerge :: Spec
 getSizeReqMerge = describe "getSizeReqMerge" $ do
   it "should return width = Fixed 320" $
@@ -101,7 +116,6 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
     mrgInfo = lblMerged ^. L.info
     (sizeReqW, sizeReqH) = (lblInfo ^. L.sizeReqW, lblInfo ^. L.sizeReqH)
     (sizeReq2W, sizeReq2H) = (mrgInfo ^. L.sizeReqW, mrgInfo ^. L.sizeReqH)
-
 
 resize :: Spec
 resize = describe "resize" $ do
