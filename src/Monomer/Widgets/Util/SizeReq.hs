@@ -1,4 +1,6 @@
 module Monomer.Widgets.Util.SizeReq (
+  SizeReqUpdater(..),
+  clearExtra,
   sizeReqBound,
   sizeReqValid,
   sizeReqAddStyle,
@@ -13,6 +15,7 @@ module Monomer.Widgets.Util.SizeReq (
   sizeReqMergeMax
 ) where
 
+import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Sequence ((|>))
@@ -21,6 +24,14 @@ import Monomer.Core
 import Monomer.Event
 import Monomer.Widgets.Util.Style
 import Monomer.Widgets.Util.Widget
+
+import qualified Monomer.Core.Lens as L
+import Data.Bits
+
+type SizeReqUpdater = (SizeReq, SizeReq) -> (SizeReq, SizeReq)
+
+clearExtra :: SizeReqUpdater
+clearExtra (req1, req2) = (req1 & L.extra .~ 0, req2 & L.extra .~ 0)
 
 sizeReqBound :: SizeReq -> Double -> Double -> Double
 sizeReqBound sizeReq offset value = max minSize (min maxSize value) where
@@ -41,114 +52,62 @@ sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
   newReqH = modifySizeReq realReqH (+h)
 
 sizeReqMin :: SizeReq -> Double
-sizeReqMin (FixedSize c) = c
-sizeReqMin (FlexSize c _) = 0
-sizeReqMin (MinSize c _) = c
-sizeReqMin (MaxSize c _) = 0
-sizeReqMin (RangeSize c1 c2 _) = c1
+sizeReqMin req = req ^. L.fixed
 
 sizeReqMax :: SizeReq -> Double
-sizeReqMax (FixedSize c) = c
-sizeReqMax (FlexSize c _) = maxNumericValue
-sizeReqMax (MinSize c _) = maxNumericValue
-sizeReqMax (MaxSize c _) = c
-sizeReqMax (RangeSize c1 c2 _) = c2
+sizeReqMax req
+  | req ^. L.extra > 0 = maxNumericValue
+  | otherwise = req ^. L.fixed + req ^. L.flex
 
 sizeReqMaxBounded :: SizeReq -> Double
-sizeReqMaxBounded (FixedSize c) = c
-sizeReqMaxBounded (FlexSize c _) = c
-sizeReqMaxBounded (MinSize c _) = c
-sizeReqMaxBounded (MaxSize c _) = c
-sizeReqMaxBounded (RangeSize c1 c2 _) = c2
+sizeReqMaxBounded req = req ^. L.fixed + req ^. L.flex
 
 sizeReqFixed :: SizeReq -> Double
-sizeReqFixed (FixedSize s) = s
-sizeReqFixed (FlexSize s _) = 0
-sizeReqFixed (MinSize s _) = s
-sizeReqFixed (MaxSize s _) = 0
-sizeReqFixed (RangeSize s1 _ _) = s1
+sizeReqFixed req = req ^. L.fixed
 
 sizeReqFlex :: SizeReq -> Double
-sizeReqFlex (FixedSize s) = 0
-sizeReqFlex (FlexSize s _) = s
--- This one is 0 to avoid MinSize claiming the same space again in extra
-sizeReqFlex (MinSize s _) = 0
-sizeReqFlex (MaxSize s _) = s
-sizeReqFlex (RangeSize s1 s2 _) = s2 - s1
+sizeReqFlex req = req ^. L.flex
 
 sizeReqExtra :: SizeReq -> Double
-sizeReqExtra (FlexSize s _) = s
-sizeReqExtra (MinSize s _) = s
-sizeReqExtra _ = 0
+sizeReqExtra req = req ^. L.extra
 
 sizeReqFactor :: SizeReq -> Double
-sizeReqFactor (FixedSize _) = 1
-sizeReqFactor (FlexSize _ f) = f
-sizeReqFactor (MinSize _ f) = f
-sizeReqFactor (MaxSize _ f) = f
-sizeReqFactor (RangeSize _ _ f) = f
+sizeReqFactor req = req ^. L.factor
 
 sizeReqMergeSum :: SizeReq -> SizeReq -> SizeReq
-sizeReqMergeSum req1 req2 = case (req1, req2) of
-  -- Fixed
-  (FixedSize s1, FixedSize s2) -> FixedSize (s1 + s2)
-  (FixedSize s1, FlexSize s2 f2) -> mkRangeSize s1 (s1 + s2) f2
-  (FixedSize s1, MinSize s2 f2) -> MinSize (s1 + s2) f2
-  (FixedSize s1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2) f2
-  (FixedSize s1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) f2
-  -- Flex
-  (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (s1 + s2) (max f1 f2)
-  (FlexSize s1 f1, MinSize s2 f2) -> mkRangeSize s2 (s1 + s2) (max f1 f2)
-  (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (s1 + s2) (max f1 f2)
-  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) (max f1 f2)
-  -- Min
-  (MinSize s1 f1, MinSize s2 f2) -> MinSize (s1 + s2) (max f1 f2)
-  (MinSize s1 f1, MaxSize s2 f2) -> mkRangeSize s1 (s1 + s2) (max f1 f2)
-  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (s1 + sa2) (s1 + sb2) (max f1 f2)
-  -- Max
-  (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (s1 + s2) (max f1 f2)
-  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (s1 + sb2) (max f1 f2)
-  -- Range
-  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (sa1 + sa2) (sb1 + sb2) (max f1 f2)
-  -- Reverse handled with existing cases
-  (pending1, pending2) -> sizeReqMergeSum pending2 pending1
+sizeReqMergeSum req1 req2 = newReq where
+  newReq = SizeReq {
+    _szrFixed = _szrFixed req1 + _szrFixed req2,
+    _szrFlex = _szrFlex req1 + _szrFlex req2,
+    _szrExtra = _szrExtra req1 + _szrExtra req2,
+    _szrFactor = max (_szrFactor req1) (_szrFactor req2)
+  }
 
 sizeReqMergeMax :: SizeReq -> SizeReq -> SizeReq
-sizeReqMergeMax req1 req2 = case (req1, req2) of
-  -- Fixed
-  (FixedSize s1, FixedSize s2) -> FixedSize (max s1 s2)
-  (FixedSize s1, FlexSize s2 f2) -> mkRangeSize s1 (max s1 s2) f2
-  (FixedSize s1, MinSize s2 f2) -> MinSize (max s1 s2) f2
-  (FixedSize s1, MaxSize s2 f2) -> mkRangeSize s1 (max s1 s2) f2
-  (FixedSize s1, RangeSize sa2 sb2 f2) -> mkRangeSize (max s1 sa2) (max s1 sb2) f2
-  -- Flex
-  (FlexSize s1 f1, FlexSize s2 f2) -> FlexSize (max s1 s2) (max f1 f2)
-  (FlexSize s1 f1, MinSize s2 f2) -> MinSize s2 (max f1 f2)
-  (FlexSize s1 f1, MaxSize s2 f2) -> FlexSize (max s1 s2) f1
-  (FlexSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (max s1 sb2) (max f1 f2)
-  -- Min
-  (MinSize s1 f1, MinSize s2 f2) -> MinSize (max s1 s2) (max f1 f2)
-  (MinSize s1 f1, MaxSize s2 f2) -> MinSize s1 f1
-  (MinSize s1 f1, RangeSize sa2 sb2 f2) -> MinSize (max s1 sa2) f1
-  -- Max
-  (MaxSize s1 f1, MaxSize s2 f2) -> MaxSize (max s1 s2) (max f1 f2)
-  (MaxSize s1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize sa2 (max s1 sb2) (max f1 f2)
-  -- Range
-  (RangeSize sa1 sb1 f1, RangeSize sa2 sb2 f2) -> mkRangeSize (max sa1 sa2) (max sb1 sb2) (max f1 f2)
-  -- Reverse handled with existing cases
-  (pending1, pending2) -> sizeReqMergeMax pending2 pending1
+sizeReqMergeMax req1 req2 = newReq where
+  isFixedReq1 = round (req1 ^. L.fixed) > 0
+  isFixedReq2 = round (req2 ^. L.fixed) > 0
+  flexReq1 = req1 ^. L.flex
+  flexReq2 = req2 ^. L.flex
+  newFixed = max (req1 ^. L.fixed) (req2 ^. L.fixed)
+  newFlex
+    | not (isFixedReq1 `xor` isFixedReq2) = max flexReq1 flexReq2
+    | isFixedReq1 && flexReq1 > flexReq2 = flexReq1
+    | isFixedReq2 && flexReq2 > flexReq1 = flexReq2
+    | otherwise = max 0 $ max flexReq1 flexReq2 - newFixed
+  newReq = SizeReq {
+    _szrFixed = newFixed,
+    _szrFlex = newFlex,
+    _szrExtra = max (req1 ^. L.extra) (req2 ^. L.extra),
+    _szrFactor = max (req1 ^. L.factor) (req2 ^. L.factor)
+  }
 
 modifySizeReq :: SizeReq -> (Double -> Double) -> SizeReq
-modifySizeReq (FixedSize c) f = FixedSize (f c)
-modifySizeReq (FlexSize c factor) f = FlexSize (f c) factor
-modifySizeReq (MinSize c factor) f = MinSize (f c) factor
-modifySizeReq (MaxSize c factor) f = MaxSize (f c) factor
-modifySizeReq (RangeSize c1 c2 factor) f = RangeSize (f c1) (f c2) factor
-
-mkRangeSize :: Double -> Double -> Double -> SizeReq
-mkRangeSize s1 s2 f
-  | abs (s2 - s1) < 0.01 = FixedSize s1
-  | otherwise = RangeSize s1 s2 f
+modifySizeReq (SizeReq fixed flex extra factor) fn = def
+  & L.fixed .~ (if fixed > 0 then fn fixed else 0)
+  & L.flex .~ (if flex > 0 then fn flex else 0)
+  & L.extra .~ (if extra > 0 then fn extra else 0)
+  & L.factor .~ factor
 
 doubleInRange :: Double -> Double -> Double -> Bool
 doubleInRange minValue maxValue curValue = validMin && validMax where

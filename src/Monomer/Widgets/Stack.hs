@@ -20,16 +20,21 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-newtype StackCfg = StackCfg {
-  _stcIgnoreEmptyArea :: Maybe Bool
+data StackCfg = StackCfg {
+  _stcIgnoreEmptyArea :: Maybe Bool,
+  _stcSizeReqUpdater :: Maybe SizeReqUpdater
 }
 
 instance Default StackCfg where
-  def = StackCfg Nothing
+  def = StackCfg {
+    _stcIgnoreEmptyArea = Nothing,
+    _stcSizeReqUpdater = Nothing
+  }
 
 instance Semigroup StackCfg where
   (<>) s1 s2 = StackCfg {
-    _stcIgnoreEmptyArea = _stcIgnoreEmptyArea s2 <|> _stcIgnoreEmptyArea s1
+    _stcIgnoreEmptyArea = _stcIgnoreEmptyArea s2 <|> _stcIgnoreEmptyArea s1,
+    _stcSizeReqUpdater = _stcSizeReqUpdater s2 <|> _stcSizeReqUpdater s1
   }
 
 instance Monoid StackCfg where
@@ -38,6 +43,11 @@ instance Monoid StackCfg where
 instance CmbIgnoreEmptyArea StackCfg where
   ignoreEmptyArea_ ignore = def {
     _stcIgnoreEmptyArea = Just ignore
+  }
+
+instance CmbSizeReqUpdater StackCfg where
+  sizeReqUpdater updater = def {
+    _stcSizeReqUpdater = Just updater
   }
 
 hstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
@@ -79,13 +89,15 @@ makeStack isHorizontal config = widget where
   isVertical = not isHorizontal
   ignoreEmptyArea = fromMaybe False (_stcIgnoreEmptyArea config)
 
-  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv currState node children = newSizeReq where
+    updateSizeReq = fromMaybe id (_stcSizeReqUpdater config)
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
+    newSizeReq = updateSizeReq (newSizeReqW, newSizeReqH)
 
   getDimSizeReq mainAxis accesor vchildren
-    | Seq.null vreqs = FixedSize 0
+    | Seq.null vreqs = fixedSize 0
     | mainAxis = foldl1 sizeReqMergeSum vreqs
     | otherwise = foldl1 sizeReqMergeMax vreqs
     where
@@ -140,15 +152,11 @@ resizeChild :: Bool -> Rect -> Factor -> Factor -> Double -> WidgetNode s e -> R
 resizeChild horizontal contentArea flexCoeff extraCoeff offset child = result where
   Rect l t w h = contentArea
   emptyRect = Rect l t 0 0
-  -- Only one is active (flex is negative or extra is >= 0)
-  totalCoeff = flexCoeff + extraCoeff
-  tempMainSize = case mainReqSelector horizontal child of
-    FixedSize sz -> sz
-    FlexSize sz factor -> (1 + totalCoeff * factor) * sz
-    -- Flex does not apply to min, so there's nothing to remove from (no '1 +')
-    MinSize sz factor -> sz + extraCoeff * factor * sz
-    MaxSize sz factor -> (1 + flexCoeff * factor) * sz
-    RangeSize sz1 sz2 factor -> sz1 + (1 + flexCoeff * factor) * (sz2 - sz1)
+  -- Either flex or extra is active (flex is negative or extra is >= 0)
+  SizeReq fixed flex extra factor = mainReqSelector horizontal child
+  tempMainSize = fixed
+    + (1 + flexCoeff * factor) * flex
+    + extraCoeff * factor * extra
   mainSize = max 0 tempMainSize
   hRect = Rect offset t mainSize h
   vRect = Rect l offset w mainSize

@@ -150,7 +150,7 @@ makeZStack config state = widget where
     newSizeReqH = getDimSizeReq (_wniSizeReqH . _wnInfo) vchildren
 
   getDimSizeReq accesor vchildren
-    | Seq.null vreqs = FixedSize 0
+    | Seq.null vreqs = fixedSize 0
     | otherwise = foldl1 sizeReqMergeMax vreqs
     where
       vreqs = accesor <$> vchildren

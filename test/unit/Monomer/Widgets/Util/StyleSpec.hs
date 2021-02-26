@@ -85,7 +85,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     baseNode = createNode True
       & L.info . L.style .~ style
     node = nodeInit wenv baseNode
-    modNode = node & L.info . L.sizeReqW .~ FixedSize 100
+    modNode = node & L.info . L.sizeReqW .~ fixedSize 100
     res1 = Just $ WidgetResult modNode Empty Empty
     res2 = Just $ WidgetResult node Empty Empty
     point = Point 200 200

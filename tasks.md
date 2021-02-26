@@ -521,6 +521,9 @@
   - Add underline and strikethrough
   - Boolean combinators should have a default non-argument version and an underscore one that receives a boolean
   - Maybe label resizeFactor should default to zero?
+  - Think about using stack resize logic in box
+    - Add option to modify size req
+  - Add maxLines config option to label
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -534,14 +537,13 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Think about using stack resize logic in box
-    - Add option to modify size req
-  - Add maxLines config option to label
-  - Add resize limit in Handlers (to avoid infinite loop)
-  - Make button use label + box (way too much duplicated code)
-  - Move SizeReq to Core
-    - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
+  - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
     - Review dialogs after change is in place
+  - Move SizeReq to Core
+    - Add concept of active layout direction (needed to have a single spacer/filler)
+  - Make button use label + box (way too much duplicated code)
+    - Review dialogs after change is in place (currently button uses expandSize)
+      - Remove clearExtra from dialog buttons
   - Auto scroll affects dropdown when listView is displayed
 
 Future

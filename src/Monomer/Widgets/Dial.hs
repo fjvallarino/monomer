@@ -256,7 +256,7 @@ makeDial field minVal maxVal config state = widget where
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
-    req = (FixedSize width, FixedSize width)
+    req = (fixedSize width, fixedSize width)
 
   render renderer wenv node = do
     drawArcBorder renderer dialArea start endSnd CW (Just sndColor) dialBW

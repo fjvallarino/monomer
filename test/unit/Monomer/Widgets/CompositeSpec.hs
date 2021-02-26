@@ -427,10 +427,10 @@ findByHelperUI = composite "main" id buildUI handleEvent where
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Fixed 70" $
-    sizeReqW `shouldBe` FixedSize 70
+    sizeReqW `shouldBe` fixedSize 70
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 40
+    sizeReqH `shouldBe` fixedSize 40
 
   where
     wenv = mockWenv ()

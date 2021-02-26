@@ -171,7 +171,7 @@ makeImage imgPath config state = widget where
   getSizeReq wenv currState node = sizeReq where
     Size w h = maybe def snd (isImageData currState)
     factor = 1
-    sizeReq = (FlexSize w factor, FlexSize h factor)
+    sizeReq = (expandSize w factor, expandSize h factor)
 
   render renderer wenv node = do
     when (imageLoaded && imageExists) $

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.GridSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
@@ -27,14 +29,15 @@ getSizeReq = describe "getSizeReq" $ do
   getSizeReqItemsV
   getSizeReqMixedH
   getSizeReqMixedV
+  getSizeReqUpdater
 
 getSizeReqEmpty :: Spec
 getSizeReqEmpty = describe "empty" $ do
   it "should return width = Fixed 0" $
-    sizeReqW `shouldBe` FixedSize 0
+    sizeReqW `shouldBe` fixedSize 0
 
   it "should return height = Fixed 0" $
-    sizeReqH `shouldBe` FixedSize 0
+    sizeReqH `shouldBe` fixedSize 0
 
   where
     wenv = mockWenv ()
@@ -44,10 +47,10 @@ getSizeReqEmpty = describe "empty" $ do
 getSizeReqItemsH :: Spec
 getSizeReqItemsH = describe "several items, horizontal" $ do
   it "should return width = Fixed 240 (largest width * 3)" $
-    sizeReqW `shouldBe` FixedSize 240
+    sizeReqW `shouldBe` fixedSize 240
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   where
     wenv = mockWenv ()
@@ -61,10 +64,10 @@ getSizeReqItemsH = describe "several items, horizontal" $ do
 getSizeReqItemsV :: Spec
 getSizeReqItemsV = describe "several items, vertical, one not visible" $ do
   it "should return width = Fixed 80" $
-    sizeReqW `shouldBe` FixedSize 80
+    sizeReqW `shouldBe` fixedSize 80
 
   it "should return height = Fixed 60" $
-    sizeReqH `shouldBe` FixedSize 60
+    sizeReqH `shouldBe` fixedSize 60
 
   where
     wenv = mockWenv ()
@@ -79,10 +82,10 @@ getSizeReqItemsV = describe "several items, vertical, one not visible" $ do
 getSizeReqMixedH :: Spec
 getSizeReqMixedH = describe "several items, different reqSizes" $ do
   it "should return width = Range 300 900 1 (3 * Range 100 300)" $
-    sizeReqW `shouldBe` RangeSize 300 900 1
+    sizeReqW `shouldBe` rangeSize 300 900 1
 
   it "should return height = Range 100 300 1" $
-    sizeReqH `shouldBe` RangeSize 100 300 1
+    sizeReqH `shouldBe` rangeSize 100 300 1
 
   where
     wenv = mockWenv ()
@@ -96,10 +99,10 @@ getSizeReqMixedH = describe "several items, different reqSizes" $ do
 getSizeReqMixedV :: Spec
 getSizeReqMixedV = describe "several items, different reqSizes" $ do
   it "should return width = Min 100 1" $
-    sizeReqW `shouldBe` MinSize 100 1
+    sizeReqW `shouldBe` SizeReq 100 200 100 1
 
   it "should return height = Min 300 1 (3 * Min 100)" $
-    sizeReqH `shouldBe` MinSize 300 1
+    sizeReqH `shouldBe` SizeReq 300 600 300 1
 
   where
     wenv = mockWenv ()
@@ -109,6 +112,20 @@ getSizeReqMixedV = describe "several items, different reqSizes" $ do
         label "Label 3"
       ]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
+
+getSizeReqUpdater :: Spec
+getSizeReqUpdater = describe "getSizeReqUpdater" $ do
+  it "should return width = Min 50 2" $
+    sizeReqW `shouldBe` minSize 50 2
+
+  it "should return height = Max 20" $
+    sizeReqH `shouldBe` maxSize 20 3
+
+  where
+    wenv = mockWenv ()
+    updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
+    vgridNode = vgrid_ [sizeReqUpdater updater] [label "Label"]
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vgridNode
 
 resize :: Spec
 resize = describe "resize" $ do

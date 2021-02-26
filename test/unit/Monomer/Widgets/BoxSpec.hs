@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.BoxSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
@@ -81,10 +83,10 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Fixed 50" $
-    sizeReqW `shouldBe` FixedSize 50
+    sizeReqW `shouldBe` fixedSize 50
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   where
     wenv = mockWenv ()
@@ -94,15 +96,14 @@ getSizeReq = describe "getSizeReq" $ do
 getSizeReqUpdater :: Spec
 getSizeReqUpdater = describe "getSizeReqUpdater" $ do
   it "should return width = Min 50 2" $
-    sizeReqW `shouldBe` MinSize 50 2
+    sizeReqW `shouldBe` minSize 50 2
 
   it "should return height = Max 20" $
-    sizeReqH `shouldBe` MaxSize 20 3
+    sizeReqH `shouldBe` maxSize 20 3
 
   where
     wenv = mockWenv ()
-    updater (FixedSize w, FixedSize h) = (MinSize w 2, MaxSize h 3)
-    updater other = other
+    updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
     boxNode = box_ [sizeReqUpdater updater] (label "Label")
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
 

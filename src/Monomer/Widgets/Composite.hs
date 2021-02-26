@@ -176,7 +176,7 @@ instance WidgetModel s => Serialise (CompositeState s e) where
     modelBS <- decode
     let model = fromRight Nothing (byteStringToModel modelBS)
     case (len, tag) of
-      (2, 0) -> return $ CompositeState model spacer M.empty
+      (2, 0) -> return $ CompositeState model hspacer M.empty
       _ -> fail "Invalid Composite state"
 
 instance (WidgetModel s, Typeable e) => WidgetModel (CompositeState s e) where
@@ -273,7 +273,7 @@ compositeD_
 compositeD_ wType wData uiBuilder evtHandler configs = newNode where
   config = mconcat configs
   mergeReq = fromMaybe (/=) (_cmcMergeRequired config)
-  widgetRoot = spacer
+  widgetRoot = hspacer
   composite = Composite {
     _cmpWidgetData = wData,
     _cmpEventHandler = evtHandler,

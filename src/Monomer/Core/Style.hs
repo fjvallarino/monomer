@@ -2,10 +2,16 @@ module Monomer.Core.Style (
   module Monomer.Core.StyleTypes,
   module Monomer.Core.ThemeTypes,
   paddingH,
-  paddingV
+  paddingV,
+  fixedSize,
+  flexSize,
+  expandSize,
+  minSize,
+  maxSize,
+  rangeSize
 ) where
 
-import Control.Lens ((&), (?~), non)
+import Control.Lens ((&), (.~), (?~), non)
 import Data.Default
 
 import Monomer.Core.Combinators
@@ -21,36 +27,67 @@ paddingH p = paddingL p <> paddingR p
 paddingV :: (Semigroup a, CmbPaddingT a, CmbPaddingB a) => Double -> a
 paddingV p = paddingT p <> paddingB p
 
+fixedSize :: Double -> SizeReq
+fixedSize s = def & L.fixed .~ s
+
+flexSize :: Double -> Double -> SizeReq
+flexSize s f = def
+  & L.flex .~ s
+  & L.factor .~ f
+
+expandSize :: Double -> Double -> SizeReq
+expandSize s f = def
+  & L.flex .~ s
+  & L.extra .~ s
+  & L.factor .~ f
+
+minSize :: Double -> Double -> SizeReq
+minSize s f = def
+  & L.fixed .~ s
+  & L.extra .~ s
+  & L.factor .~ f
+
+maxSize :: Double -> Double -> SizeReq
+maxSize s f = def
+  & L.flex .~ s
+  & L.factor .~ f
+
+rangeSize :: Double -> Double -> Double -> SizeReq
+rangeSize s1 s2 f = def
+  & L.fixed .~ s1
+  & L.flex .~ s2 - s1
+  & L.factor .~ f
+
 -- Size
 instance CmbWidth SizeReq where
-  width w = FixedSize w
+  width w = fixedSize w
 
 instance CmbHeight SizeReq where
-  height h = FixedSize h
+  height h = fixedSize h
 
 instance CmbFlexWidth SizeReq where
-  flexWidth w = FlexSize w 1
+  flexWidth w = expandSize w 1
 
 instance CmbFlexHeight SizeReq where
-  flexHeight h = FlexSize h 1
-
-instance CmbRangeWidth SizeReq where
-  rangeWidth w1 w2 = RangeSize w1 w2 1
-
-instance CmbRangeHeight SizeReq where
-  rangeHeight h1 h2 = RangeSize h1 h2 1
+  flexHeight h = expandSize h 1
 
 instance CmbMinWidth SizeReq where
-  minWidth w = MinSize w 1
+  minWidth w = minSize w 1
 
 instance CmbMinHeight SizeReq where
-  minHeight h = MinSize h 1
+  minHeight h = minSize h 1
 
 instance CmbMaxWidth SizeReq where
-  maxWidth w = MaxSize w 1
+  maxWidth w = maxSize w 1
 
 instance CmbMaxHeight SizeReq where
-  maxHeight h = MaxSize h 1
+  maxHeight h = maxSize h 1
+
+instance CmbRangeWidth SizeReq where
+  rangeWidth w1 w2 = rangeSize w1 w2 1
+
+instance CmbRangeHeight SizeReq where
+  rangeHeight h1 h2 = rangeSize h1 h2 1
 
 -- Text
 instance CmbTextFont TextStyle where
@@ -177,34 +214,34 @@ instance CmbInnerRadiusBR Radius where
 
 -- Size
 instance CmbWidth StyleState where
-  width w = def & L.sizeReqW ?~ FixedSize w
+  width w = def & L.sizeReqW ?~ width w
 
 instance CmbHeight StyleState where
-  height h = def & L.sizeReqH ?~ FixedSize h
+  height h = def & L.sizeReqH ?~ height h
 
 instance CmbFlexWidth StyleState where
-  flexWidth w = def & L.sizeReqW ?~ FlexSize w 1
+  flexWidth w = def & L.sizeReqW ?~ flexWidth w
 
 instance CmbFlexHeight StyleState where
-  flexHeight h = def & L.sizeReqH ?~ FlexSize h 1
-
-instance CmbRangeWidth StyleState where
-  rangeWidth w1 w2 = def & L.sizeReqW ?~ RangeSize w1 w2 1
-
-instance CmbRangeHeight StyleState where
-  rangeHeight h1 h2 = def & L.sizeReqH ?~ RangeSize h1 h2 1
+  flexHeight h = def & L.sizeReqH ?~ flexHeight h
 
 instance CmbMinWidth StyleState where
-  minWidth w = def & L.sizeReqW ?~ MinSize w 1
+  minWidth w = def & L.sizeReqW ?~ minWidth w
 
 instance CmbMinHeight StyleState where
-  minHeight h = def & L.sizeReqH ?~ MinSize h 1
+  minHeight h = def & L.sizeReqH ?~ minHeight h
 
 instance CmbMaxWidth StyleState where
-  maxWidth w = def & L.sizeReqW ?~ MaxSize w 1
+  maxWidth w = def & L.sizeReqW ?~ maxWidth w
 
 instance CmbMaxHeight StyleState where
-  maxHeight h = def & L.sizeReqH ?~ MaxSize h 1
+  maxHeight h = def & L.sizeReqH ?~ maxHeight h
+
+instance CmbRangeWidth StyleState where
+  rangeWidth w1 w2 = def & L.sizeReqW ?~ rangeWidth w1 w2
+
+instance CmbRangeHeight StyleState where
+  rangeHeight h1 h2 = def & L.sizeReqH ?~ rangeHeight h1 h2
 
 instance CmbSizeReqW StyleState where
   sizeReqW srW = def & L.sizeReqW ?~ srW

@@ -261,11 +261,11 @@ makeButton config state = widget where
     factorW = fromMaybe 0.01 (_btnFactorW config)
     factorH = fromMaybe 0 (_btnFactorH config)
     sizeW
-      | abs factorW < 0.01 = FixedSize w
-      | otherwise = FlexSize w factorW
+      | abs factorW < 0.01 = fixedSize w
+      | otherwise = expandSize w factorW
     sizeH
-      | abs factorH < 0.01 = FixedSize h
-      | otherwise = FlexSize h factorH
+      | abs factorH < 0.01 = fixedSize h
+      | otherwise = expandSize h factorH
 
   resize wenv viewport node = resultWidget newNode where
     style = activeStyle wenv node

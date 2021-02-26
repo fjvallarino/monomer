@@ -160,7 +160,7 @@ makeCheckbox widgetData config = widget where
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
-    req = (FixedSize width, FixedSize width)
+    req = (fixedSize width, fixedSize width)
 
   render renderer wenv node = do
     renderCheckbox renderer checkboxBW checkboxArea fgColor

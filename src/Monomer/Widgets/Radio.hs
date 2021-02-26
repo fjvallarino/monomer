@@ -154,7 +154,7 @@ makeRadio field option config = widget where
   getSizeReq wenv currState node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
-    req = (FixedSize width, FixedSize width)
+    req = (fixedSize width, fixedSize width)
 
   render renderer wenv node = do
     renderRadio renderer radioBW radioArea fgColor

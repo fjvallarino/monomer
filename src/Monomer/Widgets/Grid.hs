@@ -2,9 +2,12 @@
 
 module Monomer.Widgets.Grid (
   hgrid,
-  vgrid
+  hgrid_,
+  vgrid,
+  vgrid_
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.List (foldl')
@@ -17,16 +20,48 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-hgrid :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-hgrid children = defaultWidgetNode "hgrid" (makeFixedGrid True)
-  & L.children .~ foldl' (|>) Empty children
+newtype GridCfg = GridCfg {
+  _grcSizeReqUpdater :: Maybe SizeReqUpdater
+}
 
-vgrid :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
-vgrid children = defaultWidgetNode "vgrid" (makeFixedGrid False)
-  & L.children .~ foldl' (|>) Empty children
+instance Default GridCfg where
+  def = GridCfg {
+    _grcSizeReqUpdater = Nothing
+  }
 
-makeFixedGrid :: Bool -> Widget s e
-makeFixedGrid isHorizontal = widget where
+instance Semigroup GridCfg where
+  (<>) s1 s2 = GridCfg {
+    _grcSizeReqUpdater = _grcSizeReqUpdater s2 <|> _grcSizeReqUpdater s1
+  }
+
+instance Monoid GridCfg where
+  mempty = def
+
+instance CmbSizeReqUpdater GridCfg where
+  sizeReqUpdater updater = def {
+    _grcSizeReqUpdater = Just updater
+  }
+
+hgrid :: Traversable t => t (WidgetNode s e) -> WidgetNode s e
+hgrid children = hgrid_ def children
+
+hgrid_ :: Traversable t => [GridCfg] -> t (WidgetNode s e) -> WidgetNode s e
+hgrid_ configs children = newNode where
+  config = mconcat configs
+  newNode = defaultWidgetNode "hgrid" (makeFixedGrid True config)
+    & L.children .~ foldl' (|>) Empty children
+
+vgrid :: Traversable t => t (WidgetNode s e) -> WidgetNode s e
+vgrid children = vgrid_ def children
+
+vgrid_ :: Traversable t => [GridCfg] -> t (WidgetNode s e) -> WidgetNode s e
+vgrid_ configs children = newNode where
+  config = mconcat configs
+  newNode = defaultWidgetNode "vgrid" (makeFixedGrid False config)
+    & L.children .~ foldl' (|>) Empty children
+
+makeFixedGrid :: Bool -> GridCfg -> Widget s e
+makeFixedGrid isHorizontal config = widget where
   widget = createContainer () def {
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -34,13 +69,15 @@ makeFixedGrid isHorizontal = widget where
 
   isVertical = not isHorizontal
 
-  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv currState node children = newSizeReq where
+    updateSizeReq = fromMaybe id (_grcSizeReqUpdater config)
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
+    newSizeReq = updateSizeReq (newSizeReqW, newSizeReqH)
 
   getDimSizeReq mainAxis accesor vchildren
-    | Seq.null vreqs = FixedSize 0
+    | Seq.null vreqs = fixedSize 0
     | mainAxis = foldl1 sizeReqMergeSum (Seq.replicate nreqs maxSize)
     | otherwise = maxSize
     where

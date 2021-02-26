@@ -255,10 +255,10 @@ handleEventHistory = describe "handleEventHistory" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 100 1" $
-    sizeReqW `shouldBe` FlexSize 100 1
+    sizeReqW `shouldBe` expandSize 100 1
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   where
     wenv = mockWenvEvtUnit (TestModel "Test value")

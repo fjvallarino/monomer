@@ -140,16 +140,16 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Range 5 125 0.01" $
-    hsizeReqW `shouldBe` RangeSize 3 123 0.01
+    hsizeReqW `shouldBe` SizeReq 3 120 120 1
 
   it "should return height = Fixed 20" $
-    hsizeReqH `shouldBe` FixedSize 20
+    hsizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 60 0.01" $
-    vsizeReqW `shouldBe` FlexSize 60 0.01
+    vsizeReqW `shouldBe` expandSize 60 0.01
 
   it "should return height = Fixed 45" $
-    vsizeReqH `shouldBe` FixedSize 43
+    vsizeReqH `shouldBe` fixedSize 43
 
   where
     wenv = mockWenv (TestModel 0)

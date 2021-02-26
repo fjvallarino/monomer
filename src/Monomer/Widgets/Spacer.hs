@@ -1,13 +1,18 @@
 module Monomer.Widgets.Spacer (
-  spacer,
-  spacer_,
-  filler,
-  filler_
+  hspacer,
+  hspacer_,
+  vspacer,
+  vspacer_,
+  hfiller,
+  hfiller_,
+  vfiller,
+  vfiller_
 ) where
 
 import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
+import Data.Tuple
 
 import Monomer.Widgets.Single
 
@@ -49,24 +54,48 @@ instance CmbResizeFactor SpacerCfg where
     _spcFactor = Just f
   }
 
-spacer :: WidgetNode s e
-spacer = spacer_ def
+hspacer :: WidgetNode s e
+hspacer = spacer True
 
-spacer_ :: [SpacerCfg] -> WidgetNode s e
-spacer_ configs = defaultWidgetNode "spacer" widget where
+hspacer_ :: [SpacerCfg] -> WidgetNode s e
+hspacer_ configs = spacer_ True configs
+
+vspacer :: WidgetNode s e
+vspacer = spacer False
+
+vspacer_ :: [SpacerCfg] -> WidgetNode s e
+vspacer_ configs = spacer_ False configs
+
+spacer :: Bool -> WidgetNode s e
+spacer isHorizontal = spacer_ isHorizontal def
+
+spacer_ :: Bool -> [SpacerCfg] -> WidgetNode s e
+spacer_ isHorizontal configs = defaultWidgetNode "spacer" widget where
   config = mconcat (resizeFactor 0 : configs)
-  widget = makeSpacer config
+  widget = makeSpacer isHorizontal config
 
-filler :: WidgetNode s e
-filler = filler_ def
+hfiller :: WidgetNode s e
+hfiller = filler True
 
-filler_ :: [SpacerCfg] -> WidgetNode s e
-filler_ configs = defaultWidgetNode "filler" widget where
+hfiller_ :: [SpacerCfg] -> WidgetNode s e
+hfiller_ configs = filler_ True configs
+
+vfiller :: WidgetNode s e
+vfiller = filler False
+
+vfiller_ :: [SpacerCfg] -> WidgetNode s e
+vfiller_ configs = filler_ False configs
+
+filler :: Bool -> WidgetNode s e
+filler isHorizontal = filler_ isHorizontal def
+
+filler_ :: Bool -> [SpacerCfg] -> WidgetNode s e
+filler_ isHorizontal configs = defaultWidgetNode "filler" widget where
   config = mconcat configs
-  widget = makeSpacer config
+  widget = makeSpacer isHorizontal config
 
-makeSpacer :: SpacerCfg  -> Widget s e
-makeSpacer config = widget where
+makeSpacer :: Bool -> SpacerCfg -> Widget s e
+makeSpacer isHorizontal config = widget where
   widget = createSingle () def {
     singleGetSizeReq = getSizeReq
   }
@@ -75,6 +104,7 @@ makeSpacer config = widget where
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)
+    fn = if isHorizontal then id else swap
     sizeReq
-      | factor >= 0.01 = (FlexSize width factor, FlexSize height factor)
-      | otherwise = (FixedSize width, FixedSize height)
+      | factor >= 0.01 = fn (expandSize width factor, flexSize height factor)
+      | otherwise = fn (fixedSize width, flexSize height factor)

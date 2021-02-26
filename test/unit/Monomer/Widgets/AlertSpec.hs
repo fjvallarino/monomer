@@ -31,7 +31,7 @@ handleEvent = describe "handleEvent" $ do
     events (Point 50 450) `shouldBe` Seq.singleton CloseClick
 
   it "should not generate a close event when clicking the dialog" $
-    events (Point 300 300) `shouldBe` Seq.empty
+    events (Point 300 200) `shouldBe` Seq.empty
 
   where
     wenv = mockWenv () & L.theme .~ darkTheme

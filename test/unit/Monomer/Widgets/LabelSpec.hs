@@ -28,16 +28,16 @@ spec = describe "Label" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Fixed 100" $
-    sizeReqW `shouldBe` FixedSize 100
+    sizeReqW `shouldBe` fixedSize 100
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 120 1" $
-    sizeReq2W `shouldBe` FlexSize 120 1
+    sizeReq2W `shouldBe` expandSize 120 1
 
   it "should return height = Flex 20 2" $
-    sizeReq2H `shouldBe` FlexSize 20 2
+    sizeReq2H `shouldBe` expandSize 20 2
 
   where
     wenv = mockWenv ()
@@ -49,10 +49,10 @@ getSizeReq = describe "getSizeReq" $ do
 getSizeReqMulti :: Spec
 getSizeReqMulti = describe "getSizeReq" $ do
   it "should return width = Fixed 50" $
-    sizeReqW `shouldBe` FixedSize 50
+    sizeReqW `shouldBe` fixedSize 50
 
   it "should return height = Flex 60 0.01" $
-    sizeReqH `shouldBe` FlexSize 60 0.01
+    sizeReqH `shouldBe` expandSize 60 0.01
 
   where
     wenv = mockWenv ()
@@ -62,10 +62,10 @@ getSizeReqMulti = describe "getSizeReq" $ do
 getSizeReqMultiKeepSpaces :: Spec
 getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   it "should return width = Max 50 1" $
-    sizeReqW `shouldBe` MaxSize 50 1
+    sizeReqW `shouldBe` maxSize 50 1
 
   it "should return height = Flex 100 0.01" $
-    sizeReqH `shouldBe` FlexSize 100 0.01
+    sizeReqH `shouldBe` expandSize 100 0.01
 
   where
     wenv = mockWenv ()
@@ -76,10 +76,10 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
 getSizeReqMultiMaxLines :: Spec
 getSizeReqMultiMaxLines = describe "getSizeReq" $ do
   it "should return width = Max 50 1" $
-    sizeReqW `shouldBe` MaxSize 50 1
+    sizeReqW `shouldBe` maxSize 50 1
 
   it "should return height = Flex 80 0.01" $
-    sizeReqH `shouldBe` FlexSize 80 0.01
+    sizeReqH `shouldBe` expandSize 80 0.01
 
   where
     wenv = mockWenv ()
@@ -90,16 +90,16 @@ getSizeReqMultiMaxLines = describe "getSizeReq" $ do
 getSizeReqMerge :: Spec
 getSizeReqMerge = describe "getSizeReqMerge" $ do
   it "should return width = Fixed 320" $
-    sizeReqW `shouldBe` FixedSize 320
+    sizeReqW `shouldBe` fixedSize 320
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Fixed 600" $
-    sizeReq2W `shouldBe` FixedSize 600
+    sizeReq2W `shouldBe` fixedSize 600
 
   it "should return height = Fixed 20" $
-    sizeReq2H `shouldBe` FixedSize 20
+    sizeReq2H `shouldBe` fixedSize 20
 
   where
     renderer = mockRenderer {

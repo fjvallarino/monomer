@@ -56,16 +56,16 @@ handleEvent = describe "handleEvent" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 50 0.01" $
-    sizeReqW `shouldBe` FlexSize 50 0.01
+    sizeReqW `shouldBe` expandSize 50 0.01
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 70 1" $
-    sizeReq2W `shouldBe` FlexSize 70 1
+    sizeReq2W `shouldBe` expandSize 70 1
 
   it "should return height = Flex 20 2" $
-    sizeReq2H `shouldBe` FlexSize 20 2
+    sizeReq2H `shouldBe` expandSize 20 2
 
   where
     wenv = mockWenv ()
@@ -77,16 +77,16 @@ getSizeReq = describe "getSizeReq" $ do
 getSizeReqMerge :: Spec
 getSizeReqMerge = describe "getSizeReqMerge" $ do
   it "should return width = Flex 192 0.01" $
-    sizeReqW `shouldBe` FlexSize 192 0.01
+    sizeReqW `shouldBe` expandSize 192 0.01
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 360 0.01" $
-    sizeReq2W `shouldBe` FlexSize 360 0.01
+    sizeReq2W `shouldBe` expandSize 360 0.01
 
   it "should return height = Fixed 20" $
-    sizeReq2H `shouldBe` FixedSize 20
+    sizeReq2H `shouldBe` fixedSize 20
 
   where
     renderer = mockRenderer {

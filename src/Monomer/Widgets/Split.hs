@@ -216,7 +216,7 @@ makeSplit isHorizontal config state = widget where
     reqH1 = node1 ^. L.info . L.sizeReqH
     reqW2 = node2 ^. L.info . L.sizeReqW
     reqH2 = node2 ^. L.info . L.sizeReqH
-    reqWS = FixedSize handleW
+    reqWS = fixedSize handleW
     reqW
       | isHorizontal = foldl1 sizeReqMergeSum [reqWS, reqW1, reqW2]
       | otherwise = foldl1 sizeReqMergeMax [reqW1, reqW2]

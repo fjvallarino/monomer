@@ -160,10 +160,10 @@ handleEventRestored = describe "handleEventRestored" $ do
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   it "should return width = Flex 120" $
-    sizeReqW `shouldBe` FlexSize 120 1
+    sizeReqW `shouldBe` expandSize 120 1
 
   it "should return height = Flex 2000 1" $
-    sizeReqH `shouldBe` FlexSize 2000 1
+    sizeReqH `shouldBe` expandSize 2000 1
 
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)

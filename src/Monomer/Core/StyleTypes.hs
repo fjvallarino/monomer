@@ -13,16 +13,20 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 -- | Basic styling attributes
-data SizeReq
-  = FixedSize !Double
-  | FlexSize !Double !Factor
-  | MinSize !Double !Factor
-  | MaxSize !Double !Factor
-  | RangeSize !Double !Double !Factor
-  deriving (Eq, Show, Generic, Serialise)
+data SizeReq = SizeReq {
+  _szrFixed :: Double,
+  _szrFlex :: Double,
+  _szrExtra :: Double,
+  _szrFactor :: Factor
+} deriving (Eq, Show, Generic, Serialise)
 
 instance Default SizeReq where
-  def = FlexSize 0 1
+  def = SizeReq {
+    _szrFixed = 0,
+    _szrFlex = 0,
+    _szrExtra = 0,
+    _szrFactor = 1
+  }
 
 data CursorIcon
   = CursorArrow

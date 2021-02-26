@@ -29,13 +29,13 @@ handleEvent = describe "handleEvent" $ do
     events (Point 3000 3000) `shouldBe` Seq.singleton CancelClick
 
   it "should generate an Accept event when clicking the Accept button" $
-    events (Point 50 450) `shouldBe` Seq.singleton AcceptClick
+    events (Point 250 270) `shouldBe` Seq.singleton AcceptClick
 
   it "should generate a Cancel event when clicking the Cancel button" $
-    events (Point 150 450) `shouldBe` Seq.singleton CancelClick
+    events (Point 350 270) `shouldBe` Seq.singleton CancelClick
 
   it "should not generate a close event when clicking the dialog" $
-    events (Point 300 300) `shouldBe` Seq.empty
+    events (Point 300 200) `shouldBe` Seq.empty
 
   where
     wenv = mockWenv () & L.theme .~ darkTheme

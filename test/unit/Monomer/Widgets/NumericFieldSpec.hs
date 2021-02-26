@@ -206,16 +206,16 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
 getSizeReqIntegral :: Spec
 getSizeReqIntegral = describe "getSizeReqIntegral" $ do
   it "should return width = Flex 50 1" $
-    sizeReqW `shouldBe` FlexSize 50 1
+    sizeReqW `shouldBe` expandSize 50 1
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 110 1 when resizeOnChange = True" $
-    sizeReqW2 `shouldBe` FlexSize 110 1
+    sizeReqW2 `shouldBe` expandSize 110 1
 
   it "should return height = Fixed 20 when resizeOnChange = True" $
-    sizeReqH2 `shouldBe` FixedSize 20
+    sizeReqH2 `shouldBe` fixedSize 20
 
   where
     wenv = mockWenvEvtUnit (IntegralModel 10000000000 True)
@@ -390,16 +390,16 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
 getSizeReqFractional :: Spec
 getSizeReqFractional = describe "getSizeReqFractional" $ do
   it "should return width = Flex 70 1" $
-    sizeReqW `shouldBe` FlexSize 70 1
+    sizeReqW `shouldBe` expandSize 70 1
 
   it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` FixedSize 20
+    sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 110 1 when resizeOnChange = True" $
-    sizeReqW2 `shouldBe` FlexSize 110 1
+    sizeReqW2 `shouldBe` expandSize 110 1
 
   it "should return height = Fixed 20 when resizeOnChange = True" $
-    sizeReqH2 `shouldBe` FixedSize 20
+    sizeReqH2 `shouldBe` fixedSize 20
 
   where
     wenv = mockWenvEvtUnit (FractionalModel 10000000 True)

@@ -183,10 +183,10 @@ getSizeReq = describe "getSizeReq" $ do
 getSizeReqEmpty :: Spec
 getSizeReqEmpty = describe "empty" $ do
   it "should return width = Fixed 0" $
-    sizeReqW `shouldBe` FixedSize 0
+    sizeReqW `shouldBe` fixedSize 0
 
   it "should return height = Fixed 0" $
-    sizeReqH `shouldBe` FixedSize 0
+    sizeReqH `shouldBe` fixedSize 0
 
   where
     wenv = mockWenv ()
@@ -196,10 +196,10 @@ getSizeReqEmpty = describe "empty" $ do
 getSizeReqItems :: Spec
 getSizeReqItems = describe "several items, horizontal" $ do
   it "should return width = Fixed 130" $
-    sizeReqW `shouldBe` FixedSize 130
+    sizeReqW `shouldBe` fixedSize 130
 
   it "should return height = Fixed 60" $
-    sizeReqH `shouldBe` FixedSize 60
+    sizeReqH `shouldBe` fixedSize 60
 
   where
     wenv = mockWenv ()
@@ -222,10 +222,10 @@ getSizeReqItems = describe "several items, horizontal" $ do
 getSizeReqItemsFixed :: Spec
 getSizeReqItemsFixed = describe "several items, horizontal" $ do
   it "should return width = Fixed 300" $
-    sizeReqW `shouldBe` FixedSize 300
+    sizeReqW `shouldBe` fixedSize 300
 
   it "should return height = Fixed 40" $
-    sizeReqH `shouldBe` FixedSize 40
+    sizeReqH `shouldBe` fixedSize 40
 
   where
     wenv = mockWenv ()

@@ -413,7 +413,7 @@ makeScroll config state = widget where
     Size w h = fromMaybe def (addOuterSize style (Size tw th))
     factor = 1
 
-    sizeReq = (FlexSize w factor, FlexSize h factor)
+    sizeReq = (expandSize w factor, expandSize h factor)
 
   resize :: ContainerResizeHandler s e
   resize wenv viewport children node = result where

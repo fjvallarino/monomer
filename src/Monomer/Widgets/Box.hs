@@ -25,7 +25,7 @@ import qualified Monomer.Lens as L
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
-  _boxSizeReqUpdater :: Maybe ((SizeReq, SizeReq) -> (SizeReq, SizeReq)),
+  _boxSizeReqUpdater :: Maybe SizeReqUpdater,
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],

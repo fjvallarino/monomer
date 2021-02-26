@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.StackSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
@@ -26,14 +28,15 @@ getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
   getSizeReqEmpty
   getSizeReqItems
+  getSizeReqUpdater
 
 getSizeReqEmpty :: Spec
 getSizeReqEmpty = describe "empty" $ do
   it "should return Fixed width = 0" $
-    sizeReqW `shouldBe` FixedSize 0
+    sizeReqW `shouldBe` fixedSize 0
 
   it "should return Fixed height = 0" $
-    sizeReqH `shouldBe` FixedSize 0
+    sizeReqH `shouldBe` fixedSize 0
 
   where
     wenv = mockWenv ()
@@ -43,10 +46,10 @@ getSizeReqEmpty = describe "empty" $ do
 getSizeReqItems :: Spec
 getSizeReqItems = describe "several items" $ do
   it "should return width = Fixed 80" $
-    sizeReqW `shouldBe` FixedSize 80
+    sizeReqW `shouldBe` fixedSize 80
 
   it "should return height = Fixed 60" $
-    sizeReqH `shouldBe` FixedSize 60
+    sizeReqH `shouldBe` fixedSize 60
 
   where
     wenv = mockWenv ()
@@ -55,6 +58,20 @@ getSizeReqItems = describe "several items" $ do
         label "how",
         label "are you?"
       ]
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
+
+getSizeReqUpdater :: Spec
+getSizeReqUpdater = describe "getSizeReqUpdater" $ do
+  it "should return width = Min 50 2" $
+    sizeReqW `shouldBe` minSize 50 2
+
+  it "should return height = Max 20" $
+    sizeReqH `shouldBe` maxSize 20 3
+
+  where
+    wenv = mockWenv ()
+    updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
+    vstackNode = vstack_ [sizeReqUpdater updater] [label "Label"]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
 
 resize :: Spec
@@ -301,7 +318,7 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
     cvp3 = Rect 219 0 421 480
     hstackNode = hstack [
         label "Label" `style` [flexWidth 100],
-        filler,
+        hfiller,
         label "Label" `style` [flexWidth 200]
       ]
     newNode = nodeInit wenv hstackNode
@@ -324,7 +341,7 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
     cvp3 = Rect 440 0 200 480
     hstackNode = hstack [
         label "Label" `style` [width 100],
-        filler,
+        hfiller,
         label "Label" `style` [width 200]
       ]
     newNode = nodeInit wenv hstackNode
