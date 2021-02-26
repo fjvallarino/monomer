@@ -524,6 +524,8 @@
   - Think about using stack resize logic in box
     - Add option to modify size req
   - Add maxLines config option to label
+  - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
+    - Review dialogs after change is in place
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -537,8 +539,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Check Fixed+Flex sum/max criteria. Is a new Fixed+Flex type needed?
-    - Review dialogs after change is in place
   - Move SizeReq to Core
     - Add concept of active layout direction (needed to have a single spacer/filler)
   - Make button use label + box (way too much duplicated code)

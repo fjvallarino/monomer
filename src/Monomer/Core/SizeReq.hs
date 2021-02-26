@@ -1,4 +1,4 @@
-module Monomer.Widgets.Util.SizeReq (
+module Monomer.Core.SizeReq (
   SizeReqUpdater(..),
   clearExtra,
   sizeReqBound,
@@ -16,17 +16,16 @@ module Monomer.Widgets.Util.SizeReq (
 ) where
 
 import Control.Lens ((&), (^.), (.~))
+import Data.Bits
 import Data.Default
 import Data.Maybe
-import Data.Sequence ((|>))
 
-import Monomer.Core
-import Monomer.Event
-import Monomer.Widgets.Util.Style
-import Monomer.Widgets.Util.Widget
+import Monomer.Core.BasicTypes
+import Monomer.Core.StyleTypes
+import Monomer.Core.StyleUtil
+import Monomer.Core.Util
 
 import qualified Monomer.Core.Lens as L
-import Data.Bits
 
 type SizeReqUpdater = (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 
@@ -103,11 +102,12 @@ sizeReqMergeMax req1 req2 = newReq where
   }
 
 modifySizeReq :: SizeReq -> (Double -> Double) -> SizeReq
-modifySizeReq (SizeReq fixed flex extra factor) fn = def
-  & L.fixed .~ (if fixed > 0 then fn fixed else 0)
-  & L.flex .~ (if flex > 0 then fn flex else 0)
-  & L.extra .~ (if extra > 0 then fn extra else 0)
-  & L.factor .~ factor
+modifySizeReq (SizeReq fixed flex extra factor) fn = SizeReq {
+    _szrFixed = if fixed > 0 then fn fixed else 0,
+    _szrFlex = if flex > 0 then fn flex else 0,
+    _szrExtra = if extra > 0 then fn extra else 0,
+    _szrFactor = factor
+  }
 
 doubleInRange :: Double -> Double -> Double -> Bool
 doubleInRange minValue maxValue curValue = validMin && validMax where
