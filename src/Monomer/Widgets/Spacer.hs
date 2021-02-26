@@ -1,20 +1,21 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Monomer.Widgets.Spacer (
-  hspacer,
-  hspacer_,
-  vspacer,
-  vspacer_,
-  hfiller,
-  hfiller_,
-  vfiller,
-  vfiller_
+  spacer,
+  spacer_,
+  filler,
+  filler_
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Lens ((^.))
 import Data.Default
 import Data.Maybe
 import Data.Tuple
 
 import Monomer.Widgets.Single
+
+import qualified Monomer.Lens as L
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,
@@ -54,57 +55,44 @@ instance CmbResizeFactor SpacerCfg where
     _spcFactor = Just f
   }
 
-hspacer :: WidgetNode s e
-hspacer = spacer True
+spacer :: WidgetNode s e
+spacer = spacer_ def
 
-hspacer_ :: [SpacerCfg] -> WidgetNode s e
-hspacer_ configs = spacer_ True configs
-
-vspacer :: WidgetNode s e
-vspacer = spacer False
-
-vspacer_ :: [SpacerCfg] -> WidgetNode s e
-vspacer_ configs = spacer_ False configs
-
-spacer :: Bool -> WidgetNode s e
-spacer isHorizontal = spacer_ isHorizontal def
-
-spacer_ :: Bool -> [SpacerCfg] -> WidgetNode s e
-spacer_ isHorizontal configs = defaultWidgetNode "spacer" widget where
+spacer_ :: [SpacerCfg] -> WidgetNode s e
+spacer_ configs = defaultWidgetNode "spacer" widget where
   config = mconcat (resizeFactor 0 : configs)
-  widget = makeSpacer isHorizontal config
+  widget = makeSpacer config
 
-hfiller :: WidgetNode s e
-hfiller = filler True
+filler :: WidgetNode s e
+filler = filler_ def
 
-hfiller_ :: [SpacerCfg] -> WidgetNode s e
-hfiller_ configs = filler_ True configs
-
-vfiller :: WidgetNode s e
-vfiller = filler False
-
-vfiller_ :: [SpacerCfg] -> WidgetNode s e
-vfiller_ configs = filler_ False configs
-
-filler :: Bool -> WidgetNode s e
-filler isHorizontal = filler_ isHorizontal def
-
-filler_ :: Bool -> [SpacerCfg] -> WidgetNode s e
-filler_ isHorizontal configs = defaultWidgetNode "filler" widget where
+filler_ :: [SpacerCfg] -> WidgetNode s e
+filler_ configs = defaultWidgetNode "filler" widget where
   config = mconcat configs
-  widget = makeSpacer isHorizontal config
+  widget = makeSpacer config
 
-makeSpacer :: Bool -> SpacerCfg -> Widget s e
-makeSpacer isHorizontal config = widget where
+makeSpacer :: SpacerCfg -> Widget s e
+makeSpacer config = widget where
   widget = createSingle () def {
     singleGetSizeReq = getSizeReq
   }
 
   getSizeReq wenv currState node = sizeReq where
+    direction = wenv ^. L.layoutDirection
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)
-    fn = if isHorizontal then id else swap
+    isFixed = factor < 0.01
+    fixedW = fixedSize width
+    fixedH = fixedSize height
+    flexW = flexSize width factor
+    flexH = flexSize height factor
+    expandW = expandSize width factor
+    expandH = expandSize height factor
     sizeReq
-      | factor >= 0.01 = fn (expandSize width factor, flexSize height factor)
-      | otherwise = fn (fixedSize width, flexSize height factor)
+      | isFixed && direction == LayoutNone = (fixedW, fixedH)
+      | isFixed && direction == LayoutHorizontal = (fixedW, flexSize height 0.5)
+      | isFixed = (flexSize width 0.5, fixedH)
+      | direction == LayoutNone = (expandW, expandH)
+      | direction == LayoutHorizontal = (expandW, flexH)
+      | otherwise = (flexW, expandH)

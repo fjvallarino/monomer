@@ -184,7 +184,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "Label 1",
         label "Label 2"
       ],
-      hfiller,
+      filler,
       image "assets/images/pecans.jpg" `style` [width 50, height 50]
     ]
   widgetDial = vstack [

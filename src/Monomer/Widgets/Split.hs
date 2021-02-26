@@ -136,6 +136,7 @@ makeSplit :: Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
     containerUseCustomCursor = True,
+    containerLayoutDirection = getLayoutDirection isHorizontal,
     containerInit = init,
     containerRestore = restore,
     containerHandleEvent = handleEvent,

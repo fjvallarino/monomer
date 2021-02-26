@@ -142,6 +142,7 @@ mockWenv model = WidgetEnv {
   _weInputStatus = def,
   _weTimestamp = 0,
   _weInTopLayer = const True,
+  _weLayoutDirection = LayoutNone,
   _weViewport = Rect 0 0 testW testH,
   _weOffset = def
 }

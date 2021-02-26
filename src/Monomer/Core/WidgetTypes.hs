@@ -157,6 +157,12 @@ instance Semigroup (WidgetResult s e) where
     _wrEvents = _wrEvents er1 <> _wrEvents er2
   }
 
+data LayoutDirection
+  = LayoutNone
+  | LayoutHorizontal
+  | LayoutVertical
+  deriving (Eq, Show, Generic, Serialise)
+
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
@@ -174,6 +180,7 @@ data WidgetEnv s e = WidgetEnv {
   _weInputStatus :: InputStatus,
   _weTimestamp :: Timestamp,
   _weInTopLayer :: Point -> Bool,
+  _weLayoutDirection :: LayoutDirection,
   _weViewport :: Rect,
   _weOffset :: Point
 }

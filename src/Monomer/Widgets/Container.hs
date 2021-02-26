@@ -14,6 +14,7 @@ module Monomer.Widgets.Container (
   ContainerGetSizeReqHandler(..),
   ContainerResizeHandler(..),
   createContainer,
+  getLayoutDirection,
   getUpdateCWenv,
   updateWenvOffset,
   initWrapper,
@@ -166,6 +167,7 @@ data Container s e a = Container {
   containerAddStyleReq :: Bool,
   containerChildrenOffset :: Maybe Point,
   containerChildrenScissor :: Maybe Rect,
+  containerLayoutDirection :: LayoutDirection,
   containerIgnoreEmptyArea :: Bool,
   containerResizeRequired :: Bool,
   containerUseCustomCursor :: Bool,
@@ -197,6 +199,7 @@ instance Default (Container s e a) where
     containerAddStyleReq = True,
     containerChildrenOffset = Nothing,
     containerChildrenScissor = Nothing,
+    containerLayoutDirection = LayoutNone,
     containerIgnoreEmptyArea = False,
     containerResizeRequired = True,
     containerUseCustomCursor = False,
@@ -254,6 +257,10 @@ defaultGetActiveStyle wenv node = activeStyle wenv node
 defaultUpdateCWenv :: ContainerUpdateCWenvHandler s e
 defaultUpdateCWenv wenv cidx cnode node = wenv
 
+getLayoutDirection :: Bool -> LayoutDirection
+getLayoutDirection False = LayoutVertical
+getLayoutDirection True = LayoutHorizontal
+
 getUpdateCWenv
   :: Container s e a
   -> WidgetEnv s e
@@ -264,10 +271,13 @@ getUpdateCWenv
 getUpdateCWenv container wenv cidx cnode node = newWenv where
   cOffset = containerChildrenOffset container
   updateCWenv = containerUpdateCWenv container
-  tmpWenv
+  layoutDirection = containerLayoutDirection container
+  offsetWenv wenv
     | isJust cOffset = updateWenvOffset container wenv node
     | otherwise = wenv
-  newWenv = updateCWenv tmpWenv cidx cnode node
+  directionWenv = wenv
+    & L.layoutDirection .~ layoutDirection
+  newWenv = updateCWenv (offsetWenv directionWenv) cidx cnode node
 
 updateWenvOffset
   :: Container s e a

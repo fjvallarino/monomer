@@ -80,6 +80,7 @@ makeStack :: Bool -> StackCfg -> Widget s e
 makeStack isHorizontal config = widget where
   widget = createContainer () def {
     containerIgnoreEmptyArea = ignoreEmptyArea,
+    containerLayoutDirection = getLayoutDirection isHorizontal,
     containerUseCustomSize = True,
     containerFindByPoint = defaultFindByPoint,
     containerGetSizeReq = getSizeReq,

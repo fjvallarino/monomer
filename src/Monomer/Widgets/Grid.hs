@@ -63,6 +63,7 @@ vgrid_ configs children = newNode where
 makeFixedGrid :: Bool -> GridCfg -> Widget s e
 makeFixedGrid isHorizontal config = widget where
   widget = createContainer () def {
+    containerLayoutDirection = getLayoutDirection isHorizontal,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }

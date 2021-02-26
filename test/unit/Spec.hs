@@ -26,6 +26,7 @@ import qualified Monomer.Widgets.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.NumericFieldSpec as NumericFieldSpec
 import qualified Monomer.Widgets.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.ScrollSpec as ScrollSpec
+import qualified Monomer.Widgets.SpacerSpec as SpacerSpec
 import qualified Monomer.Widgets.SplitSpec as SplitSpec
 import qualified Monomer.Widgets.StackSpec as StackSpec
 import qualified Monomer.Widgets.TextFieldSpec as TextFieldSpec
@@ -78,6 +79,7 @@ widgets = describe "Widgets" $ do
   NumericFieldSpec.spec
   RadioSpec.spec
   ScrollSpec.spec
+  SpacerSpec.spec
   SplitSpec.spec
   StackSpec.spec
   ThemeSwitchSpec.spec

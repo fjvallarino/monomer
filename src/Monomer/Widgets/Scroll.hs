@@ -241,6 +241,7 @@ makeScroll config state = widget where
   widget = createContainer state def {
     containerChildrenOffset = Just offset,
     containerChildrenScissor = Just (_sstScissor state),
+    containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
     containerRestore = restore,
@@ -254,6 +255,11 @@ makeScroll config state = widget where
   ScrollState dragging dx dy cs _ = state
   Size childWidth childHeight = cs
   offset = Point dx dy
+  scrollType = fromMaybe ScrollBoth (_scScrollType config)
+  layoutDirection = case scrollType of
+    ScrollH -> LayoutHorizontal
+    ScrollV -> LayoutVertical
+    ScrollBoth -> LayoutNone
 
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
@@ -419,7 +425,6 @@ makeScroll config state = widget where
   resize wenv viewport children node = result where
     theme = activeTheme wenv node
     style = scrollActiveStyle wenv node
-    scrollType = fromMaybe ScrollBoth (_scScrollType config)
 
     Rect cl ct cw ch = fromMaybe def (removeOuterBounds style viewport)
     dx = _sstDeltaX state

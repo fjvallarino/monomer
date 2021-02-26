@@ -129,6 +129,7 @@ runApp window widgetRoot config = do
     _weInputStatus = def,
     _weTimestamp = startTs,
     _weInTopLayer = const True,
+    _weLayoutDirection = LayoutNone,
     _weViewport = Rect 0 0 rw rh,
     _weOffset = def
   }
@@ -226,6 +227,7 @@ mainLoop window renderer config loopArgs = do
     _weInputStatus = inputStatus,
     _weTimestamp = startTicks,
     _weInTopLayer = const True,
+    _weLayoutDirection = LayoutNone,
     _weViewport = Rect 0 0 rw rh,
     _weOffset = def
   }

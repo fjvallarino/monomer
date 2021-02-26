@@ -28,7 +28,8 @@ paddingV :: (Semigroup a, CmbPaddingT a, CmbPaddingB a) => Double -> a
 paddingV p = paddingT p <> paddingB p
 
 fixedSize :: Double -> SizeReq
-fixedSize s = def & L.fixed .~ s
+fixedSize s = def
+  & L.fixed .~ s
 
 flexSize :: Double -> Double -> SizeReq
 flexSize s f = def

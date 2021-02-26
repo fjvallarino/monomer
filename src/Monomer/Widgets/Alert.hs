@@ -109,11 +109,11 @@ buildUI dialogBody cancelEvt config wenv model = mainTree where
   alertTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
         label title & L.info . L.style .~ themeDialogTitle wenv,
-        hfiller,
+        filler,
         box_ [alignTop, onClick cancelEvt] closeIcon
       ],
       dialogBody wenv,
-      vfiller,
+      filler,
       box_ [alignLeft] dismissButton
         & L.info . L.style .~ themeDialogButtons wenv
     ] & L.info . L.style .~ themeDialogFrame wenv

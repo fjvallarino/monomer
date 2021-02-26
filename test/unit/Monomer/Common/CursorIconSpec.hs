@@ -97,15 +97,15 @@ handleEventNested = describe "handleEventNested" $ do
         hgrid [
           hgrid [
             label "Test" `style` [cursorIcon CursorSizeH],
-            hfiller
+            filler
           ]
         ] `style` [cursorIcon CursorHand],
         hgrid [
           hgrid [
             label "Test" `style` [cursorIcon CursorSizeV],
-            hfiller
+            filler
           ] `style` [cursorIcon CursorInvalid],
-          hspacer
+          spacer
         ] `style` [cursorIcon CursorHand]
       ]
     icons egs = getIcons wenv node egs
@@ -136,7 +136,7 @@ handleEventOverlay = describe "handleEventOverlay" $ do
     wenv = mockWenvEvtUnit (TestModel 0)
     node = vstack [
         textDropdown selectedItem [0..10::Int],
-        vfiller
+        filler
       ] `style` [cursorIcon CursorInvalid]
     icons egs = getIcons wenv node egs
     p1 = Point 100 10
