@@ -133,6 +133,9 @@ handleAppEvent wenv node model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetTree where
+  widgetButtons = vstack [
+      button "Confirm" ShowConfirm
+    ]
   widgetLabels = vstack [
       label "Underline |" `style` [textFont "Italic", textSize 100, textUnderline],
       label "Overline |" `style` [textFont "Italic", textSize 100, textOverline],
@@ -360,7 +363,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "5",
         label_ "This is a really long label used to check if line breaks and ellipsis areee implemented correctly" [textMultiLine] `style` [bgColor blue],
         label "6",
-        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" [textClip] `style` [bgColor blue, textBottom, textRight]
+        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" [textTrim_ False] `style` [bgColor blue, textBottom, textRight]
       ],
       label "",
       label ""

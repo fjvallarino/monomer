@@ -64,20 +64,23 @@ class CmbDecimals t where
 class CmbMaxLength t where
   maxLength :: Int -> t
 
-class CmbMaxLines t where
-  maxLines :: Int -> t
+class CmbTextMaxLines t where
+  textMaxLines :: Int -> t
 
-class CmbTextMode t where
-  textSingleLine :: t
+class CmbTextMultiLine t where
   textMultiLine :: t
+  textMultiLine = textMultiLine_ True
+  textMultiLine_ :: Bool -> t
 
-class CmbTextOverflow t where
+class CmbTextEllipsis t where
   textEllipsis :: t
-  textClip :: t
+  textEllipsis = textEllipsis_ True
+  textEllipsis_ :: Bool -> t
 
 class CmbTextTrim t where
   textTrim :: t
-  textKeepSpaces :: t
+  textTrim = textTrim_ True
+  textTrim_ :: Bool -> t
 
 class CmbSelectOnBlur t where
   selectOnBlur :: t
@@ -283,6 +286,11 @@ class CmbActive t where
 
 class CmbDisabled t where
   disabled :: t -> [StyleState] -> t
+
+class CmbIgnoreTheme t where
+  ignoreTheme :: t
+  ignoreTheme = ignoreTheme_ True
+  ignoreTheme_ :: Bool -> t
 
 class CmbBgColor t where
   bgColor :: Color -> t

@@ -27,7 +27,6 @@ spec :: Spec
 spec = describe "Button" $ do
   handleEvent
   getSizeReq
-  getSizeReqMerge
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -55,51 +54,32 @@ handleEvent = describe "handleEvent" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Flex 50 0.01" $
-    sizeReqW `shouldBe` expandSize 50 0.01
+  describe "fixed" $ do
+    it "should return width = Fixed 50" $
+      sizeReqW1 `shouldBe` fixedSize 50
 
-  it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` fixedSize 20
+    it "should return height = Fixed 20" $
+      sizeReqH1 `shouldBe` fixedSize 20
 
-  it "should return width = Flex 70 1" $
-    sizeReq2W `shouldBe` expandSize 70 1
+  describe "flex" $ do
+    it "should return width = Flex 70 1" $
+      sizeReqW2 `shouldBe` expandSize 70 1
 
-  it "should return height = Flex 20 2" $
-    sizeReq2H `shouldBe` expandSize 20 2
+    it "should return height = Flex 20 2" $
+      sizeReqH2 `shouldBe` expandSize 20 2
+
+  describe "multi" $ do
+    it "should return width = Fixed 50" $
+      sizeReqW3 `shouldBe` fixedSize 50
+
+    it "should return height = Flex 60 0.01" $
+      sizeReqH3 `shouldBe` expandSize 60 0.01
 
   where
     wenv = mockWenv ()
-    btnNode = button "Click" BtnClick
+    btnNode1 = button "Click" BtnClick
     btnNode2 = button_ "Click 2" BtnClick [resizeFactorW 1, resizeFactorH 2]
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv btnNode
-    (sizeReq2W, sizeReq2H) = nodeGetSizeReq wenv btnNode2
-
-getSizeReqMerge :: Spec
-getSizeReqMerge = describe "getSizeReqMerge" $ do
-  it "should return width = Flex 192 0.01" $
-    sizeReqW `shouldBe` expandSize 192 0.01
-
-  it "should return height = Fixed 20" $
-    sizeReqH `shouldBe` fixedSize 20
-
-  it "should return width = Flex 360 0.01" $
-    sizeReq2W `shouldBe` expandSize 360 0.01
-
-  it "should return height = Fixed 20" $
-    sizeReq2H `shouldBe` fixedSize 20
-
-  where
-    renderer = mockRenderer {
-      computeTextSize = mockTextSize Nothing,
-      computeGlyphsPos = mockGlyphsPos Nothing
-    }
-    wenv = mockWenv ()
-      & L.renderer .~ renderer
-    btnNode = nodeInit wenv (button "Button" BtnClick)
-    btnNode2 = button "Button" BtnClick `style` [textSize 60]
-    btnRes = widgetMerge (btnNode ^. L.widget) wenv btnNode btnNode2
-    WidgetResult btnMerged _ _ = btnRes
-    btnInfo = btnNode ^. L.info
-    mrgInfo = btnMerged ^. L.info
-    (sizeReqW, sizeReqH) = (btnInfo ^. L.sizeReqW, btnInfo ^. L.sizeReqH)
-    (sizeReq2W, sizeReq2H) = (mrgInfo ^. L.sizeReqW, mrgInfo ^. L.sizeReqH)
+    btnNode3 = button_ "Line    line    line" BtnClick [textMultiLine] `style` [width 50]
+    (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv btnNode1
+    (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv btnNode2
+    (sizeReqW3, sizeReqH3) = nodeGetSizeReq wenv btnNode3

@@ -70,7 +70,7 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line"
-    lblNode = label_ caption [textMultiLine, textKeepSpaces] `style` [maxWidth 50]
+    lblNode = label_ caption [textMultiLine, textTrim_ False] `style` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiMaxLines :: Spec
@@ -84,7 +84,7 @@ getSizeReqMultiMaxLines = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line    line    line"
-    lblNode = label_ caption [textMultiLine, textKeepSpaces, maxLines 4] `style` [maxWidth 50]
+    lblNode = label_ caption [textMultiLine, textTrim_ False, textMaxLines 4] `style` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMerge :: Spec

@@ -11,6 +11,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
@@ -44,7 +45,7 @@ handleEvent = describe "handleEvent" $ do
     wenv = mockWenv ()
     btn = button "Click" (BtnClick 0)
     boxNode = nodeInit wenv (box btn)
-    events p = nodeHandleEventEvts wenv [Click p LeftBtn] boxNode
+    events p = nodeHandleEventEvts wenv [evtClick p] boxNode
 
 handleEventIgnoreEmpty :: Spec
 handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
@@ -61,7 +62,7 @@ handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
         button "Click 1" (BtnClick 1),
         box_ [ignoreEmptyArea_ True] btn2
       ]
-    clickIgnored p = nodeHandleEventEvts wenv [Click p LeftBtn] ignoredNode
+    clickIgnored p = nodeHandleEventEvts wenv [evtClick p] ignoredNode
 
 handleEventSinkEmpty :: Spec
 handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
@@ -78,7 +79,7 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
         button "Click 1" (BtnClick 1),
         box_ [ignoreEmptyArea_ False] centeredBtn
       ]
-    clickSunk p = nodeHandleEventEvts wenv [Click p LeftBtn] sunkNode
+    clickSunk p = nodeHandleEventEvts wenv [evtClick p] sunkNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

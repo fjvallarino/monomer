@@ -39,20 +39,27 @@ themeDialogButtons wenv = collectTheme wenv L.dialogButtonsStyle
 
 collectThemeField
   :: WidgetEnv s e -> Lens' StyleState (Maybe t) -> Lens' ThemeState t -> Style
-collectThemeField wenv fieldS fieldT = style where
-  base = def :: Style
-  basic = Just $ base ^. L.basic . non def
-    & fieldS ?~ wenv ^. L.theme . L.basic . fieldT
-  hover = Just $ base ^. L.hover . non def
-    & fieldS ?~ wenv ^. L.theme . L.hover . fieldT
-  focus = Just $ base ^. L.focus . non def
-    & fieldS ?~ wenv ^. L.theme . L.focus . fieldT
-  focusHover = Just $ base ^. L.focusHover . non def
-    & fieldS ?~ wenv ^. L.theme . L.focusHover . fieldT
-  active = Just $ base ^. L.active . non def
-    & fieldS ?~ wenv ^. L.theme . L.active . fieldT
-  disabled = Just $ base ^. L.disabled . non def
-    & fieldS ?~ wenv ^. L.theme . L.disabled . fieldT
+collectThemeField wenv fieldS fieldT = collectThemeField_ wenv fieldS fieldT def
+
+collectThemeField_
+  :: WidgetEnv s e
+  -> Lens' StyleState (Maybe t)
+  -> Lens' ThemeState t
+  -> Style
+  -> Style
+collectThemeField_ wenv fieldStyle fieldTheme target = style where
+  basic = Just $ target ^. L.basic . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.basic . fieldTheme
+  hover = Just $ target ^. L.hover . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.hover . fieldTheme
+  focus = Just $ target ^. L.focus . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.focus . fieldTheme
+  focusHover = Just $ target ^. L.focusHover . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.focusHover . fieldTheme
+  active = Just $ target ^. L.active . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.active . fieldTheme
+  disabled = Just $ target ^. L.disabled . non def
+    & fieldStyle ?~ wenv ^. L.theme . L.disabled . fieldTheme
   style = Style basic hover focus focusHover active disabled
 
 collectTheme :: WidgetEnv s e  -> Lens' ThemeState StyleState -> Style

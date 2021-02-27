@@ -110,7 +110,7 @@ titleFont = def
 
 btnStyle :: BaseThemeColors -> StyleState
 btnStyle themeMod = def
-  & L.text ?~ (normalFont & L.fontColor ?~ btnText themeMod)
+  & L.text ?~ (normalFont & L.fontColor ?~ btnText themeMod) <> textCenter
   & L.bgColor ?~ btnBgBasic themeMod
   & L.border ?~ border 1 (btnBgBasic themeMod)
   & L.padding ?~ (paddingV 3 <> paddingH 5)

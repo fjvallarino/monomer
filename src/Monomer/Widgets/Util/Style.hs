@@ -1,6 +1,9 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Util.Style (
+  collectStyleField,
+  collectStyleField_,
   activeTheme,
   activeTheme_,
   activeStyle,
@@ -12,7 +15,8 @@ module Monomer.Widgets.Util.Style (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?), (.~), (<>~), _Just, _1)
+import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), _Just, _1, non)
+
 import Data.Bits (xor)
 import Data.Default
 import Data.Maybe
@@ -37,7 +41,32 @@ instance Default (ActiveStyleCfg s e) where
     _ascIsActive = isNodeActive
   }
 
--- Do not use in findByPoint
+collectStyleField
+  :: Lens' StyleState (Maybe t)
+  -> Style
+  -> Style
+collectStyleField fieldS source = collectStyleField_ fieldS source def
+
+collectStyleField_
+  :: Lens' StyleState (Maybe t)
+  -> Style
+  -> Style
+  -> Style
+collectStyleField_ fieldS source target = style where
+  basic = Just $ target ^. L.basic . non def
+    & fieldS .~ source ^? L.basic . _Just . fieldS . _Just
+  hover = Just $ target ^. L.hover . non def
+    & fieldS .~ source ^? L.hover . _Just . fieldS . _Just
+  focus = Just $ target ^. L.focus . non def
+    & fieldS .~ source ^? L.focus . _Just . fieldS . _Just
+  focusHover = Just $ target ^. L.focusHover . non def
+    & fieldS .~ source ^? L.focusHover . _Just . fieldS . _Just
+  active = Just $ target ^. L.active . non def
+    & fieldS .~ source ^? L.active . _Just . fieldS . _Just
+  disabled = Just $ target ^. L.disabled . non def
+    & fieldS .~ source ^? L.disabled . _Just . fieldS . _Just
+  style = Style basic hover focus focusHover active disabled
+
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle wenv node = activeStyle_ def wenv node
 

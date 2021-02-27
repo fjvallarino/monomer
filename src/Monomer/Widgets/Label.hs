@@ -26,30 +26,33 @@ import Monomer.Widgets.Single
 import qualified Monomer.Lens as L
 
 data LabelCfg = LabelCfg {
-  _lscMaxLines :: Maybe Int,
-  _lscTextOverflow :: Maybe TextOverflow,
-  _lscTextMode :: Maybe TextMode,
-  _lscTrim :: Maybe TextTrim,
+  _lscIgnoreTheme :: Maybe Bool,
+  _lscTextTrim :: Maybe Bool,
+  _lscTextEllipsis :: Maybe Bool,
+  _lscTextMultiLine :: Maybe Bool,
+  _lscTextMaxLines :: Maybe Int,
   _lscFactorW :: Maybe Double,
   _lscFactorH :: Maybe Double
 }
 
 instance Default LabelCfg where
   def = LabelCfg {
-    _lscMaxLines = Nothing,
-    _lscTextOverflow = Nothing,
-    _lscTextMode = Nothing,
-    _lscTrim = Nothing,
+    _lscIgnoreTheme = Nothing,
+    _lscTextTrim = Nothing,
+    _lscTextEllipsis = Nothing,
+    _lscTextMultiLine = Nothing,
+    _lscTextMaxLines = Nothing,
     _lscFactorW = Nothing,
     _lscFactorH = Nothing
   }
 
 instance Semigroup LabelCfg where
   (<>) l1 l2 = LabelCfg {
-    _lscMaxLines = _lscMaxLines l2 <|> _lscMaxLines l1,
-    _lscTextOverflow = _lscTextOverflow l2 <|> _lscTextOverflow l1,
-    _lscTextMode = _lscTextMode l2 <|> _lscTextMode l1,
-    _lscTrim = _lscTrim l2 <|> _lscTrim l1,
+    _lscIgnoreTheme = _lscIgnoreTheme l2 <|> _lscIgnoreTheme l1,
+    _lscTextTrim = _lscTextTrim l2 <|> _lscTextTrim l1,
+    _lscTextEllipsis = _lscTextEllipsis l2 <|> _lscTextEllipsis l1,
+    _lscTextMultiLine = _lscTextMultiLine l2 <|> _lscTextMultiLine l1,
+    _lscTextMaxLines = _lscTextMaxLines l2 <|> _lscTextMaxLines l1,
     _lscFactorW = _lscFactorW l2 <|> _lscFactorW l1,
     _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1
   }
@@ -57,33 +60,29 @@ instance Semigroup LabelCfg where
 instance Monoid LabelCfg where
   mempty = def
 
-instance CmbMaxLines LabelCfg where
-  maxLines count = def {
-    _lscMaxLines = Just count
-  }
-
-instance CmbTextOverflow LabelCfg where
-  textEllipsis = def {
-    _lscTextOverflow = Just Ellipsis
-  }
-  textClip = def {
-    _lscTextOverflow = Just ClipText
-  }
-
-instance CmbTextMode LabelCfg where
-  textSingleLine = def {
-    _lscTextMode = Just SingleLine
-  }
-  textMultiLine = def {
-    _lscTextMode = Just MultiLine
+instance CmbIgnoreTheme LabelCfg where
+  ignoreTheme_ ignore = def {
+    _lscIgnoreTheme = Just ignore
   }
 
 instance CmbTextTrim LabelCfg where
-  textTrim = def {
-    _lscTrim = Just TrimSpaces
+  textTrim_ trim = def {
+    _lscTextTrim = Just trim
   }
-  textKeepSpaces = def {
-    _lscTrim = Just KeepSpaces
+
+instance CmbTextEllipsis LabelCfg where
+  textEllipsis_ ellipsis = def {
+    _lscTextEllipsis = Just ellipsis
+  }
+
+instance CmbTextMultiLine LabelCfg where
+  textMultiLine_ multi = def {
+    _lscTextMultiLine = Just multi
+  }
+
+instance CmbTextMaxLines LabelCfg where
+  textMaxLines count = def {
+    _lscTextMaxLines = Just count
   }
 
 instance CmbResizeFactor LabelCfg where
@@ -139,14 +138,22 @@ makeLabel config state = widget where
     singleRender = render
   }
 
-  overflow = fromMaybe Ellipsis (_lscTextOverflow config)
-  mode = fromMaybe SingleLine (_lscTextMode config)
-  trim = fromMaybe TrimSpaces (_lscTrim config)
-  maxLines = _lscMaxLines config
+  ignoreTheme = _lscIgnoreTheme config == Just True
+  trim
+    | _lscTextTrim config == Just False = KeepSpaces
+    | otherwise = TrimSpaces
+  overflow
+    | _lscTextEllipsis config == Just False = ClipText
+    | otherwise = Ellipsis
+  mode
+    | _lscTextMultiLine config == Just True = MultiLine
+    | otherwise = SingleLine
+  maxLines = _lscTextMaxLines config
   LabelState caption textStyle textRect textLines prevResize = state
 
-  getBaseStyle wenv node = Just style where
-    style = collectTheme wenv L.labelStyle
+  getBaseStyle wenv node
+    | ignoreTheme = Nothing
+    | otherwise = Just $ collectTheme wenv L.labelStyle
 
   init wenv node = resultWidget newNode where
     style = activeStyle wenv node
@@ -224,6 +231,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
     result = resultReqs newNode [ResizeWidgets | needsSndResize]
 
-  render renderer wenv node = action where
-    style = activeStyle wenv node
-    action = forM_ textLines (drawTextLine renderer style)
+  render renderer wenv node = do
+    forM_ textLines (drawTextLine renderer style)
+    where
+      style = activeStyle wenv node
