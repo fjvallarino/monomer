@@ -194,7 +194,7 @@ makeLabel config state = widget where
       | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
     Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
     defaultFactor
-      | mode == MultiLine = 0.01
+      | mode == MultiLine = 1
       | otherwise = 0
     factorW = fromMaybe defaultFactor (_lscFactorW config)
     factorH = fromMaybe defaultFactor (_lscFactorH config)

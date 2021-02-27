@@ -528,6 +528,11 @@
     - Review dialogs after change is in place
   - Move SizeReq to Core
     - Add concept of active layout direction (needed to have a single spacer/filler)
+  - Make button use label + box (way too much duplicated code)
+    - Add option to not use theme on label
+    - Follow the same ideas as on Dropdown
+    - Review dialogs after change is in place (button currently uses expandSize)
+      - Remove clearExtra from dialog buttons
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -541,11 +546,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Make button use label + box (way too much duplicated code)
-    - Add option to not use theme on label
-    - Follow the same ideas as on Dropdown
-    - Review dialogs after change is in place (button currently uses expandSize)
-      - Remove clearExtra from dialog buttons
   - Make label default to clip text (currently ellipsis). Same for trim
   - Think about text related combinators
     - Is the Text/text prefix needed?
