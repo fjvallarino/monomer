@@ -140,11 +140,11 @@ makeLabel config state = widget where
 
   ignoreTheme = _lscIgnoreTheme config == Just True
   trim
-    | _lscTextTrim config == Just False = KeepSpaces
-    | otherwise = TrimSpaces
+    | _lscTextTrim config == Just True = TrimSpaces
+    | otherwise = KeepSpaces
   overflow
-    | _lscTextEllipsis config == Just False = ClipText
-    | otherwise = Ellipsis
+    | _lscTextEllipsis config == Just True = Ellipsis
+    | otherwise = ClipText
   mode
     | _lscTextMultiLine config == Just True = MultiLine
     | otherwise = SingleLine

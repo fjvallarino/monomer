@@ -56,7 +56,7 @@ getSizeReqMulti = describe "getSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblNode = label_ "Line    line    line" [textMultiLine] `style` [width 50]
+    lblNode = label_ "Line    line    line" [textMultiLine, textTrim] `style` [width 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiKeepSpaces :: Spec

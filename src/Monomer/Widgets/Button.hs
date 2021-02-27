@@ -179,8 +179,8 @@ makeButton caption config = widget where
   }
 
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
-  trim = _btnTextTrim config /= Just False
-  ellipsis = _btnTextEllipsis config /= Just False
+  trim = _btnTextTrim config == Just True
+  ellipsis = _btnTextEllipsis config == Just True
   multiLine = _btnTextMultiLine config == Just True
   maxLines = _btnTextMaxLines config
   factorW = _btnFactorW config
