@@ -533,6 +533,7 @@
     - Follow the same ideas as on Dropdown
     - Review dialogs after change is in place (button currently uses expandSize)
       - Remove clearExtra from dialog buttons
+  - Make label default to clip text (currently ellipsis). Same for trim
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -546,7 +547,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Make label default to clip text (currently ellipsis). Same for trim
   - Think about text related combinators
     - Is the Text/text prefix needed?
     - TextTrim could be trimSpaces?

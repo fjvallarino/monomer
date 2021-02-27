@@ -80,23 +80,23 @@ instance Semigroup (ButtonCfg s e) where
 instance Monoid (ButtonCfg s e) where
   mempty = def
 
-instance CmbTextTrim (ButtonCfg s e) where
-  textTrim_ trim = def {
+instance CmbTrimSpaces (ButtonCfg s e) where
+  trimSpaces_ trim = def {
     _btnTextTrim = Just trim
   }
 
-instance CmbTextEllipsis (ButtonCfg s e) where
-  textEllipsis_ ellipsis = def {
+instance CmbEllipsis (ButtonCfg s e) where
+  ellipsis_ ellipsis = def {
     _btnTextEllipsis = Just ellipsis
   }
 
-instance CmbTextMultiLine (ButtonCfg s e) where
-  textMultiLine_ multi = def {
+instance CmbMultiLine (ButtonCfg s e) where
+  multiLine_ multi = def {
     _btnTextMultiLine = Just multi
   }
 
-instance CmbTextMaxLines (ButtonCfg s e) where
-  textMaxLines count = def {
+instance CmbMaxLines (ButtonCfg s e) where
+  maxLines count = def {
     _btnTextMaxLines = Just count
   }
 
@@ -182,7 +182,7 @@ makeButton caption config = widget where
   trim = _btnTextTrim config == Just True
   ellipsis = _btnTextEllipsis config == Just True
   multiLine = _btnTextMultiLine config == Just True
-  maxLines = _btnTextMaxLines config
+  maxLinesV = _btnTextMaxLines config
   factorW = _btnFactorW config
   factorH = _btnFactorH config
 
@@ -197,10 +197,10 @@ makeButton caption config = widget where
       & collectStyleField_ L.sizeReqH nodeStyle
     cfgs = [
       ignoreTheme,
-      textTrim_ trim,
-      textEllipsis_ ellipsis,
-      textMultiLine_ multiLine]
-      ++ [textMaxLines (fromJust maxLines) | isJust maxLines]
+      trimSpaces_ trim,
+      ellipsis_ ellipsis,
+      multiLine_ multiLine]
+      ++ [maxLines (fromJust maxLinesV) | isJust maxLinesV]
       ++ [resizeFactorW (fromJust factorW) | isJust factorW]
       ++ [resizeFactorH (fromJust factorH) | isJust factorH]
     labelNode = label_ caption cfgs

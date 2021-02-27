@@ -361,9 +361,9 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "3",
         label "4",
         label "5",
-        label_ "This is a really long label used to check if line breaks and ellipsis areee implemented correctly" [textMultiLine] `style` [bgColor blue],
+        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly" [multiLine] `style` [bgColor blue],
         label "6",
-        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" [textTrim_ False] `style` [bgColor blue, textBottom, textRight]
+        label "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" `style` [bgColor blue, textBottom, textRight]
       ],
       label "",
       label ""
@@ -419,7 +419,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         ] `style` [bgColor blue]
       ] `style` [bgColor green],
       hgrid [
-        label_ "This is a really long label used to check what I did works fine" [textMultiLine, textEllipsis],
+        label_ "This is a really long label used to check what I did works fine" [multiLine, ellipsis],
         label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
       label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
@@ -431,6 +431,6 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
-      button_ "Click\nme!" (PrintMessage "Button clicked") [textMultiLine]
+      button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiLine, ellipsis
     ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

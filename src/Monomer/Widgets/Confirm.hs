@@ -110,7 +110,7 @@ confirmMsg_
   -> WidgetNode sp ep
 confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
-  dialogBody wenv = label_ message [textMultiLine]
+  dialogBody wenv = label_ message [multiLine]
     & L.info . L.style .~ themeDialogMsgBody wenv
   createUI = buildUI dialogBody acceptEvt cancelEvt config
   evts = [onVisibleChange ConfirmVisibleChanged]

@@ -65,23 +65,23 @@ instance CmbIgnoreTheme LabelCfg where
     _lscIgnoreTheme = Just ignore
   }
 
-instance CmbTextTrim LabelCfg where
-  textTrim_ trim = def {
+instance CmbTrimSpaces LabelCfg where
+  trimSpaces_ trim = def {
     _lscTextTrim = Just trim
   }
 
-instance CmbTextEllipsis LabelCfg where
-  textEllipsis_ ellipsis = def {
+instance CmbEllipsis LabelCfg where
+  ellipsis_ ellipsis = def {
     _lscTextEllipsis = Just ellipsis
   }
 
-instance CmbTextMultiLine LabelCfg where
-  textMultiLine_ multi = def {
+instance CmbMultiLine LabelCfg where
+  multiLine_ multi = def {
     _lscTextMultiLine = Just multi
   }
 
-instance CmbTextMaxLines LabelCfg where
-  textMaxLines count = def {
+instance CmbMaxLines LabelCfg where
+  maxLines count = def {
     _lscTextMaxLines = Just count
   }
 

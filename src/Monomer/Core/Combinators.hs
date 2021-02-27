@@ -64,23 +64,23 @@ class CmbDecimals t where
 class CmbMaxLength t where
   maxLength :: Int -> t
 
-class CmbTextMaxLines t where
-  textMaxLines :: Int -> t
+class CmbMaxLines t where
+  maxLines :: Int -> t
 
-class CmbTextMultiLine t where
-  textMultiLine :: t
-  textMultiLine = textMultiLine_ True
-  textMultiLine_ :: Bool -> t
+class CmbMultiLine t where
+  multiLine :: t
+  multiLine = multiLine_ True
+  multiLine_ :: Bool -> t
 
-class CmbTextEllipsis t where
-  textEllipsis :: t
-  textEllipsis = textEllipsis_ True
-  textEllipsis_ :: Bool -> t
+class CmbEllipsis t where
+  ellipsis :: t
+  ellipsis = ellipsis_ True
+  ellipsis_ :: Bool -> t
 
-class CmbTextTrim t where
-  textTrim :: t
-  textTrim = textTrim_ True
-  textTrim_ :: Bool -> t
+class CmbTrimSpaces t where
+  trimSpaces :: t
+  trimSpaces = trimSpaces_ True
+  trimSpaces_ :: Bool -> t
 
 class CmbSelectOnBlur t where
   selectOnBlur :: t
