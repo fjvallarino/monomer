@@ -769,8 +769,8 @@ reduceEvtResponse globalKeys curr@ReducedEvents{..} response = case response of
   Request req -> curr { _reRequests = _reRequests |> req }
   Message key message -> case M.lookup key globalKeys of
     Just node -> curr {
-        _reMessages = _reMessages |> SendMessage (node ^. L.info . L.path) message
-      }
+      _reMessages = _reMessages |> SendMessage (node^.L.info.L.widgetId) message
+    }
     Nothing -> curr
   Task task -> curr { _reTasks = _reTasks |> task }
   Producer producer -> curr { _reProducers = _reProducers |> producer }
@@ -844,6 +844,7 @@ convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weOS = _weOS wenv,
   _weRenderer = _weRenderer wenv,
+  _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,
   _weTheme = _weTheme wenv,
   _weWindowSize = _weWindowSize wenv,

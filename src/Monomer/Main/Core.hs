@@ -115,6 +115,7 @@ runApp window widgetRoot config = do
   let wenv = WidgetEnv {
     _weOS = os,
     _weRenderer = renderer,
+    _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
     _weTheme = theme,
     _weWindowSize = newWindowSize,
@@ -213,6 +214,7 @@ mainLoop window renderer config loopArgs = do
   let wenv = WidgetEnv {
     _weOS = _mlOS,
     _weRenderer = renderer,
+    _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
     _weTheme = _mlTheme,
     _weWindowSize = windowSize,
@@ -232,7 +234,8 @@ mainLoop window renderer config loopArgs = do
     _weOffset = def
   }
   -- Exit handler
-  let exitMsgs = SendMessage (Seq.fromList [0]) <$> _mlExitEvents
+  let baseWidgetId = _mlWidgetRoot ^. L.info . L.widgetId
+  let exitMsgs = SendMessage baseWidgetId <$> _mlExitEvents
   let baseReqs
         | quit = Seq.fromList exitMsgs
         | otherwise = Seq.Empty

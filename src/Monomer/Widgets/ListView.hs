@@ -267,9 +267,9 @@ makeListView widgetData items makeRow config state = widget where
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
   createListViewChildren wenv node = children where
-    path = node ^. L.info . L.path
+    widgetId = node ^. L.info . L.widgetId
     selected = currentValue wenv
-    itemsList = makeItemsList wenv items makeRow config path selected
+    itemsList = makeItemsList wenv items makeRow config widgetId selected
     children = Seq.singleton itemsList
 
   init wenv node = resultWidget newNode where
@@ -384,14 +384,14 @@ makeListView widgetData items makeRow config state = widget where
       & L.widget .~ makeListView widgetData items makeRow config newState
     slIdx = _slIdx state
     (newNode, resizeReq) = updateStyles wenv config state tmpNode slIdx nextIdx
-    reqs = itemScrollTo newNode nextIdx ++ resizeReq
+    reqs = itemScrollTo wenv newNode nextIdx ++ resizeReq
     result = resultReqs newNode reqs
 
   selectItem wenv node idx = result where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
     valueSetReq = widgetDataSet widgetData value
-    scrollToReq = itemScrollTo node idx
+    scrollToReq = itemScrollTo wenv node idx
     events = fmap ($ value) (_lvcOnChange config)
       ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
     changeReqs = _lvcOnChangeReq config
@@ -412,10 +412,10 @@ makeListView widgetData items makeRow config state = widget where
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ resizeReq
     result = resultReqsEvts newNode requests events
 
-  itemScrollTo node idx = maybeToList (fmap scrollReq viewport) where
-    viewport = itemViewport node idx
-    scrollPath =  parentPath node
-    scrollReq rect = SendMessage scrollPath (ScrollTo rect)
+  itemScrollTo wenv node idx = maybeToList (scrollToReq <$> mwid <*> vp) where
+    vp = itemViewport node idx
+    mwid = wenv ^. L.findByPath $ parentPath node
+    scrollToReq wid rect = SendMessage (wid ^. L.widgetId) (ScrollTo rect)
 
   itemViewport node idx = viewport where
     lookup idx node = Seq.lookup idx (node ^. L.children)
@@ -515,14 +515,14 @@ makeItemsList
   -> Seq a
   -> MakeRow s e a
   -> ListViewCfg s e a
-  -> Path
+  -> WidgetId
   -> a
   -> WidgetNode s e
-makeItemsList wenv items makeRow config path selected = itemsList where
+makeItemsList wenv items makeRow config widgetId selected = itemsList where
   normalTheme = collectTheme wenv L.listViewItemStyle
   normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
   makeItem idx item = newItem where
-    clickCfg = onClickReq $ SendMessage path (OnClickMessage idx)
+    clickCfg = onClickReq $ SendMessage widgetId (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
     newItem = box_ itemCfg (content & L.info . L.style .~ normalStyle)

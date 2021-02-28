@@ -120,12 +120,14 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
 
-    let newWenv = curWenv
+    let tmpWenv = curWenv
           & L.cursor .~ curCursor
           & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
-
+    let findByPath path = widgetFindByPath curWidget tmpWenv path curRoot
+    let newWenv = tmpWenv
+          & L.findByPath .~ findByPath
     (wenv2, root2, reqs2, evts2) <- handleSystemEvent newWenv evt target curRoot
 
     when (isOnLeave evt) $ do
@@ -262,7 +264,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
     UpdateWidgetPath wid path -> handleUpdateWidgetPath wid path step
-    SendMessage path msg -> handleSendMessage path msg step
+    SendMessage wid msg -> handleSendMessage wid msg step
     RunTask wid path handler -> handleRunTask wid path handler step
     RunProducer wid path handler -> handleRunProducer wid path handler step
 
@@ -555,11 +557,13 @@ handleUpdateWidgetPath wid path step = do
 
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)
-  => Path
+  => WidgetId
   -> msg
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSendMessage path message (wenv, root, reqs, evts) = do
+handleSendMessage widgetId message (wenv, root, reqs, evts) = do
+  path <- getWidgetIdPath widgetId
+
   let emptyResult = WidgetResult root Seq.empty Seq.empty
   let widget = root ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message root

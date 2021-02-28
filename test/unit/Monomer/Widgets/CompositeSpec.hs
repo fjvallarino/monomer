@@ -296,7 +296,9 @@ handleMessage = describe "handleMessage" $ do
       -> MainModel
       -> MainEvt
       -> [EventResponse MainModel MainEvt ()]
-    handleEvent wenv node model evt = [Request (SendMessage path msg)]
+    handleEvent wenv node model evt = [Request (SendMessage wid msg)] where
+      wni = wenv ^. L.findByPath $ path
+      wid = maybe def (^. L.widgetId) wni
     buildUI wenv model = vstack [
         button "Start" MainBtnClicked,
         composite "child" child buildChild handleChild

@@ -264,8 +264,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     mainStyle = collectTheme wenv L.dropdownStyle
     mainNode = makeMain selected
       & L.info . L.style .~ mainStyle
-    path = node ^. L.info . L.path
-    listViewNode = makeListView wenv widgetData items makeRow config path
+    widgetId = node ^. L.info . L.widgetId
+    listViewNode = makeListView wenv widgetData items makeRow config widgetId
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
     newNode = node
       & L.widget .~ newWidget
@@ -483,17 +483,17 @@ makeListView
   -> Seq a
   -> (a -> WidgetNode s e)
   -> DropdownCfg s e a
-  -> Path
+  -> WidgetId
   -> WidgetNode s e
-makeListView wenv value items makeRow config path = listViewNode where
+makeListView wenv value items makeRow config widgetId = listViewNode where
   normalTheme = collectTheme wenv L.dropdownItemStyle
   selectedTheme = collectTheme wenv L.dropdownItemSelectedStyle
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   lvConfig = [
       selectOnBlur,
-      onBlurReq (SendMessage path OnListBlur),
-      onChangeIdxReq (SendMessage path . OnChangeMessage),
+      onBlurReq (SendMessage widgetId OnListBlur),
+      onChangeIdxReq (SendMessage widgetId . OnChangeMessage),
       itemNormalStyle itemStyle,
       itemSelectedStyle itemSelStyle
     ]

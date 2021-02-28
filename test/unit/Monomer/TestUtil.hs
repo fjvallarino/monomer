@@ -128,6 +128,7 @@ mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOS = "Mac OS X",
   _weRenderer = mockRenderer,
+  _weFindByPath = const Nothing,
   _weMainButton = LeftBtn,
   _weTheme = def,
   _weWindowSize = testWindowSize,

@@ -115,7 +115,7 @@ data WidgetRequest s
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
   | UpdateWidgetPath WidgetId Path
-  | forall i . Typeable i => SendMessage Path i
+  | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
@@ -166,6 +166,7 @@ data LayoutDirection
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
   _weRenderer :: Renderer,
+  _weFindByPath :: Path -> Maybe WidgetNodeInfo,
   _weMainButton :: Button,
   _weTheme :: Theme,
   _weWindowSize :: Size,
