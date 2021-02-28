@@ -22,13 +22,6 @@ buildUI
   -> BooksModel
   -> WidgetNode BooksModel BooksEvt
 buildUI wenv model = widgetTree where
-  longText = mconcat $ replicate 50 "Hello "
-  widgetTree2 = box $ vstack [
-      hstack [
-        label "Title: " `style` [textFont "Bold", textTop],
-        label_ longText [textMultiLine] `style` [minWidth 200]
-      ]
-    ]
   bookImage imgId size = maybe spacer coverImg imgId where
     baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
     imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
@@ -59,15 +52,16 @@ buildUI wenv model = widgetTree where
   bookDetail b = content where
     hasCover = isJust (b ^. cover)
     shortLabel value = label value `style` [width 80, textFont "Bold", textTop]
+    longLabel value = label_ value [multiLine, ellipsis, trimSpaces]
     content = hstack . concat $ [[
       vstack [
         hstack [
           shortLabel "Title: ",
-          label_ (b ^. title) [textMultiLine]
+          longLabel (b ^. title)
         ],
         hstack [
           shortLabel "Authors: ",
-          label_ (T.intercalate ", " (b ^. authors)) [textMultiLine]
+          longLabel (T.intercalate ", " (b ^. authors))
         ],
         hstack [
           shortLabel "Year: ",

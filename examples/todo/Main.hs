@@ -20,7 +20,8 @@ buildUI
 buildUI wenv model = widgetTree where
   todoView idx t = hstack [
       labelS (t ^. todoType) `style` [width 50],
-      label (t ^. description),
+      label (t ^. description) `style` [textThroughline_ (t ^. status == Done)],
+      filler,
       labelS (t ^. status) `style` [width 100],
       button "Edit" (TodoEdit idx t) `style` [width 60],
       spacer,

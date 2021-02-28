@@ -84,6 +84,12 @@ instance CmbMaxWidth SizeReq where
 instance CmbMaxHeight SizeReq where
   maxHeight h = maxSize h 1
 
+instance CmbExpandWidth SizeReq where
+  expandWidth w = expandSize w 1
+
+instance CmbExpandHeight SizeReq where
+  expandHeight h = expandSize h 1
+
 instance CmbRangeWidth SizeReq where
   rangeWidth w1 w2 = rangeSize w1 w2 1
 
@@ -237,6 +243,12 @@ instance CmbMaxWidth StyleState where
 
 instance CmbMaxHeight StyleState where
   maxHeight h = def & L.sizeReqH ?~ maxHeight h
+
+instance CmbExpandWidth StyleState where
+  expandWidth w = def & L.sizeReqW ?~ expandWidth w
+
+instance CmbExpandHeight StyleState where
+  expandHeight h = def & L.sizeReqH ?~ expandHeight h
 
 instance CmbRangeWidth StyleState where
   rangeWidth w1 w2 = def & L.sizeReqW ?~ rangeWidth w1 w2

@@ -34,10 +34,10 @@ getSizeReq = describe "getSizeReq" $ do
     sizeReqH `shouldBe` fixedSize 20
 
   it "should return width = Flex 120 1" $
-    sizeReq2W `shouldBe` expandSize 120 1
+    sizeReq2W `shouldBe` flexSize 120 1
 
   it "should return height = Flex 20 2" $
-    sizeReq2H `shouldBe` expandSize 20 2
+    sizeReq2H `shouldBe` flexSize 20 2
 
   where
     wenv = mockWenv ()
@@ -52,7 +52,7 @@ getSizeReqMulti = describe "getSizeReq" $ do
     sizeReqW `shouldBe` fixedSize 50
 
   it "should return height = Flex 60 1" $
-    sizeReqH `shouldBe` expandSize 60 1
+    sizeReqH `shouldBe` flexSize 60 1
 
   where
     wenv = mockWenv ()
@@ -65,7 +65,7 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
     sizeReqW `shouldBe` maxSize 50 1
 
   it "should return height = Flex 100 1" $
-    sizeReqH `shouldBe` expandSize 100 1
+    sizeReqH `shouldBe` flexSize 100 1
 
   where
     wenv = mockWenv ()
@@ -79,7 +79,7 @@ getSizeReqMultiMaxLines = describe "getSizeReq" $ do
     sizeReqW `shouldBe` maxSize 50 1
 
   it "should return height = Flex 80 1" $
-    sizeReqH `shouldBe` expandSize 80 1
+    sizeReqH `shouldBe` flexSize 80 1
 
   where
     wenv = mockWenv ()

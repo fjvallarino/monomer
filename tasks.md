@@ -537,6 +537,8 @@
   - Think about text related combinators
     - Is the Text/text prefix needed?
     - TextTrim could be trimSpaces?
+  - ListView's SendMessage will fail if location changes. Add SendMessageWid?
+    - Added mechanism to get WidgetNodeInfo from WidgetEnv given an arbitrary path
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -550,8 +552,11 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - ListView's SendMessage will fail if location changes. Add SendMessageWid?
+  - Fix books labels
+  - Check if using WidgetId in MoveFocus and SetFocus is possible
   - Auto scroll affects dropdown when listView is displayed
+  - Send message to scroll to reset position when content changes
+    - This is for listView. Maybe a config argument is needed, since this is not always desired?
 
 Future
   - Rename ListView -> SelectList

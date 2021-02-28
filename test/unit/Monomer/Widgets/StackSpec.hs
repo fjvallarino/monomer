@@ -120,9 +120,9 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
     cvp2 = Rect 112 0 256 640
     cvp3 = Rect 368 0 112 640
     hstackNode = hstack [
-        label_ "Label 1" [resizeFactorW 0.01],
-        label_ "Label Number Two" [resizeFactorW 0.01],
-        label_ "Label 3" [resizeFactorW 0.01]
+        label "Label 1" `style` [expandWidth 70],
+        label "Label 2" `style` [expandWidth 160],
+        label "Label 3" `style` [expandWidth 70]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -166,9 +166,9 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
     cvp2 = Rect 100 0 100 480
     cvp3 = Rect 200 0 440 480
     hstackNode = hstack [
-        label_ "Label 1" [resizeFactorW 0.01] `style` [width 100],
-        label_ "Label 2" [resizeFactorW 0.01] `style` [width 100],
-        label_ "Label 3" [resizeFactorW 0.01]
+        label "Label 1" `style` [width 100],
+        label "Label 2" `style` [width 100],
+        label "Label 3" `style` [expandWidth 70]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -212,8 +212,8 @@ resizeMixedH = describe "mixed items, horizontal" $ do
     cvp2 = Rect 196 0 444  20
     hstackNode = vstack [
         hstack [
-          label_ "Short label" [resizeFactorW 0.01],
-          label_ "This label is much longer" [resizeFactorW 0.01]
+          label "Label 1" `style` [expandWidth 110],
+          label "Label 2" `style` [expandWidth 250]
         ]
       ]
     newNode = nodeInit wenv hstackNode
@@ -231,15 +231,15 @@ resizeMixedV = describe "mixed items, vertical" $ do
 
   where
     wenv = mockWenv ()
-    vp   = Rect 0   0 640 480
-    cvp1 = Rect 0   0 640  20
-    cvp2 = Rect 0  20 640 426
-    cvp3 = Rect 0 446 640  34
+    vp   = Rect 0   0 70 480
+    cvp1 = Rect 0   0 70  20
+    cvp2 = Rect 0  20 70 426
+    cvp3 = Rect 0 446 70  34
     vstackNode = hstack [
         vstack [
-          label_ "Label 1" [resizeFactorW 0.01],
-          label_ "Label 2" [resizeFactorW 0.01] `style` [minHeight 250],
-          label_ "Label 3" [resizeFactorW 0.01] `style` [flexHeight 20]
+          label "Label 1",
+          label "Label 2" `style` [minHeight 250],
+          label "Label 3" `style` [flexHeight 20]
         ]
       ]
     newNode = nodeInit wenv vstackNode

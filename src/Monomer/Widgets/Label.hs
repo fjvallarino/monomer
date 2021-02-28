@@ -200,10 +200,10 @@ makeLabel config state = widget where
     factorH = fromMaybe defaultFactor (_lscFactorH config)
     sizeW
       | abs factorW < 0.01 = fixedSize w
-      | otherwise = expandSize w factorW
+      | otherwise = flexSize w factorW
     sizeH
       | abs factorH < 0.01 = fixedSize h
-      | otherwise = expandSize h factorH
+      | otherwise = flexSize h factorH
 
   resize wenv viewport node = result where
     ts = wenv ^. L.timestamp

@@ -208,23 +208,17 @@ class CmbOnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t
 
 -- Size
-class CmbRangeWidth t where
-  rangeWidth :: Double -> Double -> t
+class CmbWidth t where
+  width :: Double -> t
 
-class CmbRangeHeight t where
-  rangeHeight :: Double -> Double -> t
+class CmbHeight t where
+  height :: Double -> t
 
 class CmbFlexWidth t where
   flexWidth :: Double -> t
 
 class CmbFlexHeight t where
   flexHeight :: Double -> t
-
-class CmbWidth t where
-  width :: Double -> t
-
-class CmbHeight t where
-  height :: Double -> t
 
 class CmbMinWidth t where
   minWidth :: Double -> t
@@ -237,6 +231,18 @@ class CmbMaxWidth t where
 
 class CmbMaxHeight t where
   maxHeight :: Double -> t
+
+class CmbExpandWidth t where
+  expandWidth :: Double -> t
+
+class CmbExpandHeight t where
+  expandHeight :: Double -> t
+
+class CmbRangeWidth t where
+  rangeWidth :: Double -> Double -> t
+
+class CmbRangeHeight t where
+  rangeHeight :: Double -> Double -> t
 
 class CmbSizeReqW t where
   sizeReqW :: SizeReq -> t

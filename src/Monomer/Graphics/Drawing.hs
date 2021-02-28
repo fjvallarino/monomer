@@ -99,7 +99,7 @@ drawTextLine renderer style textLine = do
     offset
       | alignV == ATBaseline = 0
       | otherwise = desc
-    lw = max 0.5 (unFontSize fontSize / 20)
+    lw = max 1.5 (unFontSize fontSize / 20)
     by = ty + th + offset
     uy = by + 1.5 * lw
     oy = ty

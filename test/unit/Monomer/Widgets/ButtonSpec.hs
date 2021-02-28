@@ -63,17 +63,17 @@ getSizeReq = describe "getSizeReq" $ do
 
   describe "flex" $ do
     it "should return width = Flex 70 1" $
-      sizeReqW2 `shouldBe` expandSize 70 1
+      sizeReqW2 `shouldBe` flexSize 70 1
 
     it "should return height = Flex 20 2" $
-      sizeReqH2 `shouldBe` expandSize 20 2
+      sizeReqH2 `shouldBe` flexSize 20 2
 
   describe "multi" $ do
     it "should return width = Fixed 50" $
       sizeReqW3 `shouldBe` fixedSize 50
 
     it "should return height = Flex 60 1" $
-      sizeReqH3 `shouldBe` expandSize 60 1
+      sizeReqH3 `shouldBe` flexSize 60 1
 
   where
     wenv = mockWenv ()

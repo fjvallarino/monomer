@@ -137,7 +137,7 @@ assignStackAreas isHorizontal contentArea children = result where
   extraAvail = max 0 (mainSize - fixed - flexAvail)
   -- flexCoeff can only be negative
   flexCoeff
-    | flexAvail < flex = (flexAvail - flex) / flexFac
+    | flexAvail < flex && flexFac > 0 = (flexAvail - flex) / flexFac
     | otherwise = 0
   extraCoeff
     | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
