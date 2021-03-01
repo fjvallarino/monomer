@@ -18,6 +18,10 @@ globalKeyPath :: WidgetEnv s e -> Text -> Maybe Path
 globalKeyPath wenv key = fmap (^. L.info . L.path) node where
   node = Map.lookup (WidgetKeyGlobal key) (wenv ^. L.globalKeys)
 
+globalKeyWidgetId :: WidgetEnv s e -> Text -> Maybe WidgetId
+globalKeyWidgetId wenv key = fmap (^. L.info . L.widgetId) node where
+  node = Map.lookup (WidgetKeyGlobal key) (wenv ^. L.globalKeys)
+
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
   desc = nodeDesc level node ++ "\n" ++ childDesc

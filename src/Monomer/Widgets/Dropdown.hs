@@ -324,7 +324,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         | otherwise = Nothing
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
-        result = Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
+        result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
     Click point _
       | openRequired point node -> Just $ openDropdown wenv node
       | closeRequired point node -> Just $ closeDropdown wenv node
@@ -362,11 +362,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     path = node ^. L.info . L.path
     widgetId = node ^. L.info . L.widgetId
     -- listView is wrapped by a scroll widget
-    lvPath = path |> listIdx |> 0
-    requests = [SetOverlay widgetId path, SetFocus lvPath]
+    lvWid = node^?! L.children. ix listIdx. L.children. ix 0. L.info. L.widgetId
+    requests = [SetOverlay widgetId path, SetFocus lvWid]
 
   closeDropdown wenv node = resultReqs newNode requests where
-    path = node ^. L.info . L.path
     widgetId = node ^. L.info . L.widgetId
     newState = state {
       _ddsOpen = False,
@@ -374,7 +373,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     }
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
-    requests = [ResetOverlay widgetId, SetFocus path]
+    requests = [ResetOverlay widgetId, SetFocus widgetId]
 
   handleMessage wenv target msg node =
     cast msg >>= handleLvMsg wenv node

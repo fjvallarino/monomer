@@ -21,7 +21,7 @@ import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
-import Control.Monad.Extra(concatMapM)
+import Control.Monad.Extra (concatMapM, maybeM)
 import Control.Monad.IO.Class
 import Data.Default
 import Data.List (foldl')
@@ -290,49 +290,48 @@ handleResizeWidgets previousStep = do
 
 handleMoveFocus
   :: (MonomerM s m)
-  => Maybe Path
+  => Maybe WidgetId
   -> FocusDirection
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleMoveFocus startFrom dir (wenv, root, reqs, evts) = do
+handleMoveFocus startFromWid dir (wenv, root, reqs, evts) = do
   oldFocus <- getFocusedPath
-  let wenv0 = wenv { _weFocusedPath = emptyPath }
+  let wenv0 = wenv & L.focusedPath .~ emptyPath
   (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
   currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 
   if oldFocus == currFocus
     then do
+      startFrom <- mapM getWidgetIdPath startFromWid
       let searchFrom = fromMaybe currFocus startFrom
       let newFocusWni = findNextFocus wenv1 dir searchFrom currOverlay root1
       let newFocus = newFocusWni ^. L.path
-      let tempWenv = wenv1 { _weFocusedPath = newFocus }
+      let wenvF = wenv1 & L.focusedPath .~ newFocus
 
       L.focusedWidgetId .= newFocusWni ^. L.widgetId
       L.renderRequested .= True
-      (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
+      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenvF Focus newFocus root1
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else
       return (wenv1, root1, reqs1, evts1)
 
 handleSetFocus
-  :: (MonomerM s m) => Path -> HandlerStep s e -> m (HandlerStep s e)
-handleSetFocus newFocus (wenv, root, reqs, evts) =  do
-  let wenv0 = wenv { _weFocusedPath = newFocus }
-
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+handleSetFocus newFocusWid (wenv, root, reqs, evts) = do
+  newFocus <- getWidgetIdPath newFocusWid
   oldFocus <- getFocusedPath
 
   if oldFocus /= newFocus
     then do
+      let wenv0 = wenv & L.focusedPath .~ newFocus
       (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
-      let tempWenv = wenv1 { _weFocusedPath = newFocus }
-      let widget1 = root1 ^. L.widget
-      let wni = fromMaybe def (widgetFindByPath widget1 wenv newFocus root1)
+      let wenvF = wenv1 & L.focusedPath .~ newFocus
 
-      L.focusedWidgetId .= wni ^. L.widgetId
+      L.focusedWidgetId .= newFocusWid
       L.renderRequested .= True
-      (wenv2, root2, reqs2, evts2) <- handleSystemEvent tempWenv Focus newFocus root1
+      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenvF Focus newFocus root1
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else

@@ -22,10 +22,11 @@ module Monomer.Widgets.Util.Widget (
   matchFailedMsg,
   infoMatches,
   nodeMatches,
-  handleWidgetIdChange
+  handleWidgetIdChange,
+  findWidgetIdFromPath
 ) where
 
-import Control.Lens ((&), (^#), (#~), (^.), (.~), (%~))
+import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _Just)
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Maybe
@@ -153,3 +154,7 @@ handleWidgetIdChange oldNode result = newResult where
     | oldPath /= newPath = result
         & L.requests %~ (UpdateWidgetPath widgetId newPath <|)
     | otherwise = result
+
+findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
+findWidgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
+  mwni = wenv ^. L.findByPath $ path

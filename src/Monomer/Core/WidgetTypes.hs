@@ -96,8 +96,8 @@ data WidgetRequest s
   = IgnoreParentEvents
   | IgnoreChildrenEvents
   | ResizeWidgets
-  | MoveFocus (Maybe Path) FocusDirection
-  | SetFocus Path
+  | MoveFocus (Maybe WidgetId) FocusDirection
+  | SetFocus WidgetId
   | GetClipboard WidgetId
   | SetClipboard ClipboardData
   | StartTextInput Rect
@@ -123,8 +123,8 @@ instance Eq (WidgetRequest s) where
   IgnoreParentEvents == IgnoreParentEvents = True
   IgnoreChildrenEvents == IgnoreChildrenEvents = True
   ResizeWidgets == ResizeWidgets = True
-  MoveFocus p1 fd1 == MoveFocus p2 fd2 = (p1, fd1) == (p2, fd2)
-  SetFocus p1 == SetFocus p2 = p1 == p2
+  MoveFocus w1 fd1 == MoveFocus w2 fd2 = (w1, fd1) == (w2, fd2)
+  SetFocus w1 == SetFocus w2 = w1 == w2
   GetClipboard w1 == GetClipboard w2 = w1 == w2
   SetClipboard c1 == SetClipboard c2 = c1 == c2
   StartTextInput r1 == StartTextInput r2 = r1 == r2

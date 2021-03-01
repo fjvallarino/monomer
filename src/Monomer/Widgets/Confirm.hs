@@ -160,6 +160,6 @@ handleEvent wenv node model evt = case evt of
   ConfirmParentEvt pevt -> [Report pevt]
   ConfirmVisibleChanged -> catMaybes [acceptPath | nodeVisible]
   where
-    acceptPath = Request . SetFocus <$> globalKeyPath wenv "acceptBtn"
+    acceptPath = Request . SetFocus <$> globalKeyWidgetId wenv "acceptBtn"
     ownsFocus = isNodeParentOfFocused wenv node
     nodeVisible = node ^. L.info . L.visible

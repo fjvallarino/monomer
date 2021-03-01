@@ -326,7 +326,7 @@ makeListView widgetData items makeRow config state = widget where
   handleEvent wenv target evt node = case evt of
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton -> result where
-        result = Just $ resultReqs node [SetFocus (node ^. L.info . L.path)]
+        result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
     Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
@@ -366,7 +366,7 @@ makeListView widgetData items makeRow config state = widget where
     result = fmap handleSelect (cast message)
 
   handleItemClick wenv node idx = result where
-    focusReq = SetFocus $ node ^. L.info . L.path
+    focusReq = SetFocus $ node ^. L.info . L.widgetId
     tempResult = selectItem wenv node idx
     result
       | isNodeFocused wenv node = tempResult
@@ -414,8 +414,8 @@ makeListView widgetData items makeRow config state = widget where
 
   itemScrollTo wenv node idx = maybeToList (scrollToReq <$> mwid <*> vp) where
     vp = itemViewport node idx
-    mwid = wenv ^. L.findByPath $ parentPath node
-    scrollToReq wid rect = SendMessage (wid ^. L.widgetId) (ScrollTo rect)
+    mwid = findWidgetIdFromPath wenv (parentPath node)
+    scrollToReq wid rect = SendMessage wid (ScrollTo rect)
 
   itemViewport node idx = viewport where
     lookup idx node = Seq.lookup idx (node ^. L.children)

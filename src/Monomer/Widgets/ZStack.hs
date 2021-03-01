@@ -10,7 +10,7 @@ module Monomer.Widgets.ZStack (
 
 import Codec.Serialise
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), (?~), at)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), (?~), at, ix)
 import Control.Monad (forM_, void, when)
 import Data.Default
 import Data.Maybe
@@ -46,7 +46,7 @@ onlyTopActive active = def {
 }
 
 data ZStackState = ZStackState {
-  _zssFocusMap :: M.Map PathStep Path,
+  _zssFocusMap :: M.Map PathStep WidgetId,
   _zssTopIdx :: Int
 } deriving (Eq, Show, Generic, Serialise)
 
@@ -98,26 +98,26 @@ makeZStack config state = widget where
     ZStackState oldFocusMap oldTopIdx = oldState
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
+    focusedWid = findWidgetIdFromPath wenv focusedPath
     isFocusParent = isNodeParentOfPath focusedPath node
     topLevel = isNodeTopLevel wenv node
     flagsChanged = childrenFlagsChanged oldNode node
     newTopIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
     focusReq = isJust $ Seq.findIndexL isFocusRequest (result ^. L.requests)
     needsFocus = isFocusParent && topLevel && flagsChanged && not focusReq
-    oldFocus = fromJust oldTopPath
-    oldTopPath = M.lookup newTopIdx oldFocusMap
-    fstTopPath = Just $ node ^. L.info . L.path |> newTopIdx
+    oldTopWid = M.lookup newTopIdx oldFocusMap
+    fstTopWid = node ^? L.children . ix newTopIdx . L.info . L.widgetId
     newState = oldState {
-      _zssFocusMap = oldFocusMap & at oldTopIdx ?~ focusedPath,
+      _zssFocusMap = oldFocusMap & at oldTopIdx .~ focusedWid,
       _zssTopIdx = newTopIdx
     }
     tmpResult = result
       & L.node . L.widget .~ makeZStack config newState
     newResult
-      | needsFocus && isJust oldTopPath = tmpResult
-          & L.requests %~ (|> SetFocus (fromJust oldTopPath))
+      | needsFocus && isJust oldTopWid = tmpResult
+          & L.requests %~ (|> SetFocus (fromJust oldTopWid))
       | needsFocus = tmpResult
-          & L.requests %~ (|> MoveFocus fstTopPath FocusFwd)
+          & L.requests %~ (|> MoveFocus fstTopWid FocusFwd)
       | isFocusParent = tmpResult
       | otherwise = result
 

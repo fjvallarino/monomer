@@ -320,7 +320,7 @@ makeInputField config state = widget where
     -- Enter regular edit mode if widget has custom drag handler
     DblClick point btn
       | dragHandleExt btn -> Just (resultReqs node reqs) where
-        focusReq = [SetFocus path | not (isNodeFocused wenv node)]
+        focusReq = [SetFocus widgetId | not (isNodeFocused wenv node)]
         reqs = SetCursorIcon widgetId CursorIBeam : focusReq
 
     -- Begin regular text selection
@@ -332,7 +332,7 @@ makeInputField config state = widget where
         newState = newTextState wenv node state currVal currText newPos Nothing
         newNode = node
           & L.widget .~ makeInputField config newState
-        newReqs = [ SetFocus path | not (isNodeFocused wenv node) ]
+        newReqs = [ SetFocus widgetId | not (isNodeFocused wenv node) ]
         result = resultReqs newNode newReqs
 
     -- Begin custom drag

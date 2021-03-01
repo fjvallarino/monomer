@@ -356,7 +356,7 @@ handleFocusRequest wenv evt oldNode mResult = newResult where
     && not (isNodeFocused wenv node)
     && isNodeTopLevel wenv node
     && isNothing (Seq.findIndexL isFocusRequest prevReqs)
-  focusReq = SetFocus (node ^. L.info . L.path)
+  focusReq = SetFocus (node ^. L.info . L.widgetId)
   newResult
     | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
     | isFocusReq = Just $ resultReqs node [focusReq]
