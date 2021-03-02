@@ -5,6 +5,7 @@
 module Main where
 
 import Control.Lens
+import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import TextShow
@@ -139,5 +140,5 @@ main = do
     initModel = BooksModel "borges-bioy" False Nothing []
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
-setFocus wenv key = Request (SetFocus path) where
-  path = fromMaybe rootPath (globalKeyPath wenv key)
+setFocus wenv key = Request (SetFocus widgetId) where
+  widgetId = fromMaybe def (globalKeyWidgetId wenv key)

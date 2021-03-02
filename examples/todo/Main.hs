@@ -109,8 +109,8 @@ remove :: Int -> [a] -> [a]
 remove idx ls = take idx ls ++ drop (idx + 1) ls
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
-setFocus wenv key = Request (SetFocus path) where
-  path = fromMaybe rootPath (globalKeyPath wenv key)
+setFocus wenv key = Request (SetFocus widgetId) where
+  widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 
 initialTodos :: [Todo]
 initialTodos = mconcat $ replicate 5 [
