@@ -432,8 +432,8 @@ makeScroll config state = widget where
     dy = _sstDeltaY state
 
     child = Seq.index (node ^. L.children) 0
-    childWidth2 = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
-    childHeight2 = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
+    childW = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
+    childH = sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
 
     barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
     overlay = fromMaybe (theme ^. L.scrollOverlay) (_scScrollOverlay config)
@@ -441,17 +441,19 @@ makeScroll config state = widget where
       | not overlay = (cw - barW, ch - barW)
       | otherwise = (cw, ch)
     (maxW, areaW)
-      | scrollType == ScrollV && childHeight2 > ch = (ncw, ncw)
+      | scrollType == ScrollV && childH > ch = (ncw, ncw)
       | scrollType == ScrollV = (cw, cw)
-      | childHeight2 <= ch && childWidth2 <= cw = (cw, cw)
-      | childHeight2 <= ch = (cw, max cw childWidth2)
-      | otherwise = (ncw, max ncw childWidth2)
+      | scrollType == ScrollH = (cw, max cw childW)
+      | childH <= ch && childW <= cw = (cw, cw)
+      | childH <= ch = (cw, max cw childW)
+      | otherwise = (ncw, max ncw childW)
     (maxH, areaH)
-      | scrollType == ScrollH && childWidth2 > cw = (nch, nch)
+      | scrollType == ScrollH && childW > cw = (nch, nch)
       | scrollType == ScrollH = (ch, ch)
-      | childWidth2 <= cw && childHeight2 <= ch = (ch, ch)
-      | childWidth2 <= cw = (ch, max ch childHeight2)
-      | otherwise = (nch, max nch childHeight2)
+      | scrollType == ScrollV = (ch, max ch childH)
+      | childW <= cw && childH <= ch = (ch, ch)
+      | childW <= cw = (ch, max ch childH)
+      | otherwise = (nch, max nch childH)
     newDx = scrollAxis dx areaW maxW
     newDy = scrollAxis dy areaH maxH
     scissor = Rect cl ct maxW maxH
