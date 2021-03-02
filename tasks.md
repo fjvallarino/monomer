@@ -542,6 +542,7 @@
   - Fix books labels
   - Check if using WidgetId in MoveFocus and SetFocus is possible
   - Auto scroll affects dropdown when listView is displayed
+    - Ignore overlays if scroll is not an overlay
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -556,6 +557,7 @@ Next
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
   - Send message to scroll to reset position when content changes
+    - Also scroll to focused element on init
     - This is for listView. Maybe a config argument is needed, since this is not always desired?
 
 Future
