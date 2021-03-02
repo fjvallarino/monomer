@@ -21,6 +21,8 @@ import qualified Monomer.Lens as L
 data ButtonEvt
   = Button1
   | Button2
+  | Button3
+  | Button4
   deriving (Eq, Show)
 
 spec :: Spec
@@ -34,19 +36,32 @@ handleEvent = describe "handleEvent" $ do
 
 handleChildrenFocus :: Spec
 handleChildrenFocus = describe "handleChildrenFocus" $ do
-  it "should not follow focus events" $
-    evtsIgnore evts `shouldBe` Seq.fromList [Button1]
+  it "should not follow focus events" $ do
+    evtsIgnore evts1 `shouldBe` Seq.fromList [Button1]
+    evtsIgnore evts2 `shouldBe` Seq.fromList [Button1]
+    evtsIgnore evts3 `shouldBe` Seq.fromList [Button1]
 
   it "should follow focus events" $
-    evtsFollow evts `shouldBe` Seq.fromList [Button2]
+    evtsFollow evts1 `shouldBe` Seq.fromList [Button2]
+
+  it "should follow focus events on overlay" $
+    evtsFollow evts2 `shouldBe` Seq.fromList [Button2]
+
+  it "should follow focus events on non overlay" $
+    evtsFollow evts3 `shouldBe` Seq.fromList [Button4]
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     point = Point 320 200
-    evts = [evtK keyTab, evtClick point]
+    evts1 = [evtK keyTab, evtClick point]
+    evts2 = [evtK keyTab, evtK keyTab, evtClick point]
+    evts3 = [evtK keyTab, evtK keyTab, evtK keyTab, evtClick point]
+    st = [width 640, height 480]
     stackNode = vstack [
-        button "Button 1" Button1 `style` [width 640, height 480],
-        button "Button 2" Button2 `style` [width 640, height 480]
+        button "Button 1" Button1 `style` st,
+        button "Button 2" Button2 `style` st,
+        (button "Button 3" Button3 & L.info . L.overlay .~ True) `style` st,
+        button "Button 4" Button4 `style` st
       ]
     ignoreNode = scroll_ [scrollFollowFocus False] stackNode
     followNode = scroll stackNode

@@ -132,7 +132,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree where
+buildUI wenv model = traceShow "Creating UI" widgetScroll where
   widgetButtons = vstack [
       button "Confirm" ShowConfirm
     ]

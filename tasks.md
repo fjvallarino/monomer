@@ -540,6 +540,7 @@
   - ListView's SendMessage will fail if location changes. Add SendMessageWid?
     - Added mechanism to get WidgetNodeInfo from WidgetEnv given an arbitrary path
   - Fix books labels
+  - Check if using WidgetId in MoveFocus and SetFocus is possible
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -553,8 +554,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Check if using WidgetId in MoveFocus and SetFocus is possible
-  - Check _mcMainBtnPress
   - Auto scroll affects dropdown when listView is displayed
   - Send message to scroll to reset position when content changes
     - This is for listView. Maybe a config argument is needed, since this is not always desired?

@@ -930,12 +930,14 @@ cascadeCtx wenv parent child idx = newChild where
   pInfo = parent ^. L.info
   cInfo = child ^. L.info
   parentPath = pInfo ^. L.path
+  parentOverlay = pInfo ^. L.overlay
   parentVisible = pInfo ^. L.visible
   parentEnabled = pInfo ^. L.enabled
   newPath = parentPath |> idx
   newChild = child
     & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
     & L.info . L.path .~ newPath
+    & L.info . L.overlay .~ (cInfo ^. L.overlay || parentOverlay)
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
 

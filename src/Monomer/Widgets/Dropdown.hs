@@ -499,6 +499,7 @@ makeListView wenv value items makeRow config widgetId = listViewNode where
   lvStyle = collectTheme wenv L.dropdownListStyle
   listViewNode = listViewD_ value items makeRow lvConfig
     & L.info . L.style .~ lvStyle
+    & L.info . L.overlay .~ True
 
 createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
 createMoveFocusReq wenv = MoveFocus Nothing direction where

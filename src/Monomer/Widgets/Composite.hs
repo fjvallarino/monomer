@@ -867,14 +867,17 @@ convertWidgetEnv wenv globalKeys model = WidgetEnv {
 cascadeCtx
   :: WidgetEnv sp ep -> WidgetNode sp ep -> WidgetNode s e -> WidgetNode s e
 cascadeCtx wenv parent child = newChild where
+  pOverlay = parent ^. L.info . L.overlay
   pVisible = parent ^. L.info . L.visible
   pEnabled = parent ^. L.info . L.enabled
+  cOverlay = child ^. L.info . L.overlay
   cVisible = child ^. L.info . L.visible
   cEnabled = child ^. L.info . L.enabled
   newPath = firstChildPath parent
   newChild = child
     & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
     & L.info . L.path .~ newPath
+    & L.info . L.overlay .~ (cOverlay || pOverlay)
     & L.info . L.visible .~ (cVisible && pVisible)
     & L.info . L.enabled .~ (cEnabled && pEnabled)
 

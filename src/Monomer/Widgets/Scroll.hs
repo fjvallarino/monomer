@@ -274,8 +274,9 @@ makeScroll config state = widget where
       focusPath = wenv ^. L.focusedPath
       focusInst = widgetFindByPath (node ^. L.widget) wenv focusPath node
       focusVp = focusInst ^? _Just . L.viewport
+      focusOverlay = focusInst ^? _Just . L.overlay == Just True
       result
-        | follow = focusVp >>= scrollTo wenv node
+        | follow && not focusOverlay = focusVp >>= scrollTo wenv node
         | otherwise = Nothing
     ButtonAction point btn status _ -> result where
       leftPressed = status == PressedBtn && btn == wenv ^. L.mainButton
