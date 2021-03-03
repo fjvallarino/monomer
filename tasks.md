@@ -543,6 +543,7 @@
   - Check if using WidgetId in MoveFocus and SetFocus is possible
   - Auto scroll affects dropdown when listView is displayed
     - Ignore overlays if scroll is not an overlay
+  - Scroll to focused element on init
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -556,13 +557,9 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Also scroll to focused element on init
   - Send message to scroll to reset position when content changes
     - This is for listView. Maybe a config argument is needed, since this is not always desired?
   - Is initPost needed in Container?
-  - Maybe offset should be in node info?
-    - Focus tracking in nested non-expanded scrolls is not possible otherwise
-    - Maybe IgnoreParentEvents could work?
 
 Future
   - Animation widgets
@@ -572,6 +569,9 @@ Future
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
   - Add support for multiline text editing
+  - Maybe offset should be in node info?
+    - Focus tracking in nested non-expanded scrolls is not possible otherwise
+    - Maybe IgnoreParentEvents could work?
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create Slider
   - Create File Selector

@@ -72,6 +72,12 @@ type ContainerInitHandler s e
   -> WidgetNode s e
   -> WidgetResult s e
 
+type ContainerInitPostHandler s e
+  = WidgetEnv s e
+  -> WidgetResult s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+
 type ContainerMergeChildrenReqHandler s e a
   = WidgetEnv s e
   -> a
@@ -178,6 +184,7 @@ data Container s e a = Container {
   containerGetActiveStyle :: ContainerGetActiveStyle s e,
   containerUpdateCWenv :: ContainerUpdateCWenvHandler s e,
   containerInit :: ContainerInitHandler s e,
+  containerInitPost :: ContainerInitPostHandler s e,
   containerMergeChildrenReq :: ContainerMergeChildrenReqHandler s e a,
   containerMerge :: Maybe (ContainerMergeHandler s e a),
   containerMergePost :: ContainerMergePostHandler s e a,
@@ -210,6 +217,7 @@ instance Default (Container s e a) where
     containerGetActiveStyle = defaultGetActiveStyle,
     containerUpdateCWenv = defaultUpdateCWenv,
     containerInit = defaultInit,
+    containerInitPost = defaultInitPost,
     containerMergeChildrenReq = defaultMergeRequired,
     containerMerge = Nothing,
     containerMergePost = defaultMergePost,
@@ -303,14 +311,18 @@ updateWenvOffset container wenv node = newWenv where
 defaultInit :: ContainerInitHandler s e
 defaultInit wenv node = resultWidget node
 
+defaultInitPost :: ContainerInitPostHandler s e
+defaultInitPost wenv result node = result
+
 initWrapper
   :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
-initWrapper container wenv node = result where
+initWrapper container wenv node = initPostHandler wenv result node where
   initHandler = containerInit container
+  initPostHandler = containerInitPost container
   getBaseStyle = containerGetBaseStyle container
   updateCWenv = getUpdateCWenv container
   styledNode = initNodeStyle getBaseStyle wenv node
