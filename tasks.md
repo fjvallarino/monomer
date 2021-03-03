@@ -556,9 +556,13 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
+  - Also scroll to focused element on init
   - Send message to scroll to reset position when content changes
-    - Also scroll to focused element on init
     - This is for listView. Maybe a config argument is needed, since this is not always desired?
+  - Is initPost needed in Container?
+  - Maybe offset should be in node info?
+    - Focus tracking in nested non-expanded scrolls is not possible otherwise
+    - Maybe IgnoreParentEvents could work?
 
 Future
   - Animation widgets

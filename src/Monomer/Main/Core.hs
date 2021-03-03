@@ -103,7 +103,7 @@ runApp window widgetRoot config = do
   let exitEvents = _apcExitEvent config
   let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
 
-  L.windowSize .= newWindowSize
+  resizeWindow window
   startTs <- fmap fromIntegral SDL.ticks
   model <- use L.mainModel
   os <- getPlatform
@@ -141,11 +141,9 @@ runApp window widgetRoot config = do
   let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, initializedRoot, _, _) <- if isJust (config ^. L.stateFileMain)
+  (newWenv, newRoot, _, _) <- if isJust (config ^. L.stateFileMain)
     then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
     else initAction
-
-  (_, resizedRoot, _, _) <- resizeWindow window newWenv initializedRoot
 
   let loopArgs = MainLoopArgs {
     _mlOS = os,
@@ -157,7 +155,7 @@ runApp window widgetRoot config = do
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
-    _mlWidgetRoot = resizedRoot
+    _mlWidgetRoot = newRoot
   }
 
   L.mainModel .= _weModel newWenv
@@ -246,7 +244,9 @@ mainLoop window renderer config loopArgs = do
   (seWenv, seRoot, _, _) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
 
   (newWenv, newRoot, _, _) <- if windowResized
-    then resizeWindow window seWenv seRoot
+    then do
+      resizeWindow window
+      handleResizeWidgets (seWenv, seRoot, Seq.Empty, Seq.Empty)
     else return (seWenv, seRoot, Seq.empty, Seq.empty)
 
   endTicks <- fmap fromIntegral SDL.ticks
@@ -345,22 +345,17 @@ renderWidgets !window renderer clearColor wenv widgetRoot = do
 resizeWindow
   :: (MonomerM s m)
   => SDL.Window
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> m (HandlerStep s e)
-resizeWindow window wenv widgetRoot = do
+  -> m ()
+resizeWindow window = do
   dpr <- use L.dpr
   drawableSize <- getDrawableSize window
   windowSize <- getWindowSize window dpr
 
   let position = GL.Position 0 0
   let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
-  let newWenv = wenv & L.windowSize .~ windowSize
 
   L.windowSize .= windowSize
   liftIO $ GL.viewport GL.$= (position, size)
-
-  handleResizeWidgets (wenv, widgetRoot, Seq.Empty, Seq.Empty)
 
 saveMonomerCtx
   :: MonomerM s m
@@ -386,7 +381,8 @@ loadMonomerCtx wenv root config = do
   (ctxp, widgetInst) <- liftIO $ readFileDeserialise file
   step <- handleWidgetRestore wenv widgetInst root
   fromMonomerCtxPersist ctxp
-  return step
+  L.resizePending .= True
+  handleResizeWidgets step
 
 toMonomerCtxPersist :: (MonomerM s m) => m MonomerCtxPersist
 toMonomerCtxPersist = do

@@ -43,6 +43,7 @@ data MainEvt
 data ChildEvt
   = ChildBtnClicked
   | ChildMessage String
+  | ChildResize Rect
   deriving (Eq, Show)
 
 data MainModel = MainModel {
@@ -108,6 +109,7 @@ handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventBasic
   handleEventChild
+  handleEventResize
   handleEventLocalKey
   handleEventGlobalKey
 
@@ -119,9 +121,6 @@ handleEventBasic = describe "handleEventBasic" $ do
   it "should generate a user provided event when clicked" $
     model [evtClick (Point 10 10)] ^. clicks `shouldBe` 1
 
-  it "should generate a resize event on init" $
-    events [] `shouldBe` Seq.fromList [MainResize vp]
-
   where
     wenv = mockWenv def
     handleEvent
@@ -132,13 +131,10 @@ handleEventBasic = describe "handleEventBasic" $ do
       -> [EventResponse MainModel MainEvt MainEvt]
     handleEvent wenv node model evt = case evt of
       MainBtnClicked -> [Model (model & clicks %~ (+1))]
-      MainResize size -> [Report (MainResize size)]
       _ -> []
     buildUI wenv model = button "Click" MainBtnClicked
-    cmpNode = composite_ "main" id buildUI handleEvent [onResize MainResize]
+    cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
-    events es = nodeHandleEventEvts wenv es cmpNode
-    vp = Rect 0 0 640 480
 
 handleEventChild :: Spec
 handleEventChild = describe "handleEventChild" $ do
@@ -177,6 +173,47 @@ handleEventChild = describe "handleEventChild" $ do
       ]
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
+
+handleEventResize :: Spec
+handleEventResize = describe "handleEventResize" $ do
+  it "should not generate a resize event on init" $
+    events [] `shouldBe` Seq.fromList []
+
+  it "should generate a resize event when size changes" $
+    events [evtClick (Point 10 10)] `shouldBe` Seq.fromList [MainResize cvp]
+
+  where
+    wenv = mockWenv def
+    handleChild
+      :: WidgetEnv ChildModel ChildEvt
+      -> WidgetNode ChildModel ChildEvt
+      -> ChildModel
+      -> ChildEvt
+      -> [EventResponse ChildModel ChildEvt MainEvt]
+    handleChild wenv node model evt = case evt of
+      ChildResize rect -> [Report (MainResize rect)]
+      _ -> [Model (model & clicks %~ (+1))]
+    buildChild wenv model = vstack [
+        button "Click" ChildBtnClicked,
+        label "Test" `style` [height 3000] `visible` (model ^. clicks > 0)
+      ]
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainEvt]
+    handleEvent wenv node model evt = case evt of
+      MainResize{} -> [Report evt]
+      _ -> [Model (model & clicks %~ (+1))]
+    buildUI wenv model = vstack [
+        composite_ "child" child buildChild handleChild [onResize ChildResize]
+      ]
+    cmpNode = composite_ "main" id buildUI handleEvent [onResize MainResize]
+    model es = nodeHandleEventModel wenv es cmpNode
+    events es = nodeHandleEventEvts wenv es cmpNode
+    vp = Rect 0 0 640 480
+    cvp = Rect 0 0 640 3020
 
 handleEventLocalKey :: Spec
 handleEventLocalKey = describe "handleEventLocalKey" $

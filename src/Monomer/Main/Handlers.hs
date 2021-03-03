@@ -187,6 +187,7 @@ handleWidgetInit wenv widgetRoot = do
   let reqs = widgetResult ^. L.requests
   let focusReqExists = isJust $ Seq.findIndexL isFocusRequest reqs
 
+  L.resizePending .= True
   step <- handleWidgetResult wenv True widgetResult
 
   if not focusReqExists
