@@ -19,6 +19,8 @@ import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
 import GHC.Generics
 
+import qualified Data.Text as T
+
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
@@ -48,14 +50,14 @@ data WindowRequest
   deriving (Eq, Show)
 
 newtype WidgetType
-  = WidgetType { unWidgetType :: String }
+  = WidgetType { unWidgetType :: Text }
   deriving (Eq, Generic, Serialise)
 
 instance Show WidgetType where
-  show (WidgetType t) = t
+  show (WidgetType t) = T.unpack t
 
 instance IsString WidgetType where
-  fromString = WidgetType
+  fromString = WidgetType . T.pack
 
 data WidgetData s a
   = WidgetValue a
@@ -73,6 +75,9 @@ data WidgetKey
   = WidgetKeyLocal Text
   | WidgetKeyGlobal Text
   deriving (Eq, Show, Ord, Generic, Serialise)
+
+instance IsString WidgetKey where
+  fromString = WidgetKeyGlobal . T.pack
 
 data WidgetState
   = forall i . (Typeable i, WidgetModel i) => WidgetState i

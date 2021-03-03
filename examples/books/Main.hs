@@ -90,7 +90,7 @@ buildUI wenv model = widgetTree where
   widgetTree = zstack [
       vstack [
         searchForm,
-        vscroll $ vstack (bookRow <$> model ^. books)
+        vscroll (vstack (bookRow <$> model ^. books)) `key` "mainScroll"
       ],
       bookOverlay `visible` isJust (model ^. selected),
       searchOverlay `visible` model ^. searching
@@ -108,9 +108,11 @@ handleEvent wenv node model evt = case evt of
     Model $ model & searching .~ True,
     Task $ searchBooks (model ^. query)
     ]
-  BooksSearchResult resp -> [Model $ model
-    & searching .~ False
-    & books .~ resp ^. docs
+  BooksSearchResult resp -> [
+    Message "mainScroll" ScrollReset,
+    Model $ model
+      & searching .~ False
+      & books .~ resp ^. docs
     ]
   BooksSearchError msg -> []
   BooksShowDetails book -> [Model $ model & selected ?~ book]

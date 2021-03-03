@@ -7,6 +7,7 @@ import Data.Sequence (Seq(..))
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.Style
@@ -31,7 +32,7 @@ nodeDesc :: Int -> WidgetNode s e -> String
 nodeDesc level node = infoDesc (_wnInfo node) where
   spaces = replicate (level * 2) ' '
   infoDesc info =
-    spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
+    spaces ++ "type: " ++ show (_wniWidgetType info) ++ "\n" ++
     spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
     spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
@@ -46,7 +47,7 @@ nodeInstDesc :: Int -> WidgetInstanceNode -> String
 nodeInstDesc level node = infoDesc (_winInfo node) where
   spaces = replicate (level * 2) ' '
   infoDesc info =
-    spaces ++ "type: " ++ unWidgetType (_wniWidgetType info) ++ "\n" ++
+    spaces ++ "type: " ++ show (_wniWidgetType info) ++ "\n" ++
     spaces ++ "path: " ++ show (_wniPath info) ++ "\n" ++
     spaces ++ "vp: " ++ rectDesc (_wniViewport info) ++ "\n" ++
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"

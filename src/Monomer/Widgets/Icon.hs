@@ -12,6 +12,8 @@ import Control.Applicative ((<|>))
 import Data.Default
 import Data.Maybe
 
+import qualified Data.Text as T
+
 import Monomer.Graphics.Color
 
 import Monomer.Widgets.Single
@@ -51,7 +53,8 @@ icon iconType = icon_ iconType def
 
 icon_ :: IconType -> [IconCfg] -> WidgetNode s e
 icon_ iconType configs = defaultWidgetNode widgetType widget where
-  widgetType = WidgetType ('i' : tail (show iconType))
+  iconName = T.pack $ show iconType
+  widgetType = WidgetType ("i" <> T.tail iconName)
   config = mconcat configs
   widget = makeImage iconType config
 

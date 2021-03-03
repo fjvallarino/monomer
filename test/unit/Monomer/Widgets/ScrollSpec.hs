@@ -12,6 +12,7 @@ import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Button
+import Monomer.Widgets.Composite
 import Monomer.Widgets.Label
 import Monomer.Widgets.Scroll
 import Monomer.Widgets.Stack
@@ -33,6 +34,7 @@ spec = describe "Scroll" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleChildrenFocus
+  handleMessageReset
 
 handleChildrenFocus :: Spec
 handleChildrenFocus = describe "handleChildrenFocus" $ do
@@ -67,6 +69,35 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
     followNode = scroll stackNode
     evtsIgnore es = nodeHandleEventEvts wenv es ignoreNode
     evtsFollow es = nodeHandleEventEvts wenv es followNode
+
+handleMessageReset :: Spec
+handleMessageReset = describe "handleMessageReset" $ do
+  it "should not generate an event if scroll does not show Button1" $
+    events es `shouldBe` Seq.empty
+
+  it "should generate an event if scroll shows Button1" $
+    events (evtK keyTab : es) `shouldBe` Seq.singleton Button1
+
+  where
+    wenv = mockWenv ()
+    es = [evtK keyTab, evtClick (Point 10 10), evtClick (Point 10 10)]
+    handleEvent
+      :: WidgetEnv () ButtonEvt
+      -> WidgetNode () ButtonEvt
+      -> ()
+      -> ButtonEvt
+      -> [EventResponse () ButtonEvt ButtonEvt]
+    handleEvent wenv node model evt = case evt of
+      Button1 -> [Report Button1]
+      Button3 -> [Message "mainScroll" ScrollReset]
+      _ -> []
+    buildUI wenv model = scroll (vstack [
+        button "Button 1" Button1 `style` [height 480],
+        button "Button 2" Button2 `style` [height 480],
+        button "Button 3" Button3 `style` [height 480]
+      ]) `key` "mainScroll"
+    cmpNode = composite "main" id buildUI handleEvent
+    events es = nodeHandleEventEvts wenv es cmpNode
 
 resize :: Spec
 resize = describe "resize" $ do

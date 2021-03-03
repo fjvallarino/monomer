@@ -207,8 +207,10 @@ instance WidgetModel ScrollState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-newtype ScrollMessage
+data ScrollMessage
   = ScrollTo Rect
+  | ScrollReset
+  deriving (Eq, Show)
 
 scroll :: WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ def managedWidget
@@ -360,6 +362,7 @@ makeScroll config state = widget where
 
   handleMessage wenv ctx message node = result where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv node rect
+    handleScrollMessage ScrollReset = scrollReset wenv node
     result = cast message >>= handleScrollMessage
 
   scrollTo wenv node targetRect = result where
@@ -387,6 +390,13 @@ makeScroll config state = widget where
     result
       | rectInRect rect contentArea = Nothing
       | otherwise = Just $ rebuildWidget wenv newState node
+
+  scrollReset wenv node = result where
+    newState = state {
+      _sstDeltaX = 0,
+      _sstDeltaY = 0
+    }
+    result = Just $ rebuildWidget wenv newState node
 
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point

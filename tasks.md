@@ -544,6 +544,10 @@
   - Auto scroll affects dropdown when listView is displayed
     - Ignore overlays if scroll is not an overlay
   - Scroll to focused element on init
+  - Is initPost needed in Container?
+  - Send message to scroll to reset position when content changes
+    - This is for listView. Maybe a config argument is needed, since this is not always desired?
+    - Solved sending a message
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -557,9 +561,6 @@ Next
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
-  - Send message to scroll to reset position when content changes
-    - This is for listView. Maybe a config argument is needed, since this is not always desired?
-  - Is initPost needed in Container?
 
 Future
   - Animation widgets
