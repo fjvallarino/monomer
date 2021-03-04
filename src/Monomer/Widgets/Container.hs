@@ -787,7 +787,10 @@ handleMessageWrapper container wenv target arg node
 
 -- | Preferred size
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e a
-defaultGetSizeReq wenv node children = def
+defaultGetSizeReq wenv state node children = (newReqW, newReqH) where
+  (newReqW, newReqH) = case Seq.lookup 0 children of
+    Just child -> (child ^. L.info . L.sizeReqW, child ^. L.info . L.sizeReqH)
+    _ -> def
 
 updateSizeReq
   :: WidgetModel a
@@ -834,9 +837,11 @@ handleSizeReqChange container wenv node evt mResult = result where
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
-defaultResize wenv viewport children node = newSize where
-  childrenSizes = Seq.replicate (Seq.length children) def
-  newSize = (resultWidget node, childrenSizes)
+defaultResize wenv viewport children node = resized where
+  style = activeStyle wenv node
+  contentArea = fromMaybe def (removeOuterBounds style viewport)
+  childrenSizes = Seq.replicate (Seq.length children) contentArea
+  resized = (resultWidget node, childrenSizes)
 
 resizeWrapper
   :: WidgetModel a

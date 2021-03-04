@@ -100,7 +100,6 @@ makeTooltip caption config state = widget where
     containerGetBaseStyle = getBaseStyle,
     containerRestore = restore,
     containerHandleEvent = handleEvent,
-    containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
   widget = baseWidget {
@@ -143,13 +142,7 @@ makeTooltip caption config state = widget where
           | otherwise = resultWidget node
     _ -> Nothing
 
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
-
-  resize :: ContainerResizeHandler s e
+  -- Padding/border is not removed. Styles are only considerer for the overlay
   resize wenv viewport children node = resized where
     resized = (resultWidget node, Seq.singleton viewport)
 

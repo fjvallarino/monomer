@@ -90,9 +90,7 @@ makeNode widget managedWidget = defaultWidgetNode "keystroke" widget
 makeKeystroke :: [(KeyStroke, e)] -> KeystrokeCfg -> Widget s e
 makeKeystroke bindings config = widget where
   widget = createContainer () def {
-    containerHandleEvent = handleEvent,
-    containerGetSizeReq = getSizeReq,
-    containerResize = resize
+    containerHandleEvent = handleEvent
   }
 
   handleEvent wenv target evt node = case evt of
@@ -105,18 +103,6 @@ makeKeystroke bindings config = widget where
         | otherwise = []
       result = resultReqsEvts node reqs evts
     _ -> Nothing
-
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
-
-  resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = resized where
-    style = activeStyle wenv node
-    contentArea = fromMaybe def (removeOuterBounds style viewport)
-    resized = (resultWidget node, Seq.singleton contentArea)
 
 keyStrokeActive :: WidgetEnv s e -> KeyCode -> KeyStroke -> Bool
 keyStrokeActive wenv code ks = currValid && allPressed && validMods where

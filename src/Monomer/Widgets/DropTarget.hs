@@ -64,9 +64,7 @@ makeDropTarget :: DragMsg a => (a -> e) -> DropTargetCfg -> Widget s e
 makeDropTarget dropEvt config = widget where
   widget = createContainer () def {
     containerGetActiveStyle = getActiveStyle,
-    containerHandleEvent = handleEvent,
-    containerGetSizeReq = getSizeReq,
-    containerResize = resize
+    containerHandleEvent = handleEvent
   }
 
   getActiveStyle wenv node
@@ -84,18 +82,6 @@ makeDropTarget dropEvt config = widget where
         evts = msgToEvts dragMsg
         result = resultEvts node evts
     _ -> Nothing
-
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
-
-  resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = resized where
-    style = activeStyle wenv node
-    contentArea = fromMaybe def (removeOuterBounds style viewport)
-    resized = (resultWidget node, Seq.singleton contentArea)
 
   isDropTarget wenv node = case wenv ^. L.dragStatus of
     Just (path, msg) -> not (isNodeParentOfPath path node) && isValidMsg msg

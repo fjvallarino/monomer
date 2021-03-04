@@ -26,22 +26,8 @@ makeNode widget managedWidget = defaultWidgetNode "themeSwitch" widget
 makeTheme :: Theme -> Widget s e
 makeTheme theme = widget where
   widget = createContainer () def {
-    containerUpdateCWenv = updateCWenv,
-    containerGetSizeReq = getSizeReq,
-    containerResize = resize
+    containerUpdateCWenv = updateCWenv
   }
 
   updateCWenv wenv cidx cnode node = newWenv where
     newWenv = wenv & L.theme .~ theme
-
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
-
-  resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = resized where
-    style = activeStyle wenv node
-    contentArea = fromMaybe def (removeOuterBounds style viewport)
-    resized = (resultWidget node, Seq.singleton contentArea)
