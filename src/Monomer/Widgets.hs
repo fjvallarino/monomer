@@ -25,7 +25,9 @@ module Monomer.Widgets (
   module Monomer.Widgets.TextField,
   module Monomer.Widgets.ThemeSwitch,
   module Monomer.Widgets.Tooltip,
-  module Monomer.Widgets.ZStack
+  module Monomer.Widgets.ZStack,
+  -- Animation
+  module Monomer.Widgets.Animate.Fade
 ) where
 
 import Monomer.Widgets.Alert
@@ -55,3 +57,5 @@ import Monomer.Widgets.TextField
 import Monomer.Widgets.ThemeSwitch
 import Monomer.Widgets.Tooltip
 import Monomer.Widgets.ZStack
+
+import Monomer.Widgets.Animate.Fade

@@ -132,7 +132,11 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetScroll where
+buildUI wenv model = traceShow "Creating UI" widgetAnimate where
+  widgetAnimate = vstack [
+      fadeIn (label "Hello!!!!" `style` [bgColor red]),
+      fadeOut (label "Good bye!!!!" `style` [bgColor green])
+    ]
   widgetButtons = vstack [
       button "Confirm" ShowConfirm
     ]
