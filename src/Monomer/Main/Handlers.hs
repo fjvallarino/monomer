@@ -316,7 +316,7 @@ handleMoveFocus startFromWid dir (wenv, root, reqs, evts) = do
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
     else
-      return (wenv1, root1, reqs1, evts1)
+      return (wenv1, root1, reqs <> reqs1, evts <> evts1)
 
 handleSetFocus
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)

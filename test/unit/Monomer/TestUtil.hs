@@ -223,7 +223,9 @@ nodeHandleEvents
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerCtx s)
 nodeHandleEvents wenv init evts node = result where
-  steps = nodeHandleEvents_ wenv init [evts] node
+  steps
+    | init == WInit = tail $ nodeHandleEvents_ wenv init [evts] node
+    | otherwise = nodeHandleEvents_ wenv init [evts] node
   result = foldl1 stepper steps
   stepper step1 step2 = result where
     ((_, _, reqs1, evts1), _) = step1
@@ -240,21 +242,25 @@ nodeHandleEvents_
 nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
   fmap fst $ flip runStateT monomerContext $ do
-    (wenv2, newNode, _, _) <- if init == WInit
+    stepA <- if init == WInit
       then do
         handleResourcesInit
         handleWidgetInit wenv pathReadyRoot
       else
         return (wenv, pathReadyRoot, Seq.empty, Seq.empty)
 
-    let resizeRes = widgetResize (newNode ^. L.widget) wenv vp newNode
-    step <- handleWidgetResult wenv2 True resizeRes
+    ctxA <- get
+    let (wenvA, nodeA, reqsA, evtsA) = stepA
+    let resizeRes = widgetResize (nodeA ^. L.widget) wenv vp nodeA
+    step <- handleWidgetResult wenvA True resizeRes
     ctx <- get
     let (wenvr, rootr, reqsr, evtsr) = step
 
     (_, _, steps) <- foldM runStep (wenvr, rootr, [(step, ctx)]) evtsG
 
-    return (reverse steps)
+    return $ if init == WInit
+      then (stepA, ctxA) : reverse steps
+      else reverse steps
   where
     winSize = _weWindowSize wenv
     vp = Rect 0 0 (_sW winSize) (_sH winSize)
