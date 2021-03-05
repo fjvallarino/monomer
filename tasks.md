@@ -563,6 +563,8 @@ Next
     - Tests
     - Common Message/Types
   - Check references to old ctx name
+  - Reorganize widgets (containers/singles)
+  - Review returning Maybe from event handlers
   - Add examples
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent

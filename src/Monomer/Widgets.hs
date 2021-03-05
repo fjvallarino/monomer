@@ -1,5 +1,6 @@
 module Monomer.Widgets (
   module Monomer.Widgets.Alert,
+  module Monomer.Widgets.Animation,
   module Monomer.Widgets.Box,
   module Monomer.Widgets.Button,
   module Monomer.Widgets.Checkbox,
@@ -26,11 +27,10 @@ module Monomer.Widgets (
   module Monomer.Widgets.ThemeSwitch,
   module Monomer.Widgets.Tooltip,
   module Monomer.Widgets.ZStack,
-  -- Animation
-  module Monomer.Widgets.Animate.Fade
 ) where
 
 import Monomer.Widgets.Alert
+import Monomer.Widgets.Animation
 import Monomer.Widgets.Box
 import Monomer.Widgets.Button
 import Monomer.Widgets.Checkbox
@@ -57,5 +57,3 @@ import Monomer.Widgets.TextField
 import Monomer.Widgets.ThemeSwitch
 import Monomer.Widgets.Tooltip
 import Monomer.Widgets.ZStack
-
-import Monomer.Widgets.Animate.Fade

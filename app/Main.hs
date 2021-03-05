@@ -130,12 +130,12 @@ handleAppEvent wenv node model evt = case evt of
     & dragList1 .~ delete idx (model ^. dragList1)
     & dragList2 .~ model ^. dragList2 ++ [idx]]
   StartAnimation -> [
-      Message "anim1" AnimateStart,
-      Message "anim2" AnimateStart
+      Message "anim1" AnimationStart,
+      Message "anim2" AnimationStart
     ]
   StopAnimation -> [
-      Message "anim1" AnimateStop,
-      Message "anim2" AnimateStop
+      Message "anim1" AnimationStop,
+      Message "anim2" AnimationStop
     ]
   _ -> []
 
@@ -143,7 +143,7 @@ buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetAnimate where
   widgetAnimate = vstack [
       fadeIn (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
-      fadeOut (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
+      fadeOut_ [onFinished StartAnimation] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
       hstack [
         labelS (model ^. clickCount),
         button "Increase" IncButton

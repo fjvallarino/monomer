@@ -216,6 +216,9 @@ class CmbOnChangeIdxReq t s | t -> s where
 class CmbOnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t
 
+class CmbOnFinished t e | t -> e where
+  onFinished :: e -> t
+
 -- Size
 class CmbWidth t where
   width :: Double -> t

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Monomer.Widgets.Animate.FadeSpec (spec) where
+module Monomer.Widgets.Animation.FadeSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~), (?~), (^?!), _1, _3, ix)
 import Data.Default
@@ -15,12 +15,17 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
-import Monomer.Widgets.Animate.Fade
+import Monomer.Widgets.Animation.Fade
+import Monomer.Widgets.Animation.Types
 import Monomer.Widgets.Label
 import Monomer.Widgets.Scroll
 import Monomer.Widgets.Stack
 
 import qualified Monomer.Lens as L
+
+data TestEvt
+  = OnTestFinished
+  deriving (Eq, Show)
 
 spec :: Spec
 spec = describe "Fade" $ do
@@ -33,13 +38,14 @@ initWidget = describe "initWidget" $ do
   it "should not request rendering if autoStart = False" $
     reqs nodeNormal `shouldBe` Seq.empty
 
-  it "should request rendering if autoStart = True" $
-    reqs nodeAuto ^?! ix 0 `shouldSatisfy` isRenderEvery
+  it "should request rendering if autoStart = True" $ do
+    reqs nodeAuto ^?! ix 0 `shouldSatisfy` isRunTask
+    reqs nodeAuto ^?! ix 1 `shouldSatisfy` isRenderEvery
 
   where
     wenv = mockWenvEvtUnit ()
     nodeNormal = fadeIn (label "Test")
-    nodeAuto = fadeIn_ [autoStart] (label "Test")
+    nodeAuto = fadeIn_ [autoStart, duration 100] (label "Test")
     reqs node = nodeHandleEvents_ wenv WInit [] node ^?! ix 0 . _1 . _3
 
 handleMessage :: Spec
@@ -47,19 +53,25 @@ handleMessage = describe "handleMessage" $ do
   it "should not request rendering if an invalid message is received" $
     reqs ScrollReset `shouldBe` Seq.empty
 
-  it "should request rendering if AnimateStart is received" $
-    reqs AnimateStart ^?! ix 0 `shouldSatisfy` isRenderEvery
+  it "should request rendering if AnimationStart is received" $ do
+    reqs AnimationStart ^?! ix 0 `shouldSatisfy` isRunTask
+    reqs AnimationStart ^?! ix 1 `shouldSatisfy` isRenderEvery
+    evts AnimationStart `shouldBe` Seq.empty
 
-  it "should cancel rendering if AnimateStop is received" $
-    reqs AnimateStop ^?! ix 0 `shouldSatisfy` isRenderStop
+  it "should cancel rendering if AnimationStop is received" $ do
+    reqs AnimationStop ^?! ix 0 `shouldSatisfy` isRenderStop
+    evts AnimationStop `shouldBe` Seq.empty
+
+  it "should generate an event if AnimationFinished is received" $
+    evts AnimationFinished `shouldBe` Seq.singleton OnTestFinished
 
   where
-    wenv = mockWenvEvtUnit ()
-    node = nodeInit wenv $ fadeIn (label "Test")
-    reqs msg = rqs where
-      rqs = case widgetHandleMessage (node^. L.widget) wenv rootPath msg node of
-        Just (WidgetResult _ rqs _) -> rqs
-        _ -> Seq.empty
+    wenv = mockWenv ()
+    baseNode = fadeIn_ [autoStart, duration 100, onFinished OnTestFinished] (label "Test")
+    node = nodeInit wenv baseNode
+    res msg = widgetHandleMessage (node^. L.widget) wenv rootPath msg node
+    evts msg = maybe Seq.empty (^. L.events) (res msg)
+    reqs msg = maybe Seq.empty (^. L.requests) (res msg)
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
