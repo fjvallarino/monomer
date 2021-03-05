@@ -34,6 +34,8 @@ import qualified Monomer.Widgets.ThemeSwitchSpec as ThemeSwitchSpec
 import qualified Monomer.Widgets.TooltipSpec as TooltipSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
+import qualified Monomer.Widgets.Animate.FadeSpec as AnimateFadeSpec
+
 import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
 import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
 import qualified Monomer.Widgets.Util.TextSpec as TextSpec
@@ -52,6 +54,7 @@ spec :: Spec
 spec = do
   common
   widgets
+  widgetsAnimate
   widgetsUtil
 
 common :: Spec
@@ -86,6 +89,10 @@ widgets = describe "Widgets" $ do
   TextFieldSpec.spec
   TooltipSpec.spec
   ZStackSpec.spec
+
+widgetsAnimate :: Spec
+widgetsAnimate = describe "Widgets Animate" $ do
+  AnimateFadeSpec.spec
 
 widgetsUtil :: Spec
 widgetsUtil = describe "Widgets Util" $ do

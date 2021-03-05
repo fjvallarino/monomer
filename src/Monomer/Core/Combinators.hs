@@ -28,6 +28,15 @@ class CmbResizeOnChange t where
   resizeOnChange = resizeOnChange_ True
   resizeOnChange_ :: Bool -> t
 
+-- Animation
+class CmbAutoStart t where
+  autoStart :: t
+  autoStart = autoStart_ True
+  autoStart_ :: Bool -> t
+
+class CmbDuration t a | t -> a where
+  duration :: a -> t
+
 -- Caption
 class CmbTitleCaption t where
   titleCaption :: Text -> t

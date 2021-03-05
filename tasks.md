@@ -557,14 +557,18 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
+  - Animation widgets
+    - Two simple ones to start with: fade in/out and slide in/out
+    - Config
+    - Tests
+    - Common Message/Types
+  - Check references to old ctx name
   - Add examples
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
 
 Future
-  - Animation widgets
-    - Two simple ones to start with: fade in/out and slide in/out
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?

@@ -57,6 +57,18 @@ isResizeWidgets :: WidgetRequest s -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False
 
+isRenderOnce :: WidgetRequest s -> Bool
+isRenderOnce RenderOnce{} = True
+isRenderOnce _ = False
+
+isRenderEvery :: WidgetRequest s -> Bool
+isRenderEvery RenderEvery{} = True
+isRenderEvery _ = False
+
+isRenderStop :: WidgetRequest s -> Bool
+isRenderStop RenderStop{} = True
+isRenderStop _ = False
+
 isFocusRequest :: WidgetRequest s -> Bool
 isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True

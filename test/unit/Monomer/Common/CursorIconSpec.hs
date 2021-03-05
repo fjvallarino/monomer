@@ -151,6 +151,6 @@ getIcons
   -> [CursorIcon]
 getIcons wenv root evtsGroups = iconsRes where
   firstIcon stack = fromMaybe CursorArrow (headMay stack)
-  ctxs = snd <$> nodeHandleEvents_ wenv WInit evtsGroups root
+  ctxs = snd <$> tail (nodeHandleEvents_ wenv WInit evtsGroups root)
   cursors = (^.. L.cursorStack . folded . _2) <$> ctxs
   iconsRes = firstIcon <$> cursors

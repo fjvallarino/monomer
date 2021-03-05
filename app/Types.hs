@@ -110,4 +110,6 @@ data AppEvent
   | RestoreWindowSchedule
   | ToFrontWindow
   | ToFrontWindowSchedule
+  | StartAnimation
+  | StopAnimation
   deriving (Eq, Show)
