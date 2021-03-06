@@ -8,7 +8,11 @@ module Monomer.Widgets.Animation.Slide (
   slideIn,
   slideIn_,
   slideOut,
-  slideOut_
+  slideOut_,
+  slideLeft,
+  slideRight,
+  slideUp,
+  slideDown
 ) where
 
 import Codec.Serialise
@@ -27,7 +31,15 @@ import Monomer.Widgets.Animation.Types
 
 import qualified Monomer.Lens as L
 
+data SlideDirection
+  = SlideLeft
+  | SlideRight
+  | SlideUp
+  | SlideDown
+  deriving (Eq, Show)
+
 data SlideCfg e = SlideCfg {
+  _slcDirection :: Maybe SlideDirection,
   _slcAutoStart :: Maybe Bool,
   _slcDuration :: Maybe Int,
   _slcOnFinished :: [e]
@@ -35,6 +47,7 @@ data SlideCfg e = SlideCfg {
 
 instance Default (SlideCfg e) where
   def = SlideCfg {
+    _slcDirection = Nothing,
     _slcAutoStart = Nothing,
     _slcDuration = Nothing,
     _slcOnFinished = []
@@ -42,6 +55,7 @@ instance Default (SlideCfg e) where
 
 instance Semigroup (SlideCfg e) where
   (<>) fc1 fc2 = SlideCfg {
+    _slcDirection = _slcDirection fc2 <|> _slcDirection fc1,
     _slcAutoStart = _slcAutoStart fc2 <|> _slcAutoStart fc1,
     _slcDuration = _slcDuration fc2 <|> _slcDuration fc1,
     _slcOnFinished = _slcOnFinished fc1 <> _slcOnFinished fc2
@@ -64,6 +78,18 @@ instance CmbOnFinished (SlideCfg e) e where
   onFinished fn = def {
     _slcOnFinished = [fn]
   }
+
+slideLeft :: SlideCfg e
+slideLeft = def { _slcDirection = Just SlideLeft }
+
+slideRight :: SlideCfg e
+slideRight = def { _slcDirection = Just SlideRight }
+
+slideUp :: SlideCfg e
+slideUp = def { _slcDirection = Just SlideUp }
+
+slideDown :: SlideCfg e
+slideDown = def { _slcDirection = Just SlideDown }
 
 data SlideState = SlideState {
   _slsRunning :: Bool,
@@ -104,6 +130,7 @@ makeNode wType widget managedWidget = defaultWidgetNode wType widget
 makeSlide :: Bool -> SlideCfg e -> SlideState -> Widget s e
 makeSlide isSlideIn config state = widget where
   widget = createContainer state def {
+    containerUseScissor = True,
     containerInit = init,
     containerRestore = restore,
     containerHandleMessage = handleMessage,
@@ -154,14 +181,25 @@ makeSlide isSlideIn config state = widget where
   render renderer wenv node = do
     saveContext renderer
     when running $
-      setTranslation renderer (Point (-offsetX) 0)
+      setTranslation renderer (Point offsetX offsetY)
     where
       viewport = node ^. L.info . L.viewport
       ts = wenv ^. L.timestamp
-      currStep = clamp 0 1 $ fromIntegral (ts - start) / fromIntegral duration
+      dir = fromMaybe SlideLeft (_slcDirection config)
+      bwdStep = clamp 0 1 $ fromIntegral (ts - start) / fromIntegral duration
+      fwdStep = 1 - bwdStep
       offsetX
-        | isSlideIn = (1 - currStep) * viewport ^. L.w
-        | otherwise = currStep * viewport ^. L.w
+        | dir == SlideLeft && isSlideIn = -1 * fwdStep * viewport ^. L.w
+        | dir == SlideLeft = -1 * bwdStep * viewport ^. L.w
+        | dir == SlideRight && isSlideIn = fwdStep * viewport ^. L.w
+        | dir == SlideRight = bwdStep * viewport ^. L.w
+        | otherwise = 0
+      offsetY
+        | dir == SlideUp && isSlideIn = -1 * fwdStep * viewport ^. L.h
+        | dir == SlideUp = -1 * bwdStep * viewport ^. L.h
+        | dir == SlideDown && isSlideIn = fwdStep * viewport ^. L.h
+        | dir == SlideDown = bwdStep * viewport ^. L.h
+        | otherwise = 0
 
   renderPost renderer wenv node = do
     restoreContext renderer

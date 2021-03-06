@@ -40,7 +40,7 @@ main = do
         --appWindowState $ MainWindowNormal (640, 480),
         --appWindowResizable False,
         --appWindowBorder False,
-        appMaxFps 10,
+        appMaxFps 60,
         appWindowTitle "This is my title",
         appUseHdpi True,
         appTheme theme,
@@ -142,8 +142,8 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetAnimate where
   widgetAnimate = vstack [
-      slideIn (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
-      slideOut_ [] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
+      slideIn_ [slideLeft] (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
+      slideOut_ [slideLeft] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
       hstack [
         labelS (model ^. clickCount),
         button "Increase" IncButton
