@@ -550,6 +550,7 @@
     - Solved sending a message
   - Animation widgets
     - Two simple ones to start with: fade in/out and slide in/out
+  - Check references to old ctx name
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -559,7 +560,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Check references to old ctx name
   - Reorganize widgets (containers/singles)
   - Review returning Maybe from event handlers
   - Add examples

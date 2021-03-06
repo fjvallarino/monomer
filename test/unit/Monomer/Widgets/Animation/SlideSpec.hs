@@ -17,9 +17,9 @@ import Monomer.TestUtil
 import Monomer.TestEventUtil
 import Monomer.Widgets.Animation.Slide
 import Monomer.Widgets.Animation.Types
-import Monomer.Widgets.Label
-import Monomer.Widgets.Scroll
-import Monomer.Widgets.Stack
+import Monomer.Widgets.Containers.Scroll
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 

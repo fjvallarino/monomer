@@ -19,8 +19,8 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
-import Monomer.Widgets.Stack
-import Monomer.Widgets.TextField
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Singles.TextField
 
 import qualified Monomer.Lens as L
 

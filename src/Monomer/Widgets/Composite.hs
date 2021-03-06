@@ -44,7 +44,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
-import Monomer.Widgets.Spacer
+import Monomer.Widgets.Singles.Spacer
 import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L

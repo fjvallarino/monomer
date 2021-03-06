@@ -21,15 +21,15 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
-import Monomer.Widgets.Box
-import Monomer.Widgets.Button
 import Monomer.Widgets.Composite
-import Monomer.Widgets.Grid
-import Monomer.Widgets.Label
-import Monomer.Widgets.TextField
-import Monomer.Widgets.Stack
+import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.Grid
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Containers.ZStack
+import Monomer.Widgets.Singles.Button
+import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Util.Widget
-import Monomer.Widgets.ZStack
 
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Single as SG

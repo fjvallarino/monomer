@@ -1,59 +1,69 @@
 module Monomer.Widgets (
-  module Monomer.Widgets.Alert,
-  module Monomer.Widgets.Animation,
-  module Monomer.Widgets.Box,
-  module Monomer.Widgets.Button,
-  module Monomer.Widgets.Checkbox,
   module Monomer.Widgets.Composite,
-  module Monomer.Widgets.Confirm,
-  module Monomer.Widgets.Dial,
-  module Monomer.Widgets.Draggable,
-  module Monomer.Widgets.Dropdown,
-  module Monomer.Widgets.DropTarget,
-  module Monomer.Widgets.Grid,
-  module Monomer.Widgets.Icon,
-  module Monomer.Widgets.Image,
-  module Monomer.Widgets.Keystroke,
-  module Monomer.Widgets.Label,
-  module Monomer.Widgets.ListView,
-  module Monomer.Widgets.NumericField,
-  module Monomer.Widgets.Radio,
-  module Monomer.Widgets.Scroll,
-  module Monomer.Widgets.Spacer,
-  module Monomer.Widgets.Split,
-  module Monomer.Widgets.Stack,
-  module Monomer.Widgets.TextDropdown,
-  module Monomer.Widgets.TextField,
-  module Monomer.Widgets.ThemeSwitch,
-  module Monomer.Widgets.Tooltip,
-  module Monomer.Widgets.ZStack,
+
+  module Monomer.Widgets.Animation.Fade,
+  module Monomer.Widgets.Animation.Slide,
+  module Monomer.Widgets.Animation.Types,
+
+  module Monomer.Widgets.Containers.Alert,
+  module Monomer.Widgets.Containers.Box,
+  module Monomer.Widgets.Containers.Confirm,
+  module Monomer.Widgets.Containers.Draggable,
+  module Monomer.Widgets.Containers.DropTarget,
+  module Monomer.Widgets.Containers.Grid,
+  module Monomer.Widgets.Containers.Keystroke,
+  module Monomer.Widgets.Containers.Scroll,
+  module Monomer.Widgets.Containers.Split,
+  module Monomer.Widgets.Containers.Stack,
+  module Monomer.Widgets.Containers.ThemeSwitch,
+  module Monomer.Widgets.Containers.Tooltip,
+  module Monomer.Widgets.Containers.ZStack,
+
+  module Monomer.Widgets.Singles.Button,
+  module Monomer.Widgets.Singles.Checkbox,
+  module Monomer.Widgets.Singles.Dial,
+  module Monomer.Widgets.Singles.Dropdown,
+  module Monomer.Widgets.Singles.Icon,
+  module Monomer.Widgets.Singles.Image,
+  module Monomer.Widgets.Singles.Label,
+  module Monomer.Widgets.Singles.ListView,
+  module Monomer.Widgets.Singles.NumericField,
+  module Monomer.Widgets.Singles.Radio,
+  module Monomer.Widgets.Singles.Spacer,
+  module Monomer.Widgets.Singles.TextDropdown,
+  module Monomer.Widgets.Singles.TextField
 ) where
 
-import Monomer.Widgets.Alert
-import Monomer.Widgets.Animation
-import Monomer.Widgets.Box
-import Monomer.Widgets.Button
-import Monomer.Widgets.Checkbox
 import Monomer.Widgets.Composite
-import Monomer.Widgets.Confirm
-import Monomer.Widgets.Dial
-import Monomer.Widgets.Draggable
-import Monomer.Widgets.Dropdown
-import Monomer.Widgets.DropTarget
-import Monomer.Widgets.Grid
-import Monomer.Widgets.Icon
-import Monomer.Widgets.Image
-import Monomer.Widgets.Keystroke
-import Monomer.Widgets.Label
-import Monomer.Widgets.ListView
-import Monomer.Widgets.NumericField
-import Monomer.Widgets.Radio
-import Monomer.Widgets.Scroll
-import Monomer.Widgets.Spacer
-import Monomer.Widgets.Split
-import Monomer.Widgets.Stack
-import Monomer.Widgets.TextDropdown
-import Monomer.Widgets.TextField
-import Monomer.Widgets.ThemeSwitch
-import Monomer.Widgets.Tooltip
-import Monomer.Widgets.ZStack
+
+import Monomer.Widgets.Animation.Fade
+import Monomer.Widgets.Animation.Slide
+import Monomer.Widgets.Animation.Types
+
+import Monomer.Widgets.Containers.Alert
+import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.Confirm
+import Monomer.Widgets.Containers.Draggable
+import Monomer.Widgets.Containers.DropTarget
+import Monomer.Widgets.Containers.Grid
+import Monomer.Widgets.Containers.Keystroke
+import Monomer.Widgets.Containers.Scroll
+import Monomer.Widgets.Containers.Split
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Containers.ThemeSwitch
+import Monomer.Widgets.Containers.Tooltip
+import Monomer.Widgets.Containers.ZStack
+
+import Monomer.Widgets.Singles.Button
+import Monomer.Widgets.Singles.Checkbox
+import Monomer.Widgets.Singles.Dial
+import Monomer.Widgets.Singles.Dropdown
+import Monomer.Widgets.Singles.Icon
+import Monomer.Widgets.Singles.Image
+import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.ListView
+import Monomer.Widgets.Singles.NumericField
+import Monomer.Widgets.Singles.Radio
+import Monomer.Widgets.Singles.Spacer
+import Monomer.Widgets.Singles.TextDropdown
+import Monomer.Widgets.Singles.TextField

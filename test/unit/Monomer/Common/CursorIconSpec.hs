@@ -25,12 +25,12 @@ import Monomer.Event
 import Monomer.Main
 import Monomer.TestUtil
 import Monomer.TestEventUtil
-import Monomer.Widgets.Box
-import Monomer.Widgets.Grid
-import Monomer.Widgets.Label
-import Monomer.Widgets.Spacer
-import Monomer.Widgets.Stack
-import Monomer.Widgets.TextDropdown
+import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.Grid
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.Spacer
+import Monomer.Widgets.Singles.TextDropdown
 
 import qualified Monomer.Lens as L
 

@@ -28,9 +28,9 @@ import Monomer.Graphics.ColorTable
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Composite
-import Monomer.Widgets.Label
-import Monomer.Widgets.Stack
-import Monomer.Widgets.TextField
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L

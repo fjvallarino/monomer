@@ -8,7 +8,7 @@ import Test.Hspec
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Widgets.Label
+import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Util.Focus
 import Monomer.TestUtil
 
