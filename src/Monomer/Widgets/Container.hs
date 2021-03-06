@@ -754,7 +754,7 @@ mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
 
 -- | Message Handling
 defaultHandleMessage :: ContainerMessageHandler s e
-defaultHandleMessage wenv ctx message node = Nothing
+defaultHandleMessage wenv target message node = Nothing
 
 handleMessageWrapper
   :: (WidgetModel a, Typeable i)

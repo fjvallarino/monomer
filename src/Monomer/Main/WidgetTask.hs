@@ -42,9 +42,9 @@ processTasks
   -> t WidgetTask
   -> m (HandlerStep s e)
 processTasks wenv widgetRoot tasks = nextStep where
-  reducer (wWctx, wRoot, wReqs, wEvts) task = do
-    (wWctx2, wRoot2, wReqs2, wEvts2) <- processTask wWctx wRoot task
-    return (wWctx2, wRoot2, wReqs <> wReqs2, wEvts <> wEvts2)
+  reducer (wenv1, root1, reqs1, evts1) task = do
+    (wenv2, root2, reqs2, evts2) <- processTask wenv1 root1 task
+    return (wenv2, root2, reqs1 <> reqs2, evts1 <> evts2)
   nextStep = foldM reducer (wenv, widgetRoot, Seq.empty, Seq.empty) tasks
 
 processTask

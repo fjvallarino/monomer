@@ -83,7 +83,7 @@ msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle () def {
   SG.singleHandleMessage = msgWidgetHandleMessage
 }
 
-msgWidgetHandleMessage wenv ctx message node = Just (resultEvts node evts) where
+msgWidgetHandleMessage wenv target message node = Just (resultEvts node evts) where
   val = fromMaybe "" (cast message)
   evts = [ChildMessage val]
 

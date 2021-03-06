@@ -360,7 +360,7 @@ makeScroll config state = widget where
     where
       maxDelta = max 0 (childLength - vpLength)
 
-  handleMessage wenv ctx message node = result where
+  handleMessage wenv target message node = result where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv node rect
     handleScrollMessage ScrollReset = scrollReset wenv node
     result = cast message >>= handleScrollMessage

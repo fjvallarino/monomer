@@ -548,6 +548,8 @@
   - Send message to scroll to reset position when content changes
     - This is for listView. Maybe a config argument is needed, since this is not always desired?
     - Solved sending a message
+  - Animation widgets
+    - Two simple ones to start with: fade in/out and slide in/out
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -557,11 +559,6 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Animation widgets
-    - Two simple ones to start with: fade in/out and slide in/out
-    - Config
-    - Tests
-    - Common Message/Types
   - Check references to old ctx name
   - Reorganize widgets (containers/singles)
   - Review returning Maybe from event handlers
