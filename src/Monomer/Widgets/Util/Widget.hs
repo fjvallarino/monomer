@@ -23,9 +23,11 @@ module Monomer.Widgets.Util.Widget (
   infoMatches,
   nodeMatches,
   handleWidgetIdChange,
-  findWidgetIdFromPath
+  findWidgetIdFromPath,
+  delayedMessage
 ) where
 
+import Control.Concurrent (threadDelay)
 import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _Just)
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
@@ -158,3 +160,11 @@ handleWidgetIdChange oldNode result = newResult where
 findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
 findWidgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
   mwni = wenv ^. L.findByPath $ path
+
+delayedMessage :: Typeable i => WidgetNode s e -> i -> Int -> WidgetRequest s
+delayedMessage node msg delay = RunTask widgetId path $ do
+  threadDelay (delay * 1000)
+  return msg
+  where
+    widgetId = node ^. L.info . L.widgetId
+    path = node ^. L.info . L.path

@@ -571,6 +571,7 @@ Next
     - Something of generative art (OpenGL example)
 
 Future
+  - Should DuplicateRecordFields be used in internal widget types to avoid the lens prefixes (which are not used in lenses)
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?

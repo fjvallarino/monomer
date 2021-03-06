@@ -4,11 +4,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Monomer.Widgets.Animation.Fade (
-  fadeIn,
-  fadeIn_,
-  fadeOut,
-  fadeOut_
+module Monomer.Widgets.Animation.Slide (
+  slideIn,
+  slideIn_,
+  slideOut,
+  slideOut_
 ) where
 
 import Codec.Serialise
@@ -27,82 +27,82 @@ import Monomer.Widgets.Animation.Types
 
 import qualified Monomer.Lens as L
 
-data FadeCfg e = FadeCfg {
-  _fdcAutoStart :: Maybe Bool,
-  _fdcDuration :: Maybe Int,
-  _fdcOnFinished :: [e]
+data SlideCfg e = SlideCfg {
+  _slcAutoStart :: Maybe Bool,
+  _slcDuration :: Maybe Int,
+  _slcOnFinished :: [e]
 } deriving (Eq, Show)
 
-instance Default (FadeCfg e) where
-  def = FadeCfg {
-    _fdcAutoStart = Nothing,
-    _fdcDuration = Nothing,
-    _fdcOnFinished = []
+instance Default (SlideCfg e) where
+  def = SlideCfg {
+    _slcAutoStart = Nothing,
+    _slcDuration = Nothing,
+    _slcOnFinished = []
   }
 
-instance Semigroup (FadeCfg e) where
-  (<>) fc1 fc2 = FadeCfg {
-    _fdcAutoStart = _fdcAutoStart fc2 <|> _fdcAutoStart fc1,
-    _fdcDuration = _fdcDuration fc2 <|> _fdcDuration fc1,
-    _fdcOnFinished = _fdcOnFinished fc1 <> _fdcOnFinished fc2
+instance Semigroup (SlideCfg e) where
+  (<>) fc1 fc2 = SlideCfg {
+    _slcAutoStart = _slcAutoStart fc2 <|> _slcAutoStart fc1,
+    _slcDuration = _slcDuration fc2 <|> _slcDuration fc1,
+    _slcOnFinished = _slcOnFinished fc1 <> _slcOnFinished fc2
   }
 
-instance Monoid (FadeCfg e) where
+instance Monoid (SlideCfg e) where
   mempty = def
 
-instance CmbAutoStart (FadeCfg e) where
+instance CmbAutoStart (SlideCfg e) where
   autoStart_ start = def {
-    _fdcAutoStart = Just start
+    _slcAutoStart = Just start
   }
 
-instance CmbDuration (FadeCfg e) Int where
+instance CmbDuration (SlideCfg e) Int where
   duration dur = def {
-    _fdcDuration = Just dur
+    _slcDuration = Just dur
   }
 
-instance CmbOnFinished (FadeCfg e) e where
+instance CmbOnFinished (SlideCfg e) e where
   onFinished fn = def {
-    _fdcOnFinished = [fn]
+    _slcOnFinished = [fn]
   }
 
-data FadeState = FadeState {
-  _fdsRunning :: Bool,
-  _fdsStartTs :: Int
+data SlideState = SlideState {
+  _slsRunning :: Bool,
+  _slsStartTs :: Int
 } deriving (Eq, Show, Generic, Serialise)
 
-instance Default FadeState where
-  def = FadeState {
-    _fdsRunning = False,
-    _fdsStartTs = 0
+instance Default SlideState where
+  def = SlideState {
+    _slsRunning = False,
+    _slsStartTs = 0
   }
 
-instance WidgetModel FadeState where
+instance WidgetModel SlideState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-fadeIn :: WidgetNode s e -> WidgetNode s e
-fadeIn managed = fadeIn_ def managed
+slideIn :: WidgetNode s e -> WidgetNode s e
+slideIn managed = slideIn_ def managed
 
-fadeIn_ :: [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
-fadeIn_ configs managed = makeNode "fadeIn" widget managed where
+slideIn_ :: [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+slideIn_ configs managed = makeNode "slideIn" widget managed where
   config = mconcat configs
-  widget = makeFade True config def
+  widget = makeSlide True config def
 
-fadeOut :: WidgetNode s e -> WidgetNode s e
-fadeOut managed = fadeOut_ def managed
+slideOut :: WidgetNode s e -> WidgetNode s e
+slideOut managed = slideOut_ def managed
 
-fadeOut_ :: [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
-fadeOut_ configs managed = makeNode "fadeOut" widget managed where
+slideOut_ :: [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+slideOut_ configs managed = makeNode "slideOut" widget managed where
   config = mconcat configs
-  widget = makeFade False config def
+  widget = makeSlide False config def
 
 makeNode :: WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
 makeNode wType widget managedWidget = defaultWidgetNode wType widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeFade :: Bool -> FadeCfg e -> FadeState -> Widget s e
-makeFade isFadeIn config state = widget where
+makeSlide :: Bool -> SlideCfg e -> SlideState -> Widget s e
+makeSlide isSlideIn config state = widget where
   widget = createContainer state def {
     containerInit = init,
     containerRestore = restore,
@@ -111,9 +111,9 @@ makeFade isFadeIn config state = widget where
     containerRenderAfter = renderPost
   }
 
-  FadeState running start = state
-  autoStart = fromMaybe False (_fdcAutoStart config)
-  duration = fromMaybe 500 (_fdcDuration config)
+  SlideState running start = state
+  autoStart = fromMaybe False (_slcAutoStart config)
+  duration = fromMaybe 500 (_slcDuration config)
   period = 20
   steps = duration `div` period
 
@@ -125,14 +125,14 @@ makeFade isFadeIn config state = widget where
   init wenv node = result where
     ts = wenv ^. L.timestamp
     newNode = node
-      & L.widget .~ makeFade isFadeIn config (FadeState True ts)
+      & L.widget .~ makeSlide isSlideIn config (SlideState True ts)
     result
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
       | otherwise = resultWidget node
 
   restore wenv oldState oldInfo node = resultWidget newNode where
     newNode = node
-      & L.widget .~ makeFade isFadeIn config oldState
+      & L.widget .~ makeSlide isSlideIn config oldState
 
   handleMessage wenv target message node = result where
     result = cast message >>= Just . handleAnimateMsg wenv node
@@ -140,27 +140,28 @@ makeFade isFadeIn config state = widget where
   handleAnimateMsg wenv node msg = result where
     widgetId = node ^. L.info . L.widgetId
     ts = wenv ^. L.timestamp
-    startState = FadeState True ts
-    startReqs = [finishedReq node, renderReq wenv node]
+    startState = SlideState True ts
+    startReqs = [renderReq wenv node, finishedReq node]
     newNode newState = node
-      & L.widget .~ makeFade isFadeIn config newState
+      & L.widget .~ makeSlide isSlideIn config newState
     result = case msg of
       AnimationStart -> resultReqs (newNode startState) startReqs
       AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
       AnimationFinished
-        | _fdsRunning state -> resultEvts node (_fdcOnFinished config)
+        | _slsRunning state -> resultEvts node (_slcOnFinished config)
         | otherwise -> resultWidget node
 
   render renderer wenv node = do
     saveContext renderer
     when running $
-      setGlobalAlpha renderer alpha
+      setTranslation renderer (Point (-offsetX) 0)
     where
+      viewport = node ^. L.info . L.viewport
       ts = wenv ^. L.timestamp
-      currStep = clampAlpha $ fromIntegral (ts - start) / fromIntegral duration
-      alpha
-        | isFadeIn = currStep
-        | otherwise = 1 - currStep
+      currStep = clamp 0 1 $ fromIntegral (ts - start) / fromIntegral duration
+      offsetX
+        | isSlideIn = (1 - currStep) * viewport ^. L.w
+        | otherwise = currStep * viewport ^. L.w
 
   renderPost renderer wenv node = do
     restoreContext renderer

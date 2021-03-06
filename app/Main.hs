@@ -142,8 +142,8 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetAnimate where
   widgetAnimate = vstack [
-      fadeIn (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
-      fadeOut_ [onFinished StartAnimation] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
+      slideIn (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
+      slideOut_ [] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
       hstack [
         labelS (model ^. clickCount),
         button "Increase" IncButton
