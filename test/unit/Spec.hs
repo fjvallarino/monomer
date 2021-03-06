@@ -35,6 +35,7 @@ import qualified Monomer.Widgets.TooltipSpec as TooltipSpec
 import qualified Monomer.Widgets.ZStackSpec as ZStackSpec
 
 import qualified Monomer.Widgets.Animation.FadeSpec as AnimationFadeSpec
+import qualified Monomer.Widgets.Animation.SlideSpec as AnimationSlideSpec
 
 import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
 import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
@@ -93,6 +94,7 @@ widgets = describe "Widgets" $ do
 widgetsAnimation :: Spec
 widgetsAnimation = describe "Widgets Animation" $ do
   AnimationFadeSpec.spec
+  AnimationSlideSpec.spec
 
 widgetsUtil :: Spec
 widgetsUtil = describe "Widgets Util" $ do

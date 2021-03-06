@@ -9,10 +9,10 @@ module Monomer.Widgets.Animation.Slide (
   slideIn_,
   slideOut,
   slideOut_,
-  slideLeft,
-  slideRight,
-  slideUp,
-  slideDown
+  leftSide,
+  rightSide,
+  topSide,
+  bottomSide
 ) where
 
 import Codec.Serialise
@@ -79,17 +79,17 @@ instance CmbOnFinished (SlideCfg e) e where
     _slcOnFinished = [fn]
   }
 
-slideLeft :: SlideCfg e
-slideLeft = def { _slcDirection = Just SlideLeft }
+leftSide :: SlideCfg e
+leftSide = def { _slcDirection = Just SlideLeft }
 
-slideRight :: SlideCfg e
-slideRight = def { _slcDirection = Just SlideRight }
+rightSide :: SlideCfg e
+rightSide = def { _slcDirection = Just SlideRight }
 
-slideUp :: SlideCfg e
-slideUp = def { _slcDirection = Just SlideUp }
+topSide :: SlideCfg e
+topSide = def { _slcDirection = Just SlideUp }
 
-slideDown :: SlideCfg e
-slideDown = def { _slcDirection = Just SlideDown }
+bottomSide :: SlideCfg e
+bottomSide = def { _slcDirection = Just SlideDown }
 
 data SlideState = SlideState {
   _slsRunning :: Bool,
@@ -168,7 +168,7 @@ makeSlide isSlideIn config state = widget where
     widgetId = node ^. L.info . L.widgetId
     ts = wenv ^. L.timestamp
     startState = SlideState True ts
-    startReqs = [renderReq wenv node, finishedReq node]
+    startReqs = [finishedReq node, renderReq wenv node]
     newNode newState = node
       & L.widget .~ makeSlide isSlideIn config newState
     result = case msg of
