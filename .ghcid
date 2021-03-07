@@ -1,3 +1,3 @@
---command "stack repl --main-is monomer:exe:monomer-exe"
+--command "stack repl --main-is monomer:exe:todo"
 --test ":main"
 --restart=package.yaml

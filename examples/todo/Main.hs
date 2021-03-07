@@ -18,15 +18,18 @@ buildUI
   -> TodoModel
   -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
-  todoView idx t = hstack [
-      labelS (t ^. todoType) `style` [width 50],
-      label (t ^. description) `style` [textThroughline_ (t ^. status == Done)],
-      filler,
-      labelS (t ^. status) `style` [width 100],
-      button "Edit" (TodoEdit idx t) `style` [width 60],
-      spacer,
-      button "Delete" (TodoDelete idx) `style` [width 60]
-    ] `style` [paddingV 2]
+  todoView idx t = slideWidget where
+    todoKey = todoRowKey idx
+    todoRow = hstack [
+        labelS (t ^. todoType) `style` [width 50],
+        label (t ^. description) `style` [textThroughline_ (t ^. status == Done)],
+        filler,
+        labelS (t ^. status) `style` [width 100],
+        button "Edit" (TodoEdit idx t) `style` [width 60],
+        spacer,
+        button "Delete" (TodoDeleteBegin idx) `style` [width 60]
+      ] `style` [paddingV 2]
+    slideWidget = fadeOut_ [onFinished (TodoDelete idx)] todoRow `key` todoKey
   todoEdit = vstack [
       hgrid [
         hstack [
@@ -94,7 +97,13 @@ handleEvent wenv node model evt = case evt of
       & action .~ TodoNone
       & todos . ix idx .~ (model ^. activeTodo),
     setFocus wenv "todoNew"]
+  TodoDeleteBegin idx -> [
+    Message (WidgetKeyGlobal (todoRowKey idx)) AnimationStart]
   TodoDelete idx -> [
+    -- This is only needed because key is made using idx. This is wrong, a real
+    -- id should be used, since when an item is removed the idx will probably
+    -- be reused and merge will keep the previous widget/animation state
+    Message (WidgetKeyGlobal (todoRowKey idx)) AnimationStop,
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
@@ -111,6 +120,9 @@ remove idx ls = take idx ls ++ drop (idx + 1) ls
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
+
+todoRowKey :: Int -> Text
+todoRowKey idx = "todoRow" <> showt idx
 
 initialTodos :: [Todo]
 initialTodos = mconcat $ replicate 5 [

@@ -97,7 +97,7 @@ runApp window widgetRoot config = do
 
   let dpr = if useHiDPI then devicePixelRate else 1
   let newWindowSize = Size (rw / dpr) (rh / dpr)
-  let maxFps = fromMaybe 30 (_apcMaxFps config)
+  let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
   let exitEvents = _apcExitEvent config

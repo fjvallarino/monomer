@@ -52,6 +52,7 @@ data TodoEvt
   | TodoAdd
   | TodoEdit Int Todo
   | TodoSave Int
+  | TodoDeleteBegin Int
   | TodoDelete Int
   | TodoCancel
   deriving (Eq, Show)

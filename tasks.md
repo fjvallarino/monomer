@@ -551,6 +551,7 @@
   - Animation widgets
     - Two simple ones to start with: fade in/out and slide in/out
   - Check references to old ctx name
+  - Reorganize widgets (containers/singles)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -560,12 +561,12 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Reorganize widgets (containers/singles)
   - Review returning Maybe from event handlers
   - Add examples
     - Composite example
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
+    - Todo should use generated ids instead of indexes
 
 Future
   - Should DuplicateRecordFields be used in internal widget types to avoid the lens prefixes (which are not used in lenses)
