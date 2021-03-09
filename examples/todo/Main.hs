@@ -1,4 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -13,13 +14,15 @@ import Monomer
 
 import TodoTypes
 
+import qualified Monomer.Lens as L
+
 buildUI
   :: WidgetEnv TodoModel TodoEvt
   -> TodoModel
   -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
-  todoView idx t = slideWidget where
-    todoKey = todoRowKey idx
+  todoView idx t = slideWidget `key` todoKey where
+    todoKey = todoRowKey t
     todoRow = hstack [
         labelS (t ^. todoType) `style` [width 50],
         label (t ^. description) `style` [textThroughline_ (t ^. status == Done)],
@@ -27,9 +30,9 @@ buildUI wenv model = widgetTree where
         labelS (t ^. status) `style` [width 100],
         button "Edit" (TodoEdit idx t) `style` [width 60],
         spacer,
-        button "Delete" (TodoDeleteBegin idx) `style` [width 60]
+        button "Delete" (TodoDeleteBegin idx t) `style` [width 60]
       ] `style` [paddingV 2]
-    slideWidget = fadeOut_ [onFinished (TodoDelete idx)] todoRow `key` todoKey
+    slideWidget = fadeOut_ [onFinished (TodoDelete idx t)] todoRow
   todoEdit = vstack [
       hgrid [
         hstack [
@@ -88,22 +91,16 @@ handleEvent wenv node model evt = case evt of
       & activeTodo .~ td,
     setFocus wenv "todoType"]
   TodoAdd -> [
-    Model $ model
-      & action .~ TodoNone
-      & todos .~ (model ^. activeTodo : model ^. todos),
+    Model $ addNewTodo wenv model,
     setFocus wenv "todoNew"]
   TodoSave idx -> [
     Model $ model
       & action .~ TodoNone
       & todos . ix idx .~ (model ^. activeTodo),
     setFocus wenv "todoNew"]
-  TodoDeleteBegin idx -> [
-    Message (WidgetKeyGlobal (todoRowKey idx)) AnimationStart]
-  TodoDelete idx -> [
-    -- This is only needed because key is made using idx. This is wrong, a real
-    -- id should be used, since when an item is removed the idx will probably
-    -- be reused and merge will keep the previous widget/animation state
-    Message (WidgetKeyGlobal (todoRowKey idx)) AnimationStop,
+  TodoDeleteBegin idx todo -> [
+    Message (WidgetKeyGlobal (todoRowKey todo)) AnimationStart]
+  TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
@@ -114,6 +111,14 @@ handleEvent wenv node model evt = case evt of
       & activeTodo .~ def,
     setFocus wenv "todoNew"]
 
+addNewTodo :: WidgetEnv s e -> TodoModel -> TodoModel
+addNewTodo wenv model = newModel where
+  newTodo = model ^. activeTodo
+    & todoId .~ wenv ^. L.timestamp
+  newModel = model
+    & action .~ TodoNone
+    & todos .~ (newTodo : model ^. todos)
+
 remove :: Int -> [a] -> [a]
 remove idx ls = take idx ls ++ drop (idx + 1) ls
 
@@ -121,17 +126,19 @@ setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 
-todoRowKey :: Int -> Text
-todoRowKey idx = "todoRow" <> showt idx
+todoRowKey :: Todo -> Text
+todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
 
 initialTodos :: [Todo]
-initialTodos = mconcat $ replicate 5 [
-    Todo Home Done "Tidy up the room",
-    Todo Home Pending "Buy groceries",
-    Todo Home Pending "Pay the bills",
-    Todo Work Pending "Check the status of project A",
-    Todo Work Pending "Finish project B"
-  ]
+initialTodos = todos where
+  items = mconcat $ replicate 1 [
+    Todo 0 Home Done "Tidy up the room",
+    Todo 0 Home Pending "Buy groceries",
+    Todo 0 Home Pending "Pay the bills",
+    Todo 0 Work Pending "Check the status of project A",
+    Todo 0 Work Pending "Finish project B"
+    ]
+  todos = zipWith (\t idx -> t & todoId .~ idx) items [0..]
 
 main :: IO ()
 main = do

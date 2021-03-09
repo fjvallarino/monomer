@@ -22,6 +22,7 @@ data TodoStatus
   deriving (Eq, Show, Enum)
 
 data Todo = Todo {
+  _todoId :: Int,
   _todoType :: TodoType,
   _status :: TodoStatus,
   _description :: Text
@@ -29,6 +30,7 @@ data Todo = Todo {
 
 instance Default Todo where
   def = Todo {
+    _todoId = 0,
     _todoType = Home,
     _status = Pending,
     _description = ""
@@ -52,8 +54,8 @@ data TodoEvt
   | TodoAdd
   | TodoEdit Int Todo
   | TodoSave Int
-  | TodoDeleteBegin Int
-  | TodoDelete Int
+  | TodoDeleteBegin Int Todo
+  | TodoDelete Int Todo
   | TodoCancel
   deriving (Eq, Show)
 
