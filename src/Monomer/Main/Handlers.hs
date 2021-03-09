@@ -264,7 +264,8 @@ handleRequests reqs step = foldM handleRequest step reqs where
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
-    UpdateWidgetPath wid path -> handleUpdateWidgetPath wid path step
+    SetWidgetPath wid path -> handleSetWidgetPath wid path step
+    ResetWidgetPath wid -> handleResetWidgetPath wid step
     SendMessage wid msg -> handleSendMessage wid msg step
     RunTask wid path handler -> handleRunTask wid path handler step
     RunProducer wid path handler -> handleRunProducer wid path handler step
@@ -379,11 +380,8 @@ handleSetOverlay
 handleSetOverlay widgetId path previousStep = do
   overlay <- use L.overlayWidgetId
 
-  when (isJust overlay) $ do
-    delWidgetIdPath (fromJust overlay)
-
   L.overlayWidgetId .= Just widgetId
-  addWidgetIdPath widgetId path
+  setWidgetIdPath widgetId path
   return previousStep
 
 handleResetOverlay
@@ -397,7 +395,6 @@ handleResetOverlay widgetId step = do
   (wenv2, root2, reqs2, evts2) <- if overlay == Just widgetId
     then do
       L.overlayWidgetId .= Nothing
-      delWidgetIdPath widgetId
       void $ handleResetCursorIcon widgetId step
       handleSystemEvents wenv [Move mousePos] root
     else
@@ -447,11 +444,8 @@ handleStartDrag widgetId path dragData previousStep = do
   oldDragAction <- use L.dragAction
   let prevWidgetId = fmap (^. L.widgetId) oldDragAction
 
-  when (isJust prevWidgetId) $ do
-    delWidgetIdPath (fromJust prevWidgetId)
-
   L.dragAction .= Just (DragAction widgetId dragData)
-  addWidgetIdPath widgetId path
+  setWidgetIdPath widgetId path
   return previousStep
 
 handleCancelDrag
@@ -467,7 +461,6 @@ handleCancelDrag widgetId previousStep = do
     then do
       L.renderRequested .= True
       L.dragAction .= Nothing
-      delWidgetIdPath widgetId
       return $ previousStep & _1 . L.dragStatus .~ Nothing
   else return previousStep
 
@@ -481,7 +474,6 @@ handleFinalizeDrop previousStep = do
 
   if isJust widgetId
     then do
-      delWidgetIdPath (fromJust widgetId)
       L.renderRequested .= True
       L.dragAction .= Nothing
       return $ previousStep & _1 . L.dragStatus .~ Nothing
@@ -549,10 +541,16 @@ handleUpdateModel fn (wenv, root, reqs, evts) = do
   where
     wenv2 = wenv & L.model %~ fn
 
-handleUpdateWidgetPath
+handleSetWidgetPath
   :: (MonomerM s m) => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
-handleUpdateWidgetPath wid path step = do
+handleSetWidgetPath wid path step = do
   setWidgetIdPath wid path
+  return step
+
+handleResetWidgetPath
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+handleResetWidgetPath wid step = do
+  delWidgetIdPath wid
   return step
 
 handleSendMessage
@@ -585,7 +583,7 @@ handleRunTask widgetId path handler previousStep = do
 
   previousTasks <- use L.widgetTasks
   L.widgetTasks .= previousTasks |> WidgetTask widgetId asyncTask
-  addWidgetIdPath widgetId path
+  setWidgetIdPath widgetId path
 
   return previousStep
 
@@ -602,7 +600,7 @@ handleRunProducer widgetId path handler previousStep = do
 
   previousTasks <- use L.widgetTasks
   L.widgetTasks .= previousTasks |> WidgetProducer widgetId newChannel asyncTask
-  addWidgetIdPath widgetId path
+  setWidgetIdPath widgetId path
 
   return previousStep
 

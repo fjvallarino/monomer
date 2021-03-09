@@ -157,7 +157,7 @@ createSingle :: WidgetModel a => a -> Single s e a -> Widget s e
 createSingle state single = Widget {
   widgetInit = initWrapper single,
   widgetMerge = mergeWrapper single,
-  widgetDispose = singleDispose single,
+  widgetDispose = disposeWrapper single,
   widgetGetState = makeState state,
   widgetSave = saveWrapper single,
   widgetRestore = restoreWrapper single,
@@ -286,6 +286,18 @@ runNodeHandler single wenv oldInfo newNode nodeHandler = newResult where
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose wenv node = resultWidget node
+
+disposeWrapper
+  :: Single s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetResult s e
+disposeWrapper single wenv node = result where
+  disposeHandler = singleDispose single
+  WidgetResult newNode reqs events = disposeHandler wenv node
+  widgetId = node ^. L.info . L.widgetId
+  newReqs = reqs |> ResetWidgetPath widgetId
+  result = WidgetResult newNode newReqs events
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv direction startFrom node

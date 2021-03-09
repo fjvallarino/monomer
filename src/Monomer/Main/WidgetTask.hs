@@ -31,9 +31,7 @@ handleWidgetTasks wenv widgetRoot = do
   (active, finished) <- partitionM isThreadActive (toList tasks)
   widgetTasks .= Seq.fromList active
 
-  result <- processTasks wenv widgetRoot tasks
-  mapM_ handleFinishedTask finished
-  return result
+  processTasks wenv widgetRoot tasks
 
 processTasks
   :: (MonomerM s m, Traversable t)
@@ -95,9 +93,6 @@ processTaskEvent wenv widgetRoot widgetId event = do
   let widgetResult = fromMaybe emptyResult msgResult
 
   handleWidgetResult wenv True widgetResult
-
-handleFinishedTask :: MonomerM s m => WidgetTask -> m ()
-handleFinishedTask task = delWidgetIdPath (taskWidgetId task)
 
 isThreadActive :: MonomerM s m => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)

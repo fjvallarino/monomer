@@ -154,7 +154,7 @@ handleWidgetIdChange oldNode result = newResult where
   widgetId = result ^. L.node . L.info . L.widgetId
   newResult
     | oldPath /= newPath = result
-        & L.requests %~ (UpdateWidgetPath widgetId newPath <|)
+        & L.requests %~ (SetWidgetPath widgetId newPath <|)
     | otherwise = result
 
 findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId

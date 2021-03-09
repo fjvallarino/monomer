@@ -392,6 +392,7 @@ toMonomerCtxPersist = do
     & L.focusedWidgetId .~ ctx ^. L.focusedWidgetId
     & L.hoveredWidgetId .~ ctx ^. L.hoveredWidgetId
     & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
+    & L.widgetPaths .~ ctx ^. L.widgetPaths
     & L.resizePending .~ ctx ^. L.resizePending
     & L.renderSchedule .~ ctx ^. L.renderSchedule
 
@@ -401,6 +402,7 @@ fromMonomerCtxPersist ctxp = do
   L.focusedWidgetId .= ctxp ^. L.focusedWidgetId
   L.hoveredWidgetId .= ctxp ^. L.hoveredWidgetId
   L.overlayWidgetId .= ctxp ^. L.overlayWidgetId
+  L.widgetPaths .= ctxp ^. L.widgetPaths
   L.resizePending .= ctxp ^. L.resizePending
   L.renderRequested .= True
   L.renderSchedule .= ctxp ^. L.renderSchedule

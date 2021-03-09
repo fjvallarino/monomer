@@ -572,11 +572,12 @@ disposeWrapper container wenv node = result where
   updateCWenv = getUpdateCWenv container
   disposeHandler = containerDispose container
   WidgetResult tempNode reqs events = disposeHandler wenv node
+  widgetId = node ^. L.info . L.widgetId
   children = tempNode ^. L.children
   dispose idx child = widgetDispose (child ^. L.widget) cwenv child where
     cwenv = updateCWenv wenv idx child node
   results = Seq.mapWithIndex dispose children
-  newReqs = foldMap _wrRequests results
+  newReqs = foldMap _wrRequests results |> ResetWidgetPath widgetId
   newEvents = foldMap _wrEvents results
   result = WidgetResult node (reqs <> newReqs) (events <> newEvents)
 
@@ -965,9 +966,7 @@ findWidgetByKey
   -> Maybe (WidgetNode s e)
 findWidgetByKey key localMap globalMap = local <|> global where
   local = M.lookup key localMap
-  global = case key of
-    WidgetKeyGlobal{} -> M.lookup key globalMap
-    _ -> Nothing
+  global = M.lookup key globalMap
 
 buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
 buildLocalMap widgets = newMap where

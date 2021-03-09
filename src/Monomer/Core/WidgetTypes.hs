@@ -119,7 +119,8 @@ data WidgetRequest s
   | ExitApplication Bool
   | UpdateWindow WindowRequest
   | UpdateModel (s -> s)
-  | UpdateWidgetPath WidgetId Path
+  | SetWidgetPath WidgetId Path
+  | ResetWidgetPath WidgetId
   | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
@@ -145,7 +146,8 @@ instance Eq (WidgetRequest s) where
   RenderStop p1 == RenderStop p2 = p1 == p2
   ExitApplication e1 == ExitApplication e2 = e1 == e2
   UpdateWindow w1 == UpdateWindow w2 = w1 == w2
-  UpdateWidgetPath w1 p1 == UpdateWidgetPath w2 p2 = (w1, p1) == (w2, p2)
+  SetWidgetPath w1 p1 == SetWidgetPath w2 p2 = (w1, p1) == (w2, p2)
+  ResetWidgetPath w1 == ResetWidgetPath w2 = w1 == w2
   _ == _ = False
 
 data WidgetResult s e = WidgetResult {
@@ -389,7 +391,8 @@ instance Show (WidgetRequest s) where
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"
-  show (UpdateWidgetPath wid path) = "UpdateWidgetPath: " ++ show (wid, path)
+  show (SetWidgetPath wid path) = "SetWidgetPath: " ++ show (wid, path)
+  show (ResetWidgetPath wid) = "ResetWidgetPath: " ++ show wid
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"
   show RunProducer{} = "RunProducer"

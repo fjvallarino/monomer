@@ -4,7 +4,7 @@
 
 module Monomer.Core.Lens where
 
-import Control.Lens.TH (abbreviatedFields, makeLensesWith)
+import Control.Lens.TH (abbreviatedFields, makeLensesWith, makePrisms)
 
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
@@ -29,6 +29,9 @@ makeLensesWith abbreviatedFields ''ThemeState
 makeLensesWith abbreviatedFields ''Theme
 
 -- Widget
+makePrisms ''WidgetKey
+makePrisms ''WidgetData
+makePrisms ''WidgetType
 makeLensesWith abbreviatedFields ''WidgetEnv
 makeLensesWith abbreviatedFields ''WidgetRequest
 makeLensesWith abbreviatedFields ''WidgetResult

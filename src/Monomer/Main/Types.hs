@@ -65,7 +65,7 @@ data MonomerCtx s = MonomerCtx {
   _mcDragAction :: Maybe DragAction,
   _mcMainBtnPress :: Maybe (Path, Point),
   _mcWidgetTasks :: Seq WidgetTask,
-  _mcWidgetPaths :: Map WidgetId (Path, Int),
+  _mcWidgetPaths :: Map WidgetId Path,
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
   -- Hacky flag to avoid resizing when transitioning hover
   -- Needed because sizes may change and new target of hover should not change
@@ -81,6 +81,7 @@ data MonomerCtxPersist = MonomerCtxPersist {
   _mcpFocusedWidgetId :: WidgetId,
   _mcpHoveredWidgetId :: Maybe WidgetId,
   _mcpOverlayWidgetId :: Maybe WidgetId,
+  _mcpWidgetPaths :: Map WidgetId Path,
   _mcpResizePending :: Bool,
   _mcpRenderRequested :: Bool,
   _mcpRenderSchedule :: Map WidgetId RenderSchedule
@@ -92,6 +93,7 @@ instance Default MonomerCtxPersist where
     _mcpFocusedWidgetId = def,
     _mcpHoveredWidgetId = Nothing,
     _mcpOverlayWidgetId = Nothing,
+    _mcpWidgetPaths = M.empty,
     _mcpResizePending = False,
     _mcpRenderRequested = False,
     _mcpRenderSchedule = M.empty

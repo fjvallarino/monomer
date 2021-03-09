@@ -6,12 +6,14 @@
 
 module Monomer.Widgets.CompositeSpec (spec) where
 
-import Control.Lens ((&), (^.), (^?), (^..), (.~), (%~), _Just, ix, traverse)
+import Control.Lens (
+  (&), (^.), (^?), (^..), (.~), (%~), _Just, ix, folded, traverse, dropping)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable (cast)
+import TextShow
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -73,9 +75,17 @@ instance Default ChildModel where
   }
 
 data TestModel = TestModel {
+  _tmItems :: [Int],
   _tmText1 :: Text,
   _tmText2 :: Text
 } deriving (Eq, Show)
+
+instance Default TestModel where
+  def = TestModel {
+    _tmItems = [],
+    _tmText1 = "",
+    _tmText2 = ""
+  }
 
 instance WidgetModel TestModel
 
@@ -228,7 +238,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     newInstRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 1, 0]))
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenv def
     handleEvent
       :: WidgetEnv TestModel ()
       -> WidgetNode TestModel ()
@@ -262,7 +272,12 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleEventGlobalKey :: Spec
-handleEventGlobalKey = describe "handleEventGlobalKey" $
+handleEventGlobalKey = describe "handleEventGlobalKey" $ do
+  handleEventGlobalKeySingleState
+  handleEventGlobalKeyRemoveItem
+
+handleEventGlobalKeySingleState :: Spec
+handleEventGlobalKeySingleState = describe "handleEventGlobalKeySingleState" $
   it "should insert new text at the correct location, since its merged with a global key" $ do
     wenv1 ^. L.model . text1 `shouldBe` "aacc"
     wenv1 ^. L.model . text2 `shouldBe` ""
@@ -274,7 +289,7 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     newInstRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 0, 0]))
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenv def
     handleEvent
       :: WidgetEnv TestModel ()
       -> WidgetNode TestModel ()
@@ -306,6 +321,34 @@ handleEventGlobalKey = describe "handleEventGlobalKey" $
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
+
+handleEventGlobalKeyRemoveItem :: Spec
+handleEventGlobalKeyRemoveItem = describe "handleEventGlobalKeyRemoveItem" $
+  it "should remove an element and keep the correct keys" $ do
+    getKeys oldInstRoot `shouldBe` ["key0", "key1", "key2", "key3"]
+    getKeys newInstRoot `shouldBe` ["key0", "key1", "key3"]
+
+  where
+    initModel = def & items .~ [0..3]
+    wenv = mockWenv initModel
+    handleEvent
+      :: WidgetEnv TestModel MainEvt
+      -> WidgetNode TestModel MainEvt
+      -> TestModel
+      -> MainEvt
+      -> [EventResponse TestModel MainEvt MainEvt]
+    handleEvent wenv node model evt = case evt of
+      MainBtnClicked -> [Model $ model & items .~ [0, 1, 3]]
+      _ -> []
+    buildUI wenv model = vstack (button "Button" MainBtnClicked : (keyedLabel <$> model ^. items))
+    keyedLabel idx = label "Test" `key` ("key" <> showt idx)
+    node = composite "main" id buildUI handleEvent
+    evts = [evtClick (Point 100 10)]
+    oldNode = nodeInit wenv node
+    newRoot = nodeHandleEventRoot wenv evts node
+    oldInstRoot = widgetSave (oldNode ^. L.widget) wenv oldNode
+    newInstRoot = widgetSave (newRoot ^. L.widget) wenv newRoot
+    getKeys inst = inst ^.. L.children . ix 0 . L.children . folded . L.info . L.key . _Just . L._WidgetKeyGlobal
 
 handleMessage :: Spec
 handleMessage = describe "handleMessage" $ do
@@ -369,7 +412,7 @@ findByPoint = describe "findByPoint" $ do
     res `shouldBe` Nothing
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenvEvtUnit def
     cmpNode = findByHelperUI
     wni start point = res where
       inode = nodeInit wenv cmpNode
@@ -399,7 +442,7 @@ findByPath = describe "findByPath" $ do
     roundRectUnits <$> res ^? _Just . L.viewport `shouldBe` Just (Rect 427 340 213 20)
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenvEvtUnit def
     cmpNode = findByHelperUI
     wni path = res where
       inode = nodeInit wenv cmpNode
@@ -438,7 +481,7 @@ findNextFocus = describe "findNextFocus" $ do
     res ^? _Just . L.path `shouldBe` Just (Seq.fromList [0, 0, 0, 0, 0, 0])
 
   where
-    wenv = mockWenvEvtUnit (TestModel "" "")
+    wenv = mockWenvEvtUnit def
     cmpNode = findByHelperUI
     wni dir start = res where
       inode = nodeInit wenv cmpNode

@@ -49,24 +49,14 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
 }
 
 setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
-setWidgetIdPath widgetId path =
-  L.widgetPaths . ix widgetId . _1 .= path
-
-addWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
-addWidgetIdPath widgetId path =
-  L.widgetPaths . at widgetId . non (path, 0) %= \(_, c) -> (path, c + 1)
+setWidgetIdPath widgetId path = L.widgetPaths . at widgetId .= Just path
 
 getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
 getWidgetIdPath widgetId =
-  use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path, 0) . _1
+  use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path)
 
 delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
-delWidgetIdPath widgetId =
-  L.widgetPaths . at widgetId %= remVal
-  where
-    remVal (Just (path, c))
-      | c > 1 = Just (path, c - 1)
-    remVal _ = Nothing
+delWidgetIdPath widgetId = L.widgetPaths . at widgetId .= Nothing
 
 getHoveredPath :: (MonomerM s m) => m (Maybe Path)
 getHoveredPath = do
