@@ -32,8 +32,7 @@ type Timestamp = Int
 
 type WidgetEvent e = Typeable e
 
-type LocalKeys s e = Map WidgetKey (WidgetNode s e)
-type GlobalKeys s e = Map WidgetKey (WidgetNode s e)
+type WidgetKeysMap s e = Map WidgetKey (WidgetNode s e)
 
 data FocusDirection
   = FocusFwd
@@ -50,11 +49,8 @@ data WindowRequest
   deriving (Eq, Show)
 
 newtype WidgetType
-  = WidgetType { unWidgetType :: Text }
-  deriving (Eq, Generic, Serialise)
-
-instance Show WidgetType where
-  show (WidgetType t) = T.unpack t
+  = WidgetType Text
+  deriving (Eq, Show, Generic, Serialise)
 
 instance IsString WidgetType where
   fromString = WidgetType . T.pack
@@ -71,13 +67,12 @@ data WidgetId = WidgetId {
 instance Default WidgetId where
   def = WidgetId 0 emptyPath
 
-data WidgetKey
-  = WidgetKeyLocal Text
-  | WidgetKeyGlobal Text
+newtype WidgetKey
+  = WidgetKey Text
   deriving (Eq, Show, Ord, Generic, Serialise)
 
 instance IsString WidgetKey where
-  fromString = WidgetKeyGlobal . T.pack
+  fromString = WidgetKey . T.pack
 
 data WidgetState
   = forall i . (Typeable i, WidgetModel i) => WidgetState i
@@ -177,7 +172,7 @@ data WidgetEnv s e = WidgetEnv {
   _weMainButton :: Button,
   _weTheme :: Theme,
   _weWindowSize :: Size,
-  _weGlobalKeys :: GlobalKeys s e,
+  _weGlobalKeys :: WidgetKeysMap s e,
   _weHoveredPath :: Maybe Path,
   _weFocusedPath :: Path,
   _weOverlayPath :: Maybe Path,

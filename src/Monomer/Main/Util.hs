@@ -48,12 +48,12 @@ initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
   _mcExitApplication = False
 }
 
-setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
-setWidgetIdPath widgetId path = L.widgetPaths . at widgetId .= Just path
-
 getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
 getWidgetIdPath widgetId =
   use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path)
+
+setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+setWidgetIdPath widgetId path = L.widgetPaths . at widgetId .= Just path
 
 delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
 delWidgetIdPath widgetId = L.widgetPaths . at widgetId .= Nothing

@@ -16,6 +16,7 @@ import Data.Typeable (cast)
 import TextShow
 import Test.Hspec
 
+import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
@@ -121,7 +122,6 @@ handleEvent = describe "handleEvent" $ do
   handleEventChild
   handleEventResize
   handleEventLocalKey
-  handleEventGlobalKey
 
 handleEventBasic :: Spec
 handleEventBasic = describe "handleEventBasic" $ do
@@ -226,62 +226,16 @@ handleEventResize = describe "handleEventResize" $ do
     cvp = Rect 0 0 640 3020
 
 handleEventLocalKey :: Spec
-handleEventLocalKey = describe "handleEventLocalKey" $
+handleEventLocalKey = describe "handleEventLocalKey" $ do
+  handleEventLocalKeySingleState
+  handleEventLocalKeyRemoveItem
+
+handleEventLocalKeySingleState :: Spec
+handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
   it "should insert new text at the end, since its merged with a local key" $ do
     wenv1 ^. L.model . text1 `shouldBe` "aacc"
     wenv1 ^. L.model . text2 `shouldBe` ""
     wenv2 ^. L.model . text1 `shouldBe` "aaccbb"
-    wenv2 ^. L.model . text2 `shouldBe` ""
-    newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
-    newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
-    newInstRoot ^? widLens 0 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 0, 0]))
-    newInstRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0, 1, 0]))
-
-  where
-    wenv = mockWenv def
-    handleEvent
-      :: WidgetEnv TestModel ()
-      -> WidgetNode TestModel ()
-      -> TestModel
-      -> ()
-      -> [EventResponse TestModel () ()]
-    handleEvent wenv node model evt = []
-    buildUI1 wenv model = hstack [
-        vstack [
-          textField text1 `localKey` "localTxt1"
-        ],
-        vstack [
-          textField text1 `localKey` "localTxt2"
-        ]
-      ]
-    buildUI2 wenv model = hstack [
-        vstack [
-          textField text1 `localKey` "localTxt2"
-        ],
-        vstack [
-          textField text1 `localKey` "localTxt1"
-        ]
-      ]
-    cmpNode1 = composite "main" id buildUI1 handleEvent
-    cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
-    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
-    cntNodeM = nodeMerge wenv1 root1 cmpNode2
-    evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
-    newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
-
-handleEventGlobalKey :: Spec
-handleEventGlobalKey = describe "handleEventGlobalKey" $ do
-  handleEventGlobalKeySingleState
-  handleEventGlobalKeyRemoveItem
-
-handleEventGlobalKeySingleState :: Spec
-handleEventGlobalKeySingleState = describe "handleEventGlobalKeySingleState" $
-  it "should insert new text at the correct location, since its merged with a global key" $ do
-    wenv1 ^. L.model . text1 `shouldBe` "aacc"
-    wenv1 ^. L.model . text2 `shouldBe` ""
-    wenv2 ^. L.model . text1 `shouldBe` "aabbcc"
     wenv2 ^. L.model . text2 `shouldBe` ""
     newInstRoot ^? pathLens 0 `shouldBe` Just (Seq.fromList [0, 0, 0, 0])
     newInstRoot ^? pathLens 1 `shouldBe` Just (Seq.fromList [0, 0, 1, 0])
@@ -299,34 +253,35 @@ handleEventGlobalKeySingleState = describe "handleEventGlobalKeySingleState" $
     handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
-          textField text1 `key` "globalTxt1"
-        ],
+          textField text1
+        ] `key` "localTxt1",
         vstack [
-          textField text2 `key` "globalTxt2"
-        ]
+          textField text1
+        ] `key` "localTxt2"
       ]
     buildUI2 wenv model = hstack [
         vstack [
-          textField text2 `key` "globalTxt2"
-        ],
+          textField text1
+        ] `key` "localTxt2",
         vstack [
-          textField text1 `key` "globalTxt1"
-        ]
+          textField text1
+        ] `key` "localTxt1"
       ]
     cmpNode1 = composite "main" id buildUI1 handleEvent
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
-    evts1 = [evtT "aacc", moveCharL, moveCharL]
+    evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
-handleEventGlobalKeyRemoveItem :: Spec
-handleEventGlobalKeyRemoveItem = describe "handleEventGlobalKeyRemoveItem" $
+handleEventLocalKeyRemoveItem :: Spec
+handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
   it "should remove an element and keep the correct keys" $ do
     getKeys oldInstRoot `shouldBe` ["key0", "key1", "key2", "key3"]
-    getKeys newInstRoot `shouldBe` ["key0", "key1", "key3"]
+    getKeys newInstRoot `shouldBe` ["key0", "key2", "key3"]
+    length (newCtx ^. L.widgetPaths) `shouldBe` 2
 
   where
     initModel = def & items .~ [0..3]
@@ -338,17 +293,17 @@ handleEventGlobalKeyRemoveItem = describe "handleEventGlobalKeyRemoveItem" $
       -> MainEvt
       -> [EventResponse TestModel MainEvt MainEvt]
     handleEvent wenv node model evt = case evt of
-      MainBtnClicked -> [Model $ model & items .~ [0, 1, 3]]
+      MainBtnClicked -> [Model $ model & items .~ [0, 2, 3]]
       _ -> []
     buildUI wenv model = vstack (button "Button" MainBtnClicked : (keyedLabel <$> model ^. items))
     keyedLabel idx = label "Test" `key` ("key" <> showt idx)
     node = composite "main" id buildUI handleEvent
     evts = [evtClick (Point 100 10)]
     oldNode = nodeInit wenv node
-    newRoot = nodeHandleEventRoot wenv evts node
+    ((_, newRoot, _, _), newCtx) = nodeHandleEvents wenv WInit evts node
     oldInstRoot = widgetSave (oldNode ^. L.widget) wenv oldNode
     newInstRoot = widgetSave (newRoot ^. L.widget) wenv newRoot
-    getKeys inst = inst ^.. L.children . ix 0 . L.children . folded . L.info . L.key . _Just . L._WidgetKeyGlobal
+    getKeys inst = inst ^.. L.children . ix 0 . L.children . folded . L.info . L.key . _Just . L._WidgetKey
 
 handleMessage :: Spec
 handleMessage = describe "handleMessage" $ do

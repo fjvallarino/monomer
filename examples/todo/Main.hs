@@ -99,7 +99,7 @@ handleEvent wenv node model evt = case evt of
       & todos . ix idx .~ (model ^. activeTodo),
     setFocus wenv "todoNew"]
   TodoDeleteBegin idx todo -> [
-    Message (WidgetKeyGlobal (todoRowKey todo)) AnimationStart]
+    Message (WidgetKey (todoRowKey todo)) AnimationStart]
   TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone

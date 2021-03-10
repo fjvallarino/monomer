@@ -164,7 +164,7 @@ data Composite s e sp ep = Composite {
 data CompositeState s e = CompositeState {
   _cpsModel :: Maybe s,
   _cpsRoot :: WidgetNode s e,
-  _cpsGlobalKeys :: GlobalKeys s e
+  _cpsGlobalKeys :: WidgetKeysMap s e
 }
 
 instance WidgetModel s => Serialise (CompositeState s e) where
@@ -733,7 +733,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
     & L.events <>~ Seq.fromList newEvents
 
 reduceCompEvents
-  :: GlobalKeys s e
+  :: WidgetKeysMap s e
   -> EventHandler s e ep
   -> WidgetEnv s e
   -> WidgetNode s e
@@ -758,7 +758,7 @@ reduceCompEvents globalKeys eventHandler cwenv node model events = result where
   result = foldl' reducer initial events
 
 reduceEvtResponse
-  :: GlobalKeys s e
+  :: WidgetKeysMap s e
   -> ReducedEvents s e sp ep
   -> EventResponse s e ep
   -> ReducedEvents s e sp ep
@@ -837,11 +837,11 @@ collectGlobalKeys keys node = newMap where
   children = node ^. L.children
   collect currKeys child = collectGlobalKeys currKeys child
   updatedMap = case node ^. L.info . L.key of
-    Just (WidgetKeyGlobal key) -> M.insert (WidgetKeyGlobal key) node keys
+    Just key -> M.insert key node keys
     _ -> keys
   newMap = foldl' collect updatedMap children
 
-convertWidgetEnv :: WidgetEnv sp ep -> GlobalKeys s e -> s -> WidgetEnv s e
+convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeysMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
   _weOS = _weOS wenv,
   _weRenderer = _weRenderer wenv,

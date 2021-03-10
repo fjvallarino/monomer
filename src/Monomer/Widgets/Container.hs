@@ -412,12 +412,13 @@ mergeChildren
 mergeChildren updateCWenv wenv oldNode newNode result = newResult where
   WidgetResult uNode uReqs uEvents = result
   oldChildren = oldNode ^. L.children
-  oldCsIdx = Seq.mapWithIndex (,) oldChildren
+  oldIts = Seq.mapWithIndex (,) oldChildren
   updatedChildren = uNode ^. L.children
   mergeChild idx child = (idx, cascadeCtx wenv uNode child idx)
-  newCsIdx = Seq.mapWithIndex mergeChild updatedChildren
-  localKeys = buildLocalMap oldChildren
-  mpairs = mergeChildrenSeq updateCWenv wenv localKeys newNode oldCsIdx newCsIdx
+  newIts = Seq.mapWithIndex mergeChild updatedChildren
+  oldKeys = buildLocalMap oldChildren
+  newKeys = buildLocalMap (snd <$> newIts)
+  mpairs = mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts newIts
   (mergedResults, removedResults) = mpairs
   mergedChildren = fmap _wrNode mergedResults
   mergedReqs = foldMap _wrRequests mergedResults
@@ -429,29 +430,32 @@ mergeChildren updateCWenv wenv oldNode newNode result = newResult where
   newEvents = uEvents <> mergedEvents <> removedEvents
   newResult = WidgetResult mergedNode newReqs newEvents
 
-mergeChildrenSeq
+mergeChildSeq
   :: (Int -> WidgetNode s e -> WidgetEnv s e)
   -> WidgetEnv s e
-  -> Map WidgetKey (WidgetNode s e)
+  -> WidgetKeysMap s e
+  -> WidgetKeysMap s e
   -> WidgetNode s e
   -> Seq (Int, WidgetNode s e)
   -> Seq (Int, WidgetNode s e)
   -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
-mergeChildrenSeq updateCWenv wenv localKeys newNode oldItems Empty = res where
-  dispose (idx, child) = widgetDispose (child ^. L.widget) wenv child
-  removed = fmap dispose oldItems
+mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts Empty = res where
+  dispose (idx, child) = case flip M.member newKeys <$> child^. L.info. L.key of
+    Just True -> WidgetResult child Empty Empty
+    _ -> widgetDispose (child ^. L.widget) wenv child
+  removed = fmap dispose oldIts
   res = (Empty, removed)
-mergeChildrenSeq updateCWenv wenv localKeys newNode Empty newItems = res where
+mergeChildSeq updateCWenv wenv oldKeys newKeys newNode Empty newIts = res where
   init (idx, child) = widgetInit (child ^. L.widget) wenv child
-  merged = fmap init newItems
+  merged = fmap init newIts
   res = (merged, Empty)
-mergeChildrenSeq updateCWenv wenv localKeys newNode oldItems newItems = res where
-  (_, oldChild) :<| oldChildren = oldItems
-  (newIdx, newChild) :<| newChildren = newItems
+mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts newIts = res where
+  (_, oldChild) :<| oldChildren = oldIts
+  (newIdx, newChild) :<| newChildren = newIts
   globalKeys = wenv ^. L.globalKeys
   newWidget = newChild ^. L.widget
   newChildKey = newChild ^. L.info . L.key
-  oldKeyMatch = newChildKey >>= \key -> findWidgetByKey key localKeys globalKeys
+  oldKeyMatch = newChildKey >>= \key -> M.lookup key oldKeys
   oldMatch = fromJust oldKeyMatch
   cwenv = updateCWenv newIdx newChild
   mergedOld = widgetMerge newWidget cwenv oldChild newChild
@@ -461,10 +465,10 @@ mergeChildrenSeq updateCWenv wenv localKeys newNode oldItems newItems = res wher
   isMergeKey = isJust oldKeyMatch && nodeMatches newChild oldMatch
   (child, oldRest)
     | nodeMatches newChild oldChild = (mergedOld, oldChildren)
-    | isMergeKey = (mergedKey, oldItems)
-    | otherwise = (initNew, oldItems)
+    | isMergeKey = (mergedKey, oldIts)
+    | otherwise = (initNew, oldIts)
   (cmerged, cremoved)
-    = mergeChildrenSeq updateCWenv wenv localKeys newNode oldRest newChildren
+    = mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldRest newChildren
   merged = child <| cmerged
   res = (merged, cremoved)
 
@@ -958,15 +962,6 @@ cascadeCtx wenv parent child idx = newChild where
     & L.info . L.overlay .~ (cInfo ^. L.overlay || parentOverlay)
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
-
-findWidgetByKey
-  :: WidgetKey
-  -> LocalKeys s e
-  -> GlobalKeys s e
-  -> Maybe (WidgetNode s e)
-findWidgetByKey key localMap globalMap = local <|> global where
-  local = M.lookup key localMap
-  global = M.lookup key globalMap
 
 buildLocalMap :: Seq (WidgetNode s e) -> Map WidgetKey (WidgetNode s e)
 buildLocalMap widgets = newMap where
