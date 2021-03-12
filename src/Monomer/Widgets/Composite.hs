@@ -57,7 +57,7 @@ type EventHandler s e ep
   = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 type MergeRequired s = s -> s -> Bool
-type TaskHandler e = IO (Maybe e)
+type TaskHandler e = IO e
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
 data EventResponse s e ep
@@ -564,7 +564,7 @@ compositeHandleMessage
   -> Maybe (WidgetResult sp ep)
 compositeHandleMessage comp state@CompositeState{..} wenv target arg widgetComp
   | isTargetReached target widgetComp = case cast arg of
-      Just (Just evt) -> reducedResult where
+      Just evt -> reducedResult where
         evtResult = WidgetResult _cpsRoot Seq.empty (Seq.singleton evt)
         reducedResult = Just $ reduceResult comp state wenv widgetComp evtResult
       _ -> Nothing

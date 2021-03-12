@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
@@ -7,11 +8,11 @@ module Main where
 import Control.Concurrent
 import Control.Concurrent.STM.TChan
 import Control.Lens
-import Control.Monad (forever, void, when)
+import Control.Monad (forever, forM_, void, when)
 import Control.Monad.IO.Class
 import Control.Monad.STM
 import Data.Aeson
-import Data.Aeson.Types (parseEither, parseMaybe)
+import Data.Aeson.Types (parseMaybe)
 import Data.Default
 import Data.Maybe
 import Data.Scientific
@@ -34,17 +35,18 @@ buildUI
   -> TickerModel
   -> WidgetNode TickerModel TickerEvt
 buildUI wenv model = widgetTree where
-  pairItem pair = label pair
-  pairsList = vstack (pairItem <$> model ^. symbolPairs)
   tickerItem t = hstack [
       label (t ^. symbolPair),
       spacer,
       label $ scientificText (t ^. close)
     ]
   tickerList = vstack (tickerItem <$> model ^. tickers)
-  mainLayer = hstack [
-      pairsList `style` [width 200],
-      spacer,
+  mainLayer = vstack [
+      hstack [
+        label "New pair: ",
+        textField newPair,
+        button "Add" TickerAddPair
+      ],
       tickerList
     ]
   widgetTree = zstack [
@@ -52,51 +54,72 @@ buildUI wenv model = widgetTree where
     ]
 
 handleEvent
-  :: WidgetEnv TickerModel TickerEvt
+  :: AppEnv
+  -> WidgetEnv TickerModel TickerEvt
   -> WidgetNode TickerModel TickerEvt
   -> TickerModel
   -> TickerEvt
   -> [EventResponse TickerModel TickerEvt ()]
-handleEvent wenv node model evt = case evt of
+handleEvent env wenv node model evt = case evt of
   TickerInit -> [
-    Producer startProducer,
+    Producer (startProducer env),
     setFocus wenv "query"
     ]
-  TickerAddPair pair -> []
+  TickerAddPair -> [
+    Task $ do
+      let subscription = T.toLower (model^.newPair) <> "@miniTicker"
+      let req = ServerRequest 1 "SUBSCRIBE" [subscription]
+      liftIO . atomically $ writeTChan (env^.channel) req
+      return TickerIgnore
+    ]
   TickerUpdate ticker -> [
-    Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker,
-    Task $ print ticker >> return TickerIgnore
+    Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker
+    ]
+  TickerError err -> [
+    Task $ do
+      print ("Error", err)
+      return TickerIgnore
+    ]
+  TickerResponse resp -> [
+    Task $ do
+      print ("Resp", resp)
+      return TickerIgnore
     ]
   TickerIgnore -> []
 
 --https://www.reddit.com/r/haskell/comments/4knu6r/how_to_manage_exceptions/d3gezq0/?utm_source=reddit&utm_medium=web2x&context=3
-startProducer :: (TickerEvt -> IO ()) -> IO ()
-startProducer sendMsg = do
-  channel <- newTChanIO
-
+startProducer :: AppEnv -> (TickerEvt -> IO ()) -> IO ()
+startProducer env sendMsg = do
   Wuss.runSecureClient url port path $ \connection -> do
     receiveWs connection sendMsg
-    sendWs channel connection
+    sendWs (env^.channel) connection
   where
     url = "stream.binance.com"
     port = 9443
-    path = "/ws/btcusdt@miniTicker"
+    --path = "/ws/btcusdt@miniTicker"
+    path = "/ws"
 
 receiveWs :: WS.Connection -> (TickerEvt -> IO ()) -> IO ()
 receiveWs conn sendMsg = void . forkIO . forever $ do
   msg <- WS.receiveData conn
-  let ticker = decode msg
+  let serverMsg = decode msg
 
-  when (isJust ticker) $ do
-    sendMsg $ TickerUpdate (fromJust ticker)
+  forM_ serverMsg $ \case
+    MsgResponse resp -> sendMsg $ TickerResponse resp
+    MsgError err -> sendMsg $ TickerError err
+    MsgTicker ticker -> sendMsg $ TickerUpdate ticker
 
-sendWs :: TChan a -> p -> IO ()
-sendWs channel connection = do
-  void . liftIO . atomically $ readTChan channel
+sendWs :: (Show a, ToJSON a) => TChan a -> WS.Connection -> IO ()
+sendWs channel connection = forever $ do
+  msg <- liftIO . atomically $ readTChan channel
+  WS.sendTextData connection (encode msg)
 
 main :: IO ()
 main = do
-  simpleApp initModel handleEvent buildUI config
+  channel <- newTChanIO
+  let env = AppEnv channel
+
+  simpleApp initModel (handleEvent env) buildUI config
   where
     config = [
       appWindowTitle "Ticker",
@@ -105,7 +128,7 @@ main = do
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appInitEvent TickerInit
       ]
-    initModel = def & symbolPairs .~ ["BTCUSDT"]
+    initModel = def
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus widgetId) where
