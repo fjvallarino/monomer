@@ -565,11 +565,15 @@
 Next
   - Review returning Maybe from event handlers (return a single value always)
   - Add examples
-    - Composite example
+    - Producer example (Binance ticker API)
       - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
 
 Future
+  - Check cross compilation
+    - https://github.com/zw3rk/toolchain-wrapper
+    - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
+    - https://www.tweag.io/blog/2020-11-25-asterius-th/
   - Should DuplicateRecordFields be used in internal widget types to avoid the lens prefixes (which are not used in lenses)
   - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
     - Does it make sense to merge events into requests?
@@ -582,6 +586,7 @@ Future
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
   - Remove attoparsec dependency (only used in numericField to validate format)
+  - Create ContextMenu (could work similarly to Tooltip)
   - Create Slider
   - Create File Selector
   - Create GridView

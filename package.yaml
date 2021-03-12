@@ -97,6 +97,19 @@ executables:
     - text-show
     - wreq
 
+  ticker:
+    main: Main.hs
+    source-dirs: examples/ticker
+    dependencies:
+    - aeson
+    - lens
+    - monomer
+    - scientific
+    - text-show
+    - websockets
+    - wreq
+    - wuss
+
 tests:
   monomer-test:
     main: Spec.hs
