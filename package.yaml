@@ -107,7 +107,6 @@ executables:
     - scientific
     - text-show
     - websockets
-    - wreq
     - wuss
 
 tests:

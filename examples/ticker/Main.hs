@@ -25,8 +25,10 @@ import qualified Network.Wreq as W
 import qualified Network.WebSockets as WS
 import qualified Wuss
 
-import TickerTypes
 import Monomer
+
+import BinanceTypes
+import TickerTypes
 
 import qualified Monomer.Lens as L
 
@@ -44,7 +46,7 @@ buildUI wenv model = widgetTree where
   mainLayer = vstack [
       hstack [
         label "New pair: ",
-        textField newPair,
+        keystroke [("Enter", TickerAddPair)] $ textField newPair `key` "newPair",
         button "Add" TickerAddPair
       ],
       tickerList
@@ -63,14 +65,16 @@ handleEvent
 handleEvent env wenv node model evt = case evt of
   TickerInit -> [
     Producer (startProducer env),
-    setFocus wenv "query"
+    setFocus wenv "newPair"
     ]
   TickerAddPair -> [
     Task $ do
       let subscription = T.toLower (model^.newPair) <> "@miniTicker"
       let req = ServerRequest 1 "SUBSCRIBE" [subscription]
       liftIO . atomically $ writeTChan (env^.channel) req
-      return TickerIgnore
+      return TickerIgnore,
+    Model $ model & newPair .~ "",
+    setFocus wenv "newPair"
     ]
   TickerUpdate ticker -> [
     Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker
