@@ -37,10 +37,13 @@ buildUI
   -> TickerModel
   -> WidgetNode TickerModel TickerEvt
 buildUI wenv model = widgetTree where
+  closeIcon = icon_ IconClose [width 4] `style` [width 12, height 12, fgColor crimson]
   tickerItem t = hstack [
-      label (t ^. symbolPair),
+      label (t ^. symbolPair) `style` [width 100],
       spacer,
-      label $ scientificText (t ^. close)
+      label (scientificText (t ^. close)) `style` [textRight, minWidth 100],
+      spacer,
+      box_ [onClick (TickerRemovePair (t ^. symbolPair))] closeIcon
     ]
   tickerList = vstack (tickerItem <$> model ^. tickers)
   mainLayer = vstack [
@@ -49,8 +52,9 @@ buildUI wenv model = widgetTree where
         keystroke [("Enter", TickerAddPair)] $ textField newPair `key` "newPair",
         button "Add" TickerAddPair
       ],
+      spacer,
       tickerList
-    ]
+    ] `style` [padding 5]
   widgetTree = zstack [
       mainLayer
     ]
@@ -68,28 +72,34 @@ handleEvent env wenv node model evt = case evt of
     setFocus wenv "newPair"
     ]
   TickerAddPair -> [
-    Task $ do
-      let subscription = T.toLower (model^.newPair) <> "@miniTicker"
-      let req = ServerRequest 1 "SUBSCRIBE" [subscription]
-      liftIO . atomically $ writeTChan (env^.channel) req
-      return TickerIgnore,
+    Task $ subscribe env (model ^. newPair),
     Model $ model & newPair .~ "",
     setFocus wenv "newPair"
+    ]
+  TickerRemovePair pair -> [
+      Task $ unsubscribe env pair,
+      Model $ model & tickers . at pair .~ Nothing
     ]
   TickerUpdate ticker -> [
     Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker
     ]
-  TickerError err -> [
-    Task $ do
-      print ("Error", err)
-      return TickerIgnore
-    ]
-  TickerResponse resp -> [
-    Task $ do
-      print ("Resp", resp)
-      return TickerIgnore
-    ]
+  TickerError err -> [Task $ print ("Error", err) >> return TickerIgnore]
+  TickerResponse resp -> [Task $ print ("Response", resp) >> return TickerIgnore]
   TickerIgnore -> []
+
+handleSubscription :: AppEnv -> Text -> Text -> IO TickerEvt
+handleSubscription env pair action = do
+  liftIO . atomically $ writeTChan (env^.channel) req
+  return TickerIgnore
+  where
+    subscription = T.toLower pair <> "@miniTicker"
+    req = ServerRequest 1 action [subscription]
+
+subscribe :: AppEnv -> Text -> IO TickerEvt
+subscribe env pair = handleSubscription env pair "SUBSCRIBE"
+
+unsubscribe :: AppEnv -> Text -> IO TickerEvt
+unsubscribe env pair = handleSubscription env pair "UNSUBSCRIBE"
 
 --https://www.reddit.com/r/haskell/comments/4knu6r/how_to_manage_exceptions/d3gezq0/?utm_source=reddit&utm_medium=web2x&context=3
 startProducer :: AppEnv -> (TickerEvt -> IO ()) -> IO ()
@@ -100,7 +110,6 @@ startProducer env sendMsg = do
   where
     url = "stream.binance.com"
     port = 9443
-    --path = "/ws/btcusdt@miniTicker"
     path = "/ws"
 
 receiveWs :: WS.Connection -> (TickerEvt -> IO ()) -> IO ()
@@ -139,4 +148,4 @@ setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 
 scientificText :: Scientific -> Text
-scientificText = T.pack . formatScientific Fixed Nothing
+scientificText = T.pack . formatScientific Fixed (Just 8)

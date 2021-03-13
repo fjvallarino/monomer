@@ -45,6 +45,7 @@ data TickerEvt
   = TickerInit
   | TickerIgnore
   | TickerAddPair
+  | TickerRemovePair Text
   | TickerUpdate Ticker
   | TickerError ServerError
   | TickerResponse ServerResponse
