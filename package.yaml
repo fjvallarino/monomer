@@ -115,7 +115,6 @@ tests:
     source-dirs: test/unit
     ghc-options:
     - -fwarn-incomplete-patterns
-#    - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     - -with-rtsopts=-T

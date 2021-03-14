@@ -37,22 +37,33 @@ buildUI
   -> TickerModel
   -> WidgetNode TickerModel TickerEvt
 buildUI wenv model = widgetTree where
-  closeIcon = icon_ IconClose [width 4] `style` [width 12, height 12, fgColor crimson, cursorIcon CursorHand]
+  dragColor = lightGray & L.a .~ 0.5
+  closeIcon = icon_ IconClose [width 4] `style` [width 12, height 12, fgColor crimson, cursorHand]
   dropTicker pair = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]] spacer
+  tickerPct t = label pctText `style` [width 100, textRight, textColor pctColor] where
+    diff = toRealFloat $ 100 * (t ^. close - t ^. open)
+    pct = diff / toRealFloat (t ^. open)
+    pctText = formatTickerPct (fromFloatDigits pct) <> "%"
+    pctColor
+      | abs pct < 0.01 = white
+      | pct > 0 = green
+      | otherwise = red
   tickerItem t = vstack [
       dropTicker (t ^. symbolPair),
-      draggable (t ^. symbolPair) $ hstack [
+      draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $ hstack [
         label (t ^. symbolPair) `style` [width 100],
         spacer,
-        label (scientificText (t ^. close)) `style` [textRight, minWidth 100],
+        label (formatTickerValue (t ^. close)) `style` [textRight, minWidth 100],
+        spacer,
+        tickerPct t,
         spacer,
         box_ [onClick (TickerRemovePair (t ^. symbolPair))] closeIcon
-      ]
+      ] `style` [cursorHand]
     ]
   tickerList = vstack (tickerRows ++ [dropTicker "--Invalid--"]) where
     orderedTickers = (\e -> model ^? tickers . ix e) <$> model ^. symbolPairs
     tickerRows = tickerItem <$> catMaybes orderedTickers
-  mainLayer = vstack [
+  widgetTree = vstack [
       hstack [
         label "New pair: ",
         keystroke [("Enter", TickerAddClick)] $ textField newPair `key` "newPair",
@@ -61,9 +72,6 @@ buildUI wenv model = widgetTree where
       ] `style` [padding 5, paddingB 0],
       spacer,
       scroll $ tickerList `style` [padding 5, paddingT 0]
-    ]
-  widgetTree = zstack [
-      mainLayer
     ]
 
 handleEvent
@@ -78,9 +86,7 @@ handleEvent env wenv node model evt = case evt of
     Model $ model
       & symbolPairs .~ initialList,
     Producer (startProducer env),
-    Producer $ \sendMsg -> do
-      threadDelay 500000
-      void $ subscribe env initialList,
+    Task (subscribeInitial env initialList),
     setFocus wenv "newPair"
     ]
   TickerAddClick -> [Event $ TickerAddPair (model ^. newPair)]
@@ -130,7 +136,6 @@ moveBefore list target item = result where
     | x == target = item : x : xs
     | otherwise = x : moveBefore_ xs target item
 
---https://www.reddit.com/r/haskell/comments/4knu6r/how_to_manage_exceptions/d3gezq0/?utm_source=reddit&utm_medium=web2x&context=3
 startProducer :: AppEnv -> (TickerEvt -> IO ()) -> IO ()
 startProducer env sendMsg = do
   Wuss.runSecureClient url port path $ \connection -> do
@@ -140,6 +145,11 @@ startProducer env sendMsg = do
     url = "stream.binance.com"
     port = 9443
     path = "/ws"
+
+subscribeInitial :: AppEnv -> [Text] -> IO TickerEvt
+subscribeInitial env initialList = do
+  threadDelay 500000
+  subscribe env initialList
 
 receiveWs :: WS.Connection -> (TickerEvt -> IO ()) -> IO ()
 receiveWs conn sendMsg = void . forkIO . forever $ do
@@ -164,7 +174,6 @@ main = do
   simpleApp initModel (handleEvent env) buildUI config
   where
     config = [
-      appMaxFps 10,
       appWindowTitle "Ticker",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
@@ -177,11 +186,13 @@ setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 
-scientificText :: Scientific -> Text
-scientificText = T.pack . formatScientific Fixed (Just 8)
+formatTickerValue :: Scientific -> Text
+formatTickerValue = T.pack . formatScientific Fixed (Just 8)
+
+formatTickerPct :: Scientific -> Text
+formatTickerPct = T.pack . formatScientific Fixed (Just 2)
 
 initialList :: [Text]
-initialList = ["BTCUSDT", "ADABTC", "COTIBTC", "SXPBTC", "BNBBTC", "GRTBTC",
-  "CRVBTC", "ZRXBTC", "NEXOBTC", "XTZBTC", "BATBTC", "VETBTC", "REEFBTC",
-  "EOSBTC", "AKROBTC", "DOGEBTC", "XHVBTC", "ANKRBTC", "BNTBTC", "XLMBTC",
-  "XRPBTC", "SOLBTC", "SRMBTC", "DOTBTC", "ETHBTC", "LTCBTC"]
+initialList = ["BTCUSDT", "ETHBTC", "BNBBTC", "ADABTC", "DOTBTC", "XRPBTC",
+  "UNIBTC", "LTCBTC", "LINKBTC", "BCHBTC", "DOGEBTC", "THETABTC", "LUNABTC",
+  "AAVEBTC", "CROBTC", "VETBTC", "XMRBTC", "ATOMBTC", "FTTBTC", "SOLBTC"]

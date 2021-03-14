@@ -323,6 +323,22 @@ class CmbTransparency t where
   transparency :: Double -> t
 
 class CmbCursorIcon t where
+  cursorArrow :: t
+  cursorArrow = cursorIcon CursorArrow
+  cursorHand :: t
+  cursorHand = cursorIcon CursorHand
+  cursorIBeam :: t
+  cursorIBeam = cursorIcon CursorIBeam
+  cursorInvalid :: t
+  cursorInvalid = cursorIcon CursorInvalid
+  cursorSizeH :: t
+  cursorSizeH = cursorIcon CursorSizeH
+  cursorSizeV :: t
+  cursorSizeV = cursorIcon CursorSizeV
+  cursorDiagTL :: t
+  cursorDiagTL = cursorIcon CursorDiagTL
+  cursorDiagTR :: t
+  cursorDiagTR = cursorIcon CursorDiagTR
   cursorIcon :: CursorIcon -> t
 
 -- Item List

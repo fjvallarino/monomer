@@ -554,6 +554,9 @@
   - Reorganize widgets (containers/singles)
   - Add examples
     - Todo should use generated ids instead of indexes
+  - Review returning Maybe from event handlers (return a single value always)
+  - Add examples
+    - Producer example (Binance ticker API)
 
 - Pending
   - Add header in all files, indicating license and documenting what the module does
@@ -563,10 +566,7 @@
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
 
 Next
-  - Review returning Maybe from event handlers (return a single value always)
   - Add examples
-    - Producer example (Binance ticker API)
-      - Validate nested structures update correctly when disabling/enabling parent
     - Something of generative art (OpenGL example)
 
 Future
