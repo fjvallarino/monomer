@@ -257,7 +257,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SetCursorIcon wid icon -> handleSetCursorIcon wid icon step
     ResetCursorIcon wid -> handleResetCursorIcon wid step
     StartDrag wid path info -> handleStartDrag wid path info step
-    CancelDrag wid -> handleCancelDrag wid step
+    StopDrag wid -> handleStopDrag wid step
     RenderOnce -> handleRenderOnce step
     RenderEvery wid ms repeat -> handleRenderEvery wid ms repeat step
     RenderStop wid -> handleRenderStop wid step
@@ -278,17 +278,15 @@ handleResizeWidgets previousStep = do
   Size w h <- use L.windowSize
 
   let winRect = Rect 0 0 w h
-  let (wenv, root, requests, events) = previousStep
-  let reqsNoResize = Seq.filter (not . isResizeWidgets) requests
-  let tmpResult = widgetResize (root ^. L.widget) wenv winRect root
-  let newResult = tmpResult
-        & L.requests .~ reqsNoResize <> tmpResult ^. L.requests
-        & L.events .~ events <> tmpResult ^. L.events
+  let (wenv, root, reqs, evts) = previousStep
+  let newResult = widgetResize (root ^. L.widget) wenv winRect root
 
   L.renderRequested .= True
   L.resizePending .= False
 
-  handleWidgetResult wenv True newResult
+  (wenv2, root2, reqs2, evts2) <- handleWidgetResult wenv True newResult
+
+  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
 
 handleMoveFocus
   :: (MonomerM s m)
@@ -448,12 +446,12 @@ handleStartDrag widgetId path dragData previousStep = do
   setWidgetIdPath widgetId path
   return previousStep
 
-handleCancelDrag
+handleStopDrag
   :: (MonomerM s m)
   => WidgetId
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleCancelDrag widgetId previousStep = do
+handleStopDrag widgetId previousStep = do
   oldDragAction <- use L.dragAction
   let prevWidgetId = fmap (^. L.widgetId) oldDragAction
 

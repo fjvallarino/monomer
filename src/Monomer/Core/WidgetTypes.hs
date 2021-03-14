@@ -107,7 +107,7 @@ data WidgetRequest s
   | SetCursorIcon WidgetId CursorIcon
   | ResetCursorIcon WidgetId
   | StartDrag WidgetId Path WidgetDragMsg
-  | CancelDrag WidgetId
+  | StopDrag WidgetId
   | RenderOnce
   | RenderEvery WidgetId Int (Maybe Int)
   | RenderStop WidgetId
@@ -135,7 +135,7 @@ instance Eq (WidgetRequest s) where
   SetCursorIcon w1 c1 == SetCursorIcon w2 c2 = (w1, c1) == (w2, c2)
   ResetCursorIcon w1 == ResetCursorIcon w2 = w1 == w2
   StartDrag w1 p1 m1 == StartDrag w2 p2 m2 = (w1, p1, m1) == (w2, p2, m2)
-  CancelDrag w1 == CancelDrag w2 = w1 == w2
+  StopDrag w1 == StopDrag w2 = w1 == w2
   RenderOnce == RenderOnce = True
   RenderEvery p1 c1 r1 == RenderEvery p2 c2 r2 = (p1, c1, r1) == (p2, c2, r2)
   RenderStop p1 == RenderStop p2 = p1 == p2
@@ -379,7 +379,7 @@ instance Show (WidgetRequest s) where
   show (SetCursorIcon wid icon) = "SetCursorIcon: " ++ show (wid, icon)
   show (ResetCursorIcon wid) = "ResetCursorIcon: " ++ show wid
   show (StartDrag wid path info) = "StartDrag: " ++ show (wid, path, info)
-  show (CancelDrag wid) = "CancelDrag: " ++ show wid
+  show (StopDrag wid) = "StopDrag: " ++ show wid
   show RenderOnce = "RenderOnce"
   show (RenderEvery wid ms repeat) = "RenderEvery: " ++ show (wid, ms, repeat)
   show (RenderStop wid) = "RenderStop: " ++ show wid

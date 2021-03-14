@@ -21,17 +21,17 @@ import Monomer.Widgets.Container
 import qualified Monomer.Lens as L
 
 newtype DropTargetCfg = DropTargetCfg {
-  _dtcDragStyle :: Maybe StyleState
+  _dtcDropStyle :: Maybe StyleState
 }
 
 instance Default DropTargetCfg where
   def = DropTargetCfg {
-    _dtcDragStyle = Nothing
+    _dtcDropStyle = Nothing
   }
 
 instance Semigroup DropTargetCfg where
   (<>) t1 t2 = DropTargetCfg {
-    _dtcDragStyle = _dtcDragStyle t1 <> _dtcDragStyle t2
+    _dtcDropStyle = _dtcDropStyle t1 <> _dtcDropStyle t2
   }
 
 instance Monoid DropTargetCfg where
@@ -39,7 +39,7 @@ instance Monoid DropTargetCfg where
 
 dropTargetStyle :: [StyleState] -> DropTargetCfg
 dropTargetStyle styles = def {
-  _dtcDragStyle = Just (mconcat styles)
+  _dtcDropStyle = Just (mconcat styles)
 }
 
 dropTarget :: DragMsg a => (a -> e) -> WidgetNode s e -> WidgetNode s e
@@ -73,7 +73,7 @@ makeDropTarget dropEvt config = widget where
     where
       mousePos = wenv ^. L.inputStatus . L.mousePos
       isHovered = isPointInNodeVp mousePos node
-      style = _dtcDragStyle config
+      style = _dtcDropStyle config
 
   handleEvent wenv target evt node = case evt of
     Drop point path dragMsg

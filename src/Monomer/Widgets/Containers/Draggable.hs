@@ -100,7 +100,7 @@ makeDraggable msg config = widget where
     ButtonAction p btn PressedBtn 1 -> Just result where
       result = resultReqs node [StartDrag wid path dragMsg]
     ButtonAction p btn ReleasedBtn _ -> Just result where
-      result = resultReqs node [CancelDrag wid]
+      result = resultReqs node [StopDrag wid]
     _ -> Nothing
     where
       wid = node ^. L.info . L.widgetId

@@ -36,7 +36,7 @@ data TickerModel = TickerModel {
 
 instance Default TickerModel where
   def = TickerModel {
-    _prcNewPair = "BTCUSDT",
+    _prcNewPair = "",
     _prcSymbolPairs = [],
     _prcTickers = M.empty
   }
@@ -44,8 +44,10 @@ instance Default TickerModel where
 data TickerEvt
   = TickerInit
   | TickerIgnore
-  | TickerAddPair
+  | TickerAddClick
+  | TickerAddPair Text
   | TickerRemovePair Text
+  | TickerMovePair Text Text
   | TickerUpdate Ticker
   | TickerError ServerError
   | TickerResponse ServerResponse

@@ -76,7 +76,8 @@ instance WidgetModel App where
 makeLenses ''App
 
 data AppEvent
-  = RunShortTask
+  = IgnoreEvt
+  | RunShortTask
   | RunLongTask
   | PrintTextFields
   | AppButton

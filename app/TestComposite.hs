@@ -41,7 +41,7 @@ makeLenses ''CompState
 
 data CompEvent
   = InitComp
-  | IgnoreEvt
+  | IgnoreCompEvt
   | MessageParent
   | CallSandbox
   | StartTask
@@ -56,13 +56,13 @@ handleCompEvt wenv node model evt = case evt of
   InitComp -> [Task $ do
     threadDelay 1000
     putStrLn "Initialized composite"
-    return IgnoreEvt]
-  IgnoreEvt -> []
+    return IgnoreCompEvt]
+  IgnoreCompEvt -> []
   MessageParent -> [Report IncreaseMessage]
   CallSandbox -> [Event (HandleProducer 20)]
   StartTask -> [Task $ do
     putStrLn "Composite event handler called"
-    return IgnoreEvt]
+    return IgnoreCompEvt]
   StartProducer -> [Producer $ \sendMessage ->
     forM_ [1..10] $ \_ -> do
       sendMessage (HandleProducer 1)

@@ -118,11 +118,11 @@ handleEvent wenv node model evt = case evt of
   BooksShowDetails book -> [Model $ model & selected ?~ book]
   BooksCloseDetails -> [Model $ model & selected .~ Nothing]
 
-searchBooks :: Text -> IO (Maybe BooksEvt)
+searchBooks :: Text -> IO BooksEvt
 searchBooks query = do
   print ("Searching", query)
   resp <- W.asJSON =<< W.get url
-  return . Just $ case resp ^? W.responseBody . _Just of
+  return $ case resp ^? W.responseBody . _Just of
     Just resp -> BooksSearchResult resp
     Nothing -> BooksSearchError "Failed"
   where

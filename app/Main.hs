@@ -65,39 +65,39 @@ handleAppEvent
 handleAppEvent wenv node model evt = case evt of
   SliderPos pos -> [Task $ do
     print pos
-    return Nothing]
+    return IgnoreEvt]
   IncButton -> [Model (model & clickCount %~ (+1)),
     Task $ do
       threadDelay 1000000
       putStrLn "Done 1"
-      return Nothing,
+      return IgnoreEvt,
     Task $ do
       threadDelay 2000000
       putStrLn "Done 2"
-      return Nothing
+      return IgnoreEvt
     ]
 --  PrintMessage txt -> Model (model & showAlert .~ True)
   PrintMessage txt -> [Task $ do
     print txt
-    return Nothing]
+    return IgnoreEvt]
   CheckboxSt st -> [Task $ do
     putStrLn $ "Checkbox is: " ++ show st
-    return Nothing]
+    return IgnoreEvt]
 --  RadioSt st -> Task $ do
 --    putStrLn $ "Radio is: " ++ show st
---    return Nothing
+--    return IgnoreEvt
   RadioSt st -> [Model (model & fruit .~ st)]
   ImageMsg msg -> [Task $ do
     putStrLn $ "Image msg is: " ++ show msg
-    return Nothing]
+    return IgnoreEvt]
   DropdownVal txt -> [Task $ do
     threadDelay 200
     --putStrLn $ "Dropdown txt is: " ++ show txt
-    return Nothing]
+    return IgnoreEvt]
   DropdownIdx idx txt -> [Task $ do
     threadDelay 300
     --putStrLn $ "Dropdown (idx, txt) is: " ++ show (idx,  txt)
-    return Nothing]
+    return IgnoreEvt]
   ShowAlert -> [Model (model & showAlert .~ True)]
   CloseAlert -> [Model (model & showAlert .~ False)]
   ShowConfirm -> [Model (model & showConfirm .~ True)]
@@ -105,11 +105,11 @@ handleAppEvent wenv node model evt = case evt of
   CancelConfirm -> [Model (model & showConfirm .~ False)]
   RunShortTask -> [Task $ do
     putStrLn "Running!"
-    return $ Just (PrintMessage "Done!")]
+    return $ PrintMessage "Done!"]
   ChangeTitle title -> [Request (UpdateWindow (WindowSetTitle title))]
-  InitApp -> [Task $ putStrLn "Init" >> return Nothing ]
-  DisposeApp -> [Task $ putStrLn "Dispose" >> return Nothing ]
-  ResizeApp newSize -> [Task $ print ("Resize", newSize) >> return Nothing ]
+  InitApp -> [Task $ putStrLn "Init" >> return IgnoreEvt ]
+  DisposeApp -> [Task $ putStrLn "Dispose" >> return IgnoreEvt ]
+  ResizeApp newSize -> [Task $ print ("Resize", newSize) >> return IgnoreEvt ]
   ExitApp -> [Request $ ExitApplication True]
   CancelExitApp -> [] --[Request $ ExitApplication False]
   FullWindow -> [Request (UpdateWindow WindowSetFullScreen)]
@@ -117,12 +117,12 @@ handleAppEvent wenv node model evt = case evt of
   MinWindow -> [Request (UpdateWindow WindowMinimize), Event RestoreWindowSchedule]
   RestoreWindowSchedule -> [Task $ do
     threadDelay 2000000
-    return $ Just RestoreWindow]
+    return RestoreWindow]
   RestoreWindow -> [Request (UpdateWindow WindowRestore)]
   ToFrontWindow -> [Request (UpdateWindow WindowBringToFront)]
   ToFrontWindowSchedule -> [Task $ do
     threadDelay 2000000
-    return $ Just ToFrontWindow]
+    return ToFrontWindow]
   DropTo1 idx -> [Model $ model
     & dragList2 .~ delete idx (model ^. dragList2)
     & dragList1 .~ model ^. dragList1 ++ [idx]]
@@ -137,6 +137,7 @@ handleAppEvent wenv node model evt = case evt of
       Message "anim1" AnimationStop,
       Message "anim2" AnimationStop
     ]
+  IgnoreEvt -> []
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
