@@ -568,23 +568,25 @@
 Next
   - Add examples
     - Something of generative art (OpenGL example)
+  - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
+    - Does it make sense to merge events into requests?
+  - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
+  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
+    - This could avoid rebuilding listView items when hidden/shown
+  - Maybe offset should be in node info?
+    - Focus tracking in nested non-expanded scrolls is not possible otherwise
+    - Maybe IgnoreParentEvents could work?
+  - Notify of viewport change (maybe for chart?)
+  - Should node come immediately after wenv in Widget methods?
 
 Future
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
-  - Should DuplicateRecordFields be used in internal widget types to avoid the lens prefixes (which are not used in lenses)
-  - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
-    - Does it make sense to merge events into requests?
   - Rename ListView -> SelectList
     - Add support for multiple selection
-  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
-    - This could avoid rebuilding listView items when hidden/shown
   - Add support for multiline text editing
-  - Maybe offset should be in node info?
-    - Focus tracking in nested non-expanded scrolls is not possible otherwise
-    - Maybe IgnoreParentEvents could work?
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create ContextMenu (could work similarly to Tooltip)
   - Create Slider
