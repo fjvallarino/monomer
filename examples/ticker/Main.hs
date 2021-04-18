@@ -39,7 +39,7 @@ buildUI
 buildUI wenv model = widgetTree where
   dragColor = lightGray & L.a .~ 0.5
   closeIcon = icon_ IconClose [width 4] `style` [width 12, height 12, fgColor crimson, cursorHand]
-  dropTicker pair = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]] spacer
+  dropTicker pair widget = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]] widget
   tickerPct t = label pctText `style` [width 100, textRight, textColor pctColor] where
     diff = toRealFloat $ 100 * (t ^. close - t ^. open)
     pct = diff / toRealFloat (t ^. open)
@@ -49,20 +49,24 @@ buildUI wenv model = widgetTree where
       | pct > 0 = green
       | otherwise = red
   tickerItem t = vstack [
-      dropTicker (t ^. symbolPair),
-      draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $ hstack [
-        label (t ^. symbolPair) `style` [width 100],
-        spacer,
-        label (formatTickerValue (t ^. close)) `style` [textRight, minWidth 100],
-        spacer,
-        tickerPct t,
-        spacer,
-        box_ [onClick (TickerRemovePair (t ^. symbolPair))] closeIcon
-      ] `style` [cursorHand]
+      spacer,
+      dropTicker (t ^. symbolPair) $
+        draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $ hstack [
+          label (t ^. symbolPair) `style` [width 100],
+          spacer,
+          label (formatTickerValue (t ^. close)) `style` [textRight, minWidth 100],
+          spacer,
+          tickerPct t,
+          spacer,
+          box_ [onClick (TickerRemovePairBegin (t ^. symbolPair))] closeIcon
+        ] `style` [cursorHand]
     ]
-  tickerList = vstack (tickerRows ++ [dropTicker "--Invalid--"]) where
+  tickerList = vstack tickerRows where
     orderedTickers = (\e -> model ^? tickers . ix e) <$> model ^. symbolPairs
-    tickerRows = tickerItem <$> catMaybes orderedTickers
+    tickerFade t = fadeOut_ [onFinished action] item `key` (t ^. symbolPair) where
+      action = TickerRemovePair (t ^. symbolPair)
+      item = tickerItem t
+    tickerRows = tickerFade <$> catMaybes orderedTickers
   widgetTree = vstack [
       hstack [
         label "New pair: ",
@@ -97,6 +101,8 @@ handleEvent env wenv node model evt = case evt of
     Task $ subscribe env [pair],
     setFocus wenv "newPair"
     ]
+  TickerRemovePairBegin pair -> [
+    Message (WidgetKey pair) AnimationStart]
   TickerRemovePair pair -> [
       Task $ unsubscribe env [pair],
       Model $ model & tickers . at pair .~ Nothing
@@ -195,4 +201,5 @@ formatTickerPct = T.pack . formatScientific Fixed (Just 2)
 initialList :: [Text]
 initialList = ["BTCUSDT", "ETHBTC", "BNBBTC", "ADABTC", "DOTBTC", "XRPBTC",
   "UNIBTC", "LTCBTC", "LINKBTC", "BCHBTC", "DOGEBTC", "THETABTC", "LUNABTC",
-  "AAVEBTC", "CROBTC", "VETBTC", "XMRBTC", "ATOMBTC", "FTTBTC", "SOLBTC"]
+  "AAVEBTC", "CROBTC", "VETBTC", "XMRBTC", "ATOMBTC", "FTTBTC", "SOLBTC",
+  "SXPBTC", "BATBTC", "VETBTC", "REEFBTC"]
