@@ -18,6 +18,7 @@ rgb r g b = Color (clampChannel r) (clampChannel g) (clampChannel b) 1.0
 
 rgbHex :: String -> Color
 rgbHex hex
+  | length hex == 7 = rgbHex (tail hex)
   | length hex == 6 = rgb r g b
   | otherwise = rgb 0 0 0
   where
