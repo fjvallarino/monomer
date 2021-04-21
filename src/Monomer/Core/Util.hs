@@ -53,36 +53,36 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
-isResizeWidgets :: WidgetRequest s -> Bool
+isResizeWidgets :: WidgetRequest -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False
 
-isRenderOnce :: WidgetRequest s -> Bool
+isRenderOnce :: WidgetRequest -> Bool
 isRenderOnce RenderOnce{} = True
 isRenderOnce _ = False
 
-isRenderEvery :: WidgetRequest s -> Bool
+isRenderEvery :: WidgetRequest -> Bool
 isRenderEvery RenderEvery{} = True
 isRenderEvery _ = False
 
-isRenderStop :: WidgetRequest s -> Bool
+isRenderStop :: WidgetRequest -> Bool
 isRenderStop RenderStop{} = True
 isRenderStop _ = False
 
-isFocusRequest :: WidgetRequest s -> Bool
+isFocusRequest :: WidgetRequest -> Bool
 isFocusRequest MoveFocus{} = True
 isFocusRequest SetFocus{} = True
 isFocusRequest _ = False
 
-isIgnoreParentEvents :: WidgetRequest s -> Bool
+isIgnoreParentEvents :: WidgetRequest -> Bool
 isIgnoreParentEvents IgnoreParentEvents = True
 isIgnoreParentEvents _ = False
 
-isIgnoreChildrenEvents :: WidgetRequest s -> Bool
+isIgnoreChildrenEvents :: WidgetRequest -> Bool
 isIgnoreChildrenEvents IgnoreChildrenEvents = True
 isIgnoreChildrenEvents _ = False
 
-isRunTask :: WidgetRequest s -> Bool
+isRunTask :: WidgetRequest -> Bool
 isRunTask RunTask{} = True
 isRunTask _ = False
 

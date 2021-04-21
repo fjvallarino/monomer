@@ -141,7 +141,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+buildUI wenv model = traceShow "Creating UI" widgetSplit where
   widgetSimple = vstack [
       label $ "Count: " <> showt (model ^. clickCount),
       button "Increase" IncButton

@@ -17,6 +17,7 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 
 import qualified Data.Sequence as Seq
 
@@ -33,11 +34,11 @@ data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
   _ckcOnFocus :: [e],
-  _ckcOnFocusReq :: [WidgetRequest s],
+  _ckcOnFocusReq :: [WidgetRequest],
   _ckcOnBlur :: [e],
-  _ckcOnBlurReq :: [WidgetRequest s],
+  _ckcOnBlurReq :: [WidgetRequest],
   _ckcOnChange :: [Bool -> e],
-  _ckcOnChangeReq :: [WidgetRequest s]
+  _ckcOnChangeReq :: [WidgetRequest]
 }
 
 instance Default (CheckboxCfg s e) where
@@ -107,23 +108,34 @@ checkboxMark mark = def {
   _ckcMark = Just mark
 }
 
-checkbox :: WidgetEvent e => ALens' s Bool -> WidgetNode s e
+checkbox :: (Typeable s, WidgetEvent e) => ALens' s Bool -> WidgetNode s e
 checkbox field = checkbox_ field def
 
 checkbox_
-  :: WidgetEvent e => ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+  :: (Typeable s, WidgetEvent e)
+  => ALens' s Bool
+  -> [CheckboxCfg s e]
+  -> WidgetNode s e
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
-checkboxV :: WidgetEvent e => Bool -> (Bool -> e) -> WidgetNode s e
+checkboxV
+  :: (Typeable s, WidgetEvent e) => Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
 checkboxV_
-  :: WidgetEvent e => Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
+  :: (Typeable s, WidgetEvent e)
+  => Bool
+  -> (Bool -> e)
+  -> [CheckboxCfg s e]
+  -> WidgetNode s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
 checkboxD_
-  :: WidgetEvent e => WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+  :: (Typeable s, WidgetEvent e)
+  => WidgetData s Bool
+  -> [CheckboxCfg s e]
+  -> WidgetNode s e
 checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config
@@ -131,7 +143,7 @@ checkboxD_ widgetData configs = checkboxNode where
     & L.info . L.focusable .~ True
 
 makeCheckbox
-  :: WidgetEvent e => WidgetData s Bool -> CheckboxCfg s e -> Widget s e
+  :: (Typeable s, WidgetEvent e) => WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,

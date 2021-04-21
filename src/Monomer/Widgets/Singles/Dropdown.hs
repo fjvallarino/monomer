@@ -25,7 +25,7 @@ import Data.List (foldl')
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
-import Data.Typeable (cast)
+import Data.Typeable (Typeable, cast)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq
@@ -44,13 +44,13 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
   _ddcOnFocus :: [e],
-  _ddcOnFocusReq :: [WidgetRequest s],
+  _ddcOnFocusReq :: [WidgetRequest],
   _ddcOnBlur :: [e],
-  _ddcOnBlurReq :: [WidgetRequest s],
+  _ddcOnBlurReq :: [WidgetRequest],
   _ddcOnChange :: [a -> e],
-  _ddcOnChangeReq :: [WidgetRequest s],
+  _ddcOnChangeReq :: [WidgetRequest],
   _ddcOnChangeIdx :: [Int -> a -> e],
-  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s]
+  _ddcOnChangeIdxReq :: [Int -> WidgetRequest]
 }
 
 instance Default (DropdownCfg s e a) where
@@ -162,7 +162,7 @@ data DropdownMessage
   | OnListBlur
 
 dropdown
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -172,7 +172,7 @@ dropdown field items makeMain makeRow = newNode where
   newNode = dropdown_ field items makeMain makeRow def
 
 dropdown_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -184,7 +184,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, DropdownItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -195,7 +195,7 @@ dropdownV value handler items makeMain makeRow = newNode where
   newNode = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, DropdownItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -208,7 +208,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, DropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -226,7 +226,7 @@ makeNode widget = defaultWidgetNode "dropdown" widget
   & L.info . L.focusable .~ True
 
 makeDropdown
-  :: (DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DropdownItem a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetNode s e)
@@ -477,7 +477,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget renderer wenv overlayNode
 
 makeListView
-  :: (DropdownItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DropdownItem a)
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a
@@ -502,7 +502,7 @@ makeListView wenv value items makeRow config widgetId = listViewNode where
     & L.info . L.style .~ lvStyle
     & L.info . L.overlay .~ True
 
-createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
+createMoveFocusReq :: WidgetEnv s e -> WidgetRequest
 createMoveFocusReq wenv = MoveFocus Nothing direction where
   direction
     | wenv ^. L.inputStatus . L.keyMod . L.leftShift = FocusBwd

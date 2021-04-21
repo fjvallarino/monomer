@@ -97,7 +97,7 @@ widgetDataGet :: s -> WidgetData s a -> a
 widgetDataGet _ (WidgetValue value) = value
 widgetDataGet model (WidgetLens lens) = model ^# lens
 
-widgetDataSet :: WidgetData s a -> a -> [WidgetRequest s]
+widgetDataSet :: Typeable s => WidgetData s a -> a -> [WidgetRequest]
 widgetDataSet WidgetValue{} _ = []
 widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
@@ -109,12 +109,12 @@ resultEvts :: Typeable e => WidgetNode s e -> [e] -> WidgetResult s e
 resultEvts node events = result where
   result = WidgetResult node (Seq.fromList $ RaiseEvent <$> events)
 
-resultReqs :: WidgetNode s e -> [WidgetRequest s] -> WidgetResult s e
+resultReqs :: WidgetNode s e -> [WidgetRequest] -> WidgetResult s e
 resultReqs node requests = result where
   result = WidgetResult node (Seq.fromList requests)
 
 resultReqsEvts
-  :: Typeable e => WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
+  :: Typeable e => WidgetNode s e -> [WidgetRequest] -> [e] -> WidgetResult s e
 resultReqsEvts node requests events = result where
   result = WidgetResult node (Seq.fromList requests <> evtSeq)
   evtSeq = Seq.fromList $ RaiseEvent <$> events
@@ -163,7 +163,7 @@ findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
 findWidgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
   mwni = wenv ^. L.findByPath $ path
 
-delayedMessage :: Typeable i => WidgetNode s e -> i -> Int -> WidgetRequest s
+delayedMessage :: Typeable i => WidgetNode s e -> i -> Int -> WidgetRequest
 delayedMessage node msg delay = RunTask widgetId path $ do
   threadDelay (delay * 1000)
   return msg

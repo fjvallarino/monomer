@@ -49,13 +49,13 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcItemSelectedStyle :: Maybe Style,
   _lvcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
   _lvcOnFocus :: [e],
-  _lvcOnFocusReq :: [WidgetRequest s],
+  _lvcOnFocusReq :: [WidgetRequest],
   _lvcOnBlur :: [e],
-  _lvcOnBlurReq :: [WidgetRequest s],
+  _lvcOnBlurReq :: [WidgetRequest],
   _lvcOnChange :: [a -> e],
-  _lvcOnChangeReq :: [WidgetRequest s],
+  _lvcOnChangeReq :: [WidgetRequest],
   _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s]
+  _lvcOnChangeIdxReq :: [Int -> WidgetRequest]
 }
 
 instance Default (ListViewCfg s e a) where
@@ -183,7 +183,7 @@ newtype ListViewMessage
   = OnClickMessage Int
 
 listView
-  :: (Traversable t, ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, ListItem a)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -191,7 +191,7 @@ listView
 listView field items makeRow = listView_ field items makeRow def
 
 listView_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, ListItem a)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -201,7 +201,7 @@ listView_ field items makeRow configs = newNode where
   newNode = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
-  :: (Traversable t, ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -211,7 +211,7 @@ listViewV value handler items makeRow = newNode where
   newNode = listViewV_ value handler items makeRow def
 
 listViewV_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, ListItem a)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -224,7 +224,7 @@ listViewV_ value handler items makeRow configs = newNode where
   newNode = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Traversable t, ListItem a)
   => WidgetData s a
   -> t a
   -> MakeRow s e a
@@ -242,7 +242,7 @@ makeNode widget = scroll_ [scrollStyle L.listViewStyle] childNode where
     & L.info . L.focusable .~ True
 
 makeListView
-  :: (ListItem a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, ListItem a)
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
@@ -442,7 +442,7 @@ updateStyles
   -> WidgetNode s e
   -> Int
   -> Int
-  -> (WidgetNode s e, [WidgetRequest s])
+  -> (WidgetNode s e, [WidgetRequest])
 updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
   items = node ^. L.children . ix 0 . L.children
   slStyle = getSlStyle wenv config

@@ -22,6 +22,7 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq
@@ -36,11 +37,11 @@ data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcDragRate :: Maybe Rational,
   _dlcOnFocus :: [e],
-  _dlcOnFocusReq :: [WidgetRequest s],
+  _dlcOnFocusReq :: [WidgetRequest],
   _dlcOnBlur :: [e],
-  _dlcOnBlurReq :: [WidgetRequest s],
+  _dlcOnBlurReq :: [WidgetRequest],
   _dlcOnChange :: [a -> e],
-  _dlcOnChangeReq :: [WidgetRequest s]
+  _dlcOnChangeReq :: [WidgetRequest]
 }
 
 instance Default (DialCfg s e a) where
@@ -119,11 +120,11 @@ instance WidgetModel DialState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-dial :: (DialValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
+dial :: (Typeable s, WidgetEvent e, DialValue a) => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
 
 dial_
-  :: (DialValue a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DialValue a)
   => ALens' s a
   -> a
   -> a
@@ -132,11 +133,11 @@ dial_
 dial_ field minVal maxVal cfgs = dialD_ (WidgetLens field) minVal maxVal cfgs
 
 dialV
-  :: (DialValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
+  :: (Typeable s, WidgetEvent e, DialValue a) => a -> (a -> e) -> a -> a -> WidgetNode s e
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
 dialV_
-  :: (DialValue a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DialValue a)
   => a
   -> (a -> e)
   -> a
@@ -149,7 +150,7 @@ dialV_ value handler minVal maxVal configs = newNode where
   newNode = dialD_ widgetData minVal maxVal newConfigs
 
 dialD_
-  :: (DialValue a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DialValue a)
   => WidgetData s a
   -> a
   -> a
@@ -163,7 +164,7 @@ dialD_ widgetData minVal maxVal configs = dialNode where
     & L.info . L.focusable .~ True
 
 makeDial
-  :: (DialValue a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, DialValue a)
   => WidgetData s a
   -> a
   -> a

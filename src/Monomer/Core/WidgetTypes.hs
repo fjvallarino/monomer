@@ -92,7 +92,7 @@ instance Serialise WidgetState where
       0 -> return $ WidgetState (model :: ByteString)
       _ -> fail "Invalid WidgetState"
 
-data WidgetRequest s
+data WidgetRequest
   = IgnoreParentEvents
   | IgnoreChildrenEvents
   | ResizeWidgets
@@ -113,15 +113,15 @@ data WidgetRequest s
   | RenderStop WidgetId
   | ExitApplication Bool
   | UpdateWindow WindowRequest
-  | UpdateModel (s -> s)
   | SetWidgetPath WidgetId Path
   | ResetWidgetPath WidgetId
+  | forall s . Typeable s => UpdateModel (s -> s)
   | forall i . Typeable i => RaiseEvent i
   | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
-instance Eq (WidgetRequest s) where
+instance Eq WidgetRequest where
   IgnoreParentEvents == IgnoreParentEvents = True
   IgnoreChildrenEvents == IgnoreChildrenEvents = True
   ResizeWidgets == ResizeWidgets = True
@@ -148,7 +148,7 @@ instance Eq (WidgetRequest s) where
 
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,
-  _wrRequests :: Seq (WidgetRequest s)
+  _wrRequests :: Seq WidgetRequest
 }
 
 -- This instance is lawless (there is not an empty widget): use with caution
@@ -363,7 +363,7 @@ data Widget s e =
       -> IO ()
   }
 
-instance Show (WidgetRequest s) where
+instance Show WidgetRequest where
   show IgnoreParentEvents = "IgnoreParentEvents"
   show IgnoreChildrenEvents = "IgnoreChildrenEvents"
   show ResizeWidgets = "ResizeWidgets"
@@ -384,9 +384,9 @@ instance Show (WidgetRequest s) where
   show (RenderStop wid) = "RenderStop: " ++ show wid
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
-  show UpdateModel{} = "UpdateModel"
   show (SetWidgetPath wid path) = "SetWidgetPath: " ++ show (wid, path)
   show (ResetWidgetPath wid) = "ResetWidgetPath: " ++ show wid
+  show UpdateModel{} = "UpdateModel"
   show RaiseEvent{} = "RaiseEvent"
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"

@@ -15,6 +15,7 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 
 import Monomer.Widgets.Single
 
@@ -23,11 +24,11 @@ import qualified Monomer.Lens as L
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
   _rdcOnFocus :: [e],
-  _rdcOnFocusReq :: [WidgetRequest s],
+  _rdcOnFocusReq :: [WidgetRequest],
   _rdcOnBlur :: [e],
-  _rdcOnBlurReq :: [WidgetRequest s],
+  _rdcOnBlurReq :: [WidgetRequest],
   _rdcOnChange :: [a -> e],
-  _rdcOnChangeReq :: [WidgetRequest s]
+  _rdcOnChangeReq :: [WidgetRequest]
 }
 
 instance Default (RadioCfg s e a) where
@@ -90,23 +91,23 @@ instance CmbOnChangeReq (RadioCfg s e a) s where
     _rdcOnChangeReq = [req]
   }
 
-radio :: (Eq a, WidgetEvent e) => ALens' s a -> a -> WidgetNode s e
+radio :: (Typeable s, WidgetEvent e, Eq a) => ALens' s a -> a -> WidgetNode s e
 radio field option = radio_ field option def
 
-radio_ :: (Eq a, WidgetEvent e) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
+radio_ :: (Typeable s, WidgetEvent e, Eq a) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
 radio_ field option configs = radioD_ (WidgetLens field) option configs
 
-radioV :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> WidgetNode s e
+radioV :: (Typeable s, WidgetEvent e, Eq a) => a -> (a -> e) -> a -> WidgetNode s e
 radioV value handler option = radioV_ value handler option def
 
-radioV_ :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
+radioV_ :: (Typeable s, WidgetEvent e, Eq a) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
 radioV_ value handler option configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
   newNode = radioD_ widgetData option newConfigs
 
 radioD_
-  :: (Eq a, WidgetEvent e)
+  :: (Typeable s, WidgetEvent e, Eq a)
   => WidgetData s a
   -> a
   -> [RadioCfg s e a]
@@ -117,7 +118,7 @@ radioD_ widgetData option configs = radioNode where
   radioNode = defaultWidgetNode "radio" widget
     & L.info . L.focusable .~ True
 
-makeRadio :: (Eq a, WidgetEvent e) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
+makeRadio :: (Typeable s, WidgetEvent e, Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
