@@ -35,7 +35,7 @@ data SplitCfg s e = SplitCfg {
   _spcHandleSize :: Maybe Double,
   _spcIgnoreChildResize :: Maybe Bool,
   _spcOnChange :: [Double -> e],
-  _spcOnChangeReq :: [WidgetRequest s]
+  _spcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (SplitCfg s e) where
@@ -64,7 +64,7 @@ instance CmbOnChange (SplitCfg s e) Double e where
     _spcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (SplitCfg s e) s where
+instance CmbOnChangeReq (SplitCfg s e) s e where
   onChangeReq req = def {
     _spcOnChangeReq = [req]
   }
@@ -318,7 +318,7 @@ makeSplit isHorizontal config state = widget where
     | isHorizontal = (^. L.info . L.sizeReqW)
     | otherwise = (^. L.info . L.sizeReqH)
 
-setModelPos :: SplitCfg s e -> Double -> [WidgetRequest s]
+setModelPos :: SplitCfg s e -> Double -> [WidgetRequest s e]
 setModelPos cfg
   | isJust (_spcHandlePos cfg) = widgetDataSet (fromJust $ _spcHandlePos cfg)
   | otherwise = const []

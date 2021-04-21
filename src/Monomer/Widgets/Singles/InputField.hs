@@ -54,11 +54,11 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcDragHandler :: Maybe (InputDragHandler a),
   _ifcDragCursor :: Maybe CursorIcon,
   _ifcOnFocus :: [e],
-  _ifcOnFocusReq :: [WidgetRequest s],
+  _ifcOnFocusReq :: [WidgetRequest s e],
   _ifcOnBlur :: [e],
-  _ifcOnBlurReq :: [WidgetRequest s],
+  _ifcOnBlurReq :: [WidgetRequest s e],
   _ifcOnChange :: [a -> e],
-  _ifcOnChangeReq :: [WidgetRequest s]
+  _ifcOnChangeReq :: [WidgetRequest s e]
 }
 
 data HistoryStep a = HistoryStep {
@@ -589,7 +589,7 @@ renderContent renderer state style currText = do
 delim :: Char -> Bool
 delim c = c == ' ' || c == '.' || c == ','
 
-setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s]
+setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s e]
 setModelValid config
   | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
   | otherwise = const []
@@ -599,8 +599,8 @@ genReqsEvents
   => InputFieldCfg s e a
   -> InputFieldState a
   -> Text
-  -> [WidgetRequest s]
-  -> ([WidgetRequest s], [e])
+  -> [WidgetRequest s e]
+  -> ([WidgetRequest s e], [e])
 genReqsEvents config state newText newReqs = result where
   resizeOnChange = _ifcResizeOnChange config
   fromText = _ifcFromText config

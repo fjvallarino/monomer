@@ -44,13 +44,13 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
   _ddcOnFocus :: [e],
-  _ddcOnFocusReq :: [WidgetRequest s],
+  _ddcOnFocusReq :: [WidgetRequest s e],
   _ddcOnBlur :: [e],
-  _ddcOnBlurReq :: [WidgetRequest s],
+  _ddcOnBlurReq :: [WidgetRequest s e],
   _ddcOnChange :: [a -> e],
-  _ddcOnChangeReq :: [WidgetRequest s],
+  _ddcOnChangeReq :: [WidgetRequest s e],
   _ddcOnChangeIdx :: [Int -> a -> e],
-  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s]
+  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s e]
 }
 
 instance Default (DropdownCfg s e a) where
@@ -93,7 +93,7 @@ instance CmbOnFocus (DropdownCfg s e a) e where
     _ddcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (DropdownCfg s e a) s where
+instance CmbOnFocusReq (DropdownCfg s e a) s e where
   onFocusReq req = def {
     _ddcOnFocusReq = [req]
   }
@@ -103,7 +103,7 @@ instance CmbOnBlur (DropdownCfg s e a) e where
     _ddcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (DropdownCfg s e a) s where
+instance CmbOnBlurReq (DropdownCfg s e a) s e where
   onBlurReq req = def {
     _ddcOnBlurReq = [req]
   }
@@ -113,7 +113,7 @@ instance CmbOnChange (DropdownCfg s e a) a e where
     _ddcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (DropdownCfg s e a) s where
+instance CmbOnChangeReq (DropdownCfg s e a) s e where
   onChangeReq req = def {
     _ddcOnChangeReq = [req]
   }
@@ -123,7 +123,7 @@ instance CmbOnChangeIdx (DropdownCfg s e a) a e where
     _ddcOnChangeIdx = [fn]
   }
 
-instance CmbOnChangeIdxReq (DropdownCfg s e a) s where
+instance CmbOnChangeIdxReq (DropdownCfg s e a) s e where
   onChangeIdxReq req = def {
     _ddcOnChangeIdxReq = [req]
   }
@@ -502,7 +502,7 @@ makeListView wenv value items makeRow config widgetId = listViewNode where
     & L.info . L.style .~ lvStyle
     & L.info . L.overlay .~ True
 
-createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s
+createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s e
 createMoveFocusReq wenv = MoveFocus Nothing direction where
   direction
     | wenv ^. L.inputStatus . L.keyMod . L.leftShift = FocusBwd

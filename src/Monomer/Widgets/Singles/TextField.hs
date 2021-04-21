@@ -31,11 +31,11 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnFocus :: [e],
-  _tfcOnFocusReq :: [WidgetRequest s],
+  _tfcOnFocusReq :: [WidgetRequest s e],
   _tfcOnBlur :: [e],
-  _tfcOnBlurReq :: [WidgetRequest s],
+  _tfcOnBlurReq :: [WidgetRequest s e],
   _tfcOnChange :: [Text -> e],
-  _tfcOnChangeReq :: [WidgetRequest s]
+  _tfcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (TextFieldCfg s e) where
@@ -94,7 +94,7 @@ instance CmbOnFocus (TextFieldCfg s e) e where
     _tfcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (TextFieldCfg s e) s where
+instance CmbOnFocusReq (TextFieldCfg s e) s e where
   onFocusReq req = def {
     _tfcOnFocusReq = [req]
   }
@@ -104,7 +104,7 @@ instance CmbOnBlur (TextFieldCfg s e) e where
     _tfcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (TextFieldCfg s e) s where
+instance CmbOnBlurReq (TextFieldCfg s e) s e where
   onBlurReq req = def {
     _tfcOnBlurReq = [req]
   }
@@ -114,7 +114,7 @@ instance CmbOnChange (TextFieldCfg s e) Text e where
     _tfcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (TextFieldCfg s e) s where
+instance CmbOnChangeReq (TextFieldCfg s e) s e where
   onChangeReq req = def {
     _tfcOnChangeReq = [req]
   }

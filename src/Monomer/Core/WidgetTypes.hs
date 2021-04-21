@@ -92,7 +92,7 @@ instance Serialise WidgetState where
       0 -> return $ WidgetState (model :: ByteString)
       _ -> fail "Invalid WidgetState"
 
-data WidgetRequest s
+data WidgetRequest s e
   = IgnoreParentEvents
   | IgnoreChildrenEvents
   | ResizeWidgets
@@ -116,12 +116,12 @@ data WidgetRequest s
   | UpdateModel (s -> s)
   | SetWidgetPath WidgetId Path
   | ResetWidgetPath WidgetId
-  | forall i . Typeable i => RaiseEvent i
+  | Typeable e => RaiseEvent e
   | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
-instance Eq (WidgetRequest s) where
+instance Eq (WidgetRequest s e) where
   IgnoreParentEvents == IgnoreParentEvents = True
   IgnoreChildrenEvents == IgnoreChildrenEvents = True
   ResizeWidgets == ResizeWidgets = True
@@ -148,7 +148,7 @@ instance Eq (WidgetRequest s) where
 
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,
-  _wrRequests :: Seq (WidgetRequest s)
+  _wrRequests :: Seq (WidgetRequest s e)
 }
 
 -- This instance is lawless (there is not an empty widget): use with caution
@@ -363,7 +363,7 @@ data Widget s e =
       -> IO ()
   }
 
-instance Show (WidgetRequest s) where
+instance Show (WidgetRequest s e) where
   show IgnoreParentEvents = "IgnoreParentEvents"
   show IgnoreChildrenEvents = "IgnoreChildrenEvents"
   show ResizeWidgets = "ResizeWidgets"

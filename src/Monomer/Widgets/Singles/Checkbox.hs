@@ -33,11 +33,11 @@ data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
   _ckcOnFocus :: [e],
-  _ckcOnFocusReq :: [WidgetRequest s],
+  _ckcOnFocusReq :: [WidgetRequest s e],
   _ckcOnBlur :: [e],
-  _ckcOnBlurReq :: [WidgetRequest s],
+  _ckcOnBlurReq :: [WidgetRequest s e],
   _ckcOnChange :: [Bool -> e],
-  _ckcOnChangeReq :: [WidgetRequest s]
+  _ckcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (CheckboxCfg s e) where
@@ -77,7 +77,7 @@ instance CmbOnFocus (CheckboxCfg s e) e where
     _ckcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (CheckboxCfg s e) s where
+instance CmbOnFocusReq (CheckboxCfg s e) s e where
   onFocusReq req = def {
     _ckcOnFocusReq = [req]
   }
@@ -87,7 +87,7 @@ instance CmbOnBlur (CheckboxCfg s e) e where
     _ckcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (CheckboxCfg s e) s where
+instance CmbOnBlurReq (CheckboxCfg s e) s e where
   onBlurReq req = def {
     _ckcOnBlurReq = [req]
   }
@@ -97,7 +97,7 @@ instance CmbOnChange (CheckboxCfg s e) Bool e where
     _ckcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (CheckboxCfg s e) s where
+instance CmbOnChangeReq (CheckboxCfg s e) s e where
   onChangeReq req = def {
     _ckcOnChangeReq = [req]
   }

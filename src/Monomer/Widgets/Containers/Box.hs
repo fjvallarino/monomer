@@ -29,9 +29,9 @@ data BoxCfg s e = BoxCfg {
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
-  _boxOnClickReq :: [WidgetRequest s],
+  _boxOnClickReq :: [WidgetRequest s e],
   _boxOnClickEmpty :: [e],
-  _boxOnClickEmptyReq :: [WidgetRequest s]
+  _boxOnClickEmptyReq :: [WidgetRequest s e]
 }
 
 instance Default (BoxCfg s e) where
@@ -114,7 +114,7 @@ instance CmbOnClick (BoxCfg s e) e where
     _boxOnClick = [handler]
   }
 
-instance CmbOnClickReq (BoxCfg s e) s where
+instance CmbOnClickReq (BoxCfg s e) s e where
   onClickReq req = def {
     _boxOnClickReq = [req]
   }
@@ -124,7 +124,7 @@ instance CmbOnClickEmpty (BoxCfg s e) e where
     _boxOnClickEmpty = [handler]
   }
 
-instance CmbOnClickEmptyReq (BoxCfg s e) s where
+instance CmbOnClickEmptyReq (BoxCfg s e) s e where
   onClickEmptyReq req = def {
     _boxOnClickEmptyReq = [req]
   }

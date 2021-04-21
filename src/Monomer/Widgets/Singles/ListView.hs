@@ -49,13 +49,13 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcItemSelectedStyle :: Maybe Style,
   _lvcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
   _lvcOnFocus :: [e],
-  _lvcOnFocusReq :: [WidgetRequest s],
+  _lvcOnFocusReq :: [WidgetRequest s e],
   _lvcOnBlur :: [e],
-  _lvcOnBlurReq :: [WidgetRequest s],
+  _lvcOnBlurReq :: [WidgetRequest s e],
   _lvcOnChange :: [a -> e],
-  _lvcOnChangeReq :: [WidgetRequest s],
+  _lvcOnChangeReq :: [WidgetRequest s e],
   _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s]
+  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s e]
 }
 
 instance Default (ListViewCfg s e a) where
@@ -98,7 +98,7 @@ instance CmbOnFocus (ListViewCfg s e a) e where
     _lvcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (ListViewCfg s e a) s where
+instance CmbOnFocusReq (ListViewCfg s e a) s e where
   onFocusReq req = def {
     _lvcOnFocusReq = [req]
   }
@@ -108,7 +108,7 @@ instance CmbOnBlur (ListViewCfg s e a) e where
     _lvcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (ListViewCfg s e a) s where
+instance CmbOnBlurReq (ListViewCfg s e a) s e where
   onBlurReq req = def {
     _lvcOnBlurReq = [req]
   }
@@ -118,7 +118,7 @@ instance CmbOnChange (ListViewCfg s e a) a e where
     _lvcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (ListViewCfg s e a) s where
+instance CmbOnChangeReq (ListViewCfg s e a) s e where
   onChangeReq req = def {
     _lvcOnChangeReq = [req]
   }
@@ -128,7 +128,7 @@ instance CmbOnChangeIdx (ListViewCfg s e a) a e where
     _lvcOnChangeIdx = [fn]
   }
 
-instance CmbOnChangeIdxReq (ListViewCfg s e a) s where
+instance CmbOnChangeIdxReq (ListViewCfg s e a) s e where
   onChangeIdxReq req = def {
     _lvcOnChangeIdxReq = [req]
   }
@@ -442,7 +442,7 @@ updateStyles
   -> WidgetNode s e
   -> Int
   -> Int
-  -> (WidgetNode s e, [WidgetRequest s])
+  -> (WidgetNode s e, [WidgetRequest s e])
 updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
   items = node ^. L.children . ix 0 . L.children
   slStyle = getSlStyle wenv config

@@ -23,11 +23,11 @@ import qualified Monomer.Lens as L
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
   _rdcOnFocus :: [e],
-  _rdcOnFocusReq :: [WidgetRequest s],
+  _rdcOnFocusReq :: [WidgetRequest s e],
   _rdcOnBlur :: [e],
-  _rdcOnBlurReq :: [WidgetRequest s],
+  _rdcOnBlurReq :: [WidgetRequest s e],
   _rdcOnChange :: [a -> e],
-  _rdcOnChangeReq :: [WidgetRequest s]
+  _rdcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (RadioCfg s e a) where
@@ -65,7 +65,7 @@ instance CmbOnFocus (RadioCfg s e a) e where
     _rdcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (RadioCfg s e a) s where
+instance CmbOnFocusReq (RadioCfg s e a) s e where
   onFocusReq req = def {
     _rdcOnFocusReq = [req]
   }
@@ -75,7 +75,7 @@ instance CmbOnBlur (RadioCfg s e a) e where
     _rdcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (RadioCfg s e a) s where
+instance CmbOnBlurReq (RadioCfg s e a) s e where
   onBlurReq req = def {
     _rdcOnBlurReq = [req]
   }
@@ -85,7 +85,7 @@ instance CmbOnChange (RadioCfg s e a) a e where
     _rdcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (RadioCfg s e a) s where
+instance CmbOnChangeReq (RadioCfg s e a) s e where
   onChangeReq req = def {
     _rdcOnChangeReq = [req]
   }

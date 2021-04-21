@@ -36,11 +36,11 @@ data ButtonCfg s e = ButtonCfg {
   _btnFactorW :: Maybe Double,
   _btnFactorH :: Maybe Double,
   _btnOnFocus :: [e],
-  _btnOnFocusReq :: [WidgetRequest s],
+  _btnOnFocusReq :: [WidgetRequest s e],
   _btnOnBlur :: [e],
-  _btnOnBlurReq :: [WidgetRequest s],
+  _btnOnBlurReq :: [WidgetRequest s e],
   _btnOnClick :: [e],
-  _btnOnClickReq :: [WidgetRequest s]
+  _btnOnClickReq :: [WidgetRequest s e]
 }
 
 instance Default (ButtonCfg s e) where
@@ -105,7 +105,7 @@ instance CmbOnFocus (ButtonCfg s e) e where
     _btnOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (ButtonCfg s e) s where
+instance CmbOnFocusReq (ButtonCfg s e) s e where
   onFocusReq req = def {
     _btnOnFocusReq = [req]
   }
@@ -115,7 +115,7 @@ instance CmbOnBlur (ButtonCfg s e) e where
     _btnOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (ButtonCfg s e) s where
+instance CmbOnBlurReq (ButtonCfg s e) s e where
   onBlurReq req = def {
     _btnOnBlurReq = [req]
   }
@@ -125,7 +125,7 @@ instance CmbOnClick (ButtonCfg s e) e where
     _btnOnClick = [handler]
   }
 
-instance CmbOnClickReq (ButtonCfg s e) s where
+instance CmbOnClickReq (ButtonCfg s e) s e where
   onClickReq req = def {
     _btnOnClickReq = [req]
   }

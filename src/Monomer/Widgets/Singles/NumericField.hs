@@ -47,11 +47,11 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
   _nfcOnFocus :: [e],
-  _nfcOnFocusReq :: [WidgetRequest s],
+  _nfcOnFocusReq :: [WidgetRequest s e],
   _nfcOnBlur :: [e],
-  _nfcOnBlurReq :: [WidgetRequest s],
+  _nfcOnBlurReq :: [WidgetRequest s e],
   _nfcOnChange :: [a -> e],
-  _nfcOnChangeReq :: [WidgetRequest s]
+  _nfcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (NumericFieldCfg s e a) where
@@ -131,7 +131,7 @@ instance CmbOnFocus (NumericFieldCfg s e a) e where
     _nfcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (NumericFieldCfg s e a) s where
+instance CmbOnFocusReq (NumericFieldCfg s e a) s e where
   onFocusReq req = def {
     _nfcOnFocusReq = [req]
   }
@@ -141,7 +141,7 @@ instance CmbOnBlur (NumericFieldCfg s e a) e where
     _nfcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (NumericFieldCfg s e a) s where
+instance CmbOnBlurReq (NumericFieldCfg s e a) s e where
   onBlurReq req = def {
     _nfcOnBlurReq = [req]
   }
@@ -151,7 +151,7 @@ instance CmbOnChange (NumericFieldCfg s e a) a e where
     _nfcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (NumericFieldCfg s e a) s where
+instance CmbOnChangeReq (NumericFieldCfg s e a) s e where
   onChangeReq req = def {
     _nfcOnChangeReq = [req]
   }

@@ -47,7 +47,7 @@ import Monomer.Main.Util
 import qualified Monomer.Lens as L
 import Control.Monad.Trans.Maybe
 
-type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s))
+type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s e))
 
 getTargetPath
   :: WidgetEnv s e
@@ -237,7 +237,7 @@ handleWidgetResult wenv resizeWidgets result = do
 
 handleRequests
   :: (MonomerM s m)
-  => Seq (WidgetRequest s)
+  => Seq (WidgetRequest s e)
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRequests reqs step = foldM handleRequest step reqs where
@@ -616,8 +616,8 @@ sendMessage channel message = atomically $ writeTChan channel message
 
 addFocusReq
   :: SystemEvent
-  -> Seq (WidgetRequest s)
-  -> Seq (WidgetRequest s)
+  -> Seq (WidgetRequest s e)
+  -> Seq (WidgetRequest s e)
 addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
   isTabPressed = isKeyTab code
   stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs

@@ -174,26 +174,26 @@ class CmbOnResize t a e | t -> e where
 class CmbOnFocus t e | t -> e where
   onFocus :: e -> t
 
-class CmbOnFocusReq t s | t -> s where
-  onFocusReq :: WidgetRequest s -> t
+class CmbOnFocusReq t s e | t -> s e where
+  onFocusReq :: WidgetRequest s e -> t
 
 class CmbOnBlur t e | t -> e where
   onBlur :: e -> t
 
-class CmbOnBlurReq t s | t -> s where
-  onBlurReq :: WidgetRequest s -> t
+class CmbOnBlurReq t s e | t -> s e where
+  onBlurReq :: WidgetRequest s e -> t
 
 class CmbOnClick t e | t -> e where
   onClick :: e -> t
 
-class CmbOnClickReq t s | t -> s where
-  onClickReq :: WidgetRequest s -> t
+class CmbOnClickReq t s e | t -> s e where
+  onClickReq :: WidgetRequest s e -> t
 
 class CmbOnClickEmpty t e | t -> e where
   onClickEmpty :: e -> t
 
-class CmbOnClickEmptyReq t s | t -> s where
-  onClickEmptyReq :: WidgetRequest s -> t
+class CmbOnClickEmptyReq t s e | t -> s e where
+  onClickEmptyReq :: WidgetRequest s e -> t
 
 class CmbOnEnabledChange t e | t -> e where
   onEnabledChange :: e -> t
@@ -207,11 +207,11 @@ class CmbOnChange t a e | t -> e where
 class CmbOnChangeIdx t a e | t -> e where
   onChangeIdx :: (Int -> a -> e) -> t
 
-class CmbOnChangeReq t s | t -> s where
-  onChangeReq :: WidgetRequest s -> t
+class CmbOnChangeReq t s e | t -> s e where
+  onChangeReq :: WidgetRequest s e -> t
 
-class CmbOnChangeIdxReq t s | t -> s where
-  onChangeIdxReq :: (Int -> WidgetRequest s) -> t
+class CmbOnChangeIdxReq t s e | t -> s e where
+  onChangeIdxReq :: (Int -> WidgetRequest s e) -> t
 
 class CmbOnLoadError t a e | t -> e where
   onLoadError :: (a -> e) -> t

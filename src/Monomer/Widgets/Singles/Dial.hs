@@ -36,11 +36,11 @@ data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcDragRate :: Maybe Rational,
   _dlcOnFocus :: [e],
-  _dlcOnFocusReq :: [WidgetRequest s],
+  _dlcOnFocusReq :: [WidgetRequest s e],
   _dlcOnBlur :: [e],
-  _dlcOnBlurReq :: [WidgetRequest s],
+  _dlcOnBlurReq :: [WidgetRequest s e],
   _dlcOnChange :: [a -> e],
-  _dlcOnChangeReq :: [WidgetRequest s]
+  _dlcOnChangeReq :: [WidgetRequest s e]
 }
 
 instance Default (DialCfg s e a) where
@@ -80,7 +80,7 @@ instance CmbOnFocus (DialCfg s e a) e where
     _dlcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (DialCfg s e a) s where
+instance CmbOnFocusReq (DialCfg s e a) s e where
   onFocusReq req = def {
     _dlcOnFocusReq = [req]
   }
@@ -90,7 +90,7 @@ instance CmbOnBlur (DialCfg s e a) e where
     _dlcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (DialCfg s e a) s where
+instance CmbOnBlurReq (DialCfg s e a) s e where
   onBlurReq req = def {
     _dlcOnBlurReq = [req]
   }
@@ -100,7 +100,7 @@ instance CmbOnChange (DialCfg s e a) a e where
     _dlcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (DialCfg s e a) s where
+instance CmbOnChangeReq (DialCfg s e a) s e where
   onChangeReq req = def {
     _dlcOnChangeReq = [req]
   }
