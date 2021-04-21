@@ -16,7 +16,6 @@ import Control.Lens (ALens')
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (Typeable)
 
 import qualified Data.Text as T
 
@@ -32,11 +31,11 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnFocus :: [e],
-  _tfcOnFocusReq :: [WidgetRequest],
+  _tfcOnFocusReq :: [WidgetRequest s],
   _tfcOnBlur :: [e],
-  _tfcOnBlurReq :: [WidgetRequest],
+  _tfcOnBlurReq :: [WidgetRequest s],
   _tfcOnChange :: [Text -> e],
-  _tfcOnChangeReq :: [WidgetRequest]
+  _tfcOnChangeReq :: [WidgetRequest s]
 }
 
 instance Default (TextFieldCfg s e) where
@@ -123,35 +122,24 @@ instance CmbOnChangeReq (TextFieldCfg s e) s where
 instance Default Text where
   def = T.empty
 
-textField :: (Typeable s, WidgetEvent e) => ALens' s Text -> WidgetNode s e
+textField :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textField field = textField_ field def
 
 textField_
-  :: (Typeable s, WidgetEvent e)
-  => ALens' s Text
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+  :: WidgetEvent e => ALens' s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textField_ field configs = textFieldD_ (WidgetLens field) configs
 
-textFieldV
-  :: (Typeable s, WidgetEvent e) => Text -> (Text -> e) -> WidgetNode s e
+textFieldV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textFieldV value handler = textFieldV_ value handler def
 
 textFieldV_
-  :: (Typeable s, WidgetEvent e)
-  => Text
-  -> (Text -> e)
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+  :: WidgetEvent e => Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldV_ value handler configs = textFieldD_ widgetData newConfig where
   widgetData = WidgetValue value
   newConfig = onChange handler : configs
 
 textFieldD_
-  :: (Typeable s, WidgetEvent e)
-  => WidgetData s Text
-  -> [TextFieldCfg s e]
-  -> WidgetNode s e
+  :: WidgetEvent e => WidgetData s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldD_ widgetData configs = inputField where
   config = mconcat configs
   fromText = textToText (_tfcMaxLength config)

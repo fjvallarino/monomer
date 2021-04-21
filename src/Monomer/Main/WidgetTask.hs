@@ -24,7 +24,7 @@ import Monomer.Main.Types
 import qualified Monomer.Lens as L
 
 handleWidgetTasks
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e -> WidgetNode s e -> m (HandlerStep s e)
 handleWidgetTasks wenv widgetRoot = do
   tasks <- use widgetTasks
@@ -34,7 +34,7 @@ handleWidgetTasks wenv widgetRoot = do
   processTasks wenv widgetRoot tasks
 
 processTasks
-  :: (Typeable s, MonomerM s m, Traversable t)
+  :: (MonomerM s m, Traversable t)
   => WidgetEnv s e
   -> WidgetNode s e
   -> t WidgetTask
@@ -46,7 +46,7 @@ processTasks wenv widgetRoot tasks = nextStep where
   nextStep = foldM reducer (wenv, widgetRoot, Seq.empty) tasks
 
 processTask
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetTask
@@ -65,7 +65,7 @@ processTask model widgetRoot (WidgetProducer widgetId channel task) = do
     Nothing -> return (model, widgetRoot, Seq.empty)
 
 processTaskResult
-  :: (Typeable s, MonomerM s m, Typeable a)
+  :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId
@@ -78,7 +78,7 @@ processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult
 
 processTaskEvent
-  :: (Typeable s, MonomerM s m, Typeable a)
+  :: (MonomerM s m, Typeable a)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId

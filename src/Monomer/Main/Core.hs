@@ -85,7 +85,7 @@ simpleApp model eventHandler uiBuilder configs = do
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runApp
-  :: (WidgetModel s, WidgetEvent e, MonomerM s m)
+  :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> WidgetNode s ep
   -> AppConfig e
@@ -163,7 +163,7 @@ runApp window widgetRoot config = do
   mainLoop window renderer config loopArgs
 
 mainLoop
-  :: (WidgetModel s, WidgetEvent e, MonomerM s m)
+  :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> Renderer
   -> AppConfig e
@@ -370,7 +370,7 @@ saveMonomerCtx wenv root config = do
   liftIO $ writeFileSerialise file (ctxp, instNode)
 
 loadMonomerCtx
-  :: (WidgetModel s, MonomerM s m)
+  :: MonomerM s m
   => WidgetEnv s ep
   -> WidgetNode s ep
   -> AppConfig e

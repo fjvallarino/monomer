@@ -14,7 +14,6 @@ module Monomer.Widgets.Singles.TextDropdown (
 import Control.Lens (ALens')
 import Data.Default
 import Data.Text (Text, pack)
-import Data.Typeable (Typeable)
 import TextShow
 
 import Monomer.Core
@@ -25,7 +24,7 @@ import Monomer.Widgets.Singles.Dropdown
 type TextDropdownItem a = DropdownItem a
 
 textDropdown
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
+  :: (Traversable t, TextDropdownItem a, TextShow a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> WidgetNode s e
@@ -33,7 +32,7 @@ textDropdown field items = newNode where
   newNode = textDropdown_ field items showt def
 
 textDropdown_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a)
+  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -43,7 +42,7 @@ textDropdown_ field items toText configs = newNode where
   newNode = textDropdownD_ (WidgetLens field) items toText configs
 
 textDropdownV
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
+  :: (Traversable t, TextDropdownItem a, TextShow a, WidgetEvent e)
   => a
   -> (a -> e)
   -> t a
@@ -52,7 +51,7 @@ textDropdownV value handler items = newNode where
   newNode = textDropdownV_ value handler items showt def
 
 textDropdownV_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a)
+  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
   => a
   -> (a -> e)
   -> t a
@@ -65,7 +64,7 @@ textDropdownV_ value handler items toText configs = newNode where
   newNode = textDropdownD_ widgetData items toText newConfigs
 
 textDropdownD_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a)
+  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
   => WidgetData s a
   -> t a
   -> (a -> Text)
@@ -77,7 +76,7 @@ textDropdownD_ widgetData items toText configs = newNode where
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 textDropdownS
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
+  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> WidgetNode s e
@@ -85,7 +84,7 @@ textDropdownS field items = newNode where
   newNode = textDropdownS_ field items def
 
 textDropdownS_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
+  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> [DropdownCfg s e a]
@@ -94,7 +93,7 @@ textDropdownS_ field items configs = newNode where
   newNode = textDropdownDS_ (WidgetLens field) items configs
 
 textDropdownSV
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
+  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
   => a
   -> (a -> e)
   -> t a
@@ -103,7 +102,7 @@ textDropdownSV value handler items = newNode where
   newNode = textDropdownSV_ value handler items def
 
 textDropdownSV_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
+  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
   => a
   -> (a -> e)
   -> t a
@@ -115,7 +114,7 @@ textDropdownSV_ value handler items configs = newNode where
   newNode = textDropdownDS_ widgetData items newConfigs
 
 textDropdownDS_
-  :: (Typeable s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
+  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
   => WidgetData s a
   -> t a
   -> [DropdownCfg s e a]

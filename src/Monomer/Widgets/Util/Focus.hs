@@ -100,7 +100,7 @@ isNodeBeforePath path node = result where
 handleFocusChange
   :: Typeable e
   => (c -> [e])
-  -> (c -> [WidgetRequest])
+  -> (c -> [WidgetRequest s])
   -> c
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)

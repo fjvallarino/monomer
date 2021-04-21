@@ -54,11 +54,11 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcDragHandler :: Maybe (InputDragHandler a),
   _ifcDragCursor :: Maybe CursorIcon,
   _ifcOnFocus :: [e],
-  _ifcOnFocusReq :: [WidgetRequest],
+  _ifcOnFocusReq :: [WidgetRequest s],
   _ifcOnBlur :: [e],
-  _ifcOnBlurReq :: [WidgetRequest],
+  _ifcOnBlurReq :: [WidgetRequest s],
   _ifcOnChange :: [a -> e],
-  _ifcOnChangeReq :: [WidgetRequest]
+  _ifcOnChangeReq :: [WidgetRequest s]
 }
 
 data HistoryStep a = HistoryStep {
@@ -120,7 +120,7 @@ caretMs :: Int
 caretMs = 500
 
 inputField_
-  :: (Typeable s, InputFieldValue a, WidgetEvent e)
+  :: (InputFieldValue a, WidgetEvent e)
   => WidgetType
   -> InputFieldCfg s e a
   -> WidgetNode s e
@@ -131,7 +131,7 @@ inputField_ widgetType config = node where
     & L.info . L.focusable .~ True
 
 makeInputField
-  :: (Typeable s, InputFieldValue a, WidgetEvent e)
+  :: (InputFieldValue a, WidgetEvent e)
   => InputFieldCfg s e a
   -> InputFieldState a
   -> Widget s e
@@ -589,18 +589,18 @@ renderContent renderer state style currText = do
 delim :: Char -> Bool
 delim c = c == ' ' || c == '.' || c == ','
 
-setModelValid :: Typeable s => InputFieldCfg s e a -> Bool -> [WidgetRequest]
+setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s]
 setModelValid config
   | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
   | otherwise = const []
 
 genReqsEvents
-  :: (Typeable s, Eq a)
+  :: (Eq a)
   => InputFieldCfg s e a
   -> InputFieldState a
   -> Text
-  -> [WidgetRequest]
-  -> ([WidgetRequest], [e])
+  -> [WidgetRequest s]
+  -> ([WidgetRequest s], [e])
 genReqsEvents config state newText newReqs = result where
   resizeOnChange = _ifcResizeOnChange config
   fromText = _ifcFromText config
@@ -630,7 +630,7 @@ genReqsEvents config state newText newReqs = result where
   result = (reqs, events)
 
 moveHistory
-  :: (Typeable s, InputFieldValue a, WidgetEvent e)
+  :: (InputFieldValue a, WidgetEvent e)
   => WidgetEnv s e
   -> WidgetNode s e
   -> InputFieldState a

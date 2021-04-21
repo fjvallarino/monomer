@@ -70,7 +70,7 @@ data EventResponse s e ep
   = Model s
   | Event e
   | Report ep
-  | Request WidgetRequest
+  | Request (WidgetRequest s)
   | forall i . Typeable i => Message WidgetKey i
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
@@ -81,7 +81,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcOnDispose :: [e],
   _cmcOnResize :: [Rect -> e],
   _cmcOnChange :: [s -> ep],
-  _cmcOnChangeReq :: [WidgetRequest],
+  _cmcOnChangeReq :: [WidgetRequest sp],
   _cmcOnEnabledChange :: [e],
   _cmcOnVisibleChange :: [e]
 }
@@ -162,7 +162,7 @@ data Composite s e sp ep = Composite {
   _cmpOnDispose :: [e],
   _cmpOnResize :: [Rect -> e],
   _cmpOnChange :: [s -> ep],
-  _cmpOnChangeReq :: [WidgetRequest],
+  _cmpOnChangeReq :: [WidgetRequest sp],
   _cmpOnEnabledChange :: [e],
   _cmpOnVisibleChange :: [e]
 }
@@ -193,8 +193,8 @@ data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,
   _reEvents :: Seq e,
   _reReports :: Seq ep,
-  _reRequests :: Seq WidgetRequest,
-  _reMessages :: Seq WidgetRequest,
+  _reRequests :: Seq (WidgetRequest s),
+  _reMessages :: Seq (WidgetRequest sp),
   _reTasks :: Seq (TaskHandler e),
   _reProducers :: Seq (ProducerHandler e)
 }
@@ -709,7 +709,7 @@ reduceEvtResponse
   => WidgetNode sp ep
   -> WidgetKeysMap s e
   -> EventResponse s e ep
-  -> Maybe WidgetRequest
+  -> Maybe (WidgetRequest sp)
 reduceEvtResponse widgetComp globalKeys response = case response of
   Model newModel -> Just $ sendTo widgetComp (CompMsgUpdate $ const newModel)
   Event event -> Just $ sendTo widgetComp event
@@ -757,10 +757,10 @@ getModel
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
-toParentReqs :: WidgetId -> Seq WidgetRequest -> Seq WidgetRequest
+toParentReqs :: (Typeable s, Typeable sp) => WidgetId -> Seq (WidgetRequest s) -> Seq (WidgetRequest sp)
 toParentReqs wid reqs = fromJust <$> Seq.filter isJust (toParentReq wid <$> reqs)
 
-toParentReq :: WidgetId -> WidgetRequest -> Maybe WidgetRequest
+toParentReq :: (Typeable s, Typeable sp) => WidgetId -> WidgetRequest s -> Maybe (WidgetRequest sp)
 toParentReq _ IgnoreParentEvents = Just IgnoreParentEvents
 toParentReq _ IgnoreChildrenEvents = Just IgnoreChildrenEvents
 toParentReq _ ResizeWidgets = Just ResizeWidgets

@@ -21,7 +21,6 @@ import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Data.Default
 import Data.Maybe
 import Data.Tuple (swap)
-import Data.Typeable (Typeable)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq
@@ -36,7 +35,7 @@ data SplitCfg s e = SplitCfg {
   _spcHandleSize :: Maybe Double,
   _spcIgnoreChildResize :: Maybe Bool,
   _spcOnChange :: [Double -> e],
-  _spcOnChangeReq :: [WidgetRequest]
+  _spcOnChangeReq :: [WidgetRequest s]
 }
 
 instance Default (SplitCfg s e) where
@@ -102,34 +101,26 @@ instance WidgetModel SplitState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-hsplit
-  :: (Typeable s, WidgetEvent e)
-  => (WidgetNode s e, WidgetNode s e)
-  -> WidgetNode s e
+hsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ def nodes
 
 hsplit_
-  :: (Typeable s, WidgetEvent e)
-  => [SplitCfg s e]
-  -> (WidgetNode s e, WidgetNode s e)
-  -> WidgetNode s e
+  :: WidgetEvent e
+  => [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit_ configs nodes = split_ True nodes configs
 
-vsplit
-  :: (Typeable s, WidgetEvent e)
-  => (WidgetNode s e, WidgetNode s e)
-  -> WidgetNode s e
+vsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 vsplit nodes = vsplit_ def nodes
 
 vsplit_
-  :: (Typeable s, WidgetEvent e)
+  :: WidgetEvent e
   => [SplitCfg s e]
   -> (WidgetNode s e, WidgetNode s e)
   -> WidgetNode s e
 vsplit_ configs nodes = split_ False nodes configs
 
 split_
-  :: (Typeable s, WidgetEvent e)
+  :: WidgetEvent e
   => Bool
   -> (WidgetNode s e, WidgetNode s e)
   -> [SplitCfg s e]
@@ -148,12 +139,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
   newNode = defaultWidgetNode widgetName widget
     & L.children .~ Seq.fromList [node1, node2]
 
-makeSplit
-  :: (Typeable s, WidgetEvent e)
-  => Bool
-  -> SplitCfg s e
-  -> SplitState
-  -> Widget s e
+makeSplit :: WidgetEvent e => Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
     containerUseCustomCursor = True,
@@ -332,7 +318,7 @@ makeSplit isHorizontal config state = widget where
     | isHorizontal = (^. L.info . L.sizeReqW)
     | otherwise = (^. L.info . L.sizeReqH)
 
-setModelPos :: Typeable s => SplitCfg s e -> Double -> [WidgetRequest]
+setModelPos :: SplitCfg s e -> Double -> [WidgetRequest s]
 setModelPos cfg
   | isJust (_spcHandlePos cfg) = widgetDataSet (fromJust $ _spcHandlePos cfg)
   | otherwise = const []

@@ -47,11 +47,11 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
   _nfcOnFocus :: [e],
-  _nfcOnFocusReq :: [WidgetRequest],
+  _nfcOnFocusReq :: [WidgetRequest s],
   _nfcOnBlur :: [e],
-  _nfcOnBlurReq :: [WidgetRequest],
+  _nfcOnBlurReq :: [WidgetRequest s],
   _nfcOnChange :: [a -> e],
-  _nfcOnChangeReq :: [WidgetRequest]
+  _nfcOnChangeReq :: [WidgetRequest s]
 }
 
 instance Default (NumericFieldCfg s e a) where
@@ -157,12 +157,12 @@ instance CmbOnChangeReq (NumericFieldCfg s e a) s where
   }
 
 numericField
-  :: (Typeable s, WidgetEvent e, FormattableNumber a)
+  :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
 numericField field = numericField_ field def
 
 numericField_
-  :: (Typeable s, WidgetEvent e, FormattableNumber a)
+  :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e
@@ -170,12 +170,12 @@ numericField_ field configs = widget where
   widget = numericFieldD_ (WidgetLens field) configs
 
 numericFieldV
-  :: (Typeable s, WidgetEvent e, FormattableNumber a)
+  :: (FormattableNumber a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 numericFieldV value handler = numericFieldV_ value handler def
 
 numericFieldV_
-  :: (Typeable s, WidgetEvent e, FormattableNumber a)
+  :: (FormattableNumber a, WidgetEvent e)
   => a
   -> (a -> e)
   -> [NumericFieldCfg s e a]
@@ -186,7 +186,7 @@ numericFieldV_ value handler configs = newNode where
   newNode = numericFieldD_ widgetData newConfigs
 
 numericFieldD_
-  :: (Typeable s, WidgetEvent e, FormattableNumber a)
+  :: (FormattableNumber a, WidgetEvent e)
   => WidgetData s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e

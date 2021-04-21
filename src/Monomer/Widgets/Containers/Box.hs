@@ -29,9 +29,9 @@ data BoxCfg s e = BoxCfg {
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnClick :: [e],
-  _boxOnClickReq :: [WidgetRequest],
+  _boxOnClickReq :: [WidgetRequest s],
   _boxOnClickEmpty :: [e],
-  _boxOnClickEmptyReq :: [WidgetRequest]
+  _boxOnClickEmptyReq :: [WidgetRequest s]
 }
 
 instance Default (BoxCfg s e) where

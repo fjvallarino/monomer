@@ -27,7 +27,7 @@ import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (Typeable)
 import Foreign (alloca, poke)
 import Safe (headMay)
 import SDL (($=))
@@ -47,7 +47,7 @@ import Monomer.Main.Util
 import qualified Monomer.Lens as L
 import Control.Monad.Trans.Maybe
 
-type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq WidgetRequest)
+type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s))
 
 getTargetPath
   :: WidgetEnv s e
@@ -87,7 +87,7 @@ getTargetPath wenv pressed overlay target event root = case event of
     pointEvent point = pressed <|> pathFromPoint point <|> overlay
 
 handleSystemEvents
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
@@ -138,7 +138,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
   nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty) newEvents
 
 handleSystemEvent
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> SystemEvent
   -> Path
@@ -176,7 +176,7 @@ handleResourcesInit = do
       return $ Map.insert icon cursor map
 
 handleWidgetInit
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetNode s e
   -> m (HandlerStep s e)
@@ -194,7 +194,7 @@ handleWidgetInit wenv widgetRoot = do
     else return step
 
 handleWidgetRestore
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetInstanceNode
   -> WidgetNode s e
@@ -206,7 +206,7 @@ handleWidgetRestore wenv widgetInst widgetRoot = do
   handleWidgetResult wenv True widgetResult
 
 handleWidgetDispose
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetNode s e
   -> m (HandlerStep s e)
@@ -217,7 +217,7 @@ handleWidgetDispose wenv widgetRoot = do
   handleWidgetResult wenv False widgetResult
 
 handleWidgetResult
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> Bool
   -> WidgetResult s e
@@ -236,8 +236,8 @@ handleWidgetResult wenv resizeWidgets result = do
       return step
 
 handleRequests
-  :: (Typeable s, MonomerM s m)
-  => Seq WidgetRequest
+  :: (MonomerM s m)
+  => Seq (WidgetRequest s)
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRequests reqs step = foldM handleRequest step reqs where
@@ -262,9 +262,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     RenderStop wid -> handleRenderStop wid step
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
-    UpdateModel fnt -> case cast fnt of
-      Just fn -> handleUpdateModel fn step
-      _ -> return step
+    UpdateModel fn -> handleUpdateModel fn step
     SetWidgetPath wid path -> handleSetWidgetPath wid path step
     ResetWidgetPath wid -> handleResetWidgetPath wid step
     RaiseEvent msg -> handleRaiseEvent msg step
@@ -273,7 +271,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     RunProducer wid path handler -> handleRunProducer wid path handler step
 
 handleResizeWidgets
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => HandlerStep s e
   -> m (HandlerStep s e)
 handleResizeWidgets previousStep = do
@@ -291,7 +289,7 @@ handleResizeWidgets previousStep = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleMoveFocus
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => Maybe WidgetId
   -> FocusDirection
   -> HandlerStep s e
@@ -320,7 +318,7 @@ handleMoveFocus startFromWid dir (wenv, root, reqs) = do
       return (wenv1, root1, reqs <> reqs1)
 
 handleSetFocus
-  :: (Typeable s, MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleSetFocus newFocusWid (wenv, root, reqs) = do
   newFocus <- getWidgetIdPath newFocusWid
   oldFocus <- getFocusedPath
@@ -340,7 +338,7 @@ handleSetFocus newFocusWid (wenv, root, reqs) = do
       return (wenv, root, reqs)
 
 handleGetClipboard
-  :: (Typeable s, MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleGetClipboard widgetId (wenv, root, reqs) = do
   path <- getWidgetIdPath widgetId
   hasText <- SDL.hasClipboardText
@@ -352,27 +350,27 @@ handleGetClipboard widgetId (wenv, root, reqs) = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleSetClipboard
-  :: (Typeable s, MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
 handleSetClipboard (ClipboardText text) previousStep = do
   SDL.setClipboardText text
   return previousStep
 handleSetClipboard _ previousStep = return previousStep
 
 handleStartTextInput
-  :: (Typeable s, MonomerM s m) => Rect -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => Rect -> HandlerStep s e -> m (HandlerStep s e)
 handleStartTextInput (Rect x y w h) previousStep = do
   SDL.startTextInput (SDLT.Rect (c x) (c y) (c w) (c h))
   return previousStep
   where
     c x = fromIntegral $ round x
 
-handleStopTextInput :: (Typeable s, MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleStopTextInput :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
 handleStopTextInput previousStep = do
   SDL.stopTextInput
   return previousStep
 
 handleSetOverlay
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> Path
   -> HandlerStep s e
@@ -385,7 +383,7 @@ handleSetOverlay widgetId path previousStep = do
   return previousStep
 
 handleResetOverlay
-  :: (Typeable s, MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleResetOverlay widgetId step = do
   let (wenv, root, reqs) = step
   let mousePos = wenv ^. L.inputStatus . L.mousePos
@@ -403,7 +401,7 @@ handleResetOverlay widgetId step = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleSetCursorIcon
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> CursorIcon
   -> HandlerStep s e
@@ -417,7 +415,7 @@ handleSetCursorIcon wid icon previousStep = do
   return previousStep
 
 handleResetCursorIcon
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> HandlerStep s e
   -> m (HandlerStep s e)
@@ -434,7 +432,7 @@ handleResetCursorIcon wid previousStep = do
   return previousStep
 
 handleStartDrag
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> Path
   -> WidgetDragMsg
@@ -449,7 +447,7 @@ handleStartDrag widgetId path dragData previousStep = do
   return previousStep
 
 handleStopDrag
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> HandlerStep s e
   -> m (HandlerStep s e)
@@ -465,7 +463,7 @@ handleStopDrag widgetId previousStep = do
   else return previousStep
 
 handleFinalizeDrop
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => HandlerStep s e
   -> m (HandlerStep s e)
 handleFinalizeDrop previousStep = do
@@ -479,13 +477,13 @@ handleFinalizeDrop previousStep = do
       return $ previousStep & _1 . L.dragStatus .~ Nothing
     else return previousStep
 
-handleRenderOnce :: (Typeable s, MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
 handleRenderOnce previousStep = do
   L.renderRequested .= True
   return previousStep
 
 handleRenderEvery
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> Int
   -> Maybe Int
@@ -508,20 +506,20 @@ handleRenderEvery widgetId ms repeat previousStep = do
       | otherwise = schedule
 
 handleRenderStop
-  :: (Typeable s, MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleRenderStop widgetId previousStep = do
   schedule <- use L.renderSchedule
   L.renderSchedule .= Map.delete widgetId schedule
   return previousStep
 
 handleExitApplication
-  :: (Typeable s, MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleExitApplication exit previousStep = do
   L.exitApplication .= exit
   return previousStep
 
 handleUpdateWindow
-  :: (Typeable s, MonomerM s m) => WindowRequest -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WindowRequest -> HandlerStep s e -> m (HandlerStep s e)
 handleUpdateWindow windowRequest previousStep = do
   window <- use L.window
   case windowRequest of
@@ -534,7 +532,7 @@ handleUpdateWindow windowRequest previousStep = do
   return previousStep
 
 handleUpdateModel
-  :: (Typeable s, MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
 handleUpdateModel fn (wenv, root, reqs) = do
   L.mainModel .= _weModel wenv2
   return (wenv2, root, reqs)
@@ -542,13 +540,13 @@ handleUpdateModel fn (wenv, root, reqs) = do
     wenv2 = wenv & L.model %~ fn
 
 handleSetWidgetPath
-  :: (Typeable s, MonomerM s m) => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
 handleSetWidgetPath wid path step = do
   setWidgetIdPath wid path
   return step
 
 handleResetWidgetPath
-  :: (Typeable s, MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleResetWidgetPath wid step = do
   delWidgetIdPath wid
   return step
@@ -563,7 +561,7 @@ handleRaiseEvent message step = do
   return step
 
 handleSendMessage
-  :: forall s e m msg . (Typeable s, MonomerM s m, Typeable msg)
+  :: forall s e m msg . (MonomerM s m, Typeable msg)
   => WidgetId
   -> msg
   -> HandlerStep s e
@@ -618,8 +616,8 @@ sendMessage channel message = atomically $ writeTChan channel message
 
 addFocusReq
   :: SystemEvent
-  -> Seq WidgetRequest
-  -> Seq WidgetRequest
+  -> Seq (WidgetRequest s)
+  -> Seq (WidgetRequest s)
 addFocusReq (KeyAction mod code KeyPressed) reqs = newReqs where
   isTabPressed = isKeyTab code
   stopProcessing = isJust $ Seq.findIndexL isIgnoreParentEvents reqs
@@ -640,7 +638,7 @@ preProcessEvents (e:es) = case e of
   _ -> e : preProcessEvents es
 
 addRelatedEvents
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> Button
   -> WidgetNode s e
@@ -717,7 +715,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   _ -> return [(evt, Nothing)]
 
 addHoverEvents
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetNode s e
   -> Point
@@ -739,7 +737,7 @@ addHoverEvents wenv widgetRoot point = do
   return (target, leave ++ enter)
 
 findEvtTargetByPoint
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetEnv s e
   -> WidgetNode s e
   -> SystemEvent
@@ -769,7 +767,7 @@ findNextFocus wenv dir start overlay widgetRoot = fromJust nextFocus where
   nextFocus = candidateWni <|> fromRootWni <|> Just focusWni
 
 dropNonParentWidgetId
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => WidgetId
   -> [(WidgetId, a)]
   -> m [(WidgetId, a)]
@@ -785,7 +783,7 @@ dropNonParentWidgetId wid (x:xs) = do
     isParentPath parent child = seqStartsWith parent child && parent /= child
 
 resetCursorOnNodeLeave
-  :: (Typeable s, MonomerM s m)
+  :: (MonomerM s m)
   => SystemEvent
   -> HandlerStep s e
   -> m ()

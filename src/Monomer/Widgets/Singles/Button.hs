@@ -36,11 +36,11 @@ data ButtonCfg s e = ButtonCfg {
   _btnFactorW :: Maybe Double,
   _btnFactorH :: Maybe Double,
   _btnOnFocus :: [e],
-  _btnOnFocusReq :: [WidgetRequest],
+  _btnOnFocusReq :: [WidgetRequest s],
   _btnOnBlur :: [e],
-  _btnOnBlurReq :: [WidgetRequest],
+  _btnOnBlurReq :: [WidgetRequest s],
   _btnOnClick :: [e],
-  _btnOnClickReq :: [WidgetRequest]
+  _btnOnClickReq :: [WidgetRequest s]
 }
 
 instance Default (ButtonCfg s e) where
