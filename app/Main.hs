@@ -238,7 +238,7 @@ buildUI wenv model = traceShow "Creating UI" widgetSplitH where
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test") `style` [bgColor orange, textSize 20]
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
-  widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg" `style` [minWidth 200], widgetTree)
+  widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)
   widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
   mkImg i = vstack [
       label ("Image: " <> showt i),

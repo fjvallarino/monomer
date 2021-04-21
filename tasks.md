@@ -564,16 +564,22 @@
   - Add user documentation
   - Windows build fix
     - https://stackoverflow.com/questions/51275681/how-to-include-a-dependency-c-library-in-haskell-stack
+  - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
+    - Does it make sense to merge events into requests?
+    - Can s type argument be removed from WidgetRequest?
+      - Better still to add e to make it safer!
 
 Next
   - Add examples
     - Something of generative art (OpenGL example)
   - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
-    - Does it make sense to merge events into requests?
-    - Can type argument be removed from WidgetRequest?
     - Send unhandled event as message to root element
+    - Check resize event. Is hsplit broken now?
     - Fix test cases
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
+  - Remove serialization logic
+  - Can Req combinators be removed?
+  - Standardize use of Typeable/WidgetEvent/WidgetModel
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
   - Maybe offset should be in node info?

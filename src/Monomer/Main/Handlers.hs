@@ -16,7 +16,7 @@ module Monomer.Main.Handlers (
 
 import Control.Concurrent.Async (async)
 import Control.Lens
-  ((&), (^.), (^?), (.~), (%~), (.=), (?=), _Just, _1, ix, at, use)
+  ((&), (^.), (^?), (.~), (%~), (.=), (?=), _Just, _1, _2, ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -557,8 +557,10 @@ handleRaiseEvent
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRaiseEvent message step = do
-  liftIO $ putStrLn "Invalid state: RaiseEvent reached main handler"
-  return step
+  let root = step ^. _2
+  let widgetId = root ^. L.info . L.widgetId
+
+  handleSendMessage widgetId message step
 
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)
