@@ -103,19 +103,21 @@ widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
 resultWidget :: WidgetNode s e -> WidgetResult s e
-resultWidget node = WidgetResult node Seq.empty Seq.empty
+resultWidget node = WidgetResult node Seq.empty
 
-resultEvts :: WidgetNode s e -> [e] -> WidgetResult s e
+resultEvts :: Typeable e => WidgetNode s e -> [e] -> WidgetResult s e
 resultEvts node events = result where
-  result = WidgetResult node Seq.empty (Seq.fromList events)
+  result = WidgetResult node (Seq.fromList $ RaiseEvent <$> events)
 
 resultReqs :: WidgetNode s e -> [WidgetRequest s] -> WidgetResult s e
 resultReqs node requests = result where
-  result = WidgetResult node (Seq.fromList requests) Seq.empty
+  result = WidgetResult node (Seq.fromList requests)
 
-resultReqsEvts :: WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
+resultReqsEvts
+  :: Typeable e => WidgetNode s e -> [WidgetRequest s] -> [e] -> WidgetResult s e
 resultReqsEvts node requests events = result where
-  result = WidgetResult node (Seq.fromList requests) (Seq.fromList events)
+  result = WidgetResult node (Seq.fromList requests <> evtSeq)
+  evtSeq = Seq.fromList $ RaiseEvent <$> events
 
 makeState :: WidgetModel i => i -> s -> Maybe WidgetState
 makeState state model = Just (WidgetState state)

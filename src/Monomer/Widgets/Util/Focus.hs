@@ -15,6 +15,7 @@ module Monomer.Widgets.Util.Focus (
 import Control.Lens ((&), (^.), (.~), (%~))
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
+import Data.Typeable (Typeable)
 
 import qualified Data.Sequence as Seq
 
@@ -97,7 +98,8 @@ isNodeBeforePath path node = result where
     | otherwise = path > widgetPath
 
 handleFocusChange
-  :: (c -> [e])
+  :: Typeable e
+  => (c -> [e])
   -> (c -> [WidgetRequest s])
   -> c
   -> WidgetNode s e

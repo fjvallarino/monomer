@@ -40,10 +40,10 @@ processTasks
   -> t WidgetTask
   -> m (HandlerStep s e)
 processTasks wenv widgetRoot tasks = nextStep where
-  reducer (wenv1, root1, reqs1, evts1) task = do
-    (wenv2, root2, reqs2, evts2) <- processTask wenv1 root1 task
-    return (wenv2, root2, reqs1 <> reqs2, evts1 <> evts2)
-  nextStep = foldM reducer (wenv, widgetRoot, Seq.empty, Seq.empty) tasks
+  reducer (wenv1, root1, reqs1) task = do
+    (wenv2, root2, reqs2) <- processTask wenv1 root1 task
+    return (wenv2, root2, reqs1 <> reqs2)
+  nextStep = foldM reducer (wenv, widgetRoot, Seq.empty) tasks
 
 processTask
   :: (MonomerM s m)
@@ -56,13 +56,13 @@ processTask wenv widgetRoot (WidgetTask widgetId task) = do
 
   case taskStatus of
     Just taskRes -> processTaskResult wenv widgetRoot widgetId taskRes
-    Nothing -> return (wenv, widgetRoot, Seq.empty, Seq.empty)
+    Nothing -> return (wenv, widgetRoot, Seq.empty)
 processTask model widgetRoot (WidgetProducer widgetId channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
     Just taskMsg -> processTaskEvent model widgetRoot widgetId taskMsg
-    Nothing -> return (model, widgetRoot, Seq.empty, Seq.empty)
+    Nothing -> return (model, widgetRoot, Seq.empty)
 
 processTaskResult
   :: (MonomerM s m, Typeable a)
@@ -73,7 +73,7 @@ processTaskResult
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
-  return (wenv, widgetRoot, Seq.empty, Seq.empty)
+  return (wenv, widgetRoot, Seq.empty)
 processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult
 
@@ -87,7 +87,7 @@ processTaskEvent
 processTaskEvent wenv widgetRoot widgetId event = do
   path <- getWidgetIdPath widgetId
 
-  let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+  let emptyResult = WidgetResult widgetRoot Seq.empty
   let widget = widgetRoot ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path event widgetRoot
   let widgetResult = fromMaybe emptyResult msgResult

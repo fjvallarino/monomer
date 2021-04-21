@@ -162,7 +162,7 @@ data DropdownMessage
   | OnListBlur
 
 dropdown
-  :: (Traversable t, DropdownItem a)
+  :: (Traversable t, DropdownItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -172,7 +172,7 @@ dropdown field items makeMain makeRow = newNode where
   newNode = dropdown_ field items makeMain makeRow def
 
 dropdown_
-  :: (Traversable t, DropdownItem a)
+  :: (Traversable t, DropdownItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -184,7 +184,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
 dropdownV
-  :: (Traversable t, DropdownItem a)
+  :: (Traversable t, DropdownItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -195,7 +195,7 @@ dropdownV value handler items makeMain makeRow = newNode where
   newNode = dropdownV_ value handler items makeMain makeRow def
 
 dropdownV_
-  :: (Traversable t, DropdownItem a)
+  :: (Traversable t, DropdownItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -208,7 +208,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
 dropdownD_
-  :: (Traversable t, DropdownItem a)
+  :: (Traversable t, DropdownItem a, WidgetEvent e)
   => WidgetData s a
   -> t a
   -> (a -> WidgetNode s e)
@@ -226,7 +226,7 @@ makeNode widget = defaultWidgetNode "dropdown" widget
   & L.info . L.focusable .~ True
 
 makeDropdown
-  :: DropdownItem a
+  :: (DropdownItem a, WidgetEvent e)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetNode s e)
@@ -385,13 +385,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     result = tempResult & L.requests %~ (|> createMoveFocusReq wenv)
 
   onChange wenv idx item node = result where
-    WidgetResult newNode reqs events = closeDropdown wenv node
+    WidgetResult newNode reqs = closeDropdown wenv node
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
       ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
-    newEvents = Seq.fromList $ fmap ($ item) (_ddcOnChange config)
-      ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
-    result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
+    evts = RaiseEvent <$> fmap ($ item) (_ddcOnChange config)
+    evtsIdx = RaiseEvent <$> fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
+    newEvents = Seq.fromList (evts ++ evtsIdx)
+    result = WidgetResult newNode (reqs <> newReqs <> newEvents)
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
   getSizeReq wenv currState node children = (newReqW, newReqH) where
@@ -476,7 +477,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget renderer wenv overlayNode
 
 makeListView
-  :: DropdownItem a
+  :: (DropdownItem a, WidgetEvent e)
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a

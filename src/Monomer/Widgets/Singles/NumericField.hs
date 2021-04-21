@@ -157,12 +157,12 @@ instance CmbOnChangeReq (NumericFieldCfg s e a) s where
   }
 
 numericField
-  :: FormattableNumber a
+  :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
 numericField field = numericField_ field def
 
 numericField_
-  :: FormattableNumber a
+  :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e
@@ -170,12 +170,12 @@ numericField_ field configs = widget where
   widget = numericFieldD_ (WidgetLens field) configs
 
 numericFieldV
-  :: FormattableNumber a
+  :: (FormattableNumber a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 numericFieldV value handler = numericFieldV_ value handler def
 
 numericFieldV_
-  :: FormattableNumber a
+  :: (FormattableNumber a, WidgetEvent e)
   => a
   -> (a -> e)
   -> [NumericFieldCfg s e a]
@@ -186,7 +186,7 @@ numericFieldV_ value handler configs = newNode where
   newNode = numericFieldD_ widgetData newConfigs
 
 numericFieldD_
-  :: FormattableNumber a
+  :: (FormattableNumber a, WidgetEvent e)
   => WidgetData s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e

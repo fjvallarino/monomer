@@ -326,7 +326,7 @@ initWrapper container wenv node = initPostHandler wenv result node where
   getBaseStyle = containerGetBaseStyle container
   updateCWenv = getUpdateCWenv container
   styledNode = initNodeStyle getBaseStyle wenv node
-  WidgetResult tempNode reqs events = initHandler wenv styledNode
+  WidgetResult tempNode reqs = initHandler wenv styledNode
   children = tempNode ^. L.children
   initChild idx child = widgetInit newWidget cwenv newChild where
     newChild = cascadeCtx wenv tempNode child idx
@@ -334,11 +334,10 @@ initWrapper container wenv node = initPostHandler wenv result node where
     newWidget = newChild ^. L.widget
   results = Seq.mapWithIndex initChild children
   newReqs = foldMap _wrRequests results
-  newEvents = foldMap _wrEvents results
   newChildren = fmap _wrNode results
   newNode = updateSizeReq container wenv $ tempNode
     & L.children .~ newChildren
-  result = WidgetResult newNode (reqs <> newReqs) (events <> newEvents)
+  result = WidgetResult newNode (reqs <> newReqs)
 
 -- | Merging
 defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
@@ -410,7 +409,7 @@ mergeChildren
   -> WidgetResult s e
   -> WidgetResult s e
 mergeChildren updateCWenv wenv oldNode newNode result = newResult where
-  WidgetResult uNode uReqs uEvents = result
+  WidgetResult uNode uReqs = result
   oldChildren = oldNode ^. L.children
   oldIts = Seq.mapWithIndex (,) oldChildren
   updatedChildren = uNode ^. L.children
@@ -422,13 +421,10 @@ mergeChildren updateCWenv wenv oldNode newNode result = newResult where
   (mergedResults, removedResults) = mpairs
   mergedChildren = fmap _wrNode mergedResults
   mergedReqs = foldMap _wrRequests mergedResults
-  mergedEvents = foldMap _wrEvents mergedResults
   removedReqs = foldMap _wrRequests removedResults
-  removedEvents = foldMap _wrEvents removedResults
   mergedNode = uNode & L.children .~ mergedChildren
   newReqs = uReqs <> mergedReqs <> removedReqs
-  newEvents = uEvents <> mergedEvents <> removedEvents
-  newResult = WidgetResult mergedNode newReqs newEvents
+  newResult = WidgetResult mergedNode newReqs
 
 mergeChildSeq
   :: (Int -> WidgetNode s e -> WidgetEnv s e)
@@ -441,7 +437,7 @@ mergeChildSeq
   -> (Seq (WidgetResult s e), Seq (WidgetResult s e))
 mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts Empty = res where
   dispose (idx, child) = case flip M.member newKeys <$> child^. L.info. L.key of
-    Just True -> WidgetResult child Empty Empty
+    Just True -> WidgetResult child Empty
     _ -> widgetDispose (child ^. L.widget) wenv child
   removed = fmap dispose oldIts
   res = (Empty, removed)
@@ -535,7 +531,7 @@ restoreWrapper container wenv win newNode = newResult where
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   styledNode = initNodeStyle getBaseStyle wenv tempNode
-  WidgetResult pNode pReqs pEvts = case loadState (win ^. L.state) of
+  WidgetResult pNode pReqs = case loadState (win ^. L.state) of
     Just state -> restoreHandler wenv state oldInfo styledNode
     _ -> resultWidget styledNode
   -- Process children
@@ -550,8 +546,7 @@ restoreWrapper container wenv win newNode = newResult where
   newParent = pNode
     & L.children .~ newChildren
   cReqs = foldMap _wrRequests restoredChildren
-  cEvts = foldMap _wrEvents restoredChildren
-  tmpRes = WidgetResult newParent (pReqs <> cReqs) (pEvts <> cEvts)
+  tmpRes = WidgetResult newParent (pReqs <> cReqs)
   postRes = case loadState (win ^. L.state) of
     Just state -> restorePostHandler wenv tmpRes state oldInfo newParent
     Nothing -> resultWidget newParent
@@ -575,15 +570,14 @@ disposeWrapper
 disposeWrapper container wenv node = result where
   updateCWenv = getUpdateCWenv container
   disposeHandler = containerDispose container
-  WidgetResult tempNode reqs events = disposeHandler wenv node
+  WidgetResult tempNode reqs = disposeHandler wenv node
   widgetId = node ^. L.info . L.widgetId
   children = tempNode ^. L.children
   dispose idx child = widgetDispose (child ^. L.widget) cwenv child where
     cwenv = updateCWenv wenv idx child node
   results = Seq.mapWithIndex dispose children
   newReqs = foldMap _wrRequests results |> ResetWidgetPath widgetId
-  newEvents = foldMap _wrEvents results
-  result = WidgetResult node (reqs <> newReqs) (events <> newEvents)
+  result = WidgetResult node (reqs <> newReqs)
 
 -- | Find next focusable item
 defaultFindNextFocus :: ContainerFindNextFocusHandler s e
@@ -746,12 +740,11 @@ mergeParentChildEvts original Nothing (Just cResponse) idx = Just $ cResponse {
 mergeParentChildEvts original (Just pResponse) (Just cResponse) idx
   | ignoreChildren pResponse = Just pResponse
   | ignoreParent cResponse = Just newChildResponse
-  | otherwise = Just $ WidgetResult newWidget requests events
+  | otherwise = Just $ WidgetResult newWidget requests
   where
     pWidget = _wrNode pResponse
     cWidget = _wrNode cResponse
     requests = _wrRequests pResponse <> _wrRequests cResponse
-    events = _wrEvents pResponse <> _wrEvents cResponse
     newWidget = replaceChild pWidget cWidget idx
     newChildResponse = cResponse {
       _wrNode = replaceChild original (_wrNode cResponse) idx
@@ -875,7 +868,6 @@ resizeWrapper container wenv viewport node = result where
   newChildrenRes = Seq.mapWithIndex resize (Seq.zip children assigned)
   newChildren = fmap _wrNode newChildrenRes
   newChildrenReqs = foldMap _wrRequests newChildrenRes
-  newChildrenEvts = foldMap _wrEvents newChildrenRes
   newVp
     | useCustomSize = tempRes ^. L.node . lensVp
     | otherwise = viewport
@@ -884,9 +876,9 @@ resizeWrapper container wenv viewport node = result where
       & L.node . L.info . L.viewport .~ newVp
       & L.node . L.children .~ newChildren
       & L.requests <>~ newChildrenReqs
-      & L.events <>~ newChildrenEvts
     | otherwise = Just $ resultWidget node
-  result = fromJust $ handleSizeReqChange container wenv (tempRes ^. L.node) Nothing tmpResult
+  result = fromJust $
+    handleSizeReqChange container wenv (tempRes ^. L.node) Nothing tmpResult
 
 -- | Rendering
 defaultRender :: ContainerRenderHandler s e

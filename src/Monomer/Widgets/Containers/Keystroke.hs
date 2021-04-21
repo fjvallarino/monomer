@@ -72,11 +72,15 @@ instance Default KeyStroke where
 
 makeLensesWith abbreviatedFields ''KeyStroke
 
-keystroke :: [(Text, e)] -> WidgetNode s e -> WidgetNode s e
+keystroke :: WidgetEvent e => [(Text, e)] -> WidgetNode s e -> WidgetNode s e
 keystroke bindings managed = keystroke_ bindings def managed
 
 keystroke_
-  :: [(Text, e)] -> [KeystrokeCfg] -> WidgetNode s e -> WidgetNode s e
+  :: WidgetEvent e
+  => [(Text, e)]
+  -> [KeystrokeCfg]
+  -> WidgetNode s e
+  -> WidgetNode s e
 keystroke_ bindings configs managed = makeNode widget managed where
   config = mconcat configs
   newBindings = fmap (first textToStroke) bindings
@@ -87,7 +91,7 @@ makeNode widget managedWidget = defaultWidgetNode "keystroke" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeKeystroke :: [(KeyStroke, e)] -> KeystrokeCfg -> Widget s e
+makeKeystroke :: WidgetEvent e => [(KeyStroke, e)] -> KeystrokeCfg -> Widget s e
 makeKeystroke bindings config = widget where
   widget = createContainer () def {
     containerHandleEvent = handleEvent

@@ -294,10 +294,10 @@ disposeWrapper
   -> WidgetResult s e
 disposeWrapper single wenv node = result where
   disposeHandler = singleDispose single
-  WidgetResult newNode reqs events = disposeHandler wenv node
+  WidgetResult newNode reqs = disposeHandler wenv node
   widgetId = node ^. L.info . L.widgetId
   newReqs = reqs |> ResetWidgetPath widgetId
-  result = WidgetResult newNode newReqs events
+  result = WidgetResult newNode newReqs
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv direction startFrom node

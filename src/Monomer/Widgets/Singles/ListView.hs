@@ -183,7 +183,7 @@ newtype ListViewMessage
   = OnClickMessage Int
 
 listView
-  :: (Traversable t, ListItem a)
+  :: (Traversable t, ListItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -191,7 +191,7 @@ listView
 listView field items makeRow = listView_ field items makeRow def
 
 listView_
-  :: (Traversable t, ListItem a)
+  :: (Traversable t, ListItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> MakeRow s e a
@@ -201,7 +201,7 @@ listView_ field items makeRow configs = newNode where
   newNode = listViewD_ (WidgetLens field) items makeRow configs
 
 listViewV
-  :: (Traversable t, ListItem a)
+  :: (Traversable t, ListItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -211,7 +211,7 @@ listViewV value handler items makeRow = newNode where
   newNode = listViewV_ value handler items makeRow def
 
 listViewV_
-  :: (Traversable t, ListItem a)
+  :: (Traversable t, ListItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
@@ -224,7 +224,7 @@ listViewV_ value handler items makeRow configs = newNode where
   newNode = listViewD_ widgetData items makeRow newConfigs
 
 listViewD_
-  :: (Traversable t, ListItem a)
+  :: (Traversable t, ListItem a, WidgetEvent e)
   => WidgetData s a
   -> t a
   -> MakeRow s e a
@@ -242,7 +242,7 @@ makeNode widget = scroll_ [scrollStyle L.listViewStyle] childNode where
     & L.info . L.focusable .~ True
 
 makeListView
-  :: ListItem a
+  :: (ListItem a, WidgetEvent e)
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
@@ -331,12 +331,12 @@ makeListView widgetData items makeRow config state = widget where
     Blur -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
-      WidgetResult tempNode tempReqs tempEvts
+      WidgetResult tempNode tempReqs
         | changeReq = selectItem wenv node (_hlIdx state)
         | otherwise = resultWidget node
-      evts = tempEvts <> Seq.fromList (_lvcOnBlur config)
+      evts = RaiseEvent <$> Seq.fromList (_lvcOnBlur config)
       reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
-      mergedResult = Just $ WidgetResult tempNode reqs evts
+      mergedResult = Just $ WidgetResult tempNode (reqs <> evts)
       result
         | changeReq || not (null evts && null reqs) = mergedResult
         | otherwise = Nothing
@@ -510,7 +510,7 @@ getHlStyle wenv config = hlStyle where
     & L.basic .~ style ^. L.focus
 
 makeItemsList
-  :: (Eq a)
+  :: (Eq a, WidgetEvent e)
   => WidgetEnv s e
   -> Seq a
   -> MakeRow s e a

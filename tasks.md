@@ -570,6 +570,9 @@ Next
     - Something of generative art (OpenGL example)
   - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
     - Does it make sense to merge events into requests?
+    - Can type argument be removed from WidgetRequest?
+    - Send unhandled event as message to root element
+    - Fix test cases
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
@@ -578,6 +581,7 @@ Next
     - Maybe IgnoreParentEvents could work?
   - Notify of viewport change (maybe for chart?)
   - Should node come immediately after wenv in Widget methods?
+  - Is merging Task and Producer a good idea? (most likely not)
 
 Future
   - Check cross compilation

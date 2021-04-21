@@ -94,7 +94,8 @@ alertMsg_ message evt configs = newNode where
   newNode = compositeExt "alert" () createUI handleEvent
 
 buildUI
-  :: (WidgetEnv s ep -> WidgetNode s ep)
+  :: WidgetEvent ep
+  => (WidgetEnv s ep -> WidgetNode s ep)
   -> ep
   -> AlertCfg
   -> WidgetEnv s ep

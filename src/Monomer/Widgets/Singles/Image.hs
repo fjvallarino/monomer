@@ -111,17 +111,17 @@ data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
 
-image :: Text -> WidgetNode s e
+image :: WidgetEvent e => Text -> WidgetNode s e
 image path = image_ path def
 
-image_ :: Text -> [ImageCfg e] -> WidgetNode s e
+image_ :: WidgetEvent e => Text -> [ImageCfg e] -> WidgetNode s e
 image_ tpath configs = defaultWidgetNode "image" widget where
   path = T.unpack tpath
   config = mconcat configs
   imageState = ImageState path Nothing
   widget = makeImage path config imageState
 
-makeImage :: String -> ImageCfg e -> ImageState -> Widget s e
+makeImage :: WidgetEvent e => String -> ImageCfg e -> ImageState -> Widget s e
 makeImage imgPath config state = widget where
   widget = createSingle state def {
     singleUseScissor = True,

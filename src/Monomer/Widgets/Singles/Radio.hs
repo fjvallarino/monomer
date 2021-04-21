@@ -90,24 +90,23 @@ instance CmbOnChangeReq (RadioCfg s e a) s where
     _rdcOnChangeReq = [req]
   }
 
-radio :: (Eq a) => ALens' s a -> a -> WidgetNode s e
+radio :: (Eq a, WidgetEvent e) => ALens' s a -> a -> WidgetNode s e
 radio field option = radio_ field option def
 
-radio_ :: (Eq a) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
+radio_ :: (Eq a, WidgetEvent e) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
 radio_ field option configs = radioD_ (WidgetLens field) option configs
 
-radioV :: (Eq a) => a -> (a -> e) -> a -> WidgetNode s e
+radioV :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> WidgetNode s e
 radioV value handler option = radioV_ value handler option def
 
-radioV_
-  :: (Eq a) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
+radioV_ :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
 radioV_ value handler option configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
   newNode = radioD_ widgetData option newConfigs
 
 radioD_
-  :: (Eq a)
+  :: (Eq a, WidgetEvent e)
   => WidgetData s a
   -> a
   -> [RadioCfg s e a]
@@ -118,7 +117,7 @@ radioD_ widgetData option configs = radioNode where
   radioNode = defaultWidgetNode "radio" widget
     & L.info . L.focusable .~ True
 
-makeRadio :: (Eq a) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
+makeRadio :: (Eq a, WidgetEvent e) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
 makeRadio field option config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,

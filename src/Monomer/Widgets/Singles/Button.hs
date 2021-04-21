@@ -149,24 +149,24 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
-mainButton :: Text -> e -> WidgetNode s e
+mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
-mainButton_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
   newConfigs = mainConfig : configs
 
-button :: Text -> e -> WidgetNode s e
+button :: WidgetEvent e => Text -> e -> WidgetNode s e
 button caption handler = button_ caption handler def
 
-button_ :: Text -> e -> [ButtonCfg s e] -> WidgetNode s e
+button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
   widget = makeButton caption config
   buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
 
-makeButton :: Text -> ButtonCfg s e -> Widget s e
+makeButton :: WidgetEvent e => Text -> ButtonCfg s e -> Widget s e
 makeButton caption config = widget where
   widget = createContainer () def {
     containerUseScissor = True,

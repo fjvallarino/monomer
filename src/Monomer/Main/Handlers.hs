@@ -47,8 +47,7 @@ import Monomer.Main.Util
 import qualified Monomer.Lens as L
 import Control.Monad.Trans.Maybe
 
-type HandlerStep s e
-  = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s), Seq e)
+type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s))
 
 getTargetPath
   :: WidgetEnv s e
@@ -96,13 +95,13 @@ handleSystemEvents
 handleSystemEvents wenv baseEvents widgetRoot = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceEvt curStep evt = do
-    let (curWenv, curRoot, curReqs, curEvents) = curStep
+    let (curWenv, curRoot, curReqs) = curStep
     systemEvents <- addRelatedEvents curWenv mainBtn curRoot evt
 
-    foldM reduceSysEvt (curWenv, curRoot, curReqs, curEvents) systemEvents
+    foldM reduceSysEvt (curWenv, curRoot, curReqs) systemEvents
   reduceSysEvt curStep (evt, evtTarget) = do
     focused <- getFocusedPath
-    let (curWenv, curRoot, curReqs, curEvents) = curStep
+    let (curWenv, curRoot, curReqs) = curStep
     let target = fromMaybe focused evtTarget
     let curWidget = curRoot ^. L.widget
     let targetWni = evtTarget
@@ -128,15 +127,15 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     let findByPath path = widgetFindByPath curWidget tmpWenv path curRoot
     let newWenv = tmpWenv
           & L.findByPath .~ findByPath
-    (wenv2, root2, reqs2, evts2) <- handleSystemEvent newWenv evt target curRoot
+    (wenv2, root2, reqs2) <- handleSystemEvent newWenv evt target curRoot
 
     when (isOnLeave evt) $ do
       resetCursorOnNodeLeave evt curStep
       L.hoveredWidgetId .= Nothing
 
-    return (wenv2, root2, curReqs <> reqs2, curEvents <> evts2)
+    return (wenv2, root2, curReqs <> reqs2)
   newEvents = preProcessEvents baseEvents
-  nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty, Seq.empty) newEvents
+  nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty) newEvents
 
 handleSystemEvent
   :: (MonomerM s m)
@@ -152,10 +151,10 @@ handleSystemEvent wenv event currentTarget widgetRoot = do
   let pressed = fmap fst mainStart
 
   case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
-    Nothing -> return (wenv, widgetRoot, Seq.empty, Seq.empty)
+    Nothing -> return (wenv, widgetRoot, Seq.empty)
     Just target -> do
       let widget = widgetRoot ^. L.widget
-      let emptyResult = WidgetResult widgetRoot Seq.empty Seq.empty
+      let emptyResult = WidgetResult widgetRoot Seq.empty
       let evtResult = widgetHandleEvent widget wenv target event widgetRoot
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
       let widgetResult = fromMaybe emptyResult evtResult
@@ -224,11 +223,11 @@ handleWidgetResult
   -> WidgetResult s e
   -> m (HandlerStep s e)
 handleWidgetResult wenv resizeWidgets result = do
-  let WidgetResult evtRoot reqs events = result
+  let WidgetResult evtRoot reqs = result
   let resizeReq = isResizeResult (Just result)
 
   resizePending <- use L.resizePending
-  step <- handleRequests reqs (wenv, evtRoot, reqs, events)
+  step <- handleRequests reqs (wenv, evtRoot, reqs)
 
   if resizeWidgets && (resizeReq || resizePending)
     then handleResizeWidgets step
@@ -266,6 +265,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     UpdateModel fn -> handleUpdateModel fn step
     SetWidgetPath wid path -> handleSetWidgetPath wid path step
     ResetWidgetPath wid -> handleResetWidgetPath wid step
+    RaiseEvent msg -> handleRaiseEvent msg step
     SendMessage wid msg -> handleSendMessage wid msg step
     RunTask wid path handler -> handleRunTask wid path handler step
     RunProducer wid path handler -> handleRunProducer wid path handler step
@@ -278,15 +278,15 @@ handleResizeWidgets previousStep = do
   Size w h <- use L.windowSize
 
   let winRect = Rect 0 0 w h
-  let (wenv, root, reqs, evts) = previousStep
+  let (wenv, root, reqs) = previousStep
   let newResult = widgetResize (root ^. L.widget) wenv winRect root
 
   L.renderRequested .= True
   L.resizePending .= False
 
-  (wenv2, root2, reqs2, evts2) <- handleWidgetResult wenv True newResult
+  (wenv2, root2, reqs2) <- handleWidgetResult wenv True newResult
 
-  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
+  return (wenv2, root2, reqs <> reqs2)
 
 handleMoveFocus
   :: (MonomerM s m)
@@ -294,10 +294,10 @@ handleMoveFocus
   -> FocusDirection
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleMoveFocus startFromWid dir (wenv, root, reqs, evts) = do
+handleMoveFocus startFromWid dir (wenv, root, reqs) = do
   oldFocus <- getFocusedPath
   let wenv0 = wenv & L.focusedPath .~ emptyPath
-  (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
+  (wenv1, root1, reqs1) <- handleSystemEvent wenv0 Blur oldFocus root
   currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 
@@ -311,43 +311,43 @@ handleMoveFocus startFromWid dir (wenv, root, reqs, evts) = do
 
       L.focusedWidgetId .= newFocusWni ^. L.widgetId
       L.renderRequested .= True
-      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenvF Focus newFocus root1
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF Focus newFocus root1
 
-      return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
+      return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else
-      return (wenv1, root1, reqs <> reqs1, evts <> evts1)
+      return (wenv1, root1, reqs <> reqs1)
 
 handleSetFocus
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
-handleSetFocus newFocusWid (wenv, root, reqs, evts) = do
+handleSetFocus newFocusWid (wenv, root, reqs) = do
   newFocus <- getWidgetIdPath newFocusWid
   oldFocus <- getFocusedPath
 
   if oldFocus /= newFocus
     then do
       let wenv0 = wenv & L.focusedPath .~ newFocus
-      (wenv1, root1, reqs1, evts1) <- handleSystemEvent wenv0 Blur oldFocus root
+      (wenv1, root1, reqs1) <- handleSystemEvent wenv0 Blur oldFocus root
       let wenvF = wenv1 & L.focusedPath .~ newFocus
 
       L.focusedWidgetId .= newFocusWid
       L.renderRequested .= True
-      (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenvF Focus newFocus root1
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF Focus newFocus root1
 
-      return (wenv2, root2, reqs <> reqs1 <> reqs2, evts <> evts1 <> evts2)
+      return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else
-      return (wenv, root, reqs, evts)
+      return (wenv, root, reqs)
 
 handleGetClipboard
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
-handleGetClipboard widgetId (wenv, root, reqs, evts) = do
+handleGetClipboard widgetId (wenv, root, reqs) = do
   path <- getWidgetIdPath widgetId
   hasText <- SDL.hasClipboardText
   contents <- fmap Clipboard $ if hasText
                 then fmap ClipboardText SDL.getClipboardText
                 else return ClipboardEmpty
 
-  (wenv2, root2, reqs2, evts2) <- handleSystemEvent wenv contents path root
-  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
+  (wenv2, root2, reqs2) <- handleSystemEvent wenv contents path root
+  return (wenv2, root2, reqs <> reqs2)
 
 handleSetClipboard
   :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
@@ -385,20 +385,20 @@ handleSetOverlay widgetId path previousStep = do
 handleResetOverlay
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleResetOverlay widgetId step = do
-  let (wenv, root, reqs, evts) = step
+  let (wenv, root, reqs) = step
   let mousePos = wenv ^. L.inputStatus . L.mousePos
 
   overlay <- use L.overlayWidgetId
 
-  (wenv2, root2, reqs2, evts2) <- if overlay == Just widgetId
+  (wenv2, root2, reqs2) <- if overlay == Just widgetId
     then do
       L.overlayWidgetId .= Nothing
       void $ handleResetCursorIcon widgetId step
       handleSystemEvents wenv [Move mousePos] root
     else
-      return (wenv, root, Empty, Empty)
+      return (wenv, root, Empty)
 
-  return (wenv2, root2, reqs <> reqs2, evts <> evts2)
+  return (wenv2, root2, reqs <> reqs2)
 
 handleSetCursorIcon
   :: (MonomerM s m)
@@ -494,7 +494,7 @@ handleRenderEvery widgetId ms repeat previousStep = do
   L.renderSchedule .= addSchedule schedule
   return previousStep
   where
-    (wenv, _, _, _) = previousStep
+    (wenv, _, _) = previousStep
     newValue = RenderSchedule {
       _rsWidgetId = widgetId,
       _rsStart = _weTimestamp wenv,
@@ -533,9 +533,9 @@ handleUpdateWindow windowRequest previousStep = do
 
 handleUpdateModel
   :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
-handleUpdateModel fn (wenv, root, reqs, evts) = do
+handleUpdateModel fn (wenv, root, reqs) = do
   L.mainModel .= _weModel wenv2
-  return (wenv2, root, reqs, evts)
+  return (wenv2, root, reqs)
   where
     wenv2 = wenv & L.model %~ fn
 
@@ -551,23 +551,32 @@ handleResetWidgetPath wid step = do
   delWidgetIdPath wid
   return step
 
+handleRaiseEvent
+  :: forall s e m msg . (MonomerM s m, Typeable msg)
+  => msg
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleRaiseEvent message step = do
+  liftIO $ putStrLn "Invalid state: RaiseEvent reached main handler"
+  return step
+
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)
   => WidgetId
   -> msg
   -> HandlerStep s e
   -> m (HandlerStep s e)
-handleSendMessage widgetId message (wenv, root, reqs, evts) = do
+handleSendMessage widgetId message (wenv, root, reqs) = do
   path <- getWidgetIdPath widgetId
 
-  let emptyResult = WidgetResult root Seq.empty Seq.empty
+  let emptyResult = WidgetResult root Seq.empty
   let widget = root ^. L.widget
   let msgResult = widgetHandleMessage widget wenv path message root
   let result = fromMaybe emptyResult msgResult
 
-  (newWenv, newRoot, newReqs, newEvts) <- handleWidgetResult wenv True result
+  (newWenv, newRoot, newReqs) <- handleWidgetResult wenv True result
 
-  return (newWenv, newRoot, reqs <> newReqs, evts <> newEvts)
+  return (newWenv, newRoot, reqs <> newReqs)
 
 handleRunTask
   :: forall s e m i . (MonomerM s m, Typeable i)
@@ -781,7 +790,7 @@ resetCursorOnNodeLeave
 resetCursorOnNodeLeave (Leave point) step = do
   void $ handleResetCursorIcon widgetId step
   where
-    (wenv, root, _, _) = step
+    (wenv, root, _) = step
     widget = root ^. L.widget
     childNode = widgetFindByPoint widget wenv emptyPath point root
     widgetId = case childNode of

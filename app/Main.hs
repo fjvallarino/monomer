@@ -141,7 +141,11 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetAnimate where
+buildUI wenv model = traceShow "Creating UI" widgetSplitH where
+  widgetSimple = vstack [
+      label $ "Count: " <> showt (model ^. clickCount),
+      button "Increase" IncButton
+    ]
   widgetAnimate = vstack [
       slideIn_ [leftSide] (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
       slideOut_ [leftSide] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
@@ -200,7 +204,7 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
         label "Label 3 - ja - ^&~@$" `style` [textSize 40, textBottom]
       ] `style` [bgColor orange]
     ]
-  widgetDialSingle = dial double1 (-100) 100
+  --widgetDialSingle = dial double1 (-100) 100
   widgetRow = hstack [
       vstack [
         label "Label 1",
@@ -234,12 +238,13 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test") `style` [bgColor orange, textSize 20]
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
-  widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)
+  widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree `style` [width 200])
   widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
   mkImg i = vstack [
       label ("Image: " <> showt i),
       image ("https://picsum.photos/600/400?ts=" <> showt i)
     ]
+{--
   widgetImages = scroll $ vstack (mkImg <$> [0..9::Int])
   widgetSave = vstack [
       textField textField1,
@@ -291,12 +296,13 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
       ] `style` [padding 5, paddingT 0]
     ]
   widgetLV = vstack [
---      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
+      scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
       label "aaa"
       , listView dropdown1 items label `style` [height 300]
---      , scroll $ image "assets/images/pecans.jpg"
---      , dropdown_ dropdown1 items label label [maxHeight 200]
+      , scroll $ image "assets/images/pecans.jpg"
+      , dropdown_ dropdown1 items label label [maxHeight 200]
     ]
+--}
   widgetWindow = vstack [
       hstack [
         label "Title: ",
@@ -349,6 +355,7 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
           ]
         ] `style` [height 480]
     ]
+{--
   widgetTree4 = hgrid [
       label "" `style` [bgColor blue],
       label "" `style` [bgColor gray],
@@ -372,6 +379,7 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
       label "" `style` [bgColor blue],
       label "" `style` [bgColor gray]
     ]
+--}
   widgetTree3 = hgrid [
       label "Hi!\nThis\nis\na\nnew\ttest\n\n  Double!" `style` [bgColor pink, textBottom, textCenter],
       vgrid [
@@ -387,6 +395,7 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
       label "",
       label ""
     ]
+{--
   widgetTree2 = zstack [
       vstack [
         hstack [
@@ -406,6 +415,7 @@ buildUI wenv model = traceShow "Creating UI" widgetAnimate where
         textField textField1
       ]-- `style` [padding 10]
     ]
+--}
   longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
   widgetTree = zstack [
       widgetTreeFull,

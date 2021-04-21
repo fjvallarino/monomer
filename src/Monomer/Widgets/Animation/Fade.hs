@@ -80,28 +80,29 @@ instance WidgetModel FadeState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-fadeIn :: WidgetNode s e -> WidgetNode s e
+fadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 fadeIn managed = fadeIn_ def managed
 
-fadeIn_ :: [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+fadeIn_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
 fadeIn_ configs managed = makeNode "fadeIn" widget managed where
   config = mconcat configs
   widget = makeFade True config def
 
-fadeOut :: WidgetNode s e -> WidgetNode s e
+fadeOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 fadeOut managed = fadeOut_ def managed
 
-fadeOut_ :: [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+fadeOut_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
 fadeOut_ configs managed = makeNode "fadeOut" widget managed where
   config = mconcat configs
   widget = makeFade False config def
 
-makeNode :: WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
+makeNode
+  :: WidgetEvent e => WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
 makeNode wType widget managedWidget = defaultWidgetNode wType widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeFade :: Bool -> FadeCfg e -> FadeState -> Widget s e
+makeFade :: WidgetEvent e => Bool -> FadeCfg e -> FadeState -> Widget s e
 makeFade isFadeIn config state = widget where
   widget = createContainer state def {
     containerInit = init,

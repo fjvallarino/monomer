@@ -57,7 +57,7 @@ initialState = KeysCompState {
   ]
 }
 
-keysComposite :: WidgetNode KeysCompState ep
+keysComposite :: WidgetEvent ep => WidgetNode KeysCompState ep
 keysComposite = composite "keysComposite" id buildKeysComp handleKeysCompEvent
 
 handleKeysCompEvent wenv node model evt = case evt of

@@ -42,11 +42,12 @@ dropTargetStyle styles = def {
   _dtcDropStyle = Just (mconcat styles)
 }
 
-dropTarget :: DragMsg a => (a -> e) -> WidgetNode s e -> WidgetNode s e
+dropTarget
+  :: (DragMsg a, WidgetEvent e) => (a -> e) -> WidgetNode s e -> WidgetNode s e
 dropTarget dropEvt managed = dropTarget_ dropEvt def managed
 
 dropTarget_
-  :: DragMsg a
+  :: (DragMsg a, WidgetEvent e)
   => (a -> e)
   -> [DropTargetCfg]
   -> WidgetNode s e
@@ -60,7 +61,8 @@ makeNode  widget managedWidget = defaultWidgetNode "dropTarget" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeDropTarget :: DragMsg a => (a -> e) -> DropTargetCfg -> Widget s e
+makeDropTarget
+  :: (DragMsg a, WidgetEvent e) => (a -> e) -> DropTargetCfg -> Widget s e
 makeDropTarget dropEvt config = widget where
   widget = createContainer () def {
     containerGetActiveStyle = getActiveStyle,

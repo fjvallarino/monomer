@@ -106,28 +106,29 @@ instance WidgetModel SlideState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-slideIn :: WidgetNode s e -> WidgetNode s e
+slideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 slideIn managed = slideIn_ def managed
 
-slideIn_ :: [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+slideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 slideIn_ configs managed = makeNode "slideIn" widget managed where
   config = mconcat configs
   widget = makeSlide True config def
 
-slideOut :: WidgetNode s e -> WidgetNode s e
+slideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 slideOut managed = slideOut_ def managed
 
-slideOut_ :: [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+slideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 slideOut_ configs managed = makeNode "slideOut" widget managed where
   config = mconcat configs
   widget = makeSlide False config def
 
-makeNode :: WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
+makeNode
+  :: WidgetEvent e => WidgetType -> Widget s e -> WidgetNode s e -> WidgetNode s e
 makeNode wType widget managedWidget = defaultWidgetNode wType widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeSlide :: Bool -> SlideCfg e -> SlideState -> Widget s e
+makeSlide :: WidgetEvent e => Bool -> SlideCfg e -> SlideState -> Widget s e
 makeSlide isSlideIn config state = widget where
   widget = createContainer state def {
     containerUseScissor = True,

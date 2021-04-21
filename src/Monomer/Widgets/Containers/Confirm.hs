@@ -117,7 +117,8 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   newNode = compositeExt_ "confirm" () createUI handleEvent evts
 
 buildUI
-  :: (WidgetEnv s (ConfirmEvt ep) -> WidgetNode s (ConfirmEvt ep))
+  :: WidgetEvent ep
+  => (WidgetEnv s (ConfirmEvt ep) -> WidgetNode s (ConfirmEvt ep))
   -> ep
   -> ep
   -> ConfirmCfg

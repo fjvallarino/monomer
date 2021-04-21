@@ -101,20 +101,27 @@ instance WidgetModel SplitState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-hsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+hsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ def nodes
 
-hsplit_ :: [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+hsplit_
+  :: WidgetEvent e
+  => [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit_ configs nodes = split_ True nodes configs
 
-vsplit :: (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+vsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 vsplit nodes = vsplit_ def nodes
 
-vsplit_ :: [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
+vsplit_
+  :: WidgetEvent e
+  => [SplitCfg s e]
+  -> (WidgetNode s e, WidgetNode s e)
+  -> WidgetNode s e
 vsplit_ configs nodes = split_ False nodes configs
 
 split_
-  :: Bool
+  :: WidgetEvent e
+  => Bool
   -> (WidgetNode s e, WidgetNode s e)
   -> [SplitCfg s e]
   -> WidgetNode s e
@@ -132,7 +139,7 @@ split_ isHorizontal (node1, node2) configs = newNode where
   newNode = defaultWidgetNode widgetName widget
     & L.children .~ Seq.fromList [node1, node2]
 
-makeSplit :: Bool -> SplitCfg s e -> SplitState -> Widget s e
+makeSplit :: WidgetEvent e => Bool -> SplitCfg s e -> SplitState -> Widget s e
 makeSplit isHorizontal config state = widget where
   widget = createContainer state def {
     containerUseCustomCursor = True,
@@ -263,13 +270,12 @@ makeSplit isHorizontal config state = widget where
       _spsMaxSize = newSize,
       _spsPrevReqs = (sizeReq1, sizeReq2)
     }
-    events = fmap ($ handlePos) (_spcOnChange config)
+    events = RaiseEvent <$> fmap ($ handlePos) (_spcOnChange config)
     reqOnChange = _spcOnChangeReq config
     requestPos = setModelPos config handlePos
     result = resultWidget node
       & L.node . L.widget .~ makeSplit isHorizontal config newState
-      & L.events .~ Seq.fromList events
-      & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
+      & L.requests .~ Seq.fromList (requestPos ++ reqOnChange ++ events)
     newVps = Seq.fromList [rect1, rect2]
     resized = (result, newVps)
 

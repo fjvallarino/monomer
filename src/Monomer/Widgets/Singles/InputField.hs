@@ -120,7 +120,10 @@ caretMs :: Int
 caretMs = 500
 
 inputField_
-  :: InputFieldValue a => WidgetType -> InputFieldCfg s e a -> WidgetNode s e
+  :: (InputFieldValue a, WidgetEvent e)
+  => WidgetType
+  -> InputFieldCfg s e a
+  -> WidgetNode s e
 inputField_ widgetType config = node where
   value = _ifcInitialValue config
   widget = makeInputField config (initialState value)
@@ -128,7 +131,10 @@ inputField_ widgetType config = node where
     & L.info . L.focusable .~ True
 
 makeInputField
-  :: InputFieldValue a => InputFieldCfg s e a -> InputFieldState a -> Widget s e
+  :: (InputFieldValue a, WidgetEvent e)
+  => InputFieldCfg s e a
+  -> InputFieldState a
+  -> Widget s e
 makeInputField config state = widget where
   widget = createSingle state def {
     singleFocusOnPressedBtn = False,
@@ -624,7 +630,7 @@ genReqsEvents config state newText newReqs = result where
   result = (reqs, events)
 
 moveHistory
-  :: InputFieldValue a
+  :: (InputFieldValue a, WidgetEvent e)
   => WidgetEnv s e
   -> WidgetNode s e
   -> InputFieldState a

@@ -107,27 +107,31 @@ checkboxMark mark = def {
   _ckcMark = Just mark
 }
 
-checkbox :: ALens' s Bool -> WidgetNode s e
+checkbox :: WidgetEvent e => ALens' s Bool -> WidgetNode s e
 checkbox field = checkbox_ field def
 
-checkbox_ :: ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+checkbox_
+  :: WidgetEvent e => ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
-checkboxV :: Bool -> (Bool -> e) -> WidgetNode s e
+checkboxV :: WidgetEvent e => Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
-checkboxV_ :: Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
+checkboxV_
+  :: WidgetEvent e => Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
-checkboxD_ :: WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
+checkboxD_
+  :: WidgetEvent e => WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxD_ widgetData configs = checkboxNode where
   config = mconcat configs
   widget = makeCheckbox widgetData config
   checkboxNode = defaultWidgetNode "checkbox" widget
     & L.info . L.focusable .~ True
 
-makeCheckbox :: WidgetData s Bool -> CheckboxCfg s e -> Widget s e
+makeCheckbox
+  :: WidgetEvent e => WidgetData s Bool -> CheckboxCfg s e -> Widget s e
 makeCheckbox widgetData config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,

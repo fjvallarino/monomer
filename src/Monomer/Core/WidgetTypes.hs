@@ -116,6 +116,7 @@ data WidgetRequest s
   | UpdateModel (s -> s)
   | SetWidgetPath WidgetId Path
   | ResetWidgetPath WidgetId
+  | forall i . Typeable i => RaiseEvent i
   | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
@@ -147,16 +148,14 @@ instance Eq (WidgetRequest s) where
 
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,
-  _wrRequests :: Seq (WidgetRequest s),
-  _wrEvents :: Seq e
+  _wrRequests :: Seq (WidgetRequest s)
 }
 
 -- This instance is lawless (there is not an empty widget): use with caution
 instance Semigroup (WidgetResult s e) where
   er1 <> er2 = WidgetResult {
     _wrNode = _wrNode er2,
-    _wrRequests = _wrRequests er1 <> _wrRequests er2,
-    _wrEvents = _wrEvents er1 <> _wrEvents er2
+    _wrRequests = _wrRequests er1 <> _wrRequests er2
   }
 
 data LayoutDirection
@@ -388,6 +387,7 @@ instance Show (WidgetRequest s) where
   show UpdateModel{} = "UpdateModel"
   show (SetWidgetPath wid path) = "SetWidgetPath: " ++ show (wid, path)
   show (ResetWidgetPath wid) = "ResetWidgetPath: " ++ show wid
+  show RaiseEvent{} = "RaiseEvent"
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"
   show RunProducer{} = "RunProducer"
@@ -395,7 +395,6 @@ instance Show (WidgetRequest s) where
 instance Show (WidgetResult s e) where
   show result = "WidgetResult "
     ++ "{ _wrRequests: " ++ show (_wrRequests result)
-    ++ ", _wrEvents: " ++ show (length (_wrEvents result))
     ++ ", _wrNode: " ++ show (_wrNode result)
     ++ " }"
 

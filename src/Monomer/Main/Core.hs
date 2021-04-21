@@ -141,7 +141,7 @@ runApp window widgetRoot config = do
   let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, newRoot, _, _) <- if isJust (config ^. L.stateFileMain)
+  (newWenv, newRoot, _) <- if isJust (config ^. L.stateFileMain)
     then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
     else initAction
 
@@ -237,17 +237,17 @@ mainLoop window renderer config loopArgs = do
   let baseReqs
         | quit = Seq.fromList exitMsgs
         | otherwise = Seq.Empty
-  let baseStep = (wenv, _mlWidgetRoot, Seq.empty, Seq.empty)
+  let baseStep = (wenv, _mlWidgetRoot, Seq.empty)
 
-  (rqWenv, rqRoot, _, _) <- handleRequests baseReqs baseStep
-  (wtWenv, wtRoot, _, _) <- handleWidgetTasks rqWenv rqRoot
-  (seWenv, seRoot, _, _) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
+  (rqWenv, rqRoot, _) <- handleRequests baseReqs baseStep
+  (wtWenv, wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
+  (seWenv, seRoot, _) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
 
-  (newWenv, newRoot, _, _) <- if windowResized
+  (newWenv, newRoot, _) <- if windowResized
     then do
       resizeWindow window
-      handleResizeWidgets (seWenv, seRoot, Seq.Empty, Seq.Empty)
-    else return (seWenv, seRoot, Seq.empty, Seq.empty)
+      handleResizeWidgets (seWenv, seRoot, Seq.empty)
+    else return (seWenv, seRoot, Seq.empty)
 
   endTicks <- fmap fromIntegral SDL.ticks
 

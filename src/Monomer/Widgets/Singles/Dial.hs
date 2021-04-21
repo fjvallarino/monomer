@@ -119,25 +119,37 @@ instance WidgetModel DialState where
   modelToByteString = serialise
   byteStringToModel = bsToSerialiseModel
 
-dial :: DialValue a => ALens' s a -> a -> a -> WidgetNode s e
+dial :: (DialValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
 
 dial_
-  :: DialValue a => ALens' s a -> a -> a -> [DialCfg s e a] -> WidgetNode s e
+  :: (DialValue a, WidgetEvent e)
+  => ALens' s a
+  -> a
+  -> a
+  -> [DialCfg s e a]
+  -> WidgetNode s e
 dial_ field minVal maxVal cfgs = dialD_ (WidgetLens field) minVal maxVal cfgs
 
-dialV :: DialValue a => a -> (a -> e) -> a -> a -> WidgetNode s e
+dialV
+  :: (DialValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
 dialV_
-  :: DialValue a => a -> (a -> e) -> a -> a -> [DialCfg s e a] -> WidgetNode s e
+  :: (DialValue a, WidgetEvent e)
+  => a
+  -> (a -> e)
+  -> a
+  -> a
+  -> [DialCfg s e a]
+  -> WidgetNode s e
 dialV_ value handler minVal maxVal configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
   newNode = dialD_ widgetData minVal maxVal newConfigs
 
 dialD_
-  :: DialValue a
+  :: (DialValue a, WidgetEvent e)
   => WidgetData s a
   -> a
   -> a
@@ -151,7 +163,7 @@ dialD_ widgetData minVal maxVal configs = dialNode where
     & L.info . L.focusable .~ True
 
 makeDial
-  :: DialValue a
+  :: (DialValue a, WidgetEvent e)
   => WidgetData s a
   -> a
   -> a
@@ -245,12 +257,11 @@ makeDial field minVal maxVal config state = widget where
       isSelectKey code = isKeyReturn code || isKeySpace code
       addReqsEvts result newVal = newResult where
         currVal = widgetDataGet (wenv ^. L.model) field
-        evts = fmap ($ newVal) (_dlcOnChange config)
+        evts = RaiseEvent <$> fmap ($ newVal) (_dlcOnChange config)
         reqs = widgetDataSet field newVal ++ _dlcOnChangeReq config
         newResult
           | currVal /= newVal = result
-              & L.events .~ Seq.fromList evts
-              & L.requests <>~ Seq.fromList reqs
+              & L.requests <>~ Seq.fromList (reqs <> evts)
           | otherwise = result
 
   getSizeReq wenv currState node = req where
