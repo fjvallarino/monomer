@@ -97,6 +97,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
 
   where
     wenv = mockWenv (IntegralModel 0 True)
+    basicIntNode :: WidgetNode IntegralModel TestEvt
     basicIntNode = numericField_ integralValue [selectOnFocus_ False]
     intCfg = [maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
@@ -279,6 +280,7 @@ handleEventFractional = describe "handleEventFractional" $ do
 
   where
     wenv = mockWenv (FractionalModel 0 True)
+    basicFractionalNode :: WidgetNode FractionalModel TestEvt
     basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False]
     floatCfg = [maxValue 1501, validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = numericField_ fractionalValue floatCfg

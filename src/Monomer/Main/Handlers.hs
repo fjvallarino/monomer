@@ -27,7 +27,7 @@ import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
-import Data.Typeable (Typeable)
+import Data.Typeable (Typeable, typeOf)
 import Foreign (alloca, poke)
 import Safe (headMay)
 import SDL (($=))
@@ -557,10 +557,10 @@ handleRaiseEvent
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRaiseEvent message step = do
-  let root = step ^. _2
-  let widgetId = root ^. L.info . L.widgetId
-
-  handleSendMessage widgetId message step
+  --liftIO . putStrLn $ message ++ show (typeOf message)
+  return step
+  where
+    message = "Invalid state. RaiseEvent reached main handler. Type: "
 
 handleSendMessage
   :: forall s e m msg . (MonomerM s m, Typeable msg)

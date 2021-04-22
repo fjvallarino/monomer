@@ -106,12 +106,12 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
       computeTextSize = mockTextSize Nothing,
       computeGlyphsPos = mockGlyphsPos Nothing
     }
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
       & L.renderer .~ renderer
     lblNode = nodeInit wenv (label "Test Label")
     lblNode2 = label "Test Label" `style` [textSize 60]
     lblRes = widgetMerge (lblNode ^. L.widget) wenv lblNode lblNode2
-    WidgetResult lblMerged _ _ = lblRes
+    WidgetResult lblMerged _ = lblRes
     lblInfo = lblNode ^. L.info
     mrgInfo = lblMerged ^. L.info
     (sizeReqW, sizeReqH) = (lblInfo ^. L.sizeReqW, lblInfo ^. L.sizeReqH)

@@ -248,8 +248,11 @@ makeSplit isHorizontal config state = widget where
     ignoreSizeReq = Just True == _spcIgnoreChildResize config
     sizeReqEquals = (sizeReq1, sizeReq2) == _spsPrevReqs state
     useOldPos = customPos || ignoreSizeReq || sizeReqEquals
+    resizeNeeded = not (sizeReqEquals && handlePosUserSet)
+    initialPos = initialHandlePos children
     handlePos
       | useOldPos && handlePosUserSet && validSize = oldHandlePos
+      | resizeNeeded = calcHandlePos newSize initialPos viewport children
       | otherwise = calcHandlePos newSize oldHandlePos viewport children
     (w1, h1)
       | isHorizontal = ((newSize - handleW) * handlePos, rh)
@@ -279,9 +282,9 @@ makeSplit isHorizontal config state = widget where
     newVps = Seq.fromList [rect1, rect2]
     resized = (result, newVps)
 
-  getValidHandlePos maxDim rect point children = addPoint origin newPoint where
-    Rect rx ry _ _ = rect
-    Point vx vy = rectBoundedPoint rect point
+  getValidHandlePos maxDim vp handleXY children = addPoint origin newPoint where
+    Rect rx ry _ _ = vp
+    Point vx vy = rectBoundedPoint vp handleXY
     origin = Point rx ry
     isVertical = not isHorizontal
     child1 = Seq.index children 0
@@ -300,15 +303,22 @@ makeSplit isHorizontal config state = widget where
       | isVertical && maxDim - th > maxSize2 = Point tw (maxDim - maxSize2)
       | otherwise = Point tw th
 
-  calcHandlePos maxDim handlePos rect children = newPos where
-    Rect rx ry _ _ = rect
-    point
+  calcHandlePos maxDim handlePos vp children = newPos where
+    Rect rx ry _ _ = vp
+    handleXY
       | isHorizontal = Point (rx + maxDim * handlePos) 0
       | otherwise = Point 0 (ry + maxDim * handlePos)
-    Point px py = getValidHandlePos maxDim rect point children
+    Point px py = getValidHandlePos maxDim vp handleXY children
     newPos
       | isHorizontal = (px - rx) / maxDim
       | otherwise = (py - ry) / maxDim
+
+  initialHandlePos children = handlePos where
+    child1 = Seq.index children 0
+    child2 = Seq.index children 1
+    maxSize1 = sizeReqMaxBounded (sizeReq child1)
+    maxSize2 = sizeReqMaxBounded (sizeReq child2)
+    handlePos = maxSize1 / (maxSize1 + maxSize2)
 
   selector
     | isHorizontal = _rW

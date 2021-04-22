@@ -5,7 +5,6 @@
 
 module Monomer.Common.CursorIconSpec (spec) where
 
---import Control.Lens ((&), (^.), (.~), (%~), _2)
 import Control.Lens
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default

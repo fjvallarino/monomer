@@ -611,24 +611,23 @@ compositeResize
   -> Rect
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-compositeResize comp state wenv viewport widgetComp = resized where
+compositeResize comp state wenv viewport widgetComp = resizedRes where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   contentArea = fromMaybe def (removeOuterBounds style viewport)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
-  childRes = widgetResize widget cwenv contentArea _cpsRoot
-  oldRa = widgetComp ^. L.info . L.viewport
-  sizeChanged = viewport /= oldRa
+  WidgetResult newRoot newReqs = widgetResize widget cwenv contentArea _cpsRoot
+  oldVp = widgetComp ^. L.info . L.viewport
+  sizeChanged = viewport /= oldVp
   resizeEvts = fmap ($ viewport) (_cmpOnResize comp)
   resizeReqs
-    | sizeChanged = Seq.fromList (RaiseEvent <$> resizeEvts)
+    | sizeChanged = RaiseEvent <$> Seq.fromList resizeEvts
     | otherwise = Empty
-  compRes = reduceResult comp state wenv widgetComp $ childRes
+  childRes = WidgetResult newRoot (newReqs <> resizeReqs)
     & L.node . L.info . L.viewport .~ contentArea
-    & L.requests <>~ resizeReqs
-  resized = compRes
+  resizedRes = reduceResult comp state wenv widgetComp childRes
     & L.node . L.info . L.viewport .~ viewport
 
 -- Render
@@ -696,13 +695,15 @@ reduceResult
   -> WidgetResult sp ep
 reduceResult comp state wenv widgetComp result = newResult where
   WidgetResult newRoot reqs = result
+  widgetId = widgetComp ^. L.info . L.widgetId
   newState = state {
     _cpsRoot = newRoot
   }
   newComp = widgetComp
     & L.widget .~ createComposite comp newState
-  newReqs = toParentReqs (widgetComp ^. L.info . L.widgetId) reqs
-  newResult = WidgetResult newComp newReqs
+  newNode = updateSizeReq newState wenv newComp
+  newReqs = seqCatMaybes (toParentReq widgetId <$> reqs)
+  newResult = WidgetResult newNode newReqs
 
 reduceEvtResponse
   :: (Typeable s, Typeable sp, WidgetEvent e, WidgetEvent ep)
@@ -756,9 +757,6 @@ getModel
   -> WidgetEnv sp ep
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
-
-toParentReqs :: (Typeable s, Typeable sp) => WidgetId -> Seq (WidgetRequest s e) -> Seq (WidgetRequest sp ep)
-toParentReqs wid reqs = fromJust <$> Seq.filter isJust (toParentReq wid <$> reqs)
 
 toParentReq :: (Typeable s, Typeable sp) => WidgetId -> WidgetRequest s e -> Maybe (WidgetRequest sp ep)
 toParentReq _ IgnoreParentEvents = Just IgnoreParentEvents
@@ -834,13 +832,10 @@ cascadeCtx wenv parent child = newChild where
   cOverlay = child ^. L.info . L.overlay
   cVisible = child ^. L.info . L.visible
   cEnabled = child ^. L.info . L.enabled
-  newPath = firstChildPath parent
+  newPath = parent ^. L.info . L.path |> 0
   newChild = child
     & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
     & L.info . L.path .~ newPath
     & L.info . L.overlay .~ (cOverlay || pOverlay)
     & L.info . L.visible .~ (cVisible && pVisible)
     & L.info . L.enabled .~ (cEnabled && pEnabled)
-
-firstChildPath :: WidgetNode s e -> Path
-firstChildPath node = node ^. L.info . L.path |> 0

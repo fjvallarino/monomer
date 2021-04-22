@@ -92,6 +92,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel testItem0)
     labelItem = label . showt
+    lvNode :: WidgetNode TestModel TestEvt
     lvNode = vstack [
         dropdown_ selectedItem testItems labelItem labelItem [maxHeight 200]
       ]

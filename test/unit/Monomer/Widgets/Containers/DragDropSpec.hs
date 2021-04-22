@@ -83,7 +83,7 @@ handleEvent = describe "handleEvent" $ do
     model steps ^. items2 `shouldBe` [2, 3]
 
   where
-    wenv = mockWenv (TestModel [1..5] [])
+    wenv = mockWenvEvtUnit (TestModel [1..5] [])
     handleEvent wenv node model evt = case evt of
       DropTo1 idx -> [Model $ model
         & items2 .~ delete idx (model ^. items2)
@@ -98,7 +98,6 @@ handleEvent = describe "handleEvent" $ do
     dragLbl idx = draggable idx (label "Label")
     mainNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es mainNode
-    events es = nodeHandleEventEvts wenv es mainNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

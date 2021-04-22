@@ -4,6 +4,7 @@ module Monomer.Widgets.Containers.BoxSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -90,7 +91,7 @@ getSizeReq = describe "getSizeReq" $ do
     sizeReqH `shouldBe` fixedSize 20
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     boxNode = box (label "Label")
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
 
@@ -103,7 +104,7 @@ getSizeReqUpdater = describe "getSizeReqUpdater" $ do
     sizeReqH `shouldBe` maxSize 20 3
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
     boxNode = box_ [sizeReqUpdater updater] (label "Label")
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
@@ -126,7 +127,7 @@ resizeDefault = describe "default" $ do
     cViewport `shouldBe` cvp
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp  = Rect   0   0 640 480
     cvp = Rect 295 230  50  20
     boxNode = box (label "Label")
@@ -141,7 +142,7 @@ resizeExpand = describe "expand" $
     cViewport `shouldBe` vp
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp  = Rect   0   0 640 480
     cViewport = getChildVp wenv [expandContent]
 
@@ -166,7 +167,7 @@ resizeAlign = describe "align" $ do
     childVpBR `shouldBe` cvpbr
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     cvpl  = Rect   0 230 50 20
     cvpr  = Rect 590 230 50 20
     cvpt  = Rect 295   0 50 20
@@ -180,7 +181,7 @@ resizeAlign = describe "align" $ do
     childVpTL = getChildVp wenv [alignTop, alignLeft]
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
-getChildVp :: Eq s => WidgetEnv s e -> [BoxCfg s e] -> Rect
+getChildVp :: (Eq s, Typeable e) => WidgetEnv s e -> [BoxCfg s e] -> Rect
 getChildVp wenv cfgs = childLC ^. L.info . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ cfgs lblNode)

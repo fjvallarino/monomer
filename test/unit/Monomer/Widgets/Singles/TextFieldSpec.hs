@@ -199,7 +199,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     model steps ^. textValue `shouldBe` "New"
 
   where
-    wenv = mockWenv (TestModel "")
+    wenv = mockWenvEvtUnit (TestModel "")
     txtNode = vstack [
         hstack [
           textField textValue `style` [width 105],

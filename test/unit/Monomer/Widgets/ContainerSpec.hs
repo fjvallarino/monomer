@@ -58,7 +58,7 @@ handleEventNormal = describe "handleEventNormal" $
     newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 1]))
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenvEvtUnit (TestModel "" "")
     cntNode1 = vstack [
         textField text1,
         textField text2
@@ -69,10 +69,10 @@ handleEventNormal = describe "handleEventNormal" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
     cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtT "bb"]
-    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    (wenv2, root2, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
     modelM = wenv2 ^. L.model
     newRoot = root2
 
@@ -89,7 +89,7 @@ handleEventNoKey = describe "handleEventNoKey" $
     newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 1]))
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenvEvtUnit (TestModel "" "")
     cntNode1 = vstack [
         textField text1,
         textField text2
@@ -100,10 +100,10 @@ handleEventNoKey = describe "handleEventNoKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
     cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    (wenv2, root2, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
     modelM = wenv2 ^. L.model
     newRoot = root2
 
@@ -121,7 +121,7 @@ handleEventLocalKey = describe "handleEventLocalKey" $
     newRoot ^? widLens 1 `shouldBe` Just (WidgetId 0 (Seq.fromList [0, 0]))
 
   where
-    wenv = mockWenv (TestModel "" "")
+    wenv = mockWenvEvtUnit (TestModel "" "")
     cntNode1 = vstack [
         textField text1 `key` "txt1",
         textField text2 `key` "txt2"
@@ -132,9 +132,9 @@ handleEventLocalKey = describe "handleEventLocalKey" $
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1
-    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
+    (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cntNode1
     cntNodeM = nodeMerge wenv1 root1 cntNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
+    (wenv2, root2, _) = fst $ nodeHandleEvents wenv WNoInit evts2 cntNodeM
     modelM = wenv2 ^. L.model
     newRoot = root2

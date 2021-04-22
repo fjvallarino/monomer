@@ -156,12 +156,12 @@ nodeInit wenv node = nodeHandleEventRoot wenv [] node
 
 nodeMerge :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
 nodeMerge wenv oldNode node = newNode where
-  WidgetResult newNode _ _ = widgetMerge (node ^. L.widget) wenv oldNode $ node
+  WidgetResult newNode _ = widgetMerge (node ^. L.widget) wenv oldNode $ node
     & L.info . L.path .~ oldNode ^. L.info . L.path
 
 nodeGetSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
-  WidgetResult node2 _ _ = widgetInit (node ^. L.widget) wenv node
+  WidgetResult node2 _ = widgetInit (node ^. L.widget) wenv node
   sizeReqW = node2 ^. L.info . L.sizeReqW
   sizeReqH = node2 ^. L.info . L.sizeReqH
 
@@ -186,7 +186,7 @@ nodeHandleEventModel
   -> WidgetNode s e
   -> s
 nodeHandleEventModel wenv evts node = _weModel wenv2 where
-  (wenv2, _, _, _) = fst $ nodeHandleEvents wenv WInit evts node
+  (wenv2, _, _) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventRoot
   :: (Eq s)
@@ -195,16 +195,16 @@ nodeHandleEventRoot
   -> WidgetNode s e
   -> WidgetNode s e
 nodeHandleEventRoot wenv evts node = newRoot where
-  (_, newRoot, _, _) = fst $ nodeHandleEvents wenv WInit evts node
+  (_, newRoot, _) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventReqs
   :: (Eq s)
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> Seq (WidgetRequest s)
+  -> Seq (WidgetRequest s e)
 nodeHandleEventReqs wenv evts node = reqs where
-  (_, _, reqs, _) = fst $ nodeHandleEvents wenv WInit evts node
+  (_, _, reqs) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEventEvts
   :: (Eq s)
@@ -212,8 +212,8 @@ nodeHandleEventEvts
   -> [SystemEvent]
   -> WidgetNode s e
   -> Seq e
-nodeHandleEventEvts wenv evts node = events where
-  (_, _, _, events) = fst $ nodeHandleEvents wenv WInit evts node
+nodeHandleEventEvts wenv evts node = eventsFromReqs reqs where
+  (_, _, reqs) = fst $ nodeHandleEvents wenv WInit evts node
 
 nodeHandleEvents
   :: (Eq s)
@@ -228,9 +228,9 @@ nodeHandleEvents wenv init evts node = result where
     | otherwise = nodeHandleEvents_ wenv init [evts] node
   result = foldl1 stepper steps
   stepper step1 step2 = result where
-    ((_, _, reqs1, evts1), _) = step1
-    ((wenv2, root2, reqs2, evts2), ctx2) = step2
-    result = ((wenv2, root2, reqs1 <> reqs2, evts1 <> evts2), ctx2)
+    ((_, _, reqs1), _) = step1
+    ((wenv2, root2, reqs2), ctx2) = step2
+    result = ((wenv2, root2, reqs1 <> reqs2), ctx2)
 
 nodeHandleEvents_
   :: (Eq s)
@@ -247,14 +247,14 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
         handleResourcesInit
         handleWidgetInit wenv pathReadyRoot
       else
-        return (wenv, pathReadyRoot, Seq.empty, Seq.empty)
+        return (wenv, pathReadyRoot, Seq.empty)
 
     ctxA <- get
-    let (wenvA, nodeA, reqsA, evtsA) = stepA
+    let (wenvA, nodeA, reqsA) = stepA
     let resizeRes = widgetResize (nodeA ^. L.widget) wenv vp nodeA
     step <- handleWidgetResult wenvA True resizeRes
     ctx <- get
-    let (wenvr, rootr, reqsr, evtsr) = step
+    let (wenvr, rootr, reqsr) = step
 
     (_, _, steps) <- foldM runStep (wenvr, rootr, [(step, ctx)]) evtsG
 
@@ -274,7 +274,7 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
     runStep (wenv, root, accum) evts = do
       step <- handleSystemEvents wenv evts root
       ctx <- get
-      let (wenv2, root2, reqs2, evts2) = step
+      let (wenv2, root2, reqs2) = step
 
       return (wenv2, root2, (step, ctx) : accum)
 
@@ -297,9 +297,9 @@ nodeHandleRestore wenv evts inst node = unsafePerformIO $ do
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
 
   flip runStateT monomerContext $ do
-    (wenv2, root2, reqs2, evts2) <- handleWidgetRestore wenv inst pathReadyRoot
-    (wenv3, root3, reqs3, evts3) <- handleSystemEvents wenv2 evts root2
-    return (wenv3, root3, reqs2 <> reqs3, evts2 <> evts3)
+    (wenv2, root2, reqs2) <- handleWidgetRestore wenv inst pathReadyRoot
+    (wenv3, root3, reqs3) <- handleSystemEvents wenv2 evts root2
+    return (wenv3, root3, reqs2 <> reqs3)
 
 nodeHandleResult
   :: (Eq s)

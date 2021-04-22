@@ -144,7 +144,7 @@ handleEventRestored = describe "handleEventRestored" $ do
     model steps ^. selectedItem `shouldBe` testItem70
 
   where
-    wenv = mockWenv (TestModel testItem0)
+    wenv = mockWenvEvtUnit (TestModel testItem0)
     node1 = vstack [
         listView selectedItem testItems (label . showt)
       ]

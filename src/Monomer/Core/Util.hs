@@ -1,8 +1,11 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Monomer.Core.Util where
 
 import Control.Lens ((&), (^.), (.~), (?~))
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (cast)
 import Data.Sequence (Seq(..))
 
 import qualified Data.Map.Strict as Map
@@ -53,6 +56,10 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
+treeInstDescFromNode :: WidgetEnv s e -> Int -> WidgetNode s e -> String
+treeInstDescFromNode wenv level node = widgetInstTreeDesc level nodeInst  where
+  nodeInst = widgetSave (node ^. L.widget) wenv node
+
 isResizeWidgets :: WidgetRequest s e -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False
@@ -96,6 +103,18 @@ isMacOS wenv = _weOS wenv == "Mac OS X"
 
 seqStartsWith :: Eq a => Seq a -> Seq a -> Bool
 seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix
+
+seqCatMaybes :: Seq (Maybe a) -> Seq a
+seqCatMaybes Empty = Empty
+seqCatMaybes (x :<| xs) = case x of
+  Just val -> val :<| seqCatMaybes xs
+  _ -> seqCatMaybes xs
+
+eventsFromReqs :: Seq (WidgetRequest s e) -> Seq e
+eventsFromReqs reqs = seqCatMaybes mevents where
+  mevents = flip fmap reqs $ \case
+    RaiseEvent ev -> cast ev
+    _ -> Nothing
 
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where

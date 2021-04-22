@@ -119,7 +119,7 @@ restoreContainer = describe "restoreContainer" $ do
     model2 ^. count1 `shouldBe` 0
 
   where
-    wenv = mockWenv (MainModel "Test" 10)
+    wenv = mockWenvEvtUnit (MainModel "Test" 10)
     node1 = vstack [
         textField text1
       ]
@@ -154,7 +154,7 @@ handleRestoredEvents wenv node1 = (model2, oldInfo, rstInfo) where
   inst2 = deserialise (serialise inst1)
   wenvRest = mockWenv (MainModel "Test" 0)
   evts = [evtK keyTab, evtT " restore"]
-  ((wenv2, node2, _, _), ctx) = nodeHandleRestore wenvRest evts inst2 newNode
+  ((wenv2, node2, _), ctx) = nodeHandleRestore wenvRest evts inst2 newNode
   model2 = wenv2 ^. L.model
   oldStyle = setStyleValue (oldNode ^. L.info . L.style) setFontColorL (?~) red
   oldInfo = oldNode ^. L.info

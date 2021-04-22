@@ -82,7 +82,7 @@ getReqs
   => WidgetEnv s e
   -> WidgetNode s e
   -> [SystemEvent]
-  -> Seq (WidgetRequest s)
+  -> Seq (WidgetRequest s e)
 getReqs wenv node [] = Seq.empty
 getReqs wenv node (e:es) = tmpReqs <> newReqs where
   -- Each component generates a RenderOnce request when Enter event is received

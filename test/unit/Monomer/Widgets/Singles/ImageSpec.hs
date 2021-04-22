@@ -40,16 +40,16 @@ initMergeWidget = describe "init/merge" $ do
     ctx3 ^. L.widgetPaths `shouldSatisfy` (== 1) . length
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     node1 = image "assets/images/beach.jpg"
     node2 = image "assets/images/beach.jpg"
     node3 = image "assets/images/beach2.jpg"
     initRes = widgetInit (node1 ^. L.widget) wenv node1
-    WidgetResult newNode1 reqs1 _ = initRes
+    WidgetResult newNode1 reqs1 = initRes
     mergeRes1 = widgetMerge (node2 ^. L.widget) wenv newNode1 node2
-    WidgetResult _ reqs2 _ = mergeRes1
+    WidgetResult _ reqs2 = mergeRes1
     mergeRes2 = widgetMerge (node3 ^. L.widget) wenv newNode1 node3
-    WidgetResult _ reqs3 _ = mergeRes2
+    WidgetResult _ reqs3 = mergeRes2
     ctx1 = nodeHandleResult wenv initRes ^. _2
     ctx2 = nodeHandleResult wenv mergeRes1 ^. _2
     ctx3 = nodeHandleResult wenv mergeRes2 ^. _2

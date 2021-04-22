@@ -568,17 +568,19 @@
     - Does it make sense to merge events into requests?
     - Can s type argument be removed from WidgetRequest?
       - Better still to add e to make it safer!
+    - Fix test cases
 
 Next
   - Add examples
     - Something of generative art (OpenGL example)
   - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
-    - Send unhandled event as message to root element
-    - Check resize event. Is hsplit broken now?
-    - Fix test cases
+    - Add onMerge config to Composite (needed to request focus in Alert/Dialog)
+      - handleEventFocusKeep in ZStackSpec
+      - The issue is caused because ZStack resets focus to previously focused item on layer, while Alert needs to set its focus. Since onVisibleChanged is set later, it misses it. We need to be able to send that request during merge.
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
   - Remove serialization logic
   - Can Req combinators be removed?
+  - Fix hsplit (when left item is a loaded image all space is assigned to right side)
   - Standardize use of Typeable/WidgetEvent/WidgetModel
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown

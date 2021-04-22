@@ -12,7 +12,7 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (cast)
+import Data.Typeable (Typeable, cast)
 import TextShow
 import Test.Hspec
 
@@ -270,10 +270,10 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
     cmpNode1 = composite "main" id buildUI1 handleEvent
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
-    (wenv1, root1, _, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
+    (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
-    (wenv2, root2, _, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
+    (wenv2, root2, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
     newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
 
 handleEventLocalKeyRemoveItem :: Spec
@@ -300,7 +300,7 @@ handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
     node = composite "main" id buildUI handleEvent
     evts = [evtClick (Point 100 10)]
     oldNode = nodeInit wenv node
-    ((_, newRoot, _, _), newCtx) = nodeHandleEvents wenv WInit evts node
+    ((_, newRoot, _), newCtx) = nodeHandleEvents wenv WInit evts node
     oldInstRoot = widgetSave (oldNode ^. L.widget) wenv oldNode
     newInstRoot = widgetSave (newRoot ^. L.widget) wenv newRoot
     getKeys inst = inst ^.. L.children . ix 0 . L.children . folded . L.info . L.key . _Just . L._WidgetKey
@@ -442,7 +442,7 @@ findNextFocus = describe "findNextFocus" $ do
       inode = nodeInit wenv cmpNode
       res = widgetFindNextFocus (inode ^. L.widget) wenv dir start inode
 
-findByHelperUI :: WidgetNode TestModel ep
+findByHelperUI :: Typeable ep => WidgetNode TestModel ep
 findByHelperUI = composite "main" id buildUI handleEvent where
   handleEvent wenv node model evt = []
   buildLabels :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
@@ -470,7 +470,7 @@ getSizeReq = describe "getSizeReq" $ do
     sizeReqH `shouldBe` fixedSize 40
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     handleEvent wenv node model evt = []
     buildUI :: WidgetEnv () () -> () -> WidgetNode () ()
     buildUI wenv model = vstack [
@@ -489,7 +489,8 @@ resize = describe "resize" $ do
     childrenVp `shouldBe` Seq.singleton cvp1
 
   where
-    wenv = mockWenv () & L.windowSize .~ Size 640 480
+    wenv = mockWenvEvtUnit ()
+      & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
     handleEvent wenv node model evt = []

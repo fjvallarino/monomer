@@ -67,6 +67,7 @@ handleEvent = describe "handleEvent" $ do
     wenv = mockWenv (TestModel Apple)
       & L.theme .~ darkTheme
     orangeNode = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
+    bananaNode :: WidgetNode TestModel FruitEvt
     bananaNode = radio fruit Banana
     clickModel p node = nodeHandleEventModel wenv [Click p LeftBtn] node
     keyModel key node = nodeHandleEventModel wenv [KeyAction def key KeyPressed] node

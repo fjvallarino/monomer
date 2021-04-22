@@ -86,8 +86,8 @@ testHandleSizeChange = describe "handleSizeChange" $ do
       & L.info . L.style .~ style
     node = nodeInit wenv baseNode
     modNode = node & L.info . L.sizeReqW .~ fixedSize 100
-    res1 = Just $ WidgetResult modNode Empty Empty
-    res2 = Just $ WidgetResult node Empty Empty
+    res1 = Just $ WidgetResult modNode Empty
+    res2 = Just $ WidgetResult node Empty
     point = Point 200 200
     path = Seq.fromList [0]
     wenvHover = mockWenv () & L.inputStatus . L.mousePos .~ point
@@ -96,15 +96,15 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     resHover = handleStyleChange wenvHover path hoverStyle True node evEnter res1
     resFocus = handleStyleChange wenvFocus path focusStyle True node Focus res2
 
-isMResizeWidgets :: Maybe (WidgetRequest s) -> Bool
+isMResizeWidgets :: Maybe (WidgetRequest s e) -> Bool
 isMResizeWidgets (Just ResizeWidgets) = True
 isMResizeWidgets _ = False
 
-isMRenderOnce :: Maybe (WidgetRequest s) -> Bool
+isMRenderOnce :: Maybe (WidgetRequest s e) -> Bool
 isMRenderOnce (Just RenderOnce{}) = True
 isMRenderOnce _ = False
 
-isMSetCursorIcon :: Maybe (WidgetRequest s) -> Bool
+isMSetCursorIcon :: Maybe (WidgetRequest s e) -> Bool
 isMSetCursorIcon (Just SetCursorIcon{}) = True
 isMSetCursorIcon _ = False
 

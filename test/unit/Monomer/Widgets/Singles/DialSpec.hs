@@ -70,7 +70,7 @@ handleEventKeyboard = describe "handleEventKeyboard" $ do
     model steps ^. dialVal `shouldBe` (-20)
 
   where
-    wenv = mockWenv (TestModel 0)
+    wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     dialNode = dial dialVal (-100) 100
     model es = nodeHandleEventModel wenv es dialNode
@@ -108,7 +108,7 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     model steps ^. dialVal `shouldBe` 100
 
   where
-    wenv = mockWenv (TestModel 0)
+    wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     dialNode = dial dialVal (-100) 100
     model es = nodeHandleEventModel wenv es dialNode
@@ -166,6 +166,6 @@ getSizeReq = describe "getSizeReq" $ do
     sizeReqH `shouldBe` fixedSize 50
 
   where
-    wenv = mockWenv (TestModel 0)
+    wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (dial dialVal 0 100)

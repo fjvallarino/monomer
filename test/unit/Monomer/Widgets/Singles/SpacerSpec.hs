@@ -38,7 +38,7 @@ spacerSizeReqBox = describe "spacerSizeReqBox" $ do
     sizeReqH1 `shouldBe` fixedSize 5
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv (box spacer)
 
 spacerSizeReqGrid :: Spec
@@ -52,7 +52,7 @@ spacerSizeReqGrid = describe "spacerSizeReqGrid" $ do
     sizeReqH2 `shouldBe` fixedSize 5
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv (hgrid [spacer])
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv (vgrid [spacer])
 
@@ -84,7 +84,7 @@ fillerSizeReqBox = describe "fillerSizeReqBox" $ do
     sizeReqH1 `shouldBe` expandSize 5 0.5
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv (box filler)
 
 fillerSizeReqGrid :: Spec
@@ -98,7 +98,7 @@ fillerSizeReqGrid = describe "fillerSizeReqGrid" $ do
     sizeReqH2 `shouldBe` expandSize 5 0.5
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv (hgrid [filler])
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv (vgrid [filler])
 
