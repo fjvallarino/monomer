@@ -14,9 +14,6 @@ module Monomer.Widgets.Singles.ListView (
   listViewD_
 ) where
 
-import Codec.CBOR.Decoding
-import Codec.CBOR.Encoding
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (?~), (<>~), at, ix, non, _Just)
 import Control.Monad (when)
@@ -162,23 +159,6 @@ data ListViewState a = ListViewState {
   _resizeReq :: Bool
 } deriving (Eq, Show)
 
-instance Serialise (ListViewState a) where
-  encode ListViewState{..} = encodeListLen 5 <> encodeTag 0
-    <> encode _slIdx <> encode _hlIdx
-    <> encode _slStyle <> encode _hlStyle
-    <> encode _resizeReq
-  decode = do
-    len <- decodeListLen
-    tag <- decodeTag
-    case (len, tag) of
-      (5, 0) -> ListViewState Empty
-                  <$> decode <*> decode <*> decode <*> decode <*> decode
-      _ -> fail "Invalid ListViewState encoding"
-
-instance Typeable a => WidgetModel (ListViewState a) where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
-
 newtype ListViewMessage
   = OnClickMessage Int
 
@@ -254,10 +234,8 @@ makeListView widgetData items makeRow config state = widget where
     containerResizeRequired = _resizeReq state,
     containerInit = init,
     containerMergeChildrenReq = mergeChildrenReq,
-    containerMerge = Just merge,
+    containerMerge = merge,
     containerMergePost = mergePost,
-    containerRestore = restore,
-    containerRestorePost = restorePost,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -297,14 +275,6 @@ makeListView widgetData items makeRow config state = widget where
     result = updateState wenv oldState mergeRequired children node
 
   mergePost wenv result oldState oldNode node = newResult where
-    newResult = updateResultStyle wenv result oldState
-
-  restore wenv oldState oldInfo node = result where
-    resizeReq = True
-    children = createListViewChildren wenv node
-    result = updateState wenv oldState resizeReq children node
-
-  restorePost wenv result oldState oldNode node = newResult where
     newResult = updateResultStyle wenv result oldState
 
   updateState wenv oldState resizeReq children node = resultWidget newNode where

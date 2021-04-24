@@ -1,5 +1,4 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -15,7 +14,6 @@ module Monomer.Widgets.Singles.Dial (
   dialWidth
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Control.Monad
@@ -113,11 +111,7 @@ dialWidth w = def {
 data DialState = DialState {
   _dlsMaxPos :: Integer,
   _dlsPos :: Integer
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel DialState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 dial :: (DialValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
@@ -175,7 +169,7 @@ makeDial field minVal maxVal config state = widget where
     singleGetBaseStyle = getBaseStyle,
     singleGetActiveStyle = getActiveStyle,
     singleInit = init,
-    singleRestore = restore,
+    singleMerge = merge,
     singleFindByPoint = findByPoint,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -198,7 +192,7 @@ makeDial field minVal maxVal config state = widget where
     resNode = node
       & L.widget .~ makeDial field minVal maxVal config newState
 
-  restore wenv oldState oldNode newNode = resultWidget resNode where
+  merge wenv oldState oldNode newNode = resultWidget resNode where
     newState
       | isNodePressed wenv newNode = oldState
       | otherwise = newStateFromModel wenv newNode oldState

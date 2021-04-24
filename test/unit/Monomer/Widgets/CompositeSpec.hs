@@ -60,14 +60,10 @@ instance Default MainModel where
     _tmChild = def
   }
 
-instance WidgetModel MainModel
-
 data ChildModel = ChildModel {
   _cmClicks :: Int,
   _cmMessage :: String
 } deriving (Eq, Show)
-
-instance WidgetModel ChildModel
 
 instance Default ChildModel where
   def = ChildModel {
@@ -87,8 +83,6 @@ instance Default TestModel where
     _tmText1 = "",
     _tmText2 = ""
   }
-
-instance WidgetModel TestModel
 
 msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle () def {
   SG.singleHandleMessage = msgWidgetHandleMessage

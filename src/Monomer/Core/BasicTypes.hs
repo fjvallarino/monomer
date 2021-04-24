@@ -1,9 +1,7 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Core.BasicTypes where
 
-import Codec.Serialise
 import Data.Default
 import Data.Sequence (Seq)
 import GHC.Generics
@@ -17,7 +15,7 @@ type Factor = Double
 data Point = Point {
   _pX :: {-# UNPACK #-} !Double,
   _pY :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default Point where
   def = Point 0 0
@@ -25,7 +23,7 @@ instance Default Point where
 data Size = Size {
   _sW :: {-# UNPACK #-} !Double,
   _sH :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default Size where
   def = Size 0 0
@@ -35,7 +33,7 @@ data Rect = Rect {
   _rY :: {-# UNPACK #-} !Double,
   _rW :: {-# UNPACK #-} !Double,
   _rH :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default Rect where
   def = Rect 0 0 0 0

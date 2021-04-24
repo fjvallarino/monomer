@@ -18,7 +18,6 @@ module Monomer.Widgets.Util.Widget (
   resultReqsEvts,
   makeState,
   useState,
-  loadState,
   matchFailedMsg,
   infoMatches,
   nodeMatches,
@@ -125,13 +124,6 @@ makeState state model = Just (WidgetState state)
 useState :: WidgetModel i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
-
-loadState :: WidgetModel i => Maybe WidgetState -> Maybe i
-loadState state = state >>= wsVal >>= fromBS where
-  wsVal (WidgetState val) = cast val
-  fromBS bs = case byteStringToModel bs of
-    Right val -> Just val
-    Left _ -> Nothing
 
 matchFailedMsg :: WidgetNodeInfo -> WidgetNodeInfo -> String
 matchFailedMsg oldInfo newInfo = message where

@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -32,7 +31,7 @@ data TickerModel = TickerModel {
   _prcNewPair :: Text,
   _prcSymbolPairs :: [Text],
   _prcTickers :: Map Text Ticker
-} deriving (Eq, Show, WidgetModel)
+} deriving (Eq, Show)
 
 instance Default TickerModel where
   def = TickerModel {

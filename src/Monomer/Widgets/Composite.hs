@@ -27,9 +27,6 @@ module Monomer.Widgets.Composite (
 
 import Debug.Trace
 
-import Codec.CBOR.Decoding
-import Codec.CBOR.Encoding
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
@@ -186,22 +183,6 @@ data CompositeState s e = CompositeState {
   _cpsGlobalKeys :: WidgetKeysMap s e
 }
 
-instance WidgetModel s => Serialise (CompositeState s e) where
-  encode state = encodeListLen 2 <> encodeWord 0 <> encode modelBS where
-    modelBS = modelToByteString (_cpsModel state)
-  decode = do
-    len <- decodeListLen
-    tag <- decodeWord
-    modelBS <- decode
-    let model = fromRight Nothing (byteStringToModel modelBS)
-    case (len, tag) of
-      (2, 0) -> return $ CompositeState model spacer M.empty
-      _ -> fail "Invalid Composite state"
-
-instance (WidgetModel s, Typeable e) => WidgetModel (CompositeState s e) where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
-
 data ReducedEvents s e sp ep = ReducedEvents {
   _reModel :: s,
   _reEvents :: Seq e,
@@ -323,7 +304,6 @@ createComposite comp state = widget where
     widgetDispose = compositeDispose comp state,
     widgetGetState = makeState state,
     widgetSave = compositeSave comp state,
-    widgetRestore = compositeRestore comp state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
     widgetFindByPath = compositeFindByPath comp state,
@@ -450,47 +430,6 @@ compositeSave comp state wenv node = instTree where
     _winState = Just (WidgetState state),
     _winChildren = Seq.singleton cInstTree
   }
-
-compositeRestore
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => Composite s e sp ep
-  -> CompositeState s e
-  -> WidgetEnv sp ep
-  -> WidgetInstanceNode
-  -> WidgetNode sp ep
-  -> WidgetResult sp ep
-compositeRestore comp state wenv win newComp = result where
-  oldState = loadState (win ^. L.state)
-  validState = fromMaybe state oldState
-  oldGlobalKeys = M.empty
-  oldModel = _cpsModel validState
-  oldInfo = win ^. L.info
-  model = fromMaybe (getModel comp wenv) oldModel
-  cwenv = convertWidgetEnv wenv oldGlobalKeys model
-  tempRoot = cascadeCtx wenv newComp (_cmpUiBuilder comp cwenv model)
-  tempWidget = tempRoot ^. L.widget
-  tempResult = case Seq.lookup 0 (win ^. L.children) of
-    Just cwin -> widgetRestore tempWidget cwenv cwin tempRoot
-    _ -> resultWidget tempRoot
-  newRoot = tempResult ^. L.node
-  newState = validState {
-    _cpsModel = Just model,
-    _cpsRoot = newRoot,
-    _cpsGlobalKeys = collectGlobalKeys M.empty newRoot
-  }
-  getBaseStyle wenv node = Nothing
-  styledComp = initNodeStyle getBaseStyle wenv newComp
-  reducedResult = toParentResult comp newState wenv styledComp tempResult
-  widgetId = newComp ^. L.info . L.widgetId
-  valid = infoMatches (win ^. L.info) (newComp ^. L.info)
-  message = matchFailedMsg (win ^. L.info) (newComp ^. L.info)
-  result
-    | valid = reducedResult
-        & L.node . L.info . L.widgetId .~ oldInfo ^. L.widgetId
-        & L.node . L.info . L.viewport .~ oldInfo ^. L.viewport
-        & L.node . L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
-        & L.node . L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
-    | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
 -- | Next focusable
 compositeFindNextFocus

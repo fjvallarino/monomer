@@ -278,29 +278,6 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
 
       return (wenv2, root2, (step, ctx) : accum)
 
-nodeHandleRestore
-  :: (Eq s)
-  => WidgetEnv s e
-  -> [SystemEvent]
-  -> WidgetInstanceNode
-  -> WidgetNode s e
-  -> (HandlerStep s e, MonomerCtx s)
-nodeHandleRestore wenv evts inst node = unsafePerformIO $ do
-  let winSize = _weWindowSize wenv
-  let useHdpi = True
-  let dpr = 1
-  let model = _weModel wenv
-  -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
-  let pathReadyRoot = node
-        & L.info . L.path .~ rootPath
-        & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
-
-  flip runStateT monomerContext $ do
-    (wenv2, root2, reqs2) <- handleWidgetRestore wenv inst pathReadyRoot
-    (wenv3, root3, reqs3) <- handleSystemEvents wenv2 evts root2
-    return (wenv3, root3, reqs2 <> reqs3)
-
 nodeHandleResult
   :: (Eq s)
   => WidgetEnv s e

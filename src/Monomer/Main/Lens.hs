@@ -11,6 +11,5 @@ import Monomer.Main.Types
 
 makeLensesWith abbreviatedFields ''AppConfig
 makeLensesWith abbreviatedFields ''MonomerCtx
-makeLensesWith abbreviatedFields ''MonomerCtxPersist
 makeLensesWith abbreviatedFields ''DragAction
 makeLensesWith abbreviatedFields ''RenderSchedule

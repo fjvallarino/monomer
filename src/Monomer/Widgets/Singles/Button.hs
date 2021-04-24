@@ -172,7 +172,7 @@ makeButton caption config = widget where
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -212,7 +212,7 @@ makeButton caption config = widget where
   init wenv node = result where
     result = resultWidget (createChildNode wenv node)
 
-  restore wenv oldState oldNode node = result where
+  merge wenv oldState oldNode node = result where
     result = resultWidget (createChildNode wenv node)
 
   handleEvent wenv target evt node = case evt of

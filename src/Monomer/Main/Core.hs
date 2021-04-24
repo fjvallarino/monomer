@@ -11,7 +11,6 @@ module Monomer.Main.Core (
   runApp
 ) where
 
-import Codec.Serialise
 import Control.Concurrent (threadDelay)
 import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad.Catch
@@ -137,13 +136,9 @@ runApp window widgetRoot config = do
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
-  let restoreAction = loadMonomerCtx wenv pathReadyRoot config
-  let initAction = handleWidgetInit wenv pathReadyRoot
 
   handleResourcesInit
-  (newWenv, newRoot, _) <- if isJust (config ^. L.stateFileMain)
-    then catchAll restoreAction (\e -> liftIO (print e) >> initAction)
-    else initAction
+  (newWenv, newRoot, _) <- handleWidgetInit wenv pathReadyRoot
 
   let loopArgs = MainLoopArgs {
     _mlOS = os,
@@ -282,10 +277,7 @@ mainLoop window renderer config loopArgs = do
 
   shouldQuit <- use L.exitApplication
 
-  when shouldQuit $ do
-    when (isJust (config ^. L.stateFileMain)) $
-      saveMonomerCtx wenv newRoot config
-
+  when shouldQuit $
     void $ handleWidgetDispose newWenv newRoot
 
   unless shouldQuit (mainLoop window renderer config newLoopArgs)
@@ -356,56 +348,6 @@ resizeWindow window = do
 
   L.windowSize .= windowSize
   liftIO $ GL.viewport GL.$= (position, size)
-
-saveMonomerCtx
-  :: MonomerM s m
-  => WidgetEnv s ep
-  -> WidgetNode s ep
-  -> AppConfig e
-  -> m ()
-saveMonomerCtx wenv root config = do
-  let file = fromMaybe "main-tree.ser" (config ^. L.stateFileMain)
-  let instNode = widgetSave (root ^. L.widget) wenv root
-  ctxp <- toMonomerCtxPersist
-  liftIO $ writeFileSerialise file (ctxp, instNode)
-
-loadMonomerCtx
-  :: MonomerM s m
-  => WidgetEnv s ep
-  -> WidgetNode s ep
-  -> AppConfig e
-  -> m (HandlerStep s ep)
-loadMonomerCtx wenv root config = do
-  let file = fromMaybe "main-tree.ser" (config ^. L.stateFileMain)
-
-  (ctxp, widgetInst) <- liftIO $ readFileDeserialise file
-  step <- handleWidgetRestore wenv widgetInst root
-  fromMonomerCtxPersist ctxp
-  L.resizePending .= True
-  handleResizeWidgets step
-
-toMonomerCtxPersist :: (MonomerM s m) => m MonomerCtxPersist
-toMonomerCtxPersist = do
-  ctx <- get
-  return $ def
-    & L.cursorStack .~ ctx ^. L.cursorStack
-    & L.focusedWidgetId .~ ctx ^. L.focusedWidgetId
-    & L.hoveredWidgetId .~ ctx ^. L.hoveredWidgetId
-    & L.overlayWidgetId .~ ctx ^. L.overlayWidgetId
-    & L.widgetPaths .~ ctx ^. L.widgetPaths
-    & L.resizePending .~ ctx ^. L.resizePending
-    & L.renderSchedule .~ ctx ^. L.renderSchedule
-
-fromMonomerCtxPersist :: (MonomerM s m) => MonomerCtxPersist -> m ()
-fromMonomerCtxPersist ctxp = do
-  L.cursorStack .= ctxp ^. L.cursorStack
-  L.focusedWidgetId .= ctxp ^. L.focusedWidgetId
-  L.hoveredWidgetId .= ctxp ^. L.hoveredWidgetId
-  L.overlayWidgetId .= ctxp ^. L.overlayWidgetId
-  L.widgetPaths .= ctxp ^. L.widgetPaths
-  L.resizePending .= ctxp ^. L.resizePending
-  L.renderRequested .= True
-  L.renderSchedule .= ctxp ^. L.renderSchedule
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

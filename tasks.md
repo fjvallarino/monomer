@@ -569,27 +569,30 @@
     - Can s type argument be removed from WidgetRequest?
       - Better still to add e to make it safer!
     - Fix test cases
+    - Add onMerge config to Composite (needed to request focus in Alert/Dialog)
+      - handleEventFocusKeep in ZStackSpec
+      - The issue is caused because ZStack resets focus to previously focused item on layer, while Alert needs to set its focus. Since onVisibleChanged is set later, it misses it. We need to be able to send that request during merge.
+  - Fix hsplit (when left item is a loaded image all space is assigned to right side)
 
 Next
   - Add examples
     - Something of generative art (OpenGL example)
-  - Simplify Composite. Do not handle events directly, make them go through as a message so they are handled in order
-    - Add onMerge config to Composite (needed to request focus in Alert/Dialog)
-      - handleEventFocusKeep in ZStackSpec
-      - The issue is caused because ZStack resets focus to previously focused item on layer, while Alert needs to set its focus. Since onVisibleChanged is set later, it misses it. We need to be able to send that request during merge.
-  - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
   - Remove serialization logic
-  - Can Req combinators be removed?
-  - Fix hsplit (when left item is a loaded image all space is assigned to right side)
+  - Make Eq WidgetRequest require Eq e
+  - Rename widgetSave to something more appropriate
   - Standardize use of Typeable/WidgetEvent/WidgetModel
+  - Should node come immediately after wenv in Widget methods?
+  - Can Req combinators be removed?
+  - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
+    - There must be some way to avoid adding the method back. Can't the same object be forced to update?
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
+  - Notify of viewport change (maybe for chart?)
+    - Isn't resize enough? Not sure what the use case for this was
+  - Is merging Task and Producer a good idea? (most likely not)
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
-  - Notify of viewport change (maybe for chart?)
-  - Should node come immediately after wenv in Widget methods?
-  - Is merging Task and Producer a good idea? (most likely not)
 
 Future
   - Check cross compilation

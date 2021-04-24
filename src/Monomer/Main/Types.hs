@@ -1,5 +1,4 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -8,7 +7,6 @@
 
 module Monomer.Main.Types where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Concurrent.Async
 import Control.Concurrent.STM.TChan
@@ -40,7 +38,7 @@ data RenderSchedule = RenderSchedule {
   _rsStart :: Int,
   _rsMs :: Int,
   _rsRepeat :: Maybe Int
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 data DragAction = DragAction {
   _dgaWidgetId :: WidgetId,
@@ -76,29 +74,6 @@ data MonomerCtx s = MonomerCtx {
   _mcExitApplication :: Bool
 }
 
-data MonomerCtxPersist = MonomerCtxPersist {
-  _mcpCursorStack :: [(WidgetId, CursorIcon)],
-  _mcpFocusedWidgetId :: WidgetId,
-  _mcpHoveredWidgetId :: Maybe WidgetId,
-  _mcpOverlayWidgetId :: Maybe WidgetId,
-  _mcpWidgetPaths :: Map WidgetId Path,
-  _mcpResizePending :: Bool,
-  _mcpRenderRequested :: Bool,
-  _mcpRenderSchedule :: Map WidgetId RenderSchedule
-} deriving (Eq, Show, Generic, Serialise)
-
-instance Default MonomerCtxPersist where
-  def = MonomerCtxPersist {
-    _mcpCursorStack = [],
-    _mcpFocusedWidgetId = def,
-    _mcpHoveredWidgetId = Nothing,
-    _mcpOverlayWidgetId = Nothing,
-    _mcpWidgetPaths = M.empty,
-    _mcpResizePending = False,
-    _mcpRenderRequested = False,
-    _mcpRenderSchedule = M.empty
-  }
-
 data MainWindowState
   = MainWindowNormal (Int, Int)
   | MainWindowMaximized
@@ -118,8 +93,7 @@ data AppConfig e = AppConfig {
   _apcDisposeEvent :: [e],
   _apcExitEvent :: [e],
   _apcResizeEvent :: [Rect -> e],
-  _apcMainButton :: Maybe Button,
-  _apcStateFileMain :: Maybe String
+  _apcMainButton :: Maybe Button
 }
 
 instance Default (AppConfig e) where
@@ -136,8 +110,7 @@ instance Default (AppConfig e) where
     _apcDisposeEvent = [],
     _apcExitEvent = [],
     _apcResizeEvent = [],
-    _apcMainButton = Nothing,
-    _apcStateFileMain = Nothing
+    _apcMainButton = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -154,8 +127,7 @@ instance Semigroup (AppConfig e) where
     _apcDisposeEvent = _apcDisposeEvent a1 ++ _apcDisposeEvent a2,
     _apcExitEvent = _apcExitEvent a1 ++ _apcExitEvent a2,
     _apcResizeEvent = _apcResizeEvent a1 ++ _apcResizeEvent a2,
-    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
-    _apcStateFileMain = _apcStateFileMain a2 <|> _apcStateFileMain a1
+    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1
   }
 
 instance Monoid (AppConfig e) where
@@ -224,9 +196,4 @@ appResizeEvent evt = def {
 appMainButton :: Button -> AppConfig e
 appMainButton btn = def {
   _apcMainButton = Just btn
-}
-
-appStateFileMain :: String -> AppConfig e
-appStateFileMain file = def {
-  _apcStateFileMain = Just file
 }

@@ -1,10 +1,7 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Types where
 
-import Codec.Serialise
 import Control.Lens (makeLenses)
 import Data.Default
 import Data.Text (Text)
@@ -16,7 +13,7 @@ data Fruit
   = Apple
   | Orange
   | Pear
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show)
 
 data App = App {
   _clickCount :: !Int,
@@ -41,7 +38,7 @@ data App = App {
   _splitPos :: Double,
   _dragList1 :: [Int],
   _dragList2 :: [Int]
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
 
 instance Default App where
   def = App {
@@ -68,10 +65,6 @@ instance Default App where
     _dragList1 = [1..100],
     _dragList2 = []
   }
-
-instance WidgetModel App where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
 
 makeLenses ''App
 

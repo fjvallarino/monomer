@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module KeysComposite (
@@ -9,7 +7,6 @@ module KeysComposite (
 
 import Debug.Trace
 
-import Codec.Serialise
 import Control.Concurrent (threadDelay)
 import Control.Lens hiding (Empty, (|>), (<|))
 import Control.Monad (forM_)
@@ -17,7 +14,6 @@ import Control.Monad (forM_)
 import Data.Default
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
-import GHC.Generics
 import TextShow
 
 import qualified Data.Sequence as Seq
@@ -31,15 +27,11 @@ import Monomer.Widgets
 data EditableItem = EditableItem {
   _itemId :: Text,
   _itemDesc :: Text
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
 
 newtype KeysCompState = KeysCompState {
   _items :: Seq EditableItem
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel KeysCompState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show)
 
 makeLenses ''EditableItem
 makeLenses ''KeysCompState

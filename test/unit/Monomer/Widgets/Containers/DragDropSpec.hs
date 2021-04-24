@@ -46,8 +46,6 @@ data TestModel = TestModel {
   _tmItems2 :: [Int]
 } deriving (Eq, Show)
 
-instance WidgetModel TestModel
-
 makeLensesWith abbreviatedFields ''TestItem
 makeLensesWith abbreviatedFields ''TestModel
 

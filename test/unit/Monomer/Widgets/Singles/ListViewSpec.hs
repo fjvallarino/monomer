@@ -3,7 +3,6 @@
 
 module Monomer.Widgets.Singles.ListViewSpec (spec) where
 
-import Codec.Serialise
 import Control.Lens ((&), (^.), (.~), _1)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
@@ -57,7 +56,6 @@ spec :: Spec
 spec = describe "ListView" $ do
   handleEvent
   handleEventValue
-  handleEventRestored
   getSizeReq
 
 handleEvent :: Spec
@@ -120,42 +118,6 @@ handleEventValue = describe "handleEventValue" $ do
     clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
     events evts = Seq.drop (Seq.length res - 1) res where
       res = nodeHandleEventEvts wenv evts lvNode
-
-handleEventRestored :: Spec
-handleEventRestored = describe "handleEventRestored" $ do
-  it "should not update the model if not clicked" $
-    clickModel (Point 3000 3000) ^. selectedItem `shouldBe` testItem0
-
-  it "should update the model when clicked" $
-    clickModel (Point 100 70) ^. selectedItem `shouldBe` testItem10
-
-  it "should update the model when clicked, after wheel scrolled" $ do
-    let p = Point 100 10
-    let steps = [WheelScroll p (Point 0 (-125)) WheelNormal, evtClick p]
-    model steps ^. selectedItem `shouldBe` testItem70
-
-  it "should update the model when clicked, after list is displaced because of arrow press" $ do
-    let p = Point 100 10
-    let steps = [evtK keyTab] ++ replicate 3 (evtK keyDown) ++ [evtClick p]
-    model steps ^. selectedItem `shouldBe` testItem10
-
-  it "should update the model when Enter/Space is pressed, after navigating to an element" $ do
-    let steps = [evtK keyTab] ++ replicate 41 (evtK keyDown) ++ [evtK keyUp, evtK keySpace]
-    model steps ^. selectedItem `shouldBe` testItem70
-
-  where
-    wenv = mockWenvEvtUnit (TestModel testItem0)
-    node1 = vstack [
-        listView selectedItem testItems (label . showt)
-      ]
-    startEvts = evtK keyTab : replicate 30 (evtK keyDown)
-    oldNode = nodeHandleEventRoot wenv startEvts node1
-    inst1 = widgetSave (oldNode ^. L.widget) wenv oldNode
-    inst2 = deserialise (serialise inst1)
-    clickModel p = res ^. _1 . _1 . L.model where
-      res = nodeHandleRestore wenv [Click p LeftBtn] inst2 node1
-    model evts = res ^. _1 . _1 . L.model where
-      res = nodeHandleRestore wenv evts inst2 node1
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

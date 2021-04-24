@@ -13,7 +13,6 @@ module Monomer.Widgets.Single (
   updateSizeReq
 ) where
 
-import Codec.Serialise
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens ((&), (^.), (^?), (.~), (%~), _Just)
 import Data.Default
@@ -48,13 +47,6 @@ type SingleMergeHandler s e a
   = WidgetEnv s e
   -> a
   -> WidgetNode s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-
-type SingleRestoreHandler s e a
-  = WidgetEnv s e
-  -> a
-  -> WidgetNodeInfo
   -> WidgetNode s e
   -> WidgetResult s e
 
@@ -119,8 +111,7 @@ data Single s e a = Single {
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   singleGetActiveStyle :: SingleGetActiveStyle s e,
   singleInit :: SingleInitHandler s e,
-  singleMerge :: Maybe (SingleMergeHandler s e a),
-  singleRestore :: SingleRestoreHandler s e a,
+  singleMerge :: SingleMergeHandler s e a,
   singleDispose :: SingleDisposeHandler s e,
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
   singleFindByPoint :: SingleFindByPointHandler s e,
@@ -141,8 +132,7 @@ instance Default (Single s e a) where
     singleGetBaseStyle = defaultGetBaseStyle,
     singleGetActiveStyle = defaultGetActiveStyle,
     singleInit = defaultInit,
-    singleMerge = Nothing,
-    singleRestore = defaultRestore,
+    singleMerge = defaultMerge,
     singleDispose = defaultDispose,
     singleFindNextFocus = defaultFindNextFocus,
     singleFindByPoint = defaultFindByPoint,
@@ -160,7 +150,6 @@ createSingle state single = Widget {
   widgetDispose = disposeWrapper single,
   widgetGetState = makeState state,
   widgetSave = saveWrapper single,
-  widgetRestore = restoreWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
   widgetFindByPath = singleFindByPath,
@@ -204,9 +193,7 @@ mergeWrapper
   -> WidgetNode s e
   -> WidgetResult s e
 mergeWrapper single wenv oldNode newNode = newResult where
-  mergeHandler = case singleMerge single of
-    Just handler -> handler
-    _ -> mergeWithRestore (singleRestore single)
+  mergeHandler = singleMerge single
   oldState = widgetGetState (oldNode ^. L.widget) wenv
   oldInfo = oldNode ^. L.info
   nodeHandler wenv styledNode = case useState oldState of
@@ -214,53 +201,6 @@ mergeWrapper single wenv oldNode newNode = newResult where
     _ -> resultWidget styledNode
   tmpResult = runNodeHandler single wenv oldInfo newNode nodeHandler
   newResult = handleWidgetIdChange oldNode tmpResult
-
-mergeWithRestore
-  :: SingleRestoreHandler s e a
-  -> WidgetEnv s e
-  -> a
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-mergeWithRestore restore wenv oldState oldNode newNode = result where
-  info = oldNode ^. L.info
-  result = restore wenv oldState info newNode
-
-saveWrapper
-  :: WidgetModel a
-  => Single s e a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetInstanceNode
-saveWrapper container wenv node = instNode where
-  instNode = WidgetInstanceNode {
-    _winInfo = node ^. L.info,
-    _winState = widgetGetState (node ^. L.widget) wenv,
-    _winChildren = fmap (saveChildNode wenv) (node ^. L.children)
-  }
-  saveChildNode wenv child = widgetSave (child ^. L.widget) wenv child
-
-defaultRestore :: SingleRestoreHandler s e a
-defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
-
-restoreWrapper
-  :: WidgetModel a
-  => Single s e a
-  -> WidgetEnv s e
-  -> WidgetInstanceNode
-  -> WidgetNode s e
-  -> WidgetResult s e
-restoreWrapper single wenv win newNode = newResult where
-  restoreHandler = singleRestore single
-  oldInfo = win ^. L.info
-  nodeHandler wenv styledNode = case loadState (win ^. L.state) of
-    Just state -> restoreHandler wenv state oldInfo styledNode
-    _ -> resultWidget styledNode
-  valid = infoMatches (win ^. L.info) (newNode ^. L.info)
-  message = matchFailedMsg (win ^. L.info) (newNode ^. L.info)
-  newResult
-    | valid = runNodeHandler single wenv oldInfo newNode nodeHandler
-    | otherwise = throw (AssertionFailed $ "Restore failed. " ++ message)
 
 runNodeHandler
   :: WidgetModel a
@@ -283,6 +223,20 @@ runNodeHandler single wenv oldInfo newNode nodeHandler = newResult where
     | isResizeResult (Just tmpResult) = tmpResult
         & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
     | otherwise = tmpResult
+
+saveWrapper
+  :: WidgetModel a
+  => Single s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetInstanceNode
+saveWrapper container wenv node = instNode where
+  instNode = WidgetInstanceNode {
+    _winInfo = node ^. L.info,
+    _winState = widgetGetState (node ^. L.widget) wenv,
+    _winChildren = fmap (saveChildNode wenv) (node ^. L.children)
+  }
+  saveChildNode wenv child = widgetSave (child ^. L.widget) wenv child
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose wenv node = resultWidget node

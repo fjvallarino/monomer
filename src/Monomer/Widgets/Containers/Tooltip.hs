@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 
@@ -9,7 +8,6 @@ module Monomer.Widgets.Containers.Tooltip (
   tooltipFollow
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Monad (forM_, when)
@@ -73,11 +71,7 @@ tooltipFollow = def {
 data TooltipState = TooltipState {
   _ttsLastPos :: Point,
   _ttsLastPosTs :: Int
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel TooltipState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 tooltip :: Text -> WidgetNode s e -> WidgetNode s e
 tooltip caption managed = tooltip_ caption def managed
@@ -98,7 +92,7 @@ makeTooltip caption config state = widget where
   baseWidget = createContainer state def {
     containerAddStyleReq = False,
     containerGetBaseStyle = getBaseStyle,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerResize = resize
   }
@@ -112,7 +106,7 @@ makeTooltip caption config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.tooltipStyle
 
-  restore wenv oldState oldInfo node = result where
+  merge wenv oldState oldNode node = result where
     newNode = node
       & L.widget .~ makeTooltip caption config oldState
     result = resultWidget newNode

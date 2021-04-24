@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -46,7 +45,7 @@ data TodoModel = TodoModel {
   _todos :: [Todo],
   _activeTodo :: Todo,
   _action :: TodoAction
-} deriving (Eq, Show, WidgetModel)
+} deriving (Eq, Show)
 
 data TodoEvt
   = TodoInit

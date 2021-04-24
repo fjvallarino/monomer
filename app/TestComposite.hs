@@ -1,18 +1,14 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module TestComposite (testComp) where
 
 import Debug.Trace
 
-import Codec.Serialise
 import Control.Concurrent (threadDelay)
 import Control.Lens
 import Control.Monad (forM_)
 
 import Data.Default
-import GHC.Generics
 import TextShow
 
 import Monomer.Core.Combinators
@@ -28,14 +24,10 @@ import Types
 data CompState = CompState {
   _csCounter :: Int,
   _csProduced :: Int
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show)
 
 instance Default CompState where
   def = CompState 0 0
-
-instance WidgetModel CompState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
 
 makeLenses ''CompState
 

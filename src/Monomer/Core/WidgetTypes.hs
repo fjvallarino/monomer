@@ -1,14 +1,10 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Core.WidgetTypes where
 
-import Codec.CBOR.Decoding
-import Codec.CBOR.Encoding
-import Codec.Serialise
 import Control.Lens (ALens')
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
@@ -24,12 +20,12 @@ import qualified Data.Text as T
 import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
-import Monomer.Core.WidgetModel
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 type Timestamp = Int
 
+type WidgetModel s = Typeable s
 type WidgetEvent e = Typeable e
 
 type WidgetKeysMap s e = Map WidgetKey (WidgetNode s e)
@@ -50,7 +46,7 @@ data WindowRequest
 
 newtype WidgetType
   = WidgetType Text
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance IsString WidgetType where
   fromString = WidgetType . T.pack
@@ -62,14 +58,14 @@ data WidgetData s a
 data WidgetId = WidgetId {
   _widTs :: Int,
   _widPath :: Path
-} deriving (Eq, Show, Ord, Generic, Serialise)
+} deriving (Eq, Show, Ord, Generic)
 
 instance Default WidgetId where
   def = WidgetId 0 emptyPath
 
 newtype WidgetKey
   = WidgetKey Text
-  deriving (Eq, Show, Ord, Generic, Serialise)
+  deriving (Eq, Show, Ord, Generic)
 
 instance IsString WidgetKey where
   fromString = WidgetKey . T.pack
@@ -79,18 +75,6 @@ data WidgetState
 
 instance Show WidgetState where
   show (WidgetState state) = "WidgetState: " ++ show (typeOf state)
-
--- Serialized as ByteString because at deserialization time the real type is
--- not known (since it's Typeable). It needs to be deserialized when used
-instance Serialise WidgetState where
-  encode (WidgetState state) = encodeWord 0 <> encode stateBS where
-    stateBS = modelToByteString state
-  decode = do
-    tag <- decodeWord
-    model <- decode
-    case tag of
-      0 -> return $ WidgetState (model :: ByteString)
-      _ -> fail "Invalid WidgetState"
 
 data WidgetRequest s e
   = IgnoreParentEvents
@@ -162,7 +146,7 @@ data LayoutDirection
   = LayoutNone
   | LayoutHorizontal
   | LayoutVertical
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 data WidgetEnv s e = WidgetEnv {
   _weOS :: Text,
@@ -213,7 +197,7 @@ data WidgetNodeInfo =
     _wniViewport :: !Rect,
     -- | Style attributes of the widget instance
     _wniStyle :: Style
-  } deriving (Eq, Show, Generic, Serialise)
+  } deriving (Eq, Show, Generic)
 
 instance Default WidgetNodeInfo where
   def = WidgetNodeInfo {
@@ -246,7 +230,7 @@ data WidgetInstanceNode = WidgetInstanceNode {
   _winState :: Maybe WidgetState,
   -- | The children widget, if any
   _winChildren :: Seq WidgetInstanceNode
-} deriving (Show, Generic, Serialise)
+} deriving (Show, Generic)
 
 data Widget s e =
   Widget {
@@ -280,12 +264,6 @@ data Widget s e =
       :: WidgetEnv s e
       -> WidgetNode s e
       -> WidgetInstanceNode,
-    -- | Returns information about the instance and its children
-    widgetRestore
-      :: WidgetEnv s e
-      -> WidgetInstanceNode
-      -> WidgetNode s e
-      -> WidgetResult s e,
     -- | Returns the list of focusable paths, if any
     --
     widgetFindNextFocus

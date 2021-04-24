@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -26,7 +25,6 @@ module Monomer.Widgets.Containers.Scroll (
   scrollThumbRadius
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), (%~), _Just, cloneLens, ix)
 import Control.Monad
@@ -50,7 +48,7 @@ data ScrollType
 data ActiveBar
   = HBar
   | VBar
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
@@ -108,7 +106,7 @@ data ScrollState = ScrollState {
   _sstDeltaY :: !Double,
   _sstChildSize :: Size,
   _sstScissor :: Rect
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 scrollType :: ScrollType -> ScrollCfg
 scrollType st = def {
@@ -203,10 +201,6 @@ instance Default ScrollState where
     _sstScissor = def
   }
 
-instance WidgetModel ScrollState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
-
 data ScrollMessage
   = ScrollTo Rect
   | ScrollReset
@@ -246,7 +240,7 @@ makeScroll config state = widget where
     containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -266,7 +260,7 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  restore wenv oldState oldNode node = resultWidget newNode where
+  merge wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
 

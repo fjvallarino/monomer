@@ -8,7 +8,6 @@ module Monomer.Widgets.Containers.ZStack (
   onlyTopActive
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^?), (.~), (%~), (?~), at, ix)
 import Control.Monad (forM_, void, when)
@@ -48,11 +47,7 @@ onlyTopActive active = def {
 data ZStackState = ZStackState {
   _zssFocusMap :: M.Map PathStep WidgetId,
   _zssTopIdx :: Int
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel ZStackState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ def children

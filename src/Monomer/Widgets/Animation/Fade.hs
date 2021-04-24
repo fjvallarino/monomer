@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -11,7 +10,6 @@ module Monomer.Widgets.Animation.Fade (
   fadeOut_
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Monad (when)
@@ -68,17 +66,13 @@ instance CmbOnFinished (FadeCfg e) e where
 data FadeState = FadeState {
   _fdsRunning :: Bool,
   _fdsStartTs :: Int
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default FadeState where
   def = FadeState {
     _fdsRunning = False,
     _fdsStartTs = 0
   }
-
-instance WidgetModel FadeState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
 
 fadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 fadeIn managed = fadeIn_ def managed
@@ -106,7 +100,7 @@ makeFade :: WidgetEvent e => Bool -> FadeCfg e -> FadeState -> Widget s e
 makeFade isFadeIn config state = widget where
   widget = createContainer state def {
     containerInit = init,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleMessage = handleMessage,
     containerRender = render,
     containerRenderAfter = renderPost
@@ -131,7 +125,7 @@ makeFade isFadeIn config state = widget where
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
       | otherwise = resultWidget node
 
-  restore wenv oldState oldInfo node = resultWidget newNode where
+  merge wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeFade isFadeIn config oldState
 

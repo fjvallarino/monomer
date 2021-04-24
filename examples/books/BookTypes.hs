@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -43,7 +42,7 @@ data BooksModel = BooksModel {
   _bmkSearching :: Bool,
   _bmkSelected :: Maybe Book,
   _bkmBooks :: [Book]
-} deriving (Eq, Show, WidgetModel)
+} deriving (Eq, Show)
 
 data BooksEvt
   = BooksInit

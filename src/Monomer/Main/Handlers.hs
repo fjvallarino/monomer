@@ -8,7 +8,6 @@ module Monomer.Main.Handlers (
   handleSystemEvents,
   handleResourcesInit,
   handleWidgetInit,
-  handleWidgetRestore,
   handleWidgetDispose,
   handleRequests,
   handleResizeWidgets
@@ -192,18 +191,6 @@ handleWidgetInit wenv widgetRoot = do
   if not focusReqExists
     then handleMoveFocus Nothing FocusFwd step
     else return step
-
-handleWidgetRestore
-  :: (MonomerM s m)
-  => WidgetEnv s e
-  -> WidgetInstanceNode
-  -> WidgetNode s e
-  -> m (HandlerStep s e)
-handleWidgetRestore wenv widgetInst widgetRoot = do
-  let widget = widgetRoot ^. L.widget
-  let widgetResult = widgetRestore widget wenv widgetInst widgetRoot
-
-  handleWidgetResult wenv True widgetResult
 
 handleWidgetDispose
   :: (MonomerM s m)

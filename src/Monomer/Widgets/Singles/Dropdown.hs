@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -16,7 +15,6 @@ module Monomer.Widgets.Singles.Dropdown (
   dropdownD_
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (<>~), _Just, ix, non)
 import Control.Monad
@@ -151,11 +149,7 @@ instance CmbItemSelectedStyle (DropdownCfg s e a) Style where
 data DropdownState = DropdownState {
   _ddsOpen :: Bool,
   _ddsOffset :: Point
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel DropdownState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 data DropdownMessage
   = OnChangeMessage Int
@@ -242,7 +236,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     containerInit = init,
     containerFindNextFocus = findNextFocus,
     containerFindByPoint = findByPoint,
-    containerRestore = restore,
+    containerMerge = merge,
     containerDispose = dispose,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
@@ -276,7 +270,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   init wenv node = resultWidget $ createDropdown wenv state node
 
-  restore wenv oldState oldNode newNode = result where
+  merge wenv oldState oldNode newNode = result where
     result = resultWidget $ createDropdown wenv oldState newNode
 
   dispose wenv node = resultReqs node reqs where

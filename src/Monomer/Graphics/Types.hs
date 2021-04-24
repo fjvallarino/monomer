@@ -1,9 +1,7 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Graphics.Types where
 
-import Codec.Serialise
 import Data.ByteString (ByteString)
 import Data.Default
 import Data.String (IsString(..))
@@ -22,14 +20,14 @@ defaultFontName = "Regular"
 data Winding
   = CW
   | CCW
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 data Color = Color {
   _colorR :: {-# UNPACK #-} !Int,
   _colorG :: {-# UNPACK #-} !Int,
   _colorB :: {-# UNPACK #-} !Int,
   _colorA :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default Color where
   def = Color 255 255 255 1.0
@@ -37,18 +35,18 @@ instance Default Color where
 data FontDef = FontDef {
   _fntName :: !Text,
   _fntPath :: !Text
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 newtype Font
   = Font { unFont :: Text }
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance IsString Font where
   fromString s = Font (T.pack s)
 
 newtype FontSize
   = FontSize { unFontSize :: Double }
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance Default Font where
   def = Font defaultFontName
@@ -60,7 +58,7 @@ data AlignH
   = ALeft
   | ACenter
   | ARight
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance Default AlignH where
   def = ACenter
@@ -69,7 +67,7 @@ data AlignV
   = ATop
   | AMiddle
   | ABottom
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance Default AlignV where
   def = AMiddle
@@ -78,7 +76,7 @@ data AlignTH
   = ATLeft
   | ATCenter
   | ATRight
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance Default AlignTH where
   def = ATCenter
@@ -88,7 +86,7 @@ data AlignTV
   | ATMiddle
   | ATBottom
   | ATBaseline
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 instance Default AlignTV where
   def = ATMiddle
@@ -98,7 +96,7 @@ data GlyphPos = GlyphPos {
   _glpXMin :: {-# UNPACK #-} !Double,
   _glpXMax :: {-# UNPACK #-} !Double,
   _glpW :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default GlyphPos where
   def = GlyphPos {
@@ -111,12 +109,12 @@ instance Default GlyphPos where
 data TextMode
   = SingleLine
   | MultiLine
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 data TextTrim
   = TrimSpaces
   | KeepSpaces
-  deriving (Eq, Show, Generic, Serialise)
+  deriving (Eq, Show, Generic)
 
 data TextOverflow
   = Ellipsis
@@ -127,7 +125,7 @@ data TextMetrics = TextMetrics {
   _txmAsc :: {-# UNPACK #-} !Double,
   _txmDesc :: {-# UNPACK #-} !Double,
   _txmLineH :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default TextMetrics where
   def = TextMetrics {
@@ -142,13 +140,13 @@ data TextLine = TextLine {
   _tlRect :: !Rect,
   _tlGlyphs :: !(Seq GlyphPos),
   _tlMetrics :: !TextMetrics
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 data ImageDef = ImageDef {
   _idfName :: String,
   _idfSize :: Size,
   _idfImgData :: BS.ByteString
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 -- Angles are always expressed in degrees, not radians
 data Renderer = Renderer {

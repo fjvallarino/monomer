@@ -29,7 +29,6 @@ module Monomer.Widgets.Container (
   defaultRender
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens ((&), (^.), (^?), (.~), (%~), (<>~), _Just)
@@ -97,21 +96,6 @@ type ContainerMergePostHandler s e a
   -> WidgetResult s e
   -> a
   -> WidgetNode s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-
-type ContainerRestoreHandler s e a
-  = WidgetEnv s e
-  -> a
-  -> WidgetNodeInfo
-  -> WidgetNode s e
-  -> WidgetResult s e
-
-type ContainerRestorePostHandler s e a
-  = WidgetEnv s e
-  -> WidgetResult s e
-  -> a
-  -> WidgetNodeInfo
   -> WidgetNode s e
   -> WidgetResult s e
 
@@ -186,10 +170,8 @@ data Container s e a = Container {
   containerInit :: ContainerInitHandler s e,
   containerInitPost :: ContainerInitPostHandler s e,
   containerMergeChildrenReq :: ContainerMergeChildrenReqHandler s e a,
-  containerMerge :: Maybe (ContainerMergeHandler s e a),
+  containerMerge :: ContainerMergeHandler s e a,
   containerMergePost :: ContainerMergePostHandler s e a,
-  containerRestore :: ContainerRestoreHandler s e a,
-  containerRestorePost :: ContainerRestorePostHandler s e a,
   containerDispose :: ContainerDisposeHandler s e,
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   containerFindByPoint :: ContainerFindByPointHandler s e,
@@ -219,10 +201,8 @@ instance Default (Container s e a) where
     containerInit = defaultInit,
     containerInitPost = defaultInitPost,
     containerMergeChildrenReq = defaultMergeRequired,
-    containerMerge = Nothing,
+    containerMerge = defaultMerge,
     containerMergePost = defaultMergePost,
-    containerRestore = defaultRestore,
-    containerRestorePost = defaultRestorePost,
     containerDispose = defaultDispose,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
@@ -244,7 +224,6 @@ createContainer state container = Widget {
   widgetMerge = mergeWrapper container,
   widgetDispose = disposeWrapper container,
   widgetGetState = makeState state,
-  widgetRestore = restoreWrapper container,
   widgetSave = saveWrapper container,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
@@ -343,6 +322,9 @@ initWrapper container wenv node = initPostHandler wenv result node where
 defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
 defaultMergeRequired wenv oldState oldNode newNode = True
 
+defaultMerge :: ContainerMergeHandler s e a
+defaultMerge wenv oldState oldInfo newNode = resultWidget newNode
+
 defaultMergePost :: ContainerMergePostHandler s e a
 defaultMergePost wenv result oldState oldNode node = result
 
@@ -358,9 +340,7 @@ mergeWrapper container wenv oldNode newNode = newResult where
   updateCWenv = getUpdateCWenv container
   cWenvHelper idx child = updateCWenv wenv idx child newNode
   mergeRequiredHandler = containerMergeChildrenReq container
-  mergeHandler = case containerMerge container of
-    Just handler -> handler
-    Nothing -> mergeWithRestore (containerRestore container)
+  mergeHandler = containerMerge container
   mergePostHandler = containerMergePost container
   mergeRequired = case useState oldState of
     Just state -> mergeRequiredHandler wenv state oldNode newNode
@@ -479,17 +459,6 @@ mergeChildrenCheckVisible oldNode result = newResult where
     | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
     | otherwise = result
 
-mergeWithRestore
-  :: ContainerRestoreHandler s e a
-  -> WidgetEnv s e
-  -> a
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-mergeWithRestore restore wenv oldState oldNode newNode = result where
-  info = oldNode ^. L.info
-  result = restore wenv oldState info newNode
-
 saveWrapper
   :: WidgetModel a
   => Container s e a
@@ -505,58 +474,6 @@ saveWrapper container wenv node = instNode where
   }
   saveChild idx child = widgetSave (child ^. L.widget) cwenv child where
     cwenv = updateCWenv wenv idx child node
-
-defaultRestore :: ContainerRestoreHandler s e a
-defaultRestore wenv oldState oldInfo newNode = resultWidget newNode
-
-defaultRestorePost :: ContainerRestorePostHandler s e a
-defaultRestorePost wenv result oldState oldNode node = result
-
-restoreWrapper
-  :: WidgetModel a
-  => Container s e a
-  -> WidgetEnv s e
-  -> WidgetInstanceNode
-  -> WidgetNode s e
-  -> WidgetResult s e
-restoreWrapper container wenv win newNode = newResult where
-  getBaseStyle = containerGetBaseStyle container
-  updateCWenv = getUpdateCWenv container
-  restoreHandler = containerRestore container
-  restorePostHandler = containerRestorePost container
-  oldInfo = win ^. L.info
-  tempNode = newNode
-    & L.info . L.widgetId .~ oldInfo ^. L.widgetId
-    & L.info . L.viewport .~ oldInfo ^. L.viewport
-    & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
-    & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
-  styledNode = initNodeStyle getBaseStyle wenv tempNode
-  WidgetResult pNode pReqs = case loadState (win ^. L.state) of
-    Just state -> restoreHandler wenv state oldInfo styledNode
-    _ -> resultWidget styledNode
-  -- Process children
-  childrenPairs = Seq.zip (win ^. L.children) (pNode ^. L.children)
-  restoreChild idx (inst, child) = rchild where
-    cnode = cascadeCtx wenv pNode child idx
-    cwenv = updateCWenv wenv idx cnode pNode
-    rchild = widgetRestore (cnode ^. L.widget) cwenv inst cnode
-  restoredChildren = Seq.mapWithIndex restoreChild childrenPairs
-  -- Join results
-  newChildren = fmap _wrNode restoredChildren
-  newParent = pNode
-    & L.children .~ newChildren
-  cReqs = foldMap _wrRequests restoredChildren
-  tmpRes = WidgetResult newParent (pReqs <> cReqs)
-  postRes = case loadState (win ^. L.state) of
-    Just state -> restorePostHandler wenv tmpRes state oldInfo newParent
-    Nothing -> resultWidget newParent
-  valid = infoMatches (win ^. L.info) (newNode ^. L.info)
-  message = matchFailedMsg (win ^. L.info) (newNode ^. L.info)
-  newResult
-    | not valid = throw (AssertionFailed $ "Restore failed. " ++ message)
-    | isResizeResult (Just postRes) = postRes
-        & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
-    | otherwise = postRes
 
 -- | Dispose handler
 defaultDispose :: ContainerInitHandler s e

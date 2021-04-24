@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -15,7 +14,6 @@ module Monomer.Widgets.Containers.Split (
   splitIgnoreChildResize
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (<>~))
 import Data.Default
@@ -95,11 +93,7 @@ data SplitState = SplitState {
   _spsHandlePosUserSet :: Bool,
   _spsHandlePos :: Double,
   _spsHandleRect :: Rect
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel SplitState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 hsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ def nodes
@@ -145,7 +139,7 @@ makeSplit isHorizontal config state = widget where
     containerUseCustomCursor = True,
     containerLayoutDirection = getLayoutDirection isHorizontal,
     containerInit = init,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -166,7 +160,7 @@ makeSplit isHorizontal config state = widget where
         | val >= 0 && val <= 1 -> useModelValue val
       _ -> resultWidget node
 
-  restore wenv oldState oldNode newNode = result where
+  merge wenv oldState oldNode newNode = result where
     oldHandlePos = _spsHandlePos oldState
     modelPos = getModelPos wenv config
     newState = oldState {

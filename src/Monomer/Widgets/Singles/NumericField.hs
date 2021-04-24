@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{- HLINT ignore "Use foldr" -}
 
 module Monomer.Widgets.Singles.NumericField (
   numericField,
@@ -12,7 +11,6 @@ module Monomer.Widgets.Singles.NumericField (
   numericFieldV_
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens (ALens')
 import Data.Char
@@ -36,7 +34,7 @@ import Monomer.Widgets.Util
 import qualified Monomer.Lens as L
 
 type FormattableNumber a
-  = (Eq a, Show a, Typeable a, Real a, FromFractional a, Serialise a)
+  = (Eq a, Show a, Real a, FromFractional a, WidgetModel a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),

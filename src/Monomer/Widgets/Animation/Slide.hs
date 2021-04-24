@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -15,7 +14,6 @@ module Monomer.Widgets.Animation.Slide (
   bottomSide
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Monad (when)
@@ -94,17 +92,13 @@ bottomSide = def { _slcDirection = Just SlideDown }
 data SlideState = SlideState {
   _slsRunning :: Bool,
   _slsStartTs :: Int
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 instance Default SlideState where
   def = SlideState {
     _slsRunning = False,
     _slsStartTs = 0
   }
-
-instance WidgetModel SlideState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
 
 slideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 slideIn managed = slideIn_ def managed
@@ -133,7 +127,7 @@ makeSlide isSlideIn config state = widget where
   widget = createContainer state def {
     containerUseScissor = True,
     containerInit = init,
-    containerRestore = restore,
+    containerMerge = merge,
     containerHandleMessage = handleMessage,
     containerRender = render,
     containerRenderAfter = renderPost
@@ -158,7 +152,7 @@ makeSlide isSlideIn config state = widget where
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
       | otherwise = resultWidget node
 
-  restore wenv oldState oldInfo node = resultWidget newNode where
+  merge wenv oldState oldNode node = resultWidget newNode where
     newNode = node
       & L.widget .~ makeSlide isSlideIn config oldState
 

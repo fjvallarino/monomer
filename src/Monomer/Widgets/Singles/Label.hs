@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Widgets.Singles.Label (
@@ -8,7 +7,6 @@ module Monomer.Widgets.Singles.Label (
   labelS_
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad (forM_)
@@ -105,11 +103,7 @@ data LabelState = LabelState {
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine,
   _lstPrevResize :: (Int, Bool)
-} deriving (Eq, Show, Generic, Serialise)
-
-instance WidgetModel LabelState where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Generic)
 
 label :: Text -> WidgetNode s e
 label caption = label_ caption def
@@ -132,7 +126,7 @@ makeLabel config state = widget where
     singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
-    singleRestore = restore,
+    singleMerge = merge,
     singleGetSizeReq = getSizeReq,
     singleResize = resize,
     singleRender = render
@@ -163,7 +157,7 @@ makeLabel config state = widget where
     newNode = node
       & L.widget .~ makeLabel config newState
 
-  restore wenv oldState oldNode newNode = result where
+  merge wenv oldState oldNode newNode = result where
     style = activeStyle wenv newNode
     newTextStyle = style ^. L.text
     captionChanged = _lstCaption oldState /= caption

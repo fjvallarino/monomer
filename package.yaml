@@ -28,7 +28,6 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - bytestring-to-vector
-- cborg
 - containers
 - concurrent-extra
 - data-default
@@ -43,7 +42,6 @@ dependencies:
 - OpenGL
 - safe
 - sdl2
-- serialise
 - stm
 - text
 - text-show

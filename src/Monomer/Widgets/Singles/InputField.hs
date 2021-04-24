@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
@@ -12,7 +11,6 @@ module Monomer.Widgets.Singles.InputField (
   makeInputField
 ) where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Lens (ALens', (&), (.~), (%~), (^.), (^?), _Just, cloneLens, non)
@@ -30,7 +28,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type InputFieldValue a = (Eq a, Show a, Typeable a, Serialise a)
+type InputFieldValue a = (Eq a, Show a, Typeable a)
 
 type InputDragHandler a
   = InputFieldState a
@@ -67,7 +65,7 @@ data HistoryStep a = HistoryStep {
   _ihsCursorPos :: !Int,
   _ihsSelStart :: Maybe Int,
   _ihsOffset :: !Double
-} deriving (Eq, Show, Generic, Serialise)
+} deriving (Eq, Show, Generic)
 
 initialHistoryStep :: a -> HistoryStep a
 initialHistoryStep value = HistoryStep {
@@ -91,11 +89,7 @@ data InputFieldState a = InputFieldState {
   _ifsTextMetrics :: TextMetrics,
   _ifsHistory :: Seq (HistoryStep a),
   _ifsHistIdx :: Int
-} deriving (Eq, Show, Typeable, Generic, Serialise)
-
-instance (Typeable a, Serialise a) => WidgetModel (InputFieldState a) where
-  modelToByteString = serialise
-  byteStringToModel = bsToSerialiseModel
+} deriving (Eq, Show, Typeable, Generic)
 
 initialState :: a -> InputFieldState a
 initialState value = InputFieldState {
@@ -142,7 +136,7 @@ makeInputField config state = widget where
     singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
-    singleRestore = restore,
+    singleMerge = merge,
     singleDispose = dispose,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -188,7 +182,8 @@ makeInputField config state = widget where
     reqs = setModelValid config (isJust parsedVal)
     result = resultReqs newNode reqs
 
-  restore wenv oldState oldInfo node = resultReqs newNode reqs where
+  merge wenv oldState oldNode node = resultReqs newNode reqs where
+    oldInfo = node ^. L.info
     oldValue = _ifsCurrValue oldState
     oldText = _ifsCurrText oldState
     oldPos = _ifsCursorPos oldState
