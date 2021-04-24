@@ -42,7 +42,7 @@ data ClipboardData
   | ClipboardText Text
   deriving (Eq, Show)
 
-type DragMsg i = (Typeable i, Eq i)
+type DragMsg i = (Eq i, Typeable i)
 
 data WidgetDragMsg
   = forall i . DragMsg i => WidgetDragMsg i

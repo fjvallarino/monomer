@@ -34,7 +34,7 @@ import Monomer.Widgets.Util
 import qualified Monomer.Lens as L
 
 type FormattableNumber a
-  = (Eq a, Show a, Real a, FromFractional a, WidgetModel a)
+  = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),

@@ -19,8 +19,6 @@ import Data.Text (Text, pack)
 
 import qualified Data.Map as M
 
-import Monomer (WidgetModel)
-
 import BinanceTypes
 
 newtype AppEnv = AppEnv {

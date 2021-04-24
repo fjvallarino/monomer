@@ -577,13 +577,13 @@
     - Remove dependencies on CBOR and Serialise
     - Remove widgetRestore
     - Remove WidgetModel instances, make it a type alias
+    - Make Eq WidgetRequest require Eq e
+    - Rename widgetSave to something more appropriate
 
 Next
   - Add examples
     - Something of generative art (OpenGL example)
   - Remove serialization logic
-    - Make Eq WidgetRequest require Eq e
-    - Rename widgetSave to something more appropriate
     - Standardize use of Typeable/WidgetEvent/WidgetModel
   - Should node come immediately after wenv in Widget methods?
   - Can Req combinators be removed?

@@ -65,11 +65,11 @@ processTask model widgetRoot (WidgetProducer widgetId channel task) = do
     Nothing -> return (model, widgetRoot, Seq.empty)
 
 processTaskResult
-  :: (MonomerM s m, Typeable a)
+  :: (MonomerM s m, Typeable i)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId
-  -> Either SomeException a
+  -> Either SomeException i
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
   liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
@@ -78,11 +78,11 @@ processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult
 
 processTaskEvent
-  :: (MonomerM s m, Typeable a)
+  :: (MonomerM s m, Typeable i)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId
-  -> a
+  -> i
   -> m (HandlerStep s e)
 processTaskEvent wenv widgetRoot widgetId event = do
   path <- getWidgetIdPath widgetId

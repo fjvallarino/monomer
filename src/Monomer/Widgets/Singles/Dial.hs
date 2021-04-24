@@ -20,6 +20,7 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq
@@ -28,7 +29,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-type DialValue a = (Eq a, Show a, Real a, FromFractional a, WidgetModel a)
+type DialValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,

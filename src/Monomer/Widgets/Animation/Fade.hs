@@ -15,7 +15,7 @@ import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (cast)
 import GHC.Generics
 
 import qualified Data.Sequence as Seq

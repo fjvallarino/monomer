@@ -71,7 +71,7 @@ instance IsString WidgetKey where
   fromString = WidgetKey . T.pack
 
 data WidgetState
-  = forall i . (Typeable i, WidgetModel i) => WidgetState i
+  = forall i . WidgetModel i => WidgetState i
 
 instance Show WidgetState where
   show (WidgetState state) = "WidgetState: " ++ show (typeOf state)
@@ -100,7 +100,7 @@ data WidgetRequest s e
   | UpdateModel (s -> s)
   | SetWidgetPath WidgetId Path
   | ResetWidgetPath WidgetId
-  | Typeable e => RaiseEvent e
+  | WidgetEvent e => RaiseEvent e
   | forall i . Typeable i => SendMessage WidgetId i
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
