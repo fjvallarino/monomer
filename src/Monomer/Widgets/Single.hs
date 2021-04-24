@@ -149,7 +149,7 @@ createSingle state single = Widget {
   widgetMerge = mergeWrapper single,
   widgetDispose = disposeWrapper single,
   widgetGetState = makeState state,
-  widgetSave = saveWrapper single,
+  widgetGetInstanceTree = getInstanceTreeWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
   widgetFindByPath = singleFindByPath,
@@ -224,19 +224,19 @@ runNodeHandler single wenv oldInfo newNode nodeHandler = newResult where
         & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
     | otherwise = tmpResult
 
-saveWrapper
+getInstanceTreeWrapper
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetInstanceNode
-saveWrapper container wenv node = instNode where
+getInstanceTreeWrapper container wenv node = instNode where
   instNode = WidgetInstanceNode {
     _winInfo = node ^. L.info,
     _winState = widgetGetState (node ^. L.widget) wenv,
-    _winChildren = fmap (saveChildNode wenv) (node ^. L.children)
+    _winChildren = fmap (getChildTree wenv) (node ^. L.children)
   }
-  saveChildNode wenv child = widgetSave (child ^. L.widget) wenv child
+  getChildTree wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child
 
 defaultDispose :: SingleDisposeHandler s e
 defaultDispose wenv node = resultWidget node

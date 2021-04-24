@@ -268,7 +268,7 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
     cntNodeM = nodeMerge wenv1 root1 cmpNode2
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     (wenv2, root2, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
-    newInstRoot = widgetSave (root2 ^. L.widget) wenv1 root2
+    newInstRoot = widgetGetInstanceTree (root2 ^. L.widget) wenv1 root2
 
 handleEventLocalKeyRemoveItem :: Spec
 handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
@@ -295,8 +295,8 @@ handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
     evts = [evtClick (Point 100 10)]
     oldNode = nodeInit wenv node
     ((_, newRoot, _), newCtx) = nodeHandleEvents wenv WInit evts node
-    oldInstRoot = widgetSave (oldNode ^. L.widget) wenv oldNode
-    newInstRoot = widgetSave (newRoot ^. L.widget) wenv newRoot
+    oldInstRoot = widgetGetInstanceTree (oldNode ^. L.widget) wenv oldNode
+    newInstRoot = widgetGetInstanceTree (newRoot ^. L.widget) wenv newRoot
     getKeys inst = inst ^.. L.children . ix 0 . L.children . folded . L.info . L.key . _Just . L._WidgetKey
 
 handleMessage :: Spec
@@ -492,6 +492,6 @@ resize = describe "resize" $ do
     buildUI wenv model = hstack []
     cmpNode = composite "main" id buildUI handleEvent
     tmpNode = nodeInit wenv cmpNode
-    newNode = widgetSave (tmpNode ^. L.widget) wenv tmpNode
+    newNode = widgetGetInstanceTree (tmpNode ^. L.widget) wenv tmpNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children

@@ -224,7 +224,7 @@ createContainer state container = Widget {
   widgetMerge = mergeWrapper container,
   widgetDispose = disposeWrapper container,
   widgetGetState = makeState state,
-  widgetSave = saveWrapper container,
+  widgetGetInstanceTree = getInstanceTreeWrapper container,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
   widgetFindByPath = containerFindByPath,
@@ -459,21 +459,22 @@ mergeChildrenCheckVisible oldNode result = newResult where
     | resizeRequired = result & L.requests %~ (|> ResizeWidgets)
     | otherwise = result
 
-saveWrapper
+getInstanceTreeWrapper
   :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetInstanceNode
-saveWrapper container wenv node = instNode where
+getInstanceTreeWrapper container wenv node = instNode where
   updateCWenv = getUpdateCWenv container
   instNode = WidgetInstanceNode {
     _winInfo = node ^. L.info,
     _winState = widgetGetState (node ^. L.widget) wenv,
-    _winChildren = Seq.mapWithIndex saveChild (node ^. L.children)
+    _winChildren = Seq.mapWithIndex getChildTree (node ^. L.children)
   }
-  saveChild idx child = widgetSave (child ^. L.widget) cwenv child where
+  getChildTree idx child = tree where
     cwenv = updateCWenv wenv idx child node
+    tree = widgetGetInstanceTree (child ^. L.widget) cwenv child
 
 -- | Dispose handler
 defaultDispose :: ContainerInitHandler s e

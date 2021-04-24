@@ -261,7 +261,7 @@ data Widget s e =
       :: WidgetEnv s e
       -> Maybe WidgetState,
     -- | Returns information about the instance and its children
-    widgetSave
+    widgetGetInstanceTree
       :: WidgetEnv s e
       -> WidgetNode s e
       -> WidgetInstanceNode,

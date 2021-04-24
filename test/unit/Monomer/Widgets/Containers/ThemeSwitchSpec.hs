@@ -46,7 +46,7 @@ switchTheme = describe "switchTheme" $ do
         themeSwitch theme2 (label "Test")
       ]
     newNode = nodeInit wenv node
-    inst = widgetSave (newNode ^. L.widget) wenv newNode
+    inst = widgetGetInstanceTree (newNode ^. L.widget) wenv newNode
     child1 = Seq.index (inst ^. L.children) 0
     child2 = Seq.index (inst ^. L.children) 1
     child3 = Seq.index (inst ^. L.children) 2

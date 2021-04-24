@@ -58,7 +58,7 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
 
 treeInstDescFromNode :: WidgetEnv s e -> Int -> WidgetNode s e -> String
 treeInstDescFromNode wenv level node = widgetInstTreeDesc level nodeInst  where
-  nodeInst = widgetSave (node ^. L.widget) wenv node
+  nodeInst = widgetGetInstanceTree (node ^. L.widget) wenv node
 
 isResizeWidgets :: WidgetRequest s e -> Bool
 isResizeWidgets ResizeWidgets = True
