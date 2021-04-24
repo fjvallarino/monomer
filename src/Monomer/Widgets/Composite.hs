@@ -13,8 +13,10 @@ module Monomer.Widgets.Composite (
   module Monomer.Widgets.Util,
 
   EventResponse(..),
+  MergeReqsHandler,
   EventHandler,
   UIBuilder,
+  compositeMergeReqs,
   composite,
   composite_,
   compositeV,
@@ -56,6 +58,8 @@ type ParentModel sp = Typeable sp
 type CompositeModel s = (Eq s, Typeable s, WidgetModel s)
 type CompositeEvent e = WidgetEvent e
 
+type MergeReqsHandler s e
+  = WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> s -> [WidgetRequest s e]
 type EventHandler s e ep
   = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
@@ -77,6 +81,7 @@ data EventResponse s e ep
 
 data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
+  _cmcMergeReqs :: [MergeReqsHandler s e],
   _cmcOnInit :: [e],
   _cmcOnDispose :: [e],
   _cmcOnResize :: [Rect -> e],
@@ -89,6 +94,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
 instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
     _cmcMergeRequired = Nothing,
+    _cmcMergeReqs = [],
     _cmcOnInit = [],
     _cmcOnDispose = [],
     _cmcOnResize = [],
@@ -101,6 +107,7 @@ instance Default (CompositeCfg s e sp ep) where
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
+    _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
     _cmcOnInit = _cmcOnInit c1 <> _cmcOnInit c2,
     _cmcOnDispose = _cmcOnDispose c1 <> _cmcOnDispose c2,
     _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
@@ -153,11 +160,17 @@ instance CmbOnVisibleChange (CompositeCfg s e sp ep) e where
     _cmcOnVisibleChange = [fn]
   }
 
+compositeMergeReqs :: MergeReqsHandler s e -> CompositeCfg s e sp ep
+compositeMergeReqs fn = def {
+  _cmcMergeReqs = [fn]
+}
+
 data Composite s e sp ep = Composite {
   _cmpWidgetData :: WidgetData sp s,
   _cmpEventHandler :: EventHandler s e ep,
   _cmpUiBuilder :: UIBuilder s e,
   _cmpMergeRequired :: MergeRequired s,
+  _cmpMergeReqs :: [MergeReqsHandler s e],
   _cmpOnInit :: [e],
   _cmpOnDispose :: [e],
   _cmpOnResize :: [Rect -> e],
@@ -285,6 +298,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpEventHandler = evtHandler,
     _cmpUiBuilder = uiBuilder,
     _cmpMergeRequired = mergeReq,
+    _cmpMergeReqs = _cmcMergeReqs config,
     _cmpOnInit = _cmcOnInit config,
     _cmpOnDispose = _cmcOnDispose config,
     _cmpOnResize = _cmcOnResize config,
@@ -356,6 +370,7 @@ compositeMerge
   -> WidgetNode sp ep
   -> WidgetResult sp ep
 compositeMerge comp state wenv oldComp newComp = newResult where
+  widgetId = oldComp ^. L.info . L.widgetId
   oldState = widgetGetState (oldComp ^. L.widget) wenv
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldGlobalKeys = validState
@@ -391,8 +406,11 @@ compositeMerge comp state wenv oldComp newComp = newResult where
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
   visibleEvts = if visibleChg then _cmpOnVisibleChange comp else []
   enabledEvts = if enabledChg then _cmpOnEnabledChange comp else []
+  mergeReqsFns = _cmpMergeReqs comp
+  mergeReqs = concatMap (\fn -> fn cwenv oldRoot newRoot model) mergeReqsFns
+  extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
   evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
-  tmpResult = WidgetResult newRoot (tmpReqs <> evts)
+  tmpResult = WidgetResult newRoot (tmpReqs <> extraReqs <> evts)
   reducedResult = reduceResult comp newState wenv styledComp tmpResult
   newResult = handleWidgetIdChange oldComp reducedResult
 

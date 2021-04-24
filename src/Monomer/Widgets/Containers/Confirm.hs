@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Containers.Confirm (
@@ -66,9 +67,8 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-data ConfirmEvt e
+newtype ConfirmEvt e
   = ConfirmParentEvt e
-  | ConfirmVisibleChanged
   deriving (Eq, Show)
 
 confirm
@@ -90,8 +90,8 @@ confirm_
 confirm_ dialogBody acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
-  evts = [onVisibleChange ConfirmVisibleChanged]
-  newNode = compositeExt_ "confirm" () createUI handleEvent evts
+  compCfg = [compositeMergeReqs mergeReqs]
+  newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
 
 confirmMsg
   :: (WidgetModel sp, WidgetEvent ep)
@@ -113,8 +113,16 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   dialogBody wenv = label_ message [multiLine]
     & L.info . L.style .~ themeDialogMsgBody wenv
   createUI = buildUI dialogBody acceptEvt cancelEvt config
-  evts = [onVisibleChange ConfirmVisibleChanged]
-  newNode = compositeExt_ "confirm" () createUI handleEvent evts
+  compCfg = [compositeMergeReqs mergeReqs]
+  newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
+
+mergeReqs :: MergeReqsHandler s e
+mergeReqs wenv oldNode newNode model = reqs where
+  acceptPath = SetFocus <$> globalKeyWidgetId wenv "acceptBtn"
+  isVisible node = node ^. L.info . L.visible
+  reqs
+    | not (isVisible oldNode) && isVisible newNode = catMaybes [acceptPath]
+    | otherwise = []
 
 buildUI
   :: WidgetEvent ep
@@ -159,8 +167,3 @@ handleEvent
   -> [EventResponse s (ConfirmEvt ep) ep]
 handleEvent wenv node model evt = case evt of
   ConfirmParentEvt pevt -> [Report pevt]
-  ConfirmVisibleChanged -> catMaybes [acceptPath | nodeVisible]
-  where
-    acceptPath = Request . SetFocus <$> globalKeyWidgetId wenv "acceptBtn"
-    ownsFocus = isNodeParentOfFocused wenv node
-    nodeVisible = node ^. L.info . L.visible

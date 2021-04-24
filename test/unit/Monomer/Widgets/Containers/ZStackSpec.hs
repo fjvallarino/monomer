@@ -149,7 +149,7 @@ handleEventFocusChange = describe "handleEventFocusChange" $
 
 handleEventFocusKeep :: Spec
 handleEventFocusKeep = describe "handleEventFocusKeep" $
-  xit "should not restore focus when switching between layers if a focus change request is detected" $ do
+  it "should not restore focus when switching between layers if a focus change request is detected" $ do
     let steps = [ evtK keyTab, evtK keyReturn, evtK keyTab, evtK keyReturn, evtK keyReturn, evtK keyReturn ]
     evts steps `shouldBe` Seq.fromList [BtnClick 2, BtnClick 4, BtnClick 2, BtnClick 3]
 
