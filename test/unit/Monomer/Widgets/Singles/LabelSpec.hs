@@ -126,7 +126,7 @@ resize = describe "resize" $ do
     reqsMulti `shouldBe` Seq.singleton ResizeWidgets
 
   where
-    wenv = mockWenv ()
+    wenv = mockWenvEvtUnit ()
     vp = Rect 0 0 640 480
     single = label "Test label"
     resSingle = widgetResize (single ^. L.widget) wenv vp single

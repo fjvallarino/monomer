@@ -105,7 +105,7 @@ data WidgetRequest s e
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
-instance Eq (WidgetRequest s e) where
+instance Eq e => Eq (WidgetRequest s e) where
   IgnoreParentEvents == IgnoreParentEvents = True
   IgnoreChildrenEvents == IgnoreChildrenEvents = True
   ResizeWidgets == ResizeWidgets = True
@@ -128,6 +128,7 @@ instance Eq (WidgetRequest s e) where
   UpdateWindow w1 == UpdateWindow w2 = w1 == w2
   SetWidgetPath w1 p1 == SetWidgetPath w2 p2 = (w1, p1) == (w2, p2)
   ResetWidgetPath w1 == ResetWidgetPath w2 = w1 == w2
+  RaiseEvent e1 == RaiseEvent e2 = e1 == e2
   _ == _ = False
 
 data WidgetResult s e = WidgetResult {

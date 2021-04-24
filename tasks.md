@@ -573,14 +573,18 @@
       - handleEventFocusKeep in ZStackSpec
       - The issue is caused because ZStack resets focus to previously focused item on layer, while Alert needs to set its focus. Since onVisibleChanged is set later, it misses it. We need to be able to send that request during merge.
   - Fix hsplit (when left item is a loaded image all space is assigned to right side)
+  - Remove serialization logic
+    - Remove dependencies on CBOR and Serialise
+    - Remove widgetRestore
+    - Remove WidgetModel instances, make it a type alias
 
 Next
   - Add examples
     - Something of generative art (OpenGL example)
   - Remove serialization logic
-  - Make Eq WidgetRequest require Eq e
-  - Rename widgetSave to something more appropriate
-  - Standardize use of Typeable/WidgetEvent/WidgetModel
+    - Make Eq WidgetRequest require Eq e
+    - Rename widgetSave to something more appropriate
+    - Standardize use of Typeable/WidgetEvent/WidgetModel
   - Should node come immediately after wenv in Widget methods?
   - Can Req combinators be removed?
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
