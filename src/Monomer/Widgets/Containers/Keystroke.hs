@@ -97,7 +97,7 @@ makeKeystroke bindings config = widget where
     containerHandleEvent = handleEvent
   }
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed -> Just result where
       ignoreChildren = Just True == _kscIgnoreChildren config
       newWenv = wenv & L.inputStatus %~ removeMods

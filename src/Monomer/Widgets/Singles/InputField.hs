@@ -182,7 +182,7 @@ makeInputField config state = widget where
     reqs = setModelValid config (isJust parsedVal)
     result = resultReqs newNode reqs
 
-  merge wenv oldState oldNode node = resultReqs newNode reqs where
+  merge wenv node oldNode oldState = resultReqs newNode reqs where
     oldInfo = node ^. L.info
     oldValue = _ifsCurrValue oldState
     oldText = _ifsCurrText oldState
@@ -311,7 +311,7 @@ makeInputField config state = widget where
         | idx >= txtLen = txtLen
         | otherwise = idx
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Enter point -> Just (resultReqs node reqs) where
       cursorIcon
         | dragSelActive = CursorIBeam
@@ -511,7 +511,7 @@ makeInputField config state = widget where
       | isValid || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
 
-  getSizeReq wenv currState node = sizeReq where
+  getSizeReq wenv node currState = sizeReq where
     defWidth = _ifcDefWidth config
     resizeOnChange = _ifcResizeOnChange config
     currText = _ifsCurrText currState
@@ -523,7 +523,7 @@ makeInputField config state = widget where
     factor = 1
     sizeReq = (expandSize targetW factor, fixedSize h)
 
-  resize wenv viewport node = resultWidget newNode where
+  resize wenv node viewport = resultWidget newNode where
     -- newTextState depends on having correct viewport in the node
     tempNode = node
       & L.info . L.viewport .~ viewport
@@ -531,7 +531,7 @@ makeInputField config state = widget where
     newNode = tempNode
       & L.widget .~ makeInputField config newState
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     when (isJust currSel) $
       drawRect renderer selRect (Just selColor) Nothing
 

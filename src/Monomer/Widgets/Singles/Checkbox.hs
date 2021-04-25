@@ -143,7 +143,7 @@ makeCheckbox widgetData config = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.checkboxStyle
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
     Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
     Click p _
@@ -161,12 +161,12 @@ makeCheckbox widgetData config = widget where
       setValueReq = widgetDataSet widgetData newValue
       reqs = setValueReq ++ _ckcOnChangeReq config
 
-  getSizeReq wenv currState node = req where
+  getSizeReq wenv node currState = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
     req = (fixedSize width, fixedSize width)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     renderCheckbox renderer checkboxBW checkboxArea fgColor
 
     when value $

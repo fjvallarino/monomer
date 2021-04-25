@@ -134,7 +134,7 @@ makeRadio field option config = widget where
     radioArea = getRadioArea wenv node config
     style = activeStyle_ (activeStyleConfig radioArea) wenv node
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
     Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
     Click p _
@@ -150,12 +150,12 @@ makeRadio field option config = widget where
       setValueReq = widgetDataSet field option
       reqs = setValueReq ++ _rdcOnChangeReq config
 
-  getSizeReq wenv currState node = req where
+  getSizeReq wenv node currState = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
     req = (fixedSize width, fixedSize width)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     renderRadio renderer radioBW radioArea fgColor
 
     when (value == option) $

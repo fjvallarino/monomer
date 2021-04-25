@@ -160,7 +160,7 @@ makeSplit isHorizontal config state = widget where
         | val >= 0 && val <= 1 -> useModelValue val
       _ -> resultWidget node
 
-  merge wenv oldState oldNode newNode = result where
+  merge wenv newNode oldNode oldState = result where
     oldHandlePos = _spsHandlePos oldState
     modelPos = getModelPos wenv config
     newState = oldState {
@@ -169,7 +169,7 @@ makeSplit isHorizontal config state = widget where
     result = resultWidget $ newNode
       & L.widget .~ makeSplit isHorizontal config newState
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Move point
       | isTarget && isDragging -> Just resultDrag
       | isInHandle point && curIcon /= dragIcon -> Just resultHover
@@ -185,7 +185,7 @@ makeSplit isHorizontal config state = widget where
         }
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
-        newNode = widgetResize (tmpNode ^. L.widget) wenv vp tmpNode
+        newNode = widgetResize (tmpNode ^. L.widget) wenv tmpNode vp
         resultDrag
           | handlePos /= newHandlePos = newNode
               & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
@@ -211,7 +211,7 @@ makeSplit isHorizontal config state = widget where
       cursorIconReq = SetCursorIcon widgetId dragIcon
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (reqW, reqH) where
+  getSizeReq wenv node currState children = (reqW, reqH) where
     node1 = Seq.index children 0
     node2 = Seq.index children 1
     reqW1 = node1 ^. L.info . L.sizeReqW
@@ -226,7 +226,7 @@ makeSplit isHorizontal config state = widget where
       | isHorizontal = foldl1 sizeReqMergeMax [reqH1, reqH2]
       | otherwise = foldl1 sizeReqMergeSum [reqWS, reqH1, reqH2]
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect rx ry rw rh = contentArea

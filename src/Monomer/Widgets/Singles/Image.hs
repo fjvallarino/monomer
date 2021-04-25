@@ -132,7 +132,7 @@ makeImage imgPath config state = widget where
     path = node ^. L.info . L.path
     reqs = [RunTask wid path $ handleImageLoad wenv imgPath]
 
-  merge wenv oldState oldNode newNode = result where
+  merge wenv newNode oldNode oldState = result where
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
     newImgReqs = [ RunTask wid path $ do
@@ -151,7 +151,7 @@ makeImage imgPath config state = widget where
     renderer = _weRenderer wenv
     reqs = [RunTask wid path $ removeImage wenv imgPath]
 
-  handleMessage wenv target message node = result where
+  handleMessage wenv node target message = result where
     result = cast message >>= useImage node
 
   useImage node (ImageFailed msg) = result where
@@ -162,12 +162,12 @@ makeImage imgPath config state = widget where
       & L.widget .~ makeImage imgPath config newState
     result = Just $ resultReqs newNode [ResizeWidgets]
 
-  getSizeReq wenv currState node = sizeReq where
+  getSizeReq wenv node currState = sizeReq where
     Size w h = maybe def snd (isImageData currState)
     factor = 1
     sizeReq = (expandSize w factor, expandSize h factor)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     when (imageLoaded && imageExists) $
       drawImage renderer imgPath imageRect alpha
     when (imageLoaded && not imageExists) $

@@ -125,11 +125,11 @@ makeFade isFadeIn config state = widget where
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
       | otherwise = resultWidget node
 
-  merge wenv oldState oldNode node = resultWidget newNode where
+  merge wenv node oldNode oldState = resultWidget newNode where
     newNode = node
       & L.widget .~ makeFade isFadeIn config oldState
 
-  handleMessage wenv target message node = result where
+  handleMessage wenv node target message = result where
     result = cast message >>= Just . handleAnimateMsg wenv node
 
   handleAnimateMsg wenv node msg = result where
@@ -146,7 +146,7 @@ makeFade isFadeIn config state = widget where
         | _fdsRunning state -> resultEvts node (_fdcOnFinished config)
         | otherwise -> resultWidget node
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     saveContext renderer
     when running $
       setGlobalAlpha renderer alpha
@@ -157,5 +157,5 @@ makeFade isFadeIn config state = widget where
         | isFadeIn = currStep
         | otherwise = 1 - currStep
 
-  renderPost renderer wenv node = do
+  renderPost wenv node renderer = do
     restoreContext renderer

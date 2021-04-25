@@ -579,12 +579,12 @@
     - Remove WidgetModel instances, make it a type alias
     - Make Eq WidgetRequest require Eq e
     - Rename widgetSave to something more appropriate
+    - Standardize use of Typeable/WidgetEvent/WidgetModel
 
 Next
   - Add examples
-    - Something of generative art (OpenGL example)
-  - Remove serialization logic
-    - Standardize use of Typeable/WidgetEvent/WidgetModel
+    - OpenGL example
+    - Something of generative art (custom Widget example)
   - Should node come immediately after wenv in Widget methods?
   - Can Req combinators be removed?
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone

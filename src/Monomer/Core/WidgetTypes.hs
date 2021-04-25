@@ -259,6 +259,7 @@ data Widget s e =
     -- | merging widget trees
     widgetGetState
       :: WidgetEnv s e
+      -> WidgetNode s e
       -> Maybe WidgetState,
     -- | Returns information about the instance and its children
     widgetGetInstanceTree
@@ -269,23 +270,23 @@ data Widget s e =
     --
     widgetFindNextFocus
       :: WidgetEnv s e
+      -> WidgetNode s e
       -> FocusDirection
       -> Path
-      -> WidgetNode s e
       -> Maybe WidgetNodeInfo,
     -- | Returns the path of the child item with the given coordinates, starting
     -- | on the given path
     widgetFindByPoint
       :: WidgetEnv s e
+      -> WidgetNode s e
       -> Path
       -> Point
-      -> WidgetNode s e
       -> Maybe WidgetNodeInfo,
     -- | Returns the path of the child item with the given path
     widgetFindByPath
       :: WidgetEnv s e
-      -> Path
       -> WidgetNode s e
+      -> Path
       -> Maybe WidgetNodeInfo,
     -- | Handles an event
     --
@@ -298,9 +299,9 @@ data Widget s e =
     -- widget if internal state changed
     widgetHandleEvent
       :: WidgetEnv s e
+      -> WidgetNode s e
       -> Path
       -> SystemEvent
-      -> WidgetNode s e
       -> Maybe (WidgetResult s e),
     -- | Handles a custom message
     --
@@ -311,9 +312,9 @@ data Widget s e =
     widgetHandleMessage
       :: forall i . Typeable i
       => WidgetEnv s e
+      -> WidgetNode s e
       -> Path
       -> i
-      -> WidgetNode s e
       -> Maybe (WidgetResult s e),
     -- | Resizes the children of this widget
     --
@@ -325,8 +326,8 @@ data Widget s e =
     -- Returns: the size assigned to each of the children
     widgetResize
       :: WidgetEnv s e
-      -> Rect
       -> WidgetNode s e
+      -> Rect
       -> WidgetResult s e,
     -- | Renders the widget
     --
@@ -336,9 +337,9 @@ data Widget s e =
     --
     -- Returns: unit
     widgetRender
-      :: Renderer
-      -> WidgetEnv s e
+      :: WidgetEnv s e
       -> WidgetNode s e
+      -> Renderer
       -> IO ()
   }
 

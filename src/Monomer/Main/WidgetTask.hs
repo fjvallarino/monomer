@@ -89,7 +89,7 @@ processTaskEvent wenv widgetRoot widgetId event = do
 
   let emptyResult = WidgetResult widgetRoot Seq.empty
   let widget = widgetRoot ^. L.widget
-  let msgResult = widgetHandleMessage widget wenv path event widgetRoot
+  let msgResult = widgetHandleMessage widget wenv widgetRoot path event
   let widgetResult = fromMaybe emptyResult msgResult
 
   handleWidgetResult wenv True widgetResult

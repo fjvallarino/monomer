@@ -155,9 +155,10 @@ nodeInit :: (Eq s) => WidgetEnv s e -> WidgetNode s e -> WidgetNode s e
 nodeInit wenv node = nodeHandleEventRoot wenv [] node
 
 nodeMerge :: WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> WidgetNode s e
-nodeMerge wenv oldNode node = newNode where
-  WidgetResult newNode _ = widgetMerge (node ^. L.widget) wenv oldNode $ node
+nodeMerge wenv node oldNode = resNode where
+  newNode = node
     & L.info . L.path .~ oldNode ^. L.info . L.path
+  WidgetResult resNode _ = widgetMerge (newNode^. L.widget) wenv newNode oldNode
 
 nodeGetSizeReq :: WidgetEnv s e -> WidgetNode s e -> (SizeReq, SizeReq)
 nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
@@ -165,10 +166,10 @@ nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
   sizeReqW = node2 ^. L.info . L.sizeReqW
   sizeReqH = node2 ^. L.info . L.sizeReqH
 
-nodeResize :: WidgetEnv s e -> Rect -> WidgetNode s e -> WidgetNode s e
-nodeResize wenv viewport node = result ^. L.node where
+nodeResize :: WidgetEnv s e -> WidgetNode s e -> Rect -> WidgetNode s e
+nodeResize wenv node viewport = result ^. L.node where
   widget = node ^. L.widget
-  result = widgetResize widget wenv viewport node
+  result = widgetResize widget wenv node viewport
 
 nodeHandleEventCtx
   :: (Eq s)
@@ -251,7 +252,7 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
 
     ctxA <- get
     let (wenvA, nodeA, reqsA) = stepA
-    let resizeRes = widgetResize (nodeA ^. L.widget) wenv vp nodeA
+    let resizeRes = widgetResize (nodeA ^. L.widget) wenv nodeA vp
     step <- handleWidgetResult wenvA True resizeRes
     ctx <- get
     let (wenvr, rootr, reqsr) = step
@@ -272,7 +273,7 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
       & L.info . L.path .~ rootPath
       & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
     runStep (wenv, root, accum) evts = do
-      step <- handleSystemEvents wenv evts root
+      step <- handleSystemEvents wenv root evts
       ctx <- get
       let (wenv2, root2, reqs2) = step
 

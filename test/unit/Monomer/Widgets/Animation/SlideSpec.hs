@@ -69,7 +69,7 @@ handleMessage = describe "handleMessage" $ do
     wenv = mockWenv ()
     baseNode = slideIn_ [autoStart, duration 100, onFinished OnTestFinished] (label "Test")
     node = nodeInit wenv baseNode
-    res msg = widgetHandleMessage (node^. L.widget) wenv rootPath msg node
+    res msg = widgetHandleMessage (node^. L.widget) wenv node rootPath msg
     evts msg = eventsFromReqs (reqs msg)
     reqs msg = maybe Seq.empty (^. L.requests) (res msg)
 

@@ -88,7 +88,7 @@ msgWidget = defaultWidgetNode "msgWidget" $ SG.createSingle () def {
   SG.singleHandleMessage = msgWidgetHandleMessage
 }
 
-msgWidgetHandleMessage wenv target message node = Just (resultEvts node evts) where
+msgWidgetHandleMessage wenv node target message = Just (resultEvts node evts) where
   val = fromMaybe "" (cast message)
   evts = [ChildMessage val]
 
@@ -265,7 +265,7 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
-    cntNodeM = nodeMerge wenv1 root1 cmpNode2
+    cntNodeM = nodeMerge wenv1 cmpNode2 root1
     evts2 = [evtK keyTab, evtK keyTab, evtT "bb"]
     (wenv2, root2, _) = fst $ nodeHandleEvents wenv1 WNoInit evts2 cntNodeM
     newInstRoot = widgetGetInstanceTree (root2 ^. L.widget) wenv1 root2
@@ -365,7 +365,7 @@ findByPoint = describe "findByPoint" $ do
     cmpNode = findByHelperUI
     wni start point = res where
       inode = nodeInit wenv cmpNode
-      res = widgetFindByPoint (inode ^. L.widget) wenv start point inode
+      res = widgetFindByPoint (inode ^. L.widget) wenv inode start point
 
 findByPath :: Spec
 findByPath = describe "findByPath" $ do
@@ -395,7 +395,7 @@ findByPath = describe "findByPath" $ do
     cmpNode = findByHelperUI
     wni path = res where
       inode = nodeInit wenv cmpNode
-      res = widgetFindByPath (inode ^. L.widget) wenv path inode
+      res = widgetFindByPath (inode ^. L.widget) wenv inode path
 
 findNextFocus :: Spec
 findNextFocus = describe "findNextFocus" $ do
@@ -434,7 +434,7 @@ findNextFocus = describe "findNextFocus" $ do
     cmpNode = findByHelperUI
     wni dir start = res where
       inode = nodeInit wenv cmpNode
-      res = widgetFindNextFocus (inode ^. L.widget) wenv dir start inode
+      res = widgetFindNextFocus (inode ^. L.widget) wenv inode dir start
 
 findByHelperUI :: Typeable ep => WidgetNode TestModel ep
 findByHelperUI = composite "main" id buildUI handleEvent where

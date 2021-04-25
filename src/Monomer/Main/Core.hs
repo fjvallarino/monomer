@@ -236,7 +236,7 @@ mainLoop window renderer config loopArgs = do
 
   (rqWenv, rqRoot, _) <- handleRequests baseReqs baseStep
   (wtWenv, wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
-  (seWenv, seRoot, _) <- handleSystemEvents wtWenv baseSystemEvents wtRoot
+  (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
 
   (newWenv, newRoot, _) <- if windowResized
     then do
@@ -322,7 +322,7 @@ renderWidgets !window renderer clearColor wenv widgetRoot = do
   liftIO $ GL.clear [GL.ColorBuffer]
   liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
 
-  liftIO $ widgetRender (widgetRoot ^. L.widget) renderer wenv widgetRoot
+  liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
   liftIO $ renderOverlays renderer
 
   liftIO $ endFrame renderer

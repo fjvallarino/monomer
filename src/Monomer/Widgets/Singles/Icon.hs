@@ -65,12 +65,12 @@ makeImage iconType config = widget where
     singleRender = render
   }
 
-  getSizeReq wenv currState node = sizeReq where
+  getSizeReq wenv node currState = sizeReq where
     (w, h) = (16, 16)
     factor = 1
     sizeReq = (minSize w factor, minSize h factor)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     drawIcon renderer style iconType iconVp width
     where
       style = activeStyle wenv node

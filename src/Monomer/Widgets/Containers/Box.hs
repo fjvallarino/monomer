@@ -165,7 +165,7 @@ makeBox config = widget where
     activeStyleConfig = def
       & L.isActive .~ isNodeTreeActive
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Click point btn -> result where
       child = Seq.index (node ^. L.children) 0
       childClicked = pointInRect point (child ^. L.info . L.viewport)
@@ -182,7 +182,7 @@ makeBox config = widget where
     _ -> Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = newSizeReq where
+  getSizeReq wenv node currState children = newSizeReq where
     updateSizeReq = fromMaybe id (_boxSizeReqUpdater config)
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
@@ -190,7 +190,7 @@ makeBox config = widget where
     newSizeReq = updateSizeReq (newReqW, newReqH)
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = getActiveStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea

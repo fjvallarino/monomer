@@ -193,14 +193,14 @@ makeDial field minVal maxVal config state = widget where
     resNode = node
       & L.widget .~ makeDial field minVal maxVal config newState
 
-  merge wenv oldState oldNode newNode = resultWidget resNode where
+  merge wenv newNode oldNode oldState = resultWidget resNode where
     newState
       | isNodePressed wenv newNode = oldState
       | otherwise = newStateFromModel wenv newNode oldState
     resNode = newNode
       & L.widget .~ makeDial field minVal maxVal config newState
 
-  findByPoint wenv path point node
+  findByPoint wenv node path point
     | isVisible && pointInEllipse point dialArea = Just wni
     | otherwise = Nothing
     where
@@ -208,7 +208,7 @@ makeDial field minVal maxVal config state = widget where
       wni = node ^. L.info
       (_, dialArea) = getDialInfo wenv node config
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config node
     Blur -> handleFocusChange _dlcOnBlur _dlcOnBlurReq config node
     KeyAction mod code KeyPressed
@@ -259,12 +259,12 @@ makeDial field minVal maxVal config state = widget where
               & L.requests <>~ Seq.fromList (reqs <> evts)
           | otherwise = result
 
-  getSizeReq wenv currState node = req where
+  getSizeReq wenv node currState = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
     req = (fixedSize width, fixedSize width)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     drawArcBorder renderer dialArea start endSnd CW (Just sndColor) dialBW
     drawArcBorder renderer dialArea start endFg CW (Just fgColor) dialBW
     where

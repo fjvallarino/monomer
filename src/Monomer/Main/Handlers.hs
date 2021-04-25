@@ -50,13 +50,13 @@ type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s e))
 
 getTargetPath
   :: WidgetEnv s e
+  -> WidgetNode s e
   -> Maybe Path
   -> Maybe Path
   -> Path
   -> SystemEvent
-  -> WidgetNode s e
   -> Maybe Path
-getTargetPath wenv pressed overlay target event root = case event of
+getTargetPath wenv root pressed overlay target event = case event of
     -- Keyboard
     KeyAction{}                       -> pathEvent target
     TextInput _                       -> pathEvent target
@@ -81,17 +81,17 @@ getTargetPath wenv pressed overlay target event root = case event of
     startPath = fromMaybe emptyPath overlay
     pathEvent = Just
     pathFromPoint p = fmap (^. L.path) wni where
-      wni = widgetFindByPoint widget wenv startPath p root
+      wni = widgetFindByPoint widget wenv root startPath p
     -- pressed is only really used for Move
     pointEvent point = pressed <|> pathFromPoint point <|> overlay
 
 handleSystemEvents
   :: (MonomerM s m)
   => WidgetEnv s e
-  -> [SystemEvent]
   -> WidgetNode s e
+  -> [SystemEvent]
   -> m (HandlerStep s e)
-handleSystemEvents wenv baseEvents widgetRoot = nextStep where
+handleSystemEvents wenv widgetRoot baseEvents = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceEvt curStep evt = do
     let (curWenv, curRoot, curReqs) = curStep
@@ -103,8 +103,7 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
     let (curWenv, curRoot, curReqs) = curStep
     let target = fromMaybe focused evtTarget
     let curWidget = curRoot ^. L.widget
-    let targetWni = evtTarget
-          >>= flip (widgetFindByPath curWidget curWenv) curRoot
+    let targetWni = evtTarget >>= widgetFindByPath curWidget curWenv curRoot
     let targetWid = (^. L.widgetId) <$> targetWni
 
     when (isOnEnter evt) $
@@ -123,10 +122,10 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
           & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
-    let findByPath path = widgetFindByPath curWidget tmpWenv path curRoot
+    let findByPath path = widgetFindByPath curWidget tmpWenv curRoot path
     let newWenv = tmpWenv
           & L.findByPath .~ findByPath
-    (wenv2, root2, reqs2) <- handleSystemEvent newWenv evt target curRoot
+    (wenv2, root2, reqs2) <- handleSystemEvent newWenv curRoot evt target
 
     when (isOnLeave evt) $ do
       resetCursorOnNodeLeave evt curStep
@@ -139,22 +138,22 @@ handleSystemEvents wenv baseEvents widgetRoot = nextStep where
 handleSystemEvent
   :: (MonomerM s m)
   => WidgetEnv s e
+  -> WidgetNode s e
   -> SystemEvent
   -> Path
-  -> WidgetNode s e
   -> m (HandlerStep s e)
-handleSystemEvent wenv event currentTarget widgetRoot = do
+handleSystemEvent wenv widgetRoot event currentTarget = do
   mainStart <- use L.mainBtnPress
   overlay <- getOverlayPath
   leaveEnterPair <- use L.leaveEnterPair
   let pressed = fmap fst mainStart
 
-  case getTargetPath wenv pressed overlay currentTarget event widgetRoot of
+  case getTargetPath wenv widgetRoot pressed overlay currentTarget event of
     Nothing -> return (wenv, widgetRoot, Seq.empty)
     Just target -> do
       let widget = widgetRoot ^. L.widget
       let emptyResult = WidgetResult widgetRoot Seq.empty
-      let evtResult = widgetHandleEvent widget wenv target event widgetRoot
+      let evtResult = widgetHandleEvent widget wenv widgetRoot target event
       let resizeWidgets = not (leaveEnterPair && isOnLeave event)
       let widgetResult = fromMaybe emptyResult evtResult
             & L.requests %~ addFocusReq event
@@ -266,7 +265,7 @@ handleResizeWidgets previousStep = do
 
   let winRect = Rect 0 0 w h
   let (wenv, root, reqs) = previousStep
-  let newResult = widgetResize (root ^. L.widget) wenv winRect root
+  let newResult = widgetResize (root ^. L.widget) wenv root winRect
 
   L.renderRequested .= True
   L.resizePending .= False
@@ -284,7 +283,7 @@ handleMoveFocus
 handleMoveFocus startFromWid dir (wenv, root, reqs) = do
   oldFocus <- getFocusedPath
   let wenv0 = wenv & L.focusedPath .~ emptyPath
-  (wenv1, root1, reqs1) <- handleSystemEvent wenv0 Blur oldFocus root
+  (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root Blur oldFocus
   currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 
@@ -298,7 +297,7 @@ handleMoveFocus startFromWid dir (wenv, root, reqs) = do
 
       L.focusedWidgetId .= newFocusWni ^. L.widgetId
       L.renderRequested .= True
-      (wenv2, root2, reqs2) <- handleSystemEvent wenvF Focus newFocus root1
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 Focus newFocus
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else
@@ -313,12 +312,12 @@ handleSetFocus newFocusWid (wenv, root, reqs) = do
   if oldFocus /= newFocus
     then do
       let wenv0 = wenv & L.focusedPath .~ newFocus
-      (wenv1, root1, reqs1) <- handleSystemEvent wenv0 Blur oldFocus root
+      (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root Blur oldFocus
       let wenvF = wenv1 & L.focusedPath .~ newFocus
 
       L.focusedWidgetId .= newFocusWid
       L.renderRequested .= True
-      (wenv2, root2, reqs2) <- handleSystemEvent wenvF Focus newFocus root1
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 Focus newFocus
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else
@@ -333,7 +332,7 @@ handleGetClipboard widgetId (wenv, root, reqs) = do
                 then fmap ClipboardText SDL.getClipboardText
                 else return ClipboardEmpty
 
-  (wenv2, root2, reqs2) <- handleSystemEvent wenv contents path root
+  (wenv2, root2, reqs2) <- handleSystemEvent wenv root contents path
   return (wenv2, root2, reqs <> reqs2)
 
 handleSetClipboard
@@ -381,7 +380,7 @@ handleResetOverlay widgetId step = do
     then do
       L.overlayWidgetId .= Nothing
       void $ handleResetCursorIcon widgetId step
-      handleSystemEvents wenv [Move mousePos] root
+      handleSystemEvents wenv root [Move mousePos]
     else
       return (wenv, root, Empty)
 
@@ -560,7 +559,7 @@ handleSendMessage widgetId message (wenv, root, reqs) = do
 
   let emptyResult = WidgetResult root Seq.empty
   let widget = root ^. L.widget
-  let msgResult = widgetHandleMessage widget wenv path message root
+  let msgResult = widgetHandleMessage widget wenv root path message
   let result = fromMaybe emptyResult msgResult
 
   (newWenv, newRoot, newReqs) <- handleWidgetResult wenv True result
@@ -655,9 +654,9 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     return $ hoverEvts ++ dragEvts ++ [(evt, Nothing)]
   ButtonAction point btn PressedBtn _ -> do
     overlay <- getOverlayPath
-    let startPath = fromMaybe emptyPath overlay
+    let start = fromMaybe emptyPath overlay
     let widget = widgetRoot ^. L.widget
-    let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+    let wni = widgetFindByPoint widget wenv widgetRoot start point
     let curr = fmap (^. L.path) wni
 
     when (btn == mainBtn) $
@@ -713,9 +712,9 @@ addHoverEvents wenv widgetRoot point = do
   overlay <- getOverlayPath
   hover <- getHoveredPath
   mainBtnPress <- use L.mainBtnPress
-  let startPath = fromMaybe emptyPath overlay
+  let start = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
-  let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+  let wni = widgetFindByPoint widget wenv widgetRoot start point
   let target = fmap (^. L.path) wni
   let hoverChanged = target /= hover && isNothing mainBtnPress
   let enter = [(Enter point, target) | isJust target && hoverChanged]
@@ -734,9 +733,9 @@ findEvtTargetByPoint
   -> m [(SystemEvent, Maybe Path)]
 findEvtTargetByPoint wenv widgetRoot evt point = do
   overlay <- getOverlayPath
-  let startPath = fromMaybe emptyPath overlay
+  let start = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
-  let wni = widgetFindByPoint widget wenv startPath point widgetRoot
+  let wni = widgetFindByPoint widget wenv widgetRoot start point
   let curr = fmap (^. L.path) wni
   return [(evt, curr)]
 
@@ -750,9 +749,9 @@ findNextFocus
 findNextFocus wenv dir start overlay widgetRoot = fromJust nextFocus where
   widget = widgetRoot ^. L.widget
   restartPath = fromMaybe emptyPath overlay
-  candidateWni = widgetFindNextFocus widget wenv dir start widgetRoot
-  fromRootWni = widgetFindNextFocus widget wenv dir restartPath widgetRoot
-  focusWni = fromMaybe def (widgetFindByPath widget wenv start widgetRoot)
+  candidateWni = widgetFindNextFocus widget wenv widgetRoot dir start
+  fromRootWni = widgetFindNextFocus widget wenv widgetRoot dir restartPath
+  focusWni = fromMaybe def (widgetFindByPath widget wenv widgetRoot start)
   nextFocus = candidateWni <|> fromRootWni <|> Just focusWni
 
 dropNonParentWidgetId
@@ -781,7 +780,7 @@ resetCursorOnNodeLeave (Leave point) step = do
   where
     (wenv, root, _) = step
     widget = root ^. L.widget
-    childNode = widgetFindByPoint widget wenv emptyPath point root
+    childNode = widgetFindByPoint widget wenv root emptyPath point
     widgetId = case childNode of
       Just info -> info ^. L.widgetId
       Nothing -> root ^. L.info . L.widgetId

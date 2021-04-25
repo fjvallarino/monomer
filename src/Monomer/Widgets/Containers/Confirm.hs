@@ -117,7 +117,7 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
 
 mergeReqs :: MergeReqsHandler s e
-mergeReqs wenv oldNode newNode model = reqs where
+mergeReqs wenv newNode oldNode model = reqs where
   acceptPath = SetFocus <$> globalKeyWidgetId wenv "acceptBtn"
   isVisible node = node ^. L.info . L.visible
   reqs

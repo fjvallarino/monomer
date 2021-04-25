@@ -90,7 +90,7 @@ makeStack isHorizontal config = widget where
   isVertical = not isHorizontal
   ignoreEmptyArea = fromMaybe False (_stcIgnoreEmptyArea config)
 
-  getSizeReq wenv currState node children = newSizeReq where
+  getSizeReq wenv node currState children = newSizeReq where
     updateSizeReq = fromMaybe id (_stcSizeReqUpdater config)
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
@@ -104,7 +104,7 @@ makeStack isHorizontal config = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     (newVps, newDim) = assignStackAreas isHorizontal contentArea children

@@ -260,15 +260,15 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv oldState oldNode node = resultWidget newNode where
+  merge wenv node oldNode oldState = resultWidget newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus -> result where
       follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
       focusPath = wenv ^. L.focusedPath
-      focusInst = widgetFindByPath (node ^. L.widget) wenv focusPath node
+      focusInst = widgetFindByPath (node ^. L.widget) wenv node focusPath
       focusVp = focusInst ^? _Just . L.viewport
       focusOverlay = focusInst ^? _Just . L.overlay == Just True
       overlayMatch = focusOverlay == node ^. L.info . L.overlay
@@ -291,7 +291,7 @@ makeScroll config state = widget where
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | btnReleased = state { _sstDragging = Nothing }
         | otherwise = state
-      newRes = rebuildWidget wenv newState node
+      newRes = rebuildWidget wenv node newState
       handledResult = Just $ newRes
         & L.requests <>~ Seq.fromList scrollReqs
       result
@@ -301,13 +301,13 @@ makeScroll config state = widget where
         | otherwise = Nothing
     Move point | isJust dragging -> result where
       drag bar = updateScrollThumb state bar point contentArea sctx
-      makeWidget state = rebuildWidget wenv state node
+      makeWidget state = rebuildWidget wenv node state
       makeResult state = makeWidget state
         & L.requests <>~ Seq.fromList (RenderOnce : scrollReqs)
       result = fmap (makeResult . drag) dragging
     Move point | isNothing dragging -> result where
       mousePosPrev = wenv ^. L.inputStatus . L.mousePosPrev
-      psctx = scrollStatus config wenv state mousePosPrev node
+      psctx = scrollStatus config wenv node state mousePosPrev
       changed
         = hMouseInThumb sctx /= hMouseInThumb psctx
         || vMouseInThumb sctx /= vMouseInThumb psctx
@@ -320,7 +320,7 @@ makeScroll config state = widget where
       changedX = wx /= 0 && childWidth > cw
       changedY = wy /= 0 && childHeight > ch
       needsUpdate = changedX || changedY
-      makeWidget state = rebuildWidget wenv state node
+      makeWidget state = rebuildWidget wenv node state
       makeResult state = makeWidget state
         & L.requests <>~ Seq.fromList scrollReqs
       result
@@ -343,7 +343,7 @@ makeScroll config state = widget where
       contentArea = getContentArea style node
       mousePos = wenv ^. L.inputStatus . L.mousePos
       Rect cx cy cw ch = contentArea
-      sctx = scrollStatus config wenv state mousePos node
+      sctx = scrollStatus config wenv node state mousePos
       scrollReqs = [IgnoreParentEvents]
       wheelRate = fromMaybe (theme ^. L.scrollWheelRate) (_scWheelRate config)
 
@@ -354,7 +354,7 @@ makeScroll config state = widget where
     where
       maxDelta = max 0 (childLength - vpLength)
 
-  handleMessage wenv target message node = result where
+  handleMessage wenv node target message = result where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv node rect
     handleScrollMessage ScrollReset = scrollReset wenv node
     result = cast message >>= handleScrollMessage
@@ -383,14 +383,14 @@ makeScroll config state = widget where
     }
     result
       | rectInRect rect contentArea = Nothing
-      | otherwise = Just $ rebuildWidget wenv newState node
+      | otherwise = Just $ rebuildWidget wenv node newState
 
   scrollReset wenv node = result where
     newState = state {
       _sstDeltaX = 0,
       _sstDeltaY = 0
     }
-    result = Just $ rebuildWidget wenv newState node
+    result = Just $ rebuildWidget wenv node newState
 
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point
@@ -411,13 +411,13 @@ makeScroll config state = widget where
       _sstDeltaY = newDeltaY
     }
 
-  rebuildWidget wenv newState node = result where
+  rebuildWidget wenv node newState = result where
     newNode = node
       & L.widget .~ makeScroll config newState
     result = resultWidget newNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = sizeReq where
+  getSizeReq wenv node currState children = sizeReq where
     style = scrollActiveStyle wenv node
     child = Seq.index children 0
     tw = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
@@ -428,7 +428,7 @@ makeScroll config state = widget where
     sizeReq = (expandSize w factor, expandSize h factor)
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = result where
+  resize wenv node viewport children = result where
     theme = activeTheme wenv node
     style = scrollActiveStyle wenv node
 
@@ -473,7 +473,7 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config newState
     result = (newNode, Seq.singleton cViewport)
 
-  renderAfter renderer wenv node = do
+  renderAfter wenv node renderer = do
     when hScrollRequired $
       drawRect renderer hScrollRect barColorH Nothing
 
@@ -486,7 +486,7 @@ makeScroll config state = widget where
     when vScrollRequired $
       drawRect renderer vThumbRect thumbColorV thumbRadius
     where
-      ScrollContext{..} = scrollStatus config wenv state mousePos node
+      ScrollContext{..} = scrollStatus config wenv node state mousePos
       mousePos = wenv ^. L.inputStatus . L.mousePos
       draggingH = _sstDragging state == Just HBar
       draggingV = _sstDragging state == Just VBar
@@ -530,11 +530,11 @@ scrollActiveStyle wenv node
 scrollStatus
   :: ScrollCfg
   -> WidgetEnv s e
+  -> WidgetNode s e
   -> ScrollState
   -> Point
-  -> WidgetNode s e
   -> ScrollContext
-scrollStatus config wenv scrollState mousePos node = ScrollContext{..} where
+scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node

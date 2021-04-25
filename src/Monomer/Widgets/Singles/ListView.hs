@@ -259,12 +259,12 @@ makeListView widgetData items makeRow config state = widget where
       & L.widget .~ makeListView widgetData items makeRow config newState
       & L.children .~ children
 
-  mergeChildrenReq wenv oldState oldNode node = result where
+  mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     result = mergeRequiredFn oldItems items
 
-  merge wenv oldState oldNode node = result where
+  merge wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
     flagsChanged = childrenFlagsChanged oldNode node
@@ -272,12 +272,12 @@ makeListView widgetData items makeRow config state = widget where
     children
       | mergeRequired = createListViewChildren wenv node
       | otherwise = oldNode ^. L.children
-    result = updateState wenv oldState mergeRequired children node
+    result = updateState wenv node oldState mergeRequired children
 
-  mergePost wenv result oldState oldNode node = newResult where
+  mergePost wenv node oldNode oldState result = newResult where
     newResult = updateResultStyle wenv result oldState
 
-  updateState wenv oldState resizeReq children node = resultWidget newNode where
+  updateState wenv node oldState resizeReq children = resultWidget newNode where
     newState = oldState {
       _prevItems = items,
       _resizeReq = resizeReq
@@ -293,7 +293,7 @@ makeListView widgetData items makeRow config state = widget where
     (newNode, reqs) = updateStyles wenv config state tmpNode slIdx hlIdx
     newResult = resultReqs newNode reqs
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
@@ -331,7 +331,7 @@ makeListView widgetData items makeRow config state = widget where
       | tempIdx > 0 = tempIdx - 1
       | otherwise = tempIdx
 
-  handleMessage wenv target message node = result where
+  handleMessage wenv node target message = result where
     handleSelect (OnClickMessage idx) = handleItemClick wenv node idx
     result = fmap handleSelect (cast message)
 
@@ -393,12 +393,12 @@ makeListView widgetData items makeRow config state = widget where
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
-  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv node currState children = (newSizeReqW, newSizeReqH) where
     child = Seq.index children 0
     newSizeReqW = _wniSizeReqW . _wnInfo $ child
     newSizeReqH = _wniSizeReqH . _wnInfo $ child
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     newState = state { _resizeReq = False }
     newNode = node
       & L.widget .~ makeListView widgetData items makeRow config newState

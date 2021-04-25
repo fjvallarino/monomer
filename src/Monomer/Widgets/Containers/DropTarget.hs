@@ -77,7 +77,7 @@ makeDropTarget dropEvt config = widget where
       isHovered = isPointInNodeVp mousePos node
       style = _dtcDropStyle config
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Drop point path dragMsg
       | not (isNodeParentOfPath path node) -> Just result where
         widgetId = node ^. L.info . L.widgetId

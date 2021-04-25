@@ -253,7 +253,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   isOpen = _ddsOpen state
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createDropdown wenv newState node = newNode where
+  createDropdown wenv node newState = newNode where
     selected = currentValue wenv
     mainStyle = collectTheme wenv L.dropdownStyle
     mainNode = makeMain selected
@@ -268,20 +268,20 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dropdownStyle
 
-  init wenv node = resultWidget $ createDropdown wenv state node
+  init wenv node = resultWidget $ createDropdown wenv node state
 
-  merge wenv oldState oldNode newNode = result where
-    result = resultWidget $ createDropdown wenv oldState newNode
+  merge wenv newNode oldNode oldState = result where
+    result = resultWidget $ createDropdown wenv newNode oldState
 
   dispose wenv node = resultReqs node reqs where
     widgetId = node ^. L.info . L.widgetId
     reqs = [ ResetOverlay widgetId | isOpen ]
 
-  findNextFocus wenv direction start node
+  findNextFocus wenv node direction start
     | isOpen = node ^. L.children
     | otherwise = Empty
 
-  findByPoint wenv start point node = result where
+  findByPoint wenv node start point = result where
     children = node ^. L.children
     mainNode = Seq.index children mainIdx
     listNode = Seq.index children listIdx
@@ -295,7 +295,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newResult = fromMaybe (resultWidget node) tmpResult
       & L.requests %~ (|> IgnoreChildrenEvents)
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus
       | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq node
     Blur
@@ -369,16 +369,16 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay widgetId, SetFocus widgetId]
 
-  handleMessage wenv target msg node =
+  handleMessage wenv node target msg =
     cast msg >>= handleLvMsg wenv node
 
   handleLvMsg wenv node (OnChangeMessage idx) =
-    Seq.lookup idx items >>= \value -> Just $ onChange wenv idx value node
+    Seq.lookup idx items >>= \value -> Just $ onChange wenv node idx value
   handleLvMsg wenv node OnListBlur = Just result where
     tempResult = closeDropdown wenv node
     result = tempResult & L.requests %~ (|> createMoveFocusReq wenv)
 
-  onChange wenv idx item node = result where
+  onChange wenv node idx item = result where
     WidgetResult newNode reqs = closeDropdown wenv node
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ _ddcOnChangeReq config
@@ -389,7 +389,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     result = WidgetResult newNode (reqs <> newReqs <> newEvents)
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
+  getSizeReq wenv node currState children = (newReqW, newReqH) where
     -- Main section reqs
     mainC = Seq.index children 0
     mainReqW = mainC ^. L.info . L.sizeReqW
@@ -424,7 +424,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | ry + rh + lh > winH = - (rh + lh)
       | otherwise = 0
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     Rect rx ry rw rh = viewport
     !mainArea = viewport
     !listArea = viewport {
@@ -434,10 +434,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     assignedAreas = Seq.fromList [mainArea, listArea]
     resized = (resultWidget node, assignedAreas)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     drawInScissor renderer True viewport $
       drawStyledAction renderer viewport style $ \contentArea -> do
-        widgetRender (mainNode ^. L.widget) renderer wenv mainNode
+        widgetRender (mainNode ^. L.widget) wenv mainNode renderer
         renderArrow renderer style contentArea
 
     when isOpen $
@@ -468,7 +468,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   renderOverlay renderer wenv overlayNode = renderAction where
     widget = overlayNode ^. L.widget
-    renderAction = widgetRender widget renderer wenv overlayNode
+    renderAction = widgetRender widget wenv overlayNode renderer
 
 makeListView
   :: (DropdownItem a, WidgetEvent e)

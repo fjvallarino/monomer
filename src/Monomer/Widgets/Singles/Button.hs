@@ -212,10 +212,10 @@ makeButton caption config = widget where
   init wenv node = result where
     result = resultWidget (createChildNode wenv node)
 
-  merge wenv oldState oldNode node = result where
+  merge wenv node oldNode oldState = result where
     result = resultWidget (createChildNode wenv node)
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
     Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config node
     KeyAction mode code status
@@ -240,12 +240,12 @@ makeButton caption config = widget where
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
+  getSizeReq wenv node currState children = (newReqW, newReqH) where
     -- Main section reqs
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     assignedAreas = Seq.fromList [viewport]
     resized = (resultWidget node, assignedAreas)

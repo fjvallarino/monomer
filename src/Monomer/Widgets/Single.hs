@@ -45,9 +45,9 @@ type SingleInitHandler s e
 
 type SingleMergeHandler s e a
   = WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetNode s e
   -> a
-  -> WidgetNode s e
-  -> WidgetNode s e
   -> WidgetResult s e
 
 type SingleDisposeHandler s e
@@ -57,49 +57,49 @@ type SingleDisposeHandler s e
 
 type SingleFindNextFocusHandler s e
   = WidgetEnv s e
+  -> WidgetNode s e
   -> FocusDirection
   -> Path
-  -> WidgetNode s e
   -> Maybe WidgetNodeInfo
 
 type SingleFindByPointHandler s e
   = WidgetEnv s e
+  -> WidgetNode s e
   -> Path
   -> Point
-  -> WidgetNode s e
   -> Maybe WidgetNodeInfo
 
 type SingleEventHandler s e
   = WidgetEnv s e
+  -> WidgetNode s e
   -> Path
   -> SystemEvent
-  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 
 type SingleMessageHandler s e
   = forall i . Typeable i
   => WidgetEnv s e
+  -> WidgetNode s e
   -> Path
   -> i
-  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
 
 type SingleGetSizeReqHandler s e a
   = WidgetEnv s e
-  -> a
   -> WidgetNode s e
+  -> a
   -> (SizeReq, SizeReq)
 
 type SingleResizeHandler s e
   = WidgetEnv s e
-  -> Rect
   -> WidgetNode s e
+  -> Rect
   -> WidgetResult s e
 
 type SingleRenderHandler s e
-  =  Renderer
-  -> WidgetEnv s e
+  =  WidgetEnv s e
   -> WidgetNode s e
+  -> Renderer
   -> IO ()
 
 data Single s e a = Single {
@@ -183,7 +183,7 @@ initWrapper single wenv node = newResult where
     & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
 
 defaultMerge :: SingleMergeHandler s e a
-defaultMerge wenv oldState oldNode newNode = resultWidget newNode
+defaultMerge wenv newNode oldState oldNode = resultWidget newNode
 
 mergeWrapper
   :: WidgetModel a
@@ -192,25 +192,25 @@ mergeWrapper
   -> WidgetNode s e
   -> WidgetNode s e
   -> WidgetResult s e
-mergeWrapper single wenv oldNode newNode = newResult where
+mergeWrapper single wenv newNode oldNode = newResult where
   mergeHandler = singleMerge single
-  oldState = widgetGetState (oldNode ^. L.widget) wenv
+  oldState = widgetGetState (oldNode ^. L.widget) wenv oldNode
   oldInfo = oldNode ^. L.info
   nodeHandler wenv styledNode = case useState oldState of
-    Just state -> mergeHandler wenv state oldNode styledNode
+    Just state -> mergeHandler wenv styledNode oldNode state
     _ -> resultWidget styledNode
-  tmpResult = runNodeHandler single wenv oldInfo newNode nodeHandler
+  tmpResult = runNodeHandler single wenv newNode oldInfo nodeHandler
   newResult = handleWidgetIdChange oldNode tmpResult
 
 runNodeHandler
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
-  -> WidgetNodeInfo
   -> WidgetNode s e
+  -> WidgetNodeInfo
   -> (WidgetEnv s e -> WidgetNode s e -> WidgetResult s e)
   -> WidgetResult s e
-runNodeHandler single wenv oldInfo newNode nodeHandler = newResult where
+runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
   getBaseStyle = singleGetBaseStyle single
   tempNode = newNode
     & L.info . L.widgetId .~ oldInfo ^. L.widgetId
@@ -233,7 +233,7 @@ getInstanceTreeWrapper
 getInstanceTreeWrapper container wenv node = instNode where
   instNode = WidgetInstanceNode {
     _winInfo = node ^. L.info,
-    _winState = widgetGetState (node ^. L.widget) wenv,
+    _winState = widgetGetState (node ^. L.widget) wenv node,
     _winChildren = fmap (getChildTree wenv) (node ^. L.children)
   }
   getChildTree wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child
@@ -254,12 +254,12 @@ disposeWrapper single wenv node = result where
   result = WidgetResult newNode newReqs
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
-defaultFindNextFocus wenv direction startFrom node
+defaultFindNextFocus wenv node direction startFrom
   | isFocusCandidate direction startFrom node = Just (node ^. L.info)
   | otherwise = Nothing
 
 defaultFindByPoint :: SingleFindByPointHandler s e
-defaultFindByPoint wenv start point node
+defaultFindByPoint wenv node start point
   | visible && validPath && isPointInNodeVp point node = Just info
   | otherwise = Nothing
   where
@@ -270,27 +270,27 @@ defaultFindByPoint wenv start point node
 
 singleFindByPath
   :: WidgetEnv s e
-  -> Path
   -> WidgetNode s e
+  -> Path
   -> Maybe WidgetNodeInfo
-singleFindByPath wenv path node
+singleFindByPath wenv node path
   | info ^. L.path == path = Just info
   | otherwise = Nothing
   where
     info = node ^. L.info
 
 defaultHandleEvent :: SingleEventHandler s e
-defaultHandleEvent wenv target evt node = Nothing
+defaultHandleEvent wenv node target evt = Nothing
 
 handleEventWrapper
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
+  -> WidgetNode s e
   -> Path
   -> SystemEvent
-  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleEventWrapper single wenv target evt node
+handleEventWrapper single wenv node target evt
   | not (node ^. L.info . L.visible) = Nothing
   | otherwise = handleStyleChange wenv target style handleCursor node evt result
   where
@@ -298,19 +298,19 @@ handleEventWrapper single wenv target evt node
     handleCursor = not (singleUseCustomCursor single)
     focusOnPressed = singleFocusOnPressedBtn single
     handler = singleHandleEvent single
-    handlerRes = handler wenv target evt node
+    handlerRes = handler wenv node target evt
     sizeResult = handleSizeReqChange single wenv node (Just evt) handlerRes
     result
-      | focusOnPressed = handleFocusRequest wenv evt node sizeResult
+      | focusOnPressed = handleFocusRequest wenv node evt sizeResult
       | otherwise = sizeResult
 
 handleFocusRequest
   :: WidgetEnv s e
-  -> SystemEvent
   -> WidgetNode s e
+  -> SystemEvent
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
-handleFocusRequest wenv evt oldNode mResult = newResult where
+handleFocusRequest wenv oldNode evt mResult = newResult where
   node = maybe oldNode (^. L.node) mResult
   prevReqs = maybe Empty (^. L.requests) mResult
   isFocusable = node ^. L.info . L.focusable
@@ -329,19 +329,19 @@ handleFocusRequest wenv evt oldNode mResult = newResult where
     | otherwise = mResult
 
 defaultHandleMessage :: SingleMessageHandler s e
-defaultHandleMessage wenv target message node = Nothing
+defaultHandleMessage wenv node target message = Nothing
 
 handleMessageWrapper :: forall s e a i . (WidgetModel a, Typeable i)
   => Single s e a
   -> WidgetEnv s e
+  -> WidgetNode s e
   -> Path
   -> i
-  -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleMessageWrapper single wenv target msg node = result where
+handleMessageWrapper single wenv node target msg = result where
   handler = singleHandleMessage single
   result = handleSizeReqChange single wenv node Nothing
-    $ handler wenv target msg node
+    $ handler wenv node target msg
 
 defaultGetSizeReq :: SingleGetSizeReqHandler s e a
 defaultGetSizeReq wenv node = def
@@ -356,9 +356,9 @@ updateSizeReq single wenv node = newNode where
   addStyleReq = singleAddStyleReq single
   handler = singleGetSizeReq single
   style = singleGetActiveStyle single wenv node
-  currState = widgetGetState (node ^. L.widget) wenv
+  currState = widgetGetState (node ^. L.widget) wenv node
   reqs = case useState currState of
-    Just state -> handler wenv state node
+    Just state -> handler wenv node state
     _ -> def
   (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
@@ -389,19 +389,19 @@ handleSizeReqChange single wenv node evt mResult = result where
     | otherwise = mResult
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv viewport node = resultWidget node
+defaultResize wenv node viewport = resultWidget node
 
 resizeHandlerWrapper
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
-  -> Rect
   -> WidgetNode s e
+  -> Rect
   -> WidgetResult s e
-resizeHandlerWrapper single wenv viewport node = result where
+resizeHandlerWrapper single wenv node viewport = result where
   useCustomSize = singleUseCustomSize single
   handler = singleResize single
-  tmpRes = handler wenv viewport node
+  tmpRes = handler wenv node viewport
   lensVp = L.info . L.viewport
   newVp
     | useCustomSize = tmpRes ^. L.node . lensVp
@@ -412,18 +412,18 @@ resizeHandlerWrapper single wenv viewport node = result where
   result = fromJust $ handleSizeReqChange single wenv newNode Nothing tmpResult
 
 defaultRender :: SingleRenderHandler s e
-defaultRender renderer wenv node = return ()
+defaultRender wenv node renderer = return ()
 
 renderWrapper
   :: Single s e a
-  -> Renderer
   -> WidgetEnv s e
   -> WidgetNode s e
+  -> Renderer
   -> IO ()
-renderWrapper single renderer wenv node =
+renderWrapper single wenv node renderer =
   drawInScissor renderer useScissor viewport $
     drawStyledAction renderer viewport style $ \_ ->
-      handler renderer wenv node
+      handler wenv node renderer
   where
     handler = singleRender single
     useScissor = singleUseScissor single

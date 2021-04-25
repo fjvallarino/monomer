@@ -89,7 +89,7 @@ makeZStack config state = widget where
     newNode = node
       & L.widget .~ makeZStack config newState
 
-  mergePost wenv result oldState oldNode node = newResult where
+  mergePost wenv node oldNode oldState result = newResult where
     ZStackState oldFocusMap oldTopIdx = oldState
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
@@ -117,7 +117,7 @@ makeZStack config state = widget where
       | otherwise = result
 
   -- | Find instance matching point
-  findByPoint wenv start point node = result where
+  findByPoint wenv node start point = result where
     children = node ^. L.children
     vchildren
       | onlyTopActive = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
@@ -128,18 +128,18 @@ makeZStack config state = widget where
     childVisible = ch ^. L.info . L.visible
     isNextValid = isJust nextStep && visible && childVisible
     result
-      | isNextValid = widgetFindByPoint (ch ^. L.widget) wenv start point ch
+      | isNextValid = widgetFindByPoint (ch ^. L.widget) wenv ch start point
       | visible = findFirstByPoint vchildren wenv start point
       | otherwise = Nothing
 
-  findNextFocus wenv direction start node = result where
+  findNextFocus wenv node direction start = result where
     children = node ^. L.children
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     result
       | onlyTopActive = Seq.take 1 vchildren
       | otherwise = vchildren
 
-  getSizeReq wenv currState node children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv node currState children = (newSizeReqW, newSizeReqH) where
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq (_wniSizeReqH . _wnInfo) vchildren
@@ -150,13 +150,13 @@ makeZStack config state = widget where
     where
       vreqs = accesor <$> vchildren
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = activeStyle wenv node
     vpChild = fromMaybe def (removeOuterBounds style viewport)
     assignedAreas = fmap (const vpChild) children
     resized = (resultWidget node, assignedAreas)
 
-  render renderer wenv node =
+  render wenv node renderer =
     drawInScissor renderer True viewport $
       drawStyledAction renderer viewport style $ \_ ->
         void $ Seq.traverseWithIndex renderChild children
@@ -168,7 +168,7 @@ makeZStack config state = widget where
       topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
       isPointEmpty point idx = not covered where
         prevs = Seq.drop (idx + 1) children
-        target c = widgetFindByPoint (c ^. L.widget) wenv emptyPath point c
+        target c = widgetFindByPoint (c ^. L.widget) wenv c emptyPath point
         isCovered c = isVisible c && isJust (target c)
         covered = any isCovered prevs
       isTopLayer idx child point = prevTopLayer && isValid where
@@ -180,7 +180,7 @@ makeZStack config state = widget where
         _weInTopLayer = isTopLayer idx child
       }
       renderChild idx child = when (isVisible child) $
-        widgetRender (child ^. L.widget) renderer (cWenv idx child) child
+        widgetRender (child ^. L.widget) (cWenv idx child) child renderer
 
 findFirstByPoint
   :: Seq (WidgetNode s e)
@@ -191,7 +191,7 @@ findFirstByPoint
 findFirstByPoint Empty _ _ _ = Nothing
 findFirstByPoint (ch :<| chs) wenv start point = result where
   isVisible = ch ^. L.info . L.visible
-  newPath = widgetFindByPoint (ch ^. L.widget) wenv start point ch
+  newPath = widgetFindByPoint (ch ^. L.widget) wenv ch start point
   result
     | isVisible && isJust newPath = newPath
     | otherwise = findFirstByPoint chs wenv start point

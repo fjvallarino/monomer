@@ -86,7 +86,7 @@ makeFixedGrid isHorizontal config = widget where
       nreqs = Seq.length vreqs
       maxSize = foldl1 sizeReqMergeMax vreqs
 
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect l t w h = contentArea

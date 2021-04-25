@@ -157,7 +157,7 @@ makeLabel config state = widget where
     newNode = node
       & L.widget .~ makeLabel config newState
 
-  merge wenv oldState oldNode newNode = result where
+  merge wenv newNode oldNode oldState = result where
     style = activeStyle wenv newNode
     newTextStyle = style ^. L.text
     captionChanged = _lstCaption oldState /= caption
@@ -177,7 +177,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs
 
-  getSizeReq wenv currState node = (sizeW, sizeH) where
+  getSizeReq wenv node currState = (sizeW, sizeH) where
     caption = _lstCaption currState
     prevResize = _lstPrevResize currState
     ts = wenv ^. L.timestamp
@@ -199,7 +199,7 @@ makeLabel config state = widget where
       | abs factorH < 0.01 = fixedSize h
       | otherwise = flexSize h factorH
 
-  resize wenv viewport node = result where
+  resize wenv node viewport = result where
     ts = wenv ^. L.timestamp
     style = activeStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
@@ -225,7 +225,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
     result = resultReqs newNode [ResizeWidgets | needsSndResize]
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     forM_ textLines (drawTextLine renderer style)
     where
       style = activeStyle wenv node

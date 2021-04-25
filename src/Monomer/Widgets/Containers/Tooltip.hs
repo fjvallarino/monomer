@@ -106,12 +106,12 @@ makeTooltip caption config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.tooltipStyle
 
-  merge wenv oldState oldNode node = result where
+  merge wenv node oldNode oldState = result where
     newNode = node
       & L.widget .~ makeTooltip caption config oldState
     result = resultWidget newNode
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     Leave point -> Just $ resultReqs newNode [RenderOnce] where
       newState = state {
         _ttsLastPos = Point (-1) (-1),
@@ -137,12 +137,12 @@ makeTooltip caption config state = widget where
     _ -> Nothing
 
   -- Padding/border is not removed. Styles are only considerer for the overlay
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     resized = (resultWidget node, Seq.singleton viewport)
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     forM_ children $ \child ->
-      widgetRender (child ^. L.widget) renderer wenv child
+      widgetRender (child ^. L.widget) wenv child renderer
 
     when tooltipVisible $
       createOverlay renderer $ do

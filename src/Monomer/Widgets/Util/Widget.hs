@@ -118,8 +118,9 @@ resultReqsEvts node requests events = result where
   result = WidgetResult node (Seq.fromList requests <> evtSeq)
   evtSeq = Seq.fromList $ RaiseEvent <$> events
 
-makeState :: WidgetModel i => i -> s -> Maybe WidgetState
-makeState state model = Just (WidgetState state)
+makeState
+  :: WidgetModel i => i -> WidgetEnv s e -> WidgetNode s e -> Maybe WidgetState
+makeState state wenv node = Just (WidgetState state)
 
 useState :: WidgetModel i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing

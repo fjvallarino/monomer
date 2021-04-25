@@ -21,7 +21,7 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-type DraggableRender s e = Renderer -> WidgetEnv s e -> WidgetNode s e -> IO ()
+type DraggableRender s e = WidgetEnv s e -> WidgetNode s e -> Renderer -> IO ()
 
 data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
@@ -96,7 +96,7 @@ makeDraggable msg config = widget where
     containerRender = render
   }
 
-  handleEvent wenv target evt node = case evt of
+  handleEvent wenv node target evt = case evt of
     ButtonAction p btn PressedBtn 1 -> Just result where
       result = resultReqs node [StartDrag wid path dragMsg]
     ButtonAction p btn ReleasedBtn _ -> Just result where
@@ -108,24 +108,24 @@ makeDraggable msg config = widget where
       dragMsg = WidgetDragMsg msg
 
   getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv currState node children = (newReqW, newReqH) where
+  getSizeReq wenv node currState children = (newReqW, newReqH) where
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH
 
   resize :: ContainerResizeHandler s e
-  resize wenv viewport children node = resized where
+  resize wenv node viewport children = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     resized = (resultWidget node, Seq.singleton contentArea)
 
-  defaultRender renderer wenv node =
+  defaultRender wenv node renderer =
     drawStyledAction renderer (moveRect scOffset draggedRect) style $ \_ -> do
       saveContext renderer
       setTranslation renderer (addPoint scOffset offset)
       setScale renderer (Point scale scale)
       setGlobalAlpha renderer transparency
-      widgetRender (cnode ^. L.widget) renderer wenv cnode
+      widgetRender (cnode ^. L.widget) wenv cnode renderer
       restoreContext renderer
     where
       style = fromMaybe def (_dgcDragStyle config)
@@ -143,10 +143,10 @@ makeDraggable msg config = widget where
       draggedRect = fromMaybe rect (addOuterBounds style rect)
       scOffset = wenv ^. L.offset
 
-  render renderer wenv node = do
+  render wenv node renderer = do
     when dragged $
       createOverlay renderer $ do
-        renderAction renderer wenv node
+        renderAction wenv node renderer
     where
       dragged = isNodeDragged wenv node
       renderAction = fromMaybe defaultRender (_dgcCustomRender config)
