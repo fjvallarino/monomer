@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Widgets.Singles.DropdownSpec (spec) where
+module Monomer.Widgets.Containers.DropdownSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
@@ -19,9 +19,9 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Containers.Dropdown
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
-import Monomer.Widgets.Singles.Dropdown
 import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L

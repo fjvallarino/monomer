@@ -583,17 +583,20 @@
   - Should node come immediately after wenv in Widget methods?
   - Is merging Task and Producer a good idea? (most likely not)
     - It's clearer for the user to keep them as separate concepts
+  - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
+  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
+    - This could avoid rebuilding listView items when hidden/shown
+    - Not doing it for the time being
+  - Can Req combinators be removed?
+    - Maybe create a single use container that sends message on click?
+    - It works in some cases, not in others (mainly in Dropdown use of ListView). Not worth doing.
 
 Next
   - Add examples
     - OpenGL example
     - Something of generative art (custom Widget example)
-  - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
-  - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
-    - This could avoid rebuilding listView items when hidden/shown
-  - Notify of viewport change (maybe for chart?)
-    - Isn't resize enough? Not sure what the use case for this was
-  - Can Req combinators be removed?
+  - Rename ListView -> SelectList
+    - Add support for multiple selection
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
@@ -603,8 +606,6 @@ Future
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
-  - Rename ListView -> SelectList
-    - Add support for multiple selection
   - Add support for multiline text editing
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create ContextMenu (could work similarly to Tooltip)

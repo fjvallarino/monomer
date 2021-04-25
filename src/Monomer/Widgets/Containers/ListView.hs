@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widgets.Singles.ListView (
+module Monomer.Widgets.Containers.ListView (
   ListViewCfg,
   ListItem(..),
   listView,

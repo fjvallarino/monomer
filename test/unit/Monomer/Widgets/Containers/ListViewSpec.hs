@@ -1,7 +1,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Widgets.Singles.ListViewSpec (spec) where
+module Monomer.Widgets.Containers.ListViewSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~), _1)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
@@ -18,10 +18,10 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
+import Monomer.Widgets.Containers.ListView
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.ListView
 
 import qualified Monomer.Lens as L
 

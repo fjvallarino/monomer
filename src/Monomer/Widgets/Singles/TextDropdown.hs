@@ -18,8 +18,8 @@ import TextShow
 
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Widgets.Containers.Dropdown
 import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.Dropdown
 
 type TextDropdownItem a = DropdownItem a
 

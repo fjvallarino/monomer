@@ -17,8 +17,10 @@ import qualified Monomer.Widgets.Containers.AlertSpec as AlertSpec
 import qualified Monomer.Widgets.Containers.BoxSpec as BoxSpec
 import qualified Monomer.Widgets.Containers.ConfirmSpec as ConfirmSpec
 import qualified Monomer.Widgets.Containers.DragDropSpec as DragDropSpec
+import qualified Monomer.Widgets.Containers.DropdownSpec as DropdownSpec
 import qualified Monomer.Widgets.Containers.GridSpec as GridSpec
 import qualified Monomer.Widgets.Containers.KeystrokeSpec as KeystrokeSpec
+import qualified Monomer.Widgets.Containers.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.Containers.ScrollSpec as ScrollSpec
 import qualified Monomer.Widgets.Containers.SplitSpec as SplitSpec
 import qualified Monomer.Widgets.Containers.StackSpec as StackSpec
@@ -29,10 +31,8 @@ import qualified Monomer.Widgets.Containers.ZStackSpec as ZStackSpec
 import qualified Monomer.Widgets.Singles.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.Singles.CheckboxSpec as CheckboxSpec
 import qualified Monomer.Widgets.Singles.DialSpec as DialSpec
-import qualified Monomer.Widgets.Singles.DropdownSpec as DropdownSpec
 import qualified Monomer.Widgets.Singles.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.Singles.LabelSpec as LabelSpec
-import qualified Monomer.Widgets.Singles.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.Singles.NumericFieldSpec as NumericFieldSpec
 import qualified Monomer.Widgets.Singles.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.Singles.SpacerSpec as SpacerSpec

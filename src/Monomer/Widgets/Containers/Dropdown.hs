@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Monomer.Widgets.Singles.Dropdown (
+module Monomer.Widgets.Containers.Dropdown (
   DropdownCfg,
   DropdownItem(..),
   dropdown,
@@ -29,8 +29,8 @@ import GHC.Generics
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
+import Monomer.Widgets.Containers.ListView
 import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.ListView
 
 import qualified Monomer.Lens as L
 

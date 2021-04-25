@@ -9,9 +9,11 @@ module Monomer.Widgets (
   module Monomer.Widgets.Containers.Box,
   module Monomer.Widgets.Containers.Confirm,
   module Monomer.Widgets.Containers.Draggable,
+  module Monomer.Widgets.Containers.Dropdown,
   module Monomer.Widgets.Containers.DropTarget,
   module Monomer.Widgets.Containers.Grid,
   module Monomer.Widgets.Containers.Keystroke,
+  module Monomer.Widgets.Containers.ListView,
   module Monomer.Widgets.Containers.Scroll,
   module Monomer.Widgets.Containers.Split,
   module Monomer.Widgets.Containers.Stack,
@@ -22,11 +24,9 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.Button,
   module Monomer.Widgets.Singles.Checkbox,
   module Monomer.Widgets.Singles.Dial,
-  module Monomer.Widgets.Singles.Dropdown,
   module Monomer.Widgets.Singles.Icon,
   module Monomer.Widgets.Singles.Image,
   module Monomer.Widgets.Singles.Label,
-  module Monomer.Widgets.Singles.ListView,
   module Monomer.Widgets.Singles.NumericField,
   module Monomer.Widgets.Singles.Radio,
   module Monomer.Widgets.Singles.Spacer,
@@ -44,9 +44,11 @@ import Monomer.Widgets.Containers.Alert
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Confirm
 import Monomer.Widgets.Containers.Draggable
+import Monomer.Widgets.Containers.Dropdown
 import Monomer.Widgets.Containers.DropTarget
 import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Containers.Keystroke
+import Monomer.Widgets.Containers.ListView
 import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Containers.Split
 import Monomer.Widgets.Containers.Stack
@@ -57,11 +59,9 @@ import Monomer.Widgets.Containers.ZStack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.Dial
-import Monomer.Widgets.Singles.Dropdown
 import Monomer.Widgets.Singles.Icon
 import Monomer.Widgets.Singles.Image
 import Monomer.Widgets.Singles.Label
-import Monomer.Widgets.Singles.ListView
 import Monomer.Widgets.Singles.NumericField
 import Monomer.Widgets.Singles.Radio
 import Monomer.Widgets.Singles.Spacer
