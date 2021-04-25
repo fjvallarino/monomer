@@ -133,10 +133,9 @@ type ContainerMessageHandler s e
   -> i
   -> Maybe (WidgetResult s e)
 
-type ContainerGetSizeReqHandler s e a
+type ContainerGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
-  -> a
   -> Seq (WidgetNode s e)
   -> (SizeReq, SizeReq)
 
@@ -177,7 +176,7 @@ data Container s e a = Container {
   containerFindByPoint :: ContainerFindByPointHandler s e,
   containerHandleEvent :: ContainerEventHandler s e,
   containerHandleMessage :: ContainerMessageHandler s e,
-  containerGetSizeReq :: ContainerGetSizeReqHandler s e a,
+  containerGetSizeReq :: ContainerGetSizeReqHandler s e,
   containerResize :: ContainerResizeHandler s e,
   containerRender :: ContainerRenderHandler s e,
   containerRenderAfter :: ContainerRenderHandler s e
@@ -230,6 +229,7 @@ createContainer state container = Widget {
   widgetFindByPath = containerFindByPath,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
+  widgetGetSizeReq = getSizeReqWrapper container,
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
@@ -314,7 +314,7 @@ initWrapper container wenv node = initPostHandler wenv node result where
   results = Seq.mapWithIndex initChild children
   newReqs = foldMap _wrRequests results
   newChildren = fmap _wrNode results
-  newNode = updateSizeReq container wenv $ tempNode
+  newNode = updateSizeReq wenv $ tempNode
     & L.children .~ newChildren
   result = WidgetResult newNode (reqs <> newReqs)
 
@@ -358,7 +358,7 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Nothing -> resultWidget (mResult ^. L.node)
   tmpResult
     | isResizeResult (Just postRes) = postRes
-        & L.node .~ updateSizeReq container wenv (postRes ^. L.node)
+        & L.node .~ updateSizeReq wenv (postRes ^. L.node)
     | otherwise = postRes
   newResult = handleWidgetIdChange oldNode tmpResult
 
@@ -702,33 +702,37 @@ handleMessageWrapper container wenv node target arg
       | otherwise = messageResult
 
 -- | Preferred size
-defaultGetSizeReq :: ContainerGetSizeReqHandler s e a
-defaultGetSizeReq wenv node state children = (newReqW, newReqH) where
+defaultGetSizeReq :: ContainerGetSizeReqHandler s e
+defaultGetSizeReq wenv node children = (newReqW, newReqH) where
   (newReqW, newReqH) = case Seq.lookup 0 children of
     Just child -> (child ^. L.info . L.sizeReqW, child ^. L.info . L.sizeReqH)
     _ -> def
 
-updateSizeReq
+getSizeReqWrapper
   :: WidgetModel a
   => Container s e a
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetNode s e
-updateSizeReq container wenv node = newNode where
+  -> (SizeReq, SizeReq)
+getSizeReqWrapper container wenv node = (newReqW, newReqH) where
   addStyleReq = containerAddStyleReq container
   handler = containerGetSizeReq container
-  currState = widgetGetState (node ^. L.widget) wenv node
   style = containerGetActiveStyle container wenv node
   children = node ^. L.children
-  reqs = case useState currState of
-    Just state -> handler wenv node state children
-    _ -> def
+  reqs = handler wenv node children
   (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
     | otherwise = reqs
   -- User settings take precedence
   newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
   newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
+
+updateSizeReq
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetNode s e
+updateSizeReq wenv node = newNode where
+  (newReqW, newReqH) = widgetGetSizeReq (node ^. L.widget) wenv node
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
@@ -748,7 +752,7 @@ handleSizeReqChange container wenv node evt mResult = result where
   styleChanged = isJust evt && styleStateChanged wenv baseNode (fromJust evt)
   result
     | styleChanged || resizeReq = Just $ baseResult
-      & L.node .~ updateSizeReq container wenv baseNode
+      & L.node .~ updateSizeReq wenv baseNode
     | otherwise = mResult
 
 -- | Resize

@@ -70,7 +70,7 @@ makeFixedGrid isHorizontal config = widget where
 
   isVertical = not isHorizontal
 
-  getSizeReq wenv currState node children = newSizeReq where
+  getSizeReq wenv node children = newSizeReq where
     updateSizeReq = fromMaybe id (_grcSizeReqUpdater config)
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren

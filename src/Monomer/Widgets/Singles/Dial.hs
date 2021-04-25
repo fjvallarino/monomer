@@ -259,7 +259,7 @@ makeDial field minVal maxVal config state = widget where
               & L.requests <>~ Seq.fromList (reqs <> evts)
           | otherwise = result
 
-  getSizeReq wenv node currState = req where
+  getSizeReq wenv node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
     req = (fixedSize width, fixedSize width)

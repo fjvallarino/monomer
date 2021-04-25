@@ -107,8 +107,8 @@ makeDraggable msg config = widget where
       path = node ^. L.info . L.path
       dragMsg = WidgetDragMsg msg
 
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv node currState children = (newReqW, newReqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv node children = (newReqW, newReqH) where
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH

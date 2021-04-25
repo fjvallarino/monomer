@@ -210,8 +210,8 @@ makeSplit isHorizontal config state = widget where
         | otherwise = CursorSizeV
       cursorIconReq = SetCursorIcon widgetId dragIcon
 
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv node currState children = (reqW, reqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv node children = (reqW, reqH) where
     node1 = Seq.index children 0
     node2 = Seq.index children 1
     reqW1 = node1 ^. L.info . L.sizeReqW

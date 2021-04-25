@@ -162,8 +162,8 @@ makeImage imgPath config state = widget where
       & L.widget .~ makeImage imgPath config newState
     result = Just $ resultReqs newNode [ResizeWidgets]
 
-  getSizeReq wenv node currState = sizeReq where
-    Size w h = maybe def snd (isImageData currState)
+  getSizeReq wenv node = sizeReq where
+    Size w h = maybe def snd (isImageData state)
     factor = 1
     sizeReq = (expandSize w factor, expandSize h factor)
 

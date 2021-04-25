@@ -580,20 +580,20 @@
     - Make Eq WidgetRequest require Eq e
     - Rename widgetSave to something more appropriate
     - Standardize use of Typeable/WidgetEvent/WidgetModel
+  - Should node come immediately after wenv in Widget methods?
+  - Is merging Task and Producer a good idea? (most likely not)
+    - It's clearer for the user to keep them as separate concepts
 
 Next
   - Add examples
     - OpenGL example
     - Something of generative art (custom Widget example)
-  - Should node come immediately after wenv in Widget methods?
-  - Can Req combinators be removed?
   - Find a way out of currState in getSizeReq (most likely add method back to Widget). It's very confusing and error prone
-    - There must be some way to avoid adding the method back. Can't the same object be forced to update?
   - Should cascadeCtx be part of widget interface? Maybe it can be handled on init?
     - This could avoid rebuilding listView items when hidden/shown
   - Notify of viewport change (maybe for chart?)
     - Isn't resize enough? Not sure what the use case for this was
-  - Is merging Task and Producer a good idea? (most likely not)
+  - Can Req combinators be removed?
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?

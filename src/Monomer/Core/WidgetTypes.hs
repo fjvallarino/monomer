@@ -316,6 +316,12 @@ data Widget s e =
       -> Path
       -> i
       -> Maybe (WidgetResult s e),
+    -- | Returns the size requirements for the widget. This is called to update
+    -- WidgetNodeInfo only at specific times.
+    widgetGetSizeReq
+      :: WidgetEnv s e
+      -> WidgetNode s e
+      -> (SizeReq, SizeReq),
     -- | Resizes the children of this widget
     --
     -- Vieport assigned to the widget

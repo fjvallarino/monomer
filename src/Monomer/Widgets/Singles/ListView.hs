@@ -393,7 +393,7 @@ makeListView widgetData items makeRow config state = widget where
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
 
-  getSizeReq wenv node currState children = (newSizeReqW, newSizeReqH) where
+  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
     child = Seq.index children 0
     newSizeReqW = _wniSizeReqW . _wnInfo $ child
     newSizeReqH = _wniSizeReqH . _wnInfo $ child
@@ -445,9 +445,12 @@ updateItemStyle wenv merge idx mstyle (items, resizeReq) = result where
 
 updateItemSizeReq :: WidgetEnv s e -> WidgetNode s e -> (WidgetNode s e, Bool)
 updateItemSizeReq wenv item = (newItem, resizeReq) where
-  result = widgetMerge (item ^. L.widget) wenv item item
-  newItem = result ^. L.node
-  resizeReq = isResizeResult (Just result)
+  (oldReqW, oldReqH) = (item^. L.info . L.sizeReqW, item^. L.info . L.sizeReqH)
+  (newReqW, newReqH) = widgetGetSizeReq (item ^. L.widget) wenv item
+  newItem = item
+    & L.info . L.sizeReqW .~ newReqW
+    & L.info . L.sizeReqH .~ newReqH
+  resizeReq = (oldReqW, oldReqH) /= (newReqW, newReqH)
 
 mergeItemStyle :: WidgetNode s e -> Maybe Style -> WidgetNode s e
 mergeItemStyle item Nothing = item

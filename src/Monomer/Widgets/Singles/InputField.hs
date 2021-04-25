@@ -511,10 +511,10 @@ makeInputField config state = widget where
       | isValid || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
 
-  getSizeReq wenv node currState = sizeReq where
+  getSizeReq wenv node = sizeReq where
     defWidth = _ifcDefWidth config
     resizeOnChange = _ifcResizeOnChange config
-    currText = _ifsCurrText currState
+    currText = _ifsCurrText state
     style = activeStyle wenv node
     Size w h = getTextSize wenv style currText
     targetW

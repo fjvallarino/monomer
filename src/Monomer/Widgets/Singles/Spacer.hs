@@ -77,7 +77,7 @@ makeSpacer config = widget where
     singleGetSizeReq = getSizeReq
   }
 
-  getSizeReq wenv currState node = sizeReq where
+  getSizeReq wenv node = sizeReq where
     direction = wenv ^. L.layoutDirection
     width = fromMaybe 5 (_spcWidth config)
     height = fromMaybe 5 (_spcHeight config)

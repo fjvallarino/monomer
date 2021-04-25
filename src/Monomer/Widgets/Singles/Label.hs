@@ -177,9 +177,9 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs
 
-  getSizeReq wenv node currState = (sizeW, sizeH) where
-    caption = _lstCaption currState
-    prevResize = _lstPrevResize currState
+  getSizeReq wenv node = (sizeW, sizeH) where
+    caption = _lstCaption state
+    prevResize = _lstPrevResize state
     ts = wenv ^. L.timestamp
     style = activeStyle wenv node
     cw = getContentArea style node ^. L.w

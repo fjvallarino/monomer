@@ -150,7 +150,7 @@ makeRadio field option config = widget where
       setValueReq = widgetDataSet field option
       reqs = setValueReq ++ _rdcOnChangeReq config
 
-  getSizeReq wenv node currState = req where
+  getSizeReq wenv node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
     req = (fixedSize width, fixedSize width)

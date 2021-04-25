@@ -161,7 +161,7 @@ makeCheckbox widgetData config = widget where
       setValueReq = widgetDataSet widgetData newValue
       reqs = setValueReq ++ _ckcOnChangeReq config
 
-  getSizeReq wenv node currState = req where
+  getSizeReq wenv node = req where
     theme = activeTheme wenv node
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
     req = (fixedSize width, fixedSize width)

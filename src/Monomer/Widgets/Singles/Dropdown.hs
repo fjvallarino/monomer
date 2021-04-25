@@ -388,8 +388,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newEvents = Seq.fromList (evts ++ evtsIdx)
     result = WidgetResult newNode (reqs <> newReqs <> newEvents)
 
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv node currState children = (newReqW, newReqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv node children = (newReqW, newReqH) where
     -- Main section reqs
     mainC = Seq.index children 0
     mainReqW = mainC ^. L.info . L.sizeReqW

@@ -309,6 +309,7 @@ createComposite comp state = widget where
     widgetFindByPath = compositeFindByPath comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
+    widgetGetSizeReq = compositeGetSizeReq comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -539,13 +540,14 @@ compositeHandleMessage comp state@CompositeState{..} wenv widgetComp target arg
       result = widgetHandleMessage cmpWidget cwenv _cpsRoot target arg
 
 -- Preferred size
-updateSizeReq
+compositeGetSizeReq
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => CompositeState s e
+  => Composite s e sp ep
+  -> CompositeState s e
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
-  -> WidgetNode sp ep
-updateSizeReq state wenv widgetComp = newComp where
+  -> (SizeReq, SizeReq)
+compositeGetSizeReq comp state wenv widgetComp = (newReqW, newReqH) where
   CompositeState{..} = state
   style = activeStyle wenv widgetComp
   widget = _cpsRoot ^. L.widget
@@ -555,6 +557,17 @@ updateSizeReq state wenv widgetComp = newComp where
   -- User settings take precedence
   newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
   newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
+
+-- Preferred size
+updateSizeReq
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  => Composite s e sp ep
+  -> CompositeState s e
+  -> WidgetEnv sp ep
+  -> WidgetNode sp ep
+  -> WidgetNode sp ep
+updateSizeReq comp state wenv widgetComp = newComp where
+  (newReqW, newReqH) = compositeGetSizeReq comp state wenv widgetComp
   newComp = widgetComp
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
@@ -656,7 +669,7 @@ toParentResult comp state wenv widgetComp result = newResult where
   }
   newComp = widgetComp
     & L.widget .~ createComposite comp newState
-  newNode = updateSizeReq newState wenv newComp
+  newNode = updateSizeReq comp newState wenv newComp
   newReqs = seqCatMaybes (toParentReq widgetId <$> reqs)
   newResult = WidgetResult newNode newReqs
 

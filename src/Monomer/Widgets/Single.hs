@@ -9,8 +9,7 @@ module Monomer.Widgets.Single (
   module Monomer.Widgets.Util,
 
   Single(..),
-  createSingle,
-  updateSizeReq
+  createSingle
 ) where
 
 import Control.Exception (AssertionFailed(..), throw)
@@ -84,10 +83,9 @@ type SingleMessageHandler s e
   -> i
   -> Maybe (WidgetResult s e)
 
-type SingleGetSizeReqHandler s e a
+type SingleGetSizeReqHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
-  -> a
   -> (SizeReq, SizeReq)
 
 type SingleResizeHandler s e
@@ -117,7 +115,7 @@ data Single s e a = Single {
   singleFindByPoint :: SingleFindByPointHandler s e,
   singleHandleEvent :: SingleEventHandler s e,
   singleHandleMessage :: SingleMessageHandler s e,
-  singleGetSizeReq :: SingleGetSizeReqHandler s e a,
+  singleGetSizeReq :: SingleGetSizeReqHandler s e,
   singleResize :: SingleResizeHandler s e,
   singleRender :: SingleRenderHandler s e
 }
@@ -155,6 +153,7 @@ createSingle state single = Widget {
   widgetFindByPath = singleFindByPath,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = handleMessageWrapper single,
+  widgetGetSizeReq = getSizeReqWrapper single,
   widgetResize = resizeHandlerWrapper single,
   widgetRender = renderWrapper single
 }
@@ -180,7 +179,7 @@ initWrapper single wenv node = newResult where
   styledNode = initNodeStyle getBaseStyle wenv node
   tmpResult = initHandler wenv styledNode
   newResult = tmpResult
-    & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
+    & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
 
 defaultMerge :: SingleMergeHandler s e a
 defaultMerge wenv newNode oldState oldNode = resultWidget newNode
@@ -221,7 +220,7 @@ runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
   tmpResult = nodeHandler wenv styledNode
   newResult
     | isResizeResult (Just tmpResult) = tmpResult
-        & L.node .~ updateSizeReq single wenv (tmpResult ^. L.node)
+        & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
     | otherwise = tmpResult
 
 getInstanceTreeWrapper
@@ -343,29 +342,33 @@ handleMessageWrapper single wenv node target msg = result where
   result = handleSizeReqChange single wenv node Nothing
     $ handler wenv node target msg
 
-defaultGetSizeReq :: SingleGetSizeReqHandler s e a
+defaultGetSizeReq :: SingleGetSizeReqHandler s e
 defaultGetSizeReq wenv node = def
 
-updateSizeReq
+getSizeReqWrapper
   :: WidgetModel a
   => Single s e a
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> WidgetNode s e
-updateSizeReq single wenv node = newNode where
+  -> (SizeReq, SizeReq)
+getSizeReqWrapper single wenv node = (newReqW, newReqH) where
   addStyleReq = singleAddStyleReq single
   handler = singleGetSizeReq single
   style = singleGetActiveStyle single wenv node
-  currState = widgetGetState (node ^. L.widget) wenv node
-  reqs = case useState currState of
-    Just state -> handler wenv node state
-    _ -> def
+  reqs = handler wenv node
   (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
     | otherwise = reqs
   -- User settings take precedence
   newReqW = fromMaybe tmpReqW (style ^. L.sizeReqW)
   newReqH = fromMaybe tmpReqH (style ^. L.sizeReqH)
+
+updateSizeReq
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetNode s e
+updateSizeReq wenv node = newNode where
+  (newReqW, newReqH) = widgetGetSizeReq (node ^. L.widget) wenv node
   newNode = node
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
@@ -385,7 +388,7 @@ handleSizeReqChange single wenv node evt mResult = result where
   styleChanged = isJust evt && styleStateChanged wenv newNode (fromJust evt)
   result
     | styleChanged || resizeReq = Just $ baseResult
-      & L.node .~ updateSizeReq single wenv newNode
+      & L.node .~ updateSizeReq wenv newNode
     | otherwise = mResult
 
 defaultResize :: SingleResizeHandler s e

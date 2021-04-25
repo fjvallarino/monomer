@@ -239,8 +239,8 @@ makeButton caption config = widget where
       result = resultReqsEvts node requests events
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
-  getSizeReq :: ContainerGetSizeReqHandler s e a
-  getSizeReq wenv node currState children = (newReqW, newReqH) where
+  getSizeReq :: ContainerGetSizeReqHandler s e
+  getSizeReq wenv node children = (newReqW, newReqH) where
     -- Main section reqs
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
