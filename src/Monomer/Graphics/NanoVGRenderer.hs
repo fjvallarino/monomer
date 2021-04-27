@@ -58,6 +58,7 @@ data ImageReq = ImageReq {
 
 data Env = Env {
   overlays :: Seq (IO ()),
+  overlaysRaw :: Seq (IO ()),
   validFonts :: Set Text,
   imagesMap :: ImagesMap,
   addedImages :: Seq ImageReq
@@ -83,6 +84,7 @@ makeRenderer fonts dpr = do
 
   envRef <- newIORef $ Env {
     overlays = Seq.empty,
+    overlaysRaw = Seq.empty,
     validFonts = validFonts,
     imagesMap = M.empty,
     addedImages = Seq.empty
@@ -128,6 +130,19 @@ newRenderer c dpr lock envRef = Renderer {..} where
     sequence_ $ overlays env
     writeIORef envRef env {
       overlays = Seq.empty
+    }
+
+  -- Overlays
+  createRawOverlay overlay = L.with lock $
+    modifyIORef envRef $ \env -> env {
+      overlaysRaw = overlaysRaw env |> overlay
+    }
+
+  renderRawOverlays = do
+    env <- readIORef envRef
+    sequence_ $ overlaysRaw env
+    writeIORef envRef env {
+      overlaysRaw = Seq.empty
     }
 
   -- Scissor

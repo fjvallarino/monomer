@@ -77,14 +77,6 @@ executables:
     - lens
     - monomer
 
-  todo:
-    main: Main.hs
-    source-dirs: examples/todo
-    dependencies:
-    - lens
-    - monomer
-    - text-show
-
   books:
     main: Main.hs
     source-dirs: examples/books
@@ -94,6 +86,15 @@ executables:
     - monomer
     - text-show
     - wreq
+
+  generative:
+    main: Main.hs
+    source-dirs: examples/generative
+    dependencies:
+    - lens
+    - monomer
+    - random
+    - text-show
 
   ticker:
     main: Main.hs
@@ -106,6 +107,14 @@ executables:
     - text-show
     - websockets
     - wuss
+
+  todo:
+    main: Main.hs
+    source-dirs: examples/todo
+    dependencies:
+    - lens
+    - monomer
+    - text-show
 
 tests:
   monomer-test:

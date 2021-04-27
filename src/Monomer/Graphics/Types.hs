@@ -162,6 +162,9 @@ data Renderer = Renderer {
   -- Overlays
   createOverlay :: IO () -> IO (),
   renderOverlays :: IO (),
+  -- Raw overlays
+  createRawOverlay :: IO () -> IO (),
+  renderRawOverlays :: IO (),
   -- Scissor
   intersectScissor :: Rect -> IO (),
   -- Translation

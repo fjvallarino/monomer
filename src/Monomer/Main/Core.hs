@@ -326,6 +326,8 @@ renderWidgets !window renderer clearColor wenv widgetRoot = do
   liftIO $ renderOverlays renderer
 
   liftIO $ endFrame renderer
+
+  liftIO $ renderRawOverlays renderer
   SDL.glSwapWindow window
   where
     r = fromIntegral (clearColor ^. L.r) / 255

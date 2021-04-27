@@ -593,7 +593,6 @@
 
 Next
   - Add examples
-    - OpenGL example
     - Something of generative art (custom Widget example)
   - Rename ListView -> SelectList
     - Add support for multiple selection
