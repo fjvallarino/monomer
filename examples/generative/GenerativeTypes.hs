@@ -11,7 +11,7 @@ import Monomer
 
 data GenerativeType
   = CirclesGrid
-  | ExampleB
+  | BoxesPalette
   deriving (Eq, Show, Enum)
 
 newtype GenerativeModel = GenerativeModel {

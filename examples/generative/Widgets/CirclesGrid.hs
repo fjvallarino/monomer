@@ -4,10 +4,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Widgets.CirclesGrid where
+module Widgets.CirclesGrid (
+  CirclesGridCfg(..),
+  circlesGrid
+) where
 
 import Control.Lens
---import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import System.Random
 
@@ -81,9 +83,9 @@ drawCircle renderer state vp iw cols idx = do
   fill renderer
   stroke renderer
   where
-    colors = [magenta, orange, yellow, green]
-    sizeFactor = 1.1 * state ^. mouseY / vp ^. L.h
-    randFactor = state ^. mouseX / vp ^. L.w
+    colors = [cyan, deepPink, orange, white]
+    sizeFactor = 0.3 + 1.1 * (state ^. mouseY - vp ^. L.y) / vp ^. L.h
+    randFactor = (state ^. mouseX - vp ^. L.x) / vp ^. L.w
     currw = sizeFactor * iw
     szDiff = (1 - sizeFactor) * iw
     x = vp ^. L.x + iw * fromIntegral (idx `rem` cols)

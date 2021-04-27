@@ -12,6 +12,7 @@ import Monomer
 import Monomer.Widgets.Single
 
 import GenerativeTypes
+import Widgets.BoxesPalette
 import Widgets.CirclesGrid
 
 import qualified Monomer.Lens as L
@@ -21,10 +22,14 @@ buildUI
   -> GenerativeModel
   -> WidgetNode GenerativeModel GenerativeEvt
 buildUI wenv model = widgetTree where
+  genTypeDesc CirclesGrid = "Randomness in size and location for circles"
+  genTypeDesc BoxesPalette = "Randomness in palette for boxes"
   widgetTree = vstack [
-      textDropdownS activeGenerative generativeTypes `key` "activeType",
-      spacer,
-      circlesGrid def
+      textDropdown_ activeGenerative generativeTypes genTypeDesc [] `key` "activeType",
+      zstack [
+        circlesGrid def `visible` (model ^. activeGenerative == CirclesGrid),
+        boxesPalette def `visible` (model ^. activeGenerative == BoxesPalette)
+      ]
     ]
 
 handleEvent
