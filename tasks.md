@@ -589,11 +589,11 @@
     - Not doing it for the time being
   - Can Req combinators be removed?
     - Maybe create a single use container that sends message on click?
-    - It works in some cases, not in others (mainly in Dropdown use of ListView). Not worth doing.
-
-Next
+    - It works in some cases, not in others (mainly in Dropdown's use of ListView). Not worth doing.
   - Add examples
     - Something of generative art (custom Widget example)
+
+Next
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Maybe offset should be in node info?

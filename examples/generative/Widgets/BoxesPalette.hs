@@ -1,5 +1,3 @@
-{- HLINT ignore "Use <$>" -}
-
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -8,6 +6,10 @@
 
 module Widgets.BoxesPalette (
   BoxesPaletteCfg(..),
+  HasItemWidth(..),
+  HasPaletteType(..),
+  HasPaletteSize(..),
+  HasSeed(..),
   boxesPalette
 ) where
 
@@ -38,7 +40,7 @@ instance Default BoxesPaletteCfg where
     _bpcItemWidth = 25,
     _bpcPaletteType = 0,
     _bpcPaletteSize = 20,
-    _bpcSeed = Just 28
+    _bpcSeed = Just 42
   }
 
 data BoxesPaletteState = BoxesPaletteState {
@@ -57,10 +59,15 @@ makeBoxesPalette :: BoxesPaletteCfg -> BoxesPaletteState -> Widget s e
 makeBoxesPalette cfg state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
+    singleMerge = merge,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
+
+  merge wenv node oldNode oldState = resultWidget newNode where
+    newNode = node
+      & L.widget .~ makeBoxesPalette cfg oldState
 
   handleEvent wenv node target evt = case evt of
     Move (Point x y) -> Just (resultReqs newNode [RenderOnce]) where

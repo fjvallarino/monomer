@@ -8,14 +8,19 @@ import Data.Default
 import Data.Text (Text)
 
 import Monomer
+import Widgets.CirclesGrid
+import Widgets.BoxesPalette
 
 data GenerativeType
   = CirclesGrid
   | BoxesPalette
   deriving (Eq, Show, Enum)
 
-newtype GenerativeModel = GenerativeModel {
-  _activeGenerative :: GenerativeType
+data GenerativeModel = GenerativeModel {
+  _activeGen :: GenerativeType,
+  _showCfg :: Bool,
+  _circlesCfg :: CirclesGridCfg,
+  _boxesCfg :: BoxesPaletteCfg
 } deriving (Eq, Show)
 
 data GenerativeEvt
@@ -25,5 +30,5 @@ data GenerativeEvt
 makeLenses ''GenerativeType
 makeLenses ''GenerativeModel
 
-generativeTypes :: [GenerativeType]
-generativeTypes = enumFrom (toEnum 0)
+genTypes :: [GenerativeType]
+genTypes = enumFrom (toEnum 0)

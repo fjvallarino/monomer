@@ -6,25 +6,34 @@
 
 module Widgets.CirclesGrid (
   CirclesGridCfg(..),
+  HasItemWidth(..),
+  HasSeed(..),
   circlesGrid
 ) where
 
 import Control.Lens
+import Control.Monad (when)
 import Data.Default
+import Data.Maybe
 import System.Random
 
 import Monomer.Graphics.ColorTable
 import Monomer.Widgets.Single
 
+-- Imported to avoid issues with duplicate lens names
+import Widgets.BoxesPalette
+
 import qualified Monomer.Lens as L
 
-newtype CirclesGridCfg = CirclesGridCfg {
-  _cgcItemWidth :: Double
+data CirclesGridCfg = CirclesGridCfg {
+  _cgcItemWidth :: Double,
+  _cgcSeed :: Maybe Int
 } deriving (Eq, Show)
 
 instance Default CirclesGridCfg where
   def = CirclesGridCfg {
-    _cgcItemWidth = 25
+    _cgcItemWidth = 25,
+    _cgcSeed = Just 42
   }
 
 data CirclesGridState = CirclesGridState {
@@ -43,10 +52,15 @@ makeCirclesGrid :: CirclesGridCfg -> CirclesGridState -> Widget s e
 makeCirclesGrid cfg state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
+    singleMerge = merge,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
+
+  merge wenv node oldNode oldState = resultWidget newNode where
+    newNode = node
+      & L.widget .~ makeCirclesGrid cfg oldState
 
   handleEvent wenv node target evt = case evt of
     Move (Point x y) -> Just (resultReqs newNode [RenderOnce]) where
@@ -58,7 +72,8 @@ makeCirclesGrid cfg state = widget where
   getSizeReq wenv node = (expandSize 100 1, expandSize 100 1)
 
   render wenv node renderer = do
-    setStdGen (mkStdGen 42)
+    when (isJust (cfg ^. seed)) $
+      setStdGen $ mkStdGen (fromJust $ cfg ^. seed)
 
     mapM_ (drawCircle renderer state vp iw cols) [0..cols * rows - 1]
     where

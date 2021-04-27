@@ -22,13 +22,42 @@ buildUI
   -> GenerativeModel
   -> WidgetNode GenerativeModel GenerativeEvt
 buildUI wenv model = widgetTree where
-  genTypeDesc CirclesGrid = "Randomness in size and location for circles"
-  genTypeDesc BoxesPalette = "Randomness in palette for boxes"
+  seedDropdown lens = textDropdown_ lens seedList seedDesc []
+  widgetCircleCfg = vstack [
+      label "Width",
+      dial_ (circlesCfg . itemWidth) 10 50 [dragRate 0.5],
+      label "Random seed",
+      seedDropdown (circlesCfg . seed)
+    ]
+  widgetBoxCfg = vstack [
+      label "Width",
+      dial_ (boxesCfg . itemWidth) 10 50 [dragRate 0.5],
+      label "Palette type",
+      textDropdown (boxesCfg . paletteType) [1..4],
+      label "Palette size",
+      dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5],
+      label "Random seed",
+      seedDropdown (boxesCfg . seed)
+    ]
   widgetTree = vstack [
-      textDropdown_ activeGenerative generativeTypes genTypeDesc [] `key` "activeType",
+      hstack [
+        label "Type: ",
+        textDropdown_ activeGen genTypes genTypeDesc [] `key` "activeType",
+        spacer,
+        hstack [
+          label "Show config: ",
+          checkbox showCfg
+        ] `style` [width 150]
+      ] `style` [padding 3],
       zstack [
-        circlesGrid def `visible` (model ^. activeGenerative == CirclesGrid),
-        boxesPalette def `visible` (model ^. activeGenerative == BoxesPalette)
+        hstack [
+          circlesGrid (model ^. circlesCfg),
+          widgetCircleCfg `visible` model ^. showCfg `style` [paddingH 3, width 150]
+        ] `visible` (model ^. activeGen == CirclesGrid),
+        hstack [
+          boxesPalette (model ^. boxesCfg),
+          widgetBoxCfg `visible` model ^. showCfg `style` [paddingH 3, width 150]
+        ] `visible` (model ^. activeGen == BoxesPalette)
       ]
     ]
 
@@ -41,17 +70,29 @@ handleEvent
 handleEvent wenv node model evt = case evt of
   GenerativeInit -> [setFocus wenv "activeType"]
 
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
-setFocus wenv key = Request (SetFocus widgetId) where
-  widgetId = fromMaybe def (globalKeyWidgetId wenv key)
-
 main :: IO ()
 main = do
-  simpleApp (GenerativeModel CirclesGrid) handleEvent buildUI config
+  simpleApp model handleEvent buildUI config
   where
+    model = GenerativeModel CirclesGrid False def def
     config = [
       appWindowTitle "Generative art",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent GenerativeInit
       ]
+
+seedList :: [Maybe Int]
+seedList = Nothing : (Just <$> [0..100])
+
+seedDesc :: Maybe Int -> Text
+seedDesc Nothing = "Random"
+seedDesc (Just v) = showt v
+
+genTypeDesc :: GenerativeType -> Text
+genTypeDesc CirclesGrid = "Randomness in size and location for circles"
+genTypeDesc BoxesPalette = "Randomness in palette for boxes"
+
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus wenv key = Request (SetFocus widgetId) where
+  widgetId = fromMaybe def (globalKeyWidgetId wenv key)
