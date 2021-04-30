@@ -125,14 +125,14 @@ drawRect renderer rect (Just color) Nothing = do
 drawRect renderer rect (Just color) (Just radius) = do
   beginPath renderer
   setFillColor renderer color
-  drawRoundedRect renderer rect radius
+  drawRoundedRect renderer rect (fixRadius rect radius)
   fill renderer
 
 drawRectBorder :: Renderer -> Rect -> Border -> Maybe Radius -> IO ()
 drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
-  drawRectRoundedBorder renderer rect border radius
+  drawRectRoundedBorder renderer rect border (fixRadius rect radius)
 
 drawArc
   :: Renderer -> Rect -> Double -> Double -> Winding -> Maybe Color -> IO ()
@@ -506,3 +506,10 @@ p2 x y = Point x y
 
 radW :: Maybe RadiusCorner -> Double
 radW r = _rcrWidth (justDef r)
+
+fixRadius :: Rect -> Radius -> Radius
+fixRadius (Rect _ _ w h) (Radius tl tr bl br) = newRadius where
+  fixC (RadiusCorner ctype cwidth)
+    | cwidth * 2 < min w h = RadiusCorner ctype cwidth
+    | otherwise = RadiusCorner ctype (min w h / 2)
+  newRadius = Radius (fixC <$> tl) (fixC <$> tr) (fixC <$> bl) (fixC <$> br)

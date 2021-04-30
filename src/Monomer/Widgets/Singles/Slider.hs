@@ -269,11 +269,11 @@ makeSlider isHz field minVal maxVal config state = widget where
           | otherwise = Nothing
     Move point
       | isNodePressed wenv node -> Just result where
-        (_, newVal) = posFromMouse isHz minVal maxVal state dragRate vp point
+        newVal = posFromMouse isHz minVal maxVal state dragRate vp point
         result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     ButtonAction point btn PressedBtn clicks
       | clicks == 1 -> Just result where
-        (_, newVal) = posFromMouse isHz minVal maxVal state dragRate vp point
+        newVal = posFromMouse isHz minVal maxVal state dragRate vp point
         result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     ButtonAction point btn ReleasedBtn clicks
       | clicks <= 1 -> Just result where
@@ -322,8 +322,8 @@ makeSlider isHz field minVal maxVal config state = widget where
       sliderFgArea
         | isHz = sliderBgArea & L.w %~ (*posPct)
         | otherwise = sliderBgArea
-            & L.y %~ (+ (sliderBgArea ^. L.h * posPct))
-            & L.h %~ (* (1 - posPct))
+            & L.y %~ (+ (sliderBgArea ^. L.h * (1 - posPct)))
+            & L.h %~ (*posPct)
 
   newStateFromModel wenv node oldState = newState where
     currVal = widgetDataGet (wenv ^. L.model) field
@@ -343,17 +343,18 @@ posFromMouse
   -> Rational
   -> Rect
   -> Point
-  -> (Integer, a)
-posFromMouse isHz minVal maxVal state dragRate vp point = result where
+  -> a
+posFromMouse isHz minVal maxVal state dragRate vp point = newVal where
   SliderState maxPos _ = state
   sliderStart = Point (vp ^. L.x) (vp ^. L.y)
-  Point dx dy = subPoint point sliderStart
+  dv
+    | isHz = point ^. L.x - vp ^. L.x
+    | otherwise = vp ^. L.y + vp ^. L.h - point ^. L.y
   tmpPos
-    | isHz = round (dx * fromIntegral maxPos / vp ^. L.w)
-    | otherwise = round (dy * fromIntegral maxPos / vp ^. L.h)
+    | isHz = round (dv * fromIntegral maxPos / vp ^. L.w)
+    | otherwise = round (dv * fromIntegral maxPos / vp ^. L.h)
   newPos = restrictValue 0 maxPos tmpPos
   newVal = valueFromPos minVal dragRate newPos
-  result = (newPos, newVal)
 
 valueFromPos :: SliderValue a => a -> Rational -> Integer -> a
 valueFromPos minVal dragRate newPos = newVal where

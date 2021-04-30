@@ -619,6 +619,7 @@ Future
   - Create Layout with width/heights specified in percents
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
+  - Improve slider rendering when value is small and rounder corners are used
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer

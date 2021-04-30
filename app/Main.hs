@@ -143,7 +143,7 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetSlider where
   widgetSlider = vstack [
-      hslider_ double1 (-100) 100 [sliderRadius 3],
+      hslider_ double1 (-100) 100 [sliderRadius 10, sliderWidth 20],
       hstack [
         vslider_ double1 (-100) 100 [sliderRadius 3]
       ]
