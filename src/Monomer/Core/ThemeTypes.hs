@@ -2,6 +2,7 @@
 
 module Monomer.Core.ThemeTypes where
 
+import Control.Applicative ((<|>))
 import Data.Default
 import GHC.Generics
 
@@ -40,10 +41,10 @@ data ThemeState = ThemeState {
   _thsEmptyOverlay :: StyleState,
   _thsBtnStyle :: StyleState,
   _thsBtnMainStyle :: StyleState,
-  _thsCheckboxWidth :: Double,
   _thsCheckboxStyle :: StyleState,
-  _thsDialWidth :: Double,
+  _thsCheckboxWidth :: Double,
   _thsDialStyle :: StyleState,
+  _thsDialWidth :: Double,
   _thsDialogFrameStyle :: StyleState,
   _thsDialogTitleStyle :: StyleState,
   _thsDialogCloseIconStyle :: StyleState,
@@ -60,8 +61,8 @@ data ThemeState = ThemeState {
   _thsListViewStyle :: StyleState,
   _thsListViewItemStyle :: StyleState,
   _thsListViewItemSelectedStyle :: StyleState,
-  _thsRadioWidth :: Double,
   _thsRadioStyle :: StyleState,
+  _thsRadioWidth :: Double,
   _thsScrollOverlay :: Bool,
   _thsScrollFollowFocus :: Bool,
   _thsScrollBarColor :: Color,
@@ -70,6 +71,9 @@ data ThemeState = ThemeState {
   _thsScrollThumbWidth :: Double,
   _thsScrollThumbRadius :: Double,
   _thsScrollWheelRate :: Double,
+  _thsSliderStyle :: StyleState,
+  _thsSliderRadius :: Maybe Double,
+  _thsSliderWidth :: Double,
   _thsTooltipStyle :: StyleState,
   _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show, Generic)
@@ -82,10 +86,10 @@ instance Default ThemeState where
     _thsEmptyOverlay = def,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
-    _thsCheckboxWidth = def,
     _thsCheckboxStyle = def,
-    _thsDialWidth = def,
+    _thsCheckboxWidth = def,
     _thsDialStyle = def,
+    _thsDialWidth = def,
     _thsDialogFrameStyle = def,
     _thsDialogTitleStyle = def,
     _thsDialogCloseIconStyle = def,
@@ -102,8 +106,8 @@ instance Default ThemeState where
     _thsListViewStyle = def,
     _thsListViewItemStyle = def,
     _thsListViewItemSelectedStyle = def,
-    _thsRadioWidth = def,
     _thsRadioStyle = def,
+    _thsRadioWidth = def,
     _thsScrollOverlay = False,
     _thsScrollFollowFocus = True,
     _thsScrollBarColor = def,
@@ -112,6 +116,9 @@ instance Default ThemeState where
     _thsScrollThumbWidth = 8,
     _thsScrollThumbRadius = 0,
     _thsScrollWheelRate = 10,
+    _thsSliderStyle = def,
+    _thsSliderRadius = def,
+    _thsSliderWidth = def,
     _thsTooltipStyle = def,
     _thsUserStyleMap = M.empty
   }
@@ -124,10 +131,10 @@ instance Semigroup ThemeState where
     _thsEmptyOverlay = _thsEmptyOverlay t1 <> _thsEmptyOverlay t2,
     _thsBtnStyle = _thsBtnStyle t1 <> _thsBtnStyle t2,
     _thsBtnMainStyle = _thsBtnMainStyle t1 <> _thsBtnMainStyle t2,
-    _thsCheckboxWidth = _thsCheckboxWidth t2,
     _thsCheckboxStyle = _thsCheckboxStyle t1 <> _thsCheckboxStyle t2,
-    _thsDialWidth = _thsDialWidth t2,
+    _thsCheckboxWidth = _thsCheckboxWidth t2,
     _thsDialStyle = _thsDialStyle t1 <> _thsDialStyle t2,
+    _thsDialWidth = _thsDialWidth t2,
     _thsDialogFrameStyle = _thsDialogFrameStyle t1 <> _thsDialogFrameStyle t2,
     _thsDialogTitleStyle = _thsDialogTitleStyle t1 <> _thsDialogTitleStyle t2,
     _thsDialogCloseIconStyle = _thsDialogCloseIconStyle t1 <> _thsDialogCloseIconStyle t2,
@@ -144,8 +151,8 @@ instance Semigroup ThemeState where
     _thsListViewStyle = _thsListViewStyle t1 <> _thsListViewStyle t2,
     _thsListViewItemStyle = _thsListViewItemStyle t1 <> _thsListViewItemStyle t2,
     _thsListViewItemSelectedStyle = _thsListViewItemSelectedStyle t1 <> _thsListViewItemSelectedStyle t2,
-    _thsRadioWidth = _thsRadioWidth t2,
     _thsRadioStyle = _thsRadioStyle t1 <> _thsRadioStyle t2,
+    _thsRadioWidth = _thsRadioWidth t2,
     _thsScrollOverlay = _thsScrollOverlay t2,
     _thsScrollFollowFocus = _thsScrollFollowFocus t2,
     _thsScrollBarColor =  _thsScrollBarColor t2,
@@ -154,6 +161,9 @@ instance Semigroup ThemeState where
     _thsScrollThumbWidth =  _thsScrollThumbWidth t2,
     _thsScrollThumbRadius = _thsScrollThumbRadius t2,
     _thsScrollWheelRate = _thsScrollWheelRate t2,
+    _thsSliderStyle = _thsSliderStyle t1 <> _thsSliderStyle t2,
+    _thsSliderWidth = _thsSliderWidth t2,
+    _thsSliderRadius = _thsSliderRadius t2 <|> _thsSliderRadius t1,
     _thsTooltipStyle = _thsTooltipStyle t1 <> _thsTooltipStyle t2,
     _thsUserStyleMap = _thsUserStyleMap t1 <> _thsUserStyleMap t2
   }

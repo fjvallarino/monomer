@@ -594,8 +594,14 @@
     - Something of generative art (custom Widget example)
 
 Next
+  - Create Slider
+  - Add externalLink component
+    - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
+  - Create ContextMenu (could work similarly to Tooltip)
+  - Create Color Selector
   - Rename ListView -> SelectList
     - Add support for multiple selection
+  - Top pixel seems to be invisible. Is this macOS title bar related?
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
@@ -607,15 +613,10 @@ Future
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
   - Add support for multiline text editing
   - Remove attoparsec dependency (only used in numericField to validate format)
-  - Create ContextMenu (could work similarly to Tooltip)
-  - Create Slider
   - Create File Selector
   - Create GridView
     - Adjusts column width and row height (not possible to have both combining hstack/vstack)
   - Create Layout with width/heights specified in percents
-  - Create Color Selector
-  - Add externalLink component
-    - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations

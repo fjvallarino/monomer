@@ -10,7 +10,6 @@ module Monomer.Widgets.Singles.Dial (
   dial_,
   dialV,
   dialV_,
-  dialD_,
   dialWidth
 ) where
 
@@ -268,8 +267,6 @@ makeDial field minVal maxVal config state = widget where
     drawArcBorder renderer dialArea start endSnd CW (Just sndColor) dialBW
     drawArcBorder renderer dialArea start endFg CW (Just fgColor) dialBW
     where
-      model = _weModel wenv
-      value = widgetDataGet model field
       (dialCenter, dialArea) = getDialInfo wenv node config
       DialState maxPos pos = newStateFromModel wenv node state
       posPct = fromIntegral pos / fromIntegral maxPos
