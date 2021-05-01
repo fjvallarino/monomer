@@ -306,7 +306,8 @@ makeSlider isHz field minVal maxVal config state = widget where
 
   render wenv node renderer = do
     drawRect renderer sliderBgArea (Just sndColor) sliderRadius
-    drawRect renderer sliderFgArea (Just fgColor) sliderRadius
+    drawInScissor renderer True sliderFgArea $
+      drawRect renderer sliderBgArea (Just fgColor) sliderRadius
     where
       theme = activeTheme wenv node
       style = activeStyle wenv node
