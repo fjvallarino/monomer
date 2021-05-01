@@ -230,14 +230,18 @@ makeSlider isHz field minVal maxVal config state = widget where
     style = collectTheme wenv L.sliderStyle
 
   init wenv node = resultWidget resNode where
-    newState = newStateFromModel wenv node state
+    currVal = widgetDataGet (wenv ^. L.model) field
+    newState = newStateFromValue currVal
     resNode = node
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
   merge wenv newNode oldNode oldState = resultWidget resNode where
+    stateVal = valueFromPos (_slsPos oldState)
+    modelVal = widgetDataGet (wenv ^. L.model) field
     newState
       | isNodePressed wenv newNode = oldState
-      | otherwise = newStateFromModel wenv newNode oldState
+      | stateVal == modelVal = oldState
+      | otherwise = newStateFromValue modelVal
     resNode = newNode
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
@@ -245,56 +249,50 @@ makeSlider isHz field minVal maxVal config state = widget where
     Focus -> handleFocusChange _slcOnFocus _slcOnFocusReq config node
     Blur -> handleFocusChange _slcOnBlur _slcOnBlurReq config node
     KeyAction mod code KeyPressed
-      | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
-      | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)
-      | isShiftPressed mod && isKeyUp code -> handleNewPos (pos + baseSpeed)
-      | isShiftPressed mod && isKeyDown code -> handleNewPos (pos - baseSpeed)
-      | isKeyUp code -> handleNewPos (pos + fastSpeed)
-      | isKeyDown code -> handleNewPos (pos - fastSpeed)
+      | isCtrl && isInc code -> handleNewPos (pos + warpSpeed)
+      | isCtrl && isDec code -> handleNewPos (pos - warpSpeed)
+      | isShiftPressed mod && isInc code -> handleNewPos (pos + baseSpeed)
+      | isShiftPressed mod && isDec code -> handleNewPos (pos - baseSpeed)
+      | isInc code -> handleNewPos (pos + fastSpeed)
+      | isDec code -> handleNewPos (pos - fastSpeed)
       where
-        SliderState maxPos pos = state
         isCtrl = isShortCutControl wenv mod
+        (isDec, isInc)
+          | isHz = (isKeyLeft, isKeyRight)
+          | otherwise = (isKeyDown, isKeyUp)
         baseSpeed = max 1 $ round (fromIntegral maxPos / 1000)
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
-        vPos pos = restrictValue 0 maxPos pos
-        newResult newPos = addReqsEvts (resultWidget newNode) newVal where
-          newVal = valueFromPos minVal dragRate newPos
-          newState = state { _slsPos = newPos }
-          newWidget = makeSlider isHz field minVal maxVal config newState
-          newNode = node
-            & L.widget .~ newWidget
         handleNewPos newPos
-          | vPos newPos /= pos = Just $ newResult (vPos newPos)
+          | validPos /= pos = resultFromPos validPos
           | otherwise = Nothing
+          where
+            validPos = restrictValue 0 maxPos newPos
     Move point
-      | isNodePressed wenv node -> Just result where
-        newVal = posFromMouse isHz minVal maxVal state dragRate vp point
-        result = addReqsEvts (resultReqs node [RenderOnce]) newVal
+      | isNodePressed wenv node -> resultFromPoint point
     ButtonAction point btn PressedBtn clicks
-      | clicks == 1 -> Just result where
-        newVal = posFromMouse isHz minVal maxVal state dragRate vp point
-        result = addReqsEvts (resultReqs node [RenderOnce]) newVal
+      | clicks == 1 -> resultFromPoint point
     ButtonAction point btn ReleasedBtn clicks
-      | clicks <= 1 -> Just result where
-        reqs = [RenderOnce]
-        newState = newStateFromModel wenv node state
-        newNode = node
-          & L.widget .~ makeSlider isHz field minVal maxVal config newState
-        result = resultReqs newNode reqs
+      | clicks <= 1 -> resultFromPoint point
     _ -> Nothing
     where
       style = activeStyle wenv node
-      sliderArea = getContentArea style node
-      path = node ^. L.info . L.path
       vp = getContentArea style node
-      isSelectKey code = isKeyReturn code || isKeySpace code
-      addReqsEvts result newVal = newResult where
-        currVal = widgetDataGet (wenv ^. L.model) field
+      SliderState maxPos pos = state
+      resultFromPoint point = resultFromPos newPos where
+        newPos = posFromMouse isHz vp point
+      resultFromPos newPos = Just newResult where
+        newState = state {
+          _slsPos = newPos
+        }
+        newNode = node
+          & L.widget .~ makeSlider isHz field minVal maxVal config newState
+        result = resultReqs newNode [RenderOnce]
+        newVal = valueFromPos newPos
         evts = RaiseEvent <$> fmap ($ newVal) (_slcOnChange config)
         reqs = widgetDataSet field newVal ++ _slcOnChangeReq config
         newResult
-          | currVal /= newVal = result
+          | pos /= newPos = result
               & L.requests <>~ Seq.fromList (reqs <> evts)
           | otherwise = result
 
@@ -316,7 +314,7 @@ makeSlider isHz field minVal maxVal config state = widget where
       sndColor = styleSndColor style
       sliderRadiusVal = _slcRadius config <|> theme ^. L.sliderRadius
       sliderRadius = radius <$> sliderRadiusVal
-      SliderState maxPos pos = newStateFromModel wenv node state
+      SliderState maxPos pos = state
       posPct = fromIntegral pos / fromIntegral maxPos
       sliderBgArea = getContentArea style node
       sliderFgArea
@@ -325,37 +323,23 @@ makeSlider isHz field minVal maxVal config state = widget where
             & L.y %~ (+ (sliderBgArea ^. L.h * (1 - posPct)))
             & L.h %~ (*posPct)
 
-  newStateFromModel wenv node oldState = newState where
-    currVal = widgetDataGet (wenv ^. L.model) field
+  newStateFromValue currVal = newState where
     newMaxPos = round (toRational (maxVal - minVal) / dragRate)
     newPos = round (toRational (currVal - minVal) / dragRate)
-    newState = oldState {
+    newState = SliderState {
       _slsMaxPos = newMaxPos,
       _slsPos = newPos
     }
 
-posFromMouse
-  :: SliderValue a
-  => Bool
-  -> a
-  -> a
-  -> SliderState
-  -> Rational
-  -> Rect
-  -> Point
-  -> a
-posFromMouse isHz minVal maxVal state dragRate vp point = newVal where
-  SliderState maxPos _ = state
-  sliderStart = Point (vp ^. L.x) (vp ^. L.y)
-  dv
-    | isHz = point ^. L.x - vp ^. L.x
-    | otherwise = vp ^. L.y + vp ^. L.h - point ^. L.y
-  tmpPos
-    | isHz = round (dv * fromIntegral maxPos / vp ^. L.w)
-    | otherwise = round (dv * fromIntegral maxPos / vp ^. L.h)
-  newPos = restrictValue 0 maxPos tmpPos
-  newVal = valueFromPos minVal dragRate newPos
+  posFromMouse isHz vp point = newPos where
+    SliderState maxPos _ = state
+    dv
+      | isHz = point ^. L.x - vp ^. L.x
+      | otherwise = vp ^. L.y + vp ^. L.h - point ^. L.y
+    tmpPos
+      | isHz = round (dv * fromIntegral maxPos / vp ^. L.w)
+      | otherwise = round (dv * fromIntegral maxPos / vp ^. L.h)
+    newPos = restrictValue 0 maxPos tmpPos
 
-valueFromPos :: SliderValue a => a -> Rational -> Integer -> a
-valueFromPos minVal dragRate newPos = newVal where
-  newVal = minVal + fromFractional (dragRate * fromIntegral newPos)
+  valueFromPos newPos = newVal where
+    newVal = minVal + fromFractional (dragRate * fromIntegral newPos)
