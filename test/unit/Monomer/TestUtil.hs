@@ -83,6 +83,9 @@ mockRenderer = Renderer {
   -- Overlays
   createOverlay  = \overlay -> return (),
   renderOverlays = return (),
+  -- Raw overlays
+  createRawOverlay  = \overlay -> return (),
+  renderRawOverlays = return (),
   -- Scissor operations
   intersectScissor = \rect -> return (),
   -- Translation
@@ -126,7 +129,7 @@ mockRenderer = Renderer {
 
 mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
-  _weOS = "Mac OS X",
+  _weOs = "Mac OS X",
   _weRenderer = mockRenderer,
   _weFindByPath = const Nothing,
   _weMainButton = LeftBtn,

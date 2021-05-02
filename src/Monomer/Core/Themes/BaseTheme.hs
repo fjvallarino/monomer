@@ -46,6 +46,7 @@ data BaseThemeColors = BaseThemeColors {
   disabledBg :: Color,
   disabledText :: Color,
   emptyOverlay :: Color,
+  externalLinkColor :: Color,
   focusBorder :: Color,
   iconFg :: Color,
   inputBorder :: Color,
@@ -177,6 +178,7 @@ baseBasic themeMod = def
   & L.dropdownListStyle . L.bgColor ?~ lvMainBg themeMod
   & L.dropdownItemStyle .~ listViewItemStyle themeMod
   & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle themeMod
+  & L.externalLinkStyle . L.text ?~ (normalFont & L.fontColor ?~ externalLinkColor themeMod)
   & L.inputNumericStyle .~ numericInputStyle themeMod
   & L.inputTextStyle .~ inputStyle themeMod
   & L.labelStyle . L.text
@@ -227,6 +229,8 @@ baseHover themeMod = baseBasic themeMod
   & L.dropdownItemSelectedStyle . L.bgColor ?~ lvSelectedBgHover themeMod
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 (lvSelectedBgHover themeMod)
   & L.dropdownItemSelectedStyle . L.cursorIcon ?~ CursorHand
+  & L.externalLinkStyle . L.text . non def . L.underline ?~ True
+  & L.externalLinkStyle . L.cursorIcon ?~ CursorHand
   & L.inputNumericStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
   & L.listViewItemStyle . L.bgColor ?~ lvNormalBgHover themeMod

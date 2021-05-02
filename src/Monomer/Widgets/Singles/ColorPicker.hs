@@ -91,7 +91,7 @@ buildUI config wenv model = mainTree where
     ]
   colorRow lens lbl = compRow lens lbl 0 255
   alphaRow lens lbl = compRow lens lbl 0 1
-  mainTree = hstack [
+  mainTree = hstack_ [sizeReqUpdater clearExtra] [
       vstack [
         colorRow L.r "Red",
         spacer_ [height 2],

@@ -112,7 +112,7 @@ runApp window widgetRoot config = do
   liftIO $ endFrame renderer
 
   let wenv = WidgetEnv {
-    _weOS = os,
+    _weOs = os,
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
@@ -205,7 +205,7 @@ mainLoop window renderer config loopArgs = do
   let newSecond = _mlFrameAccumTs > 1000
   let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
   let wenv = WidgetEnv {
-    _weOS = _mlOS,
+    _weOs = _mlOS,
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,

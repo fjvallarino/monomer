@@ -150,7 +150,7 @@ data LayoutDirection
   deriving (Eq, Show, Generic)
 
 data WidgetEnv s e = WidgetEnv {
-  _weOS :: Text,
+  _weOs :: Text,
   _weRenderer :: Renderer,
   _weFindByPath :: Path -> Maybe WidgetNodeInfo,
   _weMainButton :: Button,
@@ -386,7 +386,7 @@ instance Show (WidgetResult s e) where
 
 instance Show (WidgetEnv s e) where
   show wenv = "WidgetEnv "
-    ++ "{ _weOS: " ++ show (_weOS wenv)
+    ++ "{ _weOs: " ++ show (_weOs wenv)
     ++ ", _weWindowSize: " ++ show (_weWindowSize wenv)
     ++ ", _weFocusedPath: " ++ show (_weFocusedPath wenv)
     ++ ", _weTimestamp: " ++ show (_weTimestamp wenv)

@@ -773,7 +773,7 @@ collectGlobalKeys keys node = newMap where
 
 convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeysMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv globalKeys model = WidgetEnv {
-  _weOS = _weOS wenv,
+  _weOs = _weOs wenv,
   _weRenderer = _weRenderer wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,

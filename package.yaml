@@ -40,6 +40,7 @@ dependencies:
 - mtl
 - nanovg
 - OpenGL
+- process
 - safe
 - sdl2
 - stm
