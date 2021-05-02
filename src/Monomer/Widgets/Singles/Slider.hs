@@ -301,8 +301,8 @@ makeSlider isHz field minVal maxVal config state = widget where
     maxPos = realToFrac (toRational (maxVal - minVal) / dragRate)
     width = fromMaybe (theme ^. L.sliderWidth) (_slcWidth config)
     req
-      | isHz = (flexSize maxPos 1, fixedSize width)
-      | otherwise = (fixedSize width, flexSize maxPos 1)
+      | isHz = (expandSize maxPos 1, fixedSize width)
+      | otherwise = (fixedSize width, expandSize maxPos 1)
 
   render wenv node renderer = do
     drawRect renderer sliderBgArea (Just sndColor) sliderRadius

@@ -37,7 +37,8 @@ data App = App {
   _showConfirm :: Bool,
   _splitPos :: Double,
   _dragList1 :: [Int],
-  _dragList2 :: [Int]
+  _dragList2 :: [Int],
+  _color :: Color
 } deriving (Eq, Show)
 
 instance Default App where
@@ -63,7 +64,8 @@ instance Default App where
     _showConfirm = False,
     _splitPos = 0.5,
     _dragList1 = [1..100],
-    _dragList2 = []
+    _dragList2 = [],
+    _color = def
   }
 
 makeLenses ''App

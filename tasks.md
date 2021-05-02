@@ -592,16 +592,21 @@
     - It works in some cases, not in others (mainly in Dropdown's use of ListView). Not worth doing.
   - Add examples
     - Something of generative art (custom Widget example)
+  - Create Slider
+    - Improve slider rendering when value is small and rounder corners are used
+    - Maybe using scissor up to desired point, while drawing full rounded rect?
 
 Next
   - Create Slider
+    - Show handle/thumb
+  - Create Color Selector
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Create ContextMenu (could work similarly to Tooltip)
-  - Create Color Selector
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Top pixel seems to be invisible. Is this macOS title bar related?
+    - Check if Info.plist has a related setting
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
@@ -612,6 +617,7 @@ Future
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
   - Add support for multiline text editing
+  - Should numeric field continuosly update?
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create File Selector
   - Create GridView
@@ -619,7 +625,6 @@ Future
   - Create Layout with width/heights specified in percents
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
-  - Improve slider rendering when value is small and rounder corners are used
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer

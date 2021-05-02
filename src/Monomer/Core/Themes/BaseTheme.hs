@@ -198,7 +198,6 @@ baseBasic themeMod = def
   & L.scrollWheelRate .~ 10
   & L.sliderRadius ?~ 2
   & L.sliderWidth .~ 10
-  & L.sliderStyle . L.padding ?~ padding 5
   & L.sliderStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndBasic themeMod
   & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
