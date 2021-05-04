@@ -41,7 +41,7 @@ import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
 
-type AppEventResponse s e = EventResponse s e ()
+type AppEventResponse s e = EventResponse s e s ()
 type AppEventHandler s e
   = WidgetEnv s e -> WidgetNode s e -> s -> e -> [AppEventResponse s e]
 type AppUIBuilder s e = UIBuilder s e

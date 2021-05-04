@@ -127,5 +127,5 @@ handleEvent
   -> WidgetNode s ep
   -> s
   -> ep
-  -> [EventResponse s e ep]
+  -> [EventResponse s e sp ep]
 handleEvent wenv node model evt = [Report evt]

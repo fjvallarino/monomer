@@ -164,6 +164,6 @@ handleEvent
   -> WidgetNode s (ConfirmEvt ep)
   -> s
   -> ConfirmEvt ep
-  -> [EventResponse s (ConfirmEvt ep) ep]
+  -> [EventResponse s (ConfirmEvt ep) sp ep]
 handleEvent wenv node model evt = case evt of
   ConfirmParentEvt pevt -> [Report pevt]

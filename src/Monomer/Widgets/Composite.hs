@@ -12,6 +12,7 @@ module Monomer.Widgets.Composite (
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
 
+  CompositeCfg,
   EventResponse(..),
   MergeReqsHandler,
   EventHandler,
@@ -22,7 +23,8 @@ module Monomer.Widgets.Composite (
   compositeV,
   compositeV_,
   compositeExt,
-  compositeExt_
+  compositeExt_,
+  compositeD_
 ) where
 
 import Debug.Trace
@@ -57,8 +59,8 @@ type CompositeEvent e = WidgetEvent e
 
 type MergeReqsHandler s e
   = WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> s -> [WidgetRequest s e]
-type EventHandler s e ep
-  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e ep]
+type EventHandler s e sp ep
+  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e sp ep]
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 type MergeRequired s = s -> s -> Bool
 type TaskHandler e = IO e
@@ -67,11 +69,12 @@ type ProducerHandler e = (e -> IO ()) -> IO ()
 data CompMsgUpdate
   = forall s . Typeable s => CompMsgUpdate (s -> s)
 
-data EventResponse s e ep
+data EventResponse s e sp ep
   = Model s
   | Event e
   | Report ep
   | Request (WidgetRequest s e)
+  | RequestParent (WidgetRequest sp ep)
   | forall i . Typeable i => Message WidgetKey i
   | Task (TaskHandler e)
   | Producer (ProducerHandler e)
@@ -164,7 +167,7 @@ compositeMergeReqs fn = def {
 
 data Composite s e sp ep = Composite {
   _cmpWidgetData :: WidgetData sp s,
-  _cmpEventHandler :: EventHandler s e ep,
+  _cmpEventHandler :: EventHandler s e sp ep,
   _cmpUiBuilder :: UIBuilder s e,
   _cmpMergeRequired :: MergeRequired s,
   _cmpMergeReqs :: [MergeReqsHandler s e],
@@ -198,7 +201,7 @@ composite
   => WidgetType
   -> ALens' sp s
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> WidgetNode sp ep
 composite widgetType field uiBuilder evtHandler = newNode where
   newNode = composite_ widgetType field uiBuilder evtHandler def
@@ -208,7 +211,7 @@ composite_
   => WidgetType
   -> ALens' sp s
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
 composite_ widgetType field uiBuilder evtHandler cfgs = newNode where
@@ -221,7 +224,7 @@ compositeV
   -> s
   -> (s -> ep)
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> WidgetNode sp ep
 compositeV wType val handler uiBuilder evtHandler = newNode where
   newNode = compositeV_ wType val handler uiBuilder evtHandler def
@@ -232,7 +235,7 @@ compositeV_
   -> s
   -> (s -> ep)
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
 compositeV_ wType val handler uiBuilder evtHandler cfgs = newNode where
@@ -245,7 +248,7 @@ compositeExt
   => WidgetType
   -> s
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> WidgetNode sp ep
 compositeExt wType val uiBuilder evtHandler = newNode where
   newNode = compositeExt_ wType val uiBuilder evtHandler []
@@ -255,7 +258,7 @@ compositeExt_
   => WidgetType
   -> s
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
 compositeExt_ wType val uiBuilder evtHandler cfgs = newNode where
@@ -267,7 +270,7 @@ compositeD_
   => WidgetType
   -> WidgetData sp s
   -> UIBuilder s e
-  -> EventHandler s e ep
+  -> EventHandler s e sp ep
   -> [CompositeCfg s e sp ep]
   -> WidgetNode sp ep
 compositeD_ wType wData uiBuilder evtHandler configs = newNode where
@@ -677,13 +680,14 @@ evtResponseToRequest
   :: (Typeable s, Typeable sp, WidgetEvent e, WidgetEvent ep)
   => WidgetNode sp ep
   -> WidgetKeysMap s e
-  -> EventResponse s e ep
+  -> EventResponse s e sp ep
   -> Maybe (WidgetRequest sp ep)
 evtResponseToRequest widgetComp globalKeys response = case response of
   Model newModel -> Just $ sendTo widgetComp (CompMsgUpdate $ const newModel)
   Event event -> Just $ sendTo widgetComp event
   Report report -> Just (RaiseEvent report)
   Request req -> toParentReq widgetId req
+  RequestParent req -> Just req
   Message key msg -> (`sendTo` msg) <$> M.lookup key globalKeys
   Task task -> Just $ RunTask widgetId path task
   Producer producer -> Just $ RunProducer widgetId path producer
