@@ -108,4 +108,7 @@ data AppEvent
   | ToFrontWindowSchedule
   | StartAnimation
   | StopAnimation
+  | UpdateColor Color
+  | FocusColor
+  | BlurColor
   deriving (Eq, Show)

@@ -600,8 +600,11 @@ Next
   - Create Slider
     - Show handle/thumb
   - Create Color Selector
+    - Add lens/value version
+    - Show pattern to test alpha
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
+  - Review onChangeReq (a parameter should be provided)
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection

@@ -14,6 +14,7 @@ module Monomer.Widgets.Singles.Slider (
   hsliderV_,
   vsliderV,
   vsliderV_,
+  sliderD_,
   sliderRadius,
   sliderWidth
 ) where

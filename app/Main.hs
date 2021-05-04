@@ -138,13 +138,16 @@ handleAppEvent wenv node model evt = case evt of
       Message "anim2" AnimationStop
     ]
   IgnoreEvt -> []
+  UpdateColor col -> trace "Change" []
+  FocusColor -> trace "Focus" []
+  BlurColor -> trace "Blur" []
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetSlider where
   widgetSlider = vstack [
       hstack [externalLink "Launch GitHub" "http://www.github.com"],
-      colorPicker,
+      colorPicker_ color [onChange UpdateColor, onFocus FocusColor, onBlur BlurColor],
       labelS (model ^. int1),
       hslider_ int1 (-100) 100 [sliderRadius 10, sliderWidth 20],
       hstack [
