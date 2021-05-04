@@ -63,8 +63,8 @@ data SystemEvent
   | KeyAction KeyMod KeyCode KeyStatus
   | TextInput Text
   | Clipboard ClipboardData
-  | Focus
-  | Blur
+  | Focus Path -- Previous target
+  | Blur Path -- Next target
   | Enter Point
   | Move Point
   | Leave Point

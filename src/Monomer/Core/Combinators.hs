@@ -171,14 +171,14 @@ class CmbOnDispose t e | t -> e where
 class CmbOnResize t a e | t -> e where
   onResize :: (a -> e) -> t
 
-class CmbOnFocus t e | t -> e where
-  onFocus :: e -> t
+class CmbOnFocus t e a | t -> e a where
+  onFocus :: (a -> e) -> t
 
 class CmbOnFocusReq t s e | t -> s e where
   onFocusReq :: WidgetRequest s e -> t
 
-class CmbOnBlur t e | t -> e where
-  onBlur :: e -> t
+class CmbOnBlur t e a | t -> e a where
+  onBlur :: (a -> e) -> t
 
 class CmbOnBlurReq t s e | t -> s e where
   onBlurReq :: WidgetRequest s e -> t

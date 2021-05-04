@@ -605,6 +605,7 @@ Next
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Review onChangeReq (a parameter should be provided)
+    - Also reorder type parameters to be consistent (same order always)
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection

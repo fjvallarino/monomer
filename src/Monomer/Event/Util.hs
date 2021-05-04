@@ -85,11 +85,11 @@ isAltPressed :: KeyMod -> Bool
 isAltPressed keyMod = _kmLeftAlt keyMod || _kmRightAlt keyMod
 
 isOnFocus :: SystemEvent -> Bool
-isOnFocus Focus = True
+isOnFocus Focus{} = True
 isOnFocus _ = False
 
 isOnBlur :: SystemEvent -> Bool
-isOnBlur Blur = True
+isOnBlur Blur{} = True
 isOnBlur _ = False
 
 isOnEnter :: SystemEvent -> Bool

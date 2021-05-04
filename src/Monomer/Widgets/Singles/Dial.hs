@@ -33,9 +33,9 @@ type DialValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcDragRate :: Maybe Rational,
-  _dlcOnFocus :: [e],
+  _dlcOnFocus :: [Path -> e],
   _dlcOnFocusReq :: [WidgetRequest s e],
-  _dlcOnBlur :: [e],
+  _dlcOnBlur :: [Path -> e],
   _dlcOnBlurReq :: [WidgetRequest s e],
   _dlcOnChange :: [a -> e],
   _dlcOnChangeReq :: [WidgetRequest s e]
@@ -73,7 +73,7 @@ instance CmbDragRate (DialCfg s e a) Rational where
     _dlcDragRate = Just rate
   }
 
-instance CmbOnFocus (DialCfg s e a) e where
+instance CmbOnFocus (DialCfg s e a) e Path where
   onFocus fn = def {
     _dlcOnFocus = [fn]
   }
@@ -83,7 +83,7 @@ instance CmbOnFocusReq (DialCfg s e a) s e where
     _dlcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DialCfg s e a) e where
+instance CmbOnBlur (DialCfg s e a) e Path where
   onBlur fn = def {
     _dlcOnBlur = [fn]
   }
@@ -208,8 +208,8 @@ makeDial field minVal maxVal config state = widget where
       (_, dialArea) = getDialInfo wenv node config
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config node
-    Blur -> handleFocusChange _dlcOnBlur _dlcOnBlurReq config node
+    Focus prev -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config prev node
+    Blur next -> handleFocusChange _dlcOnBlur _dlcOnBlurReq config next node
     KeyAction mod code KeyPressed
       | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)

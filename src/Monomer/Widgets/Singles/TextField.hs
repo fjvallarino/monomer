@@ -30,9 +30,9 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcMaxLength :: Maybe Int,
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
-  _tfcOnFocus :: [e],
+  _tfcOnFocus :: [Path -> e],
   _tfcOnFocusReq :: [WidgetRequest s e],
-  _tfcOnBlur :: [e],
+  _tfcOnBlur :: [Path -> e],
   _tfcOnBlurReq :: [WidgetRequest s e],
   _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [WidgetRequest s e]
@@ -89,7 +89,7 @@ instance CmbMaxLength (TextFieldCfg s e) where
     _tfcMaxLength = Just len
   }
 
-instance CmbOnFocus (TextFieldCfg s e) e where
+instance CmbOnFocus (TextFieldCfg s e) e Path where
   onFocus fn = def {
     _tfcOnFocus = [fn]
   }
@@ -99,7 +99,7 @@ instance CmbOnFocusReq (TextFieldCfg s e) s e where
     _tfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (TextFieldCfg s e) e where
+instance CmbOnBlur (TextFieldCfg s e) e Path where
   onBlur fn = def {
     _tfcOnBlur = [fn]
   }

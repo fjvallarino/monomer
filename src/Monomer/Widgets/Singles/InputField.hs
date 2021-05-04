@@ -51,9 +51,9 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
   _ifcDragHandler :: Maybe (InputDragHandler a),
   _ifcDragCursor :: Maybe CursorIcon,
-  _ifcOnFocus :: [e],
+  _ifcOnFocus :: [Path -> e],
   _ifcOnFocusReq :: [WidgetRequest s e],
-  _ifcOnBlur :: [e],
+  _ifcOnBlur :: [Path -> e],
   _ifcOnBlurReq :: [WidgetRequest s e],
   _ifcOnChange :: [a -> e],
   _ifcOnChangeReq :: [WidgetRequest s e]
@@ -420,7 +420,7 @@ makeInputField config state = widget where
       result = insertTextRes wenv node newText
 
     -- Handle focus, maybe select all and disable custom drag handlers
-    Focus -> Just result where
+    Focus prev -> Just result where
       tmpState
         | _ifcSelectOnFocus config && T.length currText > 0 = state {
             _ifsSelStart = Just 0,
@@ -432,16 +432,16 @@ makeInputField config state = widget where
         & L.widget .~ makeInputField config newState
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs newNode reqs
-      focusResult = handleFocusChange _ifcOnFocus _ifcOnFocusReq config newNode
-      result = maybe newResult (newResult <>) focusResult
+      focusRs = handleFocusChange _ifcOnFocus _ifcOnFocusReq config prev newNode
+      result = maybe newResult (newResult <>) focusRs
 
     -- Handle blur and disable custom drag handlers
-    Blur -> Just result where
+    Blur next -> Just result where
       newState = state { _ifsDragSelActive = False }
       newNode = node & L.widget .~ makeInputField config newState
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs newNode reqs
-      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config newNode
+      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config next newNode
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing

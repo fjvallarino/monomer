@@ -30,9 +30,9 @@ data ExternalLinkCfg s e = ExternalLinkCfg {
   _elcTextMaxLines :: Maybe Int,
   _elcFactorW :: Maybe Double,
   _elcFactorH :: Maybe Double,
-  _elcOnFocus :: [e],
+  _elcOnFocus :: [Path -> e],
   _elcOnFocusReq :: [WidgetRequest s e],
-  _elcOnBlur :: [e],
+  _elcOnBlur :: [Path -> e],
   _elcOnBlurReq :: [WidgetRequest s e]
 }
 
@@ -87,7 +87,7 @@ instance CmbMaxLines (ExternalLinkCfg s e) where
     _elcTextMaxLines = Just count
   }
 
-instance CmbOnFocus (ExternalLinkCfg s e) e where
+instance CmbOnFocus (ExternalLinkCfg s e) e Path where
   onFocus fn = def {
     _elcOnFocus = [fn]
   }
@@ -97,7 +97,7 @@ instance CmbOnFocusReq (ExternalLinkCfg s e) s e where
     _elcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ExternalLinkCfg s e) e where
+instance CmbOnBlur (ExternalLinkCfg s e) e Path where
   onBlur fn = def {
     _elcOnBlur = [fn]
   }
@@ -181,8 +181,8 @@ makeExternalLink caption url config = widget where
     result = resultWidget (createChildNode wenv node)
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _elcOnFocus _elcOnFocusReq config node
-    Blur -> handleFocusChange _elcOnBlur _elcOnBlurReq config node
+    Focus prev -> handleFocusChange _elcOnFocus _elcOnFocusReq config prev node
+    Blur next -> handleFocusChange _elcOnBlur _elcOnBlurReq config next node
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where

@@ -68,8 +68,8 @@ getTargetPath wenv root pressed overlay target event = case event of
     Click{}                           -> pathEvent target
     DblClick{}                        -> pathEvent target
     WheelScroll point _ _             -> pointEvent point
-    Focus                             -> pathEvent target
-    Blur                              -> pathEvent target
+    Focus{}                           -> pathEvent target
+    Blur{}                            -> pathEvent target
     Enter{}                           -> pathEvent target
     Move point                        -> pointEvent point
     Leave{}                           -> pathEvent target
@@ -282,8 +282,11 @@ handleMoveFocus
   -> m (HandlerStep s e)
 handleMoveFocus startFromWid dir (wenv, root, reqs) = do
   oldFocus <- getFocusedPath
-  let wenv0 = wenv & L.focusedPath .~ emptyPath
-  (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root Blur oldFocus
+  tmpOverlay <- getOverlayPath
+  let tmpFocusWni = findNextFocus wenv dir oldFocus tmpOverlay root
+  let tmpFocus = tmpFocusWni ^. L.path
+  let blurEvt = Blur tmpFocus
+  (wenv1, root1, reqs1) <- handleSystemEvent wenv root blurEvt oldFocus
   currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 
@@ -294,10 +297,11 @@ handleMoveFocus startFromWid dir (wenv, root, reqs) = do
       let newFocusWni = findNextFocus wenv1 dir searchFrom currOverlay root1
       let newFocus = newFocusWni ^. L.path
       let wenvF = wenv1 & L.focusedPath .~ newFocus
+      let focusEvt = Focus oldFocus
 
       L.focusedWidgetId .= newFocusWni ^. L.widgetId
       L.renderRequested .= True
-      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 Focus newFocus
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 focusEvt newFocus
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else
@@ -312,12 +316,14 @@ handleSetFocus newFocusWid (wenv, root, reqs) = do
   if oldFocus /= newFocus
     then do
       let wenv0 = wenv & L.focusedPath .~ newFocus
-      (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root Blur oldFocus
+      let blurEvt = Blur newFocus
+      (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root blurEvt oldFocus
       let wenvF = wenv1 & L.focusedPath .~ newFocus
+      let focusEvt = Focus oldFocus
 
       L.focusedWidgetId .= newFocusWid
       L.renderRequested .= True
-      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 Focus newFocus
+      (wenv2, root2, reqs2) <- handleSystemEvent wenvF root1 focusEvt newFocus
 
       return (wenv2, root2, reqs <> reqs1 <> reqs2)
     else

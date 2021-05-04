@@ -44,9 +44,9 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcDragRate :: Maybe Double,
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
-  _nfcOnFocus :: [e],
+  _nfcOnFocus :: [Path -> e],
   _nfcOnFocusReq :: [WidgetRequest s e],
-  _nfcOnBlur :: [e],
+  _nfcOnBlur :: [Path -> e],
   _nfcOnBlurReq :: [WidgetRequest s e],
   _nfcOnChange :: [a -> e],
   _nfcOnChangeReq :: [WidgetRequest s e]
@@ -124,7 +124,7 @@ instance CmbDecimals (NumericFieldCfg s e a) where
     _nfcDecimals = Just num
   }
 
-instance CmbOnFocus (NumericFieldCfg s e a) e where
+instance CmbOnFocus (NumericFieldCfg s e a) e Path where
   onFocus fn = def {
     _nfcOnFocus = [fn]
   }
@@ -134,7 +134,7 @@ instance CmbOnFocusReq (NumericFieldCfg s e a) s e where
     _nfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (NumericFieldCfg s e a) e where
+instance CmbOnBlur (NumericFieldCfg s e a) e Path where
   onBlur fn = def {
     _nfcOnBlur = [fn]
   }

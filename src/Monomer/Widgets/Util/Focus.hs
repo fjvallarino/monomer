@@ -99,13 +99,14 @@ isNodeBeforePath path node = result where
 
 handleFocusChange
   :: Typeable e
-  => (c -> [e])
+  => (c -> [Path -> e])
   -> (c -> [WidgetRequest s e])
   -> c
+  -> Path
   -> WidgetNode s e
   -> Maybe (WidgetResult s e)
-handleFocusChange evtFn reqFn config node = result where
-  evts = evtFn config
+handleFocusChange evtFn reqFn config path node = result where
+  evts = ($ path) <$> evtFn config
   reqs = reqFn config
   result
     | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts

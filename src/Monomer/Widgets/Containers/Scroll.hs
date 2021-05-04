@@ -265,7 +265,7 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config oldState
 
   handleEvent wenv node target evt = case evt of
-    Focus -> result where
+    Focus{} -> result where
       follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
       focusPath = wenv ^. L.focusedPath
       focusInst = widgetFindByPath (node ^. L.widget) wenv node focusPath

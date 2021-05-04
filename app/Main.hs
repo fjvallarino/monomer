@@ -139,8 +139,8 @@ handleAppEvent wenv node model evt = case evt of
     ]
   IgnoreEvt -> []
   UpdateColor col -> trace "Change" []
-  FocusColor -> trace "Focus" []
-  BlurColor -> trace "Blur" []
+  FocusColor prev -> trace "Focus" []
+  BlurColor next -> trace "Blur" []
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent

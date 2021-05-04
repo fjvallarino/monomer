@@ -40,9 +40,9 @@ data SliderCfg s e a = SliderCfg {
   _slcRadius :: Maybe Double,
   _slcWidth :: Maybe Double,
   _slcDragRate :: Maybe Rational,
-  _slcOnFocus :: [e],
+  _slcOnFocus :: [Path -> e],
   _slcOnFocusReq :: [WidgetRequest s e],
-  _slcOnBlur :: [e],
+  _slcOnBlur :: [Path -> e],
   _slcOnBlurReq :: [WidgetRequest s e],
   _slcOnChange :: [a -> e],
   _slcOnChangeReq :: [WidgetRequest s e]
@@ -82,7 +82,7 @@ instance CmbDragRate (SliderCfg s e a) Rational where
     _slcDragRate = Just rate
   }
 
-instance CmbOnFocus (SliderCfg s e a) e where
+instance CmbOnFocus (SliderCfg s e a) e Path where
   onFocus fn = def {
     _slcOnFocus = [fn]
   }
@@ -92,7 +92,7 @@ instance CmbOnFocusReq (SliderCfg s e a) s e where
     _slcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (SliderCfg s e a) e where
+instance CmbOnBlur (SliderCfg s e a) e Path where
   onBlur fn = def {
     _slcOnBlur = [fn]
   }
@@ -247,8 +247,8 @@ makeSlider isHz field minVal maxVal config state = widget where
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _slcOnFocus _slcOnFocusReq config node
-    Blur -> handleFocusChange _slcOnBlur _slcOnBlurReq config node
+    Focus prev -> handleFocusChange _slcOnFocus _slcOnFocusReq config prev node
+    Blur next -> handleFocusChange _slcOnBlur _slcOnBlurReq config next node
     KeyAction mod code KeyPressed
       | isCtrl && isInc code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isDec code -> handleNewPos (pos - warpSpeed)

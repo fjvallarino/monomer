@@ -32,9 +32,9 @@ data CheckboxMark
 data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
-  _ckcOnFocus :: [e],
+  _ckcOnFocus :: [Path -> e],
   _ckcOnFocusReq :: [WidgetRequest s e],
-  _ckcOnBlur :: [e],
+  _ckcOnBlur :: [Path -> e],
   _ckcOnBlurReq :: [WidgetRequest s e],
   _ckcOnChange :: [Bool -> e],
   _ckcOnChangeReq :: [WidgetRequest s e]
@@ -72,7 +72,7 @@ instance CmbWidth (CheckboxCfg s e) where
     _ckcWidth = Just w
   }
 
-instance CmbOnFocus (CheckboxCfg s e) e where
+instance CmbOnFocus (CheckboxCfg s e) e Path where
   onFocus fn = def {
     _ckcOnFocus = [fn]
   }
@@ -82,7 +82,7 @@ instance CmbOnFocusReq (CheckboxCfg s e) s e where
     _ckcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (CheckboxCfg s e) e where
+instance CmbOnBlur (CheckboxCfg s e) e Path where
   onBlur fn = def {
     _ckcOnBlur = [fn]
   }
@@ -144,8 +144,8 @@ makeCheckbox widgetData config = widget where
     style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config node
-    Blur -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config node
+    Focus prev -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config prev node
+    Blur next -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config next node
     Click p _
       | isPointInNodeVp p node -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed

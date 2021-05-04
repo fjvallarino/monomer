@@ -35,9 +35,9 @@ data ButtonCfg s e = ButtonCfg {
   _btnTextMaxLines :: Maybe Int,
   _btnFactorW :: Maybe Double,
   _btnFactorH :: Maybe Double,
-  _btnOnFocus :: [e],
+  _btnOnFocus :: [Path -> e],
   _btnOnFocusReq :: [WidgetRequest s e],
-  _btnOnBlur :: [e],
+  _btnOnBlur :: [Path -> e],
   _btnOnBlurReq :: [WidgetRequest s e],
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s e]
@@ -100,7 +100,7 @@ instance CmbMaxLines (ButtonCfg s e) where
     _btnTextMaxLines = Just count
   }
 
-instance CmbOnFocus (ButtonCfg s e) e where
+instance CmbOnFocus (ButtonCfg s e) e Path where
   onFocus fn = def {
     _btnOnFocus = [fn]
   }
@@ -110,7 +110,7 @@ instance CmbOnFocusReq (ButtonCfg s e) s e where
     _btnOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ButtonCfg s e) e where
+instance CmbOnBlur (ButtonCfg s e) e Path where
   onBlur fn = def {
     _btnOnBlur = [fn]
   }
@@ -216,8 +216,8 @@ makeButton caption config = widget where
     result = resultWidget (createChildNode wenv node)
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _btnOnFocus _btnOnFocusReq config node
-    Blur -> handleFocusChange _btnOnBlur _btnOnBlurReq config node
+    Focus prev -> handleFocusChange _btnOnFocus _btnOnFocusReq config prev node
+    Blur next -> handleFocusChange _btnOnBlur _btnOnBlurReq config next node
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where

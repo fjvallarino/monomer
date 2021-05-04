@@ -41,9 +41,9 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcListStyle :: Maybe Style,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
-  _ddcOnFocus :: [e],
+  _ddcOnFocus :: [Path -> e],
   _ddcOnFocusReq :: [WidgetRequest s e],
-  _ddcOnBlur :: [e],
+  _ddcOnBlur :: [Path -> e],
   _ddcOnBlurReq :: [WidgetRequest s e],
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [WidgetRequest s e],
@@ -86,7 +86,7 @@ instance Semigroup (DropdownCfg s e a) where
 instance Monoid (DropdownCfg s e a) where
   mempty = def
 
-instance CmbOnFocus (DropdownCfg s e a) e where
+instance CmbOnFocus (DropdownCfg s e a) e Path where
   onFocus fn = def {
     _ddcOnFocus = [fn]
   }
@@ -96,7 +96,7 @@ instance CmbOnFocusReq (DropdownCfg s e a) s e where
     _ddcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DropdownCfg s e a) e where
+instance CmbOnBlur (DropdownCfg s e a) e Path where
   onBlur fn = def {
     _ddcOnBlur = [fn]
   }
@@ -290,17 +290,17 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen && isPointInNodeVp point mainNode = Just mainIdx
       | otherwise = Nothing
 
-  ddFocusChange evts reqs node = Just newResult where
-    tmpResult = handleFocusChange evts reqs config node
+  ddFocusChange evts reqs prev node = Just newResult where
+    tmpResult = handleFocusChange evts reqs config prev node
     newResult = fromMaybe (resultWidget node) tmpResult
       & L.requests %~ (|> IgnoreChildrenEvents)
 
   handleEvent wenv node target evt = case evt of
-    Focus
-      | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq node
-    Blur
+    Focus prev
+      | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq prev node
+    Blur next
       | not isOpen && not (seqStartsWith path focusedPath)
-        -> ddFocusChange _ddcOnBlur _ddcOnBlurReq node
+        -> ddFocusChange _ddcOnBlur _ddcOnBlurReq next node
     Enter{} -> Just result where
       newIcon = fromMaybe CursorHand (style ^. L.cursorIcon)
       result = resultReqs node [SetCursorIcon widgetId CursorHand]

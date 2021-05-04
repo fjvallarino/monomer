@@ -22,9 +22,9 @@ import qualified Monomer.Lens as L
 
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
-  _rdcOnFocus :: [e],
+  _rdcOnFocus :: [Path -> e],
   _rdcOnFocusReq :: [WidgetRequest s e],
-  _rdcOnBlur :: [e],
+  _rdcOnBlur :: [Path -> e],
   _rdcOnBlurReq :: [WidgetRequest s e],
   _rdcOnChange :: [a -> e],
   _rdcOnChangeReq :: [WidgetRequest s e]
@@ -60,7 +60,7 @@ instance CmbWidth (RadioCfg s e a) where
     _rdcWidth = Just w
   }
 
-instance CmbOnFocus (RadioCfg s e a) e where
+instance CmbOnFocus (RadioCfg s e a) e Path where
   onFocus fn = def {
     _rdcOnFocus = [fn]
   }
@@ -70,7 +70,7 @@ instance CmbOnFocusReq (RadioCfg s e a) s e where
     _rdcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (RadioCfg s e a) e where
+instance CmbOnBlur (RadioCfg s e a) e Path where
   onBlur fn = def {
     _rdcOnBlur = [fn]
   }
@@ -135,8 +135,8 @@ makeRadio field option config = widget where
     style = activeStyle_ (activeStyleConfig radioArea) wenv node
 
   handleEvent wenv node target evt = case evt of
-    Focus -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config node
-    Blur -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config node
+    Focus prev -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config prev node
+    Blur next -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config next node
     Click p _
       | pointInEllipse p rdArea -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed

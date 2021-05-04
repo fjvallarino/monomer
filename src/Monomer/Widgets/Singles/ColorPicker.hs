@@ -11,6 +11,8 @@ module Monomer.Widgets.Singles.ColorPicker (
   colorPickerD_
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), ALens', abbreviatedFields, makeLensesWith)
 import Data.Default
@@ -32,9 +34,9 @@ import qualified Monomer.Lens as L
 
 data ColorPickerCfg s e = ColorPickerCfg {
   _cpcShowAlpha :: Maybe Bool,
-  _cpcOnFocus :: [e],
+  _cpcOnFocus :: [Path -> e],
   _cpcOnFocusReq :: [WidgetRequest s e],
-  _cpcOnBlur :: [e],
+  _cpcOnBlur :: [Path -> e],
   _cpcOnBlurReq :: [WidgetRequest s e],
   _cpcOnChange :: [Color -> e],
   _cpcOnChangeReq :: [WidgetRequest s e]
@@ -65,7 +67,7 @@ instance Semigroup (ColorPickerCfg s e) where
 instance Monoid (ColorPickerCfg s e) where
   mempty = def
 
-instance CmbOnFocus (ColorPickerCfg s e) e where
+instance CmbOnFocus (ColorPickerCfg s e) e Path where
   onFocus fn = def {
     _cpcOnFocus = [fn]
   }
@@ -75,7 +77,7 @@ instance CmbOnFocusReq (ColorPickerCfg s e) s e where
     _cpcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ColorPickerCfg s e) e where
+instance CmbOnBlur (ColorPickerCfg s e) e Path where
   onBlur fn = def {
     _cpcOnBlur = [fn]
   }
@@ -101,8 +103,8 @@ colorPickerAlpha show = def {
 }
 
 data ColorPickerEvt
-  = PickerFocus
-  | PickerBlur
+  = PickerFocus Path
+  | PickerBlur Path
   | ColorChanged Int
   | AlphaChanged Double
   deriving (Eq, Show)
@@ -191,16 +193,15 @@ handleEvent
   -> ColorPickerEvt
   -> [EventResponse Color ColorPickerEvt sp ep]
 handleEvent cfg wenv node model evt = case evt of
-  PickerFocus -> reportFocus
-  PickerBlur -> reportBlur
+  PickerFocus prev
+    | not (isNodeParentOfPath prev node) -> reportFocus prev
+  PickerBlur next
+    | not (isNodeParentOfPath next node) -> reportBlur next
   ColorChanged _ -> reportChange
   AlphaChanged _ -> reportChange
+  _ -> []
   where
     report evts reqs = (Report <$> evts) ++ (RequestParent <$> reqs)
-    reportFocus
-      | not (isNodeParentOfFocused wenv node) = []
-      | otherwise = report (_cpcOnFocus cfg) (_cpcOnFocusReq cfg)
-    reportBlur
-      | isNodeParentOfFocused wenv node = []
-      | otherwise = report (_cpcOnBlur cfg) (_cpcOnBlurReq cfg)
+    reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (_cpcOnFocusReq cfg)
+    reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (_cpcOnBlurReq cfg)
     reportChange = report (($ model) <$> _cpcOnChange cfg) (_cpcOnChangeReq cfg)

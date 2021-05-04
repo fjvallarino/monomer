@@ -109,6 +109,6 @@ data AppEvent
   | StartAnimation
   | StopAnimation
   | UpdateColor Color
-  | FocusColor
-  | BlurColor
+  | FocusColor Path
+  | BlurColor Path
   deriving (Eq, Show)

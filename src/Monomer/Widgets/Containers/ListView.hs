@@ -45,9 +45,9 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcItemStyle :: Maybe Style,
   _lvcItemSelectedStyle :: Maybe Style,
   _lvcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
-  _lvcOnFocus :: [e],
+  _lvcOnFocus :: [Path -> e],
   _lvcOnFocusReq :: [WidgetRequest s e],
-  _lvcOnBlur :: [e],
+  _lvcOnBlur :: [Path -> e],
   _lvcOnBlurReq :: [WidgetRequest s e],
   _lvcOnChange :: [a -> e],
   _lvcOnChangeReq :: [WidgetRequest s e],
@@ -90,7 +90,7 @@ instance Semigroup (ListViewCfg s e a) where
 instance Monoid (ListViewCfg s e a) where
   mempty = def
 
-instance CmbOnFocus (ListViewCfg s e a) e where
+instance CmbOnFocus (ListViewCfg s e a) e Path where
   onFocus fn = def {
     _lvcOnFocus = [fn]
   }
@@ -100,7 +100,7 @@ instance CmbOnFocusReq (ListViewCfg s e a) s e where
     _lvcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ListViewCfg s e a) e where
+instance CmbOnBlur (ListViewCfg s e a) e Path where
   onBlur fn = def {
     _lvcOnBlur = [fn]
   }
@@ -297,14 +297,14 @@ makeListView widgetData items makeRow config state = widget where
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-    Focus -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config node
-    Blur -> result where
+    Focus prev -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config prev node
+    Blur next -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
       WidgetResult tempNode tempReqs
         | changeReq = selectItem wenv node (_hlIdx state)
         | otherwise = resultWidget node
-      evts = RaiseEvent <$> Seq.fromList (_lvcOnBlur config)
+      evts = RaiseEvent <$> Seq.fromList (($ next) <$> _lvcOnBlur config)
       reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
       mergedResult = Just $ WidgetResult tempNode (reqs <> evts)
       result
