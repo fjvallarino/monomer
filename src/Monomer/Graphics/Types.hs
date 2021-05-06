@@ -151,7 +151,8 @@ data ImageFlag
 data ImageDef = ImageDef {
   _idfName :: String,
   _idfSize :: Size,
-  _idfImgData :: BS.ByteString
+  _idfImgData :: BS.ByteString,
+  _idfFlags :: [ImageFlag]
 } deriving (Eq, Show, Generic)
 
 -- Angles are always expressed in degrees, not radians

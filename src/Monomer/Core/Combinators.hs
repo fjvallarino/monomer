@@ -156,6 +156,18 @@ class CmbTextThroughline t where
   textThroughline = textThroughline_ True
   textThroughline_ :: Bool -> t
 
+-- Image
+class CmbImageFit t where
+  fitNone :: t
+  fitFill :: t
+  fitWidth :: t
+  fitHeight :: t
+
+class CmbImageFlag t where
+  imageNearest :: t
+  imageRepeatX :: t
+  imageRepeatY :: t
+
 -- Events
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t

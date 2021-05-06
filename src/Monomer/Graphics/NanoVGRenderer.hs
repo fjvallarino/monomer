@@ -382,7 +382,10 @@ handleImageRender c dpr rect alpha image = do
   where
     CRect x y w h = rectToCRect rect dpr
     imgDef = _imImageDef image
-    CSize iw ih = sizeToCSize (_idfSize imgDef) dpr
+    imgFlags = _idfFlags imgDef
+    CSize dw dh = sizeToCSize (_idfSize imgDef) dpr
+    iw = if ImageRepeatX `elem` imgFlags then dw else w
+    ih = if ImageRepeatY `elem` imgFlags then dh else h
     nvImg = _imNvImage image
     calpha = realToFrac alpha
 
@@ -433,8 +436,9 @@ handlePendingImage c imagesMap imageReq
     cw = round (size ^. L.w)
     ch = round (size ^. L.h)
     imgData = fromJust $ _irImgData imageReq
-    flags = Set.fromList (toVGImgFlag <$> _irFlags imageReq)
-    imgDef = ImageDef name size imgData
+    imgFlags = _irFlags imageReq
+    flags = Set.fromList (toVGImgFlag <$> imgFlags)
+    imgDef = ImageDef name size imgData imgFlags
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
     image = fromJust mimage
