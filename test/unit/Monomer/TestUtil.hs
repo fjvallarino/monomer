@@ -119,12 +119,12 @@ mockRenderer = Renderer {
   renderText = mockRenderText,
 
   -- Image
-  getImage = const . Just $ ImageDef "test" def BS.empty,
-  addImage = \name size imgData -> return (),
+  getImage = const . Just $ ImageDef "test" def BS.empty [],
+  addImage = \name size imgData flags -> return (),
   updateImage = \name size imgData -> return (),
   deleteImage = \name -> return (),
   renderImage = \name rect alpha -> return (),
-  renderNewImage = \name size imgData rect alpha -> return ()
+  renderNewImage = \name rect alpha size imgData [] -> return ()
 }
 
 mockWenv :: s -> WidgetEnv s e

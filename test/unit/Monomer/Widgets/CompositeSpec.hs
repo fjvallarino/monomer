@@ -132,7 +132,7 @@ handleEventBasic = describe "handleEventBasic" $ do
       -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
-      -> [EventResponse MainModel MainEvt MainEvt]
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
     handleEvent wenv node model evt = case evt of
       MainBtnClicked -> [Model (model & clicks %~ (+1))]
       _ -> []
@@ -161,7 +161,7 @@ handleEventChild = describe "handleEventChild" $ do
       -> WidgetNode ChildModel ChildEvt
       -> ChildModel
       -> ChildEvt
-      -> [EventResponse ChildModel ChildEvt MainEvt]
+      -> [EventResponse ChildModel ChildEvt MainModel MainEvt]
     handleChild wenv node model evt = [Model (model & clicks %~ (+1))]
     buildChild wenv model = button "Click" ChildBtnClicked
     handleEvent
@@ -169,7 +169,7 @@ handleEventChild = describe "handleEventChild" $ do
       -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
-      -> [EventResponse MainModel MainEvt ()]
+      -> [EventResponse MainModel MainEvt MainModel ()]
     handleEvent wenv node model evt = [Model (model & clicks %~ (+1))]
     buildUI wenv model = vstack [
         button "Click" MainBtnClicked,
@@ -193,7 +193,7 @@ handleEventResize = describe "handleEventResize" $ do
       -> WidgetNode ChildModel ChildEvt
       -> ChildModel
       -> ChildEvt
-      -> [EventResponse ChildModel ChildEvt MainEvt]
+      -> [EventResponse ChildModel ChildEvt MainModel MainEvt]
     handleChild wenv node model evt = case evt of
       ChildResize rect -> [Report (MainResize rect)]
       _ -> [Model (model & clicks %~ (+1))]
@@ -206,7 +206,7 @@ handleEventResize = describe "handleEventResize" $ do
       -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
-      -> [EventResponse MainModel MainEvt MainEvt]
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
     handleEvent wenv node model evt = case evt of
       MainResize{} -> [Report evt]
       _ -> [Model (model & clicks %~ (+1))]
@@ -243,7 +243,7 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
       -> WidgetNode TestModel ()
       -> TestModel
       -> ()
-      -> [EventResponse TestModel () ()]
+      -> [EventResponse TestModel () TestModel ()]
     handleEvent wenv node model evt = []
     buildUI1 wenv model = hstack [
         vstack [
@@ -285,7 +285,7 @@ handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
       -> WidgetNode TestModel MainEvt
       -> TestModel
       -> MainEvt
-      -> [EventResponse TestModel MainEvt MainEvt]
+      -> [EventResponse TestModel MainEvt TestModel MainEvt]
     handleEvent wenv node model evt = case evt of
       MainBtnClicked -> [Model $ model & items .~ [0, 2, 3]]
       _ -> []
@@ -314,7 +314,7 @@ handleMessage = describe "handleMessage" $ do
       -> WidgetNode ChildModel ChildEvt
       -> ChildModel
       -> ChildEvt
-      -> [EventResponse ChildModel ChildEvt MainEvt]
+      -> [EventResponse ChildModel ChildEvt MainModel MainEvt]
     handleChild wenv node model evt = case evt of
       ChildMessage m -> [Model (model & message .~ m)]
       _ -> []
@@ -324,7 +324,7 @@ handleMessage = describe "handleMessage" $ do
       -> WidgetNode MainModel MainEvt
       -> MainModel
       -> MainEvt
-      -> [EventResponse MainModel MainEvt ()]
+      -> [EventResponse MainModel MainEvt MainModel ()]
     handleEvent wenv node model evt = [Request (SendMessage wid msg)] where
       wni = wenv ^. L.findByPath $ path
       wid = maybe def (^. L.widgetId) wni

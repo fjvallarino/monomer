@@ -42,6 +42,12 @@ modGS = def
   & L.leftGUI .~ True
   & L.leftShift .~ True
 
+evtFocus :: SystemEvent
+evtFocus = Focus emptyPath
+
+evtBlur :: SystemEvent
+evtBlur = Blur emptyPath
+
 evtClick :: Point -> SystemEvent
 evtClick p = Click p LeftBtn
 

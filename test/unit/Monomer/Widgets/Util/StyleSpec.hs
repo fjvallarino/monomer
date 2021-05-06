@@ -19,6 +19,7 @@ import Monomer.Graphics
 import Monomer.Graphics.ColorTable
 import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Util.Style
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 
 import qualified Monomer.Lens as L
@@ -94,7 +95,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     wenvFocus = mockWenv () & L.focusedPath .~ path
     evEnter = Enter point
     resHover = handleStyleChange wenvHover path hoverStyle True node evEnter res1
-    resFocus = handleStyleChange wenvFocus path focusStyle True node Focus res2
+    resFocus = handleStyleChange wenvFocus path focusStyle True node evtFocus res2
 
 isMResizeWidgets :: Maybe (WidgetRequest s e) -> Bool
 isMResizeWidgets (Just ResizeWidgets) = True

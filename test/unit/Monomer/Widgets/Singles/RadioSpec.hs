@@ -17,6 +17,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Singles.Radio
 
@@ -30,8 +31,8 @@ data Fruit
 
 data FruitEvt
   = FruitSel Fruit
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -58,10 +59,10 @@ handleEvent = describe "handleEvent" $ do
     keyModel keyReturn bananaNode ^. fruit `shouldBe` Banana
 
   it "should generate an event when focus is received" $
-    events Focus orangeNode `shouldBe` Seq.singleton GotFocus
+    events evtFocus orangeNode `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events Blur orangeNode `shouldBe` Seq.singleton LostFocus
+    events evtBlur orangeNode `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (TestModel Apple)

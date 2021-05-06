@@ -86,7 +86,7 @@ handleMessageReset = describe "handleMessageReset" $ do
       -> WidgetNode () ButtonEvt
       -> ()
       -> ButtonEvt
-      -> [EventResponse () ButtonEvt ButtonEvt]
+      -> [EventResponse () ButtonEvt () ButtonEvt]
     handleEvent wenv node model evt = case evt of
       Button1 -> [Report Button1]
       Button3 -> [Message "mainScroll" ScrollReset]

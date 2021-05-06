@@ -12,6 +12,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Singles.Button
 
@@ -19,8 +20,8 @@ import qualified Monomer.Lens as L
 
 data BtnEvent
   = BtnClick
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 spec :: Spec
@@ -40,10 +41,10 @@ handleEvent = describe "handleEvent" $ do
     keyEvts keyReturn `shouldBe` Seq.singleton BtnClick
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv ()

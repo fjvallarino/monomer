@@ -27,8 +27,8 @@ import qualified Monomer.Lens as L
 data TestEvt
   = IntegralChanged Int
   | FractionalChanged Double
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 data IntegralModel = IntegralModel {
@@ -87,10 +87,10 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     model [evtT "123", delWordL, evtT "456"] ^. integralValid `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (IntegralModel 0 True)
@@ -98,7 +98,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     basicIntNode = numericField_ integralValue [selectOnFocus_ False]
     intCfg = [maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
-    model es = nodeHandleEventModel wenv (Focus : es) intNode
+    model es = nodeHandleEventModel wenv (evtFocus : es) intNode
     modelBasic es = nodeHandleEventModel wenv es basicIntNode
     events evt = nodeHandleEventEvts wenv [evt] intNode
 
@@ -129,8 +129,8 @@ handleEventValueIntegral = describe "handleEventIntegral" $ do
   where
     wenv = mockWenv (IntegralModel 0 False)
     intNode = numericFieldV_ 0 IntegralChanged [maxValue 2345, selectOnFocus, validInput integralValid]
-    evts es = nodeHandleEventEvts wenv (Focus : es) intNode
-    model es = nodeHandleEventModel wenv (Focus : es) intNode
+    evts es = nodeHandleEventEvts wenv (evtFocus : es) intNode
+    model es = nodeHandleEventModel wenv (evtFocus : es) intNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
 
@@ -270,10 +270,10 @@ handleEventFractional = describe "handleEventFractional" $ do
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValid `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (FractionalModel 0 True)
@@ -326,9 +326,9 @@ handleEventValueFractional = describe "handleEventValueFractional" $ do
     wenv = mockWenv (FractionalModel 0 False)
     floatNode = numericFieldV_ 0 FractionalChanged [minValue 10, maxValue 2345, selectOnFocus, validInput fractionalValid]
     floatDecimalsNode = numericFieldV_ 0 FractionalChanged [selectOnFocus, decimals 3]
-    evts es = nodeHandleEventEvts wenv (Focus : es) floatNode
-    evtsAlt es = nodeHandleEventEvts wenv (Focus : es) floatDecimalsNode
-    model es = nodeHandleEventModel wenv (Focus : es) floatNode
+    evts es = nodeHandleEventEvts wenv (evtFocus : es) floatNode
+    evtsAlt es = nodeHandleEventEvts wenv (evtFocus : es) floatDecimalsNode
+    model es = nodeHandleEventModel wenv (evtFocus : es) floatNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
     lastEvtDecimals es = lastIdx (evtsAlt es)

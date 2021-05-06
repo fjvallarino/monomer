@@ -28,8 +28,8 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = ItemSel Int TestItem
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestItem = TestItem {
@@ -84,10 +84,11 @@ handleEvent = describe "handleEvent" $ do
     model steps ^. selectedItem `shouldBe` testItem10
 
   it "should generate an event when focus is received" $ do
-    eventsCnt [evtK keyTab] `shouldBe` Seq.singleton GotFocus
+    eventsCnt [evtK keyTab] `shouldBe` Seq.singleton (GotFocus $ Seq.fromList [0, 0])
 
   it "should generate an event when focus is lost and list is not open" $ do
-    eventsCnt [evtK keyTab, evtK keyTab] `shouldBe` Seq.fromList [GotFocus, LostFocus]
+    let path = Seq.fromList [0, 0]
+    eventsCnt [evtK keyTab, evtK keyTab] `shouldBe` Seq.fromList [GotFocus path, LostFocus path]
 
   where
     wenv = mockWenv (TestModel testItem0)
@@ -125,11 +126,11 @@ handleEventValue = describe "handleEventValue" $ do
 
   it "should generate a focus lost event when opened, canceled, and navigated away" $ do
     let steps = [evtK keyDown, evtK keyEscape, evtK keyTab]
-    events steps `shouldBe` Seq.singleton LostFocus
+    events steps `shouldBe` Seq.singleton (LostFocus $ Seq.fromList [0, 1])
 
   it "should generate an event when focus is lost and list is open. The navigation also generates a change event" $ do
     let steps = [evtK keyDown] ++ replicate 3 (evtK keyDown) ++ [evtK keyTab]
-    events steps `shouldBe` Seq.fromList [ItemSel 3 testItem3, LostFocus]
+    events steps `shouldBe` Seq.fromList [ItemSel 3 testItem3, LostFocus $ Seq.fromList [0, 1]]
   where
     wenv = mockWenv (TestModel testItem0)
     labelItem = label . showt

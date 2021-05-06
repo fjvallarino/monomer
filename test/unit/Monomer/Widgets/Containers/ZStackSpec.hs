@@ -132,7 +132,7 @@ handleEventFocusChange = describe "handleEventFocusChange" $
       -> WidgetNode Int BtnEvent
       -> Int
       -> BtnEvent
-      -> [EventResponse Int BtnEvent BtnEvent]
+      -> [EventResponse Int BtnEvent Int BtnEvent]
     handleEvent wenv _ model (BtnClick idx) = [Report (BtnClick idx), Model idx]
     buildUI wenv model = zstack [
         hstack [
@@ -160,7 +160,7 @@ handleEventFocusKeep = describe "handleEventFocusKeep" $
       -> WidgetNode Int BtnEvent
       -> Int
       -> BtnEvent
-      -> [EventResponse Int BtnEvent BtnEvent]
+      -> [EventResponse Int BtnEvent Int BtnEvent]
     handleEvent wenv _ model (BtnClick idx) = [Report (BtnClick idx), Model idx]
     buildUI wenv model = zstack [
         hstack [

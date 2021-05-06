@@ -286,7 +286,8 @@ handleMoveFocus startFromWid dir (wenv, root, reqs) = do
   let tmpFocusWni = findNextFocus wenv dir oldFocus tmpOverlay root
   let tmpFocus = tmpFocusWni ^. L.path
   let blurEvt = Blur tmpFocus
-  (wenv1, root1, reqs1) <- handleSystemEvent wenv root blurEvt oldFocus
+  let wenv0 = wenv & L.focusedPath .~ tmpFocus
+  (wenv1, root1, reqs1) <- handleSystemEvent wenv0 root blurEvt oldFocus
   currFocus <- getFocusedPath
   currOverlay <- getOverlayPath
 

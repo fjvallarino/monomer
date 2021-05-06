@@ -25,8 +25,8 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = TextChanged Text
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -79,7 +79,7 @@ handleEvent = describe "handleEvent" $ do
 
   it "should input 'This is text', receive focus (with select on Focus) and input 'No'" $ do
     let str = "This is text"
-    let steps = [evtT str, Focus, evtT "No"]
+    let steps = [evtT str, evtFocus, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
 
   it "should copy and paste text around" $ do
@@ -93,12 +93,12 @@ handleEvent = describe "handleEvent" $ do
     model steps ^. textValue `shouldBe` "This text is long"
 
   it "should generate an event when focus is received" $ do
-    events [Focus] `shouldBe` Seq.singleton GotFocus
-    ctx [Focus] ^. L.renderSchedule `shouldSatisfy` (==1) . length
+    events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
+    ctx [evtFocus] ^. L.renderSchedule `shouldSatisfy` (==1) . length
 
   it "should generate an event when focus is lost" $ do
-    events [Blur] `shouldBe` Seq.singleton LostFocus
-    ctx [Focus, Blur] ^. L.renderSchedule `shouldSatisfy` null
+    events [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
+    ctx [evtFocus, evtBlur] ^. L.renderSchedule `shouldSatisfy` null
 
   where
     wenv = mockWenv (TestModel "")

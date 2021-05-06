@@ -595,16 +595,17 @@
   - Create Slider
     - Improve slider rendering when value is small and rounder corners are used
     - Maybe using scissor up to desired point, while drawing full rounded rect?
-
-Next
-  - Create Slider
-    - Show handle/thumb
   - Create Color Selector
     - Add lens/value version
     - Show pattern to test alpha
     - Handle blur/focus/onchange
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
+
+Next
+  - Create Slider
+    - Show handle/thumb
+  - Add unit tests for new widgets
   - Review onChangeReq (a parameter should be provided)
     - Also reorder type parameters to be consistent (same order always)
   - Create ContextMenu (could work similarly to Tooltip)

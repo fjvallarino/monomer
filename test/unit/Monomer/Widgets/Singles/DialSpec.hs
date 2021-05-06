@@ -26,8 +26,8 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = DialChanged Double
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -146,10 +146,10 @@ handleEventMouseDragVal = describe "handleEventMouseDragVal" $ do
     evts steps `shouldBe` Seq.fromList [DialChanged 500]
 
   it "should generate an event when focus is received" $
-    evts [Focus] `shouldBe` Seq.singleton GotFocus
+    evts [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    evts [Blur] `shouldBe` Seq.singleton LostFocus
+    evts [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (TestModel 0)

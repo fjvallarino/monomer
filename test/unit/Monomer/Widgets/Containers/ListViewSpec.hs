@@ -27,8 +27,9 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = ItemSel Int TestItem
-  | GotFocus
-  | LostFocus
+  | BtnClick
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestItem = TestItem {
@@ -82,17 +83,18 @@ handleEvent = describe "handleEvent" $ do
 
   it "should generate an event when focus is received" $ do
     let p = Point 100 30
-    eventsCnt [evtClick p] `shouldBe` Seq.singleton GotFocus
+    eventsCnt [evtClick p] `shouldBe` Seq.singleton (GotFocus $ Seq.fromList [0, 0])
 
   it "should generate an event when focus is lost" $ do
     let p = Point 100 30
-    eventsCnt [evtClick p, Blur] `shouldBe` Seq.fromList [GotFocus, LostFocus]
+    let path = Seq.fromList [0, 0]
+    eventsCnt [evtClick p, evtBlur] `shouldBe` Seq.fromList [GotFocus path, LostFocus emptyPath]
 
   where
     wenv = mockWenv (TestModel testItem0)
     lvNode = listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
     cntNode = vstack [
-        button "Test" GotFocus,
+        button "Test" BtnClick,
         listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
       ]
     clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] lvNode

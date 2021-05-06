@@ -17,6 +17,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Singles.Checkbox
 
@@ -24,8 +25,8 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = BoolSel Bool
-  | GotFocus
-  | LostFocus
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -52,10 +53,10 @@ handleEvent = describe "handleEvent" $ do
     keyModel keyReturn ^. testBool `shouldBe` True
 
   it "should generate an event when focus is received" $
-    events Focus `shouldBe` Seq.singleton GotFocus
+    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events Blur `shouldBe` Seq.singleton LostFocus
+    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (TestModel False)
