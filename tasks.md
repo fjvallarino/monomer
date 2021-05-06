@@ -602,6 +602,7 @@ Next
   - Create Color Selector
     - Add lens/value version
     - Show pattern to test alpha
+    - Handle blur/focus/onchange
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
   - Review onChangeReq (a parameter should be provided)

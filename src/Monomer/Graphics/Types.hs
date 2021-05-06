@@ -142,6 +142,12 @@ data TextLine = TextLine {
   _tlMetrics :: !TextMetrics
 } deriving (Eq, Show, Generic)
 
+data ImageFlag
+  = ImageNearest
+  | ImageRepeatX
+  | ImageRepeatY
+  deriving (Eq, Show, Generic)
+
 data ImageDef = ImageDef {
   _idfName :: String,
   _idfSize :: Size,
@@ -198,9 +204,9 @@ data Renderer = Renderer {
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- Image
   getImage :: String -> Maybe ImageDef,
-  addImage :: String -> Size -> ByteString -> IO (),
+  addImage :: String -> Size -> ByteString -> [ImageFlag] -> IO (),
   updateImage :: String -> Size -> ByteString -> IO (),
   deleteImage :: String -> IO (),
   renderImage :: String -> Rect -> Double -> IO (),
-  renderNewImage :: String -> Size -> ByteString -> Rect -> Double -> IO ()
+  renderNewImage :: String -> Rect -> Double -> Size -> ByteString -> [ImageFlag] -> IO ()
 }

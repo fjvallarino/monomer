@@ -249,9 +249,16 @@ drawImage renderer imgName rect alpha = action where
   action = renderImage renderer imgName rect alpha
 
 drawNewImage
-  :: Renderer -> String -> Size -> ByteString -> Rect -> Double -> IO ()
-drawNewImage renderer imgName size imgData rect alpha = action where
-  action = renderNewImage renderer imgName size imgData rect alpha
+  :: Renderer
+  -> String
+  -> Rect
+  -> Double
+  -> Size
+  -> ByteString
+  -> [ImageFlag]
+  -> IO ()
+drawNewImage renderer imgName rect alpha size imgData flags = action where
+  action = renderNewImage renderer imgName rect alpha size imgData flags
 
 drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
 drawStyledImage renderer imgName rect alpha style = forM_ tempRect action where

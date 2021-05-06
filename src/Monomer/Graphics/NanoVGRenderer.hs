@@ -53,7 +53,8 @@ data ImageReq = ImageReq {
   _irName :: String,
   _irSize :: Size,
   _irImgData :: Maybe BS.ByteString,
-  _irAction :: ImageAction
+  _irAction :: ImageAction,
+  _irFlags :: [ImageFlag]
 }
 
 data Env = Env {
@@ -63,6 +64,10 @@ data Env = Env {
   imagesMap :: ImagesMap,
   addedImages :: Seq ImageReq
 }
+
+data CSize
+  = CSize CFloat CFloat
+  deriving (Eq, Show)
 
 data CPoint
   = CPoint CFloat CFloat
@@ -299,21 +304,21 @@ newRenderer c dpr lock envRef = Renderer {..} where
     let image = M.lookup name (imagesMap env)
     return $ fmap _imImageDef image
 
-  addImage name size imgData = L.with lock (addPending c envRef imgReq) where
-    imgReq = ImageReq name size (Just imgData) ImageAdd
+  addImage name size imgData flags = L.with lock (addPending c envRef req) where
+    req = ImageReq name size (Just imgData) ImageAdd flags
 
-  updateImage name size imgData = L.with lock (addPending c envRef imgReq) where
-    imgReq = ImageReq name size (Just imgData) ImageUpdate
+  updateImage name size imgData = L.with lock (addPending c envRef req) where
+    req = ImageReq name size (Just imgData) ImageUpdate []
 
-  deleteImage name = L.with lock (addPending c envRef imgReq) where
-    imgReq = ImageReq name def Nothing ImageDelete
+  deleteImage name = L.with lock (addPending c envRef req) where
+    req = ImageReq name def Nothing ImageDelete []
 
   renderImage name rect alpha = do
     env <- readIORef envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
 
-  renderNewImage name size imgData rect alpha = L.with lock $ do
-    addPending c envRef $ ImageReq name size (Just imgData) ImageUpdate
+  renderNewImage name rect alpha size imgData flags = L.with lock $ do
+    addPending c envRef $ ImageReq name size (Just imgData) ImageUpdate flags
     newEnv <- handlePendingImages c envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap newEnv)
 
@@ -369,13 +374,15 @@ addPending c envRef imageReq = do
 
 handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
 handleImageRender c dpr rect alpha image = do
-  imgPaint <- VG.imagePattern c x y w h 0 nvImg calpha
+  imgPaint <- VG.imagePattern c x y iw ih 0 nvImg calpha
   VG.beginPath c
   VG.rect c x y w h
   VG.fillPaint c imgPaint
   VG.fill c
   where
     CRect x y w h = rectToCRect rect dpr
+    imgDef = _imImageDef image
+    CSize iw ih = sizeToCSize (_idfSize imgDef) dpr
     nvImg = _imNvImage image
     calpha = realToFrac alpha
 
@@ -426,12 +433,18 @@ handlePendingImage c imagesMap imageReq
     cw = round (size ^. L.w)
     ch = round (size ^. L.h)
     imgData = fromJust $ _irImgData imageReq
+    flags = Set.fromList (toVGImgFlag <$> _irFlags imageReq)
     imgDef = ImageDef name size imgData
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
     image = fromJust mimage
     sizeMatches = size == _imImageDef image ^. L.size
-    createImage = VG.createImageRGBA c cw ch VGI.ImageNearest imgData
+    createImage = VG.createImageRGBA c cw ch flags imgData
+
+toVGImgFlag :: ImageFlag -> VGI.ImageFlags
+toVGImgFlag ImageNearest = VGI.ImageNearest
+toVGImgFlag ImageRepeatX = VGI.ImageRepeatx
+toVGImgFlag ImageRepeatY = VGI.ImageRepeaty
 
 imgIncreaseCount :: String -> ImagesMap -> ImagesMap
 imgIncreaseCount name imagesMap = newImageMap where
@@ -469,6 +482,11 @@ colorToPaint (Color r g b a)
 convertWinding :: Winding -> VG.Winding
 convertWinding CW = VG.CW
 convertWinding CCW = VG.CCW
+
+sizeToCSize :: Size -> Double -> CSize
+sizeToCSize (Size w h) dpr = CSize cw ch where
+  cw = realToFrac $ w * dpr
+  ch = realToFrac $ h * dpr
 
 pointToCPoint :: Point -> Double -> CPoint
 pointToCPoint (Point x y) dpr = CPoint cx cy where
