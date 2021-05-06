@@ -146,9 +146,9 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetSlider where
   widgetSlider = vstack [
-      image_ "assets/images/pecans.jpg" [fitFill],
+      image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
       hstack [externalLink "Launch GitHub" "http://www.github.com"],
-      colorPicker_ color [onChange UpdateColor, onFocus FocusColor, onBlur BlurColor],
+      colorPicker_ color [colorPickerAlpha True, onChange UpdateColor, onFocus FocusColor, onBlur BlurColor],
       labelS (model ^. int1),
       hslider_ int1 (-100) 100 [sliderRadius 10, sliderWidth 20],
       hstack [

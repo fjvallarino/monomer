@@ -6,10 +6,8 @@ module Monomer.Widgets.Singles.Image (
   ImageLoadError(..),
   image,
   image_,
-  fitNone,
-  fitFill,
-  fitWidth,
-  fitHeight
+  imageMem,
+  imageMem_
 ) where
 
 import Codec.Picture (DynamicImage, Image(..))
@@ -53,6 +51,7 @@ data ImageLoadError
 
 data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
+  _imcFlags :: [ImageFlag],
   _imcFit :: Maybe ImageFit,
   _imcTransparency :: Maybe Double
 }
@@ -60,6 +59,7 @@ data ImageCfg e = ImageCfg {
 instance Default (ImageCfg e) where
   def = ImageCfg {
     _imcLoadError = [],
+    _imcFlags = [],
     _imcFit = Nothing,
     _imcTransparency = Nothing
   }
@@ -67,6 +67,7 @@ instance Default (ImageCfg e) where
 instance Semigroup (ImageCfg e) where
   (<>) i1 i2 = ImageCfg {
     _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
+    _imcFlags = _imcFlags i1 ++ _imcFlags i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
     _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
   }
@@ -84,20 +85,38 @@ instance CmbOnLoadError (ImageCfg e) ImageLoadError e where
     _imcLoadError = [err]
   }
 
-fitNone :: ImageCfg e
-fitNone = def { _imcFit = Just FitNone }
+instance CmbImageFlag (ImageCfg e) where
+  imageNearest = def {
+    _imcFlags = [ImageNearest]
+  }
+  imageRepeatX = def {
+    _imcFlags = [ImageRepeatX]
+  }
+  imageRepeatY = def {
+    _imcFlags = [ImageRepeatY]
+  }
 
-fitFill :: ImageCfg e
-fitFill = def { _imcFit = Just FitFill }
+instance CmbImageFit (ImageCfg e) where
+  fitNone = def {
+    _imcFit = Just FitNone
+  }
+  fitFill = def {
+    _imcFit = Just FitFill
+  }
+  fitWidth = def {
+    _imcFit = Just FitWidth
+  }
+  fitHeight = def {
+    _imcFit = Just FitHeight
+  }
 
-fitWidth :: ImageCfg e
-fitWidth = def { _imcFit = Just FitWidth }
-
-fitHeight :: ImageCfg e
-fitHeight = def { _imcFit = Just FitHeight }
+data ImageSource
+  = ImageMem String
+  | ImagePath String
+  deriving (Eq, Show)
 
 data ImageState = ImageState {
-  isImagePath :: String,
+  isImageSource :: ImageSource,
   isImageData :: Maybe (ByteString, Size)
 } deriving (Eq, Show, Generic)
 
@@ -109,14 +128,31 @@ image :: WidgetEvent e => Text -> WidgetNode s e
 image path = image_ path def
 
 image_ :: WidgetEvent e => Text -> [ImageCfg e] -> WidgetNode s e
-image_ tpath configs = defaultWidgetNode "image" widget where
-  path = T.unpack tpath
+image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
-  imageState = ImageState path Nothing
-  widget = makeImage path config imageState
+  source = ImagePath (T.unpack path)
+  imageState = ImageState source Nothing
+  widget = makeImage source config imageState
 
-makeImage :: WidgetEvent e => String -> ImageCfg e -> ImageState -> Widget s e
-makeImage imgPath config state = widget where
+imageMem :: WidgetEvent e => Text -> ByteString -> Size -> WidgetNode s e
+imageMem name imgData imgSize = imageMem_ name imgData imgSize def
+
+imageMem_
+  :: WidgetEvent e
+  => Text
+  -> ByteString
+  -> Size
+  -> [ImageCfg e]
+  -> WidgetNode s e
+imageMem_ name imgData imgSize configs = defaultWidgetNode "image" widget where
+  config = mconcat configs
+  source = ImageMem (T.unpack name)
+  imageState = ImageState source (Just (imgData, imgSize))
+  widget = makeImage source config imageState
+
+makeImage
+  :: WidgetEvent e => ImageSource -> ImageCfg e -> ImageState -> Widget s e
+makeImage imgSource config state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
     singleInit = init,
@@ -127,27 +163,45 @@ makeImage imgPath config state = widget where
     singleRender = render
   }
 
-  init wenv node = resultReqs node reqs where
+  isImageMem = case imgSource of
+    ImageMem{} -> True
+    _ -> False
+
+  imgName source = case source of
+    ImageMem path -> path
+    ImagePath path -> path
+
+  init wenv node = result where
     wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
-    reqs = [RunTask wid path $ handleImageLoad wenv imgPath]
+    imgPath = imgName imgSource
+    reqs = [RunTask wid path $ handleImageLoad config wenv imgPath]
+    result = case imgSource of
+      ImageMem _ -> resultWidget node
+      ImagePath _ -> resultReqs node reqs
 
   merge wenv newNode oldNode oldState = result where
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
+    oldSource = isImageSource oldState
+    imgPath = imgName imgSource
+    prevPath = imgName oldSource
+    sameImgNode = newNode
+      & L.widget .~ makeImage imgSource config oldState
+    newMemReqs = [ RunTask wid path (removeImage wenv prevPath) ]
     newImgReqs = [ RunTask wid path $ do
         removeImage wenv imgPath
-        handleImageLoad wenv imgPath
+        handleImageLoad config wenv imgPath
       ]
-    sameImgNode = newNode
-      & L.widget .~ makeImage imgPath config oldState
     result
-      | isImagePath oldState == imgPath = resultWidget sameImgNode
+      | oldSource == imgSource = resultWidget sameImgNode
+      | isImageMem = resultReqs newNode newMemReqs
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
     wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
+    imgPath = imgName imgSource
     renderer = _weRenderer wenv
     reqs = [RunTask wid path $ removeImage wenv imgPath]
 
@@ -159,7 +213,7 @@ makeImage imgPath config state = widget where
     result = Just $ resultEvts node evts
   useImage node (ImageLoaded newState) = result where
     newNode = node
-      & L.widget .~ makeImage imgPath config newState
+      & L.widget .~ makeImage imgSource config newState
     result = Just $ resultReqs newNode [ResizeWidgets]
 
   getSizeReq wenv node = sizeReq where
@@ -171,12 +225,14 @@ makeImage imgPath config state = widget where
     when (imageLoaded && imageExists) $
       drawImage renderer imgPath imageRect alpha
     when (imageLoaded && not imageExists) $
-      drawNewImage renderer imgPath imgSize imgBytes imageRect alpha
+      drawNewImage renderer imgPath imageRect alpha imgSize imgBytes imgFlags
     where
       style = activeStyle wenv node
       contentArea = getContentArea style node
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
+      imgPath = imgName imgSource
+      imgFlags = _imcFlags config
       imageRect = fitImage fitMode imgSize contentArea
       ImageState _ imgData = state
       imageLoaded = isJust imgData
@@ -193,24 +249,25 @@ fitImage fitMode imageSize viewport = case fitMode of
     Rect x y w h = viewport
     Size iw ih = imageSize
 
-handleImageLoad :: WidgetEnv s e -> String -> IO ImageMessage
-handleImageLoad wenv path =
+handleImageLoad :: ImageCfg e -> WidgetEnv s e -> String -> IO ImageMessage
+handleImageLoad config wenv path =
   if isNothing prevImage
     then do
       res <- loadImage path
 
       case res >>= decodeImage of
         Left loadError -> return (ImageFailed loadError)
-        Right dimg -> registerImg wenv path dimg
+        Right dimg -> registerImg config wenv path dimg
     else do
-      addImage renderer path size imgData
+      addImage renderer path size imgData imgFlags
       return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
+    imgFlags = _imcFlags config
     prevImage = getImage renderer path
-    ImageDef _ size imgData = fromJust prevImage
+    ImageDef _ size imgData _ = fromJust prevImage
     newState = ImageState {
-      isImagePath = path,
+      isImageSource = ImagePath path,
       isImageData = Just (imgData, size)
     }
 
@@ -262,22 +319,24 @@ removeImage wenv path = do
     renderer = _weRenderer wenv
 
 registerImg
-  :: WidgetEnv s e
+  :: ImageCfg e
+  -> WidgetEnv s e
   -> String
   -> DynamicImage
   -> IO ImageMessage
-registerImg wenv name dimg = do
-  addImage renderer name size bs
+registerImg config wenv name dimg = do
+  addImage renderer name size bs imgFlags
   return $ ImageLoaded newState
   where
     renderer = _weRenderer wenv
+    imgFlags = _imcFlags config
     img = Pic.convertRGBA8 dimg
     cw = imageWidth img
     ch = imageHeight img
     size = Size (fromIntegral cw) (fromIntegral ch)
     bs = vectorToByteString $ imageData img
     newState = ImageState {
-      isImagePath = name,
+      isImageSource = ImagePath name,
       isImageData = Just (bs, size)
     }
 

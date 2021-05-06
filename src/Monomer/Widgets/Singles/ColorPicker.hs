@@ -8,23 +8,28 @@ module Monomer.Widgets.Singles.ColorPicker (
   colorPicker_,
   colorPickerV,
   colorPickerV_,
-  colorPickerD_
+  colorPickerD_,
+  colorPickerAlpha
 ) where
-
-import Debug.Trace
 
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), ALens', abbreviatedFields, makeLensesWith)
+import Data.ByteString (ByteString)
+import Data.ByteString.Builder (Builder, toLazyByteString)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Builder as B
 import Monomer.Core
 import Monomer.Core.Combinators
 
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Containers.ZStack
+import Monomer.Widgets.Singles.Image
 import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Singles.NumericField
 import Monomer.Widgets.Singles.Slider
@@ -159,7 +164,10 @@ buildUI
   -> WidgetNode Color ColorPickerEvt
 buildUI config wenv model = mainTree where
   showAlpha = fromMaybe False (_cpcShowAlpha config)
-  colorSample = filler `style` [width 32, bgColor model]
+  colorSample = zstack [
+      patternImage 10 10 (rgb 255 255 255) (rgb 0 0 0),
+      filler `style` [bgColor model]
+    ] `style` [width 32]
   compRow lensCol evt lbl minV maxV = hstack [
       label lbl `style` [width 48],
       spacer_ [width 2],
@@ -205,3 +213,32 @@ handleEvent cfg wenv node model evt = case evt of
     reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (_cpcOnFocusReq cfg)
     reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (_cpcOnBlurReq cfg)
     reportChange = report (($ model) <$> _cpcOnChange cfg) (_cpcOnChangeReq cfg)
+
+patternImage :: WidgetEvent e => Int -> Int -> Color -> Color -> WidgetNode s e
+patternImage steps blockW col1 col2 = newImg where
+  row1 = encodeRow steps blockW col1 col2
+  row2 = encodeRow steps blockW col2 col1
+  builder = mconcat (replicate steps (row1 <> row2))
+  imgData = BL.toStrict $ toLazyByteString builder
+  imgLen = fromIntegral (steps * blockW)
+  imgSize = Size imgLen imgLen
+  imgConfig = [fitFill, imageRepeatX, imageRepeatY]
+  newImg = imageMem_ "colorPickerAlphaBg" imgData imgSize imgConfig
+
+encodeRow :: Int -> Int -> Color -> Color -> Builder
+encodeRow steps blockW col1 col2 = builder where
+  line = encodeLine steps blockW col1 col2
+  builder = mconcat (replicate blockW line)
+
+encodeLine :: Int -> Int -> Color -> Color -> Builder
+encodeLine steps blockW col1 col2 = builder where
+  p1 = mconcat $ replicate blockW (encodeColor col1)
+  p2 = mconcat $ replicate blockW (encodeColor col2)
+  builder = mconcat $ replicate (steps `div` 2) (p1 <> p2)
+
+encodeColor :: Color -> Builder
+encodeColor (Color r g b a) = mconcat [er, eg, eb, ea] where
+  er = B.int8 $ fromIntegral r
+  eg = B.int8 $ fromIntegral g
+  eb = B.int8 $ fromIntegral b
+  ea = B.int8 $ round (255 * a)
