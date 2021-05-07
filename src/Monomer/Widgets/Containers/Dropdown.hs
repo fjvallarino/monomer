@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -46,9 +47,9 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcOnBlur :: [Path -> e],
   _ddcOnBlurReq :: [WidgetRequest s e],
   _ddcOnChange :: [a -> e],
-  _ddcOnChangeReq :: [WidgetRequest s e],
+  _ddcOnChangeReq :: [a -> WidgetRequest s e],
   _ddcOnChangeIdx :: [Int -> a -> e],
-  _ddcOnChangeIdxReq :: [Int -> WidgetRequest s e]
+  _ddcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
 }
 
 instance Default (DropdownCfg s e a) where
@@ -111,7 +112,7 @@ instance CmbOnChange (DropdownCfg s e a) a e where
     _ddcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (DropdownCfg s e a) s e where
+instance CmbOnChangeReq (DropdownCfg s e a) s e a where
   onChangeReq req = def {
     _ddcOnChangeReq = [req]
   }
@@ -121,7 +122,7 @@ instance CmbOnChangeIdx (DropdownCfg s e a) e a where
     _ddcOnChangeIdx = [fn]
   }
 
-instance CmbOnChangeIdxReq (DropdownCfg s e a) s e where
+instance CmbOnChangeIdxReq (DropdownCfg s e a) s e a where
   onChangeIdxReq req = def {
     _ddcOnChangeIdxReq = [req]
   }
@@ -152,7 +153,7 @@ data DropdownState = DropdownState {
 } deriving (Eq, Show, Generic)
 
 data DropdownMessage
-  = OnChangeMessage Int
+  = forall a . DropdownItem a => OnChangeMessage Int a
   | OnListBlur
 
 dropdown
@@ -372,7 +373,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   handleMessage wenv node target msg =
     cast msg >>= handleLvMsg wenv node
 
-  handleLvMsg wenv node (OnChangeMessage idx) =
+  handleLvMsg wenv node (OnChangeMessage idx _) =
     Seq.lookup idx items >>= \value -> Just $ onChange wenv node idx value
   handleLvMsg wenv node OnListBlur = Just result where
     tempResult = closeDropdown wenv node
@@ -381,8 +382,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   onChange wenv node idx item = result where
     WidgetResult newNode reqs = closeDropdown wenv node
     newReqs = Seq.fromList $ widgetDataSet widgetData item
-      ++ _ddcOnChangeReq config
-      ++ fmap ($ idx) (_ddcOnChangeIdxReq config)
+      ++ fmap ($ item) (_ddcOnChangeReq config)
+      ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdxReq config)
     evts = RaiseEvent <$> fmap ($ item) (_ddcOnChange config)
     evtsIdx = RaiseEvent <$> fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
     newEvents = Seq.fromList (evts ++ evtsIdx)
@@ -487,7 +488,7 @@ makeListView wenv value items makeRow config widgetId = listViewNode where
   lvConfig = [
       selectOnBlur,
       onBlurReq (SendMessage widgetId OnListBlur),
-      onChangeIdxReq (SendMessage widgetId . OnChangeMessage),
+      onChangeIdxReq (\idx it -> SendMessage widgetId (OnChangeMessage idx it)),
       itemNormalStyle itemStyle,
       itemSelectedStyle itemSelStyle
     ]

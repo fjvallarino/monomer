@@ -38,7 +38,7 @@ data DialCfg s e a = DialCfg {
   _dlcOnBlur :: [Path -> e],
   _dlcOnBlurReq :: [WidgetRequest s e],
   _dlcOnChange :: [a -> e],
-  _dlcOnChangeReq :: [WidgetRequest s e]
+  _dlcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
 instance Default (DialCfg s e a) where
@@ -98,7 +98,7 @@ instance CmbOnChange (DialCfg s e a) a e where
     _dlcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (DialCfg s e a) s e where
+instance CmbOnChangeReq (DialCfg s e a) s e a where
   onChangeReq req = def {
     _dlcOnChangeReq = [req]
   }
@@ -252,7 +252,8 @@ makeDial field minVal maxVal config state = widget where
       addReqsEvts result newVal = newResult where
         currVal = widgetDataGet (wenv ^. L.model) field
         evts = RaiseEvent <$> fmap ($ newVal) (_dlcOnChange config)
-        reqs = widgetDataSet field newVal ++ _dlcOnChangeReq config
+        reqs = widgetDataSet field newVal
+          ++ fmap ($ newVal) (_dlcOnChangeReq config)
         newResult
           | currVal /= newVal = result
               & L.requests <>~ Seq.fromList (reqs <> evts)

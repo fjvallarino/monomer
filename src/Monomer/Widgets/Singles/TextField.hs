@@ -35,7 +35,7 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcOnBlur :: [Path -> e],
   _tfcOnBlurReq :: [WidgetRequest s e],
   _tfcOnChange :: [Text -> e],
-  _tfcOnChangeReq :: [WidgetRequest s e]
+  _tfcOnChangeReq :: [Text -> WidgetRequest s e]
 }
 
 instance Default (TextFieldCfg s e) where
@@ -114,7 +114,7 @@ instance CmbOnChange (TextFieldCfg s e) Text e where
     _tfcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (TextFieldCfg s e) s e where
+instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
   onChangeReq req = def {
     _tfcOnChangeReq = [req]
   }

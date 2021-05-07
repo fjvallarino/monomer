@@ -44,7 +44,7 @@ data ColorPickerCfg s e = ColorPickerCfg {
   _cpcOnBlur :: [Path -> e],
   _cpcOnBlurReq :: [WidgetRequest s e],
   _cpcOnChange :: [Color -> e],
-  _cpcOnChangeReq :: [WidgetRequest s e]
+  _cpcOnChangeReq :: [Color -> WidgetRequest s e]
 }
 
 instance Default (ColorPickerCfg s e) where
@@ -97,7 +97,7 @@ instance CmbOnChange (ColorPickerCfg s e) Color e where
     _cpcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (ColorPickerCfg s e) s e where
+instance CmbOnChangeReq (ColorPickerCfg s e) s e Color where
   onChangeReq req = def {
     _cpcOnChangeReq = [req]
   }
@@ -213,7 +213,8 @@ handleEvent cfg wenv node model evt = case evt of
     report evts reqs = (Report <$> evts) ++ (RequestParent <$> reqs)
     reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (_cpcOnFocusReq cfg)
     reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (_cpcOnBlurReq cfg)
-    reportChange = report (($ model) <$> _cpcOnChange cfg) (_cpcOnChangeReq cfg)
+    reportChange = report (($ model) <$> _cpcOnChange cfg)
+      (($ model) <$> _cpcOnChangeReq cfg)
 
 patternImage :: WidgetEvent e => Int -> Int -> Color -> Color -> WidgetNode s e
 patternImage steps blockW col1 col2 = newImg where

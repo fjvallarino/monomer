@@ -27,7 +27,7 @@ data RadioCfg s e a = RadioCfg {
   _rdcOnBlur :: [Path -> e],
   _rdcOnBlurReq :: [WidgetRequest s e],
   _rdcOnChange :: [a -> e],
-  _rdcOnChangeReq :: [WidgetRequest s e]
+  _rdcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
 instance Default (RadioCfg s e a) where
@@ -85,7 +85,7 @@ instance CmbOnChange (RadioCfg s e a) a e where
     _rdcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (RadioCfg s e a) s e where
+instance CmbOnChangeReq (RadioCfg s e a) s e a where
   onChangeReq req = def {
     _rdcOnChangeReq = [req]
   }
@@ -148,7 +148,7 @@ makeRadio field option config = widget where
       isSelectKey code = isKeyReturn code || isKeySpace code
       events = fmap ($ option) (_rdcOnChange config)
       setValueReq = widgetDataSet field option
-      reqs = setValueReq ++ _rdcOnChangeReq config
+      reqs = setValueReq ++ fmap ($ option) (_rdcOnChangeReq config)
 
   getSizeReq wenv node = req where
     theme = activeTheme wenv node

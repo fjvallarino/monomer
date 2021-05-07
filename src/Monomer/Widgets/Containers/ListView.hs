@@ -50,9 +50,9 @@ data ListViewCfg s e a = ListViewCfg {
   _lvcOnBlur :: [Path -> e],
   _lvcOnBlurReq :: [WidgetRequest s e],
   _lvcOnChange :: [a -> e],
-  _lvcOnChangeReq :: [WidgetRequest s e],
+  _lvcOnChangeReq :: [a -> WidgetRequest s e],
   _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeIdxReq :: [Int -> WidgetRequest s e]
+  _lvcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
 }
 
 instance Default (ListViewCfg s e a) where
@@ -115,7 +115,7 @@ instance CmbOnChange (ListViewCfg s e a) a e where
     _lvcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (ListViewCfg s e a) s e where
+instance CmbOnChangeReq (ListViewCfg s e a) s e a where
   onChangeReq req = def {
     _lvcOnChangeReq = [req]
   }
@@ -125,7 +125,7 @@ instance CmbOnChangeIdx (ListViewCfg s e a) e a where
     _lvcOnChangeIdx = [fn]
   }
 
-instance CmbOnChangeIdxReq (ListViewCfg s e a) s e where
+instance CmbOnChangeIdxReq (ListViewCfg s e a) s e a where
   onChangeIdxReq req = def {
     _lvcOnChangeIdxReq = [req]
   }
@@ -364,8 +364,8 @@ makeListView widgetData items makeRow config state = widget where
     scrollToReq = itemScrollTo wenv node idx
     events = fmap ($ value) (_lvcOnChange config)
       ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
-    changeReqs = _lvcOnChangeReq config
-      ++ fmap ($ idx) (_lvcOnChangeIdxReq config)
+    changeReqs = fmap ($ value) (_lvcOnChangeReq config)
+      ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdxReq config)
     (styledNode, resizeReq) = updateStyles wenv config state node idx (-1)
     newSlStyle
       | idx == _hlIdx state = _hlStyle state

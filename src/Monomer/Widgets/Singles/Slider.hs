@@ -49,7 +49,7 @@ data SliderCfg s e a = SliderCfg {
   _slcOnBlur :: [Path -> e],
   _slcOnBlurReq :: [WidgetRequest s e],
   _slcOnChange :: [a -> e],
-  _slcOnChangeReq :: [WidgetRequest s e]
+  _slcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
 instance Default (SliderCfg s e a) where
@@ -115,7 +115,7 @@ instance CmbOnChange (SliderCfg s e a) a e where
     _slcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (SliderCfg s e a) s e where
+instance CmbOnChangeReq (SliderCfg s e a) s e a where
   onChangeReq req = def {
     _slcOnChangeReq = [req]
   }
@@ -309,7 +309,8 @@ makeSlider isHz field minVal maxVal config state = widget where
         result = resultReqs newNode [RenderOnce]
         newVal = valueFromPos newPos
         evts = RaiseEvent <$> fmap ($ newVal) (_slcOnChange config)
-        reqs = widgetDataSet field newVal ++ _slcOnChangeReq config
+        reqs = widgetDataSet field newVal
+          ++ fmap ($ newVal) (_slcOnChangeReq config)
         newResult
           | pos /= newPos = result
               & L.requests <>~ Seq.fromList (reqs <> evts)

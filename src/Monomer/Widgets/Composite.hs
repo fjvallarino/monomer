@@ -86,7 +86,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcOnDispose :: [e],
   _cmcOnResize :: [Rect -> e],
   _cmcOnChange :: [s -> ep],
-  _cmcOnChangeReq :: [WidgetRequest sp ep],
+  _cmcOnChangeReq :: [s -> WidgetRequest sp ep],
   _cmcOnEnabledChange :: [e],
   _cmcOnVisibleChange :: [e]
 }
@@ -145,7 +145,7 @@ instance CmbOnChange (CompositeCfg s e sp ep) s ep where
     _cmcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (CompositeCfg s e sp ep) sp ep where
+instance CmbOnChangeReq (CompositeCfg s e sp ep) sp ep s where
   onChangeReq req = def {
     _cmcOnChangeReq = [req]
   }
@@ -175,7 +175,7 @@ data Composite s e sp ep = Composite {
   _cmpOnDispose :: [e],
   _cmpOnResize :: [Rect -> e],
   _cmpOnChange :: [s -> ep],
-  _cmpOnChangeReq :: [WidgetRequest sp ep],
+  _cmpOnChangeReq :: [s -> WidgetRequest sp ep],
   _cmpOnEnabledChange :: [e],
   _cmpOnVisibleChange :: [e]
 }
@@ -719,7 +719,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   }
   result = toParentResult comp mergedState wenv widgetComp mergedResult
   newEvents = RaiseEvent <$> fmap ($ newModel) (_cmpOnChange comp)
-  newReqs = widgetDataSet (_cmpWidgetData comp) newModel ++ _cmpOnChangeReq comp
+  newReqs = widgetDataSet (_cmpWidgetData comp) newModel
+    ++ fmap ($ newModel) (_cmpOnChangeReq comp)
   newResult = result
     & L.requests <>~ Seq.fromList newReqs <> Seq.fromList newEvents
 

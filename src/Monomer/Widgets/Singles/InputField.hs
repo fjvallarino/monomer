@@ -56,7 +56,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcOnBlur :: [Path -> e],
   _ifcOnBlurReq :: [WidgetRequest s e],
   _ifcOnChange :: [a -> e],
-  _ifcOnChangeReq :: [WidgetRequest s e]
+  _ifcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
 data HistoryStep a = HistoryStep {
@@ -619,7 +619,7 @@ genReqsEvents config state newText newReqs = result where
     | resizeOnChange && hasChanged = [ResizeWidgets]
     | otherwise = []
   reqOnChange
-    | stateVal /= currVal = _ifcOnChangeReq config
+    | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChangeReq config)
     | otherwise = []
   reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqResize ++ reqOnChange
   result = (reqs, events)

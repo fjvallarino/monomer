@@ -219,11 +219,11 @@ class CmbOnChange t a e | t -> e where
 class CmbOnChangeIdx t e a | t -> e a where
   onChangeIdx :: (Int -> a -> e) -> t
 
-class CmbOnChangeReq t s e | t -> s e where
-  onChangeReq :: WidgetRequest s e -> t
+class CmbOnChangeReq t s e a | t -> s e a where
+  onChangeReq :: (a -> WidgetRequest s e) -> t
 
-class CmbOnChangeIdxReq t s e | t -> s e where
-  onChangeIdxReq :: (Int -> WidgetRequest s e) -> t
+class CmbOnChangeIdxReq t s e a | t -> s e a where
+  onChangeIdxReq :: (Int -> a -> WidgetRequest s e) -> t
 
 class CmbOnLoadError t e a | t -> e a where
   onLoadError :: (a -> e) -> t

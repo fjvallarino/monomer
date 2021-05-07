@@ -49,7 +49,7 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcOnBlur :: [Path -> e],
   _nfcOnBlurReq :: [WidgetRequest s e],
   _nfcOnChange :: [a -> e],
-  _nfcOnChangeReq :: [WidgetRequest s e]
+  _nfcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
 instance Default (NumericFieldCfg s e a) where
@@ -149,7 +149,7 @@ instance CmbOnChange (NumericFieldCfg s e a) a e where
     _nfcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (NumericFieldCfg s e a) s e where
+instance CmbOnChangeReq (NumericFieldCfg s e a) s e a where
   onChangeReq req = def {
     _nfcOnChangeReq = [req]
   }

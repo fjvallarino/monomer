@@ -37,7 +37,7 @@ data CheckboxCfg s e = CheckboxCfg {
   _ckcOnBlur :: [Path -> e],
   _ckcOnBlurReq :: [WidgetRequest s e],
   _ckcOnChange :: [Bool -> e],
-  _ckcOnChangeReq :: [WidgetRequest s e]
+  _ckcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
 
 instance Default (CheckboxCfg s e) where
@@ -97,7 +97,7 @@ instance CmbOnChange (CheckboxCfg s e) Bool e where
     _ckcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (CheckboxCfg s e) s e where
+instance CmbOnChangeReq (CheckboxCfg s e) s e Bool where
   onChangeReq req = def {
     _ckcOnChangeReq = [req]
   }
@@ -159,7 +159,7 @@ makeCheckbox widgetData config = widget where
       newValue = not value
       events = fmap ($ newValue) (_ckcOnChange config)
       setValueReq = widgetDataSet widgetData newValue
-      reqs = setValueReq ++ _ckcOnChangeReq config
+      reqs = setValueReq ++ fmap ($ newValue) (_ckcOnChangeReq config)
 
   getSizeReq wenv node = req where
     theme = activeTheme wenv node
