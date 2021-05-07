@@ -180,7 +180,7 @@ class CmbOnInit t e | t -> e where
 class CmbOnDispose t e | t -> e where
   onDispose :: e -> t
 
-class CmbOnResize t a e | t -> e where
+class CmbOnResize t e a | t -> e a where
   onResize :: (a -> e) -> t
 
 class CmbOnFocus t e a | t -> e a where
@@ -216,7 +216,7 @@ class CmbOnVisibleChange t e | t -> e where
 class CmbOnChange t a e | t -> e where
   onChange :: (a -> e) -> t
 
-class CmbOnChangeIdx t a e | t -> e where
+class CmbOnChangeIdx t e a | t -> e a where
   onChangeIdx :: (Int -> a -> e) -> t
 
 class CmbOnChangeReq t s e | t -> s e where
@@ -225,7 +225,7 @@ class CmbOnChangeReq t s e | t -> s e where
 class CmbOnChangeIdxReq t s e | t -> s e where
   onChangeIdxReq :: (Int -> WidgetRequest s e) -> t
 
-class CmbOnLoadError t a e | t -> e where
+class CmbOnLoadError t e a | t -> e a where
   onLoadError :: (a -> e) -> t
 
 class CmbOnFinished t e | t -> e where

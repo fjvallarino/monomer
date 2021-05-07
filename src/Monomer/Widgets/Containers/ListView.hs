@@ -120,7 +120,7 @@ instance CmbOnChangeReq (ListViewCfg s e a) s e where
     _lvcOnChangeReq = [req]
   }
 
-instance CmbOnChangeIdx (ListViewCfg s e a) a e where
+instance CmbOnChangeIdx (ListViewCfg s e a) e a where
   onChangeIdx fn = def {
     _lvcOnChangeIdx = [fn]
   }

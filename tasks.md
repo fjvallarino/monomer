@@ -611,7 +611,7 @@ Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection
-  - Top pixel seems to be invisible. Is this macOS title bar related?
+  - Top pixel seems to be invisible. Is this macOS title bar related? Is left too?
     - Check if Info.plist has a related setting
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise

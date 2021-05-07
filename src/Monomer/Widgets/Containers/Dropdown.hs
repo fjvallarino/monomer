@@ -116,7 +116,7 @@ instance CmbOnChangeReq (DropdownCfg s e a) s e where
     _ddcOnChangeReq = [req]
   }
 
-instance CmbOnChangeIdx (DropdownCfg s e a) a e where
+instance CmbOnChangeIdx (DropdownCfg s e a) e a where
   onChangeIdx fn = def {
     _ddcOnChangeIdx = [fn]
   }

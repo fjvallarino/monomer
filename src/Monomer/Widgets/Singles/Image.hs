@@ -80,7 +80,7 @@ instance CmbTransparency (ImageCfg e) where
     _imcTransparency = Just alpha
   }
 
-instance CmbOnLoadError (ImageCfg e) ImageLoadError e where
+instance CmbOnLoadError (ImageCfg e) e ImageLoadError where
   onLoadError err = def {
     _imcLoadError = [err]
   }

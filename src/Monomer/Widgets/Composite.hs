@@ -135,7 +135,7 @@ instance CmbOnDispose (CompositeCfg s e sp ep) e where
     _cmcOnDispose = [fn]
   }
 
-instance CmbOnResize (CompositeCfg s e sp ep) Rect e where
+instance CmbOnResize (CompositeCfg s e sp ep) e Rect where
   onResize fn = def {
     _cmcOnResize = [fn]
   }
