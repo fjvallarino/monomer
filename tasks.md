@@ -601,11 +601,11 @@
     - Handle blur/focus/onchange
   - Add externalLink component
     - https://stackoverflow.com/questions/3037088/how-to-open-the-default-web-browser-in-windows-in-c/54334181
-
-Next
+  - Add unit tests for new widgets
   - Create Slider
     - Show handle/thumb
-  - Add unit tests for new widgets
+
+Next
   - Review onChangeReq (a parameter should be provided)
     - Also reorder type parameters to be consistent (same order always)
   - Create ContextMenu (could work similarly to Tooltip)

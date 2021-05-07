@@ -165,13 +165,14 @@ buildUI
 buildUI config wenv model = mainTree where
   showAlpha = fromMaybe False (_cpcShowAlpha config)
   colorSample = zstack [
-      patternImage 10 10 (rgb 255 255 255) (rgb 0 0 0),
+      patternImage 10 10 (rgb 255 255 255) (rgb 150 150 150),
       filler `style` [bgColor model]
     ] `style` [width 32]
   compRow lensCol evt lbl minV maxV = hstack [
       label lbl `style` [width 48],
       spacer_ [width 2],
-      hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus, onBlur PickerBlur] `style` [paddingV 5],
+      hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus, onBlur PickerBlur]
+        `style` [paddingV 5],
       spacer_ [width 2],
       numericField_ lensCol [minValue minV, maxValue maxV, onChange evt, onFocus PickerFocus, onBlur PickerBlur]
         `style` [width 40, padding 0, textRight]

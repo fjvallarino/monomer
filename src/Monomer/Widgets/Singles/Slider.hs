@@ -16,7 +16,9 @@ module Monomer.Widgets.Singles.Slider (
   vsliderV_,
   sliderD_,
   sliderRadius,
-  sliderWidth
+  sliderWidth,
+  sliderThumbVisible,
+  sliderThumbFactor
 ) where
 
 import Control.Applicative ((<|>))
@@ -39,6 +41,8 @@ type SliderValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 data SliderCfg s e a = SliderCfg {
   _slcRadius :: Maybe Double,
   _slcWidth :: Maybe Double,
+  _slcThumbVisible :: Maybe Bool,
+  _slcThumbFactor :: Maybe Double,
   _slcDragRate :: Maybe Rational,
   _slcOnFocus :: [Path -> e],
   _slcOnFocusReq :: [WidgetRequest s e],
@@ -52,6 +56,8 @@ instance Default (SliderCfg s e a) where
   def = SliderCfg {
     _slcRadius = Nothing,
     _slcWidth = Nothing,
+    _slcThumbVisible = Nothing,
+    _slcThumbFactor = Nothing,
     _slcDragRate = Nothing,
     _slcOnFocus = [],
     _slcOnFocusReq = [],
@@ -65,6 +71,8 @@ instance Semigroup (SliderCfg s e a) where
   (<>) t1 t2 = SliderCfg {
     _slcRadius = _slcRadius t2 <|> _slcRadius t1,
     _slcWidth = _slcWidth t2 <|> _slcWidth t1,
+    _slcThumbVisible = _slcThumbVisible t2 <|> _slcThumbVisible t1,
+    _slcThumbFactor = _slcThumbFactor t2 <|> _slcThumbFactor t1,
     _slcDragRate = _slcDragRate t2 <|> _slcDragRate t1,
     _slcOnFocus = _slcOnFocus t1 <> _slcOnFocus t2,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
@@ -120,6 +128,16 @@ sliderRadius w = def {
 sliderWidth :: Double -> SliderCfg s e a
 sliderWidth w = def {
   _slcWidth = Just w
+}
+
+sliderThumbVisible :: Bool -> SliderCfg s e a
+sliderThumbVisible v = def {
+  _slcThumbVisible = Just v
+}
+
+sliderThumbFactor :: Double -> SliderCfg s e a
+sliderThumbFactor w = def {
+  _slcThumbFactor = Just w
 }
 
 data SliderState = SliderState {
@@ -309,16 +327,38 @@ makeSlider isHz field minVal maxVal config state = widget where
     drawRect renderer sliderBgArea (Just sndColor) sliderRadius
     drawInScissor renderer True sliderFgArea $
       drawRect renderer sliderBgArea (Just fgColor) sliderRadius
+    when thbVisible $
+      drawEllipse renderer thbArea (Just hlColor)
     where
       theme = activeTheme wenv node
       style = activeStyle wenv node
       fgColor = styleFgColor style
+      hlColor = styleHlColor style
       sndColor = styleSndColor style
-      sliderRadiusVal = _slcRadius config <|> theme ^. L.sliderRadius
-      sliderRadius = radius <$> sliderRadiusVal
+      radiusW = _slcRadius config <|> theme ^. L.sliderRadius
+      sliderRadius = radius <$> radiusW
       SliderState maxPos pos = state
       posPct = fromIntegral pos / fromIntegral maxPos
-      sliderBgArea = getContentArea style node
+      carea = getContentArea style node
+      Rect cx cy cw ch = carea
+      barW
+        | isHz = ch
+        | otherwise = cw
+      -- Thumb
+      thbVisible = fromMaybe False (_slcThumbVisible config)
+      thbF = fromMaybe (theme ^. L.sliderThumbFactor) (_slcThumbFactor config)
+      thbW = thbF * barW
+      thbPos dim = (dim - thbW) * posPct
+      thbDif = (thbW - barW) / 2
+      thbArea
+        | isHz = Rect (cx + thbPos cw) (cy - thbDif) thbW thbW
+        | otherwise = Rect (cx - thbDif) (cy + ch - thbW - thbPos ch) thbW thbW
+      -- Bar
+      tw2 = thbW / 2
+      sliderBgArea
+        | not thbVisible = carea
+        | isHz = fromMaybe def (subtractFromRect carea tw2 tw2 0 0)
+        | otherwise = fromMaybe def (subtractFromRect carea 0 0 tw2 tw2)
       sliderFgArea
         | isHz = sliderBgArea & L.w %~ (*posPct)
         | otherwise = sliderBgArea

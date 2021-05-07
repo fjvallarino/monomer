@@ -199,8 +199,10 @@ baseBasic themeMod = def
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
   & L.sliderRadius ?~ 2
+  & L.sliderThumbFactor .~ 1.25
   & L.sliderWidth .~ 10
   & L.sliderStyle . L.fgColor ?~ inputFgBasic themeMod
+  & L.sliderStyle . L.hlColor ?~ inputHlBasic themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndBasic themeMod
   & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
   & L.tooltipStyle . L.bgColor ?~ tooltipBg themeMod
@@ -244,6 +246,7 @@ baseHover themeMod = baseBasic themeMod
   & L.scrollBarColor .~ scrollBarHover themeMod
   & L.scrollThumbColor .~ scrollThumbHover themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgHover themeMod
+  & L.sliderStyle . L.hlColor ?~ inputHlHover themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndHover themeMod
   & L.sliderStyle . L.cursorIcon ?~ CursorHand
 
@@ -267,6 +270,7 @@ baseFocus themeMod = baseBasic themeMod
   & L.listViewItemSelectedStyle . L.border ?~ border 1 (lvSelectedFocusBorder themeMod)
   & L.radioStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgFocus themeMod
+  & L.sliderStyle . L.hlColor ?~ inputHlFocus themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndFocus themeMod
 
 baseFocusHover :: BaseThemeColors -> ThemeState
@@ -292,6 +296,7 @@ baseActive themeMod = baseFocusHover themeMod
   & L.inputTextStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.radioStyle . L.fgColor ?~ inputFgActive themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgActive themeMod
+  & L.sliderStyle . L.hlColor ?~ inputHlActive themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndActive themeMod
 
 baseDisabled :: BaseThemeColors -> ThemeState

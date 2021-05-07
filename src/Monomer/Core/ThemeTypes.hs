@@ -74,6 +74,7 @@ data ThemeState = ThemeState {
   _thsScrollWheelRate :: Double,
   _thsSliderStyle :: StyleState,
   _thsSliderRadius :: Maybe Double,
+  _thsSliderThumbFactor :: Double,
   _thsSliderWidth :: Double,
   _thsTooltipStyle :: StyleState,
   _thsUserStyleMap :: M.Map String StyleState
@@ -120,6 +121,7 @@ instance Default ThemeState where
     _thsScrollWheelRate = 10,
     _thsSliderStyle = def,
     _thsSliderRadius = def,
+    _thsSliderThumbFactor = def,
     _thsSliderWidth = def,
     _thsTooltipStyle = def,
     _thsUserStyleMap = M.empty
@@ -165,6 +167,7 @@ instance Semigroup ThemeState where
     _thsScrollThumbRadius = _thsScrollThumbRadius t2,
     _thsScrollWheelRate = _thsScrollWheelRate t2,
     _thsSliderStyle = _thsSliderStyle t1 <> _thsSliderStyle t2,
+    _thsSliderThumbFactor = _thsSliderThumbFactor t2,
     _thsSliderWidth = _thsSliderWidth t2,
     _thsSliderRadius = _thsSliderRadius t2 <|> _thsSliderRadius t1,
     _thsTooltipStyle = _thsTooltipStyle t1 <> _thsTooltipStyle t2,

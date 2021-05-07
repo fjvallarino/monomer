@@ -42,10 +42,12 @@ spec = describe "Slider" $ do
   handleEventKeyboardV
   handleEventMouseDragH
   handleEventMouseDragV
+  handleEventMouseDragThumb
   handleEventMouseDragValH
   handleEventMouseDragValV
   getSizeReqH
   getSizeReqV
+  getSizeReqThumb
 
 handleEventKeyboardH :: Spec
 handleEventKeyboardH = describe "handleEventKeyboardH" $ do
@@ -183,6 +185,38 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
     sliderNode = vslider sliderVal (-100) 100
     model es = nodeHandleEventModel wenv es sliderNode
 
+handleEventMouseDragThumb :: Spec
+handleEventMouseDragThumb = describe "handleEventMouseDragThumb" $ do
+  it "should not change the value when dragging horizontally" $ do
+    let selStart = Point 320 240
+    let selEnd = Point 500 240
+    let steps = evtDrag selStart selEnd
+    model steps ^. sliderVal `shouldBe` 0
+
+  it "should drag 100 pixels up and set the slider value to 50" $ do
+    let selStart = Point 320 240
+    let selEnd = Point 320 120
+    let steps = evtDrag selStart selEnd
+    model steps ^. sliderVal `shouldBe` 50
+
+  it "should drag 500 pixels up and set the slider value 100" $ do
+    let selStart = Point 320 240
+    let selEnd = Point 320 (-260)
+    let steps = evtDrag selStart selEnd
+    model steps ^. sliderVal `shouldBe` 100
+
+  it "should drag 1000 pixels up, but stay on 100" $ do
+    let selStart = Point 320 240
+    let selEnd = Point 320 (-760)
+    let steps = evtDrag selStart selEnd
+    model steps ^. sliderVal `shouldBe` 100
+
+  where
+    wenv = mockWenvEvtUnit (TestModel 0)
+      & L.theme .~ darkTheme
+    sliderNode = vslider_ sliderVal (-100) 100 [sliderThumbVisible True]
+    model es = nodeHandleEventModel wenv es sliderNode
+
 handleEventMouseDragValH :: Spec
 handleEventMouseDragValH = describe "handleEventMouseDragValH" $ do
   it "should not change the value when dragging vertically" $ do
@@ -294,3 +328,16 @@ getSizeReqV = describe "getSizeReqV" $ do
     wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (vslider sliderVal 0 100)
+
+getSizeReqThumb :: Spec
+getSizeReqThumb = describe "getSizeReqThumb" $ do
+  it "should return width = Fixed 10" $
+    sizeReqW `shouldBe` fixedSize 10
+
+  it "should return height = Expand 1000 1" $
+    sizeReqH `shouldBe` expandSize 1000 1
+
+  where
+    wenv = mockWenvEvtUnit (TestModel 0)
+      & L.theme .~ darkTheme
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (vslider_ sliderVal 0 100 [sliderThumbVisible True])
