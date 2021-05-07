@@ -30,6 +30,7 @@ import qualified Monomer.Widgets.Containers.ZStackSpec as ZStackSpec
 
 import qualified Monomer.Widgets.Singles.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.Singles.CheckboxSpec as CheckboxSpec
+import qualified Monomer.Widgets.Singles.ColorPickerSpec as ColorPickerSpec
 import qualified Monomer.Widgets.Singles.DialSpec as DialSpec
 import qualified Monomer.Widgets.Singles.ExternalLinkSpec as ExternalLinkSpec
 import qualified Monomer.Widgets.Singles.ImageSpec as ImageSpec
@@ -98,6 +99,7 @@ singles :: Spec
 singles = describe "Singles" $ do
   ButtonSpec.spec
   CheckboxSpec.spec
+  ColorPickerSpec.spec
   DialSpec.spec
   ExternalLinkSpec.spec
   ImageSpec.spec

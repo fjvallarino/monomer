@@ -17,7 +17,7 @@ data TestEvent
   deriving (Eq, Show)
 
 spec :: Spec
-spec = fdescribe "ExternalLink" $ do
+spec = describe "ExternalLink" $ do
   handleEvent
   getSizeReq
 
