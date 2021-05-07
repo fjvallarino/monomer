@@ -37,7 +37,7 @@ newtype TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = fdescribe "Slider" $ do
+spec = describe "Slider" $ do
   handleEventKeyboardH
   handleEventKeyboardV
   handleEventMouseDragH

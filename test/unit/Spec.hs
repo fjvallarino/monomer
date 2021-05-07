@@ -31,6 +31,7 @@ import qualified Monomer.Widgets.Containers.ZStackSpec as ZStackSpec
 import qualified Monomer.Widgets.Singles.ButtonSpec as ButtonSpec
 import qualified Monomer.Widgets.Singles.CheckboxSpec as CheckboxSpec
 import qualified Monomer.Widgets.Singles.DialSpec as DialSpec
+import qualified Monomer.Widgets.Singles.ExternalLinkSpec as ExternalLinkSpec
 import qualified Monomer.Widgets.Singles.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.Singles.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.Singles.NumericFieldSpec as NumericFieldSpec
@@ -82,8 +83,10 @@ containers = describe "Containers" $ do
   BoxSpec.spec
   ConfirmSpec.spec
   DragDropSpec.spec
+  DropdownSpec.spec
   GridSpec.spec
   KeystrokeSpec.spec
+  ListViewSpec.spec
   ScrollSpec.spec
   SplitSpec.spec
   StackSpec.spec
@@ -96,10 +99,9 @@ singles = describe "Singles" $ do
   ButtonSpec.spec
   CheckboxSpec.spec
   DialSpec.spec
-  DropdownSpec.spec
+  ExternalLinkSpec.spec
   ImageSpec.spec
   LabelSpec.spec
-  ListViewSpec.spec
   NumericFieldSpec.spec
   RadioSpec.spec
   SliderSpec.spec
