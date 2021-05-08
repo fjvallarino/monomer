@@ -30,6 +30,13 @@ import qualified Monomer.Lens as L
 
 type InputFieldValue a = (Eq a, Show a, Typeable a)
 
+type InputWheelHandler a
+  = InputFieldState a
+  -> Point
+  -> Point
+  -> WheelDirection
+  -> (Text, Int, Maybe Int)
+
 type InputDragHandler a
   = InputFieldState a
   -> Point
@@ -49,6 +56,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcToText :: a -> Text,
   _ifcAcceptInput :: Text -> Bool,
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
+  _ifcWheelHandler :: Maybe (InputWheelHandler a),
   _ifcDragHandler :: Maybe (InputDragHandler a),
   _ifcDragCursor :: Maybe CursorIcon,
   _ifcOnFocus :: [Path -> e],
@@ -159,6 +167,7 @@ makeInputField config state = widget where
   getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
   -- Mouse select handling options
   selectDragOnlyFocused = _ifcSelectDragOnlyFocused config
+  wheelHandler = _ifcWheelHandler config
   dragHandler = _ifcDragHandler config
   dragCursor = _ifcDragCursor config
   dragSelActive
@@ -393,10 +402,16 @@ makeInputField config state = widget where
         (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
         handlerRes = fromJust dragHandler state stPoint point
         (newText, newPos, newSel) = handlerRes
-        newState = newTextState wenv node state currVal newText newPos newSel
-        newNode = node
-          & L.widget .~ makeInputField config newState
-        result = resultReqs newNode [RenderOnce]
+        reqs = [RenderOnce]
+        result = genInputResult wenv node True newText newPos newSel reqs
+
+    -- Handle wheel
+    WheelScroll point move dir
+      | isJust wheelHandler -> Just result where
+        handlerRes = fromJust wheelHandler state point move dir
+        (newText, newPos, newSel) = handlerRes
+        reqs = [RenderOnce]
+        result = genInputResult wenv node True newText newPos newSel reqs
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt

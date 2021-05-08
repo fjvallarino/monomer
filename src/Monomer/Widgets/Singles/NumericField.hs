@@ -28,6 +28,7 @@ import qualified Formatting as F
 
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Event.Types
 import Monomer.Widgets.Singles.InputField
 import Monomer.Widgets.Util
 
@@ -41,6 +42,7 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcDecimals :: Maybe Int,
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
+  _nfcWheelRate :: Maybe Double,
   _nfcDragRate :: Maybe Double,
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
@@ -58,6 +60,7 @@ instance Default (NumericFieldCfg s e a) where
     _nfcDecimals = Nothing,
     _nfcMinValue = Nothing,
     _nfcMaxValue = Nothing,
+    _nfcWheelRate = Nothing,
     _nfcDragRate = Nothing,
     _nfcResizeOnChange = Nothing,
     _nfcSelectOnFocus = Nothing,
@@ -75,6 +78,7 @@ instance Semigroup (NumericFieldCfg s e a) where
     _nfcDecimals = _nfcDecimals t2 <|> _nfcDecimals t1,
     _nfcMinValue = _nfcMinValue t2 <|> _nfcMinValue t1,
     _nfcMaxValue = _nfcMaxValue t2 <|> _nfcMaxValue t1,
+    _nfcWheelRate = _nfcWheelRate t2 <|> _nfcWheelRate t1,
     _nfcDragRate = _nfcDragRate t2 <|> _nfcDragRate t1,
     _nfcResizeOnChange = _nfcResizeOnChange t2 <|> _nfcResizeOnChange t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
@@ -112,6 +116,11 @@ instance FormattableNumber a => CmbMinValue (NumericFieldCfg s e a) a where
 instance FormattableNumber a => CmbMaxValue (NumericFieldCfg s e a) a where
   maxValue len = def {
     _nfcMaxValue = Just len
+  }
+
+instance CmbWheelRate (NumericFieldCfg s e a) Double where
+  wheelRate rate = def {
+    _nfcWheelRate = Just rate
   }
 
 instance CmbDragRate (NumericFieldCfg s e a) Double where
@@ -214,6 +223,7 @@ numericFieldD_ widgetData configs = newNode where
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.inputNumericStyle,
+    _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocus = _nfcOnFocus config,
@@ -225,6 +235,23 @@ numericFieldD_ widgetData configs = newNode where
   }
   newNode = inputField_ "numericField" inputConfig
 
+handleWheel
+  :: FormattableNumber a
+  => NumericFieldCfg s e a
+  -> InputFieldState a
+  -> Point
+  -> Point
+  -> WheelDirection
+  -> (Text, Int, Maybe Int)
+handleWheel config state point move dir = result where
+  Point _ dy = move
+  sign = if dir == WheelNormal then 1 else -1
+  curValue = _ifsCurrValue state
+  wheelRate
+    | isIntegral curValue = fromMaybe 1 (_nfcWheelRate config)
+    | otherwise = fromMaybe 0.1 (_nfcWheelRate config)
+  result = handleMove config state wheelRate curValue (dy * sign)
+
 handleDrag
   :: FormattableNumber a
   => NumericFieldCfg s e a
@@ -235,17 +262,28 @@ handleDrag
 handleDrag config state clickPos currPos = result where
   Point _ dy = subPoint clickPos currPos
   selValue = _ifsDragSelValue state
-  decimals
-    | isIntegral selValue = 0
-    | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   dragRate
     | isIntegral selValue = fromMaybe 1 (_nfcDragRate config)
     | otherwise = fromMaybe 0.1 (_nfcDragRate config)
+  result = handleMove config state dragRate selValue dy
+
+handleMove
+  :: FormattableNumber a
+  => NumericFieldCfg s e a
+  -> InputFieldState a
+  -> Double
+  -> a
+  -> Double
+  -> (Text, Int, Maybe Int)
+handleMove config state rate value dy = result where
+  decimals
+    | isIntegral value = 0
+    | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
   fromText = numberFromText minVal maxVal
   toText = numberToText
-  tmpValue = selValue + fromFractional (dy * dragRate)
+  tmpValue = value + fromFractional (dy * rate)
   mParsedVal = fromText (toText decimals tmpValue)
   parsedVal = fromJust mParsedVal
   newVal

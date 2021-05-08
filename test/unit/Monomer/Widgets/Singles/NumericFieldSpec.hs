@@ -86,6 +86,17 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     model [evtT "123", delWordL, evtT "456"] ^. integralValue `shouldBe` 456
     model [evtT "123", delWordL, evtT "456"] ^. integralValid `shouldBe` True
 
+  it "should update the model when using the wheel" $ do
+    let p = Point 100 10
+    let steps1 = [WheelScroll p (Point 0 (-64)) WheelNormal]
+    let steps2 = [WheelScroll p (Point 0 300) WheelFlipped]
+    let steps3 = [WheelScroll p (Point 0 100) WheelNormal]
+    let steps4 = [WheelScroll p (Point 0 2000) WheelNormal]
+    model steps1 ^. integralValue `shouldBe` -64
+    model steps2 ^. integralValue `shouldBe` -200
+    model steps3 ^. integralValue `shouldBe` 100
+    model steps4 ^. integralValue `shouldBe` 1501
+
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
@@ -96,7 +107,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     wenv = mockWenv (IntegralModel 0 True)
     basicIntNode :: WidgetNode IntegralModel TestEvt
     basicIntNode = numericField_ integralValue [selectOnFocus_ False]
-    intCfg = [maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
+    intCfg = [minValue (-200), maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) intNode
     modelBasic es = nodeHandleEventModel wenv es basicIntNode
@@ -269,6 +280,17 @@ handleEventFractional = describe "handleEventFractional" $ do
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValue `shouldBe` 56
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValid `shouldBe` True
 
+  it "should update the model when using the wheel" $ do
+    let p = Point 100 10
+    let steps1 = [WheelScroll p (Point 0 (-8000)) WheelNormal]
+    let steps2 = [WheelScroll p (Point 0 360) WheelFlipped]
+    let steps3 = [WheelScroll p (Point 0 8700) WheelNormal]
+    let steps4 = [WheelScroll p (Point 0 16000) WheelNormal]
+    model steps1 ^. fractionalValue `shouldBe` (-500)
+    model steps2 ^. fractionalValue `shouldBe` (-36)
+    model steps3 ^. fractionalValue `shouldBe` 870
+    model steps4 ^. fractionalValue `shouldBe` 1501
+
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
@@ -279,7 +301,7 @@ handleEventFractional = describe "handleEventFractional" $ do
     wenv = mockWenv (FractionalModel 0 True)
     basicFractionalNode :: WidgetNode FractionalModel TestEvt
     basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False]
-    floatCfg = [maxValue 1501, validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
+    floatCfg = [minValue (-500), maxValue 1501, validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = numericField_ fractionalValue floatCfg
     model es = nodeHandleEventModel wenv es floatNode
     modelBasic es = nodeHandleEventModel wenv es basicFractionalNode
