@@ -32,6 +32,7 @@ type DialValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
+  _dlcWheelRate :: Maybe Rational,
   _dlcDragRate :: Maybe Rational,
   _dlcOnFocus :: [Path -> e],
   _dlcOnFocusReq :: [WidgetRequest s e],
@@ -44,6 +45,7 @@ data DialCfg s e a = DialCfg {
 instance Default (DialCfg s e a) where
   def = DialCfg {
     _dlcWidth = Nothing,
+    _dlcWheelRate = Nothing,
     _dlcDragRate = Nothing,
     _dlcOnFocus = [],
     _dlcOnFocusReq = [],
@@ -56,6 +58,7 @@ instance Default (DialCfg s e a) where
 instance Semigroup (DialCfg s e a) where
   (<>) t1 t2 = DialCfg {
     _dlcWidth = _dlcWidth t2 <|> _dlcWidth t1,
+    _dlcWheelRate = _dlcWheelRate t2 <|> _dlcWheelRate t1,
     _dlcDragRate = _dlcDragRate t2 <|> _dlcDragRate t1,
     _dlcOnFocus = _dlcOnFocus t1 <> _dlcOnFocus t2,
     _dlcOnFocusReq = _dlcOnFocusReq t1 <> _dlcOnFocusReq t2,
@@ -67,6 +70,11 @@ instance Semigroup (DialCfg s e a) where
 
 instance Monoid (DialCfg s e a) where
   mempty = def
+
+instance CmbWheelRate (DialCfg s e a) Rational where
+  wheelRate rate = def {
+    _dlcWheelRate = Just rate
+  }
 
 instance CmbDragRate (DialCfg s e a) Rational where
   dragRate rate = def {
@@ -244,8 +252,17 @@ makeDial field minVal maxVal config state = widget where
         newNode = node
           & L.widget .~ makeDial field minVal maxVal config newState
         result = resultReqs newNode reqs
+    WheelScroll _ (Point _ wy) wheelDirection -> Just result where
+      DialState maxPos pos = state
+      wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_dlcWheelRate config)
+      wheelRate = fromRational wheelCfg
+      tmpPos = pos + round (wy * wheelRate)
+      newPos = restrictValue 0 maxPos tmpPos
+      newVal = valueFromPos minVal dragRate newPos
+      result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     _ -> Nothing
     where
+      theme = activeTheme wenv node
       (_, dialArea) = getDialInfo wenv node config
       path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code

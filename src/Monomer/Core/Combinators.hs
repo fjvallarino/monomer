@@ -51,14 +51,17 @@ class CmbCloseCaption t where
   closeCaption :: Text -> t
 
 -- Numeric
-class Num a => CmbMinValue t a | t -> a where
+class CmbMinValue t a | t -> a where
   minValue :: a -> t
 
-class Num a => CmbMaxValue t a | t -> a where
+class CmbMaxValue t a | t -> a where
   maxValue :: a -> t
 
-class Num a => CmbDragRate t a | t -> a where
+class CmbDragRate t a | t -> a where
   dragRate :: a -> t
+
+class CmbWheelRate t a | t -> a where
+  wheelRate :: a -> t
 
 -- Container
 class CmbIgnoreEmptyArea t where

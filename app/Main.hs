@@ -144,7 +144,7 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree where
+buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetSlider = vstack [
       image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
       hstack [externalLink "Launch GitHub" "http://www.github.com"],
@@ -152,7 +152,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       labelS (model ^. int1),
       hslider_ int1 (-100) 100 [sliderRadius 10, sliderWidth 20],
       hstack [
-        vslider_ int1 (-100) 100 [sliderRadius 3]
+        vslider_ int1 (-100) 100 [sliderRadius 3, sliderThumbVisible True]
       ]
     ] `style` [paddingT 1]
   widgetSimple = vstack [
@@ -227,13 +227,13 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       image "assets/images/pecans.jpg" `style` [width 50, height 50]
     ]
   widgetDial = vstack [
+      textDropdown_ dropdown1 items id [],
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       hstack [
         radioV (model ^. fruit) RadioSt Apple,
         radioV (model ^. fruit) RadioSt Orange,
         radioV (model ^. fruit) RadioSt Pear
       ] `key` "radio hstack",
-      textDropdown_ dropdown1 items id [],
       textField textField1,
       hstack [
         checkbox condition1,
@@ -248,7 +248,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         mainButton "Test" RunShortTask
       ],
       image "assets/images/pecans.jpg",
-      tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test") `style` [bgColor orange, textSize 20]
+      tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" (label "Test" `style` [border 1 pink]) `style` [bgColor orange, textSize 20]
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
   widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)

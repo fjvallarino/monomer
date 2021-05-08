@@ -38,19 +38,21 @@ makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
 spec = describe "Slider" $ do
-  handleEventKeyboardH
-  handleEventKeyboardV
-  handleEventMouseDragH
-  handleEventMouseDragV
-  handleEventMouseDragThumb
-  handleEventMouseDragValH
-  handleEventMouseDragValV
+  handleKeyboardH
+  handleKeyboardV
+  handleMouseDragH
+  handleMouseDragV
+  handleMouseDragThumb
+  handleMouseDragValH
+  handleMouseDragValV
+  handleWheelH
+  handleWheelValV
   getSizeReqH
   getSizeReqV
   getSizeReqThumb
 
-handleEventKeyboardH :: Spec
-handleEventKeyboardH = describe "handleEventKeyboardH" $ do
+handleKeyboardH :: Spec
+handleKeyboardH = describe "handleKeyboardH" $ do
   it "should not change the value when using vertical arrows" $ do
     let steps = [evtK keyUp, evtK keyDown, evtK keyDown]
     model steps ^. sliderVal `shouldBe` 0
@@ -85,8 +87,8 @@ handleEventKeyboardH = describe "handleEventKeyboardH" $ do
     sliderNode = hslider sliderVal (-100) 100
     model es = nodeHandleEventModel wenv es sliderNode
 
-handleEventKeyboardV :: Spec
-handleEventKeyboardV = describe "handleEventKeyboardV" $ do
+handleKeyboardV :: Spec
+handleKeyboardV = describe "handleKeyboardV" $ do
   it "should not change the value when using horizontal arrows" $ do
     let steps = [evtK keyLeft, evtK keyRight, evtK keyRight]
     model steps ^. sliderVal `shouldBe` 0
@@ -121,8 +123,8 @@ handleEventKeyboardV = describe "handleEventKeyboardV" $ do
     sliderNode = vslider sliderVal (-100) 100
     model es = nodeHandleEventModel wenv es sliderNode
 
-handleEventMouseDragH :: Spec
-handleEventMouseDragH = describe "handleEventMouseDragH" $ do
+handleMouseDragH :: Spec
+handleMouseDragH = describe "handleMouseDragH" $ do
   it "should not change the value when dragging vertically" $ do
     let selStart = Point 320 240
     let selEnd = Point 320 120
@@ -153,8 +155,8 @@ handleEventMouseDragH = describe "handleEventMouseDragH" $ do
     sliderNode = hslider sliderVal (-100) 100
     model es = nodeHandleEventModel wenv es sliderNode
 
-handleEventMouseDragV :: Spec
-handleEventMouseDragV = describe "handleEventMouseDragV" $ do
+handleMouseDragV :: Spec
+handleMouseDragV = describe "handleMouseDragV" $ do
   it "should not change the value when dragging horizontally" $ do
     let selStart = Point 320 240
     let selEnd = Point 500 240
@@ -185,8 +187,8 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
     sliderNode = vslider sliderVal (-100) 100
     model es = nodeHandleEventModel wenv es sliderNode
 
-handleEventMouseDragThumb :: Spec
-handleEventMouseDragThumb = describe "handleEventMouseDragThumb" $ do
+handleMouseDragThumb :: Spec
+handleMouseDragThumb = describe "handleMouseDragThumb" $ do
   it "should not change the value when dragging horizontally" $ do
     let selStart = Point 320 240
     let selEnd = Point 500 240
@@ -217,8 +219,8 @@ handleEventMouseDragThumb = describe "handleEventMouseDragThumb" $ do
     sliderNode = vslider_ sliderVal (-100) 100 [sliderThumbVisible True]
     model es = nodeHandleEventModel wenv es sliderNode
 
-handleEventMouseDragValH :: Spec
-handleEventMouseDragValH = describe "handleEventMouseDragValH" $ do
+handleMouseDragValH :: Spec
+handleMouseDragValH = describe "handleMouseDragValH" $ do
   it "should not change the value when dragging vertically" $ do
     let selStart = Point 320 240
     let selEnd = Point 320 0
@@ -260,8 +262,8 @@ handleEventMouseDragValH = describe "handleEventMouseDragValH" $ do
     sliderNode = hsliderV_ 0 SliderChanged (-500) 500 [dragRate 1, onFocus GotFocus, onBlur LostFocus]
     evts es = nodeHandleEventEvts wenv es sliderNode
 
-handleEventMouseDragValV :: Spec
-handleEventMouseDragValV = describe "handleEventMouseDragValV" $ do
+handleMouseDragValV :: Spec
+handleMouseDragValV = describe "handleMouseDragValV" $ do
   it "should not change the value when dragging horizontally" $ do
     let selStart = Point 320 240
     let selEnd = Point 500 240
@@ -301,6 +303,32 @@ handleEventMouseDragValV = describe "handleEventMouseDragValV" $ do
     wenv = mockWenv (TestModel 500)
       & L.theme .~ darkTheme
     sliderNode = vsliderV_ 0 SliderChanged (-500) 500 [dragRate 1, onFocus GotFocus, onBlur LostFocus]
+    evts es = nodeHandleEventEvts wenv es sliderNode
+
+handleWheelH :: Spec
+handleWheelH = describe "handleWheelH" $ do
+  it "should update the model when using the wheel" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 100) WheelNormal]
+    model steps ^. sliderVal `shouldBe` 300
+
+  where
+    wenv = mockWenvEvtUnit (TestModel 200)
+      & L.theme .~ darkTheme
+    sliderNode = hslider_ sliderVal (-500) 500 [wheelRate 1]
+    model es = nodeHandleEventModel wenv es sliderNode
+
+handleWheelValV :: Spec
+handleWheelValV = describe "handleWheelValV" $ do
+  it "should update the model when using the wheel" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 (-200)) WheelNormal]
+    evts steps `shouldBe` Seq.singleton (SliderChanged (-200))
+
+  where
+    wenv = mockWenv (TestModel 0)
+      & L.theme .~ darkTheme
+    sliderNode = vsliderV_ 0 SliderChanged (-500) 500 [wheelRate 1]
     evts es = nodeHandleEventEvts wenv es sliderNode
 
 getSizeReqH :: Spec

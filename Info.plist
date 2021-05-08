@@ -4,5 +4,7 @@
 <dict>
   <key>NSSupportsAutomaticGraphicsSwitching</key>
   <string>YES</string>
+  <key>NSHighResolutionCapable</key>
+  <string>YES</string>
 </dict>
 </plist>

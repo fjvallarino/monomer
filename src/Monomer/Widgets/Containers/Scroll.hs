@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Monomer.Widgets.Containers.Scroll (
   ScrollMessage(..),
@@ -14,7 +17,6 @@ module Monomer.Widgets.Containers.Scroll (
   scrollOverlay,
   scrollInvisible,
   scrollFollowFocus,
-  scrollWheelRate,
   scrollBarHoverColor,
   scrollBarColor,
   scrollThumbHoverColor,
@@ -54,7 +56,7 @@ data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
   _scScrollOverlay :: Maybe Bool,
   _scFollowFocus :: Maybe Bool,
-  _scWheelRate :: Maybe Double,
+  _scWheelRate :: Maybe Rational,
   _scBarColor :: Maybe Color,
   _scBarHoverColor :: Maybe Color,
   _scThumbColor :: Maybe Color,
@@ -100,6 +102,11 @@ instance Semigroup ScrollCfg where
 instance Monoid ScrollCfg where
   mempty = def
 
+instance CmbWheelRate ScrollCfg Rational where
+  wheelRate rate = def {
+    _scWheelRate = Just rate
+  }
+
 data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
@@ -130,11 +137,6 @@ scrollInvisible = def {
 scrollFollowFocus :: Bool -> ScrollCfg
 scrollFollowFocus follow = def {
   _scFollowFocus = Just follow
-}
-
-scrollWheelRate :: Double -> ScrollCfg
-scrollWheelRate rate = def {
-  _scWheelRate = Just rate
 }
 
 scrollBarColor :: Color -> ScrollCfg
@@ -345,7 +347,8 @@ makeScroll config state = widget where
       Rect cx cy cw ch = contentArea
       sctx = scrollStatus config wenv node state mousePos
       scrollReqs = [IgnoreParentEvents]
-      wheelRate = fromMaybe (theme ^. L.scrollWheelRate) (_scWheelRate config)
+      wheelCfg = fromMaybe (theme ^. L.scrollWheelRate) (_scWheelRate config)
+      wheelRate = fromRational wheelCfg
 
   scrollAxis reqDelta childLength vpLength
     | maxDelta == 0 = 0

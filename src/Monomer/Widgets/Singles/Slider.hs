@@ -41,9 +41,10 @@ type SliderValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 data SliderCfg s e a = SliderCfg {
   _slcRadius :: Maybe Double,
   _slcWidth :: Maybe Double,
+  _slcWheelRate :: Maybe Rational,
+  _slcDragRate :: Maybe Rational,
   _slcThumbVisible :: Maybe Bool,
   _slcThumbFactor :: Maybe Double,
-  _slcDragRate :: Maybe Rational,
   _slcOnFocus :: [Path -> e],
   _slcOnFocusReq :: [WidgetRequest s e],
   _slcOnBlur :: [Path -> e],
@@ -56,9 +57,10 @@ instance Default (SliderCfg s e a) where
   def = SliderCfg {
     _slcRadius = Nothing,
     _slcWidth = Nothing,
+    _slcWheelRate = Nothing,
+    _slcDragRate = Nothing,
     _slcThumbVisible = Nothing,
     _slcThumbFactor = Nothing,
-    _slcDragRate = Nothing,
     _slcOnFocus = [],
     _slcOnFocusReq = [],
     _slcOnBlur = [],
@@ -71,9 +73,10 @@ instance Semigroup (SliderCfg s e a) where
   (<>) t1 t2 = SliderCfg {
     _slcRadius = _slcRadius t2 <|> _slcRadius t1,
     _slcWidth = _slcWidth t2 <|> _slcWidth t1,
+    _slcWheelRate = _slcWheelRate t2 <|> _slcWheelRate t1,
+    _slcDragRate = _slcDragRate t2 <|> _slcDragRate t1,
     _slcThumbVisible = _slcThumbVisible t2 <|> _slcThumbVisible t1,
     _slcThumbFactor = _slcThumbFactor t2 <|> _slcThumbFactor t1,
-    _slcDragRate = _slcDragRate t2 <|> _slcDragRate t1,
     _slcOnFocus = _slcOnFocus t1 <> _slcOnFocus t2,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
     _slcOnBlur = _slcOnBlur t1 <> _slcOnBlur t2,
@@ -84,6 +87,11 @@ instance Semigroup (SliderCfg s e a) where
 
 instance Monoid (SliderCfg s e a) where
   mempty = def
+
+instance CmbWheelRate (SliderCfg s e a) Rational where
+  wheelRate rate = def {
+    _slcWheelRate = Just rate
+  }
 
 instance CmbDragRate (SliderCfg s e a) Rational where
   dragRate rate = def {
@@ -293,8 +301,14 @@ makeSlider isHz field minVal maxVal config state = widget where
       | clicks == 1 -> resultFromPoint point
     ButtonAction point btn ReleasedBtn clicks
       | clicks <= 1 -> resultFromPoint point
+    WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos where
+      wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)
+      wheelRate = fromRational wheelCfg
+      tmpPos = pos + round (wy * wheelRate)
+      newPos = restrictValue 0 maxPos tmpPos
     _ -> Nothing
     where
+      theme = activeTheme wenv node
       style = activeStyle wenv node
       vp = getContentArea style node
       SliderState maxPos pos = state

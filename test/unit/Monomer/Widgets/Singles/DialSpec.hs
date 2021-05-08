@@ -38,13 +38,15 @@ makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
 spec = describe "Dial" $ do
-  handleEventKeyboard
-  handleEventMouseDrag
-  handleEventMouseDragVal
+  handleKeyboard
+  handleMouseDrag
+  handleMouseDragVal
+  handleWheel
+  handleWheelVal
   getSizeReq
 
-handleEventKeyboard :: Spec
-handleEventKeyboard = describe "handleEventKeyboard" $ do
+handleKeyboard :: Spec
+handleKeyboard = describe "handleKeyboard" $ do
   it "should press arrow up ten times and set the dial value to 20" $ do
     let steps = replicate 10 (evtK keyUp)
     model steps ^. dialVal `shouldBe` 20
@@ -75,8 +77,8 @@ handleEventKeyboard = describe "handleEventKeyboard" $ do
     dialNode = dial dialVal (-100) 100
     model es = nodeHandleEventModel wenv es dialNode
 
-handleEventMouseDrag :: Spec
-handleEventMouseDrag = describe "handleEventMouseDrag" $ do
+handleMouseDrag :: Spec
+handleMouseDrag = describe "handleMouseDrag" $ do
   it "should not change the value when dragging off bounds" $ do
     let selStart = Point 0 0
     let selEnd = Point 0 100
@@ -113,8 +115,8 @@ handleEventMouseDrag = describe "handleEventMouseDrag" $ do
     dialNode = dial dialVal (-100) 100
     model es = nodeHandleEventModel wenv es dialNode
 
-handleEventMouseDragVal :: Spec
-handleEventMouseDragVal = describe "handleEventMouseDragVal" $ do
+handleMouseDragVal :: Spec
+handleMouseDragVal = describe "handleMouseDragVal" $ do
   it "should not change the value when dragging off bounds" $ do
     let selStart = Point 0 0
     let selEnd = Point 0 100
@@ -156,6 +158,32 @@ handleEventMouseDragVal = describe "handleEventMouseDragVal" $ do
       & L.theme .~ darkTheme
     dialNode = dialV_ 10 DialChanged (-500) 500 [dragRate 1, onFocus GotFocus, onBlur LostFocus]
     evts es = nodeHandleEventEvts wenv es dialNode
+
+handleWheel :: Spec
+handleWheel = describe "handleWheel" $ do
+  it "should update the model when using the wheel" $ do
+    let p = Point 320 240
+    let steps = [WheelScroll p (Point 0 100) WheelNormal]
+    model steps ^. dialVal `shouldBe` 300
+
+  where
+    wenv = mockWenvEvtUnit (TestModel 200)
+      & L.theme .~ darkTheme
+    sliderNode = dial_ dialVal (-500) 500 [wheelRate 1]
+    model es = nodeHandleEventModel wenv es sliderNode
+
+handleWheelVal :: Spec
+handleWheelVal = describe "handleWheelVal" $ do
+  it "should update the model when using the wheel" $ do
+    let p = Point 320 240
+    let steps = [WheelScroll p (Point 0 (-200)) WheelNormal]
+    evts steps `shouldBe` Seq.singleton (DialChanged (-200))
+
+  where
+    wenv = mockWenv (TestModel 0)
+      & L.theme .~ darkTheme
+    sliderNode = dialV_ 0 DialChanged (-500) 500 [wheelRate 1]
+    evts es = nodeHandleEventEvts wenv es sliderNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

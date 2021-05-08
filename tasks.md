@@ -605,24 +605,30 @@
   - Add unit tests for new widgets
   - Review onChangeReq (a parameter should be provided)
     - Also reorder type parameters to be consistent (same order always)
-
-Next
   - Top pixel seems to be invisible. Is this macOS title bar related? Is left too?
     - Check if Info.plist has a related setting
+    - This is macOS related. When removing window decorations, all the content is shown correctly.
+
+Next
+  - Add wheel support to dial and slider
+  - Use combinators when possible in slider, dial and scroll
+    - Remember adding _ version for Bool combinators
   - Create ContextMenu (could work similarly to Tooltip)
+  - Create Datetime field
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
   - Add support for multiline text editing
+  - Should numeric field continuosly update?
+    - Add wheel support
 
 Future
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
-  - Should numeric field continuosly update?
   - Remove attoparsec dependency (only used in numericField to validate format)
   - Create File Selector
   - Create GridView
