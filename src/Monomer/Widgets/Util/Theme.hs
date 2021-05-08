@@ -11,10 +11,10 @@ import Monomer.Core
 import qualified Monomer.Lens as L
 
 themeEmptyOverlay :: WidgetEnv s e -> Style
-themeEmptyOverlay wenv = collectTheme wenv L.emptyOverlay
+themeEmptyOverlay wenv = collectTheme wenv L.emptyOverlayStyle
 
 themeText :: WidgetEnv s e -> Style
-themeText wenv = collectThemeField wenv L.text L.text
+themeText wenv = collectThemeField wenv L.text L.textStyle
 
 themeBtn :: WidgetEnv s e -> Style
 themeBtn wenv = collectTheme wenv L.btnStyle

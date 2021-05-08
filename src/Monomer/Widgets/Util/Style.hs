@@ -231,7 +231,7 @@ baseStyleFromTheme theme = style where
   fromThemeState tstate = Just $ def {
     _sstFgColor = Just $ _thsFgColor tstate,
     _sstHlColor = Just $ _thsHlColor tstate,
-    _sstText = Just $ _thsText tstate
+    _sstText = Just $ _thsTextStyle tstate
   }
 
 mergeBasicStyle :: Style -> Style
