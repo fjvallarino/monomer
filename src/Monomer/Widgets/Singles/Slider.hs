@@ -14,11 +14,7 @@ module Monomer.Widgets.Singles.Slider (
   hsliderV_,
   vsliderV,
   vsliderV_,
-  sliderD_,
-  sliderRadius,
-  sliderWidth,
-  sliderThumbVisible,
-  sliderThumbFactor
+  sliderD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -88,6 +84,16 @@ instance Semigroup (SliderCfg s e a) where
 instance Monoid (SliderCfg s e a) where
   mempty = def
 
+instance CmbWidth (SliderCfg s e a) where
+  width w = def {
+    _slcWidth = Just w
+}
+
+instance CmbRadius (SliderCfg s e a) where
+  radius w = def {
+    _slcRadius = Just w
+  }
+
 instance CmbWheelRate (SliderCfg s e a) Rational where
   wheelRate rate = def {
     _slcWheelRate = Just rate
@@ -96,6 +102,16 @@ instance CmbWheelRate (SliderCfg s e a) Rational where
 instance CmbDragRate (SliderCfg s e a) Rational where
   dragRate rate = def {
     _slcDragRate = Just rate
+  }
+
+instance CmbThumbFactor (SliderCfg s e a) where
+  thumbFactor w = def {
+    _slcThumbFactor = Just w
+  }
+
+instance CmbThumbVisible (SliderCfg s e a) where
+  thumbVisible_ w = def {
+    _slcThumbVisible = Just w
   }
 
 instance CmbOnFocus (SliderCfg s e a) e Path where
@@ -127,26 +143,6 @@ instance CmbOnChangeReq (SliderCfg s e a) s e a where
   onChangeReq req = def {
     _slcOnChangeReq = [req]
   }
-
-sliderRadius :: Double -> SliderCfg s e a
-sliderRadius w = def {
-  _slcRadius = Just w
-}
-
-sliderWidth :: Double -> SliderCfg s e a
-sliderWidth w = def {
-  _slcWidth = Just w
-}
-
-sliderThumbVisible :: Bool -> SliderCfg s e a
-sliderThumbVisible v = def {
-  _slcThumbVisible = Just v
-}
-
-sliderThumbFactor :: Double -> SliderCfg s e a
-sliderThumbFactor w = def {
-  _slcThumbFactor = Just w
-}
 
 data SliderState = SliderState {
   _slsMaxPos :: Integer,

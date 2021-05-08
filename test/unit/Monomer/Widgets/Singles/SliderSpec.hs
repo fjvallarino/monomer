@@ -216,7 +216,7 @@ handleMouseDragThumb = describe "handleMouseDragThumb" $ do
   where
     wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
-    sliderNode = vslider_ sliderVal (-100) 100 [sliderThumbVisible True]
+    sliderNode = vslider_ sliderVal (-100) 100 [thumbVisible]
     model es = nodeHandleEventModel wenv es sliderNode
 
 handleMouseDragValH :: Spec
@@ -368,4 +368,4 @@ getSizeReqThumb = describe "getSizeReqThumb" $ do
   where
     wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (vslider_ sliderVal 0 100 [sliderThumbVisible True])
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (vslider_ sliderVal 0 100 [thumbVisible])

@@ -608,21 +608,21 @@
   - Top pixel seems to be invisible. Is this macOS title bar related? Is left too?
     - Check if Info.plist has a related setting
     - This is macOS related. When removing window decorations, all the content is shown correctly.
-
-Next
   - Add wheel support to dial and slider
   - Use combinators when possible in slider, dial and scroll
     - Remember adding _ version for Bool combinators
-  - Create ContextMenu (could work similarly to Tooltip)
+
+Next
+  - Should numeric field continuously update?
+    - Add wheel support
   - Create Datetime field
+  - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection
   - Maybe offset should be in node info?
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
   - Add support for multiline text editing
-  - Should numeric field continuosly update?
-    - Add wheel support
 
 Future
   - Check cross compilation

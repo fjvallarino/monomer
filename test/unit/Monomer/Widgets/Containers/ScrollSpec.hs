@@ -65,7 +65,7 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
         (button "Button 3" Button3 & L.info . L.overlay .~ True) `style` st,
         button "Button 4" Button4 `style` st
       ]
-    ignoreNode = scroll_ [scrollFollowFocus False] stackNode
+    ignoreNode = scroll_ [scrollFollowFocus_ False] stackNode
     followNode = scroll stackNode
     evtsIgnore es = nodeHandleEventEvts wenv es ignoreNode
     evtsFollow es = nodeHandleEventEvts wenv es followNode
@@ -155,7 +155,7 @@ resizeOverlaySmall = describe "resizeOverlaySmall" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
-    scrollNode = scroll_ [scrollOverlay True] (label "" `style` [width 300, height 200])
+    scrollNode = scroll_ [scrollOverlay] (label "" `style` [width 300, height 200])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -206,7 +206,7 @@ resizeOverlayH = describe "resizeOverlayH" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0  640 480
     cvp1 = Rect 0 0 3000 480
-    scrollNode = hscroll_ [scrollOverlay True] (label "" `style` [width 3000, height 2000])
+    scrollNode = hscroll_ [scrollOverlay] (label "" `style` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -223,7 +223,7 @@ resizeOverlayV = describe "resizeOverlayV" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640  480
     cvp1 = Rect 0 0 640 2000
-    scrollNode = vscroll_ [scrollOverlay True] (label "" `style` [width 3000, height 2000])
+    scrollNode = vscroll_ [scrollOverlay] (label "" `style` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children

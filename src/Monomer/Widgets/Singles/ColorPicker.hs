@@ -8,8 +8,7 @@ module Monomer.Widgets.Singles.ColorPicker (
   colorPicker_,
   colorPickerV,
   colorPickerV_,
-  colorPickerD_,
-  colorPickerAlpha
+  colorPickerD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -72,6 +71,11 @@ instance Semigroup (ColorPickerCfg s e) where
 instance Monoid (ColorPickerCfg s e) where
   mempty = def
 
+instance CmbShowAlpha (ColorPickerCfg s e) where
+  showAlpha_ show = def {
+    _cpcShowAlpha = Just show
+  }
+
 instance CmbOnFocus (ColorPickerCfg s e) e Path where
   onFocus fn = def {
     _cpcOnFocus = [fn]
@@ -101,11 +105,6 @@ instance CmbOnChangeReq (ColorPickerCfg s e) s e Color where
   onChangeReq req = def {
     _cpcOnChangeReq = [req]
   }
-
-colorPickerAlpha :: Bool -> ColorPickerCfg s e
-colorPickerAlpha show = def {
-  _cpcShowAlpha = Just show
-}
 
 data ColorPickerEvt
   = PickerFocus Path

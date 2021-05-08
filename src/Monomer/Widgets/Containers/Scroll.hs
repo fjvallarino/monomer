@@ -15,16 +15,12 @@ module Monomer.Widgets.Containers.Scroll (
   vscroll,
   vscroll_,
   scrollOverlay,
+  scrollOverlay_,
   scrollInvisible,
+  scrollInvisible_,
   scrollFollowFocus,
-  scrollBarHoverColor,
-  scrollBarColor,
-  scrollThumbHoverColor,
-  scrollThumbColor,
-  scrollStyle,
-  scrollBarWidth,
-  scrollThumbWidth,
-  scrollThumbRadius
+  scrollFollowFocus_,
+  scrollStyle
 ) where
 
 import Control.Applicative ((<|>))
@@ -107,6 +103,42 @@ instance CmbWheelRate ScrollCfg Rational where
     _scWheelRate = Just rate
   }
 
+instance CmbBarColor ScrollCfg where
+  barColor col = def {
+    _scBarColor = Just col
+  }
+
+instance CmbBarHoverColor ScrollCfg where
+  barHoverColor col = def {
+    _scBarHoverColor = Just col
+  }
+
+instance CmbBarWidth ScrollCfg where
+  barWidth w = def {
+    _scBarWidth = Just w
+  }
+
+-- Thumb
+instance CmbThumbColor ScrollCfg where
+  thumbColor col = def {
+    _scThumbColor = Just col
+  }
+
+instance CmbThumbHoverColor ScrollCfg where
+  thumbHoverColor col = def {
+    _scThumbHoverColor = Just col
+  }
+
+instance CmbThumbWidth ScrollCfg where
+  thumbWidth w = def {
+    _scThumbWidth = Just w
+  }
+
+instance CmbThumbRadius ScrollCfg where
+  thumbRadius r = def {
+    _scThumbRadius = Just r
+  }
+
 data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
@@ -120,13 +152,20 @@ scrollType st = def {
   _scScrollType = Just st
 }
 
-scrollOverlay :: Bool -> ScrollCfg
-scrollOverlay overlay = def {
+scrollOverlay :: ScrollCfg
+scrollOverlay = scrollOverlay_ True
+
+scrollOverlay_ :: Bool -> ScrollCfg
+scrollOverlay_ overlay = def {
   _scScrollOverlay = Just overlay
 }
 
 scrollInvisible :: ScrollCfg
-scrollInvisible = def {
+scrollInvisible = scrollInvisible_ True
+
+scrollInvisible_ :: Bool -> ScrollCfg
+scrollInvisible_ False = def
+scrollInvisible_ True = def {
   _scScrollOverlay = Just True,
   _scBarColor = Just transparent,
   _scBarHoverColor = Just transparent,
@@ -134,44 +173,12 @@ scrollInvisible = def {
   _scThumbHoverColor = Just transparent
 }
 
-scrollFollowFocus :: Bool -> ScrollCfg
-scrollFollowFocus follow = def {
+scrollFollowFocus :: ScrollCfg
+scrollFollowFocus = scrollFollowFocus_ True
+
+scrollFollowFocus_ :: Bool -> ScrollCfg
+scrollFollowFocus_ follow = def {
   _scFollowFocus = Just follow
-}
-
-scrollBarColor :: Color -> ScrollCfg
-scrollBarColor col = def {
-  _scBarColor = Just col
-}
-
-scrollBarHoverColor :: Color -> ScrollCfg
-scrollBarHoverColor col = def {
-  _scBarHoverColor = Just col
-}
-
-scrollThumbColor :: Color -> ScrollCfg
-scrollThumbColor col = def {
-  _scThumbColor = Just col
-}
-
-scrollThumbHoverColor :: Color -> ScrollCfg
-scrollThumbHoverColor col = def {
-  _scThumbHoverColor = Just col
-}
-
-scrollBarWidth :: Double -> ScrollCfg
-scrollBarWidth w = def {
-  _scBarWidth = Just w
-}
-
-scrollThumbWidth :: Double -> ScrollCfg
-scrollThumbWidth w = def {
-  _scThumbWidth = Just w
-}
-
-scrollThumbRadius :: Double -> ScrollCfg
-scrollThumbRadius r = def {
-  _scThumbRadius = Just r
 }
 
 scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg

@@ -171,6 +171,43 @@ class CmbImageFlag t where
   imageRepeatX :: t
   imageRepeatY :: t
 
+-- Bar
+class CmbBarColor t where
+  barColor :: Color -> t
+
+class CmbBarHoverColor t where
+  barHoverColor :: Color -> t
+
+class CmbBarWidth t where
+  barWidth :: Double -> t
+
+-- Thumb
+class CmbThumbColor t where
+  thumbColor :: Color -> t
+
+class CmbThumbHoverColor t where
+  thumbHoverColor :: Color -> t
+
+class CmbThumbFactor t where
+  thumbFactor :: Double -> t
+
+class CmbThumbRadius t where
+  thumbRadius :: Double -> t
+
+class CmbThumbVisible t where
+  thumbVisible :: t
+  thumbVisible = thumbVisible_ True
+  thumbVisible_ :: Bool -> t
+
+class CmbThumbWidth t where
+  thumbWidth :: Double -> t
+
+-- Misc
+class CmbShowAlpha t where
+  showAlpha :: t
+  showAlpha = showAlpha_ True
+  showAlpha_ :: Bool -> t
+
 -- Events
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t

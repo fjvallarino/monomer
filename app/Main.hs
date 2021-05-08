@@ -148,11 +148,11 @@ buildUI wenv model = traceShow "Creating UI" widgetDial where
   widgetSlider = vstack [
       image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
       hstack [externalLink "Launch GitHub" "http://www.github.com"],
-      colorPicker_ color [colorPickerAlpha True, onChange UpdateColor, onFocus FocusColor, onBlur BlurColor],
+      colorPicker_ color [showAlpha, onChange UpdateColor, onFocus FocusColor, onBlur BlurColor],
       labelS (model ^. int1),
-      hslider_ int1 (-100) 100 [sliderRadius 10, sliderWidth 20],
+      hslider_ int1 (-100) 100 [radius 10, width 20],
       hstack [
-        vslider_ int1 (-100) 100 [sliderRadius 3, sliderThumbVisible True]
+        vslider_ int1 (-100) 100 [radius 3, thumbVisible]
       ]
     ] `style` [paddingT 1]
   widgetSimple = vstack [

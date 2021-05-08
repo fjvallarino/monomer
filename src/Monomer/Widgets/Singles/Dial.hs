@@ -9,8 +9,7 @@ module Monomer.Widgets.Singles.Dial (
   dial,
   dial_,
   dialV,
-  dialV_,
-  dialWidth
+  dialV_
 ) where
 
 import Control.Applicative ((<|>))
@@ -81,6 +80,11 @@ instance CmbDragRate (DialCfg s e a) Rational where
     _dlcDragRate = Just rate
   }
 
+instance CmbWidth (DialCfg s e a) where
+  width w = def {
+    _dlcWidth = Just w
+  }
+
 instance CmbOnFocus (DialCfg s e a) e Path where
   onFocus fn = def {
     _dlcOnFocus = [fn]
@@ -110,11 +114,6 @@ instance CmbOnChangeReq (DialCfg s e a) s e a where
   onChangeReq req = def {
     _dlcOnChangeReq = [req]
   }
-
-dialWidth :: Double -> DialCfg s e a
-dialWidth w = def {
-  _dlcWidth = Just w
-}
 
 data DialState = DialState {
   _dlsMaxPos :: Integer,
