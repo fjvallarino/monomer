@@ -5,6 +5,7 @@ module Types where
 import Control.Lens (makeLenses)
 import Data.Default
 import Data.Text (Text)
+import Data.Time.Calendar
 import GHC.Generics
 
 import Monomer
@@ -38,7 +39,9 @@ data App = App {
   _splitPos :: Double,
   _dragList1 :: [Int],
   _dragList2 :: [Int],
-  _color :: Color
+  _color :: Color,
+  _testDay :: Day,
+  _testDayValid :: Bool
 } deriving (Eq, Show)
 
 instance Default App where
@@ -65,7 +68,9 @@ instance Default App where
     _splitPos = 0.5,
     _dragList1 = [1..100],
     _dragList2 = [],
-    _color = def
+    _color = def,
+    _testDay = fromGregorian 2015 06 07,
+    _testDayValid = False
   }
 
 makeLenses ''App

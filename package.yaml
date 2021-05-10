@@ -46,6 +46,7 @@ dependencies:
 - stm
 - text
 - text-show
+- time
 - transformers
 - unordered-containers
 - vector

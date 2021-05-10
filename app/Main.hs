@@ -9,6 +9,7 @@ import Control.Concurrent (threadDelay)
 import Control.Lens ((&), (^.), (.~), (?~), (%~))
 import Data.Default
 import Data.List (delete)
+import Data.Time.Calendar (fromGregorian)
 import TextShow
 
 import qualified Data.Text as T
@@ -144,7 +145,16 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetSlider where
+buildUI wenv model = traceShow "Creating UI" widgetDate where
+  widgetDate = vstack [
+      hstack [
+        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
+        spacer,
+        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
+        filler
+      ],
+      numericField_ int1 [minValue 100]
+    ]
   widgetSlider = vstack [
       image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
       hstack [externalLink "Launch GitHub" "http://www.github.com"],

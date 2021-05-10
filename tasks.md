@@ -611,11 +611,12 @@
   - Add wheel support to dial and slider
   - Use combinators when possible in slider, dial and scroll
     - Remember adding _ version for Bool combinators
-
-Next
   - Should numeric field continuously update?
     - Add wheel support
+
+Next
   - Create Datetime field
+    - Initial value should not be forced. Check if Maybe is a possibility
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection

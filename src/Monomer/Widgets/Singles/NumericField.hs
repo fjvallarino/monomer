@@ -1,5 +1,4 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -30,7 +29,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event.Types
 import Monomer.Widgets.Singles.InputField
-import Monomer.Widgets.Util
+import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
 
@@ -316,19 +315,6 @@ acceptNumberInput decimals text = isRight (A.parseOnly parser text) where
   dots = if decimals > 0 then 1 else 0
   rest = join [upto dots dot, upto decimals digit]
   parser = join [sign, number, A.option "" rest] <* A.endOfInput
-
--- Parsing helpers
-join :: [A.Parser Text] -> A.Parser Text
-join [] = return T.empty
-join (x:xs) = (<>) <$> x <*> join xs
-
-upto :: Int -> A.Parser Text -> A.Parser Text
-upto n p
-  | n > 0 = (<>) <$> A.try p <*> upto (n-1) p <|> return T.empty
-  | otherwise = return T.empty
-
-single :: Char -> A.Parser Text
-single c = T.singleton <$> A.char c
 
 numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
 numberInBounds Nothing Nothing _ = True
