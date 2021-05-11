@@ -616,7 +616,8 @@
 
 Next
   - Create Datetime field
-    - Initial value should not be forced. Check if Maybe is a possibility
+    - Initial value should not be forced.
+    - Can both direct field and Maybe version be provided?
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection
@@ -630,7 +631,6 @@ Future
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
-  - Remove attoparsec dependency (only used in numericField to validate format)
   - Create File Selector
   - Create GridView
     - Adjusts column width and row height (not possible to have both combining hstack/vstack)

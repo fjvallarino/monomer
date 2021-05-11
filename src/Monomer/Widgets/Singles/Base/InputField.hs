@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Monomer.Widgets.Singles.InputField (
+module Monomer.Widgets.Singles.Base.InputField (
   InputFieldCfg(..),
   InputFieldState(..),
   inputField_,
@@ -193,13 +193,12 @@ makeInputField config state = widget where
 
   merge wenv node oldNode oldState = resultReqs newNode reqs where
     oldInfo = node ^. L.info
-    oldValue = _ifsCurrValue oldState
     oldText = _ifsCurrText oldState
     oldPos = _ifsCursorPos oldState
     oldSel = _ifsSelStart oldState
     value = getModelValue wenv
     newText
-      | oldValue /= getModelValue wenv = toText value
+      | fromText oldText /= Just (getModelValue wenv) = toText value
       | otherwise = oldText
     newTextL = T.length newText
     newPos

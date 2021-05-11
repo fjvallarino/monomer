@@ -21,7 +21,7 @@ import qualified Data.Text as T
 
 import Monomer.Core
 import Monomer.Core.Combinators
-import Monomer.Widgets.Singles.InputField
+import Monomer.Widgets.Singles.Base.InputField
 
 import qualified Monomer.Lens as L
 
