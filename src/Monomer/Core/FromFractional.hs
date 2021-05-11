@@ -4,6 +4,7 @@
 module Monomer.Core.FromFractional where
 
 import Data.Int
+import Data.Fixed
 import Data.Word
 import Foreign.C.Types
 
@@ -61,4 +62,7 @@ instance FromFractional CDouble where
   fromFractional = realToFrac
 
 instance FromFractional Rational where
+  fromFractional = realToFrac
+
+instance HasResolution a => FromFractional (Fixed a) where
   fromFractional = realToFrac
