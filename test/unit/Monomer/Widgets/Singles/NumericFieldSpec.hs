@@ -26,7 +26,7 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = IntegralChanged Int
-  | FractionalChanged Double
+  | FractionalChanged (Maybe Double)
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -37,7 +37,7 @@ data IntegralModel = IntegralModel {
 } deriving (Eq, Show)
 
 data FractionalModel = FractionalModel {
-  _fmFractionalValue :: Double,
+  _fmFractionalValue :: Maybe Double,
   _fmFractionalValid :: Bool
 } deriving (Eq, Show)
 
@@ -244,40 +244,44 @@ specFractional = describe "FractionalField" $ do
 
 handleEventFractional :: Spec
 handleEventFractional = describe "handleEventFractional" $ do
+  it "should remove the contents and get Nothing as model value" $ do
+    modelBasic [evtK keyBackspace] ^. fractionalValue `shouldBe` Nothing
+    modelBasic [evtK keyBackspace] ^. fractionalValid `shouldBe` True
+
   it "should input '123' without select on focus" $ do
-    modelBasic [evtT "1", evtT "2", evtT "3"] ^. fractionalValue `shouldBe` 1230
+    modelBasic [evtT "1", evtT "2", evtT "3"] ^. fractionalValue `shouldBe` Just 1230
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. fractionalValid `shouldBe` True
 
   it "should input '1.23'" $ do
-    model [evtT "1.23"] ^. fractionalValue `shouldBe` 1.23
+    model [evtT "1.23"] ^. fractionalValue `shouldBe` Just 1.23
     model [evtT "1.23"] ^. fractionalValid `shouldBe` True
 
   it "should input '-1'" $ do
-    model [evtT "-1"] ^. fractionalValue `shouldBe` -1
+    model [evtT "-1"] ^. fractionalValue `shouldBe` Just (-1)
     model [evtT "-1"] ^. fractionalValid `shouldBe` True
 
   it "should input '1501'" $ do
-    model [evtT "1", evtT "5", evtT "0", evtT "1"] ^. fractionalValue `shouldBe` 1501
+    model [evtT "1", evtT "5", evtT "0", evtT "1"] ^. fractionalValue `shouldBe` Just 1501
     model [evtT "1", evtT "5", evtT "0", evtT "1"] ^. fractionalValid `shouldBe` True
 
   it "should input '1502', but fail because of maxValue" $ do
-    model [evtT "1", evtT "5", evtT "0", evtT "2"] ^. fractionalValue `shouldBe` 150
+    model [evtT "1", evtT "5", evtT "0", evtT "2"] ^. fractionalValue `shouldBe` Just 150
     model [evtT "1", evtT "5", evtT "0", evtT "2"] ^. fractionalValid `shouldBe` False
 
   it "should input '123', remove one character and input '4'" $ do
-    model [evtT "123", delCharL, evtT "4"] ^. fractionalValue `shouldBe` 124
+    model [evtT "123", delCharL, evtT "4"] ^. fractionalValue `shouldBe` Just 124
     model [evtT "123", delCharL, evtT "4"] ^. fractionalValid `shouldBe` True
 
   it "should input '123', remove one word and input '456'" $ do
-    model [evtT "123", delWordL, evtT "456"] ^. fractionalValue `shouldBe` 456
+    model [evtT "123", delWordL, evtT "456"] ^. fractionalValue `shouldBe` Just 456
     model [evtT "123", delWordL, evtT "456"] ^. fractionalValid `shouldBe` True
 
   it "should input '123.34', remove one word and input '56'" $ do
-    model [evtT "123.34", delWordL, evtT "56"] ^. fractionalValue `shouldBe` 123.56
+    model [evtT "123.34", delWordL, evtT "56"] ^. fractionalValue `shouldBe` Just 123.56
     model [evtT "123.34", delWordL, evtT "56"] ^. fractionalValid `shouldBe` True
 
   it "should input '123.34', remove two words and input '56'" $ do
-    model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValue `shouldBe` 56
+    model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValue `shouldBe` Just 56
     model [evtT "123.34", delWordL, delWordL, evtT "56"] ^. fractionalValid `shouldBe` True
 
   it "should update the model when using the wheel" $ do
@@ -286,10 +290,10 @@ handleEventFractional = describe "handleEventFractional" $ do
     let steps2 = [WheelScroll p (Point 0 360) WheelFlipped]
     let steps3 = [WheelScroll p (Point 0 8700) WheelNormal]
     let steps4 = [WheelScroll p (Point 0 16000) WheelNormal]
-    model steps1 ^. fractionalValue `shouldBe` (-500)
-    model steps2 ^. fractionalValue `shouldBe` (-36)
-    model steps3 ^. fractionalValue `shouldBe` 870
-    model steps4 ^. fractionalValue `shouldBe` 1501
+    model steps1 ^. fractionalValue `shouldBe` Just (-500)
+    model steps2 ^. fractionalValue `shouldBe` Just (-36)
+    model steps3 ^. fractionalValue `shouldBe` Just 870
+    model steps4 ^. fractionalValue `shouldBe` Just 1501
 
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
@@ -298,10 +302,10 @@ handleEventFractional = describe "handleEventFractional" $ do
     events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
-    wenv = mockWenv (FractionalModel 0 True)
+    wenv = mockWenv (FractionalModel (Just 0) True)
     basicFractionalNode :: WidgetNode FractionalModel TestEvt
     basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False]
-    floatCfg = [minValue (-500), maxValue 1501, validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
+    floatCfg = [minValue (Just (-500)), maxValue (Just 1501), validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = numericField_ fractionalValue floatCfg
     model es = nodeHandleEventModel wenv es floatNode
     modelBasic es = nodeHandleEventModel wenv es basicFractionalNode
@@ -310,7 +314,7 @@ handleEventFractional = describe "handleEventFractional" $ do
 handleEventValueFractional :: Spec
 handleEventValueFractional = describe "handleEventValueFractional" $ do
   it "should input an '100'" $
-    evts [evtT "1", evtT "0", evtT "0"] `shouldBe` Seq.fromList [FractionalChanged 10, FractionalChanged 100]
+    evts [evtT "1", evtT "0", evtT "0"] `shouldBe` Seq.fromList [FractionalChanged (Just 10), FractionalChanged (Just 100)]
 
   it "should input a '1' and be considered invalid" $ do
     evts [evtT "1"] `shouldBe` Seq.fromList []
@@ -318,36 +322,36 @@ handleEventValueFractional = describe "handleEventValueFractional" $ do
 
   it "should input '1', move to beginning and input '5'" $ do
     let steps = [evtT "1", moveLineL, evtT "5"]
-    lastEvt steps `shouldBe` FractionalChanged 51
+    lastEvt steps `shouldBe` FractionalChanged (Just 51)
 
   it "should input '1', input '.' then input '5'" $ do
     let steps = [evtT "10", evtT ".", evtT "5"]
-    lastEvt steps `shouldBe` FractionalChanged 10.5
+    lastEvt steps `shouldBe` FractionalChanged (Just 10.5)
     model steps ^. fractionalValid `shouldBe` True
 
   it "should input '20', input '.' twice then input '777'" $ do
     let steps = [evtT "20", evtT ".", evtT ".", evtT "7", evtT "7", evtT "7"]
-    lastEvt steps `shouldBe` FractionalChanged 20.77
+    lastEvt steps `shouldBe` FractionalChanged (Just 20.77)
     model steps ^. fractionalValid `shouldBe` True
 
   it "should input '10', '.' then input '2345'" $ do
     let steps = [evtT "10", evtT ".", evtT "2", evtT "3", evtT "4", evtT "5"]
-    lastEvtDecimals steps `shouldBe` FractionalChanged 10.234
+    lastEvtDecimals steps `shouldBe` FractionalChanged (Just 10.234)
 
   it "should input '3', input 'a' then input '6'" $ do
     let steps = [evtT "3", evtT "a", evtT "6"]
-    lastEvt steps `shouldBe` FractionalChanged 36
+    lastEvt steps `shouldBe` FractionalChanged (Just 36)
     model steps ^. fractionalValid `shouldBe` True
 
   it "should input '1234', delete line then input '777'" $ do
     let steps = [evtT "1234", selLineL, evtT "777"]
-    lastEvt steps `shouldBe` FractionalChanged 777
+    lastEvt steps `shouldBe` FractionalChanged (Just 777)
     model steps ^. fractionalValid `shouldBe` True
 
   where
-    wenv = mockWenv (FractionalModel 0 False)
-    floatNode = numericFieldV_ 0 FractionalChanged [minValue 10, maxValue 2345, selectOnFocus, validInput fractionalValid]
-    floatDecimalsNode = numericFieldV_ 0 FractionalChanged [selectOnFocus, decimals 3]
+    wenv = mockWenv (FractionalModel (Just 0) False)
+    floatNode = numericFieldV_ (Just 0) FractionalChanged [minValue (Just 10), maxValue (Just 2345), selectOnFocus, validInput fractionalValid]
+    floatDecimalsNode = numericFieldV_ (Just 0) FractionalChanged [selectOnFocus, decimals 3]
     evts es = nodeHandleEventEvts wenv (evtFocus : es) floatNode
     evtsAlt es = nodeHandleEventEvts wenv (evtFocus : es) floatDecimalsNode
     model es = nodeHandleEventModel wenv (evtFocus : es) floatNode
@@ -362,14 +366,14 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
-    model steps ^. fractionalValue `shouldBe` 10
+    model steps ^. fractionalValue `shouldBe` Just 10
 
   it "should drag downwards 100 pixels, setting the value to -20 (dragRate = 0.2)" $ do
     let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 150
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
-    model steps ^. fractionalValue `shouldBe` -20
+    model steps ^. fractionalValue `shouldBe` Just (-20)
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
     let str = "This is text"
@@ -380,26 +384,26 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
           evtPress selStart, evtMove selMid, evtReleaseDrag selMid,
           evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd
           ]
-    model steps ^. fractionalValue `shouldBe` -5
+    model steps ^. fractionalValue `shouldBe` Just (-5)
 
   it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
     let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. fractionalValue `shouldBe` 0
+    model steps ^. fractionalValue `shouldBe` Just 0
 
   it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
     let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. fractionalValue `shouldBe` 0
+    model steps ^. fractionalValue `shouldBe` Just 0
 
   where
-    wenv = mockWenv (FractionalModel 0 False)
+    wenv = mockWenv (FractionalModel (Just 0) False)
     floatNode = vstack [
-        button "Test" (FractionalChanged 0), -- Used only to have focus
+        button "Test" (FractionalChanged (Just 0)), -- Used only to have focus
         numericField fractionalValue,
         numericField_ fractionalValue [dragRate 0.2]
       ]
@@ -423,7 +427,7 @@ getSizeReqFractional = describe "getSizeReqFractional" $ do
     sizeReqH2 `shouldBe` fixedSize 20
 
   where
-    wenv = mockWenvEvtUnit (FractionalModel 10000000 True)
+    wenv = mockWenvEvtUnit (FractionalModel (Just 10000000) True)
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (numericField fractionalValue)
     numericResize = numericField_ fractionalValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv numericResize

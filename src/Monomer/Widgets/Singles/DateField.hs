@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Monomer.Widgets.Singles.DateField (
   dateField,
@@ -24,18 +25,22 @@ import qualified Data.Text as T
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event.Types
-import Monomer.Widgets.Singles.InputField
+import Monomer.Widgets.Singles.Base.InputField
 import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
 
 class DayConverter a where
   convertFromDay :: Day -> a
-  convertToDay :: a -> Day
+  convertToDay :: a -> Maybe Day
 
 instance DayConverter Day where
   convertFromDay = id
-  convertToDay = id
+  convertToDay = Just
+
+instance DayConverter a => DayConverter (Maybe a) where
+  convertFromDay = Just . convertFromDay
+  convertToDay val = val >>= convertToDay
 
 type FormattableDate a
   = (Eq a, Ord a, Show a, DayConverter a, Typeable a)
@@ -196,7 +201,10 @@ dateFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
-  initialValue = convertFromDay (fromGregorian 2020 1 1)
+  initialValue
+    | isJust minVal = fromJust minVal
+    | isJust maxVal = fromJust maxVal
+    | otherwise = convertFromDay (fromGregorian 1970 1 1)
   fromText = dateFromText minVal maxVal
   toText = dateToText
   inputConfig = InputFieldCfg {
@@ -265,13 +273,16 @@ handleMove config state rate value dy = result where
   maxVal = _dfcMaxValue config
   fromText = dateFromText minVal maxVal
   toText = dateToText
-  tmpValue = addDays (round (dy * rate)) (convertToDay value)
-  mParsedVal = fromText (toText (convertFromDay tmpValue))
-  parsedVal = fromJust mParsedVal
+  (valid, mParsedVal, parsedVal) = case convertToDay value of
+    Just val -> (True, mParsedVal, parsedVal) where
+      tmpValue = addDays (round (dy * rate)) val
+      mParsedVal = fromText (toText (convertFromDay tmpValue))
+      parsedVal = fromJust mParsedVal
+    Nothing -> (False, Nothing, undefined)
   newVal
     | isJust mParsedVal = parsedVal
-    | dy > 0 && isJust maxVal = fromJust maxVal
-    | dy < 0 && isJust minVal = fromJust minVal
+    | valid && dy > 0 && isJust maxVal = fromJust maxVal
+    | valid && dy < 0 && isJust minVal = fromJust minVal
     | otherwise = _ifsCurrValue state
   newText = toText newVal
   newPos = _ifsCursorPos state
@@ -291,14 +302,18 @@ dateFromText minVal maxVal text = newDate where
   newDate = tmpDate >>= validDate . convertFromDay
 
 dateToText :: FormattableDate a => a -> Text
-dateToText val = tday <> "/" <> tmonth <> "/" <> tyear where
-  (year, month, day) = toGregorian (convertToDay val)
+dateToText val = result where
+  converted = convertToDay val
+  (year, month, day) = toGregorian (fromJust converted)
   padd num
     | num < 10 = "0" <> T.pack (show num)
     | otherwise = T.pack (show num)
   tday = padd day
   tmonth = padd month
   tyear = T.pack (show year)
+  result
+    | isJust converted = tday <> "/" <> tmonth <> "/" <> tyear
+    | otherwise = ""
 
 acceptTextInput :: Text -> Bool
 acceptTextInput text = isRight (A.parseOnly parser text) where

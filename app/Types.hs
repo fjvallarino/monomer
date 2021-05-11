@@ -21,6 +21,7 @@ data App = App {
   _msgCount :: !Int,
   _rational1 :: Rational,
   _int1 :: Int,
+  _mint1 :: Maybe Int,
   _validInt1 :: Bool,
   _integer1 :: Integer,
   _validInteger1 :: Bool,
@@ -41,7 +42,8 @@ data App = App {
   _dragList2 :: [Int],
   _color :: Color,
   _testDay :: Day,
-  _testDayValid :: Bool
+  _testDayValid :: Bool,
+  _mtestDay :: Maybe Day
 } deriving (Eq, Show)
 
 instance Default App where
@@ -50,6 +52,7 @@ instance Default App where
     _msgCount = 0,
     _rational1 = 0,
     _int1 = 0,
+    _mint1 = Nothing,
     _validInt1 = True,
     _integer1 = 0,
     _validInteger1 = True,
@@ -70,7 +73,8 @@ instance Default App where
     _dragList2 = [],
     _color = def,
     _testDay = fromGregorian 2015 06 07,
-    _testDayValid = False
+    _testDayValid = False,
+    _mtestDay = Nothing
   }
 
 makeLenses ''App

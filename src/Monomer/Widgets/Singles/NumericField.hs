@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.NumericField (
   numericField,
@@ -28,13 +29,25 @@ import qualified Formatting as F
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event.Types
-import Monomer.Widgets.Singles.InputField
+import Monomer.Widgets.Singles.Base.InputField
 import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
 
+class RationalConverter a where
+  convertFromRational :: Rational -> a
+  convertToRational :: a -> Maybe Rational
+
+instance {-# OVERLAPPABLE #-} FromFractional a => RationalConverter a where
+  convertFromRational = fromFractional
+  convertToRational = Just . realToFrac
+
+instance FromFractional a => RationalConverter (Maybe a) where
+  convertFromRational = Just . convertFromRational
+  convertToRational val = val >>= convertToRational
+
 type FormattableNumber a
-  = (Eq a, Show a, Real a, FromFractional a, Typeable a)
+  = (Eq a, Ord a, Show a, RationalConverter a, Typeable a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),
@@ -200,7 +213,10 @@ numericFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
-  initialValue = fromFractional 0
+  initialValue
+    | isJust minVal = fromJust minVal
+    | isJust maxVal = fromJust maxVal
+    | otherwise = convertFromRational 0
   decimals
     | isIntegral initialValue = 0
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
@@ -282,13 +298,16 @@ handleMove config state rate value dy = result where
   maxVal = _nfcMaxValue config
   fromText = numberFromText minVal maxVal
   toText = numberToText
-  tmpValue = value + fromFractional (dy * rate)
-  mParsedVal = fromText (toText decimals tmpValue)
-  parsedVal = fromJust mParsedVal
+  (valid, mParsedVal, parsedVal) = case convertToRational value of
+    Just val -> (True, mParsedVal, parsedVal) where
+      tmpValue = val + fromFractional (dy * rate)
+      mParsedVal = fromText (toText decimals (convertFromRational tmpValue))
+      parsedVal = fromJust mParsedVal
+    Nothing -> (False, Nothing, undefined)
   newVal
     | isJust mParsedVal = parsedVal
-    | dy > 0 && isJust maxVal = fromJust maxVal
-    | dy < 0 && isJust minVal = fromJust minVal
+    | valid && dy > 0 && isJust maxVal = fromJust maxVal
+    | valid && dy < 0 && isJust minVal = fromJust minVal
     | otherwise = _ifsCurrValue state
   newText = toText decimals newVal
   newPos = _ifsCursorPos state
@@ -300,11 +319,13 @@ numberFromText minVal maxVal t = case signed rational t of
   Right (frac, _)
     | numberInBounds minVal maxVal val -> Just val
     where
-      val = fromFractional frac
+      val = convertFromRational frac
   _ -> Nothing
 
 numberToText :: FormattableNumber a => Int -> a -> Text
-numberToText decimals val = F.sformat (F.fixed decimals) val
+numberToText decimals value = case convertToRational value of
+  Just val -> F.sformat (F.fixed decimals) val
+  Nothing -> ""
 
 acceptNumberInput :: Int -> Text -> Bool
 acceptNumberInput decimals text = isRight (A.parseOnly parser text) where
@@ -316,7 +337,7 @@ acceptNumberInput decimals text = isRight (A.parseOnly parser text) where
   rest = join [upto dots dot, upto decimals digit]
   parser = join [sign, number, A.option "" rest] <* A.endOfInput
 
-numberInBounds :: (Ord a, Num a) => Maybe a -> Maybe a -> a -> Bool
+numberInBounds :: Ord a => Maybe a -> Maybe a -> a -> Bool
 numberInBounds Nothing Nothing _ = True
 numberInBounds (Just minVal) Nothing val = val >= minVal
 numberInBounds Nothing (Just maxVal) val = val <= maxVal
@@ -325,7 +346,11 @@ numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
 isIntegral :: Typeable a => a -> Bool
 isIntegral val
   | "Int" `isPrefixOf` name = True
+  | "Fixed" `isPrefixOf` name = True
   | "Word" `isPrefixOf` name = True
   | otherwise = False
   where
-    name = show (typeOf val)
+    typeName = show (typeOf val)
+    name
+      | "Maybe " `isPrefixOf` typeName = drop 6 typeName
+      | otherwise = typeName
