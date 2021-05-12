@@ -1,7 +1,9 @@
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.DateField (
   dateField,
@@ -11,7 +13,7 @@ module Monomer.Widgets.Singles.DateField (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens')
+import Control.Lens ((^.), ALens', _1, _2, _3)
 import Data.Default
 import Data.Either
 import Data.Maybe
@@ -30,13 +32,34 @@ import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
 
-class DayConverter a where
+class (Eq a, Ord a, Show a, Typeable a) => DayConverter a where
   convertFromDay :: Day -> a
   convertToDay :: a -> Maybe Day
 
 instance DayConverter Day where
   convertFromDay = id
   convertToDay = Just
+
+class DateTextConverter a where
+  dateAcceptText :: Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
+  dateFromText :: Text -> Maybe a
+  dateToText :: a -> Text
+  dateFromDay :: Day -> a
+  dateToDay :: a -> Maybe Day
+
+instance {-# OVERLAPPABLE #-} DayConverter a => DateTextConverter a where
+  dateAcceptText minVal maxVal text = result where
+    accept = acceptTextInput text
+    parsed = dateFromText text
+    isValid = isJust parsed && dateInBounds minVal maxVal (fromJust parsed)
+    fromText
+      | isValid = parsed
+      | otherwise = Nothing
+    result = (accept, isValid, fromText)
+  dateFromText = dateFromTextSimple
+  dateToText = dateToTextSimple
+  dateFromDay = convertFromDay
+  dateToDay = convertToDay
 
 instance DayConverter a => DayConverter (Maybe a) where
   convertFromDay = Just . convertFromDay
@@ -205,7 +228,10 @@ dateFieldD_ widgetData configs = newNode where
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
     | otherwise = convertFromDay (fromGregorian 1970 1 1)
-  fromText = dateFromText minVal maxVal
+  acceptText = dateAcceptText minVal maxVal
+  acceptInput text = acceptText text ^. _1
+  validInput text = acceptText text ^. _2
+  fromText text = acceptText text ^. _3
   toText = dateToText
   inputConfig = InputFieldCfg {
     _ifcInitialValue = initialValue,
@@ -213,8 +239,8 @@ dateFieldD_ widgetData configs = newNode where
     _ifcValid = _dfcValid config,
     _ifcFromText = fromText,
     _ifcToText = toText,
-    _ifcAcceptInput = acceptTextInput,
-    _ifcIsValidInput = acceptTextInput,
+    _ifcAcceptInput = acceptInput,
+    _ifcIsValidInput = validInput,
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 160,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),
@@ -272,7 +298,8 @@ handleMove
 handleMove config state rate value dy = result where
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
-  fromText = dateFromText minVal maxVal
+  acceptText = dateAcceptText minVal maxVal
+  fromText text = acceptText text ^. _3
   toText = dateToText
   (valid, mParsedVal, parsedVal) = case convertToDay value of
     Just val -> (True, mParsedVal, parsedVal) where
@@ -290,6 +317,7 @@ handleMove config state rate value dy = result where
   newSel = _ifsSelStart state
   result = (newText, newPos, newSel)
 
+{--
 dateFromText :: FormattableDate a => Maybe a -> Maybe a -> Text -> Maybe a
 dateFromText minVal maxVal text = newDate where
   compParser = A.char '/' *> A.decimal
@@ -301,9 +329,19 @@ dateFromText minVal maxVal text = newDate where
     | dateInBounds minVal maxVal date = Just date
     | otherwise = Nothing
   newDate = tmpDate >>= validDate . convertFromDay
+--}
 
-dateToText :: FormattableDate a => a -> Text
-dateToText val = result where
+dateFromTextSimple :: FormattableDate a => Text -> Maybe a
+dateFromTextSimple text = newDate where
+  compParser = A.char '/' *> A.decimal
+  dateParser = (,,) <$> A.decimal <*> compParser <*> compParser
+  tmpDate = case A.parseOnly dateParser text of
+    Left _ -> Nothing
+    Right (day, month, year) -> fromGregorianValid year (fromIntegral month) day
+  newDate = tmpDate >>= convertFromDay
+
+dateToTextSimple :: FormattableDate a => a -> Text
+dateToTextSimple val = result where
   converted = convertToDay val
   (year, month, day) = toGregorian (fromJust converted)
   padd num

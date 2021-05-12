@@ -59,8 +59,8 @@ specIntegral = describe "IntegralField" $ do
 handleEventIntegral :: Spec
 handleEventIntegral = describe "handleEventIntegral" $ do
   it "should remove the contents and get Nothing as model value" $ do
-    modelBasic [selLineR, evtK keyBackspace] ^. integralValue `shouldBe` 0
-    modelBasic [selLineR, evtK keyBackspace] ^. integralValid `shouldBe` False
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. integralValue `shouldBe` 0
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. integralValid `shouldBe` False
 
   it "should input '123' without select on focus" $ do
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. integralValue `shouldBe` 1230
@@ -152,35 +152,30 @@ handleEventValueIntegral = describe "handleEventIntegral" $ do
 handleEventMouseDragIntegral :: Spec
 handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
   it "should drag upwards 100 pixels, setting the value to 100" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` 100
 
   it "should drag downwards 100 pixels, setting the value to -200 (dragRate = 2)" $ do
-    let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 150
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` -200
 
   it "should drag downwards 1000 pixels, staying at -500 (the minimum)" $ do
-    let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 1050
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` -500
 
   it "should drag upwnwards 1000 pixels, staying at 500 (the maximum)" $ do
-    let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 (-950)
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. integralValue `shouldBe` 500
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selMid = Point 50 60
     let selEnd = Point 50 50
@@ -191,14 +186,12 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
     model steps ^. integralValue `shouldBe` -50
 
   it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` 0
 
   it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
@@ -249,8 +242,8 @@ specFractional = describe "FractionalField" $ do
 handleEventFractional :: Spec
 handleEventFractional = describe "handleEventFractional" $ do
   it "should remove the contents and get Nothing as model value" $ do
-    modelBasic [selLineR, evtK keyBackspace] ^. fractionalValue `shouldBe` Nothing
-    modelBasic [selLineR, evtK keyBackspace] ^. fractionalValid `shouldBe` True
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. fractionalValue `shouldBe` Nothing
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. fractionalValid `shouldBe` True
 
   it "should input '123' without select on focus" $ do
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. fractionalValue `shouldBe` Just 1230
@@ -366,21 +359,18 @@ handleEventValueFractional = describe "handleEventValueFractional" $ do
 handleEventMouseDragFractional :: Spec
 handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
   it "should drag upwards 100 pixels, setting the value to 10" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. fractionalValue `shouldBe` Just 10
 
   it "should drag downwards 100 pixels, setting the value to -20 (dragRate = 0.2)" $ do
-    let str = "This is text"
     let selStart = Point 50 50
     let selEnd = Point 50 150
     let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
     model steps ^. fractionalValue `shouldBe` Just (-20)
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selMid = Point 50 60
     let selEnd = Point 50 50
@@ -391,14 +381,12 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
     model steps ^. fractionalValue `shouldBe` Just (-5)
 
   it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. fractionalValue `shouldBe` Just 0
 
   it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
-    let str = "This is text"
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]

@@ -603,7 +603,7 @@ renderContent renderer state style currText = do
     tsFontColor = styleFontColor style
 
 delim :: Char -> Bool
-delim c = c == ' ' || c == '.' || c == ','
+delim c = c == ' ' || c == '.' || c == ',' || c == '/'
 
 setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s e]
 setModelValid config

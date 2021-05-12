@@ -618,6 +618,8 @@ Next
   - Create Datetime field
     - Initial value should not be forced.
     - Can both direct field and Maybe version be provided?
+    - Custom Delimiters?
+    - Custom state compare?
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection
