@@ -12,7 +12,8 @@ module Monomer.Widgets.Singles.NumericField (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens')
+import Control.Lens ((^.), ALens', _1, _2, _3)
+import Control.Monad (join)
 import Data.Char
 import Data.Default
 import Data.Either
@@ -30,24 +31,51 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event.Types
 import Monomer.Widgets.Singles.Base.InputField
-import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
+import qualified Monomer.Widgets.Util.Parser as P
 
-class RationalConverter a where
-  convertFromRational :: Rational -> a
-  convertToRational :: a -> Maybe Rational
+class NumericTextConverter a where
+  numericAcceptText :: Maybe a -> Maybe a -> Int -> Text -> (Bool, Bool, Maybe a)
+  numericFromText :: Text -> Maybe a
+  numericToText :: Int -> a -> Text
+  numericToFractional :: Fractional b => a -> Maybe b
+  numericFromFractional :: (Real b, Fractional b) => b -> a
 
-instance {-# OVERLAPPABLE #-} FromFractional a => RationalConverter a where
-  convertFromRational = fromFractional
-  convertToRational = Just . realToFrac
+instance {-# OVERLAPPABLE #-} FromFractional a => NumericTextConverter a where
+  numericAcceptText minVal maxVal decimals text = result where
+    accept = acceptNumberInput decimals text
+    parsed = numericFromText text
+    isValid = isJust parsed && numberInBounds minVal maxVal (fromJust parsed)
+    fromText
+      | isValid = parsed
+      | otherwise = Nothing
+    result = (accept, isValid, fromText)
+  numericFromText text = case signed rational text of
+    Right (frac :: Rational, _) -> Just (fromFractional frac)
+    _ -> Nothing
+  numericToText decimals value = F.sformat (F.fixed decimals) value
+  numericToFractional = Just . realToFrac
+  numericFromFractional = fromFractional
 
-instance FromFractional a => RationalConverter (Maybe a) where
-  convertFromRational = Just . convertFromRational
-  convertToRational val = val >>= convertToRational
+instance (FromFractional a, NumericTextConverter a) => NumericTextConverter (Maybe a) where
+  numericAcceptText minVal maxVal decimals text
+    | T.strip text == "" = (True, True, Just Nothing)
+    | otherwise = (accept, isValid, result) where
+      resp = numericAcceptText (join minVal) (join maxVal) decimals text
+      (accept, isValid, tmpResult) = resp
+      result
+        | isJust tmpResult = Just tmpResult
+        | otherwise = Nothing
+  numericFromText = Just . numericFromText
+  numericToText _ Nothing = ""
+  numericToText decimals (Just value) = numericToText decimals value
+  numericToFractional Nothing = Nothing
+  numericToFractional (Just value) = numericToFractional value
+  numericFromFractional = Just . numericFromFractional
 
 type FormattableNumber a
-  = (Eq a, Ord a, Show a, RationalConverter a, Typeable a)
+  = (Eq a, Ord a, Show a, NumericTextConverter a, Typeable a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),
@@ -205,7 +233,7 @@ numericFieldV_ value handler configs = newNode where
   newNode = numericFieldD_ widgetData newConfigs
 
 numericFieldD_
-  :: (FormattableNumber a, WidgetEvent e)
+  :: forall s e a . (FormattableNumber a, WidgetEvent e)
   => WidgetData s a
   -> [NumericFieldCfg s e a]
   -> WidgetNode s e
@@ -216,22 +244,26 @@ numericFieldD_ widgetData configs = newNode where
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
-    | otherwise = convertFromRational 0
+    | otherwise = numericFromFractional 0
   decimals
     | isIntegral initialValue = 0
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   defWidth
     | isIntegral initialValue = 50
     | otherwise = 70
-  fromText = numberFromText minVal maxVal
-  toText = numberToText decimals
+  acceptText = numericAcceptText minVal maxVal decimals
+  acceptInput text = acceptText text ^. _1
+  validInput text = acceptText text ^. _2
+  fromText text = acceptText text ^. _3
+  toText = numericToText decimals
   inputConfig = InputFieldCfg {
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _nfcValid config,
     _ifcFromText = fromText,
     _ifcToText = toText,
-    _ifcAcceptInput = acceptNumberInput decimals,
+    _ifcAcceptInput = acceptInput,
+    _ifcIsValidInput = validInput,
     _ifcDefCursorEnd = False,
     _ifcDefWidth = defWidth,
     _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
@@ -283,7 +315,7 @@ handleDrag config state clickPos currPos = result where
   result = handleMove config state dragRate selValue dy
 
 handleMove
-  :: FormattableNumber a
+  :: forall s e a . FormattableNumber a
   => NumericFieldCfg s e a
   -> InputFieldState a
   -> Double
@@ -296,12 +328,13 @@ handleMove config state rate value dy = result where
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
-  fromText = numberFromText minVal maxVal
-  toText = numberToText
-  (valid, mParsedVal, parsedVal) = case convertToRational value of
+  acceptText = numericAcceptText minVal maxVal decimals
+  fromText text = acceptText text ^. _3
+  toText = numericToText
+  (valid, mParsedVal, parsedVal) = case numericToFractional value of
     Just val -> (True, mParsedVal, parsedVal) where
-      tmpValue = val + fromFractional (dy * rate)
-      mParsedVal = fromText (toText decimals (convertFromRational tmpValue))
+      tmpValue = realToFrac val + dy * rate
+      mParsedVal = fromText (toText decimals (numericFromFractional tmpValue))
       parsedVal = fromJust mParsedVal
     Nothing -> (False, Nothing, undefined)
   newVal
@@ -314,28 +347,15 @@ handleMove config state rate value dy = result where
   newSel = _ifsSelStart state
   result = (newText, newPos, newSel)
 
-numberFromText :: FormattableNumber a => Maybe a -> Maybe a -> Text -> Maybe a
-numberFromText minVal maxVal t = case signed rational t of
-  Right (frac, _)
-    | numberInBounds minVal maxVal val -> Just val
-    where
-      val = convertFromRational frac
-  _ -> Nothing
-
-numberToText :: FormattableNumber a => Int -> a -> Text
-numberToText decimals value = case convertToRational value of
-  Just val -> F.sformat (F.fixed decimals) val
-  Nothing -> ""
-
 acceptNumberInput :: Int -> Text -> Bool
 acceptNumberInput decimals text = isRight (A.parseOnly parser text) where
-  sign = A.option "" (single '-')
+  sign = A.option "" (P.single '-')
   number = A.takeWhile isDigit
   digit = T.singleton <$> A.digit
-  dot = single '.'
+  dot = P.single '.'
   dots = if decimals > 0 then 1 else 0
-  rest = join [upto dots dot, upto decimals digit]
-  parser = join [sign, number, A.option "" rest] <* A.endOfInput
+  rest = P.join [P.upto dots dot, P.upto decimals digit]
+  parser = P.join [sign, number, A.option "" rest] <* A.endOfInput
 
 numberInBounds :: Ord a => Maybe a -> Maybe a -> a -> Bool
 numberInBounds Nothing Nothing _ = True

@@ -150,6 +150,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcFromText = fromText,
     _ifcToText = id,
     _ifcAcceptInput = acceptInput (_tfcMaxLength config),
+    _ifcIsValidInput = acceptInput (_tfcMaxLength config),
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 100,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),

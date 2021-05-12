@@ -58,6 +58,10 @@ specIntegral = describe "IntegralField" $ do
 
 handleEventIntegral :: Spec
 handleEventIntegral = describe "handleEventIntegral" $ do
+  it "should remove the contents and get Nothing as model value" $ do
+    modelBasic [selLineR, evtK keyBackspace] ^. integralValue `shouldBe` 0
+    modelBasic [selLineR, evtK keyBackspace] ^. integralValid `shouldBe` False
+
   it "should input '123' without select on focus" $ do
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. integralValue `shouldBe` 1230
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. integralValid `shouldBe` True
@@ -106,7 +110,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
   where
     wenv = mockWenv (IntegralModel 0 True)
     basicIntNode :: WidgetNode IntegralModel TestEvt
-    basicIntNode = numericField_ integralValue [selectOnFocus_ False]
+    basicIntNode = numericField_ integralValue [validInput integralValid, selectOnFocus_ False]
     intCfg = [minValue (-200), maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) intNode
@@ -245,8 +249,8 @@ specFractional = describe "FractionalField" $ do
 handleEventFractional :: Spec
 handleEventFractional = describe "handleEventFractional" $ do
   it "should remove the contents and get Nothing as model value" $ do
-    modelBasic [evtK keyBackspace] ^. fractionalValue `shouldBe` Nothing
-    modelBasic [evtK keyBackspace] ^. fractionalValid `shouldBe` True
+    modelBasic [selLineR, evtK keyBackspace] ^. fractionalValue `shouldBe` Nothing
+    modelBasic [selLineR, evtK keyBackspace] ^. fractionalValid `shouldBe` True
 
   it "should input '123' without select on focus" $ do
     modelBasic [evtT "1", evtT "2", evtT "3"] ^. fractionalValue `shouldBe` Just 1230
@@ -304,7 +308,7 @@ handleEventFractional = describe "handleEventFractional" $ do
   where
     wenv = mockWenv (FractionalModel (Just 0) True)
     basicFractionalNode :: WidgetNode FractionalModel TestEvt
-    basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False]
+    basicFractionalNode = numericField_ fractionalValue [selectOnFocus_ False, validInput fractionalValid]
     floatCfg = [minValue (Just (-500)), maxValue (Just 1501), validInput fractionalValid, onFocus GotFocus, onBlur LostFocus]
     floatNode = numericField_ fractionalValue floatCfg
     model es = nodeHandleEventModel wenv es floatNode

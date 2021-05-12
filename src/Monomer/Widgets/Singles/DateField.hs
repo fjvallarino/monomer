@@ -214,6 +214,7 @@ dateFieldD_ widgetData configs = newNode where
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptTextInput,
+    _ifcIsValidInput = acceptTextInput,
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 160,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),

@@ -55,6 +55,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcFromText :: Text -> Maybe a,
   _ifcToText :: a -> Text,
   _ifcAcceptInput :: Text -> Bool,
+  _ifcIsValidInput :: Text -> Bool,
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
   _ifcWheelHandler :: Maybe (InputWheelHandler a),
   _ifcDragHandler :: Maybe (InputDragHandler a),
@@ -193,12 +194,14 @@ makeInputField config state = widget where
 
   merge wenv node oldNode oldState = resultReqs newNode reqs where
     oldInfo = node ^. L.info
+    oldValue = _ifsCurrValue oldState
     oldText = _ifsCurrText oldState
     oldPos = _ifsCursorPos oldState
     oldSel = _ifsSelStart oldState
     value = getModelValue wenv
     newText
-      | fromText oldText /= Just (getModelValue wenv) = toText value
+      | oldValue /= getModelValue wenv = toText value
+--      | fromText oldText /= Just (getModelValue wenv) = toText value
       | otherwise = oldText
     newTextL = T.length newText
     newPos
@@ -501,9 +504,12 @@ makeInputField config state = widget where
       end = max currPos (fromJust currSel)
 
   genInputResult wenv node textAdd newText newPos newSel newReqs = result where
-    isValid = _ifcAcceptInput config newText
+    acceptInput = _ifcAcceptInput config newText
+    isValid = _ifcIsValidInput config newText
     newVal = fromText newText
-    stateVal = fromMaybe currVal newVal
+    stateVal
+      | isValid = fromMaybe currVal newVal
+      | otherwise = currVal
     tempState = newTextState wenv node state stateVal newText newPos newSel
     newOffset = _ifsOffset tempState
     history = _ifsHistory tempState
@@ -523,7 +529,7 @@ makeInputField config state = widget where
       & L.widget .~ makeInputField config newState
     (reqs, events) = genReqsEvents config state newText newReqs
     result
-      | isValid || not textAdd = resultReqsEvts newNode reqs events
+      | acceptInput || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
 
   getSizeReq wenv node = sizeReq where
@@ -617,18 +623,17 @@ genReqsEvents config state newText newReqs = result where
   setModelValue = widgetDataSet (_ifcValue config)
   currVal = _ifsCurrValue state
   currText = _ifsCurrText state
-  isValid = _ifcAcceptInput config newText
+  accepted = _ifcAcceptInput config newText
+  isValid = _ifcIsValidInput config newText
   newVal = fromText newText
   stateVal = fromMaybe currVal newVal
   hasChanged = stateVal /= currVal
   events
-    | isValid && hasChanged = fmap ($ stateVal) (_ifcOnChange config)
+    | accepted && hasChanged = fmap ($ stateVal) (_ifcOnChange config)
     | otherwise = []
-  reqValid
-    | isValid = setModelValid config (isJust newVal)
-    | otherwise = []
+  reqValid = setModelValid config isValid
   reqUpdateModel
-    | isValid && hasChanged && isJust newVal = setModelValue (fromJust newVal)
+    | accepted && hasChanged = setModelValue stateVal
     | otherwise = []
   reqResize
     | resizeOnChange && hasChanged = [ResizeWidgets]
@@ -636,7 +641,7 @@ genReqsEvents config state newText newReqs = result where
   reqOnChange
     | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChangeReq config)
     | otherwise = []
-  reqs = newReqs ++ reqValid ++ reqUpdateModel ++ reqResize ++ reqOnChange
+  reqs = newReqs ++ reqUpdateModel ++ reqValid ++ reqResize ++ reqOnChange
   result = (reqs, events)
 
 moveHistory

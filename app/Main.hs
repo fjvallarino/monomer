@@ -148,17 +148,23 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDate where
   widgetDate = vstack [
-      hstack [
-        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
-        spacer,
-        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
-        filler
-      ],
-      numericField_ int1 [minValue 100],
-      numericField_ mint1 [minValue (Just 100)]
-        `style` [bgColor (if isJust (model ^. mint1) then green else red)],
-      dateField_ mtestDay [minValue (Just $ fromGregorian 1900 1 1)]
-        `style` [bgColor (if isJust (model ^. mtestDay) then green else red)]
+--      hstack [
+--        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
+--        spacer,
+--        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
+--        filler
+--      ],
+      numericField_ int1 [validInput int1Valid] --, minValue 100, maxValue 200
+        `style` [bgColor (if model ^. int1Valid then green else red)],
+      numericField_ mfloat1 [validInput mfloat1Valid, minValue (Just 10), maxValue (Just 100)]
+        `style` [bgColor (if model ^. mfloat1Valid then green else red)],
+      labelS (model ^. mfloat1),
+      numericField_ mint1 [validInput mint1Valid, minValue (Just 10), maxValue (Just 100)]
+        `style` [bgColor (if model ^. mint1Valid then green else red)],
+      labelS (model ^. mint1),
+--      dateField_ mtestDay [minValue (Just $ fromGregorian 1900 1 1)]
+--        `style` [bgColor (if isJust (model ^. mtestDay) then green else red)],
+      spacer
     ]
   widgetSlider = vstack [
       image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
