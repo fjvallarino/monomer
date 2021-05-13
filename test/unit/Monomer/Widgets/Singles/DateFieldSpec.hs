@@ -42,7 +42,19 @@ instance Default DateModel where
     _imDateValid = True
   }
 
+data MDateModel = MDateModel {
+  _imMDateValue :: Maybe Day,
+  _imMDateValid :: Bool
+} deriving (Eq, Show)
+
+instance Default MDateModel where
+  def = MDateModel {
+    _imMDateValue = Nothing,
+    _imMDateValid = True
+  }
+
 makeLensesWith abbreviatedFields ''DateModel
+makeLensesWith abbreviatedFields ''MDateModel
 
 spec :: Spec
 spec = describe "DateField" $ do
@@ -54,32 +66,32 @@ spec = describe "DateField" $ do
 handleEventDate :: Spec
 handleEventDate = describe "handleEventDate" $ do
   it "should remove the contents and get Nothing as model value" $ do
-    modelBasic [evtKG keyA, evtK keyBackspace] ^. dateValue `shouldBe` midDate
-    modelBasic [evtKG keyA, evtK keyBackspace] ^. dateValid `shouldBe` False
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. mDateValue `shouldBe` Nothing
+    modelBasic [evtKG keyA, evtK keyBackspace] ^. mDateValid `shouldBe` True
 
   it "should input '14/02/2000'" $ do
-    model [evtT "14/02", evtT "/2000"] ^. dateValue `shouldBe` lowDate
-    model [evtT "14/02", evtT "/2000"] ^. dateValid `shouldBe` True
+    model [evtT "14/02", evtT "/2000"] ^. mDateValue `shouldBe` Just (fromGregorian 2000 02 14)
+    model [evtT "14/02", evtT "/2000"] ^. mDateValid `shouldBe` True
 
   it "should input '1' (invalid date)" $ do
-    model [evtKG keyA, evtT "1"] ^. dateValue `shouldBe` midDate
-    model [evtKG keyA, evtT "1"] ^. dateValid `shouldBe` False
+    model [evtKG keyA, evtT "1"] ^. mDateValue `shouldBe` Just midDate
+    model [evtKG keyA, evtT "1"] ^. mDateValid `shouldBe` False
 
   it "should input '30/12/1999' but fail because of minValue" $ do
-    model [evtT "30/12/1999"] ^. dateValue `shouldBe` midDate
-    model [evtT "30/12/1999"] ^. dateValid `shouldBe` False
+    model [evtT "30/12/1999"] ^. mDateValue `shouldBe` Just midDate
+    model [evtT "30/12/1999"] ^. mDateValid `shouldBe` False
 
   it "should input '01/03/2005' but fail because of maxValue" $ do
-    model [evtT "01/04/2005"] ^. dateValue `shouldBe` midDate
-    model [evtT "01/04/2005"] ^. dateValid `shouldBe` False
+    model [evtT "01/04/2005"] ^. mDateValue `shouldBe` Just midDate
+    model [evtT "01/04/2005"] ^. mDateValid `shouldBe` False
 
   it "should remove one character and input '4'" $ do
-    model [moveCharR, delCharL, evtT "4"] ^. dateValue `shouldBe` fromGregorian 2004 03 02
-    model [moveCharR, delCharL, evtT "4"] ^. dateValid `shouldBe` True
+    model [moveCharR, delCharL, evtT "4"] ^. mDateValue `shouldBe` Just (fromGregorian 2004 03 02)
+    model [moveCharR, delCharL, evtT "4"] ^. mDateValid `shouldBe` True
 
   it "should input '14/02/2001', remove one word and input '2000'" $ do
-    model [evtT "14/02/2001", delWordL, evtT "2000"] ^. dateValue `shouldBe` lowDate
-    model [evtT "14/02/2001", delWordL, evtT "2000"] ^. dateValid `shouldBe` True
+    model [evtT "14/02/2001", delWordL, evtT "2000"] ^. mDateValue `shouldBe` Just (fromGregorian 2000 02 14)
+    model [evtT "14/02/2001", delWordL, evtT "2000"] ^. mDateValid `shouldBe` True
 
   it "should update the model when using the wheel" $ do
     let p = Point 100 10
@@ -87,10 +99,10 @@ handleEventDate = describe "handleEventDate" $ do
     let steps2 = [WheelScroll p (Point 0 (-64)) WheelNormal]
     let steps3 = [WheelScroll p (Point 0 64) WheelNormal]
     let steps4 = [WheelScroll p (Point 0 (-2000)) WheelFlipped]
-    model steps1 ^. dateValue `shouldBe` minDate
-    model steps2 ^. dateValue `shouldBe` fromGregorian 2001 12 28
-    model steps3 ^. dateValue `shouldBe` fromGregorian 2002 05 05
-    model steps4 ^. dateValue `shouldBe` maxDate
+    model steps1 ^. mDateValue `shouldBe` Just minDate
+    model steps2 ^. mDateValue `shouldBe` Just (fromGregorian 2001 12 28)
+    model steps3 ^. mDateValue `shouldBe` Just (fromGregorian 2002 05 05)
+    model steps4 ^. mDateValue `shouldBe` Just maxDate
 
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
@@ -100,14 +112,13 @@ handleEventDate = describe "handleEventDate" $ do
 
   where
     minDate = fromGregorian 2000 01 01
-    lowDate = fromGregorian 2000 02 14
     midDate = fromGregorian 2002 03 02
     maxDate = fromGregorian 2005 03 05
-    wenv = mockWenv (DateModel midDate True)
-    basicDateNode :: WidgetNode DateModel TestEvt
-    basicDateNode = dateField_ dateValue [validInput dateValid, selectOnFocus_ False]
-    dateCfg = [minValue minDate, maxValue maxDate, validInput dateValid, onFocus GotFocus, onBlur LostFocus]
-    dateNode = dateField_ dateValue dateCfg
+    wenv = mockWenv (MDateModel (Just midDate) True)
+    basicDateNode :: WidgetNode MDateModel TestEvt
+    basicDateNode = dateField_ mDateValue [validInput mDateValid, selectOnFocus_ False]
+    dateCfg = [minValue (Just minDate), maxValue (Just maxDate), validInput mDateValid, onFocus GotFocus, onBlur LostFocus]
+    dateNode = dateField_ mDateValue dateCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) dateNode
     modelBasic es = nodeHandleEventModel wenv es basicDateNode
     events evt = nodeHandleEventEvts wenv [evt] dateNode

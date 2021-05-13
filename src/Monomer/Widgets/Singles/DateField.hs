@@ -14,6 +14,7 @@ module Monomer.Widgets.Singles.DateField (
 
 import Control.Applicative ((<|>))
 import Control.Lens ((^.), ALens', _1, _2, _3)
+import Control.Monad (join)
 import Data.Default
 import Data.Either
 import Data.Maybe
@@ -28,9 +29,9 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event.Types
 import Monomer.Widgets.Singles.Base.InputField
-import Monomer.Widgets.Util.Parser
 
 import qualified Monomer.Lens as L
+import qualified Monomer.Widgets.Util.Parser as P
 
 class (Eq a, Ord a, Show a, Typeable a) => DayConverter a where
   convertFromDay :: Day -> a
@@ -61,12 +62,24 @@ instance {-# OVERLAPPABLE #-} DayConverter a => DateTextConverter a where
   dateFromDay = convertFromDay
   dateToDay = convertToDay
 
-instance DayConverter a => DayConverter (Maybe a) where
-  convertFromDay = Just . convertFromDay
-  convertToDay val = val >>= convertToDay
+instance (DayConverter a, DateTextConverter a) => DateTextConverter (Maybe a) where
+  dateAcceptText minVal maxVal text
+    | T.strip text == "" = (True, True, Just Nothing)
+    | otherwise = (accept, isValid, result) where
+      resp = dateAcceptText (join minVal) (join maxVal) text
+      (accept, isValid, tmpResult) = resp
+      result
+        | isJust tmpResult = Just tmpResult
+        | otherwise = Nothing
+  dateFromText = Just . dateFromText
+  dateToText Nothing = ""
+  dateToText (Just value) = dateToText value
+  dateFromDay = Just . dateFromDay
+  dateToDay Nothing = Nothing
+  dateToDay (Just value) = dateToDay value
 
 type FormattableDate a
-  = (Eq a, Ord a, Show a, DayConverter a, Typeable a)
+  = (Eq a, Ord a, Show a, DateTextConverter a, Typeable a)
 
 data DateldCfg s e a = DateldCfg {
   _dfcValid :: Maybe (WidgetData s Bool),
@@ -227,7 +240,7 @@ dateFieldD_ widgetData configs = newNode where
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
-    | otherwise = convertFromDay (fromGregorian 1970 1 1)
+    | otherwise = dateFromDay (fromGregorian 1970 1 1)
   acceptText = dateAcceptText minVal maxVal
   acceptInput text = acceptText text ^. _1
   validInput text = acceptText text ^. _2
@@ -301,10 +314,10 @@ handleMove config state rate value dy = result where
   acceptText = dateAcceptText minVal maxVal
   fromText text = acceptText text ^. _3
   toText = dateToText
-  (valid, mParsedVal, parsedVal) = case convertToDay value of
+  (valid, mParsedVal, parsedVal) = case dateToDay value of
     Just val -> (True, mParsedVal, parsedVal) where
       tmpValue = addDays (round (dy * rate)) val
-      mParsedVal = fromText (toText (convertFromDay tmpValue))
+      mParsedVal = fromText (toText (dateFromDay tmpValue))
       parsedVal = fromJust mParsedVal
     Nothing -> (False, Nothing, undefined)
   newVal
@@ -317,32 +330,18 @@ handleMove config state rate value dy = result where
   newSel = _ifsSelStart state
   result = (newText, newPos, newSel)
 
-{--
-dateFromText :: FormattableDate a => Maybe a -> Maybe a -> Text -> Maybe a
-dateFromText minVal maxVal text = newDate where
-  compParser = A.char '/' *> A.decimal
-  dateParser = (,,) <$> A.decimal <*> compParser <*> compParser
-  tmpDate = case A.parseOnly dateParser text of
-    Left _ -> Nothing
-    Right (day, month, year) -> fromGregorianValid year (fromIntegral month) day
-  validDate date
-    | dateInBounds minVal maxVal date = Just date
-    | otherwise = Nothing
-  newDate = tmpDate >>= validDate . convertFromDay
---}
-
-dateFromTextSimple :: FormattableDate a => Text -> Maybe a
+dateFromTextSimple :: (DayConverter a, FormattableDate a) => Text -> Maybe a
 dateFromTextSimple text = newDate where
   compParser = A.char '/' *> A.decimal
   dateParser = (,,) <$> A.decimal <*> compParser <*> compParser
   tmpDate = case A.parseOnly dateParser text of
     Left _ -> Nothing
     Right (day, month, year) -> fromGregorianValid year (fromIntegral month) day
-  newDate = tmpDate >>= convertFromDay
+  newDate = tmpDate >>= dateFromDay
 
 dateToTextSimple :: FormattableDate a => a -> Text
 dateToTextSimple val = result where
-  converted = convertToDay val
+  converted = dateToDay val
   (year, month, day) = toGregorian (fromJust converted)
   padd num
     | num < 10 = "0" <> T.pack (show num)
@@ -358,10 +357,10 @@ acceptTextInput :: Text -> Bool
 acceptTextInput text = isRight (A.parseOnly parser text) where
   barP = A.char '/' *> ""
   numP = A.digit *> ""
-  dayP = upto 2 numP
-  monthP = A.option "" (barP *> upto 2 numP)
-  yearP = A.option "" (barP *> upto 4 numP)
-  parser = join [dayP, monthP, yearP] <* A.endOfInput
+  dayP = P.upto 2 numP
+  monthP = A.option "" (barP *> P.upto 2 numP)
+  yearP = A.option "" (barP *> P.upto 4 numP)
+  parser = P.join [dayP, monthP, yearP] <* A.endOfInput
 
 dateInBounds :: (Ord a) => Maybe a -> Maybe a -> a -> Bool
 dateInBounds Nothing Nothing _ = True

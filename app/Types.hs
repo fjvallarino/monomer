@@ -46,7 +46,8 @@ data App = App {
   _color :: Color,
   _testDay :: Day,
   _testDayValid :: Bool,
-  _mtestDay :: Maybe Day
+  _mtestDay :: Maybe Day,
+  _mtestDayValid :: Bool
 } deriving (Eq, Show)
 
 instance Default App where
@@ -79,8 +80,9 @@ instance Default App where
     _dragList2 = [],
     _color = def,
     _testDay = fromGregorian 2015 06 07,
-    _testDayValid = False,
-    _mtestDay = Nothing
+    _testDayValid = True,
+    _mtestDay = Nothing,
+    _mtestDayValid = True
   }
 
 makeLenses ''App

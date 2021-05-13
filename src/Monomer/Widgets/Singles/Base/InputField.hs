@@ -201,7 +201,6 @@ makeInputField config state = widget where
     value = getModelValue wenv
     newText
       | oldValue /= getModelValue wenv = toText value
---      | fromText oldText /= Just (getModelValue wenv) = toText value
       | otherwise = oldText
     newTextL = T.length newText
     newPos

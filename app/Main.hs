@@ -155,8 +155,8 @@ buildUI wenv model = traceShow "Creating UI" widgetDate where
         filler
       ],
       labelS (model ^. testDay),
---      dateField_ mtestDay [minValue (Just $ fromGregorian 1900 1 1)]
---        `style` [bgColor (if isJust (model ^. mtestDay) then green else red)],
+      dateField_ mtestDay [validInput mtestDayValid, minValue (Just $ fromGregorian 1900 1 1)]
+        `style` [bgColor (if model ^. mtestDayValid then green else red)],
 --      numericField_ int1 [validInput int1Valid] --, minValue 100, maxValue 200
 --        `style` [bgColor (if model ^. int1Valid then green else red)],
 --      numericField_ mfloat1 [validInput mfloat1Valid, minValue (Just 10), maxValue (Just 100)]
