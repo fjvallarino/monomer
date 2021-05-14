@@ -9,7 +9,11 @@ module Monomer.Widgets.Singles.DateField (
   dateField,
   dateField_,
   dateFieldV,
-  dateFieldV_
+  dateFieldV_,
+  dateFormatDelimiter,
+  dateFormatDDMMYYYY,
+  dateFormatMMDDYYYY,
+  dateFormatYYYYMMDD
 ) where
 
 import Control.Applicative ((<|>))
@@ -33,6 +37,18 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Util.Parser as P
 
+data DateFormat
+  = FormatDDMMYYYY
+  | FormatYYYYMMDD
+  | FormatMMDDYYYY
+  deriving (Eq, Show)
+
+defaultDateFormat :: DateFormat
+defaultDateFormat = FormatDDMMYYYY
+
+defaultDateDelim :: Char
+defaultDateDelim = '/'
+
 class (Eq a, Ord a, Show a, Typeable a) => DayConverter a where
   convertFromDay :: Day -> a
   convertToDay :: a -> Maybe Day
@@ -42,16 +58,16 @@ instance DayConverter Day where
   convertToDay = Just
 
 class DateTextConverter a where
-  dateAcceptText :: Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
-  dateFromText :: Text -> Maybe a
-  dateToText :: a -> Text
+  dateAcceptText :: DateFormat -> Char -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
+  dateFromText :: DateFormat -> Char -> Text -> Maybe a
+  dateToText :: DateFormat -> Char -> a -> Text
   dateFromDay :: Day -> a
   dateToDay :: a -> Maybe Day
 
 instance {-# OVERLAPPABLE #-} DayConverter a => DateTextConverter a where
-  dateAcceptText minVal maxVal text = result where
-    accept = acceptTextInput text
-    parsed = dateFromText text
+  dateAcceptText format delim minVal maxVal text = result where
+    accept = acceptTextInput format delim text
+    parsed = dateFromText format delim text
     isValid = isJust parsed && dateInBounds minVal maxVal (fromJust parsed)
     fromText
       | isValid = parsed
@@ -63,17 +79,17 @@ instance {-# OVERLAPPABLE #-} DayConverter a => DateTextConverter a where
   dateToDay = convertToDay
 
 instance (DayConverter a, DateTextConverter a) => DateTextConverter (Maybe a) where
-  dateAcceptText minVal maxVal text
+  dateAcceptText format delim minVal maxVal text
     | T.strip text == "" = (True, True, Just Nothing)
     | otherwise = (accept, isValid, result) where
-      resp = dateAcceptText (join minVal) (join maxVal) text
+      resp = dateAcceptText format delim (join minVal) (join maxVal) text
       (accept, isValid, tmpResult) = resp
       result
         | isJust tmpResult = Just tmpResult
         | otherwise = Nothing
-  dateFromText = Just . dateFromText
-  dateToText Nothing = ""
-  dateToText (Just value) = dateToText value
+  dateFromText format delim = Just . dateFromText format delim
+  dateToText format delim Nothing = ""
+  dateToText format delim (Just value) = dateToText format delim value
   dateFromDay = Just . dateFromDay
   dateToDay Nothing = Nothing
   dateToDay (Just value) = dateToDay value
@@ -83,6 +99,8 @@ type FormattableDate a
 
 data DateldCfg s e a = DateldCfg {
   _dfcValid :: Maybe (WidgetData s Bool),
+  _dfcDateDelim :: Maybe Char,
+  _dfcDateFormat :: Maybe DateFormat,
   _dfcMinValue :: Maybe a,
   _dfcMaxValue :: Maybe a,
   _dfcWheelRate :: Maybe Double,
@@ -100,6 +118,8 @@ data DateldCfg s e a = DateldCfg {
 instance Default (DateldCfg s e a) where
   def = DateldCfg {
     _dfcValid = Nothing,
+    _dfcDateDelim = Nothing,
+    _dfcDateFormat = Nothing,
     _dfcMinValue = Nothing,
     _dfcMaxValue = Nothing,
     _dfcWheelRate = Nothing,
@@ -117,6 +137,8 @@ instance Default (DateldCfg s e a) where
 instance Semigroup (DateldCfg s e a) where
   (<>) t1 t2 = DateldCfg {
     _dfcValid = _dfcValid t2 <|> _dfcValid t1,
+    _dfcDateDelim = _dfcDateDelim t2 <|> _dfcDateDelim t1,
+    _dfcDateFormat = _dfcDateFormat t2 <|> _dfcDateFormat t1,
     _dfcMinValue = _dfcMinValue t2 <|> _dfcMinValue t1,
     _dfcMaxValue = _dfcMaxValue t2 <|> _dfcMaxValue t1,
     _dfcWheelRate = _dfcWheelRate t2 <|> _dfcWheelRate t1,
@@ -199,6 +221,26 @@ instance CmbOnChangeReq (DateldCfg s e a) s e a where
     _dfcOnChangeReq = [req]
   }
 
+dateFormatDelimiter :: Char -> DateldCfg s e a
+dateFormatDelimiter delim = def {
+  _dfcDateDelim = Just delim
+}
+
+dateFormatDDMMYYYY :: DateldCfg s e a
+dateFormatDDMMYYYY = def {
+  _dfcDateFormat = Just FormatDDMMYYYY
+}
+
+dateFormatMMDDYYYY :: DateldCfg s e a
+dateFormatMMDDYYYY = def {
+  _dfcDateFormat = Just FormatMMDDYYYY
+}
+
+dateFormatYYYYMMDD :: DateldCfg s e a
+dateFormatYYYYMMDD = def {
+  _dfcDateFormat = Just FormatYYYYMMDD
+}
+
 dateField
   :: (FormattableDate a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
@@ -235,17 +277,19 @@ dateFieldD_
   -> WidgetNode s e
 dateFieldD_ widgetData configs = newNode where
   config = mconcat configs
+  format = fromMaybe defaultDateFormat (_dfcDateFormat config)
+  delim = fromMaybe defaultDateDelim (_dfcDateDelim config)
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
     | otherwise = dateFromDay (fromGregorian 1970 1 1)
-  acceptText = dateAcceptText minVal maxVal
+  acceptText = dateAcceptText format delim minVal maxVal
   acceptInput text = acceptText text ^. _1
   validInput text = acceptText text ^. _2
   fromText text = acceptText text ^. _3
-  toText = dateToText
+  toText = dateToText format delim
   inputConfig = InputFieldCfg {
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
@@ -309,11 +353,13 @@ handleMove
   -> Double
   -> (Text, Int, Maybe Int)
 handleMove config state rate value dy = result where
+  format = fromMaybe defaultDateFormat (_dfcDateFormat config)
+  delim = fromMaybe defaultDateDelim (_dfcDateDelim config)
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
-  acceptText = dateAcceptText minVal maxVal
+  acceptText = dateAcceptText format delim minVal maxVal
   fromText text = acceptText text ^. _3
-  toText = dateToText
+  toText = dateToText format delim
   (valid, mParsedVal, parsedVal) = case dateToDay value of
     Just val -> (True, mParsedVal, parsedVal) where
       tmpValue = addDays (round (dy * rate)) val
@@ -330,19 +376,28 @@ handleMove config state rate value dy = result where
   newSel = _ifsSelStart state
   result = (newText, newPos, newSel)
 
-dateFromTextSimple :: (DayConverter a, FormattableDate a) => Text -> Maybe a
-dateFromTextSimple text = newDate where
-  compParser = A.char '/' *> A.decimal
+dateFromTextSimple
+  :: (DayConverter a, FormattableDate a)
+  => DateFormat
+  -> Char
+  -> Text
+  -> Maybe a
+dateFromTextSimple format delim text = newDate where
+  compParser = A.char delim *> A.decimal
   dateParser = (,,) <$> A.decimal <*> compParser <*> compParser
   tmpDate = case A.parseOnly dateParser text of
     Left _ -> Nothing
-    Right (day, month, year) -> fromGregorianValid year (fromIntegral month) day
+    Right (n1, n2, n3)
+      | format == FormatDDMMYYYY -> fromGregorianValid (fromIntegral n3) n2 n1
+      | format == FormatMMDDYYYY -> fromGregorianValid (fromIntegral n3) n1 n2
+      | otherwise -> fromGregorianValid (fromIntegral n1) n2 n3
   newDate = tmpDate >>= dateFromDay
 
-dateToTextSimple :: FormattableDate a => a -> Text
-dateToTextSimple val = result where
+dateToTextSimple :: FormattableDate a => DateFormat -> Char -> a -> Text
+dateToTextSimple format delim val = result where
   converted = dateToDay val
   (year, month, day) = toGregorian (fromJust converted)
+  sep = T.singleton delim
   padd num
     | num < 10 = "0" <> T.pack (show num)
     | otherwise = T.pack (show num)
@@ -350,17 +405,24 @@ dateToTextSimple val = result where
   tmonth = padd month
   tyear = T.pack (show year)
   result
-    | isJust converted = tday <> "/" <> tmonth <> "/" <> tyear
-    | otherwise = ""
+    | isNothing converted = ""
+    | format == FormatDDMMYYYY = tday <> sep <> tmonth <> sep <> tyear
+    | format == FormatMMDDYYYY = tmonth <> sep <> tday <> sep <> tyear
+    | otherwise = tyear <> sep <> tmonth <> sep <> tday
 
-acceptTextInput :: Text -> Bool
-acceptTextInput text = isRight (A.parseOnly parser text) where
-  barP = A.char '/' *> ""
+acceptTextInput :: DateFormat -> Char -> Text -> Bool
+acceptTextInput format delim text = isRight (A.parseOnly parser text) where
   numP = A.digit *> ""
+  delimP = A.char delim *> ""
   dayP = P.upto 2 numP
-  monthP = A.option "" (barP *> P.upto 2 numP)
-  yearP = A.option "" (barP *> P.upto 4 numP)
-  parser = P.join [dayP, monthP, yearP] <* A.endOfInput
+  monthP = P.upto 2 numP
+  yearP = P.upto 4 numP
+  withDelim parser = A.option "" (delimP *> parser)
+  parsers
+    | format == FormatDDMMYYYY = [dayP, withDelim monthP, withDelim yearP]
+    | format == FormatMMDDYYYY = [monthP, withDelim dayP, withDelim yearP]
+    | otherwise = [yearP, withDelim monthP, withDelim dayP]
+  parser = P.join parsers <* A.endOfInput
 
 dateInBounds :: (Ord a) => Maybe a -> Maybe a -> a -> Bool
 dateInBounds Nothing Nothing _ = True

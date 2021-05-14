@@ -69,9 +69,9 @@ handleEventDate = describe "handleEventDate" $ do
     modelBasic [evtKG keyA, evtK keyBackspace] ^. mDateValue `shouldBe` Nothing
     modelBasic [evtKG keyA, evtK keyBackspace] ^. mDateValid `shouldBe` True
 
-  it "should input '14/02/2000'" $ do
-    model [evtT "14/02", evtT "/2000"] ^. mDateValue `shouldBe` Just (fromGregorian 2000 02 14)
-    model [evtT "14/02", evtT "/2000"] ^. mDateValid `shouldBe` True
+  it "should input '2000-02-14'" $ do
+    modelBasic [evtKG keyA, evtT "2000", evtT "-02-14"] ^. mDateValue `shouldBe` Just (fromGregorian 2000 02 14)
+    modelBasic [evtKG keyA, evtT "2000", evtT "-02-14"] ^. mDateValid `shouldBe` True
 
   it "should input '1' (invalid date)" $ do
     model [evtKG keyA, evtT "1"] ^. mDateValue `shouldBe` Just midDate
@@ -116,7 +116,7 @@ handleEventDate = describe "handleEventDate" $ do
     maxDate = fromGregorian 2005 03 05
     wenv = mockWenv (MDateModel (Just midDate) True)
     basicDateNode :: WidgetNode MDateModel TestEvt
-    basicDateNode = dateField_ mDateValue [validInput mDateValid, selectOnFocus_ False]
+    basicDateNode = dateField_ mDateValue [validInput mDateValid, selectOnFocus_ False, dateFormatYYYYMMDD, dateFormatDelimiter '-']
     dateCfg = [minValue (Just minDate), maxValue (Just maxDate), validInput mDateValid, onFocus GotFocus, onBlur LostFocus]
     dateNode = dateField_ mDateValue dateCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) dateNode
@@ -125,8 +125,8 @@ handleEventDate = describe "handleEventDate" $ do
 
 handleEventValueDate :: Spec
 handleEventValueDate = describe "handleEventDate" $ do
-  it "should input an '23/11/1983'" $
-    evts [evtT "23/11/1983"] `shouldBe` Seq.fromList [DateChanged lowDate]
+  it "should input an '11/23/1983'" $
+    evts [evtT "11/23/1983"] `shouldBe` Seq.fromList [DateChanged lowDate]
 
   it "should move right, delete one character and input '5'" $ do
     let steps = [moveCharR, delCharL, evtT "5"]
@@ -138,13 +138,13 @@ handleEventValueDate = describe "handleEventDate" $ do
     evts steps `shouldBe` Seq.empty
     model steps ^. dateValid `shouldBe` False
 
-  it "should input '23/11/198', input '.', 'a', then input '3'" $ do
-    let steps = [evtT "23/11/198", evtT ".", evtT "a", evtT "3"]
+  it "should input '11/23/198', input '.', 'a', then input '3'" $ do
+    let steps = [evtT "11/23/198", evtT ".", evtT "a", evtT "3"]
     lastEvt steps `shouldBe` DateChanged lowDate
     model steps ^. dateValid `shouldBe` True
 
-  it "should input '0544/03/199555'" $ do
-    let steps = [evtT "05", evtT "44", evtT "/03/1995", evtT "55"]
+  it "should input '03/0544/199555'" $ do
+    let steps = [evtT "03", evtT "/05", evtT "44", evtT "/1995", evtT "55"]
     lastEvt steps `shouldBe` DateChanged maxDate
 
   where
@@ -153,7 +153,7 @@ handleEventValueDate = describe "handleEventDate" $ do
     midDate = fromGregorian 1989 03 02
     maxDate = fromGregorian 1995 03 05
     wenv = mockWenv (DateModel minDate False)
-    dateNode = dateFieldV_ midDate DateChanged [minValue minDate, maxValue maxDate, selectOnFocus, validInput dateValid]
+    dateNode = dateFieldV_ midDate DateChanged [minValue minDate, maxValue maxDate, selectOnFocus, validInput dateValid, dateFormatMMDDYYYY]
     evts es = nodeHandleEventEvts wenv (evtFocus : es) dateNode
     model es = nodeHandleEventModel wenv (evtFocus : es) dateNode
     lastIdx es = Seq.index es (Seq.length es - 1)
