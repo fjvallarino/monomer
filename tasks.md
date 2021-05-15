@@ -613,13 +613,12 @@
     - Remember adding _ version for Bool combinators
   - Should numeric field continuously update?
     - Add wheel support
-
-Next
   - Create Datetime field
     - Initial value should not be forced.
     - Can both direct field and Maybe version be provided?
-    - Custom Delimiters?
-    - Custom state compare?
+    - Create time component (having them separate is easier)
+
+Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Rename ListView -> SelectList
     - Add support for multiple selection

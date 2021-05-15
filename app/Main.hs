@@ -10,7 +10,7 @@ import Control.Lens ((&), (^.), (.~), (?~), (%~))
 import Data.Default
 import Data.List (delete)
 import Data.Maybe
-import Data.Time.Calendar (fromGregorian)
+import Data.Time (TimeOfDay(..), fromGregorian)
 import TextShow
 
 import qualified Data.Text as T
@@ -148,15 +148,19 @@ handleAppEvent wenv node model evt = case evt of
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetDate where
   widgetDate = vstack [
-      hstack [
-        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
-        spacer,
-        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
-        filler
-      ],
-      labelS (model ^. testDay),
-      dateField_ mtestDay [validInput mtestDayValid, minValue (Just $ fromGregorian 1900 1 1)]
-        `style` [bgColor (if model ^. mtestDayValid then green else red)],
+--      hstack [
+--        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
+--        spacer,
+--        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
+--        filler
+--      ],
+--      labelS (model ^. testDay),
+--      dateField_ mtestDay [validInput mtestDayValid, minValue (Just $ fromGregorian 1900 1 1)]
+--        `style` [bgColor (if model ^. mtestDayValid then green else red)],
+      timeField_ testTimeOfDay [validInput testTimeOfDayValid, minValue (TimeOfDay 14 10 20), timeFormatHHMMSS]
+        `style` [bgColor (if model ^. testTimeOfDayValid then green else red)],
+      timeField_ mtestTimeOfDay [validInput mtestTimeOfDayValid, minValue (Just $ TimeOfDay 14 10 20), timeFormatHHMMSS]
+        `style` [bgColor (if model ^. mtestTimeOfDayValid then green else red)],
 --      numericField_ int1 [validInput int1Valid] --, minValue 100, maxValue 200
 --        `style` [bgColor (if model ^. int1Valid then green else red)],
 --      numericField_ mfloat1 [validInput mfloat1Valid, minValue (Just 10), maxValue (Just 100)]

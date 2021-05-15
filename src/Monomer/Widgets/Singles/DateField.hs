@@ -97,7 +97,7 @@ instance (DayConverter a, DateTextConverter a) => DateTextConverter (Maybe a) wh
 type FormattableDate a
   = (Eq a, Ord a, Show a, DateTextConverter a, Typeable a)
 
-data DateldCfg s e a = DateldCfg {
+data DateFieldCfg s e a = DateFieldCfg {
   _dfcValid :: Maybe (WidgetData s Bool),
   _dfcDateDelim :: Maybe Char,
   _dfcDateFormat :: Maybe DateFormat,
@@ -115,8 +115,8 @@ data DateldCfg s e a = DateldCfg {
   _dfcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
-instance Default (DateldCfg s e a) where
-  def = DateldCfg {
+instance Default (DateFieldCfg s e a) where
+  def = DateFieldCfg {
     _dfcValid = Nothing,
     _dfcDateDelim = Nothing,
     _dfcDateFormat = Nothing,
@@ -134,8 +134,8 @@ instance Default (DateldCfg s e a) where
     _dfcOnChangeReq = []
   }
 
-instance Semigroup (DateldCfg s e a) where
-  (<>) t1 t2 = DateldCfg {
+instance Semigroup (DateFieldCfg s e a) where
+  (<>) t1 t2 = DateFieldCfg {
     _dfcValid = _dfcValid t2 <|> _dfcValid t1,
     _dfcDateDelim = _dfcDateDelim t2 <|> _dfcDateDelim t1,
     _dfcDateFormat = _dfcDateFormat t2 <|> _dfcDateFormat t1,
@@ -153,90 +153,90 @@ instance Semigroup (DateldCfg s e a) where
     _dfcOnChangeReq = _dfcOnChangeReq t1 <> _dfcOnChangeReq t2
   }
 
-instance Monoid (DateldCfg s e a) where
+instance Monoid (DateFieldCfg s e a) where
   mempty = def
 
-instance CmbValidInput (DateldCfg s e a) s where
+instance CmbValidInput (DateFieldCfg s e a) s where
   validInput field = def {
     _dfcValid = Just (WidgetLens field)
   }
 
-instance CmbResizeOnChange (DateldCfg s e a) where
+instance CmbResizeOnChange (DateFieldCfg s e a) where
   resizeOnChange_ resize = def {
     _dfcResizeOnChange = Just resize
   }
 
-instance CmbSelectOnFocus (DateldCfg s e a) where
+instance CmbSelectOnFocus (DateFieldCfg s e a) where
   selectOnFocus_ sel = def {
     _dfcSelectOnFocus = Just sel
   }
 
-instance FormattableDate a => CmbMinValue (DateldCfg s e a) a where
+instance FormattableDate a => CmbMinValue (DateFieldCfg s e a) a where
   minValue len = def {
     _dfcMinValue = Just len
   }
 
-instance FormattableDate a => CmbMaxValue (DateldCfg s e a) a where
+instance FormattableDate a => CmbMaxValue (DateFieldCfg s e a) a where
   maxValue len = def {
     _dfcMaxValue = Just len
   }
 
-instance CmbWheelRate (DateldCfg s e a) Double where
+instance CmbWheelRate (DateFieldCfg s e a) Double where
   wheelRate rate = def {
     _dfcWheelRate = Just rate
   }
 
-instance CmbDragRate (DateldCfg s e a) Double where
+instance CmbDragRate (DateFieldCfg s e a) Double where
   dragRate rate = def {
     _dfcDragRate = Just rate
   }
 
-instance CmbOnFocus (DateldCfg s e a) e Path where
+instance CmbOnFocus (DateFieldCfg s e a) e Path where
   onFocus fn = def {
     _dfcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (DateldCfg s e a) s e where
+instance CmbOnFocusReq (DateFieldCfg s e a) s e where
   onFocusReq req = def {
     _dfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DateldCfg s e a) e Path where
+instance CmbOnBlur (DateFieldCfg s e a) e Path where
   onBlur fn = def {
     _dfcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (DateldCfg s e a) s e where
+instance CmbOnBlurReq (DateFieldCfg s e a) s e where
   onBlurReq req = def {
     _dfcOnBlurReq = [req]
   }
 
-instance CmbOnChange (DateldCfg s e a) a e where
+instance CmbOnChange (DateFieldCfg s e a) a e where
   onChange fn = def {
     _dfcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (DateldCfg s e a) s e a where
+instance CmbOnChangeReq (DateFieldCfg s e a) s e a where
   onChangeReq req = def {
     _dfcOnChangeReq = [req]
   }
 
-dateFormatDelimiter :: Char -> DateldCfg s e a
+dateFormatDelimiter :: Char -> DateFieldCfg s e a
 dateFormatDelimiter delim = def {
   _dfcDateDelim = Just delim
 }
 
-dateFormatDDMMYYYY :: DateldCfg s e a
+dateFormatDDMMYYYY :: DateFieldCfg s e a
 dateFormatDDMMYYYY = def {
   _dfcDateFormat = Just FormatDDMMYYYY
 }
 
-dateFormatMMDDYYYY :: DateldCfg s e a
+dateFormatMMDDYYYY :: DateFieldCfg s e a
 dateFormatMMDDYYYY = def {
   _dfcDateFormat = Just FormatMMDDYYYY
 }
 
-dateFormatYYYYMMDD :: DateldCfg s e a
+dateFormatYYYYMMDD :: DateFieldCfg s e a
 dateFormatYYYYMMDD = def {
   _dfcDateFormat = Just FormatYYYYMMDD
 }
@@ -249,7 +249,7 @@ dateField field = dateField_ field def
 dateField_
   :: (FormattableDate a, WidgetEvent e)
   => ALens' s a
-  -> [DateldCfg s e a]
+  -> [DateFieldCfg s e a]
   -> WidgetNode s e
 dateField_ field configs = widget where
   widget = dateFieldD_ (WidgetLens field) configs
@@ -263,7 +263,7 @@ dateFieldV_
   :: (FormattableDate a, WidgetEvent e)
   => a
   -> (a -> e)
-  -> [DateldCfg s e a]
+  -> [DateFieldCfg s e a]
   -> WidgetNode s e
 dateFieldV_ value handler configs = newNode where
   widgetData = WidgetValue value
@@ -273,7 +273,7 @@ dateFieldV_ value handler configs = newNode where
 dateFieldD_
   :: (FormattableDate a, WidgetEvent e)
   => WidgetData s a
-  -> [DateldCfg s e a]
+  -> [DateFieldCfg s e a]
   -> WidgetNode s e
 dateFieldD_ widgetData configs = newNode where
   config = mconcat configs
@@ -318,7 +318,7 @@ dateFieldD_ widgetData configs = newNode where
 
 handleWheel
   :: FormattableDate a
-  => DateldCfg s e a
+  => DateFieldCfg s e a
   -> InputFieldState a
   -> Point
   -> Point
@@ -333,7 +333,7 @@ handleWheel config state point move dir = result where
 
 handleDrag
   :: FormattableDate a
-  => DateldCfg s e a
+  => DateFieldCfg s e a
   -> InputFieldState a
   -> Point
   -> Point
@@ -346,7 +346,7 @@ handleDrag config state clickPos currPos = result where
 
 handleMove
   :: FormattableDate a
-  => DateldCfg s e a
+  => DateFieldCfg s e a
   -> InputFieldState a
   -> Double
   -> a

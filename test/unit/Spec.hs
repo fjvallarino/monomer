@@ -41,6 +41,7 @@ import qualified Monomer.Widgets.Singles.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.Singles.SliderSpec as SliderSpec
 import qualified Monomer.Widgets.Singles.SpacerSpec as SpacerSpec
 import qualified Monomer.Widgets.Singles.TextFieldSpec as TextFieldSpec
+import qualified Monomer.Widgets.Singles.TimeFieldSpec as TimeFieldSpec
 
 import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
 import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
@@ -111,6 +112,7 @@ singles = describe "Singles" $ do
   SliderSpec.spec
   SpacerSpec.spec
   TextFieldSpec.spec
+  TimeFieldSpec.spec
 
 widgetsUtil :: Spec
 widgetsUtil = describe "Widgets Util" $ do

@@ -5,7 +5,7 @@ module Types where
 import Control.Lens (makeLenses)
 import Data.Default
 import Data.Text (Text)
-import Data.Time.Calendar
+import Data.Time
 import GHC.Generics
 
 import Monomer
@@ -47,7 +47,11 @@ data App = App {
   _testDay :: Day,
   _testDayValid :: Bool,
   _mtestDay :: Maybe Day,
-  _mtestDayValid :: Bool
+  _mtestDayValid :: Bool,
+  _testTimeOfDay :: TimeOfDay,
+  _testTimeOfDayValid :: Bool,
+  _mtestTimeOfDay :: Maybe TimeOfDay,
+  _mtestTimeOfDayValid :: Bool
 } deriving (Eq, Show)
 
 instance Default App where
@@ -82,7 +86,11 @@ instance Default App where
     _testDay = fromGregorian 2015 06 07,
     _testDayValid = True,
     _mtestDay = Nothing,
-    _mtestDayValid = True
+    _mtestDayValid = True,
+    _testTimeOfDay = TimeOfDay 15 30 16,
+    _testTimeOfDayValid = True,
+    _mtestTimeOfDay = Nothing,
+    _mtestTimeOfDayValid = True
   }
 
 makeLenses ''App
