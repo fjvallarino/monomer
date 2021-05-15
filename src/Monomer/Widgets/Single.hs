@@ -150,7 +150,7 @@ createSingle state single = Widget {
   widgetGetInstanceTree = getInstanceTreeWrapper single,
   widgetFindNextFocus = singleFindNextFocus single,
   widgetFindByPoint = singleFindByPoint single,
-  widgetFindByPath = singleFindByPath,
+  widgetFindBranchByPath = singleFindBranchByPath,
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = handleMessageWrapper single,
   widgetGetSizeReq = getSizeReqWrapper single,
@@ -267,14 +267,14 @@ defaultFindByPoint wenv node start point
     path = node ^. L.info . L.path
     validPath = seqStartsWith start path
 
-singleFindByPath
+singleFindBranchByPath
   :: WidgetEnv s e
   -> WidgetNode s e
   -> Path
-  -> Maybe WidgetNodeInfo
-singleFindByPath wenv node path
-  | info ^. L.path == path = Just info
-  | otherwise = Nothing
+  -> Seq WidgetNodeInfo
+singleFindBranchByPath wenv node path
+  | info ^. L.path == path = Seq.singleton info
+  | otherwise = Seq.empty
   where
     info = node ^. L.info
 

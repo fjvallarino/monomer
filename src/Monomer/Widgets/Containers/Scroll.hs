@@ -277,7 +277,7 @@ makeScroll config state = widget where
     Focus{} -> result where
       follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
       focusPath = wenv ^. L.focusedPath
-      focusInst = widgetFindByPath (node ^. L.widget) wenv node focusPath
+      focusInst = findInstOrScroll wenv node focusPath
       focusVp = focusInst ^? _Just . L.viewport
       focusOverlay = focusInst ^? _Just . L.overlay == Just True
       overlayMatch = focusOverlay == node ^. L.info . L.overlay
@@ -594,3 +594,13 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   vMouseInScroll = pointInRect mousePos vScrollRect
   hMouseInThumb = pointInRect mousePos hThumbRect
   vMouseInThumb = pointInRect mousePos vThumbRect
+
+findInstOrScroll
+  :: WidgetEnv s e -> WidgetNode s e -> Seq.Seq PathStep -> Maybe WidgetNodeInfo
+findInstOrScroll wenv node target = wniScroll <|> wniTarget where
+  child = Seq.index (node ^. L.children) 0
+  isScroll wni = wni ^. L.widgetType == "scroll"
+  branch = widgetFindBranchByPath (child ^. L.widget) wenv child target
+  scrolls = Seq.filter isScroll branch
+  wniTarget = Seq.lookup (length branch - 1) branch
+  wniScroll = Seq.lookup (length scrolls - 1) scrolls

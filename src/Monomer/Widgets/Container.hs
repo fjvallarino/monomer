@@ -226,7 +226,7 @@ createContainer state container = Widget {
   widgetGetInstanceTree = getInstanceTreeWrapper container,
   widgetFindNextFocus = findNextFocusWrapper container,
   widgetFindByPoint = findByPointWrapper container,
-  widgetFindByPath = containerFindByPath,
+  widgetFindBranchByPath = containerFindBranchByPath,
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
   widgetGetSizeReq = getSizeReqWrapper container,
@@ -582,20 +582,21 @@ findByPointWrapper container wenv node start point = result where
     | isVisible && (inVp || fmap (^. L.path) win /= Just path) = win
     | otherwise = Nothing
 
-containerFindByPath
+containerFindBranchByPath
   :: WidgetEnv s e
   -> WidgetNode s e
   -> Path
-  -> Maybe WidgetNodeInfo
-containerFindByPath wenv node path
-  | info ^. L.path == path = Just info
-  | isJust nextStep = widgetFindByPath (child ^. L.widget) wenv child path
-  | otherwise = Nothing
+  -> Seq WidgetNodeInfo
+containerFindBranchByPath wenv node path
+  | info ^. L.path == path = Seq.singleton info
+  | isJust nextStep = info <| childrenInst
+  | otherwise = Seq.empty
   where
     children = node ^. L.children
     info = node ^. L.info
     nextStep = nextTargetStep path node
     child = Seq.index children (fromJust nextStep)
+    childrenInst = widgetFindBranchByPath (child ^. L.widget) wenv child path
 
 -- | Event Handling
 defaultHandleEvent :: ContainerEventHandler s e
@@ -625,24 +626,25 @@ handleEventWrapper container wenv node target evt
     handler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
-    childIdx = fromJust $ nextTargetStep target node
-    children = node ^. L.children
-    child = Seq.index children childIdx
-    childWidget = child ^. L.widget
-    cwenv = updateCWenv wenv node child childIdx
-    cevt = translateEvent (negPoint offset) evt
     -- Event targeted at parent
     pResponse = handler wenv node target evt
     pResultStyled = handleStyleChange wenv target style handleCursor node evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children
+    pNode = maybe node (^. L.node) pResponse
+    cwenv =  updateCWenv wenv pNode child childIdx
+    childIdx = fromJust $ nextTargetStep target pNode
+    children = pNode ^. L.children
+    child = Seq.index children childIdx
+    childWidget = child ^. L.widget
+    cevt = translateEvent (negPoint offset) evt
     childrenIgnored = isJust pResponse && ignoreChildren (fromJust pResponse)
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget cwenv child target cevt
-    cResult = mergeParentChildEvts node pResponse cResponse childIdx
-    cResultStyled = handleStyleChange cwenv target style handleCursor node cevt
-      $ handleSizeReqChange container cwenv node (Just cevt) cResult
+    cResult = mergeParentChildEvts pNode pResponse cResponse childIdx
+    cResultStyled = handleStyleChange cwenv target style handleCursor pNode cevt
+      $ handleSizeReqChange container cwenv pNode (Just cevt) cResult
 
 mergeParentChildEvts
   :: WidgetNode s e

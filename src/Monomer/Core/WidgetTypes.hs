@@ -221,7 +221,7 @@ data WidgetNode s e = WidgetNode {
   _wnWidget :: Widget s e,
   -- | Common information about the instance
   _wnInfo :: WidgetNodeInfo,
-  -- | The children widget, if any
+  -- | The children widgets, if any
   _wnChildren :: Seq (WidgetNode s e)
 }
 
@@ -283,11 +283,11 @@ data Widget s e =
       -> Point
       -> Maybe WidgetNodeInfo,
     -- | Returns the path of the child item with the given path
-    widgetFindByPath
+    widgetFindBranchByPath
       :: WidgetEnv s e
       -> WidgetNode s e
       -> Path
-      -> Maybe WidgetNodeInfo,
+      -> Seq WidgetNodeInfo,
     -- | Handles an event
     --
     -- Current user state

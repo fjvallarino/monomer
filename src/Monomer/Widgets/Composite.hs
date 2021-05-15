@@ -309,7 +309,7 @@ createComposite comp state = widget where
     widgetGetInstanceTree = compositeGetInstanceTree comp state,
     widgetFindNextFocus = compositeFindNextFocus comp state,
     widgetFindByPoint = compositeFindByPoint comp state,
-    widgetFindByPath = compositeFindByPath comp state,
+    widgetFindBranchByPath = compositeFindBranchByPath comp state,
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
     widgetGetSizeReq = compositeGetSizeReq comp state,
@@ -474,18 +474,18 @@ compositeFindByPoint comp state wenv widgetComp start point
     validStep = isNothing next || next == Just 0
     resultInfo = widgetFindByPoint widget cwenv _cpsRoot start point
 
-compositeFindByPath
+compositeFindBranchByPath
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
   -> Path
-  -> Maybe WidgetNodeInfo
-compositeFindByPath comp state wenv widgetComp path
-  | info ^. L.path == path = Just info
-  | nextStep == Just 0 = widgetFindByPath (child ^. L.widget) cwenv child path
-  | otherwise = Nothing
+  -> Seq WidgetNodeInfo
+compositeFindBranchByPath comp state wenv widgetComp path
+  | info ^. L.path == path = Seq.singleton info
+  | nextStep == Just 0 = info <| childrenInst
+  | otherwise = Seq.empty
   where
     CompositeState{..} = state
     model = getModel comp wenv
@@ -493,6 +493,7 @@ compositeFindByPath comp state wenv widgetComp path
     info = widgetComp ^. L.info
     nextStep = nextTargetStep path widgetComp
     child = _cpsRoot
+    childrenInst = widgetFindBranchByPath (child ^. L.widget) cwenv child path
 
 -- | Event handling
 compositeHandleEvent

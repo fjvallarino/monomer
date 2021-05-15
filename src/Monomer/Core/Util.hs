@@ -26,6 +26,15 @@ globalKeyWidgetId :: WidgetEnv s e -> Text -> Maybe WidgetId
 globalKeyWidgetId wenv key = fmap (^. L.info . L.widgetId) node where
   node = Map.lookup (WidgetKey key) (wenv ^. L.globalKeys)
 
+findWidgetByPath
+  :: WidgetEnv s e -> WidgetNode s e -> Path -> Maybe WidgetNodeInfo
+findWidgetByPath wenv node target = mnode where
+  branch = widgetFindBranchByPath (node ^. L.widget) wenv node target
+  mnode = case Seq.lookup (length branch - 1) branch of
+    Just child
+      | child ^. L.path == target -> Just child
+    _ -> Nothing
+
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
   desc = nodeDesc level node ++ "\n" ++ childDesc

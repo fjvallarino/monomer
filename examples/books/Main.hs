@@ -101,7 +101,7 @@ handleEvent
   -> WidgetNode BooksModel BooksEvt
   -> BooksModel
   -> BooksEvt
-  -> [EventResponse BooksModel BooksEvt ()]
+  -> [EventResponse BooksModel BooksEvt BooksModel ()]
 handleEvent wenv node model evt = case evt of
   BooksInit -> [setFocus wenv "query"]
   BooksSearch -> [
@@ -141,6 +141,6 @@ main = do
       ]
     initModel = BooksModel "borges-bioy" False Nothing []
 
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)

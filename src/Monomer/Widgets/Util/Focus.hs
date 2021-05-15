@@ -3,6 +3,7 @@ module Monomer.Widgets.Util.Focus (
   isNodeParentOfFocused,
   parentPath,
   nextTargetStep,
+  nextTargetPath,
   isFocusCandidate,
   isTargetReached,
   isTargetValid,
@@ -42,6 +43,11 @@ nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
 nextTargetStep target node = nextStep where
   currentPath = node ^. L.info . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
+
+nextTargetPath :: Path -> WidgetNode s e -> Maybe Path
+nextTargetPath target node = nextPath where
+  nextStep = nextTargetStep target node
+  nextPath = (node ^. L.info . L.path |>) <$> nextStep
 
 isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
 isFocusCandidate FocusFwd = isFocusFwdCandidate
