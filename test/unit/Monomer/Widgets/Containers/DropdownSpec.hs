@@ -93,15 +93,15 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel testItem0)
     labelItem = label . showt
-    lvNode :: WidgetNode TestModel TestEvt
-    lvNode = vstack [
+    ddNode :: WidgetNode TestModel TestEvt
+    ddNode = vstack [
         dropdown_ selectedItem testItems labelItem labelItem [maxHeight 200]
       ]
     cntNode = vstack [
         button "Test" (ItemSel 0 testItem0),
         dropdown_ selectedItem testItems labelItem labelItem [onFocus GotFocus, onBlur LostFocus]
       ]
-    model es = nodeHandleEventModel wenv es lvNode
+    model es = nodeHandleEventModel wenv es ddNode
     eventsCnt evts = nodeHandleEventEvts wenv evts cntNode
 
 handleEventValue :: Spec
@@ -134,12 +134,12 @@ handleEventValue = describe "handleEventValue" $ do
   where
     wenv = mockWenv (TestModel testItem0)
     labelItem = label . showt
-    lvNode = vstack [
+    ddNode = vstack [
         dropdownV_ testItem0 ItemSel testItems labelItem labelItem [maxHeight 200, onBlur LostFocus],
         button "Test" (ItemSel 0 testItem0)
       ]
-    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
-    events es = nodeHandleEventEvts wenv es lvNode
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] ddNode
+    events es = nodeHandleEventEvts wenv es ddNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
@@ -152,5 +152,5 @@ getSizeReq = describe "getSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)
     labelItem l = label_ (showt l) [resizeFactorW 0.01]
-    lvNode = dropdown selectedItem testItems labelItem labelItem
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lvNode
+    ddNode = dropdown selectedItem testItems labelItem labelItem
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv ddNode

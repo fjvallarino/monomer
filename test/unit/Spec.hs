@@ -20,8 +20,8 @@ import qualified Monomer.Widgets.Containers.DragDropSpec as DragDropSpec
 import qualified Monomer.Widgets.Containers.DropdownSpec as DropdownSpec
 import qualified Monomer.Widgets.Containers.GridSpec as GridSpec
 import qualified Monomer.Widgets.Containers.KeystrokeSpec as KeystrokeSpec
-import qualified Monomer.Widgets.Containers.ListViewSpec as ListViewSpec
 import qualified Monomer.Widgets.Containers.ScrollSpec as ScrollSpec
+import qualified Monomer.Widgets.Containers.SelectListSpec as SelectListSpec
 import qualified Monomer.Widgets.Containers.SplitSpec as SplitSpec
 import qualified Monomer.Widgets.Containers.StackSpec as StackSpec
 import qualified Monomer.Widgets.Containers.ThemeSwitchSpec as ThemeSwitchSpec
@@ -89,8 +89,8 @@ containers = describe "Containers" $ do
   DropdownSpec.spec
   GridSpec.spec
   KeystrokeSpec.spec
-  ListViewSpec.spec
   ScrollSpec.spec
+  SelectListSpec.spec
   SplitSpec.spec
   StackSpec.spec
   ThemeSwitchSpec.spec

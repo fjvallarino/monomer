@@ -1,7 +1,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Monomer.Widgets.Containers.ListViewSpec (spec) where
+module Monomer.Widgets.Containers.SelectListSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~), _1)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
@@ -18,7 +18,7 @@ import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestEventUtil
 import Monomer.TestUtil
-import Monomer.Widgets.Containers.ListView
+import Monomer.Widgets.Containers.SelectList
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Label
@@ -54,7 +54,7 @@ testItem10 = testItems!!10
 testItem70 = testItems!!70
 
 spec :: Spec
-spec = describe "ListView" $ do
+spec = describe "SelectList" $ do
   handleEvent
   handleEventValue
   getSizeReq
@@ -92,14 +92,14 @@ handleEvent = describe "handleEvent" $ do
 
   where
     wenv = mockWenv (TestModel testItem0)
-    lvNode = listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+    slNode = selectList_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
     cntNode = vstack [
         button "Test" BtnClick,
-        listView_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+        selectList_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
       ]
-    clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] lvNode
-    model keys = nodeHandleEventModel wenv keys lvNode
-    events evts = nodeHandleEventEvts wenv evts lvNode
+    clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] slNode
+    model keys = nodeHandleEventModel wenv keys slNode
+    events evts = nodeHandleEventEvts wenv evts slNode
     eventsCnt evts = nodeHandleEventEvts wenv evts cntNode
 
 handleEventValue :: Spec
@@ -116,10 +116,10 @@ handleEventValue = describe "handleEventValue" $ do
 
   where
     wenv = mockWenv (TestModel testItem0)
-    lvNode = listViewV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
-    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] lvNode
+    slNode = selectListV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
+    clickEvts p = nodeHandleEventEvts wenv [Click p LeftBtn] slNode
     events evts = Seq.drop (Seq.length res - 1) res where
-      res = nodeHandleEventEvts wenv evts lvNode
+      res = nodeHandleEventEvts wenv evts slNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
@@ -131,5 +131,5 @@ getSizeReq = describe "getSizeReq" $ do
 
   where
     wenv = mockWenvEvtUnit (TestModel testItem0)
-    lvNode = listView selectedItem testItems (label . showt)
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lvNode
+    slNode = selectList selectedItem testItems (label . showt)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv slNode

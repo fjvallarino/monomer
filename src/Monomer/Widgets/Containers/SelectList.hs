@@ -4,14 +4,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Widgets.Containers.ListView (
-  ListViewCfg,
-  ListItem(..),
-  listView,
-  listView_,
-  listViewV,
-  listViewV_,
-  listViewD_
+module Monomer.Widgets.Containers.SelectList (
+  SelectListCfg,
+  SelectListItem(..),
+  selectList,
+  selectList_,
+  selectListV,
+  selectListV_,
+  selectListD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -37,120 +37,120 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
-type ListItem a = (Eq a, Show a, Typeable a)
+type SelectListItem a = (Eq a, Show a, Typeable a)
 type MakeRow s e a = a -> WidgetNode s e
 
-data ListViewCfg s e a = ListViewCfg {
-  _lvcSelectOnBlur :: Maybe Bool,
-  _lvcItemStyle :: Maybe Style,
-  _lvcItemSelectedStyle :: Maybe Style,
-  _lvcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
-  _lvcOnFocus :: [Path -> e],
-  _lvcOnFocusReq :: [WidgetRequest s e],
-  _lvcOnBlur :: [Path -> e],
-  _lvcOnBlurReq :: [WidgetRequest s e],
-  _lvcOnChange :: [a -> e],
-  _lvcOnChangeReq :: [a -> WidgetRequest s e],
-  _lvcOnChangeIdx :: [Int -> a -> e],
-  _lvcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
+data SelectListCfg s e a = SelectListCfg {
+  _slcSelectOnBlur :: Maybe Bool,
+  _slcItemStyle :: Maybe Style,
+  _slcItemSelectedStyle :: Maybe Style,
+  _slcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
+  _slcOnFocus :: [Path -> e],
+  _slcOnFocusReq :: [WidgetRequest s e],
+  _slcOnBlur :: [Path -> e],
+  _slcOnBlurReq :: [WidgetRequest s e],
+  _slcOnChange :: [a -> e],
+  _slcOnChangeReq :: [a -> WidgetRequest s e],
+  _slcOnChangeIdx :: [Int -> a -> e],
+  _slcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
 }
 
-instance Default (ListViewCfg s e a) where
-  def = ListViewCfg {
-    _lvcSelectOnBlur = Nothing,
-    _lvcItemStyle = Nothing,
-    _lvcItemSelectedStyle = Nothing,
-    _lvcMergeRequired = Nothing,
-    _lvcOnFocus = [],
-    _lvcOnFocusReq = [],
-    _lvcOnBlur = [],
-    _lvcOnBlurReq = [],
-    _lvcOnChange = [],
-    _lvcOnChangeReq = [],
-    _lvcOnChangeIdx = [],
-    _lvcOnChangeIdxReq = []
+instance Default (SelectListCfg s e a) where
+  def = SelectListCfg {
+    _slcSelectOnBlur = Nothing,
+    _slcItemStyle = Nothing,
+    _slcItemSelectedStyle = Nothing,
+    _slcMergeRequired = Nothing,
+    _slcOnFocus = [],
+    _slcOnFocusReq = [],
+    _slcOnBlur = [],
+    _slcOnBlurReq = [],
+    _slcOnChange = [],
+    _slcOnChangeReq = [],
+    _slcOnChangeIdx = [],
+    _slcOnChangeIdxReq = []
   }
 
-instance Semigroup (ListViewCfg s e a) where
-  (<>) t1 t2 = ListViewCfg {
-    _lvcSelectOnBlur = _lvcSelectOnBlur t2 <|> _lvcSelectOnBlur t1,
-    _lvcItemStyle = _lvcItemStyle t2 <|> _lvcItemStyle t1,
-    _lvcItemSelectedStyle = _lvcItemSelectedStyle t2 <|> _lvcItemSelectedStyle t1,
-    _lvcMergeRequired = _lvcMergeRequired t2 <|> _lvcMergeRequired t1,
-    _lvcOnFocus = _lvcOnFocus t1 <> _lvcOnFocus t2,
-    _lvcOnFocusReq = _lvcOnFocusReq t1 <> _lvcOnFocusReq t2,
-    _lvcOnBlur = _lvcOnBlur t1 <> _lvcOnBlur t2,
-    _lvcOnBlurReq = _lvcOnBlurReq t1 <> _lvcOnBlurReq t2,
-    _lvcOnChange = _lvcOnChange t1 <> _lvcOnChange t2,
-    _lvcOnChangeReq = _lvcOnChangeReq t1 <> _lvcOnChangeReq t2,
-    _lvcOnChangeIdx = _lvcOnChangeIdx t1 <> _lvcOnChangeIdx t2,
-    _lvcOnChangeIdxReq = _lvcOnChangeIdxReq t1 <> _lvcOnChangeIdxReq t2
+instance Semigroup (SelectListCfg s e a) where
+  (<>) t1 t2 = SelectListCfg {
+    _slcSelectOnBlur = _slcSelectOnBlur t2 <|> _slcSelectOnBlur t1,
+    _slcItemStyle = _slcItemStyle t2 <|> _slcItemStyle t1,
+    _slcItemSelectedStyle = _slcItemSelectedStyle t2 <|> _slcItemSelectedStyle t1,
+    _slcMergeRequired = _slcMergeRequired t2 <|> _slcMergeRequired t1,
+    _slcOnFocus = _slcOnFocus t1 <> _slcOnFocus t2,
+    _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
+    _slcOnBlur = _slcOnBlur t1 <> _slcOnBlur t2,
+    _slcOnBlurReq = _slcOnBlurReq t1 <> _slcOnBlurReq t2,
+    _slcOnChange = _slcOnChange t1 <> _slcOnChange t2,
+    _slcOnChangeReq = _slcOnChangeReq t1 <> _slcOnChangeReq t2,
+    _slcOnChangeIdx = _slcOnChangeIdx t1 <> _slcOnChangeIdx t2,
+    _slcOnChangeIdxReq = _slcOnChangeIdxReq t1 <> _slcOnChangeIdxReq t2
   }
 
-instance Monoid (ListViewCfg s e a) where
+instance Monoid (SelectListCfg s e a) where
   mempty = def
 
-instance CmbOnFocus (ListViewCfg s e a) e Path where
+instance CmbOnFocus (SelectListCfg s e a) e Path where
   onFocus fn = def {
-    _lvcOnFocus = [fn]
+    _slcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (ListViewCfg s e a) s e where
+instance CmbOnFocusReq (SelectListCfg s e a) s e where
   onFocusReq req = def {
-    _lvcOnFocusReq = [req]
+    _slcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ListViewCfg s e a) e Path where
+instance CmbOnBlur (SelectListCfg s e a) e Path where
   onBlur fn = def {
-    _lvcOnBlur = [fn]
+    _slcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (ListViewCfg s e a) s e where
+instance CmbOnBlurReq (SelectListCfg s e a) s e where
   onBlurReq req = def {
-    _lvcOnBlurReq = [req]
+    _slcOnBlurReq = [req]
   }
 
-instance CmbOnChange (ListViewCfg s e a) a e where
+instance CmbOnChange (SelectListCfg s e a) a e where
   onChange fn = def {
-    _lvcOnChange = [fn]
+    _slcOnChange = [fn]
   }
 
-instance CmbOnChangeReq (ListViewCfg s e a) s e a where
+instance CmbOnChangeReq (SelectListCfg s e a) s e a where
   onChangeReq req = def {
-    _lvcOnChangeReq = [req]
+    _slcOnChangeReq = [req]
   }
 
-instance CmbOnChangeIdx (ListViewCfg s e a) e a where
+instance CmbOnChangeIdx (SelectListCfg s e a) e a where
   onChangeIdx fn = def {
-    _lvcOnChangeIdx = [fn]
+    _slcOnChangeIdx = [fn]
   }
 
-instance CmbOnChangeIdxReq (ListViewCfg s e a) s e a where
+instance CmbOnChangeIdxReq (SelectListCfg s e a) s e a where
   onChangeIdxReq req = def {
-    _lvcOnChangeIdxReq = [req]
+    _slcOnChangeIdxReq = [req]
   }
 
-instance CmbSelectOnBlur (ListViewCfg s e a) where
+instance CmbSelectOnBlur (SelectListCfg s e a) where
   selectOnBlur_ select = def {
-    _lvcSelectOnBlur = Just select
+    _slcSelectOnBlur = Just select
   }
 
-instance CmbItemNormalStyle (ListViewCfg s e a) Style where
+instance CmbItemNormalStyle (SelectListCfg s e a) Style where
   itemNormalStyle style = def {
-    _lvcItemStyle = Just style
+    _slcItemStyle = Just style
   }
 
-instance CmbItemSelectedStyle (ListViewCfg s e a) Style where
+instance CmbItemSelectedStyle (SelectListCfg s e a) Style where
   itemSelectedStyle style = def {
-    _lvcItemSelectedStyle = Just style
+    _slcItemSelectedStyle = Just style
   }
 
-instance CmbMergeRequired (ListViewCfg s e a) (Seq a) where
+instance CmbMergeRequired (SelectListCfg s e a) (Seq a) where
   mergeRequired fn = def {
-    _lvcMergeRequired = Just fn
+    _slcMergeRequired = Just fn
   }
 
-data ListViewState a = ListViewState {
+data SelectListState a = SelectListState {
   _prevItems :: Seq a,
   _slIdx :: Int,
   _hlIdx :: Int,
@@ -159,77 +159,77 @@ data ListViewState a = ListViewState {
   _resizeReq :: Bool
 } deriving (Eq, Show)
 
-newtype ListViewMessage
+newtype SelectListMessage
   = OnClickMessage Int
 
-listView
-  :: (Traversable t, ListItem a, WidgetEvent e)
+selectList
+  :: (Traversable t, SelectListItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> MakeRow s e a
   -> WidgetNode s e
-listView field items makeRow = listView_ field items makeRow def
+selectList field items makeRow = selectList_ field items makeRow def
 
-listView_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+selectList_
+  :: (Traversable t, SelectListItem a, WidgetEvent e)
   => ALens' s a
   -> t a
   -> MakeRow s e a
-  -> [ListViewCfg s e a]
+  -> [SelectListCfg s e a]
   -> WidgetNode s e
-listView_ field items makeRow configs = newNode where
-  newNode = listViewD_ (WidgetLens field) items makeRow configs
+selectList_ field items makeRow configs = newNode where
+  newNode = selectListD_ (WidgetLens field) items makeRow configs
 
-listViewV
-  :: (Traversable t, ListItem a, WidgetEvent e)
+selectListV
+  :: (Traversable t, SelectListItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
   -> MakeRow s e a
   -> WidgetNode s e
-listViewV value handler items makeRow = newNode where
-  newNode = listViewV_ value handler items makeRow def
+selectListV value handler items makeRow = newNode where
+  newNode = selectListV_ value handler items makeRow def
 
-listViewV_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+selectListV_
+  :: (Traversable t, SelectListItem a, WidgetEvent e)
   => a
   -> (Int -> a -> e)
   -> t a
   -> MakeRow s e a
-  -> [ListViewCfg s e a]
+  -> [SelectListCfg s e a]
   -> WidgetNode s e
-listViewV_ value handler items makeRow configs = newNode where
+selectListV_ value handler items makeRow configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChangeIdx handler : configs
-  newNode = listViewD_ widgetData items makeRow newConfigs
+  newNode = selectListD_ widgetData items makeRow newConfigs
 
-listViewD_
-  :: (Traversable t, ListItem a, WidgetEvent e)
+selectListD_
+  :: (Traversable t, SelectListItem a, WidgetEvent e)
   => WidgetData s a
   -> t a
   -> MakeRow s e a
-  -> [ListViewCfg s e a]
+  -> [SelectListCfg s e a]
   -> WidgetNode s e
-listViewD_ widgetData items makeRow configs = makeNode widget where
+selectListD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = ListViewState newItems (-1) 0 Nothing Nothing False
-  widget = makeListView widgetData newItems makeRow config newState
+  newState = SelectListState newItems (-1) 0 Nothing Nothing False
+  widget = makeSelectList widgetData newItems makeRow config newState
 
 makeNode :: Widget s e -> WidgetNode s e
-makeNode widget = scroll_ [scrollStyle L.listViewStyle] childNode where
-  childNode = defaultWidgetNode "listView" widget
+makeNode widget = scroll_ [scrollStyle L.selectListStyle] childNode where
+  childNode = defaultWidgetNode "selectList" widget
     & L.info . L.focusable .~ True
 
-makeListView
-  :: (ListItem a, WidgetEvent e)
+makeSelectList
+  :: (SelectListItem a, WidgetEvent e)
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
-  -> ListViewCfg s e a
-  -> ListViewState a
+  -> SelectListCfg s e a
+  -> SelectListState a
   -> Widget s e
-makeListView widgetData items makeRow config state = widget where
+makeSelectList widgetData items makeRow config state = widget where
   widget = createContainer state def {
     containerResizeRequired = _resizeReq state,
     containerInit = init,
@@ -244,33 +244,33 @@ makeListView widgetData items makeRow config state = widget where
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
 
-  createListViewChildren wenv node = children where
+  createSelectListChildren wenv node = children where
     widgetId = node ^. L.info . L.widgetId
     selected = currentValue wenv
     itemsList = makeItemsList wenv items makeRow config widgetId selected
     children = Seq.singleton itemsList
 
   init wenv node = resultWidget newNode where
-    children = createListViewChildren wenv node
+    children = createSelectListChildren wenv node
     newState = state {
       _resizeReq = True
     }
     newNode = node
-      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.widget .~ makeSelectList widgetData items makeRow config newState
       & L.children .~ children
 
   mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
-    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
+    mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
     result = mergeRequiredFn oldItems items
 
   merge wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
-    mergeRequiredFn = fromMaybe (/=) (_lvcMergeRequired config)
+    mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
     flagsChanged = childrenFlagsChanged oldNode node
     mergeRequired = mergeRequiredFn oldItems items || flagsChanged
     children
-      | mergeRequired = createListViewChildren wenv node
+      | mergeRequired = createSelectListChildren wenv node
       | otherwise = oldNode ^. L.children
     result = updateState wenv node oldState mergeRequired children
 
@@ -283,7 +283,7 @@ makeListView widgetData items makeRow config state = widget where
       _resizeReq = resizeReq
     }
     newNode = node
-      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.widget .~ makeSelectList widgetData items makeRow config newState
       & L.children .~ children
 
   updateResultStyle wenv result state = newResult where
@@ -297,15 +297,15 @@ makeListView widgetData items makeRow config state = widget where
     ButtonAction _ btn PressedBtn _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-    Focus prev -> handleFocusChange _lvcOnFocus _lvcOnFocusReq config prev node
+    Focus prev -> handleFocusChange _slcOnFocus _slcOnFocusReq config prev node
     Blur next -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
-      changeReq = isTabPressed && _lvcSelectOnBlur config == Just True
+      changeReq = isTabPressed && _slcSelectOnBlur config == Just True
       WidgetResult tempNode tempReqs
         | changeReq = selectItem wenv node (_hlIdx state)
         | otherwise = resultWidget node
-      evts = RaiseEvent <$> Seq.fromList (($ next) <$> _lvcOnBlur config)
-      reqs = tempReqs <> Seq.fromList (_lvcOnBlurReq config)
+      evts = RaiseEvent <$> Seq.fromList (($ next) <$> _slcOnBlur config)
+      reqs = tempReqs <> Seq.fromList (_slcOnBlurReq config)
       mergedResult = Just $ WidgetResult tempNode (reqs <> evts)
       result
         | changeReq || not (null evts && null reqs) = mergedResult
@@ -351,7 +351,7 @@ makeListView widgetData items makeRow config state = widget where
       _hlStyle = newHlStyle
     }
     tmpNode = node
-      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.widget .~ makeSelectList widgetData items makeRow config newState
     slIdx = _slIdx state
     (newNode, resizeReq) = updateStyles wenv config state tmpNode slIdx nextIdx
     reqs = itemScrollTo wenv newNode nextIdx ++ resizeReq
@@ -362,10 +362,10 @@ makeListView widgetData items makeRow config state = widget where
     value = fromMaybe selected (Seq.lookup idx items)
     valueSetReq = widgetDataSet widgetData value
     scrollToReq = itemScrollTo wenv node idx
-    events = fmap ($ value) (_lvcOnChange config)
-      ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdx config)
-    changeReqs = fmap ($ value) (_lvcOnChangeReq config)
-      ++ fmap (\fn -> fn idx value) (_lvcOnChangeIdxReq config)
+    events = fmap ($ value) (_slcOnChange config)
+      ++ fmap (\fn -> fn idx value) (_slcOnChangeIdx config)
+    changeReqs = fmap ($ value) (_slcOnChangeReq config)
+      ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
     (styledNode, resizeReq) = updateStyles wenv config state node idx (-1)
     newSlStyle
       | idx == _hlIdx state = _hlStyle state
@@ -378,7 +378,7 @@ makeListView widgetData items makeRow config state = widget where
       _resizeReq = not (null resizeReq)
     }
     newNode = styledNode
-      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.widget .~ makeSelectList widgetData items makeRow config newState
     requests = valueSetReq ++ scrollToReq ++ changeReqs ++ resizeReq
     result = resultReqsEvts newNode requests events
 
@@ -401,14 +401,14 @@ makeListView widgetData items makeRow config state = widget where
   resize wenv node viewport children = resized where
     newState = state { _resizeReq = False }
     newNode = node
-      & L.widget .~ makeListView widgetData items makeRow config newState
+      & L.widget .~ makeSelectList widgetData items makeRow config newState
     assignedArea = Seq.singleton viewport
     resized = (resultWidget newNode, assignedArea)
 
 updateStyles
   :: WidgetEnv s e
-  -> ListViewCfg s e a
-  -> ListViewState a
+  -> SelectListCfg s e a
+  -> SelectListState a
   -> WidgetNode s e
   -> Int
   -> Int
@@ -464,21 +464,21 @@ resetItemStyle item (Just st) = item
 
 getItemStyle :: WidgetNode s e -> Int -> Style
 getItemStyle node idx = itStyle where
-  -- ListView -> Stack -> Box -> Content
+  -- SelectList -> Stack -> Box -> Content
   itemLens = L.children . ix 0 . L.children . ix idx . L.children . ix 0
   itStyle = node ^. itemLens . L.info . L.style
 
-getSlStyle :: WidgetEnv s e -> ListViewCfg s e a -> Style
+getSlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getSlStyle wenv config = slStyle where
-  theme = collectTheme wenv L.listViewItemSelectedStyle
-  style = fromJust (Just theme <> _lvcItemSelectedStyle config)
+  theme = collectTheme wenv L.selectListItemSelectedStyle
+  style = fromJust (Just theme <> _slcItemSelectedStyle config)
   slStyle = style
     & L.basic .~ style ^. L.focus
 
-getHlStyle :: WidgetEnv s e -> ListViewCfg s e a -> Style
+getHlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getHlStyle wenv config = hlStyle where
-  theme = collectTheme wenv L.listViewItemStyle
-  style = fromJust (Just theme <> _lvcItemStyle config)
+  theme = collectTheme wenv L.selectListItemStyle
+  style = fromJust (Just theme <> _slcItemStyle config)
   hlStyle = style
     & L.basic .~ style ^. L.focus
 
@@ -487,13 +487,13 @@ makeItemsList
   => WidgetEnv s e
   -> Seq a
   -> MakeRow s e a
-  -> ListViewCfg s e a
+  -> SelectListCfg s e a
   -> WidgetId
   -> a
   -> WidgetNode s e
 makeItemsList wenv items makeRow config widgetId selected = itemsList where
-  normalTheme = collectTheme wenv L.listViewItemStyle
-  normalStyle = fromJust (Just normalTheme <> _lvcItemStyle config)
+  normalTheme = collectTheme wenv L.selectListItemStyle
+  normalStyle = fromJust (Just normalTheme <> _slcItemStyle config)
   makeItem idx item = newItem where
     clickCfg = onClickReq $ SendMessage widgetId (OnClickMessage idx)
     itemCfg = [expandContent, clickCfg]

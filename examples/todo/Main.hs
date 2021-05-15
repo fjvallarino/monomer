@@ -76,7 +76,7 @@ handleEvent
   -> WidgetNode TodoModel TodoEvt
   -> TodoModel
   -> TodoEvt
-  -> [EventResponse TodoModel TodoEvt ()]
+  -> [EventResponse TodoModel TodoEvt TodoModel ()]
 handleEvent wenv node model evt = case evt of
   TodoInit -> [setFocus wenv "todoNew"]
   TodoNew -> [
@@ -121,7 +121,7 @@ addNewTodo wenv model = newModel where
 remove :: Int -> [a] -> [a]
 remove idx ls = take idx ls ++ drop (idx + 1) ls
 
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 

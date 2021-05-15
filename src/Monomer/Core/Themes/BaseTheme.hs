@@ -70,19 +70,19 @@ data BaseThemeColors = BaseThemeColors {
   inputSelFocus :: Color,
   inputText :: Color,
   labelText :: Color,
-  lvMainBg :: Color,
-  lvNormalBgBasic :: Color,
-  lvNormalBgHover :: Color,
-  lvNormalText :: Color,
-  lvSelectedBgBasic :: Color,
-  lvSelectedBgHover :: Color,
-  lvSelectedText :: Color,
-  lvNormalFocusBorder :: Color,
-  lvSelectedFocusBorder :: Color,
   scrollBarBasic :: Color,
   scrollThumbBasic :: Color,
   scrollBarHover :: Color,
   scrollThumbHover :: Color,
+  slMainBg :: Color,
+  slNormalBgBasic :: Color,
+  slNormalBgHover :: Color,
+  slNormalText :: Color,
+  slSelectedBgBasic :: Color,
+  slSelectedBgHover :: Color,
+  slSelectedText :: Color,
+  slNormalFocusBorder :: Color,
+  slSelectedFocusBorder :: Color,
   tooltipBorder :: Color,
   tooltipBg :: Color,
   tooltipText :: Color
@@ -134,19 +134,19 @@ numericInputStyle :: BaseThemeColors -> StyleState
 numericInputStyle themeMod = inputStyle themeMod
   & L.text . non def . L.alignH ?~ ATRight
 
-listViewItemStyle :: BaseThemeColors -> StyleState
-listViewItemStyle themeMod = def
-  & L.text ?~ (normalFont & L.fontColor ?~ lvNormalText themeMod)
+selectListItemStyle :: BaseThemeColors -> StyleState
+selectListItemStyle themeMod = def
+  & L.text ?~ (normalFont & L.fontColor ?~ slNormalText themeMod)
   & L.text . non def . L.alignH ?~ ATLeft
-  & L.bgColor ?~ lvNormalBgBasic themeMod
-  & L.border ?~ border 1 (lvNormalBgBasic themeMod)
+  & L.bgColor ?~ slNormalBgBasic themeMod
+  & L.border ?~ border 1 (slNormalBgBasic themeMod)
   & L.padding ?~ paddingH 5
 
-listViewItemSelectedStyle :: BaseThemeColors -> StyleState
-listViewItemSelectedStyle themeMod = listViewItemStyle themeMod
-  & L.text . non def . L.fontColor ?~ lvSelectedText themeMod
-  & L.bgColor ?~ lvSelectedBgBasic themeMod
-  & L.border ?~ border 1 (lvSelectedBgBasic themeMod)
+selectListItemSelectedStyle :: BaseThemeColors -> StyleState
+selectListItemSelectedStyle themeMod = selectListItemStyle themeMod
+  & L.text . non def . L.fontColor ?~ slSelectedText themeMod
+  & L.bgColor ?~ slSelectedBgBasic themeMod
+  & L.border ?~ border 1 (slSelectedBgBasic themeMod)
 
 baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
@@ -175,19 +175,19 @@ baseBasic themeMod = def
   & L.dropdownStyle . L.padding ?~ paddingH 5
   & L.dropdownStyle . L.text . non def . L.alignH ?~ ATLeft
   & L.dropdownMaxHeight .~ 200
-  & L.dropdownListStyle . L.bgColor ?~ lvMainBg themeMod
-  & L.dropdownItemStyle .~ listViewItemStyle themeMod
-  & L.dropdownItemSelectedStyle .~ listViewItemSelectedStyle themeMod
+  & L.dropdownListStyle . L.bgColor ?~ slMainBg themeMod
+  & L.dropdownItemStyle .~ selectListItemStyle themeMod
+  & L.dropdownItemSelectedStyle .~ selectListItemSelectedStyle themeMod
   & L.externalLinkStyle . L.text ?~ (normalFont & L.fontColor ?~ externalLinkColor themeMod)
   & L.inputNumericStyle .~ numericInputStyle themeMod
   & L.inputTextStyle .~ inputStyle themeMod
   & L.labelStyle . L.text
     ?~ (normalFont & L.fontColor ?~ labelText themeMod) <> textLeft
   & L.labelStyle . L.padding ?~ textPadding
-  & L.listViewStyle . L.bgColor ?~ lvMainBg themeMod
-  & L.listViewStyle . L.border ?~ border 1 (lvMainBg themeMod)
-  & L.listViewItemStyle .~ listViewItemStyle themeMod
-  & L.listViewItemSelectedStyle .~ listViewItemSelectedStyle themeMod
+  & L.selectListStyle . L.bgColor ?~ slMainBg themeMod
+  & L.selectListStyle . L.border ?~ border 1 (slMainBg themeMod)
+  & L.selectListItemStyle .~ selectListItemStyle themeMod
+  & L.selectListItemSelectedStyle .~ selectListItemSelectedStyle themeMod
   & L.radioWidth .~ 20
   & L.radioStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.scrollOverlay .~ False
@@ -225,22 +225,22 @@ baseHover themeMod = baseBasic themeMod
   & L.dialogCloseIconStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ inputBgHover themeMod
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand
-  & L.dropdownItemStyle . L.bgColor ?~ lvNormalBgHover themeMod
-  & L.dropdownItemStyle . L.border ?~ border 1 (lvNormalBgHover themeMod)
+  & L.dropdownItemStyle . L.bgColor ?~ slNormalBgHover themeMod
+  & L.dropdownItemStyle . L.border ?~ border 1 (slNormalBgHover themeMod)
   & L.dropdownItemStyle . L.cursorIcon ?~ CursorHand
-  & L.dropdownItemSelectedStyle . L.bgColor ?~ lvSelectedBgHover themeMod
-  & L.dropdownItemSelectedStyle . L.border ?~ border 1 (lvSelectedBgHover themeMod)
+  & L.dropdownItemSelectedStyle . L.bgColor ?~ slSelectedBgHover themeMod
+  & L.dropdownItemSelectedStyle . L.border ?~ border 1 (slSelectedBgHover themeMod)
   & L.dropdownItemSelectedStyle . L.cursorIcon ?~ CursorHand
   & L.externalLinkStyle . L.text . non def . L.underline ?~ True
   & L.externalLinkStyle . L.cursorIcon ?~ CursorHand
   & L.inputNumericStyle . L.cursorIcon ?~ CursorIBeam
   & L.inputTextStyle . L.cursorIcon ?~ CursorIBeam
-  & L.listViewItemStyle . L.bgColor ?~ lvNormalBgHover themeMod
-  & L.listViewItemStyle . L.border ?~ border 1 (lvNormalBgHover themeMod)
-  & L.listViewItemStyle . L.cursorIcon ?~ CursorHand
-  & L.listViewItemSelectedStyle . L.bgColor ?~ lvSelectedBgHover themeMod
-  & L.listViewItemSelectedStyle . L.border ?~ border 1 (lvSelectedBgHover themeMod)
-  & L.listViewItemSelectedStyle . L.cursorIcon ?~ CursorHand
+  & L.selectListItemStyle . L.bgColor ?~ slNormalBgHover themeMod
+  & L.selectListItemStyle . L.border ?~ border 1 (slNormalBgHover themeMod)
+  & L.selectListItemStyle . L.cursorIcon ?~ CursorHand
+  & L.selectListItemSelectedStyle . L.bgColor ?~ slSelectedBgHover themeMod
+  & L.selectListItemSelectedStyle . L.border ?~ border 1 (slSelectedBgHover themeMod)
+  & L.selectListItemSelectedStyle . L.cursorIcon ?~ CursorHand
   & L.radioStyle . L.fgColor ?~ inputFgHover themeMod
   & L.radioStyle . L.cursorIcon ?~ CursorHand
   & L.scrollBarColor .~ scrollBarHover themeMod
@@ -259,15 +259,15 @@ baseFocus themeMod = baseBasic themeMod
   & L.dialStyle . L.sndColor ?~ inputSndFocus themeMod
   & L.dropdownStyle . L.border ?~ borderFocus themeMod
   & L.dropdownListStyle . L.border ?~ borderFocus themeMod
-  & L.dropdownItemStyle . L.border ?~ border 1 (lvNormalFocusBorder themeMod)
-  & L.dropdownItemSelectedStyle . L.border ?~ border 1 (lvSelectedFocusBorder themeMod)
+  & L.dropdownItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
+  & L.dropdownItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
   & L.inputNumericStyle . L.border ?~ borderFocus themeMod
   & L.inputNumericStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.inputTextStyle . L.border ?~ borderFocus themeMod
   & L.inputTextStyle . L.hlColor ?~ inputSelFocus themeMod
-  & L.listViewStyle . L.border ?~ borderFocus themeMod
-  & L.listViewItemStyle . L.border ?~ border 1 (lvNormalFocusBorder themeMod)
-  & L.listViewItemSelectedStyle . L.border ?~ border 1 (lvSelectedFocusBorder themeMod)
+  & L.selectListStyle . L.border ?~ borderFocus themeMod
+  & L.selectListItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
+  & L.selectListItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
   & L.radioStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlFocus themeMod

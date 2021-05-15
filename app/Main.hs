@@ -218,7 +218,7 @@ buildUI wenv model = traceShow "Creating UI" widgetScroll where
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
-        listView dropdown1 items label `style` [height 300],
+        selectList dropdown1 items label `style` [height 300],
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
         scroll (image "assets/images/pecans.jpg") `style` [height 200],
         scroll (image "assets/images/pecans.jpg") `style` [height 200]
@@ -302,7 +302,7 @@ buildUI wenv model = traceShow "Creating UI" widgetScroll where
       ],
       textDropdown dropdown1 items,
       vstack $ fmap (\i -> label ("AAAA: " <> showt i) `hover` [textSize 40]) [1..10::Int],
-      listView dropdown1 items label
+      selectList dropdown1 items label
     ]
   widgetIdChanged = vstack [
       button "Show label" IncButton,
@@ -337,7 +337,7 @@ buildUI wenv model = traceShow "Creating UI" widgetScroll where
   widgetLV = vstack [
       scroll $ vstack $ (\i -> box $ label ("Label: " <> showt i)) <$> [0..1000::Int]
       label "aaa"
-      , listView dropdown1 items label `style` [height 300]
+      , selectList dropdown1 items label `style` [height 300]
       , scroll $ image "assets/images/pecans.jpg"
       , dropdown_ dropdown1 items label label [maxHeight 200]
     ]
@@ -448,7 +448,7 @@ buildUI wenv model = traceShow "Creating UI" widgetScroll where
         label "Floating",
         numericField float1,
         --image "assets/images/pecans.jpg"
-        listView_ dropdown1 items label [],
+        selectList_ dropdown1 items label [],
         --dropdown dropdown1 items id label
         label "Text",
         textField textField1

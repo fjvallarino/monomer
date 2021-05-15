@@ -84,7 +84,7 @@ handleEvent
   -> WidgetNode TickerModel TickerEvt
   -> TickerModel
   -> TickerEvt
-  -> [EventResponse TickerModel TickerEvt ()]
+  -> [EventResponse TickerModel TickerEvt TickerModel ()]
 handleEvent env wenv node model evt = case evt of
   TickerInit -> [
     Model $ model
@@ -188,7 +188,7 @@ main = do
       ]
     initModel = def
 
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
 

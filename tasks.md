@@ -617,14 +617,14 @@
     - Initial value should not be forced.
     - Can both direct field and Maybe version be provided?
     - Create time component (having them separate is easier)
+  - Focus follow in nested scroll widgets does not work correctly
+    - Maybe offset should be in node info?
+    - Focus tracking in nested non-expanded scrolls is not possible otherwise
+    - Maybe IgnoreParentEvents could work?
+  - Rename ListView -> SelectList
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
-  - Rename ListView -> SelectList
-    - Add support for multiple selection
-  - Maybe offset should be in node info?
-    - Focus tracking in nested non-expanded scrolls is not possible otherwise
-    - Maybe IgnoreParentEvents could work?
   - Add support for multiline text editing
 
 Future
@@ -636,6 +636,7 @@ Future
   - Create GridView
     - Adjusts column width and row height (not possible to have both combining hstack/vstack)
   - Create Layout with width/heights specified in percents
+  - Add support for multiple selection in SelectList
   - Add arrow icon similar to Renoise's
   - Think about dashed lines (could be made with an image paint)
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations

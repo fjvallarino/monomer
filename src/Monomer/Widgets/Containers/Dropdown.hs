@@ -30,12 +30,12 @@ import GHC.Generics
 import qualified Data.Sequence as Seq
 
 import Monomer.Widgets.Container
-import Monomer.Widgets.Containers.ListView
+import Monomer.Widgets.Containers.SelectList
 import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 
-type DropdownItem a = ListItem a
+type DropdownItem a = SelectListItem a
 
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
@@ -260,11 +260,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     mainNode = makeMain selected
       & L.info . L.style .~ mainStyle
     widgetId = node ^. L.info . L.widgetId
-    listViewNode = makeListView wenv widgetData items makeRow config widgetId
+    selectListNode = makeSelectList wenv widgetData items makeRow config widgetId
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
     newNode = node
       & L.widget .~ newWidget
-      & L.children .~ Seq.fromList [mainNode, listViewNode]
+      & L.children .~ Seq.fromList [mainNode, selectListNode]
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dropdownStyle
@@ -308,9 +308,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
-      lvPoint = addPoint (negPoint (_ddsOffset state)) point
+      slPoint = addPoint (negPoint (_ddsOffset state)) point
       validMainPos = isPointInNodeVp point mainNode
-      validListPos = isOpen && isPointInNodeVp lvPoint listNode
+      validListPos = isOpen && isPointInNodeVp slPoint listNode
       validPos = validMainPos || validListPos
       isArrow = Just CursorArrow == (snd <$> wenv ^. L.cursor)
       resetRes = resultReqs node [SetCursorIcon widgetId CursorArrow]
@@ -356,9 +356,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     path = node ^. L.info . L.path
     widgetId = node ^. L.info . L.widgetId
-    -- listView is wrapped by a scroll widget
-    lvWid = node^?! L.children. ix listIdx. L.children. ix 0. L.info. L.widgetId
-    requests = [SetOverlay widgetId path, SetFocus lvWid]
+    -- selectList is wrapped by a scroll widget
+    slWid = node^?! L.children. ix listIdx. L.children. ix 0. L.info. L.widgetId
+    requests = [SetOverlay widgetId path, SetFocus slWid]
 
   closeDropdown wenv node = resultReqs newNode requests where
     widgetId = node ^. L.info . L.widgetId
@@ -471,7 +471,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     widget = overlayNode ^. L.widget
     renderAction = widgetRender widget wenv overlayNode renderer
 
-makeListView
+makeSelectList
   :: (DropdownItem a, WidgetEvent e)
   => WidgetEnv s e
   -> WidgetData s a
@@ -480,21 +480,21 @@ makeListView
   -> DropdownCfg s e a
   -> WidgetId
   -> WidgetNode s e
-makeListView wenv value items makeRow config widgetId = listViewNode where
+makeSelectList wenv value items makeRow config widgetId = selectListNode where
   normalTheme = collectTheme wenv L.dropdownItemStyle
   selectedTheme = collectTheme wenv L.dropdownItemSelectedStyle
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
-  lvConfig = [
+  slConfig = [
       selectOnBlur,
       onBlurReq (SendMessage widgetId OnListBlur),
       onChangeIdxReq (\idx it -> SendMessage widgetId (OnChangeMessage idx it)),
       itemNormalStyle itemStyle,
       itemSelectedStyle itemSelStyle
     ]
-  lvStyle = collectTheme wenv L.dropdownListStyle
-  listViewNode = listViewD_ value items makeRow lvConfig
-    & L.info . L.style .~ lvStyle
+  slStyle = collectTheme wenv L.dropdownListStyle
+  selectListNode = selectListD_ value items makeRow slConfig
+    & L.info . L.style .~ slStyle
     & L.info . L.overlay .~ True
 
 createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s e

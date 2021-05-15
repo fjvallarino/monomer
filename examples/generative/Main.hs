@@ -66,7 +66,7 @@ handleEvent
   -> WidgetNode GenerativeModel GenerativeEvt
   -> GenerativeModel
   -> GenerativeEvt
-  -> [EventResponse GenerativeModel GenerativeEvt ()]
+  -> [EventResponse GenerativeModel GenerativeEvt GenerativeModel ()]
 handleEvent wenv node model evt = case evt of
   GenerativeInit -> [setFocus wenv "activeType"]
 
@@ -93,6 +93,6 @@ genTypeDesc :: GenerativeType -> Text
 genTypeDesc CirclesGrid = "Randomness in size and location for circles"
 genTypeDesc BoxesPalette = "Randomness in palette for boxes"
 
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e ep
+setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (globalKeyWidgetId wenv key)
