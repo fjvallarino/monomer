@@ -146,7 +146,10 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetScroll where
+buildUI wenv model = traceShow "Creating UI" widgetText where
+  widgetText = vstack [
+      textArea textArea1
+    ]
   widgetDate = vstack [
 --      hstack [
 --        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],

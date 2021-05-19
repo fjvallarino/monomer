@@ -10,6 +10,7 @@ import Data.Sequence (Seq)
 import GHC.Generics
 
 import qualified Data.ByteString as BS
+import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
 import Monomer.Core.BasicTypes
@@ -141,6 +142,15 @@ data TextLine = TextLine {
   _tlGlyphs :: !(Seq GlyphPos),
   _tlMetrics :: !TextMetrics
 } deriving (Eq, Show, Generic)
+
+instance Default TextLine where
+  def = TextLine {
+    _tlText = "",
+    _tlSize = def,
+    _tlRect = def,
+    _tlGlyphs = Seq.empty,
+    _tlMetrics = def
+  }
 
 data ImageFlag
   = ImageNearest

@@ -34,6 +34,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.Radio,
   module Monomer.Widgets.Singles.Slider,
   module Monomer.Widgets.Singles.Spacer,
+  module Monomer.Widgets.Singles.TextArea,
   module Monomer.Widgets.Singles.TextDropdown,
   module Monomer.Widgets.Singles.TextField,
   module Monomer.Widgets.Singles.TimeField
@@ -74,6 +75,7 @@ import Monomer.Widgets.Singles.NumericField
 import Monomer.Widgets.Singles.Radio
 import Monomer.Widgets.Singles.Slider
 import Monomer.Widgets.Singles.Spacer
+import Monomer.Widgets.Singles.TextArea
 import Monomer.Widgets.Singles.TextDropdown
 import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Singles.TimeField
