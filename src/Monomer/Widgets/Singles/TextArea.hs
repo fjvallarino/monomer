@@ -124,10 +124,10 @@ makeTextArea wdata config state = widget where
     reqs = [RenderStop widgetId]
 
   handleKeyPress wenv mod code
---    | isDelBackWordNoSel = Just $ moveCursor removeWord prevWordStartIdx Nothing
-    | isDelBackWord = Just removeWordL
+    | isDelBackWordNoSel = Just removeWordL
+    | isDelBackWord = Just (replaceText state selStart "")
     | isBackspace && emptySel = Just removeCharL
---    | isBackspace = Just $ moveCursor removeCharL minTpSel Nothing
+    | isBackspace = Just (replaceText state selStart "")
     | isMoveLeft = Just $ moveCursor txt (tpX - 1, tpY) Nothing
     | isMoveRight = Just $ moveCursor txt (tpX + 1, tpY) Nothing
     | isMoveUp = Just $ moveCursor txt (tpX, tpY - 1) Nothing
@@ -139,12 +139,16 @@ makeTextArea wdata config state = widget where
     | isSelectAll = Just $ moveCursor txt (0, 0) (Just (totalLines, lineLen (totalLines - 1)))
     | isSelectLeft = Just $ moveCursor txt (tpX - 1, tpY) (Just tp)
     | isSelectRight = Just $ moveCursor txt (tpX + 1, tpY) (Just tp)
+    | isSelectUp = Just $ moveCursor txt (tpX, tpY - 1) (Just tp)
+    | isSelectDown = Just $ moveCursor txt (tpX, tpY + 1) (Just tp)
     | isSelectWordL = Just $ moveCursor txt prevWordPos (Just tp)
     | isSelectWordR = Just $ moveCursor txt nextWordPos (Just tp)
---    | isSelectLineL = Just $ moveCursor txt 0 (Just tp)
---    | isSelectLineR = Just $ moveCursor txt txtLen (Just tp)
+    | isSelectLineL = Just $ moveCursor txt (0, tpY) (Just tp)
+    | isSelectLineR = Just $ moveCursor txt (lineLen tpY, tpY) (Just tp)
     | isDeselectLeft = Just $ moveCursor txt minTpSel Nothing
     | isDeselectRight = Just $ moveCursor txt maxTpSel Nothing
+    | isDeselectUp = Just $ moveCursor txt (tpX, tpY - 1) Nothing
+    | isDeselectDown = Just $ moveCursor txt (tpX, tpY + 1) Nothing
     | otherwise = Nothing
     where
       txt = currText
@@ -217,12 +221,16 @@ makeTextArea wdata config state = widget where
       isSelectAll = isAllMod && isKeyA code
       isSelectLeft = isSelect && isLeft
       isSelectRight = isSelect && isRight
+      isSelectUp = isSelect && isUp
+      isSelectDown = isSelect && isDown
       isSelectWordL = isSelectWord && isLeft
       isSelectWordR = isSelectWord && isRight
       isSelectLineL = (isSelectLine && isLeft) || (isShift && isHome)
       isSelectLineR = (isSelectLine && isRight) || (isShift && isEnd)
       isDeselectLeft = isMove && activeSel && isLeft
       isDeselectRight = isMove && activeSel && isRight
+      isDeselectUp = isMove && activeSel && isUp
+      isDeselectDown = isMove && activeSel && isDown
       removeCharL
         | tpX > 0 = replaceText state (Just (tpX - 1, tpY)) ""
         | otherwise = replaceText state (Just (lineLen (tpY - 1), tpY - 1)) ""
@@ -296,19 +304,21 @@ makeTextArea wdata config state = widget where
   getSizeReq wenv node = sizeReq where
     sizeReq = (minWidth 100, minHeight 100)
 
-  render wenv node renderer = do
-    when selRequired $
-      forM_ selRects $ \rect ->
-        drawRect renderer rect (Just selColor) Nothing
+  render wenv node renderer =
+    drawInTranslation renderer offset $ do
+      when selRequired $
+        forM_ selRects $ \rect ->
+          drawRect renderer rect (Just selColor) Nothing
 
-    forM_ textLines (drawTextLine renderer style)
+      forM_ textLines (drawTextLine renderer style)
 
-    when caretRequired $
-      drawRect renderer caretRect (Just caretColor) Nothing
+      when caretRequired $
+        drawRect renderer caretRect (Just caretColor) Nothing
     where
       style = activeStyle wenv node
       contentArea = getContentArea style node
       ts = _weTimestamp wenv
+      offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
       caretRect = getCaretRect state contentArea
@@ -359,15 +369,13 @@ getSelectionRects state contentArea = rects where
     rw = glyphPos cx2 cy - rx
     ry = fromIntegral cy * lineh
     rh = lineh
-  pairs
+  rects
     | selY1 == selY2 = [makeRect selX1 selX2 selY1]
     | otherwise = begin : middle ++ end where
       begin = makeRect selX1 (lineLen selY1) selY1
-      middleLines = Seq.drop selY1 . Seq.take (selY2 - selY2) $ textLines
-      middle = toList (view L.rect <$> textLines)
+      middleLines = Seq.drop (selY1 + 1) . Seq.take selY2 $ textLines
+      middle = toList (view L.rect <$> middleLines)
       end = [makeRect 0 selX2 selY2]
-  offset = Point (contentArea ^. L.x) (contentArea ^. L.y + desc)
-  rects = moveRect offset <$> pairs
 
 stateFromText
   :: WidgetEnv s e -> WidgetNode s e -> TextAreaState -> Text -> TextAreaState

@@ -211,7 +211,7 @@ makeLabel config state = widget where
     newTextLines = alignTextLines style crect fittedLines
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines
-      | not newGlyphsReq = moveTextLines (cx - px) (cy - py) textLines
+      | not newGlyphsReq = moveTextLines (Point (cx - px) (cy - py)) textLines
       | otherwise = newTextLines
     (prevTs, prevStep) = prevResize
     needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)

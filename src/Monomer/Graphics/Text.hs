@@ -303,8 +303,8 @@ getTextLinesSize textLines = size where
     | Seq.null textLines = def
     | otherwise = Size width height
 
-moveTextLines :: Double -> Double -> Seq TextLine -> Seq TextLine
-moveTextLines offsetX offsetY textLines = newTextLines where
+moveTextLines :: Point -> Seq TextLine -> Seq TextLine
+moveTextLines (Point offsetX offsetY) textLines = newTextLines where
   moveTextLine tl = tl
     & L.rect . L.x +~ offsetX
     & L.rect . L.y +~ offsetY
