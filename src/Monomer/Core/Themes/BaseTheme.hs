@@ -204,6 +204,7 @@ baseBasic themeMod = def
   & L.sliderStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlBasic themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndBasic themeMod
+  & L.textAreaStyle .~ inputStyle themeMod
   & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
   & L.tooltipStyle . L.bgColor ?~ tooltipBg themeMod
   & L.tooltipStyle . L.border ?~ border 1 (tooltipBorder themeMod)
@@ -249,6 +250,7 @@ baseHover themeMod = baseBasic themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlHover themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndHover themeMod
   & L.sliderStyle . L.cursorIcon ?~ CursorHand
+  & L.textAreaStyle . L.cursorIcon ?~ CursorIBeam
 
 baseFocus :: BaseThemeColors -> ThemeState
 baseFocus themeMod = baseBasic themeMod
@@ -272,6 +274,8 @@ baseFocus themeMod = baseBasic themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlFocus themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndFocus themeMod
+  & L.textAreaStyle . L.border ?~ borderFocus themeMod
+  & L.textAreaStyle . L.hlColor ?~ inputSelFocus themeMod
 
 baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
@@ -298,6 +302,8 @@ baseActive themeMod = baseFocusHover themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgActive themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlActive themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndActive themeMod
+  & L.textAreaStyle . L.border ?~ borderFocus themeMod
+  & L.textAreaStyle . L.hlColor ?~ inputSelFocus themeMod
 
 baseDisabled :: BaseThemeColors -> ThemeState
 baseDisabled themeMod = baseBasic themeMod

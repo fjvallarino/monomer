@@ -95,6 +95,7 @@ textArea_ field configs = node where
 makeTextArea :: WidgetData s Text -> TextAreaCfg -> TextAreaState -> Widget s e
 makeTextArea wdata config state = widget where
   widget = createSingle state def {
+    singleGetBaseStyle = getBaseStyle,
     singleInit = init,
     singleDispose = dispose,
     singleHandleEvent = handleEvent,
@@ -108,6 +109,9 @@ makeTextArea wdata config state = widget where
   -- State
   currText = _tasText state
   textLines = _tasTextLines state
+
+  getBaseStyle wenv node = Just style where
+    style = collectTheme wenv L.textAreaStyle
 
   init wenv node = resultWidget newNode where
     text = getModelValue wenv
@@ -132,26 +136,30 @@ makeTextArea wdata config state = widget where
     | isMoveWordR = Just $ moveCursor txt nextWordPos Nothing
     | isMoveLineL = Just $ moveCursor txt (0, tpY) Nothing
     | isMoveLineR = Just $ moveCursor txt (lineLen tpY, tpY) Nothing
---    | isSelectAll = Just $ moveCursor txt 0 (Just txtLen)
---    | isSelectLeft = Just $ moveCursor txt (tp - 1) (Just tp)
---    | isSelectRight = Just $ moveCursor txt (tp + 1) (Just tp)
---    | isSelectWordL = Just $ moveCursor txt prevWordStartIdx (Just tp)
---    | isSelectWordR = Just $ moveCursor txt nextWordEndIdx (Just tp)
+    | isSelectAll = Just $ moveCursor txt (0, 0) (Just (totalLines, lineLen (totalLines - 1)))
+    | isSelectLeft = Just $ moveCursor txt (tpX - 1, tpY) (Just tp)
+    | isSelectRight = Just $ moveCursor txt (tpX + 1, tpY) (Just tp)
+    | isSelectWordL = Just $ moveCursor txt prevWordPos (Just tp)
+    | isSelectWordR = Just $ moveCursor txt nextWordPos (Just tp)
 --    | isSelectLineL = Just $ moveCursor txt 0 (Just tp)
 --    | isSelectLineR = Just $ moveCursor txt txtLen (Just tp)
---    | isDeselectLeft = Just $ moveCursor txt minTpSel Nothing
---    | isDeselectRight = Just $ moveCursor txt maxTpSel Nothing
+    | isDeselectLeft = Just $ moveCursor txt minTpSel Nothing
+    | isDeselectRight = Just $ moveCursor txt maxTpSel Nothing
     | otherwise = Nothing
     where
       txt = currText
       txtLen = T.length txt
-      (tpX, tpY) = _tasCursorPos state
+      tp@(tpX, tpY) = _tasCursorPos state
       selStart = _tasSelStart state
+      (minTpSel, maxTpSel)
+        | swap tp <= swap (fromJust selStart) = (tp, fromJust selStart)
+        | otherwise = (fromJust selStart, tp)
       emptySel = isNothing selStart
       line idx
         | length textLines > idx = Seq.index textLines idx ^. L.text
         | otherwise = ""
       lineLen = T.length . line
+      totalLines = length textLines
       --(part1, part2) = T.splitAt currPos currText
       --currSelVal = fromMaybe 0 selStart
       activeSel = isJust selStart
@@ -289,6 +297,10 @@ makeTextArea wdata config state = widget where
     sizeReq = (minWidth 100, minHeight 100)
 
   render wenv node renderer = do
+    when selRequired $
+      forM_ selRects $ \rect ->
+        drawRect renderer rect (Just selColor) Nothing
+
     forM_ textLines (drawTextLine renderer style)
 
     when caretRequired $
@@ -300,12 +312,15 @@ makeTextArea wdata config state = widget where
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
       caretRect = getCaretRect state contentArea
+      selRequired = isJust (_tasSelStart state)
+      selColor = styleHlColor style
+      selRects = getSelectionRects state contentArea
 
 getCaretRect :: TextAreaState -> Rect -> Rect
 getCaretRect state contentArea = caretRect where
   Rect cx cy cw ch = contentArea 
   (cursorX, cursorY) = _tasCursorPos state
-  TextMetrics _ _ lineh = _tasTextMetrics state
+  TextMetrics _ desc lineh = _tasTextMetrics state
   textLines = _tasTextLines state
   (lineRect, glyphs) = case Seq.lookup cursorY textLines of
     Just tl -> (tl ^. L.rect, tl ^. L.glyphs)
@@ -316,8 +331,43 @@ getCaretRect state contentArea = caretRect where
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
   caretX = max 0 $ min (cx + cw - caretW) (tx + caretPos)
-  caretY = cy + ty
+  caretY = cy + ty + desc
   caretRect = Rect caretX caretY caretW lineh
+
+getSelectionRects :: TextAreaState -> Rect -> [Rect]
+getSelectionRects state contentArea = rects where
+  currPos = _tasCursorPos state
+  currSel = fromMaybe def (_tasSelStart state)
+  TextMetrics _ desc lineh = _tasTextMetrics state
+  textLines = _tasTextLines state
+  line idx
+    | length textLines > idx = Seq.index textLines idx ^. L.text
+    | otherwise = ""
+  lineLen = T.length . line
+  glyphs idx
+    | length textLines > idx = Seq.index textLines idx ^. L.glyphs
+    | otherwise = Seq.empty
+  glyphPos posx posy
+    | posx == 0 = 0
+    | posx == lineLen posy = _glpXMax (Seq.index (glyphs posy) (posx - 1))
+    | otherwise = _glpXMin (Seq.index (glyphs posy) posx)
+  ((selX1, selY1), (selX2, selY2))
+    | swap currPos <= swap currSel = (currPos, currSel)
+    | otherwise = (currSel, currPos)
+  makeRect cx1 cx2 cy = Rect rx ry rw rh where
+    rx = glyphPos cx1 cy
+    rw = glyphPos cx2 cy - rx
+    ry = fromIntegral cy * lineh
+    rh = lineh
+  pairs
+    | selY1 == selY2 = [makeRect selX1 selX2 selY1]
+    | otherwise = begin : middle ++ end where
+      begin = makeRect selX1 (lineLen selY1) selY1
+      middleLines = Seq.drop selY1 . Seq.take (selY2 - selY2) $ textLines
+      middle = toList (view L.rect <$> textLines)
+      end = [makeRect 0 selX2 selY2]
+  offset = Point (contentArea ^. L.x) (contentArea ^. L.y + desc)
+  rects = moveRect offset <$> pairs
 
 stateFromText
   :: WidgetEnv s e -> WidgetNode s e -> TextAreaState -> Text -> TextAreaState

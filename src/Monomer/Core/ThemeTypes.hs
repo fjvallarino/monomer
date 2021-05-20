@@ -78,6 +78,7 @@ data ThemeState = ThemeState {
   _thsSliderThumbFactor :: Double,
   _thsSliderWheelRate :: Rational,
   _thsSliderWidth :: Double,
+  _thsTextAreaStyle :: StyleState,
   _thsTooltipStyle :: StyleState,
   _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show, Generic)
@@ -127,6 +128,7 @@ instance Default ThemeState where
     _thsSliderThumbFactor = 1.25,
     _thsSliderWheelRate = 10,
     _thsSliderWidth = 10,
+    _thsTextAreaStyle = def,
     _thsTooltipStyle = def,
     _thsUserStyleMap = M.empty
   }
@@ -176,6 +178,7 @@ instance Semigroup ThemeState where
     _thsSliderWheelRate = _thsSliderWheelRate t2,
     _thsSliderWidth = _thsSliderWidth t2,
     _thsSliderRadius = _thsSliderRadius t2 <|> _thsSliderRadius t1,
+    _thsTextAreaStyle = _thsTextAreaStyle t1 <> _thsTextAreaStyle t2,
     _thsTooltipStyle = _thsTooltipStyle t1 <> _thsTooltipStyle t2,
     _thsUserStyleMap = _thsUserStyleMap t1 <> _thsUserStyleMap t2
   }

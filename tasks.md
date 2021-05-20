@@ -626,6 +626,7 @@
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
+    - Rename _thsInputNumericStyle
 
 Future
   - Check cross compilation
