@@ -9,7 +9,7 @@ module Monomer.Widgets.Singles.TextArea (
 import Debug.Trace
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), ALens', view)
+import Control.Lens ((&), (^.), (.~), (<>~), ALens', view)
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Foldable (toList)
@@ -136,7 +136,7 @@ makeTextArea wdata config state = widget where
     | isMoveWordR = Just $ moveCursor txt nextWordPos Nothing
     | isMoveLineL = Just $ moveCursor txt (0, tpY) Nothing
     | isMoveLineR = Just $ moveCursor txt (lineLen tpY, tpY) Nothing
-    | isSelectAll = Just $ moveCursor txt (0, 0) (Just (totalLines, lineLen (totalLines - 1)))
+    | isSelectAll = Just $ moveCursor txt (0, 0) (Just lastPos)
     | isSelectLeft = Just $ moveCursor txt (tpX - 1, tpY) (Just tp)
     | isSelectRight = Just $ moveCursor txt (tpX + 1, tpY) (Just tp)
     | isSelectUp = Just $ moveCursor txt (tpX, tpY - 1) (Just tp)
@@ -164,11 +164,8 @@ makeTextArea wdata config state = widget where
         | otherwise = ""
       lineLen = T.length . line
       totalLines = length textLines
-      --(part1, part2) = T.splitAt currPos currText
-      --currSelVal = fromMaybe 0 selStart
       activeSel = isJust selStart
-      --minTpXSel = min tpX currSelVal
-      --maxTpXSel = max tpX currSelVal
+      lastPos = (lineLen (totalLines - 1), totalLines)
       prevTxt
         | tpX > 0 = T.take tpX (line tpY)
         | otherwise = line (tpY - 1)
@@ -260,24 +257,31 @@ makeTextArea wdata config state = widget where
 
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed
---      | isKeyboardCopy wenv evt
---          -> Just $ resultReqs node [SetClipboard (ClipboardText selectedText)]
---      | isKeyboardPaste wenv evt
---          -> Just $ resultReqs node [GetClipboard widgetId]
---      | isKeyboardCut wenv evt -> cutTextRes wenv node
+      | isKeyboardCopy wenv evt -> Just resultCopy
+      | isKeyboardPaste wenv evt -> Just resultPaste
+      | isKeyboardCut wenv evt -> Just resultCut
 --      | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
 --      | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
-      | otherwise -> fmap handleKeyRes keyRes where
-          keyRes = handleKeyPress wenv mod code
-          handleKeyRes (newText, newPos, newSel) = result where
-            newState = (stateFromText wenv node state newText) {
-              _tasCursorPos = newPos,
-              _tasSelStart = newSel
-            }
-            newNode = node
-              & L.widget .~ makeTextArea wdata config newState
-            result = resultWidget newNode
+      | isKeyReturn code -> Just (insertText wenv node "\n")
+      | otherwise -> fmap handleKeyRes (handleKeyPress wenv mod code)
+      where
+        selectedText = fromMaybe "" (getSelection state)
+        clipboardReq = SetClipboard (ClipboardText selectedText)
+        resultCopy = resultReqs node [clipboardReq]
+        resultPaste = resultReqs node [GetClipboard widgetId]
+        resultCut = insertText wenv node ""
+          & L.requests <>~ Seq.singleton clipboardReq
+        handleKeyRes (newText, newPos, newSel) = result where
+          newState = (stateFromText wenv node state newText) {
+            _tasCursorPos = newPos,
+            _tasSelStart = newSel
+          }
+          newNode = node
+            & L.widget .~ makeTextArea wdata config newState
+          result = resultWidget newNode
     TextInput newText -> Just result where
+      result = insertText wenv node newText
+    Clipboard (ClipboardText newText) -> Just result where
       result = insertText wenv node newText
     Focus prev -> Just result where
       viewport = node ^. L.info . L.viewport
@@ -337,7 +341,7 @@ getCaretRect state contentArea = caretRect where
     Nothing -> (def, Seq.empty)
   Rect tx ty _ _ = lineRect
   caretPos
-    | cursorX == 0 = 0
+    | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
   caretX = max 0 $ min (cx + cw - caretW) (tx + caretPos)
@@ -395,6 +399,30 @@ textFromState :: Seq TextLine -> Text
 textFromState textLines = T.unlines lines where
   lines = toList (view L.text <$> textLines)
 
+getSelection
+  :: TextAreaState
+  -> Maybe Text
+getSelection state = result where
+  currPos = _tasCursorPos state
+  currSel = fromJust (_tasSelStart state)
+  textLines = _tasTextLines state
+  oldLines = view L.text <$> textLines
+  ((selX1, selY1), (selX2, selY2))
+    | swap currPos <= swap currSel = (currPos, currSel)
+    | otherwise = (currSel, currPos)
+  newText
+    | selY1 == selY2 = singleLine
+    | selX2 == 0 = T.unlines . toList $ begin :<| middle
+    | otherwise = T.unlines . toList $ begin :<| (middle :|> end)
+    where
+      singleLine = T.drop selX1 $ T.take selX2 (Seq.index oldLines selY1)
+      begin = T.drop selX1 $ Seq.index oldLines selY1
+      middle = Seq.drop (selY1 + 1) $ Seq.take selY2 oldLines
+      end = T.take selX2 $ Seq.index oldLines selY2
+  result
+    | isJust (_tasSelStart state) = Just newText
+    | otherwise = Nothing
+
 replaceText
   :: TextAreaState
   -> Maybe (Int, Int)
@@ -418,16 +446,16 @@ replaceSelection textLines currPos currSel addText = result where
   ((selX1, selY1), (selX2, selY2))
     | swap currPos <= swap currSel = (currPos, currSel)
     | otherwise = (currSel, currPos)
---  (selX1, selY1) = min currPos currSel
---  (selX2, selY2) = max currPos currSel
   prevLines = Seq.take selY1 oldLines
   postLines = Seq.drop (selY2 + 1) oldLines
   linePre = T.take selX1 (Seq.index oldLines selY1)
   lineSuf = T.drop selX2 (Seq.index oldLines selY2)
-  newLines = Seq.fromList (T.lines addText)
+  newLines
+    | not (T.isSuffixOf "\n" addText) = Seq.fromList (T.lines addText)
+    | otherwise = Seq.fromList (T.lines addText) :|> ""
   (newX, newY, midLines)
     | length newLines <= 1 = (T.length (linePre <> addText), selY1, singleLine)
-    | otherwise = (T.length (end <> lineSuf), selY1 + length newLines - 1, multiLine)
+    | otherwise = (T.length end, selY1 + length newLines - 1, multiLine)
     where
       singleLine = Seq.singleton $ linePre <> addText <> lineSuf
       begin = Seq.index newLines 0

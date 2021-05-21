@@ -626,7 +626,10 @@
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
+    - Add move to top and bottom, page up and down
+    - Remove added whitespace for empty lines
     - Rename _thsInputNumericStyle
+  - Can ReportParent be removed?
 
 Future
   - Check cross compilation
