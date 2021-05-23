@@ -119,9 +119,6 @@ instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
     _tfcOnChangeReq = [req]
   }
 
-instance Default Text where
-  def = T.empty
-
 textField :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textField field = textField_ field def
 

@@ -1,9 +1,14 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.TextArea (
   textArea,
-  textArea_
+  textArea_,
+  textAreaV,
+  textAreaV_
 ) where
 
 import Debug.Trace
@@ -32,34 +37,90 @@ caretW = 2
 caretMs :: Int
 caretMs = 500
 
-data TextAreaCfg = TextAreaCfg {
+data TextAreaCfg s e = TextAreaCfg {
   _tacMaxLength :: Maybe Int,
-  _tacMaxLines :: Maybe Int
+  _tacMaxLines :: Maybe Int,
+  _tacSelectOnFocus :: Maybe Bool,
+  _tacOnFocus :: [Path -> e],
+  _tacOnFocusReq :: [WidgetRequest s e],
+  _tacOnBlur :: [Path -> e],
+  _tacOnBlurReq :: [WidgetRequest s e],
+  _tacOnChange :: [Text -> e],
+  _tacOnChangeReq :: [Text -> WidgetRequest s e]
 }
 
-instance Default TextAreaCfg where
+instance Default (TextAreaCfg s e) where
   def = TextAreaCfg {
     _tacMaxLength = Nothing,
-    _tacMaxLines = Nothing
+    _tacMaxLines = Nothing,
+    _tacSelectOnFocus = Nothing,
+    _tacOnFocus = [],
+    _tacOnFocusReq = [],
+    _tacOnBlur = [],
+    _tacOnBlurReq = [],
+    _tacOnChange = [],
+    _tacOnChangeReq = []
   }
 
-instance Semigroup TextAreaCfg where
-  (<>) s1 s2 = TextAreaCfg {
-    _tacMaxLength = _tacMaxLength s2 <|> _tacMaxLength s1,
-    _tacMaxLines = _tacMaxLines s2 <|> _tacMaxLines s1
+instance Semigroup (TextAreaCfg s e) where
+  (<>) t1 t2 = TextAreaCfg {
+    _tacMaxLength = _tacMaxLength t2 <|> _tacMaxLength t1,
+    _tacMaxLines = _tacMaxLines t2 <|> _tacMaxLines t1,
+    _tacSelectOnFocus = _tacSelectOnFocus t2 <|> _tacSelectOnFocus t1,
+    _tacOnFocus = _tacOnFocus t1 <> _tacOnFocus t2,
+    _tacOnFocusReq = _tacOnFocusReq t1 <> _tacOnFocusReq t2,
+    _tacOnBlur = _tacOnBlur t1 <> _tacOnBlur t2,
+    _tacOnBlurReq = _tacOnBlurReq t1 <> _tacOnBlurReq t2,
+    _tacOnChange = _tacOnChange t1 <> _tacOnChange t2,
+    _tacOnChangeReq = _tacOnChangeReq t1 <> _tacOnChangeReq t2
   }
 
-instance Monoid TextAreaCfg where
+instance Monoid (TextAreaCfg s e) where
   mempty = def
 
-instance CmbMaxLength TextAreaCfg where
+instance CmbMaxLength (TextAreaCfg s e) where
   maxLength len = def {
     _tacMaxLength = Just len
   }
 
-instance CmbMaxLines TextAreaCfg where
+instance CmbMaxLines (TextAreaCfg s e) where
   maxLines lines = def {
     _tacMaxLines = Just lines
+  }
+
+instance CmbSelectOnFocus (TextAreaCfg s e) where
+  selectOnFocus_ sel = def {
+    _tacSelectOnFocus = Just sel
+  }
+
+instance CmbOnFocus (TextAreaCfg s e) e Path where
+  onFocus fn = def {
+    _tacOnFocus = [fn]
+  }
+
+instance CmbOnFocusReq (TextAreaCfg s e) s e where
+  onFocusReq req = def {
+    _tacOnFocusReq = [req]
+  }
+
+instance CmbOnBlur (TextAreaCfg s e) e Path where
+  onBlur fn = def {
+    _tacOnBlur = [fn]
+  }
+
+instance CmbOnBlurReq (TextAreaCfg s e) s e where
+  onBlurReq req = def {
+    _tacOnBlurReq = [req]
+  }
+
+instance CmbOnChange (TextAreaCfg s e) Text e where
+  onChange fn = def {
+    _tacOnChange = [fn]
+  }
+
+instance CmbOnChangeReq (TextAreaCfg s e) s e Text where
+  onChangeReq req = def {
+    _tacOnChangeReq = [req]
   }
 
 data TextAreaState = TextAreaState {
@@ -81,18 +142,37 @@ instance Default TextAreaState where
     _tasTextLines = def
   }
 
-textArea :: ALens' s Text -> WidgetNode s e
+textArea :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textArea field = textArea_ field def
 
-textArea_ :: ALens' s Text -> [TextAreaCfg] -> WidgetNode s e
-textArea_ field configs = node where
-  config = mconcat configs
+textArea_
+  :: WidgetEvent e => ALens' s Text -> [TextAreaCfg s e] -> WidgetNode s e
+textArea_ field configs = textAreaD_ wdata configs where
   wdata = WidgetLens field
+
+textAreaV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
+textAreaV value handler = textAreaV_ value handler def
+
+textAreaV_
+  :: WidgetEvent e => Text -> (Text -> e) -> [TextAreaCfg s e] -> WidgetNode s e
+textAreaV_ value handler configs = textAreaD_ wdata newConfig where
+  wdata = WidgetValue value
+  newConfig = onChange handler : configs
+
+textAreaD_
+  :: WidgetEvent e => WidgetData s Text -> [TextAreaCfg s e] -> WidgetNode s e
+textAreaD_ wdata configs = node where
+  config = mconcat configs
   widget = makeTextArea wdata config def
   node = defaultWidgetNode "textArea" widget
     & L.info . L.focusable .~ True
 
-makeTextArea :: WidgetData s Text -> TextAreaCfg -> TextAreaState -> Widget s e
+makeTextArea
+  :: WidgetEvent e
+  => WidgetData s Text
+  -> TextAreaCfg s e
+  -> TextAreaState
+  -> Widget s e
 makeTextArea wdata config state = widget where
   widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
@@ -109,6 +189,18 @@ makeTextArea wdata config state = widget where
   -- State
   currText = _tasText state
   textLines = _tasTextLines state
+  -- Helpers
+  validText state = validLen && validLines where
+    text = _tasText state
+    lines = _tasTextLines state
+    validLen = T.length text <= fromMaybe maxBound maxLength
+    validLines = length lines <= fromMaybe maxBound maxLines
+  line idx
+    | length textLines > idx = Seq.index textLines idx ^. L.text
+    | otherwise = ""
+  lineLen = T.length . line
+  totalLines = length textLines
+  lastPos = (lineLen (totalLines - 1), totalLines)
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.textAreaStyle
@@ -164,14 +256,8 @@ makeTextArea wdata config state = widget where
         | swap tp <= swap (fromJust selStart) = (tp, fromJust selStart)
         | otherwise = (fromJust selStart, tp)
       emptySel = isNothing selStart
-      line idx
-        | length textLines > idx = Seq.index textLines idx ^. L.text
-        | otherwise = ""
-      lineLen = T.length . line
-      totalLines = length textLines
       vpLines = round (wenv ^. L.viewport . L.h / textMetrics ^. L.lineH)
       activeSel = isJust selStart
-      lastPos = (lineLen (totalLines - 1), totalLines)
       prevTxt
         | tpX > 0 = T.take tpX (line tpY)
         | otherwise = line (tpY - 1)
@@ -296,12 +382,25 @@ makeTextArea wdata config state = widget where
     Clipboard (ClipboardText newText) -> Just result where
       result = insertText wenv node newText
     Focus prev -> Just result where
+      selectOnFocus = fromMaybe False (_tacSelectOnFocus config)
+      newState
+        | selectOnFocus && T.length currText > 0 = state {
+            _tasCursorPos = lastPos,
+            _tasSelStart = Just (0, 0)
+          }
+        | otherwise = state
+      newNode = node
+        & L.widget .~ makeTextArea wdata config newState
       viewport = node ^. L.info . L.viewport
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
-      result = resultReqs node reqs
+      newResult = resultReqs node reqs
+      focusRs = handleFocusChange _tacOnFocus _tacOnFocusReq config prev newNode
+      result = maybe newResult (newResult <>) focusRs
     Blur next -> Just result where
       reqs = [RenderStop widgetId, StopTextInput]
-      result = resultReqs node reqs
+      newResult = resultReqs node reqs
+      blurRes = handleFocusChange _tacOnBlur _tacOnBlurReq config next node
+      result = maybe newResult (newResult <>) blurRes
     _ -> Nothing
     where
       widgetId = node ^. L.info . L.widgetId
@@ -315,10 +414,23 @@ makeTextArea wdata config state = widget where
     }
     newNode = node
       & L.widget .~ makeTextArea wdata config newState
-    result = resultWidget newNode
+    result
+      | validText newState = resultReqs newNode (generateReqs newState)
+      | otherwise = resultWidget node
+
+  generateReqs newState = reqs where
+    oldText = _tasText state
+    newText = _tasText newState
+    events = RaiseEvent <$> fmap ($ newText) (_tacOnChange config)
+    reqUpdateModel = widgetDataSet wdata newText
+    reqOnChange = fmap ($ newText) (_tacOnChangeReq config)
+    reqs
+      | oldText /= newText = reqUpdateModel ++ events ++ reqOnChange
+      | otherwise = []
 
   getSizeReq wenv node = sizeReq where
-    sizeReq = (minWidth 100, minHeight 100)
+    Size w h = getTextLinesSize textLines
+    sizeReq = (minWidth (max 100 w), minHeight (max 20 h))
 
   render wenv node renderer =
     drawInTranslation renderer offset $ do
@@ -460,8 +572,12 @@ replaceSelection textLines currPos currSel addText = result where
     | otherwise = (currSel, currPos)
   prevLines = Seq.take selY1 oldLines
   postLines = Seq.drop (selY2 + 1) oldLines
-  linePre = T.take selX1 (Seq.index oldLines selY1)
-  lineSuf = T.drop selX2 (Seq.index oldLines selY2)
+  linePre
+    | length oldLines > selY1 = T.take selX1 (Seq.index oldLines selY1)
+    | otherwise = ""
+  lineSuf
+    | length oldLines > selY2 = T.drop selX2 (Seq.index oldLines selY2)
+    | otherwise = ""
   newLines
     | not (T.isSuffixOf "\n" addText) = Seq.fromList (T.lines addText)
     | otherwise = Seq.fromList (T.lines addText) :|> ""
@@ -474,7 +590,7 @@ replaceSelection textLines currPos currSel addText = result where
       middle = Seq.drop 1 $ Seq.take (length newLines - 1) newLines
       end = Seq.index newLines (length newLines - 1)
       multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
-  newText = T.unlines . toList $ prevLines <> midLines <> postLines
+  newText = T.dropEnd 1 . T.unlines . toList $ prevLines <> midLines <> postLines
   result = (newText, (newX, newY), Nothing)
 
 delim :: Char -> Bool

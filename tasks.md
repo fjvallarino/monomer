@@ -632,6 +632,7 @@ Next
     - Add cursor following request
     - Remove added whitespace for empty lines
     - Rename _thsInputNumericStyle
+  - Rename resultWidget to resultNode
   - Can ReportParent be removed?
 
 Future
