@@ -622,14 +622,19 @@
     - Focus tracking in nested non-expanded scrolls is not possible otherwise
     - Maybe IgnoreParentEvents could work?
   - Rename ListView -> SelectList
+  - Add support for multiline text editing
+    - Add main functionality
+    - Add move to top and bottom, page up and down
+    - Add test cases
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Add move to top and bottom, page up and down
-    - Add test cases
+    - Add mouse based selection
+    - Add history
     - Add scroll wrapper
     - Add cursor following request
+    - Complete test cases
     - Remove added whitespace for empty lines
     - Rename _thsInputNumericStyle
   - Rename resultWidget to resultNode

@@ -177,6 +177,7 @@ makeTextArea wdata config state = widget where
   widget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
+    singleMerge = merge,
     singleDispose = dispose,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
@@ -211,6 +212,15 @@ makeTextArea wdata config state = widget where
     newNode = node
       & L.widget .~ makeTextArea wdata config newState
 
+  merge wenv node oldNode oldState = resultWidget newNode where
+    oldText = _tasText oldState
+    newText = getModelValue wenv
+    newState
+      | oldText /= newText = stateFromText wenv node state newText
+      | otherwise = oldState
+    newNode = node
+      & L.widget .~ makeTextArea wdata config newState
+
   dispose wenv node = resultReqs node reqs where
     widgetId = node ^. L.info . L.widgetId
     reqs = [RenderStop widgetId]
@@ -230,6 +240,8 @@ makeTextArea wdata config state = widget where
     | isMoveWordR = Just $ moveCursor txt nextWordPos Nothing
     | isMoveLineL = Just $ moveCursor txt (0, tpY) Nothing
     | isMoveLineR = Just $ moveCursor txt (lineLen tpY, tpY) Nothing
+    | isMoveLineUp = Just $ moveCursor txt (tpX, 0) Nothing
+    | isMoveLineDn = Just $ moveCursor txt (tpX, totalLines) Nothing
     | isSelectAll = Just $ moveCursor txt (0, 0) (Just lastPos)
     | isSelectLeft = Just $ moveCursor txt (tpX - 1, tpY) (Just tp)
     | isSelectRight = Just $ moveCursor txt (tpX + 1, tpY) (Just tp)
@@ -307,6 +319,8 @@ makeTextArea wdata config state = widget where
       isMoveWordR = isMoveWord && isRight
       isMoveLineL = (isMoveLine && isLeft) || (not isShift && isHome)
       isMoveLineR = (isMoveLine && isRight) || (not isShift && isEnd)
+      isMoveLineUp = isMoveLine && isUp
+      isMoveLineDn = isMoveLine && isDown
       isMoveUp = isMove && not activeSel && isUp
       isMoveDown = isMove && not activeSel && isDown
       isMovePageUp = isMove && not activeSel && isPageUp

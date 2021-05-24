@@ -77,8 +77,8 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, evtT " invalid"]
     model steps ^. textValue `shouldBe` str
 
-  it "should input 'This is text', select all and input 'No'" $ do
-    let str = "This is text"
+  it "should input 'This is text\ntest', select all and input 'No'" $ do
+    let str = "This is text\ntest"
     let steps = [evtT str, evtKG keyA, evtT "No"]
     model steps ^. textValue `shouldBe` "No"
 
@@ -154,6 +154,10 @@ handleEventValue = describe "handleEventValue" $ do
   it "should input 'abc123', move to beginning, select three letters, copy, move to end, paste" $ do
     let steps = [evtT "abc123", evtKC keyHome, selCharR, selCharR, selCharR, evtKG keyC, evtK keyEnd, evtKG keyV]
     lastEvt steps `shouldBe` TextChanged "abc123abc"
+
+  it "should input a-b-c-d on separate lines, move to beginning, move down, select two lines, input 'e'" $ do
+    let steps = [evtT "a\nb\nc\nd", evtKC keyLeft, evtKC keyUp, evtK keyDown, evtKS keyDown, evtKS keyDown, evtT "e", evtK keyReturn]
+    lastEvt steps `shouldBe` TextChanged "a\ne\nd"
 
   where
     wenv = mockWenv (TestModel "")
