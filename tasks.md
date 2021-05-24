@@ -641,6 +641,9 @@ Next
   - Can ReportParent be removed?
 
 Future
+  - Check if Windows/Linux also miss top pixel
+    - Fix for all if they do
+    - If they don't, add custom handling for macOS
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208

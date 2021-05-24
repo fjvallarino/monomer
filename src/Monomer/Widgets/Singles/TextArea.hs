@@ -19,7 +19,7 @@ import Control.Monad (forM_, when)
 import Data.Default
 import Data.Foldable (toList)
 import Data.Maybe
-import Data.Sequence (Seq(..))
+import Data.Sequence (Seq(..), (|>))
 import Data.Tuple (swap)
 import Data.Text (Text)
 import GHC.Generics
@@ -368,6 +368,87 @@ makeTextArea wdata config state = widget where
           | otherwise = (ncX, vcY)
 
   handleEvent wenv node target evt = case evt of
+    ButtonAction point btn PressedBtn clicks
+      | clicks == 1 -> Just result where
+        newPos = findClosestGlyphPos state (localPoint point)
+        newState = state {
+          _tasCursorPos = newPos,
+          _tasSelStart = Nothing
+        }
+        newNode = node
+          & L.widget .~ makeTextArea wdata config newState
+        result = resultReqs newNode [RenderOnce]
+
+    -- Select word if clicked twice in a row
+    ButtonAction point btn ReleasedBtn clicks
+      | clicks == 2 -> result where
+        (tx, ty) = findClosestGlyphPos state (localPoint point)
+        currText = Seq.index textLines ty ^. L.text
+        (part1, part2) = T.splitAt tx currText
+        txtLen = T.length currText
+        wordStart = T.dropWhileEnd (not . delim) part1
+        wordStartIdx = T.length wordStart
+        wordEnd = T.dropWhile (not . delim) part2
+        wordEndIdx = txtLen - T.length wordEnd
+        newPos = (wordStartIdx, ty)
+        newSel = Just (wordEndIdx, ty)
+        newState = state {
+          _tasCursorPos = newPos,
+          _tasSelStart = newSel
+        }
+        newNode = node
+          & L.widget .~ makeTextArea wdata config newState
+        result
+          | ty < totalLines = Just (resultReqs newNode [RenderOnce])
+          | otherwise = Nothing
+
+    -- Select line if clicked three times in a row
+    ButtonAction point btn ReleasedBtn clicks
+      | clicks == 3 -> result where
+        (tx, ty) = findClosestGlyphPos state (localPoint point)
+        glyphs = Seq.index textLines ty ^. L.glyphs
+        newPos = (0, ty)
+        newSel = Just (length glyphs, ty)
+        newState = state {
+          _tasCursorPos = newPos,
+          _tasSelStart = newSel
+        }
+        newNode = node
+          & L.widget .~ makeTextArea wdata config newState
+        result
+          | ty < totalLines = Just (resultReqs newNode [RenderOnce])
+          | otherwise = Nothing
+
+    -- Select all if clicked four times in a row
+    ButtonAction point btn ReleasedBtn clicks
+      | clicks == 4 -> result where
+        glyphs = Seq.index textLines (totalLines - 1) ^. L.glyphs
+        newPos = (0, 0)
+        newSel = Just (length glyphs, totalLines - 1)
+        newState = state {
+          _tasCursorPos = newPos,
+          _tasSelStart = newSel
+        }
+        newNode = node
+          & L.widget .~ makeTextArea wdata config newState
+        result
+          | totalLines > 0 = Just (resultReqs newNode [RenderOnce])
+          | otherwise = Nothing
+
+    Move point
+      | isNodePressed wenv node -> Just result where
+        curPos = _tasCursorPos state
+        selStart = _tasSelStart state
+        newPos = findClosestGlyphPos state (localPoint point)
+        newSel = selStart <|> Just curPos
+        newState = state {
+          _tasCursorPos = newPos,
+          _tasSelStart = newSel
+        }
+        newNode = node
+          & L.widget .~ makeTextArea wdata config newState
+        result = resultReqs newNode [RenderOnce]
+
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt -> Just resultCopy
       | isKeyboardPaste wenv evt -> Just resultPaste
@@ -391,10 +472,13 @@ makeTextArea wdata config state = widget where
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
           result = resultWidget newNode
+
     TextInput newText -> Just result where
       result = insertText wenv node newText
+
     Clipboard (ClipboardText newText) -> Just result where
       result = insertText wenv node newText
+
     Focus prev -> Just result where
       selectOnFocus = fromMaybe False (_tacSelectOnFocus config)
       newState
@@ -410,14 +494,19 @@ makeTextArea wdata config state = widget where
       newResult = resultReqs node reqs
       focusRs = handleFocusChange _tacOnFocus _tacOnFocusReq config prev newNode
       result = maybe newResult (newResult <>) focusRs
+
     Blur next -> Just result where
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs node reqs
       blurRes = handleFocusChange _tacOnBlur _tacOnBlurReq config next node
       result = maybe newResult (newResult <>) blurRes
     _ -> Nothing
+
     where
       widgetId = node ^. L.info . L.widgetId
+      style = activeStyle wenv node
+      Rect cx cy cw ch = getContentArea style node
+      localPoint point = subPoint point (Point cx cy)
 
   insertText wenv node addedText = result where
     currSel = _tasSelStart state
@@ -470,9 +559,9 @@ makeTextArea wdata config state = widget where
 
 getCaretRect :: TextAreaState -> Rect -> Rect
 getCaretRect state contentArea = caretRect where
-  Rect cx cy cw ch = contentArea 
+  Rect _ _ cw ch = contentArea
   (cursorX, cursorY) = _tasCursorPos state
-  TextMetrics _ desc lineh = _tasTextMetrics state
+  TextMetrics _ _ lineh = _tasTextMetrics state
   textLines = _tasTextLines state
   (lineRect, glyphs) = case Seq.lookup cursorY textLines of
     Just tl -> (tl ^. L.rect, tl ^. L.glyphs)
@@ -482,9 +571,8 @@ getCaretRect state contentArea = caretRect where
     | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
-  caretX = max 0 $ min (cx + cw - caretW) (tx + caretPos)
-  caretY = cy + ty + desc
-  caretRect = Rect caretX caretY caretW lineh
+  caretX = max 0 $ min (cw - caretW) (tx + caretPos)
+  caretRect = Rect caretX ty caretW lineh
 
 getSelectionRects :: TextAreaState -> Rect -> [Rect]
 getSelectionRects state contentArea = rects where
@@ -606,6 +694,25 @@ replaceSelection textLines currPos currSel addText = result where
       multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
   newText = T.dropEnd 1 . T.unlines . toList $ prevLines <> midLines <> postLines
   result = (newText, (newX, newY), Nothing)
+
+findClosestGlyphPos :: TextAreaState -> Point -> (Int, Int)
+findClosestGlyphPos state point = (newPos, lineIdx) where
+  Point x y = point
+  TextMetrics _ _ lineh = _tasTextMetrics state
+  textLines = _tasTextLines state
+  lineIdx = restrictValue 0 (length textLines - 1) (floor (y / lineh))
+  lineGlyphs
+    | null textLines = Seq.empty
+    | otherwise = Seq.index (view L.glyphs <$> textLines) lineIdx
+  textLen = getGlyphsMax lineGlyphs
+  glyphs
+    | Seq.null lineGlyphs = Seq.empty
+    | otherwise = lineGlyphs |> GlyphPos ' ' textLen 0 0
+  glyphStart i g = (i, abs (_glpXMin g - x))
+  pairs = Seq.mapWithIndex glyphStart glyphs
+  cpm (_, g1) (_, g2) = compare g1 g2
+  diffs = Seq.sortBy cpm pairs
+  newPos = maybe 0 fst (Seq.lookup 0 diffs)
 
 delim :: Char -> Bool
 delim c = c `elem` [' ', '.', ',', '/', '-', ':']
