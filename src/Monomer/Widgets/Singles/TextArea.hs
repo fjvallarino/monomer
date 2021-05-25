@@ -572,7 +572,10 @@ getCaretRect state contentArea = caretRect where
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
   caretX = max 0 $ min (cw - caretW) (tx + caretPos)
-  caretRect = Rect caretX ty caretW lineh
+  caretY
+    | cursorY == length textLines = fromIntegral cursorY * lineh
+    | otherwise = ty
+  caretRect = Rect caretX caretY caretW lineh
 
 getSelectionRects :: TextAreaState -> Rect -> [Rect]
 getSelectionRects state contentArea = rects where
@@ -692,7 +695,10 @@ replaceSelection textLines currPos currSel addText = result where
       middle = Seq.drop 1 $ Seq.take (length newLines - 1) newLines
       end = Seq.index newLines (length newLines - 1)
       multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
-  newText = T.dropEnd 1 . T.unlines . toList $ prevLines <> midLines <> postLines
+  tmpText = T.unlines . toList $ prevLines <> midLines <> postLines
+  newText
+    | not (T.isSuffixOf "\n" addText) = T.dropEnd 1 tmpText
+    | otherwise = tmpText
   result = (newText, (newX, newY), Nothing)
 
 findClosestGlyphPos :: TextAreaState -> Point -> (Int, Int)

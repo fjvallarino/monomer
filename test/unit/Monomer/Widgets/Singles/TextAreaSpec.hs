@@ -42,6 +42,7 @@ spec = fdescribe "TextArea" $ do
 --  handleEventMouseSelect
 --  handleEventHistory
   getSizeReq
+-- Test adding new line at the bottom
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
