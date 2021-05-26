@@ -143,12 +143,17 @@ handleEventValue = describe "handleEventValue" $ do
     let steps = [evtT str, selLineL, evtT "No"]
     lastEvt steps `shouldBe` TextChanged "No"
 
-  it "should input 'This is a dog', move to beginning, select until end and input 'No'" $ do
+  it "should input 'This is a dog', move to beginning, select until end of line and input 'No'" $ do
     let str = "This is a dog"
     let steps = [evtT str, moveLineL, selLineR, evtT "No"]
     lastEvt steps `shouldBe` TextChanged "No"
 
-  it "should input 'a', move to beginning, input 'H', move to end and input 't'" $ do
+  it "should input 'This is\n a dog', move to beginning, move one word lef, select until end and input 'door'" $ do
+    let str = "This is\n a dog"
+    let steps = [evtT str, evtKG keyUp, moveWordR, evtKGS keyDown, evtT " door"]
+    lastEvt steps `shouldBe` TextChanged "This door"
+
+  it "should input 'a', move to beginning, input 'H', move to end of line and input 't'" $ do
     let steps = [evtT "a", evtK keyHome, evtT "H", evtK keyEnd, evtT "t"]
     lastEvt steps `shouldBe` TextChanged "Hat"
 

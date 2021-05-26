@@ -629,12 +629,12 @@
     - Add mouse based selection
     - Add history
     - Remove added whitespace for empty lines
+    - Add scroll wrapper
+    - Add cursor following request
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Add scroll wrapper
-    - Add cursor following request
     - Add select to bottom/beginning
     - Check scroll overlay
     - Complete test cases
