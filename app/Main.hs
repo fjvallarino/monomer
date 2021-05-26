@@ -152,7 +152,8 @@ buildUI wenv model = traceShow "Creating UI" widgetText where
       hstack [
         label "Test",
         textArea textArea1
-      ]
+      ],
+      hslider int1 0 100
     ]
   widgetDate = vstack [
 --      hstack [

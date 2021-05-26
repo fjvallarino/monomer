@@ -41,6 +41,7 @@ caretMs = 500
 data TextAreaCfg s e = TextAreaCfg {
   _tacMaxLength :: Maybe Int,
   _tacMaxLines :: Maybe Int,
+  _tacAcceptTab :: Maybe Bool,
   _tacSelectOnFocus :: Maybe Bool,
   _tacOnFocus :: [Path -> e],
   _tacOnFocusReq :: [WidgetRequest s e],
@@ -54,6 +55,7 @@ instance Default (TextAreaCfg s e) where
   def = TextAreaCfg {
     _tacMaxLength = Nothing,
     _tacMaxLines = Nothing,
+    _tacAcceptTab = Nothing,
     _tacSelectOnFocus = Nothing,
     _tacOnFocus = [],
     _tacOnFocusReq = [],
@@ -67,6 +69,7 @@ instance Semigroup (TextAreaCfg s e) where
   (<>) t1 t2 = TextAreaCfg {
     _tacMaxLength = _tacMaxLength t2 <|> _tacMaxLength t1,
     _tacMaxLines = _tacMaxLines t2 <|> _tacMaxLines t1,
+    _tacAcceptTab = _tacAcceptTab t2 <|> _tacAcceptTab t1,
     _tacSelectOnFocus = _tacSelectOnFocus t2 <|> _tacSelectOnFocus t1,
     _tacOnFocus = _tacOnFocus t1 <> _tacOnFocus t2,
     _tacOnFocusReq = _tacOnFocusReq t1 <> _tacOnFocusReq t2,
@@ -87,6 +90,11 @@ instance CmbMaxLength (TextAreaCfg s e) where
 instance CmbMaxLines (TextAreaCfg s e) where
   maxLines lines = def {
     _tacMaxLines = Just lines
+  }
+
+instance CmbAcceptTab (TextAreaCfg s e) where
+  acceptTab_ accept = def {
+    _tacAcceptTab = Just accept
   }
 
 instance CmbSelectOnFocus (TextAreaCfg s e) where
@@ -471,15 +479,20 @@ makeTextArea wdata config state = widget where
       | isKeyboardCut wenv evt -> Just resultCut
       | isKeyboardUndo wenv evt -> Just $ moveHistory bwdState (-1)
       | isKeyboardRedo wenv evt -> Just $ moveHistory state 1
-      | isKeyReturn code -> Just (insertText wenv node "\n")
+      | isKeyReturn code -> Just resultReturn
+      | isKeyTab code && acceptTab -> Just resultTab
       | otherwise -> fmap handleKeyRes (handleKeyPress wenv mod code)
       where
+        acceptTab = fromMaybe False (_tacAcceptTab config)
         selectedText = fromMaybe "" (getSelection state)
         clipboardReq = SetClipboard (ClipboardText selectedText)
         resultCopy = resultReqs node [clipboardReq]
         resultPaste = resultReqs node [GetClipboard widgetId]
         resultCut = insertText wenv node ""
           & L.requests <>~ Seq.singleton clipboardReq
+        resultReturn = insertText wenv node "\n"
+        resultTab = insertText wenv node "    "
+          & L.requests <>~ Seq.singleton IgnoreParentEvents
         history = _tasHistory state
         historyIdx = _tasHistoryIdx state
         bwdState = addHistory state (historyIdx == length history)

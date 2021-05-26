@@ -79,6 +79,11 @@ class CmbMaxLength t where
 class CmbMaxLines t where
   maxLines :: Int -> t
 
+class CmbAcceptTab t where
+  acceptTab :: t
+  acceptTab = acceptTab_ True
+  acceptTab_ :: Bool -> t
+
 class CmbMultiLine t where
   multiLine :: t
   multiLine = multiLine_ True

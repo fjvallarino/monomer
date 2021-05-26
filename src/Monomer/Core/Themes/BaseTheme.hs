@@ -134,6 +134,10 @@ numericInputStyle :: BaseThemeColors -> StyleState
 numericInputStyle themeMod = textInputStyle themeMod
   & L.text . non def . L.alignH ?~ ATRight
 
+dateInputStyle :: BaseThemeColors -> StyleState
+dateInputStyle themeMod = textInputStyle themeMod
+  & L.text . non def . L.alignH ?~ ATRight
+
 selectListItemStyle :: BaseThemeColors -> StyleState
 selectListItemStyle themeMod = def
   & L.text ?~ (normalFont & L.fontColor ?~ slNormalText themeMod)
@@ -156,6 +160,7 @@ baseBasic themeMod = def
   & L.btnMainStyle .~ btnMainStyle themeMod
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ inputFgBasic themeMod
+  & L.dateFieldStyle .~ dateInputStyle themeMod
   & L.dialWidth .~ 50
   & L.dialStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.dialStyle . L.sndColor ?~ inputSndBasic themeMod
@@ -220,6 +225,7 @@ baseHover themeMod = baseBasic themeMod
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ inputFgHover themeMod
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
+  & L.dateFieldStyle . L.cursorIcon ?~ CursorIBeam
   & L.dialStyle . L.fgColor ?~ inputFgHover themeMod
   & L.dialStyle . L.sndColor ?~ inputSndHover themeMod
   & L.dialStyle . L.cursorIcon ?~ CursorSizeV
@@ -257,6 +263,8 @@ baseFocus themeMod = baseBasic themeMod
   & L.btnStyle . L.border ?~ borderFocus themeMod
   & L.btnMainStyle . L.border ?~ borderFocus themeMod
   & L.checkboxStyle . L.fgColor ?~ inputFgFocus themeMod
+  & L.dateFieldStyle . L.border ?~ borderFocus themeMod
+  & L.dateFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.dialStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.dialStyle . L.sndColor ?~ inputSndFocus themeMod
   & L.dropdownStyle . L.border ?~ borderFocus themeMod
@@ -290,6 +298,8 @@ baseActive themeMod = baseFocusHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgActive themeMod
   & L.btnMainStyle . L.border ?~ borderFocus themeMod
   & L.checkboxStyle . L.fgColor ?~ inputFgActive themeMod
+  & L.dateFieldStyle . L.border ?~ borderFocus themeMod
+  & L.dateFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.dialStyle . L.fgColor ?~ inputFgActive themeMod
   & L.dialStyle . L.sndColor ?~ inputSndActive themeMod
   & L.dropdownStyle . L.bgColor ?~ inputBgActive themeMod
