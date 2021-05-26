@@ -626,11 +626,11 @@
     - Add main functionality
     - Add move to top and bottom, page up and down
     - Add test cases
+    - Add mouse based selection
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Add mouse based selection
     - Add history
     - Add scroll wrapper
     - Add cursor following request

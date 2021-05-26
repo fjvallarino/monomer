@@ -36,11 +36,11 @@ newtype TestModel = TestModel {
 makeLensesWith abbreviatedFields ''TestModel
 
 spec :: Spec
-spec = fdescribe "TextArea" $ do
+spec = describe "TextArea" $ do
   handleEvent
   handleEventValue
---  handleEventMouseSelect
---  handleEventHistory
+  handleEventMouseSelect
+  handleEventHistory
   getSizeReq
 -- Test adding new line at the bottom
 
@@ -73,9 +73,14 @@ handleEvent = describe "handleEvent" $ do
     let steps = [evtT str, evtT " invalid"]
     model steps ^. textValue `shouldBe` "This string very very long text is"
 
-  it "should input 5 empty lines, and reject ' invalid' since maxLines == 5" $ do
-    let str = "\n\n\n\n\n"
-    let steps = [evtT str, evtT " invalid"]
+  it "should input 5 empty lines, and accept 'valid' since maxLines == 5" $ do
+    let str = "\n\n\n\n"
+    let steps = [evtT str, evtT "valid"]
+    model steps ^. textValue `shouldBe` str <> "valid"
+
+  it "should input 5 empty lines, and reject '\ninvalid' since maxLines == 5" $ do
+    let str = "\n\n\n\n"
+    let steps = [evtT str, evtT "\ninvalid"]
     model steps ^. textValue `shouldBe` str
 
   it "should input 'This is text\ntest', select all and input 'No'" $ do
@@ -156,6 +161,10 @@ handleEventValue = describe "handleEventValue" $ do
     let steps = [evtT "abc123", evtKC keyHome, selCharR, selCharR, selCharR, evtKG keyC, evtK keyEnd, evtKG keyV]
     lastEvt steps `shouldBe` TextChanged "abc123abc"
 
+  it "should input a-b-c-d on separate lines, then press Return" $ do
+    let steps = [evtT "a\nb\nc\nd", evtK keyReturn]
+    lastEvt steps `shouldBe` TextChanged "a\nb\nc\nd\n"
+
   it "should input a-b-c-d on separate lines, move to beginning, move down, select two lines, input 'e'" $ do
     let steps = [evtT "a\nb\nc\nd", evtKC keyLeft, evtKC keyUp, evtK keyDown, evtKS keyDown, evtKS keyDown, evtT "e", evtK keyReturn]
     lastEvt steps `shouldBe` TextChanged "a\ne\nd"
@@ -189,7 +198,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
 
   it "should input 'This is text', select 'is text' and input 'test'" $ do
     let str = "This is text"
-    let selStart = Point 40 10
+    let selStart = Point 50 10
     let selEnd = Point 120 10
     let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "test"]
     model steps ^. textValue `shouldBe` "This test"
@@ -212,7 +221,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     wenv = mockWenvEvtUnit (TestModel "")
     txtNode = vstack [
         hstack [
-          textArea textValue `style` [width 105],
+          textArea textValue `style` [width 105, height 20],
           hstack []
         ]
       ]

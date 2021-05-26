@@ -123,13 +123,21 @@ instance CmbOnChangeReq (TextAreaCfg s e) s e Text where
     _tacOnChangeReq = [req]
   }
 
+data HistoryStep = HistoryStep {
+  _tahText :: !Text,
+  _tahCursorPos :: !(Int, Int),
+  _tahSelStart :: Maybe (Int, Int)
+} deriving (Eq, Show, Generic)
+
 data TextAreaState = TextAreaState {
   _tasText :: Text,
   _tasTextMetrics :: TextMetrics,
   _tasTextStyle :: Maybe TextStyle,
   _tasCursorPos :: (Int, Int),
   _tasSelStart :: Maybe (Int, Int),
-  _tasTextLines :: Seq TextLine
+  _tasTextLines :: Seq TextLine,
+  _tasHistory :: Seq HistoryStep,
+  _tasHistoryIdx :: Int
 } deriving (Eq, Show, Generic)
 
 instance Default TextAreaState where
@@ -139,7 +147,9 @@ instance Default TextAreaState where
     _tasTextStyle = def,
     _tasCursorPos = def,
     _tasSelStart = def,
-    _tasTextLines = def
+    _tasTextLines = Seq.empty,
+    _tasHistory = Seq.empty,
+    _tasHistoryIdx = 0
   }
 
 textArea :: WidgetEvent e => ALens' s Text -> WidgetNode s e
@@ -197,7 +207,7 @@ makeTextArea wdata config state = widget where
     validLen = T.length text <= fromMaybe maxBound maxLength
     validLines = length lines <= fromMaybe maxBound maxLines
   line idx
-    | length textLines > idx = Seq.index textLines idx ^. L.text
+    | idx >= 0 && idx < length textLines = Seq.index textLines idx ^. L.text
     | otherwise = ""
   lineLen = T.length . line
   totalLines = length textLines
@@ -340,10 +350,11 @@ makeTextArea wdata config state = widget where
       isDeselectRight = isMove && activeSel && isRight
       isDeselectUp = isMove && activeSel && isUp
       isDeselectDown = isMove && activeSel && isDown
+      replaceFix sel text = replaceText state (Just $ fixPos sel) text
       removeCharL
-        | tpX > 0 = replaceText state (Just (tpX - 1, tpY)) ""
-        | otherwise = replaceText state (Just (lineLen (tpY - 1), tpY - 1)) ""
-      removeWordL = replaceText state (Just prevWordPos) ""
+        | tpX > 0 = replaceFix (tpX - 1, tpY) ""
+        | otherwise = replaceFix (lineLen (tpY - 1), tpY - 1) ""
+      removeWordL = replaceFix prevWordPos ""
       moveCursor txt newPos newSel
         | isJust selStart && isNothing newSel = (txt, fixedPos, Nothing)
         | isJust selStart && Just fixedPos == selStart = (txt, fixedPos, Nothing)
@@ -453,8 +464,8 @@ makeTextArea wdata config state = widget where
       | isKeyboardCopy wenv evt -> Just resultCopy
       | isKeyboardPaste wenv evt -> Just resultPaste
       | isKeyboardCut wenv evt -> Just resultCut
---      | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
---      | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
+      | isKeyboardUndo wenv evt -> Just $ moveHistory bwdState (-1)
+      | isKeyboardRedo wenv evt -> Just $ moveHistory state 1
       | isKeyReturn code -> Just (insertText wenv node "\n")
       | otherwise -> fmap handleKeyRes (handleKeyPress wenv mod code)
       where
@@ -464,14 +475,24 @@ makeTextArea wdata config state = widget where
         resultPaste = resultReqs node [GetClipboard widgetId]
         resultCut = insertText wenv node ""
           & L.requests <>~ Seq.singleton clipboardReq
+        history = _tasHistory state
+        historyIdx = _tasHistoryIdx state
+        bwdState = addHistory state (historyIdx == length history)
+        moveHistory state steps = result where
+          newIdx = restrictValue 0 (length history) (historyIdx + steps)
+          newState = restoreHistory wenv node state newIdx
+          newNode = node
+            & L.widget .~ makeTextArea wdata config newState
+          result = resultReqs newNode (generateReqs newState)
         handleKeyRes (newText, newPos, newSel) = result where
-          newState = (stateFromText wenv node state newText) {
+          tmpState = addHistory state (_tasText state /= newText)
+          newState = (stateFromText wenv node tmpState newText) {
             _tasCursorPos = newPos,
             _tasSelStart = newSel
           }
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
-          result = resultWidget newNode
+          result = resultReqs newNode (generateReqs newState)
 
     TextInput newText -> Just result where
       result = insertText wenv node newText
@@ -511,7 +532,8 @@ makeTextArea wdata config state = widget where
   insertText wenv node addedText = result where
     currSel = _tasSelStart state
     (newText, newPos, newSel) = replaceText state currSel addedText
-    newState = (stateFromText wenv node state newText) {
+    tmpState = addHistory state (_tasText state /= newText)
+    newState = (stateFromText wenv node tmpState newText) {
       _tasCursorPos = newPos,
       _tasSelStart = newSel
     }
@@ -616,7 +638,14 @@ stateFromText wenv node state text = newState where
   style = activeStyle wenv node
   renderer = wenv ^. L.renderer
   newTextMetrics = getTextMetrics wenv style
-  newTextLines = fitTextToWidth renderer style maxNumericValue KeepSpaces text
+  tmpTextLines = fitTextToWidth renderer style maxNumericValue KeepSpaces text
+  maxRect = def
+    & L.y .~ fromIntegral (length tmpTextLines) * newTextMetrics ^. L.lineH
+  maxTextLine = def
+    & L.rect .~ maxRect
+  newTextLines
+    | T.isSuffixOf "\n" text = tmpTextLines |> maxTextLine
+    | otherwise = tmpTextLines
   newState = state {
     _tasText = text,
     _tasTextMetrics = newTextMetrics,
@@ -627,6 +656,36 @@ stateFromText wenv node state text = newState where
 textFromState :: Seq TextLine -> Text
 textFromState textLines = T.unlines lines where
   lines = toList (view L.text <$> textLines)
+
+addHistory :: TextAreaState -> Bool -> TextAreaState
+addHistory state False = state
+addHistory state _ = newState where
+  text = _tasText state
+  curPos = _tasCursorPos state
+  selStart = _tasSelStart state
+  prevStepIdx = _tasHistoryIdx state
+  prevSteps = _tasHistory state
+  steps = Seq.take prevStepIdx prevSteps
+  newState = state {
+    _tasHistory = steps |> HistoryStep text curPos selStart,
+    _tasHistoryIdx = prevStepIdx + 1
+  }
+
+restoreHistory
+  :: WidgetEnv s e -> WidgetNode s e -> TextAreaState -> Int -> TextAreaState
+restoreHistory wenv node state idx
+  | idx >= 0 && idx < length hist && idx /= histIdx = newState
+  | otherwise = state
+  where
+    hist = _tasHistory state
+    histIdx = _tasHistoryIdx state
+    HistoryStep text curPos selStart = Seq.index hist idx
+    tmpState = stateFromText wenv node state text
+    newState = tmpState {
+      _tasCursorPos = curPos,
+      _tasSelStart = selStart,
+      _tasHistoryIdx = idx
+    }
 
 getSelection
   :: TextAreaState
@@ -677,28 +736,27 @@ replaceSelection textLines currPos currSel addText = result where
     | otherwise = (currSel, currPos)
   prevLines = Seq.take selY1 oldLines
   postLines = Seq.drop (selY2 + 1) oldLines
+  returnAdded = T.isSuffixOf "\n" addText
   linePre
     | length oldLines > selY1 = T.take selX1 (Seq.index oldLines selY1)
     | otherwise = ""
   lineSuf
     | length oldLines > selY2 = T.drop selX2 (Seq.index oldLines selY2)
     | otherwise = ""
-  newLines
-    | not (T.isSuffixOf "\n" addText) = Seq.fromList (T.lines addText)
+  addLines
+    | not returnAdded = Seq.fromList (T.lines addText)
     | otherwise = Seq.fromList (T.lines addText) :|> ""
   (newX, newY, midLines)
-    | length newLines <= 1 = (T.length (linePre <> addText), selY1, singleLine)
-    | otherwise = (T.length end, selY1 + length newLines - 1, multiLine)
+    | length addLines <= 1 = (T.length (linePre <> addText), selY1, singleLine)
+    | otherwise = (T.length end, selY1 + length addLines - 1, multiLine)
     where
       singleLine = Seq.singleton $ linePre <> addText <> lineSuf
-      begin = Seq.index newLines 0
-      middle = Seq.drop 1 $ Seq.take (length newLines - 1) newLines
-      end = Seq.index newLines (length newLines - 1)
+      begin = Seq.index addLines 0
+      middle = Seq.drop 1 $ Seq.take (length addLines - 1) addLines
+      end = Seq.index addLines (length addLines - 1)
       multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
-  tmpText = T.unlines . toList $ prevLines <> midLines <> postLines
-  newText
-    | not (T.isSuffixOf "\n" addText) = T.dropEnd 1 tmpText
-    | otherwise = tmpText
+  newLines = prevLines <> midLines <> postLines
+  newText = T.dropEnd 1 $ T.unlines (toList newLines)
   result = (newText, (newX, newY), Nothing)
 
 findClosestGlyphPos :: TextAreaState -> Point -> (Int, Int)

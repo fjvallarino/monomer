@@ -197,10 +197,7 @@ fitSingleTextToW
   -> Seq TextLine
 fitSingleTextToW renderer font fSize metrics top width trim text = result where
   spaces = T.replicate 4 " "
-  -- Temporary solution. It should return empty line, not one with space
-  newText
-    | text /= "" = T.replace "\t" spaces text
-    | otherwise = " "
+  newText = T.replace "\t" spaces text
   !glyphs = computeGlyphsPos renderer font fSize newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
@@ -209,7 +206,9 @@ fitSingleTextToW renderer font fSize metrics top width trim text = result where
   resetGroups
     | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
-  result = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
+  result
+    | text /= "" = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
+    | otherwise = Seq.singleton (buildTextLine metrics top 0 Empty)
 
 buildTextLine :: TextMetrics -> Double -> Int -> Seq GlyphPos -> TextLine
 buildTextLine metrics top idx glyphs = textLine where
