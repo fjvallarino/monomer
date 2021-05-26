@@ -632,13 +632,13 @@
     - Add scroll wrapper
     - Add cursor following request
     - Add select to bottom/beginning
+    - Fix scroll overlay using client space
+    - Rename _thsInputNumericStyle
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Check scroll overlay
     - Complete test cases
-    - Rename _thsInputNumericStyle
   - Rename resultWidget to resultNode
   - Can ReportParent be removed?
 

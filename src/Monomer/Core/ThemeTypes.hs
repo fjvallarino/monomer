@@ -57,9 +57,8 @@ data ThemeState = ThemeState {
   _thsDropdownItemStyle :: StyleState,
   _thsDropdownItemSelectedStyle :: StyleState,
   _thsExternalLinkStyle :: StyleState,
-  _thsInputNumericStyle :: StyleState,
-  _thsInputTextStyle :: StyleState,
   _thsLabelStyle :: StyleState,
+  _thsNumericFieldStyle :: StyleState,
   _thsRadioStyle :: StyleState,
   _thsRadioWidth :: Double,
   _thsScrollOverlay :: Bool,
@@ -79,6 +78,7 @@ data ThemeState = ThemeState {
   _thsSliderWheelRate :: Rational,
   _thsSliderWidth :: Double,
   _thsTextAreaStyle :: StyleState,
+  _thsTextFieldStyle :: StyleState,
   _thsTooltipStyle :: StyleState,
   _thsUserStyleMap :: M.Map String StyleState
 } deriving (Eq, Show, Generic)
@@ -107,9 +107,8 @@ instance Default ThemeState where
     _thsDropdownItemStyle = def,
     _thsDropdownItemSelectedStyle = def,
     _thsExternalLinkStyle = def,
-    _thsInputNumericStyle = def,
-    _thsInputTextStyle = def,
     _thsLabelStyle = def,
+    _thsNumericFieldStyle = def,
     _thsRadioStyle = def,
     _thsRadioWidth = 20,
     _thsScrollOverlay = False,
@@ -129,6 +128,7 @@ instance Default ThemeState where
     _thsSliderWheelRate = 10,
     _thsSliderWidth = 10,
     _thsTextAreaStyle = def,
+    _thsTextFieldStyle = def,
     _thsTooltipStyle = def,
     _thsUserStyleMap = M.empty
   }
@@ -157,9 +157,8 @@ instance Semigroup ThemeState where
     _thsDropdownItemStyle = _thsDropdownItemStyle t1 <> _thsDropdownItemStyle t2,
     _thsDropdownItemSelectedStyle = _thsDropdownItemSelectedStyle t1 <> _thsDropdownItemSelectedStyle t2,
     _thsExternalLinkStyle = _thsExternalLinkStyle t1 <> _thsExternalLinkStyle t2,
-    _thsInputNumericStyle = _thsInputNumericStyle t1 <> _thsInputNumericStyle t2,
-    _thsInputTextStyle = _thsInputTextStyle t1 <> _thsInputTextStyle t2,
     _thsLabelStyle = _thsLabelStyle t1 <> _thsLabelStyle t2,
+    _thsNumericFieldStyle = _thsNumericFieldStyle t1 <> _thsNumericFieldStyle t2,
     _thsRadioStyle = _thsRadioStyle t1 <> _thsRadioStyle t2,
     _thsRadioWidth = _thsRadioWidth t2,
     _thsScrollOverlay = _thsScrollOverlay t2,
@@ -179,6 +178,7 @@ instance Semigroup ThemeState where
     _thsSliderWidth = _thsSliderWidth t2,
     _thsSliderRadius = _thsSliderRadius t2 <|> _thsSliderRadius t1,
     _thsTextAreaStyle = _thsTextAreaStyle t1 <> _thsTextAreaStyle t2,
+    _thsTextFieldStyle = _thsTextFieldStyle t1 <> _thsTextFieldStyle t2,
     _thsTooltipStyle = _thsTooltipStyle t1 <> _thsTooltipStyle t2,
     _thsUserStyleMap = _thsUserStyleMap t1 <> _thsUserStyleMap t2
   }
