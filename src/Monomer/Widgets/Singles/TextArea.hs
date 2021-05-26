@@ -27,6 +27,7 @@ import GHC.Generics
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
+import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
@@ -171,7 +172,7 @@ textAreaV_ value handler configs = textAreaD_ wdata newConfig where
 
 textAreaD_
   :: WidgetEvent e => WidgetData s Text -> [TextAreaCfg s e] -> WidgetNode s e
-textAreaD_ wdata configs = node where
+textAreaD_ wdata configs = scroll node where
   config = mconcat configs
   widget = makeTextArea wdata config def
   node = defaultWidgetNode "textArea" widget
@@ -483,7 +484,7 @@ makeTextArea wdata config state = widget where
           newState = restoreHistory wenv node state newIdx
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
-          result = resultReqs newNode (generateReqs newState)
+          result = resultReqs newNode (generateReqs wenv node newState)
         handleKeyRes (newText, newPos, newSel) = result where
           tmpState = addHistory state (_tasText state /= newText)
           newState = (stateFromText wenv node tmpState newText) {
@@ -492,7 +493,7 @@ makeTextArea wdata config state = widget where
           }
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
-          result = resultReqs newNode (generateReqs newState)
+          result = resultReqs newNode (generateReqs wenv node newState)
 
     TextInput newText -> Just result where
       result = insertText wenv node newText
@@ -539,19 +540,36 @@ makeTextArea wdata config state = widget where
     }
     newNode = node
       & L.widget .~ makeTextArea wdata config newState
+    newReqs = generateReqs wenv node newState
     result
-      | validText newState = resultReqs newNode (generateReqs newState)
+      | validText newState = resultReqs newNode newReqs
       | otherwise = resultWidget node
 
-  generateReqs newState = reqs where
+  generateReqs wenv node newState = reqs ++ reqScroll where
     oldText = _tasText state
     newText = _tasText newState
     events = RaiseEvent <$> fmap ($ newText) (_tacOnChange config)
-    reqUpdateModel = widgetDataSet wdata newText
+    reqUpdate = widgetDataSet wdata newText
     reqOnChange = fmap ($ newText) (_tacOnChangeReq config)
+    reqResize = [ResizeWidgets]
+    reqScroll = generateScrollReq wenv node newState
     reqs
-      | oldText /= newText = reqUpdateModel ++ events ++ reqOnChange
+      | oldText /= newText = reqUpdate ++ events ++ reqOnChange ++ reqResize
       | otherwise = []
+
+  generateScrollReq wenv node newState = maybeToList scrollReq where
+    style = activeStyle wenv node
+    vp = wenv ^. L.viewport
+    scrollWid = findWidgetIdFromPath wenv (parentPath node)
+    contentArea = getContentArea style node
+    offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
+    caretRect = getCaretRect newState contentArea
+    -- Padding/border added to show left/top borders when moving near them
+    boundsRect = fromMaybe caretRect (addOuterBounds style caretRect)
+    scrollRect = moveRect offset boundsRect
+    scrollReq
+      | rectInRect caretRect vp = Nothing
+      | otherwise = SendMessage <$> scrollWid <*> Just (ScrollTo scrollRect)
 
   getSizeReq wenv node = sizeReq where
     Size w h = getTextLinesSize textLines

@@ -627,15 +627,17 @@
     - Add move to top and bottom, page up and down
     - Add test cases
     - Add mouse based selection
+    - Add history
+    - Remove added whitespace for empty lines
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Add history
     - Add scroll wrapper
     - Add cursor following request
+    - Add select to bottom/beginning
+    - Check scroll overlay
     - Complete test cases
-    - Remove added whitespace for empty lines
     - Rename _thsInputNumericStyle
   - Rename resultWidget to resultNode
   - Can ReportParent be removed?

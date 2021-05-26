@@ -42,7 +42,6 @@ spec = describe "TextArea" $ do
   handleEventMouseSelect
   handleEventHistory
   getSizeReq
--- Test adding new line at the bottom
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -273,13 +272,13 @@ handleEventHistory = describe "handleEventHistory" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return (Min 100 1, Min 20 1)" $ do
-    sizeReqW1 `shouldBe` minSize 100 1
-    sizeReqH1 `shouldBe` minSize 20 1
+  it "should return (Min 100 1, Min 20 1), but transformed to expandSize by scroll" $ do
+    sizeReqW1 `shouldBe` expandSize 100 1
+    sizeReqH1 `shouldBe` expandSize 20 1
 
-  it "should return (Min 150 1, Min 80 1)" $ do
-    sizeReqW2 `shouldBe` minSize 150 1
-    sizeReqH2 `shouldBe` minSize 80 1
+  it "should return (Min 150 1, Min 80 1), but transformed to expandSize by scroll" $ do
+    sizeReqW2 `shouldBe` expandSize 150 1
+    sizeReqH2 `shouldBe` expandSize 80 1
 
   where
     wenv1 = mockWenvEvtUnit (TestModel "Test value")
