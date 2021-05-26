@@ -23,6 +23,8 @@ module Monomer.Widgets.Containers.Scroll (
   scrollStyle
 ) where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), (%~), _Just, cloneLens, ix)
 import Control.Monad
@@ -143,6 +145,7 @@ data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
+  _sstVpSize :: Size,
   _sstChildSize :: Size,
   _sstScissor :: Rect
 } deriving (Eq, Show, Generic)
@@ -206,6 +209,7 @@ instance Default ScrollState where
     _sstDragging = Nothing,
     _sstDeltaX = 0,
     _sstDeltaY = 0,
+    _sstVpSize = def,
     _sstChildSize = def,
     _sstScissor = def
   }
@@ -257,8 +261,9 @@ makeScroll config state = widget where
     containerRenderAfter = renderAfter
   }
 
-  ScrollState dragging dx dy cs _ = state
-  Size childWidth childHeight = cs
+  ScrollState dragging dx dy _ _ _ = state
+  Size childWidth childHeight = _sstChildSize state
+  Size maxVpW maxVpH = _sstVpSize state
   offset = Point dx dy
   scrollType = fromMaybe ScrollBoth (_scScrollType config)
   layoutDirection = case scrollType of
@@ -342,8 +347,8 @@ makeScroll config state = widget where
         | wheelDirection == WheelNormal = wheelRate * wy
         | otherwise = -wheelRate * wy
       newState = state {
-        _sstDeltaX = scrollAxis (stepX + dx) childWidth cw,
-        _sstDeltaY = scrollAxis (stepY + dy) childHeight ch
+        _sstDeltaX = scrollAxisH (stepX + dx),
+        _sstDeltaY = scrollAxisV (stepY + dy)
       }
     _ -> Nothing
     where
@@ -363,6 +368,8 @@ makeScroll config state = widget where
     | otherwise = min reqDelta 0
     where
       maxDelta = max 0 (childLength - vpLength)
+  scrollAxisH delta = scrollAxis delta childWidth maxVpW
+  scrollAxisV delta = scrollAxis delta childHeight maxVpH
 
   handleMessage wenv node target message = result where
     handleScrollMessage (ScrollTo rect) = scrollTo wenv node rect
@@ -374,11 +381,11 @@ makeScroll config state = widget where
     contentArea = getContentArea style node
     rect = moveRect offset targetRect
     Rect rx ry rw rh = rect
-    Rect cx cy cw ch = contentArea
+    Rect cx cy _ _ = contentArea
     diffL = cx - rx
-    diffR = cx + cw - (rx + rw)
+    diffR = cx + maxVpW - (rx + rw)
     diffT = cy - ry
-    diffB = cy + ch - (ry + rh)
+    diffB = cy + maxVpH - (ry + rh)
     stepX
       | rectInRectH rect contentArea = dx
       | abs diffL <= abs diffR = diffL + dx
@@ -388,8 +395,8 @@ makeScroll config state = widget where
       | abs diffT <= abs diffB = diffT + dy
       | otherwise = diffB + dy
     newState = state {
-      _sstDeltaX = scrollAxis stepX childWidth cw,
-      _sstDeltaY = scrollAxis stepY childHeight ch
+      _sstDeltaX = scrollAxisH stepX,
+      _sstDeltaY = scrollAxisV stepY
     }
     result
       | rectInRect rect contentArea = Nothing
@@ -411,10 +418,10 @@ makeScroll config state = widget where
     hDelta = (cx - px + hMid) / hScrollRatio
     vDelta = (cy - py + vMid) / vScrollRatio
     newDeltaX
-      | activeBar == HBar = scrollAxis hDelta childWidth cw
+      | activeBar == HBar = scrollAxisH hDelta
       | otherwise = dx
     newDeltaY
-      | activeBar == VBar = scrollAxis vDelta childHeight ch
+      | activeBar == VBar = scrollAxisV vDelta
       | otherwise = dy
     newState = state {
       _sstDeltaX = newDeltaX,
@@ -461,14 +468,14 @@ makeScroll config state = widget where
       | scrollType == ScrollH = (cw, max cw childW)
       | childH <= ch && childW <= cw = (cw, cw)
       | childH <= ch = (cw, max cw childW)
-      | otherwise = (ncw, max ncw childW)
+      | otherwise = traceShowId (ncw, max cw childW)
     (maxH, areaH)
       | scrollType == ScrollH && childW > cw = (nch, nch)
       | scrollType == ScrollH = (ch, ch)
       | scrollType == ScrollV = (ch, max ch childH)
       | childW <= cw && childH <= ch = (ch, ch)
       | childW <= cw = (ch, max ch childH)
-      | otherwise = (nch, max nch childH)
+      | otherwise = (nch, max ch childH)
     newDx = scrollAxis dx areaW maxW
     newDy = scrollAxis dy areaH maxH
     scissor = Rect cl ct maxW maxH
@@ -476,6 +483,7 @@ makeScroll config state = widget where
     newState = state {
       _sstDeltaX = newDx,
       _sstDeltaY = newDy,
+      _sstVpSize = Size maxW maxH,
       _sstChildSize = Size areaW areaH,
       _sstScissor = scissor
     }
@@ -545,7 +553,8 @@ scrollStatus
   -> Point
   -> ScrollContext
 scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
-  ScrollState _ dx dy (Size childWidth childHeight) _ = scrollState
+  ScrollState _ dx dy _ _ _ = scrollState
+  Size childWidth childHeight = _sstChildSize scrollState
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node
   contentArea = getContentArea style node
