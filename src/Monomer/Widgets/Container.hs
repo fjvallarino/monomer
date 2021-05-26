@@ -357,7 +357,7 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Just state -> mergePostHandler wenv (mResult^.L.node) oldNode state mResult
     Nothing -> resultWidget (mResult ^. L.node)
   tmpResult
-    | isResizeResult (Just postRes) = postRes
+    | isResizeAnyResult (Just postRes) = postRes
         & L.node .~ updateSizeReq wenv (postRes ^. L.node)
     | otherwise = postRes
   newResult = handleWidgetIdChange oldNode tmpResult
@@ -750,7 +750,7 @@ handleSizeReqChange
 handleSizeReqChange container wenv node evt mResult = result where
   baseResult = fromMaybe (resultWidget node) mResult
   baseNode = baseResult ^. L.node
-  resizeReq = isResizeResult mResult
+  resizeReq = isResizeAnyResult mResult
   styleChanged = isJust evt && styleStateChanged wenv baseNode (fromJust evt)
   result
     | styleChanged || resizeReq = Just $ baseResult

@@ -740,6 +740,7 @@ toParentReq
 toParentReq _ IgnoreParentEvents = Just IgnoreParentEvents
 toParentReq _ IgnoreChildrenEvents = Just IgnoreChildrenEvents
 toParentReq _ ResizeWidgets = Just ResizeWidgets
+toParentReq _ ResizeWidgetsImmediate = Just ResizeWidgetsImmediate
 toParentReq _ (MoveFocus start dir) = Just (MoveFocus start dir)
 toParentReq _ (SetFocus path) = Just (SetFocus path)
 toParentReq _ (GetClipboard path) = Just (GetClipboard path)

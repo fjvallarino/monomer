@@ -219,7 +219,7 @@ runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
   styledNode = initNodeStyle getBaseStyle wenv tempNode
   tmpResult = nodeHandler wenv styledNode
   newResult
-    | isResizeResult (Just tmpResult) = tmpResult
+    | isResizeAnyResult (Just tmpResult) = tmpResult
         & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
     | otherwise = tmpResult
 
@@ -384,7 +384,7 @@ handleSizeReqChange
 handleSizeReqChange single wenv node evt mResult = result where
   baseResult = fromMaybe (resultWidget node) mResult
   newNode = baseResult ^. L.node
-  resizeReq = isResizeResult mResult
+  resizeReq = isResizeAnyResult mResult
   styleChanged = isJust evt && styleStateChanged wenv newNode (fromJust evt)
   result
     | styleChanged || resizeReq = Just $ baseResult

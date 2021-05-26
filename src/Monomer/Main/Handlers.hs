@@ -231,6 +231,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     IgnoreParentEvents -> return step
     IgnoreChildrenEvents -> return step
     ResizeWidgets -> return step
+    ResizeWidgetsImmediate -> handleResizeWidgets step
     MoveFocus start dir -> handleMoveFocus start dir step
     SetFocus path -> handleSetFocus path step
     GetClipboard wid -> handleGetClipboard wid step

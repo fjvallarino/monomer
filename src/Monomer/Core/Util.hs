@@ -73,6 +73,10 @@ isResizeWidgets :: WidgetRequest s e -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False
 
+isResizeWidgetsImmediate :: WidgetRequest s e -> Bool
+isResizeWidgetsImmediate ResizeWidgetsImmediate = True
+isResizeWidgetsImmediate _ = False
+
 isRenderOnce :: WidgetRequest s e -> Bool
 isRenderOnce RenderOnce{} = True
 isRenderOnce _ = False
@@ -106,6 +110,14 @@ isResizeResult ::  Maybe (WidgetResult s e) -> Bool
 isResizeResult result = isJust resizeReq where
   requests = maybe Empty (^. L.requests) result
   resizeReq = Seq.findIndexL isResizeWidgets requests
+
+isResizeImmediateResult ::  Maybe (WidgetResult s e) -> Bool
+isResizeImmediateResult result = isJust resizeReq where
+  requests = maybe Empty (^. L.requests) result
+  resizeReq = Seq.findIndexL isResizeWidgetsImmediate requests
+
+isResizeAnyResult :: Maybe (WidgetResult s e) -> Bool
+isResizeAnyResult res = isResizeResult res || isResizeImmediateResult res
 
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOs wenv == "Mac OS X"
