@@ -631,11 +631,11 @@
     - Remove added whitespace for empty lines
     - Add scroll wrapper
     - Add cursor following request
+    - Add select to bottom/beginning
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
-    - Add select to bottom/beginning
     - Check scroll overlay
     - Complete test cases
     - Rename _thsInputNumericStyle

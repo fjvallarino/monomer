@@ -555,25 +555,25 @@ makeTextArea wdata config state = widget where
     events = RaiseEvent <$> fmap ($ newText) (_tacOnChange config)
     reqUpdate = widgetDataSet wdata newText
     reqOnChange = fmap ($ newText) (_tacOnChangeReq config)
-    reqResize = [ResizeWidgets]
+    reqResize = [ResizeWidgetsImmediate]
     reqScroll = generateScrollReq wenv node newState
     reqs
       | oldText /= newText = reqUpdate ++ events ++ reqOnChange ++ reqResize
       | otherwise = []
 
-  generateScrollReq wenv node newState = maybeToList scrollReq where
+  generateScrollReq wenv node newState = scrollReq where
     style = activeStyle wenv node
-    vp = wenv ^. L.viewport
-    scrollWid = findWidgetIdFromPath wenv (parentPath node)
+    scPath = parentPath node
+    scWid = findWidgetIdFromPath wenv scPath
     contentArea = getContentArea style node
     offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
-    caretRect = getCaretRect newState contentArea
+    caretRect = getCaretRect newState
     -- Padding/border added to show left/top borders when moving near them
-    boundsRect = fromMaybe caretRect (addOuterBounds style caretRect)
-    scrollRect = moveRect offset boundsRect
+    scrollRect = fromMaybe caretRect (addOuterBounds style caretRect)
+    scrollMsg = ScrollTo $ moveRect offset scrollRect
     scrollReq
-      | rectInRect caretRect vp = Nothing
-      | otherwise = SendMessage <$> scrollWid <*> Just (ScrollTo scrollRect)
+      | rectInRect caretRect (wenv ^. L.viewport) || isNothing scWid = []
+      | otherwise = [SendMessage (fromJust scWid) scrollMsg, RenderOnce]
 
   getSizeReq wenv node = sizeReq where
     Size w h = getTextLinesSize textLines
@@ -596,14 +596,13 @@ makeTextArea wdata config state = widget where
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
-      caretRect = getCaretRect state contentArea
+      caretRect = getCaretRect state
       selRequired = isJust (_tasSelStart state)
       selColor = styleHlColor style
       selRects = getSelectionRects state contentArea
 
-getCaretRect :: TextAreaState -> Rect -> Rect
-getCaretRect state contentArea = caretRect where
-  Rect _ _ cw ch = contentArea
+getCaretRect :: TextAreaState -> Rect
+getCaretRect state = caretRect where
   (cursorX, cursorY) = _tasCursorPos state
   TextMetrics _ _ lineh = _tasTextMetrics state
   textLines = _tasTextLines state
@@ -615,7 +614,7 @@ getCaretRect state contentArea = caretRect where
     | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
-  caretX = max 0 $ min (cw - caretW) (tx + caretPos)
+  caretX = max 0 (tx + caretPos)
   caretY
     | cursorY == length textLines = fromIntegral cursorY * lineh
     | otherwise = ty
@@ -661,12 +660,14 @@ stateFromText wenv node state text = newState where
   renderer = wenv ^. L.renderer
   newTextMetrics = getTextMetrics wenv style
   tmpTextLines = fitTextToWidth renderer style maxNumericValue KeepSpaces text
-  maxRect = def
+  lastRect = def
     & L.y .~ fromIntegral (length tmpTextLines) * newTextMetrics ^. L.lineH
-  maxTextLine = def
-    & L.rect .~ maxRect
+    & L.h .~ newTextMetrics ^. L.lineH
+  lastTextLine = def
+    & L.rect .~ lastRect
+    & L.size .~ Size 0 (lastRect ^. L.h)
   newTextLines
-    | T.isSuffixOf "\n" text = tmpTextLines |> maxTextLine
+    | T.isSuffixOf "\n" text = tmpTextLines |> lastTextLine
     | otherwise = tmpTextLines
   newState = state {
     _tasText = text,
