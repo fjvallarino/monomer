@@ -177,7 +177,7 @@ makeImage imgSource config state = widget where
     imgPath = imgName imgSource
     reqs = [RunTask wid path $ handleImageLoad config wenv imgPath]
     result = case imgSource of
-      ImageMem _ -> resultWidget node
+      ImageMem _ -> resultNode node
       ImagePath _ -> resultReqs node reqs
 
   merge wenv newNode oldNode oldState = result where
@@ -194,7 +194,7 @@ makeImage imgSource config state = widget where
         handleImageLoad config wenv imgPath
       ]
     result
-      | oldSource == imgSource = resultWidget sameImgNode
+      | oldSource == imgSource = resultNode sameImgNode
       | isImageMem = resultReqs newNode newMemReqs
       | otherwise = resultReqs newNode newImgReqs
 

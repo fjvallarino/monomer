@@ -117,7 +117,7 @@ makeDraggable msg config = widget where
   resize wenv node viewport children = resized where
     style = activeStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
-    resized = (resultWidget node, Seq.singleton contentArea)
+    resized = (resultNode node, Seq.singleton contentArea)
 
   defaultRender wenv node renderer =
     drawStyledAction renderer (moveRect scOffset draggedRect) style $ \_ -> do

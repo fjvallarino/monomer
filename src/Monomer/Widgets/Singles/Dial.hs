@@ -194,12 +194,12 @@ makeDial field minVal maxVal config state = widget where
     (_, dialArea) = getDialInfo wenv node config
     style = activeStyle_ (activeStyleConfig dialArea) wenv node
 
-  init wenv node = resultWidget resNode where
+  init wenv node = resultNode resNode where
     newState = newStateFromModel wenv node state
     resNode = node
       & L.widget .~ makeDial field minVal maxVal config newState
 
-  merge wenv newNode oldNode oldState = resultWidget resNode where
+  merge wenv newNode oldNode oldState = resultNode resNode where
     newState
       | isNodePressed wenv newNode = oldState
       | otherwise = newStateFromModel wenv newNode oldState
@@ -231,7 +231,7 @@ makeDial field minVal maxVal config state = widget where
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
         vPos pos = restrictValue 0 maxPos pos
-        newResult newPos = addReqsEvts (resultWidget newNode) newVal where
+        newResult newPos = addReqsEvts (resultNode newNode) newVal where
           newVal = valueFromPos minVal dragRate newPos
           newState = state { _dlsPos = newPos }
           newNode = node

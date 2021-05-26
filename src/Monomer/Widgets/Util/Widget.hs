@@ -12,7 +12,7 @@ module Monomer.Widgets.Util.Widget (
   childrenFlagsChanged,
   widgetDataGet,
   widgetDataSet,
-  resultWidget,
+  resultNode,
   resultEvts,
   resultReqs,
   resultReqsEvts,
@@ -102,8 +102,8 @@ widgetDataSet WidgetValue{} _ = []
 widgetDataSet (WidgetLens lens) value = [UpdateModel updateFn] where
   updateFn model = model & lens #~ value
 
-resultWidget :: WidgetNode s e -> WidgetResult s e
-resultWidget node = WidgetResult node Seq.empty
+resultNode :: WidgetNode s e -> WidgetResult s e
+resultNode node = WidgetResult node Seq.empty
 
 resultEvts :: Typeable e => WidgetNode s e -> [e] -> WidgetResult s e
 resultEvts node events = result where

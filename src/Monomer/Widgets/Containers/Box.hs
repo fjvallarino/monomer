@@ -203,8 +203,8 @@ makeBox config = widget where
     raAligned = alignInRect ah av contentArea raChild
     expand = fromMaybe False (_boxExpandContent config)
     resized
-      | expand = (resultWidget node, Seq.singleton contentArea)
-      | otherwise = (resultWidget node, Seq.singleton raAligned)
+      | expand = (resultNode node, Seq.singleton contentArea)
+      | otherwise = (resultNode node, Seq.singleton raAligned)
 
 alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
 alignInRect ah av parent child = newRect where

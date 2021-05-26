@@ -156,7 +156,7 @@ handleSizeChange
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
 handleSizeChange wenv target evt oldNode result = newResult where
-  baseResult = fromMaybe (resultWidget oldNode) result
+  baseResult = fromMaybe (resultNode oldNode) result
   newNode = baseResult ^. L.node
   -- Size
   oldSizeReqW = oldNode ^. L.info . L.sizeReqW
@@ -189,7 +189,7 @@ handleCursorChange
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
 handleCursorChange wenv target evt style oldNode result = newResult where
-  baseResult = fromMaybe (resultWidget oldNode) result
+  baseResult = fromMaybe (resultNode oldNode) result
   baseReqs = baseResult ^. L.requests
   node = baseResult ^. L.node
   -- Cursor

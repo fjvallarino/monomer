@@ -113,7 +113,7 @@ makeStack isHorizontal config = widget where
       | otherwise = contentArea & L.h .~ newDim
     newNode = node
       & L.info . L.viewport .~ fromMaybe newCa (addOuterBounds style newCa)
-    resized = (resultWidget newNode, newVps)
+    resized = (resultNode newNode, newVps)
 
 assignStackAreas :: Bool -> Rect -> Seq (WidgetNode s e) -> (Seq Rect, Double)
 assignStackAreas isHorizontal contentArea children = result where

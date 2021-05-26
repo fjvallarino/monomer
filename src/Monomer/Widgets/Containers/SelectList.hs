@@ -250,7 +250,7 @@ makeSelectList widgetData items makeRow config state = widget where
     itemsList = makeItemsList wenv items makeRow config widgetId selected
     children = Seq.singleton itemsList
 
-  init wenv node = resultWidget newNode where
+  init wenv node = resultNode newNode where
     children = createSelectListChildren wenv node
     newState = state {
       _resizeReq = True
@@ -277,7 +277,7 @@ makeSelectList widgetData items makeRow config state = widget where
   mergePost wenv node oldNode oldState result = newResult where
     newResult = updateResultStyle wenv result oldState
 
-  updateState wenv node oldState resizeReq children = resultWidget newNode where
+  updateState wenv node oldState resizeReq children = resultNode newNode where
     newState = oldState {
       _prevItems = items,
       _resizeReq = resizeReq
@@ -303,7 +303,7 @@ makeSelectList widgetData items makeRow config state = widget where
       changeReq = isTabPressed && _slcSelectOnBlur config == Just True
       WidgetResult tempNode tempReqs
         | changeReq = selectItem wenv node (_hlIdx state)
-        | otherwise = resultWidget node
+        | otherwise = resultNode node
       evts = RaiseEvent <$> Seq.fromList (($ next) <$> _slcOnBlur config)
       reqs = tempReqs <> Seq.fromList (_slcOnBlurReq config)
       mergedResult = Just $ WidgetResult tempNode (reqs <> evts)
@@ -403,7 +403,7 @@ makeSelectList widgetData items makeRow config state = widget where
     newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
     assignedArea = Seq.singleton viewport
-    resized = (resultWidget newNode, assignedArea)
+    resized = (resultNode newNode, assignedArea)
 
 updateStyles
   :: WidgetEnv s e

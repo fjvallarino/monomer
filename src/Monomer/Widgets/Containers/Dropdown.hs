@@ -269,10 +269,10 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dropdownStyle
 
-  init wenv node = resultWidget $ createDropdown wenv node state
+  init wenv node = resultNode $ createDropdown wenv node state
 
   merge wenv newNode oldNode oldState = result where
-    result = resultWidget $ createDropdown wenv newNode oldState
+    result = resultNode $ createDropdown wenv newNode oldState
 
   dispose wenv node = resultReqs node reqs where
     widgetId = node ^. L.info . L.widgetId
@@ -293,7 +293,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   ddFocusChange evts reqs prev node = Just newResult where
     tmpResult = handleFocusChange evts reqs config prev node
-    newResult = fromMaybe (resultWidget node) tmpResult
+    newResult = fromMaybe (resultNode node) tmpResult
       & L.requests %~ (|> IgnoreChildrenEvents)
 
   handleEvent wenv node target evt = case evt of
@@ -433,7 +433,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       _rH = listHeight wenv node
     }
     assignedAreas = Seq.fromList [mainArea, listArea]
-    resized = (resultWidget node, assignedAreas)
+    resized = (resultNode node, assignedAreas)
 
   render wenv node renderer = do
     drawInScissor renderer True viewport $

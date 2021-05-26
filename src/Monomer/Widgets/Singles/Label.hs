@@ -149,7 +149,7 @@ makeLabel config state = widget where
     | ignoreTheme = Nothing
     | otherwise = Just $ collectTheme wenv L.labelStyle
 
-  init wenv node = resultWidget newNode where
+  init wenv node = resultNode newNode where
     style = activeStyle wenv node
     newState = state {
       _lstTextStyle = style ^. L.text

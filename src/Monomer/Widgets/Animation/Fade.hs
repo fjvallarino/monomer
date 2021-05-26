@@ -123,9 +123,9 @@ makeFade isFadeIn config state = widget where
       & L.widget .~ makeFade isFadeIn config (FadeState True ts)
     result
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
-      | otherwise = resultWidget node
+      | otherwise = resultNode node
 
-  merge wenv node oldNode oldState = resultWidget newNode where
+  merge wenv node oldNode oldState = resultNode newNode where
     newNode = node
       & L.widget .~ makeFade isFadeIn config oldState
 
@@ -144,7 +144,7 @@ makeFade isFadeIn config state = widget where
       AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
       AnimationFinished
         | _fdsRunning state -> resultEvts node (_fdcOnFinished config)
-        | otherwise -> resultWidget node
+        | otherwise -> resultNode node
 
   render wenv node renderer = do
     saveContext renderer

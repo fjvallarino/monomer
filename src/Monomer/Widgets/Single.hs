@@ -165,7 +165,7 @@ defaultGetActiveStyle :: SingleGetActiveStyle s e
 defaultGetActiveStyle wenv node = activeStyle wenv node
 
 defaultInit :: SingleInitHandler s e
-defaultInit wenv node = resultWidget node
+defaultInit wenv node = resultNode node
 
 initWrapper
   :: WidgetModel a
@@ -182,7 +182,7 @@ initWrapper single wenv node = newResult where
     & L.node .~ updateSizeReq wenv (tmpResult ^. L.node)
 
 defaultMerge :: SingleMergeHandler s e a
-defaultMerge wenv newNode oldState oldNode = resultWidget newNode
+defaultMerge wenv newNode oldState oldNode = resultNode newNode
 
 mergeWrapper
   :: WidgetModel a
@@ -197,7 +197,7 @@ mergeWrapper single wenv newNode oldNode = newResult where
   oldInfo = oldNode ^. L.info
   nodeHandler wenv styledNode = case useState oldState of
     Just state -> mergeHandler wenv styledNode oldNode state
-    _ -> resultWidget styledNode
+    _ -> resultNode styledNode
   tmpResult = runNodeHandler single wenv newNode oldInfo nodeHandler
   newResult = handleWidgetIdChange oldNode tmpResult
 
@@ -238,7 +238,7 @@ getInstanceTreeWrapper container wenv node = instNode where
   getChildTree wenv child = widgetGetInstanceTree (child ^. L.widget) wenv child
 
 defaultDispose :: SingleDisposeHandler s e
-defaultDispose wenv node = resultWidget node
+defaultDispose wenv node = resultNode node
 
 disposeWrapper
   :: Single s e a
@@ -382,7 +382,7 @@ handleSizeReqChange
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
 handleSizeReqChange single wenv node evt mResult = result where
-  baseResult = fromMaybe (resultWidget node) mResult
+  baseResult = fromMaybe (resultNode node) mResult
   newNode = baseResult ^. L.node
   resizeReq = isResizeAnyResult mResult
   styleChanged = isJust evt && styleStateChanged wenv newNode (fromJust evt)
@@ -392,7 +392,7 @@ handleSizeReqChange single wenv node evt mResult = result where
     | otherwise = mResult
 
 defaultResize :: SingleResizeHandler s e
-defaultResize wenv node viewport = resultWidget node
+defaultResize wenv node viewport = resultNode node
 
 resizeHandlerWrapper
   :: WidgetModel a

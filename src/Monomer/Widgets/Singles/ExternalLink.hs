@@ -175,10 +175,10 @@ makeExternalLink caption url config = widget where
       & L.children .~ Seq.singleton childNode
 
   init wenv node = result where
-    result = resultWidget (createChildNode wenv node)
+    result = resultNode (createChildNode wenv node)
 
   merge wenv node oldNode oldState = result where
-    result = resultWidget (createChildNode wenv node)
+    result = resultNode (createChildNode wenv node)
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange _elcOnFocus _elcOnFocusReq config prev node
@@ -215,7 +215,7 @@ makeExternalLink caption url config = widget where
 
   resize wenv node viewport children = resized where
     assignedAreas = Seq.fromList [viewport]
-    resized = (resultWidget node, assignedAreas)
+    resized = (resultNode node, assignedAreas)
 
 openLink :: WidgetEnv s e -> String -> IO ()
 openLink wenv url = catchIgnore (callCommand openCommand) where

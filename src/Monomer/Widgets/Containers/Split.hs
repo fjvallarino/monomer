@@ -148,7 +148,7 @@ makeSplit isHorizontal config state = widget where
   handleW = fromMaybe 3 (_spcHandleSize config)
 
   init wenv node = result where
-    useModelValue value = resultWidget newNode where
+    useModelValue value = resultNode newNode where
       newState = state {
         _spsHandlePosUserSet = True,
         _spsHandlePos = value
@@ -158,7 +158,7 @@ makeSplit isHorizontal config state = widget where
     result = case getModelPos wenv config of
       Just val
         | val >= 0 && val <= 1 -> useModelValue val
-      _ -> resultWidget node
+      _ -> resultNode node
 
   merge wenv newNode oldNode oldState = result where
     oldHandlePos = _spsHandlePos oldState
@@ -166,7 +166,7 @@ makeSplit isHorizontal config state = widget where
     newState = oldState {
       _spsHandlePos = fromMaybe oldHandlePos modelPos
     }
-    result = resultWidget $ newNode
+    result = resultNode $ newNode
       & L.widget .~ makeSplit isHorizontal config newState
 
   handleEvent wenv node target evt = case evt of
@@ -270,7 +270,7 @@ makeSplit isHorizontal config state = widget where
     events = RaiseEvent <$> fmap ($ handlePos) (_spcOnChange config)
     reqOnChange = fmap ($ handlePos) (_spcOnChangeReq config)
     requestPos = setModelPos config handlePos
-    result = resultWidget node
+    result = resultNode node
       & L.node . L.widget .~ makeSplit isHorizontal config newState
       & L.requests .~ Seq.fromList (requestPos ++ reqOnChange ++ events)
     newVps = Seq.fromList [rect1, rect2]

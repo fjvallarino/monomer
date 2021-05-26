@@ -349,7 +349,7 @@ makeInputField config state = widget where
 
     -- Begin custom drag
     ButtonAction point btn PressedBtn clicks
-      | dragHandleExt btn && clicks == 1 -> Just (resultWidget newNode) where
+      | dragHandleExt btn && clicks == 1 -> Just (resultNode newNode) where
         newState = state { _ifsDragSelValue = currVal }
         newNode = node
           & L.widget .~ makeInputField config newState
@@ -484,7 +484,7 @@ makeInputField config state = widget where
     result = genInputResult wenv node True newText newPos Nothing []
 
   cutTextRes wenv node = Just result where
-    tmpResult = fromMaybe (resultWidget node) (insertTextRes wenv node "")
+    tmpResult = fromMaybe (resultNode node) (insertTextRes wenv node "")
     result = tmpResult
       & L.requests %~ (|> SetClipboard (ClipboardText selectedText))
 
@@ -543,7 +543,7 @@ makeInputField config state = widget where
     factor = 1
     sizeReq = (expandSize targetW factor, fixedSize h)
 
-  resize wenv node viewport = resultWidget newNode where
+  resize wenv node viewport = resultNode newNode where
     -- newTextState depends on having correct viewport in the node
     tempNode = node
       & L.info . L.viewport .~ viewport

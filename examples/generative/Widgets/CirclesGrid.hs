@@ -58,7 +58,7 @@ makeCirclesGrid cfg state = widget where
     singleRender = render
   }
 
-  merge wenv node oldNode oldState = resultWidget newNode where
+  merge wenv node oldNode oldState = resultNode newNode where
     newNode = node
       & L.widget .~ makeCirclesGrid cfg oldState
 

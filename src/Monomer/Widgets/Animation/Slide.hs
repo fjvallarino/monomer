@@ -150,9 +150,9 @@ makeSlide isSlideIn config state = widget where
       & L.widget .~ makeSlide isSlideIn config (SlideState True ts)
     result
       | autoStart = resultReqs newNode [finishedReq node, renderReq wenv node]
-      | otherwise = resultWidget node
+      | otherwise = resultNode node
 
-  merge wenv node oldNode oldState = resultWidget newNode where
+  merge wenv node oldNode oldState = resultNode newNode where
     newNode = node
       & L.widget .~ makeSlide isSlideIn config oldState
 
@@ -171,7 +171,7 @@ makeSlide isSlideIn config state = widget where
       AnimationStop -> resultReqs (newNode def) [RenderStop widgetId]
       AnimationFinished
         | _slsRunning state -> resultEvts node (_slcOnFinished config)
-        | otherwise -> resultWidget node
+        | otherwise -> resultNode node
 
   render wenv node renderer = do
     saveContext renderer

@@ -80,7 +80,7 @@ makeZStack config state = widget where
 
   onlyTopActive = fromMaybe True (_zscOnlyTopActive config)
 
-  init wenv node = resultWidget newNode where
+  init wenv node = resultNode newNode where
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
     newState = state {
@@ -154,7 +154,7 @@ makeZStack config state = widget where
     style = activeStyle wenv node
     vpChild = fromMaybe def (removeOuterBounds style viewport)
     assignedAreas = fmap (const vpChild) children
-    resized = (resultWidget node, assignedAreas)
+    resized = (resultNode node, assignedAreas)
 
   render wenv node renderer =
     drawInScissor renderer True viewport $

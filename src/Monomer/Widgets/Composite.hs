@@ -376,7 +376,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   WidgetResult newRoot tmpReqs
     | initRequired = widgetInit tempWidget cwenv tempRoot
     | mergeRequired = widgetMerge tempWidget cwenv tempRoot oldRoot
-    | otherwise = resultWidget oldRoot
+    | otherwise = resultNode oldRoot
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
@@ -654,7 +654,7 @@ handleMsgUpdate comp state wenv widgetComp fnUpdate = result where
     | otherwise = getModel comp wenv
   newModel = fnUpdate model
   result
-    | model == newModel = resultWidget widgetComp
+    | model == newModel = resultNode widgetComp
     | otherwise = mergeChild comp state wenv newModel _cpsRoot widgetComp
 
 toParentResult

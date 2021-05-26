@@ -217,13 +217,13 @@ makeTextArea wdata config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.textAreaStyle
 
-  init wenv node = resultWidget newNode where
+  init wenv node = resultNode newNode where
     text = getModelValue wenv
     newState = stateFromText wenv node state text
     newNode = node
       & L.widget .~ makeTextArea wdata config newState
 
-  merge wenv node oldNode oldState = resultWidget newNode where
+  merge wenv node oldNode oldState = resultNode newNode where
     oldText = _tasText oldState
     newText = getModelValue wenv
     newState
@@ -547,7 +547,7 @@ makeTextArea wdata config state = widget where
     newReqs = generateReqs wenv node newState
     result
       | validText newState = resultReqs newNode newReqs
-      | otherwise = resultWidget node
+      | otherwise = resultNode node
 
   generateReqs wenv node newState = reqs ++ reqScroll where
     oldText = _tasText state

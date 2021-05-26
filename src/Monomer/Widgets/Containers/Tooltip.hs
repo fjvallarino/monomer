@@ -109,7 +109,7 @@ makeTooltip caption config state = widget where
   merge wenv node oldNode oldState = result where
     newNode = node
       & L.widget .~ makeTooltip caption config oldState
-    result = resultWidget newNode
+    result = resultNode newNode
 
   handleEvent wenv node target evt = case evt of
     Leave point -> Just $ resultReqs newNode [RenderOnce] where
@@ -133,12 +133,12 @@ makeTooltip caption config state = widget where
         result
           | not prevDisplayed = resultReqs newNode [delayedRender]
           | prevDisplayed && followCursor = resultReqs node [RenderOnce]
-          | otherwise = resultWidget node
+          | otherwise = resultNode node
     _ -> Nothing
 
   -- Padding/border is not removed. Styles are only considerer for the overlay
   resize wenv node viewport children = resized where
-    resized = (resultWidget node, Seq.singleton viewport)
+    resized = (resultNode node, Seq.singleton viewport)
 
   render wenv node renderer = do
     forM_ children $ \child ->

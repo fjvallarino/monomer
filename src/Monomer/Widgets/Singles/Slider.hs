@@ -252,13 +252,13 @@ makeSlider isHz field minVal maxVal config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.sliderStyle
 
-  init wenv node = resultWidget resNode where
+  init wenv node = resultNode resNode where
     currVal = widgetDataGet (wenv ^. L.model) field
     newState = newStateFromValue currVal
     resNode = node
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
-  merge wenv newNode oldNode oldState = resultWidget resNode where
+  merge wenv newNode oldNode oldState = resultNode resNode where
     stateVal = valueFromPos (_slsPos oldState)
     modelVal = widgetDataGet (wenv ^. L.model) field
     newState

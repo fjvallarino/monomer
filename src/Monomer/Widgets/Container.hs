@@ -288,7 +288,7 @@ updateWenvOffset container wenv node = newWenv where
 
 -- | Init handler
 defaultInit :: ContainerInitHandler s e
-defaultInit wenv node = resultWidget node
+defaultInit wenv node = resultNode node
 
 defaultInitPost :: ContainerInitPostHandler s e
 defaultInitPost wenv node result = result
@@ -323,7 +323,7 @@ defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
 defaultMergeRequired wenv newNode oldNode oldState = True
 
 defaultMerge :: ContainerMergeHandler s e a
-defaultMerge wenv newNode oldNode oldState = resultWidget newNode
+defaultMerge wenv newNode oldNode oldState = resultNode newNode
 
 defaultMergePost :: ContainerMergePostHandler s e a
 defaultMergePost wenv newNode oldNode oldState result = result
@@ -355,7 +355,7 @@ mergeWrapper container wenv newNode oldNode = newResult where
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
   postRes = case useState oldState of
     Just state -> mergePostHandler wenv (mResult^.L.node) oldNode state mResult
-    Nothing -> resultWidget (mResult ^. L.node)
+    Nothing -> resultNode (mResult ^. L.node)
   tmpResult
     | isResizeAnyResult (Just postRes) = postRes
         & L.node .~ updateSizeReq wenv (postRes ^. L.node)
@@ -379,7 +379,7 @@ mergeParent mergeHandler wenv newNode oldNode oldState = result where
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   result = case useState oldState of
     Just state -> mergeHandler wenv tempNode oldNode state
-    Nothing -> resultWidget tempNode
+    Nothing -> resultNode tempNode
 
 mergeChildren
   :: (Int -> WidgetNode s e -> WidgetEnv s e)
@@ -478,7 +478,7 @@ getInstanceTreeWrapper container wenv node = instNode where
 
 -- | Dispose handler
 defaultDispose :: ContainerInitHandler s e
-defaultDispose wenv node = resultWidget node
+defaultDispose wenv node = resultNode node
 
 disposeWrapper
   :: Container s e a
@@ -748,7 +748,7 @@ handleSizeReqChange
   -> Maybe (WidgetResult s e)
   -> Maybe (WidgetResult s e)
 handleSizeReqChange container wenv node evt mResult = result where
-  baseResult = fromMaybe (resultWidget node) mResult
+  baseResult = fromMaybe (resultNode node) mResult
   baseNode = baseResult ^. L.node
   resizeReq = isResizeAnyResult mResult
   styleChanged = isJust evt && styleStateChanged wenv baseNode (fromJust evt)
@@ -763,7 +763,7 @@ defaultResize wenv node viewport children = resized where
   style = activeStyle wenv node
   contentArea = fromMaybe def (removeOuterBounds style viewport)
   childrenSizes = Seq.replicate (Seq.length children) contentArea
-  resized = (resultWidget node, childrenSizes)
+  resized = (resultNode node, childrenSizes)
 
 resizeWrapper
   :: WidgetModel a
@@ -800,7 +800,7 @@ resizeWrapper container wenv node viewport = result where
       & L.node . L.info . L.viewport .~ newVp
       & L.node . L.children .~ newChildren
       & L.requests <>~ newChildrenReqs
-    | otherwise = Just $ resultWidget node
+    | otherwise = Just $ resultNode node
   result = fromJust $
     handleSizeReqChange container wenv (tempRes ^. L.node) Nothing tmpResult
 

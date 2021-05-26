@@ -634,12 +634,12 @@
     - Add select to bottom/beginning
     - Fix scroll overlay using client space
     - Rename _thsInputNumericStyle
+  - Rename resultWidget to resultNode
 
 Next
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
     - Complete test cases
-  - Rename resultWidget to resultNode
   - Can ReportParent be removed?
 
 Future

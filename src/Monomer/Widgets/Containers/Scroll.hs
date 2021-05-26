@@ -272,7 +272,7 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  merge wenv node oldNode oldState = resultWidget newNode where
+  merge wenv node oldNode oldState = resultNode newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
 
@@ -429,7 +429,7 @@ makeScroll config state = widget where
   rebuildWidget wenv node newState = result where
     newNode = node
       & L.widget .~ makeScroll config newState
-    result = resultWidget newNode
+    result = resultNode newNode
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = sizeReq where
@@ -485,7 +485,7 @@ makeScroll config state = widget where
       _sstChildSize = Size areaW areaH,
       _sstScissor = scissor
     }
-    newNode = resultWidget $ node
+    newNode = resultNode $ node
       & L.widget .~ makeScroll config newState
     result = (newNode, Seq.singleton cViewport)
 
