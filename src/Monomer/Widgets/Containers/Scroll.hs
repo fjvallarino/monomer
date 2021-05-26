@@ -23,8 +23,6 @@ module Monomer.Widgets.Containers.Scroll (
   scrollStyle
 ) where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Lens (ALens', (&), (^.), (.~), (^?), (^?!), (<>~), (%~), _Just, cloneLens, ix)
 import Control.Monad
@@ -412,7 +410,7 @@ makeScroll config state = widget where
   updateScrollThumb state activeBar point contentArea sctx = newState where
     Point px py = point
     ScrollContext{..} = sctx
-    Rect cx cy cw ch = contentArea
+    Rect cx cy _ _ = contentArea
     hMid = _rW hThumbRect / 2
     vMid = _rH vThumbRect / 2
     hDelta = (cx - px + hMid) / hScrollRatio
@@ -468,14 +466,14 @@ makeScroll config state = widget where
       | scrollType == ScrollH = (cw, max cw childW)
       | childH <= ch && childW <= cw = (cw, cw)
       | childH <= ch = (cw, max cw childW)
-      | otherwise = traceShowId (ncw, max cw childW)
+      | otherwise = (ncw, max ncw childW)
     (maxH, areaH)
       | scrollType == ScrollH && childW > cw = (nch, nch)
       | scrollType == ScrollH = (ch, ch)
       | scrollType == ScrollV = (ch, max ch childH)
       | childW <= cw && childH <= ch = (ch, ch)
       | childW <= cw = (ch, max ch childH)
-      | otherwise = (nch, max ch childH)
+      | otherwise = (nch, max nch childH)
     newDx = scrollAxis dx areaW maxW
     newDy = scrollAxis dy areaH maxH
     scissor = Rect cl ct maxW maxH
@@ -555,6 +553,7 @@ scrollStatus
 scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   ScrollState _ dx dy _ _ _ = scrollState
   Size childWidth childHeight = _sstChildSize scrollState
+  Size vpWidth vpHeight = _sstVpSize scrollState
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node
   contentArea = getContentArea style node
@@ -578,26 +577,26 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   hScrollRect = Rect {
     _rX = caLeft,
     _rY = caTop + hScrollTop,
-    _rW = caWidth,
+    _rW = vpWidth,
     _rH = barW
   }
   vScrollRect = Rect {
     _rX = caLeft + vScrollLeft,
     _rY = caTop,
     _rW = barW,
-    _rH = caHeight
+    _rH = vpHeight
   }
   hThumbRect = Rect {
     _rX = caLeft - hScrollRatio * dx,
     _rY = caTop + hScrollTop + (barW - thumbW) / 2,
-    _rW = hScrollRatio * caWidth,
+    _rW = hScrollRatio * vpWidth,
     _rH = thumbW
   }
   vThumbRect = Rect {
     _rX = caLeft + vScrollLeft + (barW - thumbW) / 2,
     _rY = caTop - vScrollRatio * dy,
     _rW = thumbW,
-    _rH = vScrollRatio * caHeight
+    _rH = vScrollRatio * vpHeight
   }
   hMouseInScroll = pointInRect mousePos hScrollRect
   vMouseInScroll = pointInRect mousePos vScrollRect

@@ -202,7 +202,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
 
   it "should input 'This is text', select 'is text' and input 'test'" $ do
     let str = "This is text"
-    let selStart = Point 50 10
+    let selStart = Point 40 10
     let selEnd = Point 120 10
     let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "test"]
     model steps ^. textValue `shouldBe` "This test"
@@ -283,7 +283,7 @@ getSizeReq = describe "getSizeReq" $ do
 
   it "should return (Min 150 1, Min 80 1), but transformed to expandSize by scroll" $ do
     sizeReqW2 `shouldBe` expandSize 150 1
-    sizeReqH2 `shouldBe` expandSize 80 1
+    sizeReqH2 `shouldBe` expandSize 100 1
 
   where
     wenv1 = mockWenvEvtUnit (TestModel "Test value")
