@@ -69,6 +69,10 @@ treeInstDescFromNode :: WidgetEnv s e -> Int -> WidgetNode s e -> String
 treeInstDescFromNode wenv level node = widgetInstTreeDesc level nodeInst  where
   nodeInst = widgetGetInstanceTree (node ^. L.widget) wenv node
 
+getLayoutDirection :: Bool -> LayoutDirection
+getLayoutDirection False = LayoutVertical
+getLayoutDirection True = LayoutHorizontal
+
 isResizeWidgets :: WidgetRequest s e -> Bool
 isResizeWidgets ResizeWidgets = True
 isResizeWidgets _ = False

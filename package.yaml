@@ -11,13 +11,12 @@ extra-source-files:
 - ChangeLog.md
 
 # Metadata used when publishing your package
-synopsis:            GUI Library
-category:            GUI
+synopsis: GUI Library
+category: GUI
+description:
+  Monomer is a cross platform GUI library inspired by Elm and Flutter.
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
+  Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
 
 default-extensions:
 - OverloadedStrings

@@ -1,0 +1,46 @@
+## This is the configuration file for Headroom.
+## See https://github.com/vaclavsvejcar/headroom for more details.
+
+## Defines with which version of Headroom this configuration is compatible.
+## Headroom uses this field to detect whether your configuration doesn't need
+## any manual migration steps in case that it's older than your current Headroom
+## version. You don't need to touch this field unless explicitly stated in
+## migration guide during upgrading Headroom to new version.
+version: 0.4.0.0
+
+## Defines the behaviour how to handle license headers, possible options are:
+##
+##   - add     = (default) adds license header to files with no existing header
+##               (same as '-a|--add-headers' command line argument)
+##   - drop    = drops existing license header from without replacement
+##               (same as '-d|--drop-headers' command line argument)
+##   - replace = adds or replaces existing license header
+##               (same as '-r|--replace-headers' command line argument)
+run-mode: add
+
+## Paths to source code files (either files or directories),
+## same as '-s|--source-path=PATH' command line argument (can be used multiple
+## times for more than one path).
+source-paths:
+- src
+
+## Allows to define list of regular expressions that will be matched against
+## 'source-paths' and such paths will be excluded from processing. Same as
+## '-e|--excluded-path=REGEX' command line argument (can be used multiple times
+## for more than one path).
+excluded-paths: []
+
+## Paths to template files (either files or directories),
+## same as '-t|--template-path=PATH' command line argument (can be used multiple
+## times for more than one path).
+template-paths:
+- assets/headroom-templates
+
+## Variables (key-value) to replace in templates,
+## same as '-v|--variable="KEY=VALUE"' command line argument (can be used
+## multiple times for more than one path).
+variables: {
+  author: "Francisco Vallarino",
+  email: "fjvallarino@gmail.com",
+  year: "2018"  
+}

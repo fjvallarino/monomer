@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Single
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper for creating widgets without children elements
+-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -7,6 +17,19 @@ module Monomer.Widgets.Single (
   module Monomer.Event,
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
+
+  SingleGetBaseStyle,
+  SingleGetActiveStyle,
+  SingleInitHandler,
+  SingleMergeHandler,
+  SingleDisposeHandler,
+  SingleFindNextFocusHandler,
+  SingleFindByPointHandler,
+  SingleEventHandler,
+  SingleMessageHandler,
+  SingleGetSizeReqHandler,
+  SingleResizeHandler,
+  SingleRenderHandler,
 
   Single(..),
   createSingle
@@ -29,94 +52,216 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
+{-|
+Returns the base style for this type of widget.
+
+Usually this style comes from the active theme.
+-}
 type SingleGetBaseStyle s e
-  = GetBaseStyle s e
+  = GetBaseStyle s e  -- ^ The base style for a new node.
 
+{-|
+Returns the active style for this type of widget. It depends on the state of
+the widget, which can be:
+
+- Basic
+- Hovered
+- Focused
+- Hovered and Focused
+- Active
+- Disabled
+
+In general there's no needed to override it, except when the widget does not use
+the full content rect. An example can be found in "Monomer.Widgets.Singles.Radio".
+-}
 type SingleGetActiveStyle s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> StyleState
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> StyleState        -- ^ The active style for the node.
 
+{-|
+Initializes the given node. This could include rebuilding the widget in case
+internal state needs to use model/environment information, generate user
+events or make requests to the runtime.
+
+An examples can be found in "Monomer.Widgets.Singles.Label" and
+"Monomer.Widgets.Singles.Image". On the other hand, "Monomer.Widgets.Radio" does
+not need to override /init/.
+-}
 type SingleInitHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetResult s e
+  = WidgetEnv s e        -- ^ The widget environment.
+  -> WidgetNode s e      -- ^ The widget node.
+  -> WidgetResult s e    -- ^ The result of the init operation.
 
+{-|
+Merges the current node with the node it matched with during the merge process.
+Receives the newly created node (whose *init* function is not called), the
+previous node and the state extracted from that node. This process is widget
+dependent, and may use or ignore the previous state depending on newly available
+information.
+
+In general, you want to at least keep the previous state unless the widget is
+stateless or only consumes model/environment information.
+
+Examples can be found in "Monomer.Widgets.Singles.Label" and
+"Monomer.Widgets.Singles.Image". On the other hand,
+"Monomer.Widgets.Singles.Radio" does not need to override merge since it's
+stateless.
+-}
 type SingleMergeHandler s e a
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> a
-  -> WidgetResult s e
+  = WidgetEnv s e        -- ^ The widget environment.
+  -> WidgetNode s e      -- ^ The widget node.
+  -> WidgetNode s e      -- ^ The previous widget node.
+  -> a                   -- ^ The state of the previous widget node.
+  -> WidgetResult s e    -- ^ The result of the merge operation.
 
+{-|
+Disposes the current node. Only used by widgets which allocate resources during
+/init/ or /merge/, and will usually involve requests to the runtime.
+
+An example can be found "Monomer.Widgets.Singles.Image".
+-}
 type SingleDisposeHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetResult s e
+  = WidgetEnv s e        -- ^ The widget environment.
+  -> WidgetNode s e      -- ^ The widget node.
+  -> WidgetResult s e    -- ^ The result of the dispose operation.
 
+{-|
+Returns the next focusable node. Since this type of widget does not have
+children, there is not need to override this function, as there are only
+two options:
+
+- The node is focusable and target is valid: the node is returned
+- The node is not focusable: Nothing is returned
+-}
 type SingleFindNextFocusHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> FocusDirection
-  -> Path
-  -> Maybe WidgetNodeInfo
+  = WidgetEnv s e            -- ^ The widget environment.
+  -> WidgetNode s e          -- ^ The widget node.
+  -> FocusDirection          -- ^ The direction in which focus is moving.
+  -> Path                    -- ^ The start path from which to search.
+  -> Maybe WidgetNodeInfo    -- ^ The next focusable node info.
 
+{-|
+Returns the currently hovered widget, if any. If the widget is rectangular and
+uses the full content area, there is not need to override this function.
+
+An example can be found "Monomer.Widgets.Singles.Radio".
+-}
 type SingleFindByPointHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> Point
-  -> Maybe WidgetNodeInfo
+  = WidgetEnv s e           -- ^ The widget environment.
+  -> WidgetNode s e         -- ^ The widget node.
+  -> Path                   -- ^ The start path from which to search.
+  -> Point                  -- ^ The point to test for.
+  -> Maybe WidgetNodeInfo   -- ^ The hovered node info, if any.
 
+{-|
+Receives a System event and, optionally, returns a result. This can include an
+updated version of the widget (in case it has internal state), user events or
+requests to the runtime.
+
+Examples can be found in "Monomer.Widgets.Singles.Button" and
+"Monomer.Widgets.Singles.Slider".
+-}
 type SingleEventHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> SystemEvent
-  -> Maybe (WidgetResult s e)
+  = WidgetEnv s e                -- ^ The widget environment.
+  -> WidgetNode s e              -- ^ The widget node.
+  -> Path                        -- ^ The target path of the event.
+  -> SystemEvent                 -- ^ The SystemEvent to handle.
+  -> Maybe (WidgetResult s e)    -- ^ The result of handling the event, if any.
 
+{-|
+Receives a message and, optionally, returns a result. This can include an
+updated version of the widget (in case it has internal state), user events or
+requests to the runtime. There is no validation regarding the message type, and
+the widget should take care of _casting_ to the correct type using
+"Data.Typeable.cast"
+
+Examples can be found in "Monomer.Widgets.Singles.Button" and
+"Monomer.Widgets.Singles.Slider".
+-}
 type SingleMessageHandler s e
   = forall i . Typeable i
-  => WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> i
-  -> Maybe (WidgetResult s e)
+  => WidgetEnv s e              -- ^ The widget environment.
+  -> WidgetNode s e             -- ^ The widget node.
+  -> Path                       -- ^ The target path of the message.
+  -> i                          -- ^ The message to handle.
+  -> Maybe (WidgetResult s e)   -- ^ The result of handling the message, if any.
 
+{-|
+Returns the preferred size for the widget. This size should not include border
+and padding; those are added automatically by Single.
+
+Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
+"Monomer.Widgets.Singles.Label".
+-}
 type SingleGetSizeReqHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> (SizeReq, SizeReq)
+  = WidgetEnv s e          -- ^ The widget environment.
+  -> WidgetNode s e        -- ^ The widget node.
+  -> (SizeReq, SizeReq)    -- ^ The horizontal and vertical requirements.
 
+{-|
+Resizes the widget to the provided size. If the widget state does not depend
+on the viewport size, this function does not need to be overriden.
+
+Examples can be found in "Monomer.Widgets.Singles.Label".
+-}
 type SingleResizeHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Rect
-  -> WidgetResult s e
+  = WidgetEnv s e        -- ^ The widget environment.
+  -> WidgetNode s e      -- ^ The widget node.
+  -> Rect                -- ^ The new viewport.
+  -> WidgetResult s e    -- ^ The result of resizing the widget.
 
+{-|
+Renders the widget's content using the given Renderer. In general, this method
+needs to be overriden.
+
+Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
+"Monomer.Widgets.Singles.Slider".
+-}
 type SingleRenderHandler s e
-  =  WidgetEnv s e
-  -> WidgetNode s e
-  -> Renderer
-  -> IO ()
+  =  WidgetEnv s e     -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> Renderer          -- ^ The renderer, which provides low level drawing functions
+  -> IO ()             -- ^ Returns the IO action which will be used for rendering
 
 data Single s e a = Single {
+  -- | True if border and padding should be added to size requirement. Defaults
+  -- | to True.
   singleAddStyleReq :: Bool,
+  -- | True if focus should be requested when mouse button is pressed (before
+  -- | click). Defaults to True.
   singleFocusOnPressedBtn :: Bool,
+  -- | True if style cursor should be ignored. If it's False, cursor changes need
+  -- | to be handled in custom code. Defaults to False.
   singleUseCustomCursor :: Bool,
+  -- | If true, it will ignore extra space assigned by the parent container, but
+  -- | it will not use more space than assigned. Defaults to False.
   singleUseCustomSize :: Bool,
+  -- | True if automatic scissoring needs to be applied. Defaults to False.
   singleUseScissor :: Bool,
+  -- | Returns the base style for this type of widget.
   singleGetBaseStyle :: SingleGetBaseStyle s e,
+  -- | Returns the active style, depending on the status of the widget.
   singleGetActiveStyle :: SingleGetActiveStyle s e,
+  -- | Initializes the given node.
   singleInit :: SingleInitHandler s e,
+  -- | Merges the node with the node it matched with during the merge process.
   singleMerge :: SingleMergeHandler s e a,
+  -- | Disposes the current node.
   singleDispose :: SingleDisposeHandler s e,
+  -- | Returns the next focusable node.
   singleFindNextFocus :: SingleFindNextFocusHandler s e,
+  -- | Returns the currently hovered widget, if any.
   singleFindByPoint :: SingleFindByPointHandler s e,
+  -- | Receives a System event and, optionally, returns a result.
   singleHandleEvent :: SingleEventHandler s e,
+  -- | Receives a message and, optionally, returns a result.
   singleHandleMessage :: SingleMessageHandler s e,
+  -- | Returns the preferred size for the widget.
   singleGetSizeReq :: SingleGetSizeReqHandler s e,
+  -- | Resizes the widget to the provided size.
   singleResize :: SingleResizeHandler s e,
+  -- | Renders the widget's content.
   singleRender :: SingleRenderHandler s e
 }
 
@@ -141,6 +286,18 @@ instance Default (Single s e a) where
     singleRender = defaultRender
   }
 
+{-|
+Creates a widget based on the Single infrastructure. An initial state and the
+Single definition need to be provided. In case internal state is not needed,
+__()__ can be provided. Using the __def__ instance as a starting point is
+recommended to focus on overriding only what is needed:
+
+@
+widget = createSingle () def {
+  singleRender = ...
+}
+@
+-}
 createSingle :: WidgetModel a => a -> Single s e a -> Widget s e
 createSingle state single = Widget {
   widgetInit = initWrapper single,

@@ -82,7 +82,6 @@ makeStack isHorizontal config = widget where
     containerIgnoreEmptyArea = ignoreEmptyArea,
     containerLayoutDirection = getLayoutDirection isHorizontal,
     containerUseCustomSize = True,
-    containerFindByPoint = defaultFindByPoint,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
   }

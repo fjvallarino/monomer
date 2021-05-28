@@ -637,10 +637,12 @@
   - Rename resultWidget to resultNode
 
 Next
+  - Add documentation header in source files
+  - Add documentation to all exported functions
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
     - Complete test cases
-  - Can ReportParent be removed?
+
 
 Future
   - Check if Windows/Linux also miss top pixel

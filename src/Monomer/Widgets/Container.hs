@@ -1,3 +1,13 @@
+-- |
+-- Module      :  Monomer.Widgets.Container
+-- Copyright   :  (C) 2018 Francisco Vallarino
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Francisco Vallarino <fjvallarino@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Helper for creating widgets with children elements
+--
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
@@ -10,23 +20,26 @@ module Monomer.Widgets.Container (
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
 
+  ContainerGetBaseStyle,
+  ContainerGetActiveStyle,
+  ContainerUpdateCWenvHandler,
+  ContainerInitHandler,
+  ContainerInitPostHandler,
+  ContainerMergeChildrenReqHandler,
+  ContainerMergeHandler,
+  ContainerMergePostHandler,
+  ContainerDisposeHandler,
+  ContainerFindNextFocusHandler,
+  ContainerFindByPointHandler,
+  ContainerEventHandler,
+  ContainerMessageHandler,
+  ContainerGetSizeReqHandler,
+  ContainerResizeHandler,
+  ContainerRenderHandler,
+
   Container(..),
-  ContainerGetSizeReqHandler(..),
-  ContainerResizeHandler(..),
   createContainer,
-  getLayoutDirection,
-  getUpdateCWenv,
-  updateWenvOffset,
-  initWrapper,
-  mergeWrapper,
-  handleEventWrapper,
-  handleMessageWrapper,
-  findByPointWrapper,
-  findNextFocusWrapper,
-  resizeWrapper,
-  renderWrapper,
-  defaultFindByPoint,
-  defaultRender
+  updateWenvOffset
 ) where
 
 import Control.Applicative ((<|>))
@@ -51,101 +64,229 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
+{-|
+Returns the base style for this type of widget.
+
+Usually this style comes from the active theme.
+-}
 type ContainerGetBaseStyle s e
-  = GetBaseStyle s e
+  = GetBaseStyle s e  -- ^ The base style for a new node.
 
+{-|
+Returns the active style for this type of widget. It depends on the state of
+the widget, which can be:
+
+- Basic
+- Hovered
+- Focused
+- Hovered and Focused
+- Active
+- Disabled
+
+In general there's no needed to override it, except when the widget does not use
+the full content rect.
+
+An example can be found in "Monomer.Widgets.Containers.Tooltip".
+-}
 type ContainerGetActiveStyle s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> StyleState
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> StyleState        -- ^ The active style for the node.
 
+{-|
+Updates the widget environment before passing it down to children. This function
+is called during the execution of all the widget functions. Useful for
+restricting viewport or modifying other kind of contextual information.
+
+An example can be found in "Monomer.Widgets.Containers.ThemeSwitch".
+-}
 type ContainerUpdateCWenvHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> Int
-  -> WidgetEnv s e
+  = WidgetEnv s e    -- ^ The widget environment.
+  -> WidgetNode s e  -- ^ The widget node.
+  -> WidgetNode s e  -- ^ The child node.
+  -> Int             -- ^ The index of the node.
+  -> WidgetEnv s e   -- ^ The updated widget environment.
 
+{-|
+Initializes the given node. This could include rebuilding the widget in case
+internal state needs to use model/environment information, generate user
+events or make requests to the runtime.
+
+An example can be found in "Monomer.Widgets.Containers.SelectList".
+
+Most of the current containers serve layout purposes and don't need a custom
+/init/.
+-}
 type ContainerInitHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetResult s e
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetResult s e  -- ^ The result of the init operation.
 
+{-|
+Allows making further operations after children have been initialized.
+-}
 type ContainerInitPostHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetResult s e
-  -> WidgetResult s e
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetResult s e  -- ^ The result after children have been initialized.
+  -> WidgetResult s e  -- ^ The result of the init post operation.
 
+{-|
+Returns whether merge is required for children. It's mostly used for performance
+optimization.
+
+An example can be found in "Monomer.Widgets.Containers.SelectList".
+-}
 type ContainerMergeChildrenReqHandler s e a
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> a
-  -> Bool
+  = WidgetEnv s e    -- ^ The widget environment.
+  -> WidgetNode s e  -- ^ The widget node.
+  -> WidgetNode s e  -- ^ The previous widget node.
+  -> a               -- ^ The state of the previous widget node.
+  -> Bool            -- ^ True if widget is needed.
 
+{-|
+Merges the current node with the node it matched with during the merge process.
+Receives the newly created node (whose *init* function is not called), the
+previous node and the state extracted from that node. This process is widget
+dependent, and may use or ignore the previous state depending on newly available
+information.
+
+In general, you want to at least keep the previous state unless the widget is
+stateless or only consumes model/environment information.
+
+Examples can be found in "Monomer.Widgets.Containers.Fade" and
+"Monomer.Widgets.Containers.Tooltip". On the other hand,
+"Monomer.Widgets.Containers.Grid" does not need to override merge since it's
+stateless.
+-}
 type ContainerMergeHandler s e a
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> a
-  -> WidgetResult s e
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetNode s e    -- ^ The previous widget node.
+  -> a                 -- ^ The state of the previous widget node.
+  -> WidgetResult s e  -- ^ The result of the merge operation.
 
+{-|
+Allows making further operations after children have been merged.
+
+Examples can be found in "Monomer.Widgets.Containers.SelectList" and
+"Monomer.Widgets.Containers.ZStack".
+-}
 type ContainerMergePostHandler s e a
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> a
-  -> WidgetResult s e
-  -> WidgetResult s e
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetNode s e    -- ^ The previous widget node.
+  -> a                 -- ^ The state of the previous widget node.
+  -> WidgetResult s e  -- ^ The result after children have been merged.
+  -> WidgetResult s e  -- ^ The result of the merge post operation.
 
+{-|
+Disposes the current node. Only used by widgets which allocate resources during
+/init/ or /merge/, and will usually involve requests to the runtime.
+
+An example can be found "Monomer.Widgets.Containers.Dropdown".
+-}
 type ContainerDisposeHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetResult s e
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetResult s e  -- ^ The result of the dispose operation.
 
+{-|
+Returns the next focusable node. Since this type of widget does not have
+children, there is not need to override this function, as there are only
+two options:
+
+- The node is focusable and target is valid: the node is returned
+- The node is not focusable: Nothing is returned
+-}
 type ContainerFindNextFocusHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> FocusDirection
-  -> Path
-  -> Seq (WidgetNode s e)
+  = WidgetEnv s e          -- ^ The widget environment.
+  -> WidgetNode s e        -- ^ The widget node.
+  -> FocusDirection        -- ^ The direction in which focus is moving.
+  -> Path                  -- ^ The start path from which to search.
+  -> Seq (WidgetNode s e)  -- ^ The next focusable node info.
 
+{-|
+Returns the currently hovered widget, if any. If the widget is rectangular and
+uses the full content area, there is not need to override this function.
+
+An example can be found "Monomer.Widgets.Containers.Dropdown".
+-}
 type ContainerFindByPointHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> Point
-  -> Maybe Int
+  = WidgetEnv s e    -- ^ The widget environment.
+  -> WidgetNode s e  -- ^ The widget node.
+  -> Path            -- ^ The start path from which to search.
+  -> Point           -- ^ The point to test for.
+  -> Maybe Int       -- ^ The hovered child index, if any.
 
+{-|
+Receives a System event and, optionally, returns a result. This can include an
+updated version of the widget (in case it has internal state), user events or
+requests to the runtime.
+
+Examples can be found in "Monomer.Widgets.Containers.Draggable" and
+"Monomer.Widgets.Containers.Keystroke".
+-}
 type ContainerEventHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> SystemEvent
-  -> Maybe (WidgetResult s e)
+  = WidgetEnv s e              -- ^ The widget environment.
+  -> WidgetNode s e            -- ^ The widget node.
+  -> Path                      -- ^ The target path of the event.
+  -> SystemEvent               -- ^ The SystemEvent to handle.
+  -> Maybe (WidgetResult s e)  -- ^ The result of handling the event, if any.
 
+{-|
+Receives a message and, optionally, returns a result. This can include an
+updated version of the widget (in case it has internal state), user events or
+requests to the runtime. There is no validation regarding the message type, and
+the widget should take care of _casting_ to the correct type using
+"Data.Typeable.cast"
+
+Examples can be found in "Monomer.Widgets.Containers.Fade" and
+"Monomer.Widgets.Containers.Scroll".
+-}
 type ContainerMessageHandler s e
   = forall i . Typeable i
-  => WidgetEnv s e
-  -> WidgetNode s e
-  -> Path
-  -> i
-  -> Maybe (WidgetResult s e)
+  => WidgetEnv s e             -- ^ The widget environment.
+  -> WidgetNode s e            -- ^ The widget node.
+  -> Path                      -- ^ The target path of the message.
+  -> i                         -- ^ The message to handle.
+  -> Maybe (WidgetResult s e)  -- ^ The result of handling the message, if any.
 
+{-|
+Returns the preferred size for the widget. This size should not include border
+and padding; those are added automatically by Container.
+
+Examples can be found in "Monomer.Widgets.Containers.Grid" and
+"Monomer.Widgets.Containers.Stack".
+-}
 type ContainerGetSizeReqHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Seq (WidgetNode s e)
-  -> (SizeReq, SizeReq)
+  = WidgetEnv s e          -- ^ The widget environment.
+  -> WidgetNode s e        -- ^ The widget node.
+  -> Seq (WidgetNode s e)  -- ^ The children widgets
+  -> (SizeReq, SizeReq)    -- ^ The horizontal and vertical requirements.
 
+{-|
+Resizes the widget to the provided size. If the widget state does not depend
+on the viewport size, this function does not need to be overriden.
+
+Examples can be found in "Monomer.Widgets.Containers.Grid" and
+"Monomer.Widgets.Containers.Stack".
+-}
 type ContainerResizeHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Rect
-  -> Seq (WidgetNode s e)
-  -> (WidgetResult s e, Seq Rect)
+  = WidgetEnv s e                  -- ^ The widget environment.
+  -> WidgetNode s e                -- ^ The widget node.
+  -> Rect                          -- ^ The new viewport.
+  -> Seq (WidgetNode s e)          -- ^ The children widgets
+  -> (WidgetResult s e, Seq Rect)  -- ^ The result of resizing the widget.
 
+{-|
+Renders the widget's content using the given Renderer. In general, this method
+needs to be overriden. There are two render methods: one runs before children,
+the other one after.
+
+Examples can be found in "Monomer.Widgets.Containers.Draggable" and
+"Monomer.Widgets.Containers.Scroll".
+-}
 type ContainerRenderHandler s e
   = WidgetEnv s e
   -> WidgetNode s e
@@ -153,32 +294,70 @@ type ContainerRenderHandler s e
   -> IO ()
 
 data Container s e a = Container {
+  -- | True if border and padding should be added to size requirement. Defaults
+  -- | to True.
   containerAddStyleReq :: Bool,
+  -- | Offset to apply to children. This not only includes rendering, but also
+  -- updating SystemEvents and all coordinate related functions.
   containerChildrenOffset :: Maybe Point,
+  -- | Scissor to apply to child widgets. This is not the same as the widget
+  -- | enabled by containerUseScissor
   containerChildrenScissor :: Maybe Rect,
+  -- | The layout direction generated by this widget. If one is indicated, it
+  -- | can be used by widgets such as "Monomer.Widgets.Singles.Spacer"
   containerLayoutDirection :: LayoutDirection,
+  -- | If True, when none of the children is found under the pointer, indicates
+  -- | an event will not be handled. If False, the parent (i.e., current) widget
+  -- | will be returned. This is useful when using zstack and wanting for events
+  -- | to be handled in lower layers.
   containerIgnoreEmptyArea :: Bool,
+  -- | If True, children will be resized during a resize process. It's mostly an
+  -- | optimization flag. See "Monomer.Widgets.Containers.SelectList".
   containerResizeRequired :: Bool,
+  -- | True if style cursor should be ignored. If it's False, cursor changes need
+  -- | to be handled in custom code. Defaults to False.
   containerUseCustomCursor :: Bool,
+  -- | If true, it will ignore extra space assigned by the parent container, but
+  -- | it will not use more space than assigned. Defaults to False.
   containerUseCustomSize :: Bool,
+  -- | If true, it will accept the size requested by children, restricted to the
+  -- | space already assigned.
   containerUseChildrenSizes :: Bool,
+  -- | True if automatic scissoring needs to be applied. Defaults to False.
   containerUseScissor :: Bool,
+  -- | Returns the base style for this type of widget.
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
+  -- | Returns the active style, depending on the status of the widget.
   containerGetActiveStyle :: ContainerGetActiveStyle s e,
+  -- | Updates the widget environment before passing it down to children.
   containerUpdateCWenv :: ContainerUpdateCWenvHandler s e,
+  -- | Initializes the given node.
   containerInit :: ContainerInitHandler s e,
+  -- | Allow for extra steps after children are initialized.
   containerInitPost :: ContainerInitPostHandler s e,
+  -- | Returns whether merge is required for children.
   containerMergeChildrenReq :: ContainerMergeChildrenReqHandler s e a,
+  -- | Merges the node with the node it matched with during the merge process.
   containerMerge :: ContainerMergeHandler s e a,
+  -- | Allow for extra steps after children are merged.
   containerMergePost :: ContainerMergePostHandler s e a,
+  -- | Disposes the current node.
   containerDispose :: ContainerDisposeHandler s e,
+  -- | Returns the next focusable node.
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
+  -- | Returns the currently hovered widget, if any.
   containerFindByPoint :: ContainerFindByPointHandler s e,
+  -- | Receives a System event and, optionally, returns a result.
   containerHandleEvent :: ContainerEventHandler s e,
+  -- | Receives a message and, optionally, returns a result.
   containerHandleMessage :: ContainerMessageHandler s e,
+  -- | Returns the preferred size for the widget.
   containerGetSizeReq :: ContainerGetSizeReqHandler s e,
+  -- | Resizes the widget to the provided size.
   containerResize :: ContainerResizeHandler s e,
+  -- | Renders the widget's content. This runs before childrens' render.
   containerRender :: ContainerRenderHandler s e,
+  -- | Renders the widget's content. This runs after childrens' render.
   containerRenderAfter :: ContainerRenderHandler s e
 }
 
@@ -213,6 +392,18 @@ instance Default (Container s e a) where
     containerRenderAfter = defaultRender
   }
 
+{-|
+Creates a widget based on the Container infrastructure. An initial state and the
+Container definition need to be provided. In case internal state is not needed,
+__()__ can be provided. Using the __def__ instance as a starting point is
+recommended to focus on overriding only what is needed:
+
+@
+widget = createContainer () def {
+  containerRender = ...
+}
+@
+-}
 createContainer
   :: WidgetModel a
   => a
@@ -244,10 +435,6 @@ defaultGetActiveStyle wenv node = activeStyle wenv node
 defaultUpdateCWenv :: ContainerUpdateCWenvHandler s e
 defaultUpdateCWenv wenv node cnode cidx = wenv
 
-getLayoutDirection :: Bool -> LayoutDirection
-getLayoutDirection False = LayoutVertical
-getLayoutDirection True = LayoutHorizontal
-
 getUpdateCWenv
   :: Container s e a
   -> WidgetEnv s e
@@ -266,11 +453,16 @@ getUpdateCWenv container wenv node cnode cidx = newWenv where
     & L.layoutDirection .~ layoutDirection
   newWenv = updateCWenv (offsetWenv directionWenv) node cnode cidx
 
+{-|
+Helper function that updates widget environment based on current container
+information. In case the created container needs to pass information down using
+wenv, it should call this function first and update the resulting wenv.
+-}
 updateWenvOffset
-  :: Container s e a
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetEnv s e
+  :: Container s e a  -- ^ The container config
+  -> WidgetEnv s e    -- ^ The widget environment.
+  -> WidgetNode s e   -- ^ The widget node.
+  -> WidgetEnv s e    -- ^ THe updated widget environment.
 updateWenvOffset container wenv node = newWenv where
   cOffset = containerChildrenOffset container
   offset = fromMaybe def cOffset
