@@ -34,13 +34,13 @@ import Data.Default
 import Data.Maybe
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq(..), (<|))
+import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
 
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Event (checkKeyboard, isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Event.Util
 import Monomer.Graphics.Types

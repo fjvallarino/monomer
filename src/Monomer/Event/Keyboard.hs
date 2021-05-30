@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Event.Keyboard
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Keycodes for all keyboard keys.
+-}
 module Monomer.Event.Keyboard where
 
 import qualified SDL

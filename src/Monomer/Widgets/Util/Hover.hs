@@ -18,7 +18,6 @@ import Data.Maybe
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Event (checkKeyboard, isKeyC, isKeyV)
 import Monomer.Event.Types
 import Monomer.Event.Util
 import Monomer.Graphics.Types

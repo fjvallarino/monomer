@@ -638,10 +638,13 @@
 
 Next
   - Review after documenting
+    - Remove IsString for WidgetType?
+    - KeyReleased / BtnReleased is inconsistent. Use a single convention.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Scroll related test case is also weird.
     - Split CmbImageFit
+    - Some WidgetType related things needed to be changed because Haddock failed to parse.
   - Add documentation header in source files
   - Add documentation to all exported functions
   - Create user documentation

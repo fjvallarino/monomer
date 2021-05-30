@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Event.Core
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Core functions for SDL event processing and conversion.
+-}
 module Monomer.Event.Core (
   isActionEvent,
   convertEvents,
@@ -14,6 +24,12 @@ import Monomer.Core.BasicTypes
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 
+{-|
+Checks if an SDL event is an action event. Currently only mouse and keyboard
+events are considered as such (touch events should be added in the future). This
+is used for triggering automatic rendering of a frame. For other events, widgets
+must request rendering explicitly.
+-}
 isActionEvent :: SDL.EventPayload -> Bool
 isActionEvent SDL.MouseButtonEvent{} = True
 isActionEvent SDL.MouseWheelEvent{} = True
@@ -21,7 +37,12 @@ isActionEvent SDL.KeyboardEvent{} = True
 isActionEvent SDL.TextInputEvent{} = True
 isActionEvent _ = False
 
-convertEvents :: Double -> Point -> [SDL.EventPayload] -> [SystemEvent]
+-- | Converts SDL events to Monomer's SystemEvent
+convertEvents
+  :: Double              -- ^ Device pixel rate.
+  -> Point               -- ^ Mouse position.
+  -> [SDL.EventPayload]  -- ^ List of SDL events.
+  -> [SystemEvent]       -- ^ List of Monomer events.
 convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
   convertedEvents = fmap convertEvent events
   convertEvent evt =
@@ -32,7 +53,11 @@ convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
     <|> keyboardEvent evt
     <|> textEvent evt
 
-translateEvent :: Point -> SystemEvent -> SystemEvent
+-- | Adds a given offset to mouse related SystemEvents.
+translateEvent
+  :: Point        -- ^ Offset to apply
+  -> SystemEvent  -- ^ Source SystemEvent
+  -> SystemEvent  -- ^ Updated SystemEvent
 translateEvent offset evt = case evt of
   Click p btn -> Click (addPoint p offset) btn
   DblClick p btn -> DblClick (addPoint p offset) btn
