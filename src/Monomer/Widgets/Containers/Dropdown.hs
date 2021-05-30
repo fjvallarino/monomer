@@ -39,7 +39,6 @@ type DropdownItem a = SelectListItem a
 
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
-  _ddcListStyle :: Maybe Style,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
   _ddcOnFocus :: [Path -> e],
@@ -55,7 +54,6 @@ data DropdownCfg s e a = DropdownCfg {
 instance Default (DropdownCfg s e a) where
   def = DropdownCfg {
     _ddcMaxHeight = Nothing,
-    _ddcListStyle = Nothing,
     _ddcItemStyle = Nothing,
     _ddcItemSelectedStyle = Nothing,
     _ddcOnFocus = [],
@@ -71,7 +69,6 @@ instance Default (DropdownCfg s e a) where
 instance Semigroup (DropdownCfg s e a) where
   (<>) t1 t2 = DropdownCfg {
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
-    _ddcListStyle = _ddcListStyle t2 <|> _ddcListStyle t1,
     _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
     _ddcOnFocus = _ddcOnFocus t1 <> _ddcOnFocus t2,
@@ -130,11 +127,6 @@ instance CmbOnChangeIdxReq (DropdownCfg s e a) s e a where
 instance CmbMaxHeight (DropdownCfg s e a) where
   maxHeight h = def {
     _ddcMaxHeight = Just h
-  }
-
-instance CmbItemListStyle (DropdownCfg s e a) Style where
-  itemListStyle style = def {
-    _ddcListStyle = Just style
   }
 
 instance CmbItemNormalStyle (DropdownCfg s e a) Style where

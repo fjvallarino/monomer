@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.StyleUtil
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for style types.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Core.StyleUtil (
@@ -41,12 +51,15 @@ import qualified Monomer.Lens as L
 infixl 5 `key`
 infixl 5 `visible`
 
+-- | Sets the key of a node. Used during merge.
 key :: WidgetNode s e -> Text -> WidgetNode s e
 key node key = node & L.info . L.key ?~ WidgetKey key
 
+-- | Sets whether a node is visible or not.
 visible :: WidgetNode s e -> Bool -> WidgetNode s e
 visible node visibility = node & L.info . L.visible .~ visibility
 
+-- | Returns the content area (i.e., ignoring border and padding) of the node.
 getContentArea :: StyleState -> WidgetNode s e -> Rect
 getContentArea style node = fromMaybe def area where
   area = removeOuterBounds style (node ^. L.info . L.viewport)
@@ -120,61 +133,75 @@ instance CmbDisabled (WidgetNode s e) where
     oldStyle = node ^. L.info . L.style
     newStyle = oldStyle & L.disabled ?~ state
 
+-- | Returns the font of the given style state, or the default.
 styleFont :: StyleState -> Font
 styleFont style = fromMaybe def font where
   font = style ^? L.text . _Just  . L.font . _Just
 
+-- | Returns the font size of the given style state, or the default.
 styleFontSize :: StyleState -> FontSize
 styleFontSize style = fromMaybe def fontSize where
   fontSize = style ^? L.text . _Just . L.fontSize . _Just
 
+-- | Returns the font color of the given style state, or the default.
 styleFontColor :: StyleState -> Color
 styleFontColor style = fromMaybe def fontColor where
   fontColor = style ^? L.text . _Just . L.fontColor . _Just
 
+-- | Returns the horizontal alignment of the given style state, or the default.
 styleTextAlignH :: StyleState -> AlignTH
 styleTextAlignH style = fromMaybe def alignH where
   alignH = style ^? L.text . _Just . L.alignH . _Just
 
+-- | Returns the vertical alignment of the given style state, or the default.
 styleTextAlignV :: StyleState -> AlignTV
 styleTextAlignV style = fromMaybe def alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
 
+-- | Returns the background color of the given style state, or the default.
 styleBgColor :: StyleState -> Color
 styleBgColor style = fromMaybe def bgColor where
   bgColor = style ^? L.bgColor . _Just
 
+-- | Returns the foreground color of the given style state, or the default.
 styleFgColor :: StyleState -> Color
 styleFgColor style = fromMaybe def fgColor where
   fgColor = style ^? L.fgColor . _Just
 
+-- | Returns the secondary color of the given style state, or the default.
 styleSndColor :: StyleState -> Color
 styleSndColor style = fromMaybe def sndColor where
   sndColor = style ^? L.sndColor . _Just
 
+-- | Returns the highlight color of the given style state, or the default.
 styleHlColor :: StyleState -> Color
 styleHlColor style = fromMaybe def hlColor where
   hlColor = style ^? L.hlColor . _Just
 
+-- | Returns the size used by border and padding.
 getOuterSize :: StyleState -> Size
 getOuterSize style = fromMaybe def size where
   size = addOuterSize style def
 
+-- | Adds border and padding to the given size.
 addOuterSize :: StyleState -> Size -> Maybe Size
 addOuterSize style sz =
   addBorderSize sz (_sstBorder style)
     >>= (`addPaddingSize` _sstPadding style)
 
+-- | Removes border and padding from the given size.
 removeOuterSize :: StyleState -> Size -> Maybe Size
 removeOuterSize style sz =
   subtractBorderSize sz (_sstBorder style)
     >>= (`subtractPaddingSize` _sstPadding style)
 
+-- | Adds border and padding to the given rect.
 addOuterBounds :: StyleState -> Rect -> Maybe Rect
 addOuterBounds style rect =
   addBorder rect (_sstBorder style)
     >>= (`addPadding` _sstPadding style)
 
+-- | Removes border and padding from the given rect.
 removeOuterBounds :: StyleState -> Rect -> Maybe Rect
 removeOuterBounds style rect =
   subtractBorder rect (_sstBorder style)

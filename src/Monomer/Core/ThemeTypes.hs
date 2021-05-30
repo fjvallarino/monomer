@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.ThemeTypes
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Theme configuration types.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Core.ThemeTypes where
@@ -13,6 +23,7 @@ import Monomer.Core.StyleTypes
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
+-- | Theme configuration for each state, plus clear/base color.
 data Theme = Theme {
   _themeClearColor :: Color,
   _themeBasic :: ThemeState,
@@ -34,6 +45,7 @@ instance Default Theme where
     _themeDisabled = def
   }
 
+-- | Default theme settings for each widget.
 data ThemeState = ThemeState {
   _thsFgColor :: Color,
   _thsHlColor :: Color,

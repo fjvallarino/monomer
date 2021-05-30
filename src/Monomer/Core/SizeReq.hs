@@ -1,7 +1,17 @@
+{-|
+Module      : Monomer.Core.SizeReq
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions creating, validating and merging size requirements.
+-}
 module Monomer.Core.SizeReq (
   SizeReqUpdater(..),
   clearExtra,
-  sizeReqBound,
+  sizeReqBounded,
   sizeReqValid,
   sizeReqAddStyle,
   sizeReqMin,
@@ -27,21 +37,26 @@ import Monomer.Core.Util
 
 import qualified Monomer.Core.Lens as L
 
+-- | Transforms a SizeReq pair by applying an arbitrary operation.
 type SizeReqUpdater = (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 
+-- | Clears the extra field of a SizeReq.
 clearExtra :: SizeReqUpdater
 clearExtra (req1, req2) = (req1 & L.extra .~ 0, req2 & L.extra .~ 0)
 
-sizeReqBound :: SizeReq -> Double -> Double -> Double
-sizeReqBound sizeReq offset value = max minSize (min maxSize value) where
+-- | Returns a bounded value by the SizeReq, starting from value and offset.
+sizeReqBounded :: SizeReq -> Double -> Double -> Double
+sizeReqBounded sizeReq offset value = max minSize (min maxSize value) where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
 
+-- | Checks that value, given an offset, matches a SizeReq.
 sizeReqValid :: SizeReq -> Double -> Double -> Bool
 sizeReqValid sizeReq offset value = doubleInRange minSize maxSize value where
   minSize = offset + sizeReqMin sizeReq
   maxSize = offset + sizeReqMax sizeReq
 
+-- | Adds border/padding size to a SizeReq pair.
 sizeReqAddStyle :: StyleState -> (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
   Size w h = fromMaybe def (addOuterSize style def)
@@ -50,29 +65,44 @@ sizeReqAddStyle style (reqW, reqH) = (newReqW, newReqH) where
   newReqW = modifySizeReq realReqW (+w)
   newReqH = modifySizeReq realReqH (+h)
 
+-- | Returns the minimum valid value for a SizeReq.
 sizeReqMin :: SizeReq -> Double
 sizeReqMin req = req ^. L.fixed
 
+-- | Returns the maximum valid value for a SizeReq. This can be unbounded if
+-- | extra field is not zero.
 sizeReqMax :: SizeReq -> Double
 sizeReqMax req
   | req ^. L.extra > 0 = maxNumericValue
   | otherwise = req ^. L.fixed + req ^. L.flex
 
+-- | Returns the maximum, bounded, valid value for a SizeReq. Extra is ignored.
 sizeReqMaxBounded :: SizeReq -> Double
 sizeReqMaxBounded req = req ^. L.fixed + req ^. L.flex
 
+-- | Returns the fixed size of a SizeReq.
 sizeReqFixed :: SizeReq -> Double
 sizeReqFixed req = req ^. L.fixed
 
+-- | Returns the flex size of a SizeReq.
 sizeReqFlex :: SizeReq -> Double
 sizeReqFlex req = req ^. L.flex
 
+-- | Returns the extra size of a SizeReq.
 sizeReqExtra :: SizeReq -> Double
 sizeReqExtra req = req ^. L.extra
 
+-- | Returns the resize factor of a SizeReq.
 sizeReqFactor :: SizeReq -> Double
 sizeReqFactor req = req ^. L.factor
 
+{-|
+Sums two SizeReqs. This is used for combining two widgets one after the other,
+/summing/ their sizes.
+
+The fixed, flex and extra fields are summed individually, while the max factor
+is kept.
+-}
 sizeReqMergeSum :: SizeReq -> SizeReq -> SizeReq
 sizeReqMergeSum req1 req2 = newReq where
   newReq = SizeReq {
@@ -82,6 +112,14 @@ sizeReqMergeSum req1 req2 = newReq where
     _szrFactor = max (_szrFactor req1) (_szrFactor req2)
   }
 
+{-|
+Merges two SizeReqs. This is used for combining two widgets by keeping the
+largest size requirement.
+
+Fields are combined in order to first satisfy fixed requirements, adapting flex
+if one of the fixed provided more space than required. For both extra and factor
+the largest value is kept.
+-}
 sizeReqMergeMax :: SizeReq -> SizeReq -> SizeReq
 sizeReqMergeMax req1 req2 = newReq where
   isFixedReq1 = round (req1 ^. L.fixed) > 0

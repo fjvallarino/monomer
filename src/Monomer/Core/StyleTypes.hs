@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.StyleTypes
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Basic types for styling widgets.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Core.StyleTypes where
@@ -10,7 +20,22 @@ import Monomer.Core.BasicTypes
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
--- | Basic styling attributes
+{-|
+Represents a size requirement for a specific axis. Mainly used by stack and box,
+with grid using it as the base for its calculations. Each field represents:
+
+- Fixed: A minimum size required by the widget. This type of space is the first
+that gets assigned.
+- Flex: Additional space the widget accepts, up to the provided value. After
+fixed requirements are satisfied, flex sizes are assigned proportionally
+considering factor.
+- Extra: After flex is satisfied, the remaining space is distributed
+proportionally, considering factor, to all non zero extra requirements. There is
+no limit to how much extra space can be assigned.
+- Factor: How much flex/extra space a widget will get proportionally. This also
+affects how much a requirement is willing to lose: a value less than 1 can
+receive less space, but gives up less too.
+-}
 data SizeReq = SizeReq {
   _szrFixed :: Double,
   _szrFlex :: Double,
@@ -26,6 +51,7 @@ instance Default SizeReq where
     _szrFactor = 1
   }
 
+-- | Different mouse pointer types.
 data CursorIcon
   = CursorArrow
   | CursorHand
@@ -40,6 +66,20 @@ data CursorIcon
 instance Default CursorIcon where
   def = CursorArrow
 
+{-|
+Main style type, comprised of configurations for the different states:
+
+- Basic: Starting state for a widget, without any kind of interaction. This
+is used as the base for all other states, which override values as needed.
+- Hover: The mouse pointer is on top of the current widget.
+- Focus: The widget has keyboard focus.
+- Focus-Hover: The widget has keyboard focus and mouse is on top. Without this
+state one of Hover or Focus would take precedence and it would not be possible
+to specify the desired behavior.
+- Active: The mouse button is currently presed and the pointer is within the
+boundaries of the widget.
+- Disabled: The widget is disabled.
+-}
 data Style = Style {
   _styleBasic :: Maybe StyleState,
   _styleHover :: Maybe StyleState,
@@ -72,17 +112,33 @@ instance Semigroup Style where
 instance Monoid Style where
   mempty = def
 
+{-|
+Customizable style items for a specific state. All values are optional, and can
+be combined with the latest values taking precedence when the previous value is
+not empty.
+-}
 data StyleState = StyleState {
+  -- | User defined width req. Takes precedence over widget req.
   _sstSizeReqW :: Maybe SizeReq,
+  -- | User defined height req. Takes precedence over widget req.
   _sstSizeReqH :: Maybe SizeReq,
+  -- | Space between the border and the content of the widget
   _sstPadding :: Maybe Padding,
+  -- | Border definition.
   _sstBorder :: Maybe Border,
+  -- | Radius. Affects both border and background.
   _sstRadius :: Maybe Radius,
+  -- | Background color.
   _sstBgColor :: Maybe Color,
+  -- | Main foreground color. Each widget decides how it uses it.
   _sstFgColor :: Maybe Color,
+  -- | Secondary foreground color. Each widget decides how it uses it.
   _sstSndColor :: Maybe Color,
+  -- | Highlight color. Each widget decides how it uses it.
   _sstHlColor :: Maybe Color,
+  -- | Text style, including font, size and color.
   _sstText :: Maybe TextStyle,
+  -- | The assigned cursor icon to this specific state.
   _sstCursorIcon :: Maybe CursorIcon
 } deriving (Eq, Show, Generic)
 
@@ -119,6 +175,7 @@ instance Semigroup StyleState where
 instance Monoid StyleState where
   mempty = def
 
+-- | Padding definitions (space between border and content) for each side.
 data Padding = Padding {
   _padLeft :: Maybe Double,
   _padRight :: Maybe Double,
@@ -145,6 +202,7 @@ instance Semigroup Padding where
 instance Monoid Padding where
   mempty = def
 
+-- | Defines width and color for a given border side.
 data BorderSide = BorderSide {
   _bsWidth :: Double,
   _bsColor :: Color
@@ -162,6 +220,7 @@ instance Semigroup BorderSide where
 instance Monoid BorderSide where
   mempty = def
 
+-- Border definitions for each side.
 data Border = Border {
   _brdLeft :: Maybe BorderSide,
   _brdRight :: Maybe BorderSide,
@@ -202,6 +261,7 @@ instance Semigroup RadiusType where
 instance Monoid RadiusType where
   mempty = def
 
+-- | Defines radius type and width/radius for a given corner.
 data RadiusCorner = RadiusCorner {
   _rcrType :: RadiusType,
   _rcrWidth :: Double
@@ -219,6 +279,7 @@ instance Semigroup RadiusCorner where
 instance Monoid RadiusCorner where
   mempty = def
 
+-- | Provides radius definitions for each corner.
 data Radius = Radius {
   _radTopLeft :: Maybe RadiusCorner,
   _radTopRight :: Maybe RadiusCorner,
@@ -245,15 +306,16 @@ instance Semigroup Radius where
 instance Monoid Radius where
   mempty = def
 
+-- | Text related definitions.
 data TextStyle = TextStyle {
-  _txsFont :: Maybe Font,
-  _txsFontSize :: Maybe FontSize,
-  _txsFontColor :: Maybe Color,
-  _txsUnderline :: Maybe Bool,
-  _txsOverline :: Maybe Bool,
-  _txsThroughline :: Maybe Bool,
-  _txsAlignH :: Maybe AlignTH,
-  _txsAlignV :: Maybe AlignTV
+  _txsFont :: Maybe Font,          -- ^ The font type.
+  _txsFontSize :: Maybe FontSize,  -- ^ Text size in pixels.
+  _txsFontColor :: Maybe Color,    -- ^ Text color.
+  _txsUnderline :: Maybe Bool,     -- ^ True if underline should be displayed.
+  _txsOverline :: Maybe Bool,      -- ^ True if overline should be displayed.
+  _txsThroughline :: Maybe Bool,   -- ^ True if throughline should be displayed.
+  _txsAlignH :: Maybe AlignTH,     -- ^ Horizontal alignment.
+  _txsAlignV :: Maybe AlignTV      -- ^ Vertical alignment.
 } deriving (Eq, Show, Generic)
 
 instance Default TextStyle where

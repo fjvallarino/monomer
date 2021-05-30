@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.Style
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for creating style configurations, and corresponding instances.
+-}
 module Monomer.Core.Style (
   module Monomer.Core.StyleTypes,
   module Monomer.Core.ThemeTypes,
@@ -21,38 +31,46 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L
 
+-- | Creates an equally sized padding left and right.
 paddingH :: (Semigroup a, CmbPaddingL a, CmbPaddingR a) => Double -> a
 paddingH p = paddingL p <> paddingR p
 
+-- | Creates an equally sized padding top and bottom.
 paddingV :: (Semigroup a, CmbPaddingT a, CmbPaddingB a) => Double -> a
 paddingV p = paddingT p <> paddingB p
 
+-- | Creates a SizeReq with fixed size.
 fixedSize :: Double -> SizeReq
 fixedSize s = def
   & L.fixed .~ s
 
+-- | Creates a SizeReq with flex size.
 flexSize :: Double -> Double -> SizeReq
 flexSize s f = def
   & L.flex .~ s
   & L.factor .~ f
 
+-- | Creates a SizeReq with expand size.
 expandSize :: Double -> Double -> SizeReq
 expandSize s f = def
   & L.flex .~ s
   & L.extra .~ s
   & L.factor .~ f
 
+-- | Creates a SizeReq with equal fixed and extra size, using the given factor.
 minSize :: Double -> Double -> SizeReq
 minSize s f = def
   & L.fixed .~ s
   & L.extra .~ s
   & L.factor .~ f
 
+-- | Creates a SizeReq with flex size, using the given factor.
 maxSize :: Double -> Double -> SizeReq
 maxSize s f = def
   & L.flex .~ s
   & L.factor .~ f
 
+-- | Creates a SizeReq with fixed and flex size, using the given factor.
 rangeSize :: Double -> Double -> Double -> SizeReq
 rangeSize s1 s2 f = def
   & L.fixed .~ s1

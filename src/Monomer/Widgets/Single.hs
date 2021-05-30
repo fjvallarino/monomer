@@ -191,6 +191,8 @@ type SingleMessageHandler s e
 Returns the preferred size for the widget. This size should not include border
 and padding; those are added automatically by Single.
 
+This is called to update WidgetNodeInfo only at specific times.
+
 Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
 "Monomer.Widgets.Singles.Label".
 -}
@@ -219,10 +221,10 @@ Examples can be found in "Monomer.Widgets.Singles.Checkbox" and
 "Monomer.Widgets.Singles.Slider".
 -}
 type SingleRenderHandler s e
-  =  WidgetEnv s e     -- ^ The widget environment.
+  = WidgetEnv s e      -- ^ The widget environment.
   -> WidgetNode s e    -- ^ The widget node.
-  -> Renderer          -- ^ The renderer, which provides low level drawing functions
-  -> IO ()             -- ^ Returns the IO action which will be used for rendering
+  -> Renderer          -- ^ The renderer, providing low level drawing functions.
+  -> IO ()             -- ^ The IO action with rendering instructions.
 
 data Single s e a = Single {
   -- | True if border and padding should be added to size requirement. Defaults

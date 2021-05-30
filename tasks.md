@@ -637,12 +637,19 @@
   - Rename resultWidget to resultNode
 
 Next
+  - Review after documenting
+    - Can validModel (inputField) handle WidgetData instead of only Lens?
+    - Check _wniOverlay. Can it be replaced with overlayPath check?
+      - Scroll related test case is also weird.
+    - Split CmbImageFit
   - Add documentation header in source files
   - Add documentation to all exported functions
+  - Create user documentation
+    - Overview of the library
+    - Tutorials
   - Create ContextMenu (could work similarly to Tooltip)
   - Add support for multiline text editing
     - Complete test cases
-
 
 Future
   - Check if Windows/Linux also miss top pixel

@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Core.FromFractional
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Conversions from Fractional to several types. Used by dial, numericField,
+slider and other numeric related widgets.
+-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -13,6 +24,7 @@ fractionalToIntegral num = round newNum where
   newNum :: Rational
   newNum = realToFrac num
 
+-- | Converts a Fractional number to the target type.
 class Real a => FromFractional a where
   fromFractional :: (Real b, Fractional b) => b -> a
 

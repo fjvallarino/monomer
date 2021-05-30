@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.Themes.SampleThemes
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Provides sample color schemes for the base theme.
+-}
 module Monomer.Core.Themes.SampleThemes where
 
 import Control.Lens ((&), (^.), (.~), (?~), non)

@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.Util
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for Core types.
+-}
 {-# LANGUAGE LambdaCase #-}
 
 module Monomer.Core.Util where
@@ -18,14 +28,17 @@ import Monomer.Core.WidgetTypes
 
 import qualified Monomer.Lens as L
 
+-- | Returns the path associated to a given key, if any.
 globalKeyPath :: WidgetEnv s e -> Text -> Maybe Path
 globalKeyPath wenv key = fmap (^. L.info . L.path) node where
   node = Map.lookup (WidgetKey key) (wenv ^. L.globalKeys)
 
+-- | Returns the widgetId associated to a given key, if any.
 globalKeyWidgetId :: WidgetEnv s e -> Text -> Maybe WidgetId
 globalKeyWidgetId wenv key = fmap (^. L.info . L.widgetId) node where
   node = Map.lookup (WidgetKey key) (wenv ^. L.globalKeys)
 
+-- | Returns the node info associated to a given path.
 findWidgetByPath
   :: WidgetEnv s e -> WidgetNode s e -> Path -> Maybe WidgetNodeInfo
 findWidgetByPath wenv node target = mnode where
@@ -35,11 +48,13 @@ findWidgetByPath wenv node target = mnode where
       | child ^. L.path == target -> Just child
     _ -> Nothing
 
+-- | Returns a string description of a node and its children.
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
   desc = nodeDesc level node ++ "\n" ++ childDesc
   childDesc = foldMap (widgetTreeDesc (level + 1)) (_wnChildren node)
 
+-- | Returns a string description of a node.
 nodeDesc :: Int -> WidgetNode s e -> String
 nodeDesc level node = infoDesc (_wnInfo node) where
   spaces = replicate (level * 2) ' '
@@ -50,11 +65,13 @@ nodeDesc level node = infoDesc (_wnInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
+-- | Returns a string description of a node info and its children.
 widgetInstTreeDesc :: Int -> WidgetInstanceNode -> String
 widgetInstTreeDesc level node = desc where
   desc = nodeInstDesc level node ++ "\n" ++ childDesc
   childDesc = foldMap (widgetInstTreeDesc (level + 1)) (_winChildren node)
 
+-- | Returns a string description of a node info.
 nodeInstDesc :: Int -> WidgetInstanceNode -> String
 nodeInstDesc level node = infoDesc (_winInfo node) where
   spaces = replicate (level * 2) ' '
@@ -65,6 +82,7 @@ nodeInstDesc level node = infoDesc (_winInfo node) where
     spaces ++ "req: " ++ show (_wniSizeReqW info, _wniSizeReqH info) ++ "\n"
   rectDesc r = show (_rX r, _rY r, _rW r, _rH r)
 
+-- | Returns a string description of a node info and its children, from a node.
 treeInstDescFromNode :: WidgetEnv s e -> Int -> WidgetNode s e -> String
 treeInstDescFromNode wenv level node = widgetInstTreeDesc level nodeInst  where
   nodeInst = widgetGetInstanceTree (node ^. L.widget) wenv node
@@ -135,12 +153,14 @@ seqCatMaybes (x :<| xs) = case x of
   Just val -> val :<| seqCatMaybes xs
   _ -> seqCatMaybes xs
 
+-- | Filters user events from a list of WidgetRequests.
 eventsFromReqs :: Seq (WidgetRequest s e) -> Seq e
 eventsFromReqs reqs = seqCatMaybes mevents where
   mevents = flip fmap reqs $ \case
     RaiseEvent ev -> cast ev
     _ -> Nothing
 
+-- Returns the maximum value of a given floating type.
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where
   n = floatDigits x
@@ -148,5 +168,6 @@ maxNumericValue = x where
   (_, u) = floatRange x
   x = encodeFloat (b^n - 1) (u - n)
 
+-- | Restricts a value to a given range.
 restrictValue :: Ord a => a -> a -> a -> a
 restrictValue minVal maxVal value = max minVal (min maxVal value)

@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Core.Themes.BaseTheme
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Provides a base theme, with fixed sizes and padding but configurable colors.
+-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -16,6 +26,7 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
 
+-- | Creates a theme using the provided colors.
 baseTheme :: BaseThemeColors -> Theme
 baseTheme themeMod = Theme {
   _themeClearColor = clearColor themeMod,
@@ -27,6 +38,7 @@ baseTheme themeMod = Theme {
   _themeDisabled = baseDisabled themeMod
 }
 
+-- | Customizable colors for the theme.
 data BaseThemeColors = BaseThemeColors {
   clearColor :: Color,
   btnBgBasic :: Color,

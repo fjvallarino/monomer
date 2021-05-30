@@ -192,12 +192,8 @@ type ContainerDisposeHandler s e
   -> WidgetResult s e  -- ^ The result of the dispose operation.
 
 {-|
-Returns the next focusable node. Since this type of widget does not have
-children, there is not need to override this function, as there are only
-two options:
-
-- The node is focusable and target is valid: the node is returned
-- The node is not focusable: Nothing is returned
+Returns the next focusable node. What next/previous is, depends on how the
+container works. Moving right -> bottom is usually considered forward.
 -}
 type ContainerFindNextFocusHandler s e
   = WidgetEnv s e          -- ^ The widget environment.
@@ -256,6 +252,8 @@ type ContainerMessageHandler s e
 Returns the preferred size for the widget. This size should not include border
 and padding; those are added automatically by Container.
 
+This is called to update WidgetNodeInfo only at specific times.
+
 Examples can be found in "Monomer.Widgets.Containers.Grid" and
 "Monomer.Widgets.Containers.Stack".
 -}
@@ -288,10 +286,10 @@ Examples can be found in "Monomer.Widgets.Containers.Draggable" and
 "Monomer.Widgets.Containers.Scroll".
 -}
 type ContainerRenderHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> Renderer
-  -> IO ()
+  = WidgetEnv s e      -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> Renderer          -- ^ The renderer, providing low level drawing functions.
+  -> IO ()             -- ^ The IO action with rendering instructions.
 
 data Container s e a = Container {
   -- | True if border and padding should be added to size requirement. Defaults
