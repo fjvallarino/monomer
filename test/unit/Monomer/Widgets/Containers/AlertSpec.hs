@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Containers.AlertSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Alert dialog widget.
+-}
 module Monomer.Widgets.Containers.AlertSpec (spec) where
 
 import Control.Lens ((&), (.~))

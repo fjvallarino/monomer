@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Singles.ImageSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Image widget.
+-}
 module Monomer.Widgets.Singles.ImageSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~), _2)

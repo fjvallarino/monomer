@@ -637,6 +637,8 @@
   - Rename resultWidget to resultNode
 
 Next
+  - Add documentation header in source files
+  - Add documentation to all exported functions
   - Review after documenting
     - Remove IsString for WidgetType?
     - KeyReleased / BtnReleased is inconsistent. Use a single convention.
@@ -646,8 +648,6 @@ Next
       - Scroll related test case is also weird.
     - Split CmbImageFit
     - Some WidgetType related things needed to be changed because Haddock failed to parse.
-  - Add documentation header in source files
-  - Add documentation to all exported functions
   - Create user documentation
     - Overview of the library
     - Tutorials

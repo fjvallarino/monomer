@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Containers.StackSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Stack widget.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Containers.StackSpec (spec) where

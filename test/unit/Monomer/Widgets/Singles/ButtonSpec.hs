@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Singles.ButtonSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Button widget.
+-}
 module Monomer.Widgets.Singles.ButtonSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))

@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.TestUtil
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for testing Monomer widgets.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.TestUtil where

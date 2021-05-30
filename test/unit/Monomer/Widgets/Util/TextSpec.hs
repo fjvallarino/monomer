@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Util.TextSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Text handling.
+-}
 module Monomer.Widgets.Util.TextSpec (spec) where
 
 import Control.Lens ((^.), ix)

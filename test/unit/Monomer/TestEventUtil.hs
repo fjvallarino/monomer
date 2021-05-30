@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.TestEventUtil
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for creating events in unit tests.
+-}
 module Monomer.TestEventUtil where
 
 import Control.Lens ((&), (^.), (.~))

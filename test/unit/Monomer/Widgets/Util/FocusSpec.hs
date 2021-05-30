@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Util.FocusSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Focus handling.
+-}
 module Monomer.Widgets.Util.FocusSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~), ix)

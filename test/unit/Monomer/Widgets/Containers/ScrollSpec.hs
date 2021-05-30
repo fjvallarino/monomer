@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Containers.ScrollSpec
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Unit tests for Scroll widget.
+-}
 module Monomer.Widgets.Containers.ScrollSpec (spec) where
 
 import Control.Lens ((&), (^.), (.~))
