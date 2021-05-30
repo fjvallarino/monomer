@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Graphics.NanoVGRenderer
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Renderer based on the nanovg library.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -77,7 +87,11 @@ data CRect
   = CRect CFloat CFloat CFloat CFloat
   deriving (Eq, Show)
 
-makeRenderer :: [FontDef] -> Double -> IO Renderer
+-- | Creates a nanovg based renderer.
+makeRenderer
+  :: [FontDef]    -- ^ The font definitions.
+  -> Double       -- ^ The device pixel rate.
+  -> IO Renderer  -- ^ The created renderer.
 makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes])
 

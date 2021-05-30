@@ -1,3 +1,15 @@
+{-|
+Module      : Monomer.Graphics.Types
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Basic types for Graphics.
+
+Angles are always expressed in degrees, not radians.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Graphics.Types where
@@ -15,14 +27,13 @@ import qualified Data.Text as T
 
 import Monomer.Core.BasicTypes
 
-defaultFontName :: Text
-defaultFontName = "Regular"
-
+-- | Direction in which triangles and arcs are drawn.
 data Winding
   = CW
   | CCW
   deriving (Eq, Show, Generic)
 
+-- | An RGBA color.
 data Color = Color {
   _colorR :: {-# UNPACK #-} !Int,
   _colorG :: {-# UNPACK #-} !Int,
@@ -33,11 +44,13 @@ data Color = Color {
 instance Default Color where
   def = Color 255 255 255 1.0
 
+-- | The definition of a font.
 data FontDef = FontDef {
-  _fntName :: !Text,
-  _fntPath :: !Text
+  _fntName :: !Text,  -- ^ The logic name. Will be used when defining styles.
+  _fntPath :: !Text   -- ^ The path in the filesystem.
 } deriving (Eq, Show, Generic)
 
+-- | The name of a loaded font.
 newtype Font
   = Font { unFont :: Text }
   deriving (Eq, Show, Generic)
@@ -45,16 +58,18 @@ newtype Font
 instance IsString Font where
   fromString s = Font (T.pack s)
 
+instance Default Font where
+  def = Font "Regular"
+
+-- | The size of a font.
 newtype FontSize
   = FontSize { unFontSize :: Double }
   deriving (Eq, Show, Generic)
 
-instance Default Font where
-  def = Font defaultFontName
-
 instance Default FontSize where
   def = FontSize 32
 
+-- | Horizontal alignment flags.
 data AlignH
   = ALeft
   | ACenter
@@ -64,6 +79,7 @@ data AlignH
 instance Default AlignH where
   def = ACenter
 
+-- | Vertical alignment flags.
 data AlignV
   = ATop
   | AMiddle
@@ -73,6 +89,7 @@ data AlignV
 instance Default AlignV where
   def = AMiddle
 
+-- | Text horizontal alignment flags.
 data AlignTH
   = ATLeft
   | ATCenter
@@ -82,6 +99,7 @@ data AlignTH
 instance Default AlignTH where
   def = ATCenter
 
+-- | Text vertical alignment flags.
 data AlignTV
   = ATTop
   | ATMiddle
@@ -92,11 +110,12 @@ data AlignTV
 instance Default AlignTV where
   def = ATMiddle
 
+-- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {
-  _glpGlyph :: {-# UNPACK #-} !Char,
-  _glpXMin :: {-# UNPACK #-} !Double,
-  _glpXMax :: {-# UNPACK #-} !Double,
-  _glpW :: {-# UNPACK #-} !Double
+  _glpGlyph :: {-# UNPACK #-} !Char,   -- ^ The representer character.
+  _glpXMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
+  _glpXMax :: {-# UNPACK #-} !Double,  -- ^ The max x coordinate.
+  _glpW :: {-# UNPACK #-} !Double      -- ^ The glyph width.
 } deriving (Eq, Show, Generic)
 
 instance Default GlyphPos where
@@ -107,25 +126,29 @@ instance Default GlyphPos where
     _glpW = 0
   }
 
+-- | Text flags for single or multiline.
 data TextMode
   = SingleLine
   | MultiLine
   deriving (Eq, Show, Generic)
 
+-- | Text flags for trimming or keeping sapces.
 data TextTrim
   = TrimSpaces
   | KeepSpaces
   deriving (Eq, Show, Generic)
 
+-- | Text flags for clipping or using ellipsis.
 data TextOverflow
   = Ellipsis
   | ClipText
   deriving (Eq, Show)
 
+-- | Text metrics.
 data TextMetrics = TextMetrics {
-  _txmAsc :: {-# UNPACK #-} !Double,
-  _txmDesc :: {-# UNPACK #-} !Double,
-  _txmLineH :: {-# UNPACK #-} !Double
+  _txmAsc :: {-# UNPACK #-} !Double,   -- ^ The heigth above the baseline.
+  _txmDesc :: {-# UNPACK #-} !Double,  -- ^ The heigth below the baseline.
+  _txmLineH :: {-# UNPACK #-} !Double  -- ^ The total heigth.
 } deriving (Eq, Show, Generic)
 
 instance Default TextMetrics where
@@ -135,12 +158,13 @@ instance Default TextMetrics where
     _txmLineH = 0
   }
 
+-- | A text line with associated rendering information.
 data TextLine = TextLine {
-  _tlText :: !Text,
-  _tlSize :: !Size,
-  _tlRect :: !Rect,
-  _tlGlyphs :: !(Seq GlyphPos),
-  _tlMetrics :: !TextMetrics
+  _tlText :: !Text,              -- ^ The represented text.
+  _tlSize :: !Size,              -- ^ The size the formatted text takes.
+  _tlRect :: !Rect,              -- ^ The rect the formatted text occupies.
+  _tlGlyphs :: !(Seq GlyphPos),  -- ^ The glyphs for each character.
+  _tlMetrics :: !TextMetrics     -- ^ The text metrics for the given font/size.
 } deriving (Eq, Show, Generic)
 
 instance Default TextLine where
@@ -152,72 +176,100 @@ instance Default TextLine where
     _tlMetrics = def
   }
 
+-- | Flags for a newly created image.
 data ImageFlag
   = ImageNearest
   | ImageRepeatX
   | ImageRepeatY
   deriving (Eq, Show, Generic)
 
+-- | The definition of a loaded image.
 data ImageDef = ImageDef {
-  _idfName :: String,
-  _idfSize :: Size,
-  _idfImgData :: BS.ByteString,
-  _idfFlags :: [ImageFlag]
+  _idfName :: String,            -- ^ The logic name of the image.
+  _idfSize :: Size,              -- ^ The dimensions of the image.
+  _idfImgData :: BS.ByteString,  -- ^ The image data as RGBA 4-bytes blocks.
+  _idfFlags :: [ImageFlag]       -- ^ The image flags.
 } deriving (Eq, Show, Generic)
 
--- Angles are always expressed in degrees, not radians
+-- | Low level rendering definitions.
 data Renderer = Renderer {
-  -- Frame
+  -- | Begins a new frame.
   beginFrame :: Int -> Int -> IO (),
+  -- | Finishes a frame, consolidating the drawing operations since beginFrame.
   endFrame :: IO (),
-  -- Path
+  -- | Begins a new path
   beginPath :: IO (),
+  -- | Finishes an active path by closing it with a line.
   closePath :: IO (),
-  -- Context management
+  -- | Saves current context (scissor, offset, scale, rotation, etc).
   saveContext :: IO (),
+  -- | Restores a previously saved context.
   restoreContext :: IO (),
-  -- Overlays
+  -- | Creates an overlay. These are rendered after the regular frame has been
+  -- | displayed. Useful, for instance, for a dropdown or context menu.
   createOverlay :: IO () -> IO (),
+  -- | Renders the added overlays and clears them.
   renderOverlays :: IO (),
-  -- Raw overlays
+  -- | Creates an overlay which will not rely on higher level libraries such as
+  -- | nanovg. Well suited for pure OpenGL/Vulkan/Metal.
   createRawOverlay :: IO () -> IO (),
+  -- | Renders the added raw overlays and clears them.
   renderRawOverlays :: IO (),
-  -- Scissor
+  -- | Sets, or intersects, a scissor which will limit the visible area.
   intersectScissor :: Rect -> IO (),
-  -- Translation
+  -- | Translates all further drawing operations by the given offset.
   setTranslation :: Point -> IO (),
-  -- Scale
+  -- | Scales all further drawing operations by the given size.
   setScale :: Point -> IO (),
-  -- Rotation
+  -- | Rotates all further drawing operations by the given angle.
   setRotation :: Double -> IO (),
-  -- Alpha
+  -- | Applies the given alpha to all further drawing operations.
   setGlobalAlpha :: Double -> IO (),
-  -- Strokes
+  -- | Draws an active path as a non filled stroke.
   stroke :: IO (),
+  -- | Sets the color of the next stroke actions.
   setStrokeColor :: Color -> IO (),
+  -- | Sets the width of the next stroke actions.
   setStrokeWidth :: Double -> IO (),
-  -- Fill
+  -- | Draws an active path as a filled object.
   fill :: IO (),
+  -- | Sets the color of the next fill actions.
   setFillColor :: Color -> IO (),
+  -- | Sets the width of the next fill actions.
   setFillLinearGradient :: Point -> Point -> Color -> Color -> IO (),
-  -- Drawing
+  -- | Moves the head to the given point. Useful for starting a set of lines.
   moveTo :: Point -> IO (),
+  -- | Renders a line between to points.
   renderLine :: Point -> Point -> IO (),
+  -- | Renders a line from head to a given point.
   renderLineTo :: Point -> IO (),
+  -- | Renders a rectangle.
   renderRect :: Rect -> IO (),
+  -- | Renders an arc (center, radius, angle start, angle, end, winding).
   renderArc :: Point -> Double -> Double -> Double -> Winding -> IO (),
+  -- | Quadratic bezier segment from head via control point to target.
   renderQuadTo :: Point -> Point -> IO (),
+  -- | Renders an ellipse.
   renderEllipse :: Rect -> IO (),
-  -- Text
+  -- | Returns the text metrics of a given font and size.
   computeTextMetrics :: Font -> FontSize -> TextMetrics,
+  -- | Returns the text size of the text given font and size.
   computeTextSize :: Font -> FontSize -> Text -> Size,
+  -- | Returns the glyphs of the text given font and size.
   computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
+  -- | Renders the given text at a specific point.
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
-  -- Image
+  -- | Returns the image definitio of a loaded image, if any.
   getImage :: String -> Maybe ImageDef,
+  -- | Adds an image, providing name, size, image data and flags.
   addImage :: String -> Size -> ByteString -> [ImageFlag] -> IO (),
+  -- | Updates an image, providing name, size and image data (must match
+  -- | previous size).
   updateImage :: String -> Size -> ByteString -> IO (),
+  -- | Removes an existing image.
   deleteImage :: String -> IO (),
+  -- | Renders an existing image.
   renderImage :: String -> Rect -> Double -> IO (),
+  -- | Renders an image after adding it, providing the same arguments as addImage.
   renderNewImage :: String -> Rect -> Double -> Size -> ByteString -> [ImageFlag] -> IO ()
 }

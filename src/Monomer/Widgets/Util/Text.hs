@@ -48,7 +48,7 @@ getTextRect wenv style !rect !alignH !alignV !text = textRect where
   renderer = _weRenderer wenv
   font = styleFont style
   fontSize = styleFontSize style
-  !textRect = computeTextRect renderer rect font fontSize alignH alignV text
+  !textRect = calcTextRect renderer rect font fontSize alignH alignV text
 
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where

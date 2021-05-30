@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Graphics.Drawing
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Utility drawing functions. Built on top the lower level primitives provided by
+"Monomer.Graphics.Types.Renderer".
+-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.Drawing (
@@ -17,8 +28,7 @@ module Monomer.Graphics.Drawing (
   drawTimesX,
   drawStyledAction,
   drawImage,
-  drawNewImage,
-  drawStyledImage
+  drawNewImage
 ) where
 
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
@@ -34,7 +44,14 @@ import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
 
-drawInScissor :: Renderer -> Bool -> Rect -> IO () -> IO ()
+-- | Performs the provided drawing operations with an active scissor, and then
+-- | disables it.
+drawInScissor
+  :: Renderer  -- ^ The renderer.
+  -> Bool      -- ^ Whether to apply the scissor (useful to selectively apply).
+  -> Rect      -- ^ Scissor rect, where drawing will be visible.
+  -> IO ()     -- ^ Drawing operations.
+  -> IO ()     -- ^ The resulting action.
 drawInScissor renderer False _ action = action
 drawInScissor renderer True rect action = do
   saveContext renderer
@@ -42,35 +59,61 @@ drawInScissor renderer True rect action = do
   action
   restoreContext renderer
 
-drawInTranslation :: Renderer -> Point -> IO () -> IO ()
+-- | Performs the provided drawing operations displaced by the given offset.
+drawInTranslation
+  :: Renderer  -- ^ The renderer.
+  -> Point     -- ^ The offset to apply.
+  -> IO ()     -- ^ Drawing operations.
+  -> IO ()     -- ^ The resulting action.
 drawInTranslation renderer offset action = do
   saveContext renderer
   setTranslation renderer offset
   action
   restoreContext renderer
 
-drawInScale :: Renderer -> Point -> IO () -> IO ()
+-- | Performs the provided drawing operations with the given resize scale.
+drawInScale
+  :: Renderer  -- ^ The renderer.
+  -> Point     -- ^ The horizontal and vertical scale factor to apply.
+  -> IO ()     -- ^ Drawing operations.
+  -> IO ()     -- ^ The resulting action.
 drawInScale renderer scale action = do
   saveContext renderer
   setScale renderer scale
   action
   restoreContext renderer
 
-drawInRotation :: Renderer -> Double -> IO () -> IO ()
+-- | Performs the provided drawing operations with the given rotation angle.
+drawInRotation
+  :: Renderer  -- ^ The renderer.
+  -> Double    -- ^ The angle in degrees.
+  -> IO ()     -- ^ Drawing operations.
+  -> IO ()     -- ^ The resulting action.
 drawInRotation renderer angle action = do
   saveContext renderer
   setRotation renderer angle
   action
   restoreContext renderer
 
-drawInAlpha :: Renderer -> Double -> IO () -> IO ()
+-- | Performs the provided drawing operations with a global alpha applied.
+drawInAlpha
+  :: Renderer  -- ^ The renderer.
+  -> Double    -- ^ The global alpha to apply.
+  -> IO ()     -- ^ Drawing operations.
+  -> IO ()     -- ^ The resulting action.
 drawInAlpha renderer alpha action = do
   saveContext renderer
   setGlobalAlpha renderer alpha
   action
   restoreContext renderer
 
-drawTextLine :: Renderer -> StyleState -> TextLine -> IO ()
+-- | Draws a TextLine with the provided style. Font and size must be the same
+-- | as when the TextLine was created, but color and decorations can change.
+drawTextLine
+  :: Renderer    -- ^ The renderer.
+  -> StyleState  -- ^ The style to apply.
+  -> TextLine    -- ^ The TextLine with the text to render.
+  -> IO ()       -- ^ The resulting action.
 drawTextLine renderer style textLine = do
   setFillColor renderer fontColor
   renderText renderer txtOrigin font fontSize text
@@ -106,7 +149,14 @@ drawTextLine renderer style textLine = do
     hy = by - asc * 0.35
     txtOrigin = Point tx by
 
-drawLine :: Renderer -> Point -> Point -> Double -> Maybe Color -> IO ()
+-- | Draws a line with the given width and color.
+drawLine
+  :: Renderer     -- ^ The renderer.
+  -> Point        -- ^ The start point.
+  -> Point        -- ^ The end point.
+  -> Double       -- ^ The line width.
+  -> Maybe Color  -- ^ The color. If Nothing, the line will not be drawn.
+  -> IO ()        -- ^ The resulting action.
 drawLine _ _ _ _ Nothing = pure ()
 drawLine renderer p1 p2 width (Just color) = do
   beginPath renderer
@@ -115,7 +165,13 @@ drawLine renderer p1 p2 width (Just color) = do
   renderLine renderer p1 p2
   stroke renderer
 
-drawRect :: Renderer -> Rect -> Maybe Color -> Maybe Radius -> IO ()
+-- | Draws a filled rect with the given color and radius.
+drawRect
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rectangle to be drawn.
+  -> Maybe Color   -- ^ The color. If Nothing, the rect will not be drawn.
+  -> Maybe Radius  -- ^ The optional radius config.
+  -> IO ()         -- ^ The resulting action.
 drawRect _ _ Nothing _ = pure ()
 drawRect renderer rect (Just color) Nothing = do
   beginPath renderer
@@ -128,14 +184,27 @@ drawRect renderer rect (Just color) (Just radius) = do
   drawRoundedRect renderer rect (fixRadius rect radius)
   fill renderer
 
-drawRectBorder :: Renderer -> Rect -> Border -> Maybe Radius -> IO ()
+-- | Draws a rect's border, with an optional radius.
+drawRectBorder
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rectangle to be drawn.
+  -> Border        -- ^ The border config.
+  -> Maybe Radius  -- ^ The optional radius config.
+  -> IO ()         -- ^ The resulting action.
 drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
   drawRectRoundedBorder renderer rect border (fixRadius rect radius)
 
+-- | Draws a filled arc, delimited by a rect and within the given angles.
 drawArc
-  :: Renderer -> Rect -> Double -> Double -> Winding -> Maybe Color -> IO ()
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the arc area.
+  -> Double        -- ^ The start angle in degrees.
+  -> Double        -- ^ The end angle in degrees.
+  -> Winding       -- ^ The direction in which the arc is drawn.
+  -> Maybe Color   -- ^ The color. If Nothing, the arc will not be drawn.
+  -> IO ()         -- ^ The resulting action.
 drawArc renderer rect start end winding Nothing = return ()
 drawArc renderer rect start end winding (Just color) = do
   beginPath renderer
@@ -147,15 +216,16 @@ drawArc renderer rect start end winding (Just color) = do
     radius = min (rw / 2) (rh / 2)
     center = Point (rx + rw / 2) (ry + rh / 2)
 
+-- | Draws an arc's border, delimited by a rect and within the given angles.
 drawArcBorder
-  :: Renderer
-  -> Rect
-  -> Double
-  -> Double
-  -> Winding
-  -> Maybe Color
-  -> Double
-  -> IO ()
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the arc area.
+  -> Double        -- ^ The start angle in degrees.
+  -> Double        -- ^ The end angle in degrees.
+  -> Winding       -- ^ The direction in which the arc is drawn.
+  -> Maybe Color   -- ^ The color. If Nothing, the arc will not be drawn.
+  -> Double        -- ^ The arc width.
+  -> IO ()         -- ^ The resulting action.
 drawArcBorder renderer rect start end winding Nothing width = return ()
 drawArcBorder renderer rect start end winding (Just color) width = do
   beginPath renderer
@@ -168,7 +238,12 @@ drawArcBorder renderer rect start end winding (Just color) width = do
     radius = min ((rw - width) / 2) ((rh - width) / 2)
     center = Point (rx + rw / 2) (ry + rh / 2)
 
-drawEllipse :: Renderer -> Rect -> Maybe Color -> IO ()
+-- | Draws a filled ellipse, delimited by a rect.
+drawEllipse
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the ellipse.
+  -> Maybe Color   -- ^ The color. If Nothing, the ellipse will not be drawn.
+  -> IO ()         -- ^ The resulting action.
 drawEllipse renderer rect Nothing = return ()
 drawEllipse renderer rect (Just color) = do
   beginPath renderer
@@ -176,7 +251,13 @@ drawEllipse renderer rect (Just color) = do
   renderEllipse renderer rect
   fill renderer
 
-drawEllipseBorder :: Renderer -> Rect -> Maybe Color -> Double -> IO ()
+-- | Draws an ellipse's border, delimited by a rect.
+drawEllipseBorder
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the ellipse.
+  -> Maybe Color   -- ^ The color. If Nothing, the ellipse will not be drawn.
+  -> Double        -- ^ The border width.
+  -> IO ()         -- ^ The resulting action.
 drawEllipseBorder renderer rect Nothing _ = return ()
 drawEllipseBorder renderer rect (Just color) width =
   forM_ contentRect $ \finalRect -> do
@@ -189,7 +270,12 @@ drawEllipseBorder renderer rect (Just color) width =
     contentRect = subtractFromRect rect w w w w
     w = width / 2
 
-drawArrowDown :: Renderer -> Rect -> Maybe Color -> IO ()
+-- | Draws a triangular arrow pointing down, delimited by the given rect.
+drawArrowDown
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the arrow.
+  -> Maybe Color   -- ^ The color. If Nothing, the arrow will not be drawn.
+  -> IO ()         -- ^ The resulting action.
 drawArrowDown renderer rect Nothing = return ()
 drawArrowDown renderer rect (Just color) = do
   beginPath renderer
@@ -205,7 +291,13 @@ drawArrowDown renderer rect (Just color) = do
     p2 = Point (x + w) y
     p3 = Point (x + w / 2) (y + h)
 
-drawTimesX :: Renderer -> Rect -> Double -> Maybe Color -> IO ()
+-- | Draws an X, delimited by the given rect.
+drawTimesX
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the arrow.
+  -> Double        -- ^ The width of the lines.
+  -> Maybe Color   -- ^ The color. If Nothing, the X will not be drawn.
+  -> IO ()         -- ^ The resulting action.
 drawTimesX renderer rect lw Nothing = return ()
 drawTimesX renderer rect lw (Just fgColor) = do
   beginPath renderer
@@ -232,7 +324,14 @@ drawTimesX renderer rect lw (Just fgColor) = do
     mx = x + w
     my = y + h
 
-drawStyledAction :: Renderer -> Rect -> StyleState -> (Rect -> IO ()) -> IO ()
+-- | Draws a set of operations after drawing the style's background, and
+-- | before drawing the style's border.
+drawStyledAction
+  :: Renderer         -- ^ The renderer.
+  -> Rect             -- ^ The rect where background and border will be drawn.
+  -> StyleState       -- ^ The style defining background and border.
+  -> (Rect -> IO ())  -- ^ The drawing actions. They receive the content area.
+  -> IO ()            -- ^ The resulting action.
 drawStyledAction renderer rect style action = do
   let StyleState{..} = style
   let contentRect = removeOuterBounds style rect
@@ -244,27 +343,30 @@ drawStyledAction renderer rect style action = do
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
 
-drawImage :: Renderer -> String -> Rect -> Double -> IO ()
+-- | Draws an already registered image in the provided location.
+drawImage
+  :: Renderer         -- ^ The renderer.
+  -> String           -- ^ The name of the image.
+  -> Rect             -- ^ The rect where the image will be drawn.
+  -> Double           -- ^ The alpha to apply to the image.
+  -> IO ()            -- ^ The resulting action.
 drawImage renderer imgName rect alpha = action where
   action = renderImage renderer imgName rect alpha
 
+-- | Draws a new image in the provided location.
 drawNewImage
-  :: Renderer
-  -> String
-  -> Rect
-  -> Double
-  -> Size
-  -> ByteString
-  -> [ImageFlag]
-  -> IO ()
+  :: Renderer         -- ^ The renderer.
+  -> String           -- ^ The name of the image.
+  -> Rect             -- ^ The rect where the image will be drawn.
+  -> Double           -- ^ The alpha to apply to the image in this render.
+  -> Size             -- ^ The image size.
+  -> ByteString       -- ^ The image data as RGBA 4-byte blocks.
+  -> [ImageFlag]      -- ^ The image flags.
+  -> IO ()            -- ^ The resulting action.
 drawNewImage renderer imgName rect alpha size imgData flags = action where
   action = renderNewImage renderer imgName rect alpha size imgData flags
 
-drawStyledImage :: Renderer -> String -> Rect -> Double -> StyleState -> IO ()
-drawStyledImage renderer imgName rect alpha style = forM_ tempRect action where
-  tempRect = removeOuterBounds style rect
-  action imgRect = renderImage renderer imgName imgRect alpha
-
+-- Helpers
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer (Rect x y w h) Radius{..} =
   let

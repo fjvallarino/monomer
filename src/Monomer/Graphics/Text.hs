@@ -1,10 +1,20 @@
+{-|
+Module      : Monomer.Graphics.Text
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for calculating text size.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Graphics.Text (
   calcTextSize,
   calcTextSize_,
-  computeTextRect,
+  calcTextRect,
   getTextLinesSize,
   fitTextToRect,
   fitTextToWidth,
@@ -34,19 +44,25 @@ import Monomer.Lens as L
 
 type GlyphGroup = Seq GlyphPos
 
-calcTextSize :: Renderer -> StyleState -> Text -> Size
+-- | Returns the size a given text an style will take.
+calcTextSize
+  :: Renderer      -- ^ The renderer.
+  -> StyleState    -- ^ The style.
+  -> Text          -- ^ The text to calculate.
+  -> Size          -- ^ The calculated size.
 calcTextSize renderer style !text = size where
   size = calcTextSize_ renderer style SingleLine KeepSpaces Nothing Nothing text
 
+-- | Returns the size a given text an style will take.
 calcTextSize_
-  :: Renderer
-  -> StyleState
-  -> TextMode
-  -> TextTrim
-  -> Maybe Double
-  -> Maybe Int
-  -> Text
-  -> Size
+  :: Renderer      -- ^ The renderer.
+  -> StyleState    -- ^ The style.
+  -> TextMode      -- ^ Single or multiline.
+  -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> Maybe Double  -- ^ Optional max width (needed for multiline).
+  -> Maybe Int     -- ^ Optional max lines.
+  -> Text          -- ^ The text to calculate.
+  -> Size          -- ^ The calculated size.
 calcTextSize_ renderer style mode trim mwidth mlines text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
@@ -61,16 +77,17 @@ calcTextSize_ renderer style mode trim mwidth mlines text = newSize where
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
 
-computeTextRect
-  :: Renderer
-  -> Rect
-  -> Font
-  -> FontSize
-  -> AlignTH
-  -> AlignTV
-  -> Text
-  -> Rect
-computeTextRect renderer containerRect font fontSize ha va text = textRect where
+-- | Returns the rect a text needs to be displayed completely.
+calcTextRect
+  :: Renderer  -- ^ The renderer.
+  -> Rect      -- ^ The base rect. The result may be larger.
+  -> Font      -- ^ The font to use.
+  -> FontSize  -- ^ THe font size.
+  -> AlignTH   -- ^ The horizontal alignment.
+  -> AlignTV   -- ^ The vertical alignment.
+  -> Text      -- ^ The text to calculate.
+  -> Rect      -- ^ The output rect.
+calcTextRect renderer containerRect font fontSize ha va text = textRect where
   Rect x y w h = containerRect
   Size tw _ = computeTextSize renderer font fontSize text
   TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
@@ -89,16 +106,20 @@ computeTextRect renderer containerRect font fontSize ha va text = textRect where
     _rH = th
   }
 
+{-|
+Fits the given text to a determined rect, splitting on multiple lines as needed.
+The text may overflow vertically or horizontally, and a scissor is needed.
+-}
 fitTextToRect
-  :: Renderer
-  -> StyleState
-  -> TextOverflow
-  -> TextMode
-  -> TextTrim
-  -> Maybe Int
-  -> Rect
-  -> Text
-  -> Seq TextLine
+  :: Renderer      -- ^ The renderer.
+  -> StyleState    -- ^ The style.
+  -> TextOverflow  -- ^ Whether to clip or use ellipsis.
+  -> TextMode      -- ^ Single or multiline.
+  -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> Maybe Int     -- ^ Optional max lines.
+  -> Rect          -- ^ The bounding rect.
+  -> Text          -- ^ The text to calculate.
+  -> Seq TextLine  -- ^ The fitted text lines.
 fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
   Rect cx cy cw ch = rect
   font = styleFont style
@@ -113,7 +134,32 @@ fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
     | mode == MultiLine = fittedLines
     | otherwise = Seq.take 1 fittedLines
 
-alignTextLines :: StyleState -> Rect -> Seq TextLine -> Seq TextLine
+-- | Fits a single line of text to the given width, potencially spliting into
+-- | several lines.
+fitTextToWidth
+  :: Renderer      -- ^ The renderer.
+  -> StyleState    -- ^ The style.
+  -> Double        -- ^ The maximum width.
+  -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> Text          -- ^ The text to calculate.
+  -> Seq TextLine  -- ^ The fitted text lines.
+fitTextToWidth renderer style width trim text = resultLines where
+  font = styleFont style
+  fSize = styleFontSize style
+  !metrics = computeTextMetrics renderer font fSize
+  lineH = _txmLineH metrics
+  helper acc line = (cLines <> newLines, newTop) where
+    (cLines, cTop) = acc
+    newLines = fitSingleTextToW renderer font fSize metrics cTop width trim line
+    newTop = cTop + fromIntegral (Seq.length newLines) * lineH
+  (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
+
+-- | Aligns a Seq of TextLines to the given rect.
+alignTextLines
+  :: StyleState    -- ^ The style.
+  -> Rect          -- ^ The bounding rect. Text may overflow.
+  -> Seq TextLine  -- ^ The TextLines to align.
+  -> Seq TextLine  -- ^ The aligned TextLines.
 alignTextLines style parentRect textLines = newTextLines where
   Rect _ py _ ph = parentRect
   Size _ th = getTextLinesSize textLines
@@ -126,6 +172,28 @@ alignTextLines style parentRect textLines = newTextLines where
   offsetY = py + alignOffsetY
   newTextLines = fmap (alignTextLine parentRect offsetY alignH) textLines
 
+-- | Moves a Seq of TextLines by the given offset.
+moveTextLines
+  :: Point         -- ^ The offset.
+  -> Seq TextLine  -- ^ The TextLines.
+  -> Seq TextLine  -- ^ The displaced TextLines.
+moveTextLines (Point offsetX offsetY) textLines = newTextLines where
+  moveTextLine tl = tl
+    & L.rect . L.x +~ offsetX
+    & L.rect . L.y +~ offsetY
+  newTextLines = fmap moveTextLine textLines
+
+-- | Gets the minimum x a Seq of Glyphs will use.
+getGlyphsMin :: Seq GlyphPos -> Double
+getGlyphsMin Empty = 0
+getGlyphsMin (g :<| gs) = _glpXMin g
+
+-- | Gets the maximum x a Seq of Glyphs will use.
+getGlyphsMax :: Seq GlyphPos -> Double
+getGlyphsMax Empty = 0
+getGlyphsMax (gs :|> g) = _glpXMax g
+
+-- Helpers
 alignTextLine :: Rect -> Double -> AlignTH -> TextLine -> TextLine
 alignTextLine parentRect offsetY alignH textLine = newTextLine where
   Rect px _ pw _ = parentRect
@@ -166,24 +234,6 @@ fitTextLinesToH renderer style overflow w h (g :<| gs)
     newG
       | overflow == Ellipsis && w < gW = addEllipsisToTextLine renderer style w g
       | otherwise = g
-
-fitTextToWidth
-  :: Renderer
-  -> StyleState
-  -> Double
-  -> TextTrim
-  -> Text
-  -> Seq TextLine
-fitTextToWidth renderer style width trim text = resultLines where
-  font = styleFont style
-  fSize = styleFontSize style
-  !metrics = computeTextMetrics renderer font fSize
-  lineH = _txmLineH metrics
-  helper acc line = (cLines <> newLines, newTop) where
-    (cLines, cTop) = acc
-    newLines = fitSingleTextToW renderer font fSize metrics cTop width trim line
-    newTop = cTop + fromIntegral (Seq.length newLines) * lineH
-  (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
 fitSingleTextToW
   :: Renderer
@@ -283,14 +333,6 @@ fitExtraGroups (g :<| gs) !width !prevGMax !keepTailSpaces
     keepSpace = keepTailSpaces && isSpaceGroup g
     (newFit, newRest) = fitExtraGroups gs remWidth gMax keepTailSpaces
 
-getGlyphsMin :: Seq GlyphPos -> Double
-getGlyphsMin Empty = 0
-getGlyphsMin (g :<| gs) = _glpXMin g
-
-getGlyphsMax :: Seq GlyphPos -> Double
-getGlyphsMax Empty = 0
-getGlyphsMax (gs :|> g) = _glpXMax g
-
 getGlyphsWidth :: Seq GlyphPos -> Double
 getGlyphsWidth glyphs = getGlyphsMax glyphs - getGlyphsMin glyphs
 
@@ -301,13 +343,6 @@ getTextLinesSize textLines = size where
   size
     | Seq.null textLines = def
     | otherwise = Size width height
-
-moveTextLines :: Point -> Seq TextLine -> Seq TextLine
-moveTextLines (Point offsetX offsetY) textLines = newTextLines where
-  moveTextLine tl = tl
-    & L.rect . L.x +~ offsetX
-    & L.rect . L.y +~ offsetY
-  newTextLines = fmap moveTextLine textLines
 
 isSpaceGroup :: Seq GlyphPos -> Bool
 isSpaceGroup Empty = False

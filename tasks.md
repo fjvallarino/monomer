@@ -640,6 +640,7 @@ Next
   - Review after documenting
     - Remove IsString for WidgetType?
     - KeyReleased / BtnReleased is inconsistent. Use a single convention.
+    - restrictValue -> clamp.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Scroll related test case is also weird.

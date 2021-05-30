@@ -1,9 +1,18 @@
+{-|
+Module      : Monomer.Graphics.ColorTable
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Color table imported from https://www.rapidtables.com/web/color/RGB_Color.html.
+-}
 module Monomer.Graphics.ColorTable where
 
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
--- Colors (imported from https://www.rapidtables.com/web/color/RGB_Color.html)
 maroon = rgbHex "#800000"
 darkRed = rgbHex "#8B0000"
 brown = rgbHex "#A52A2A"
