@@ -1,5 +1,23 @@
-module Monomer.Main.Platform where
-{- HLint Ignore: Use forM_ -}
+{-|
+Module      : Monomer.Main.Platform
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for SDL platform related operations.
+-}
+module Monomer.Main.Platform (
+  defaultWindowSize,
+  defaultUseHdpi,
+  initSDLWindow,
+  detroySDLWindow,
+  getCurrentMousePos,
+  getDrawableSize,
+  getWindowSize,
+  getPlatform
+) where
 
 import Control.Monad.State
 import Data.Maybe
@@ -24,12 +42,15 @@ import Monomer.Widgets.Composite
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 
+-- | Default window size if not is specified.
 defaultWindowSize :: (Int, Int)
 defaultWindowSize = (640, 480)
 
+-- | Default use of HDPI or not.
 defaultUseHdpi :: Bool
 defaultUseHdpi = True
 
+-- | Creates and initializes a window using the provided configuration.
 initSDLWindow :: AppConfig e -> IO (SDL.Window, Double)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
@@ -94,6 +115,7 @@ initSDLWindow config = do
       Just MainWindowMaximized -> True
       _ -> False
 
+-- | Destroys the provided window, shutdowns the video subsystem and SDL.
 detroySDLWindow :: SDL.Window -> IO ()
 detroySDLWindow window = do
   putStrLn "About to destroyWindow"
@@ -101,30 +123,29 @@ detroySDLWindow window = do
   Raw.quitSubSystem Raw.SDL_INIT_VIDEO
   SDL.quit
 
+-- | Returns the current mouse position.
 getCurrentMousePos :: (MonadIO m) => m Point
 getCurrentMousePos = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
   return $ Point (fromIntegral x) (fromIntegral y)
 
+-- | Returns the drawable size of the provided window. May differ from window
+-- | size if HDPI is enabled.
 getDrawableSize :: (MonadIO m) => SDL.Window -> m Size
 getDrawableSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   return $ Size (fromIntegral fbWidth) (fromIntegral fbHeight)
 
+-- | Returns the size of the provided window.
 getWindowSize :: (MonadIO m) => SDL.Window -> Double -> m Size
 getWindowSize window dpr = do
   Size rw rh <- getDrawableSize window
 
   return $ Size (rw / dpr) (rh / dpr)
 
+-- | Returns the name of the host OS.
 getPlatform :: (MonadIO m) => m Text
 getPlatform = do
   platform <- liftIO . peekCString =<< Raw.getPlatform
 
   return $ T.pack platform
-
-getKeyCode :: String -> Maybe KeyCode
-getKeyCode name = unsafePerformIO $ withCString name getKeyCodeFFI where
-  getKeyCodeFFI cname = fmap convert (Raw.getKeyFromName cname)
-  convert Raw.SDLK_UNKNOWN = Nothing
-  convert code = Just (KeyCode $ fromIntegral code)

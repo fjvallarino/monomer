@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Main.WidgetTask
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Handles the lifecycle and reporting of generated events of WidgetTasks (single
+message) and Producers (multiple messages).
+-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Main.WidgetTask (handleWidgetTasks) where
@@ -23,9 +34,12 @@ import Monomer.Main.Types
 
 import qualified Monomer.Lens as L
 
+-- | Checks the status and collects results of active tasks.
 handleWidgetTasks
   :: (MonomerM s m)
-  => WidgetEnv s e -> WidgetNode s e -> m (HandlerStep s e)
+  => WidgetEnv s e        -- ^ The widget environment.
+  -> WidgetNode s e       -- ^ The widget root.
+  -> m (HandlerStep s e)  -- ^ The updated "Monomer.Main.Handlers.HandlerStep".
 handleWidgetTasks wenv widgetRoot = do
   tasks <- use widgetTasks
   (active, finished) <- partitionM isThreadActive (toList tasks)

@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Main.Core
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Core glue for running an application.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -7,8 +17,7 @@ module Monomer.Main.Core (
   AppEventHandler,
   AppUIBuilder,
   EventResponse(..),
-  simpleApp,
-  runApp
+  simpleApp
 ) where
 
 import Control.Concurrent (threadDelay)
@@ -30,7 +39,6 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
---import Monomer.Lens
 import Monomer.Main.Handlers
 import Monomer.Main.Platform
 import Monomer.Main.Types
@@ -41,9 +49,17 @@ import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
 
+-- | Type of response an App event handler can return, with __s__ being the
+-- | model and __e__ the user events type.
 type AppEventResponse s e = EventResponse s e s ()
+-- | Type of an App event handler.
 type AppEventHandler s e
-  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [AppEventResponse s e]
+  = WidgetEnv s e            -- ^ The widget environment.
+  -> WidgetNode s e          -- ^ The root node of the application.
+  -> s                       -- ^ The application's model.
+  -> e                       -- ^ The event to handle.
+  -> [AppEventResponse s e]  -- ^ The list of requested actions.
+-- | Type of the function responsible of creating the App UI.
 type AppUIBuilder s e = UIBuilder s e
 
 data MainLoopArgs s e ep = MainLoopArgs {
@@ -59,13 +75,20 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlWidgetRoot :: WidgetNode s ep
 }
 
+{-|
+Runs an application, creating the UI with the provided function and initial
+model, handling future events with the event handler.
+
+Control will not be returned until the UI exits. This needs to be ran in the
+main thread if using macOS.
+-}
 simpleApp
   :: (Eq s, WidgetModel s, WidgetEvent e)
-  => s
-  -> AppEventHandler s e
-  -> AppUIBuilder s e
-  -> [AppConfig e]
-  -> IO ()
+  => s                    -- ^ The initial model.
+  -> AppEventHandler s e  -- ^ The event handler.
+  -> AppUIBuilder s e     -- ^ The UI builder.
+  -> [AppConfig e]        -- ^ The application config.
+  -> IO ()                -- ^ The application action.
 simpleApp model eventHandler uiBuilder configs = do
   (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window

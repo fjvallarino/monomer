@@ -1,14 +1,25 @@
+{-|
+Module      : Monomer.Main.Handlers
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Handlers for WidgetRequests. Functions in this module handle focus, clipboard,
+overlays and all SystemEvent related operations and updates.
+-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 
 module Monomer.Main.Handlers (
   HandlerStep,
-  handleWidgetResult,
   handleSystemEvents,
   handleResourcesInit,
   handleWidgetInit,
   handleWidgetDispose,
+  handleWidgetResult,
   handleRequests,
   handleResizeWidgets
 ) where
@@ -46,51 +57,25 @@ import Monomer.Main.Util
 import qualified Monomer.Lens as L
 import Control.Monad.Trans.Maybe
 
+{-|
+Tuple representing the current widget environment, widget root and accumulated
+WidgetRequests. These requests have already been processed, they are collected
+for unit testing purposes.
+-}
 type HandlerStep s e = (WidgetEnv s e, WidgetNode s e, Seq (WidgetRequest s e))
 
-getTargetPath
-  :: WidgetEnv s e
-  -> WidgetNode s e
-  -> Maybe Path
-  -> Maybe Path
-  -> Path
-  -> SystemEvent
-  -> Maybe Path
-getTargetPath wenv root pressed overlay target event = case event of
-    -- Keyboard
-    KeyAction{}                       -> pathEvent target
-    TextInput _                       -> pathEvent target
-    -- Clipboard
-    Clipboard _                       -> pathEvent target
-    -- Mouse/touch
-    ButtonAction point _ PressedBtn _ -> pointEvent point
-    ButtonAction _ _ ReleasedBtn _    -> pathEvent target
-    Click{}                           -> pathEvent target
-    DblClick{}                        -> pathEvent target
-    WheelScroll point _ _             -> pointEvent point
-    Focus{}                           -> pathEvent target
-    Blur{}                            -> pathEvent target
-    Enter{}                           -> pathEvent target
-    Move point                        -> pointEvent point
-    Leave{}                           -> pathEvent target
-    -- Drag/drop
-    Drag point _ _                    -> pointEvent point
-    Drop point _ _                    -> pointEvent point
-  where
-    widget = root ^. L.widget
-    startPath = fromMaybe emptyPath overlay
-    pathEvent = Just
-    pathFromPoint p = fmap (^. L.path) wni where
-      wni = widgetFindByPoint widget wenv root startPath p
-    -- pressed is only really used for Move
-    pointEvent point = pressed <|> pathFromPoint point <|> overlay
-
+{-|
+Processes a list of SystemEvents dispatching each of the to the corresponding
+widget based on the current root. At each step the root may change, new events
+may be generated (which will be processed interleaved with the list of events)
+and this is handled before returning the latest "HandlerStep".
+-}
 handleSystemEvents
   :: (MonomerM s m)
-  => WidgetEnv s e
-  -> WidgetNode s e
-  -> [SystemEvent]
-  -> m (HandlerStep s e)
+  => WidgetEnv s e       -- ^ The initial widget environment.
+  -> WidgetNode s e      -- ^ The initial widget root.
+  -> [SystemEvent]       -- ^ The starting list of events.
+  -> m (HandlerStep s e) -- ^ The resulting "HandlerStep."
 handleSystemEvents wenv widgetRoot baseEvents = nextStep where
   mainBtn = wenv ^. L.mainButton
   reduceEvt curStep evt = do
@@ -135,6 +120,7 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
   newEvents = preProcessEvents baseEvents
   nextStep = foldM reduceEvt (wenv, widgetRoot, Seq.empty) newEvents
 
+-- | Processes a single SystemEvent.
 handleSystemEvent
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -164,6 +150,7 @@ handleSystemEvent wenv widgetRoot event currentTarget = do
         then handleFinalizeDrop step
         else return step
 
+-- | Initializes system resources (currently only icons).
 handleResourcesInit :: MonomerM s m => m ()
 handleResourcesInit = do
   cursors <- foldM insert Map.empty [toEnum 0 ..]
@@ -173,6 +160,7 @@ handleResourcesInit = do
       cursor <- SDLE.createSystemCursor (cursorToSDL icon)
       return $ Map.insert icon cursor map
 
+-- | Initializes a widget (in general, this is called for root).
 handleWidgetInit
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -191,6 +179,7 @@ handleWidgetInit wenv widgetRoot = do
     then handleMoveFocus Nothing FocusFwd step
     else return step
 
+-- | Disposes a widget (in general, this is called for root).
 handleWidgetDispose
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -202,6 +191,10 @@ handleWidgetDispose wenv widgetRoot = do
 
   handleWidgetResult wenv False widgetResult
 
+{-|
+Handles a WidgetResult instance, processing events and requests, and returning
+an updated "HandlerStep".
+-}
 handleWidgetResult
   :: (MonomerM s m)
   => WidgetEnv s e
@@ -221,11 +214,12 @@ handleWidgetResult wenv resizeWidgets result = do
       L.resizePending .= resizeReq
       return step
 
+-- | Processes a Seq of WidgetRequest, returning the latest "HandlerStep".
 handleRequests
   :: (MonomerM s m)
-  => Seq (WidgetRequest s e)
-  -> HandlerStep s e
-  -> m (HandlerStep s e)
+  => Seq (WidgetRequest s e)  -- ^ Requests to process.
+  -> HandlerStep s e          -- ^ Initial state/"HandlerStep".
+  -> m (HandlerStep s e)      -- ^ Updated "HandlerStep",
 handleRequests reqs step = foldM handleRequest step reqs where
   handleRequest step req = case req of
     IgnoreParentEvents -> return step
@@ -257,10 +251,11 @@ handleRequests reqs step = foldM handleRequest step reqs where
     RunTask wid path handler -> handleRunTask wid path handler step
     RunProducer wid path handler -> handleRunProducer wid path handler step
 
+-- | Resizes the current root, and marks the render and resized flags.
 handleResizeWidgets
   :: (MonomerM s m)
-  => HandlerStep s e
-  -> m (HandlerStep s e)
+  => HandlerStep s e      -- ^ Current state/"HandlerStep".
+  -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
   Size w h <- use L.windowSize
 
@@ -808,6 +803,43 @@ restoreCursorOnWindowEnter = do
 
   when (not prevInside && currInside && isJust cursorPair) $ do
     SDLE.setCursor sdlCursor
+
+getTargetPath
+  :: WidgetEnv s e
+  -> WidgetNode s e
+  -> Maybe Path
+  -> Maybe Path
+  -> Path
+  -> SystemEvent
+  -> Maybe Path
+getTargetPath wenv root pressed overlay target event = case event of
+    -- Keyboard
+    KeyAction{}                       -> pathEvent target
+    TextInput _                       -> pathEvent target
+    -- Clipboard
+    Clipboard _                       -> pathEvent target
+    -- Mouse/touch
+    ButtonAction point _ PressedBtn _ -> pointEvent point
+    ButtonAction _ _ ReleasedBtn _    -> pathEvent target
+    Click{}                           -> pathEvent target
+    DblClick{}                        -> pathEvent target
+    WheelScroll point _ _             -> pointEvent point
+    Focus{}                           -> pathEvent target
+    Blur{}                            -> pathEvent target
+    Enter{}                           -> pathEvent target
+    Move point                        -> pointEvent point
+    Leave{}                           -> pathEvent target
+    -- Drag/drop
+    Drag point _ _                    -> pointEvent point
+    Drop point _ _                    -> pointEvent point
+  where
+    widget = root ^. L.widget
+    startPath = fromMaybe emptyPath overlay
+    pathEvent = Just
+    pathFromPoint p = fmap (^. L.path) wni where
+      wni = widgetFindByPoint widget wenv root startPath p
+    -- pressed is only really used for Move
+    pointEvent point = pressed <|> pathFromPoint point <|> overlay
 
 cursorToSDL :: CursorIcon -> SDLEnum.SystemCursor
 cursorToSDL CursorArrow = SDLEnum.SDL_SYSTEM_CURSOR_ARROW

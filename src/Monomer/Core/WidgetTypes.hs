@@ -174,7 +174,8 @@ data WidgetRequest s e
   -- | rendering at points of interest. Mouse and keyboard events automatically
   -- | generate render requests, but the result of a WidgetTask does not.
   | RenderOnce
-  -- | Useful if a widget requires periodic rendering.
+  -- | Useful if a widget requires periodic rendering. An optional maximum
+  -- | number of frames can be provided.
   | RenderEvery WidgetId Int (Maybe Int)
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
