@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Util.Style
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for style related operations.
+-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -41,17 +51,19 @@ instance Default (ActiveStyleCfg s e) where
     _ascIsActive = isNodeActive
   }
 
+-- | Extracts/copies the field of a style into an empty style.
 collectStyleField
-  :: Lens' StyleState (Maybe t)
-  -> Style
-  -> Style
+  :: Lens' StyleState (Maybe t) -- ^ The field into the state.
+  -> Style                      -- ^ The source style.
+  -> Style                      -- ^ The new style.
 collectStyleField fieldS source = collectStyleField_ fieldS source def
 
+-- | Extracts/copies the field of a style into a provided style.
 collectStyleField_
-  :: Lens' StyleState (Maybe t)
-  -> Style
-  -> Style
-  -> Style
+  :: Lens' StyleState (Maybe t) -- ^ The field into the state.
+  -> Style                      -- ^ The source style.
+  -> Style                      -- ^ The target style.
+  -> Style                      -- ^ The updated style.
 collectStyleField_ fieldS source target = style where
   basic = Just $ target ^. L.basic . non def
     & fieldS .~ source ^? L.basic . _Just . fieldS . _Just
@@ -67,10 +79,16 @@ collectStyleField_ fieldS source target = style where
     & fieldS .~ source ^? L.disabled . _Just . fieldS . _Just
   style = Style basic hover focus focusHover active disabled
 
+-- | Returns the active style for the given node.
 activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle wenv node = activeStyle_ def wenv node
 
-activeStyle_ :: ActiveStyleCfg s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
+{-|
+Returns the active style for the given node, using the provided functions to
+determine hover, focus and active status.
+-}
+activeStyle_
+  :: ActiveStyleCfg s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 activeStyle_ config wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
@@ -86,9 +104,14 @@ activeStyle_ config wenv node = fromMaybe def styleState where
     | isFocus = _styleFocus
     | otherwise = _styleBasic
 
+-- | Returns the correct focused style, depending if it's hovered or not.
 focusedStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
 focusedStyle wenv node = focusedStyle_ isNodeHovered wenv node
 
+{-|
+Returns the correct focused style, depending if it's hovered or not, using the
+provided function.
+-}
 focusedStyle_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
 focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
@@ -97,9 +120,11 @@ focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
     | isHover = _styleFocusHover
     | otherwise = _styleFocus
 
+-- | Returns the active theme for the node.
 activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
 activeTheme wenv node = activeTheme_ isNodeHovered wenv node
 
+-- | Returns the active theme for the node.
 activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
 activeTheme_ isHoveredFn wenv node = themeState where
   theme = _weTheme wenv
@@ -116,6 +141,7 @@ activeTheme_ isHoveredFn wenv node = themeState where
     | isFocus = _themeFocus theme
     | otherwise = _themeBasic theme
 
+-- | Checks if hover or focus states changed between versions of the node.
 styleStateChanged :: WidgetEnv s e -> WidgetNode s e -> SystemEvent -> Bool
 styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Hover
@@ -123,11 +149,15 @@ styleStateChanged wenv node evt = hoverChanged || focusChanged where
   -- Focus
   focusChanged = isOnFocus evt || isOnBlur evt
 
+{-|
+Initializes the node style states. Mainly, it uses basic as the base of all the
+other styles.
+-}
 initNodeStyle
-  :: GetBaseStyle s e
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
+  :: GetBaseStyle s e  -- ^ The function to get the base style.
+  -> WidgetEnv s e     -- ^ The widget environment.
+  -> WidgetNode s e    -- ^ The widget node.
+  -> WidgetNode s e    -- ^ The updated widget node.
 initNodeStyle getBaseStyle wenv node = newNode where
   nodeStyle = mergeBasicStyle $ node ^. L.info . L.style
   baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv node)
@@ -135,19 +165,25 @@ initNodeStyle getBaseStyle wenv node = newNode where
   newNode = node
     & L.info . L.style .~ (themeStyle <> baseStyle <> nodeStyle)
 
+{-|
+Checks for style changes between the old node and the provided result, in the
+context of an event. Generates requests for resize, render and cursor change as
+necessary.
+-}
 handleStyleChange
-  :: WidgetEnv s e
-  -> Path
-  -> StyleState
-  -> Bool
-  -> WidgetNode s e
-  -> SystemEvent
-  -> Maybe (WidgetResult s e)
-  -> Maybe (WidgetResult s e)
+  :: WidgetEnv s e             -- ^ The widget environment.
+  -> Path                      -- ^ The target of the event.
+  -> StyleState                -- ^ The active style.
+  -> Bool                      -- ^ Whether to check/update the cursor.
+  -> WidgetNode s e            -- ^ The old node.
+  -> SystemEvent               -- ^ The event.
+  -> Maybe (WidgetResult s e)  -- ^ The result containing the new node.
+  -> Maybe (WidgetResult s e)  -- ^ The updated result.
 handleStyleChange wenv target style doCursor node evt result = newResult where
   newResult = handleSizeChange wenv target evt node result
     & handleCursorChange wenv target evt style node
 
+-- Helpers
 handleSizeChange
   :: WidgetEnv s e
   -> Path

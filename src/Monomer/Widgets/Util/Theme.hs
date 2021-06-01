@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets.Util.Theme
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions for loading theme values.
+-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Util.Theme where
@@ -10,43 +20,13 @@ import Monomer.Core
 
 import qualified Monomer.Lens as L
 
-themeEmptyOverlay :: WidgetEnv s e -> Style
-themeEmptyOverlay wenv = collectTheme wenv L.emptyOverlayStyle
-
-themeText :: WidgetEnv s e -> Style
-themeText wenv = collectThemeField wenv L.text L.textStyle
-
-themeBtn :: WidgetEnv s e -> Style
-themeBtn wenv = collectTheme wenv L.btnStyle
-
-themeBtnMain :: WidgetEnv s e -> Style
-themeBtnMain wenv = collectTheme wenv L.btnMainStyle
-
-themeDialogFrame :: WidgetEnv s e -> Style
-themeDialogFrame wenv = collectTheme wenv L.dialogFrameStyle
-
-themeDialogTitle :: WidgetEnv s e -> Style
-themeDialogTitle wenv = collectTheme wenv L.dialogTitleStyle
-
-themeDialogCloseIcon :: WidgetEnv s e -> Style
-themeDialogCloseIcon wenv = collectTheme wenv L.dialogCloseIconStyle
-
-themeDialogMsgBody :: WidgetEnv s e -> Style
-themeDialogMsgBody wenv = collectTheme wenv L.dialogMsgBodyStyle
-
-themeDialogButtons :: WidgetEnv s e -> Style
-themeDialogButtons wenv = collectTheme wenv L.dialogButtonsStyle
-
-collectThemeField
-  :: WidgetEnv s e -> Lens' StyleState (Maybe t) -> Lens' ThemeState t -> Style
-collectThemeField wenv fieldS fieldT = collectThemeField_ wenv fieldS fieldT def
-
+-- | Updates a the field of style with the field value from the active theme.
 collectThemeField_
-  :: WidgetEnv s e
-  -> Lens' StyleState (Maybe t)
-  -> Lens' ThemeState t
-  -> Style
-  -> Style
+  :: WidgetEnv s e               -- ^ The widget environment (to get the theme).
+  -> Lens' StyleState (Maybe t)  -- ^ The target field of the style.
+  -> Lens' ThemeState t          -- ^ The source field of the theme.
+  -> Style                       -- ^ The target style.
+  -> Style                       -- ^ The updated style.
 collectThemeField_ wenv fieldStyle fieldTheme target = style where
   basic = Just $ target ^. L.basic . non def
     & fieldStyle ?~ wenv ^. L.theme . L.basic . fieldTheme
@@ -62,7 +42,11 @@ collectThemeField_ wenv fieldStyle fieldTheme target = style where
     & fieldStyle ?~ wenv ^. L.theme . L.disabled . fieldTheme
   style = Style basic hover focus focusHover active disabled
 
-collectTheme :: WidgetEnv s e  -> Lens' ThemeState StyleState -> Style
+-- | Collects all the style states from a given field in the active theme.
+collectTheme
+  :: WidgetEnv s e               -- ^ The widget environment (to get the theme).
+  -> Lens' ThemeState StyleState -- ^ The field into the theme
+  -> Style                       -- ^ The collected style.
 collectTheme wenv fieldT = style where
   basic = Just $ wenv ^. L.theme . L.basic . fieldT
   hover = Just $ wenv ^. L.theme . L.hover . fieldT
@@ -72,7 +56,12 @@ collectTheme wenv fieldT = style where
   disabled = Just $ wenv ^. L.theme . L.disabled . fieldT
   style = Style basic hover focus focusHover active disabled
 
-collectUserTheme :: WidgetEnv s e  -> String -> Style
+-- | Collects all the style states from a given entry in the map of user styles
+-- | in the active theme.
+collectUserTheme
+  :: WidgetEnv s e  -- ^ The widget environment (to get the theme).
+  -> String         -- ^ The key into the user map.
+  -> Style          -- ^ The collected style.
 collectUserTheme wenv name = style where
   basic = wenv ^. L.theme . L.basic . L.userStyleMap . at name
   hover = wenv ^. L.theme . L.hover . L.userStyleMap . at name
