@@ -1,3 +1,24 @@
+{-|
+Module      : Monomer.Widgets.Animation.Slide
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Slide animation widget. Wraps a child widget whose content will be animated.
+
+Config:
+
+- autoStart: whether the first time the widget is added, animation should run.
+- duration: how long the animation lasts in ms.
+- onFinished: event to raise when animation is complete.
+- Individual combinators for direction.
+
+Messages:
+
+- Receives a 'AnimationMsg', used to control the state of the animation.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -77,15 +98,19 @@ instance CmbOnFinished (SlideCfg e) e where
     _slcOnFinished = [fn]
   }
 
+-- | Slide from/to left.
 leftSide :: SlideCfg e
 leftSide = def { _slcDirection = Just SlideLeft }
 
+-- | Slide from/to right.
 rightSide :: SlideCfg e
 rightSide = def { _slcDirection = Just SlideRight }
 
+-- | Slide from/to top.
 topSide :: SlideCfg e
 topSide = def { _slcDirection = Just SlideUp }
 
+-- | Slide from/to bottom.
 bottomSide :: SlideCfg e
 bottomSide = def { _slcDirection = Just SlideDown }
 
@@ -100,17 +125,23 @@ instance Default SlideState where
     _slsStartTs = 0
   }
 
+-- | Animates a widget from the left to fully visible.
 slideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 slideIn managed = slideIn_ def managed
 
+-- | Animates a widget from the provided direction to fully visible (defaults
+-- | to left). Accepts config.
 slideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 slideIn_ configs managed = makeNode "slideIn" widget managed where
   config = mconcat configs
   widget = makeSlide True config def
 
+-- | Animates a widget to the left from visible to not visible.
 slideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 slideOut managed = slideOut_ def managed
 
+-- | Animates a widget to the the provided direction from visible to not
+-- | visible (defaults to left). Accepts config.
 slideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 slideOut_ configs managed = makeNode "slideOut" widget managed where
   config = mconcat configs

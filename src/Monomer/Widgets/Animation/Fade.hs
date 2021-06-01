@@ -1,7 +1,28 @@
+{-|
+Module      : Monomer.Widgets.Animation.Fade
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Fade animation widget. Wraps a child widget whose content will be animated.
+
+Config:
+
+- autoStart: whether the first time the widget is added, animation should run.
+- duration: how long the animation lasts in ms.
+- onFinished: event to raise when animation is complete.
+
+Messages:
+
+- Receives a 'AnimationMsg', used to control the state of the animation.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Monomer.Widgets.Animation.Fade (
   fadeIn,
@@ -15,6 +36,7 @@ import Control.Lens ((&), (^.), (.~), (%~), at)
 import Control.Monad (when)
 import Data.Default
 import Data.Maybe
+import Data.Text (Text)
 import Data.Typeable (cast)
 import GHC.Generics
 
@@ -74,17 +96,21 @@ instance Default FadeState where
     _fdsStartTs = 0
   }
 
+-- | Animates a widget from not visible state to fully visible.
 fadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 fadeIn managed = fadeIn_ def managed
 
+-- | Animates a widget from not visible state to fully visible. Accepts config.
 fadeIn_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
 fadeIn_ configs managed = makeNode "fadeIn" widget managed where
   config = mconcat configs
   widget = makeFade True config def
 
+-- | Animates a widget from visible state to not visible.
 fadeOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 fadeOut managed = fadeOut_ def managed
 
+-- | Animates a widget from visible state to not visible. Accepts config.
 fadeOut_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
 fadeOut_ configs managed = makeNode "fadeOut" widget managed where
   config = mconcat configs
