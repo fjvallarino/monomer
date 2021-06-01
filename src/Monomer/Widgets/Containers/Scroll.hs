@@ -1,3 +1,36 @@
+{-|
+Module      : Monomer.Widgets.Containers.Scroll
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Scroll container of a single node. Assigns all the space the inner node requests
+but limits itself to what its parent assigns. It allows navigating the content
+of the inner node with the scroll bars. It also supports automatic focus
+following.
+
+Configs:
+
+- wheelRate: rate at which wheel movement causes scrolling.
+- barColor: the color of the bar (container of the thumb).
+- barHoverColor: the color of the bar when mouse is on top.
+- barWidth: the width of the bar.
+- thumbColor: the color of the thumb.
+- thumbHoverColor: the color of the thumb when mouse is on top.
+- thumbWidth: the width of the thumb.
+- thumbRadius: the radius of the corners of the thumb.
+- scrollOverlay_: whether scroll bar should be on top of content or by the side.
+- scrollInvisible_: shortcut for setting invisible style. Useful with scroll
+overlay, since it allows scrolling without taking up space or hiding content.
+- scrollFollowFocus_: whether to auto scroll when focusing a non visible item.
+- scrollStyle: the base style of the scroll bar.
+
+Messages:
+
+
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -139,31 +172,22 @@ instance CmbThumbRadius ScrollCfg where
     _scThumbRadius = Just r
   }
 
-data ScrollState = ScrollState {
-  _sstDragging :: Maybe ActiveBar,
-  _sstDeltaX :: !Double,
-  _sstDeltaY :: !Double,
-  _sstVpSize :: Size,
-  _sstChildSize :: Size,
-  _sstScissor :: Rect
-} deriving (Eq, Show, Generic)
-
-scrollType :: ScrollType -> ScrollCfg
-scrollType st = def {
-  _scScrollType = Just st
-}
-
+-- | Scroll bars will be displayed on top of the content.
 scrollOverlay :: ScrollCfg
 scrollOverlay = scrollOverlay_ True
 
+-- | Sets whether scroll bars will be displayed on top of the content or to the
+-- | side.
 scrollOverlay_ :: Bool -> ScrollCfg
 scrollOverlay_ overlay = def {
   _scScrollOverlay = Just overlay
 }
 
+-- | Sets the style of the scroll bars to transparent.
 scrollInvisible :: ScrollCfg
 scrollInvisible = scrollInvisible_ True
 
+-- | Whether to set the style of the scroll bars to transparent.
 scrollInvisible_ :: Bool -> ScrollCfg
 scrollInvisible_ False = def
 scrollInvisible_ True = def {
@@ -174,18 +198,37 @@ scrollInvisible_ True = def {
   _scThumbHoverColor = Just transparent
 }
 
+-- | Makes the scroll automatically follow focused items to make them visible.
 scrollFollowFocus :: ScrollCfg
 scrollFollowFocus = scrollFollowFocus_ True
 
+-- | Whether to automatically follow focused items to make them visible.
 scrollFollowFocus_ :: Bool -> ScrollCfg
 scrollFollowFocus_ follow = def {
   _scFollowFocus = Just follow
 }
 
+-- | Sets the base style of the scroll bar. Useful when creating widgets which
+-- | use scroll and may need to customize it.
 scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg
 scrollStyle style = def {
   _scStyle = Just style
 }
+
+-- Not exported
+scrollType :: ScrollType -> ScrollCfg
+scrollType st = def {
+  _scScrollType = Just st
+}
+
+data ScrollState = ScrollState {
+  _sstDragging :: Maybe ActiveBar,
+  _sstDeltaX :: !Double,
+  _sstDeltaY :: !Double,
+  _sstVpSize :: Size,
+  _sstChildSize :: Size,
+  _sstScissor :: Rect
+} deriving (Eq, Show, Generic)
 
 data ScrollContext = ScrollContext {
   hScrollRatio :: Double,
@@ -217,23 +260,33 @@ data ScrollMessage
   | ScrollReset
   deriving (Eq, Show)
 
+-- | Creates a scroll node that may show both bars.
 scroll :: WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ def managedWidget
 
+-- | Creates a scroll node that may show both bars. Accepts config.
 scroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
 scroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat configs
 
+-- | Creates a horizontal scroll node. Vertical space is equal to what the
+-- | parent node assigns.
 hscroll :: WidgetNode s e -> WidgetNode s e
 hscroll managedWidget = hscroll_ def managedWidget
 
+-- | Creates a horizontal scroll node. Vertical space is equal to what the
+-- | parent node assigns. Accepts config.
 hscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
 hscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollH : configs)
 
+-- | Creates a vertical scroll node. Vertical space is equal to what the
+-- | parent node assigns.
 vscroll :: WidgetNode s e -> WidgetNode s e
 vscroll managedWidget = vscroll_ def managedWidget
 
+-- | Creates a vertical scroll node. Vertical space is equal to what the
+-- | parent node assigns. Accepts config.
 vscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
 vscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollV : configs)

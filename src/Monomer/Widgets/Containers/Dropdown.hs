@@ -1,3 +1,30 @@
+{-|
+Module      : Monomer.Widgets.Containers.Dropdown
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Dropdown widget, allowing selection of a single item from a collapsable list.
+Both header and list content is customizable, plus its styling. In case only
+text content is needed, 'Monomer.Widgets.Singles.TextDropdown' is easier to use.
+
+Configs:
+
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetReqest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetReqest to generate when focus is lost.
+- onChange: event to raise when selected item changes.
+- onChangeReq: WidgetRequest to generate when selected item changes.
+- onChangeIdx: event to raise when selected item changes. Includes index,
+- onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
+index.
+- maxHeight: maximum height of the list when dropdown is expanded.
+- itemNormalStyle: style of an item in the list when not selected.
+- itemSelectedStyle: style of the selected item in the list.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -148,60 +175,66 @@ data DropdownMessage
   = forall a . DropdownItem a => OnChangeMessage Int a
   | OnListBlur
 
+-- | Creates a dropdown using the given lens.
 dropdown
   :: (Traversable t, DropdownItem a, WidgetEvent e)
-  => ALens' s a
-  -> t a
-  -> (a -> WidgetNode s e)
-  -> (a -> WidgetNode s e)
-  -> WidgetNode s e
+  => ALens' s a             -- ^ The lens into the model.
+  -> t a                    -- ^ The list of selectable items.
+  -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
+  -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
+  -> WidgetNode s e         -- ^ The created dropdown.
 dropdown field items makeMain makeRow = newNode where
   newNode = dropdown_ field items makeMain makeRow def
 
+-- | Creates a dropdown using the given lens. Accepts config.
 dropdown_
   :: (Traversable t, DropdownItem a, WidgetEvent e)
-  => ALens' s a
-  -> t a
-  -> (a -> WidgetNode s e)
-  -> (a -> WidgetNode s e)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a             -- ^ The lens into the model.
+  -> t a                    -- ^ The list of selectable items.
+  -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
+  -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
+  -> [DropdownCfg s e a]    -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 dropdown_ field items makeMain makeRow configs = newNode where
   widgetData = WidgetLens field
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
+-- | Creates a dropdown using the given value and onChange event handler.
 dropdownV
   :: (Traversable t, DropdownItem a, WidgetEvent e)
-  => a
-  -> (Int -> a -> e)
-  -> t a
-  -> (a -> WidgetNode s e)
-  -> (a -> WidgetNode s e)
-  -> WidgetNode s e
+  => a                      -- ^ The current value.
+  -> (Int -> a -> e)        -- ^ The event to raise on change.
+  -> t a                    -- ^ The list of selectable items.
+  -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
+  -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
+  -> WidgetNode s e         -- ^ The created dropdown.
 dropdownV value handler items makeMain makeRow = newNode where
   newNode = dropdownV_ value handler items makeMain makeRow def
 
+-- | Creates a dropdown using the given value and onChange event handler.
+-- | Accepts config.
 dropdownV_
   :: (Traversable t, DropdownItem a, WidgetEvent e)
-  => a
-  -> (Int -> a -> e)
-  -> t a
-  -> (a -> WidgetNode s e)
-  -> (a -> WidgetNode s e)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => a                      -- ^ The current value.
+  -> (Int -> a -> e)        -- ^ The event to raise on change.
+  -> t a                    -- ^ The list of selectable items.
+  -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
+  -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
+  -> [DropdownCfg s e a]    -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 dropdownV_ value handler items makeMain makeRow configs = newNode where
   newConfigs = onChangeIdx handler : configs
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
+-- | Creates a dropdown providing a WidgetData instance.
 dropdownD_
   :: (Traversable t, DropdownItem a, WidgetEvent e)
-  => WidgetData s a
-  -> t a
-  -> (a -> WidgetNode s e)
-  -> (a -> WidgetNode s e)
-  -> [DropdownCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
+  -> t a                    -- ^ The list of selectable items.
+  -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
+  -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
+  -> [DropdownCfg s e a]    -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 dropdownD_ widgetData items makeMain makeRow configs = makeNode widget where
   config = mconcat configs
   newState = DropdownState False def

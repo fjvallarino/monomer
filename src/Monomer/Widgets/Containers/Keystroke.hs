@@ -1,3 +1,37 @@
+{-|
+Module      : Monomer.Widgets.Containers.Keystroke
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Container which generates user provided events when combinations of keys happen.
+Using this event makes sense at the application level or Composite level. If
+implementing a widget from scratch, keyboard events are directly available.
+
+The shortcut definitions are provided as a list of tuples of text, containing
+the key combination, and associated event. The widget handles unordered
+combinations of multiple keys at the same time, but does not support ordered
+sequences (pressing "a", releasing, then "b" and "c"). The available keys are:
+
+- Mod keys: A, Alt, C, Ctrl, Cmd, O, Option, S, Shift
+- Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab
+- Arrows: Up, Down, Left, Right
+- Function keys: F1-F12
+- Lowercase letters (uppercase keys are reserved for mod and action keys)
+- Numbers
+
+These can be combined, for example:
+
+- Copy: "Ctrl-c" or "C-c"
+- App config: "Ctrl-Shift-p" or "C-S-p"
+
+Configs:
+
+- ignoreChildrenEvts: If True, when a shortcut is detected, the KeyAction event
+will not be passed down to children.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -72,9 +106,11 @@ instance Default KeyStroke where
 
 makeLensesWith abbreviatedFields ''KeyStroke
 
+-- | Creates a keystroke container with a single node as child.
 keystroke :: WidgetEvent e => [(Text, e)] -> WidgetNode s e -> WidgetNode s e
 keystroke bindings managed = keystroke_ bindings def managed
 
+-- | Creates a keystroke container with a single node as child. Accepts config,
 keystroke_
   :: WidgetEvent e
   => [(Text, e)]

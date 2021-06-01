@@ -1,3 +1,21 @@
+{-|
+Module      : Monomer.Widgets.Containers.Tooltip
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Displays a text message above its child node when the pointer is on top and
+some conditions have been met.
+
+Config:
+
+- width: the maximum width of the tooltip. Used for multiline.
+- height: the maximum height of the tooltip. Used for multiline.
+- tooltipDelay: the delay in ms before the tooltip is displayed.
+- tooltipFollow: if, after tooltip is displaye, it should follow the mouse.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 

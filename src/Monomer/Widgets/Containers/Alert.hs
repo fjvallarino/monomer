@@ -1,3 +1,19 @@
+{-|
+Module      : Monomer.Widgets.Containers.Alert
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Simple alert dialog, displaying a close button and optional title. Usually
+embedded in a zstack component and displayed/hidden depending on context.
+
+Config:
+
+- titleCaption: the title of the alert dialog.
+- closeCaption: the caption of the close button.
+-}
 module Monomer.Widgets.Containers.Alert (
   alert,
   alert_,
@@ -55,41 +71,45 @@ instance CmbCloseCaption AlertCfg where
     _alcClose = Just t
   }
 
+-- | Creates an alert dialog with the provided content.
 alert
   :: (WidgetModel sp, WidgetEvent ep)
-  => WidgetNode () ep
-  -> ep
-  -> WidgetNode sp ep
-alert dialogBody evt = alert_ dialogBody evt def
+  => ep                -- ^ The event to raise when the dialog is closed.
+  -> WidgetNode () ep  -- ^ The content to display in the dialog.
+  -> WidgetNode sp ep  -- ^ The created dialog.
+alert evt dialogBody = alert_ evt def dialogBody
 
+-- | Creates an alert dialog with the provided content. Accepts config.
 alert_
   :: (WidgetModel sp, WidgetEvent ep)
-  => WidgetNode () ep
-  -> ep
-  -> [AlertCfg]
-  -> WidgetNode sp ep
-alert_ dialogBody evt configs = newNode where
+  => ep                -- ^ The event to raise when the dialog is closed.
+  -> [AlertCfg]        -- ^ The config options for the dialog.
+  -> WidgetNode () ep  -- ^ The content to display in the dialog.
+  -> WidgetNode sp ep  -- ^ The created dialog.
+alert_ evt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) evt config
   newNode = compositeExt "alert" () createUI handleEvent
 
+-- | Creates an alert dialog with a text message as content.
 alertMsg
   :: (WidgetModel sp, WidgetEvent ep)
-  => Text
-  -> ep
-  -> WidgetNode sp ep
+  => Text              -- ^ The message to display.
+  -> ep                -- ^ The event to raise when the dialog is closed.
+  -> WidgetNode sp ep  -- ^ The created dialog.
 alertMsg message evt = alertMsg_ message evt def
 
+-- | Creates an alert dialog with a text message as content. Accepts config.
 alertMsg_
   :: (WidgetModel sp, WidgetEvent ep)
-  => Text
-  -> ep
-  -> [AlertCfg]
-  -> WidgetNode sp ep
+  => Text              -- ^ The message to display.
+  -> ep                -- ^ The event to raise when the dialog is closed.
+  -> [AlertCfg]        -- ^ The config options for the dialog.
+  -> WidgetNode sp ep  -- ^ The created dialog.
 alertMsg_ message evt configs = newNode where
   config = mconcat configs
   dialogBody wenv = label_ message [multiLine]
-    & L.info . L.style .~ themeDialogMsgBody wenv
+    & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody evt config
   newNode = compositeExt "alert" () createUI handleEvent
 
@@ -104,20 +124,21 @@ buildUI
 buildUI dialogBody cancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
-  emptyOverlay = themeEmptyOverlay wenv
+  emptyOverlay = collectTheme wenv L.emptyOverlayStyle
   dismissButton = hstack [mainButton close cancelEvt]
-  closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
+  closeIcon = icon IconClose
+    & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
   alertTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
-        label title & L.info . L.style .~ themeDialogTitle wenv,
+        label title & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle,
         filler,
         box_ [alignTop, onClick cancelEvt] closeIcon
       ],
       dialogBody wenv,
       filler,
       box_ [alignLeft] dismissButton
-        & L.info . L.style .~ themeDialogButtons wenv
-    ] & L.info . L.style .~ themeDialogFrame wenv
+        & L.info . L.style .~ collectTheme wenv L.dialogButtonsStyle
+    ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
   alertBox = box_ [onClickEmpty cancelEvt] alertTree
     & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] alertBox

@@ -1,3 +1,25 @@
+{-|
+Module      : Monomer.Widgets.Containers.ZStack
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Layered container, stacking children one on top of the other. Useful for
+handling widgets that need to be visible in certain contexts only (dialogs), or
+to overlay unrelated widgets (text on top of an image).
+
+The order of the widgets is from bottom to top.
+
+The container will request the largest horizontal and vertical size from its
+child nodes.
+
+Config:
+
+- onlyTopActive: whether the top visible node is the only node that may receive
+events.
+-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -39,6 +61,8 @@ instance Semigroup ZStackCfg where
 instance Monoid ZStackCfg where
   mempty = def
 
+-- | Whether the top visible node is the only node that may receive events.
+-- | Defaults to True.
 onlyTopActive :: Bool -> ZStackCfg
 onlyTopActive active = def {
   _zscOnlyTopActive = Just active
@@ -49,9 +73,11 @@ data ZStackState = ZStackState {
   _zssTopIdx :: Int
 } deriving (Eq, Show, Generic)
 
+-- | Creates a zstack container with the provided nodes.
 zstack :: (Traversable t) => t (WidgetNode s e) -> WidgetNode s e
 zstack children = zstack_ def children
 
+-- | Creates a zstack container with the provided nodes. Accepts config.
 zstack_
   :: (Traversable t)
   => [ZStackCfg]

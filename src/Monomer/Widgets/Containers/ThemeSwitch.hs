@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Widgets.Containers.ThemeSwitch
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Allows switching to a new theme for its child nodes. There are not configuration
+options.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Containers.ThemeSwitch (
@@ -14,6 +25,7 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+-- | Switchs to a new theme starting from its child node.
 themeSwitch :: Theme -> WidgetNode s e -> WidgetNode s e
 themeSwitch theme managed = makeNode widget managed where
   widget = makeTheme theme

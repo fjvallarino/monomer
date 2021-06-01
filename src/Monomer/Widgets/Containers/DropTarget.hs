@@ -1,3 +1,23 @@
+{-|
+Module      : Monomer.Widgets.Containers.DropTarget
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Drop target container for a single element. Useful for adding drag support
+without having to implement a custom widget. Usually works in tandem with
+'Draggable'.
+
+Raises a user provided event when an item is dropped. The type must match with
+the dragged message, otherwise it will not be raised.
+
+Configs:
+
+- dropTargetStyle: The style to apply to the container when a dragged item is
+on top.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -37,15 +57,19 @@ instance Semigroup DropTargetCfg where
 instance Monoid DropTargetCfg where
   mempty = def
 
+-- | The style to apply to the container when a dragged item is on top.
 dropTargetStyle :: [StyleState] -> DropTargetCfg
 dropTargetStyle styles = def {
   _dtcDropStyle = Just (mconcat styles)
 }
 
+-- | Creates a drop target container with a single node as child.
 dropTarget
   :: (DragMsg a, WidgetEvent e) => (a -> e) -> WidgetNode s e -> WidgetNode s e
 dropTarget dropEvt managed = dropTarget_ dropEvt def managed
 
+-- | Creates a drop target container with a single node as child. Accepts
+-- | config.
 dropTarget_
   :: (DragMsg a, WidgetEvent e)
   => (a -> e)

@@ -1,3 +1,25 @@
+{-|
+Module      : Monomer.Widgets.Containers.Split
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Splits the assigned space into two parts, vertically or horizontally, which are
+assigned to its two child nodes. The space assigned depends on the style and
+size requirements of each child node.
+
+Configs:
+
+- onChange: raises an event when the handle is moved.
+- onChangeReq: generates a WidgetReqest when the handle is moved.
+- splitHandlePos: lens to a model field which provides the handle position.
+- splitHandlePosV: value which provides the handle position.
+- splitHandleSize: width of the handle.
+- splitIgnoreChildResize: whether to ignore changes in size to its children
+(otherwise, the handle position may change because of this).
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -67,21 +89,25 @@ instance CmbOnChangeReq (SplitCfg s e) s e Double where
     _spcOnChangeReq = [req]
   }
 
+-- | Lens to a model field which provides the handle position.
 splitHandlePos :: ALens' s Double -> SplitCfg s e
 splitHandlePos field = def {
   _spcHandlePos = Just (WidgetLens field)
 }
 
+-- | Value which provides the handle position.
 splitHandlePosV :: Double -> SplitCfg s e
 splitHandlePosV value = def {
   _spcHandlePos = Just (WidgetValue value)
 }
 
+-- | Width of the handle.
 splitHandleSize :: Double -> SplitCfg s e
 splitHandleSize w = def {
   _spcHandleSize = Just w
 }
 
+-- | Whether to ignore changes in size to its children.
 splitIgnoreChildResize :: Bool -> SplitCfg s e
 splitIgnoreChildResize ignore = def {
   _spcIgnoreChildResize = Just ignore
@@ -95,17 +121,21 @@ data SplitState = SplitState {
   _spsHandleRect :: Rect
 } deriving (Eq, Show, Generic)
 
+-- | Creates a horizontal split between the two provided nodes.
 hsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit nodes = hsplit_ def nodes
 
+-- | Creates a horizontal split between the two provided nodes. Accepts config.
 hsplit_
   :: WidgetEvent e
   => [SplitCfg s e] -> (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 hsplit_ configs nodes = split_ True nodes configs
 
+-- | Creates a vertical split between the two provided nodes.
 vsplit :: WidgetEvent e => (WidgetNode s e, WidgetNode s e) -> WidgetNode s e
 vsplit nodes = vsplit_ def nodes
 
+-- | Creates a vertical split between the two provided nodes. Accepts config.
 vsplit_
   :: WidgetEvent e
   => [SplitCfg s e]

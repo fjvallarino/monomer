@@ -1,3 +1,21 @@
+{-|
+Module      : Monomer.Widgets.Containers.Confirm
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Simple confirm dialog, displaying an accept and close buttons and optional
+title. Usually embedded in a zstack component and displayed/hidden depending on
+context.
+
+Config:
+
+- titleCaption: the title of the alert dialog.
+- acceptCaption: the caption of the accept button.
+- closeCaption: the caption of the close button.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -71,47 +89,51 @@ newtype ConfirmEvt e
   = ConfirmParentEvt e
   deriving (Eq, Show)
 
+-- | Creates a confirm dialog with the provided content.
 confirm
   :: (WidgetModel sp, WidgetEvent ep)
-  => WidgetNode () (ConfirmEvt ep)
-  -> ep
-  -> ep
-  -> WidgetNode sp ep
-confirm dialogBody acceptEvt cancelEvt = newNode where
-  newNode = confirm_ dialogBody acceptEvt cancelEvt def
+  => ep                             -- ^ The accept button event.
+  -> ep                             -- ^ The cancel button event.
+  -> WidgetNode () (ConfirmEvt ep)  -- ^ The content to display in the dialog.
+  -> WidgetNode sp ep               -- ^ The created dialog.
+confirm acceptEvt cancelEvt dialogBody = newNode where
+  newNode = confirm_ acceptEvt cancelEvt def dialogBody
 
+-- | Creates an alert dialog with the provided content. Accepts config.
 confirm_
   :: (WidgetModel sp, WidgetEvent ep)
-  => WidgetNode () (ConfirmEvt ep)
-  -> ep
-  -> ep
-  -> [ConfirmCfg]
-  -> WidgetNode sp ep
-confirm_ dialogBody acceptEvt cancelEvt configs = newNode where
+  => ep                             -- ^ The accept button event.
+  -> ep                             -- ^ The cancel button event.
+  -> [ConfirmCfg]                   -- ^ The config options for the dialog.
+  -> WidgetNode () (ConfirmEvt ep)  -- ^ The content to display in the dialog.
+  -> WidgetNode sp ep               -- ^ The created dialog.
+confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
   newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
 
+-- | Creates an alert dialog with a text message as content.
 confirmMsg
   :: (WidgetModel sp, WidgetEvent ep)
-  => Text
-  -> ep
-  -> ep
-  -> WidgetNode sp ep
+  => Text              -- ^ The message to display in the dialog.
+  -> ep                -- ^ The accept button event.
+  -> ep                -- ^ The cancel button event.
+  -> WidgetNode sp ep  -- ^ The created dialog.
 confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
+-- | Creates an alert dialog with a text message as content. Accepts config.
 confirmMsg_
   :: (WidgetModel sp, WidgetEvent ep)
-  => Text
-  -> ep
-  -> ep
-  -> [ConfirmCfg]
-  -> WidgetNode sp ep
+  => Text              -- ^ The message to display in the dialog.
+  -> ep                -- ^ The accept button event.
+  -> ep                -- ^ The cancel button event.
+  -> [ConfirmCfg]      -- ^ The config options for the dialog.
+  -> WidgetNode sp ep  -- ^ The created dialog.
 confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   dialogBody wenv = label_ message [multiLine]
-    & L.info . L.style .~ themeDialogMsgBody wenv
+    & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
   newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
@@ -139,22 +161,23 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
-  emptyOverlay = themeEmptyOverlay wenv
+  emptyOverlay = collectTheme wenv L.emptyOverlayStyle
   acceptBtn = mainButton accept acceptEvt `key` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
-  closeIcon = icon IconClose & L.info . L.style .~ themeDialogCloseIcon wenv
+  closeIcon = icon IconClose
+    & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
   confirmTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
-        label title & L.info . L.style .~ themeDialogTitle wenv,
+        label title & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle,
         filler,
         box_ [alignTop, onClick cancelEvt] closeIcon
       ],
       dialogBody wenv,
       filler,
       box_ [alignLeft] buttons
-        & L.info . L.style <>~ themeDialogButtons wenv
-    ] & L.info . L.style .~ themeDialogFrame wenv
+        & L.info . L.style <>~ collectTheme wenv L.dialogButtonsStyle
+    ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
   confirmBox = box_ [onClickEmpty cancelEvt] confirmTree
     & L.info . L.style .~ emptyOverlay
   mainTree = keystroke [("Esc", cancelEvt)] confirmBox

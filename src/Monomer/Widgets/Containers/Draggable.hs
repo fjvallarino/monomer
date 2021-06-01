@@ -1,3 +1,25 @@
+{-|
+Module      : Monomer.Widgets.Containers.Draggable
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Draggable container for a single item. Useful for adding drag support without
+having to implement a custom widget. Usually works in tandem with 'DropTarget'.
+
+The regular styling of this component apply only when the item is not being
+dragged. To style the dragged container, use draggableStyle.
+
+The transparency config only applies to the inner content.
+
+Config:
+
+- transparency: the alpha level to apply when rendering content in drag mode.
+- maxDim: the maximum size of the largest axis when dragging. Keeps proportions.
+- draggableStyle: the style to use when the item is being dragged.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -59,6 +81,7 @@ instance CmbMaxDim (DraggableCfg s e) where
     _dgcMaxDim = Just dim
   }
 
+-- | The style of the dragged container.
 draggableStyle :: [StyleState] -> DraggableCfg s e
 draggableStyle styles = def {
   _dgcDragStyle = Just (mconcat styles)
@@ -69,9 +92,11 @@ draggableRender render = def {
   _dgcCustomRender = Just render
 }
 
+-- | Creates a draggable container with a single node as child.
 draggable :: DragMsg a => a -> WidgetNode s e -> WidgetNode s e
 draggable msg managed = draggable_ msg def managed
 
+-- | Creates a draggable container with a single node as child. Accepts config.
 draggable_
   :: DragMsg a
   => a
