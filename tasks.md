@@ -645,10 +645,10 @@
     - restrictValue -> clamp.
     - Split CmbImageFit
     - Does adding all the isXXXXEvent back make sense? Added.
+    - CmbVisible and CmbVisible.
 
 Next
   - Review after documenting
-    - CmbVisible and CmbVisible.
     - Add Event Util isXXXX.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
     - Check _wniOverlay. Can it be replaced with overlayPath check?

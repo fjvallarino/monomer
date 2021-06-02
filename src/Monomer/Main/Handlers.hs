@@ -147,7 +147,7 @@ handleSystemEvent wenv widgetRoot event currentTarget = do
 
       step <- handleWidgetResult wenv resizeWidgets widgetResult
 
-      if isDropEvent event
+      if isOnDrop event
         then handleFinalizeDrop step
         else return step
 

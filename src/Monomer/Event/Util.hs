@@ -21,12 +21,20 @@ module Monomer.Event.Util (
   isCtrlPressed,
   isAltPressed,
   isGUIPressed,
-  isOnEnter,
-  isOnLeave,
-  isOnMove,
+  isOnClick,
+  isOnDblClick,
+  isOnButtonAction,
+  isOnWheelScroll,
+  isOnKeyAction,
+  isOnTextInput,
+  isOnClipboard,
   isOnFocus,
   isOnBlur,
-  isDropEvent
+  isOnEnter,
+  isOnMove,
+  isOnLeave,
+  isOnDrag,
+  isOnDrop
 ) where
 
 import Data.Maybe (fromMaybe)
@@ -101,6 +109,41 @@ isShiftPressed keyMod = _kmLeftShift keyMod || _kmRightShift keyMod
 isAltPressed :: KeyMod -> Bool
 isAltPressed keyMod = _kmLeftAlt keyMod || _kmRightAlt keyMod
 
+-- | Checks if it's a Click event.
+isOnClick :: SystemEvent -> Bool
+isOnClick Click{} = True
+isOnClick _ = False
+
+-- | Checks if it's a DblClick event.
+isOnDblClick :: SystemEvent -> Bool
+isOnDblClick DblClick{} = True
+isOnDblClick _ = False
+
+-- | Checks if it's a ButtonAction event.
+isOnButtonAction :: SystemEvent -> Bool
+isOnButtonAction ButtonAction{} = True
+isOnButtonAction _ = False
+
+-- | Checks if it's a WheelScroll event.
+isOnWheelScroll :: SystemEvent -> Bool
+isOnWheelScroll WheelScroll{} = True
+isOnWheelScroll _ = False
+
+-- | Checks if it's a KeyAction event.
+isOnKeyAction :: SystemEvent -> Bool
+isOnKeyAction KeyAction{} = True
+isOnKeyAction _ = False
+
+-- | Checks if it's a TextInput event.
+isOnTextInput :: SystemEvent -> Bool
+isOnTextInput TextInput{} = True
+isOnTextInput _ = False
+
+-- | Checks if it's a Clipboard event.
+isOnClipboard :: SystemEvent -> Bool
+isOnClipboard Clipboard{} = True
+isOnClipboard _ = False
+
 -- | Checks if it's a Focus event.
 isOnFocus :: SystemEvent -> Bool
 isOnFocus Focus{} = True
@@ -116,20 +159,25 @@ isOnEnter :: SystemEvent -> Bool
 isOnEnter Enter{} = True
 isOnEnter _ = False
 
--- | Checks if it's a Leave event.
-isOnLeave :: SystemEvent -> Bool
-isOnLeave Leave{} = True
-isOnLeave _ = False
-
 -- | Checks if it's a Move event.
 isOnMove :: SystemEvent -> Bool
 isOnMove Move{} = True
 isOnMove _ = False
 
+-- | Checks if it's a Leave event.
+isOnLeave :: SystemEvent -> Bool
+isOnLeave Leave{} = True
+isOnLeave _ = False
+
+-- | Checks if it's a Drag event.
+isOnDrag :: SystemEvent -> Bool
+isOnDrag Drag{} = True
+isOnDrag _ = False
+
 -- | Checks if it's a Drop event.
-isDropEvent :: SystemEvent -> Bool
-isDropEvent Drop{} = True
-isDropEvent _ = False
+isOnDrop :: SystemEvent -> Bool
+isOnDrop Drop{} = True
+isOnDrop _ = False
 
 -- Helpers
 checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
