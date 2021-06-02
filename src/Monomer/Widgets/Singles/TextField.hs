@@ -1,3 +1,27 @@
+{-|
+Module      : Monomer.Widgets.Singles.TextField
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Input field for single line Text.
+
+Configs:
+
+- validInput: field indicating if the current input is valid. Useful to show
+warnings in the UI, or disable buttons if needed.
+- resizeOnChange: Whether input causes ResizeWidgets requests.
+- selectOnFocus: Whether all input should be selected when focus is received.
+- maxLength: the maximum length of input text.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -119,22 +143,28 @@ instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
     _tfcOnChangeReq = [req]
   }
 
+-- | Creates a text field using the given lens.
 textField :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textField field = textField_ field def
 
+-- | Creates a text field using the given lens. Accepts config.
 textField_
   :: WidgetEvent e => ALens' s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textField_ field configs = textFieldD_ (WidgetLens field) configs
 
+-- | Creates a text field using the given value and onChange event handler.
 textFieldV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textFieldV value handler = textFieldV_ value handler def
 
+-- | Creates a text field using the given value and onChange event handler.
+-- | Accepts config.
 textFieldV_
   :: WidgetEvent e => Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldV_ value handler configs = textFieldD_ widgetData newConfig where
   widgetData = WidgetValue value
   newConfig = onChange handler : configs
 
+-- | Creates a text field providing a WidgetData instance and config.
 textFieldD_
   :: WidgetEvent e => WidgetData s Text -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldD_ widgetData configs = inputField where

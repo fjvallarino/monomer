@@ -72,7 +72,7 @@ buildUI wenv model = widgetTree where
       [filler | hasCover],
       [bookImage (b ^. cover) "M" `style` [width 200] | hasCover]
       ]
-  bookOverlay = alert content BooksCloseDetails where
+  bookOverlay = alert BooksCloseDetails content where
     content = maybe spacer bookDetail (model ^. selected)
   searchOverlay = box content `style` [bgColor (darkGray & L.a .~ 0.8)] where
     content = label "Searching" `style` [textSize 20, textColor black]

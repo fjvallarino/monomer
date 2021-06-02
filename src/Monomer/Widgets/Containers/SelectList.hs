@@ -6,7 +6,26 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-!!! INSERT MODULE LONG DESCRIPTION !!!
+Select list widget, allowing selection of a single item. List content (rows) is
+customizable, plus its styling.
+
+Configs:
+
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetReqest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetReqest to generate when focus is lost.
+- onChange: event to raise when selected item changes.
+- onChangeReq: WidgetRequest to generate when selected item changes.
+- onChangeIdx: event to raise when selected item changes. Includes index,
+- onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
+index.
+- selectOnBlur: whether to select the currently highlighted item when navigating
+away from the widget with tab key.
+- itemNormalStyle: style of an item in the list when not selected.
+- itemSelectedStyle: style of the selected item in the list.
+- mergeRequired: whether merging children is required. Useful when select list
+is part of another widget such as dropdown.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -172,54 +191,60 @@ data SelectListState a = SelectListState {
 newtype SelectListMessage
   = OnClickMessage Int
 
+-- | Creates a select list using the given lens.
 selectList
   :: (Traversable t, SelectListItem a, WidgetEvent e)
-  => ALens' s a
-  -> t a
-  -> MakeRow s e a
-  -> WidgetNode s e
+  => ALens' s a      -- ^ The lens into the model.
+  -> t a             -- ^ The list of selectable items.
+  -> MakeRow s e a   -- ^ Function to create the list items.
+  -> WidgetNode s e  -- ^ The created dropdown.
 selectList field items makeRow = selectList_ field items makeRow def
 
+-- | Creates a select list using the given lens. Accepts config.
 selectList_
   :: (Traversable t, SelectListItem a, WidgetEvent e)
-  => ALens' s a
-  -> t a
-  -> MakeRow s e a
-  -> [SelectListCfg s e a]
-  -> WidgetNode s e
+  => ALens' s a             -- ^ The lens into the model.
+  -> t a                    -- ^ The list of selectable items.
+  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> [SelectListCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 selectList_ field items makeRow configs = newNode where
   newNode = selectListD_ (WidgetLens field) items makeRow configs
 
+-- | Creates a select list using the given value and onChange event handler.
 selectListV
   :: (Traversable t, SelectListItem a, WidgetEvent e)
-  => a
-  -> (Int -> a -> e)
-  -> t a
-  -> MakeRow s e a
-  -> WidgetNode s e
+  => a                -- ^ The event to raise on change.
+  -> (Int -> a -> e)  -- ^ The list of selectable items.
+  -> t a              -- ^ The list of selectable items.
+  -> MakeRow s e a    -- ^ Function to create the list items.
+  -> WidgetNode s e   -- ^ The created dropdown.
 selectListV value handler items makeRow = newNode where
   newNode = selectListV_ value handler items makeRow def
 
+-- | Creates a select list using the given value and onChange event handler.
+-- | Accepts config.
 selectListV_
   :: (Traversable t, SelectListItem a, WidgetEvent e)
-  => a
-  -> (Int -> a -> e)
-  -> t a
-  -> MakeRow s e a
-  -> [SelectListCfg s e a]
-  -> WidgetNode s e
+  => a                      -- ^ The event to raise on change.
+  -> (Int -> a -> e)        -- ^ The list of selectable items.
+  -> t a                    -- ^ The list of selectable items.
+  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> [SelectListCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 selectListV_ value handler items makeRow configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChangeIdx handler : configs
   newNode = selectListD_ widgetData items makeRow newConfigs
 
+-- | Creates a dropdown providing a WidgetData instance and config.
 selectListD_
   :: (Traversable t, SelectListItem a, WidgetEvent e)
-  => WidgetData s a
-  -> t a
-  -> MakeRow s e a
-  -> [SelectListCfg s e a]
-  -> WidgetNode s e
+  => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
+  -> t a                    -- ^ The list of selectable items.
+  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> [SelectListCfg s e a]  -- ^ The config options.
+  -> WidgetNode s e         -- ^ The created dropdown.
 selectListD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items

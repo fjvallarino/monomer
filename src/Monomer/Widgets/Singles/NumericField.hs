@@ -1,3 +1,37 @@
+{-|
+Module      : Monomer.Widgets.Singles.NumericField
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Input field for numeric types.
+
+Supports instances of the 'FromFractional' typeclass. Several basic types are
+implemented, both for integer and floating point types.
+
+Handles mouse wheel and vertical drag to increase/decrease the number.
+
+Configs:
+
+- validInput: field indicating if the current input is valid. Useful to show
+warnings in the UI, or disable buttons if needed.
+- resizeOnChange: Whether input causes ResizeWidgets requests.
+- selectOnFocus: Whether all input should be selected when focus is received.
+- minValue: Minimum valid number.
+- maxValue: Maximum valid number.
+- wheelRate: The rate at which wheel movement affects the number.
+- dragRate: The rate at which drag movement affects the number.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+- decimals: the maximum number of digits after the decimal separator. Defaults
+to zero for integers and two for floating point types.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -203,11 +237,13 @@ instance CmbOnChangeReq (NumericFieldCfg s e a) s e a where
     _nfcOnChangeReq = [req]
   }
 
+-- | Creates a numeric field using the given lens.
 numericField
   :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
 numericField field = numericField_ field def
 
+-- | Creates a numeric field using the given lens. Accepts config.
 numericField_
   :: (FormattableNumber a, WidgetEvent e)
   => ALens' s a
@@ -216,11 +252,14 @@ numericField_
 numericField_ field configs = widget where
   widget = numericFieldD_ (WidgetLens field) configs
 
+-- | Creates a numeric field using the given value and onChange event handler.
 numericFieldV
   :: (FormattableNumber a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 numericFieldV value handler = numericFieldV_ value handler def
 
+-- | Creates a numeric field using the given value and onChange event handler.
+-- | Accepts config.
 numericFieldV_
   :: (FormattableNumber a, WidgetEvent e)
   => a
@@ -232,6 +271,7 @@ numericFieldV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = numericFieldD_ widgetData newConfigs
 
+-- | Creates a numeric field providing a WidgetData instance and config.
 numericFieldD_
   :: forall s e a . (FormattableNumber a, WidgetEvent e)
   => WidgetData s a

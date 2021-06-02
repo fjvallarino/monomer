@@ -1,3 +1,44 @@
+{-|
+Module      : Monomer.Widgets.Composite
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Composite widget. Main glue between all the other widgets, also acts as the main
+app widget. Composite allows to split an application into reusable partss
+without the need to implement a lower level widget. It can comunicate with its
+parent component by reporting events.
+
+Requires two main functions:
+
+- UI Builder: creates the widget tree based on the provided Widget Environment
+and model. This widget tree is made of other widgets, in general combinations of
+containers and singles.
+- Event Handler: processes user defined events which are raised by the widgets
+created when building the UI.
+
+Configs:
+
+- mergeRequired: indicates if merging is necessary for this widget. In case the
+UI build process references information outside the model, it can be used to
+signal that merging is required even if the model has not changed. It can also
+be used as a performance tweak if the changes do not require rebuilding the UI.
+- onInit: event to raise when the widget is created. Useful for performing all
+kinds of initialization.
+- onDispose: event to raise when the widget is disposed. Used to free resources.
+- onResize: event to raise when the size of the widget changes.
+- onChange: event to raise when the size of the model changes.
+- onChangeReq: WidgetRequest to generate when the size of the widget changes.
+- onEnabledChange: event to raise when the enabled status changes.
+- onVisibleChange: event to raise when the visibility changes.
+- compositeMergeReqs: functions to generate WidgetRequests during the merge
+process. Since merge is already handled by Composite (by merging its tree), this
+is complementary for the cases when it's required. For example, it is used in
+'Confirm' to set the focus on its Accept button when visibility is restored
+(usually means it was brought to the front in a zstack).
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -53,30 +94,63 @@ import Monomer.Widgets.Util
 
 import qualified Monomer.Lens as L
 
+-- | Type of the parent's model
 type ParentModel sp = Typeable sp
+-- | Type of the composite's model
 type CompositeModel s = (Eq s, Typeable s, WidgetModel s)
+-- | Type of the composite's event
 type CompositeEvent e = WidgetEvent e
 
+-- | Generates requests during the merge process.
 type MergeReqsHandler s e
   = WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> s -> [WidgetRequest s e]
+-- | Handles a composite event and returns a set of responses.
 type EventHandler s e sp ep
   = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e sp ep]
+-- | Creates the widget tree based on the given model.
 type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
+-- | Checks if merging the composite is required.
 type MergeRequired s = s -> s -> Bool
+-- | Asynchronous task generating a single event.
 type TaskHandler e = IO e
+-- | Asynchronous task generating multiple events.
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
 data CompMsgUpdate
   = forall s . Typeable s => CompMsgUpdate (s -> s)
 
+-- | Response options for an event handler.
 data EventResponse s e sp ep
+  -- | Modifies the current model, prompting a merge.
   = Model s
+  -- | Raises a new event, which will be handled in the same cycle.
   | Event e
+  -- | Raises an event that will be handled by the parent.
   | Report ep
+  -- | Generates a WidgetRequest.
   | Request (WidgetRequest s e)
+  {-|
+  Generates a WidgetRequest matching the parent's types. Useful when receiving
+  requests as configuration from the parent, since the types will not match
+  otherwise.
+  -}
   | RequestParent (WidgetRequest sp ep)
+  {-|
+  Sends a message to the given key. If the key does not exist, the message will
+  not be delivered.
+  -}
   | forall i . Typeable i => Message WidgetKey i
+  {-|
+  Runs an asynchronous task that will return a single result. The task is
+  responsible for reporting errors using the expected event type. If the task
+  crashes without returning a value, the composite will not know about it.
+  -}
   | Task (TaskHandler e)
+  {-|
+  Runs an asynchronous task that will produce unlimited result. The producer is
+  responsible for reporting errors using the expected event type. If the
+  producer crashes without sending a value, composite will not know about it.
+  -}
   | Producer (ProducerHandler e)
 
 data CompositeCfg s e sp ep = CompositeCfg {
@@ -160,6 +234,7 @@ instance CmbOnVisibleChange (CompositeCfg s e sp ep) e where
     _cmcOnVisibleChange = [fn]
   }
 
+-- | Generate WidgetRequests during the merge process.
 compositeMergeReqs :: MergeReqsHandler s e -> CompositeCfg s e sp ep
 compositeMergeReqs fn = def {
   _cmcMergeReqs = [fn]
@@ -196,83 +271,103 @@ data ReducedEvents s e sp ep = ReducedEvents {
   _reProducers :: Seq (ProducerHandler e)
 }
 
+{-|
+Creates a composite taking its model from a lens into the parent model.
+-}
 composite
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> ALens' sp s
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> WidgetNode sp ep
+  => WidgetType              -- ^ The name of the composite.
+  -> ALens' sp s             -- ^ The lens into the parent's model.
+  -> UIBuilder s e           -- ^ The UI builder function.
+  -> EventHandler s e sp ep  -- ^ The event handler.
+  -> WidgetNode sp ep        -- ^ The resulting widget.
 composite widgetType field uiBuilder evtHandler = newNode where
   newNode = composite_ widgetType field uiBuilder evtHandler def
 
+{-|
+Creates a composite taking its model from a lens into the parent model. Accepts
+config.
+-}
 composite_
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> ALens' sp s
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> [CompositeCfg s e sp ep]
-  -> WidgetNode sp ep
+  => WidgetType                -- ^ The name of the composite.
+  -> ALens' sp s               -- ^ The lens into the parent's model.
+  -> UIBuilder s e             -- ^ The UI builder function.
+  -> EventHandler s e sp ep    -- ^ The event handler.
+  -> [CompositeCfg s e sp ep]  -- ^ The config options.
+  -> WidgetNode sp ep          -- ^ The resulting widget.
 composite_ widgetType field uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetLens field
   newNode = compositeD_ widgetType widgetData uiBuilder evtHandler cfgs
 
 compositeV
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> s
-  -> (s -> ep)
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> WidgetNode sp ep
+  => WidgetType              -- ^ The name of the composite.
+  -> s                       -- ^ The model.
+  -> (s -> ep)               -- ^ The event to report when model changes.
+  -> UIBuilder s e           -- ^ The UI builder function.
+  -> EventHandler s e sp ep  -- ^ The event handler.
+  -> WidgetNode sp ep        -- ^ The resulting widget.
 compositeV wType val handler uiBuilder evtHandler = newNode where
   newNode = compositeV_ wType val handler uiBuilder evtHandler def
 
+{-|
+Creates a composite using the given model and onChange event handler. Accepts
+config.
+-}
 compositeV_
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> s
-  -> (s -> ep)
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> [CompositeCfg s e sp ep]
-  -> WidgetNode sp ep
+  => WidgetType                -- ^ The name of the composite.
+  -> s                         -- ^ The model.
+  -> (s -> ep)                 -- ^ The event to report when model changes.
+  -> UIBuilder s e             -- ^ The UI builder function.
+  -> EventHandler s e sp ep    -- ^ The event handler.
+  -> [CompositeCfg s e sp ep]  -- ^ The config options.
+  -> WidgetNode sp ep          -- ^ The resulting widget.
 compositeV_ wType val handler uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
   newCfgs = onChange handler : cfgs
   newNode = compositeD_ wType widgetData uiBuilder evtHandler newCfgs
 
+{-|
+Creates a composite using the given model, but without requiring an event
+handler.
+-}
 compositeExt
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> s
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> WidgetNode sp ep
+  => WidgetType              -- ^ The name of the composite.
+  -> s                       -- ^ The model.
+  -> UIBuilder s e           -- ^ The UI builder function.
+  -> EventHandler s e sp ep  -- ^ The event handler.
+  -> WidgetNode sp ep        -- ^ The resulting widget.
 compositeExt wType val uiBuilder evtHandler = newNode where
   newNode = compositeExt_ wType val uiBuilder evtHandler []
 
+{-|
+Creates a composite using the given model, but without requiring an event
+handler. Accepts config.
+-}
 compositeExt_
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> s
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> [CompositeCfg s e sp ep]
-  -> WidgetNode sp ep
+  => WidgetType                -- ^ The name of the composite.
+  -> s                         -- ^ The model.
+  -> UIBuilder s e             -- ^ The UI builder function.
+  -> EventHandler s e sp ep    -- ^ The event handler.
+  -> [CompositeCfg s e sp ep]  -- ^ The config options.
+  -> WidgetNode sp ep          -- ^ The resulting widget.
 compositeExt_ wType val uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
   newNode = compositeD_ wType widgetData uiBuilder evtHandler cfgs
 
+-- | Creates a color picker providing a WidgetData instance and config.
 compositeD_
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType
-  -> WidgetData sp s
-  -> UIBuilder s e
-  -> EventHandler s e sp ep
-  -> [CompositeCfg s e sp ep]
-  -> WidgetNode sp ep
+  => WidgetType                -- ^ The name of the composite.
+  -> WidgetData sp s           -- ^ The model.
+  -> UIBuilder s e             -- ^ The UI builder function.
+  -> EventHandler s e sp ep    -- ^ The event handler.
+  -> [CompositeCfg s e sp ep]  -- ^ The config options.
+  -> WidgetNode sp ep          -- ^ The resulting widget.
 compositeD_ wType wData uiBuilder evtHandler configs = newNode where
   config = mconcat configs
   mergeReq = fromMaybe (/=) (_cmcMergeRequired config)

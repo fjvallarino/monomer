@@ -1,3 +1,29 @@
+{-|
+Module      : Monomer.Widgets.Singles.Slider
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Slider widget, used for interacting with numeric values. It allows changing the
+value by keyboard arrows, dragging the mouse or using the wheel.
+
+Similar in objective to Dial, but more convenient in some layouts.
+
+- width: sets the size of the secondary axis of the Slider.
+- radius: the radius of the corners of the Slider.
+- wheelRate: The rate at which wheel movement affects the number.
+- dragRate: The rate at which drag movement affects the number.
+- thumbVisible: whether a thumb should be visible or not.
+- thumbFactor: the size of the thumb relative to width.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -149,10 +175,19 @@ data SliderState = SliderState {
   _slsPos :: Integer
 } deriving (Eq, Show, Generic)
 
+
+{-|
+Creates a horizontal slider using the given lens, providing minimum and maximum
+values.
+-}
 hslider
   :: (SliderValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
 hslider field minVal maxVal = hslider_ field minVal maxVal def
 
+{-|
+Creates a horizontal slider using the given lens, providing minimum and maximum
+values. Accepts config.
+-}
 hslider_
   :: (SliderValue a, WidgetEvent e)
   => ALens' s a
@@ -163,10 +198,18 @@ hslider_
 hslider_ field minVal maxVal cfg = sliderD_ True wlens minVal maxVal cfg where
   wlens = WidgetLens field
 
+{-|
+Creates a vertical slider using the given lens, providing minimum and maximum
+values.
+-}
 vslider
   :: (SliderValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
 vslider field minVal maxVal = vslider_ field minVal maxVal def
 
+{-|
+Creates a vertical slider using the given lens, providing minimum and maximum
+values. Accepts config.
+-}
 vslider_
   :: (SliderValue a, WidgetEvent e)
   => ALens' s a
@@ -177,10 +220,18 @@ vslider_
 vslider_ field minVal maxVal cfg = sliderD_ False wlens minVal maxVal cfg where
   wlens = WidgetLens field
 
+{-|
+Creates a horizontal slider using the given value and onChange event handler,
+providing minimum and maximum values.
+-}
 hsliderV
   :: (SliderValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
 hsliderV value handler minVal maxVal = hsliderV_ value handler minVal maxVal def
 
+{-|
+Creates a horizontal slider using the given value and onChange event handler,
+providing minimum and maximum values. Accepts config.
+-}
 hsliderV_
   :: (SliderValue a, WidgetEvent e)
   => a
@@ -194,10 +245,18 @@ hsliderV_ value handler minVal maxVal configs = newNode where
   newConfigs = onChange handler : configs
   newNode = sliderD_ True widgetData minVal maxVal newConfigs
 
+{-|
+Creates a vertical slider using the given value and onChange event handler,
+providing minimum and maximum values.
+-}
 vsliderV
   :: (SliderValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
 vsliderV value handler minVal maxVal = vsliderV_ value handler minVal maxVal def
 
+{-|
+Creates a vertical slider using the given value and onChange event handler,
+providing minimum and maximum values. Accepts config.
+-}
 vsliderV_
   :: (SliderValue a, WidgetEvent e)
   => a
@@ -211,6 +270,10 @@ vsliderV_ value handler minVal maxVal configs = newNode where
   newConfigs = onChange handler : configs
   newNode = sliderD_ False widgetData minVal maxVal newConfigs
 
+{-|
+Creates a slider providing direction, a WidgetData instance, minimum and maximum
+values and config.
+-}
 sliderD_
   :: (SliderValue a, WidgetEvent e)
   => Bool

@@ -1,3 +1,40 @@
+{-|
+Module      : Monomer.Widgets.Singles.TimeField
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Input field for time types.
+
+Supports TimeOfDay type of the <https://hackage.haskell.org/package/time time>
+library, but other types can be supported by implementing 'TimeOfDayConverter'.
+Maybe is also supported.
+
+Supports different time formats.
+
+Handles mouse wheel and vertical drag to increase/decrease minutes.
+
+Configs:
+
+- validInput: field indicating if the current input is valid. Useful to show
+warnings in the UI, or disable buttons if needed.
+- resizeOnChange: Whether input causes ResizeWidgets requests.
+- selectOnFocus: Whether all input should be selected when focus is received.
+- minValue: Minimum valid date.
+- maxValue: Maximum valid date.
+- wheelRate: The rate at which wheel movement affects the date.
+- dragRate: The rate at which drag movement affects the date.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+- timeFormatHHMM: accepts HH:MM.
+- timeFormatHHMMSS: accepts HH:MM:SS.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -46,6 +83,10 @@ defaultTimeFormat = FormatHHMM
 defaultTimeDelim :: Char
 defaultTimeDelim = ':'
 
+{-|
+Converter to and form the TimeOfDay type of the time library. To use types other
+than TimeOfDay of said library, this typeclass needs to be implemented.
+--}
 class (Eq a, Ord a, Show a, Typeable a) => TimeOfDayConverter a where
   convertFromTimeOfDay :: TimeOfDay -> a
   convertToTimeOfDay :: a -> Maybe TimeOfDay
@@ -215,21 +256,25 @@ instance CmbOnChangeReq (TimeFieldCfg s e a) s e a where
     _tfcOnChangeReq = [req]
   }
 
+-- | Time format HH:MM
 timeFormatHHMM :: TimeFieldCfg s e a
 timeFormatHHMM = def {
   _tfcTimeFormat = Just FormatHHMM
 }
 
+-- | Time format HH:MM:SS
 timeFormatHHMMSS :: TimeFieldCfg s e a
 timeFormatHHMMSS = def {
   _tfcTimeFormat = Just FormatHHMMSS
 }
 
+-- | Creates a time field using the given lens.
 timeField
   :: (FormattableTime a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
 timeField field = timeField_ field def
 
+-- | Creates a time field using the given lens. Accepts config.
 timeField_
   :: (FormattableTime a, WidgetEvent e)
   => ALens' s a
@@ -238,11 +283,14 @@ timeField_
 timeField_ field configs = widget where
   widget = timeFieldD_ (WidgetLens field) configs
 
+-- | Creates a time field using the given value and onChange event handler.
 timeFieldV
   :: (FormattableTime a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 timeFieldV value handler = timeFieldV_ value handler def
 
+-- | Creates a time field using the given value and onChange event handler.
+-- | Accepts config.
 timeFieldV_
   :: (FormattableTime a, WidgetEvent e)
   => a
@@ -254,6 +302,7 @@ timeFieldV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = timeFieldD_ widgetData newConfigs
 
+-- | Creates a time field providing a WidgetData instance and config.
 timeFieldD_
   :: (FormattableTime a, WidgetEvent e)
   => WidgetData s a

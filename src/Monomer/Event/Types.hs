@@ -138,8 +138,10 @@ instance Default InputStatus where
     _ipsButtons = M.empty
   }
 
--- | Keyboard modifiers. True indicates the key is pressed.
--- | Note: The __fn__ function in Macs cannot be detected individually.
+{-|
+Keyboard modifiers. True indicates the key is pressed.
+Note: The __fn__ function in Macs cannot be detected individually.
+-}
 data KeyMod = KeyMod {
   _kmLeftShift :: Bool,
   _kmRightShift :: Bool,

@@ -1,3 +1,28 @@
+{-|
+Module      : Monomer.Widgets.Singles.Dial
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Dial widget, used for interacting with numeric values. It allows changing the
+value by keyboard arrows, dragging the mouse or using the wheel.
+
+Similar in objective to Slider, but uses less space.
+
+Configs:
+
+- width: sets the max width/height of the dial.
+- wheelRate: The rate at which wheel movement affects the number.
+- dragRate: The rate at which drag movement affects the number.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -120,9 +145,14 @@ data DialState = DialState {
   _dlsPos :: Integer
 } deriving (Eq, Show, Generic)
 
+-- | Creates a dial using the given lens, providing minimum and maximum values.
 dial :: (DialValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
 
+{-|
+Creates a dial using the given lens, providing minimum and maximum values.
+Accepts config.
+-}
 dial_
   :: (DialValue a, WidgetEvent e)
   => ALens' s a
@@ -132,10 +162,19 @@ dial_
   -> WidgetNode s e
 dial_ field minVal maxVal cfgs = dialD_ (WidgetLens field) minVal maxVal cfgs
 
+{-|
+Creates a dial using the given value and onChange event handler, providing
+minimum and maximum values.
+-}
 dialV
   :: (DialValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
+{-|
+Creates a dial using the given value and onChange event handler, providing
+minimum and maximum values.
+Accepts config.
+-}
 dialV_
   :: (DialValue a, WidgetEvent e)
   => a
@@ -149,6 +188,10 @@ dialV_ value handler minVal maxVal configs = newNode where
   newConfigs = onChange handler : configs
   newNode = dialD_ widgetData minVal maxVal newConfigs
 
+{-|
+Creates a dial providing a WidgetData instance, minimum and maximum values and
+config.
+-}
 dialD_
   :: (DialValue a, WidgetEvent e)
   => WidgetData s a

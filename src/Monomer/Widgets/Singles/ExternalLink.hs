@@ -1,3 +1,30 @@
+{-|
+Module      : Monomer.Widgets.Singles.ExternalLink
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Provides a clickable link that opens in the system's browser. It uses OS
+services to open the URI, which means not only URLs can be opened.
+
+Configs:
+
+- trimSpaces: whether to remove leading/trailing spaces in the caption.
+- ellipsis: if ellipsis should be used for overflown text.
+- multiLine: if text may be split in multiple lines.
+- maxLines: maximum number of text lines to show.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onClick: event to raise when button is clicked.
+- onClickReq: WidgetRequest to generate when button is clicked.
+- resizeFactor: flexibility to have more or less spaced assigned.
+- resizeFactorW: flexibility to have more or less horizontal spaced assigned.
+- resizeFactorH: flexibility to have more or less vertical spaced assigned.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -121,9 +148,11 @@ instance CmbResizeFactorDim (ExternalLinkCfg s e) where
     _elcFactorH = Just h
   }
 
+-- | Creates an external link with the given caption and url.
 externalLink :: WidgetEvent e => Text -> Text -> WidgetNode s e
 externalLink caption url = externalLink_ caption url def
 
+-- | Creates an external link with the given caption and url. Accepts config.
 externalLink_
   :: WidgetEvent e => Text -> Text -> [ExternalLinkCfg s e] -> WidgetNode s e
 externalLink_ caption url configs = externalLinkNode where

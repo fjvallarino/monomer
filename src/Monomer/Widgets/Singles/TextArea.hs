@@ -1,3 +1,27 @@
+{-|
+Module      : Monomer.Widgets.Singles.TextArea
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Input field for multi line Text.
+
+Configs:
+
+- maxLength: the maximum length of input text.
+- maxLines: the maximum number of lines of input text.
+- acceptTab: whether to handle tab and convert it to spaces (cancelling change
+of focus), or keep default behaviour and lose focus.
+- selectOnFocus: Whether all input should be selected when focus is received.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -10,8 +34,6 @@ module Monomer.Widgets.Singles.TextArea (
   textAreaV,
   textAreaV_
 ) where
-
-import Debug.Trace
 
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (.~), (<>~), ALens', view)
@@ -161,23 +183,29 @@ instance Default TextAreaState where
     _tasHistoryIdx = 0
   }
 
+-- | Creates a text area using the given lens.
 textArea :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textArea field = textArea_ field def
 
+-- | Creates a text area using the given lens. Accepts config.
 textArea_
   :: WidgetEvent e => ALens' s Text -> [TextAreaCfg s e] -> WidgetNode s e
 textArea_ field configs = textAreaD_ wdata configs where
   wdata = WidgetLens field
 
+-- | Creates a text area using the given value and onChange event handler.
 textAreaV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textAreaV value handler = textAreaV_ value handler def
 
+-- | Creates a text area using the given value and onChange event handler.
+-- | Accepts config.
 textAreaV_
   :: WidgetEvent e => Text -> (Text -> e) -> [TextAreaCfg s e] -> WidgetNode s e
 textAreaV_ value handler configs = textAreaD_ wdata newConfig where
   wdata = WidgetValue value
   newConfig = onChange handler : configs
 
+-- | Creates a text area providing a WidgetData instance and config.
 textAreaD_
   :: WidgetEvent e => WidgetData s Text -> [TextAreaCfg s e] -> WidgetNode s e
 textAreaD_ wdata configs = scroll node where

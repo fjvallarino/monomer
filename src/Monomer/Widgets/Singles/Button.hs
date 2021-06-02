@@ -1,3 +1,30 @@
+{-|
+Module      : Monomer.Widgets.Singles.Button
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Button widget, with support for multiline text. At the most basic level, a
+button consists of a caption and an event to raised when clicked.
+
+Configs:
+
+- trimSpaces: whether to remove leading/trailing spaces in the caption.
+- ellipsis: if ellipsis should be used for overflown text.
+- multiLine: if text may be split in multiple lines.
+- maxLines: maximum number of text lines to show.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onClick: event to raise when button is clicked.
+- onClickReq: WidgetRequest to generate when button is clicked.
+- resizeFactor: flexibility to have more or less spaced assigned.
+- resizeFactorW: flexibility to have more or less horizontal spaced assigned.
+- resizeFactorH: flexibility to have more or less vertical spaced assigned.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -149,16 +176,20 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
+-- | Creates a button with main styling. Useful for dialogs.
 mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
+-- | Creates a button with main styling. Useful for dialogs. Accepts config.
 mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
   newConfigs = mainConfig : configs
 
+-- | Creates a button with normal styling.
 button :: WidgetEvent e => Text -> e -> WidgetNode s e
 button caption handler = button_ caption handler def
 
+-- | Creates a button with normal styling. Accepts config.
 button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs

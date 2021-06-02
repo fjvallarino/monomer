@@ -1,3 +1,25 @@
+{-|
+Module      : Monomer.Widgets.Singles.Radio
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Radio widget, used for interacting with a fixed set of values. Each instance
+of the radio will be associated with a single value. It does not include text,
+which should be added as a label in the desired position (usually with hstack).
+
+Configs:
+
+- width: sets the max width/height of the radio.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes/is clicked.
+- onChangeReq: WidgetRequest to generate when the value changes/is clicked.
+-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -90,21 +112,38 @@ instance CmbOnChangeReq (RadioCfg s e a) s e a where
     _rdcOnChangeReq = [req]
   }
 
+-- | Creates a radio using the given lens.
 radio :: (Eq a, WidgetEvent e) => ALens' s a -> a -> WidgetNode s e
 radio field option = radio_ field option def
 
-radio_ :: (Eq a, WidgetEvent e) => ALens' s a -> a -> [RadioCfg s e a] -> WidgetNode s e
+-- | Creates a radio using the given lens. Accepts config.
+radio_
+  :: (Eq a, WidgetEvent e)
+  => ALens' s a
+  -> a
+  -> [RadioCfg s e a]
+  -> WidgetNode s e
 radio_ field option configs = radioD_ (WidgetLens field) option configs
 
+-- | Creates a radio using the given value and onChange event handler.
 radioV :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> WidgetNode s e
 radioV value handler option = radioV_ value handler option def
 
-radioV_ :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> [RadioCfg s e a] -> WidgetNode s e
+-- | Creates a radio using the given value and onChange event handler.
+-- | Accepts config.
+radioV_
+  :: (Eq a, WidgetEvent e)
+  => a
+  -> (a -> e)
+  -> a
+  -> [RadioCfg s e a]
+  -> WidgetNode s e
 radioV_ value handler option configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
   newNode = radioD_ widgetData option newConfigs
 
+-- | Creates a radio providing a WidgetData instance and config.
 radioD_
   :: (Eq a, WidgetEvent e)
   => WidgetData s a

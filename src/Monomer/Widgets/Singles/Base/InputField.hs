@@ -1,3 +1,17 @@
+{-|
+Module      : Monomer.Widgets.Singles.Base.InputField
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Base single line text editing field. Extensible for handling specific textual
+representations of other types, such as numbers and dates. It is not for direct
+use, but to create custom widgets using it.
+
+See 'NumericField', 'DateField' and 'TimeField'.
+-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -7,8 +21,7 @@
 module Monomer.Widgets.Singles.Base.InputField (
   InputFieldCfg(..),
   InputFieldState(..),
-  inputField_,
-  makeInputField
+  inputField_
 ) where
 
 import Control.Applicative ((<|>))
@@ -28,43 +41,86 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Constaints for a value handled by input field.
 type InputFieldValue a = (Eq a, Show a, Typeable a)
 
+{-|
+Handler for wheel events. Useful for values on which increase/decrease makes
+sense.
+-}
 type InputWheelHandler a
-  = InputFieldState a
-  -> Point
-  -> Point
-  -> WheelDirection
-  -> (Text, Int, Maybe Int)
+  = InputFieldState a        -- ^ The state of the input field
+  -> Point                   -- ^ The mouse position.
+  -> Point                   -- ^ The wheel movement along x/y.
+  -> WheelDirection          -- ^ Whether movement is normal or inverted.
+  -> (Text, Int, Maybe Int)  -- ^ New text, cursor position and selection start.
 
+{-|
+Handler for drag events. Useful for values on which increase/decrease makes
+sense.
+-}
 type InputDragHandler a
-  = InputFieldState a
-  -> Point
-  -> Point
-  -> (Text, Int, Maybe Int)
+  = InputFieldState a        -- ^ The state of the input field
+  -> Point                   -- ^ The mouse position.
+  -> Point                   -- ^ The wheel movement along x/y.
+  -> (Text, Int, Maybe Int)  -- ^ New text, cursor position and selection start.
 
+{-|
+Configuration options for an input field. These options are not directly exposed
+to users; each derived widget should expose its own options.
+-}
 data InputFieldCfg s e a = InputFieldCfg {
+  -- | Initial value for the input field, before retrieving from model.
   _ifcInitialValue :: a,
+  -- | Where to get current data from.
   _ifcValue :: WidgetData s a,
+  -- | Flag to indicate if the field is valid or not.
   _ifcValid :: Maybe (WidgetData s Bool),
+  -- | Whether to put cursor at the end of input on init. Defaults to False.
   _ifcDefCursorEnd :: Bool,
+  -- | Default width of the input field.
   _ifcDefWidth :: Double,
+  -- | Whether input causes ResizeWidgets requests. Defaults to False.
   _ifcResizeOnChange :: Bool,
+  -- | If all input should be selected when focus is received.
   _ifcSelectOnFocus :: Bool,
+  -- | If drag selection should only be enabled when input is already focused.
   _ifcSelectDragOnlyFocused :: Bool,
+  -- | Conversion from text to the expected value. Failure returns Nothing.
   _ifcFromText :: Text -> Maybe a,
+  -- | Conversion from a value to text. Cannot fail.
   _ifcToText :: a -> Text,
+  {-|
+  Whether to accept the current input status. The conversion fromText may still
+  fail, but input still will be accepted. This is used, for instance, in date
+  fields when input is not complete and a valid date cannot be created.
+  -}
   _ifcAcceptInput :: Text -> Bool,
+  {-|
+  Whether the current text is valid input. Valid input means being able to
+  convert to the expected type, and after that conversion the value matches the
+  expected constraints (for instance, a well formed number between 1 and 100).
+  -}
   _ifcIsValidInput :: Text -> Bool,
+  -- | Base style retrieved from the active theme.
   _ifcStyle :: Maybe (ALens' ThemeState StyleState),
+  -- | Handler for wheel events.
   _ifcWheelHandler :: Maybe (InputWheelHandler a),
+  -- | Handler for drag events.
   _ifcDragHandler :: Maybe (InputDragHandler a),
+  -- | Cursor to display on drag events.
   _ifcDragCursor :: Maybe CursorIcon,
+  -- | Event to raise when focus is received.
   _ifcOnFocus :: [Path -> e],
+  -- | WidgetRequest to generate when focus is received.
   _ifcOnFocusReq :: [WidgetRequest s e],
+  -- | Event to raise when focus is lost.
   _ifcOnBlur :: [Path -> e],
+  -- | WidgetRequest to generate when focus is lost.
   _ifcOnBlurReq :: [WidgetRequest s e],
+  -- | Event to raise when value changes.
   _ifcOnChange :: [a -> e],
+  -- | WidgetRequest to generate when value changes.
   _ifcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -85,18 +141,33 @@ initialHistoryStep value = HistoryStep {
   _ihsOffset = 0
 }
 
+-- | Current state of the input field. Provided to some event handlers.
 data InputFieldState a = InputFieldState {
+  -- | The latest valid value.
   _ifsCurrValue :: a,
+  -- | The latest accepted input text.
   _ifsCurrText :: !Text,
+  -- | The current cursor position.
   _ifsCursorPos :: !Int,
+  {-|
+  The selection start. Once selection begins, it does not change until done.
+  -}
   _ifsSelStart :: Maybe Int,
+  -- | Whether a drag event is active.
   _ifsDragSelActive :: Bool,
+  -- | The value when drag event started.
   _ifsDragSelValue :: a,
+  -- | The glyphs of the current text.
   _ifsGlyphs :: Seq GlyphPos,
+  -- | The offset of the current text, given cursor position and text length.
   _ifsOffset :: !Double,
+  -- | The rect of the current text, given cursor position and text length.
   _ifsTextRect :: Rect,
+  -- | Text metrics of the current font and size.
   _ifsTextMetrics :: TextMetrics,
+  -- | Edit history of the current field. Supports undo and redo.
   _ifsHistory :: Seq (HistoryStep a),
+  -- | Current index into history.
   _ifsHistIdx :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
@@ -122,6 +193,7 @@ caretWidth = 2
 caretMs :: Int
 caretMs = 500
 
+-- | Creates an instance of an input field, with customizations in config.
 inputField_
   :: (InputFieldValue a, WidgetEvent e)
   => WidgetType

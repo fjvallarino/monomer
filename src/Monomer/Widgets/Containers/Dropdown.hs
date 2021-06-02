@@ -226,7 +226,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
   newConfigs = onChangeIdx handler : configs
   newNode = dropdownD_ (WidgetValue value) items makeMain makeRow newConfigs
 
--- | Creates a dropdown providing a WidgetData instance.
+-- | Creates a dropdown providing a WidgetData instance and config.
 dropdownD_
   :: (Traversable t, DropdownItem a, WidgetEvent e)
   => WidgetData s a         -- ^ The WidgetData to retrieve the value from.

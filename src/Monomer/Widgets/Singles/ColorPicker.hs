@@ -1,3 +1,23 @@
+{-|
+Module      : Monomer.Widgets.Singles.ColorPicker
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Color picker using sliders and numeric fields.
+
+Configs:
+
+- showAlpha: whether to allow modifying the alpha channel or not.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when any of the values changes.
+- onChangeReq: WidgetRequest to generate when any of the values changes.
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -113,12 +133,14 @@ data ColorPickerEvt
   | AlphaChanged Double
   deriving (Eq, Show)
 
+-- | Creates a color picker using the given lens.
 colorPicker
   :: (WidgetModel sp, WidgetEvent ep)
   => ALens' sp Color
   -> WidgetNode sp ep
 colorPicker field = colorPicker_ field def
 
+-- | Creates a color picker using the given lens. Accepts config.
 colorPicker_
   :: (WidgetModel sp, WidgetEvent ep)
   => ALens' sp Color
@@ -127,6 +149,7 @@ colorPicker_
 colorPicker_ field configs = colorPickerD_ wlens configs [] where
   wlens = WidgetLens field
 
+-- | Creates a color picker using the given value and onChange event handler.
 colorPickerV
   :: (WidgetModel sp, WidgetEvent ep)
   => Color
@@ -134,6 +157,8 @@ colorPickerV
   -> WidgetNode sp ep
 colorPickerV value handler = colorPickerV_ value handler def
 
+-- | Creates a color picker using the given value and onChange event handler.
+-- | Accepts config.
 colorPickerV_
   :: (WidgetModel sp, WidgetEvent ep)
   => Color
@@ -144,6 +169,7 @@ colorPickerV_ value handler configs = colorPickerD_ wdata newCfgs [] where
   wdata = WidgetValue value
   newCfgs = onChange handler : configs
 
+-- | Creates a color picker providing a WidgetData instance and config.
 colorPickerD_
   :: (WidgetModel sp, WidgetEvent ep)
   => WidgetData sp Color
@@ -170,10 +196,12 @@ buildUI config wenv model = mainTree where
   compRow lensCol evt lbl minV maxV = hstack [
       label lbl `style` [width 48],
       spacer_ [width 2],
-      hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus, onBlur PickerBlur]
+      hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus,
+        onBlur PickerBlur]
         `style` [paddingV 5],
       spacer_ [width 2],
-      numericField_ lensCol [minValue minV, maxValue maxV, onChange evt, onFocus PickerFocus, onBlur PickerBlur]
+      numericField_ lensCol [minValue minV, maxValue maxV, onChange evt,
+        onFocus PickerFocus, onBlur PickerBlur]
         `style` [width 40, padding 0, textRight]
     ]
   colorRow lens lbl = compRow lens ColorChanged lbl 0 255

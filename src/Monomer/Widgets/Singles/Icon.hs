@@ -1,3 +1,17 @@
+{-|
+Module      : Monomer.Widgets.Singles.Icon
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Icon widget. Used for showing some standard icos without the need of an asset.
+
+Configs:
+
+- width: the maximum width and height of the icon.
+-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -20,6 +34,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Different types of icons that can be displayed.
 data IconType
   = IconClose
   | IconPlus
@@ -48,9 +63,11 @@ instance CmbWidth IconCfg where
     _icWidth = Just w
   }
 
+-- | Creates an icon of the given type.
 icon :: IconType -> WidgetNode s e
 icon iconType = icon_ iconType def
 
+-- | Creates an icon of the given type. Accepts config.
 icon_ :: IconType -> [IconCfg] -> WidgetNode s e
 icon_ iconType configs = defaultWidgetNode widgetType widget where
   iconName = T.pack $ show iconType

@@ -1,3 +1,42 @@
+{-|
+Module      : Monomer.Widgets.Singles.DateField
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Input field for dates types.
+
+Supports the Day type of the <https://hackage.haskell.org/package/time time>
+library, but other types can be supported by implementing 'DayConverter'. Maybe
+is also supported.
+
+Supports different date formats and separators.
+
+Handles mouse wheel and vertical drag to increase/decrease days.
+
+Configs:
+
+- validInput: field indicating if the current input is valid. Useful to show
+warnings in the UI, or disable buttons if needed.
+- resizeOnChange: Whether input causes ResizeWidgets requests.
+- selectOnFocus: Whether all input should be selected when focus is received.
+- minValue: Minimum valid date.
+- maxValue: Maximum valid date.
+- wheelRate: The rate at which wheel movement affects the date.
+- dragRate: The rate at which drag movement affects the date.
+- onFocus: event to raise when focus is received.
+- onFocusReq: WidgetRequest to generate when focus is received.
+- onBlur: event to raise when focus is lost.
+- onBlurReq: WidgetRequest to generate when focus is lost.
+- onChange: event to raise when the value changes.
+- onChangeReq: WidgetRequest to generate when the value changes.
+- dateFormatDelimiter: which text delimiter to separate year, month and day.
+- dateFormatDDMMYYYY: using the current delimiter, accept DD/MM/YYYY.
+- dateFormatMMDDYYYY: using the current delimiter, accept MM/DD/YYYY.
+- dateFormatYYYYMMDD: using the current delimiter, accept YYYY/MM/DD.
+-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -6,6 +45,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.DateField (
+  DayConverter(..),
   dateField,
   dateField_,
   dateFieldV,
@@ -49,6 +89,10 @@ defaultDateFormat = FormatDDMMYYYY
 defaultDateDelim :: Char
 defaultDateDelim = '/'
 
+{-|
+Converter to and form the Day type of the time library. To use types other than
+Day of said library, this typeclass needs to be implemented.
+--}
 class (Eq a, Ord a, Show a, Typeable a) => DayConverter a where
   convertFromDay :: Day -> a
   convertToDay :: a -> Maybe Day
@@ -221,31 +265,37 @@ instance CmbOnChangeReq (DateFieldCfg s e a) s e a where
     _dfcOnChangeReq = [req]
   }
 
+-- | Which character should be used to delimit dates.
 dateFormatDelimiter :: Char -> DateFieldCfg s e a
 dateFormatDelimiter delim = def {
   _dfcDateDelim = Just delim
 }
 
+-- | Date format DD/MM/YYYY, using the appropriate delimiter.
 dateFormatDDMMYYYY :: DateFieldCfg s e a
 dateFormatDDMMYYYY = def {
   _dfcDateFormat = Just FormatDDMMYYYY
 }
 
+-- | Date format MM/DD/YYYY, using the appropriate delimiter.
 dateFormatMMDDYYYY :: DateFieldCfg s e a
 dateFormatMMDDYYYY = def {
   _dfcDateFormat = Just FormatMMDDYYYY
 }
 
+-- | Date format YYYY/MM/DD, using the appropriate delimiter.
 dateFormatYYYYMMDD :: DateFieldCfg s e a
 dateFormatYYYYMMDD = def {
   _dfcDateFormat = Just FormatYYYYMMDD
 }
 
+-- | Creates a date field using the given lens.
 dateField
   :: (FormattableDate a, WidgetEvent e)
   => ALens' s a -> WidgetNode s e
 dateField field = dateField_ field def
 
+-- | Creates a date field using the given lens. Accepts config.
 dateField_
   :: (FormattableDate a, WidgetEvent e)
   => ALens' s a
@@ -254,11 +304,14 @@ dateField_
 dateField_ field configs = widget where
   widget = dateFieldD_ (WidgetLens field) configs
 
+-- | Creates a date field using the given value and onChange event handler.
 dateFieldV
   :: (FormattableDate a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 dateFieldV value handler = dateFieldV_ value handler def
 
+-- | Creates a date field using the given value and onChange event handler.
+-- | Accepts config.
 dateFieldV_
   :: (FormattableDate a, WidgetEvent e)
   => a
@@ -270,6 +323,7 @@ dateFieldV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = dateFieldD_ widgetData newConfigs
 
+-- | Creates a date field providing a WidgetData instance and config.
 dateFieldD_
   :: (FormattableDate a, WidgetEvent e)
   => WidgetData s a

@@ -1,3 +1,25 @@
+{-|
+Module      : Monomer.Widgets.Singles.Image
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Displays an image from local storage or a url.
+
+Configs:
+
+- transparency: the alpha to apply when rendering the image.
+- onLoadError: an event to report a load error.
+- imageNearest: apply nearest filtering when stretching an image.
+- imageRepeatX: repeat the image across the x coordinate.
+- imageRepeatY: repeat the image across the y coordinate.
+- fitNone: does not perform any streching if the size does not match viewport.
+- fitFill: stretches the image to match the viewport.
+- fitWidth: stretches the image to match the viewport width. Maintains ratio.
+- fitHeight: stretches the image to match the viewport height. Maintains ratio.
+-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -124,9 +146,11 @@ data ImageMessage
   = ImageLoaded ImageState
   | ImageFailed ImageLoadError
 
+-- | Creates an image with the given local path or url.
 image :: WidgetEvent e => Text -> WidgetNode s e
 image path = image_ path def
 
+-- | Creates an image with the given local path or url. Accepts config.
 image_ :: WidgetEvent e => Text -> [ImageCfg e] -> WidgetNode s e
 image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
@@ -134,16 +158,23 @@ image_ path configs = defaultWidgetNode "image" widget where
   imageState = ImageState source Nothing
   widget = makeImage source config imageState
 
-imageMem :: WidgetEvent e => Text -> ByteString -> Size -> WidgetNode s e
+-- | Creates an image with the given binary data.
+imageMem
+  :: WidgetEvent e
+  => Text            -- ^ The logical name of the image.
+  -> ByteString      -- ^ The image data as 4-byte RGBA blocks.
+  -> Size            -- ^ The size of the image.
+  -> WidgetNode s e  -- ^ The created image widget.
 imageMem name imgData imgSize = imageMem_ name imgData imgSize def
 
+-- | Creates an image with the given binary data. Accepts config.
 imageMem_
   :: WidgetEvent e
-  => Text
-  -> ByteString
-  -> Size
-  -> [ImageCfg e]
-  -> WidgetNode s e
+  => Text            -- ^ The logical name of the image.
+  -> ByteString      -- ^ The image data as 4-byte RGBA blocks.
+  -> Size            -- ^ The size of the image.
+  -> [ImageCfg e]    -- ^ The configuration of the image.
+  -> WidgetNode s e  -- ^ The created image widget.
 imageMem_ name imgData imgSize configs = defaultWidgetNode "image" widget where
   config = mconcat configs
   source = ImageMem (T.unpack name)

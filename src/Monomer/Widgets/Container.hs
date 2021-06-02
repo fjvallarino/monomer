@@ -1,13 +1,13 @@
--- |
--- Module      :  Monomer.Widgets.Container
--- Copyright   :  (C) 2018 Francisco Vallarino
--- License     :  BSD-style (see the file LICENSE)
--- Maintainer  :  Francisco Vallarino <fjvallarino@gmail.com>
--- Stability   :  experimental
--- Portability :  non-portable
---
--- Helper for creating widgets with children elements
---
+{-|
+Module      : Monomer.Widgets.Container
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper for creating widgets with children elements.
+-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
