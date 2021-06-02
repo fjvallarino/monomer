@@ -19,6 +19,8 @@ Config:
 - transparency: the alpha level to apply when rendering content in drag mode.
 - maxDim: the maximum size of the largest axis when dragging. Keeps proportions.
 - draggableStyle: the style to use when the item is being dragged.
+- draggableRender: rendering function for the dragged state. Allows customizing
+this step without implementing a custom widget all the lifecycle steps.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -43,7 +45,13 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-type DraggableRender s e = WidgetEnv s e -> WidgetNode s e -> Renderer -> IO ()
+-- | Rendering function for the dragged state.
+type DraggableRender s e
+  = DraggableCfg s e  -- ^ The configuration of the draggable.
+  -> WidgetEnv s e    -- ^ The widget environment.
+  -> WidgetNode s e   -- ^ The widget node.
+  -> Renderer         -- ^ The renderer.
+  -> IO ()            -- ^ The drawing actions.
 
 data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
@@ -144,7 +152,7 @@ makeDraggable msg config = widget where
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     resized = (resultNode node, Seq.singleton contentArea)
 
-  defaultRender wenv node renderer =
+  defaultRender config wenv node renderer =
     drawStyledAction renderer (moveRect scOffset draggedRect) style $ \_ -> do
       saveContext renderer
       setTranslation renderer (addPoint scOffset offset)
@@ -171,7 +179,7 @@ makeDraggable msg config = widget where
   render wenv node renderer = do
     when dragged $
       createOverlay renderer $ do
-        renderAction wenv node renderer
+        renderAction config wenv node renderer
     where
       dragged = isNodeDragged wenv node
       renderAction = fromMaybe defaultRender (_dgcCustomRender config)

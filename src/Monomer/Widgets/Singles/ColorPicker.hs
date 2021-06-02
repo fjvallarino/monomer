@@ -157,8 +157,10 @@ colorPickerV
   -> WidgetNode sp ep
 colorPickerV value handler = colorPickerV_ value handler def
 
--- | Creates a color picker using the given value and onChange event handler.
--- | Accepts config.
+{-|
+Creates a color picker using the given value and onChange event handler. Accepts
+config.
+-}
 colorPickerV_
   :: (WidgetModel sp, WidgetEvent ep)
   => Color

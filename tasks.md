@@ -641,11 +641,10 @@
   - Review after documenting
     - Remove IsString for WidgetType?
       - Most likely not needed. Haddock has problems when running outside stack because OverloadedStrings is in package.yaml.
+    - KeyReleased / BtnReleased is inconsistent. Use a single convention.
 
 Next
   - Review after documenting
-    - KeyReleased / BtnReleased is inconsistent. Use a single convention.
-    - Remove draggableRender.
     - Does adding all the isXXXXEvent back make sense?
     - restrictValue -> clamp.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
