@@ -63,8 +63,6 @@ module Monomer.Widgets.Composite (
   composite_,
   compositeV,
   compositeV_,
-  compositeExt,
-  compositeExt_,
   compositeD_
 ) where
 
@@ -328,36 +326,6 @@ compositeV_ wType val handler uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetValue val
   newCfgs = onChange handler : cfgs
   newNode = compositeD_ wType widgetData uiBuilder evtHandler newCfgs
-
-{-|
-Creates a composite using the given model, but without requiring an event
-handler.
--}
-compositeExt
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType              -- ^ The name of the composite.
-  -> s                       -- ^ The model.
-  -> UIBuilder s e           -- ^ The UI builder function.
-  -> EventHandler s e sp ep  -- ^ The event handler.
-  -> WidgetNode sp ep        -- ^ The resulting widget.
-compositeExt wType val uiBuilder evtHandler = newNode where
-  newNode = compositeExt_ wType val uiBuilder evtHandler []
-
-{-|
-Creates a composite using the given model, but without requiring an event
-handler. Accepts config.
--}
-compositeExt_
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
-  => WidgetType                -- ^ The name of the composite.
-  -> s                         -- ^ The model.
-  -> UIBuilder s e             -- ^ The UI builder function.
-  -> EventHandler s e sp ep    -- ^ The event handler.
-  -> [CompositeCfg s e sp ep]  -- ^ The config options.
-  -> WidgetNode sp ep          -- ^ The resulting widget.
-compositeExt_ wType val uiBuilder evtHandler cfgs = newNode where
-  widgetData = WidgetValue val
-  newNode = compositeD_ wType widgetData uiBuilder evtHandler cfgs
 
 -- | Creates a color picker providing a WidgetData instance and config.
 compositeD_

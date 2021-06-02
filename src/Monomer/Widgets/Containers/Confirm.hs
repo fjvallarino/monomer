@@ -111,7 +111,7 @@ confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
-  newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
+  newNode = compositeD_ "confirm" (WidgetValue ()) createUI handleEvent compCfg
 
 -- | Creates an alert dialog with a text message as content.
 confirmMsg
@@ -136,7 +136,7 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
     & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]
-  newNode = compositeExt_ "confirm" () createUI handleEvent compCfg
+  newNode = compositeD_ "confirm" (WidgetValue ()) createUI handleEvent compCfg
 
 mergeReqs :: MergeReqsHandler s e
 mergeReqs wenv newNode oldNode model = reqs where

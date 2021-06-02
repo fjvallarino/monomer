@@ -89,7 +89,7 @@ alert_
 alert_ evt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) evt config
-  newNode = compositeExt "alert" () createUI handleEvent
+  newNode = compositeD_ "alert" (WidgetValue ()) createUI handleEvent []
 
 -- | Creates an alert dialog with a text message as content.
 alertMsg
@@ -111,7 +111,7 @@ alertMsg_ message evt configs = newNode where
   dialogBody wenv = label_ message [multiLine]
     & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody evt config
-  newNode = compositeExt "alert" () createUI handleEvent
+  newNode = compositeD_ "alert" (WidgetValue ()) createUI handleEvent []
 
 buildUI
   :: WidgetEvent ep

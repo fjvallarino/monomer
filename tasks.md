@@ -635,6 +635,7 @@
     - Fix scroll overlay using client space
     - Rename _thsInputNumericStyle
   - Rename resultWidget to resultNode
+  - Remove compositeExt/compositeExt_. Use compositeD_ when needed.
 
 Next
   - Add documentation header in source files
@@ -651,7 +652,6 @@ Next
       - Scroll related test case is also weird.
     - Split CmbImageFit
     - Some WidgetType related things needed to be changed because Haddock failed to parse.
-    - Remove compositeExt and make compositeV_ not force an event handler.
   - Create user documentation
     - Overview of the library
     - Tutorials
