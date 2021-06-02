@@ -37,6 +37,7 @@ import qualified Monomer.Lens as L
 data TestEvt
   = IntegralChanged Int
   | FractionalChanged (Maybe Double)
+  | ValidNumber Bool
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -79,26 +80,32 @@ handleEventIntegral = describe "handleEventIntegral" $ do
   it "should input '1'" $ do
     model [evtT "1"] ^. integralValue `shouldBe` 1
     model [evtT "1"] ^. integralValid `shouldBe` True
+    events [evtT "1"] `shouldBe` Seq.fromList [ValidNumber True]
 
   it "should input '-1'" $ do
     model [evtT "-1"] ^. integralValue `shouldBe` -1
     model [evtT "-1"] ^. integralValid `shouldBe` True
+    events [evtT "-1"] `shouldBe` Seq.fromList [ValidNumber True]
 
   it "should input '1501'" $ do
     model [evtT "1", evtT "5", evtT "0", evtT "1"] ^. integralValue `shouldBe` 1501
     model [evtT "1", evtT "5", evtT "0", evtT "1"] ^. integralValid `shouldBe` True
+    events [evtT "1", evtT "5", evtT "0", evtT "1"] `shouldBe` Seq.fromList (replicate 4 (ValidNumber True))
 
   it "should input '1502', but fail because of maxValue" $ do
     model [evtT "1", evtT "5", evtT "0", evtT "2"] ^. integralValue `shouldBe` 150
     model [evtT "1", evtT "5", evtT "0", evtT "2"] ^. integralValid `shouldBe` False
+    events [evtT "1", evtT "5", evtT "0", evtT "2"] `shouldBe` Seq.fromList (replicate 3 (ValidNumber True) ++ [ValidNumber False])
 
   it "should input '123', remove one character and input '4'" $ do
     model [evtT "123", delCharL, evtT "4"] ^. integralValue `shouldBe` 124
     model [evtT "123", delCharL, evtT "4"] ^. integralValid `shouldBe` True
+    events [evtT "123", delCharL, evtT "4"] `shouldBe` Seq.fromList (replicate 3 (ValidNumber True))
 
   it "should input '123', remove one word and input '456'" $ do
     model [evtT "123", delWordL, evtT "456"] ^. integralValue `shouldBe` 456
     model [evtT "123", delWordL, evtT "456"] ^. integralValid `shouldBe` True
+    events [evtT "123", delWordL, evtT "456"] `shouldBe` Seq.fromList [ValidNumber True, ValidNumber False, ValidNumber True]
 
   it "should update the model when using the wheel" $ do
     let p = Point 100 10
@@ -112,20 +119,20 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     model steps4 ^. integralValue `shouldBe` 1501
 
   it "should generate an event when focus is received" $
-    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
+    events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
+    events [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     wenv = mockWenv (IntegralModel 0 True)
     basicIntNode :: WidgetNode IntegralModel TestEvt
     basicIntNode = numericField_ integralValue [validInput integralValid, selectOnFocus_ False]
-    intCfg = [minValue (-200), maxValue 1501, validInput integralValid, onFocus GotFocus, onBlur LostFocus]
+    intCfg = [minValue (-200), maxValue 1501, validInput integralValid, validInputV ValidNumber, onFocus GotFocus, onBlur LostFocus]
     intNode = numericField_ integralValue intCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) intNode
     modelBasic es = nodeHandleEventModel wenv es basicIntNode
-    events evt = nodeHandleEventEvts wenv [evt] intNode
+    events es = nodeHandleEventEvts wenv es intNode
 
 handleEventValueIntegral :: Spec
 handleEventValueIntegral = describe "handleEventIntegral" $ do

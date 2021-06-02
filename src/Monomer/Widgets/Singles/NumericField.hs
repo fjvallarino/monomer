@@ -113,6 +113,7 @@ type FormattableNumber a
 
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcValid :: Maybe (WidgetData s Bool),
+  _nfcValidV :: [Bool -> e],
   _nfcDecimals :: Maybe Int,
   _nfcMinValue :: Maybe a,
   _nfcMaxValue :: Maybe a,
@@ -131,6 +132,7 @@ data NumericFieldCfg s e a = NumericFieldCfg {
 instance Default (NumericFieldCfg s e a) where
   def = NumericFieldCfg {
     _nfcValid = Nothing,
+    _nfcValidV = [],
     _nfcDecimals = Nothing,
     _nfcMinValue = Nothing,
     _nfcMaxValue = Nothing,
@@ -149,6 +151,7 @@ instance Default (NumericFieldCfg s e a) where
 instance Semigroup (NumericFieldCfg s e a) where
   (<>) t1 t2 = NumericFieldCfg {
     _nfcValid = _nfcValid t2 <|> _nfcValid t1,
+    _nfcValidV = _nfcValidV t1 <> _nfcValidV t2,
     _nfcDecimals = _nfcDecimals t2 <|> _nfcDecimals t1,
     _nfcMinValue = _nfcMinValue t2 <|> _nfcMinValue t1,
     _nfcMaxValue = _nfcMaxValue t2 <|> _nfcMaxValue t1,
@@ -170,6 +173,11 @@ instance Monoid (NumericFieldCfg s e a) where
 instance CmbValidInput (NumericFieldCfg s e a) s where
   validInput field = def {
     _nfcValid = Just (WidgetLens field)
+  }
+
+instance CmbValidInputV (NumericFieldCfg s e a) e where
+  validInputV fn = def {
+    _nfcValidV = [fn]
   }
 
 instance CmbResizeOnChange (NumericFieldCfg s e a) where
@@ -300,6 +308,7 @@ numericFieldD_ widgetData configs = newNode where
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _nfcValid config,
+    _ifcValidV = _nfcValidV config,
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptInput,

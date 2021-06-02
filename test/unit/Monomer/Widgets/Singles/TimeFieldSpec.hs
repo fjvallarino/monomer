@@ -37,6 +37,7 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = TimeChanged TimeOfDay
+  | TimeValid Bool
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -86,22 +87,27 @@ handleEventTime = describe "handleEventTime" $ do
   it "should input '1' (invalid time)" $ do
     model [evtKG keyA, evtT "1"] ^. mTimeValue `shouldBe` Just midTime
     model [evtKG keyA, evtT "1"] ^. mTimeValid `shouldBe` False
+    events [evtKG keyA, evtT "1"] `shouldBe` Seq.fromList [TimeValid False]
 
-  it "should input '30/12/1999' but fail because of minValue" $ do
-    model [evtT "30/12/1999"] ^. mTimeValue `shouldBe` Just midTime
-    model [evtT "30/12/1999"] ^. mTimeValid `shouldBe` False
+  it "should input '02:35' but fail because of minValue" $ do
+    model [evtT "02:35"] ^. mTimeValue `shouldBe` Just midTime
+    model [evtT "02:35"] ^. mTimeValid `shouldBe` False
+    events [evtT "02:35"] `shouldBe` Seq.fromList [TimeValid False]
 
   it "should input '23:50' but fail because of maxValue" $ do
     model [evtT "23:50"] ^. mTimeValue `shouldBe` Just midTime
     model [evtT "23:50"] ^. mTimeValid `shouldBe` False
+    events [evtT "23:50"] `shouldBe` Seq.fromList [TimeValid False]
 
   it "should remove one character and input '4'" $ do
     model [moveCharR, delCharL, evtT "4"] ^. mTimeValue `shouldBe` Just (TimeOfDay 14 24 0)
     model [moveCharR, delCharL, evtT "4"] ^. mTimeValid `shouldBe` True
+    events [moveCharR, delCharL, evtT "4"] `shouldBe` Seq.fromList [TimeValid True, TimeValid True]
 
   it "should input '22:30', remove one word and input '15'" $ do
     model [evtT "22:30", delWordL, evtT "15"] ^. mTimeValue `shouldBe` Just (TimeOfDay 22 15 0)
     model [evtT "22:30", delWordL, evtT "15"] ^. mTimeValid `shouldBe` True
+    events [evtT "22:30", delWordL, evtT "15"] `shouldBe` Seq.fromList [TimeValid True, TimeValid False, TimeValid True]
 
   it "should update the model when using the wheel" $ do
     let p = Point 100 10
@@ -115,10 +121,10 @@ handleEventTime = describe "handleEventTime" $ do
     model steps4 ^. mTimeValue `shouldBe` Just maxTime
 
   it "should generate an event when focus is received" $
-    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
+    events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
+    events [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     minTime = TimeOfDay 3 15 0
@@ -127,11 +133,11 @@ handleEventTime = describe "handleEventTime" $ do
     wenv = mockWenv (MTimeModel (Just midTime) True)
     basicTimeNode :: WidgetNode MTimeModel TestEvt
     basicTimeNode = timeField_ mTimeValue [validInput mTimeValid, selectOnFocus_ False]
-    timeCfg = [minValue (Just minTime), maxValue (Just maxTime), validInput mTimeValid, onFocus GotFocus, onBlur LostFocus]
+    timeCfg = [minValue (Just minTime), maxValue (Just maxTime), validInput mTimeValid, validInputV TimeValid, onFocus GotFocus, onBlur LostFocus]
     timeNode = timeField_ mTimeValue timeCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) timeNode
     modelBasic es = nodeHandleEventModel wenv es basicTimeNode
-    events evt = nodeHandleEventEvts wenv [evt] timeNode
+    events es = nodeHandleEventEvts wenv es timeNode
 
 handleEventValueTime :: Spec
 handleEventValueTime = describe "handleEventTime" $ do

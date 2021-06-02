@@ -32,9 +32,13 @@ import Monomer.Graphics.Types
 class CmbMergeRequired t s | t -> s where
   mergeRequired :: (s -> s -> Bool) -> t
 
--- | Provides a listener for the validation status of a field.
+-- | Listener for the validation status of a field using a lens.
 class CmbValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
+
+-- | Listener for the validation status of a field using an event handler.
+class CmbValidInputV t e | t -> e where
+  validInputV :: (Bool -> e) -> t
 
 -- | Defines whether a widget selects all its content when receiving focus.
 class CmbSelectOnFocus t where

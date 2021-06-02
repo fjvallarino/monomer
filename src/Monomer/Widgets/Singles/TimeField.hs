@@ -137,6 +137,7 @@ type FormattableTime a
 
 data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcValid :: Maybe (WidgetData s Bool),
+  _tfcValidV :: [Bool -> e],
   _tfcTimeFormat :: Maybe TimeFormat,
   _tfcMinValue :: Maybe a,
   _tfcMaxValue :: Maybe a,
@@ -155,6 +156,7 @@ data TimeFieldCfg s e a = TimeFieldCfg {
 instance Default (TimeFieldCfg s e a) where
   def = TimeFieldCfg {
     _tfcValid = Nothing,
+    _tfcValidV = [],
     _tfcTimeFormat = Nothing,
     _tfcMinValue = Nothing,
     _tfcMaxValue = Nothing,
@@ -173,6 +175,7 @@ instance Default (TimeFieldCfg s e a) where
 instance Semigroup (TimeFieldCfg s e a) where
   (<>) t1 t2 = TimeFieldCfg {
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
+    _tfcValidV = _tfcValidV t1 <> _tfcValidV t2,
     _tfcTimeFormat = _tfcTimeFormat t2 <|> _tfcTimeFormat t1,
     _tfcMinValue = _tfcMinValue t2 <|> _tfcMinValue t1,
     _tfcMaxValue = _tfcMaxValue t2 <|> _tfcMaxValue t1,
@@ -194,6 +197,11 @@ instance Monoid (TimeFieldCfg s e a) where
 instance CmbValidInput (TimeFieldCfg s e a) s where
   validInput field = def {
     _tfcValid = Just (WidgetLens field)
+  }
+
+instance CmbValidInputV (TimeFieldCfg s e a) e where
+  validInputV fn = def {
+    _tfcValidV = [fn]
   }
 
 instance CmbResizeOnChange (TimeFieldCfg s e a) where
@@ -326,6 +334,7 @@ timeFieldD_ widgetData configs = newNode where
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _tfcValid config,
+    _ifcValidV = _tfcValidV config,
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptInput,

@@ -37,6 +37,7 @@ import qualified Monomer.Lens as L
 
 data TestEvt
   = DateChanged Day
+  | DateValid Bool
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -86,22 +87,27 @@ handleEventDate = describe "handleEventDate" $ do
   it "should input '1' (invalid date)" $ do
     model [evtKG keyA, evtT "1"] ^. mDateValue `shouldBe` Just midDate
     model [evtKG keyA, evtT "1"] ^. mDateValid `shouldBe` False
+    events [evtKG keyA, evtT "1"] `shouldBe` Seq.fromList [DateValid False]
 
   it "should input '30/12/1999' but fail because of minValue" $ do
     model [evtT "30/12/1999"] ^. mDateValue `shouldBe` Just midDate
     model [evtT "30/12/1999"] ^. mDateValid `shouldBe` False
+    events [evtT "30/12/1999"] `shouldBe` Seq.fromList [DateValid False]
 
   it "should input '01/03/2005' but fail because of maxValue" $ do
     model [evtT "01/04/2005"] ^. mDateValue `shouldBe` Just midDate
     model [evtT "01/04/2005"] ^. mDateValid `shouldBe` False
+    events [evtT "01/04/2005"] `shouldBe` Seq.fromList [DateValid False]
 
   it "should remove one character and input '4'" $ do
     model [moveCharR, delCharL, evtT "4"] ^. mDateValue `shouldBe` Just (fromGregorian 2004 03 02)
     model [moveCharR, delCharL, evtT "4"] ^. mDateValid `shouldBe` True
+    events [moveCharR, delCharL, evtT "4"] `shouldBe` Seq.fromList [DateValid False, DateValid True]
 
   it "should input '14/02/2001', remove one word and input '2000'" $ do
     model [evtT "14/02/2001", delWordL, evtT "2000"] ^. mDateValue `shouldBe` Just (fromGregorian 2000 02 14)
     model [evtT "14/02/2001", delWordL, evtT "2000"] ^. mDateValid `shouldBe` True
+    events [evtT "14/02/2001", delWordL, evtT "2000"] `shouldBe` Seq.fromList [DateValid True, DateValid False, DateValid True]
 
   it "should update the model when using the wheel" $ do
     let p = Point 100 10
@@ -115,10 +121,10 @@ handleEventDate = describe "handleEventDate" $ do
     model steps4 ^. mDateValue `shouldBe` Just maxDate
 
   it "should generate an event when focus is received" $
-    events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
+    events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
 
   it "should generate an event when focus is lost" $
-    events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
+    events [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
 
   where
     minDate = fromGregorian 2000 01 01
@@ -127,11 +133,11 @@ handleEventDate = describe "handleEventDate" $ do
     wenv = mockWenv (MDateModel (Just midDate) True)
     basicDateNode :: WidgetNode MDateModel TestEvt
     basicDateNode = dateField_ mDateValue [validInput mDateValid, selectOnFocus_ False, dateFormatYYYYMMDD, dateFormatDelimiter '-']
-    dateCfg = [minValue (Just minDate), maxValue (Just maxDate), validInput mDateValid, onFocus GotFocus, onBlur LostFocus]
+    dateCfg = [minValue (Just minDate), maxValue (Just maxDate), validInput mDateValid, validInputV DateValid, onFocus GotFocus, onBlur LostFocus]
     dateNode = dateField_ mDateValue dateCfg
     model es = nodeHandleEventModel wenv (evtFocus : es) dateNode
     modelBasic es = nodeHandleEventModel wenv es basicDateNode
-    events evt = nodeHandleEventEvts wenv [evt] dateNode
+    events es = nodeHandleEventEvts wenv es dateNode
 
 handleEventValueDate :: Spec
 handleEventValueDate = describe "handleEventDate" $ do

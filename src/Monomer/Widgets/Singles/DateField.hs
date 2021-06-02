@@ -143,6 +143,7 @@ type FormattableDate a
 
 data DateFieldCfg s e a = DateFieldCfg {
   _dfcValid :: Maybe (WidgetData s Bool),
+  _dfcValidV :: [Bool -> e],
   _dfcDateDelim :: Maybe Char,
   _dfcDateFormat :: Maybe DateFormat,
   _dfcMinValue :: Maybe a,
@@ -162,6 +163,7 @@ data DateFieldCfg s e a = DateFieldCfg {
 instance Default (DateFieldCfg s e a) where
   def = DateFieldCfg {
     _dfcValid = Nothing,
+    _dfcValidV = [],
     _dfcDateDelim = Nothing,
     _dfcDateFormat = Nothing,
     _dfcMinValue = Nothing,
@@ -181,6 +183,7 @@ instance Default (DateFieldCfg s e a) where
 instance Semigroup (DateFieldCfg s e a) where
   (<>) t1 t2 = DateFieldCfg {
     _dfcValid = _dfcValid t2 <|> _dfcValid t1,
+    _dfcValidV = _dfcValidV t1 <> _dfcValidV t2,
     _dfcDateDelim = _dfcDateDelim t2 <|> _dfcDateDelim t1,
     _dfcDateFormat = _dfcDateFormat t2 <|> _dfcDateFormat t1,
     _dfcMinValue = _dfcMinValue t2 <|> _dfcMinValue t1,
@@ -203,6 +206,11 @@ instance Monoid (DateFieldCfg s e a) where
 instance CmbValidInput (DateFieldCfg s e a) s where
   validInput field = def {
     _dfcValid = Just (WidgetLens field)
+  }
+
+instance CmbValidInputV (DateFieldCfg s e a) e where
+  validInputV fn = def {
+    _dfcValidV = [fn]
   }
 
 instance CmbResizeOnChange (DateFieldCfg s e a) where
@@ -348,6 +356,7 @@ dateFieldD_ widgetData configs = newNode where
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _dfcValid config,
+    _ifcValidV = _dfcValidV config,
     _ifcFromText = fromText,
     _ifcToText = toText,
     _ifcAcceptInput = acceptInput,

@@ -646,10 +646,10 @@
     - Split CmbImageFit
     - Does adding all the isXXXXEvent back make sense? Added.
     - CmbVisible and CmbVisible.
+    - Add Event Util isXXXX.
 
 Next
   - Review after documenting
-    - Add Event Util isXXXX.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Scroll related test case is also weird.

@@ -75,8 +75,10 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcInitialValue :: a,
   -- | Where to get current data from.
   _ifcValue :: WidgetData s a,
-  -- | Flag to indicate if the field is valid or not.
+  -- | Flag to indicate if the field is valid or not, using a lens.
   _ifcValid :: Maybe (WidgetData s Bool),
+  -- | Flag to indicate if the field is valid or not, using an event handler.
+  _ifcValidV :: [Bool -> e],
   -- | Whether to put cursor at the end of input on init. Defaults to False.
   _ifcDefCursorEnd :: Bool,
   -- | Default width of the input field.
@@ -699,22 +701,26 @@ genReqsEvents config state newText newReqs = result where
   isValid = _ifcIsValidInput config newText
   newVal = fromText newText
   stateVal = fromMaybe currVal newVal
-  hasChanged = stateVal /= currVal
+  txtChanged = newText /= currText
+  valChanged = stateVal /= currVal
   events
-    | accepted && hasChanged = fmap ($ stateVal) (_ifcOnChange config)
+    | accepted && valChanged = fmap ($ stateVal) (_ifcOnChange config)
+    | otherwise = []
+  evtValid
+    | txtChanged = fmap ($ isValid) (_ifcValidV config)
     | otherwise = []
   reqValid = setModelValid config isValid
   reqUpdateModel
-    | accepted && hasChanged = setModelValue stateVal
+    | accepted && valChanged = setModelValue stateVal
     | otherwise = []
   reqResize
-    | resizeOnChange && hasChanged = [ResizeWidgets]
+    | resizeOnChange && valChanged = [ResizeWidgets]
     | otherwise = []
   reqOnChange
     | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChangeReq config)
     | otherwise = []
   reqs = newReqs ++ reqUpdateModel ++ reqValid ++ reqResize ++ reqOnChange
-  result = (reqs, events)
+  result = (reqs, events <> evtValid)
 
 moveHistory
   :: (InputFieldValue a, WidgetEvent e)
