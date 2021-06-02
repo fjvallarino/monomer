@@ -353,7 +353,7 @@ makeSlider isHz field minVal maxVal config state = widget where
           | validPos /= pos = resultFromPos validPos
           | otherwise = Nothing
           where
-            validPos = restrictValue 0 maxPos newPos
+            validPos = clamp 0 maxPos newPos
     Move point
       | isNodePressed wenv node -> resultFromPoint point
     ButtonAction point btn BtnPressed clicks
@@ -364,7 +364,7 @@ makeSlider isHz field minVal maxVal config state = widget where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)
       wheelRate = fromRational wheelCfg
       tmpPos = pos + round (wy * wheelRate)
-      newPos = restrictValue 0 maxPos tmpPos
+      newPos = clamp 0 maxPos tmpPos
     _ -> Nothing
     where
       theme = activeTheme wenv node
@@ -455,7 +455,7 @@ makeSlider isHz field minVal maxVal config state = widget where
     tmpPos
       | isHz = round (dv * fromIntegral maxPos / vp ^. L.w)
       | otherwise = round (dv * fromIntegral maxPos / vp ^. L.h)
-    newPos = restrictValue 0 maxPos tmpPos
+    newPos = clamp 0 maxPos tmpPos
 
   valueFromPos newPos = newVal where
     newVal = minVal + fromFractional (dragRate * fromIntegral newPos)

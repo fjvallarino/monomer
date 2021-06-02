@@ -169,8 +169,5 @@ maxNumericValue = x where
   x = encodeFloat (b^n - 1) (u - n)
 
 -- | Restricts a value to a given range.
-restrictValue :: Ord a => a -> a -> a -> a
-restrictValue minVal maxVal value = max minVal (min maxVal value)
-
 clamp :: (Ord a) => a -> a -> a -> a
 clamp mn mx = max mn . min mx

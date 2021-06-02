@@ -273,7 +273,7 @@ makeDial field minVal maxVal config state = widget where
         baseSpeed = max 1 $ round (fromIntegral maxPos / 1000)
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
-        vPos pos = restrictValue 0 maxPos pos
+        vPos pos = clamp 0 maxPos pos
         newResult newPos = addReqsEvts (resultNode newNode) newVal where
           newVal = valueFromPos minVal dragRate newPos
           newState = state { _dlsPos = newPos }
@@ -299,7 +299,7 @@ makeDial field minVal maxVal config state = widget where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_dlcWheelRate config)
       wheelRate = fromRational wheelCfg
       tmpPos = pos + round (wy * wheelRate)
-      newPos = restrictValue 0 maxPos tmpPos
+      newPos = clamp 0 maxPos tmpPos
       newVal = valueFromPos minVal dragRate newPos
       result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     _ -> Nothing
@@ -360,7 +360,7 @@ posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
   DialState maxPos pos = state
   Point _ dy = subPoint stPoint point
   tmpPos = pos + round dy
-  newPos = restrictValue 0 maxPos tmpPos
+  newPos = clamp 0 maxPos tmpPos
   newVal = valueFromPos minVal dragRate newPos
 
 valueFromPos :: DialValue a => a -> Rational -> Integer -> a

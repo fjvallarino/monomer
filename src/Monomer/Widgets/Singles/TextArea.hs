@@ -407,9 +407,9 @@ makeTextArea wdata config state = widget where
           fixedSel = fmap fixPos newSel
       fixPos (cX, cY) = result where
         nlines = length textLines
-        vcY = restrictValue 0 (nlines - 1) cY
-        vcX = restrictValue 0 (lineLen tpY) cX
-        ncX = restrictValue 0 (lineLen vcY) cX
+        vcY = clamp 0 (nlines - 1) cY
+        vcX = clamp 0 (lineLen tpY) cX
+        ncX = clamp 0 (lineLen vcY) cX
         sameX = vcX == tpX
         sameY = vcY == tpY
         result
@@ -525,7 +525,7 @@ makeTextArea wdata config state = widget where
         historyIdx = _tasHistoryIdx state
         bwdState = addHistory state (historyIdx == length history)
         moveHistory state steps = result where
-          newIdx = restrictValue 0 (length history) (historyIdx + steps)
+          newIdx = clamp 0 (length history) (historyIdx + steps)
           newState = restoreHistory wenv node state newIdx
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
@@ -828,7 +828,7 @@ findClosestGlyphPos state point = (newPos, lineIdx) where
   Point x y = point
   TextMetrics _ _ lineh = _tasTextMetrics state
   textLines = _tasTextLines state
-  lineIdx = restrictValue 0 (length textLines - 1) (floor (y / lineh))
+  lineIdx = clamp 0 (length textLines - 1) (floor (y / lineh))
   lineGlyphs
     | null textLines = Seq.empty
     | otherwise = Seq.index (view L.glyphs <$> textLines) lineIdx
