@@ -210,17 +210,32 @@ class CmbTextThroughline t where
   textThroughline = textThroughline_ True
   textThroughline_ :: Bool -> t
 
--- | Different ways of fitting an image to its containing rect.
-class CmbImageFit t where
+-- | Does not apply any kind of resizing to fit to container.
+class CmbFitNone t where
   fitNone :: t
+
+-- | Fits to use all the container's space.
+class CmbFitFill t where
   fitFill :: t
+
+-- | Fits to use all the container's width.
+class CmbFitWidth t where
   fitWidth :: t
+
+-- | Fits to use all the container's height.
+class CmbFitHeight t where
   fitHeight :: t
 
--- | Filtering and repetition config for an image.
-class CmbImageFlag t where
+-- | Applies nearest filtering when stretching an image.
+class CmbImageNearest t where
   imageNearest :: t
+
+-- | Applies horizontal repetition when stretching an image.
+class CmbImageRepeatX t where
   imageRepeatX :: t
+
+-- | Applies vertical repetition when stretching an image.
+class CmbImageRepeatY t where
   imageRepeatY :: t
 
 -- | The color of a bar, for example in a scroll.

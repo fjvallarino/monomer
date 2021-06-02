@@ -107,27 +107,37 @@ instance CmbOnLoadError (ImageCfg e) e ImageLoadError where
     _imcLoadError = [err]
   }
 
-instance CmbImageFlag (ImageCfg e) where
+instance CmbImageNearest (ImageCfg e) where
   imageNearest = def {
     _imcFlags = [ImageNearest]
   }
+
+instance CmbImageRepeatX (ImageCfg e) where
   imageRepeatX = def {
     _imcFlags = [ImageRepeatX]
   }
+
+instance CmbImageRepeatY (ImageCfg e) where
   imageRepeatY = def {
     _imcFlags = [ImageRepeatY]
   }
 
-instance CmbImageFit (ImageCfg e) where
+instance CmbFitNone (ImageCfg e) where
   fitNone = def {
     _imcFit = Just FitNone
   }
+
+instance CmbFitFill (ImageCfg e) where
   fitFill = def {
     _imcFit = Just FitFill
   }
+
+instance CmbFitWidth (ImageCfg e) where
   fitWidth = def {
     _imcFit = Just FitWidth
   }
+
+instance CmbFitHeight (ImageCfg e) where
   fitHeight = def {
     _imcFit = Just FitHeight
   }

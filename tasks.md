@@ -642,16 +642,15 @@
     - Remove IsString for WidgetType?
       - Most likely not needed. Haddock has problems when running outside stack because OverloadedStrings is in package.yaml.
     - KeyReleased / BtnReleased is inconsistent. Use a single convention.
+    - restrictValue -> clamp.
+    - Split CmbImageFit
 
 Next
   - Review after documenting
     - Does adding all the isXXXXEvent back make sense?
-    - restrictValue -> clamp.
     - Can validModel (inputField) handle WidgetData instead of only Lens?
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Scroll related test case is also weird.
-    - Split CmbImageFit
-    - Some WidgetType related things needed to be changed because Haddock failed to parse.
   - Review source code documentation.
   - Create user documentation
     - Overview of the library
