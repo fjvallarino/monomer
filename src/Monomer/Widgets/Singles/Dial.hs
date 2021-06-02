@@ -287,7 +287,7 @@ makeDial field minVal maxVal config state = widget where
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
         (_, newVal) = posFromPoint minVal maxVal state dragRate start point
         result = addReqsEvts (resultReqs node [RenderOnce]) newVal
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | clicks == 0 -> Just result where
         reqs = [RenderOnce]
         newState = newStateFromModel wenv node state

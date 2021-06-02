@@ -40,9 +40,9 @@ import Monomer.Event.Types
 
 -- | Checks if the given button is pressed.
 isButtonPressed :: InputStatus -> Button -> Bool
-isButtonPressed inputStatus button = status == PressedBtn where
+isButtonPressed inputStatus button = status == BtnPressed where
   currentStatus = M.lookup button (_ipsButtons inputStatus)
-  status = fromMaybe ReleasedBtn currentStatus
+  status = fromMaybe BtnReleased currentStatus
 
 -- | Gets the status of the given key.
 getKeyStatus :: InputStatus -> KeyCode -> KeyStatus

@@ -232,7 +232,7 @@ data Single s e a = Single {
   singleAddStyleReq :: Bool,
   -- | True if focus should be requested when mouse button is pressed (before
   -- | click). Defaults to True.
-  singleFocusOnPressedBtn :: Bool,
+  singleFocusOnBtnPressed :: Bool,
   -- | True if style cursor should be ignored. If it's False, cursor changes need
   -- | to be handled in custom code. Defaults to False.
   singleUseCustomCursor :: Bool,
@@ -270,7 +270,7 @@ data Single s e a = Single {
 instance Default (Single s e a) where
   def = Single {
     singleAddStyleReq = True,
-    singleFocusOnPressedBtn = True,
+    singleFocusOnBtnPressed = True,
     singleUseCustomCursor = False,
     singleUseCustomSize = False,
     singleUseScissor = False,
@@ -454,7 +454,7 @@ handleEventWrapper single wenv node target evt
   where
     style = singleGetActiveStyle single wenv node
     handleCursor = not (singleUseCustomCursor single)
-    focusOnPressed = singleFocusOnPressedBtn single
+    focusOnPressed = singleFocusOnBtnPressed single
     handler = singleHandleEvent single
     handlerRes = handler wenv node target evt
     sizeResult = handleSizeReqChange single wenv node (Just evt) handlerRes
@@ -473,7 +473,7 @@ handleFocusRequest wenv oldNode evt mResult = newResult where
   prevReqs = maybe Empty (^. L.requests) mResult
   isFocusable = node ^. L.info . L.focusable
   btnPressed = case evt of
-    ButtonAction _ btn PressedBtn _ -> Just btn
+    ButtonAction _ btn BtnPressed _ -> Just btn
     _ -> Nothing
   isFocusReq = btnPressed == Just (wenv ^. L.mainButton)
     && isFocusable

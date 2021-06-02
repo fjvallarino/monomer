@@ -636,13 +636,14 @@
     - Rename _thsInputNumericStyle
   - Rename resultWidget to resultNode
   - Remove compositeExt/compositeExt_. Use compositeD_ when needed.
-
-Next
   - Add documentation header in source files
   - Add documentation to all exported functions
   - Review after documenting
     - Remove IsString for WidgetType?
       - Most likely not needed. Haddock has problems when running outside stack because OverloadedStrings is in package.yaml.
+
+Next
+  - Review after documenting
     - KeyReleased / BtnReleased is inconsistent. Use a single convention.
     - Remove draggableRender.
     - Does adding all the isXXXXEvent back make sense?
@@ -652,6 +653,7 @@ Next
       - Scroll related test case is also weird.
     - Split CmbImageFit
     - Some WidgetType related things needed to be changed because Haddock failed to parse.
+  - Review source code documentation.
   - Create user documentation
     - Overview of the library
     - Tutorials

@@ -341,8 +341,8 @@ makeScroll config state = widget where
         | follow && overlayMatch = focusVp >>= scrollTo wenv node
         | otherwise = Nothing
     ButtonAction point btn status _ -> result where
-      leftPressed = status == PressedBtn && btn == wenv ^. L.mainButton
-      btnReleased = status == ReleasedBtn && btn == wenv ^. L.mainButton
+      leftPressed = status == BtnPressed && btn == wenv ^. L.mainButton
+      btnReleased = status == BtnReleased && btn == wenv ^. L.mainButton
       isDragging = isJust $ _sstDragging state
       startDrag = leftPressed && not isDragging
       jumpScrollH = btnReleased && not isDragging && hMouseInScroll sctx

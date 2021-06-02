@@ -212,7 +212,7 @@ makeInputField
   -> Widget s e
 makeInputField config state = widget where
   widget = createSingle state def {
-    singleFocusOnPressedBtn = False,
+    singleFocusOnBtnPressed = False,
     singleUseCustomCursor = True,
     singleUseScissor = True,
     singleGetBaseStyle = getBaseStyle,
@@ -408,7 +408,7 @@ makeInputField config state = widget where
         reqs = SetCursorIcon widgetId CursorIBeam : focusReq
 
     -- Begin regular text selection
-    ButtonAction point btn PressedBtn clicks
+    ButtonAction point btn BtnPressed clicks
       | dragSelectText btn && clicks == 1 -> Just result where
         style = activeStyle wenv node
         contentArea = getContentArea style node
@@ -420,14 +420,14 @@ makeInputField config state = widget where
         result = resultReqs newNode newReqs
 
     -- Begin custom drag
-    ButtonAction point btn PressedBtn clicks
+    ButtonAction point btn BtnPressed clicks
       | dragHandleExt btn && clicks == 1 -> Just (resultNode newNode) where
         newState = state { _ifsDragSelValue = currVal }
         newNode = node
           & L.widget .~ makeInputField config newState
 
     -- Select one word if clicked twice in a row
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | dragSelectText btn && clicks == 2 -> Just result where
         (part1, part2) = T.splitAt currPos currText
         txtLen = T.length currText
@@ -443,7 +443,7 @@ makeInputField config state = widget where
         result = resultReqs newNode [RenderOnce]
 
     -- Select all if clicked three times in a row
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | dragSelectText btn && clicks == 3 -> Just result where
         newPos = 0
         newSel = Just (T.length currText)
@@ -453,7 +453,7 @@ makeInputField config state = widget where
         result = resultReqs newNode [RenderOnce]
 
     -- If a custom drag handler is used, generate onChange events and history
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | dragHandleExt btn && clicks == 0 -> Just result where
         reqs = [RenderOnce]
         result = genInputResult wenv node True currText currPos currSel reqs

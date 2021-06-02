@@ -329,7 +329,7 @@ makeSelectList widgetData items makeRow config state = widget where
     newResult = resultReqs newNode reqs
 
   handleEvent wenv node target evt = case evt of
-    ButtonAction _ btn PressedBtn _
+    ButtonAction _ btn BtnPressed _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
     Focus prev -> handleFocusChange _slcOnFocus _slcOnFocusReq config prev node

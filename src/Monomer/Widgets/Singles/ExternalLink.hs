@@ -219,9 +219,9 @@ makeExternalLink caption url config = widget where
     Click p _
       | isPointInNodeVp p node -> Just result
     -- Set focus on click
-    ButtonAction p btn PressedBtn 1
+    ButtonAction p btn BtnPressed 1
       | mainBtn btn && pointInVp p && not focused -> Just resultFocus
-    ButtonAction p btn ReleasedBtn clicks
+    ButtonAction p btn BtnReleased clicks
       | mainBtn btn && focused && pointInVp p && clicks > 1 -> Just result
     _ -> Nothing
     where

@@ -42,8 +42,8 @@ data Button
 
 -- | Status of a mouse button.
 data ButtonState
-  = PressedBtn
-  | ReleasedBtn
+  = BtnPressed
+  | BtnReleased
   deriving (Eq, Show)
 
 -- | Movement direction in which wheel values are positive.
@@ -125,7 +125,7 @@ data InputStatus = InputStatus {
   _ipsKeyMod :: KeyMod,
   -- | Current status of keyCodes. If not in the map, status is KeyReleased.
   _ipsKeys :: Map KeyCode KeyStatus,
-  -- | Status of mouse buttons. If not in the map, status is ReleasedBtn.
+  -- | Status of mouse buttons. If not in the map, status is BtnReleased.
   _ipsButtons :: Map Button ButtonState
 } deriving (Eq, Show)
 

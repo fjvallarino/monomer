@@ -356,9 +356,9 @@ makeSlider isHz field minVal maxVal config state = widget where
             validPos = restrictValue 0 maxPos newPos
     Move point
       | isNodePressed wenv node -> resultFromPoint point
-    ButtonAction point btn PressedBtn clicks
+    ButtonAction point btn BtnPressed clicks
       | clicks == 1 -> resultFromPoint point
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | clicks <= 1 -> resultFromPoint point
     WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)

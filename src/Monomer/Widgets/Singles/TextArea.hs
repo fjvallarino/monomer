@@ -420,7 +420,7 @@ makeTextArea wdata config state = widget where
           | otherwise = (ncX, vcY)
 
   handleEvent wenv node target evt = case evt of
-    ButtonAction point btn PressedBtn clicks
+    ButtonAction point btn BtnPressed clicks
       | clicks == 1 -> Just result where
         newPos = findClosestGlyphPos state (localPoint point)
         newState = state {
@@ -432,7 +432,7 @@ makeTextArea wdata config state = widget where
         result = resultReqs newNode [RenderOnce]
 
     -- Select word if clicked twice in a row
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | clicks == 2 -> result where
         (tx, ty) = findClosestGlyphPos state (localPoint point)
         currText = Seq.index textLines ty ^. L.text
@@ -455,7 +455,7 @@ makeTextArea wdata config state = widget where
           | otherwise = Nothing
 
     -- Select line if clicked three times in a row
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | clicks == 3 -> result where
         (tx, ty) = findClosestGlyphPos state (localPoint point)
         glyphs = Seq.index textLines ty ^. L.glyphs
@@ -472,7 +472,7 @@ makeTextArea wdata config state = widget where
           | otherwise = Nothing
 
     -- Select all if clicked four times in a row
-    ButtonAction point btn ReleasedBtn clicks
+    ButtonAction point btn BtnReleased clicks
       | clicks == 4 -> result where
         glyphs = Seq.index textLines (totalLines - 1) ^. L.glyphs
         newPos = (0, 0)

@@ -655,7 +655,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
       L.renderRequested .= True
 
     return $ hoverEvts ++ dragEvts ++ [(evt, Nothing)]
-  ButtonAction point btn PressedBtn _ -> do
+  ButtonAction point btn BtnPressed _ -> do
     overlay <- getOverlayPath
     let start = fromMaybe emptyPath overlay
     let widget = widgetRoot ^. L.widget
@@ -665,12 +665,12 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     when (btn == mainBtn) $
       L.mainBtnPress .= fmap (, point) curr
 
-    L.inputStatus . L.buttons . at btn ?= PressedBtn
+    L.inputStatus . L.buttons . at btn ?= BtnPressed
 
     SDLE.captureMouse True
 
     return [(evt, Nothing)]
-  ButtonAction point btn ReleasedBtn clicks -> do
+  ButtonAction point btn BtnReleased clicks -> do
     -- Hover changes need to be handled here too
     mainPress <- use L.mainBtnPress
     draggedMsg <- getDraggedMsgInfo
@@ -689,7 +689,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
           Just (path, msg) -> [(Drop point path msg, target) | not isPressed]
           _ -> []
 
-    L.inputStatus . L.buttons . at btn ?= ReleasedBtn
+    L.inputStatus . L.buttons . at btn ?= BtnReleased
 
     SDLE.captureMouse False
 
@@ -819,8 +819,8 @@ getTargetPath wenv root pressed overlay target event = case event of
     -- Clipboard
     Clipboard _                       -> pathEvent target
     -- Mouse/touch
-    ButtonAction point _ PressedBtn _ -> pointEvent point
-    ButtonAction _ _ ReleasedBtn _    -> pathEvent target
+    ButtonAction point _ BtnPressed _ -> pointEvent point
+    ButtonAction _ _ BtnReleased _    -> pathEvent target
     Click{}                           -> pathEvent target
     DblClick{}                        -> pathEvent target
     WheelScroll point _ _             -> pointEvent point
