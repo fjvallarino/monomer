@@ -9,13 +9,12 @@ Portability : non-portable
 Helper functions for style types.
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Core.StyleUtil (
-  key,
   style,
   hover,
   focus,
-  visible,
   disabled,
   styleFont,
   styleFontSize,
@@ -46,17 +45,6 @@ import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L
-
-infixl 5 `key`
-infixl 5 `visible`
-
--- | Sets the key of a node. Used during merge.
-key :: WidgetNode s e -> Text -> WidgetNode s e
-key node key = node & L.info . L.key ?~ WidgetKey key
-
--- | Sets whether a node is visible or not.
-visible :: WidgetNode s e -> Bool -> WidgetNode s e
-visible node visibility = node & L.info . L.visible .~ visibility
 
 -- | Returns the content area (i.e., ignoring border and padding) of the node.
 getContentArea :: StyleState -> WidgetNode s e -> Rect
@@ -93,8 +81,14 @@ instance CmbDisabled Style where
     state = mconcat states
     newStyle = oldStyle & L.disabled ?~ state
 
+instance CmbKey (WidgetNode s e) Text where
+  key node key = node & L.info . L.key ?~ WidgetKey key
+
 instance CmbEnabled (WidgetNode s e) where
   enabled node state = node & L.info . L.enabled .~ state
+
+instance CmbVisible (WidgetNode s e) where
+  visible node visibility = node & L.info . L.visible .~ visibility
 
 instance CmbStyle (WidgetNode s e) where
   style node states = node & L.info . L.style .~ newStyle where
