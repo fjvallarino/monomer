@@ -51,6 +51,7 @@ import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Helper
 import Monomer.Main.Types
 import Monomer.Main.Util
 

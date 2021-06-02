@@ -607,14 +607,11 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
-justDef :: (Default a) => Maybe a -> a
-justDef val = fromMaybe def val
-
 p2 :: Double -> Double -> Point
 p2 x y = Point x y
 
 radW :: Maybe RadiusCorner -> Double
-radW r = _rcrWidth (justDef r)
+radW r = _rcrWidth (fromMaybe def r)
 
 fixRadius :: Rect -> Radius -> Radius
 fixRadius (Rect _ _ w h) (Radius tl tr bl br) = newRadius where

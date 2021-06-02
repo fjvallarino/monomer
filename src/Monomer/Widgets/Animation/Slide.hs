@@ -45,6 +45,7 @@ import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Helper
 import Monomer.Widgets.Container
 import Monomer.Widgets.Animation.Types
 

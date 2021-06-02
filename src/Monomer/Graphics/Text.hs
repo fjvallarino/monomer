@@ -39,6 +39,7 @@ import Monomer.Core.BasicTypes
 import Monomer.Core.StyleTypes
 import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
+import Monomer.Helper
 
 import Monomer.Lens as L
 

@@ -49,6 +49,7 @@ import GHC.Generics
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
+import Monomer.Helper
 import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Single
 

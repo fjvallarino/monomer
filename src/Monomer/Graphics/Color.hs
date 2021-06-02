@@ -20,6 +20,7 @@ module Monomer.Graphics.Color (
 import Data.Char (digitToInt)
 
 import Monomer.Graphics.Types
+import Monomer.Helper
 
 -- | Restricts a color channel to its valid range.
 clampChannel :: Int -> Int
@@ -54,10 +55,6 @@ rgba r g b a = Color {
   _colorA = clampAlpha a
 }
 
--- Creates a non visible color.
+-- | Creates a non visible color.
 transparent :: Color
 transparent = rgba 0 0 0 0
-
--- Helpers
-clamp :: (Ord a) => a -> a -> a -> a
-clamp mn mx = max mn . min mx

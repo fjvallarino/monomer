@@ -87,6 +87,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Helper
 import Monomer.Widgets.Singles.Spacer
 import Monomer.Widgets.Util
 

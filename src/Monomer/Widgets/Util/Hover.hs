@@ -31,6 +31,7 @@ import Monomer.Core
 import Monomer.Event.Types
 import Monomer.Event.Util
 import Monomer.Graphics.Types
+import Monomer.Helper
 
 import qualified Monomer.Lens as L
 

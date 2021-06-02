@@ -37,6 +37,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
+import Monomer.Helper
 import Monomer.Widgets.Util.Focus
 import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Types

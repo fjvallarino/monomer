@@ -48,6 +48,7 @@ import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Helper
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
