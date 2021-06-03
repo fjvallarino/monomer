@@ -321,13 +321,6 @@ data WidgetNodeInfo =
     _wniSizeReqW :: !SizeReq,
     -- | The requested height for the widget. The one in style takes precedence.
     _wniSizeReqH :: !SizeReq,
-    {-|
-    Indicates whether the widget is displayed as overlay. Necessary since the
-    overlayPath does not necessarily is in overlay (for instance, dropdown puts
-    itself as overlayPath to process events, but only one of its children is
-    an actual overlay).
-    -}
-    _wniOverlay :: !Bool,
     -- | Indicates if the widget is enabled for user interaction.
     _wniEnabled :: !Bool,
     -- | Indicates if the widget is visible.
@@ -352,7 +345,6 @@ instance Default WidgetNodeInfo where
     _wniPath = emptyPath,
     _wniSizeReqW = def,
     _wniSizeReqH = def,
-    _wniOverlay = False,
     _wniEnabled = True,
     _wniVisible = True,
     _wniFocusable = False,

@@ -18,6 +18,7 @@ import TextShow
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Core.Combinators
 import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 import Monomer.Core.Util

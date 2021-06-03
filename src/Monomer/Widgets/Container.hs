@@ -822,7 +822,7 @@ handleEventWrapper container wenv node target evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children
     pNode = maybe node (^. L.node) pResponse
-    cwenv =  updateCWenv wenv pNode child childIdx
+    cwenv = updateCWenv wenv pNode child childIdx
     childIdx = fromJust $ nextTargetStep target pNode
     children = pNode ^. L.children
     child = Seq.index children childIdx
@@ -1058,14 +1058,12 @@ cascadeCtx wenv parent child idx = newChild where
   pInfo = parent ^. L.info
   cInfo = child ^. L.info
   parentPath = pInfo ^. L.path
-  parentOverlay = pInfo ^. L.overlay
   parentVisible = pInfo ^. L.visible
   parentEnabled = pInfo ^. L.enabled
   newPath = parentPath |> idx
   newChild = child
     & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) newPath
     & L.info . L.path .~ newPath
-    & L.info . L.overlay .~ (cInfo ^. L.overlay || parentOverlay)
     & L.info . L.visible .~ (cInfo ^. L.visible && parentVisible)
     & L.info . L.enabled .~ (cInfo ^. L.enabled && parentEnabled)
 

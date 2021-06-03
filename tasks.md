@@ -654,7 +654,10 @@
 Next
   - Review source code documentation.
     - Check _wniOverlay. Can it be replaced with overlayPath check?
+      - Maybe modify dropdown to set overlay to the list?
       - No, since overlay path could be of the parent of the overlay (as in dropdown).
+      - Fix cursor issue when clicking/closing dropdown
+      - Should key, enabled, visible be exported automatically?
   - Create user documentation
     - Overview of the library
     - Tutorials

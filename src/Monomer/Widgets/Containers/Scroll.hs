@@ -67,6 +67,7 @@ import GHC.Generics
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Helper
 import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
@@ -335,12 +336,16 @@ makeScroll config state = widget where
 
   handleEvent wenv node target evt = case evt of
     Focus{} -> result where
+      overlay = wenv ^. L.overlayPath
+      inOverlay info
+        | isJust overlay = seqStartsWith (fromJust overlay) (info ^. L.path)
+        | otherwise = False
       follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
       focusPath = wenv ^. L.focusedPath
       focusInst = findInstOrScroll wenv node focusPath
       focusVp = focusInst ^? _Just . L.viewport
-      focusOverlay = focusInst ^? _Just . L.overlay == Just True
-      overlayMatch = focusOverlay == node ^. L.info . L.overlay
+      focusOverlay = maybe False inOverlay focusInst
+      overlayMatch = focusOverlay == inOverlay (node ^. L.info)
       result
         | follow && overlayMatch = focusVp >>= scrollTo wenv node
         | otherwise = Nothing
