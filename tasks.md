@@ -647,13 +647,14 @@
     - Does adding all the isXXXXEvent back make sense? Added.
     - CmbVisible and CmbVisible.
     - Add Event Util isXXXX.
+    - Can validModel (inputField) handle WidgetData instead of only Lens?
+      - Done.
+    - Scroll docs for message.
 
 Next
-  - Review after documenting
-    - Can validModel (inputField) handle WidgetData instead of only Lens?
-    - Check _wniOverlay. Can it be replaced with overlayPath check?
-      - Scroll related test case is also weird.
   - Review source code documentation.
+    - Check _wniOverlay. Can it be replaced with overlayPath check?
+      - No, since overlay path could be of the parent of the overlay (as in dropdown).
   - Create user documentation
     - Overview of the library
     - Tutorials

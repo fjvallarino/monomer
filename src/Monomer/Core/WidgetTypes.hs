@@ -311,17 +311,22 @@ data WidgetNodeInfo =
   WidgetNodeInfo {
     -- | Type of the widget.
     _wniWidgetType :: !WidgetType,
-    -- | The identifier at creation time of the widget. Used for merging.
+    -- | The identifier at creation time of the widget (runtime generated).
     _wniWidgetId :: !WidgetId,
-    -- | Key/Identifier of the widget
+    -- | Key/Identifier of the widget (user provided). Used for merging.
     _wniKey :: Maybe WidgetKey,
-    -- | The path of the instance in the widget tree
+    -- | The path of the instance in the widget tree, as a set of indexes.
     _wniPath :: !Path,
-    -- | The requested width for the widget.
+    -- | The requested width for the widget. The one in style takes precedence.
     _wniSizeReqW :: !SizeReq,
-    -- | The requested height for the widget.
+    -- | The requested height for the widget. The one in style takes precedence.
     _wniSizeReqH :: !SizeReq,
-    -- | Indicates whether the widget is displayed as overlay.
+    {-|
+    Indicates whether the widget is displayed as overlay. Necessary since the
+    overlayPath does not necessarily is in overlay (for instance, dropdown puts
+    itself as overlayPath to process events, but only one of its children is
+    an actual overlay).
+    -}
     _wniOverlay :: !Bool,
     -- | Indicates if the widget is enabled for user interaction.
     _wniEnabled :: !Bool,
@@ -329,7 +334,11 @@ data WidgetNodeInfo =
     _wniVisible :: !Bool,
     -- | Indicates whether the widget can receive focus.
     _wniFocusable :: !Bool,
-    -- | The area of the screen where the widget can draw.
+    {-|
+    The area of the screen where the widget can draw. Could be out of bounds or
+    partially invisible if inside a scroll. The viewport on 'WidgetEnv' defines
+    what is currently visible.
+    -}
     _wniViewport :: !Rect,
     -- | Style attributes of the widget instance.
     _wniStyle :: Style

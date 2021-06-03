@@ -29,7 +29,8 @@ overlay, since it allows scrolling without taking up space or hiding content.
 
 Messages:
 
-
+- ScrollTo: Causes the scroll to update its handles to ensure rect is visible.
+- ScrollReset: Sets both handle positions to zero.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -255,8 +256,11 @@ instance Default ScrollState where
     _sstScissor = def
   }
 
+-- | Messages the scroll component supports.
 data ScrollMessage
+  -- | Causes the scroll to update its bars to ensure rect is visible.
   = ScrollTo Rect
+  -- | Sets both bars to zero.
   | ScrollReset
   deriving (Eq, Show)
 
