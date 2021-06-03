@@ -348,7 +348,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
     Click point _
       | openRequired point node -> Just $ openDropdown wenv node
-      | closeRequired point node -> Just $ closeDropdown wenv node
+      | closeRequired point node -> Just resultClose
+      where
+        closeReqs = [ResetCursorIcon widgetId | not (isPointInNodeVp point node)]
+        resultClose = closeDropdown wenv node
+          & L.requests <>~ Seq.fromList closeReqs
     KeyAction mode code KeyPressed
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv node
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
@@ -380,21 +384,28 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     }
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
-    path = node ^. L.info . L.path
-    widgetId = node ^. L.info . L.widgetId
     -- selectList is wrapped by a scroll widget
-    slWid = node^?! L.children. ix listIdx. L.children. ix 0. L.info. L.widgetId
-    requests = [SetOverlay widgetId path, SetFocus slWid]
+    (slWid, slPath) = scrollListInfo node
+    (listWid, _) = selectListInfo node
+    requests = [SetOverlay slWid slPath, SetFocus listWid]
 
   closeDropdown wenv node = resultReqs newNode requests where
     widgetId = node ^. L.info . L.widgetId
+    (slWid, _) = scrollListInfo node
+    (listWid, _) = selectListInfo node
     newState = state {
       _ddsOpen = False,
       _ddsOffset = def
     }
     newNode = node
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
-    requests = [ResetOverlay widgetId, SetFocus widgetId]
+    requests = [ResetOverlay slWid, SetFocus widgetId]
+
+  scrollListInfo node = (scrollInfo ^. L.widgetId, scrollInfo ^. L.path) where
+    scrollInfo = node ^?! L.children . ix listIdx . L.info
+
+  selectListInfo node = (listInfo ^. L.widgetId, listInfo ^. L.path) where
+    listInfo = node ^?! L.children . ix listIdx . L.children . ix 0 . L.info
 
   handleMessage wenv node target msg =
     cast msg >>= handleLvMsg wenv node
@@ -521,7 +532,6 @@ makeSelectList wenv value items makeRow config widgetId = selectListNode where
   slStyle = collectTheme wenv L.dropdownListStyle
   selectListNode = selectListD_ value items makeRow slConfig
     & L.info . L.style .~ slStyle
-    & L.info . L.overlay .~ True
 
 createMoveFocusReq :: WidgetEnv s e -> WidgetRequest s e
 createMoveFocusReq wenv = MoveFocus Nothing direction where
