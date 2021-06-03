@@ -26,7 +26,7 @@ module Monomer.Main.Handlers (
 
 import Control.Concurrent.Async (async)
 import Control.Lens
-  ((&), (^.), (^?), (.~), (%~), (.=), (?=), _Just, _1, _2, ix, at, use)
+  ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%%~), _Just, _1, _2, ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -370,7 +370,8 @@ handleSetOverlay widgetId path previousStep = do
 
   L.overlayWidgetId .= Just widgetId
   setWidgetIdPath widgetId path
-  return previousStep
+  return $ previousStep
+    & _1 . L.overlayPath ?~ path
 
 handleResetOverlay
   :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
@@ -382,9 +383,10 @@ handleResetOverlay widgetId step = do
 
   (wenv2, root2, reqs2) <- if overlay == Just widgetId
     then do
+      let newWenv = wenv & L.overlayPath .~ Nothing
       L.overlayWidgetId .= Nothing
       void $ handleResetCursorIcon widgetId step
-      handleSystemEvents wenv root [Move mousePos]
+      handleSystemEvents newWenv root [Move mousePos]
     else
       return (wenv, root, Empty)
 
@@ -419,7 +421,9 @@ handleResetCursorIcon wid previousStep = do
   cursor <- (Map.! newCursorIcon) <$> use L.cursorIcons
   SDLE.setCursor cursor
 
-  return previousStep
+  currentPair <- headMay newCursors & _Just . _1 %%~ getWidgetIdPath
+  return $ previousStep
+    & _1 . L.cursor .~ currentPair
 
 handleStartDrag
   :: (MonomerM s m)
@@ -434,7 +438,8 @@ handleStartDrag widgetId path dragData previousStep = do
 
   L.dragAction .= Just (DragAction widgetId dragData)
   setWidgetIdPath widgetId path
-  return previousStep
+  return $ previousStep
+    & _1 . L.dragStatus ?~ (path, dragData)
 
 handleStopDrag
   :: (MonomerM s m)
@@ -449,7 +454,8 @@ handleStopDrag widgetId previousStep = do
     then do
       L.renderRequested .= True
       L.dragAction .= Nothing
-      return $ previousStep & _1 . L.dragStatus .~ Nothing
+      return $ previousStep
+        & _1 . L.dragStatus .~ Nothing
   else return previousStep
 
 handleFinalizeDrop
@@ -464,7 +470,8 @@ handleFinalizeDrop previousStep = do
     then do
       L.renderRequested .= True
       L.dragAction .= Nothing
-      return $ previousStep & _1 . L.dragStatus .~ Nothing
+      return $ previousStep
+        & _1 . L.dragStatus .~ Nothing
     else return previousStep
 
 handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
