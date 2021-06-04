@@ -652,11 +652,14 @@
     - Scroll docs for message.
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Maybe modify dropdown to set overlay to the list?
+    - Fix cursor issue when clicking/closing dropdown
 
 Next
   - Review source code documentation.
-    - Fix cursor issue when clicking/closing dropdown
     - Fix nested wheel scroll issue.
+    - Fix nested wheel event.
+      - In general, I accidentally removed IgnoreParentEvents logic.
+      - Add test cases for this.
     - Improve scroll test cases
     - Should key, enabled, visible be exported automatically?
   - Create user documentation

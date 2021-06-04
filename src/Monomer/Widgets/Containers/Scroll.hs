@@ -336,10 +336,17 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config oldState
 
   findByPoint wenv node start point
-    | isPointInNodeVp realPoint node = Just 0
+    | not mouseInScroll && (childHovered || childDragged) = Just 0
     | otherwise = Nothing
     where
+      sctx = scrollStatus config wenv node state point
+      mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
       realPoint = addPoint point offset
+      child = Seq.index (node ^. L.children) 0
+      childHovered = isPointInNodeVp realPoint child
+      childDragged = case wenv ^. L.mainBtnPress of
+        Just (path, _) -> isNodeParentOfPath path child
+        Nothing -> False
 
   handleEvent wenv node target evt = case evt of
     Focus{} -> result where
