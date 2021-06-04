@@ -245,7 +245,7 @@ data ScrollContext = ScrollContext {
   vScrollRect :: Rect,
   hThumbRect :: Rect,
   vThumbRect :: Rect
-}
+} deriving (Eq, Show)
 
 instance Default ScrollState where
   def = ScrollState {
@@ -335,18 +335,16 @@ makeScroll config state = widget where
     newNode = node
       & L.widget .~ makeScroll config oldState
 
-  findByPoint wenv node start point
-    | not mouseInScroll && (childHovered || childDragged) = Just 0
-    | otherwise = Nothing
-    where
-      sctx = scrollStatus config wenv node state point
-      mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
-      realPoint = addPoint point offset
-      child = Seq.index (node ^. L.children) 0
-      childHovered = isPointInNodeVp realPoint child
-      childDragged = case wenv ^. L.mainBtnPress of
-        Just (path, _) -> isNodeParentOfPath path child
-        Nothing -> False
+  findByPoint wenv node start point = result where
+    sctx = scrollStatus config wenv node state point
+    mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
+    childPoint = addPoint point offset
+    child = Seq.index (node ^. L.children) 0
+    childHovered = isPointInNodeVp childPoint child
+    childDragged = isNodePressed wenv child
+    result
+      | (not mouseInScroll && childHovered) || childDragged = Just 0
+      | otherwise = Nothing
 
   handleEvent wenv node target evt = case evt of
     Focus{} -> result where

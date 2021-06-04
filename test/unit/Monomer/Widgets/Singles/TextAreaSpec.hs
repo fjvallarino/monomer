@@ -200,19 +200,19 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     model steps ^. textValue `shouldBe` "This is text!"
 
   it "should drag around and input 'Text'" $ do
-    let str = ""
+    let str = "This is random"
     let selStart = Point 50 10
     let selMid1 = Point 0 10
     let selMid2 = Point 200 10
     let selMid3 = Point (-200) 10
-    let selEnd = Point 120 10
+    let selEnd = Point 150 10
     let moves = [evtMove selMid1, evtMove selMid2, evtMove selMid3, evtMove selEnd]
     let steps = [evtT str, evtPress selStart] ++ moves ++ [evtRelease selEnd, evtT "Text"]
-    model steps ^. textValue `shouldBe` "Text"
+    model steps ^. textValue `shouldBe` "This Text"
 
   it "should input 'This is text', select 'is text' and input 'test'" $ do
     let str = "This is text"
-    let selStart = Point 40 10
+    let selStart = Point 50 10
     let selEnd = Point 120 10
     let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "test"]
     model steps ^. textValue `shouldBe` "This test"
@@ -235,8 +235,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     wenv = mockWenvEvtUnit (TestModel "")
     txtNode = vstack [
         hstack [
-          textArea textValue `style` [width 105, height 20],
-          hstack []
+          textArea textValue `style` [height 50]
         ]
       ]
     model es = nodeHandleEventModel wenv es txtNode
