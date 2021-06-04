@@ -811,14 +811,14 @@ handleEventWrapper container wenv node target evt
     -- different types for Model and Events, and is candidate for the next step
     offset = fromMaybe def (containerChildrenOffset container)
     style = containerGetActiveStyle container wenv node
-    handleCursor = not (containerUseCustomCursor container)
+    doCursor = not (containerUseCustomCursor container)
     updateCWenv = getUpdateCWenv container
     handler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
     -- Event targeted at parent
     pResponse = handler wenv node target evt
-    pResultStyled = handleStyleChange wenv target style handleCursor node evt
+    pResultStyled = handleStyleChange wenv target style doCursor node evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children
     pNode = maybe node (^. L.node) pResponse
@@ -832,9 +832,15 @@ handleEventWrapper container wenv node target evt
     cResponse
       | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
       | otherwise = widgetHandleEvent childWidget cwenv child target cevt
-    cResult = mergeParentChildEvts pNode pResponse cResponse childIdx
-    cResultStyled = handleStyleChange cwenv target style handleCursor pNode cevt
-      $ handleSizeReqChange container cwenv pNode (Just cevt) cResult
+    parentIgnored = isJust cResponse && ignoreParent (fromJust cResponse)
+    cResult
+      | parentIgnored = mergeParentChildEvts node Nothing cResponse childIdx
+      | otherwise = mergeParentChildEvts pNode pResponse cResponse childIdx
+    cpNode
+      | parentIgnored = node
+      | otherwise = pNode
+    cResultStyled = handleStyleChange cwenv target style doCursor cpNode cevt
+      $ handleSizeReqChange container cwenv cpNode (Just cevt) cResult
 
 mergeParentChildEvts
   :: WidgetNode s e

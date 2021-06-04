@@ -656,12 +656,12 @@
 
 Next
   - Review source code documentation.
-    - Fix nested wheel scroll issue.
     - Fix nested wheel event.
       - In general, I accidentally removed IgnoreParentEvents logic.
       - Add test cases for this.
     - Improve scroll test cases
     - Should key, enabled, visible be exported automatically?
+    - Drag select in text area should make cursor visible.
   - Create user documentation
     - Overview of the library
     - Tutorials
