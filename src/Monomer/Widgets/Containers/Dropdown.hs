@@ -48,7 +48,7 @@ import Control.Lens (ALens', (&), (^.), (^?), (^?!), (.~), (%~), (<>~), _Just, i
 import Control.Monad
 import Data.Default
 import Data.List (foldl')
-import Data.Maybe (fromJust, fromMaybe, isJust)
+import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 import Data.Typeable (cast)
@@ -258,7 +258,6 @@ makeDropdown
 makeDropdown widgetData items makeMain makeRow config state = widget where
   container = def {
     containerChildrenOffset = Just (_ddsOffset state),
-    containerUseCustomCursor = True,
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerFindNextFocus = findNextFocus,
@@ -328,14 +327,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     Blur next
       | not isOpen && not (seqStartsWith path focusedPath)
         -> ddFocusChange _ddcOnBlur _ddcOnBlurReq next node
-    Enter{} -> Just result where
-      newIcon = fromMaybe CursorHand (style ^. L.cursorIcon)
-      result = resultReqs node [SetCursorIcon widgetId CursorHand]
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
       slPoint = addPoint (negPoint (_ddsOffset state)) point
-      validMainPos = isPointInNodeVp point mainNode
+      validMainPos = not isOpen && isPointInNodeVp point mainNode
       validListPos = isOpen && isPointInNodeVp slPoint listNode
       validPos = validMainPos || validListPos
       isArrow = Just CursorArrow == (snd <$> wenv ^. L.cursor)
@@ -347,12 +343,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | btn == wenv ^. L.mainButton && not isOpen -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
     Click point _
-      | openRequired point node -> Just $ openDropdown wenv node
+      | openRequired point node -> Just resultOpen
       | closeRequired point node -> Just resultClose
       where
-        closeReqs = [ResetCursorIcon widgetId | not (isPointInNodeVp point node)]
+        inVp = isPointInNodeVp point node
+        resultOpen = openDropdown wenv node
+          & L.requests <>~ Seq.fromList [SetCursorIcon widgetId CursorArrow]
         resultClose = closeDropdown wenv node
-          & L.requests <>~ Seq.fromList closeReqs
+          & L.requests <>~ Seq.fromList [ResetCursorIcon widgetId | not inVp]
     KeyAction mode code KeyPressed
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv node
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
@@ -367,6 +365,9 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath
+      overlayPath = wenv ^. L.overlayPath
+      overlayParent = isNodeParentOfPath (fromJust overlayPath) node
+      nodeValid = isNothing overlayPath || overlayParent
 
   openRequired point node = not isOpen && inViewport where
     inViewport = pointInRect point (node ^. L.info . L.viewport)

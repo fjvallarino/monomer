@@ -310,6 +310,7 @@ makeScroll config state = widget where
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
     containerMerge = merge,
+    containerFindByPoint = findByPoint,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
     containerGetSizeReq = getSizeReq,
@@ -333,6 +334,12 @@ makeScroll config state = widget where
   merge wenv node oldNode oldState = resultNode newNode where
     newNode = node
       & L.widget .~ makeScroll config oldState
+
+  findByPoint wenv node start point
+    | isPointInNodeVp realPoint node = Just 0
+    | otherwise = Nothing
+    where
+      realPoint = addPoint point offset
 
   handleEvent wenv node target evt = case evt of
     Focus{} -> result where

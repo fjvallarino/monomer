@@ -129,28 +129,29 @@ handleEventOverlay = describe "handleEventOverlay" $ do
   it "should not change the cursor if not event happened" $ do
     icons [] `shouldBe` [CursorArrow]
 
-  it "should not show to arrow in overlay area if dropdown is not open" $ do
+  it "should not show arrow in overlay area if dropdown is not open" $ do
     let evtsGroups = [[evtMove p1], [evtMove p2], [evtMove p3]]
     icons evtsGroups `shouldBe` [CursorArrow, CursorHand, CursorInvalid, CursorInvalid]
 
   it "should show arrow in overlay area if dropdown is open" $ do
     let evtsGroups = [[evtMove p1], [evtClick p1], [evtMove p2], [evtMove p3]]
-    icons evtsGroups `shouldBe` [CursorArrow, CursorHand, CursorHand, CursorHand, CursorArrow]
+    icons evtsGroups `shouldBe` [CursorArrow, CursorHand, CursorArrow, CursorHand, CursorArrow]
 
   it "should show arrow in overlay area when dropdown is open, invalid after it's closed" $ do
     let evtsGroups = [[evtMove p1], [evtClick p1], [evtMove p3], [evtClick p3]]
-    icons evtsGroups `shouldBe` [CursorArrow, CursorHand, CursorHand, CursorArrow, CursorInvalid]
+    icons evtsGroups `shouldBe` [CursorArrow, CursorHand, CursorArrow, CursorArrow, CursorInvalid]
 
   where
     wenv = mockWenvEvtUnit (TestModel 0)
+      & L.theme .~ darkTheme
     node = vstack [
         textDropdown selectedItem [0..10::Int],
         filler
       ] `style` [cursorIcon CursorInvalid]
     icons egs = getIcons wenv node egs
-    p1 = Point 100 10
-    p2 = Point 100 30
-    p3 = Point 100 400
+    p1 = Point 100 10   -- Header
+    p2 = Point 100 50   -- List overlay
+    p3 = Point 100 400  -- Outside
 
 getIcons
   :: Eq s
