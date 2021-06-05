@@ -653,21 +653,21 @@
     - Check _wniOverlay. Can it be replaced with overlayPath check?
       - Maybe modify dropdown to set overlay to the list?
     - Fix cursor issue when clicking/closing dropdown
+    - Fix nested wheel event.
+      - I accidentally removed IgnoreParentEvents logic.
 
 Next
   - Review source code documentation.
-    - Fix nested wheel event.
-      - In general, I accidentally removed IgnoreParentEvents logic.
-      - Add test cases for this.
-    - Improve scroll test cases
-    - Should key, enabled, visible be exported automatically?
     - Drag select in text area should make cursor visible.
+    - Should key, enabled, visible be exported automatically?
   - Create user documentation
     - Overview of the library
     - Tutorials
   - Create ContextMenu (could work similarly to Tooltip)
-  - Add support for multiline text editing
-    - Complete test cases
+  - Complete test cases
+    - Multiline text editing
+    - IgnoreParentEvents.
+    - Improve scroll test cases
 
 Future
   - Check if Windows/Linux also miss top pixel

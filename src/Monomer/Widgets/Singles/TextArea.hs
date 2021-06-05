@@ -498,9 +498,10 @@ makeTextArea wdata config state = widget where
           _tasCursorPos = newPos,
           _tasSelStart = newSel
         }
+        scrollReq = generateScrollReq wenv node newState
         newNode = node
           & L.widget .~ makeTextArea wdata config newState
-        result = resultReqs newNode [RenderOnce]
+        result = resultReqs newNode (RenderOnce : scrollReq)
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt -> Just resultCopy
@@ -615,7 +616,7 @@ makeTextArea wdata config state = widget where
     scrollMsg = ScrollTo $ moveRect offset scrollRect
     scrollReq
       | rectInRect caretRect (wenv ^. L.viewport) || isNothing scWid = []
-      | otherwise = [SendMessage (fromJust scWid) scrollMsg, RenderOnce]
+      | otherwise = [SendMessage (fromJust scWid) scrollMsg]
 
   getSizeReq wenv node = sizeReq where
     Size w h = getTextLinesSize textLines

@@ -146,14 +146,14 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetScroll where
+buildUI wenv model = traceShow "Creating UI" widgetText where
   widgetText = vstack [
---      label "Test",
---      hstack [
---        label "Test",
---        textArea textArea1
---      ],
---      hslider int1 0 100
+      label "Test",
+      hstack [
+        label "Test",
+        textArea textArea1
+      ],
+      hslider int1 0 100
     ]
   widgetDate = vstack [
 --      hstack [
