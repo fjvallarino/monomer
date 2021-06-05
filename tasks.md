@@ -656,12 +656,13 @@
     - Fix nested wheel event.
       - I accidentally removed IgnoreParentEvents logic.
     - Drag select in text area should make cursor visible.
-
-Next
   - Complete test cases
     - Multiline text editing
     - IgnoreParentEvents.
     - Improve scroll test cases
+
+Next
+  - Rename LeftBtn -> BtnLeft
   - Create user documentation
     - Overview of the library
     - Tutorials

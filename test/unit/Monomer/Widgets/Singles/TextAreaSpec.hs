@@ -231,6 +231,39 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     let steps = [evtT str, evtPress selStart, evtMove selEnd, evtRelease selEnd, evtT "New"]
     model steps ^. textValue `shouldBe` "New"
 
+  it "should input 'This is long\nline', click twice, input 'a'" $ do
+    let str = "This is long\nline"
+    let point = Point 80 10
+    let steps = [evtT str, ButtonAction point LeftBtn BtnReleased 2, evtT "a"]
+    model steps ^. textValue `shouldBe` "This is a\nline"
+
+  it "should input 'This is long\nline', click three times, input 'New'" $ do
+    let str = "This is long line\nline"
+    let point = Point 80 10
+    let steps = [evtT str, ButtonAction point LeftBtn BtnReleased 3, evtT "New"]
+    model steps ^. textValue `shouldBe` "New\nline"
+
+  it "should input 'This is long\nline', click four times, input 'Clear'" $ do
+    let str = "This is long line\nline"
+    let point = Point 80 10
+    let steps = [evtT str, ButtonAction point LeftBtn BtnReleased 4, evtT "Clear"]
+    model steps ^. textValue `shouldBe` "Clear"
+
+  it "should input multiline text, move to start, select the first line and clear it" $ do
+    let str = "a\nb\nc\nd\ne\nf\n"
+    let selStart = Point 20 10
+    let steps = [evtT str, evtKG keyUp, ButtonAction selStart LeftBtn BtnReleased 3, evtT ""]
+    model steps ^. textValue `shouldBe` "\nb\nc\nd\ne\nf\n"
+
+  it "should input multiline text, move to start, select drag four lines, unselect, select active line and clear it (tests auto scroll)" $ do
+    let str = "a\nb\nc\nd\ne\nf\n"
+    let selStart = Point 0 10
+    let selEnd = Point 0 100
+    let selSteps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    let lineSteps = [ButtonAction selStart LeftBtn BtnReleased 3, evtT ""]
+    let steps = [evtT str, evtKG keyUp] ++ selSteps ++ lineSteps
+    model steps ^. textValue `shouldBe` "a\nb\nc\nd\n\nf\n"
+
   where
     wenv = mockWenvEvtUnit (TestModel "")
     txtNode = vstack [

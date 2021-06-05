@@ -26,6 +26,7 @@ import Monomer.Widgets.Containers.Scroll
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
@@ -44,6 +45,7 @@ spec = describe "Scroll" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleChildrenFocus
+  handleNestedWheel
   handleMessageReset
 
 handleChildrenFocus :: Spec
@@ -53,13 +55,8 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
     evtsIgnore evts2 `shouldBe` Seq.fromList [Button1]
     evtsIgnore evts3 `shouldBe` Seq.fromList [Button1]
 
-  it "should follow focus events" $
+  it "should follow focus events" $ do
     evtsFollow evts1 `shouldBe` Seq.fromList [Button2]
-
-  xit "should follow focus events on overlay" $
-    evtsFollow evts2 `shouldBe` Seq.fromList [Button2]
-
-  it "should follow focus events on non overlay" $
     evtsFollow evts3 `shouldBe` Seq.fromList [Button4]
 
   where
@@ -79,6 +76,38 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
     followNode = scroll stackNode
     evtsIgnore es = nodeHandleEventEvts wenv es ignoreNode
     evtsFollow es = nodeHandleEventEvts wenv es followNode
+
+handleNestedWheel :: Spec
+handleNestedWheel = describe "handleNestedWheel" $ do
+  it "should scroll main widget" $ do
+    events evts1 `shouldBe` Seq.fromList [Button4]
+
+  it "should scroll child widget" $ do
+    events evts2 `shouldBe` Seq.fromList [Button3]
+
+  where
+    wenv = mockWenv () & L.windowSize .~ Size 640 480
+    pointClick = Point 160 240
+    pointWheel1 = Point 480 240
+    pointWheel2 = Point 160 240
+    evtWheel p = WheelScroll p (Point 0 (-2000)) WheelNormal
+    evts1 = [evtWheel pointWheel1, evtClick pointClick]
+    evts2 = [evtWheel pointWheel2, evtClick pointClick]
+    st = [width 320, height 480]
+    childNode = vscroll (vstack [
+        button "Button 1" Button1 `style` st,
+        button "Button 2" Button2 `style` st,
+        button "Button 3" Button3 `style` st
+      ]) `style` [height 480]
+    mainNode = vstack [
+        childNode,
+        button "Button 4" Button4 `style` st
+      ] `style` [width 320]
+    scrollNode = vscroll $ hstack [
+        mainNode,
+        filler
+      ]
+    events es = nodeHandleEventEvts wenv es scrollNode
 
 handleMessageReset :: Spec
 handleMessageReset = describe "handleMessageReset" $ do
