@@ -50,4 +50,4 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv () & L.theme .~ darkTheme
     confirmNode = confirmMsg "Confirm!" AcceptClick CancelClick
-    events p = nodeHandleEventEvts wenv [Click p LeftBtn] confirmNode
+    events p = nodeHandleEventEvts wenv [Click p BtnLeft] confirmNode

@@ -50,7 +50,7 @@ main = do
         appDisposeEvent DisposeApp,
         appExitEvent CancelExitApp,
         appResizeEvent ResizeApp,
-        appMainButton LeftBtn,
+        appMainButton BtnLeft,
         --appStateFileMain "main-tree.ser",
         appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

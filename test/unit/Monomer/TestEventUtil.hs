@@ -59,19 +59,19 @@ evtBlur :: SystemEvent
 evtBlur = Blur emptyPath
 
 evtClick :: Point -> SystemEvent
-evtClick p = Click p LeftBtn
+evtClick p = Click p BtnLeft
 
 evtDblClick :: Point -> SystemEvent
-evtDblClick p = DblClick p LeftBtn
+evtDblClick p = DblClick p BtnLeft
 
 evtPress :: Point -> SystemEvent
-evtPress p = ButtonAction p LeftBtn BtnPressed 1
+evtPress p = ButtonAction p BtnLeft BtnPressed 1
 
 evtRelease :: Point -> SystemEvent
-evtRelease p = ButtonAction p LeftBtn BtnReleased 1
+evtRelease p = ButtonAction p BtnLeft BtnReleased 1
 
 evtReleaseDrag :: Point -> SystemEvent
-evtReleaseDrag p = ButtonAction p LeftBtn BtnReleased 0
+evtReleaseDrag p = ButtonAction p BtnLeft BtnReleased 0
 
 evtMove :: Point -> SystemEvent
 evtMove p = Move p

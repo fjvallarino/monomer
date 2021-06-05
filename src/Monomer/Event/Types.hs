@@ -35,9 +35,9 @@ data KeyStatus
 
 -- | Button of a pointer device (mouse).
 data Button
-  = LeftBtn
-  | MiddleBtn
-  | RightBtn
+  = BtnLeft
+  | BtnMiddle
+  | BtnRight
   deriving (Eq, Show, Ord)
 
 -- | Status of a mouse button.

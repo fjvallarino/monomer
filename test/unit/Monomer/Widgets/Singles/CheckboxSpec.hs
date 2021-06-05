@@ -71,7 +71,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel False)
     chkNode = checkbox_ testBool [onFocus GotFocus, onBlur LostFocus]
-    clickModel p = nodeHandleEventModel wenv [Click p LeftBtn] chkNode
+    clickModel p = nodeHandleEventModel wenv [Click p BtnLeft] chkNode
     keyModel key = nodeHandleEventModel wenv [KeyAction def key KeyPressed] chkNode
     events evt = nodeHandleEventEvts wenv [evt] chkNode
 
@@ -93,7 +93,7 @@ handleEventValue = describe "handleEventValue" $ do
     wenv = mockWenv (TestModel False)
     chkNode = checkboxV False BoolSel
     chkNodeT = checkboxV True BoolSel
-    clickModel p node = nodeHandleEventEvts wenv [Click p LeftBtn] node
+    clickModel p node = nodeHandleEventEvts wenv [Click p BtnLeft] node
     keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
 getSizeReq :: Spec

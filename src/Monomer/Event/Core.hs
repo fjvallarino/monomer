@@ -73,8 +73,8 @@ translateEvent offset evt = case evt of
 mouseClick :: Point -> SDL.EventPayload -> Maybe SystemEvent
 mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
     button = case SDL.mouseButtonEventButton eventData of
-      SDL.ButtonLeft -> Just LeftBtn
-      SDL.ButtonRight -> Just RightBtn
+      SDL.ButtonLeft -> Just BtnLeft
+      SDL.ButtonRight -> Just BtnRight
       _ -> Nothing
     action = case SDL.mouseButtonEventMotion eventData of
       SDL.Pressed -> BtnPressed

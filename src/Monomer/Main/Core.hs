@@ -123,7 +123,7 @@ runApp window widgetRoot config = do
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
   let exitEvents = _apcExitEvent config
-  let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
+  let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
 
   resizeWindow window
   startTs <- fmap fromIntegral SDL.ticks
@@ -226,7 +226,7 @@ mainLoop window renderer config loopArgs = do
     L.mainBtnPress .= Nothing
 
   let newSecond = _mlFrameAccumTs > 1000
-  let mainBtn = fromMaybe LeftBtn (_apcMainButton config)
+  let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weRenderer = renderer,

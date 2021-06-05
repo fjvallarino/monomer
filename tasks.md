@@ -660,13 +660,14 @@
     - Multiline text editing
     - IgnoreParentEvents.
     - Improve scroll test cases
+  - Rename LeftBtn -> BtnLeft
 
 Next
-  - Rename LeftBtn -> BtnLeft
   - Create user documentation
     - Overview of the library
     - Tutorials
   - Create ContextMenu (could work similarly to Tooltip)
+    - Add context button in wenv/config (similar to main button)
 
 Future
   - Check if Windows/Linux also miss top pixel
