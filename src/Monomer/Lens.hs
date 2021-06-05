@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Lens
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Module grouping all the diferent lens modules. Useful import to avoid duplicate
+instance errors.
+-}
 module Monomer.Lens (
   module Monomer.Core.Lens,
   module Monomer.Event.Lens,

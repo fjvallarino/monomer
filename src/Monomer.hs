@@ -13,6 +13,15 @@ If you want to create custom Widgets, check:
 
 - "Monomer.Widgets.Single" for self contained widgets
 - "Monomer.Widgets.Container" for widgets with children
+
+If you don't want to use all the helper modules, or import them unqualified, the
+basic modules you will need are these:
+
+- 'Monomer.Core'
+- 'Monomer.Event'
+- 'Monomer.Graphics'
+- 'Monomer.Main'
+- 'Monomer.Widgets'
 -}
 module Monomer (
     module Monomer.Core,

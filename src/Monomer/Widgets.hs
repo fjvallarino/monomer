@@ -1,3 +1,13 @@
+{-|
+Module      : Monomer.Widgets
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Widgets module, grouping and re-exporting all the existing widgets.
+-}
 module Monomer.Widgets (
   module Monomer.Widgets.Composite,
 

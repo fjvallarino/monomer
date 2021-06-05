@@ -1,3 +1,14 @@
+{-|
+Module      : Monomer.Helper
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Helper functions used across the library. Do not belong to any specifig module
+and are not directly exported.
+-}
 module Monomer.Helper where
 
 import Data.Sequence (Seq(..))

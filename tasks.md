@@ -655,19 +655,17 @@
     - Fix cursor issue when clicking/closing dropdown
     - Fix nested wheel event.
       - I accidentally removed IgnoreParentEvents logic.
+    - Drag select in text area should make cursor visible.
 
 Next
-  - Review source code documentation.
-    - Drag select in text area should make cursor visible.
-    - Should key, enabled, visible be exported automatically?
-  - Create user documentation
-    - Overview of the library
-    - Tutorials
-  - Create ContextMenu (could work similarly to Tooltip)
   - Complete test cases
     - Multiline text editing
     - IgnoreParentEvents.
     - Improve scroll test cases
+  - Create user documentation
+    - Overview of the library
+    - Tutorials
+  - Create ContextMenu (could work similarly to Tooltip)
 
 Future
   - Check if Windows/Linux also miss top pixel
