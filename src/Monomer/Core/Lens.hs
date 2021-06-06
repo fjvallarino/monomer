@@ -16,15 +16,10 @@ module Monomer.Core.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith, makePrisms)
 
-import Monomer.Core.BasicTypes
+import Monomer.Common.Lens
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
-
--- Basic
-makeLensesWith abbreviatedFields ''Point
-makeLensesWith abbreviatedFields ''Size
-makeLensesWith abbreviatedFields ''Rect
 
 -- Style
 makeLensesWith abbreviatedFields ''SizeReq

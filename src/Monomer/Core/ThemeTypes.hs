@@ -18,7 +18,7 @@ import GHC.Generics
 
 import qualified Data.Map.Strict as M
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types

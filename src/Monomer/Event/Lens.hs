@@ -16,6 +16,7 @@ module Monomer.Event.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
+import Monomer.Common.Lens
 import Monomer.Event.Types
 
 makeLensesWith abbreviatedFields ''InputStatus

@@ -1,5 +1,5 @@
 {-|
-Module      : Monomer.Core.BasicTypes
+Module      : Monomer.Common.BasicTypes
 Copyright   : (c) 2018 Francisco Vallarino
 License     : BSD-3-Clause (see the LICENSE file)
 Maintainer  : fjvallarino@gmail.com
@@ -10,7 +10,7 @@ Basic types used across the library.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Monomer.Core.BasicTypes where
+module Monomer.Common.BasicTypes where
 
 import Data.Default
 import Data.Sequence (Seq)

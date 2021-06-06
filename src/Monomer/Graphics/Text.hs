@@ -34,10 +34,8 @@ import Data.Text (Text)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
+import Monomer.Common
 import Monomer.Core
-import Monomer.Core.BasicTypes
-import Monomer.Core.StyleTypes
-import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 import Monomer.Helper
 

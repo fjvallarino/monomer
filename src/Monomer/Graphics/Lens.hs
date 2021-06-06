@@ -16,6 +16,7 @@ module Monomer.Graphics.Lens where
 
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
+import Monomer.Common.Lens
 import Monomer.Core.Lens
 import Monomer.Graphics.Types
 

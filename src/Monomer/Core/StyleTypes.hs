@@ -16,7 +16,7 @@ import Control.Applicative ((<|>))
 import Data.Default
 import GHC.Generics
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 

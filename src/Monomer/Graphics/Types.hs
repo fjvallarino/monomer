@@ -25,7 +25,7 @@ import qualified Data.ByteString as BS
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 
 -- | Direction in which triangles and arcs are drawn.
 data Winding

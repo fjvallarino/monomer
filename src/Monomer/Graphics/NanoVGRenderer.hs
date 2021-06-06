@@ -40,7 +40,7 @@ import qualified Data.Vector as V
 import qualified NanoVG as VG
 import qualified NanoVG.Internal.Image as VGI
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Graphics.Types
 
 import qualified Monomer.Lens as L

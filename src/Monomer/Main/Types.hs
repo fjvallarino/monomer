@@ -33,7 +33,7 @@ import qualified Data.Map as M
 import qualified SDL
 import qualified SDL.Raw.Types as SDLR
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes

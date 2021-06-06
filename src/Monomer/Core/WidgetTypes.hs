@@ -27,7 +27,7 @@ import GHC.Generics
 
 import qualified Data.Text as T
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Core.ThemeTypes
 import Monomer.Event.Types

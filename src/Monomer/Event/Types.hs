@@ -20,7 +20,7 @@ import Data.Map.Strict (Map)
 
 import qualified Data.Map.Strict as M
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 
 -- | Keycode for keyboard events. Used instead of Scancodes to avoid mappings.
 newtype KeyCode

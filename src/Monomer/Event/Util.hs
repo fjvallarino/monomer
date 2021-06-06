@@ -11,12 +11,6 @@ Utility functions for event handling.
 module Monomer.Event.Util (
   isButtonPressed,
   getKeyStatus,
-  isShortCutControl,
-  isKeyboardCopy,
-  isKeyboardPaste,
-  isKeyboardCut,
-  isKeyboardUndo,
-  isKeyboardRedo,
   isShiftPressed,
   isCtrlPressed,
   isAltPressed,
@@ -34,14 +28,14 @@ module Monomer.Event.Util (
   isOnMove,
   isOnLeave,
   isOnDrag,
-  isOnDrop
+  isOnDrop,
+  checkKeyboard
 ) where
 
 import Data.Maybe (fromMaybe)
 
 import qualified Data.Map as M
 
-import Monomer.Core
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
@@ -57,41 +51,6 @@ getKeyStatus :: InputStatus -> KeyCode -> KeyStatus
 getKeyStatus inputStatus code = status where
   keys = _ipsKeys inputStatus
   status = fromMaybe KeyReleased (M.lookup code keys)
-
--- | Checks if Ctrl/Cmd, depending on OS, is pressed.
-isShortCutControl :: WidgetEnv s e -> KeyMod -> Bool
-isShortCutControl wenv mod = isControl || isCommand where
-  isControl = not (isMacOS wenv) && isCtrlPressed mod
-  isCommand = isMacOS wenv && isGUIPressed mod
-
--- | Checks if a copy shortcut has been pressed.
-isKeyboardCopy :: WidgetEnv s e -> SystemEvent -> Bool
-isKeyboardCopy wenv event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wenv mod && isKeyC code
-
--- | Checks if a paste shortcut has been pressed.
-isKeyboardPaste :: WidgetEnv s e -> SystemEvent -> Bool
-isKeyboardPaste wenv event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wenv mod && isKeyV code
-
--- | Checks if a cut shortcut has been pressed.
-isKeyboardCut :: WidgetEnv s e -> SystemEvent -> Bool
-isKeyboardCut wenv event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wenv mod && isKeyX code
-
--- | Checks if an undo shortcut has been pressed.
-isKeyboardUndo :: WidgetEnv s e -> SystemEvent -> Bool
-isKeyboardUndo wenv event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wenv mod
-    && not (_kmLeftShift mod)
-    && isKeyZ code
-
--- | Checks if a redo shortcut has been pressed.
-isKeyboardRedo :: WidgetEnv s e -> SystemEvent -> Bool
-isKeyboardRedo wenv event = checkKeyboard event testFn where
-  testFn mod code motion = isShortCutControl wenv mod
-    && _kmLeftShift mod
-    && isKeyZ code
 
 -- | Checks if Winddows/Cmd key is pressed.
 isGUIPressed :: KeyMod -> Bool
@@ -179,7 +138,7 @@ isOnDrop :: SystemEvent -> Bool
 isOnDrop Drop{} = True
 isOnDrop _ = False
 
--- Helpers
+-- | Appplies a provided function to test a KeyAction event
 checkKeyboard :: SystemEvent -> (KeyMod -> KeyCode -> KeyStatus -> Bool) -> Bool
 checkKeyboard (KeyAction mod code motion) testFn = testFn mod code motion
 checkKeyboard _ _ = False

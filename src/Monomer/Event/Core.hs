@@ -20,7 +20,7 @@ import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Map.Strict as M
 import qualified SDL
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 

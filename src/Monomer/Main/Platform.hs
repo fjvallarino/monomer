@@ -34,7 +34,7 @@ import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw
 import qualified SDL.Raw.Error as SRE
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Main.Types
 import Monomer.Event.Types

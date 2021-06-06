@@ -30,7 +30,7 @@ import Data.Bits
 import Data.Default
 import Data.Maybe
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Core.StyleUtil
 import Monomer.Core.Util

@@ -22,7 +22,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 import Monomer.Helper

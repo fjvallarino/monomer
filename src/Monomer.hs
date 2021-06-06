@@ -17,6 +17,7 @@ If you want to create custom Widgets, check:
 If you don't want to use all the helper modules, or import them unqualified, the
 basic modules you will need are these:
 
+- 'Monomer.Common'
 - 'Monomer.Core'
 - 'Monomer.Event'
 - 'Monomer.Graphics'
@@ -24,6 +25,7 @@ basic modules you will need are these:
 - 'Monomer.Widgets'
 -}
 module Monomer (
+    module Monomer.Common,
     module Monomer.Core,
     module Monomer.Core.Combinators,
     module Monomer.Core.Themes.SampleThemes,
@@ -34,6 +36,7 @@ module Monomer (
     module Monomer.Widgets
 ) where
 
+import Monomer.Common
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Core.Themes.SampleThemes

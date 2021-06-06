@@ -38,7 +38,7 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes

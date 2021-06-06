@@ -23,7 +23,7 @@ module Monomer.Core.Combinators where
 import Control.Lens (ALens')
 import Data.Text (Text)
 
-import Monomer.Core.BasicTypes
+import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
