@@ -9,6 +9,7 @@ Portability : non-portable
 Helper functions for creating custom widgets.
 -}
 module Monomer.Widgets.Util (
+  module Monomer.Widgets.Util.Drawing,
   module Monomer.Widgets.Util.Focus,
   module Monomer.Widgets.Util.Hover,
   module Monomer.Widgets.Util.Keyboard,
@@ -19,6 +20,7 @@ module Monomer.Widgets.Util (
   module Monomer.Widgets.Util.Widget
 ) where
 
+import Monomer.Widgets.Util.Drawing
 import Monomer.Widgets.Util.Focus
 import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Keyboard

@@ -1,5 +1,5 @@
 {-|
-Module      : Monomer.Graphics.Drawing
+Module      : Monomer.Widgets.Util.Drawing
 Copyright   : (c) 2018 Francisco Vallarino
 License     : BSD-3-Clause (see the LICENSE file)
 Maintainer  : fjvallarino@gmail.com
@@ -11,7 +11,7 @@ Utility drawing functions. Built on top the lower level primitives provided by
 -}
 {-# LANGUAGE RecordWildCards #-}
 
-module Monomer.Graphics.Drawing (
+module Monomer.Widgets.Util.Drawing (
   drawInScissor,
   drawInTranslation,
   drawInScale,
