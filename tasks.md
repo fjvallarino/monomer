@@ -663,9 +663,12 @@
   - Rename LeftBtn -> BtnLeft
 
 Next
+  - Rethink Model/Event naming in EventResponse
   - Create user documentation
     - Overview of the library
     - Tutorials
+  - Function for setting focus should be in Utils.
+  - Default theme should be usable (scroll, etc)
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)
 

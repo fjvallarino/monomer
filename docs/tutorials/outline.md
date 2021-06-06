@@ -1,0 +1,32 @@
+- Create initial project from stack template
+  - Install stack
+  - Install SDL library dependency
+  - Do we need something for nanovg?
+  - Clone sample project
+  - Compile and run
+  - Show how to use ghcid for faster dev cycle
+- Basics of UI building and event handling
+  - Basic layout widgets (stack and grid).
+  - Basic widgets: label, button, spacer, checkbox and radio.
+  - Event handling: model updates.
+- Running tasks
+  - Lifecycle
+    - Merging.
+    - Keys, paths, widgetIds.
+  - Some more widgets: textField, image, scroll, keystroke.
+  - Some kind of search and show results.
+  - App config
+- Styling
+  - Resizing fonts, font name, changing colors.
+  - Use box, slider, dropdown, colorPicker.
+  - Quirks of positioning, modifying sizeReqs, etc.
+- Composite
+  - Could reuse example from Running tasks
+  - Widgets: zstack.
+  - Use dialogs.
+- Running producers
+  - Consume a streaming data source.
+  - Widgets: Draggable, DropTarget, animations.
+  - Sending messages.
+- Custom widget
+  - Merging, event handling, sizeReq, rendering.
