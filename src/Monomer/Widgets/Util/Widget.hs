@@ -51,9 +51,6 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Common
 import Monomer.Core.WidgetTypes
-import Monomer.Event.Types
-import Monomer.Event.Util
-import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L
 

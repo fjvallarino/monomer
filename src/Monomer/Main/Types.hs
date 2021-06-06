@@ -40,7 +40,7 @@ import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
-import Monomer.Widgets.Composite
+import Monomer.Widgets.Composite (EventResponse, UIBuilder)
 
 -- | Type of response an App event handler can return, with __s__ being the
 -- | model and __e__ the user's event type.

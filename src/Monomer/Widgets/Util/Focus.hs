@@ -30,9 +30,7 @@ import Data.Typeable (Typeable)
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Event.Types
 import Monomer.Helper
-import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Core.Lens as L

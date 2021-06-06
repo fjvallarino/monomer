@@ -39,7 +39,6 @@ import Data.Maybe
 import Data.Text (Text)
 
 import Monomer.Core
-import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L

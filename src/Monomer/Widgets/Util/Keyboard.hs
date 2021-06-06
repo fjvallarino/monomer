@@ -22,7 +22,6 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
 import Monomer.Core
-import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
 import Monomer.Event.Util
