@@ -16,9 +16,11 @@ import Control.Lens (Lens', (&), (^.), (^?), (.~), (?~), (<>~), at, non)
 import Data.Default
 import Data.Maybe
 
-import Monomer.Core
+import Monomer.Core.StyleTypes
+import Monomer.Core.ThemeTypes
+import Monomer.Core.WidgetTypes
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Updates a the field of style with the field value from the active theme.
 collectThemeField_

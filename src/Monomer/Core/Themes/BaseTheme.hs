@@ -24,7 +24,7 @@ import Monomer.Core.Style
 import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Creates a theme using the provided colors.
 baseTheme :: BaseThemeColors -> Theme

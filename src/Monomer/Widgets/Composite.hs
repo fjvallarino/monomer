@@ -50,7 +50,6 @@ is complementary for the cases when it's required. For example, it is used in
 module Monomer.Widgets.Composite (
   module Monomer.Core,
   module Monomer.Event,
-  module Monomer.Graphics,
   module Monomer.Widgets.Util,
 
   CompositeCfg,
@@ -86,12 +85,12 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
-import Monomer.Graphics
+import Monomer.Graphics.Types
 import Monomer.Helper
 import Monomer.Widgets.Singles.Spacer
 import Monomer.Widgets.Util
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Type of the parent's model
 type ParentModel sp = Typeable sp

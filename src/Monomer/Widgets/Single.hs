@@ -51,7 +51,7 @@ import Monomer.Graphics
 import Monomer.Helper
 import Monomer.Widgets.Util
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 {-|
 Returns the base style for this type of widget.

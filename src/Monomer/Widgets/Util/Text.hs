@@ -25,7 +25,7 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Graphics
 
-import Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Returns the text metrics of the active style.
 getTextMetrics :: WidgetEnv s e -> StyleState -> TextMetrics

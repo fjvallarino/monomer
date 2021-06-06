@@ -35,7 +35,7 @@ import Monomer.Helper
 import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Widget
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Checks if the given node is focused
 isNodeFocused :: WidgetEnv s e -> WidgetNode s e -> Bool

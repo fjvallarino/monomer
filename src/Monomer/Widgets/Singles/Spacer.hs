@@ -35,7 +35,7 @@ import Data.Tuple
 
 import Monomer.Widgets.Single
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,

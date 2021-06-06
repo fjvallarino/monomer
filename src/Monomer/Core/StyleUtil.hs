@@ -44,7 +44,7 @@ import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Returns the content area (i.e., ignoring border and padding) of the node.
 getContentArea :: StyleState -> WidgetNode s e -> Rect

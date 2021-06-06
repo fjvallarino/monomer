@@ -32,7 +32,7 @@ import Monomer.Main.Lens
 import Monomer.Main.Util
 import Monomer.Main.Types
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Checks the status and collects results of active tasks.
 handleWidgetTasks

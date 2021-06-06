@@ -33,7 +33,8 @@ import Monomer.Event.Util
 import Monomer.Graphics.Types
 import Monomer.Helper
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
+import qualified Monomer.Event.Lens as L
 
 -- | Checks if the given point is inside the node's viewport.
 isPointInNodeVp :: Point -> WidgetNode s e -> Bool

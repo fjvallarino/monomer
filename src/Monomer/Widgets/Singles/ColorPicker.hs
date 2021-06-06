@@ -43,6 +43,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Builder as B
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Graphics
 
 import Monomer.Widgets.Composite
 import Monomer.Widgets.Containers.Box

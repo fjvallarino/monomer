@@ -56,7 +56,6 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 
 import qualified Monomer.Lens as L
-import Control.Monad.Trans.Maybe
 
 {-|
 Tuple representing the current widget environment, widget root and accumulated

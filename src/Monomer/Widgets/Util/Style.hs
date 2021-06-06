@@ -43,7 +43,8 @@ import Monomer.Widgets.Util.Hover
 import Monomer.Widgets.Util.Types
 import Monomer.Widgets.Util.Widget
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
+import qualified Monomer.Event.Lens as L
 
 instance Default (ActiveStyleCfg s e) where
   def = ActiveStyleCfg {

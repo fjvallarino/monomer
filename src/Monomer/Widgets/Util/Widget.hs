@@ -49,12 +49,13 @@ import Data.Typeable (Typeable, cast)
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 
-import Monomer.Core
+import Monomer.Common
+import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Event.Util
 import Monomer.Graphics.Types
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Creates a basic widget node, with the given type, instance and no children.
 defaultWidgetNode :: WidgetType -> Widget s e -> WidgetNode s e

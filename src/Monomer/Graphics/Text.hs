@@ -40,7 +40,8 @@ import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 import Monomer.Helper
 
-import Monomer.Lens as L
+import Monomer.Common.Lens as L
+import Monomer.Graphics.Lens as L
 
 type GlyphGroup = Seq GlyphPos
 

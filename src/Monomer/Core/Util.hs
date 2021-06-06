@@ -27,7 +27,7 @@ import Monomer.Core.Style
 import Monomer.Core.WidgetTypes
 import Monomer.Helper
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
 
 -- | Returns the path associated to a given key, if any.
 globalKeyPath :: WidgetEnv s e -> Text -> Maybe Path

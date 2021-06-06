@@ -43,7 +43,8 @@ import qualified NanoVG.Internal.Image as VGI
 import Monomer.Common
 import Monomer.Graphics.Types
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Common.Lens as L
+import qualified Monomer.Graphics.Lens as L
 
 type ImagesMap = M.Map String Image
 

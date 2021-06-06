@@ -32,7 +32,8 @@ import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Widgets.Util.Widget
 
-import qualified Monomer.Lens as L
+import qualified Monomer.Core.Lens as L
+import qualified Monomer.Main.Lens as L
 
 -- | Initializes the Monomer context with the provided information.
 initMonomerCtx :: s -> SDL.Window -> Size -> Bool -> Double -> MonomerCtx s
