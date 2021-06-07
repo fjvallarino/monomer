@@ -64,6 +64,9 @@ If you use Visual Studio Code, you can also use this very nice extension:
 https://marketplace.visualstudio.com/items?itemName=ndmitchell.haskell-ghcid
 ```
 
+Once installed, pressing `Ctrl-Shift-P` will allow invoking the `Start Ghcid`
+command. You can also run `ghcid` on the command line directly.
+
 With this, you will be running your application in interpreted mode (`ghcid`
 under the hood uses `ghci`), allowing you to make changes and test them almost
 immediately.
