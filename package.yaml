@@ -117,6 +117,14 @@ executables:
     - monomer
     - text-show
 
+  tutorial:
+    main: Main.hs
+    source-dirs: examples/tutorial
+    dependencies:
+    - lens
+    - monomer
+    - text-show
+
 tests:
   monomer-test:
     main: Spec.hs

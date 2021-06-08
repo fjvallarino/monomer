@@ -11,6 +11,11 @@ tasks and other actions.
 
 We'll explore these components next.
 
+**Note**: the code in this tutorial matches the one in `monomer-starter` and it
+is also the same as in this package's `Tutorial00.hs`. Next tutorials will have
+their own files matching the tutorial number; you can just copy the code over to
+your project for testing.
+
 ## The model
 
 The model represents the state of your application. Here you can store anything
@@ -203,5 +208,3 @@ In the example we use the `Model` response, which sets the new state of the
 application (you can check the [lens](external/01-lenses.md) tutorial to better
 understand those operators). If the model changed, this will trigger a call to
 the build UI function.
-
-In the next tutorial we'll check other response type.

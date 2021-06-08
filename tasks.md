@@ -670,6 +670,8 @@ Next
   - Function for setting focus should be in Utils.
   - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
+  - Check label ellipsis in Tutorial01.
+  - Rename simpleApp.
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)
 

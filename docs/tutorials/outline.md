@@ -9,6 +9,9 @@
   - Basic layout widgets (stack and grid).
   - Basic widgets: label, button, spacer, checkbox and radio.
   - Event handling: model updates.
+- Styling
+  - Resizing fonts, font name, changing colors.
+  - Use box, slider, dropdown, colorPicker.
 - Running tasks
   - Lifecycle
     - Merging.
@@ -16,14 +19,11 @@
   - Some more widgets: textField, image, scroll, keystroke.
   - Some kind of search and show results.
   - App config
-- Styling
-  - Resizing fonts, font name, changing colors.
-  - Use box, slider, dropdown, colorPicker.
-  - Quirks of positioning, modifying sizeReqs, etc.
 - Composite
   - Could reuse example from Running tasks
   - Widgets: zstack.
   - Use dialogs.
+  - Quirks of positioning, modifying sizeReqs, etc.
 - Running producers
   - Consume a streaming data source.
   - Widgets: Draggable, DropTarget, animations.
