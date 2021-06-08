@@ -1,0 +1,7 @@
+- Running tasks
+  - Lifecycle
+    - Merging.
+    - Keys, paths, widgetIds.
+  - Some more widgets: textField, image, scroll, keystroke.
+  - Some kind of search and show results.
+  - App config

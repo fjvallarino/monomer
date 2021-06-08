@@ -40,11 +40,15 @@ buildUI wenv model = widgetTree where
   imageSet = hstack [
       numberedImage "https://picsum.photos/id/1020/800/600" 1,
       numberedImage "https://picsum.photos/id/1047/800/600" 2,
-      numberedImage "https://picsum.photos/id/1051/800/600" 3
+      numberedImage "https://picsum.photos/id/1047/800/600" 3,
+      numberedImage "https://picsum.photos/id/1025/800/600" 4,
+      numberedImage "https://picsum.photos/id/1080/800/600" 5,
+      numberedImage "https://picsum.photos/id/1059/800/600" 6
     ] `style` [padding 10]
   widgetTree = vstack [
       hstack [
-        pushButton,
+        tooltip "Click to pick a random number" pushButton
+          `style` [textSize 16, bgColor steelBlue, paddingH 5, radius 5],
         numberLabel
       ],
       imageSet
@@ -59,7 +63,7 @@ handleEvent
 handleEvent wenv node model evt = case evt of
   AppInit -> []
   AppGenRandom -> [Task $
-      AppSaveRandom <$> randomRIO (1, 3)
+      AppSaveRandom <$> randomRIO (1, 6)
     ]
   AppSaveRandom value -> [Model $ model & selected .~ value]
 
@@ -70,6 +74,7 @@ main02 = do
     config = [
       appWindowTitle "Tutorial 02",
       appTheme darkTheme,
+      appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appInitEvent AppInit
       ]
