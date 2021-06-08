@@ -169,7 +169,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
     & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
   confirmTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
-        label title & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle,
+        label title & L.info . L.style .~ collectTheme wenv L.dialogTitleStyle,
         filler,
         box_ [alignTop, onClick cancelEvt] closeIcon
       ],

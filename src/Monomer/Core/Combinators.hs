@@ -505,6 +505,10 @@ class CmbBgColor t where
 class CmbFgColor t where
   fgColor :: Color -> t
 
+-- | Secondary color.
+class CmbSndColor t where
+  sndColor :: Color -> t
+
 -- | Highlight color.
 class CmbHlColor t where
   hlColor :: Color -> t

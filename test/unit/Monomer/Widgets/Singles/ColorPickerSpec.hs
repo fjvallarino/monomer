@@ -88,8 +88,8 @@ getSizeReq = describe "getSizeReq" $ do
   it "should return width = Range 126 1126" $
     sizeReqW `shouldBe` rangeSize 126 1126 1
 
-  it "should return height = Fixed 64 100" $
-    sizeReqH `shouldBe` rangeSize 64 100 1
+  it "should return height = Fixed 64" $
+    sizeReqH `shouldBe` fixedSize 64
 
   where
     wenv = mockWenvEvtUnit (TestModel (rgb 0 0 0))

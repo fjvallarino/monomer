@@ -288,6 +288,9 @@ instance CmbBgColor StyleState where
 instance CmbFgColor StyleState where
   fgColor col = def & L.fgColor ?~ col
 
+instance CmbSndColor StyleState where
+  sndColor col = def & L.sndColor ?~ col
+
 instance CmbHlColor StyleState where
   hlColor col = def & L.hlColor ?~ col
 

@@ -220,7 +220,7 @@ buildUI config wenv model = mainTree where
         alphaRow L.a "Alpha" `visible` showAlpha
       ],
       spacer_ [width 2],
-      box_ [alignTop] colorSample
+      box_ [alignTop] colorSample `style` [flexHeight 50]
     ] `style` [padding 0]
 
 handleEvent
