@@ -19,14 +19,14 @@
   - Some more widgets: textField, image, scroll, keystroke.
   - Some kind of search and show results.
   - App config
+- Running producers
+  - Consume a streaming data source.
+  - Widgets: Draggable, DropTarget, animations.
+  - Sending messages.
 - Composite
   - Could reuse example from Running tasks
   - Widgets: zstack.
   - Use dialogs.
   - Quirks of positioning, modifying sizeReqs, etc.
-- Running producers
-  - Consume a streaming data source.
-  - Widgets: Draggable, DropTarget, animations.
-  - Sending messages.
 - Custom widget
   - Merging, event handling, sizeReq, rendering.

@@ -12,7 +12,7 @@ tasks and other actions.
 We'll explore these components next.
 
 **Note**: the code in this tutorial matches the one in `monomer-starter` and it
-is also the same as in this package's `Tutorial00.hs`. Next tutorials will have
+is also the same as in this package's `Tutorial01.hs`. Next tutorials will have
 their own files matching the tutorial number; you can just copy the code over to
 your project for testing.
 

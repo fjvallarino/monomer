@@ -6,18 +6,19 @@ module Tutorial02 where
 import Control.Lens
 import Data.Text (Text)
 import Monomer
-import System.Random
 
 import qualified Monomer.Lens as L
 
-newtype AppModel = AppModel {
-  _selected :: Int
+data AppModel = AppModel {
+  _sampleText :: Text,
+  _showPicker :: Bool,
+  _fontName :: Font,
+  _fontSize :: Double,
+  _fontColor :: Color
 } deriving (Eq, Show)
 
 data AppEvent
   = AppInit
-  | AppGenRandom
-  | AppSaveRandom Int
   deriving (Eq, Show)
 
 makeLenses 'AppModel
@@ -27,32 +28,51 @@ buildUI
   -> AppModel
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
-  pushLayers = zstack [
-      image_ "./assets/images/red-button.png" [fitFill],
-      label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
-    ]
-  pushButton = box_ [onClick AppGenRandom] pushLayers
-    `style` [width 160, height 160, cursorIcon CursorHand]
-  numberLabel = labelS (model ^. selected)
-    `style` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
-  numberedImage url idx = scroll (image_ url [fitFill])
-    `visible` (model ^. selected == idx)
-  imageSet = hstack [
-      numberedImage "https://picsum.photos/id/1020/800/600" 1,
-      numberedImage "https://picsum.photos/id/1047/800/600" 2,
-      numberedImage "https://picsum.photos/id/1047/800/600" 3,
-      numberedImage "https://picsum.photos/id/1025/800/600" 4,
-      numberedImage "https://picsum.photos/id/1080/800/600" 5,
-      numberedImage "https://picsum.photos/id/1059/800/600" 6
-    ] `style` [padding 10]
   widgetTree = vstack [
+      titleText "Font name",
+      hgrid [
+        hstack [
+          label "Regular: ",
+          radio fontName "Regular",
+          filler
+        ],
+        hstack [
+          label "Bold: ",
+          radio fontName "Bold",
+          filler
+        ],
+        hstack [
+          label "Italic: ",
+          radio fontName "Italic",
+          filler
+        ]
+      ] `style` [paddingV 10],
+      titleText "Font name",
+      hslider fontSize 10 200
+        `style` [paddingV 10, fgColor orange],
+      titleText "Font color",
       hstack [
-        tooltip "Click to pick a random number" pushButton
-          `style` [textSize 16, bgColor steelBlue, paddingH 5, radius 5],
-        numberLabel
-      ],
-      imageSet
-    ] `style` [bgColor moccasin]
+        label "Show color picker ",
+        checkbox showPicker,
+        filler
+      ] `style` [paddingT 10, paddingB 5],
+      colorPicker fontColor
+        `visible` (model ^. showPicker)
+        `style` [paddingB 10],
+      sampleTextLabel
+    ] `style` [padding 10]
+  titleText text = label text
+    `style` [textFont "Bold", textSize 20]
+  sampleTextLabel = label_ (model ^. sampleText) [ellipsis]
+    `style` [
+      bgColor dimGray,
+      border 4 lightGray,
+      radius 10,
+      textFont (model ^. fontName),
+      textSize (model ^. fontSize),
+      textColor (model ^. fontColor),
+      textCenter,
+      flexHeight 100]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent
@@ -62,22 +82,23 @@ handleEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
   AppInit -> []
-  AppGenRandom -> [Task $
-      AppSaveRandom <$> randomRIO (1, 6)
-    ]
-  AppSaveRandom value -> [Model $ model & selected .~ value]
 
 main02 :: IO ()
 main02 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 02",
+      appWindowTitle "Tutorial 01",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+      appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
       appInitEvent AppInit
       ]
     model = AppModel {
-      _selected = 0
+      _sampleText = "Hello World!",
+      _showPicker = False,
+      _fontName = "Regular",
+      _fontSize = 24,
+      _fontColor = white
     }
