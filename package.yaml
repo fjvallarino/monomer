@@ -115,7 +115,9 @@ executables:
     dependencies:
     - lens
     - monomer
+    - random
     - text-show
+    - time
 
   tutorial:
     main: Main.hs

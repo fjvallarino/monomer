@@ -10,8 +10,10 @@ import TextShow
 
 import qualified Tutorial00
 import qualified Tutorial01
+import qualified Tutorial02
 
 main :: IO ()
 main = do
 --  Tutorial00.main00
-  Tutorial01.main01
+--  Tutorial01.main01
+  Tutorial02.main02

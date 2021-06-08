@@ -17,7 +17,7 @@ config = [
 ```
 
 Once these declarations are in place, you can choose which font to use for any
-label.
+label or widget that displays text.
 
 ```haskell
 label text `style` [textFont "Bold", textSize 20]
@@ -83,6 +83,9 @@ is used at all). In the case of slider, it is used for drawing background of the
 slider (note: this is not the same as the background of the widget).
 - `hlColor`: highlight color of a widget. Again, how it is used depends on the
 widget. In the case of slider, it is used for drawing the (optional) thumb.
+
+For reference, the colors mentioned by name in the examples come from
+`Monomer.Graphics.ColorTable`.
 
 ## Enabled and visible
 

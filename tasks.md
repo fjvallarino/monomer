@@ -667,6 +667,7 @@ Next
   - Create user documentation
     - Overview of the library
     - Tutorials
+  - Check text vertical centering (Tutorial 03).
   - Function for setting focus should be in Utils.
   - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
