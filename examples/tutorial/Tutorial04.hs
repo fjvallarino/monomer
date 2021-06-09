@@ -8,7 +8,6 @@ import Control.Lens
 import Data.Text (Text)
 import Data.Time
 import Monomer
-import System.Random
 
 import qualified Data.Text as T
 import qualified Monomer.Lens as L
@@ -68,7 +67,7 @@ main04 = do
   simpleApp (model time) handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 03",
+      appWindowTitle "Tutorial 04",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

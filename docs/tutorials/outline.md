@@ -11,21 +11,19 @@
   - Event handling: model updates.
 - Styling
   - Resizing fonts, font name, changing colors.
-  - Use box, slider, dropdown, colorPicker.
+  - Use box, slider, colorPicker, zstack.
 - Running tasks
   - Lifecycle
     - Merging.
     - Keys, paths, widgetIds.
   - Some more widgets: textField, image, scroll, keystroke.
-  - Some kind of search and show results.
   - App config
 - Running producers
   - Consume a streaming data source.
-  - Widgets: Draggable, DropTarget, animations.
   - Sending messages.
 - Composite
   - Could reuse example from Running tasks
-  - Widgets: zstack.
+  - Widgets: Draggable, DropTarget, animations.
   - Use dialogs.
   - Quirks of positioning, modifying sizeReqs, etc.
 - Custom widget

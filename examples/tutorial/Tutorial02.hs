@@ -88,7 +88,7 @@ main02 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 01",
+      appWindowTitle "Tutorial 02",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

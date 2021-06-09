@@ -32,7 +32,7 @@ buildUI wenv model = widgetTree where
       label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
     ]
   pushButton = box_ [onClick AppGenRandom] pushLayers
-    `style` [width 160, height 160, cursorIcon CursorHand]
+    `style` [width 160, height 160, cursorHand]
   numberLabel = labelS (model ^. selected)
     `style` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
   numberedImage url idx = scroll (image_ url [fitFill])
@@ -72,7 +72,7 @@ main03 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 02",
+      appWindowTitle "Tutorial 03",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
