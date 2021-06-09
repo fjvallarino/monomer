@@ -1,0 +1,4 @@
+- Composite
+  - Could reuse example from Running tasks
+  - Widgets: Draggable, DropTarget, animations.
+  - Use dialogs.

@@ -87,10 +87,11 @@ buildUI wenv model = widgetTree where
       spacer,
       hstack [
         button "Show Dialog" ShowDialog
+          `style` [bgColor steelBlue, radius 5, padding 5]
       ]
     ] `style` [padding 10]
   closeIcon = icon IconClose
-    `style` [width 16, height 16, cursorHand]
+    `style` [width 16, height 16, fgColor black, cursorHand]
   dialogLayer = vstack [
       hstack [
         filler,

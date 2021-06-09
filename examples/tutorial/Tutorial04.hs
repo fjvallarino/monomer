@@ -43,7 +43,7 @@ handleEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
   AppInit -> [Producer timeOfDayProducer]
-  AppSetTime time -> [Model $ model & currentTime .~ time] ++ fadeInMsg time
+  AppSetTime time -> fadeInMsg time ++ [Model $ model & currentTime .~ time]
   where
     fadeInMsg time
       | truncate (todSec time) `mod` 10 /= 0 = []

@@ -25,6 +25,5 @@
   - Could reuse example from Running tasks
   - Widgets: Draggable, DropTarget, animations.
   - Use dialogs.
-  - Quirks of positioning, modifying sizeReqs, etc.
 - Custom widget
   - Merging, event handling, sizeReq, rendering.

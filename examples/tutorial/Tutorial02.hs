@@ -29,6 +29,8 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   widgetTree = vstack [
+      titleText "Text",
+      box (textField sampleText) `style` [paddingV 5],
       titleText "Font name",
       hgrid [
         hstack [
@@ -47,7 +49,7 @@ buildUI wenv model = widgetTree where
           filler
         ]
       ] `style` [paddingV 10],
-      titleText "Font name",
+      titleText "Font size",
       hslider fontSize 10 200
         `style` [paddingV 10, fgColor orange],
       titleText "Font color",
