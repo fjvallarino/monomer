@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial01 where
+module Tutorial01_Basics where
 
 import Control.Lens
 import Data.Text (Text)
@@ -50,7 +50,7 @@ main01 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 01",
+      appWindowTitle "Tutorial 01 - Basics",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit

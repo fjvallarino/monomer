@@ -11,12 +11,15 @@
   - Event handling: model updates.
 - Styling
   - Resizing fonts, font name, changing colors.
-  - Use box, slider, colorPicker, zstack.
-- Running tasks
+  - Use textField, box, slider, colorPicker.
+- Merging
   - Lifecycle
     - Merging.
     - Keys, paths, widgetIds.
-  - Some more widgets: textField, image, scroll, keystroke.
+  - keystroke
+  - Keeping order
+- Running tasks
+  - Some more widgets: image, scroll, zstack.
   - App config
 - Running producers
   - Consume a streaming data source.

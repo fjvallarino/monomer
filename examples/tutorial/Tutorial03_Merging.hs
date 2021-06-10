@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial06 where
+module Tutorial03_Merging where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens
@@ -71,12 +71,12 @@ handleEvent wenv node model evt = case evt of
 removeIdx idx lst = part1 ++ drop 1 part2 where
   (part1, part2) = splitAt idx lst
 
-main06 :: IO ()
-main06 = do
+main03 :: IO ()
+main03 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 06",
+      appWindowTitle "Tutorial 03 - Merging",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit

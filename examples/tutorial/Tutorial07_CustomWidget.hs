@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial07 where
+module Tutorial07_CustomWidget where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens
@@ -129,7 +129,7 @@ main07 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 07",
+      appWindowTitle "Tutorial 07 - Custom Widget",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf"
       ]

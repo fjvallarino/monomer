@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial03 where
+module Tutorial04_Tasks where
 
 import Control.Lens
 import Data.Text (Text)
@@ -67,12 +67,12 @@ handleEvent wenv node model evt = case evt of
     ]
   AppSaveRandom value -> [Model $ model & selected .~ value]
 
-main03 :: IO ()
-main03 = do
+main04 :: IO ()
+main04 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 03",
+      appWindowTitle "Tutorial 04 - Tasks",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

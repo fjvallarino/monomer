@@ -1,0 +1,2 @@
+- Custom widget
+  - Merging, event handling, sizeReq, rendering.

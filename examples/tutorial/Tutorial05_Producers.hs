@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial04 where
+module Tutorial05_Producers where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens
@@ -61,13 +61,13 @@ getLocalTimeOfDay = do
   time <- getZonedTime
   return . localTimeOfDay . zonedTimeToLocalTime $ time
 
-main04 :: IO ()
-main04 = do
+main05 :: IO ()
+main05 = do
   time <- getLocalTimeOfDay
   simpleApp (model time) handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 04",
+      appWindowTitle "Tutorial 05 - Producers",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

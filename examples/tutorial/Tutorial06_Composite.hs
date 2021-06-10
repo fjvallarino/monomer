@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial05 where
+module Tutorial06_Composite where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens
@@ -118,12 +118,12 @@ handleEvent wenv node model evt = case evt of
   ShowDialog -> [Model $ model & showDialog .~ True]
   CloseDialog -> [Model $ model & showDialog .~ False]
 
-main05 :: IO ()
-main05 = do
+main06 :: IO ()
+main06 = do
   simpleApp model handleEvent buildUI config
   where
     config = [
-      appWindowTitle "Tutorial 05",
+      appWindowTitle "Tutorial 06 - Composite",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
