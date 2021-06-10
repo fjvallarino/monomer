@@ -14,6 +14,7 @@ import qualified Tutorial03
 import qualified Tutorial04
 import qualified Tutorial05
 import qualified Tutorial06
+import qualified Tutorial07
 
 main :: IO ()
 main = do
@@ -22,4 +23,5 @@ main = do
 --  Tutorial03.main03
 --  Tutorial04.main04
 --  Tutorial05.main05
-  Tutorial06.main06
+--  Tutorial06.main06
+  Tutorial07.main07
