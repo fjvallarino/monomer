@@ -1,20 +1,22 @@
 # Basics
 
-A Monomer application has four main components which are provided to the
+A Monomer application has five main components which are provided to the
 `simpleApp` function:
 
 - **Model**: contains the information the application uses.
 - **Events**: generated from user action or system notifications.
 - **Build UI function**: creates the UI using the current model.
 - **Event handler**: reacts to events and can update the model, run asynchronous 
-tasks and other actions.
+  tasks and other actions.
+- **Configuration**: several options to indicate window size, available fonts
+  and theme.
 
 We'll explore these components next.
 
 **Note**: the code in this tutorial matches the one in `monomer-starter` and it
-is also the same as in this package's `Tutorial01.hs`. Next tutorials will have
-their own files matching the tutorial number; you can just copy the code over to
-your project for testing.
+is also the same as in this package's `Tutorial01_Basics.hs`. Next tutorials
+will have their own files matching the tutorial number; you can just copy the
+code over to your project for testing.
 
 ## The model
 
@@ -22,8 +24,7 @@ The model represents the state of your application. Here you can store anything
 that models your subject of interest. When the application starts, you need to
 provide an initial model.
 
-In the starter application, the model is simply a click counter. You can find it
-in the Types.hs file.
+In the starter application, the model is simply a click counter.
 
 ```haskell
 data AppModel = AppModel {
@@ -42,12 +43,13 @@ need to use the library [here](external/01-lenses.md).
 
 #### Can I avoid using lenses?
 
-Yes! All the included components have two versions, one for lenses and one for
+Yes! All the included widgets have two versions, one for lenses and one for
 values (with a **V** suffix). When using the **V** versions, you need to provide
 the current value and an event that will be generated when the value managed by
 the widget changes. Once you receive the event, you can update your model using
-your preferred mechanism. Since the widget receives the value you provide, if
-you don't update the model it will keep displaying the previous value.
+your preferred mechanism. Since the widget receives the value you provide as a
+parameter, if you don't update the model it will keep displaying the previous
+value.
 
 In general, unless you need to perform some kind of validation (or you really
 don't like lenses), the non **V** version is simpler and avoids boilerplate.
@@ -98,7 +100,17 @@ window size, input status, focus and several other items.
 Finally, a WidgetNode is returned. The function expects a node, which can be a
 single widget or a more complex layout.
 
-We'll explore some basic widgets now.
+Before moving forward, a quick clarification:
+
+- A `Widget` implements the functions to initialize, merge, dispose and render a
+  specific type of widget. Instances of widgets can be created and these may
+  contain internal state.
+- A `WidgetNode` contains a widget instance and all the information related to
+  its location, visibility, key and similar. When mentioning the _"widget
+  tree"_, it really is the _"widget node tree"_. All the functions mentioned
+  throughout the tutorials return `WidgetNode`s.
+
+We'll explore some basic widgets next.
 
 ### Layout
 
@@ -208,3 +220,19 @@ In the example we use the `Model` response, which sets the new state of the
 application (you can check the [lens](external/01-lenses.md) tutorial to better
 understand those operators). If the model changed, this will trigger a call to
 the build UI function.
+
+## Configuration
+
+By default, the starter app sets a few configuration options, including window
+title, theme, one font and an event to raise at startup.
+
+```haskell
+config = [
+  appWindowTitle "Hello World",
+  appTheme darkTheme,
+  appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+  appInitEvent AppInit
+  ]
+```
+
+You can check all the possible configuration options in the documentation.

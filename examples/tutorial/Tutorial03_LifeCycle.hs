@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Tutorial03_Merging where
+module Tutorial03_LifeCycle where
 
 import Control.Concurrent (threadDelay)
 import Control.Lens

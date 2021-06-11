@@ -15,8 +15,7 @@ newtype AppModel = AppModel {
 } deriving (Eq, Show)
 
 data AppEvent
-  = AppInit
-  | AppGenRandom
+  = AppGenRandom
   | AppSaveRandom Int
   deriving (Eq, Show)
 
@@ -61,7 +60,6 @@ handleEvent
   -> AppEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
-  AppInit -> []
   AppGenRandom -> [Task $
       AppSaveRandom <$> randomRIO (1, 6)
     ]
@@ -75,8 +73,7 @@ main04 = do
       appWindowTitle "Tutorial 04 - Tasks",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
-      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
-      appInitEvent AppInit
+      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf"
       ]
     model = AppModel {
       _selected = 0

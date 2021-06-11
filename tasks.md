@@ -673,7 +673,7 @@ Next
   - Is _weGlobalKeys really needed?
   - Add separator widget
   - Check label ellipsis in Tutorial01.
-  - Rename simpleApp.
+  - Rename simpleApp (check startApp in docs).
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)
 
