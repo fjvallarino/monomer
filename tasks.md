@@ -669,11 +669,15 @@ Next
     - Tutorials
   - Check text vertical centering (Tutorial 03).
   - Function for setting focus should be in Utils.
+    - Should WidgetType be an alias instead of a newtype?
+  - Check globalKeyWidgetId name (also path)
   - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
   - Add separator widget
   - Check label ellipsis in Tutorial01.
   - Rename simpleApp (check startApp in docs).
+  - Move Helper to Common?
+  - Add task to use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)
 

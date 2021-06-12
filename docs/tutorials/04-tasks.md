@@ -2,9 +2,9 @@
 
 Since Haskell is a pure language, performing side effects is not possible unless
 specifically denoted. Monomer works as much as possible as set of pure functions
-but, in most cases, the user will need to consume external information or
+but, in most application, the user will need to consume external information or
 perform actions which are inherently not pure. To allow for this, the concept of
-tasks exist.
+tasks exists.
 
 ## Running asynchronous tasks
 
@@ -13,7 +13,7 @@ response is `Task`, which receives an IO action that can run arbitrary code and
 returns a valid user event. This task will be launched as a separate thread and,
 when it finishes, its result will be fed back into the application. In case the
 IO action crashes the application will not be notified; it is up to the task to
-handle any kind of exception and report it with the appropriate event.
+handle any kind of exception and report it with the appropriate user event.
 
 In the example, we can see the task calling `randomRIO`, which returns a random
 number in the given range. This function uses a system seed, which makes it
@@ -39,7 +39,8 @@ example it is used to combine an image with text, but another typical use case
 is when a dialog needs to be displayed while content is partially visible below.
 Instead of using a vstack/hstack and alternating the visibility of both content
 and dialog, using a zstack allows keeping content always visible and toggle the
-dialog.
+dialog (which would be on top). The order of the widgets provided to zstack is
+from lowest to highest layer level.
 
 ```haskell
 pushLayers = zstack [
