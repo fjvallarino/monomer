@@ -674,6 +674,7 @@ Next
   - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
   - Add separator widget
+    - Maybe spacer can use width only.
   - Check label ellipsis in Tutorial01.
   - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?

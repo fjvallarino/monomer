@@ -16,6 +16,23 @@ import Monomer.Widgets.Single
 import qualified Data.Text as T
 import qualified Monomer.Lens as L
 
+newtype CanvasCfg = CanvasCfg {
+  _canvasColors :: [Color]
+} deriving (Eq, Show)
+
+instance Default CanvasCfg where
+  def = CanvasCfg {
+    _canvasColors = []
+  }
+
+instance Semigroup CanvasCfg where
+  (<>) c1 c2 = CanvasCfg {
+    _canvasColors = _canvasColors c1 <> _canvasColors c2
+  }
+
+instance Monoid CanvasCfg where
+  mempty = def
+
 data CanvasMessage
   = ResetCanvas
   deriving (Eq, Show)
@@ -24,15 +41,23 @@ newtype CanvasState = CanvasState {
   _clickedPoints :: [Point]
 } deriving (Eq, Show)
 
+makeLenses 'CanvasCfg
 makeLenses 'CanvasState
 
-canvas :: WidgetNode s e
-canvas = defaultWidgetNode "canvas" newWidget where
-  state = CanvasState []
-  newWidget = makeCanvas state
+canvasColor :: Color -> CanvasCfg
+canvasColor col = def & canvasColors .~ [col]
 
-makeCanvas :: CanvasState -> Widget s e
-makeCanvas state = widget where
+canvas :: WidgetNode s e
+canvas = canvas_ def
+
+canvas_ :: [CanvasCfg] -> WidgetNode s e
+canvas_ configs = defaultWidgetNode "canvas" newWidget where
+  config = mconcat configs
+  state = CanvasState []
+  newWidget = makeCanvas config state
+
+makeCanvas :: CanvasCfg -> CanvasState -> Widget s e
+makeCanvas cfg state = widget where
   widget = createSingle state def {
     singleMerge = merge,
     singleHandleEvent = handleEvent,
@@ -41,12 +66,14 @@ makeCanvas state = widget where
     singleRender = render
   }
 
-  colors = [orange, green, steelBlue, deepPink]
+  colors
+    | null (cfg ^. canvasColors) = [orange, green, steelBlue, deepPink]
+    | otherwise = cfg ^. canvasColors
   nextColor idx = colors !! (idx `mod` length colors)
 
   merge wenv node oldNode oldState = result where
     newNode = node
-      & L.widget .~ makeCanvas oldState
+      & L.widget .~ makeCanvas cfg oldState
     result = resultNode newNode
 
   handleEvent wenv node target evt = case evt of
@@ -55,7 +82,7 @@ makeCanvas state = widget where
       newPoints = newPoint : state ^. clickedPoints
       newState = CanvasState newPoints
       newNode = node
-        & L.widget .~ makeCanvas newState
+        & L.widget .~ makeCanvas cfg newState
       result = resultNode newNode
     Move _ -> Just (resultReqs node [RenderOnce])
     _ -> Nothing
@@ -67,7 +94,7 @@ makeCanvas state = widget where
     Just ResetCanvas -> Just result where
       newState = CanvasState []
       newNode = node
-        & L.widget .~ makeCanvas newState
+        & L.widget .~ makeCanvas cfg newState
       result = resultNode newNode
     _ -> Nothing
 
@@ -113,6 +140,7 @@ buildUI wenv model = widgetTree where
       button "Reset canvas" AppResetCanvas,
       spacer,
       canvas `key` "mainCanvas" `style` [border 1 gray]
+--      canvas_ [canvasColor pink] `key` "mainCanvas" `style` [border 1 gray]
     ] `style` [padding 10]
 
 handleEvent

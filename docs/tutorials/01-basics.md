@@ -13,10 +13,16 @@ A Monomer application has five main components which are provided to the
 
 We'll explore these components next.
 
-**Note**: the code in this tutorial matches the one in `monomer-starter` and it
-is also the same as in this package's `Tutorial01_Basics.hs`. Next tutorials
-will have their own files matching the tutorial number; you can just copy the
-code over to your project for testing.
+### Notes
+
+The code in this tutorial matches the one in `monomer-starter` and it is also
+the same as in this package's `Tutorial01_Basics.hs`. Next tutorials will have
+their own files matching the tutorial number; you can just copy the code over to
+your project for testing.
+
+In general, you will want to have your type definitions in a separate file. For
+the tutorials they are together with the code so it's simpler to copy and paste
+into your starter application.
 
 ## The model
 
