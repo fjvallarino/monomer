@@ -671,20 +671,20 @@
     - Kind of usable.
   - Is _weGlobalKeys really needed?
     - Used by globalKeyPath/globalKeyWidgetId
+  - Rename simpleApp (check startApp in docs).
+  - Rename globalKeyWidgetId/globalKeyPath to widgetIdFromKey/pathFromKey
 
 Next
   - Function for setting focus should be in Utils.
     - Should WidgetType be an alias instead of a newtype?
-  - Check globalKeyWidgetId name (also path)
-  - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?
+  - Add context button in wenv/config (similar to main button)
   - Check text vertical centering (Tutorial 03).
   - Check label ellipsis in Tutorial01.
   - Document themes and how widgets use them.
   - Linux build
   - Windows build
   - Create ContextMenu (could work similarly to Tooltip)
-    - Add context button in wenv/config (similar to main button)
 
 Future
   - Check if Windows/Linux also miss top pixel

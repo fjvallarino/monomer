@@ -140,7 +140,7 @@ confirmMsg_ message acceptEvt cancelEvt configs = newNode where
 
 mergeReqs :: MergeReqsHandler s e
 mergeReqs wenv newNode oldNode model = reqs where
-  acceptPath = SetFocus <$> globalKeyWidgetId wenv "acceptBtn"
+  acceptPath = SetFocus <$> widgetIdFromKey wenv "acceptBtn"
   isVisible node = node ^. L.info . L.visible
   reqs
     | not (isVisible oldNode) && isVisible newNode = catMaybes [acceptPath]

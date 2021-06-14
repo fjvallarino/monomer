@@ -190,7 +190,7 @@ main = do
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
-  widgetId = fromMaybe def (globalKeyWidgetId wenv key)
+  widgetId = fromMaybe def (widgetIdFromKey wenv key)
 
 formatTickerValue :: Scientific -> Text
 formatTickerValue = T.pack . formatScientific Fixed (Just 8)

@@ -95,4 +95,4 @@ genTypeDesc BoxesPalette = "Randomness in palette for boxes"
 
 setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
 setFocus wenv key = Request (SetFocus widgetId) where
-  widgetId = fromMaybe def (globalKeyWidgetId wenv key)
+  widgetId = fromMaybe def (widgetIdFromKey wenv key)
