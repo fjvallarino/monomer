@@ -1,0 +1,521 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: d483461aa57ad50378132b59141185f21c8718ec7cd1efe7a864741cc1b10b10
+
+name:           monomer
+version:        0.1.0.0
+synopsis:       GUI Library
+description:    Monomer is a cross platform GUI library inspired by Elm and Flutter.
+                Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
+category:       GUI
+homepage:       https://github.com/fjvallarino/monomer#readme
+bug-reports:    https://github.com/fjvallarino/monomer/issues
+author:         Francisco Vallarino
+maintainer:     fjvallarino@gmail.com
+copyright:      2018 Francisco Vallarino
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/fjvallarino/monomer
+
+library
+  exposed-modules:
+      Monomer
+      Monomer.Common
+      Monomer.Common.BasicTypes
+      Monomer.Common.Lens
+      Monomer.Core
+      Monomer.Core.Combinators
+      Monomer.Core.FromFractional
+      Monomer.Core.Lens
+      Monomer.Core.SizeReq
+      Monomer.Core.Style
+      Monomer.Core.StyleTypes
+      Monomer.Core.StyleUtil
+      Monomer.Core.Themes.BaseTheme
+      Monomer.Core.Themes.SampleThemes
+      Monomer.Core.ThemeTypes
+      Monomer.Core.Util
+      Monomer.Core.WidgetTypes
+      Monomer.Event
+      Monomer.Event.Core
+      Monomer.Event.Keyboard
+      Monomer.Event.Lens
+      Monomer.Event.Types
+      Monomer.Event.Util
+      Monomer.Graphics
+      Monomer.Graphics.Color
+      Monomer.Graphics.ColorTable
+      Monomer.Graphics.Lens
+      Monomer.Graphics.NanoVGRenderer
+      Monomer.Graphics.Text
+      Monomer.Graphics.Types
+      Monomer.Helper
+      Monomer.Lens
+      Monomer.Main
+      Monomer.Main.Core
+      Monomer.Main.Handlers
+      Monomer.Main.Lens
+      Monomer.Main.Platform
+      Monomer.Main.Types
+      Monomer.Main.Util
+      Monomer.Main.WidgetTask
+      Monomer.Widgets
+      Monomer.Widgets.Animation
+      Monomer.Widgets.Animation.Fade
+      Monomer.Widgets.Animation.Slide
+      Monomer.Widgets.Animation.Types
+      Monomer.Widgets.Composite
+      Monomer.Widgets.Container
+      Monomer.Widgets.Containers.Alert
+      Monomer.Widgets.Containers.Box
+      Monomer.Widgets.Containers.Confirm
+      Monomer.Widgets.Containers.Draggable
+      Monomer.Widgets.Containers.Dropdown
+      Monomer.Widgets.Containers.DropTarget
+      Monomer.Widgets.Containers.Grid
+      Monomer.Widgets.Containers.Keystroke
+      Monomer.Widgets.Containers.Scroll
+      Monomer.Widgets.Containers.SelectList
+      Monomer.Widgets.Containers.Split
+      Monomer.Widgets.Containers.Stack
+      Monomer.Widgets.Containers.ThemeSwitch
+      Monomer.Widgets.Containers.Tooltip
+      Monomer.Widgets.Containers.ZStack
+      Monomer.Widgets.Single
+      Monomer.Widgets.Singles.Base.InputField
+      Monomer.Widgets.Singles.Button
+      Monomer.Widgets.Singles.Checkbox
+      Monomer.Widgets.Singles.ColorPicker
+      Monomer.Widgets.Singles.DateField
+      Monomer.Widgets.Singles.Dial
+      Monomer.Widgets.Singles.ExternalLink
+      Monomer.Widgets.Singles.Icon
+      Monomer.Widgets.Singles.Image
+      Monomer.Widgets.Singles.Label
+      Monomer.Widgets.Singles.NumericField
+      Monomer.Widgets.Singles.Radio
+      Monomer.Widgets.Singles.Slider
+      Monomer.Widgets.Singles.Spacer
+      Monomer.Widgets.Singles.TextArea
+      Monomer.Widgets.Singles.TextDropdown
+      Monomer.Widgets.Singles.TextField
+      Monomer.Widgets.Singles.TimeField
+      Monomer.Widgets.Util
+      Monomer.Widgets.Util.Drawing
+      Monomer.Widgets.Util.Focus
+      Monomer.Widgets.Util.Hover
+      Monomer.Widgets.Util.Keyboard
+      Monomer.Widgets.Util.Lens
+      Monomer.Widgets.Util.Parser
+      Monomer.Widgets.Util.Style
+      Monomer.Widgets.Util.Text
+      Monomer.Widgets.Util.Theme
+      Monomer.Widgets.Util.Types
+      Monomer.Widgets.Util.Widget
+  other-modules:
+      Paths_monomer
+  hs-source-dirs:
+      src
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -fwarn-incomplete-patterns
+  cc-options: -fPIC
+  c-sources:
+      cbits/glew.c
+  extra-libraries:
+      GLEW
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+executable books
+  main-is: Main.hs
+  other-modules:
+      BookTypes
+      Paths_monomer
+  hs-source-dirs:
+      examples/books
+  default-extensions:
+      OverloadedStrings
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , aeson
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+executable generative
+  main-is: Main.hs
+  other-modules:
+      GenerativeTypes
+      Widgets.BoxesPalette
+      Widgets.CirclesGrid
+      Paths_monomer
+  hs-source-dirs:
+      examples/generative
+  default-extensions:
+      OverloadedStrings
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , random
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+executable monomer-exe
+  main-is: Main.hs
+  other-modules:
+      KeysComposite
+      TestComposite
+      Types
+      Paths_monomer
+  hs-source-dirs:
+      app
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -fwarn-incomplete-patterns -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-T
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , ekg
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+executable ticker
+  main-is: Main.hs
+  other-modules:
+      BinanceTypes
+      TickerTypes
+      Paths_monomer
+  hs-source-dirs:
+      examples/ticker
+  default-extensions:
+      OverloadedStrings
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , aeson
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , scientific
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , websockets
+    , wreq
+    , wuss
+  default-language: Haskell2010
+
+executable todo
+  main-is: Main.hs
+  other-modules:
+      TodoTypes
+      Paths_monomer
+  hs-source-dirs:
+      examples/todo
+  default-extensions:
+      OverloadedStrings
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+executable tutorial
+  main-is: Main.hs
+  other-modules:
+      External01_Lenses
+      Tutorial01_Basics
+      Tutorial02_Styling
+      Tutorial03_LifeCycle
+      Tutorial04_Tasks
+      Tutorial05_Producers
+      Tutorial06_Composite
+      Tutorial07_CustomWidget
+      Paths_monomer
+  hs-source-dirs:
+      examples/tutorial
+  default-extensions:
+      OverloadedStrings
+  build-depends:
+      JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , concurrent-extra
+    , containers
+    , data-default
+    , exceptions
+    , extra
+    , formatting
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , random
+    , safe
+    , sdl2
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010
+
+test-suite monomer-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Monomer.Common.CursorIconSpec
+      Monomer.TestEventUtil
+      Monomer.TestUtil
+      Monomer.Widgets.Animation.FadeSpec
+      Monomer.Widgets.Animation.SlideSpec
+      Monomer.Widgets.CompositeSpec
+      Monomer.Widgets.Containers.AlertSpec
+      Monomer.Widgets.Containers.BoxSpec
+      Monomer.Widgets.Containers.ConfirmSpec
+      Monomer.Widgets.Containers.DragDropSpec
+      Monomer.Widgets.Containers.DropdownSpec
+      Monomer.Widgets.Containers.GridSpec
+      Monomer.Widgets.Containers.KeystrokeSpec
+      Monomer.Widgets.Containers.ScrollSpec
+      Monomer.Widgets.Containers.SelectListSpec
+      Monomer.Widgets.Containers.SplitSpec
+      Monomer.Widgets.Containers.StackSpec
+      Monomer.Widgets.Containers.ThemeSwitchSpec
+      Monomer.Widgets.Containers.TooltipSpec
+      Monomer.Widgets.Containers.ZStackSpec
+      Monomer.Widgets.ContainerSpec
+      Monomer.Widgets.Singles.ButtonSpec
+      Monomer.Widgets.Singles.CheckboxSpec
+      Monomer.Widgets.Singles.ColorPickerSpec
+      Monomer.Widgets.Singles.DateFieldSpec
+      Monomer.Widgets.Singles.DialSpec
+      Monomer.Widgets.Singles.ExternalLinkSpec
+      Monomer.Widgets.Singles.ImageSpec
+      Monomer.Widgets.Singles.LabelSpec
+      Monomer.Widgets.Singles.NumericFieldSpec
+      Monomer.Widgets.Singles.RadioSpec
+      Monomer.Widgets.Singles.SliderSpec
+      Monomer.Widgets.Singles.SpacerSpec
+      Monomer.Widgets.Singles.TextAreaSpec
+      Monomer.Widgets.Singles.TextFieldSpec
+      Monomer.Widgets.Singles.TimeFieldSpec
+      Monomer.Widgets.Util.FocusSpec
+      Monomer.Widgets.Util.StyleSpec
+      Monomer.Widgets.Util.TextSpec
+      Paths_monomer
+  hs-source-dirs:
+      test/unit
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -fwarn-incomplete-patterns -rtsopts -with-rtsopts=-N -with-rtsopts=-T
+  build-depends:
+      HUnit
+    , JuicyPixels
+    , OpenGL
+    , async
+    , attoparsec
+    , base >=4.7 && <5
+    , bytestring
+    , bytestring-to-vector
+    , call-stack
+    , concurrent-extra
+    , containers
+    , data-default
+    , directory
+    , exceptions
+    , extra
+    , formatting
+    , hedgehog
+    , hspec
+    , http-client
+    , lens
+    , monomer
+    , mtl
+    , nanovg
+    , process
+    , safe
+    , sdl2
+    , silently
+    , stm
+    , text
+    , text-show
+    , time
+    , transformers
+    , unordered-containers
+    , vector
+    , wreq
+  default-language: Haskell2010

@@ -1,7 +1,6 @@
 .stack-work/
 .vscode/
 haddock/
-monomer.cabal
 *~
 *.aux
 *.hp
