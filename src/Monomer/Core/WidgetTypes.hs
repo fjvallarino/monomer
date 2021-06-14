@@ -271,6 +271,8 @@ data WidgetEnv s e = WidgetEnv {
   _weFindByPath :: Path -> Maybe WidgetNodeInfo,
   -- | The mouse button that is considered main.
   _weMainButton :: Button,
+  -- | The mouse button that is considered as secondary or context button.
+  _weContextButton :: Button,
   -- | The active theme. Some widgets derive their base style from this.
   _weTheme :: Theme,
   -- | The main window size

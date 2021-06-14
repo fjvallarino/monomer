@@ -122,6 +122,7 @@ runAppLoop window widgetRoot config = do
   let theme = fromMaybe def (_apcTheme config)
   let exitEvents = _apcExitEvent config
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
+  let contextBtn = fromMaybe BtnRight (_apcContextButton config)
 
   resizeWindow window
   startTs <- fmap fromIntegral SDL.ticks
@@ -137,6 +138,7 @@ runAppLoop window widgetRoot config = do
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
+    _weContextButton = contextBtn,
     _weTheme = theme,
     _weWindowSize = newWindowSize,
     _weWidgetKeyMap = Map.empty,
@@ -225,11 +227,13 @@ mainLoop window renderer config loopArgs = do
 
   let newSecond = _mlFrameAccumTs > 1000
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
+  let contextBtn = fromMaybe BtnRight (_apcContextButton config)
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
+    _weContextButton = contextBtn,
     _weTheme = _mlTheme,
     _weWindowSize = windowSize,
     _weWidgetKeyMap = Map.empty,

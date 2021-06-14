@@ -677,9 +677,9 @@
   - Should WidgetType be an alias instead of a newtype? No.
   - Move Helper to Common? No.
   - Rename globalKeys to widgetKeyMap
+  - Add context button in wenv/config (similar to main button)
 
 Next
-  - Add context button in wenv/config (similar to main button)
   - Check text vertical centering (Tutorial 03).
   - Check label ellipsis in Tutorial01.
   - Document themes and how widgets use them.

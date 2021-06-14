@@ -847,6 +847,7 @@ convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weRenderer = _weRenderer wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,
+  _weContextButton = _weContextButton wenv,
   _weTheme = _weTheme wenv,
   _weWindowSize = _weWindowSize wenv,
   _weWidgetKeyMap = widgetKeyMap,

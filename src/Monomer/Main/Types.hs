@@ -159,7 +159,9 @@ data AppConfig e = AppConfig {
   -- | Resize event handler.
   _apcResizeEvent :: [Rect -> e],
   -- | Defines which mouse button is considered main.
-  _apcMainButton :: Maybe Button
+  _apcMainButton :: Maybe Button,
+  -- | Defines which mouse button is considered secondary or context button.
+  _apcContextButton :: Maybe Button
 }
 
 instance Default (AppConfig e) where
@@ -176,7 +178,8 @@ instance Default (AppConfig e) where
     _apcDisposeEvent = [],
     _apcExitEvent = [],
     _apcResizeEvent = [],
-    _apcMainButton = Nothing
+    _apcMainButton = Nothing,
+    _apcContextButton = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -193,7 +196,8 @@ instance Semigroup (AppConfig e) where
     _apcDisposeEvent = _apcDisposeEvent a1 ++ _apcDisposeEvent a2,
     _apcExitEvent = _apcExitEvent a1 ++ _apcExitEvent a2,
     _apcResizeEvent = _apcResizeEvent a1 ++ _apcResizeEvent a2,
-    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1
+    _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
+    _apcContextButton = _apcContextButton a2 <|> _apcContextButton a1
   }
 
 instance Monoid (AppConfig e) where
@@ -280,4 +284,10 @@ appResizeEvent evt = def {
 appMainButton :: Button -> AppConfig e
 appMainButton btn = def {
   _apcMainButton = Just btn
+}
+
+-- | Defines which mouse button is considered secondary or context button.
+appContextButton :: Button -> AppConfig e
+appContextButton btn = def {
+  _apcContextButton = Just btn
 }
