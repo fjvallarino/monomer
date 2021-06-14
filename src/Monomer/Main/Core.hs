@@ -13,6 +13,9 @@ Core glue for running an application.
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Main.Core (
+  AppEventResponse(..),
+  AppEventHandler(..),
+  AppUIBuilder(..),
   startApp
 ) where
 
@@ -25,7 +28,6 @@ import Data.Default
 import Data.Maybe
 import Data.List (foldl')
 import Data.Text (Text)
-import Safe
 
 import qualified Data.Map as Map
 import qualified Graphics.Rendering.OpenGL as GL
@@ -44,6 +46,19 @@ import Monomer.Graphics
 import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
+
+-- | Type of response an App event handler can return, with __s__ being the
+-- | model and __e__ the user's event type.
+type AppEventResponse s e = EventResponse s e s ()
+-- | Type of an App event handler.
+type AppEventHandler s e
+  = WidgetEnv s e            -- ^ The widget environment.
+  -> WidgetNode s e          -- ^ The root node of the application.
+  -> s                       -- ^ The application's model.
+  -> e                       -- ^ The event to handle.
+  -> [AppEventResponse s e]  -- ^ The list of requested actions.
+-- | Type of the function responsible of creating the App UI.
+type AppUIBuilder s e = UIBuilder s e
 
 data MainLoopArgs s e ep = MainLoopArgs {
   _mlOS :: Text,

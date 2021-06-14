@@ -140,7 +140,3 @@ main = do
       appInitEvent BooksInit
       ]
     initModel = BooksModel "borges-bioy" False Nothing []
-
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
-setFocus wenv key = Request (SetFocus widgetId) where
-  widgetId = fromMaybe def (widgetIdFromKey wenv key)

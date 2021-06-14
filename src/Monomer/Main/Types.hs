@@ -40,20 +40,6 @@ import Monomer.Core.ThemeTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
-import Monomer.Widgets.Composite (EventResponse, UIBuilder)
-
--- | Type of response an App event handler can return, with __s__ being the
--- | model and __e__ the user's event type.
-type AppEventResponse s e = EventResponse s e s ()
--- | Type of an App event handler.
-type AppEventHandler s e
-  = WidgetEnv s e            -- ^ The widget environment.
-  -> WidgetNode s e          -- ^ The root node of the application.
-  -> s                       -- ^ The application's model.
-  -> e                       -- ^ The event to handle.
-  -> [AppEventResponse s e]  -- ^ The list of requested actions.
--- | Type of the function responsible of creating the App UI.
-type AppUIBuilder s e = UIBuilder s e
 
 -- | Main Monomer monad.
 type MonomerM s m = (Eq s, MonadState (MonomerCtx s) m, MonadCatch m, MonadIO m)

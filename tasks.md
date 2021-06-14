@@ -677,6 +677,7 @@
 Next
   - Function for setting focus should be in Utils.
     - Should WidgetType be an alias instead of a newtype?
+  - Rename globalKeys to keyNodeMap
   - Move Helper to Common?
   - Add context button in wenv/config (similar to main button)
   - Check text vertical centering (Tutorial 03).

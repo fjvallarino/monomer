@@ -10,7 +10,7 @@ using it all along: the `startApp` call creates a Composite under the hood.
 
 ## Types
 
-Up to this point, our event handlers have returned a list `AppEventResponse`.
+Up to this point, our event handlers have returned a list of `AppEventResponse`.
 
 ```haskell
 type AppEventHandler s e
@@ -45,9 +45,7 @@ type AppEventResponse s e = EventResponse s e s ()
 ```
 
 Those two extra type parameters represent the model and the event types of the
-parent in the widget tree. If the composite you are creating uses `Report` to
-send events to the parent, you will need to indicate its type (otherwise it can
-stay as a type variable).
+parent in the widget tree.
 
 ## Two way communication
 
@@ -57,9 +55,10 @@ Communication between the parent and the composite can work in both ways:
   parameters accepted by the function that creates the composite or any kind of
   configuration.
 - The composite can provide information to the parent by using the `Report`
-  response. To avoid coupling the composite to the parent, the usual solution
-  is to have the parent provide the expected event for each situation (the same
-  as how we've been using any other widget).
+  response. To avoid coupling the composite to the parent, and having to provide
+  the type of the parent's event, the usual solution is to have the parent
+  provide the expected event for each situation (the same as how we've been
+  using any other widget).
 
 ## Widget Requests
 
