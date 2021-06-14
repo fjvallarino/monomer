@@ -256,7 +256,7 @@ data Composite s e sp ep = Composite {
 data CompositeState s e = CompositeState {
   _cpsModel :: Maybe s,
   _cpsRoot :: WidgetNode s e,
-  _cpsGlobalKeys :: WidgetKeysMap s e
+  _cpsWidgetKeyMap :: WidgetKeyMap s e
 }
 
 data ReducedEvents s e sp ep = ReducedEvents {
@@ -391,7 +391,7 @@ compositeInit
 compositeInit comp state wenv widgetComp = newResult where
   CompositeState{..} = state
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   -- Creates UI using provided function
   builtRoot = _cmpUiBuilder comp cwenv model
   tempRoot = cascadeCtx wenv widgetComp builtRoot
@@ -400,7 +400,7 @@ compositeInit comp state wenv widgetComp = newResult where
   newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
-    _cpsGlobalKeys = collectGlobalKeys M.empty root
+    _cpsWidgetKeyMap = collectWidgetKeys M.empty root
   }
   tempResult = WidgetResult root (reqs <> newEvts)
   getBaseStyle wenv node = Nothing
@@ -420,10 +420,10 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   widgetId = oldComp ^. L.info . L.widgetId
   oldState = widgetGetState (oldComp ^. L.widget) wenv oldComp
   validState = fromMaybe state (useState oldState)
-  CompositeState oldModel oldRoot oldGlobalKeys = validState
+  CompositeState oldModel oldRoot oldWidgetKeys = validState
   model = getModel comp wenv
   -- Creates new UI using provided function
-  cwenv = convertWidgetEnv wenv oldGlobalKeys model
+  cwenv = convertWidgetEnv wenv oldWidgetKeys model
   tempRoot = cascadeCtx wenv newComp (_cmpUiBuilder comp cwenv model)
   tempWidget = tempRoot ^. L.widget
   -- Needed in case the user references something outside model when building UI
@@ -443,7 +443,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   newState = validState {
     _cpsModel = Just model,
     _cpsRoot = newRoot,
-    _cpsGlobalKeys = collectGlobalKeys M.empty newRoot
+    _cpsWidgetKeyMap = collectWidgetKeys M.empty newRoot
   }
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv newComp
@@ -472,7 +472,7 @@ compositeDispose
 compositeDispose comp state wenv widgetComp = result where
   CompositeState{..} = state
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   widget = _cpsRoot ^. L.widget
   newEvts = RaiseEvent <$> Seq.fromList (_cmpOnDispose comp)
   WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
@@ -490,7 +490,7 @@ compositeGetInstanceTree comp state wenv node = instTree where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   cInstTree = widgetGetInstanceTree widget cwenv _cpsRoot
   instTree = WidgetInstanceNode {
     _winInfo = node ^. L.info,
@@ -512,7 +512,7 @@ compositeFindNextFocus comp state wenv widgetComp dir start = nextFocus where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   nextFocus = widgetFindNextFocus widget cwenv _cpsRoot dir start
 
 -- | Find
@@ -532,7 +532,7 @@ compositeFindByPoint comp state wenv widgetComp start point
     CompositeState{..} = state
     widget = _cpsRoot ^. L.widget
     model = getModel comp wenv
-    cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+    cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
     next = nextTargetStep start widgetComp
     validStep = isNothing next || next == Just 0
     resultInfo = widgetFindByPoint widget cwenv _cpsRoot start point
@@ -552,7 +552,7 @@ compositeFindBranchByPath comp state wenv widgetComp path
   where
     CompositeState{..} = state
     model = getModel comp wenv
-    cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+    cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
     info = widgetComp ^. L.info
     nextStep = nextTargetStep path widgetComp
     child = _cpsRoot
@@ -572,7 +572,7 @@ compositeHandleEvent comp state wenv widgetComp target evt = result where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   rootEnabled = _cpsRoot ^. L.info . L.enabled
   compVisible = widgetComp ^. L.info . L.visible
   compEnabled = widgetComp ^. L.info . L.enabled
@@ -603,7 +603,7 @@ compositeHandleMessage comp state@CompositeState{..} wenv widgetComp target arg
       processEvent = toParentResult comp state wenv widgetComp
       cmpWidget = _cpsRoot ^. L.widget
       model = getModel comp wenv
-      cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+      cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
       result = widgetHandleMessage cmpWidget cwenv _cpsRoot target arg
 
 -- Preferred size
@@ -654,7 +654,7 @@ compositeResize comp state wenv widgetComp viewport = resizedRes where
   contentArea = fromMaybe def (removeOuterBounds style viewport)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   WidgetResult newRoot newReqs = widgetResize widget cwenv _cpsRoot contentArea
   oldVp = widgetComp ^. L.info . L.viewport
   sizeChanged = viewport /= oldVp
@@ -680,7 +680,7 @@ compositeRender comp state wenv widgetComp renderer = action where
   CompositeState{..} = state
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   action = widgetRender widget cwenv _cpsRoot renderer
 
 handleMsgEvent
@@ -697,9 +697,9 @@ handleMsgEvent comp state wenv widgetComp event = newResult where
     | isJust _cpsModel = fromJust _cpsModel
     | otherwise = getModel comp wenv
   evtHandler = _cmpEventHandler comp
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys model
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   response = evtHandler cwenv _cpsRoot model event
-  newReqs = evtResponseToRequest widgetComp _cpsGlobalKeys <$> response
+  newReqs = evtResponseToRequest widgetComp _cpsWidgetKeyMap <$> response
   newResult = WidgetResult widgetComp (Seq.fromList (catMaybes newReqs))
 
 handleMsgUpdate
@@ -743,16 +743,16 @@ toParentResult comp state wenv widgetComp result = newResult where
 evtResponseToRequest
   :: (Typeable s, Typeable sp, WidgetEvent e, WidgetEvent ep)
   => WidgetNode sp ep
-  -> WidgetKeysMap s e
+  -> WidgetKeyMap s e
   -> EventResponse s e sp ep
   -> Maybe (WidgetRequest sp ep)
-evtResponseToRequest widgetComp globalKeys response = case response of
+evtResponseToRequest widgetComp widgetKeys response = case response of
   Model newModel -> Just $ sendTo widgetComp (CompMsgUpdate $ const newModel)
   Event event -> Just $ sendTo widgetComp event
   Report report -> Just (RaiseEvent report)
   Request req -> toParentReq widgetId req
   RequestParent req -> Just req
-  Message key msg -> (`sendTo` msg) <$> M.lookup key globalKeys
+  Message key msg -> (`sendTo` msg) <$> M.lookup key widgetKeys
   Task task -> Just $ RunTask widgetId path task
   Producer producer -> Just $ RunProducer widgetId path producer
   where
@@ -771,7 +771,7 @@ mergeChild
   -> WidgetResult sp ep
 mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
-  cwenv = convertWidgetEnv wenv _cpsGlobalKeys newModel
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap newModel
   builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
       & L.info . L.widgetId .~ _cpsRoot ^. L.info . L.widgetId
   builtWidget = builtRoot ^. L.widget
@@ -779,7 +779,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   mergedState = state {
     _cpsModel = Just newModel,
     _cpsRoot = mergedResult ^. L.node,
-    _cpsGlobalKeys = collectGlobalKeys M.empty (mergedResult ^. L.node)
+    _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
   result = toParentResult comp mergedState wenv widgetComp mergedResult
   newEvents = RaiseEvent <$> fmap ($ newModel) (_cmpOnChange comp)
@@ -829,27 +829,27 @@ toParentReq _ (SendMessage wid message) = Just (SendMessage wid message)
 toParentReq _ (RunTask wid path action) = Just (RunTask wid path action)
 toParentReq _ (RunProducer wid path action) = Just (RunProducer wid path action)
 
-collectGlobalKeys
+collectWidgetKeys
   :: Map WidgetKey (WidgetNode s e)
   -> WidgetNode s e
   -> Map WidgetKey (WidgetNode s e)
-collectGlobalKeys keys node = newMap where
+collectWidgetKeys keys node = newMap where
   children = node ^. L.children
-  collect currKeys child = collectGlobalKeys currKeys child
+  collect currKeys child = collectWidgetKeys currKeys child
   updatedMap = case node ^. L.info . L.key of
     Just key -> M.insert key node keys
     _ -> keys
   newMap = foldl' collect updatedMap children
 
-convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeysMap s e -> s -> WidgetEnv s e
-convertWidgetEnv wenv globalKeys model = WidgetEnv {
+convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
+convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
   _weRenderer = _weRenderer wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,
   _weTheme = _weTheme wenv,
   _weWindowSize = _weWindowSize wenv,
-  _weGlobalKeys = globalKeys,
+  _weWidgetKeyMap = widgetKeyMap,
   _weCursor = _weCursor wenv,
   _weHoveredPath = _weHoveredPath wenv,
   _weFocusedPath = _weFocusedPath wenv,

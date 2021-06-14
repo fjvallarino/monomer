@@ -599,8 +599,8 @@ mergeChildren updateCWenv wenv newNode oldNode result = newResult where
 mergeChildSeq
   :: (Int -> WidgetNode s e -> WidgetEnv s e)
   -> WidgetEnv s e
-  -> WidgetKeysMap s e
-  -> WidgetKeysMap s e
+  -> WidgetKeyMap s e
+  -> WidgetKeyMap s e
   -> WidgetNode s e
   -> Seq (Int, WidgetNode s e)
   -> Seq (Int, WidgetNode s e)
@@ -618,7 +618,6 @@ mergeChildSeq updateCWenv wenv oldKeys newKeys newNode Empty newIts = res where
 mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts newIts = res where
   (_, oldChild) :<| oldChildren = oldIts
   (newIdx, newChild) :<| newChildren = newIts
-  globalKeys = wenv ^. L.globalKeys
   newWidget = newChild ^. L.widget
   newChildKey = newChild ^. L.info . L.key
   oldKeyMatch = newChildKey >>= \key -> M.lookup key oldKeys

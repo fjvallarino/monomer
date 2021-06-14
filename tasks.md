@@ -673,12 +673,12 @@
     - Used by globalKeyPath/globalKeyWidgetId
   - Rename simpleApp (check startApp in docs).
   - Rename globalKeyWidgetId/globalKeyPath to widgetIdFromKey/pathFromKey
+  - Function for setting focus should be in Utils.
+  - Should WidgetType be an alias instead of a newtype? No.
+  - Move Helper to Common? No.
+  - Rename globalKeys to widgetKeyMap
 
 Next
-  - Function for setting focus should be in Utils.
-    - Should WidgetType be an alias instead of a newtype?
-  - Rename globalKeys to keyNodeMap
-  - Move Helper to Common?
   - Add context button in wenv/config (similar to main button)
   - Check text vertical centering (Tutorial 03).
   - Check label ellipsis in Tutorial01.

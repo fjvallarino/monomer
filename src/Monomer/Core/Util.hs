@@ -32,12 +32,12 @@ import qualified Monomer.Core.Lens as L
 -- | Returns the path associated to a given key, if any.
 pathFromKey :: WidgetEnv s e -> WidgetKey -> Maybe Path
 pathFromKey wenv key = fmap (^. L.info . L.path) node where
-  node = Map.lookup key (wenv ^. L.globalKeys)
+  node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
 -- | Returns the widgetId associated to a given key, if any.
 widgetIdFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetId
 widgetIdFromKey wenv key = fmap (^. L.info . L.widgetId) node where
-  node = Map.lookup key (wenv ^. L.globalKeys)
+  node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
 -- | Returns the node info associated to a given path.
 findWidgetByPath

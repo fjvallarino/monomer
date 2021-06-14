@@ -46,7 +46,7 @@ Map of WidgetKeys to WidgetNodes. This association is valid only in the context
 of a Composite, with visibility of keys restricted to its scope. WidgetKeys
 inside nested Composites are /not/ visible.
 -}
-type WidgetKeysMap s e = Map WidgetKey (WidgetNode s e)
+type WidgetKeyMap s e = Map WidgetKey (WidgetNode s e)
 
 -- | Direction of focus movement.
 data FocusDirection
@@ -276,7 +276,7 @@ data WidgetEnv s e = WidgetEnv {
   -- | The main window size
   _weWindowSize :: Size,
   -- | The active map of WidgetKey -> WidgetNode, if any.
-  _weGlobalKeys :: WidgetKeysMap s e,
+  _weWidgetKeyMap :: WidgetKeyMap s e,
   -- | The currently hovered path, if any.
   _weHoveredPath :: Maybe Path,
   -- | The currently focused path. There's always one, even if it's root.
