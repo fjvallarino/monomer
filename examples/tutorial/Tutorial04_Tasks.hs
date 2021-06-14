@@ -67,7 +67,7 @@ handleEvent wenv node model evt = case evt of
 
 main04 :: IO ()
 main04 = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 04 - Tasks",

@@ -1,7 +1,7 @@
 # Basics
 
 A Monomer application has five main components which are provided to the
-`simpleApp` function:
+`startApp` function:
 
 - **Model**: contains the information the application uses.
 - **Events**: generated from user action or system notifications.

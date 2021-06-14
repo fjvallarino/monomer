@@ -669,18 +669,20 @@
     - Maybe spacer can use width only.
   - Default theme should be usable (scroll, etc)
     - Kind of usable.
+  - Is _weGlobalKeys really needed?
+    - Used by globalKeyPath/globalKeyWidgetId
 
 Next
   - Function for setting focus should be in Utils.
     - Should WidgetType be an alias instead of a newtype?
   - Check globalKeyWidgetId name (also path)
-  - Is _weGlobalKeys really needed?
   - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?
   - Check text vertical centering (Tutorial 03).
   - Check label ellipsis in Tutorial01.
   - Document themes and how widgets use them.
-  - Add task to use channel to group SDL events, task status and render requests (to avoid checking all the time)
+  - Linux build
+  - Windows build
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)
 
@@ -688,6 +690,7 @@ Future
   - Check if Windows/Linux also miss top pixel
     - Fix for all if they do
     - If they don't, add custom handling for macOS
+  - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208

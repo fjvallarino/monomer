@@ -120,7 +120,7 @@ handleEvent wenv node model evt = case evt of
 
 main06 :: IO ()
 main06 = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 06 - Composite",

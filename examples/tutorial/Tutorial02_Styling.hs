@@ -87,7 +87,7 @@ handleEvent wenv node model evt = case evt of
 
 main02 :: IO ()
 main02 = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 02 - Styling",

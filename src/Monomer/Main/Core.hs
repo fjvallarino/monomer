@@ -13,7 +13,7 @@ Core glue for running an application.
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Main.Core (
-  simpleApp
+  startApp
 ) where
 
 import Control.Concurrent (threadDelay)
@@ -65,20 +65,20 @@ model, handling future events with the event handler.
 Control will not be returned until the UI exits. This needs to be ran in the
 main thread if using macOS.
 -}
-simpleApp
+startApp
   :: (Eq s, WidgetModel s, WidgetEvent e)
   => s                    -- ^ The initial model.
   -> AppEventHandler s e  -- ^ The event handler.
   -> AppUIBuilder s e     -- ^ The UI builder.
   -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
-simpleApp model eventHandler uiBuilder configs = do
+startApp model eventHandler uiBuilder configs = do
   (window, dpr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
   let monomerCtx = initMonomerCtx model window winSize useHdpi dpr
 
-  runStateT (runApp window appWidget config) monomerCtx
+  runStateT (runAppLoop window appWidget config) monomerCtx
   detroySDLWindow window
   where
     config = mconcat configs
@@ -89,13 +89,13 @@ simpleApp model eventHandler uiBuilder configs = do
       ++ (onResize <$> _apcResizeEvent config)
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
-runApp
+runAppLoop
   :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> WidgetNode s ep
   -> AppConfig e
   -> m ()
-runApp window widgetRoot config = do
+runAppLoop window widgetRoot config = do
   useHiDPI <- use L.hdpi
   devicePixelRate <- use L.dpr
   Size rw rh <- use L.windowSize

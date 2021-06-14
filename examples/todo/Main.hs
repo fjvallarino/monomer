@@ -141,7 +141,7 @@ initialTodos = todos where
 
 main :: IO ()
 main = do
-  simpleApp (TodoModel initialTodos def TodoNone) handleEvent buildUI config
+  startApp (TodoModel initialTodos def TodoNone) handleEvent buildUI config
   where
     config = [
       appWindowTitle "Todo list",

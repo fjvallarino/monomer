@@ -130,7 +130,7 @@ searchBooks query = do
 
 main :: IO ()
 main = do
-  simpleApp initModel handleEvent buildUI config
+  startApp initModel handleEvent buildUI config
   where
     config = [
       appWindowTitle "Book search",

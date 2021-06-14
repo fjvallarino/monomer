@@ -56,7 +56,7 @@ main = do
         appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
         appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf" ]
 
-  simpleApp model handleAppEvent buildUI config
+  startApp model handleAppEvent buildUI config
 
 handleAppEvent
   :: WidgetEnv App AppEvent

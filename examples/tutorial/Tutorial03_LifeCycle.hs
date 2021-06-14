@@ -74,7 +74,7 @@ removeIdx idx lst = part1 ++ drop 1 part2 where
 
 main03 :: IO ()
 main03 = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 03 - Merging",

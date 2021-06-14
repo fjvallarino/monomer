@@ -72,7 +72,7 @@ handleEvent wenv node model evt = case evt of
 
 main :: IO ()
 main = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     model = GenerativeModel CirclesGrid False def def
     config = [

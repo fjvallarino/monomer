@@ -154,7 +154,7 @@ handleEvent wenv node model evt = case evt of
 
 main07 :: IO ()
 main07 = do
-  simpleApp model handleEvent buildUI config
+  startApp model handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 07 - Custom Widget",

@@ -177,7 +177,7 @@ main = do
   channel <- newTChanIO
   let env = AppEnv channel
 
-  simpleApp initModel (handleEvent env) buildUI config
+  startApp initModel (handleEvent env) buildUI config
   where
     config = [
       appWindowTitle "Ticker",

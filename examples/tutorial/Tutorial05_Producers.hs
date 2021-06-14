@@ -64,7 +64,7 @@ getLocalTimeOfDay = do
 main05 :: IO ()
 main05 = do
   time <- getLocalTimeOfDay
-  simpleApp (model time) handleEvent buildUI config
+  startApp (model time) handleEvent buildUI config
   where
     config = [
       appWindowTitle "Tutorial 05 - Producers",
