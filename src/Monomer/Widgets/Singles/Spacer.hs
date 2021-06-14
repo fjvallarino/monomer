@@ -15,7 +15,6 @@ Both adapt to the current layout direction, if any.
 Configs:
 
 - width: the max width for spacer, the reference for filler.
-- height: the max height for spacer, the reference for filler.
 - resizeFactor: flexibility to have more or less spaced assigned.
 -}
 {-# LANGUAGE FlexibleContexts #-}
@@ -39,21 +38,18 @@ import qualified Monomer.Core.Lens as L
 
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,
-  _spcHeight :: Maybe Double,
   _spcFactor :: Maybe Double
 }
 
 instance Default SpacerCfg where
   def = SpacerCfg {
     _spcWidth = Nothing,
-    _spcHeight = Nothing,
     _spcFactor = Nothing
   }
 
 instance Semigroup SpacerCfg where
   (<>) s1 s2 = SpacerCfg {
     _spcWidth = _spcWidth s2 <|> _spcWidth s1,
-    _spcHeight = _spcHeight s2 <|> _spcHeight s1,
     _spcFactor = _spcFactor s2 <|> _spcFactor s1
   }
 
@@ -63,11 +59,6 @@ instance Monoid SpacerCfg where
 instance CmbWidth SpacerCfg where
   width w = def {
     _spcWidth = Just w
-  }
-
-instance CmbHeight SpacerCfg where
-  height h = def {
-    _spcHeight = Just h
   }
 
 instance CmbResizeFactor SpacerCfg where
@@ -104,19 +95,16 @@ makeSpacer config = widget where
   getSizeReq wenv node = sizeReq where
     direction = wenv ^. L.layoutDirection
     width = fromMaybe 5 (_spcWidth config)
-    height = fromMaybe 5 (_spcHeight config)
     factor = fromMaybe 0.5 (_spcFactor config)
     isFixed = factor < 0.01
+    flexSide = flexSize 5 0.5
     fixedW = fixedSize width
-    fixedH = fixedSize height
     flexW = flexSize width factor
-    flexH = flexSize height factor
     expandW = expandSize width factor
-    expandH = expandSize height factor
     sizeReq
-      | isFixed && direction == LayoutNone = (fixedW, fixedH)
-      | isFixed && direction == LayoutHorizontal = (fixedW, flexSize height 0.5)
-      | isFixed = (flexSize width 0.5, fixedH)
-      | direction == LayoutNone = (expandW, expandH)
-      | direction == LayoutHorizontal = (expandW, flexH)
-      | otherwise = (flexW, expandH)
+      | isFixed && direction == LayoutNone = (fixedW, fixedW)
+      | isFixed && direction == LayoutHorizontal = (fixedW, flexSide)
+      | isFixed = (flexSide, fixedW)
+      | direction == LayoutNone = (expandW, expandW)
+      | direction == LayoutHorizontal = (expandW, flexW)
+      | otherwise = (flexW, expandW)

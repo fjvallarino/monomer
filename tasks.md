@@ -662,12 +662,11 @@
     - Improve scroll test cases
   - Rename LeftBtn -> BtnLeft
   - Reorganize module dependencies (it was too easy to generate cycles)
-
-Next
   - Create user documentation
     - Overview of the library
     - Tutorials
-  - Check text vertical centering (Tutorial 03).
+
+Next
   - Function for setting focus should be in Utils.
     - Should WidgetType be an alias instead of a newtype?
   - Check globalKeyWidgetId name (also path)
@@ -675,9 +674,10 @@ Next
   - Is _weGlobalKeys really needed?
   - Add separator widget
     - Maybe spacer can use width only.
-  - Check label ellipsis in Tutorial01.
   - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?
+  - Check text vertical centering (Tutorial 03).
+  - Check label ellipsis in Tutorial01.
   - Add task to use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)

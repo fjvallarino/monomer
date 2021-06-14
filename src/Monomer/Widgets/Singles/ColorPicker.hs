@@ -212,11 +212,11 @@ buildUI config wenv model = mainTree where
   mainTree = hstack_ [sizeReqUpdater clearExtra] [
       vstack [
         colorRow L.r "Red",
-        spacer_ [height 2],
+        spacer_ [width 2],
         colorRow L.g "Green",
-        spacer_ [height 2],
+        spacer_ [width 2],
         colorRow L.b "Blue",
-        spacer_ [height 2] `visible` showAlpha,
+        spacer_ [width 2] `visible` showAlpha,
         alphaRow L.a "Alpha" `visible` showAlpha
       ],
       spacer_ [width 2],
