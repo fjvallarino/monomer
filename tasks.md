@@ -667,17 +667,19 @@
     - Tutorials
   - Add separator widget
     - Maybe spacer can use width only.
+  - Default theme should be usable (scroll, etc)
+    - Kind of usable.
 
 Next
   - Function for setting focus should be in Utils.
     - Should WidgetType be an alias instead of a newtype?
   - Check globalKeyWidgetId name (also path)
-  - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
   - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?
   - Check text vertical centering (Tutorial 03).
   - Check label ellipsis in Tutorial01.
+  - Document themes and how widgets use them.
   - Add task to use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Create ContextMenu (could work similarly to Tooltip)
     - Add context button in wenv/config (similar to main button)

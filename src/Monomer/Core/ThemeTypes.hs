@@ -20,7 +20,7 @@ import qualified Data.Map.Strict as M
 
 import Monomer.Common
 import Monomer.Core.StyleTypes
-import Monomer.Graphics.Color
+import Monomer.Graphics.ColorTable
 import Monomer.Graphics.Types
 
 -- | Theme configuration for each state, plus clear/base color.
@@ -100,9 +100,13 @@ data ThemeState = ThemeState {
 
 instance Default ThemeState where
   def = ThemeState {
-    _thsFgColor = def,
-    _thsHlColor = def,
-    _thsTextStyle = def,
+    _thsFgColor = gray,
+    _thsHlColor = lightGray,
+    _thsTextStyle = def {
+      _txsFontColor = Just black,
+      _txsFontSize = Just (FontSize 16),
+      _txsAlignH = Just ATLeft
+    },
     _thsEmptyOverlayStyle = def,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
@@ -117,7 +121,7 @@ instance Default ThemeState where
     _thsDialogCloseIconStyle = def,
     _thsDialogButtonsStyle = def,
     _thsDialogMsgBodyStyle = def,
-    _thsDropdownMaxHeight = def,
+    _thsDropdownMaxHeight = 150,
     _thsDropdownStyle = def,
     _thsDropdownListStyle = def,
     _thsDropdownItemStyle = def,
@@ -130,7 +134,7 @@ instance Default ThemeState where
     _thsScrollOverlay = False,
     _thsScrollFollowFocus = True,
     _thsScrollBarColor = def,
-    _thsScrollThumbColor = def,
+    _thsScrollThumbColor = darkGray,
     _thsScrollBarWidth = 10,
     _thsScrollThumbWidth = 8,
     _thsScrollThumbRadius = 0,

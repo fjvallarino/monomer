@@ -37,7 +37,7 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   listItem idx item = hstack [
-      label (item ^. text) `style` [width 100],
+      label_ (item ^. text) [ellipsis] `style` [width 150],
       textField (items . singular (ix idx) . text),
       spacer,
       button "Delete" (RemoveItem idx)
@@ -49,6 +49,7 @@ buildUI wenv model = widgetTree where
         spacer,
         button "Add" AddItem `style` [paddingH 5]
       ],
+      separatorLine `style` [paddingT 10, paddingB 5],
       vstack (zipWith listItem [0..] (model ^. items))
     ] `style` [padding 10]
 
