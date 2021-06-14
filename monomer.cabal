@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d483461aa57ad50378132b59141185f21c8718ec7cd1efe7a864741cc1b10b10
+-- hash: a5e3485bd3c232298b83ebf6065d35599d41aca0feaa753f964e962289d2ffea
 
 name:           monomer
 version:        0.1.0.0
@@ -105,6 +105,7 @@ library
       Monomer.Widgets.Singles.Label
       Monomer.Widgets.Singles.NumericField
       Monomer.Widgets.Singles.Radio
+      Monomer.Widgets.Singles.SeparatorLine
       Monomer.Widgets.Singles.Slider
       Monomer.Widgets.Singles.Spacer
       Monomer.Widgets.Singles.TextArea
@@ -387,7 +388,6 @@ executable todo
 executable tutorial
   main-is: Main.hs
   other-modules:
-      External01_Lenses
       Tutorial01_Basics
       Tutorial02_Styling
       Tutorial03_LifeCycle
@@ -468,6 +468,7 @@ test-suite monomer-test
       Monomer.Widgets.Singles.LabelSpec
       Monomer.Widgets.Singles.NumericFieldSpec
       Monomer.Widgets.Singles.RadioSpec
+      Monomer.Widgets.Singles.SeparatorLineSpec
       Monomer.Widgets.Singles.SliderSpec
       Monomer.Widgets.Singles.SpacerSpec
       Monomer.Widgets.Singles.TextAreaSpec

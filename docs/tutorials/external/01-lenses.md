@@ -222,3 +222,11 @@ the following resources:
 - [Haskell Lens Operator Onboarding](https://medium.com/@russmatney/haskell-lens-operator-onboarding-a235481e8fac)
 - [Exercises for understanding lenses](https://williamyaoh.com/posts/2019-04-25-lens-exercises.html)
 - [Optics By Example](https://leanpub.com/optics-by-example)
+
+## Example
+
+You can run the example with:
+
+```bash
+stack runghc examples/tutorial/external/External01_Lenses.hs
+```

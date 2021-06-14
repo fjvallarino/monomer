@@ -38,6 +38,7 @@ import qualified Monomer.Widgets.Singles.ImageSpec as ImageSpec
 import qualified Monomer.Widgets.Singles.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.Singles.NumericFieldSpec as NumericFieldSpec
 import qualified Monomer.Widgets.Singles.RadioSpec as RadioSpec
+import qualified Monomer.Widgets.Singles.SeparatorLineSpec as SeparatorLineSpec
 import qualified Monomer.Widgets.Singles.SliderSpec as SliderSpec
 import qualified Monomer.Widgets.Singles.SpacerSpec as SpacerSpec
 import qualified Monomer.Widgets.Singles.TextFieldSpec as TextFieldSpec
@@ -110,6 +111,7 @@ singles = describe "Singles" $ do
   LabelSpec.spec
   NumericFieldSpec.spec
   RadioSpec.spec
+  SeparatorLineSpec.spec
   SliderSpec.spec
   SpacerSpec.spec
   TextAreaSpec.spec

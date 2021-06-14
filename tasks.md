@@ -665,6 +665,8 @@
   - Create user documentation
     - Overview of the library
     - Tutorials
+  - Add separator widget
+    - Maybe spacer can use width only.
 
 Next
   - Function for setting focus should be in Utils.
@@ -672,8 +674,6 @@ Next
   - Check globalKeyWidgetId name (also path)
   - Default theme should be usable (scroll, etc)
   - Is _weGlobalKeys really needed?
-  - Add separator widget
-    - Maybe spacer can use width only.
   - Rename simpleApp (check startApp in docs).
   - Move Helper to Common?
   - Check text vertical centering (Tutorial 03).

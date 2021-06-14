@@ -214,6 +214,8 @@ baseBasic themeMod = def
   & L.scrollThumbWidth .~ 10
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
+  & L.separatorLineWidth .~ 1
+  & L.separatorLineStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.sliderRadius ?~ 2
   & L.sliderThumbFactor .~ 1.25
   & L.sliderWidth .~ 10

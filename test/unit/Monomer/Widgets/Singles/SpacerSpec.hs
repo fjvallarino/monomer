@@ -18,14 +18,10 @@ import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
 import Monomer.Core
-import Monomer.Core.Combinators
-import Monomer.Event
-import Monomer.Graphics
 import Monomer.TestUtil
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Containers.Stack
-import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
