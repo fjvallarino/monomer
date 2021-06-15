@@ -30,7 +30,7 @@ spec = describe "Text" $ do
   fitTextMulti
 
 fitTextSingle :: Spec
-fitTextSingle = describe "fitTextToRect single line" $ do
+fitTextSingle = describe "fitTextToSize single line" $ do
   it "should return the same empty text, trimmed (ellipsis)" $
     elpsTrim "" ^. ix 0 . L.text `shouldBe` ""
 
@@ -83,16 +83,16 @@ fitTextSingle = describe "fitTextToRect single line" $ do
     wenv = mockWenv ()
     renderer = wenv ^. L.renderer
     style = def
-    rectE = Rect 0 0 120 20
-    rectC = Rect 0 0 120 10
-    elpsTrim text = fitTextToRect renderer style Ellipsis SingleLine TrimSpaces Nothing rectE text
-    elpsKeep text = fitTextToRect renderer style Ellipsis SingleLine KeepSpaces Nothing rectE text
-    clipTrim text = fitTextToRect renderer style ClipText SingleLine TrimSpaces Nothing rectC text
-    clipKeep text = fitTextToRect renderer style ClipText SingleLine KeepSpaces Nothing rectC text
+    sizeE = Size 120 20
+    sizeC = Size 120 10
+    elpsTrim text = fitTextToSize renderer style Ellipsis SingleLine TrimSpaces Nothing sizeE text
+    elpsKeep text = fitTextToSize renderer style Ellipsis SingleLine KeepSpaces Nothing sizeE text
+    clipTrim text = fitTextToSize renderer style ClipText SingleLine TrimSpaces Nothing sizeC text
+    clipKeep text = fitTextToSize renderer style ClipText SingleLine KeepSpaces Nothing sizeC text
     singleElement sq = Seq.length sq == 1
 
 fitTextMulti :: Spec
-fitTextMulti = describe "fitTextToRect single line" $ do
+fitTextMulti = describe "fitTextToSize single line" $ do
   it "should return the same text, trimmed, if it fits" $ do
     elpsTrim "Text " `shouldSatisfy` elementCount 1
     elpsTrim "Text " ^. ix 0 . L.text `shouldBe` "Text"
@@ -103,16 +103,16 @@ fitTextMulti = describe "fitTextToRect single line" $ do
 
   -- Text.lines does not return an extra line if the last element is \n
   it "should return several empty lines" $ do
-    elpsTrim_ rectTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
-    elpsKeep_ rectTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
-    clipTrim_ rectTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
-    clipKeep_ rectTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
+    elpsTrim_ sizeTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
+    elpsKeep_ sizeTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
+    clipTrim_ sizeTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
+    clipKeep_ sizeTall "Text\n\n\n\n" `shouldSatisfy` elementCount 4
 
   it "should return several empty lines and one with text" $ do
-    elpsTrim_ rectTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
-    elpsKeep_ rectTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
-    clipTrim_ rectTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
-    clipKeep_ rectTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
+    elpsTrim_ sizeTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
+    elpsKeep_ sizeTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
+    clipTrim_ sizeTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
+    clipKeep_ sizeTall "Text\n\n\n\nend" `shouldSatisfy` elementCount 5
 
   it "should return text with ellipsis, trimmed, if it does not fit" $ do
     elpsTrim "This is    really-long\nMore" `shouldSatisfy` elementCount 2
@@ -154,15 +154,15 @@ fitTextMulti = describe "fitTextToRect single line" $ do
     wenv = mockWenv ()
     renderer = wenv ^. L.renderer
     style = def
-    rectE = Rect 0 0 80 40
-    rectC = Rect 0 0 80 50
-    rectTall = Rect 0 0 80 200
-    elpsTrim text = elpsTrim_ rectE text
-    elpsKeep text = elpsKeep_ rectE text
-    clipTrim text = clipTrim_ rectC text
-    clipKeep text = clipKeep_ rectC text
-    elpsTrim_ rect text = fitTextToRect renderer style Ellipsis MultiLine TrimSpaces Nothing rect text
-    elpsKeep_ rect text = fitTextToRect renderer style Ellipsis MultiLine KeepSpaces Nothing rect text
-    clipTrim_ rect text = fitTextToRect renderer style ClipText MultiLine TrimSpaces Nothing rect text
-    clipKeep_ rect text = fitTextToRect renderer style ClipText MultiLine KeepSpaces Nothing rect text
+    sizeE = Size 80 40
+    sizeC = Size 80 50
+    sizeTall = Size 80 200
+    elpsTrim text = elpsTrim_ sizeE text
+    elpsKeep text = elpsKeep_ sizeE text
+    clipTrim text = clipTrim_ sizeC text
+    clipKeep text = clipKeep_ sizeC text
+    elpsTrim_ size text = fitTextToSize renderer style Ellipsis MultiLine TrimSpaces Nothing size text
+    elpsKeep_ size text = fitTextToSize renderer style Ellipsis MultiLine KeepSpaces Nothing size text
+    clipTrim_ size text = fitTextToSize renderer style ClipText MultiLine TrimSpaces Nothing size text
+    clipKeep_ size text = fitTextToSize renderer style ClipText MultiLine KeepSpaces Nothing size text
     elementCount count sq = Seq.length sq == count

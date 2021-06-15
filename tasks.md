@@ -684,6 +684,7 @@
 
 Next
   - Should fitTextToRect be fitTextToSize?
+  - Label should use drawInTranslation.
   - Add lineHeight to TextStyle
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
   - Document themes and how widgets use them.

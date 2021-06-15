@@ -16,7 +16,7 @@ module Monomer.Graphics.Text (
   calcTextSize_,
   calcTextRect,
   getTextLinesSize,
-  fitTextToRect,
+  fitTextToSize,
   fitTextToWidth,
   alignTextLines,
   moveTextLines,
@@ -108,21 +108,24 @@ calcTextRect renderer containerRect font fontSize ha va text = textRect where
   }
 
 {-|
-Fits the given text to a determined rect, splitting on multiple lines as needed.
-The text may overflow vertically or horizontally, and a scissor is needed.
+Fits the given text to a determined size, splitting on multiple lines as needed.
+Since the function returns glyphs that may be partially visible, the text can
+overflow vertically or horizontally and a scissor is needed. The rectangles are
+returned with zero offset (i.e., x = 0 and first line y = 0), and a translation
+transform is needed when rendering.
 -}
-fitTextToRect
+fitTextToSize
   :: Renderer      -- ^ The renderer.
   -> StyleState    -- ^ The style.
   -> TextOverflow  -- ^ Whether to clip or use ellipsis.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
   -> Maybe Int     -- ^ Optional max lines.
-  -> Rect          -- ^ The bounding rect.
+  -> Size          -- ^ The bounding size.
   -> Text          -- ^ The text to fit.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
-  Rect cx cy cw ch = rect
+fitTextToSize renderer style ovf mode trim mlines !size !text = newLines where
+  Size cw ch = size
   font = styleFont style
   fontSize = styleFontSize style
   textMetrics = computeTextMetrics renderer font fontSize

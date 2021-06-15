@@ -225,14 +225,16 @@ makeLabel config state = widget where
       | otherwise = flexSize h factorH
 
   resize wenv node viewport = result where
+    renderer = wenv ^. L.renderer
     ts = wenv ^. L.timestamp
     style = activeStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
     Rect cx cy cw ch = crect
-    renderer = wenv ^. L.renderer
-    fittedLines = fitTextToRect renderer style overflow mode trim maxLines crect caption
+    size = Size cw ch
+    fittedLines
+      = fitTextToSize renderer style overflow mode trim maxLines size caption
     newTextLines = alignTextLines style crect fittedLines
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines
