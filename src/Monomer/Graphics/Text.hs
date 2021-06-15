@@ -126,14 +126,16 @@ fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
   font = styleFont style
   fontSize = styleFontSize style
   textMetrics = computeTextMetrics renderer font fontSize
-  maxHeight = case mlines of
+  maxH = case mlines of
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
   textLinesW = fitTextToWidth renderer style cw trim text
-  fittedLines = fitTextLinesToH renderer style ovf cw maxHeight textLinesW
+  firstLine = Seq.take 1 textLinesW
+  fitRequired = mode == MultiLine || length textLinesW == 1
   newLines
-    | mode == MultiLine = fittedLines
-    | otherwise = Seq.take 1 fittedLines
+    | fitRequired = fitTextLinesToH renderer style ovf cw maxH textLinesW
+    | ovf == Ellipsis = addEllipsisToTextLine renderer style cw <$> firstLine
+    | otherwise = firstLine
 
 -- | Fits a single line of text to the given width, potencially spliting into
 -- | several lines.

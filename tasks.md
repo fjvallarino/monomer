@@ -680,9 +680,9 @@
   - Add context button in wenv/config (similar to main button)
   - Check text vertical centering (Tutorial 03).
     - The image had a shadow at the bottom which made it asymmetric
+  - Check label ellipsis in Tutorial02.
 
 Next
-  - Check label ellipsis in Tutorial01.
   - Should fitTextToRect be fitTextToSize?
   - Add lineHeight to TextStyle
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
