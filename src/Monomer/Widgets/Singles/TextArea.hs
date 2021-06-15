@@ -305,8 +305,8 @@ makeTextArea wdata config state = widget where
     | isSelectFullDn = Just $ moveCursor txt lastPos (Just tp)
     | isDeselectLeft = Just $ moveCursor txt minTpSel Nothing
     | isDeselectRight = Just $ moveCursor txt maxTpSel Nothing
-    | isDeselectUp = Just $ moveCursor txt (tpX, tpY - 1) Nothing
-    | isDeselectDown = Just $ moveCursor txt (tpX, tpY + 1) Nothing
+    | isDeselectUp = Just $ moveCursor txt minTpSel Nothing
+    | isDeselectDown = Just $ moveCursor txt maxTpSel Nothing
     | otherwise = Nothing
     where
       txt = currText
