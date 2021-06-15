@@ -119,7 +119,7 @@ fitTextToRect
   -> TextTrim      -- ^ Whether to trim or keep spaces.
   -> Maybe Int     -- ^ Optional max lines.
   -> Rect          -- ^ The bounding rect.
-  -> Text          -- ^ The text to calculate.
+  -> Text          -- ^ The text to fit.
   -> Seq TextLine  -- ^ The fitted text lines.
 fitTextToRect renderer style ovf mode trim mlines !rect !text = newLines where
   Rect cx cy cw ch = rect

@@ -143,6 +143,7 @@ mockWenv model = WidgetEnv {
   _weRenderer = mockRenderer,
   _weFindByPath = const Nothing,
   _weMainButton = BtnLeft,
+  _weContextButton = BtnRight,
   _weTheme = def,
   _weWindowSize = testWindowSize,
   _weWidgetKeyMap = M.empty,

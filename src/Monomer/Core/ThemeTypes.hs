@@ -104,7 +104,6 @@ instance Default ThemeState where
     _thsHlColor = lightGray,
     _thsTextStyle = def {
       _txsFontColor = Just black,
-      _txsFontSize = Just (FontSize 16),
       _txsAlignH = Just ATLeft
     },
     _thsEmptyOverlayStyle = def,
