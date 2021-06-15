@@ -7,14 +7,19 @@ Stability   : experimental
 Portability : non-portable
 
 Displays a text message above its child node when the pointer is on top and
-some conditions have been met.
+the delay, if any, has ellapsed.
+
+Tooltip styling is a bit unusual, since it only applies to the overlaid element.
+This means, padding will not be shown for the contained child element, but only
+on the message when the tooltip is active. If you need padding around the child
+element, you may want to use a box.
 
 Config:
 
 - width: the maximum width of the tooltip. Used for multiline.
 - height: the maximum height of the tooltip. Used for multiline.
 - tooltipDelay: the delay in ms before the tooltip is displayed.
-- tooltipFollow: if, after tooltip is displaye, it should follow the mouse.
+- tooltipFollow: if, after tooltip is displayed, it should follow the mouse.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -164,7 +169,8 @@ makeTooltip caption config state = widget where
 
     when tooltipVisible $
       createOverlay renderer $ do
-        drawStyledAction renderer rect style $ \textRect ->
+        drawStyledAction renderer rect style $ \textRect -> do
+          let textLines = alignTextLines style textRect fittedLines
           forM_ textLines (drawTextLine renderer style)
     where
       style = activeStyle wenv node
@@ -172,8 +178,8 @@ makeTooltip caption config state = widget where
       mousePos = wenv ^. L.inputStatus . L.mousePos
       scOffset = wenv ^. L.offset
       isDragging = isJust (wenv ^. L.dragStatus)
-      maxW = wenv^. L.windowSize . L.w
-      maxH = wenv^. L.windowSize . L.h
+      maxW = wenv ^. L.windowSize . L.w
+      maxH = wenv ^. L.windowSize . L.h
       targetW = fromMaybe maxW (_ttcWidth config)
       targetH = fromMaybe maxH (_ttcHeight config)
       targetSize = Size targetW targetH
@@ -193,7 +199,6 @@ makeTooltip caption config state = widget where
         | wenv ^. L.windowSize . L.h - my > th = my + 20
         | otherwise = my - th - 5
       rect = Rect rx ry tw th
-      textLines = alignTextLines style rect fittedLines
       tooltipVisible = tooltipDisplayed wenv node && not isDragging
 
   tooltipDisplayed wenv node = displayed where
