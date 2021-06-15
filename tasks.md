@@ -681,11 +681,12 @@
   - Check text vertical centering (Tutorial 03).
     - The image had a shadow at the bottom which made it asymmetric
   - Check label ellipsis in Tutorial02.
+  - Should fitTextToRect be fitTextToSize?
 
 Next
-  - Should fitTextToRect be fitTextToSize?
   - Label should use drawInTranslation.
   - Add lineHeight to TextStyle
+  - Box click should handle multiple clicks as button
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
   - Document themes and how widgets use them.
   - Linux build

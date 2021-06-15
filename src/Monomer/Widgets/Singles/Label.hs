@@ -188,7 +188,7 @@ makeLabel config state = widget where
     captionChanged = _lstCaption oldState /= caption
     styleChanged = _lstTextStyle oldState /= newTextStyle
     changeReq = captionChanged || styleChanged
-    -- This is used in resize to have glyphs recalculated
+    -- This is used in resize to know if glyphs have to be recalculated
     newRect
       | changeReq = def
       | otherwise = _lstTextRect oldState
@@ -231,14 +231,15 @@ makeLabel config state = widget where
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
-    Rect cx cy cw ch = crect
+    Rect _ _ cw ch = crect
     size = Size cw ch
+    alignRect = Rect 0 0 cw ch
     fittedLines
       = fitTextToSize renderer style overflow mode trim maxLines size caption
-    newTextLines = alignTextLines style crect fittedLines
+    newTextLines = alignTextLines style alignRect fittedLines
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines
-      | not newGlyphsReq = moveTextLines (Point (cx - px) (cy - py)) textLines
+      | not newGlyphsReq = textLines
       | otherwise = newTextLines
     (prevTs, prevStep) = prevResize
     needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
@@ -253,6 +254,8 @@ makeLabel config state = widget where
     result = resultReqs newNode [ResizeWidgets | needsSndResize]
 
   render wenv node renderer = do
-    forM_ textLines (drawTextLine renderer style)
+    drawInTranslation renderer (Point cx cy) $
+      forM_ textLines (drawTextLine renderer style)
     where
       style = activeStyle wenv node
+      Rect cx cy cw ch = getContentArea style node
