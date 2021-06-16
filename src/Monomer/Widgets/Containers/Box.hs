@@ -205,20 +205,24 @@ makeBox config = widget where
       & L.isActive .~ isNodeTreeActive
 
   handleEvent wenv node target evt = case evt of
-    Click point btn -> result where
-      child = Seq.index (node ^. L.children) 0
-      childClicked = pointInRect point (child ^. L.info . L.viewport)
-      events
-        | childClicked = _boxOnClick config
-        | otherwise = _boxOnClickEmpty config
-      requests
-        | childClicked  = _boxOnClickReq config
-        | otherwise = _boxOnClickEmptyReq config
-      needsUpdate = not (null events && null requests)
-      result
-        | needsUpdate = Just $ resultReqsEvts node requests events
-        | otherwise = Nothing
+    Click point btn -> handleClick node point
+    ButtonAction point btn BtnReleased clicks
+      | clicks > 1 -> handleClick node point
     _ -> Nothing
+
+  handleClick node point = result where
+    child = Seq.index (node ^. L.children) 0
+    childClicked = pointInRect point (child ^. L.info . L.viewport)
+    events
+      | childClicked = _boxOnClick config
+      | otherwise = _boxOnClickEmpty config
+    requests
+      | childClicked  = _boxOnClickReq config
+      | otherwise = _boxOnClickEmptyReq config
+    needsUpdate = not (null events && null requests)
+    result
+      | needsUpdate = Just $ resultReqsEvts node requests events
+      | otherwise = Nothing
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = newSizeReq where
@@ -228,7 +232,6 @@ makeBox config = widget where
     newReqH = child ^. L.info . L.sizeReqH
     newSizeReq = updateSizeReq (newReqW, newReqH)
 
-  resize :: ContainerResizeHandler s e
   resize wenv node viewport children = resized where
     style = getActiveStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)

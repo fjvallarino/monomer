@@ -684,10 +684,10 @@
   - Should fitTextToRect be fitTextToSize?
   - Label should use drawInTranslation.
   - Fix spacing issue on tooltip.
+  - Fix deselection up/down on textArea.
+  - Box click should handle multiple clicks as button
 
 Next
-  - Add lineHeight to TextStyle
-  - Box click should handle multiple clicks as button
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
   - Document themes and how widgets use them.
   - Linux build
