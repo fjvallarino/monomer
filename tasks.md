@@ -689,6 +689,7 @@
 
 Next
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
+  - Remove evt config when req version exists
   - Document themes and how widgets use them.
   - Linux build
   - Windows build

@@ -10,13 +10,16 @@ import System.Random
 
 import qualified Monomer.Lens as L
 
-newtype AppModel = AppModel {
-  _selected :: Int
+data AppModel = AppModel {
+  _selected :: Int,
+  _hoverButton :: Bool
 } deriving (Eq, Show)
 
 data AppEvent
   = AppGenRandom
   | AppSaveRandom Int
+  | AppOnEnterBtn
+  | AppOnLeaveBtn
   deriving (Eq, Show)
 
 makeLenses 'AppModel
@@ -27,10 +30,11 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   pushLayers = zstack [
-      image_ "./assets/images/red-button.png" [fitFill],
+      image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
+      image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
       label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
     ]
-  pushButton = box_ [onClick AppGenRandom] pushLayers
+  pushButton = box_ [onClick AppGenRandom, onEnter AppOnEnterBtn, onLeave AppOnLeaveBtn] pushLayers
     `style` [width 160, height 160, cursorHand]
   numberLabel = labelS (model ^. selected)
     `style` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
@@ -64,6 +68,8 @@ handleEvent wenv node model evt = case evt of
       AppSaveRandom <$> randomRIO (1, 6)
     ]
   AppSaveRandom value -> [Model $ model & selected .~ value]
+  AppOnEnterBtn -> [Model $ model & hoverButton .~ True]
+  AppOnLeaveBtn -> [Model $ model & hoverButton .~ False]
 
 main04 :: IO ()
 main04 = do
@@ -76,5 +82,6 @@ main04 = do
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf"
       ]
     model = AppModel {
-      _selected = 0
+      _selected = 0,
+      _hoverButton = False
     }

@@ -26,6 +26,7 @@ import Data.Text (Text)
 import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
+import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 -- | Given two values, usually model, checks if merge is required.
@@ -321,6 +322,22 @@ class CmbOnBlur t e a | t -> e a where
 class CmbOnBlurReq t s e | t -> s e where
   onBlurReq :: WidgetRequest s e -> t
 
+-- | On enter event.
+class CmbOnEnter t e | t -> e where
+  onEnter :: e -> t
+
+-- | On enter WidgetRequest.
+class CmbOnEnterReq t s e | t -> s e where
+  onEnterReq :: WidgetRequest s e -> t
+
+-- | On leave event.
+class CmbOnLeave t e | t -> e where
+  onLeave :: e -> t
+
+-- | On leave WidgetRequest.
+class CmbOnLeaveReq t s e | t -> s e where
+  onLeaveReq :: WidgetRequest s e -> t
+
 -- | On click event.
 class CmbOnClick t e | t -> e where
   onClick :: e -> t
@@ -336,6 +353,22 @@ class CmbOnClickEmpty t e | t -> e where
 -- | On click empty WidgetRequest, where supported (box, for example).
 class CmbOnClickEmptyReq t s e | t -> s e where
   onClickEmptyReq :: WidgetRequest s e -> t
+
+-- | On button pressed event.
+class CmbOnBtnPressed t e | t -> e where
+  onBtnPressed :: (Button -> Int -> e) -> t
+
+-- | On button pressed WidgetRequest.
+class CmbOnBtnPressedReq t s e | t -> s e where
+  onBtnPressedReq :: (Button -> Int -> WidgetRequest s e) -> t
+
+-- | On button released event.
+class CmbOnBtnReleased t e | t -> e where
+  onBtnReleased :: (Button -> Int -> e) -> t
+
+-- | On button released WidgetRequest.
+class CmbOnBtnReleasedReq t s e | t -> s e where
+  onBtnReleasedReq :: (Button -> Int -> WidgetRequest s e) -> t
 
 -- | On enabled change event.
 class CmbOnEnabledChange t e | t -> e where

@@ -44,10 +44,32 @@ from lowest to highest layer level.
 
 ```haskell
 pushLayers = zstack [
-    image_ "./assets/images/red-button.png" [fitFill],
+    image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
+    image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
     label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
   ]
 ```
+
+### box
+
+Box is a container for a single item that can be used for both layout and event
+handling on behalf of its child element.
+
+By default box assigns the requested space by its child, which can leave some
+space empty if box's viewport is larger. This space can be used for alignment of
+the child item, that is initially centered, or can be assigned to the child when
+using the `expandContent` config option.
+
+Box allows handling a few different events, in particular:
+
+- onClick: can be used to implement custom buttons, as in the example, since it
+  only triggers when clicked on the child widget.
+- onClickEmpty: can be used to cancel an action when clicking outside the main
+  widget, as `alert` and `confirm` dialogs do.
+
+It also allows handling `onEnter`, `onLeave`, `onBtnPress` and `onBtnReleased`.
+Depending on your needs, these events may allow you to implement what you need
+without a custom widget.
 
 ### image
 

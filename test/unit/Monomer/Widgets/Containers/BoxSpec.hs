@@ -31,8 +31,12 @@ import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 
-newtype BtnEvent
+data TestEvent
   = BtnClick Int
+  | BoxOnEnter
+  | BoxOnLeave
+  | BoxOnPressed Button Int
+  | BoxOnReleased Button Int
   deriving (Eq, Show)
 
 spec :: Spec
@@ -47,16 +51,28 @@ spec = describe "Box" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should not generate an event if clicked outside" $
-    events (Point 3000 3000) `shouldBe` Seq.empty
+    evts [evtClick (Point 3000 3000)] `shouldBe` Seq.empty
 
   it "should generate an event if the button (centered) is clicked" $
-    events (Point 320 240) `shouldBe` Seq.singleton (BtnClick 0)
+    evts [evtClick (Point 320 240)] `shouldBe` Seq.singleton (BtnClick 0)
+
+  it "should generate an event when the cursor enters the viewport" $
+    evts [evtMove (Point 320 240)] `shouldBe` Seq.singleton BoxOnEnter
+
+  it "should generate an event when the cursor leaves the viewport" $
+    evts [evtMove (Point 320 240), evtMove (Point 3000 3000)] `shouldBe` Seq.fromList [BoxOnEnter, BoxOnLeave]
+
+  it "should generate an event if the button is pressed in the child viewport" $
+    evts [evtPress (Point 320 240)] `shouldBe` Seq.singleton (BoxOnPressed BtnLeft 1)
+
+  it "should generate an event if the button is released in the child viewport" $
+    evts [evtMove (Point 320 240), evtRelease (Point 320 240)] `shouldBe` Seq.fromList [BoxOnEnter, BoxOnReleased BtnLeft 1]
 
   where
     wenv = mockWenv ()
-    btn = button "Click" (BtnClick 0)
+    btn = box_ [onClick (BtnClick 0), onEnter BoxOnEnter, onLeave BoxOnLeave, onBtnPressed BoxOnPressed, onBtnReleased BoxOnReleased] (label "Test")
     boxNode = nodeInit wenv (box btn)
-    events p = nodeHandleEventEvts wenv [evtClick p] boxNode
+    evts es = nodeHandleEventEvts wenv es boxNode
 
 handleEventIgnoreEmpty :: Spec
 handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
