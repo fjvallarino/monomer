@@ -686,10 +686,10 @@
   - Fix spacing issue on tooltip.
   - Fix deselection up/down on textArea.
   - Box click should handle multiple clicks as button
-
-Next
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
   - Remove evt config when req version exists
+
+Next
   - Document themes and how widgets use them.
   - Linux build
   - Windows build
