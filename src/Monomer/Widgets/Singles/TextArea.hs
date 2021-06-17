@@ -68,7 +68,6 @@ data TextAreaCfg s e = TextAreaCfg {
   _tacSelectOnFocus :: Maybe Bool,
   _tacOnFocusReq :: [Path -> WidgetRequest s e],
   _tacOnBlurReq :: [Path -> WidgetRequest s e],
-  _tacOnChange :: [Text -> e],
   _tacOnChangeReq :: [Text -> WidgetRequest s e]
 }
 
@@ -80,7 +79,6 @@ instance Default (TextAreaCfg s e) where
     _tacSelectOnFocus = Nothing,
     _tacOnFocusReq = [],
     _tacOnBlurReq = [],
-    _tacOnChange = [],
     _tacOnChangeReq = []
   }
 
@@ -92,7 +90,6 @@ instance Semigroup (TextAreaCfg s e) where
     _tacSelectOnFocus = _tacSelectOnFocus t2 <|> _tacSelectOnFocus t1,
     _tacOnFocusReq = _tacOnFocusReq t1 <> _tacOnFocusReq t2,
     _tacOnBlurReq = _tacOnBlurReq t1 <> _tacOnBlurReq t2,
-    _tacOnChange = _tacOnChange t1 <> _tacOnChange t2,
     _tacOnChangeReq = _tacOnChangeReq t1 <> _tacOnChangeReq t2
   }
 
@@ -139,9 +136,9 @@ instance CmbOnBlurReq (TextAreaCfg s e) s e Path where
     _tacOnBlurReq = [req]
   }
 
-instance CmbOnChange (TextAreaCfg s e) Text e where
+instance WidgetEvent e => CmbOnChange (TextAreaCfg s e) Text e where
   onChange fn = def {
-    _tacOnChange = [fn]
+    _tacOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (TextAreaCfg s e) s e Text where
@@ -589,13 +586,12 @@ makeTextArea wdata config state = widget where
   generateReqs wenv node newState = reqs ++ reqScroll where
     oldText = _tasText state
     newText = _tasText newState
-    events = RaiseEvent <$> fmap ($ newText) (_tacOnChange config)
     reqUpdate = widgetDataSet wdata newText
     reqOnChange = fmap ($ newText) (_tacOnChangeReq config)
     reqResize = [ResizeWidgetsImmediate]
     reqScroll = generateScrollReq wenv node newState
     reqs
-      | oldText /= newText = reqUpdate ++ events ++ reqOnChange ++ reqResize
+      | oldText /= newText = reqUpdate ++ reqOnChange ++ reqResize
       | otherwise = []
 
   generateScrollReq wenv node newState = scrollReq where

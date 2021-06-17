@@ -117,8 +117,6 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcOnFocusReq :: [Path -> WidgetRequest s e],
   -- | WidgetRequest to generate when focus is lost.
   _ifcOnBlurReq :: [Path -> WidgetRequest s e],
-  -- | Event to raise when value changes.
-  _ifcOnChange :: [a -> e],
   -- | WidgetRequest to generate when value changes.
   _ifcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -699,9 +697,6 @@ genReqsEvents config state newText newReqs = result where
   stateVal = fromMaybe currVal newVal
   txtChanged = newText /= currText
   valChanged = stateVal /= currVal
-  events
-    | accepted && valChanged = fmap ($ stateVal) (_ifcOnChange config)
-    | otherwise = []
   evtValid
     | txtChanged = fmap ($ isValid) (_ifcValidV config)
     | otherwise = []
@@ -713,10 +708,10 @@ genReqsEvents config state newText newReqs = result where
     | resizeOnChange && valChanged = [ResizeWidgets]
     | otherwise = []
   reqOnChange
-    | stateVal /= currVal = fmap ($ stateVal) (_ifcOnChangeReq config)
+    | accepted && valChanged = fmap ($ stateVal) (_ifcOnChangeReq config)
     | otherwise = []
   reqs = newReqs ++ reqUpdateModel ++ reqValid ++ reqResize ++ reqOnChange
-  result = (reqs, events <> evtValid)
+  result = (reqs, evtValid)
 
 moveHistory
   :: (InputFieldValue a, WidgetEvent e)

@@ -58,7 +58,6 @@ data CheckboxCfg s e = CheckboxCfg {
   _ckcWidth :: Maybe Double,
   _ckcOnFocusReq :: [Path -> WidgetRequest s e],
   _ckcOnBlurReq :: [Path -> WidgetRequest s e],
-  _ckcOnChange :: [Bool -> e],
   _ckcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
 
@@ -68,7 +67,6 @@ instance Default (CheckboxCfg s e) where
     _ckcWidth = Nothing,
     _ckcOnFocusReq = [],
     _ckcOnBlurReq = [],
-    _ckcOnChange = [],
     _ckcOnChangeReq = []
   }
 
@@ -78,7 +76,6 @@ instance Semigroup (CheckboxCfg s e) where
     _ckcWidth = _ckcWidth t2 <|> _ckcWidth t1,
     _ckcOnFocusReq = _ckcOnFocusReq t1 <> _ckcOnFocusReq t2,
     _ckcOnBlurReq = _ckcOnBlurReq t1 <> _ckcOnBlurReq t2,
-    _ckcOnChange = _ckcOnChange t1 <> _ckcOnChange t2,
     _ckcOnChangeReq = _ckcOnChangeReq t1 <> _ckcOnChangeReq t2
   }
 
@@ -110,9 +107,9 @@ instance CmbOnBlurReq (CheckboxCfg s e) s e Path where
     _ckcOnBlurReq = [req]
   }
 
-instance CmbOnChange (CheckboxCfg s e) Bool e where
+instance WidgetEvent e => CmbOnChange (CheckboxCfg s e) Bool e where
   onChange fn = def {
-    _ckcOnChange = [fn]
+    _ckcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (CheckboxCfg s e) s e Bool where
@@ -172,9 +169,9 @@ makeCheckbox widgetData config = widget where
     Focus prev -> handleFocusChange (_ckcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_ckcOnBlurReq config) next node
     Click p _
-      | isPointInNodeVp p node -> Just $ resultReqsEvts node reqs events
+      | isPointInNodeVp p node -> Just $ resultReqs node reqs
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvts node reqs events
+      | isSelectKey code -> Just $ resultReqs node reqs
     _ -> Nothing
     where
       isSelectKey code = isKeyReturn code || isKeySpace code
@@ -182,7 +179,6 @@ makeCheckbox widgetData config = widget where
       path = node ^. L.info . L.path
       value = widgetDataGet model widgetData
       newValue = not value
-      events = fmap ($ newValue) (_ckcOnChange config)
       setValueReq = widgetDataSet widgetData newValue
       reqs = setValueReq ++ fmap ($ newValue) (_ckcOnChangeReq config)
 

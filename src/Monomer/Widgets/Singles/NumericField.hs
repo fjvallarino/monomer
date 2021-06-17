@@ -123,7 +123,6 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcSelectOnFocus :: Maybe Bool,
   _nfcOnFocusReq :: [Path -> WidgetRequest s e],
   _nfcOnBlurReq :: [Path -> WidgetRequest s e],
-  _nfcOnChange :: [a -> e],
   _nfcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -140,7 +139,6 @@ instance Default (NumericFieldCfg s e a) where
     _nfcSelectOnFocus = Nothing,
     _nfcOnFocusReq = [],
     _nfcOnBlurReq = [],
-    _nfcOnChange = [],
     _nfcOnChangeReq = []
   }
 
@@ -157,7 +155,6 @@ instance Semigroup (NumericFieldCfg s e a) where
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
     _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
     _nfcOnBlurReq = _nfcOnBlurReq t1 <> _nfcOnBlurReq t2,
-    _nfcOnChange = _nfcOnChange t1 <> _nfcOnChange t2,
     _nfcOnChangeReq = _nfcOnChangeReq t1 <> _nfcOnChangeReq t2
   }
 
@@ -229,9 +226,9 @@ instance CmbOnBlurReq (NumericFieldCfg s e a) s e Path where
     _nfcOnBlurReq = [req]
   }
 
-instance CmbOnChange (NumericFieldCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (NumericFieldCfg s e a) a e where
   onChange fn = def {
-    _nfcOnChange = [fn]
+    _nfcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (NumericFieldCfg s e a) s e a where
@@ -318,7 +315,6 @@ numericFieldD_ widgetData configs = newNode where
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _nfcOnFocusReq config,
     _ifcOnBlurReq = _nfcOnBlurReq config,
-    _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }
   newNode = inputField_ "numericField" inputConfig

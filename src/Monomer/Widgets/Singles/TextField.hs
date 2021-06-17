@@ -57,7 +57,6 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnFocusReq :: [Path -> WidgetRequest s e],
   _tfcOnBlurReq :: [Path -> WidgetRequest s e],
-  _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [Text -> WidgetRequest s e]
 }
 
@@ -70,7 +69,6 @@ instance Default (TextFieldCfg s e) where
     _tfcSelectOnFocus = Nothing,
     _tfcOnFocusReq = [],
     _tfcOnBlurReq = [],
-    _tfcOnChange = [],
     _tfcOnChangeReq = []
   }
 
@@ -83,7 +81,6 @@ instance Semigroup (TextFieldCfg s e) where
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
-    _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
   }
 
@@ -135,9 +132,9 @@ instance CmbOnBlurReq (TextFieldCfg s e) s e Path where
     _tfcOnBlurReq = [req]
   }
 
-instance CmbOnChange (TextFieldCfg s e) Text e where
+instance WidgetEvent e => CmbOnChange (TextFieldCfg s e) Text e where
   onChange fn = def {
-    _tfcOnChange = [fn]
+    _tfcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
@@ -192,7 +189,6 @@ textFieldD_ widgetData configs = inputField where
     _ifcDragCursor = Nothing,
     _ifcOnFocusReq = _tfcOnFocusReq config,
     _ifcOnBlurReq = _tfcOnBlurReq config,
-    _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }
   inputField = inputField_ "textField" inputConfig

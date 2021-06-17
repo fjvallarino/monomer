@@ -76,9 +76,7 @@ data SelectListCfg s e a = SelectListCfg {
   _slcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
   _slcOnFocusReq :: [Path -> WidgetRequest s e],
   _slcOnBlurReq :: [Path -> WidgetRequest s e],
-  _slcOnChange :: [a -> e],
   _slcOnChangeReq :: [a -> WidgetRequest s e],
-  _slcOnChangeIdx :: [Int -> a -> e],
   _slcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
 }
 
@@ -90,9 +88,7 @@ instance Default (SelectListCfg s e a) where
     _slcMergeRequired = Nothing,
     _slcOnFocusReq = [],
     _slcOnBlurReq = [],
-    _slcOnChange = [],
     _slcOnChangeReq = [],
-    _slcOnChangeIdx = [],
     _slcOnChangeIdxReq = []
   }
 
@@ -104,9 +100,7 @@ instance Semigroup (SelectListCfg s e a) where
     _slcMergeRequired = _slcMergeRequired t2 <|> _slcMergeRequired t1,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
     _slcOnBlurReq = _slcOnBlurReq t1 <> _slcOnBlurReq t2,
-    _slcOnChange = _slcOnChange t1 <> _slcOnChange t2,
     _slcOnChangeReq = _slcOnChangeReq t1 <> _slcOnChangeReq t2,
-    _slcOnChangeIdx = _slcOnChangeIdx t1 <> _slcOnChangeIdx t2,
     _slcOnChangeIdxReq = _slcOnChangeIdxReq t1 <> _slcOnChangeIdxReq t2
   }
 
@@ -133,9 +127,9 @@ instance CmbOnBlurReq (SelectListCfg s e a) s e Path where
     _slcOnBlurReq = [req]
   }
 
-instance CmbOnChange (SelectListCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (SelectListCfg s e a) a e where
   onChange fn = def {
-    _slcOnChange = [fn]
+    _slcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (SelectListCfg s e a) s e a where
@@ -143,9 +137,9 @@ instance CmbOnChangeReq (SelectListCfg s e a) s e a where
     _slcOnChangeReq = [req]
   }
 
-instance CmbOnChangeIdx (SelectListCfg s e a) e a where
+instance WidgetEvent e => CmbOnChangeIdx (SelectListCfg s e a) e a where
   onChangeIdx fn = def {
-    _slcOnChangeIdx = [fn]
+    _slcOnChangeIdxReq = [(RaiseEvent .) . fn]
   }
 
 instance CmbOnChangeIdxReq (SelectListCfg s e a) s e a where
@@ -389,8 +383,6 @@ makeSelectList widgetData items makeRow config state = widget where
     value = fromMaybe selected (Seq.lookup idx items)
     valueSetReq = widgetDataSet widgetData value
     scrollToReq = itemScrollTo wenv node idx
-    events = fmap ($ value) (_slcOnChange config)
-      ++ fmap (\fn -> fn idx value) (_slcOnChangeIdx config)
     changeReqs = fmap ($ value) (_slcOnChangeReq config)
       ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
     (styledNode, resizeReq) = updateStyles wenv config state node idx (-1)
@@ -406,8 +398,8 @@ makeSelectList widgetData items makeRow config state = widget where
     }
     newNode = styledNode
       & L.widget .~ makeSelectList widgetData items makeRow config newState
-    requests = valueSetReq ++ scrollToReq ++ changeReqs ++ resizeReq
-    result = resultReqsEvts newNode requests events
+    reqs = valueSetReq ++ scrollToReq ++ changeReqs ++ resizeReq
+    result = resultReqs newNode reqs
 
   itemScrollTo wenv node idx = maybeToList (scrollToReq <$> mwid <*> vp) where
     vp = itemViewport node idx

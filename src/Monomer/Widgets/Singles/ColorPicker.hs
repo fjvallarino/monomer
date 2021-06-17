@@ -59,33 +59,24 @@ import qualified Monomer.Lens as L
 
 data ColorPickerCfg s e = ColorPickerCfg {
   _cpcShowAlpha :: Maybe Bool,
-  _cpcOnFocus :: [Path -> e],
   _cpcOnFocusReq :: [Path -> WidgetRequest s e],
-  _cpcOnBlur :: [Path -> e],
   _cpcOnBlurReq :: [Path -> WidgetRequest s e],
-  _cpcOnChange :: [Color -> e],
   _cpcOnChangeReq :: [Color -> WidgetRequest s e]
 }
 
 instance Default (ColorPickerCfg s e) where
   def = ColorPickerCfg {
     _cpcShowAlpha = Nothing,
-    _cpcOnFocus = [],
     _cpcOnFocusReq = [],
-    _cpcOnBlur = [],
     _cpcOnBlurReq = [],
-    _cpcOnChange = [],
     _cpcOnChangeReq = []
   }
 
 instance Semigroup (ColorPickerCfg s e) where
   (<>) a1 a2 = def {
     _cpcShowAlpha = _cpcShowAlpha a2 <|> _cpcShowAlpha a1,
-    _cpcOnFocus = _cpcOnFocus a1 <> _cpcOnFocus a2,
     _cpcOnFocusReq = _cpcOnFocusReq a1 <> _cpcOnFocusReq a2,
-    _cpcOnBlur = _cpcOnBlur a1 <> _cpcOnBlur a2,
     _cpcOnBlurReq = _cpcOnBlurReq a1 <> _cpcOnBlurReq a2,
-    _cpcOnChange = _cpcOnChange a1 <> _cpcOnChange a2,
     _cpcOnChangeReq = _cpcOnChangeReq a1 <> _cpcOnChangeReq a2
   }
 
@@ -97,9 +88,9 @@ instance CmbShowAlpha (ColorPickerCfg s e) where
     _cpcShowAlpha = Just show
   }
 
-instance CmbOnFocus (ColorPickerCfg s e) e Path where
+instance WidgetEvent e => CmbOnFocus (ColorPickerCfg s e) e Path where
   onFocus fn = def {
-    _cpcOnFocus = [fn]
+    _cpcOnFocusReq = [RaiseEvent . fn]
   }
 
 instance CmbOnFocusReq (ColorPickerCfg s e) s e Path where
@@ -107,9 +98,9 @@ instance CmbOnFocusReq (ColorPickerCfg s e) s e Path where
     _cpcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ColorPickerCfg s e) e Path where
+instance WidgetEvent e => CmbOnBlur (ColorPickerCfg s e) e Path where
   onBlur fn = def {
-    _cpcOnBlur = [fn]
+    _cpcOnBlurReq = [RaiseEvent . fn]
   }
 
 instance CmbOnBlurReq (ColorPickerCfg s e) s e Path where
@@ -117,9 +108,9 @@ instance CmbOnBlurReq (ColorPickerCfg s e) s e Path where
     _cpcOnBlurReq = [req]
   }
 
-instance CmbOnChange (ColorPickerCfg s e) Color e where
+instance WidgetEvent e => CmbOnChange (ColorPickerCfg s e) Color e where
   onChange fn = def {
-    _cpcOnChange = [fn]
+    _cpcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (ColorPickerCfg s e) s e Color where
@@ -240,11 +231,10 @@ handleEvent cfg wenv node model evt = case evt of
   AlphaChanged _ -> reportChange
   _ -> []
   where
-    report evts reqs = (Report <$> evts) ++ (RequestParent <$> reqs)
-    reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (($ prev) <$> _cpcOnFocusReq cfg)
-    reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (($ next) <$> _cpcOnBlurReq cfg)
-    reportChange = report (($ model) <$> _cpcOnChange cfg)
-      (($ model) <$> _cpcOnChangeReq cfg)
+    report reqs = RequestParent <$> reqs
+    reportFocus prev = report (($ prev) <$> _cpcOnFocusReq cfg)
+    reportBlur next = report (($ next) <$> _cpcOnBlurReq cfg)
+    reportChange = report (($ model) <$> _cpcOnChangeReq cfg)
 
 patternImage :: WidgetEvent e => Int -> Int -> Color -> Color -> WidgetNode s e
 patternImage steps blockW col1 col2 = newImg where

@@ -157,7 +157,6 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcOnInit :: [e],
   _cmcOnDispose :: [e],
   _cmcOnResize :: [Rect -> e],
-  _cmcOnChange :: [s -> ep],
   _cmcOnChangeReq :: [s -> WidgetRequest sp ep],
   _cmcOnEnabledChange :: [e],
   _cmcOnVisibleChange :: [e]
@@ -170,7 +169,6 @@ instance Default (CompositeCfg s e sp ep) where
     _cmcOnInit = [],
     _cmcOnDispose = [],
     _cmcOnResize = [],
-    _cmcOnChange = [],
     _cmcOnChangeReq = [],
     _cmcOnEnabledChange = [],
     _cmcOnVisibleChange = []
@@ -183,7 +181,6 @@ instance Semigroup (CompositeCfg s e sp ep) where
     _cmcOnInit = _cmcOnInit c1 <> _cmcOnInit c2,
     _cmcOnDispose = _cmcOnDispose c1 <> _cmcOnDispose c2,
     _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
-    _cmcOnChange = _cmcOnChange c1 <> _cmcOnChange c2,
     _cmcOnChangeReq = _cmcOnChangeReq c1 <> _cmcOnChangeReq c2,
     _cmcOnEnabledChange = _cmcOnEnabledChange c1 <> _cmcOnEnabledChange c2,
     _cmcOnVisibleChange = _cmcOnVisibleChange c1 <> _cmcOnVisibleChange c2
@@ -212,9 +209,9 @@ instance CmbOnResize (CompositeCfg s e sp ep) e Rect where
     _cmcOnResize = [fn]
   }
 
-instance CmbOnChange (CompositeCfg s e sp ep) s ep where
+instance WidgetEvent ep => CmbOnChange (CompositeCfg s e sp ep) s ep where
   onChange fn = def {
-    _cmcOnChange = [fn]
+    _cmcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (CompositeCfg s e sp ep) sp ep s where
@@ -247,7 +244,6 @@ data Composite s e sp ep = Composite {
   _cmpOnInit :: [e],
   _cmpOnDispose :: [e],
   _cmpOnResize :: [Rect -> e],
-  _cmpOnChange :: [s -> ep],
   _cmpOnChangeReq :: [s -> WidgetRequest sp ep],
   _cmpOnEnabledChange :: [e],
   _cmpOnVisibleChange :: [e]
@@ -349,7 +345,6 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpOnInit = _cmcOnInit config,
     _cmpOnDispose = _cmcOnDispose config,
     _cmpOnResize = _cmcOnResize config,
-    _cmpOnChange = _cmcOnChange config,
     _cmpOnChangeReq = _cmcOnChangeReq config,
     _cmpOnEnabledChange = _cmcOnEnabledChange config,
     _cmpOnVisibleChange = _cmcOnVisibleChange config
@@ -782,11 +777,10 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
     _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
   result = toParentResult comp mergedState wenv widgetComp mergedResult
-  newEvents = RaiseEvent <$> fmap ($ newModel) (_cmpOnChange comp)
   newReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ fmap ($ newModel) (_cmpOnChangeReq comp)
   newResult = result
-    & L.requests <>~ Seq.fromList newReqs <> Seq.fromList newEvents
+    & L.requests <>~ Seq.fromList newReqs
 
 getModel
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)

@@ -46,7 +46,6 @@ data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
   _rdcOnFocusReq :: [Path -> WidgetRequest s e],
   _rdcOnBlurReq :: [Path -> WidgetRequest s e],
-  _rdcOnChange :: [a -> e],
   _rdcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -55,7 +54,6 @@ instance Default (RadioCfg s e a) where
     _rdcWidth = Nothing,
     _rdcOnFocusReq = [],
     _rdcOnBlurReq = [],
-    _rdcOnChange = [],
     _rdcOnChangeReq = []
   }
 
@@ -64,7 +62,6 @@ instance Semigroup (RadioCfg s e a) where
     _rdcWidth = _rdcWidth t2 <|> _rdcWidth t1,
     _rdcOnFocusReq = _rdcOnFocusReq t1 <> _rdcOnFocusReq t2,
     _rdcOnBlurReq = _rdcOnBlurReq t1 <> _rdcOnBlurReq t2,
-    _rdcOnChange = _rdcOnChange t1 <> _rdcOnChange t2,
     _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
   }
 
@@ -96,9 +93,9 @@ instance CmbOnBlurReq (RadioCfg s e a) s e Path where
     _rdcOnBlurReq = [req]
   }
 
-instance CmbOnChange (RadioCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (RadioCfg s e a) a e where
   onChange fn = def {
-    _rdcOnChange = [fn]
+    _rdcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (RadioCfg s e a) s e a where
@@ -171,15 +168,14 @@ makeRadio field option config = widget where
     Focus prev -> handleFocusChange (_rdcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_rdcOnBlurReq config) next node
     Click p _
-      | pointInEllipse p rdArea -> Just $ resultReqsEvts node reqs events
+      | pointInEllipse p rdArea -> Just $ resultReqs node reqs
     KeyAction mod code KeyPressed
-      | isSelectKey code -> Just $ resultReqsEvts node reqs events
+      | isSelectKey code -> Just $ resultReqs node reqs
     _ -> Nothing
     where
       rdArea = getRadioArea wenv node config
       path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code
-      events = fmap ($ option) (_rdcOnChange config)
       setValueReq = widgetDataSet field option
       reqs = setValueReq ++ fmap ($ option) (_rdcOnChangeReq config)
 

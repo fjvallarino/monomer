@@ -61,7 +61,6 @@ data DialCfg s e a = DialCfg {
   _dlcDragRate :: Maybe Rational,
   _dlcOnFocusReq :: [Path -> WidgetRequest s e],
   _dlcOnBlurReq :: [Path -> WidgetRequest s e],
-  _dlcOnChange :: [a -> e],
   _dlcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -72,7 +71,6 @@ instance Default (DialCfg s e a) where
     _dlcDragRate = Nothing,
     _dlcOnFocusReq = [],
     _dlcOnBlurReq = [],
-    _dlcOnChange = [],
     _dlcOnChangeReq = []
   }
 
@@ -83,7 +81,6 @@ instance Semigroup (DialCfg s e a) where
     _dlcDragRate = _dlcDragRate t2 <|> _dlcDragRate t1,
     _dlcOnFocusReq = _dlcOnFocusReq t1 <> _dlcOnFocusReq t2,
     _dlcOnBlurReq = _dlcOnBlurReq t1 <> _dlcOnBlurReq t2,
-    _dlcOnChange = _dlcOnChange t1 <> _dlcOnChange t2,
     _dlcOnChangeReq = _dlcOnChangeReq t1 <> _dlcOnChangeReq t2
   }
 
@@ -125,9 +122,9 @@ instance CmbOnBlurReq (DialCfg s e a) s e Path where
     _dlcOnBlurReq = [req]
   }
 
-instance CmbOnChange (DialCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (DialCfg s e a) a e where
   onChange fn = def {
-    _dlcOnChange = [fn]
+    _dlcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (DialCfg s e a) s e a where
@@ -305,12 +302,11 @@ makeDial field minVal maxVal config state = widget where
       isSelectKey code = isKeyReturn code || isKeySpace code
       addReqsEvts result newVal = newResult where
         currVal = widgetDataGet (wenv ^. L.model) field
-        evts = RaiseEvent <$> fmap ($ newVal) (_dlcOnChange config)
         reqs = widgetDataSet field newVal
           ++ fmap ($ newVal) (_dlcOnChangeReq config)
         newResult
           | currVal /= newVal = result
-              & L.requests <>~ Seq.fromList (reqs <> evts)
+              & L.requests <>~ Seq.fromList reqs
           | otherwise = result
 
   getSizeReq wenv node = req where

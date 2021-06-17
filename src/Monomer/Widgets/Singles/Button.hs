@@ -64,7 +64,6 @@ data ButtonCfg s e = ButtonCfg {
   _btnFactorH :: Maybe Double,
   _btnOnFocusReq :: [Path -> WidgetRequest s e],
   _btnOnBlurReq :: [Path -> WidgetRequest s e],
-  _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s e]
 }
 
@@ -79,7 +78,6 @@ instance Default (ButtonCfg s e) where
     _btnFactorH = Nothing,
     _btnOnFocusReq = [],
     _btnOnBlurReq = [],
-    _btnOnClick = [],
     _btnOnClickReq = []
   }
 
@@ -94,7 +92,6 @@ instance Semigroup (ButtonCfg s e) where
     _btnFactorH = _btnFactorH t2 <|> _btnFactorH t1,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
     _btnOnBlurReq = _btnOnBlurReq t1 <> _btnOnBlurReq t2,
-    _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
   }
 
@@ -141,9 +138,9 @@ instance CmbOnBlurReq (ButtonCfg s e) s e Path where
     _btnOnBlurReq = [req]
   }
 
-instance CmbOnClick (ButtonCfg s e) e where
+instance WidgetEvent e => CmbOnClick (ButtonCfg s e) e where
   onClick handler = def {
-    _btnOnClick = [handler]
+    _btnOnClickReq = [RaiseEvent handler]
   }
 
 instance CmbOnClickReq (ButtonCfg s e) s e where
@@ -259,9 +256,8 @@ makeButton caption config = widget where
       mainBtn btn = btn == wenv ^. L.mainButton
       focused = isNodeFocused wenv node
       pointInVp p = isPointInNodeVp p node
-      requests = _btnOnClickReq config
-      events = _btnOnClick config
-      result = resultReqsEvts node requests events
+      reqs = _btnOnClickReq config
+      result = resultReqs node reqs
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
   getSizeReq :: ContainerGetSizeReqHandler s e

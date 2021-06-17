@@ -154,7 +154,6 @@ data DateFieldCfg s e a = DateFieldCfg {
   _dfcSelectOnFocus :: Maybe Bool,
   _dfcOnFocusReq :: [Path -> WidgetRequest s e],
   _dfcOnBlurReq :: [Path -> WidgetRequest s e],
-  _dfcOnChange :: [a -> e],
   _dfcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -172,7 +171,6 @@ instance Default (DateFieldCfg s e a) where
     _dfcSelectOnFocus = Nothing,
     _dfcOnFocusReq = [],
     _dfcOnBlurReq = [],
-    _dfcOnChange = [],
     _dfcOnChangeReq = []
   }
 
@@ -190,7 +188,6 @@ instance Semigroup (DateFieldCfg s e a) where
     _dfcSelectOnFocus = _dfcSelectOnFocus t2 <|> _dfcSelectOnFocus t1,
     _dfcOnFocusReq = _dfcOnFocusReq t1 <> _dfcOnFocusReq t2,
     _dfcOnBlurReq = _dfcOnBlurReq t1 <> _dfcOnBlurReq t2,
-    _dfcOnChange = _dfcOnChange t1 <> _dfcOnChange t2,
     _dfcOnChangeReq = _dfcOnChangeReq t1 <> _dfcOnChangeReq t2
   }
 
@@ -257,9 +254,9 @@ instance CmbOnBlurReq (DateFieldCfg s e a) s e Path where
     _dfcOnBlurReq = [req]
   }
 
-instance CmbOnChange (DateFieldCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (DateFieldCfg s e a) a e where
   onChange fn = def {
-    _dfcOnChange = [fn]
+    _dfcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (DateFieldCfg s e a) s e a where
@@ -366,7 +363,6 @@ dateFieldD_ widgetData configs = newNode where
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _dfcOnFocusReq config,
     _ifcOnBlurReq = _dfcOnBlurReq config,
-    _ifcOnChange = _dfcOnChange config,
     _ifcOnChangeReq = _dfcOnChangeReq config
   }
   newNode = inputField_ "dateField" inputConfig

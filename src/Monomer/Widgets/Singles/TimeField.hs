@@ -147,7 +147,6 @@ data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcSelectOnFocus :: Maybe Bool,
   _tfcOnFocusReq :: [Path -> WidgetRequest s e],
   _tfcOnBlurReq :: [Path -> WidgetRequest s e],
-  _tfcOnChange :: [a -> e],
   _tfcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -164,7 +163,6 @@ instance Default (TimeFieldCfg s e a) where
     _tfcSelectOnFocus = Nothing,
     _tfcOnFocusReq = [],
     _tfcOnBlurReq = [],
-    _tfcOnChange = [],
     _tfcOnChangeReq = []
   }
 
@@ -181,7 +179,6 @@ instance Semigroup (TimeFieldCfg s e a) where
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
-    _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
   }
 
@@ -248,9 +245,9 @@ instance CmbOnBlurReq (TimeFieldCfg s e a) s e Path where
     _tfcOnBlurReq = [req]
   }
 
-instance CmbOnChange (TimeFieldCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (TimeFieldCfg s e a) a e where
   onChange fn = def {
-    _tfcOnChange = [fn]
+    _tfcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (TimeFieldCfg s e a) s e a where
@@ -344,7 +341,6 @@ timeFieldD_ widgetData configs = newNode where
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _tfcOnFocusReq config,
     _ifcOnBlurReq = _tfcOnBlurReq config,
-    _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }
   newNode = inputField_ "timeField" inputConfig

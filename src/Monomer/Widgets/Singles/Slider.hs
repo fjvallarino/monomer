@@ -70,7 +70,6 @@ data SliderCfg s e a = SliderCfg {
   _slcThumbFactor :: Maybe Double,
   _slcOnFocusReq :: [Path -> WidgetRequest s e],
   _slcOnBlurReq :: [Path -> WidgetRequest s e],
-  _slcOnChange :: [a -> e],
   _slcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -84,7 +83,6 @@ instance Default (SliderCfg s e a) where
     _slcThumbFactor = Nothing,
     _slcOnFocusReq = [],
     _slcOnBlurReq = [],
-    _slcOnChange = [],
     _slcOnChangeReq = []
   }
 
@@ -98,7 +96,6 @@ instance Semigroup (SliderCfg s e a) where
     _slcThumbFactor = _slcThumbFactor t2 <|> _slcThumbFactor t1,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
     _slcOnBlurReq = _slcOnBlurReq t1 <> _slcOnBlurReq t2,
-    _slcOnChange = _slcOnChange t1 <> _slcOnChange t2,
     _slcOnChangeReq = _slcOnChangeReq t1 <> _slcOnChangeReq t2
   }
 
@@ -155,9 +152,9 @@ instance CmbOnBlurReq (SliderCfg s e a) s e Path where
     _slcOnBlurReq = [req]
   }
 
-instance CmbOnChange (SliderCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (SliderCfg s e a) a e where
   onChange fn = def {
-    _slcOnChange = [fn]
+    _slcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (SliderCfg s e a) s e a where
@@ -376,12 +373,11 @@ makeSlider isHz field minVal maxVal config state = widget where
           & L.widget .~ makeSlider isHz field minVal maxVal config newState
         result = resultReqs newNode [RenderOnce]
         newVal = valueFromPos newPos
-        evts = RaiseEvent <$> fmap ($ newVal) (_slcOnChange config)
         reqs = widgetDataSet field newVal
           ++ fmap ($ newVal) (_slcOnChangeReq config)
         newResult
           | pos /= newPos = result
-              & L.requests <>~ Seq.fromList (reqs <> evts)
+              & L.requests <>~ Seq.fromList reqs
           | otherwise = result
 
   getSizeReq wenv node = req where

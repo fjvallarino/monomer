@@ -54,7 +54,6 @@ data SplitCfg s e = SplitCfg {
   _spcHandlePos :: Maybe (WidgetData s Double),
   _spcHandleSize :: Maybe Double,
   _spcIgnoreChildResize :: Maybe Bool,
-  _spcOnChange :: [Double -> e],
   _spcOnChangeReq :: [Double -> WidgetRequest s e]
 }
 
@@ -63,7 +62,6 @@ instance Default (SplitCfg s e) where
     _spcHandlePos = Nothing,
     _spcHandleSize = Nothing,
     _spcIgnoreChildResize = Nothing,
-    _spcOnChange = [],
     _spcOnChangeReq = []
   }
 
@@ -72,16 +70,15 @@ instance Semigroup (SplitCfg s e) where
     _spcHandlePos = _spcHandlePos s2 <|> _spcHandlePos s1,
     _spcHandleSize = _spcHandleSize s2 <|> _spcHandleSize s1,
     _spcIgnoreChildResize = _spcIgnoreChildResize s2 <|> _spcIgnoreChildResize s1,
-    _spcOnChange = _spcOnChange s2 <|> _spcOnChange s1,
     _spcOnChangeReq = _spcOnChangeReq s2 <|> _spcOnChangeReq s1
   }
 
 instance Monoid (SplitCfg s e) where
   mempty = def
 
-instance CmbOnChange (SplitCfg s e) Double e where
+instance WidgetEvent e => CmbOnChange (SplitCfg s e) Double e where
   onChange fn = def {
-    _spcOnChange = [fn]
+    _spcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (SplitCfg s e) s e Double where
@@ -297,12 +294,11 @@ makeSplit isHorizontal config state = widget where
       _spsMaxSize = newSize,
       _spsPrevReqs = (sizeReq1, sizeReq2)
     }
-    events = RaiseEvent <$> fmap ($ handlePos) (_spcOnChange config)
     reqOnChange = fmap ($ handlePos) (_spcOnChangeReq config)
     requestPos = setModelPos config handlePos
     result = resultNode node
       & L.node . L.widget .~ makeSplit isHorizontal config newState
-      & L.requests .~ Seq.fromList (requestPos ++ reqOnChange ++ events)
+      & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
     newVps = Seq.fromList [rect1, rect2]
     resized = (result, newVps)
 

@@ -71,9 +71,7 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcItemSelectedStyle :: Maybe Style,
   _ddcOnFocusReq :: [Path -> WidgetRequest s e],
   _ddcOnBlurReq :: [Path -> WidgetRequest s e],
-  _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [a -> WidgetRequest s e],
-  _ddcOnChangeIdx :: [Int -> a -> e],
   _ddcOnChangeIdxReq :: [Int -> a -> WidgetRequest s e]
 }
 
@@ -84,9 +82,7 @@ instance Default (DropdownCfg s e a) where
     _ddcItemSelectedStyle = Nothing,
     _ddcOnFocusReq = [],
     _ddcOnBlurReq = [],
-    _ddcOnChange = [],
     _ddcOnChangeReq = [],
-    _ddcOnChangeIdx = [],
     _ddcOnChangeIdxReq = []
   }
 
@@ -97,9 +93,7 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
     _ddcOnFocusReq = _ddcOnFocusReq t1 <> _ddcOnFocusReq t2,
     _ddcOnBlurReq = _ddcOnBlurReq t1 <> _ddcOnBlurReq t2,
-    _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
-    _ddcOnChangeIdx = _ddcOnChangeIdx t1 <> _ddcOnChangeIdx t2,
     _ddcOnChangeIdxReq = _ddcOnChangeIdxReq t1 <> _ddcOnChangeIdxReq t2
   }
 
@@ -126,9 +120,9 @@ instance CmbOnBlurReq (DropdownCfg s e a) s e Path where
     _ddcOnBlurReq = [req]
   }
 
-instance CmbOnChange (DropdownCfg s e a) a e where
+instance WidgetEvent e => CmbOnChange (DropdownCfg s e a) a e where
   onChange fn = def {
-    _ddcOnChange = [fn]
+    _ddcOnChangeReq = [RaiseEvent . fn]
   }
 
 instance CmbOnChangeReq (DropdownCfg s e a) s e a where
@@ -136,9 +130,9 @@ instance CmbOnChangeReq (DropdownCfg s e a) s e a where
     _ddcOnChangeReq = [req]
   }
 
-instance CmbOnChangeIdx (DropdownCfg s e a) e a where
+instance WidgetEvent e => CmbOnChangeIdx (DropdownCfg s e a) e a where
   onChangeIdx fn = def {
-    _ddcOnChangeIdx = [fn]
+    _ddcOnChangeIdxReq = [(RaiseEvent .) . fn]
   }
 
 instance CmbOnChangeIdxReq (DropdownCfg s e a) s e a where
@@ -416,10 +410,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     newReqs = Seq.fromList $ widgetDataSet widgetData item
       ++ fmap ($ item) (_ddcOnChangeReq config)
       ++ fmap (\fn -> fn idx item) (_ddcOnChangeIdxReq config)
-    evts = RaiseEvent <$> fmap ($ item) (_ddcOnChange config)
-    evtsIdx = RaiseEvent <$> fmap (\fn -> fn idx item) (_ddcOnChangeIdx config)
-    newEvents = Seq.fromList (evts ++ evtsIdx)
-    result = WidgetResult newNode (reqs <> newReqs <> newEvents)
+    result = WidgetResult newNode (reqs <> newReqs)
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = (newReqW, newReqH) where
