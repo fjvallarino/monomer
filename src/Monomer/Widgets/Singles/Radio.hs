@@ -44,10 +44,8 @@ import qualified Monomer.Lens as L
 
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
-  _rdcOnFocus :: [Path -> e],
-  _rdcOnFocusReq :: [WidgetRequest s e],
-  _rdcOnBlur :: [Path -> e],
-  _rdcOnBlurReq :: [WidgetRequest s e],
+  _rdcOnFocusReq :: [Path -> WidgetRequest s e],
+  _rdcOnBlurReq :: [Path -> WidgetRequest s e],
   _rdcOnChange :: [a -> e],
   _rdcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -55,9 +53,7 @@ data RadioCfg s e a = RadioCfg {
 instance Default (RadioCfg s e a) where
   def = RadioCfg {
     _rdcWidth = Nothing,
-    _rdcOnFocus = [],
     _rdcOnFocusReq = [],
-    _rdcOnBlur = [],
     _rdcOnBlurReq = [],
     _rdcOnChange = [],
     _rdcOnChangeReq = []
@@ -66,9 +62,7 @@ instance Default (RadioCfg s e a) where
 instance Semigroup (RadioCfg s e a) where
   (<>) t1 t2 = RadioCfg {
     _rdcWidth = _rdcWidth t2 <|> _rdcWidth t1,
-    _rdcOnFocus = _rdcOnFocus t1 <> _rdcOnFocus t2,
     _rdcOnFocusReq = _rdcOnFocusReq t1 <> _rdcOnFocusReq t2,
-    _rdcOnBlur = _rdcOnBlur t1 <> _rdcOnBlur t2,
     _rdcOnBlurReq = _rdcOnBlurReq t1 <> _rdcOnBlurReq t2,
     _rdcOnChange = _rdcOnChange t1 <> _rdcOnChange t2,
     _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
@@ -82,22 +76,22 @@ instance CmbWidth (RadioCfg s e a) where
     _rdcWidth = Just w
   }
 
-instance CmbOnFocus (RadioCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (RadioCfg s e a) e Path where
   onFocus fn = def {
-    _rdcOnFocus = [fn]
+    _rdcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (RadioCfg s e a) s e where
+instance CmbOnFocusReq (RadioCfg s e a) s e Path where
   onFocusReq req = def {
     _rdcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (RadioCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (RadioCfg s e a) e Path where
   onBlur fn = def {
-    _rdcOnBlur = [fn]
+    _rdcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (RadioCfg s e a) s e where
+instance CmbOnBlurReq (RadioCfg s e a) s e Path where
   onBlurReq req = def {
     _rdcOnBlurReq = [req]
   }
@@ -174,8 +168,8 @@ makeRadio field option config = widget where
     style = activeStyle_ (activeStyleConfig radioArea) wenv node
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange _rdcOnFocus _rdcOnFocusReq config prev node
-    Blur next -> handleFocusChange _rdcOnBlur _rdcOnBlurReq config next node
+    Focus prev -> handleFocusChange (_rdcOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_rdcOnBlurReq config) next node
     Click p _
       | pointInEllipse p rdArea -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed

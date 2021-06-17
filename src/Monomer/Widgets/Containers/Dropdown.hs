@@ -69,10 +69,8 @@ data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
-  _ddcOnFocus :: [Path -> e],
-  _ddcOnFocusReq :: [WidgetRequest s e],
-  _ddcOnBlur :: [Path -> e],
-  _ddcOnBlurReq :: [WidgetRequest s e],
+  _ddcOnFocusReq :: [Path -> WidgetRequest s e],
+  _ddcOnBlurReq :: [Path -> WidgetRequest s e],
   _ddcOnChange :: [a -> e],
   _ddcOnChangeReq :: [a -> WidgetRequest s e],
   _ddcOnChangeIdx :: [Int -> a -> e],
@@ -84,9 +82,7 @@ instance Default (DropdownCfg s e a) where
     _ddcMaxHeight = Nothing,
     _ddcItemStyle = Nothing,
     _ddcItemSelectedStyle = Nothing,
-    _ddcOnFocus = [],
     _ddcOnFocusReq = [],
-    _ddcOnBlur = [],
     _ddcOnBlurReq = [],
     _ddcOnChange = [],
     _ddcOnChangeReq = [],
@@ -99,9 +95,7 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
     _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
-    _ddcOnFocus = _ddcOnFocus t1 <> _ddcOnFocus t2,
     _ddcOnFocusReq = _ddcOnFocusReq t1 <> _ddcOnFocusReq t2,
-    _ddcOnBlur = _ddcOnBlur t1 <> _ddcOnBlur t2,
     _ddcOnBlurReq = _ddcOnBlurReq t1 <> _ddcOnBlurReq t2,
     _ddcOnChange = _ddcOnChange t1 <> _ddcOnChange t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
@@ -112,22 +106,22 @@ instance Semigroup (DropdownCfg s e a) where
 instance Monoid (DropdownCfg s e a) where
   mempty = def
 
-instance CmbOnFocus (DropdownCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (DropdownCfg s e a) e Path where
   onFocus fn = def {
-    _ddcOnFocus = [fn]
+    _ddcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (DropdownCfg s e a) s e where
+instance CmbOnFocusReq (DropdownCfg s e a) s e Path where
   onFocusReq req = def {
     _ddcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DropdownCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (DropdownCfg s e a) e Path where
   onBlur fn = def {
-    _ddcOnBlur = [fn]
+    _ddcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (DropdownCfg s e a) s e where
+instance CmbOnBlurReq (DropdownCfg s e a) s e Path where
   onBlurReq req = def {
     _ddcOnBlurReq = [req]
   }
@@ -316,17 +310,17 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen && isPointInNodeVp point mainNode = Just mainIdx
       | otherwise = Nothing
 
-  ddFocusChange evts reqs prev node = Just newResult where
-    tmpResult = handleFocusChange evts reqs config prev node
+  ddFocusChange reqs prev node = Just newResult where
+    tmpResult = handleFocusChange reqs prev node
     newResult = fromMaybe (resultNode node) tmpResult
       & L.requests %~ (|> IgnoreChildrenEvents)
 
   handleEvent wenv node target evt = case evt of
     Focus prev
-      | not isOpen -> ddFocusChange _ddcOnFocus _ddcOnFocusReq prev node
+      | not isOpen -> ddFocusChange (_ddcOnFocusReq config) prev node
     Blur next
       | not isOpen && not (seqStartsWith path focusedPath)
-        -> ddFocusChange _ddcOnBlur _ddcOnBlurReq next node
+        -> ddFocusChange (_ddcOnBlurReq config) next node
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
@@ -525,7 +519,7 @@ makeSelectList wenv value items makeRow config widgetId = selectListNode where
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
   slConfig = [
       selectOnBlur,
-      onBlurReq (SendMessage widgetId OnListBlur),
+      onBlurReq (const $ SendMessage widgetId OnListBlur),
       onChangeIdxReq (\idx it -> SendMessage widgetId (OnChangeMessage idx it)),
       itemNormalStyle itemStyle,
       itemSelectedStyle itemSelStyle

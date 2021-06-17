@@ -106,18 +106,14 @@ isNodeBeforePath path node = result where
 
 -- | Generates a result with events and requests associated to a focus change.
 handleFocusChange
-  :: Typeable e
-  => (c -> [Path -> e])          -- ^ Getter for event handler in a config type.
-  -> (c -> [WidgetRequest s e])  -- ^ Getter for reqs handler in a config type.
-  -> c                           -- ^ The node's config.
+  :: [Path -> WidgetRequest s e] -- ^ Getter for reqs handler in a config type.
   -> Path                        -- ^ The path of next/prev target, accordingly.
   -> WidgetNode s e              -- ^ The node receiving the event.
   -> Maybe (WidgetResult s e)    -- ^ The result.
-handleFocusChange evtFn reqFn config path node = result where
-  evts = ($ path) <$> evtFn config
-  reqs = reqFn config
+handleFocusChange reqFns path node = result where
+  reqs = ($ path) <$> reqFns
   result
-    | not (null evts && null reqs) = Just $ resultReqsEvts node reqs evts
+    | not (null reqs) = Just $ resultReqs node reqs
     | otherwise = Nothing
 
 -- Helpers

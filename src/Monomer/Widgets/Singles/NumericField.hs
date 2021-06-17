@@ -121,10 +121,8 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcDragRate :: Maybe Double,
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
-  _nfcOnFocus :: [Path -> e],
-  _nfcOnFocusReq :: [WidgetRequest s e],
-  _nfcOnBlur :: [Path -> e],
-  _nfcOnBlurReq :: [WidgetRequest s e],
+  _nfcOnFocusReq :: [Path -> WidgetRequest s e],
+  _nfcOnBlurReq :: [Path -> WidgetRequest s e],
   _nfcOnChange :: [a -> e],
   _nfcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -140,9 +138,7 @@ instance Default (NumericFieldCfg s e a) where
     _nfcDragRate = Nothing,
     _nfcResizeOnChange = Nothing,
     _nfcSelectOnFocus = Nothing,
-    _nfcOnFocus = [],
     _nfcOnFocusReq = [],
-    _nfcOnBlur = [],
     _nfcOnBlurReq = [],
     _nfcOnChange = [],
     _nfcOnChangeReq = []
@@ -159,9 +155,7 @@ instance Semigroup (NumericFieldCfg s e a) where
     _nfcDragRate = _nfcDragRate t2 <|> _nfcDragRate t1,
     _nfcResizeOnChange = _nfcResizeOnChange t2 <|> _nfcResizeOnChange t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
-    _nfcOnFocus = _nfcOnFocus t1 <> _nfcOnFocus t2,
     _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
-    _nfcOnBlur = _nfcOnBlur t1 <> _nfcOnBlur t2,
     _nfcOnBlurReq = _nfcOnBlurReq t1 <> _nfcOnBlurReq t2,
     _nfcOnChange = _nfcOnChange t1 <> _nfcOnChange t2,
     _nfcOnChangeReq = _nfcOnChangeReq t1 <> _nfcOnChangeReq t2
@@ -215,22 +209,22 @@ instance CmbDecimals (NumericFieldCfg s e a) where
     _nfcDecimals = Just num
   }
 
-instance CmbOnFocus (NumericFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (NumericFieldCfg s e a) e Path where
   onFocus fn = def {
-    _nfcOnFocus = [fn]
+    _nfcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (NumericFieldCfg s e a) s e where
+instance CmbOnFocusReq (NumericFieldCfg s e a) s e Path where
   onFocusReq req = def {
     _nfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (NumericFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (NumericFieldCfg s e a) e Path where
   onBlur fn = def {
-    _nfcOnBlur = [fn]
+    _nfcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (NumericFieldCfg s e a) s e where
+instance CmbOnBlurReq (NumericFieldCfg s e a) s e Path where
   onBlurReq req = def {
     _nfcOnBlurReq = [req]
   }
@@ -322,9 +316,7 @@ numericFieldD_ widgetData configs = newNode where
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
-    _ifcOnFocus = _nfcOnFocus config,
     _ifcOnFocusReq = _nfcOnFocusReq config,
-    _ifcOnBlur = _nfcOnBlur config,
     _ifcOnBlurReq = _nfcOnBlurReq config,
     _ifcOnChange = _nfcOnChange config,
     _ifcOnChangeReq = _nfcOnChangeReq config

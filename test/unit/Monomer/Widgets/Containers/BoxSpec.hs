@@ -37,6 +37,8 @@ data TestEvent
   | BoxOnLeave
   | BoxOnPressed Button Int
   | BoxOnReleased Button Int
+  | GotFocus Path
+  | LostFocus Path
   deriving (Eq, Show)
 
 spec :: Spec
@@ -68,10 +70,22 @@ handleEvent = describe "handleEvent" $ do
   it "should generate an event if the button is released in the child viewport" $
     evts [evtMove (Point 320 240), evtRelease (Point 320 240)] `shouldBe` Seq.fromList [BoxOnEnter, BoxOnReleased BtnLeft 1]
 
+  it "should generate an event when focus is received" $
+    evts [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
+
+  it "should generate an event when focus is lost" $
+    evts [evtBlur] `shouldBe` Seq.singleton (LostFocus emptyPath)
+
   where
     wenv = mockWenv ()
-    btn = box_ [onClick (BtnClick 0), onEnter BoxOnEnter, onLeave BoxOnLeave, onBtnPressed BoxOnPressed, onBtnReleased BoxOnReleased] (label "Test")
-    boxNode = nodeInit wenv (box btn)
+    btnBox = box_ [onClick (BtnClick 0),
+      onFocus GotFocus,
+      onBlur LostFocus,
+      onEnter BoxOnEnter,
+      onLeave BoxOnLeave,
+      onBtnPressed BoxOnPressed,
+      onBtnReleased BoxOnReleased] (label "Test")
+    boxNode = nodeInit wenv (btnBox `focusable` True)
     evts es = nodeHandleEventEvts wenv es boxNode
 
 handleEventIgnoreEmpty :: Spec

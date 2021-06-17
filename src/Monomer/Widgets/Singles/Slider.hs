@@ -68,10 +68,8 @@ data SliderCfg s e a = SliderCfg {
   _slcDragRate :: Maybe Rational,
   _slcThumbVisible :: Maybe Bool,
   _slcThumbFactor :: Maybe Double,
-  _slcOnFocus :: [Path -> e],
-  _slcOnFocusReq :: [WidgetRequest s e],
-  _slcOnBlur :: [Path -> e],
-  _slcOnBlurReq :: [WidgetRequest s e],
+  _slcOnFocusReq :: [Path -> WidgetRequest s e],
+  _slcOnBlurReq :: [Path -> WidgetRequest s e],
   _slcOnChange :: [a -> e],
   _slcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -84,9 +82,7 @@ instance Default (SliderCfg s e a) where
     _slcDragRate = Nothing,
     _slcThumbVisible = Nothing,
     _slcThumbFactor = Nothing,
-    _slcOnFocus = [],
     _slcOnFocusReq = [],
-    _slcOnBlur = [],
     _slcOnBlurReq = [],
     _slcOnChange = [],
     _slcOnChangeReq = []
@@ -100,9 +96,7 @@ instance Semigroup (SliderCfg s e a) where
     _slcDragRate = _slcDragRate t2 <|> _slcDragRate t1,
     _slcThumbVisible = _slcThumbVisible t2 <|> _slcThumbVisible t1,
     _slcThumbFactor = _slcThumbFactor t2 <|> _slcThumbFactor t1,
-    _slcOnFocus = _slcOnFocus t1 <> _slcOnFocus t2,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
-    _slcOnBlur = _slcOnBlur t1 <> _slcOnBlur t2,
     _slcOnBlurReq = _slcOnBlurReq t1 <> _slcOnBlurReq t2,
     _slcOnChange = _slcOnChange t1 <> _slcOnChange t2,
     _slcOnChangeReq = _slcOnChangeReq t1 <> _slcOnChangeReq t2
@@ -141,22 +135,22 @@ instance CmbThumbVisible (SliderCfg s e a) where
     _slcThumbVisible = Just w
   }
 
-instance CmbOnFocus (SliderCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (SliderCfg s e a) e Path where
   onFocus fn = def {
-    _slcOnFocus = [fn]
+    _slcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (SliderCfg s e a) s e where
+instance CmbOnFocusReq (SliderCfg s e a) s e Path where
   onFocusReq req = def {
     _slcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (SliderCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (SliderCfg s e a) e Path where
   onBlur fn = def {
-    _slcOnBlur = [fn]
+    _slcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (SliderCfg s e a) s e where
+instance CmbOnBlurReq (SliderCfg s e a) s e Path where
   onBlurReq req = def {
     _slcOnBlurReq = [req]
   }
@@ -333,8 +327,8 @@ makeSlider isHz field minVal maxVal config state = widget where
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange _slcOnFocus _slcOnFocusReq config prev node
-    Blur next -> handleFocusChange _slcOnBlur _slcOnBlurReq config next node
+    Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_slcOnBlurReq config) next node
     KeyAction mod code KeyPressed
       | isCtrl && isInc code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isDec code -> handleNewPos (pos - warpSpeed)

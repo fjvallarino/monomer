@@ -60,9 +60,9 @@ import qualified Monomer.Lens as L
 data ColorPickerCfg s e = ColorPickerCfg {
   _cpcShowAlpha :: Maybe Bool,
   _cpcOnFocus :: [Path -> e],
-  _cpcOnFocusReq :: [WidgetRequest s e],
+  _cpcOnFocusReq :: [Path -> WidgetRequest s e],
   _cpcOnBlur :: [Path -> e],
-  _cpcOnBlurReq :: [WidgetRequest s e],
+  _cpcOnBlurReq :: [Path -> WidgetRequest s e],
   _cpcOnChange :: [Color -> e],
   _cpcOnChangeReq :: [Color -> WidgetRequest s e]
 }
@@ -102,7 +102,7 @@ instance CmbOnFocus (ColorPickerCfg s e) e Path where
     _cpcOnFocus = [fn]
   }
 
-instance CmbOnFocusReq (ColorPickerCfg s e) s e where
+instance CmbOnFocusReq (ColorPickerCfg s e) s e Path where
   onFocusReq req = def {
     _cpcOnFocusReq = [req]
   }
@@ -112,7 +112,7 @@ instance CmbOnBlur (ColorPickerCfg s e) e Path where
     _cpcOnBlur = [fn]
   }
 
-instance CmbOnBlurReq (ColorPickerCfg s e) s e where
+instance CmbOnBlurReq (ColorPickerCfg s e) s e Path where
   onBlurReq req = def {
     _cpcOnBlurReq = [req]
   }
@@ -241,8 +241,8 @@ handleEvent cfg wenv node model evt = case evt of
   _ -> []
   where
     report evts reqs = (Report <$> evts) ++ (RequestParent <$> reqs)
-    reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (_cpcOnFocusReq cfg)
-    reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (_cpcOnBlurReq cfg)
+    reportFocus prev = report (($ prev) <$> _cpcOnFocus cfg) (($ prev) <$> _cpcOnFocusReq cfg)
+    reportBlur next = report (($ next) <$> _cpcOnBlur cfg) (($ next) <$> _cpcOnBlurReq cfg)
     reportChange = report (($ model) <$> _cpcOnChange cfg)
       (($ model) <$> _cpcOnChangeReq cfg)
 

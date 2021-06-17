@@ -311,16 +311,16 @@ class CmbOnFocus t e a | t -> e a where
   onFocus :: (a -> e) -> t
 
 -- | On focus WidgetRequest.
-class CmbOnFocusReq t s e | t -> s e where
-  onFocusReq :: WidgetRequest s e -> t
+class CmbOnFocusReq t s e a | t -> s e a where
+  onFocusReq :: (a -> WidgetRequest s e) -> t
 
 -- | On blur event.
 class CmbOnBlur t e a | t -> e a where
   onBlur :: (a -> e) -> t
 
 -- | On blur WidgetRequest.
-class CmbOnBlurReq t s e | t -> s e where
-  onBlurReq :: WidgetRequest s e -> t
+class CmbOnBlurReq t s e a | t -> s e a where
+  onBlurReq :: (a -> WidgetRequest s e) -> t
 
 -- | On enter event.
 class CmbOnEnter t e | t -> e where
@@ -499,6 +499,10 @@ class CmbEnabled t where
 -- | Visible combinator, used mainly infix for widgets.
 class CmbVisible t where
   visible :: t -> Bool -> t
+
+-- | Focusable combinator, used mainly infix for widgets.
+class CmbFocusable t where
+  focusable :: t -> Bool -> t
 
 -- | Basic style combinator, used mainly infix for widgets as a list.
 class CmbStyle t where

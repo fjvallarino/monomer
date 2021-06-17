@@ -65,6 +65,8 @@ data BoxCfg s e = BoxCfg {
   _boxSizeReqUpdater :: Maybe SizeReqUpdater,
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
+  _boxOnFocusReq :: [Path -> WidgetRequest s e],
+  _boxOnBlurReq :: [Path -> WidgetRequest s e],
   _boxOnEnterReq :: [WidgetRequest s e],
   _boxOnLeaveReq :: [WidgetRequest s e],
   _boxOnClickReq :: [WidgetRequest s e],
@@ -80,6 +82,8 @@ instance Default (BoxCfg s e) where
     _boxSizeReqUpdater = Nothing,
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
+    _boxOnFocusReq = [],
+    _boxOnBlurReq = [],
     _boxOnEnterReq = [],
     _boxOnLeaveReq = [],
     _boxOnClickReq = [],
@@ -95,6 +99,8 @@ instance Semigroup (BoxCfg s e) where
     _boxSizeReqUpdater = _boxSizeReqUpdater t2 <|> _boxSizeReqUpdater t1,
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
+    _boxOnFocusReq = _boxOnFocusReq t1 <> _boxOnFocusReq t2,
+    _boxOnBlurReq = _boxOnBlurReq t1 <> _boxOnBlurReq t2,
     _boxOnEnterReq = _boxOnEnterReq t1 <> _boxOnEnterReq t2,
     _boxOnLeaveReq = _boxOnLeaveReq t1 <> _boxOnLeaveReq t2,
     _boxOnClickReq = _boxOnClickReq t1 <> _boxOnClickReq t2,
@@ -150,6 +156,26 @@ instance CmbAlignBottom (BoxCfg s e) where
   alignBottom_ False = def
   alignBottom_ True = def {
     _boxAlignV = Just ABottom
+  }
+
+instance WidgetEvent e => CmbOnFocus (BoxCfg s e) e Path where
+  onFocus handler = def {
+    _boxOnFocusReq = [RaiseEvent . handler]
+  }
+
+instance CmbOnFocusReq (BoxCfg s e) s e Path where
+  onFocusReq req = def {
+    _boxOnFocusReq = [req]
+  }
+
+instance WidgetEvent e => CmbOnBlur (BoxCfg s e) e Path where
+  onBlur handler = def {
+    _boxOnBlurReq = [RaiseEvent . handler]
+  }
+
+instance CmbOnBlurReq (BoxCfg s e) s e Path where
+  onBlurReq req = def {
+    _boxOnBlurReq = [req]
   }
 
 instance WidgetEvent e => CmbOnBtnPressed (BoxCfg s e) e where
@@ -249,6 +275,8 @@ makeBox config = widget where
       & L.isActive .~ isNodeTreeActive
 
   handleEvent wenv node target evt = case evt of
+    Focus prev -> handleFocusChange (_boxOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_boxOnBlurReq config) next node
     Enter point
       | not (null reqs) && inChildVp point -> result where
         reqs = _boxOnEnterReq config

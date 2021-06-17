@@ -66,10 +66,8 @@ data TextAreaCfg s e = TextAreaCfg {
   _tacMaxLines :: Maybe Int,
   _tacAcceptTab :: Maybe Bool,
   _tacSelectOnFocus :: Maybe Bool,
-  _tacOnFocus :: [Path -> e],
-  _tacOnFocusReq :: [WidgetRequest s e],
-  _tacOnBlur :: [Path -> e],
-  _tacOnBlurReq :: [WidgetRequest s e],
+  _tacOnFocusReq :: [Path -> WidgetRequest s e],
+  _tacOnBlurReq :: [Path -> WidgetRequest s e],
   _tacOnChange :: [Text -> e],
   _tacOnChangeReq :: [Text -> WidgetRequest s e]
 }
@@ -80,9 +78,7 @@ instance Default (TextAreaCfg s e) where
     _tacMaxLines = Nothing,
     _tacAcceptTab = Nothing,
     _tacSelectOnFocus = Nothing,
-    _tacOnFocus = [],
     _tacOnFocusReq = [],
-    _tacOnBlur = [],
     _tacOnBlurReq = [],
     _tacOnChange = [],
     _tacOnChangeReq = []
@@ -94,9 +90,7 @@ instance Semigroup (TextAreaCfg s e) where
     _tacMaxLines = _tacMaxLines t2 <|> _tacMaxLines t1,
     _tacAcceptTab = _tacAcceptTab t2 <|> _tacAcceptTab t1,
     _tacSelectOnFocus = _tacSelectOnFocus t2 <|> _tacSelectOnFocus t1,
-    _tacOnFocus = _tacOnFocus t1 <> _tacOnFocus t2,
     _tacOnFocusReq = _tacOnFocusReq t1 <> _tacOnFocusReq t2,
-    _tacOnBlur = _tacOnBlur t1 <> _tacOnBlur t2,
     _tacOnBlurReq = _tacOnBlurReq t1 <> _tacOnBlurReq t2,
     _tacOnChange = _tacOnChange t1 <> _tacOnChange t2,
     _tacOnChangeReq = _tacOnChangeReq t1 <> _tacOnChangeReq t2
@@ -125,22 +119,22 @@ instance CmbSelectOnFocus (TextAreaCfg s e) where
     _tacSelectOnFocus = Just sel
   }
 
-instance CmbOnFocus (TextAreaCfg s e) e Path where
+instance WidgetEvent e => CmbOnFocus (TextAreaCfg s e) e Path where
   onFocus fn = def {
-    _tacOnFocus = [fn]
+    _tacOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (TextAreaCfg s e) s e where
+instance CmbOnFocusReq (TextAreaCfg s e) s e Path where
   onFocusReq req = def {
     _tacOnFocusReq = [req]
   }
 
-instance CmbOnBlur (TextAreaCfg s e) e Path where
+instance WidgetEvent e => CmbOnBlur (TextAreaCfg s e) e Path where
   onBlur fn = def {
-    _tacOnBlur = [fn]
+    _tacOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (TextAreaCfg s e) s e where
+instance CmbOnBlurReq (TextAreaCfg s e) s e Path where
   onBlurReq req = def {
     _tacOnBlurReq = [req]
   }
@@ -561,13 +555,13 @@ makeTextArea wdata config state = widget where
       viewport = node ^. L.info . L.viewport
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs node reqs
-      focusRs = handleFocusChange _tacOnFocus _tacOnFocusReq config prev newNode
+      focusRs = handleFocusChange (_tacOnFocusReq config) prev newNode
       result = maybe newResult (newResult <>) focusRs
 
     Blur next -> Just result where
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs node reqs
-      blurRes = handleFocusChange _tacOnBlur _tacOnBlurReq config next node
+      blurRes = handleFocusChange (_tacOnBlurReq config) next node
       result = maybe newResult (newResult <>) blurRes
     _ -> Nothing
 

@@ -113,14 +113,10 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcDragHandler :: Maybe (InputDragHandler a),
   -- | Cursor to display on drag events.
   _ifcDragCursor :: Maybe CursorIcon,
-  -- | Event to raise when focus is received.
-  _ifcOnFocus :: [Path -> e],
   -- | WidgetRequest to generate when focus is received.
-  _ifcOnFocusReq :: [WidgetRequest s e],
-  -- | Event to raise when focus is lost.
-  _ifcOnBlur :: [Path -> e],
+  _ifcOnFocusReq :: [Path -> WidgetRequest s e],
   -- | WidgetRequest to generate when focus is lost.
-  _ifcOnBlurReq :: [WidgetRequest s e],
+  _ifcOnBlurReq :: [Path -> WidgetRequest s e],
   -- | Event to raise when value changes.
   _ifcOnChange :: [a -> e],
   -- | WidgetRequest to generate when value changes.
@@ -524,7 +520,7 @@ makeInputField config state = widget where
         & L.widget .~ makeInputField config newState
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs newNode reqs
-      focusRs = handleFocusChange _ifcOnFocus _ifcOnFocusReq config prev newNode
+      focusRs = handleFocusChange (_ifcOnFocusReq config) prev newNode
       result = maybe newResult (newResult <>) focusRs
 
     -- Handle blur and disable custom drag handlers
@@ -533,7 +529,7 @@ makeInputField config state = widget where
       newNode = node & L.widget .~ makeInputField config newState
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs newNode reqs
-      blurResult = handleFocusChange _ifcOnBlur _ifcOnBlurReq config next newNode
+      blurResult = handleFocusChange (_ifcOnBlurReq config) next newNode
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing

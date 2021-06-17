@@ -145,10 +145,8 @@ data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcDragRate :: Maybe Double,
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
-  _tfcOnFocus :: [Path -> e],
-  _tfcOnFocusReq :: [WidgetRequest s e],
-  _tfcOnBlur :: [Path -> e],
-  _tfcOnBlurReq :: [WidgetRequest s e],
+  _tfcOnFocusReq :: [Path -> WidgetRequest s e],
+  _tfcOnBlurReq :: [Path -> WidgetRequest s e],
   _tfcOnChange :: [a -> e],
   _tfcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -164,9 +162,7 @@ instance Default (TimeFieldCfg s e a) where
     _tfcDragRate = Nothing,
     _tfcResizeOnChange = Nothing,
     _tfcSelectOnFocus = Nothing,
-    _tfcOnFocus = [],
     _tfcOnFocusReq = [],
-    _tfcOnBlur = [],
     _tfcOnBlurReq = [],
     _tfcOnChange = [],
     _tfcOnChangeReq = []
@@ -183,9 +179,7 @@ instance Semigroup (TimeFieldCfg s e a) where
     _tfcDragRate = _tfcDragRate t2 <|> _tfcDragRate t1,
     _tfcResizeOnChange = _tfcResizeOnChange t2 <|> _tfcResizeOnChange t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
-    _tfcOnFocus = _tfcOnFocus t1 <> _tfcOnFocus t2,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
-    _tfcOnBlur = _tfcOnBlur t1 <> _tfcOnBlur t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
     _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
@@ -234,22 +228,22 @@ instance CmbDragRate (TimeFieldCfg s e a) Double where
     _tfcDragRate = Just rate
   }
 
-instance CmbOnFocus (TimeFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (TimeFieldCfg s e a) e Path where
   onFocus fn = def {
-    _tfcOnFocus = [fn]
+    _tfcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (TimeFieldCfg s e a) s e where
+instance CmbOnFocusReq (TimeFieldCfg s e a) s e Path where
   onFocusReq req = def {
     _tfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (TimeFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (TimeFieldCfg s e a) e Path where
   onBlur fn = def {
-    _tfcOnBlur = [fn]
+    _tfcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (TimeFieldCfg s e a) s e where
+instance CmbOnBlurReq (TimeFieldCfg s e a) s e Path where
   onBlurReq req = def {
     _tfcOnBlurReq = [req]
   }
@@ -348,9 +342,7 @@ timeFieldD_ widgetData configs = newNode where
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
-    _ifcOnFocus = _tfcOnFocus config,
     _ifcOnFocusReq = _tfcOnFocusReq config,
-    _ifcOnBlur = _tfcOnBlur config,
     _ifcOnBlurReq = _tfcOnBlurReq config,
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config

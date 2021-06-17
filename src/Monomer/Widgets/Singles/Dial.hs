@@ -59,10 +59,8 @@ data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcWheelRate :: Maybe Rational,
   _dlcDragRate :: Maybe Rational,
-  _dlcOnFocus :: [Path -> e],
-  _dlcOnFocusReq :: [WidgetRequest s e],
-  _dlcOnBlur :: [Path -> e],
-  _dlcOnBlurReq :: [WidgetRequest s e],
+  _dlcOnFocusReq :: [Path -> WidgetRequest s e],
+  _dlcOnBlurReq :: [Path -> WidgetRequest s e],
   _dlcOnChange :: [a -> e],
   _dlcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -72,9 +70,7 @@ instance Default (DialCfg s e a) where
     _dlcWidth = Nothing,
     _dlcWheelRate = Nothing,
     _dlcDragRate = Nothing,
-    _dlcOnFocus = [],
     _dlcOnFocusReq = [],
-    _dlcOnBlur = [],
     _dlcOnBlurReq = [],
     _dlcOnChange = [],
     _dlcOnChangeReq = []
@@ -85,9 +81,7 @@ instance Semigroup (DialCfg s e a) where
     _dlcWidth = _dlcWidth t2 <|> _dlcWidth t1,
     _dlcWheelRate = _dlcWheelRate t2 <|> _dlcWheelRate t1,
     _dlcDragRate = _dlcDragRate t2 <|> _dlcDragRate t1,
-    _dlcOnFocus = _dlcOnFocus t1 <> _dlcOnFocus t2,
     _dlcOnFocusReq = _dlcOnFocusReq t1 <> _dlcOnFocusReq t2,
-    _dlcOnBlur = _dlcOnBlur t1 <> _dlcOnBlur t2,
     _dlcOnBlurReq = _dlcOnBlurReq t1 <> _dlcOnBlurReq t2,
     _dlcOnChange = _dlcOnChange t1 <> _dlcOnChange t2,
     _dlcOnChangeReq = _dlcOnChangeReq t1 <> _dlcOnChangeReq t2
@@ -111,22 +105,22 @@ instance CmbWidth (DialCfg s e a) where
     _dlcWidth = Just w
   }
 
-instance CmbOnFocus (DialCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (DialCfg s e a) e Path where
   onFocus fn = def {
-    _dlcOnFocus = [fn]
+    _dlcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (DialCfg s e a) s e where
+instance CmbOnFocusReq (DialCfg s e a) s e Path where
   onFocusReq req = def {
     _dlcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DialCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (DialCfg s e a) e Path where
   onBlur fn = def {
-    _dlcOnBlur = [fn]
+    _dlcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (DialCfg s e a) s e where
+instance CmbOnBlurReq (DialCfg s e a) s e Path where
   onBlurReq req = def {
     _dlcOnBlurReq = [req]
   }
@@ -259,8 +253,8 @@ makeDial field minVal maxVal config state = widget where
       (_, dialArea) = getDialInfo wenv node config
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange _dlcOnFocus _dlcOnFocusReq config prev node
-    Blur next -> handleFocusChange _dlcOnBlur _dlcOnBlurReq config next node
+    Focus prev -> handleFocusChange (_dlcOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_dlcOnBlurReq config) next node
     KeyAction mod code KeyPressed
       | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
       | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)

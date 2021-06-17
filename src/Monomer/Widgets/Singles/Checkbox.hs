@@ -56,10 +56,8 @@ data CheckboxMark
 data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
-  _ckcOnFocus :: [Path -> e],
-  _ckcOnFocusReq :: [WidgetRequest s e],
-  _ckcOnBlur :: [Path -> e],
-  _ckcOnBlurReq :: [WidgetRequest s e],
+  _ckcOnFocusReq :: [Path -> WidgetRequest s e],
+  _ckcOnBlurReq :: [Path -> WidgetRequest s e],
   _ckcOnChange :: [Bool -> e],
   _ckcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
@@ -68,9 +66,7 @@ instance Default (CheckboxCfg s e) where
   def = CheckboxCfg {
     _ckcMark = Nothing,
     _ckcWidth = Nothing,
-    _ckcOnFocus = [],
     _ckcOnFocusReq = [],
-    _ckcOnBlur = [],
     _ckcOnBlurReq = [],
     _ckcOnChange = [],
     _ckcOnChangeReq = []
@@ -80,9 +76,7 @@ instance Semigroup (CheckboxCfg s e) where
   (<>) t1 t2 = CheckboxCfg {
     _ckcMark = _ckcMark t2 <|> _ckcMark t1,
     _ckcWidth = _ckcWidth t2 <|> _ckcWidth t1,
-    _ckcOnFocus = _ckcOnFocus t1 <> _ckcOnFocus t2,
     _ckcOnFocusReq = _ckcOnFocusReq t1 <> _ckcOnFocusReq t2,
-    _ckcOnBlur = _ckcOnBlur t1 <> _ckcOnBlur t2,
     _ckcOnBlurReq = _ckcOnBlurReq t1 <> _ckcOnBlurReq t2,
     _ckcOnChange = _ckcOnChange t1 <> _ckcOnChange t2,
     _ckcOnChangeReq = _ckcOnChangeReq t1 <> _ckcOnChangeReq t2
@@ -96,22 +90,22 @@ instance CmbWidth (CheckboxCfg s e) where
     _ckcWidth = Just w
   }
 
-instance CmbOnFocus (CheckboxCfg s e) e Path where
+instance WidgetEvent e => CmbOnFocus (CheckboxCfg s e) e Path where
   onFocus fn = def {
-    _ckcOnFocus = [fn]
+    _ckcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (CheckboxCfg s e) s e where
+instance CmbOnFocusReq (CheckboxCfg s e) s e Path where
   onFocusReq req = def {
     _ckcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (CheckboxCfg s e) e Path where
+instance WidgetEvent e => CmbOnBlur (CheckboxCfg s e) e Path where
   onBlur fn = def {
-    _ckcOnBlur = [fn]
+    _ckcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (CheckboxCfg s e) s e where
+instance CmbOnBlurReq (CheckboxCfg s e) s e Path where
   onBlurReq req = def {
     _ckcOnBlurReq = [req]
   }
@@ -175,8 +169,8 @@ makeCheckbox widgetData config = widget where
     style = collectTheme wenv L.checkboxStyle
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange _ckcOnFocus _ckcOnFocusReq config prev node
-    Blur next -> handleFocusChange _ckcOnBlur _ckcOnBlurReq config next node
+    Focus prev -> handleFocusChange (_ckcOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_ckcOnBlurReq config) next node
     Click p _
       | isPointInNodeVp p node -> Just $ resultReqsEvts node reqs events
     KeyAction mod code KeyPressed

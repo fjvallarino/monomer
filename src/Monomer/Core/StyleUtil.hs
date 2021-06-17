@@ -90,6 +90,9 @@ instance CmbEnabled (WidgetNode s e) where
 instance CmbVisible (WidgetNode s e) where
   visible node visibility = node & L.info . L.visible .~ visibility
 
+instance CmbFocusable (WidgetNode s e) where
+  focusable node isFocusable = node & L.info . L.focusable .~ isFocusable
+
 instance CmbStyle (WidgetNode s e) where
   style node states = node & L.info . L.style .~ newStyle where
     state = mconcat states

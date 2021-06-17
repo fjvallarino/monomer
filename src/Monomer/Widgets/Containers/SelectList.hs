@@ -74,10 +74,8 @@ data SelectListCfg s e a = SelectListCfg {
   _slcItemStyle :: Maybe Style,
   _slcItemSelectedStyle :: Maybe Style,
   _slcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
-  _slcOnFocus :: [Path -> e],
-  _slcOnFocusReq :: [WidgetRequest s e],
-  _slcOnBlur :: [Path -> e],
-  _slcOnBlurReq :: [WidgetRequest s e],
+  _slcOnFocusReq :: [Path -> WidgetRequest s e],
+  _slcOnBlurReq :: [Path -> WidgetRequest s e],
   _slcOnChange :: [a -> e],
   _slcOnChangeReq :: [a -> WidgetRequest s e],
   _slcOnChangeIdx :: [Int -> a -> e],
@@ -90,9 +88,7 @@ instance Default (SelectListCfg s e a) where
     _slcItemStyle = Nothing,
     _slcItemSelectedStyle = Nothing,
     _slcMergeRequired = Nothing,
-    _slcOnFocus = [],
     _slcOnFocusReq = [],
-    _slcOnBlur = [],
     _slcOnBlurReq = [],
     _slcOnChange = [],
     _slcOnChangeReq = [],
@@ -106,9 +102,7 @@ instance Semigroup (SelectListCfg s e a) where
     _slcItemStyle = _slcItemStyle t2 <|> _slcItemStyle t1,
     _slcItemSelectedStyle = _slcItemSelectedStyle t2 <|> _slcItemSelectedStyle t1,
     _slcMergeRequired = _slcMergeRequired t2 <|> _slcMergeRequired t1,
-    _slcOnFocus = _slcOnFocus t1 <> _slcOnFocus t2,
     _slcOnFocusReq = _slcOnFocusReq t1 <> _slcOnFocusReq t2,
-    _slcOnBlur = _slcOnBlur t1 <> _slcOnBlur t2,
     _slcOnBlurReq = _slcOnBlurReq t1 <> _slcOnBlurReq t2,
     _slcOnChange = _slcOnChange t1 <> _slcOnChange t2,
     _slcOnChangeReq = _slcOnChangeReq t1 <> _slcOnChangeReq t2,
@@ -119,22 +113,22 @@ instance Semigroup (SelectListCfg s e a) where
 instance Monoid (SelectListCfg s e a) where
   mempty = def
 
-instance CmbOnFocus (SelectListCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (SelectListCfg s e a) e Path where
   onFocus fn = def {
-    _slcOnFocus = [fn]
+    _slcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (SelectListCfg s e a) s e where
+instance CmbOnFocusReq (SelectListCfg s e a) s e Path where
   onFocusReq req = def {
     _slcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (SelectListCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (SelectListCfg s e a) e Path where
   onBlur fn = def {
-    _slcOnBlur = [fn]
+    _slcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (SelectListCfg s e a) s e where
+instance CmbOnBlurReq (SelectListCfg s e a) s e Path where
   onBlurReq req = def {
     _slcOnBlurReq = [req]
   }
@@ -332,18 +326,16 @@ makeSelectList widgetData items makeRow config state = widget where
     ButtonAction _ btn BtnPressed _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-    Focus prev -> handleFocusChange _slcOnFocus _slcOnFocusReq config prev node
+    Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
     Blur next -> result where
       isTabPressed = getKeyStatus (_weInputStatus wenv) keyTab == KeyPressed
       changeReq = isTabPressed && _slcSelectOnBlur config == Just True
       WidgetResult tempNode tempReqs
         | changeReq = selectItem wenv node (_hlIdx state)
         | otherwise = resultNode node
-      evts = RaiseEvent <$> Seq.fromList (($ next) <$> _slcOnBlur config)
-      reqs = tempReqs <> Seq.fromList (_slcOnBlurReq config)
-      mergedResult = Just $ WidgetResult tempNode (reqs <> evts)
+      reqs = tempReqs <> Seq.fromList (($ next) <$> _slcOnBlurReq config)
       result
-        | changeReq || not (null evts && null reqs) = mergedResult
+        | changeReq || not (null reqs) = Just $ WidgetResult tempNode reqs
         | otherwise = Nothing
     KeyAction mode code status
       | isKeyDown code && status == KeyPressed -> highlightNext wenv node

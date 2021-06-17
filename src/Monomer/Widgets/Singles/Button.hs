@@ -62,10 +62,8 @@ data ButtonCfg s e = ButtonCfg {
   _btnTextMaxLines :: Maybe Int,
   _btnFactorW :: Maybe Double,
   _btnFactorH :: Maybe Double,
-  _btnOnFocus :: [Path -> e],
-  _btnOnFocusReq :: [WidgetRequest s e],
-  _btnOnBlur :: [Path -> e],
-  _btnOnBlurReq :: [WidgetRequest s e],
+  _btnOnFocusReq :: [Path -> WidgetRequest s e],
+  _btnOnBlurReq :: [Path -> WidgetRequest s e],
   _btnOnClick :: [e],
   _btnOnClickReq :: [WidgetRequest s e]
 }
@@ -79,9 +77,7 @@ instance Default (ButtonCfg s e) where
     _btnTextMaxLines = Nothing,
     _btnFactorW = Nothing,
     _btnFactorH = Nothing,
-    _btnOnFocus = [],
     _btnOnFocusReq = [],
-    _btnOnBlur = [],
     _btnOnBlurReq = [],
     _btnOnClick = [],
     _btnOnClickReq = []
@@ -96,9 +92,7 @@ instance Semigroup (ButtonCfg s e) where
     _btnTextMaxLines = _btnTextMaxLines t2 <|> _btnTextMaxLines t1,
     _btnFactorW = _btnFactorW t2 <|> _btnFactorW t1,
     _btnFactorH = _btnFactorH t2 <|> _btnFactorH t1,
-    _btnOnFocus = _btnOnFocus t1 <> _btnOnFocus t2,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
-    _btnOnBlur = _btnOnBlur t1 <> _btnOnBlur t2,
     _btnOnBlurReq = _btnOnBlurReq t1 <> _btnOnBlurReq t2,
     _btnOnClick = _btnOnClick t1 <> _btnOnClick t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
@@ -127,22 +121,22 @@ instance CmbMaxLines (ButtonCfg s e) where
     _btnTextMaxLines = Just count
   }
 
-instance CmbOnFocus (ButtonCfg s e) e Path where
+instance WidgetEvent e => CmbOnFocus (ButtonCfg s e) e Path where
   onFocus fn = def {
-    _btnOnFocus = [fn]
+    _btnOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (ButtonCfg s e) s e where
+instance CmbOnFocusReq (ButtonCfg s e) s e Path where
   onFocusReq req = def {
     _btnOnFocusReq = [req]
   }
 
-instance CmbOnBlur (ButtonCfg s e) e Path where
+instance WidgetEvent e => CmbOnBlur (ButtonCfg s e) e Path where
   onBlur fn = def {
-    _btnOnBlur = [fn]
+    _btnOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (ButtonCfg s e) s e where
+instance CmbOnBlurReq (ButtonCfg s e) s e Path where
   onBlurReq req = def {
     _btnOnBlurReq = [req]
   }
@@ -247,8 +241,8 @@ makeButton caption config = widget where
     result = resultNode (createChildNode wenv node)
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange _btnOnFocus _btnOnFocusReq config prev node
-    Blur next -> handleFocusChange _btnOnBlur _btnOnBlurReq config next node
+    Focus prev -> handleFocusChange (_btnOnFocusReq config) prev node
+    Blur next -> handleFocusChange (_btnOnBlurReq config) next node
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where

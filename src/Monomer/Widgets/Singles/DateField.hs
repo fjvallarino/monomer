@@ -152,10 +152,8 @@ data DateFieldCfg s e a = DateFieldCfg {
   _dfcDragRate :: Maybe Double,
   _dfcResizeOnChange :: Maybe Bool,
   _dfcSelectOnFocus :: Maybe Bool,
-  _dfcOnFocus :: [Path -> e],
-  _dfcOnFocusReq :: [WidgetRequest s e],
-  _dfcOnBlur :: [Path -> e],
-  _dfcOnBlurReq :: [WidgetRequest s e],
+  _dfcOnFocusReq :: [Path -> WidgetRequest s e],
+  _dfcOnBlurReq :: [Path -> WidgetRequest s e],
   _dfcOnChange :: [a -> e],
   _dfcOnChangeReq :: [a -> WidgetRequest s e]
 }
@@ -172,9 +170,7 @@ instance Default (DateFieldCfg s e a) where
     _dfcDragRate = Nothing,
     _dfcResizeOnChange = Nothing,
     _dfcSelectOnFocus = Nothing,
-    _dfcOnFocus = [],
     _dfcOnFocusReq = [],
-    _dfcOnBlur = [],
     _dfcOnBlurReq = [],
     _dfcOnChange = [],
     _dfcOnChangeReq = []
@@ -192,9 +188,7 @@ instance Semigroup (DateFieldCfg s e a) where
     _dfcDragRate = _dfcDragRate t2 <|> _dfcDragRate t1,
     _dfcResizeOnChange = _dfcResizeOnChange t2 <|> _dfcResizeOnChange t1,
     _dfcSelectOnFocus = _dfcSelectOnFocus t2 <|> _dfcSelectOnFocus t1,
-    _dfcOnFocus = _dfcOnFocus t1 <> _dfcOnFocus t2,
     _dfcOnFocusReq = _dfcOnFocusReq t1 <> _dfcOnFocusReq t2,
-    _dfcOnBlur = _dfcOnBlur t1 <> _dfcOnBlur t2,
     _dfcOnBlurReq = _dfcOnBlurReq t1 <> _dfcOnBlurReq t2,
     _dfcOnChange = _dfcOnChange t1 <> _dfcOnChange t2,
     _dfcOnChangeReq = _dfcOnChangeReq t1 <> _dfcOnChangeReq t2
@@ -243,22 +237,22 @@ instance CmbDragRate (DateFieldCfg s e a) Double where
     _dfcDragRate = Just rate
   }
 
-instance CmbOnFocus (DateFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnFocus (DateFieldCfg s e a) e Path where
   onFocus fn = def {
-    _dfcOnFocus = [fn]
+    _dfcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (DateFieldCfg s e a) s e where
+instance CmbOnFocusReq (DateFieldCfg s e a) s e Path where
   onFocusReq req = def {
     _dfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (DateFieldCfg s e a) e Path where
+instance WidgetEvent e => CmbOnBlur (DateFieldCfg s e a) e Path where
   onBlur fn = def {
-    _dfcOnBlur = [fn]
+    _dfcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (DateFieldCfg s e a) s e where
+instance CmbOnBlurReq (DateFieldCfg s e a) s e Path where
   onBlurReq req = def {
     _dfcOnBlurReq = [req]
   }
@@ -370,9 +364,7 @@ dateFieldD_ widgetData configs = newNode where
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
-    _ifcOnFocus = _dfcOnFocus config,
     _ifcOnFocusReq = _dfcOnFocusReq config,
-    _ifcOnBlur = _dfcOnBlur config,
     _ifcOnBlurReq = _dfcOnBlurReq config,
     _ifcOnChange = _dfcOnChange config,
     _ifcOnChangeReq = _dfcOnChangeReq config

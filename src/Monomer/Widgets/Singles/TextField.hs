@@ -55,10 +55,8 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcMaxLength :: Maybe Int,
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
-  _tfcOnFocus :: [Path -> e],
-  _tfcOnFocusReq :: [WidgetRequest s e],
-  _tfcOnBlur :: [Path -> e],
-  _tfcOnBlurReq :: [WidgetRequest s e],
+  _tfcOnFocusReq :: [Path -> WidgetRequest s e],
+  _tfcOnBlurReq :: [Path -> WidgetRequest s e],
   _tfcOnChange :: [Text -> e],
   _tfcOnChangeReq :: [Text -> WidgetRequest s e]
 }
@@ -70,9 +68,7 @@ instance Default (TextFieldCfg s e) where
     _tfcMaxLength = Nothing,
     _tfcResizeOnChange = Nothing,
     _tfcSelectOnFocus = Nothing,
-    _tfcOnFocus = [],
     _tfcOnFocusReq = [],
-    _tfcOnBlur = [],
     _tfcOnBlurReq = [],
     _tfcOnChange = [],
     _tfcOnChangeReq = []
@@ -85,9 +81,7 @@ instance Semigroup (TextFieldCfg s e) where
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
     _tfcResizeOnChange = _tfcResizeOnChange t2 <|> _tfcResizeOnChange t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
-    _tfcOnFocus = _tfcOnFocus t1 <> _tfcOnFocus t2,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
-    _tfcOnBlur = _tfcOnBlur t1 <> _tfcOnBlur t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
     _tfcOnChange = _tfcOnChange t1 <> _tfcOnChange t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
@@ -121,22 +115,22 @@ instance CmbMaxLength (TextFieldCfg s e) where
     _tfcMaxLength = Just len
   }
 
-instance CmbOnFocus (TextFieldCfg s e) e Path where
+instance WidgetEvent e => CmbOnFocus (TextFieldCfg s e) e Path where
   onFocus fn = def {
-    _tfcOnFocus = [fn]
+    _tfcOnFocusReq = [RaiseEvent . fn]
   }
 
-instance CmbOnFocusReq (TextFieldCfg s e) s e where
+instance CmbOnFocusReq (TextFieldCfg s e) s e Path where
   onFocusReq req = def {
     _tfcOnFocusReq = [req]
   }
 
-instance CmbOnBlur (TextFieldCfg s e) e Path where
+instance WidgetEvent e => CmbOnBlur (TextFieldCfg s e) e Path where
   onBlur fn = def {
-    _tfcOnBlur = [fn]
+    _tfcOnBlurReq = [RaiseEvent . fn]
   }
 
-instance CmbOnBlurReq (TextFieldCfg s e) s e where
+instance CmbOnBlurReq (TextFieldCfg s e) s e Path where
   onBlurReq req = def {
     _tfcOnBlurReq = [req]
   }
@@ -196,9 +190,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcWheelHandler = Nothing,
     _ifcDragHandler = Nothing,
     _ifcDragCursor = Nothing,
-    _ifcOnFocus = _tfcOnFocus config,
     _ifcOnFocusReq = _tfcOnFocusReq config,
-    _ifcOnBlur = _tfcOnBlur config,
     _ifcOnBlurReq = _tfcOnBlurReq config,
     _ifcOnChange = _tfcOnChange config,
     _ifcOnChangeReq = _tfcOnChangeReq config
