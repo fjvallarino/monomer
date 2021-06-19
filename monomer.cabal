@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1c936e0c66736d6248278dc0c3ebc018c6f6175f4907d0b91d43797064b08da9
+-- hash: b169ca4166bac7eecf1b04ff0caa40bbd9187b76704bd9ac3a751e9e255a308f
 
 name:           monomer
 version:        0.1.0.0
@@ -135,8 +135,6 @@ library
   cc-options: -fPIC
   c-sources:
       cbits/glew.c
-  extra-libraries:
-      GLEW
   build-depends:
       JuicyPixels
     , OpenGL
@@ -166,6 +164,12 @@ library
     , unordered-containers
     , vector
     , wreq
+  if os(windows)
+    extra-libraries:
+        glew32
+  else
+    extra-libraries:
+        GLEW
   default-language: Haskell2010
 
 executable books

@@ -59,8 +59,12 @@ library:
   - -fPIC
   ghc-options:
   - -fwarn-incomplete-patterns
-  extra-libraries:
-  - GLEW
+  when:
+    - condition: os(windows)
+      then:
+        extra-libraries: glew32
+      else:
+        extra-libraries: GLEW
 
 executables:
   monomer-exe:

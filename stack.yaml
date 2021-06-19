@@ -43,8 +43,8 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - git: https://github.com/fjvallarino/nanovg-hs
-    commit: b79fa2bfd60e26f49eea6fcafd668396835714b4
-
+    commit: bb2fa74d1af58fd04e8794a8053701ba30ec2b08
+  - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
