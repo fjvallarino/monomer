@@ -8,45 +8,72 @@ and follow the appropriate installation method for your OS. If you are on
 Linux or macOS, you will be provided with a shell command, while if you are on
 Windows a regular installer is available.
 
-## SDL2
-
-### macOS
-
-```bash
-brew install sdl2
-```
-
-In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh)
-
-### Linux
-
-#### Ubuntu
-
-```bash
-sudo apt-get install -y libsdl2-dev
-```
-
-#### Arch
-
-```bash
-pacman -S sdl2
-```
-
-### Windows
-
-**Pending, check below url**
-https://www.reddit.com/r/haskell/comments/cjv2hh/help_setting_up_sdl2_on_windows/
-
 ## Clone the sample project
 
 ```bash
 git clone https://github.com/fjvallarino/monomer-sample.git
 ```
 
+## Libraries: SDL2 and GLEW
+
+### macOS
+
+```bash
+brew install sdl2
+brew install glew
+```
+
+In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh)
+
+### Linux
+
+#### Debian/Ubuntu
+
+```bash
+sudo apt-get install libsdl2-dev
+sudo apt-get install libglew-dev
+```
+
+##### Ubuntu notes
+
+It seems there are issues when installing `libsdl2-dev` on some Ubuntu versions.
+They can usually be solved by running `sudo aptitude install libsdl2-dev` and
+choosing one of the suggested actions, although doing this is a bit more
+dangerous than a regular package install.
+
+Aptitude can be installed with `sudo apt-get install aptitude`.
+
+#### Arch
+
+```bash
+pacman -S sdl2
+pacman -S glew
+```
+
+### Windows
+
+Inside the sample project's directory:
+
+```bash
+stack setup
+stack exec -- pacman -S mingw-w64-x86_64-pkg-config
+stack exec -- pacman -S mingw-w64-x86_64-SDL2
+stack exec -- pacman -S mingw-w64-x86_64-freeglut
+stack exec -- pacman -S mingw-w64-x86_64-glew
+```
+
 ## Build the project
+
+### macOS / Linux
 
 ```bash
 stack build
+```
+
+### Windows
+
+```bash
+stack build --flag regex-posix:_regex-posix-clib
 ```
 
 ## Development mode

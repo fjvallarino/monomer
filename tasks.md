@@ -688,11 +688,16 @@
   - Box click should handle multiple clicks as button
   - Add onEnter/onLeave/onBtnPress/onBtnRelease to box
   - Remove evt config when req version exists
-
-Next
-  - Document themes and how widgets use them.
   - Linux build
   - Windows build
+  - Check Windows High DPI
+    - https://discourse.libsdl.org/t/sdl-getdesktopdisplaymode-resolution-reported-in-windows-10-when-using-app-scaling/22389/4
+
+Next
+  - Improve DPI handling
+  - Check Tutorial 03 (adding empty adds multiple items)
+  - Avoid building examples when used as a library
+  - Document themes and how widgets use them.
   - Create ContextMenu (could work similarly to Tooltip)
 
 Future
