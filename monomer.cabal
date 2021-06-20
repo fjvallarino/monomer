@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b169ca4166bac7eecf1b04ff0caa40bbd9187b76704bd9ac3a751e9e255a308f
+-- hash: 43ce21b78a3a4286852447fdc54a654e3f5b39ecf488c98a15bc9f68c1972c01
 
 name:           monomer
 version:        0.1.0.0
@@ -135,6 +135,7 @@ library
   cc-options: -fPIC
   c-sources:
       cbits/glew.c
+      cbits/dpi.c
   build-depends:
       JuicyPixels
     , OpenGL

@@ -81,10 +81,10 @@ data MonomerCtx s = MonomerCtx {
   _mcWindow :: SDL.Window,
   -- | Main window size.
   _mcWindowSize :: Size,
-  -- | Whether HDPI is enabled.
-  _mcHdpi :: Bool,
   -- | Device pixel rate.
   _mcDpr :: Double,
+  -- | Event pixel rate.
+  _mcEpr :: Double,
   -- | Input status (mouse and keyboard).
   _mcInputStatus :: InputStatus,
   -- | Cursor icons (a stack is used because of parent -> child relationship).

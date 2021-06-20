@@ -40,16 +40,17 @@ isActionEvent _ = False
 -- | Converts SDL events to Monomer's SystemEvent
 convertEvents
   :: Double              -- ^ Device pixel rate.
+  -> Double              -- ^ Event pixel rate.
   -> Point               -- ^ Mouse position.
   -> [SDL.EventPayload]  -- ^ List of SDL events.
   -> [SystemEvent]       -- ^ List of Monomer events.
-convertEvents devicePixelRate mousePos events = catMaybes convertedEvents where
+convertEvents dpr epr mousePos events = catMaybes convertedEvents where
   convertedEvents = fmap convertEvent events
   convertEvent evt =
-    mouseMoveEvent devicePixelRate mousePos evt
+    mouseMoveEvent mousePos evt
     <|> mouseClick mousePos evt
-    <|> mouseWheelEvent devicePixelRate mousePos evt
-    <|> mouseMoveLeave devicePixelRate mousePos evt
+    <|> mouseWheelEvent epr mousePos evt
+    <|> mouseMoveLeave mousePos evt
     <|> keyboardEvent evt
     <|> textEvent evt
 
@@ -83,26 +84,26 @@ mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
     systemEvent = fmap (\btn -> ButtonAction mousePos btn action clicks) button
 mouseClick _ _ = Nothing
 
-mouseMoveEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseMoveEvent dpr mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
-mouseMoveEvent dpr mousePos _ = Nothing
+mouseMoveEvent :: Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseMoveEvent mousePos (SDL.MouseMotionEvent _) = Just $ Move mousePos
+mouseMoveEvent mousePos _ = Nothing
 
-mouseMoveLeave :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseMoveLeave dpr mousePos SDL.WindowLostMouseFocusEvent{} = evt where
+mouseMoveLeave :: Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseMoveLeave mousePos SDL.WindowLostMouseFocusEvent{} = evt where
   evt = Just $ Move (Point (-1) (-1))
-mouseMoveLeave dpr mousePos _ = Nothing
+mouseMoveLeave mousePos _ = Nothing
 
 mouseWheelEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseWheelEvent dpr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
+mouseWheelEvent epr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
   wheelDirection = case SDL.mouseWheelEventDirection eventData of
     SDL.ScrollNormal -> WheelNormal
     SDL.ScrollFlipped -> WheelFlipped
   SDL.V2 x y = SDL.mouseWheelEventPos eventData
-  wheelDelta = Point (fromIntegral x * dpr) (fromIntegral y * dpr)
+  wheelDelta = Point (fromIntegral x * epr) (fromIntegral y * epr)
   systemEvent = case SDL.mouseWheelEventWhich eventData of
     SDL.Mouse _ -> Just $ WheelScroll mousePos wheelDelta wheelDirection
     SDL.Touch -> Nothing
-mouseWheelEvent dpr mousePos _ = Nothing
+mouseWheelEvent epr mousePos _ = Nothing
 
 keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
 keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where

@@ -40,7 +40,10 @@ import Monomer.Main.Types
 import Monomer.Event.Types
 import Monomer.Widgets.Composite
 
+import Foreign
+
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
+foreign import ccall unsafe "initializeDpiAwareness" initializeDpiAwareness :: IO CInt
 
 -- | Default window size if not is specified.
 defaultWindowSize :: (Int, Int)
@@ -51,7 +54,7 @@ defaultUseHdpi :: Bool
 defaultUseHdpi = True
 
 -- | Creates and initializes a window using the provided configuration.
-initSDLWindow :: AppConfig e -> IO (SDL.Window, Double)
+initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
@@ -60,11 +63,20 @@ initSDLWindow config = do
      when (renderQuality /= SDL.ScaleLinear) $
        putStrLn "Warning: Linear texture filtering not enabled!"
 
+  os <- getPlatform
+  initializeDpiAwareness
+  (ddpi, hdpi, vdpi) <- getDisplayDPI
+  let isWindows = os == "Windows"
+  let factor
+        | isWindows = hdpi / 96
+        | otherwise = 1
+  let (winW, winH) = (factor * fromIntegral baseW, factor * fromIntegral baseH)
+
   window <-
     SDL.createWindow
       "SDL / OpenGL Example"
       SDL.defaultWindow {
-        SDL.windowInitialSize = SDL.V2 (fromIntegral winW) (fromIntegral winH),
+        SDL.windowInitialSize = SDL.V2 (round winW) (round winH),
         SDL.windowHighDPI = windowHiDPI,
         SDL.windowResizable = windowResizable,
         SDL.windowBorder = windowBorder,
@@ -73,7 +85,9 @@ initSDLWindow config = do
 
   -- Get device pixel rate
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
-  let dpr = fromIntegral fbWidth / fromIntegral winW
+  let (dpr, epr)
+        | isWindows = (factor, 1 / factor)
+        | otherwise = (fromIntegral fbWidth / winW, 1)
 
   when (isJust (_apcWindowTitle config)) $
     SDL.windowTitle window $= fromJust (_apcWindowTitle config)
@@ -92,7 +106,7 @@ initSDLWindow config = do
 
   _ <- glewInit
 
-  return (window, dpr)
+  return (window, dpr, epr)
   where
     customOpenGL = SDL.OpenGLConfig {
       SDL.glColorPrecision = SDL.V4 8 8 8 0,
@@ -102,7 +116,7 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
-    (winW, winH) = case _apcWindowState config of
+    (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize
     windowResizable = fromMaybe True (_apcWindowResizable config)
@@ -124,10 +138,10 @@ detroySDLWindow window = do
   SDL.quit
 
 -- | Returns the current mouse position.
-getCurrentMousePos :: (MonadIO m) => m Point
-getCurrentMousePos = do
+getCurrentMousePos :: (MonadIO m) => Double -> m Point
+getCurrentMousePos epr = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
-  return $ Point (fromIntegral x) (fromIntegral y)
+  return $ Point (epr * fromIntegral x) (epr * fromIntegral y)
 
 -- | Returns the drawable size of the provided window. May differ from window
 -- | size if HDPI is enabled.
@@ -149,3 +163,15 @@ getPlatform = do
   platform <- liftIO . peekCString =<< Raw.getPlatform
 
   return $ T.pack platform
+
+-- | Returns the diagonal, horizontal and vertical DPI of the main display.
+getDisplayDPI :: IO (Double, Double, Double)
+getDisplayDPI =
+  alloca $ \pddpi ->
+    alloca $ \phdpi ->
+      alloca $ \pvdpi -> do
+        Raw.getDisplayDPI 0 pddpi phdpi pvdpi
+        ddpi <- peek pddpi
+        hdpi <- peek phdpi
+        vdpi <- peek pvdpi
+        return (realToFrac ddpi, realToFrac hdpi, realToFrac vdpi)

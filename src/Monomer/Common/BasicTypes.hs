@@ -84,6 +84,10 @@ addPoint (Point x1 y1) (Point x2 y2) = Point (x1 + x2) (y1 + y2)
 subPoint :: Point -> Point -> Point
 subPoint (Point x1 y1) (Point x2 y2) = Point (x1 - x2) (y1 - y2)
 
+-- | Multiplies the coordinates of a point by the given factor.
+mulPoint :: Double -> Point -> Point
+mulPoint factor (Point x y) = Point (factor * x) (factor * y)
+
 -- | Negates the coordinates of a point.
 negPoint :: Point -> Point
 negPoint (Point x y) = Point (-x) (-y)

@@ -55,6 +55,7 @@ library:
   source-dirs: src
   c-sources:
   - cbits/glew.c
+  - cbits/dpi.c
   cc-options:
   - -fPIC
   ghc-options:

@@ -88,10 +88,10 @@ startApp
   -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
-  (window, dpr) <- initSDLWindow config
+  (window, dpr, epr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
-  let monomerCtx = initMonomerCtx model window winSize useHdpi dpr
+  let monomerCtx = initMonomerCtx model window winSize useHdpi dpr epr
 
   runStateT (runAppLoop window appWidget config) monomerCtx
   detroySDLWindow window
@@ -111,11 +111,9 @@ runAppLoop
   -> AppConfig e
   -> m ()
 runAppLoop window widgetRoot config = do
-  useHiDPI <- use L.hdpi
-  devicePixelRate <- use L.dpr
+  dpr <- use L.dpr
   Size rw rh <- use L.windowSize
 
-  let dpr = if useHiDPI then devicePixelRate else 1
   let newWindowSize = Size (rw / dpr) (rh / dpr)
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
@@ -190,11 +188,10 @@ mainLoop
 mainLoop window renderer config loopArgs = do
   startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
-  mousePos <- getCurrentMousePos
 
   windowSize <- use L.windowSize
-  useHiDPI <- use L.hdpi
-  devicePixelRate <- use L.dpr
+  dpr <- use L.dpr
+  epr <- use L.epr
   currentModel <- use L.mainModel
   currCursor <- getCurrentCursor
   hovered <- getHoveredPath
@@ -203,6 +200,7 @@ mainLoop window renderer config loopArgs = do
   dragged <- getDraggedMsgInfo
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
+  mousePos <- getCurrentMousePos epr
 
   let MainLoopArgs{..} = loopArgs
   let Size rw rh = windowSize
@@ -213,8 +211,7 @@ mainLoop window renderer config loopArgs = do
   let windowResized = isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
-  let mousePixelRate = if not useHiDPI then devicePixelRate else 1
-  let baseSystemEvents = convertEvents mousePixelRate mousePos eventsPayload
+  let baseSystemEvents = convertEvents dpr epr mousePos eventsPayload
 
 --  when newSecond $
 --    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount

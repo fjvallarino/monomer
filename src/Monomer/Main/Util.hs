@@ -36,13 +36,20 @@ import qualified Monomer.Core.Lens as L
 import qualified Monomer.Main.Lens as L
 
 -- | Initializes the Monomer context with the provided information.
-initMonomerCtx :: s -> SDL.Window -> Size -> Bool -> Double -> MonomerCtx s
-initMonomerCtx model win winSize useHiDPI devicePixelRate = MonomerCtx {
+initMonomerCtx
+  :: s
+  -> SDL.Window
+  -> Size
+  -> Bool
+  -> Double
+  -> Double
+  -> MonomerCtx s
+initMonomerCtx model win winSize useHiDPI dpr epr = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,
-  _mcHdpi = useHiDPI,
-  _mcDpr = devicePixelRate,
+  _mcDpr = dpr,
+  _mcEpr = epr,
   _mcInputStatus = def,
   _mcCursorStack = [],
   _mcFocusedWidgetId = def,
