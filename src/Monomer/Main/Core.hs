@@ -91,13 +91,12 @@ startApp model eventHandler uiBuilder configs = do
   (window, dpr, epr) <- initSDLWindow config
   winSize <- getDrawableSize window
 
-  let monomerCtx = initMonomerCtx model window winSize useHdpi dpr epr
+  let monomerCtx = initMonomerCtx model window winSize dpr epr
 
   runStateT (runAppLoop window appWidget config) monomerCtx
   detroySDLWindow window
   where
     config = mconcat configs
-    useHdpi = fromMaybe defaultUseHdpi (_apcHdpi config)
     compCfgs
       = (onInit <$> _apcInitEvent config)
       ++ (onDispose <$> _apcDisposeEvent config)

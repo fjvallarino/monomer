@@ -279,10 +279,10 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
   where
     winSize = _weWindowSize wenv
     vp = Rect 0 0 (_sW winSize) (_sH winSize)
-    useHdpi = True
     dpr = 1
+    epr = 1
     model = _weModel wenv
-    monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
+    monomerContext = initMonomerCtx model undefined winSize dpr epr
     pathReadyRoot = node
       & L.info . L.path .~ rootPath
       & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
@@ -300,11 +300,11 @@ nodeHandleResult
   -> (HandlerStep s e, MonomerCtx s)
 nodeHandleResult wenv result = unsafePerformIO $ do
   let winSize = _weWindowSize wenv
-  let useHdpi = True
   let dpr = 1
+  let epr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerCtx model undefined winSize useHdpi dpr
+  let monomerContext = initMonomerCtx model undefined winSize dpr epr
 
   flip runStateT monomerContext $ do
     handleWidgetResult wenv True result

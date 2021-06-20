@@ -139,8 +139,6 @@ data AppConfig e = AppConfig {
   _apcWindowResizable :: Maybe Bool,
   -- | Whether the main window has a border.
   _apcWindowBorder :: Maybe Bool,
-  -- | Whether to enable HDPI.
-  _apcHdpi :: Maybe Bool,
   -- | Max number of FPS the application will run. It does not necessarily mean
   -- | rendering will happen every frame, but events and schedules will be
   -- | checked at this rate and may cause it.
@@ -170,7 +168,6 @@ instance Default (AppConfig e) where
     _apcWindowTitle = Nothing,
     _apcWindowResizable = Nothing,
     _apcWindowBorder = Nothing,
-    _apcHdpi = Nothing,
     _apcMaxFps = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
@@ -188,7 +185,6 @@ instance Semigroup (AppConfig e) where
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
     _apcWindowResizable = _apcWindowResizable a2 <|> _apcWindowResizable a1,
     _apcWindowBorder = _apcWindowBorder a2 <|> _apcWindowBorder a1,
-    _apcHdpi = _apcHdpi a2 <|> _apcHdpi a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
@@ -225,12 +221,6 @@ appWindowResizable resizable = def {
 appWindowBorder :: Bool -> AppConfig e
 appWindowBorder border = def {
   _apcWindowBorder = Just border
-}
-
--- | Whether to enable HDPI.
-appUseHdpi :: Bool -> AppConfig e
-appUseHdpi use = def {
-  _apcHdpi = Just use
 }
 
 {-|

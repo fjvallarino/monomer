@@ -10,7 +10,6 @@ Helper functions for SDL platform related operations.
 -}
 module Monomer.Main.Platform (
   defaultWindowSize,
-  defaultUseHdpi,
   initSDLWindow,
   detroySDLWindow,
   getCurrentMousePos,
@@ -22,6 +21,7 @@ module Monomer.Main.Platform (
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
+import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
 import SDL (($=))
@@ -40,18 +40,12 @@ import Monomer.Main.Types
 import Monomer.Event.Types
 import Monomer.Widgets.Composite
 
-import Foreign
-
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 foreign import ccall unsafe "initializeDpiAwareness" initializeDpiAwareness :: IO CInt
 
 -- | Default window size if not is specified.
 defaultWindowSize :: (Int, Int)
 defaultWindowSize = (640, 480)
-
--- | Default use of HDPI or not.
-defaultUseHdpi :: Bool
-defaultUseHdpi = True
 
 -- | Creates and initializes a window using the provided configuration.
 initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double)
@@ -77,7 +71,7 @@ initSDLWindow config = do
       "SDL / OpenGL Example"
       SDL.defaultWindow {
         SDL.windowInitialSize = SDL.V2 (round winW) (round winH),
-        SDL.windowHighDPI = windowHiDPI,
+        SDL.windowHighDPI = True,
         SDL.windowResizable = windowResizable,
         SDL.windowBorder = windowBorder,
         SDL.windowGraphicsContext = SDL.OpenGLContext customOpenGL
@@ -121,7 +115,6 @@ initSDLWindow config = do
       _ -> defaultWindowSize
     windowResizable = fromMaybe True (_apcWindowResizable config)
     windowBorder = fromMaybe True (_apcWindowBorder config)
-    windowHiDPI = fromMaybe defaultUseHdpi (_apcHdpi config)
     windowFullscreen = case _apcWindowState config of
       Just MainWindowFullScreen -> True
       _ -> False

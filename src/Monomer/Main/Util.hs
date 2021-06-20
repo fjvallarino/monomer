@@ -40,11 +40,10 @@ initMonomerCtx
   :: s
   -> SDL.Window
   -> Size
-  -> Bool
   -> Double
   -> Double
   -> MonomerCtx s
-initMonomerCtx model win winSize useHiDPI dpr epr = MonomerCtx {
+initMonomerCtx model win winSize dpr epr = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,

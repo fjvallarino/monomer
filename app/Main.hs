@@ -44,7 +44,6 @@ main = do
         --appWindowBorder False,
         appMaxFps 60,
         appWindowTitle "This is my title",
-        appUseHdpi True,
         appTheme theme,
         appInitEvent InitApp,
         appDisposeEvent DisposeApp,
