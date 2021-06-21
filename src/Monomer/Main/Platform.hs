@@ -45,7 +45,7 @@ foreign import ccall unsafe "initializeDpiAwareness" initializeDpiAwareness :: I
 
 -- | Default window size if not is specified.
 defaultWindowSize :: (Int, Int)
-defaultWindowSize = (640, 480)
+defaultWindowSize = (800, 600)
 
 -- | Creates and initializes a window using the provided configuration.
 initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double)
@@ -71,7 +71,7 @@ initSDLWindow config = do
 
   window <-
     SDL.createWindow
-      "SDL / OpenGL Example"
+      "Monomer application"
       SDL.defaultWindow {
         SDL.windowInitialSize = SDL.V2 (round winW) (round winH),
         SDL.windowHighDPI = True,
