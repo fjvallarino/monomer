@@ -78,9 +78,11 @@ initSDLWindow config = do
 
   -- Get device pixel rate
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+  let scaleFactor = factor * userScaleFactor
+  let contentRatio = fromIntegral fbWidth / winW
   let (dpr, epr)
-        | os `elem` ["Windows", "Linux"] = (factor, 1 / factor)
-        | otherwise = (fromIntegral fbWidth / winW, 1) -- macOS
+        | os `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
+        | otherwise = (scaleFactor * contentRatio, 1) -- macOS
 
   when (isJust (_apcWindowTitle config)) $
     SDL.windowTitle window $= fromJust (_apcWindowTitle config)
@@ -109,6 +111,7 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
+    userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize

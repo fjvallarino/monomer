@@ -143,6 +143,12 @@ data AppConfig e = AppConfig {
   -- | rendering will happen every frame, but events and schedules will be
   -- | checked at this rate and may cause it.
   _apcMaxFps :: Maybe Int,
+  {-|
+  Scale factor to apply. This factor only affects the content, not the size of
+  the window. It is applied in addition to the OS zoom in plaforms where it is
+  reliably detected (i.e., system scaling may not be detected reliably on Linux)
+  -}
+  _apcScaleFactor :: Maybe Double,
   -- | Available fonts to the application. An empty list will make it impossible
   -- | to render text.
   _apcFonts :: [FontDef],
@@ -169,6 +175,7 @@ instance Default (AppConfig e) where
     _apcWindowResizable = Nothing,
     _apcWindowBorder = Nothing,
     _apcMaxFps = Nothing,
+    _apcScaleFactor = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
     _apcInitEvent = [],
@@ -186,6 +193,7 @@ instance Semigroup (AppConfig e) where
     _apcWindowResizable = _apcWindowResizable a2 <|> _apcWindowResizable a1,
     _apcWindowBorder = _apcWindowBorder a2 <|> _apcWindowBorder a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
+    _apcScaleFactor = _apcScaleFactor a2 <|> _apcScaleFactor a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a1 ++ _apcInitEvent a2,
@@ -231,6 +239,16 @@ this rate and may cause it.
 appMaxFps :: Int -> AppConfig e
 appMaxFps fps = def {
   _apcMaxFps = Just fps
+}
+
+{-|
+Scale factor to apply. This factor only affects the content, not the size of the
+window. It is applied in addition to the OS zoom in plaforms where it is
+reliably detected (i.e., system scaling may not be detected reliably on Linux).
+-}
+appScaleFactor :: Double -> AppConfig e
+appScaleFactor factor = def {
+  _apcScaleFactor = Just factor
 }
 
 -- | Available fonts to the application. An empty list will make it impossible
