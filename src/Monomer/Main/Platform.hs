@@ -59,12 +59,12 @@ initSDLWindow config = do
 
   os <- getPlatform
   initializeDpiAwareness
-  (ddpi, hdpi, vdpi) <- getDisplayDPI
+  windowsFactor <- getWindowsFactor
   linuxFactor <- getLinuxFactor
   let isWindows = os == "Windows"
   let isLinux = os == "Linux"
   let factor
-        | isWindows = hdpi / 96
+        | isWindows = windowsFactor
         | isLinux = linuxFactor
         | otherwise = 1
   let (winW, winH) = (factor * fromIntegral baseW, factor * fromIntegral baseH)
@@ -171,6 +171,12 @@ getDisplayDPI =
         hdpi <- peek phdpi
         vdpi <- peek pvdpi
         return (realToFrac ddpi, realToFrac hdpi, realToFrac vdpi)
+
+-- | Returns the default resize factor for Windows
+getWindowsFactor :: IO Double
+getWindowsFactor = do
+  (ddpi, hdpi, vdpi) <- getDisplayDPI
+  return (hdpi / 96)
 
 {-|
 Returns a resizing factor to handle HiDPI on Linux. Currently only tested on
