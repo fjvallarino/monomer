@@ -15,7 +15,8 @@ module Monomer.Main.Platform (
   getCurrentMousePos,
   getDrawableSize,
   getWindowSize,
-  getPlatform
+  getPlatform,
+  getDisplayDPI
 ) where
 
 import Control.Monad.State

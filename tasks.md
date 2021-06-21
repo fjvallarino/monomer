@@ -695,8 +695,10 @@
 
 Next
   - Improve DPI handling
-  - Check Tutorial 03 (adding empty adds multiple items)
+  - Check Tutorial 03 (adding empty items seemed to add multiple times)
   - Avoid building examples when used as a library
+  - Add labeledItem (checkbox and radio)
+  - Add placeholder text for textField.
   - Document themes and how widgets use them.
   - Create ContextMenu (could work similarly to Tooltip)
 
@@ -705,6 +707,9 @@ Future
     - Fix for all if they do
     - If they don't, add custom handling for macOS
   - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
+  - Improve window resize situation
+    - SDL does not send resize until operation has finished, making content look ugly because it's not updated
+    - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
@@ -719,7 +724,4 @@ Future
   - Compare Cairo/Skia/ImDrawList interfaces to make Renderer able to handle future implementations
     - https://github.com/ollix/MetalNanoVG
   - Implement ImDrawList based Renderer
-  - Improve window resize situation
-    - SDL does not send resize until operation has finished, making content look ugly because it's not updated
-    - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - SDL supports Drag and Drop integration with OS
