@@ -59,14 +59,10 @@ initSDLWindow config = do
 
   os <- getPlatform
   initializeDpiAwareness
-  windowsFactor <- getWindowsFactor
-  linuxFactor <- getLinuxFactor
-  let isWindows = os == "Windows"
-  let isLinux = os == "Linux"
-  let factor
-        | isWindows = windowsFactor
-        | isLinux = linuxFactor
-        | otherwise = 1
+  factor <- case os of
+    "Windows" -> getWindowsFactor
+    "Linux" -> getLinuxFactor
+    _ -> return 1 -- macOS
   let (winW, winH) = (factor * fromIntegral baseW, factor * fromIntegral baseH)
 
   window <-
@@ -83,8 +79,8 @@ initSDLWindow config = do
   -- Get device pixel rate
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   let (dpr, epr)
-        | isWindows || isLinux = (factor, 1 / factor)
-        | otherwise = (fromIntegral fbWidth / winW, 1)
+        | os `elem` ["Windows", "Linux"] = (factor, 1 / factor)
+        | otherwise = (fromIntegral fbWidth / winW, 1) -- macOS
 
   when (isJust (_apcWindowTitle config)) $
     SDL.windowTitle window $= fromJust (_apcWindowTitle config)
