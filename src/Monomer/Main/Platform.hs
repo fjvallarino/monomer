@@ -60,9 +60,12 @@ initSDLWindow config = do
   os <- getPlatform
   initializeDpiAwareness
   (ddpi, hdpi, vdpi) <- getDisplayDPI
+  linuxFactor <- getLinuxFactor
   let isWindows = os == "Windows"
+  let isLinux = os == "Linux"
   let factor
         | isWindows = hdpi / 96
+        | isLinux = linuxFactor
         | otherwise = 1
   let (winW, winH) = (factor * fromIntegral baseW, factor * fromIntegral baseH)
 
@@ -80,7 +83,7 @@ initSDLWindow config = do
   -- Get device pixel rate
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   let (dpr, epr)
-        | isWindows = (factor, 1 / factor)
+        | isWindows || isLinux = (factor, 1 / factor)
         | otherwise = (fromIntegral fbWidth / winW, 1)
 
   when (isJust (_apcWindowTitle config)) $
@@ -168,3 +171,20 @@ getDisplayDPI =
         hdpi <- peek phdpi
         vdpi <- peek pvdpi
         return (realToFrac ddpi, realToFrac hdpi, realToFrac vdpi)
+
+{-|
+Returns a resizing factor to handle HiDPI on Linux. Currently only tested on
+Wayland (Ubuntu 21.04).
+-}
+getLinuxFactor :: IO Double
+getLinuxFactor =
+  alloca $ \pmode -> do
+    Raw.getCurrentDisplayMode 0 pmode
+    mode <- peek pmode
+    let width = Raw.displayModeW mode
+    -- Applies scale in half steps (1, 1.5, 2, etc)
+    let baseFactor = 2 * fromIntegral width / 1920
+
+    if width <= 1920
+      then return 1
+      else return (fromIntegral (ceiling baseFactor) / 2)
