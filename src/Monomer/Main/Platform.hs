@@ -83,7 +83,7 @@ initSDLWindow config = do
   let contentRatio = fromIntegral fbWidth / winW
   let (dpr, epr)
         | os `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
-        | otherwise = (scaleFactor * contentRatio, 1) -- macOS
+        | otherwise = (scaleFactor * contentRatio, 1 / scaleFactor) -- macOS
 
   when (isJust (_apcWindowTitle config)) $
     SDL.windowTitle window $= fromJust (_apcWindowTitle config)
