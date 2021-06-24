@@ -692,15 +692,19 @@
   - Windows build
   - Check Windows High DPI
     - https://discourse.libsdl.org/t/sdl-getdesktopdisplaymode-resolution-reported-in-windows-10-when-using-app-scaling/22389/4
-
-Next
   - Improve DPI handling
   - Check Tutorial 03 (adding empty items seemed to add multiple times)
-  - Avoid building examples when used as a library
+    - Works fine, maybe an issue with ghci after way too many reloads
+
+Next
   - Add labeledItem (checkbox and radio)
   - Add placeholder text for textField.
   - Document themes and how widgets use them.
-  - Create ContextMenu (could work similarly to Tooltip)
+  - Check if baseStyleFromTheme is really needed (maybe default fgColor).
+  - Avoid building examples when used as a library.
+  - Rethink Click only working for count == 1 (maybe just add clicks to event)
+  - Is ignoreTheme really needed?
+  - Create ContextMenu (could work similarly to Tooltip).
 
 Future
   - Check if Windows/Linux also miss top pixel

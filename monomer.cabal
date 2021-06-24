@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 43ce21b78a3a4286852447fdc54a654e3f5b39ecf488c98a15bc9f68c1972c01
+-- hash: 84fc7791db4a59cd6f4e69bfd3794fdabaa540bfec2cae04e435ee1e1e56b529
 
 name:           monomer
 version:        0.1.0.0
@@ -79,6 +79,7 @@ library
       Monomer.Widgets.Composite
       Monomer.Widgets.Container
       Monomer.Widgets.Containers.Alert
+      Monomer.Widgets.Containers.Base.LabeledItem
       Monomer.Widgets.Containers.Box
       Monomer.Widgets.Containers.Confirm
       Monomer.Widgets.Containers.Draggable
@@ -104,6 +105,7 @@ library
       Monomer.Widgets.Singles.Icon
       Monomer.Widgets.Singles.Image
       Monomer.Widgets.Singles.Label
+      Monomer.Widgets.Singles.LabeledCheckbox
       Monomer.Widgets.Singles.NumericField
       Monomer.Widgets.Singles.Radio
       Monomer.Widgets.Singles.SeparatorLine

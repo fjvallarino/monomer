@@ -1,0 +1,114 @@
+{-|
+Module      : Monomer.Widgets.Containers.Base.LabeledItem
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Container for items with an associated clickable label. Mainly used with radio
+and checkbox.
+-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
+
+module Monomer.Widgets.Containers.Base.LabeledItem (
+  labeledItem
+) where
+
+import Control.Applicative ((<|>))
+import Data.Default
+import Control.Lens ((&), (^.), (^?), (^?!), (.~), (<>~), ix)
+import Data.Maybe
+import Data.Sequence ((|>))
+import Data.Text (Text)
+
+import qualified Data.Sequence as Seq
+
+import Debug.Trace
+
+import Monomer.Core
+import Monomer.Core.Combinators
+
+import Monomer.Widgets.Container
+import Monomer.Widgets.Containers.Stack
+import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.Spacer
+
+import qualified Monomer.Lens as L
+
+labeledItem
+  :: WidgetEvent e
+  => WidgetType
+  -> RectSide
+  -> Text
+  -> LabelCfg
+  -> WidgetNode s e
+  -> WidgetNode s e
+labeledItem wtype textSide caption labelCfg itemNode = labeledNode where
+  widget = makeLabeledItem textSide caption labelCfg itemNode
+  labeledNode = defaultWidgetNode wtype widget
+
+makeLabeledItem
+  :: WidgetEvent e
+  => RectSide
+  -> Text
+  -> LabelCfg
+  -> WidgetNode s e
+  -> Widget s e
+makeLabeledItem textSide caption labelCfg itemNode = widget where
+  widget = createContainer () def {
+    containerInit = init,
+    containerMerge = merge,
+    containerHandleEvent = handleEvent
+  }
+
+  createChildNode wenv node = newNode where
+    theme = wenv ^. L.theme
+    themeStyle = mergeBasicStyle (baseStyleFromTheme theme)
+    defaultStyle = collectStyleField_ L.text themeStyle def
+    nodeStyle = node ^. L.info . L.style
+    labelStyle = collectStyleField_ L.text nodeStyle def
+    baseLabel = label_ caption [labelCfg] `style` [cursorHand]
+    labelNode
+      | labelStyle == defaultStyle = baseLabel
+      | otherwise = baseLabel & L.info . L.style <>~ labelStyle
+    styledNode = itemNode
+      & L.info . L.style .~ (nodeStyle <> itemNode ^. L.info . L.style)
+    tempNode
+      | textSide == SideLeft = hstack [ labelNode, spacer, styledNode ]
+      | textSide == SideRight = hstack [ styledNode, spacer, labelNode ]
+      | textSide == SideTop = vstack [ labelNode, spacer, styledNode ]
+      | otherwise = vstack [ styledNode, spacer, labelNode ]
+    childNode = tempNode
+      & L.info . L.style .~ nodeStyle
+    newNode = node
+      & L.children .~ Seq.singleton childNode
+
+  init wenv node = result where
+    result = resultNode (createChildNode wenv node)
+
+  merge wenv node oldNode oldState = result where
+    result = resultNode (createChildNode wenv node)
+
+  handleEvent wenv node target evt = case evt of
+    Click p btn
+      | isPointInNodeVp p labelNode -> replaceChild <$> result where
+        newPath = target |> targetIdx
+        newEvt = Click targetCenter btn
+        result = widgetHandleEvent targetWidget wenv targetNode newPath newEvt
+        replaceChild res = WidgetResult newNode newReqs where
+          WidgetResult newChild reqs = res
+          newReqs = reqs |> SetFocus (targetNode ^. L.info . L.widgetId)
+          newNode = node
+            & L.children . ix 0 . L.children . ix targetIdx .~ newChild
+    _ -> Nothing
+    where
+      labelIdx
+        | textSide `elem` [SideLeft, SideTop] = 0
+        | otherwise = 2
+      targetIdx = 2 - labelIdx
+      labelNode = node ^. L.children . ix 0 . L.children ^?! ix labelIdx
+      targetNode = node ^. L.children . ix 0 . L.children ^?! ix targetIdx
+      targetWidget = targetNode ^. L.widget
+      targetCenter = rectCenter (targetNode ^. L.info . L.viewport)

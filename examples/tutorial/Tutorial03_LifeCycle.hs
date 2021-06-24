@@ -18,6 +18,7 @@ data ListItem = ListItem {
 } deriving (Eq, Show)
 
 data AppModel = AppModel {
+  _testBool :: Bool,
   _newItemText :: Text,
   _items :: [ListItem]
 } deriving (Eq, Show)
@@ -38,6 +39,7 @@ buildUI
 buildUI wenv model = widgetTree where
   listItem idx item = hstack [
       label_ (item ^. text) [ellipsis] `style` [width 150],
+      spacer,
       textField (items . singular (ix idx) . text),
       spacer,
       button "Delete" (RemoveItem idx)
@@ -48,6 +50,15 @@ buildUI wenv model = widgetTree where
         textField newItemText,
         spacer,
         button "Add" AddItem `style` [paddingH 5]
+      ],
+      hstack [
+        labeledCheckbox_ "Test me" testBool [textBottom, multiLine, checkboxTimes],
+        spacer,
+        checkbox testBool,
+        spacer,
+        radio testBool True,
+        spacer,
+        radio testBool False
       ],
       separatorLine `style` [paddingT 10, paddingB 5],
       vstack (zipWith listItem [0..] (model ^. items))
@@ -83,6 +94,7 @@ main03 = do
       appInitEvent AppInit
       ]
     model = AppModel {
+      _testBool = False,
       _newItemText = "",
       _items = []
     }

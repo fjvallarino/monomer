@@ -7,11 +7,13 @@ Stability   : experimental
 Portability : non-portable
 
 Checkbox widget, used for interacting with boolean values. It does not include
-text, which should be added with a label in the desired position (usually with
-hstack).
+text, which can be added with a label in the desired position (usually with
+hstack). Alternatively, `labeledCheckbox` provides this functionality out of the
+box.
 
 Configs:
 
+- checkboxMark: the type of checkbox mark.
 - width: sets the max width/height of the checkbox.
 - onFocus: event to raise when focus is received.
 - onFocusReq: WidgetRequest to generate when focus is received.
@@ -19,19 +21,19 @@ Configs:
 - onBlurReq: WidgetRequest to generate when focus is lost.
 - onChange: event to raise when the value changes/is clicked.
 - onChangeReq: WidgetRequest to generate when the value changes/is clicked.
-- checkboxMark: the type of checkbox mark.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.Checkbox (
+  CmbCheckboxMark(..),
+  CheckboxCfg(..),
   CheckboxMark(..),
   checkbox,
   checkbox_,
   checkboxV,
   checkboxV_,
-  checkboxD_,
-  checkboxMark
+  checkboxD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -39,7 +41,6 @@ import Control.Lens (ALens', (&), (^.), (.~))
 import Control.Monad
 import Data.Default
 import Data.Maybe
-import Data.Text (Text)
 
 import qualified Data.Sequence as Seq
 
@@ -52,6 +53,12 @@ data CheckboxMark
   = CheckboxSquare
   | CheckboxTimes
   deriving (Eq, Show)
+
+-- | Sets the type of checkbox mark.
+class CmbCheckboxMark t where
+  checkboxMark :: CheckboxMark -> t
+  checkboxSquare :: t
+  checkboxTimes :: t
 
 data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
@@ -81,6 +88,13 @@ instance Semigroup (CheckboxCfg s e) where
 
 instance Monoid (CheckboxCfg s e) where
   mempty = def
+
+instance CmbCheckboxMark (CheckboxCfg s e) where
+  checkboxMark mark = def {
+    _ckcMark = Just mark
+  }
+  checkboxSquare = checkboxMark CheckboxSquare
+  checkboxTimes = checkboxMark CheckboxTimes
 
 instance CmbWidth (CheckboxCfg s e) where
   width w = def {
@@ -117,12 +131,6 @@ instance CmbOnChangeReq (CheckboxCfg s e) s e Bool where
     _ckcOnChangeReq = [req]
   }
 
--- | Sets the type of checkbox mark.
-checkboxMark :: CheckboxMark -> CheckboxCfg s e
-checkboxMark mark = def {
-  _ckcMark = Just mark
-}
-
 -- | Creates a checkbox using the given lens.
 checkbox :: WidgetEvent e => ALens' s Bool -> WidgetNode s e
 checkbox field = checkbox_ field def
@@ -136,8 +144,10 @@ checkbox_ field config = checkboxD_ (WidgetLens field) config
 checkboxV :: WidgetEvent e => Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
--- | Creates a checkbox using the given value and onChange event handler.
--- | Accepts config.
+{-|
+Creates a checkbox using the given value and onChange event handler. Accepts
+config.
+-}
 checkboxV_
   :: WidgetEvent e => Bool -> (Bool -> e) -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where

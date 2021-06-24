@@ -69,6 +69,13 @@ newtype FontSize
 instance Default FontSize where
   def = FontSize 32
 
+data RectSide
+  = SideLeft
+  | SideRight
+  | SideTop
+  | SideBottom
+  deriving (Eq, Show)
+
 -- | Horizontal alignment flags.
 data AlignH
   = ALeft

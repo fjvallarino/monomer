@@ -22,6 +22,7 @@ Configs:
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Widgets.Singles.Label (
+  LabelCfg(..),
   label,
   label_,
   labelS,

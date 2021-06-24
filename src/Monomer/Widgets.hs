@@ -40,6 +40,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.Icon,
   module Monomer.Widgets.Singles.Image,
   module Monomer.Widgets.Singles.Label,
+  module Monomer.Widgets.Singles.LabeledCheckbox,
   module Monomer.Widgets.Singles.NumericField,
   module Monomer.Widgets.Singles.Radio,
   module Monomer.Widgets.Singles.SeparatorLine,
@@ -82,6 +83,7 @@ import Monomer.Widgets.Singles.ExternalLink
 import Monomer.Widgets.Singles.Icon
 import Monomer.Widgets.Singles.Image
 import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.LabeledCheckbox
 import Monomer.Widgets.Singles.NumericField
 import Monomer.Widgets.Singles.Radio
 import Monomer.Widgets.Singles.SeparatorLine

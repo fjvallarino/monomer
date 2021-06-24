@@ -21,6 +21,8 @@ module Monomer.Widgets.Util.Style (
   focusedStyle,
   styleStateChanged,
   initNodeStyle,
+  mergeBasicStyle,
+  baseStyleFromTheme,
   handleStyleChange
 ) where
 
@@ -166,6 +168,37 @@ initNodeStyle getBaseStyle wenv node = newNode where
   newNode = node
     & L.info . L.style .~ (themeStyle <> baseStyle <> nodeStyle)
 
+-- | Returns the basic style generated from the current theme.
+baseStyleFromTheme :: Theme -> Style
+baseStyleFromTheme theme = style where
+  style = Style {
+    _styleBasic = fromThemeState (_themeBasic theme),
+    _styleHover = fromThemeState (_themeHover theme),
+    _styleFocus = fromThemeState (_themeFocus theme),
+    _styleFocusHover = fromThemeState (_themeFocusHover theme),
+    _styleActive = fromThemeState (_themeActive theme),
+    _styleDisabled = fromThemeState (_themeDisabled theme)
+  }
+  fromThemeState tstate = Just $ def {
+    _sstFgColor = Just $ _thsFgColor tstate,
+    _sstHlColor = Just $ _thsHlColor tstate,
+    _sstText = Just $ _thsTextStyle tstate
+  }
+
+-- | Uses the basic style state as the base for all the other style states.
+mergeBasicStyle :: Style -> Style
+mergeBasicStyle st = newStyle where
+  focusHover = _styleHover st <> _styleFocus st <> _styleFocusHover st
+  active = focusHover <> _styleActive st
+  newStyle = Style {
+    _styleBasic = _styleBasic st,
+    _styleHover = _styleBasic st <> _styleHover st,
+    _styleFocus = _styleBasic st <> _styleFocus st,
+    _styleFocusHover = _styleBasic st <> focusHover,
+    _styleActive = _styleBasic st <> active,
+    _styleDisabled = _styleBasic st <> _styleDisabled st
+  }
+
 {-|
 Checks for style changes between the old node and the provided result, in the
 context of an event. Generates requests for resize, render and cursor change as
@@ -254,35 +287,6 @@ handleCursorChange wenv target evt style oldNode result = newResult where
     | resetCursor = Just $ baseResult
       & L.requests .~ baseReqs |> ResetCursorIcon widgetId
     | otherwise = result
-
-baseStyleFromTheme :: Theme -> Style
-baseStyleFromTheme theme = style where
-  style = Style {
-    _styleBasic = fromThemeState (_themeBasic theme),
-    _styleHover = fromThemeState (_themeHover theme),
-    _styleFocus = fromThemeState (_themeFocus theme),
-    _styleFocusHover = fromThemeState (_themeFocusHover theme),
-    _styleActive = fromThemeState (_themeActive theme),
-    _styleDisabled = fromThemeState (_themeDisabled theme)
-  }
-  fromThemeState tstate = Just $ def {
-    _sstFgColor = Just $ _thsFgColor tstate,
-    _sstHlColor = Just $ _thsHlColor tstate,
-    _sstText = Just $ _thsTextStyle tstate
-  }
-
-mergeBasicStyle :: Style -> Style
-mergeBasicStyle st = newStyle where
-  focusHover = _styleHover st <> _styleFocus st <> _styleFocusHover st
-  active = focusHover <> _styleActive st
-  newStyle = Style {
-    _styleBasic = _styleBasic st,
-    _styleHover = _styleBasic st <> _styleHover st,
-    _styleFocus = _styleBasic st <> _styleFocus st,
-    _styleFocusHover = _styleBasic st <> focusHover,
-    _styleActive = _styleBasic st <> active,
-    _styleDisabled = _styleBasic st <> _styleDisabled st
-  }
 
 isCursorEvt :: SystemEvent -> Bool
 isCursorEvt Enter{} = True
