@@ -322,6 +322,7 @@ timeFieldD_ widgetData configs = newNode where
   fromText text = acceptText text ^. _3
   toText = timeToText format
   inputConfig = InputFieldCfg {
+    _ifcPlaceholder = Nothing,
     _ifcInitialValue = initialValue,
     _ifcValue = widgetData,
     _ifcValid = _tfcValid config,

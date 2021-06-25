@@ -138,8 +138,10 @@ textInputStyle :: BaseThemeColors -> StyleState
 textInputStyle themeMod = def
   & L.text ?~ (normalFont & L.fontColor ?~ inputText themeMod)
   & L.bgColor ?~ inputBgBasic themeMod
-  & L.border ?~ border 1 (inputBorder themeMod)
+  & L.fgColor ?~ inputFgBasic themeMod
+  & L.sndColor ?~ inputSndBasic themeMod
   & L.hlColor ?~ inputSelBasic themeMod
+  & L.border ?~ border 1 (inputBorder themeMod)
   & L.padding ?~ textPadding
 
 numericInputStyle :: BaseThemeColors -> StyleState

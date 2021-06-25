@@ -46,7 +46,7 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description: ",
-        textField newItemText,
+        textField_ newItemText [placeholder "This is a placeholder"],
         spacer,
         button "Add" AddItem `style` [paddingH 5]
       ],

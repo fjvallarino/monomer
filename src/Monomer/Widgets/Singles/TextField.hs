@@ -50,6 +50,7 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 
 data TextFieldCfg s e = TextFieldCfg {
+  _tfcPlaceholder :: Maybe Text,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
   _tfcMaxLength :: Maybe Int,
@@ -62,6 +63,7 @@ data TextFieldCfg s e = TextFieldCfg {
 
 instance Default (TextFieldCfg s e) where
   def = TextFieldCfg {
+    _tfcPlaceholder = Nothing,
     _tfcValid = Nothing,
     _tfcValidV = [],
     _tfcMaxLength = Nothing,
@@ -74,6 +76,7 @@ instance Default (TextFieldCfg s e) where
 
 instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
+    _tfcPlaceholder = _tfcPlaceholder t2 <|> _tfcPlaceholder t1,
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcValidV = _tfcValidV t1 <> _tfcValidV t2,
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
@@ -86,6 +89,11 @@ instance Semigroup (TextFieldCfg s e) where
 
 instance Monoid (TextFieldCfg s e) where
   mempty = def
+
+instance CmbPlaceholder (TextFieldCfg s e) Text where
+  placeholder value = def {
+    _tfcPlaceholder = Just value
+  }
 
 instance CmbValidInput (TextFieldCfg s e) s where
   validInput field = def {
@@ -170,6 +178,7 @@ textFieldD_ widgetData configs = inputField where
   config = mconcat configs
   fromText = textToText (_tfcMaxLength config)
   inputConfig = InputFieldCfg {
+    _ifcPlaceholder = _tfcPlaceholder config,
     _ifcInitialValue = "",
     _ifcValue = widgetData,
     _ifcValid = _tfcValid config,

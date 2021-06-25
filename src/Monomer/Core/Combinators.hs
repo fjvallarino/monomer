@@ -143,6 +143,10 @@ class CmbSelectOnBlur t where
   selectOnBlur = selectOnBlur_ True
   selectOnBlur_ :: Bool -> t
 
+-- | Placeholder to use when main value is empty.
+class CmbPlaceholder t a | t -> a where
+  placeholder :: a -> t
+
 -- | Text font to be used.
 class CmbTextFont t where
   textFont :: Font -> t
