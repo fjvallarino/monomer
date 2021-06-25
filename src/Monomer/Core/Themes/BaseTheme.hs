@@ -172,6 +172,7 @@ baseBasic themeMod = def
   & L.btnMainStyle .~ btnMainStyle themeMod
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ inputFgBasic themeMod
+  & L.checkboxStyle . L.hlColor ?~ inputHlBasic themeMod
   & L.dateFieldStyle .~ dateInputStyle themeMod
   & L.dialWidth .~ 50
   & L.dialStyle . L.fgColor ?~ inputFgBasic themeMod
@@ -238,6 +239,7 @@ baseHover themeMod = baseBasic themeMod
   & L.btnMainStyle . L.border ?~ border 1 (btnMainBgHover themeMod)
   & L.btnMainStyle . L.cursorIcon ?~ CursorHand
   & L.checkboxStyle . L.fgColor ?~ inputFgHover themeMod
+  & L.checkboxStyle . L.hlColor ?~ inputHlHover themeMod
   & L.checkboxStyle . L.cursorIcon ?~ CursorHand
   & L.dateFieldStyle . L.cursorIcon ?~ CursorIBeam
   & L.dialStyle . L.fgColor ?~ inputFgHover themeMod
@@ -277,6 +279,7 @@ baseFocus themeMod = baseBasic themeMod
   & L.btnStyle . L.border ?~ borderFocus themeMod
   & L.btnMainStyle . L.border ?~ borderFocus themeMod
   & L.checkboxStyle . L.fgColor ?~ inputFgFocus themeMod
+  & L.checkboxStyle . L.hlColor ?~ inputHlFocus themeMod
   & L.dateFieldStyle . L.border ?~ borderFocus themeMod
   & L.dateFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.dialStyle . L.fgColor ?~ inputFgFocus themeMod
@@ -312,6 +315,7 @@ baseActive themeMod = baseFocusHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgActive themeMod
   & L.btnMainStyle . L.border ?~ borderFocus themeMod
   & L.checkboxStyle . L.fgColor ?~ inputFgActive themeMod
+  & L.checkboxStyle . L.hlColor ?~ inputHlActive themeMod
   & L.dateFieldStyle . L.border ?~ borderFocus themeMod
   & L.dateFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.dialStyle . L.fgColor ?~ inputFgActive themeMod

@@ -201,7 +201,7 @@ makeCheckbox widgetData config = widget where
     renderCheckbox renderer checkboxBW checkboxArea fgColor
 
     when value $
-      renderMark renderer checkboxBW checkboxArea fgColor mark
+      renderMark renderer checkboxBW checkboxArea hlColor mark
     where
       model = _weModel wenv
       theme = activeTheme wenv node
@@ -214,6 +214,7 @@ makeCheckbox widgetData config = widget where
       checkboxT = _rY carea + (_rH carea - checkboxW) / 2
       checkboxArea = Rect checkboxL checkboxT checkboxW checkboxW
       fgColor = styleFgColor style
+      hlColor = styleHlColor style
       mark = fromMaybe CheckboxSquare (_ckcMark config)
 
 renderCheckbox :: Renderer -> Double -> Rect -> Color -> IO ()

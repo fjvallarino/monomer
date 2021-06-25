@@ -64,24 +64,25 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
   }
 
   createChildNode wenv node = newNode where
-    theme = wenv ^. L.theme
-    themeStyle = mergeBasicStyle (baseStyleFromTheme theme)
-    defaultStyle = collectStyleField_ L.text themeStyle def
     nodeStyle = node ^. L.info . L.style
-    labelStyle = collectStyleField_ L.text nodeStyle def
+    labelStyle = def
+      & collectStyleField_ L.text nodeStyle
+      & collectStyleField_ L.cursorIcon nodeStyle
+    itemStyle = def
+      & collectStyleField_ L.fgColor nodeStyle
+      & collectStyleField_ L.hlColor nodeStyle
+      & collectStyleField_ L.sndColor nodeStyle
+      & collectStyleField_ L.cursorIcon nodeStyle
     baseLabel = label_ caption [labelCfg] `style` [cursorHand]
-    labelNode
-      | labelStyle == defaultStyle = baseLabel
-      | otherwise = baseLabel & L.info . L.style <>~ labelStyle
+    labelNode = baseLabel
+      & L.info . L.style <>~ labelStyle
     styledNode = itemNode
-      & L.info . L.style .~ (nodeStyle <> itemNode ^. L.info . L.style)
-    tempNode
+      & L.info . L.style <>~ itemStyle
+    childNode
       | textSide == SideLeft = hstack [ labelNode, spacer, styledNode ]
       | textSide == SideRight = hstack [ styledNode, spacer, labelNode ]
       | textSide == SideTop = vstack [ labelNode, spacer, styledNode ]
       | otherwise = vstack [ styledNode, spacer, labelNode ]
-    childNode = tempNode
-      & L.info . L.style .~ nodeStyle
     newNode = node
       & L.children .~ Seq.singleton childNode
 

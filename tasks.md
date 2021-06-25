@@ -695,15 +695,17 @@
   - Improve DPI handling
   - Check Tutorial 03 (adding empty items seemed to add multiple times)
     - Works fine, maybe an issue with ghci after way too many reloads
+  - Check if baseStyleFromTheme is really needed (maybe default fgColor).
+    - Removed
 
 Next
   - Add labeledItem (checkbox and radio)
-  - Add placeholder text for textField.
-  - Document themes and how widgets use them.
-  - Check if baseStyleFromTheme is really needed (maybe default fgColor).
-  - Avoid building examples when used as a library.
-  - Rethink Click only working for count == 1 (maybe just add clicks to event)
   - Is ignoreTheme really needed?
+  - Add placeholder text for textField.
+  - Rethink Click only working for count == 1 (maybe just add clicks to event)
+  - multiline seems to request more lines than needed (labeledCheckbox)
+  - Document themes and how widgets use them.
+  - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).
 
 Future
