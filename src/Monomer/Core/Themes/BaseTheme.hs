@@ -207,6 +207,7 @@ baseBasic themeMod = def
   & L.selectListItemSelectedStyle .~ selectListItemSelectedStyle themeMod
   & L.radioWidth .~ 20
   & L.radioStyle . L.fgColor ?~ inputFgBasic themeMod
+  & L.radioStyle . L.hlColor ?~ inputHlBasic themeMod
   & L.scrollOverlay .~ False
   & L.scrollFollowFocus .~ True
   & L.scrollBarColor .~ scrollBarBasic themeMod
@@ -264,6 +265,7 @@ baseHover themeMod = baseBasic themeMod
   & L.selectListItemSelectedStyle . L.border ?~ border 1 (slSelectedBgHover themeMod)
   & L.selectListItemSelectedStyle . L.cursorIcon ?~ CursorHand
   & L.radioStyle . L.fgColor ?~ inputFgHover themeMod
+  & L.radioStyle . L.hlColor ?~ inputHlHover themeMod
   & L.radioStyle . L.cursorIcon ?~ CursorHand
   & L.scrollBarColor .~ scrollBarHover themeMod
   & L.scrollThumbColor .~ scrollThumbHover themeMod
@@ -294,6 +296,7 @@ baseFocus themeMod = baseBasic themeMod
   & L.selectListItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
   & L.selectListItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
   & L.radioStyle . L.fgColor ?~ inputFgFocus themeMod
+  & L.radioStyle . L.hlColor ?~ inputHlFocus themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlFocus themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndFocus themeMod
@@ -325,6 +328,7 @@ baseActive themeMod = baseFocusHover themeMod
   & L.numericFieldStyle . L.border ?~ borderFocus themeMod
   & L.numericFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.radioStyle . L.fgColor ?~ inputFgActive themeMod
+  & L.radioStyle . L.hlColor ?~ inputHlActive themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgActive themeMod
   & L.sliderStyle . L.hlColor ?~ inputHlActive themeMod
   & L.sliderStyle . L.sndColor ?~ inputSndActive themeMod

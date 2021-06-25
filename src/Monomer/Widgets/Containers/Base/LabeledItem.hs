@@ -25,8 +25,6 @@ import Data.Text (Text)
 
 import qualified Data.Sequence as Seq
 
-import Debug.Trace
-
 import Monomer.Core
 import Monomer.Core.Combinators
 

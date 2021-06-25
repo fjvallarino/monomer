@@ -9,6 +9,8 @@ Portability : non-portable
 Radio widget, used for interacting with a fixed set of values. Each instance
 of the radio will be associated with a single value. It does not include text,
 which should be added as a label in the desired position (usually with hstack).
+Alternatively, `labeledRadio` provides this functionality out of the
+box.
 
 Configs:
 
@@ -24,6 +26,7 @@ Configs:
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.Radio (
+  RadioCfg(..),
   radio,
   radio_,
   radioV,
@@ -188,7 +191,7 @@ makeRadio field option config = widget where
     renderRadio renderer radioBW radioArea fgColor
 
     when (value == option) $
-      renderMark renderer radioBW radioArea fgColor
+      renderMark renderer radioBW radioArea hlColor
     where
       model = _weModel wenv
       value = widgetDataGet model field
@@ -196,6 +199,7 @@ makeRadio field option config = widget where
       radioBW = max 1 (_rW radioArea * 0.1)
       style_ = activeStyle_ (activeStyleConfig radioArea) wenv node
       fgColor = styleFgColor style_
+      hlColor = styleHlColor style_
 
 getRadioArea :: WidgetEnv s e -> WidgetNode s e -> RadioCfg s e a -> Rect
 getRadioArea wenv node config = radioArea where
