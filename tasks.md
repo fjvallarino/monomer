@@ -703,10 +703,9 @@
   - Add placeholder text for textField.
 
 Next
-  - Group fitTextToSize arguments.
-  - Add filterEvent to container.
-  - Rethink radio argument order.
   - multiline seems to request more lines than needed (labeledCheckbox)
+  - Rethink radio argument order.
+  - Add filterEvent to container.
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
   - Rethink default style for label.
   - Document themes and how widgets use them.

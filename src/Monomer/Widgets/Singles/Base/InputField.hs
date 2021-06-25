@@ -263,7 +263,8 @@ makeInputField config state = widget where
     txtPos
       | _ifcDefCursorEnd config = T.length txtValue
       | otherwise = 0
-    newState = newTextState wenv node state config newValue txtValue txtPos Nothing
+    newFieldState = newTextState wenv node state config
+    newState = newFieldState newValue txtValue txtPos Nothing
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText (toText newValue)
@@ -289,7 +290,8 @@ makeInputField config state = widget where
     newSelStart
       | isNothing oldSel || newTextL < fromJust oldSel = Nothing
       | otherwise = oldSel
-    newState = newTextState wenv node oldState config value newText newPos newSelStart
+    newFieldState = newTextState wenv node oldState config
+    newState = newFieldState value newText newPos newSelStart
     newNode = node
       & L.widget .~ makeInputField config newState
     parsedVal = fromText newText
@@ -419,7 +421,7 @@ makeInputField config state = widget where
         style = activeStyle wenv node
         contentArea = getContentArea style node
         newPos = findClosestGlyphPos state point
-        newState = newTextState wenv node state config currVal currText newPos Nothing
+        newState = newFieldState currVal currText newPos Nothing
         newNode = node
           & L.widget .~ makeInputField config newState
         newReqs = [ SetFocus widgetId | not (isNodeFocused wenv node) ]
@@ -443,7 +445,7 @@ makeInputField config state = widget where
         wordEndIdx = txtLen - T.length wordEnd
         newPos = wordStartIdx
         newSel = Just wordEndIdx
-        newState = newTextState wenv node state config currVal currText newPos newSel
+        newState = newFieldState currVal currText newPos newSel
         newNode = node
           & L.widget .~ makeInputField config newState
         result = resultReqs newNode [RenderOnce]
@@ -453,7 +455,7 @@ makeInputField config state = widget where
       | dragSelectText btn && clicks == 3 -> Just result where
         newPos = 0
         newSel = Just (T.length currText)
-        newState = newTextState wenv node state config currVal currText newPos newSel
+        newState = newFieldState currVal currText newPos newSel
         newNode = node
           & L.widget .~ makeInputField config newState
         result = resultReqs newNode [RenderOnce]
@@ -471,7 +473,7 @@ makeInputField config state = widget where
         contentArea = getContentArea style node
         newPos = findClosestGlyphPos state point
         newSel = currSel <|> Just currPos
-        newState = newTextState wenv node state config currVal currText newPos newSel
+        newState = newFieldState currVal currText newPos newSel
         newNode = node
           & L.widget .~ makeInputField config newState
         result = resultReqs newNode [RenderOnce]
@@ -545,6 +547,7 @@ makeInputField config state = widget where
       widgetId = node ^. L.info . L.widgetId
       viewport = node ^. L.info . L.viewport
       focused = isNodeFocused wenv node
+      newFieldState = newTextState wenv node state config
       dragSelectText btn
         = wenv ^. L.mainButton == btn
         && dragSelActive
@@ -584,14 +587,14 @@ makeInputField config state = widget where
     acceptInput = _ifcAcceptInput config newText
     isValid = _ifcIsValidInput config newText
     newVal = fromText newText
-    stateVal
+    stVal
       | isValid = fromMaybe currVal newVal
       | otherwise = currVal
-    tempState = newTextState wenv node state config stateVal newText newPos newSel
+    tempState = newTextState wenv node state config stVal newText newPos newSel
     newOffset = _ifsOffset tempState
     history = _ifsHistory tempState
     histIdx = _ifsHistIdx tempState
-    newStep = HistoryStep stateVal newText newPos newSel newOffset
+    newStep = HistoryStep stVal newText newPos newSel newOffset
     newState
       | currText == newText = tempState
       | length history == histIdx = tempState {
@@ -627,7 +630,8 @@ makeInputField config state = widget where
     -- newTextState depends on having correct viewport in the node
     tempNode = node
       & L.info . L.viewport .~ viewport
-    newState = newTextState wenv tempNode state config currVal currText currPos currSel
+    newFieldState = newTextState wenv tempNode state config
+    newState = newFieldState currVal currText currPos currSel
     newNode = tempNode
       & L.widget .~ makeInputField config newState
 
@@ -861,8 +865,9 @@ updatePlaceholder wenv node state config = newState where
   Rect cx cy cw ch = getContentArea style node
   size = Size cw ch
   text = _ifcPlaceholder config
+  fitText = fitTextToSize renderer style Ellipsis MultiLine KeepSpaces Nothing
   lines
-    | isJust text = fitTextToSize renderer style Ellipsis MultiLine KeepSpaces Nothing size (fromJust text)
+    | isJust text = fitText size (fromJust text)
     | otherwise = Seq.empty
   newState = state {
     _ifsPlaceholder = lines
