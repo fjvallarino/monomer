@@ -22,7 +22,6 @@ module Monomer.Widgets.Util.Style (
   styleStateChanged,
   initNodeStyle,
   mergeBasicStyle,
-  baseStyleFromTheme,
   handleStyleChange
 ) where
 
@@ -68,18 +67,21 @@ collectStyleField_
   -> Style                      -- ^ The target style.
   -> Style                      -- ^ The updated style.
 collectStyleField_ fieldS source target = style where
-  basic = Just $ target ^. L.basic . non def
-    & fieldS .~ source ^? L.basic . _Just . fieldS . _Just
-  hover = Just $ target ^. L.hover . non def
-    & fieldS .~ source ^? L.hover . _Just . fieldS . _Just
-  focus = Just $ target ^. L.focus . non def
-    & fieldS .~ source ^? L.focus . _Just . fieldS . _Just
-  focusHover = Just $ target ^. L.focusHover . non def
-    & fieldS .~ source ^? L.focusHover . _Just . fieldS . _Just
-  active = Just $ target ^. L.active . non def
-    & fieldS .~ source ^? L.active . _Just . fieldS . _Just
-  disabled = Just $ target ^. L.disabled . non def
-    & fieldS .~ source ^? L.disabled . _Just . fieldS . _Just
+  setValue stateLens = result where
+    sourceState = source ^. stateLens
+    targetState = target ^. stateLens
+    value = sourceState ^? _Just . fieldS . _Just
+    updateSource val = targetState ^. non def
+      & fieldS ?~ val
+    result
+      | isJust value = updateSource <$> value
+      | otherwise = targetState
+  basic = setValue L.basic
+  hover = setValue L.hover
+  focus = setValue L.focus
+  focusHover = setValue L.focusHover
+  active = setValue L.active
+  disabled = setValue L.disabled
   style = Style basic hover focus focusHover active disabled
 
 -- | Returns the active style for the given node.
@@ -164,26 +166,8 @@ initNodeStyle
 initNodeStyle getBaseStyle wenv node = newNode where
   nodeStyle = mergeBasicStyle $ node ^. L.info . L.style
   baseStyle = mergeBasicStyle $ fromMaybe def (getBaseStyle wenv node)
-  themeStyle = baseStyleFromTheme (_weTheme wenv)
   newNode = node
-    & L.info . L.style .~ (themeStyle <> baseStyle <> nodeStyle)
-
--- | Returns the basic style generated from the current theme.
-baseStyleFromTheme :: Theme -> Style
-baseStyleFromTheme theme = style where
-  style = Style {
-    _styleBasic = fromThemeState (_themeBasic theme),
-    _styleHover = fromThemeState (_themeHover theme),
-    _styleFocus = fromThemeState (_themeFocus theme),
-    _styleFocusHover = fromThemeState (_themeFocusHover theme),
-    _styleActive = fromThemeState (_themeActive theme),
-    _styleDisabled = fromThemeState (_themeDisabled theme)
-  }
-  fromThemeState tstate = Just $ def {
-    _sstFgColor = Just $ _thsFgColor tstate,
-    _sstHlColor = Just $ _thsHlColor tstate,
-    _sstText = Just $ _thsTextStyle tstate
-  }
+    & L.info . L.style .~ (baseStyle <> nodeStyle)
 
 -- | Uses the basic style state as the base for all the other style states.
 mergeBasicStyle :: Style -> Style

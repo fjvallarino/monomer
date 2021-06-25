@@ -47,9 +47,6 @@ instance Default Theme where
 
 -- | Default theme settings for each widget.
 data ThemeState = ThemeState {
-  _thsFgColor :: Color,
-  _thsHlColor :: Color,
-  _thsTextStyle :: TextStyle,
   _thsEmptyOverlayStyle :: StyleState,
   _thsBtnStyle :: StyleState,
   _thsBtnMainStyle :: StyleState,
@@ -100,12 +97,6 @@ data ThemeState = ThemeState {
 
 instance Default ThemeState where
   def = ThemeState {
-    _thsFgColor = gray,
-    _thsHlColor = lightGray,
-    _thsTextStyle = def {
-      _txsFontColor = Just black,
-      _txsAlignH = Just ATLeft
-    },
     _thsEmptyOverlayStyle = def,
     _thsBtnStyle = def,
     _thsBtnMainStyle = def,
@@ -156,9 +147,6 @@ instance Default ThemeState where
 
 instance Semigroup ThemeState where
   (<>) t1 t2 = ThemeState {
-    _thsFgColor = _thsFgColor t2,
-    _thsHlColor = _thsHlColor t2,
-    _thsTextStyle = _thsTextStyle t1 <> _thsTextStyle t2,
     _thsEmptyOverlayStyle = _thsEmptyOverlayStyle t1 <> _thsEmptyOverlayStyle t2,
     _thsBtnStyle = _thsBtnStyle t1 <> _thsBtnStyle t2,
     _thsBtnMainStyle = _thsBtnMainStyle t1 <> _thsBtnMainStyle t2,

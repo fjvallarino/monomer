@@ -230,10 +230,10 @@ data Border = Border {
 
 instance Default Border where
   def = Border {
-    _brdLeft = def,
-    _brdRight = def,
-    _brdTop = def,
-    _brdBottom = def
+    _brdLeft = Nothing,
+    _brdRight = Nothing,
+    _brdTop = Nothing,
+    _brdBottom = Nothing
   }
 
 instance Semigroup Border where

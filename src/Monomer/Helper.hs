@@ -15,6 +15,11 @@ import Data.Sequence (Seq(..))
 
 import qualified Data.Sequence as Seq
 
+-- | Concats a list of Monoids or returns Nothing if empty.
+maybeConcat :: Monoid a => [a] -> Maybe a
+maybeConcat [] = Nothing
+maybeConcat lst = Just (mconcat lst)
+
 -- | Checks if the first sequence is a prefix of the second.
 seqStartsWith :: Eq a => Seq a -> Seq a -> Bool
 seqStartsWith prefix seq = Seq.take (length prefix) seq == prefix

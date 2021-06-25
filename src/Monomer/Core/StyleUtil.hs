@@ -43,6 +43,7 @@ import Monomer.Core.Combinators
 import Monomer.Core.StyleTypes
 import Monomer.Core.WidgetTypes
 import Monomer.Graphics.Types
+import Monomer.Helper
 
 import qualified Monomer.Core.Lens as L
 
@@ -53,33 +54,27 @@ getContentArea style node = fromMaybe def area where
 
 instance CmbStyle Style where
   style oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.basic ?~ state
+    newStyle = oldStyle & L.basic .~ maybeConcat states
 
 instance CmbHover Style where
   hover oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.hover ?~ state
+    newStyle = oldStyle & L.hover .~ maybeConcat states
 
 instance CmbFocus Style where
   focus oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.focus ?~ state
+    newStyle = oldStyle & L.focus .~ maybeConcat states
 
 instance CmbFocusHover Style where
   focusHover oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.focusHover ?~ state
+    newStyle = oldStyle & L.focusHover .~ maybeConcat states
 
 instance CmbActive Style where
   active oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.active ?~ state
+    newStyle = oldStyle & L.active .~ maybeConcat states
 
 instance CmbDisabled Style where
   disabled oldStyle states = newStyle where
-    state = mconcat states
-    newStyle = oldStyle & L.disabled ?~ state
+    newStyle = oldStyle & L.disabled .~ maybeConcat states
 
 instance CmbKey (WidgetNode s e) Text where
   key node key = node & L.info . L.key ?~ WidgetKey key
