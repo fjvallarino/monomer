@@ -330,7 +330,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     ButtonAction _ btn BtnPressed _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-    Click point _
+    Click point _ _
       | openRequired point node -> Just resultOpen
       | closeRequired point node -> Just resultClose
       where

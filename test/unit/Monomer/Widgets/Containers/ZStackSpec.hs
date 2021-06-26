@@ -78,7 +78,7 @@ handleEventFirstVisible = describe "handleEventFirstVisible" $ do
         button "Click 2" (BtnClick 2),
         button "Click 3" (BtnClick 3) `visible` False
       ]
-    clickEvts p = nodeHandleEventEvts wenv [Click p BtnLeft] zstackNode
+    clickEvts p = nodeHandleEventEvts wenv [evtClick p] zstackNode
 
 handleEventAllLayersActive :: Spec
 handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
@@ -97,7 +97,7 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
         ],
         button "Click 3" (BtnClick 3) `visible` False
       ]
-    clickEvts p = nodeHandleEventEvts wenv [Click p BtnLeft] zstackNode
+    clickEvts p = nodeHandleEventEvts wenv [evtClick p] zstackNode
 
 handleEventFocusTop :: Spec
 handleEventFocusTop = describe "handleEventFocusTop" $

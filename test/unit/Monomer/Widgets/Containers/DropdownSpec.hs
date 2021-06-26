@@ -148,7 +148,7 @@ handleEventValue = describe "handleEventValue" $ do
         dropdownV_ testItem0 ItemSel testItems labelItem labelItem [maxHeight 200, onBlur LostFocus],
         button "Test" (ItemSel 0 testItem0)
       ]
-    clickEvts p = nodeHandleEventEvts wenv [Click p BtnLeft] ddNode
+    clickEvts p = nodeHandleEventEvts wenv [evtClick p] ddNode
     events es = nodeHandleEventEvts wenv es ddNode
 
 getSizeReq :: Spec

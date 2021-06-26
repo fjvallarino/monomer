@@ -708,6 +708,7 @@
 
 Next
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
+  - Remove DblClick
   - Give focus on click.
   - Rethink radio argument order.
   - Rethink default style for label.

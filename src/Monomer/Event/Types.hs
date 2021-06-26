@@ -75,12 +75,17 @@ instance Show WidgetDragMsg where
 
 -- | Supported Monomer SystemEvents
 data SystemEvent
-  -- | Click (press and release) of a mouse button. Includes mouse position.
-  = Click Point Button
+  {-|
+  Click (press and release) of a mouse button. Includes mouse position and click
+  count.
+  -}
+  = Click Point Button Int
   -- | Double click of a mouse button. Includes mouse position.
   | DblClick Point Button
-  -- | Click or release of a mouse button. Includes times pressed/released.
-  -- | Includes mouse position.
+  {-|
+  Click or release of a mouse button. Includes times pressed/released and mouse
+  position.
+  -}
   | ButtonAction Point Button ButtonState Int
   -- | Mouse wheel movement. Includes mouse position, move size in both axes and
   -- | wheel direction.

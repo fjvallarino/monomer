@@ -51,7 +51,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btnNode = externalLink_ "Link" "Url" [onFocus GotFocus, onBlur LostFocus]
-    clickReqs p = nodeHandleEventReqs wenv [Click p BtnLeft] btnNode
+    clickReqs p = nodeHandleEventReqs wenv [evtClick p] btnNode
     keyReqs key = nodeHandleEventReqs wenv [KeyAction def key KeyPressed] btnNode
     events evt = nodeHandleEventEvts wenv [evt] btnNode
 

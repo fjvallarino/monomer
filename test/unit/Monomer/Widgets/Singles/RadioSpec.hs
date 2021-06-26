@@ -80,7 +80,7 @@ handleEvent = describe "handleEvent" $ do
     orangeNode = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
     bananaNode :: WidgetNode TestModel FruitEvt
     bananaNode = radio fruit Banana
-    clickModel p node = nodeHandleEventModel wenv [Click p BtnLeft] node
+    clickModel p node = nodeHandleEventModel wenv [evtClick p] node
     keyModel key node = nodeHandleEventModel wenv [KeyAction def key KeyPressed] node
     events evt node = nodeHandleEventEvts wenv [evt] node
 
@@ -100,7 +100,7 @@ handleEventValue = describe "handleEventValue" $ do
       & L.theme .~ darkTheme
     orangeNode = radioV Apple FruitSel Orange
     bananaNode = radioV Apple FruitSel Banana
-    clickModel p node = nodeHandleEventEvts wenv [Click p BtnLeft] node
+    clickModel p node = nodeHandleEventEvts wenv [evtClick p] node
     keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
 getSizeReq :: Spec

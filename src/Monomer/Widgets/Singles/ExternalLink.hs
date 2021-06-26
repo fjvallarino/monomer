@@ -210,7 +210,7 @@ makeExternalLink caption url config = widget where
       | isSelectKey code && status == KeyPressed -> Just result
       where
         isSelectKey code = isKeyReturn code || isKeySpace code
-    Click p _
+    Click p _ _
       | isPointInNodeVp p node -> Just result
     -- Set focus on click
     ButtonAction p btn BtnPressed 1

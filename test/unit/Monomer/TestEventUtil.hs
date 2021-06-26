@@ -59,7 +59,7 @@ evtBlur :: SystemEvent
 evtBlur = Blur emptyPath
 
 evtClick :: Point -> SystemEvent
-evtClick p = Click p BtnLeft
+evtClick p = Click p BtnLeft 1
 
 evtDblClick :: Point -> SystemEvent
 evtDblClick p = DblClick p BtnLeft

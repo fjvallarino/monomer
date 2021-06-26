@@ -107,7 +107,7 @@ handleEvent = describe "handleEvent" $ do
         button "Test" BtnClick,
         selectList_ selectedItem testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
       ]
-    clickModel p = nodeHandleEventModel wenv [Click p BtnLeft] slNode
+    clickModel p = nodeHandleEventModel wenv [evtClick p] slNode
     model keys = nodeHandleEventModel wenv keys slNode
     events evts = nodeHandleEventEvts wenv evts slNode
     eventsCnt evts = nodeHandleEventEvts wenv evts cntNode
@@ -127,7 +127,7 @@ handleEventValue = describe "handleEventValue" $ do
   where
     wenv = mockWenv (TestModel testItem0)
     slNode = selectListV_ testItem0 ItemSel testItems (label . showt) [onFocus GotFocus, onBlur LostFocus]
-    clickEvts p = nodeHandleEventEvts wenv [Click p BtnLeft] slNode
+    clickEvts p = nodeHandleEventEvts wenv [evtClick p] slNode
     events evts = Seq.drop (Seq.length res - 1) res where
       res = nodeHandleEventEvts wenv evts slNode
 

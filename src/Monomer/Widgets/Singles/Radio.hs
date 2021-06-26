@@ -170,7 +170,7 @@ makeRadio field option config = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_rdcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_rdcOnBlurReq config) next node
-    Click p _
+    Click p _ _
       | pointInEllipse p rdArea -> Just $ resultReqs node reqs
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqs node reqs

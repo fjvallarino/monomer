@@ -178,7 +178,7 @@ makeCheckbox widgetData config = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_ckcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_ckcOnBlurReq config) next node
-    Click p _
+    Click p _ _
       | isPointInNodeVp p node -> Just $ resultReqs node reqs
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqs node reqs

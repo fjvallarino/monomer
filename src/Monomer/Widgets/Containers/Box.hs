@@ -285,11 +285,11 @@ makeBox config = widget where
       | not (null reqs) -> result where
         reqs = _boxOnLeaveReq config
         result = Just (resultReqs node reqs)
-    Click point btn
+    Click point btn _
       | not (null reqs) && inChildVp point -> result where
         reqs = _boxOnClickReq config
         result = Just (resultReqs node reqs)
-    Click point btn
+    Click point btn _
       | not (null reqs) && not (inChildVp point) -> result where
         reqs = _boxOnClickEmptyReq config
         result = Just (resultReqs node reqs)

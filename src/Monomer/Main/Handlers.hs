@@ -689,7 +689,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
 
     let pressed = fmap fst mainPress
     let isPressed = btn == mainBtn && target == pressed
-    let clickEvt = [(Click point btn, pressed) | isPressed && clicks == 1]
+    let clickEvt = [(Click point btn clicks, pressed) | isPressed || clicks > 1]
     let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
     let releasedEvt = [(evt, pressed <|> target)]
     let dropEvts = case draggedMsg of
@@ -708,7 +708,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     return [(evt, Nothing)]
   -- These handlers are only here to help with testing functions
   -- This will only be reached from `handleSystemEvents`
-  Click point btn -> findEvtTargetByPoint wenv widgetRoot evt point
+  Click point btn clicks -> findEvtTargetByPoint wenv widgetRoot evt point
   DblClick point btn -> findEvtTargetByPoint wenv widgetRoot evt point
   _ -> return [(evt, Nothing)]
 

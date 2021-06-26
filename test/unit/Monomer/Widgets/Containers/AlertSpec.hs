@@ -19,6 +19,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
+import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Containers.Alert
 
@@ -46,4 +47,4 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv () & L.theme .~ darkTheme
     alertNode = alertMsg "Alert!" CloseClick
-    events p = nodeHandleEventEvts wenv [Click p BtnLeft] alertNode
+    events p = nodeHandleEventEvts wenv [evtClick p] alertNode

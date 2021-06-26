@@ -59,7 +59,7 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv ()
     btnNode = button_ "Click" BtnClick [onFocus GotFocus, onBlur LostFocus]
-    clickEvts p = nodeHandleEventEvts wenv [Click p BtnLeft] btnNode
+    clickEvts p = nodeHandleEventEvts wenv [evtClick p] btnNode
     keyEvts key = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] btnNode
     events evt = nodeHandleEventEvts wenv [evt] btnNode
 
