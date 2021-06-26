@@ -58,7 +58,7 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
   widget = createContainer () def {
     containerInit = init,
     containerMerge = merge,
-    containerHandleEvent = handleEvent
+    containerFilterEvent = filterEvent
   }
 
   createChildNode wenv node = newNode where
@@ -90,18 +90,13 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
   merge wenv node oldNode oldState = result where
     result = resultNode (createChildNode wenv node)
 
-  handleEvent wenv node target evt = case evt of
+  filterEvent :: ContainerFilterHandler s e
+  filterEvent wenv node target evt = case evt of
     Click p btn
-      | isPointInNodeVp p labelNode -> replaceChild <$> result where
-        newPath = target |> targetIdx
+      | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
+        newPath = Seq.take (length target - 1) target |> targetIdx
         newEvt = Click targetCenter btn
-        result = widgetHandleEvent targetWidget wenv targetNode newPath newEvt
-        replaceChild res = WidgetResult newNode newReqs where
-          WidgetResult newChild reqs = res
-          newReqs = reqs |> SetFocus (targetNode ^. L.info . L.widgetId)
-          newNode = node
-            & L.children . ix 0 . L.children . ix targetIdx .~ newChild
-    _ -> Nothing
+    _ -> Just (target, evt)
     where
       labelIdx
         | textSide `elem` [SideLeft, SideTop] = 0
@@ -109,5 +104,4 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
       targetIdx = 2 - labelIdx
       labelNode = node ^. L.children . ix 0 . L.children ^?! ix labelIdx
       targetNode = node ^. L.children . ix 0 . L.children ^?! ix targetIdx
-      targetWidget = targetNode ^. L.widget
       targetCenter = rectCenter (targetNode ^. L.info . L.viewport)

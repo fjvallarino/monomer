@@ -31,6 +31,7 @@ module Monomer.Widgets.Container (
   ContainerDisposeHandler,
   ContainerFindNextFocusHandler,
   ContainerFindByPointHandler,
+  ContainerFilterHandler,
   ContainerEventHandler,
   ContainerMessageHandler,
   ContainerGetSizeReqHandler,
@@ -216,6 +217,19 @@ type ContainerFindByPointHandler s e
   -> Maybe Int       -- ^ The hovered child index, if any.
 
 {-|
+Receives a System event and, optionally, modifies the event, its target, or
+cancels the event propagation by returning null.
+
+Examples can be found in "Monomer.Widgets.Containers.Base.LabeledItem".
+-}
+type ContainerFilterHandler s e
+  = WidgetEnv s e               -- ^ The widget environment.
+  -> WidgetNode s e             -- ^ The widget node.
+  -> Path                       -- ^ The target path of the event.
+  -> SystemEvent                -- ^ The SystemEvent to handle.
+  -> Maybe (Path, SystemEvent)  -- ^ The optional modified event/target.
+
+{-|
 Receives a System event and, optionally, returns a result. This can include an
 updated version of the widget (in case it has internal state), user events or
 requests to the runtime.
@@ -345,6 +359,8 @@ data Container s e a = Container {
   containerFindNextFocus :: ContainerFindNextFocusHandler s e,
   -- | Returns the currently hovered widget, if any.
   containerFindByPoint :: ContainerFindByPointHandler s e,
+  -- | Receives a System event and, optionally, filters/modifies it.
+  containerFilterEvent :: ContainerFilterHandler s e,
   -- | Receives a System event and, optionally, returns a result.
   containerHandleEvent :: ContainerEventHandler s e,
   -- | Receives a message and, optionally, returns a result.
@@ -382,6 +398,7 @@ instance Default (Container s e a) where
     containerDispose = defaultDispose,
     containerFindNextFocus = defaultFindNextFocus,
     containerFindByPoint = defaultFindByPoint,
+    containerFilterEvent = defaultFilterEvent,
     containerHandleEvent = defaultHandleEvent,
     containerHandleMessage = defaultHandleMessage,
     containerGetSizeReq = defaultGetSizeReq,
@@ -788,6 +805,9 @@ containerFindBranchByPath wenv node path
     childrenInst = widgetFindBranchByPath (child ^. L.widget) wenv child path
 
 -- | Event Handling
+defaultFilterEvent :: ContainerFilterHandler s e
+defaultFilterEvent wenv node target evt = Just (target, evt)
+
 defaultHandleEvent :: ContainerEventHandler s e
 defaultHandleEvent wenv node target evt = Nothing
 
@@ -799,8 +819,8 @@ handleEventWrapper
   -> Path
   -> SystemEvent
   -> Maybe (WidgetResult s e)
-handleEventWrapper container wenv node target evt
-  | not (node ^. L.info . L.visible) = Nothing
+handleEventWrapper container wenv node baseTarget baseEvt
+  | not (node ^. L.info . L.visible) || isNothing filteredEvt = Nothing
   | targetReached || not targetValid = pResultStyled
   | otherwise = cResultStyled
   where
@@ -812,11 +832,14 @@ handleEventWrapper container wenv node target evt
     style = containerGetActiveStyle container wenv node
     doCursor = not (containerUseCustomCursor container)
     updateCWenv = getUpdateCWenv container
-    handler = containerHandleEvent container
+    filterHandler = containerFilterEvent container
+    eventHandler = containerHandleEvent container
     targetReached = isTargetReached target node
     targetValid = isTargetValid target node
+    filteredEvt = filterHandler wenv node baseTarget baseEvt
+    (target, evt) = fromMaybe (baseTarget, baseEvt) filteredEvt
     -- Event targeted at parent
-    pResponse = handler wenv node target evt
+    pResponse = eventHandler wenv node target evt
     pResultStyled = handleStyleChange wenv target style doCursor node evt
       $ handleSizeReqChange container wenv node (Just evt) pResponse
     -- Event targeted at children

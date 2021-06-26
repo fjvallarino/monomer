@@ -704,12 +704,17 @@
   - multiline seems to request more lines than needed (labeledCheckbox)
     - Could not replicate
   - Check single line ellipsis (it should not split lines)
+  - Add filterEvent to container.
 
 Next
-  - Rethink radio argument order.
-  - Add filterEvent to container.
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
+  - Give focus on click.
+  - Rethink radio argument order.
   - Rethink default style for label.
+  - Rename setFocus to setFocusOnKey.
+  - Add raw rendering that runs before overlays.
+  - Add tests for labeledCheckbox and labeledRadio.
+  - Try simple example rendering on a separate thread.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).

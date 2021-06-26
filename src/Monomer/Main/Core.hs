@@ -185,6 +185,8 @@ mainLoop
   -> MainLoopArgs s e ep
   -> m ()
 mainLoop window renderer config loopArgs = do
+  let MainLoopArgs{..} = loopArgs
+
   startTicks <- fmap fromIntegral SDL.ticks
   events <- SDL.pollEvents
 
@@ -201,7 +203,6 @@ mainLoop window renderer config loopArgs = do
   inputStatus <- use L.inputStatus
   mousePos <- getCurrentMousePos epr
 
-  let MainLoopArgs{..} = loopArgs
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
