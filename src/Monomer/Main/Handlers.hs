@@ -690,7 +690,6 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     let pressed = fmap fst mainPress
     let isPressed = btn == mainBtn && target == pressed
     let clickEvt = [(Click point btn clicks, pressed) | isPressed || clicks > 1]
-    let dblClickEvt = [(DblClick point btn, pressed) | isPressed && clicks == 2]
     let releasedEvt = [(evt, pressed <|> target)]
     let dropEvts = case draggedMsg of
           Just (path, msg) -> [(Drop point path msg, target) | not isPressed]
@@ -700,7 +699,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
 
     SDLE.captureMouse False
 
-    return $ releasedEvt ++ dropEvts ++ clickEvt ++ dblClickEvt ++ hoverEvts
+    return $ releasedEvt ++ dropEvts ++ clickEvt ++ hoverEvts
   KeyAction mod code status -> do
     L.inputStatus . L.keyMod .= mod
     L.inputStatus . L.keys . at code ?= status
@@ -709,7 +708,6 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   -- These handlers are only here to help with testing functions
   -- This will only be reached from `handleSystemEvents`
   Click point btn clicks -> findEvtTargetByPoint wenv widgetRoot evt point
-  DblClick point btn -> findEvtTargetByPoint wenv widgetRoot evt point
   _ -> return [(evt, Nothing)]
 
 addHoverEvents
@@ -829,7 +827,6 @@ getTargetPath wenv root pressed overlay target event = case event of
     ButtonAction point _ BtnPressed _ -> pointEvent point
     ButtonAction _ _ BtnReleased _    -> pathEvent target
     Click{}                           -> pathEvent target
-    DblClick{}                        -> pathEvent target
     WheelScroll point _ _             -> pointEvent point
     Focus{}                           -> pathEvent target
     Blur{}                            -> pathEvent target

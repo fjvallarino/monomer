@@ -80,8 +80,6 @@ data SystemEvent
   count.
   -}
   = Click Point Button Int
-  -- | Double click of a mouse button. Includes mouse position.
-  | DblClick Point Button
   {-|
   Click or release of a mouse button. Includes times pressed/released and mouse
   position.

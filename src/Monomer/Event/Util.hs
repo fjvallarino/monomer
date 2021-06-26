@@ -16,7 +16,6 @@ module Monomer.Event.Util (
   isAltPressed,
   isGUIPressed,
   isOnClick,
-  isOnDblClick,
   isOnButtonAction,
   isOnWheelScroll,
   isOnKeyAction,
@@ -72,11 +71,6 @@ isAltPressed keyMod = _kmLeftAlt keyMod || _kmRightAlt keyMod
 isOnClick :: SystemEvent -> Bool
 isOnClick Click{} = True
 isOnClick _ = False
-
--- | Checks if it's a DblClick event.
-isOnDblClick :: SystemEvent -> Bool
-isOnDblClick DblClick{} = True
-isOnDblClick _ = False
 
 -- | Checks if it's a ButtonAction event.
 isOnButtonAction :: SystemEvent -> Bool

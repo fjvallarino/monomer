@@ -62,7 +62,7 @@ evtClick :: Point -> SystemEvent
 evtClick p = Click p BtnLeft 1
 
 evtDblClick :: Point -> SystemEvent
-evtDblClick p = DblClick p BtnLeft
+evtDblClick p = Click p BtnLeft 2
 
 evtPress :: Point -> SystemEvent
 evtPress p = ButtonAction p BtnLeft BtnPressed 1

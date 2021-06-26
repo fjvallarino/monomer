@@ -275,7 +275,6 @@ handleCursorChange wenv target evt style oldNode result = newResult where
 isCursorEvt :: SystemEvent -> Bool
 isCursorEvt Enter{} = True
 isCursorEvt Click{} = True
-isCursorEvt DblClick{} = True
 isCursorEvt ButtonAction{} = True
 isCursorEvt Move{} = True
 isCursorEvt _ = False

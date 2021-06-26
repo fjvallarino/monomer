@@ -557,8 +557,6 @@
   - Review returning Maybe from event handlers (return a single value always)
   - Add examples
     - Producer example (Binance ticker API)
-
-- Pending
   - Add header in all files, indicating license and documenting what the module does
     - Add license for used fonts, etc
   - Add user documentation

@@ -410,8 +410,8 @@ makeInputField config state = widget where
       reqs = [SetCursorIcon widgetId cursorIcon]
 
     -- Enter regular edit mode if widget has custom drag handler
-    DblClick point btn
-      | dragHandleExt btn -> Just (resultReqs node reqs) where
+    Click point btn clicks
+      | dragHandleExt btn && clicks == 2 -> Just (resultReqs node reqs) where
         focusReq = [SetFocus widgetId | not (isNodeFocused wenv node)]
         reqs = SetCursorIcon widgetId CursorIBeam : focusReq
 

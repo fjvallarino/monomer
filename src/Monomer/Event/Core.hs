@@ -61,7 +61,6 @@ translateEvent
   -> SystemEvent  -- ^ Updated SystemEvent
 translateEvent offset evt = case evt of
   Click p btn cl -> Click (addPoint p offset) btn cl
-  DblClick p btn -> DblClick (addPoint p offset) btn
   ButtonAction p btn st cl -> ButtonAction (addPoint p offset) btn st cl
   WheelScroll p wxy dir -> WheelScroll (addPoint p offset) wxy dir
   Enter p -> Enter (addPoint p offset)
