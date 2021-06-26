@@ -263,9 +263,9 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       textDropdown_ dropdown1 items id [],
       tooltip "Hello!\nThis is a long message, that will hopefully be split into several lines" $ label "Test",
       hstack [
-        radioV (model ^. fruit) RadioSt Apple,
-        radioV (model ^. fruit) RadioSt Orange,
-        radioV (model ^. fruit) RadioSt Pear
+        radioV Apple (model ^. fruit) RadioSt,
+        radioV Orange (model ^. fruit) RadioSt,
+        radioV Pear (model ^. fruit) RadioSt
       ] `key` "radio hstack",
       textField textField1,
       hstack [
@@ -470,9 +470,9 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
     ]
   widgetTreeFull = vstack [
       hstack [
-        radioV (model ^. fruit) RadioSt Apple,
-        radioV (model ^. fruit) RadioSt Orange,
-        radioV (model ^. fruit) RadioSt Pear
+        radioV Apple (model ^. fruit) RadioSt,
+        radioV Orange (model ^. fruit) RadioSt,
+        radioV Pear (model ^. fruit) RadioSt
       ] `key` "radio hstack",
       hgrid [
         button "Show Alert" ShowAlert,

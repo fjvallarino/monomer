@@ -35,17 +35,17 @@ buildUI wenv model = widgetTree where
       hgrid [
         hstack [
           label "Regular: ",
-          radio fontName "Regular",
+          radio "Regular" fontName,
           filler
         ],
         hstack [
           label "Bold: ",
-          radio fontName "Bold",
+          radio "Bold" fontName,
           filler
         ],
         hstack [
           label "Italic: ",
-          radio fontName "Italic",
+          radio "Italic" fontName,
           filler
         ]
       ] `style` [paddingV 10],

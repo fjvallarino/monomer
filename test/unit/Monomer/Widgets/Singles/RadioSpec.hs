@@ -77,9 +77,9 @@ handleEvent = describe "handleEvent" $ do
   where
     wenv = mockWenv (TestModel Apple)
       & L.theme .~ darkTheme
-    orangeNode = radio_ fruit Orange [onFocus GotFocus, onBlur LostFocus]
+    orangeNode = radio_ Orange fruit [onFocus GotFocus, onBlur LostFocus]
     bananaNode :: WidgetNode TestModel FruitEvt
-    bananaNode = radio fruit Banana
+    bananaNode = radio Banana fruit
     clickModel p node = nodeHandleEventModel wenv [evtClick p] node
     keyModel key node = nodeHandleEventModel wenv [KeyAction def key KeyPressed] node
     events evt node = nodeHandleEventEvts wenv [evt] node
@@ -98,8 +98,8 @@ handleEventValue = describe "handleEventValue" $ do
   where
     wenv = mockWenv (TestModel Apple)
       & L.theme .~ darkTheme
-    orangeNode = radioV Apple FruitSel Orange
-    bananaNode = radioV Apple FruitSel Banana
+    orangeNode = radioV Orange Apple FruitSel
+    bananaNode = radioV Banana Apple FruitSel
     clickModel p node = nodeHandleEventEvts wenv [evtClick p] node
     keyModel key node = nodeHandleEventEvts wenv [KeyAction def key KeyPressed] node
 
@@ -114,4 +114,4 @@ getSizeReq = describe "getSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel Apple)
       & L.theme .~ darkTheme
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (radio fruit Apple)
+    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (radio Apple fruit)

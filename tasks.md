@@ -706,9 +706,9 @@
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
   - Remove DblClick
   - Pass down BtnPressed in labeledItem.
+  - Rethink radio argument order.
 
 Next
-  - Rethink radio argument order.
   - Rethink default style for label.
   - Rename setFocus to setFocusOnKey.
   - Add raw rendering that runs before overlays.

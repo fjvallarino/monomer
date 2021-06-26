@@ -107,44 +107,44 @@ instance CmbOnChangeReq (RadioCfg s e a) s e a where
   }
 
 -- | Creates a radio using the given lens.
-radio :: (Eq a, WidgetEvent e) => ALens' s a -> a -> WidgetNode s e
-radio field option = radio_ field option def
+radio :: (Eq a, WidgetEvent e) => a -> ALens' s a -> WidgetNode s e
+radio option field = radio_ option field def
 
 -- | Creates a radio using the given lens. Accepts config.
 radio_
   :: (Eq a, WidgetEvent e)
-  => ALens' s a
-  -> a
+  => a
+  -> ALens' s a
   -> [RadioCfg s e a]
   -> WidgetNode s e
-radio_ field option configs = radioD_ (WidgetLens field) option configs
+radio_ option field configs = radioD_ option (WidgetLens field) configs
 
 -- | Creates a radio using the given value and onChange event handler.
-radioV :: (Eq a, WidgetEvent e) => a -> (a -> e) -> a -> WidgetNode s e
-radioV value handler option = radioV_ value handler option def
+radioV :: (Eq a, WidgetEvent e) => a -> a -> (a -> e) -> WidgetNode s e
+radioV option value handler = radioV_ option value handler def
 
 -- | Creates a radio using the given value and onChange event handler.
 -- | Accepts config.
 radioV_
   :: (Eq a, WidgetEvent e)
   => a
-  -> (a -> e)
   -> a
+  -> (a -> e)
   -> [RadioCfg s e a]
   -> WidgetNode s e
-radioV_ value handler option configs = newNode where
+radioV_ option value handler configs = newNode where
   widgetData = WidgetValue value
   newConfigs = onChange handler : configs
-  newNode = radioD_ widgetData option newConfigs
+  newNode = radioD_ option widgetData newConfigs
 
 -- | Creates a radio providing a WidgetData instance and config.
 radioD_
   :: (Eq a, WidgetEvent e)
-  => WidgetData s a
-  -> a
+  => a
+  -> WidgetData s a
   -> [RadioCfg s e a]
   -> WidgetNode s e
-radioD_ widgetData option configs = radioNode where
+radioD_ option widgetData configs = radioNode where
   config = mconcat configs
   widget = makeRadio widgetData option config
   radioNode = defaultWidgetNode "radio" widget
