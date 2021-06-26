@@ -49,12 +49,20 @@ getSizeReq = describe "getSizeReq" $ do
   it "should return height = Flex 20 2" $
     sizeReq2H `shouldBe` flexSize 20 2
 
+  it "should return width = Flex 120 1" $
+    sizeReq3W `shouldBe` flexSize 120 0.01
+
+  it "should return height = Flex 20 2" $
+    sizeReq3H `shouldBe` flexSize 20 0.01
+
   where
     wenv = mockWenv ()
     lblNode = label "Test label"
     lblNode2 = label_ "Test label 2" [resizeFactorW 1, resizeFactorH 2]
+    lblNode3 = label_ "Test label 3" [ellipsis]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
     (sizeReq2W, sizeReq2H) = nodeGetSizeReq wenv lblNode2
+    (sizeReq3W, sizeReq3H) = nodeGetSizeReq wenv lblNode3
 
 getSizeReqMulti :: Spec
 getSizeReqMulti = describe "getSizeReq" $ do

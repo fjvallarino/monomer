@@ -215,6 +215,7 @@ makeLabel config state = widget where
     Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
     defaultFactor
       | mode == MultiLine = 1
+      | overflow == Ellipsis = 0.01
       | otherwise = 0
     factorW = fromMaybe defaultFactor (_lscFactorW config)
     factorH = fromMaybe defaultFactor (_lscFactorH config)
