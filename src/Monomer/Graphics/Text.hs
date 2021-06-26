@@ -129,16 +129,20 @@ fitTextToSize renderer style ovf mode trim mlines !size !text = newLines where
   font = styleFont style
   fontSize = styleFontSize style
   textMetrics = computeTextMetrics renderer font fontSize
+  fitW
+    | mode == MultiLine = cw
+    | otherwise = maxNumericValue
   maxH = case mlines of
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
-  textLinesW = fitTextToWidth renderer style cw trim text
+  textLinesW = fitTextToWidth renderer style fitW trim text
   firstLine = Seq.take 1 textLinesW
-  fitRequired = mode == MultiLine || length textLinesW == 1
+  isMultiline = mode == MultiLine
+  ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. w > cw
   newLines
-    | fitRequired = fitTextLinesToH renderer style ovf cw maxH textLinesW
-    | ovf == Ellipsis = addEllipsisToTextLine renderer style cw <$> firstLine
-    | otherwise = firstLine
+    | isMultiline = fitTextLinesToH renderer style ovf cw maxH textLinesW
+    | ellipsisReq = addEllipsisToTextLine renderer style cw <$> firstLine
+    | otherwise = clipTextLine renderer style trim cw <$> firstLine
 
 -- | Fits a single line of text to the given width, potencially spliting into
 -- | several lines.
@@ -300,6 +304,37 @@ addEllipsisToTextLine renderer style width textLine = newTextLine where
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse textGlyphs)
   newText = T.dropEnd dropChars text <> "..."
+  !newGlyphs = computeGlyphsPos renderer font fontSize newText
+  newW = getGlyphsWidth newGlyphs
+  newTextLine = TextLine {
+    _tlText = newText,
+    _tlSize = textSize { _sW = newW },
+    _tlRect = textRect { _rW = newW },
+    _tlGlyphs = newGlyphs,
+    _tlMetrics = textMetrics
+  }
+
+clipTextLine
+  :: Renderer
+  -> StyleState
+  -> TextTrim
+  -> Double
+  -> TextLine
+  -> TextLine
+clipTextLine renderer style trim width textLine = newTextLine where
+  TextLine text textSize textRect textGlyphs textMetrics = textLine
+  Size tw th = textSize
+  font = styleFont style
+  fontSize = styleFontSize style
+  takeHelper (idx, w) g
+    | _glpW g + w <= width = (idx + 1, _glpW g + w)
+    | otherwise = (idx, w)
+  (takeChars, _) = foldl' takeHelper (0, 0) textGlyphs
+  --newText = T.take takeChars text
+  validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) textGlyphs
+  newText
+    | trim == KeepSpaces = T.take (length validGlyphs) text
+    | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) text
   !newGlyphs = computeGlyphsPos renderer font fontSize newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {

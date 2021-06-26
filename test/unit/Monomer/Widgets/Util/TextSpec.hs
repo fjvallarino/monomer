@@ -57,27 +57,27 @@ fitTextSingle = describe "fitTextToSize single line" $ do
 
   it "should return text with ellipsis, trimmed, if it does not fit" $ do
     elpsTrim "This is longer\nMore" `shouldSatisfy` singleElement
-    elpsTrim "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is..."
+    elpsTrim "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is l..."
     elpsTrim "This is a bit longer\nMore" `shouldSatisfy` singleElement
     elpsTrim "This is a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is a..."
 
   it "should return text with ellipsis, untrimmed, if it does not fit" $ do
     elpsKeep "This is longer\nMore" `shouldSatisfy` singleElement
-    elpsKeep "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is ..."
+    elpsKeep "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is l..."
     elpsKeep "This is a bit longer\nMore" `shouldSatisfy` singleElement
     elpsKeep "This is a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is a..."
 
   it "should return text clipped, trimmed, if it does not fit" $ do
     clipTrim "This is longer\nMore" `shouldSatisfy` singleElement
-    clipTrim "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is"
-    clipTrim "This is a bit longer\nMore" `shouldSatisfy` singleElement
-    clipTrim "This is a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is a"
+    clipTrim "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is long"
+    clipTrim "This is not a bit longer\nMore" `shouldSatisfy` singleElement
+    clipTrim "This is not a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is not"
 
   it "should return text clipped, untrimmed, if it does not fit" $ do
     clipKeep "This is longer\nMore" `shouldSatisfy` singleElement
-    clipKeep "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is "
-    clipKeep "This is a bit longer\nMore" `shouldSatisfy` singleElement
-    clipKeep "This is a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is a "
+    clipKeep "This is longer\nMore" ^. ix 0 . L.text `shouldBe` "This is long"
+    clipKeep "This is not a bit longer\nMore" `shouldSatisfy` singleElement
+    clipKeep "This is not a bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is not "
 
   where
     wenv = mockWenv ()

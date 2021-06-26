@@ -701,9 +701,11 @@
   - Is ignoreTheme really needed?
     - Yes. Button and External Link use it as a base item.
   - Add placeholder text for textField.
+  - multiline seems to request more lines than needed (labeledCheckbox)
+    - Could not replicate
+  - Check single line ellipsis (it should not split lines)
 
 Next
-  - multiline seems to request more lines than needed (labeledCheckbox)
   - Rethink radio argument order.
   - Add filterEvent to container.
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
