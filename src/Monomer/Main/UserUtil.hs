@@ -23,18 +23,11 @@ import qualified Monomer.Core.Lens as L
 import qualified Monomer.Main.Lens as L
 
 {-|
-Generates a response to sets focus on the given key, provided as text. If the
-key does not exist, it will set focus to root.
+Generates a response to sets focus on the given key, provided as WidgetKey. If
+the key does not exist, focus will remain on the currently focused widget.
 -}
-setFocus :: WidgetEnv s e -> Text -> EventResponse s e sp ep
-setFocus wenv key = setFocusKey wenv (WidgetKey key)
-
-{-|
-Generates a response to sets focus on the given key, provided as WidgetKey . If
-the key does not exist, it will set focus to root.
--}
-setFocusKey :: WidgetEnv s e -> WidgetKey -> EventResponse s e sp ep
-setFocusKey wenv key = Request (SetFocus widgetId) where
+setFocusOnKey :: WidgetEnv s e -> WidgetKey -> EventResponse s e sp ep
+setFocusOnKey wenv key = Request (SetFocus widgetId) where
   widgetId = fromMaybe def (widgetIdFromKey wenv key)
 
 -- | Generates a response that sets the clipboard to the given data

@@ -58,6 +58,14 @@ Just for fun, try removing the `key` from that function: you will see that the
 textField did not _move_ to the correct position, as the incorrect cursor
 position indicates.
 
+### Setting focus
+
+Keys are not only used for merging. In this example, we use them to set focus on
+the `description` textField whenever a new item is added.
+
+We will see in the Producers example that we can also use them for sending
+messages to widgets.
+
 ## Notes
 
 ### Keystroke

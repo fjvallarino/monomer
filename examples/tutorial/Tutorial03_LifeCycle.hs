@@ -46,7 +46,7 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description: ",
-        textField_ newItemText [placeholder "This is a placeholder"],
+        textField_ newItemText [placeholder "Write here!"] `key` "description",
         spacer,
         button "Add" AddItem `style` [paddingH 5]
       ],
@@ -64,7 +64,8 @@ handleEvent wenv node model evt = case evt of
   AppInit -> []
   AddItem -> [Model $ model
     & newItemText .~ ""
-    & items .~ newItem : model ^. items]
+    & items .~ newItem : model ^. items,
+    setFocusOnKey wenv "description"]
   RemoveItem idx -> [Model $ model
     & items .~ removeIdx idx (model ^. items)]
   where

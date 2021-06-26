@@ -78,37 +78,37 @@ handleEvent
   -> TodoEvt
   -> [EventResponse TodoModel TodoEvt TodoModel ()]
 handleEvent wenv node model evt = case evt of
-  TodoInit -> [setFocus wenv "todoNew"]
+  TodoInit -> [setFocusOnKey wenv "todoNew"]
   TodoNew -> [
     Model $ model
       & action .~ TodoAdding
       & activeTodo .~ def,
-    setFocus wenv "todoType"]
+    setFocusOnKey wenv "todoType"]
   TodoEdit idx td -> [
     Model $ model
       & action .~ TodoEditing idx
       & activeTodo .~ td,
-    setFocus wenv "todoType"]
+    setFocusOnKey wenv "todoType"]
   TodoAdd -> [
     Model $ addNewTodo wenv model,
-    setFocus wenv "todoNew"]
+    setFocusOnKey wenv "todoNew"]
   TodoSave idx -> [
     Model $ model
       & action .~ TodoNone
       & todos . ix idx .~ (model ^. activeTodo),
-    setFocus wenv "todoNew"]
+    setFocusOnKey wenv "todoNew"]
   TodoDeleteBegin idx todo -> [
     Message (WidgetKey (todoRowKey todo)) AnimationStart]
   TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
-    setFocus wenv "todoNew"]
+    setFocusOnKey wenv "todoNew"]
   TodoCancel -> [
     Model $ model
       & action .~ TodoNone
       & activeTodo .~ def,
-    setFocus wenv "todoNew"]
+    setFocusOnKey wenv "todoNew"]
 
 addNewTodo :: WidgetEnv s e -> TodoModel -> TodoModel
 addNewTodo wenv model = newModel where

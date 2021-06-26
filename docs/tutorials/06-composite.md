@@ -74,7 +74,8 @@ easier to use interface:
 requests can be interesting for an application or composite:
 
 - MoveFocus: Moves focus to the next focusable widget in the given direction.
-- SetFocus: Sets focus on a specific widget.
+- SetFocus: Sets focus on a specific widget. We have already used this request
+  when calling `setFocusOnKey`.
 - ExitApplication: Requests to exit the application or cancel an active request
   to exit. This is useful combined with `appExitEvent`.
 - UpdateWindow: Allows making window related actions, such as setting window

@@ -310,7 +310,7 @@ handleSetFocus newFocusWid (wenv, root, reqs) = do
   newFocus <- getWidgetIdPath newFocusWid
   oldFocus <- getFocusedPath
 
-  if oldFocus /= newFocus
+  if oldFocus /= newFocus && newFocus /= emptyPath
     then do
       let wenv0 = wenv & L.focusedPath .~ newFocus
       let blurEvt = Blur newFocus

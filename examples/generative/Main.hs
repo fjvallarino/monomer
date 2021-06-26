@@ -68,7 +68,7 @@ handleEvent
   -> GenerativeEvt
   -> [EventResponse GenerativeModel GenerativeEvt GenerativeModel ()]
 handleEvent wenv node model evt = case evt of
-  GenerativeInit -> [setFocus wenv "activeType"]
+  GenerativeInit -> [setFocusOnKey wenv "activeType"]
 
 main :: IO ()
 main = do
