@@ -120,7 +120,7 @@ handle the events of interest and return Nothing for the rest. In the example
 
 ```haskell
   handleEvent wenv node target evt = case evt of
-    Click point button -> Just result
+    Click point button clicks -> Just result
     ...
     Move _ -> Just (resultReqs node [RenderOnce])
 ```

@@ -94,14 +94,17 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
   filterEvent wenv node target evt = case evt of
     Click p btn clicks
       | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
-        newPath = Seq.take (length target - 1) target |> targetIdx
         newEvt = Click targetCenter btn clicks
+    ButtonAction p btn BtnPressed clicks
+      | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
+        newEvt = ButtonAction targetCenter btn BtnPressed clicks
     _ -> Just (target, evt)
     where
       labelIdx
         | textSide `elem` [SideLeft, SideTop] = 0
         | otherwise = 2
       targetIdx = 2 - labelIdx
+      newPath = Seq.take (length target - 1) target |> targetIdx
       labelNode = node ^. L.children . ix 0 . L.children ^?! ix labelIdx
       targetNode = node ^. L.children . ix 0 . L.children ^?! ix targetIdx
       targetCenter = rectCenter (targetNode ^. L.info . L.viewport)

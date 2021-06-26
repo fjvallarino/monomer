@@ -77,7 +77,7 @@ makeCanvas cfg state = widget where
     result = resultNode newNode
 
   handleEvent wenv node target evt = case evt of
-    Click point button -> Just result where
+    Click point button clicks -> Just result where
       newPoint = subPoint point origin
       newPoints = newPoint : state ^. clickedPoints
       newState = CanvasState newPoints

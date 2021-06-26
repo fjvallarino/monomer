@@ -703,11 +703,11 @@
     - Could not replicate
   - Check single line ellipsis (it should not split lines)
   - Add filterEvent to container.
-
-Next
   - Rethink Click only working for count == 1 (maybe just add clicks to event)
   - Remove DblClick
-  - Give focus on click.
+  - Pass down BtnPressed in labeledItem.
+
+Next
   - Rethink radio argument order.
   - Rethink default style for label.
   - Rename setFocus to setFocusOnKey.
