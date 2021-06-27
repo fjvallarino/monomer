@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 388589569e516926ec73274246e7b0c9d469d070526f53ef871b0e42b3c69114
+-- hash: 0034398fa73a706ff4f38ec5d91fd53a82457809731868c37b24630a6c431354
 
 name:           monomer
 version:        0.1.0.0
@@ -474,6 +474,8 @@ test-suite monomer-test
       Monomer.Widgets.Singles.DialSpec
       Monomer.Widgets.Singles.ExternalLinkSpec
       Monomer.Widgets.Singles.ImageSpec
+      Monomer.Widgets.Singles.LabeledCheckboxSpec
+      Monomer.Widgets.Singles.LabeledRadioSpec
       Monomer.Widgets.Singles.LabelSpec
       Monomer.Widgets.Singles.NumericFieldSpec
       Monomer.Widgets.Singles.RadioSpec

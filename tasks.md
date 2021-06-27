@@ -709,9 +709,9 @@
   - Rethink radio argument order.
   - Rename setFocus to setFocusOnKey.
   - Add raw rendering that runs before overlays.
+  - Add tests for labeledCheckbox and labeledRadio.
 
 Next
-  - Add tests for labeledCheckbox and labeledRadio.
   - Rethink default style for label.
   - Try simple example rendering on a separate thread.
   - Document themes and how widgets use them.

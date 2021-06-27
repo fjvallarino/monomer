@@ -35,6 +35,8 @@ import qualified Monomer.Widgets.Singles.DateFieldSpec as DateFieldSpec
 import qualified Monomer.Widgets.Singles.DialSpec as DialSpec
 import qualified Monomer.Widgets.Singles.ExternalLinkSpec as ExternalLinkSpec
 import qualified Monomer.Widgets.Singles.ImageSpec as ImageSpec
+import qualified Monomer.Widgets.Singles.LabeledCheckboxSpec as LabeledCheckboxSpec
+import qualified Monomer.Widgets.Singles.LabeledRadioSpec as LabeledRadioSpec
 import qualified Monomer.Widgets.Singles.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.Singles.NumericFieldSpec as NumericFieldSpec
 import qualified Monomer.Widgets.Singles.RadioSpec as RadioSpec
@@ -109,6 +111,8 @@ singles = describe "Singles" $ do
   ExternalLinkSpec.spec
   ImageSpec.spec
   LabelSpec.spec
+  LabeledCheckboxSpec.spec
+  LabeledRadioSpec.spec
   NumericFieldSpec.spec
   RadioSpec.spec
   SeparatorLineSpec.spec
