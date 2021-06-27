@@ -342,14 +342,19 @@ renderWidgets !window renderer clearColor wenv widgetRoot = do
 
   liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
+
   liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
-
   liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
-  liftIO $ renderOverlays renderer
+  liftIO $ endFrame renderer
 
+  liftIO $ renderRawTasks renderer
+
+  liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
+  liftIO $ renderOverlays renderer
   liftIO $ endFrame renderer
 
   liftIO $ renderRawOverlays renderer
+
   SDL.glSwapWindow window
   where
     r = fromIntegral (clearColor ^. L.r) / 255

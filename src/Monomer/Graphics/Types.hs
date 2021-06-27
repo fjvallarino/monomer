@@ -217,10 +217,24 @@ data Renderer = Renderer {
   createOverlay :: IO () -> IO (),
   -- | Renders the added overlays and clears them.
   renderOverlays :: IO (),
-  -- | Creates an overlay which will not rely on higher level libraries such as
-  -- | nanovg. Well suited for pure OpenGL/Vulkan/Metal.
+  {-|
+  Creates a render task which does not rely on the abstractions provided by the
+  Renderer. Well suited for pure OpenGL/Vulkan/Metal.
+
+  This runs _before_ overlays of any type, and it's useful for the content of
+  widgets created with low level APIs.
+  -}
+  createRawTask :: IO () -> IO (),
+  -- | Renders the added raw tasks and clears its queue.
+  renderRawTasks :: IO (),
+  {-|
+  Creates an overlay which does not rely on the abstractions provided by the
+  Renderer. Well suited for pure OpenGL/Vulkan/Metal.
+
+  This runs _after_ overlays based on Renderer.
+  -}
   createRawOverlay :: IO () -> IO (),
-  -- | Renders the added raw overlays and clears them.
+  -- | Renders the added raw overlays and clears its queue.
   renderRawOverlays :: IO (),
   -- | Sets, or intersects, a scissor which will limit the visible area.
   intersectScissor :: Rect -> IO (),

@@ -91,10 +91,13 @@ mockRenderer = Renderer {
   saveContext = return (),
   restoreContext = return (),
   -- Overlays
-  createOverlay  = \overlay -> return (),
+  createOverlay = \overlay -> return (),
   renderOverlays = return (),
+  -- Raw tasks
+  createRawTask = \task -> return (),
+  renderRawTasks = return (),
   -- Raw overlays
-  createRawOverlay  = \overlay -> return (),
+  createRawOverlay = \overlay -> return (),
   renderRawOverlays = return (),
   -- Scissor operations
   intersectScissor = \rect -> return (),

@@ -70,6 +70,7 @@ data ImageReq = ImageReq {
 
 data Env = Env {
   overlays :: Seq (IO ()),
+  tasksRaw :: Seq (IO ()),
   overlaysRaw :: Seq (IO ()),
   validFonts :: Set Text,
   imagesMap :: ImagesMap,
@@ -104,6 +105,7 @@ makeRenderer fonts dpr = do
 
   envRef <- newIORef $ Env {
     overlays = Seq.empty,
+    tasksRaw = Seq.empty,
     overlaysRaw = Seq.empty,
     validFonts = validFonts,
     imagesMap = M.empty,
@@ -152,7 +154,20 @@ newRenderer c dpr lock envRef = Renderer {..} where
       overlays = Seq.empty
     }
 
-  -- Overlays
+  -- Raw tasks
+  createRawTask task = L.with lock $
+    modifyIORef envRef $ \env -> env {
+      tasksRaw = tasksRaw env |> task
+    }
+
+  renderRawTasks = do
+    env <- readIORef envRef
+    sequence_ $ tasksRaw env
+    writeIORef envRef env {
+      tasksRaw = Seq.empty
+    }
+
+  -- Raw overlays
   createRawOverlay overlay = L.with lock $
     modifyIORef envRef $ \env -> env {
       overlaysRaw = overlaysRaw env |> overlay
