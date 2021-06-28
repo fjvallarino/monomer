@@ -193,6 +193,7 @@ makeButton caption config = widget where
   widget = createContainer () def {
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
+    containerGetActiveStyle = getActiveStyle,
     containerInit = init,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
@@ -211,6 +212,12 @@ makeButton caption config = widget where
   getBaseStyle wenv node = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
     ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
+
+  getActiveStyle wenv node = styleState where
+    style = node ^. L.info . L.style
+    styleState
+      | isNodeTreeActive wenv node = fromMaybe def (_styleActive style)
+      | otherwise = activeStyle wenv node
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
