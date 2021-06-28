@@ -56,12 +56,7 @@ data ButtonType
 
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
-  _btnTextTrim :: Maybe Bool,
-  _btnTextEllipsis :: Maybe Bool,
-  _btnTextMultiLine :: Maybe Bool,
-  _btnTextMaxLines :: Maybe Int,
-  _btnFactorW :: Maybe Double,
-  _btnFactorH :: Maybe Double,
+  _btnLabelCfg :: LabelCfg,
   _btnOnFocusReq :: [Path -> WidgetRequest s e],
   _btnOnBlurReq :: [Path -> WidgetRequest s e],
   _btnOnClickReq :: [WidgetRequest s e]
@@ -70,12 +65,7 @@ data ButtonCfg s e = ButtonCfg {
 instance Default (ButtonCfg s e) where
   def = ButtonCfg {
     _btnButtonType = Nothing,
-    _btnTextTrim = Nothing,
-    _btnTextEllipsis = Nothing,
-    _btnTextMultiLine = Nothing,
-    _btnTextMaxLines = Nothing,
-    _btnFactorW = Nothing,
-    _btnFactorH = Nothing,
+    _btnLabelCfg = def,
     _btnOnFocusReq = [],
     _btnOnBlurReq = [],
     _btnOnClickReq = []
@@ -84,12 +74,7 @@ instance Default (ButtonCfg s e) where
 instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
     _btnButtonType = _btnButtonType t2 <|> _btnButtonType t1,
-    _btnTextTrim = _btnTextTrim t2 <|> _btnTextTrim t1,
-    _btnTextEllipsis = _btnTextEllipsis t2 <|> _btnTextEllipsis t1,
-    _btnTextMultiLine = _btnTextMultiLine t2 <|> _btnTextMultiLine t1,
-    _btnTextMaxLines = _btnTextMaxLines t2 <|> _btnTextMaxLines t1,
-    _btnFactorW = _btnFactorW t2 <|> _btnFactorW t1,
-    _btnFactorH = _btnFactorH t2 <|> _btnFactorH t1,
+    _btnLabelCfg = _btnLabelCfg t1 <> _btnLabelCfg t2,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
     _btnOnBlurReq = _btnOnBlurReq t1 <> _btnOnBlurReq t2,
     _btnOnClickReq = _btnOnClickReq t1 <> _btnOnClickReq t2
@@ -100,22 +85,35 @@ instance Monoid (ButtonCfg s e) where
 
 instance CmbTrimSpaces (ButtonCfg s e) where
   trimSpaces_ trim = def {
-    _btnTextTrim = Just trim
+    _btnLabelCfg = trimSpaces_ trim
   }
 
 instance CmbEllipsis (ButtonCfg s e) where
   ellipsis_ ellipsis = def {
-    _btnTextEllipsis = Just ellipsis
+    _btnLabelCfg = ellipsis_ ellipsis
   }
 
 instance CmbMultiLine (ButtonCfg s e) where
   multiLine_ multi = def {
-    _btnTextMultiLine = Just multi
+    _btnLabelCfg = multiLine_ multi
   }
 
 instance CmbMaxLines (ButtonCfg s e) where
   maxLines count = def {
-    _btnTextMaxLines = Just count
+    _btnLabelCfg = maxLines count
+  }
+
+instance CmbResizeFactor (ButtonCfg s e) where
+  resizeFactor s = def {
+    _btnLabelCfg = resizeFactor s
+  }
+
+instance CmbResizeFactorDim (ButtonCfg s e) where
+  resizeFactorW w = def {
+    _btnLabelCfg = resizeFactorW w
+  }
+  resizeFactorH h = def {
+    _btnLabelCfg = resizeFactorH h
   }
 
 instance WidgetEvent e => CmbOnFocus (ButtonCfg s e) e Path where
@@ -146,20 +144,6 @@ instance WidgetEvent e => CmbOnClick (ButtonCfg s e) e where
 instance CmbOnClickReq (ButtonCfg s e) s e where
   onClickReq req = def {
     _btnOnClickReq = [req]
-  }
-
-instance CmbResizeFactor (ButtonCfg s e) where
-  resizeFactor s = def {
-    _btnFactorW = Just s,
-    _btnFactorH = Just s
-  }
-
-instance CmbResizeFactorDim (ButtonCfg s e) where
-  resizeFactorW w = def {
-    _btnFactorW = Just w
-  }
-  resizeFactorH h = def {
-    _btnFactorH = Just h
   }
 
 mainConfig :: ButtonCfg s e
@@ -202,12 +186,6 @@ makeButton caption config = widget where
   }
 
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
-  trim = _btnTextTrim config == Just True
-  ellipsis = _btnTextEllipsis config == Just True
-  multiLine = _btnTextMultiLine config == Just True
-  maxLinesV = _btnTextMaxLines config
-  factorW = _btnFactorW config
-  factorH = _btnFactorH config
 
   getBaseStyle wenv node = case buttonType of
     ButtonNormal -> Just (collectTheme wenv L.btnStyle)
@@ -224,15 +202,7 @@ makeButton caption config = widget where
     labelStyle = collectStyleField_ L.text nodeStyle def
       & collectStyleField_ L.sizeReqW nodeStyle
       & collectStyleField_ L.sizeReqH nodeStyle
-    cfgs = [
-      ignoreTheme,
-      trimSpaces_ trim,
-      ellipsis_ ellipsis,
-      multiLine_ multiLine]
-      ++ [maxLines (fromJust maxLinesV) | isJust maxLinesV]
-      ++ [resizeFactorW (fromJust factorW) | isJust factorW]
-      ++ [resizeFactorH (fromJust factorH) | isJust factorH]
-    labelNode = label_ caption cfgs
+    labelNode = label_ caption [ignoreTheme, _btnLabelCfg config]
       & L.info . L.style .~ labelStyle
     childNode = labelNode
     newNode = node
