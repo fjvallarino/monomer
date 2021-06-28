@@ -710,10 +710,15 @@
   - Rename setFocus to setFocusOnKey.
   - Add raw rendering that runs before overlays.
   - Add tests for labeledCheckbox and labeledRadio.
+  - Try simple example rendering on a separate thread.
+    - Created sdl-continuous-resize which works correctly.
 
 Next
   - Rethink default style for label.
-  - Try simple example rendering on a separate thread.
+  - Apply improved styles to examples.
+  - Improve base theme creation (scale argument?)
+  - Improve Main module (naming, refactor into smaller functions).
+  - Apply threading ideas (sdl-continuous-resize).
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).
