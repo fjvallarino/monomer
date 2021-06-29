@@ -20,7 +20,6 @@ buildUI
   -> TodoModel
   -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
-  todoSpacer = spacer_ [width 10]
   todoView idx t = slideWidget `key` todoKey where
     todoKey = todoRowKey t
     todoDone = t ^. status == Done
@@ -41,40 +40,40 @@ buildUI wenv model = widgetTree where
         ],
         filler,
         box_ [alignRight] todoStatus `style` [width 100],
-        todoSpacer,
+        spacer,
         rowButton "Edit" (TodoEdit idx t),
-        todoSpacer,
+        spacer,
         rowButton "Delete" (TodoDeleteBegin idx t)
       ] `style` [paddingT 10 | idx  > 0]
     slideWidget = fadeOut_ [onFinished (TodoDelete idx t)] todoRow
   todoEdit = vstack [
       hstack [
         label "Task:",
-        todoSpacer,
+        spacer,
         textField (activeTodo . description) `key` "todoDesc"
       ],
-      todoSpacer,
+      spacer,
       hgrid [
         hstack [
           label "Type:",
-          todoSpacer,
+          spacer,
           textDropdownS (activeTodo . todoType) todoTypes `key` "todoType",
-          todoSpacer -- Added here to avoid grid expanding it to 1/3 total width
+          spacer -- Added here to avoid grid expanding it to 1/3 total width
         ],
         hstack [
           label "Status:",
-          todoSpacer,
+          spacer,
           textDropdownS (activeTodo . status) todoStatuses
         ]
       ],
-      todoSpacer,
+      spacer,
       hstack [
         filler,
         case model ^. action of
           TodoAdding -> mainButton "Add" TodoAdd
           TodoEditing idx -> mainButton "Save" (TodoSave idx)
           _ -> spacer,
-        todoSpacer,
+        spacer,
         button "Cancel" TodoCancel
         ]
     ] `style` [bgColor editBgColor, padding 20]

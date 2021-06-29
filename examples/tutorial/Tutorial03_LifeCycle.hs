@@ -45,14 +45,15 @@ buildUI wenv model = widgetTree where
     ] `key` showt (item ^. ts) `style` [paddingT 5]
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
-        label "Description: ",
+        label "Description:",
+        spacer,
         textField_ newItemText [placeholder "Write here!"] `key` "description",
         spacer,
         button "Add" AddItem `style` [paddingH 5]
       ],
-      separatorLine `style` [paddingT 10, paddingB 5],
+      separatorLine `style` [paddingT 20, paddingB 15],
       vstack (zipWith listItem [0..] (model ^. items))
-    ] `style` [padding 10]
+    ] `style` [padding 20]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent

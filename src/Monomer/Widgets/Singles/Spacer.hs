@@ -94,9 +94,11 @@ makeSpacer config = widget where
 
   getSizeReq wenv node = sizeReq where
     direction = wenv ^. L.layoutDirection
-    width = fromMaybe 5 (_spcWidth config)
     factor = fromMaybe 0.5 (_spcFactor config)
     isFixed = factor < 0.01
+    width
+      | isFixed = fromMaybe 10 (_spcWidth config)
+      | otherwise = fromMaybe 5 (_spcWidth config)
     flexSide = flexSize 5 0.5
     fixedW = fixedSize width
     flexW = flexSize width factor

@@ -39,9 +39,9 @@ spacerSpec = describe "Spacer" $ do
 
 spacerSizeReqBox :: Spec
 spacerSizeReqBox = describe "spacerSizeReqBox" $ do
-  it "should return (Fixed 5, Fixed 5)" $ do
-    sizeReqW1 `shouldBe` fixedSize 5
-    sizeReqH1 `shouldBe` fixedSize 5
+  it "should return (Fixed 10, Fixed 10)" $ do
+    sizeReqW1 `shouldBe` fixedSize 10
+    sizeReqH1 `shouldBe` fixedSize 10
 
   where
     wenv = mockWenvEvtUnit ()
@@ -49,13 +49,13 @@ spacerSizeReqBox = describe "spacerSizeReqBox" $ do
 
 spacerSizeReqGrid :: Spec
 spacerSizeReqGrid = describe "spacerSizeReqGrid" $ do
-  it "should return (Fixed 5, Flex 5 0.5) for horizontal" $ do
-    sizeReqW1 `shouldBe` fixedSize 5
+  it "should return (Fixed 10, Flex 5 0.5) for horizontal" $ do
+    sizeReqW1 `shouldBe` fixedSize 10
     sizeReqH1 `shouldBe` flexSize 5 0.5
 
-  it "should return (Flex 5 0.5, Fixed 5) for vertical" $ do
+  it "should return (Flex 5 0.5, Fixed 10) for vertical" $ do
     sizeReqW2 `shouldBe` flexSize 5 0.5
-    sizeReqH2 `shouldBe` fixedSize 5
+    sizeReqH2 `shouldBe` fixedSize 10
 
   where
     wenv = mockWenvEvtUnit ()
@@ -64,13 +64,13 @@ spacerSizeReqGrid = describe "spacerSizeReqGrid" $ do
 
 spacerSizeReqStack :: Spec
 spacerSizeReqStack = describe "spacerSizeReqStack" $ do
-  it "should return (Fixed 5, Flex 5 0.5) for horizontal" $ do
-    sizeReqW1 `shouldBe` fixedSize 5
+  it "should return (Fixed 10, Flex 5 0.5) for horizontal" $ do
+    sizeReqW1 `shouldBe` fixedSize 10
     sizeReqH1 `shouldBe` flexSize 5 0.5
 
-  it "should return (Flex 5 0.5, Fixed 5) for vertical" $ do
+  it "should return (Flex 10 0.5, Fixed 5) for vertical" $ do
     sizeReqW2 `shouldBe` flexSize 5 0.5
-    sizeReqH2 `shouldBe` fixedSize 5
+    sizeReqH2 `shouldBe` fixedSize 10
 
   where
     wenv = mockWenv ()
