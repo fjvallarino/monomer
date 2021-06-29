@@ -12,6 +12,7 @@ import Monomer
 data TodoType
   = Home
   | Work
+  | Sports
   deriving (Eq, Show, Enum)
 
 data TodoStatus

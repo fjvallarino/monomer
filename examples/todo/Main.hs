@@ -20,56 +20,88 @@ buildUI
   -> TodoModel
   -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
+  todoSpacer = spacer_ [width 10]
   todoView idx t = slideWidget `key` todoKey where
     todoKey = todoRowKey t
+    todoDone = t ^. status == Done
+    (todoBg, todoFg)
+      | todoDone = (doneColor, editBgColor)
+      | otherwise = (pendingColor, editBgColor)
+    todoStatus = labelS (t ^. status)
+      `style` [textSize 12, padding 4, paddingH 8, radius 12, bgColor todoBg, textColor todoFg]
+    rowButton caption action = button caption action
+      `style` [width 60, textColor gray, border 1 gray, bgColor transparent]
+      `hover` [bgColor editBgColor]
+      `focus` [border 1 lightSkyBlue]
     todoRow = hstack [
-        labelS (t ^. todoType) `style` [width 50],
-        label (t ^. description) `style` [textThroughline_ (t ^. status == Done)],
+        vstack [
+          labelS (t ^. todoType) `style` [textSize 12, textColor darkGray],
+          spacer,
+          label (t ^. description) `style` [textThroughline_ todoDone]
+        ],
         filler,
-        labelS (t ^. status) `style` [width 100],
-        button "Edit" (TodoEdit idx t) `style` [width 60],
-        spacer,
-        button "Delete" (TodoDeleteBegin idx t) `style` [width 60]
-      ] `style` [paddingV 2]
+        box_ [alignRight] todoStatus `style` [width 100],
+        todoSpacer,
+        rowButton "Edit" (TodoEdit idx t),
+        todoSpacer,
+        rowButton "Delete" (TodoDeleteBegin idx t)
+      ] `style` [paddingT 10 | idx  > 0]
     slideWidget = fadeOut_ [onFinished (TodoDelete idx t)] todoRow
   todoEdit = vstack [
+      hstack [
+        label "Task:",
+        todoSpacer,
+        textField (activeTodo . description) `key` "todoDesc"
+      ],
+      todoSpacer,
       hgrid [
         hstack [
-          label "Type: ",
-          spacer,
+          label "Type:",
+          todoSpacer,
           textDropdownS (activeTodo . todoType) todoTypes `key` "todoType",
-          spacer
+          todoSpacer -- Added here to avoid grid expanding it to 1/3 total width
         ],
         hstack [
-          label "Status: ",
-          spacer,
+          label "Status:",
+          todoSpacer,
           textDropdownS (activeTodo . status) todoStatuses
         ]
       ],
-      spacer,
+      todoSpacer,
       hstack [
-        label "Description: ",
-        spacer,
-        textField (activeTodo . description) `key` "todoDesc"
-      ],
-      spacer,
-      hstack [
+        filler,
         case model ^. action of
-          TodoAdding -> button "Add" TodoAdd `style` [width 100]
-          TodoEditing idx -> button "Save" (TodoSave idx) `style` [width 100]
+          TodoAdding -> mainButton "Add" TodoAdd
+          TodoEditing idx -> mainButton "Save" (TodoSave idx)
           _ -> spacer,
-        spacer,
-        button "Cancel" TodoCancel `style` [width 100],
-        filler
+        todoSpacer,
+        button "Cancel" TodoCancel
         ]
-    ]
+    ] `style` [bgColor editBgColor, padding 20]
+  todoList = vstack (zipWith todoView [0..] (model ^. todos))
+  isEditing = model ^. action /= TodoNone
+  newButton = mainButton "New" TodoNew `key` "todoNew"
+    `visible` not isEditing
   widgetTree = vstack [
-      keystroke [("Esc", TodoCancel)]
-        (todoEdit `style` [padding 4]) `visible` (model ^. action /= TodoNone),
-      scroll $ vstack (zipWith todoView [0..] (model ^. todos)) `style` [paddingH 4],
+      keystroke [("Esc", TodoCancel)] todoEdit
+        `visible` isEditing,
+      scroll todoList `style` [padding 10],
       filler,
-      box_ [expandContent] (button "New" TodoNew `key` "todoNew") `style` [padding 4]
+      box_ [alignRight] newButton
+        `style` [bgColor editBgColor, padding 20]
     ]
+
+todoRowKey :: Todo -> Text
+todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
+
+doneColor :: Color
+doneColor = rgbHex "#61C354"
+
+pendingColor :: Color
+pendingColor = rgbHex "#F5BE4F"
+
+editBgColor :: Color
+editBgColor = rgbHex "#404040"
 
 handleEvent
   :: WidgetEnv TodoModel TodoEvt
@@ -78,37 +110,37 @@ handleEvent
   -> TodoEvt
   -> [EventResponse TodoModel TodoEvt TodoModel ()]
 handleEvent wenv node model evt = case evt of
-  TodoInit -> [setFocusOnKey wenv "todoNew"]
+  TodoInit -> [setFocusOnKey wenv "todoDesc"]
   TodoNew -> [
     Model $ model
       & action .~ TodoAdding
       & activeTodo .~ def,
-    setFocusOnKey wenv "todoType"]
+    setFocusOnKey wenv "todoDesc"]
   TodoEdit idx td -> [
     Model $ model
       & action .~ TodoEditing idx
       & activeTodo .~ td,
-    setFocusOnKey wenv "todoType"]
+    setFocusOnKey wenv "todoDesc"]
   TodoAdd -> [
     Model $ addNewTodo wenv model,
-    setFocusOnKey wenv "todoNew"]
+    setFocusOnKey wenv "todoDesc"]
   TodoSave idx -> [
     Model $ model
       & action .~ TodoNone
       & todos . ix idx .~ (model ^. activeTodo),
-    setFocusOnKey wenv "todoNew"]
+    setFocusOnKey wenv "todoDesc"]
   TodoDeleteBegin idx todo -> [
     Message (WidgetKey (todoRowKey todo)) AnimationStart]
   TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
-    setFocusOnKey wenv "todoNew"]
+    setFocusOnKey wenv "todoDesc"]
   TodoCancel -> [
     Model $ model
       & action .~ TodoNone
       & activeTodo .~ def,
-    setFocusOnKey wenv "todoNew"]
+    setFocusOnKey wenv "todoDesc"]
 
 addNewTodo :: WidgetEnv s e -> TodoModel -> TodoModel
 addNewTodo wenv model = newModel where
@@ -121,12 +153,9 @@ addNewTodo wenv model = newModel where
 remove :: Int -> [a] -> [a]
 remove idx ls = take idx ls ++ drop (idx + 1) ls
 
-todoRowKey :: Todo -> Text
-todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
-
 initialTodos :: [Todo]
 initialTodos = todos where
-  items = mconcat $ replicate 1 [
+  items = mconcat $ replicate 5 [
     Todo 0 Home Done "Tidy up the room",
     Todo 0 Home Pending "Buy groceries",
     Todo 0 Home Pending "Pay the bills",
