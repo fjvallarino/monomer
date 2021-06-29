@@ -434,11 +434,14 @@ updateStyles
   -> (WidgetNode s e, [WidgetRequest s e])
 updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
   items = node ^. L.children . ix 0 . L.children
-  slStyle = getSlStyle wenv config
+  normalStyle = getNormalStyle wenv config
+  slStyle
+    | newSlIdx == newHlIdx = getSlHlStyle wenv config
+    | otherwise = getSlStyle wenv config
   hlStyle = getHlStyle wenv config
   (newChildren, resizeReq) = (items, False)
     & updateItemStyle wenv False (_slIdx state) (_slStyle state)
-    & updateItemStyle wenv False (_hlIdx state) (_hlStyle state)
+    & updateItemStyle wenv False (_hlIdx state) (Just normalStyle)
     & updateItemStyle wenv True newHlIdx (Just hlStyle)
     & updateItemStyle wenv True newSlIdx (Just slStyle)
   newNode = node
@@ -488,9 +491,13 @@ getItemStyle node idx = itStyle where
   itStyle = node ^. itemLens . L.info . L.style
 
 getSlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
-getSlStyle wenv config = slStyle where
+getSlStyle wenv config = style where
   theme = collectTheme wenv L.selectListItemSelectedStyle
   style = fromJust (Just theme <> _slcItemSelectedStyle config)
+
+getSlHlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
+getSlHlStyle wenv config = slStyle where
+  style = getSlStyle wenv config
   slStyle = style
     & L.basic .~ style ^. L.focus
 
@@ -500,6 +507,10 @@ getHlStyle wenv config = hlStyle where
   style = fromJust (Just theme <> _slcItemStyle config)
   hlStyle = style
     & L.basic .~ style ^. L.focus
+
+getNormalStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
+getNormalStyle wenv config = style where
+  style = collectTheme wenv L.selectListItemStyle
 
 makeItemsList
   :: (Eq a, WidgetEvent e)
