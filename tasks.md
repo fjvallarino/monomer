@@ -722,7 +722,8 @@ Next
   - Add gap support in scroll?
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
-  - Dropdown should scroll to selected item when opening
+  - Dropdown should scroll to selected item when opening.
+  - Dropdown selected item does not seem to be marked on init.
   - Improve base theme creation (scale argument?)
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).

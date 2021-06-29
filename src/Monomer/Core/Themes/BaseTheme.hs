@@ -263,6 +263,7 @@ baseHover themeMod = baseBasic themeMod
   & L.dialogCloseIconStyle . L.cursorIcon ?~ CursorHand
   & L.dropdownStyle . L.bgColor ?~ inputBgHover themeMod
   & L.dropdownStyle . L.cursorIcon ?~ CursorHand
+  & L.dropdownListStyle . L.border ?~ border 1 (slMainBg themeMod)
   & L.dropdownItemStyle . L.bgColor ?~ slNormalBgHover themeMod
   & L.dropdownItemStyle . L.border ?~ border 1 (slNormalBgHover themeMod)
   & L.dropdownItemStyle . L.cursorIcon ?~ CursorHand
@@ -301,7 +302,7 @@ baseFocus themeMod = baseBasic themeMod
   & L.dialStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.dialStyle . L.sndColor ?~ inputSndFocus themeMod
   & L.dropdownStyle . L.border ?~ inputBorderFocus themeMod
-  & L.dropdownListStyle . L.border ?~ inputBorderFocus themeMod
+  & L.dropdownListStyle . L.border ?~ border 1 (slMainBg themeMod)
   & L.dropdownItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
   & L.numericFieldStyle . L.border ?~ inputBorderFocus themeMod
@@ -323,7 +324,6 @@ baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
   & L.btnStyle . L.bgColor ?~ btnBgHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgHover themeMod
-  & L.dropdownListStyle . L.border ?~ inputBorderFocus themeMod
 
 baseActive :: BaseThemeColors -> ThemeState
 baseActive themeMod = baseFocusHover themeMod
