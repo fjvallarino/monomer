@@ -269,7 +269,12 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   createDropdown wenv node newState = newNode where
     selected = currentValue wenv
-    mainStyle = collectTheme wenv L.dropdownStyle
+    themeStyle = collectTheme wenv L.dropdownStyle
+    mainStyle = def
+      & collectStyleField_ L.fgColor themeStyle
+      & collectStyleField_ L.hlColor themeStyle
+      & collectStyleField_ L.sndColor themeStyle
+      & collectStyleField_ L.text themeStyle
     mainNode = makeMain selected
       & L.info . L.style .~ mainStyle
     widgetId = node ^. L.info . L.widgetId
@@ -449,8 +454,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | otherwise = 0
 
   resize wenv node viewport children = resized where
+    style = activeStyle wenv node
+    contentArea = fromMaybe viewport (removeOuterBounds style viewport)
     Rect rx ry rw rh = viewport
-    !mainArea = viewport
+    Rect cx cy cw ch = contentArea
+    !mainArea = contentArea
     !listArea = viewport {
       _rY = ry + rh,
       _rH = listHeight wenv node
@@ -488,7 +496,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       size = style ^. L.text . non def . L.fontSize . non def
       arrowW = unFontSize size / 2
       dh = (h - arrowW) / 2
-      arrowRect = Rect (x + w - dh) (y + dh * 1.25) arrowW (arrowW / 2)
+      arrowRect = Rect (x + w - dh * 2) (y + dh * 1.25) arrowW (arrowW / 2)
 
   renderOverlay renderer wenv overlayNode = renderAction where
     widget = overlayNode ^. L.widget
