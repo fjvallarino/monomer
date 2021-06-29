@@ -165,7 +165,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   acceptBtn = mainButton accept acceptEvt `key` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
-  closeIcon = icon IconClose
+  closeIcon = icon_ IconClose [width 2]
     & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
   confirmTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
@@ -175,7 +175,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
       ],
       dialogBody wenv,
       filler,
-      box_ [alignLeft] buttons
+      box_ [alignRight] buttons
         & L.info . L.style <>~ collectTheme wenv L.dialogButtonsStyle
     ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
   confirmBox = box_ [onClickEmpty cancelEvt] confirmTree
