@@ -716,6 +716,13 @@
 Next
   - Rethink default style for label.
   - Apply improved styles to examples.
+  - Can image be aligned to right when fitting is applied?
+  - Should text be aligned based on ascending instead of line height?
+    - Review Books example.
+  - Add gap support in scroll?
+  - Think about rendering with custom beginFrame for some widgets
+    - Could work for rounded images.
+  - Dropdown should scroll to selected item when opening
   - Improve base theme creation (scale argument?)
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).

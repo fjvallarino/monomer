@@ -23,49 +23,60 @@ buildUI
   -> BooksModel
   -> WidgetNode BooksModel BooksEvt
 buildUI wenv model = widgetTree where
-  bookImage imgId size = maybe spacer coverImg imgId where
+  bookImage imgId size = maybe filler coverImg imgId where
     baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
     imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
-    coverImg i = image_ (imgUrl i) [fitHeight]
-  bookRow b = box_ [expandContent, onClick (BooksShowDetails b)]
-    (bookRowContent b)
-    `hover` [bgColor gray, cursorIcon CursorHand]
+    coverImg i = image_ (imgUrl i) [fitFill]
+  bookRow b = box_ cfg content `style` [padding 10, paddingT 0] where
+    cfg = [expandContent, onClick (BooksShowDetails b)]
+    content = bookRowContent b
+      `style` [bgColor rowBgColor, height 80, padding 20, radius 5]
+      `hover` [bgColor gray, cursorIcon CursorHand]
   bookRowContent b = hstack [
       vstack [
         hstack [
-          label "Title: " `style` [textFont "Bold"],
+          label "Title:" `style` [textFont "Bold"],
+          spacer,
           label_ (b ^. title) [resizeFactor 1]
         ],
+        spacer,
         hstack [
-          label "Authors: " `style` [textFont "Bold"],
+          label "Authors:" `style` [textFont "Bold"],
+          spacer,
           label_ (T.intercalate ", " (b ^. authors)) [resizeFactor 1]
         ]
       ],
       filler,
       vstack [
         hstack [
-          label "Year: " `style` [textFont "Bold"],
+          label "Year:" `style` [textFont "Bold"],
+          spacer,
           label $ maybe "" showt (b ^. year)
         ]
       ] `style` [width 100],
-      bookImage (b ^. cover) "S" `style` [width 50]
-    ] `style` [height 50, padding 5]
-  bookDetail b = content where
+      bookImage (b ^. cover) "S" `style` [width 35]
+    ]
+  bookDetail b = content `style` [minWidth 500, paddingH 20] where
     hasCover = isJust (b ^. cover)
-    shortLabel value = label value `style` [width 80, textFont "Bold", textTop]
+    shortLabel value = label value `style` [textFont "Bold", textTop]
     longLabel value = label_ value [multiLine, ellipsis, trimSpaces]
     content = hstack . concat $ [[
       vstack [
         hstack [
-          shortLabel "Title: ",
+          shortLabel "Title:",
+          spacer,
           longLabel (b ^. title)
         ],
+        spacer_ [width 10],
         hstack [
-          shortLabel "Authors: ",
+          shortLabel "Authors:",
+          spacer,
           longLabel (T.intercalate ", " (b ^. authors))
         ],
+        spacer_ [width 10],
         hstack [
-          shortLabel "Year: ",
+          shortLabel "Year:",
+          spacer,
           label $ maybe "" showt (b ^. year)
         ]
       ]],
@@ -78,23 +89,30 @@ buildUI wenv model = widgetTree where
     content = label "Searching" `style` [textSize 20, textColor black]
   searchForm = keystroke [("Enter", BooksSearch)] $ vstack [
       hstack [
-        label "Query: ",
-        textField query `key` "query"
-      ],
-      spacer,
-      hstack [
-        button "Search" BooksSearch,
-        filler
-      ]
-    ] `style` [padding 5]
+        label "Query:",
+        spacer_ [width 10],
+        textField query `key` "query",
+        spacer_ [width 10],
+        mainButton "Search" BooksSearch
+      ] `style` [bgColor searchBgColor, padding 25]
+    ]
+  countLabel = label caption `style` [padding 10] where
+    caption = "Books (" <> showt (length $ model ^. books) <> ")"
   widgetTree = zstack [
       vstack [
         searchForm,
+        countLabel,
         vscroll (vstack (bookRow <$> model ^. books)) `key` "mainScroll"
       ],
       bookOverlay `visible` isJust (model ^. selected),
       searchOverlay `visible` model ^. searching
     ]
+
+searchBgColor :: Color
+searchBgColor = rgbHex "#404040"
+
+rowBgColor :: Color
+rowBgColor = rgbHex "#212121"
 
 handleEvent
   :: WidgetEnv BooksModel BooksEvt
@@ -139,4 +157,5 @@ main = do
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appInitEvent BooksInit
       ]
-    initModel = BooksModel "borges-bioy" False Nothing []
+    initBook = Book "This is my book" ["Author1", "Author 2"] (Just 2000) (Just 1234)
+    initModel = BooksModel "pedro paramo" False (Just initBook) [initBook]
