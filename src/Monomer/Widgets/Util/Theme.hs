@@ -26,22 +26,22 @@ import qualified Monomer.Core.Lens as L
 collectThemeField_
   :: WidgetEnv s e               -- ^ The widget environment (to get the theme).
   -> Lens' StyleState (Maybe t)  -- ^ The target field of the style.
-  -> Lens' ThemeState t          -- ^ The source field of the theme.
+  -> Lens' ThemeState (Maybe t)  -- ^ The source field of the theme.
   -> Style                       -- ^ The target style.
   -> Style                       -- ^ The updated style.
 collectThemeField_ wenv fieldStyle fieldTheme target = style where
   basic = Just $ target ^. L.basic . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.basic . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.basic . fieldTheme
   hover = Just $ target ^. L.hover . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.hover . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.hover . fieldTheme
   focus = Just $ target ^. L.focus . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.focus . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.focus . fieldTheme
   focusHover = Just $ target ^. L.focusHover . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.focusHover . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.focusHover . fieldTheme
   active = Just $ target ^. L.active . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.active . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.active . fieldTheme
   disabled = Just $ target ^. L.disabled . non def
-    & fieldStyle ?~ wenv ^. L.theme . L.disabled . fieldTheme
+    & fieldStyle .~ wenv ^. L.theme . L.disabled . fieldTheme
   style = Style basic hover focus focusHover active disabled
 
 -- | Collects all the style states from a given field in the active theme.

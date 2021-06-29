@@ -71,11 +71,14 @@ collectStyleField_ fieldS source target = style where
     sourceState = source ^. stateLens
     targetState = target ^. stateLens
     value = sourceState ^? _Just . fieldS . _Just
-    updateSource val = targetState ^. non def
+    setTarget val = targetState ^. non def
       & fieldS ?~ val
+    resetTarget = targetState ^. non def
+      & fieldS .~ Nothing
     result
-      | isJust value = updateSource <$> value
-      | otherwise = targetState
+      | isJust value = setTarget <$> value
+      | isJust targetState = Just resetTarget
+      | otherwise = Nothing
   basic = setValue L.basic
   hover = setValue L.hover
   focus = setValue L.focus
