@@ -110,11 +110,11 @@ handleEventValue = describe "handleEventValue" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Fixed 71" $
-    sizeReqW `shouldBe` fixedSize 71
+  it "should return width = Fixed 65" $
+    sizeReqW `shouldBe` fixedSize 65
 
-  it "should return height = Fixed 26" $
-    sizeReqH `shouldBe` fixedSize 26
+  it "should return height = Fixed 20" $
+    sizeReqH `shouldBe` fixedSize 20
 
   where
     wenv = mockWenvEvtUnit (TestModel False)

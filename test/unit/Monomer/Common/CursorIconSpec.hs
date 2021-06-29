@@ -151,7 +151,7 @@ handleEventOverlay = describe "handleEventOverlay" $ do
     icons egs = getIcons wenv node egs
     p1 = Point 100 10   -- Header
     p2 = Point 100 50   -- List overlay
-    p3 = Point 100 400  -- Outside
+    p3 = Point 100 460  -- Outside
 
 getIcons
   :: Eq s

@@ -66,10 +66,10 @@ handleEvent = describe "handleEvent" $ do
     clickModel (Point 10 240) orangeNode ^. fruit `shouldBe` Orange
 
   it "should not update the model when clicked on the spacer" $
-    clickModel (Point 48 240) orangeNode ^. fruit `shouldBe` Apple
+    clickModel (Point 40 240) orangeNode ^. fruit `shouldBe` Apple
 
   it "should update the model when clicked on the radio" $
-    clickModel (Point 61 240) orangeNode ^. fruit `shouldBe` Orange
+    clickModel (Point 60 240) orangeNode ^. fruit `shouldBe` Orange
 
   it "should update the model when Enter/Space is pressed" $
     keyModel keyReturn bananaNode ^. fruit `shouldBe` Banana
@@ -99,10 +99,10 @@ handleEventValue = describe "handleEventValue" $ do
     clickModel (Point 10 240) orangeNode `shouldBe` Seq.singleton (FruitSel Orange)
 
   it "should not generate a user provided event when clicked on the spacer" $
-    clickModel (Point 48 240) orangeNode `shouldBe` Seq.empty
+    clickModel (Point 40 240) orangeNode `shouldBe` Seq.empty
 
   it "should generate a user provided event when clicked on the radio" $
-    clickModel (Point 61 240) orangeNode `shouldBe` Seq.singleton (FruitSel Orange)
+    clickModel (Point 60 240) orangeNode `shouldBe` Seq.singleton (FruitSel Orange)
 
   it "should generate a user provided event when Enter/Space is pressed" $
     keyModel keyReturn bananaNode `shouldBe` Seq.singleton (FruitSel Banana)
@@ -117,11 +117,11 @@ handleEventValue = describe "handleEventValue" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Fixed 71" $
-    sizeReqW `shouldBe` fixedSize 71
+  it "should return width = Fixed 65" $
+    sizeReqW `shouldBe` fixedSize 65
 
-  it "should return height = Fixed 26" $
-    sizeReqH `shouldBe` fixedSize 26
+  it "should return height = Fixed 20" $
+    sizeReqH `shouldBe` fixedSize 20
 
   where
     wenv = mockWenvEvtUnit (TestModel Apple)
