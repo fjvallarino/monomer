@@ -716,14 +716,15 @@
   - Apply improved styles to examples.
   - Fix button disabled click.
   - Improve disabled styles.
+  - timeField does not have a theme section.
 
 Next
-  - Dropdown should scroll to selected item when opening.
-  - Dropdown selected item does not seem to be marked on init.
-  - Can image be aligned to right when fitting is applied?
   - Should text be aligned based on ascending instead of line height?
     - Review Books example.
+  - Dropdown should scroll to selected item when opening.
+  - Dropdown selected item does not seem to be marked on init.
   - Add gap support in scroll?
+  - Can image be aligned to right when fitting is applied?
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
   - Improve base theme creation (scale argument?)

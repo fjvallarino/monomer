@@ -166,6 +166,10 @@ dateInputStyle :: BaseThemeColors -> StyleState
 dateInputStyle themeMod = textInputStyle themeMod
   & L.text . non def . L.alignH ?~ ATRight
 
+timeInputStyle :: BaseThemeColors -> StyleState
+timeInputStyle themeMod = textInputStyle themeMod
+  & L.text . non def . L.alignH ?~ ATRight
+
 selectListItemStyle :: BaseThemeColors -> StyleState
 selectListItemStyle themeMod = def
   & L.text ?~ (normalFont & L.fontColor ?~ slNormalText themeMod)
@@ -245,6 +249,7 @@ baseBasic themeMod = def
   & L.sliderStyle . L.sndColor ?~ inputSndBasic themeMod
   & L.textAreaStyle .~ textInputStyle themeMod
   & L.textFieldStyle .~ textInputStyle themeMod
+  & L.timeFieldStyle .~ timeInputStyle themeMod
   & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
   & L.tooltipStyle . L.bgColor ?~ tooltipBg themeMod
   & L.tooltipStyle . L.border ?~ border 1 (tooltipBorder themeMod)
@@ -295,6 +300,7 @@ baseHover themeMod = baseBasic themeMod
   & L.sliderStyle . L.cursorIcon ?~ CursorHand
   & L.textAreaStyle . L.cursorIcon ?~ CursorIBeam
   & L.textFieldStyle . L.cursorIcon ?~ CursorIBeam
+  & L.timeFieldStyle . L.cursorIcon ?~ CursorIBeam
 
 baseFocus :: BaseThemeColors -> ThemeState
 baseFocus themeMod = baseBasic themeMod
@@ -324,6 +330,8 @@ baseFocus themeMod = baseBasic themeMod
   & L.textAreaStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.textFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.textFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.timeFieldStyle . L.border ?~ inputBorderFocus themeMod
+  & L.timeFieldStyle . L.hlColor ?~ inputSelFocus themeMod
 
 baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
@@ -355,6 +363,8 @@ baseActive themeMod = baseFocusHover themeMod
   & L.textAreaStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.textFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.textFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.timeFieldStyle . L.border ?~ inputBorderFocus themeMod
+  & L.timeFieldStyle . L.hlColor ?~ inputSelFocus themeMod
 
 baseDisabled :: BaseThemeColors -> ThemeState
 baseDisabled themeMod = baseBasic themeMod
@@ -384,3 +394,5 @@ baseDisabled themeMod = baseBasic themeMod
   & L.textAreaStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
   & L.textFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
   & L.textFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.timeFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.timeFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
