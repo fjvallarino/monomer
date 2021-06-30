@@ -719,10 +719,12 @@
   - timeField does not have a theme section.
 
 Next
+  - Refactor InputField to use same text centering function as the rest of the library.
   - Should text be aligned based on ascending instead of line height?
     - Review Books example.
   - Dropdown should scroll to selected item when opening.
   - Dropdown selected item does not seem to be marked on init.
+  - Check externalLink disabled state click.
   - Add gap support in scroll?
   - Can image be aligned to right when fitting is applied?
   - Think about rendering with custom beginFrame for some widgets

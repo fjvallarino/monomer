@@ -153,9 +153,7 @@ data InputFieldState a = InputFieldState {
   _ifsCurrText :: !Text,
   -- | The current cursor position.
   _ifsCursorPos :: !Int,
-  {-|
-  The selection start. Once selection begins, it does not change until done.
-  -}
+  -- | The selection start. Once selection begins, it doesn't change until done.
   _ifsSelStart :: Maybe Int,
   -- | Whether a drag event is active.
   _ifsDragSelActive :: Bool,
@@ -192,8 +190,8 @@ initialState value = InputFieldState {
   _ifsHistIdx = 0
 }
 
-caretWidth :: Double
-caretWidth = 2
+caretW :: Double
+caretW = 2
 
 caretMs :: Int
 caretMs = 500
@@ -637,7 +635,7 @@ makeInputField config state = widget where
 
   render wenv node renderer = do
     when (isJust currSel) $
-      drawRect renderer selRect (Just selColor) Nothing
+      drawRect renderer (getSelRect state) (Just selColor) Nothing
 
     when (currText == "" && not (null currPlaceholder)) $
       drawInTranslation renderer (Point cx cy) $
@@ -646,35 +644,17 @@ makeInputField config state = widget where
     renderContent renderer state style currText
 
     when caretRequired $
-      drawRect renderer caretRect (Just caretColor) Nothing
+      drawRect renderer (getCaretRect carea state) (Just caretColor) Nothing
     where
       style = activeStyle wenv node
       placeholderStyle = style
         & L.text . non def . L.fontColor .~ style ^. L.sndColor
-      contentArea = getContentArea style node
-      Rect cx cy cw ch = contentArea
-      textRect = _ifsTextRect state
-      textMetrics = _ifsTextMetrics state
-      Rect tx ty tw th = textRect
-      TextMetrics ta td tl = textMetrics
-      selRect = maybe def mkSelRect currSel
-      mkSelRect end
-        | currPos > end = Rect (tx + gx end) (ty - td) (gw end (currPos - 1)) th
-        | otherwise = Rect (tx + gx currPos) (ty - td) (gw currPos (end - 1)) th
-      gx idx = _glpXMin (glyph idx)
-      gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
-      nglyphs = Seq.length currGlyphs
-      glyph idx = Seq.index currGlyphs (min idx (nglyphs - 1))
+      carea = getContentArea style node
+      Rect cx cy _ _ = carea
       ts = _weTimestamp wenv
       selColor = styleHlColor style
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
-      caretPos
-        | currPos == 0 = 0
-        | currPos == nglyphs = _glpXMax (glyph $ currPos - 1)
-        | otherwise = _glpXMin (glyph currPos)
-      caretX tx = max 0 $ min (cx + cw - caretWidth) (tx + caretPos)
-      caretRect = Rect (caretX tx) (ty - td) caretWidth th
 
 renderContent :: Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
 renderContent renderer state style currText = do
@@ -691,13 +671,53 @@ renderContent renderer state style currText = do
     tsFontSize = styleFontSize style
     tsFontColor = styleFontColor style
 
-delim :: Char -> Bool
-delim c = c `elem` [' ', '.', ',', '/', '-', ':']
+getCaretH :: InputFieldState a -> Double
+getCaretH state = ta - td * 2 where
+  TextMetrics ta td tl = _ifsTextMetrics state
 
-setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s e]
-setModelValid config
-  | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
-  | otherwise = const []
+getCaretRect :: Rect -> InputFieldState a -> Rect
+getCaretRect carea state = caretRect where
+  Rect cx cy cw ch = carea
+  Rect tx ty tw th = _ifsTextRect state
+  glyphs = _ifsGlyphs state
+  pos = _ifsCursorPos state
+  caretPos
+    | pos == 0 = 0
+    | pos >= length glyphs = _glpXMax (seqLast glyphs)
+    | otherwise = _glpXMin (Seq.index glyphs pos)
+  caretX tx = max 0 $ min (cx + cw - caretW) (tx + caretPos)
+  caretRect = Rect (caretX tx) ty caretW (getCaretH state)
+
+getSelRect :: InputFieldState a -> Rect
+getSelRect state = selRect where
+  TextMetrics ta td tl = _ifsTextMetrics state
+  Rect tx ty tw th = _ifsTextRect state
+  glyphs = _ifsGlyphs state
+  pos = _ifsCursorPos state
+  sel = _ifsSelStart state
+  caretH = getCaretH state
+  glyph idx = Seq.index glyphs (min idx (length glyphs - 1))
+  gx idx = _glpXMin (glyph idx)
+  gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
+  mkSelRect end
+    | pos > end = Rect (tx + gx end) ty (gw end (pos - 1)) caretH
+    | otherwise = Rect (tx + gx pos) ty (gw pos (end - 1)) caretH
+  selRect = maybe def mkSelRect sel
+
+findClosestGlyphPos :: InputFieldState a -> Point -> Int
+findClosestGlyphPos state point = newPos where
+  Point x y = point
+  textRect = _ifsTextRect state
+  localX = x - _rX textRect
+  textLen = getGlyphsMax (_ifsGlyphs state)
+  glyphs
+    | Seq.null (_ifsGlyphs state) = Seq.empty
+    | otherwise = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
+  glyphStart i g = (i, abs (_glpXMin g - localX))
+  pairs = Seq.mapWithIndex glyphStart glyphs
+  cpm (_, g1) (_, g2) = compare g1 g2
+  diffs = Seq.sortBy cpm pairs
+  newPos = maybe 0 fst (Seq.lookup 0 diffs)
 
 genReqsEvents
   :: (Eq a)
@@ -762,21 +782,6 @@ moveHistory wenv node state config steps = result where
     }
     newNode = node & L.widget .~ makeInputField config newState
 
-findClosestGlyphPos :: InputFieldState a -> Point -> Int
-findClosestGlyphPos state point = newPos where
-  Point x y = point
-  textRect = _ifsTextRect state
-  localX = x - _rX textRect
-  textLen = getGlyphsMax (_ifsGlyphs state)
-  glyphs
-    | Seq.null (_ifsGlyphs state) = Seq.empty
-    | otherwise = _ifsGlyphs state |> GlyphPos ' ' textLen 0 0
-  glyphStart i g = (i, abs (_glpXMin g - localX))
-  pairs = Seq.mapWithIndex glyphStart glyphs
-  cpm (_, g1) (_, g2) = compare g1 g2
-  diffs = Seq.sortBy cpm pairs
-  newPos = maybe 0 fst (Seq.lookup 0 diffs)
-
 newStateFromHistory
   :: WidgetEnv s e
   -> WidgetNode s e
@@ -813,10 +818,8 @@ newTextState wenv node oldState config value text cursor sel = newState where
   cursorR = cursor == T.length text
   !textMetrics = getTextMetrics wenv style
   !textRect = getTextRect wenv style contentArea alignH alignV text
-  Rect _ _ tw th = textRect
+  Rect tx ty tw th = textRect
   textFits = cw >= tw
-  TextMetrics ta ts tl = textMetrics
-  Rect tx ty _ _ = textRect
   glyphs = getTextGlyphs wenv style text
   glyphStart = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   glyphOffset = getGlyphsMin glyphs
@@ -825,12 +828,12 @@ newTextState wenv node oldState config value text cursor sel = newState where
   oldOffset = _ifsOffset oldState
   newOffset
     | round cw == 0 = 0
-    | textFits && alignR = -caretWidth
+    | textFits && alignR = -caretW
     | textFits = 0
-    | alignL && cursorL = cx - tx + caretWidth
+    | alignL && cursorL = cx - tx + caretW
     | alignL && curX + oldOffset > cx + cw = cx + cw - curX
     | alignL && curX + oldOffset < cx = cx - curX
-    | alignR && cursorR = -caretWidth
+    | alignR && cursorR = -caretW
     | alignR && curX + oldOffset > cx + cw = tw - glyphX
     | alignR && curX + oldOffset < cx = tw - cw - glyphX
     | alignC && curX + oldOffset > cx + cw = cx + cw - curX
@@ -872,3 +875,11 @@ updatePlaceholder wenv node state config = newState where
   newState = state {
     _ifsPlaceholder = lines
   }
+
+setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s e]
+setModelValid config
+  | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
+  | otherwise = const []
+
+delim :: Char -> Bool
+delim c = c `elem` [' ', '.', ',', '/', '-', ':']

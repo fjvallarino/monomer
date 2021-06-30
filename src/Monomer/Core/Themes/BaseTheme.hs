@@ -25,6 +25,7 @@ import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L
+import qualified Monomer.Graphics.Lens as L
 
 -- | Creates a theme using the provided colors.
 baseTheme :: BaseThemeColors -> Theme
@@ -152,7 +153,7 @@ textInputStyle themeMod = def
   & L.text ?~ (normalFont & L.fontColor ?~ inputText themeMod)
   & L.bgColor ?~ inputBgBasic themeMod
   & L.fgColor ?~ inputFgBasic themeMod
-  & L.sndColor ?~ inputSndBasic themeMod
+  & L.sndColor ?~ (inputSndBasic themeMod & L.a .~ 0.6)
   & L.hlColor ?~ inputSelBasic themeMod
   & L.border ?~ border 1 (inputBorder themeMod)
   & L.radius ?~ radius 4
