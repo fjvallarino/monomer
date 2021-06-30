@@ -47,18 +47,18 @@ data BaseThemeColors = BaseThemeColors {
   btnBgActive :: Color,
   btnBgDisabled :: Color,
   btnText :: Color,
+  btnTextDisabled :: Color,
   btnMainFocusBorder :: Color,
   btnMainBgBasic :: Color,
   btnMainBgHover :: Color,
   btnMainBgActive :: Color,
   btnMainBgDisabled :: Color,
   btnMainText :: Color,
+  btnMainTextDisabled :: Color,
   dialogBg :: Color,
   dialogBorder :: Color,
   dialogText :: Color,
   dialogTitleText :: Color,
-  disabledBg :: Color,
-  disabledText :: Color,
   emptyOverlay :: Color,
   externalLinkColor :: Color,
   iconFg :: Color,
@@ -70,21 +70,26 @@ data BaseThemeColors = BaseThemeColors {
   inputBgHover :: Color,
   inputBgFocus :: Color,
   inputBgActive :: Color,
+  inputBgDisabled :: Color,
   inputFgBasic :: Color,
   inputFgHover :: Color,
   inputFgFocus :: Color,
   inputFgActive :: Color,
+  inputFgDisabled :: Color,
   inputSndBasic :: Color,
   inputSndHover :: Color,
   inputSndFocus :: Color,
   inputSndActive :: Color,
+  inputSndDisabled :: Color,
   inputHlBasic :: Color,
   inputHlHover :: Color,
   inputHlFocus :: Color,
   inputHlActive :: Color,
+  inputHlDisabled :: Color,
   inputSelBasic :: Color,
   inputSelFocus :: Color,
   inputText :: Color,
+  inputTextDisabled :: Color,
   labelText :: Color,
   scrollBarBasic :: Color,
   scrollThumbBasic :: Color,
@@ -353,12 +358,29 @@ baseActive themeMod = baseFocusHover themeMod
 
 baseDisabled :: BaseThemeColors -> ThemeState
 baseDisabled themeMod = baseBasic themeMod
-  & L.btnStyle . L.text . non def . L.fontColor ?~ disabledText themeMod
+  & L.btnStyle . L.text . non def . L.fontColor ?~ btnTextDisabled themeMod
   & L.btnStyle . L.bgColor ?~ btnBgDisabled themeMod
   & L.btnStyle . L.border ?~ border 1 (btnBgDisabled themeMod)
-  & L.btnMainStyle . L.text . non def . L.fontColor ?~ disabledText themeMod
+  & L.btnMainStyle . L.text . non def . L.fontColor ?~ btnMainTextDisabled themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgDisabled themeMod
   & L.btnMainStyle . L.border ?~ border 1 (btnMainBgDisabled themeMod)
-  & L.dropdownStyle . L.text . non def . L.fontColor ?~ disabledText themeMod
-  & L.dropdownStyle . L.bgColor ?~ disabledBg themeMod
-  & L.dropdownStyle . L.border ?~ border 1 (disabledBg themeMod)
+  & L.checkboxStyle . L.fgColor ?~ inputFgDisabled themeMod
+  & L.checkboxStyle . L.hlColor ?~ inputHlDisabled themeMod
+  & L.dateFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.dateFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.dialStyle . L.fgColor ?~ inputFgDisabled themeMod
+  & L.dialStyle . L.sndColor ?~ inputSndDisabled themeMod
+  & L.dropdownStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.dropdownStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.dropdownStyle . L.border ?~ border 1 (inputBgDisabled themeMod)
+  & L.numericFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.numericFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.radioStyle . L.fgColor ?~ inputFgDisabled themeMod
+  & L.radioStyle . L.hlColor ?~ inputHlDisabled themeMod
+  & L.sliderStyle . L.fgColor ?~ inputFgDisabled themeMod
+  & L.sliderStyle . L.hlColor ?~ inputHlDisabled themeMod
+  & L.sliderStyle . L.sndColor ?~ inputSndDisabled themeMod
+  & L.textAreaStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.textAreaStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.textFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
+  & L.textFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
