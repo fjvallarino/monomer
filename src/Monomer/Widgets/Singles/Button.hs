@@ -193,8 +193,10 @@ makeButton caption config = widget where
 
   getActiveStyle wenv node = styleState where
     style = node ^. L.info . L.style
+    isEnabled = node ^. L.info . L.enabled
+    isActive = isNodeTreeActive wenv node
     styleState
-      | isNodeTreeActive wenv node = fromMaybe def (_styleActive style)
+      | isEnabled && isActive = fromMaybe def (_styleActive style)
       | otherwise = activeStyle wenv node
 
   createChildNode wenv node = newNode where
