@@ -37,21 +37,23 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   listItem idx item = hstack [
-      label_ (item ^. text) [ellipsis] `style` [width 150],
+      label_ (item ^. text) [ellipsis] `style` [width 85],
       spacer,
       textField (items . singular (ix idx) . text),
       spacer,
       button "Delete" (RemoveItem idx)
-    ] `key` showt (item ^. ts) `style` [paddingT 5]
+    ] `key` showt (item ^. ts) `style` [paddingT 10]
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description:",
         spacer,
         textField_ newItemText [placeholder "Write here!"] `key` "description",
         spacer,
-        button "Add" AddItem `style` [paddingH 5]
+        button "Add" AddItem
+          `style` [paddingH 5]
+          `enabled` (model ^. newItemText /= "")
       ],
-      separatorLine `style` [paddingT 20, paddingB 15],
+      separatorLine `style` [paddingT 20, paddingB 10],
       vstack (zipWith listItem [0..] (model ^. items))
     ] `style` [padding 20]
 
@@ -63,12 +65,15 @@ handleEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
   AppInit -> []
-  AddItem -> [Model $ model
-    & newItemText .~ ""
-    & items .~ newItem : model ^. items,
-    setFocusOnKey wenv "description"]
+  AddItem
+    | model ^. newItemText /= "" -> [
+      Model $ model
+        & newItemText .~ ""
+        & items .~ newItem : model ^. items,
+      setFocusOnKey wenv "description"]
   RemoveItem idx -> [Model $ model
     & items .~ removeIdx idx (model ^. items)]
+  _ -> []
   where
     newItem = ListItem (wenv ^. L.timestamp) (model ^. newItemText)
 

@@ -712,18 +712,20 @@
   - Add tests for labeledCheckbox and labeledRadio.
   - Try simple example rendering on a separate thread.
     - Created sdl-continuous-resize which works correctly.
-
-Next
   - Rethink default style for label.
   - Apply improved styles to examples.
+  - Fix button disabled click.
+  - Improve disabled styles.
+
+Next
+  - Dropdown should scroll to selected item when opening.
+  - Dropdown selected item does not seem to be marked on init.
   - Can image be aligned to right when fitting is applied?
   - Should text be aligned based on ascending instead of line height?
     - Review Books example.
   - Add gap support in scroll?
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
-  - Dropdown should scroll to selected item when opening.
-  - Dropdown selected item does not seem to be marked on init.
   - Improve base theme creation (scale argument?)
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).
