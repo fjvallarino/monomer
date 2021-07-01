@@ -56,7 +56,7 @@ data ButtonType
 
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
-  _btnLabelCfg :: LabelCfg,
+  _btnLabelCfg :: LabelCfg s e,
   _btnOnFocusReq :: [Path -> WidgetRequest s e],
   _btnOnBlurReq :: [Path -> WidgetRequest s e],
   _btnOnClickReq :: [WidgetRequest s e]
@@ -249,6 +249,6 @@ makeButton caption config = widget where
 
   resize wenv node viewport children = resized where
     style = getActiveStyle wenv node
-    carea = removeOuterBounds style viewport
-    assignedAreas = Seq.fromList [viewport]
+    carea = fromMaybe viewport (removeOuterBounds style viewport)
+    assignedAreas = Seq.fromList [carea]
     resized = (resultNode node, assignedAreas)

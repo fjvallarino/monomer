@@ -63,7 +63,7 @@ import qualified Monomer.Lens as L
 
 data LabeledCheckboxCfg s e = LabeledCheckboxCfg {
   _lchTextSide :: Maybe RectSide,
-  _lchLabelCfg :: LabelCfg,
+  _lchLabelCfg :: LabelCfg s e,
   _lchCheckboxCfg :: CheckboxCfg s e
 }
 

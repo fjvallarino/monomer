@@ -45,17 +45,18 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-data LabelCfg = LabelCfg {
+data LabelCfg s e = LabelCfg {
   _lscIgnoreTheme :: Maybe Bool,
   _lscTextTrim :: Maybe Bool,
   _lscTextEllipsis :: Maybe Bool,
   _lscTextMultiLine :: Maybe Bool,
   _lscTextMaxLines :: Maybe Int,
   _lscFactorW :: Maybe Double,
-  _lscFactorH :: Maybe Double
+  _lscFactorH :: Maybe Double,
+  _lscActiveStyle :: Maybe (WidgetEnv s e -> WidgetNode s e -> StyleState)
 }
 
-instance Default LabelCfg where
+instance Default (LabelCfg s e) where
   def = LabelCfg {
     _lscIgnoreTheme = Nothing,
     _lscTextTrim = Nothing,
@@ -63,10 +64,11 @@ instance Default LabelCfg where
     _lscTextMultiLine = Nothing,
     _lscTextMaxLines = Nothing,
     _lscFactorW = Nothing,
-    _lscFactorH = Nothing
+    _lscFactorH = Nothing,
+    _lscActiveStyle = Nothing
   }
 
-instance Semigroup LabelCfg where
+instance Semigroup (LabelCfg s e) where
   (<>) l1 l2 = LabelCfg {
     _lscIgnoreTheme = _lscIgnoreTheme l2 <|> _lscIgnoreTheme l1,
     _lscTextTrim = _lscTextTrim l2 <|> _lscTextTrim l1,
@@ -74,44 +76,45 @@ instance Semigroup LabelCfg where
     _lscTextMultiLine = _lscTextMultiLine l2 <|> _lscTextMultiLine l1,
     _lscTextMaxLines = _lscTextMaxLines l2 <|> _lscTextMaxLines l1,
     _lscFactorW = _lscFactorW l2 <|> _lscFactorW l1,
-    _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1
+    _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1,
+    _lscActiveStyle = _lscActiveStyle l2 <|> _lscActiveStyle l1
   }
 
-instance Monoid LabelCfg where
+instance Monoid (LabelCfg s e) where
   mempty = def
 
-instance CmbIgnoreTheme LabelCfg where
+instance CmbIgnoreTheme (LabelCfg s e) where
   ignoreTheme_ ignore = def {
     _lscIgnoreTheme = Just ignore
   }
 
-instance CmbTrimSpaces LabelCfg where
+instance CmbTrimSpaces (LabelCfg s e) where
   trimSpaces_ trim = def {
     _lscTextTrim = Just trim
   }
 
-instance CmbEllipsis LabelCfg where
+instance CmbEllipsis (LabelCfg s e) where
   ellipsis_ ellipsis = def {
     _lscTextEllipsis = Just ellipsis
   }
 
-instance CmbMultiLine LabelCfg where
+instance CmbMultiLine (LabelCfg s e) where
   multiLine_ multi = def {
     _lscTextMultiLine = Just multi
   }
 
-instance CmbMaxLines LabelCfg where
+instance CmbMaxLines (LabelCfg s e) where
   maxLines count = def {
     _lscTextMaxLines = Just count
   }
 
-instance CmbResizeFactor LabelCfg where
+instance CmbResizeFactor (LabelCfg s e) where
   resizeFactor s = def {
     _lscFactorW = Just s,
     _lscFactorH = Just s
   }
 
-instance CmbResizeFactorDim LabelCfg where
+instance CmbResizeFactorDim (LabelCfg s e) where
   resizeFactorW w = def {
     _lscFactorW = Just w
   }
@@ -132,7 +135,7 @@ label :: Text -> WidgetNode s e
 label caption = label_ caption def
 
 -- | Creates a label using the provided 'Text'. Accepts config.
-label_ :: Text -> [LabelCfg] -> WidgetNode s e
+label_ :: Text -> [LabelCfg s e] -> WidgetNode s e
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
   state = LabelState caption Nothing def Seq.Empty (0, False)
@@ -143,10 +146,10 @@ labelS :: Show a => a -> WidgetNode s e
 labelS caption = labelS_ caption def
 
 -- | Creates a label using the 'Show' instance of the type. Accepts config.
-labelS_ :: Show a => a -> [LabelCfg] -> WidgetNode s e
+labelS_ :: Show a => a -> [LabelCfg s e] -> WidgetNode s e
 labelS_ caption configs = label_ (T.pack . show $ caption) configs
 
-makeLabel :: LabelCfg -> LabelState -> Widget s e
+makeLabel :: LabelCfg s e -> LabelState -> Widget s e
 makeLabel config state = widget where
   baseWidget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
@@ -170,6 +173,7 @@ makeLabel config state = widget where
     | _lscTextMultiLine config == Just True = MultiLine
     | otherwise = SingleLine
   maxLines = _lscTextMaxLines config
+  labelActiveStyle = fromMaybe activeStyle (_lscActiveStyle config)
   LabelState caption textStyle textRect textLines prevResize = state
 
   getBaseStyle wenv node
@@ -177,7 +181,7 @@ makeLabel config state = widget where
     | otherwise = Just $ collectTheme wenv L.labelStyle
 
   init wenv node = resultNode newNode where
-    style = activeStyle wenv node
+    style = labelActiveStyle wenv node
     newState = state {
       _lstTextStyle = style ^. L.text
     }
@@ -185,7 +189,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
 
   merge wenv newNode oldNode oldState = result where
-    style = activeStyle wenv newNode
+    style = labelActiveStyle wenv newNode
     newTextStyle = style ^. L.text
     captionChanged = _lstCaption oldState /= caption
     styleChanged = _lstTextStyle oldState /= newTextStyle
@@ -208,7 +212,7 @@ makeLabel config state = widget where
     caption = _lstCaption state
     prevResize = _lstPrevResize state
     ts = wenv ^. L.timestamp
-    style = activeStyle wenv node
+    style = labelActiveStyle wenv node
     cw = getContentArea style node ^. L.w
     targetW
       | mode == MultiLine && prevResize == (ts, True) = Just cw
@@ -230,7 +234,7 @@ makeLabel config state = widget where
   resize wenv node viewport = result where
     renderer = wenv ^. L.renderer
     ts = wenv ^. L.timestamp
-    style = activeStyle wenv node
+    style = labelActiveStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
     Rect px py pw ph = textRect
@@ -262,7 +266,7 @@ makeLabel config state = widget where
         drawInTranslation renderer (Point cx cy) $
           forM_ textLines (drawTextLine renderer style)
     where
-      style = activeStyle wenv node
+      style = labelActiveStyle wenv node
       viewport = node ^. L.info . L.viewport
       textMetrics = textLines ^? ix 0 . L.metrics
       desc = abs (textMetrics ^. non def . L.desc)

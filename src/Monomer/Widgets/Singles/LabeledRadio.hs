@@ -62,7 +62,7 @@ import qualified Monomer.Lens as L
 
 data LabeledRadioCfg s e a = LabeledRadioCfg {
   _lchTextSide :: Maybe RectSide,
-  _lchLabelCfg :: LabelCfg,
+  _lchLabelCfg :: LabelCfg s e,
   _lchRadioCfg :: RadioCfg s e a
 }
 

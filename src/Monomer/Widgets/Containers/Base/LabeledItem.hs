@@ -40,7 +40,7 @@ labeledItem
   => WidgetType
   -> RectSide
   -> Text
-  -> LabelCfg
+  -> LabelCfg s e
   -> WidgetNode s e
   -> WidgetNode s e
 labeledItem wtype textSide caption labelCfg itemNode = labeledNode where
@@ -51,7 +51,7 @@ makeLabeledItem
   :: WidgetEvent e
   => RectSide
   -> Text
-  -> LabelCfg
+  -> LabelCfg s e
   -> WidgetNode s e
   -> Widget s e
 makeLabeledItem textSide caption labelCfg itemNode = widget where
