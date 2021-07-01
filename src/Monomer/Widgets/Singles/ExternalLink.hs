@@ -51,7 +51,7 @@ import Monomer.Widgets.Singles.Label
 import qualified Monomer.Lens as L
 
 data ExternalLinkCfg s e = ExternalLinkCfg {
-  _elcLabelCfg :: LabelCfg,
+  _elcLabelCfg :: LabelCfg s e,
   _elcOnFocusReq :: [Path -> WidgetRequest s e],
   _elcOnBlurReq :: [Path -> WidgetRequest s e]
 }
@@ -155,12 +155,26 @@ makeExternalLink caption url config = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.externalLinkStyle
 
+  labelActiveStyle pnode cstyle wenv cnode = newStyle where
+    isHoverC = isNodeHovered wenv cnode
+    isActiveC = isNodeActive wenv cnode
+    isFocusP = isNodeFocused wenv pnode
+    newStyle
+      | isActiveC = activeStyle wenv cnode
+      | isHoverC && isFocusP = fromMaybe def (_styleFocusHover cstyle)
+      | isFocusP = fromMaybe def (_styleFocus cstyle)
+      | otherwise = activeStyle wenv cnode
+
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelStyle = collectStyleField_ L.text nodeStyle def
+    labelStyle = def
+      & collectStyleField_ L.text nodeStyle
       & collectStyleField_ L.sizeReqW nodeStyle
       & collectStyleField_ L.sizeReqH nodeStyle
-    labelNode = label_ caption [ignoreTheme, _elcLabelCfg config]
+    labelCfg = (_elcLabelCfg config) {
+      _lscActiveStyle = Just (labelActiveStyle node labelStyle)
+    }
+    labelNode = label_ caption [ignoreTheme, labelCfg]
       & L.info . L.style .~ labelStyle
     childNode = labelNode
     newNode = node

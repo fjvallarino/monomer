@@ -61,7 +61,11 @@ data BaseThemeColors = BaseThemeColors {
   dialogText :: Color,
   dialogTitleText :: Color,
   emptyOverlay :: Color,
-  externalLinkColor :: Color,
+  externalLinkBasic :: Color,
+  externalLinkHover :: Color,
+  externalLinkFocus :: Color,
+  externalLinkActive :: Color,
+  externalLinkDisabled :: Color,
   iconFg :: Color,
   iconBg :: Color,
   inputIconFg :: Color,
@@ -221,7 +225,7 @@ baseBasic themeMod = def
   & L.dropdownListStyle . L.bgColor ?~ slMainBg themeMod
   & L.dropdownItemStyle .~ selectListItemStyle themeMod
   & L.dropdownItemSelectedStyle .~ selectListItemSelectedStyle themeMod
-  & L.externalLinkStyle . L.text ?~ (normalFont & L.fontColor ?~ externalLinkColor themeMod)
+  & L.externalLinkStyle . L.text ?~ (normalFont & L.fontColor ?~ externalLinkBasic themeMod)
   & L.labelStyle . L.text
     ?~ (normalFont & L.fontColor ?~ labelText themeMod) <> textLeft
   & L.numericFieldStyle .~ numericInputStyle themeMod
@@ -281,6 +285,7 @@ baseHover themeMod = baseBasic themeMod
   & L.dropdownItemSelectedStyle . L.bgColor ?~ slSelectedBgHover themeMod
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 (slSelectedBgHover themeMod)
   & L.dropdownItemSelectedStyle . L.cursorIcon ?~ CursorHand
+  & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkHover themeMod
   & L.externalLinkStyle . L.text . non def . L.underline ?~ True
   & L.externalLinkStyle . L.cursorIcon ?~ CursorHand
   & L.numericFieldStyle . L.cursorIcon ?~ CursorIBeam
@@ -317,6 +322,7 @@ baseFocus themeMod = baseBasic themeMod
   & L.dropdownListStyle . L.border ?~ border 1 (slMainBg themeMod)
   & L.dropdownItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
   & L.dropdownItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
+  & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkFocus themeMod
   & L.numericFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.numericFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.selectListStyle . L.border ?~ inputBorderFocus themeMod
@@ -338,6 +344,7 @@ baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
   & L.btnStyle . L.bgColor ?~ btnBgHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkHover themeMod
 
 baseActive :: BaseThemeColors -> ThemeState
 baseActive themeMod = baseFocusHover themeMod
@@ -353,6 +360,7 @@ baseActive themeMod = baseFocusHover themeMod
   & L.dialStyle . L.sndColor ?~ inputSndActive themeMod
   & L.dropdownStyle . L.bgColor ?~ inputBgActive themeMod
   & L.dropdownStyle . L.border ?~ inputBorderFocus themeMod
+  & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkActive themeMod
   & L.numericFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.numericFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.radioStyle . L.fgColor ?~ inputFgActive themeMod
@@ -384,6 +392,7 @@ baseDisabled themeMod = baseBasic themeMod
   & L.dropdownStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
   & L.dropdownStyle . L.bgColor ?~ inputBgDisabled themeMod
   & L.dropdownStyle . L.border ?~ border 1 (inputBgDisabled themeMod)
+  & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkDisabled themeMod
   & L.numericFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
   & L.numericFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
   & L.radioStyle . L.fgColor ?~ inputFgDisabled themeMod
