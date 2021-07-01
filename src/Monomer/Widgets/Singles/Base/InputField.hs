@@ -26,7 +26,8 @@ module Monomer.Widgets.Singles.Base.InputField (
 
 import Control.Applicative ((<|>))
 import Control.Monad
-import Control.Lens (ALens', (&), (.~), (%~), (^.), (^?), _Just, cloneLens, non)
+import Control.Lens
+  (ALens', (&), (.~), (?~), (%~), (^.), (^?), _Just, cloneLens, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -635,7 +636,7 @@ makeInputField config state = widget where
 
   render wenv node renderer = do
     when (isJust currSel) $
-      drawRect renderer (getSelRect state) (Just selColor) Nothing
+      drawRect renderer selRect (Just selColor) Nothing
 
     when (currText == "" && not (null currPlaceholder)) $
       drawInTranslation renderer (Point cx cy) $
@@ -644,7 +645,7 @@ makeInputField config state = widget where
     renderContent renderer state style currText
 
     when caretRequired $
-      drawRect renderer (getCaretRect carea state) (Just caretColor) Nothing
+      drawRect renderer caretRect (Just caretColor) Nothing
     where
       style = activeStyle wenv node
       placeholderStyle = style
@@ -655,6 +656,14 @@ makeInputField config state = widget where
       selColor = styleHlColor style
       caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
       caretColor = styleFontColor style
+      caretRect = getCaretRect state style carea
+      selRect = getSelRect state style
+
+textOffsetY :: TextMetrics -> StyleState -> Double
+textOffsetY (TextMetrics ta td tl) style = offset where
+  offset = case styleTextAlignV style of
+    ATBaseline -> -td
+    _ -> 0
 
 renderContent :: Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
 renderContent renderer state style currText = do
@@ -662,10 +671,8 @@ renderContent renderer state style currText = do
   renderText renderer textPos tsFont tsFontSize currText
   where
     Rect tx ty tw th = _ifsTextRect state
-    TextMetrics ta td tl = _ifsTextMetrics state
-    textPos = case styleTextAlignV style of
-      ATBaseline -> Point tx (ty + th - td)
-      _ -> Point tx (ty + th)
+    textMetrics = _ifsTextMetrics state
+    textPos = Point tx (ty + th + textOffsetY textMetrics style)
     textStyle = fromMaybe def (_sstText style)
     tsFont = styleFont style
     tsFontSize = styleFontSize style
@@ -675,10 +682,11 @@ getCaretH :: InputFieldState a -> Double
 getCaretH state = ta - td * 2 where
   TextMetrics ta td tl = _ifsTextMetrics state
 
-getCaretRect :: Rect -> InputFieldState a -> Rect
-getCaretRect carea state = caretRect where
+getCaretRect :: InputFieldState a -> StyleState -> Rect -> Rect
+getCaretRect state style carea = caretRect where
   Rect cx cy cw ch = carea
   Rect tx ty tw th = _ifsTextRect state
+  textMetrics = _ifsTextMetrics state
   glyphs = _ifsGlyphs state
   pos = _ifsCursorPos state
   caretPos
@@ -686,22 +694,24 @@ getCaretRect carea state = caretRect where
     | pos >= length glyphs = _glpXMax (seqLast glyphs)
     | otherwise = _glpXMin (Seq.index glyphs pos)
   caretX tx = max 0 $ min (cx + cw - caretW) (tx + caretPos)
-  caretRect = Rect (caretX tx) ty caretW (getCaretH state)
+  caretY = ty + textOffsetY textMetrics style
+  caretRect = Rect (caretX tx) caretY caretW (getCaretH state)
 
-getSelRect :: InputFieldState a -> Rect
-getSelRect state = selRect where
-  TextMetrics ta td tl = _ifsTextMetrics state
+getSelRect :: InputFieldState a -> StyleState -> Rect
+getSelRect state style = selRect where
   Rect tx ty tw th = _ifsTextRect state
+  textMetrics = _ifsTextMetrics state
   glyphs = _ifsGlyphs state
   pos = _ifsCursorPos state
   sel = _ifsSelStart state
+  caretY = ty + textOffsetY textMetrics style
   caretH = getCaretH state
   glyph idx = Seq.index glyphs (min idx (length glyphs - 1))
   gx idx = _glpXMin (glyph idx)
   gw start end = abs $ _glpXMax (glyph end) - _glpXMin (glyph start)
   mkSelRect end
-    | pos > end = Rect (tx + gx end) ty (gw end (pos - 1)) caretH
-    | otherwise = Rect (tx + gx pos) ty (gw pos (end - 1)) caretH
+    | pos > end = Rect (tx + gx end) caretY (gw end (pos - 1)) caretH
+    | otherwise = Rect (tx + gx pos) caretY (gw pos (end - 1)) caretH
   selRect = maybe def mkSelRect sel
 
 findClosestGlyphPos :: InputFieldState a -> Point -> Int
@@ -807,10 +817,9 @@ newTextState
 newTextState wenv node oldState config value text cursor sel = newState where
   style = activeStyle wenv node
   contentArea = getContentArea style node
-  !(Rect cx cy cw ch) = contentArea
-  textStyle = fromMaybe def (_sstText style)
-  alignH = fromMaybe ATLeft (_txsAlignH textStyle)
-  alignV = fromMaybe ATMiddle (_txsAlignV textStyle)
+  Rect cx cy cw ch = contentArea
+  alignH = inputFieldAlignH style
+  alignV = inputFieldAlignV style
   alignL = alignH == ATLeft
   alignR = alignH == ATRight
   alignC = alignH == ATCenter
@@ -866,20 +875,33 @@ updatePlaceholder wenv node state config = newState where
   renderer = wenv ^. L.renderer
   style = activeStyle wenv node
   Rect cx cy cw ch = getContentArea style node
+  carea = Rect 0 0 cw ch
   size = Size cw ch
+  -- Placeholder style
+  pstyle = style
+    & L.text . non def . L.alignH ?~ inputFieldAlignH style
+    & L.text . non def . L.alignV ?~ inputFieldAlignV style
   text = _ifcPlaceholder config
-  fitText = fitTextToSize renderer style Ellipsis MultiLine KeepSpaces Nothing
+  fitText = fitTextToSize renderer pstyle Ellipsis MultiLine KeepSpaces Nothing
   lines
     | isJust text = fitText size (fromJust text)
     | otherwise = Seq.empty
   newState = state {
-    _ifsPlaceholder = lines
+    _ifsPlaceholder = alignTextLines pstyle carea lines
   }
 
 setModelValid :: InputFieldCfg s e a -> Bool -> [WidgetRequest s e]
 setModelValid config
   | isJust (_ifcValid config) = widgetDataSet (fromJust $ _ifcValid config)
   | otherwise = const []
+
+inputFieldAlignH :: StyleState -> AlignTH
+inputFieldAlignH style = fromMaybe ATLeft alignH where
+  alignH = style ^? L.text . _Just . L.alignH . _Just
+
+inputFieldAlignV :: StyleState -> AlignTV
+inputFieldAlignV style = fromMaybe ATAscender alignV where
+  alignV = style ^? L.text . _Just . L.alignV . _Just
 
 delim :: Char -> Bool
 delim c = c `elem` [' ', '.', ',', '/', '-', ':']
