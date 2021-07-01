@@ -29,13 +29,13 @@ buildUI wenv model = widgetTree where
     todoStatus = labelS (t ^. status)
       `style` [textSize 12, padding 4, paddingH 8, radius 12, bgColor todoBg, textColor todoFg]
     rowButton caption action = button caption action
-      `style` [width 60, textColor gray, border 1 gray, bgColor transparent]
+      `style` [width 65, textColor gray, border 1 gray, bgColor transparent]
       `hover` [bgColor editBgColor]
       `focus` [border 1 lightSkyBlue]
     todoRow = hstack [
         vstack [
           labelS (t ^. todoType) `style` [textSize 12, textColor darkGray],
-          spacer,
+          spacer_ [width 5],
           label (t ^. description) `style` [textThroughline_ todoDone]
         ],
         filler,

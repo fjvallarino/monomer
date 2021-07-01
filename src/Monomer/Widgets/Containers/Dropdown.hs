@@ -269,12 +269,12 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   createDropdown wenv node newState = newNode where
     selected = currentValue wenv
-    themeStyle = collectTheme wenv L.dropdownStyle
+    nodeStyle = _wnInfo node ^. L.style
     mainStyle = def
-      & collectStyleField_ L.fgColor themeStyle
-      & collectStyleField_ L.hlColor themeStyle
-      & collectStyleField_ L.sndColor themeStyle
-      & collectStyleField_ L.text themeStyle
+      & collectStyleField_ L.fgColor nodeStyle
+      & collectStyleField_ L.hlColor nodeStyle
+      & collectStyleField_ L.sndColor nodeStyle
+      & collectStyleField_ L.text nodeStyle
     mainNode = makeMain selected
       & L.info . L.style .~ mainStyle
     widgetId = node ^. L.info . L.widgetId

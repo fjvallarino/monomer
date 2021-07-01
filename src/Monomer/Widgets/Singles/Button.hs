@@ -201,7 +201,8 @@ makeButton caption config = widget where
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelStyle = collectStyleField_ L.text nodeStyle def
+    labelStyle = def
+      & collectStyleField_ L.text nodeStyle
       & collectStyleField_ L.sizeReqW nodeStyle
       & collectStyleField_ L.sizeReqH nodeStyle
     labelNode = label_ caption [ignoreTheme, _btnLabelCfg config]
@@ -247,5 +248,7 @@ makeButton caption config = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize wenv node viewport children = resized where
+    style = getActiveStyle wenv node
+    carea = removeOuterBounds style viewport
     assignedAreas = Seq.fromList [viewport]
     resized = (resultNode node, assignedAreas)
