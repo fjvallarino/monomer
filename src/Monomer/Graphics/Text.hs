@@ -92,19 +92,19 @@ calcTextRect renderer containerRect font fontSize ha va text = textRect where
   Rect x y w h = containerRect
   Size tw _ = computeTextSize renderer font fontSize text
   TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
-  th = lineh
   tx | ha == ATLeft = x
      | ha == ATCenter = x + (w - tw) / 2
      | otherwise = x + (w - tw)
   ty | va == ATTop = y + asc
-     | va == ATMiddle = y + h + desc - (h - th) / 2
+     | va == ATMiddle = y + h + desc - (h - lineh) / 2
+     | va == ATAscender = y + h - (h - asc) / 2
      | otherwise = y + h + desc
 
   textRect = Rect {
     _rX = tx,
-    _rY = ty - th,
+    _rY = ty - lineh,
     _rW = tw,
-    _rH = th
+    _rH = lineh
   }
 
 {-|
@@ -173,12 +173,16 @@ alignTextLines
 alignTextLines style parentRect textLines = newTextLines where
   Rect _ py _ ph = parentRect
   Size _ th = getTextLinesSize textLines
+  TextMetrics asc _ _ = Seq.index textLines 0 ^. L.metrics
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
   alignOffsetY = case alignV of
     ATTop -> 0
-    ATMiddle -> (ph - th) / 2
-    _ -> ph - th
+    ATAscender
+      | length textLines == 1 -> (ph - asc) / 2
+    ATBottom -> ph - th
+    ATBaseline -> ph - th
+    _ -> (ph - th) / 2 -- ATMiddle
   offsetY = py + alignOffsetY
   newTextLines = fmap (alignTextLine parentRect offsetY alignH) textLines
 

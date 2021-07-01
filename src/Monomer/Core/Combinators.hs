@@ -183,11 +183,17 @@ class CmbTextTop t where
   textTop = textTop_ True
   textTop_ :: Bool -> t
 
--- | Align text to the middle.
+-- | Align text to the vertical middle based on the line height.
 class CmbTextMiddle t where
   textMiddle :: t
   textMiddle = textMiddle_ True
   textMiddle_ :: Bool -> t
+
+-- | Align text to the vertical middle based on the ascender.
+class CmbTextAscender t where
+  textAscender :: t
+  textAscender = textAscender_ True
+  textAscender_ :: Bool -> t
 
 -- | Align text to the bottom.
 class CmbTextBottom t where

@@ -110,12 +110,13 @@ instance Default AlignTH where
 data AlignTV
   = ATTop
   | ATMiddle
+  | ATAscender
   | ATBottom
   | ATBaseline
   deriving (Eq, Show, Generic)
 
 instance Default AlignTV where
-  def = ATMiddle
+  def = ATAscender
 
 -- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {

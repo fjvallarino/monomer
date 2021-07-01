@@ -144,6 +144,10 @@ instance CmbTextMiddle TextStyle where
   textMiddle_ False = def
   textMiddle_ True = textAlignV ATMiddle
 
+instance CmbTextAscender TextStyle where
+  textAscender_ False = def
+  textAscender_ True = textAlignV ATAscender
+
 instance CmbTextBottom TextStyle where
   textBottom_ False = def
   textBottom_ True = textAlignV ATBottom
