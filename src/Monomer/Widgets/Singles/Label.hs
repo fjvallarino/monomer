@@ -30,7 +30,7 @@ module Monomer.Widgets.Singles.Label (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (^?!), ix)
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -148,14 +148,15 @@ labelS_ caption configs = label_ (T.pack . show $ caption) configs
 
 makeLabel :: LabelCfg -> LabelState -> Widget s e
 makeLabel config state = widget where
-  widget = createSingle state def {
-    singleUseScissor = True,
+  baseWidget = createSingle state def {
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
     singleMerge = merge,
     singleGetSizeReq = getSizeReq,
-    singleResize = resize,
-    singleRender = render
+    singleResize = resize
+  }
+  widget = baseWidget {
+    widgetRender = render
   }
 
   ignoreTheme = _lscIgnoreTheme config == Just True
@@ -256,8 +257,15 @@ makeLabel config state = widget where
     result = resultReqs newNode [ResizeWidgets | needsSndResize]
 
   render wenv node renderer = do
-    drawInTranslation renderer (Point cx cy) $
-      forM_ textLines (drawTextLine renderer style)
+    drawInScissor renderer True scissorVp $
+      drawStyledAction renderer viewport style $ \(Rect cx cy _ _) ->
+        drawInTranslation renderer (Point cx cy) $
+          forM_ textLines (drawTextLine renderer style)
     where
       style = activeStyle wenv node
-      Rect cx cy cw ch = getContentArea style node
+      viewport = node ^. L.info . L.viewport
+      textMetrics = textLines ^?! ix 0 . L.metrics
+      desc = abs (textMetrics ^. L.desc)
+      scissorVp = viewport
+        & L.y .~ (viewport ^. L.y - desc)
+        & L.h .~ (viewport ^. L.h + desc)

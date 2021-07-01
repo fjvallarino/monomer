@@ -333,6 +333,10 @@ instance CmbTextMiddle StyleState where
   textMiddle_ False = def
   textMiddle_ True = styleTextAlignV ATMiddle
 
+instance CmbTextAscender StyleState where
+  textAscender_ False = def
+  textAscender_ True = styleTextAlignV ATAscender
+
 instance CmbTextBottom StyleState where
   textBottom_ False = def
   textBottom_ True = styleTextAlignV ATBottom
