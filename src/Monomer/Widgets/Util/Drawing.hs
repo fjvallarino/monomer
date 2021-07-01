@@ -127,7 +127,7 @@ drawTextLine renderer style textLine = do
     drawLine renderer (Point tx hy) (Point tr hy) lw (Just fontColor)
   where
     TextLine text size rect glyphs metrics = textLine
-    TextMetrics asc desc lineH = metrics
+    TextMetrics asc desc _ _ = metrics
     Rect tx ty tw th = rect
     tr = tx + tw
     tb = ty + th

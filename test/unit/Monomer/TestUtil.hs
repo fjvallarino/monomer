@@ -56,7 +56,8 @@ mockTextMetrics :: Font -> FontSize -> TextMetrics
 mockTextMetrics font fontSize = TextMetrics {
   _txmAsc = 15,
   _txmDesc = 5,
-  _txmLineH = 20
+  _txmLineH = 20,
+  _txmLowerX = 10
 }
 
 mockTextSize :: Maybe Double -> Font -> FontSize -> Text -> Size

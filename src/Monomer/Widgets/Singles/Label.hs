@@ -30,7 +30,7 @@ module Monomer.Widgets.Singles.Label (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (^?!), ix)
+import Control.Lens ((&), (^.), (.~), (^?), non, ix)
 import Control.Monad (forM_)
 import Data.Default
 import Data.Maybe
@@ -264,8 +264,8 @@ makeLabel config state = widget where
     where
       style = activeStyle wenv node
       viewport = node ^. L.info . L.viewport
-      textMetrics = textLines ^?! ix 0 . L.metrics
-      desc = abs (textMetrics ^. L.desc)
+      textMetrics = textLines ^? ix 0 . L.metrics
+      desc = abs (textMetrics ^. non def . L.desc)
       scissorVp = viewport
         & L.y .~ (viewport ^. L.y - desc)
         & L.h .~ (viewport ^. L.h + desc)

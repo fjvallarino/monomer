@@ -24,7 +24,7 @@ module Monomer.Graphics.Text (
   getGlyphsMax
 ) where
 
-import Control.Lens ((&), (^.), (+~))
+import Control.Lens ((&), (^.), (^?), (+~), ix, non)
 import Data.Default
 import Data.List (foldl')
 import Data.Maybe
@@ -91,13 +91,18 @@ calcTextRect
 calcTextRect renderer containerRect font fontSize ha va text = textRect where
   Rect x y w h = containerRect
   Size tw _ = computeTextSize renderer font fontSize text
-  TextMetrics asc desc lineh = computeTextMetrics renderer font fontSize
+  TextMetrics asc desc lineh lowerX = computeTextMetrics renderer font fontSize
   tx | ha == ATLeft = x
      | ha == ATCenter = x + (w - tw) / 2
      | otherwise = x + (w - tw)
+  {-
+  This logic differs from alignTextLines, since it works from bottom to top, but
+  the result is the same.
+  -}
   ty | va == ATTop = y + asc
      | va == ATMiddle = y + h + desc - (h - lineh) / 2
      | va == ATAscender = y + h - (h - asc) / 2
+     | va == ATLowerX = y + h - (h - lowerX) / 2
      | otherwise = y + h + desc
 
   textRect = Rect {
@@ -173,13 +178,16 @@ alignTextLines
 alignTextLines style parentRect textLines = newTextLines where
   Rect _ py _ ph = parentRect
   Size _ th = getTextLinesSize textLines
-  TextMetrics asc _ _ = Seq.index textLines 0 ^. L.metrics
+  TextMetrics asc _ lineH lowerX = (textLines ^? ix 0) ^. non def . L.metrics
+  isSingle = length textLines == 1
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
   alignOffsetY = case alignV of
     ATTop -> 0
     ATAscender
-      | length textLines == 1 -> (ph - asc) / 2
+      | isSingle -> (ph - asc) / 2
+    ATLowerX
+      | isSingle -> (ph - lowerX) / 2 - (asc - lowerX)
     ATBottom -> ph - th
     ATBaseline -> ph - th
     _ -> (ph - th) / 2 -- ATMiddle

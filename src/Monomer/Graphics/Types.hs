@@ -111,12 +111,13 @@ data AlignTV
   = ATTop
   | ATMiddle
   | ATAscender
+  | ATLowerX
   | ATBottom
   | ATBaseline
   deriving (Eq, Show, Generic)
 
 instance Default AlignTV where
-  def = ATAscender
+  def = ATLowerX
 
 -- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {
@@ -154,16 +155,18 @@ data TextOverflow
 
 -- | Text metrics.
 data TextMetrics = TextMetrics {
-  _txmAsc :: {-# UNPACK #-} !Double,   -- ^ The heigth above the baseline.
-  _txmDesc :: {-# UNPACK #-} !Double,  -- ^ The heigth below the baseline.
-  _txmLineH :: {-# UNPACK #-} !Double  -- ^ The total heigth.
+  _txmAsc :: {-# UNPACK #-} !Double,    -- ^ The height above the baseline.
+  _txmDesc :: {-# UNPACK #-} !Double,   -- ^ The height below the baseline.
+  _txmLineH :: {-# UNPACK #-} !Double,  -- ^ The total height.
+  _txmLowerX :: {-# UNPACK #-} !Double  -- ^ The height of lowercase x.
 } deriving (Eq, Show, Generic)
 
 instance Default TextMetrics where
   def = TextMetrics {
     _txmAsc = 0,
     _txmDesc = 0,
-    _txmLineH = 0
+    _txmLineH = 0,
+    _txmLowerX = 0
   }
 
 -- | A text line with associated rendering information.

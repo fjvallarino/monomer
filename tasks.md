@@ -717,21 +717,23 @@
   - Fix button disabled click.
   - Improve disabled styles.
   - timeField does not have a theme section.
+  - Should text be aligned based on ascending instead of line height?
 
 Next
-  - Refactor InputField to use same text centering function as the rest of the library.
-  - Should text be aligned based on ascending instead of line height?
-    - Review Books example.
+  - Check externalLink disabled state click.
+  - Check tooltip vertical alignment.
   - Dropdown should scroll to selected item when opening.
   - Dropdown selected item does not seem to be marked on init.
-  - Check externalLink disabled state click.
-  - Add gap support in scroll?
   - Can image be aligned to right when fitting is applied?
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
   - Improve base theme creation (scale argument?)
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).
+    - Improve window resize situation
+      - SDL does not send resize until operation has finished, making content look ugly because it's not updated
+      - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
+    - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).
@@ -740,10 +742,6 @@ Future
   - Check if Windows/Linux also miss top pixel
     - Fix for all if they do
     - If they don't, add custom handling for macOS
-  - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
-  - Improve window resize situation
-    - SDL does not send resize until operation has finished, making content look ugly because it's not updated
-    - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
   - Check cross compilation
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208

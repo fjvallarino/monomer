@@ -660,7 +660,7 @@ makeInputField config state = widget where
       selRect = getSelRect state style
 
 textOffsetY :: TextMetrics -> StyleState -> Double
-textOffsetY (TextMetrics ta td tl) style = offset where
+textOffsetY (TextMetrics ta td tl tlx) style = offset where
   offset = case styleTextAlignV style of
     ATBaseline -> -td
     _ -> 0
@@ -680,7 +680,7 @@ renderContent renderer state style currText = do
 
 getCaretH :: InputFieldState a -> Double
 getCaretH state = ta - td * 2 where
-  TextMetrics ta td tl = _ifsTextMetrics state
+  TextMetrics ta td _ _ = _ifsTextMetrics state
 
 getCaretRect :: InputFieldState a -> StyleState -> Rect -> Rect
 getCaretRect state style carea = caretRect where
@@ -900,7 +900,7 @@ inputFieldAlignH style = fromMaybe ATLeft alignH where
   alignH = style ^? L.text . _Just . L.alignH . _Just
 
 inputFieldAlignV :: StyleState -> AlignTV
-inputFieldAlignV style = fromMaybe ATAscender alignV where
+inputFieldAlignV style = fromMaybe ATLowerX alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
 
 delim :: Char -> Bool

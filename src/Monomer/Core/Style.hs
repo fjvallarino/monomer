@@ -148,6 +148,10 @@ instance CmbTextAscender TextStyle where
   textAscender_ False = def
   textAscender_ True = textAlignV ATAscender
 
+instance CmbTextLowerX TextStyle where
+  textLowerX_ False = def
+  textLowerX_ True = textAlignV ATLowerX
+
 instance CmbTextBottom TextStyle where
   textBottom_ False = def
   textBottom_ True = textAlignV ATBottom
@@ -336,6 +340,10 @@ instance CmbTextMiddle StyleState where
 instance CmbTextAscender StyleState where
   textAscender_ False = def
   textAscender_ True = styleTextAlignV ATAscender
+
+instance CmbTextLowerX StyleState where
+  textLowerX_ False = def
+  textLowerX_ True = styleTextAlignV ATLowerX
 
 instance CmbTextBottom StyleState where
   textBottom_ False = def

@@ -289,11 +289,16 @@ newRenderer c dpr lock envRef = Renderer {..} where
   computeTextMetrics !font !fontSize = unsafePerformIO $ do
     setFont c envRef dpr font fontSize
     (asc, desc, lineh) <- getTextMetrics c
+    lowerX <- (V.!? 0) <$> textGlyphPositions c 0 0 "x"
+    let heightLowerX = case lowerX of
+          Just lx -> VG.glyphPosMaxY lx - VG.glyphPosMinY lx
+          Nothing -> realToFrac asc
 
     return $ TextMetrics {
       _txmAsc = asc / dpr,
       _txmDesc = desc / dpr,
-      _txmLineH = lineh / dpr
+      _txmLineH = lineh / dpr,
+      _txmLowerX = realToFrac heightLowerX / dpr
     }
 
   computeTextSize !font !fontSize !text = unsafePerformIO $ do

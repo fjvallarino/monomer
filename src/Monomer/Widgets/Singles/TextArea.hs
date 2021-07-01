@@ -637,7 +637,7 @@ makeTextArea wdata config state = widget where
 getCaretRect :: TextAreaState -> Rect
 getCaretRect state = caretRect where
   (cursorX, cursorY) = _tasCursorPos state
-  TextMetrics _ _ lineh = _tasTextMetrics state
+  TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
   (lineRect, glyphs) = case Seq.lookup cursorY textLines of
     Just tl -> (tl ^. L.rect, tl ^. L.glyphs)
@@ -657,7 +657,7 @@ getSelectionRects :: TextAreaState -> Rect -> [Rect]
 getSelectionRects state contentArea = rects where
   currPos = _tasCursorPos state
   currSel = fromMaybe def (_tasSelStart state)
-  TextMetrics _ desc lineh = _tasTextMetrics state
+  TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
   line idx
     | length textLines > idx = Seq.index textLines idx ^. L.text
@@ -818,7 +818,7 @@ replaceSelection textLines currPos currSel addText = result where
 findClosestGlyphPos :: TextAreaState -> Point -> (Int, Int)
 findClosestGlyphPos state point = (newPos, lineIdx) where
   Point x y = point
-  TextMetrics _ _ lineh = _tasTextMetrics state
+  TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
   lineIdx = clamp 0 (length textLines - 1) (floor (y / lineh))
   lineGlyphs
