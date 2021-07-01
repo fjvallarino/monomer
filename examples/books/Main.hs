@@ -35,22 +35,19 @@ buildUI wenv model = widgetTree where
   bookRowContent b = hstack [
       vstack [
         hstack [
-          label "Title:" `style` [textFont "Bold"],
-          spacer,
+          label "Title: " `style` [textFont "Bold"],
           label_ (b ^. title) [resizeFactor 1]
         ],
         spacer,
         hstack [
-          label "Authors:" `style` [textFont "Bold"],
-          spacer,
+          label "Authors: " `style` [textFont "Bold"],
           label_ (T.intercalate ", " (b ^. authors)) [resizeFactor 1]
         ]
       ],
       filler,
       vstack [
         hstack [
-          label "Year:" `style` [textFont "Bold"],
-          spacer,
+          label "Year: " `style` [textFont "Bold"],
           label $ maybe "" showt (b ^. year)
         ]
       ] `style` [width 100],
@@ -63,20 +60,17 @@ buildUI wenv model = widgetTree where
     content = hstack . concat $ [[
       vstack [
         hstack [
-          shortLabel "Title:",
-          spacer,
+          shortLabel "Title: ",
           longLabel (b ^. title)
         ],
-        spacer_ [width 10],
+        spacer,
         hstack [
-          shortLabel "Authors:",
-          spacer,
+          shortLabel "Authors: ",
           longLabel (T.intercalate ", " (b ^. authors))
         ],
-        spacer_ [width 10],
+        spacer,
         hstack [
-          shortLabel "Year:",
-          spacer,
+          shortLabel "Year: ",
           label $ maybe "" showt (b ^. year)
         ]
       ]],
@@ -90,9 +84,9 @@ buildUI wenv model = widgetTree where
   searchForm = keystroke [("Enter", BooksSearch)] $ vstack [
       hstack [
         label "Query:",
-        spacer_ [width 10],
+        spacer,
         textField query `key` "query",
-        spacer_ [width 10],
+        spacer,
         mainButton "Search" BooksSearch
       ] `style` [bgColor searchBgColor, padding 25]
     ]

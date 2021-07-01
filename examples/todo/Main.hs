@@ -84,7 +84,7 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       keystroke [("Esc", TodoCancel)] todoEdit
         `visible` isEditing,
-      scroll todoList `style` [padding 10],
+      scroll (todoList `style` [padding 10]),
       filler,
       box_ [alignRight] newButton
         `style` [bgColor editBgColor, padding 20]
@@ -154,7 +154,7 @@ remove idx ls = take idx ls ++ drop (idx + 1) ls
 
 initialTodos :: [Todo]
 initialTodos = todos where
-  items = mconcat $ replicate 5 [
+  items = mconcat $ replicate 2 [
     Todo 0 Home Done "Tidy up the room",
     Todo 0 Home Pending "Buy groceries",
     Todo 0 Home Pending "Pay the bills",
