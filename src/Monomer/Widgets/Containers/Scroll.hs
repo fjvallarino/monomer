@@ -337,7 +337,9 @@ makeScroll config state = widget where
 
   findByPoint wenv node start point = result where
     sctx = scrollStatus config wenv node state point
-    mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
+    mouseInScroll
+      =  (hMouseInScroll sctx && hScrollRequired sctx)
+      || (vMouseInScroll sctx && vScrollRequired sctx)
     childPoint = addPoint point offset
     child = Seq.index (node ^. L.children) 0
     childHovered = isPointInNodeVp childPoint child
