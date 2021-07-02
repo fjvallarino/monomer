@@ -345,6 +345,8 @@ baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
   & L.btnStyle . L.bgColor ?~ btnBgHover themeMod
   & L.btnMainStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.dropdownItemStyle . L.bgColor ?~ slNormalBgHover themeMod
+  & L.dropdownItemSelectedStyle . L.bgColor ?~ slSelectedBgHover themeMod
   & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkHover themeMod
 
 baseActive :: BaseThemeColors -> ThemeState

@@ -172,8 +172,6 @@ data SelectListState a = SelectListState {
   _prevItems :: Seq a,
   _slIdx :: Int,
   _hlIdx :: Int,
-  _slStyle :: Maybe Style,
-  _hlStyle :: Maybe Style,
   _resizeReq :: Bool
 } deriving (Eq, Show)
 
@@ -239,7 +237,7 @@ selectListD_
 selectListD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = SelectListState newItems (-1) 0 Nothing Nothing False
+  newState = SelectListState newItems (-1) 0 False
   widget = makeSelectList widgetData newItems makeRow config newState
 
 makeNode :: Widget s e -> WidgetNode s e
@@ -259,6 +257,7 @@ makeSelectList widgetData items makeRow config state = widget where
   widget = createContainer state def {
     containerResizeRequired = _resizeReq state,
     containerInit = init,
+    containerInitPost = initPost,
     containerMergeChildrenReq = mergeChildrenReq,
     containerMerge = merge,
     containerMergePost = mergePost,
@@ -279,15 +278,19 @@ makeSelectList widgetData items makeRow config state = widget where
   init wenv node = resultNode newNode where
     children = createSelectListChildren wenv node
     selected = currentValue wenv
-    slIdx = fromMaybe (-1) (Seq.elemIndexL selected items)
+    newSl = fromMaybe (-1) (Seq.elemIndexL selected items)
+    newHl = if newSl < 0 then 0 else newSl
     newState = state {
-      _slIdx = slIdx,
-      _hlIdx = if slIdx < 0 then 0 else slIdx,
+      _slIdx = newSl,
+      _hlIdx = newHl,
       _resizeReq = True
     }
     newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
       & L.children .~ children
+
+  initPost wenv node newState result = newResult where
+    newResult = updateResultStyle wenv result state newState
 
   mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
@@ -304,8 +307,8 @@ makeSelectList widgetData items makeRow config state = widget where
       | otherwise = oldNode ^. L.children
     result = updateState wenv node oldState mergeRequired children
 
-  mergePost wenv node oldNode oldState result = newResult where
-    newResult = updateResultStyle wenv result oldState
+  mergePost wenv node oldNode oldState newState result = newResult where
+    newResult = updateResultStyle wenv result oldState newState
 
   updateState wenv node oldState resizeReq children = result where
     selected = currentValue wenv
@@ -322,14 +325,14 @@ makeSelectList widgetData items makeRow config state = widget where
     tmpNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
       & L.children .~ children
-    (newNode, reqs) = updateStyles wenv config state tmpNode (-1) (-1)
+    (newNode, reqs) = updateStyles wenv config state tmpNode newSl newHl
     result = resultReqs newNode reqs
 
-  updateResultStyle wenv result state = newResult where
-    slIdx = _slIdx state
-    hlIdx = _hlIdx state
+  updateResultStyle wenv result oldState newState = newResult where
+    slIdx = _slIdx newState
+    hlIdx = _hlIdx newState
     tmpNode = result ^. L.node
-    (newNode, reqs) = updateStyles wenv config state tmpNode slIdx hlIdx
+    (newNode, reqs) = updateStyles wenv config oldState tmpNode slIdx hlIdx
     newResult = resultReqs newNode reqs
 
   handleEvent wenv node target evt = case evt of
@@ -384,12 +387,8 @@ makeSelectList widgetData items makeRow config state = widget where
     reqs = itemScrollTo wenv node (_slIdx state)
 
   highlightItem wenv node nextIdx = Just result where
-    newHlStyle
-      | nextIdx /= _hlIdx state = Just (getItemStyle node nextIdx)
-      | otherwise = _hlStyle state
     newState = state {
-      _hlIdx = nextIdx,
-      _hlStyle = newHlStyle
+      _hlIdx = nextIdx
     }
     tmpNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
@@ -401,23 +400,14 @@ makeSelectList widgetData items makeRow config state = widget where
   selectItem wenv node idx = result where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
-    valueSetReq
-      | selected /= value = widgetDataSet widgetData value
-      | otherwise = []
+    valueSetReq = widgetDataSet widgetData value
     scrollToReq = itemScrollTo wenv node idx
-    changeReqs
-      | selected /= value = fmap ($ value) (_slcOnChangeReq config)
-          ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
-      | otherwise = []
-    (styledNode, resizeReq) = updateStyles wenv config state node idx (-1)
-    newSlStyle
-      | idx == _hlIdx state = _hlStyle state
-      | idx /= _slIdx state = Just (getItemStyle node idx)
-      | otherwise = _slStyle state
+    changeReqs = fmap ($ value) (_slcOnChangeReq config)
+      ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
+    (styledNode, resizeReq) = updateStyles wenv config state node idx idx
     newState = state {
       _slIdx = idx,
       _hlIdx = idx,
-      _slStyle = newSlStyle,
       _resizeReq = not (null resizeReq)
     }
     newNode = styledNode
@@ -459,32 +449,29 @@ updateStyles
 updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
   items = node ^. L.children . ix 0 . L.children
   normalStyle = getNormalStyle wenv config
-  slStyle
-    | newSlIdx == newHlIdx = getSlHlStyle wenv config
-    | otherwise = getSlStyle wenv config
-  hlStyle = getHlStyle wenv config
+  idxMatch = newSlIdx == newHlIdx
+  (slStyle, hlStyle)
+    | idxMatch = (getSlHlStyle wenv config, getSlHlStyle wenv config)
+    | otherwise = (getSlStyle wenv config, getHlStyle wenv config)
   (newChildren, resizeReq) = (items, False)
-    & updateItemStyle wenv False (_slIdx state) (_slStyle state)
-    & updateItemStyle wenv False (_hlIdx state) (Just normalStyle)
-    & updateItemStyle wenv True newHlIdx (Just hlStyle)
-    & updateItemStyle wenv True newSlIdx (Just slStyle)
+    & updateItemStyle wenv (_slIdx state) (Just normalStyle)
+    & updateItemStyle wenv (_hlIdx state) (Just normalStyle)
+    & updateItemStyle wenv newHlIdx (Just hlStyle)
+    & updateItemStyle wenv newSlIdx (Just slStyle)
   newNode = node
     & L.children . ix 0 . L.children .~ newChildren
   newReqs = [ ResizeWidgets | resizeReq ]
 
 updateItemStyle
   :: WidgetEnv s e
-  -> Bool
   -> Int
   -> Maybe Style
   -> (Seq (WidgetNode s e), Bool)
   -> (Seq (WidgetNode s e), Bool)
-updateItemStyle wenv merge idx mstyle (items, resizeReq) = result where
+updateItemStyle wenv idx mstyle (items, resizeReq) = result where
   result = case Seq.lookup idx items of
     Just item -> (newItems, resizeReq || newResizeReq) where
-      tmpItem
-        | merge = mergeItemStyle item mstyle
-        | otherwise = resetItemStyle item mstyle
+      tmpItem = setItemStyle item mstyle
       (newItem, newResizeReq) = updateItemSizeReq wenv tmpItem
       newItems = Seq.update idx newItem items
     Nothing -> (items, resizeReq)
@@ -498,32 +485,25 @@ updateItemSizeReq wenv item = (newItem, resizeReq) where
     & L.info . L.sizeReqH .~ newReqH
   resizeReq = (oldReqW, oldReqH) /= (newReqW, newReqH)
 
-mergeItemStyle :: WidgetNode s e -> Maybe Style -> WidgetNode s e
-mergeItemStyle item Nothing = item
-mergeItemStyle item (Just st) = item
-  & L.children . ix 0 . L.info . L.style <>~ st
-
-resetItemStyle :: WidgetNode s e -> Maybe Style -> WidgetNode s e
-resetItemStyle item Nothing = item
-resetItemStyle item (Just st) = item
+setItemStyle :: WidgetNode s e -> Maybe Style -> WidgetNode s e
+setItemStyle item Nothing = item
+setItemStyle item (Just st) = item
   & L.children . ix 0 . L.info . L.style .~ st
-
-getItemStyle :: WidgetNode s e -> Int -> Style
-getItemStyle node idx = itStyle where
-  -- SelectList -> Stack -> Box -> Content
-  itemLens = L.children . ix 0 . L.children . ix idx . L.children . ix 0
-  itStyle = node ^. itemLens . L.info . L.style
 
 getSlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getSlStyle wenv config = style where
   theme = collectTheme wenv L.selectListItemSelectedStyle
   style = fromJust (Just theme <> _slcItemSelectedStyle config)
+  slStyle = style
+    & L.basic .~ style ^. L.focus
+    & L.hover .~ style ^. L.focusHover
 
 getSlHlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getSlHlStyle wenv config = slStyle where
   style = getSlStyle wenv config
   slStyle = style
     & L.basic .~ style ^. L.focus
+    & L.hover .~ style ^. L.focusHover
 
 getHlStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getHlStyle wenv config = hlStyle where
@@ -531,6 +511,7 @@ getHlStyle wenv config = hlStyle where
   style = fromJust (Just theme <> _slcItemStyle config)
   hlStyle = style
     & L.basic .~ style ^. L.focus
+    & L.hover .~ style ^. L.focusHover
 
 getNormalStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getNormalStyle wenv config = style where

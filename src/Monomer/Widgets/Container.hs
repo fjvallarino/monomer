@@ -125,10 +125,14 @@ type ContainerInitHandler s e
 
 {-|
 Allows making further operations after children have been initialized.
+
+Note: if state was modified on `init`, you should use the new state provided as
+an argument, since the state referenced in the closure will be outdated.
 -}
-type ContainerInitPostHandler s e
+type ContainerInitPostHandler s e a
   = WidgetEnv s e      -- ^ The widget environment.
   -> WidgetNode s e    -- ^ The widget node.
+  -> a                 -- ^ The current state of the widget node.
   -> WidgetResult s e  -- ^ The result after children have been initialized.
   -> WidgetResult s e  -- ^ The result of the init post operation.
 
@@ -172,12 +176,16 @@ Allows making further operations after children have been merged.
 
 Examples can be found in "Monomer.Widgets.Containers.SelectList" and
 "Monomer.Widgets.Containers.ZStack".
+
+Note: if state was modified on `merge`, you should use the new state provided as
+an argument, since the state referenced in the closure will be outdated.
 -}
 type ContainerMergePostHandler s e a
   = WidgetEnv s e      -- ^ The widget environment.
   -> WidgetNode s e    -- ^ The widget node.
   -> WidgetNode s e    -- ^ The previous widget node.
   -> a                 -- ^ The state of the previous widget node.
+  -> a                 -- ^ The current state of the widget node.
   -> WidgetResult s e  -- ^ The result after children have been merged.
   -> WidgetResult s e  -- ^ The result of the merge post operation.
 
@@ -346,7 +354,7 @@ data Container s e a = Container {
   -- | Initializes the given node.
   containerInit :: ContainerInitHandler s e,
   -- | Allow for extra steps after children are initialized.
-  containerInitPost :: ContainerInitPostHandler s e,
+  containerInitPost :: ContainerInitPostHandler s e a,
   -- | Returns whether merge is required for children.
   containerMergeChildrenReq :: ContainerMergeChildrenReqHandler s e a,
   -- | Merges the node with the node it matched with during the merge process.
@@ -497,8 +505,8 @@ updateWenvOffset container wenv node = newWenv where
 defaultInit :: ContainerInitHandler s e
 defaultInit wenv node = resultNode node
 
-defaultInitPost :: ContainerInitPostHandler s e
-defaultInitPost wenv node result = result
+defaultInitPost :: ContainerInitPostHandler s e a
+defaultInitPost wenv node state result = result
 
 initWrapper
   :: WidgetModel a
@@ -506,7 +514,7 @@ initWrapper
   -> WidgetEnv s e
   -> WidgetNode s e
   -> WidgetResult s e
-initWrapper container wenv node = initPostHandler wenv node result where
+initWrapper container wenv node = result where
   initHandler = containerInit container
   initPostHandler = containerInitPost container
   getBaseStyle = containerGetBaseStyle container
@@ -523,7 +531,11 @@ initWrapper container wenv node = initPostHandler wenv node result where
   newChildren = fmap _wrNode results
   newNode = updateSizeReq wenv $ tempNode
     & L.children .~ newChildren
-  result = WidgetResult newNode (reqs <> newReqs)
+  tmpResult = WidgetResult newNode (reqs <> newReqs)
+  newState = widgetGetState (newNode ^. L.widget) wenv newNode
+  result = case useState newState of
+    Just st -> initPostHandler wenv newNode st tmpResult
+    Nothing -> tmpResult
 
 -- | Merging
 defaultMergeRequired :: ContainerMergeChildrenReqHandler s e a
@@ -533,7 +545,7 @@ defaultMerge :: ContainerMergeHandler s e a
 defaultMerge wenv newNode oldNode oldState = resultNode newNode
 
 defaultMergePost :: ContainerMergePostHandler s e a
-defaultMergePost wenv newNode oldNode oldState result = result
+defaultMergePost wenv newNode oldNode oldState newState result = result
 
 mergeWrapper
   :: WidgetModel a
@@ -560,8 +572,10 @@ mergeWrapper container wenv newNode oldNode = newResult where
   mResult
     | mergeRequired || nodeFlagsChanged oldNode newNode = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
-  postRes = case useState oldState of
-    Just state -> mergePostHandler wenv (mResult^.L.node) oldNode state mResult
+  mNode = mResult ^. L.node
+  mState = widgetGetState (mNode ^. L.widget) wenv mNode
+  postRes = case (,) <$> useState oldState <*> useState mState of
+    Just (ost, st) -> mergePostHandler wenv mNode oldNode ost st mResult
     Nothing -> resultNode (mResult ^. L.node)
   tmpResult
     | isResizeAnyResult (Just postRes) = postRes

@@ -115,7 +115,7 @@ makeZStack config state = widget where
     newNode = node
       & L.widget .~ makeZStack config newState
 
-  mergePost wenv node oldNode oldState result = newResult where
+  mergePost wenv node oldNode oldState newState result = newResult where
     ZStackState oldFocusMap oldTopIdx = oldState
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
