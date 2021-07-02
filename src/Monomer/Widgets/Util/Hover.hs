@@ -12,14 +12,20 @@ module Monomer.Widgets.Util.Hover (
   isPointInNodeVp,
   isPointInNodeEllipse,
   isNodeActive,
+  isNodeInfoActive,
   isNodePressed,
+  isNodeInfoPressed,
   isNodeTreeActive,
   isNodeTreePressed,
   isNodeDragged,
+  isNodeInfoDragged,
   isNodeHovered,
+  isNodeInfoHovered,
   isNodeHoveredEllipse_,
   isNodeTopLevel,
-  isNodeInOverlay
+  isNodeInfoTopLevel,
+  isNodeInOverlay,
+  isNodeInfoInOverlay
 ) where
 
 import Control.Lens ((&), (^.), (^?), _1, _Just)
@@ -43,62 +49,70 @@ isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.viewport)
 
 -- | Checks if the main button is pressed and pointer inside the vieport.
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeActive = isNodeActive_ False
+isNodeActive wenv node = isNodeInfoActive False wenv (node ^. L.info)
 
 -- | Checks if the main button is pressed inside the vieport.
 isNodePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodePressed = isNodePressed_ False
+isNodePressed wenv node = isNodeInfoPressed False wenv (node ^. L.info)
 
 -- | Checks if the node or any of its children is active.
 isNodeTreeActive :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeTreeActive = isNodeActive_ True
+isNodeTreeActive wenv node = isNodeInfoActive True wenv (node ^. L.info)
 
 -- | Checks if the node or any of its children is pressed.
 isNodeTreePressed :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeTreePressed = isNodePressed_ True
+isNodeTreePressed wenv node = isNodeInfoPressed True wenv (node ^. L.info)
 
 {-|
 Checks if the node is active, optionally including children. An active node was
 clicked with the main button and has the pointer inside its viewport.
 -}
-isNodeActive_ :: Bool -> WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeActive_ includeChildren wenv node = validPos && pressed where
-  viewport = node ^. L.info . L.viewport
+isNodeInfoActive :: Bool -> WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoActive includeChildren wenv info = validPos && pressed where
+  viewport = info ^. L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
-  pressed = isNodePressed_ includeChildren wenv node
+  pressed = isNodeInfoPressed includeChildren wenv info
 
 {-|
 Checks if the node is pressed, optionally including children. A pressed node was
 clicked with the main button.
 -}
-isNodePressed_ :: Bool -> WidgetEnv s e -> WidgetNode s e -> Bool
-isNodePressed_ includeChildren wenv node = result == Just True where
-  path = node ^. L.info . L.path
+isNodeInfoPressed :: Bool -> WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoPressed includeChildren wenv info = result == Just True where
+  path = info ^. L.path
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
   result
     | includeChildren = seqStartsWith path <$> pressed
     | otherwise = (path ==) <$> pressed
 
 {-|
-Checks if the node is being dragged. The node must have made a previous
-request to be in that state.
+Checks if the node is being dragged. The node must have made a previous request
+to be in that state.
 -}
 isNodeDragged :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeDragged wenv node = mainPressed && draggedPath == Just nodePath where
+isNodeDragged wenv node = isNodeInfoDragged wenv (node ^. L.info)
+
+-- | Checks if the nodeInfo is being dragged.
+isNodeInfoDragged :: WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoDragged wenv info = mainPressed && draggedPath == Just nodePath where
   mainPressed = isJust (wenv ^. L.mainBtnPress)
   draggedPath = wenv ^? L.dragStatus . _Just . _1
-  nodePath = node ^. L.info . L.path
+  nodePath = info ^. L.path
 
 -- | Checks if node is hovered. Pointer must be in viewport and node top layer.
 isNodeHovered :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeHovered wenv node = validPos && validPress && topLevel where
-  viewport = node ^. L.info . L.viewport
+isNodeHovered wenv node = isNodeInfoHovered wenv (node ^. L.info)
+
+-- | Checks if nodeInfo is hovered.
+isNodeInfoHovered :: WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoHovered wenv info = validPos && validPress && topLevel where
+  viewport = info ^. L.viewport
   mousePos = wenv ^. L.inputStatus . L.mousePos
   validPos = pointInRect mousePos viewport
   pressed = wenv ^. L.mainBtnPress ^? _Just . _1
-  validPress = isNothing pressed || isNodePressed wenv node
-  topLevel = isNodeTopLevel wenv node
+  validPress = isNothing pressed || isNodeInfoPressed False wenv info
+  topLevel = isNodeInfoTopLevel wenv info
 
 -- | Checks if node is hovered, limited to an elliptical shape.
 isNodeHoveredEllipse_ :: Rect -> WidgetEnv s e -> WidgetNode s e -> Bool
@@ -113,14 +127,24 @@ isNodeHoveredEllipse_ area wenv node = validPos && validPress && topLevel where
 Checks if a node is in a top layer. Being in zstack can cause this to be False.
 -}
 isNodeTopLevel :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeTopLevel wenv node = maybe inTopLayer isPrefix (wenv ^. L.overlayPath) where
+isNodeTopLevel wenv node = isNodeInfoTopLevel wenv (node ^. L.info)
+
+-- | Checks if a nodeInfo is in a top layer.
+isNodeInfoTopLevel :: WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoTopLevel wenv info = result where
   mousePos = wenv ^. L.inputStatus . L.mousePos
   inTopLayer = wenv ^. L.inTopLayer $ mousePos
-  path = node ^. L.info . L.path
+  path = info ^. L.path
   isPrefix parent = Seq.take (Seq.length parent) path == parent
+  result = maybe inTopLayer isPrefix (wenv ^. L.overlayPath)
 
 -- | Checks if the node is part of the active overlay, if any.
 isNodeInOverlay :: WidgetEnv s e -> WidgetNode s e -> Bool
-isNodeInOverlay wenv node = maybe False isPrefix (wenv ^. L.overlayPath) where
-  path = node ^. L.info . L.path
+isNodeInOverlay wenv node = isNodeInfoInOverlay wenv (node ^. L.info)
+
+-- | Checks if the nodeInfo is part of the active overlay, if any.
+isNodeInfoInOverlay :: WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoInOverlay wenv info = result where
+  path = info ^. L.path
   isPrefix overlayPath = Seq.take (Seq.length overlayPath) path == overlayPath
+  result = maybe False isPrefix (wenv ^. L.overlayPath)

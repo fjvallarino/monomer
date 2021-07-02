@@ -10,6 +10,7 @@ Helper functions for focus handling.
 -}
 module Monomer.Widgets.Util.Focus (
   isNodeFocused,
+  isNodeInfoFocused,
   isNodeParentOfFocused,
   parentPath,
   nextTargetStep,
@@ -35,17 +36,21 @@ import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Core.Lens as L
 
--- | Checks if the given node is focused
+-- | Checks if the given node is focused.
 isNodeFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeFocused wenv node = wenv ^. L.focusedPath == node ^. L.info . L.path
 
--- | Checks if the given node is a parent of the focused node
+-- | Checks if the given nodeInfo is focused.
+isNodeInfoFocused :: WidgetEnv s e -> WidgetNodeInfo -> Bool
+isNodeInfoFocused wenv info = wenv ^. L.focusedPath == info ^. L.path
+
+-- | Checks if the given node is a parent of the focused node.
 isNodeParentOfFocused :: WidgetEnv s e -> WidgetNode s e -> Bool
 isNodeParentOfFocused wenv node = seqStartsWith parentPath focusedPath where
   parentPath = node ^. L.info . L.path
   focusedPath = wenv ^. L.focusedPath
 
--- | Returns the parent path of a node
+-- | Returns the parent path of a node.
 parentPath :: WidgetNode s e -> Path
 parentPath node = Seq.take (Seq.length path - 1) path where
   path = node ^. L.info . L.path

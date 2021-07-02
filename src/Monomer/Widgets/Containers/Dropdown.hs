@@ -245,6 +245,7 @@ makeDropdown
   -> Widget s e
 makeDropdown widgetData items makeMain makeRow config state = widget where
   container = def {
+    containerAddStyleReq = False,
     containerChildrenOffset = Just (_ddsOffset state),
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
@@ -270,13 +271,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   createDropdown wenv node newState = newNode where
     selected = currentValue wenv
     nodeStyle = _wnInfo node ^. L.style
-    mainStyle = def
-      & collectStyleField_ L.fgColor nodeStyle
-      & collectStyleField_ L.hlColor nodeStyle
-      & collectStyleField_ L.sndColor nodeStyle
-      & collectStyleField_ L.text nodeStyle
     mainNode = makeMain selected
-      & L.info . L.style .~ mainStyle
+      & L.info . L.style .~ nodeStyle
     widgetId = node ^. L.info . L.widgetId
     selectListNode = makeSelectList wenv widgetData items makeRow config widgetId
     newWidget = makeDropdown widgetData items makeMain makeRow config newState
@@ -436,7 +432,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     theme = activeTheme wenv node
     maxHeightTheme = theme ^. L.dropdownMaxHeight
     cfgMaxHeight = _ddcMaxHeight config
-    -- Avoid having an invisible list if style/theme as not set
+    -- Avoid having an invisible list if style/theme is not set
     maxHeightStyle = max 20 $ fromMaybe maxHeightTheme cfgMaxHeight
     reqHeight = case Seq.lookup 1 (node ^. L.children) of
       Just child -> sizeReqMaxBounded $ child ^. L.info . L.sizeReqH
@@ -455,10 +451,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   resize wenv node viewport children = resized where
     style = activeStyle wenv node
-    contentArea = fromMaybe viewport (removeOuterBounds style viewport)
     Rect rx ry rw rh = viewport
-    Rect cx cy cw ch = contentArea
-    !mainArea = contentArea
+    !mainArea = viewport
     !listArea = viewport {
       _rY = ry + rh,
       _rH = listHeight wenv node

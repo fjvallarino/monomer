@@ -175,6 +175,7 @@ button_ caption handler configs = buttonNode where
 makeButton :: WidgetEvent e => Text -> ButtonCfg s e -> Widget s e
 makeButton caption config = widget where
   widget = createContainer () def {
+    containerAddStyleReq = False,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = getActiveStyle,
@@ -201,12 +202,11 @@ makeButton caption config = widget where
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelStyle = def
-      & collectStyleField_ L.text nodeStyle
-      & collectStyleField_ L.sizeReqW nodeStyle
-      & collectStyleField_ L.sizeReqH nodeStyle
-    labelNode = label_ caption [ignoreTheme, _btnLabelCfg config]
-      & L.info . L.style .~ labelStyle
+    labelCfg = (_btnLabelCfg config) {
+      _lscActiveStyle = Just childOfFocusedStyle
+    }
+    labelNode = label_ caption [ignoreTheme, labelCfg]
+      & L.info . L.style .~ nodeStyle
     childNode = labelNode
     newNode = node
       & L.children .~ Seq.singleton childNode
@@ -248,7 +248,5 @@ makeButton caption config = widget where
     newReqH = child ^. L.info . L.sizeReqH
 
   resize wenv node viewport children = resized where
-    style = getActiveStyle wenv node
-    carea = fromMaybe viewport (removeOuterBounds style viewport)
-    assignedAreas = Seq.fromList [carea]
+    assignedAreas = Seq.fromList [viewport]
     resized = (resultNode node, assignedAreas)

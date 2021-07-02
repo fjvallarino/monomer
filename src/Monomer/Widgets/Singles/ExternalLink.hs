@@ -143,6 +143,7 @@ makeExternalLink
   :: WidgetEvent e => Text -> Text -> ExternalLinkCfg s e -> Widget s e
 makeExternalLink caption url config = widget where
   widget = createContainer () def {
+    containerAddStyleReq = False,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
@@ -155,27 +156,13 @@ makeExternalLink caption url config = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.externalLinkStyle
 
-  labelActiveStyle pnode cstyle wenv cnode = newStyle where
-    isHoverC = isNodeHovered wenv cnode
-    isActiveC = isNodeActive wenv cnode
-    isFocusP = isNodeFocused wenv pnode
-    newStyle
-      | isActiveC = activeStyle wenv cnode
-      | isHoverC && isFocusP = fromMaybe def (_styleFocusHover cstyle)
-      | isFocusP = fromMaybe def (_styleFocus cstyle)
-      | otherwise = activeStyle wenv cnode
-
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelStyle = def
-      & collectStyleField_ L.text nodeStyle
-      & collectStyleField_ L.sizeReqW nodeStyle
-      & collectStyleField_ L.sizeReqH nodeStyle
     labelCfg = (_elcLabelCfg config) {
-      _lscActiveStyle = Just (labelActiveStyle node labelStyle)
+      _lscActiveStyle = Just childOfFocusedStyle
     }
     labelNode = label_ caption [ignoreTheme, labelCfg]
-      & L.info . L.style .~ labelStyle
+      & L.info . L.style .~ nodeStyle
     childNode = labelNode
     newNode = node
       & L.children .~ Seq.singleton childNode

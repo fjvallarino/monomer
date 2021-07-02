@@ -22,7 +22,8 @@ module Monomer.Widgets.Util.Style (
   styleStateChanged,
   initNodeStyle,
   mergeBasicStyle,
-  handleStyleChange
+  handleStyleChange,
+  childOfFocusedStyle
 ) where
 
 import Control.Applicative ((<|>))
@@ -203,6 +204,35 @@ handleStyleChange
 handleStyleChange wenv target style doCursor node evt result = newResult where
   newResult = handleSizeChange wenv target evt node result
     & handleCursorChange wenv target evt style node
+
+{-|
+Replacement of activeStyle for child widgets embedded in a focusable parent. It
+selects the correct style state according to the situation.
+
+Used, for example, in `button` and `externalLink`, which are focusable but have
+an embedded label. Since label is not focusable, that style would not be handled
+correctly.
+-}
+childOfFocusedStyle
+  :: WidgetEnv s e   -- ^ The widget environment.
+  -> WidgetNode s e  -- ^ The embedded child node.
+  -> StyleState      -- ^ The currently active state.
+childOfFocusedStyle wenv cnode = newStyle where
+  pinfo = fromMaybe def (wenv ^. L.findByPath $ parentPath cnode)
+  cstyle = cnode ^. L.info . L.style
+  enabled = cnode ^. L.info . L.enabled
+  activeC = isNodeActive wenv cnode
+  activeP = isNodeInfoActive False wenv pinfo
+  hoverC = isNodeHovered wenv cnode
+  hoverP = isNodeInfoHovered wenv pinfo
+  focusP = isNodeInfoFocused wenv pinfo
+  newStyle
+    | not enabled = fromMaybe def (_styleDisabled cstyle)
+    | activeC || activeP = fromMaybe def (_styleActive cstyle)
+    | (hoverC || hoverP) && focusP = fromMaybe def (_styleFocusHover cstyle)
+    | hoverC || hoverP = fromMaybe def (_styleHover cstyle)
+    | focusP = fromMaybe def (_styleFocus cstyle)
+    | otherwise = activeStyle wenv cnode
 
 -- Helpers
 handleSizeChange
