@@ -722,9 +722,9 @@
   - Simplify style handling in button, dropdown and externalLink.
   - Check tooltip vertical alignment.
   - Fix scroll not passing down events on bar to selectList.
+  - Dropdown should scroll to selected item when opening.
 
 Next
-  - Dropdown should scroll to selected item when opening.
   - Dropdown selected item does not seem to be marked on init.
   - Dropdown (selectList?) focus hover style does not seem to work on items.
   - Can image be aligned to right when fitting is applied?

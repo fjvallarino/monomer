@@ -377,7 +377,8 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     -- selectList is wrapped by a scroll widget
     (slWid, slPath) = scrollListInfo node
     (listWid, _) = selectListInfo node
-    requests = [SetOverlay slWid slPath, SetFocus listWid]
+    scrollMsg = SendMessage listWid SelectListShowSelected
+    requests = [SetOverlay slWid slPath, SetFocus listWid, scrollMsg]
 
   closeDropdown wenv node = resultReqs newNode requests where
     widgetId = node ^. L.info . L.widgetId

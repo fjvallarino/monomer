@@ -36,6 +36,7 @@ is part of another widget such as dropdown.
 module Monomer.Widgets.Containers.SelectList (
   SelectListCfg,
   SelectListItem(..),
+  SelectListMessage(..),
   selectList,
   selectList_,
   selectListV,
@@ -176,8 +177,10 @@ data SelectListState a = SelectListState {
   _resizeReq :: Bool
 } deriving (Eq, Show)
 
-newtype SelectListMessage
-  = OnClickMessage Int
+data SelectListMessage
+  = SelectListClickItem Int
+  | SelectListShowSelected
+  deriving (Eq, Show)
 
 -- | Creates a select list using the given lens.
 selectList
@@ -353,7 +356,8 @@ makeSelectList widgetData items makeRow config state = widget where
       | otherwise = tempIdx
 
   handleMessage wenv node target message = result where
-    handleSelect (OnClickMessage idx) = handleItemClick wenv node idx
+    handleSelect (SelectListClickItem idx) = handleItemClick wenv node idx
+    handleSelect SelectListShowSelected = handleItemShow wenv node
     result = fmap handleSelect (cast message)
 
   handleItemClick wenv node idx = result where
@@ -362,6 +366,9 @@ makeSelectList widgetData items makeRow config state = widget where
     result
       | isNodeFocused wenv node = tempResult
       | otherwise = tempResult & L.requests %~ (|> focusReq)
+
+  handleItemShow wenv node = resultReqs node reqs where
+    reqs = itemScrollTo wenv node (_hlIdx state)
 
   highlightItem wenv node nextIdx = Just result where
     newHlStyle
@@ -525,7 +532,7 @@ makeItemsList wenv items makeRow config widgetId selected = itemsList where
   normalTheme = collectTheme wenv L.selectListItemStyle
   normalStyle = fromJust (Just normalTheme <> _slcItemStyle config)
   makeItem idx item = newItem where
-    clickCfg = onClickReq $ SendMessage widgetId (OnClickMessage idx)
+    clickCfg = onClickReq $ SendMessage widgetId (SelectListClickItem idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
     newItem = box_ itemCfg (content & L.info . L.style .~ normalStyle)
