@@ -110,7 +110,7 @@ darkTheme = baseTheme darkMod where
     slSelectedBgHover = grayLight,
     slSelectedText = white,
     slSelectedFocusBorder = blueHighlight,
-    tooltipBorder = grayBorder,
-    tooltipBg = grayDark,
+    tooltipBorder = grayLighter,
+    tooltipBg = grayInput,
     tooltipText = white
   }

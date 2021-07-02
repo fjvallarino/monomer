@@ -720,9 +720,9 @@
   - Should text be aligned based on ascending instead of line height?
   - Check externalLink disabled state click.
   - Simplify style handling in button, dropdown and externalLink.
+  - Check tooltip vertical alignment.
 
 Next
-  - Check tooltip vertical alignment.
   - Fix scroll not passing down events on bar to selectList.
   - Dropdown should scroll to selected item when opening.
   - Dropdown selected item does not seem to be marked on init.

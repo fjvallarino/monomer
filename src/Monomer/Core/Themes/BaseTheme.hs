@@ -123,11 +123,6 @@ btnMainBorderFocus themeMod = border 1 (btnMainFocusBorder themeMod)
 inputBorderFocus :: BaseThemeColors -> Border
 inputBorderFocus themeMod = border 1 (inputFocusBorder themeMod)
 
-smallFont :: TextStyle
-smallFont = def
-  & L.font ?~ Font "Regular"
-  & L.fontSize ?~ FontSize 12
-
 normalFont :: TextStyle
 normalFont = def
   & L.font ?~ Font "Regular"
@@ -188,6 +183,15 @@ selectListItemSelectedStyle themeMod = selectListItemStyle themeMod
   & L.text . non def . L.fontColor ?~ slSelectedText themeMod
   & L.bgColor ?~ slSelectedBgBasic themeMod
   & L.border ?~ border 1 (slSelectedBgBasic themeMod)
+
+tooltipStyle :: BaseThemeColors -> StyleState
+tooltipStyle themeMod = def
+  & L.text . non def . L.font ?~ Font "Regular"
+  & L.text . non def . L.fontSize ?~ FontSize 14
+  & L.text . non def . L.fontColor ?~ tooltipText themeMod
+  & L.bgColor ?~ tooltipBg themeMod
+  & L.border ?~ border 1 (tooltipBorder themeMod)
+  & L.padding ?~ padding 4
 
 baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
@@ -255,10 +259,7 @@ baseBasic themeMod = def
   & L.textAreaStyle .~ textInputStyle themeMod
   & L.textFieldStyle .~ textInputStyle themeMod
   & L.timeFieldStyle .~ timeInputStyle themeMod
-  & L.tooltipStyle . L.text ?~ (smallFont & L.fontColor ?~ tooltipText themeMod)
-  & L.tooltipStyle . L.bgColor ?~ tooltipBg themeMod
-  & L.tooltipStyle . L.border ?~ border 1 (tooltipBorder themeMod)
-  & L.tooltipStyle . L.padding ?~ padding 4
+  & L.tooltipStyle .~ tooltipStyle themeMod
 
 baseHover :: BaseThemeColors -> ThemeState
 baseHover themeMod = baseBasic themeMod

@@ -48,37 +48,37 @@ import qualified Monomer.Lens as L
 data TooltipCfg = TooltipCfg {
   _ttcDelay :: Maybe Int,
   _ttcFollowCursor :: Maybe Bool,
-  _ttcWidth :: Maybe Double,
-  _ttcHeight :: Maybe Double
+  _ttcMaxWidth :: Maybe Double,
+  _ttcMaxHeight :: Maybe Double
 }
 
 instance Default TooltipCfg where
   def = TooltipCfg {
     _ttcDelay = Nothing,
     _ttcFollowCursor = Nothing,
-    _ttcWidth = Nothing,
-    _ttcHeight = Nothing
+    _ttcMaxWidth = Nothing,
+    _ttcMaxHeight = Nothing
   }
 
 instance Semigroup TooltipCfg where
   (<>) s1 s2 = TooltipCfg {
     _ttcDelay = _ttcDelay s2 <|> _ttcDelay s1,
     _ttcFollowCursor = _ttcFollowCursor s2 <|> _ttcFollowCursor s1,
-    _ttcWidth = _ttcWidth s2 <|> _ttcWidth s1,
-    _ttcHeight = _ttcHeight s2 <|> _ttcHeight s1
+    _ttcMaxWidth = _ttcMaxWidth s2 <|> _ttcMaxWidth s1,
+    _ttcMaxHeight = _ttcMaxHeight s2 <|> _ttcMaxHeight s1
   }
 
 instance Monoid TooltipCfg where
   mempty = def
 
-instance CmbWidth TooltipCfg where
-  width w = def {
-    _ttcWidth = Just w
+instance CmbMaxWidth TooltipCfg where
+  maxWidth w = def {
+    _ttcMaxWidth = Just w
   }
 
-instance CmbHeight TooltipCfg where
-  height h = def {
-    _ttcHeight = Just h
+instance CmbMaxHeight TooltipCfg where
+  maxHeight h = def {
+    _ttcMaxHeight = Just h
   }
 
 tooltipDelay :: Int -> TooltipCfg
@@ -180,8 +180,8 @@ makeTooltip caption config state = widget where
       isDragging = isJust (wenv ^. L.dragStatus)
       maxW = wenv ^. L.windowSize . L.w
       maxH = wenv ^. L.windowSize . L.h
-      targetW = fromMaybe maxW (_ttcWidth config)
-      targetH = fromMaybe maxH (_ttcHeight config)
+      targetW = fromMaybe maxW (_ttcMaxWidth config)
+      targetH = fromMaybe maxH (_ttcMaxHeight config)
       targetSize = Size targetW targetH
       fittedLines = fitTextToSize renderer style Ellipsis MultiLine TrimSpaces
         Nothing targetSize caption
@@ -196,7 +196,7 @@ makeTooltip caption config state = widget where
         | otherwise = wenv ^. L.windowSize . L.w - tw
       -- Add offset to have space between the tooltip and the cursor
       ry
-        | wenv ^. L.windowSize . L.h - my > th = my + 20
+        | wenv ^. L.windowSize . L.h - (my + 50) > th = my + 20
         | otherwise = my - th - 5
       rect = Rect rx ry tw th
       tooltipVisible = tooltipDisplayed wenv node && not isDragging
