@@ -278,7 +278,11 @@ makeSelectList widgetData items makeRow config state = widget where
 
   init wenv node = resultNode newNode where
     children = createSelectListChildren wenv node
+    selected = currentValue wenv
+    slIdx = fromMaybe (-1) (Seq.elemIndexL selected items)
     newState = state {
+      _slIdx = slIdx,
+      _hlIdx = if slIdx < 0 then 0 else slIdx,
       _resizeReq = True
     }
     newNode = node
@@ -303,14 +307,23 @@ makeSelectList widgetData items makeRow config state = widget where
   mergePost wenv node oldNode oldState result = newResult where
     newResult = updateResultStyle wenv result oldState
 
-  updateState wenv node oldState resizeReq children = resultNode newNode where
+  updateState wenv node oldState resizeReq children = result where
+    selected = currentValue wenv
+    newSl = fromMaybe (-1) (Seq.elemIndexL selected items)
+    newHl
+      | newSl /= _slIdx oldState = newSl
+      | otherwise = _hlIdx oldState
     newState = oldState {
+      _slIdx = newSl,
+      _hlIdx = newHl,
       _prevItems = items,
       _resizeReq = resizeReq
     }
-    newNode = node
+    tmpNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
       & L.children .~ children
+    (newNode, reqs) = updateStyles wenv config state tmpNode (-1) (-1)
+    result = resultReqs newNode reqs
 
   updateResultStyle wenv result state = newResult where
     slIdx = _slIdx state
@@ -368,7 +381,7 @@ makeSelectList widgetData items makeRow config state = widget where
       | otherwise = tempResult & L.requests %~ (|> focusReq)
 
   handleItemShow wenv node = resultReqs node reqs where
-    reqs = itemScrollTo wenv node (_hlIdx state)
+    reqs = itemScrollTo wenv node (_slIdx state)
 
   highlightItem wenv node nextIdx = Just result where
     newHlStyle
@@ -388,10 +401,14 @@ makeSelectList widgetData items makeRow config state = widget where
   selectItem wenv node idx = result where
     selected = currentValue wenv
     value = fromMaybe selected (Seq.lookup idx items)
-    valueSetReq = widgetDataSet widgetData value
+    valueSetReq
+      | selected /= value = widgetDataSet widgetData value
+      | otherwise = []
     scrollToReq = itemScrollTo wenv node idx
-    changeReqs = fmap ($ value) (_slcOnChangeReq config)
-      ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
+    changeReqs
+      | selected /= value = fmap ($ value) (_slcOnChangeReq config)
+          ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
+      | otherwise = []
     (styledNode, resizeReq) = updateStyles wenv config state node idx (-1)
     newSlStyle
       | idx == _hlIdx state = _hlStyle state
