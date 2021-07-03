@@ -726,9 +726,9 @@
   - Dropdown selected item does not seem to be marked on init.
   - Dropdown (selectList?) focus hover style does not seem to work on items.
   - Simplify selectList code.
+  - Can image be aligned to right when fitting is applied?
 
 Next
-  - Can image be aligned to right when fitting is applied?
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
   - Improve base theme creation (scale argument?)

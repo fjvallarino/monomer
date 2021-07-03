@@ -84,9 +84,11 @@ data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFlags :: [ImageFlag],
   _imcFit :: Maybe ImageFit,
+  _imcTransparency :: Maybe Double,
   _imcAlignH :: Maybe AlignH,
   _imcAlignV :: Maybe AlignV,
-  _imcTransparency :: Maybe Double
+  _imcFactorW :: Maybe Double,
+  _imcFactorH :: Maybe Double
 }
 
 instance Default (ImageCfg e) where
@@ -94,9 +96,11 @@ instance Default (ImageCfg e) where
     _imcLoadError = [],
     _imcFlags = [],
     _imcFit = Nothing,
+    _imcTransparency = Nothing,
     _imcAlignH = Nothing,
     _imcAlignV = Nothing,
-    _imcTransparency = Nothing
+    _imcFactorW = Nothing,
+    _imcFactorH = Nothing
   }
 
 instance Semigroup (ImageCfg e) where
@@ -104,18 +108,15 @@ instance Semigroup (ImageCfg e) where
     _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
     _imcFlags = _imcFlags i1 ++ _imcFlags i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
+    _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1,
     _imcAlignH = _imcAlignH i2 <|> _imcAlignH i1,
     _imcAlignV = _imcAlignV i2 <|> _imcAlignV i1,
-    _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
+    _imcFactorW = _imcFactorW i2 <|> _imcFactorW i1,
+    _imcFactorH = _imcFactorH i2 <|> _imcFactorH i1
   }
 
 instance Monoid (ImageCfg e) where
   mempty = def
-
-instance CmbTransparency (ImageCfg e) where
-  transparency alpha = def {
-    _imcTransparency = Just alpha
-  }
 
 instance CmbOnLoadError (ImageCfg e) e ImageLoadError where
   onLoadError err = def {
@@ -157,6 +158,11 @@ instance CmbFitHeight (ImageCfg e) where
     _imcFit = Just FitHeight
   }
 
+instance CmbTransparency (ImageCfg e) where
+  transparency alpha = def {
+    _imcTransparency = Just alpha
+  }
+
 instance CmbAlignLeft (ImageCfg e) where
   alignLeft_ False = def
   alignLeft_ True = def {
@@ -191,6 +197,20 @@ instance CmbAlignBottom (ImageCfg e) where
   alignBottom_ False = def
   alignBottom_ True = def {
     _imcAlignV = Just ABottom
+  }
+
+instance CmbResizeFactor (ImageCfg e) where
+  resizeFactor s = def {
+    _imcFactorW = Just s,
+    _imcFactorH = Just s
+  }
+
+instance CmbResizeFactorDim (ImageCfg e) where
+  resizeFactorW w = def {
+    _imcFactorW = Just w
+  }
+  resizeFactorH h = def {
+    _imcFactorH = Just h
   }
 
 data ImageSource
@@ -308,10 +328,16 @@ makeImage imgSource config state = widget where
       & L.widget .~ makeImage imgSource config newState
     result = Just $ resultReqs newNode [ResizeWidgets]
 
-  getSizeReq wenv node = sizeReq where
+  getSizeReq wenv node = (sizeW, sizeH) where
     Size w h = maybe def snd (isImageData state)
-    factor = 1
-    sizeReq = (expandSize w factor, expandSize h factor)
+    factorW = fromMaybe 1 (_imcFactorW config)
+    factorH = fromMaybe 1 (_imcFactorH config)
+    sizeW
+      | abs factorW < 0.01 = fixedSize w
+      | otherwise = expandSize w factorW
+    sizeH
+      | abs factorH < 0.01 = fixedSize h
+      | otherwise = expandSize h factorH
 
   render wenv node renderer = do
     when (imageLoaded && imageExists) $
