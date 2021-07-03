@@ -28,7 +28,7 @@ import Data.Maybe
 
 import qualified Data.Text as T
 
-import Monomer.Graphics.Color
+import Monomer.Graphics.Util
 
 import Monomer.Widgets.Single
 

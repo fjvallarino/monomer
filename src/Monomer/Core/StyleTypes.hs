@@ -17,8 +17,8 @@ import Data.Default
 import GHC.Generics
 
 import Monomer.Common
-import Monomer.Graphics.Color
 import Monomer.Graphics.Types
+import Monomer.Graphics.Util
 
 {-|
 Represents a size requirement for a specific axis. Mainly used by stack and box,

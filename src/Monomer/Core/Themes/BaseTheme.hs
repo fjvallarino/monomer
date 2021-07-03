@@ -21,7 +21,6 @@ import Data.Default
 
 import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Graphics.Color
 import Monomer.Graphics.Types
 
 import qualified Monomer.Core.Lens as L

@@ -10,8 +10,7 @@ Color table imported from https://www.rapidtables.com/web/color/RGB_Color.html.
 -}
 module Monomer.Graphics.ColorTable where
 
-import Monomer.Graphics.Color
-import Monomer.Graphics.Types
+import Monomer.Graphics.Util (rgbHex)
 
 maroon = rgbHex "#800000"
 darkRed = rgbHex "#8B0000"

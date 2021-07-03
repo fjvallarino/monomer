@@ -13,8 +13,8 @@ import TextShow
 
 import Monomer.Core.Combinators
 import Monomer.Core.Style
-import Monomer.Graphics.Color
 import Monomer.Graphics.ColorTable (gray)
+import Monomer.Graphics.Util
 import Monomer.Core.WidgetTypes
 import Monomer.Core.Util
 import Monomer.Widgets

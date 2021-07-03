@@ -8,6 +8,9 @@ Portability : non-portable
 
 Displays an image from local storage or a url.
 
+Note: depending on the type of image fit chosen and the assigned viewport, extra
+space may remain unused. The alignment options exist to handle this situation.
+
 Configs:
 
 - transparency: the alpha to apply when rendering the image.
@@ -19,6 +22,12 @@ Configs:
 - fitFill: stretches the image to match the viewport.
 - fitWidth: stretches the image to match the viewport width. Maintains ratio.
 - fitHeight: stretches the image to match the viewport height. Maintains ratio.
+- alignLeft: aligns left if extra space is available.
+- alignRight: aligns right if extra space is available.
+- alignCenter: aligns center if extra space is available.
+- alignTop: aligns top if extra space is available.
+- alignMiddle: aligns middle if extra space is available.
+- alignBottom: aligns bottom if extra space is available.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -75,6 +84,8 @@ data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFlags :: [ImageFlag],
   _imcFit :: Maybe ImageFit,
+  _imcAlignH :: Maybe AlignH,
+  _imcAlignV :: Maybe AlignV,
   _imcTransparency :: Maybe Double
 }
 
@@ -83,6 +94,8 @@ instance Default (ImageCfg e) where
     _imcLoadError = [],
     _imcFlags = [],
     _imcFit = Nothing,
+    _imcAlignH = Nothing,
+    _imcAlignV = Nothing,
     _imcTransparency = Nothing
   }
 
@@ -91,6 +104,8 @@ instance Semigroup (ImageCfg e) where
     _imcLoadError = _imcLoadError i1 ++ _imcLoadError i2,
     _imcFlags = _imcFlags i1 ++ _imcFlags i2,
     _imcFit = _imcFit i2 <|> _imcFit i1,
+    _imcAlignH = _imcAlignH i2 <|> _imcAlignH i1,
+    _imcAlignV = _imcAlignV i2 <|> _imcAlignV i1,
     _imcTransparency = _imcTransparency i2 <|> _imcTransparency i1
   }
 
@@ -140,6 +155,42 @@ instance CmbFitWidth (ImageCfg e) where
 instance CmbFitHeight (ImageCfg e) where
   fitHeight = def {
     _imcFit = Just FitHeight
+  }
+
+instance CmbAlignLeft (ImageCfg e) where
+  alignLeft_ False = def
+  alignLeft_ True = def {
+    _imcAlignH = Just ALeft
+  }
+
+instance CmbAlignCenter (ImageCfg e) where
+  alignCenter_ False = def
+  alignCenter_ True = def {
+    _imcAlignH = Just ACenter
+  }
+
+instance CmbAlignRight (ImageCfg e) where
+  alignRight_ False = def
+  alignRight_ True = def {
+    _imcAlignH = Just ARight
+  }
+
+instance CmbAlignTop (ImageCfg e) where
+  alignTop_ False = def
+  alignTop_ True = def {
+    _imcAlignV = Just ATop
+  }
+
+instance CmbAlignMiddle (ImageCfg e) where
+  alignMiddle_ False = def
+  alignMiddle_ True = def {
+    _imcAlignV = Just AMiddle
+  }
+
+instance CmbAlignBottom (ImageCfg e) where
+  alignBottom_ False = def
+  alignBottom_ True = def {
+    _imcAlignV = Just ABottom
   }
 
 data ImageSource
@@ -272,23 +323,26 @@ makeImage imgSource config state = widget where
       contentArea = getContentArea style node
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
+      alignH = fromMaybe ALeft (_imcAlignH config)
+      alignV = fromMaybe ATop (_imcAlignV config)
       imgPath = imgName imgSource
       imgFlags = _imcFlags config
-      imageRect = fitImage fitMode imgSize contentArea
+      imageRect = fitImage contentArea imgSize fitMode alignH alignV
       ImageState _ imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
       imageExists = isJust (getImage renderer imgPath)
 
-fitImage :: ImageFit -> Size -> Rect -> Rect
-fitImage fitMode imageSize viewport = case fitMode of
-  FitNone -> Rect x y iw ih
-  FitFill -> Rect x y w h
-  FitWidth -> Rect x y w ih
-  FitHeight -> Rect x y iw h
+fitImage :: Rect -> Size -> ImageFit -> AlignH -> AlignV -> Rect
+fitImage viewport imageSize fitMode alignH alignV = case fitMode of
+  FitNone -> alignImg iw ih
+  FitFill -> alignImg w h
+  FitWidth -> alignImg w (w * ih / iw)
+  FitHeight -> alignImg (h * iw / ih) h
   where
     Rect x y w h = viewport
     Size iw ih = imageSize
+    alignImg nw nh = alignInRect viewport (Rect x y nw nh) alignH alignV
 
 handleImageLoad :: ImageCfg e -> WidgetEnv s e -> String -> IO ImageMessage
 handleImageLoad config wenv path =

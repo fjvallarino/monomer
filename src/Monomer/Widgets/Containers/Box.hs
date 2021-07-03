@@ -334,33 +334,8 @@ makeBox config = widget where
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
-    raAligned = alignInRect ah av contentArea raChild
+    raAligned = alignInRect contentArea raChild ah av
     expand = fromMaybe False (_boxExpandContent config)
     resized
       | expand = (resultNode node, Seq.singleton contentArea)
       | otherwise = (resultNode node, Seq.singleton raAligned)
-
-alignInRect :: AlignH -> AlignV -> Rect -> Rect -> Rect
-alignInRect ah av parent child = newRect where
-  tempRect = alignVInRect av parent child
-  newRect = alignHInRect ah parent tempRect
-
-alignHInRect :: AlignH -> Rect -> Rect -> Rect
-alignHInRect ah parent child = newRect where
-  Rect px _ pw _ = parent
-  Rect _ cy cw ch = child
-  newX = case ah of
-    ALeft -> px
-    ACenter -> px + (pw - cw) / 2
-    ARight -> px + pw - cw
-  newRect = Rect newX cy cw ch
-
-alignVInRect :: AlignV -> Rect -> Rect -> Rect
-alignVInRect av parent child = newRect where
-  Rect _ py _ ph = parent
-  Rect cx _ cw ch = child
-  newY = case av of
-    ATop -> py
-    AMiddle -> py + (ph - ch) / 2
-    ABottom -> py + ph - ch
-  newRect = Rect cx newY cw ch

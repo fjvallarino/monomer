@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0034398fa73a706ff4f38ec5d91fd53a82457809731868c37b24630a6c431354
+-- hash: e9cd0fb27bcf456724b1c412cf85e4063c1b7d69e6d55a9c36b6260203aeb70d
 
 name:           monomer
 version:        0.1.0.0
@@ -54,12 +54,12 @@ library
       Monomer.Event.Types
       Monomer.Event.Util
       Monomer.Graphics
-      Monomer.Graphics.Color
       Monomer.Graphics.ColorTable
       Monomer.Graphics.Lens
       Monomer.Graphics.NanoVGRenderer
       Monomer.Graphics.Text
       Monomer.Graphics.Types
+      Monomer.Graphics.Util
       Monomer.Helper
       Monomer.Lens
       Monomer.Main
