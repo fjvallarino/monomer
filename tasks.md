@@ -729,6 +729,11 @@
   - Can image be aligned to right when fitting is applied?
 
 Next
+  - Create custom font handling functions
+    - Use nanovg's font stash, mostly import logic from nanovg functions
+    - Separate size calculation from rendering
+    - Renderer should not be in WidgetEnv
+    - Revert change to nanovg
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
   - Improve base theme creation (scale argument?)

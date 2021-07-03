@@ -121,10 +121,13 @@ instance Default AlignTV where
 
 -- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {
-  _glpGlyph :: {-# UNPACK #-} !Char,   -- ^ The representer character.
+  _glpGlyph :: {-# UNPACK #-} !Char,   -- ^ The represented character.
   _glpXMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
   _glpXMax :: {-# UNPACK #-} !Double,  -- ^ The max x coordinate.
-  _glpW :: {-# UNPACK #-} !Double      -- ^ The glyph width.
+  _glpYMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
+  _glpYMax :: {-# UNPACK #-} !Double,  -- ^ The max x coordinate.
+  _glpW :: {-# UNPACK #-} !Double,     -- ^ The glyph width.
+  _glpH :: {-# UNPACK #-} !Double      -- ^ The glyph height.
 } deriving (Eq, Show, Generic)
 
 instance Default GlyphPos where
@@ -132,7 +135,10 @@ instance Default GlyphPos where
     _glpGlyph = ' ',
     _glpXMin = 0,
     _glpXMax = 0,
-    _glpW = 0
+    _glpYMin = 0,
+    _glpYMax = 0,
+    _glpW = 0,
+    _glpH = 0
   }
 
 -- | Text flags for single or multiline.
@@ -201,6 +207,14 @@ data ImageDef = ImageDef {
   _idfImgData :: BS.ByteString,  -- ^ The image data as RGBA 4-bytes blocks.
   _idfFlags :: [ImageFlag]       -- ^ The image flags.
 } deriving (Eq, Show, Generic)
+
+data FontManager = FontManager {
+  fcomputeTextMetrics :: Font -> FontSize -> TextMetrics,
+  -- | Returns the text size of the text given font and size.
+  fcomputeTextSize :: Font -> FontSize -> Text -> Size,
+  -- | Returns the glyphs of the text given font and size.
+  fcomputeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
+}
 
 -- | Low level rendering definitions.
 data Renderer = Renderer {

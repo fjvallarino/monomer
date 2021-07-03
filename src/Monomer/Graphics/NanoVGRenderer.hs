@@ -323,7 +323,10 @@ newRenderer c dpr lock envRef = Renderer {..} where
         _glpGlyph = glyph,
         _glpXMin = realToFrac (VG.glyphPosMinX pos) / dpr,
         _glpXMax = realToFrac (VG.glyphPosMaxX pos) / dpr,
-        _glpW = realToFrac (VG.glyphPosMaxX pos - VG.glyphPosMinX pos) / dpr
+        _glpYMin = realToFrac (VG.glyphPosMinY pos) / dpr,
+        _glpYMax = realToFrac (VG.glyphPosMaxY pos) / dpr,
+        _glpW = realToFrac (VG.glyphPosMaxX pos - VG.glyphPosMinX pos) / dpr,
+        _glpH = realToFrac (VG.glyphPosMaxY pos - VG.glyphPosMinY pos) / dpr
       }
 
   renderText !point font fontSize message = do

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9cd0fb27bcf456724b1c412cf85e4063c1b7d69e6d55a9c36b6260203aeb70d
+-- hash: 184b12bd9a4df73b6b30a51ea36e1a3573485f4aebe0034a6a5de5aa1becc26c
 
 name:           monomer
 version:        0.1.0.0
@@ -55,6 +55,8 @@ library
       Monomer.Event.Util
       Monomer.Graphics
       Monomer.Graphics.ColorTable
+      Monomer.Graphics.FFI
+      Monomer.Graphics.FontManager
       Monomer.Graphics.Lens
       Monomer.Graphics.NanoVGRenderer
       Monomer.Graphics.Text
@@ -136,9 +138,14 @@ library
       OverloadedStrings
   ghc-options: -fwarn-incomplete-patterns
   cc-options: -fPIC
+  include-dirs:
+      cbits
+  install-includes:
+      fontmanager.h
   c-sources:
-      cbits/glew.c
       cbits/dpi.c
+      cbits/fontmanager.c
+      cbits/glew.c
   build-depends:
       JuicyPixels
     , OpenGL

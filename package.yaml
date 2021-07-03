@@ -53,9 +53,12 @@ dependencies:
 
 library:
   source-dirs: src
+  include-dirs: cbits
+  install-includes: fontmanager.h
   c-sources:
-  - cbits/glew.c
   - cbits/dpi.c
+  - cbits/fontmanager.c
+  - cbits/glew.c
   cc-options:
   - -fPIC
   ghc-options:
