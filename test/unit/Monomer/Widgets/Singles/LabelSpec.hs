@@ -120,12 +120,12 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
     sizeReq2H `shouldBe` fixedSize 20
 
   where
-    renderer = mockRenderer {
+    fontMgr = mockFontManager {
       computeTextSize = mockTextSize Nothing,
       computeGlyphsPos = mockGlyphsPos Nothing
     }
     wenv = mockWenvEvtUnit ()
-      & L.renderer .~ renderer
+      & L.fontManager .~ fontMgr
     lblNode = nodeInit wenv (label "Test Label")
     lblNode2 = label "Test Label" `style` [textSize 60]
     lblRes = widgetMerge (lblNode2 ^. L.widget) wenv lblNode2 lblNode

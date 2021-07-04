@@ -12,6 +12,7 @@ Helper functions for testing Monomer widgets.
 
 module Monomer.TestUtil where
 
+import Control.Concurrent (newMVar)
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad.State
 import Data.Default
@@ -74,7 +75,10 @@ mockGlyphsPos mw font (FontSize fs) text = glyphs where
     _glpGlyph = chr,
     _glpXMin = fromIntegral idx * w,
     _glpXMax = (fromIntegral idx + 1) * w,
-    _glpW = w
+    _glpYMin = 0,
+    _glpYMax = 10,
+    _glpW = w,
+    _glpH = 10
   }
   glyphs = Seq.mapWithIndex mkGlyph chars
 
@@ -127,9 +131,6 @@ mockRenderer = Renderer {
   renderQuadTo = \p1 p2 -> return (),
   renderEllipse = \rect -> return (),
   -- Text
-  computeTextMetrics = mockTextMetrics,
-  computeTextSize = mockTextSize (Just 10),
-  computeGlyphsPos = mockGlyphsPos (Just 10),
   renderText = mockRenderText,
 
   -- Image
@@ -141,15 +142,24 @@ mockRenderer = Renderer {
   renderNewImage = \name rect alpha size imgData [] -> return ()
 }
 
+mockFontManager :: FontManager
+mockFontManager = FontManager {
+  computeTextMetrics = mockTextMetrics,
+  computeTextSize = mockTextSize (Just 10),
+  computeGlyphsPos = mockGlyphsPos (Just 10)
+}
+
+
 mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOs = "Mac OS X",
-  _weRenderer = mockRenderer,
+  _weFontManager = mockFontManager,
   _weFindByPath = const Nothing,
   _weMainButton = BtnLeft,
   _weContextButton = BtnRight,
   _weTheme = def,
   _weWindowSize = testWindowSize,
+  _weWidgetShared = unsafePerformIO (newMVar M.empty),
   _weWidgetKeyMap = M.empty,
   _weHoveredPath = Nothing,
   _weFocusedPath = emptyPath,

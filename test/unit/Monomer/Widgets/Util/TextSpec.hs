@@ -81,14 +81,14 @@ fitTextSingle = describe "fitTextToSize single line" $ do
 
   where
     wenv = mockWenv ()
-    renderer = wenv ^. L.renderer
+    fontMgr = wenv ^. L.fontManager
     style = def
     sizeE = Size 120 20
     sizeC = Size 120 10
-    elpsTrim text = fitTextToSize renderer style Ellipsis SingleLine TrimSpaces Nothing sizeE text
-    elpsKeep text = fitTextToSize renderer style Ellipsis SingleLine KeepSpaces Nothing sizeE text
-    clipTrim text = fitTextToSize renderer style ClipText SingleLine TrimSpaces Nothing sizeC text
-    clipKeep text = fitTextToSize renderer style ClipText SingleLine KeepSpaces Nothing sizeC text
+    elpsTrim text = fitTextToSize fontMgr style Ellipsis SingleLine TrimSpaces Nothing sizeE text
+    elpsKeep text = fitTextToSize fontMgr style Ellipsis SingleLine KeepSpaces Nothing sizeE text
+    clipTrim text = fitTextToSize fontMgr style ClipText SingleLine TrimSpaces Nothing sizeC text
+    clipKeep text = fitTextToSize fontMgr style ClipText SingleLine KeepSpaces Nothing sizeC text
     singleElement sq = Seq.length sq == 1
 
 fitTextMulti :: Spec
@@ -152,7 +152,7 @@ fitTextMulti = describe "fitTextToSize single line" $ do
 
   where
     wenv = mockWenv ()
-    renderer = wenv ^. L.renderer
+    fontMgr = wenv ^. L.fontManager
     style = def
     sizeE = Size 80 40
     sizeC = Size 80 50
@@ -161,8 +161,8 @@ fitTextMulti = describe "fitTextToSize single line" $ do
     elpsKeep text = elpsKeep_ sizeE text
     clipTrim text = clipTrim_ sizeC text
     clipKeep text = clipKeep_ sizeC text
-    elpsTrim_ size text = fitTextToSize renderer style Ellipsis MultiLine TrimSpaces Nothing size text
-    elpsKeep_ size text = fitTextToSize renderer style Ellipsis MultiLine KeepSpaces Nothing size text
-    clipTrim_ size text = fitTextToSize renderer style ClipText MultiLine TrimSpaces Nothing size text
-    clipKeep_ size text = fitTextToSize renderer style ClipText MultiLine KeepSpaces Nothing size text
+    elpsTrim_ size text = fitTextToSize fontMgr style Ellipsis MultiLine TrimSpaces Nothing size text
+    elpsKeep_ size text = fitTextToSize fontMgr style Ellipsis MultiLine KeepSpaces Nothing size text
+    clipTrim_ size text = fitTextToSize fontMgr style ClipText MultiLine TrimSpaces Nothing size text
+    clipKeep_ size text = fitTextToSize fontMgr style ClipText MultiLine KeepSpaces Nothing size text
     elementCount count sq = Seq.length sq == count
