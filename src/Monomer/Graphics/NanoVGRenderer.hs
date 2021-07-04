@@ -46,7 +46,7 @@ import Monomer.Graphics.Types
 import qualified Monomer.Common.Lens as L
 import qualified Monomer.Graphics.Lens as L
 
-type ImagesMap = M.Map String Image
+type ImagesMap = M.Map Text Image
 
 data ImageAction
   = ImageAdd
@@ -61,7 +61,7 @@ data Image = Image {
 }
 
 data ImageReq = ImageReq {
-  _irName :: String,
+  _irName :: Text,
   _irSize :: Size,
   _irImgData :: Maybe BS.ByteString,
   _irAction :: ImageAction,
@@ -413,17 +413,17 @@ toVGImgFlag ImageNearest = VGI.ImageNearest
 toVGImgFlag ImageRepeatX = VGI.ImageRepeatx
 toVGImgFlag ImageRepeatY = VGI.ImageRepeaty
 
-imgIncreaseCount :: String -> ImagesMap -> ImagesMap
+imgIncreaseCount :: Text -> ImagesMap -> ImagesMap
 imgIncreaseCount name imagesMap = newImageMap where
   incCount img = img { _imCount = _imCount img + 1 }
   newImageMap = M.adjust incCount name imagesMap
 
-imgInsertNew :: String -> ImageDef -> ImagesMap -> VG.Image -> ImagesMap
+imgInsertNew :: Text -> ImageDef -> ImagesMap -> VG.Image -> ImagesMap
 imgInsertNew name imageDef imagesMap nvImg = newImagesMap where
   image = Image imageDef nvImg 0
   newImagesMap = M.insert name image imagesMap
 
-imgDelete :: String -> ImagesMap -> ImagesMap
+imgDelete :: Text -> ImagesMap -> ImagesMap
 imgDelete name imagesMap = newImageMap where
   deleteInstance img
     | _imCount img > 1 = Just $ img { _imCount = _imCount img - 1 }

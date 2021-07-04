@@ -179,6 +179,11 @@ data WidgetRequest s e
   | RenderEvery WidgetId Int (Maybe Int)
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
+  {-|
+  Requests an image to be removed from the Renderer. In general, used in the
+  dispose function.
+  -}
+  | RemoveRendererImage Text
   -- | Requests to exit the application. Can also be used to cancel a previous
   -- | request (or a window close).
   | ExitApplication Bool
@@ -266,11 +271,6 @@ data WidgetEnv s e = WidgetEnv {
   _weOs :: Text,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
-  {-|
-  The active renderer. In general only used in widgetRender, but text related
-  functions can be used in other contexts.
-  -}
-  _weRenderer :: Renderer,
   -- | Returns the information of a node given a path from root, if any.
   _weFindByPath :: Path -> Maybe WidgetNodeInfo,
   -- | The mouse button that is considered main.
@@ -666,6 +666,7 @@ instance Show (WidgetRequest s e) where
   show RenderOnce = "RenderOnce"
   show (RenderEvery wid ms repeat) = "RenderEvery: " ++ show (wid, ms, repeat)
   show (RenderStop wid) = "RenderStop: " ++ show wid
+  show (RemoveRendererImage name) = "RemoveRendererImage: " ++ show name
   show ExitApplication{} = "ExitApplication"
   show (UpdateWindow req) = "UpdateWindow: " ++ show req
   show UpdateModel{} = "UpdateModel"

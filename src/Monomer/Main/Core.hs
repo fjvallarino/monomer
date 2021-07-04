@@ -127,6 +127,7 @@ runAppLoop window widgetRoot config = do
   os <- getPlatform
   renderer <- liftIO $ makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
+  L.renderer .= Just renderer
   -- Hack, otherwise glyph positions are invalid until nanovg is initialized
   liftIO $ beginFrame renderer (round rw) (round rh)
   liftIO $ endFrame renderer
@@ -134,7 +135,6 @@ runAppLoop window widgetRoot config = do
   let wenv = WidgetEnv {
     _weOs = os,
     _weFontManager = fontManager,
-    _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
     _weContextButton = contextBtn,
@@ -231,7 +231,6 @@ mainLoop window fontManager renderer config loopArgs = do
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weFontManager = fontManager,
-    _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
     _weContextButton = contextBtn,

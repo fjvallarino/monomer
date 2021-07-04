@@ -345,7 +345,7 @@ drawStyledAction renderer rect style action = do
 -- | Draws an already registered image in the provided location.
 drawImage
   :: Renderer         -- ^ The renderer.
-  -> String           -- ^ The name of the image.
+  -> Text             -- ^ The name of the image.
   -> Rect             -- ^ The rect where the image will be drawn.
   -> Double           -- ^ The alpha to apply to the image.
   -> IO ()            -- ^ The resulting action.
@@ -355,7 +355,7 @@ drawImage renderer imgName rect alpha = action where
 -- | Draws a new image in the provided location.
 drawNewImage
   :: Renderer         -- ^ The renderer.
-  -> String           -- ^ The name of the image.
+  -> Text             -- ^ The name of the image.
   -> Rect             -- ^ The rect where the image will be drawn.
   -> Double           -- ^ The alpha to apply to the image in this render.
   -> Size             -- ^ The image size.

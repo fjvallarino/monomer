@@ -81,6 +81,8 @@ data MonomerCtx s = MonomerCtx {
   _mcWindow :: SDL.Window,
   -- | Main window size.
   _mcWindowSize :: Size,
+  -- | Active renderer.
+  _mcRenderer :: Maybe Renderer,
   -- | Device pixel rate.
   _mcDpr :: Double,
   -- | Event pixel rate.

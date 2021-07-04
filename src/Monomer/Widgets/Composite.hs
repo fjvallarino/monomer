@@ -813,6 +813,7 @@ toParentReq _ (StopDrag wid) = Just (StopDrag wid)
 toParentReq _ RenderOnce = Just RenderOnce
 toParentReq _ (RenderEvery path ms repeat) = Just (RenderEvery path ms repeat)
 toParentReq _ (RenderStop path) = Just (RenderStop path)
+toParentReq _ (RemoveRendererImage name) = Just (RemoveRendererImage name)
 toParentReq _ (ExitApplication exit) = Just (ExitApplication exit)
 toParentReq _ (UpdateWindow req) = Just (UpdateWindow req)
 toParentReq _ (SetWidgetPath wid path) = Just (SetWidgetPath wid path)
@@ -839,7 +840,6 @@ convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
   _weFontManager = _weFontManager wenv,
-  _weRenderer = _weRenderer wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,
   _weContextButton = _weContextButton wenv,

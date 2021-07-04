@@ -37,6 +37,7 @@ import Data.Default
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
+import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
 import Foreign (alloca, poke)
 import Safe (headMay)
@@ -51,6 +52,7 @@ import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Graphics
 import Monomer.Helper
 import Monomer.Main.Types
 import Monomer.Main.Util
@@ -241,6 +243,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     RenderOnce -> handleRenderOnce step
     RenderEvery wid ms repeat -> handleRenderEvery wid ms repeat step
     RenderStop wid -> handleRenderStop wid step
+    RemoveRendererImage path -> handleRemoveRendererImage path step
     ExitApplication exit -> handleExitApplication exit step
     UpdateWindow req -> handleUpdateWindow req step
     UpdateModel fn -> handleUpdateModel fn step
@@ -506,6 +509,16 @@ handleRenderStop
 handleRenderStop widgetId previousStep = do
   schedule <- use L.renderSchedule
   L.renderSchedule .= Map.delete widgetId schedule
+  return previousStep
+
+handleRemoveRendererImage
+  :: (MonomerM s m) => Text -> HandlerStep s e -> m (HandlerStep s e)
+handleRemoveRendererImage name previousStep = do
+  renderer <- use L.renderer
+
+  when (isJust renderer) $
+    liftIO $ deleteImage (fromJust renderer) name
+
   return previousStep
 
 handleExitApplication

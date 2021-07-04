@@ -202,7 +202,7 @@ data ImageFlag
 
 -- | The definition of a loaded image.
 data ImageDef = ImageDef {
-  _idfName :: String,            -- ^ The logic name of the image.
+  _idfName :: Text,            -- ^ The logic name of the image.
   _idfSize :: Size,              -- ^ The dimensions of the image.
   _idfImgData :: BS.ByteString,  -- ^ The image data as RGBA 4-bytes blocks.
   _idfFlags :: [ImageFlag]       -- ^ The image flags.
@@ -294,16 +294,16 @@ data Renderer = Renderer {
   -- | Renders the given text at a specific point.
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- | Returns the image definitio of a loaded image, if any.
-  getImage :: String -> Maybe ImageDef,
+  getImage :: Text -> Maybe ImageDef,
   -- | Adds an image, providing name, size, image data and flags.
-  addImage :: String -> Size -> ByteString -> [ImageFlag] -> IO (),
+  addImage :: Text -> Size -> ByteString -> [ImageFlag] -> IO (),
   -- | Updates an image, providing name, size and image data (must match
   -- | previous size).
-  updateImage :: String -> Size -> ByteString -> IO (),
+  updateImage :: Text -> Size -> ByteString -> IO (),
   -- | Removes an existing image.
-  deleteImage :: String -> IO (),
+  deleteImage :: Text -> IO (),
   -- | Renders an existing image.
-  renderImage :: String -> Rect -> Double -> IO (),
+  renderImage :: Text -> Rect -> Double -> IO (),
   -- | Renders an image after adding it, providing the same arguments as addImage.
-  renderNewImage :: String -> Rect -> Double -> Size -> ByteString -> [ImageFlag] -> IO ()
+  renderNewImage :: Text -> Rect -> Double -> Size -> ByteString -> [ImageFlag] -> IO ()
 }

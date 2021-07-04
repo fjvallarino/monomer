@@ -214,8 +214,8 @@ instance CmbResizeFactorDim (ImageCfg e) where
   }
 
 data ImageSource
-  = ImageMem String
-  | ImagePath String
+  = ImageMem Text
+  | ImagePath Text
   deriving (Eq, Show)
 
 data ImageState = ImageState {
@@ -235,7 +235,7 @@ image path = image_ path def
 image_ :: WidgetEvent e => Text -> [ImageCfg e] -> WidgetNode s e
 image_ path configs = defaultWidgetNode "image" widget where
   config = mconcat configs
-  source = ImagePath (T.unpack path)
+  source = ImagePath path
   imageState = ImageState source Nothing
   widget = makeImage source config imageState
 
@@ -258,7 +258,7 @@ imageMem_
   -> WidgetNode s e  -- ^ The created image widget.
 imageMem_ name imgData imgSize configs = defaultWidgetNode "image" widget where
   config = mconcat configs
-  source = ImageMem (T.unpack name)
+  source = ImageMem name
   imageState = ImageState source (Just (imgData, imgSize))
   widget = makeImage source config imageState
 
@@ -300,10 +300,10 @@ makeImage imgSource config state = widget where
     prevPath = imgName oldSource
     sameImgNode = newNode
       & L.widget .~ makeImage imgSource config oldState
-    newMemReqs = [ RunTask wid path (removeImage wenv prevPath) ]
-    newImgReqs = [ RunTask wid path $ do
-        removeImage wenv imgPath
-        handleImageLoad config wenv imgPath
+    newMemReqs = [ RemoveRendererImage prevPath ]
+    newImgReqs = [
+        RemoveRendererImage prevPath,
+        RunTask wid path (handleImageLoad config wenv imgPath)
       ]
     result
       | oldSource == imgSource = resultNode sameImgNode
@@ -311,11 +311,8 @@ makeImage imgSource config state = widget where
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
-    wid = node ^. L.info . L.widgetId
-    path = node ^. L.info . L.path
     imgPath = imgName imgSource
-    renderer = _weRenderer wenv
-    reqs = [RunTask wid path $ removeImage wenv imgPath]
+    reqs = [RemoveRendererImage imgPath]
 
   handleMessage wenv node target message = result where
     result = cast message >>= useImage node
@@ -370,7 +367,7 @@ fitImage viewport imageSize fitMode alignH alignV = case fitMode of
     Size iw ih = imageSize
     alignImg nw nh = alignInRect viewport (Rect x y nw nh) alignH alignV
 
-handleImageLoad :: ImageCfg e -> WidgetEnv s e -> String -> IO ImageMessage
+handleImageLoad :: ImageCfg e -> WidgetEnv s e -> Text -> IO ImageMessage
 handleImageLoad config wenv path =
   if isNothing prevImage
     then do
@@ -380,19 +377,17 @@ handleImageLoad config wenv path =
         Left loadError -> return (ImageFailed loadError)
         Right dimg -> registerImg config wenv path dimg
     else do
-      addImage renderer path size imgData imgFlags
       return $ ImageLoaded newState
   where
-    renderer = _weRenderer wenv
     imgFlags = _imcFlags config
-    prevImage = getImage renderer path
+    prevImage = Nothing -- getImage renderer path
     ImageDef _ size imgData _ = fromJust prevImage
     newState = ImageState {
       isImageSource = ImagePath path,
       isImageData = Just (imgData, size)
     }
 
-loadImage :: String -> IO (Either ImageLoadError ByteString)
+loadImage :: Text -> IO (Either ImageLoadError ByteString)
 loadImage path
   | not (isUrl path) = loadLocal path
   | otherwise = loadRemote path
@@ -400,16 +395,18 @@ loadImage path
 decodeImage :: ByteString -> Either ImageLoadError DynamicImage
 decodeImage bs = either (Left . ImageInvalid) Right (Pic.decodeImage bs)
 
-loadLocal :: String -> IO (Either ImageLoadError ByteString)
-loadLocal path = do
+loadLocal :: Text -> IO (Either ImageLoadError ByteString)
+loadLocal name = do
+  let path = T.unpack name
   content <- BS.readFile path
 
   if BS.length content == 0
     then return . Left . ImageLoadFailed $ "Failed to load: " ++ path
     else return . Right $ content
 
-loadRemote :: String -> IO (Either ImageLoadError ByteString)
-loadRemote path = do
+loadRemote :: Text -> IO (Either ImageLoadError ByteString)
+loadRemote name = do
+  let path = T.unpack name
   eresp <- try $ getUrl path
 
   return $ case eresp of
@@ -432,25 +429,15 @@ respCode r = r ^. responseStatus . statusCode
 respErrorMsg :: String -> String -> String
 respErrorMsg path code = "Status: " ++ code ++ " - Path: " ++ path
 
-removeImage :: WidgetEnv s e -> String -> IO (Maybe ImageMessage)
-removeImage wenv path = do
-  deleteImage renderer path
-  return Nothing
-  where
-    renderer = _weRenderer wenv
-
 registerImg
   :: ImageCfg e
   -> WidgetEnv s e
-  -> String
+  -> Text
   -> DynamicImage
   -> IO ImageMessage
 registerImg config wenv name dimg = do
-  addImage renderer name size bs imgFlags
   return $ ImageLoaded newState
   where
-    renderer = _weRenderer wenv
-    imgFlags = _imcFlags config
     img = Pic.convertRGBA8 dimg
     cw = imageWidth img
     ch = imageHeight img
@@ -461,6 +448,6 @@ registerImg config wenv name dimg = do
       isImageData = Just (bs, size)
     }
 
-isUrl :: String -> Bool
-isUrl url = isPrefixOf "http://" lurl || isPrefixOf "https://" lurl where
-  lurl = map toLower url
+isUrl :: Text -> Bool
+isUrl url = T.isPrefixOf "http://" lurl || T.isPrefixOf "https://" lurl where
+  lurl = T.toLower url
