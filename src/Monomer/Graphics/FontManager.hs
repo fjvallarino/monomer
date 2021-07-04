@@ -33,7 +33,7 @@ makeFontManager
   -> Double       -- ^ The device pixel rate.
   -> IO FontManager  -- ^ The created renderer.
 makeFontManager fonts dpr = do
-  ctx <- fmInit
+  ctx <- fmInit dpr
 
   lock <- LK.new
   validFonts <- foldM (loadFont ctx) [] fonts
@@ -45,12 +45,12 @@ makeFontManager fonts dpr = do
 
 newManager :: FMContext -> Double -> LK.Lock -> FontManager
 newManager ctx dpr lock = FontManager {..} where
-  fcomputeTextMetrics font fontSize = unsafePerformIO $ LK.with lock $ do
+  computeTextMetrics font fontSize = unsafePerformIO $ LK.with lock $ do
     setFont ctx dpr font fontSize
     (asc, desc, lineh) <- fmTextMetrics ctx
     lowerX <- Seq.lookup 0 <$> fmTextGlyphPositions ctx 0 0 "x"
     let heightLowerX = case lowerX of
-          Just lx -> _glpYMax lx - _glpYMin lx
+          Just lx -> glyphPosMaxY lx - glyphPosMinY lx
           Nothing -> realToFrac asc
 
     return $ TextMetrics {
@@ -60,15 +60,34 @@ newManager ctx dpr lock = FontManager {..} where
       _txmLowerX = realToFrac heightLowerX / dpr
     }
 
-  fcomputeTextSize font fontSize text = unsafePerformIO $ LK.with lock $ do
+  computeTextSize font fontSize text = unsafePerformIO $ LK.with lock $ do
     setFont ctx dpr font fontSize
-    (x1, y1, x2, y2) <- fmTextBounds ctx 0 0 text
+    (x1, y1, x2, y2) <- if text /= ""
+      then fmTextBounds ctx 0 0 text
+      else do
+        (asc, desc, lineh) <- fmTextMetrics ctx
+        return (0, 0, 0, lineh)
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  fcomputeGlyphsPos font fontSize text = unsafePerformIO $ LK.with lock $ do
+  computeGlyphsPos font fontSize text = unsafePerformIO $ LK.with lock $ do
     setFont ctx dpr font fontSize
-    fmTextGlyphPositions ctx 0 0 text
+    glyphs <- if text /= ""
+      then fmTextGlyphPositions ctx 0 0 text
+      else return Seq.empty
+
+    return $ Seq.zipWith toGlyphPos (Seq.fromList (T.unpack text)) glyphs
+    where
+      toGlyphPos chr glyph = GlyphPos {
+        _glpGlyph = chr,
+        _glpXMin = realToFrac (glyphPosMinX glyph) / dpr,
+        _glpXMax = realToFrac (glyphPosMaxX glyph) / dpr,
+        _glpYMin = realToFrac (glyphPosMinY glyph) / dpr,
+        _glpYMax = realToFrac (glyphPosMaxY glyph) / dpr,
+        _glpW = realToFrac (glyphPosMaxX glyph - glyphPosMinX glyph) / dpr,
+        _glpH = realToFrac (glyphPosMaxY glyph - glyphPosMinY glyph) / dpr
+      }
+
 
 loadFont :: FMContext -> [Text] -> FontDef -> IO [Text]
 loadFont ctx fonts (FontDef name path) = do

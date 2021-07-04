@@ -872,7 +872,7 @@ updatePlaceholder
   -> InputFieldCfg s e a
   -> InputFieldState a
 updatePlaceholder wenv node state config = newState where
-  renderer = wenv ^. L.renderer
+  fontMgr = wenv ^. L.fontManager
   style = activeStyle wenv node
   Rect cx cy cw ch = getContentArea style node
   carea = Rect 0 0 cw ch
@@ -882,7 +882,7 @@ updatePlaceholder wenv node state config = newState where
     & L.text . non def . L.alignH ?~ inputFieldAlignH style
     & L.text . non def . L.alignV ?~ inputFieldAlignV style
   text = _ifcPlaceholder config
-  fitText = fitTextToSize renderer pstyle Ellipsis MultiLine KeepSpaces Nothing
+  fitText = fitTextToSize fontMgr pstyle Ellipsis MultiLine KeepSpaces Nothing
   lines
     | isJust text = fitText size (fromJust text)
     | otherwise = Seq.empty

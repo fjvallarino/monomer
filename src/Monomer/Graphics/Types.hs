@@ -209,11 +209,12 @@ data ImageDef = ImageDef {
 } deriving (Eq, Show, Generic)
 
 data FontManager = FontManager {
-  fcomputeTextMetrics :: Font -> FontSize -> TextMetrics,
+  -- | Returns the text metrics of a given font and size.
+  computeTextMetrics :: Font -> FontSize -> TextMetrics,
   -- | Returns the text size of the text given font and size.
-  fcomputeTextSize :: Font -> FontSize -> Text -> Size,
+  computeTextSize :: Font -> FontSize -> Text -> Size,
   -- | Returns the glyphs of the text given font and size.
-  fcomputeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
+  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
 }
 
 -- | Low level rendering definitions.
@@ -290,12 +291,6 @@ data Renderer = Renderer {
   renderQuadTo :: Point -> Point -> IO (),
   -- | Renders an ellipse.
   renderEllipse :: Rect -> IO (),
-  -- | Returns the text metrics of a given font and size.
-  computeTextMetrics :: Font -> FontSize -> TextMetrics,
-  -- | Returns the text size of the text given font and size.
-  computeTextSize :: Font -> FontSize -> Text -> Size,
-  -- | Returns the glyphs of the text given font and size.
-  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos,
   -- | Renders the given text at a specific point.
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
   -- | Returns the image definitio of a loaded image, if any.

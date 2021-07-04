@@ -15,7 +15,7 @@ static float fm__maxf(float a, float b) {
 	return a > b ? a : b;
 }
 
-FMcontext* fmInit()
+FMcontext* fmInit(float dpr)
 {
 	FMcontext *ctx;
   FONSparams fontParams;
@@ -35,6 +35,7 @@ FMcontext* fmInit()
 	
 	// Initialize font manager context
 	ctx->fs = fonsCreateInternal(&fontParams);
+	ctx->dpr = dpr;
 	ctx->fontSize = 16.0f;
 	ctx->letterSpacing = 0.0f;
 	ctx->lineHeight = 1.0f;
@@ -77,7 +78,7 @@ void fmTextLineHeight(FMcontext* ctx, float lineHeight)
 
 void fmTextMetrics(FMcontext* ctx, float* ascender, float* descender, float* lineh)
 {
-	float scale = 1.0f;
+	float scale = ctx->dpr;
 	float invscale = 1.0f / scale;
 
 	if (ctx->fontId == FONS_INVALID) return;
@@ -99,7 +100,7 @@ void fmTextMetrics(FMcontext* ctx, float* ascender, float* descender, float* lin
 
 float fmTextBounds(FMcontext* ctx, float x, float y, const char* string, const char* end, float* bounds)
 {
-	float scale = 1.0f; //nvg__getFontScale(state) * ctx->devicePxRatio;
+	float scale = ctx->dpr;
 	float invscale = 1.0f / scale;
 	float width;
 
@@ -125,7 +126,7 @@ float fmTextBounds(FMcontext* ctx, float x, float y, const char* string, const c
 
 int fmTextGlyphPositions(FMcontext* ctx, float x, float y, const char* string, const char* end, FMGglyphPosition* positions, int maxPositions)
 {
-	float scale = 1.0f; // nvg__getFontScale(state) * ctx->devicePxRatio;
+	float scale = ctx->dpr;
 	float invscale = 1.0f / scale;
 	FONStextIter iter, prevIter;
 	FONSquad q;

@@ -286,49 +286,6 @@ newRenderer c dpr lock envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
-  computeTextMetrics !font !fontSize = unsafePerformIO $ do
-    setFont c envRef dpr font fontSize
-    (asc, desc, lineh) <- getTextMetrics c
-    lowerX <- (V.!? 0) <$> textGlyphPositions c 0 0 "x"
-    let heightLowerX = case lowerX of
-          Just lx -> VG.glyphPosMaxY lx - VG.glyphPosMinY lx
-          Nothing -> realToFrac asc
-
-    return $ TextMetrics {
-      _txmAsc = asc / dpr,
-      _txmDesc = desc / dpr,
-      _txmLineH = lineh / dpr,
-      _txmLowerX = realToFrac heightLowerX / dpr
-    }
-
-  computeTextSize !font !fontSize !text = unsafePerformIO $ do
-    setFont c envRef dpr font fontSize
-    (x1, y1, x2, y2) <- getTextBounds c 0 0 text
-
-    return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
-
-  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
-  computeGlyphsPos !font !fontSize !message = unsafePerformIO $ do
-    -- Glyph position is usually used in local coord calculations, ignoring dpr
-    setFont c envRef dpr font fontSize
-
-    glyphsPos <- fmap vecToSeq (textGlyphPositions c 0 0 message)
-
-    return $ foldl' reducer Seq.empty (Seq.zip glyphs glyphsPos)
-    where
-      vecToSeq = foldl' (|>) Seq.empty
-      glyphs = Seq.fromList $ T.unpack message
-      reducer acc glyph = acc |> convert glyph
-      convert (glyph, pos) = GlyphPos {
-        _glpGlyph = glyph,
-        _glpXMin = realToFrac (VG.glyphPosMinX pos) / dpr,
-        _glpXMax = realToFrac (VG.glyphPosMaxX pos) / dpr,
-        _glpYMin = realToFrac (VG.glyphPosMinY pos) / dpr,
-        _glpYMax = realToFrac (VG.glyphPosMaxY pos) / dpr,
-        _glpW = realToFrac (VG.glyphPosMaxX pos - VG.glyphPosMinX pos) / dpr,
-        _glpH = realToFrac (VG.glyphPosMaxY pos - VG.glyphPosMinY pos) / dpr
-      }
-
   renderText !point font fontSize message = do
     setFont c envRef dpr font fontSize
 
@@ -380,28 +337,6 @@ setFont c envRef dpr (Font name) (FontSize size) = do
           VG.fontSize c $ realToFrac $ size * dpr
       | otherwise = return ()
 
-getTextMetrics :: VG.Context -> IO (Double, Double, Double)
-getTextMetrics c = do
-  (asc, desc, lineh) <- VG.textMetrics c
-  return (realToFrac asc, realToFrac desc, realToFrac lineh)
-
-getTextBounds
-  :: VG.Context
-  -> Double
-  -> Double
-  -> Text
-  -> IO (Double, Double, Double, Double)
-getTextBounds c x y "" = do
-  (asc, desc, lineh) <- VG.textMetrics c
-  return (x, y, 0, realToFrac lineh)
-getTextBounds c x y text = do
-  VG.Bounds (VG.V4 x1 y1 x2 y2) <- VG.textBounds c cx cy text
-  return (realToFrac x1, realToFrac y1, realToFrac x2, realToFrac y2)
-  where
-    msg = if text == "" then " " else text
-    cx = realToFrac x
-    cy = realToFrac y
-
 addPending :: VG.Context -> IORef Env -> ImageReq -> IO ()
 addPending c envRef imageReq = do
   env <- readIORef envRef
@@ -426,16 +361,6 @@ handleImageRender c dpr rect alpha image = do
     ih = if ImageRepeatY `elem` imgFlags then dh else h
     nvImg = _imNvImage image
     calpha = realToFrac alpha
-
-textGlyphPositions
-  :: VG.Context -> Double -> Double -> Text -> IO (V.Vector VG.GlyphPosition)
-textGlyphPositions c x y "" = return V.empty
-textGlyphPositions c x y text = withCStringLen text $ \(ptr, len) ->
-    VG.textGlyphPositions c cx cy ptr (ptr `plusPtr` len) count
-  where
-    cx = fromIntegral $ round x
-    cy = fromIntegral $ round y
-    count = fromIntegral $ T.length text
 
 handlePendingImages :: VG.Context -> IORef Env -> IO Env
 handlePendingImages c envRef = do

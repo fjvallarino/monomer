@@ -126,12 +126,14 @@ runAppLoop window widgetRoot config = do
   model <- use L.mainModel
   os <- getPlatform
   renderer <- liftIO $ makeRenderer fonts dpr
+  fontManager <- liftIO $ makeFontManager fonts dpr
   -- Hack, otherwise glyph positions are invalid until nanovg is initialized
   liftIO $ beginFrame renderer (round rw) (round rh)
   liftIO $ endFrame renderer
 
   let wenv = WidgetEnv {
     _weOs = os,
+    _weFontManager = fontManager,
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
@@ -175,16 +177,17 @@ runAppLoop window widgetRoot config = do
 
   L.mainModel .= _weModel newWenv
 
-  mainLoop window renderer config loopArgs
+  mainLoop window fontManager renderer config loopArgs
 
 mainLoop
   :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
+  -> FontManager
   -> Renderer
   -> AppConfig e
   -> MainLoopArgs s e ep
   -> m ()
-mainLoop window renderer config loopArgs = do
+mainLoop window fontManager renderer config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
   startTicks <- fmap fromIntegral SDL.ticks
@@ -227,6 +230,7 @@ mainLoop window renderer config loopArgs = do
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
   let wenv = WidgetEnv {
     _weOs = _mlOS,
+    _weFontManager = fontManager,
     _weRenderer = renderer,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
@@ -302,7 +306,7 @@ mainLoop window renderer config loopArgs = do
   when shouldQuit $
     void $ handleWidgetDispose newWenv newRoot
 
-  unless shouldQuit (mainLoop window renderer config newLoopArgs)
+  unless shouldQuit (mainLoop window fontManager renderer config newLoopArgs)
 
 checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do

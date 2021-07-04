@@ -117,7 +117,7 @@ withNull f = f nullPtr
 {# pointer *FMcontext as FMContext newtype #}
 deriving instance Storable FMContext
 
-{# fun unsafe fmInit {} -> `FMContext' #}
+{# fun unsafe fmInit {`Double'} -> `FMContext' #}
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
 
@@ -149,28 +149,18 @@ fmTextBounds fm x y text = do
 {# fun unsafe fmTextGlyphPositions as fmTextGlyphPositions_
         {`FMContext', `Double', `Double', id`Ptr CChar', id`Ptr CChar', `GlyphPositionPtr', `CInt'} -> `CInt' #}
 
-fmTextGlyphPositions :: FMContext -> Double -> Double -> Text -> IO (Seq GlyphPos)
+fmTextGlyphPositions :: FMContext -> Double -> Double -> Text -> IO (Seq GlyphPosition)
 fmTextGlyphPositions c x y text =
   withCStringLen text $ \(ptr, len) -> do
     let startPtr = ptr
     let endPtr = ptr `plusPtr` len
     allocaBytesAligned bufferSize align $ \arrayPtr -> do
       count <- fmTextGlyphPositions_ c x y startPtr endPtr arrayPtr maxGlyphs
-      glyphs <- Seq.fromList <$> readChunk arrayPtr count
-      return $ Seq.zipWith toGlyphPos (Seq.fromList (T.unpack text)) glyphs
+      Seq.fromList <$> readChunk arrayPtr count
   where
     maxGlyphs = fromIntegral (T.length text)
     bufferSize = sizeOf (undefined :: GlyphPosition) * fromIntegral maxGlyphs
     align = alignment (undefined :: GlyphPosition)
     readChunk :: GlyphPositionPtr -> CInt -> IO [GlyphPosition]
-    readChunk arrayPtr count = forM [0..count] $ \i ->
+    readChunk arrayPtr count = forM [0..count-1] $ \i ->
       peekElemOff arrayPtr (fromIntegral i)
-    toGlyphPos chr glyph = GlyphPos {
-      _glpGlyph = chr,
-      _glpXMin = realToFrac (glyphPosMinX glyph),
-      _glpXMax = realToFrac (glyphPosMaxX glyph),
-      _glpYMin = realToFrac (glyphPosMinY glyph),
-      _glpYMax = realToFrac (glyphPosMaxY glyph),
-      _glpW = realToFrac (glyphPosMaxX glyph - glyphPosMinX glyph),
-      _glpH = realToFrac (glyphPosMaxY glyph - glyphPosMinY glyph)
-    }

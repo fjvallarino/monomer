@@ -10,12 +10,14 @@ Graphics module, including all related types, low level renderer interface,
 nanovg implementation and higher level drawing helpers.
 -}
 module Monomer.Graphics (
+  module Monomer.Graphics.FontManager,
   module Monomer.Graphics.NanoVGRenderer,
   module Monomer.Graphics.Text,
   module Monomer.Graphics.Types,
   module Monomer.Graphics.Util
 ) where
 
+import Monomer.Graphics.FontManager
 import Monomer.Graphics.NanoVGRenderer
 import Monomer.Graphics.Text
 import Monomer.Graphics.Types

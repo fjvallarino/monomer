@@ -838,6 +838,7 @@ collectWidgetKeys keys node = newMap where
 convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
+  _weFontManager = _weFontManager wenv,
   _weRenderer = _weRenderer wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,

@@ -30,16 +30,16 @@ import qualified Monomer.Core.Lens as L
 -- | Returns the text metrics of the active style.
 getTextMetrics :: WidgetEnv s e -> StyleState -> TextMetrics
 getTextMetrics wenv style = textMetrics where
-  renderer = _weRenderer wenv
-  !textMetrics = computeTextMetrics renderer font fontSize
+  fontMgr = wenv ^. L.fontManager
+  !textMetrics = computeTextMetrics fontMgr font fontSize
   font = styleFont style
   fontSize = styleFontSize style
 
 -- | Returns the size of the text using the active style and default options.
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
 getTextSize wenv style !text = size where
-  renderer = wenv ^. L.renderer
-  size = calcTextSize_ renderer style SingleLine KeepSpaces Nothing Nothing text
+  fontMgr = wenv ^. L.fontManager
+  size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
 
 -- | Returns the size of the text using the active style.
 getTextSize_
@@ -52,8 +52,8 @@ getTextSize_
   -> Text           -- ^ Text to measure.
   -> Size           -- ^ The calculated size.
 getTextSize_ wenv style mode trim mwidth mlines text = newSize where
-  renderer = wenv ^. L.renderer
-  newSize = calcTextSize_ renderer style mode trim mwidth mlines text
+  fontMgr = wenv ^. L.fontManager
+  newSize = calcTextSize_ fontMgr style mode trim mwidth mlines text
 
 -- | Returns the rectangle used by a single line of text.
 getTextRect
@@ -65,14 +65,15 @@ getTextRect
   -> Text           -- ^ The text to measure.
   -> Rect           -- ^ The used rect. May be larger than the bounding rect.
 getTextRect wenv style !rect !alignH !alignV !text = textRect where
-  renderer = _weRenderer wenv
+  fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fontSize = styleFontSize style
-  !textRect = calcTextRect renderer rect font fontSize alignH alignV text
+  !textRect = calcTextRect fontMgr rect font fontSize alignH alignV text
 
 -- | Returns the glyphs of a single line of text.
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where
+  fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fontSize = styleFontSize style
-  !glyphs = computeGlyphsPos (_weRenderer wenv) font fontSize text
+  !glyphs = computeGlyphsPos fontMgr font fontSize text

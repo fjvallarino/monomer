@@ -47,16 +47,16 @@ type GlyphGroup = Seq GlyphPos
 
 -- | Returns the size a given text an style will take.
 calcTextSize
-  :: Renderer      -- ^ The renderer.
+  :: FontManager   -- ^ The font manager.
   -> StyleState    -- ^ The style.
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
-calcTextSize renderer style !text = size where
-  size = calcTextSize_ renderer style SingleLine KeepSpaces Nothing Nothing text
+calcTextSize fontMgr style !text = size where
+  size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
 
 -- | Returns the size a given text an style will take.
 calcTextSize_
-  :: Renderer      -- ^ The renderer.
+  :: FontManager   -- ^ The font manager.
   -> StyleState    -- ^ The style.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
@@ -64,12 +64,12 @@ calcTextSize_
   -> Maybe Int     -- ^ Optional max lines.
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
-calcTextSize_ renderer style mode trim mwidth mlines text = newSize where
+calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
-  !metrics = computeTextMetrics renderer font fontSize
+  !metrics = computeTextMetrics fontMgr font fontSize
   width = fromMaybe maxNumericValue mwidth
-  textLinesW = fitTextToWidth renderer style width trim text
+  textLinesW = fitTextToWidth fontMgr style width trim text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
     | isJust mlines = Seq.take (fromJust mlines) textLinesW
@@ -80,18 +80,18 @@ calcTextSize_ renderer style mode trim mwidth mlines text = newSize where
 
 -- | Returns the rect a text needs to be displayed completely.
 calcTextRect
-  :: Renderer  -- ^ The renderer.
-  -> Rect      -- ^ The base rect. The result may be larger.
-  -> Font      -- ^ The font to use.
-  -> FontSize  -- ^ THe font size.
-  -> AlignTH   -- ^ The horizontal alignment.
-  -> AlignTV   -- ^ The vertical alignment.
-  -> Text      -- ^ The text to calculate.
-  -> Rect      -- ^ The output rect.
-calcTextRect renderer containerRect font fontSize ha va text = textRect where
+  :: FontManager  -- ^ The font manager.
+  -> Rect         -- ^ The base rect. The result may be larger.
+  -> Font         -- ^ The font to use.
+  -> FontSize     -- ^ THe font size.
+  -> AlignTH      -- ^ The horizontal alignment.
+  -> AlignTV      -- ^ The vertical alignment.
+  -> Text         -- ^ The text to calculate.
+  -> Rect         -- ^ The output rect.
+calcTextRect fontMgr containerRect font fontSize ha va text = textRect where
   Rect x y w h = containerRect
-  Size tw _ = computeTextSize renderer font fontSize text
-  TextMetrics asc desc lineh lowerX = computeTextMetrics renderer font fontSize
+  Size tw _ = computeTextSize fontMgr font fontSize text
+  TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fontSize
   tx | ha == ATLeft = x
      | ha == ATCenter = x + (w - tw) / 2
      | otherwise = x + (w - tw)
@@ -120,7 +120,7 @@ returned with zero offset (i.e., x = 0 and first line y = 0), and a translation
 transform is needed when rendering.
 -}
 fitTextToSize
-  :: Renderer      -- ^ The renderer.
+  :: FontManager   -- ^ The font manager.
   -> StyleState    -- ^ The style.
   -> TextOverflow  -- ^ Whether to clip or use ellipsis.
   -> TextMode      -- ^ Single or multiline.
@@ -129,43 +129,43 @@ fitTextToSize
   -> Size          -- ^ The bounding size.
   -> Text          -- ^ The text to fit.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToSize renderer style ovf mode trim mlines !size !text = newLines where
+fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
   Size cw ch = size
   font = styleFont style
   fontSize = styleFontSize style
-  textMetrics = computeTextMetrics renderer font fontSize
+  textMetrics = computeTextMetrics fontMgr font fontSize
   fitW
     | mode == MultiLine = cw
     | otherwise = maxNumericValue
   maxH = case mlines of
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
-  textLinesW = fitTextToWidth renderer style fitW trim text
+  textLinesW = fitTextToWidth fontMgr style fitW trim text
   firstLine = Seq.take 1 textLinesW
   isMultiline = mode == MultiLine
   ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. w > cw
   newLines
-    | isMultiline = fitTextLinesToH renderer style ovf cw maxH textLinesW
-    | ellipsisReq = addEllipsisToTextLine renderer style cw <$> firstLine
-    | otherwise = clipTextLine renderer style trim cw <$> firstLine
+    | isMultiline = fitTextLinesToH fontMgr style ovf cw maxH textLinesW
+    | ellipsisReq = addEllipsisToTextLine fontMgr style cw <$> firstLine
+    | otherwise = clipTextLine fontMgr style trim cw <$> firstLine
 
 -- | Fits a single line of text to the given width, potencially spliting into
 -- | several lines.
 fitTextToWidth
-  :: Renderer      -- ^ The renderer.
+  :: FontManager   -- ^ The fontManager.
   -> StyleState    -- ^ The style.
   -> Double        -- ^ The maximum width.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
   -> Text          -- ^ The text to calculate.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToWidth renderer style width trim text = resultLines where
+fitTextToWidth fontMgr style width trim text = resultLines where
   font = styleFont style
   fSize = styleFontSize style
-  !metrics = computeTextMetrics renderer font fSize
+  !metrics = computeTextMetrics fontMgr font fSize
   lineH = _txmLineH metrics
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
-    newLines = fitSingleTextToW renderer font fSize metrics cTop width trim line
+    newLines = fitSingleTextToW fontMgr font fSize metrics cTop width trim line
     newTop = cTop + fromIntegral (Seq.length newLines) * lineH
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
@@ -230,15 +230,15 @@ alignTextLine parentRect offsetY alignH textLine = newTextLine where
   }
 
 fitTextLinesToH
-  :: Renderer
+  :: FontManager
   -> StyleState
   -> TextOverflow
   -> Double
   -> Double
   -> Seq TextLine
   -> Seq TextLine
-fitTextLinesToH renderer style overflow w h Empty = Empty
-fitTextLinesToH renderer style overflow w h (g1 :<| g2 :<| gs)
+fitTextLinesToH fontMgr style overflow w h Empty = Empty
+fitTextLinesToH fontMgr style overflow w h (g1 :<| g2 :<| gs)
   | overflow == Ellipsis && h >= g1H + g2H = g1 :<| rest
   | overflow == Ellipsis && h >= g1H = Seq.singleton ellipsisG1
   | overflow == ClipText && h >= g1H = g1 :<| rest
@@ -246,19 +246,19 @@ fitTextLinesToH renderer style overflow w h (g1 :<| g2 :<| gs)
     g1H = _sH (_tlSize g1)
     g2H = _sH (_tlSize g2)
     newH = h - g1H
-    rest = fitTextLinesToH renderer style overflow w newH (g2 :<| gs)
-    ellipsisG1 = addEllipsisToTextLine renderer style w g1
-fitTextLinesToH renderer style overflow w h (g :<| gs)
+    rest = fitTextLinesToH fontMgr style overflow w newH (g2 :<| gs)
+    ellipsisG1 = addEllipsisToTextLine fontMgr style w g1
+fitTextLinesToH fontMgr style overflow w h (g :<| gs)
   | h > 0 = Seq.singleton newG
   | otherwise = Empty
   where
     gW = _sW (_tlSize g)
     newG
-      | overflow == Ellipsis && w < gW = addEllipsisToTextLine renderer style w g
+      | overflow == Ellipsis && w < gW = addEllipsisToTextLine fontMgr style w g
       | otherwise = g
 
 fitSingleTextToW
-  :: Renderer
+  :: FontManager
   -> Font
   -> FontSize
   -> TextMetrics
@@ -267,10 +267,10 @@ fitSingleTextToW
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitSingleTextToW renderer font fSize metrics top width trim text = result where
+fitSingleTextToW fontMgr font fSize metrics top width trim text = result where
   spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
-  !glyphs = computeGlyphsPos renderer font fSize newText
+  !glyphs = computeGlyphsPos fontMgr font fSize newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
   keepTailSpaces = trim == TrimSpaces
@@ -299,15 +299,15 @@ buildTextLine metrics top idx glyphs = textLine where
   }
 
 addEllipsisToTextLine
-  :: Renderer
+  :: FontManager
   -> StyleState
   -> Double
   -> TextLine
   -> TextLine
-addEllipsisToTextLine renderer style width textLine = newTextLine where
+addEllipsisToTextLine fontMgr style width textLine = newTextLine where
   TextLine text textSize textRect textGlyphs textMetrics = textLine
   Size tw th = textSize
-  Size dw dh = calcTextSize renderer style "..."
+  Size dw dh = calcTextSize fontMgr style "..."
   font = styleFont style
   fontSize = styleFontSize style
   targetW = width - tw
@@ -316,7 +316,7 @@ addEllipsisToTextLine renderer style width textLine = newTextLine where
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse textGlyphs)
   newText = T.dropEnd dropChars text <> "..."
-  !newGlyphs = computeGlyphsPos renderer font fontSize newText
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {
     _tlText = newText,
@@ -327,13 +327,13 @@ addEllipsisToTextLine renderer style width textLine = newTextLine where
   }
 
 clipTextLine
-  :: Renderer
+  :: FontManager
   -> StyleState
   -> TextTrim
   -> Double
   -> TextLine
   -> TextLine
-clipTextLine renderer style trim width textLine = newTextLine where
+clipTextLine fontMgr style trim width textLine = newTextLine where
   TextLine text textSize textRect textGlyphs textMetrics = textLine
   Size tw th = textSize
   font = styleFont style
@@ -347,7 +347,7 @@ clipTextLine renderer style trim width textLine = newTextLine where
   newText
     | trim == KeepSpaces = T.take (length validGlyphs) text
     | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) text
-  !newGlyphs = computeGlyphsPos renderer font fontSize newText
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {
     _tlText = newText,

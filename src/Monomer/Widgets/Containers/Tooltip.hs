@@ -173,6 +173,7 @@ makeTooltip caption config state = widget where
           let textLines = alignTextLines style textRect fittedLines
           forM_ textLines (drawTextLine renderer style)
     where
+      fontMgr = wenv ^. L.fontManager
       style = activeStyle wenv node
       children = node ^. L.children
       mousePos = wenv ^. L.inputStatus . L.mousePos
@@ -183,7 +184,7 @@ makeTooltip caption config state = widget where
       targetW = fromMaybe maxW (_ttcMaxWidth config)
       targetH = fromMaybe maxH (_ttcMaxHeight config)
       targetSize = Size targetW targetH
-      fittedLines = fitTextToSize renderer style Ellipsis MultiLine TrimSpaces
+      fittedLines = fitTextToSize fontMgr style Ellipsis MultiLine TrimSpaces
         Nothing targetSize caption
       textSize = getTextLinesSize fittedLines
       Size tw th = fromMaybe def (addOuterSize style textSize)

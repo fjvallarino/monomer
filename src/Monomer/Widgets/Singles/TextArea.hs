@@ -690,9 +690,9 @@ stateFromText
   :: WidgetEnv s e -> WidgetNode s e -> TextAreaState -> Text -> TextAreaState
 stateFromText wenv node state text = newState where
   style = activeStyle wenv node
-  renderer = wenv ^. L.renderer
+  fontMgr = wenv ^. L.fontManager
   newTextMetrics = getTextMetrics wenv style
-  tmpTextLines = fitTextToWidth renderer style maxNumericValue KeepSpaces text
+  tmpTextLines = fitTextToWidth fontMgr style maxNumericValue KeepSpaces text
   lastRect = def
     & L.y .~ fromIntegral (length tmpTextLines) * newTextMetrics ^. L.lineH
     & L.h .~ newTextMetrics ^. L.lineH

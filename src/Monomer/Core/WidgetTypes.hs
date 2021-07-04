@@ -264,8 +264,12 @@ data LayoutDirection
 data WidgetEnv s e = WidgetEnv {
   -- | The OS of the host.
   _weOs :: Text,
-  -- | The active renderer. In general only used in widgetRender, but text
-  -- | related functions can be used in other contexts.
+  -- | Provides helper funtions for calculating text size.
+  _weFontManager :: FontManager,
+  {-|
+  The active renderer. In general only used in widgetRender, but text related
+  functions can be used in other contexts.
+  -}
   _weRenderer :: Renderer,
   -- | Returns the information of a node given a path from root, if any.
   _weFindByPath :: Path -> Maybe WidgetNodeInfo,
