@@ -732,19 +732,18 @@
     - Separate size calculation from rendering
     - Renderer should not be in WidgetEnv
     - Revert glyph height change to nanovg
+    - Keep data of loaded images available (to avoid loading multiple copies)
 
 Next
-  - Create custom font handling functions
-    - Keep data of loaded images available (to avoid loading multiple copies)
-  - Think about rendering with custom beginFrame for some widgets
-    - Could work for rounded images.
-  - Improve base theme creation (scale argument?)
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).
     - Improve window resize situation
       - SDL does not send resize until operation has finished, making content look ugly because it's not updated
       - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
     - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
+  - Fix transparent layer issue when opening dialogs.
+  - Think about rendering with custom beginFrame for some widgets
+    - Could work for rounded images.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).

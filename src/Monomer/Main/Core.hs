@@ -19,13 +19,14 @@ module Monomer.Main.Core (
   startApp
 ) where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (MVar, newMVar, threadDelay)
 import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
+import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
 
@@ -70,7 +71,8 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
-  _mlWidgetRoot :: WidgetNode s ep
+  _mlWidgetRoot :: WidgetNode s ep,
+  _mlWidgetShared :: MVar (Map Text WidgetShared)
 }
 
 {-|
@@ -125,6 +127,8 @@ runAppLoop window widgetRoot config = do
   startTs <- fmap fromIntegral SDL.ticks
   model <- use L.mainModel
   os <- getPlatform
+  widgetSharedMVar <- liftIO $ newMVar Map.empty
+
   renderer <- liftIO $ makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
   L.renderer .= Just renderer
@@ -140,6 +144,7 @@ runAppLoop window widgetRoot config = do
     _weContextButton = contextBtn,
     _weTheme = theme,
     _weWindowSize = newWindowSize,
+    _weWidgetShared = widgetSharedMVar,
     _weWidgetKeyMap = Map.empty,
     _weCursor = Nothing,
     _weHoveredPath = Nothing,
@@ -172,7 +177,8 @@ runAppLoop window widgetRoot config = do
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
-    _mlWidgetRoot = newRoot
+    _mlWidgetRoot = newRoot,
+    _mlWidgetShared = widgetSharedMVar
   }
 
   L.mainModel .= _weModel newWenv
@@ -236,6 +242,7 @@ mainLoop window fontManager renderer config loopArgs = do
     _weContextButton = contextBtn,
     _weTheme = _mlTheme,
     _weWindowSize = windowSize,
+    _weWidgetShared = _mlWidgetShared,
     _weWidgetKeyMap = Map.empty,
     _weCursor = currCursor,
     _weHoveredPath = hovered,

@@ -28,6 +28,7 @@ module Monomer.Widgets.Util.Widget (
   resultReqsEvts,
   makeState,
   useState,
+  useShared,
   infoMatches,
   nodeMatches,
   handleWidgetIdChange,
@@ -168,6 +169,11 @@ makeState state wenv node = Just (WidgetState state)
 useState :: WidgetModel i => Maybe WidgetState -> Maybe i
 useState Nothing = Nothing
 useState (Just (WidgetState state)) = cast state
+
+-- | Casts the wrapped value in WidgetShared to the expected type, if possible.
+useShared :: Typeable i => Maybe WidgetShared -> Maybe i
+useShared Nothing = Nothing
+useShared (Just (WidgetShared shared)) = cast shared
 
 -- | Checks if the type and key of two WidgetNodeInfo match.
 infoMatches :: WidgetNodeInfo -> WidgetNodeInfo -> Bool

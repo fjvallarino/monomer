@@ -32,6 +32,7 @@ Configs:
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Singles.Image (
   ImageLoadError(..),
@@ -43,12 +44,14 @@ module Monomer.Widgets.Singles.Image (
 
 import Codec.Picture (DynamicImage, Image(..))
 import Control.Applicative ((<|>))
+import Control.Concurrent
 import Control.Exception (try)
-import Control.Lens ((&), (^.), (.~), (%~), (?~))
+import Control.Lens ((&), (^.), (.~), (%~), (?~), at)
 import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
 import Data.Default
+import Data.Map (Map)
 import Data.Maybe
 import Data.List (isPrefixOf)
 import Data.Text (Text)
@@ -61,8 +64,9 @@ import Network.Wreq
 import qualified Codec.Picture as Pic
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import qualified Network.Wreq as Wreq
+import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Network.Wreq as Wreq
 
 import Monomer.Widgets.Single
 
@@ -311,8 +315,13 @@ makeImage imgSource config state = widget where
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
+    wid = node ^. L.info . L.widgetId
+    path = node ^. L.info . L.path
     imgPath = imgName imgSource
-    reqs = [RemoveRendererImage imgPath]
+    reqs = [
+        RemoveRendererImage imgPath,
+        RunTask wid path (handleImageDispose wenv imgPath)
+      ]
 
   handleMessage wenv node target message = result where
     result = cast message >>= useImage node
@@ -368,24 +377,57 @@ fitImage viewport imageSize fitMode alignH alignV = case fitMode of
     alignImg nw nh = alignInRect viewport (Rect x y nw nh) alignH alignV
 
 handleImageLoad :: ImageCfg e -> WidgetEnv s e -> Text -> IO ImageMessage
-handleImageLoad config wenv path =
-  if isNothing prevImage
-    then do
+handleImageLoad config wenv path = do
+  -- Get the image's MVar. One MVar per image name/path is created, to allow
+  -- loading images in parallel. The main MVar is only taken until the image's
+  -- MVar is retrieved/created.
+  sharedMap <- takeMVar sharedMapMVar
+  sharedImgMVar <- case useShared (Map.lookup key sharedMap) of
+    Just mvar -> return mvar
+    Nothing -> newMVar emptyImgState
+  putMVar sharedMapMVar (sharedMap & at key ?~ WidgetShared sharedImgMVar)
+
+  -- Take the image's MVar until done
+  sharedImg <- takeMVar sharedImgMVar
+  (result, newSharedImg) <- case sharedImg of
+    Just (oldState, oldCount) -> do
+      return (ImageLoaded oldState, Just (oldState, oldCount + 1))
+    Nothing -> do
       res <- loadImage path
 
       case res >>= decodeImage of
-        Left loadError -> return (ImageFailed loadError)
-        Right dimg -> registerImg config wenv path dimg
-    else do
-      return $ ImageLoaded newState
+        Left loadError -> return (ImageFailed loadError, Nothing)
+        Right dimg -> do
+          let newState = makeImgState config wenv path dimg
+          return (ImageLoaded newState, Just (newState, 1))
+
+  putMVar sharedImgMVar newSharedImg
+  return result
   where
-    imgFlags = _imcFlags config
-    prevImage = Nothing -- getImage renderer path
-    ImageDef _ size imgData _ = fromJust prevImage
-    newState = ImageState {
-      isImageSource = ImagePath path,
-      isImageData = Just (imgData, size)
-    }
+    key = imgKey path
+    sharedMapMVar = wenv ^. L.widgetShared
+    emptyImgState :: Maybe (ImageState, Int)
+    emptyImgState = Nothing
+
+handleImageDispose :: WidgetEnv s e -> Text -> IO ()
+handleImageDispose wenv path = do
+  sharedMap <- takeMVar sharedMapMVar
+  newSharedMap <- case useShared (Map.lookup key sharedMap) of
+    Just mvar -> do
+      sharedImg <- takeMVar mvar
+      return $ case sharedImg of
+        Just (oldState :: ImageState, oldCount :: Int)
+          | oldCount > 1 ->
+              sharedMap & at key ?~ WidgetShared (oldState, oldCount - 1)
+        _ -> sharedMap & at key .~ Nothing
+    Nothing -> return sharedMap
+  putMVar sharedMapMVar newSharedMap
+  where
+    sharedMapMVar = wenv ^. L.widgetShared
+    key = imgKey path
+
+imgKey :: Text -> Text
+imgKey path = "image-widget-key-" <> path
 
 loadImage :: Text -> IO (Either ImageLoadError ByteString)
 loadImage path
@@ -429,24 +471,22 @@ respCode r = r ^. responseStatus . statusCode
 respErrorMsg :: String -> String -> String
 respErrorMsg path code = "Status: " ++ code ++ " - Path: " ++ path
 
-registerImg
+makeImgState
   :: ImageCfg e
   -> WidgetEnv s e
   -> Text
   -> DynamicImage
-  -> IO ImageMessage
-registerImg config wenv name dimg = do
-  return $ ImageLoaded newState
-  where
-    img = Pic.convertRGBA8 dimg
-    cw = imageWidth img
-    ch = imageHeight img
-    size = Size (fromIntegral cw) (fromIntegral ch)
-    bs = vectorToByteString $ imageData img
-    newState = ImageState {
-      isImageSource = ImagePath name,
-      isImageData = Just (bs, size)
-    }
+  -> ImageState
+makeImgState config wenv name dimg = newState where
+  img = Pic.convertRGBA8 dimg
+  cw = imageWidth img
+  ch = imageHeight img
+  size = Size (fromIntegral cw) (fromIntegral ch)
+  bs = vectorToByteString $ imageData img
+  newState = ImageState {
+    isImageSource = ImagePath name,
+    isImageData = Just (bs, size)
+  }
 
 isUrl :: Text -> Bool
 isUrl url = T.isPrefixOf "http://" lurl || T.isPrefixOf "https://" lurl where

@@ -185,6 +185,11 @@ isRenderStop :: WidgetRequest s e -> Bool
 isRenderStop RenderStop{} = True
 isRenderStop _ = False
 
+-- | Requests to have an image removed from the renderer.
+isRemoveRendererImage :: WidgetRequest s e -> Bool
+isRemoveRendererImage RemoveRendererImage{} = True
+isRemoveRendererImage _ = False
+
 {-|
 Requests to exit the application. Can also be used to cancel a previous request
 (or a window close).

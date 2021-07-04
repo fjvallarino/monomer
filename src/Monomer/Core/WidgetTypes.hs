@@ -15,6 +15,7 @@ Basic types and definitions for Widgets.
 
 module Monomer.Core.WidgetTypes where
 
+import Control.Concurrent (MVar)
 import Control.Lens (ALens')
 import Data.ByteString.Lazy (ByteString)
 import Data.Default
@@ -114,14 +115,25 @@ instance IsString WidgetKey where
   fromString = WidgetKey . T.pack
 
 {-|
-Wrapper of a Typeable instances representing the state of a widget. The
-widget is in charge of casting to the correct type.
+Wrapper of a Typeable instance representing the state of a widget. The widget is
+in charge of casting to the correct type.
 -}
 data WidgetState
   = forall i . WidgetModel i => WidgetState i
 
 instance Show WidgetState where
   show (WidgetState state) = "WidgetState: " ++ show (typeOf state)
+
+{-|
+Wrapper of a Typeable instance representing shared data between widgets. Used,
+for example, by image widget to avoid loading the same image multiple times. The
+widget is in charge of casting to the correct type.
+-}
+data WidgetShared
+  = forall i . Typeable i => WidgetShared i
+
+instance Show WidgetShared where
+  show (WidgetShared shared) = "WidgetShared: " ++ show (typeOf shared)
 
 {-|
 WidgetRequests are the way a widget can perform side effects such as changing
@@ -279,8 +291,10 @@ data WidgetEnv s e = WidgetEnv {
   _weContextButton :: Button,
   -- | The active theme. Some widgets derive their base style from this.
   _weTheme :: Theme,
-  -- | The main window size
+  -- | The main window size.
   _weWindowSize :: Size,
+  -- | The active map of shared data.
+  _weWidgetShared :: MVar (Map Text WidgetShared),
   -- | The active map of WidgetKey -> WidgetNode, if any.
   _weWidgetKeyMap :: WidgetKeyMap s e,
   -- | The currently hovered path, if any.
