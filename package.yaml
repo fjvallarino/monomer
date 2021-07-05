@@ -89,6 +89,8 @@ executables:
   books:
     main: Main.hs
     source-dirs: examples/books
+    ghc-options:
+    - -threaded
     dependencies:
     - aeson
     - lens
@@ -120,6 +122,8 @@ executables:
   todo:
     main: Main.hs
     source-dirs: examples/todo
+    ghc-options:
+    - -threaded
     dependencies:
     - lens
     - monomer

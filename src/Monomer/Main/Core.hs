@@ -19,11 +19,14 @@ module Monomer.Main.Core (
   startApp
 ) where
 
-import Control.Concurrent (MVar, newMVar, threadDelay)
+import Control.Concurrent (MVar, forkIO, forkOS, newMVar, threadDelay)
+import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, tryReadTChan, writeTChan)
 import Control.Lens ((&), (^.), (.=), (.~), use)
+import Control.Monad (unless, void, when)
 import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
+import Control.Monad.STM (atomically)
 import Data.Default
 import Data.Maybe
 import Data.Map (Map)
@@ -72,8 +75,77 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode s ep,
-  _mlWidgetShared :: MVar (Map Text WidgetShared)
+  _mlWidgetShared :: MVar (Map Text WidgetShared),
+  _mlChannel :: TChan (RenderMsg s ep)
 }
+
+data RenderMsg s e
+  = MsgResize Size
+  | MsgRender (WidgetEnv s e) (WidgetNode s e)
+  deriving Show
+
+data RenderState s e = RenderState {
+  _rstColor :: Color,
+  _rstWidgetEnv :: WidgetEnv s e,
+  _rstRootNode :: WidgetNode s e
+}
+
+runUI
+  :: (Eq s, WidgetEvent e)
+  => TChan (RenderMsg s e)
+  -> SDL.Window
+  -> SDL.GLContext
+  -> [FontDef]
+  -> Double
+  -> (Double, Double)
+  -> Color
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> IO ()
+runUI channel window glCtx fonts dpr (rw, rh) color wenv root = do
+  SDL.glMakeCurrent window glCtx
+  renderer <- liftIO $ makeRenderer fonts dpr
+  resizeWindow window dpr
+  -- Hack, otherwise glyph positions are invalid until nanovg is initialized
+  liftIO $ beginFrame renderer rw rh
+  liftIO $ endFrame renderer
+
+  waitUIMsg channel window renderer state
+  where
+    state = RenderState color wenv root
+
+waitUIMsg
+  :: (Eq s, WidgetEvent e)
+  => TChan (RenderMsg s e)
+  -> SDL.Window
+  -> Renderer
+  -> RenderState s e
+  -> IO ()
+waitUIMsg channel window renderer state = do
+  msg <- liftIO . atomically $ readTChan channel
+  newState <- handleUIMsg window renderer state msg
+  waitUIMsg channel window renderer newState
+
+handleUIMsg
+  :: (Eq s, WidgetEvent e)
+  => SDL.Window
+  -> Renderer
+  -> RenderState s e
+  -> RenderMsg s e
+  -> IO (RenderState s e)
+handleUIMsg window renderer state (MsgRender newWenv newRoot) = do
+  let RenderState color _ _ = state
+  renderWidgets window renderer color newWenv newRoot
+  return (RenderState color newWenv newRoot)
+handleUIMsg window renderer state (MsgResize newSize) = do
+  let RenderState color wenv root = state
+  let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
+  let result = widgetResize (root ^. L.widget) wenv root viewport
+  let newRoot = result ^. L.node
+
+  print ("Resizing MsgResize", newSize)
+  renderWidgets window renderer color wenv newRoot
+  return (RenderState color wenv newRoot)
 
 {-|
 Runs an application, creating the UI with the provided function and initial
@@ -90,12 +162,14 @@ startApp
   -> [AppConfig e]        -- ^ The application config.
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
-  (window, dpr, epr) <- initSDLWindow config
-  winSize <- getDrawableSize window
+  (window, dpr, epr, glCtx) <- initSDLWindow config
+--  winSize <- getDrawableSize window
+  winSize <- getWindowSize window dpr
+  channel <- newTChanIO
 
   let monomerCtx = initMonomerCtx model window winSize dpr epr
 
-  runStateT (runAppLoop window appWidget config) monomerCtx
+  runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
   detroySDLWindow window
   where
     config = mconcat configs
@@ -106,16 +180,18 @@ startApp model eventHandler uiBuilder configs = do
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
-  :: (MonomerM s m, WidgetEvent e)
+  :: (MonomerM s m, Eq s, WidgetEvent e, WidgetEvent ep)
   => SDL.Window
+  -> SDL.GLContext
+  -> TChan (RenderMsg s ep)
   -> WidgetNode s ep
   -> AppConfig e
   -> m ()
-runAppLoop window widgetRoot config = do
+runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
   Size rw rh <- use L.windowSize
 
-  let newWindowSize = Size (rw / dpr) (rh / dpr)
+  let newWinSize = Size rw rh
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
@@ -123,18 +199,11 @@ runAppLoop window widgetRoot config = do
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
 
-  resizeWindow window
   startTs <- fmap fromIntegral SDL.ticks
   model <- use L.mainModel
   os <- getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
-
-  renderer <- liftIO $ makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
-  L.renderer .= Just renderer
-  -- Hack, otherwise glyph positions are invalid until nanovg is initialized
-  liftIO $ beginFrame renderer (round rw) (round rh)
-  liftIO $ endFrame renderer
 
   let wenv = WidgetEnv {
     _weOs = os,
@@ -143,7 +212,7 @@ runAppLoop window widgetRoot config = do
     _weMainButton = mainBtn,
     _weContextButton = contextBtn,
     _weTheme = theme,
-    _weWindowSize = newWindowSize,
+    _weWindowSize = newWinSize,
     _weWidgetShared = widgetSharedMVar,
     _weWidgetKeyMap = Map.empty,
     _weCursor = Nothing,
@@ -178,22 +247,28 @@ runAppLoop window widgetRoot config = do
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
     _mlWidgetRoot = newRoot,
-    _mlWidgetShared = widgetSharedMVar
+    _mlWidgetShared = widgetSharedMVar,
+    _mlChannel = channel
   }
 
   L.mainModel .= _weModel newWenv
 
-  mainLoop window fontManager renderer config loopArgs
+  let bgColor = _themeClearColor theme
+
+  liftIO . forkOS . void $
+    runUI channel window glCtx fonts dpr (rw, rh) bgColor newWenv newRoot
+
+  liftIO $ watchWindowResize channel
+  mainLoop window fontManager config loopArgs
 
 mainLoop
   :: (MonomerM s m, WidgetEvent e)
   => SDL.Window
   -> FontManager
-  -> Renderer
   -> AppConfig e
   -> MainLoopArgs s e ep
   -> m ()
-mainLoop window fontManager renderer config loopArgs = do
+mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
   startTicks <- fmap fromIntegral SDL.ticks
@@ -211,13 +286,14 @@ mainLoop window fontManager renderer config loopArgs = do
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
   mousePos <- getCurrentMousePos epr
+  currSize <- getWindowSize window dpr
 
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
 
-  let windowResized = isWindowResized eventsPayload
+  let windowResized = currSize /= windowSize && isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
   let baseSystemEvents = convertEvents dpr epr mousePos eventsPayload
@@ -272,7 +348,7 @@ mainLoop window fontManager renderer config loopArgs = do
 
   (newWenv, newRoot, _) <- if windowResized
     then do
-      resizeWindow window
+--      liftIO $ resizeWindow window dpr
       handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
@@ -286,7 +362,7 @@ mainLoop window fontManager renderer config loopArgs = do
   let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
 
   when renderNeeded $
-    renderWidgets window renderer (_themeClearColor _mlTheme) newWenv newRoot
+    liftIO . atomically $ writeTChan _mlChannel (MsgRender newWenv newRoot)
 
   L.renderRequested .= windowResized
 
@@ -312,7 +388,18 @@ mainLoop window fontManager renderer config loopArgs = do
   when shouldQuit $
     void $ handleWidgetDispose newWenv newRoot
 
-  unless shouldQuit (mainLoop window fontManager renderer config newLoopArgs)
+  unless shouldQuit (mainLoop window fontManager config newLoopArgs)
+
+watchWindowResize :: TChan (RenderMsg s e) -> IO ()
+watchWindowResize channel = do
+  void . SDL.addEventWatch $ \ev -> do
+    case SDL.eventPayload ev of
+      SDL.WindowSizeChangedEvent sizeChangeData -> do
+        let SDL.V2 nw nh = SDL.windowSizeChangedEventSize sizeChangeData
+        let newSize = Size (fromIntegral nw) (fromIntegral nh)
+
+        atomically $ writeTChan channel (MsgResize newSize)
+      _ -> return ()
 
 checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
@@ -340,26 +427,26 @@ renderScheduleActive currTs renderTs schedule = scheduleActive where
   scheduleActive = maybe True (> stepsDone) count
 
 renderWidgets
-  :: (MonomerM s m)
-  => SDL.Window
+  :: SDL.Window
   -> Renderer
   -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
-  -> m ()
+  -> IO ()
 renderWidgets !window renderer clearColor wenv widgetRoot = do
-  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+--  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+  Size winW winH <- getWindowSize window 2
 
   liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
 
-  liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
+  liftIO $ beginFrame renderer winW winH
   liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
   liftIO $ endFrame renderer
 
   liftIO $ renderRawTasks renderer
 
-  liftIO $ beginFrame renderer (fromIntegral fbWidth) (fromIntegral fbHeight)
+  liftIO $ beginFrame renderer winW winH
   liftIO $ renderOverlays renderer
   liftIO $ endFrame renderer
 
@@ -374,18 +461,17 @@ renderWidgets !window renderer clearColor wenv widgetRoot = do
     clearColor4 = GL.Color4 r g b (realToFrac a)
 
 resizeWindow
-  :: (MonomerM s m)
-  => SDL.Window
-  -> m ()
-resizeWindow window = do
-  dpr <- use L.dpr
+  :: SDL.Window
+  -> Double
+  -> IO ()
+resizeWindow window dpr = do
   drawableSize <- getDrawableSize window
   windowSize <- getWindowSize window dpr
 
   let position = GL.Position 0 0
   let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
 
-  L.windowSize .= windowSize
+--  L.windowSize .= windowSize
   liftIO $ GL.viewport GL.$= (position, size)
 
 isWindowResized :: [SDL.EventPayload] -> Bool

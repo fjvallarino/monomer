@@ -115,15 +115,17 @@ makeRenderer fonts dpr = do
   return $ newRenderer c dpr lock envRef
 
 newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
-newRenderer c dpr lock envRef = Renderer {..} where
+newRenderer c rdpr lock envRef = Renderer {..} where
+  dpr = 1
+
   beginFrame w h = do
-    newEnv <- handlePendingImages c envRef
+    newEnv <- L.with lock $ handlePendingImages c envRef
 
     VG.beginFrame c cw ch cdpr
     where
-      cw = fromIntegral w
-      ch = fromIntegral h
-      cdpr = realToFrac dpr
+      cw = realToFrac (w / dpr)
+      ch = realToFrac (h / dpr)
+      cdpr = realToFrac rdpr
 
   endFrame =
     VG.endFrame c

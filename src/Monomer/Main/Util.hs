@@ -47,7 +47,6 @@ initMonomerCtx model win winSize dpr epr = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,
-  _mcRenderer = Nothing,
   _mcDpr = dpr,
   _mcEpr = epr,
   _mcInputStatus = def,

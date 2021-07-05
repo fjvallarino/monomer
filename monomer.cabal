@@ -192,6 +192,7 @@ executable books
       examples/books
   default-extensions:
       OverloadedStrings
+  ghc-options: -threaded
   build-depends:
       JuicyPixels
     , OpenGL
@@ -369,6 +370,7 @@ executable todo
       examples/todo
   default-extensions:
       OverloadedStrings
+  ghc-options: -threaded
   build-depends:
       JuicyPixels
     , OpenGL

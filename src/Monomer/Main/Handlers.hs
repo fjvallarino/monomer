@@ -52,8 +52,8 @@ import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
-import Monomer.Graphics
-import Monomer.Helper
+import Monomer.Helper (seqStartsWith)
+import Monomer.Main.Platform (getWindowSize)
 import Monomer.Main.Types
 import Monomer.Main.Util
 
@@ -260,8 +260,11 @@ handleResizeWidgets
   => HandlerStep s e      -- ^ Current state/"HandlerStep".
   -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
-  Size w h <- use L.windowSize
+  window <- use L.window
+  dpr <- use L.dpr
+  Size w h <- getWindowSize window dpr
 
+  liftIO $ print ("Resizing handlers", w, h)
   let winRect = Rect 0 0 w h
   let (wenv, root, reqs) = previousStep
   let newResult = widgetResize (root ^. L.widget) wenv root winRect
@@ -514,10 +517,10 @@ handleRenderStop widgetId previousStep = do
 handleRemoveRendererImage
   :: (MonomerM s m) => Text -> HandlerStep s e -> m (HandlerStep s e)
 handleRemoveRendererImage name previousStep = do
-  renderer <- use L.renderer
-
-  when (isJust renderer) $
-    liftIO $ deleteImage (fromJust renderer) name
+--  renderer <- use L.renderer
+--
+--  when (isJust renderer) $
+--    liftIO $ deleteImage (fromJust renderer) name
 
   return previousStep
 

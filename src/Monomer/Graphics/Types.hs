@@ -220,7 +220,7 @@ data FontManager = FontManager {
 -- | Low level rendering definitions.
 data Renderer = Renderer {
   -- | Begins a new frame.
-  beginFrame :: Int -> Int -> IO (),
+  beginFrame :: Double -> Double -> IO (),
   -- | Finishes a frame, consolidating the drawing operations since beginFrame.
   endFrame :: IO (),
   -- | Begins a new path

@@ -149,7 +149,6 @@ mockFontManager = FontManager {
   computeGlyphsPos = mockGlyphsPos (Just 10)
 }
 
-
 mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOs = "Mac OS X",

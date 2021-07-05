@@ -26,7 +26,6 @@ import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
 import SDL (($=))
-import System.IO.Unsafe (unsafePerformIO)
 
 import qualified Data.Text as T
 import qualified Foreign.C.String as STR
@@ -49,7 +48,7 @@ defaultWindowSize :: (Int, Int)
 defaultWindowSize = (800, 600)
 
 -- | Creates and initializes a window using the provided configuration.
-initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double)
+initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
@@ -58,9 +57,9 @@ initSDLWindow config = do
      when (renderQuality /= SDL.ScaleLinear) $
        putStrLn "Warning: Linear texture filtering not enabled!"
 
-  os <- getPlatform
+  platform <- getPlatform
   initializeDpiAwareness
-  factor <- case os of
+  factor <- case platform of
     "Windows" -> getWindowsFactor
     "Linux" -> getLinuxFactor
     _ -> return 1 -- macOS
@@ -82,7 +81,7 @@ initSDLWindow config = do
   let scaleFactor = factor * userScaleFactor
   let contentRatio = fromIntegral fbWidth / winW
   let (dpr, epr)
-        | os `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
+        | platform `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
         | otherwise = (scaleFactor * contentRatio, 1 / scaleFactor) -- macOS
 
   when (isJust (_apcWindowTitle config)) $
@@ -98,11 +97,14 @@ initSDLWindow config = do
   err <- STR.peekCString err
   putStrLn err
 
-  _ <- SDL.glCreateContext window
+  ctxRender <- SDL.glCreateContext window
+
+  when (platform == "Windows") $
+    void $ SDL.glCreateContext window
 
   _ <- glewInit
 
-  return (window, dpr, epr)
+  return (window, dpr, epr, ctxRender)
   where
     customOpenGL = SDL.OpenGLConfig {
       SDL.glColorPrecision = SDL.V4 8 8 8 0,
