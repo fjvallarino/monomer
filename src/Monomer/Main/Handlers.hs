@@ -262,17 +262,20 @@ handleResizeWidgets
 handleResizeWidgets previousStep = do
   window <- use L.window
   dpr <- use L.dpr
-  Size w h <- getWindowSize window dpr
+  windowSize <- getWindowSize window dpr
+  L.windowSize .= windowSize
 
-  liftIO $ print ("Resizing handlers", w, h)
-  let winRect = Rect 0 0 w h
+  let viewport = Rect 0 0 (windowSize ^. L.w) (windowSize ^. L.h)
   let (wenv, root, reqs) = previousStep
-  let newResult = widgetResize (root ^. L.widget) wenv root winRect
+  let newWenv = wenv
+        & L.windowSize .~ windowSize
+        & L.viewport .~ viewport
+  let newResult = widgetResize (root ^. L.widget) newWenv root viewport
 
   L.renderRequested .= True
   L.resizePending .= False
 
-  (wenv2, root2, reqs2) <- handleWidgetResult wenv True newResult
+  (wenv2, root2, reqs2) <- handleWidgetResult newWenv True newResult
 
   return (wenv2, root2, reqs <> reqs2)
 

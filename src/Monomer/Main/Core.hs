@@ -85,6 +85,7 @@ data RenderMsg s e
   deriving Show
 
 data RenderState s e = RenderState {
+  _rstDpr :: Double,
   _rstColor :: Color,
   _rstWidgetEnv :: WidgetEnv s e,
   _rstRootNode :: WidgetNode s e
@@ -106,13 +107,10 @@ runUI channel window glCtx fonts dpr (rw, rh) color wenv root = do
   SDL.glMakeCurrent window glCtx
   renderer <- liftIO $ makeRenderer fonts dpr
   resizeWindow window dpr
-  -- Hack, otherwise glyph positions are invalid until nanovg is initialized
-  liftIO $ beginFrame renderer rw rh
-  liftIO $ endFrame renderer
 
   waitUIMsg channel window renderer state
   where
-    state = RenderState color wenv root
+    state = RenderState dpr color wenv root
 
 waitUIMsg
   :: (Eq s, WidgetEvent e)
@@ -134,18 +132,21 @@ handleUIMsg
   -> RenderMsg s e
   -> IO (RenderState s e)
 handleUIMsg window renderer state (MsgRender newWenv newRoot) = do
-  let RenderState color _ _ = state
-  renderWidgets window renderer color newWenv newRoot
-  return (RenderState color newWenv newRoot)
+  let RenderState dpr color _ _ = state
+  renderWidgets window renderer dpr color newWenv newRoot
+  return (RenderState dpr color newWenv newRoot)
 handleUIMsg window renderer state (MsgResize newSize) = do
-  let RenderState color wenv root = state
+  let RenderState dpr color wenv root = state
   let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
-  let result = widgetResize (root ^. L.widget) wenv root viewport
+  let newWenv = wenv
+        & L.windowSize .~ newSize
+        & L.viewport .~ viewport
+  let result = widgetResize (root ^. L.widget) newWenv root viewport
   let newRoot = result ^. L.node
 
-  print ("Resizing MsgResize", newSize)
-  renderWidgets window renderer color wenv newRoot
-  return (RenderState color wenv newRoot)
+  resizeWindow window dpr
+  renderWidgets window renderer dpr color newWenv newRoot
+  return state
 
 {-|
 Runs an application, creating the UI with the provided function and initial
@@ -163,7 +164,6 @@ startApp
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- initSDLWindow config
---  winSize <- getDrawableSize window
   winSize <- getWindowSize window dpr
   channel <- newTChanIO
 
@@ -347,9 +347,7 @@ mainLoop window fontManager config loopArgs = do
   (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
 
   (newWenv, newRoot, _) <- if windowResized
-    then do
---      liftIO $ resizeWindow window dpr
-      handleResizeWidgets (seWenv, seRoot, Seq.empty)
+    then handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
   endTicks <- fmap fromIntegral SDL.ticks
@@ -429,13 +427,13 @@ renderScheduleActive currTs renderTs schedule = scheduleActive where
 renderWidgets
   :: SDL.Window
   -> Renderer
+  -> Double
   -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-renderWidgets !window renderer clearColor wenv widgetRoot = do
---  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
-  Size winW winH <- getWindowSize window 2
+renderWidgets !window renderer dpr clearColor wenv widgetRoot = do
+  Size winW winH <- getWindowSize window dpr
 
   liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
@@ -466,12 +464,10 @@ resizeWindow
   -> IO ()
 resizeWindow window dpr = do
   drawableSize <- getDrawableSize window
-  windowSize <- getWindowSize window dpr
 
   let position = GL.Position 0 0
   let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
 
---  L.windowSize .= windowSize
   liftIO $ GL.viewport GL.$= (position, size)
 
 isWindowResized :: [SDL.EventPayload] -> Bool
