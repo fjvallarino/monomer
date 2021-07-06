@@ -733,8 +733,6 @@
     - Renderer should not be in WidgetEnv
     - Revert glyph height change to nanovg
     - Keep data of loaded images available (to avoid loading multiple copies)
-
-Next
   - Improve Main module (naming, refactor into smaller functions).
   - Apply threading ideas (sdl-continuous-resize).
     - Improve window resize situation
@@ -742,6 +740,9 @@ Next
       - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
     - Use separate FontManager for rendering thread (locking mechanism can't be used because of unsafePerformIO)
     - Handle remove image in rendering thread.
+
+Next
+  - Apply threading ideas (sdl-continuous-resize).
     - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Fix transparent layer issue when opening dialogs.
   - Think about rendering with custom beginFrame for some widgets

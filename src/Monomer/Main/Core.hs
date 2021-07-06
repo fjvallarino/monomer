@@ -64,7 +64,7 @@ type AppEventHandler s e
 -- | Type of the function responsible of creating the App UI.
 type AppUIBuilder s e = UIBuilder s e
 
-data MainLoopArgs s e ep = MainLoopArgs {
+data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
@@ -74,9 +74,9 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlFrameAccumTs :: Int,
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
-  _mlWidgetRoot :: WidgetNode s ep,
+  _mlWidgetRoot :: WidgetNode sp ep,
   _mlWidgetShared :: MVar (Map Text WidgetShared),
-  _mlChannel :: TChan (RenderMsg s ep)
+  _mlChannel :: TChan (RenderMsg sp ep)
 }
 
 data RenderState s e = RenderState {
@@ -118,11 +118,11 @@ startApp model eventHandler uiBuilder configs = do
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
-  :: (MonomerM s ep m, Eq s, WidgetEvent e, WidgetEvent ep)
+  :: (MonomerM sp ep m, Eq sp, WidgetEvent e, WidgetEvent ep)
   => SDL.Window
   -> SDL.GLContext
-  -> TChan (RenderMsg s ep)
-  -> WidgetNode s ep
+  -> TChan (RenderMsg sp ep)
+  -> WidgetNode sp ep
   -> AppConfig e
   -> m ()
 runAppLoop window glCtx channel widgetRoot config = do
@@ -199,11 +199,11 @@ runAppLoop window glCtx channel widgetRoot config = do
   mainLoop window fontManager config loopArgs
 
 mainLoop
-  :: (MonomerM s ep m, WidgetEvent e)
+  :: (MonomerM sp ep m, WidgetEvent e)
   => SDL.Window
   -> FontManager
   -> AppConfig e
-  -> MainLoopArgs s e ep
+  -> MainLoopArgs sp e ep
   -> m ()
 mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
