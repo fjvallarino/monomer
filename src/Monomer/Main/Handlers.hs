@@ -73,7 +73,7 @@ may be generated (which will be processed interleaved with the list of events)
 and this is handled before returning the latest "HandlerStep".
 -}
 handleSystemEvents
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e       -- ^ The initial widget environment.
   -> WidgetNode s e      -- ^ The initial widget root.
   -> [SystemEvent]       -- ^ The starting list of events.
@@ -124,7 +124,7 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
 
 -- | Processes a single SystemEvent.
 handleSystemEvent
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> SystemEvent
@@ -153,7 +153,7 @@ handleSystemEvent wenv widgetRoot event currentTarget = do
         else return step
 
 -- | Initializes system resources (currently only icons).
-handleResourcesInit :: MonomerM s m => m ()
+handleResourcesInit :: MonomerM s e m => m ()
 handleResourcesInit = do
   cursors <- foldM insert Map.empty [toEnum 0 ..]
   L.cursorIcons .= cursors
@@ -164,7 +164,7 @@ handleResourcesInit = do
 
 -- | Initializes a widget (in general, this is called for root).
 handleWidgetInit
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> m (HandlerStep s e)
@@ -183,7 +183,7 @@ handleWidgetInit wenv widgetRoot = do
 
 -- | Disposes a widget (in general, this is called for root).
 handleWidgetDispose
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> m (HandlerStep s e)
@@ -198,7 +198,7 @@ Handles a WidgetResult instance, processing events and requests, and returning
 an updated "HandlerStep".
 -}
 handleWidgetResult
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> Bool
   -> WidgetResult s e
@@ -218,7 +218,7 @@ handleWidgetResult wenv resizeWidgets result = do
 
 -- | Processes a Seq of WidgetRequest, returning the latest "HandlerStep".
 handleRequests
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => Seq (WidgetRequest s e)  -- ^ Requests to process.
   -> HandlerStep s e          -- ^ Initial state/"HandlerStep".
   -> m (HandlerStep s e)      -- ^ Updated "HandlerStep",
@@ -256,7 +256,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
 
 -- | Resizes the current root, and marks the render and resized flags.
 handleResizeWidgets
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => HandlerStep s e      -- ^ Current state/"HandlerStep".
   -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
@@ -279,7 +279,7 @@ handleResizeWidgets previousStep = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleMoveFocus
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => Maybe WidgetId
   -> FocusDirection
   -> HandlerStep s e
@@ -313,7 +313,7 @@ handleMoveFocus startFromWid dir (wenv, root, reqs) = do
       return (wenv1, root1, reqs <> reqs1)
 
 handleSetFocus
-  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleSetFocus newFocusWid (wenv, root, reqs) = do
   newFocus <- getWidgetIdPath newFocusWid
   oldFocus <- getFocusedPath
@@ -335,7 +335,7 @@ handleSetFocus newFocusWid (wenv, root, reqs) = do
       return (wenv, root, reqs)
 
 handleGetClipboard
-  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleGetClipboard widgetId (wenv, root, reqs) = do
   path <- getWidgetIdPath widgetId
   hasText <- SDL.hasClipboardText
@@ -347,27 +347,27 @@ handleGetClipboard widgetId (wenv, root, reqs) = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleSetClipboard
-  :: (MonomerM s m) => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => ClipboardData -> HandlerStep s e -> m (HandlerStep s e)
 handleSetClipboard (ClipboardText text) previousStep = do
   SDL.setClipboardText text
   return previousStep
 handleSetClipboard _ previousStep = return previousStep
 
 handleStartTextInput
-  :: (MonomerM s m) => Rect -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => Rect -> HandlerStep s e -> m (HandlerStep s e)
 handleStartTextInput (Rect x y w h) previousStep = do
   SDL.startTextInput (SDLT.Rect (c x) (c y) (c w) (c h))
   return previousStep
   where
     c x = fromIntegral $ round x
 
-handleStopTextInput :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleStopTextInput :: MonomerM s e m => HandlerStep s e -> m (HandlerStep s e)
 handleStopTextInput previousStep = do
   SDL.stopTextInput
   return previousStep
 
 handleSetOverlay
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> Path
   -> HandlerStep s e
@@ -381,7 +381,7 @@ handleSetOverlay widgetId path previousStep = do
     & _1 . L.overlayPath ?~ path
 
 handleResetOverlay
-  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleResetOverlay widgetId step = do
   let (wenv, root, reqs) = step
   let mousePos = wenv ^. L.inputStatus . L.mousePos
@@ -400,7 +400,7 @@ handleResetOverlay widgetId step = do
   return (wenv2, root2, reqs <> reqs2)
 
 handleSetCursorIcon
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> CursorIcon
   -> HandlerStep s e
@@ -414,7 +414,7 @@ handleSetCursorIcon wid icon previousStep = do
   return previousStep
 
 handleResetCursorIcon
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> HandlerStep s e
   -> m (HandlerStep s e)
@@ -433,7 +433,7 @@ handleResetCursorIcon wid previousStep = do
     & _1 . L.cursor .~ currentPair
 
 handleStartDrag
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> Path
   -> WidgetDragMsg
@@ -449,7 +449,7 @@ handleStartDrag widgetId path dragData previousStep = do
     & _1 . L.dragStatus ?~ (path, dragData)
 
 handleStopDrag
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> HandlerStep s e
   -> m (HandlerStep s e)
@@ -466,7 +466,7 @@ handleStopDrag widgetId previousStep = do
   else return previousStep
 
 handleFinalizeDrop
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => HandlerStep s e
   -> m (HandlerStep s e)
 handleFinalizeDrop previousStep = do
@@ -481,13 +481,13 @@ handleFinalizeDrop previousStep = do
         & _1 . L.dragStatus .~ Nothing
     else return previousStep
 
-handleRenderOnce :: (MonomerM s m) => HandlerStep s e -> m (HandlerStep s e)
+handleRenderOnce :: MonomerM s e m => HandlerStep s e -> m (HandlerStep s e)
 handleRenderOnce previousStep = do
   L.renderRequested .= True
   return previousStep
 
 handleRenderEvery
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> Int
   -> Maybe Int
@@ -510,30 +510,28 @@ handleRenderEvery widgetId ms repeat previousStep = do
       | otherwise = schedule
 
 handleRenderStop
-  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleRenderStop widgetId previousStep = do
   schedule <- use L.renderSchedule
   L.renderSchedule .= Map.delete widgetId schedule
   return previousStep
 
 handleRemoveRendererImage
-  :: (MonomerM s m) => Text -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => Text -> HandlerStep s e -> m (HandlerStep s e)
 handleRemoveRendererImage name previousStep = do
---  renderer <- use L.renderer
---
---  when (isJust renderer) $
---    liftIO $ deleteImage (fromJust renderer) name
+  renderChannel <- use L.renderChannel
 
+  liftIO . atomically $ writeTChan renderChannel (MsgRemoveImage name)
   return previousStep
 
 handleExitApplication
-  :: (MonomerM s m) => Bool -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => Bool -> HandlerStep s e -> m (HandlerStep s e)
 handleExitApplication exit previousStep = do
   L.exitApplication .= exit
   return previousStep
 
 handleUpdateWindow
-  :: (MonomerM s m) => WindowRequest -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WindowRequest -> HandlerStep s e -> m (HandlerStep s e)
 handleUpdateWindow windowRequest previousStep = do
   window <- use L.window
   case windowRequest of
@@ -546,7 +544,7 @@ handleUpdateWindow windowRequest previousStep = do
   return previousStep
 
 handleUpdateModel
-  :: (MonomerM s m) => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => (s -> s) -> HandlerStep s e -> m (HandlerStep s e)
 handleUpdateModel fn (wenv, root, reqs) = do
   L.mainModel .= _weModel wenv2
   return (wenv2, root, reqs)
@@ -554,19 +552,19 @@ handleUpdateModel fn (wenv, root, reqs) = do
     wenv2 = wenv & L.model %~ fn
 
 handleSetWidgetPath
-  :: (MonomerM s m) => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> Path -> HandlerStep s e -> m (HandlerStep s e)
 handleSetWidgetPath wid path step = do
   setWidgetIdPath wid path
   return step
 
 handleResetWidgetPath
-  :: (MonomerM s m) => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
+  :: MonomerM s e m => WidgetId -> HandlerStep s e -> m (HandlerStep s e)
 handleResetWidgetPath wid step = do
   delWidgetIdPath wid
   return step
 
 handleRaiseEvent
-  :: forall s e m msg . (MonomerM s m, Typeable msg)
+  :: forall s e m msg . (MonomerM s e m, Typeable msg)
   => msg
   -> HandlerStep s e
   -> m (HandlerStep s e)
@@ -577,7 +575,7 @@ handleRaiseEvent message step = do
     message = "Invalid state. RaiseEvent reached main handler. Type: "
 
 handleSendMessage
-  :: forall s e m msg . (MonomerM s m, Typeable msg)
+  :: forall s e m msg . (MonomerM s e m, Typeable msg)
   => WidgetId
   -> msg
   -> HandlerStep s e
@@ -595,7 +593,7 @@ handleSendMessage widgetId message (wenv, root, reqs) = do
   return (newWenv, newRoot, reqs <> newReqs)
 
 handleRunTask
-  :: forall s e m i . (MonomerM s m, Typeable i)
+  :: forall s e m i . (MonomerM s e m, Typeable i)
   => WidgetId
   -> Path
   -> IO i
@@ -611,7 +609,7 @@ handleRunTask widgetId path handler previousStep = do
   return previousStep
 
 handleRunProducer
-  :: forall s e m i . (MonomerM s m, Typeable i)
+  :: forall s e m i . (MonomerM s e m, Typeable i)
   => WidgetId
   -> Path
   -> ((i -> IO ()) -> IO ())
@@ -654,7 +652,7 @@ preProcessEvents (e:es) = case e of
   _ -> e : preProcessEvents es
 
 addRelatedEvents
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> Button
   -> WidgetNode s e
@@ -729,7 +727,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   _ -> return [(evt, Nothing)]
 
 addHoverEvents
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> Point
@@ -751,7 +749,7 @@ addHoverEvents wenv widgetRoot point = do
   return (target, leave ++ enter)
 
 findEvtTargetByPoint
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> SystemEvent
@@ -781,7 +779,7 @@ findNextFocus wenv dir start overlay widgetRoot = fromJust nextFocus where
   nextFocus = candidateWni <|> fromRootWni <|> Just focusWni
 
 dropNonParentWidgetId
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetId
   -> [(WidgetId, a)]
   -> m [(WidgetId, a)]
@@ -797,7 +795,7 @@ dropNonParentWidgetId wid (x:xs) = do
     isParentPath parent child = seqStartsWith parent child && parent /= child
 
 resetCursorOnNodeLeave
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => SystemEvent
   -> HandlerStep s e
   -> m ()
@@ -812,7 +810,7 @@ resetCursorOnNodeLeave (Leave point) step = do
       Nothing -> root ^. L.info . L.widgetId
 resetCursorOnNodeLeave _ step = return ()
 
-restoreCursorOnWindowEnter :: MonomerM s m => m ()
+restoreCursorOnWindowEnter :: MonomerM s e m => m ()
 restoreCursorOnWindowEnter = do
   -- Restore old icon if needed
   Size ww wh <- use L.windowSize

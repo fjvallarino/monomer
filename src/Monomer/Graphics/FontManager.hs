@@ -37,7 +37,7 @@ makeFontManager fonts dpr = do
   validFonts <- foldM (loadFont ctx) [] fonts
 
   when (null validFonts) $
-    putStrLn "Could not find any valid fonts. Text will fail to be displayed."
+    putStrLn "Could not find any valid fonts. Text size calculations will fail."
   
   return $ newManager ctx dpr
 

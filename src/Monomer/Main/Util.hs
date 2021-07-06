@@ -14,6 +14,7 @@ Helper functions for the Main module.
 module Monomer.Main.Util where
 
 import Control.Applicative ((<|>))
+import Control.Concurrent.STM.TChan
 import Control.Lens ((&), (^.), (.=), (%=), ix, at, non, use, _1)
 import Control.Monad.Extra
 import Control.Monad.State
@@ -37,18 +38,20 @@ import qualified Monomer.Main.Lens as L
 
 -- | Initializes the Monomer context with the provided information.
 initMonomerCtx
-  :: s
-  -> SDL.Window
+  :: SDL.Window
+  -> TChan (RenderMsg s e)
   -> Size
   -> Double
   -> Double
-  -> MonomerCtx s
-initMonomerCtx model win winSize dpr epr = MonomerCtx {
+  -> s
+  -> MonomerCtx s e
+initMonomerCtx win channel winSize dpr epr model = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,
   _mcDpr = dpr,
   _mcEpr = epr,
+  _mcRenderChannel = channel,
   _mcInputStatus = def,
   _mcCursorStack = [],
   _mcFocusedWidgetId = def,
@@ -67,20 +70,20 @@ initMonomerCtx model win winSize dpr epr = MonomerCtx {
 }
 
 -- | Returns the path of the provided "WidgetId".
-getWidgetIdPath :: (MonomerM s m) => WidgetId -> m Path
+getWidgetIdPath :: (MonomerM s e m) => WidgetId -> m Path
 getWidgetIdPath widgetId =
   use $ L.widgetPaths . at widgetId . non (widgetId ^. L.path)
 
 -- | Updates the path associated to a "WidgetId".
-setWidgetIdPath :: (MonomerM s m) => WidgetId -> Path -> m ()
+setWidgetIdPath :: (MonomerM s e m) => WidgetId -> Path -> m ()
 setWidgetIdPath widgetId path = L.widgetPaths . at widgetId .= Just path
 
 -- | Removes the association of a path to a "WidgetId".
-delWidgetIdPath :: (MonomerM s m) => WidgetId -> m ()
+delWidgetIdPath :: (MonomerM s e m) => WidgetId -> m ()
 delWidgetIdPath widgetId = L.widgetPaths . at widgetId .= Nothing
 
 -- | Returns the path of the currently hovered node, if any.
-getHoveredPath :: (MonomerM s m) => m (Maybe Path)
+getHoveredPath :: (MonomerM s e m) => m (Maybe Path)
 getHoveredPath = do
   hoveredWidgetId <- use L.hoveredWidgetId
   case hoveredWidgetId of
@@ -88,11 +91,11 @@ getHoveredPath = do
     Nothing -> return Nothing
 
 -- | Returns the path of the currently focused node.
-getFocusedPath :: (MonomerM s m) => m Path
+getFocusedPath :: (MonomerM s e m) => m Path
 getFocusedPath = getWidgetIdPath =<< use L.focusedWidgetId
 
 -- | Returns the path of the current overlay node, if any.
-getOverlayPath :: (MonomerM s m) => m (Maybe Path)
+getOverlayPath :: (MonomerM s e m) => m (Maybe Path)
 getOverlayPath = do
   overlayWidgetId <- use L.overlayWidgetId
   case overlayWidgetId of
@@ -100,7 +103,7 @@ getOverlayPath = do
     Nothing -> return Nothing
 
 -- | Returns the current drag message and path, if any.
-getDraggedMsgInfo :: (MonomerM s m) => m (Maybe (Path, WidgetDragMsg))
+getDraggedMsgInfo :: (MonomerM s e m) => m (Maybe (Path, WidgetDragMsg))
 getDraggedMsgInfo = do
   dragAction <- use L.dragAction
   case dragAction of
@@ -108,7 +111,7 @@ getDraggedMsgInfo = do
     Nothing -> return Nothing
 
 -- | Returns the current cursor and path that set it, if any.
-getCurrentCursorIcon :: (MonomerM s m) => m (Maybe (Path, CursorIcon))
+getCurrentCursorIcon :: (MonomerM s e m) => m (Maybe (Path, CursorIcon))
 getCurrentCursorIcon = do
   cursorHead <- fmap headMay (use L.cursorStack)
   case cursorHead of

@@ -36,7 +36,7 @@ import qualified Monomer.Core.Lens as L
 
 -- | Checks the status and collects results of active tasks.
 handleWidgetTasks
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e        -- ^ The widget environment.
   -> WidgetNode s e       -- ^ The widget root.
   -> m (HandlerStep s e)  -- ^ The updated "Monomer.Main.Handlers.HandlerStep".
@@ -48,7 +48,7 @@ handleWidgetTasks wenv widgetRoot = do
   processTasks wenv widgetRoot tasks
 
 processTasks
-  :: (MonomerM s m, Traversable t)
+  :: (MonomerM s e m, Traversable t)
   => WidgetEnv s e
   -> WidgetNode s e
   -> t WidgetTask
@@ -60,7 +60,7 @@ processTasks wenv widgetRoot tasks = nextStep where
   nextStep = foldM reducer (wenv, widgetRoot, Seq.empty) tasks
 
 processTask
-  :: (MonomerM s m)
+  :: MonomerM s e m
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetTask
@@ -79,7 +79,7 @@ processTask model widgetRoot (WidgetProducer widgetId channel task) = do
     Nothing -> return (model, widgetRoot, Seq.empty)
 
 processTaskResult
-  :: (MonomerM s m, Typeable i)
+  :: (MonomerM s e m, Typeable i)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId
@@ -92,7 +92,7 @@ processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult
 
 processTaskEvent
-  :: (MonomerM s m, Typeable i)
+  :: (MonomerM s e m, Typeable i)
   => WidgetEnv s e
   -> WidgetNode s e
   -> WidgetId
@@ -108,7 +108,7 @@ processTaskEvent wenv widgetRoot widgetId event = do
 
   handleWidgetResult wenv True widgetResult
 
-isThreadActive :: MonomerM s m => WidgetTask -> m Bool
+isThreadActive :: MonomerM s e m => WidgetTask -> m Bool
 isThreadActive (WidgetTask _ task) = fmap isNothing (liftIO $ poll task)
 isThreadActive (WidgetProducer _ _ task) = fmap isNothing (liftIO $ poll task)
 

@@ -42,7 +42,14 @@ import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 -- | Main Monomer monad.
-type MonomerM s m = (Eq s, MonadState (MonomerCtx s) m, MonadCatch m, MonadIO m)
+type MonomerM s e m = (Eq s, MonadState (MonomerCtx s e) m, MonadCatch m, MonadIO m)
+
+-- | Messages received by the rendering thread.
+data RenderMsg s e
+  = MsgRender (WidgetEnv s e) (WidgetNode s e)
+  | MsgResize Size
+  | MsgRemoveImage Text
+  deriving Show
 
 {-|
 Requirements for periodic rendering by a widget. Start time is stored to
@@ -74,7 +81,7 @@ data WidgetTask
   | forall i . Typeable i => WidgetProducer WidgetId (TChan i) (Async ())
 
 -- | Current state of the Monomer runtime.
-data MonomerCtx s = MonomerCtx {
+data MonomerCtx s e = MonomerCtx {
   -- | Main application model.
   _mcMainModel :: s,
   -- | Active window.
@@ -85,6 +92,8 @@ data MonomerCtx s = MonomerCtx {
   _mcDpr :: Double,
   -- | Event pixel rate.
   _mcEpr :: Double,
+  -- | Event pixel rate.
+  _mcRenderChannel :: TChan (RenderMsg s e),
   -- | Input status (mouse and keyboard).
   _mcInputStatus :: InputStatus,
   -- | Cursor icons (a stack is used because of parent -> child relationship).

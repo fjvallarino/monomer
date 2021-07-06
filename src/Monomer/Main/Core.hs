@@ -79,11 +79,6 @@ data MainLoopArgs s e ep = MainLoopArgs {
   _mlChannel :: TChan (RenderMsg s ep)
 }
 
-data RenderMsg s e
-  = MsgResize Size
-  | MsgRender (WidgetEnv s e) (WidgetNode s e)
-  deriving Show
-
 data RenderState s e = RenderState {
   _rstDpr :: Double,
   _rstColor :: Color,
@@ -110,7 +105,7 @@ startApp model eventHandler uiBuilder configs = do
   winSize <- getWindowSize window
   channel <- newTChanIO
 
-  let monomerCtx = initMonomerCtx model window winSize dpr epr
+  let monomerCtx = initMonomerCtx window channel winSize dpr epr model
 
   runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
   detroySDLWindow window
@@ -123,7 +118,7 @@ startApp model eventHandler uiBuilder configs = do
     appWidget = composite_ "app" id uiBuilder eventHandler compCfgs
 
 runAppLoop
-  :: (MonomerM s m, Eq s, WidgetEvent e, WidgetEvent ep)
+  :: (MonomerM s ep m, Eq s, WidgetEvent e, WidgetEvent ep)
   => SDL.Window
   -> SDL.GLContext
   -> TChan (RenderMsg s ep)
@@ -204,7 +199,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   mainLoop window fontManager config loopArgs
 
 mainLoop
-  :: (MonomerM s m, WidgetEvent e)
+  :: (MonomerM s ep m, WidgetEvent e)
   => SDL.Window
   -> FontManager
   -> AppConfig e
@@ -389,6 +384,9 @@ handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
 
   renderWidgets window renderer color newWenv newRoot
   return state
+handleRenderMsg window renderer fontMgr state (MsgRemoveImage name) = do
+  deleteImage renderer name
+  return state
 
 renderWidgets
   :: SDL.Window
@@ -434,7 +432,7 @@ watchWindowResize channel = do
         atomically $ writeTChan channel (MsgResize newSize)
       _ -> return ()
 
-checkRenderCurrent :: (MonomerM s m) => Int -> Int -> m Bool
+checkRenderCurrent :: (MonomerM s e m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
   renderNext <- use L.renderRequested
   schedule <- use L.renderSchedule
