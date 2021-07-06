@@ -207,9 +207,8 @@ makeButton caption config = widget where
     }
     labelNode = label_ caption [ignoreTheme, labelCfg]
       & L.info . L.style .~ nodeStyle
-    childNode = labelNode
     newNode = node
-      & L.children .~ Seq.singleton childNode
+      & L.children .~ Seq.singleton labelNode
 
   init wenv node = result where
     result = resultNode (createChildNode wenv node)

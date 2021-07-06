@@ -233,6 +233,7 @@ executable generative
       examples/generative
   default-extensions:
       OverloadedStrings
+  ghc-options: -threaded
   build-depends:
       JuicyPixels
     , OpenGL
@@ -319,6 +320,7 @@ executable ticker
       examples/ticker
   default-extensions:
       OverloadedStrings
+  ghc-options: -threaded
   build-depends:
       JuicyPixels
     , OpenGL
@@ -410,6 +412,7 @@ executable tutorial
       examples/tutorial
   default-extensions:
       OverloadedStrings
+  ghc-options: -threaded
   build-depends:
       JuicyPixels
     , OpenGL
@@ -493,7 +496,7 @@ test-suite monomer-test
       test/unit
   default-extensions:
       OverloadedStrings
-  ghc-options: -fwarn-incomplete-patterns -rtsopts -with-rtsopts=-N -with-rtsopts=-T
+  ghc-options: -threaded -fwarn-incomplete-patterns -rtsopts -with-rtsopts=-N -with-rtsopts=-T
   build-depends:
       HUnit
     , JuicyPixels

@@ -740,11 +740,12 @@
       - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
     - Use separate FontManager for rendering thread (locking mechanism can't be used because of unsafePerformIO)
     - Handle remove image in rendering thread.
+    - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
+      - Discarded, since performance was worse (maybe waitEvent is an expensive call?).
+  - Fix transparent layer issue when opening dialogs.
+    - Seems to have been a temporary issue fixed when render thread changes were complete.
 
 Next
-  - Apply threading ideas (sdl-continuous-resize).
-    - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
-  - Fix transparent layer issue when opening dialogs.
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
   - Document themes and how widgets use them.

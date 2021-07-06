@@ -3,7 +3,6 @@
 
 module Tutorial03_LifeCycle where
 
-import Control.Concurrent (threadDelay)
 import Control.Lens
 import Data.Text (Text)
 import Monomer

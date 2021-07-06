@@ -1,12 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
-
-import Control.Lens
-import Data.Maybe
-import Data.Text (Text)
-import Monomer
-import TextShow
 
 import qualified Tutorial01_Basics
 import qualified Tutorial02_Styling
