@@ -284,7 +284,9 @@ mainLoop window fontManager config loopArgs = do
   (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
 
   (newWenv, newRoot, _) <- if windowResized
-    then handleResizeWidgets (seWenv, seRoot, Seq.empty)
+    then do
+      L.windowSize .= currWinSize
+      handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
   endTicks <- fmap fromIntegral SDL.ticks
