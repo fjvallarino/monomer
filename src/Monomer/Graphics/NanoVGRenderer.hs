@@ -30,7 +30,6 @@ import Foreign.C.Types (CFloat)
 import Foreign.Ptr
 import System.IO.Unsafe
 
-import qualified Control.Concurrent.Lock as L
 import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Sequence as Seq
@@ -97,7 +96,6 @@ makeRenderer
 makeRenderer fonts dpr = do
   c <- VG.createGL3 (Set.fromList [VG.Antialias, VG.StencilStrokes])
 
-  lock <- L.new
   validFonts <- foldM (loadFont c) Set.empty fonts
 
   when (null validFonts) $
@@ -112,14 +110,14 @@ makeRenderer fonts dpr = do
     addedImages = Seq.empty
   }
 
-  return $ newRenderer c dpr lock envRef
+  return $ newRenderer c dpr envRef
 
-newRenderer :: VG.Context -> Double -> L.Lock -> IORef Env -> Renderer
-newRenderer c rdpr lock envRef = Renderer {..} where
+newRenderer :: VG.Context -> Double -> IORef Env -> Renderer
+newRenderer c rdpr envRef = Renderer {..} where
   dpr = 1
 
   beginFrame w h = do
-    newEnv <- L.with lock $ handlePendingImages c envRef
+    newEnv <- handlePendingImages c envRef
 
     VG.beginFrame c cw ch cdpr
     where
@@ -144,7 +142,7 @@ newRenderer c rdpr lock envRef = Renderer {..} where
     VG.restore c
 
   -- Overlays
-  createOverlay overlay = L.with lock $
+  createOverlay overlay =
     modifyIORef envRef $ \env -> env {
       overlays = overlays env |> overlay
     }
@@ -157,7 +155,7 @@ newRenderer c rdpr lock envRef = Renderer {..} where
     }
 
   -- Raw tasks
-  createRawTask task = L.with lock $
+  createRawTask task =
     modifyIORef envRef $ \env -> env {
       tasksRaw = tasksRaw env |> task
     }
@@ -170,7 +168,7 @@ newRenderer c rdpr lock envRef = Renderer {..} where
     }
 
   -- Raw overlays
-  createRawOverlay overlay = L.with lock $
+  createRawOverlay overlay =
     modifyIORef envRef $ \env -> env {
       overlaysRaw = overlaysRaw env |> overlay
     }
@@ -301,20 +299,20 @@ newRenderer c rdpr lock envRef = Renderer {..} where
     let image = M.lookup name (imagesMap env)
     return $ fmap _imImageDef image
 
-  addImage name size imgData flags = L.with lock (addPending c envRef req) where
+  addImage name size imgData flags = addPending c envRef req where
     req = ImageReq name size (Just imgData) ImageAdd flags
 
-  updateImage name size imgData = L.with lock (addPending c envRef req) where
+  updateImage name size imgData = addPending c envRef req where
     req = ImageReq name size (Just imgData) ImageUpdate []
 
-  deleteImage name = L.with lock (addPending c envRef req) where
+  deleteImage name = addPending c envRef req where
     req = ImageReq name def Nothing ImageDelete []
 
   renderImage name rect alpha = do
     env <- readIORef envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
 
-  renderNewImage name rect alpha size imgData flags = L.with lock $ do
+  renderNewImage name rect alpha size imgData flags = do
     addPending c envRef $ ImageReq name size (Just imgData) ImageUpdate flags
     newEnv <- handlePendingImages c envRef
     mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap newEnv)

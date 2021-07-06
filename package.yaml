@@ -28,7 +28,6 @@ dependencies:
 - bytestring
 - bytestring-to-vector
 - containers
-- concurrent-extra
 - data-default
 - exceptions
 - extra

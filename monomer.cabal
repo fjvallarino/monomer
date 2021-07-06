@@ -3,8 +3,6 @@ cabal-version: 1.12
 -- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 184b12bd9a4df73b6b30a51ea36e1a3573485f4aebe0034a6a5de5aa1becc26c
 
 name:           monomer
 version:        0.1.0.0
@@ -154,7 +152,6 @@ library
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -202,7 +199,6 @@ executable books
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -245,7 +241,6 @@ executable generative
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -290,7 +285,6 @@ executable monomer-exe
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , ekg
@@ -334,7 +328,6 @@ executable ticker
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -379,7 +372,6 @@ executable todo
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -426,7 +418,6 @@ executable tutorial
     , base >=4.7 && <5
     , bytestring
     , bytestring-to-vector
-    , concurrent-extra
     , containers
     , data-default
     , exceptions
@@ -513,7 +504,6 @@ test-suite monomer-test
     , bytestring
     , bytestring-to-vector
     , call-stack
-    , concurrent-extra
     , containers
     , data-default
     , directory

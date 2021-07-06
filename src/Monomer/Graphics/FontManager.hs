@@ -20,7 +20,6 @@ import Data.Sequence (Seq)
 import Data.Text (Text)
 import System.IO.Unsafe
 
-import qualified Control.Concurrent.Lock as LK
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
@@ -35,17 +34,16 @@ makeFontManager
 makeFontManager fonts dpr = do
   ctx <- fmInit dpr
 
-  lock <- LK.new
   validFonts <- foldM (loadFont ctx) [] fonts
 
   when (null validFonts) $
     putStrLn "Could not find any valid fonts. Text will fail to be displayed."
   
-  return $ newManager ctx dpr lock
+  return $ newManager ctx dpr
 
-newManager :: FMContext -> Double -> LK.Lock -> FontManager
-newManager ctx dpr lock = FontManager {..} where
-  computeTextMetrics font fontSize = unsafePerformIO $ LK.with lock $ do
+newManager :: FMContext -> Double -> FontManager
+newManager ctx dpr = FontManager {..} where
+  computeTextMetrics font fontSize = unsafePerformIO $ do
     setFont ctx dpr font fontSize
     (asc, desc, lineh) <- fmTextMetrics ctx
     lowerX <- Seq.lookup 0 <$> fmTextGlyphPositions ctx 0 0 "x"
@@ -60,7 +58,7 @@ newManager ctx dpr lock = FontManager {..} where
       _txmLowerX = realToFrac heightLowerX / dpr
     }
 
-  computeTextSize font fontSize text = unsafePerformIO $ LK.with lock $ do
+  computeTextSize font fontSize text = unsafePerformIO $ do
     setFont ctx dpr font fontSize
     (x1, y1, x2, y2) <- if text /= ""
       then fmTextBounds ctx 0 0 text
@@ -70,7 +68,7 @@ newManager ctx dpr lock = FontManager {..} where
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  computeGlyphsPos font fontSize text = unsafePerformIO $ LK.with lock $ do
+  computeGlyphsPos font fontSize text = unsafePerformIO $ do
     setFont ctx dpr font fontSize
     glyphs <- if text /= ""
       then fmTextGlyphPositions ctx 0 0 text
