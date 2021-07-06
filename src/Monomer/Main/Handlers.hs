@@ -99,13 +99,13 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
     when (isOnMove evt)
       restoreCursorOnWindowEnter
 
-    curCursor <- getCurrentCursor
+    cursorIcon <- getCurrentCursorIcon
     hoveredPath <- getHoveredPath
     mainBtnPress <- use L.mainBtnPress
     inputStatus <- use L.inputStatus
 
     let tmpWenv = curWenv
-          & L.cursor .~ curCursor
+          & L.cursor .~ cursorIcon
           & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus

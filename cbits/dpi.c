@@ -1,6 +1,6 @@
 #if !defined(_WIN32)
 
-void initializeDpiAwareness() {
+void initDpiAwareness() {
 }
 
 #else
@@ -17,7 +17,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 BOOL(WINAPI *SetProcessDPIAwareFn)(void); // Vista and later
 HRESULT(WINAPI *SetProcessDpiAwarenessFn)(PROCESS_DPI_AWARENESS dpiAwareness); // Windows 8.1 and later
 
-void initializeDpiAwareness() {
+void initDpiAwareness() {
     void* userDLL = SDL_LoadObject("USER32.DLL");
     void* shcoreDLL = SDL_LoadObject("SHCORE.DLL");
 

@@ -91,61 +91,6 @@ data RenderState s e = RenderState {
   _rstRootNode :: WidgetNode s e
 }
 
-runUI
-  :: (Eq s, WidgetEvent e)
-  => TChan (RenderMsg s e)
-  -> SDL.Window
-  -> SDL.GLContext
-  -> [FontDef]
-  -> Double
-  -> (Double, Double)
-  -> Color
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> IO ()
-runUI channel window glCtx fonts dpr (rw, rh) color wenv root = do
-  SDL.glMakeCurrent window glCtx
-  renderer <- liftIO $ makeRenderer fonts dpr
-
-  waitUIMsg channel window renderer state
-  where
-    state = RenderState dpr color wenv root
-
-waitUIMsg
-  :: (Eq s, WidgetEvent e)
-  => TChan (RenderMsg s e)
-  -> SDL.Window
-  -> Renderer
-  -> RenderState s e
-  -> IO ()
-waitUIMsg channel window renderer state = do
-  msg <- liftIO . atomically $ readTChan channel
-  newState <- handleUIMsg window renderer state msg
-  waitUIMsg channel window renderer newState
-
-handleUIMsg
-  :: (Eq s, WidgetEvent e)
-  => SDL.Window
-  -> Renderer
-  -> RenderState s e
-  -> RenderMsg s e
-  -> IO (RenderState s e)
-handleUIMsg window renderer state (MsgRender newWenv newRoot) = do
-  let RenderState dpr color _ _ = state
-  renderWidgets window renderer color newWenv newRoot
-  return (RenderState dpr color newWenv newRoot)
-handleUIMsg window renderer state (MsgResize newSize) = do
-  let RenderState dpr color wenv root = state
-  let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
-  let newWenv = wenv
-        & L.windowSize .~ newSize
-        & L.viewport .~ viewport
-  let result = widgetResize (root ^. L.widget) newWenv root viewport
-  let newRoot = result ^. L.node
-
-  renderWidgets window renderer color newWenv newRoot
-  return state
-
 {-|
 Runs an application, creating the UI with the provided function and initial
 model, handling future events with the event handler.
@@ -187,9 +132,8 @@ runAppLoop
   -> m ()
 runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
-  Size rw rh <- use L.windowSize
+  winSize <- use L.windowSize
 
-  let newWinSize = Size rw rh
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
@@ -210,7 +154,7 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weMainButton = mainBtn,
     _weContextButton = contextBtn,
     _weTheme = theme,
-    _weWindowSize = newWinSize,
+    _weWindowSize = winSize,
     _weWidgetShared = widgetSharedMVar,
     _weWidgetKeyMap = Map.empty,
     _weCursor = Nothing,
@@ -224,7 +168,7 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weTimestamp = startTs,
     _weInTopLayer = const True,
     _weLayoutDirection = LayoutNone,
-    _weViewport = Rect 0 0 rw rh,
+    _weViewport = Rect 0 0 (winSize ^. L.w) (winSize ^. L.h),
     _weOffset = def
   }
   let pathReadyRoot = widgetRoot
@@ -254,7 +198,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   let bgColor = _themeClearColor theme
 
   liftIO . forkOS . void $
-    runUI channel window glCtx fonts dpr (rw, rh) bgColor newWenv newRoot
+    startRenderThread channel window glCtx fonts dpr bgColor newWenv newRoot
 
   liftIO $ watchWindowResize channel
   mainLoop window fontManager config loopArgs
@@ -276,7 +220,7 @@ mainLoop window fontManager config loopArgs = do
   dpr <- use L.dpr
   epr <- use L.epr
   currentModel <- use L.mainModel
-  currCursor <- getCurrentCursor
+  cursorIcon <- getCurrentCursorIcon
   hovered <- getHoveredPath
   focused <- getFocusedPath
   overlay <- getOverlayPath
@@ -318,7 +262,7 @@ mainLoop window fontManager config loopArgs = do
     _weWindowSize = windowSize,
     _weWidgetShared = _mlWidgetShared,
     _weWidgetKeyMap = Map.empty,
-    _weCursor = currCursor,
+    _weCursor = cursorIcon,
     _weHoveredPath = hovered,
     _weFocusedPath = focused,
     _weOverlayPath = overlay,
@@ -386,6 +330,99 @@ mainLoop window fontManager config loopArgs = do
 
   unless shouldQuit (mainLoop window fontManager config newLoopArgs)
 
+startRenderThread
+  :: (Eq s, WidgetEvent e)
+  => TChan (RenderMsg s e)
+  -> SDL.Window
+  -> SDL.GLContext
+  -> [FontDef]
+  -> Double
+  -> Color
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> IO ()
+startRenderThread channel window glCtx fonts dpr color wenv root = do
+  SDL.glMakeCurrent window glCtx
+  renderer <- liftIO $ makeRenderer fonts dpr
+  fontMgr <- liftIO $ makeFontManager fonts dpr
+
+  waitRenderMsg channel window renderer fontMgr state
+  where
+    state = RenderState dpr color wenv root
+
+waitRenderMsg
+  :: (Eq s, WidgetEvent e)
+  => TChan (RenderMsg s e)
+  -> SDL.Window
+  -> Renderer
+  -> FontManager
+  -> RenderState s e
+  -> IO ()
+waitRenderMsg channel window renderer fontMgr state = do
+  msg <- liftIO . atomically $ readTChan channel
+  newState <- handleRenderMsg window renderer fontMgr state msg
+  waitRenderMsg channel window renderer fontMgr newState
+
+handleRenderMsg
+  :: (Eq s, WidgetEvent e)
+  => SDL.Window
+  -> Renderer
+  -> FontManager
+  -> RenderState s e
+  -> RenderMsg s e
+  -> IO (RenderState s e)
+handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
+  let RenderState dpr color _ _ = state
+  let newWenv = tmpWenv
+        & L.fontManager .~ fontMgr
+  renderWidgets window renderer color newWenv newRoot
+  return (RenderState dpr color newWenv newRoot)
+handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
+  let RenderState dpr color wenv root = state
+  let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
+  let newWenv = wenv
+        & L.fontManager .~ fontMgr
+        & L.windowSize .~ newSize
+        & L.viewport .~ viewport
+  let result = widgetResize (root ^. L.widget) newWenv root viewport
+  let newRoot = result ^. L.node
+
+  renderWidgets window renderer color newWenv newRoot
+  return state
+
+renderWidgets
+  :: SDL.Window
+  -> Renderer
+  -> Color
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> IO ()
+renderWidgets !window renderer clearColor wenv widgetRoot = do
+  Size winW winH <- getWindowSize window
+
+  liftIO $ GL.clearColor GL.$= clearColor4
+  liftIO $ GL.clear [GL.ColorBuffer]
+
+  liftIO $ beginFrame renderer winW winH
+  liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
+  liftIO $ endFrame renderer
+
+  liftIO $ renderRawTasks renderer
+
+  liftIO $ beginFrame renderer winW winH
+  liftIO $ renderOverlays renderer
+  liftIO $ endFrame renderer
+
+  liftIO $ renderRawOverlays renderer
+
+  SDL.glSwapWindow window
+  where
+    r = fromIntegral (clearColor ^. L.r) / 255
+    g = fromIntegral (clearColor ^. L.g) / 255
+    b = fromIntegral (clearColor ^. L.b) / 255
+    a = clearColor ^. L.a
+    clearColor4 = GL.Color4 r g b (realToFrac a)
+
 watchWindowResize :: TChan (RenderMsg s e) -> IO ()
 watchWindowResize channel = do
   void . SDL.addEventWatch $ \ev -> do
@@ -421,39 +458,6 @@ renderScheduleActive currTs renderTs schedule = scheduleActive where
   RenderSchedule _ start ms count = schedule
   stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
   scheduleActive = maybe True (> stepsDone) count
-
-renderWidgets
-  :: SDL.Window
-  -> Renderer
-  -> Color
-  -> WidgetEnv s e
-  -> WidgetNode s e
-  -> IO ()
-renderWidgets !window renderer clearColor wenv widgetRoot = do
-  Size winW winH <- getWindowSize window
-
-  liftIO $ GL.clearColor GL.$= clearColor4
-  liftIO $ GL.clear [GL.ColorBuffer]
-
-  liftIO $ beginFrame renderer winW winH
-  liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
-  liftIO $ endFrame renderer
-
-  liftIO $ renderRawTasks renderer
-
-  liftIO $ beginFrame renderer winW winH
-  liftIO $ renderOverlays renderer
-  liftIO $ endFrame renderer
-
-  liftIO $ renderRawOverlays renderer
-
-  SDL.glSwapWindow window
-  where
-    r = fromIntegral (clearColor ^. L.r) / 255
-    g = fromIntegral (clearColor ^. L.g) / 255
-    b = fromIntegral (clearColor ^. L.b) / 255
-    a = clearColor ^. L.a
-    clearColor4 = GL.Color4 r g b (realToFrac a)
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

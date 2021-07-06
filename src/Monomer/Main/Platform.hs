@@ -41,7 +41,7 @@ import Monomer.Event.Types
 import Monomer.Widgets.Composite
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
-foreign import ccall unsafe "initializeDpiAwareness" initializeDpiAwareness :: IO CInt
+foreign import ccall unsafe "initDpiAwareness" initDpiAwareness :: IO CInt
 
 -- | Default window size if not is specified.
 defaultWindowSize :: (Int, Int)
@@ -58,7 +58,7 @@ initSDLWindow config = do
        putStrLn "Warning: Linear texture filtering not enabled!"
 
   platform <- getPlatform
-  initializeDpiAwareness
+  initDpiAwareness
   factor <- case platform of
     "Windows" -> getWindowsFactor
     "Linux" -> getLinuxFactor

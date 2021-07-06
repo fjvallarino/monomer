@@ -108,8 +108,8 @@ getDraggedMsgInfo = do
     Nothing -> return Nothing
 
 -- | Returns the current cursor and path that set it, if any.
-getCurrentCursor :: (MonomerM s m) => m (Maybe (Path, CursorIcon))
-getCurrentCursor = do
+getCurrentCursorIcon :: (MonomerM s m) => m (Maybe (Path, CursorIcon))
+getCurrentCursorIcon = do
   cursorHead <- fmap headMay (use L.cursorStack)
   case cursorHead of
     Just (wid, icon) -> do
