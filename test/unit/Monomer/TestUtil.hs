@@ -13,6 +13,7 @@ Helper functions for testing Monomer widgets.
 module Monomer.TestUtil where
 
 import Control.Concurrent (newMVar)
+import Control.Concurrent.STM.TChan (newTChanIO)
 import Control.Lens ((&), (^.), (.~))
 import Control.Monad.State
 import Data.Default
@@ -203,7 +204,7 @@ nodeHandleEventCtx
   => WidgetEnv s e
   -> [SystemEvent]
   -> WidgetNode s e
-  -> MonomerCtx s
+  -> MonomerCtx s e
 nodeHandleEventCtx wenv evts node = ctx where
   ctx = snd $ nodeHandleEvents wenv WInit evts node
 
@@ -249,7 +250,7 @@ nodeHandleEvents
   -> InitWidget
   -> [SystemEvent]
   -> WidgetNode s e
-  -> (HandlerStep s e, MonomerCtx s)
+  -> (HandlerStep s e, MonomerCtx s e)
 nodeHandleEvents wenv init evts node = result where
   steps
     | init == WInit = tail $ nodeHandleEvents_ wenv init [evts] node
@@ -266,10 +267,12 @@ nodeHandleEvents_
   -> InitWidget
   -> [[SystemEvent]]
   -> WidgetNode s e
-  -> [(HandlerStep s e, MonomerCtx s)]
+  -> [(HandlerStep s e, MonomerCtx s e)]
 nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
   -- Do NOT test code involving SDL Window functions
-  fmap fst $ flip runStateT monomerContext $ do
+  channel <- liftIO newTChanIO
+
+  fmap fst $ flip runStateT (monomerCtx channel) $ do
     stepA <- if init == WInit
       then do
         handleResourcesInit
@@ -295,7 +298,7 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
     dpr = 1
     epr = 1
     model = _weModel wenv
-    monomerContext = initMonomerCtx model undefined winSize dpr epr
+    monomerCtx channel = initMonomerCtx undefined channel winSize dpr epr model
     pathReadyRoot = node
       & L.info . L.path .~ rootPath
       & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
@@ -310,16 +313,18 @@ nodeHandleResult
   :: (Eq s)
   => WidgetEnv s e
   -> WidgetResult s e
-  -> (HandlerStep s e, MonomerCtx s)
+  -> (HandlerStep s e, MonomerCtx s e)
 nodeHandleResult wenv result = unsafePerformIO $ do
+  channel <- liftIO newTChanIO
+
   let winSize = _weWindowSize wenv
   let dpr = 1
   let epr = 1
   let model = _weModel wenv
   -- Do NOT test code involving SDL Window functions
-  let monomerContext = initMonomerCtx model undefined winSize dpr epr
+  let monomerCtx = initMonomerCtx undefined channel winSize dpr epr model
 
-  flip runStateT monomerContext $ do
+  flip runStateT monomerCtx $ do
     handleWidgetResult wenv True result
 
 roundRectUnits :: Rect -> Rect
