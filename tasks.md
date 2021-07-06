@@ -740,6 +740,7 @@ Next
     - Improve window resize situation
       - SDL does not send resize until operation has finished, making content look ugly because it's not updated
       - Check SDL_SetEventFilter trick instead of normal polling (https://wiki.libsdl.org/SDL_SetEventFilter)
+    - Use separate FontManager for rendering thread (locking mechanism can't be used because of unsafePerformIO)
     - Use channel to group SDL events, task status and render requests (to avoid checking all the time)
   - Fix transparent layer issue when opening dialogs.
   - Think about rendering with custom beginFrame for some widgets

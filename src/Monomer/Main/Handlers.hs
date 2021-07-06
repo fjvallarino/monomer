@@ -261,8 +261,7 @@ handleResizeWidgets
   -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
   window <- use L.window
-  dpr <- use L.dpr
-  windowSize <- getWindowSize window dpr
+  windowSize <- getWindowSize window
   L.windowSize .= windowSize
 
   let viewport = Rect 0 0 (windowSize ^. L.w) (windowSize ^. L.h)

@@ -77,9 +77,10 @@ initSDLWindow config = do
       }
 
   -- Get device pixel rate
-  SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
+  Size dw _ <- getDrawableSize window
+  Size ww _ <- getWindowSize window
   let scaleFactor = factor * userScaleFactor
-  let contentRatio = fromIntegral fbWidth / winW
+  let contentRatio = dw / ww
   let (dpr, epr)
         | platform `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
         | otherwise = (scaleFactor * contentRatio, 1 / scaleFactor) -- macOS
@@ -149,11 +150,11 @@ getDrawableSize window = do
   return $ Size (fromIntegral fbWidth) (fromIntegral fbHeight)
 
 -- | Returns the size of the provided window.
-getWindowSize :: (MonadIO m) => SDL.Window -> Double -> m Size
-getWindowSize window dpr = do
-  Size rw rh <- getDrawableSize window
+getWindowSize :: (MonadIO m) => SDL.Window -> m Size
+getWindowSize window = do
+  SDL.V2 rw rh <- SDL.get (SDL.windowSize window)
 
-  return $ Size (rw / dpr) (rh / dpr)
+  return $ Size (fromIntegral rw) (fromIntegral rh)
 
 -- | Returns the name of the host OS.
 getPlatform :: (MonadIO m) => m Text

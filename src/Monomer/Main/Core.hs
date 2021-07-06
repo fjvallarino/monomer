@@ -20,7 +20,7 @@ module Monomer.Main.Core (
 ) where
 
 import Control.Concurrent (MVar, forkIO, forkOS, newMVar, threadDelay)
-import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, tryReadTChan, writeTChan)
+import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad (unless, void, when)
 import Control.Monad.Catch
@@ -106,7 +106,6 @@ runUI
 runUI channel window glCtx fonts dpr (rw, rh) color wenv root = do
   SDL.glMakeCurrent window glCtx
   renderer <- liftIO $ makeRenderer fonts dpr
-  resizeWindow window dpr
 
   waitUIMsg channel window renderer state
   where
@@ -133,7 +132,7 @@ handleUIMsg
   -> IO (RenderState s e)
 handleUIMsg window renderer state (MsgRender newWenv newRoot) = do
   let RenderState dpr color _ _ = state
-  renderWidgets window renderer dpr color newWenv newRoot
+  renderWidgets window renderer color newWenv newRoot
   return (RenderState dpr color newWenv newRoot)
 handleUIMsg window renderer state (MsgResize newSize) = do
   let RenderState dpr color wenv root = state
@@ -144,8 +143,7 @@ handleUIMsg window renderer state (MsgResize newSize) = do
   let result = widgetResize (root ^. L.widget) newWenv root viewport
   let newRoot = result ^. L.node
 
-  resizeWindow window dpr
-  renderWidgets window renderer dpr color newWenv newRoot
+  renderWidgets window renderer color newWenv newRoot
   return state
 
 {-|
@@ -164,7 +162,7 @@ startApp
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- initSDLWindow config
-  winSize <- getWindowSize window dpr
+  winSize <- getWindowSize window
   channel <- newTChanIO
 
   let monomerCtx = initMonomerCtx model window winSize dpr epr
@@ -286,14 +284,14 @@ mainLoop window fontManager config loopArgs = do
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
   mousePos <- getCurrentMousePos epr
-  currSize <- getWindowSize window dpr
+  currWinSize <- getWindowSize window
 
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
 
-  let windowResized = currSize /= windowSize && isWindowResized eventsPayload
+  let windowResized = currWinSize /= windowSize && isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
   let baseSystemEvents = convertEvents dpr epr mousePos eventsPayload
@@ -427,13 +425,12 @@ renderScheduleActive currTs renderTs schedule = scheduleActive where
 renderWidgets
   :: SDL.Window
   -> Renderer
-  -> Double
   -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-renderWidgets !window renderer dpr clearColor wenv widgetRoot = do
-  Size winW winH <- getWindowSize window dpr
+renderWidgets !window renderer clearColor wenv widgetRoot = do
+  Size winW winH <- getWindowSize window
 
   liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
@@ -457,18 +454,6 @@ renderWidgets !window renderer dpr clearColor wenv widgetRoot = do
     b = fromIntegral (clearColor ^. L.b) / 255
     a = clearColor ^. L.a
     clearColor4 = GL.Color4 r g b (realToFrac a)
-
-resizeWindow
-  :: SDL.Window
-  -> Double
-  -> IO ()
-resizeWindow window dpr = do
-  drawableSize <- getDrawableSize window
-
-  let position = GL.Position 0 0
-  let size = GL.Size (round $ _sW drawableSize) (round $ _sH drawableSize)
-
-  liftIO $ GL.viewport GL.$= (position, size)
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where
