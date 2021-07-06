@@ -809,14 +809,14 @@ containerFindBranchByPath
   -> Seq WidgetNodeInfo
 containerFindBranchByPath wenv node path
   | info ^. L.path == path = Seq.singleton info
-  | isJust nextStep = info <| childrenInst
+  | isJust nextChild = info <| nextInst (fromJust nextChild)
   | otherwise = Seq.empty
   where
     children = node ^. L.children
     info = node ^. L.info
     nextStep = nextTargetStep path node
-    child = Seq.index children (fromJust nextStep)
-    childrenInst = widgetFindBranchByPath (child ^. L.widget) wenv child path
+    nextChild = nextStep >>= flip Seq.lookup children
+    nextInst child = widgetFindBranchByPath (child ^. L.widget) wenv child path
 
 -- | Event Handling
 defaultFilterEvent :: ContainerFilterHandler s e

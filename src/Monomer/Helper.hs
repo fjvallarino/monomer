@@ -22,7 +22,9 @@ maybeConcat lst = Just (mconcat lst)
 
 -- | Returns the last item in a sequence. Unsafe, fails if sequence is empty.
 seqLast :: Seq a -> a
-seqLast seq = Seq.index seq (length seq - 1)
+seqLast seq
+  | not (null seq) = Seq.index seq (length seq - 1)
+  | otherwise = error "Invalid sequence provided to seqLast"
 
 -- | Checks if the first sequence is a prefix of the second.
 seqStartsWith :: Eq a => Seq a -> Seq a -> Bool
