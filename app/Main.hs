@@ -499,11 +499,12 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       ] `hover` [bgColor red],
       label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
       textField textField1 `style` [bgColor lightBlue, textLeft],
+      colorPicker_ color [showAlpha],
       hstack [
+          scroll_ [] (image_ "assets/images/pecans.jpg" [fitFill] `style` [radius 20]),
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
-          scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
-          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid]
+          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid, border 10 (orange & L.a .~ 0.5), radius 100, radiusBL 20]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiLine, ellipsis

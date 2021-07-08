@@ -8,8 +8,13 @@ Portability : non-portable
 
 Displays an image from local storage or a url.
 
-Note: depending on the type of image fit chosen and the assigned viewport, extra
-space may remain unused. The alignment options exist to handle this situation.
+Notes:
+
+- Depending on the type of image fit chosen and the assigned viewport, extra
+  space may remain unused. The alignment options exist to handle this situation.
+- When radius is not set the image wil be displayed inside the border (if any)
+  but will not be not covered by it. If radius is set, the image will be drawn
+  below the border to avoid having gaps in the corners.
 
 Configs:
 
@@ -346,24 +351,55 @@ makeImage imgSource config state = widget where
       | otherwise = expandSize h factorH
 
   render wenv node renderer = do
-    when (imageLoaded && imageExists) $
-      drawImage renderer imgPath imageRect alpha
-    when (imageLoaded && not imageExists) $
-      drawNewImage renderer imgPath imageRect alpha imgSize imgBytes imgFlags
+    imageDef <- getImage renderer imgPath
+
+    when (imageLoaded && isNothing imageDef) $
+      addImage renderer imgPath imgSize imgBytes imgFlags
+
+    when imageLoaded $
+      showImage renderer imgPath imgFlags imgSize imgRect radius alpha
     where
       style = activeStyle wenv node
-      contentArea = getContentArea style node
+      radius = style ^. L.radius
+      padding = style ^. L.padding
+      contentArea
+        | isNothing radius || isJust padding = getContentArea style node
+        | otherwise = node ^. L.info . L.viewport
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
       alignH = fromMaybe ALeft (_imcAlignH config)
       alignV = fromMaybe ATop (_imcAlignV config)
       imgPath = imgName imgSource
       imgFlags = _imcFlags config
-      imageRect = fitImage contentArea imgSize fitMode alignH alignV
+      imgRect = fitImage contentArea imgSize fitMode alignH alignV
       ImageState _ imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
-      imageExists = isJust (getImage renderer imgPath)
+
+showImage
+  :: Renderer
+  -> Text
+  -> [ImageFlag]
+  -> Size
+  -> Rect
+  -> Maybe Radius
+  -> Double
+  -> IO ()
+showImage renderer imgPath imgFlags imgSize rect radius alpha = do
+  setFillImagePattern renderer imgPath topLeft size angle alpha
+  beginPath renderer
+  if isNothing radius
+    then renderRect renderer rect
+    else drawRoundedRect renderer rect (fromJust radius)
+  fill renderer
+  where
+    Rect x y w h = rect
+    Size dw dh = imgSize
+    iw = if ImageRepeatX `elem` imgFlags then dw else w
+    ih = if ImageRepeatY `elem` imgFlags then dh else h
+    topLeft = Point x y
+    size = Size iw ih
+    angle = 0
 
 fitImage :: Rect -> Size -> ImageFit -> AlignH -> AlignV -> Rect
 fitImage viewport imageSize fitMode alignH alignV = case fitMode of

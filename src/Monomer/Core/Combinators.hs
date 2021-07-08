@@ -700,8 +700,7 @@ class CmbRadiusBR t where
 
 {-|
 Set inner radius to the same size on all corners. When using inner radius, the
-outer part remains squared. This is useful if there is have an image and the
-corners are visible below the regular radius.
+outer part remains squared.
 -}
 class CmbInnerRadius t where
   iradius :: Double -> t

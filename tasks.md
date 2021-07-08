@@ -748,6 +748,7 @@
 Next
   - Think about rendering with custom beginFrame for some widgets
     - Could work for rounded images.
+  - Remove dpr calculations from NanoVGRenderer.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).

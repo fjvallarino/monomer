@@ -27,8 +27,7 @@ module Monomer.Widgets.Util.Drawing (
   drawArrowDown,
   drawTimesX,
   drawStyledAction,
-  drawImage,
-  drawNewImage
+  drawRoundedRect
 ) where
 
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
@@ -341,29 +340,6 @@ drawStyledAction renderer rect style action = do
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
-
--- | Draws an already registered image in the provided location.
-drawImage
-  :: Renderer         -- ^ The renderer.
-  -> Text             -- ^ The name of the image.
-  -> Rect             -- ^ The rect where the image will be drawn.
-  -> Double           -- ^ The alpha to apply to the image.
-  -> IO ()            -- ^ The resulting action.
-drawImage renderer imgName rect alpha = action where
-  action = renderImage renderer imgName rect alpha
-
--- | Draws a new image in the provided location.
-drawNewImage
-  :: Renderer         -- ^ The renderer.
-  -> Text             -- ^ The name of the image.
-  -> Rect             -- ^ The rect where the image will be drawn.
-  -> Double           -- ^ The alpha to apply to the image in this render.
-  -> Size             -- ^ The image size.
-  -> ByteString       -- ^ The image data as RGBA 4-byte blocks.
-  -> [ImageFlag]      -- ^ The image flags.
-  -> IO ()            -- ^ The resulting action.
-drawNewImage renderer imgName rect alpha size imgData flags = action where
-  action = renderNewImage renderer imgName rect alpha size imgData flags
 
 -- Helpers
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()

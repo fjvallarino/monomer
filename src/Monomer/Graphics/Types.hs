@@ -265,18 +265,46 @@ data Renderer = Renderer {
   setRotation :: Double -> IO (),
   -- | Applies the given alpha to all further drawing operations.
   setGlobalAlpha :: Double -> IO (),
+  {-|
+  Sets the winding of the shape to be drawn. Setting CCW (counter clockwise)
+  means the shape will be solid. Setting CW (clockwise) means the shape will be
+  a hole inside a larger solid path.
+  -}
+  setPathWinding :: Winding -> IO (),
   -- | Draws an active path as a non filled stroke.
   stroke :: IO (),
-  -- | Sets the color of the next stroke actions.
-  setStrokeColor :: Color -> IO (),
   -- | Sets the width of the next stroke actions.
   setStrokeWidth :: Double -> IO (),
+  -- | Sets the color of the next stroke actions.
+  setStrokeColor :: Color -> IO (),
+  -- | Sets a linear gradient stroke from Point to Point, Color to Color.
+  setStrokeLinearGradient :: Point -> Point -> Color -> Color -> IO (),
+  {-|
+  Sets a radial gradient stroke with center point Point, inner and outer radius,
+  inner and outer Color.
+  -}
+  setStrokeRadialGradient :: Point -> Double -> Double -> Color -> Color -> IO (),
+  {-|
+  Sets an image pattern stroke, with top given by Point, size of a single image
+  given by size, rotation and alpha.
+  -}
+  setStrokeImagePattern :: Text -> Point -> Size -> Double -> Double -> IO (),
   -- | Draws an active path as a filled object.
   fill :: IO (),
   -- | Sets the color of the next fill actions.
   setFillColor :: Color -> IO (),
-  -- | Sets the width of the next fill actions.
+  -- | Sets a linear gradient fill from Point to Point, Color to Color.
   setFillLinearGradient :: Point -> Point -> Color -> Color -> IO (),
+  {-|
+  Sets a radial gradient fill with center point Point, inner and outer radius,
+  inner and outer Color.
+  -}
+  setFillRadialGradient :: Point -> Double -> Double -> Color -> Color -> IO (),
+  {-|
+  Sets an image pattern fill, with top given by Point, size of a single image
+  given by size, rotation and alpha.
+  -}
+  setFillImagePattern :: Text -> Point -> Size -> Double -> Double -> IO (),
   -- | Moves the head to the given point. Useful for starting a set of lines.
   moveTo :: Point -> IO (),
   -- | Renders a line between to points.
@@ -293,17 +321,13 @@ data Renderer = Renderer {
   renderEllipse :: Rect -> IO (),
   -- | Renders the given text at a specific point.
   renderText :: Point -> Font -> FontSize -> Text -> IO (),
-  -- | Returns the image definitio of a loaded image, if any.
-  getImage :: Text -> Maybe ImageDef,
+  -- | Returns the image definition of a loaded image, if any.
+  getImage :: Text -> IO (Maybe ImageDef),
   -- | Adds an image, providing name, size, image data and flags.
   addImage :: Text -> Size -> ByteString -> [ImageFlag] -> IO (),
   -- | Updates an image, providing name, size and image data (must match
   -- | previous size).
   updateImage :: Text -> Size -> ByteString -> IO (),
   -- | Removes an existing image.
-  deleteImage :: Text -> IO (),
-  -- | Renders an existing image.
-  renderImage :: Text -> Rect -> Double -> IO (),
-  -- | Renders an image after adding it, providing the same arguments as addImage.
-  renderNewImage :: Text -> Rect -> Double -> Size -> ByteString -> [ImageFlag] -> IO ()
+  deleteImage :: Text -> IO ()
 }

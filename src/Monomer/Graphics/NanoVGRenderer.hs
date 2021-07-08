@@ -72,8 +72,7 @@ data Env = Env {
   tasksRaw :: Seq (IO ()),
   overlaysRaw :: Seq (IO ()),
   validFonts :: Set Text,
-  imagesMap :: ImagesMap,
-  addedImages :: Seq ImageReq
+  imagesMap :: ImagesMap
 }
 
 data CSize
@@ -106,8 +105,7 @@ makeRenderer fonts dpr = do
     tasksRaw = Seq.empty,
     overlaysRaw = Seq.empty,
     validFonts = validFonts,
-    imagesMap = M.empty,
-    addedImages = Seq.empty
+    imagesMap = M.empty
   }
 
   return $ newRenderer c dpr envRef
@@ -117,8 +115,6 @@ newRenderer c rdpr envRef = Renderer {..} where
   dpr = 1
 
   beginFrame w h = do
-    newEnv <- handlePendingImages c envRef
-
     VG.beginFrame c cw ch cdpr
     where
       cw = realToFrac (w / dpr)
@@ -211,15 +207,36 @@ newRenderer c rdpr envRef = Renderer {..} where
     where
       calpha = max 0 . min 1 $ realToFrac alpha
 
+  -- Winding
+  setPathWinding winding = do
+    VG.pathWinding c cwinding
+    where
+      cwinding = if winding == CW then 0 else 1
+
   -- Strokes
   stroke =
     VG.stroke c
 
+  setStrokeWidth width =
+    VG.strokeWidth c (realToFrac $ width * dpr)
+
   setStrokeColor color =
     VG.strokeColor c (colorToPaint color)
 
-  setStrokeWidth width =
-    VG.strokeWidth c (realToFrac $ width * dpr)
+  setStrokeLinearGradient p1 p2 color1 color2 = do
+    gradient <- makeLinearGradient c dpr p1 p2 color1 color2
+    VG.strokePaint c gradient
+
+  setStrokeRadialGradient p1 rad1 rad2 color1 color2 = do
+    gradient <- makeRadialGradient c dpr p1 rad1 rad2 color1 color2
+    VG.strokePaint c gradient
+
+  setStrokeImagePattern name topLeft size angle alpha = do
+    env <- readIORef envRef
+
+    forM_ (M.lookup name (imagesMap env)) $ \image -> do
+      imgPattern <- makeImagePattern c dpr image topLeft size angle alpha
+      VG.strokePaint c imgPattern
 
   -- Fill
   fill =
@@ -229,13 +246,19 @@ newRenderer c rdpr envRef = Renderer {..} where
     VG.fillColor c (colorToPaint color)
 
   setFillLinearGradient p1 p2 color1 color2 = do
-    gradient <- VG.linearGradient c x1 y1 x2 y2 col1 col2
+    gradient <- makeLinearGradient c dpr p1 p2 color1 color2
     VG.fillPaint c gradient
-    where
-      col1 = colorToPaint color1
-      col2 = colorToPaint color2
-      CPoint x1 y1 = pointToCPoint p1 dpr
-      CPoint x2 y2 = pointToCPoint p2 dpr
+
+  setFillRadialGradient p1 rad1 rad2 color1 color2 = do
+    gradient <- makeRadialGradient c dpr p1 rad1 rad2 color1 color2
+    VG.fillPaint c gradient
+
+  setFillImagePattern name topLeft size angle alpha = do
+    env <- readIORef envRef
+
+    forM_ (M.lookup name (imagesMap env)) $ \image -> do
+      imgPattern <- makeImagePattern c dpr image topLeft size angle alpha
+      VG.fillPaint c imgPattern
 
   -- Drawing
   moveTo !point =
@@ -294,30 +317,25 @@ newRenderer c rdpr envRef = Renderer {..} where
     where
       CPoint tx ty = pointToCPoint point dpr
 
-  getImage name = unsafePerformIO $ do
+  getImage name = do
     env <- readIORef envRef
     let image = M.lookup name (imagesMap env)
     return $ fmap _imImageDef image
 
-  addImage name size imgData flags = addPending c envRef req where
-    req = ImageReq name size (Just imgData) ImageAdd flags
+  addImage name size imgData flags = do
+    processImgReq c envRef req
+    where
+      req = ImageReq name size (Just imgData) ImageAdd flags
 
-  updateImage name size imgData = addPending c envRef req where
-    req = ImageReq name size (Just imgData) ImageUpdate []
+  updateImage name size imgData = do
+    processImgReq c envRef req
+    where
+      req = ImageReq name size (Just imgData) ImageUpdate []
 
-  deleteImage name = addPending c envRef req where
+  deleteImage name = do
+    processImgReq c envRef req
+    where
     req = ImageReq name def Nothing ImageDelete []
-
-  renderImage name rect alpha = do
-    env <- readIORef envRef
-    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap env)
-
-  renderNewImage name rect alpha size imgData flags = do
-    addPending c envRef $ ImageReq name size (Just imgData) ImageUpdate flags
-    newEnv <- handlePendingImages c envRef
-    mapM_ (handleImageRender c dpr rect alpha) $ M.lookup name (imagesMap newEnv)
-
-    writeIORef envRef newEnv
 
 loadFont :: VG.Context -> Set Text -> FontDef -> IO (Set Text)
 loadFont c fonts (FontDef name path) = do
@@ -337,38 +355,45 @@ setFont c envRef dpr (Font name) (FontSize size) = do
           VG.fontSize c $ realToFrac $ size * dpr
       | otherwise = return ()
 
-addPending :: VG.Context -> IORef Env -> ImageReq -> IO ()
-addPending c envRef imageReq = do
-  env <- readIORef envRef
-
-  writeIORef envRef env {
-    addedImages = addedImages env |> imageReq
-  }
-
-handleImageRender :: VG.Context -> Double -> Rect -> Double -> Image -> IO ()
-handleImageRender c dpr rect alpha image = do
-  imgPaint <- VG.imagePattern c x y iw ih 0 nvImg calpha
-  VG.beginPath c
-  VG.rect c x y w h
-  VG.fillPaint c imgPaint
-  VG.fill c
+makeLinearGradient
+  :: VG.Context -> Double -> Point -> Point -> Color -> Color -> IO VG.Paint
+makeLinearGradient c dpr p1 p2 color1 color2 = do
+  VG.linearGradient c x1 y1 x2 y2 col1 col2
   where
-    CRect x y w h = rectToCRect rect dpr
-    imgDef = _imImageDef image
-    imgFlags = _idfFlags imgDef
-    CSize dw dh = sizeToCSize (_idfSize imgDef) dpr
-    iw = if ImageRepeatX `elem` imgFlags then dw else w
-    ih = if ImageRepeatY `elem` imgFlags then dh else h
-    nvImg = _imNvImage image
-    calpha = realToFrac alpha
+    CPoint x1 y1 = pointToCPoint p1 dpr
+    CPoint x2 y2 = pointToCPoint p2 dpr
+    col1 = colorToPaint color1
+    col2 = colorToPaint color2
 
-handlePendingImages :: VG.Context -> IORef Env -> IO Env
-handlePendingImages c envRef = do
+makeRadialGradient
+  :: VG.Context -> Double -> Point -> Double -> Double -> Color -> Color -> IO VG.Paint
+makeRadialGradient c dpr center rad1 rad2 color1 color2 = do
+  VG.radialGradient c cx cy crad1 crad2 col1 col2
+  where
+    CPoint cx cy = pointToCPoint center dpr
+    crad1 = realToFrac rad1
+    crad2 = realToFrac rad2
+    col1 = colorToPaint color1
+    col2 = colorToPaint color2
+
+makeImagePattern
+  :: VG.Context -> Double -> Image -> Point -> Size -> Double -> Double -> IO VG.Paint
+makeImagePattern c dpr image topLeft size angle alpha = do
+  VG.imagePattern c x y w h cangle nvImg calpha
+  where
+    CPoint x y = pointToCPoint topLeft dpr
+    CSize w h = sizeToCSize size dpr
+    cangle = realToFrac angle
+    calpha = realToFrac alpha
+    nvImg = _imNvImage image
+
+processImgReq :: VG.Context -> IORef Env -> ImageReq -> IO ()
+processImgReq c envRef imageReq = do
   env <- readIORef envRef
-  newImagesMap <- foldM (handlePendingImage c) (imagesMap env) (addedImages env)
-  return env {
-    imagesMap = newImagesMap,
-    addedImages = Seq.empty
+  newImgMap <- handlePendingImage c (imagesMap env) imageReq
+
+  writeIORef envRef $ env {
+    imagesMap = newImgMap
   }
 
 handlePendingImage :: VG.Context -> ImagesMap -> ImageReq -> IO ImagesMap
