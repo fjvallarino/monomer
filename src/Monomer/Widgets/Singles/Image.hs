@@ -10,11 +10,8 @@ Displays an image from local storage or a url.
 
 Notes:
 
-- Depending on the type of image fit chosen and the assigned viewport, extra
+- Depending on the type of image fit chosen and the assigned viewport, some
   space may remain unused. The alignment options exist to handle this situation.
-- When radius is not set the image wil be displayed inside the border (if any)
-  but will not be not covered by it. If radius is set, the image will be drawn
-  below the border to avoid having gaps in the corners.
 
 Configs:
 
@@ -357,14 +354,12 @@ makeImage imgSource config state = widget where
       addImage renderer imgPath imgSize imgBytes imgFlags
 
     when imageLoaded $
-      showImage renderer imgPath imgFlags imgSize imgRect radius alpha
+      showImage renderer imgPath imgFlags imgSize imgRect imgRadius alpha
     where
       style = activeStyle wenv node
+      border = style ^. L.border
       radius = style ^. L.radius
-      padding = style ^. L.padding
-      contentArea
-        | isNothing radius || isJust padding = getContentArea style node
-        | otherwise = node ^. L.info . L.viewport
+      contentArea = getContentArea style node
       alpha = fromMaybe 1 (_imcTransparency config)
       fitMode = fromMaybe FitNone (_imcFit config)
       alignH = fromMaybe ALeft (_imcAlignH config)
@@ -372,6 +367,7 @@ makeImage imgSource config state = widget where
       imgPath = imgName imgSource
       imgFlags = _imcFlags config
       imgRect = fitImage contentArea imgSize fitMode alignH alignV
+      imgRadius = subtractBorderFromRadius border <$> radius
       ImageState _ imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData
@@ -386,11 +382,9 @@ showImage
   -> Double
   -> IO ()
 showImage renderer imgPath imgFlags imgSize rect radius alpha = do
-  setFillImagePattern renderer imgPath topLeft size angle alpha
   beginPath renderer
-  if isNothing radius
-    then renderRect renderer rect
-    else drawRoundedRect renderer rect (fromJust radius)
+  setFillImagePattern renderer imgPath topLeft size angle alpha
+  drawRoundedRect renderer rect (fromMaybe def radius)
   fill renderer
   where
     Rect x y w h = rect

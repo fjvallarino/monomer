@@ -284,6 +284,15 @@ newRenderer c rdpr envRef = Renderer {..} where
     where
       CRect x y w h = rectToCRect rect dpr
 
+  renderRoundedRect !rect tl tr br bl =
+    VG.roundedRectVarying c x y w h ctl ctr cbr cbl
+    where
+      CRect x y w h = rectToCRect rect dpr
+      ctl = realToFrac tl
+      ctr = realToFrac tr
+      cbr = realToFrac br
+      cbl = realToFrac bl
+
   renderArc !point rad angleStart angleEnd winding =
     VG.arc c x y radius start end wind
     where

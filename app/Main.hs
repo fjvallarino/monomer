@@ -146,6 +146,11 @@ handleAppEvent wenv node model evt = case evt of
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
 buildUI wenv model = traceShow "Creating UI" widgetTree where
+  widgetImgTest = vstack [hstack [widgetImgTest2]] `style` [bgColor blue, border 10 yellow, radius 50]
+  widgetImgTest2 = image_ "assets/images/pecans.jpg" [fitFill, onLoadError ImageMsg]
+    `style` [cursorIcon CursorInvalid, bgColor green, border 10 red, borderL 20 red, radius 40]
+    --(pink & L.a .~ 0.5)
+--    `style` [bgColor green, width 60, height 60, radius 30]
   widgetText = vstack [
 --      label "Test",
 --      hstack [
@@ -504,7 +509,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           scroll_ [] (image_ "assets/images/pecans.jpg" [fitFill] `style` [radius 20]),
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
           scroll_ [] $ image_ "assets/images/pecans.jpg" [fitFill],
-          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid, border 10 (orange & L.a .~ 0.5), radius 100, radiusBL 20]
+          image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `style` [cursorIcon CursorInvalid, border 10 (orange & L.a .~ 0.5), radius 100, radiusBL 0, radiusBR 0]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiLine, ellipsis

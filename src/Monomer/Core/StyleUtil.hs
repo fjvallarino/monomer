@@ -30,10 +30,16 @@ module Monomer.Core.StyleUtil (
   addOuterSize,
   addOuterBounds,
   removeOuterSize,
-  removeOuterBounds
+  removeOuterBounds,
+  addBorder,
+  addPadding,
+  subtractBorder,
+  subtractPadding,
+  scaleBorder,
+  subtractBorderFromRadius
 ) where
 
-import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just, non)
+import Control.Lens ((&), (^.), (^?), (.~), (+~), (-~), (*~), (?~), _Just, non)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -198,6 +204,51 @@ removeOuterBounds style rect =
   subtractBorder rect (_sstBorder style)
     >>= (`subtractPadding` _sstPadding style)
 
+-- | Adds border widths to the given rect.
+addBorder :: Rect -> Maybe Border -> Maybe Rect
+addBorder rect border = nRect where
+  (bl, br, bt, bb) = borderWidths border
+  nRect = addToRect rect bl br bt bb
+
+-- | Adds padding the given rect.
+addPadding :: Rect -> Maybe Padding -> Maybe Rect
+addPadding rect Nothing = Just rect
+addPadding rect (Just (Padding l r t b)) = nRect where
+  nRect = addToRect rect (justDef l) (justDef r) (justDef t) (justDef b)
+
+-- | Subtracts border widths from the given rect.
+subtractBorder :: Rect -> Maybe Border -> Maybe Rect
+subtractBorder rect border = nRect where
+  (bl, br, bt, bb) = borderWidths border
+  nRect = subtractFromRect rect bl br bt bb
+
+-- | Subbtracts padding from the given rect.
+subtractPadding :: Rect -> Maybe Padding -> Maybe Rect
+subtractPadding rect Nothing = Just rect
+subtractPadding rect (Just (Padding l r t b)) = nRect where
+  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
+
+-- | Applies the given scale to each side of the border
+scaleBorder :: Border -> Double -> Border
+scaleBorder (Border l r t b) scale = Border nl nr nt nb where
+  nl = l & _Just . L.width *~ scale
+  nr = r & _Just . L.width *~ scale
+  nt = t & _Just . L.width *~ scale
+  nb = b & _Just . L.width *~ scale
+
+{-|
+Subtracts border width from radius. This is useful when rendering nested shapes
+with rounded corners, which would otherwise have gaps in the corners.
+-}
+subtractBorderFromRadius :: Maybe Border -> Radius -> Radius
+subtractBorderFromRadius border (Radius rtl rtr rbr rbl) = newRadius where
+  (bl, br, bt, bb) = borderWidths border
+  ntl = rtl & _Just . L.width -~ min bl bt
+  ntr = rtr & _Just . L.width -~ min br bt
+  nbr = rbr & _Just . L.width -~ min br bb
+  nbl = rbl & _Just . L.width -~ min bl bb
+  newRadius = Radius ntl ntr nbr nbl
+
 -- Internal
 addBorderSize :: Size -> Maybe Border -> Maybe Size
 addBorderSize sz border = nSize where
@@ -218,26 +269,6 @@ subtractPaddingSize :: Size -> Maybe Padding -> Maybe Size
 subtractPaddingSize sz Nothing = Just sz
 subtractPaddingSize sz (Just (Padding l r t b)) = nSize where
   nSize = subtractFromSize sz (justDef l + justDef r) (justDef t + justDef b)
-
-addBorder :: Rect -> Maybe Border -> Maybe Rect
-addBorder rect border = nRect where
-  (bl, br, bt, bb) = borderWidths border
-  nRect = addToRect rect bl br bt bb
-
-addPadding :: Rect -> Maybe Padding -> Maybe Rect
-addPadding rect Nothing = Just rect
-addPadding rect (Just (Padding l r t b)) = nRect where
-  nRect = addToRect rect (justDef l) (justDef r) (justDef t) (justDef b)
-
-subtractBorder :: Rect -> Maybe Border -> Maybe Rect
-subtractBorder rect border = nRect where
-  (bl, br, bt, bb) = borderWidths border
-  nRect = subtractFromRect rect bl br bt bb
-
-subtractPadding :: Rect -> Maybe Padding -> Maybe Rect
-subtractPadding rect Nothing = Just rect
-subtractPadding rect (Just (Padding l r t b)) = nRect where
-  nRect = subtractFromRect rect (justDef l) (justDef r) (justDef t) (justDef b)
 
 borderWidths :: Maybe Border -> (Double, Double, Double, Double)
 borderWidths Nothing = (0, 0, 0, 0)

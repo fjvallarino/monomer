@@ -744,10 +744,16 @@
       - Discarded, since performance was worse (maybe waitEvent is an expensive call?).
   - Fix transparent layer issue when opening dialogs.
     - Seems to have been a temporary issue fixed when render thread changes were complete.
+  - Think about rendering with custom beginFrame for some widgets
+    - Could work for rounded images.
+    - Not needed, imagePatterns and path allow for arbitrary shapes.
+    - Composite API is nice but at the same time confusing. Not implementing for the time being.
 
 Next
   - Think about rendering with custom beginFrame for some widgets
-    - Could work for rounded images.
+    - Improve rounded corners of borders with varying width.
+    - Fix overlapping border corners (visible with transparent colors)
+    - Fix imageRepeatX and imageRepeatY
   - Remove dpr calculations from NanoVGRenderer.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.

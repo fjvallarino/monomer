@@ -27,6 +27,7 @@ makeLensesWith abbreviatedFields ''Padding
 makeLensesWith abbreviatedFields ''BorderSide
 makeLensesWith abbreviatedFields ''Border
 makeLensesWith abbreviatedFields ''Radius
+makeLensesWith abbreviatedFields ''RadiusCorner
 makeLensesWith abbreviatedFields ''TextStyle
 makeLensesWith abbreviatedFields ''StyleState
 makeLensesWith abbreviatedFields ''Style

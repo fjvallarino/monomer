@@ -313,6 +313,8 @@ data Renderer = Renderer {
   renderLineTo :: Point -> IO (),
   -- | Renders a rectangle.
   renderRect :: Rect -> IO (),
+  -- | Renders a rectangle with rounded corners.
+  renderRoundedRect :: Rect -> Double -> Double -> Double -> Double -> IO (),
   -- | Renders an arc (center, radius, angle start, angle, end, winding).
   renderArc :: Point -> Double -> Double -> Double -> Winding -> IO (),
   -- | Quadratic bezier segment from head via control point to target.

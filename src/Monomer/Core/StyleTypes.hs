@@ -263,13 +263,13 @@ instance Monoid RadiusType where
 
 -- | Defines radius type and width/radius for a given corner.
 data RadiusCorner = RadiusCorner {
-  _rcrType :: RadiusType,
+  _rcrCornerType :: RadiusType,
   _rcrWidth :: Double
 } deriving (Eq, Show, Generic)
 
 instance Default RadiusCorner where
   def = RadiusCorner {
-    _rcrType = RadiusBoth,
+    _rcrCornerType = RadiusBoth,
     _rcrWidth = def
   }
 

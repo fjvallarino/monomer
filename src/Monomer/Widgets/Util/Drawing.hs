@@ -27,7 +27,8 @@ module Monomer.Widgets.Util.Drawing (
   drawArrowDown,
   drawTimesX,
   drawStyledAction,
-  drawRoundedRect
+  drawRoundedRect,
+  drawRectRoundedBorder
 ) where
 
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
@@ -331,50 +332,28 @@ drawStyledAction
   -> (Rect -> IO ())  -- ^ The drawing actions. They receive the content area.
   -> IO ()            -- ^ The resulting action.
 drawStyledAction renderer rect style action = do
-  let StyleState{..} = style
-  let contentRect = removeOuterBounds style rect
-
   drawRect renderer rect _sstBgColor _sstRadius
 
   forM_ contentRect action
 
   when (isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
+  where
+    StyleState{..} = style
+    contentRect = removeOuterBounds style rect
 
 -- Helpers
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
-drawRoundedRect renderer (Rect x y w h) Radius{..} =
+drawRoundedRect renderer rect Radius{..} =
   let
-    xl = x
-    xr = x + w
-    yt = y
-    yb = y + h
-    x1 = x + radW _radTopLeft
-    x2 = x + w - radW _radTopRight
-    x3 = x + w - radW _radBottomRight
-    x4 = x + radW _radBottomLeft
-    y1 = y + radW _radTopLeft
-    y2 = y + radW _radTopRight
-    y3 = y + h - radW _radBottomRight
-    y4 = y + h - radW _radBottomLeft
+    Rect _ _ w h = rect
+    midw = min w h / 2
+    validTL = min midw (radW _radTopLeft)
+    validTR = min midw (radW _radTopRight)
+    validBR = min midw (radW _radBottomRight)
+    validBL = min midw (radW _radBottomLeft)
   in do
-    moveTo renderer (Point x1 y1)
-
-    when (isJust _radTopLeft) $
-      renderArc renderer (Point x1 y1) (radW _radTopLeft) 180 270 CW
-    renderLineTo renderer (Point x2 yt)
-
-    when (isJust _radTopRight) $
-      renderArc renderer (Point x2 y2) (radW _radTopRight) 270 0 CW
-    renderLineTo renderer (Point xr y3)
-
-    when (isJust _radBottomRight) $
-      renderArc renderer (Point x3 y3) (radW _radBottomRight) 0 90 CW
-    renderLineTo renderer (Point x4 yb)
-
-    when (isJust _radBottomLeft) $
-      renderArc renderer (Point x4 y4) (radW _radBottomLeft) 90 180 CW
-    renderLineTo renderer (Point xl y1)
+    renderRoundedRect renderer rect validTL validTR validBR validBL
 
 drawRectSimpleBorder :: Renderer -> Rect -> Border -> IO ()
 drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
@@ -442,6 +421,7 @@ drawRectRoundedBorder renderer rect border radius =
     Radius{..} = radius
     xr = xl + w
     yb = yt + h
+    midw = min w h / 2
     xlb = xl + halfWidth _brdLeft
     xrb = xr - halfWidth _brdRight
     ytb = yt + halfWidth _brdTop
@@ -450,14 +430,18 @@ drawRectRoundedBorder renderer rect border radius =
     xrb2 = xr - 2 * halfWidth _brdRight
     ytb2 = yt + 2 * halfWidth _brdTop
     ybb2 = yb - 2 * halfWidth _brdBottom
-    xt1 = xl + tlBorderSize border radius
-    xt2 = xr - trBorderSize border radius
-    yl1 = yt + tlBorderSize border radius
-    yl2 = yb - blBorderSize border radius
-    xb1 = xl + blBorderSize border radius
-    xb2 = xr - brBorderSize border radius
-    yr1 = yt + trBorderSize border radius
-    yr2 = yb - brBorderSize border radius
+    validTL = min midw (radW _radTopLeft)
+    validTR = min midw (radW _radTopRight)
+    validBR = min midw (radW _radBottomRight)
+    validBL = min midw (radW _radBottomLeft)
+    xt1 = xl + validTL
+    yl1 = yt + validTL
+    xt2 = xr - validTR
+    yr1 = yt + validTR
+    xb2 = xr - validBR
+    yr2 = yb - validBR
+    yl2 = yb - validBL
+    xb1 = xl + validBL
     halfWidth bs
       | isJust bs = _bsWidth (fromJust bs) / 2
       | otherwise = 0
@@ -539,10 +523,10 @@ drawRoundedCorner renderer c1 c2 p1 p2 deg (Just cor) (Just s1) (Just s2) = do
     then setFillColor renderer color1
     else setFillLinearGradient renderer p1 p2 color1 color2
 
-  when (_rcrType cor == RadiusBoth) $
+  when (_rcrCornerType cor == RadiusBoth) $
     renderArc renderer c1 radSize deg (deg - 90) CCW
 
-  when (_rcrType cor == RadiusInner) $
+  when (_rcrCornerType cor == RadiusInner) $
     renderRectCorner renderer c1 radSize deg
 
   renderLineTo renderer p1
