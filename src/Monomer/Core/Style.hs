@@ -223,24 +223,6 @@ instance CmbRadiusBL Radius where
 instance CmbRadiusBR Radius where
   radiusBR rad = def & L.bottomRight ?~ radiusCorner rad
 
--- Inner radius
-
-instance CmbInnerRadius Radius where
-  iradius rad = Radius jrad jrad jrad jrad where
-    jrad = Just $ iradiusCorner rad
-
-instance CmbInnerRadiusTL Radius where
-  iradiusTL rad = def & L.topLeft ?~ iradiusCorner rad
-
-instance CmbInnerRadiusTR Radius where
-  iradiusTR rad = def & L.topRight ?~ iradiusCorner rad
-
-instance CmbInnerRadiusBL Radius where
-  iradiusBL rad = def & L.bottomLeft ?~ iradiusCorner rad
-
-instance CmbInnerRadiusBR Radius where
-  iradiusBR rad = def & L.bottomRight ?~ iradiusCorner rad
-
 --
 -- StyleState instances
 --
@@ -413,29 +395,13 @@ instance CmbRadiusBL StyleState where
 instance CmbRadiusBR StyleState where
   radiusBR rad = def & L.radius . non def . L.bottomRight ?~ radiusCorner rad
 
--- Inner radius
-instance CmbInnerRadius StyleState where
-  iradius rad = def & L.radius ?~ iradius rad
-
-instance CmbInnerRadiusTL StyleState where
-  iradiusTL rad = def & L.radius . non def . L.topLeft ?~ iradiusCorner rad
-
-instance CmbInnerRadiusTR StyleState where
-  iradiusTR rad = def & L.radius . non def . L.topRight ?~ iradiusCorner rad
-
-instance CmbInnerRadiusBL StyleState where
-  iradiusBL rad = def & L.radius . non def . L.bottomLeft ?~ iradiusCorner rad
-
-instance CmbInnerRadiusBR StyleState where
-  iradiusBR rad = def & L.radius . non def . L.bottomRight ?~ iradiusCorner rad
-
 -- Internal
 
 radiusCorner :: Double -> RadiusCorner
-radiusCorner rad = RadiusCorner RadiusBoth rad
+radiusCorner rad = RadiusCorner rad
 
 iradiusCorner :: Double -> RadiusCorner
-iradiusCorner rad = RadiusCorner RadiusInner rad
+iradiusCorner rad = RadiusCorner rad
 
 textAlignH :: AlignTH -> TextStyle
 textAlignH align = def & L.alignH ?~ align

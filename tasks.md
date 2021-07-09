@@ -752,8 +752,11 @@
 Next
   - Think about rendering with custom beginFrame for some widgets
     - Improve rounded corners of borders with varying width.
-    - Fix overlapping border corners (visible with transparent colors)
+    - Fix overlapping border corners (visible with transparent colors).
+    - Fix overlapping rect corners (visible with transparent colors).
+    - Improve gradient fill location (upper corner instead of lower).
     - Fix imageRepeatX and imageRepeatY
+    - Check missing pixels in borders?
   - Remove dpr calculations from NanoVGRenderer.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.

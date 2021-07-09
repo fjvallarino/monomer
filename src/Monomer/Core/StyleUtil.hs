@@ -241,13 +241,13 @@ Subtracts border width from radius. This is useful when rendering nested shapes
 with rounded corners, which would otherwise have gaps in the corners.
 -}
 subtractBorderFromRadius :: Maybe Border -> Radius -> Radius
-subtractBorderFromRadius border (Radius rtl rtr rbr rbl) = newRadius where
+subtractBorderFromRadius border (Radius rtl rtr rbl rbr) = newRadius where
   (bl, br, bt, bb) = borderWidths border
-  ntl = rtl & _Just . L.width -~ min bl bt
-  ntr = rtr & _Just . L.width -~ min br bt
-  nbr = rbr & _Just . L.width -~ min br bb
-  nbl = rbl & _Just . L.width -~ min bl bb
-  newRadius = Radius ntl ntr nbr nbl
+  ntl = rtl & _Just . L.width -~ max bl bt
+  ntr = rtr & _Just . L.width -~ max br bt
+  nbl = rbl & _Just . L.width -~ max bl bb
+  nbr = rbr & _Just . L.width -~ max br bb
+  newRadius = Radius ntl ntr nbl nbr
 
 -- Internal
 addBorderSize :: Size -> Maybe Border -> Maybe Size

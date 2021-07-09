@@ -88,6 +88,15 @@ subPoint (Point x1 y1) (Point x2 y2) = Point (x1 - x2) (y1 - y2)
 mulPoint :: Double -> Point -> Point
 mulPoint factor (Point x y) = Point (factor * x) (factor * y)
 
+-- | Returns the middle between two points.
+midPoint :: Point -> Point -> Point
+midPoint p1 p2 = interpolatePoints p1 p2 0.5
+
+-- | Returns the middle between two points.
+interpolatePoints :: Point -> Point -> Double -> Point
+interpolatePoints (Point x1 y1) (Point x2 y2) f = newPoint where
+  newPoint = Point (f * x1 + (1 - f) * x2) (f * y1 + (1 - f) * y2)
+
 -- | Negates the coordinates of a point.
 negPoint :: Point -> Point
 negPoint (Point x y) = Point (-x) (-y)

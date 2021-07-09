@@ -697,26 +697,3 @@ class CmbRadiusBL t where
 -- | Set radius for the bottom right corner.
 class CmbRadiusBR t where
   radiusBR :: Double -> t
-
-{-|
-Set inner radius to the same size on all corners. When using inner radius, the
-outer part remains squared.
--}
-class CmbInnerRadius t where
-  iradius :: Double -> t
-
--- | Set inner radius for the top left corner.
-class CmbInnerRadiusTL t where
-  iradiusTL :: Double -> t
-
--- | Set inner radius for the top right corner.
-class CmbInnerRadiusTR t where
-  iradiusTR :: Double -> t
-
--- | Set inner radius for the bottom left corner.
-class CmbInnerRadiusBL t where
-  iradiusBL :: Double -> t
-
--- | Set inner radius for the bottom right corner.
-class CmbInnerRadiusBR t where
-  iradiusBR :: Double -> t

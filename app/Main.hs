@@ -145,10 +145,10 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetTree where
-  widgetImgTest = vstack [hstack [widgetImgTest2]] `style` [bgColor blue, border 10 yellow, radius 50]
+buildUI wenv model = traceShow "Creating UI" widgetImgTest where
+  widgetImgTest = vstack [hstack [widgetImgTest2]] `style` [border 40 (green & L.a .~ 0.5), borderL 50 (orange & L.a .~ 0.5), borderT 20 (orange & L.a .~ 0.5), borderB 20 (green & L.a .~ 0.5), radius 30, radiusTL 0, radiusBL 40, radiusBR 50]
   widgetImgTest2 = image_ "assets/images/pecans.jpg" [fitFill, onLoadError ImageMsg]
-    `style` [cursorIcon CursorInvalid, bgColor green, border 10 red, borderL 20 red, radius 40]
+    `style` [cursorIcon CursorInvalid, bgColor green, border 10 red, borderL 40 green, radius 60]
     --(pink & L.a .~ 0.5)
 --    `style` [bgColor green, width 60, height 60, radius 30]
   widgetText = vstack [
@@ -513,5 +513,5 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiLine, ellipsis
-    ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, iradius 50] --, padding 20
+    ] `key` "main vstack" `style` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, radius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

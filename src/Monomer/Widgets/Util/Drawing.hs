@@ -31,6 +31,7 @@ module Monomer.Widgets.Util.Drawing (
   drawRectRoundedBorder
 ) where
 
+import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
 import Control.Monad (forM_, void, when)
 import Data.ByteString (ByteString)
@@ -41,6 +42,7 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Graphics.Types
 
+import qualified Monomer.Graphics.Lens as L
 import qualified Monomer.Core.Lens as L
 
 -- | Performs the provided drawing operations with an active scissor, and then
@@ -417,23 +419,15 @@ drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
 drawRectRoundedBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
-    Border{..} = border
-    Radius{..} = radius
+    Border borL borR borT borB = border
+    Radius radTL radTR radBL radBR = radius
     xr = xl + w
     yb = yt + h
     midw = min w h / 2
-    xlb = xl + halfWidth _brdLeft
-    xrb = xr - halfWidth _brdRight
-    ytb = yt + halfWidth _brdTop
-    ybb = yb - halfWidth _brdBottom
-    xlb2 = xl + 2 * halfWidth _brdLeft
-    xrb2 = xr - 2 * halfWidth _brdRight
-    ytb2 = yt + 2 * halfWidth _brdTop
-    ybb2 = yb - 2 * halfWidth _brdBottom
-    validTL = min midw (radW _radTopLeft)
-    validTR = min midw (radW _radTopRight)
-    validBR = min midw (radW _radBottomRight)
-    validBL = min midw (radW _radBottomLeft)
+    validTL = min midw (radW radTL)
+    validTR = min midw (radW radTR)
+    validBR = min midw (radW radBR)
+    validBL = min midw (radW radBL)
     xt1 = xl + validTL
     yl1 = yt + validTL
     xt2 = xr - validTR
@@ -442,119 +436,115 @@ drawRectRoundedBorder renderer rect border radius =
     yr2 = yb - validBR
     yl2 = yb - validBL
     xb1 = xl + validBL
-    halfWidth bs
-      | isJust bs = _bsWidth (fromJust bs) / 2
-      | otherwise = 0
   in do
-    strokeBorder renderer (p2 xt1 ytb) (p2 xt2 ytb) _brdTop
-    strokeBorder renderer (p2 xrb yr1) (p2 xrb yr2) _brdRight
-    strokeBorder renderer (p2 xb1 ybb) (p2 xb2 ybb) _brdBottom
-    strokeBorder renderer (p2 xlb yl1) (p2 xlb yl2) _brdLeft
+    -- Restrict radius width to min (w/2) (h/2). fixRadius already does that?
+    (lt1, lt2, tl1, tl2) <- drawRoundedCorner renderer CornerTL (p2 xt1 yl1) radTL borL borT
+    (tr1, tr2, rt1, rt2) <- drawRoundedCorner renderer CornerTR (p2 xt2 yr1) radTR borT borR
+    (rb1, rb2, br1, br2) <- drawRoundedCorner renderer CornerBR (p2 xb2 yr2) radBR borR borB
+    (bl1, bl2, lb1, lb2) <- drawRoundedCorner renderer CornerBL (p2 xb1 yl2) radBL borB borL
 
-    drawRoundedCorner renderer
-      (p2 xt1 yl1) (p2 xlb2 ytb2) (p2 xlb2 yl1) (p2 xt1 ytb2) 270
-      _radTopLeft _brdLeft _brdTop
-    drawRoundedCorner renderer
-      (p2 xt2 yr1) (p2 xrb2 ytb2) (p2 xt2 ytb2) (p2 xrb2 yr1) 0
-      _radTopRight _brdTop _brdRight
-    drawRoundedCorner renderer
-      (p2 xb2 yr2) (p2 xrb2 ybb2) (p2 xrb2 yr2) (p2 xb2 ybb2) 90
-      _radBottomRight _brdRight _brdBottom
-    drawRoundedCorner renderer
-      (p2 xb1 yl2) (p2 xlb2 ybb2) (p2 xb1 ybb2) (p2 xlb2 yl2) 180
-      _radBottomLeft _brdBottom _brdLeft
-
-tlBorderSize :: Border -> Radius -> Double
-tlBorderSize Border{..} Radius{..}
-  | justLeft && justTop && isJust _radTopLeft = radW _radTopLeft
-  | otherwise = 0
-  where
-    justLeft = isJust _brdLeft
-    justTop = isJust _brdTop
-
-trBorderSize :: Border -> Radius -> Double
-trBorderSize Border{..} Radius{..}
-  | justRight && justTop && isJust _radTopRight = radW _radTopRight
-  | otherwise = 0
-  where
-    justRight = isJust _brdRight
-    justTop = isJust _brdTop
-
-blBorderSize :: Border -> Radius -> Double
-blBorderSize Border{..} Radius{..}
-  | justLeft && justBottom && justRad = radW _radBottomLeft
-  | otherwise = 0
-  where
-    justLeft = isJust _brdLeft
-    justBottom = isJust _brdBottom
-    justRad = isJust _radBottomLeft
-
-brBorderSize :: Border -> Radius -> Double
-brBorderSize Border{..} Radius{..}
-  | justRight && justBottom && justRad = radW _radBottomRight
-  | otherwise = 0
-  where
-    justRight = isJust _brdRight
-    justBottom = isJust _brdBottom
-    justRad = isJust _radBottomRight
+    drawQuad renderer lb1 lt1 lt2 lb2 borL
+    drawQuad renderer tl1 tr1 tr2 tl2 borT
+    drawQuad renderer rt1 rb1 rb2 rt2 borR
+    drawQuad renderer br1 bl1 bl2 br2 borB
 
 drawRoundedCorner
   :: Renderer
+  -> RectCorner
   -> Point
-  -> Point
-  -> Point
-  -> Point
-  -> Double
   -> Maybe RadiusCorner
   -> Maybe BorderSide
   -> Maybe BorderSide
-  -> IO ()
-drawRoundedCorner renderer c1 c2 p1 p2 deg (Just cor) (Just s1) (Just s2) = do
-  let
-    width1 = _bsWidth s1
-    width2 = _bsWidth s2
-    color1 = _bsColor s1
-    color2 = _bsColor s2
-    radSize = _rcrWidth cor
-
+  -> IO (Point, Point, Point, Point)
+drawRoundedCorner _ _ center _ Nothing Nothing = return points where
+  points = (center, center, center, center)
+drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
   beginPath renderer
+  setStrokeColor renderer (Color 255 255 255 1)
 
   if color1 == color2
     then setFillColor renderer color1
-    else setFillLinearGradient renderer p1 p2 color1 color2
+    else setFillLinearGradient renderer g1 g2 color1 color2
 
-  when (_rcrCornerType cor == RadiusBoth) $
-    renderArc renderer c1 radSize deg (deg - 90) CCW
+  if round orad == 0
+    then renderRectCorner renderer cor icenter w1 w2
+    else renderArc renderer ocenter orad deg (deg - 90) CCW
 
-  when (_rcrCornerType cor == RadiusInner) $
-    renderRectCorner renderer c1 radSize deg
+  renderLineTo renderer o1
 
-  renderLineTo renderer p1
+  if round irad > 0
+    then do
+      renderLineTo renderer i1
+      renderArc renderer icenter irad (deg - 90) deg CW
+      renderLineTo renderer i2
+    else do
+      renderLineTo renderer icenter
 
-  if abs (width2 - width1) < 0.5
-    then renderArc renderer c1 (radSize - width1) (deg - 90) deg CW
-    else renderQuadTo renderer c2 p2
+  renderLineTo renderer o2
 
   closePath renderer
   fill renderer
-drawRoundedCorner renderer c1 c2 p1 p2 deg _ _ _ = return ()
+--  stroke renderer
 
-renderRectCorner :: Renderer -> Point -> Double -> Double -> IO ()
-renderRectCorner renderer c1 width fromRad = do
-  moveTo renderer p1
-  renderLineTo renderer p2
-  renderLineTo renderer p3
+  return (p1, p2, p3, p4)
   where
-    (dx, dy) = case fromRad of
-      0 -> (width, -width)
-      90 -> (width, width)
-      180 -> (-width, width)
-      _ -> (-width, -width)
-    t1 = addPoint c1 (Point dx 0)
-    t3 = addPoint c1 (Point 0 dy)
-    p1 = if fromRad == 0 || fromRad == 180 then t1 else t3
-    p2 = addPoint c1 (Point dx dy)
-    p3 = if fromRad == 0 || fromRad == 180 then t3 else t1
+    Point ocx ocy = ocenter
+    Point icx icy = icenter
+    rcor = fromMaybe def mrcor
+    s1 = fromMaybe def ms1
+    s2 = fromMaybe def ms2
+    w1 = _bsWidth s1
+    w2 = _bsWidth s2
+    color1 = _bsColor (fromJust (ms1 <|> ms2))
+    color2 = _bsColor (fromJust (ms2 <|> ms1))
+    minW = min w1 w2
+    orad = max 0 (_rcrWidth rcor)
+    irad = max 0 (orad - minW)
+    omax1 = max orad w1
+    omax2 = max orad w2
+    cxmin = min ocx icx
+    cxmax = max ocx icx
+    cymin = min ocy icy
+    cymax = max ocy icy
+    (deg, icenter) = case cor of
+      CornerTL -> (270, Point (ocx - orad + w1 + irad) (ocy - orad + w2 + irad))
+      CornerTR -> (  0, Point (ocx + orad - w2 - irad) (ocy - orad + w1 + irad))
+      CornerBR -> ( 90, Point (ocx + orad - w1 - irad) (ocy + orad - w2 - irad))
+      CornerBL -> (180, Point (ocx - orad + w2 + irad) (ocy + orad - w1 - irad))
+    (o1, o2) = case cor of
+      CornerTL -> (Point (ocx - omax1) cymax, Point cxmax (ocy - omax2))
+      CornerTR -> (Point cxmin (ocy - omax2), Point (ocx + omax1) cymax)
+      CornerBR -> (Point (ocx + omax1) cymin, Point cxmin (ocy + omax2))
+      CornerBL -> (Point cxmax (ocy + omax2), Point (ocx - omax1) cymin)
+    (i1, i2) = case cor of
+      CornerTL -> (Point (ocx - orad + w1) cymax, Point cxmax (ocy - orad + w2))
+      CornerTR -> (Point cxmin (ocy - orad + w1), Point (ocx + orad - w2) cymax)
+      CornerBR -> (Point (ocx + orad - w1) cymin, Point cxmin (ocy + orad - w2))
+      CornerBL -> (Point cxmax (ocy + orad - w1), Point (ocx - orad + w2) cymin)
+    (p1, p2, p3, p4)
+      | round orad == 0 = (o1, icenter, o2, icenter)
+      | otherwise = (o1, i1, o2, i2)
+    (m1, m2) = (midPoint p1 p2, midPoint p3 p4)
+    g1
+      | irad <= 0 = interpolatePoints p1 p2 0.05
+      | otherwise = interpolatePoints m1 m2 0.7
+    g2
+      | irad <= 0 = interpolatePoints p3 p4 0.05
+      | otherwise = interpolatePoints m1 m2 0.3
+
+renderRectCorner :: Renderer -> RectCorner -> Point -> Double -> Double -> IO ()
+renderRectCorner renderer corner c1 pw1 pw2 = do
+  moveTo renderer (addPoint c1 p1)
+  renderLineTo renderer (addPoint c1 p2)
+  renderLineTo renderer (addPoint c1 p3)
+  where
+    nw1 = -pw1
+    nw2 = -pw2
+    (p1, p2, p3) = case corner of
+      CornerTL -> (Point 0 nw2, Point nw1 nw2, Point nw1 0)
+      CornerTR -> (Point pw2 0, Point pw2 nw1, Point 0 nw1)
+      CornerBR -> (Point 0 pw2, Point pw1 pw2, Point pw1 0)
+      CornerBL -> (Point nw2 0, Point nw2 pw1, Point 0 pw1)
 
 strokeBorder :: Renderer -> Point -> Point -> Maybe BorderSide -> IO ()
 strokeBorder renderer from to Nothing = pure ()
@@ -566,6 +556,18 @@ strokeBorder renderer from to (Just BorderSide{..}) = do
   renderLineTo renderer to
   stroke renderer
 
+drawQuad :: Renderer -> Point -> Point -> Point -> Point -> Maybe BorderSide -> IO ()
+drawQuad renderer p1 p2 p3 p4 Nothing = pure ()
+drawQuad renderer p1 p2 p3 p4 (Just BorderSide{..}) = do
+  beginPath renderer
+  setFillColor renderer _bsColor
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  renderLineTo renderer p4
+  closePath renderer
+  fill renderer
+
 p2 :: Double -> Double -> Point
 p2 x y = Point x y
 
@@ -574,7 +576,7 @@ radW r = _rcrWidth (fromMaybe def r)
 
 fixRadius :: Rect -> Radius -> Radius
 fixRadius (Rect _ _ w h) (Radius tl tr bl br) = newRadius where
-  fixC (RadiusCorner ctype cwidth)
-    | cwidth * 2 < min w h = RadiusCorner ctype cwidth
-    | otherwise = RadiusCorner ctype (min w h / 2)
+  fixC (RadiusCorner cwidth)
+    | cwidth * 2 < min w h = RadiusCorner cwidth
+    | otherwise = RadiusCorner (min w h / 2)
   newRadius = Radius (fixC <$> tl) (fixC <$> tr) (fixC <$> bl) (fixC <$> br)

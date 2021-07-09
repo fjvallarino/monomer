@@ -262,14 +262,12 @@ instance Monoid RadiusType where
   mempty = def
 
 -- | Defines radius type and width/radius for a given corner.
-data RadiusCorner = RadiusCorner {
-  _rcrCornerType :: RadiusType,
+newtype RadiusCorner = RadiusCorner {
   _rcrWidth :: Double
 } deriving (Eq, Show, Generic)
 
 instance Default RadiusCorner where
   def = RadiusCorner {
-    _rcrCornerType = RadiusBoth,
     _rcrWidth = def
   }
 

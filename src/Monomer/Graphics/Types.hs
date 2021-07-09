@@ -76,6 +76,13 @@ data RectSide
   | SideBottom
   deriving (Eq, Show)
 
+data RectCorner
+  = CornerTL
+  | CornerTR
+  | CornerBR
+  | CornerBL
+  deriving (Eq, Show)
+
 -- | Horizontal alignment flags.
 data AlignH
   = ALeft
