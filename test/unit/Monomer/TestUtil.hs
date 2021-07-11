@@ -115,19 +115,27 @@ mockRenderer = Renderer {
   setRotation = \angle -> return (),
   -- Global Alpha
   setGlobalAlpha = \alpha -> return (),
+  -- Path Winding
+  setPathWinding = \winding -> return (),
   -- Strokes
   stroke = return (),
   setStrokeColor = \color -> return (),
   setStrokeWidth = \width -> return (),
+  setStrokeLinearGradient = \p1 p2 c1 c2 -> return (),
+  setStrokeRadialGradient = \p1 a1 a2 c1 c2 -> return (),
+  setStrokeImagePattern = \n1 p1 s1 w1 h1 -> return (),
   -- Fill
   fill = return (),
   setFillColor = \color -> return (),
   setFillLinearGradient = \p1 p2 c1 c2 -> return (),
+  setFillRadialGradient = \p1 a1 a2 c1 c2 -> return (),
+  setFillImagePattern = \n1 p1 s1 w1 h1 -> return (),
   -- Drawing
   moveTo = \point -> return (),
   renderLine = \p1 p2 -> return (),
   renderLineTo = \point -> return (),
   renderRect = \rect -> return (),
+  renderRoundedRect = \rect r1 r2 r3 r4 -> return (),
   renderArc = \center radius angleStart angleEnd winding -> return (),
   renderQuadTo = \p1 p2 -> return (),
   renderEllipse = \rect -> return (),
@@ -135,12 +143,10 @@ mockRenderer = Renderer {
   renderText = mockRenderText,
 
   -- Image
-  getImage = const . Just $ ImageDef "test" def BS.empty [],
+  getImage = const . return $ Just $ ImageDef "test" def BS.empty [],
   addImage = \name size imgData flags -> return (),
   updateImage = \name size imgData -> return (),
-  deleteImage = \name -> return (),
-  renderImage = \name rect alpha -> return (),
-  renderNewImage = \name rect alpha size imgData [] -> return ()
+  deleteImage = \name -> return ()
 }
 
 mockFontManager :: FontManager
