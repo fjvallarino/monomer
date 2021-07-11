@@ -42,8 +42,9 @@ import Data.Text (Text)
 import Monomer.Core
 import Monomer.Graphics.Types
 
-import qualified Monomer.Graphics.Lens as L
+import qualified Monomer.Common.Lens as L
 import qualified Monomer.Core.Lens as L
+import qualified Monomer.Graphics.Lens as L
 
 -- | Performs the provided drawing operations with an active scissor, and then
 -- | disables it.
@@ -344,7 +345,6 @@ drawStyledAction renderer rect style action = do
     StyleState{..} = style
     contentRect = removeOuterBounds style rect
 
--- Helpers
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer rect Radius{..} =
   let
@@ -377,24 +377,6 @@ drawRectSimpleBorder renderer (Rect x y w h) Border{..} =
     drawQuad renderer ort orb ibr itr borderR
     drawQuad renderer obr obl ibl ibr borderB
     drawQuad renderer olb olt itl ibl borderL
-
-drawCorner
-  :: Renderer
-  -> Point
-  -> Point
-  -> Point
-  -> Maybe BorderSide
-  -> Maybe BorderSide
-  -> IO ()
-drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
-  beginPath renderer
-  setFillColor renderer (_bsColor bs1)
-  moveTo renderer p1
-  renderLineTo renderer p2
-  renderLineTo renderer p3
-  renderLineTo renderer p1
-  fill renderer
-drawCorner renderer p1 p2 p3 _ _ = return ()
 
 drawRectCorner
   :: Renderer
@@ -440,8 +422,7 @@ drawRectCorner renderer cor ocorner ms1 ms2 = do
       CornerTR -> Point (cx - w2) (cy + w1)
       CornerBR -> Point (cx - w1) (cy - w2)
       CornerBL -> Point (cx + w2) (cy - w1)
-    g1 = interpolatePoints o1 o2 0.55
-    g2 = interpolatePoints o1 o2 0.45
+    (g1, g2) = cornerGradientPoints ocorner icorner
 
 drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
 drawRectRoundedBorder renderer rect border radius =
@@ -488,7 +469,6 @@ drawRoundedCorner _ _ center _ Nothing Nothing = return points where
   points = (center, center, center, center)
 drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
   beginPath renderer
-  setStrokeColor renderer (Color 255 255 255 1)
 
   if color1 == color2
     then setFillColor renderer color1
@@ -512,7 +492,6 @@ drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
 
   closePath renderer
   fill renderer
---  stroke renderer
 
   return (p1, p2, p3, p4)
   where
@@ -552,13 +531,11 @@ drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
     (p1, p2, p3, p4)
       | round orad == 0 = (o1, icenter, o2, icenter)
       | otherwise = (o1, i1, o2, i2)
-    (m1, m2) = (midPoint p1 p2, midPoint p3 p4)
-    g1
-      | irad <= 0 = interpolatePoints p1 p2 0.05
-      | otherwise = interpolatePoints m1 m2 0.7
-    g2
-      | irad <= 0 = interpolatePoints p3 p4 0.05
-      | otherwise = interpolatePoints m1 m2 0.3
+    ocorner = Point (o1 ^. L.x) (o2 ^. L.y)
+    icorner = Point (o2 ^. L.x) (o1 ^. L.y)
+    (g1, g2)
+      | cor `elem` [CornerTL, CornerBR] = cornerGradientPoints ocorner icorner
+      | otherwise = cornerGradientPoints icorner ocorner
 
 drawRectArc :: Renderer -> RectCorner -> Point -> Double -> Double -> IO ()
 drawRectArc renderer corner c1 pw1 pw2 = do
@@ -574,16 +551,6 @@ drawRectArc renderer corner c1 pw1 pw2 = do
       CornerBR -> (Point 0 pw2, Point pw1 pw2, Point pw1 0)
       CornerBL -> (Point nw2 0, Point nw2 pw1, Point 0 pw1)
 
-strokeBorder :: Renderer -> Point -> Point -> Maybe BorderSide -> IO ()
-strokeBorder renderer from to Nothing = pure ()
-strokeBorder renderer from to (Just BorderSide{..}) = do
-  beginPath renderer
-  setStrokeColor renderer _bsColor
-  setStrokeWidth renderer _bsWidth
-  moveTo renderer from
-  renderLineTo renderer to
-  stroke renderer
-
 drawQuad :: Renderer -> Point -> Point -> Point -> Point -> Maybe BorderSide -> IO ()
 drawQuad renderer p1 p2 p3 p4 Nothing = pure ()
 drawQuad renderer p1 p2 p3 p4 (Just BorderSide{..}) = do
@@ -595,6 +562,17 @@ drawQuad renderer p1 p2 p3 p4 (Just BorderSide{..}) = do
   renderLineTo renderer p4
   closePath renderer
   fill renderer
+
+cornerGradientPoints :: Point -> Point -> (Point, Point)
+cornerGradientPoints outer inner = (g1, g2) where
+  Point ox oy = outer
+  Point ix iy = inner
+  Point mx my = midPoint outer inner
+  (vx, vy) = (ix - ox, iy - oy)
+  (nx, ny) = (vy, -vx)
+  factor = 0.01
+  g1 = Point (mx - factor * nx) (my - factor * ny)
+  g2 = Point (mx + factor * nx) (my + factor * ny)
 
 p2 :: Double -> Double -> Point
 p2 x y = Point x y
