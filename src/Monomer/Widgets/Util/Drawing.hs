@@ -358,44 +358,25 @@ drawRoundedRect renderer rect Radius{..} =
     renderRoundedRect renderer rect validTL validTR validBR validBL
 
 drawRectSimpleBorder :: Renderer -> Rect -> Border -> IO ()
-drawRectSimpleBorder renderer rt@(Rect xl yt w h) border@Border{..} =
+drawRectSimpleBorder renderer (Rect x y w h) Border{..} =
   let
-    xr = xl + w
-    yb = yt + h
-    xlb = xl + halfWidth _brdLeft
-    xrb = xr - halfWidth _brdRight
-    ytb = yt + halfWidth _brdTop
-    ybb = yb - halfWidth _brdBottom
-    halfWidth bs
-      | isJust bs = _bsWidth (fromJust bs) / 2
-      | otherwise = 0
-  in do
-    strokeBorder renderer (p2 xl ytb) (p2 xr ytb) _brdTop
-    strokeBorder renderer (p2 xrb yt) (p2 xrb yb) _brdRight
-    strokeBorder renderer (p2 xr ybb) (p2 xl ybb) _brdBottom
-    strokeBorder renderer (p2 xlb yb) (p2 xlb yt) _brdLeft
-
-    drawRectCorners renderer rt border
-
-drawRectCorners :: Renderer -> Rect -> Border -> IO ()
-drawRectCorners renderer (Rect xl yt w h) Border{..} =
-  let
-    xr = xl + w
-    yb = yt + h
-    xlb2 = xl + sw _brdLeft
-    xrb2 = xr - sw _brdRight
-    ytb2 = yt + sw _brdTop
-    ybb2 = yb - sw _brdBottom
-    sw bs = maybe 0 _bsWidth bs
+    ptl = Point x y
+    ptr = Point (x + w) y
+    pbr = Point (x + w) (y + h)
+    pbl = Point x (y + h)
     borderL = _brdLeft
     borderR = _brdRight
     borderT = _brdTop
     borderB = _brdBottom
   in do
-    drawCorner renderer (p2 xl yt) (p2 xlb2 ytb2) (p2 xlb2 yt) borderT borderL
-    drawCorner renderer (p2 xrb2 yt) (p2 xrb2 ytb2) (p2 xr yt) borderT borderR
-    drawCorner renderer (p2 xrb2 ybb2) (p2 xr yb) (p2 xr ybb2) borderR borderB
-    drawCorner renderer (p2 xlb2 yb) (p2 xlb2 ybb2) (p2 xl yb) borderB borderL
+    (olt, otl, itl) <- drawRectCorner renderer CornerTL ptl borderL borderT
+    (otr, ort, itr) <- drawRectCorner renderer CornerTR ptr borderT borderR
+    (orb, obr, ibr) <- drawRectCorner renderer CornerBR pbr borderR borderB
+    (obl, olb, ibl) <- drawRectCorner renderer CornerBL pbl borderB borderL
+    drawQuad renderer otl otr itr itl borderT
+    drawQuad renderer ort orb ibr itr borderR
+    drawQuad renderer obr obl ibl ibr borderB
+    drawQuad renderer olb olt itl ibl borderL
 
 drawCorner
   :: Renderer
@@ -414,6 +395,53 @@ drawCorner renderer p1 p2 p3 (Just bs1) (Just bs2) = do
   renderLineTo renderer p1
   fill renderer
 drawCorner renderer p1 p2 p3 _ _ = return ()
+
+drawRectCorner
+  :: Renderer
+  -> RectCorner
+  -> Point
+  -> Maybe BorderSide
+  -> Maybe BorderSide
+  -> IO (Point, Point, Point)
+drawRectCorner _ _ ocorner Nothing Nothing = return points where
+  points = (ocorner, ocorner, ocorner)
+drawRectCorner renderer cor ocorner ms1 ms2 = do
+  beginPath renderer
+  setStrokeColor renderer (Color 255 255 255 1)
+
+  if color1 == color2
+    then setFillColor renderer color1
+    else setFillLinearGradient renderer g1 g2 color1 color2
+
+  moveTo renderer o1
+  renderLineTo renderer icorner
+  renderLineTo renderer o2
+  renderLineTo renderer ocorner
+  closePath renderer
+
+  fill renderer
+--  stroke renderer
+  return (o1, o2, icorner)
+  where
+    Point cx cy = ocorner
+    s1 = fromMaybe def ms1
+    s2 = fromMaybe def ms2
+    w1 = _bsWidth s1
+    w2 = _bsWidth s2
+    color1 = _bsColor (fromJust (ms1 <|> ms2))
+    color2 = _bsColor (fromJust (ms2 <|> ms1))
+    (o1, o2) = case cor of
+      CornerTL -> (Point cx (cy + w2), Point (cx + w1) cy)
+      CornerTR -> (Point (cx - w2) cy, Point cx (cy + w1))
+      CornerBR -> (Point cx (cy - w2), Point (cx - w1) cy)
+      CornerBL -> (Point (cx + w2) cy, Point cx (cy - w1))
+    icorner = case cor of
+      CornerTL -> Point (cx + w1) (cy + w2)
+      CornerTR -> Point (cx - w2) (cy + w1)
+      CornerBR -> Point (cx - w1) (cy - w2)
+      CornerBL -> Point (cx + w2) (cy - w1)
+    g1 = interpolatePoints o1 o2 0.55
+    g2 = interpolatePoints o1 o2 0.45
 
 drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
 drawRectRoundedBorder renderer rect border radius =
@@ -467,7 +495,7 @@ drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
     else setFillLinearGradient renderer g1 g2 color1 color2
 
   if round orad == 0
-    then renderRectCorner renderer cor icenter w1 w2
+    then drawRectArc renderer cor icenter w1 w2
     else renderArc renderer ocenter orad deg (deg - 90) CCW
 
   renderLineTo renderer o1
@@ -532,8 +560,8 @@ drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
       | irad <= 0 = interpolatePoints p3 p4 0.05
       | otherwise = interpolatePoints m1 m2 0.3
 
-renderRectCorner :: Renderer -> RectCorner -> Point -> Double -> Double -> IO ()
-renderRectCorner renderer corner c1 pw1 pw2 = do
+drawRectArc :: Renderer -> RectCorner -> Point -> Double -> Double -> IO ()
+drawRectArc renderer corner c1 pw1 pw2 = do
   moveTo renderer (addPoint c1 p1)
   renderLineTo renderer (addPoint c1 p2)
   renderLineTo renderer (addPoint c1 p3)

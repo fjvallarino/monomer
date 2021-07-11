@@ -748,12 +748,13 @@
     - Could work for rounded images.
     - Not needed, imagePatterns and path allow for arbitrary shapes.
     - Composite API is nice but at the same time confusing. Not implementing for the time being.
-
-Next
-  - Think about rendering with custom beginFrame for some widgets
+  - Improve rendering API
     - Improve rounded corners of borders with varying width.
     - Fix overlapping border corners (visible with transparent colors).
     - Fix overlapping rect corners (visible with transparent colors).
+
+Next
+  - Think about rendering with custom beginFrame for some widgets
     - Improve gradient fill location (upper corner instead of lower).
     - Fix imageRepeatX and imageRepeatY
     - Check missing pixels in borders?
