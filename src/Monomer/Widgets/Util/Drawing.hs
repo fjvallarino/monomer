@@ -183,7 +183,7 @@ drawRect renderer rect (Just color) Nothing = do
 drawRect renderer rect (Just color) (Just radius) = do
   beginPath renderer
   setFillColor renderer color
-  drawRoundedRect renderer rect (fixRadius rect radius)
+  drawRoundedRect renderer rect radius
   fill renderer
 
 -- | Draws a rect's border, with an optional radius.
@@ -196,7 +196,7 @@ drawRectBorder
 drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
-  drawRectRoundedBorder renderer rect border (fixRadius rect radius)
+  drawRectRoundedBorder renderer rect border radius
 
 -- | Draws a filled arc, delimited by a rect and within the given angles.
 drawArc
@@ -346,9 +346,10 @@ drawStyledAction renderer rect style action = do
     contentRect = removeOuterBounds style rect
 
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
-drawRoundedRect renderer rect Radius{..} =
+drawRoundedRect renderer rect radius =
   let
     Rect _ _ w h = rect
+    Radius{..} = fixRadius rect radius
     midw = min w h / 2
     validTL = min midw (radW _radTopLeft)
     validTR = min midw (radW _radTopRight)
@@ -429,10 +430,16 @@ drawRectRoundedBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
     Border borL borR borT borB = border
-    Radius radTL radTR radBL radBR = radius
+    Radius radTL radTR radBL radBR = fixRadius rect radius
     xr = xl + w
     yb = yt + h
+    hw = w / 2
+    hh = h / 2
     midw = min w h / 2
+    rtl = Rect xl yt hw hh
+    rtr = Rect (xl + hw) yt hw hh
+    rbr = Rect (xl + hw) (yt + hh) hw hh
+    rbl = Rect xl (yt + hh) hw hh
     validTL = min midw (radW radTL)
     validTR = min midw (radW radTR)
     validBR = min midw (radW radBR)
@@ -447,10 +454,10 @@ drawRectRoundedBorder renderer rect border radius =
     xb1 = xl + validBL
   in do
     -- Restrict radius width to min (w/2) (h/2). fixRadius already does that?
-    (lt1, lt2, tl1, tl2) <- drawRoundedCorner renderer CornerTL (p2 xt1 yl1) radTL borL borT
-    (tr1, tr2, rt1, rt2) <- drawRoundedCorner renderer CornerTR (p2 xt2 yr1) radTR borT borR
-    (rb1, rb2, br1, br2) <- drawRoundedCorner renderer CornerBR (p2 xb2 yr2) radBR borR borB
-    (bl1, bl2, lb1, lb2) <- drawRoundedCorner renderer CornerBL (p2 xb1 yl2) radBL borB borL
+    (lt1, lt2, tl1, tl2) <- drawRoundedCorner renderer CornerTL rtl (p2 xt1 yl1) radTL borL borT
+    (tr1, tr2, rt1, rt2) <- drawRoundedCorner renderer CornerTR rtr (p2 xt2 yr1) radTR borT borR
+    (rb1, rb2, br1, br2) <- drawRoundedCorner renderer CornerBR rbr (p2 xb2 yr2) radBR borR borB
+    (bl1, bl2, lb1, lb2) <- drawRoundedCorner renderer CornerBL rbl (p2 xb1 yl2) radBL borB borL
 
     drawQuad renderer lb1 lt1 lt2 lb2 borL
     drawQuad renderer tl1 tr1 tr2 tl2 borT
@@ -460,14 +467,15 @@ drawRectRoundedBorder renderer rect border radius =
 drawRoundedCorner
   :: Renderer
   -> RectCorner
+  -> Rect
   -> Point
   -> Maybe RadiusCorner
   -> Maybe BorderSide
   -> Maybe BorderSide
   -> IO (Point, Point, Point, Point)
-drawRoundedCorner _ _ center _ Nothing Nothing = return points where
+drawRoundedCorner _ _ _ center _ Nothing Nothing = return points where
   points = (center, center, center, center)
-drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
+drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
   beginPath renderer
 
   if color1 == color2
@@ -513,17 +521,18 @@ drawRoundedCorner renderer cor ocenter mrcor ms1 ms2 = do
     cxmax = max ocx icx
     cymin = min ocy icy
     cymax = max ocy icy
+    restrict (p1, p2) = (rectBoundedPoint bounds p1, rectBoundedPoint bounds p2)
     (deg, icenter) = case cor of
       CornerTL -> (270, Point (ocx - orad + w1 + irad) (ocy - orad + w2 + irad))
       CornerTR -> (  0, Point (ocx + orad - w2 - irad) (ocy - orad + w1 + irad))
       CornerBR -> ( 90, Point (ocx + orad - w1 - irad) (ocy + orad - w2 - irad))
       CornerBL -> (180, Point (ocx - orad + w2 + irad) (ocy + orad - w1 - irad))
-    (o1, o2) = case cor of
+    (o1, o2) = restrict $ case cor of
       CornerTL -> (Point (ocx - omax1) cymax, Point cxmax (ocy - omax2))
       CornerTR -> (Point cxmin (ocy - omax2), Point (ocx + omax1) cymax)
       CornerBR -> (Point (ocx + omax1) cymin, Point cxmin (ocy + omax2))
       CornerBL -> (Point cxmax (ocy + omax2), Point (ocx - omax1) cymin)
-    (i1, i2) = case cor of
+    (i1, i2) = restrict $ case cor of
       CornerTL -> (Point (ocx - orad + w1) cymax, Point cxmax (ocy - orad + w2))
       CornerTR -> (Point cxmin (ocy - orad + w1), Point (ocx + orad - w2) cymax)
       CornerBR -> (Point (ocx + orad - w1) cymin, Point cxmin (ocy + orad - w2))

@@ -754,6 +754,7 @@
     - Fix overlapping rect corners (visible with transparent colors).
     - Improve gradient fill location (upper corner instead of lower).
       - Prefer line separator instead of longer gradient. Safer choice.
+    - Fix radius/border size when viewport is smaller.
 
 Next
   - Think about rendering with custom beginFrame for some widgets
