@@ -755,11 +755,14 @@
     - Improve gradient fill location (upper corner instead of lower).
       - Prefer line separator instead of longer gradient. Safer choice.
     - Fix radius/border size when viewport is smaller.
+    - Fix imageRepeatX and imageRepeatY
+      - It was working correctly. Added a minor comment in the widget's doc.
+    - Check missing pixels in borders?
+      - Could not replicate. Issue with top pixel on macOS still remains.
 
 Next
-  - Think about rendering with custom beginFrame for some widgets
-    - Fix imageRepeatX and imageRepeatY
-    - Check missing pixels in borders?
+  - Validate split component works as expected. Code improvements?
+  - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
   - Remove dpr calculations from NanoVGRenderer.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.

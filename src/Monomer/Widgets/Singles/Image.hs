@@ -12,6 +12,8 @@ Notes:
 
 - Depending on the type of image fit chosen and the assigned viewport, some
   space may remain unused. The alignment options exist to handle this situation.
+- If you choose `fitNone`, `imageRepeatX` and `imageRepeatY` won't have any kind
+  of effect.
 
 Configs:
 

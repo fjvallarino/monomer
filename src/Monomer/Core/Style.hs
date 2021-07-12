@@ -400,9 +400,6 @@ instance CmbRadiusBR StyleState where
 radiusCorner :: Double -> RadiusCorner
 radiusCorner rad = RadiusCorner rad
 
-iradiusCorner :: Double -> RadiusCorner
-iradiusCorner rad = RadiusCorner rad
-
 textAlignH :: AlignTH -> TextStyle
 textAlignH align = def & L.alignH ?~ align
 

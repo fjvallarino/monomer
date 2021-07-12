@@ -129,11 +129,10 @@ drawTextLine renderer style textLine = do
   when throughline $ do
     drawLine renderer (Point tx hy) (Point tr hy) lw (Just fontColor)
   where
-    TextLine text size rect glyphs metrics = textLine
+    TextLine text _ rect _ metrics = textLine
     TextMetrics asc desc _ _ = metrics
     Rect tx ty tw th = rect
     tr = tx + tw
-    tb = ty + th
     font = styleFont style
     fontSize = styleFontSize style
     fontColor = styleFontColor style
@@ -390,7 +389,6 @@ drawRectCorner _ _ ocorner Nothing Nothing = return points where
   points = (ocorner, ocorner, ocorner)
 drawRectCorner renderer cor ocorner ms1 ms2 = do
   beginPath renderer
-  setStrokeColor renderer (Color 255 255 255 1)
 
   if color1 == color2
     then setFillColor renderer color1
@@ -403,7 +401,6 @@ drawRectCorner renderer cor ocorner ms1 ms2 = do
   closePath renderer
 
   fill renderer
---  stroke renderer
   return (o1, o2, icorner)
   where
     Point cx cy = ocorner
@@ -501,7 +498,7 @@ drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
   closePath renderer
   fill renderer
 
-  return (p1, p2, p3, p4)
+  return bordersCorners
   where
     Point ocx ocy = ocenter
     Point icx icy = icenter
@@ -537,7 +534,7 @@ drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
       CornerTR -> (Point cxmin (ocy - orad + w1), Point (ocx + orad - w2) cymax)
       CornerBR -> (Point (ocx + orad - w1) cymin, Point cxmin (ocy + orad - w2))
       CornerBL -> (Point cxmax (ocy + orad - w1), Point (ocx - orad + w2) cymin)
-    (p1, p2, p3, p4)
+    bordersCorners
       | round orad == 0 = (o1, icenter, o2, icenter)
       | otherwise = (o1, i1, o2, i2)
     ocorner = Point (o1 ^. L.x) (o2 ^. L.y)

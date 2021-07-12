@@ -166,9 +166,9 @@ assignStackAreas isHorizontal contentArea children = result where
     | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
     | otherwise = 0
   foldHelper (accum, offset) child = (newAccum, newOffset) where
-    newSize = resizeChild isHorizontal contentArea flexCoeff extraCoeff offset child
-    newAccum = accum |> newSize
-    newOffset = offset + rectSelector newSize
+    newRect = resizeChild isHorizontal contentArea flexCoeff extraCoeff offset child
+    newAccum = accum |> newRect
+    newOffset = offset + rectSelector newRect
   (areas, usedDim) = foldl' foldHelper (Seq.empty, mainStart) children
   result = (areas, usedDim - mainStart)
 
