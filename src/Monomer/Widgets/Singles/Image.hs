@@ -356,19 +356,19 @@ makeImage imgSource config state = widget where
       addImage renderer imgPath imgSize imgBytes imgFlags
 
     when imageLoaded $
-      showImage renderer imgPath imgFlags imgSize imgRect imgRadius alpha
+      showImage renderer imgPath imgFlags imgSize carea imgRect imgRadius alpha
     where
       style = activeStyle wenv node
       border = style ^. L.border
       radius = style ^. L.radius
-      contentArea = getContentArea style node
+      carea = getContentArea style node
       alpha = fromMaybe 1 (_imcTransparency config)
-      fitMode = fromMaybe FitNone (_imcFit config)
       alignH = fromMaybe ALeft (_imcAlignH config)
       alignV = fromMaybe ATop (_imcAlignV config)
       imgPath = imgName imgSource
       imgFlags = _imcFlags config
-      imgRect = fitImage contentArea imgSize fitMode alignH alignV
+      imgFit = fromMaybe FitNone (_imcFit config)
+      imgRect = fitImage carea imgSize imgFlags imgFit alignH alignV
       imgRadius = subtractBorderFromRadius border <$> radius
       ImageState _ imgData = state
       imageLoaded = isJust imgData
@@ -380,29 +380,40 @@ showImage
   -> [ImageFlag]
   -> Size
   -> Rect
+  -> Rect
   -> Maybe Radius
   -> Double
   -> IO ()
-showImage renderer imgPath imgFlags imgSize rect radius alpha = do
-  beginPath renderer
-  setFillImagePattern renderer imgPath topLeft size angle alpha
-  drawRoundedRect renderer rect (fromMaybe def radius)
-  fill renderer
+showImage renderer imgPath imgFlags imgSize vp rect radius alpha =
+  when (isJust targetRect) $ do
+    beginPath renderer
+    setFillImagePattern renderer imgPath topLeft size angle alpha
+    drawRoundedRect renderer (fromJust targetRect) (fromMaybe def radius)
+    fill renderer
   where
     Rect x y w h = rect
     Size dw dh = imgSize
-    iw = if ImageRepeatX `elem` imgFlags then dw else w
-    ih = if ImageRepeatY `elem` imgFlags then dh else h
+    targetRect = intersectRects vp rect
+    iw
+      | ImageRepeatX `elem` imgFlags = dw
+      | otherwise = w
+    ih
+      | ImageRepeatY `elem` imgFlags = dh
+      | otherwise = h
     topLeft = Point x y
     size = Size iw ih
     angle = 0
 
-fitImage :: Rect -> Size -> ImageFit -> AlignH -> AlignV -> Rect
-fitImage viewport imageSize fitMode alignH alignV = case fitMode of
+fitImage :: Rect -> Size -> [ImageFlag] -> ImageFit -> AlignH -> AlignV -> Rect
+fitImage viewport imageSize imgFlags imgFit alignH alignV = case imgFit of
   FitNone -> alignImg iw ih
   FitFill -> alignImg w h
-  FitWidth -> alignImg w (w * ih / iw)
-  FitHeight -> alignImg (h * iw / ih) h
+  FitWidth
+    | ImageRepeatY `elem` imgFlags -> alignImg w ih
+    | otherwise -> alignImg w (w * ih / iw)
+  FitHeight
+    | ImageRepeatX `elem` imgFlags -> alignImg iw h
+    | otherwise -> alignImg (h * iw / ih) h
   where
     Rect x y w h = viewport
     Size iw ih = imageSize

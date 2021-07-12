@@ -759,6 +759,7 @@
       - It was working correctly. Added a minor comment in the widget's doc.
     - Check missing pixels in borders?
       - Could not replicate. Issue with top pixel on macOS still remains.
+  - Fix fitHeight going out of borders.
 
 Next
   - Validate split component works as expected. Code improvements?

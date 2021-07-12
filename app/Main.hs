@@ -145,14 +145,14 @@ handleAppEvent wenv node model evt = case evt of
   _ -> []
 
 buildUI :: WidgetEnv App AppEvent -> App -> WidgetNode App AppEvent
-buildUI wenv model = traceShow "Creating UI" widgetImgTest where
+buildUI wenv model = traceShow "Creating UI" widgetTree where
   widgetSizes = vgrid [
       hgrid [spacer `style` [bgColor darkGray], label "Test" `style` [textUnderline, border 1 violet, radius 50]],
       hgrid [spacer `style` [bgColor darkBlue], label "Test" `style` [textUnderline, border 1 salmon, radius 50]]
     ]
   --widgetImgTest = vstack [hstack [widgetImgTest2]] `style` [border 40 (green & L.a .~ 0.5), borderL 50 (orange & L.a .~ 0.5), borderT 20 (orange & L.a .~ 0.5), borderB 20 (green & L.a .~ 0.5), radius 30, radiusTL 0, radiusBL 40, radiusBR 50]
   widgetImgTest = vstack [hstack [widgetImgTest2]] `style` [border 40 (green & L.a .~ 0.5), borderL 100 (orange & L.a .~ 0.5), borderT 20 (blue & L.a .~ 0.5), borderB 20 (violet & L.a .~ 0.5)]
-  widgetImgTest2 = image_ "assets/images/pecans.jpg" [fitWidth, imageRepeatX, imageRepeatY, onLoadError ImageMsg]
+  widgetImgTest2 = image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX, imageRepeatY, onLoadError ImageMsg]
     `style` [bgColor orange, border 10 red, borderL 40 green, radius 60]
     --(pink & L.a .~ 0.5)
 --    `style` [bgColor green, width 60, height 60, radius 30]
