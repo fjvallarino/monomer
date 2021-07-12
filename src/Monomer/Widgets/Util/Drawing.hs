@@ -450,7 +450,6 @@ drawRectRoundedBorder renderer rect border radius =
     yl2 = yb - validBL
     xb1 = xl + validBL
   in do
-    -- Restrict radius width to min (w/2) (h/2). fixRadius already does that?
     (lt1, lt2, tl1, tl2) <- drawRoundedCorner renderer CornerTL rtl (p2 xt1 yl1) radTL borL borT
     (tr1, tr2, rt1, rt2) <- drawRoundedCorner renderer CornerTR rtr (p2 xt2 yr1) radTR borT borR
     (rb1, rb2, br1, br2) <- drawRoundedCorner renderer CornerBR rbr (p2 xb2 yr2) radBR borR borB
@@ -485,7 +484,7 @@ drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
 
   renderLineTo renderer o1
 
-  if round irad > 0
+  if round orad > 0 && round irad > 0
     then do
       renderLineTo renderer i1
       renderArc renderer icenter irad (deg - 90) deg CW
@@ -589,6 +588,6 @@ radW r = _rcrWidth (fromMaybe def r)
 fixRadius :: Rect -> Radius -> Radius
 fixRadius (Rect _ _ w h) (Radius tl tr bl br) = newRadius where
   fixC (RadiusCorner cwidth)
-    | cwidth * 2 < min w h = RadiusCorner cwidth
+    | cwidth < min w h / 2= RadiusCorner cwidth
     | otherwise = RadiusCorner (min w h / 2)
   newRadius = Radius (fixC <$> tl) (fixC <$> tr) (fixC <$> bl) (fixC <$> br)
