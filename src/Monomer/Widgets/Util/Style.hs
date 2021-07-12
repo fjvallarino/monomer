@@ -202,8 +202,10 @@ handleStyleChange
   -> Maybe (WidgetResult s e)  -- ^ The result containing the new node.
   -> Maybe (WidgetResult s e)  -- ^ The updated result.
 handleStyleChange wenv target style doCursor node evt result = newResult where
-  newResult = handleSizeChange wenv target evt node result
-    & handleCursorChange wenv target evt style node
+  tmpResult = handleSizeChange wenv target evt node result
+  newResult
+    | doCursor = handleCursorChange wenv target evt style node tmpResult
+    | otherwise = tmpResult
 
 {-|
 Replacement of activeStyle for child widgets embedded in a focusable parent. It
