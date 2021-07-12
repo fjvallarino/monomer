@@ -172,7 +172,7 @@ makeSplit isHorizontal config state = widget where
     containerResize = resize
   }
 
-  handleW = fromMaybe 3 (_spcHandleSize config)
+  handleW = fromMaybe 5 (_spcHandleSize config)
 
   init wenv node = result where
     useModelValue value = resultNode newNode where
