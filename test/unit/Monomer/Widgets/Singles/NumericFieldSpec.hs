@@ -171,25 +171,25 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
   it "should drag upwards 100 pixels, setting the value to 100" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` 100
 
   it "should drag downwards 100 pixels, setting the value to -200 (dragRate = 2)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 150
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` -200
 
   it "should drag downwards 1000 pixels, staying at -500 (the minimum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 1050
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` -500
 
   it "should drag upwnwards 1000 pixels, staying at 500 (the maximum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 (-950)
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` 500
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
@@ -197,8 +197,8 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
     let selMid = Point 50 60
     let selEnd = Point 50 50
     let steps = [
-          evtPress selStart, evtMove selMid, evtReleaseDrag selMid,
-          evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd
+          evtPress selStart, evtMove selMid, evtRelease selMid,
+          evtPress selStart, evtMove selEnd, evtRelease selEnd
           ]
     model steps ^. integralValue `shouldBe` -50
 
@@ -385,13 +385,13 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
   it "should drag upwards 100 pixels, setting the value to 10" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. fractionalValue `shouldBe` Just 10
 
   it "should drag downwards 100 pixels, setting the value to -20 (dragRate = 0.2)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 150
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. fractionalValue `shouldBe` Just (-20)
 
   it "should drag downwards 30 and 20 pixels, setting the value to -5" $ do
@@ -399,8 +399,8 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
     let selMid = Point 50 60
     let selEnd = Point 50 50
     let steps = [
-          evtPress selStart, evtMove selMid, evtReleaseDrag selMid,
-          evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd
+          evtPress selStart, evtMove selMid, evtRelease selMid,
+          evtPress selStart, evtMove selEnd, evtRelease selEnd
           ]
     model steps ^. fractionalValue `shouldBe` Just (-5)
 

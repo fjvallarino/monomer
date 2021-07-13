@@ -180,25 +180,25 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
   it "should drag upwards 100 pixels, setting the value to 10/06/1989" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` fromGregorian 1989 06 10
 
   it "should drag downwards 100 pixels, setting the value to 14/08/1988 (dragRate = 2)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 150
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` fromGregorian 1988 08 14
 
   it "should drag downwards 10000 pixels, staying at minDate (the minimum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 10050
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` minDate
 
   it "should drag upwnwards 10000 pixels, staying at maxDate (the maximum)" $ do
     let selStart = Point 50 50
     let selEnd = Point 50 (-1950)
-    let steps = [evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd]
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` maxDate
 
   it "should drag downwards 30 and 20 pixels, setting the value to 11/01/1989" $ do
@@ -206,8 +206,8 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
     let selMid = Point 50 60
     let selEnd = Point 50 50
     let steps = [
-          evtPress selStart, evtMove selMid, evtReleaseDrag selMid,
-          evtPress selStart, evtMove selEnd, evtReleaseDrag selEnd
+          evtPress selStart, evtMove selMid, evtRelease selMid,
+          evtPress selStart, evtMove selEnd, evtRelease selEnd
           ]
     model steps ^. dateValue `shouldBe` fromGregorian 1989 01 11
 
