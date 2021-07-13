@@ -9,8 +9,6 @@ Portability : non-portable
 Utility functions for event handling.
 -}
 module Monomer.Event.Util (
-  isButtonPressed,
-  getKeyStatus,
   isShiftPressed,
   isCtrlPressed,
   isAltPressed,
@@ -38,18 +36,6 @@ import qualified Data.Map as M
 import Monomer.Event.Core
 import Monomer.Event.Keyboard
 import Monomer.Event.Types
-
--- | Checks if the given button is pressed.
-isButtonPressed :: InputStatus -> Button -> Bool
-isButtonPressed inputStatus button = status == BtnPressed where
-  currentStatus = M.lookup button (_ipsButtons inputStatus)
-  status = fromMaybe BtnReleased currentStatus
-
--- | Gets the status of the given key.
-getKeyStatus :: InputStatus -> KeyCode -> KeyStatus
-getKeyStatus inputStatus code = status where
-  keys = _ipsKeys inputStatus
-  status = fromMaybe KeyReleased (M.lookup code keys)
 
 -- | Checks if Winddows/Cmd key is pressed.
 isGUIPressed :: KeyMod -> Bool
