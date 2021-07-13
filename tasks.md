@@ -760,11 +760,18 @@
     - Check missing pixels in borders?
       - Could not replicate. Issue with top pixel on macOS still remains.
   - Fix fitHeight going out of borders.
+  - Validate split component works as expected.
+    - Issue was on handleStyleChange, which ignored doCursor argument.
 
 Next
-  - Validate split component works as expected. Code improvements?
   - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
+    - Will use shift to differentiate. Makes the widget more predictable and simplifies config
+    - evtReleaseDrag?
+    - Caret width and ms should be configurable (on textArea too).
+    - Line height?
+  - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.
+    - When testing Windows/Linux, check if scroll rate needs to be adjusted.
   - Document themes and how widgets use them.
   - Avoid building examples when used as a library.
   - Create ContextMenu (could work similarly to Tooltip).

@@ -191,7 +191,6 @@ textFieldD_ widgetData configs = inputField where
     _ifcDefWidth = 100,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
-    _ifcSelectDragOnlyFocused = False,
     _ifcStyle = Just L.textFieldStyle,
     _ifcWheelHandler = Nothing,
     _ifcDragHandler = Nothing,

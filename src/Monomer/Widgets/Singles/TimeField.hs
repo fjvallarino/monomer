@@ -14,7 +14,7 @@ Maybe is also supported.
 
 Supports different time formats.
 
-Handles mouse wheel and vertical drag to increase/decrease minutes.
+Handles mouse wheel and shift + vertical drag to increase/decrease minutes.
 
 Configs:
 
@@ -335,7 +335,6 @@ timeFieldD_ widgetData configs = newNode where
     _ifcDefWidth = 160,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_tfcSelectOnFocus config),
-    _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.timeFieldStyle,
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),

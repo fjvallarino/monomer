@@ -14,7 +14,7 @@ module Monomer.TestUtil where
 
 import Control.Concurrent (newMVar)
 import Control.Concurrent.STM.TChan (newTChanIO)
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (.~), (.=))
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
@@ -279,9 +279,11 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
   channel <- liftIO newTChanIO
 
   fmap fst $ flip runStateT (monomerCtx channel) $ do
+    L.inputStatus .= wenv ^. L.inputStatus
+    handleResourcesInit
+
     stepA <- if init == WInit
       then do
-        handleResourcesInit
         handleWidgetInit wenv pathReadyRoot
       else
         return (wenv, pathReadyRoot, Seq.empty)
@@ -331,6 +333,9 @@ nodeHandleResult wenv result = unsafePerformIO $ do
   let monomerCtx = initMonomerCtx undefined channel winSize dpr epr model
 
   flip runStateT monomerCtx $ do
+    L.inputStatus .= wenv ^. L.inputStatus
+    handleResourcesInit
+
     handleWidgetResult wenv True result
 
 roundRectUnits :: Rect -> Rect

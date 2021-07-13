@@ -406,8 +406,12 @@ handleSetCursorIcon
 handleSetCursorIcon wid icon previousStep = do
   cursors <- use L.cursorStack >>= dropNonParentWidgetId wid
   L.cursorStack .= (wid, icon) : cursors
-  cursor <- (Map.! icon) <$> use L.cursorIcons
-  SDLE.setCursor cursor
+  cursor <- Map.lookup icon <$> use L.cursorIcons
+
+  when (isNothing cursor) $
+    liftIO . putStrLn $ "Invalid handleSetCursorIcon: " ++ show icon
+
+  forM_ cursor SDLE.setCursor
 
   return previousStep
 
@@ -818,10 +822,13 @@ restoreCursorOnWindowEnter = do
   let windowRect = Rect 0 0 ww wh
   let prevInside = pointInRect (status ^. L.mousePosPrev) windowRect
   let currInside = pointInRect (status ^. L.mousePos) windowRect
-  let sdlCursor = cursorIcons Map.! snd (fromJust cursorPair)
+  let sdlCursor = cursorPair >>= (`Map.lookup` cursorIcons) . snd
 
-  when (not prevInside && currInside && isJust cursorPair) $ do
-    SDLE.setCursor sdlCursor
+  when (isNothing sdlCursor && isJust cursorPair) $
+    liftIO. putStrLn $ "Invalid restoreCursorOnWindowEnter: " ++ show cursorPair
+
+  when (not prevInside && currInside && isJust sdlCursor) $ do
+    SDLE.setCursor (fromJust sdlCursor)
 
 getTargetPath
   :: WidgetEnv s e

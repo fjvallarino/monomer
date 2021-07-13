@@ -11,7 +11,7 @@ Input field for numeric types.
 Supports instances of the 'FromFractional' typeclass. Several basic types are
 implemented, both for integer and floating point types.
 
-Handles mouse wheel and vertical drag to increase/decrease the number.
+Handles mouse wheel and shift + vertical drag to increase/decrease the number.
 
 Configs:
 
@@ -309,7 +309,6 @@ numericFieldD_ widgetData configs = newNode where
     _ifcDefWidth = defWidth,
     _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
-    _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.numericFieldStyle,
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),

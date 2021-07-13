@@ -14,7 +14,7 @@ is also supported.
 
 Supports different date formats and separators.
 
-Handles mouse wheel and vertical drag to increase/decrease days.
+Handles mouse wheel and shift + vertical drag to increase/decrease days.
 
 Configs:
 
@@ -357,7 +357,6 @@ dateFieldD_ widgetData configs = newNode where
     _ifcDefWidth = 160,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_dfcSelectOnFocus config),
-    _ifcSelectDragOnlyFocused = True,
     _ifcStyle = Just L.dateFieldStyle,
     _ifcWheelHandler = Just (handleWheel config),
     _ifcDragHandler = Just (handleDrag config),

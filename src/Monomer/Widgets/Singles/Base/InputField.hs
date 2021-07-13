@@ -7,8 +7,8 @@ Stability   : experimental
 Portability : non-portable
 
 Base single line text editing field. Extensible for handling specific textual
-representations of other types, such as numbers and dates. It is not for direct
-use, but to create custom widgets using it.
+representations of other types, such as numbers and dates. It is not meant for
+direct use, but to create custom widgets using it.
 
 See 'NumericField', 'DateField' and 'TimeField'.
 -}
@@ -27,7 +27,7 @@ module Monomer.Widgets.Singles.Base.InputField (
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Lens
-  (ALens', (&), (.~), (?~), (%~), (^.), (^?), _Just, cloneLens, non)
+  (ALens', (&), (.~), (?~), (%~), (^.), (^?), _2, _Just, cloneLens, non)
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -90,8 +90,6 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcResizeOnChange :: Bool,
   -- | If all input should be selected when focus is received.
   _ifcSelectOnFocus :: Bool,
-  -- | If drag selection should only be enabled when input is already focused.
-  _ifcSelectDragOnlyFocused :: Bool,
   -- | Conversion from text to the expected value. Failure returns Nothing.
   _ifcFromText :: Text -> Maybe a,
   -- | Conversion from a value to text. Cannot fail.
@@ -156,8 +154,6 @@ data InputFieldState a = InputFieldState {
   _ifsCursorPos :: !Int,
   -- | The selection start. Once selection begins, it doesn't change until done.
   _ifsSelStart :: Maybe Int,
-  -- | Whether a drag event is active.
-  _ifsDragSelActive :: Bool,
   -- | The value when drag event started.
   _ifsDragSelValue :: a,
   -- | The glyphs of the current text.
@@ -182,7 +178,6 @@ initialState value = InputFieldState {
   _ifsGlyphs = Seq.empty,
   _ifsCursorPos = 0,
   _ifsSelStart = Nothing,
-  _ifsDragSelActive = False,
   _ifsDragSelValue = value,
   _ifsOffset = 0,
   _ifsTextRect = def,
@@ -244,14 +239,9 @@ makeInputField config state = widget where
   toText = _ifcToText config
   getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
   -- Mouse select handling options
-  selectDragOnlyFocused = _ifcSelectDragOnlyFocused config
   wheelHandler = _ifcWheelHandler config
   dragHandler = _ifcDragHandler config
   dragCursor = _ifcDragCursor config
-  dragSelActive
-    = _ifsDragSelActive state
-    || not selectDragOnlyFocused
-    || isNothing dragHandler
 
   getBaseStyle wenv node = _ifcStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
@@ -402,18 +392,6 @@ makeInputField config state = widget where
         | otherwise = idx
 
   handleEvent wenv node target evt = case evt of
-    Enter point -> Just (resultReqs node reqs) where
-      cursorIcon
-        | dragSelActive = CursorIBeam
-        | otherwise = fromMaybe CursorArrow dragCursor
-      reqs = [SetCursorIcon widgetId cursorIcon]
-
-    -- Enter regular edit mode if widget has custom drag handler
-    Click point btn clicks
-      | dragHandleExt btn && clicks == 2 -> Just (resultReqs node reqs) where
-        focusReq = [SetFocus widgetId | not (isNodeFocused wenv node)]
-        reqs = SetCursorIcon widgetId CursorIBeam : focusReq
-
     -- Begin regular text selection
     ButtonAction point btn BtnPressed clicks
       | dragSelectText btn && clicks == 1 -> Just result where
@@ -467,7 +445,7 @@ makeInputField config state = widget where
 
     -- Handle regular text selection
     Move point
-      | isNodePressed wenv node && dragSelActive -> Just result where
+      | isNodePressed wenv node && not shiftPressed -> Just result where
         style = activeStyle wenv node
         contentArea = getContentArea style node
         newPos = findClosestGlyphPos state point
@@ -475,16 +453,20 @@ makeInputField config state = widget where
         newState = newFieldState currVal currText newPos newSel
         newNode = node
           & L.widget .~ makeInputField config newState
-        result = resultReqs newNode [RenderOnce]
+        result = resultReqs newNode (RenderOnce : changeCursorReq validCursor)
 
     -- Handle custom drag
     Move point
-      | isNodePressed wenv node && not dragSelActive -> Just result where
+      | isNodePressed wenv node && shiftPressed -> Just result where
         (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
         handlerRes = fromJust dragHandler state stPoint point
         (newText, newPos, newSel) = handlerRes
-        reqs = [RenderOnce]
+        reqs = RenderOnce : changeCursorReq validCursor
         result = genInputResult wenv node True newText newPos newSel reqs
+
+    -- Sets the correct cursor icon
+    Move point -> Just (resultReqs node reqs) where
+      reqs = changeCursorReq validCursor
 
     -- Handle wheel
     WheelScroll point move dir
@@ -494,6 +476,7 @@ makeInputField config state = widget where
         reqs = [RenderOnce]
         result = genInputResult wenv node True newText newPos newSel reqs
 
+    -- Handle keyboard shortcuts and possible cursor changes
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
           -> Just $ resultReqs node [SetClipboard (ClipboardText selectedText)]
@@ -502,10 +485,22 @@ makeInputField config state = widget where
       | isKeyboardCut wenv evt -> cutTextRes wenv node
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
-      | otherwise -> fmap handleKeyRes keyRes where
+      | otherwise -> fmap handleKeyRes keyRes <|> cursorRes where
           keyRes = handleKeyPress wenv mod code
           handleKeyRes (newText, newPos, newSel) = result where
             result = genInputResult wenv node False newText newPos newSel []
+          cursorReq = changeCursorReq validCursor
+          cursorRes
+            | not (null cursorReq) = Just (resultReqs node cursorReq)
+            | otherwise = Nothing
+
+    -- Handle possible cursor reset
+    KeyAction mod code KeyReleased
+      | (pressed || hovered) && not (null reqs) -> result where
+        pressed = isNodePressed wenv node
+        hovered = isNodeHovered wenv node
+        reqs = changeCursorReq validCursor
+        result = Just (resultReqs node reqs)
 
     -- Text input has unicode already processed (it's not the same as KeyAction)
     TextInput newText -> result where
@@ -517,43 +512,47 @@ makeInputField config state = widget where
 
     -- Handle focus, maybe select all and disable custom drag handlers
     Focus prev -> Just result where
-      tmpState
+      newState
         | _ifcSelectOnFocus config && T.length currText > 0 = state {
             _ifsSelStart = Just 0,
             _ifsCursorPos = T.length currText
           }
         | otherwise = state
-      newState = tmpState { _ifsDragSelActive = True }
+      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newNode = node
         & L.widget .~ makeInputField config newState
-      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs newNode reqs
       focusRs = handleFocusChange (_ifcOnFocusReq config) prev newNode
       result = maybe newResult (newResult <>) focusRs
 
     -- Handle blur and disable custom drag handlers
     Blur next -> Just result where
-      newState = state { _ifsDragSelActive = False }
-      newNode = node & L.widget .~ makeInputField config newState
       reqs = [RenderStop widgetId, StopTextInput]
-      newResult = resultReqs newNode reqs
-      blurResult = handleFocusChange (_ifcOnBlurReq config) next newNode
+      newResult = resultReqs node reqs
+      blurResult = handleFocusChange (_ifcOnBlurReq config) next node
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing
     where
-      path = node ^. L.info . L.path
       widgetId = node ^. L.info . L.widgetId
       viewport = node ^. L.info . L.viewport
-      focused = isNodeFocused wenv node
       newFieldState = newTextState wenv node state config
+      shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       dragSelectText btn
         = wenv ^. L.mainButton == btn
-        && dragSelActive
+        && not shiftPressed
       dragHandleExt btn
         = wenv ^. L.mainButton == btn
-        && not dragSelActive
-        && not focused
+        && shiftPressed
+        && isJust dragHandler
+      validCursor
+        | not shiftPressed = CursorIBeam
+        | otherwise = fromMaybe CursorArrow dragCursor
+      changeCursorReq newCursor = reqs where
+        cursorMatch = wenv ^? L.cursor . _Just . _2 == Just newCursor
+        reqs
+          | not cursorMatch = [SetCursorIcon widgetId newCursor]
+          | otherwise = []
 
   insertTextRes wenv node addedText = Just result where
     addedLen = T.length addedText

@@ -202,20 +202,27 @@ handleEventMouseDragIntegral = describe "handleEventMouseDragIntegral" $ do
           ]
     model steps ^. integralValue `shouldBe` -50
 
-  it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
+  it "should set focus and drag upwards 100 pixels, but value stay at 0 since shift is not pressed" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. integralValue `shouldBe` 0
 
-  it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
+  it "should set focus and drag upwards 100 pixels, setting the value to 100 since shift is pressed" $ do
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtKS keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. integralValue `shouldBe` 100
+
+  it "should drag upwards 100 pixels, setting the value to 100 even if it was double clicked on" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. integralValue `shouldBe` 0
+    model steps ^. integralValue `shouldBe` 100
 
   where
     wenv = mockWenv (IntegralModel 0 False)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
     integralNode = vstack [
         button "Test" (IntegralChanged 0), -- Used only to have focus
         numericField integralValue,
@@ -397,20 +404,27 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
           ]
     model steps ^. fractionalValue `shouldBe` Just (-5)
 
-  it "should drag upwards 100 pixels, but value stay at 0 since it has focus" $ do
+  it "should drag upwards 100 pixels, but value stay at 0 since shift is not pressed" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. fractionalValue `shouldBe` Just 0
 
-  it "should drag upwards 100 pixels, but value stay at 0 since it was double clicked on" $ do
+  it "should drag upwards 100 pixels, setting the value to 10 since shift not pressed" $ do
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtKS keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. fractionalValue `shouldBe` Just 10
+
+  it "should drag upwards 100 pixels, setting the value to 10 even if it was double clicked on" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. fractionalValue `shouldBe` Just 0
+    model steps ^. fractionalValue `shouldBe` Just 10
 
   where
     wenv = mockWenv (FractionalModel (Just 0) False)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
     floatNode = vstack [
         button "Test" (FractionalChanged (Just 0)), -- Used only to have focus
         numericField fractionalValue,

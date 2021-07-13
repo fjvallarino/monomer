@@ -211,23 +211,30 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
           ]
     model steps ^. dateValue `shouldBe` fromGregorian 1989 01 11
 
-  it "should drag upwards 100 pixels, but value stay at midDate since it has focus" $ do
+  it "should set focus and drag upwards 100 pixels, but value stay at midDate since shift is not pressed" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. dateValue `shouldBe` midDate
 
-  it "should drag upwards 100 pixels, but value stay at midDate since it was double clicked on" $ do
+  it "should set focus and drag upwards 100 pixels, setting the value to 10/06/1989 since shift is pressed" $ do
+    let selStart = Point 50 30
+    let selEnd = Point 50 (-70)
+    let steps = [evtKS keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. dateValue `shouldBe` fromGregorian 1989 06 10
+
+  it "should drag upwards 100 pixels, setting the value to 10/06/1989 even if it was double clicked on" $ do
     let selStart = Point 50 30
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. dateValue `shouldBe` midDate
+    model steps ^. dateValue `shouldBe` fromGregorian 1989 06 10
 
   where
     minDate = fromGregorian 1980 01 01
     midDate = fromGregorian 1989 03 02
     maxDate = fromGregorian 1995 03 05
     wenv = mockWenv (DateModel midDate True)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
     dateNode = vstack [
         button "Test" (DateChanged midDate), -- Used only to have focus
         dateField dateValue,

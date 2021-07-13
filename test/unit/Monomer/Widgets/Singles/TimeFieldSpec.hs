@@ -211,27 +211,43 @@ handleEventMouseDragTime = describe "handleEventMouseDragTime" $ do
           ]
     model steps ^. timeValue `shouldBe` TimeOfDay 14 30 15
 
-  it "should drag upwards 100 pixels, but value stay at midTime since it has focus" $ do
-    let selStart = Point 50 30
+  it "should set focus and drag upwards 100 pixels, but value stay at midTime since shift is not pressed" $ do
+    let selStart = Point 50 50
     let selEnd = Point 50 (-70)
     let steps = [evtK keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
     model steps ^. timeValue `shouldBe` midTime
 
-  it "should drag upwards 100 pixels, but value stay at midTime since it was double clicked on" $ do
-    let selStart = Point 50 30
+  it "should set focus and drag upwards 100 pixels, setting the value to 18:50:15 since shift is pressed" $ do
+    let selStart = Point 50 50
+    let selEnd = Point 50 (-70)
+    let steps = [evtKS keyTab, evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. timeValue `shouldBe` TimeOfDay 18 50 15
+
+  it "should drag upwards 100 pixels, setting the value to 18:50:15 even if it was double clicked on" $ do
+    let selStart = Point 50 50
     let selEnd = Point 50 (-70)
     let steps = [evtDblClick selStart, evtPress selStart, evtMove selEnd, evtRelease selEnd]
-    model steps ^. timeValue `shouldBe` midTime
+    model steps ^. timeValue `shouldBe` TimeOfDay 18 50 15
+
+  it "should generate a focus event when clicked" $ do
+    let p = Point 50 50
+    -- Presses a key to reset the shift = true state
+    evts [evtK keyA, evtPress p] `shouldBe` Seq.singleton (GotFocus (Seq.fromList [0, 0]))
+
+  it "should not generate a focus event when clicked if shift is pressed" $ do
+    let p = Point 50 50
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
 
   where
     minTime = TimeOfDay 01 20 30
     midTime = TimeOfDay 14 50 15
     maxTime = TimeOfDay 23 40 50
     wenv = mockWenv (TimeModel midTime True)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
     timeNode = vstack [
         button "Test" (TimeChanged midTime), -- Used only to have focus
         timeField timeValue,
-        timeField_ timeValue [dragRate 2, minValue minTime, maxValue maxTime, timeFormatHHMMSS]
+        timeField_ timeValue [dragRate 2, minValue minTime, maxValue maxTime, timeFormatHHMMSS, onFocus GotFocus]
       ]
     evts es = nodeHandleEventEvts wenv es timeNode
     model es = nodeHandleEventModel wenv es timeNode
