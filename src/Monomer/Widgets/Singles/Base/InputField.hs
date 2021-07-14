@@ -673,7 +673,7 @@ textOffsetY (TextMetrics ta td tl tlx) style = offset where
 renderContent :: Renderer -> InputFieldState a -> StyleState -> Text -> IO ()
 renderContent renderer state style currText = do
   setFillColor renderer tsFontColor
-  renderText renderer textPos tsFont tsFontSize currText
+  renderText renderer textPos tsFont tsFontSize tsFontSpacing currText
   where
     Rect tx ty tw th = _ifsTextRect state
     textMetrics = _ifsTextMetrics state
@@ -681,6 +681,7 @@ renderContent renderer state style currText = do
     textStyle = fromMaybe def (_sstText style)
     tsFont = styleFont style
     tsFontSize = styleFontSize style
+    tsFontSpacing = styleFontSpacing style
     tsFontColor = styleFontColor style
 
 getCaretH :: InputFieldState a -> Double
@@ -701,7 +702,7 @@ getCaretRect config state style carea = caretRect where
   glyphs = _ifsGlyphs state
   pos = _ifsCursorPos state
   caretPos
-    | pos == 0 = 0
+    | pos == 0 || null glyphs = 0
     | pos >= length glyphs = _glpXMax (seqLast glyphs)
     | otherwise = _glpXMin (Seq.index glyphs pos)
   caretX tx = max 0 $ min (cx + cw - caretW) (tx + caretPos)

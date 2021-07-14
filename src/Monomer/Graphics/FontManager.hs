@@ -16,6 +16,7 @@ module Monomer.Graphics.FontManager (
 
 import Control.Monad (foldM, when)
 
+import Data.Default
 import Data.Sequence (Seq)
 import Data.Text (Text)
 import System.IO.Unsafe
@@ -44,7 +45,7 @@ makeFontManager fonts dpr = do
 newManager :: FMContext -> Double -> FontManager
 newManager ctx dpr = FontManager {..} where
   computeTextMetrics font fontSize = unsafePerformIO $ do
-    setFont ctx dpr font fontSize
+    setFont ctx dpr font fontSize def
     (asc, desc, lineh) <- fmTextMetrics ctx
     lowerX <- Seq.lookup 0 <$> fmTextGlyphPositions ctx 0 0 "x"
     let heightLowerX = case lowerX of
@@ -58,8 +59,8 @@ newManager ctx dpr = FontManager {..} where
       _txmLowerX = realToFrac heightLowerX / dpr
     }
 
-  computeTextSize font fontSize text = unsafePerformIO $ do
-    setFont ctx dpr font fontSize
+  computeTextSize font fontSize fontSpacing text = unsafePerformIO $ do
+    setFont ctx dpr font fontSize fontSpacing
     (x1, y1, x2, y2) <- if text /= ""
       then fmTextBounds ctx 0 0 text
       else do
@@ -68,8 +69,8 @@ newManager ctx dpr = FontManager {..} where
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  computeGlyphsPos font fontSize text = unsafePerformIO $ do
-    setFont ctx dpr font fontSize
+  computeGlyphsPos font fontSize fontSpacing text = unsafePerformIO $ do
+    setFont ctx dpr font fontSize fontSpacing
     glyphs <- if text /= ""
       then fmTextGlyphPositions ctx 0 0 text
       else return Seq.empty
@@ -94,7 +95,8 @@ loadFont ctx fonts (FontDef name path) = do
     then return $ path : fonts
     else putStrLn ("Failed to load font: " ++ T.unpack name) >> return fonts
 
-setFont :: FMContext -> Double -> Font -> FontSize -> IO ()
-setFont ctx dpr (Font name) (FontSize size) = do
+setFont :: FMContext -> Double -> Font -> FontSize -> FontSpacing -> IO ()
+setFont ctx dpr (Font name) (FontSize size) (FontSpacing spacing) = do
   fmFontFace ctx name
   fmFontSize ctx $ realToFrac $ size * dpr
+  fmTextLetterSpacing ctx $ realToFrac $ spacing * dpr

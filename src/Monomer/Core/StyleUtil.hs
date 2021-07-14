@@ -18,6 +18,7 @@ module Monomer.Core.StyleUtil (
   disabled,
   styleFont,
   styleFontSize,
+  styleFontSpacing,
   styleFontColor,
   styleTextAlignH,
   styleTextAlignV,
@@ -138,6 +139,11 @@ styleFont style = fromMaybe def font where
 styleFontSize :: StyleState -> FontSize
 styleFontSize style = fromMaybe def fontSize where
   fontSize = style ^? L.text . _Just . L.fontSize . _Just
+
+-- | Returns the font spacing of the given style state, or the default.
+styleFontSpacing :: StyleState -> FontSpacing
+styleFontSpacing style = fromMaybe def fontSpacing where
+  fontSpacing = style ^? L.text . _Just . L.fontSpacing . _Just
 
 -- | Returns the font color of the given style state, or the default.
 styleFontColor :: StyleState -> Color

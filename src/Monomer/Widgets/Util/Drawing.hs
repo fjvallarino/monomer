@@ -118,7 +118,7 @@ drawTextLine
   -> IO ()       -- ^ The resulting action.
 drawTextLine renderer style textLine = do
   setFillColor renderer fontColor
-  renderText renderer txtOrigin font fontSize text
+  renderText renderer txtOrigin font fontSize fontSpacing text
 
   when underline $ do
     drawLine renderer (Point tx uy) (Point tr uy) lw (Just fontColor)
@@ -135,6 +135,7 @@ drawTextLine renderer style textLine = do
     tr = tx + tw
     font = styleFont style
     fontSize = styleFontSize style
+    fontSpacing = styleFontSpacing style
     fontColor = styleFontColor style
     alignV = styleTextAlignV style
     underline = style ^?! L.text . non def . L.underline . non False

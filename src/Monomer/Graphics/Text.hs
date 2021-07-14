@@ -83,15 +83,16 @@ calcTextRect
   :: FontManager  -- ^ The font manager.
   -> Rect         -- ^ The base rect. The result may be larger.
   -> Font         -- ^ The font to use.
-  -> FontSize     -- ^ THe font size.
+  -> FontSize     -- ^ The font size.
+  -> FontSpacing  -- ^ The font spacing.
   -> AlignTH      -- ^ The horizontal alignment.
   -> AlignTV      -- ^ The vertical alignment.
   -> Text         -- ^ The text to calculate.
   -> Rect         -- ^ The output rect.
-calcTextRect fontMgr containerRect font fontSize ha va text = textRect where
+calcTextRect fontMgr containerRect font fSize fSpc ha va text = textRect where
   Rect x y w h = containerRect
-  Size tw _ = computeTextSize fontMgr font fontSize text
-  TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fontSize
+  Size tw _ = computeTextSize fontMgr font fSize fSpc text
+  TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fSize
   tx | ha == ATLeft = x
      | ha == ATCenter = x + (w - tw) / 2
      | otherwise = x + (w - tw)
@@ -145,7 +146,7 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
   isMultiline = mode == MultiLine
   ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. w > cw
   newLines
-    | isMultiline = fitTextLinesToH fontMgr style ovf cw maxH textLinesW
+    | isMultiline = fitLinesToH fontMgr style ovf cw maxH textLinesW
     | ellipsisReq = addEllipsisToTextLine fontMgr style cw <$> firstLine
     | otherwise = clipTextLine fontMgr style trim cw <$> firstLine
 
@@ -161,11 +162,12 @@ fitTextToWidth
 fitTextToWidth fontMgr style width trim text = resultLines where
   font = styleFont style
   fSize = styleFontSize style
+  fSpace = styleFontSpacing style
   !metrics = computeTextMetrics fontMgr font fSize
   lineH = _txmLineH metrics
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
-    newLines = fitSingleTextToW fontMgr font fSize metrics cTop width trim line
+    newLines = fitLineToW fontMgr font fSize fSpace metrics cTop width trim line
     newTop = cTop + fromIntegral (Seq.length newLines) * lineH
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
@@ -229,7 +231,7 @@ alignTextLine parentRect offsetY alignH textLine = newTextLine where
     _tlRect = Rect (tx + offsetX) (ty + offsetY) tw th
   }
 
-fitTextLinesToH
+fitLinesToH
   :: FontManager
   -> StyleState
   -> TextOverflow
@@ -237,8 +239,8 @@ fitTextLinesToH
   -> Double
   -> Seq TextLine
   -> Seq TextLine
-fitTextLinesToH fontMgr style overflow w h Empty = Empty
-fitTextLinesToH fontMgr style overflow w h (g1 :<| g2 :<| gs)
+fitLinesToH fontMgr style overflow w h Empty = Empty
+fitLinesToH fontMgr style overflow w h (g1 :<| g2 :<| gs)
   | overflow == Ellipsis && h >= g1H + g2H = g1 :<| rest
   | overflow == Ellipsis && h >= g1H = Seq.singleton ellipsisG1
   | overflow == ClipText && h >= g1H = g1 :<| rest
@@ -246,9 +248,9 @@ fitTextLinesToH fontMgr style overflow w h (g1 :<| g2 :<| gs)
     g1H = _sH (_tlSize g1)
     g2H = _sH (_tlSize g2)
     newH = h - g1H
-    rest = fitTextLinesToH fontMgr style overflow w newH (g2 :<| gs)
+    rest = fitLinesToH fontMgr style overflow w newH (g2 :<| gs)
     ellipsisG1 = addEllipsisToTextLine fontMgr style w g1
-fitTextLinesToH fontMgr style overflow w h (g :<| gs)
+fitLinesToH fontMgr style overflow w h (g :<| gs)
   | h > 0 = Seq.singleton newG
   | otherwise = Empty
   where
@@ -257,20 +259,21 @@ fitTextLinesToH fontMgr style overflow w h (g :<| gs)
       | overflow == Ellipsis && w < gW = addEllipsisToTextLine fontMgr style w g
       | otherwise = g
 
-fitSingleTextToW
+fitLineToW
   :: FontManager
   -> Font
   -> FontSize
+  -> FontSpacing
   -> TextMetrics
   -> Double
   -> Double
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitSingleTextToW fontMgr font fSize metrics top width trim text = result where
+fitLineToW fontMgr font fSize fSpc metrics top width trim text = res where
   spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
-  !glyphs = computeGlyphsPos fontMgr font fSize newText
+  !glyphs = computeGlyphsPos fontMgr font fSize fSpc newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
   keepTailSpaces = trim == TrimSpaces
@@ -278,7 +281,7 @@ fitSingleTextToW fontMgr font fSize metrics top width trim text = result where
   resetGroups
     | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
-  result
+  res
     | text /= "" = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
     | otherwise = Seq.singleton (buildTextLine metrics top 0 Empty)
 
@@ -310,13 +313,14 @@ addEllipsisToTextLine fontMgr style width textLine = newTextLine where
   Size dw dh = calcTextSize fontMgr style "..."
   font = styleFont style
   fontSize = styleFontSize style
+  fontSpacing = styleFontSpacing style
   targetW = width - tw
   dropHelper (idx, w) g
     | _glpW g + w <= dw = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse textGlyphs)
   newText = T.dropEnd dropChars text <> "..."
-  !newGlyphs = computeGlyphsPos fontMgr font fontSize newText
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpacing newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {
     _tlText = newText,
@@ -338,16 +342,16 @@ clipTextLine fontMgr style trim width textLine = newTextLine where
   Size tw th = textSize
   font = styleFont style
   fontSize = styleFontSize style
+  fontSpacing = styleFontSpacing style
   takeHelper (idx, w) g
     | _glpW g + w <= width = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
   (takeChars, _) = foldl' takeHelper (0, 0) textGlyphs
-  --newText = T.take takeChars text
   validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) textGlyphs
   newText
     | trim == KeepSpaces = T.take (length validGlyphs) text
     | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) text
-  !newGlyphs = computeGlyphsPos fontMgr font fontSize newText
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpacing newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = TextLine {
     _tlText = newText,

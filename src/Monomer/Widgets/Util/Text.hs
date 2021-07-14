@@ -19,6 +19,7 @@ module Monomer.Widgets.Util.Text (
 ) where
 
 import Control.Lens ((&), (^.), (+~))
+import Data.Default
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
 
@@ -68,7 +69,8 @@ getTextRect wenv style !rect !alignH !alignV !text = textRect where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fontSize = styleFontSize style
-  !textRect = calcTextRect fontMgr rect font fontSize alignH alignV text
+  fontSpc = styleFontSpacing style
+  !textRect = calcTextRect fontMgr rect font fontSize fontSpc alignH alignV text
 
 -- | Returns the glyphs of a single line of text.
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
@@ -76,4 +78,5 @@ getTextGlyphs wenv style !text = glyphs where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fontSize = styleFontSize style
-  !glyphs = computeGlyphsPos fontMgr font fontSize text
+  fontSpacing = styleFontSpacing style
+  !glyphs = computeGlyphsPos fontMgr font fontSize fontSpacing text

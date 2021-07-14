@@ -69,6 +69,14 @@ newtype FontSize
 instance Default FontSize where
   def = FontSize 32
 
+-- | The spacing of a font. Zero represents the default spacing of the font.
+newtype FontSpacing
+  = FontSpacing { unFontSpacing :: Double }
+  deriving (Eq, Show, Generic)
+
+instance Default FontSpacing where
+  def = FontSpacing 0
+
 data RectSide
   = SideLeft
   | SideRight
@@ -218,10 +226,10 @@ data ImageDef = ImageDef {
 data FontManager = FontManager {
   -- | Returns the text metrics of a given font and size.
   computeTextMetrics :: Font -> FontSize -> TextMetrics,
-  -- | Returns the text size of the text given font and size.
-  computeTextSize :: Font -> FontSize -> Text -> Size,
-  -- | Returns the glyphs of the text given font and size.
-  computeGlyphsPos :: Font -> FontSize -> Text -> Seq GlyphPos
+  -- | Returns the size of the line of text given font and size.
+  computeTextSize :: Font -> FontSize -> FontSpacing -> Text -> Size,
+  -- | Returns the glyphs of the line of text given font and size.
+  computeGlyphsPos :: Font -> FontSize -> FontSpacing -> Text -> Seq GlyphPos
 }
 
 -- | Low level rendering definitions.
@@ -328,8 +336,8 @@ data Renderer = Renderer {
   renderQuadTo :: Point -> Point -> IO (),
   -- | Renders an ellipse.
   renderEllipse :: Rect -> IO (),
-  -- | Renders the given text at a specific point.
-  renderText :: Point -> Font -> FontSize -> Text -> IO (),
+  -- | Renders the given text line at a specific point.
+  renderText :: Point -> Font -> FontSize -> FontSpacing -> Text -> IO (),
   -- | Returns the image definition of a loaded image, if any.
   getImage :: Text -> IO (Maybe ImageDef),
   -- | Adds an image, providing name, size, image data and flags.

@@ -766,10 +766,13 @@
     - Will use shift to differentiate. Makes the widget more predictable and simplifies config
     - evtReleaseDrag?
     - Caret width and ms should be configurable (on textArea too).
+    - Font spacing should be configurable.
 
 Next
   - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
-    - Line height?
+    - Fix textArea styling (should retrieve text config from its parent, scroll)
+    - Vertical font spacing should be configurable.
+    - Password?
   - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

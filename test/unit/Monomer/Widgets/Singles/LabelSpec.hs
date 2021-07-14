@@ -121,7 +121,6 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
 
   where
     fontMgr = mockFontManager {
-      computeTextSize = mockTextSize Nothing,
       computeGlyphsPos = mockGlyphsPos Nothing
     }
     wenv = mockWenvEvtUnit ()

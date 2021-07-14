@@ -163,6 +163,10 @@ class CmbTextFont t where
 class CmbTextSize t where
   textSize :: Double -> t
 
+-- | Text spacing to be used.
+class CmbTextSpacing t where
+  textSpacing :: Double -> t
+
 -- | Text color to be used.
 class CmbTextColor t where
   textColor :: Color -> t
