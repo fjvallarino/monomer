@@ -762,12 +762,13 @@
   - Fix fitHeight going out of borders.
   - Validate split component works as expected.
     - Issue was on handleStyleChange, which ignored doCursor argument.
-
-Next
   - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
     - Will use shift to differentiate. Makes the widget more predictable and simplifies config
     - evtReleaseDrag?
     - Caret width and ms should be configurable (on textArea too).
+
+Next
+  - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
     - Line height?
   - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.

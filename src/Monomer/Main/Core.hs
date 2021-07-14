@@ -305,8 +305,8 @@ mainLoop window fontManager config loopArgs = do
 
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
-  let newTs = endTicks - startTicks
-  let tempDelay = abs (frameLength - newTs * 1000)
+  let remainingMs = endTicks - startTicks
+  let tempDelay = abs (frameLength - remainingMs * 1000)
   let nextFrameDelay = min frameLength tempDelay
   let latestRenderTs = if renderNeeded then startTicks else _mlLatestRenderTs
   let newLoopArgs = loopArgs {

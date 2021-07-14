@@ -136,6 +136,8 @@ type FormattableTime a
   = (Eq a, Ord a, Show a, TimeTextConverter a, Typeable a)
 
 data TimeFieldCfg s e a = TimeFieldCfg {
+  _tfcCaretWidth :: Maybe Double,
+  _tfcCaretMs :: Maybe Int,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
   _tfcTimeFormat :: Maybe TimeFormat,
@@ -152,6 +154,8 @@ data TimeFieldCfg s e a = TimeFieldCfg {
 
 instance Default (TimeFieldCfg s e a) where
   def = TimeFieldCfg {
+    _tfcCaretWidth = Nothing,
+    _tfcCaretMs = Nothing,
     _tfcValid = Nothing,
     _tfcValidV = [],
     _tfcTimeFormat = Nothing,
@@ -168,6 +172,8 @@ instance Default (TimeFieldCfg s e a) where
 
 instance Semigroup (TimeFieldCfg s e a) where
   (<>) t1 t2 = TimeFieldCfg {
+    _tfcCaretWidth = _tfcCaretWidth t2 <|> _tfcCaretWidth t1,
+    _tfcCaretMs = _tfcCaretMs t2 <|> _tfcCaretMs t1,
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcValidV = _tfcValidV t1 <> _tfcValidV t2,
     _tfcTimeFormat = _tfcTimeFormat t2 <|> _tfcTimeFormat t1,
@@ -184,6 +190,16 @@ instance Semigroup (TimeFieldCfg s e a) where
 
 instance Monoid (TimeFieldCfg s e a) where
   mempty = def
+
+instance CmbCaretWidth (TimeFieldCfg s e a) Double where
+  caretWidth w = def {
+    _tfcCaretWidth = Just w
+  }
+
+instance CmbCaretMs (TimeFieldCfg s e a) Int where
+  caretMs ms = def {
+    _tfcCaretMs = Just ms
+  }
 
 instance CmbValidInput (TimeFieldCfg s e a) s where
   validInput field = def {
@@ -333,6 +349,8 @@ timeFieldD_ widgetData configs = newNode where
     _ifcIsValidInput = validInput,
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 160,
+    _ifcCaretWidth = _tfcCaretWidth config,
+    _ifcCaretMs = _tfcCaretMs config,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_tfcSelectOnFocus config),
     _ifcStyle = Just L.timeFieldStyle,

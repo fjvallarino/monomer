@@ -112,6 +112,8 @@ type FormattableNumber a
   = (Eq a, Ord a, Show a, NumericTextConverter a, Typeable a)
 
 data NumericFieldCfg s e a = NumericFieldCfg {
+  _nfcCaretWidth :: Maybe Double,
+  _nfcCaretMs :: Maybe Int,
   _nfcValid :: Maybe (WidgetData s Bool),
   _nfcValidV :: [Bool -> e],
   _nfcDecimals :: Maybe Int,
@@ -128,6 +130,8 @@ data NumericFieldCfg s e a = NumericFieldCfg {
 
 instance Default (NumericFieldCfg s e a) where
   def = NumericFieldCfg {
+    _nfcCaretWidth = Nothing,
+    _nfcCaretMs = Nothing,
     _nfcValid = Nothing,
     _nfcValidV = [],
     _nfcDecimals = Nothing,
@@ -144,6 +148,8 @@ instance Default (NumericFieldCfg s e a) where
 
 instance Semigroup (NumericFieldCfg s e a) where
   (<>) t1 t2 = NumericFieldCfg {
+    _nfcCaretWidth = _nfcCaretWidth t2 <|> _nfcCaretWidth t1,
+    _nfcCaretMs = _nfcCaretMs t2 <|> _nfcCaretMs t1,
     _nfcValid = _nfcValid t2 <|> _nfcValid t1,
     _nfcValidV = _nfcValidV t1 <> _nfcValidV t2,
     _nfcDecimals = _nfcDecimals t2 <|> _nfcDecimals t1,
@@ -160,6 +166,16 @@ instance Semigroup (NumericFieldCfg s e a) where
 
 instance Monoid (NumericFieldCfg s e a) where
   mempty = def
+
+instance CmbCaretWidth (NumericFieldCfg s e a) Double where
+  caretWidth w = def {
+    _nfcCaretWidth = Just w
+  }
+
+instance CmbCaretMs (NumericFieldCfg s e a) Int where
+  caretMs ms = def {
+    _nfcCaretMs = Just ms
+  }
 
 instance CmbValidInput (NumericFieldCfg s e a) s where
   validInput field = def {
@@ -307,6 +323,8 @@ numericFieldD_ widgetData configs = newNode where
     _ifcIsValidInput = validInput,
     _ifcDefCursorEnd = False,
     _ifcDefWidth = defWidth,
+    _ifcCaretWidth = _nfcCaretWidth config,
+    _ifcCaretMs = _nfcCaretMs config,
     _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcStyle = Just L.numericFieldStyle,

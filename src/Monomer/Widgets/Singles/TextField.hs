@@ -50,6 +50,8 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 
 data TextFieldCfg s e = TextFieldCfg {
+  _tfcCaretWidth :: Maybe Double,
+  _tfcCaretMs :: Maybe Int,
   _tfcPlaceholder :: Maybe Text,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
@@ -63,6 +65,8 @@ data TextFieldCfg s e = TextFieldCfg {
 
 instance Default (TextFieldCfg s e) where
   def = TextFieldCfg {
+    _tfcCaretWidth = Nothing,
+    _tfcCaretMs = Nothing,
     _tfcPlaceholder = Nothing,
     _tfcValid = Nothing,
     _tfcValidV = [],
@@ -76,6 +80,8 @@ instance Default (TextFieldCfg s e) where
 
 instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
+    _tfcCaretWidth = _tfcCaretWidth t2 <|> _tfcCaretWidth t1,
+    _tfcCaretMs = _tfcCaretMs t2 <|> _tfcCaretMs t1,
     _tfcPlaceholder = _tfcPlaceholder t2 <|> _tfcPlaceholder t1,
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcValidV = _tfcValidV t1 <> _tfcValidV t2,
@@ -89,6 +95,16 @@ instance Semigroup (TextFieldCfg s e) where
 
 instance Monoid (TextFieldCfg s e) where
   mempty = def
+
+instance CmbCaretWidth (TextFieldCfg s e) Double where
+  caretWidth w = def {
+    _tfcCaretWidth = Just w
+  }
+
+instance CmbCaretMs (TextFieldCfg s e) Int where
+  caretMs ms = def {
+    _tfcCaretMs = Just ms
+  }
 
 instance CmbPlaceholder (TextFieldCfg s e) Text where
   placeholder value = def {
@@ -189,6 +205,8 @@ textFieldD_ widgetData configs = inputField where
     _ifcIsValidInput = acceptInput (_tfcMaxLength config),
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 100,
+    _ifcCaretWidth = _tfcCaretWidth config,
+    _ifcCaretMs = _tfcCaretMs config,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcStyle = Just L.textFieldStyle,

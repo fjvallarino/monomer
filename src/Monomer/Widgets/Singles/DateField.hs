@@ -142,6 +142,8 @@ type FormattableDate a
   = (Eq a, Ord a, Show a, DateTextConverter a, Typeable a)
 
 data DateFieldCfg s e a = DateFieldCfg {
+  _dfcCaretWidth :: Maybe Double,
+  _dfcCaretMs :: Maybe Int,
   _dfcValid :: Maybe (WidgetData s Bool),
   _dfcValidV :: [Bool -> e],
   _dfcDateDelim :: Maybe Char,
@@ -159,6 +161,8 @@ data DateFieldCfg s e a = DateFieldCfg {
 
 instance Default (DateFieldCfg s e a) where
   def = DateFieldCfg {
+    _dfcCaretWidth = Nothing,
+    _dfcCaretMs = Nothing,
     _dfcValid = Nothing,
     _dfcValidV = [],
     _dfcDateDelim = Nothing,
@@ -176,6 +180,8 @@ instance Default (DateFieldCfg s e a) where
 
 instance Semigroup (DateFieldCfg s e a) where
   (<>) t1 t2 = DateFieldCfg {
+    _dfcCaretWidth = _dfcCaretWidth t2 <|> _dfcCaretWidth t1,
+    _dfcCaretMs = _dfcCaretMs t2 <|> _dfcCaretMs t1,
     _dfcValid = _dfcValid t2 <|> _dfcValid t1,
     _dfcValidV = _dfcValidV t1 <> _dfcValidV t2,
     _dfcDateDelim = _dfcDateDelim t2 <|> _dfcDateDelim t1,
@@ -193,6 +199,16 @@ instance Semigroup (DateFieldCfg s e a) where
 
 instance Monoid (DateFieldCfg s e a) where
   mempty = def
+
+instance CmbCaretWidth (DateFieldCfg s e a) Double where
+  caretWidth w = def {
+    _dfcCaretWidth = Just w
+  }
+
+instance CmbCaretMs (DateFieldCfg s e a) Int where
+  caretMs ms = def {
+    _dfcCaretMs = Just ms
+  }
 
 instance CmbValidInput (DateFieldCfg s e a) s where
   validInput field = def {
@@ -355,6 +371,8 @@ dateFieldD_ widgetData configs = newNode where
     _ifcIsValidInput = validInput,
     _ifcDefCursorEnd = True,
     _ifcDefWidth = 160,
+    _ifcCaretWidth = _dfcCaretWidth config,
+    _ifcCaretMs = _dfcCaretMs config,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_dfcSelectOnFocus config),
     _ifcStyle = Just L.dateFieldStyle,

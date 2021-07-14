@@ -147,6 +147,14 @@ class CmbSelectOnBlur t where
 class CmbPlaceholder t a | t -> a where
   placeholder :: a -> t
 
+-- | Width of the caret in a text widget.
+class CmbCaretWidth t a | t -> a where
+  caretWidth :: a -> t
+
+-- | Blink period of the caret in a text widget.
+class CmbCaretMs t a | t -> a where
+  caretMs :: a -> t
+
 -- | Text font to be used.
 class CmbTextFont t where
   textFont :: Font -> t

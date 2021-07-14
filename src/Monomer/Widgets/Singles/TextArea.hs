@@ -55,13 +55,15 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
-caretW :: Double
-caretW = 2
+defCaretW :: Double
+defCaretW = 2
 
-caretMs :: Int
-caretMs = 500
+defCaretMs :: Int
+defCaretMs = 500
 
 data TextAreaCfg s e = TextAreaCfg {
+  _tacCaretWidth :: Maybe Double,
+  _tacCaretMs :: Maybe Int,
   _tacMaxLength :: Maybe Int,
   _tacMaxLines :: Maybe Int,
   _tacAcceptTab :: Maybe Bool,
@@ -73,6 +75,8 @@ data TextAreaCfg s e = TextAreaCfg {
 
 instance Default (TextAreaCfg s e) where
   def = TextAreaCfg {
+    _tacCaretWidth = Nothing,
+    _tacCaretMs = Nothing,
     _tacMaxLength = Nothing,
     _tacMaxLines = Nothing,
     _tacAcceptTab = Nothing,
@@ -84,6 +88,8 @@ instance Default (TextAreaCfg s e) where
 
 instance Semigroup (TextAreaCfg s e) where
   (<>) t1 t2 = TextAreaCfg {
+    _tacCaretWidth = _tacCaretWidth t2 <|> _tacCaretWidth t1,
+    _tacCaretMs = _tacCaretMs t2 <|> _tacCaretMs t1,
     _tacMaxLength = _tacMaxLength t2 <|> _tacMaxLength t1,
     _tacMaxLines = _tacMaxLines t2 <|> _tacMaxLines t1,
     _tacAcceptTab = _tacAcceptTab t2 <|> _tacAcceptTab t1,
@@ -95,6 +101,16 @@ instance Semigroup (TextAreaCfg s e) where
 
 instance Monoid (TextAreaCfg s e) where
   mempty = def
+
+instance CmbCaretWidth (TextAreaCfg s e) Double where
+  caretWidth w = def {
+    _tacCaretWidth = Just w
+  }
+
+instance CmbCaretMs (TextAreaCfg s e) Int where
+  caretMs ms = def {
+    _tacCaretMs = Just ms
+  }
 
 instance CmbMaxLength (TextAreaCfg s e) where
   maxLength len = def {
@@ -223,6 +239,7 @@ makeTextArea wdata config state = widget where
     singleRender = render
   }
 
+  caretMs = fromMaybe defCaretMs (_tacCaretMs config)
   maxLength = _tacMaxLength config
   maxLines = _tacMaxLines config
   getModelValue wenv = widgetDataGet (_weModel wenv) wdata
@@ -600,7 +617,7 @@ makeTextArea wdata config state = widget where
     scWid = findWidgetIdFromPath wenv scPath
     contentArea = getContentArea style node
     offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
-    caretRect = getCaretRect newState
+    caretRect = getCaretRect config newState
     -- Padding/border added to show left/top borders when moving near them
     scrollRect = fromMaybe caretRect (addOuterBounds style caretRect)
     scrollMsg = ScrollTo $ moveRect offset scrollRect
@@ -627,15 +644,16 @@ makeTextArea wdata config state = widget where
       contentArea = getContentArea style node
       ts = _weTimestamp wenv
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
-      caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
+      caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
       caretColor = styleFontColor style
-      caretRect = getCaretRect state
+      caretRect = getCaretRect config state
       selRequired = isJust (_tasSelStart state)
       selColor = styleHlColor style
       selRects = getSelectionRects state contentArea
 
-getCaretRect :: TextAreaState -> Rect
-getCaretRect state = caretRect where
+getCaretRect :: TextAreaCfg s e -> TextAreaState -> Rect
+getCaretRect config state = caretRect where
+  caretW = fromMaybe defCaretW (_tacCaretWidth config)
   (cursorX, cursorY) = _tasCursorPos state
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state

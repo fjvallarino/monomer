@@ -86,6 +86,10 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcDefCursorEnd :: Bool,
   -- | Default width of the input field.
   _ifcDefWidth :: Double,
+  -- | Caret width.
+  _ifcCaretWidth :: Maybe Double,
+  -- | Caret blink period.
+  _ifcCaretMs :: Maybe Int,
   -- | Whether input causes ResizeWidgets requests. Defaults to False.
   _ifcResizeOnChange :: Bool,
   -- | If all input should be selected when focus is received.
@@ -186,11 +190,11 @@ initialState value = InputFieldState {
   _ifsHistIdx = 0
 }
 
-caretW :: Double
-caretW = 2
+defCaretW :: Double
+defCaretW = 2
 
-caretMs :: Int
-caretMs = 500
+defCaretMs :: Int
+defCaretMs = 500
 
 -- | Creates an instance of an input field, with customizations in config.
 inputField_
@@ -235,6 +239,8 @@ makeInputField config state = widget where
   currHistory = _ifsHistory state
   currHistIdx = _ifsHistIdx state
   -- Text/value conversion functions
+  caretW = fromMaybe defCaretW (_ifcCaretWidth config)
+  caretMs = fromMaybe defCaretMs (_ifcCaretMs config)
   fromText = _ifcFromText config
   toText = _ifcToText config
   getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
@@ -653,9 +659,9 @@ makeInputField config state = widget where
       Rect cx cy _ _ = carea
       ts = _weTimestamp wenv
       selColor = styleHlColor style
-      caretRequired = isNodeFocused wenv node && ts `mod` 1000 < 500
+      caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
       caretColor = styleFontColor style
-      caretRect = getCaretRect state style carea
+      caretRect = getCaretRect config state style carea
       selRect = getSelRect state style
 
 textOffsetY :: TextMetrics -> StyleState -> Double
@@ -681,10 +687,16 @@ getCaretH :: InputFieldState a -> Double
 getCaretH state = ta - td * 2 where
   TextMetrics ta td _ _ = _ifsTextMetrics state
 
-getCaretRect :: InputFieldState a -> StyleState -> Rect -> Rect
-getCaretRect state style carea = caretRect where
+getCaretRect
+  :: InputFieldCfg s e a
+  -> InputFieldState a
+  -> StyleState
+  -> Rect
+  -> Rect
+getCaretRect config state style carea = caretRect where
   Rect cx cy cw ch = carea
   Rect tx ty tw th = _ifsTextRect state
+  caretW = fromMaybe defCaretW (_ifcCaretWidth config)
   textMetrics = _ifsTextMetrics state
   glyphs = _ifsGlyphs state
   pos = _ifsCursorPos state
@@ -816,6 +828,7 @@ newTextState
 newTextState wenv node oldState config value text cursor sel = newState where
   style = activeStyle wenv node
   contentArea = getContentArea style node
+  caretW = fromMaybe defCaretW (_ifcCaretWidth config)
   Rect cx cy cw ch = contentArea
   alignH = inputFieldAlignH style
   alignV = inputFieldAlignV style
