@@ -216,11 +216,12 @@ textAreaV_ value handler configs = textAreaD_ wdata newConfig where
 -- | Creates a text area providing a WidgetData instance and config.
 textAreaD_
   :: WidgetEvent e => WidgetData s Text -> [TextAreaCfg s e] -> WidgetNode s e
-textAreaD_ wdata configs = scroll node where
+textAreaD_ wdata configs = scrollNode where
   config = mconcat configs
   widget = makeTextArea wdata config def
   node = defaultWidgetNode "textArea" widget
     & L.info . L.focusable .~ True
+  scrollNode = scroll_ [scrollStyle L.textAreaStyle, scrollFwdStyle] node
 
 makeTextArea
   :: WidgetEvent e
@@ -230,7 +231,6 @@ makeTextArea
   -> Widget s e
 makeTextArea wdata config state = widget where
   widget = createSingle state def {
-    singleGetBaseStyle = getBaseStyle,
     singleInit = init,
     singleMerge = merge,
     singleDispose = dispose,
@@ -259,22 +259,29 @@ makeTextArea wdata config state = widget where
   totalLines = length textLines
   lastPos = (lineLen (totalLines - 1), totalLines)
 
-  getBaseStyle wenv node = Just style where
-    style = collectTheme wenv L.textAreaStyle
+  restrictStyle node = newNode where
+    style = node ^. L.info . L.style
+    textStyle = def
+      & collectStyleField_ L.text style
+      & collectStyleField_ L.hlColor style
+    newNode = node
+      & L.info . L.style .~ textStyle
 
   init wenv node = resultNode newNode where
     text = getModelValue wenv
-    newState = stateFromText wenv node state text
-    newNode = node
+    tmpNode = restrictStyle node
+    newState = stateFromText wenv tmpNode state text
+    newNode = tmpNode
       & L.widget .~ makeTextArea wdata config newState
 
   merge wenv node oldNode oldState = resultNode newNode where
     oldText = _tasText oldState
     newText = getModelValue wenv
+    tmpNode = restrictStyle node
     newState
-      | oldText /= newText = stateFromText wenv node state newText
+      | oldText /= newText = stateFromText wenv tmpNode state newText
       | otherwise = oldState
-    newNode = node
+    newNode = tmpNode
       & L.widget .~ makeTextArea wdata config newState
 
   dispose wenv node = resultReqs node reqs where

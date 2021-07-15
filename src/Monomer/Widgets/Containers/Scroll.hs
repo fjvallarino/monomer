@@ -50,6 +50,8 @@ module Monomer.Widgets.Containers.Scroll (
   vscroll_,
   scrollOverlay,
   scrollOverlay_,
+  scrollFwdStyle,
+  scrollFwdStyle_,
   scrollInvisible,
   scrollInvisible_,
   scrollFollowFocus,
@@ -86,6 +88,7 @@ data ActiveBar
 data ScrollCfg = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
   _scScrollOverlay :: Maybe Bool,
+  _scScrollFwdStyle :: Maybe Bool,
   _scFollowFocus :: Maybe Bool,
   _scWheelRate :: Maybe Rational,
   _scBarColor :: Maybe Color,
@@ -102,6 +105,7 @@ instance Default ScrollCfg where
   def = ScrollCfg {
     _scScrollType = Nothing,
     _scScrollOverlay = Nothing,
+    _scScrollFwdStyle = Nothing,
     _scFollowFocus = Nothing,
     _scWheelRate = Nothing,
     _scBarColor = Nothing,
@@ -118,6 +122,7 @@ instance Semigroup ScrollCfg where
   (<>) t1 t2 = ScrollCfg {
     _scScrollType = _scScrollType t2 <|> _scScrollType t1,
     _scScrollOverlay = _scScrollOverlay t2 <|> _scScrollOverlay t1,
+    _scScrollFwdStyle = _scScrollFwdStyle t2 <|> _scScrollFwdStyle t1,
     _scFollowFocus = _scFollowFocus t2 <|> _scFollowFocus t1,
     _scWheelRate = _scWheelRate t2 <|> _scWheelRate t1,
     _scBarColor = _scBarColor t2 <|> _scBarColor t1,
@@ -178,11 +183,26 @@ instance CmbThumbRadius ScrollCfg where
 scrollOverlay :: ScrollCfg
 scrollOverlay = scrollOverlay_ True
 
--- | Sets whether scroll bars will be displayed on top of the content or to the
--- | side.
+{-|
+Sets whether scroll bars will be displayed on top of the content or next to it.
+-}
 scrollOverlay_ :: Bool -> ScrollCfg
 scrollOverlay_ overlay = def {
   _scScrollOverlay = Just overlay
+}
+
+-- | Scroll style will be provided to the child node.
+scrollFwdStyle :: ScrollCfg
+scrollFwdStyle = scrollFwdStyle_ True
+
+{-|
+Sets whether the style set to the scroll node should be provided to its child
+node. Useful for widgets which wrap themselves in a scroll, such as textArea, to
+be able to receive customizations made by the user.
+-}
+scrollFwdStyle_ :: Bool -> ScrollCfg
+scrollFwdStyle_ fwd = def {
+  _scScrollFwdStyle = Just fwd
 }
 
 -- | Sets the style of the scroll bars to transparent.
@@ -210,8 +230,10 @@ scrollFollowFocus_ follow = def {
   _scFollowFocus = Just follow
 }
 
--- | Sets the base style of the scroll bar. Useful when creating widgets which
--- | use scroll and may need to customize it.
+{-|
+Sets the base style of the scroll bar. Useful when creating widgets which use
+scroll and may need to customize it.
+-}
 scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg
 scrollStyle style = def {
   _scStyle = Just style
@@ -309,6 +331,7 @@ makeScroll config state = widget where
     containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
     containerGetActiveStyle = scrollActiveStyle,
+    containerInit = init,
     containerMerge = merge,
     containerFindByPoint = findByPoint,
     containerHandleEvent = handleEvent,
@@ -323,6 +346,7 @@ makeScroll config state = widget where
   Size maxVpW maxVpH = _sstVpSize state
   offset = Point dx dy
   scrollType = fromMaybe ScrollBoth (_scScrollType config)
+  fwdStyle = _scScrollFwdStyle config == Just True
   layoutDirection = case scrollType of
     ScrollH -> LayoutHorizontal
     ScrollV -> LayoutVertical
@@ -331,8 +355,18 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
+  checkFwdStyle node = newNode where
+    style = node ^. L.info . L.style
+    newNode
+      | fwdStyle = node
+        & L.children . ix 0 . L.info . L.style .~ style
+      | otherwise = node
+
+  init wenv node = resultNode newNode where
+    newNode = checkFwdStyle node
+
   merge wenv node oldNode oldState = resultNode newNode where
-    newNode = node
+    newNode = checkFwdStyle $ node
       & L.widget .~ makeScroll config oldState
 
   findByPoint wenv node start point = result where

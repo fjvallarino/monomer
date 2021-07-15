@@ -33,7 +33,7 @@ makeFontManager
   -> Double       -- ^ The device pixel rate.
   -> IO FontManager  -- ^ The created renderer.
 makeFontManager fonts dpr = do
-  ctx <- fmInit dpr
+  ctx <- fmInit 1 --dpr
 
   validFonts <- foldM (loadFont ctx) [] fonts
 
