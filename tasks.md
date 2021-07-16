@@ -771,10 +771,9 @@
     - Fix textArea styling (should retrieve text config from its parent, scroll)
     - Vertical font spacing should be configurable.
     - Add support for password fields by using displayChar.
+    - Review tests for scroll passing style, font spacing and password.
 
 Next
-  - Text input improvements
-    - Review tests for scroll passing style, font spacing and password.
   - Should all widget configs come first, not just containers?
   - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.

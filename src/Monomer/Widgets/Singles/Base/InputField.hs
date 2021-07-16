@@ -841,7 +841,7 @@ newTextState wenv node oldState config value text cursor sel = newState where
   cursorL = cursor == 0
   cursorR = cursor == T.length text
   !textMetrics = getTextMetrics wenv style
-  !textRect = getTextRect wenv style contentArea alignH alignV text
+  !textRect = getSingleTextLineRect wenv style contentArea alignH alignV text
   Rect tx ty tw th = textRect
   textFits = cw >= tw
   glyphs = getTextGlyphs wenv style (getDisplayText config text)

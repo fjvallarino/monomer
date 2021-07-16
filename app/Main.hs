@@ -156,38 +156,43 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
     `style` [bgColor orange, border 10 red, borderL 40 green, radius 60]
     --(pink & L.a .~ 0.5)
 --    `style` [bgColor green, width 60, height 60, radius 30]
+{-
   widgetText = vstack [
---      label "Test",
---      hstack [
---        label "Test",
---        textArea textArea1
---      ],
---      hslider int1 0 100
+      label "Test",
+      hstack [
+        label "Test",
+        textArea textArea1 -- `style` [textSpaceH 0, textSpaceV 0]
+      ],
+      hslider int1 0 100
     ]
+-}
+{-
   widgetDate = vstack [
---      hstack [
---        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
---        spacer,
---        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
---        filler
---      ],
---      labelS (model ^. testDay),
---      dateField_ mtestDay [validInput mtestDayValid, minValue (Just $ fromGregorian 1900 1 1)]
---        `style` [bgColor (if model ^. mtestDayValid then green else red)],
---      timeField_ testTimeOfDay [validInput testTimeOfDayValid, minValue (TimeOfDay 14 10 20), timeFormatHHMMSS]
---        `style` [bgColor (if model ^. testTimeOfDayValid then green else red)],
---      timeField_ mtestTimeOfDay [validInput mtestTimeOfDayValid, minValue (Just $ TimeOfDay 14 10 20), timeFormatHHMMSS]
---        `style` [bgColor (if model ^. mtestTimeOfDayValid then green else red)],
---      numericField_ int1 [validInput int1Valid] --, minValue 100, maxValue 200
---        `style` [bgColor (if model ^. int1Valid then green else red)],
---      numericField_ mfloat1 [validInput mfloat1Valid, minValue (Just 10), maxValue (Just 100)]
---        `style` [bgColor (if model ^. mfloat1Valid then green else red)],
---      labelS (model ^. mfloat1),
---      numericField_ mint1 [validInput mint1Valid, minValue (Just 10), maxValue (Just 100)]
---        `style` [bgColor (if model ^. mint1Valid then green else red)],
---      labelS (model ^. mint1),
-      spacer
+      hstack [
+        dateField_ testDay [validInput testDayValid, minValue (fromGregorian 1900 1 1)],
+        spacer,
+        spacer `style` [width 30, bgColor (if model ^. testDayValid then green else red)],
+        filler
+      ],
+      labelS (model ^. testDay) `style` [textFont "Bold", textSpacing 4],
+      dateField_ mtestDay [caretMs 100, validInput mtestDayValid, minValue (Just $ fromGregorian 1900 1 1)]
+        `style` [bgColor (if model ^. mtestDayValid then violet else red), textFont "Bold", textSpacing 4],
+        timeField_ testTimeOfDay [caretMs 1000, validInput testTimeOfDayValid, minValue (TimeOfDay 14 10 20), timeFormatHHMMSS]
+        `style` [bgColor (if model ^. testTimeOfDayValid then green else red)],
+      timeField_ mtestTimeOfDay [validInput mtestTimeOfDayValid, minValue (Just $ TimeOfDay 14 10 20), timeFormatHHMMSS]
+        `style` [bgColor (if model ^. mtestTimeOfDayValid then green else red)],
+      numericField_ int1 [validInput int1Valid] --, minValue 100, maxValue 200
+        `style` [bgColor (if model ^. int1Valid then green else red)],
+      numericField_ mfloat1 [validInput mfloat1Valid, minValue (Just 10), maxValue (Just 100)]
+        `style` [bgColor (if model ^. mfloat1Valid then green else red)],
+      labelS (model ^. mfloat1),
+      numericField_ mint1 [validInput mint1Valid, minValue (Just 10), maxValue (Just 100)]
+        `style` [bgColor (if model ^. mint1Valid then green else red)],
+      labelS (model ^. mint1),
+      spacer,
+      textArea_ textArea1 [caretWidth 1, caretMs 200] `style` [textFont "Bold", textSize 20, textSpacing 4]
     ]
+-}
   widgetSlider = vstack [
       image_ "assets/images/pecans.jpg" [fitFill, imageRepeatX],
       hstack [externalLink "Launch GitHub" "http://www.github.com"],
@@ -295,7 +300,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
     ]
   widgetSplit = hsplit (button "Button" RunShortTask, button "Button!!!" RunShortTask)
   widgetSplitH = keystroke [("C-a", ShowAlert), ("C-c", ShowConfirm), ("C-S-p", ShowConfirm)] $ hsplit (image "assets/images/pecans.jpg", widgetTree)
-  widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 400], widgetTree `style` [rangeHeight 200 400])
+  widgetSplitV = vsplit (image "assets/images/pecans.jpg" `style` [rangeHeight 200 1000], widgetTree `style` [rangeHeight 200 1000])
   mkImg i = vstack [
       label ("Image: " <> showt i),
       image ("https://picsum.photos/600/400?ts=" <> showt i)
@@ -508,7 +513,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "Jj label" `hover` [textSize 40]
       ] `hover` [bgColor red],
       label (model ^. dropdown1) `style` [bgColor lightBlue, textLeft],
-      textField textField1 `style` [bgColor lightBlue, textLeft],
+      textField_ textField1 [fieldDisplayChar '*'] `style` [bgColor lightBlue, textLeft],
       colorPicker_ color [showAlpha],
       hstack [
           scroll_ [] (image_ "assets/images/pecans.jpg" [fitFill] `style` [radius 20]),

@@ -14,7 +14,7 @@ module Monomer.Widgets.Util.Text (
   getTextMetrics,
   getTextSize,
   getTextSize_,
-  getTextRect,
+  getSingleTextLineRect,
   getTextGlyphs
 ) where
 
@@ -56,8 +56,8 @@ getTextSize_ wenv style mode trim mwidth mlines text = newSize where
   fontMgr = wenv ^. L.fontManager
   newSize = calcTextSize_ fontMgr style mode trim mwidth mlines text
 
--- | Returns the rectangle used by a single line of text.
-getTextRect
+-- | Returns the rect a single line of text needs to be displayed completely.
+getSingleTextLineRect
   :: WidgetEnv s e  -- ^ The widget environment.
   -> StyleState     -- ^ The active style.
   -> Rect           -- ^ The bounding rect.
@@ -65,12 +65,29 @@ getTextRect
   -> AlignTV        -- ^ The vertical alignment.
   -> Text           -- ^ The text to measure.
   -> Rect           -- ^ The used rect. May be larger than the bounding rect.
-getTextRect wenv style !rect !alignH !alignV !text = textRect where
+getSingleTextLineRect wenv style !rect !alignH !alignV !text = textRect where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
-  !textRect = calcTextRect fontMgr rect font fSize fSpcH alignH alignV text
+  Rect x y w h = rect
+  Size tw _ = computeTextSize fontMgr font fSize fSpcH text
+  TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fSize
+  tx | alignH == ATLeft = x
+     | alignH == ATCenter = x + (w - tw) / 2
+     | otherwise = x + (w - tw)
+  ty | alignV == ATTop = y + asc
+     | alignV == ATMiddle = y + h + desc - (h - lineh) / 2
+     | alignV == ATAscender = y + h - (h - asc) / 2
+     | alignV == ATLowerX = y + h - (h - lowerX) / 2
+     | otherwise = y + h + desc
+
+  textRect = Rect {
+    _rX = tx,
+    _rY = ty - lineh,
+    _rW = tw,
+    _rH = lineh
+  }
 
 -- | Returns the glyphs of a single line of text.
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos

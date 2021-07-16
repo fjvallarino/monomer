@@ -15,7 +15,6 @@ Helper functions for calculating text size.
 module Monomer.Graphics.Text (
   calcTextSize,
   calcTextSize_,
-  calcTextRect,
   getTextLinesSize,
   fitTextToSize,
   fitTextToWidth,
@@ -78,41 +77,6 @@ calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
   newSize
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
-
--- | Returns the rect a single line of text needs to be displayed completely.
-calcTextRect
-  :: FontManager  -- ^ The font manager.
-  -> Rect         -- ^ The base rect. The result may be larger.
-  -> Font         -- ^ The font to use.
-  -> FontSize     -- ^ The font size.
-  -> FontSpace    -- ^ The font spacing.
-  -> AlignTH      -- ^ The horizontal alignment.
-  -> AlignTV      -- ^ The vertical alignment.
-  -> Text         -- ^ The text to calculate.
-  -> Rect         -- ^ The output rect.
-calcTextRect fontMgr containerRect font fSize fSpc ha va text = textRect where
-  Rect x y w h = containerRect
-  Size tw _ = computeTextSize fontMgr font fSize fSpc text
-  TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fSize
-  tx | ha == ATLeft = x
-     | ha == ATCenter = x + (w - tw) / 2
-     | otherwise = x + (w - tw)
-  {-
-  This logic differs from alignTextLines, since it works from bottom to top, but
-  the result is the same.
-  -}
-  ty | va == ATTop = y + asc
-     | va == ATMiddle = y + h + desc - (h - lineh) / 2
-     | va == ATAscender = y + h - (h - asc) / 2
-     | va == ATLowerX = y + h - (h - lowerX) / 2
-     | otherwise = y + h + desc
-
-  textRect = Rect {
-    _rX = tx,
-    _rY = ty - lineh,
-    _rW = tw,
-    _rH = lineh
-  }
 
 {-|
 Fits the given text to a determined size, splitting on multiple lines as needed.

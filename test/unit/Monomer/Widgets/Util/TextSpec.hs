@@ -18,6 +18,7 @@ import Test.Hspec
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Core.Combinators
 import Monomer.Graphics
 import Monomer.Widgets.Util.Text
 import Monomer.TestUtil
@@ -28,6 +29,7 @@ spec :: Spec
 spec = describe "Text" $ do
   fitTextSingle
   fitTextMulti
+  fitTextSpace
 
 fitTextSingle :: Spec
 fitTextSingle = describe "fitTextToSize single line" $ do
@@ -92,7 +94,7 @@ fitTextSingle = describe "fitTextToSize single line" $ do
     singleElement sq = Seq.length sq == 1
 
 fitTextMulti :: Spec
-fitTextMulti = describe "fitTextToSize single line" $ do
+fitTextMulti = describe "fitTextToSize multi line" $ do
   it "should return the same text, trimmed, if it fits" $ do
     elpsTrim "Text " `shouldSatisfy` elementCount 1
     elpsTrim "Text " ^. ix 0 . L.text `shouldBe` "Text"
@@ -166,3 +168,27 @@ fitTextMulti = describe "fitTextToSize single line" $ do
     clipTrim_ size text = fitTextToSize fontMgr style ClipText MultiLine TrimSpaces Nothing size text
     clipKeep_ size text = fitTextToSize fontMgr style ClipText MultiLine KeepSpaces Nothing size text
     elementCount count sq = Seq.length sq == count
+
+fitTextSpace :: Spec
+fitTextSpace = describe "fitTextToWidth with spacing" $ do
+  it "should fit text in (100, 80)" $
+    textSize style longText `shouldBe` Size 100 80
+
+  it "should fit text in (96, 120)" $
+    textSize styleH longText `shouldBe` Size 96 120
+
+  it "should fit text in (100, 95)" $
+    textSize styleV longText `shouldBe` Size 100 95
+
+  it "should fit text in (96, 145)" $
+    textSize styleHV longText `shouldBe` Size 96 145
+
+  where
+    wenv = mockWenv ()
+    fontMgr = wenv ^. L.fontManager
+    style = def
+    styleH = textSpaceH 2
+    styleV = textSpaceV 5
+    styleHV = textSpaceH 2 <> textSpaceV 5
+    longText = "This is a long piece of text to test space"
+    textSize style text = getTextLinesSize (fitTextToWidth fontMgr style 100 TrimSpaces text)
