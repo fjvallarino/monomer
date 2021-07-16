@@ -10,7 +10,8 @@ Unit tests for Scroll widget.
 -}
 module Monomer.Widgets.Containers.ScrollSpec (spec) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (^?), (^?!), (.~), _Just, ix)
+import Data.Default
 import Data.Text (Text)
 import Test.Hspec
 
@@ -19,6 +20,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.Graphics.ColorTable
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Composite
@@ -40,6 +42,7 @@ data ButtonEvt
 spec :: Spec
 spec = describe "Scroll" $ do
   handleEvent
+  forwardStyle
   resize
 
 handleEvent :: Spec
@@ -137,6 +140,25 @@ handleMessageReset = describe "handleMessageReset" $ do
       ]) `key` "mainScroll"
     cmpNode = composite "main" id buildUI handleEvent
     events es = nodeHandleEventEvts wenv es cmpNode
+
+forwardStyle :: Spec
+forwardStyle = describe "forwardStyle" $ do
+  it "should assign scroll the top style, while the child be set to default" $ do
+    pnode1 ^? L.info . L.style . L.basic . _Just `shouldBe` Just (border 1 black <> padding 10)
+    cnode1 ^? L.info . L.style . L.basic . _Just `shouldBe` Just def
+
+  it "should split the style according to the rules of scrollFwdDefault" $ do
+    pnode2 ^? L.info . L.style . L.basic . _Just `shouldBe` Just (border 1 black)
+    cnode2 ^? L.info . L.style . L.basic . _Just `shouldBe` Just (padding 10)
+
+  where
+    wenv = mockWenv () & L.windowSize .~ Size 640 480
+    snode1 = scroll (label "Test") `style` [border 1 black, padding 10]
+    snode2 = scroll_ [scrollFwdStyle scrollFwdDefault] (label "Test") `style` [border 1 black, padding 10]
+    pnode1 = nodeInit wenv snode1
+    cnode1 = pnode1 ^?! L.children . ix 0
+    pnode2 = nodeInit wenv snode2
+    cnode2 = pnode2 ^?! L.children . ix 0
 
 resize :: Spec
 resize = describe "resize" $ do
