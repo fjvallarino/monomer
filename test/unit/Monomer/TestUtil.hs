@@ -62,14 +62,14 @@ mockTextMetrics font fontSize = TextMetrics {
   _txmLowerX = 10
 }
 
-mockTextSize :: Maybe Double -> Font -> FontSize -> FontSpacing -> Text -> Size
+mockTextSize :: Maybe Double -> Font -> FontSize -> FontSpace -> Text -> Size
 mockTextSize mw font (FontSize fs) spacing text = Size width height where
   w = fromMaybe fs mw
   width = fromIntegral (T.length text) * w
   height = 20
 
 mockGlyphsPos
-  :: Maybe Double -> Font -> FontSize -> FontSpacing -> Text -> Seq GlyphPos
+  :: Maybe Double -> Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos
 mockGlyphsPos mw font (FontSize fs) spacing text = glyphs where
   w = fromMaybe fs mw
   chars = Seq.fromList $ T.unpack text
@@ -84,7 +84,7 @@ mockGlyphsPos mw font (FontSize fs) spacing text = glyphs where
   }
   glyphs = Seq.mapWithIndex mkGlyph chars
 
-mockRenderText :: Point -> Font -> FontSize -> FontSpacing -> Text -> IO ()
+mockRenderText :: Point -> Font -> FontSize -> FontSpace -> Text -> IO ()
 mockRenderText point font size spacing text = return ()
 
 mockRenderer :: Renderer

@@ -121,8 +121,11 @@ instance CmbTextFont TextStyle where
 instance CmbTextSize TextStyle where
   textSize size = def & L.fontSize ?~ FontSize size
 
-instance CmbTextSpacing TextStyle where
-  textSpacing spacing = def & L.fontSpacing ?~ FontSpacing spacing
+instance CmbTextSpaceH TextStyle where
+  textSpaceH space = def & L.fontSpaceH ?~ FontSpace space
+
+instance CmbTextSpaceV TextStyle where
+  textSpaceV space = def & L.fontSpaceV ?~ FontSpace space
 
 instance CmbTextColor TextStyle where
   textColor col = def & L.fontColor ?~ col
@@ -299,8 +302,11 @@ instance CmbTextFont StyleState where
 instance CmbTextSize StyleState where
   textSize size = def & L.text ?~ textSize size
 
-instance CmbTextSpacing StyleState where
-  textSpacing spacing = def & L.text ?~ textSpacing spacing
+instance CmbTextSpaceH StyleState where
+  textSpaceH space = def & L.text ?~ textSpaceH space
+
+instance CmbTextSpaceV StyleState where
+  textSpaceV space = def & L.text ?~ textSpaceV space
 
 instance CmbTextColor StyleState where
   textColor col = def & L.text ?~ textColor col

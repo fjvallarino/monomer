@@ -70,12 +70,12 @@ instance Default FontSize where
   def = FontSize 32
 
 -- | The spacing of a font. Zero represents the default spacing of the font.
-newtype FontSpacing
-  = FontSpacing { unFontSpacing :: Double }
+newtype FontSpace
+  = FontSpace { unFontSpace :: Double }
   deriving (Eq, Show, Generic)
 
-instance Default FontSpacing where
-  def = FontSpacing 0
+instance Default FontSpace where
+  def = FontSpace 0
 
 data RectSide
   = SideLeft
@@ -192,20 +192,28 @@ instance Default TextMetrics where
 
 -- | A text line with associated rendering information.
 data TextLine = TextLine {
+  _tlFont :: !Font,              -- ^ The font name.
+  _tlFontSize :: !FontSize,      -- ^ The font size.
+  _tlFontSpaceH :: !FontSpace, -- ^ The font spacing.
+  _tlFontSpaceV :: !FontSpace, -- ^ The vertical line spacing.
+  _tlMetrics :: !TextMetrics,    -- ^ The text metrics for the given font/size.
   _tlText :: !Text,              -- ^ The represented text.
   _tlSize :: !Size,              -- ^ The size the formatted text takes.
   _tlRect :: !Rect,              -- ^ The rect the formatted text occupies.
-  _tlGlyphs :: !(Seq GlyphPos),  -- ^ The glyphs for each character.
-  _tlMetrics :: !TextMetrics     -- ^ The text metrics for the given font/size.
+  _tlGlyphs :: !(Seq GlyphPos)   -- ^ The glyphs for each character.
 } deriving (Eq, Show, Generic)
 
 instance Default TextLine where
   def = TextLine {
+    _tlFont = def,
+    _tlFontSize = def,
+    _tlFontSpaceH = def,
+    _tlFontSpaceV = def,
+    _tlMetrics = def,
     _tlText = "",
     _tlSize = def,
     _tlRect = def,
-    _tlGlyphs = Seq.empty,
-    _tlMetrics = def
+    _tlGlyphs = Seq.empty
   }
 
 -- | Flags for a newly created image.
@@ -227,9 +235,9 @@ data FontManager = FontManager {
   -- | Returns the text metrics of a given font and size.
   computeTextMetrics :: Font -> FontSize -> TextMetrics,
   -- | Returns the size of the line of text given font and size.
-  computeTextSize :: Font -> FontSize -> FontSpacing -> Text -> Size,
+  computeTextSize :: Font -> FontSize -> FontSpace -> Text -> Size,
   -- | Returns the glyphs of the line of text given font and size.
-  computeGlyphsPos :: Font -> FontSize -> FontSpacing -> Text -> Seq GlyphPos
+  computeGlyphsPos :: Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos
 }
 
 -- | Low level rendering definitions.
@@ -336,8 +344,11 @@ data Renderer = Renderer {
   renderQuadTo :: Point -> Point -> IO (),
   -- | Renders an ellipse.
   renderEllipse :: Rect -> IO (),
-  -- | Renders the given text line at a specific point.
-  renderText :: Point -> Font -> FontSize -> FontSpacing -> Text -> IO (),
+  {-|
+  Renders the given text line at a specific point, with the provided font, size
+  and horizontal spacing.
+  -}
+  renderText :: Point -> Font -> FontSize -> FontSpace -> Text -> IO (),
   -- | Returns the image definition of a loaded image, if any.
   getImage :: Text -> IO (Maybe ImageDef),
   -- | Adds an image, providing name, size, image data and flags.

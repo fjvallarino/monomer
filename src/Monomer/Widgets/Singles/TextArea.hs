@@ -36,7 +36,7 @@ module Monomer.Widgets.Singles.TextArea (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (<>~), ALens', view)
+import Control.Lens ((&), (^.), (^?), (.~), (%~), (<>~), ALens', ix, view)
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Foldable (toList)
@@ -624,7 +624,7 @@ makeTextArea wdata config state = widget where
     scWid = findWidgetIdFromPath wenv scPath
     contentArea = getContentArea style node
     offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
-    caretRect = getCaretRect config newState
+    caretRect = getCaretRect config newState True
     -- Padding/border added to show left/top borders when moving near them
     scrollRect = fromMaybe caretRect (addOuterBounds style caretRect)
     scrollMsg = ScrollTo $ moveRect offset scrollRect
@@ -634,13 +634,17 @@ makeTextArea wdata config state = widget where
 
   getSizeReq wenv node = sizeReq where
     Size w h = getTextLinesSize textLines
-    sizeReq = (minWidth (max 100 w), minHeight (max 20 h))
+    {- getTextLines does not return the vertical spacing for the last line, but
+    we need it since the selection rect displays it. -}
+    spaceV = getSpaceV textLines
+    sizeReq = (minWidth (max 100 w), minHeight (max 20 (h + spaceV)))
 
   render wenv node renderer =
     drawInTranslation renderer offset $ do
       when selRequired $
         forM_ selRects $ \rect ->
-          drawRect renderer rect (Just selColor) Nothing
+          when (rect ^. L.w > 0) $
+            drawRect renderer rect (Just selColor) Nothing
 
       forM_ textLines (drawTextLine renderer style)
 
@@ -653,30 +657,33 @@ makeTextArea wdata config state = widget where
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
       caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
       caretColor = styleFontColor style
-      caretRect = getCaretRect config state
+      caretRect = getCaretRect config state False
       selRequired = isJust (_tasSelStart state)
       selColor = styleHlColor style
       selRects = getSelectionRects state contentArea
 
-getCaretRect :: TextAreaCfg s e -> TextAreaState -> Rect
-getCaretRect config state = caretRect where
+getCaretRect :: TextAreaCfg s e -> TextAreaState -> Bool -> Rect
+getCaretRect config state addSpcV = caretRect where
   caretW = fromMaybe defCaretW (_tacCaretWidth config)
   (cursorX, cursorY) = _tasCursorPos state
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
-  (lineRect, glyphs) = case Seq.lookup cursorY textLines of
-    Just tl -> (tl ^. L.rect, tl ^. L.glyphs)
-    Nothing -> (def, Seq.empty)
+  (lineRect, glyphs, spaceV) = case Seq.lookup cursorY textLines of
+    Just tl -> (tl ^. L.rect, tl ^. L.glyphs, tl ^. L.fontSpaceV)
+    Nothing -> (def, Seq.empty, def)
   Rect tx ty _ _ = lineRect
+  totalH
+    | addSpcV = lineh + unFontSpace spaceV
+    | otherwise = lineh
   caretPos
     | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
   caretX = max 0 (tx + caretPos)
   caretY
-    | cursorY == length textLines = fromIntegral cursorY * lineh
+    | cursorY == length textLines = fromIntegral cursorY * totalH
     | otherwise = ty
-  caretRect = Rect caretX caretY caretW lineh
+  caretRect = Rect caretX caretY caretW totalH
 
 getSelectionRects :: TextAreaState -> Rect -> [Rect]
 getSelectionRects state contentArea = rects where
@@ -684,6 +691,7 @@ getSelectionRects state contentArea = rects where
   currSel = fromMaybe def (_tasSelStart state)
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
+  spaceV = getSpaceV textLines
   line idx
     | length textLines > idx = Seq.index textLines idx ^. L.text
     | otherwise = ""
@@ -698,17 +706,20 @@ getSelectionRects state contentArea = rects where
   ((selX1, selY1), (selX2, selY2))
     | swap currPos <= swap currSel = (currPos, currSel)
     | otherwise = (currSel, currPos)
+  updateRect rect = rect
+    & L.h .~ lineh + spaceV
+    & L.w %~ max 5 -- Empty lines show a small rect to indicate they are there.
   makeRect cx1 cx2 cy = Rect rx ry rw rh where
     rx = glyphPos cx1 cy
     rw = glyphPos cx2 cy - rx
-    ry = fromIntegral cy * lineh
-    rh = lineh
+    ry = fromIntegral cy * (lineh + spaceV)
+    rh = lineh + spaceV
   rects
     | selY1 == selY2 = [makeRect selX1 selX2 selY1]
     | otherwise = begin : middle ++ end where
       begin = makeRect selX1 (lineLen selY1) selY1
       middleLines = Seq.drop (selY1 + 1) . Seq.take selY2 $ textLines
-      middle = toList (view L.rect <$> middleLines)
+      middle = toList (updateRect . view L.rect <$> middleLines)
       end = [makeRect 0 selX2 selY2]
 
 stateFromText
@@ -718,9 +729,10 @@ stateFromText wenv node state text = newState where
   fontMgr = wenv ^. L.fontManager
   newTextMetrics = getTextMetrics wenv style
   tmpTextLines = fitTextToWidth fontMgr style maxNumericValue KeepSpaces text
+  totalH = newTextMetrics ^. L.lineH + getSpaceV tmpTextLines
   lastRect = def
-    & L.y .~ fromIntegral (length tmpTextLines) * newTextMetrics ^. L.lineH
-    & L.h .~ newTextMetrics ^. L.lineH
+    & L.y .~ fromIntegral (length tmpTextLines) * totalH
+    & L.h .~ totalH
   lastTextLine = def
     & L.rect .~ lastRect
     & L.size .~ Size 0 (lastRect ^. L.h)
@@ -845,7 +857,8 @@ findClosestGlyphPos state point = (newPos, lineIdx) where
   Point x y = point
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
-  lineIdx = clamp 0 (length textLines - 1) (floor (y / lineh))
+  totalH = lineh + getSpaceV textLines
+  lineIdx = clamp 0 (length textLines - 1) (floor (y / totalH))
   lineGlyphs
     | null textLines = Seq.empty
     | otherwise = Seq.index (view L.glyphs <$> textLines) lineIdx
@@ -858,6 +871,10 @@ findClosestGlyphPos state point = (newPos, lineIdx) where
   cpm (_, g1) (_, g2) = compare g1 g2
   diffs = Seq.sortBy cpm pairs
   newPos = maybe 0 fst (Seq.lookup 0 diffs)
+
+getSpaceV :: Seq TextLine -> Double
+getSpaceV textLines = spaceV where
+  spaceV = unFontSpace $ maybe def (view L.fontSpaceV) (textLines ^? ix 0)
 
 delim :: Char -> Bool
 delim c = c `elem` [' ', '.', ',', '/', '-', ':']

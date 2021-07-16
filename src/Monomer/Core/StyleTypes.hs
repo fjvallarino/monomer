@@ -308,8 +308,8 @@ instance Monoid Radius where
 data TextStyle = TextStyle {
   _txsFont :: Maybe Font,          -- ^ The font type.
   _txsFontSize :: Maybe FontSize,  -- ^ Text size in pixels.
-  _txsFontSpacing :: Maybe FontSpacing,
-                                   -- ^ Text spacing in pixels.
+  _txsFontSpaceH :: Maybe FontSpace, -- ^ Horizontal text spacing in pixels.
+  _txsFontSpaceV :: Maybe FontSpace, -- ^ Vertical text spacing in pixels.
   _txsFontColor :: Maybe Color,    -- ^ Text color.
   _txsUnderline :: Maybe Bool,     -- ^ True if underline should be displayed.
   _txsOverline :: Maybe Bool,      -- ^ True if overline should be displayed.
@@ -322,7 +322,8 @@ instance Default TextStyle where
   def = TextStyle {
     _txsFont = Nothing,
     _txsFontSize = Nothing,
-    _txsFontSpacing = Nothing,
+    _txsFontSpaceH = Nothing,
+    _txsFontSpaceV = Nothing,
     _txsFontColor = Nothing,
     _txsUnderline = Nothing,
     _txsOverline = Nothing,
@@ -335,7 +336,8 @@ instance Semigroup TextStyle where
   (<>) ts1 ts2 = TextStyle {
     _txsFont = _txsFont ts2 <|> _txsFont ts1,
     _txsFontSize = _txsFontSize ts2 <|> _txsFontSize ts1,
-    _txsFontSpacing = _txsFontSpacing ts2 <|> _txsFontSpacing ts1,
+    _txsFontSpaceH = _txsFontSpaceH ts2 <|> _txsFontSpaceH ts1,
+    _txsFontSpaceV = _txsFontSpaceV ts2 <|> _txsFontSpaceV ts1,
     _txsFontColor = _txsFontColor ts2 <|> _txsFontColor ts1,
     _txsUnderline = _txsUnderline ts2 <|> _txsUnderline ts1,
     _txsOverline = _txsOverline ts2 <|> _txsOverline ts1,

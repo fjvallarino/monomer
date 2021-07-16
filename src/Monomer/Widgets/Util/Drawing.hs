@@ -118,7 +118,7 @@ drawTextLine
   -> IO ()       -- ^ The resulting action.
 drawTextLine renderer style textLine = do
   setFillColor renderer fontColor
-  renderText renderer txtOrigin font fontSize fontSpacing text
+  renderText renderer txtOrigin _tlFont _tlFontSize _tlFontSpaceH _tlText
 
   when underline $ do
     drawLine renderer (Point tx uy) (Point tr uy) lw (Just fontColor)
@@ -129,13 +129,10 @@ drawTextLine renderer style textLine = do
   when throughline $ do
     drawLine renderer (Point tx hy) (Point tr hy) lw (Just fontColor)
   where
-    TextLine text _ rect _ metrics = textLine
-    TextMetrics asc desc _ _ = metrics
-    Rect tx ty tw th = rect
+    TextLine{..} = textLine
+    TextMetrics asc desc _ _ = _tlMetrics
+    Rect tx ty tw th = _tlRect
     tr = tx + tw
-    font = styleFont style
-    fontSize = styleFontSize style
-    fontSpacing = styleFontSpacing style
     fontColor = styleFontColor style
     alignV = styleTextAlignV style
     underline = style ^?! L.text . non def . L.underline . non False
@@ -144,7 +141,9 @@ drawTextLine renderer style textLine = do
     offset
       | alignV == ATBaseline = 0
       | otherwise = desc
-    lw = max 1.5 (unFontSize fontSize / 20)
+    {- There's not a scientific reason for choosing 1/20 as the scale, it just
+    looked reasonably good as the line width on a set of different fonts. -}
+    lw = max 1.5 (unFontSize _tlFontSize / 20)
     by = ty + th + offset
     uy = by + 1.5 * lw
     oy = ty

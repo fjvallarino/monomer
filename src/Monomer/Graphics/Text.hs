@@ -10,6 +10,7 @@ Helper functions for calculating text size.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Graphics.Text (
   calcTextSize,
@@ -40,8 +41,8 @@ import Monomer.Core.StyleUtil
 import Monomer.Graphics.Types
 import Monomer.Helper
 
-import Monomer.Common.Lens as L
-import Monomer.Graphics.Lens as L
+import qualified Monomer.Common.Lens as L
+import qualified Monomer.Graphics.Lens as L
 
 type GlyphGroup = Seq GlyphPos
 
@@ -78,13 +79,13 @@ calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
 
--- | Returns the rect a text needs to be displayed completely.
+-- | Returns the rect a single line of text needs to be displayed completely.
 calcTextRect
   :: FontManager  -- ^ The font manager.
   -> Rect         -- ^ The base rect. The result may be larger.
   -> Font         -- ^ The font to use.
   -> FontSize     -- ^ The font size.
-  -> FontSpacing  -- ^ The font spacing.
+  -> FontSpace    -- ^ The font spacing.
   -> AlignTH      -- ^ The horizontal alignment.
   -> AlignTV      -- ^ The vertical alignment.
   -> Text         -- ^ The text to calculate.
@@ -144,7 +145,7 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
   textLinesW = fitTextToWidth fontMgr style fitW trim text
   firstLine = Seq.take 1 textLinesW
   isMultiline = mode == MultiLine
-  ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. w > cw
+  ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. L.w > cw
   newLines
     | isMultiline = fitLinesToH fontMgr style ovf cw maxH textLinesW
     | ellipsisReq = addEllipsisToTextLine fontMgr style cw <$> firstLine
@@ -162,13 +163,16 @@ fitTextToWidth
 fitTextToWidth fontMgr style width trim text = resultLines where
   font = styleFont style
   fSize = styleFontSize style
-  fSpace = styleFontSpacing style
-  !metrics = computeTextMetrics fontMgr font fSize
+  fSpcH = styleFontSpaceH style
+  fSpcV = styleFontSpaceV style
   lineH = _txmLineH metrics
+  !metrics = computeTextMetrics fontMgr font fSize
+  fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
-    newLines = fitLineToW fontMgr font fSize fSpace metrics cTop width trim line
-    newTop = cTop + fromIntegral (Seq.length newLines) * lineH
+    newLines = fitToWidth cTop width trim line
+    vspc = unFontSpace fSpcV
+    newTop = cTop + fromIntegral (Seq.length newLines) * (lineH + vspc)
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
 -- | Aligns a Seq of TextLines to the given rect.
@@ -263,17 +267,18 @@ fitLineToW
   :: FontManager
   -> Font
   -> FontSize
-  -> FontSpacing
+  -> FontSpace
+  -> FontSpace
   -> TextMetrics
   -> Double
   -> Double
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitLineToW fontMgr font fSize fSpc metrics top width trim text = res where
+fitLineToW fontMgr font fSize fSpcH fSpcV metrics top width trim text = res where
   spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
-  !glyphs = computeGlyphsPos fontMgr font fSize fSpc newText
+  !glyphs = computeGlyphsPos fontMgr font fSize fSpcH newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
   keepTailSpaces = trim == TrimSpaces
@@ -281,24 +286,38 @@ fitLineToW fontMgr font fSize fSpc metrics top width trim text = res where
   resetGroups
     | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
+  buildLine = buildTextLine font fSize fSpcH fSpcV metrics top
   res
-    | text /= "" = Seq.mapWithIndex (buildTextLine metrics top) resetGroups
-    | otherwise = Seq.singleton (buildTextLine metrics top 0 Empty)
+    | text /= "" = Seq.mapWithIndex buildLine resetGroups
+    | otherwise = Seq.singleton (buildLine 0 Empty)
 
-buildTextLine :: TextMetrics -> Double -> Int -> Seq GlyphPos -> TextLine
-buildTextLine metrics top idx glyphs = textLine where
+buildTextLine
+  :: Font
+  -> FontSize
+  -> FontSpace
+  -> FontSpace
+  -> TextMetrics
+  -> Double
+  -> Int
+  -> Seq GlyphPos
+  -> TextLine
+buildTextLine font fSize fSpcH fSpcV metrics top idx glyphs = textLine where
   lineH = _txmLineH metrics
   x = 0
-  y = top + fromIntegral idx * lineH
+  y = top + fromIntegral idx * (lineH + unFontSpace fSpcV)
   width = getGlyphsWidth glyphs
   height = lineH
   text = T.pack . reverse $ foldl' (\ac g -> _glpGlyph g : ac) [] glyphs
   textLine = TextLine {
+    _tlFont = font,
+    _tlFontSize = fSize,
+    _tlFontSpaceH = fSpcH,
+    _tlFontSpaceV = fSpcV,
+    _tlMetrics = metrics,
     _tlText = text,
     _tlSize = Size width height,
     _tlRect = Rect x y width height,
-    _tlGlyphs = glyphs,
-    _tlMetrics = metrics
+    _tlGlyphs = glyphs
   }
 
 addEllipsisToTextLine
@@ -308,26 +327,25 @@ addEllipsisToTextLine
   -> TextLine
   -> TextLine
 addEllipsisToTextLine fontMgr style width textLine = newTextLine where
-  TextLine text textSize textRect textGlyphs textMetrics = textLine
-  Size tw th = textSize
+  TextLine{..} = textLine
+  Size tw th = _tlSize
   Size dw dh = calcTextSize fontMgr style "..."
   font = styleFont style
   fontSize = styleFontSize style
-  fontSpacing = styleFontSpacing style
+  fontSpcH = styleFontSpaceH style
   targetW = width - tw
   dropHelper (idx, w) g
     | _glpW g + w <= dw = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
-  (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse textGlyphs)
-  newText = T.dropEnd dropChars text <> "..."
-  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpacing newText
+  (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse _tlGlyphs)
+  newText = T.dropEnd dropChars _tlText <> "..."
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpcH newText
   newW = getGlyphsWidth newGlyphs
-  newTextLine = TextLine {
+  newTextLine = textLine {
     _tlText = newText,
-    _tlSize = textSize { _sW = newW },
-    _tlRect = textRect { _rW = newW },
-    _tlGlyphs = newGlyphs,
-    _tlMetrics = textMetrics
+    _tlSize = _tlSize { _sW = newW },
+    _tlRect = _tlRect { _rW = newW },
+    _tlGlyphs = newGlyphs
   }
 
 clipTextLine
@@ -338,27 +356,26 @@ clipTextLine
   -> TextLine
   -> TextLine
 clipTextLine fontMgr style trim width textLine = newTextLine where
-  TextLine text textSize textRect textGlyphs textMetrics = textLine
-  Size tw th = textSize
+  TextLine{..} = textLine
+  Size tw th = _tlSize
   font = styleFont style
   fontSize = styleFontSize style
-  fontSpacing = styleFontSpacing style
+  fontSpcH = styleFontSpaceH style
   takeHelper (idx, w) g
     | _glpW g + w <= width = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
-  (takeChars, _) = foldl' takeHelper (0, 0) textGlyphs
-  validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) textGlyphs
+  (takeChars, _) = foldl' takeHelper (0, 0) _tlGlyphs
+  validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) _tlGlyphs
   newText
-    | trim == KeepSpaces = T.take (length validGlyphs) text
-    | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) text
-  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpacing newText
+    | trim == KeepSpaces = T.take (length validGlyphs) _tlText
+    | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) _tlText
+  !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpcH newText
   newW = getGlyphsWidth newGlyphs
-  newTextLine = TextLine {
+  newTextLine = textLine {
     _tlText = newText,
-    _tlSize = textSize { _sW = newW },
-    _tlRect = textRect { _rW = newW },
-    _tlGlyphs = newGlyphs,
-    _tlMetrics = textMetrics
+    _tlSize = _tlSize { _sW = newW },
+    _tlRect = _tlRect { _rW = newW },
+    _tlGlyphs = newGlyphs
   }
 
 fitGroups :: Seq GlyphGroup -> Double -> Bool -> Seq GlyphGroup
@@ -395,8 +412,12 @@ getGlyphsWidth glyphs = getGlyphsMax glyphs - getGlyphsMin glyphs
 
 getTextLinesSize :: Seq TextLine -> Size
 getTextLinesSize textLines = size where
-  width = maximum (fmap (_sW . _tlSize) textLines)
-  height = sum (fmap (_sH . _tlSize) textLines)
+  -- Excludes last line vertical spacing
+  spaceV = unFontSpace $ maybe def _tlFontSpaceV (textLines ^? ix 0)
+  lineW line = line ^. L.size . L.w
+  lineH line = line ^. L.size . L.h + unFontSpace (_tlFontSpaceV line)
+  width = maximum (fmap lineW textLines)
+  height = sum (fmap lineH textLines) - spaceV
   size
     | Seq.null textLines = def
     | otherwise = Size width height

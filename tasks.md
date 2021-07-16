@@ -768,11 +768,12 @@
     - Caret width and ms should be configurable (on textArea too).
     - Font spacing should be configurable.
     - Fix textArea styling (should retrieve text config from its parent, scroll)
+    - Vertical font spacing should be configurable.
 
 Next
   - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
-    - Vertical font spacing should be configurable.
     - Password?
+    - Review tests for scroll passing style, font spacing and password.
   - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.

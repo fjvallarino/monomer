@@ -59,8 +59,8 @@ newManager ctx dpr = FontManager {..} where
       _txmLowerX = realToFrac heightLowerX / dpr
     }
 
-  computeTextSize font fontSize fontSpacing text = unsafePerformIO $ do
-    setFont ctx dpr font fontSize fontSpacing
+  computeTextSize font fontSize fontSpaceH text = unsafePerformIO $ do
+    setFont ctx dpr font fontSize fontSpaceH
     (x1, y1, x2, y2) <- if text /= ""
       then fmTextBounds ctx 0 0 text
       else do
@@ -69,8 +69,8 @@ newManager ctx dpr = FontManager {..} where
 
     return $ Size (realToFrac (x2 - x1) / dpr) (realToFrac (y2 - y1) / dpr)
 
-  computeGlyphsPos font fontSize fontSpacing text = unsafePerformIO $ do
-    setFont ctx dpr font fontSize fontSpacing
+  computeGlyphsPos font fontSize fontSpaceH text = unsafePerformIO $ do
+    setFont ctx dpr font fontSize fontSpaceH
     glyphs <- if text /= ""
       then fmTextGlyphPositions ctx 0 0 text
       else return Seq.empty
@@ -87,7 +87,6 @@ newManager ctx dpr = FontManager {..} where
         _glpH = realToFrac (glyphPosMaxY glyph - glyphPosMinY glyph) / dpr
       }
 
-
 loadFont :: FMContext -> [Text] -> FontDef -> IO [Text]
 loadFont ctx fonts (FontDef name path) = do
   res <- fmCreateFont ctx name path
@@ -95,8 +94,8 @@ loadFont ctx fonts (FontDef name path) = do
     then return $ path : fonts
     else putStrLn ("Failed to load font: " ++ T.unpack name) >> return fonts
 
-setFont :: FMContext -> Double -> Font -> FontSize -> FontSpacing -> IO ()
-setFont ctx dpr (Font name) (FontSize size) (FontSpacing spacing) = do
+setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()
+setFont ctx dpr (Font name) (FontSize size) (FontSpace spaceH) = do
   fmFontFace ctx name
   fmFontSize ctx $ realToFrac $ size * dpr
-  fmTextLetterSpacing ctx $ realToFrac $ spacing * dpr
+  fmTextLetterSpacing ctx $ realToFrac $ spaceH * dpr

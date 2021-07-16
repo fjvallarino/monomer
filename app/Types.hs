@@ -71,7 +71,7 @@ instance Default App where
     _mfloat1 = Nothing,
     _mfloat1Valid = True,
     _double1 = 0,
-    _textArea1 = "This is line 1\nthis line 2\nand, further, this is line 3\n\nLine 4 is empty and this is 5",
+    _textArea1 = "This is line 1\nthis line 2\nand, further, this is line 3\n\n\nLine 4 is empty and this is 5",
     _textField1 = "This is a long piece of text used to test mouse selection",
     _textField2 = "",
     _dropdown1 = "",

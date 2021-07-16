@@ -68,15 +68,15 @@ getTextRect
 getTextRect wenv style !rect !alignH !alignV !text = textRect where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
-  fontSize = styleFontSize style
-  fontSpc = styleFontSpacing style
-  !textRect = calcTextRect fontMgr rect font fontSize fontSpc alignH alignV text
+  fSize = styleFontSize style
+  fSpcH = styleFontSpaceH style
+  !textRect = calcTextRect fontMgr rect font fSize fSpcH alignH alignV text
 
 -- | Returns the glyphs of a single line of text.
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
 getTextGlyphs wenv style !text = glyphs where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
-  fontSize = styleFontSize style
-  fontSpacing = styleFontSpacing style
-  !glyphs = computeGlyphsPos fontMgr font fontSize fontSpacing text
+  fSize = styleFontSize style
+  fSpcH = styleFontSpaceH style
+  !glyphs = computeGlyphsPos fontMgr font fSize fSpcH text

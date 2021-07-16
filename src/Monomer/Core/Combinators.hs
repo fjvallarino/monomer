@@ -155,19 +155,23 @@ class CmbCaretWidth t a | t -> a where
 class CmbCaretMs t a | t -> a where
   caretMs :: a -> t
 
--- | Text font to be used.
+-- | Text font.
 class CmbTextFont t where
   textFont :: Font -> t
 
--- | Text size to be used.
+-- | Text size.
 class CmbTextSize t where
   textSize :: Double -> t
 
--- | Text spacing to be used.
-class CmbTextSpacing t where
-  textSpacing :: Double -> t
+-- | Horizontal text spacing.
+class CmbTextSpaceH t where
+  textSpaceH :: Double -> t
 
--- | Text color to be used.
+-- | Vertical text spacing.
+class CmbTextSpaceV t where
+  textSpaceV :: Double -> t
+
+-- | Text color.
 class CmbTextColor t where
   textColor :: Color -> t
 

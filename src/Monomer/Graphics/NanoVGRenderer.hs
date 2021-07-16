@@ -318,8 +318,8 @@ newRenderer c rdpr envRef = Renderer {..} where
       ry = h / 2
 
   -- Text
-  renderText !point font fontSize fontSpacing message = do
-    setFont c envRef dpr font fontSize fontSpacing
+  renderText !point font fontSize fontSpaceH message = do
+    setFont c envRef dpr font fontSize fontSpaceH
 
     when (message /= "") $
       VG.text c tx ty message
@@ -359,9 +359,9 @@ setFont
   -> Double
   -> Font
   -> FontSize
-  -> FontSpacing
+  -> FontSpace
   -> IO ()
-setFont c envRef dpr (Font name) (FontSize size) (FontSpacing spacing) = do
+setFont c envRef dpr (Font name) (FontSize size) (FontSpace spaceH) = do
   env <- readIORef envRef
   handleSetFont (validFonts env)
   where
@@ -369,7 +369,7 @@ setFont c envRef dpr (Font name) (FontSize size) (FontSpacing spacing) = do
       | Set.member name validFonts = do
           VG.fontFace c name
           VG.fontSize c $ realToFrac $ size * dpr
-          VG.textLetterSpacing c $ realToFrac $ spacing * dpr
+          VG.textLetterSpacing c $ realToFrac $ spaceH * dpr
       | otherwise = return ()
 
 makeLinearGradient
