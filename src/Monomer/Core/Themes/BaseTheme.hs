@@ -126,6 +126,7 @@ normalFont :: TextStyle
 normalFont = def
   & L.font ?~ Font "Regular"
   & L.fontSize ?~ FontSize 16
+  & L.fontSpaceV ?~ FontSpace 4
 
 titleFont :: TextStyle
 titleFont = def
