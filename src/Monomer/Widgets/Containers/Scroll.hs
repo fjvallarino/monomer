@@ -51,7 +51,7 @@ module Monomer.Widgets.Containers.Scroll (
   scrollOverlay,
   scrollOverlay_,
   scrollFwdStyle,
-  scrollFwdStyle_,
+  scrollFwdDefault,
   scrollInvisible,
   scrollInvisible_,
   scrollFollowFocus,
@@ -85,10 +85,10 @@ data ActiveBar
   | VBar
   deriving (Eq, Show, Generic)
 
-data ScrollCfg = ScrollCfg {
+data ScrollCfg s e = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
   _scScrollOverlay :: Maybe Bool,
-  _scScrollFwdStyle :: Maybe Bool,
+  _scScrollFwdStyle :: Maybe (WidgetEnv s e -> Style -> (Style, Style)),
   _scFollowFocus :: Maybe Bool,
   _scWheelRate :: Maybe Rational,
   _scBarColor :: Maybe Color,
@@ -101,7 +101,7 @@ data ScrollCfg = ScrollCfg {
   _scThumbRadius :: Maybe Double
 }
 
-instance Default ScrollCfg where
+instance Default (ScrollCfg s e) where
   def = ScrollCfg {
     _scScrollType = Nothing,
     _scScrollOverlay = Nothing,
@@ -118,7 +118,7 @@ instance Default ScrollCfg where
     _scThumbRadius = Nothing
   }
 
-instance Semigroup ScrollCfg where
+instance Semigroup (ScrollCfg s e) where
   (<>) t1 t2 = ScrollCfg {
     _scScrollType = _scScrollType t2 <|> _scScrollType t1,
     _scScrollOverlay = _scScrollOverlay t2 <|> _scScrollOverlay t1,
@@ -135,82 +135,95 @@ instance Semigroup ScrollCfg where
     _scThumbRadius = _scThumbRadius t2 <|> _scThumbRadius t1
   }
 
-instance Monoid ScrollCfg where
+instance Monoid (ScrollCfg s e) where
   mempty = def
 
-instance CmbWheelRate ScrollCfg Rational where
+instance CmbWheelRate (ScrollCfg s e) Rational where
   wheelRate rate = def {
     _scWheelRate = Just rate
   }
 
-instance CmbBarColor ScrollCfg where
+instance CmbBarColor (ScrollCfg s e) where
   barColor col = def {
     _scBarColor = Just col
   }
 
-instance CmbBarHoverColor ScrollCfg where
+instance CmbBarHoverColor (ScrollCfg s e) where
   barHoverColor col = def {
     _scBarHoverColor = Just col
   }
 
-instance CmbBarWidth ScrollCfg where
+instance CmbBarWidth (ScrollCfg s e) where
   barWidth w = def {
     _scBarWidth = Just w
   }
 
 -- Thumb
-instance CmbThumbColor ScrollCfg where
+instance CmbThumbColor (ScrollCfg s e) where
   thumbColor col = def {
     _scThumbColor = Just col
   }
 
-instance CmbThumbHoverColor ScrollCfg where
+instance CmbThumbHoverColor (ScrollCfg s e) where
   thumbHoverColor col = def {
     _scThumbHoverColor = Just col
   }
 
-instance CmbThumbWidth ScrollCfg where
+instance CmbThumbWidth (ScrollCfg s e) where
   thumbWidth w = def {
     _scThumbWidth = Just w
   }
 
-instance CmbThumbRadius ScrollCfg where
+instance CmbThumbRadius (ScrollCfg s e) where
   thumbRadius r = def {
     _scThumbRadius = Just r
   }
 
 -- | Scroll bars will be displayed on top of the content.
-scrollOverlay :: ScrollCfg
+scrollOverlay :: ScrollCfg s e
 scrollOverlay = scrollOverlay_ True
 
 {-|
 Sets whether scroll bars will be displayed on top of the content or next to it.
 -}
-scrollOverlay_ :: Bool -> ScrollCfg
+scrollOverlay_ :: Bool -> ScrollCfg s e
 scrollOverlay_ overlay = def {
   _scScrollOverlay = Just overlay
 }
 
--- | Scroll style will be provided to the child node.
-scrollFwdStyle :: ScrollCfg
-scrollFwdStyle = scrollFwdStyle_ True
-
 {-|
-Sets whether the style set to the scroll node should be provided to its child
-node. Useful for widgets which wrap themselves in a scroll, such as textArea, to
-be able to receive customizations made by the user.
+Sets a function that will split the node's style into one for the scroll and one
+for the child node. Useful for widgets which wrap themselves in a scroll, such
+as textArea, to be able to receive customizations made by the user.
 -}
-scrollFwdStyle_ :: Bool -> ScrollCfg
-scrollFwdStyle_ fwd = def {
+scrollFwdStyle :: (WidgetEnv s e -> Style -> (Style, Style)) -> ScrollCfg s e
+scrollFwdStyle fwd = def {
   _scScrollFwdStyle = Just fwd
 }
 
+-- | Default style forward function, keeping standard fields for scroll.
+scrollFwdDefault :: WidgetEnv s e -> Style -> (Style, Style)
+scrollFwdDefault wenv style = (scrollStyle, childStyle) where
+  scrollStyle = def
+    & collectStyleField_ L.sizeReqW style
+    & collectStyleField_ L.sizeReqH style
+    & collectStyleField_ L.border style
+    & collectStyleField_ L.radius style
+    & collectStyleField_ L.bgColor style
+  childStyle = def
+    & collectStyleField_ L.padding style
+    & collectStyleField_ L.fgColor style
+    & collectStyleField_ L.sndColor style
+    & collectStyleField_ L.hlColor style
+    & collectStyleField_ L.text style
+    & collectStyleField_ L.cursorIcon style
+
 -- | Sets the style of the scroll bars to transparent.
-scrollInvisible :: ScrollCfg
+scrollInvisible :: ScrollCfg s e
 scrollInvisible = scrollInvisible_ True
 
 -- | Whether to set the style of the scroll bars to transparent.
-scrollInvisible_ :: Bool -> ScrollCfg
+scrollInvisible_ :: Bool -> ScrollCfg s e
 scrollInvisible_ False = def
 scrollInvisible_ True = def {
   _scScrollOverlay = Just True,
@@ -221,11 +234,11 @@ scrollInvisible_ True = def {
 }
 
 -- | Makes the scroll automatically follow focused items to make them visible.
-scrollFollowFocus :: ScrollCfg
+scrollFollowFocus :: ScrollCfg s e
 scrollFollowFocus = scrollFollowFocus_ True
 
 -- | Whether to automatically follow focused items to make them visible.
-scrollFollowFocus_ :: Bool -> ScrollCfg
+scrollFollowFocus_ :: Bool -> ScrollCfg s e
 scrollFollowFocus_ follow = def {
   _scFollowFocus = Just follow
 }
@@ -234,13 +247,13 @@ scrollFollowFocus_ follow = def {
 Sets the base style of the scroll bar. Useful when creating widgets which use
 scroll and may need to customize it.
 -}
-scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg
+scrollStyle :: ALens' ThemeState StyleState -> ScrollCfg s e
 scrollStyle style = def {
   _scStyle = Just style
 }
 
 -- Not exported
-scrollType :: ScrollType -> ScrollCfg
+scrollType :: ScrollType -> ScrollCfg s e
 scrollType st = def {
   _scScrollType = Just st
 }
@@ -292,7 +305,7 @@ scroll :: WidgetNode s e -> WidgetNode s e
 scroll managedWidget = scroll_ def managedWidget
 
 -- | Creates a scroll node that may show both bars. Accepts config.
-scroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+scroll_ :: [ScrollCfg s e] -> WidgetNode s e -> WidgetNode s e
 scroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat configs
 
@@ -303,7 +316,7 @@ hscroll managedWidget = hscroll_ def managedWidget
 
 -- | Creates a horizontal scroll node. Vertical space is equal to what the
 -- | parent node assigns. Accepts config.
-hscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+hscroll_ :: [ScrollCfg s e] -> WidgetNode s e -> WidgetNode s e
 hscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollH : configs)
 
@@ -314,7 +327,7 @@ vscroll managedWidget = vscroll_ def managedWidget
 
 -- | Creates a vertical scroll node. Vertical space is equal to what the
 -- | parent node assigns. Accepts config.
-vscroll_ :: [ScrollCfg] -> WidgetNode s e -> WidgetNode s e
+vscroll_ :: [ScrollCfg s e] -> WidgetNode s e -> WidgetNode s e
 vscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollV : configs)
 
@@ -323,7 +336,7 @@ makeNode widget managedWidget = defaultWidgetNode "scroll" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeScroll :: ScrollCfg -> ScrollState -> Widget s e
+makeScroll :: ScrollCfg s e -> ScrollState -> Widget s e
 makeScroll config state = widget where
   widget = createContainer state def {
     containerChildrenOffset = Just offset,
@@ -346,7 +359,6 @@ makeScroll config state = widget where
   Size maxVpW maxVpH = _sstVpSize state
   offset = Point dx dy
   scrollType = fromMaybe ScrollBoth (_scScrollType config)
-  fwdStyle = _scScrollFwdStyle config == Just True
   layoutDirection = case scrollType of
     ScrollH -> LayoutHorizontal
     ScrollV -> LayoutVertical
@@ -355,18 +367,21 @@ makeScroll config state = widget where
   getBaseStyle wenv node = _scStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
 
-  checkFwdStyle node = newNode where
+  checkFwdStyle wenv node = newNode where
+    fwdStyle = _scScrollFwdStyle config
     style = node ^. L.info . L.style
+    (parentStyle, childStyle) = fromJust fwdStyle wenv style
     newNode
-      | fwdStyle = node
-        & L.children . ix 0 . L.info . L.style .~ style
+      | isJust fwdStyle = node
+        & L.info . L.style .~ parentStyle
+        & L.children . ix 0 . L.info . L.style .~ childStyle
       | otherwise = node
 
   init wenv node = resultNode newNode where
-    newNode = checkFwdStyle node
+    newNode = checkFwdStyle wenv node
 
   merge wenv node oldNode oldState = resultNode newNode where
-    newNode = checkFwdStyle $ node
+    newNode = checkFwdStyle wenv $ node
       & L.widget .~ makeScroll config oldState
 
   findByPoint wenv node start point = result where
@@ -552,7 +567,6 @@ makeScroll config state = widget where
 
     sizeReq = (expandSize w factor, expandSize h factor)
 
-  resize :: ContainerResizeHandler s e
   resize wenv node viewport children = result where
     theme = activeTheme wenv node
     style = scrollActiveStyle wenv node
@@ -654,7 +668,7 @@ scrollActiveStyle wenv node
     child = node ^. L.children ^?! ix 0
 
 scrollStatus
-  :: ScrollCfg
+  :: ScrollCfg s e
   -> WidgetEnv s e
   -> WidgetNode s e
   -> ScrollState
