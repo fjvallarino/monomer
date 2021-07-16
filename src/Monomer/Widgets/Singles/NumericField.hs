@@ -325,6 +325,7 @@ numericFieldD_ widgetData configs = newNode where
     _ifcDefWidth = defWidth,
     _ifcCaretWidth = _nfcCaretWidth config,
     _ifcCaretMs = _nfcCaretMs config,
+    _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
     _ifcStyle = Just L.numericFieldStyle,

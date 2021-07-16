@@ -11,10 +11,12 @@ Input field for single line Text.
 Configs:
 
 - validInput: field indicating if the current input is valid. Useful to show
-warnings in the UI, or disable buttons if needed.
+  warnings in the UI, or disable buttons if needed.
 - resizeOnChange: Whether input causes ResizeWidgets requests.
 - selectOnFocus: Whether all input should be selected when focus is received.
 - maxLength: the maximum length of input text.
+- fieldDisplayChar: the character that will be displayed as replacement of the
+  real text. Useful for password fields.
 - onFocus: event to raise when focus is received.
 - onFocusReq: WidgetRequest to generate when focus is received.
 - onBlur: event to raise when focus is lost.
@@ -28,6 +30,7 @@ warnings in the UI, or disable buttons if needed.
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.TextField (
+  fieldDisplayChar,
   textField,
   textField_,
   textFieldV,
@@ -52,6 +55,7 @@ import qualified Monomer.Lens as L
 data TextFieldCfg s e = TextFieldCfg {
   _tfcCaretWidth :: Maybe Double,
   _tfcCaretMs :: Maybe Int,
+  _tfcDisplayChar :: Maybe Char,
   _tfcPlaceholder :: Maybe Text,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
@@ -67,6 +71,7 @@ instance Default (TextFieldCfg s e) where
   def = TextFieldCfg {
     _tfcCaretWidth = Nothing,
     _tfcCaretMs = Nothing,
+    _tfcDisplayChar = Nothing,
     _tfcPlaceholder = Nothing,
     _tfcValid = Nothing,
     _tfcValidV = [],
@@ -82,6 +87,7 @@ instance Semigroup (TextFieldCfg s e) where
   (<>) t1 t2 = TextFieldCfg {
     _tfcCaretWidth = _tfcCaretWidth t2 <|> _tfcCaretWidth t1,
     _tfcCaretMs = _tfcCaretMs t2 <|> _tfcCaretMs t1,
+    _tfcDisplayChar = _tfcDisplayChar t2 <|> _tfcDisplayChar t1,
     _tfcPlaceholder = _tfcPlaceholder t2 <|> _tfcPlaceholder t1,
     _tfcValid = _tfcValid t2 <|> _tfcValid t1,
     _tfcValidV = _tfcValidV t1 <> _tfcValidV t2,
@@ -166,6 +172,11 @@ instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
     _tfcOnChangeReq = [req]
   }
 
+fieldDisplayChar :: Char -> TextFieldCfg s e
+fieldDisplayChar char = def {
+    _tfcDisplayChar = Just char
+  }
+
 -- | Creates a text field using the given lens.
 textField :: WidgetEvent e => ALens' s Text -> WidgetNode s e
 textField field = textField_ field def
@@ -207,6 +218,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcDefWidth = 100,
     _ifcCaretWidth = _tfcCaretWidth config,
     _ifcCaretMs = _tfcCaretMs config,
+    _ifcDisplayChar = _tfcDisplayChar config,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
     _ifcStyle = Just L.textFieldStyle,

@@ -90,6 +90,8 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcCaretWidth :: Maybe Double,
   -- | Caret blink period.
   _ifcCaretMs :: Maybe Int,
+  -- | Character to display as text replacement. Useful for passwords.
+  _ifcDisplayChar :: Maybe Char,
   -- | Whether input causes ResizeWidgets requests. Defaults to False.
   _ifcResizeOnChange :: Bool,
   -- | If all input should be selected when focus is received.
@@ -647,7 +649,7 @@ makeInputField config state = widget where
       drawInTranslation renderer (Point cx cy) $
         forM_ currPlaceholder (drawTextLine renderer placeholderStyle)
 
-    renderContent renderer state style currText
+    renderContent renderer state style (getDisplayText config currText)
 
     when caretRequired $
       drawRect renderer caretRect (Just caretColor) Nothing
@@ -842,7 +844,7 @@ newTextState wenv node oldState config value text cursor sel = newState where
   !textRect = getTextRect wenv style contentArea alignH alignV text
   Rect tx ty tw th = textRect
   textFits = cw >= tw
-  glyphs = getTextGlyphs wenv style text
+  glyphs = getTextGlyphs wenv style (getDisplayText config text)
   glyphStart = maybe 0 _glpXMax $ Seq.lookup (cursor - 1) glyphs
   glyphOffset = getGlyphsMin glyphs
   glyphX = glyphStart - glyphOffset
@@ -915,6 +917,13 @@ inputFieldAlignH style = fromMaybe ATLeft alignH where
 inputFieldAlignV :: StyleState -> AlignTV
 inputFieldAlignV style = fromMaybe ATLowerX alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
+
+getDisplayText :: InputFieldCfg s e a -> Text -> Text
+getDisplayText config text = displayText where
+  displayChar = T.singleton <$> _ifcDisplayChar config
+  displayText
+    | isJust displayChar = T.replicate (T.length text) (fromJust displayChar)
+    | otherwise = text
 
 delim :: Char -> Bool
 delim c = c `elem` [' ', '.', ',', '/', '-', ':']

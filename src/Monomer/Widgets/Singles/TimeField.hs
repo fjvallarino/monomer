@@ -351,6 +351,7 @@ timeFieldD_ widgetData configs = newNode where
     _ifcDefWidth = 160,
     _ifcCaretWidth = _tfcCaretWidth config,
     _ifcCaretMs = _tfcCaretMs config,
+    _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_tfcSelectOnFocus config),
     _ifcStyle = Just L.timeFieldStyle,

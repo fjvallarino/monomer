@@ -765,15 +765,17 @@
   - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
     - Will use shift to differentiate. Makes the widget more predictable and simplifies config
     - evtReleaseDrag?
+  - Text input improvements
     - Caret width and ms should be configurable (on textArea too).
     - Font spacing should be configurable.
     - Fix textArea styling (should retrieve text config from its parent, scroll)
     - Vertical font spacing should be configurable.
+    - Add support for password fields by using displayChar.
 
 Next
-  - Check numericField drag/select behavior. Can they coexist? Click giving focus as in others?
-    - Password?
+  - Text input improvements
     - Review tests for scroll passing style, font spacing and password.
+  - Should all widget configs come first, not just containers?
   - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.

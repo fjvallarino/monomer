@@ -373,6 +373,7 @@ dateFieldD_ widgetData configs = newNode where
     _ifcDefWidth = 160,
     _ifcCaretWidth = _dfcCaretWidth config,
     _ifcCaretMs = _dfcCaretMs config,
+    _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_dfcSelectOnFocus config),
     _ifcStyle = Just L.dateFieldStyle,
