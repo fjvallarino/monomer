@@ -30,6 +30,7 @@ import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
+import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Slider
 
 import qualified Monomer.Lens as L
@@ -57,6 +58,7 @@ spec = describe "Slider" $ do
   handleMouseDragValV
   handleWheelH
   handleWheelValV
+  handleShiftFocus
   getSizeReqH
   getSizeReqV
   getSizeReqThumb
@@ -339,6 +341,24 @@ handleWheelValV = describe "handleWheelValV" $ do
     wenv = mockWenv (TestModel 0)
       & L.theme .~ darkTheme
     sliderNode = vsliderV_ 0 SliderChanged (-500) 500 [wheelRate 1]
+    evts es = nodeHandleEventEvts wenv es sliderNode
+
+handleShiftFocus :: Spec
+handleShiftFocus = describe "handleShiftFocus" $ do
+  it "should set focus when clicked" $ do
+    evts [evtPress p] `shouldBe` Seq.fromList [GotFocus $ Seq.fromList [0, 0]]
+
+  it "should not set focus when clicked with shift pressed" $ do
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
+
+  where
+    wenv = mockWenv (TestModel 0)
+      & L.theme .~ darkTheme
+    p = Point 100 30
+    sliderNode = vstack [
+        hslider_ sliderVal (-500) 500 [wheelRate 1] `style` [height 20],
+        hslider_ sliderVal (-500) 500 [wheelRate 1, onFocus GotFocus] `style` [height 20]
+      ]
     evts es = nodeHandleEventEvts wenv es sliderNode
 
 getSizeReqH :: Spec

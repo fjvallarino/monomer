@@ -261,6 +261,7 @@ specFractional = describe "FractionalField" $ do
   handleEventFractional
   handleEventValueFractional
   handleEventMouseDragFractional
+  handleShiftFocusFractional
   getSizeReqFractional
 
 handleEventFractional :: Spec
@@ -434,6 +435,23 @@ handleEventMouseDragFractional = describe "handleEventMouseDragFractional" $ do
     model es = nodeHandleEventModel wenv es floatNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleShiftFocusFractional :: Spec
+handleShiftFocusFractional = describe "handleShiftFocusFractional" $ do
+  it "should set focus when clicked" $ do
+    evts [evtPress p] `shouldBe` Seq.fromList [GotFocus $ Seq.fromList [0, 0]]
+
+  it "should not set focus when clicked with shift pressed" $ do
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
+
+  where
+    wenv = mockWenv (FractionalModel (Just 0) False)
+    p = Point 100 30
+    floatNode = vstack [
+        numericField_ fractionalValue [wheelRate 1],
+        numericField_ fractionalValue [wheelRate 1, onFocus GotFocus]
+      ]
+    evts es = nodeHandleEventEvts wenv es floatNode
 
 getSizeReqFractional :: Spec
 getSizeReqFractional = describe "getSizeReqFractional" $ do

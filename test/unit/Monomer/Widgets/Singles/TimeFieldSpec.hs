@@ -72,6 +72,7 @@ spec = describe "TimeField" $ do
   handleEventTime
   handleEventValueTime
   handleEventMouseDragTime
+  handleShiftFocus
   getSizeReqTime
 
 handleEventTime :: Spec
@@ -253,6 +254,23 @@ handleEventMouseDragTime = describe "handleEventMouseDragTime" $ do
     model es = nodeHandleEventModel wenv es timeNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleShiftFocus :: Spec
+handleShiftFocus = describe "handleShiftFocus" $ do
+  it "should set focus when clicked" $ do
+    evts [evtPress p] `shouldBe` Seq.fromList [GotFocus $ Seq.fromList [0, 0]]
+
+  it "should not set focus when clicked with shift pressed" $ do
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
+
+  where
+    wenv = mockWenv (TimeModel (TimeOfDay 14 50 15) True)
+    p = Point 100 30
+    floatNode = vstack [
+        timeField_ timeValue [wheelRate 1],
+        timeField_ timeValue [wheelRate 1, onFocus GotFocus]
+      ]
+    evts es = nodeHandleEventEvts wenv es floatNode
 
 getSizeReqTime :: Spec
 getSizeReqTime = describe "getSizeReqTime" $ do

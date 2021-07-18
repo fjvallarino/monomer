@@ -72,6 +72,7 @@ spec = describe "DateField" $ do
   handleEventDate
   handleEventValueDate
   handleEventMouseDragDate
+  handleShiftFocus
   getSizeReqDate
 
 handleEventDate :: Spec
@@ -244,6 +245,23 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
     model es = nodeHandleEventModel wenv es dateNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleShiftFocus :: Spec
+handleShiftFocus = describe "handleShiftFocus" $ do
+  it "should set focus when clicked" $ do
+    evts [evtPress p] `shouldBe` Seq.fromList [GotFocus $ Seq.fromList [0, 0]]
+
+  it "should not set focus when clicked with shift pressed" $ do
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
+
+  where
+    wenv = mockWenv (DateModel (fromGregorian 1989 03 02) True)
+    p = Point 100 30
+    floatNode = vstack [
+        dateField_ dateValue [wheelRate 1],
+        dateField_ dateValue [wheelRate 1, onFocus GotFocus]
+      ]
+    evts es = nodeHandleEventEvts wenv es floatNode
 
 getSizeReqDate :: Spec
 getSizeReqDate = describe "getSizeReqDate" $ do

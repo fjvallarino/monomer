@@ -30,6 +30,7 @@ import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
+import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Singles.Dial
 
 import qualified Monomer.Lens as L
@@ -53,6 +54,7 @@ spec = describe "Dial" $ do
   handleMouseDragVal
   handleWheel
   handleWheelVal
+  handleShiftFocus
   getSizeReq
 
 handleKeyboard :: Spec
@@ -179,8 +181,8 @@ handleWheel = describe "handleWheel" $ do
   where
     wenv = mockWenvEvtUnit (TestModel 200)
       & L.theme .~ darkTheme
-    sliderNode = dial_ dialVal (-500) 500 [wheelRate 1]
-    model es = nodeHandleEventModel wenv es sliderNode
+    dialNode = dial_ dialVal (-500) 500 [wheelRate 1]
+    model es = nodeHandleEventModel wenv es dialNode
 
 handleWheelVal :: Spec
 handleWheelVal = describe "handleWheelVal" $ do
@@ -192,8 +194,28 @@ handleWheelVal = describe "handleWheelVal" $ do
   where
     wenv = mockWenv (TestModel 0)
       & L.theme .~ darkTheme
-    sliderNode = dialV_ 0 DialChanged (-500) 500 [wheelRate 1]
-    evts es = nodeHandleEventEvts wenv es sliderNode
+    dialNode = dialV_ 0 DialChanged (-500) 500 [wheelRate 1]
+    evts es = nodeHandleEventEvts wenv es dialNode
+
+handleShiftFocus :: Spec
+handleShiftFocus = describe "handleShiftFocus" $ do
+  it "should set focus when clicked" $ do
+    evts [evtPress p] `shouldBe` Seq.fromList [GotFocus $ Seq.fromList [0, 0, 0]]
+
+  it "should not set focus when clicked with shift pressed" $ do
+    evts [evtKS keyA, evtPress p] `shouldBe` Seq.empty
+
+  where
+    wenv = mockWenv (TestModel 0)
+      & L.theme .~ darkTheme
+    p = Point 25 50
+    dialNode = hstack [
+        vstack [
+          dial_ dialVal (-500) 500 [wheelRate 1],
+          dial_ dialVal (-500) 500 [wheelRate 1, onFocus GotFocus]
+        ]
+      ]
+    evts es = nodeHandleEventEvts wenv es dialNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

@@ -772,10 +772,13 @@
     - Vertical font spacing should be configurable.
     - Add support for password fields by using displayChar.
     - Review tests for scroll passing style, font spacing and password.
+  - Should all widget configs come first, not just containers?
+    - No, it feels awkward.
+    - Still on the fence with containers having config before children.
+  - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
+    - Simple click receives focus, shift+click allows changing values without getting focus
 
 Next
-  - Should all widget configs come first, not just containers?
-  - Check consistency of click to focus. Dial, slider, inputField (should get focus on shift?)
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

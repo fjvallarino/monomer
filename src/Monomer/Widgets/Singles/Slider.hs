@@ -173,7 +173,11 @@ Creates a horizontal slider using the given lens, providing minimum and maximum
 values.
 -}
 hslider
-  :: (SliderValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
+  :: (SliderValue a, WidgetEvent e)
+  => ALens' s a
+  -> a
+  -> a
+  -> WidgetNode s e
 hslider field minVal maxVal = hslider_ field minVal maxVal def
 
 {-|
@@ -195,7 +199,11 @@ Creates a vertical slider using the given lens, providing minimum and maximum
 values.
 -}
 vslider
-  :: (SliderValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
+  :: (SliderValue a, WidgetEvent e)
+  => ALens' s a
+  -> a
+  -> a
+  -> WidgetNode s e
 vslider field minVal maxVal = vslider_ field minVal maxVal def
 
 {-|
@@ -217,7 +225,12 @@ Creates a horizontal slider using the given value and onChange event handler,
 providing minimum and maximum values.
 -}
 hsliderV
-  :: (SliderValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
+  :: (SliderValue a, WidgetEvent e)
+  => a
+  -> (a -> e)
+  -> a
+  -> a
+  -> WidgetNode s e
 hsliderV value handler minVal maxVal = hsliderV_ value handler minVal maxVal def
 
 {-|
@@ -242,7 +255,12 @@ Creates a vertical slider using the given value and onChange event handler,
 providing minimum and maximum values.
 -}
 vsliderV
-  :: (SliderValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
+  :: (SliderValue a, WidgetEvent e)
+  => a
+  -> (a -> e)
+  -> a
+  -> a
+  -> WidgetNode s e
 vsliderV value handler minVal maxVal = vsliderV_ value handler minVal maxVal def
 
 {-|
@@ -292,6 +310,7 @@ makeSlider
   -> Widget s e
 makeSlider isHz field minVal maxVal config state = widget where
   widget = createSingle state def {
+    singleFocusOnBtnPressed = False,
     singleGetBaseStyle = getBaseStyle,
     singleInit = init,
     singleMerge = merge,
@@ -327,14 +346,14 @@ makeSlider isHz field minVal maxVal config state = widget where
     Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_slcOnBlurReq config) next node
     KeyAction mod code KeyPressed
-      | isCtrl && isInc code -> handleNewPos (pos + warpSpeed)
-      | isCtrl && isDec code -> handleNewPos (pos - warpSpeed)
-      | isShiftPressed mod && isInc code -> handleNewPos (pos + baseSpeed)
-      | isShiftPressed mod && isDec code -> handleNewPos (pos - baseSpeed)
+      | ctrlPressed && isInc code -> handleNewPos (pos + warpSpeed)
+      | ctrlPressed && isDec code -> handleNewPos (pos - warpSpeed)
+      | shiftPressed && isInc code -> handleNewPos (pos + baseSpeed)
+      | shiftPressed && isDec code -> handleNewPos (pos - baseSpeed)
       | isInc code -> handleNewPos (pos + fastSpeed)
       | isDec code -> handleNewPos (pos - fastSpeed)
       where
-        isCtrl = isShortCutControl wenv mod
+        ctrlPressed = isShortCutControl wenv mod
         (isDec, isInc)
           | isHz = (isKeyLeft, isKeyRight)
           | otherwise = (isKeyDown, isKeyUp)
@@ -342,17 +361,18 @@ makeSlider isHz field minVal maxVal config state = widget where
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
         handleNewPos newPos
-          | validPos /= pos = resultFromPos validPos
+          | validPos /= pos = resultFromPos validPos []
           | otherwise = Nothing
           where
             validPos = clamp 0 maxPos newPos
     Move point
-      | isNodePressed wenv node -> resultFromPoint point
-    ButtonAction point btn BtnPressed clicks
-      | clicks == 1 -> resultFromPoint point
-    ButtonAction point btn BtnReleased clicks
-      | clicks <= 1 -> resultFromPoint point
-    WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos where
+      | isNodePressed wenv node -> resultFromPoint point []
+    ButtonAction point btn BtnPressed clicks -> resultFromPoint point reqs where
+      reqs
+        | shiftPressed = []
+        | otherwise = [SetFocus widgetId]
+    ButtonAction point btn BtnReleased clicks  -> resultFromPoint point []
+    WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos [] where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)
       wheelRate = fromRational wheelCfg
       tmpPos = pos + round (wy * wheelRate)
@@ -362,10 +382,12 @@ makeSlider isHz field minVal maxVal config state = widget where
       theme = activeTheme wenv node
       style = activeStyle wenv node
       vp = getContentArea style node
+      widgetId = node ^. L.info . L.widgetId
+      shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       SliderState maxPos pos = state
-      resultFromPoint point = resultFromPos newPos where
+      resultFromPoint point reqs = resultFromPos newPos reqs where
         newPos = posFromMouse isHz vp point
-      resultFromPos newPos = Just newResult where
+      resultFromPos newPos extraReqs = Just newResult where
         newState = state {
           _slsPos = newPos
         }
@@ -375,6 +397,7 @@ makeSlider isHz field minVal maxVal config state = widget where
         newVal = valueFromPos newPos
         reqs = widgetDataSet field newVal
           ++ fmap ($ newVal) (_slcOnChangeReq config)
+          ++ extraReqs
         newResult
           | pos /= newPos = result
               & L.requests <>~ Seq.fromList reqs

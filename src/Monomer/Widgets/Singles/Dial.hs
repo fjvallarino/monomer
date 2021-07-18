@@ -138,7 +138,12 @@ data DialState = DialState {
 } deriving (Eq, Show, Generic)
 
 -- | Creates a dial using the given lens, providing minimum and maximum values.
-dial :: (DialValue a, WidgetEvent e) => ALens' s a -> a -> a -> WidgetNode s e
+dial
+  :: (DialValue a, WidgetEvent e)
+  => ALens' s a
+  -> a
+  -> a
+  -> WidgetNode s e
 dial field minVal maxVal = dial_ field minVal maxVal def
 
 {-|
@@ -159,7 +164,12 @@ Creates a dial using the given value and onChange event handler, providing
 minimum and maximum values.
 -}
 dialV
-  :: (DialValue a, WidgetEvent e) => a -> (a -> e) -> a -> a -> WidgetNode s e
+  :: (DialValue a, WidgetEvent e)
+  => a
+  -> (a -> e)
+  -> a
+  -> a
+  -> WidgetNode s e
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
 {-|
@@ -208,6 +218,7 @@ makeDial
   -> Widget s e
 makeDial field minVal maxVal config state = widget where
   widget = createSingle state def {
+    singleFocusOnBtnPressed = False,
     singleGetBaseStyle = getBaseStyle,
     singleGetActiveStyle = getActiveStyle,
     singleInit = init,
@@ -253,15 +264,15 @@ makeDial field minVal maxVal config state = widget where
     Focus prev -> handleFocusChange (_dlcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_dlcOnBlurReq config) next node
     KeyAction mod code KeyPressed
-      | isCtrl && isKeyUp code -> handleNewPos (pos + warpSpeed)
-      | isCtrl && isKeyDown code -> handleNewPos (pos - warpSpeed)
-      | isShiftPressed mod && isKeyUp code -> handleNewPos (pos + baseSpeed)
-      | isShiftPressed mod && isKeyDown code -> handleNewPos (pos - baseSpeed)
+      | ctrlPressed && isKeyUp code -> handleNewPos (pos + warpSpeed)
+      | ctrlPressed && isKeyDown code -> handleNewPos (pos - warpSpeed)
+      | shiftPressed && isKeyUp code -> handleNewPos (pos + baseSpeed)
+      | shiftPressed && isKeyDown code -> handleNewPos (pos - baseSpeed)
       | isKeyUp code -> handleNewPos (pos + fastSpeed)
       | isKeyDown code -> handleNewPos (pos - fastSpeed)
       where
         DialState maxPos pos = state
-        isCtrl = isShortCutControl wenv mod
+        ctrlPressed = isShortCutControl wenv mod
         baseSpeed = max 1 $ round (fromIntegral maxPos / 1000)
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
@@ -279,13 +290,15 @@ makeDial field minVal maxVal config state = widget where
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
         (_, newVal) = posFromPoint minVal maxVal state dragRate start point
         result = addReqsEvts (resultReqs node [RenderOnce]) newVal
-    ButtonAction point btn BtnReleased clicks
-      | clicks == 0 -> Just result where
-        reqs = [RenderOnce]
-        newState = newStateFromModel wenv node state
-        newNode = node
-          & L.widget .~ makeDial field minVal maxVal config newState
-        result = resultReqs newNode reqs
+    ButtonAction point btn BtnPressed clicks
+      | not (isNodeFocused wenv node) && not shiftPressed -> Just result where
+        result = resultReqs node [SetFocus widgetId]
+    ButtonAction point btn BtnReleased clicks -> Just result where
+      reqs = [RenderOnce]
+      newState = newStateFromModel wenv node state
+      newNode = node
+        & L.widget .~ makeDial field minVal maxVal config newState
+      result = resultReqs newNode reqs
     WheelScroll _ (Point _ wy) wheelDirection -> Just result where
       DialState maxPos pos = state
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_dlcWheelRate config)
@@ -298,7 +311,9 @@ makeDial field minVal maxVal config state = widget where
     where
       theme = activeTheme wenv node
       (_, dialArea) = getDialInfo wenv node config
+      widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
+      shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       isSelectKey code = isKeyReturn code || isKeySpace code
       addReqsEvts result newVal = newResult where
         currVal = widgetDataGet (wenv ^. L.model) field

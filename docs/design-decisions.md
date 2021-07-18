@@ -13,3 +13,4 @@ Why did you add themes, considering you can easily create a customized version o
 Why did you remove Margin?
 Why did you switch to returning Maybe from rect/size operations? Revise addOuterSizeReq (word this question properly before answering)
 Why does exit event works this way? Why not use dispose? Talk about the need for broadcast, the intention of not providing more events to widgets than needed, etc
+Why do containers have the optional config argument before their children? It's inconsistent with where single widgets have it.
