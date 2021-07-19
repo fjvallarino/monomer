@@ -1,6 +1,9 @@
 # Monomer
 
-An easy to use, Elm/Flutter inspired, GUI library for writing native applications in Haskell.
+An easy to use, cross platform, GUI library for writing Haskell applications.
+
+It provides a framework similar to the Elm Architecture, allowing to create GUIs
+functionally with an extensible set of widgets.
 
 ## Objectives
 
@@ -18,13 +21,11 @@ An easy to use, Elm/Flutter inspired, GUI library for writing native application
 ### Why would you want to use this library
 
 - You want to write your application in Haskell.
-- You want to write a native, not Electron based, application.
-- You prefer not to use Gtk.
+- You want to write a native, not web based, application.
 
 ### These are not objectives for this project
 
 - Have a native look and feel.
-- Be a research project pushing the boundaries on how GUIs are created.
 
 ### Current limitations
 

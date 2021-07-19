@@ -207,7 +207,7 @@ baseBasic themeMod = def
   & L.dialStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.dialStyle . L.sndColor ?~ inputSndBasic themeMod
   & L.dialogTitleStyle . L.text ?~ (titleFont & L.fontColor ?~ dialogTitleText themeMod)
-  & L.dialogTitleStyle . L.padding ?~ paddingB 10
+  & L.dialogTitleStyle . L.padding ?~ padding 10 <> paddingB 10
   & L.dialogFrameStyle . L.padding ?~ padding 10
   & L.dialogFrameStyle . L.radius ?~ radius 10
   & L.dialogFrameStyle . L.bgColor ?~ dialogBg themeMod
@@ -218,7 +218,8 @@ baseBasic themeMod = def
   & L.dialogCloseIconStyle . L.radius ?~ radius 8
   & L.dialogCloseIconStyle . L.sizeReqW ?~ width 16
   & L.dialogCloseIconStyle . L.sizeReqH ?~ width 16
-  & L.dialogButtonsStyle . L.padding ?~ padding 20
+  & L.dialogButtonsStyle . L.padding ?~ padding 10
+  & L.dialogMsgBodyStyle . L.padding ?~ paddingH 10
   & L.dialogMsgBodyStyle . L.text
     ?~ (normalFont & L.fontColor ?~ dialogText themeMod)
   & L.dialogMsgBodyStyle . L.sizeReqW ?~ maxWidth 600

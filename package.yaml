@@ -1,10 +1,10 @@
 name: monomer
 version: 0.1.0.0
-github: "fjvallarino/monomer"
+github: fjvallarino/monomer
 license: BSD3
-author: "Francisco Vallarino"
-maintainer: "fjvallarino@gmail.com"
-copyright: "2018 Francisco Vallarino"
+author: Francisco Vallarino
+maintainer: fjvallarino@gmail.com
+copyright: 2018 Francisco Vallarino
 
 extra-source-files:
 - README.md
@@ -14,7 +14,13 @@ extra-source-files:
 synopsis: GUI Library
 category: GUI
 description:
-  Monomer is a cross platform GUI library inspired by Elm and Flutter.
+  Monomer is an easy to use, cross platform, GUI library for writing Haskell
+  applications.
+
+  It provides a framework similar to the Elm Architecture, allowing to create
+  GUIs functionally using an extensible set of widgets.
+
+  You can find the available widgets in @Monomer.Widgets@.
 
   Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
 

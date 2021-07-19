@@ -135,6 +135,7 @@ buildUI dialogBody cancelEvt config wenv model = mainTree where
         box_ [alignTop, onClick cancelEvt] closeIcon
       ],
       dialogBody wenv,
+      filler,
       box_ [alignRight] dismissButton
         & L.info . L.style .~ collectTheme wenv L.dialogButtonsStyle
     ] & L.info . L.style .~ collectTheme wenv L.dialogFrameStyle
