@@ -409,6 +409,7 @@ executable tutorial
       Tutorial05_Producers
       Tutorial06_Composite
       Tutorial07_CustomWidget
+      Tutorial08_Themes
       Paths_monomer
   hs-source-dirs:
       examples/tutorial
