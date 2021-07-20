@@ -12,13 +12,13 @@ size requirements of each child node.
 
 Configs:
 
-- onChange: raises an event when the handle is moved.
-- onChangeReq: generates a WidgetReqest when the handle is moved.
 - splitHandlePos: lens to a model field which provides the handle position.
 - splitHandlePosV: value which provides the handle position.
 - splitHandleSize: width of the handle.
 - splitIgnoreChildResize: whether to ignore changes in size to its children
 (otherwise, the handle position may change because of this).
+- onChange: raises an event when the handle is moved.
+- onChangeReq: generates a WidgetReqest when the handle is moved.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}

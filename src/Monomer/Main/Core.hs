@@ -81,7 +81,6 @@ data MainLoopArgs sp e ep = MainLoopArgs {
 
 data RenderState s e = RenderState {
   _rstDpr :: Double,
-  _rstColor :: Color,
   _rstWidgetEnv :: WidgetEnv s e,
   _rstRootNode :: WidgetNode s e
 }
@@ -190,10 +189,8 @@ runAppLoop window glCtx channel widgetRoot config = do
 
   L.mainModel .= _weModel newWenv
 
-  let bgColor = _themeClearColor theme
-
   liftIO . forkOS . void $
-    startRenderThread channel window glCtx fonts dpr bgColor newWenv newRoot
+    startRenderThread channel window glCtx fonts dpr newWenv newRoot
 
   liftIO $ watchWindowResize channel
   mainLoop window fontManager config loopArgs
@@ -334,18 +331,17 @@ startRenderThread
   -> SDL.GLContext
   -> [FontDef]
   -> Double
-  -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-startRenderThread channel window glCtx fonts dpr color wenv root = do
+startRenderThread channel window glCtx fonts dpr wenv root = do
   SDL.glMakeCurrent window glCtx
   renderer <- liftIO $ makeRenderer fonts dpr
   fontMgr <- liftIO $ makeFontManager fonts dpr
 
   waitRenderMsg channel window renderer fontMgr state
   where
-    state = RenderState dpr color wenv root
+    state = RenderState dpr wenv root
 
 waitRenderMsg
   :: (Eq s, WidgetEvent e)
@@ -369,18 +365,20 @@ handleRenderMsg
   -> RenderMsg s e
   -> IO (RenderState s e)
 handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
-  let RenderState dpr color _ _ = state
+  let RenderState dpr _ _ = state
   let newWenv = tmpWenv
         & L.fontManager .~ fontMgr
+  let color = newWenv ^. L.theme . L.clearColor
   renderWidgets window renderer color newWenv newRoot
-  return (RenderState dpr color newWenv newRoot)
+  return (RenderState dpr newWenv newRoot)
 handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
-  let RenderState dpr color wenv root = state
+  let RenderState dpr wenv root = state
   let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
   let newWenv = wenv
         & L.fontManager .~ fontMgr
         & L.windowSize .~ newSize
         & L.viewport .~ viewport
+  let color = newWenv ^. L.theme . L.clearColor
   let result = widgetResize (root ^. L.widget) newWenv root viewport
   let newRoot = result ^. L.node
 
