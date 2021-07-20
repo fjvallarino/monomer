@@ -453,6 +453,7 @@ test-suite monomer-test
   main-is: Spec.hs
   other-modules:
       Monomer.Common.CursorIconSpec
+      Monomer.Graphics.UtilSpec
       Monomer.TestEventUtil
       Monomer.TestUtil
       Monomer.Widgets.Animation.FadeSpec

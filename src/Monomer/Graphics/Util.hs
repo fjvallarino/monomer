@@ -12,8 +12,11 @@ module Monomer.Graphics.Util (
   clampChannel,
   clampAlpha,
   rgb,
-  rgbHex,
   rgba,
+  rgbHex,
+  rgbaHex,
+  hsl,
+  hsla,
   transparent,
   alignInRect,
   alignHInRect,
@@ -34,9 +37,24 @@ clampChannel channel = clamp 0 255 channel
 clampAlpha :: Double -> Double
 clampAlpha alpha = clamp 0 1 alpha
 
--- | Creates a Color from three red, green and blue colors.
+{-|
+Creates a Color from red, green and blue components. Valid range for each
+component is [0, 255].
+-}
 rgb :: Int -> Int -> Int -> Color
 rgb r g b = Color (clampChannel r) (clampChannel g) (clampChannel b) 1.0
+
+{-|
+Creates a Color from red, green and blue components plus alpha channel. Valid
+range for each component is [0, 255], while alpha is [0, 1].
+-}
+rgba :: Int -> Int -> Int -> Double -> Color
+rgba r g b a = Color {
+  _colorR = clampChannel r,
+  _colorG = clampChannel g,
+  _colorB = clampChannel b,
+  _colorA = clampAlpha a
+}
 
 -- | Creates a Color from a hex string. It may include a # prefix or not.
 rgbHex :: String -> Color
@@ -50,14 +68,44 @@ rgbHex hex
     g = digitToInt g1 * 16 + digitToInt g2
     b = digitToInt b1 * 16 + digitToInt b2
 
--- | Creates a Color from three red, green and blue colors plus alpha channel.
-rgba :: Int -> Int -> Int -> Double -> Color
-rgba r g b a = Color {
-  _colorR = clampChannel r,
-  _colorG = clampChannel g,
-  _colorB = clampChannel b,
-  _colorA = clampAlpha a
-}
+rgbaHex :: String -> Double -> Color
+rgbaHex hex alpha = (rgbHex hex) {
+    _colorA = clampAlpha alpha
+  }
+
+{-
+Creates a Color instance from HSL components. The valid ranges are:
+
+- Hue: [0, 360]
+- Saturation: [0, 100]
+- Lightness: [0, 100]
+
+Alpha is set to 1.0.
+-}
+hsl :: Int -> Int -> Int -> Color
+hsl h s l = Color r g b 1.0 where
+  vh = clamp 0 360 (fromIntegral h)
+  vs = clamp 0 100 (fromIntegral s / 100)
+  vl = clamp 0 100 (fromIntegral l / 100)
+  a = vs * min vl (1 - vl)
+  f n = vl - a * max mink (-1) where
+    k = fromIntegral $ round (n + vh / 30) `mod` 12
+    mink = minimum [k - 3, 9 - k, 1]
+  i n = clampChannel . round $ 255 * f n
+  (r, g, b) = (i 0, i 8, i 4)
+
+{-
+Creates a Color instance from HSL components. The valid ranges are:
+
+- Hue: [0, 360]
+- Saturation: [0, 100]
+- Lightness: [0, 100]
+- Alpha: [0, 1]
+-}
+hsla :: Int -> Int -> Int -> Double -> Color
+hsla h s l a = (hsl h s l) {
+    _colorA = clampAlpha a
+  }
 
 -- | Creates a non visible color.
 transparent :: Color

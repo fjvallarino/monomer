@@ -6,6 +6,7 @@ import qualified SDL
 import qualified SDL.Raw as Raw
 
 import qualified Monomer.Common.CursorIconSpec as CursorIconSpec
+import qualified Monomer.Graphics.UtilSpec as GraphicsUtilSpec
 
 import qualified Monomer.Widgets.CompositeSpec as CompositeSpec
 import qualified Monomer.Widgets.ContainerSpec as ContainerSpec
@@ -64,12 +65,17 @@ main = do
 spec :: Spec
 spec = do
   common
+  graphics
   widgets
   widgetsUtil
 
 common :: Spec
 common = describe "Common" $ do
   CursorIconSpec.spec
+
+graphics :: Spec
+graphics = describe "Graphics" $ do
+  GraphicsUtilSpec.spec
 
 widgets :: Spec
 widgets = describe "Widgets" $ do
