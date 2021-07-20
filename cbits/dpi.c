@@ -1,3 +1,10 @@
+/*
+Based on code from notnullnotvoid's comment on:
+https://seabird.handmade.network/blogs/p/2460-be_aware_of_high_dpi
+
+Author's page: https://handmade.network/m/notnullnotvoid
+*/
+
 #if !defined(_WIN32)
 
 void initDpiAwareness() {

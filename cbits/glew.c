@@ -1,3 +1,5 @@
+// Based on code from cocreature's https://github.com/cocreature/nanovg-hs
+
 #include <GL/glew.h>
 #include <stdio.h>
 
