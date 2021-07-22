@@ -1,3 +1,4 @@
+{-# LANGUAGE BinaryLiterals #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -14,24 +15,30 @@ import Monomer
 import TodoTypes
 
 import qualified Monomer.Lens as L
+import qualified Data.Text as T
 
 buildUI
   :: WidgetEnv TodoModel TodoEvt
   -> TodoModel
   -> WidgetNode TodoModel TodoEvt
 buildUI wenv model = widgetTree where
+  sectionBgColor = wenv ^. L.theme . L.sectionColor
+  statusFontColor = wenv ^. L.theme . L.userColorMap . at "statusFont" . non def
+  rowButtonColor = wenv ^. L.theme . L.userColorMap . at "rowButton" . non def
+  rowSepColor = gray & L.a .~ 0.5
+
   todoView idx t = slideWidget `key` todoKey where
     todoKey = todoRowKey t
+    isLast = idx == length (model ^. todos) - 1
     todoDone = t ^. status == Done
     (todoBg, todoFg)
-      | todoDone = (doneColor, editBgColor)
-      | otherwise = (pendingColor, editBgColor)
+      | todoDone = (doneBg, doneFg)
+      | otherwise = (pendingBg, pendingFg)
     todoStatus = labelS (t ^. status)
-      `style` [textSize 12, padding 4, paddingH 8, radius 12, bgColor todoBg, textColor todoFg]
+      `style` [textFont "Medium", textSize 12, textAscender, textColor todoFg, padding 6, paddingH 8, radius 12, bgColor todoBg]
     rowButton caption action = button caption action
-      `style` [width 65, textColor gray, border 1 gray, bgColor transparent]
-      `hover` [bgColor editBgColor]
-      `focus` [border 1 lightSkyBlue]
+      `style` [textFont "Remix", textMiddle, textColor rowButtonColor, bgColor transparent, border 0 transparent]
+      `hover` [bgColor sectionBgColor]
     todoRow = hstack [
         vstack [
           labelS (t ^. todoType) `style` [textSize 12, textColor darkGray],
@@ -39,13 +46,17 @@ buildUI wenv model = widgetTree where
           label (t ^. description) `style` [textThroughline_ todoDone]
         ],
         filler,
-        box_ [alignRight] todoStatus `style` [width 100],
+        box_ [alignRight] todoStatus `style` [width 80],
         spacer,
-        rowButton "Edit" (TodoEdit idx t),
+        rowButton remixEdit2Line (TodoEdit idx t),
         spacer,
-        rowButton "Delete" (TodoDeleteBegin idx t)
-      ] `style` [paddingT 10 | idx  > 0]
+        rowButton remixDeleteBinLine (TodoDeleteBegin idx t)
+      ] `style` (paddingV 15 : [borderB 1 rowSepColor | not isLast])
     slideWidget = fadeOut_ [onFinished (TodoDelete idx t)] todoRow
+  saveTodoBtn = case model ^. action of
+    TodoAdding -> mainButton "Add" TodoAdd
+    TodoEditing idx -> mainButton "Save" (TodoSave idx)
+    _ -> spacer
   todoEdit = vstack [
       hstack [
         label "Task:",
@@ -69,14 +80,14 @@ buildUI wenv model = widgetTree where
       spacer,
       hstack [
         filler,
-        case model ^. action of
-          TodoAdding -> mainButton "Add" TodoAdd
-          TodoEditing idx -> mainButton "Save" (TodoSave idx)
-          _ -> spacer,
+        saveTodoBtn `enabled` (model ^. activeTodo . description /= ""),
         spacer,
         button "Cancel" TodoCancel
         ]
-    ] `style` [bgColor editBgColor, padding 20]
+    ] `style` [bgColor sectionBgColor, padding 20]
+  countLabel = label caption `style` styles where
+    caption = "Tasks (" <> showt (length $ model ^. todos) <> ")"
+    styles = [textFont "Regular", textSize 16, padding 20, bgColor sectionBgColor]
   todoList = vstack (zipWith todoView [0..] (model ^. todos))
   isEditing = model ^. action /= TodoNone
   newButton = mainButton "New" TodoNew `key` "todoNew"
@@ -84,23 +95,15 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       keystroke [("Esc", TodoCancel)] todoEdit
         `visible` isEditing,
-      scroll (todoList `style` [padding 10]),
+      countLabel,
+      scroll_ [] (todoList `style` [padding 20, paddingT 5]),
       filler,
       box_ [alignRight] newButton
-        `style` [bgColor editBgColor, padding 20]
+        `style` [bgColor sectionBgColor, padding 20]
     ]
 
 todoRowKey :: Todo -> Text
 todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
-
-doneColor :: Color
-doneColor = rgbHex "#61C354"
-
-pendingColor :: Color
-pendingColor = rgbHex "#F5BE4F"
-
-editBgColor :: Color
-editBgColor = rgbHex "#404040"
 
 handleEvent
   :: WidgetEnv TodoModel TodoEvt
@@ -149,9 +152,6 @@ addNewTodo wenv model = newModel where
     & action .~ TodoNone
     & todos .~ (newTodo : model ^. todos)
 
-remove :: Int -> [a] -> [a]
-remove idx ls = take idx ls ++ drop (idx + 1) ls
-
 initialTodos :: [Todo]
 initialTodos = todos where
   items = mconcat $ replicate 2 [
@@ -169,7 +169,31 @@ main = do
   where
     config = [
       appWindowTitle "Todo list",
-      appTheme darkTheme,
+      appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+      appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
+      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+      appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appInitEvent TodoInit
       ]
+
+doneBg = rgbHex "#CFF6E2"
+doneFg = rgbHex "#459562"
+pendingBg = rgbHex "#F5F0CC"
+pendingFg = rgbHex "#827330"
+grayLight = rgbHex "#9E9E9E"
+grayDark = rgbHex "#393939"
+grayDarker = rgbHex "#2E2E2E"
+
+customLightTheme :: Theme
+customLightTheme = lightTheme
+  & L.userColorMap . at "statusFont" ?~ grayDarker
+  & L.userColorMap . at "rowButton" ?~ grayLight
+
+customDarkTheme :: Theme
+customDarkTheme = darkTheme
+  & L.userColorMap . at "statusFont" ?~ grayDarker
+  & L.userColorMap . at "rowButton" ?~ gray
+
+remove :: Int -> [a] -> [a]
+remove idx ls = take idx ls ++ drop (idx + 1) ls

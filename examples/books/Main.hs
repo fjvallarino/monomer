@@ -23,6 +23,8 @@ buildUI
   -> BooksModel
   -> WidgetNode BooksModel BooksEvt
 buildUI wenv model = widgetTree where
+  sectionBgColor = wenv ^. L.theme . L.sectionColor
+  rowBgColor = wenv ^. L.theme . L.userColorMap . at "rowBgColor" . non def
   bookImage imgId size = maybe filler coverImg imgId where
     baseUrl = "http://covers.openlibrary.org/b/id/<id>-<size>.jpg"
     imgUrl i = T.replace "<size>" size $ T.replace "<id>" (showt i) baseUrl
@@ -88,7 +90,7 @@ buildUI wenv model = widgetTree where
         textField query `key` "query",
         spacer,
         mainButton "Search" BooksSearch
-      ] `style` [bgColor searchBgColor, padding 25]
+      ] `style` [bgColor sectionBgColor, padding 25]
     ]
   countLabel = label caption `style` [padding 10] where
     caption = "Books (" <> showt (length $ model ^. books) <> ")"
@@ -102,11 +104,13 @@ buildUI wenv model = widgetTree where
       searchOverlay `visible` model ^. searching
     ]
 
+{-
 searchBgColor :: Color
 searchBgColor = rgbHex "#404040"
 
 rowBgColor :: Color
 rowBgColor = rgbHex "#212121"
+-}
 
 handleEvent
   :: WidgetEnv BooksModel BooksEvt
@@ -146,10 +150,14 @@ main = do
   where
     config = [
       appWindowTitle "Book search",
-      appTheme darkTheme,
+      appTheme lightTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appInitEvent BooksInit
       ]
     initBook = Book "This is my book" ["Author1", "Author 2"] (Just 2000) (Just 1234)
     initModel = BooksModel "pedro paramo" False (Just initBook) [initBook]
+    customLightTheme = lightTheme
+      & L.userColorMap . at "rowBgColor" ?~ rgbHex "#636363"
+    customDarkTheme = darkTheme
+      & L.userColorMap . at "rowBgColor" ?~ rgbHex "#212121"

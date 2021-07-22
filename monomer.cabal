@@ -125,6 +125,7 @@ library
       Monomer.Widgets.Util.Keyboard
       Monomer.Widgets.Util.Lens
       Monomer.Widgets.Util.Parser
+      Monomer.Widgets.Util.RemixIcon
       Monomer.Widgets.Util.Style
       Monomer.Widgets.Util.Text
       Monomer.Widgets.Util.Theme

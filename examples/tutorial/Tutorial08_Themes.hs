@@ -74,6 +74,7 @@ handleEvent wenv node model evt = case evt of
   AppInit -> []
   AppIncrease -> [Model (model & clickCount +~ 1)]
 
+customTheme :: Theme
 customTheme = baseTheme darkThemeColors {
   btnMainBgBasic = orange
 }

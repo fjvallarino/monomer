@@ -16,13 +16,14 @@ The `themeSwitcher` widget, which receives a theme instance, optional config and
 a single child widget, allows replacing the main application theme with a new
 one for a specific section.
 
-As shown in the accompanying application, one use case for themes is to allow
+As shown in the accompanying example, one use case for themes is to allow
 changing the style of an application at runtime. Since the example uses the
 switcher at the top level, and the background color plays an important role, we
 enable the corresponding config flag (disabled by default).
 
 ```haskell
-themeSwitch_ theme [themeClearBg] childNode
+themeSwitch_ theme [themeClearBg] $
+  vstack [...]
 ```
 
 Another use case for theme switching is when we want to customize composite
@@ -31,5 +32,7 @@ those cases, theme switching allows us to alter the default styles of child
 widgets such as buttons, scrolls, etc.
 
 ## BaseTheme
+
+## User colors
 
 ## General Theme type
