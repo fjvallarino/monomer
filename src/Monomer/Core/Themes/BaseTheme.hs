@@ -30,6 +30,8 @@ import qualified Monomer.Graphics.Lens as L
 baseTheme :: BaseThemeColors -> Theme
 baseTheme themeMod = Theme {
   _themeClearColor = clearColor themeMod,
+  _themeSectionColor = sectionColor themeMod,
+  _themeUserColorMap = def,
   _themeBasic = baseBasic themeMod,
   _themeHover = baseHover themeMod,
   _themeFocus = baseFocus themeMod,
@@ -41,9 +43,11 @@ baseTheme themeMod = Theme {
 -- | Customizable colors for the theme.
 data BaseThemeColors = BaseThemeColors {
   clearColor :: Color,
+  sectionColor :: Color,
   btnFocusBorder :: Color,
   btnBgBasic :: Color,
   btnBgHover :: Color,
+  btnBgFocus :: Color,
   btnBgActive :: Color,
   btnBgDisabled :: Color,
   btnText :: Color,
@@ -51,6 +55,7 @@ data BaseThemeColors = BaseThemeColors {
   btnMainFocusBorder :: Color,
   btnMainBgBasic :: Color,
   btnMainBgHover :: Color,
+  btnMainBgFocus :: Color,
   btnMainBgActive :: Color,
   btnMainBgDisabled :: Color,
   btnMainText :: Color,
@@ -312,7 +317,9 @@ baseHover themeMod = baseBasic themeMod
 
 baseFocus :: BaseThemeColors -> ThemeState
 baseFocus themeMod = baseBasic themeMod
+  & L.btnStyle . L.bgColor ?~ btnBgFocus themeMod
   & L.btnStyle . L.border ?~ btnBorderFocus themeMod
+  & L.btnMainStyle . L.bgColor ?~ btnMainBgFocus themeMod
   & L.btnMainStyle . L.border ?~ btnMainBorderFocus themeMod
   & L.checkboxStyle . L.fgColor ?~ inputFgFocus themeMod
   & L.checkboxStyle . L.hlColor ?~ inputHlFocus themeMod

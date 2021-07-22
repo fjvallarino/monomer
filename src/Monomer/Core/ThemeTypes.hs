@@ -26,6 +26,8 @@ import Monomer.Graphics.Types
 -- | Theme configuration for each state, plus clear/base color.
 data Theme = Theme {
   _themeClearColor :: Color,
+  _themeSectionColor :: Color,
+  _themeUserColorMap :: M.Map String Color,
   _themeBasic :: ThemeState,
   _themeHover :: ThemeState,
   _themeFocus :: ThemeState,
@@ -37,6 +39,8 @@ data Theme = Theme {
 instance Default Theme where
   def = Theme {
     _themeClearColor = def,
+    _themeSectionColor = def,
+    _themeUserColorMap = def,
     _themeBasic = def,
     _themeHover = def,
     _themeFocus = def,
@@ -93,7 +97,8 @@ data ThemeState = ThemeState {
   _thsTextFieldStyle :: StyleState,
   _thsTimeFieldStyle :: StyleState,
   _thsTooltipStyle :: StyleState,
-  _thsUserStyleMap :: M.Map String StyleState
+  _thsUserStyleMap :: M.Map String StyleState,
+  _thsUserColorMap :: M.Map String Color
 } deriving (Eq, Show, Generic)
 
 instance Default ThemeState where
@@ -144,7 +149,8 @@ instance Default ThemeState where
     _thsTextFieldStyle = def,
     _thsTimeFieldStyle = def,
     _thsTooltipStyle = def,
-    _thsUserStyleMap = M.empty
+    _thsUserStyleMap = M.empty,
+    _thsUserColorMap = M.empty
   }
 
 instance Semigroup ThemeState where
@@ -195,5 +201,6 @@ instance Semigroup ThemeState where
     _thsTextFieldStyle = _thsTextFieldStyle t1 <> _thsTextFieldStyle t2,
     _thsTimeFieldStyle = _thsTimeFieldStyle t1 <> _thsTimeFieldStyle t2,
     _thsTooltipStyle = _thsTooltipStyle t1 <> _thsTooltipStyle t2,
-    _thsUserStyleMap = _thsUserStyleMap t1 <> _thsUserStyleMap t2
+    _thsUserStyleMap = _thsUserStyleMap t1 <> _thsUserStyleMap t2,
+    _thsUserColorMap = _thsUserColorMap t1 <> _thsUserColorMap t2
   }
