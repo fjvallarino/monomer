@@ -176,8 +176,9 @@ handleWidgetInit wenv widgetRoot = do
 
   L.resizePending .= True
   step <- handleWidgetResult wenv True widgetResult
+  currFocus <- getFocusedPath
 
-  if not focusReqExists
+  if not focusReqExists && currFocus == emptyPath
     then handleMoveFocus Nothing FocusFwd step
     else return step
 

@@ -71,12 +71,12 @@ processTask wenv widgetRoot (WidgetTask widgetId task) = do
   case taskStatus of
     Just taskRes -> processTaskResult wenv widgetRoot widgetId taskRes
     Nothing -> return (wenv, widgetRoot, Seq.empty)
-processTask model widgetRoot (WidgetProducer widgetId channel task) = do
+processTask wenv widgetRoot (WidgetProducer widgetId channel task) = do
   channelStatus <- liftIO . atomically $ tryReadTChan channel
 
   case channelStatus of
-    Just taskMsg -> processTaskEvent model widgetRoot widgetId taskMsg
-    Nothing -> return (model, widgetRoot, Seq.empty)
+    Just taskMsg -> processTaskEvent wenv widgetRoot widgetId taskMsg
+    Nothing -> return (wenv, widgetRoot, Seq.empty)
 
 processTaskResult
   :: (MonomerM s e m, Typeable i)
