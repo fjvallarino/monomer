@@ -46,10 +46,10 @@ lightThemeColors = BaseThemeColors {
   btnMainBgDisabled = blue04,
   btnMainText = white,
   btnMainTextDisabled = white,
-  dialogBg = gray01,
-  dialogBorder = gray01,
-  dialogText = white,
-  dialogTitleText = white,
+  dialogBg = gray09,
+  dialogBorder = white,
+  dialogText = black,
+  dialogTitleText = black,
   emptyOverlay = gray07 & L.a .~ 0.8,
   externalLinkBasic = blue07,
   externalLinkHover = blue08,
@@ -109,8 +109,8 @@ darkTheme = baseTheme darkThemeColors
 
 darkThemeColors :: BaseThemeColors
 darkThemeColors = BaseThemeColors {
-  clearColor = gray03,
-  sectionColor = gray02,
+  clearColor = gray02,
+  sectionColor = gray03,
   btnFocusBorder = blue09,
   btnBgBasic = gray07,
   btnBgHover = gray09,

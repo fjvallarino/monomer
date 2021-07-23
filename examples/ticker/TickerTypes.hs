@@ -42,7 +42,6 @@ data TickerEvt
   = TickerInit
   | TickerIgnore
   | TickerAddClick
-  | TickerAddPair Text
   | TickerRemovePairBegin Text
   | TickerRemovePair Text
   | TickerMovePair Text Text

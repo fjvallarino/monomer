@@ -12,12 +12,10 @@ import Control.Monad (forever, forM_, void, when)
 import Control.Monad.IO.Class
 import Control.Monad.STM
 import Data.Aeson
-import Data.Aeson.Types (parseMaybe)
 import Data.Default
 import Data.Maybe
 import Data.Scientific
 import Data.Text (Text)
-import TextShow
 
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -37,45 +35,54 @@ buildUI
   -> TickerModel
   -> WidgetNode TickerModel TickerEvt
 buildUI wenv model = widgetTree where
-  dragColor = lightGray & L.a .~ 0.5
-  closeIcon = icon_ IconClose [width 4] `style` [width 12, height 12, fgColor crimson, cursorHand]
+  sectionColor = wenv ^. L.theme . L.sectionColor
+  dragColor = rgbaHex "#D3D3D3" 0.5
+  rowSep = rgbaHex "#A9A9A9" 0.5
+  rowBg = wenv ^. L.theme . L.userColorMap . at "rowBg" . non def
+  trashBg = wenv ^. L.theme . L.userColorMap . at "trashBg" . non def
+  trashFg = wenv ^. L.theme . L.userColorMap . at "trashFg" . non def
+  trashIcon action = button remixDeleteBinLine action
+    `style` [textFont "Remix", textMiddle, textColor trashFg, bgColor transparent, border 0 transparent]
+    `hover` [bgColor trashBg]
   dropTicker pair widget = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]] widget
-  tickerPct t = label pctText `style` [width 100, textRight, textColor pctColor] where
+  tickerPct t = pctLabel where
     diff = toRealFloat $ 100 * (t ^. close - t ^. open)
     pct = diff / toRealFloat (t ^. open)
     pctText = formatTickerPct (fromFloatDigits pct) <> "%"
     pctColor
-      | abs pct < 0.01 = white
-      | pct > 0 = green
-      | otherwise = red
-  tickerItem t = vstack [
-      spacer,
+      | abs pct < 0.01 = rgbHex "#428FE0"
+      | pct > 0 = rgbHex "#51A39A"
+      | otherwise = rgbHex "#E25141"
+    pctLabel = label pctText `style` [width 100, textRight, textColor pctColor]
+  tickerItem idx t = hstack [
       dropTicker (t ^. symbolPair) $
-        draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $ hstack [
-          label (t ^. symbolPair) `style` [width 100],
-          spacer,
-          label (formatTickerValue (t ^. close)) `style` [textRight, minWidth 100],
-          spacer,
-          tickerPct t,
-          spacer,
-          box_ [onClick (TickerRemovePairBegin (t ^. symbolPair))] closeIcon
-        ] `style` [cursorHand]
-    ]
+        draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $
+          hstack [
+            label (t ^. symbolPair) `style` [width 100],
+            spacer,
+            label (formatTickerValue (t ^. close))
+              `style` [textRight, minWidth 100],
+            spacer,
+            tickerPct t
+          ] `style` [cursorHand],
+      spacer,
+      trashIcon (TickerRemovePairBegin (t ^. symbolPair))
+    ] `style` [padding 10, borderB 1 rowSep]
+      `hover` [bgColor rowBg]
   tickerList = vstack tickerRows where
     orderedTickers = (\e -> model ^? tickers . ix e) <$> model ^. symbolPairs
-    tickerFade t = fadeOut_ [onFinished action] item `key` (t ^. symbolPair) where
+    tickerFade idx t = fadeOut_ [onFinished action] item `key` (t ^. symbolPair) where
       action = TickerRemovePair (t ^. symbolPair)
-      item = tickerItem t
-    tickerRows = tickerFade <$> catMaybes orderedTickers
+      item = tickerItem idx t
+    tickerRows = zipWith tickerFade [0..] (catMaybes orderedTickers)
   widgetTree = vstack [
       hstack [
         label "New pair: ",
         keystroke [("Enter", TickerAddClick)] $ textField newPair `key` "newPair",
         spacer,
         button "Add" TickerAddClick
-      ] `style` [padding 5, paddingB 0],
-      spacer,
-      scroll $ tickerList `style` [padding 5, paddingT 0]
+      ] `style` [padding 20, bgColor sectionColor],
+      scroll_ [scrollOverlay] $ tickerList `style` [padding 20, paddingT 10]
     ]
 
 handleEvent
@@ -93,12 +100,11 @@ handleEvent env wenv node model evt = case evt of
     Task (subscribeInitial env initialList),
     setFocusOnKey wenv "newPair"
     ]
-  TickerAddClick -> [Event $ TickerAddPair (model ^. newPair)]
-  TickerAddPair pair -> [
+  TickerAddClick -> [
     Model $ model
-      & symbolPairs %~ (pair <|)
+      & symbolPairs %~ (model ^. newPair <|)
       & newPair .~ "",
-    Task $ subscribe env [pair],
+    Task $ subscribe env [model ^. newPair],
     setFocusOnKey wenv "newPair"
     ]
   TickerRemovePairBegin pair -> [
@@ -181,12 +187,24 @@ main = do
   where
     config = [
       appWindowTitle "Ticker",
-      appTheme darkTheme,
+      appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
-      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+      appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appInitEvent TickerInit
       ]
     initModel = def
+
+customLightTheme :: Theme
+customLightTheme = lightTheme
+  & L.userColorMap . at "rowBg" ?~ rgbHex "#ECECEC"
+  & L.userColorMap . at "trashBg" ?~ rgbHex "#D3D3D3"
+  & L.userColorMap . at "trashFg" ?~ rgbHex "#808080"
+
+customDarkTheme :: Theme
+customDarkTheme = darkTheme
+  & L.userColorMap . at "rowBg" ?~ rgbHex "#515151"
+  & L.userColorMap . at "trashBg" ?~ rgbHex "#656565"
+  & L.userColorMap . at "trashFg" ?~ rgbHex "#909090"
 
 formatTickerValue :: Scientific -> Text
 formatTickerValue = T.pack . formatScientific Fixed (Just 8)
