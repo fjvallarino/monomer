@@ -95,7 +95,7 @@ import qualified Monomer.Core.Lens as L
 -- | Type of the parent's model
 type ParentModel sp = Typeable sp
 -- | Type of the composite's model
-type CompositeModel s = (Eq s, Typeable s, WidgetModel s)
+type CompositeModel s = (Eq s, WidgetModel s)
 -- | Type of the composite's event
 type CompositeEvent e = WidgetEvent e
 
@@ -115,7 +115,7 @@ type TaskHandler e = IO e
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
 data CompMsgUpdate
-  = forall s . Typeable s => CompMsgUpdate (s -> s)
+  = forall s . CompositeModel s => CompMsgUpdate (s -> s)
 
 -- | Response options for an event handler.
 data EventResponse s e sp ep
@@ -736,7 +736,7 @@ toParentResult comp state wenv widgetComp result = newResult where
   newResult = WidgetResult newNode newReqs
 
 evtResponseToRequest
-  :: (Typeable s, Typeable sp, WidgetEvent e, WidgetEvent ep)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
   => WidgetNode sp ep
   -> WidgetKeyMap s e
   -> EventResponse s e sp ep
@@ -790,7 +790,7 @@ getModel
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
 toParentReq
-  :: (Typeable s, Typeable sp)
+  :: (CompositeModel s, ParentModel sp)
   => WidgetId
   -> WidgetRequest s e
   -> Maybe (WidgetRequest sp ep)

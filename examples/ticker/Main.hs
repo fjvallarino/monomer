@@ -30,65 +30,81 @@ import TickerTypes
 
 import qualified Monomer.Lens as L
 
-buildUI
-  :: WidgetEnv TickerModel TickerEvt
-  -> TickerModel
-  -> WidgetNode TickerModel TickerEvt
-buildUI wenv model = widgetTree where
-  sectionColor = wenv ^. L.theme . L.sectionColor
+type TickerWenv = WidgetEnv TickerModel TickerEvt
+type TickerNode = WidgetNode TickerModel TickerEvt
+
+tickerPct :: Ticker -> TickerNode
+tickerPct t = pctLabel where
+  diff = toRealFloat $ 100 * (t ^. close - t ^. open)
+  pct = diff / toRealFloat (t ^. open)
+
+  pctText = formatTickerPct (fromFloatDigits pct) <> "%"
+  pctColor
+    | abs pct < 0.01 = rgbHex "#428FE0"
+    | pct > 0 = rgbHex "#51A39A"
+    | otherwise = rgbHex "#E25141"
+
+  pctLabel = label pctText `style` [width 100, textRight, textColor pctColor]
+
+tickerRow :: TickerWenv -> Int -> Ticker -> TickerNode
+tickerRow wenv idx t = row where
   dragColor = rgbaHex "#D3D3D3" 0.5
   rowSep = rgbaHex "#A9A9A9" 0.5
   rowBg = wenv ^. L.theme . L.userColorMap . at "rowBg" . non def
+
   trashBg = wenv ^. L.theme . L.userColorMap . at "trashBg" . non def
   trashFg = wenv ^. L.theme . L.userColorMap . at "trashFg" . non def
   trashIcon action = button remixDeleteBinLine action
     `style` [textFont "Remix", textMiddle, textColor trashFg, bgColor transparent, border 0 transparent]
     `hover` [bgColor trashBg]
-  dropTicker pair widget = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]] widget
-  tickerPct t = pctLabel where
-    diff = toRealFloat $ 100 * (t ^. close - t ^. open)
-    pct = diff / toRealFloat (t ^. open)
-    pctText = formatTickerPct (fromFloatDigits pct) <> "%"
-    pctColor
-      | abs pct < 0.01 = rgbHex "#428FE0"
-      | pct > 0 = rgbHex "#51A39A"
-      | otherwise = rgbHex "#E25141"
-    pctLabel = label pctText `style` [width 100, textRight, textColor pctColor]
-  tickerItem idx t = hstack [
+
+  dropTicker pair
+    = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]]
+
+  tickerInfo = hstack [
+      label (t ^. symbolPair) `style` [width 100],
+      spacer,
+      label (formatTickerValue (t ^. close))
+        `style` [textRight, minWidth 100],
+      spacer,
+      tickerPct t
+    ] `style` [cursorHand]
+
+  row = hstack [
       dropTicker (t ^. symbolPair) $
-        draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]] $
-          hstack [
-            label (t ^. symbolPair) `style` [width 100],
-            spacer,
-            label (formatTickerValue (t ^. close))
-              `style` [textRight, minWidth 100],
-            spacer,
-            tickerPct t
-          ] `style` [cursorHand],
+        draggable_ (t ^. symbolPair) [draggableStyle [bgColor dragColor]]
+          tickerInfo,
       spacer,
       trashIcon (TickerRemovePairBegin (t ^. symbolPair))
     ] `style` [padding 10, borderB 1 rowSep]
       `hover` [bgColor rowBg]
+
+buildUI :: TickerWenv -> TickerModel -> TickerNode
+buildUI wenv model = widgetTree where
+  sectionBg = wenv ^. L.theme . L.sectionColor
+
   tickerList = vstack tickerRows where
     orderedTickers = (\e -> model ^? tickers . ix e) <$> model ^. symbolPairs
     tickerFade idx t = fadeOut_ [onFinished action] item `key` (t ^. symbolPair) where
       action = TickerRemovePair (t ^. symbolPair)
-      item = tickerItem idx t
+      item = tickerRow wenv idx t
     tickerRows = zipWith tickerFade [0..] (catMaybes orderedTickers)
+
   widgetTree = vstack [
       hstack [
-        label "New pair: ",
+        label "New pair:",
+        spacer,
         keystroke [("Enter", TickerAddClick)] $ textField newPair `key` "newPair",
         spacer,
         button "Add" TickerAddClick
-      ] `style` [padding 20, bgColor sectionColor],
-      scroll_ [scrollOverlay] $ tickerList `style` [padding 20, paddingT 10]
+      ] `style` [padding 20, bgColor sectionBg],
+      scroll_ [scrollOverlay] $ tickerList `style` [padding 10]
     ]
 
 handleEvent
   :: AppEnv
-  -> WidgetEnv TickerModel TickerEvt
-  -> WidgetNode TickerModel TickerEvt
+  -> TickerWenv
+  -> TickerNode
   -> TickerModel
   -> TickerEvt
   -> [EventResponse TickerModel TickerEvt TickerModel ()]
@@ -187,7 +203,7 @@ main = do
   where
     config = [
       appWindowTitle "Ticker",
-      appTheme customDarkTheme,
+      appTheme customLightTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appInitEvent TickerInit
@@ -202,8 +218,8 @@ customLightTheme = lightTheme
 
 customDarkTheme :: Theme
 customDarkTheme = darkTheme
-  & L.userColorMap . at "rowBg" ?~ rgbHex "#515151"
-  & L.userColorMap . at "trashBg" ?~ rgbHex "#656565"
+  & L.userColorMap . at "rowBg" ?~ rgbHex "#656565"
+  & L.userColorMap . at "trashBg" ?~ rgbHex "#555555"
   & L.userColorMap . at "trashFg" ?~ rgbHex "#909090"
 
 formatTickerValue :: Scientific -> Text

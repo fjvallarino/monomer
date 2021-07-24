@@ -6,15 +6,11 @@
 
 module TickerTypes where
 
-import Control.Applicative ((<|>))
 import Control.Concurrent.STM.TChan
 import Control.Lens.TH
-import Data.Aeson
 import Data.Default
 import Data.Foldable (asum)
-import Data.Maybe
 import Data.Map (Map)
-import Data.Scientific
 import Data.Text (Text, pack)
 
 import qualified Data.Map as M

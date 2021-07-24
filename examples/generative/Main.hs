@@ -4,6 +4,7 @@ module Main where
 
 import Control.Lens
 import Data.Default
+import Data.List (intersperse)
 import Data.Maybe
 import Data.Text (Text)
 import TextShow
@@ -17,53 +18,67 @@ import Widgets.CirclesGrid
 
 import qualified Monomer.Lens as L
 
-buildUI
-  :: WidgetEnv GenerativeModel GenerativeEvt
-  -> GenerativeModel
-  -> WidgetNode GenerativeModel GenerativeEvt
+type GenerativeWenv = WidgetEnv GenerativeModel GenerativeEvt
+type GenerativeNode = WidgetNode GenerativeModel GenerativeEvt
+
+buildUI :: GenerativeWenv -> GenerativeModel -> GenerativeNode
 buildUI wenv model = widgetTree where
+  sectionBg = wenv ^. L.theme . L.sectionColor
+
   seedDropdown lens = textDropdown_ lens seedList seedDesc []
-  widgetCircleCfg = vstack [
+
+  widgetCircleCfg = vstack $ intersperse spacer [
       label "Width",
-      dial_ (circlesCfg . itemWidth) 10 50 [dragRate 0.5],
-      label "Random seed",
+      vstack [
+        dial_ (circlesCfg . itemWidth) 20 50 [dragRate 0.5],
+        labelS (model ^. circlesCfg . itemWidth) `style` [textSize 14, textCenter]
+      ],
+      label "Seed",
       seedDropdown (circlesCfg . seed)
     ]
-  widgetBoxCfg = vstack [
+
+  widgetBoxCfg = vstack $ intersperse spacer [
       label "Width",
-      dial_ (boxesCfg . itemWidth) 10 50 [dragRate 0.5],
+      vstack [
+        dial_ (boxesCfg . itemWidth) 20 50 [dragRate 0.5],
+        labelS (model ^. boxesCfg . itemWidth) `style` [textSize 14, textCenter]
+      ],
+      label "Seed",
+      seedDropdown (boxesCfg . seed),
+      separatorLine,
       label "Palette type",
       textDropdown (boxesCfg . paletteType) [1..4],
       label "Palette size",
-      dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5],
-      label "Random seed",
-      seedDropdown (boxesCfg . seed)
+      dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5]
     ]
+
   widgetTree = vstack [
       hstack [
-        label "Type: ",
+        label "Type:",
+        spacer,
         textDropdown_ activeGen genTypes genTypeDesc [] `key` "activeType",
         spacer,
-        hstack [
-          label "Show config: ",
-          checkbox showCfg
-        ] `style` [width 150]
-      ] `style` [padding 3],
+        labeledCheckbox "Show config:" showCfg
+      ] `style` [padding 20, bgColor sectionBg],
       zstack [
         hstack [
-          circlesGrid (model ^. circlesCfg),
-          widgetCircleCfg `visible` model ^. showCfg `style` [paddingH 3, width 150]
+          circlesGrid (model ^. circlesCfg) `style` [padding 20],
+          widgetCircleCfg
+            `visible` model ^. showCfg
+            `style` [padding 20, width 200, bgColor sectionBg]
         ] `visible` (model ^. activeGen == CirclesGrid),
         hstack [
-          boxesPalette (model ^. boxesCfg),
-          widgetBoxCfg `visible` model ^. showCfg `style` [paddingH 3, width 150]
+          boxesPalette (model ^. boxesCfg) `style` [padding 20],
+          widgetBoxCfg
+            `visible` model ^. showCfg
+            `style` [padding 20, width 200, bgColor sectionBg]
         ] `visible` (model ^. activeGen == BoxesPalette)
       ]
     ]
 
 handleEvent
-  :: WidgetEnv GenerativeModel GenerativeEvt
-  -> WidgetNode GenerativeModel GenerativeEvt
+  :: GenerativeWenv
+  -> GenerativeNode
   -> GenerativeModel
   -> GenerativeEvt
   -> [EventResponse GenerativeModel GenerativeEvt GenerativeModel ()]

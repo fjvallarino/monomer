@@ -77,7 +77,8 @@ makeCirclesGrid cfg state = widget where
 
     mapM_ (drawCircle renderer state vp iw cols) [0..cols * rows - 1]
     where
-      vp = node ^. L.info . L.viewport
+      style = activeStyle wenv node
+      vp = getContentArea style node
       iw = cfg ^. itemWidth
       cols = round (vp ^. L.w / iw)
       rows = round (vp ^. L.h / iw)

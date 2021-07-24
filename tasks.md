@@ -779,13 +779,16 @@
     - Simple click receives focus, shift+click allows changing values without getting focus
   - Avoid building examples when used as a library.
     - Tried using flags and it works, but it ends up being annoying for testing examples with stack run.
+  - Add hsl function https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
 
 Next
   - Document themes and how widgets use them.
   - Add ignoreStyle to widgets that may need it.
   - Maybe spacer should be 8 pixels wide.
   - Rethink activeStyle, activeTheme, active style related function names.
-  - Add hsl function https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+    - Order of arguments?
+  - CmbMergeRequired in box?
+  - Generalize fade/slide messages. Add anim suffix.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.
