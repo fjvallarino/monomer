@@ -56,6 +56,7 @@ data ButtonType
 
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
+  _btnIgnoreTheme :: Maybe Bool,
   _btnLabelCfg :: LabelCfg s e,
   _btnOnFocusReq :: [Path -> WidgetRequest s e],
   _btnOnBlurReq :: [Path -> WidgetRequest s e],
@@ -65,6 +66,7 @@ data ButtonCfg s e = ButtonCfg {
 instance Default (ButtonCfg s e) where
   def = ButtonCfg {
     _btnButtonType = Nothing,
+    _btnIgnoreTheme = Nothing,
     _btnLabelCfg = def,
     _btnOnFocusReq = [],
     _btnOnBlurReq = [],
@@ -74,6 +76,7 @@ instance Default (ButtonCfg s e) where
 instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
     _btnButtonType = _btnButtonType t2 <|> _btnButtonType t1,
+    _btnIgnoreTheme = _btnIgnoreTheme t2 <|> _btnIgnoreTheme t1,
     _btnLabelCfg = _btnLabelCfg t1 <> _btnLabelCfg t2,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
     _btnOnBlurReq = _btnOnBlurReq t1 <> _btnOnBlurReq t2,
@@ -82,6 +85,11 @@ instance Semigroup (ButtonCfg s e) where
 
 instance Monoid (ButtonCfg s e) where
   mempty = def
+
+instance CmbIgnoreTheme (ButtonCfg s e) where
+  ignoreTheme_ ignore = def {
+    _btnIgnoreTheme = Just ignore
+  }
 
 instance CmbTrimSpaces (ButtonCfg s e) where
   trimSpaces_ trim = def {
@@ -188,9 +196,13 @@ makeButton caption config = widget where
 
   buttonType = fromMaybe ButtonNormal (_btnButtonType config)
 
-  getBaseStyle wenv node = case buttonType of
-    ButtonNormal -> Just (collectTheme wenv L.btnStyle)
-    ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
+  getBaseStyle wenv node
+    | ignoreTheme = Nothing
+    | otherwise = case buttonType of
+        ButtonNormal -> Just (collectTheme wenv L.btnStyle)
+        ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
+    where
+      ignoreTheme = _btnIgnoreTheme config == Just True
 
   getActiveStyle wenv node = styleState where
     style = node ^. L.info . L.style

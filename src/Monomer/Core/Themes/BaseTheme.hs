@@ -143,7 +143,7 @@ btnStyle themeMod = def
   & L.text ?~ (normalFont & L.fontColor ?~ btnText themeMod) <> textCenter
   & L.bgColor ?~ btnBgBasic themeMod
   & L.border ?~ border 1 (btnBgBasic themeMod)
-  & L.padding ?~ (paddingV 8 <> paddingH 8)
+  & L.padding ?~ padding 8
   & L.radius ?~ radius 4
 
 btnMainStyle :: BaseThemeColors -> StyleState
