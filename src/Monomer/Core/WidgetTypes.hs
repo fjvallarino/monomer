@@ -315,12 +315,19 @@ data WidgetEnv s e = WidgetEnv {
   _weInputStatus :: InputStatus,
   -- | The timestamp when this cycle started.
   _weTimestamp :: Timestamp,
+  {-|
+  Whether the theme changed in this cycle. Should be considered when a widget
+  avoids merging as optimization, as the styles may have changed.
+  -}
+  _weThemeChanged :: Bool,
   -- | Indicates whether the current widget is in a top layer (zstack).
   _weInTopLayer :: Point -> Bool,
   -- | The current layout direction.
   _weLayoutDirection :: LayoutDirection,
-  -- | The active viewport.  This may be smaller than the widget's viewport, if
-  -- | it's currently inside a scroll or similar.
+  {-|
+  The active viewport.  This may be smaller than the widget's viewport, if it's
+  currently inside a scroll or similar.
+  -}
   _weViewport :: Rect,
   -- | The current accumulated offset. This can be affected by scroll.
   _weOffset :: Point

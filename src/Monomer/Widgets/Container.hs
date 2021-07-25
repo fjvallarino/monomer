@@ -557,26 +557,35 @@ mergeWrapper
 mergeWrapper container wenv newNode oldNode = newResult where
   getBaseStyle = containerGetBaseStyle container
   updateCWenv = getUpdateCWenv container
-  cWenvHelper idx child = updateCWenv wenv newNode child idx
   mergeRequiredHandler = containerMergeChildrenReq container
   mergeHandler = containerMerge container
   mergePostHandler = containerMergePost container
+
   oldState = widgetGetState (oldNode ^. L.widget) wenv oldNode
   mergeRequired = case useState oldState of
     Just state -> mergeRequiredHandler wenv newNode oldNode state
     Nothing -> True
+
   styledNode = initNodeStyle getBaseStyle wenv newNode
+  cWenvHelper idx child = cwenv where
+    cwenv = updateCWenv wenv (pResult ^. L.node) child idx
+
   pResult = mergeParent mergeHandler wenv styledNode oldNode oldState
   cResult = mergeChildren cWenvHelper wenv newNode oldNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
+
+  flagsChanged = nodeFlagsChanged oldNode newNode
+  themeChanged = wenv ^. L.themeChanged
   mResult
-    | mergeRequired || nodeFlagsChanged oldNode newNode = vResult
+    | mergeRequired || flagsChanged || themeChanged = vResult
     | otherwise = pResult & L.node . L.children .~ oldNode ^. L.children
+
   mNode = mResult ^. L.node
   mState = widgetGetState (mNode ^. L.widget) wenv mNode
   postRes = case (,) <$> useState oldState <*> useState mState of
     Just (ost, st) -> mergePostHandler wenv mNode oldNode ost st mResult
     Nothing -> resultNode (mResult ^. L.node)
+
   tmpResult
     | isResizeAnyResult (Just postRes) = postRes
         & L.node .~ updateSizeReq wenv (postRes ^. L.node)

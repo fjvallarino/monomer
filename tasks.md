@@ -782,15 +782,17 @@
   - Add hsl function https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
   - CmbMergeRequired in box?
   - Add ignoreStyle to button.
+  - themeSwitch should report theme has changed, and mergeRequired consider it.
 
 Next
+  - Is selectList's merge redundant? Container seems to take care of everything.
+  - Generalize fade/slide messages. Add anim suffix.
+    - Update Todo example to overlay edit section.
+  - Rethink activeStyle, activeTheme, active style related function names.
+    - Order of arguments?
   - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
   - Fix Tutorial 6 colors.
-  - themeSwitch should report theme has changed, and mergeRequired consider it.
-  - Rethink activeStyle, activeTheme, active style related function names.
-    - Order of arguments?
-  - Generalize fade/slide messages. Add anim suffix.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

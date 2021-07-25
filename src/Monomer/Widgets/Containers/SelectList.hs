@@ -300,8 +300,10 @@ makeSelectList widgetData items makeRow config state = widget where
   merge wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
+    mergeReq = mergeRequiredFn oldItems items
     flagsChanged = childrenFlagsChanged oldNode node
-    mergeRequired = mergeRequiredFn oldItems items || flagsChanged
+    themeChanged = wenv ^. L.themeChanged
+    mergeRequired = mergeReq || flagsChanged || themeChanged
     children
       | mergeRequired = createSelectListChildren wenv node
       | otherwise = oldNode ^. L.children

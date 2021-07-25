@@ -38,58 +38,71 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
-newtype ThemeCfg = ThemeCfg {
+newtype ThemeSwitchCfg = ThemeSwitchCfg {
   _tmcClearBg :: Maybe Bool
 } deriving (Eq, Show)
 
 
-instance Default ThemeCfg where
-  def = ThemeCfg {
+instance Default ThemeSwitchCfg where
+  def = ThemeSwitchCfg {
     _tmcClearBg = Nothing
   }
 
-instance Semigroup ThemeCfg where
-  (<>) s1 s2 = ThemeCfg {
+instance Semigroup ThemeSwitchCfg where
+  (<>) s1 s2 = ThemeSwitchCfg {
     _tmcClearBg = _tmcClearBg s2 <|> _tmcClearBg s1
   }
 
-instance Monoid ThemeCfg where
+instance Monoid ThemeSwitchCfg where
   mempty = def
 
 -- | Indicates the clear color should be applied before rendering children.
-themeClearBg :: ThemeCfg
+themeClearBg :: ThemeSwitchCfg
 themeClearBg = themeClearBg_ True
 
 -- | Sets whether the clear color should be applied before rendering children.
-themeClearBg_ :: Bool -> ThemeCfg
+themeClearBg_ :: Bool -> ThemeSwitchCfg
 themeClearBg_ clear = def {
   _tmcClearBg = Just clear
 }
 
--- | Switchs to a new theme starting from its child node.
+data ThemeSwitchState = ThemeSwitchState {
+  _tssPrevTheme :: Maybe Theme,
+  _tssChanged :: Bool
+}
+
+-- | Switches to a new theme starting from its child node.
 themeSwitch :: Theme -> WidgetNode s e -> WidgetNode s e
 themeSwitch theme managed = themeSwitch_ theme def managed
 
--- | Switchs to a new theme starting from its child node. Accepts config.
-themeSwitch_ :: Theme -> [ThemeCfg] -> WidgetNode s e -> WidgetNode s e
+-- | Switches to a new theme starting from its child node. Accepts config.
+themeSwitch_ :: Theme -> [ThemeSwitchCfg] -> WidgetNode s e -> WidgetNode s e
 themeSwitch_ theme configs managed = makeNode widget managed where
   config = mconcat configs
-  widget = makeTheme theme config
+  state = ThemeSwitchState Nothing False
+  widget = makeThemeSwitch theme config state
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
 makeNode widget managedWidget = defaultWidgetNode "themeSwitch" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeTheme :: Theme -> ThemeCfg -> Widget s e
-makeTheme theme config = widget where
-  widget = createContainer () def {
+makeThemeSwitch :: Theme -> ThemeSwitchCfg -> ThemeSwitchState -> Widget s e
+makeThemeSwitch theme config state = widget where
+  widget = createContainer state def {
     containerUpdateCWenv = updateCWenv,
-    containerGetActiveStyle = getActiveStyle
+    containerGetActiveStyle = getActiveStyle,
+    containerInit = init,
+    containerMerge = merge
   }
 
   updateCWenv wenv cidx cnode node = newWenv where
-    newWenv = wenv & L.theme .~ theme
+    oldTheme = _tssPrevTheme state
+    themeChanged = _tssChanged state || Just theme /= oldTheme
+    parentChanged = wenv ^. L.themeChanged
+    newWenv = wenv
+      & L.theme .~ theme
+      & L.themeChanged .~ (themeChanged || parentChanged)
 
   getActiveStyle wenv node = style where
     clearBg = _tmcClearBg config == Just True
@@ -97,3 +110,14 @@ makeTheme theme config = widget where
     style
       | clearBg = bgColor clearColor
       | otherwise = def
+
+  init wenv node = resultNode newNode where
+    newState = ThemeSwitchState (Just theme) False
+    newNode = node
+      & L.widget .~ makeThemeSwitch theme config newState
+
+  merge wenv node oldNode oldState = resultNode newNode where
+    oldTheme = _tssPrevTheme oldState
+    newState = ThemeSwitchState (Just theme) (Just theme /= oldTheme)
+    newNode = node
+      & L.widget .~ makeThemeSwitch theme config newState

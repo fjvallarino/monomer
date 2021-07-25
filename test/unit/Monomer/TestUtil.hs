@@ -177,6 +177,7 @@ mockWenv model = WidgetEnv {
   _weModel = model,
   _weInputStatus = def,
   _weTimestamp = 0,
+  _weThemeChanged = False,
   _weInTopLayer = const True,
   _weLayoutDirection = LayoutNone,
   _weViewport = Rect 0 0 testW testH,

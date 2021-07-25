@@ -103,13 +103,13 @@ buildUI wenv model = widgetTree where
   countLabel = label caption `style` [padding 10] where
     caption = "Books (" <> showt (length $ model ^. books) <> ")"
 
-  mergeBooksReq old new = old ^. books /= new ^. books
+  booksChanged old new = old ^. books /= new ^. books
 
   widgetTree = zstack [
       vstack [
         searchForm,
         countLabel,
-        box_ [mergeRequired mergeBooksReq] $
+        box_ [mergeRequired booksChanged] $
           vscroll (vstack (bookRow wenv <$> model ^. books)) `key` "mainScroll"
       ],
       bookOverlay `visible` isJust (model ^. selected),

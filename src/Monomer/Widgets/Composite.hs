@@ -424,11 +424,13 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   -- Needed in case the user references something outside model when building UI
   -- The same model is provided as old since nothing else is available, but
   -- mergeRequired may be using data from a closure
+  modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
   visibleChg = oldComp ^. L.info . L.visible /= newComp ^. L.info . L.visible
   enabledChg = oldComp ^. L.info . L.enabled /= newComp ^. L.info . L.enabled
-  modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
+  flagsChanged = visibleChg || enabledChg
+  themeChanged = wenv ^. L.themeChanged
   mergeRequired
-    | isJust oldModel = modelChanged || visibleChg || enabledChg
+    | isJust oldModel = modelChanged || flagsChanged || themeChanged
     | otherwise = True
   initRequired = not (nodeMatches tempRoot oldRoot)
   WidgetResult newRoot tmpReqs
@@ -856,6 +858,7 @@ convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weModel = model,
   _weInputStatus = _weInputStatus wenv,
   _weTimestamp = _weTimestamp wenv,
+  _weThemeChanged = _weThemeChanged wenv,
   _weInTopLayer = _weInTopLayer wenv,
   _weLayoutDirection = LayoutNone,
   _weViewport = _weViewport wenv,
