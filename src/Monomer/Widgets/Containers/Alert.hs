@@ -124,10 +124,12 @@ buildUI
 buildUI dialogBody cancelEvt config wenv model = mainTree where
   title = fromMaybe "" (_alcTitle config)
   close = fromMaybe "Close" (_alcClose config)
+
   emptyOverlay = collectTheme wenv L.emptyOverlayStyle
   dismissButton = hstack [button close cancelEvt]
   closeIcon = icon_ IconClose [width 2]
     & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
+
   alertTree = vstack_ [sizeReqUpdater clearExtra] [
       hstack [
         label title & L.info . L.style .~ collectTheme wenv L.dialogTitleStyle,

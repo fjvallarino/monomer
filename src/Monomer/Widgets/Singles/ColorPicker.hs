@@ -187,6 +187,7 @@ buildUI config wenv model = mainTree where
       patternImage 2 10 (rgb 255 255 255) (rgb 150 150 150),
       filler `style` [bgColor model]
     ] `style` [width 32]
+
   compRow lensCol evt lbl minV maxV = hstack [
       label lbl `style` [width 48],
       spacer_ [width 2],
@@ -198,8 +199,10 @@ buildUI config wenv model = mainTree where
         onFocus PickerFocus, onBlur PickerBlur]
         `style` [width 40, padding 0, textRight]
     ]
+
   colorRow lens lbl = compRow lens ColorChanged lbl 0 255
   alphaRow lens lbl = compRow lens AlphaChanged lbl 0 1
+
   mainTree = hstack_ [sizeReqUpdater clearExtra] [
       vstack [
         colorRow L.r "Red",
@@ -241,10 +244,12 @@ patternImage steps blockW col1 col2 = newImg where
   row1 = encodeRow steps blockW col1 col2
   row2 = encodeRow steps blockW col2 col1
   builder = mconcat (replicate steps (row1 <> row2))
+
   imgData = BL.toStrict $ toLazyByteString builder
   imgLen = fromIntegral (steps * blockW)
   imgSize = Size imgLen imgLen
   imgConfig = [fitFill, imageRepeatX, imageRepeatY]
+
   newImg = imageMem_ "colorPickerAlphaBg" imgData imgSize imgConfig
 
 encodeRow :: Int -> Int -> Color -> Color -> Builder

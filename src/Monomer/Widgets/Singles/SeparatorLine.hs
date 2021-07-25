@@ -93,11 +93,13 @@ makeSeparatorLine config = widget where
     theme = activeTheme wenv node
     direction = wenv ^. L.layoutDirection
     width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)
+
     isFixed = factor < 0.01
     flexSide = flexSize 10 0.5
     fixedW = fixedSize width
     flexW = flexSize width factor
     expandW = expandSize width factor
+
     sizeReq
       | isFixed && direction == LayoutNone = (fixedW, fixedW)
       | isFixed && direction == LayoutHorizontal = (fixedW, flexSide)
@@ -117,6 +119,7 @@ makeSeparatorLine config = widget where
       direction = wenv ^. L.layoutDirection
       fgColor = styleFgColor style
       width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)
+
       Rect cx cy cw ch = getContentArea style node
       lineW = cx + (cw - width) / 2
       lineH = cy + (ch - width) / 2

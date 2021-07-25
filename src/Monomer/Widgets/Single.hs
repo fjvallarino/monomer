@@ -355,6 +355,7 @@ mergeWrapper single wenv newNode oldNode = newResult where
   mergeHandler = singleMerge single
   oldState = widgetGetState (oldNode ^. L.widget) wenv oldNode
   oldInfo = oldNode ^. L.info
+
   nodeHandler wenv styledNode = case useState oldState of
     Just state -> mergeHandler wenv styledNode oldNode state
     _ -> resultNode styledNode
@@ -377,6 +378,7 @@ runNodeHandler single wenv newNode oldInfo nodeHandler = newResult where
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   styledNode = initNodeStyle getBaseStyle wenv tempNode
+
   tmpResult = nodeHandler wenv styledNode
   newResult
     | isResizeAnyResult (Just tmpResult) = tmpResult
@@ -481,10 +483,11 @@ handleFocusRequest wenv oldNode evt mResult = newResult where
     && not (isNodeFocused wenv node)
     && isNodeTopLevel wenv node
     && isNothing (Seq.findIndexL isFocusRequest prevReqs)
-  focusReq = SetFocus (node ^. L.info . L.widgetId)
+
+  newReq = SetFocus (node ^. L.info . L.widgetId)
   newResult
-    | isFocusReq && isJust mResult = (& L.requests %~ (|> focusReq)) <$> mResult
-    | isFocusReq = Just $ resultReqs node [focusReq]
+    | isFocusReq && isJust mResult = (& L.requests %~ (|> newReq)) <$> mResult
+    | isFocusReq = Just $ resultReqs node [newReq]
     | otherwise = mResult
 
 defaultHandleMessage :: SingleMessageHandler s e
@@ -515,6 +518,7 @@ getSizeReqWrapper single wenv node = (newReqW, newReqH) where
   addStyleReq = singleAddStyleReq single
   handler = singleGetSizeReq single
   style = singleGetActiveStyle single wenv node
+
   reqs = handler wenv node
   (tmpReqW, tmpReqH)
     | addStyleReq = sizeReqAddStyle style reqs
@@ -564,6 +568,7 @@ resizeHandlerWrapper
 resizeHandlerWrapper single wenv node viewport = result where
   useCustomSize = singleUseCustomSize single
   handler = singleResize single
+
   tmpRes = handler wenv node viewport
   lensVp = L.info . L.viewport
   newVp
@@ -571,6 +576,7 @@ resizeHandlerWrapper single wenv node viewport = result where
     | otherwise = viewport
   tmpResult = Just $ tmpRes
     & L.node . L.info . L.viewport .~ newVp
+
   newNode = tmpRes ^. L.node
   result = fromJust $ handleSizeReqChange single wenv newNode Nothing tmpResult
 

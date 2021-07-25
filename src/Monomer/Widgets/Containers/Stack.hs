@@ -148,6 +148,7 @@ assignStackAreas isHorizontal contentArea children = result where
     | otherwise = _rH
   vchildren = Seq.filter (_wniVisible . _wnInfo) children
   reqs = fmap (mainReqSelector isHorizontal) vchildren
+
   sumSizes accum req = newStep where
     (cFixed, cFlex, cFlexFac, cExtraFac) = accum
     newFixed = cFixed + sizeReqFixed req
@@ -155,9 +156,11 @@ assignStackAreas isHorizontal contentArea children = result where
     newFlexFac = cFlexFac + sizeReqFlex req * sizeReqFactor req
     newExtraFac = cExtraFac + sizeReqExtra req * sizeReqFactor req
     newStep = (newFixed, newFlex, newFlexFac, newExtraFac)
+
   (fixed, flex, flexFac, extraFac) = foldl' sumSizes def reqs
   flexAvail = min flex (mainSize - fixed)
   extraAvail = max 0 (mainSize - fixed - flexAvail)
+
   -- flexCoeff can only be negative
   flexCoeff
     | flexAvail < flex && flexFac > 0 = (flexAvail - flex) / flexFac
@@ -165,10 +168,12 @@ assignStackAreas isHorizontal contentArea children = result where
   extraCoeff
     | extraAvail > 0 && extraFac > 0 = extraAvail / extraFac
     | otherwise = 0
+
   foldHelper (accum, offset) child = (newAccum, newOffset) where
     newRect = resizeChild isHorizontal contentArea flexCoeff extraCoeff offset child
     newAccum = accum |> newRect
     newOffset = offset + rectSelector newRect
+
   (areas, usedDim) = foldl' foldHelper (Seq.empty, mainStart) children
   result = (areas, usedDim - mainStart)
 
@@ -178,10 +183,12 @@ resizeChild horizontal contentArea flexCoeff extraCoeff offset child = result wh
   emptyRect = Rect l t 0 0
   -- Either flex or extra is active (flex is negative or extra is >= 0)
   SizeReq fixed flex extra factor = mainReqSelector horizontal child
+
   tempMainSize = fixed
     + (1 + flexCoeff * factor) * flex
     + extraCoeff * factor * extra
   mainSize = max 0 tempMainSize
+
   hRect = Rect offset t mainSize h
   vRect = Rect l offset w mainSize
   result

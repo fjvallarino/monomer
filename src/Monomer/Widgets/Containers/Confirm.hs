@@ -158,13 +158,16 @@ buildUI
 buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   acceptEvt = ConfirmParentEvt pAcceptEvt
   cancelEvt = ConfirmParentEvt pCancelEvt
+
   title = fromMaybe "" (_cfcTitle config)
   accept = fromMaybe "Accept" (_cfcAccept config)
   cancel = fromMaybe "Cancel" (_cfcCancel config)
   emptyOverlay = collectTheme wenv L.emptyOverlayStyle
+
   acceptBtn = mainButton accept acceptEvt `key` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
+
   closeIcon = icon_ IconClose [width 2]
     & L.info . L.style .~ collectTheme wenv L.dialogCloseIconStyle
   confirmTree = vstack_ [sizeReqUpdater clearExtra] [

@@ -323,12 +323,14 @@ makeTextArea wdata config state = widget where
       textMetrics = _tasTextMetrics state
       tp@(tpX, tpY) = _tasCursorPos state
       selStart = _tasSelStart state
+
       (minTpSel, maxTpSel)
         | swap tp <= swap (fromJust selStart) = (tp, fromJust selStart)
         | otherwise = (fromJust selStart, tp)
       emptySel = isNothing selStart
       vpLines = round (wenv ^. L.viewport . L.h / textMetrics ^. L.lineH)
       activeSel = isJust selStart
+
       prevTxt
         | tpX > 0 = T.take tpX (line tpY)
         | otherwise = line (tpY - 1)
@@ -337,6 +339,7 @@ makeTextArea wdata config state = widget where
         | tpX == 0 && tpY == 0 = (tpX, tpY)
         | tpX > 0 = (T.length prevWordStart, tpY)
         | otherwise = (T.length prevWordStart, tpY - 1)
+
       nextTxt
         | tpX < lineLen tpY = T.drop tpX (line tpY)
         | otherwise = line (tpY + 1)
@@ -345,6 +348,7 @@ makeTextArea wdata config state = widget where
         | tpX == lineLen tpY && tpY == length textLines - 1 = (tpX, tpY)
         | tpX < lineLen tpY = (lineLen tpY - T.length nextWordEnd, tpY)
         | otherwise = (lineLen (tpY + 1) - T.length nextWordEnd, tpY + 1)
+
       isShift = _kmLeftShift mod
       isLeft = isKeyLeft code
       isRight = isKeyRight code
@@ -354,6 +358,7 @@ makeTextArea wdata config state = widget where
       isEnd = isKeyEnd code
       isPageUp = isKeyPageUp code
       isPageDown = isKeyPageDown code
+
       isWordMod
         | isMacOS wenv = _kmLeftAlt mod
         | otherwise = _kmLeftCtrl mod
@@ -363,15 +368,19 @@ makeTextArea wdata config state = widget where
       isAllMod
         | isMacOS wenv = _kmLeftGUI mod
         | otherwise = _kmLeftCtrl mod
+
       isBackspace = isKeyBackspace code
       isDelBackWord = isBackspace && isWordMod
       isDelBackWordNoSel = isDelBackWord && emptySel
+
       isMove = not isShift && not isWordMod && not isLineMod
       isMoveWord = not isShift && isWordMod && not isLineMod
       isMoveLine = not isShift && isLineMod && not isWordMod
+
       isSelect = isShift && not isWordMod && not isLineMod
       isSelectWord = isShift && isWordMod && not isLineMod
       isSelectLine = isShift && isLineMod && not isWordMod
+
       isMoveLeft = isMove && not activeSel && isLeft
       isMoveRight = isMove && not activeSel && isRight
       isMoveWordL = isMoveWord && isLeft
@@ -384,6 +393,7 @@ makeTextArea wdata config state = widget where
       isMoveDown = isMove && not activeSel && isDown
       isMovePageUp = isMove && not activeSel && isPageUp
       isMovePageDown = isMove && not activeSel && isPageDown
+
       isSelectAll = isAllMod && isKeyA code
       isSelectLeft = isSelect && isLeft
       isSelectRight = isSelect && isRight
@@ -397,10 +407,12 @@ makeTextArea wdata config state = widget where
       isSelectLineR = (isSelectLine && isRight) || (isShift && isEnd)
       isSelectFullUp = isSelectLine && isUp
       isSelectFullDn = isSelectLine && isDown
+
       isDeselectLeft = isMove && activeSel && isLeft
       isDeselectRight = isMove && activeSel && isRight
       isDeselectUp = isMove && activeSel && isUp
       isDeselectDown = isMove && activeSel && isDown
+
       replaceFix sel text = replaceText state (Just $ fixPos sel) text
       removeCharL
         | tpX > 0 = replaceFix (tpX - 1, tpY) ""
@@ -525,6 +537,7 @@ makeTextArea wdata config state = widget where
         acceptTab = fromMaybe False (_tacAcceptTab config)
         selectedText = fromMaybe "" (getSelection state)
         clipboardReq = SetClipboard (ClipboardText selectedText)
+
         resultCopy = resultReqs node [clipboardReq]
         resultPaste = resultReqs node [GetClipboard widgetId]
         resultCut = insertText wenv node ""
@@ -532,15 +545,19 @@ makeTextArea wdata config state = widget where
         resultReturn = insertText wenv node "\n"
         resultTab = insertText wenv node "    "
           & L.requests <>~ Seq.singleton IgnoreParentEvents
+
         history = _tasHistory state
         historyIdx = _tasHistoryIdx state
+
         bwdState = addHistory state (historyIdx == length history)
+
         moveHistory state steps = result where
           newIdx = clamp 0 (length history) (historyIdx + steps)
           newState = restoreHistory wenv node state newIdx
           newNode = node
             & L.widget .~ makeTextArea wdata config newState
           result = resultReqs newNode (generateReqs wenv node newState)
+
         handleKeyRes (newText, newPos, newSel) = result where
           tmpState = addHistory state (_tasText state /= newText)
           newState = (stateFromText wenv node tmpState newText) {
@@ -649,9 +666,11 @@ makeTextArea wdata config state = widget where
       contentArea = getContentArea style node
       ts = _weTimestamp wenv
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
+
       caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
       caretColor = styleFontColor style
       caretRect = getCaretRect config state False
+
       selRequired = isJust (_tasSelStart state)
       selColor = styleHlColor style
       selRects = getSelectionRects state contentArea
@@ -662,13 +681,16 @@ getCaretRect config state addSpcV = caretRect where
   (cursorX, cursorY) = _tasCursorPos state
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
+
   (lineRect, glyphs, spaceV) = case Seq.lookup cursorY textLines of
     Just tl -> (tl ^. L.rect, tl ^. L.glyphs, tl ^. L.fontSpaceV)
     Nothing -> (def, Seq.empty, def)
+
   Rect tx ty _ _ = lineRect
   totalH
     | addSpcV = lineh + unFontSpace spaceV
     | otherwise = lineh
+
   caretPos
     | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
@@ -685,11 +707,13 @@ getSelectionRects state contentArea = rects where
   currSel = fromMaybe def (_tasSelStart state)
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
+
   spaceV = getSpaceV textLines
   line idx
     | length textLines > idx = Seq.index textLines idx ^. L.text
     | otherwise = ""
   lineLen = T.length . line
+
   glyphs idx
     | length textLines > idx = Seq.index textLines idx ^. L.glyphs
     | otherwise = Seq.empty
@@ -697,9 +721,11 @@ getSelectionRects state contentArea = rects where
     | posx == 0 = 0
     | posx == lineLen posy = _glpXMax (Seq.index (glyphs posy) (posx - 1))
     | otherwise = _glpXMin (Seq.index (glyphs posy) posx)
+
   ((selX1, selY1), (selX2, selY2))
     | swap currPos <= swap currSel = (currPos, currSel)
     | otherwise = (currSel, currPos)
+
   updateRect rect = rect
     & L.h .~ lineh + spaceV
     & L.w %~ max 5 -- Empty lines show a small rect to indicate they are there.
@@ -727,12 +753,14 @@ stateFromText wenv node state text = newState where
   lastRect = def
     & L.y .~ fromIntegral (length tmpTextLines) * totalH
     & L.h .~ totalH
+
   lastTextLine = def
     & L.rect .~ lastRect
     & L.size .~ Size 0 (lastRect ^. L.h)
   newTextLines
     | T.isSuffixOf "\n" text = tmpTextLines |> lastTextLine
     | otherwise = tmpTextLines
+
   newState = state {
     _tasText = text,
     _tasTextMetrics = newTextMetrics,
@@ -782,6 +810,7 @@ getSelection state = result where
   currSel = fromJust (_tasSelStart state)
   textLines = _tasTextLines state
   oldLines = view L.text <$> textLines
+
   ((selX1, selY1), (selX2, selY2))
     | swap currPos <= swap currSel = (currPos, currSel)
     | otherwise = (currSel, currPos)
@@ -824,6 +853,7 @@ replaceSelection textLines currPos currSel addText = result where
   prevLines = Seq.take selY1 oldLines
   postLines = Seq.drop (selY2 + 1) oldLines
   returnAdded = T.isSuffixOf "\n" addText
+
   linePre
     | length oldLines > selY1 = T.take selX1 (Seq.index oldLines selY1)
     | otherwise = ""
@@ -833,6 +863,7 @@ replaceSelection textLines currPos currSel addText = result where
   addLines
     | not returnAdded = Seq.fromList (T.lines addText)
     | otherwise = Seq.fromList (T.lines addText) :|> ""
+
   (newX, newY, midLines)
     | length addLines <= 1 = (T.length (linePre <> addText), selY1, singleLine)
     | otherwise = (T.length end, selY1 + length addLines - 1, multiLine)
@@ -842,6 +873,7 @@ replaceSelection textLines currPos currSel addText = result where
       middle = Seq.drop 1 $ Seq.take (length addLines - 1) addLines
       end = Seq.index addLines (length addLines - 1)
       multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
+
   newLines = prevLines <> midLines <> postLines
   newText = T.dropEnd 1 $ T.unlines (toList newLines)
   result = (newText, (newX, newY), Nothing)
@@ -851,16 +883,19 @@ findClosestGlyphPos state point = (newPos, lineIdx) where
   Point x y = point
   TextMetrics _ _ lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
+
   totalH = lineh + getSpaceV textLines
   lineIdx = clamp 0 (length textLines - 1) (floor (y / totalH))
   lineGlyphs
     | null textLines = Seq.empty
     | otherwise = Seq.index (view L.glyphs <$> textLines) lineIdx
   textLen = getGlyphsMax lineGlyphs
+
   glyphs
     | Seq.null lineGlyphs = Seq.empty
     | otherwise = lineGlyphs |> GlyphPos ' ' textLen 0 0 0 0 0
   glyphStart i g = (i, abs (_glpXMin g - x))
+
   pairs = Seq.mapWithIndex glyphStart glyphs
   cpm (_, g1) (_, g2) = compare g1 g2
   diffs = Seq.sortBy cpm pairs

@@ -390,6 +390,7 @@ compositeInit comp state wenv widgetComp = newResult where
   -- Creates UI using provided function
   builtRoot = _cmpUiBuilder comp cwenv model
   tempRoot = cascadeCtx wenv widgetComp builtRoot
+
   WidgetResult root reqs = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
   newEvts = RaiseEvent <$> Seq.fromList (_cmpOnInit comp)
   newState = state {
@@ -397,9 +398,10 @@ compositeInit comp state wenv widgetComp = newResult where
     _cpsRoot = root,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
   }
-  tempResult = WidgetResult root (reqs <> newEvts)
+
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv widgetComp
+  tempResult = WidgetResult root (reqs <> newEvts)
   newResult = toParentResult comp newState wenv styledComp tempResult
 
 -- | Merge
@@ -433,6 +435,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | isJust oldModel = modelChanged || flagsChanged || themeChanged
     | otherwise = True
   initRequired = not (nodeMatches tempRoot oldRoot)
+
   WidgetResult newRoot tmpReqs
     | initRequired = widgetInit tempWidget cwenv tempRoot
     | mergeRequired = widgetMerge tempWidget cwenv tempRoot oldRoot
@@ -448,12 +451,14 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     & L.info . L.viewport .~ oldComp ^. L.info . L.viewport
     & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
+
   visibleEvts = if visibleChg then _cmpOnVisibleChange comp else []
   enabledEvts = if enabledChg then _cmpOnEnabledChange comp else []
   mergeReqsFns = _cmpMergeReqs comp
   mergeReqs = concatMap (\fn -> fn cwenv newRoot oldRoot model) mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
   evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
+
   tmpResult = WidgetResult newRoot (tmpReqs <> extraReqs <> evts)
   reducedResult = toParentResult comp newState wenv styledComp tmpResult
   newResult = handleWidgetIdChange oldComp reducedResult
@@ -472,6 +477,7 @@ compositeDispose comp state wenv widgetComp = result where
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   widget = _cpsRoot ^. L.widget
   newEvts = RaiseEvent <$> Seq.fromList (_cmpOnDispose comp)
+
   WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
   tempResult = WidgetResult _cpsRoot (reqs <> newEvts)
   result = toParentResult comp state wenv widgetComp tempResult
@@ -573,6 +579,7 @@ compositeHandleEvent comp state wenv widgetComp target evt = result where
   rootEnabled = _cpsRoot ^. L.info . L.enabled
   compVisible = widgetComp ^. L.info . L.visible
   compEnabled = widgetComp ^. L.info . L.enabled
+
   processEvent = toParentResult comp state wenv widgetComp
   evtResult
     | not (compVisible && compEnabled) = Nothing
@@ -652,6 +659,7 @@ compositeResize comp state wenv widgetComp viewport = resizedRes where
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
+
   WidgetResult newRoot newReqs = widgetResize widget cwenv _cpsRoot contentArea
   oldVp = widgetComp ^. L.info . L.viewport
   sizeChanged = viewport /= oldVp
@@ -659,6 +667,7 @@ compositeResize comp state wenv widgetComp viewport = resizedRes where
   resizeReqs
     | sizeChanged = RaiseEvent <$> Seq.fromList resizeEvts
     | otherwise = Empty
+
   childRes = WidgetResult newRoot (newReqs <> resizeReqs)
     & L.node . L.info . L.viewport .~ contentArea
   resizedRes = toParentResult comp state wenv widgetComp childRes

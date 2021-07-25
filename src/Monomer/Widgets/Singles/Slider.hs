@@ -344,7 +344,9 @@ makeSlider isHz field minVal maxVal config state = widget where
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
+
     Blur next -> handleFocusChange (_slcOnBlurReq config) next node
+
     KeyAction mod code KeyPressed
       | ctrlPressed && isInc code -> handleNewPos (pos + warpSpeed)
       | ctrlPressed && isDec code -> handleNewPos (pos - warpSpeed)
@@ -357,21 +359,27 @@ makeSlider isHz field minVal maxVal config state = widget where
         (isDec, isInc)
           | isHz = (isKeyLeft, isKeyRight)
           | otherwise = (isKeyDown, isKeyUp)
+
         baseSpeed = max 1 $ round (fromIntegral maxPos / 1000)
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
+
         handleNewPos newPos
           | validPos /= pos = resultFromPos validPos []
           | otherwise = Nothing
           where
             validPos = clamp 0 maxPos newPos
+
     Move point
       | isNodePressed wenv node -> resultFromPoint point []
+
     ButtonAction point btn BtnPressed clicks -> resultFromPoint point reqs where
       reqs
         | shiftPressed = []
         | otherwise = [SetFocus widgetId]
+
     ButtonAction point btn BtnReleased clicks  -> resultFromPoint point []
+
     WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos [] where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)
       wheelRate = fromRational wheelCfg
@@ -385,8 +393,10 @@ makeSlider isHz field minVal maxVal config state = widget where
       widgetId = node ^. L.info . L.widgetId
       shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       SliderState maxPos pos = state
+
       resultFromPoint point reqs = resultFromPos newPos reqs where
         newPos = posFromMouse isHz vp point
+
       resultFromPos newPos extraReqs = Just newResult where
         newState = state {
           _slsPos = newPos
@@ -395,6 +405,7 @@ makeSlider isHz field minVal maxVal config state = widget where
           & L.widget .~ makeSlider isHz field minVal maxVal config newState
         result = resultReqs newNode [RenderOnce]
         newVal = valueFromPos newPos
+
         reqs = widgetDataSet field newVal
           ++ fmap ($ newVal) (_slcOnChangeReq config)
           ++ extraReqs
@@ -413,16 +424,20 @@ makeSlider isHz field minVal maxVal config state = widget where
 
   render wenv node renderer = do
     drawRect renderer sliderBgArea (Just sndColor) sliderRadius
+
     drawInScissor renderer True sliderFgArea $
       drawRect renderer sliderBgArea (Just fgColor) sliderRadius
+
     when thbVisible $
       drawEllipse renderer thbArea (Just hlColor)
     where
       theme = activeTheme wenv node
       style = activeStyle wenv node
+
       fgColor = styleFgColor style
       hlColor = styleHlColor style
       sndColor = styleSndColor style
+
       radiusW = _slcRadius config <|> theme ^. L.sliderRadius
       sliderRadius = radius <$> radiusW
       SliderState maxPos pos = state

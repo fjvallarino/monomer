@@ -178,15 +178,18 @@ makeCheckbox widgetData config = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_ckcOnFocusReq config) prev node
     Blur next -> handleFocusChange (_ckcOnBlurReq config) next node
+
     Click p _ _
       | isPointInNodeVp p node -> Just $ resultReqs node reqs
+
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqs node reqs
     _ -> Nothing
     where
-      isSelectKey code = isKeyReturn code || isKeySpace code
       model = _weModel wenv
       path = node ^. L.info . L.path
+
+      isSelectKey code = isKeyReturn code || isKeySpace code
       value = widgetDataGet model widgetData
       newValue = not value
       setValueReq = widgetDataSet widgetData newValue
@@ -208,11 +211,13 @@ makeCheckbox widgetData config = widget where
       style = activeStyle wenv node
       value = widgetDataGet model widgetData
       carea = getContentArea style node
+
       checkboxW = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
       checkboxBW = max 1 (checkboxW * 0.1)
       checkboxL = _rX carea + (_rW carea - checkboxW) / 2
       checkboxT = _rY carea + (_rH carea - checkboxW) / 2
       checkboxArea = Rect checkboxL checkboxT checkboxW checkboxW
+
       fgColor = styleFgColor style
       hlColor = styleHlColor style
       mark = fromMaybe CheckboxSquare (_ckcMark config)

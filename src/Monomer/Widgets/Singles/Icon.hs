@@ -107,12 +107,14 @@ drawIcon :: Renderer -> StyleState -> IconType -> Rect -> Double -> IO ()
 drawIcon renderer style iconType viewport lw = case iconType of
   IconClose ->
     drawTimesX renderer viewport lw (Just fgColor)
+
   IconPlus -> do
     beginPath renderer
     setFillColor renderer fgColor
     renderRect renderer (Rect (cx - hw) y lw h)
     renderRect renderer (Rect x (cy - hw) w lw)
     fill renderer
+
   IconMinus -> do
     beginPath renderer
     setFillColor renderer fgColor

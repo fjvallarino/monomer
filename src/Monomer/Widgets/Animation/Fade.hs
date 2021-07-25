@@ -163,6 +163,7 @@ makeFade isFadeIn config state = widget where
     ts = wenv ^. L.timestamp
     startState = FadeState True ts
     startReqs = [finishedReq node, renderReq wenv node]
+
     newNode newState = node
       & L.widget .~ makeFade isFadeIn config newState
     result = case msg of

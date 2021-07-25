@@ -324,40 +324,49 @@ makeBox config state = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_boxOnFocusReq config) prev node
     Blur next -> handleFocusChange (_boxOnBlurReq config) next node
+
     Enter point
       | not (null reqs) && inChildVp point -> result where
         reqs = _boxOnEnterReq config
         result = Just (resultReqs node reqs)
+
     Leave point
       | not (null reqs) -> result where
         reqs = _boxOnLeaveReq config
         result = Just (resultReqs node reqs)
+
     Click point btn _
       | not (null reqs) && inChildVp point -> result where
         reqs = _boxOnClickReq config
         result = Just (resultReqs node reqs)
+
     Click point btn _
       | not (null reqs) && not (inChildVp point) -> result where
         reqs = _boxOnClickEmptyReq config
         result = Just (resultReqs node reqs)
+
     ButtonAction point btn BtnPressed clicks
       | not (null reqs) && inChildVp point -> result where
         reqs = _boxOnBtnPressedReq config <*> pure btn <*> pure clicks
         result = Just (resultReqs node reqs)
+
     ButtonAction point btn BtnReleased clicks
       | clicks == 1 && not (null reqs) && inChildVp point -> result where
         reqs = _boxOnBtnReleasedReq config <*> pure btn <*> pure clicks
         result = Just (resultReqs node reqs)
+
     ButtonAction point btn BtnReleased clicks
       | clicks > 1 && not (null reqs) && inChildVp point -> result where
         reqsA = _boxOnClickReq config
         reqsB = _boxOnBtnReleasedReq config <*> pure btn <*> pure clicks
         reqs = reqsA <> reqsB
         result = Just (resultReqs node reqs)
+
     ButtonAction point btn BtnReleased clicks
       | clicks > 1 && not (null reqs) && not (inChildVp point) -> result where
         reqs = _boxOnClickEmptyReq config
         result = Just (resultReqs node reqs)
+
     _ -> Nothing
     where
       child = Seq.index (node ^. L.children) 0
@@ -373,15 +382,18 @@ makeBox config state = widget where
 
   resize wenv node viewport children = resized where
     style = getActiveStyle wenv node
+    child = Seq.index children 0
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea
-    child = Seq.index children 0
+
     contentW = snd $ assignStackAreas True contentArea children
     contentH = snd $ assignStackAreas False contentArea children
+
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)
     av = fromMaybe AMiddle (_boxAlignV config)
     raAligned = alignInRect contentArea raChild ah av
+
     expand = fromMaybe False (_boxExpandContent config)
     resized
       | expand = (resultNode node, Seq.singleton contentArea)

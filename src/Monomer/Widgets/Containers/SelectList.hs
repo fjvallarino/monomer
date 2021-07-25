@@ -301,9 +301,11 @@ makeSelectList widgetData items makeRow config state = widget where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
     mergeReq = mergeRequiredFn oldItems items
+
     flagsChanged = childrenFlagsChanged oldNode node
     themeChanged = wenv ^. L.themeChanged
     mergeRequired = mergeReq || flagsChanged || themeChanged
+
     children
       | mergeRequired = createSelectListChildren wenv node
       | otherwise = oldNode ^. L.children
@@ -341,7 +343,9 @@ makeSelectList widgetData items makeRow config state = widget where
     ButtonAction _ btn BtnPressed _
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
+
     Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
+
     Blur next -> result where
       tabPressed = wenv ^. L.inputStatus . L.keys . at keyTab == Just KeyPressed
       changeReq = tabPressed && _slcSelectOnBlur config == Just True
@@ -352,6 +356,7 @@ makeSelectList widgetData items makeRow config state = widget where
       result
         | changeReq || not (null reqs) = Just $ WidgetResult tempNode reqs
         | otherwise = Nothing
+
     KeyAction mode code status
       | isKeyDown code && status == KeyPressed -> highlightNext wenv node
       | isKeyUp code && status == KeyPressed -> highlightPrev wenv node
@@ -395,6 +400,7 @@ makeSelectList widgetData items makeRow config state = widget where
     tmpNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
     slIdx = _slIdx state
+
     (newNode, resizeReq) = updateStyles wenv config state tmpNode slIdx nextIdx
     reqs = itemScrollTo wenv newNode nextIdx ++ resizeReq
     result = resultReqs newNode reqs
@@ -407,6 +413,7 @@ makeSelectList widgetData items makeRow config state = widget where
     changeReqs = fmap ($ value) (_slcOnChangeReq config)
       ++ fmap (\fn -> fn idx value) (_slcOnChangeIdxReq config)
     (styledNode, resizeReq) = updateStyles wenv config state node idx idx
+
     newState = state {
       _slIdx = idx,
       _hlIdx = idx,
@@ -452,14 +459,17 @@ updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
   items = node ^. L.children . ix 0 . L.children
   normalStyle = getNormalStyle wenv config
   idxMatch = newSlIdx == newHlIdx
+
   (slStyle, hlStyle)
     | idxMatch = (getSlHlStyle wenv config, getSlHlStyle wenv config)
     | otherwise = (getSlStyle wenv config, getHlStyle wenv config)
+
   (newChildren, resizeReq) = (items, False)
     & updateItemStyle wenv (_slIdx state) (Just normalStyle)
     & updateItemStyle wenv (_hlIdx state) (Just normalStyle)
     & updateItemStyle wenv newHlIdx (Just hlStyle)
     & updateItemStyle wenv newSlIdx (Just slStyle)
+
   newNode = node
     & L.children . ix 0 . L.children .~ newChildren
   newReqs = [ ResizeWidgets | resizeReq ]
@@ -531,6 +541,7 @@ makeItemsList
 makeItemsList wenv items makeRow config widgetId selected = itemsList where
   normalTheme = collectTheme wenv L.selectListItemStyle
   normalStyle = fromJust (Just normalTheme <> _slcItemStyle config)
+
   makeItem idx item = newItem where
     clickCfg = onClickReq $ SendMessage widgetId (SelectListClickItem idx)
     itemCfg = [expandContent, clickCfg]

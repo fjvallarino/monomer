@@ -80,6 +80,7 @@ collectStyleField_ fieldS source target = style where
       | isJust value = setTarget <$> value
       | isJust targetState = Just resetTarget
       | otherwise = Nothing
+
   basic = setValue L.basic
   hover = setValue L.hover
   focus = setValue L.focus
@@ -102,9 +103,11 @@ activeStyle_ config wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
+
   isHover = _ascIsHovered config wenv node
   isFocus = _ascIsFocused config wenv node
   isActive = _ascIsActive config wenv node
+
   styleState
     | not isEnabled = _styleDisabled
     | isActive = _styleActive
@@ -139,9 +142,11 @@ activeTheme_ isHoveredFn wenv node = themeState where
   theme = _weTheme wenv
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
+
   isHover = isHoveredFn wenv node
   isFocus = isNodeFocused wenv node
   isActive = isNodeActive wenv node
+
   themeState
     | not isEnabled = _themeDisabled theme
     | isActive = _themeActive theme
@@ -223,11 +228,14 @@ childOfFocusedStyle wenv cnode = newStyle where
   pinfo = fromMaybe def (wenv ^. L.findByPath $ parentPath cnode)
   cstyle = cnode ^. L.info . L.style
   enabled = cnode ^. L.info . L.enabled
+
   activeC = isNodeActive wenv cnode
   activeP = isNodeInfoActive False wenv pinfo
+
   hoverC = isNodeHovered wenv cnode
   hoverP = isNodeInfoHovered wenv pinfo
   focusP = isNodeInfoFocused wenv pinfo
+
   newStyle
     | not enabled = fromMaybe def (_styleDisabled cstyle)
     | activeC || activeP = fromMaybe def (_styleActive cstyle)
@@ -290,6 +298,7 @@ handleCursorChange wenv target evt style oldNode result = newResult where
   (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
   isParent = seqStartsWith path curPath && path /= curPath
   newIcon = fromMaybe CursorArrow (style ^. L.cursorIcon)
+
   setCursor = hasCursor
     && isCursorEvt evt
     && not isParent

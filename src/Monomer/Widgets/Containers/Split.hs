@@ -210,13 +210,16 @@ makeSplit isHorizontal config state = widget where
           _spsHandlePosUserSet = True,
           _spsHandlePos = newHandlePos
         }
+
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
         newNode = widgetResize (tmpNode ^. L.widget) wenv tmpNode vp
+
         resultDrag
           | handlePos /= newHandlePos = newNode
               & L.requests <>~ Seq.fromList [cursorIconReq, RenderOnce]
           | otherwise = resultReqs node [cursorIconReq]
+
         resultHover = resultReqs node [cursorIconReq]
         resultReset = resultReqs node [ResetCursorIcon widgetId]
     _ -> Nothing
@@ -224,10 +227,12 @@ makeSplit isHorizontal config state = widget where
       maxSize = _spsMaxSize state
       handlePos = _spsHandlePos state
       handleRect = _spsHandleRect state
+
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       vp = node ^. L.info . L.viewport
       children = node ^. L.children
+
       isTarget = target == node ^. L.info . L.path
       (curPath, curIcon) = fromMaybe def (wenv ^. L.cursor)
       isDragging = isNodePressed wenv node
@@ -241,10 +246,12 @@ makeSplit isHorizontal config state = widget where
   getSizeReq wenv node children = (reqW, reqH) where
     node1 = Seq.index children 0
     node2 = Seq.index children 1
+
     reqW1 = node1 ^. L.info . L.sizeReqW
     reqH1 = node1 ^. L.info . L.sizeReqH
     reqW2 = node2 ^. L.info . L.sizeReqW
     reqH2 = node2 ^. L.info . L.sizeReqH
+
     reqWS = fixedSize handleW
     reqW
       | isHorizontal = foldl1 sizeReqMergeSum [reqWS, reqW1, reqW2]
@@ -259,18 +266,22 @@ makeSplit isHorizontal config state = widget where
     Rect rx ry rw rh = contentArea
     (areas, newSize) = assignStackAreas isHorizontal contentArea children
     oldHandlePos = _spsHandlePos state
+
     sizeReq1 = sizeReq $ Seq.index children 0
     sizeReq2 = sizeReq $ Seq.index children 1
     valid1 = sizeReqValid sizeReq1 0 (newSize * oldHandlePos)
     valid2 = sizeReqValid sizeReq2 0 (newSize * (1 - oldHandlePos))
     validSize = valid1 && valid2
+
     handlePosUserSet = _spsHandlePosUserSet state
-    customPos = isJust (_spcHandlePos config)
     ignoreSizeReq = Just True == _spcIgnoreChildResize config
     sizeReqEquals = (sizeReq1, sizeReq2) == _spsPrevReqs state
-    useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     resizeNeeded = not (sizeReqEquals && handlePosUserSet)
+
+    customPos = isJust (_spcHandlePos config)
+    useOldPos = customPos || ignoreSizeReq || sizeReqEquals
     initialPos = initialHandlePos children
+
     handlePos
       | useOldPos && handlePosUserSet && validSize = oldHandlePos
       | resizeNeeded = calcHandlePos newSize initialPos viewport children
@@ -281,6 +292,7 @@ makeSplit isHorizontal config state = widget where
     (w2, h2)
       | isHorizontal = (newSize - w1 - handleW, rh)
       | otherwise = (rw, newSize - h1 - handleW)
+
     rect1 = Rect rx ry w1 h1
     rect2
       | isHorizontal = Rect (rx + w1 + handleW) ry w2 h2
@@ -288,12 +300,14 @@ makeSplit isHorizontal config state = widget where
     newHandleRect
       | isHorizontal = Rect (rx + w1) ry handleW h1
       | otherwise = Rect rx (ry + h1) w1 handleW
+
     newState = state {
       _spsHandlePos = handlePos,
       _spsHandleRect = newHandleRect,
       _spsMaxSize = newSize,
       _spsPrevReqs = (sizeReq1, sizeReq2)
     }
+
     reqOnChange = fmap ($ handlePos) (_spcOnChangeReq config)
     requestPos = setModelPos config handlePos
     result = resultNode node
@@ -305,14 +319,17 @@ makeSplit isHorizontal config state = widget where
   getValidHandlePos maxDim vp handleXY children = addPoint origin newPoint where
     Rect rx ry _ _ = vp
     Point vx vy = rectBoundedPoint vp handleXY
+
     origin = Point rx ry
     isVertical = not isHorizontal
     child1 = Seq.index children 0
     child2 = Seq.index children 1
+
     minSize1 = sizeReqMin (sizeReq child1)
     maxSize1 = sizeReqMax (sizeReq child1)
     minSize2 = sizeReqMin (sizeReq child2)
     maxSize2 = sizeReqMax (sizeReq child2)
+
     (tw, th)
       | isHorizontal = (max minSize1 (min maxSize1 $ abs (vx - rx)), 0)
       | otherwise = (0, max minSize1 (min maxSize1 $ abs (vy - ry)))

@@ -70,9 +70,11 @@ getSingleTextLineRect wenv style !rect !alignH !alignV !text = textRect where
   font = styleFont style
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
+
   Rect x y w h = rect
   Size tw _ = computeTextSize fontMgr font fSize fSpcH text
   TextMetrics asc desc lineh lowerX = computeTextMetrics fontMgr font fSize
+
   tx | alignH == ATLeft = x
      | alignH == ATCenter = x + (w - tw) / 2
      | otherwise = x + (w - tw)

@@ -231,15 +231,18 @@ makeButton caption config = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_btnOnFocusReq config) prev node
     Blur next -> handleFocusChange (_btnOnBlurReq config) next node
+
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where
         isSelectKey code = isKeyReturn code || isKeySpace code
+
     Click p _ _
       | isPointInNodeVp p node -> Just result
-    -- Set focus on click
-    ButtonAction p btn BtnPressed 1
+
+    ButtonAction p btn BtnPressed 1 -- Set focus on click
       | mainBtn btn && pointInVp p && not focused -> Just resultFocus
+
     _ -> Nothing
     where
       mainBtn btn = btn == wenv ^. L.mainButton

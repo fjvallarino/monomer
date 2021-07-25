@@ -739,6 +739,7 @@ addHoverEvents wenv widgetRoot point = do
   overlay <- getOverlayPath
   hover <- getHoveredPath
   mainBtnPress <- use L.mainBtnPress
+
   let start = fromMaybe emptyPath overlay
   let widget = widgetRoot ^. L.widget
   let wni = widgetFindByPoint widget wenv widgetRoot start point
@@ -790,6 +791,7 @@ dropNonParentWidgetId wid [] = return []
 dropNonParentWidgetId wid (x:xs) = do
   path <- getWidgetIdPath wid
   cpath <- getWidgetIdPath cwid
+
   if isParentPath cpath path
     then return (x:xs)
     else dropNonParentWidgetId wid xs
@@ -807,6 +809,7 @@ resetCursorOnNodeLeave (Leave point) step = do
   where
     (wenv, root, _) = step
     widget = root ^. L.widget
+
     childNode = widgetFindByPoint widget wenv root emptyPath point
     widgetId = case childNode of
       Just info -> info ^. L.widgetId
@@ -820,6 +823,7 @@ restoreCursorOnWindowEnter = do
   status <- use L.inputStatus
   cursorIcons <- use L.cursorIcons
   cursorPair <- headMay <$> use L.cursorStack
+
   let windowRect = Rect 0 0 ww wh
   let prevInside = pointInRect (status ^. L.mousePosPrev) windowRect
   let currInside = pointInRect (status ^. L.mousePos) windowRect

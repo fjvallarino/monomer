@@ -76,9 +76,11 @@ mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
       SDL.ButtonLeft -> Just BtnLeft
       SDL.ButtonRight -> Just BtnRight
       _ -> Nothing
+
     action = case SDL.mouseButtonEventMotion eventData of
       SDL.Pressed -> BtnPressed
       SDL.Released -> BtnReleased
+
     clicks = fromIntegral $ SDL.mouseButtonEventClicks eventData
     systemEvent = fmap (\btn -> ButtonAction mousePos btn action clicks) button
 mouseClick _ _ = Nothing
@@ -99,6 +101,7 @@ mouseWheelEvent epr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
     SDL.ScrollFlipped -> WheelFlipped
   SDL.V2 x y = SDL.mouseWheelEventPos eventData
   wheelDelta = Point (fromIntegral x * epr) (fromIntegral y * epr)
+
   systemEvent = case SDL.mouseWheelEventWhich eventData of
     SDL.Mouse _ -> Just $ WheelScroll mousePos wheelDelta wheelDirection
     SDL.Touch -> Nothing

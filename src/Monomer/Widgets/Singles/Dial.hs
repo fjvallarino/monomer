@@ -262,7 +262,9 @@ makeDial field minVal maxVal config state = widget where
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_dlcOnFocusReq config) prev node
+
     Blur next -> handleFocusChange (_dlcOnBlurReq config) next node
+
     KeyAction mod code KeyPressed
       | ctrlPressed && isKeyUp code -> handleNewPos (pos + warpSpeed)
       | ctrlPressed && isKeyDown code -> handleNewPos (pos - warpSpeed)
@@ -285,20 +287,24 @@ makeDial field minVal maxVal config state = widget where
         handleNewPos newPos
           | vPos newPos /= pos = Just $ newResult (vPos newPos)
           | otherwise = Nothing
+
     Move point
       | isNodePressed wenv node -> Just result where
         (_, start) = fromJust $ wenv ^. L.mainBtnPress
         (_, newVal) = posFromPoint minVal maxVal state dragRate start point
         result = addReqsEvts (resultReqs node [RenderOnce]) newVal
+
     ButtonAction point btn BtnPressed clicks
       | not (isNodeFocused wenv node) && not shiftPressed -> Just result where
         result = resultReqs node [SetFocus widgetId]
+
     ButtonAction point btn BtnReleased clicks -> Just result where
       reqs = [RenderOnce]
       newState = newStateFromModel wenv node state
       newNode = node
         & L.widget .~ makeDial field minVal maxVal config newState
       result = resultReqs newNode reqs
+
     WheelScroll _ (Point _ wy) wheelDirection -> Just result where
       DialState maxPos pos = state
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_dlcWheelRate config)
@@ -313,6 +319,7 @@ makeDial field minVal maxVal config state = widget where
       (_, dialArea) = getDialInfo wenv node config
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
+
       shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       isSelectKey code = isKeyReturn code || isKeySpace code
       addReqsEvts result newVal = newResult where
@@ -378,6 +385,7 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   theme = activeTheme wenv node
   style = activeStyle wenv node
   carea = getContentArea style node
+
   dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
   dialL = _rX carea + (_rW carea - dialW) / 2
   dialT = _rY carea + (_rH carea - dialW) / 2

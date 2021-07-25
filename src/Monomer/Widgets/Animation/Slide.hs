@@ -196,6 +196,7 @@ makeSlide isSlideIn config state = widget where
     ts = wenv ^. L.timestamp
     startState = SlideState True ts
     startReqs = [finishedReq node, renderReq wenv node]
+
     newNode newState = node
       & L.widget .~ makeSlide isSlideIn config newState
     result = case msg of
@@ -213,8 +214,10 @@ makeSlide isSlideIn config state = widget where
       viewport = node ^. L.info . L.viewport
       ts = wenv ^. L.timestamp
       dir = fromMaybe SlideLeft (_slcDirection config)
+
       bwdStep = clamp 0 1 $ fromIntegral (ts - start) / fromIntegral duration
       fwdStep = 1 - bwdStep
+
       offsetX
         | dir == SlideLeft && isSlideIn = -1 * fwdStep * viewport ^. L.w
         | dir == SlideLeft = -1 * bwdStep * viewport ^. L.w

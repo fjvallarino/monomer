@@ -332,11 +332,13 @@ timeFieldD_ widgetData configs = newNode where
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
     | otherwise = timeFromTimeOfDay' midnight
+
   acceptText = timeAcceptText format minVal maxVal
   acceptInput text = acceptText text ^. _1
   validInput text = acceptText text ^. _2
   fromText text = acceptText text ^. _3
   toText = timeToText format
+
   inputConfig = InputFieldCfg {
     _ifcPlaceholder = Nothing,
     _ifcInitialValue = initialValue,
@@ -404,9 +406,11 @@ handleMove config state rate value dy = result where
   format = fromMaybe defaultTimeFormat (_tfcTimeFormat config)
   minVal = _tfcMinValue config
   maxVal = _tfcMaxValue config
+
   acceptText = timeAcceptText format minVal maxVal
   fromText text = acceptText text ^. _3
   toText = timeToText format
+
   (valid, mParsedVal, parsedVal) = case timeToTimeOfDay' value of
     Just val -> (True, mParsedVal, parsedVal) where
       tmpValue = addMinutes (round (dy * rate)) val
@@ -418,6 +422,7 @@ handleMove config state rate value dy = result where
     | valid && dy > 0 && isJust maxVal = fromJust maxVal
     | valid && dy < 0 && isJust minVal = fromJust minVal
     | otherwise = _ifsCurrValue state
+
   newText = toText newVal
   newPos = _ifsCursorPos state
   newSel = _ifsSelStart state

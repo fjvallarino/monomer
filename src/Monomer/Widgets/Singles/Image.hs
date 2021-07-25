@@ -295,6 +295,7 @@ makeImage imgSource config state = widget where
     wid = node ^. L.info . L.widgetId
     path = node ^. L.info . L.path
     imgPath = imgName imgSource
+
     reqs = [RunTask wid path $ handleImageLoad config wenv imgPath]
     result = case imgSource of
       ImageMem _ -> resultNode node
@@ -306,6 +307,7 @@ makeImage imgSource config state = widget where
     oldSource = isImageSource oldState
     imgPath = imgName imgSource
     prevPath = imgName oldSource
+
     sameImgNode = newNode
       & L.widget .~ makeImage imgSource config oldState
     newMemReqs = [ RemoveRendererImage prevPath ]
@@ -342,6 +344,7 @@ makeImage imgSource config state = widget where
     Size w h = maybe def snd (isImageData state)
     factorW = fromMaybe 1 (_imcFactorW config)
     factorH = fromMaybe 1 (_imcFactorH config)
+
     sizeW
       | abs factorW < 0.01 = fixedSize w
       | otherwise = expandSize w factorW
@@ -362,14 +365,17 @@ makeImage imgSource config state = widget where
       border = style ^. L.border
       radius = style ^. L.radius
       carea = getContentArea style node
+
       alpha = fromMaybe 1 (_imcTransparency config)
       alignH = fromMaybe ALeft (_imcAlignH config)
       alignV = fromMaybe ATop (_imcAlignV config)
+
       imgPath = imgName imgSource
       imgFlags = _imcFlags config
       imgFit = fromMaybe FitNone (_imcFit config)
       imgRect = fitImage carea imgSize imgFlags imgFit alignH alignV
       imgRadius = subtractBorderFromRadius border <$> radius
+
       ImageState _ imgData = state
       imageLoaded = isJust imgData
       (imgBytes, imgSize) = fromJust imgData

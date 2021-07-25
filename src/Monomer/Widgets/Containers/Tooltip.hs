@@ -142,6 +142,7 @@ makeTooltip caption config state = widget where
       }
       newNode = node
         & L.widget .~ makeTooltip caption config newState
+
     Move point
       | isPointInNodeVp point node -> Just result where
         widgetId = node ^. L.info . L.widgetId
@@ -157,6 +158,7 @@ makeTooltip caption config state = widget where
           | not prevDisplayed = resultReqs newNode [delayedRender]
           | prevDisplayed && followCursor = resultReqs node [RenderOnce]
           | otherwise = resultNode node
+
     _ -> Nothing
 
   -- Padding/border is not removed. Styles are only considerer for the overlay
@@ -177,16 +179,19 @@ makeTooltip caption config state = widget where
       style = activeStyle wenv node
       children = node ^. L.children
       mousePos = wenv ^. L.inputStatus . L.mousePos
+
       scOffset = wenv ^. L.offset
       isDragging = isJust (wenv ^. L.dragStatus)
       maxW = wenv ^. L.windowSize . L.w
       maxH = wenv ^. L.windowSize . L.h
+
       targetW = fromMaybe maxW (_ttcMaxWidth config)
       targetH = fromMaybe maxH (_ttcMaxHeight config)
       targetSize = Size targetW targetH
       fittedLines = fitTextToSize fontMgr style Ellipsis MultiLine TrimSpaces
         Nothing targetSize caption
       textSize = getTextLinesSize fittedLines
+
       Size tw th = fromMaybe def (addOuterSize style textSize)
       TooltipState lastPos _ = state
       Point mx my

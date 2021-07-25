@@ -296,6 +296,7 @@ numericFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
+
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
@@ -306,11 +307,13 @@ numericFieldD_ widgetData configs = newNode where
   defWidth
     | isIntegral initialValue = 50
     | otherwise = 70
+
   acceptText = numericAcceptText minVal maxVal decimals
   acceptInput text = acceptText text ^. _1
   validInput text = acceptText text ^. _2
   fromText text = acceptText text ^. _3
   toText = numericToText decimals
+
   inputConfig = InputFieldCfg {
     _ifcPlaceholder = Nothing,
     _ifcInitialValue = initialValue,
@@ -384,9 +387,11 @@ handleMove config state rate value dy = result where
     | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
+
   acceptText = numericAcceptText minVal maxVal decimals
   fromText text = acceptText text ^. _3
   toText = numericToText
+
   (valid, mParsedVal, parsedVal) = case numericToFractional value of
     Just val -> (True, mParsedVal, parsedVal) where
       tmpValue = realToFrac val + dy * rate
@@ -398,6 +403,7 @@ handleMove config state rate value dy = result where
     | valid && dy > 0 && isJust maxVal = fromJust maxVal
     | valid && dy < 0 && isJust minVal = fromJust minVal
     | otherwise = _ifsCurrValue state
+
   newText = toText decimals newVal
   newPos = _ifsCursorPos state
   newSel = _ifsSelStart state

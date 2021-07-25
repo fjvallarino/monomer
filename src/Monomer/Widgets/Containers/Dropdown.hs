@@ -313,24 +313,30 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
   handleEvent wenv node target evt = case evt of
     Focus prev
       | not isOpen -> ddFocusChange (_ddcOnFocusReq config) prev node
+
     Blur next
       | not isOpen && not (seqStartsWith path focusedPath)
         -> ddFocusChange (_ddcOnBlurReq config) next node
+
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
       slPoint = addPoint (negPoint (_ddsOffset state)) point
+
       validMainPos = not isOpen && isPointInNodeVp point mainNode
       validListPos = isOpen && isPointInNodeVp slPoint listNode
       validPos = validMainPos || validListPos
+
       isArrow = Just CursorArrow == (snd <$> wenv ^. L.cursor)
       resetRes = resultReqs node [SetCursorIcon widgetId CursorArrow]
       result
         | not validPos && not isArrow = Just resetRes
         | otherwise = Nothing
+
     ButtonAction _ btn BtnPressed _
       | btn == wenv ^. L.mainButton && not isOpen -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
+
     Click point _ _
       | openRequired point node -> Just resultOpen
       | closeRequired point node -> Just resultClose
@@ -340,12 +346,14 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
           & L.requests <>~ Seq.fromList [SetCursorIcon widgetId CursorArrow]
         resultClose = closeDropdown wenv node
           & L.requests <>~ Seq.fromList [ResetCursorIcon widgetId | not inVp]
+
     KeyAction mode code KeyPressed
       | isKeyOpenDropdown && not isOpen -> Just $ openDropdown wenv node
       | isKeyEscape code && isOpen -> Just $ closeDropdown wenv node
       where
         activationKeys = [isKeyDown, isKeyUp, isKeySpace, isKeyReturn]
         isKeyOpenDropdown = or (fmap ($ code) activationKeys)
+
     _
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
@@ -355,6 +363,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath
       overlayPath = wenv ^. L.overlayPath
+
       overlayParent = isNodeParentOfPath (fromJust overlayPath) node
       nodeValid = isNothing overlayPath || overlayParent
 
@@ -509,8 +518,10 @@ makeSelectList
 makeSelectList wenv value items makeRow config widgetId = selectListNode where
   normalTheme = collectTheme wenv L.dropdownItemStyle
   selectedTheme = collectTheme wenv L.dropdownItemSelectedStyle
+
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
+
   slConfig = [
       selectOnBlur,
       onBlurReq (const $ SendMessage widgetId OnListBlur),

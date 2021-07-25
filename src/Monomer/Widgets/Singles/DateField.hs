@@ -350,15 +350,18 @@ dateFieldD_ widgetData configs = newNode where
   delim = fromMaybe defaultDateDelim (_dfcDateDelim config)
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
+
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
     | otherwise = dateFromDay (fromGregorian 1970 1 1)
+
   acceptText = dateAcceptText format delim minVal maxVal
   acceptInput text = acceptText text ^. _1
   validInput text = acceptText text ^. _2
   fromText text = acceptText text ^. _3
   toText = dateToText format delim
+
   inputConfig = InputFieldCfg {
     _ifcPlaceholder = Nothing,
     _ifcInitialValue = initialValue,
@@ -427,9 +430,11 @@ handleMove config state rate value dy = result where
   delim = fromMaybe defaultDateDelim (_dfcDateDelim config)
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
+
   acceptText = dateAcceptText format delim minVal maxVal
   fromText text = acceptText text ^. _3
   toText = dateToText format delim
+
   (valid, mParsedVal, parsedVal) = case dateToDay value of
     Just val -> (True, mParsedVal, parsedVal) where
       tmpValue = addDays (round (dy * rate)) val
@@ -441,6 +446,7 @@ handleMove config state rate value dy = result where
     | valid && dy > 0 && isJust maxVal = fromJust maxVal
     | valid && dy < 0 && isJust minVal = fromJust minVal
     | otherwise = _ifsCurrValue state
+
   newText = toText newVal
   newPos = _ifsCursorPos state
   newSel = _ifsSelStart state

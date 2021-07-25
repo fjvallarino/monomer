@@ -132,8 +132,10 @@ makeDraggable msg config = widget where
   handleEvent wenv node target evt = case evt of
     ButtonAction p btn BtnPressed 1 -> Just result where
       result = resultReqs node [StartDrag wid path dragMsg]
+
     ButtonAction p btn BtnReleased _ -> Just result where
       result = resultReqs node [StopDrag wid]
+
     _ -> Nothing
     where
       wid = node ^. L.info . L.widgetId
@@ -164,9 +166,11 @@ makeDraggable msg config = widget where
       style = fromMaybe def (_dgcDragStyle config)
       transparency = fromMaybe 1 (_dgcTransparency config)
       cnode = Seq.index (_wnChildren node) 0
+
       Rect cx cy cw ch = cnode ^. L.info . L.viewport
       Point mx my = wenv ^. L.inputStatus . L.mousePos
       Point px py = wenv ^?! L.mainBtnPress . _Just . _2
+
       dim = fromMaybe (max cw ch) (_dgcMaxDim config)
       scale = dim / max cw ch
       offset = Point (mx - px * scale) (my - py * scale)

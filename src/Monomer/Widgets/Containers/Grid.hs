@@ -111,16 +111,20 @@ makeFixedGrid isHorizontal config = widget where
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect l t w h = contentArea
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
+
     cols = if isHorizontal then length vchildren else 1
     rows = if isHorizontal then 1 else length vchildren
+
     cw = if cols > 0 then w / fromIntegral cols else 0
     ch = if rows > 0 then h / fromIntegral rows else 0
+
     cx i
       | rows > 0 = l + fromIntegral (i `div` rows) * cw
       | otherwise = 0
     cy i
       | cols > 0 = t + fromIntegral (i `div` cols) * ch
       | otherwise = 0
+
     foldHelper (currAreas, index) child = (newAreas, newIndex) where
       (newIndex, newViewport)
         | child ^. L.info . L.visible = (index + 1, calcViewport index)
@@ -128,5 +132,6 @@ makeFixedGrid isHorizontal config = widget where
       newArea = newViewport
       newAreas = currAreas |> newArea
     calcViewport i = Rect (cx i) (cy i) cw ch
+
     assignedAreas = fst $ foldl' foldHelper (Seq.empty, 0) children
     resized = (resultNode node, assignedAreas)

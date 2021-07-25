@@ -133,16 +133,21 @@ drawTextLine renderer style textLine = do
     TextMetrics asc desc _ _ = _tlMetrics
     Rect tx ty tw th = _tlRect
     tr = tx + tw
+
     fontColor = styleFontColor style
     alignV = styleTextAlignV style
+
     underline = style ^?! L.text . non def . L.underline . non False
     overline = style ^?! L.text . non def . L.overline . non False
     throughline = style ^?! L.text . non def . L.throughline . non False
+
     offset
       | alignV == ATBaseline = 0
       | otherwise = desc
-    {- There's not a scientific reason for choosing 1/20 as the scale, it just
-    looked reasonably good as the line width on a set of different fonts. -}
+    {-
+    There's not a scientific reason for choosing 1/20 as the scale, it just
+    looked reasonably good as the line width on a set of different fonts.
+    -}
     lw = max 1.5 (unFontSize _tlFontSize / 20)
     by = ty + th + offset
     uy = by + 1.5 * lw
@@ -364,6 +369,7 @@ drawRectSimpleBorder renderer (Rect x y w h) Border{..} =
     ptr = Point (x + w) y
     pbr = Point (x + w) (y + h)
     pbl = Point x (y + h)
+
     borderL = _brdLeft
     borderR = _brdRight
     borderT = _brdTop
@@ -373,6 +379,7 @@ drawRectSimpleBorder renderer (Rect x y w h) Border{..} =
     (otr, ort, itr) <- drawRectCorner renderer CornerTR ptr borderT borderR
     (orb, obr, ibr) <- drawRectCorner renderer CornerBR pbr borderR borderB
     (obl, olb, ibl) <- drawRectCorner renderer CornerBL pbl borderB borderL
+
     drawQuad renderer otl otr itr itl borderT
     drawQuad renderer ort orb ibr itr borderR
     drawQuad renderer obr obl ibl ibr borderB
@@ -408,8 +415,10 @@ drawRectCorner renderer cor ocorner ms1 ms2 = do
     s2 = fromMaybe def ms2
     w1 = _bsWidth s1
     w2 = _bsWidth s2
+
     color1 = _bsColor (fromJust (ms1 <|> ms2))
     color2 = _bsColor (fromJust (ms2 <|> ms1))
+
     (o1, o2) = case cor of
       CornerTL -> (Point cx (cy + w2), Point (cx + w1) cy)
       CornerTR -> (Point (cx - w2) cy, Point cx (cy + w1))
@@ -433,22 +442,28 @@ drawRectRoundedBorder renderer rect border radius =
     hw = w / 2
     hh = h / 2
     midw = min w h / 2
+
     rtl = Rect xl yt hw hh
     rtr = Rect (xl + hw) yt hw hh
     rbr = Rect (xl + hw) (yt + hh) hw hh
     rbl = Rect xl (yt + hh) hw hh
+
     validTL = min midw (radW radTL)
     validTR = min midw (radW radTR)
     validBR = min midw (radW radBR)
     validBL = min midw (radW radBL)
+
     xt1 = xl + validTL
-    yl1 = yt + validTL
     xt2 = xr - validTR
-    yr1 = yt + validTR
-    xb2 = xr - validBR
-    yr2 = yb - validBR
-    yl2 = yb - validBL
+
     xb1 = xl + validBL
+    xb2 = xr - validBR
+
+    yl1 = yt + validTL
+    yl2 = yb - validBL
+
+    yr1 = yt + validTR
+    yr2 = yb - validBR
   in do
     (lt1, lt2, tl1, tl2) <- drawRoundedCorner renderer CornerTL rtl (p2 xt1 yl1) radTL borL borT
     (tr1, tr2, rt1, rt2) <- drawRoundedCorner renderer CornerTR rtr (p2 xt2 yr1) radTR borT borR
@@ -509,14 +524,17 @@ drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
     color1 = _bsColor (fromJust (ms1 <|> ms2))
     color2 = _bsColor (fromJust (ms2 <|> ms1))
     minW = min w1 w2
+
     orad = max 0 (_rcrWidth rcor)
     irad = max 0 (orad - minW)
     omax1 = max orad w1
     omax2 = max orad w2
+
     cxmin = min ocx icx
     cxmax = max ocx icx
     cymin = min ocy icy
     cymax = max ocy icy
+
     restrict (p1, p2) = (rectBoundedPoint bounds p1, rectBoundedPoint bounds p2)
     (deg, icenter) = case cor of
       CornerTL -> (270, Point (ocx - orad + w1 + irad) (ocy - orad + w2 + irad))

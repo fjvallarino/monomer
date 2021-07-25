@@ -191,6 +191,7 @@ makeLabel config state = widget where
   merge wenv newNode oldNode oldState = result where
     style = labelActiveStyle wenv newNode
     newTextStyle = style ^. L.text
+
     captionChanged = _lstCaption oldState /= caption
     styleChanged = _lstTextStyle oldState /= newTextStyle
     changeReq = captionChanged || styleChanged
@@ -203,27 +204,32 @@ makeLabel config state = widget where
       _lstTextRect = newRect,
       _lstTextStyle = newTextStyle
     }
+
     reqs = [ ResizeWidgets | changeReq ]
     resNode = newNode
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs
 
   getSizeReq wenv node = (sizeW, sizeH) where
+    ts = wenv ^. L.timestamp
     caption = _lstCaption state
     prevResize = _lstPrevResize state
-    ts = wenv ^. L.timestamp
     style = labelActiveStyle wenv node
+
     cw = getContentArea style node ^. L.w
-    targetW
-      | mode == MultiLine && prevResize == (ts, True) = Just cw
-      | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
     defaultFactor
       | mode == MultiLine = 1
       | overflow == Ellipsis = 0.01
       | otherwise = 0
+
+    targetW
+      | mode == MultiLine && prevResize == (ts, True) = Just cw
+      | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
+    Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
+
     factorW = fromMaybe defaultFactor (_lscFactorW config)
     factorH = fromMaybe defaultFactor (_lscFactorH config)
+
     sizeW
       | abs factorW < 0.01 = fixedSize w
       | otherwise = flexSize w factorW
@@ -237,19 +243,24 @@ makeLabel config state = widget where
     style = labelActiveStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
+
     Rect px py pw ph = textRect
     Rect _ _ cw ch = crect
     size = Size cw ch
     alignRect = Rect 0 0 cw ch
+
     fittedLines
       = fitTextToSize fontMgr style overflow mode trim maxLines size caption
     newTextLines = alignTextLines style alignRect fittedLines
+
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
     newLines
       | not newGlyphsReq = textLines
       | otherwise = newTextLines
+
     (prevTs, prevStep) = prevResize
     needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
+
     newState = state {
       _lstTextStyle = newTextStyle,
       _lstTextRect = crect,

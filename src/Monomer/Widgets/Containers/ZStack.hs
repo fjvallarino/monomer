@@ -121,17 +121,20 @@ makeZStack config state = widget where
     focusedPath = wenv ^. L.focusedPath
     focusedWid = findWidgetIdFromPath wenv focusedPath
     isFocusParent = isNodeParentOfPath focusedPath node
+
     topLevel = isNodeTopLevel wenv node
     flagsChanged = childrenFlagsChanged oldNode node
     newTopIdx = fromMaybe 0 (Seq.findIndexL (^.L.info . L.visible) children)
     focusReq = isJust $ Seq.findIndexL isFocusRequest (result ^. L.requests)
     needsFocus = isFocusParent && topLevel && flagsChanged && not focusReq
+
     oldTopWid = M.lookup newTopIdx oldFocusMap
     fstTopWid = node ^? L.children . ix newTopIdx . L.info . L.widgetId
     newState = oldState {
       _zssFocusMap = oldFocusMap & at oldTopIdx .~ focusedWid,
       _zssTopIdx = newTopIdx
     }
+
     tmpResult = result
       & L.node . L.widget .~ makeZStack config newState
     newResult
@@ -148,6 +151,7 @@ makeZStack config state = widget where
     vchildren
       | onlyTopActive = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
       | otherwise = Seq.filter (_wniVisible . _wnInfo) children
+
     nextStep = nextTargetStep start node
     ch = Seq.index children (fromJust nextStep)
     visible = node ^. L.info . L.visible
@@ -192,16 +196,19 @@ makeZStack config state = widget where
       viewport = node ^. L.info . L.viewport
       isVisible c = c ^. L.info . L.visible
       topVisibleIdx = fromMaybe 0 (Seq.findIndexR (_wniVisible . _wnInfo) children)
+
       isPointEmpty point idx = not covered where
         prevs = Seq.drop (idx + 1) children
         target c = widgetFindByPoint (c ^. L.widget) wenv c emptyPath point
         isCovered c = isVisible c && isJust (target c)
         covered = any isCovered prevs
+
       isTopLayer idx child point = prevTopLayer && isValid where
         prevTopLayer = _weInTopLayer wenv point
         isValid
           | onlyTopActive = idx == topVisibleIdx
           | otherwise = isPointEmpty point idx
+
       cWenv idx child = wenv {
         _weInTopLayer = isTopLayer idx child
       }

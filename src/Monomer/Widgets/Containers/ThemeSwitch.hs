@@ -98,6 +98,7 @@ makeThemeSwitch theme config state = widget where
 
   updateCWenv wenv cidx cnode node = newWenv where
     oldTheme = _tssPrevTheme state
+    -- When called during merge, the state has not yet been updated
     themeChanged = _tssChanged state || Just theme /= oldTheme
     parentChanged = wenv ^. L.themeChanged
     newWenv = wenv

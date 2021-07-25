@@ -438,17 +438,21 @@ handlePendingImage c imagesMap imageReq
     name = _irName imageReq
     action = _irAction imageReq
     size = _irSize imageReq
+
     cw = round (size ^. L.w)
     ch = round (size ^. L.h)
+
     imgData = fromJust $ _irImgData imageReq
     imgFlags = _irFlags imageReq
     flags = Set.fromList (toVGImgFlag <$> imgFlags)
+
     imgDef = ImageDef name size imgData imgFlags
+    createImage = VG.createImageRGBA c cw ch flags imgData
+
     mimage = M.lookup name imagesMap
     imageExists = isJust mimage
     image = fromJust mimage
     sizeMatches = size == _imImageDef image ^. L.size
-    createImage = VG.createImageRGBA c cw ch flags imgData
 
 toVGImgFlag :: ImageFlag -> VGI.ImageFlags
 toVGImgFlag ImageNearest = VGI.ImageNearest

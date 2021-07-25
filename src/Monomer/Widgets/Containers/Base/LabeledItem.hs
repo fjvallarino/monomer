@@ -71,11 +71,13 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
       & collectStyleField_ L.hlColor nodeStyle
       & collectStyleField_ L.sndColor nodeStyle
       & collectStyleField_ L.cursorIcon nodeStyle
+
     baseLabel = label_ caption [labelCfg] `style` [cursorHand]
     labelNode = baseLabel
       & L.info . L.style <>~ labelStyle
     styledNode = itemNode
       & L.info . L.style <>~ itemStyle
+
     childNode
       | textSide == SideLeft = hstack [ labelNode, spacer, styledNode ]
       | textSide == SideRight = hstack [ styledNode, spacer, labelNode ]
@@ -95,9 +97,11 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
     Click p btn clicks
       | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
         newEvt = Click targetCenter btn clicks
+
     ButtonAction p btn BtnPressed clicks
       | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
         newEvt = ButtonAction targetCenter btn BtnPressed clicks
+
     _ -> Just (target, evt)
     where
       labelIdx

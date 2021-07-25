@@ -99,10 +99,12 @@ makeSpacer config = widget where
     width
       | isFixed = fromMaybe 10 (_spcWidth config)
       | otherwise = fromMaybe 5 (_spcWidth config)
+
     flexSide = flexSize 5 0.5
     fixedW = fixedSize width
     flexW = flexSize width factor
     expandW = expandSize width factor
+
     sizeReq
       | isFixed && direction == LayoutNone = (fixedW, fixedW)
       | isFixed && direction == LayoutHorizontal = (fixedW, flexSide)

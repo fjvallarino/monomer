@@ -175,16 +175,20 @@ makeExternalLink caption url config = widget where
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_elcOnFocusReq config) prev node
+
     Blur next -> handleFocusChange (_elcOnBlurReq config) next node
+
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
       where
         isSelectKey code = isKeyReturn code || isKeySpace code
+
     Click p _ _
       | isPointInNodeVp p node -> Just result
-    -- Set focus on click
-    ButtonAction p btn BtnPressed 1
+
+    ButtonAction p btn BtnPressed 1 -- Set focus on click
       | mainBtn btn && pointInVp p && not focused -> Just resultFocus
+
     ButtonAction p btn BtnReleased clicks
       | mainBtn btn && focused && pointInVp p && clicks > 1 -> Just result
     _ -> Nothing
@@ -192,9 +196,11 @@ makeExternalLink caption url config = widget where
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       mainBtn btn = btn == wenv ^. L.mainButton
+
       focused = isNodeFocused wenv node
       pointInVp p = isPointInNodeVp p node
       openLinkTask = openLink wenv (T.unpack url)
+
       requests = [RunTask widgetId path openLinkTask]
       result = resultReqs node requests
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]

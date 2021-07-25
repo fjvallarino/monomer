@@ -148,17 +148,20 @@ keyStrokeActive :: WidgetEnv s e -> KeyCode -> KeyStroke -> Bool
 keyStrokeActive wenv code ks = currValid && allPressed && validMods where
   status = wenv ^. L.inputStatus
   keyMod = status ^. L.keyMod
-  isPressed code = Just KeyPressed == M.lookup code (status ^. L.keys)
-  currValid = code `elem` (ks ^. ksKeys) || code `elem` modKeys
   pressedKeys = M.filter (== KeyPressed) (status ^. L.keys)
+
+  currValid = code `elem` (ks ^. ksKeys) || code `elem` modKeys
   allPressed = M.keysSet pressedKeys == ks ^. ksKeys
+
   ctrlPressed = isCtrlPressed keyMod
   cmdPressed = isMacOS wenv && isGUIPressed keyMod
+
   validC = not (ks ^. ksC) || ks ^. ksC == (ctrlPressed || cmdPressed)
   validCtrl = ks ^. ksCtrl == ctrlPressed || ctrlPressed && validC
   validCmd = ks ^. ksCmd == cmdPressed || cmdPressed && validC
   validShift = ks ^. ksShift == isShiftPressed keyMod
   validAlt = ks ^. ksAlt == isAltPressed keyMod
+
   validMods = (validC && validCtrl && validCmd) && validShift && validAlt
 
 textToStroke :: Text -> KeyStroke

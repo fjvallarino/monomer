@@ -69,11 +69,13 @@ calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
   fontSize = styleFontSize style
   !metrics = computeTextMetrics fontMgr font fontSize
   width = fromMaybe maxNumericValue mwidth
+
   textLinesW = fitTextToWidth fontMgr style width trim text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
     | isJust mlines = Seq.take (fromJust mlines) textLinesW
     | otherwise = textLinesW
+
   newSize
     | not (Seq.null textLines) = getTextLinesSize textLines
     | otherwise = Size 0 (_txmLineH metrics)
@@ -100,16 +102,19 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
   font = styleFont style
   fontSize = styleFontSize style
   textMetrics = computeTextMetrics fontMgr font fontSize
+
   fitW
     | mode == MultiLine = cw
     | otherwise = maxNumericValue
   maxH = case mlines of
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
+
   textLinesW = fitTextToWidth fontMgr style fitW trim text
   firstLine = Seq.take 1 textLinesW
   isMultiline = mode == MultiLine
   ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. L.w > cw
+
   newLines
     | isMultiline = fitLinesToH fontMgr style ovf cw maxH textLinesW
     | ellipsisReq = addEllipsisToTextLine fontMgr style cw <$> firstLine
@@ -130,13 +135,16 @@ fitTextToWidth fontMgr style width trim text = resultLines where
   fSpcH = styleFontSpaceH style
   fSpcV = styleFontSpaceV style
   lineH = _txmLineH metrics
+
   !metrics = computeTextMetrics fontMgr font fSize
   fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics
+
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
     newLines = fitToWidth cTop width trim line
     vspc = unFontSpace fSpcV
     newTop = cTop + fromIntegral (Seq.length newLines) * (lineH + vspc)
+
   (resultLines, _) = foldl' helper (Empty, 0) (T.lines text)
 
 -- | Aligns a Seq of TextLines to the given rect.
@@ -149,9 +157,11 @@ alignTextLines style parentRect textLines = newTextLines where
   Rect _ py _ ph = parentRect
   Size _ th = getTextLinesSize textLines
   TextMetrics asc _ lineH lowerX = (textLines ^? ix 0) ^. non def . L.metrics
+
   isSingle = length textLines == 1
   alignH = styleTextAlignH style
   alignV = styleTextAlignV style
+
   alignOffsetY = case alignV of
     ATTop -> 0
     ATAscender
@@ -161,6 +171,7 @@ alignTextLines style parentRect textLines = newTextLines where
     ATBottom -> ph - th
     ATBaseline -> ph - th
     _ -> (ph - th) / 2 -- ATMiddle
+
   offsetY = py + alignOffsetY
   newTextLines = fmap (alignTextLine parentRect offsetY alignH) textLines
 
@@ -190,10 +201,12 @@ alignTextLine :: Rect -> Double -> AlignTH -> TextLine -> TextLine
 alignTextLine parentRect offsetY alignH textLine = newTextLine where
   Rect px _ pw _ = parentRect
   Rect tx ty tw th = _tlRect textLine
+
   alignOffsetX = case alignH of
     ATLeft -> 0
     ATCenter -> (pw - tw) / 2
     ATRight -> pw - tw
+
   offsetX = px + alignOffsetX
   newTextLine = textLine {
     _tlRect = Rect (tx + offsetX) (ty + offsetY) tw th
@@ -294,16 +307,20 @@ addEllipsisToTextLine fontMgr style width textLine = newTextLine where
   TextLine{..} = textLine
   Size tw th = _tlSize
   Size dw dh = calcTextSize fontMgr style "..."
+
   font = styleFont style
   fontSize = styleFontSize style
   fontSpcH = styleFontSpaceH style
   targetW = width - tw
+
   dropHelper (idx, w) g
     | _glpW g + w <= dw = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse _tlGlyphs)
+
   newText = T.dropEnd dropChars _tlText <> "..."
   !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpcH newText
+
   newW = getGlyphsWidth newGlyphs
   newTextLine = textLine {
     _tlText = newText,
@@ -322,17 +339,21 @@ clipTextLine
 clipTextLine fontMgr style trim width textLine = newTextLine where
   TextLine{..} = textLine
   Size tw th = _tlSize
+
   font = styleFont style
   fontSize = styleFontSize style
   fontSpcH = styleFontSpaceH style
+
   takeHelper (idx, w) g
     | _glpW g + w <= width = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
+
   (takeChars, _) = foldl' takeHelper (0, 0) _tlGlyphs
   validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) _tlGlyphs
   newText
     | trim == KeepSpaces = T.take (length validGlyphs) _tlText
     | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) _tlText
+
   !newGlyphs = computeGlyphsPos fontMgr font fontSize fontSpcH newText
   newW = getGlyphsWidth newGlyphs
   newTextLine = textLine {

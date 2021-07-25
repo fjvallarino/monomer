@@ -169,9 +169,12 @@ makeRadio field option config = widget where
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange (_rdcOnFocusReq config) prev node
+
     Blur next -> handleFocusChange (_rdcOnBlurReq config) next node
+
     Click p _ _
       | pointInEllipse p rdArea -> Just $ resultReqs node reqs
+
     KeyAction mod code KeyPressed
       | isSelectKey code -> Just $ resultReqs node reqs
     _ -> Nothing
@@ -197,6 +200,7 @@ makeRadio field option config = widget where
       value = widgetDataGet model field
       radioArea = getRadioArea wenv node config
       radioBW = max 1 (_rW radioArea * 0.1)
+
       style_ = activeStyle_ (activeStyleConfig radioArea) wenv node
       fgColor = styleFgColor style_
       hlColor = styleHlColor style_
@@ -206,6 +210,7 @@ getRadioArea wenv node config = radioArea where
   theme = activeTheme wenv node
   style = activeStyle wenv node
   rarea = getContentArea style node
+
   radioW = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
   radioL = _rX rarea + (_rW rarea - radioW) / 2
   radioT = _rY rarea + (_rH rarea - radioW) / 2
