@@ -260,8 +260,7 @@ makeSelectList widgetData items makeRow config state = widget where
     containerMerge = merge,
     containerMergePost = mergePost,
     containerHandleEvent = handleEvent,
-    containerHandleMessage = handleMessage,
-    containerGetSizeReq = getSizeReq
+    containerHandleMessage = handleMessage
   }
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
@@ -273,7 +272,6 @@ makeSelectList widgetData items makeRow config state = widget where
     children = Seq.singleton itemsList
 
   init wenv node = resultNode newNode where
-    children = createSelectListChildren wenv node
     selected = currentValue wenv
     newSl = fromMaybe (-1) (Seq.elemIndexL selected items)
     newHl = if newSl < 0 then 0 else newSl
@@ -283,7 +281,7 @@ makeSelectList widgetData items makeRow config state = widget where
     }
     newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
-      & L.children .~ children
+      & L.children .~ createSelectListChildren wenv node
 
   initPost wenv node newState result = newResult where
     newResult = updateResultStyle wenv config result state newState
@@ -405,11 +403,6 @@ makeSelectList widgetData items makeRow config state = widget where
     viewport = fmap (_wniViewport . _wnInfo) $ pure node
       >>= lookup 0 -- vstack
       >>= lookup idx -- item
-
-  getSizeReq wenv node children = (newSizeReqW, newSizeReqH) where
-    child = Seq.index children 0
-    newSizeReqW = _wniSizeReqW . _wnInfo $ child
-    newSizeReqH = _wniSizeReqH . _wnInfo $ child
 
 updateStyles
   :: WidgetEnv s e
