@@ -114,7 +114,7 @@ alertMsg_ message evt configs = newNode where
   newNode = compositeD_ "alert" (WidgetValue ()) createUI handleEvent []
 
 buildUI
-  :: WidgetEvent ep
+  :: (WidgetModel s, WidgetEvent ep)
   => (WidgetEnv s ep -> WidgetNode s ep)
   -> ep
   -> AlertCfg

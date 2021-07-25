@@ -12,7 +12,7 @@ Unit tests for Box widget.
 
 module Monomer.Widgets.Containers.BoxSpec (spec) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (^?!), (.~), ix)
 import Data.Text (Text)
 import Data.Typeable (Typeable)
 import Test.Hspec
@@ -22,6 +22,7 @@ import qualified Data.Sequence as Seq
 import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Event
+import Monomer.Graphics
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Containers.Box
@@ -43,12 +44,36 @@ data TestEvent
 
 spec :: Spec
 spec = describe "Box" $ do
+  mergeReq
   handleEvent
   handleEventIgnoreEmpty
   handleEventSinkEmpty
   getSizeReq
   getSizeReqUpdater
   resize
+
+mergeReq :: Spec
+mergeReq = describe "mergeReq" $ do
+  it "should return the new node, since a handler was not provided" $
+    mergeWith box1 boxM ^. L.info . L.key `shouldBe` Just (WidgetKey "btnNew")
+
+  it "should return the new node, since the handler returned merge is needed" $
+    mergeWith box2 boxM ^. L.info . L.key `shouldBe` Just (WidgetKey "btnNew")
+
+  it "should return the old node, since the handler returned merge is not needed" $
+    mergeWith box3 boxM ^. L.info . L.key `shouldBe` Just (WidgetKey "btnOld")
+
+  where
+    wenv = mockWenv ()
+    btnNew = button "Click" (BtnClick 0) `key` "btnNew"
+    btnOld = button "Click" (BtnClick 0) `key` "btnOld"
+    box1 = box btnNew
+    box2 = box_ [mergeRequired (\_ _ -> True)] btnNew
+    box3 = box_ [mergeRequired (\_ _ -> False)] btnNew
+    boxM = box btnOld
+    mergeWith newNode oldNode = result ^?! L.node . L.children . ix 0 where
+      oldNode2 = nodeInit wenv oldNode
+      result = widgetMerge (newNode ^. L.widget) wenv newNode oldNode2
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -221,7 +246,7 @@ resizeAlign = describe "align" $ do
     childVpTL = getChildVp wenv [alignTop, alignLeft]
     childVpBR = getChildVp wenv [alignBottom, alignRight]
 
-getChildVp :: (Eq s, Typeable e) => WidgetEnv s e -> [BoxCfg s e] -> Rect
+getChildVp :: (Eq s, WidgetModel s, WidgetEvent e) => WidgetEnv s e -> [BoxCfg s e] -> Rect
 getChildVp wenv cfgs = childLC ^. L.info . L.viewport where
   lblNode = label "Label"
   boxNodeLC = nodeInit wenv (box_ cfgs lblNode)

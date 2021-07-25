@@ -166,7 +166,7 @@ data DropdownMessage
 
 -- | Creates a dropdown using the given lens.
 dropdown
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a             -- ^ The lens into the model.
   -> t a                    -- ^ The list of selectable items.
   -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
@@ -177,7 +177,7 @@ dropdown field items makeMain makeRow = newNode where
 
 -- | Creates a dropdown using the given lens. Accepts config.
 dropdown_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => ALens' s a             -- ^ The lens into the model.
   -> t a                    -- ^ The list of selectable items.
   -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
@@ -190,7 +190,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
 
 -- | Creates a dropdown using the given value and onChange event handler.
 dropdownV
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => a                      -- ^ The current value.
   -> (Int -> a -> e)        -- ^ The event to raise on change.
   -> t a                    -- ^ The list of selectable items.
@@ -203,7 +203,7 @@ dropdownV value handler items makeMain makeRow = newNode where
 -- | Creates a dropdown using the given value and onChange event handler.
 -- | Accepts config.
 dropdownV_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => a                      -- ^ The current value.
   -> (Int -> a -> e)        -- ^ The event to raise on change.
   -> t a                    -- ^ The list of selectable items.
@@ -217,7 +217,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
 
 -- | Creates a dropdown providing a WidgetData instance and config.
 dropdownD_
-  :: (Traversable t, DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
   -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
@@ -235,7 +235,7 @@ makeNode widget = defaultWidgetNode "dropdown" widget
   & L.info . L.focusable .~ True
 
 makeDropdown
-  :: (DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, DropdownItem a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetNode s e)
@@ -498,7 +498,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     renderAction = widgetRender widget wenv overlayNode renderer
 
 makeSelectList
-  :: (DropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, DropdownItem a)
   => WidgetEnv s e
   -> WidgetData s a
   -> Seq a

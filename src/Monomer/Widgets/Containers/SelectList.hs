@@ -182,7 +182,7 @@ data SelectListMessage
 
 -- | Creates a select list using the given lens.
 selectList
-  :: (Traversable t, SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => ALens' s a      -- ^ The lens into the model.
   -> t a             -- ^ The list of selectable items.
   -> MakeRow s e a   -- ^ Function to create the list items.
@@ -191,7 +191,7 @@ selectList field items makeRow = selectList_ field items makeRow def
 
 -- | Creates a select list using the given lens. Accepts config.
 selectList_
-  :: (Traversable t, SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => ALens' s a             -- ^ The lens into the model.
   -> t a                    -- ^ The list of selectable items.
   -> MakeRow s e a          -- ^ Function to create the list items.
@@ -202,7 +202,7 @@ selectList_ field items makeRow configs = newNode where
 
 -- | Creates a select list using the given value and onChange event handler.
 selectListV
-  :: (Traversable t, SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => a                -- ^ The event to raise on change.
   -> (Int -> a -> e)  -- ^ The list of selectable items.
   -> t a              -- ^ The list of selectable items.
@@ -214,7 +214,7 @@ selectListV value handler items makeRow = newNode where
 -- | Creates a select list using the given value and onChange event handler.
 -- | Accepts config.
 selectListV_
-  :: (Traversable t, SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => a                      -- ^ The event to raise on change.
   -> (Int -> a -> e)        -- ^ The list of selectable items.
   -> t a                    -- ^ The list of selectable items.
@@ -228,7 +228,7 @@ selectListV_ value handler items makeRow configs = newNode where
 
 -- | Creates a dropdown providing a WidgetData instance and config.
 selectListD_
-  :: (Traversable t, SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
   -> MakeRow s e a          -- ^ Function to create the list items.
@@ -246,7 +246,7 @@ makeNode widget = scroll_ [scrollStyle L.selectListStyle] childNode where
     & L.info . L.focusable .~ True
 
 makeSelectList
-  :: (SelectListItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, SelectListItem a)
   => WidgetData s a
   -> Seq a
   -> MakeRow s e a
@@ -518,7 +518,7 @@ getNormalStyle wenv config = style where
   style = collectTheme wenv L.selectListItemStyle
 
 makeItemsList
-  :: (Eq a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Eq a)
   => WidgetEnv s e
   -> Seq a
   -> MakeRow s e a

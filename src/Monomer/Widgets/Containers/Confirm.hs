@@ -147,7 +147,7 @@ mergeReqs wenv newNode oldNode model = reqs where
     | otherwise = []
 
 buildUI
-  :: WidgetEvent ep
+  :: (WidgetModel s, WidgetEvent ep)
   => (WidgetEnv s (ConfirmEvt ep) -> WidgetNode s (ConfirmEvt ep))
   -> ep
   -> ep

@@ -29,7 +29,10 @@ import Monomer.Core.WidgetTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
--- | Given two values, usually model, checks if merge is required.
+{-|
+Given two values, usually model, checks if merge is required for a given widget.
+The first parameter corresponds to the old value, and the second to the new.
+-}
 class CmbMergeRequired t s | t -> s where
   mergeRequired :: (s -> s -> Bool) -> t
 

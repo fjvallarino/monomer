@@ -55,7 +55,7 @@ Creates a text dropdown using the given lens. The type must be have a 'TextShow'
 instance.
 -}
 textDropdown
-  :: (Traversable t, TextDropdownItem a, TextShow a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
   => ALens' s a
   -> t a
   -> WidgetNode s e
@@ -67,7 +67,7 @@ Creates a text dropdown using the given lens. Takes a function for converting
 the type to Text. Accepts config.
 -}
 textDropdown_
-  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => ALens' s a
   -> t a
   -> (a -> Text)
@@ -81,7 +81,7 @@ Creates a text dropdown using the given value and onChange event handler. Takes
 a function for converting the type to Text.
 -}
 textDropdownV
-  :: (Traversable t, TextDropdownItem a, TextShow a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
   => a
   -> (a -> e)
   -> t a
@@ -94,7 +94,7 @@ Creates a text dropdown using the given value and onChange event handler. Takes
 a function for converting the type to Text. Accepts config.
 -}
 textDropdownV_
-  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => a
   -> (a -> e)
   -> t a
@@ -111,7 +111,7 @@ Creates a text dropdown providing a WidgetData instance and config. Takes
 a function for converting the type to Text.
 -}
 textDropdownD_
-  :: (Traversable t, TextDropdownItem a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
   => WidgetData s a
   -> t a
   -> (a -> Text)
@@ -127,7 +127,7 @@ Creates a text dropdown using the given lens. The type must be have a 'Show'
 instance.
 -}
 textDropdownS
-  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
   => ALens' s a
   -> t a
   -> WidgetNode s e
@@ -139,7 +139,7 @@ Creates a text dropdown using the given lens. The type must be have a 'Show'
 instance. Accepts config.
 -}
 textDropdownS_
-  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
   => ALens' s a
   -> t a
   -> [DropdownCfg s e a]
@@ -152,7 +152,7 @@ Creates a text dropdown using the given value and onChange event handler. The
 type must be have a 'Show' instance.
 -}
 textDropdownSV
-  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
   => a
   -> (a -> e)
   -> t a
@@ -165,7 +165,7 @@ Creates a text dropdown using the given value and onChange event handler. The
 type must be have a 'Show' instance. Accepts config.
 -}
 textDropdownSV_
-  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
   => a
   -> (a -> e)
   -> t a
@@ -181,7 +181,7 @@ Creates a text dropdown providing a WidgetData instance and config. The
 type must be have a 'Show' instance.
 -}
 textDropdownDS_
-  :: (Traversable t, TextDropdownItem a, Show a, WidgetEvent e)
+  :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, Show a)
   => WidgetData s a
   -> t a
   -> [DropdownCfg s e a]

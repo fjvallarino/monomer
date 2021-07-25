@@ -782,12 +782,12 @@
   - Add hsl function https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
 
 Next
-  - Document themes and how widgets use them.
+  - CmbMergeRequired in box?
   - Add ignoreStyle to widgets that may need it.
+  - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
   - Rethink activeStyle, activeTheme, active style related function names.
     - Order of arguments?
-  - CmbMergeRequired in box?
   - Generalize fade/slide messages. Add anim suffix.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
