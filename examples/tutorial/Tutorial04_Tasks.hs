@@ -38,7 +38,7 @@ buildUI wenv model = widgetTree where
     `style` [width 160, height 160, cursorHand]
   numberLabel = labelS (model ^. selected)
     `style` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
-  numberedImage url idx = scroll (image_ url [fitFill])
+  numberedImage url idx = scroll (image_ url [fitNone])
     `visible` (model ^. selected == idx)
   imageSet = hstack [
       numberedImage "https://picsum.photos/id/1020/800/600" 1,

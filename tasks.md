@@ -780,12 +780,14 @@
   - Avoid building examples when used as a library.
     - Tried using flags and it works, but it ends up being annoying for testing examples with stack run.
   - Add hsl function https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+  - CmbMergeRequired in box?
 
 Next
-  - CmbMergeRequired in box?
   - Add ignoreStyle to widgets that may need it.
   - Document themes and how widgets use them.
+  - themeSwitch should report theme has changed, and mergeRequired consider it.
   - Maybe spacer should be 8 pixels wide.
+  - Fix Tutorial 6 colors.
   - Rethink activeStyle, activeTheme, active style related function names.
     - Order of arguments?
   - Generalize fade/slide messages. Add anim suffix.

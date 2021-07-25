@@ -19,12 +19,14 @@ data ActiveTheme
 
 data AppModel = AppModel {
   _clickCount :: Int,
+  _checked :: Bool,
   _currentTheme :: ActiveTheme
 } deriving (Eq, Show)
 
 data AppEvent
   = AppInit
   | AppIncrease
+  | AppDecrease
   deriving (Eq, Show)
 
 makeLenses 'AppModel
@@ -47,7 +49,11 @@ buildUI wenv model = widgetTree where
       spacer,
       separatorLine,
       spacer,
-      label "Number",
+      hstack [
+        labeledCheckbox "Checkbox" checked,
+        spacer,
+        labeledRadio "Boolean radio" True checked
+      ],
       spacer,
       hstack [
         box $ hslider clickCount 0 100,
@@ -58,9 +64,9 @@ buildUI wenv model = widgetTree where
       hstack [
         label $ "Click count: " <> showt (model ^. clickCount),
         spacer,
-        button "Increase count" AppIncrease,
+        mainButton "Increase count" AppIncrease,
         spacer,
-        mainButton "Increase count" AppIncrease
+        button "Decrease count" AppDecrease
       ]
     ] `style` [padding 20]
 
@@ -72,7 +78,10 @@ handleEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
   AppInit -> []
-  AppIncrease -> [Model (model & clickCount +~ 1)]
+  AppIncrease -> [Model (model & clickCount .~ min 100 (count + 1))]
+  AppDecrease -> [Model (model & clickCount .~ max 0 (count - 1))]
+  where
+    count = model ^. clickCount
 
 customTheme :: Theme
 customTheme = baseTheme darkThemeColors {
@@ -89,4 +98,4 @@ main08 = do
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit
       ]
-    model = AppModel 0 LightTheme
+    model = AppModel 0 False LightTheme

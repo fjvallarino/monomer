@@ -43,7 +43,7 @@ buildUIComp
   -> WidgetNode CompModel CompEvent
 buildUIComp wenv model = widgetTree where
   itemA val = label ("Item: " <> showt val)
-    `style` [textColor white]
+    `style` [textColor white, padding 5]
   dragItem val = draggable val (itemA val)
     `style` [cursorHand]
   dragList items = vstack (dragItem <$> items)

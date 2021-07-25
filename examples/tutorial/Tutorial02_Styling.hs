@@ -30,7 +30,8 @@ buildUI
 buildUI wenv model = widgetTree where
   widgetTree = vstack [
       titleText "Text",
-      box (textField sampleText) `style` [paddingV 5],
+      box (textField sampleText) `style` [paddingV 10],
+
       titleText "Font name",
       hgrid [
         hstack [
@@ -49,22 +50,26 @@ buildUI wenv model = widgetTree where
           filler
         ]
       ] `style` [paddingV 10],
+
       titleText "Font size",
       hslider fontSize 10 200
         `style` [paddingV 10, fgColor orange],
+
       titleText "Font color",
       hstack [
-        label "Show color picker ",
-        checkbox showPicker,
+        labeledCheckbox "Show color picker " showPicker,
         filler
       ] `style` [paddingT 10, paddingB 5],
       colorPicker fontColor
         `visible` (model ^. showPicker)
         `style` [paddingB 10],
+
       sampleTextLabel
     ] `style` [padding 10]
+
   titleText text = label text
-    `style` [textFont "Bold", textSize 20]
+    `style` [textFont "Medium", textSize 20]
+
   sampleTextLabel = label_ (model ^. sampleText) [ellipsis]
     `style` [
       bgColor dimGray,
@@ -93,7 +98,7 @@ main02 = do
       appWindowTitle "Tutorial 02 - Styling",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
-      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
+      appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
       appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
       appInitEvent AppInit
       ]

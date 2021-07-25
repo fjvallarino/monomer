@@ -92,7 +92,7 @@ main = do
     model = GenerativeModel CirclesGrid False def def
     config = [
       appWindowTitle "Generative art",
-      appTheme darkTheme,
+      appTheme lightTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent GenerativeInit
       ]
