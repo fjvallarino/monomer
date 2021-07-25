@@ -290,31 +290,14 @@ makeSelectList widgetData items makeRow config state = widget where
       & L.children .~ children
 
   initPost wenv node newState result = newResult where
-    newResult = updateResultStyle wenv result state newState
+    newResult = updateResultStyle wenv config result state newState
 
   mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
     mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
     result = mergeRequiredFn oldItems items
 
-  merge wenv node oldNode oldState = result where
-    oldItems = _prevItems oldState
-    mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
-    mergeReq = mergeRequiredFn oldItems items
-
-    flagsChanged = childrenFlagsChanged oldNode node
-    themeChanged = wenv ^. L.themeChanged
-    mergeRequired = mergeReq || flagsChanged || themeChanged
-
-    children
-      | mergeRequired = createSelectListChildren wenv node
-      | otherwise = oldNode ^. L.children
-    result = updateState wenv node oldState mergeRequired children
-
-  mergePost wenv node oldNode oldState newState result = newResult where
-    newResult = updateResultStyle wenv result oldState newState
-
-  updateState wenv node oldState resizeReq children = result where
+  merge wenv node oldNode oldState = resultNode newNode where
     selected = currentValue wenv
     newSl = fromMaybe (-1) (Seq.elemIndexL selected items)
     newHl
@@ -324,20 +307,14 @@ makeSelectList widgetData items makeRow config state = widget where
       _slIdx = newSl,
       _hlIdx = newHl,
       _prevItems = items,
-      _resizeReq = resizeReq
+      _resizeReq = False -- Currently not being used, to be removed
     }
-    tmpNode = node
+    newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
-      & L.children .~ children
-    (newNode, reqs) = updateStyles wenv config state tmpNode newSl newHl
-    result = resultReqs newNode reqs
+      & L.children .~ createSelectListChildren wenv node
 
-  updateResultStyle wenv result oldState newState = newResult where
-    slIdx = _slIdx newState
-    hlIdx = _hlIdx newState
-    tmpNode = result ^. L.node
-    (newNode, reqs) = updateStyles wenv config oldState tmpNode slIdx hlIdx
-    newResult = resultReqs newNode reqs
+  mergePost wenv node oldNode oldState newState result = newResult where
+    newResult = updateResultStyle wenv config result oldState newState
 
   handleEvent wenv node target evt = case evt of
     ButtonAction _ btn BtnPressed _
@@ -529,6 +506,20 @@ getNormalStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getNormalStyle wenv config = style where
   theme = collectTheme wenv L.selectListItemStyle
   style = fromJust (Just theme <> _slcItemStyle config)
+
+updateResultStyle
+  :: WidgetEnv s e
+  -> SelectListCfg s e a
+  -> WidgetResult s e
+  -> SelectListState a
+  -> SelectListState a
+  -> WidgetResult s e
+updateResultStyle wenv config result oldState newState = newResult where
+  slIdx = _slIdx newState
+  hlIdx = _hlIdx newState
+  tmpNode = result ^. L.node
+  (newNode, reqs) = updateStyles wenv config oldState tmpNode slIdx hlIdx
+  newResult = resultReqs newNode reqs
 
 makeItemsList
   :: (WidgetModel s, WidgetEvent e, Eq a)
