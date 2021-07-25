@@ -171,8 +171,7 @@ instance CmbMergeRequired (SelectListCfg s e a) (Seq a) where
 data SelectListState a = SelectListState {
   _prevItems :: Seq a,
   _slIdx :: Int,
-  _hlIdx :: Int,
-  _resizeReq :: Bool
+  _hlIdx :: Int
 } deriving (Eq, Show)
 
 data SelectListMessage
@@ -237,7 +236,7 @@ selectListD_
 selectListD_ widgetData items makeRow configs = makeNode widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
-  newState = SelectListState newItems (-1) 0 False
+  newState = SelectListState newItems (-1) 0
   widget = makeSelectList widgetData newItems makeRow config newState
 
 makeNode :: Widget s e -> WidgetNode s e
@@ -255,7 +254,6 @@ makeSelectList
   -> Widget s e
 makeSelectList widgetData items makeRow config state = widget where
   widget = createContainer state def {
---    containerResizeRequired = _resizeReq state,
     containerInit = init,
     containerInitPost = initPost,
     containerMergeChildrenReq = mergeChildrenReq,
@@ -263,8 +261,7 @@ makeSelectList widgetData items makeRow config state = widget where
     containerMergePost = mergePost,
     containerHandleEvent = handleEvent,
     containerHandleMessage = handleMessage,
-    containerGetSizeReq = getSizeReq,
-    containerResize = resize
+    containerGetSizeReq = getSizeReq
   }
 
   currentValue wenv = widgetDataGet (_weModel wenv) widgetData
@@ -282,8 +279,7 @@ makeSelectList widgetData items makeRow config state = widget where
     newHl = if newSl < 0 then 0 else newSl
     newState = state {
       _slIdx = newSl,
-      _hlIdx = newHl,
-      _resizeReq = True
+      _hlIdx = newHl
     }
     newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
@@ -306,8 +302,7 @@ makeSelectList widgetData items makeRow config state = widget where
     newState = oldState {
       _slIdx = newSl,
       _hlIdx = newHl,
-      _prevItems = items,
-      _resizeReq = False -- Currently not being used, to be removed
+      _prevItems = items
     }
     newNode = node
       & L.widget .~ makeSelectList widgetData items makeRow config newState
@@ -393,8 +388,7 @@ makeSelectList widgetData items makeRow config state = widget where
 
     newState = state {
       _slIdx = idx,
-      _hlIdx = idx,
-      _resizeReq = not (null resizeReq)
+      _hlIdx = idx
     }
     newNode = styledNode
       & L.widget .~ makeSelectList widgetData items makeRow config newState
@@ -416,13 +410,6 @@ makeSelectList widgetData items makeRow config state = widget where
     child = Seq.index children 0
     newSizeReqW = _wniSizeReqW . _wnInfo $ child
     newSizeReqH = _wniSizeReqH . _wnInfo $ child
-
-  resize wenv node viewport children = resized where
-    newState = state { _resizeReq = False }
-    newNode = node
-      & L.widget .~ makeSelectList widgetData items makeRow config newState
-    assignedArea = Seq.singleton viewport
-    resized = (resultNode newNode, assignedArea)
 
 updateStyles
   :: WidgetEnv s e

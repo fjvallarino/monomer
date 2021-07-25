@@ -783,9 +783,9 @@
   - CmbMergeRequired in box?
   - Add ignoreStyle to button.
   - themeSwitch should report theme has changed, and mergeRequired consider it.
+  - Is selectList's merge redundant? Container seems to take care of everything.
 
 Next
-  - Is selectList's merge redundant? Container seems to take care of everything.
   - Generalize fade/slide messages. Add anim suffix.
     - Update Todo example to overlay edit section.
   - Rethink activeStyle, activeTheme, active style related function names.
@@ -799,6 +799,10 @@ Next
   - Create ContextMenu (could work similarly to Tooltip).
 
 Future
+  - Make resize process smarter
+    - Keep list of widgets requesting resize
+    - If children requested resize, it overrides viewport check
+    - Can remove resize flag from Container/selectList
   - Check if Windows/Linux also miss top pixel
     - Fix for all if they do
     - If they don't, add custom handling for macOS
