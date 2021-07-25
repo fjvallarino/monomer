@@ -642,7 +642,7 @@ makeInputField config state = widget where
       & L.widget .~ makeInputField config newState
 
   render wenv node renderer = do
-    when (isJust currSel) $
+    when (isJust currSel && (focused || not selectOnFocus)) $
       drawRect renderer selRect (Just selColor) Nothing
 
     when (currText == "" && not (null currPlaceholder)) $
@@ -659,9 +659,11 @@ makeInputField config state = widget where
         & L.text . non def . L.fontColor .~ style ^. L.sndColor
       carea = getContentArea style node
       Rect cx cy _ _ = carea
+      selectOnFocus = _ifcSelectOnFocus config
+      focused = isNodeFocused wenv node
       ts = _weTimestamp wenv
       selColor = styleHlColor style
-      caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
+      caretRequired = focused && even (ts `div` caretMs)
       caretColor = styleFontColor style
       caretRect = getCaretRect config state style carea
       selRect = getSelRect state style
