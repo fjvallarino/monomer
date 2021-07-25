@@ -255,7 +255,7 @@ makeSelectList
   -> Widget s e
 makeSelectList widgetData items makeRow config state = widget where
   widget = createContainer state def {
-    containerResizeRequired = _resizeReq state,
+--    containerResizeRequired = _resizeReq state,
     containerInit = init,
     containerInitPost = initPost,
     containerMergeChildrenReq = mergeChildrenReq,
@@ -527,7 +527,8 @@ getHlStyle wenv config = hlStyle where
 
 getNormalStyle :: WidgetEnv s e -> SelectListCfg s e a -> Style
 getNormalStyle wenv config = style where
-  style = collectTheme wenv L.selectListItemStyle
+  theme = collectTheme wenv L.selectListItemStyle
+  style = fromJust (Just theme <> _slcItemStyle config)
 
 makeItemsList
   :: (WidgetModel s, WidgetEvent e, Eq a)
