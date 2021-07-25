@@ -228,8 +228,6 @@ makeButton caption config = widget where
     -- Set focus on click
     ButtonAction p btn BtnPressed 1
       | mainBtn btn && pointInVp p && not focused -> Just resultFocus
-    ButtonAction p btn BtnReleased clicks
-      | mainBtn btn && focused && pointInVp p && clicks > 1 -> Just result
     _ -> Nothing
     where
       mainBtn btn = btn == wenv ^. L.mainButton
