@@ -24,7 +24,7 @@ todoRowKey :: Todo -> Text
 todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
 
 todoRow :: TodoWenv -> TodoModel -> Int -> Todo -> TodoNode
-todoRow wenv model idx t = slideWidget `key` todoKey where
+todoRow wenv model idx t = animRow `key` todoKey where
   sectionBg = wenv ^. L.theme . L.sectionColor
   rowButtonColor = wenv ^. L.theme . L.userColorMap . at "rowButton" . non def
   rowSepColor = gray & L.a .~ 0.5
@@ -58,7 +58,7 @@ todoRow wenv model idx t = slideWidget `key` todoKey where
       rowButton remixDeleteBinLine (TodoDeleteBegin idx t)
     ] `style` (paddingV 15 : [borderB 1 rowSepColor | not isLast])
 
-  slideWidget = fadeOut_ [onFinished (TodoDelete idx t)] todoInfo
+  animRow = animFadeOut_ [onFinished (TodoDelete idx t)] todoInfo
 
 
 todoEdit :: TodoWenv -> TodoModel -> TodoNode
@@ -119,9 +119,9 @@ buildUI wenv model = widgetTree where
       _ -> TodoAdd
 
     dualSlide content = outer where
-      inner = slideIn_ [topSide, duration 200] content
+      inner = animSlideIn_ [slideTop, duration 200] content
         `key` "animEditIn"
-      outer = slideOut_ [topSide, duration 200, onFinished TodoHideEditDone] inner
+      outer = animSlideOut_ [slideTop, duration 200, onFinished TodoHideEditDone] inner
         `key` "animEditOut"
 
     content = vstack [

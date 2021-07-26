@@ -208,8 +208,8 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       button "Increase" IncButton
     ]
   widgetAnimate = vstack [
-      slideIn_ [leftSide] (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
-      slideOut_ [leftSide] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
+      animSlideIn_ [slideLeft] (label "Hello!!!!" `style` [bgColor red]) `key` "anim1",
+      animSlideOut_ [slideLeft] (label "Good bye!!!!" `style` [bgColor green]) `key` "anim2",
       hstack [
         labelS (model ^. clickCount),
         button "Increase" IncButton

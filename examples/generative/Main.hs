@@ -49,7 +49,10 @@ buildUI wenv model = widgetTree where
       label "Palette type",
       textDropdown (boxesCfg . paletteType) [1..4],
       label "Palette size",
-      dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5]
+      vstack [
+        dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5],
+        labelS (model ^. boxesCfg . paletteSize) `style` [textSize 14, textCenter]
+      ]
     ]
 
   widgetTree = vstack [
@@ -92,7 +95,7 @@ main = do
     model = GenerativeModel CirclesGrid False def def
     config = [
       appWindowTitle "Generative art",
-      appTheme lightTheme,
+      appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent GenerativeInit
       ]

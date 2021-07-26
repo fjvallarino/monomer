@@ -29,10 +29,12 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   timeString = T.pack . show $ model ^. currentTime
+
   timeLabel = label (T.takeWhile (/= '.') timeString)
     `style` [textFont "Bold", textSize 80, textCenter, textMiddle, flexHeight 100]
+
   widgetTree = vstack [
-      fadeIn timeLabel `key` "fadeTimeLabel"
+      animFadeIn timeLabel `key` "fadeTimeLabel"
     ]
 
 handleEvent

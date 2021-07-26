@@ -99,7 +99,7 @@ drawCircle renderer state vp iw cols idx = do
   fill renderer
   stroke renderer
   where
-    colors = [cyan, deepPink, orange, white]
+    colors = [cyan, deepPink, orange, paleGreen]
     sizeFactor = 0.3 + 1.1 * (state ^. mouseY - vp ^. L.y) / vp ^. L.h
     randFactor = (state ^. mouseX - vp ^. L.x) / vp ^. L.w
     currw = sizeFactor * iw

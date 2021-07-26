@@ -25,10 +25,10 @@ Messages:
 {-# LANGUAGE OverloadedStrings #-}
 
 module Monomer.Widgets.Animation.Fade (
-  fadeIn,
-  fadeIn_,
-  fadeOut,
-  fadeOut_
+  animFadeIn,
+  animFadeIn_,
+  animFadeOut,
+  animFadeOut_
 ) where
 
 import Control.Applicative ((<|>))
@@ -97,22 +97,22 @@ instance Default FadeState where
   }
 
 -- | Animates a widget from not visible state to fully visible.
-fadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
-fadeIn managed = fadeIn_ def managed
+animFadeIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animFadeIn managed = animFadeIn_ def managed
 
 -- | Animates a widget from not visible state to fully visible. Accepts config.
-fadeIn_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
-fadeIn_ configs managed = makeNode "fadeIn" widget managed where
+animFadeIn_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+animFadeIn_ configs managed = makeNode "animFadeIn" widget managed where
   config = mconcat configs
   widget = makeFade True config def
 
 -- | Animates a widget from visible state to not visible.
-fadeOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
-fadeOut managed = fadeOut_ def managed
+animFadeOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animFadeOut managed = animFadeOut_ def managed
 
 -- | Animates a widget from visible state to not visible. Accepts config.
-fadeOut_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
-fadeOut_ configs managed = makeNode "fadeOut" widget managed where
+animFadeOut_ :: WidgetEvent e => [FadeCfg e] -> WidgetNode s e -> WidgetNode s e
+animFadeOut_ configs managed = makeNode "animFadeOut" widget managed where
   config = mconcat configs
   widget = makeFade False config def
 

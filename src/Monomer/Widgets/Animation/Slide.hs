@@ -25,14 +25,14 @@ Messages:
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Animation.Slide (
-  slideIn,
-  slideIn_,
-  slideOut,
-  slideOut_,
-  leftSide,
-  rightSide,
-  topSide,
-  bottomSide
+  animSlideIn,
+  animSlideIn_,
+  animSlideOut,
+  animSlideOut_,
+  slideLeft,
+  slideRight,
+  slideTop,
+  slideBottom
 ) where
 
 import Control.Applicative ((<|>))
@@ -100,20 +100,20 @@ instance CmbOnFinished (SlideCfg e) e where
   }
 
 -- | Slide from/to left.
-leftSide :: SlideCfg e
-leftSide = def { _slcDirection = Just SlideLeft }
+slideLeft :: SlideCfg e
+slideLeft = def { _slcDirection = Just SlideLeft }
 
 -- | Slide from/to right.
-rightSide :: SlideCfg e
-rightSide = def { _slcDirection = Just SlideRight }
+slideRight :: SlideCfg e
+slideRight = def { _slcDirection = Just SlideRight }
 
 -- | Slide from/to top.
-topSide :: SlideCfg e
-topSide = def { _slcDirection = Just SlideUp }
+slideTop :: SlideCfg e
+slideTop = def { _slcDirection = Just SlideUp }
 
 -- | Slide from/to bottom.
-bottomSide :: SlideCfg e
-bottomSide = def { _slcDirection = Just SlideDown }
+slideBottom :: SlideCfg e
+slideBottom = def { _slcDirection = Just SlideDown }
 
 data SlideState = SlideState {
   _slsRunning :: Bool,
@@ -127,24 +127,24 @@ instance Default SlideState where
   }
 
 -- | Animates a widget from the left to fully visible.
-slideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
-slideIn managed = slideIn_ def managed
+animSlideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animSlideIn managed = animSlideIn_ def managed
 
 -- | Animates a widget from the provided direction to fully visible (defaults
 -- | to left). Accepts config.
-slideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
-slideIn_ configs managed = makeNode "slideIn" widget managed where
+animSlideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+animSlideIn_ configs managed = makeNode "animSlideIn" widget managed where
   config = mconcat configs
   widget = makeSlide True config def
 
 -- | Animates a widget to the left from visible to not visible.
-slideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
-slideOut managed = slideOut_ def managed
+animSlideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
+animSlideOut managed = animSlideOut_ def managed
 
 -- | Animates a widget to the the provided direction from visible to not
 -- | visible (defaults to left). Accepts config.
-slideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
-slideOut_ configs managed = makeNode "slideOut" widget managed where
+animSlideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
+animSlideOut_ configs managed = makeNode "animSlideOut" widget managed where
   config = mconcat configs
   widget = makeSlide False config def
 

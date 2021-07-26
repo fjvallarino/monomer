@@ -85,9 +85,11 @@ buildUI wenv model = widgetTree where
 
   tickerList = vstack tickerRows where
     orderedTickers = (\e -> model ^? tickers . ix e) <$> model ^. symbolPairs
-    tickerFade idx t = fadeOut_ [onFinished action] item `key` (t ^. symbolPair) where
+    tickerFade idx t = animRow where
       action = TickerRemovePair (t ^. symbolPair)
       item = tickerRow wenv idx t
+      animRow = animFadeOut_ [onFinished action] item `key` (t ^. symbolPair)
+
     tickerRows = zipWith tickerFade [0..] (catMaybes orderedTickers)
 
   widgetTree = vstack [

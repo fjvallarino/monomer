@@ -784,14 +784,16 @@
   - Add ignoreStyle to button.
   - themeSwitch should report theme has changed, and mergeRequired consider it.
   - Is selectList's merge redundant? Container seems to take care of everything.
-
-Next
   - Add anim suffix to animation widgets.
     - Update Todo example to overlay edit section.
+
+Next
   - Rethink activeStyle, activeTheme, active style related function names.
     - Order of arguments?
   - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
+  - Scroll bar width
+  - Default checkbox mark
   - Fix Tutorial 6 colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.

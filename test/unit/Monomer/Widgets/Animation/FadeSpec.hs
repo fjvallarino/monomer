@@ -54,8 +54,8 @@ initWidget = describe "initWidget" $ do
 
   where
     wenv = mockWenvEvtUnit ()
-    nodeNormal = fadeIn (label "Test")
-    nodeAuto = fadeIn_ [autoStart, duration 100] (label "Test")
+    nodeNormal = animFadeIn (label "Test")
+    nodeAuto = animFadeIn_ [autoStart, duration 100] (label "Test")
     reqs node = nodeHandleEvents_ wenv WInit [] node ^?! ix 0 . _1 . _3
 
 handleMessage :: Spec
@@ -77,7 +77,7 @@ handleMessage = describe "handleMessage" $ do
 
   where
     wenv = mockWenv ()
-    baseNode = fadeIn_ [autoStart, duration 100, onFinished OnTestFinished] (label "Test")
+    baseNode = animFadeIn_ [autoStart, duration 100, onFinished OnTestFinished] (label "Test")
     node = nodeInit wenv baseNode
     res msg = widgetHandleMessage (node^. L.widget) wenv node rootPath msg
     evts msg = eventsFromReqs (reqs msg)
@@ -95,4 +95,4 @@ getSizeReq = describe "getSizeReq" $ do
     wenv = mockWenvEvtUnit ()
     lblNode = label "Test label"
     (lSizeReqW, lSizeReqH) = nodeGetSizeReq wenv lblNode
-    (tSizeReqW, tSizeReqH) = nodeGetSizeReq wenv (fadeIn lblNode)
+    (tSizeReqW, tSizeReqH) = nodeGetSizeReq wenv (animFadeIn lblNode)
