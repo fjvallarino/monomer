@@ -220,7 +220,7 @@ makeCheckbox widgetData config = widget where
 
       fgColor = styleFgColor style
       hlColor = styleHlColor style
-      mark = fromMaybe CheckboxSquare (_ckcMark config)
+      mark = fromMaybe CheckboxTimes (_ckcMark config)
 
 renderCheckbox :: Renderer -> Double -> Rect -> Color -> IO ()
 renderCheckbox renderer checkboxBW rect color = action where

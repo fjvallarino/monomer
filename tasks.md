@@ -786,6 +786,7 @@
   - Is selectList's merge redundant? Container seems to take care of everything.
   - Add anim suffix to animation widgets.
     - Update Todo example to overlay edit section.
+  - Default checkbox mark should be X instead of square.
 
 Next
   - Rethink activeStyle, activeTheme, active style related function names.
@@ -793,7 +794,6 @@ Next
   - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
   - Scroll bar width
-  - Default checkbox mark
   - Fix Tutorial 6 colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
