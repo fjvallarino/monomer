@@ -361,7 +361,7 @@ makeImage imgSource config state = widget where
     when imageLoaded $
       showImage renderer imgPath imgFlags imgSize carea imgRect imgRadius alpha
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       border = style ^. L.border
       radius = style ^. L.radius
       carea = getContentArea node style

@@ -53,7 +53,7 @@ data LabelCfg s e = LabelCfg {
   _lscTextMaxLines :: Maybe Int,
   _lscFactorW :: Maybe Double,
   _lscFactorH :: Maybe Double,
-  _lscActiveStyle :: Maybe (WidgetEnv s e -> WidgetNode s e -> StyleState)
+  _lscCurrentStyle :: Maybe (WidgetEnv s e -> WidgetNode s e -> StyleState)
 }
 
 instance Default (LabelCfg s e) where
@@ -65,7 +65,7 @@ instance Default (LabelCfg s e) where
     _lscTextMaxLines = Nothing,
     _lscFactorW = Nothing,
     _lscFactorH = Nothing,
-    _lscActiveStyle = Nothing
+    _lscCurrentStyle = Nothing
   }
 
 instance Semigroup (LabelCfg s e) where
@@ -77,7 +77,7 @@ instance Semigroup (LabelCfg s e) where
     _lscTextMaxLines = _lscTextMaxLines l2 <|> _lscTextMaxLines l1,
     _lscFactorW = _lscFactorW l2 <|> _lscFactorW l1,
     _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1,
-    _lscActiveStyle = _lscActiveStyle l2 <|> _lscActiveStyle l1
+    _lscCurrentStyle = _lscCurrentStyle l2 <|> _lscCurrentStyle l1
   }
 
 instance Monoid (LabelCfg s e) where
@@ -173,7 +173,7 @@ makeLabel config state = widget where
     | _lscTextMultiLine config == Just True = MultiLine
     | otherwise = SingleLine
   maxLines = _lscTextMaxLines config
-  labelActiveStyle = fromMaybe activeStyle (_lscActiveStyle config)
+  labelCurrentStyle = fromMaybe currentStyle (_lscCurrentStyle config)
   LabelState caption textStyle textRect textLines prevResize = state
 
   getBaseStyle wenv node
@@ -181,7 +181,7 @@ makeLabel config state = widget where
     | otherwise = Just $ collectTheme wenv L.labelStyle
 
   init wenv node = resultNode newNode where
-    style = labelActiveStyle wenv node
+    style = labelCurrentStyle wenv node
     newState = state {
       _lstTextStyle = style ^. L.text
     }
@@ -189,7 +189,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
 
   merge wenv newNode oldNode oldState = result where
-    style = labelActiveStyle wenv newNode
+    style = labelCurrentStyle wenv newNode
     newTextStyle = style ^. L.text
 
     captionChanged = _lstCaption oldState /= caption
@@ -214,7 +214,7 @@ makeLabel config state = widget where
     ts = wenv ^. L.timestamp
     caption = _lstCaption state
     prevResize = _lstPrevResize state
-    style = labelActiveStyle wenv node
+    style = labelCurrentStyle wenv node
 
     cw = getContentArea node style ^. L.w
     defaultFactor
@@ -240,7 +240,7 @@ makeLabel config state = widget where
   resize wenv node viewport = result where
     fontMgr = wenv ^. L.fontManager
     ts = wenv ^. L.timestamp
-    style = labelActiveStyle wenv node
+    style = labelCurrentStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
 
@@ -277,7 +277,7 @@ makeLabel config state = widget where
         drawInTranslation renderer (Point cx cy) $
           forM_ textLines (drawTextLine renderer style)
     where
-      style = labelActiveStyle wenv node
+      style = labelCurrentStyle wenv node
       viewport = node ^. L.info . L.viewport
       textMetrics = textLines ^? ix 0 . L.metrics
       desc = abs (textMetrics ^. non def . L.desc)

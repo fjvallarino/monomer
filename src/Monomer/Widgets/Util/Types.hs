@@ -13,7 +13,7 @@ module Monomer.Widgets.Util.Types (
   IsFocused,
   IsActive,
   GetBaseStyle,
-  ActiveStyleCfg(..)
+  CurrentStyleCfg(..)
 ) where
 
 import Monomer.Core.StyleTypes
@@ -42,7 +42,7 @@ states (hovered, focused and active) is defined for a given widget type.
 
 A usage example can be found in "Monomer.Widgets.Radio".
 -}
-data ActiveStyleCfg s e = ActiveStyleCfg {
+data CurrentStyleCfg s e = CurrentStyleCfg {
   _ascIsHovered :: IsHovered s e,
   _ascIsFocused :: IsFocused s e,
   _ascIsActive :: IsActive s e

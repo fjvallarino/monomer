@@ -36,31 +36,31 @@ import qualified Monomer.Lens as L
 
 spec :: Spec
 spec = describe "Style" $ do
-  testActiveStyle
+  testCurrentStyle
   testHandleSizeChange
 
-testActiveStyle :: Spec
-testActiveStyle = describe "activeStyle" $ do
+testCurrentStyle :: Spec
+testCurrentStyle = describe "currentStyle" $ do
   it "should return basic style" $
-    activeStyle wenvBasic nodeNormal ^. L.bgColor `shouldBe` Just white
+    currentStyle wenvBasic nodeNormal ^. L.bgColor `shouldBe` Just white
 
   it "should return hover style" $
-    activeStyle wenvHover nodeNormal ^. L.bgColor `shouldBe` Just green
+    currentStyle wenvHover nodeNormal ^. L.bgColor `shouldBe` Just green
 
   it "should return hover style" $
-    activeStyle wenvFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
+    currentStyle wenvFocus nodeNormal ^. L.bgColor `shouldBe` Just blue
 
   it "should return focusHover style" $
-    activeStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just orange
+    currentStyle wenvHoverFocus nodeNormal ^. L.bgColor `shouldBe` Just orange
 
   it "should return active style" $
-    activeStyle wenvActive nodeNormal ^. L.bgColor `shouldBe` Just pink
+    currentStyle wenvActive nodeNormal ^. L.bgColor `shouldBe` Just pink
 
   it "should return disabled style" $ do
-    activeStyle wenvBasic nodeDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvHover nodeDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
-    activeStyle wenvHoverFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    currentStyle wenvBasic nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    currentStyle wenvHover nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    currentStyle wenvFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
+    currentStyle wenvHoverFocus nodeDisabled ^. L.bgColor `shouldBe` Just gray
 
   where
     wenvBasic = mockWenv () & L.inputStatus . L.mousePos .~ Point 0 0

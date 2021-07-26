@@ -289,7 +289,7 @@ makeBox
 makeBox config state = widget where
   widget = createContainer state def {
     containerIgnoreEmptyArea = ignoreEmptyArea && emptyHandlersCount == 0,
-    containerGetActiveStyle = getActiveStyle,
+    containerGetCurrentStyle = getCurrentStyle,
     containerInit = init,
     containerMergeChildrenReq = mergeRequired,
     containerMerge = merge,
@@ -317,8 +317,8 @@ makeBox config state = widget where
     newNode = node
       & L.widget .~ makeBox config newState
 
-  getActiveStyle = activeStyle_ activeStyleConfig where
-    activeStyleConfig = def
+  getCurrentStyle = currentStyle_ currentStyleConfig where
+    currentStyleConfig = def
       & L.isActive .~ isNodeTreeActive
 
   handleEvent wenv node target evt = case evt of
@@ -381,7 +381,7 @@ makeBox config state = widget where
     newSizeReq = updateSizeReq (newReqW, newReqH)
 
   resize wenv node viewport children = resized where
-    style = getActiveStyle wenv node
+    style = getCurrentStyle wenv node
     child = Seq.index children 0
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea

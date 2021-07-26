@@ -128,7 +128,7 @@ makeStack isHorizontal config = widget where
       vreqs = accesor <$> vchildren
 
   resize wenv node viewport children = resized where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     (newVps, newDim) = assignStackAreas isHorizontal contentArea children
     newCa

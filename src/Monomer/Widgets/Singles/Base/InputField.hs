@@ -402,7 +402,7 @@ makeInputField config state = widget where
     -- Begin regular text selection
     ButtonAction point btn BtnPressed clicks
       | dragSelectText btn && clicks == 1 -> Just result where
-        style = activeStyle wenv node
+        style = currentStyle wenv node
         contentArea = getContentArea node style
         newPos = findClosestGlyphPos state point
         newState = newFieldState currVal currText newPos Nothing
@@ -453,7 +453,7 @@ makeInputField config state = widget where
     -- Handle regular text selection
     Move point
       | isNodePressed wenv node && not shiftPressed -> Just result where
-        style = activeStyle wenv node
+        style = currentStyle wenv node
         contentArea = getContentArea node style
         newPos = findClosestGlyphPos state point
         newSel = currSel <|> Just currPos
@@ -623,7 +623,7 @@ makeInputField config state = widget where
     currText
       | _ifsCurrText state /= "" = _ifsCurrText state
       | otherwise = fromMaybe "" (_ifcPlaceholder config)
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     Size w h = getTextSize wenv style currText
     targetW
       | resizeOnChange = max w 100
@@ -653,7 +653,7 @@ makeInputField config state = widget where
     when caretRequired $
       drawRect renderer caretRect (Just caretColor) Nothing
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       placeholderStyle = style
         & L.text . non def . L.fontColor .~ style ^. L.sndColor
       carea = getContentArea node style
@@ -830,7 +830,7 @@ newTextState
   -> Maybe Int
   -> InputFieldState a
 newTextState wenv node oldState config value text cursor sel = newState where
-  style = activeStyle wenv node
+  style = currentStyle wenv node
   contentArea = getContentArea node style
   caretW = fromMaybe defCaretW (_ifcCaretWidth config)
   Rect cx cy cw ch = contentArea
@@ -889,7 +889,7 @@ updatePlaceholder
   -> InputFieldState a
 updatePlaceholder wenv node state config = newState where
   fontMgr = wenv ^. L.fontManager
-  style = activeStyle wenv node
+  style = currentStyle wenv node
   Rect cx cy cw ch = getContentArea node style
   carea = Rect 0 0 cw ch
   size = Size cw ch

@@ -358,7 +358,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | not isOpen -> Just $ resultReqs node [IgnoreChildrenEvents]
       | otherwise -> Nothing
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
       focusedPath = wenv ^. L.focusedPath
@@ -439,7 +439,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
 
   listHeight wenv node = maxHeight where
     Size _ winH = _weWindowSize wenv
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     maxHeightTheme = theme ^. L.dropdownMaxHeight
     cfgMaxHeight = _ddcMaxHeight config
     -- Avoid having an invisible list if style/theme is not set
@@ -460,7 +460,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | otherwise = 0
 
   resize wenv node viewport children = resized where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     Rect rx ry rw rh = viewport
     !mainArea = viewport
     !listArea = viewport {
@@ -481,7 +481,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
         drawInTranslation renderer totalOffset $ do
           renderOverlay renderer cwenv listOverlay
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       viewport = node ^. L.info . L.viewport
       mainNode = Seq.index (node ^. L.children) mainIdx
       -- List view is rendered with an offset to accommodate for window height

@@ -387,8 +387,8 @@ makeSlider isHz field minVal maxVal config state = widget where
       newPos = clamp 0 maxPos tmpPos
     _ -> Nothing
     where
-      theme = activeTheme wenv node
-      style = activeStyle wenv node
+      theme = currentTheme wenv node
+      style = currentStyle wenv node
       vp = getContentArea node style
       widgetId = node ^. L.info . L.widgetId
       shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
@@ -415,7 +415,7 @@ makeSlider isHz field minVal maxVal config state = widget where
           | otherwise = result
 
   getSizeReq wenv node = req where
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     maxPos = realToFrac (toRational (maxVal - minVal) / dragRate)
     width = fromMaybe (theme ^. L.sliderWidth) (_slcWidth config)
     req
@@ -431,8 +431,8 @@ makeSlider isHz field minVal maxVal config state = widget where
     when thbVisible $
       drawEllipse renderer thbArea (Just hlColor)
     where
-      theme = activeTheme wenv node
-      style = activeStyle wenv node
+      theme = currentTheme wenv node
+      style = currentStyle wenv node
 
       fgColor = styleFgColor style
       hlColor = styleHlColor style

@@ -176,7 +176,7 @@ makeTooltip caption config state = widget where
           forM_ textLines (drawTextLine renderer style)
     where
       fontMgr = wenv ^. L.fontManager
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       children = node ^. L.children
       mousePos = wenv ^. L.inputStatus . L.mousePos
 

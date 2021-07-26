@@ -787,10 +787,11 @@
   - Add anim suffix to animation widgets.
     - Update Todo example to overlay edit section.
   - Default checkbox mark should be X instead of square.
+  - Rethink activeStyle, activeTheme style related function names.
+    - Order of arguments?
 
 Next
-  - Rethink activeStyle, activeTheme, active style related function names.
-    - Order of arguments?
+  - Rename style combinators?
   - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
   - Scroll bar width

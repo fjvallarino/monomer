@@ -138,7 +138,7 @@ isResetOverlay _ = False
 
 {-|
 Sets the current active cursor icon. This acts as a stack, so removing means
-going back a step.
+going back a step to the cursor set by a parent widget.
 -}
 isSetCursorIcon :: WidgetRequest s e -> Bool
 isSetCursorIcon SetCursorIcon{} = True

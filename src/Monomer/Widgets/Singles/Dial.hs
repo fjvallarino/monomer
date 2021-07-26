@@ -220,7 +220,7 @@ makeDial field minVal maxVal config state = widget where
   widget = createSingle state def {
     singleFocusOnBtnPressed = False,
     singleGetBaseStyle = getBaseStyle,
-    singleGetActiveStyle = getActiveStyle,
+    singleGetCurrentStyle = getCurrentStyle,
     singleInit = init,
     singleMerge = merge,
     singleFindByPoint = findByPoint,
@@ -236,9 +236,9 @@ makeDial field minVal maxVal config state = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.dialStyle
 
-  getActiveStyle wenv node = style where
+  getCurrentStyle wenv node = style where
     (_, dialArea) = getDialInfo wenv node config
-    style = activeStyle_ (activeStyleConfig dialArea) wenv node
+    style = currentStyle_ (currentStyleConfig dialArea) wenv node
 
   init wenv node = resultNode resNode where
     newState = newStateFromModel wenv node state
@@ -315,7 +315,7 @@ makeDial field minVal maxVal config state = widget where
       result = addReqsEvts (resultReqs node [RenderOnce]) newVal
     _ -> Nothing
     where
-      theme = activeTheme wenv node
+      theme = currentTheme wenv node
       (_, dialArea) = getDialInfo wenv node config
       widgetId = node ^. L.info . L.widgetId
       path = node ^. L.info . L.path
@@ -332,7 +332,7 @@ makeDial field minVal maxVal config state = widget where
           | otherwise = result
 
   getSizeReq wenv node = req where
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     width = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
     req = (fixedSize width, fixedSize width)
 
@@ -344,7 +344,7 @@ makeDial field minVal maxVal config state = widget where
       DialState maxPos pos = newStateFromModel wenv node state
       posPct = fromIntegral pos / fromIntegral maxPos
       dialBW = max 1 (_rW dialArea * 0.15)
-      style = getActiveStyle wenv node
+      style = getCurrentStyle wenv node
       fgColor = styleFgColor style
       sndColor = styleSndColor style
       start = 90 + 45
@@ -382,8 +382,8 @@ valueFromPos minVal dragRate newPos = newVal where
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where
-  theme = activeTheme wenv node
-  style = activeStyle wenv node
+  theme = currentTheme wenv node
+  style = currentStyle wenv node
   carea = getContentArea node style
 
   dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
@@ -392,6 +392,6 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
   dialArea = Rect dialL dialT dialW dialW
 
-activeStyleConfig :: Rect -> ActiveStyleCfg s e
-activeStyleConfig dialArea = def
+currentStyleConfig :: Rect -> CurrentStyleCfg s e
+currentStyleConfig dialArea = def
   & L.isHovered .~ isNodeHoveredEllipse_ dialArea

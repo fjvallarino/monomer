@@ -599,7 +599,7 @@ makeTextArea wdata config state = widget where
 
     where
       widgetId = node ^. L.info . L.widgetId
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       Rect cx cy cw ch = getContentArea node style
       localPoint point = subPoint point (Point cx cy)
 
@@ -630,7 +630,7 @@ makeTextArea wdata config state = widget where
       | otherwise = []
 
   generateScrollReq wenv node newState = scrollReq where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     scPath = parentPath node
     scWid = findWidgetIdFromPath wenv scPath
     contentArea = getContentArea node style
@@ -662,7 +662,7 @@ makeTextArea wdata config state = widget where
       when caretRequired $
         drawRect renderer caretRect (Just caretColor) Nothing
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       contentArea = getContentArea node style
       ts = _weTimestamp wenv
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
@@ -745,7 +745,7 @@ getSelectionRects state contentArea = rects where
 stateFromText
   :: WidgetEnv s e -> WidgetNode s e -> TextAreaState -> Text -> TextAreaState
 stateFromText wenv node state text = newState where
-  style = activeStyle wenv node
+  style = currentStyle wenv node
   fontMgr = wenv ^. L.fontManager
   newTextMetrics = getTextMetrics wenv style
   tmpTextLines = fitTextToWidth fontMgr style maxNumericValue KeepSpaces text

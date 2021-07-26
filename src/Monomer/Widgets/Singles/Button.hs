@@ -186,7 +186,7 @@ makeButton caption config = widget where
     containerAddStyleReq = False,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
-    containerGetActiveStyle = getActiveStyle,
+    containerGetCurrentStyle = getCurrentStyle,
     containerInit = init,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
@@ -204,18 +204,18 @@ makeButton caption config = widget where
     where
       ignoreTheme = _btnIgnoreTheme config == Just True
 
-  getActiveStyle wenv node = styleState where
+  getCurrentStyle wenv node = styleState where
     style = node ^. L.info . L.style
     isEnabled = node ^. L.info . L.enabled
     isActive = isNodeTreeActive wenv node
     styleState
       | isEnabled && isActive = fromMaybe def (_styleActive style)
-      | otherwise = activeStyle wenv node
+      | otherwise = currentStyle wenv node
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
     labelCfg = (_btnLabelCfg config) {
-      _lscActiveStyle = Just childOfFocusedStyle
+      _lscCurrentStyle = Just childOfFocusedStyle
     }
     labelNode = label_ caption [ignoreTheme, labelCfg]
       & L.info . L.style .~ nodeStyle

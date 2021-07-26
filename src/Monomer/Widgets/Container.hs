@@ -21,7 +21,7 @@ module Monomer.Widgets.Container (
   module Monomer.Widgets.Util,
 
   ContainerGetBaseStyle,
-  ContainerGetActiveStyle,
+  ContainerGetCurrentStyle,
   ContainerUpdateCWenvHandler,
   ContainerInitHandler,
   ContainerInitPostHandler,
@@ -89,7 +89,7 @@ the full content rect.
 
 An example can be found in "Monomer.Widgets.Containers.Tooltip".
 -}
-type ContainerGetActiveStyle s e
+type ContainerGetCurrentStyle s e
   = WidgetEnv s e      -- ^ The widget environment.
   -> WidgetNode s e    -- ^ The widget node.
   -> StyleState        -- ^ The active style for the node.
@@ -347,8 +347,8 @@ data Container s e a = Container {
   containerUseScissor :: Bool,
   -- | Returns the base style for this type of widget.
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
-  -- | Returns the active style, depending on the status of the widget.
-  containerGetActiveStyle :: ContainerGetActiveStyle s e,
+  -- | Returns the current style, depending on the status of the widget.
+  containerGetCurrentStyle :: ContainerGetCurrentStyle s e,
   -- | Updates the widget environment before passing it down to children.
   containerUpdateCWenv :: ContainerUpdateCWenvHandler s e,
   -- | Initializes the given node.
@@ -396,7 +396,7 @@ instance Default (Container s e a) where
     containerUseChildrenSizes = False,
     containerUseScissor = False,
     containerGetBaseStyle = defaultGetBaseStyle,
-    containerGetActiveStyle = defaultGetActiveStyle,
+    containerGetCurrentStyle = defaultGetCurrentStyle,
     containerUpdateCWenv = defaultUpdateCWenv,
     containerInit = defaultInit,
     containerInitPost = defaultInitPost,
@@ -452,8 +452,8 @@ createContainer state container = Widget {
 defaultGetBaseStyle :: ContainerGetBaseStyle s e
 defaultGetBaseStyle wenv node = Nothing
 
-defaultGetActiveStyle :: ContainerGetActiveStyle s e
-defaultGetActiveStyle wenv node = activeStyle wenv node
+defaultGetCurrentStyle :: ContainerGetCurrentStyle s e
+defaultGetCurrentStyle wenv node = currentStyle wenv node
 
 defaultUpdateCWenv :: ContainerUpdateCWenvHandler s e
 defaultUpdateCWenv wenv node cnode cidx = wenv
@@ -865,7 +865,7 @@ handleEventWrapper container wenv node baseTarget baseEvt
     -- For example, Composite has its own tree of child widgets with (possibly)
     -- different types for Model and Events, and is candidate for the next step
     offset = fromMaybe def (containerChildrenOffset container)
-    style = containerGetActiveStyle container wenv node
+    style = containerGetCurrentStyle container wenv node
     doCursor = not (containerUseCustomCursor container)
     updateCWenv = getUpdateCWenv container
     filterHandler = containerFilterEvent container
@@ -979,7 +979,7 @@ getSizeReqWrapper
 getSizeReqWrapper container wenv node = (newReqW, newReqH) where
   addStyleReq = containerAddStyleReq container
   handler = containerGetSizeReq container
-  style = containerGetActiveStyle container wenv node
+  style = containerGetCurrentStyle container wenv node
 
   children = node ^. L.children
   reqs = handler wenv node children
@@ -1021,7 +1021,7 @@ handleSizeReqChange container wenv node evt mResult = result where
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
 defaultResize wenv node viewport children = resized where
-  style = activeStyle wenv node
+  style = currentStyle wenv node
   contentArea = fromMaybe def (removeOuterBounds style viewport)
   childrenSizes = Seq.replicate (Seq.length children) contentArea
   resized = (resultNode node, childrenSizes)
@@ -1098,7 +1098,7 @@ renderWrapper container wenv node renderer =
       -- Outside children scissor
       renderAfter wenv node renderer
   where
-    style = containerGetActiveStyle container wenv node
+    style = containerGetCurrentStyle container wenv node
     updateCWenv = getUpdateCWenv container
     useScissor = containerUseScissor container
     childrenScissor = containerChildrenScissor container

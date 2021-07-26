@@ -76,7 +76,7 @@ isNodeInfoActive includeChildren wenv info = validPos && pressed where
 
 {-|
 Checks if the node is pressed, optionally including children. A pressed node was
-clicked with the main button.
+clicked with the main button, but the pointer may not be inside its viewport.
 -}
 isNodeInfoPressed :: Bool -> WidgetEnv s e -> WidgetNodeInfo -> Bool
 isNodeInfoPressed includeChildren wenv info = result == Just True where

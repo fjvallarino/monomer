@@ -90,7 +90,7 @@ makeSeparatorLine config = widget where
     style = collectTheme wenv L.separatorLineStyle
 
   getSizeReq wenv node = sizeReq where
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     direction = wenv ^. L.layoutDirection
     width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)
 
@@ -114,8 +114,8 @@ makeSeparatorLine config = widget where
     renderRect renderer lineRect
     fill renderer
     where
-      theme = activeTheme wenv node
-      style = activeStyle wenv node
+      theme = currentTheme wenv node
+      style = currentStyle wenv node
       direction = wenv ^. L.layoutDirection
       fgColor = styleFgColor style
       width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)

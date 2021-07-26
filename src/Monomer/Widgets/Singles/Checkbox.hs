@@ -196,7 +196,7 @@ makeCheckbox widgetData config = widget where
       reqs = setValueReq ++ fmap ($ newValue) (_ckcOnChangeReq config)
 
   getSizeReq wenv node = req where
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     width = fromMaybe (theme ^. L.checkboxWidth) (_ckcWidth config)
     req = (fixedSize width, fixedSize width)
 
@@ -207,8 +207,8 @@ makeCheckbox widgetData config = widget where
       renderMark renderer checkboxBW checkboxArea hlColor mark
     where
       model = _weModel wenv
-      theme = activeTheme wenv node
-      style = activeStyle wenv node
+      theme = currentTheme wenv node
+      style = currentStyle wenv node
       value = widgetDataGet model widgetData
       carea = getContentArea node style
 

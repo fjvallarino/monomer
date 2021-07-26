@@ -91,7 +91,7 @@ makeThemeSwitch :: Theme -> ThemeSwitchCfg -> ThemeSwitchState -> Widget s e
 makeThemeSwitch theme config state = widget where
   widget = createContainer state def {
     containerUpdateCWenv = updateCWenv,
-    containerGetActiveStyle = getActiveStyle,
+    containerGetCurrentStyle = getCurrentStyle,
     containerInit = init,
     containerMerge = merge
   }
@@ -105,7 +105,7 @@ makeThemeSwitch theme config state = widget where
       & L.theme .~ theme
       & L.themeChanged .~ (themeChanged || parentChanged)
 
-  getActiveStyle wenv node = style where
+  getCurrentStyle wenv node = style where
     clearBg = _tmcClearBg config == Just True
     clearColor = theme ^. L.clearColor
     style

@@ -343,7 +343,7 @@ makeScroll config state = widget where
     containerChildrenScissor = Just (_sstScissor state),
     containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
-    containerGetActiveStyle = scrollActiveStyle,
+    containerGetCurrentStyle = scrollCurrentStyle,
     containerInit = init,
     containerMerge = merge,
     containerFindByPoint = findByPoint,
@@ -490,8 +490,8 @@ makeScroll config state = widget where
 
     _ -> Nothing
     where
-      theme = activeTheme wenv node
-      style = scrollActiveStyle wenv node
+      theme = currentTheme wenv node
+      style = scrollCurrentStyle wenv node
       contentArea = getContentArea node style
       mousePos = wenv ^. L.inputStatus . L.mousePos
 
@@ -516,7 +516,7 @@ makeScroll config state = widget where
     result = cast message >>= handleScrollMessage
 
   scrollTo wenv node targetRect = result where
-    style = scrollActiveStyle wenv node
+    style = scrollCurrentStyle wenv node
     contentArea = getContentArea node style
 
     rect = moveRect offset targetRect
@@ -582,7 +582,7 @@ makeScroll config state = widget where
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = sizeReq where
-    style = scrollActiveStyle wenv node
+    style = scrollCurrentStyle wenv node
     child = Seq.index children 0
 
     tw = sizeReqMaxBounded $ child ^. L.info . L.sizeReqW
@@ -594,8 +594,8 @@ makeScroll config state = widget where
     sizeReq = (expandSize w factor, expandSize h factor)
 
   resize wenv node viewport children = result where
-    theme = activeTheme wenv node
-    style = scrollActiveStyle wenv node
+    theme = currentTheme wenv node
+    style = scrollCurrentStyle wenv node
 
     Rect cl ct cw ch = fromMaybe def (removeOuterBounds style viewport)
     dx = _sstDeltaX state
@@ -663,7 +663,7 @@ makeScroll config state = widget where
       draggingV = _sstDragging state == Just VBar
 
       theme = wenv ^. L.theme
-      athm = activeTheme wenv node
+      athm = currentTheme wenv node
       tmpRad = fromMaybe (athm ^. L.scrollThumbRadius) (_scThumbRadius config)
       thumbRadius
         | tmpRad > 0 = Just (radius tmpRad)
@@ -693,10 +693,10 @@ makeScroll config state = widget where
         | vMouseInThumb || draggingV = thumbHCol
         | otherwise = thumbBCol
 
-scrollActiveStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
-scrollActiveStyle wenv node
+scrollCurrentStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
+scrollCurrentStyle wenv node
   | isNodeFocused wenv child = focusedStyle wenv node
-  | otherwise = activeStyle wenv node
+  | otherwise = currentStyle wenv node
   where
     child = node ^. L.children ^?! ix 0
 
@@ -711,8 +711,8 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   ScrollState _ dx dy _ _ _ = scrollState
   Size childWidth childHeight = _sstChildSize scrollState
   Size vpWidth vpHeight = _sstVpSize scrollState
-  theme = activeTheme wenv node
-  style = scrollActiveStyle wenv node
+  theme = currentTheme wenv node
+  style = scrollCurrentStyle wenv node
   contentArea = getContentArea node style
 
   barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)

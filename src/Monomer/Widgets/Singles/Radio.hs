@@ -154,7 +154,7 @@ makeRadio :: (Eq a, WidgetEvent e) => WidgetData s a -> a -> RadioCfg s e a -> W
 makeRadio field option config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
-    singleGetActiveStyle = getActiveStyle,
+    singleGetCurrentStyle = getCurrentStyle,
     singleHandleEvent = handleEvent,
     singleGetSizeReq = getSizeReq,
     singleRender = render
@@ -163,9 +163,9 @@ makeRadio field option config = widget where
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.radioStyle
 
-  getActiveStyle wenv node = style where
+  getCurrentStyle wenv node = style where
     radioArea = getRadioArea wenv node config
-    style = activeStyle_ (activeStyleConfig radioArea) wenv node
+    style = currentStyle_ (currentStyleConfig radioArea) wenv node
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange node prev (_rdcOnFocusReq config)
@@ -186,7 +186,7 @@ makeRadio field option config = widget where
       reqs = setValueReq ++ fmap ($ option) (_rdcOnChangeReq config)
 
   getSizeReq wenv node = req where
-    theme = activeTheme wenv node
+    theme = currentTheme wenv node
     width = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
     req = (fixedSize width, fixedSize width)
 
@@ -201,14 +201,14 @@ makeRadio field option config = widget where
       radioArea = getRadioArea wenv node config
       radioBW = max 1 (_rW radioArea * 0.1)
 
-      style_ = activeStyle_ (activeStyleConfig radioArea) wenv node
+      style_ = currentStyle_ (currentStyleConfig radioArea) wenv node
       fgColor = styleFgColor style_
       hlColor = styleHlColor style_
 
 getRadioArea :: WidgetEnv s e -> WidgetNode s e -> RadioCfg s e a -> Rect
 getRadioArea wenv node config = radioArea where
-  theme = activeTheme wenv node
-  style = activeStyle wenv node
+  theme = currentTheme wenv node
+  style = currentStyle wenv node
   rarea = getContentArea node style
 
   radioW = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
@@ -226,6 +226,6 @@ renderMark renderer radioBW rect color = action where
   newRect = fromMaybe def (subtractFromRect rect w w w w)
   action = drawEllipse renderer newRect (Just color)
 
-activeStyleConfig :: Rect -> ActiveStyleCfg s e
-activeStyleConfig radioArea = def &
+currentStyleConfig :: Rect -> CurrentStyleCfg s e
+currentStyleConfig radioArea = def &
   L.isHovered .~ isNodeHoveredEllipse_ radioArea

@@ -19,7 +19,7 @@ module Monomer.Widgets.Single (
   module Monomer.Widgets.Util,
 
   SingleGetBaseStyle,
-  SingleGetActiveStyle,
+  SingleGetCurrentStyle,
   SingleInitHandler,
   SingleMergeHandler,
   SingleDisposeHandler,
@@ -62,7 +62,7 @@ type SingleGetBaseStyle s e
   = GetBaseStyle s e  -- ^ The base style for a new node.
 
 {-|
-Returns the active style for this type of widget. It depends on the state of
+Returns the current style for this type of widget. It depends on the state of
 the widget, which can be:
 
 - Basic
@@ -75,7 +75,7 @@ the widget, which can be:
 In general there's no needed to override it, except when the widget does not use
 the full content rect. An example can be found in "Monomer.Widgets.Singles.Radio".
 -}
-type SingleGetActiveStyle s e
+type SingleGetCurrentStyle s e
   = WidgetEnv s e      -- ^ The widget environment.
   -> WidgetNode s e    -- ^ The widget node.
   -> StyleState        -- ^ The active style for the node.
@@ -245,7 +245,7 @@ data Single s e a = Single {
   -- | Returns the base style for this type of widget.
   singleGetBaseStyle :: SingleGetBaseStyle s e,
   -- | Returns the active style, depending on the status of the widget.
-  singleGetActiveStyle :: SingleGetActiveStyle s e,
+  singleGetCurrentStyle :: SingleGetCurrentStyle s e,
   -- | Initializes the given node.
   singleInit :: SingleInitHandler s e,
   -- | Merges the node with the node it matched with during the merge process.
@@ -276,7 +276,7 @@ instance Default (Single s e a) where
     singleUseCustomSize = False,
     singleUseScissor = False,
     singleGetBaseStyle = defaultGetBaseStyle,
-    singleGetActiveStyle = defaultGetActiveStyle,
+    singleGetCurrentStyle = defaultGetCurrentStyle,
     singleInit = defaultInit,
     singleMerge = defaultMerge,
     singleDispose = defaultDispose,
@@ -321,8 +321,8 @@ createSingle state single = Widget {
 defaultGetBaseStyle :: SingleGetBaseStyle s e
 defaultGetBaseStyle wenv node = Nothing
 
-defaultGetActiveStyle :: SingleGetActiveStyle s e
-defaultGetActiveStyle wenv node = activeStyle wenv node
+defaultGetCurrentStyle :: SingleGetCurrentStyle s e
+defaultGetCurrentStyle wenv node = currentStyle wenv node
 
 defaultInit :: SingleInitHandler s e
 defaultInit wenv node = resultNode node
@@ -455,7 +455,7 @@ handleEventWrapper single wenv node target evt
   | not (node ^. L.info . L.visible) = Nothing
   | otherwise = handleStyleChange wenv target style handleCursor node evt result
   where
-    style = singleGetActiveStyle single wenv node
+    style = singleGetCurrentStyle single wenv node
     handleCursor = not (singleUseCustomCursor single)
     focusOnPressed = singleFocusOnBtnPressed single
     handler = singleHandleEvent single
@@ -517,7 +517,7 @@ getSizeReqWrapper
 getSizeReqWrapper single wenv node = (newReqW, newReqH) where
   addStyleReq = singleAddStyleReq single
   handler = singleGetSizeReq single
-  style = singleGetActiveStyle single wenv node
+  style = singleGetCurrentStyle single wenv node
 
   reqs = handler wenv node
   (tmpReqW, tmpReqH)
@@ -596,5 +596,5 @@ renderWrapper single wenv node renderer =
   where
     handler = singleRender single
     useScissor = singleUseScissor single
-    style = singleGetActiveStyle single wenv node
+    style = singleGetCurrentStyle single wenv node
     viewport = node ^. L.info . L.viewport

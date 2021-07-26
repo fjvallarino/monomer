@@ -181,7 +181,7 @@ makeZStack config state = widget where
       vreqs = accesor <$> vchildren
 
   resize wenv node viewport children = resized where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     vpChild = fromMaybe def (removeOuterBounds style viewport)
     assignedAreas = fmap (const vpChild) children
     resized = (resultNode node, assignedAreas)
@@ -191,7 +191,7 @@ makeZStack config state = widget where
       drawStyledAction renderer viewport style $ \_ ->
         void $ Seq.traverseWithIndex renderChild children
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       children = Seq.reverse $ node ^. L.children
       viewport = node ^. L.info . L.viewport
       isVisible c = c ^. L.info . L.visible

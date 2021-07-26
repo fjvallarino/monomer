@@ -90,7 +90,7 @@ makeImage iconType config = widget where
   render wenv node renderer = do
     drawIcon renderer style iconType iconVp width
     where
-      style = activeStyle wenv node
+      style = currentStyle wenv node
       contentArea = getContentArea node style
       vp = node ^. L.info . L.viewport
       dim = min (vp ^. L.w) (vp ^. L.h)

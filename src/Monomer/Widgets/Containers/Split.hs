@@ -261,7 +261,7 @@ makeSplit isHorizontal config state = widget where
       | otherwise = foldl1 sizeReqMergeSum [reqWS, reqH1, reqH2]
 
   resize wenv node viewport children = resized where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect rx ry rw rh = contentArea
     (areas, newSize) = assignStackAreas isHorizontal contentArea children

@@ -150,7 +150,7 @@ makeDraggable msg config = widget where
 
   resize :: ContainerResizeHandler s e
   resize wenv node viewport children = resized where
-    style = activeStyle wenv node
+    style = currentStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     resized = (resultNode node, Seq.singleton contentArea)
 

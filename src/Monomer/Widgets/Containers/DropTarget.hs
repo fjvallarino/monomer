@@ -89,13 +89,13 @@ makeDropTarget
   :: (DragMsg a, WidgetEvent e) => (a -> e) -> DropTargetCfg -> Widget s e
 makeDropTarget dropEvt config = widget where
   widget = createContainer () def {
-    containerGetActiveStyle = getActiveStyle,
+    containerGetCurrentStyle = getCurrentStyle,
     containerHandleEvent = handleEvent
   }
 
-  getActiveStyle wenv node
+  getCurrentStyle wenv node
     | isDropTarget wenv node && isHovered && isJust style = fromJust style
-    | otherwise = activeStyle wenv node
+    | otherwise = currentStyle wenv node
     where
       mousePos = wenv ^. L.inputStatus . L.mousePos
       isHovered = isPointInNodeVp node mousePos

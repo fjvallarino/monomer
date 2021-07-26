@@ -620,7 +620,7 @@ compositeGetSizeReq
   -> (SizeReq, SizeReq)
 compositeGetSizeReq comp state wenv widgetComp = (newReqW, newReqH) where
   CompositeState{..} = state
-  style = activeStyle wenv widgetComp
+  style = currentStyle wenv widgetComp
   widget = _cpsRoot ^. L.widget
   currReqW = _cpsRoot ^. L.info . L.sizeReqW
   currReqH = _cpsRoot ^. L.info . L.sizeReqH
@@ -654,7 +654,7 @@ compositeResize
   -> WidgetResult sp ep
 compositeResize comp state wenv widgetComp viewport = resizedRes where
   CompositeState{..} = state
-  style = activeStyle wenv widgetComp
+  style = currentStyle wenv widgetComp
   contentArea = fromMaybe def (removeOuterBounds style viewport)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv

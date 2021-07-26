@@ -18,4 +18,4 @@ import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 
 import Monomer.Widgets.Util.Types
 
-makeLensesWith abbreviatedFields ''ActiveStyleCfg
+makeLensesWith abbreviatedFields ''CurrentStyleCfg

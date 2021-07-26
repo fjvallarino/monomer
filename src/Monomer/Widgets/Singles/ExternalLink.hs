@@ -159,7 +159,7 @@ makeExternalLink caption url config = widget where
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
     labelCfg = (_elcLabelCfg config) {
-      _lscActiveStyle = Just childOfFocusedStyle
+      _lscCurrentStyle = Just childOfFocusedStyle
     }
     labelNode = label_ caption [ignoreTheme, labelCfg]
       & L.info . L.style .~ nodeStyle

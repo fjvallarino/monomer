@@ -14,10 +14,10 @@ Helper functions for style related operations.
 module Monomer.Widgets.Util.Style (
   collectStyleField,
   collectStyleField_,
-  activeTheme,
-  activeTheme_,
-  activeStyle,
-  activeStyle_,
+  currentTheme,
+  currentTheme_,
+  currentStyle,
+  currentStyle_,
   focusedStyle,
   styleStateChanged,
   initNodeStyle,
@@ -47,8 +47,8 @@ import Monomer.Widgets.Util.Widget
 import qualified Monomer.Core.Lens as L
 import qualified Monomer.Event.Lens as L
 
-instance Default (ActiveStyleCfg s e) where
-  def = ActiveStyleCfg {
+instance Default (CurrentStyleCfg s e) where
+  def = CurrentStyleCfg {
     _ascIsHovered = isNodeHovered,
     _ascIsFocused = isNodeFocused,
     _ascIsActive = isNodeActive
@@ -89,17 +89,17 @@ collectStyleField_ fieldS source target = style where
   disabled = setValue L.disabled
   style = Style basic hover focus focusHover active disabled
 
--- | Returns the active style for the given node.
-activeStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
-activeStyle wenv node = activeStyle_ def wenv node
+-- | Returns the current style state for the given node.
+currentStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
+currentStyle wenv node = currentStyle_ def wenv node
 
 {-|
-Returns the active style for the given node, using the provided functions to
-determine hover, focus and active status.
+Returns the current style state for the given node, using the provided functions
+to determine hover, focus and active status.
 -}
-activeStyle_
-  :: ActiveStyleCfg s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
-activeStyle_ config wenv node = fromMaybe def styleState where
+currentStyle_
+  :: CurrentStyleCfg s e -> WidgetEnv s e -> WidgetNode s e -> StyleState
+currentStyle_ config wenv node = fromMaybe def styleState where
   Style{..} = node ^. L.info . L.style
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
@@ -132,13 +132,13 @@ focusedStyle_ isHoveredFn wenv node = fromMaybe def styleState where
     | isHover = _styleFocusHover
     | otherwise = _styleFocus
 
--- | Returns the active theme for the node.
-activeTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
-activeTheme wenv node = activeTheme_ isNodeHovered wenv node
+-- | Returns the current theme for the node.
+currentTheme :: WidgetEnv s e -> WidgetNode s e -> ThemeState
+currentTheme wenv node = currentTheme_ isNodeHovered wenv node
 
--- | Returns the active theme for the node.
-activeTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
-activeTheme_ isHoveredFn wenv node = themeState where
+-- | Returns the current theme for the node.
+currentTheme_ :: IsHovered s e -> WidgetEnv s e -> WidgetNode s e -> ThemeState
+currentTheme_ isHoveredFn wenv node = themeState where
   theme = _weTheme wenv
   mousePos = wenv ^. L.inputStatus . L.mousePos
   isEnabled = node ^. L.info . L.enabled
@@ -213,8 +213,8 @@ handleStyleChange wenv target style doCursor node evt result = newResult where
     | otherwise = tmpResult
 
 {-|
-Replacement of activeStyle for child widgets embedded in a focusable parent. It
-selects the correct style state according to the situation.
+Replacement of currentStyle for child widgets embedded in a focusable
+parent. It selects the correct style state according to the situation.
 
 Used, for example, in `button` and `externalLink`, which are focusable but have
 an embedded label. Since label is not focusable, that style would not be handled
@@ -242,7 +242,7 @@ childOfFocusedStyle wenv cnode = newStyle where
     | (hoverC || hoverP) && focusP = fromMaybe def (_styleFocusHover cstyle)
     | hoverC || hoverP = fromMaybe def (_styleHover cstyle)
     | focusP = fromMaybe def (_styleFocus cstyle)
-    | otherwise = activeStyle wenv cnode
+    | otherwise = currentStyle wenv cnode
 
 -- Helpers
 handleSizeChange
