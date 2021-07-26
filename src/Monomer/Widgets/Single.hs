@@ -416,12 +416,12 @@ disposeWrapper single wenv node = result where
 
 defaultFindNextFocus :: SingleFindNextFocusHandler s e
 defaultFindNextFocus wenv node direction startFrom
-  | isFocusCandidate direction startFrom node = Just (node ^. L.info)
+  | isFocusCandidate node startFrom direction = Just (node ^. L.info)
   | otherwise = Nothing
 
 defaultFindByPoint :: SingleFindByPointHandler s e
 defaultFindByPoint wenv node start point
-  | visible && validPath && isPointInNodeVp point node = Just info
+  | visible && validPath && isPointInNodeVp node point = Just info
   | otherwise = Nothing
   where
     info = node ^. L.info

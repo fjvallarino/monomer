@@ -403,7 +403,7 @@ makeInputField config state = widget where
     ButtonAction point btn BtnPressed clicks
       | dragSelectText btn && clicks == 1 -> Just result where
         style = activeStyle wenv node
-        contentArea = getContentArea style node
+        contentArea = getContentArea node style
         newPos = findClosestGlyphPos state point
         newState = newFieldState currVal currText newPos Nothing
         newNode = node
@@ -454,7 +454,7 @@ makeInputField config state = widget where
     Move point
       | isNodePressed wenv node && not shiftPressed -> Just result where
         style = activeStyle wenv node
-        contentArea = getContentArea style node
+        contentArea = getContentArea node style
         newPos = findClosestGlyphPos state point
         newSel = currSel <|> Just currPos
         newState = newFieldState currVal currText newPos newSel
@@ -529,14 +529,14 @@ makeInputField config state = widget where
       newNode = node
         & L.widget .~ makeInputField config newState
       newResult = resultReqs newNode reqs
-      focusRs = handleFocusChange (_ifcOnFocusReq config) prev newNode
+      focusRs = handleFocusChange newNode prev (_ifcOnFocusReq config)
       result = maybe newResult (newResult <>) focusRs
 
     -- Handle blur and disable custom drag handlers
     Blur next -> Just result where
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs node reqs
-      blurResult = handleFocusChange (_ifcOnBlurReq config) next node
+      blurResult = handleFocusChange node next (_ifcOnBlurReq config)
       result = maybe newResult (newResult <>) blurResult
 
     _ -> Nothing
@@ -656,7 +656,7 @@ makeInputField config state = widget where
       style = activeStyle wenv node
       placeholderStyle = style
         & L.text . non def . L.fontColor .~ style ^. L.sndColor
-      carea = getContentArea style node
+      carea = getContentArea node style
       Rect cx cy _ _ = carea
       selectOnFocus = _ifcSelectOnFocus config
       focused = isNodeFocused wenv node
@@ -831,7 +831,7 @@ newTextState
   -> InputFieldState a
 newTextState wenv node oldState config value text cursor sel = newState where
   style = activeStyle wenv node
-  contentArea = getContentArea style node
+  contentArea = getContentArea node style
   caretW = fromMaybe defCaretW (_ifcCaretWidth config)
   Rect cx cy cw ch = contentArea
   alignH = inputFieldAlignH style
@@ -890,7 +890,7 @@ updatePlaceholder
 updatePlaceholder wenv node state config = newState where
   fontMgr = wenv ^. L.fontManager
   style = activeStyle wenv node
-  Rect cx cy cw ch = getContentArea style node
+  Rect cx cy cw ch = getContentArea node style
   carea = Rect 0 0 cw ch
   size = Size cw ch
   -- Placeholder style

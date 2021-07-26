@@ -587,20 +587,20 @@ makeTextArea wdata config state = widget where
       viewport = node ^. L.info . L.viewport
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newResult = resultReqs node reqs
-      focusRs = handleFocusChange (_tacOnFocusReq config) prev newNode
+      focusRs = handleFocusChange newNode prev (_tacOnFocusReq config)
       result = maybe newResult (newResult <>) focusRs
 
     Blur next -> Just result where
       reqs = [RenderStop widgetId, StopTextInput]
       newResult = resultReqs node reqs
-      blurRes = handleFocusChange (_tacOnBlurReq config) next node
+      blurRes = handleFocusChange node next (_tacOnBlurReq config)
       result = maybe newResult (newResult <>) blurRes
     _ -> Nothing
 
     where
       widgetId = node ^. L.info . L.widgetId
       style = activeStyle wenv node
-      Rect cx cy cw ch = getContentArea style node
+      Rect cx cy cw ch = getContentArea node style
       localPoint point = subPoint point (Point cx cy)
 
   insertText wenv node addedText = result where
@@ -633,7 +633,7 @@ makeTextArea wdata config state = widget where
     style = activeStyle wenv node
     scPath = parentPath node
     scWid = findWidgetIdFromPath wenv scPath
-    contentArea = getContentArea style node
+    contentArea = getContentArea node style
     offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
     caretRect = getCaretRect config newState True
     -- Padding/border added to show left/top borders when moving near them
@@ -663,7 +663,7 @@ makeTextArea wdata config state = widget where
         drawRect renderer caretRect (Just caretColor) Nothing
     where
       style = activeStyle wenv node
-      contentArea = getContentArea style node
+      contentArea = getContentArea node style
       ts = _weTimestamp wenv
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
 

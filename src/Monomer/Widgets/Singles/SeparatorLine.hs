@@ -120,7 +120,7 @@ makeSeparatorLine config = widget where
       fgColor = styleFgColor style
       width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)
 
-      Rect cx cy cw ch = getContentArea style node
+      Rect cx cy cw ch = getContentArea node style
       lineW = cx + (cw - width) / 2
       lineH = cy + (ch - width) / 2
       lineRect

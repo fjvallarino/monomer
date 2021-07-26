@@ -55,8 +55,8 @@ import Monomer.Helper
 import qualified Monomer.Core.Lens as L
 
 -- | Returns the content area (i.e., ignoring border and padding) of the node.
-getContentArea :: StyleState -> WidgetNode s e -> Rect
-getContentArea style node = fromMaybe def area where
+getContentArea :: WidgetNode s e -> StyleState -> Rect
+getContentArea node style = fromMaybe def area where
   area = removeOuterBounds style (node ^. L.info . L.viewport)
 
 instance CmbStyle Style where

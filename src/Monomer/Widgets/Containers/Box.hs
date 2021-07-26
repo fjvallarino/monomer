@@ -322,8 +322,8 @@ makeBox config state = widget where
       & L.isActive .~ isNodeTreeActive
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange (_boxOnFocusReq config) prev node
-    Blur next -> handleFocusChange (_boxOnBlurReq config) next node
+    Focus prev -> handleFocusChange node prev (_boxOnFocusReq config)
+    Blur next -> handleFocusChange node next (_boxOnBlurReq config)
 
     Enter point
       | not (null reqs) && inChildVp point -> result where

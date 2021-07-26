@@ -536,7 +536,7 @@ compositeFindByPoint comp state wenv widgetComp start point
     widget = _cpsRoot ^. L.widget
     model = getModel comp wenv
     cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
-    next = nextTargetStep start widgetComp
+    next = nextTargetStep widgetComp start
     validStep = isNothing next || next == Just 0
     resultInfo = widgetFindByPoint widget cwenv _cpsRoot start point
 
@@ -557,7 +557,7 @@ compositeFindBranchByPath comp state wenv widgetComp path
     model = getModel comp wenv
     cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
     info = widgetComp ^. L.info
-    nextStep = nextTargetStep path widgetComp
+    nextStep = nextTargetStep widgetComp path
     child = _cpsRoot
     childrenInst = widgetFindBranchByPath (child ^. L.widget) cwenv child path
 
@@ -598,7 +598,7 @@ compositeHandleMessage
   -> i
   -> Maybe (WidgetResult sp ep)
 compositeHandleMessage comp state@CompositeState{..} wenv widgetComp target arg
-  | isTargetReached target widgetComp = case cast arg of
+  | isTargetReached widgetComp target = case cast arg of
       Just evt -> Just $ handleMsgEvent comp state wenv widgetComp evt
       Nothing -> case cast arg of
         Just (CompMsgUpdate msg) -> handleMsgUpdate comp state wenv widgetComp <$> cast msg

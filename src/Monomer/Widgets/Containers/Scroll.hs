@@ -392,7 +392,7 @@ makeScroll config state = widget where
     childPoint = addPoint point offset
 
     child = Seq.index (node ^. L.children) 0
-    childHovered = isPointInNodeVp childPoint child
+    childHovered = isPointInNodeVp child childPoint
     childDragged = isNodePressed wenv child
     result
       | (not mouseInScroll && childHovered) || childDragged = Just 0
@@ -492,7 +492,7 @@ makeScroll config state = widget where
     where
       theme = activeTheme wenv node
       style = scrollActiveStyle wenv node
-      contentArea = getContentArea style node
+      contentArea = getContentArea node style
       mousePos = wenv ^. L.inputStatus . L.mousePos
 
       Rect cx cy cw ch = contentArea
@@ -517,7 +517,7 @@ makeScroll config state = widget where
 
   scrollTo wenv node targetRect = result where
     style = scrollActiveStyle wenv node
-    contentArea = getContentArea style node
+    contentArea = getContentArea node style
 
     rect = moveRect offset targetRect
     Rect rx ry rw rh = rect
@@ -713,7 +713,7 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
   Size vpWidth vpHeight = _sstVpSize scrollState
   theme = activeTheme wenv node
   style = scrollActiveStyle wenv node
-  contentArea = getContentArea style node
+  contentArea = getContentArea node style
 
   barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
   thumbW = fromMaybe (theme ^. L.scrollThumbWidth) (_scThumbWidth config)

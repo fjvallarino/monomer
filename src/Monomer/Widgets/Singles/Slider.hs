@@ -343,9 +343,9 @@ makeSlider isHz field minVal maxVal config state = widget where
       & L.widget .~ makeSlider isHz field minVal maxVal config newState
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
+    Focus prev -> handleFocusChange node prev (_slcOnFocusReq config)
 
-    Blur next -> handleFocusChange (_slcOnBlurReq config) next node
+    Blur next -> handleFocusChange node next (_slcOnBlurReq config)
 
     KeyAction mod code KeyPressed
       | ctrlPressed && isInc code -> handleNewPos (pos + warpSpeed)
@@ -389,7 +389,7 @@ makeSlider isHz field minVal maxVal config state = widget where
     where
       theme = activeTheme wenv node
       style = activeStyle wenv node
-      vp = getContentArea style node
+      vp = getContentArea node style
       widgetId = node ^. L.info . L.widgetId
       shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       SliderState maxPos pos = state
@@ -442,7 +442,7 @@ makeSlider isHz field minVal maxVal config state = widget where
       sliderRadius = radius <$> radiusW
       SliderState maxPos pos = state
       posPct = fromIntegral pos / fromIntegral maxPos
-      carea = getContentArea style node
+      carea = getContentArea node style
       Rect cx cy cw ch = carea
       barW
         | isHz = ch

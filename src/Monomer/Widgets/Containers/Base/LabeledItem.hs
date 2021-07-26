@@ -95,11 +95,11 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
   filterEvent :: ContainerFilterHandler s e
   filterEvent wenv node target evt = case evt of
     Click p btn clicks
-      | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
+      | isPointInNodeVp labelNode p -> Just (newPath, newEvt) where
         newEvt = Click targetCenter btn clicks
 
     ButtonAction p btn BtnPressed clicks
-      | isPointInNodeVp p labelNode -> Just (newPath, newEvt) where
+      | isPointInNodeVp labelNode p -> Just (newPath, newEvt) where
         newEvt = ButtonAction targetCenter btn BtnPressed clicks
 
     _ -> Just (target, evt)

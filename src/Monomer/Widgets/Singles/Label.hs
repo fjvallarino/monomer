@@ -216,7 +216,7 @@ makeLabel config state = widget where
     prevResize = _lstPrevResize state
     style = labelActiveStyle wenv node
 
-    cw = getContentArea style node ^. L.w
+    cw = getContentArea node style ^. L.w
     defaultFactor
       | mode == MultiLine = 1
       | overflow == Ellipsis = 0.01

@@ -227,9 +227,9 @@ handleEvent
   -> [EventResponse Color ColorPickerEvt sp ep]
 handleEvent cfg wenv node model evt = case evt of
   PickerFocus prev
-    | not (isNodeParentOfPath prev node) -> reportFocus prev
+    | not (isNodeParentOfPath node prev) -> reportFocus prev
   PickerBlur next
-    | not (isNodeParentOfPath next node) -> reportBlur next
+    | not (isNodeParentOfPath node next) -> reportBlur next
   ColorChanged _ -> reportChange
   AlphaChanged _ -> reportChange
   _ -> []

@@ -144,7 +144,7 @@ makeTooltip caption config state = widget where
         & L.widget .~ makeTooltip caption config newState
 
     Move point
-      | isPointInNodeVp point node -> Just result where
+      | isPointInNodeVp node point -> Just result where
         widgetId = node ^. L.info . L.widgetId
         prevDisplayed = tooltipDisplayed wenv node
         newState = state {

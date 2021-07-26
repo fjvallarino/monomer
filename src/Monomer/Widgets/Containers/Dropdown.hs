@@ -301,30 +301,30 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
     mainNode = Seq.index children mainIdx
     listNode = Seq.index children listIdx
     result
-      | isOpen && isPointInNodeVp point listNode = Just listIdx
-      | not isOpen && isPointInNodeVp point mainNode = Just mainIdx
+      | isOpen && isPointInNodeVp listNode point = Just listIdx
+      | not isOpen && isPointInNodeVp mainNode point = Just mainIdx
       | otherwise = Nothing
 
-  ddFocusChange reqs prev node = Just newResult where
-    tmpResult = handleFocusChange reqs prev node
+  ddFocusChange node prev reqs = Just newResult where
+    tmpResult = handleFocusChange node prev reqs
     newResult = fromMaybe (resultNode node) tmpResult
       & L.requests %~ (|> IgnoreChildrenEvents)
 
   handleEvent wenv node target evt = case evt of
     Focus prev
-      | not isOpen -> ddFocusChange (_ddcOnFocusReq config) prev node
+      | not isOpen -> ddFocusChange node prev (_ddcOnFocusReq config)
 
     Blur next
       | not isOpen && not (seqStartsWith path focusedPath)
-        -> ddFocusChange (_ddcOnBlurReq config) next node
+        -> ddFocusChange node next (_ddcOnBlurReq config)
 
     Move point -> result where
       mainNode = Seq.index (node ^. L.children) mainIdx
       listNode = Seq.index (node ^. L.children) listIdx
       slPoint = addPoint (negPoint (_ddsOffset state)) point
 
-      validMainPos = not isOpen && isPointInNodeVp point mainNode
-      validListPos = isOpen && isPointInNodeVp slPoint listNode
+      validMainPos = not isOpen && isPointInNodeVp mainNode point
+      validListPos = isOpen && isPointInNodeVp listNode slPoint
       validPos = validMainPos || validListPos
 
       isArrow = Just CursorArrow == (snd <$> wenv ^. L.cursor)
@@ -341,7 +341,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       | openRequired point node -> Just resultOpen
       | closeRequired point node -> Just resultClose
       where
-        inVp = isPointInNodeVp point node
+        inVp = isPointInNodeVp node point
         resultOpen = openDropdown wenv node
           & L.requests <>~ Seq.fromList [SetCursorIcon widgetId CursorArrow]
         resultClose = closeDropdown wenv node
@@ -364,7 +364,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       focusedPath = wenv ^. L.focusedPath
       overlayPath = wenv ^. L.overlayPath
 
-      overlayParent = isNodeParentOfPath (fromJust overlayPath) node
+      overlayParent = isNodeParentOfPath node (fromJust overlayPath)
       nodeValid = isNothing overlayPath || overlayParent
 
   openRequired point node = not isOpen && inViewport where

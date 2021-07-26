@@ -262,8 +262,8 @@ handleSizeChange wenv target evt oldNode result = newResult where
   newSizeReqH = newNode ^. L.info . L.sizeReqH
   sizeReqChanged = oldSizeReqW /= newSizeReqW || oldSizeReqH /= newSizeReqH
   -- Hover drag changed (if dragging, Enter/Leave is not sent)
-  prevInVp = isPointInNodeVp (wenv ^. L.inputStatus . L.mousePosPrev) newNode
-  currInVp = isPointInNodeVp (wenv ^. L.inputStatus . L.mousePos) newNode
+  prevInVp = isPointInNodeVp newNode (wenv ^. L.inputStatus . L.mousePosPrev)
+  currInVp = isPointInNodeVp newNode (wenv ^. L.inputStatus . L.mousePos)
   path = newNode ^. L.info . L.path
   pressedPath = wenv ^. L.mainBtnPress ^? _Just . _1
   hoverDragChg = Just path == pressedPath && prevInVp /= currInVp

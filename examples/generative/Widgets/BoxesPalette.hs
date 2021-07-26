@@ -86,7 +86,7 @@ makeBoxesPalette cfg state = widget where
     mapM_ (drawRectangle renderer state colors vp cols rows) [0..cols * rows - 1]
     where
       style = activeStyle wenv node
-      vp = getContentArea style node
+      vp = getContentArea node style
       iw = cfg ^. itemWidth
       fw = 0.5 + 5 * (state ^. mouseX - vp ^. L.x) / vp ^. L.w
       fh = 0.5 + 5 * (state ^. mouseY - vp ^. L.y) / vp ^. L.h

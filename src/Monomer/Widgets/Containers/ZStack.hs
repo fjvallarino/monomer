@@ -120,7 +120,7 @@ makeZStack config state = widget where
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
     focusedWid = findWidgetIdFromPath wenv focusedPath
-    isFocusParent = isNodeParentOfPath focusedPath node
+    isFocusParent = isNodeParentOfPath node focusedPath
 
     topLevel = isNodeTopLevel wenv node
     flagsChanged = childrenFlagsChanged oldNode node
@@ -152,7 +152,7 @@ makeZStack config state = widget where
       | onlyTopActive = Seq.take 1 $ Seq.filter (_wniVisible . _wnInfo) children
       | otherwise = Seq.filter (_wniVisible . _wnInfo) children
 
-    nextStep = nextTargetStep start node
+    nextStep = nextTargetStep node start
     ch = Seq.index children (fromJust nextStep)
     visible = node ^. L.info . L.visible
     childVisible = ch ^. L.info . L.visible

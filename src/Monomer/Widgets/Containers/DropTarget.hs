@@ -98,19 +98,19 @@ makeDropTarget dropEvt config = widget where
     | otherwise = activeStyle wenv node
     where
       mousePos = wenv ^. L.inputStatus . L.mousePos
-      isHovered = isPointInNodeVp mousePos node
+      isHovered = isPointInNodeVp node mousePos
       style = _dtcDropStyle config
 
   handleEvent wenv node target evt = case evt of
     Drop point path dragMsg
-      | not (isNodeParentOfPath path node) -> Just result where
+      | not (isNodeParentOfPath node path) -> Just result where
         widgetId = node ^. L.info . L.widgetId
         evts = msgToEvts dragMsg
         result = resultEvts node evts
     _ -> Nothing
 
   isDropTarget wenv node = case wenv ^. L.dragStatus of
-    Just (path, msg) -> not (isNodeParentOfPath path node) && isValidMsg msg
+    Just (path, msg) -> not (isNodeParentOfPath node path) && isValidMsg msg
     _ -> False
     where
       isValidMsg = not . null . msgToEvts

@@ -314,7 +314,7 @@ makeSelectList widgetData items makeRow config state = widget where
       | btn == wenv ^. L.mainButton -> result where
         result = Just $ resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 
-    Focus prev -> handleFocusChange (_slcOnFocusReq config) prev node
+    Focus prev -> handleFocusChange node prev (_slcOnFocusReq config)
 
     Blur next -> result where
       tabPressed = wenv ^. L.inputStatus . L.keys . at keyTab == Just KeyPressed

@@ -56,8 +56,8 @@ parentPath node = Seq.take (Seq.length path - 1) path where
   path = node ^. L.info . L.path
 
 -- | Returns the index of the child matching the next step implied by target.
-nextTargetStep :: Path -> WidgetNode s e -> Maybe PathStep
-nextTargetStep target node = nextStep where
+nextTargetStep :: WidgetNode s e -> Path -> Maybe PathStep
+nextTargetStep node target = nextStep where
   currentPath = node ^. L.info . L.path
   nextStep = Seq.lookup (Seq.length currentPath) target
 
@@ -66,33 +66,33 @@ Checks if the node is a candidate for next focus in the given direction. The
 node must be focusable, enabled and visible, plus having the correct position
 considering the direction.
 -}
-isFocusCandidate :: FocusDirection -> Path -> WidgetNode s e -> Bool
-isFocusCandidate FocusFwd = isFocusFwdCandidate
-isFocusCandidate FocusBwd = isFocusBwdCandidate
+isFocusCandidate :: WidgetNode s e -> Path -> FocusDirection -> Bool
+isFocusCandidate node path FocusFwd = isFocusFwdCandidate node path
+isFocusCandidate node path FocusBwd = isFocusBwdCandidate node path
 
 -- | Checks if the node's path matches the target.
-isTargetReached :: Path -> WidgetNode s e -> Bool
-isTargetReached target node = target == node ^. L.info . L.path
+isTargetReached :: WidgetNode s e -> Path -> Bool
+isTargetReached node target = target == node ^. L.info . L.path
 
 -- | Checks if the node has a child matching the next target step.
-isTargetValid :: Path -> WidgetNode s e -> Bool
-isTargetValid target node = valid where
+isTargetValid :: WidgetNode s e -> Path -> Bool
+isTargetValid node target = valid where
   children = node ^. L.children
-  valid = case nextTargetStep target node of
+  valid = case nextTargetStep node target of
     Just step -> step < Seq.length children
     Nothing -> False
 
 -- | Checks if the node is parent of the provided path.
-isNodeParentOfPath :: Path -> WidgetNode s e -> Bool
-isNodeParentOfPath path node = result where
+isNodeParentOfPath :: WidgetNode s e -> Path -> Bool
+isNodeParentOfPath node path = result where
   widgetPath = node ^. L.info . L.path
   lenWidgetPath = Seq.length widgetPath
   pathPrefix = Seq.take lenWidgetPath path
   result = widgetPath == pathPrefix
 
 -- | Checks if the node's path is after the target (deeper or to the right).
-isNodeAfterPath :: Path -> WidgetNode s e -> Bool
-isNodeAfterPath path node = result where
+isNodeAfterPath :: WidgetNode s e -> Path -> Bool
+isNodeAfterPath node path = result where
   widgetPath = node ^. L.info . L.path
   lenPath = Seq.length path
   lenWidgetPath = Seq.length widgetPath
@@ -102,8 +102,8 @@ isNodeAfterPath path node = result where
     | otherwise = path < widgetPath
 
 -- | Checks if the node's path is after the target (higher or to the left).
-isNodeBeforePath :: Path -> WidgetNode s e -> Bool
-isNodeBeforePath path node = result where
+isNodeBeforePath :: WidgetNode s e -> Path -> Bool
+isNodeBeforePath node path = result where
   widgetPath = node ^. L.info . L.path
   result
     | path == emptyPath = True
@@ -111,29 +111,29 @@ isNodeBeforePath path node = result where
 
 -- | Generates a result with events and requests associated to a focus change.
 handleFocusChange
-  :: [Path -> WidgetRequest s e] -- ^ Getter for reqs handler in a config type.
+  :: WidgetNode s e              -- ^ The node receiving the event.
   -> Path                        -- ^ The path of next/prev target, accordingly.
-  -> WidgetNode s e              -- ^ The node receiving the event.
+  -> [Path -> WidgetRequest s e] -- ^ Getter for reqs handler in a config type.
   -> Maybe (WidgetResult s e)    -- ^ The result.
-handleFocusChange reqFns path node = result where
+handleFocusChange node path reqFns = result where
   reqs = ($ path) <$> reqFns
   result
     | not (null reqs) = Just $ resultReqs node reqs
     | otherwise = Nothing
 
 -- Helpers
-isFocusFwdCandidate :: Path -> WidgetNode s e -> Bool
-isFocusFwdCandidate startFrom node = isValid where
+isFocusFwdCandidate :: WidgetNode s e -> Path -> Bool
+isFocusFwdCandidate node startFrom = isValid where
   info = node ^. L.info
-  isAfter = isNodeAfterPath startFrom node
+  isAfter = isNodeAfterPath node startFrom
   isFocusable = info ^. L.focusable
   isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isAfter && isFocusable && isEnabled
 
-isFocusBwdCandidate :: Path -> WidgetNode s e -> Bool
-isFocusBwdCandidate startFrom node = isValid where
+isFocusBwdCandidate :: WidgetNode s e -> Path -> Bool
+isFocusBwdCandidate node startFrom = isValid where
   info = node ^. L.info
-  isBefore = isNodeBeforePath startFrom node
+  isBefore = isNodeBeforePath node startFrom
   isFocusable = info ^. L.focusable
   isEnabled = info ^. L.visible && info ^. L.enabled
   isValid = isBefore && isFocusable && isEnabled

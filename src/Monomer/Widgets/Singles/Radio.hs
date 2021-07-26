@@ -168,9 +168,9 @@ makeRadio field option config = widget where
     style = activeStyle_ (activeStyleConfig radioArea) wenv node
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange (_rdcOnFocusReq config) prev node
+    Focus prev -> handleFocusChange node prev (_rdcOnFocusReq config)
 
-    Blur next -> handleFocusChange (_rdcOnBlurReq config) next node
+    Blur next -> handleFocusChange node next (_rdcOnBlurReq config)
 
     Click p _ _
       | pointInEllipse p rdArea -> Just $ resultReqs node reqs
@@ -209,7 +209,7 @@ getRadioArea :: WidgetEnv s e -> WidgetNode s e -> RadioCfg s e a -> Rect
 getRadioArea wenv node config = radioArea where
   theme = activeTheme wenv node
   style = activeStyle wenv node
-  rarea = getContentArea style node
+  rarea = getContentArea node style
 
   radioW = fromMaybe (theme ^. L.radioWidth) (_rdcWidth config)
   radioL = _rX rarea + (_rW rarea - radioW) / 2

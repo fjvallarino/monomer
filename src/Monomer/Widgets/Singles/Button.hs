@@ -229,8 +229,8 @@ makeButton caption config = widget where
     result = resultNode (createChildNode wenv node)
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange (_btnOnFocusReq config) prev node
-    Blur next -> handleFocusChange (_btnOnBlurReq config) next node
+    Focus prev -> handleFocusChange node prev (_btnOnFocusReq config)
+    Blur next -> handleFocusChange node next (_btnOnBlurReq config)
 
     KeyAction mode code status
       | isSelectKey code && status == KeyPressed -> Just result
@@ -238,7 +238,7 @@ makeButton caption config = widget where
         isSelectKey code = isKeyReturn code || isKeySpace code
 
     Click p _ _
-      | isPointInNodeVp p node -> Just result
+      | isPointInNodeVp node p -> Just result
 
     ButtonAction p btn BtnPressed 1 -- Set focus on click
       | mainBtn btn && pointInVp p && not focused -> Just resultFocus
@@ -247,7 +247,7 @@ makeButton caption config = widget where
     where
       mainBtn btn = btn == wenv ^. L.mainButton
       focused = isNodeFocused wenv node
-      pointInVp p = isPointInNodeVp p node
+      pointInVp p = isPointInNodeVp node p
       reqs = _btnOnClickReq config
       result = resultReqs node reqs
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]

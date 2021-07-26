@@ -40,12 +40,12 @@ import qualified Monomer.Core.Lens as L
 import qualified Monomer.Event.Lens as L
 
 -- | Checks if the given point is inside the node's viewport.
-isPointInNodeVp :: Point -> WidgetNode s e -> Bool
-isPointInNodeVp p node = pointInRect p (node ^. L.info . L.viewport)
+isPointInNodeVp :: WidgetNode s e -> Point -> Bool
+isPointInNodeVp node p = pointInRect p (node ^. L.info . L.viewport)
 
 -- | Checks if the given point is inside the ellipse delimited by the viewport.
-isPointInNodeEllipse :: Point -> WidgetNode s e -> Bool
-isPointInNodeEllipse p node = pointInEllipse p (node ^. L.info . L.viewport)
+isPointInNodeEllipse :: WidgetNode s e -> Point -> Bool
+isPointInNodeEllipse node p = pointInEllipse p (node ^. L.info . L.viewport)
 
 -- | Checks if the main button is pressed and pointer inside the vieport.
 isNodeActive :: WidgetEnv s e -> WidgetNode s e -> Bool

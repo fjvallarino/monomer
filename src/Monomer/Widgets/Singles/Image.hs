@@ -364,7 +364,7 @@ makeImage imgSource config state = widget where
       style = activeStyle wenv node
       border = style ^. L.border
       radius = style ^. L.radius
-      carea = getContentArea style node
+      carea = getContentArea node style
 
       alpha = fromMaybe 1 (_imcTransparency config)
       alignH = fromMaybe ALeft (_imcAlignH config)

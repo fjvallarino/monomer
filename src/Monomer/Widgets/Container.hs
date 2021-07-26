@@ -492,7 +492,7 @@ updateWenvOffset container wenv node = newWenv where
   accumOffset = addPoint offset (wenv ^. L.offset)
   viewport = node ^. L.info . L.viewport
   updateMain (path, point)
-    | isNodeParentOfPath path node = (path, addPoint (negPoint offset) point)
+    | isNodeParentOfPath node path = (path, addPoint (negPoint offset) point)
     | otherwise = (path, point)
   newWenv = wenv
     & L.viewport .~ moveRect (negPoint offset) viewport
@@ -755,7 +755,7 @@ findNextFocusWrapper container wenv node dir start = nextFocus where
     | dir == FocusBwd = Seq.reverse handlerResult
     | otherwise = handlerResult
   nextFocus
-    | isFocusCandidate dir start node = Just (node ^. L.info)
+    | isFocusCandidate node start dir = Just (node ^. L.info)
     | otherwise = findFocusCandidate container wenv dir start node children
 
 findFocusCandidate
@@ -773,8 +773,8 @@ findFocusCandidate container wenv dir start node (ch :<| chs) = result where
   idx = fromMaybe 0 (Seq.lookup (length path - 1) path)
   cwenv = updateCWenv wenv node ch idx
   isWidgetAfterStart
-    | dir == FocusBwd = isNodeBeforePath start ch
-    | otherwise = isNodeParentOfPath start ch || isNodeAfterPath start ch
+    | dir == FocusBwd = isNodeBeforePath ch start
+    | otherwise = isNodeParentOfPath ch start || isNodeAfterPath ch start
 
   candidate = widgetFindNextFocus (ch ^. L.widget) cwenv ch dir start
   result
@@ -802,11 +802,11 @@ findByPointWrapper container wenv node start point = result where
   handler = containerFindByPoint container
 
   isVisible = node ^. L.info . L.visible
-  inVp = isPointInNodeVp point node
+  inVp = isPointInNodeVp node point
   cpoint = addPoint (negPoint offset) point
   path = node ^. L.info . L.path
   children = node ^. L.children
-  childIdx = nextTargetStep start node <|> handler wenv node start cpoint
+  childIdx = nextTargetStep node start <|> handler wenv node start cpoint
   validateIdx p
     | Seq.length children > p && p >= 0 = Just p
     | otherwise = Nothing
@@ -836,7 +836,7 @@ containerFindBranchByPath wenv node path
   where
     children = node ^. L.children
     info = node ^. L.info
-    nextStep = nextTargetStep path node
+    nextStep = nextTargetStep node path
     nextChild = nextStep >>= flip Seq.lookup children
     nextInst child = widgetFindBranchByPath (child ^. L.widget) wenv child path
 
@@ -871,8 +871,8 @@ handleEventWrapper container wenv node baseTarget baseEvt
     filterHandler = containerFilterEvent container
     eventHandler = containerHandleEvent container
 
-    targetReached = isTargetReached target node
-    targetValid = isTargetValid target node
+    targetReached = isTargetReached node target
+    targetValid = isTargetValid node target
     filteredEvt = filterHandler wenv node baseTarget baseEvt
     (target, evt) = fromMaybe (baseTarget, baseEvt) filteredEvt
     -- Event targeted at parent
@@ -882,7 +882,7 @@ handleEventWrapper container wenv node baseTarget baseEvt
     -- Event targeted at children
     pNode = maybe node (^. L.node) pResult
     cwenv = updateCWenv wenv pNode child childIdx
-    childIdx = fromJust $ nextTargetStep target pNode
+    childIdx = fromJust $ nextTargetStep pNode target
     children = pNode ^. L.children
     child = Seq.index children childIdx
     childWidget = child ^. L.widget
@@ -947,9 +947,9 @@ handleMessageWrapper container wenv node target arg
     updateCWenv = getUpdateCWenv container
     handler = containerHandleMessage container
 
-    targetReached = isTargetReached target node
-    targetValid = isTargetValid target node
-    childIdx = fromJust $ nextTargetStep target node
+    targetReached = isTargetReached node target
+    targetValid = isTargetValid node target
+    childIdx = fromJust $ nextTargetStep node target
     children = node ^. L.children
     child = Seq.index children childIdx
     cwenv = updateCWenv wenv node child childIdx

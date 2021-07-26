@@ -47,40 +47,40 @@ testParentPath = describe "parentPath" $ do
 testNextTargetStep :: Spec
 testNextTargetStep = describe "nextTargetStep" $ do
   it "should return Nothing if next step is not valid" $ do
-    nextTargetStep (path []) (pathNode []) `shouldBe` Nothing
-    nextTargetStep (path []) (pathNode_ [] 5) `shouldBe` Nothing
-    nextTargetStep (path [0]) (pathNode_ [0] 5) `shouldBe` Nothing
-    nextTargetStep (path [3]) (pathNode_ [0] 5) `shouldBe` Nothing
+    nextTargetStep (pathNode []) (path []) `shouldBe` Nothing
+    nextTargetStep (pathNode_ [] 5) (path []) `shouldBe` Nothing
+    nextTargetStep (pathNode_ [0] 5) (path [0]) `shouldBe` Nothing
+    nextTargetStep (pathNode_ [0] 5) (path [3]) `shouldBe` Nothing
 
   it "should return a valid target step" $ do
-    nextTargetStep (path [2]) (pathNode_ [] 5) `shouldBe` Just 2
-    nextTargetStep (path [0, 3]) (pathNode_ [0] 5) `shouldBe` Just 3
+    nextTargetStep (pathNode_ [] 5) (path [2]) `shouldBe` Just 2
+    nextTargetStep (pathNode_ [0] 5) (path [0, 3]) `shouldBe` Just 3
 
 testIsFocusCandidate :: Spec
 testIsFocusCandidate = describe "isFocusCandidate" $ do
   it "should return False if not backward candidate" $ do
-    isFocusCandidate FocusBwd (path [0]) (pathNode [0]) `shouldBe` False
-    isFocusCandidate FocusBwd (path [0, 0]) (pathNode [0, 1]) `shouldBe` False
+    isFocusCandidate (pathNode [0]) (path [0]) FocusBwd `shouldBe` False
+    isFocusCandidate (pathNode [0, 1]) (path [0, 0]) FocusBwd `shouldBe` False
 
   it "should return True if backward candidate" $ do
-    isFocusCandidate FocusBwd (path []) (pathNode []) `shouldBe` True
-    isFocusCandidate FocusBwd (path [0]) (pathNode []) `shouldBe` True
-    isFocusCandidate FocusBwd (path [1]) (pathNode [0]) `shouldBe` True
-    isFocusCandidate FocusBwd (path [0, 1]) (pathNode [0, 0]) `shouldBe` True
-    isFocusCandidate FocusBwd (path [0, 0, 1]) (pathNode [0, 0]) `shouldBe` True
-    isFocusCandidate FocusBwd (path [0, 2]) (pathNode [0, 1, 1]) `shouldBe` True
+    isFocusCandidate (pathNode []) (path []) FocusBwd `shouldBe` True
+    isFocusCandidate (pathNode []) (path [0]) FocusBwd `shouldBe` True
+    isFocusCandidate (pathNode [0]) (path [1]) FocusBwd `shouldBe` True
+    isFocusCandidate (pathNode [0, 0]) (path [0, 1]) FocusBwd `shouldBe` True
+    isFocusCandidate (pathNode [0, 0]) (path [0, 0, 1]) FocusBwd `shouldBe` True
+    isFocusCandidate (pathNode [0, 1, 1]) (path [0, 2]) FocusBwd `shouldBe` True
 
   it "should return False if not forward candidate" $ do
-    isFocusCandidate FocusFwd (path []) (pathNode []) `shouldBe` False
-    isFocusCandidate FocusFwd (path [0]) (pathNode []) `shouldBe` False
-    isFocusCandidate FocusFwd (path [1]) (pathNode [0]) `shouldBe` False
-    isFocusCandidate FocusFwd (path [0, 1]) (pathNode [0, 0]) `shouldBe` False
+    isFocusCandidate (pathNode []) (path []) FocusFwd `shouldBe` False
+    isFocusCandidate (pathNode []) (path [0]) FocusFwd `shouldBe` False
+    isFocusCandidate (pathNode [0]) (path [1]) FocusFwd `shouldBe` False
+    isFocusCandidate (pathNode [0, 0]) (path [0, 1]) FocusFwd `shouldBe` False
 
   it "should return True if forward candidate" $ do
-    isFocusCandidate FocusFwd (path []) (pathNode [0]) `shouldBe` True
-    isFocusCandidate FocusFwd (path [0]) (pathNode [1]) `shouldBe` True
-    isFocusCandidate FocusFwd (path [0, 0]) (pathNode [0, 1]) `shouldBe` True
-    isFocusCandidate FocusFwd (path [0, 1, 1]) (pathNode [0, 2]) `shouldBe` True
+    isFocusCandidate (pathNode [0]) (path []) FocusFwd `shouldBe` True
+    isFocusCandidate (pathNode [1]) (path [0]) FocusFwd `shouldBe` True
+    isFocusCandidate (pathNode [0, 1]) (path [0, 0]) FocusFwd `shouldBe` True
+    isFocusCandidate (pathNode [0, 2]) (path [0, 1, 1]) FocusFwd `shouldBe` True
 
 path :: [PathStep] -> Path
 path p = Seq.fromList p

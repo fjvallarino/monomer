@@ -261,9 +261,9 @@ makeDial field minVal maxVal config state = widget where
       (_, dialArea) = getDialInfo wenv node config
 
   handleEvent wenv node target evt = case evt of
-    Focus prev -> handleFocusChange (_dlcOnFocusReq config) prev node
+    Focus prev -> handleFocusChange node prev (_dlcOnFocusReq config)
 
-    Blur next -> handleFocusChange (_dlcOnBlurReq config) next node
+    Blur next -> handleFocusChange node next (_dlcOnBlurReq config)
 
     KeyAction mod code KeyPressed
       | ctrlPressed && isKeyUp code -> handleNewPos (pos + warpSpeed)
@@ -384,7 +384,7 @@ getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
 getDialInfo wenv node config = (dialCenter, dialArea) where
   theme = activeTheme wenv node
   style = activeStyle wenv node
-  carea = getContentArea style node
+  carea = getContentArea node style
 
   dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
   dialL = _rX carea + (_rW carea - dialW) / 2

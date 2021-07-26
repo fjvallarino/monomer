@@ -117,7 +117,7 @@ makeCanvas cfg state = widget where
       origin = Point (vp ^. L.x) (vp ^. L.y)
       clicked = state ^. clickedPoints
       points
-        | isPointInNodeVp mousePos node = reverse $ newPoint : clicked
+        | isPointInNodeVp node mousePos = reverse $ newPoint : clicked
         | otherwise = reverse clicked
       tuples = zip3 [0..] points (drop 1 points)
 
