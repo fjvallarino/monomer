@@ -250,8 +250,8 @@ baseBasic themeMod = def
   & L.scrollFollowFocus .~ True
   & L.scrollBarColor .~ scrollBarBasic themeMod
   & L.scrollThumbColor .~ scrollThumbBasic themeMod
-  & L.scrollBarWidth .~ 10
-  & L.scrollThumbWidth .~ 10
+  & L.scrollBarWidth .~ 8
+  & L.scrollThumbWidth .~ 8
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
   & L.separatorLineWidth .~ 1

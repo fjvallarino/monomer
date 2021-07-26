@@ -789,12 +789,12 @@
   - Default checkbox mark should be X instead of square.
   - Rethink activeStyle, activeTheme style related function names.
     - Order of arguments?
+  - Scroll bar width
 
 Next
   - Rename style combinators?
   - Document themes and how widgets use them.
   - Maybe spacer should be 8 pixels wide.
-  - Scroll bar width
   - Fix Tutorial 6 colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.

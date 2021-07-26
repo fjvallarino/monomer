@@ -30,6 +30,7 @@ lightThemeColors :: BaseThemeColors
 lightThemeColors = BaseThemeColors {
   clearColor = gray10, -- gray12,
   sectionColor = gray09, -- gray11,
+
   btnFocusBorder = blue08,
   btnBgBasic = gray07,
   btnBgHover = gray08,
@@ -38,6 +39,7 @@ lightThemeColors = BaseThemeColors {
   btnBgDisabled = gray05,
   btnText = gray02,
   btnTextDisabled = gray02,
+
   btnMainFocusBorder = blue09,
   btnMainBgBasic = blue05,
   btnMainBgHover = blue06,
@@ -46,21 +48,26 @@ lightThemeColors = BaseThemeColors {
   btnMainBgDisabled = blue04,
   btnMainText = white,
   btnMainTextDisabled = white,
+
   dialogBg = white,
   dialogBorder = white,
   dialogText = black,
   dialogTitleText = black,
   emptyOverlay = gray07 & L.a .~ 0.8,
+
   externalLinkBasic = blue07,
   externalLinkHover = blue08,
   externalLinkFocus = blue07,
   externalLinkActive = blue06,
   externalLinkDisabled = gray06,
+
   iconBg = gray07,
   iconFg = gray01,
+
   inputIconFg = black,
   inputBorder = gray06,
   inputFocusBorder = blue07,
+
   inputBgBasic = gray10,
   inputBgHover = white,
   inputBgFocus = white,
@@ -72,52 +79,42 @@ lightThemeColors = BaseThemeColors {
   inputFgFocus = blue07,
   inputFgActive = blue06,
   inputFgDisabled = gray04,
+
   inputSndBasic = gray04,
   inputSndHover = gray05,
   inputSndFocus = gray05,
   inputSndActive = gray04,
   inputSndDisabled = gray03,
+
   inputHlBasic = gray06,
   inputHlHover = blue07,
   inputHlFocus = blue07,
   inputHlActive = blue06,
   inputHlDisabled = gray05,
 
-{-
-  inputFgBasic = blue06,
-  inputFgHover = blue07,
-  inputFgFocus = blue07,
-  inputFgActive = blue08,
-  inputFgDisabled = gray07,
-  inputSndBasic = gray07,
-  inputSndHover = gray08,
-  inputSndFocus = gray08,
-  inputSndActive = gray09,
-  inputSndDisabled = gray06,
-  inputHlBasic = blue08,
-  inputHlHover = blue09,
-  inputHlFocus = blue09,
-  inputHlActive = blue07,
-  inputHlDisabled = gray06,
--}
   inputSelBasic = gray07,
   inputSelFocus = blue08,
+
   inputText = black,
   inputTextDisabled = gray02,
   labelText = black,
-  scrollBarBasic = gray01 & L.a .~ 0.2,
-  scrollThumbBasic = gray07 & L.a .~ 0.6,
-  scrollBarHover = gray01 & L.a .~ 0.4,
-  scrollThumbHover = gray07 & L.a .~ 0.8,
+
+  scrollBarBasic = gray03 & L.a .~ 0.2,
+  scrollThumbBasic = gray01 & L.a .~ 0.2,
+  scrollBarHover = gray07 & L.a .~ 0.8,
+  scrollThumbHover = gray05 & L.a .~ 0.8,
+
   slMainBg = white,
   slNormalBgBasic = transparent,
   slNormalBgHover = gray09,
   slNormalText = black,
   slNormalFocusBorder = blue07,
+
   slSelectedBgBasic = gray08,
   slSelectedBgHover = gray09,
   slSelectedText = black,
   slSelectedFocusBorder = blue07,
+
   tooltipBorder = gray09,
   tooltipBg = gray10,
   tooltipText = black
@@ -130,12 +127,14 @@ darkThemeColors :: BaseThemeColors
 darkThemeColors = BaseThemeColors {
   clearColor = gray03,
   sectionColor = gray02,
+
   btnFocusBorder = blue09,
   btnBgBasic = gray07,
   btnBgHover = gray09,
   btnBgFocus = gray08,
   btnBgActive = gray06,
   btnBgDisabled = gray05,
+
   btnText = gray02,
   btnTextDisabled = gray01,
   btnMainFocusBorder = blue08,
@@ -146,59 +145,73 @@ darkThemeColors = BaseThemeColors {
   btnMainBgDisabled = blue04,
   btnMainText = white,
   btnMainTextDisabled = gray08,
+
   dialogBg = gray01,
   dialogBorder = gray01,
   dialogText = white,
   dialogTitleText = white,
   emptyOverlay = gray05 & L.a .~ 0.8,
+
   externalLinkBasic = blue07,
   externalLinkHover = blue08,
   externalLinkFocus = blue07,
   externalLinkActive = blue06,
   externalLinkDisabled = gray06,
+
   iconBg = gray08,
   iconFg = gray01,
+
   inputIconFg = black,
   inputBorder = gray02,
   inputFocusBorder = blue08,
+
   inputBgBasic = gray04,
   inputBgHover = gray06,
   inputBgFocus = gray05,
   inputBgActive = gray03,
   inputBgDisabled = gray07,
+
   inputFgBasic = gray06,
   inputFgHover = blue08,
   inputFgFocus = blue08,
   inputFgActive = blue07,
   inputFgDisabled = gray07,
+
   inputSndBasic = gray05,
   inputSndHover = gray06,
   inputSndFocus = gray05,
   inputSndActive = gray05,
   inputSndDisabled = gray03,
+
   inputHlBasic = gray07,
   inputHlHover = blue08,
   inputHlFocus = blue08,
   inputHlActive = blue08,
   inputHlDisabled = gray08,
+
   inputSelBasic = gray06,
   inputSelFocus = blue06,
+
   inputText = white,
   inputTextDisabled = gray02,
   labelText = white,
+
   scrollBarBasic = gray01 & L.a .~ 0.2,
   scrollThumbBasic = gray07 & L.a .~ 0.6,
   scrollBarHover = gray01 & L.a .~ 0.4,
   scrollThumbHover = gray07 & L.a .~ 0.8,
+
   slMainBg = gray00,
   slNormalBgBasic = transparent,
   slNormalBgHover = gray05,
   slNormalText = white,
   slNormalFocusBorder = blue08,
+
   slSelectedBgBasic = gray04,
   slSelectedBgHover = gray05,
   slSelectedText = white,
   slSelectedFocusBorder = blue08,
+
   tooltipBorder = gray09,
   tooltipBg = gray04,
   tooltipText = white
