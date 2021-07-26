@@ -281,7 +281,6 @@ makeInputField config state = widget where
     newTextL = T.length newText
     newPos
       | oldText == newText = oldPos
-      | oldText /= "" && oldPos <= newTextL = oldPos
       | _ifcDefCursorEnd config = newTextL
       | otherwise = 0
     newSelStart
