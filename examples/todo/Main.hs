@@ -113,14 +113,35 @@ buildUI wenv model = widgetTree where
   newButton = mainButton "New" TodoNew `key` "todoNew"
     `visible` not isEditing
 
-  widgetTree = vstack [
-      keystroke [("Esc", TodoCancel)] (todoEdit wenv model)
-        `visible` isEditing,
+  editLayer = content where
+    saveAction = case model ^. action of
+      TodoEditing idx -> TodoSave idx
+      _ -> TodoAdd
+
+    dualSlide content = outer where
+      inner = slideIn_ [topSide, duration 200] content
+        `key` "animEditIn"
+      outer = slideOut_ [topSide, duration 200, onFinished TodoHideEditDone] inner
+        `key` "animEditOut"
+
+    content = vstack [
+        dualSlide $
+          keystroke [("Enter", saveAction), ("Esc", TodoCancel)] $
+            todoEdit wenv model,
+        filler
+      ] `style` [bgColor (grayDark & L.a .~ 0.5)]
+
+  mainLayer = vstack [
       countLabel,
       scroll_ [] (todoList `style` [padding 20, paddingT 5]),
       filler,
       box_ [alignRight] newButton
         `style` [bgColor sectionBg, padding 20]
+    ]
+
+  widgetTree = zstack [
+      mainLayer,
+      editLayer `visible` isEditing
     ]
 
 handleEvent
@@ -130,44 +151,57 @@ handleEvent
   -> TodoEvt
   -> [EventResponse TodoModel TodoEvt TodoModel ()]
 handleEvent wenv node model evt = case evt of
-  TodoInit -> [setFocusOnKey wenv "todoDesc"]
+  TodoInit -> [setFocusOnKey wenv "todoNew"]
   TodoNew -> [
+    Event TodoShowEdit,
     Model $ model
       & action .~ TodoAdding
       & activeTodo .~ def,
     setFocusOnKey wenv "todoDesc"]
   TodoEdit idx td -> [
+    Event TodoShowEdit,
     Model $ model
       & action .~ TodoEditing idx
       & activeTodo .~ td,
     setFocusOnKey wenv "todoDesc"]
   TodoAdd -> [
+    Event TodoHideEdit,
     Model $ addNewTodo wenv model,
-    setFocusOnKey wenv "todoDesc"]
+    setFocusOnKey wenv "todoNew"]
   TodoSave idx -> [
+    Event TodoHideEdit,
     Model $ model
-      & action .~ TodoNone
       & todos . ix idx .~ (model ^. activeTodo),
-    setFocusOnKey wenv "todoDesc"]
+    setFocusOnKey wenv "todoNew"]
   TodoDeleteBegin idx todo -> [
     Message (WidgetKey (todoRowKey todo)) AnimationStart]
   TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
-    setFocusOnKey wenv "todoDesc"]
+    setFocusOnKey wenv "todoNew"]
   TodoCancel -> [
+    Event TodoHideEdit,
     Model $ model
-      & action .~ TodoNone
       & activeTodo .~ def,
-    setFocusOnKey wenv "todoDesc"]
+    setFocusOnKey wenv "todoNew"]
+  TodoShowEdit -> [
+    Message "animEditIn" AnimationStart,
+    Message "animEditOut" AnimationStop
+    ]
+  TodoHideEdit -> [
+    Message "animEditIn" AnimationStop,
+    Message "animEditOut" AnimationStart
+    ]
+  TodoHideEditDone -> [
+    Model $ model
+      & action .~ TodoNone]
 
 addNewTodo :: WidgetEnv s e -> TodoModel -> TodoModel
 addNewTodo wenv model = newModel where
   newTodo = model ^. activeTodo
     & todoId .~ wenv ^. L.timestamp
   newModel = model
-    & action .~ TodoNone
     & todos .~ (newTodo : model ^. todos)
 
 initialTodos :: [Todo]

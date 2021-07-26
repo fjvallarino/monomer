@@ -786,7 +786,7 @@
   - Is selectList's merge redundant? Container seems to take care of everything.
 
 Next
-  - Generalize fade/slide messages. Add anim suffix.
+  - Add anim suffix to animation widgets.
     - Update Todo example to overlay edit section.
   - Rethink activeStyle, activeTheme, active style related function names.
     - Order of arguments?

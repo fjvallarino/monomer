@@ -55,6 +55,9 @@ data TodoEvt
   | TodoSave Int
   | TodoDeleteBegin Int Todo
   | TodoDelete Int Todo
+  | TodoShowEdit
+  | TodoHideEdit
+  | TodoHideEditDone
   | TodoCancel
   deriving (Eq, Show)
 
