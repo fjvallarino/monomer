@@ -6,8 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-This is the package that should be imported by applications using existing
-widgets.
+This is the package that should be imported by applications.
 
 If you want to create custom Widgets, check:
 

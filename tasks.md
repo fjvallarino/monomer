@@ -790,12 +790,13 @@
   - Rethink activeStyle, activeTheme style related function names.
     - Order of arguments?
   - Scroll bar width
+  - Maybe spacer should be 8 pixels wide.
+    - Looks/feels better at 10.
+  - Improve Tutorial 6 colors.
 
 Next
   - Rename style combinators?
   - Document themes and how widgets use them.
-  - Maybe spacer should be 8 pixels wide.
-  - Fix Tutorial 6 colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

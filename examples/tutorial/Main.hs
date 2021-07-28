@@ -16,6 +16,6 @@ main = do
 --  Tutorial03_LifeCycle.main03
 --  Tutorial04_Tasks.main04
 --  Tutorial05_Producers.main05
---  Tutorial06_Composite.main06
+  Tutorial06_Composite.main06
 --  Tutorial07_CustomWidget.main07
-  Tutorial08_Themes.main08
+--  Tutorial08_Themes.main08

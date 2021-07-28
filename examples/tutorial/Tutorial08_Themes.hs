@@ -20,7 +20,7 @@ data ActiveTheme
 data AppModel = AppModel {
   _clickCount :: Int,
   _checked :: Bool,
-  _currentTheme :: ActiveTheme
+  _activeTheme :: ActiveTheme
 } deriving (Eq, Show)
 
 data AppEvent
@@ -36,7 +36,7 @@ buildUI
   -> AppModel
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
-  theme = case model ^. currentTheme of
+  theme = case model ^. activeTheme of
     DarkTheme -> darkTheme
     LightTheme -> lightTheme
     CustomTheme -> customTheme
@@ -44,22 +44,26 @@ buildUI wenv model = widgetTree where
       hstack [
         label "Select theme:",
         spacer,
-        textDropdownS currentTheme (enumFrom (toEnum 0))
+        textDropdownS activeTheme (enumFrom (toEnum 0))
       ],
+
       spacer,
       separatorLine,
+
       spacer,
       hstack [
         labeledCheckbox "Checkbox" checked,
         spacer,
         labeledRadio "Boolean radio" True checked
       ],
+
       spacer,
       hstack [
         box $ hslider clickCount 0 100,
         spacer,
         numericField_ clickCount [minValue 0, maxValue 100]
       ],
+
       spacer,
       hstack [
         label $ "Click count: " <> showt (model ^. clickCount),

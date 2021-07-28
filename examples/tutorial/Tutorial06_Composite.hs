@@ -25,7 +25,8 @@ data CompEvent
 
 data AppModel = AppModel {
   _showDialog :: Bool,
-  _compModel :: CompModel
+  _parentModel :: CompModel,
+  _dialogModel :: CompModel
 } deriving (Eq, Show)
 
 data AppEvent
@@ -42,15 +43,28 @@ buildUIComp
   -> CompModel
   -> WidgetNode CompModel CompEvent
 buildUIComp wenv model = widgetTree where
+  sectionBg = rgbHex "#80B6FD"
+  sectionHover = rgbHex "#A0D8FD"
+  textDrag = rgbHex "#E0FFFF"
+
   itemA val = label ("Item: " <> showt val)
-    `style` [textColor white, padding 5]
-  dragItem val = draggable val (itemA val)
+    `style` [textColor black, padding 5]
+
+  dragItem val = draggable_ val
+      [draggableStyle [bgColor textDrag, radius 5]]
+      (itemA val)
     `style` [cursorHand]
+
   dragList items = vstack (dragItem <$> items)
-  dropTargetA = dropTarget DropToA (dragList (model ^. listA))
-    `style` [minWidth 100, flexHeight 100, padding 5, radius 10, bgColor sandyBrown]
-  dropTargetB = dropTarget DropToB (dragList (model ^. listB))
-    `style` [minWidth 100, flexHeight 100, padding 5, radius 10, bgColor saddleBrown]
+
+  dropContainer target list = dropTarget_ target
+      [dropTargetStyle [radius 10, bgColor sectionHover]]
+      (dragList (model ^. list))
+    `style` [minWidth 100, flexHeight 100, padding 5, radius 10, bgColor sectionBg]
+
+  dropTargetA = dropContainer DropToA listA
+  dropTargetB = dropContainer DropToB listB
+
   widgetTree = hstack [
       box dropTargetA `style` [paddingR 5],
       box dropTargetB `style` [paddingL 5]
@@ -66,6 +80,7 @@ handleEventComp wenv node model evt = case evt of
   DropToA val -> [Model $ model
     & listA .~ sort (val : model ^. listA)
     & listB .~ delete val (model ^. listB)]
+
   DropToB val -> [Model $ model
     & listA .~ delete val (model ^. listA)
     & listB .~ sort (val : model ^. listB)]
@@ -82,23 +97,25 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   baseLayer = vstack [
-      compWidget compModel,
+      compWidget parentModel,
       spacer,
       hstack [
         button "Show Dialog" ShowDialog
-          `style` [bgColor steelBlue, radius 5, padding 5]
       ]
     ] `style` [padding 10]
+
   closeIcon = icon IconClose
     `style` [width 16, height 16, fgColor black, cursorHand]
+
   dialogLayer = vstack [
       hstack [
         filler,
         box_ [alignTop, onClick CloseDialog] closeIcon
       ],
       spacer,
-      compWidget compModel
-    ] `style` [width 400, height 300, padding 10, bgColor lightSteelBlue]
+      compWidget dialogModel
+    ] `style` [width 500, height 400, padding 10, radius 10, bgColor darkGray]
+
   widgetTree = zstack [
       baseLayer,
       box_ [alignCenter, alignMiddle] dialogLayer
@@ -134,5 +151,6 @@ main06 = do
     }
     model = AppModel {
       _showDialog = False,
-      _compModel = compModel
+      _parentModel = compModel,
+      _dialogModel = compModel
     }

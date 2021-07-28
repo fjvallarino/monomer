@@ -94,11 +94,13 @@ makeDropTarget dropEvt config = widget where
   }
 
   getCurrentStyle wenv node
-    | isDropTarget wenv node && isHovered && isJust style = fromJust style
+    | isJust style && isDropTarget wenv node && isValid = fromJust style
     | otherwise = currentStyle wenv node
     where
       mousePos = wenv ^. L.inputStatus . L.mousePos
       isHovered = isPointInNodeVp node mousePos
+      isTopLevel = isNodeTopLevel wenv node
+      isValid = isHovered && isTopLevel
       style = _dtcDropStyle config
 
   handleEvent wenv node target evt = case evt of
