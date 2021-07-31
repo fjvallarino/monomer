@@ -74,7 +74,7 @@ getSizeReqMulti = describe "getSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblNode = label_ "Line    line    line" [multiLine, trimSpaces] `styleBasic` [width 50]
+    lblNode = label_ "Line    line    line" [multiline, trimSpaces] `styleBasic` [width 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiKeepSpaces :: Spec
@@ -88,7 +88,7 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line"
-    lblNode = label_ caption [multiLine, trimSpaces_ False] `styleBasic` [maxWidth 50]
+    lblNode = label_ caption [multiline, trimSpaces_ False] `styleBasic` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiMaxLines :: Spec
@@ -102,7 +102,7 @@ getSizeReqMultiMaxLines = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line    line    line"
-    lblNode = label_ caption [multiLine, trimSpaces_ False, maxLines 4] `styleBasic` [maxWidth 50]
+    lblNode = label_ caption [multiline, trimSpaces_ False, maxLines 4] `styleBasic` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMerge :: Spec
@@ -148,6 +148,6 @@ resize = describe "resize" $ do
     single = label "Test label"
     resSingle = widgetResize (single ^. L.widget) wenv single vp
     reqsSingle = resSingle ^. L.requests
-    multi = label_ "Test label" [multiLine]
+    multi = label_ "Test label" [multiline]
     resMulti = widgetResize (multi ^. L.widget) wenv multi vp
     reqsMulti = resMulti ^. L.requests

@@ -866,13 +866,13 @@ replaceSelection textLines currPos currSel addText = result where
 
   (newX, newY, midLines)
     | length addLines <= 1 = (T.length (linePre <> addText), selY1, singleLine)
-    | otherwise = (T.length end, selY1 + length addLines - 1, multiLine)
+    | otherwise = (T.length end, selY1 + length addLines - 1, multiline)
     where
       singleLine = Seq.singleton $ linePre <> addText <> lineSuf
       begin = Seq.index addLines 0
       middle = Seq.drop 1 $ Seq.take (length addLines - 1) addLines
       end = Seq.index addLines (length addLines - 1)
-      multiLine = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
+      multiline = (linePre <> begin) :<| (middle :|> (end <> lineSuf))
 
   newLines = prevLines <> midLines <> postLines
   newText = T.dropEnd 1 $ T.unlines (toList newLines)

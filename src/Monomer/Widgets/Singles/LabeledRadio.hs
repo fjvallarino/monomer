@@ -19,7 +19,7 @@ Configs:
   - textBottom: places the label to the bottom of the radio.
   - trimSpaces: whether to remove leading/trailing spaces in the caption.
   - ellipsis: if ellipsis should be used for overflown text.
-  - multiLine: if text may be split in multiple lines.
+  - multiline: if text may be split in multiple lines.
   - maxLines: maximum number of text lines to show.
   - resizeFactor: flexibility to have more or less spaced assigned.
   - resizeFactorW: flexibility to have more or less horizontal spaced assigned.
@@ -117,9 +117,9 @@ instance CmbEllipsis (LabeledRadioCfg s e a) where
     _lchLabelCfg = ellipsis_ ellipsis
   }
 
-instance CmbMultiLine (LabeledRadioCfg s e a) where
-  multiLine_ multi = def {
-    _lchLabelCfg = multiLine_ multi
+instance CmbMultiline (LabeledRadioCfg s e a) where
+  multiline_ multi = def {
+    _lchLabelCfg = multiline_ multi
   }
 
 instance CmbMaxLines (LabeledRadioCfg s e a) where

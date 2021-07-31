@@ -12,7 +12,7 @@ Configs:
 
 - trimSpaces: whether to remove leading/trailing spaces in the caption.
 - ellipsis: if ellipsis should be used for overflown text.
-- multiLine: if text may be split in multiple lines.
+- multiline: if text may be split in multiple lines.
 - maxLines: maximum number of text lines to show.
 - ignoreTheme: whether to load default style from theme or start empty.
 - resizeFactor: flexibility to have more or less spaced assigned.
@@ -98,8 +98,8 @@ instance CmbEllipsis (LabelCfg s e) where
     _lscTextEllipsis = Just ellipsis
   }
 
-instance CmbMultiLine (LabelCfg s e) where
-  multiLine_ multi = def {
+instance CmbMultiline (LabelCfg s e) where
+  multiline_ multi = def {
     _lscTextMultiLine = Just multi
   }
 

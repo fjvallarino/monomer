@@ -108,7 +108,7 @@ alertMsg_
   -> WidgetNode sp ep  -- ^ The created dialog.
 alertMsg_ message evt configs = newNode where
   config = mconcat configs
-  dialogBody wenv = label_ message [multiLine]
+  dialogBody wenv = label_ message [multiline]
     & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody evt config
   newNode = compositeD_ "alert" (WidgetValue ()) createUI handleEvent []

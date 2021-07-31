@@ -168,13 +168,13 @@ Most widgets support a basic version, such as `label`, and a configurable
 version which is denoted by a trailing `_`. In the case of `label_`, some of the
 config options are:
 
-- **multiLine**: to split the text into multiple lines if width is not enough.
+- **multiline**: to split the text into multiple lines if width is not enough.
 - **ellipsis**: to show ellipse when text overflows instead of just cutting it.
 
 For example:
 
 ```haskell
-label_ "This is\nmultiline text" [multiLine, ellipsis]
+label_ "This is\nmultiline text" [multiline, ellipsis]
 ```
 
 #### Button

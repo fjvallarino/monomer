@@ -132,7 +132,7 @@ confirmMsg_
   -> WidgetNode sp ep  -- ^ The created dialog.
 confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
-  dialogBody wenv = label_ message [multiLine]
+  dialogBody wenv = label_ message [multiline]
     & L.info . L.style .~ collectTheme wenv L.dialogMsgBodyStyle
   createUI = buildUI dialogBody acceptEvt cancelEvt config
   compCfg = [compositeMergeReqs mergeReqs]

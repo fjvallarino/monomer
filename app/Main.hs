@@ -449,7 +449,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "3",
         label "4",
         label "5",
-        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly" [multiLine] `styleBasic` [bgColor blue],
+        label_ "This is a really long label used to check if line breaks and ellipsis are implemented correctly" [multiline] `styleBasic` [bgColor blue],
         label "6",
         label "This is a really long label used to check if line breaks and ellipsis are implemented correctly, using a longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglong invalid word" `styleBasic` [bgColor blue, textBottom, textRight]
       ],
@@ -509,7 +509,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         ] `styleBasic` [bgColor blue]
       ] `styleBasic` [bgColor green],
       hgrid [
-        label_ "This is a really long label used to check what I did works fine" [multiLine, ellipsis],
+        label_ "This is a really long label used to check what I did works fine" [multiline, ellipsis],
         label "Jj label" `styleHover` [textSize 40]
       ] `styleHover` [bgColor red],
       label (model ^. dropdown1) `styleBasic` [bgColor lightBlue, textLeft],
@@ -522,6 +522,6 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
           image_ "https://picsum.photos/1600/400" [fitFill, onLoadError ImageMsg] `styleBasic` [cursorIcon CursorInvalid, border 40 (orange & L.a .~ 0.5), radius 100, radiusBL 0, radiusBR 0]
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
-      button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiLine, ellipsis
+      button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiline, ellipsis
     ] `key` "main vstack" `styleBasic` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, radius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]

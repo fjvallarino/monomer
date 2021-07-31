@@ -60,7 +60,7 @@ bookDetail b = content `styleBasic` [minWidth 500, paddingH 20] where
   publishYear = maybe "" showt (b ^. year)
 
   shortLabel value = label value `styleBasic` [textFont "Medium", textTop]
-  longLabel value = label_ value [multiLine, ellipsis, trimSpaces]
+  longLabel value = label_ value [multiline, ellipsis, trimSpaces]
 
   content = hstack . concat $ [[
     vstack [

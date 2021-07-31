@@ -13,7 +13,7 @@ Configs:
 
 - trimSpaces: whether to remove leading/trailing spaces in the caption.
 - ellipsis: if ellipsis should be used for overflown text.
-- multiLine: if text may be split in multiple lines.
+- multiline: if text may be split in multiple lines.
 - maxLines: maximum number of text lines to show.
 - onFocus: event to raise when focus is received.
 - onFocusReq: WidgetRequest to generate when focus is received.
@@ -83,9 +83,9 @@ instance CmbEllipsis (ExternalLinkCfg s e) where
     _elcLabelCfg = ellipsis_ ellipsis
   }
 
-instance CmbMultiLine (ExternalLinkCfg s e) where
-  multiLine_ multi = def {
-    _elcLabelCfg = multiLine_ multi
+instance CmbMultiline (ExternalLinkCfg s e) where
+  multiline_ multi = def {
+    _elcLabelCfg = multiline_ multi
   }
 
 instance CmbMaxLines (ExternalLinkCfg s e) where

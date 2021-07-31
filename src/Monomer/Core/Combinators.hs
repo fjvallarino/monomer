@@ -123,10 +123,10 @@ class CmbAcceptTab t where
   acceptTab_ :: Bool -> t
 
 -- | Whether a text based widget is multiline.
-class CmbMultiLine t where
-  multiLine :: t
-  multiLine = multiLine_ True
-  multiLine_ :: Bool -> t
+class CmbMultiline t where
+  multiline :: t
+  multiline = multiline_ True
+  multiline_ :: Bool -> t
 
 -- | Whether to use ellipsis or not.
 class CmbEllipsis t where

@@ -18,7 +18,7 @@ Configs:
   - textBottom: places the label to the bottom of the checkbox.
   - trimSpaces: whether to remove leading/trailing spaces in the caption.
   - ellipsis: if ellipsis should be used for overflown text.
-  - multiLine: if text may be split in multiple lines.
+  - multiline: if text may be split in multiple lines.
   - maxLines: maximum number of text lines to show.
   - resizeFactor: flexibility to have more or less spaced assigned.
   - resizeFactorW: flexibility to have more or less horizontal spaced assigned.
@@ -118,9 +118,9 @@ instance CmbEllipsis (LabeledCheckboxCfg s e) where
     _lchLabelCfg = ellipsis_ ellipsis
   }
 
-instance CmbMultiLine (LabeledCheckboxCfg s e) where
-  multiLine_ multi = def {
-    _lchLabelCfg = multiLine_ multi
+instance CmbMultiline (LabeledCheckboxCfg s e) where
+  multiline_ multi = def {
+    _lchLabelCfg = multiline_ multi
   }
 
 instance CmbMaxLines (LabeledCheckboxCfg s e) where
