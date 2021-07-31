@@ -100,10 +100,10 @@ For reference, the colors mentioned by name in the examples come from
 ## Enabled and visible
 
 Besides `styleBasic`, other two common attributes of a node you may be interested in
-controlling are `enabled` and `visible`, both boolean.
+controlling are `nodeEnabled` and `nodeVisible`, both boolean.
 
 ```haskell
-colorPicker fontColor `visible` (model ^. showPicker)
+colorPicker fontColor `nodeVisible` (model ^. showPicker)
 ```
 
 ## Model updates

@@ -76,7 +76,7 @@ handleEventFirstVisible = describe "handleEventFirstVisible" $ do
     zstackNode = zstack [
         button "Click 1" (BtnClick 1),
         button "Click 2" (BtnClick 2),
-        button "Click 3" (BtnClick 3) `visible` False
+        button "Click 3" (BtnClick 3) `nodeVisible` False
       ]
     clickEvts p = nodeHandleEventEvts wenv [evtClick p] zstackNode
 
@@ -95,7 +95,7 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
         vstack [
           button "Click 2" (BtnClick 2) `styleBasic` [height 10]
         ],
-        button "Click 3" (BtnClick 3) `visible` False
+        button "Click 3" (BtnClick 3) `nodeVisible` False
       ]
     clickEvts p = nodeHandleEventEvts wenv [evtClick p] zstackNode
 
@@ -152,7 +152,7 @@ handleEventFocusChange = describe "handleEventFocusChange" $
         hstack [
           button "1" (BtnClick 1),
           button "2" (BtnClick 2)
-        ] `visible` (model > 2)
+        ] `nodeVisible` (model > 2)
       ]
     cmpNode = composite "main" id buildUI handleEvent
     evts es = nodeHandleEventEvts wenv es cmpNode
@@ -175,11 +175,11 @@ handleEventFocusKeep = describe "handleEventFocusKeep" $
     buildUI wenv model = zstack [
         hstack [
           confirmMsg "Message" (BtnClick 3) (BtnClick 4)
-        ] `visible` (model <= 2),
+        ] `nodeVisible` (model <= 2),
         hstack [
           button "1" (BtnClick 1),
           button "2" (BtnClick 2)
-        ] `visible` (model > 2)
+        ] `nodeVisible` (model > 2)
       ]
     cmpNode = composite "main" id buildUI handleEvent
     evts es = nodeHandleEventEvts wenv es cmpNode

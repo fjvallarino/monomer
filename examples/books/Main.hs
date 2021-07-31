@@ -94,7 +94,7 @@ buildUI wenv model = widgetTree where
       hstack [
         label "Query:",
         spacer,
-        textField query `key` "query",
+        textField query `nodeKey` "query",
         spacer,
         mainButton "Search" BooksSearch
       ] `styleBasic` [bgColor sectionBgColor, padding 25]
@@ -110,10 +110,10 @@ buildUI wenv model = widgetTree where
         searchForm,
         countLabel,
         box_ [mergeRequired booksChanged] $
-          vscroll (vstack (bookRow wenv <$> model ^. books)) `key` "mainScroll"
+          vscroll (vstack (bookRow wenv <$> model ^. books)) `nodeKey` "mainScroll"
       ],
-      bookOverlay `visible` isJust (model ^. selected),
-      searchOverlay `visible` model ^. searching
+      bookOverlay `nodeVisible` isJust (model ^. selected),
+      searchOverlay `nodeVisible` model ^. searching
     ]
 
 handleEvent

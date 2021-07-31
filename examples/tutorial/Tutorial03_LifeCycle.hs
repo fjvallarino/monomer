@@ -43,17 +43,17 @@ buildUI wenv model = widgetTree where
         spacer,
         button "Delete" (RemoveItem idx)
       ]
-    ] `key` showt (item ^. ts) `styleBasic` [paddingT 10]
+    ] `nodeKey` showt (item ^. ts) `styleBasic` [paddingT 10]
 
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description:",
         spacer,
-        textField_ newItemText [placeholder "Write here!"] `key` "description",
+        textField_ newItemText [placeholder "Write here!"] `nodeKey` "description",
         spacer,
         button "Add" AddItem
           `styleBasic` [paddingH 5]
-          `enabled` (model ^. newItemText /= "")
+          `nodeEnabled` (model ^. newItemText /= "")
       ],
 
       separatorLine `styleBasic` [paddingT 20, paddingB 10],

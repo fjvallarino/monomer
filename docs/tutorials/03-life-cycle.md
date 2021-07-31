@@ -35,7 +35,7 @@ The only context where you need to be careful is if the position of your widgets
 change. Just to clarify: this only is a concern if there are widgets with state
 involved, although it's probably safer to just always handle it.
 
-In the example, a `key` is associated to each row. It works similarly to `styleBasic`
+In the example, a `nodeKey` is associated to each row. It works similarly to `styleBasic`
 but receives a Text argument.
 
 ```haskell
@@ -44,7 +44,7 @@ listItem idx item = hstack [
     textField (items . singular (ix idx) . text),
     spacer,
     button "Delete" (RemoveItem idx)
-  ] `key` showt (item ^. ts) `styleBasic` [paddingT 5]
+  ] `nodeKey` showt (item ^. ts) `styleBasic` [paddingT 5]
 ```
 
 In the case of a `textField`, the internal state contains the current cursor
@@ -54,7 +54,7 @@ which you can move around with the arrow keys as usual. If you add a few more
 items and use tab to navigate to a different textField, you will notice that
 each textField keeps the cursor position it had before losing focus, even after
 their position in the list changed (of course, this is the expected behavior).
-Just for fun, try removing the `key` from that function: you will see that the
+Just for fun, try removing the `nodeKey` from that function: you will see that the
 textField did not _move_ to the correct position, as the incorrect cursor
 position indicates.
 

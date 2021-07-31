@@ -137,7 +137,7 @@ handleMessageReset = describe "handleMessageReset" $ do
         button "Button 1" Button1 `styleBasic` [height 480],
         button "Button 2" Button2 `styleBasic` [height 480],
         button "Button 3" Button3 `styleBasic` [height 480]
-      ]) `key` "mainScroll"
+      ]) `nodeKey` "mainScroll"
     cmpNode = composite "main" id buildUI handleEvent
     events es = nodeHandleEventEvts wenv es cmpNode
 

@@ -65,8 +65,8 @@ mergeReq = describe "mergeReq" $ do
 
   where
     wenv = mockWenv ()
-    btnNew = button "Click" (BtnClick 0) `key` "btnNew"
-    btnOld = button "Click" (BtnClick 0) `key` "btnOld"
+    btnNew = button "Click" (BtnClick 0) `nodeKey` "btnNew"
+    btnOld = button "Click" (BtnClick 0) `nodeKey` "btnOld"
     box1 = box btnNew
     box2 = box_ [mergeRequired (\_ _ -> True)] btnNew
     box3 = box_ [mergeRequired (\_ _ -> False)] btnNew
@@ -110,7 +110,7 @@ handleEvent = describe "handleEvent" $ do
       onLeave BoxOnLeave,
       onBtnPressed BoxOnPressed,
       onBtnReleased BoxOnReleased] (label "Test")
-    boxNode = nodeInit wenv (btnBox `focusable` True)
+    boxNode = nodeInit wenv (btnBox `nodeFocusable` True)
     evts es = nodeHandleEventEvts wenv es boxNode
 
 handleEventIgnoreEmpty :: Spec

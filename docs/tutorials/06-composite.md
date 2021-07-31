@@ -86,7 +86,7 @@ how can you get the WidgetId of a widget node?
 
 ### Key, Path and WidgetId
 
-The are three ways of identifying a widget. One, as we've seen, is the `key`.
+The are three ways of identifying a widget. One, as we've seen, is the `nodeKey`.
 This is a user defined identifier and it exists because its just easier to use.
 Besides key, there are two identifiers which are mostly internal, unless you are
 writing custom widgets or making WidgetRequests:

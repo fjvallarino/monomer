@@ -61,7 +61,7 @@ buildUI wenv model = widgetTree where
         filler
       ] `styleBasic` [paddingT 10, paddingB 5],
       colorPicker fontColor
-        `visible` (model ^. showPicker)
+        `nodeVisible` (model ^. showPicker)
         `styleBasic` [paddingB 10],
 
       sampleTextLabel

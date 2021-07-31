@@ -44,8 +44,8 @@ from lowest to highest layer level.
 
 ```haskell
 pushLayers = zstack [
-    image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
-    image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
+    image_ "./assets/images/red-button.png" [fitFill] `nodeVisible` not (model ^. hoverButton),
+    image_ "./assets/images/red-button-hover.png" [fitFill] `nodeVisible` model ^. hoverButton,
     label "Push!" `styleBasic` [textFont "Bold", textSize 20, textCenter]
   ]
 ```

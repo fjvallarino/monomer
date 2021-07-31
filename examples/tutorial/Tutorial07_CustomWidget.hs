@@ -139,8 +139,8 @@ buildUI wenv model = widgetTree where
   widgetTree = vstack [
       button "Reset canvas" AppResetCanvas,
       spacer,
-      canvas `key` "mainCanvas" `styleBasic` [border 1 gray]
---      canvas_ [canvasColor pink] `key` "mainCanvas" `styleBasic` [border 1 gray]
+      canvas `nodeKey` "mainCanvas" `styleBasic` [border 1 gray]
+--      canvas_ [canvasColor pink] `nodeKey` "mainCanvas" `styleBasic` [border 1 gray]
     ] `styleBasic` [padding 10]
 
 handleEvent

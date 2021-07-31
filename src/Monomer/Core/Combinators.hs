@@ -513,31 +513,12 @@ class CmbMaxDim t where
   maxDim :: Double -> t
 
 -- Style
-infixl 5 `key`
-infixl 5 `enabled`
-infixl 5 `visible`
 infixl 5 `styleBasic`
 infixl 5 `styleHover`
 infixl 5 `styleFocus`
 infixl 5 `styleFocusHover`
 infixl 5 `styleActive`
 infixl 5 `styleDisabled`
-
--- | Key combinator, used mainly infix for widgets.
-class CmbKey t a | t -> a where
-  key :: t -> a -> t
-
--- | Enabled combinator, used mainly infix for widgets.
-class CmbEnabled t where
-  enabled :: t -> Bool -> t
-
--- | Visible combinator, used mainly infix for widgets.
-class CmbVisible t where
-  visible :: t -> Bool -> t
-
--- | Focusable combinator, used mainly infix for widgets.
-class CmbStyleFocusable t where
-  focusable :: t -> Bool -> t
 
 -- | Basic style combinator, used mainly infix for widgets as a list.
 class CmbStyleBasic t where

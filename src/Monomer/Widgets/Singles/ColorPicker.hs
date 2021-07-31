@@ -210,8 +210,8 @@ buildUI config wenv model = mainTree where
         colorRow L.g "Green",
         spacer_ [width 2],
         colorRow L.b "Blue",
-        spacer_ [width 2] `visible` showAlpha,
-        alphaRow L.a "Alpha" `visible` showAlpha
+        spacer_ [width 2] `nodeVisible` showAlpha,
+        alphaRow L.a "Alpha" `nodeVisible` showAlpha
       ],
       spacer_ [width 2],
       box_ [alignTop] colorSample `styleBasic` [flexHeight 50]

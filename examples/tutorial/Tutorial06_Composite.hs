@@ -119,7 +119,7 @@ buildUI wenv model = widgetTree where
   widgetTree = zstack [
       baseLayer,
       box_ [alignCenter, alignMiddle] dialogLayer
-        `visible` model ^. showDialog
+        `nodeVisible` model ^. showDialog
         `styleBasic` [bgColor (gray & L.a .~ 0.8)]
     ]
 

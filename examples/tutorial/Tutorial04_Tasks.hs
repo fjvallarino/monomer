@@ -30,8 +30,8 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   pushLayers = zstack [
-      image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
-      image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
+      image_ "./assets/images/red-button.png" [fitFill] `nodeVisible` not (model ^. hoverButton),
+      image_ "./assets/images/red-button-hover.png" [fitFill] `nodeVisible` model ^. hoverButton,
       label "Push!" `styleBasic` [textFont "Bold", textSize 20, textCenter]
     ]
   pushButton = box_ [onClick AppGenRandom, onEnter AppOnEnterBtn, onLeave AppOnLeaveBtn] pushLayers
@@ -39,7 +39,7 @@ buildUI wenv model = widgetTree where
   numberLabel = labelS (model ^. selected)
     `styleBasic` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
   numberedImage url idx = scroll (image_ url [fitNone])
-    `visible` (model ^. selected == idx)
+    `nodeVisible` (model ^. selected == idx)
   imageSet = hstack [
       numberedImage "https://picsum.photos/id/1020/800/600" 1,
       numberedImage "https://picsum.photos/id/1047/800/600" 2,

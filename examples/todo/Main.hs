@@ -24,7 +24,7 @@ todoRowKey :: Todo -> Text
 todoRowKey todo = "todoRow" <> showt (todo ^. todoId)
 
 todoRow :: TodoWenv -> TodoModel -> Int -> Todo -> TodoNode
-todoRow wenv model idx t = animRow `key` todoKey where
+todoRow wenv model idx t = animRow `nodeKey` todoKey where
   sectionBg = wenv ^. L.theme . L.sectionColor
   rowButtonColor = wenv ^. L.theme . L.userColorMap . at "rowButton" . non def
   rowSepColor = gray & L.a .~ 0.5
@@ -74,14 +74,14 @@ todoEdit wenv model = editNode where
       hstack [
         label "Task:",
         spacer,
-        textField (activeTodo . description) `key` "todoDesc"
+        textField (activeTodo . description) `nodeKey` "todoDesc"
       ],
       spacer,
       hgrid [
         hstack [
           label "Type:",
           spacer,
-          textDropdownS (activeTodo . todoType) todoTypes `key` "todoType",
+          textDropdownS (activeTodo . todoType) todoTypes `nodeKey` "todoType",
           spacer -- Added here to avoid grid expanding it to 1/3 total width
         ],
         hstack [
@@ -93,7 +93,7 @@ todoEdit wenv model = editNode where
       spacer,
       hstack [
         filler,
-        saveTodoBtn `enabled` (model ^. activeTodo . description /= ""),
+        saveTodoBtn `nodeEnabled` (model ^. activeTodo . description /= ""),
         spacer,
         button "Cancel" TodoCancel
         ]
@@ -110,8 +110,8 @@ buildUI wenv model = widgetTree where
 
   todoList = vstack (zipWith (todoRow wenv model) [0..] (model ^. todos))
 
-  newButton = mainButton "New" TodoNew `key` "todoNew"
-    `visible` not isEditing
+  newButton = mainButton "New" TodoNew `nodeKey` "todoNew"
+    `nodeVisible` not isEditing
 
   editLayer = content where
     saveAction = case model ^. action of
@@ -120,9 +120,9 @@ buildUI wenv model = widgetTree where
 
     dualSlide content = outer where
       inner = animSlideIn_ [slideTop, duration 200] content
-        `key` "animEditIn"
+        `nodeKey` "animEditIn"
       outer = animSlideOut_ [slideTop, duration 200, onFinished TodoHideEditDone] inner
-        `key` "animEditOut"
+        `nodeKey` "animEditOut"
 
     content = vstack [
         dualSlide $
@@ -141,7 +141,7 @@ buildUI wenv model = widgetTree where
 
   widgetTree = zstack [
       mainLayer,
-      editLayer `visible` isEditing
+      editLayer `nodeVisible` isEditing
     ]
 
 handleEvent

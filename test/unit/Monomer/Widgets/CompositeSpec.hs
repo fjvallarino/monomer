@@ -209,7 +209,7 @@ handleEventResize = describe "handleEventResize" $ do
       _ -> [Model (model & clicks %~ (+1))]
     buildChild wenv model = vstack [
         button "Click" ChildBtnClicked,
-        label "Test" `styleBasic` [height 3000] `visible` (model ^. clicks > 0)
+        label "Test" `styleBasic` [height 3000] `nodeVisible` (model ^. clicks > 0)
       ]
     handleEvent
       :: WidgetEnv MainModel MainEvt
@@ -258,18 +258,18 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
     buildUI1 wenv model = hstack [
         vstack [
           textField text1
-        ] `key` "localTxt1",
+        ] `nodeKey` "localTxt1",
         vstack [
           textField text1
-        ] `key` "localTxt2"
+        ] `nodeKey` "localTxt2"
       ]
     buildUI2 wenv model = hstack [
         vstack [
           textField text1
-        ] `key` "localTxt2",
+        ] `nodeKey` "localTxt2",
         vstack [
           textField text1
-        ] `key` "localTxt1"
+        ] `nodeKey` "localTxt1"
       ]
     cmpNode1 = composite "main" id buildUI1 handleEvent
     cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
@@ -300,7 +300,7 @@ handleEventLocalKeyRemoveItem = describe "handleEventLocalKeyRemoveItem" $
       MainBtnClicked -> [Model $ model & items .~ [0, 2, 3]]
       _ -> []
     buildUI wenv model = vstack (button "Button" MainBtnClicked : (keyedLabel <$> model ^. items))
-    keyedLabel idx = label "Test" `key` ("key" <> showt idx)
+    keyedLabel idx = label "Test" `nodeKey` ("key" <> showt idx)
     node = composite "main" id buildUI handleEvent
     evts = [evtClick (Point 100 10)]
     oldNode = nodeInit wenv node

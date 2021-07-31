@@ -88,7 +88,7 @@ buildUI wenv model = widgetTree where
     tickerFade idx t = animRow where
       action = TickerRemovePair (t ^. symbolPair)
       item = tickerRow wenv idx t
-      animRow = animFadeOut_ [onFinished action] item `key` (t ^. symbolPair)
+      animRow = animFadeOut_ [onFinished action] item `nodeKey` (t ^. symbolPair)
 
     tickerRows = zipWith tickerFade [0..] (catMaybes orderedTickers)
 
@@ -96,7 +96,7 @@ buildUI wenv model = widgetTree where
       hstack [
         label "New pair:",
         spacer,
-        keystroke [("Enter", TickerAddClick)] $ textField newPair `key` "newPair",
+        keystroke [("Enter", TickerAddClick)] $ textField newPair `nodeKey` "newPair",
         spacer,
         button "Add" TickerAddClick
       ] `styleBasic` [padding 20, bgColor sectionBg],

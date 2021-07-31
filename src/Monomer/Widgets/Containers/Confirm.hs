@@ -164,7 +164,7 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   cancel = fromMaybe "Cancel" (_cfcCancel config)
   emptyOverlay = collectTheme wenv L.emptyOverlayStyle
 
-  acceptBtn = mainButton accept acceptEvt `key` "acceptBtn"
+  acceptBtn = mainButton accept acceptEvt `nodeKey` "acceptBtn"
   cancelBtn = button cancel cancelEvt
   buttons = hstack [ acceptBtn, spacer, cancelBtn ]
 

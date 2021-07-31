@@ -84,7 +84,7 @@ getSizeReqItemsV = describe "several items, vertical, one not visible" $ do
     gridNode = vgrid [
         label "Hello",
         label "how",
-        label "" `visible` False,
+        label "" `nodeVisible` False,
         label "are you?"
       ]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
@@ -200,7 +200,7 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
     gridNode = vgrid [
         label "Label 1",
         label "Label Number Two",
-        label "Label invisible" `visible` False,
+        label "Label invisible" `nodeVisible` False,
         label "Label 3"
       ]
     newNode = nodeInit wenv gridNode

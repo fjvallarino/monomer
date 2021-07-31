@@ -12,6 +12,11 @@ Helper functions for style types.
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Core.StyleUtil (
+  getContentArea,
+  nodeKey,
+  nodeEnabled,
+  nodeVisible,
+  nodeFocusable,
   styleFont,
   styleFontSize,
   styleFontSpaceH,
@@ -23,7 +28,6 @@ module Monomer.Core.StyleUtil (
   styleFgColor,
   styleSndColor,
   styleHlColor,
-  getContentArea,
   getOuterSize,
   addOuterSize,
   addOuterBounds,
@@ -50,11 +54,6 @@ import Monomer.Helper
 
 import qualified Monomer.Core.Lens as L
 
--- | Returns the content area (i.e., ignoring border and padding) of the node.
-getContentArea :: WidgetNode s e -> StyleState -> Rect
-getContentArea node style = fromMaybe def area where
-  area = removeOuterBounds style (node ^. L.info . L.viewport)
-
 instance CmbStyleBasic Style where
   styleBasic oldStyle states = newStyle where
     newStyle = oldStyle & L.basic .~ maybeConcat states
@@ -78,18 +77,6 @@ instance CmbStyleActive Style where
 instance CmbStyleDisabled Style where
   styleDisabled oldStyle states = newStyle where
     newStyle = oldStyle & L.disabled .~ maybeConcat states
-
-instance CmbKey (WidgetNode s e) Text where
-  key node key = node & L.info . L.key ?~ WidgetKey key
-
-instance CmbEnabled (WidgetNode s e) where
-  enabled node state = node & L.info . L.enabled .~ state
-
-instance CmbVisible (WidgetNode s e) where
-  visible node visibility = node & L.info . L.visible .~ visibility
-
-instance CmbStyleFocusable (WidgetNode s e) where
-  focusable node isFocusable = node & L.info . L.focusable .~ isFocusable
 
 instance CmbStyleBasic (WidgetNode s e) where
   styleBasic node states = node & L.info . L.style .~ newStyle where
@@ -126,6 +113,32 @@ instance CmbStyleDisabled (WidgetNode s e) where
     state = mconcat states
     oldStyle = node ^. L.info . L.style
     newStyle = oldStyle & L.disabled ?~ state
+
+infixl 5 `nodeKey`
+infixl 5 `nodeEnabled`
+infixl 5 `nodeVisible`
+infixl 5 `nodeFocusable`
+
+-- | Sets the key of the given node.
+nodeKey :: WidgetNode s e -> Text -> WidgetNode s e
+nodeKey node key = node & L.info . L.key ?~ WidgetKey key
+
+-- | Sets whether the given node is enabled.
+nodeEnabled :: WidgetNode s e -> Bool -> WidgetNode s e
+nodeEnabled node state = node & L.info . L.enabled .~ state
+
+-- | Sets whether the given node is visible.
+nodeVisible :: WidgetNode s e -> Bool -> WidgetNode s e
+nodeVisible node visibility = node & L.info . L.visible .~ visibility
+
+-- | Sets whether the given node is focusable.
+nodeFocusable :: WidgetNode s e -> Bool -> WidgetNode s e
+nodeFocusable node isFocusable = node & L.info . L.focusable .~ isFocusable
+
+-- | Returns the content area (i.e., ignoring border and padding) of the node.
+getContentArea :: WidgetNode s e -> StyleState -> Rect
+getContentArea node style = fromMaybe def area where
+  area = removeOuterBounds style (node ^. L.info . L.viewport)
 
 -- | Returns the font of the given style state, or the default.
 styleFont :: StyleState -> Font

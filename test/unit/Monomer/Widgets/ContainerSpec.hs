@@ -133,12 +133,12 @@ handleEventLocalKey = describe "handleEventLocalKey" $
   where
     wenv = mockWenvEvtUnit (TestModel "" "")
     cntNode1 = vstack [
-        textField text1 `key` "txt1",
-        textField text2 `key` "txt2"
+        textField text1 `nodeKey` "txt1",
+        textField text2 `nodeKey` "txt2"
       ]
     cntNode2 = vstack [
-        textField text2 `key` "txt2",
-        textField text1 `key` "txt1"
+        textField text2 `nodeKey` "txt2",
+        textField text1 `nodeKey` "txt1"
       ]
     evts1 = [evtT "aacc", moveCharL, moveCharL]
     model1 = nodeHandleEventModel wenv evts1 cntNode1

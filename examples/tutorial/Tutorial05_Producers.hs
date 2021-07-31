@@ -34,7 +34,7 @@ buildUI wenv model = widgetTree where
     `styleBasic` [textFont "Bold", textSize 80, textCenter, textMiddle, flexHeight 100]
 
   widgetTree = vstack [
-      animFadeIn timeLabel `key` "fadeTimeLabel"
+      animFadeIn timeLabel `nodeKey` "fadeTimeLabel"
     ]
 
 handleEvent

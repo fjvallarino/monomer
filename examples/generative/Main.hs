@@ -59,7 +59,7 @@ buildUI wenv model = widgetTree where
       hstack [
         label "Type:",
         spacer,
-        textDropdown_ activeGen genTypes genTypeDesc [] `key` "activeType",
+        textDropdown_ activeGen genTypes genTypeDesc [] `nodeKey` "activeType",
         spacer,
         labeledCheckbox "Show config:" showCfg
       ] `styleBasic` [padding 20, bgColor sectionBg],
@@ -67,15 +67,15 @@ buildUI wenv model = widgetTree where
         hstack [
           circlesGrid (model ^. circlesCfg) `styleBasic` [padding 20],
           widgetCircleCfg
-            `visible` model ^. showCfg
+            `nodeVisible` model ^. showCfg
             `styleBasic` [padding 20, width 200, bgColor sectionBg]
-        ] `visible` (model ^. activeGen == CirclesGrid),
+        ] `nodeVisible` (model ^. activeGen == CirclesGrid),
         hstack [
           boxesPalette (model ^. boxesCfg) `styleBasic` [padding 20],
           widgetBoxCfg
-            `visible` model ^. showCfg
+            `nodeVisible` model ^. showCfg
             `styleBasic` [padding 20, width 200, bgColor sectionBg]
-        ] `visible` (model ^. activeGen == BoxesPalette)
+        ] `nodeVisible` (model ^. activeGen == BoxesPalette)
       ]
     ]
 

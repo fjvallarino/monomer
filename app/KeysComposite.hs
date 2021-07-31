@@ -62,7 +62,7 @@ editableItem model idx = widget where
   widget = hgrid [
       label $ "Item " <> showt idx,
       textField (singular $ items . ix idx . itemDesc)
-    ] `key` widgetKey
+    ] `nodeKey` widgetKey
 
 rotateSeq Empty = Empty
 rotateSeq (x :<| xs) = xs |> x

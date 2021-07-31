@@ -208,8 +208,8 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       button "Increase" IncButton
     ]
   widgetAnimate = vstack [
-      animSlideIn_ [slideLeft] (label "Hello!!!!" `styleBasic` [bgColor red]) `key` "anim1",
-      animSlideOut_ [slideLeft] (label "Good bye!!!!" `styleBasic` [bgColor green]) `key` "anim2",
+      animSlideIn_ [slideLeft] (label "Hello!!!!" `styleBasic` [bgColor red]) `nodeKey` "anim1",
+      animSlideOut_ [slideLeft] (label "Good bye!!!!" `styleBasic` [bgColor green]) `nodeKey` "anim2",
       hstack [
         labelS (model ^. clickCount),
         button "Increase" IncButton
@@ -281,7 +281,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         radioV Apple (model ^. fruit) RadioSt,
         radioV Orange (model ^. fruit) RadioSt,
         radioV Pear (model ^. fruit) RadioSt
-      ] `key` "radio hstack",
+      ] `nodeKey` "radio hstack",
       textField textField1,
       hstack [
         checkbox condition1,
@@ -387,16 +387,16 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label ("Click count: " <> showt (model ^. clickCount)),
         button "Increase" IncButton
       ],
-      image "assets/images/beach.jpg" `visible` False `key` "Beach",
-      image "assets/images/pecans.jpg" `key` "Pecans"
+      image "assets/images/beach.jpg" `nodeVisible` False `nodeKey` "Beach",
+      image "assets/images/pecans.jpg" `nodeKey` "Pecans"
     ]
   widgetTree11 = vstack [
       hstack [
         label ("Click count: " <> showt (model ^. clickCount)),
         button "Increase" IncButton
       ],
-      image "assets/images/pecans.jpg" `visible` False `key` "Pecans",
-      image "assets/images/beach.jpg" `key` "Beach"
+      image "assets/images/pecans.jpg" `nodeVisible` False `nodeKey` "Pecans",
+      image "assets/images/beach.jpg" `nodeKey` "Beach"
     ]
   widgetTree5 = zstack_ [onlyTopActive False] [
       hgrid [
@@ -434,7 +434,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
       vstack [
         --textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
         label "1" `styleBasic` [bgColor pink, border 1 pink]
-      ] `visible` False,
+      ] `nodeVisible` False,
       label "" `styleBasic` [bgColor orange],
       label "" `styleBasic` [bgColor gray],
       label "" `styleBasic` [bgColor blue],
@@ -480,15 +480,15 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
   longMessage word = "Are you sure?\n\n\n\n" <> T.replicate 100 (word <> " ")
   widgetTree = zstack [
       widgetTreeFull,
-      alertMsg_ (longMessage "Alert") CloseAlert [titleCaption "Hey!"] `visible` model ^. showAlert,
-      confirmMsg_ (longMessage "Confirm") AcceptConfirm CancelConfirm [titleCaption "Hey!"] `visible` model ^. showConfirm
+      alertMsg_ (longMessage "Alert") CloseAlert [titleCaption "Hey!"] `nodeVisible` model ^. showAlert,
+      confirmMsg_ (longMessage "Confirm") AcceptConfirm CancelConfirm [titleCaption "Hey!"] `nodeVisible` model ^. showConfirm
     ]
   widgetTreeFull = vstack [
       hstack [
         radioV Apple (model ^. fruit) RadioSt,
         radioV Orange (model ^. fruit) RadioSt,
         radioV Pear (model ^. fruit) RadioSt
-      ] `key` "radio hstack",
+      ] `nodeKey` "radio hstack",
       hgrid [
         button "Show Alert" ShowAlert,
         mainButton "Show Confirm" ShowConfirm
@@ -523,5 +523,5 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         ],
       textDropdown_ dropdown1 items id [onChange DropdownVal, onChangeIdx DropdownIdx],
       button_ "Click\nme!" (PrintMessage "Button clicked") [] --multiline, ellipsis
-    ] `key` "main vstack" `styleBasic` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, radius 50] --, padding 20
+    ] `nodeKey` "main vstack" `styleBasic` [borderT 20 red, borderL 10 blue, borderR 10 green, borderB 10 gray, radius 50] --, padding 20
   items = fmap (\i -> "This is a long label: " <> showt i) [1..100::Int]
