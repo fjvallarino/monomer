@@ -46,7 +46,7 @@ from lowest to highest layer level.
 pushLayers = zstack [
     image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
     image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
-    label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
+    label "Push!" `styleBasic` [textFont "Bold", textSize 20, textCenter]
   ]
 ```
 

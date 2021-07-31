@@ -35,16 +35,16 @@ The only context where you need to be careful is if the position of your widgets
 change. Just to clarify: this only is a concern if there are widgets with state
 involved, although it's probably safer to just always handle it.
 
-In the example, a `key` is associated to each row. It works similarly to `style`
+In the example, a `key` is associated to each row. It works similarly to `styleBasic`
 but receives a Text argument.
 
 ```haskell
 listItem idx item = hstack [
-    label (item ^. text) `style` [width 100],
+    label (item ^. text) `styleBasic` [width 100],
     textField (items . singular (ix idx) . text),
     spacer,
     button "Delete" (RemoveItem idx)
-  ] `key` showt (item ^. ts) `style` [paddingT 5]
+  ] `key` showt (item ^. ts) `styleBasic` [paddingT 5]
 ```
 
 In the case of a `textField`, the internal state contains the current cursor

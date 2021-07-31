@@ -31,7 +31,7 @@ buildUI wenv model = widgetTree where
       label "Width",
       vstack [
         dial_ (circlesCfg . itemWidth) 20 50 [dragRate 0.5],
-        labelS (model ^. circlesCfg . itemWidth) `style` [textSize 14, textCenter]
+        labelS (model ^. circlesCfg . itemWidth) `styleBasic` [textSize 14, textCenter]
       ],
       label "Seed",
       seedDropdown (circlesCfg . seed)
@@ -41,7 +41,7 @@ buildUI wenv model = widgetTree where
       label "Width",
       vstack [
         dial_ (boxesCfg . itemWidth) 20 50 [dragRate 0.5],
-        labelS (model ^. boxesCfg . itemWidth) `style` [textSize 14, textCenter]
+        labelS (model ^. boxesCfg . itemWidth) `styleBasic` [textSize 14, textCenter]
       ],
       label "Seed",
       seedDropdown (boxesCfg . seed),
@@ -51,7 +51,7 @@ buildUI wenv model = widgetTree where
       label "Palette size",
       vstack [
         dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5],
-        labelS (model ^. boxesCfg . paletteSize) `style` [textSize 14, textCenter]
+        labelS (model ^. boxesCfg . paletteSize) `styleBasic` [textSize 14, textCenter]
       ]
     ]
 
@@ -62,19 +62,19 @@ buildUI wenv model = widgetTree where
         textDropdown_ activeGen genTypes genTypeDesc [] `key` "activeType",
         spacer,
         labeledCheckbox "Show config:" showCfg
-      ] `style` [padding 20, bgColor sectionBg],
+      ] `styleBasic` [padding 20, bgColor sectionBg],
       zstack [
         hstack [
-          circlesGrid (model ^. circlesCfg) `style` [padding 20],
+          circlesGrid (model ^. circlesCfg) `styleBasic` [padding 20],
           widgetCircleCfg
             `visible` model ^. showCfg
-            `style` [padding 20, width 200, bgColor sectionBg]
+            `styleBasic` [padding 20, width 200, bgColor sectionBg]
         ] `visible` (model ^. activeGen == CirclesGrid),
         hstack [
-          boxesPalette (model ^. boxesCfg) `style` [padding 20],
+          boxesPalette (model ^. boxesCfg) `styleBasic` [padding 20],
           widgetBoxCfg
             `visible` model ^. showCfg
-            `style` [padding 20, width 200, bgColor sectionBg]
+            `styleBasic` [padding 20, width 200, bgColor sectionBg]
         ] `visible` (model ^. activeGen == BoxesPalette)
       ]
     ]

@@ -72,7 +72,7 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
       & collectStyleField_ L.sndColor nodeStyle
       & collectStyleField_ L.cursorIcon nodeStyle
 
-    baseLabel = label_ caption [labelCfg] `style` [cursorHand]
+    baseLabel = label_ caption [labelCfg] `styleBasic` [cursorHand]
     labelNode = baseLabel
       & L.info . L.style <>~ labelStyle
     styledNode = itemNode

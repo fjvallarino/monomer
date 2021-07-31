@@ -797,16 +797,16 @@
 Next
   - Rename style combinators?
   - Document themes and how widgets use them.
+  - Make resize process smarter
+    - Keep list of widgets requesting resize
+    - If children requested resize, it overrides viewport check
+    - Can remove resize flag from Container/selectList
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.
   - Create ContextMenu (could work similarly to Tooltip).
 
 Future
-  - Make resize process smarter
-    - Keep list of widgets requesting resize
-    - If children requested resize, it overrides viewport check
-    - Can remove resize flag from Container/selectList
   - Check if Windows/Linux also miss top pixel
     - Fix for all if they do
     - If they don't, add custom handling for macOS

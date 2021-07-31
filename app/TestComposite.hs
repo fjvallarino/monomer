@@ -76,5 +76,5 @@ buildComp wenv model = trace "Created composite UI" $
         button "Run Producer" StartProducer,
         label ("Produced: " <> showt (_csProduced model))
       ]
-    ] `style` [bgColor gray]
+    ] `styleBasic` [bgColor gray]
   ]

@@ -48,26 +48,26 @@ buildUIComp wenv model = widgetTree where
   textDrag = rgbHex "#E0FFFF"
 
   itemA val = label ("Item: " <> showt val)
-    `style` [textColor black, padding 5]
+    `styleBasic` [textColor black, padding 5]
 
   dragItem val = draggable_ val
       [draggableStyle [bgColor textDrag, radius 5]]
       (itemA val)
-    `style` [cursorHand]
+    `styleBasic` [cursorHand]
 
   dragList items = vstack (dragItem <$> items)
 
   dropContainer target list = dropTarget_ target
       [dropTargetStyle [radius 10, bgColor sectionHover]]
       (dragList (model ^. list))
-    `style` [minWidth 100, flexHeight 100, padding 5, radius 10, bgColor sectionBg]
+    `styleBasic` [minWidth 100, flexHeight 100, padding 5, radius 10, bgColor sectionBg]
 
   dropTargetA = dropContainer DropToA listA
   dropTargetB = dropContainer DropToB listB
 
   widgetTree = hstack [
-      box dropTargetA `style` [paddingR 5],
-      box dropTargetB `style` [paddingL 5]
+      box dropTargetA `styleBasic` [paddingR 5],
+      box dropTargetB `styleBasic` [paddingL 5]
     ]
 
 handleEventComp
@@ -102,10 +102,10 @@ buildUI wenv model = widgetTree where
       hstack [
         button "Show Dialog" ShowDialog
       ]
-    ] `style` [padding 10]
+    ] `styleBasic` [padding 10]
 
   closeIcon = icon IconClose
-    `style` [width 16, height 16, fgColor black, cursorHand]
+    `styleBasic` [width 16, height 16, fgColor black, cursorHand]
 
   dialogLayer = vstack [
       hstack [
@@ -114,13 +114,13 @@ buildUI wenv model = widgetTree where
       ],
       spacer,
       compWidget dialogModel
-    ] `style` [width 500, height 400, padding 10, radius 10, bgColor darkGray]
+    ] `styleBasic` [width 500, height 400, padding 10, radius 10, bgColor darkGray]
 
   widgetTree = zstack [
       baseLayer,
       box_ [alignCenter, alignMiddle] dialogLayer
         `visible` model ^. showDialog
-        `style` [bgColor (gray & L.a .~ 0.8)]
+        `styleBasic` [bgColor (gray & L.a .~ 0.8)]
     ]
 
 handleEvent

@@ -209,7 +209,7 @@ handleEventResize = describe "handleEventResize" $ do
       _ -> [Model (model & clicks %~ (+1))]
     buildChild wenv model = vstack [
         button "Click" ChildBtnClicked,
-        label "Test" `style` [height 3000] `visible` (model ^. clicks > 0)
+        label "Test" `styleBasic` [height 3000] `visible` (model ^. clicks > 0)
       ]
     handleEvent
       :: WidgetEnv MainModel MainEvt

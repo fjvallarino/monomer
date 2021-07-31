@@ -20,12 +20,12 @@ Once these declarations are in place, you can choose which font to use for any
 label or widget that displays text.
 
 ```haskell
-label text `style` [textFont "Bold", textSize 20]
+label text `styleBasic` [textFont "Bold", textSize 20]
 ```
 
 There are several functions you can use for modifying a widget node. These
 functions are generally used infix, since the intention is clearer that way. In
-particular, the `style` function allows providing different style options with a
+particular, the `styleBasic` function allows providing different style options with a
 list.
 
 Since this style is used a few times in the example, it would be nice to avoid
@@ -33,7 +33,7 @@ duplicating the code all over the example. An easy way to avoid this is to
 create a function that returns the label styled as needed:
 
 ```haskell
-titleText text = label text `style` [textFont "Bold", textSize 20]
+titleText text = label text `styleBasic` [textFont "Bold", textSize 20]
 ```
 
 In general, all components which display text support the following styles:
@@ -74,7 +74,7 @@ priority to the latest value set. This allows, for instance, to easily set all
 sides to one padding size and leave the right side with a different value:
 
 ```haskell
-node `style` [padding 10, paddingR 0]
+node `styleBasic` [padding 10, paddingR 0]
 ```
 
 This concept of overriding values in the provided list also applies to regular
@@ -99,7 +99,7 @@ For reference, the colors mentioned by name in the examples come from
 
 ## Enabled and visible
 
-Besides `style`, other two common attributes of a node you may be interested in
+Besides `styleBasic`, other two common attributes of a node you may be interested in
 controlling are `enabled` and `visible`, both boolean.
 
 ```haskell

@@ -91,8 +91,8 @@ handleEventMouseDragH = describe "handleEventMouseDragH" $ do
 
   where
     wenv = mockWenv (TestModel 0.5)
-    btn1 = button "Text" Button1 `style` [rangeWidth 200 400]
-    btn2 = button "Longer" Button2 `style` [expandWidth 60]
+    btn1 = button "Text" Button1 `styleBasic` [rangeWidth 200 400]
+    btn2 = button "Longer" Button2 `styleBasic` [expandWidth 60]
     splitNode = hsplit_ [splitHandlePos sliderPos] (btn1, btn2)
     model es = nodeHandleEventModel wenv es splitNode
     areas es = vp where
@@ -139,8 +139,8 @@ handleEventMouseDragV = describe "handleEventMouseDragV" $ do
   where
     wenv = mockWenv (TestModel 0.5)
     -- Uses flexHeight otherwise buttons are fixed size and split will not move
-    btn1 = button "Text" Button1 `style` [flexHeight 20]
-    btn2 = button "Longer" Button2 `style` [rangeHeight 200 400]
+    btn1 = button "Text" Button1 `styleBasic` [flexHeight 20]
+    btn2 = button "Longer" Button2 `styleBasic` [rangeHeight 200 400]
     splitNode = vsplit_ [splitHandlePosV 0.5, onChange SliderChanged] (btn1, btn2)
     evts es = nodeHandleEventEvts wenv es splitNode
     areas es = vp where
@@ -163,7 +163,7 @@ getSizeReq = describe "getSizeReq" $ do
 
   where
     wenv = mockWenv (TestModel 0)
-    btn1 = button "Button" Button1 `style` [expandWidth 60]
-    btn2 = button "Button" Button2 `style` [expandWidth 60]
+    btn1 = button "Button" Button1 `styleBasic` [expandWidth 60]
+    btn2 = button "Button" Button2 `styleBasic` [expandWidth 60]
     (hsizeReqW, hsizeReqH) = nodeGetSizeReq wenv (hsplit (btn1, btn2))
     (vsizeReqW, vsizeReqH) = nodeGetSizeReq wenv (vsplit (btn1, btn2))

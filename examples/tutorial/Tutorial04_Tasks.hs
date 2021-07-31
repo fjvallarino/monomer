@@ -32,12 +32,12 @@ buildUI wenv model = widgetTree where
   pushLayers = zstack [
       image_ "./assets/images/red-button.png" [fitFill] `visible` not (model ^. hoverButton),
       image_ "./assets/images/red-button-hover.png" [fitFill] `visible` model ^. hoverButton,
-      label "Push!" `style` [textFont "Bold", textSize 20, textCenter]
+      label "Push!" `styleBasic` [textFont "Bold", textSize 20, textCenter]
     ]
   pushButton = box_ [onClick AppGenRandom, onEnter AppOnEnterBtn, onLeave AppOnLeaveBtn] pushLayers
-    `style` [width 160, height 160, cursorHand]
+    `styleBasic` [width 160, height 160, cursorHand]
   numberLabel = labelS (model ^. selected)
-    `style` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
+    `styleBasic` [textFont "Bold", textSize 100, textColor black, textCenter, width 160]
   numberedImage url idx = scroll (image_ url [fitNone])
     `visible` (model ^. selected == idx)
   imageSet = hstack [
@@ -47,15 +47,15 @@ buildUI wenv model = widgetTree where
       numberedImage "https://picsum.photos/id/1025/800/600" 4,
       numberedImage "https://picsum.photos/id/1080/800/600" 5,
       numberedImage "https://picsum.photos/id/1059/800/600" 6
-    ] `style` [padding 10]
+    ] `styleBasic` [padding 10]
   widgetTree = vstack [
       hstack [
         tooltip "Click to pick a random number" pushButton
-          `style` [textSize 16, bgColor steelBlue, paddingH 5, radius 5],
+          `styleBasic` [textSize 16, bgColor steelBlue, paddingH 5, radius 5],
         numberLabel
       ],
       imageSet
-    ] `style` [bgColor moccasin]
+    ] `styleBasic` [bgColor moccasin]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent

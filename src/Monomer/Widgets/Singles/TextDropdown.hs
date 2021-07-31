@@ -22,7 +22,7 @@ Configs:
 - onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
 index.
 - maxHeight: maximum height of the list when dropdown is expanded.
-- itemNormalStyle: style of an item in the list when not selected.
+- itemBasicStyle: style of an item in the list when not selected.
 - itemSelectedStyle: style of the selected item in the list.
 -}
 {-# LANGUAGE ConstraintKinds #-}

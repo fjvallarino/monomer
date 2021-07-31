@@ -212,7 +212,7 @@ handleEventMouseSelect = describe "handleEventMouseSelect" $ do
     wenv = mockWenvEvtUnit (TestModel "")
     txtNode = vstack [
         hstack [
-          textField textValue `style` [width 105],
+          textField textValue `styleBasic` [width 105],
           hstack []
         ]
       ]

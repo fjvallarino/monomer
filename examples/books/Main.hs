@@ -35,46 +35,46 @@ bookRow wenv b = row where
   rowContent b = hstack [
       vstack [
         label_ (b ^. title) [resizeFactor 1]
-          `style` [textFont "Medium", textSize 16],
+          `styleBasic` [textFont "Medium", textSize 16],
         spacer,
         label_ (T.intercalate ", " (b ^. authors)) [resizeFactor 1]
-          `style` [textSize 14]
+          `styleBasic` [textSize 14]
       ],
       filler,
       vstack [
-        label publishYear `style` [width 50, textSize 14],
+        label publishYear `styleBasic` [width 50, textSize 14],
         spacer
       ],
-      bookImage (b ^. cover) "S" `style` [width 35]
+      bookImage (b ^. cover) "S" `styleBasic` [width 35]
     ]
 
-  row = box_ cfg content `style` [padding 10, paddingT 0] where
+  row = box_ cfg content `styleBasic` [padding 10, paddingT 0] where
     cfg = [expandContent, onClick (BooksShowDetails b)]
     content = rowContent b
-      `style` [height 80, padding 20, radius 5]
-      `hover` [bgColor rowBgColor, cursorIcon CursorHand]
+      `styleBasic` [height 80, padding 20, radius 5]
+      `styleHover` [bgColor rowBgColor, cursorIcon CursorHand]
 
 bookDetail :: Book -> WidgetNode s BooksEvt
-bookDetail b = content `style` [minWidth 500, paddingH 20] where
+bookDetail b = content `styleBasic` [minWidth 500, paddingH 20] where
   hasCover = isJust (b ^. cover)
   publishYear = maybe "" showt (b ^. year)
 
-  shortLabel value = label value `style` [textFont "Medium", textTop]
+  shortLabel value = label value `styleBasic` [textFont "Medium", textTop]
   longLabel value = label_ value [multiLine, ellipsis, trimSpaces]
 
   content = hstack . concat $ [[
     vstack [
       longLabel (b ^. title)
-        `style` [textSize 20, textFont "Medium"],
+        `styleBasic` [textSize 20, textFont "Medium"],
       spacer,
       longLabel (T.intercalate ", " (b ^. authors))
-        `style` [textSize 16],
+        `styleBasic` [textSize 16],
       spacer,
       label publishYear
-        `style` [textSize 14]
+        `styleBasic` [textSize 14]
     ]],
     [filler | hasCover],
-    [bookImage (b ^. cover) "M" `style` [width 200] | hasCover]
+    [bookImage (b ^. cover) "M" `styleBasic` [width 200] | hasCover]
     ]
 
 buildUI
@@ -87,8 +87,8 @@ buildUI wenv model = widgetTree where
   bookOverlay = alert BooksCloseDetails content where
     content = maybe spacer bookDetail (model ^. selected)
 
-  searchOverlay = box content `style` [bgColor (darkGray & L.a .~ 0.8)] where
-    content = label "Searching" `style` [textSize 20, textColor black]
+  searchOverlay = box content `styleBasic` [bgColor (darkGray & L.a .~ 0.8)] where
+    content = label "Searching" `styleBasic` [textSize 20, textColor black]
 
   searchForm = keystroke [("Enter", BooksSearch)] $ vstack [
       hstack [
@@ -97,10 +97,10 @@ buildUI wenv model = widgetTree where
         textField query `key` "query",
         spacer,
         mainButton "Search" BooksSearch
-      ] `style` [bgColor sectionBgColor, padding 25]
+      ] `styleBasic` [bgColor sectionBgColor, padding 25]
     ]
 
-  countLabel = label caption `style` [padding 10] where
+  countLabel = label caption `styleBasic` [padding 10] where
     caption = "Books (" <> showt (length $ model ^. books) <> ")"
 
   booksChanged old new = old ^. books /= new ^. books

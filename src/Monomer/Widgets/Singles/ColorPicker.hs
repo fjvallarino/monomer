@@ -185,19 +185,19 @@ buildUI config wenv model = mainTree where
   showAlpha = fromMaybe False (_cpcShowAlpha config)
   colorSample = zstack [
       patternImage 2 10 (rgb 255 255 255) (rgb 150 150 150),
-      filler `style` [bgColor model]
-    ] `style` [width 32]
+      filler `styleBasic` [bgColor model]
+    ] `styleBasic` [width 32]
 
   compRow lensCol evt lbl minV maxV = hstack [
-      label lbl `style` [width 48],
+      label lbl `styleBasic` [width 48],
       spacer_ [width 2],
       hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus,
         onBlur PickerBlur]
-        `style` [paddingV 5],
+        `styleBasic` [paddingV 5],
       spacer_ [width 2],
       numericField_ lensCol [minValue minV, maxValue maxV, onChange evt,
         onFocus PickerFocus, onBlur PickerBlur]
-        `style` [width 40, padding 0, textRight]
+        `styleBasic` [width 40, padding 0, textRight]
     ]
 
   colorRow lens lbl = compRow lens ColorChanged lbl 0 255
@@ -214,8 +214,8 @@ buildUI config wenv model = mainTree where
         alphaRow L.a "Alpha" `visible` showAlpha
       ],
       spacer_ [width 2],
-      box_ [alignTop] colorSample `style` [flexHeight 50]
-    ] `style` [padding 0]
+      box_ [alignTop] colorSample `styleBasic` [flexHeight 50]
+    ] `styleBasic` [padding 0]
 
 handleEvent
   :: (WidgetModel sp, WidgetEvent ep)

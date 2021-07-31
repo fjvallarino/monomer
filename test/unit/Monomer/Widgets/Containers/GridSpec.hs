@@ -100,8 +100,8 @@ getSizeReqMixedH = describe "several items, different reqSizes" $ do
   where
     wenv = mockWenv ()
     gridNode = hgrid [
-        label "Label 1" `style` [width 100, height 100],
-        label "Label 2" `style` [maxWidth 300, maxHeight 300],
+        label "Label 1" `styleBasic` [width 100, height 100],
+        label "Label 2" `styleBasic` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode
@@ -117,8 +117,8 @@ getSizeReqMixedV = describe "several items, different reqSizes" $ do
   where
     wenv = mockWenv ()
     gridNode = vgrid [
-        label "Label 1" `style` [minWidth 100, minHeight 100],
-        label "Label 2" `style` [maxWidth 300, maxHeight 300],
+        label "Label 1" `styleBasic` [minWidth 100, minHeight 100],
+        label "Label 2" `styleBasic` [maxWidth 300, maxHeight 300],
         label "Label 3"
       ]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv gridNode

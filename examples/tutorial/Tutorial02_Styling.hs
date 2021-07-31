@@ -30,7 +30,7 @@ buildUI
 buildUI wenv model = widgetTree where
   widgetTree = vstack [
       titleText "Text",
-      box (textField sampleText) `style` [paddingV 10],
+      box (textField sampleText) `styleBasic` [paddingV 10],
 
       titleText "Font name",
       hgrid [
@@ -49,29 +49,29 @@ buildUI wenv model = widgetTree where
           radio "Italic" fontName,
           filler
         ]
-      ] `style` [paddingV 10],
+      ] `styleBasic` [paddingV 10],
 
       titleText "Font size",
       hslider fontSize 10 200
-        `style` [paddingV 10, fgColor orange],
+        `styleBasic` [paddingV 10, fgColor orange],
 
       titleText "Font color",
       hstack [
         labeledCheckbox "Show color picker " showPicker,
         filler
-      ] `style` [paddingT 10, paddingB 5],
+      ] `styleBasic` [paddingT 10, paddingB 5],
       colorPicker fontColor
         `visible` (model ^. showPicker)
-        `style` [paddingB 10],
+        `styleBasic` [paddingB 10],
 
       sampleTextLabel
-    ] `style` [padding 10]
+    ] `styleBasic` [padding 10]
 
   titleText text = label text
-    `style` [textFont "Medium", textSize 20]
+    `styleBasic` [textFont "Medium", textSize 20]
 
   sampleTextLabel = label_ (model ^. sampleText) [ellipsis]
-    `style` [
+    `styleBasic` [
       bgColor dimGray,
       border 4 lightGray,
       radius 10,

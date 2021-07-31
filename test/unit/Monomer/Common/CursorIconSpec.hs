@@ -76,9 +76,9 @@ handleEventSimple = describe "handleEventSimple" $ do
     wenv = mockWenvEvtUnit ()
     node = vstack [
         label "Test",
-        label "Test" `style` [cursorIcon CursorHand],
-        label "Test" `style` [cursorIcon CursorIBeam],
-        label "Test" `style` [cursorIcon CursorInvalid]
+        label "Test" `styleBasic` [cursorIcon CursorHand],
+        label "Test" `styleBasic` [cursorIcon CursorIBeam],
+        label "Test" `styleBasic` [cursorIcon CursorInvalid]
       ]
     icons egs = getIcons wenv node egs
     p1 = Point 100 10
@@ -105,17 +105,17 @@ handleEventNested = describe "handleEventNested" $ do
         label "Test",
         hgrid [
           hgrid [
-            label "Test" `style` [cursorIcon CursorSizeH],
+            label "Test" `styleBasic` [cursorIcon CursorSizeH],
             filler
           ]
-        ] `style` [cursorIcon CursorHand],
+        ] `styleBasic` [cursorIcon CursorHand],
         hgrid [
           hgrid [
-            label "Test" `style` [cursorIcon CursorSizeV],
+            label "Test" `styleBasic` [cursorIcon CursorSizeV],
             filler
-          ] `style` [cursorIcon CursorInvalid],
+          ] `styleBasic` [cursorIcon CursorInvalid],
           spacer
-        ] `style` [cursorIcon CursorHand]
+        ] `styleBasic` [cursorIcon CursorHand]
       ]
     icons egs = getIcons wenv node egs
     p11 = Point 100 10
@@ -147,7 +147,7 @@ handleEventOverlay = describe "handleEventOverlay" $ do
     node = vstack [
         textDropdown selectedItem [0..10::Int],
         filler
-      ] `style` [cursorIcon CursorInvalid]
+      ] `styleBasic` [cursorIcon CursorInvalid]
     icons egs = getIcons wenv node egs
     p1 = Point 100 10   -- Header
     p2 = Point 100 50   -- List overlay

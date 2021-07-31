@@ -22,7 +22,7 @@ Configs:
 index.
 - selectOnBlur: whether to select the currently highlighted item when navigating
 away from the widget with tab key.
-- itemNormalStyle: style of an item in the list when not selected.
+- itemBasicStyle: style of an item in the list when not selected.
 - itemSelectedStyle: style of the selected item in the list.
 - mergeRequired: whether merging children is required. Useful when select list
 is part of another widget such as dropdown.
@@ -153,8 +153,8 @@ instance CmbSelectOnBlur (SelectListCfg s e a) where
     _slcSelectOnBlur = Just select
   }
 
-instance CmbItemNormalStyle (SelectListCfg s e a) Style where
-  itemNormalStyle style = def {
+instance CmbItemBasicStyle (SelectListCfg s e a) Style where
+  itemBasicStyle style = def {
     _slcItemStyle = Just style
   }
 

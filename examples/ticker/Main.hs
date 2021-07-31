@@ -44,7 +44,7 @@ tickerPct t = pctLabel where
     | pct > 0 = rgbHex "#51A39A"
     | otherwise = rgbHex "#E25141"
 
-  pctLabel = label pctText `style` [width 100, textRight, textColor pctColor]
+  pctLabel = label pctText `styleBasic` [width 100, textRight, textColor pctColor]
 
 tickerRow :: TickerWenv -> Int -> Ticker -> TickerNode
 tickerRow wenv idx t = row where
@@ -55,20 +55,20 @@ tickerRow wenv idx t = row where
   trashBg = wenv ^. L.theme . L.userColorMap . at "trashBg" . non def
   trashFg = wenv ^. L.theme . L.userColorMap . at "trashFg" . non def
   trashIcon action = button remixDeleteBinLine action
-    `style` [textFont "Remix", textMiddle, textColor trashFg, bgColor transparent, border 0 transparent]
-    `hover` [bgColor trashBg]
+    `styleBasic` [textFont "Remix", textMiddle, textColor trashFg, bgColor transparent, border 0 transparent]
+    `styleHover` [bgColor trashBg]
 
   dropTicker pair
     = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]]
 
   tickerInfo = hstack [
-      label (t ^. symbolPair) `style` [width 100],
+      label (t ^. symbolPair) `styleBasic` [width 100],
       spacer,
       label (formatTickerValue (t ^. close))
-        `style` [textRight, minWidth 100],
+        `styleBasic` [textRight, minWidth 100],
       spacer,
       tickerPct t
-    ] `style` [cursorHand]
+    ] `styleBasic` [cursorHand]
 
   row = hstack [
       dropTicker (t ^. symbolPair) $
@@ -76,8 +76,8 @@ tickerRow wenv idx t = row where
           tickerInfo,
       spacer,
       trashIcon (TickerRemovePairBegin (t ^. symbolPair))
-    ] `style` [padding 10, borderB 1 rowSep]
-      `hover` [bgColor rowBg]
+    ] `styleBasic` [padding 10, borderB 1 rowSep]
+      `styleHover` [bgColor rowBg]
 
 buildUI :: TickerWenv -> TickerModel -> TickerNode
 buildUI wenv model = widgetTree where
@@ -99,8 +99,8 @@ buildUI wenv model = widgetTree where
         keystroke [("Enter", TickerAddClick)] $ textField newPair `key` "newPair",
         spacer,
         button "Add" TickerAddClick
-      ] `style` [padding 20, bgColor sectionBg],
-      scroll_ [scrollOverlay] $ tickerList `style` [padding 10]
+      ] `styleBasic` [padding 20, bgColor sectionBg],
+      scroll_ [scrollOverlay] $ tickerList `styleBasic` [padding 10]
     ]
 
 handleEvent

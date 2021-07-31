@@ -38,25 +38,25 @@ todoRow wenv model idx t = animRow `key` todoKey where
     | otherwise = (pendingBg, pendingFg)
 
   todoStatus = labelS (t ^. status)
-    `style` [textFont "Medium", textSize 12, textAscender, textColor todoFg, padding 6, paddingH 8, radius 12, bgColor todoBg]
+    `styleBasic` [textFont "Medium", textSize 12, textAscender, textColor todoFg, padding 6, paddingH 8, radius 12, bgColor todoBg]
 
   rowButton caption action = button caption action
-    `style` [textFont "Remix", textMiddle, textColor rowButtonColor, bgColor transparent, border 0 transparent]
-    `hover` [bgColor sectionBg]
+    `styleBasic` [textFont "Remix", textMiddle, textColor rowButtonColor, bgColor transparent, border 0 transparent]
+    `styleHover` [bgColor sectionBg]
 
   todoInfo = hstack [
       vstack [
-        labelS (t ^. todoType) `style` [textSize 12, textColor darkGray],
+        labelS (t ^. todoType) `styleBasic` [textSize 12, textColor darkGray],
         spacer_ [width 5],
-        label (t ^. description) `style` [textThroughline_ todoDone]
+        label (t ^. description) `styleBasic` [textThroughline_ todoDone]
       ],
       filler,
-      box_ [alignRight] todoStatus `style` [width 80],
+      box_ [alignRight] todoStatus `styleBasic` [width 80],
       spacer,
       rowButton remixEdit2Line (TodoEdit idx t),
       spacer,
       rowButton remixDeleteBinLine (TodoDeleteBegin idx t)
-    ] `style` (paddingV 15 : [borderB 1 rowSepColor | not isLast])
+    ] `styleBasic` (paddingV 15 : [borderB 1 rowSepColor | not isLast])
 
   animRow = animFadeOut_ [onFinished (TodoDelete idx t)] todoInfo
 
@@ -97,14 +97,14 @@ todoEdit wenv model = editNode where
         spacer,
         button "Cancel" TodoCancel
         ]
-    ] `style` [bgColor sectionBg, padding 20]
+    ] `styleBasic` [bgColor sectionBg, padding 20]
 
 buildUI :: TodoWenv -> TodoModel -> TodoNode
 buildUI wenv model = widgetTree where
   sectionBg = wenv ^. L.theme . L.sectionColor
   isEditing = model ^. action /= TodoNone
 
-  countLabel = label caption `style` styles where
+  countLabel = label caption `styleBasic` styles where
     caption = "Tasks (" <> showt (length $ model ^. todos) <> ")"
     styles = [textFont "Regular", textSize 16, padding 20, bgColor sectionBg]
 
@@ -129,14 +129,14 @@ buildUI wenv model = widgetTree where
           keystroke [("Enter", saveAction), ("Esc", TodoCancel)] $
             todoEdit wenv model,
         filler
-      ] `style` [bgColor (grayDark & L.a .~ 0.5)]
+      ] `styleBasic` [bgColor (grayDark & L.a .~ 0.5)]
 
   mainLayer = vstack [
       countLabel,
-      scroll_ [] (todoList `style` [padding 20, paddingT 5]),
+      scroll_ [] (todoList `styleBasic` [padding 20, paddingT 5]),
       filler,
       box_ [alignRight] newButton
-        `style` [bgColor sectionBg, padding 20]
+        `styleBasic` [bgColor sectionBg, padding 20]
     ]
 
   widgetTree = zstack [

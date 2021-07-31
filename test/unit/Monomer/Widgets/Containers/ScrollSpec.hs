@@ -70,10 +70,10 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
     evts3 = [evtK keyTab, evtK keyTab, evtK keyTab, evtClick point]
     st = [width 640, height 480]
     stackNode = vstack [
-        button "Button 1" Button1 `style` st,
-        button "Button 2" Button2 `style` st,
-        button "Button 3" Button3 `style` st,
-        button "Button 4" Button4 `style` st
+        button "Button 1" Button1 `styleBasic` st,
+        button "Button 2" Button2 `styleBasic` st,
+        button "Button 3" Button3 `styleBasic` st,
+        button "Button 4" Button4 `styleBasic` st
       ]
     ignoreNode = scroll_ [scrollFollowFocus_ False] stackNode
     followNode = scroll stackNode
@@ -98,14 +98,14 @@ handleNestedWheel = describe "handleNestedWheel" $ do
     evts2 = [evtWheel pointWheel2, evtClick pointClick]
     st = [width 320, height 480]
     childNode = vscroll (vstack [
-        button "Button 1" Button1 `style` st,
-        button "Button 2" Button2 `style` st,
-        button "Button 3" Button3 `style` st
-      ]) `style` [height 480]
+        button "Button 1" Button1 `styleBasic` st,
+        button "Button 2" Button2 `styleBasic` st,
+        button "Button 3" Button3 `styleBasic` st
+      ]) `styleBasic` [height 480]
     mainNode = vstack [
         childNode,
-        button "Button 4" Button4 `style` st
-      ] `style` [width 320]
+        button "Button 4" Button4 `styleBasic` st
+      ] `styleBasic` [width 320]
     scrollNode = vscroll $ hstack [
         mainNode,
         filler
@@ -134,9 +134,9 @@ handleMessageReset = describe "handleMessageReset" $ do
       Button3 -> [Message "mainScroll" ScrollReset]
       _ -> []
     buildUI wenv model = scroll (vstack [
-        button "Button 1" Button1 `style` [height 480],
-        button "Button 2" Button2 `style` [height 480],
-        button "Button 3" Button3 `style` [height 480]
+        button "Button 1" Button1 `styleBasic` [height 480],
+        button "Button 2" Button2 `styleBasic` [height 480],
+        button "Button 3" Button3 `styleBasic` [height 480]
       ]) `key` "mainScroll"
     cmpNode = composite "main" id buildUI handleEvent
     events es = nodeHandleEventEvts wenv es cmpNode
@@ -153,8 +153,8 @@ forwardStyle = describe "forwardStyle" $ do
 
   where
     wenv = mockWenv () & L.windowSize .~ Size 640 480
-    snode1 = scroll (label "Test") `style` [border 1 black, padding 10]
-    snode2 = scroll_ [scrollFwdStyle scrollFwdDefault] (label "Test") `style` [border 1 black, padding 10]
+    snode1 = scroll (label "Test") `styleBasic` [border 1 black, padding 10]
+    snode2 = scroll_ [scrollFwdStyle scrollFwdDefault] (label "Test") `styleBasic` [border 1 black, padding 10]
     pnode1 = nodeInit wenv snode1
     cnode1 = pnode1 ^?! L.children . ix 0
     pnode2 = nodeInit wenv snode2
@@ -182,7 +182,7 @@ resizeLarge = describe "resizeLarge" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0   640 480
     cvp1 = Rect 0 0 3000 2000
-    scrollNode = scroll (label "" `style` [width 3000, height 2000])
+    scrollNode = scroll (label "" `styleBasic` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -199,7 +199,7 @@ resizeSmall = describe "resizeSmall" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
-    scrollNode = scroll (label "" `style` [width 300, height 200])
+    scrollNode = scroll (label "" `styleBasic` [width 300, height 200])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -216,7 +216,7 @@ resizeOverlaySmall = describe "resizeOverlaySmall" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640 480
     cvp1 = Rect 0 0 640 480
-    scrollNode = scroll_ [scrollOverlay] (label "" `style` [width 300, height 200])
+    scrollNode = scroll_ [scrollOverlay] (label "" `styleBasic` [width 300, height 200])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -233,7 +233,7 @@ resizeH = describe "resizeH" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0  640 480
     cvp1 = Rect 0 0 3000 470
-    scrollNode = hscroll (label "" `style` [width 3000, height 2000])
+    scrollNode = hscroll (label "" `styleBasic` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -250,7 +250,7 @@ resizeV = describe "resizeV" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640  480
     cvp1 = Rect 0 0 630 2000
-    scrollNode = vscroll (label "" `style` [width 3000, height 2000])
+    scrollNode = vscroll (label "" `styleBasic` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -267,7 +267,7 @@ resizeOverlayH = describe "resizeOverlayH" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0  640 480
     cvp1 = Rect 0 0 3000 480
-    scrollNode = hscroll_ [scrollOverlay] (label "" `style` [width 3000, height 2000])
+    scrollNode = hscroll_ [scrollOverlay] (label "" `styleBasic` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
@@ -284,7 +284,7 @@ resizeOverlayV = describe "resizeOverlayV" $ do
     wenv = mockWenv () & L.windowSize .~ Size 640 480
     vp   = Rect 0 0 640  480
     cvp1 = Rect 0 0 640 2000
-    scrollNode = vscroll_ [scrollOverlay] (label "" `style` [width 3000, height 2000])
+    scrollNode = vscroll_ [scrollOverlay] (label "" `styleBasic` [width 3000, height 2000])
     newNode = nodeInit wenv scrollNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children

@@ -93,7 +93,7 @@ handleEventAllLayersActive = describe "handleEventAllLayersActive" $ do
     zstackNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
         vstack [
-          button "Click 2" (BtnClick 2) `style` [height 10]
+          button "Click 2" (BtnClick 2) `styleBasic` [height 10]
         ],
         button "Click 3" (BtnClick 3) `visible` False
       ]
@@ -247,7 +247,7 @@ getSizeReqItemsFixed = describe "several items, horizontal" $ do
         vstack [
           label "Long b1",
           label "Long b2"
-        ] `style` [width 300]
+        ] `styleBasic` [width 300]
       ]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv zstackNode
 

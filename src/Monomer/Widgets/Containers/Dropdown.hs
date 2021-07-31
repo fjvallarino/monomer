@@ -22,7 +22,7 @@ Configs:
 - onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
 index.
 - maxHeight: maximum height of the list when dropdown is expanded.
-- itemNormalStyle: style of an item in the list when not selected.
+- itemBasicStyle: style of an item in the list when not selected.
 - itemSelectedStyle: style of the selected item in the list.
 -}
 {-# LANGUAGE BangPatterns #-}
@@ -145,8 +145,8 @@ instance CmbMaxHeight (DropdownCfg s e a) where
     _ddcMaxHeight = Just h
   }
 
-instance CmbItemNormalStyle (DropdownCfg s e a) Style where
-  itemNormalStyle style = def {
+instance CmbItemBasicStyle (DropdownCfg s e a) Style where
+  itemBasicStyle style = def {
     _ddcItemStyle = Just style
   }
 
@@ -526,7 +526,7 @@ makeSelectList wenv value items makeRow config widgetId = selectListNode where
       selectOnBlur,
       onBlurReq (const $ SendMessage widgetId OnListBlur),
       onChangeIdxReq (\idx it -> SendMessage widgetId (OnChangeMessage idx it)),
-      itemNormalStyle itemStyle,
+      itemBasicStyle itemStyle,
       itemSelectedStyle itemSelStyle
     ]
   slStyle = collectTheme wenv L.dropdownListStyle

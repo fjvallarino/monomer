@@ -130,9 +130,9 @@ resizeFlexibleH = describe "flexible items, horizontal" $ do
     cvp2 = Rect 112 0 256 640
     cvp3 = Rect 368 0 112 640
     hstackNode = hstack [
-        label "Label 1" `style` [expandWidth 70],
-        label "Label 2" `style` [expandWidth 160],
-        label "Label 3" `style` [expandWidth 70]
+        label "Label 1" `styleBasic` [expandWidth 70],
+        label "Label 2" `styleBasic` [expandWidth 160],
+        label "Label 3" `styleBasic` [expandWidth 70]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -153,9 +153,9 @@ resizeFlexibleV = describe "flexible items, vertical" $ do
     cvp2 = Rect 0 160 640 160
     cvp3 = Rect 0 320 640 160
     vstackNode = vstack [
-        label "Label 1" `style` [flexHeight 20],
-        label "Label Number Two" `style` [flexHeight 20],
-        label "Label 3" `style` [flexHeight 20]
+        label "Label 1" `styleBasic` [flexHeight 20],
+        label "Label Number Two" `styleBasic` [flexHeight 20],
+        label "Label 3" `styleBasic` [flexHeight 20]
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -176,9 +176,9 @@ resizeStrictFlexH = describe "strict/flexible items, horizontal" $ do
     cvp2 = Rect 100 0 100 480
     cvp3 = Rect 200 0 440 480
     hstackNode = hstack [
-        label "Label 1" `style` [width 100],
-        label "Label 2" `style` [width 100],
-        label "Label 3" `style` [expandWidth 70]
+        label "Label 1" `styleBasic` [width 100],
+        label "Label 2" `styleBasic` [width 100],
+        label "Label 3" `styleBasic` [expandWidth 70]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -199,9 +199,9 @@ resizeStrictFlexV = describe "strict/flexible items, vertical" $ do
     cvp2 = Rect 0 100 640  20
     cvp3 = Rect 0 120 640 360
     vstackNode = vstack [
-        label "Label 1" `style` [height 100],
+        label "Label 1" `styleBasic` [height 100],
         label "Label 2",
-        label "Label 3" `style` [flexHeight 100]
+        label "Label 3" `styleBasic` [flexHeight 100]
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -222,8 +222,8 @@ resizeMixedH = describe "mixed items, horizontal" $ do
     cvp2 = Rect 196 0 444  20
     hstackNode = vstack [
         hstack [
-          label "Label 1" `style` [expandWidth 110],
-          label "Label 2" `style` [expandWidth 250]
+          label "Label 1" `styleBasic` [expandWidth 110],
+          label "Label 2" `styleBasic` [expandWidth 250]
         ]
       ]
     newNode = nodeInit wenv hstackNode
@@ -248,8 +248,8 @@ resizeMixedV = describe "mixed items, vertical" $ do
     vstackNode = hstack [
         vstack [
           label "Label 1",
-          label "Label 2" `style` [minHeight 250],
-          label "Label 3" `style` [flexHeight 20]
+          label "Label 2" `styleBasic` [minHeight 250],
+          label "Label 3" `styleBasic` [flexHeight 20]
         ]
       ]
     newNode = nodeInit wenv vstackNode
@@ -274,11 +274,11 @@ resizeAllV = describe "all kinds of sizeReq, vertical" $ do
     cvp4 = Rect 0 300 640  80
     cvp5 = Rect 0 380 640 100
     vstackNode = vstack [
-        label "Label 1" `style` [width 50, height 50],
-        label "Label 2" `style` [flexWidth 60, flexHeight 60],
-        label "Label 3" `style` [minWidth 70, minHeight 70],
-        label "Label 4" `style` [maxWidth 80, maxHeight 80],
-        label "Label 5" `style` [rangeWidth 90 100, rangeHeight 90 100]
+        label "Label 1" `styleBasic` [width 50, height 50],
+        label "Label 2" `styleBasic` [flexWidth 60, flexHeight 60],
+        label "Label 3" `styleBasic` [minWidth 70, minHeight 70],
+        label "Label 4" `styleBasic` [maxWidth 80, maxHeight 80],
+        label "Label 5" `styleBasic` [rangeWidth 90 100, rangeHeight 90 100]
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -302,11 +302,11 @@ resizeNoSpaceV = describe "vertical, without enough space" $ do
     cvp4 = Rect 0 400 640 200
     cvp5 = Rect 0 600 640 200
     vstackNode = vstack [
-        label "Label 1" `style` [height 200],
-        label "Label 2" `style` [height 200],
-        label "Label 3" `style` [flexHeight 200],
-        label "Label 4" `style` [height 200],
-        label "Label 5" `style` [height 200]
+        label "Label 1" `styleBasic` [height 200],
+        label "Label 2" `styleBasic` [height 200],
+        label "Label 3" `styleBasic` [flexHeight 200],
+        label "Label 4" `styleBasic` [height 200],
+        label "Label 5" `styleBasic` [height 200]
       ]
     newNode = nodeInit wenv vstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -327,9 +327,9 @@ resizeSpacerFlexH = describe "label flex and spacer, horizontal" $ do
     cvp2 = Rect 211 0   8 480
     cvp3 = Rect 219 0 421 480
     hstackNode = hstack [
-        label "Label" `style` [flexWidth 100],
+        label "Label" `styleBasic` [flexWidth 100],
         filler,
-        label "Label" `style` [flexWidth 200]
+        label "Label" `styleBasic` [flexWidth 200]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
@@ -350,9 +350,9 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
     cvp2 = Rect 100 0 340 480
     cvp3 = Rect 440 0 200 480
     hstackNode = hstack [
-        label "Label" `style` [width 100],
+        label "Label" `styleBasic` [width 100],
         filler,
-        label "Label" `style` [width 200]
+        label "Label" `styleBasic` [width 200]
       ]
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport

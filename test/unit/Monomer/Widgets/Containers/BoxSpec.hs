@@ -123,7 +123,7 @@ handleEventIgnoreEmpty = describe "handleEventIgnoreEmpty" $ do
 
   where
     wenv = mockWenv ()
-    btn2 = button "Click 2" (BtnClick 2) `style` [height 10]
+    btn2 = button "Click 2" (BtnClick 2) `styleBasic` [height 10]
     ignoredNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
         box_ [ignoreEmptyArea_ True] btn2
@@ -140,7 +140,7 @@ handleEventSinkEmpty = describe "handleEventSinkEmpty" $ do
 
   where
     wenv = mockWenv ()
-    centeredBtn = button "Click 2" (BtnClick 2) `style` [height 10]
+    centeredBtn = button "Click 2" (BtnClick 2) `styleBasic` [height 10]
     sunkNode = zstack_ [onlyTopActive False] [
         button "Click 1" (BtnClick 1),
         box_ [ignoreEmptyArea_ False] centeredBtn

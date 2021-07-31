@@ -72,7 +72,7 @@ buildUI wenv model = widgetTree where
         spacer,
         button "Decrease count" AppDecrease
       ]
-    ] `style` [padding 20]
+    ] `styleBasic` [padding 20]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent

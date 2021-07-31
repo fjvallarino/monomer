@@ -74,7 +74,7 @@ getSizeReqMulti = describe "getSizeReq" $ do
 
   where
     wenv = mockWenv ()
-    lblNode = label_ "Line    line    line" [multiLine, trimSpaces] `style` [width 50]
+    lblNode = label_ "Line    line    line" [multiLine, trimSpaces] `styleBasic` [width 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiKeepSpaces :: Spec
@@ -88,7 +88,7 @@ getSizeReqMultiKeepSpaces = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line"
-    lblNode = label_ caption [multiLine, trimSpaces_ False] `style` [maxWidth 50]
+    lblNode = label_ caption [multiLine, trimSpaces_ False] `styleBasic` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMultiMaxLines :: Spec
@@ -102,7 +102,7 @@ getSizeReqMultiMaxLines = describe "getSizeReq" $ do
   where
     wenv = mockWenv ()
     caption = "Line    line    line    line    line"
-    lblNode = label_ caption [multiLine, trimSpaces_ False, maxLines 4] `style` [maxWidth 50]
+    lblNode = label_ caption [multiLine, trimSpaces_ False, maxLines 4] `styleBasic` [maxWidth 50]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv lblNode
 
 getSizeReqMerge :: Spec
@@ -126,7 +126,7 @@ getSizeReqMerge = describe "getSizeReqMerge" $ do
     wenv = mockWenvEvtUnit ()
       & L.fontManager .~ fontMgr
     lblNode = nodeInit wenv (label "Test Label")
-    lblNode2 = label "Test Label" `style` [textSize 60]
+    lblNode2 = label "Test Label" `styleBasic` [textSize 60]
     lblRes = widgetMerge (lblNode2 ^. L.widget) wenv lblNode2 lblNode
     WidgetResult lblMerged _ = lblRes
     lblInfo = lblNode ^. L.info

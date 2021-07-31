@@ -516,12 +516,12 @@ class CmbMaxDim t where
 infixl 5 `key`
 infixl 5 `enabled`
 infixl 5 `visible`
-infixl 5 `style`
-infixl 5 `hover`
-infixl 5 `focus`
-infixl 5 `focusHover`
-infixl 5 `active`
-infixl 5 `disabled`
+infixl 5 `styleBasic`
+infixl 5 `styleHover`
+infixl 5 `styleFocus`
+infixl 5 `styleFocusHover`
+infixl 5 `styleActive`
+infixl 5 `styleDisabled`
 
 -- | Key combinator, used mainly infix for widgets.
 class CmbKey t a | t -> a where
@@ -536,32 +536,32 @@ class CmbVisible t where
   visible :: t -> Bool -> t
 
 -- | Focusable combinator, used mainly infix for widgets.
-class CmbFocusable t where
+class CmbStyleFocusable t where
   focusable :: t -> Bool -> t
 
 -- | Basic style combinator, used mainly infix for widgets as a list.
-class CmbStyle t where
-  style :: t -> [StyleState] -> t
+class CmbStyleBasic t where
+  styleBasic :: t -> [StyleState] -> t
 
 -- | Hover style combinator, used mainly infix for widgets as a list.
-class CmbHover t where
-  hover :: t -> [StyleState] -> t
+class CmbStyleHover t where
+  styleHover :: t -> [StyleState] -> t
 
 -- | Focus style combinator, used mainly infix for widgets as a list.
-class CmbFocus t where
-  focus :: t -> [StyleState] -> t
+class CmbStyleFocus t where
+  styleFocus :: t -> [StyleState] -> t
 
 -- | Focus Hover style combinator, used mainly infix for widgets as a list.
-class CmbFocusHover t where
-  focusHover :: t -> [StyleState] -> t
+class CmbStyleFocusHover t where
+  styleFocusHover :: t -> [StyleState] -> t
 
 -- | Active style combinator, used mainly infix for widgets as a list.
-class CmbActive t where
-  active :: t -> [StyleState] -> t
+class CmbStyleActive t where
+  styleActive :: t -> [StyleState] -> t
 
 -- | Disabled style combinator, used mainly infix for widgets as a list.
-class CmbDisabled t where
-  disabled :: t -> [StyleState] -> t
+class CmbStyleDisabled t where
+  styleDisabled :: t -> [StyleState] -> t
 
 -- | Ignore theme settings and start with blank style.
 class CmbIgnoreTheme t where
@@ -610,8 +610,8 @@ class CmbCursorIcon t where
   cursorIcon :: CursorIcon -> t
 
 -- | Basic style for each item of a list.
-class CmbItemNormalStyle t s | t -> s where
-  itemNormalStyle :: s -> t
+class CmbItemBasicStyle t s | t -> s where
+  itemBasicStyle :: s -> t
 
 -- | Hover style for an item of a list.
 class CmbItemHoverStyle t s | t -> s where

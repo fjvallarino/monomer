@@ -356,8 +356,8 @@ handleShiftFocus = describe "handleShiftFocus" $ do
       & L.theme .~ darkTheme
     p = Point 100 30
     sliderNode = vstack [
-        hslider_ sliderVal (-500) 500 [wheelRate 1] `style` [height 20],
-        hslider_ sliderVal (-500) 500 [wheelRate 1, onFocus GotFocus] `style` [height 20]
+        hslider_ sliderVal (-500) 500 [wheelRate 1] `styleBasic` [height 20],
+        hslider_ sliderVal (-500) 500 [wheelRate 1, onFocus GotFocus] `styleBasic` [height 20]
       ]
     evts es = nodeHandleEventEvts wenv es sliderNode
 

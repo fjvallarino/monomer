@@ -36,14 +36,14 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   listItem idx item = vstack [
-      label_ (item ^. text) [ellipsis] `style` [textSize 12, paddingH 8],
+      label_ (item ^. text) [ellipsis] `styleBasic` [textSize 12, paddingH 8],
       spacer,
       hstack [
         textField (items . singular (ix idx) . text),
         spacer,
         button "Delete" (RemoveItem idx)
       ]
-    ] `key` showt (item ^. ts) `style` [paddingT 10]
+    ] `key` showt (item ^. ts) `styleBasic` [paddingT 10]
 
   widgetTree = vstack [
       keystroke [("Enter", AddItem)] $ hstack [
@@ -52,14 +52,14 @@ buildUI wenv model = widgetTree where
         textField_ newItemText [placeholder "Write here!"] `key` "description",
         spacer,
         button "Add" AddItem
-          `style` [paddingH 5]
+          `styleBasic` [paddingH 5]
           `enabled` (model ^. newItemText /= "")
       ],
 
-      separatorLine `style` [paddingT 20, paddingB 10],
+      separatorLine `styleBasic` [paddingT 20, paddingB 10],
 
       vstack (zipWith listItem [0..] (model ^. items))
-    ] `style` [padding 20]
+    ] `styleBasic` [padding 20]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent
