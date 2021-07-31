@@ -7,14 +7,14 @@ Stability   : experimental
 Portability : non-portable
 
 Combinator typeclasses used for style and widget configutation. The reason for
-using typeclasses is for the ability to reuse a name such as onClick.
+using typeclasses is for the ability to reuse names such as onClick.
 
 Boolean combinators in general have two versions:
 
 - combinatorName: uses the default value, normally True, and is derived from the
-other combinator.
+combinator with _ suffix.
 - combinatorName_: receives a boolean parameter. This is the function that needs
-to be overriden.
+to be overriden in widgets.
 -}
 {-# LANGUAGE FunctionalDependencies #-}
 
@@ -298,8 +298,10 @@ class CmbThumbColor t where
 class CmbThumbHoverColor t where
   thumbHoverColor :: Color -> t
 
--- | The thumb factor. For example, in slider this makes the thumb proportional
--- | to the width of the slider.
+{-|
+The thumb factor. For example, in slider this makes the thumb proportional
+to the width of the slider.
+-}
 class CmbThumbFactor t where
   thumbFactor :: Double -> t
 
@@ -494,7 +496,7 @@ class CmbSizeReqH t where
   sizeReqH :: SizeReq -> t
 
 -- | SizeReq updater. Useful to make modifications to widget SizeReqs without
--- | completely overriding it.
+-- | completely overriding them.
 class CmbSizeReqUpdater t where
   sizeReqUpdater :: ((SizeReq, SizeReq) -> (SizeReq, SizeReq)) -> t
 
@@ -506,11 +508,6 @@ class CmbResizeFactor t where
 class CmbResizeFactorDim t where
   resizeFactorW :: Double -> t
   resizeFactorH :: Double -> t
-
--- | Maximum dimension. Useful when aspect ratio needs to be maintained while
--- | at the same time restricting growth.
-class CmbMaxDim t where
-  maxDim :: Double -> t
 
 -- Style
 infixl 5 `styleBasic`

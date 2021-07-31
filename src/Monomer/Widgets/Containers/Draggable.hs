@@ -29,6 +29,7 @@ this step without implementing a custom widget all the lifecycle steps.
 module Monomer.Widgets.Containers.Draggable (
   draggable,
   draggable_,
+  draggableMaxDim,
   draggableStyle,
   draggableRender
 ) where
@@ -84,10 +85,14 @@ instance CmbTransparency (DraggableCfg s e) where
     _dgcTransparency = Just transp
   }
 
-instance CmbMaxDim (DraggableCfg s e) where
-  maxDim dim = def {
-    _dgcMaxDim = Just dim
-  }
+{-|
+Maximum dimension. Useful when aspect ratio needs to be maintained while at the
+same time restricting growth.
+-}
+draggableMaxDim :: Double -> DraggableCfg s e
+draggableMaxDim dim = def {
+  _dgcMaxDim = Just dim
+}
 
 -- | The style of the dragged container.
 draggableStyle :: [StyleState] -> DraggableCfg s e
@@ -95,6 +100,7 @@ draggableStyle styles = def {
   _dgcDragStyle = Just (mconcat styles)
 }
 
+-- | Rendering function for the dragged state.
 draggableRender :: DraggableRender s e -> DraggableCfg s e
 draggableRender render = def {
   _dgcCustomRender = Just render
