@@ -6,15 +6,15 @@
 packages:
 - completed:
     name: nanovg
-    version: 0.7.1.0
+    version: 0.8.0.0
     git: https://github.com/fjvallarino/nanovg-hs
     pantry-tree:
       size: 5654
-      sha256: 40f3b650691a031b917ed3870c535edbd8766deae110d11fc13968ec6010f918
-    commit: 2511fd085f71f75d71f22e8a4b4f08be15421337
+      sha256: 0d0141f6648a61552729545127a8e00777388f964c9c39394185d50852f3195d
+    commit: ba8733f58da63e0934b5d2853ed84b71e872e6f1
   original:
     git: https://github.com/fjvallarino/nanovg-hs
-    commit: 2511fd085f71f75d71f22e8a4b4f08be15421337
+    commit: ba8733f58da63e0934b5d2853ed84b71e872e6f1
 - completed:
     hackage: regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
     pantry-tree:

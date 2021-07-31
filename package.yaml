@@ -1,5 +1,5 @@
 name: monomer
-version: 0.1.0.0
+version: 1.0.0.0
 github: fjvallarino/monomer
 license: BSD3
 author: Francisco Vallarino
@@ -28,42 +28,44 @@ default-extensions:
 - OverloadedStrings
 
 dependencies:
-- async
-- attoparsec
-- base >= 4.7 && < 5
-- bytestring
-- bytestring-to-vector
-- containers
-- data-default
-- exceptions
-- extra
-- formatting
-- http-client
-- JuicyPixels
-- lens
-- mtl
-- nanovg
-- OpenGL
-- process
-- safe
-- sdl2
-- stm
-- text
-- text-show
-- time
-- transformers
-- unordered-containers
-- vector
-- wreq
+- async >= 2.1 && < 2.3
+- attoparsec >= 0.12 && < 0.15
+- base >= 4.11 && < 5
+- bytestring >= 0.10 && < 0.12
+- bytestring-to-vector >= 0.3 && < 0.4
+- containers >= 0.5.11 && < 0.7
+- data-default >= 0.5 && < 0.8
+- exceptions >= 0.10 && < 0.11
+- extra >= 1.6 && < 1.9
+- formatting >= 6.0 && < 8.0
+- http-client >= 0.6 && < 0.9
+- JuicyPixels >= 3.2.9 && < 3.5
+- lens >= 4.16 && < 5.1
+- mtl >= 2.1 && < 2.3
+- nanovg >= 0.8 && < 1.0
+- OpenGL >= 3.0 && < 3.1
+- process >= 1.6 && < 1.7
+- safe >= 0.3 && < 0.4
+- sdl2 >= 2.4.0 && < 2.6
+- stm >= 2.5 && < 2.6
+- text >= 1.2 && < 1.3
+- text-show >= 3.7 && < 3.10
+- time >= 1.9 && < 1.13
+- transformers >= 0.5 && < 0.7
+- unordered-containers >= 0.2.8 && < 0.3
+- vector >= 0.12 && < 0.14
+- wreq >= 0.5.2 && < 0.6
 
 library:
   source-dirs: src
   include-dirs: cbits
-  install-includes: fontmanager.h
+  install-includes:
+  - fontmanager.h
   c-sources:
   - cbits/dpi.c
   - cbits/fontmanager.c
   - cbits/glew.c
+  build-tools: c2hs
   cc-options:
   - -fPIC
   ghc-options:
@@ -87,8 +89,8 @@ executables:
     - -with-rtsopts=-T
 
     dependencies:
-    - ekg
-    - lens
+    - ekg >= 0.4 && < 0.4.1
+    - lens >= 4.16 && < 5.1
     - monomer
 
   books:
@@ -97,11 +99,11 @@ executables:
     ghc-options:
     - -threaded
     dependencies:
-    - aeson
-    - lens
+    - aeson >= 1.4 && < 1.6
+    - lens >= 4.16 && < 5.1
     - monomer
-    - text-show
-    - wreq
+    - text-show >= 3.7 && < 3.10
+    - wreq >= 0.5.2 && < 0.6
 
   generative:
     main: Main.hs
@@ -109,10 +111,10 @@ executables:
     ghc-options:
     - -threaded
     dependencies:
-    - lens
+    - lens >= 4.16 && < 5.1
     - monomer
-    - random
-    - text-show
+    - random >= 1.1 && < 1.3
+    - text-show >= 3.7 && < 3.10
 
   ticker:
     main: Main.hs
@@ -120,13 +122,13 @@ executables:
     ghc-options:
     - -threaded
     dependencies:
-    - aeson
-    - lens
+    - aeson >= 1.4 && < 1.6
+    - lens >= 4.16 && < 5.1
     - monomer
-    - scientific
-    - text-show
-    - websockets
-    - wuss
+    - scientific >= 0.3 && < 0.4
+    - text-show >= 3.7 && < 3.10
+    - websockets >= 0.12 && < 0.13
+    - wuss >= 1.1 && < 1.2
 
   todo:
     main: Main.hs
@@ -134,9 +136,9 @@ executables:
     ghc-options:
     - -threaded
     dependencies:
-    - lens
+    - lens >= 4.16 && < 5.1
     - monomer
-    - text-show
+    - text-show >= 3.7 && < 3.10
 
   tutorial:
     main: Main.hs
@@ -144,11 +146,11 @@ executables:
     ghc-options:
     - -threaded
     dependencies:
-    - lens
+    - lens >= 4.16 && < 5.1
     - monomer
-    - random
-    - text-show
-    - time
+    - random >= 1.1 && < 1.3
+    - text-show >= 3.7 && < 3.10
+    - time >= 1.9 && < 1.13
 
 tests:
   monomer-test:
@@ -161,10 +163,10 @@ tests:
     - -with-rtsopts=-N
     - -with-rtsopts=-T
     dependencies:
-    - call-stack
-    - directory
+#    - call-stack
+    - directory >= 1.3 && < 1.4
     - monomer
-    - hedgehog
-    - hspec
-    - HUnit
-    - silently
+#    - hedgehog >= 1.0 && < 1.1
+    - hspec >= 2.4 && < 3.0
+    - HUnit >= 1.6 && < 1.7
+    - silently >= 1.2 && < 1.3

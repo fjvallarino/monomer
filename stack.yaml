@@ -39,14 +39,18 @@ resolver: lts-17.6
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - git: https://github.com/fjvallarino/nanovg-hs
-    commit: 2511fd085f71f75d71f22e8a4b4f08be15421337
+    commit: ba8733f58da63e0934b5d2853ed84b71e872e6f1
   - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
-# Override default flag values for local packages and extra-deps
-# flags: {}
+
+  # Override default flag values for local packages and extra-deps
+flags:
+  nanovg:
+    stb_truetype: true
 
 # Extra package databases containing global packages
 # extra-package-dbs: []
