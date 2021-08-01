@@ -172,7 +172,7 @@ library
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -220,7 +220,7 @@ executable books
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -264,7 +264,7 @@ executable generative
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -308,7 +308,7 @@ executable monomer-exe
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -352,7 +352,7 @@ executable ticker
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -395,7 +395,7 @@ executable todo
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -444,7 +444,7 @@ executable tutorial
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -532,7 +532,7 @@ test-suite monomer-test
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10
-    , time >=1.9 && <1.13
+    , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
