@@ -89,7 +89,12 @@ handleEvent wenv node model evt = case evt of
 
 customTheme :: Theme
 customTheme = baseTheme darkThemeColors {
-  btnMainBgBasic = orange
+  btnMainBgBasic = rgbHex "#EE9000",
+  btnMainBgHover = rgbHex "#FFB522",
+  btnMainBgFocus = rgbHex "#FFA500",
+  btnMainBgActive = rgbHex "#DD8000",
+  btnMainBgDisabled = rgbHex "#BB8800",
+  btnMainText = rgbHex "000000"
 }
 
 main08 :: IO ()

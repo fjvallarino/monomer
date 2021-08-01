@@ -793,10 +793,10 @@
   - Maybe spacer should be 8 pixels wide.
     - Looks/feels better at 10.
   - Improve Tutorial 6 colors.
-
-Next
   - Rename style combinators?
   - Document themes and how widgets use them.
+
+Next
   - Make resize process smarter
     - Keep list of widgets requesting resize
     - If children requested resize, it overrides viewport check
