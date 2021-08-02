@@ -201,7 +201,7 @@ makeCheckbox widgetData config = widget where
     req = (fixedSize width, fixedSize width)
 
   render wenv node renderer = do
-    renderCheckbox renderer checkboxBW checkboxArea fgColor
+    renderCheckbox renderer checkboxBW checkboxArea radius fgColor
 
     when value $
       renderMark renderer checkboxBW checkboxArea hlColor mark
@@ -218,15 +218,16 @@ makeCheckbox widgetData config = widget where
       checkboxT = _rY carea + (_rH carea - checkboxW) / 2
       checkboxArea = Rect checkboxL checkboxT checkboxW checkboxW
 
+      radius = style ^. L.radius
       fgColor = styleFgColor style
       hlColor = styleHlColor style
       mark = fromMaybe CheckboxTimes (_ckcMark config)
 
-renderCheckbox :: Renderer -> Double -> Rect -> Color -> IO ()
-renderCheckbox renderer checkboxBW rect color = action where
+renderCheckbox :: Renderer -> Double -> Rect -> Maybe Radius -> Color -> IO ()
+renderCheckbox renderer checkboxBW rect radius color = action where
   side = Just $ BorderSide checkboxBW color
   border = Border side side side side
-  action = drawRectBorder renderer rect border Nothing
+  action = drawRectBorder renderer rect border radius
 
 renderMark :: Renderer -> Double -> Rect -> Color -> CheckboxMark -> IO ()
 renderMark renderer checkboxBW rect color mark = action where

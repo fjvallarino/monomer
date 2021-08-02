@@ -207,6 +207,7 @@ baseBasic themeMod = def
   & L.checkboxWidth .~ 20
   & L.checkboxStyle . L.fgColor ?~ inputFgBasic themeMod
   & L.checkboxStyle . L.hlColor ?~ inputHlBasic themeMod
+  & L.checkboxStyle . L.radius ?~ radius 4
   & L.dateFieldStyle .~ dateInputStyle themeMod
   & L.dialWidth .~ 50
   & L.dialStyle . L.fgColor ?~ inputFgBasic themeMod
