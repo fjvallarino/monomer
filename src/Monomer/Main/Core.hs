@@ -381,7 +381,8 @@ handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
         & L.windowSize .~ newSize
         & L.viewport .~ viewport
   let color = newWenv ^. L.theme . L.clearColor
-  let result = widgetResize (root ^. L.widget) newWenv root viewport
+  let resizeCheck = const False
+  let result = widgetResize (root ^. L.widget) newWenv root viewport resizeCheck
   let newRoot = result ^. L.node
 
   renderWidgets window renderer color newWenv newRoot

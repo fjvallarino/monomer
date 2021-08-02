@@ -255,6 +255,8 @@ handleSizeChange
 handleSizeChange wenv target evt oldNode result = newResult where
   baseResult = fromMaybe (resultNode oldNode) result
   newNode = baseResult ^. L.node
+  widgetId = newNode ^. L.info . L.widgetId
+  path = newNode ^. L.info . L.path
   -- Size
   oldSizeReqW = oldNode ^. L.info . L.sizeReqW
   oldSizeReqH = oldNode ^. L.info . L.sizeReqH
@@ -264,12 +266,11 @@ handleSizeChange wenv target evt oldNode result = newResult where
   -- Hover drag changed (if dragging, Enter/Leave is not sent)
   prevInVp = isPointInNodeVp newNode (wenv ^. L.inputStatus . L.mousePosPrev)
   currInVp = isPointInNodeVp newNode (wenv ^. L.inputStatus . L.mousePos)
-  path = newNode ^. L.info . L.path
   pressedPath = wenv ^. L.mainBtnPress ^? _Just . _1
   hoverDragChg = Just path == pressedPath && prevInVp /= currInVp
   -- Result
   renderReq = isOnEnter evt || isOnLeave evt || hoverDragChg
-  resizeReq = [ ResizeWidgets | sizeReqChanged ]
+  resizeReq = [ ResizeWidgets widgetId | sizeReqChanged ]
   enterReq = [ RenderOnce | renderReq ]
   reqs = resizeReq ++ enterReq
   newResult

@@ -211,9 +211,10 @@ makeSplit isHorizontal config state = widget where
           _spsHandlePos = newHandlePos
         }
 
+        resizeReq = const True
         tmpNode = node
           & L.widget .~ makeSplit isHorizontal config newState
-        newNode = widgetResize (tmpNode ^. L.widget) wenv tmpNode vp
+        newNode = widgetResize (tmpNode ^. L.widget) wenv tmpNode vp resizeReq
 
         resultDrag
           | handlePos /= newHandlePos = newNode

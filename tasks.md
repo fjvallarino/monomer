@@ -795,12 +795,12 @@
   - Improve Tutorial 6 colors.
   - Rename style combinators?
   - Document themes and how widgets use them.
-
-Next
   - Make resize process smarter
     - Keep list of widgets requesting resize
-    - If children requested resize, it overrides viewport check
+    - If widget requested resize, it overrides viewport check
     - Can remove resize flag from Container/selectList
+
+Next
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

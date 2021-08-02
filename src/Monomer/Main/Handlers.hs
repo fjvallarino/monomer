@@ -26,7 +26,7 @@ module Monomer.Main.Handlers (
 
 import Control.Concurrent.Async (async)
 import Control.Lens
-  ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%%~), _Just, _1, _2, ix, at, use)
+  ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, _2, ix, at, use)
 import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
@@ -34,6 +34,7 @@ import Control.Monad
 import Control.Monad.Extra (concatMapM, maybeM)
 import Control.Monad.IO.Class
 import Data.Default
+import Data.Foldable (fold, toList)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -45,6 +46,7 @@ import SDL (($=))
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 import qualified SDL
 import qualified SDL.Raw.Enum as SDLEnum
 import qualified SDL.Raw.Event as SDLE
@@ -174,7 +176,8 @@ handleWidgetInit wenv widgetRoot = do
   let reqs = widgetResult ^. L.requests
   let focusReqExists = isJust $ Seq.findIndexL isFocusRequest reqs
 
-  L.resizePending .= True
+  L.resizeRequests .= Seq.singleton def
+
   step <- handleWidgetResult wenv True widgetResult
   currFocus <- getFocusedPath
 
@@ -206,16 +209,13 @@ handleWidgetResult
   -> m (HandlerStep s e)
 handleWidgetResult wenv resizeWidgets result = do
   let WidgetResult evtRoot reqs = result
-  let resizeReq = isResizeResult (Just result)
 
-  resizePending <- use L.resizePending
   step <- handleRequests reqs (wenv, evtRoot, reqs)
+  resizeRequests <- use L.resizeRequests
 
-  if resizeWidgets && (resizeReq || resizePending)
+  if resizeWidgets && not (null resizeRequests)
     then handleResizeWidgets step
-    else do
-      L.resizePending .= resizeReq
-      return step
+    else return step
 
 -- | Processes a Seq of WidgetRequest, returning the latest "HandlerStep".
 handleRequests
@@ -227,8 +227,8 @@ handleRequests reqs step = foldM handleRequest step reqs where
   handleRequest step req = case req of
     IgnoreParentEvents -> return step
     IgnoreChildrenEvents -> return step
-    ResizeWidgets -> return step
-    ResizeWidgetsImmediate -> handleResizeWidgets step
+    ResizeWidgets wid -> handleAddPendingResize wid step
+    ResizeWidgetsImmediate wid -> handleResizeImmediate wid step
     MoveFocus start dir -> handleMoveFocus start dir step
     SetFocus path -> handleSetFocus path step
     GetClipboard wid -> handleGetClipboard wid step
@@ -262,20 +262,48 @@ handleResizeWidgets
   -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
   windowSize <- use L.windowSize
+  resizeCheckFn <- makeResizeChechFn
 
   let viewport = Rect 0 0 (windowSize ^. L.w) (windowSize ^. L.h)
   let (wenv, root, reqs) = previousStep
   let newWenv = wenv
         & L.windowSize .~ windowSize
         & L.viewport .~ viewport
-  let newResult = widgetResize (root ^. L.widget) newWenv root viewport
+  let rootWidget = root ^. L.widget
+  let newResult = widgetResize rootWidget newWenv root viewport resizeCheckFn
 
   L.renderRequested .= True
-  L.resizePending .= False
+  L.resizeRequests .= Seq.empty
 
   (wenv2, root2, reqs2) <- handleWidgetResult newWenv True newResult
 
   return (wenv2, root2, reqs <> reqs2)
+  where
+    makeResizeChechFn = do
+      resizeRequests <- use L.resizeRequests
+      paths <- mapM getWidgetIdPath resizeRequests
+      let parts = Set.fromDistinctAscList . drop 1 . toList . Seq.inits
+      let sets = fold (parts <$> paths)
+
+      return (`Set.member` sets)
+
+handleAddPendingResize
+  :: MonomerM s e m
+  => WidgetId
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleAddPendingResize wid step = do
+  L.resizeRequests %= (|> wid)
+  return step
+
+handleResizeImmediate
+  :: MonomerM s e m
+  => WidgetId
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleResizeImmediate wid step = do
+  L.resizeRequests %= (|> wid)
+  handleResizeWidgets step
 
 handleMoveFocus
   :: MonomerM s e m

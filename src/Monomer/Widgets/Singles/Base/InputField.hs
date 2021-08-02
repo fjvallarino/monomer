@@ -612,7 +612,7 @@ makeInputField config state = widget where
         }
     newNode = node
       & L.widget .~ makeInputField config newState
-    (reqs, events) = genReqsEvents config state newText newReqs
+    (reqs, events) = genReqsEvents node config state newText newReqs
     result
       | acceptInput || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
@@ -746,12 +746,14 @@ findClosestGlyphPos state point = newPos where
 
 genReqsEvents
   :: (Eq a)
-  => InputFieldCfg s e a
+  => WidgetNode s e
+  -> InputFieldCfg s e a
   -> InputFieldState a
   -> Text
   -> [WidgetRequest s e]
   -> ([WidgetRequest s e], [e])
-genReqsEvents config state newText newReqs = result where
+genReqsEvents node config state newText newReqs = result where
+  widgetId = node ^. L.info . L.widgetId
   resizeOnChange = _ifcResizeOnChange config
   fromText = _ifcFromText config
   setModelValue = widgetDataSet (_ifcValue config)
@@ -771,7 +773,7 @@ genReqsEvents config state newText newReqs = result where
     | accepted && valChanged = setModelValue stateVal
     | otherwise = []
   reqResize
-    | resizeOnChange && valChanged = [ResizeWidgets]
+    | resizeOnChange && valChanged = [ResizeWidgets widgetId]
     | otherwise = []
   reqOnChange
     | accepted && valChanged = fmap ($ stateVal) (_ifcOnChangeReq config)
@@ -800,7 +802,7 @@ moveHistory wenv node state config steps = result where
     | null currHistory || reqHistIdx < 0 = Just (createResult historyStep)
     | otherwise = fmap createResult histStep
   createResult histStep = resultReqsEvts newNode reqs evts where
-    (reqs, evts) = genReqsEvents config state (_ihsText histStep) []
+    (reqs, evts) = genReqsEvents node config state (_ihsText histStep) []
     tempState = newStateFromHistory wenv node state config histStep
     newState = tempState {
       _ifsHistIdx = clamp 0 lenHistory reqHistIdx

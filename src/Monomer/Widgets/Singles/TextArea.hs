@@ -619,11 +619,12 @@ makeTextArea wdata config state = widget where
       | otherwise = resultNode node
 
   generateReqs wenv node newState = reqs ++ reqScroll where
+    widgetId = node ^. L.info . L.widgetId
     oldText = _tasText state
     newText = _tasText newState
     reqUpdate = widgetDataSet wdata newText
     reqOnChange = fmap ($ newText) (_tacOnChangeReq config)
-    reqResize = [ResizeWidgetsImmediate]
+    reqResize = [ResizeWidgetsImmediate widgetId]
     reqScroll = generateScrollReq wenv node newState
     reqs
       | oldText /= newText = reqUpdate ++ reqOnChange ++ reqResize

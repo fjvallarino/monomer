@@ -204,8 +204,9 @@ nodeGetSizeReq wenv node = (sizeReqW,  sizeReqH) where
 
 nodeResize :: WidgetEnv s e -> WidgetNode s e -> Rect -> WidgetNode s e
 nodeResize wenv node viewport = result ^. L.node where
+  resizeCheck = const True
   widget = node ^. L.widget
-  result = widgetResize widget wenv node viewport
+  result = widgetResize widget wenv node viewport resizeCheck
 
 nodeHandleEventCtx
   :: (Eq s)
@@ -292,7 +293,8 @@ nodeHandleEvents_ wenv init evtsG node = unsafePerformIO $ do
 
     ctxA <- get
     let (wenvA, nodeA, reqsA) = stepA
-    let resizeRes = widgetResize (nodeA ^. L.widget) wenv nodeA vp
+    let resizeCheck = const True
+    let resizeRes = widgetResize (nodeA ^. L.widget) wenv nodeA vp resizeCheck
     step <- handleWidgetResult wenvA True resizeRes
     ctx <- get
     let (wenvr, rootr, reqsr) = step

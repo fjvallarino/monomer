@@ -108,7 +108,7 @@ testHandleSizeChange = describe "handleSizeChange" $ do
     resFocus = handleStyleChange wenvFocus path focusStyle True node evtFocus res2
 
 isMResizeWidgets :: Maybe (WidgetRequest s e) -> Bool
-isMResizeWidgets (Just ResizeWidgets) = True
+isMResizeWidgets (Just ResizeWidgets{}) = True
 isMResizeWidgets _ = False
 
 isMRenderOnce :: Maybe (WidgetRequest s e) -> Bool

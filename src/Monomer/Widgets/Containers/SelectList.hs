@@ -413,6 +413,7 @@ updateStyles
   -> Int
   -> (WidgetNode s e, [WidgetRequest s e])
 updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
+  widgetId = node ^. L.info . L.widgetId
   items = node ^. L.children . ix 0 . L.children
   normalStyle = getNormalStyle wenv config
   idxMatch = newSlIdx == newHlIdx
@@ -429,7 +430,7 @@ updateStyles wenv config state node newSlIdx newHlIdx = (newNode, newReqs) where
 
   newNode = node
     & L.children . ix 0 . L.children .~ newChildren
-  newReqs = [ ResizeWidgets | resizeReq ]
+  newReqs = [ ResizeWidgets widgetId | resizeReq ]
 
 updateItemStyle
   :: WidgetEnv s e

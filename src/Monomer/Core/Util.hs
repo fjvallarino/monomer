@@ -79,7 +79,7 @@ The widget content changed and requires a different size. Processed at the end
 of the cycle, since several widgets may request it.
 -}
 isResizeWidgets :: WidgetRequest s e -> Bool
-isResizeWidgets ResizeWidgets = True
+isResizeWidgets ResizeWidgets{} = True
 isResizeWidgets _ = False
 
 {-|
@@ -87,7 +87,7 @@ The widget content changed and requires a different size. Processed immediately.
 Avoid if possible, since it can affect performance.
 -}
 isResizeWidgetsImmediate :: WidgetRequest s e -> Bool
-isResizeWidgetsImmediate ResizeWidgetsImmediate = True
+isResizeWidgetsImmediate ResizeWidgetsImmediate{} = True
 isResizeWidgetsImmediate _ = False
 
 -- | Moves the focus, optionally indicating a starting widgetId.

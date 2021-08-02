@@ -149,10 +149,10 @@ data WidgetRequest s e
   | IgnoreChildrenEvents
   -- | The widget content changed and requires a different size. Processed at
   -- | the end of the cycle, since several widgets may request it.
-  | ResizeWidgets
+  | ResizeWidgets WidgetId
   -- | The widget content changed and requires a different size. Processed
   -- | immediately. Avoid if possible, since it can affect performance.
-  | ResizeWidgetsImmediate
+  | ResizeWidgetsImmediate WidgetId
   -- | Moves the focus, optionally indicating a starting widgetId.
   | MoveFocus (Maybe WidgetId) FocusDirection
   -- | Sets the focus to the given widgetId.
@@ -225,7 +225,8 @@ data WidgetRequest s e
 instance Eq e => Eq (WidgetRequest s e) where
   IgnoreParentEvents == IgnoreParentEvents = True
   IgnoreChildrenEvents == IgnoreChildrenEvents = True
-  ResizeWidgets == ResizeWidgets = True
+  ResizeWidgets w1 == ResizeWidgets w2 = w1 == w2
+  ResizeWidgetsImmediate w1 == ResizeWidgetsImmediate w2 = w1 == w2
   MoveFocus w1 fd1 == MoveFocus w2 fd2 = (w1, fd1) == (w2, fd2)
   SetFocus w1 == SetFocus w2 = w1 == w2
   GetClipboard w1 == GetClipboard w2 = w1 == w2
@@ -444,7 +445,6 @@ data Widget s e =
     - The widget environment.
     - The widget node.
     - The previous widget node.
-    - The state of the previous widget node.
 
     Returns:
 
@@ -514,7 +514,7 @@ data Widget s e =
     - The widget environment.
     - The widget node.
     - The direction in which focus is moving.
-    - The start path from which to search.
+    - The path to start the search from.
 
     Returns:
 
@@ -533,7 +533,7 @@ data Widget s e =
 
     - The widget environment.
     - The widget node.
-    - The start path from which to search.
+    - The path to start the search from.
     - The point to test for.
 
     Returns:
@@ -618,7 +618,6 @@ data Widget s e =
 
     - The widget environment.
     - The widget node.
-    - The children widgets
 
     Returns:
 
@@ -636,7 +635,7 @@ data Widget s e =
     - The widget environment.
     - The widget node.
     - The new viewport.
-    - The children widgets
+    - Checks if a given path, or its children, requested resize.
 
     Returns:
 
@@ -646,6 +645,7 @@ data Widget s e =
       :: WidgetEnv s e
       -> WidgetNode s e
       -> Rect
+      -> (Path -> Bool)
       -> WidgetResult s e,
     {-|
     Renders the widget's content using the given Renderer.
@@ -670,8 +670,8 @@ data Widget s e =
 instance Show (WidgetRequest s e) where
   show IgnoreParentEvents = "IgnoreParentEvents"
   show IgnoreChildrenEvents = "IgnoreChildrenEvents"
-  show ResizeWidgets = "ResizeWidgets"
-  show ResizeWidgetsImmediate = "ResizeWidgetsImmediate"
+  show (ResizeWidgets wid) = "ResizeWidgets: " ++ show wid
+  show (ResizeWidgetsImmediate wid) = "ResizeWidgetsImmediate: " ++ show wid
   show (MoveFocus start dir) = "MoveFocus: " ++ show (start, dir)
   show (SetFocus path) = "SetFocus: " ++ show path
   show (GetClipboard wid) = "GetClipboard: " ++ show wid

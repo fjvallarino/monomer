@@ -336,9 +336,10 @@ makeImage imgSource config state = widget where
     evts = fmap ($ msg) (_imcLoadError config)
     result = Just $ resultEvts node evts
   useImage node (ImageLoaded newState) = result where
+    widgetId = node ^. L.info . L.widgetId
     newNode = node
       & L.widget .~ makeImage imgSource config newState
-    result = Just $ resultReqs newNode [ResizeWidgets]
+    result = Just $ resultReqs newNode [ResizeWidgets widgetId]
 
   getSizeReq wenv node = (sizeW, sizeH) where
     Size w h = maybe def snd (isImageData state)

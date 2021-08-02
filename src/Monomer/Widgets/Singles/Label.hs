@@ -189,6 +189,7 @@ makeLabel config state = widget where
       & L.widget .~ makeLabel config newState
 
   merge wenv newNode oldNode oldState = result where
+    widgetId = newNode ^. L.info . L.widgetId
     style = labelCurrentStyle wenv newNode
     newTextStyle = style ^. L.text
 
@@ -205,7 +206,7 @@ makeLabel config state = widget where
       _lstTextStyle = newTextStyle
     }
 
-    reqs = [ ResizeWidgets | changeReq ]
+    reqs = [ ResizeWidgets widgetId | changeReq ]
     resNode = newNode
       & L.widget .~ makeLabel config newState
     result = resultReqs resNode reqs
@@ -240,6 +241,7 @@ makeLabel config state = widget where
   resize wenv node viewport = result where
     fontMgr = wenv ^. L.fontManager
     ts = wenv ^. L.timestamp
+    widgetId = newNode ^. L.info . L.widgetId
     style = labelCurrentStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
     newTextStyle = style ^. L.text
@@ -269,7 +271,7 @@ makeLabel config state = widget where
     }
     newNode = node
       & L.widget .~ makeLabel config newState
-    result = resultReqs newNode [ResizeWidgets | needsSndResize]
+    result = resultReqs newNode [ResizeWidgets widgetId | needsSndResize]
 
   render wenv node renderer = do
     drawInScissor renderer True scissorVp $

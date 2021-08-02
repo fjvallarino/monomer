@@ -110,16 +110,20 @@ data MonomerCtx s e = MonomerCtx {
   _mcMainBtnPress :: Maybe (Path, Point),
   -- | Active widget tasks.
   _mcWidgetTasks :: Seq WidgetTask,
-  -- | Associations of WidgetId to updated paths. Only WidgetIds whose initial
-  -- | path changed are included.
+  {-|
+  Associations of WidgetId to updated paths. Only WidgetIds whose initial path
+  changed are included.
+  -}
   _mcWidgetPaths :: Map WidgetId Path,
   -- | Association of Monomer CursorIcon to SDL Cursors.
   _mcCursorIcons :: Map CursorIcon SDLR.Cursor,
-  -- | Hacky flag to avoid resizing when transitioning hover. Needed because
-  -- | sizes may change and new target of hover should not change.
+  {-|
+  Hacky flag to avoid resizing when transitioning hover. Needed because sizes
+  may change and new target of hover should not change.
+  -}
   _mcLeaveEnterPair :: Bool,
-  -- | Flag indicating resize was requested in this cycle and is still pending.
-  _mcResizePending :: Bool,
+  -- | Widgets with pending resize requests.
+  _mcResizeRequests :: Seq WidgetId,
   -- | Flag indicating render was requested in this cycle.
   _mcRenderRequested :: Bool,
   -- | Active periodic rendering requests.
@@ -148,9 +152,11 @@ data AppConfig e = AppConfig {
   _apcWindowResizable :: Maybe Bool,
   -- | Whether the main window has a border.
   _apcWindowBorder :: Maybe Bool,
-  -- | Max number of FPS the application will run. It does not necessarily mean
-  -- | rendering will happen every frame, but events and schedules will be
-  -- | checked at this rate and may cause it.
+  {-|
+  Max number of FPS the application will run at. It does not necessarily mean
+  rendering will happen every frame, but events and schedules will be checked at
+  this rate.
+  -}
   _apcMaxFps :: Maybe Int,
   {-|
   Scale factor to apply. This factor only affects the content, not the size of
@@ -158,8 +164,10 @@ data AppConfig e = AppConfig {
   reliably detected (i.e., system scaling may not be detected reliably on Linux)
   -}
   _apcScaleFactor :: Maybe Double,
-  -- | Available fonts to the application. An empty list will make it impossible
-  -- | to render text.
+  {-|
+  Available fonts to the application. An empty list will make it impossible to
+  render text.
+  -}
   _apcFonts :: [FontDef],
   -- | Initial theme.
   _apcTheme :: Maybe Theme,
@@ -260,8 +268,10 @@ appScaleFactor factor = def {
   _apcScaleFactor = Just factor
 }
 
--- | Available fonts to the application. An empty list will make it impossible
--- | to render text.
+{-|
+Available fonts to the application. An empty list will make it impossible to
+render text.
+-}
 appFontDef :: Text -> Text -> AppConfig e
 appFontDef name path = def {
   _apcFonts = [ FontDef name path ]

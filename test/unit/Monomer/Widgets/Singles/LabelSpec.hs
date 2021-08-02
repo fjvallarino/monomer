@@ -10,7 +10,7 @@ Unit tests for Label widget.
 -}
 module Monomer.Widgets.Singles.LabelSpec (spec) where
 
-import Control.Lens ((&), (^.), (.~))
+import Control.Lens ((&), (^.), (^?!), (.~), ix)
 import Data.Text (Text)
 import Test.Hspec
 
@@ -140,14 +140,15 @@ resize = describe "resize" $ do
     reqsSingle `shouldBe` Seq.Empty
 
   it "should resize multi line in two steps" $
-    reqsMulti `shouldBe` Seq.singleton ResizeWidgets
+    reqsMulti ^?! ix 0 `shouldSatisfy` isResizeWidgets
 
   where
     wenv = mockWenvEvtUnit ()
     vp = Rect 0 0 640 480
     single = label "Test label"
-    resSingle = widgetResize (single ^. L.widget) wenv single vp
+    resizeCheck = const True
+    resSingle = widgetResize (single ^. L.widget) wenv single vp resizeCheck
     reqsSingle = resSingle ^. L.requests
     multi = label_ "Test label" [multiline]
-    resMulti = widgetResize (multi ^. L.widget) wenv multi vp
+    resMulti = widgetResize (multi ^. L.widget) wenv multi vp resizeCheck
     reqsMulti = resMulti ^. L.requests

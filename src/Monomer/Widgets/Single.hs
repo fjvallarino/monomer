@@ -564,8 +564,9 @@ resizeHandlerWrapper
   -> WidgetEnv s e
   -> WidgetNode s e
   -> Rect
+  -> (Path -> Bool)
   -> WidgetResult s e
-resizeHandlerWrapper single wenv node viewport = result where
+resizeHandlerWrapper single wenv node viewport resizeReq = result where
   useCustomSize = singleUseCustomSize single
   handler = singleResize single
 

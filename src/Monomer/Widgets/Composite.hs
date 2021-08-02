@@ -651,16 +651,17 @@ compositeResize
   -> WidgetEnv sp ep
   -> WidgetNode sp ep
   -> Rect
+  -> (Path -> Bool)
   -> WidgetResult sp ep
-compositeResize comp state wenv widgetComp viewport = resizedRes where
+compositeResize comp state wenv widgetComp viewport rszReq = resizedRes where
   CompositeState{..} = state
   style = currentStyle wenv widgetComp
-  contentArea = fromMaybe def (removeOuterBounds style viewport)
+  carea = fromMaybe def (removeOuterBounds style viewport)
   widget = _cpsRoot ^. L.widget
   model = getModel comp wenv
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
 
-  WidgetResult newRoot newReqs = widgetResize widget cwenv _cpsRoot contentArea
+  WidgetResult newRoot newReqs = widgetResize widget cwenv _cpsRoot carea rszReq
   oldVp = widgetComp ^. L.info . L.viewport
   sizeChanged = viewport /= oldVp
   resizeEvts = fmap ($ viewport) (_cmpOnResize comp)
@@ -669,7 +670,7 @@ compositeResize comp state wenv widgetComp viewport = resizedRes where
     | otherwise = Empty
 
   childRes = WidgetResult newRoot (newReqs <> resizeReqs)
-    & L.node . L.info . L.viewport .~ contentArea
+    & L.node . L.info . L.viewport .~ carea
   resizedRes = toParentResult comp state wenv widgetComp childRes
     & L.node . L.info . L.viewport .~ viewport
 
@@ -807,8 +808,8 @@ toParentReq
   -> Maybe (WidgetRequest sp ep)
 toParentReq _ IgnoreParentEvents = Just IgnoreParentEvents
 toParentReq _ IgnoreChildrenEvents = Just IgnoreChildrenEvents
-toParentReq _ ResizeWidgets = Just ResizeWidgets
-toParentReq _ ResizeWidgetsImmediate = Just ResizeWidgetsImmediate
+toParentReq _ (ResizeWidgets wid) = Just (ResizeWidgets wid)
+toParentReq _ (ResizeWidgetsImmediate wid) = Just (ResizeWidgetsImmediate wid)
 toParentReq _ (MoveFocus start dir) = Just (MoveFocus start dir)
 toParentReq _ (SetFocus path) = Just (SetFocus path)
 toParentReq _ (GetClipboard path) = Just (GetClipboard path)
