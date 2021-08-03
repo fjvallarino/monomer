@@ -101,10 +101,10 @@ startApp
   -> IO ()                -- ^ The application action.
 startApp model eventHandler uiBuilder configs = do
   (window, dpr, epr, glCtx) <- initSDLWindow config
-  winSize <- getWindowSize window
+  vpSize <- getViewportSize window dpr
   channel <- newTChanIO
 
-  let monomerCtx = initMonomerCtx window channel winSize dpr epr model
+  let monomerCtx = initMonomerCtx window channel vpSize dpr epr model
 
   runStateT (runAppLoop window glCtx channel appWidget config) monomerCtx
   detroySDLWindow window
@@ -221,7 +221,7 @@ mainLoop window fontManager config loopArgs = do
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
   mousePos <- getCurrentMousePos epr
-  currWinSize <- getWindowSize window
+  currWinSize <- getViewportSize window dpr
 
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
@@ -371,7 +371,7 @@ handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
   let newWenv = tmpWenv
         & L.fontManager .~ fontMgr
   let color = newWenv ^. L.theme . L.clearColor
-  renderWidgets window renderer color newWenv newRoot
+  renderWidgets window dpr renderer color newWenv newRoot
   return (RenderState dpr newWenv newRoot)
 handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
   let RenderState dpr wenv root = state
@@ -385,7 +385,7 @@ handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
   let result = widgetResize (root ^. L.widget) newWenv root viewport resizeCheck
   let newRoot = result ^. L.node
 
-  renderWidgets window renderer color newWenv newRoot
+  renderWidgets window dpr renderer color newWenv newRoot
   return state
 handleRenderMsg window renderer fontMgr state (MsgRemoveImage name) = do
   deleteImage renderer name
@@ -393,24 +393,31 @@ handleRenderMsg window renderer fontMgr state (MsgRemoveImage name) = do
 
 renderWidgets
   :: SDL.Window
+  -> Double
   -> Renderer
   -> Color
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-renderWidgets !window renderer clearColor wenv widgetRoot = do
-  Size winW winH <- getWindowSize window
+renderWidgets !window dpr renderer clearColor wenv widgetRoot = do
+  Size dwW dwH <- getDrawableSize window
+  Size vpW vpH <- getViewportSize window dpr
+
+  let position = GL.Position 0 0
+  let size = GL.Size (round dwW) (round dwH)
+
+  liftIO $ GL.viewport GL.$= (position, size)
 
   liftIO $ GL.clearColor GL.$= clearColor4
   liftIO $ GL.clear [GL.ColorBuffer]
 
-  liftIO $ beginFrame renderer winW winH
+  liftIO $ beginFrame renderer vpW vpH
   liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
   liftIO $ endFrame renderer
 
   liftIO $ renderRawTasks renderer
 
-  liftIO $ beginFrame renderer winW winH
+  liftIO $ beginFrame renderer vpW vpH
   liftIO $ renderOverlays renderer
   liftIO $ endFrame renderer
 

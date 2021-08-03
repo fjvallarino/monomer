@@ -15,6 +15,7 @@ module Monomer.Main.Platform (
   getCurrentMousePos,
   getDrawableSize,
   getWindowSize,
+  getViewportSize,
   getPlatform,
   getDisplayDPI
 ) where
@@ -155,6 +156,18 @@ getWindowSize window = do
   SDL.V2 rw rh <- SDL.get (SDL.windowSize window)
 
   return $ Size (fromIntegral rw) (fromIntegral rh)
+
+{-
+Returns the viewport size. This is the size of the viewport the application will
+render to and, depending on the platform, may match window size or not. For
+example, on Windows and Linux Wayland this size may be smaller than the window
+size because of dpr scaling.
+-}
+getViewportSize :: (MonadIO m) => SDL.Window -> Double -> m Size
+getViewportSize window dpr = do
+  SDL.V2 fw fh <- SDL.glGetDrawableSize window
+
+  return $ Size (fromIntegral fw / dpr) (fromIntegral fh / dpr)
 
 -- | Returns the name of the host OS.
 getPlatform :: (MonadIO m) => m Text

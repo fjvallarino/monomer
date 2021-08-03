@@ -31,16 +31,13 @@ import Control.Monad.STM (atomically)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
-import Control.Monad.Extra (concatMapM, maybeM)
 import Control.Monad.IO.Class
 import Data.Default
 import Data.Foldable (fold, toList)
-import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
-import Foreign (alloca, poke)
 import Safe (headMay)
 import SDL (($=))
 
@@ -55,7 +52,6 @@ import qualified SDL.Raw.Types as SDLT
 import Monomer.Core
 import Monomer.Event
 import Monomer.Helper (seqStartsWith)
-import Monomer.Main.Platform (getWindowSize)
 import Monomer.Main.Types
 import Monomer.Main.Util
 
