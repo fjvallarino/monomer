@@ -20,8 +20,8 @@ this, the merge process is used.
 ## Merge process
 
 The merge process starts at the root node, which is the main node returned by
-buildUI. From there, it checks each of its children (and they do so with their
-children) and applies these criteria:
+buildUI. From there it checks each of its children, which in turn do the same
+with their own children, and applies these criteria:
 
 - If the widget type and widget key match (if both old and new don't have a key
   defined, it's also considered a match), the new widget is merged with the old
@@ -35,8 +35,8 @@ The only context where you need to be careful is if the position of your widgets
 change. Just to clarify: this only is a concern if there are widgets with state
 involved, although it's probably safer to just always handle it.
 
-In the example, a `nodeKey` is associated to each row. It works similarly to `styleBasic`
-but receives a Text argument.
+In the example, a `nodeKey` is associated to each row. It works similarly to
+`styleBasic` but receives a Text argument.
 
 ```haskell
 listItem idx item = hstack [
@@ -63,7 +63,7 @@ position indicates.
 Keys are not only used for merging. In this example, we use them to set focus on
 the `description` textField whenever a new item is added.
 
-We will see in the Producers example that we can also use them for sending
+We will see in the Producers example that we can also use keys for sending
 messages to widgets.
 
 ## Notes
@@ -77,11 +77,11 @@ widgets, which can handle any kind of low level event. Although this can sound
 like a limitation, you can always have a widget that converts those low level
 events to the event type you can handle. This is the case of keystroke. It
 receives a list of pairs mapping from a keystroke combination (provided as a
-Text) and the event to raise when that combination is detected. In this case, it
-just listens for the `Enter` key and raises the same event as if the user had
-clicked the "Add" button. This combinations can be more complex, of course.
-Check the documentation of the widget for more information.
+Text string) and the event to raise when that combination is detected. In this
+case, it just listens for the `Enter` key and raises the same event as if the
+user had clicked the "Add" button. These combinations can be more complex, of
+course. Check the documentation of the widget for more information.
 
 ### The _singular_ function
 
-This is explained in the [lens](external/01-lenses.md) introduction.
+This is explained in the [optics](external/01-optics.md##singular) introduction.

@@ -1,13 +1,13 @@
 # Basics
 
-A Monomer application has five main components which are provided to the
+A Monomer application has five main components that are provided to the
 `startApp` function:
 
-- **Model**: contains the information the application uses.
-- **Events**: generated from user action or system notifications.
+- **Model**: contains the information your application uses.
+- **Events**: generated from user action or asynchronous tasks.
 - **Build UI function**: creates the UI using the current model.
-- **Event handler**: reacts to events and can update the model, run asynchronous 
-  tasks and other actions.
+- **Event handler**: reacts to events and can update the model, run asynchronous
+tasks and other actions.
 - **Configuration**: several options to indicate window size, available fonts
   and theme.
 
@@ -45,7 +45,7 @@ You can check the example applications to see some more complex models.
 Monomer relies on the [lens](https://hackage.haskell.org/package/lens) library
 to simplify the connection between the user model and the widgets that will be
 displayed. You can find a short reference with enough information for what you
-need to use the library [here](external/01-lenses.md).
+need to use the library [here](external/01-optics.md).
 
 #### Can I avoid using lenses?
 
@@ -53,9 +53,9 @@ Yes! All the included widgets have two versions, one for lenses and one for
 values (with a **V** suffix). When using the **V** versions, you need to provide
 the current value and an event that will be generated when the value managed by
 the widget changes. Once you receive the event, you can update your model using
-your preferred mechanism. Since the widget receives the value you provide as a
-parameter, if you don't update the model it will keep displaying the previous
-value.
+your preferred mechanism (regular record update or optics). Since the widget
+receives the value you provide as a parameter, if you don't update the model it
+will keep displaying the previous value.
 
 In general, unless you need to perform some kind of validation (or you really
 don't like lenses), the non **V** version is simpler and avoids boilerplate.
@@ -78,8 +78,8 @@ data AppEvent
 
 The build UI function takes care of creating the widget tree. Whenever the model
 changes this function will be invoked and a new version of the widget tree will
-be created, that will then be [merged](../reference/01-merge-process.md) with
-the previous version.
+be created. This new version of the widget tree will then be
+[merged](./03-life-cycle.md#merge-process) with the previous version.
 
 The starter application includes the following snippet:
 
@@ -92,10 +92,10 @@ buildUI wenv model = widgetTree
 ```
 
 First of all, you'll see the type signature. You don't really need to include
-it, but in general its preferable to have clearer compiler errors when a typo
-or similar occurs. Both `WidgetEnv` (environment information that can be used
-when building the UI) and `WidgetNode` (the result of building the UI) need to
-be provided the type of your model and the type of your events.
+it, but in general it's preferable to do it in order to have clearer compiler
+errors. Both `WidgetEnv` (environment information that can be used when building
+the UI) and `WidgetNode` (the result of building the UI) need to be provided the
+type of your model and the type of your events.
 
 Next, you'll see the parameters the function receives:
 
@@ -103,18 +103,18 @@ Next, you'll see the parameters the function receives:
 window size, input status, focus and several other items.
 - **model**: the current state.
 
-Finally, a WidgetNode is returned. The function expects a node, which can be a
-single widget or a more complex layout.
+Finally, a WidgetNode is returned, which can be a single widget or a more
+complex layout.
 
 Before moving forward, a quick clarification:
 
 - A `Widget` implements the functions to initialize, merge, dispose and render a
-  specific type of widget. Instances of widgets can be created and these may
-  contain internal state.
+  specific type of widget. For example, checkbox and textField. In case you need
+  custom rendering, you will be implementing a `Widget`.
 - A `WidgetNode` contains a widget instance and all the information related to
-  its location, visibility, key and similar. When mentioning the _"widget
-  tree"_, it really is the _"widget node tree"_. All the functions mentioned
-  throughout the tutorials return `WidgetNode`s.
+  its location, size, visibility, etc. When mentioning the _"widget tree"_, it
+  really is the _"widget node tree"_. All the functions mentioned throughout the
+  tutorials return `WidgetNode`s.
 
 We'll explore some basic widgets next.
 
@@ -143,10 +143,10 @@ either horizontally or vertically (the h or v indicate the main axis).
 
 Stack will assign the maximum available space for the secondary axis. In the
 example, the children of vstack will get same width vstack gets (the window
-width, in this case), but will be assigned vertical space according to what they
-requested.
+width, in this case), but they will be assigned vertical space according to what
+they requested.
 
-Inside hstack you'll notice the use of `spacer`. This just adds a small space
+Inside hstack you'll notice the use of `spacer`. This just adds a small gap
 between two widgets. Simple but very useful! In case you want to take as much
 space as available (for instance, you want one button on the left, one on the
 right and space in the middle) you can use `filler`.
@@ -168,8 +168,8 @@ Most widgets support a basic version, such as `label`, and a configurable
 version which is denoted by a trailing `_`. In the case of `label_`, some of the
 config options are:
 
-- **multiline**: to split the text into multiple lines if width is not enough.
-- **ellipsis**: to show ellipse when text overflows instead of just cutting it.
+- **multiline**: splits the text into multiple lines if width is not enough.
+- **ellipsis**: shows ellipsis when text overflows instead of just cutting it.
 
 For example:
 
@@ -223,7 +223,7 @@ The usual process consists on matching on the expected events (defined in your
 events type) and returning a list of responses for the runtime to process.
 
 In the example we use the `Model` response, which sets the new state of the
-application (you can check the [lens](external/01-lenses.md) tutorial to better
+application (you can check the [lens](external/01-optics.md) tutorial to better
 understand those operators). If the model changed, this will trigger a call to
 the build UI function.
 

@@ -2,7 +2,7 @@
 
 ## Stack
 
-In case you dont have it installed in your system, you should visit
+In case you don't have it installed in your system, you should visit
 [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/) website
 and follow the appropriate installation method for your OS. If you are on
 Linux or macOS, you will be provided with a shell command, while if you are on
@@ -85,6 +85,12 @@ for a nicer development experience. First, you need to install it:
 stack install ghcid
 ```
 
+Then, inside your project's directory:
+
+```bash
+ghcid
+```
+
 If you use Visual Studio Code, you can also use this very nice extension:
 
 ```
@@ -115,6 +121,8 @@ Further, you may want to do this for your local stack install directory, since
 you'll be using ghcid and Info.plist needs to be in the directory where the
 executable is located. The path is usually:
 
+Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
+
 ```bash
 $HOME/.local/bin
 ```
@@ -123,4 +131,6 @@ $HOME/.local/bin
 
 The sample project includes custom .ghci and .ghcid files. The most important
 change in .ghci is for Mac users, since Mac does not allow rendering to happen
-outside the main thread (by default `ghci` spawns a thread of user code).
+outside the main thread (by default `ghci` spawns a thread of user code). If you
+create your custom GHCi config and run into issues, check if you are provide the
+necessary flags.

@@ -4,34 +4,37 @@ At the most basic level, and the main reason for using them with Monomer, optics
 simplify accessing and updating deeply nested data structures in a composable
 way.
 
-Using them, the limitations of Haskell's record system can be overcome, and
-they also provide a flexibility seldom found in other languages.
+Using optics the limitations of Haskell's record system can be overcome, plus
+they also offer a flexibility seldom found in other languages.
 
 In Monomer they are used for two main purposes:
 
 - Associating widgets with a field in our model.
 - Performing changes to our model during event handling.
 
-Both cases can be handled without lenses but, in general, it's easier to use
+Both scenarios can be handled without optics but, in general, it's easier to use
 them.
+
+You probably have heard about lenses, which are a subtype of the broader concept
+of optics. The main optics library is also called `lens`, and it is the one we
+will be using.
 
 ## Lenses
 
-Lenses are probably the ones you've heard about the most, but in truth they are
-a subtype of a broader concept called optics. We'll mention two other optics in
-this mini tutorial.
-
-In the case of lenses, the provide two guarantees:
+In the case of lenses, they provide two guarantees:
 
 - The item they focus on exists.
 - They focus on a single item.
 
-## Creating lenses
+This makes them particularly useful for using them with widgets, since they
+except a single value they can read/write to.
 
-You will need to enable a couple of extensions before using them. If you miss
-any, the compiler will let you know.
+### Creating lenses
 
-If you follow the ideas shown in the tutorials, you at least need:
+You will need to enable a couple of extensions before using lenses. If you miss
+them you will get a compilation error.
+
+If you follow the ideas shown in the tutorials, you need at least:
 
 ```haskell
 {-# LANGUAGE TemplateHaskell #-}
@@ -45,13 +48,13 @@ Depending on what you do, you may also need a combination of these:
 {-# LANGUAGE MultiParamTypeClasses #-}
 ```
 
-Also needed is the corresponding import:
+The main module of the library should be imported too:
 
 ```haskell
 import Control.Lens
 ```
 
-The next step is creating your data types.
+The next step is defining your data types (notice the underscore prefix):
 
 ```haskell
 data Address = Address {
@@ -66,7 +69,7 @@ data Person = Person {
 } deriving (Eq, Show)
 ```
 
-After that, lenses can be created:
+And, finally, lenses can be created:
 
 ```haskell
 makeLenses ''Address
@@ -116,6 +119,28 @@ print $ person1
   & homeAddress . doorNumber .~ 777
 ```
 
+#### Notes on creating lenses
+
+I personally prefer using:
+
+```haskell
+data Person = Person {
+  _personName :: Text,
+}
+
+data Country = Country {
+  _countryName :: Text,
+}
+
+makeLensesWith abbreviatedFields 'Person
+makeLensesWith abbreviatedFields 'Country
+```
+
+It strips the prefix as long as it's lowercase (including the first underscore),
+which eliminates the chances of having a name clash if you want to use the same
+name of different types. In  the example, you can use `person ^. name` and
+`country ^. name` without problems (the lens package takes care of this!).
+
 ### Usage in widgets
 
 In these examples, the lens is what comes after the **^.** symbol. When using a
@@ -136,9 +161,9 @@ prism part comes from choosing which side of the prism you will use); this is
 what happens in the third example.
 
 You will also notice a new operator, `^?` (preview). Given that Maybe has two
-options and we chose _Just, we have to account for the situation where the
-value contained in workAddress is actually Nothing. This operator will return
-Nothing in case the prism (_Just) fails.
+options and we chose _Just, we have to account for the case where the value
+contained in workAddress is actually Nothing. This operator will return Nothing
+in case the prism (_Just) fails.
 
 ```haskell
 print $ person1 ^. workAddress
@@ -160,20 +185,23 @@ can get a maximum of one item.
 
 ### Usage in widgets
 
-You can't use Prisms with Monomer's widgets, since they expect to be able to get
-and set a single value, thus requiring a lens. Some widgets, such as
-numericField, dateField and timeField have direct support for Maybe values.
-Others, such as radio or dropdown, receive the set of valid values and you can
-wrap the values you need in Just (Nothing is a valid value too!).
+In general you can't use Prisms with Monomer's widgets, since they expect to be
+able to get and set a single value, thus requiring a lens.
 
-Of course, it's valid to use prisms when updating your model in event handlers.
+Having said that, some widgets such as numericField, dateField and timeField
+have direct support for Maybe values. Others, such as radio or dropdown, receive
+the set of options and you can wrap the valid values with Just, while also
+remembering that Nothing is a valid value too and can be used to represent an
+empty selection.
+
+It's also valid to use prisms when updating your model in event handlers.
 
 ## Indexed
 
 Finally, the last optics we'll explore are indexed optics. They allow getting
 and setting values in lists/arrays/sequences based on an index. This type of
-optic, again, can fail, requiring the use of operators that account for that
-possible failure.
+optic can fail, requiring the use of operators that account for that possible
+failure.
 
 To access the nth item of a sequence, we can use `ix`. Since the index may be
 out of bounds, `^?` is used. An alternative is using `^?!`, which will return
@@ -196,14 +224,13 @@ print $ person2
 
 ### Usage in widgets
 
-You can't use indexed optics with Monomer widgets for the same reason as with
-prisms, but you can convert them to lenses if you are sure you are within
-bounds.
+You can't use indexed optics with Monomer widgets for the same reason as prisms,
+but you can convert them to lenses if you are sure you are within bounds.
 
-### singular
+#### singular
 
 By wrapping the `ix 0` call in `singular`, you convert the indexed optic into a
-lens. Again, if the index is out of bounds it will raise an exception.
+lens. If the index is out of bounds it will raise an exception.
 
 ```haskell
 print $ person2 ^. friends . singular (ix 0) . homeAddress
@@ -213,17 +240,17 @@ This is useful if, for instance, you have a list of editable items displayed all
 at once in the screen. An example of this can be seen in
 [Life Cycle](../03-life-cycle.md).
 
-# Resources
+## Resources
 
-If you want to dig deeper in optics, in particular the lens package, I recommend
-the following resources:
+If you want to dig deeper in optics, in particular the lens package, these
+resources are recommended:
 
 - [Official tutorial](https://hackage.haskell.org/package/lens-tutorial-1.0.4/docs/Control-Lens-Tutorial.html)
 - [Haskell Lens Operator Onboarding](https://medium.com/@russmatney/haskell-lens-operator-onboarding-a235481e8fac)
 - [Exercises for understanding lenses](https://williamyaoh.com/posts/2019-04-25-lens-exercises.html)
 - [Optics By Example](https://leanpub.com/optics-by-example)
 
-## Example
+## Examples
 
 You can run the example with:
 

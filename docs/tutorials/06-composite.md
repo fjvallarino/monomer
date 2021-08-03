@@ -52,13 +52,13 @@ parent in the widget tree.
 Communication between the parent and the composite can work in both ways:
 
 - The parent can provide information to the composite through the model,
-  parameters accepted by the function that creates the composite or any kind of
+  parameters accepted by the function that creates the composite, or any kind of
   configuration.
 - The composite can provide information to the parent by using the `Report`
   response. To avoid coupling the composite to the parent, and having to provide
   the type of the parent's event, the usual solution is to have the parent
   provide the expected event for each situation (the same as how we've been
-  using any other widget).
+  using other widgets).
 
 ## Widget Requests
 
@@ -87,7 +87,7 @@ how can you get the WidgetId of a widget node?
 ### Key, Path and WidgetId
 
 The are three ways of identifying a widget. One, as we've seen, is the `nodeKey`.
-This is a user defined identifier and it exists because its just easier to use.
+This is a user defined identifier and it exists because it's just easier to use.
 Besides key, there are two identifiers which are mostly internal, unless you are
 writing custom widgets or making WidgetRequests:
 
@@ -98,12 +98,12 @@ writing custom widgets or making WidgetRequests:
   path of an arbitrary parent: you just need to drop as many steps as needed.
   The disadvantage is that it can become invalid if widgets change positions.
   Paths are used for several status related operations (focus, hover, etc), but
-  they should not be stored beyond the current operation.
+  they should not be stored since they can become stale.
 - WidgetId: The WidgetId of an item is made out of the Path and Timestamp when
   the widget was initialized. This makes it unique, and allows keeping track of
   the widget's path if its location in the widget tree changed. The disadvantage
   is that it's not possible to deduce the WidgetId of a widget, requiring a call
-  to a helper function instead.
+  to a helper function to find it.
 
 There are a couple of functions you can use to get the WidgetId of a node:
 
@@ -115,7 +115,7 @@ There are a couple of functions you can use to get the WidgetId of a node:
 
 ## New Widgets
 
-In this tutorial two new widgets are used, and in general they work together.
+In this tutorial two new widgets are used and, in general, they work together.
 
 ### Draggable
 
@@ -123,8 +123,8 @@ A `draggable` widget receives two arguments:
 
 - A value that is going to be carried during a drag event. This value can be
   used by other widgets when hovered, to indicate they accept the item or not.
-- A child node. This node will displayed as usual, but the user will be able to
-  drag it and drop it.
+- A child node. This node will be rendered as a regular node, but the user will
+  be able to drag and drop it.
 
 This widget supports setting the style of the dragged state, plus its max size
 and optional transparency.
@@ -134,11 +134,12 @@ and optional transparency.
 A `dropTarget` also receives two arguments:
 
 - A function that can create user events. The type of the argument must match
-  the type of the item being dragged. This event will be raised when the item is
-  dropped.
+  the type of the value provided by the widget being dragged. This event will be
+  raised when the item is dropped.
 - A child node, which represents the target of the drop operation. This node can
   be anything, although it will usually give an indication of what has been
-  dropped on it.
+  dropped on it (for example, it's a list containing the dropped widgets).
 
 The style of the dropTarget can be customized to let the user know it accepts
-the dragged item.
+the dragged item. This behaves similarly to `styleHover`, but it is only active
+when an item is being dragged.
