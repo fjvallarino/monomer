@@ -2,16 +2,16 @@
 
 An easy to use, cross platform, GUI library for writing Haskell applications.
 
-It provides a framework similar to the Elm Architecture, allowing to create GUIs
-using an extensible set of widgets with pure Haskell.
+It provides a framework similar to the Elm Architecture, allowing the creation
+of GUIs using an extensible set of widgets with pure Haskell.
 
 ## Objectives
 
-- It should be easy to use.
-- It should be extensible with custom widgets.
-- It should run on Windows, Linux and macOS.
-- It should have good documentation.
-- It should have good examples.
+- Be easy to learn and use.
+- Be extensible with custom widgets.
+- Run on Windows, Linux and macOS.
+- Have good documentation.
+- Have good examples.
 
 ### These are not objectives for this project
 
@@ -22,23 +22,51 @@ using an extensible set of widgets with pure Haskell.
 - You want to write your application in Haskell.
 - You want to write a native, not web based, application.
 
+## Usage
+
+### Setup
+
+You can read how to setup the library [here](docs/tutorials/00-setup.md).
+
+### Tutorials
+
+Several introductory tutorials are available:
+
+- [01 - Basics](docs/tutorials/01-basics.md)
+- [02 - Styling](docs/tutorials/02-styling.md)
+- [03 - Life cycle](docs/tutorials/03-life-cycle.md)
+- [04 - Tasks](docs/tutorials/04-tasks.md)
+- [05 - Producers](docs/tutorials/05-producers.md)
+- [06 - Composite](docs/tutorials/06-composite.md)
+- [07 - Custom widget](docs/tutorials/07-custom-widget.md)
+- [08 - Themes](docs/tutorials/08-themes.md)
+
+### Examples
+
+Beyond the tutorials, a few _real world like_ examples are available:
+
+- [Todo](docs/examples/01-todo.md)
+- [Books](docs/examples/02-books.md)
+- [Ticker](docs/examples/03-ticker.md)
+- [Generative](docs/examples/04-generative.md)
+
+## Roadmap
+
+There is not a planned timeline for the tasks in the roadmap.
+
+- Stability and performance.
+- Add mobile support.
+- Add support for Vulkan/Metal.
+
 ## Current limitations
 
 - Multi-platform features depend (mostly) on what SDL already provides.
   - Copy/paste is only supported for text, not images.
 - Only supports left to right text editing at the moment.
 
-## Roadmap
-
-There is not a planned timeline for the tasks in the roadmap, nor a guarantee
-that they will be implemented.
-
-- Add mobile support.
-- Add support for Vulkan/Metal.
-
 ## License
 
-The library is licensed under [BSD-3 license](LICENSE).
+The library is licensed under the [BSD-3 license](LICENSE).
 
 Fonts used in examples:
 

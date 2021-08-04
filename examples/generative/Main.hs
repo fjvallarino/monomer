@@ -33,6 +33,7 @@ buildUI wenv model = widgetTree where
         dial_ (circlesCfg . itemWidth) 20 50 [dragRate 0.5],
         labelS (model ^. circlesCfg . itemWidth) `styleBasic` [textSize 14, textCenter]
       ],
+
       label "Seed",
       seedDropdown (circlesCfg . seed)
     ]
@@ -43,11 +44,14 @@ buildUI wenv model = widgetTree where
         dial_ (boxesCfg . itemWidth) 20 50 [dragRate 0.5],
         labelS (model ^. boxesCfg . itemWidth) `styleBasic` [textSize 14, textCenter]
       ],
+
       label "Seed",
       seedDropdown (boxesCfg . seed),
       separatorLine,
+
       label "Palette type",
       textDropdown (boxesCfg . paletteType) [1..4],
+
       label "Palette size",
       vstack [
         dial_ (boxesCfg . paletteSize) 1 50 [dragRate 0.5],
@@ -61,6 +65,7 @@ buildUI wenv model = widgetTree where
         spacer,
         textDropdown_ activeGen genTypes genTypeDesc [] `nodeKey` "activeType",
         spacer,
+
         labeledCheckbox "Show config:" showCfg
       ] `styleBasic` [padding 20, bgColor sectionBg],
       zstack [
@@ -70,6 +75,7 @@ buildUI wenv model = widgetTree where
             `nodeVisible` model ^. showCfg
             `styleBasic` [padding 20, width 200, bgColor sectionBg]
         ] `nodeVisible` (model ^. activeGen == CirclesGrid),
+
         hstack [
           boxesPalette (model ^. boxesCfg) `styleBasic` [padding 20],
           widgetBoxCfg
@@ -94,7 +100,7 @@ main = do
   where
     model = GenerativeModel CirclesGrid False def def
     config = [
-      appWindowTitle "Generative art",
+      appWindowTitle "Generative",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent GenerativeInit

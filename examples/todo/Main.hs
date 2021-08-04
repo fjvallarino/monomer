@@ -60,7 +60,6 @@ todoRow wenv model idx t = animRow `nodeKey` todoKey where
 
   animRow = animFadeOut_ [onFinished (TodoDelete idx t)] todoInfo
 
-
 todoEdit :: TodoWenv -> TodoModel -> TodoNode
 todoEdit wenv model = editNode where
   sectionBg = wenv ^. L.theme . L.sectionColor
@@ -152,47 +151,57 @@ handleEvent
   -> [EventResponse TodoModel TodoEvt TodoModel ()]
 handleEvent wenv node model evt = case evt of
   TodoInit -> [setFocusOnKey wenv "todoNew"]
+
   TodoNew -> [
     Event TodoShowEdit,
     Model $ model
       & action .~ TodoAdding
       & activeTodo .~ def,
     setFocusOnKey wenv "todoDesc"]
+
   TodoEdit idx td -> [
     Event TodoShowEdit,
     Model $ model
       & action .~ TodoEditing idx
       & activeTodo .~ td,
     setFocusOnKey wenv "todoDesc"]
+
   TodoAdd -> [
     Event TodoHideEdit,
     Model $ addNewTodo wenv model,
     setFocusOnKey wenv "todoNew"]
+
   TodoSave idx -> [
     Event TodoHideEdit,
     Model $ model
       & todos . ix idx .~ (model ^. activeTodo),
     setFocusOnKey wenv "todoNew"]
+
   TodoDeleteBegin idx todo -> [
     Message (WidgetKey (todoRowKey todo)) AnimationStart]
+
   TodoDelete idx todo -> [
     Model $ model
       & action .~ TodoNone
       & todos .~ remove idx (model ^. todos),
     setFocusOnKey wenv "todoNew"]
+
   TodoCancel -> [
     Event TodoHideEdit,
     Model $ model
       & activeTodo .~ def,
     setFocusOnKey wenv "todoNew"]
+
   TodoShowEdit -> [
     Message "animEditIn" AnimationStart,
     Message "animEditOut" AnimationStop
     ]
+
   TodoHideEdit -> [
     Message "animEditIn" AnimationStop,
     Message "animEditOut" AnimationStart
     ]
+
   TodoHideEditDone -> [
     Model $ model
       & action .~ TodoNone]

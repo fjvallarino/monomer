@@ -801,6 +801,8 @@
     - Can remove resize flag from Container/selectList
 
 Next
+  - Update merge tutorial, since cursor position is not a good example anymore.
+  - Adjust theme colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

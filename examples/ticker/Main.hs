@@ -118,6 +118,7 @@ handleEvent env wenv node model evt = case evt of
     Task (subscribeInitial env initialList),
     setFocusOnKey wenv "newPair"
     ]
+
   TickerAddClick -> [
     Model $ model
       & symbolPairs %~ (model ^. newPair <|)
@@ -125,20 +126,27 @@ handleEvent env wenv node model evt = case evt of
     Task $ subscribe env [model ^. newPair],
     setFocusOnKey wenv "newPair"
     ]
+
   TickerRemovePairBegin pair -> [
     Message (WidgetKey pair) AnimationStart]
+
   TickerRemovePair pair -> [
       Task $ unsubscribe env [pair],
       Model $ model & tickers . at pair .~ Nothing
     ]
+
   TickerMovePair target pair -> [
       Model $ model & symbolPairs .~ moveBefore (model^.symbolPairs) target pair
     ]
+
   TickerUpdate ticker -> [
     Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker
     ]
+
   TickerError err -> [Task $ print ("Error", err) >> return TickerIgnore]
+
   TickerResponse resp -> [Task $ print ("Response", resp) >> return TickerIgnore]
+
   TickerIgnore -> []
 
 handleSubscription :: AppEnv -> [Text] -> Text -> IO TickerEvt

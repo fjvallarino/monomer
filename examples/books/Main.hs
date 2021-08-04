@@ -4,8 +4,10 @@
 
 module Main where
 
+import Control.Exception
 import Control.Lens
 import Data.Default
+import Data.Either.Extra
 import Data.Maybe
 import Data.Text (Text)
 import TextShow
@@ -84,6 +86,9 @@ buildUI
 buildUI wenv model = widgetTree where
   sectionBgColor = wenv ^. L.theme . L.sectionColor
 
+  errorOverlay = alertMsg msg BooksCloseError where
+    msg = fromMaybe "" (model ^. errorMsg)
+
   bookOverlay = alert BooksCloseDetails content where
     content = maybe spacer bookDetail (model ^. selected)
 
@@ -112,6 +117,7 @@ buildUI wenv model = widgetTree where
         box_ [mergeRequired booksChanged] $
           vscroll (vstack (bookRow wenv <$> model ^. books)) `nodeKey` "mainScroll"
       ],
+      errorOverlay `nodeVisible` isJust (model ^. errorMsg),
       bookOverlay `nodeVisible` isJust (model ^. selected),
       searchOverlay `nodeVisible` model ^. searching
     ]
@@ -132,21 +138,38 @@ handleEvent wenv node model evt = case evt of
     Message "mainScroll" ScrollReset,
     Model $ model
       & searching .~ False
+      & errorMsg .~ Nothing
       & books .~ resp ^. docs
     ]
-  BooksSearchError msg -> []
+  BooksSearchError msg -> [
+    Model $ model
+      & searching .~ False
+      & errorMsg ?~ msg
+      & books .~ []
+    ]
   BooksShowDetails book -> [Model $ model & selected ?~ book]
   BooksCloseDetails -> [Model $ model & selected .~ Nothing]
+  BooksCloseError -> [Model $ model & errorMsg .~ Nothing]
 
 searchBooks :: Text -> IO BooksEvt
 searchBooks query = do
-  print ("Searching", query)
-  resp <- W.asJSON =<< W.get url
-  return $ case resp ^? W.responseBody . _Just of
-    Just resp -> BooksSearchResult resp
-    Nothing -> BooksSearchError "Failed"
+  putStrLn . T.unpack $ "Searching: " <> query
+  result <- catchAny (fetch url) (return . Left . T.pack . show)
+
+  case result of
+    Right resp -> return (BooksSearchResult resp)
+    Left err -> return (BooksSearchError err)
   where
-    url = "http://openlibrary.org/search.json?q=" <> T.unpack query
+    url = "https://openlibrary.org/search.json?q=" <> T.unpack query
+    checkEmpty resp
+      | null (resp ^. docs) = Nothing
+      | otherwise = Just resp
+    fetch url = do
+      resp <- W.get url
+        >>= W.asJSON
+        >>= return . preview (W.responseBody . _Just)
+
+      return $ maybeToEither "Empty response" (resp >>= checkEmpty)
 
 main :: IO ()
 main = do
@@ -160,7 +183,7 @@ main = do
       appInitEvent BooksInit
       ]
     initBook = Book "This is my book" ["Author1", "Author 2"] (Just 2000) (Just 1234)
-    initModel = BooksModel "pedro paramo" False (Just initBook) [initBook]
+    initModel = BooksModel "pedro paramo" False Nothing [initBook] (Just initBook)
 
 customLightTheme :: Theme
 customLightTheme = lightTheme
@@ -169,3 +192,7 @@ customLightTheme = lightTheme
 customDarkTheme :: Theme
 customDarkTheme = darkTheme
   & L.userColorMap . at "rowBgColor" ?~ rgbHex "#656565"
+
+-- Utility function to avoid the "Ambiguous type variable..." error
+catchAny :: IO a -> (SomeException -> IO a) -> IO a
+catchAny = catch

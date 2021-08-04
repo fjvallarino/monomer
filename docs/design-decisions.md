@@ -14,11 +14,12 @@ for handling this requirement:
 
 ### Make the state explicit
 
-Users take care of storing and providing the state to the library. This would be
+Users take care of storing and providing the state to the library. This is
 similar to how the model's fields are associated to widgets.
 
-The advantage is that this makes the library more functionally pure. Plus, this
-would simplify its internals.
+The advantage is that this makes the library more functionally pure. It also
+simplify the internals and improve performance, since the merge process can be
+removed.
 
 The disadvantage is that it requires more boilerplate from part of the user,
 since fields for each of the widget's state need to be added to a global state
@@ -26,13 +27,13 @@ type (or mix it with the model).
 
 ### Keep the state internal
 
-Widgets have and internal state which is saved/restored by the library.
+Widgets have an internal state that is saved/restored by the library.
 
 The main advantage is that it's simpler for the user. Only widgets that handle
-input require the user to provide them model fields, while the rest of them is
-transparent from the user's point of view.
+input require the user to provide them model fields, while their internal state
+is transparent from the user's point of view.
 
-The disadvantages are that it makes the library more complex and, in a way, less
+The disadvantages are that it makes the library more complex and less
 functionally pure than the other approach. It also makes creating custom widgets
 a bit more complex, since the merge process needs to be considered.
 
@@ -49,16 +50,16 @@ While it's true that you can create a customized version of a widget using
 functions, and it is in fact encouraged and used in the examples, in some cases
 it is not enough.
 
-Some widgets are built out of nested widgets, and do not expose style options
-for all their sub widgets. In this scenario, themes allow you to customize those
-nested widgets as needed.
+Some widgets, such as dialogs, are built out of nested widgets and do not expose
+style options for all their sub widgets. In this scenario, themes allow you to
+customize those nested widgets as needed.
 
 Themes also have the nice property of simplifying color scheme switching.
 
 ## Why is there not a margin property, considering border and padding do exist?
 
 It used to be part of the library, but caused issues and was confusing. Since
-margin is space outside the border, it can be emulated by adding a wrapper
+margin is just space outside the border, it can be emulated by adding a wrapper
 widget. For example:
 
 ```haskell
