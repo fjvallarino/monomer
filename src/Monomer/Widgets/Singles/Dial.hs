@@ -55,6 +55,7 @@ import qualified Monomer.Lens as L
 
 type DialValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
+-- | Configuration options for dial widget.
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcWheelRate :: Maybe Rational,

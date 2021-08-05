@@ -41,6 +41,7 @@ data IconType
   | IconMinus
   deriving (Eq, Show)
 
+-- | Configuration options for icon widget.
 newtype IconCfg = IconCfg {
   _icWidth :: Maybe Double
 }

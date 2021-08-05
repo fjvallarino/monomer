@@ -81,11 +81,13 @@ instance CmbMaxHeight TooltipCfg where
     _ttcMaxHeight = Just h
   }
 
+-- | Delay before the tooltip is displayed when child widget is hovered.
 tooltipDelay :: Int -> TooltipCfg
 tooltipDelay ms = def {
   _ttcDelay = Just ms
 }
 
+-- | Whether the tooltip should move with the mouse after being displayed.
 tooltipFollow :: TooltipCfg
 tooltipFollow = def {
   _ttcFollowCursor = Just True
@@ -96,9 +98,11 @@ data TooltipState = TooltipState {
   _ttsLastPosTs :: Int
 } deriving (Eq, Show, Generic)
 
+-- | Creates a tooltip for the child widget.
 tooltip :: Text -> WidgetNode s e -> WidgetNode s e
 tooltip caption managed = tooltip_ caption def managed
 
+-- | Creates a tooltip for the child widget. Accepts config.
 tooltip_ :: Text -> [TooltipCfg] -> WidgetNode s e -> WidgetNode s e
 tooltip_ caption configs managed = makeNode widget managed where
   config = mconcat configs

@@ -28,6 +28,7 @@ import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
 
+-- | Creates a font manager instance.
 makeFontManager
   :: [FontDef]    -- ^ The font definitions.
   -> Double       -- ^ The device pixel rate.

@@ -45,6 +45,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Configuration options for label widget.
 data LabelCfg s e = LabelCfg {
   _lscIgnoreTheme :: Maybe Bool,
   _lscTextTrim :: Maybe Bool,

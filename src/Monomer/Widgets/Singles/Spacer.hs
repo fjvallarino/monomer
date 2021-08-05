@@ -36,6 +36,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens as L
 
+-- | Configuration options for spacer widget.
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,
   _spcFactor :: Maybe Double

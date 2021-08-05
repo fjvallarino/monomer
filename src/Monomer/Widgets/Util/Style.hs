@@ -213,10 +213,10 @@ handleStyleChange wenv target style doCursor node evt result = newResult where
     | otherwise = tmpResult
 
 {-|
-Replacement of currentStyle for child widgets embedded in a focusable
-parent. It selects the correct style state according to the situation.
+Replacement of currentStyle for child widgets embedded in a focusable parent. It
+selects the correct style state according to the situation.
 
-Used, for example, in `button` and `externalLink`, which are focusable but have
+Used, for example, in `Button` and `ExternalLink`, which are focusable but have
 an embedded label. Since label is not focusable, that style would not be handled
 correctly.
 -}

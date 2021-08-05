@@ -10,7 +10,7 @@ Switches to the provided theme for its child nodes.
 
 Note: this widget ignores style settings. If you need to display borders or any
 other kind of style config, set it on the child node or wrap the themeSwitch
-widget in a `box`.
+widget in a `Monomer.Widgets.Containers.Box`.
 
 Configs:
 

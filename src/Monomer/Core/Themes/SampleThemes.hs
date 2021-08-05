@@ -23,9 +23,11 @@ import Monomer.Graphics
 
 import qualified Monomer.Lens as L
 
+-- | Light theme provided by the library.
 lightTheme :: Theme
 lightTheme = baseTheme lightThemeColors
 
+-- | Colors for the light theme.
 lightThemeColors :: BaseThemeColors
 lightThemeColors = BaseThemeColors {
   clearColor = gray10, -- gray12,
@@ -120,9 +122,11 @@ lightThemeColors = BaseThemeColors {
   tooltipText = black
 }
 
+-- | Dark theme provided by the library.
 darkTheme :: Theme
 darkTheme = baseTheme darkThemeColors
 
+-- | Colors for the dark theme.
 darkThemeColors :: BaseThemeColors
 darkThemeColors = BaseThemeColors {
   clearColor = gray03,

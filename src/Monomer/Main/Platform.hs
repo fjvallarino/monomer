@@ -157,7 +157,7 @@ getWindowSize window = do
 
   return $ Size (fromIntegral rw) (fromIntegral rh)
 
-{-
+{-|
 Returns the viewport size. This is the size of the viewport the application will
 render to and, depending on the platform, may match window size or not. For
 example, on Windows and Linux Wayland this size may be smaller than the window

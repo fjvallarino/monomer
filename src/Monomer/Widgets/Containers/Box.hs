@@ -66,6 +66,7 @@ import Monomer.Widgets.Containers.Stack
 
 import qualified Monomer.Lens as L
 
+-- | Configuration options for box widget.
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
@@ -253,6 +254,7 @@ instance CmbOnLeaveReq (BoxCfg s e) s e where
     _boxOnLeaveReq = [req]
   }
 
+-- | Assigns all the available space to its contained child.
 expandContent :: BoxCfg s e
 expandContent = def {
   _boxExpandContent = Just True

@@ -35,6 +35,10 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
+{-|
+Creates a stack with a label and the provided widget, passing to this widget all
+the click events received. Positioning is configurable.
+-}
 labeledItem
   :: WidgetEvent e
   => WidgetType

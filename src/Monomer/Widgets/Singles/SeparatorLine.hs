@@ -36,6 +36,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens as L
 
+-- | Configuration options for separatorLine widget.
 data SeparatorLineCfg = SeparatorLineCfg {
   _slcWidth :: Maybe Double,
   _slcFactor :: Maybe Double

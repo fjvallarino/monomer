@@ -15,11 +15,11 @@ Helper functions for calculating text size.
 module Monomer.Graphics.Text (
   calcTextSize,
   calcTextSize_,
-  getTextLinesSize,
   fitTextToSize,
   fitTextToWidth,
   alignTextLines,
   moveTextLines,
+  getTextLinesSize,
   getGlyphsMin,
   getGlyphsMax
 ) where
@@ -185,6 +185,19 @@ moveTextLines (Point offsetX offsetY) textLines = newTextLines where
     & L.rect . L.x +~ offsetX
     & L.rect . L.y +~ offsetY
   newTextLines = fmap moveTextLine textLines
+
+-- | Returns the combined size of a sequence of text lines.
+getTextLinesSize :: Seq TextLine -> Size
+getTextLinesSize textLines = size where
+  -- Excludes last line vertical spacing
+  spaceV = unFontSpace $ maybe def _tlFontSpaceV (textLines ^? ix 0)
+  lineW line = line ^. L.size . L.w
+  lineH line = line ^. L.size . L.h + unFontSpace (_tlFontSpaceV line)
+  width = maximum (fmap lineW textLines)
+  height = sum (fmap lineH textLines) - spaceV
+  size
+    | Seq.null textLines = def
+    | otherwise = Size width height
 
 -- | Gets the minimum x a Seq of Glyphs will use.
 getGlyphsMin :: Seq GlyphPos -> Double
@@ -394,18 +407,6 @@ fitExtraGroups (g :<| gs) !width !prevGMax !keepTailSpaces
 
 getGlyphsWidth :: Seq GlyphPos -> Double
 getGlyphsWidth glyphs = getGlyphsMax glyphs - getGlyphsMin glyphs
-
-getTextLinesSize :: Seq TextLine -> Size
-getTextLinesSize textLines = size where
-  -- Excludes last line vertical spacing
-  spaceV = unFontSpace $ maybe def _tlFontSpaceV (textLines ^? ix 0)
-  lineW line = line ^. L.size . L.w
-  lineH line = line ^. L.size . L.h + unFontSpace (_tlFontSpaceV line)
-  width = maximum (fmap lineW textLines)
-  height = sum (fmap lineH textLines) - spaceV
-  size
-    | Seq.null textLines = def
-    | otherwise = Size width height
 
 isSpaceGroup :: Seq GlyphPos -> Bool
 isSpaceGroup Empty = False

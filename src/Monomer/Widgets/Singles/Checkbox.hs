@@ -8,7 +8,7 @@ Portability : non-portable
 
 Checkbox widget, used for interacting with boolean values. It does not include
 text, which can be added with a label in the desired position (usually with
-hstack). Alternatively, `labeledCheckbox` provides this functionality out of the
+hstack). Alternatively, `LabeledCheckbox` provides this functionality out of the
 box.
 
 Configs:
@@ -60,6 +60,7 @@ class CmbCheckboxMark t where
   checkboxSquare :: t
   checkboxTimes :: t
 
+-- | Configuration options for checkbox widget.
 data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,

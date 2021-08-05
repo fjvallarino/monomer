@@ -63,8 +63,10 @@ import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 
+-- | Constraints for an item handled by dropdown.
 type DropdownItem a = SelectListItem a
 
+-- | Configuration options for dropdown widget.
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
   _ddcItemStyle :: Maybe Style,

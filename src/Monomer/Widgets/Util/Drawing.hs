@@ -330,8 +330,10 @@ drawTimesX renderer rect lw (Just fgColor) = do
     mx = x + w
     my = y + h
 
--- | Draws a set of operations after drawing the style's background, and
--- | before drawing the style's border.
+{-|
+Runs a set of rendering operations after drawing the style's background, and
+before drawing the style's border.
+-}
 drawStyledAction
   :: Renderer         -- ^ The renderer.
   -> Rect             -- ^ The rect where background and border will be drawn.
@@ -349,6 +351,7 @@ drawStyledAction renderer rect style action = do
     StyleState{..} = style
     contentRect = removeOuterBounds style rect
 
+-- | Draws a rounded rect with the provided radius config.
 drawRoundedRect :: Renderer -> Rect -> Radius -> IO ()
 drawRoundedRect renderer rect radius =
   let
@@ -431,6 +434,7 @@ drawRectCorner renderer cor ocorner ms1 ms2 = do
       CornerBL -> Point (cx + w2) (cy - w1)
     (g1, g2) = cornerGradientPoints ocorner icorner
 
+-- | Draws the border of a rounded rect. Borders' widths may not match.
 drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
 drawRectRoundedBorder renderer rect border radius =
   let

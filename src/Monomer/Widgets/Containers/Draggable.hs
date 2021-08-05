@@ -7,7 +7,8 @@ Stability   : experimental
 Portability : non-portable
 
 Draggable container for a single item. Useful for adding drag support without
-having to implement a custom widget. Usually works in tandem with 'DropTarget'.
+having to implement a custom widget. Usually works in tandem with
+'Monomer.Widgets.Containers.DropTarget'.
 
 The regular styling of this component apply only when the item is not being
 dragged. To style the dragged container, use draggableStyle.
@@ -54,6 +55,7 @@ type DraggableRender s e
   -> Renderer         -- ^ The renderer.
   -> IO ()            -- ^ The drawing actions.
 
+-- | Configuration options for draggable widget.
 data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
   _dgcMaxDim :: Maybe Double,

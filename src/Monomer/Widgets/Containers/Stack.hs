@@ -138,7 +138,15 @@ makeStack isHorizontal config = widget where
       & L.info . L.viewport .~ fromMaybe newCa (addOuterBounds style newCa)
     resized = (resultNode newNode, newVps)
 
-assignStackAreas :: Bool -> Rect -> Seq (WidgetNode s e) -> (Seq Rect, Double)
+{-|
+Assigns space from rect to each of the provided widgets based on their size
+requirements.
+-}
+assignStackAreas
+  :: Bool                 -- ^ True if horizontal, False for vertical.
+  -> Rect                 -- ^ The available space to assign.
+  -> Seq (WidgetNode s e) -- ^ The widgets that will be assigned space.
+  -> (Seq Rect, Double)   -- ^ The assigned areas and used space in main axis.
 assignStackAreas isHorizontal contentArea children = result where
   Rect x y w h = contentArea
   mainSize = if isHorizontal then w else h

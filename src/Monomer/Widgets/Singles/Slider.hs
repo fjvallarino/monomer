@@ -59,8 +59,10 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Constraints for the values handled by slider widget.
 type SliderValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
+-- | Configuration options for slider widget.
 data SliderCfg s e a = SliderCfg {
   _slcRadius :: Maybe Double,
   _slcWidth :: Maybe Double,

@@ -68,12 +68,16 @@ rgbHex hex
     g = digitToInt g1 * 16 + digitToInt g2
     b = digitToInt b1 * 16 + digitToInt b2
 
+{-|
+Creates a Color from a hex string plus an alpha component. It may include a #
+prefix or not.
+-}
 rgbaHex :: String -> Double -> Color
 rgbaHex hex alpha = (rgbHex hex) {
     _colorA = clampAlpha alpha
   }
 
-{-
+{-|
 Creates a Color instance from HSL components. The valid ranges are:
 
 - Hue: [0, 360]
@@ -94,7 +98,7 @@ hsl h s l = Color r g b 1.0 where
   i n = clampChannel . round $ 255 * f n
   (r, g, b) = (i 0, i 8, i 4)
 
-{-
+{-|
 Creates a Color instance from HSL components. The valid ranges are:
 
 - Hue: [0, 360]

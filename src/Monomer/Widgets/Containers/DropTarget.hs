@@ -8,7 +8,7 @@ Portability : non-portable
 
 Drop target container for a single element. Useful for adding drag support
 without having to implement a custom widget. Usually works in tandem with
-'Draggable'.
+'Monomer.Widgets.Containers.Draggable'.
 
 Raises a user provided event when an item is dropped. The type must match with
 the dragged message, otherwise it will not be raised.

@@ -83,11 +83,13 @@ data ImageFit
   | FitHeight
   deriving (Eq, Show)
 
+-- | Posible errors when loading an image.
 data ImageLoadError
   = ImageLoadFailed String
   | ImageInvalid String
   deriving (Eq, Show)
 
+-- | Configuration options for image widget.
 data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFlags :: [ImageFlag],

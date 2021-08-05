@@ -227,6 +227,7 @@ type SingleRenderHandler s e
   -> Renderer          -- ^ The renderer, providing low level drawing functions.
   -> IO ()             -- ^ The IO action with rendering instructions.
 
+-- | Interface for Single widgets.
 data Single s e a = Single {
   -- | True if border and padding should be added to size requirement. Defaults
   -- | to True.

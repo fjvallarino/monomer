@@ -6,11 +6,10 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Radio widget, used for interacting with a fixed set of values. Each instance
-of the radio will be associated with a single value. It does not include text,
+Radio widget, used for interacting with a fixed set of values. Each instance of
+the radio will be associated with a single value. It does not include text,
 which should be added as a label in the desired position (usually with hstack).
-Alternatively, `labeledRadio` provides this functionality out of the
-box.
+Alternatively, `LabeledRadio` provides this functionality out of the box.
 
 Configs:
 
@@ -45,6 +44,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Configuration options for radio widget.
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
   _rdcOnFocusReq :: [Path -> WidgetRequest s e],

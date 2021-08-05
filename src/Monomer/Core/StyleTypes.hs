@@ -220,7 +220,7 @@ instance Semigroup BorderSide where
 instance Monoid BorderSide where
   mempty = def
 
--- Border definitions for each side.
+-- | Border definitions for each side.
 data Border = Border {
   _brdLeft :: Maybe BorderSide,
   _brdRight :: Maybe BorderSide,
@@ -247,6 +247,7 @@ instance Semigroup Border where
 instance Monoid Border where
   mempty = def
 
+-- | Type of corner radius.
 data RadiusType
   = RadiusInner
   | RadiusBoth

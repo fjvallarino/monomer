@@ -67,9 +67,12 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
+-- | Constraints for an item handled by selectList.
 type SelectListItem a = (Eq a, Show a, Typeable a)
+-- | Creates a row from an item.
 type MakeRow s e a = a -> WidgetNode s e
 
+-- | Configuration options for selectList widget.
 data SelectListCfg s e a = SelectListCfg {
   _slcSelectOnBlur :: Maybe Bool,
   _slcItemStyle :: Maybe Style,
@@ -174,6 +177,7 @@ data SelectListState a = SelectListState {
   _hlIdx :: Int
 } deriving (Eq, Show)
 
+-- | Messages received by selectList. In general used internally.
 data SelectListMessage
   = SelectListClickItem Int
   | SelectListShowSelected

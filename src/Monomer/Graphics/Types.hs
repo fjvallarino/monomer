@@ -77,6 +77,7 @@ newtype FontSpace
 instance Default FontSpace where
   def = FontSpace 0
 
+-- | Represents the sides of a rectangle.
 data RectSide
   = SideLeft
   | SideRight
@@ -84,6 +85,7 @@ data RectSide
   | SideBottom
   deriving (Eq, Show)
 
+-- | Represents the corners of a rectangle.
 data RectCorner
   = CornerTL
   | CornerTR
@@ -231,6 +233,7 @@ data ImageDef = ImageDef {
   _idfFlags :: [ImageFlag]       -- ^ The image flags.
 } deriving (Eq, Show, Generic)
 
+-- | Text metrics related functions.
 data FontManager = FontManager {
   -- | Returns the text metrics of a given font and size.
   computeTextMetrics :: Font -> FontSize -> TextMetrics,

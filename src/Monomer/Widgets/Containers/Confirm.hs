@@ -20,7 +20,6 @@ Config:
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Containers.Confirm (
-  ConfirmEvt(..),
   confirm,
   confirm_,
   confirmMsg,

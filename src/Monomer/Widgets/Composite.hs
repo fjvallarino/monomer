@@ -36,8 +36,8 @@ kinds of initialization.
 - compositeMergeReqs: functions to generate WidgetRequests during the merge
 process. Since merge is already handled by Composite (by merging its tree), this
 is complementary for the cases when it's required. For example, it is used in
-'Confirm' to set the focus on its Accept button when visibility is restored
-(usually means it was brought to the front in a zstack).
+'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept button when
+visibility is restored (usually means it was brought to the front in a zstack).
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -151,6 +151,7 @@ data EventResponse s e sp ep
   -}
   | Producer (ProducerHandler e)
 
+-- | Configuration options for composite widget.
 data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcMergeReqs :: [MergeReqsHandler s e],
@@ -294,6 +295,7 @@ composite_ widgetType field uiBuilder evtHandler cfgs = newNode where
   widgetData = WidgetLens field
   newNode = compositeD_ widgetType widgetData uiBuilder evtHandler cfgs
 
+-- | Creates a composite using the given model and onChange event handler.
 compositeV
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
   => WidgetType              -- ^ The name of the composite.

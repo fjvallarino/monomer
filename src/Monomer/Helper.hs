@@ -37,7 +37,7 @@ seqCatMaybes (x :<| xs) = case x of
   Just val -> val :<| seqCatMaybes xs
   _ -> seqCatMaybes xs
 
--- Returns the maximum value of a given floating type.
+-- | Returns the maximum value of a given floating type.
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where
   n = floatDigits x

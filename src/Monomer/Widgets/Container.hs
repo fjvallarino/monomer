@@ -177,8 +177,8 @@ Allows making further operations after children have been merged.
 Examples can be found in "Monomer.Widgets.Containers.SelectList" and
 "Monomer.Widgets.Containers.ZStack".
 
-Note: if state was modified on `merge`, you should use the new state provided as
-an argument, since the state referenced in the closure will be outdated.
+Note: if state was modified during merge, you should use the new state provided
+as an argument, since the state referenced in the closure will be outdated.
 -}
 type ContainerMergePostHandler s e a
   = WidgetEnv s e      -- ^ The widget environment.
@@ -313,6 +313,7 @@ type ContainerRenderHandler s e
   -> Renderer          -- ^ The renderer, providing low level drawing functions.
   -> IO ()             -- ^ The IO action with rendering instructions.
 
+-- | Interface for Container widgets.
 data Container s e a = Container {
   -- | True if border and padding should be added to size requirement. Defaults
   --   to True.

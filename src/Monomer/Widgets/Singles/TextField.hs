@@ -15,7 +15,7 @@ Configs:
 - resizeOnChange: Whether input causes ResizeWidgets requests.
 - selectOnFocus: Whether all input should be selected when focus is received.
 - maxLength: the maximum length of input text.
-- fieldDisplayChar: the character that will be displayed as replacement of the
+- textFieldDisplayChar: the character that will be displayed as replacement of the
   real text. Useful for password fields.
 - onFocus: event to raise when focus is received.
 - onFocusReq: WidgetRequest to generate when focus is received.
@@ -30,7 +30,7 @@ Configs:
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.TextField (
-  fieldDisplayChar,
+  textFieldDisplayChar,
   textField,
   textField_,
   textFieldV,
@@ -172,8 +172,9 @@ instance CmbOnChangeReq (TextFieldCfg s e) s e Text where
     _tfcOnChangeReq = [req]
   }
 
-fieldDisplayChar :: Char -> TextFieldCfg s e
-fieldDisplayChar char = def {
+-- | Replacement character to show instead of real text. Useful for passwords.
+textFieldDisplayChar :: Char -> TextFieldCfg s e
+textFieldDisplayChar char = def {
     _tfcDisplayChar = Just char
   }
 

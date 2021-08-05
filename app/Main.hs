@@ -512,7 +512,7 @@ buildUI wenv model = traceShow "Creating UI" widgetTree where
         label "Jj label" `styleHover` [textSize 40]
       ] `styleHover` [bgColor red],
       label (model ^. dropdown1) `styleBasic` [bgColor lightBlue, textLeft],
-      textField_ textField1 [fieldDisplayChar '*'] `styleBasic` [bgColor lightBlue, textLeft],
+      textField_ textField1 [textFieldDisplayChar '*'] `styleBasic` [bgColor lightBlue, textLeft],
       colorPicker_ color [showAlpha],
       hstack [
           scroll_ [] (image_ "assets/images/pecans.jpg" [fitFill] `styleBasic` [radius 20]),

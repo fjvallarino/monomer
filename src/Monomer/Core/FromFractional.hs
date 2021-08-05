@@ -12,7 +12,9 @@ slider and other numeric related widgets.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Monomer.Core.FromFractional where
+module Monomer.Core.FromFractional (
+  FromFractional(..)
+) where
 
 import Data.Int
 import Data.Fixed
