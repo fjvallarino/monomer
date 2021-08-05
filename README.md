@@ -26,11 +26,13 @@ of GUIs using an extensible set of widgets with pure Haskell.
 
 ### Setup
 
+Monomer requires GHC and SDL2 to be installed.
+
 You can read how to setup the library [here](docs/tutorials/00-setup.md).
 
 ### Tutorials
 
-Several introductory tutorials are available:
+Introductory tutorials are available:
 
 - [01 - Basics](docs/tutorials/01-basics.md)
 - [02 - Styling](docs/tutorials/02-styling.md)
@@ -55,14 +57,8 @@ Beyond the tutorials, a few _real world like_ examples are available:
 There is not a planned timeline for the tasks in the roadmap.
 
 - Stability and performance.
-- Add mobile support.
-- Add support for Vulkan/Metal.
-
-## Current limitations
-
-- Multi-platform features depend (mostly) on what SDL already provides.
-  - Copy/paste is only supported for text, not images.
-- Only supports left to right text editing at the moment.
+- Mobile support.
+- Vulkan/Metal support.
 
 ## License
 

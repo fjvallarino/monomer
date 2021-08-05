@@ -801,12 +801,11 @@
     - Can remove resize flag from Container/selectList
 
 Next
-  - Update merge tutorial, since cursor position is not a good example anymore.
   - Adjust theme colors.
+  - Check caret blink on Ticker example.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.
-  - Create ContextMenu (could work similarly to Tooltip).
 
 Future
   - Check if Windows/Linux also miss top pixel
@@ -816,9 +815,10 @@ Future
     - https://github.com/zw3rk/toolchain-wrapper
     - https://medium.com/@zw3rk/a-haskell-cross-compiler-for-ios-7cc009abe208
     - https://www.tweag.io/blog/2020-11-25-asterius-th/
+  - Create ContextMenu (could work similarly to Tooltip).
   - Create File Selector
   - Create GridView
-    - Adjusts column width and row height (not possible to have both combining hstack/vstack)
+    - Adjusts column width and row height (not possible to have both just by combining hstack/vstack)
   - Create Layout with width/heights specified in percents
   - Add support for multiple selection in SelectList
   - Add arrow icon similar to Renoise's

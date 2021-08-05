@@ -2,7 +2,7 @@
 
 ## Stack
 
-In case you don't have it installed in your system, you should visit
+In case you don't have Stack installed in your system, you should visit
 [Stack's](https://docs.haskellstack.org/en/stable/install_and_upgrade/) website
 and follow the appropriate installation method for your OS. If you are on
 Linux or macOS, you will be provided with a shell command, while if you are on
@@ -18,12 +18,12 @@ git clone https://github.com/fjvallarino/monomer-sample.git
 
 ### macOS
 
+In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh)
+
 ```bash
 brew install sdl2
 brew install glew
 ```
-
-In case you don't have Homebrew installed, visit [Homebrew](https://brew.sh)
 
 ### Linux
 
@@ -37,8 +37,8 @@ sudo apt-get install libglew-dev
 ##### Ubuntu notes
 
 It seems there are issues when installing `libsdl2-dev` on some Ubuntu versions.
-They can usually be solved by running `sudo aptitude install libsdl2-dev` and
-choosing one of the suggested actions, although doing this is a bit more
+These issues can usually be solved by running `sudo aptitude install libsdl2-dev`
+and choosing one of the suggested actions, although doing this is a bit more
 dangerous than a regular package install.
 
 Aptitude can be installed with `sudo apt-get install aptitude`.
@@ -115,7 +115,7 @@ $HOME/.../monomer-sample/.stack-work/install/x86_64-osx/......../8.10.4/bin
 
 By doing this, you will be using the integrated GPU instead of the discrete one.
 This provides faster startup, better battery life and it will work just fine for
-most UIs.
+most UIs, although you may notice a bit of lag when resizing windows.
 
 Further, you may want to do this for your local stack install directory, since
 you'll be using ghcid and Info.plist needs to be in the directory where the

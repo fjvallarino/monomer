@@ -6,7 +6,7 @@ instance basis, and you can create regular functions that return widgets styled
 the way you need, themes provide a couple of useful features:
 
 - They provide a quick way of switching the active theme on a given section of
-  the application. This is especially useful for changing the color scheme.
+  the application. This is specially useful for changing the color scheme.
 - They allow customizing widgets that you may not have direct control over, such
   as the scrollbar of a textArea or the background color of a dialog.
 

@@ -32,11 +32,16 @@ with their own children, and applies these criteria:
 
 In general, this process is transparent and you don't need to worry about it.
 The only context where you need to be careful is if the position of your widgets
-change. Just to clarify: this only is a concern if there are widgets with state
-involved, although it's probably safer to just always handle it.
+change. This can happen if you add items to the beginning of a list (pushing the
+previous items one position deeper), remove an item or reorder them. Just to
+clarify: this only is a concern if there are widgets with state involved,
+although it's probably safer to just always handle it.
 
-In the example, a `nodeKey` is associated to each row. It works similarly to
-`styleBasic` but receives a Text argument.
+As a final note and as is shown in the example, you only need a key at the top
+level item whose position changes, not on each of its children.
+
+In the example, a `nodeKey` is associated to each row. It is used infix as the
+style related functions, and receives a Text argument:
 
 ```haskell
 listItem idx item = hstack [
@@ -49,14 +54,17 @@ listItem idx item = hstack [
 
 In the case of a `textField`, the internal state contains the current cursor
 position and selection. When you add a new item by clicking on the "Add" button
-(or pressing Enter), a new row is added. This row has an editable textField, in
-which you can move around with the arrow keys as usual. If you add a few more
+(or pressing Enter), a new row is added. Each row has an editable textField, in
+which you can, as usual, move around with the arrow keys. If you add a few more
 items and use tab to navigate to a different textField, you will notice that
 each textField keeps the cursor position it had before losing focus, even after
-their position in the list changed (of course, this is the expected behavior).
-Just for fun, try removing the `nodeKey` from that function: you will see that the
-textField did not _move_ to the correct position, as the incorrect cursor
-position indicates.
+their position in the list changed. Just for fun, try removing the `nodeKey`
+from that function: you will see that the textField was not _moved_ to the
+correct position in the list, as the cursor position indicates.
+
+While this example may look uninteresting, it is important to keep this
+situation in mind. Animation widgets also have state, and changing their
+position without using a nodeKey would cause erratic behavior.
 
 ### Setting focus
 
@@ -76,9 +84,9 @@ handle the events defined by the user. This is a difference compared to custom
 widgets, which can handle any kind of low level event. Although this can sound
 like a limitation, you can always have a widget that converts those low level
 events to the event type you can handle. This is the case of keystroke. It
-receives a list of pairs mapping from a keystroke combination (provided as a
-Text string) and the event to raise when that combination is detected. In this
-case, it just listens for the `Enter` key and raises the same event as if the
+receives a list of mappings from a keystroke combination (provided as a Text
+string) and the event to raise when that combination is detected. In this
+example, it just listens for the `Enter` key and raises the same event as if the
 user had clicked the "Add" button. These combinations can be more complex, of
 course. Check the documentation of the widget for more information.
 

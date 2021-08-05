@@ -12,13 +12,14 @@ We've previously used `Model` as a response to an event. Another possible
 response is `Task`, which receives an IO action that can run arbitrary code and
 returns a valid user event. This task will be launched as a separate thread and,
 when it finishes, its result will be fed back into the application. In case the
-IO action crashes the application will not be notified; it is up to the task to
-handle any kind of exception and report it with the appropriate user event.
+IO action crashes the UI will not be notified, but the application will continue
+running; it is up to the task to handle any kind of exception and report it with
+the appropriate user event.
 
 In the example we can see the task calling `randomRIO`, which returns a random
 number in the given range. This function uses a system seed, which makes it
 impure and as such could not be called outside of IO. A typical use of Task
-is to consume a REST API or similar.
+is to consume a REST API, as shown in the `Books` example.
 
 ```haskell
 handleEvent wenv node model evt = case evt of
@@ -39,7 +40,7 @@ example it is used to combine an image with text, but another typical use case
 is when a dialog needs to be displayed while content is partially visible below.
 Instead of using a vstack/hstack and alternating the visibility of both content
 and dialog, using a zstack allows keeping content always visible while toggling
-the visibility of the dialog (which would be on top). The order of the widgets
+the visibility of the dialog (which should be on top). The order of the widgets
 provided to zstack is from lowest to highest layer level.
 
 ```haskell
@@ -53,7 +54,7 @@ pushLayers = zstack [
 ### box
 
 Box is a container for a single item that can be used for both layout and event
-handling on behalf of its child element.
+handling on behalf of its child widget.
 
 By default box assigns the requested space by its child, which can leave some
 space empty if box's viewport is larger. This space can be used for alignment of
@@ -87,7 +88,7 @@ It also supports creating images from memory using a `ByteString`.
 
 A common situation is having a widget that needs more space than is available. In
 this scenario, to avoid having the widget cut its content or display it in a less
-than ideal format, a `scroll` can be used. There are three types of scroll:
+than ideal format, `scroll` can be used. There are three types of scroll:
 
 - scroll: displays both scroll bars if required.
 - hscroll: only displays the horizontal scroll bar, if needed. The contained

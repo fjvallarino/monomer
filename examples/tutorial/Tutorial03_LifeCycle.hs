@@ -49,7 +49,7 @@ buildUI wenv model = widgetTree where
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description:",
         spacer,
-        textField_ newItemText [placeholder "Write here!"] `nodeKey` "description",
+        textField_ newItemText [placeholder "Write here!"], -- `nodeKey` "description",
         spacer,
         button "Add" AddItem
           `styleBasic` [paddingH 5]

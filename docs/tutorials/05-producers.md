@@ -3,8 +3,8 @@
 Related to Tasks, Monomer also provides the concept of Producers. Both serve the
 purpose of being able to run arbitrary IO code, but while Tasks only return a
 single result, Producers allow sending an unlimited number of events back to the
-application. This makes them useful for consuming streams of data, maybe to
-implement a chat application or to display real time data.
+application. This makes them useful for consuming streams of data, as needed to
+implement a chat application or a stock ticker.
 
 ## Creating a producer
 
@@ -12,11 +12,11 @@ In the example, probably the simplest stream of data is consumed: the current
 time.
 
 The producer is created when the application starts by responding with a
-producer to the init event, which takes a function slightly different to what is
-provided to Task:
+Producer to the init event. Producer takes a function slightly different to what
+is provided to Task:
 
-- It receives a function as an argument. This function is used for sending the
-  messages to the application.
+- It receives a function as an argument. This function is provided by the
+  library and is used for sending messages back to the application.
 - It has () return type, meaning the only way of sending information to the
   application is through the function provided as argument.
 
@@ -35,12 +35,12 @@ timeOfDayProducer sendMsg = do
 
 In the example the producer requests the current time, sends a message using the
 provided function, waits for one second (`threadDelay` uses nanoseconds) and,
-finally, calls itself recursively to repeat the process while the application
-runs.
+finally, calls itself recursively to repeat the process for as long as the
+application runs.
 
 Once the event is received, the application updates its model as usual.
 
-You can check the `ticker` example to see a websocket based Producer.
+You can check the `Ticker` example to see a websocket based Producer.
 
 ## New widgets
 

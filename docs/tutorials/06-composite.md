@@ -66,12 +66,12 @@ Besides raising events, a widget can also make requests to the runtime. In fact,
 some of the responses we have been using are just `WidgetRequest`s but with an
 easier to use interface:
 
-- Message is SendMessage
-- Task is RunTask
-- Producer is RunProducer
+- `Message` is `SendMessage`.
+- `Task` is `RunTask`.
+- `Producer` is `RunProducer`.
 
-`WidgetRequest`s will be explored more in the custom widgets tutorial, but some
-requests can be interesting for an application or composite:
+`WidgetRequest`s will be explored in more detail in the custom widgets tutorial,
+but some requests can be interesting for an application or composite:
 
 - MoveFocus: Moves focus to the next focusable widget in the given direction.
 - SetFocus: Sets focus on a specific widget. We have already used this request
@@ -86,10 +86,10 @@ how can you get the WidgetId of a widget node?
 
 ### Key, Path and WidgetId
 
-The are three ways of identifying a widget. One, as we've seen, is the `nodeKey`.
-This is a user defined identifier and it exists because it's just easier to use.
-Besides key, there are two identifiers which are mostly internal, unless you are
-writing custom widgets or making WidgetRequests:
+The are three types of identifiers for a widget. One, as we've seen, is the
+`nodeKey`. This is a user defined identifier and it exists because it's human
+friendly. Besides key, there are two identifiers which are mostly internal,
+unless you are writing custom widgets or making WidgetRequests:
 
 - Path: This is a sequence of numbers starting from the root node, adding one
   number per level, until reaching the node of interest. Each number is an index
@@ -108,8 +108,8 @@ writing custom widgets or making WidgetRequests:
 There are a couple of functions you can use to get the WidgetId of a node:
 
 - If you have a Path, you can call `findWidgetByPath`. If the path is valid, it
-  returns a `WidgetNodeInfo` instance which, amongst other node related data,
-  has the WidgetId.
+  returns a `WidgetNodeInfo` instance which, among other node related data, has
+  the WidgetId.
 - If you have a key, you can call `widgetIdFromKey` which returns the WidgetId
   if the Path is valid. There is also a `pathFromKey` to get the Path instead.
 
@@ -121,10 +121,11 @@ In this tutorial two new widgets are used and, in general, they work together.
 
 A `draggable` widget receives two arguments:
 
-- A value that is going to be carried during a drag event. This value can be
+- The value that is going to be carried during a drag event. This value can be
   used by other widgets when hovered, to indicate they accept the item or not.
 - A child node. This node will be rendered as a regular node, but the user will
-  be able to drag and drop it.
+  be able to drag and drop it. By default, the content of this node will also be
+  displayed while dragging it.
 
 This widget supports setting the style of the dragged state, plus its max size
 and optional transparency.
