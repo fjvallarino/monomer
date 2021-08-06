@@ -1,5 +1,5 @@
 {-|
-Module      : Monomer.Widgets.Util.RemixIcon
+Module      : Monomer.Graphics.RemixIcon
 Copyright   : (c) 2018 Francisco Vallarino
 License     : BSD-3-Clause (see the LICENSE file)
 Maintainer  : fjvallarino@gmail.com
@@ -23,7 +23,7 @@ _"remixDeleteBinFill"_).
 -}
 {-# LANGUAGE BinaryLiterals #-}
 
-module Monomer.Widgets.Util.RemixIcon where
+module Monomer.Graphics.RemixIcon where
 
 import Data.Text (Text)
 
