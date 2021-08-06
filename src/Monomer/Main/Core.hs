@@ -295,7 +295,7 @@ mainLoop window fontManager config loopArgs = do
   endTicks <- fmap fromIntegral SDL.ticks
 
   -- Rendering
-  renderCurrentReq <- checkRenderCurrent startTicks _mlFrameStartTs
+  renderCurrentReq <- checkRenderCurrent startTicks _mlLatestRenderTs
 
   let renderEvent = any isActionEvent eventsPayload
   let winRedrawEvt = windowResized || windowExposed
@@ -448,28 +448,26 @@ watchWindowResize channel = do
 
 checkRenderCurrent :: (MonomerM s e m) => Int -> Int -> m Bool
 checkRenderCurrent currTs renderTs = do
-  renderNext <- use L.renderRequested
+  renderCurrent <- use L.renderRequested
   schedule <- use L.renderSchedule
-  L.renderSchedule .= Map.filter (renderScheduleActive currTs renderTs) schedule
-  return (renderNext || nextRender schedule)
+  L.renderSchedule .= Map.filter (renderScheduleActive currTs) schedule
+  return (renderCurrent || renderNext schedule)
   where
-    foldHelper acc curr = acc || renderScheduleReq currTs renderTs curr
-    nextRender schedule = foldl' foldHelper False schedule
+    requiresRender = renderScheduleReq currTs renderTs
+    renderNext schedule = any requiresRender schedule
 
 renderScheduleReq :: Int -> Int -> RenderSchedule -> Bool
-renderScheduleReq currTs renderTs schedule = nextStep < currTs where
+renderScheduleReq currTs renderTs schedule = required where
   RenderSchedule _ start ms _ = schedule
-  stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
-  currStep = start + ms * stepsDone
-  nextStep
-    | currStep >= renderTs = currStep
-    | otherwise = currStep + ms
+  stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
+  stepTs = start + ms * stepCount
+  required = renderTs < stepTs
 
-renderScheduleActive :: Int -> Int -> RenderSchedule -> Bool
-renderScheduleActive currTs renderTs schedule = scheduleActive where
+renderScheduleActive :: Int -> RenderSchedule -> Bool
+renderScheduleActive currTs schedule = scheduleActive where
   RenderSchedule _ start ms count = schedule
-  stepsDone = floor (fromIntegral (renderTs - start) / fromIntegral ms)
-  scheduleActive = maybe True (> stepsDone) count
+  stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
+  scheduleActive = maybe True (> stepCount) count
 
 isWindowResized :: [SDL.EventPayload] -> Bool
 isWindowResized eventsPayload = not status where

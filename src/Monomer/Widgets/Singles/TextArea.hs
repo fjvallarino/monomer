@@ -176,7 +176,8 @@ data TextAreaState = TextAreaState {
   _tasSelStart :: Maybe (Int, Int),
   _tasTextLines :: Seq TextLine,
   _tasHistory :: Seq HistoryStep,
-  _tasHistoryIdx :: Int
+  _tasHistoryIdx :: Int,
+  _tasFocusStart :: Int
 } deriving (Eq, Show, Generic)
 
 instance Default TextAreaState where
@@ -188,7 +189,8 @@ instance Default TextAreaState where
     _tasSelStart = def,
     _tasTextLines = Seq.empty,
     _tasHistory = Seq.empty,
-    _tasHistoryIdx = 0
+    _tasHistoryIdx = 0,
+    _tasFocusStart = 0
   }
 
 -- | Creates a text area using the given lens.
@@ -576,17 +578,19 @@ makeTextArea wdata config state = widget where
 
     Focus prev -> Just result where
       selectOnFocus = fromMaybe False (_tacSelectOnFocus config)
-      newState
+      tmpState
         | selectOnFocus && T.length currText > 0 = state {
             _tasCursorPos = lastPos,
             _tasSelStart = Just (0, 0)
           }
         | otherwise = state
+      newState = tmpState {
+        _tasFocusStart = wenv ^. L.timestamp
+      }
+      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newNode = node
         & L.widget .~ makeTextArea wdata config newState
-      viewport = node ^. L.info . L.viewport
-      reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
-      newResult = resultReqs node reqs
+      newResult = resultReqs newNode reqs
       focusRs = handleFocusChange newNode prev (_tacOnFocusReq config)
       result = maybe newResult (newResult <>) focusRs
 
@@ -599,6 +603,7 @@ makeTextArea wdata config state = widget where
 
     where
       widgetId = node ^. L.info . L.widgetId
+      viewport = node ^. L.info . L.viewport
       style = currentStyle wenv node
       Rect cx cy cw ch = getContentArea node style
       localPoint point = subPoint point (Point cx cy)
@@ -667,8 +672,10 @@ makeTextArea wdata config state = widget where
       contentArea = getContentArea node style
       ts = _weTimestamp wenv
       offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
+      focused = isNodeFocused wenv node
 
-      caretRequired = isNodeFocused wenv node && even (ts `div` caretMs)
+      caretTs = ts - _tasFocusStart state
+      caretRequired = focused && even (caretTs `div` caretMs)
       caretColor = styleFontColor style
       caretRect = getCaretRect config state False
 

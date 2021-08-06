@@ -174,7 +174,9 @@ data InputFieldState a = InputFieldState {
   -- | Edit history of the current field. Supports undo and redo.
   _ifsHistory :: Seq (HistoryStep a),
   -- | Current index into history.
-  _ifsHistIdx :: Int
+  _ifsHistIdx :: Int,
+  -- | The timestamp when focus was received (used for caret blink)
+  _ifsFocusStart :: Int
 } deriving (Eq, Show, Typeable, Generic)
 
 initialState :: a -> InputFieldState a
@@ -190,7 +192,8 @@ initialState value = InputFieldState {
   _ifsTextRect = def,
   _ifsTextMetrics = def,
   _ifsHistory = Seq.empty,
-  _ifsHistIdx = 0
+  _ifsHistIdx = 0,
+  _ifsFocusStart = 0
 }
 
 defCaretW :: Double
@@ -520,12 +523,15 @@ makeInputField config state = widget where
 
     -- Handle focus, maybe select all and disable custom drag handlers
     Focus prev -> Just result where
-      newState
+      tmpState
         | _ifcSelectOnFocus config && T.length currText > 0 = state {
             _ifsSelStart = Just 0,
             _ifsCursorPos = T.length currText
           }
         | otherwise = state
+      newState = tmpState {
+        _ifsFocusStart = wenv ^. L.timestamp
+      }
       reqs = [RenderEvery widgetId caretMs Nothing, StartTextInput viewport]
       newNode = node
         & L.widget .~ makeInputField config newState
@@ -662,10 +668,13 @@ makeInputField config state = widget where
       selectOnFocus = _ifcSelectOnFocus config
       focused = isNodeFocused wenv node
       ts = _weTimestamp wenv
-      selColor = styleHlColor style
-      caretRequired = focused && even (ts `div` caretMs)
+
+      caretTs = ts - _ifsFocusStart state
+      caretRequired = focused && even (caretTs `div` caretMs)
       caretColor = styleFontColor style
       caretRect = getCaretRect config state style carea
+
+      selColor = styleHlColor style
       selRect = getSelRect state style
 
 textOffsetY :: TextMetrics -> StyleState -> Double
