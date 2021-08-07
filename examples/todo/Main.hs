@@ -215,12 +215,15 @@ addNewTodo wenv model = newModel where
 
 initialTodos :: [Todo]
 initialTodos = todos where
-  items = mconcat $ replicate 2 [
+  items = mconcat $ replicate 1 [
     Todo 0 Home Done "Tidy up the room",
     Todo 0 Home Pending "Buy groceries",
     Todo 0 Home Pending "Pay the bills",
-    Todo 0 Work Pending "Check the status of project A",
-    Todo 0 Work Pending "Finish project B"
+    Todo 0 Home Pending "Repair kitchen sink",
+    Todo 0 Work Done "Check the status of project A",
+    Todo 0 Work Pending "Finish project B",
+    Todo 0 Work Pending "Send email to clients",
+    Todo 0 Work Pending "Contact cloud services provider"
     ]
   todos = zipWith (\t idx -> t & todoId .~ idx) items [0..]
 
@@ -230,7 +233,7 @@ main = do
   where
     config = [
       appWindowTitle "Todo list",
-      appTheme customLightTheme,
+      appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

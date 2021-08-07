@@ -3,7 +3,13 @@
 ## Description
 
 This example is a really basic attempt at generative art. The objective is
-creating custom widgets that render more complex things than stock widgets.
+creating custom widgets that play a bit with the rendering API.
+
+## Preview
+
+Gif not available because the file is too big (4-5Mb).
+
+<img src="images/04_Generative.jpg" alt="Preview jpg" width="800" height="600" />
 
 ## Interesting bits
 

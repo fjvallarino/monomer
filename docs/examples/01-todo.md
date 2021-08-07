@@ -7,6 +7,10 @@ and removing Todo items. The objective is showing a more complex example with
 user input, sections displayed/hidden depending on the context, and animations.
 There is not persistence of any kind.
 
+## Preview
+
+![Example gif preview](images/01_Todo.gif)
+
 ## Interesting bits
 
 Types and UI are split in separate files. This is usually the best approach for

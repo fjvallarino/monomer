@@ -5,10 +5,14 @@
 This example shows a ticker of cryptocurrencies, consuming Binance's websockets
 API.
 
-Why where cryptocurrencies used for the example? The objective was showing a
+Why were cryptocurrencies used for the example? The objective was showing a
 real time streaming API and, to make the example easy to use, that API needed to
-be free and without user registration required. No other available service
+be free to use and not require user registration. No other available service
 satisfied those constraints with the same amount of constantly changing data.
+
+## Preview
+
+![Example gif preview](images/03_Ticker.gif)
 
 ## Interesting bits
 
@@ -35,3 +39,23 @@ From that point on:
 The `TickerIgnore` event is used in Tasks that process errors and don't
 currently feed information into the application. In general you will want to
 report these errors to the user, but this is useful at prototyping time.
+
+## Possible improvements
+
+Since updates for each coin are received as individual messages, triggering a
+model change every time, it would be desirable to process them as a single batch
+when several messages are received within milliseconds. Grouping these messages
+and only updating the model once or twice per second can provide more
+predictable performance.
+
+One way to do this is to:
+
+- Launch an extra thread (forkIO) before calling `receiveWs`.
+- Have `receiveWs` write to a channel where this new thread listens to, instead
+  of directly writing to the application with `sendMsg`.
+- Use `threadDelay` on the new thread to wait for as long as desired, and read
+  the available messages from the channel without blocking (`tryReadTChan`).
+  Only then, if new messages were indeed received, send a single message with
+  all the results to the application (`TickerUpdate` will have to be modified to
+  receive a list instead of a single message). Use `forever` to repeat while the
+  application is running.

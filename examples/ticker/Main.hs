@@ -178,7 +178,7 @@ startProducer :: AppEnv -> (TickerEvt -> IO ()) -> IO ()
 startProducer env sendMsg = do
   Wuss.runSecureClient url port path $ \connection -> do
     receiveWs connection sendMsg
-    sendWs (env^.channel) connection
+    sendWs (env ^. channel) connection
   where
     url = "stream.binance.com"
     port = 9443
@@ -213,7 +213,7 @@ main = do
   where
     config = [
       appWindowTitle "Ticker",
-      appTheme customLightTheme,
+      appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appInitEvent TickerInit

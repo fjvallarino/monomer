@@ -177,7 +177,7 @@ main = do
   where
     config = [
       appWindowTitle "Book search",
-      appTheme customLightTheme,
+      appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
       appInitEvent BooksInit

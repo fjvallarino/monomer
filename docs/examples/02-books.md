@@ -6,6 +6,10 @@ This example shows a UI for searching books. It uses an https endpoint provided
 by Internet Archive's _Open Library_, which allows querying books using any
 piece of information (title, authors, ISBN, etc).
 
+## Preview
+
+![Example gif preview](images/02_Books.gif)
+
 ## Interesting bits
 
 The BookTypes module defines, besides all the needed types, the
