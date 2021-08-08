@@ -18,8 +18,8 @@ Users take care of storing and providing the state to the library. This is
 similar to how the model's fields are associated to widgets.
 
 The advantage is that this makes the library more functionally pure. It also
-simplify the internals and improve performance, since the merge process can be
-removed.
+simplifies the internals and may improve performance, since the merge process
+could be simplified.
 
 The disadvantage is that it requires more boilerplate from part of the user,
 since fields for each of the widget's state need to be added to a global state
@@ -44,15 +44,18 @@ easy to use. For this reason, and because it reduces boilerplate, hidden state
 was chosen. The library takes care of saving/restoring state during the merge
 process.
 
+Sometimes, for performance reasons, you may want to use `mergeRequired` as the
+[Books](examples/02-books.md#interesting-bits) example does.
+
 ## Why did you add themes? Customized versions of widgets can be created by writing simple functions.
 
 While it's true that you can create a customized version of a widget using
 functions, and it is in fact encouraged and used in the examples, in some cases
 it is not enough.
 
-Some widgets, such as dialogs, are built out of nested widgets and do not expose
-style options for all their sub widgets. In this scenario, themes allow you to
-customize those nested widgets as needed.
+Some widgets, such as `alert` and `confirm`, are built out of nested widgets and
+do not expose style options for all their sub widgets. In this scenario, themes
+allow you to customize those nested widgets as needed.
 
 Themes also have the nice property of simplifying color scheme switching.
 
@@ -80,22 +83,22 @@ a widget on a given path), restricting to the top level widget seemed clearer.
 
 ## Why, except for render, is the widget interface non monadic?
 
-Limiting side effects to the render function made the intention of each of the
-functions in the widget interface clearer. It also simplified the runtime of the
-library.
+I find using regular functions nicer than using bind or do syntax and, given
+those functions do not rely on any effect, I preferred to keep them as such.
 
-## Why is the return type of render IO and not some custom monad?
+## Why is the return type of the render function IO and not some custom monad?
 
 I didn't feel having a custom monad provided a benefit, considering the Widget
-Environment parameter as already available (if it wasn't, a Reader stack may
+Environment parameter is already available (if it wasn't, a Reader stack may
 have been a good idea).
 
-## Why is the return type of Tasks and Producers IO and not some generic Monad?
+## Why is the return type of Tasks and Producers IO and not MonadIO?
 
 There were some type mismatch issues down the road plus the async library
-requires using IO to launch asynchronous tasks.
+requires using IO to launch asynchronous tasks. Maybe MonadBaseControl or
+MonadUnliftIO could be used.
 
-## Why does Widget have a reference to children widget, considering the Widget may not have any?
+## Why does WidgetNode have a reference to children widget, considering the widget may not have any?
 
 It made development of container widgets simpler. It also gave me the ability to
 create utility functions that can be used across the library for inspecting the
@@ -103,12 +106,14 @@ widget node tree.
 
 ## Why do containers have the optional config argument before their children? It's inconsistent with where single widgets have it.
 
-This was a decision I made based on usage. Splitting complex UIs into smaller
-parts is a great idea but, at the same time, it's nice to be able to quickly see
-the hierarchy of widgets. This means that, quite frequently, widgets are nested
-directly in their parent. Having the config of the parent widget _after_ its
-children caused confusion, not being clear whom it belonged to. Putting the
-config before the children is much clearer in this regard.
+This was a decision I made based on usage. While splitting a complex UI into
+smaller parts is necessary for maintainability, being able to have an idea of
+the hierarchy is also useful to understand an application. This means that,
+sometimes, widgets are nested directly in their parent (instead of creating a
+separate list that is later provided to the parent widget). In that scenario,
+having the config of the parent widget _after_ its children causes confusion,
+because it's not clear whom it belongs to. Putting the config before the
+children is much clearer in this regard.
 
 ## Why records of functions instead of typeclasses?
 
@@ -134,12 +139,14 @@ options for this are typeclasses and labels. I chose typeclasses because I knew
 them better.
 
 I'm aware about the namespace issues caused by typeclasses, which is why I tried
-to avoid _reserving_ common names. I also know lawless typeclasses are frowned
-upon by the Haskell community.
+to avoid _reserving_ common names. I'm also aware lawless typeclasses are
+frowned upon by the Haskell community.
 
 If you know a better option to solve this, please let me know!
 
 ## Why Lens and not MicroLens?
 
-I needed to store references to lenses, which are provided by the `ALens` type
-in the lens library; I don't think microlens provides something similar.
+I needed to store references to lenses in custom data types, which is not
+possible with the standard `Lens` type. The lens library provides `ALens`, which
+allows for that use case. I don't think microlens has something similar, plus
+I'm currently using more things from lens.

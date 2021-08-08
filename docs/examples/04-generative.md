@@ -16,7 +16,7 @@ Gif not available because the file is too big (4-5Mb).
 Both widgets provide customization options for size, randomness and style. The
 UI for modifying these configuration options is handled by the application, not
 the individual widgets, and serves as an example on how integrating larger,
-customizable, pieces into a single application can work.
+customizable pieces into a single application can work.
 
 This example uses the dial widget. It provides functionality similar to slider,
 but does so with smaller size requirements.

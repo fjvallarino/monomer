@@ -799,10 +799,10 @@
     - Keep list of widgets requesting resize
     - If widget requested resize, it overrides viewport check
     - Can remove resize flag from Container/selectList
+  - Check caret blink on Ticker example.
 
 Next
   - Adjust theme colors.
-  - Check caret blink on Ticker example.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.

@@ -22,7 +22,7 @@ of GUIs using an extensible set of widgets with pure Haskell.
 - You want to write your application in Haskell.
 - You want to write a native, not web based, application.
 
-## Usage
+## Documentation
 
 ### Setup
 
@@ -52,6 +52,11 @@ Beyond the tutorials, a few _real world like_ examples are available:
 - [Ticker](docs/examples/03-ticker.md)
 - [Generative](docs/examples/04-generative.md)
 
+### Design decisions
+
+In case you wonder why some choices were made, you can read
+[here](docs/design-decisions.md).
+
 ## Roadmap
 
 There is not a planned timeline for the tasks in the roadmap.
@@ -69,6 +74,14 @@ Fonts used in examples:
 - [Roboto] (https://fonts.google.com/specimen/Roboto), licensed under [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
 - [Remix Icon](https://remixicon.com), licensed under [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
 
+## Contributing
+
+PRs are welcome!
+
+If possible, keep them small and focused. If you are planning on making a large
+change, please submit an issue first so we can agree on a solution.
+
 ## Acknowledgments
 
-Thanks to memononen for the amazing [nanovg](https://github.com/memononen/nanovg) library.
+- Thanks to [Ghislaine Guerin](https://github.com/ghislaineguerin) for UX advise.
+- Thanks to [Mikko Mononen](https://github.com/memononen) for the amazing [nanovg](https://github.com/memononen/nanovg) library.

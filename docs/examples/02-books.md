@@ -27,9 +27,10 @@ details or errors. Unless specifically requested, input is only received by the
 top layer of zstack.
 
 A `box` with the `mergeRequired` configuration option set is used to avoid
-running the merge process on the result widgets whenever the model changes (this
-happens when the user inputs text, a dialog is displayed, etc). This is an
-optimization and should only be used when a long list of items is displayed.
+running the merge process on the result widgets whenever the model changes. This
+happens when the user inputs text, a dialog is displayed and other scenarios.
+This is an optimization and should not be needed unless performance is a concern
+(for example, when a long list of items is displayed).
 
 ```haskell
 booksChanged old new = old ^. books /= new ^. books

@@ -17,10 +17,8 @@ description:
   Monomer is an easy to use, cross platform, GUI library for writing Haskell
   applications.
 
-  It provides a framework similar to the Elm Architecture, allowing to create
-  GUIs functionally using an extensible set of widgets.
-
-  You can find the available widgets in @Monomer.Widgets@.
+  It provides a framework similar to the Elm Architecture, allowing the creation
+  of GUIs using an extensible set of widgets with pure Haskell.
 
   Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
 
