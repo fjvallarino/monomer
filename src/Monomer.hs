@@ -6,19 +6,15 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Main module, re-exporting all the modules of the library. This is the module
+Main module, re-exporting all the modules in the library. This is the module
 that should be imported by applications.
 
-To start using the library it is recommended to check the
+To start using the library, it is recommended to check the
 <https://github.com/fjvallarino/monomer#documentation tutorials>:
 
-If you want to create custom Widgets, check:
-
-- "Monomer.Widgets.Single" for self contained widgets
-- "Monomer.Widgets.Container" for widgets with children
-
 If you don't want to use all the helper modules, or you don't want to import
-them unqualified, the basic modules you will need are:
+them unqualified, the modules you will need to import to create an application
+are:
 
 - "Monomer.Common"
 - "Monomer.Core"
@@ -26,6 +22,11 @@ them unqualified, the basic modules you will need are:
 - "Monomer.Graphics"
 - "Monomer.Main"
 - "Monomer.Widgets"
+
+If you want to create custom Widgets, check:
+
+- "Monomer.Widgets.Single" for self contained widgets
+- "Monomer.Widgets.Container" for widgets with children
 -}
 module Monomer (
     -- * Basic types common to all modules.
@@ -46,7 +47,7 @@ module Monomer (
     module Monomer.Graphics.RemixIcon,
     -- * Application launcher.
     module Monomer.Main,
-    -- * Available widgets in the library.
+    -- * Widgets included in the library.
     module Monomer.Widgets
 ) where
 

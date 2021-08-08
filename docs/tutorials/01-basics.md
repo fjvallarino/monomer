@@ -242,3 +242,5 @@ config = [
 ```
 
 You can check all the possible configuration options in the documentation.
+
+[Previous: Setup](00-setup.md) - [Next: Styling](02-styling.md)

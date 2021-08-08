@@ -87,9 +87,9 @@ how can you get the WidgetId of a widget node?
 ### Key, Path and WidgetId
 
 The are three types of identifiers for a widget. One, as we've seen, is the
-`nodeKey`. This is a user defined identifier and it exists because it's human
-friendly. Besides key, there are two identifiers which are mostly internal,
-unless you are writing custom widgets or making WidgetRequests:
+`nodeKey`. This is a user defined identifier, and provides a human friendly way
+of identifying widgets. Besides nodeKey, there are two identifiers which are
+mostly internal, unless you are writing custom widgets or making WidgetRequests:
 
 - Path: This is a sequence of numbers starting from the root node, adding one
   number per level, until reaching the node of interest. Each number is an index
@@ -101,7 +101,7 @@ unless you are writing custom widgets or making WidgetRequests:
   they should not be stored since they can become stale.
 - WidgetId: The WidgetId of an item is made out of the Path and Timestamp when
   the widget was initialized. This makes it unique, and allows keeping track of
-  the widget's path if its location in the widget tree changed. The disadvantage
+  the widget's path if its location in the widget tree changes. The disadvantage
   is that it's not possible to deduce the WidgetId of a widget, requiring a call
   to a helper function to find it.
 
@@ -144,3 +144,5 @@ A `dropTarget` also receives two arguments:
 The style of the dropTarget can be customized to let the user know it accepts
 the dragged item. This behaves similarly to `styleHover`, but it is only active
 when an item is being dragged.
+
+[Previous: Producers](05-producers.md) - [Next: Custom widgets](07-custom-widgets.md)

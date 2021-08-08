@@ -802,10 +802,10 @@
   - Check caret blink on Ticker example.
 
 Next
-  - Adjust theme colors.
   - Remove dpr calculations from NanoVGRenderer.
     - Same with FontManager.
     - When testing Windows/Linux, check if scroll rate needs to be adjusted.
+  - Remove test application, tasks.md and test-cases.md
 
 Future
   - Check if Windows/Linux also miss top pixel

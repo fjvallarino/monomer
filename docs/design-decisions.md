@@ -47,23 +47,23 @@ process.
 Sometimes, for performance reasons, you may want to use `mergeRequired` as the
 [Books](examples/02-books.md#interesting-bits) example does.
 
-## Why did you add themes? Customized versions of widgets can be created by writing simple functions.
+## Are themes really necessary?
 
-While it's true that you can create a customized version of a widget using
-functions, and it is in fact encouraged and used in the examples, in some cases
-it is not enough.
+While it's true that you can create a customized version of a widget by writing
+a regular function, and it is in fact encouraged and used in the examples, in
+some cases it is not enough.
 
 Some widgets, such as `alert` and `confirm`, are built out of nested widgets and
-do not expose style options for all their sub widgets. In this scenario, themes
-allow you to customize those nested widgets as needed.
+do not expose styling options for all their sub widgets. In this scenario,
+themes allow you to customize those nested widgets as needed.
 
 Themes also have the nice property of simplifying color scheme switching.
 
-## Why is there not a margin property, considering border and padding do exist?
+## Why there is not a margin property, considering border and padding do exist?
 
-It used to be part of the library, but caused issues and was confusing. Since
-margin is just space outside the border, it can be emulated by adding a wrapper
-widget. For example:
+Margin used to be part of the library, but made mouse event handling more
+complex. Since margin is just space outside the border, it can be emulated
+by adding a wrapper widget. For example:
 
 ```haskell
 box (label "Test" `styleBasic` [padding 10, border 1 black])
@@ -89,8 +89,8 @@ those functions do not rely on any effect, I preferred to keep them as such.
 ## Why is the return type of the render function IO and not some custom monad?
 
 I didn't feel having a custom monad provided a benefit, considering the Widget
-Environment parameter is already available (if it wasn't, a Reader stack may
-have been a good idea).
+Environment parameter is already available (if it hadn't been a parameter, a
+Reader stack may have been a good idea).
 
 ## Why is the return type of Tasks and Producers IO and not MonadIO?
 
@@ -104,43 +104,47 @@ It made development of container widgets simpler. It also gave me the ability to
 create utility functions that can be used across the library for inspecting the
 widget node tree.
 
-## Why do containers have the optional config argument before their children? It's inconsistent with where single widgets have it.
+## Why is the location of the optional config argument inconsistent between single and container widgets?
 
-This was a decision I made based on usage. While splitting a complex UI into
-smaller parts is necessary for maintainability, being able to have an idea of
-the hierarchy is also useful to understand an application. This means that,
-sometimes, widgets are nested directly in their parent (instead of creating a
-separate list that is later provided to the parent widget). In that scenario,
-having the config of the parent widget _after_ its children causes confusion,
-because it's not clear whom it belongs to. Putting the config before the
-children is much clearer in this regard.
+For single widgets having the optional config as the last argument makes sense,
+since it is something extra compared to the default version.
+
+For container widgets the usage pattern is a bit different. While splitting a
+complex UI into smaller parts is necessary for maintainability, being able to
+see the widget hierarchy at first glance is also useful for understanding an
+application. For this reason, sometimes, widgets are nested directly in their
+parent instead of creating a separate list that is later provided to the parent
+widget. In that scenario, having the config of the parent widget _after_ its
+children causes confusion, because it's not clear whom the config belongs to.
+Putting the config before the children is much clearer in this regard.
 
 ## Why records of functions instead of typeclasses?
 
 There were two reasons for using records instead of typeclasses:
 
 - Since all widgets end up inside a list, the instances of those typeclasses
-  would end up wrapped in an existential, losing their specific types in the
+  would need to be wrapped in an existential, losing their specific types in the
   process.
 - Using typeclasses for widgets seemed to lead to needing more advanced type
   system features.
 
-Because of the first reason, there was no advantage compared to using records
-directly. This situation of wrapping in an existential is referred by some as
-_"Existential Typeclass anti pattern"_. For example,
+Because of the first reason, there were not advantages by using typeclasses
+compared to using records. This situation of wrapping a typeclass in an
+existential is referred to by some people as _"Existential Typeclass Anti
+Pattern"_. For example,
 [here](https://lukepalmer.wordpress.com/2010/01/24/haskell-antipattern-existential-typeclass).
 
 ## Why do you use lawless typeclasses for combinators?
 
 I wanted to provide a standardized interface for configuring widgets. For
-example, I wanted that all widgets which generate events when clicked expose a
-configuration option of the same name (in this case `onClick`). I think the only
-options for this are typeclasses and labels. I chose typeclasses because I knew
-them better.
+example, all widgets which generate events when clicked should expose a
+configuration option using the same name (in this case `onClick`). I think the
+only options to achieve this are typeclasses and labels, and I chose typeclasses
+because I know them better.
 
-I'm aware about the namespace issues caused by typeclasses, which is why I tried
-to avoid _reserving_ common names. I'm also aware lawless typeclasses are
-frowned upon by the Haskell community.
+This choice may also cause namespace issues that require using qualified
+imports. I tried to avoid _reserving_ common names to reduce the number of times
+this is required.
 
 If you know a better option to solve this, please let me know!
 

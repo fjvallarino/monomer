@@ -218,3 +218,5 @@ to handle more than one child.
 ### Container widgets you may want to check
 
 `themeSwitch`, `grid`, `keystroke`, `tooltip`, `stack` (sorted by complexity).
+
+[Previous: Composite](06-composite.md) - [Next: Themes](08-themes.md)

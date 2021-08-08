@@ -8,10 +8,10 @@ and follow the appropriate installation method for your OS. If you are on
 Linux or macOS, you will be provided with a shell command, while if you are on
 Windows a regular installer is available.
 
-## Clone the sample project
+## Clone the starter project
 
 ```bash
-git clone https://github.com/fjvallarino/monomer-sample.git
+git clone https://github.com/fjvallarino/monomer-starter.git
 ```
 
 ## Libraries: SDL2 and GLEW
@@ -97,20 +97,20 @@ If you use Visual Studio Code, you can also use this very nice extension:
 https://marketplace.visualstudio.com/items?itemName=ndmitchell.haskell-ghcid
 ```
 
-Once installed, pressing `Ctrl-Shift-P` will allow invoking the `Start Ghcid`
-command. You can also run `ghcid` on the command line directly.
+Once installed, pressing `Ctrl-Shift-P` will allow you to invoke the
+`Start Ghcid` command. You can also run `ghcid` on the command line directly.
 
-With this, you will be running your application in interpreted mode (`ghcid`
+With this you will be running your application in interpreted mode (`ghcid`
 under the hood uses `ghci`), allowing you to make changes and test them almost
 immediately.
 
 ## Notes for macOS users
 
-If you have a discrete GPU, you may want to copy Info.plist into the bin directory
-the build command shows. It will be something like:
+If you have a discrete GPU, you may want to copy `Info.plist` into the bin
+directory the build command shows. It will be something like:
 
 ```bash
-$HOME/.../monomer-sample/.stack-work/install/x86_64-osx/......../8.10.4/bin
+$HOME/.../monomer-starter/.stack-work/install/x86_64-osx/......../8.10.4/bin
 ```
 
 By doing this, you will be using the integrated GPU instead of the discrete one.
@@ -121,16 +121,18 @@ Further, you may want to do this for your local stack install directory, since
 you'll be using ghcid and Info.plist needs to be in the directory where the
 executable is located. The path is usually:
 
-Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
-
 ```bash
 $HOME/.local/bin
 ```
+
+Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
 
 ### ghcid
 
 The sample project includes custom .ghci and .ghcid files. The most important
 change in .ghci is for Mac users, since Mac does not allow rendering to happen
-outside the main thread (by default `ghci` spawns a thread of user code). If you
-create your custom GHCi config and run into issues, check if you are provide the
-necessary flags.
+outside the main thread (by default `ghci` spawns a thread for user code). If
+you create your custom GHCi config and run into issues, check if you are
+providing the necessary flags.
+
+[Next: Basics](01-basics.md)

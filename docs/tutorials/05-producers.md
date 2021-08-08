@@ -67,3 +67,5 @@ Messages are not only used for animation purposes, as other widgets can receive
 messages to perform custom operations. For example, scroll can receive
 `ScrollTo Rect`, to make sure a specific part of its content is visible. Each
 widget that supports messages has them documented in their Haddock page.
+
+[Previous: Tasks](04-tasks.md) - [Next: Composite](06-composite.md)

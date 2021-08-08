@@ -93,3 +93,5 @@ course. Check the documentation of the widget for more information.
 ### The _singular_ function
 
 This is explained in the [optics](external/01-optics.md##singular) introduction.
+
+[Previous: Styling](02-styling.md) - [Next: Tasks](04-tasks.md)
