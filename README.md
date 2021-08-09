@@ -54,6 +54,10 @@ Beyond the tutorials, a few _real world like_ examples are available:
 - [Ticker](docs/examples/03-ticker.md)
 - [Generative](docs/examples/04-generative.md)
 
+### Haddock
+
+You can read the source code's documentation [here](https://hackage.haskell.org/package/monomer).
+
 ### Design decisions
 
 In case you wonder why some choices were made, you can read
