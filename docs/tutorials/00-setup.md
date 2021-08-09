@@ -25,6 +25,10 @@ brew install sdl2
 brew install glew
 ```
 
+#### Notes
+
+Currently, Monomer fails to compile on M1 Macs.
+
 ### Linux
 
 #### Debian/Ubuntu

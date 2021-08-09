@@ -46,6 +46,8 @@ In general, all components which display text support the following styles:
 - textCenter/textLeft/textRight
 - textMiddle/textTop/textBottom
 
+All dimensions in Monomer are expressed in pixels.
+
 ## Padding, border and radius
 
 Besides using spacer and filler for having some room between widgets, you can
