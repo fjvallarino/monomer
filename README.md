@@ -73,7 +73,7 @@ change, please submit an issue first so we can agree on a solution.
 
 ## License
 
-The library is licensed under the [BSD-3 license](LICENSE).
+This library is licensed under the [BSD-3 license](LICENSE).
 
 Fonts used in examples:
 
