@@ -135,4 +135,6 @@ outside the main thread (by default `ghci` spawns a thread for user code). If
 you create your custom GHCi config and run into issues, check if you are
 providing the necessary flags.
 
+<br/>
+
 [Next: Basics](01-basics.md)

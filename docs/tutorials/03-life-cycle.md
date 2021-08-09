@@ -94,4 +94,6 @@ course. Check the documentation of the widget for more information.
 
 This is explained in the [optics](external/01-optics.md##singular) introduction.
 
-[Previous: Styling](02-styling.md) - [Next: Tasks](04-tasks.md)
+<br/>
+
+[Next: Tasks](04-tasks.md)

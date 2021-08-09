@@ -104,4 +104,6 @@ It provides several configuration options, including style of the scroll bars
 and whether it should automatically scroll to the location of a widget receiving
 focus.
 
-[Previous: Life cycle](03-life-cycle.md) - [Next: Producers](05-producers.md)
+<br/>
+
+[Next: Producers](05-producers.md)

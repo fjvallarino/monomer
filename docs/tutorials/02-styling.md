@@ -112,4 +112,6 @@ Finally, in this example we can see how using lenses simplifies creating a UI.
 All of the interactions are just consequence of the model being updated and the
 UI rebuilt by the build UI function, without handling any specific event.
 
-[Previous: Basics](01-basics.md) - [Next: Life cycle](03-life-cycle.md)
+<br/>
+
+[Next: Life cycle](03-life-cycle.md)

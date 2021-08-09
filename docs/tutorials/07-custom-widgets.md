@@ -219,4 +219,6 @@ to handle more than one child.
 
 `themeSwitch`, `grid`, `keystroke`, `tooltip`, `stack` (sorted by complexity).
 
-[Previous: Composite](06-composite.md) - [Next: Themes](08-themes.md)
+<br/>
+
+[Next: Themes](08-themes.md)

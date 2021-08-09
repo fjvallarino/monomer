@@ -126,5 +126,3 @@ getBaseStyle wenv node = Just style where
 
 Returning Nothing from this function means the widget does not have a default
 style applied. Customizations always take precedence over the theme style.
-
-[Previous: Custom widgets](07-custom-widgets.md)

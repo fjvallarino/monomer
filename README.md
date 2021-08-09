@@ -77,8 +77,8 @@ The library is licensed under the [BSD-3 license](LICENSE).
 
 Fonts used in examples:
 
-- [Roboto](https://fonts.google.com/specimen/Roboto), licensed under [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
-- [Remix Icon](https://remixicon.com), licensed under [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
+- [Roboto](https://fonts.google.com/specimen/Roboto), licensed under the [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
+- [Remix Icon](https://remixicon.com), licensed under the [Apache license](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Acknowledgments
 

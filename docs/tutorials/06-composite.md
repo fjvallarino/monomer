@@ -145,4 +145,6 @@ The style of the dropTarget can be customized to let the user know it accepts
 the dragged item. This behaves similarly to `styleHover`, but it is only active
 when an item is being dragged.
 
-[Previous: Producers](05-producers.md) - [Next: Custom widgets](07-custom-widgets.md)
+<br/>
+
+[Next: Custom widgets](07-custom-widgets.md)
