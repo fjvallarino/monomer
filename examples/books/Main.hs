@@ -182,8 +182,7 @@ main = do
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
       appInitEvent BooksInit
       ]
-    initBook = Book "This is my book" ["Author1", "Author 2"] (Just 2000) (Just 1234)
-    initModel = BooksModel "pedro paramo" False Nothing [initBook] (Just initBook)
+    initModel = BooksModel "" False Nothing [] Nothing
 
 customLightTheme :: Theme
 customLightTheme = lightTheme

@@ -1,3 +1,5 @@
-# Changelog for hs-music
+### 1.0.0.0
 
-## Unreleased changes
+Initial public release
+
+- Supports Windows, Linux and macOS
