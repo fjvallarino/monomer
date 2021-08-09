@@ -35,19 +35,19 @@ buildUI wenv model = widgetTree where
       titleText "Font name",
       hgrid [
         hstack [
-          label "Regular: ",
-          radio "Regular" fontName,
+          labeledRadio "Regular " "Regular" fontName,
           filler
         ],
         hstack [
-          label "Bold: ",
-          radio "Bold" fontName,
+          labeledRadio "Medium " "Medium" fontName,
           filler
         ],
         hstack [
-          label "Italic: ",
-          radio "Italic" fontName,
+          labeledRadio "Bold " "Bold" fontName,
           filler
+        ],
+        hstack [
+          labeledRadio "Italic " "Italic" fontName
         ]
       ] `styleBasic` [paddingV 10],
 
@@ -99,6 +99,7 @@ main02 = do
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
+      appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
       appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
       appInitEvent AppInit
       ]

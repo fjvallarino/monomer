@@ -54,7 +54,9 @@ buildUI wenv model = widgetTree where
       hstack [
         labeledCheckbox "Checkbox" checked,
         spacer,
-        labeledRadio "Boolean radio" True checked
+        labeledRadio "Boolean radio (True)" True checked,
+        spacer,
+        labeledRadio "Boolean radio (False)" False checked
       ],
 
       spacer,

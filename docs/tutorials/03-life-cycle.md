@@ -74,6 +74,9 @@ the `description` textField whenever a new item is added.
 We will see in the Producers example that we can also use keys for sending
 messages to widgets.
 
+You can explore the [Todo](../examples/01-todo.md) example for a more elaborate
+use of the concepts we've seen so far.
+
 ## Notes
 
 ### Keystroke

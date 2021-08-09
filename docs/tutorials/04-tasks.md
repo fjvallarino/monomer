@@ -18,8 +18,8 @@ the appropriate user event.
 
 In the example we can see the task calling `randomRIO`, which returns a random
 number in the given range. This function uses a system seed, which makes it
-impure and as such could not be called outside of IO. A typical use of Task
-is to consume a REST API, as shown in the `Books` example.
+impure and as such could not be called outside of IO. A typical use of Task is
+to consume a REST API, as shown in the [Books](../examples/02-books.md) example.
 
 ```haskell
 handleEvent wenv node model evt = case evt of

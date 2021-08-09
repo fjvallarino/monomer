@@ -40,7 +40,8 @@ application runs.
 
 Once the event is received, the application updates its model as usual.
 
-You can check the `Ticker` example to see a websocket based Producer.
+You can check the [Ticker](../examples/03-ticker.md) example to see a websocket
+based Producer.
 
 ## New widgets
 

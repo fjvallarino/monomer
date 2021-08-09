@@ -28,12 +28,13 @@ buildUI
 buildUI wenv model = widgetTree where
   widgetTree = vstack [
       label "Hello world",
+      spacer,
       hstack [
         label $ "Click count: " <> showt (model ^. clickCount),
         spacer,
         button "Increase count" AppIncrease
       ]
-    ]
+    ] `styleBasic` [padding 10]
 
 handleEvent
   :: WidgetEnv AppModel AppEvent

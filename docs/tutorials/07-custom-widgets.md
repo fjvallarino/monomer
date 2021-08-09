@@ -202,6 +202,9 @@ and gradients.
 Besides these, the `Drawing` module provides higher level functions that receive
 `StyleState` objects to simplify some common operations.
 
+The [Generative](../examples/04-generative.md) example shares some similarities
+to what is presented in this tutorial.
+
 ### Single widgets you may want to check
 
 `spacer`, `checkbox`, `radio` and `label` (sorted by complexity).

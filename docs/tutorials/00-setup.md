@@ -106,16 +106,18 @@ immediately.
 
 ## Notes for macOS users
 
-If you have a discrete GPU, you may want to copy `Info.plist` into the bin
-directory the build command shows. It will be something like:
+If you have a discrete GPU, and you'd rather have your application use the
+integrated GPU, you may want to copy `Info.plist` into the bin directory the
+build command shows. It will be something like:
 
 ```bash
 $HOME/.../monomer-starter/.stack-work/install/x86_64-osx/......../8.10.4/bin
 ```
 
-By doing this, you will be using the integrated GPU instead of the discrete one.
-This provides faster startup, better battery life and it will work just fine for
-most UIs, although you may notice a bit of lag when resizing windows.
+By doing this, macOS will default to using the integrated GPU instead of the
+discrete one. This provides slightly faster startup, better battery life and it
+will work fine for most UIs, although you may notice a bit of lag when resizing
+windows.
 
 Further, you may want to do this for your local stack install directory, since
 you'll be using ghcid and Info.plist needs to be in the directory where the

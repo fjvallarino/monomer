@@ -10,6 +10,7 @@ Roboto fonts for Regular, Bold and Italic, and they are loaded this way:
 config = [
   ...,
   appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
+  appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
   appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",
   appFontDef "Italic" "./assets/fonts/Roboto-Italic.ttf",
   ...
@@ -20,7 +21,7 @@ Once these declarations are in place, you can choose which font to use for any
 label or widget that displays text.
 
 ```haskell
-label text `styleBasic` [textFont "Bold", textSize 20]
+label text `styleBasic` [textFont "Medium", textSize 20]
 ```
 
 There are several functions you can use to alter widget node. These functions
@@ -33,7 +34,7 @@ duplicating the code all over the example. An easy way to avoid this is to
 create a function that returns the label styled as needed:
 
 ```haskell
-titleText text = label text `styleBasic` [textFont "Bold", textSize 20]
+titleText text = label text `styleBasic` [textFont "Medium", textSize 20]
 ```
 
 In general, all components which display text support the following styles:
@@ -105,6 +106,42 @@ controlling are `nodeEnabled` and `nodeVisible`, both boolean.
 ```haskell
 colorPicker fontColor `nodeVisible` (model ^. showPicker)
 ```
+
+## New widgets
+
+A few input widgets are used in this tutorial:
+
+### Radio
+
+A radio button allows choosing between mutually exclusive options. To construct
+it, the value it represents must be provided, plus a lens to the associated
+field. The value can be of any type, as long as it matches with its target
+field's type.
+
+By default, a `radio` does not have a caption, but it can be provided with a
+label widget (generally, inside an hstack or vstack). Alternatively
+`labeledRadio` can be used, which handles clicks on the label as if they were
+performed on the radio widget.
+
+### Checkbox
+
+A checkbox allows handling boolean fields. Given only two options are available,
+a `checkbox` only needs a lens to a boolean field.
+
+There is also a `labeledCheckbox` version.
+
+### Textfield
+
+A `textField` allows editing free text in a single line. Several configuration
+options exist to limit length, placeholder, display character (for password
+fields) are available. On its most basic configuration, it requires a lens to
+a text field. In case you need to support multiline editing, `textArea` is
+available too.
+
+There are specific versions for some data types, named `numericField`,
+`dateField` and `timeField`, which provide options for valid ranges, formats and
+also some editing conveniences (mouse wheel or shift-dragging allow for changing
+the field's value).
 
 ## Model updates
 

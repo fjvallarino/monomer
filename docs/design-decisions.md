@@ -130,8 +130,8 @@ There were two reasons for using records instead of typeclasses:
 
 Because of the first reason, there were not advantages by using typeclasses
 compared to using records. This situation of wrapping a typeclass in an
-existential is referred to by some people as _"Existential Typeclass Anti
-Pattern"_. For example,
+existential is referred to by as _"Existential Typeclass Anti Pattern"_. For
+example,
 [here](https://lukepalmer.wordpress.com/2010/01/24/haskell-antipattern-existential-typeclass).
 
 ## Why do you use lawless typeclasses for combinators?
