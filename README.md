@@ -1,6 +1,7 @@
 # Monomer
 
-An easy to use, cross platform, GUI library for writing Haskell applications.
+An easy to use, cross platform, GUI library for writing native Haskell
+applications.
 
 It provides a framework similar to the Elm Architecture, allowing the creation
 of GUIs using an extensible set of widgets with pure Haskell.
