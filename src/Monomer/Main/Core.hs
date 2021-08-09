@@ -377,7 +377,9 @@ handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
   let color = newWenv ^. L.theme . L.clearColor
   renderWidgets window dpr renderer color newWenv newRoot
   return (RenderState dpr newWenv newRoot)
-handleRenderMsg window renderer fontMgr state (MsgResize newSize) = do
+handleRenderMsg window renderer fontMgr state (MsgResize _) = do
+  newSize <- getViewportSize window (_rstDpr state)
+
   let RenderState dpr wenv root = state
   let viewport = Rect 0 0 (newSize ^. L.w) (newSize ^. L.h)
   let newWenv = wenv
