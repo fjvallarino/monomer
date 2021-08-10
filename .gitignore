@@ -7,3 +7,4 @@ haddock/
 *.prof
 *.ps
 *.ser
+cabal.project*
