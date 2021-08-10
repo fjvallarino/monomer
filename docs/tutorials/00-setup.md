@@ -80,6 +80,49 @@ stack build
 stack build --flag regex-posix:_regex-posix-clib
 ```
 
+## Build the examples included with the library
+
+In case you want to test the examples the library provides, you need to clone
+the library itself with:
+
+```bash
+git clone https://github.com/fjvallarino/monomer.git
+```
+
+Then, inside the cloned directory, build the project with:
+
+### Linux and macOS
+
+```bash
+stack build
+```
+
+### Windows
+
+If you're using Windows, you have to do some extra steps and provide additional
+flags as in the starter project:
+
+```bash
+stack setup
+stack exec -- pacman -S mingw-w64-x86_64-pkg-config
+stack exec -- pacman -S mingw-w64-x86_64-SDL2
+stack exec -- pacman -S mingw-w64-x86_64-freeglut
+stack exec -- pacman -S mingw-w64-x86_64-glew
+
+stack build --flag regex-posix:_regex-posix-clib
+```
+
+### Running the examples
+
+Inside the cloned directory, you can run each of the examples with `stack run`:
+
+```bash
+stack run todo
+stack run books
+stack run ticker
+stack run generative
+```
+
 ## Development mode
 
 Since compilation times can be annoying, I personally prefer to rely on `ghcid`
