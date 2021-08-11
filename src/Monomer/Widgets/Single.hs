@@ -230,16 +230,16 @@ type SingleRenderHandler s e
 -- | Interface for Single widgets.
 data Single s e a = Single {
   -- | True if border and padding should be added to size requirement. Defaults
-  -- | to True.
+  --   to True.
   singleAddStyleReq :: Bool,
   -- | True if focus should be requested when mouse button is pressed (before
-  -- | click). Defaults to True.
+  --   click). Defaults to True.
   singleFocusOnBtnPressed :: Bool,
   -- | True if style cursor should be ignored. If it's False, cursor changes need
-  -- | to be handled in custom code. Defaults to False.
+  --   to be handled in custom code. Defaults to False.
   singleUseCustomCursor :: Bool,
   -- | If true, it will ignore extra space assigned by the parent container, but
-  -- | it will not use more space than assigned. Defaults to False.
+  --   it will not use more space than assigned. Defaults to False.
   singleUseCustomSize :: Bool,
   -- | True if automatic scissoring needs to be applied. Defaults to False.
   singleUseScissor :: Bool,

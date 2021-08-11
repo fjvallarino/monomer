@@ -144,7 +144,7 @@ getCurrentMousePos epr = do
   return $ Point (epr * fromIntegral x) (epr * fromIntegral y)
 
 -- | Returns the drawable size of the provided window. May differ from window
--- | size if HDPI is enabled.
+--   size if HDPI is enabled.
 getDrawableSize :: (MonadIO m) => SDL.Window -> m Size
 getDrawableSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window

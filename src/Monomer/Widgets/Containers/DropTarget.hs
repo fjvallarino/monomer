@@ -69,7 +69,7 @@ dropTarget
 dropTarget dropEvt managed = dropTarget_ dropEvt def managed
 
 -- | Creates a drop target container with a single node as child. Accepts
--- | config.
+--   config.
 dropTarget_
   :: (DragMsg a, WidgetEvent e)
   => (a -> e)

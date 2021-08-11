@@ -90,21 +90,21 @@ nodeFlagsChanged oldNode newNode = visibleChanged || enabledChanged where
   enabledChanged = nodeEnabledChanged oldNode newNode
 
 -- | Checks if the visibility flags changed between the old and new children.
--- | A change in count will result in a True result.
+--   A change in count will result in a True result.
 childrenVisibleChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 childrenVisibleChanged oldNode newNode = oldVisible /= newVisible where
   oldVisible = fmap (^. L.info . L.visible) (oldNode ^. L.children)
   newVisible = fmap (^. L.info . L.visible) (newNode ^. L.children)
 
 -- | Checks if the enabled flags changed between the old and new children.
--- | A change in count will result in a True result.
+--   A change in count will result in a True result.
 childrenEnabledChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 childrenEnabledChanged oldNode newNode = oldVisible /= newVisible where
   oldVisible = fmap (^. L.info . L.enabled) (oldNode ^. L.children)
   newVisible = fmap (^. L.info . L.enabled) (newNode ^. L.children)
 
 -- | Checks if enabled/visible flags changed between the old and new children.
--- | A change in count will result in a True result.
+--   A change in count will result in a True result.
 childrenFlagsChanged :: WidgetNode s e -> WidgetNode s e -> Bool
 childrenFlagsChanged oldNode newNode = lenChanged || flagsChanged where
   oldChildren = oldNode ^. L.children

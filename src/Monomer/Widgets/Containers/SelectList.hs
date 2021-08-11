@@ -215,7 +215,7 @@ selectListV value handler items makeRow = newNode where
   newNode = selectListV_ value handler items makeRow def
 
 -- | Creates a select list using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 selectListV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => a                      -- ^ The event to raise on change.

@@ -59,7 +59,7 @@ collectTheme wenv fieldT = style where
   style = Style basic hover focus focusHover active disabled
 
 -- | Collects all the style states from a given entry in the map of user styles
--- | in the active theme.
+--   in the active theme.
 collectUserTheme
   :: WidgetEnv s e  -- ^ The widget environment (to get the theme).
   -> String         -- ^ The key into the user map.

@@ -192,7 +192,7 @@ textFieldV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textFieldV value handler = textFieldV_ value handler def
 
 -- | Creates a text field using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 textFieldV_
   :: WidgetEvent e => Text -> (Text -> e) -> [TextFieldCfg s e] -> WidgetNode s e
 textFieldV_ value handler configs = textFieldD_ widgetData newConfig where

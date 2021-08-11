@@ -86,13 +86,13 @@ data SystemEvent
   -}
   | ButtonAction Point Button ButtonState Int
   -- | Mouse wheel movement. Includes mouse position, move size in both axes and
-  -- | wheel direction.
+  --   wheel direction.
   | WheelScroll Point Point WheelDirection
   -- | Keyboard key action. Includes modifiers, keyCode and pressed/released.
-  -- | This event should not be used for text input.
+  --   This event should not be used for text input.
   | KeyAction KeyMod KeyCode KeyStatus
   -- | Processed keyboard events. Some Unicode characters require several key
-  -- | presses to produce the result. This event provides the final result.
+  --   presses to produce the result. This event provides the final result.
   | TextInput Text
   -- | Provides current clipboard contents to a requesting widget.
   | Clipboard ClipboardData
@@ -103,18 +103,18 @@ data SystemEvent
   -- | Mouse has entered the assigned viewport.
   | Enter Point
   -- | Mouse has moved inside the assigned viewport. This event keeps being
-  -- | received if the main mouse button is pressed, even if the mouse is
-  -- | outside the assigned bounds or even the screen.
+  --   received if the main mouse button is pressed, even if the mouse is
+  --   outside the assigned bounds or even the screen.
   | Move Point
   -- | Mouse has left the assigned viewport. This event is not received until
-  -- | the main mouse button has been pressed.
+  --   the main mouse button has been pressed.
   | Leave Point
   -- | A drag action is active and the mouse is inside the current viewport. The
-  -- | messsage can be used to decide if it applies to the current widget. This
-  -- | event is not received by the widget which initiated the drag action.
+  --   messsage can be used to decide if it applies to the current widget. This
+  --   event is not received by the widget which initiated the drag action.
   | Drag Point Path WidgetDragMsg
   -- | A drag action was active and the main button was released inside the
-  -- | current viewport.
+  --   current viewport.
   | Drop Point Path WidgetDragMsg
   deriving (Eq, Show)
 

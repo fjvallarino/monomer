@@ -496,7 +496,7 @@ class CmbSizeReqH t where
   sizeReqH :: SizeReq -> t
 
 -- | SizeReq updater. Useful to make modifications to widget SizeReqs without
--- | completely overriding them.
+--   completely overriding them.
 class CmbSizeReqUpdater t where
   sizeReqUpdater :: ((SizeReq, SizeReq) -> (SizeReq, SizeReq)) -> t
 
