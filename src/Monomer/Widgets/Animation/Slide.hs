@@ -131,7 +131,7 @@ animSlideIn :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 animSlideIn managed = animSlideIn_ def managed
 
 -- | Animates a widget from the provided direction to fully visible (defaults
--- | to left). Accepts config.
+--   to left). Accepts config.
 animSlideIn_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 animSlideIn_ configs managed = makeNode "animSlideIn" widget managed where
   config = mconcat configs
@@ -142,7 +142,7 @@ animSlideOut :: WidgetEvent e => WidgetNode s e -> WidgetNode s e
 animSlideOut managed = animSlideOut_ def managed
 
 -- | Animates a widget to the the provided direction from visible to not
--- | visible (defaults to left). Accepts config.
+--   visible (defaults to left). Accepts config.
 animSlideOut_ :: WidgetEvent e => [SlideCfg e] -> WidgetNode s e -> WidgetNode s e
 animSlideOut_ configs managed = makeNode "animSlideOut" widget managed where
   config = mconcat configs

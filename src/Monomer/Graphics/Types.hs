@@ -258,7 +258,7 @@ data Renderer = Renderer {
   -- | Restores a previously saved context.
   restoreContext :: IO (),
   -- | Creates an overlay. These are rendered after the regular frame has been
-  -- | displayed. Useful, for instance, for a dropdown or context menu.
+  --   displayed. Useful, for instance, for a dropdown or context menu.
   createOverlay :: IO () -> IO (),
   -- | Renders the added overlays and clears them.
   renderOverlays :: IO (),
@@ -357,7 +357,7 @@ data Renderer = Renderer {
   -- | Adds an image, providing name, size, image data and flags.
   addImage :: Text -> Size -> ByteString -> [ImageFlag] -> IO (),
   -- | Updates an image, providing name, size and image data (must match
-  -- | previous size).
+  --   previous size).
   updateImage :: Text -> Size -> ByteString -> IO (),
   -- | Removes an existing image.
   deleteImage :: Text -> IO ()

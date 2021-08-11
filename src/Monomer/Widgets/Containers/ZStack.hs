@@ -62,7 +62,7 @@ instance Monoid ZStackCfg where
   mempty = def
 
 -- | Whether the top visible node is the only node that may receive events.
--- | Defaults to True.
+--   Defaults to True.
 onlyTopActive :: Bool -> ZStackCfg
 onlyTopActive active = def {
   _zscOnlyTopActive = Just active

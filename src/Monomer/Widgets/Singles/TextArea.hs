@@ -208,7 +208,7 @@ textAreaV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textAreaV value handler = textAreaV_ value handler def
 
 -- | Creates a text area using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 textAreaV_
   :: WidgetEvent e => Text -> (Text -> e) -> [TextAreaCfg s e] -> WidgetNode s e
 textAreaV_ value handler configs = textAreaD_ wdata newConfig where

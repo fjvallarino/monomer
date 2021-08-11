@@ -326,7 +326,7 @@ dateFieldV
 dateFieldV value handler = dateFieldV_ value handler def
 
 -- | Creates a date field using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 dateFieldV_
   :: (FormattableDate a, WidgetEvent e)
   => a

@@ -310,23 +310,23 @@ scroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat configs
 
 -- | Creates a horizontal scroll node. Vertical space is equal to what the
--- | parent node assigns.
+--   parent node assigns.
 hscroll :: WidgetNode s e -> WidgetNode s e
 hscroll managedWidget = hscroll_ def managedWidget
 
 -- | Creates a horizontal scroll node. Vertical space is equal to what the
--- | parent node assigns. Accepts config.
+--   parent node assigns. Accepts config.
 hscroll_ :: [ScrollCfg s e] -> WidgetNode s e -> WidgetNode s e
 hscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollH : configs)
 
 -- | Creates a vertical scroll node. Vertical space is equal to what the
--- | parent node assigns.
+--   parent node assigns.
 vscroll :: WidgetNode s e -> WidgetNode s e
 vscroll managedWidget = vscroll_ def managedWidget
 
 -- | Creates a vertical scroll node. Vertical space is equal to what the
--- | parent node assigns. Accepts config.
+--   parent node assigns. Accepts config.
 vscroll_ :: [ScrollCfg s e] -> WidgetNode s e -> WidgetNode s e
 vscroll_ configs managed = makeNode (makeScroll config def) managed where
   config = mconcat (scrollType ScrollV : configs)

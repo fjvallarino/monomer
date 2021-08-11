@@ -274,7 +274,7 @@ numericFieldV
 numericFieldV value handler = numericFieldV_ value handler def
 
 -- | Creates a numeric field using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 numericFieldV_
   :: (FormattableNumber a, WidgetEvent e)
   => a

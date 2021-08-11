@@ -124,7 +124,7 @@ radioV :: (Eq a, WidgetEvent e) => a -> a -> (a -> e) -> WidgetNode s e
 radioV option value handler = radioV_ option value handler def
 
 -- | Creates a radio using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 radioV_
   :: (Eq a, WidgetEvent e)
   => a

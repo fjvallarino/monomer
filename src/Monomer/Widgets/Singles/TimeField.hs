@@ -305,7 +305,7 @@ timeFieldV
 timeFieldV value handler = timeFieldV_ value handler def
 
 -- | Creates a time field using the given value and onChange event handler.
--- | Accepts config.
+--   Accepts config.
 timeFieldV_
   :: (FormattableTime a, WidgetEvent e)
   => a

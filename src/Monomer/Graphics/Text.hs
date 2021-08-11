@@ -121,7 +121,7 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
     | otherwise = clipTextLine fontMgr style trim cw <$> firstLine
 
 -- | Fits a single line of text to the given width, potencially spliting into
--- | several lines.
+--   several lines.
 fitTextToWidth
   :: FontManager   -- ^ The fontManager.
   -> StyleState    -- ^ The style.

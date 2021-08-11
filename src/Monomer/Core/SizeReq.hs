@@ -71,7 +71,7 @@ sizeReqMin :: SizeReq -> Double
 sizeReqMin req = req ^. L.fixed
 
 -- | Returns the maximum valid value for a SizeReq. This can be unbounded if
--- | extra field is not zero.
+--   extra field is not zero.
 sizeReqMax :: SizeReq -> Double
 sizeReqMax req
   | req ^. L.extra > 0 = maxNumericValue
