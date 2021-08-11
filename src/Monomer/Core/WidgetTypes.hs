@@ -51,11 +51,11 @@ type WidgetKeyMap s e = Map WidgetKey (WidgetNode s e)
 
 -- | Direction of focus movement.
 data FocusDirection
-  = FocusFwd  -- ^ Focus moving forward (usually left -> bottom).
-  | FocusBwd  -- ^ Focus moving backward (usually right -> top).
+  = FocusFwd  -- ^ Focus moving forward (usually left to right, top to bottom).
+  | FocusBwd  -- ^ Focus moving backward (usually right to left, top to bottom).
   deriving (Eq, Show)
 
--- | "WidgetRequest" specfici for window related operations.
+-- | "WidgetRequest" specific for window related operations.
 data WindowRequest
   = WindowSetTitle Text  -- ^ Sets the title of the window to the given text.
   | WindowSetFullScreen  -- ^ Switches to fullscreen mode.
@@ -83,11 +83,12 @@ data WidgetData s a
 
 {-|
 Widgets instances have an associated path from the root, which is unique at a
-specific moment. This path may change, since widgets could be added before or
-after it (for example, an ordered list of items). WidgetId provides an
-association from a unique identifier to the current valid path of an instanes,
-made up of the timestamp when the instance was created and the path at that
-time.
+specific point in time. This path may change, since widgets could be added
+before or after it (for example, a widget is added to the beginning of a list).
+WidgetIds are used by the runtime to create an association from a unique
+identifier to the current valid path of an instance; this unique identifier, the
+WidgetId, is the result of combining the timestamp when the instance was created
+and its path at that time.
 
 Several WidgetRequests rely on this to find the destination of asynchronous
 requests (tasks, clipboard, etc).
@@ -102,9 +103,9 @@ instance Default WidgetId where
 
 {-|
 During the merge process, widgets are matched based on WidgetType and WidgetKey.
-By default and instance's key is null, which means any matching type will be
+By default an instance's key is null, which means any matching type will be
 valid for merging. If you have items that can be reordered, using a key makes
-sure merge picks the correct instances for merging. Keys should be unique within
+sure merge picks the correct instance for merging. Keys should be unique within
 the context of a Composite. Duplicate key behavior is undefined.
 -}
 newtype WidgetKey
@@ -136,9 +137,9 @@ instance Show WidgetShared where
   show (WidgetShared shared) = "WidgetShared: " ++ show (typeOf shared)
 
 {-|
-WidgetRequests are the way a widget can perform side effects such as changing
+WidgetRequests are the way a widget can perform side effects, such as changing
 cursor icons, get/set the clipboard and perform asynchronous tasks. These
-requests are incldued as part of WidgetResult in different points in the
+requests are included as part of a WidgetResult in different points in the
 lifecycle of a widget.
 -}
 data WidgetRequest s e
@@ -161,30 +162,33 @@ data WidgetRequest s e
   | GetClipboard WidgetId
   -- | Sets the clipboard to the given ClipboardData.
   | SetClipboard ClipboardData
-  -- | Sets the viewport which should be remain visible when an on-screen
+  -- | Sets the viewport that should be remain visible when an on-screen
   --   keyboard is displayed. Required for mobile.
   | StartTextInput Rect
   -- | Resets the keyboard viewport,
   | StopTextInput
   -- | Sets a widget as the base target of future events. This is used by the
-  --   dropdown component to handle list events (which is on top of everything).
+  --   dropdown component to handle list events; this list, acting as an
+  --   overlay, is displayed on top of all other widgets. Tooltip uses it too.
+  --   every other widget).
   | SetOverlay WidgetId Path
   -- | Removes the existing overlay.
   | ResetOverlay WidgetId
-  -- | Sets the current active cursor icon. This acts as a stack, so removing
-  --   means going back a step.
+  -- | Sets the current active cursor icon. This acts as a stack, and resetting
+  --   a widgetId means going back to the cursor set immediately before.
   | SetCursorIcon WidgetId CursorIcon
-  -- | Removes a cursor icon setting from the stack.
+  -- | Removes a cursor icon from the stack. Duplicate requests are ignored.
   | ResetCursorIcon WidgetId
   -- | Sets the current item being dragged and the message it carries. This
-  --   message is used by targets to check if they accept it or not.
+  --   message can be used by targets to check if they accept it or not.
   | StartDrag WidgetId Path WidgetDragMsg
   -- | Cancels the current dragging process.
   | StopDrag WidgetId
   -- | Requests rendering a single frame. Rendering is not done at a fixed rate,
-  --   in order to reduce CPU usage. Widgets are responsible of requesting
-  --   rendering at points of interest. Mouse and keyboard events automatically
-  --   generate render requests, but the result of a WidgetTask does not.
+  --   in order to reduce CPU usage. Widgets are responsible for requesting
+  --   rendering at points of interest. Mouse (except mouse move) and keyboard
+  --   events automatically generate render requests, but the result of a
+  --   WidgetTask or WidgetProducer does not.
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
@@ -192,7 +196,7 @@ data WidgetRequest s e
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
   {-|
-  Requests an image to be removed from the Renderer. In general, used in the
+  Requests an image to be removed from the Renderer. In general, used by the
   dispose function.
   -}
   | RemoveRendererImage Text
@@ -208,7 +212,7 @@ data WidgetRequest s e
   | SetWidgetPath WidgetId Path
   -- | Clears an association between widgetId and path.
   | ResetWidgetPath WidgetId
-  -- | Raises a user event, which usually will be processed in handleEvent in a
+  -- | Raises a user event, which usually will be processed in handleEvent by a
   --   "Monomer.Widgets.Composite" instance.
   | WidgetEvent e => RaiseEvent e
   -- | Sends a message to the given widgetId. If the target does not expect the
@@ -219,7 +223,7 @@ data WidgetRequest s e
   | forall i . Typeable i => RunTask WidgetId Path (IO i)
   -- | Similar to RunTask, but can generate unlimited messages. This is useful
   --   for WebSockets and similar data sources. It receives a function that
-  --   with which to send messagess to the producer owner.
+  --   can be used to send messages back to the producer owner.
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
 
 instance Eq e => Eq (WidgetRequest s e) where
@@ -300,7 +304,7 @@ data WidgetEnv s e = WidgetEnv {
   _weWidgetKeyMap :: WidgetKeyMap s e,
   -- | The currently hovered path, if any.
   _weHoveredPath :: Maybe Path,
-  -- | The currently focused path. There's always one, even if it's root.
+  -- | The currently focused path. There's always one, even if it's empty.
   _weFocusedPath :: Path,
   -- | The current overlay path, if any.
   _weOverlayPath :: Maybe Path,
@@ -334,7 +338,7 @@ data WidgetEnv s e = WidgetEnv {
   _weOffset :: Point
 }
 
--- | Complementary information to a Widget, forming a node in the view tree.
+-- | Complementary information to a Widget, forming a node in the widget tree.
 data WidgetNodeInfo =
   WidgetNodeInfo {
     -- | Type of the widget.
@@ -356,7 +360,7 @@ data WidgetNodeInfo =
     -- | Indicates whether the widget can receive focus.
     _wniFocusable :: !Bool,
     {-|
-    The area of the screen where the widget can draw. Could be out of bounds or
+    The area of the window where the widget can draw. Could be out of bounds or
     partially invisible if inside a scroll. The viewport on 'WidgetEnv' defines
     what is currently visible.
     -}
@@ -393,7 +397,8 @@ data WidgetNode s e = WidgetNode {
 {-|
 An instance of the widget in the widget tree, without specific type information.
 This allows querying for widgets that may be nested in Composites, which are not
-visible as a regular "WidgetNode".
+visible as a regular "WidgetNode" because of possible type mismatches (see
+"WidgetKeyMap").
 -}
 data WidgetInstanceNode = WidgetInstanceNode {
   -- | Information about the instance.
@@ -507,7 +512,8 @@ data Widget s e =
       -> WidgetInstanceNode,
     {-|
     Returns the next focusable node. What next/previous is, depends on how the
-    widget works. Moving right -> bottom is usually considered forward.
+    widget works. Moving left to right, top to bottom is usually considered
+    forward.
 
     Arguments:
 
@@ -635,7 +641,7 @@ data Widget s e =
     - The widget environment.
     - The widget node.
     - The new viewport.
-    - Checks if a given path, or its children, requested resize.
+    - Helper to checks if a given path, or its children, requested resize.
 
     Returns:
 

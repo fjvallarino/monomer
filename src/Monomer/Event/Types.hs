@@ -104,14 +104,15 @@ data SystemEvent
   | Enter Point
   -- | Mouse has moved inside the assigned viewport. This event keeps being
   --   received if the main mouse button is pressed, even if the mouse is
-  --   outside the assigned bounds or even the screen.
+  --   outside the assigned bounds or even the window.
   | Move Point
   -- | Mouse has left the assigned viewport. This event is not received until
   --   the main mouse button has been pressed.
   | Leave Point
   -- | A drag action is active and the mouse is inside the current viewport. The
   --   messsage can be used to decide if it applies to the current widget. This
-  --   event is not received by the widget which initiated the drag action.
+  --   event is not received by the widget which initiated the drag action, even
+  --   if dragging over it.
   | Drag Point Path WidgetDragMsg
   -- | A drag action was active and the main button was released inside the
   --   current viewport.
@@ -143,6 +144,7 @@ instance Default InputStatus where
 
 {-|
 Keyboard modifiers. True indicates the key is pressed.
+
 Note: The __fn__ function in Macs cannot be detected individually.
 -}
 data KeyMod = KeyMod {
