@@ -23,7 +23,7 @@ data Book = Book {
 instance FromJSON Book where
   parseJSON = withObject "Book" $ \b -> Book
     <$> b .: "title"
-    <*> fmap (fromMaybe []) (b .:? "author_name")
+    <*> b .:? "author_name" .!= []
     <*> b .:? "first_publish_year"
     <*> b .:? "cover_i"
 
