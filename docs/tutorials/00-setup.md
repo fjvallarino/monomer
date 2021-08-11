@@ -54,6 +54,12 @@ pacman -S sdl2
 pacman -S glew
 ```
 
+#### Fedora
+
+```bash
+sudo dnf install SDL2-devel glew-devel
+```
+
 ### Windows
 
 Inside the sample project's directory:
