@@ -1,3 +1,7 @@
+### 1.0.0.1
+
+Fix Haddocks for widget configuration types.
+
 ### 1.0.0.0
 
 Initial public release
