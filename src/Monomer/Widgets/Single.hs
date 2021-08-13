@@ -6,18 +6,20 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Helper for creating widgets without children elements
+Helper for creating widgets without children elements.
 -}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Single (
+  -- * Re-exported modules
   module Monomer.Core,
   module Monomer.Core.Combinators,
   module Monomer.Event,
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
 
+  -- * Configuration
   SingleGetBaseStyle,
   SingleGetCurrentStyle,
   SingleInitHandler,
@@ -30,8 +32,9 @@ module Monomer.Widgets.Single (
   SingleGetSizeReqHandler,
   SingleResizeHandler,
   SingleRenderHandler,
-
   Single(..),
+
+  -- * Constructors
   createSingle
 ) where
 

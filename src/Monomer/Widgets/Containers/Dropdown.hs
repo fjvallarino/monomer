@@ -7,23 +7,9 @@ Stability   : experimental
 Portability : non-portable
 
 Dropdown widget, allowing selection of a single item from a collapsable list.
-Both header and list content is customizable, plus its styling. In case only
-text content is needed, 'Monomer.Widgets.Singles.TextDropdown' is easier to use.
-
-Configs:
-
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetReqest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetReqest to generate when focus is lost.
-- onChange: event to raise when selected item changes.
-- onChangeReq: WidgetRequest to generate when selected item changes.
-- onChangeIdx: event to raise when selected item changes. Includes index,
-- onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
-index.
-- maxHeight: maximum height of the list when dropdown is expanded.
-- itemBasicStyle: style of an item in the list when not selected.
-- itemSelectedStyle: style of the selected item in the list.
+Both header and list content is customizable, and so is its styling. In case
+only 'Text' content is needed, 'Monomer.Widgets.Singles.TextDropdown' is easier
+to use.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -34,8 +20,10 @@ index.
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Containers.Dropdown (
+  -- * Configuration
   DropdownCfg,
-  DropdownItem(..),
+  DropdownItem,
+  -- * Constructors
   dropdown,
   dropdown_,
   dropdownV,
@@ -66,7 +54,22 @@ import qualified Monomer.Lens as L
 -- | Constraints for an item handled by dropdown.
 type DropdownItem a = SelectListItem a
 
--- | Configuration options for dropdown widget.
+{-|
+Configuration options for dropdown:
+
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when selected item changes.
+- 'onChangeReq': 'WidgetRequest' to generate when selected item changes.
+- 'onChangeIdx': event to raise when selected item changes. Includes index,
+- 'onChangeIdxReq': 'WidgetRequest' to generate when selected item changes.
+  Includes index.
+- 'maxHeight': maximum height of the list when dropdown is expanded.
+- 'itemBasicStyle': 'Style' of an item in the list when not selected.
+- 'itemSelectedStyle': 'Style' of the selected item in the list.
+-}
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
   _ddcItemStyle :: Maybe Style,
@@ -190,7 +193,7 @@ dropdown_ field items makeMain makeRow configs = newNode where
   widgetData = WidgetLens field
   newNode = dropdownD_ widgetData items makeMain makeRow configs
 
--- | Creates a dropdown using the given value and onChange event handler.
+-- | Creates a dropdown using the given value and 'onChange' event handler.
 dropdownV
   :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => a                      -- ^ The current value.
@@ -202,7 +205,7 @@ dropdownV
 dropdownV value handler items makeMain makeRow = newNode where
   newNode = dropdownV_ value handler items makeMain makeRow def
 
--- | Creates a dropdown using the given value and onChange event handler.
+-- | Creates a dropdown using the given value and 'onChange' event handler.
 -- | Accepts config.
 dropdownV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
@@ -220,7 +223,7 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
 -- | Creates a dropdown providing a WidgetData instance and config.
 dropdownD_
   :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
-  => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
+  => WidgetData s a         -- ^ The 'WidgetData' to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
   -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
   -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).

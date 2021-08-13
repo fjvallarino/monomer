@@ -9,19 +9,17 @@ Portability : non-portable
 Switches to the provided theme for its child nodes.
 
 Note: this widget ignores style settings. If you need to display borders or any
-other kind of style config, set it on the child node or wrap the themeSwitch
-widget in a `Monomer.Widgets.Containers.Box`.
-
-Configs:
-
-- themeClearBg: indicates the clear color of the theme should be applied before
-rendering children. Defaults to False.
+other kind of style configuration, set it on the child node or wrap the
+themeSwitch widget in a "Monomer.Widgets.Containers.Box".
 -}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Containers.ThemeSwitch (
+  -- * Configuration
+  ThemeSwitchCfg,
   themeClearBg,
   themeClearBg_,
+  -- * Constructors
   themeSwitch,
   themeSwitch_
 ) where
@@ -38,6 +36,12 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for themeSwitch:
+
+- 'themeClearBg': indicates the clear color of the theme should be applied
+  before rendering children. Defaults to False.
+-}
 newtype ThemeSwitchCfg = ThemeSwitchCfg {
   _tmcClearBg :: Maybe Bool
 } deriving (Eq, Show)

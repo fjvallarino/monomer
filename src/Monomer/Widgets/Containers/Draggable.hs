@@ -9,30 +9,21 @@ Portability : non-portable
 Draggable container for a single item. Useful for adding drag support without
 having to implement a custom widget. Usually works in tandem with
 'Monomer.Widgets.Containers.DropTarget'.
-
-The regular styling of this component apply only when the item is not being
-dragged. To style the dragged container, use draggableStyle.
-
-The transparency config only applies to the inner content.
-
-Config:
-
-- transparency: the alpha level to apply when rendering content in drag mode.
-- maxDim: the maximum size of the largest axis when dragging. Keeps proportions.
-- draggableStyle: the style to use when the item is being dragged.
-- draggableRender: rendering function for the dragged state. Allows customizing
-this step without implementing a custom widget all the lifecycle steps.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Containers.Draggable (
-  draggable,
-  draggable_,
+  -- * Configuration
+  DraggableRender,
+  DraggableCfg,
   draggableMaxDim,
   draggableStyle,
-  draggableRender
+  draggableRender,
+  -- * Constructors
+  draggable,
+  draggable_
 ) where
 
 import Control.Applicative ((<|>))
@@ -55,7 +46,22 @@ type DraggableRender s e
   -> Renderer         -- ^ The renderer.
   -> IO ()            -- ^ The drawing actions.
 
--- | Configuration options for draggable widget.
+{-|
+Configuration options for draggable:
+
+- 'transparency': the alpha level to apply when rendering content in drag mode.
+- 'draggableMaxDim': the maximum size of the largest axis when dragging. Keeps
+  proportions.
+- 'draggableStyle': the style to use when the item is being dragged.
+- 'draggableRender': rendering function for the dragged state. Allows
+  customizing this step without implementing a custom widget all the lifecycle
+  steps.
+
+The regular styling of this component apply only when the item is not being
+dragged. To style the dragged container, use draggableStyle.
+
+The transparency config only applies to the inner content.
+-}
 data DraggableCfg s e = DraggableCfg {
   _dgcTransparency :: Maybe Double,
   _dgcMaxDim :: Maybe Double,

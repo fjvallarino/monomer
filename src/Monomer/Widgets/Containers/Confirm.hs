@@ -9,17 +9,14 @@ Portability : non-portable
 Simple confirm dialog, displaying an accept and close buttons and optional
 title. Usually embedded in a zstack component and displayed/hidden depending on
 context.
-
-Config:
-
-- titleCaption: the title of the alert dialog.
-- acceptCaption: the caption of the accept button.
-- closeCaption: the caption of the close button.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Containers.Confirm (
+  -- * Configuration
+  ConfirmCfg,
+  -- * Constructors
   confirm,
   confirm_,
   confirmMsg,
@@ -46,6 +43,13 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for confirm:
+
+- 'titleCaption': the title of the alert dialog.
+- 'acceptCaption': the caption of the accept button.
+- 'closeCaption': the caption of the close button.
+-}
 data ConfirmCfg = ConfirmCfg {
   _cfcTitle :: Maybe Text,
   _cfcAccept :: Maybe Text,
@@ -90,22 +94,22 @@ newtype ConfirmEvt e
 
 -- | Creates a confirm dialog with the provided content.
 confirm
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ep                             -- ^ The accept button event.
-  -> ep                             -- ^ The cancel button event.
-  -> WidgetNode () (ConfirmEvt ep)  -- ^ The content to display in the dialog.
-  -> WidgetNode sp ep               -- ^ The created dialog.
+  :: (WidgetModel s, WidgetEvent e)
+  => e                             -- ^ The accept button event.
+  -> e                             -- ^ The cancel button event.
+  -> WidgetNode () (ConfirmEvt e)  -- ^ The content to display in the dialog.
+  -> WidgetNode s e               -- ^ The created dialog.
 confirm acceptEvt cancelEvt dialogBody = newNode where
   newNode = confirm_ acceptEvt cancelEvt def dialogBody
 
 -- | Creates an alert dialog with the provided content. Accepts config.
 confirm_
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ep                             -- ^ The accept button event.
-  -> ep                             -- ^ The cancel button event.
+  :: (WidgetModel s, WidgetEvent e)
+  => e                             -- ^ The accept button event.
+  -> e                             -- ^ The cancel button event.
   -> [ConfirmCfg]                   -- ^ The config options for the dialog.
-  -> WidgetNode () (ConfirmEvt ep)  -- ^ The content to display in the dialog.
-  -> WidgetNode sp ep               -- ^ The created dialog.
+  -> WidgetNode () (ConfirmEvt e)  -- ^ The content to display in the dialog.
+  -> WidgetNode s e               -- ^ The created dialog.
 confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
@@ -114,21 +118,21 @@ confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
 
 -- | Creates an alert dialog with a text message as content.
 confirmMsg
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Text              -- ^ The message to display in the dialog.
-  -> ep                -- ^ The accept button event.
-  -> ep                -- ^ The cancel button event.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  -> e                -- ^ The accept button event.
+  -> e                -- ^ The cancel button event.
+  -> WidgetNode s e  -- ^ The created dialog.
 confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
 -- | Creates an alert dialog with a text message as content. Accepts config.
 confirmMsg_
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Text              -- ^ The message to display in the dialog.
-  -> ep                -- ^ The accept button event.
-  -> ep                -- ^ The cancel button event.
+  -> e                -- ^ The accept button event.
+  -> e                -- ^ The cancel button event.
   -> [ConfirmCfg]      -- ^ The config options for the dialog.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  -> WidgetNode s e  -- ^ The created dialog.
 confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
   dialogBody wenv = label_ message [multiline]

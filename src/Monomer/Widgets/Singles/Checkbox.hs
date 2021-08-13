@@ -8,27 +8,18 @@ Portability : non-portable
 
 Checkbox widget, used for interacting with boolean values. It does not include
 text, which can be added with a label in the desired position (usually with
-hstack). Alternatively, `LabeledCheckbox` provides this functionality out of the
-box.
-
-Configs:
-
-- checkboxMark: the type of checkbox mark.
-- width: sets the max width/height of the checkbox.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes/is clicked.
-- onChangeReq: WidgetRequest to generate when the value changes/is clicked.
+hstack). Alternatively, "Monomer.Widgets.Singles.LabeledCheckbox" provides this
+functionality out of the box.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.Checkbox (
+  -- * Configuration
+  CheckboxCfg,
   CmbCheckboxMark(..),
-  CheckboxCfg(..),
   CheckboxMark(..),
+  -- * Constructors
   checkbox,
   checkbox_,
   checkboxV,
@@ -60,7 +51,20 @@ class CmbCheckboxMark t where
   checkboxSquare :: t
   checkboxTimes :: t
 
--- | Configuration options for checkbox widget.
+{-|
+Configuration options for checkbox:
+
+- 'checkboxMark': the type of checkbox mark.
+- 'checkboxSquare': square checkbox mark.
+- 'checkboxTimes': times/x checkbox mark.
+- 'width': sets the max width/height of the checkbox.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes/is clicked.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes/is clicked.
+-}
 data CheckboxCfg s e = CheckboxCfg {
   _ckcMark :: Maybe CheckboxMark,
   _ckcWidth :: Maybe Double,
@@ -141,12 +145,12 @@ checkbox_
   :: WidgetEvent e => ALens' s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkbox_ field config = checkboxD_ (WidgetLens field) config
 
--- | Creates a checkbox using the given value and onChange event handler.
+-- | Creates a checkbox using the given value and 'onChange' event handler.
 checkboxV :: WidgetEvent e => Bool -> (Bool -> e) -> WidgetNode s e
 checkboxV value handler = checkboxV_ value handler def
 
 {-|
-Creates a checkbox using the given value and onChange event handler. Accepts
+Creates a checkbox using the given value and 'onChange' event handler. Accepts
 config.
 -}
 checkboxV_
@@ -154,7 +158,7 @@ checkboxV_
 checkboxV_ value handler config = checkboxD_ (WidgetValue value) newConfig where
   newConfig = onChange handler : config
 
--- | Creates a checkbox providing a WidgetData instance and config.
+-- | Creates a checkbox providing a 'WidgetData' instance and config.
 checkboxD_
   :: WidgetEvent e => WidgetData s Bool -> [CheckboxCfg s e] -> WidgetNode s e
 checkboxD_ widgetData configs = checkboxNode where

@@ -6,17 +6,16 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Icon widget. Used for showing some standard icos without the need of an asset.
-
-Configs:
-
-- width: the maximum width and height of the icon.
+Icon widget. Used for showing basic icons without the need of an asset.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.Icon (
+  -- * Configuration
+  IconCfg,
   IconType(..),
+  -- * Constructors
   icon,
   icon_
 ) where
@@ -41,7 +40,11 @@ data IconType
   | IconMinus
   deriving (Eq, Show)
 
--- | Configuration options for icon widget.
+{-|
+Configuration options for icon:
+
+- 'width': the maximum width and height of the icon.
+-}
 newtype IconCfg = IconCfg {
   _icWidth :: Maybe Double
 }

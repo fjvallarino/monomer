@@ -6,21 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for multi line Text.
-
-Configs:
-
-- maxLength: the maximum length of input text.
-- maxLines: the maximum number of lines of input text.
-- acceptTab: whether to handle tab and convert it to spaces (cancelling change
-of focus), or keep default behaviour and lose focus.
-- selectOnFocus: Whether all input should be selected when focus is received.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes.
-- onChangeReq: WidgetRequest to generate when the value changes.
+Input field for multiline 'Text'.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -29,6 +15,9 @@ of focus), or keep default behaviour and lose focus.
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.TextArea (
+  -- * Configuration
+  TextAreaCfg,
+  -- * Constructors
   textArea,
   textArea_,
   textAreaV,
@@ -61,6 +50,21 @@ defCaretW = 2
 defCaretMs :: Int
 defCaretMs = 500
 
+{-|
+Configuration options for textArea:
+
+- 'maxLength': the maximum length of input text.
+- 'maxLines': the maximum number of lines of input text.
+- 'acceptTab': whether to handle tab and convert it to spaces (cancelling change
+  of focus), or keep default behaviour and lose focus.
+- 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
+-}
 data TextAreaCfg s e = TextAreaCfg {
   _tacCaretWidth :: Maybe Double,
   _tacCaretMs :: Maybe Int,
@@ -203,11 +207,11 @@ textArea_
 textArea_ field configs = textAreaD_ wdata configs where
   wdata = WidgetLens field
 
--- | Creates a text area using the given value and onChange event handler.
+-- | Creates a text area using the given value and 'onChange' event handler.
 textAreaV :: WidgetEvent e => Text -> (Text -> e) -> WidgetNode s e
 textAreaV value handler = textAreaV_ value handler def
 
--- | Creates a text area using the given value and onChange event handler.
+-- | Creates a text area using the given value and 'onChange' event handler.
 --   Accepts config.
 textAreaV_
   :: WidgetEvent e => Text -> (Text -> e) -> [TextAreaCfg s e] -> WidgetNode s e
@@ -215,7 +219,7 @@ textAreaV_ value handler configs = textAreaD_ wdata newConfig where
   wdata = WidgetValue value
   newConfig = onChange handler : configs
 
--- | Creates a text area providing a WidgetData instance and config.
+-- | Creates a text area providing a 'WidgetData' instance and config.
 textAreaD_
   :: WidgetEvent e
   => WidgetData s Text

@@ -12,22 +12,20 @@ to overlay unrelated widgets (text on top of an image).
 
 The order of the widgets is from bottom to top.
 
-The container will request the largest horizontal and vertical size from its
-child nodes.
-
-Config:
-
-- onlyTopActive: whether the top visible node is the only node that may receive
-events.
+The container will request the largest combination of horizontal and vertical
+size requested by its child nodes.
 -}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Containers.ZStack (
+  -- * Configuration
+  ZStackCfg,
+  onlyTopActive,
+  -- * Constructors
   zstack,
-  zstack_,
-  onlyTopActive
+  zstack_
 ) where
 
 import Control.Applicative ((<|>))
@@ -46,6 +44,12 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for zstack:
+
+- 'onlyTopActive': whether the top visible node is the only node that may
+  receive events.
+-}
 newtype ZStackCfg = ZStackCfg {
   _zscOnlyTopActive :: Maybe Bool
 }

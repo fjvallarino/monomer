@@ -6,12 +6,12 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Container which generates user provided events when combinations of keys happen.
-Using this event makes sense at the application level or Composite level. If
+Container which generates user provided events when combinations of keys occur.
+Using these event makes sense at the application or Composite level. If you are
 implementing a widget from scratch, keyboard events are directly available.
 
-The shortcut definitions are provided as a list of tuples of text, containing
-the key combination, and associated event. The widget handles unordered
+The shortcut definitions are provided as a list of tuples of 'Text', containing
+the key combination and associated event. The widget handles unordered
 combinations of multiple keys at the same time, but does not support ordered
 sequences (pressing "a", releasing, then "b" and "c"). The available keys are:
 
@@ -26,11 +26,6 @@ These can be combined, for example:
 
 - Copy: "Ctrl-c" or "C-c"
 - App config: "Ctrl-Shift-p" or "C-S-p"
-
-Configs:
-
-- ignoreChildrenEvts: If True, when a shortcut is detected, the KeyAction event
-will not be passed down to children.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -39,6 +34,9 @@ will not be passed down to children.
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.Containers.Keystroke (
+  -- * Configuration
+  KeystrokeCfg,
+  -- * Constructors
   keystroke,
   keystroke_
 ) where
@@ -63,6 +61,12 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for keystroke:
+
+- 'ignoreChildrenEvts': If True, when a shortcut is detected, the KeyAction
+  event will not be passed down to children.
+-}
 newtype KeystrokeCfg = KeystrokeCfg {
   _kscIgnoreChildren :: Maybe Bool
 }

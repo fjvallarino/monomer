@@ -8,24 +8,6 @@ Portability : non-portable
 
 Select list widget, allowing selection of a single item. List content (rows) is
 customizable, plus its styling.
-
-Configs:
-
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetReqest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetReqest to generate when focus is lost.
-- onChange: event to raise when selected item changes.
-- onChangeReq: WidgetRequest to generate when selected item changes.
-- onChangeIdx: event to raise when selected item changes. Includes index,
-- onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
-index.
-- selectOnBlur: whether to select the currently highlighted item when navigating
-away from the widget with tab key.
-- itemBasicStyle: style of an item in the list when not selected.
-- itemSelectedStyle: style of the selected item in the list.
-- mergeRequired: whether merging children is required. Useful when select list
-is part of another widget such as dropdown.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -34,9 +16,12 @@ is part of another widget such as dropdown.
 {-# LANGUAGE RecordWildCards #-}
 
 module Monomer.Widgets.Containers.SelectList (
+  -- * Configuration
   SelectListCfg,
-  SelectListItem(..),
+  SelectListItem,
   SelectListMessage(..),
+  SelectListMakeRow,
+  -- * Constructors
   selectList,
   selectList_,
   selectListV,
@@ -70,9 +55,27 @@ import qualified Monomer.Lens as L
 -- | Constraints for an item handled by selectList.
 type SelectListItem a = (Eq a, Show a, Typeable a)
 -- | Creates a row from an item.
-type MakeRow s e a = a -> WidgetNode s e
+type SelectListMakeRow s e a = a -> WidgetNode s e
 
--- | Configuration options for selectList widget.
+{-|
+Configuration options for selectList:
+
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when selected item changes.
+- 'onChangeReq': 'WidgetRequest' to generate when selected item changes.
+- 'onChangeIdx': event to raise when selected item changes. Includes index,
+- 'onChangeIdxReq': 'WidgetRequest' to generate when selected item changes.
+  Includes index.
+- 'selectOnBlur': whether to select the currently highlighted item when
+  navigating away from the widget with tab key.
+- 'itemBasicStyle': style of an item in the list when not selected.
+- 'itemSelectedStyle': style of the selected item in the list.
+- 'mergeRequired': whether merging children is required. Useful when select list
+  is part of another widget such as dropdown.
+-}
 data SelectListCfg s e a = SelectListCfg {
   _slcSelectOnBlur :: Maybe Bool,
   _slcItemStyle :: Maybe Style,
@@ -188,7 +191,7 @@ selectList
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => ALens' s a      -- ^ The lens into the model.
   -> t a             -- ^ The list of selectable items.
-  -> MakeRow s e a   -- ^ Function to create the list items.
+  -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> WidgetNode s e  -- ^ The created dropdown.
 selectList field items makeRow = selectList_ field items makeRow def
 
@@ -197,31 +200,31 @@ selectList_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => ALens' s a             -- ^ The lens into the model.
   -> t a                    -- ^ The list of selectable items.
-  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
   -> WidgetNode s e         -- ^ The created dropdown.
 selectList_ field items makeRow configs = newNode where
   newNode = selectListD_ (WidgetLens field) items makeRow configs
 
--- | Creates a select list using the given value and onChange event handler.
+-- | Creates a select list using the given value and 'onChange' event handler.
 selectListV
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => a                -- ^ The event to raise on change.
   -> (Int -> a -> e)  -- ^ The list of selectable items.
   -> t a              -- ^ The list of selectable items.
-  -> MakeRow s e a    -- ^ Function to create the list items.
+  -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> WidgetNode s e   -- ^ The created dropdown.
 selectListV value handler items makeRow = newNode where
   newNode = selectListV_ value handler items makeRow def
 
--- | Creates a select list using the given value and onChange event handler.
+-- | Creates a select list using the given value and 'onChange' event handler.
 --   Accepts config.
 selectListV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => a                      -- ^ The event to raise on change.
   -> (Int -> a -> e)        -- ^ The list of selectable items.
   -> t a                    -- ^ The list of selectable items.
-  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
   -> WidgetNode s e         -- ^ The created dropdown.
 selectListV_ value handler items makeRow configs = newNode where
@@ -229,12 +232,12 @@ selectListV_ value handler items makeRow configs = newNode where
   newConfigs = onChangeIdx handler : configs
   newNode = selectListD_ widgetData items makeRow newConfigs
 
--- | Creates a dropdown providing a WidgetData instance and config.
+-- | Creates a dropdown providing a 'WidgetData' instance and config.
 selectListD_
   :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
-  => WidgetData s a         -- ^ The WidgetData to retrieve the value from.
+  => WidgetData s a         -- ^ The 'WidgetData' to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
-  -> MakeRow s e a          -- ^ Function to create the list items.
+  -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
   -> WidgetNode s e         -- ^ The created dropdown.
 selectListD_ widgetData items makeRow configs = makeNode widget where
@@ -252,7 +255,7 @@ makeSelectList
   :: (WidgetModel s, WidgetEvent e, SelectListItem a)
   => WidgetData s a
   -> Seq a
-  -> MakeRow s e a
+  -> SelectListMakeRow s e a
   -> SelectListCfg s e a
   -> SelectListState a
   -> Widget s e
@@ -510,7 +513,7 @@ makeItemsList
   :: (WidgetModel s, WidgetEvent e, Eq a)
   => WidgetEnv s e
   -> Seq a
-  -> MakeRow s e a
+  -> SelectListMakeRow s e a
   -> SelectListCfg s e a
   -> WidgetId
   -> a

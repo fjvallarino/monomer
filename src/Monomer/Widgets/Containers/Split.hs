@@ -9,16 +9,6 @@ Portability : non-portable
 Splits the assigned space into two parts, vertically or horizontally, which are
 assigned to its two child nodes. The space assigned depends on the style and
 size requirements of each child node.
-
-Configs:
-
-- splitHandlePos: lens to a model field which provides the handle position.
-- splitHandlePosV: value which provides the handle position.
-- splitHandleSize: width of the handle.
-- splitIgnoreChildResize: whether to ignore changes in size to its children
-(otherwise, the handle position may change because of this).
-- onChange: raises an event when the handle is moved.
-- onChangeReq: generates a WidgetReqest when the handle is moved.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -26,14 +16,17 @@ Configs:
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Containers.Split (
-  hsplit,
-  hsplit_,
-  vsplit,
-  vsplit_,
+  -- * Configuration
+  SplitCfg,
   splitHandlePos,
   splitHandlePosV,
   splitHandleSize,
-  splitIgnoreChildResize
+  splitIgnoreChildResize,
+  -- * Constructors
+  hsplit,
+  hsplit_,
+  vsplit,
+  vsplit_
 ) where
 
 import Control.Applicative ((<|>))
@@ -50,6 +43,17 @@ import Monomer.Widgets.Containers.Stack (assignStackAreas)
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for split:
+
+- 'splitHandlePos': lens to a model field which provides the handle position.
+- 'splitHandlePosV': value which provides the handle position.
+- 'splitHandleSize': width of the handle.
+- 'splitIgnoreChildResize': whether to ignore changes in size to its children
+  (otherwise, the handle position may change because of this).
+- 'onChange': raises an event when the handle is moved.
+- 'onChangeReq': generates a WidgetReqest when the handle is moved.
+-}
 data SplitCfg s e = SplitCfg {
   _spcHandlePos :: Maybe (WidgetData s Double),
   _spcHandleSize :: Maybe Double,

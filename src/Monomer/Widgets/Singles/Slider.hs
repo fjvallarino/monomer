@@ -9,20 +9,8 @@ Portability : non-portable
 Slider widget, used for interacting with numeric values. It allows changing the
 value by keyboard arrows, dragging the mouse or using the wheel.
 
-Similar in objective to Dial, but more convenient in some layouts.
-
-- width: sets the size of the secondary axis of the Slider.
-- radius: the radius of the corners of the Slider.
-- wheelRate: The rate at which wheel movement affects the number.
-- dragRate: The rate at which drag movement affects the number.
-- thumbVisible: whether a thumb should be visible or not.
-- thumbFactor: the size of the thumb relative to width.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes.
-- onChangeReq: WidgetRequest to generate when the value changes.
+Similar in objective to 'Monomer.Widgets.Singles.Dial', but more convenient in
+some layouts.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -32,6 +20,10 @@ Similar in objective to Dial, but more convenient in some layouts.
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Singles.Slider (
+  -- * Configuration
+  SliderValue,
+  SliderCfg,
+  -- * Constructors
   hslider,
   hslider_,
   vslider,
@@ -59,10 +51,25 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
--- | Constraints for the values handled by slider widget.
+-- | Constraints for numeric types accepted by slider.
 type SliderValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
--- | Configuration options for slider widget.
+{-|
+Configuration options for slider:
+
+- 'width': sets the size of the secondary axis of the Slider.
+- 'radius': the radius of the corners of the Slider.
+- 'wheelRate': The rate at which wheel movement affects the number.
+- 'dragRate': The rate at which drag movement affects the number.
+- 'thumbVisible': whether a thumb should be visible or not.
+- 'thumbFactor': the size of the thumb relative to width.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
+-}
 data SliderCfg s e a = SliderCfg {
   _slcRadius :: Maybe Double,
   _slcWidth :: Maybe Double,
@@ -223,7 +230,7 @@ vslider_ field minVal maxVal cfg = sliderD_ False wlens minVal maxVal cfg where
   wlens = WidgetLens field
 
 {-|
-Creates a horizontal slider using the given value and onChange event handler,
+Creates a horizontal slider using the given value and 'onChange' event handler,
 providing minimum and maximum values.
 -}
 hsliderV
@@ -236,7 +243,7 @@ hsliderV
 hsliderV value handler minVal maxVal = hsliderV_ value handler minVal maxVal def
 
 {-|
-Creates a horizontal slider using the given value and onChange event handler,
+Creates a horizontal slider using the given value and 'onChange' event handler,
 providing minimum and maximum values. Accepts config.
 -}
 hsliderV_
@@ -253,7 +260,7 @@ hsliderV_ value handler minVal maxVal configs = newNode where
   newNode = sliderD_ True widgetData minVal maxVal newConfigs
 
 {-|
-Creates a vertical slider using the given value and onChange event handler,
+Creates a vertical slider using the given value and 'onChange' event handler,
 providing minimum and maximum values.
 -}
 vsliderV
@@ -266,7 +273,7 @@ vsliderV
 vsliderV value handler minVal maxVal = vsliderV_ value handler minVal maxVal def
 
 {-|
-Creates a vertical slider using the given value and onChange event handler,
+Creates a vertical slider using the given value and 'onChange' event handler,
 providing minimum and maximum values. Accepts config.
 -}
 vsliderV_
@@ -283,8 +290,8 @@ vsliderV_ value handler minVal maxVal configs = newNode where
   newNode = sliderD_ False widgetData minVal maxVal newConfigs
 
 {-|
-Creates a slider providing direction, a WidgetData instance, minimum and maximum
-values and config.
+Creates a slider providing direction, a 'WidgetData' instance, minimum and
+maximum values and config.
 -}
 sliderD_
   :: (SliderValue a, WidgetEvent e)

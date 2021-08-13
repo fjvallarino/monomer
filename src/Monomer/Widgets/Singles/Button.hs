@@ -7,29 +7,16 @@ Stability   : experimental
 Portability : non-portable
 
 Button widget, with support for multiline text. At the most basic level, a
-button consists of a caption and an event to raised when clicked.
-
-Configs:
-
-- trimSpaces: whether to remove leading/trailing spaces in the caption.
-- ellipsis: if ellipsis should be used for overflown text.
-- multiline: if text may be split in multiple lines.
-- maxLines: maximum number of text lines to show.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onClick: event to raise when button is clicked.
-- onClickReq: WidgetRequest to generate when button is clicked.
-- resizeFactor: flexibility to have more or less spaced assigned.
-- resizeFactorW: flexibility to have more or less horizontal spaced assigned.
-- resizeFactorH: flexibility to have more or less vertical spaced assigned.
+button consists of a caption and an event to raise when clicked.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.Button (
+  -- * Configuration
+  ButtonCfg,
+  -- * Constructors
   button,
   button_,
   mainButton,
@@ -54,6 +41,23 @@ data ButtonType
   | ButtonMain
   deriving (Eq, Show)
 
+{-|
+Configuration options for button:
+
+- 'trimSpaces': whether to remove leading/trailing spaces in the caption.
+- 'ellipsis': if ellipsis should be used for overflown text.
+- 'multiline': if text may be split in multiple lines.
+- 'maxLines': maximum number of text lines to show.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onClick': event to raise when button is clicked.
+- 'onClickReq': 'WidgetRequest' to generate when button is clicked.
+- 'resizeFactor': flexibility to have more or less spaced assigned.
+- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
+- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
+-}
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
   _btnIgnoreTheme :: Maybe Bool,
@@ -214,10 +218,9 @@ makeButton caption config = widget where
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelCfg = (_btnLabelCfg config) {
-      _lscCurrentStyle = Just childOfFocusedStyle
-    }
-    labelNode = label_ caption [ignoreTheme, labelCfg]
+    labelCfg = _btnLabelCfg config
+    labelCurrStyle = labelCurrentStyle childOfFocusedStyle
+    labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
       & L.info . L.style .~ nodeStyle
     newNode = node
       & L.children .~ Seq.singleton labelNode

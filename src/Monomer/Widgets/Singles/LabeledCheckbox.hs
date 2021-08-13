@@ -8,36 +8,14 @@ Portability : non-portable
 
 Labeled checkbox, used for interacting with boolean values with an associated
 clickable label.
-
-Configs:
-
-- Text related
-  - textLeft: places the label to the left of the checkbox.
-  - textRight: places the label to the right of the checkbox.
-  - textTop: places the label to the top of the checkbox.
-  - textBottom: places the label to the bottom of the checkbox.
-  - trimSpaces: whether to remove leading/trailing spaces in the caption.
-  - ellipsis: if ellipsis should be used for overflown text.
-  - multiline: if text may be split in multiple lines.
-  - maxLines: maximum number of text lines to show.
-  - resizeFactor: flexibility to have more or less spaced assigned.
-  - resizeFactorW: flexibility to have more or less horizontal spaced assigned.
-  - resizeFactorH: flexibility to have more or less vertical spaced assigned.
-
-- Checkbox related
-  - checkboxMark: the type of checkbox mark.
-  - width: sets the max width/height of the checkbox.
-  - onFocus: event to raise when focus is received.
-  - onFocusReq: WidgetRequest to generate when focus is received.
-  - onBlur: event to raise when focus is lost.
-  - onBlurReq: WidgetRequest to generate when focus is lost.
-  - onChange: event to raise when the value changes/is clicked.
-  - onChangeReq: WidgetRequest to generate when the value changes/is clicked.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.LabeledCheckbox (
+  -- * Configuration
+  LabeledCheckboxCfg,
+  -- * Constructors
   labeledCheckbox,
   labeledCheckbox_,
   labeledCheckboxV,
@@ -61,6 +39,34 @@ import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for labeledCheckbox:
+
+- Text related
+
+    - 'textLeft': places the label to the left of the checkbox.
+    - 'textRight': places the label to the right of the checkbox.
+    - 'textTop': places the label to the top of the checkbox.
+    - 'textBottom': places the label to the bottom of the checkbox.
+    - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
+    - 'ellipsis': if ellipsis should be used for overflown text.
+    - 'multiline': if text may be split in multiple lines.
+    - 'maxLines': maximum number of text lines to show.
+    - 'resizeFactor': flexibility to have more or less spaced assigned.
+    - 'resizeFactorW': flexibility for more or less horizontal spaced assigned.
+    - 'resizeFactorH': flexibility for more or less vertical spaced assigned.
+
+- Checkbox related
+
+    - 'checkboxMark': the type of checkbox mark.
+    - 'width': sets the max width/height of the checkbox.
+    - 'onFocus': event to raise when focus is received.
+    - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+    - 'onBlur': event to raise when focus is lost.
+    - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+    - 'onChange': event to raise when the value changes/is clicked.
+    - 'onChangeReq': 'WidgetRequest' to generate when the value changes/is clicked.
+-}
 data LabeledCheckboxCfg s e = LabeledCheckboxCfg {
   _lchTextSide :: Maybe RectSide,
   _lchLabelCfg :: LabelCfg s e,
@@ -197,7 +203,8 @@ labeledCheckbox_
 labeledCheckbox_ caption field config = newNode where
   newNode = labeledCheckboxD_ caption (WidgetLens field) config
 
--- | Creates a labeled checkbox using the given value and onChange event handler.
+-- | Creates a labeled checkbox using the given value and 'onChange' event
+--   handler.
 labeledCheckboxV
   :: WidgetEvent e
   => Text
@@ -208,7 +215,7 @@ labeledCheckboxV caption value handler = newNode where
   newNode = labeledCheckboxV_ caption value handler def
 
 {-|
-Creates a labeled checkbox using the given value and onChange event handler.
+Creates a labeled checkbox using the given value and 'onChange' event handler.
 Accepts config.
 -}
 labeledCheckboxV_
@@ -222,7 +229,7 @@ labeledCheckboxV_ caption value handler config = newNode where
   newConfig = onChange handler : config
   newNode = labeledCheckboxD_ caption (WidgetValue value) newConfig
 
--- | Creates a labeled checkbox providing a WidgetData instance and config.
+-- | Creates a labeled checkbox providing a 'WidgetData' instance and config.
 labeledCheckboxD_
   :: WidgetEvent e
   => Text

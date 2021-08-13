@@ -15,27 +15,6 @@ is also supported.
 Supports different date formats and separators.
 
 Handles mouse wheel and shift + vertical drag to increase/decrease days.
-
-Configs:
-
-- validInput: field indicating if the current input is valid. Useful to show
-warnings in the UI, or disable buttons if needed.
-- resizeOnChange: Whether input causes ResizeWidgets requests.
-- selectOnFocus: Whether all input should be selected when focus is received.
-- minValue: Minimum valid date.
-- maxValue: Maximum valid date.
-- wheelRate: The rate at which wheel movement affects the date.
-- dragRate: The rate at which drag movement affects the date.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes.
-- onChangeReq: WidgetRequest to generate when the value changes.
-- dateFormatDelimiter: which text delimiter to separate year, month and day.
-- dateFormatDDMMYYYY: using the current delimiter, accept DD/MM/YYYY.
-- dateFormatMMDDYYYY: using the current delimiter, accept MM/DD/YYYY.
-- dateFormatYYYYMMDD: using the current delimiter, accept YYYY/MM/DD.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -45,7 +24,12 @@ warnings in the UI, or disable buttons if needed.
 {-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.DateField (
+  -- * Configuration
+  DateFieldCfg,
+  FormattableDate,
   DayConverter(..),
+  DateTextConverter,
+  -- * Constructors
   dateField,
   dateField_,
   dateFieldV,
@@ -101,6 +85,7 @@ instance DayConverter Day where
   convertFromDay = id
   convertToDay = Just
 
+-- | Converts a 'Day' instance to and from 'Text'.
 class DateTextConverter a where
   dateAcceptText :: DateFormat -> Char -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
   dateFromText :: DateFormat -> Char -> Text -> Maybe a
@@ -138,9 +123,32 @@ instance (DayConverter a, DateTextConverter a) => DateTextConverter (Maybe a) wh
   dateToDay Nothing = Nothing
   dateToDay (Just value) = dateToDay value
 
+-- | Constraints for date types accepted by dateField.
 type FormattableDate a
   = (Eq a, Ord a, Show a, DateTextConverter a, Typeable a)
 
+{-|
+Configuration options for dateField:
+
+- 'validInput': field indicating if the current input is valid. Useful to show
+  warnings in the UI, or disable buttons if needed.
+- 'resizeOnChange': Whether input causes 'ResizeWidgets' requests.
+- 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'minValue': Minimum valid date.
+- 'maxValue': Maximum valid date.
+- 'wheelRate': The rate at which wheel movement affects the date.
+- 'dragRate': The rate at which drag movement affects the date.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
+- 'dateFormatDelimiter': which text delimiter to separate year, month and day.
+- 'dateFormatDDMMYYYY': using the current delimiter, accept DD/MM/YYYY.
+- 'dateFormatMMDDYYYY': using the current delimiter, accept MM/DD/YYYY.
+- 'dateFormatYYYYMMDD': using the current delimiter, accept YYYY/MM/DD.
+-}
 data DateFieldCfg s e a = DateFieldCfg {
   _dfcCaretWidth :: Maybe Double,
   _dfcCaretMs :: Maybe Int,
@@ -319,13 +327,13 @@ dateField_
 dateField_ field configs = widget where
   widget = dateFieldD_ (WidgetLens field) configs
 
--- | Creates a date field using the given value and onChange event handler.
+-- | Creates a date field using the given value and 'onChange' event handler.
 dateFieldV
   :: (FormattableDate a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 dateFieldV value handler = dateFieldV_ value handler def
 
--- | Creates a date field using the given value and onChange event handler.
+-- | Creates a date field using the given value and 'onChange' event handler.
 --   Accepts config.
 dateFieldV_
   :: (FormattableDate a, WidgetEvent e)
@@ -338,7 +346,7 @@ dateFieldV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = dateFieldD_ widgetData newConfigs
 
--- | Creates a date field providing a WidgetData instance and config.
+-- | Creates a date field providing a 'WidgetData' instance and config.
 dateFieldD_
   :: (FormattableDate a, WidgetEvent e)
   => WidgetData s a

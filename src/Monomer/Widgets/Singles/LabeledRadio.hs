@@ -9,35 +9,14 @@ Portability : non-portable
 Radio widget, used for interacting with a fixed set of values with an associated
 clickable label. Each instance of the radio will be associated with a single
 value.
-
-Configs:
-
-- Text related
-  - textLeft: places the label to the left of the radio.
-  - textRight: places the label to the right of the radio.
-  - textTop: places the label to the top of the radio.
-  - textBottom: places the label to the bottom of the radio.
-  - trimSpaces: whether to remove leading/trailing spaces in the caption.
-  - ellipsis: if ellipsis should be used for overflown text.
-  - multiline: if text may be split in multiple lines.
-  - maxLines: maximum number of text lines to show.
-  - resizeFactor: flexibility to have more or less spaced assigned.
-  - resizeFactorW: flexibility to have more or less horizontal spaced assigned.
-  - resizeFactorH: flexibility to have more or less vertical spaced assigned.
-
-- Radio related
-  - width: sets the max width/height of the radio.
-  - onFocus: event to raise when focus is received.
-  - onFocusReq: WidgetRequest to generate when focus is received.
-  - onBlur: event to raise when focus is lost.
-  - onBlurReq: WidgetRequest to generate when focus is lost.
-  - onChange: event to raise when the value changes/is clicked.
-  - onChangeReq: WidgetRequest to generate when the value changes/is clicked.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Singles.LabeledRadio (
+  -- * Configuration
+  LabeledRadioCfg,
+  -- * Constructors
   labeledRadio,
   labeledRadio_,
   labeledRadioV,
@@ -60,6 +39,34 @@ import Monomer.Widgets.Singles.Radio
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for labeledRadio:
+
+- Text related
+
+    - 'textLeft': places the label to the left of the radio.
+    - 'textRight': places the label to the right of the radio.
+    - 'textTop': places the label to the top of the radio.
+    - 'textBottom': places the label to the bottom of the radio.
+    - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
+    - 'ellipsis': if ellipsis should be used for overflown text.
+    - 'multiline': if text may be split in multiple lines.
+    - 'maxLines': maximum number of text lines to show.
+    - 'resizeFactor': flexibility to have more or less spaced assigned.
+    - 'resizeFactorW': flexibility for more or less horizontal spaced assigned.
+    - 'resizeFactorH': flexibility for more or less vertical spaced assigned.
+
+- Radio related
+
+    - 'width': sets the max width/height of the radio.
+    - 'onFocus': event to raise when focus is received.
+    - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+    - 'onBlur': event to raise when focus is lost.
+    - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+    - 'onChange': event to raise when the value changes/is clicked.
+    - 'onChangeReq': 'WidgetRequest' to generate when the value changes/is
+      clicked.
+-}
 data LabeledRadioCfg s e a = LabeledRadioCfg {
   _lchTextSide :: Maybe RectSide,
   _lchLabelCfg :: LabelCfg s e,
@@ -195,7 +202,7 @@ labeledRadio_
 labeledRadio_ caption option field config = newNode where
   newNode = labeledRadioD_ caption option (WidgetLens field) config
 
--- | Creates a labeled radio using the given value and onChange event handler.
+-- | Creates a labeled radio using the given value and 'onChange' event handler.
 labeledRadioV
   :: (Eq a, WidgetEvent e)
   => Text
@@ -207,7 +214,7 @@ labeledRadioV caption option value handler = newNode where
   newNode = labeledRadioV_ caption option value handler def
 
 {-|
-Creates a labeled radio using the given value and onChange event handler.
+Creates a labeled radio using the given value and 'onChange' event handler.
 Accepts config.
 -}
 labeledRadioV_
@@ -222,7 +229,7 @@ labeledRadioV_ caption option value handler config = newNode where
   newConfig = onChange handler : config
   newNode = labeledRadioD_ caption option (WidgetValue value) newConfig
 
--- | Creates a labeled radio providing a WidgetData instance and config.
+-- | Creates a labeled radio providing a 'WidgetData' instance and config.
 labeledRadioD_
   :: (Eq a, WidgetEvent e)
   => Text

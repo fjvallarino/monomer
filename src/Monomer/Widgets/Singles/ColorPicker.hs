@@ -7,16 +7,6 @@ Stability   : experimental
 Portability : non-portable
 
 Color picker using sliders and numeric fields.
-
-Configs:
-
-- showAlpha: whether to allow modifying the alpha channel or not.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when any of the values changes.
-- onChangeReq: WidgetRequest to generate when any of the values changes.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -24,6 +14,9 @@ Configs:
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.Singles.ColorPicker (
+  -- * Configuration
+  ColorPickerCfg,
+  -- * Constructors
   colorPicker,
   colorPicker_,
   colorPickerV,
@@ -57,6 +50,17 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for colorPicker:
+
+- 'showAlpha': whether to allow modifying the alpha channel or not.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when any of the values changes.
+- 'onChangeReq': 'WidgetRequest' to generate when any of the values changes.
+-}
 data ColorPickerCfg s e = ColorPickerCfg {
   _cpcShowAlpha :: Maybe Bool,
   _cpcOnFocusReq :: [Path -> WidgetRequest s e],
@@ -127,49 +131,49 @@ data ColorPickerEvt
 
 -- | Creates a color picker using the given lens.
 colorPicker
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ALens' sp Color
-  -> WidgetNode sp ep
+  :: (WidgetModel s, WidgetEvent e)
+  => ALens' s Color
+  -> WidgetNode s e
 colorPicker field = colorPicker_ field def
 
 -- | Creates a color picker using the given lens. Accepts config.
 colorPicker_
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ALens' sp Color
-  -> [ColorPickerCfg sp ep]
-  -> WidgetNode sp ep
+  :: (WidgetModel s, WidgetEvent e)
+  => ALens' s Color
+  -> [ColorPickerCfg s e]
+  -> WidgetNode s e
 colorPicker_ field configs = colorPickerD_ wlens configs [] where
   wlens = WidgetLens field
 
--- | Creates a color picker using the given value and onChange event handler.
+-- | Creates a color picker using the given value and 'onChange' event handler.
 colorPickerV
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Color
-  -> (Color -> ep)
-  -> WidgetNode sp ep
+  -> (Color -> e)
+  -> WidgetNode s e
 colorPickerV value handler = colorPickerV_ value handler def
 
 {-|
-Creates a color picker using the given value and onChange event handler. Accepts
-config.
+Creates a color picker using the given value and 'onChange' event handler.
+Accepts config.
 -}
 colorPickerV_
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Color
-  -> (Color -> ep)
-  -> [ColorPickerCfg sp ep]
-  -> WidgetNode sp ep
+  -> (Color -> e)
+  -> [ColorPickerCfg s e]
+  -> WidgetNode s e
 colorPickerV_ value handler configs = colorPickerD_ wdata newCfgs [] where
   wdata = WidgetValue value
   newCfgs = onChange handler : configs
 
--- | Creates a color picker providing a WidgetData instance and config.
+-- | Creates a color picker providing a 'WidgetData' instance and config.
 colorPickerD_
-  :: (WidgetModel sp, WidgetEvent ep)
-  => WidgetData sp Color
-  -> [ColorPickerCfg sp ep]
-  -> [CompositeCfg Color ColorPickerEvt sp ep]
-  -> WidgetNode sp ep
+  :: (WidgetModel s, WidgetEvent e)
+  => WidgetData s Color
+  -> [ColorPickerCfg s e]
+  -> [CompositeCfg Color ColorPickerEvt s e]
+  -> WidgetNode s e
 colorPickerD_ wdata cfgs cmpCfgs = newNode where
   cfg = mconcat cfgs
   uiBuilder = buildUI cfg

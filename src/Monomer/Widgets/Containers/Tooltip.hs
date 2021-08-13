@@ -13,22 +13,18 @@ Tooltip styling is a bit unusual, since it only applies to the overlaid element.
 This means, padding will not be shown for the contained child element, but only
 on the message when the tooltip is active. If you need padding around the child
 element, you may want to use a box.
-
-Config:
-
-- width: the maximum width of the tooltip. Used for multiline.
-- height: the maximum height of the tooltip. Used for multiline.
-- tooltipDelay: the delay in ms before the tooltip is displayed.
-- tooltipFollow: if, after tooltip is displayed, it should follow the mouse.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Containers.Tooltip (
-  tooltip,
-  tooltip_,
+  -- * Configuration
+  TooltipCfg,
   tooltipDelay,
-  tooltipFollow
+  tooltipFollow,
+  -- * Constructors
+  tooltip,
+  tooltip_
 ) where
 
 import Control.Applicative ((<|>))
@@ -45,6 +41,14 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for tooltip:
+
+- 'width': the maximum width of the tooltip. Used for multiline.
+- 'height': the maximum height of the tooltip. Used for multiline.
+- 'tooltipDelay': the delay in ms before the tooltip is displayed.
+- 'tooltipFollow': if, after tooltip is displayed, it should follow the mouse.
+-}
 data TooltipCfg = TooltipCfg {
   _ttcDelay :: Maybe Int,
   _ttcFollowCursor :: Maybe Bool,

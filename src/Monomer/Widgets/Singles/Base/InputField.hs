@@ -10,8 +10,8 @@ Base single line text editing field. Extensible for handling specific textual
 representations of other types, such as numbers and dates. It is not meant for
 direct use, but to create custom widgets using it.
 
-See 'Monomer.Widgets.Singles.NumericField', 'Monomer.Widgets.Singles.DateField'
-and 'Monomer.Widgets.Singles.TimeField'.
+See "Monomer.Widgets.Singles.NumericField", "Monomer.Widgets.Singles.DateField"
+and "Monomer.Widgets.Singles.TimeField".
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -20,8 +20,14 @@ and 'Monomer.Widgets.Singles.TimeField'.
 {-# LANGUAGE RankNTypes #-}
 
 module Monomer.Widgets.Singles.Base.InputField (
+  -- * Configuration
+  InputFieldValue,
+  InputWheelHandler,
+  InputDragHandler,
   InputFieldCfg(..),
   InputFieldState(..),
+  HistoryStep,
+  -- * Constructors
   inputField_
 ) where
 
@@ -121,14 +127,15 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcDragHandler :: Maybe (InputDragHandler a),
   -- | Cursor to display on drag events.
   _ifcDragCursor :: Maybe CursorIcon,
-  -- | WidgetRequest to generate when focus is received.
+  -- | 'WidgetRequest' to generate when focus is received.
   _ifcOnFocusReq :: [Path -> WidgetRequest s e],
-  -- | WidgetRequest to generate when focus is lost.
+  -- | 'WidgetRequest' to generate when focus is lost.
   _ifcOnBlurReq :: [Path -> WidgetRequest s e],
-  -- | WidgetRequest to generate when value changes.
+  -- | 'WidgetRequest' to generate when value changes.
   _ifcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
+-- | Snapshot of a point in history of the input.
 data HistoryStep a = HistoryStep {
   _ihsValue :: a,
   _ihsText :: !Text,

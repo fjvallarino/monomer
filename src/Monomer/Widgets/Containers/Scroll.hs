@@ -11,26 +11,10 @@ but limits itself to what its parent assigns. It allows navigating the content
 of the inner node with the scroll bars. It also supports automatic focus
 following.
 
-Configs:
-
-- wheelRate: rate at which wheel movement causes scrolling.
-- barColor: the color of the bar (container of the thumb).
-- barHoverColor: the color of the bar when mouse is on top.
-- barWidth: the width of the bar.
-- thumbColor: the color of the thumb.
-- thumbHoverColor: the color of the thumb when mouse is on top.
-- thumbWidth: the width of the thumb.
-- thumbRadius: the radius of the corners of the thumb.
-- scrollOverlay_: whether scroll bar should be on top of content or by the side.
-- scrollInvisible_: shortcut for setting invisible style. Useful with scroll
-overlay, since it allows scrolling without taking up space or hiding content.
-- scrollFollowFocus_: whether to auto scroll when focusing a non visible item.
-- scrollStyle: the base style of the scroll bar.
-
 Messages:
 
-- ScrollTo: Causes the scroll to update its handles to ensure rect is visible.
-- ScrollReset: Sets both handle positions to zero.
+- 'ScrollTo': Causes the scroll to update its handles to ensure rect is visible.
+- 'ScrollReset': Sets both handle positions to zero.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -41,13 +25,9 @@ Messages:
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Monomer.Widgets.Containers.Scroll (
+  -- * Configuration
+  ScrollCfg,
   ScrollMessage(..),
-  scroll,
-  scroll_,
-  hscroll,
-  hscroll_,
-  vscroll,
-  vscroll_,
   scrollOverlay,
   scrollOverlay_,
   scrollFwdStyle,
@@ -56,7 +36,14 @@ module Monomer.Widgets.Containers.Scroll (
   scrollInvisible_,
   scrollFollowFocus,
   scrollFollowFocus_,
-  scrollStyle
+  scrollStyle,
+  -- * Constructors
+  scroll,
+  scroll_,
+  hscroll,
+  hscroll_,
+  vscroll,
+  vscroll_
 ) where
 
 import Control.Applicative ((<|>))
@@ -85,6 +72,24 @@ data ActiveBar
   | VBar
   deriving (Eq, Show, Generic)
 
+{-|
+Configuration options for scroll:
+
+- 'wheelRate': rate at which wheel movement causes scrolling.
+- 'barColor': the color of the bar (container of the thumb).
+- 'barHoverColor': the color of the bar when mouse is on top.
+- 'barWidth': the width of the bar.
+- 'thumbColor': the color of the thumb.
+- 'thumbHoverColor': the color of the thumb when mouse is on top.
+- 'thumbWidth': the width of the thumb.
+- 'thumbRadius': the radius of the corners of the thumb.
+- 'scrollOverlay': whether scroll bar should be on top of content or by the
+  side.
+- 'scrollInvisible': shortcut for setting invisible style. Useful with scroll
+  overlay, since it allows scrolling without taking up space or hiding content.
+- 'scrollFollowFocus': whether to auto scroll when focusing a non visible item.
+- 'scrollStyle': the base style of the scroll bar.
+-}
 data ScrollCfg s e = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
   _scScrollOverlay :: Maybe Bool,

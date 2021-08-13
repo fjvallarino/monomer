@@ -9,25 +9,13 @@ Portability : non-portable
 Dropdown widget, allowing selection of a single item from a collapsable list.
 Both header and list content is text based. In case a customizable version is
 is needed, 'Monomer.Widgets.Containers.Dropdown' can be used.
-
-Configs:
-
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetReqest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetReqest to generate when focus is lost.
-- onChange: event to raise when selected item changes.
-- onChangeReq: WidgetRequest to generate when selected item changes.
-- onChangeIdx: event to raise when selected item changes. Includes index,
-- onChangeIdxReq: WidgetRequest to generate when selected item changes. Includes
-index.
-- maxHeight: maximum height of the list when dropdown is expanded.
-- itemBasicStyle: style of an item in the list when not selected.
-- itemSelectedStyle: style of the selected item in the list.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 
 module Monomer.Widgets.Singles.TextDropdown (
+  -- * Configuratiom
+  TextDropdownItem,
+  -- * Constructors
   textDropdown,
   textDropdown_,
   textDropdownV,
@@ -48,6 +36,7 @@ import Monomer.Core.Combinators
 import Monomer.Widgets.Containers.Dropdown
 import Monomer.Widgets.Singles.Label
 
+-- | Constraints for an item handled by textDropdown.
 type TextDropdownItem a = DropdownItem a
 
 {-|
@@ -77,8 +66,8 @@ textDropdown_ field items toText configs = newNode where
   newNode = textDropdownD_ (WidgetLens field) items toText configs
 
 {-|
-Creates a text dropdown using the given value and onChange event handler. Takes
-a function for converting the type to Text.
+Creates a text dropdown using the given value and 'onChange' event handler.
+Takes a function for converting the type to Text.
 -}
 textDropdownV
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a, TextShow a)
@@ -90,8 +79,8 @@ textDropdownV value handler items = newNode where
   newNode = textDropdownV_ value handler items showt def
 
 {-|
-Creates a text dropdown using the given value and onChange event handler. Takes
-a function for converting the type to Text. Accepts config.
+Creates a text dropdown using the given value and 'onChange' event handler.
+Takes a function for converting the type to Text. Accepts config.
 -}
 textDropdownV_
   :: (WidgetModel s, WidgetEvent e, Traversable t, TextDropdownItem a)
@@ -107,7 +96,7 @@ textDropdownV_ value handler items toText configs = newNode where
   newNode = textDropdownD_ widgetData items toText newConfigs
 
 {-|
-Creates a text dropdown providing a WidgetData instance and config. Takes
+Creates a text dropdown providing a 'WidgetData' instance and config. Takes
 a function for converting the type to Text.
 -}
 textDropdownD_
@@ -148,7 +137,7 @@ textDropdownS_ field items configs = newNode where
   newNode = textDropdownDS_ (WidgetLens field) items configs
 
 {-|
-Creates a text dropdown using the given value and onChange event handler. The
+Creates a text dropdown using the given value and 'onChange' event handler. The
 type must be have a 'Show' instance.
 -}
 textDropdownSV
@@ -161,7 +150,7 @@ textDropdownSV value handler items = newNode where
   newNode = textDropdownSV_ value handler items def
 
 {-|
-Creates a text dropdown using the given value and onChange event handler. The
+Creates a text dropdown using the given value and 'onChange' event handler. The
 type must be have a 'Show' instance. Accepts config.
 -}
 textDropdownSV_
@@ -177,7 +166,7 @@ textDropdownSV_ value handler items configs = newNode where
   newNode = textDropdownDS_ widgetData items newConfigs
 
 {-|
-Creates a text dropdown providing a WidgetData instance and config. The
+Creates a text dropdown providing a 'WidgetData' instance and config. The
 type must be have a 'Show' instance.
 -}
 textDropdownDS_

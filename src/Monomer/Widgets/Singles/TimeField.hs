@@ -15,25 +15,6 @@ Maybe is also supported.
 Supports different time formats.
 
 Handles mouse wheel and shift + vertical drag to increase/decrease minutes.
-
-Configs:
-
-- validInput: field indicating if the current input is valid. Useful to show
-warnings in the UI, or disable buttons if needed.
-- resizeOnChange: Whether input causes ResizeWidgets requests.
-- selectOnFocus: Whether all input should be selected when focus is received.
-- minValue: Minimum valid date.
-- maxValue: Maximum valid date.
-- wheelRate: The rate at which wheel movement affects the date.
-- dragRate: The rate at which drag movement affects the date.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes.
-- onChangeReq: WidgetRequest to generate when the value changes.
-- timeFormatHHMM: accepts HH:MM.
-- timeFormatHHMMSS: accepts HH:MM:SS.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -43,6 +24,11 @@ warnings in the UI, or disable buttons if needed.
 {-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.TimeField (
+  -- * Configuration
+  TimeFieldCfg,
+  FormattableTime,
+  TimeOfDayConverter(..),
+  -- * Constructors
   timeField,
   timeField_,
   timeFieldV,
@@ -84,8 +70,8 @@ defaultTimeDelim :: Char
 defaultTimeDelim = ':'
 
 {-|
-Converter to and form the TimeOfDay type of the time library. To use types other
-than TimeOfDay of said library, this typeclass needs to be implemented.
+Converter to and form the 'TimeOfDay' type of the time library. To use types
+other than 'TimeOfDay' of said library, this typeclass needs to be implemented.
 --}
 class (Eq a, Ord a, Show a, Typeable a) => TimeOfDayConverter a where
   convertFromTimeOfDay :: TimeOfDay -> a
@@ -95,6 +81,7 @@ instance TimeOfDayConverter TimeOfDay where
   convertFromTimeOfDay = id
   convertToTimeOfDay = Just
 
+-- | Converts a 'TimeOfDay' instance to and from 'Text'.
 class TimeTextConverter a where
   timeAcceptText :: TimeFormat -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
   timeFromText :: TimeFormat -> Text -> Maybe a
@@ -132,9 +119,30 @@ instance (TimeOfDayConverter a, TimeTextConverter a) => TimeTextConverter (Maybe
   timeToTimeOfDay' Nothing = Nothing
   timeToTimeOfDay' (Just value) = timeToTimeOfDay' value
 
+-- | Constraints for time types accepted by timeField.
 type FormattableTime a
   = (Eq a, Ord a, Show a, TimeTextConverter a, Typeable a)
 
+{-|
+Configuration options for timeField:
+
+- 'validInput': field indicating if the current input is valid. Useful to show
+warnings in the UI, or disable buttons if needed.
+- 'resizeOnChange': Whether input causes ResizeWidgets requests.
+- 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'minValue': Minimum valid date.
+- 'maxValue': Maximum valid date.
+- 'wheelRate': The rate at which wheel movement affects the date.
+- 'dragRate': The rate at which drag movement affects the date.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
+- 'timeFormatHHMM': accepts HH:MM.
+- 'timeFormatHHMMSS': accepts HH:MM:SS.
+-}
 data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcCaretWidth :: Maybe Double,
   _tfcCaretMs :: Maybe Int,
@@ -298,13 +306,13 @@ timeField_
 timeField_ field configs = widget where
   widget = timeFieldD_ (WidgetLens field) configs
 
--- | Creates a time field using the given value and onChange event handler.
+-- | Creates a time field using the given value and 'onChange' event handler.
 timeFieldV
   :: (FormattableTime a, WidgetEvent e)
   => a -> (a -> e) -> WidgetNode s e
 timeFieldV value handler = timeFieldV_ value handler def
 
--- | Creates a time field using the given value and onChange event handler.
+-- | Creates a time field using the given value and 'onChange' event handler.
 --   Accepts config.
 timeFieldV_
   :: (FormattableTime a, WidgetEvent e)
@@ -317,7 +325,7 @@ timeFieldV_ value handler configs = newNode where
   newConfigs = onChange handler : configs
   newNode = timeFieldD_ widgetData newConfigs
 
--- | Creates a time field providing a WidgetData instance and config.
+-- | Creates a time field providing a 'WidgetData' instance and config.
 timeFieldD_
   :: (FormattableTime a, WidgetEvent e)
   => WidgetData s a

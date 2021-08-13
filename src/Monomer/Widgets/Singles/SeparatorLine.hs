@@ -13,15 +13,13 @@ and viceversa.
 The line has the provided width in the direction orthogonal to the layout
 direction, and takes all the available space in the other direction. In case of
 wanting a shorter line, padding should be used.
-
-Configs:
-
-- width: the max width of the line.
-- resizeFactor: flexibility to have more or less spaced assigned.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Singles.SeparatorLine (
+  -- * Configuration
+  SeparatorLineCfg,
+  -- * Constructors
   separatorLine,
   separatorLine_
 ) where
@@ -36,7 +34,12 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens as L
 
--- | Configuration options for separatorLine widget.
+{-|
+Configuration options for separatorLine:
+
+- 'width': the max width of the line.
+- 'resizeFactor': flexibility to have more or less spaced assigned.
+-}
 data SeparatorLineCfg = SeparatorLineCfg {
   _slcWidth :: Maybe Double,
   _slcFactor :: Maybe Double

@@ -11,15 +11,13 @@ Filler is used for taking all the unused space between two widgets. Useful for
 alignment purposes.
 
 Both adapt to the current layout direction, if any.
-
-Configs:
-
-- width: the max width for spacer, the reference for filler.
-- resizeFactor: flexibility to have more or less spaced assigned.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Monomer.Widgets.Singles.Spacer (
+  --  * Configuration
+  SpacerCfg,
+  -- * Constructors
   spacer,
   spacer_,
   filler,
@@ -36,7 +34,12 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Core.Lens as L
 
--- | Configuration options for spacer widget.
+{-|
+Configuration options for spacer widget:
+
+- 'width': the max width for spacer, the reference for filler.
+- 'resizeFactor': flexibility to have more or less spaced assigned.
+-}
 data SpacerCfg = SpacerCfg {
   _spcWidth :: Maybe Double,
   _spcFactor :: Maybe Double

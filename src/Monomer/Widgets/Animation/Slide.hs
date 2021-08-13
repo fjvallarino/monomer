@@ -8,16 +8,9 @@ Portability : non-portable
 
 Slide animation widget. Wraps a child widget whose content will be animated.
 
-Config:
-
-- autoStart: whether the first time the widget is added, animation should run.
-- duration: how long the animation lasts in ms.
-- onFinished: event to raise when animation is complete.
-- Individual combinators for direction.
-
 Messages:
 
-- Receives a 'AnimationMsg', used to control the state of the animation.
+- Accepts a 'AnimationMsg', used to control the state of the animation.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -25,6 +18,9 @@ Messages:
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Animation.Slide (
+  -- * Configuration
+  SlideCfg,
+  -- * Constructors
   animSlideIn,
   animSlideIn_,
   animSlideOut,
@@ -58,6 +54,14 @@ data SlideDirection
   | SlideDown
   deriving (Eq, Show)
 
+{-|
+Configuration options for slide:
+
+- 'autoStart': whether the first time the widget is added, animation should run.
+- 'duration': how long the animation lasts in ms.
+- 'onFinished': event to raise when animation is complete.
+- Individual combinators for direction.
+-}
 data SlideCfg e = SlideCfg {
   _slcDirection :: Maybe SlideDirection,
   _slcAutoStart :: Maybe Bool,

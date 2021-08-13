@@ -8,13 +8,11 @@ Portability : non-portable
 
 Simple alert dialog, displaying a close button and optional title. Usually
 embedded in a zstack component and displayed/hidden depending on context.
-
-Config:
-
-- titleCaption: the title of the alert dialog.
-- closeCaption: the caption of the close button.
 -}
 module Monomer.Widgets.Containers.Alert (
+  -- * Configuration
+  AlertCfg,
+  -- * Constructors
   alert,
   alert_,
   alertMsg,
@@ -41,6 +39,12 @@ import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for alert:
+
+- 'titleCaption': the title of the alert dialog.
+- 'closeCaption': the caption of the close button.
+-}
 data AlertCfg = AlertCfg {
   _alcTitle :: Maybe Text,
   _alcClose :: Maybe Text
@@ -73,19 +77,19 @@ instance CmbCloseCaption AlertCfg where
 
 -- | Creates an alert dialog with the provided content.
 alert
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ep                -- ^ The event to raise when the dialog is closed.
-  -> WidgetNode () ep  -- ^ The content to display in the dialog.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  :: (WidgetModel s, WidgetEvent e)
+  => e                -- ^ The event to raise when the dialog is closed.
+  -> WidgetNode () e  -- ^ The content to display in the dialog.
+  -> WidgetNode s e  -- ^ The created dialog.
 alert evt dialogBody = alert_ evt def dialogBody
 
 -- | Creates an alert dialog with the provided content. Accepts config.
 alert_
-  :: (WidgetModel sp, WidgetEvent ep)
-  => ep                -- ^ The event to raise when the dialog is closed.
+  :: (WidgetModel s, WidgetEvent e)
+  => e                -- ^ The event to raise when the dialog is closed.
   -> [AlertCfg]        -- ^ The config options for the dialog.
-  -> WidgetNode () ep  -- ^ The content to display in the dialog.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  -> WidgetNode () e  -- ^ The content to display in the dialog.
+  -> WidgetNode s e  -- ^ The created dialog.
 alert_ evt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) evt config
@@ -93,19 +97,19 @@ alert_ evt configs dialogBody = newNode where
 
 -- | Creates an alert dialog with a text message as content.
 alertMsg
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Text              -- ^ The message to display.
-  -> ep                -- ^ The event to raise when the dialog is closed.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  -> e                -- ^ The event to raise when the dialog is closed.
+  -> WidgetNode s e  -- ^ The created dialog.
 alertMsg message evt = alertMsg_ message evt def
 
 -- | Creates an alert dialog with a text message as content. Accepts config.
 alertMsg_
-  :: (WidgetModel sp, WidgetEvent ep)
+  :: (WidgetModel s, WidgetEvent e)
   => Text              -- ^ The message to display.
-  -> ep                -- ^ The event to raise when the dialog is closed.
+  -> e                -- ^ The event to raise when the dialog is closed.
   -> [AlertCfg]        -- ^ The config options for the dialog.
-  -> WidgetNode sp ep  -- ^ The created dialog.
+  -> WidgetNode s e  -- ^ The created dialog.
 alertMsg_ message evt configs = newNode where
   config = mconcat configs
   dialogBody wenv = label_ message [multiline]

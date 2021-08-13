@@ -9,19 +9,7 @@ Portability : non-portable
 Dial widget, used for interacting with numeric values. It allows changing the
 value by keyboard arrows, dragging the mouse or using the wheel.
 
-Similar in objective to Slider, but uses less space.
-
-Configs:
-
-- width: sets the max width/height of the dial.
-- wheelRate: The rate at which wheel movement affects the number.
-- dragRate: The rate at which drag movement affects the number.
-- onFocus: event to raise when focus is received.
-- onFocusReq: WidgetRequest to generate when focus is received.
-- onBlur: event to raise when focus is lost.
-- onBlurReq: WidgetRequest to generate when focus is lost.
-- onChange: event to raise when the value changes.
-- onChangeReq: WidgetRequest to generate when the value changes.
+Similar in objective to "Monomer.Widgets.Singles.Slider", but uses less space.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -31,6 +19,10 @@ Configs:
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Singles.Dial (
+  -- * Configuration
+  DialValue,
+  DialCfg,
+  -- * Constructors
   dial,
   dial_,
   dialV,
@@ -53,9 +45,22 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
+-- | Constraints for numeric types accepted by dial.
 type DialValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
--- | Configuration options for dial widget.
+{-|
+Configuration options for dial:
+
+- 'width': sets the max width/height of the dial.
+- 'wheelRate': The rate at which wheel movement affects the number.
+- 'dragRate': The rate at which drag movement affects the number.
+- 'onFocus': event to raise when focus is received.
+- 'onFocusReq': 'WidgetRequest' to generate when focus is received.
+- 'onBlur': event to raise when focus is lost.
+- 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
+-}
 data DialCfg s e a = DialCfg {
   _dlcWidth :: Maybe Double,
   _dlcWheelRate :: Maybe Rational,
@@ -161,7 +166,7 @@ dial_
 dial_ field minVal maxVal cfgs = dialD_ (WidgetLens field) minVal maxVal cfgs
 
 {-|
-Creates a dial using the given value and onChange event handler, providing
+Creates a dial using the given value and 'onChange' event handler, providing
 minimum and maximum values.
 -}
 dialV
@@ -174,7 +179,7 @@ dialV
 dialV value handler minVal maxVal = dialV_ value handler minVal maxVal def
 
 {-|
-Creates a dial using the given value and onChange event handler, providing
+Creates a dial using the given value and 'onChange' event handler, providing
 minimum and maximum values.
 Accepts config.
 -}
@@ -192,7 +197,7 @@ dialV_ value handler minVal maxVal configs = newNode where
   newNode = dialD_ widgetData minVal maxVal newConfigs
 
 {-|
-Creates a dial providing a WidgetData instance, minimum and maximum values and
+Creates a dial providing a 'WidgetData' instance, minimum and maximum values and
 config.
 -}
 dialD_

@@ -7,22 +7,14 @@ Stability   : experimental
 Portability : non-portable
 
 Label widget, with support for multiline text.
-
-Configs:
-
-- trimSpaces: whether to remove leading/trailing spaces in the caption.
-- ellipsis: if ellipsis should be used for overflown text.
-- multiline: if text may be split in multiple lines.
-- maxLines: maximum number of text lines to show.
-- ignoreTheme: whether to load default style from theme or start empty.
-- resizeFactor: flexibility to have more or less spaced assigned.
-- resizeFactorW: flexibility to have more or less horizontal spaced assigned.
-- resizeFactorH: flexibility to have more or less vertical spaced assigned.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Monomer.Widgets.Singles.Label (
-  LabelCfg(..),
+  -- * Configuration
+  LabelCfg,
+  -- * Constructors
+  labelCurrentStyle,
   label,
   label_,
   labelS,
@@ -45,7 +37,18 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
--- | Configuration options for label widget.
+{-|
+Configuration options for label.
+
+- 'trimSpaces': whether to remove leading/trailing spaces in the caption.
+- 'ellipsis': if ellipsis should be used for overflown text.
+- 'multiline': if text may be split in multiple lines.
+- 'maxLines': maximum number of text lines to show.
+- 'ignoreTheme': whether to load default style from theme or start empty.
+- 'resizeFactor': flexibility to have more or less spaced assigned.
+- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
+- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
+-}
 data LabelCfg s e = LabelCfg {
   _lscIgnoreTheme :: Maybe Bool,
   _lscTextTrim :: Maybe Bool,
@@ -122,6 +125,16 @@ instance CmbResizeFactorDim (LabelCfg s e) where
   resizeFactorH h = def {
     _lscFactorH = Just h
   }
+
+-- | Custom current style to be used by the label widget. Useful for widgets
+--   with an embedded label (for example, 'Monomer.Widgets.Singles.Button' and
+--   'Monomer.Widgets.Singles.ExternalLink').
+labelCurrentStyle
+  :: (WidgetEnv s e -> WidgetNode s e -> StyleState)
+  -> LabelCfg s e
+labelCurrentStyle style = def {
+  _lscCurrentStyle = Just style
+}
 
 data LabelState = LabelState {
   _lstCaption :: Text,

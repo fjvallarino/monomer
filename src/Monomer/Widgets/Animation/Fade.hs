@@ -8,15 +8,9 @@ Portability : non-portable
 
 Fade animation widget. Wraps a child widget whose content will be animated.
 
-Config:
-
-- autoStart: whether the first time the widget is added, animation should run.
-- duration: how long the animation lasts in ms.
-- onFinished: event to raise when animation is complete.
-
 Messages:
 
-- Receives a 'AnimationMsg', used to control the state of the animation.
+- Accepts an 'AnimationMsg', used to control the state of the animation.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -25,6 +19,9 @@ Messages:
 {-# LANGUAGE OverloadedStrings #-}
 
 module Monomer.Widgets.Animation.Fade (
+  -- * Configuration
+  FadeCfg,
+  -- * Constructors
   animFadeIn,
   animFadeIn_,
   animFadeOut,
@@ -47,6 +44,13 @@ import Monomer.Widgets.Animation.Types
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for fade:
+
+- 'autoStart': whether the first time the widget is added, animation should run.
+- 'duration': how long the animation lasts in ms.
+- 'onFinished': event to raise when animation is complete.
+-}
 data FadeCfg e = FadeCfg {
   _fdcAutoStart :: Maybe Bool,
   _fdcDuration :: Maybe Int,

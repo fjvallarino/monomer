@@ -7,9 +7,9 @@ Stability   : experimental
 Portability : non-portable
 
 Composite widget. Main glue between all the other widgets, also acts as the main
-app widget. Composite allows to split an application into reusable partss
-without the need to implement a lower level widget. It can comunicate with its
-parent component by reporting events.
+app widget. Composite allows to split an application into reusable parts without
+the need to implement a lower level widget. It can comunicate with its parent
+component by reporting events.
 
 Requires two main functions:
 
@@ -18,26 +18,6 @@ and model. This widget tree is made of other widgets, in general combinations of
 containers and singles.
 - Event Handler: processes user defined events which are raised by the widgets
 created when building the UI.
-
-Configs:
-
-- mergeRequired: indicates if merging is necessary for this widget. In case the
-UI build process references information outside the model, it can be used to
-signal that merging is required even if the model has not changed. It can also
-be used as a performance tweak if the changes do not require rebuilding the UI.
-- onInit: event to raise when the widget is created. Useful for performing all
-kinds of initialization.
-- onDispose: event to raise when the widget is disposed. Used to free resources.
-- onResize: event to raise when the size of the widget changes.
-- onChange: event to raise when the size of the model changes.
-- onChangeReq: WidgetRequest to generate when the size of the widget changes.
-- onEnabledChange: event to raise when the enabled status changes.
-- onVisibleChange: event to raise when the visibility changes.
-- compositeMergeReqs: functions to generate WidgetRequests during the merge
-process. Since merge is already handled by Composite (by merging its tree), this
-is complementary for the cases when it's required. For example, it is used in
-'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept button when
-visibility is restored (usually means it was brought to the front in a zstack).
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -48,16 +28,27 @@ visibility is restored (usually means it was brought to the front in a zstack).
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Composite (
+  -- * Re-exported modules
   module Monomer.Core,
   module Monomer.Event,
   module Monomer.Widgets.Util,
 
+  -- * Configuration
   CompositeCfg,
   EventResponse(..),
+  CompParentModel,
+  CompositeModel,
+  CompositeEvent,
+  MergeRequired,
   MergeReqsHandler,
   EventHandler,
   UIBuilder,
+  TaskHandler,
+  ProducerHandler,
+  CompMsgUpdate,
   compositeMergeReqs,
+
+  -- * Constructors
   composite,
   composite_,
   compositeV,
@@ -93,27 +84,41 @@ import Monomer.Widgets.Util
 import qualified Monomer.Core.Lens as L
 
 -- | Type of the parent's model
-type ParentModel sp = Typeable sp
+type CompParentModel sp = Typeable sp
 -- | Type of the composite's model
 type CompositeModel s = (Eq s, WidgetModel s)
 -- | Type of the composite's event
 type CompositeEvent e = WidgetEvent e
 
--- | Generates requests during the merge process.
-type MergeReqsHandler s e
-  = WidgetEnv s e -> WidgetNode s e -> WidgetNode s e -> s -> [WidgetRequest s e]
--- | Handles a composite event and returns a set of responses.
-type EventHandler s e sp ep
-  = WidgetEnv s e -> WidgetNode s e -> s -> e -> [EventResponse s e sp ep]
--- | Creates the widget tree based on the given model.
-type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
 -- | Checks if merging the composite is required.
 type MergeRequired s = s -> s -> Bool
+
+-- | Generates requests during the merge process.
+type MergeReqsHandler s e
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> WidgetNode s e
+  -> s
+  -> [WidgetRequest s e]
+
+-- | Handles a composite event and returns a set of responses.
+type EventHandler s e sp ep
+  = WidgetEnv s e
+  -> WidgetNode s e
+  -> s
+  -> e
+  -> [EventResponse s e sp ep]
+
+-- | Creates the widget tree based on the given model.
+type UIBuilder s e = WidgetEnv s e -> s -> WidgetNode s e
+
 -- | Asynchronous task generating a single event.
 type TaskHandler e = IO e
+
 -- | Asynchronous task generating multiple events.
 type ProducerHandler e = (e -> IO ()) -> IO ()
 
+-- | Model update function wrapped as a message.
 data CompMsgUpdate
   = forall s . CompositeModel s => CompMsgUpdate (s -> s)
 
@@ -125,10 +130,10 @@ data EventResponse s e sp ep
   | Event e
   -- | Raises an event that will be handled by the parent.
   | Report ep
-  -- | Generates a WidgetRequest.
+  -- | Generates a 'WidgetRequest'.
   | Request (WidgetRequest s e)
   {-|
-  Generates a WidgetRequest matching the parent's types. Useful when receiving
+  Generates a 'WidgetRequest' matching the parent's types. Useful when receiving
   requests as configuration from the parent, since the types will not match
   otherwise.
   -}
@@ -151,7 +156,31 @@ data EventResponse s e sp ep
   -}
   | Producer (ProducerHandler e)
 
--- | Configuration options for composite widget.
+{-|
+Configuration options for composite:
+
+- 'mergeRequired': indicates if merging is necessary for this widget. In case
+  the UI build process references information outside the model, it can be used
+  to signal that merging is required even if the model has not changed. It can
+  also be used as a performance tweak if the changes do not require rebuilding
+  the UI.
+- 'onInit': event to raise when the widget is created. Useful for performing all
+  kinds of initialization.
+- 'onDispose': event to raise when the widget is disposed. Used to free
+  resources.
+- 'onResize': event to raise when the size of the widget changes.
+- 'onChange': event to raise when the size of the model changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the size of the widget
+  changes.
+- 'onEnabledChange': event to raise when the enabled status changes.
+- 'onVisibleChange': event to raise when the visibility changes.
+- 'compositeMergeReqs': functions to generate WidgetRequests during the merge
+  process. Since merge is already handled by Composite (by merging its tree),
+  this is complementary for the cases when it's required. For example, it is
+  used in 'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept
+  button when visibility is restored (usually means it was brought to the front
+  in a zstack).
+-}
 data CompositeCfg s e sp ep = CompositeCfg {
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcMergeReqs :: [MergeReqsHandler s e],
@@ -270,7 +299,7 @@ data ReducedEvents s e sp ep = ReducedEvents {
 Creates a composite taking its model from a lens into the parent model.
 -}
 composite
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType              -- ^ The name of the composite.
   -> ALens' sp s             -- ^ The lens into the parent's model.
   -> UIBuilder s e           -- ^ The UI builder function.
@@ -284,7 +313,7 @@ Creates a composite taking its model from a lens into the parent model. Accepts
 config.
 -}
 composite_
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType                -- ^ The name of the composite.
   -> ALens' sp s               -- ^ The lens into the parent's model.
   -> UIBuilder s e             -- ^ The UI builder function.
@@ -297,7 +326,7 @@ composite_ widgetType field uiBuilder evtHandler cfgs = newNode where
 
 -- | Creates a composite using the given model and onChange event handler.
 compositeV
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType              -- ^ The name of the composite.
   -> s                       -- ^ The model.
   -> (s -> ep)               -- ^ The event to report when model changes.
@@ -312,7 +341,7 @@ Creates a composite using the given model and onChange event handler. Accepts
 config.
 -}
 compositeV_
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType                -- ^ The name of the composite.
   -> s                         -- ^ The model.
   -> (s -> ep)                 -- ^ The event to report when model changes.
@@ -325,9 +354,9 @@ compositeV_ wType val handler uiBuilder evtHandler cfgs = newNode where
   newCfgs = onChange handler : cfgs
   newNode = compositeD_ wType widgetData uiBuilder evtHandler newCfgs
 
--- | Creates a color picker providing a WidgetData instance and config.
+-- | Creates a composite providing a WidgetData instance and config.
 compositeD_
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType                -- ^ The name of the composite.
   -> WidgetData sp s           -- ^ The model.
   -> UIBuilder s e             -- ^ The UI builder function.
@@ -356,7 +385,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
   newNode = defaultWidgetNode wType widget
 
 createComposite
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> Widget sp ep
@@ -379,7 +408,7 @@ createComposite comp state = widget where
 
 -- | Init
 compositeInit
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -408,7 +437,7 @@ compositeInit comp state wenv widgetComp = newResult where
 
 -- | Merge
 compositeMerge
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -467,7 +496,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
 
 -- | Dispose
 compositeDispose
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -485,7 +514,7 @@ compositeDispose comp state wenv widgetComp = result where
   result = toParentResult comp state wenv widgetComp tempResult
 
 compositeGetInstanceTree
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -505,7 +534,7 @@ compositeGetInstanceTree comp state wenv node = instTree where
 
 -- | Next focusable
 compositeFindNextFocus
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -522,7 +551,7 @@ compositeFindNextFocus comp state wenv widgetComp dir start = nextFocus where
 
 -- | Find
 compositeFindByPoint
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -543,7 +572,7 @@ compositeFindByPoint comp state wenv widgetComp start point
     resultInfo = widgetFindByPoint widget cwenv _cpsRoot start point
 
 compositeFindBranchByPath
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -565,7 +594,7 @@ compositeFindBranchByPath comp state wenv widgetComp path
 
 -- | Event handling
 compositeHandleEvent
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -591,7 +620,7 @@ compositeHandleEvent comp state wenv widgetComp target evt = result where
 
 -- | Message handling
 compositeHandleMessage
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp, Typeable i)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp, Typeable i)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -614,7 +643,7 @@ compositeHandleMessage comp state@CompositeState{..} wenv widgetComp target arg
 
 -- Preferred size
 compositeGetSizeReq
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -633,7 +662,7 @@ compositeGetSizeReq comp state wenv widgetComp = (newReqW, newReqH) where
 
 -- Preferred size
 updateSizeReq
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -647,7 +676,7 @@ updateSizeReq comp state wenv widgetComp = newComp where
 
 -- Resize
 compositeResize
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -678,7 +707,7 @@ compositeResize comp state wenv widgetComp viewport rszReq = resizedRes where
 
 -- Render
 compositeRender
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -693,7 +722,7 @@ compositeRender comp state wenv widgetComp renderer = action where
   action = widgetRender widget cwenv _cpsRoot renderer
 
 handleMsgEvent
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -712,7 +741,7 @@ handleMsgEvent comp state wenv widgetComp event = newResult where
   newResult = WidgetResult widgetComp (Seq.fromList (catMaybes newReqs))
 
 handleMsgUpdate
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -730,7 +759,7 @@ handleMsgUpdate comp state wenv widgetComp fnUpdate = result where
     | otherwise = mergeChild comp state wenv newModel _cpsRoot widgetComp
 
 toParentResult
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -750,7 +779,7 @@ toParentResult comp state wenv widgetComp result = newResult where
   newResult = WidgetResult newNode newReqs
 
 evtResponseToRequest
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetNode sp ep
   -> WidgetKeyMap s e
   -> EventResponse s e sp ep
@@ -770,7 +799,7 @@ evtResponseToRequest widgetComp widgetKeys response = case response of
     path = widgetComp ^. L.info . L.path
 
 mergeChild
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> CompositeState s e
   -> WidgetEnv sp ep
@@ -797,14 +826,14 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
     & L.requests <>~ Seq.fromList newReqs
 
 getModel
-  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, ParentModel sp)
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => Composite s e sp ep
   -> WidgetEnv sp ep
   -> s
 getModel comp wenv = widgetDataGet (_weModel wenv) (_cmpWidgetData comp)
 
 toParentReq
-  :: (CompositeModel s, ParentModel sp)
+  :: (CompositeModel s, CompParentModel sp)
   => WidgetId
   -> WidgetRequest s e
   -> Maybe (WidgetRequest sp ep)

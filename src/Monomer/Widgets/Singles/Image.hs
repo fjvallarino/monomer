@@ -12,26 +12,8 @@ Notes:
 
 - Depending on the type of image fit chosen and the assigned viewport, some
   space may remain unused. The alignment options exist to handle this situation.
-- If you choose `fitNone`, `imageRepeatX` and `imageRepeatY` won't have any kind
-  of effect.
-
-Configs:
-
-- transparency: the alpha to apply when rendering the image.
-- onLoadError: an event to report a load error.
-- imageNearest: apply nearest filtering when stretching an image.
-- imageRepeatX: repeat the image across the x coordinate.
-- imageRepeatY: repeat the image across the y coordinate.
-- fitNone: does not perform any streching if the size does not match viewport.
-- fitFill: stretches the image to match the viewport.
-- fitWidth: stretches the image to match the viewport width. Maintains ratio.
-- fitHeight: stretches the image to match the viewport height. Maintains ratio.
-- alignLeft: aligns left if extra space is available.
-- alignRight: aligns right if extra space is available.
-- alignCenter: aligns center if extra space is available.
-- alignTop: aligns top if extra space is available.
-- alignMiddle: aligns middle if extra space is available.
-- alignBottom: aligns bottom if extra space is available.
+- If you choose 'fitNone', adding 'imageRepeatX' and 'imageRepeatY' won't have
+  any kind of effect.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -39,7 +21,10 @@ Configs:
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Singles.Image (
+  -- * Configuration
+  ImageCfg,
   ImageLoadError(..),
+  -- * Constructors
   image,
   image_,
   imageMem,
@@ -89,7 +74,25 @@ data ImageLoadError
   | ImageInvalid String
   deriving (Eq, Show)
 
--- | Configuration options for image widget.
+{-|
+Configuration options for image:
+
+- 'transparency': the alpha to apply when rendering the image.
+- 'onLoadError': an event to report a load error.
+- 'imageNearest': apply nearest filtering when stretching an image.
+- 'imageRepeatX': repeat the image across the x coordinate.
+- 'imageRepeatY': repeat the image across the y coordinate.
+- 'fitNone': does not perform any streching if the size does not match viewport.
+- 'fitFill': stretches the image to match the viewport.
+- 'fitWidth': stretches the image to match the viewport width. Maintains ratio.
+- 'fitHeight': stretches the image to match the viewport height. Maintains ratio.
+- 'alignLeft': aligns left if extra space is available.
+- 'alignRight': aligns right if extra space is available.
+- 'alignCenter': aligns center if extra space is available.
+- 'alignTop': aligns top if extra space is available.
+- 'alignMiddle': aligns middle if extra space is available.
+- 'alignBottom': aligns bottom if extra space is available.
+-}
 data ImageCfg e = ImageCfg {
   _imcLoadError :: [ImageLoadError -> e],
   _imcFlags :: [ImageFlag],

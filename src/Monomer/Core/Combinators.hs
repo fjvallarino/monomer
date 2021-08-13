@@ -500,11 +500,12 @@ class CmbSizeReqH t where
 class CmbSizeReqUpdater t where
   sizeReqUpdater :: ((SizeReq, SizeReq) -> (SizeReq, SizeReq)) -> t
 
--- | Resize factor combinator.
+-- | Resize factor combinator. A value of 0 represents fixed size.
 class CmbResizeFactor t where
   resizeFactor :: Double -> t
 
--- | Resize factor combinator for individual w and h components.
+-- | Resize factor combinator for individual w and h components. A value of 0
+--   represents fixed size.
 class CmbResizeFactorDim t where
   resizeFactorW :: Double -> t
   resizeFactorH :: Double -> t

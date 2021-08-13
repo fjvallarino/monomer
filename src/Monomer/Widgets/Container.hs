@@ -14,12 +14,14 @@ Helper for creating widgets with children elements.
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Container (
+  -- * Re-exported modules
   module Monomer.Core,
   module Monomer.Core.Combinators,
   module Monomer.Event,
   module Monomer.Graphics,
   module Monomer.Widgets.Util,
 
+  -- * Configuration
   ContainerGetBaseStyle,
   ContainerGetCurrentStyle,
   ContainerUpdateCWenvHandler,
@@ -37,10 +39,11 @@ module Monomer.Widgets.Container (
   ContainerGetSizeReqHandler,
   ContainerResizeHandler,
   ContainerRenderHandler,
-
   Container(..),
-  createContainer,
-  updateWenvOffset
+  updateWenvOffset,
+
+  -- * Constructors
+  createContainer
 ) where
 
 import Control.Applicative ((<|>))
@@ -126,8 +129,9 @@ type ContainerInitHandler s e
 {-|
 Allows making further operations after children have been initialized.
 
-Note: if state was modified on `init`, you should use the new state provided as
-an argument, since the state referenced in the closure will be outdated.
+Note: if state was modified on 'containerInit', you should use the new state
+provided as an argument, since the state referenced in the closure will be
+outdated.
 -}
 type ContainerInitPostHandler s e a
   = WidgetEnv s e      -- ^ The widget environment.

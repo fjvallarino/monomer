@@ -12,20 +12,18 @@ without having to implement a custom widget. Usually works in tandem with
 
 Raises a user provided event when an item is dropped. The type must match with
 the dragged message, otherwise it will not be raised.
-
-Configs:
-
-- dropTargetStyle: The style to apply to the container when a dragged item is
-on top.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Monomer.Widgets.Containers.DropTarget (
+  -- * Configuration
+  DropTargetCfg,
+  dropTargetStyle,
+  -- * Constructors
   dropTarget,
-  dropTarget_,
-  dropTargetStyle
+  dropTarget_
 ) where
 
 import Control.Lens ((&), (^.), (.~))
@@ -40,6 +38,12 @@ import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
 
+{-|
+Configuration options for dropTarget:
+
+- 'dropTargetStyle': The style to apply to the container when a dragged item is
+  on top.
+-}
 newtype DropTargetCfg = DropTargetCfg {
   _dtcDropStyle :: Maybe StyleState
 }
