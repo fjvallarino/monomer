@@ -8,4 +8,4 @@ dist-docs.*/
 *.prof
 *.ps
 *.ser
-cabal.project*
+cabal.project.local*
