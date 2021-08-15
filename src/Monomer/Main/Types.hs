@@ -152,6 +152,8 @@ data AppConfig e = AppConfig {
   _apcWindowResizable :: Maybe Bool,
   -- | Whether the main window has a border.
   _apcWindowBorder :: Maybe Bool,
+  -- | Whether continuous rendering on window resize is enabled.
+  _apcContinuousResize :: Maybe Bool,
   {-|
   Max number of FPS the application will run at. It does not necessarily mean
   rendering will happen every frame, but events and schedules will be checked at
@@ -191,6 +193,7 @@ instance Default (AppConfig e) where
     _apcWindowTitle = Nothing,
     _apcWindowResizable = Nothing,
     _apcWindowBorder = Nothing,
+    _apcContinuousResize = Nothing,
     _apcMaxFps = Nothing,
     _apcScaleFactor = Nothing,
     _apcFonts = [],
@@ -209,6 +212,7 @@ instance Semigroup (AppConfig e) where
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
     _apcWindowResizable = _apcWindowResizable a2 <|> _apcWindowResizable a1,
     _apcWindowBorder = _apcWindowBorder a2 <|> _apcWindowBorder a1,
+    _apcContinuousResize = _apcContinuousResize a2 <|> _apcContinuousResize a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcScaleFactor = _apcScaleFactor a2 <|> _apcScaleFactor a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
@@ -246,6 +250,16 @@ appWindowResizable resizable = def {
 appWindowBorder :: Bool -> AppConfig e
 appWindowBorder border = def {
   _apcWindowBorder = Just border
+}
+
+{-|
+Disables continuous rendering on window resize. This is useful when OpenGL
+driver issues prevent normal startup showing the "Unable to make GL context
+current" error.
+-}
+appDisableContinuousResize :: AppConfig e
+appDisableContinuousResize = def {
+  _apcContinuousResize = Just False
 }
 
 {-|

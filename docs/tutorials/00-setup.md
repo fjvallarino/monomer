@@ -82,6 +82,15 @@ Inside your project's directory:
 stack build
 ```
 
+#### Linux notes
+
+It has been reported one case where an _"Unable to make GL context current"_
+error ocurred on application startup. This seems to be a driver issue, and it's
+not something that can be fixed from the library. As a workaround, an
+application configuration option called `appDisableContinuousResize` is
+available. It can be added in the `config` list of the starter application or
+on the corresponding section of any of the examples.
+
 ### Windows
 
 ```bash

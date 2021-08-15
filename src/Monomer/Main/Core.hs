@@ -70,6 +70,7 @@ type AppUIBuilder s e = UIBuilder s e
 
 data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
+  _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
   _mlAppStartTs :: Int,
   _mlMaxFps :: Int,
@@ -132,6 +133,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
+  let continuousResize = fromMaybe True (_apcContinuousResize config)
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
@@ -143,6 +145,9 @@ runAppLoop window glCtx channel widgetRoot config = do
   model <- use L.mainModel
   os <- getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
+  renderer <- if continuousResize
+    then return Nothing
+    else liftIO $ Just <$> makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
 
   let wenv = WidgetEnv {
@@ -179,6 +184,7 @@ runAppLoop window glCtx channel widgetRoot config = do
 
   let loopArgs = MainLoopArgs {
     _mlOS = os,
+    _mlRenderer = renderer,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
     _mlAppStartTs = 0,
@@ -194,10 +200,11 @@ runAppLoop window glCtx channel widgetRoot config = do
 
   L.mainModel .= _weModel newWenv
 
-  liftIO . forkOS . void $
-    startRenderThread channel window glCtx fonts dpr newWenv newRoot
+  when continuousResize $ do
+    liftIO $ watchWindowResize channel
+    liftIO . void . forkOS $
+      startRenderThread channel window glCtx fonts dpr newWenv newRoot
 
-  liftIO $ watchWindowResize channel
   mainLoop window fontManager config loopArgs
 
 mainLoop
@@ -297,12 +304,19 @@ mainLoop window fontManager config loopArgs = do
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTicks _mlLatestRenderTs
 
+  let continuousResize = fromMaybe True (_apcContinuousResize config)
   let renderEvent = any isActionEvent eventsPayload
   let winRedrawEvt = windowResized || windowExposed
   let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
 
-  when renderNeeded $
+  when (renderNeeded && continuousResize) $
     liftIO . atomically $ writeTChan _mlChannel (MsgRender newWenv newRoot)
+
+  when (renderNeeded && not continuousResize) $ do
+    let renderer = fromJust _mlRenderer
+    let bgColor = newWenv ^. L.theme . L.clearColor
+
+    liftIO $ renderWidgets window dpr renderer bgColor newWenv newRoot
 
   L.renderRequested .= windowResized
 
