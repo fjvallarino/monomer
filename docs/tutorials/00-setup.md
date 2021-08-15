@@ -11,7 +11,7 @@ Windows a regular installer is available.
 ## Clone the starter project
 
 ```bash
-git clone https://github.com/fjvallarino/monomer-starter.git
+git clone https://github.com/fjvallarino/monomer-starter.git <your-app-name>
 ```
 
 ## Libraries: SDL2 and GLEW
@@ -62,7 +62,7 @@ sudo dnf install SDL2-devel glew-devel
 
 ### Windows
 
-Inside the sample project's directory:
+Inside your project's directory:
 
 ```bash
 stack setup
@@ -73,6 +73,8 @@ stack exec -- pacman -S mingw-w64-x86_64-glew
 ```
 
 ## Build the project
+
+Inside your project's directory:
 
 ### macOS / Linux
 
