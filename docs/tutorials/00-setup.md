@@ -84,12 +84,13 @@ stack build
 
 #### Linux notes
 
-It has been reported one case where an _"Unable to make GL context current"_
-error ocurred on application startup. This seems to be a driver issue, and it's
-not something that can be fixed from the library. As a workaround, an
-application configuration option called `appDisableContinuousResize` is
-available. It can be added in the `config` list of the starter application or
-on the corresponding section of any of the examples.
+One case has been reported where an _"Unable to make GL context current"_ error
+ocurred on application startup. This seems to be a driver issue, and it's not
+something that can be fixed from the library.
+
+As a workaround, an application configuration option called
+`appRenderOnMainThread` is available. It can be added to the `config` list of
+the starter application or to the corresponding section of any of the examples.
 
 ### Windows
 
@@ -196,10 +197,10 @@ Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
 ### ghcid
 
 The sample project includes custom .ghci and .ghcid files. The most important
-change in .ghci is for Mac users, since Mac does not allow rendering to happen
-outside the main thread (by default `ghci` spawns a thread for user code). If
-you create your custom GHCi config and run into issues, check if you are
-providing the necessary flags.
+change in .ghci is for Mac users, since macOS does not allow graphics setup to
+happen outside the main thread (by default `ghci` spawns a thread for user
+code). If you create your custom GHCi config and run into issues, check if you
+are providing the necessary flags.
 
 <br/>
 

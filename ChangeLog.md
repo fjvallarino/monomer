@@ -1,6 +1,6 @@
 ### 1.0.0.2
 
-Added `appDisableContinuousResize` option.
+Added `appRenderOnMainThread` option.
 
 ### 1.0.0.1
 
