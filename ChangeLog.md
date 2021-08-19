@@ -1,3 +1,7 @@
+### 1.0.0.3
+
+- Consume and forward all available messages from Producers on each cycle.
+
 ### 1.0.0.2
 
 - Use the recently published nanovg-0.8.0.0 from Hackage, instead of the version from the PR's commit.

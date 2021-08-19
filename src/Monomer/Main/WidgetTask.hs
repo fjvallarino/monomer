@@ -27,6 +27,7 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
+import Monomer.Helper (collectJustM)
 import Monomer.Main.Handlers
 import Monomer.Main.Lens
 import Monomer.Main.Util
@@ -72,11 +73,13 @@ processTask wenv widgetRoot (WidgetTask widgetId task) = do
     Just taskRes -> processTaskResult wenv widgetRoot widgetId taskRes
     Nothing -> return (wenv, widgetRoot, Seq.empty)
 processTask wenv widgetRoot (WidgetProducer widgetId channel task) = do
-  channelStatus <- liftIO . atomically $ tryReadTChan channel
+  channelStatus <- collectJustM . liftIO . atomically $ tryReadTChan channel
 
-  case channelStatus of
-    Just taskMsg -> processTaskEvent wenv widgetRoot widgetId taskMsg
-    Nothing -> return (wenv, widgetRoot, Seq.empty)
+  foldM processMsg (wenv, widgetRoot, Seq.empty) channelStatus
+  where
+    processMsg (wenv1, root1, reqs1) taskMsg = do
+      (wenv2, root2, reqs2) <- processTaskEvent wenv1 root1 widgetId taskMsg
+      return (wenv2, root2, reqs1 <> reqs2)
 
 processTaskResult
   :: (MonomerM s e m, Typeable i)
