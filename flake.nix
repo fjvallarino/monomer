@@ -23,10 +23,7 @@
                   sha256 =
                     "0vvj4l2dfjqspl80bwq4vkcql5p7s5a7l1cv7vajkak0vn1ryy70";
                 }) "-fexamples -fstb_truetype" {
-                  GLEW = null;
-                  inherit glew;
-                  inherit libGL;
-                  inherit libGLU;
+                  inherit GLEW glew libGL libGLU;
                   inherit (xorg) libX11;
                 });
               GLEW = glew;
