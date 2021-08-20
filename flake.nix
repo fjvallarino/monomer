@@ -19,9 +19,14 @@
       in with (import nixpkgs { inherit system overlays; }); rec {
         packages = flattenTree (recurseIntoAttrs {
           inherit (libraries) monomer;
-          inherit (qemu) monomer-vm;
+          inherit (qemu) nixos;
         });
-        apps = executables // { inherit vm; };
+        apps = executables // {
+          nixos = mkApp {
+            drv = qemu.nixos;
+            name = "run-nixos-vm";
+          };
+        };
         defaultPackage = packages.monomer;
         defaultApp = apps.tutorial;
       });

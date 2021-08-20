@@ -4,7 +4,7 @@ with self;
 with haskell.lib;
 with flake-utils.lib;
 with haskellPackages;
-let hostname = "monomer-vm";
+let hostname = "nixos";
 in rec {
   qemu = recurseIntoAttrs {
     "${hostname}" = (import "${nixpkgs}/nixos" {
@@ -83,9 +83,5 @@ in rec {
           };
         };
     }).vm;
-  };
-  vm = mkApp {
-    drv = qemu;
-    name = "run-monomer-vm";
   };
 }
