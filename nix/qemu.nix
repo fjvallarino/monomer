@@ -41,7 +41,7 @@ in rec {
             }).drv
           ];
         in {
-          networking = { };
+          networking = { hostName = hostname; };
           environment = {
             systemPackages = (with pkgs; [ htop ]) ++ (mkSystemPackages {
               library = "monomer";
