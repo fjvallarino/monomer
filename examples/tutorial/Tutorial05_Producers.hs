@@ -3,6 +3,10 @@
 
 module Tutorial05_Producers where
 
+import Control.Exception (bracket)
+import System.Remote.Monitoring
+import Control.Concurrent
+
 import Control.Concurrent (threadDelay)
 import Control.Lens
 import Data.Text (Text)
@@ -30,11 +34,17 @@ buildUI
 buildUI wenv model = widgetTree where
   timeString = T.pack . show $ model ^. currentTime
 
-  timeLabel = label (T.takeWhile (/= '.') timeString)
-    `styleBasic` [textFont "Bold", textSize 80, textCenter, textMiddle, flexHeight 100]
+--  timeLabel = label (T.takeWhile (/= '.') timeString)
+--    `styleBasic` [textFont "Bold", textSize 80, textCenter, textMiddle, flexHeight 100]
 
+  timeLabel = label (T.takeWhile (/= '.') timeString)
+    `styleBasic` [textFont "Regular", textSize 20, textCenter, textMiddle, padding 10]
+
+  timeLabels = vstack (replicate 10 timeLabel)
+
+--  widgetTree = timeLabel
   widgetTree = vstack [
-      animFadeIn timeLabel `nodeKey` "fadeTimeLabel"
+      animFadeIn timeLabels `nodeKey` "fadeTimeLabel"
     ]
 
 handleEvent
@@ -55,7 +65,7 @@ timeOfDayProducer :: (AppEvent -> IO ()) -> IO ()
 timeOfDayProducer sendMsg = do
   time <- getLocalTimeOfDay
   sendMsg (AppSetTime time)
-  threadDelay $ 1000 * 1000
+  threadDelay $ 1000 * 10
   timeOfDayProducer sendMsg
 
 getLocalTimeOfDay :: IO TimeOfDay
@@ -78,3 +88,13 @@ main05 = do
     model time = AppModel {
       _currentTime = time
     }
+
+withMonitoring :: IO a -> IO a
+withMonitoring action = do
+  bracket
+    startServer
+    stopServer
+    (const action)
+  where
+    startServer = forkServer "localhost" 28000
+    stopServer server = killThread (serverThreadId server)

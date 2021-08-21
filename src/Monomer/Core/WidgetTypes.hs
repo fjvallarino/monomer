@@ -13,6 +13,8 @@ Basic types and definitions for Widgets.
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Core.WidgetTypes where
 
 import Control.Concurrent (MVar)
@@ -366,7 +368,7 @@ data WidgetNodeInfo =
     -}
     _wniViewport :: !Rect,
     -- | Style attributes of the widget instance.
-    _wniStyle :: Style
+    _wniStyle :: !Style
   } deriving (Eq, Show, Generic)
 
 instance Default WidgetNodeInfo where
@@ -387,11 +389,11 @@ instance Default WidgetNodeInfo where
 -- | An instance of the widget in the widget tree.
 data WidgetNode s e = WidgetNode {
   -- | The actual widget.
-  _wnWidget :: Widget s e,
+  _wnWidget :: !(Widget s e),
   -- | Information about the instance.
-  _wnInfo :: WidgetNodeInfo,
+  _wnInfo :: !WidgetNodeInfo,
   -- | The children widgets, if any.
-  _wnChildren :: Seq (WidgetNode s e)
+  _wnChildren :: !(Seq (WidgetNode s e))
 }
 
 {-|

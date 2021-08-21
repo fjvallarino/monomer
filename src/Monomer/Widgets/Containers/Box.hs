@@ -25,6 +25,8 @@ label with an image at its side).
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Containers.Box (
   -- * Configuration
   BoxCfg,

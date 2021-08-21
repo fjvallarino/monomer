@@ -13,6 +13,8 @@ overlays and all SystemEvent related operations and updates.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.Handlers (
   HandlerStep,
   handleSystemEvents,

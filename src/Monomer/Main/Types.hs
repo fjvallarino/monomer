@@ -15,6 +15,8 @@ Basic types for Main module.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.Types where
 
 import Control.Applicative ((<|>))

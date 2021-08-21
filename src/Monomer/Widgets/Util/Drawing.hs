@@ -11,6 +11,8 @@ Utility drawing functions. Built on top the lower level primitives provided by
 -}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Drawing (
   drawInScissor,
   drawInTranslation,

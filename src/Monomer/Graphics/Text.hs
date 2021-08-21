@@ -12,6 +12,8 @@ Helper functions for calculating text size.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Graphics.Text (
   calcTextSize,
   calcTextSize_,
@@ -193,7 +195,7 @@ getTextLinesSize textLines = size where
   spaceV = unFontSpace $ maybe def _tlFontSpaceV (textLines ^? ix 0)
   lineW line = line ^. L.size . L.w
   lineH line = line ^. L.size . L.h + unFontSpace (_tlFontSpaceV line)
-  width = maximum (fmap lineW textLines)
+  ~width = maximum (fmap lineW textLines)
   height = sum (fmap lineH textLines) - spaceV
   size
     | Seq.null textLines = def

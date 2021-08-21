@@ -14,6 +14,8 @@ Both adapt to the current layout direction, if any.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Singles.Spacer (
   --  * Configuration
   SpacerCfg,

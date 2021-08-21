@@ -4,6 +4,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+{-# LANGUAGE StrictData #-}
+
 module TickerTypes where
 
 import Control.Concurrent.STM.TChan

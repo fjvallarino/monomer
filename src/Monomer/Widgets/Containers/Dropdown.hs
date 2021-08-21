@@ -19,6 +19,8 @@ to use.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Containers.Dropdown (
   -- * Configuration
   DropdownCfg,

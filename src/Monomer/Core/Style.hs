@@ -8,6 +8,9 @@ Portability : non-portable
 
 Helper functions for creating style configurations, and corresponding instances.
 -}
+
+{-# LANGUAGE Strict #-}
+
 module Monomer.Core.Style (
   module Monomer.Core.StyleTypes,
   module Monomer.Core.ThemeTypes,

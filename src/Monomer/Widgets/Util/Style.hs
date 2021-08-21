@@ -11,6 +11,8 @@ Helper functions for style related operations.
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Style (
   collectStyleField,
   collectStyleField_,

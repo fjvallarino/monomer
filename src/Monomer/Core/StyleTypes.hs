@@ -10,6 +10,8 @@ Basic types for styling widgets.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Core.StyleTypes where
 
 import Control.Applicative ((<|>))

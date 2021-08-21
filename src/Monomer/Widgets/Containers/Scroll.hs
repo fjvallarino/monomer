@@ -24,6 +24,9 @@ Messages:
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
+{-# LANGUAGE Strict #-}
+
+
 module Monomer.Widgets.Containers.Scroll (
   -- * Configuration
   ScrollCfg,
@@ -375,7 +378,9 @@ makeScroll config state = widget where
   checkFwdStyle wenv node = newNode where
     fwdStyle = _scScrollFwdStyle config
     style = node ^. L.info . L.style
-    (parentStyle, childStyle) = fromJust fwdStyle wenv style
+    (parentStyle, childStyle)
+      | isJust fwdStyle = fromJust fwdStyle wenv style
+      | otherwise = def
     newNode
       | isJust fwdStyle = node
         & L.info . L.style .~ parentStyle

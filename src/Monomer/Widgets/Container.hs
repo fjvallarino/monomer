@@ -13,6 +13,8 @@ Helper for creating widgets with children elements.
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{-# LANGUAGE StrictData #-}
+
 module Monomer.Widgets.Container (
   -- * Re-exported modules
   module Monomer.Core,
@@ -669,7 +671,7 @@ mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts newIts = res where
   cwenv = updateCWenv newIdx newChild
 
   oldKeyMatch = newChildKey >>= \key -> M.lookup key oldKeys
-  oldMatch = fromJust oldKeyMatch
+  oldMatch = fromMaybe newNode oldKeyMatch
   isMergeKey = isJust oldKeyMatch && nodeMatches newChild oldMatch
 
   mergedOld = widgetMerge newWidget cwenv newChild oldChild
@@ -861,7 +863,7 @@ handleEventWrapper
 handleEventWrapper container wenv node baseTarget baseEvt
   | not (node ^. L.info . L.visible) || isNothing filteredEvt = Nothing
   | targetReached || not targetValid = pResultStyled
-  | otherwise = cResultStyled
+  | otherwise = nextTargetStep pNode target >>= cResultStyled
   where
     -- Having targetValid = False means the next path step is not in
     -- _wiChildren, but may still be valid in the receiving widget
@@ -882,30 +884,32 @@ handleEventWrapper container wenv node baseTarget baseEvt
     pResult = eventHandler wenv node target evt
     pResultStyled = handleStyleChange wenv target style doCursor node evt
       $ handleSizeReqChange container wenv node (Just evt) pResult
-    -- Event targeted at children
     pNode = maybe node (^. L.node) pResult
-    cwenv = updateCWenv wenv pNode child childIdx
-    childIdx = fromJust $ nextTargetStep pNode target
-    children = pNode ^. L.children
-    child = Seq.index children childIdx
-    childWidget = child ^. L.widget
-    cevt = translateEvent (negPoint offset) evt
 
-    childrenIgnored = isJust pResult && ignoreChildren (fromJust pResult)
-    parentIgnored = isJust cResult && ignoreParent (fromJust cResult)
+    -- Event targeted at children
+    cResultStyled childIdx = rrrrr where
+      --childIdx = fromJust $ nextTargetStep pNode target
+      children = pNode ^. L.children
+      child = Seq.index children childIdx
+      childWidget = child ^. L.widget
+      cevt = translateEvent (negPoint offset) evt
+      cwenv = updateCWenv wenv pNode child childIdx
 
-    cResult
-      | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
-      | otherwise = widgetHandleEvent childWidget cwenv child target cevt
-    cResultMerged
-      | parentIgnored = mergeParentChildEvts node Nothing cResult childIdx
-      | otherwise = mergeParentChildEvts pNode pResult cResult childIdx
+      childrenIgnored = isJust pResult && ignoreChildren (fromJust pResult)
+      parentIgnored = isJust cResult && ignoreParent (fromJust cResult)
 
-    cpNode
-      | parentIgnored = node
-      | otherwise = pNode
-    cResultStyled = handleStyleChange cwenv target style doCursor cpNode cevt
-      $ handleSizeReqChange container cwenv cpNode (Just cevt) cResultMerged
+      cResult
+        | childrenIgnored || not (child ^. L.info . L.enabled) = Nothing
+        | otherwise = widgetHandleEvent childWidget cwenv child target cevt
+      cResultMerged
+        | parentIgnored = mergeParentChildEvts node Nothing cResult childIdx
+        | otherwise = mergeParentChildEvts pNode pResult cResult childIdx
+
+      cpNode
+        | parentIgnored = node
+        | otherwise = pNode
+      rrrrr = handleStyleChange cwenv target style doCursor cpNode cevt
+        $ handleSizeReqChange container cwenv cpNode (Just cevt) cResultMerged
 
 mergeParentChildEvts
   :: WidgetNode s e
@@ -952,19 +956,20 @@ handleMessageWrapper container wenv node target arg
 
     targetReached = isTargetReached node target
     targetValid = isTargetValid node target
-    childIdx = fromJust $ nextTargetStep node target
-    children = node ^. L.children
-    child = Seq.index children childIdx
-    cwenv = updateCWenv wenv node child childIdx
 
-    message = widgetHandleMessage (child ^. L.widget) cwenv child target arg
-    messageResult = updateChild <$> message
-    updateChild cr = cr {
-      _wrNode = replaceChild node (_wrNode cr) childIdx
-    }
+    messageResult childIdx = updateChild <$> message where
+      children = node ^. L.children
+      child = Seq.index children childIdx
+      cwenv = updateCWenv wenv node child childIdx
+
+      message = widgetHandleMessage (child ^. L.widget) cwenv child target arg
+      updateChild cr = cr {
+        _wrNode = replaceChild node (_wrNode cr) childIdx
+      }
+
     result
       | targetReached = handler wenv node target arg
-      | otherwise = messageResult
+      | otherwise = nextTargetStep node target >>= messageResult
 
 -- | Preferred size
 defaultGetSizeReq :: ContainerGetSizeReqHandler s e

@@ -8,6 +8,9 @@ Portability : non-portable
 
 Helper functions creating, validating and merging size requirements.
 -}
+
+{-# LANGUAGE Strict #-}
+
 module Monomer.Core.SizeReq (
   SizeReqUpdater(..),
   clearExtra,

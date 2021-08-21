@@ -12,6 +12,8 @@ Core glue for running an application.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.Core (
   AppEventResponse(..),
   AppEventHandler(..),
@@ -72,22 +74,22 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
-  _mlAppStartTs :: Int,
-  _mlMaxFps :: Int,
-  _mlLatestRenderTs :: Int,
-  _mlFrameStartTs :: Int,
-  _mlFrameAccumTs :: Int,
-  _mlFrameCount :: Int,
+  _mlAppStartTs :: !Int,
+  _mlMaxFps :: !Int,
+  _mlLatestRenderTs :: !Int,
+  _mlFrameStartTs :: !Int,
+  _mlFrameAccumTs :: !Int,
+  _mlFrameCount :: !Int,
   _mlExitEvents :: [e],
-  _mlWidgetRoot :: WidgetNode sp ep,
+  _mlWidgetRoot :: !(WidgetNode sp ep),
   _mlWidgetShared :: MVar (Map Text WidgetShared),
   _mlChannel :: TChan (RenderMsg sp ep)
 }
 
 data RenderState s e = RenderState {
-  _rstDpr :: Double,
-  _rstWidgetEnv :: WidgetEnv s e,
-  _rstRootNode :: WidgetNode s e
+  _rstDpr :: !Double,
+  _rstWidgetEnv :: !(WidgetEnv s e),
+  _rstRootNode :: !(WidgetNode s e)
 }
 
 {-|
@@ -289,11 +291,11 @@ mainLoop window fontManager config loopArgs = do
         | otherwise = Seq.Empty
   let baseStep = (wenv, _mlWidgetRoot, Seq.empty)
 
-  (rqWenv, rqRoot, _) <- handleRequests baseReqs baseStep
-  (wtWenv, wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
-  (seWenv, seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
+  (!rqWenv, !rqRoot, _) <- handleRequests baseReqs baseStep
+  (!wtWenv, !wtRoot, _) <- handleWidgetTasks rqWenv rqRoot
+  (!seWenv, !seRoot, _) <- handleSystemEvents wtWenv wtRoot baseSystemEvents
 
-  (newWenv, newRoot, _) <- if windowResized
+  (!newWenv, !newRoot, _) <- if windowResized
     then do
       L.windowSize .= currWinSize
       handleResizeWidgets (seWenv, seRoot, Seq.empty)

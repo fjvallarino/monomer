@@ -8,6 +8,9 @@ Portability : non-portable
 
 Helper functions for focus handling.
 -}
+
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Focus (
   isNodeFocused,
   isNodeInfoFocused,

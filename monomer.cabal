@@ -188,92 +188,6 @@ library
         GLEW
   default-language: Haskell2010
 
-executable books
-  main-is: Main.hs
-  other-modules:
-      BookTypes
-      Paths_monomer
-  hs-source-dirs:
-      examples/books
-  default-extensions:
-      OverloadedStrings
-  ghc-options: -threaded
-  build-depends:
-      JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
-    , aeson >=1.4 && <1.6
-    , async >=2.1 && <2.3
-    , attoparsec >=0.12 && <0.15
-    , base >=4.11 && <5
-    , bytestring >=0.10 && <0.12
-    , bytestring-to-vector ==0.3.*
-    , containers >=0.5.11 && <0.7
-    , data-default >=0.5 && <0.8
-    , exceptions ==0.10.*
-    , extra >=1.6 && <1.9
-    , formatting >=6.0 && <8.0
-    , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
-    , monomer
-    , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
-    , process ==1.6.*
-    , safe ==0.3.*
-    , sdl2 >=2.4.0 && <2.6
-    , stm ==2.5.*
-    , text ==1.2.*
-    , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
-    , transformers >=0.5 && <0.7
-    , unordered-containers >=0.2.8 && <0.3
-    , vector >=0.12 && <0.14
-    , wreq >=0.5.2 && <0.6
-  default-language: Haskell2010
-
-executable generative
-  main-is: Main.hs
-  other-modules:
-      GenerativeTypes
-      Widgets.BoxesPalette
-      Widgets.CirclesGrid
-      Paths_monomer
-  hs-source-dirs:
-      examples/generative
-  default-extensions:
-      OverloadedStrings
-  ghc-options: -threaded
-  build-depends:
-      JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
-    , async >=2.1 && <2.3
-    , attoparsec >=0.12 && <0.15
-    , base >=4.11 && <5
-    , bytestring >=0.10 && <0.12
-    , bytestring-to-vector ==0.3.*
-    , containers >=0.5.11 && <0.7
-    , data-default >=0.5 && <0.8
-    , exceptions ==0.10.*
-    , extra >=1.6 && <1.9
-    , formatting >=6.0 && <8.0
-    , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
-    , monomer
-    , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
-    , process ==1.6.*
-    , random >=1.1 && <1.3
-    , safe ==0.3.*
-    , sdl2 >=2.4.0 && <2.6
-    , stm ==2.5.*
-    , text ==1.2.*
-    , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
-    , transformers >=0.5 && <0.7
-    , unordered-containers >=0.2.8 && <0.3
-    , vector >=0.12 && <0.14
-    , wreq >=0.5.2 && <0.6
-  default-language: Haskell2010
-
 executable ticker
   main-is: Main.hs
   other-modules:
@@ -320,47 +234,6 @@ executable ticker
     , wuss ==1.1.*
   default-language: Haskell2010
 
-executable todo
-  main-is: Main.hs
-  other-modules:
-      TodoTypes
-      Paths_monomer
-  hs-source-dirs:
-      examples/todo
-  default-extensions:
-      OverloadedStrings
-  ghc-options: -threaded
-  build-depends:
-      JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
-    , async >=2.1 && <2.3
-    , attoparsec >=0.12 && <0.15
-    , base >=4.11 && <5
-    , bytestring >=0.10 && <0.12
-    , bytestring-to-vector ==0.3.*
-    , containers >=0.5.11 && <0.7
-    , data-default >=0.5 && <0.8
-    , exceptions ==0.10.*
-    , extra >=1.6 && <1.9
-    , formatting >=6.0 && <8.0
-    , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
-    , monomer
-    , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
-    , process ==1.6.*
-    , safe ==0.3.*
-    , sdl2 >=2.4.0 && <2.6
-    , stm ==2.5.*
-    , text ==1.2.*
-    , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
-    , transformers >=0.5 && <0.7
-    , unordered-containers >=0.2.8 && <0.3
-    , vector >=0.12 && <0.14
-    , wreq >=0.5.2 && <0.6
-  default-language: Haskell2010
-
 executable tutorial
   main-is: Main.hs
   other-modules:
@@ -388,6 +261,7 @@ executable tutorial
     , bytestring-to-vector ==0.3.*
     , containers >=0.5.11 && <0.7
     , data-default >=0.5 && <0.8
+    , ekg
     , exceptions ==0.10.*
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
@@ -400,94 +274,6 @@ executable tutorial
     , random >=1.1 && <1.3
     , safe ==0.3.*
     , sdl2 >=2.4.0 && <2.6
-    , stm ==2.5.*
-    , text ==1.2.*
-    , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
-    , transformers >=0.5 && <0.7
-    , unordered-containers >=0.2.8 && <0.3
-    , vector >=0.12 && <0.14
-    , wreq >=0.5.2 && <0.6
-  default-language: Haskell2010
-
-test-suite monomer-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Monomer.Common.CursorIconSpec
-      Monomer.Graphics.UtilSpec
-      Monomer.TestEventUtil
-      Monomer.TestUtil
-      Monomer.Widgets.Animation.FadeSpec
-      Monomer.Widgets.Animation.SlideSpec
-      Monomer.Widgets.CompositeSpec
-      Monomer.Widgets.Containers.AlertSpec
-      Monomer.Widgets.Containers.BoxSpec
-      Monomer.Widgets.Containers.ConfirmSpec
-      Monomer.Widgets.Containers.DragDropSpec
-      Monomer.Widgets.Containers.DropdownSpec
-      Monomer.Widgets.Containers.GridSpec
-      Monomer.Widgets.Containers.KeystrokeSpec
-      Monomer.Widgets.Containers.ScrollSpec
-      Monomer.Widgets.Containers.SelectListSpec
-      Monomer.Widgets.Containers.SplitSpec
-      Monomer.Widgets.Containers.StackSpec
-      Monomer.Widgets.Containers.ThemeSwitchSpec
-      Monomer.Widgets.Containers.TooltipSpec
-      Monomer.Widgets.Containers.ZStackSpec
-      Monomer.Widgets.ContainerSpec
-      Monomer.Widgets.Singles.ButtonSpec
-      Monomer.Widgets.Singles.CheckboxSpec
-      Monomer.Widgets.Singles.ColorPickerSpec
-      Monomer.Widgets.Singles.DateFieldSpec
-      Monomer.Widgets.Singles.DialSpec
-      Monomer.Widgets.Singles.ExternalLinkSpec
-      Monomer.Widgets.Singles.ImageSpec
-      Monomer.Widgets.Singles.LabeledCheckboxSpec
-      Monomer.Widgets.Singles.LabeledRadioSpec
-      Monomer.Widgets.Singles.LabelSpec
-      Monomer.Widgets.Singles.NumericFieldSpec
-      Monomer.Widgets.Singles.RadioSpec
-      Monomer.Widgets.Singles.SeparatorLineSpec
-      Monomer.Widgets.Singles.SliderSpec
-      Monomer.Widgets.Singles.SpacerSpec
-      Monomer.Widgets.Singles.TextAreaSpec
-      Monomer.Widgets.Singles.TextFieldSpec
-      Monomer.Widgets.Singles.TimeFieldSpec
-      Monomer.Widgets.Util.FocusSpec
-      Monomer.Widgets.Util.StyleSpec
-      Monomer.Widgets.Util.TextSpec
-      Paths_monomer
-  hs-source-dirs:
-      test/unit
-  default-extensions:
-      OverloadedStrings
-  ghc-options: -threaded -fwarn-incomplete-patterns
-  build-depends:
-      HUnit ==1.6.*
-    , JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
-    , async >=2.1 && <2.3
-    , attoparsec >=0.12 && <0.15
-    , base >=4.11 && <5
-    , bytestring >=0.10 && <0.12
-    , bytestring-to-vector ==0.3.*
-    , containers >=0.5.11 && <0.7
-    , data-default >=0.5 && <0.8
-    , directory ==1.3.*
-    , exceptions ==0.10.*
-    , extra >=1.6 && <1.9
-    , formatting >=6.0 && <8.0
-    , hspec >=2.4 && <3.0
-    , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
-    , monomer
-    , mtl >=2.1 && <2.3
-    , nanovg >=0.8 && <1.0
-    , process ==1.6.*
-    , safe ==0.3.*
-    , sdl2 >=2.4.0 && <2.6
-    , silently ==1.2.*
     , stm ==2.5.*
     , text ==1.2.*
     , text-show >=3.7 && <3.10

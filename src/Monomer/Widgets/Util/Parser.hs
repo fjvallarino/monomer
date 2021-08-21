@@ -8,6 +8,9 @@ Portability : non-portable
 
 Very basic parsing helpers used by numeric input fields.
 -}
+
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Parser where
 
 import Control.Applicative ((<|>))

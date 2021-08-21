@@ -10,6 +10,8 @@ Theme configuration types.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Core.ThemeTypes where
 
 import Control.Applicative ((<|>))

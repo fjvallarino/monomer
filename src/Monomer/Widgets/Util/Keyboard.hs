@@ -8,6 +8,9 @@ Portability : non-portable
 
 Utility functions for widget keyboard handling.
 -}
+
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Keyboard (
   isShortCutControl,
   isKeyboardCopy,

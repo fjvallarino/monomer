@@ -76,28 +76,6 @@ library:
         extra-libraries: GLEW
 
 executables:
-  todo:
-    main: Main.hs
-    source-dirs: examples/todo
-    ghc-options:
-    - -threaded
-    dependencies:
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - text-show >= 3.7 && < 3.10
-
-  books:
-    main: Main.hs
-    source-dirs: examples/books
-    ghc-options:
-    - -threaded
-    dependencies:
-    - aeson >= 1.4 && < 1.6
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - text-show >= 3.7 && < 3.10
-    - wreq >= 0.5.2 && < 0.6
-
   ticker:
     main: Main.hs
     source-dirs: examples/ticker
@@ -112,39 +90,15 @@ executables:
     - websockets >= 0.12 && < 0.13
     - wuss >= 1.1 && < 1.2
 
-  generative:
-    main: Main.hs
-    source-dirs: examples/generative
-    ghc-options:
-    - -threaded
-    dependencies:
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - random >= 1.1 && < 1.3
-    - text-show >= 3.7 && < 3.10
-
   tutorial:
     main: Main.hs
     source-dirs: examples/tutorial
     ghc-options:
     - -threaded
     dependencies:
+    - ekg
     - lens >= 4.16 && < 5.1
     - monomer
     - random >= 1.1 && < 1.3
     - text-show >= 3.7 && < 3.10
     - time >= 1.8 && < 1.13
-
-tests:
-  monomer-test:
-    main: Spec.hs
-    source-dirs: test/unit
-    ghc-options:
-    - -threaded
-    - -fwarn-incomplete-patterns
-    dependencies:
-    - directory >= 1.3 && < 1.4
-    - monomer
-    - hspec >= 2.4 && < 3.0
-    - HUnit >= 1.6 && < 1.7
-    - silently >= 1.2 && < 1.3

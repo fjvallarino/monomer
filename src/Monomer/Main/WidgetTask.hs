@@ -11,6 +11,8 @@ message) and Producers (multiple messages).
 -}
 {-# LANGUAGE FlexibleContexts #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.WidgetTask (handleWidgetTasks) where
 
 import Control.Concurrent.Async (poll)

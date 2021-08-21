@@ -13,6 +13,8 @@ button consists of a caption and an event to raise when clicked.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Singles.Button (
   -- * Configuration
   ButtonCfg,

@@ -10,6 +10,8 @@ Helper functions to text related operations in widgets.
 -}
 {-# LANGUAGE BangPatterns #-}
 
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Util.Text (
   getTextMetrics,
   getTextSize,
