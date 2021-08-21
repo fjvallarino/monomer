@@ -41,7 +41,7 @@ data TickerEvt
   | TickerRemovePairBegin Text
   | TickerRemovePair Text
   | TickerMovePair Text Text
-  | TickerUpdate Ticker
+  | TickerUpdate [Ticker]
   | TickerError ServerError
   | TickerResponse ServerResponse
   deriving (Eq, Show)

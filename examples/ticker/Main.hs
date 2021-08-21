@@ -13,6 +13,7 @@ import Control.Monad.IO.Class
 import Control.Monad.STM
 import Data.Aeson
 import Data.Default
+import Data.Foldable (foldl')
 import Data.Maybe
 import Data.Scientific
 import Data.Text (Text)
@@ -139,8 +140,8 @@ handleEvent env wenv node model evt = case evt of
       Model $ model & symbolPairs .~ moveBefore (model^.symbolPairs) target pair
     ]
 
-  TickerUpdate ticker -> [
-    Model $ model & tickers . at (ticker ^. symbolPair) ?~ ticker
+  TickerUpdate updates -> [
+    Model (processTickerUpdates model updates)
     ]
 
   TickerError err -> [Task $ print ("Error", err) >> return TickerIgnore]
@@ -148,6 +149,11 @@ handleEvent env wenv node model evt = case evt of
   TickerResponse resp -> [Task $ print ("Response", resp) >> return TickerIgnore]
 
   TickerIgnore -> []
+
+processTickerUpdates :: TickerModel -> [Ticker] -> TickerModel
+processTickerUpdates model updates = foldl' stepTicker model updates where
+  stepTicker model ticker = model
+    & tickers . at (ticker ^. symbolPair) ?~ ticker
 
 handleSubscription :: AppEnv -> [Text] -> Text -> IO TickerEvt
 handleSubscription env pairs action = do
@@ -176,8 +182,11 @@ moveBefore list target item = result where
 
 startProducer :: AppEnv -> (TickerEvt -> IO ()) -> IO ()
 startProducer env sendMsg = do
+  groupChannel <- newTChanIO
+
   Wuss.runSecureClient url port path $ \connection -> do
-    receiveWs connection sendMsg
+    groupTickers groupChannel sendMsg
+    receiveWs connection groupChannel sendMsg
     sendWs (env ^. channel) connection
   where
     url = "stream.binance.com"
@@ -189,15 +198,23 @@ subscribeInitial env initialList = do
   threadDelay 500000
   subscribe env initialList
 
-receiveWs :: WS.Connection -> (TickerEvt -> IO ()) -> IO ()
-receiveWs conn sendMsg = void . forkIO . forever $ do
+groupTickers :: TChan Ticker -> (TickerEvt -> IO a) -> IO ()
+groupTickers channel sendMsg = void . forkIO . forever $ do
+  ticker <- liftIO . atomically $ readTChan channel
+  tickers <- collectJustM . liftIO . atomically $ tryReadTChan channel
+  sendMsg $ TickerUpdate (ticker : tickers)
+
+  threadDelay $ 500 * 1000
+
+receiveWs :: WS.Connection -> TChan Ticker -> (TickerEvt -> IO ()) -> IO ()
+receiveWs conn groupChannel sendMsg = void . forkIO . forever $ do
   msg <- WS.receiveData conn
   let serverMsg = decode msg
 
   forM_ serverMsg $ \case
     MsgResponse resp -> sendMsg $ TickerResponse resp
     MsgError err -> sendMsg $ TickerError err
-    MsgTicker ticker -> sendMsg $ TickerUpdate ticker
+    MsgTicker ticker -> liftIO . atomically $ writeTChan groupChannel ticker
 
 sendWs :: (Show a, ToJSON a) => TChan a -> WS.Connection -> IO ()
 sendWs channel connection = forever $ do
@@ -231,6 +248,15 @@ customDarkTheme = darkTheme
   & L.userColorMap . at "rowBg" ?~ rgbHex "#656565"
   & L.userColorMap . at "trashBg" ?~ rgbHex "#555555"
   & L.userColorMap . at "trashFg" ?~ rgbHex "#909090"
+
+collectJustM :: MonadIO m => m (Maybe a) -> m [a]
+collectJustM action = do
+  x <- action
+  case x of
+    Nothing -> return []
+    Just x -> do
+      xs <- collectJustM action
+      return (x : xs)
 
 formatTickerValue :: Scientific -> Text
 formatTickerValue = T.pack . formatScientific Fixed (Just 8)

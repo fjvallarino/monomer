@@ -31,22 +31,20 @@ steps:
 
 From that point on:
 
-- When a new message from the API is received, it is feed into the application
-  using the provided `sendMsg` function.
 - When a message from the application is received, it is formatted and forwarded
   to the server.
+- When a new message from the server is received, it is sent to a grouping
+  thread that, every half a second, sends the accumulated messages into the
+  application using the provided `sendMsg` function. Since updates for each coin
+  are received as independent messages from the server, feeding each of them
+  directly into the application would trigger multiple model updates. Grouping
+  these messages and only updating the model a few times per second provides
+  better and more predictable performance.
 
 The `TickerIgnore` event is used in Tasks that process errors and don't
 currently feed information into the application. In general you will want to
-report these errors to the user, but this is useful at prototyping time.
-
-## Possible improvements
-
-Since updates for each coin are received as individual messages, triggering a
-model change every time, it would be desirable to process them as a single batch
-when several messages are received within milliseconds. Grouping these messages
-and only updating the model once or twice per second can provide more
-predictable performance.
+report these errors to the user, but logging them may be enough at prototyping
+time.
 
 One way to do this is to:
 
