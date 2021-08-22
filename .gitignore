@@ -1,6 +1,7 @@
 .stack-work/
 .vscode/
 haddock/
+dist-newstyle/
 dist-docs.*/
 *~
 *.aux
@@ -8,4 +9,4 @@ dist-docs.*/
 *.prof
 *.ps
 *.ser
-cabal.project*
+cabal.project.local*
