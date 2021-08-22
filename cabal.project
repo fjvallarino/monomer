@@ -1,10 +1,5 @@
 packages:
     ./
 
-source-repository-package
-    type: git
-    location: https://github.com/fjvallarino/nanovg-hs
-    tag: ba8733f58da63e0934b5d2853ed84b71e872e6f1
-
 package nanovg
     flags: +stb_truetype
