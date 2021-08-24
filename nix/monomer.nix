@@ -21,11 +21,16 @@ with super.haskellPackages.extend (self: super:
     });
     GLEW = glew;
   }); rec {
-    libraries = recurseIntoAttrs {
+    libraries = recurseIntoAttrs rec {
       monomer = addExtraLibrary
         (overrideCabal (callCabal2nix "monomer" ../. { }) (o: {
           version = "${o.version}.${version}";
-          doCheck = false;
+          doCheck = true;
+          checkPhase = ''
+            runHook preCheck
+            ${xvfb_run}/bin/xvfb-run ./Setup test
+            runHook postCheck
+          '';
         })) GLEW;
     };
     executables = {
