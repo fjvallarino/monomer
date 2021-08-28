@@ -25,7 +25,12 @@ with super.haskellPackages.extend (self: super:
       monomer = addExtraLibrary
         (overrideCabal (callCabal2nix "monomer" ../. { }) (o: {
           version = "${o.version}.${version}";
-          doCheck = false;
+          doCheck = true;
+          checkPhase = ''
+            runHook preCheck
+            ${xvfb_run}/bin/xvfb-run ./Setup test
+            runHook postCheck
+          '';
         })) GLEW;
     };
     executables = {
