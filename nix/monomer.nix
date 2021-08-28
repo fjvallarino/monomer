@@ -21,7 +21,7 @@ with super.haskellPackages.extend (self: super:
     });
     GLEW = glew;
   }); rec {
-    libraries = recurseIntoAttrs rec {
+    libraries = recurseIntoAttrs {
       monomer = addExtraLibrary
         (overrideCabal (callCabal2nix "monomer" ../. { }) (o: {
           version = "${o.version}.${version}";

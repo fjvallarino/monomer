@@ -7,11 +7,11 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
         with:
           # Nix Flakes doesn't work on shallow clones
           fetch-depth: 0
-      - uses: cachix/install-nix-action@v12
+      - uses: cachix/install-nix-action@v13
         with:
           install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.4pre20210604_8e6ee1b/install
           extra_nix_config: |
@@ -25,7 +25,7 @@ jobs:
           nix log &> ${{ matrix.os }}-monomer.log
       - name: upload ${{ matrix.os }}-monomer.log
         if: ${{ always() }}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}-monomer.log
           path: ${{ matrix.os }}-monomer.log
