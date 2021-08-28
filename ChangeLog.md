@@ -1,11 +1,13 @@
 ### 1.0.0.3
 
 - Consume and forward all available messages from Producers on each cycle.
+- Add Nix and GitHub Actions support (thanks @smunix!).
+- Fix space leak when rebuilding the UI or handling events.
 
 ### 1.0.0.2
 
 - Use the recently published nanovg-0.8.0.0 from Hackage, instead of the version from the PR's commit.
-- Added `appRenderOnMainThread` option.
+- Add `appRenderOnMainThread` option.
 
 ### 1.0.0.1
 
