@@ -12,6 +12,7 @@ Input field for single line 'Text'.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.TextField (
   -- * Configuration

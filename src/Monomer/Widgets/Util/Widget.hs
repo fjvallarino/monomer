@@ -10,7 +10,6 @@ Helper functions for widget lifecycle.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Widget (

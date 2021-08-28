@@ -16,6 +16,7 @@ element, you may want to use a box.
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.Tooltip (
   -- * Configuration

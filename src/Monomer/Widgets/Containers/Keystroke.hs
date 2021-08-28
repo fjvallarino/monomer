@@ -32,7 +32,6 @@ These can be combined, for example:
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Keystroke (

@@ -10,6 +10,7 @@ Helper functions for style types.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Core.StyleUtil (
   getContentArea,

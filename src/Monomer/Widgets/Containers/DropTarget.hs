@@ -16,6 +16,7 @@ the dragged message, otherwise it will not be raised.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.DropTarget (
   -- * Configuration

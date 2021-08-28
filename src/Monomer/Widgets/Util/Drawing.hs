@@ -10,7 +10,6 @@ Utility drawing functions. Built on top the lower level primitives provided by
 "Monomer.Graphics.Types.Renderer".
 -}
 {-# LANGUAGE RecordWildCards #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Drawing (

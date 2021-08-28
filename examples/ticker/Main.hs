@@ -1,8 +1,8 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE BangPatterns #-}
 
 module Main where
 
@@ -82,7 +82,7 @@ tickerRow wenv idx t = row where
       `styleHover` [bgColor rowBg]
 
 buildUI :: TickerWenv -> TickerModel -> TickerNode
-buildUI !wenv model = widgetTree where
+buildUI wenv model = widgetTree where
   sectionBg = wenv ^. L.theme . L.sectionColor
 
   tickerList = vstack tickerRows where

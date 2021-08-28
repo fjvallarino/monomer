@@ -10,7 +10,6 @@ Helper for creating widgets without children elements.
 -}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Single (

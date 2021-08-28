@@ -9,8 +9,7 @@ Portability : non-portable
 Basic types for styling widgets.
 -}
 {-# LANGUAGE DeriveGeneric #-}
-
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Core.StyleTypes where
 

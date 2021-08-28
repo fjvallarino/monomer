@@ -11,6 +11,7 @@ Color picker using sliders and numeric fields.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.Singles.ColorPicker (

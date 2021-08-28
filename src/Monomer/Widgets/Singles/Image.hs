@@ -15,10 +15,12 @@ Notes:
 - If you choose 'fitNone', adding 'imageRepeatX' and 'imageRepeatY' won't have
   any kind of effect.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Image (
   -- * Configuration
@@ -277,7 +279,7 @@ imageMem_ name imgData imgSize configs = defaultWidgetNode "image" widget where
 
 makeImage
   :: WidgetEvent e => ImageSource -> ImageCfg e -> ImageState -> Widget s e
-makeImage imgSource config state = widget where
+makeImage !imgSource !config !state = widget where
   widget = createSingle state def {
     singleUseScissor = True,
     singleInit = init,
@@ -288,11 +290,11 @@ makeImage imgSource config state = widget where
     singleRender = render
   }
 
-  isImageMem = case imgSource of
+  !isImageMem = case imgSource of
     ImageMem{} -> True
     _ -> False
 
-  imgName source = case source of
+  imgName !source = case source of
     ImageMem path -> path
     ImagePath path -> path
 

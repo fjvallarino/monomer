@@ -12,12 +12,14 @@ value by keyboard arrows, dragging the mouse or using the wheel.
 Similar in objective to 'Monomer.Widgets.Singles.Dial', but more convenient in
 some layouts.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Slider (
   -- * Configuration
@@ -317,7 +319,7 @@ makeSlider
   -> SliderCfg s e a
   -> SliderState
   -> Widget s e
-makeSlider isHz field minVal maxVal config state = widget where
+makeSlider !isHz !field !minVal !maxVal !config !state = widget where
   widget = createSingle state def {
     singleFocusOnBtnPressed = False,
     singleGetBaseStyle = getBaseStyle,
@@ -373,7 +375,7 @@ makeSlider isHz field minVal maxVal config state = widget where
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
 
-        handleNewPos newPos
+        handleNewPos !newPos
           | validPos /= pos = resultFromPos validPos []
           | otherwise = Nothing
           where
@@ -403,22 +405,22 @@ makeSlider isHz field minVal maxVal config state = widget where
       shiftPressed = wenv ^. L.inputStatus . L.keyMod . L.leftShift
       SliderState maxPos pos = state
 
-      resultFromPoint point reqs = resultFromPos newPos reqs where
-        newPos = posFromMouse isHz vp point
+      resultFromPoint !point !reqs = resultFromPos newPos reqs where
+        !newPos = posFromMouse isHz vp point
 
-      resultFromPos newPos extraReqs = Just newResult where
-        newState = state {
+      resultFromPos !newPos !extraReqs = Just newResult where
+        !newState = state {
           _slsPos = newPos
         }
-        newNode = node
+        !newNode = node
           & L.widget .~ makeSlider isHz field minVal maxVal config newState
-        result = resultReqs newNode [RenderOnce]
-        newVal = valueFromPos newPos
+        !result = resultReqs newNode [RenderOnce]
+        !newVal = valueFromPos newPos
 
-        reqs = widgetDataSet field newVal
+        !reqs = widgetDataSet field newVal
           ++ fmap ($ newVal) (_slcOnChangeReq config)
           ++ extraReqs
-        newResult
+        !newResult
           | pos /= newPos = result
               & L.requests <>~ Seq.fromList reqs
           | otherwise = result

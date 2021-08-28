@@ -11,8 +11,10 @@ text, which can be added with a label in the desired position (usually with
 hstack). Alternatively, "Monomer.Widgets.Singles.LabeledCheckbox" provides this
 functionality out of the box.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Checkbox (
   -- * Configuration
@@ -169,7 +171,7 @@ checkboxD_ widgetData configs = checkboxNode where
 
 makeCheckbox
   :: WidgetEvent e => WidgetData s Bool -> CheckboxCfg s e -> Widget s e
-makeCheckbox widgetData config = widget where
+makeCheckbox !widgetData !config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
     singleHandleEvent = handleEvent,

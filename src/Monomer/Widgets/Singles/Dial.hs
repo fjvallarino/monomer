@@ -11,12 +11,14 @@ value by keyboard arrows, dragging the mouse or using the wheel.
 
 Similar in objective to "Monomer.Widgets.Singles.Slider", but uses less space.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Dial (
   -- * Configuration
@@ -222,7 +224,7 @@ makeDial
   -> DialCfg s e a
   -> DialState
   -> Widget s e
-makeDial field minVal maxVal config state = widget where
+makeDial !field !minVal !maxVal !config !state = widget where
   widget = createSingle state def {
     singleFocusOnBtnPressed = False,
     singleGetBaseStyle = getBaseStyle,
@@ -285,12 +287,12 @@ makeDial field minVal maxVal config state = widget where
         fastSpeed = max 1 $ round (fromIntegral maxPos / 100)
         warpSpeed = max 1 $ round (fromIntegral maxPos / 10)
         vPos pos = clamp 0 maxPos pos
-        newResult newPos = addReqsEvts (resultNode newNode) newVal where
+        newResult !newPos = addReqsEvts (resultNode newNode) newVal where
           newVal = valueFromPos minVal dragRate newPos
-          newState = state { _dlsPos = newPos }
-          newNode = node
+          !newState = state { _dlsPos = newPos }
+          !newNode = node
             & L.widget .~ makeDial field minVal maxVal config newState
-        handleNewPos newPos
+        handleNewPos !newPos
           | vPos newPos /= pos = Just $ newResult (vPos newPos)
           | otherwise = Nothing
 
@@ -383,7 +385,7 @@ posFromPoint minVal maxVal state dragRate stPoint point = (newPos, newVal) where
   newVal = valueFromPos minVal dragRate newPos
 
 valueFromPos :: DialValue a => a -> Rational -> Integer -> a
-valueFromPos minVal dragRate newPos = newVal where
+valueFromPos !minVal !dragRate !newPos = newVal where
   newVal = minVal + fromFractional (dragRate * fromIntegral newPos)
 
 getDialInfo :: WidgetEnv s e -> WidgetNode s e -> DialCfg s e a -> (Point, Rect)
@@ -395,8 +397,8 @@ getDialInfo wenv node config = (dialCenter, dialArea) where
   dialW = fromMaybe (theme ^. L.dialWidth) (_dlcWidth config)
   dialL = _rX carea + (_rW carea - dialW) / 2
   dialT = _rY carea + (_rH carea - dialW) / 2
-  dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
-  dialArea = Rect dialL dialT dialW dialW
+  !dialCenter = Point (dialL + dialW / 2) (dialT + dialW / 2)
+  !dialArea = Rect dialL dialT dialW dialW
 
 currentStyleConfig :: Rect -> CurrentStyleCfg s e
 currentStyleConfig dialArea = def

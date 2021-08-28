@@ -9,6 +9,8 @@ Portability : non-portable
 Simple alert dialog, displaying a close button and optional title. Usually
 embedded in a zstack component and displayed/hidden depending on context.
 -}
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Containers.Alert (
   -- * Configuration
   AlertCfg,

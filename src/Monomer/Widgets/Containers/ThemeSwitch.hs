@@ -13,6 +13,7 @@ other kind of style configuration, set it on the child node or wrap the
 themeSwitch widget in a "Monomer.Widgets.Containers.Box".
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.ThemeSwitch (
   -- * Configuration

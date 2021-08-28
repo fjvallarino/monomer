@@ -11,6 +11,7 @@ Both header and list content is text based. In case a customizable version is
 is needed, 'Monomer.Widgets.Containers.Dropdown' can be used.
 -}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.TextDropdown (
   -- * Configuratiom

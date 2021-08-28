@@ -12,8 +12,10 @@ which should be added as a label in the desired position (usually with hstack).
 Alternatively, 'Monomer.Widgets.Singles.LabeledRadio' provides this
 functionality out of the box.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Radio (
   -- * Configuration
@@ -154,7 +156,7 @@ radioD_ option widgetData configs = radioNode where
     & L.info . L.focusable .~ True
 
 makeRadio :: (Eq a, WidgetEvent e) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
-makeRadio field option config = widget where
+makeRadio !field !option !config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
     singleGetCurrentStyle = getCurrentStyle,

@@ -8,7 +8,6 @@ Portability : non-portable
 
 Common types for widget related functions.
 -}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Types (

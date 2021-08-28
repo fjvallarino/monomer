@@ -8,6 +8,8 @@ Portability : non-portable
 
 Helper functions for graphics related operations.
 -}
+{-# LANGUAGE Strict #-}
+
 module Monomer.Graphics.Util (
   clampChannel,
   clampAlpha,
@@ -59,14 +61,17 @@ rgba r g b a = Color {
 -- | Creates a Color from a hex string. It may include a # prefix or not.
 rgbHex :: String -> Color
 rgbHex hex
-  | length hex == 7 = rgbHex (tail hex)
-  | length hex == 6 = rgb r g b
+  | length hex == 7 = rgbHexSix (tail hex)
+  | length hex == 6 = rgbHexSix hex
   | otherwise = rgb 0 0 0
-  where
-    [r1, r2, g1, g2, b1, b2] = hex
-    r = digitToInt r1 * 16 + digitToInt r2
-    g = digitToInt g1 * 16 + digitToInt g2
-    b = digitToInt b1 * 16 + digitToInt b2
+
+-- | Creates a color from a six characters hex string. Fails if len is invalid.
+rgbHexSix :: [Char] -> Color
+rgbHexSix hex = rgb r g b where
+  [r1, r2, g1, g2, b1, b2] = hex
+  r = digitToInt r1 * 16 + digitToInt r2
+  g = digitToInt g1 * 16 + digitToInt g2
+  b = digitToInt b1 * 16 + digitToInt b2
 
 {-|
 Creates a Color from a hex string plus an alpha component. It may include a #

@@ -9,11 +9,11 @@ Portability : non-portable
 Button widget, with support for multiline text. At the most basic level, a
 button consists of a caption and an event to raise when clicked.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Button (
   -- * Configuration
@@ -183,11 +183,11 @@ button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
   config = onClick handler <> mconcat configs
   widget = makeButton caption config
-  buttonNode = defaultWidgetNode "button" widget
+  !buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
 
 makeButton :: WidgetEvent e => Text -> ButtonCfg s e -> Widget s e
-makeButton caption config = widget where
+makeButton !caption !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
     containerUseScissor = True,
@@ -200,7 +200,7 @@ makeButton caption config = widget where
     containerResize = resize
   }
 
-  buttonType = fromMaybe ButtonNormal (_btnButtonType config)
+  !buttonType = fromMaybe ButtonNormal (_btnButtonType config)
 
   getBaseStyle wenv node
     | ignoreTheme = Nothing
@@ -222,9 +222,9 @@ makeButton caption config = widget where
     nodeStyle = node ^. L.info . L.style
     labelCfg = _btnLabelCfg config
     labelCurrStyle = labelCurrentStyle childOfFocusedStyle
-    labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
+    !labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
       & L.info . L.style .~ nodeStyle
-    newNode = node
+    !newNode = node
       & L.children .~ Seq.singleton labelNode
 
   init wenv node = result where

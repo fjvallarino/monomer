@@ -23,9 +23,7 @@ Messages:
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-
-{-# LANGUAGE Strict #-}
-
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.Scroll (
   -- * Configuration

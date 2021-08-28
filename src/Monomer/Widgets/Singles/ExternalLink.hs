@@ -9,9 +9,11 @@ Portability : non-portable
 Provides a clickable link that opens in the system's browser. It uses OS
 services to open the URI, which means not only URLs can be opened.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.ExternalLink (
   -- * Configuration
@@ -145,7 +147,7 @@ externalLink_ caption url configs = externalLinkNode where
 
 makeExternalLink
   :: WidgetEvent e => Text -> Text -> ExternalLinkCfg s e -> Widget s e
-makeExternalLink caption url config = widget where
+makeExternalLink !caption !url !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
     containerUseScissor = True,
@@ -164,11 +166,10 @@ makeExternalLink caption url config = widget where
     nodeStyle = node ^. L.info . L.style
     labelCfg = _elcLabelCfg config
     labelCurrStyle = labelCurrentStyle childOfFocusedStyle
-    labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
+    !labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
       & L.info . L.style .~ nodeStyle
-    childNode = labelNode
-    newNode = node
-      & L.children .~ Seq.singleton childNode
+    !newNode = node
+      & L.children .~ Seq.singleton labelNode
 
   init wenv node = result where
     result = resultNode (createChildNode wenv node)

@@ -8,7 +8,6 @@ Portability : non-portable
 
 Helper functions for hover related actions.
 -}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Hover (

@@ -24,7 +24,6 @@ label with an image at its side).
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Box (
