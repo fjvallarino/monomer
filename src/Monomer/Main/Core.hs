@@ -8,7 +8,6 @@ Portability : non-portable
 
 Core glue for running an application.
 -}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE Strict #-}
@@ -73,22 +72,22 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
-  _mlAppStartTs :: !Int,
-  _mlMaxFps :: !Int,
-  _mlLatestRenderTs :: !Int,
-  _mlFrameStartTs :: !Int,
-  _mlFrameAccumTs :: !Int,
-  _mlFrameCount :: !Int,
+  _mlAppStartTs :: Int,
+  _mlMaxFps :: Int,
+  _mlLatestRenderTs :: Int,
+  _mlFrameStartTs :: Int,
+  _mlFrameAccumTs :: Int,
+  _mlFrameCount :: Int,
   _mlExitEvents :: [e],
-  _mlWidgetRoot :: !(WidgetNode sp ep),
+  _mlWidgetRoot :: WidgetNode sp ep,
   _mlWidgetShared :: MVar (Map Text WidgetShared),
   _mlChannel :: TChan (RenderMsg sp ep)
 }
 
 data RenderState s e = RenderState {
-  _rstDpr :: !Double,
-  _rstWidgetEnv :: !(WidgetEnv s e),
-  _rstRootNode :: !(WidgetNode s e)
+  _rstDpr :: Double,
+  _rstWidgetEnv :: WidgetEnv s e,
+  _rstRootNode :: WidgetNode s e
 }
 
 {-|

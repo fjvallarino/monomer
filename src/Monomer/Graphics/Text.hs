@@ -11,7 +11,6 @@ Helper functions for calculating text size.
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Graphics.Text (

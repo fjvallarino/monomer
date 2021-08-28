@@ -16,6 +16,7 @@ Messages:
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Animation.Slide (
   -- * Configuration

@@ -14,7 +14,6 @@ Basic types for Main module.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
 {-# LANGUAGE Strict #-}
 
 module Monomer.Main.Types where
