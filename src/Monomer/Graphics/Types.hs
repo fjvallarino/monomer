@@ -11,6 +11,7 @@ Basic types for Graphics.
 Angles are always expressed in degrees, not radians.
 -}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Graphics.Types where
 

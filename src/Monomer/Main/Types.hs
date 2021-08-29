@@ -14,6 +14,7 @@ Basic types for Main module.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Main.Types where
 
@@ -85,7 +86,7 @@ data MonomerCtx s e = MonomerCtx {
   -- | Main application model.
   _mcMainModel :: s,
   -- | Active window.
-  _mcWindow :: SDL.Window,
+  _mcWindow :: ~SDL.Window,
   -- | Main window size.
   _mcWindowSize :: Size,
   -- | Device pixel rate.

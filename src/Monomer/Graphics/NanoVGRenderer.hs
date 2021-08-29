@@ -11,6 +11,7 @@ Renderer based on the nanovg library.
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TupleSections #-}
 
 module Monomer.Graphics.NanoVGRenderer (makeRenderer) where

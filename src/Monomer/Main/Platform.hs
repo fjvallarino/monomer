@@ -8,6 +8,8 @@ Portability : non-portable
 
 Helper functions for SDL platform related operations.
 -}
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.Platform (
   defaultWindowSize,
   initSDLWindow,
@@ -138,20 +140,20 @@ detroySDLWindow window = do
   SDL.quit
 
 -- | Returns the current mouse position.
-getCurrentMousePos :: (MonadIO m) => Double -> m Point
+getCurrentMousePos :: Double -> IO Point
 getCurrentMousePos epr = do
   SDL.P (SDL.V2 x y) <- Mouse.getAbsoluteMouseLocation
   return $ Point (epr * fromIntegral x) (epr * fromIntegral y)
 
 -- | Returns the drawable size of the provided window. May differ from window
 --   size if HDPI is enabled.
-getDrawableSize :: (MonadIO m) => SDL.Window -> m Size
+getDrawableSize :: SDL.Window -> IO Size
 getDrawableSize window = do
   SDL.V2 fbWidth fbHeight <- SDL.glGetDrawableSize window
   return $ Size (fromIntegral fbWidth) (fromIntegral fbHeight)
 
 -- | Returns the size of the provided window.
-getWindowSize :: (MonadIO m) => SDL.Window -> m Size
+getWindowSize :: SDL.Window -> IO Size
 getWindowSize window = do
   SDL.V2 rw rh <- SDL.get (SDL.windowSize window)
 
@@ -163,16 +165,16 @@ render to and, depending on the platform, may match window size or not. For
 example, on Windows and Linux Wayland this size may be smaller than the window
 size because of dpr scaling.
 -}
-getViewportSize :: (MonadIO m) => SDL.Window -> Double -> m Size
+getViewportSize :: SDL.Window -> Double -> IO Size
 getViewportSize window dpr = do
   SDL.V2 fw fh <- SDL.glGetDrawableSize window
 
   return $ Size (fromIntegral fw / dpr) (fromIntegral fh / dpr)
 
 -- | Returns the name of the host OS.
-getPlatform :: (MonadIO m) => m Text
+getPlatform :: IO Text
 getPlatform = do
-  platform <- liftIO . peekCString =<< Raw.getPlatform
+  platform <- peekCString =<< Raw.getPlatform
 
   return $ T.pack platform
 

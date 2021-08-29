@@ -33,7 +33,6 @@ import Monomer.Graphics
 import Monomer.Main.Handlers
 import Monomer.Main.Types
 import Monomer.Main.Util
-import Monomer.Widgets.Util.Widget
 
 import qualified Monomer.Lens as L
 

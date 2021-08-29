@@ -18,6 +18,7 @@ and "Monomer.Widgets.Singles.TimeField".
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Base.InputField (
   -- * Configuration
@@ -226,7 +227,7 @@ makeInputField
   => InputFieldCfg s e a
   -> InputFieldState a
   -> Widget s e
-makeInputField config state = widget where
+makeInputField !config !state = widget where
   widget = createSingle state def {
     singleFocusOnBtnPressed = False,
     singleUseCustomCursor = True,
@@ -242,25 +243,25 @@ makeInputField config state = widget where
   }
 
   -- Simpler access to state members
-  currPlaceholder = _ifsPlaceholder state
-  currVal = _ifsCurrValue state
-  currText = _ifsCurrText state
-  currGlyphs = _ifsGlyphs state
-  currPos = _ifsCursorPos state
-  currSel = _ifsSelStart state
-  currOffset = _ifsOffset state
-  currHistory = _ifsHistory state
-  currHistIdx = _ifsHistIdx state
+  !currPlaceholder = _ifsPlaceholder state
+  !currVal = _ifsCurrValue state
+  !currText = _ifsCurrText state
+  !currGlyphs = _ifsGlyphs state
+  !currPos = _ifsCursorPos state
+  !currSel = _ifsSelStart state
+  !currOffset = _ifsOffset state
+  !currHistory = _ifsHistory state
+  !currHistIdx = _ifsHistIdx state
   -- Text/value conversion functions
-  caretW = fromMaybe defCaretW (_ifcCaretWidth config)
-  caretMs = fromMaybe defCaretMs (_ifcCaretMs config)
-  fromText = _ifcFromText config
-  toText = _ifcToText config
-  getModelValue wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
+  !caretW = fromMaybe defCaretW (_ifcCaretWidth config)
+  !caretMs = fromMaybe defCaretMs (_ifcCaretMs config)
+  !fromText = _ifcFromText config
+  !toText = _ifcToText config
+  getModelValue !wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
   -- Mouse select handling options
-  wheelHandler = _ifcWheelHandler config
-  dragHandler = _ifcDragHandler config
-  dragCursor = _ifcDragCursor config
+  !wheelHandler = _ifcWheelHandler config
+  !dragHandler = _ifcDragHandler config
+  !dragCursor = _ifcDragCursor config
 
   getBaseStyle wenv node = _ifcStyle config >>= handler where
     handler lstyle = Just $ collectTheme wenv (cloneLens lstyle)
@@ -504,8 +505,8 @@ makeInputField config state = widget where
       | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
       | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
       | otherwise -> fmap handleKeyRes keyRes <|> cursorRes where
-          keyRes = handleKeyPress wenv mod code
-          handleKeyRes (newText, newPos, newSel) = result where
+          !keyRes = handleKeyPress wenv mod code
+          handleKeyRes (!newText, !newPos, !newSel) = result where
             result = genInputResult wenv node False newText newPos newSel []
           cursorReq = changeCursorReq validCursor
           cursorRes
@@ -613,8 +614,8 @@ makeInputField config state = widget where
     newOffset = _ifsOffset tempState
     history = _ifsHistory tempState
     histIdx = _ifsHistIdx tempState
-    newStep = HistoryStep stVal newText newPos newSel newOffset
-    newState
+    !newStep = HistoryStep stVal newText newPos newSel newOffset
+    !newState
       | currText == newText = tempState
       | length history == histIdx = tempState {
           _ifsHistory = history |> newStep,
@@ -624,10 +625,10 @@ makeInputField config state = widget where
           _ifsHistory = Seq.take (histIdx - 1) history |> newStep,
           _ifsHistIdx = histIdx
         }
-    newNode = node
+    !newNode = node
       & L.widget .~ makeInputField config newState
     (reqs, events) = genReqsEvents node config state newText newReqs
-    result
+    !result
       | acceptInput || not textAdd = resultReqsEvts newNode reqs events
       | otherwise = resultReqsEvts node reqs events
 
@@ -769,7 +770,7 @@ genReqsEvents
   -> Text
   -> [WidgetRequest s e]
   -> ([WidgetRequest s e], [e])
-genReqsEvents node config state newText newReqs = result where
+genReqsEvents node config !state !newText !newReqs = result where
   widgetId = node ^. L.info . L.widgetId
   resizeOnChange = _ifcResizeOnChange config
   fromText = _ifcFromText config
@@ -782,7 +783,7 @@ genReqsEvents node config state newText newReqs = result where
   stateVal = fromMaybe currVal newVal
   txtChanged = newText /= currText
   valChanged = stateVal /= currVal
-  evtValid
+  !evtValid
     | txtChanged = fmap ($ isValid) (_ifcValidV config)
     | otherwise = []
   reqValid = setModelValid config isValid
@@ -795,8 +796,8 @@ genReqsEvents node config state newText newReqs = result where
   reqOnChange
     | accepted && valChanged = fmap ($ stateVal) (_ifcOnChangeReq config)
     | otherwise = []
-  reqs = newReqs ++ reqUpdateModel ++ reqValid ++ reqResize ++ reqOnChange
-  result = (reqs, evtValid)
+  !reqs = newReqs ++ reqUpdateModel ++ reqValid ++ reqResize ++ reqOnChange
+  !result = (reqs, evtValid)
 
 moveHistory
   :: (InputFieldValue a, WidgetEvent e)
@@ -824,7 +825,8 @@ moveHistory wenv node state config steps = result where
     newState = tempState {
       _ifsHistIdx = clamp 0 lenHistory reqHistIdx
     }
-    newNode = node & L.widget .~ makeInputField config newState
+    !newNode = node
+      & L.widget .~ makeInputField config newState
 
 newStateFromHistory
   :: WidgetEnv s e
@@ -835,7 +837,7 @@ newStateFromHistory
   -> InputFieldState a
 newStateFromHistory wenv node oldState config inputHist = newState where
   HistoryStep hValue hText hPos hSel hOffset = inputHist
-  tempState = oldState { _ifsOffset = hOffset }
+  !tempState = oldState { _ifsOffset = hOffset }
   newState = newTextState wenv node oldState config hValue hText hPos hSel
 
 newTextState
@@ -888,8 +890,8 @@ newTextState wenv node oldState config value text cursor sel = newState where
     | Just cursor == sel = Nothing
     | isJust sel && (justSel < 0 || justSel > T.length text) = Nothing
     | otherwise = sel
-  tmpState = updatePlaceholder wenv node oldState config
-  newState = tmpState {
+  !tmpState = updatePlaceholder wenv node oldState config
+  !newState = tmpState {
     _ifsCurrValue = value,
     _ifsCurrText = text,
     _ifsCursorPos = cursor,
@@ -906,7 +908,7 @@ updatePlaceholder
   -> InputFieldState a
   -> InputFieldCfg s e a
   -> InputFieldState a
-updatePlaceholder wenv node state config = newState where
+updatePlaceholder wenv node !state !config = newState where
   fontMgr = wenv ^. L.fontManager
   style = currentStyle wenv node
   Rect cx cy cw ch = getContentArea node style

@@ -1,5 +1,5 @@
 name: monomer
-version: 1.0.0.2
+version: 1.0.0.3
 github: fjvallarino/monomer
 license: BSD3
 author: Francisco Vallarino
@@ -7,8 +7,8 @@ maintainer: fjvallarino@gmail.com
 copyright: 2018 Francisco Vallarino
 
 extra-source-files:
-- README.md
-- ChangeLog.md
+  - README.md
+  - ChangeLog.md
 
 # Metadata used when publishing your package
 synopsis: A GUI library for writing native Haskell applications.
@@ -23,51 +23,51 @@ description: |
   Please see the README on Github at <https://github.com/fjvallarino/monomer#readme>
 
 default-extensions:
-- OverloadedStrings
+  - OverloadedStrings
 
 dependencies:
-- async >= 2.1 && < 2.3
-- attoparsec >= 0.12 && < 0.15
-- base >= 4.11 && < 5
-- bytestring >= 0.10 && < 0.12
-- bytestring-to-vector >= 0.3 && < 0.4
-- containers >= 0.5.11 && < 0.7
-- data-default >= 0.5 && < 0.8
-- exceptions >= 0.10 && < 0.11
-- extra >= 1.6 && < 1.9
-- formatting >= 6.0 && < 8.0
-- http-client >= 0.6 && < 0.9
-- JuicyPixels >= 3.2.9 && < 3.5
-- lens >= 4.16 && < 5.1
-- mtl >= 2.1 && < 2.3
-- nanovg >= 0.8 && < 1.0
-- OpenGL >= 3.0 && < 3.1
-- process >= 1.6 && < 1.7
-- safe >= 0.3 && < 0.4
-- sdl2 >= 2.4.0 && < 2.6
-- stm >= 2.5 && < 2.6
-- text >= 1.2 && < 1.3
-- text-show >= 3.7 && < 3.10
-- time >= 1.8 && < 1.13
-- transformers >= 0.5 && < 0.7
-- unordered-containers >= 0.2.8 && < 0.3
-- vector >= 0.12 && < 0.14
-- wreq >= 0.5.2 && < 0.6
+  - async >= 2.1 && < 2.3
+  - attoparsec >= 0.12 && < 0.15
+  - base >= 4.11 && < 5
+  - bytestring >= 0.10 && < 0.12
+  - bytestring-to-vector >= 0.3 && < 0.4
+  - containers >= 0.5.11 && < 0.7
+  - data-default >= 0.5 && < 0.8
+  - exceptions >= 0.10 && < 0.11
+  - extra >= 1.6 && < 1.9
+  - formatting >= 6.0 && < 8.0
+  - http-client >= 0.6 && < 0.9
+  - JuicyPixels >= 3.2.9 && < 3.5
+  - lens >= 4.16 && < 5.1
+  - mtl >= 2.1 && < 2.3
+  - nanovg >= 0.8 && < 1.0
+  - OpenGL >= 3.0 && < 3.1
+  - process >= 1.6 && < 1.7
+  - safe >= 0.3 && < 0.4
+  - sdl2 >= 2.4.0 && < 2.6
+  - stm >= 2.5 && < 2.6
+  - text >= 1.2 && < 1.3
+  - text-show >= 3.7 && < 3.10
+  - time >= 1.8 && < 1.13
+  - transformers >= 0.5 && < 0.7
+  - unordered-containers >= 0.2.8 && < 0.3
+  - vector >= 0.12 && < 0.14
+  - wreq >= 0.5.2 && < 0.6
 
 library:
   source-dirs: src
   include-dirs: cbits
   install-includes:
-  - fontmanager.h
+    - fontmanager.h
   c-sources:
-  - cbits/dpi.c
-  - cbits/fontmanager.c
-  - cbits/glew.c
+    - cbits/dpi.c
+    - cbits/fontmanager.c
+    - cbits/glew.c
   build-tools: c2hs
   cc-options:
-  - -fPIC
+    - -fPIC
   ghc-options:
-  - -fwarn-incomplete-patterns
+    - -fwarn-incomplete-patterns
   when:
     - condition: os(windows)
       then:
@@ -80,71 +80,71 @@ executables:
     main: Main.hs
     source-dirs: examples/todo
     ghc-options:
-    - -threaded
+      - -threaded
     dependencies:
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - text-show >= 3.7 && < 3.10
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - text-show >= 3.7 && < 3.10
 
   books:
     main: Main.hs
     source-dirs: examples/books
     ghc-options:
-    - -threaded
+      - -threaded
     dependencies:
-    - aeson >= 1.4 && < 1.6
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - text-show >= 3.7 && < 3.10
-    - wreq >= 0.5.2 && < 0.6
+      - aeson >= 1.4 && < 1.6
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - text-show >= 3.7 && < 3.10
+      - wreq >= 0.5.2 && < 0.6
 
   ticker:
     main: Main.hs
     source-dirs: examples/ticker
     ghc-options:
-    - -threaded
+      - -threaded
     dependencies:
-    - aeson >= 1.4 && < 1.6
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - scientific >= 0.3 && < 0.4
-    - text-show >= 3.7 && < 3.10
-    - websockets >= 0.12 && < 0.13
-    - wuss >= 1.1 && < 1.2
+      - aeson >= 1.4 && < 1.6
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - scientific >= 0.3 && < 0.4
+      - text-show >= 3.7 && < 3.10
+      - websockets >= 0.12 && < 0.13
+      - wuss >= 1.1 && < 1.2
 
   generative:
     main: Main.hs
     source-dirs: examples/generative
     ghc-options:
-    - -threaded
+      - -threaded
     dependencies:
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - random >= 1.1 && < 1.3
-    - text-show >= 3.7 && < 3.10
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - random >= 1.1 && < 1.3
+      - text-show >= 3.7 && < 3.10
 
   tutorial:
     main: Main.hs
     source-dirs: examples/tutorial
     ghc-options:
-    - -threaded
+      - -threaded
     dependencies:
-    - lens >= 4.16 && < 5.1
-    - monomer
-    - random >= 1.1 && < 1.3
-    - text-show >= 3.7 && < 3.10
-    - time >= 1.8 && < 1.13
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - random >= 1.1 && < 1.3
+      - text-show >= 3.7 && < 3.10
+      - time >= 1.8 && < 1.13
 
 tests:
   monomer-test:
     main: Spec.hs
     source-dirs: test/unit
     ghc-options:
-    - -threaded
-    - -fwarn-incomplete-patterns
+      - -threaded
+      - -fwarn-incomplete-patterns
     dependencies:
-    - directory >= 1.3 && < 1.4
-    - monomer
-    - hspec >= 2.4 && < 3.0
-    - HUnit >= 1.6 && < 1.7
-    - silently >= 1.2 && < 1.3
+      - directory >= 1.3 && < 1.4
+      - monomer
+      - hspec >= 2.4 && < 3.0
+      - HUnit >= 1.6 && < 1.7
+      - silently >= 1.2 && < 1.3

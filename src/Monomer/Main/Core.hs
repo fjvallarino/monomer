@@ -8,9 +8,9 @@ Portability : non-portable
 
 Core glue for running an application.
 -}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Main.Core (
   AppEventResponse(..),
@@ -143,7 +143,7 @@ runAppLoop window glCtx channel widgetRoot config = do
 
   startTs <- fmap fromIntegral SDL.ticks
   model <- use L.mainModel
-  os <- getPlatform
+  os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
   renderer <- if useRenderThread
     then return Nothing
@@ -231,8 +231,8 @@ mainLoop window fontManager config loopArgs = do
   dragged <- getDraggedMsgInfo
   mainPress <- use L.mainBtnPress
   inputStatus <- use L.inputStatus
-  mousePos <- getCurrentMousePos epr
-  currWinSize <- getViewportSize window dpr
+  mousePos <- liftIO $ getCurrentMousePos epr
+  currWinSize <- liftIO $ getViewportSize window dpr
 
   let Size rw rh = windowSize
   let ts = startTicks - _mlFrameStartTs
@@ -419,29 +419,29 @@ renderWidgets
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-renderWidgets !window dpr renderer clearColor wenv widgetRoot = do
+renderWidgets window dpr renderer clearColor wenv widgetRoot = do
   Size dwW dwH <- getDrawableSize window
   Size vpW vpH <- getViewportSize window dpr
 
   let position = GL.Position 0 0
   let size = GL.Size (round dwW) (round dwH)
 
-  liftIO $ GL.viewport GL.$= (position, size)
+  GL.viewport GL.$= (position, size)
 
-  liftIO $ GL.clearColor GL.$= clearColor4
-  liftIO $ GL.clear [GL.ColorBuffer]
+  GL.clearColor GL.$= clearColor4
+  GL.clear [GL.ColorBuffer]
 
-  liftIO $ beginFrame renderer vpW vpH
-  liftIO $ widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
-  liftIO $ endFrame renderer
+  beginFrame renderer vpW vpH
+  widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
+  endFrame renderer
 
-  liftIO $ renderRawTasks renderer
+  renderRawTasks renderer
 
-  liftIO $ beginFrame renderer vpW vpH
-  liftIO $ renderOverlays renderer
-  liftIO $ endFrame renderer
+  beginFrame renderer vpW vpH
+  renderOverlays renderer
+  endFrame renderer
 
-  liftIO $ renderRawOverlays renderer
+  renderRawOverlays renderer
 
   SDL.glSwapWindow window
   where

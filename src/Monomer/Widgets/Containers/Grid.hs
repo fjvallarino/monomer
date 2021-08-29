@@ -11,6 +11,7 @@ it requests max width * elements as its width, and the max height as its height.
 The reverse happens for vgrid.
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Grid (
   -- * Configuration
@@ -108,7 +109,7 @@ makeFixedGrid isHorizontal config = widget where
     where
       vreqs = accesor <$> vchildren
       nreqs = Seq.length vreqs
-      maxSize = foldl1 sizeReqMergeMax vreqs
+      ~maxSize = foldl1 sizeReqMergeMax vreqs
 
   resize wenv node viewport children = resized where
     style = currentStyle wenv node

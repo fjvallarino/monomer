@@ -15,9 +15,9 @@ The order of the widgets is from bottom to top.
 The container will request the largest combination of horizontal and vertical
 size requested by its child nodes.
 -}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.ZStack (
   -- * Configuration

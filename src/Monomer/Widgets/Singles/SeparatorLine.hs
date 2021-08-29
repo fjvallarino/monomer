@@ -14,7 +14,9 @@ The line has the provided width in the direction orthogonal to the layout
 direction, and takes all the available space in the other direction. In case of
 wanting a shorter line, padding should be used.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.SeparatorLine (
   -- * Configuration
@@ -81,14 +83,12 @@ separatorLine_ configs = defaultWidgetNode "separatorLine" widget where
   widget = makeSeparatorLine config
 
 makeSeparatorLine :: SeparatorLineCfg -> Widget s e
-makeSeparatorLine config = widget where
+makeSeparatorLine !config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,
     singleGetSizeReq = getSizeReq,
     singleRender = render
   }
-
-  factor = fromMaybe 0 (_slcFactor config)
 
   getBaseStyle wenv node = Just style where
     style = collectTheme wenv L.separatorLineStyle
@@ -97,6 +97,7 @@ makeSeparatorLine config = widget where
     theme = currentTheme wenv node
     direction = wenv ^. L.layoutDirection
     width = fromMaybe (theme ^. L.separatorLineWidth) (_slcWidth config)
+    factor = fromMaybe 0 (_slcFactor config)
 
     isFixed = factor < 0.01
     flexSide = flexSize 10 0.5

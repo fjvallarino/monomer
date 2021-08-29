@@ -9,6 +9,7 @@ Portability : non-portable
 Helper functions for loading theme values.
 -}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Theme where
 

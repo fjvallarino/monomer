@@ -8,11 +8,13 @@ Portability : non-portable
 
 Input field for multiline 'Text'.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.TextArea (
   -- * Configuration
@@ -239,7 +241,7 @@ makeTextArea
   -> TextAreaCfg s e
   -> TextAreaState
   -> Widget s e
-makeTextArea wdata config state = widget where
+makeTextArea !wdata !config !state = widget where
   widget = createSingle state def {
     singleInit = init,
     singleMerge = merge,
@@ -249,25 +251,25 @@ makeTextArea wdata config state = widget where
     singleRender = render
   }
 
-  caretMs = fromMaybe defCaretMs (_tacCaretMs config)
-  maxLength = _tacMaxLength config
-  maxLines = _tacMaxLines config
-  getModelValue wenv = widgetDataGet (_weModel wenv) wdata
+  !caretMs = fromMaybe defCaretMs (_tacCaretMs config)
+  !maxLength = _tacMaxLength config
+  !maxLines = _tacMaxLines config
+  getModelValue !wenv = widgetDataGet (_weModel wenv) wdata
   -- State
-  currText = _tasText state
-  textLines = _tasTextLines state
+  !currText = _tasText state
+  !textLines = _tasTextLines state
   -- Helpers
-  validText state = validLen && validLines where
+  validText !state = validLen && validLines where
     text = _tasText state
     lines = _tasTextLines state
     validLen = T.length text <= fromMaybe maxBound maxLength
     validLines = length lines <= fromMaybe maxBound maxLines
-  line idx
+  line !idx
     | idx >= 0 && idx < length textLines = Seq.index textLines idx ^. L.text
     | otherwise = ""
-  lineLen = T.length . line
-  totalLines = length textLines
-  lastPos = (lineLen (totalLines - 1), totalLines)
+  !lineLen = T.length . line
+  !totalLines = length textLines
+  !lastPos = (lineLen (totalLines - 1), totalLines)
 
   init wenv node = resultNode newNode where
     text = getModelValue wenv

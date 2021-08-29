@@ -8,7 +8,7 @@ Portability : non-portable
 
 Helper functions to text related operations in widgets.
 -}
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Util.Text (
   getTextMetrics,
@@ -32,13 +32,13 @@ import qualified Monomer.Core.Lens as L
 getTextMetrics :: WidgetEnv s e -> StyleState -> TextMetrics
 getTextMetrics wenv style = textMetrics where
   fontMgr = wenv ^. L.fontManager
-  !textMetrics = computeTextMetrics fontMgr font fontSize
+  textMetrics = computeTextMetrics fontMgr font fontSize
   font = styleFont style
   fontSize = styleFontSize style
 
 -- | Returns the size of the text using the active style and default options.
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
-getTextSize wenv style !text = size where
+getTextSize wenv style text = size where
   fontMgr = wenv ^. L.fontManager
   size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
 
@@ -65,7 +65,7 @@ getSingleTextLineRect
   -> AlignTV        -- ^ The vertical alignment.
   -> Text           -- ^ The text to measure.
   -> Rect           -- ^ The used rect. May be larger than the bounding rect.
-getSingleTextLineRect wenv style !rect !alignH !alignV !text = textRect where
+getSingleTextLineRect wenv style rect alignH alignV text = textRect where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fSize = styleFontSize style
@@ -93,9 +93,9 @@ getSingleTextLineRect wenv style !rect !alignH !alignV !text = textRect where
 
 -- | Returns the glyphs of a single line of text.
 getTextGlyphs :: WidgetEnv s e -> StyleState -> Text -> Seq GlyphPos
-getTextGlyphs wenv style !text = glyphs where
+getTextGlyphs wenv style text = glyphs where
   fontMgr = wenv ^. L.fontManager
   font = styleFont style
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
-  !glyphs = computeGlyphsPos fontMgr font fSize fSpcH text
+  glyphs = computeGlyphsPos fontMgr font fSize fSpcH text

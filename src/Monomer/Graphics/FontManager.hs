@@ -9,6 +9,7 @@ Portability : non-portable
 Provides functions for getting text dimensions and metrics.
 -}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Graphics.FontManager (
   makeFontManager

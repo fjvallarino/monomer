@@ -17,6 +17,7 @@ Messages:
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Animation.Fade (
   -- * Configuration

@@ -11,6 +11,8 @@ considers the different type of size requirements and assigns space according to
 the logic defined in 'SizeReq'. If the requested fixed space is larger that the
 viewport of the stack, the content will overflow.
 -}
+{-# LANGUAGE Strict #-}
+
 module Monomer.Widgets.Containers.Stack (
   -- * Configuration
   StackCfg,

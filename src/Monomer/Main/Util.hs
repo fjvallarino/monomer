@@ -10,6 +10,7 @@ Helper functions for the Main module.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Main.Util where
 
@@ -45,7 +46,7 @@ initMonomerCtx
   -> Double
   -> s
   -> MonomerCtx s e
-initMonomerCtx win channel winSize dpr epr model = MonomerCtx {
+initMonomerCtx ~win channel winSize dpr epr model = MonomerCtx {
   _mcMainModel = model,
   _mcWindow = win,
   _mcWindowSize = winSize,

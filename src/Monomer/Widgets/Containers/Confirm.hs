@@ -12,6 +12,7 @@ context.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Confirm (
   -- * Configuration

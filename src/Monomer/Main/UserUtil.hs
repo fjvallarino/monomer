@@ -9,6 +9,8 @@ Portability : non-portable
 Helper functions for Monomer users, to simplify common operations such as focus
 change and clipboard requests.
 -}
+{-# LANGUAGE Strict #-}
+
 module Monomer.Main.UserUtil where
 
 import Control.Applicative ((<|>))

@@ -12,6 +12,7 @@ value.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.LabeledRadio (
   -- * Configuration

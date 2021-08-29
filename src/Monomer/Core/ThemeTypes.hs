@@ -9,6 +9,7 @@ Portability : non-portable
 Theme configuration types.
 -}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Core.ThemeTypes where
 

@@ -14,6 +14,7 @@ customizable, plus its styling.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.SelectList (
   -- * Configuration

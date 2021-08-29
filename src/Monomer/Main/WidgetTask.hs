@@ -10,6 +10,7 @@ Handles the lifecycle and reporting of generated events of WidgetTasks (single
 message) and Producers (multiple messages).
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Main.WidgetTask (handleWidgetTasks) where
 

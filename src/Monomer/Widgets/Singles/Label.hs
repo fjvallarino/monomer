@@ -9,6 +9,7 @@ Portability : non-portable
 Label widget, with support for multiline text.
 -}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.Label (
   -- * Configuration

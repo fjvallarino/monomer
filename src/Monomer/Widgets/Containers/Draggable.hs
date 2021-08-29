@@ -13,6 +13,7 @@ having to implement a custom widget. Usually works in tandem with
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Draggable (
   -- * Configuration
