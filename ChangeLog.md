@@ -1,3 +1,7 @@
+### 1.0.0.4 - In development
+
+- Reduce memory usage by sharing wreq session among image widget instances.
+
 ### 1.0.0.3
 
 - Consume and forward all available messages from Producers on each cycle.

@@ -18,9 +18,10 @@ the JSON response returned by the API. Only a few fields are retrieved and
 displayed in the UI, but quite a few more are available.
 
 The `BooksSearch` event is used to run a Task that calls the https endpoint.
-When a successful response is received, and event with the result is sent back
-to the application. The same happens with errors, which are displayed as an
-alert dialog.
+When a successful response is received, an event with the result is sent back to
+the application. The same happens with errors, which are displayed as an alert
+dialog. Note: In case you use `wreq` for your own projects, it is recommended
+that you use Session; without it, memory consumption increases heavily.
 
 The zstack widget is used to always keep the background visible while showing
 details or errors. Unless specifically requested, input is only received by the
