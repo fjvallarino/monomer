@@ -14,6 +14,7 @@ import TextShow
 
 import qualified Data.Text as T
 import qualified Network.Wreq as W
+import qualified Network.Wreq.Session as Sess
 
 import BookTypes
 import Monomer
@@ -123,16 +124,17 @@ buildUI wenv model = widgetTree where
     ]
 
 handleEvent
-  :: WidgetEnv BooksModel BooksEvt
+  :: Sess.Session
+  -> WidgetEnv BooksModel BooksEvt
   -> WidgetNode BooksModel BooksEvt
   -> BooksModel
   -> BooksEvt
   -> [EventResponse BooksModel BooksEvt BooksModel ()]
-handleEvent wenv node model evt = case evt of
+handleEvent sess wenv node model evt = case evt of
   BooksInit -> [setFocusOnKey wenv "query"]
   BooksSearch -> [
     Model $ model & searching .~ True,
-    Task $ searchBooks (model ^. query)
+    Task $ searchBooks sess (model ^. query)
     ]
   BooksSearchResult resp -> [
     Message "mainScroll" ScrollReset,
@@ -151,8 +153,8 @@ handleEvent wenv node model evt = case evt of
   BooksCloseDetails -> [Model $ model & selected .~ Nothing]
   BooksCloseError -> [Model $ model & errorMsg .~ Nothing]
 
-searchBooks :: Text -> IO BooksEvt
-searchBooks query = do
+searchBooks :: Sess.Session -> Text -> IO BooksEvt
+searchBooks sess query = do
   putStrLn . T.unpack $ "Searching: " <> query
   result <- catchAny (fetch url) (return . Left . T.pack . show)
 
@@ -165,7 +167,7 @@ searchBooks query = do
       | null (resp ^. docs) = Nothing
       | otherwise = Just resp
     fetch url = do
-      resp <- W.get url
+      resp <- Sess.get sess url
         >>= W.asJSON
         >>= return . preview (W.responseBody . _Just)
 
@@ -173,7 +175,8 @@ searchBooks query = do
 
 main :: IO ()
 main = do
-  startApp initModel handleEvent buildUI config
+  sess <- Sess.newAPISession
+  startApp initModel (handleEvent sess) buildUI config
   where
     config = [
       appWindowTitle "Book search",
