@@ -51,13 +51,14 @@ import Data.Vector.Storable.ByteString (vectorToByteString)
 import GHC.Generics
 import Network.HTTP.Client (HttpException(..), HttpExceptionContent(..))
 import Network.Wreq
+import Network.Wreq.Session (Session)
 
 import qualified Codec.Picture as Pic
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Network.Wreq as Wreq
+import qualified Network.Wreq.Session as Sess
 
 import Monomer.Widgets.Single
 
@@ -438,7 +439,7 @@ handleImageLoad config wenv path = do
   -- Get the image's MVar. One MVar per image name/path is created, to allow
   -- loading images in parallel. The main MVar is only taken until the image's
   -- MVar is retrieved/created.
-  sharedMap <- takeMVar sharedMapMVar
+  (sharedMap, sess) <- takeMVar sharedMapMVar >>= getImagesSession
   sharedImgMVar <- case useShared (Map.lookup key sharedMap) of
     Just mvar -> return mvar
     Nothing -> newMVar emptyImgState
@@ -450,7 +451,7 @@ handleImageLoad config wenv path = do
     Just (oldState, oldCount) -> do
       return (ImageLoaded oldState, Just (oldState, oldCount + 1))
     Nothing -> do
-      res <- loadImage path
+      res <- loadImage sess path
 
       case res >>= decodeImage of
         Left loadError -> return (ImageFailed loadError, Nothing)
@@ -486,10 +487,10 @@ handleImageDispose wenv path = do
 imgKey :: Text -> Text
 imgKey path = "image-widget-key-" <> path
 
-loadImage :: Text -> IO (Either ImageLoadError ByteString)
-loadImage path
+loadImage :: Session -> Text -> IO (Either ImageLoadError ByteString)
+loadImage sess path
   | not (isUrl path) = loadLocal path
-  | otherwise = loadRemote path
+  | otherwise = loadRemote sess path
 
 decodeImage :: ByteString -> Either ImageLoadError DynamicImage
 decodeImage bs = either (Left . ImageInvalid) Right (Pic.decodeImage bs)
@@ -503,8 +504,8 @@ loadLocal name = do
     then return . Left . ImageLoadFailed $ "Failed to load: " ++ path
     else return . Right $ content
 
-loadRemote :: Text -> IO (Either ImageLoadError ByteString)
-loadRemote name = do
+loadRemote :: Session -> Text -> IO (Either ImageLoadError ByteString)
+loadRemote sess name = do
   let path = T.unpack name
   eresp <- try $ getUrl path
 
@@ -513,7 +514,7 @@ loadRemote name = do
     Right r -> Right $ respBody r
   where
     respBody r = BSL.toStrict $ r ^. responseBody
-    getUrl = getWith (defaults & checkResponse ?~ (\_ _ -> return ()))
+    getUrl = Sess.getWith (defaults & checkResponse ?~ (\_ _ -> return ())) sess
 
 remoteException
   :: String -> HttpException -> Either ImageLoadError ByteString
@@ -544,6 +545,17 @@ makeImgState config wenv name dimg = newState where
     isImageSource = ImagePath name,
     isImageData = Just (bs, size)
   }
+
+getImagesSession
+  :: Map Text WidgetShared
+  -> IO (Map Text WidgetShared, Sess.Session)
+getImagesSession sharedMap = case useShared (Map.lookup key sharedMap) of
+  Just sess -> return (sharedMap, sess)
+  Nothing -> do
+    sess <- Sess.newAPISession
+    return (sharedMap & at key ?~ WidgetShared sess, sess)
+  where
+    key = "image-widget-wreq-session"
 
 isUrl :: Text -> Bool
 isUrl url = T.isPrefixOf "http://" lurl || T.isPrefixOf "https://" lurl where
