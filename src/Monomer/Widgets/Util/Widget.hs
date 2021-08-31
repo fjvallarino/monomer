@@ -40,7 +40,6 @@ module Monomer.Widgets.Util.Widget (
 
 import Control.Concurrent (threadDelay)
 import Control.Lens ((&), (^#), (#~), (^.), (^?), (.~), (%~), _Just)
-import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Map.Strict (Map)

@@ -76,8 +76,6 @@ stack exec -- pacman -S mingw-w64-x86_64-glew
 
 Inside your project's directory:
 
-### macOS / Linux
-
 ```bash
 stack build
 ```
@@ -92,12 +90,6 @@ As a workaround, an application configuration option called
 `appRenderOnMainThread` is available. It can be added to the `config` list of
 the starter application or to the corresponding section of any of the examples.
 
-### Windows
-
-```bash
-stack build --flag regex-posix:_regex-posix-clib
-```
-
 ## Build the examples included with the library
 
 In case you want to test the examples the library provides, you need to clone
@@ -109,26 +101,12 @@ git clone https://github.com/fjvallarino/monomer.git
 
 Then, inside the cloned directory, build the project with:
 
-### Linux and macOS
-
 ```bash
 stack build
 ```
 
-### Windows
-
-If you're using Windows, you have to do some extra steps and provide additional
-flags as in the starter project:
-
-```bash
-stack setup
-stack exec -- pacman -S mingw-w64-x86_64-pkg-config
-stack exec -- pacman -S mingw-w64-x86_64-SDL2
-stack exec -- pacman -S mingw-w64-x86_64-freeglut
-stack exec -- pacman -S mingw-w64-x86_64-glew
-
-stack build --flag regex-posix:_regex-posix-clib
-```
+In case you have not followed the instructions for the starter project, you
+still need to install the [dependencies](#libraries-sdl2-and-glew).
 
 ### Running the examples
 
