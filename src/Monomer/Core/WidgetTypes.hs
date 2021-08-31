@@ -18,7 +18,6 @@ module Monomer.Core.WidgetTypes where
 
 import Control.Concurrent (MVar)
 import Control.Lens (ALens')
-import Data.ByteString.Lazy (ByteString)
 import Data.Default
 import Data.Map.Strict (Map)
 import Data.Sequence (Seq)
