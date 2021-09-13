@@ -27,7 +27,12 @@ brew install glew
 
 #### Notes
 
-Currently, Monomer fails to compile on M1 Macs.
+Currently Monomer fails to compile on M1 Macs. This issue should be fixed when
+GHC 9.2 is released, since it will include a native code generator for that CPU.
+
+Until that time, it has been [reported](https://github.com/fjvallarino/monomer/issues/1#issuecomment-914866110)
+that building for x86 and running the application in the Rosetta shell works
+well.
 
 ### Linux
 
