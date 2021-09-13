@@ -42,6 +42,7 @@ import Data.Maybe
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Helper (applyFnList)
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Stack
 
@@ -78,7 +79,7 @@ Configuration options for box:
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
-  _boxSizeReqUpdater :: Maybe SizeReqUpdater,
+  _boxSizeReqUpdater :: [SizeReqUpdater],
   _boxMergeRequired :: Maybe (s -> s -> Bool),
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
@@ -96,7 +97,7 @@ instance Default (BoxCfg s e) where
   def = BoxCfg {
     _boxExpandContent = Nothing,
     _boxIgnoreEmptyArea = Nothing,
-    _boxSizeReqUpdater = Nothing,
+    _boxSizeReqUpdater = [],
     _boxMergeRequired = Nothing,
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
@@ -114,7 +115,7 @@ instance Semigroup (BoxCfg s e) where
   (<>) t1 t2 = BoxCfg {
     _boxExpandContent = _boxExpandContent t2 <|> _boxExpandContent t1,
     _boxIgnoreEmptyArea = _boxIgnoreEmptyArea t2 <|> _boxIgnoreEmptyArea t1,
-    _boxSizeReqUpdater = _boxSizeReqUpdater t2 <|> _boxSizeReqUpdater t1,
+    _boxSizeReqUpdater = _boxSizeReqUpdater t1 <> _boxSizeReqUpdater t2,
     _boxMergeRequired = _boxMergeRequired t2 <|> _boxMergeRequired t1,
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
@@ -138,7 +139,7 @@ instance CmbIgnoreEmptyArea (BoxCfg s e) where
 
 instance CmbSizeReqUpdater (BoxCfg s e) where
   sizeReqUpdater updater = def {
-    _boxSizeReqUpdater = Just updater
+    _boxSizeReqUpdater = [updater]
   }
 
 instance CmbMergeRequired (BoxCfg s e) s where
@@ -384,11 +385,11 @@ makeBox config state = widget where
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = newSizeReq where
-    updateSizeReq = fromMaybe id (_boxSizeReqUpdater config)
+    sizeReqFns = _boxSizeReqUpdater config
     child = Seq.index children 0
     newReqW = child ^. L.info . L.sizeReqW
     newReqH = child ^. L.info . L.sizeReqH
-    newSizeReq = updateSizeReq (newReqW, newReqH)
+    newSizeReq = applyFnList sizeReqFns (newReqW, newReqH)
 
   resize wenv node viewport children = resized where
     style = getCurrentStyle wenv node

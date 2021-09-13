@@ -133,8 +133,7 @@ getSizeReqUpdater = describe "getSizeReqUpdater" $ do
 
   where
     wenv = mockWenv ()
-    updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
-    vgridNode = vgrid_ [sizeReqUpdater updater] [label "Label"]
+    vgridNode = vgrid_ [sizeReqUpdater (fixedToMinW 2), sizeReqUpdater (fixedToMaxH 3)] [label "Label"]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vgridNode
 
 resize :: Spec

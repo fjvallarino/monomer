@@ -48,6 +48,10 @@ seqCatMaybes (x :<| xs) = case x of
   Just val -> val :<| seqCatMaybes xs
   _ -> seqCatMaybes xs
 
+-- | Folds a list of functions over an initial value.
+applyFnList :: [a -> a] -> a -> a
+applyFnList fns initial = foldl (flip ($)) initial fns
+
 -- | Returns the maximum value of a given floating type.
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where

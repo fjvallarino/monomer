@@ -35,6 +35,7 @@ import Data.Sequence (Seq(..), (<|), (|>))
 
 import qualified Data.Sequence as Seq
 
+import Monomer.Helper (applyFnList)
 import Monomer.Widgets.Container
 
 import qualified Monomer.Lens as L
@@ -49,19 +50,19 @@ Configuration options for stack:
 -}
 data StackCfg = StackCfg {
   _stcIgnoreEmptyArea :: Maybe Bool,
-  _stcSizeReqUpdater :: Maybe SizeReqUpdater
+  _stcSizeReqUpdater :: [SizeReqUpdater]
 }
 
 instance Default StackCfg where
   def = StackCfg {
     _stcIgnoreEmptyArea = Nothing,
-    _stcSizeReqUpdater = Nothing
+    _stcSizeReqUpdater = []
   }
 
 instance Semigroup StackCfg where
   (<>) s1 s2 = StackCfg {
     _stcIgnoreEmptyArea = _stcIgnoreEmptyArea s2 <|> _stcIgnoreEmptyArea s1,
-    _stcSizeReqUpdater = _stcSizeReqUpdater s2 <|> _stcSizeReqUpdater s1
+    _stcSizeReqUpdater = _stcSizeReqUpdater s1 <> _stcSizeReqUpdater s2
   }
 
 instance Monoid StackCfg where
@@ -74,7 +75,7 @@ instance CmbIgnoreEmptyArea StackCfg where
 
 instance CmbSizeReqUpdater StackCfg where
   sizeReqUpdater updater = def {
-    _stcSizeReqUpdater = Just updater
+    _stcSizeReqUpdater = [updater]
   }
 
 -- | Creates a horizontal stack.
@@ -121,11 +122,11 @@ makeStack isHorizontal config = widget where
   ignoreEmptyArea = fromMaybe False (_stcIgnoreEmptyArea config)
 
   getSizeReq wenv node children = newSizeReq where
-    updateSizeReq = fromMaybe id (_stcSizeReqUpdater config)
+    sizeReqFns = _stcSizeReqUpdater config
     vchildren = Seq.filter (_wniVisible . _wnInfo) children
     newSizeReqW = getDimSizeReq isHorizontal (_wniSizeReqW . _wnInfo) vchildren
     newSizeReqH = getDimSizeReq isVertical (_wniSizeReqH . _wnInfo) vchildren
-    newSizeReq = updateSizeReq (newSizeReqW, newSizeReqH)
+    newSizeReq = applyFnList sizeReqFns (newSizeReqW, newSizeReqH)
 
   getDimSizeReq mainAxis accesor vchildren
     | Seq.null vreqs = fixedSize 0

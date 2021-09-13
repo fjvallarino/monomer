@@ -13,6 +13,12 @@ Helper functions creating, validating and merging size requirements.
 module Monomer.Core.SizeReq (
   SizeReqUpdater(..),
   clearExtra,
+  fixedToMinW,
+  fixedToMinH,
+  fixedToMaxW,
+  fixedToMaxH,
+  fixedToExpandW,
+  fixedToExpandH,
   sizeReqBounded,
   sizeReqValid,
   sizeReqAddStyle,
@@ -43,9 +49,51 @@ import qualified Monomer.Core.Lens as L
 -- | Transforms a SizeReq pair by applying an arbitrary operation.
 type SizeReqUpdater = (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 
--- | Clears the extra field of a SizeReq.
+-- | Clears the extra field of a pair of SizeReqs.
 clearExtra :: SizeReqUpdater
-clearExtra (req1, req2) = (req1 & L.extra .~ 0, req2 & L.extra .~ 0)
+clearExtra (reqW, reqH) = (reqW & L.extra .~ 0, reqH & L.extra .~ 0)
+
+-- | Switches a SizeReq pair from fixed width to minimum width.
+fixedToMinW
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMinW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
+  newReqH = SizeReq fixed 0 fixed fw
+
+-- | Switches a SizeReq pair from fixed height to minimum height.
+fixedToMinH
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMinH fh (reqW, SizeReq fixed _ _ _) = (reqW, newReqH) where
+  newReqH = SizeReq fixed 0 fixed fh
+
+-- | Switches a SizeReq pair from fixed width to maximum width.
+fixedToMaxW
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMaxW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
+  newReqH = SizeReq 0 fixed 0 fw
+
+-- | Switches a SizeReq pair from fixed height to maximum height.
+fixedToMaxH
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMaxH fh (reqW, SizeReq fixed _ _ _) = (reqW, newReqH) where
+  newReqH = SizeReq 0 fixed 0 fh
+
+-- | Switches a SizeReq pair from fixed width to expand width.
+fixedToExpandW
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToExpandW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
+  newReqH = SizeReq 0 fixed fixed fw
+
+-- | Switches a SizeReq pair from fixed height to expand height.
+fixedToExpandH
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToExpandH fh (reqW, SizeReq fixed _ _ _) = (reqW, newReqH) where
+  newReqH = SizeReq 0 fixed fixed fh
 
 -- | Returns a bounded value by the SizeReq, starting from value and offset.
 sizeReqBounded :: SizeReq -> Double -> Double -> Double

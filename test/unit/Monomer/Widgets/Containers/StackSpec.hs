@@ -73,16 +73,24 @@ getSizeReqItems = describe "several items" $ do
 getSizeReqUpdater :: Spec
 getSizeReqUpdater = describe "getSizeReqUpdater" $ do
   it "should return width = Min 50 2" $
-    sizeReqW `shouldBe` minSize 50 2
+    sizeReqW1 `shouldBe` minSize 50 2
 
   it "should return height = Max 20" $
-    sizeReqH `shouldBe` maxSize 20 3
+    sizeReqH1 `shouldBe` maxSize 20 3
+
+  it "should return width = Min 50 10" $
+    sizeReqW2 `shouldBe` minSize 50 10
+
+  it "should return height = Max 20 15" $
+    sizeReqH2 `shouldBe` maxSize 20 15
 
   where
     wenv = mockWenv ()
     updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
-    vstackNode = vstack_ [sizeReqUpdater updater] [label "Label"]
-    (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
+    vstackNode1 = vstack_ [sizeReqUpdater updater] [label "Label"]
+    vstackNode2 = vstack_ [sizeReqUpdater (fixedToMinW 10), sizeReqUpdater (fixedToMaxH 15)] [label "Label"]
+    (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv vstackNode1
+    (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv vstackNode2
 
 resize :: Spec
 resize = describe "resize" $ do

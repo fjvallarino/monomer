@@ -1,6 +1,7 @@
 ### 1.0.0.4 - In development
 
 - Reduce memory usage by sharing wreq session among image widget instances.
+- Add sizeUpdater helpers. Support multiple handlers in box, grid and stack.
 
 ### 1.0.0.3
 

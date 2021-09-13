@@ -35,7 +35,6 @@ module Monomer.Widgets.Util.Drawing (
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), non)
 import Control.Monad (forM_, void, when)
-import Data.ByteString (ByteString)
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)

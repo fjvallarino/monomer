@@ -1,5 +1,5 @@
 {-|
-Module      : Monomer.Common.CursorIconSpec
+Module      : Monomer.Graphics.UtilSpec
 Copyright   : (c) 2018 Francisco Vallarino
 License     : BSD-3-Clause (see the LICENSE file)
 Maintainer  : fjvallarino@gmail.com

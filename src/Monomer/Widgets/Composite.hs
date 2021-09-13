@@ -70,7 +70,6 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (|>), (<|), fromList)
 import Data.Typeable (Typeable, cast, typeOf)
 
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as Seq
 

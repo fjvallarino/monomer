@@ -170,8 +170,7 @@ getSizeReqUpdater = describe "getSizeReqUpdater" $ do
 
   where
     wenv = mockWenvEvtUnit ()
-    updater (rw, rh) = (minSize (rw ^. L.fixed) 2, maxSize (rh ^. L.fixed) 3)
-    boxNode = box_ [sizeReqUpdater updater] (label "Label")
+    boxNode = box_ [sizeReqUpdater (fixedToMinW 2), sizeReqUpdater (fixedToMaxH 3)] (label "Label")
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv boxNode
 
 resize :: Spec
