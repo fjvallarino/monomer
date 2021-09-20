@@ -46,15 +46,15 @@ Configuration options for externalLink:
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
 - 'maxLines': maximum number of text lines to show.
+- 'resizeFactor': flexibility to have more or less spaced assigned.
+- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
+- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
 - 'onFocus': event to raise when focus is received.
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.
 - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
 - 'onClick': event to raise when button is clicked.
 - 'onClickReq': 'WidgetRequest' to generate when button is clicked.
-- 'resizeFactor': flexibility to have more or less spaced assigned.
-- 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
-- 'resizeFactorH': flexibility to have more or less vertical spaced assigned.
 -}
 data ExternalLinkCfg s e = ExternalLinkCfg {
   _elcLabelCfg :: LabelCfg s e,

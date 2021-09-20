@@ -133,8 +133,8 @@ instance CmbResizeFactorDim (LabelCfg s e) where
 labelCurrentStyle
   :: (WidgetEnv s e -> WidgetNode s e -> StyleState)
   -> LabelCfg s e
-labelCurrentStyle style = def {
-  _lscCurrentStyle = Just style
+labelCurrentStyle styleFn = def {
+  _lscCurrentStyle = Just styleFn
 }
 
 data LabelState = LabelState {
