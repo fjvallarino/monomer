@@ -496,7 +496,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       scOffset = wenv ^. L.offset
       offset = _ddsOffset state
       totalOffset = addPoint scOffset offset
-      cwenv = updateWenvOffset container wenv node
+      cwenv = updateWenvOffset container wenv node listOverlayVp
         & L.viewport .~ listOverlayVp
 
   renderArrow renderer style contentArea =

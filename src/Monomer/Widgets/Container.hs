@@ -471,11 +471,17 @@ getUpdateCWenv container !wenv !node !cnode !cidx = newWenv where
   cOffset = containerChildrenOffset container
   updateCWenv = containerUpdateCWenv container
   layoutDirection = containerLayoutDirection container
+
+  pViewport = node ^. L.info . L.viewport
+  cViewport = cnode ^. L.info . L.viewport
+  newViewport = fromMaybe def (intersectRects pViewport cViewport)
+
   offsetWenv !wenv
-    | isJust cOffset = updateWenvOffset container wenv node
+    | isJust cOffset = updateWenvOffset container wenv node newViewport
     | otherwise = wenv
   !directionWenv = wenv
     & L.layoutDirection .~ layoutDirection
+
   !newWenv = updateCWenv (offsetWenv directionWenv) node cnode cidx
 
 {-|
@@ -487,15 +493,16 @@ updateWenvOffset
   :: Container s e a  -- ^ The container config
   -> WidgetEnv s e    -- ^ The widget environment.
   -> WidgetNode s e   -- ^ The widget node.
+  -> Rect             -- ^ The target viewport.
   -> WidgetEnv s e    -- ^ THe updated widget environment.
-updateWenvOffset container wenv node = newWenv where
+updateWenvOffset container wenv node viewport = newWenv where
   cOffset = containerChildrenOffset container
   offset = fromMaybe def cOffset
-  accumOffset = addPoint offset (wenv ^. L.offset)
-  viewport = node ^. L.info . L.viewport
+
   updateMain (path, point)
     | isNodeParentOfPath node path = (path, addPoint (negPoint offset) point)
     | otherwise = (path, point)
+
   newWenv = wenv
     & L.viewport .~ moveRect (negPoint offset) viewport
     & L.inputStatus . L.mousePos %~ addPoint (negPoint offset)

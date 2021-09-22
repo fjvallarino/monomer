@@ -350,6 +350,7 @@ makeScroll config state = widget where
     containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
     containerGetCurrentStyle = scrollCurrentStyle,
+    containerUpdateCWenv = updateCWenv,
     containerInit = init,
     containerMerge = merge,
     containerFindByPoint = findByPoint,
@@ -384,6 +385,28 @@ makeScroll config state = widget where
         & L.info . L.style .~ parentStyle
         & L.children . ix 0 . L.info . L.style .~ childStyle
       | otherwise = node
+
+  -- This is overriden to account for space used by scroll bars
+  updateCWenv wenv node cnode cidx = newWenv where
+    theme = currentTheme wenv node
+    barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
+    overlay = fromMaybe (theme ^. L.scrollOverlay) (_scScrollOverlay config)
+
+    ScrollContext{..} = scrollStatus config wenv node state (Point 0 0)
+    style = currentStyle wenv node
+    carea = getContentArea node style
+
+    -- barH consumes vertical space, barV consumes horizontal space
+    barH
+      | hScrollRequired && not overlay = barW
+      | otherwise = 0
+    barV
+      | vScrollRequired && not overlay = barW
+      | otherwise = 0
+    clientArea = subtractFromRect carea 0 barV 0 barH
+
+    newWenv = wenv
+      & L.viewport .~ moveRect (negPoint offset) (fromMaybe carea clientArea)
 
   init wenv node = resultNode newNode where
     newNode = checkFwdStyle wenv node
