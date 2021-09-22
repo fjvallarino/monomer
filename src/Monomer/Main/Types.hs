@@ -50,7 +50,7 @@ data RenderMsg s e
   = MsgRender (WidgetEnv s e) (WidgetNode s e)
   | MsgResize Size
   | MsgRemoveImage Text
-  deriving Show
+  | forall i . MsgRunInRender (TChan i) (IO i)
 
 {-|
 Requirements for periodic rendering by a widget. Start time is stored to

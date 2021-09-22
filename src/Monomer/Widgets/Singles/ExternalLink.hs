@@ -24,7 +24,6 @@ module Monomer.Widgets.Singles.ExternalLink (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Exception (SomeException, catch)
 import Control.Lens ((&), (^.), (.~))
 import Data.Default
 import Data.Maybe
@@ -34,6 +33,7 @@ import System.Process (callCommand)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
+import Monomer.Helper (catchAny)
 import Monomer.Widgets.Container
 import Monomer.Widgets.Singles.Label
 
@@ -232,6 +232,3 @@ openLink wenv url = catchIgnore (callCommand openCommand) where
 
 catchIgnore :: IO () -> IO ()
 catchIgnore task = catchAny task (const $ return ())
-
-catchAny :: IO a -> (SomeException -> IO a) -> IO a
-catchAny = catch

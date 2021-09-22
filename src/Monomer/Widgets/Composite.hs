@@ -866,6 +866,7 @@ toParentReq wid (RaiseEvent message) = Just (SendMessage wid message)
 toParentReq _ (SendMessage wid message) = Just (SendMessage wid message)
 toParentReq _ (RunTask wid path action) = Just (RunTask wid path action)
 toParentReq _ (RunProducer wid path action) = Just (RunProducer wid path action)
+toParentReq _ (RunInRenderThread wid path action) = Just (RunInRenderThread wid path action)
 
 collectWidgetKeys
   :: Map WidgetKey (WidgetNode s e)
@@ -882,6 +883,7 @@ collectWidgetKeys keys node = newMap where
 convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
+  _weDpr = _weDpr wenv,
   _weFontManager = _weFontManager wenv,
   _weFindByPath = _weFindByPath wenv,
   _weMainButton = _weMainButton wenv,

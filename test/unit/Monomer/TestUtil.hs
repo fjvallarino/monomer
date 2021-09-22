@@ -159,6 +159,7 @@ mockFontManager = FontManager {
 mockWenv :: s -> WidgetEnv s e
 mockWenv model = WidgetEnv {
   _weOs = "Mac OS X",
+  _weDpr = 2,
   _weFontManager = mockFontManager,
   _weFindByPath = const Nothing,
   _weMainButton = BtnLeft,

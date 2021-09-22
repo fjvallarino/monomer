@@ -47,6 +47,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics
+import Monomer.Helper (catchAny)
 import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
@@ -152,6 +153,7 @@ runAppLoop window glCtx channel widgetRoot config = do
 
   let wenv = WidgetEnv {
     _weOs = os,
+    _weDpr = dpr,
     _weFontManager = fontManager,
     _weFindByPath = const Nothing,
     _weMainButton = mainBtn,
@@ -258,6 +260,7 @@ mainLoop window fontManager config loopArgs = do
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
   let wenv = WidgetEnv {
     _weOs = _mlOS,
+    _weDpr = dpr,
     _weFontManager = fontManager,
     _weFindByPath = findWidgetByPath wenv _mlWidgetRoot,
     _weMainButton = mainBtn,
@@ -409,6 +412,11 @@ handleRenderMsg window renderer fontMgr state (MsgResize _) = do
   return state
 handleRenderMsg window renderer fontMgr state (MsgRemoveImage name) = do
   deleteImage renderer name
+  return state
+handleRenderMsg window renderer fontMgr state (MsgRunInRender chan task) = do
+  flip catchAny print $ do
+    value <- task
+    atomically $ writeTChan chan value
   return state
 
 renderWidgets

@@ -225,6 +225,11 @@ data WidgetRequest s e
   --   for WebSockets and similar data sources. It receives a function that
   --   can be used to send messages back to the producer owner.
   | forall i . Typeable i => RunProducer WidgetId Path ((i -> IO ()) -> IO ())
+  -- | Runs an asynchronous tasks in the render thread. It is mandatory to
+  --   return a message that will be sent to the task owner (this is the only
+  --   way to feed data back). This should only be used when implementing low
+  --   level rendering widgets that need to create API specific resources.
+  | forall i . Typeable i => RunInRenderThread WidgetId Path (IO i)
 
 instance Eq e => Eq (WidgetRequest s e) where
   IgnoreParentEvents == IgnoreParentEvents = True
@@ -286,6 +291,8 @@ data LayoutDirection
 data WidgetEnv s e = WidgetEnv {
   -- | The OS of the host.
   _weOs :: Text,
+  -- | Device pixel rate.
+  _weDpr :: Double,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
   -- | Returns the information of a node given a path from root, if any.
@@ -703,6 +710,7 @@ instance Show (WidgetRequest s e) where
   show SendMessage{} = "SendMessage"
   show RunTask{} = "RunTask"
   show RunProducer{} = "RunProducer"
+  show RunInRenderThread{} = "RunInRenderThread"
 
 instance Show (WidgetResult s e) where
   show result = "WidgetResult "

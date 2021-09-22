@@ -11,6 +11,7 @@ module and are not directly exported.
 -}
 module Monomer.Helper where
 
+import Control.Exception (SomeException, catch)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Sequence (Seq(..))
 
@@ -63,3 +64,7 @@ maxNumericValue = x where
 -- | Restricts a value to a given range.
 clamp :: (Ord a) => a -> a -> a -> a
 clamp mn mx = max mn . min mx
+
+-- | Catches any exception thrown by the provided action
+catchAny :: IO a -> (SomeException -> IO a) -> IO a
+catchAny = catch

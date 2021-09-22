@@ -29,7 +29,7 @@ import Control.Concurrent.Async (async)
 import Control.Lens
   ((&), (^.), (^?), (.~), (?~), (%~), (.=), (?=), (%=), (%%~), _Just, _1, _2, ix, at, use)
 import Control.Monad.STM (atomically)
-import Control.Concurrent.STM.TChan (TChan, newTChanIO, writeTChan)
+import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Applicative ((<|>))
 import Control.Monad
 import Control.Monad.IO.Class
@@ -251,6 +251,7 @@ handleRequests reqs step = foldM handleRequest step reqs where
     SendMessage wid msg -> handleSendMessage wid msg step
     RunTask wid path handler -> handleRunTask wid path handler step
     RunProducer wid path handler -> handleRunProducer wid path handler step
+    RunInRenderThread wid path handler -> handleRunInRenderThread wid path handler step
 
 -- | Resizes the current root, and marks the render and resized flags.
 handleResizeWidgets
@@ -652,6 +653,23 @@ handleRunProducer widgetId path handler previousStep = do
   setWidgetIdPath widgetId path
 
   return previousStep
+
+handleRunInRenderThread
+  :: forall s e m i . (MonomerM s e m, Typeable i)
+  => WidgetId
+  -> Path
+  -> IO i
+  -> HandlerStep s e
+  -> m (HandlerStep s e)
+handleRunInRenderThread widgetId path handler previousStep = do
+  renderChannel <- use L.renderChannel
+
+  handleRunTask widgetId path (taskWrapper renderChannel) previousStep
+  where
+    taskWrapper renderChannel = do
+      msgChan <- newTChanIO
+      atomically $ writeTChan renderChannel (MsgRunInRender msgChan handler)
+      atomically $ readTChan msgChan
 
 sendMessage :: TChan e -> e -> IO ()
 sendMessage channel message = atomically $ writeTChan channel message
