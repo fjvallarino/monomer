@@ -123,6 +123,18 @@ executables:
       - random >= 1.1 && < 1.3
       - text-show >= 3.7 && < 3.10
 
+  opengl:
+    main: Main.hs
+    source-dirs: examples/opengl
+    ghc-options:
+      - -threaded
+    dependencies:
+      - lens >= 4.16 && < 5.1
+      - monomer
+      - OpenGLRaw >= 3.3 && < 3.4
+      - random >= 1.1 && < 1.3
+      - text-show >= 3.7 && < 3.10
+
   tutorial:
     main: Main.hs
     source-dirs: examples/tutorial

@@ -131,6 +131,10 @@ subtractFromSize (Size w h) w2 h2 = newSize where
 moveRect :: Point -> Rect -> Rect
 moveRect (Point x y) (Rect rx ry rw rh) = Rect (rx + x) (ry + y) rw rh
 
+-- | Scales a rect by the provided factor.
+mulRect :: Double -> Rect -> Rect
+mulRect f (Rect rx ry rw rh) = Rect (f * rx) (f * ry) (f * rw) (f * rh)
+
 -- | Returns the middle point of a rect.
 rectCenter :: Rect -> Point
 rectCenter (Rect rx ry rw rh) = Point (rx + rw / 2) (ry + rh / 2)

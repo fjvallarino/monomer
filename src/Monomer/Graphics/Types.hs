@@ -40,7 +40,7 @@ data Color = Color {
   _colorG :: {-# UNPACK #-} !Int,
   _colorB :: {-# UNPACK #-} !Int,
   _colorA :: {-# UNPACK #-} !Double
-} deriving (Eq, Show, Generic)
+} deriving (Eq, Show, Ord, Generic)
 
 instance Default Color where
   def = Color 255 255 255 1.0
