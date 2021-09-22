@@ -1,7 +1,11 @@
-### 1.0.0.4 - In development
+### 1.1.0.0
 
 - Reduce memory usage by sharing wreq session among image widget instances.
 - Add sizeUpdater helpers. Support multiple handlers in box, grid and stack.
+- Add `dpr` field to `WidgetEnv`.
+- Add `RunInRenderThread` to support initialization of low level OpenGL resources.
+- Set correct `WidgetEnv` viewport from scroll (it looked good because of scissoring).
+- Add OpenGL example.
 
 ### 1.0.0.3
 

@@ -54,6 +54,7 @@ Beyond the tutorials, a few _real world like_ examples are available:
 - [Books](docs/examples/02-books.md)
 - [Ticker](docs/examples/03-ticker.md)
 - [Generative](docs/examples/04-generative.md)
+- [Custom OpenGL](docs/examples/05-opengl.md)
 
 ### Haddock
 
