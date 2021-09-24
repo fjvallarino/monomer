@@ -190,13 +190,12 @@ makeButton :: WidgetEvent e => Text -> ButtonCfg s e -> Widget s e
 makeButton !caption !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
+    containerDrawDecorations = False,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
-    containerGetCurrentStyle = getCurrentStyle,
     containerInit = init,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
-    containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
 
@@ -209,14 +208,6 @@ makeButton !caption !config = widget where
         ButtonMain -> Just (collectTheme wenv L.btnMainStyle)
     where
       ignoreTheme = _btnIgnoreTheme config == Just True
-
-  getCurrentStyle wenv node = styleState where
-    style = node ^. L.info . L.style
-    isEnabled = node ^. L.info . L.enabled
-    isActive = isNodeTreeActive wenv node
-    styleState
-      | isEnabled && isActive = fromMaybe def (_styleActive style)
-      | otherwise = currentStyle wenv node
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
@@ -256,13 +247,6 @@ makeButton !caption !config = widget where
       reqs = _btnOnClickReq config
       result = resultReqs node reqs
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-
-  getSizeReq :: ContainerGetSizeReqHandler s e
-  getSizeReq wenv node children = (newReqW, newReqH) where
-    -- Main section reqs
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
 
   resize wenv node viewport children = resized where
     assignedAreas = Seq.fromList [viewport]

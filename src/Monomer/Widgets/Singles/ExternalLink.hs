@@ -150,12 +150,12 @@ makeExternalLink
 makeExternalLink !caption !url !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
+    containerDrawDecorations = False,
     containerUseScissor = True,
     containerGetBaseStyle = getBaseStyle,
     containerInit = init,
     containerMerge = merge,
     containerHandleEvent = handleEvent,
-    containerGetSizeReq = getSizeReq,
     containerResize = resize
   }
 
@@ -208,13 +208,6 @@ makeExternalLink !caption !url !config = widget where
       requests = [RunTask widgetId path openLinkTask]
       result = resultReqs node requests
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
-
-  getSizeReq :: ContainerGetSizeReqHandler s e
-  getSizeReq wenv node children = (newReqW, newReqH) where
-    -- Main section reqs
-    child = Seq.index children 0
-    newReqW = child ^. L.info . L.sizeReqW
-    newReqH = child ^. L.info . L.sizeReqH
 
   resize wenv node viewport children = resized where
     assignedAreas = Seq.fromList [viewport]

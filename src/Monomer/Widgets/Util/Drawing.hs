@@ -28,6 +28,7 @@ module Monomer.Widgets.Util.Drawing (
   drawArrowDown,
   drawTimesX,
   drawStyledAction,
+  drawStyledAction_,
   drawRoundedRect,
   drawRectRoundedBorder
 ) where
@@ -340,12 +341,27 @@ drawStyledAction
   -> StyleState       -- ^ The style defining background and border.
   -> (Rect -> IO ())  -- ^ The drawing actions. They receive the content area.
   -> IO ()            -- ^ The resulting action.
-drawStyledAction renderer rect style action = do
-  drawRect renderer rect _sstBgColor _sstRadius
+drawStyledAction renderer rect style action =
+  drawStyledAction_ renderer True rect style action
+
+{-|
+Runs a set of rendering operations after conditionally drawing the style's
+background, and before drawing the style's border.
+-}
+drawStyledAction_
+  :: Renderer         -- ^ The renderer.
+  -> Bool             -- ^ Whether background and border should be drawn.
+  -> Rect             -- ^ The rect where background and border will be drawn.
+  -> StyleState       -- ^ The style defining background and border.
+  -> (Rect -> IO ())  -- ^ The drawing actions. They receive the content area.
+  -> IO ()            -- ^ The resulting action.
+drawStyledAction_ renderer drawDecorations rect style action = do
+  when drawDecorations $
+    drawRect renderer rect _sstBgColor _sstRadius
 
   forM_ contentRect action
 
-  when (isJust _sstBorder) $
+  when (drawDecorations && isJust _sstBorder) $
     drawRectBorder renderer rect (fromJust _sstBorder) _sstRadius
   where
     StyleState{..} = style
