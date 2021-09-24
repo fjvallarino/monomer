@@ -205,6 +205,10 @@ Besides these, the `Drawing` module provides higher level functions that receive
 The [Generative](../examples/04-generative.md) example shares some similarities
 to what is presented in this tutorial.
 
+The _"Rendering passes"_ section in the [OpenGL](../examples/05-opengl.md)
+example has information that can be useful if you need to display content after
+all the widgets have completed their rendering step.
+
 ### Single widgets you may want to check
 
 `spacer`, `checkbox`, `radio` and `label` (sorted by complexity).
