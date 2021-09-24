@@ -1,3 +1,15 @@
+{-|
+Module      : Main
+Copyright   : (c) 2018 Francisco Vallarino
+License     : BSD-3-Clause (see the LICENSE file)
+Maintainer  : fjvallarino@gmail.com
+Stability   : experimental
+Portability : non-portable
+
+Widget implementing low level rendering for the 'Custom OpenGL' example.
+
+OpenGL code adapted from dmjio's [example](https://github.com/dmjio/LearnOpenGL.hs/blob/master/GettingStarted/ShadersEx2/Main.hs).
+-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
 
