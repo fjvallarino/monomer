@@ -19,6 +19,7 @@ import qualified Data.Sequence as Seq
 
 import Monomer.Core
 import Monomer.Core.Combinators
+import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
 import Monomer.Graphics.ColorTable
 import Monomer.TestEventUtil
@@ -47,9 +48,48 @@ spec = describe "Scroll" $ do
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
+  handleBarClick
   handleChildrenFocus
   handleNestedWheel
   handleMessageReset
+
+handleBarClick :: Spec
+handleBarClick = describe "handleBarClick" $ do
+  it "should click the first button" $ do
+    evts [evtClick point] `shouldBe` Seq.fromList [Button1]
+
+  it "should scroll right and click the third button" $ do
+    evts [evtRelease midHBar, evtClick point] `shouldBe` Seq.fromList [Button2]
+
+  it "should scroll down and click the third button" $ do
+    evts [evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
+
+  it "should scroll down and click the third button" $ do
+    evts [evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
+
+  it "should scroll down and right and click the fourth button" $ do
+    evts [evtRelease midHBar, evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button4]
+
+  where
+    wenv = mockWenv ()
+      & L.theme .~ darkTheme
+      & L.windowSize .~ Size 640 480
+    point = Point 320 200
+    midHBar = Point 630 476
+    midVBar = Point 636 470
+    st = [width 640, height 480]
+    stackNode = vstack [
+        hstack [
+          button "Button 1" Button1 `styleBasic` st,
+          button "Button 2" Button2 `styleBasic` st
+        ],
+        hstack [
+          button "Button 3" Button3 `styleBasic` st,
+          button "Button 4" Button4 `styleBasic` st
+        ]
+      ]
+    scrollNode = scroll stackNode
+    evts es = nodeHandleEventEvts wenv es scrollNode
 
 handleChildrenFocus :: Spec
 handleChildrenFocus = describe "handleChildrenFocus" $ do

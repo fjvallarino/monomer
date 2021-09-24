@@ -1,5 +1,6 @@
 .stack-work/
 .vscode/
+.metals/
 haddock/
 dist-newstyle/
 dist-docs.*/

@@ -416,14 +416,15 @@ makeScroll config state = widget where
       & L.widget .~ makeScroll config oldState
 
   findByPoint wenv node start point = result where
-    sctx = scrollStatus config wenv node state point
+    -- The point argument already has offset applied
+    scrollPoint = subPoint point offset
+    sctx = scrollStatus config wenv node state scrollPoint
     mouseInScroll
       =  (hMouseInScroll sctx && hScrollRequired sctx)
       || (vMouseInScroll sctx && vScrollRequired sctx)
-    childPoint = addPoint point offset
 
     child = Seq.index (node ^. L.children) 0
-    childHovered = isPointInNodeVp child childPoint
+    childHovered = isPointInNodeVp child point
     childDragged = isNodePressed wenv child
     result
       | (not mouseInScroll && childHovered) || childDragged = Just 0

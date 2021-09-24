@@ -708,9 +708,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   Move point -> do
     (target, hoverEvts) <- addHoverEvents wenv widgetRoot point
     -- Update input status
-    status <- use L.inputStatus
-    L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
-    L.inputStatus . L.mousePos .= point
+    updateInputStatusMousePos point
     -- Drag event
     mainPress <- use L.mainBtnPress
     draggedMsg <- getDraggedMsgInfo
@@ -734,6 +732,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
     when (btn == mainBtn) $
       L.mainBtnPress .= fmap (, point) curr
 
+    updateInputStatusMousePos point
     L.inputStatus . L.buttons . at btn ?= BtnPressed
 
     SDLE.captureMouse True
@@ -757,6 +756,7 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
           Just (path, msg) -> [(Drop point path msg, target) | not isPressed]
           _ -> []
 
+    updateInputStatusMousePos point
     L.inputStatus . L.buttons . at btn ?= BtnReleased
 
     SDLE.captureMouse False
@@ -771,6 +771,13 @@ addRelatedEvents wenv mainBtn widgetRoot evt = case evt of
   -- This will only be reached from `handleSystemEvents`
   Click point btn clicks -> findEvtTargetByPoint wenv widgetRoot evt point
   _ -> return [(evt, Nothing)]
+
+updateInputStatusMousePos :: MonomerM s e m => Point -> m ()
+updateInputStatusMousePos point = do
+  -- Update input status
+  status <- use L.inputStatus
+  L.inputStatus . L.mousePosPrev .= status ^. L.mousePos
+  L.inputStatus . L.mousePos .= point
 
 addHoverEvents
   :: MonomerM s e m
