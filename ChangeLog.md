@@ -5,9 +5,10 @@
 - Add `dpr` field to `WidgetEnv`.
 - Add `RunInRenderThread` to support initialization of low level OpenGL resources.
 - Set correct `WidgetEnv` viewport from scroll (it looked good because of scissoring).
-- Add OpenGL example.
 - Fix issue with scrollbars using child coordinates for detecting clicks.
+- Add OpenGL example.
 - Add `containerDrawDecorations`. Simplify button/externalLink internals.
+- Add ThemeState entries for optionButton and toggleButton widgets.
 
 ### 1.0.0.3
 
