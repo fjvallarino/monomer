@@ -236,11 +236,14 @@ data Single s e a = Single {
   -- | True if border and padding should be added to size requirement. Defaults
   --   to True.
   singleAddStyleReq :: Bool,
+  -- | If True, the widget will render its background and border. Defaults to
+  --   True.
+  singleDrawDecorations :: Bool,
   -- | True if focus should be requested when mouse button is pressed (before
   --   click). Defaults to True.
   singleFocusOnBtnPressed :: Bool,
-  -- | True if style cursor should be ignored. If it's False, cursor changes need
-  --   to be handled in custom code. Defaults to False.
+  -- | True if style cursor should be ignored. If it's False, cursor changes
+  --   need to be handled in custom code. Defaults to False.
   singleUseCustomCursor :: Bool,
   -- | If true, it will ignore extra space assigned by the parent container, but
   --   it will not use more space than assigned. Defaults to False.
@@ -277,6 +280,7 @@ instance Default (Single s e a) where
   def = Single {
     singleAddStyleReq = True,
     singleFocusOnBtnPressed = True,
+    singleDrawDecorations = True,
     singleUseCustomCursor = False,
     singleUseCustomSize = False,
     singleUseScissor = False,
@@ -597,10 +601,11 @@ renderWrapper
   -> IO ()
 renderWrapper single wenv node renderer =
   drawInScissor renderer useScissor viewport $
-    drawStyledAction renderer viewport style $ \_ ->
+    drawStyledAction_ renderer drawDecorations viewport style $ \_ ->
       handler wenv node renderer
   where
     handler = singleRender single
+    drawDecorations = singleDrawDecorations single
     useScissor = singleUseScissor single
     style = singleGetCurrentStyle single wenv node
     viewport = node ^. L.info . L.viewport

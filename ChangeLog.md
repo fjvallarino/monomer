@@ -9,6 +9,7 @@
 - Add OpenGL example.
 - Add `containerDrawDecorations`. Simplify button/externalLink internals.
 - Add ThemeState entries for optionButton and toggleButton widgets.
+- Add `singleDrawDecorations`. Make it consistent with Container.
 
 ### 1.0.0.3
 
