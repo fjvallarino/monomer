@@ -449,33 +449,34 @@ makeScroll config state = widget where
         | otherwise = Nothing
 
     ButtonAction point btn status _ -> result where
-      leftPressed = status == BtnPressed && btn == wenv ^. L.mainButton
-      btnReleased = status == BtnReleased && btn == wenv ^. L.mainButton
+      mainPressed = status == BtnPressed && btn == wenv ^. L.mainButton
+      mainReleased = status == BtnReleased && btn == wenv ^. L.mainButton
 
       isDragging = isJust $ _sstDragging state
-      startDrag = leftPressed && not isDragging
 
-      jumpScrollH = btnReleased && not isDragging && hMouseInScroll sctx
-      jumpScrollV = btnReleased && not isDragging && vMouseInScroll sctx
+      startDragH = mainPressed && not isDragging && hMouseInThumb sctx
+      startDragV = mainPressed && not isDragging && vMouseInThumb sctx
 
-      mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
+      jumpScrollH = mainPressed && not isDragging && hMouseInScroll sctx
+      jumpScrollV = mainPressed && not isDragging && vMouseInScroll sctx
+
       mouseInThumb = hMouseInThumb sctx || vMouseInThumb sctx
+      mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
 
       newState
-        | startDrag && hMouseInThumb sctx = state { _sstDragging = Just HBar }
-        | startDrag && vMouseInThumb sctx = state { _sstDragging = Just VBar }
+        | startDragH = state { _sstDragging = Just HBar }
+        | startDragV = state { _sstDragging = Just VBar }
         | jumpScrollH = updateScrollThumb state HBar point contentArea sctx
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
-        | btnReleased = state { _sstDragging = Nothing }
+        | mainReleased = state { _sstDragging = Nothing }
         | otherwise = state
 
       newRes = rebuildWidget wenv node newState
       handledResult = Just $ newRes
         & L.requests <>~ Seq.fromList scrollReqs
       result
-        | leftPressed && mouseInThumb = handledResult
-        | btnReleased && mouseInScroll = handledResult
-        | btnReleased && isDragging = handledResult
+        | mainPressed && (mouseInThumb || mouseInScroll) = handledResult
+        | mainReleased && isDragging = handledResult
         | otherwise = Nothing
 
     Move point | isJust dragging -> result where

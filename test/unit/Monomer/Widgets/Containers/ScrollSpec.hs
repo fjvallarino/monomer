@@ -59,16 +59,16 @@ handleBarClick = describe "handleBarClick" $ do
     evts [evtClick point] `shouldBe` Seq.fromList [Button1]
 
   it "should scroll right and click the third button" $ do
-    evts [evtRelease midHBar, evtClick point] `shouldBe` Seq.fromList [Button2]
+    evts [evtPress midHBar, evtClick point] `shouldBe` Seq.fromList [Button2]
 
   it "should scroll down and click the third button" $ do
-    evts [evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
+    evts [evtPress midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
 
   it "should scroll down and click the third button" $ do
-    evts [evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
+    evts [evtPress midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
 
   it "should scroll down and right and click the fourth button" $ do
-    evts [evtRelease midHBar, evtRelease midVBar, evtClick point] `shouldBe` Seq.fromList [Button4]
+    evts [evtPress midHBar, evtPress midVBar, evtClick point] `shouldBe` Seq.fromList [Button4]
 
   where
     wenv = mockWenv ()
