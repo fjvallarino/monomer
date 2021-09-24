@@ -3,21 +3,20 @@
 ## Description
 
 This example provides the basics for implementing a widget using custom OpenGL
-rendering, bypassing Monomer's Renderer interface.
-
-The objective of this example is explaining how to integrate OpenGL into a
-Monomer application, without focusing on OpenGL best practices.
+rendering without using Monomer's Renderer interface. It explains how to
+integrate OpenGL into a Monomer application without focusing on OpenGL's best
+practices.
 
 ## Preview
 
-<img src="images/05_OpenGL.png" alt="Preview jpg" width="800" height="600" />
+<img src="images/05_OpenGL.png" alt="Preview png" width="800" height="600" />
 
 ## Interesting bits
 
 ### Resource initialization
 
 Rendering APIs, OpenGL in particular, impose restrictions on multi-threading. In
-general, a single thread is allowed to call rendering APIs for a given render
+general a single thread is allowed to call rendering APIs for a given render
 context. Calling these APIs from a different thread usually results in a crash.
 
 Monomer handles rendering in an isolated OS thread. The render function of a
@@ -26,7 +25,7 @@ particular, when using `RunTask` or `RunProducer`, the provided actions will not
 be run in the rendering thread. Calling OpenGL functions from a `RunTask` action
 will result in a crash.
 
-To avoid using the `render` function to initialize resources Monomer provides
+To simplify the initialization of rendering API resources Monomer provides
 `RunInRenderThread`, which is equivalent to `RunTask` except it runs in the
 rendering thread. The task should limit itself to rendering API initialization
 related tasks.
@@ -84,7 +83,7 @@ the reason for the addition/substraction of w/2 and h/2.
 ### Device pixel rate
 
 The remaining thing to consider is the Device Pixel Rate, or dpr. While Monomer
-takes care of it when using the Renderer interface, it needs to be considered
-when doing low level rendering. In this example it is only used for scissoring
-but, depending on how you handle projections, you may need to consider it there
-too.
+takes care of dpr scaling when using the Renderer interface, it needs to be
+considered when doing low level rendering. In this example the dpr is only used
+for scissoring calculations but, depending on how you handle projections, you
+may need to consider it when transforming coordinates too.
