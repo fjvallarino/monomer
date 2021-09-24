@@ -88,10 +88,11 @@ makeOpenGLWidget color state = widget where
     reqs = [RunInRenderThread widgetId path disposeOpenGL]
 
   handleMessage wenv node target msg = case cast msg of
-    Just (OpenGLWidgetInit shaderId vao vbo) -> Just (resultNode newNode) where
+    Just (OpenGLWidgetInit shaderId vao vbo) -> Just result where
       newState = OpenGLWidgetState True shaderId vao vbo
       newNode = node
         & L.widget .~ makeOpenGLWidget color newState
+      result = resultReqs newNode [RenderOnce]
     _ -> Nothing
 
   getSizeReq wenv node = (sizeReqW, sizeReqH) where

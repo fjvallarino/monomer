@@ -32,10 +32,12 @@ related tasks.
 
 In the example the `init` function takes care of loading the vertex and fragment
 shaders that will be used for rendering, and also for allocating the Vertex
-Array Object and Vertex Buffer Object. The corresponding ids are stored in the
-widget's state for further usage. As in other widgets, it is important to
-implement merge to keep this information when the UI is rebuilt. The `dispose`
-function releases these OpenGL resources.
+Array Object and Vertex Buffer Object. The ids of these buffers are stored in
+the widget's state for further usage, and a `RenderOnce` request is made to make
+sure the initial version of the widget is displayed correctly. The `dispose`
+function, also using `RunInRenderThread`, takes care of releasing these OpenGL
+resources. As in other widgets, it is important to implement merge to keep the
+current widget state when the UI is rebuilt.
 
 ### Rendering passes
 
