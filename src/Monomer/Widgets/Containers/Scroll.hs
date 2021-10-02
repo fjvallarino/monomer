@@ -510,12 +510,8 @@ makeScroll config state = widget where
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
-      stepX
-        | wheelDirection == WheelNormal = -wheelRate * wx
-        | otherwise = wheelRate * wx
-      stepY
-        | wheelDirection == WheelNormal = wheelRate * wy
-        | otherwise = -wheelRate * wy
+      stepX = -wheelRate * wx
+      stepY = wheelRate * wy
       newState = state {
         _sstDeltaX = scrollAxisH (stepX + dx),
         _sstDeltaY = scrollAxisV (stepY + dy)
