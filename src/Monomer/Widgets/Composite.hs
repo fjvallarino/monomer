@@ -504,13 +504,17 @@ compositeDispose
   -> WidgetResult sp ep
 compositeDispose comp state wenv widgetComp = result where
   CompositeState{..} = state
-  model = getModel comp wenv
-  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
-  widget = _cpsRoot ^. L.widget
-  newEvts = RaiseEvent <$> Seq.fromList (_cmpOnDispose comp)
 
-  WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
-  tempResult = WidgetResult _cpsRoot (reqs <> newEvts)
+  tempResult = case _cpsModel of
+    Just model -> dispResult where
+      cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
+      widget = _cpsRoot ^. L.widget
+      newEvts = RaiseEvent <$> Seq.fromList (_cmpOnDispose comp)
+
+      WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
+      dispResult = WidgetResult _cpsRoot (reqs <> newEvts)
+    _ -> resultNode _cpsRoot
+
   result = toParentResult comp state wenv widgetComp tempResult
 
 compositeGetInstanceTree
