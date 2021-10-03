@@ -9,6 +9,7 @@ Portability : non-portable
 Core functions for SDL event processing and conversion.
 -}
 module Monomer.Event.Core (
+  ConvertEventsCfg(..),
   isActionEvent,
   convertEvents,
   translateEvent
@@ -16,6 +17,7 @@ module Monomer.Event.Core (
 
 import Control.Applicative ((<|>))
 import Data.Maybe (catMaybes, fromMaybe)
+import Data.Text (Text)
 
 import qualified Data.Map.Strict as M
 import qualified SDL
@@ -37,19 +39,27 @@ isActionEvent SDL.KeyboardEvent{} = True
 isActionEvent SDL.TextInputEvent{} = True
 isActionEvent _ = False
 
+data ConvertEventsCfg = ConvertEventsCfg {
+  _cecOs :: Text,           -- ^ The host operating system.
+  _cecDpr :: Double,        -- ^ Device pixel rate.
+  _cecEpr :: Double,        -- ^ Event pixel rate.
+  _cecInvertWheelX :: Bool, -- ^ Whether wheel/trackpad x direction should be inverted.
+  _cecInvertWheelY :: Bool  -- ^ Whether wheel/trackpad y direction should be inverted.
+} deriving (Eq, Show)
+
 -- | Converts SDL events to Monomer's SystemEvent
 convertEvents
-  :: Double              -- ^ Device pixel rate.
-  -> Double              -- ^ Event pixel rate.
+  :: ConvertEventsCfg    -- ^ Settings for event conversion.
   -> Point               -- ^ Mouse position.
   -> [SDL.EventPayload]  -- ^ List of SDL events.
   -> [SystemEvent]       -- ^ List of Monomer events.
-convertEvents dpr epr mousePos events = catMaybes convertedEvents where
+convertEvents cfg mousePos events = catMaybes convertedEvents where
+  ConvertEventsCfg os dpr epr invertX invertY = cfg
   convertedEvents = fmap convertEvent events
   convertEvent evt =
     mouseMoveEvent mousePos evt
     <|> mouseClick mousePos evt
-    <|> mouseWheelEvent epr mousePos evt
+    <|> mouseWheelEvent cfg mousePos evt
     <|> mouseMoveLeave mousePos evt
     <|> keyboardEvent evt
     <|> textEvent evt
@@ -94,18 +104,25 @@ mouseMoveLeave mousePos SDL.WindowLostMouseFocusEvent{} = evt where
   evt = Just $ Move (Point (-1) (-1))
 mouseMoveLeave mousePos _ = Nothing
 
-mouseWheelEvent :: Double -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseWheelEvent epr mousePos (SDL.MouseWheelEvent eventData) = systemEvent where
-  wheelDirection = case SDL.mouseWheelEventDirection eventData of
+mouseWheelEvent :: ConvertEventsCfg -> Point -> SDL.EventPayload -> Maybe SystemEvent
+mouseWheelEvent cfg pos (SDL.MouseWheelEvent evtData) = systemEvent where
+  ConvertEventsCfg os dpr epr invertX invertY = cfg
+  signX = if invertX then -1 else 1
+  signY = if invertY then -1 else 1
+  factorX
+    | os == "Windows" || os == "Mac OS X" = -signX
+    | otherwise = signX
+  factorY = signY
+  wheelDirection = case SDL.mouseWheelEventDirection evtData of
     SDL.ScrollNormal -> WheelNormal
     SDL.ScrollFlipped -> WheelFlipped
-  SDL.V2 x y = SDL.mouseWheelEventPos eventData
-  wheelDelta = Point (fromIntegral x * epr) (fromIntegral y * epr)
+  SDL.V2 x y = SDL.mouseWheelEventPos evtData
+  wheelDelta = Point (factorX * fromIntegral x * epr) (factorY * fromIntegral y * epr)
 
-  systemEvent = case SDL.mouseWheelEventWhich eventData of
-    SDL.Mouse _ -> Just $ WheelScroll mousePos wheelDelta wheelDirection
+  systemEvent = case SDL.mouseWheelEventWhich evtData of
+    SDL.Mouse _ -> Just $ WheelScroll pos wheelDelta wheelDirection
     SDL.Touch -> Nothing
-mouseWheelEvent epr mousePos _ = Nothing
+mouseWheelEvent cfg mousePos _ = Nothing
 
 keyboardEvent :: SDL.EventPayload -> Maybe SystemEvent
 keyboardEvent (SDL.KeyboardEvent eventData) = Just keyAction where

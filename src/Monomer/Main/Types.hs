@@ -185,7 +185,11 @@ data AppConfig e = AppConfig {
   -- | Defines which mouse button is considered main.
   _apcMainButton :: Maybe Button,
   -- | Defines which mouse button is considered secondary or context button.
-  _apcContextButton :: Maybe Button
+  _apcContextButton :: Maybe Button,
+  -- | Whether wheel/trackpad horizontal movement should be inverted.
+  _apcInvertWheelX :: Maybe Bool,
+  -- | Whether wheel/trackpad vertical movement should be inverted.
+  _apcInvertWheelY :: Maybe Bool
 }
 
 instance Default (AppConfig e) where
@@ -204,7 +208,9 @@ instance Default (AppConfig e) where
     _apcExitEvent = [],
     _apcResizeEvent = [],
     _apcMainButton = Nothing,
-    _apcContextButton = Nothing
+    _apcContextButton = Nothing,
+    _apcInvertWheelX = Nothing,
+    _apcInvertWheelY = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -223,7 +229,9 @@ instance Semigroup (AppConfig e) where
     _apcExitEvent = _apcExitEvent a1 ++ _apcExitEvent a2,
     _apcResizeEvent = _apcResizeEvent a1 ++ _apcResizeEvent a2,
     _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
-    _apcContextButton = _apcContextButton a2 <|> _apcContextButton a1
+    _apcContextButton = _apcContextButton a2 <|> _apcContextButton a1,
+    _apcInvertWheelX = _apcInvertWheelX a2 <|> _apcInvertWheelX a1,
+    _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1
   }
 
 instance Monoid (AppConfig e) where
@@ -337,4 +345,22 @@ appMainButton btn = def {
 appContextButton :: Button -> AppConfig e
 appContextButton btn = def {
   _apcContextButton = Just btn
+}
+
+{-|
+Whether the horizontal wheel/trackpad movement should be inverted. In general
+platform detection should do the right thing.
+-}
+appInvertWheelX :: Bool -> AppConfig e
+appInvertWheelX invert = def {
+  _apcInvertWheelX = Just invert
+}
+
+{-|
+Whether the vertical wheel/trackpad movement should be inverted. In general
+platform detection should do the right thing.
+-}
+appInvertWheelY :: Bool -> AppConfig e
+appInvertWheelY invert = def {
+  _apcInvertWheelY = Just invert
 }
