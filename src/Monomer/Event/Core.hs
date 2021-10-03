@@ -105,7 +105,7 @@ mouseMoveLeave mousePos SDL.WindowLostMouseFocusEvent{} = evt where
 mouseMoveLeave mousePos _ = Nothing
 
 mouseWheelEvent :: ConvertEventsCfg -> Point -> SDL.EventPayload -> Maybe SystemEvent
-mouseWheelEvent cfg pos (SDL.MouseWheelEvent evtData) = systemEvent where
+mouseWheelEvent cfg pos (SDL.MouseWheelEvent eventData) = systemEvent where
   ConvertEventsCfg os dpr epr invertX invertY = cfg
   signX = if invertX then -1 else 1
   signY = if invertY then -1 else 1
@@ -113,13 +113,13 @@ mouseWheelEvent cfg pos (SDL.MouseWheelEvent evtData) = systemEvent where
     | os == "Windows" || os == "Mac OS X" = -signX
     | otherwise = signX
   factorY = signY
-  wheelDirection = case SDL.mouseWheelEventDirection evtData of
+  wheelDirection = case SDL.mouseWheelEventDirection eventData of
     SDL.ScrollNormal -> WheelNormal
     SDL.ScrollFlipped -> WheelFlipped
-  SDL.V2 x y = SDL.mouseWheelEventPos evtData
+  SDL.V2 x y = SDL.mouseWheelEventPos eventData
   wheelDelta = Point (factorX * fromIntegral x * epr) (factorY * fromIntegral y * epr)
 
-  systemEvent = case SDL.mouseWheelEventWhich evtData of
+  systemEvent = case SDL.mouseWheelEventWhich eventData of
     SDL.Mouse _ -> Just $ WheelScroll pos wheelDelta wheelDirection
     SDL.Touch -> Nothing
 mouseWheelEvent cfg mousePos _ = Nothing
