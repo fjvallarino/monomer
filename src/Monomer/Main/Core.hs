@@ -244,7 +244,10 @@ mainLoop window fontManager config loopArgs = do
   let windowResized = currWinSize /= windowSize && isWindowResized eventsPayload
   let windowExposed = isWindowExposed eventsPayload
   let mouseEntered = isMouseEntered eventsPayload
-  let baseSystemEvents = convertEvents dpr epr mousePos eventsPayload
+  let invertX = fromMaybe False (_apcInvertWheelX config)
+  let invertY = fromMaybe False (_apcInvertWheelY config)
+  let convertCfg = ConvertEventsCfg _mlOS dpr epr invertX invertY
+  let baseSystemEvents = convertEvents convertCfg mousePos eventsPayload
 
 --  when newSecond $
 --    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount

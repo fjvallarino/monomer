@@ -1,3 +1,8 @@
+### 1.1.0.1
+
+- Fix horizontal wheel/trackpad scrolling on Linux.
+- Scroll: do not use direction argument to modify wheel/trackpad direction (event provides correct value).
+
 ### 1.1.0.0
 
 - Reduce memory usage by sharing wreq session among image widget instances.
