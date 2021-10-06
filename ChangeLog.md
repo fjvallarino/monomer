@@ -1,4 +1,8 @@
-## 1.1.0.1
+## 1.1.1.0
+
+### Added
+
+- `appInvertWheelX` and `appInvertWheelY` configuration options.
 
 ### Fixed
 
@@ -10,13 +14,13 @@
 
 ### Added
 
-- Add sizeUpdater helpers. Support multiple handlers in box, grid and stack.
-- Add `dpr` field to `WidgetEnv`.
-- Add `RunInRenderThread` to support initialization of low level OpenGL resources.
-- Add OpenGL example.
-- Add `containerDrawDecorations`. Simplify button/externalLink internals.
-- Add ThemeState entries for optionButton and toggleButton widgets.
-- Add `singleDrawDecorations`. Make it consistent with Container.
+- `sizeUpdater` helpers. Support multiple handlers in box, grid and stack.
+- `dpr` field to `WidgetEnv`.
+- `RunInRenderThread` to support initialization of low level OpenGL resources.
+- OpenGL example.
+- `containerDrawDecorations`. Simplify button/externalLink internals.
+- `ThemeState` entries for future `optionButton` and `toggleButton` widgets.
+- `singleDrawDecorations`. Make it consistent with Container.
 
 ### Fixed
 
