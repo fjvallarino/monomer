@@ -73,13 +73,15 @@ todoRow wenv model idx t = animRow `nodeKey` todoKey where
 todoEdit :: TodoWenv -> TodoModel -> TodoNode
 todoEdit wenv model = editNode where
   sectionBg = wenv ^. L.theme . L.sectionColor
+  isValidInput = model ^. activeTodo . description /= ""
 
-  saveTodoBtn = case model ^. action of
-    TodoAdding -> mainButton "Add" TodoAdd
-    TodoEditing idx -> mainButton "Save" (TodoSave idx)
-    _ -> spacer
+  (saveAction, saveLabel) = case model ^. action of
+    TodoEditing idx -> (TodoSave idx, "Save")
+    _ -> (TodoAdd, "Add")
 
-  editNode = vstack [
+  saveTodoBtn = mainButton saveLabel saveAction
+
+  editFields = keystroke [("Enter", saveAction) | isValidInput] $ vstack [
       hstack [
         label "Task:",
         spacer,
@@ -98,11 +100,15 @@ todoEdit wenv model = editNode where
           spacer,
           textDropdownS (activeTodo . status) todoStatuses
         ]
-      ],
+      ]
+    ]
+
+  editNode = keystroke [("Esc", TodoCancel)] $ vstack [
+      editFields,
       spacer,
       hstack [
         filler,
-        saveTodoBtn `nodeEnabled` (model ^. activeTodo . description /= ""),
+        saveTodoBtn `nodeEnabled` isValidInput,
         spacer,
         button "Cancel" TodoCancel
         ]
@@ -123,10 +129,6 @@ buildUI wenv model = widgetTree where
     `nodeVisible` not isEditing
 
   editLayer = content where
-    saveAction = case model ^. action of
-      TodoEditing idx -> TodoSave idx
-      _ -> TodoAdd
-
     dualSlide content = outer where
       inner = animSlideIn_ [slideTop, duration 200] content
         `nodeKey` "animEditIn"
@@ -134,9 +136,7 @@ buildUI wenv model = widgetTree where
         `nodeKey` "animEditOut"
 
     content = vstack [
-        dualSlide $
-          keystroke [("Enter", saveAction), ("Esc", TodoCancel)] $
-            todoEdit wenv model,
+        dualSlide (todoEdit wenv model),
         filler
       ] `styleBasic` [bgColor (grayDark & L.a .~ 0.5)]
 
