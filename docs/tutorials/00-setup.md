@@ -77,6 +77,26 @@ stack exec -- pacman -S mingw-w64-x86_64-freeglut
 stack exec -- pacman -S mingw-w64-x86_64-glew
 ```
 
+#### Notes
+
+If these steps fail with a message similar to `"invalid or corrupted database"`
+or `"signature from ... is unknown trust"`, you may have an old MinGW installed
+by a previous version of Stack. At some point the MinGW project changed their
+certificates and, even if it should be possible to upgrade them manually, it is
+not an easy process (and I have not had luck with it).
+
+Stack installs its files in two locations:
+
+- `%STACK_ROOT%` (usually `C:\sr`, unless modified)
+- `%LOCALAPPDATA%\Programs\stack`
+
+The second location is the one that contains MinGW. Removing
+`%LOCALAPPDATA%\Programs\stack` and running the above steps again is usually
+enough to get a working environment.
+
+If this does not work, removing `%STACK_ROOT%` and reinstalling Stack may be
+required.
+
 ## Build the project
 
 Inside your project's directory:
