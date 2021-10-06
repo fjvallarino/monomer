@@ -578,7 +578,7 @@ mergeWrapper container wenv newNode oldNode = newResult where
 
   oldState = widgetGetState (oldNode ^. L.widget) wenv oldNode
   mergeRequired = case useState oldState of
-    Just state -> mergeRequiredHandler wenv newNode oldNode state
+    Just ostate -> mergeRequiredHandler wenv newNode oldNode ostate
     Nothing -> True
 
   styledNode = initNodeStyle getBaseStyle wenv newNode
@@ -623,7 +623,7 @@ mergeParent mergeHandler wenv newNode oldNode oldState = result where
     & L.info . L.sizeReqW .~ oldInfo ^. L.sizeReqW
     & L.info . L.sizeReqH .~ oldInfo ^. L.sizeReqH
   result = case useState oldState of
-    Just state -> mergeHandler wenv tempNode oldNode state
+    Just ostate -> mergeHandler wenv tempNode oldNode ostate
     Nothing -> resultNode tempNode
 
 mergeChildren

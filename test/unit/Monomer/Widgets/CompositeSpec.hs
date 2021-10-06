@@ -40,6 +40,7 @@ import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Containers.Stack
 import Monomer.Widgets.Containers.ZStack
 import Monomer.Widgets.Singles.Button
+import Monomer.Widgets.Singles.Checkbox
 import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Util.Widget
@@ -59,6 +60,10 @@ data ChildEvt
   | ChildResize Rect
   deriving (Eq, Show)
 
+data DeepEvt
+  = DeepInit
+  deriving (Eq, Show)
+
 data MainModel = MainModel {
   _tmClicks :: Int,
   _tmChild :: ChildModel
@@ -72,13 +77,24 @@ instance Default MainModel where
 
 data ChildModel = ChildModel {
   _cmClicks :: Int,
-  _cmMessage :: String
+  _cmMessage :: String,
+  _cmDeep :: DeepModel
 } deriving (Eq, Show)
 
 instance Default ChildModel where
   def = ChildModel {
     _cmClicks = 0,
-    _cmMessage = ""
+    _cmMessage = "",
+    _cmDeep = def
+  }
+
+newtype DeepModel = DeepModel {
+  _dmClicked :: Bool
+} deriving (Eq, Show)
+
+instance Default DeepModel where
+  def = DeepModel {
+    _dmClicked = False
   }
 
 data TestModel = TestModel {
@@ -104,6 +120,7 @@ msgWidgetHandleMessage wenv node target message = Just (resultEvts node evts) wh
 
 makeLensesWith abbreviatedFields ''MainModel
 makeLensesWith abbreviatedFields ''ChildModel
+makeLensesWith abbreviatedFields ''DeepModel
 makeLensesWith abbreviatedFields ''TestModel
 
 baseLens idx = L.children . ix 0 . L.children . ix idx . L.children . ix 0
@@ -155,17 +172,35 @@ handleEventChild = describe "handleEventChild" $ do
   it "should not generate an event if clicked outside" $ do
     model [evtClick (Point 3000 3000)] ^. clicks `shouldBe` 0
     model [evtClick (Point 3000 3000)] ^. child . clicks `shouldBe` 0
+    model [evtClick (Point 3000 3000)] ^. child . deep . clicked `shouldBe` False
 
   it "should generate a main event when clicked in main button" $ do
     model [evtClick (Point 10 10)] ^. clicks `shouldBe` 1
     model [evtClick (Point 10 10)] ^. child . clicks `shouldBe` 0
+    model [evtClick (Point 10 10)] ^. child . deep . clicked `shouldBe` False
 
   it "should generate a child event when clicked in child button" $ do
     model [evtClick (Point 10 30)] ^. clicks `shouldBe` 0
     model [evtClick (Point 10 30)] ^. child . clicks `shouldBe` 1
+    model [evtClick (Point 10 30)] ^. child . deep . clicked `shouldBe` False
+
+  it "should update the nested model when the checkbox is clicked" $ do
+    model [evtClick (Point 10 50)] ^. clicks `shouldBe` 0
+    model [evtClick (Point 10 50)] ^. child . clicks `shouldBe` 0
+    model [evtClick (Point 10 50)] ^. child . deep . clicked `shouldBe` True
 
   where
     wenv = mockWenv def
+
+    handleDeep
+      :: WidgetEnv DeepModel DeepEvt
+      -> WidgetNode DeepModel DeepEvt
+      -> DeepModel
+      -> DeepEvt
+      -> [EventResponse DeepModel DeepEvt ChildModel ChildEvt]
+    handleDeep wenv node model evt = []
+    buildDeep wenv model = checkbox clicked
+
     handleChild
       :: WidgetEnv ChildModel ChildEvt
       -> WidgetNode ChildModel ChildEvt
@@ -173,7 +208,11 @@ handleEventChild = describe "handleEventChild" $ do
       -> ChildEvt
       -> [EventResponse ChildModel ChildEvt MainModel MainEvt]
     handleChild wenv node model evt = [Model (model & clicks %~ (+1))]
-    buildChild wenv model = button "Click" ChildBtnClicked
+    buildChild wenv model = vstack [
+        button "Click" ChildBtnClicked,
+        composite "deep" deep buildDeep handleDeep
+      ]
+
     handleEvent
       :: WidgetEnv MainModel MainEvt
       -> WidgetNode MainModel MainEvt
@@ -185,6 +224,7 @@ handleEventChild = describe "handleEventChild" $ do
         button "Click" MainBtnClicked,
         composite "child" child buildChild handleChild
       ]
+
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
 
