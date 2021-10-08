@@ -12,7 +12,6 @@ Color picker using sliders and numeric fields.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE Strict #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Monomer.Widgets.Singles.ColorPicker (
   -- * Configuration
@@ -210,13 +209,13 @@ buildUI config wenv model = mainTree where
 
   mainTree = hstack_ [sizeReqUpdater clearExtra] [
       vstack [
-        colorRow L.r "Red",
+        colorRow L.r "R",
         spacer_ [width 2],
-        colorRow L.g "Green",
+        colorRow L.g "G",
         spacer_ [width 2],
-        colorRow L.b "Blue",
+        colorRow L.b "B",
         spacer_ [width 2] `nodeVisible` showAlpha,
-        alphaRow L.a "Alpha" `nodeVisible` showAlpha
+        alphaRow L.a "A" `nodeVisible` showAlpha
       ],
       spacer_ [width 2],
       box_ [alignTop] colorSample `styleBasic` [flexHeight 50]

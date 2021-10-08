@@ -42,12 +42,14 @@ module Monomer.Widgets.Composite (
   CompositeEvent,
   MergeRequired,
   MergeReqsHandler,
+  CompositeCustomModelBuilder,
   EventHandler,
   UIBuilder,
   TaskHandler,
   ProducerHandler,
   CompMsgUpdate,
   compositeMergeReqs,
+  customModelBuilder,
 
   -- * Constructors
   composite,
@@ -91,15 +93,25 @@ type CompositeModel s = (Eq s, WidgetModel s)
 type CompositeEvent e = WidgetEvent e
 
 -- | Checks if merging the composite is required.
-type MergeRequired s = s -> s -> Bool
+type MergeRequired s
+  = s     -- ^ Old composite model.
+  -> s    -- ^ New composite model
+  -> Bool -- ^ True if merge is required.
 
 -- | Generates requests during the merge process.
 type MergeReqsHandler s e
-  = WidgetEnv s e
-  -> WidgetNode s e
-  -> WidgetNode s e
-  -> s
-  -> [WidgetRequest s e]
+  = WidgetEnv s e         -- ^ Widget environment.
+  -> WidgetNode s e       -- ^ New widget node.
+  -> WidgetNode s e       -- ^ Old widget node.
+  -> s                    -- ^ The current model.
+  -> [WidgetRequest s e]  -- ^ The list of requests.
+
+-- | Creates a custom composite model from the parent model.
+type CompositeCustomModelBuilder s sp
+  = sp -- ^ Parent model.
+  -> s -- ^ Old custom composite model.
+  -> s -- ^ New custom composite model.
+  -> s -- ^ Custom composite model.
 
 -- | Handles a composite event and returns a set of responses.
 type EventHandler s e sp ep
@@ -176,12 +188,14 @@ Configuration options for composite:
 - 'onVisibleChange': event to raise when the visibility changes.
 - 'compositeMergeReqs': functions to generate WidgetRequests during the merge
   process. Since merge is already handled by Composite (by merging its tree),
-  this is complementary for the cases when it's required. For example, it is
-  used in 'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept
-  button when visibility is restored (usually means it was brought to the front
-  in a zstack).
+  this is complementary for the cases when more control, and the previous
+  version of the widget tree, is required.  For example, it is used in
+  'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept button
+  when visibility is restored (usually means it was brought to the front in a
+  zstack, and the visibility flag of the previous version needs to be checked).
 -}
 data CompositeCfg s e sp ep = CompositeCfg {
+  _cmcModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcMergeReqs :: [MergeReqsHandler s e],
   _cmcOnInit :: [e],
@@ -194,6 +208,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
 
 instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
+    _cmcModelBuilder = Nothing,
     _cmcMergeRequired = Nothing,
     _cmcMergeReqs = [],
     _cmcOnInit = [],
@@ -206,6 +221,7 @@ instance Default (CompositeCfg s e sp ep) where
 
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
+    _cmcModelBuilder = _cmcModelBuilder c2 <|> _cmcModelBuilder c1,
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
     _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
     _cmcOnInit = _cmcOnInit c1 <> _cmcOnInit c2,
@@ -265,12 +281,27 @@ compositeMergeReqs fn = def {
   _cmcMergeReqs = [fn]
 }
 
+{-|
+Generates a custom model from the current parent model and the previous
+composite model. Useful when the composite needs a more complex model than what
+the user is binding.
+
+For a usage example, see 'Monomer.Widgets.Singles.ColorPopup'.
+-}
+customModelBuilder
+  :: CompositeCustomModelBuilder s sp
+  -> CompositeCfg s e sp ep
+customModelBuilder fn = def {
+  _cmcModelBuilder = Just fn
+}
+
 data Composite s e sp ep = Composite {
   _cmpWidgetData :: !(WidgetData sp s),
   _cmpEventHandler :: !(EventHandler s e sp ep),
   _cmpUiBuilder :: !(UIBuilder s e),
   _cmpMergeRequired :: MergeRequired s,
   _cmpMergeReqs :: [MergeReqsHandler s e],
+  _cmpModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
   _cmpOnInit :: [e],
   _cmpOnDispose :: [e],
   _cmpOnResize :: [Rect -> e],
@@ -373,6 +404,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpUiBuilder = uiBuilder,
     _cmpMergeRequired = mergeReq,
     _cmpMergeReqs = _cmcMergeReqs config,
+    _cmpModelBuilder = _cmcModelBuilder config,
     _cmpOnInit = _cmcOnInit config,
     _cmpOnDispose = _cmcOnDispose config,
     _cmpOnResize = _cmcOnResize config,
@@ -416,19 +448,27 @@ compositeInit
   -> WidgetResult sp ep
 compositeInit comp state wenv widgetComp = newResult where
   CompositeState{..} = state
-  !model = getUserModel comp wenv
-  !cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
+
+  !customModelBuilder = _cmpModelBuilder comp
+  !parentModel = wenv ^. L.model
+  !userModel = getUserModel comp wenv
+  !model = case customModelBuilder of
+    Just buildCustomModel -> buildCustomModel parentModel userModel userModel
+    _ -> userModel
+
   -- Creates UI using provided function
+  !cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   !builtRoot = _cmpUiBuilder comp cwenv model
   !tempRoot = cascadeCtx wenv widgetComp builtRoot
 
   WidgetResult root reqs = widgetInit (tempRoot ^. L.widget) cwenv tempRoot
-  newEvts = RaiseEvent <$> Seq.fromList (_cmpOnInit comp)
   !newState = state {
     _cpsModel = Just model,
     _cpsRoot = root,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
   }
+
+  !newEvts = RaiseEvent <$> Seq.fromList (_cmpOnInit comp)
 
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv widgetComp
@@ -449,7 +489,14 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   oldState = widgetGetState (oldComp ^. L.widget) wenv oldComp
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldWidgetKeys = validState
-  model = getUserModel comp wenv
+
+  !customModelBuilder = _cmpModelBuilder comp
+  !parentModel = wenv ^. L.model
+  !userModel = getUserModel comp wenv
+  !model = case customModelBuilder of
+    Just buildCustomModel -> buildCustomModel parentModel (fromJust oldModel) userModel
+    _ -> userModel
+
   -- Creates new UI using provided function
   cwenv = convertWidgetEnv wenv oldWidgetKeys model
   tempRoot = cascadeCtx wenv newComp (_cmpUiBuilder comp cwenv model)
@@ -466,6 +513,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     | isJust oldModel = modelChanged || flagsChanged || themeChanged
     | otherwise = True
   initRequired = not (nodeMatches tempRoot oldRoot)
+  useNewRoot = initRequired || mergeRequired
 
   WidgetResult !newRoot !tmpReqs
     | initRequired = widgetInit tempWidget cwenv tempRoot
@@ -483,15 +531,22 @@ compositeMerge comp state wenv newComp oldComp = newResult where
     & L.info . L.sizeReqW .~ oldComp ^. L.info . L.sizeReqW
     & L.info . L.sizeReqH .~ oldComp ^. L.info . L.sizeReqH
 
-  visibleEvts = if visibleChg then _cmpOnVisibleChange comp else []
-  enabledEvts = if enabledChg then _cmpOnEnabledChange comp else []
+  visibleEvts
+    | useNewRoot && visibleChg = _cmpOnVisibleChange comp
+    | otherwise = []
+  enabledEvts
+    | useNewRoot && enabledChg = _cmpOnEnabledChange comp
+    | otherwise = []
+  evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
+
   mergeReqsFns = _cmpMergeReqs comp
   mergeReqs = concatMap (\fn -> fn cwenv newRoot oldRoot model) mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
-  evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
 
   tmpResult = WidgetResult newRoot (tmpReqs <> extraReqs <> evts)
-  reducedResult = toParentResult comp newState wenv styledComp tmpResult
+  reducedResult
+    | useNewRoot = toParentResult comp newState wenv styledComp tmpResult
+    | otherwise = resultNode oldComp
   !newResult = handleWidgetIdChange oldComp reducedResult
 
 -- | Dispose
