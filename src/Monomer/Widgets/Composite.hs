@@ -472,7 +472,7 @@ compositeInit comp state wenv widgetComp = newResult where
 
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv widgetComp
-  tempResult = WidgetResult root (reqs <> newEvts)
+  tempResult = WidgetResult root (RenderOnce <| reqs <> newEvts)
   !newResult = toParentResult comp newState wenv styledComp tempResult
 
 -- | Merge
@@ -543,7 +543,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   mergeReqs = concatMap (\fn -> fn cwenv newRoot oldRoot model) mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
 
-  tmpResult = WidgetResult newRoot (tmpReqs <> extraReqs <> evts)
+  tmpResult = WidgetResult newRoot (RenderOnce <| tmpReqs <> extraReqs <> evts)
   reducedResult
     | useNewRoot = toParentResult comp newState wenv styledComp tmpResult
     | otherwise = resultNode oldComp
