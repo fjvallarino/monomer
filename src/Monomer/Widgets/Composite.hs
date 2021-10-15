@@ -193,6 +193,9 @@ Configuration options for composite:
   'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept button
   when visibility is restored (usually means it was brought to the front in a
   zstack, and the visibility flag of the previous version needs to be checked).
+- 'customModelBuilder': function for extracting a custom model from the current
+  parent model and the previous composite model. Useful when the composite needs
+  a more complex model than what the user is binding.
 -}
 data CompositeCfg s e sp ep = CompositeCfg {
   _cmcModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
@@ -770,12 +773,16 @@ compositeRender
   -> WidgetNode sp ep
   -> Renderer
   -> IO ()
-compositeRender comp state wenv widgetComp renderer = action where
-  CompositeState{..} = state
-  widget = _cpsRoot ^. L.widget
-  !model = getCompositeModel state
-  !cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
-  !action = widgetRender widget cwenv _cpsRoot renderer
+compositeRender comp state wenv widgetComp renderer =
+  drawStyledAction renderer viewport style $ \_ ->
+    widgetRender widget cwenv _cpsRoot renderer
+  where
+    CompositeState{..} = state
+    widget = _cpsRoot ^. L.widget
+    viewport = widgetComp ^. L.info . L.viewport
+    style = currentStyle wenv widgetComp
+    !model = getCompositeModel state
+    !cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
 
 handleMsgEvent
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
