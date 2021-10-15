@@ -376,8 +376,8 @@ handleMessage = describe "handleMessage" $ do
       -> MainEvt
       -> [EventResponse MainModel MainEvt MainModel ()]
     handleEvent wenv node model evt = [Request (SendMessage wid msg)] where
-      wni = wenv ^. L.findByPath $ path
-      wid = maybe def (^. L.widgetId) wni
+      wnis = wenv ^. L.findBranchByPath $ path
+      wid = maybe def (^. L.widgetId) (Seq.lookup (length wnis - 1) wnis)
     buildUI wenv model = vstack [
         button "Start" MainBtnClicked,
         composite "child" child buildChild handleChild
@@ -496,7 +496,7 @@ findByHelperUI = composite "main" id buildUI handleEvent where
   cmpLabels = composite "main" id buildLabels handleEvent
   buildUI :: WidgetEnv TestModel () -> TestModel -> WidgetNode TestModel ()
   buildUI wenv model = box_ [ignoreEmptyArea, expandContent] $
-    zstack_ [onlyTopActive False] [
+    zstack_ [onlyTopActive_ False] [
       label "Background",
       vgrid [
           hgrid [ textField text1, label "2", label "3" ],

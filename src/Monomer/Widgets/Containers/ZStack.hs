@@ -23,6 +23,7 @@ module Monomer.Widgets.Containers.ZStack (
   -- * Configuration
   ZStackCfg,
   onlyTopActive,
+  onlyTopActive_,
   -- * Constructors
   zstack,
   zstack_
@@ -65,10 +66,13 @@ instance Semigroup ZStackCfg where
 instance Monoid ZStackCfg where
   mempty = def
 
+-- | Makes the top visible node the only node that may receive events.
+onlyTopActive :: ZStackCfg
+onlyTopActive = onlyTopActive_ True
+
 -- | Whether the top visible node is the only node that may receive events.
---   Defaults to True.
-onlyTopActive :: Bool -> ZStackCfg
-onlyTopActive active = def {
+onlyTopActive_ :: Bool -> ZStackCfg
+onlyTopActive_ active = def {
   _zscOnlyTopActive = Just active
 }
 
