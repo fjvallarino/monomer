@@ -19,6 +19,8 @@ module Monomer.Graphics.Util (
   rgbaHex,
   hsl,
   hsla,
+  colorToHsl,
+  rgbToHsl,
   transparent,
   alignInRect,
   alignHInRect,
@@ -115,6 +117,30 @@ hsla :: Int -> Int -> Int -> Double -> Color
 hsla h s l a = (hsl h s l) {
     _colorA = clampAlpha a
   }
+
+-- | Converts a 'Color' instance to a tuple representing HSL values
+colorToHsl :: Color -> (Int, Int, Int)
+colorToHsl (Color cr cg cb ca) = rgbToHsl cr cg cb
+
+-- | Converts RGB values to a tuple representing HSL values
+rgbToHsl :: Int -> Int -> Int -> (Int, Int, Int)
+rgbToHsl cr cg cb = (h, round (s * 255), round (l * 255)) where
+  r = fromIntegral cr / 255
+  g = fromIntegral cg / 255
+  b = fromIntegral cb / 255
+  minc = minimum [r, g, b]
+  maxc = maximum [r, g, b]
+  rngc = maxc - minc
+  h
+    | maxc == minc = 0
+    | maxc == r = round (60 * (g - b) / rngc + 360) `mod` 360
+    | maxc == g = round (60 * (b - r) / rngc + 120) `mod` 360
+    | otherwise = round (60 * (r - g) / rngc + 240) `mod` 360
+  l = (minc + maxc) * 0.5
+  s
+    | maxc == minc = 0
+    | l < 0.5 = rngc / (2 * l)
+    | otherwise = rngc / (2 - 2 * l)
 
 -- | Creates a non visible color.
 transparent :: Color
