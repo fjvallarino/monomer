@@ -193,12 +193,12 @@ buildUI config wenv model = mainTree where
     ] `styleBasic` [width 32]
 
   compRow lensCol evt lbl minV maxV = hstack [
-      label lbl `styleBasic` [width 48],
-      spacer_ [width 2],
+      label lbl,
+      spacer_ [width 5],
       hslider_ lensCol minV maxV [onChange evt, onFocus PickerFocus,
         onBlur PickerBlur]
         `styleBasic` [paddingV 5],
-      spacer_ [width 2],
+      spacer_ [width 5],
       numericField_ lensCol [minValue minV, maxValue maxV, onChange evt,
         onFocus PickerFocus, onBlur PickerBlur]
         `styleBasic` [width 40, padding 0, textRight]
@@ -217,7 +217,7 @@ buildUI config wenv model = mainTree where
         spacer_ [width 2] `nodeVisible` showAlpha,
         alphaRow L.a "A" `nodeVisible` showAlpha
       ],
-      spacer_ [width 2],
+      spacer_ [width 5],
       box_ [alignTop] colorSample `styleBasic` [flexHeight 50]
     ] `styleBasic` [padding 0]
 

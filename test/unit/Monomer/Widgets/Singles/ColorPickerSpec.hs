@@ -53,7 +53,7 @@ spec = describe "ColorPicker" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   it "should update the model" $
-    model (Point 306 10) ^. color `shouldBe` rgb 127 0 0
+    model (Point 285 10) ^. color `shouldBe` rgb 127 0 0
 
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
@@ -70,7 +70,7 @@ handleEvent = describe "handleEvent" $ do
 handleEventV :: Spec
 handleEventV = describe "handleEventV" $ do
   it "should generante a change event" $
-    events (evtRelease (Point 453 30)) `shouldBe` Seq.singleton (ColorChanged (rgb 0 200 0))
+    events (evtRelease (Point 440 30)) `shouldBe` Seq.singleton (ColorChanged (rgb 0 200 0))
 
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
@@ -85,8 +85,8 @@ handleEventV = describe "handleEventV" $ do
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
-  it "should return width = Range 126 1126" $
-    sizeReqW `shouldBe` rangeSize 126 1126 1
+  it "should return width = Range 97 1097" $
+    sizeReqW `shouldBe` rangeSize 97 1097 1
 
   it "should return height = Fixed 64" $
     sizeReqH `shouldBe` fixedSize 64
