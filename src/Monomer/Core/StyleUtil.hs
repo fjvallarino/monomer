@@ -38,7 +38,8 @@ module Monomer.Core.StyleUtil (
   addPadding,
   subtractBorder,
   subtractPadding,
-  subtractBorderFromRadius
+  subtractBorderFromRadius,
+  mapStyleStates
 ) where
 
 import Control.Lens ((&), (^.), (^?), (.~), (+~), (%~), (?~), _Just, non)
@@ -261,6 +262,21 @@ subtractBorderFromRadius border (Radius rtl rtr rbl rbr) = newRadius where
   nbl = rbl & _Just . L.width %~ \w -> max 0 (w - max bl bb)
   nbr = rbr & _Just . L.width %~ \w -> max 0 (w - max br bb)
   newRadius = Radius ntl ntr nbl nbr
+
+{-|
+Applies a function to all states of a given style. Useful when trying to set or
+reset the same property in all different states.
+-}
+mapStyleStates :: (StyleState -> StyleState) -> Style -> Style
+mapStyleStates fn style = newStyle where
+  newStyle = Style {
+    _styleBasic = fn <$> _styleBasic style,
+    _styleHover = fn <$> _styleHover style,
+    _styleFocus = fn <$> _styleFocus style,
+    _styleFocusHover = fn <$> _styleFocusHover style,
+    _styleActive = fn <$> _styleActive style,
+    _styleDisabled = fn <$> _styleDisabled style
+  }
 
 -- Internal
 addBorderSize :: Size -> Maybe Border -> Maybe Size
