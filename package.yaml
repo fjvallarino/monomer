@@ -92,7 +92,7 @@ executables:
     ghc-options:
       - -threaded
     dependencies:
-      - aeson >= 1.4 && < 1.6
+      - aeson >= 1.4 && < 2.1
       - lens >= 4.16 && < 5.1
       - monomer
       - text-show >= 3.7 && < 3.10
@@ -104,7 +104,7 @@ executables:
     ghc-options:
       - -threaded
     dependencies:
-      - aeson >= 1.4 && < 1.6
+      - aeson >= 1.4 && < 2.1
       - lens >= 4.16 && < 5.1
       - monomer
       - scientific >= 0.3 && < 0.4
