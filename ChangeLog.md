@@ -18,6 +18,7 @@
 - Composite now renders decorations if a style is set.
 - ZStack's `onlyTopActive` now follows the same pattern as other boolean combinators.
 - Shortened labels for `ColorPicker`.
+- Changed `_weFindByPath` to `_weFindBranchByPath`, now returning the complete branch up to the given path.
 
 ## 1.1.1.0
 

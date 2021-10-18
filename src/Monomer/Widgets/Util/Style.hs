@@ -226,7 +226,8 @@ childOfFocusedStyle
   -> WidgetNode s e  -- ^ The embedded child node.
   -> StyleState      -- ^ The currently active state.
 childOfFocusedStyle wenv cnode = newStyle where
-  pinfo = fromMaybe def (wenv ^. L.findByPath $ parentPath cnode)
+  branch = wenv ^. L.findBranchByPath $ parentPath cnode
+  pinfo = fromMaybe def (Seq.lookup (length branch - 1) branch)
   cstyle = cnode ^. L.info . L.style
   enabled = cnode ^. L.info . L.enabled
 

@@ -295,8 +295,8 @@ data WidgetEnv s e = WidgetEnv {
   _weDpr :: Double,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
-  -- | Returns the information of a node given a path from root, if any.
-  _weFindByPath :: Path -> Maybe WidgetNodeInfo,
+  -- | Returns the node info, and its parents', given a path from root.
+  _weFindBranchByPath :: Path -> Seq WidgetNodeInfo,
   -- | The mouse button that is considered main.
   _weMainButton :: Button,
   -- | The mouse button that is considered as secondary or context button.

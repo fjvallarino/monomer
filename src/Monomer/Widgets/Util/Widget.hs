@@ -205,7 +205,8 @@ handleWidgetIdChange oldNode result = newResult where
 -- | Returns the WidgetId associated to the given path, if any.
 findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
 findWidgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
-  mwni = wenv ^. L.findByPath $ path
+  branch = wenv ^. L.findBranchByPath $ path
+  mwni = Seq.lookup (length branch - 1) branch
 
 -- | Sends a message to the given node with a delay of n ms.
 delayedMessage :: Typeable i => WidgetNode s e -> i -> Int -> WidgetRequest s e

@@ -108,9 +108,9 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
           & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
-    let findByPath path = findWidgetByPath tmpWenv curRoot path
+    let findBranchByPath path = findWidgetBranchByPath tmpWenv curRoot path
     let newWenv = tmpWenv
-          & L.findByPath .~ findByPath
+          & L.findBranchByPath .~ findBranchByPath
     (wenv2, root2, reqs2) <- handleSystemEvent newWenv curRoot evt target
 
     when (isOnLeave evt) $ do

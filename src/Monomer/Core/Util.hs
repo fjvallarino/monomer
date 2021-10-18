@@ -49,6 +49,12 @@ findWidgetByPath wenv node target = mnode where
       | child ^. L.path == target -> Just child
     _ -> Nothing
 
+-- | Returns the complete node info branch associated to a given path.
+findWidgetBranchByPath
+  :: WidgetEnv s e -> WidgetNode s e -> Path -> Seq WidgetNodeInfo
+findWidgetBranchByPath wenv node target = branch where
+  branch = widgetFindBranchByPath (node ^. L.widget) wenv node target
+
 -- | Helper functions that associates False to Vertical and True to Horizontal.
 getLayoutDirection :: Bool -> LayoutDirection
 getLayoutDirection False = LayoutVertical
