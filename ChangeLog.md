@@ -4,13 +4,11 @@
 
 - Add `customModelBuilder` in Composite, for custom models support. These can consume information
   from the parent model.
-- Add `OverlayWrapper` widget.
-- Add `ColorPopup` widget. Besides being useful on its own, it serves as an `OverlayWrapper` example.
 
 ### Fixed
 
 - Keep old Composite root if model has not changed. This did not affect previous code,
-  it was only relevant with new features.
+  it is only relevant with new features.
 
 ### Changed
 
@@ -19,6 +17,7 @@
 - ZStack's `onlyTopActive` now follows the same pattern as other boolean combinators.
 - Shortened labels for `ColorPicker`.
 - Changed `_weFindByPath` to `_weFindBranchByPath`, now returning the complete branch up to the given path.
+- Add `containerCreateContainerFromModel` to workaround issue when updating offset during merge.
 
 ## 1.1.1.0
 

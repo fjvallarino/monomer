@@ -99,6 +99,32 @@ type ContainerGetCurrentStyle s e
   -> StyleState        -- ^ The active style for the node.
 
 {-|
+Returns an updated version of the Container instance. Currently only used
+during merge. Not needed in general, except for widgets that modify offset
+or layout direction.
+
+An example can be found in "Monomer.Widgets.Containers.Scroll".
+
+Note:
+
+Some widgets, scroll for example, provide offset/layout direction to the
+Container instance; this information is passed down to children widgets in all
+the lifecycle methods. During merge a problem arises: the new node has not yet
+processed the old state and, since it is the Container whose merge function is
+being invoked, it is not able to provide the correct offset/layout direction.
+It is also not possible to directly extract this information from the old node,
+because we have a Widget instance and not its Container instance. This function
+provides a workaround for this.
+
+This is a hacky solution; a more flexible dispatcher for Composite could avoid it.
+-}
+type ContainerCreateContainerFromModel s e a
+  = WidgetEnv s e            -- ^ The widget environment.
+  -> WidgetNode s e          -- ^ The widget node.
+  -> a                       -- ^ The previous model.
+  -> Maybe (Container s e a) -- ^ An updated Container instance.
+
+{-|
 Updates the widget environment before passing it down to children. This function
 is called during the execution of all the widget functions. Useful for
 restricting viewport or modifying other kind of contextual information.
@@ -353,6 +379,8 @@ data Container s e a = Container {
   containerUseScissor :: Bool,
   -- | Returns the base style for this type of widget.
   containerGetBaseStyle :: ContainerGetBaseStyle s e,
+  -- | Returns an updated version of the Container instance.
+  containerCreateContainerFromModel :: ContainerCreateContainerFromModel s e a,
   -- | Returns the current style, depending on the status of the widget.
   containerGetCurrentStyle :: ContainerGetCurrentStyle s e,
   -- | Updates the widget environment before passing it down to children.
@@ -403,6 +431,7 @@ instance Default (Container s e a) where
     containerUseScissor = False,
     containerGetBaseStyle = defaultGetBaseStyle,
     containerGetCurrentStyle = defaultGetCurrentStyle,
+    containerCreateContainerFromModel = defaultCreateContainerFromModel,
     containerUpdateCWenv = defaultUpdateCWenv,
     containerInit = defaultInit,
     containerInitPost = defaultInitPost,
@@ -460,6 +489,9 @@ defaultGetBaseStyle wenv node = Nothing
 
 defaultGetCurrentStyle :: ContainerGetCurrentStyle s e
 defaultGetCurrentStyle wenv node = currentStyle wenv node
+
+defaultCreateContainerFromModel :: ContainerCreateContainerFromModel s e a
+defaultCreateContainerFromModel wenv node state = Nothing
 
 defaultUpdateCWenv :: ContainerUpdateCWenvHandler s e
 defaultUpdateCWenv wenv node cnode cidx = wenv
@@ -571,7 +603,8 @@ mergeWrapper
   -> WidgetResult s e
 mergeWrapper container wenv newNode oldNode = newResult where
   getBaseStyle = containerGetBaseStyle container
-  updateCWenv = getUpdateCWenv container
+  createContainerFromModel = containerCreateContainerFromModel container
+
   mergeRequiredHandler = containerMergeChildrenReq container
   mergeHandler = containerMerge container
   mergePostHandler = containerMergePost container
@@ -582,8 +615,14 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Nothing -> True
 
   styledNode = initNodeStyle getBaseStyle wenv newNode
+
+  -- Check if an updated container can be used for offset/layout direction.
+  pNode = pResult ^. L.node
+  updateCWenv = case useState oldState >>= createContainerFromModel wenv pNode of
+    Just newContainer -> getUpdateCWenv newContainer
+    _ -> getUpdateCWenv container
   cWenvHelper idx child = cwenv where
-    cwenv = updateCWenv wenv (pResult ^. L.node) child idx
+    cwenv = updateCWenv wenv pNode child idx
 
   pResult = mergeParent mergeHandler wenv styledNode oldNode oldState
   cResult = mergeChildren cWenvHelper wenv newNode oldNode pResult

@@ -344,12 +344,13 @@ makeNode widget managedWidget = defaultWidgetNode "scroll" widget
 
 makeScroll :: ScrollCfg s e -> ScrollState -> Widget s e
 makeScroll config state = widget where
-  widget = createContainer state def {
+  container = def {
     containerChildrenOffset = Just offset,
     containerChildrenScissor = Just (_sstScissor state),
     containerLayoutDirection = layoutDirection,
     containerGetBaseStyle = getBaseStyle,
     containerGetCurrentStyle = scrollCurrentStyle,
+    containerCreateContainerFromModel = createContainerFromModel,
     containerUpdateCWenv = updateCWenv,
     containerInit = init,
     containerMerge = merge,
@@ -360,6 +361,7 @@ makeScroll config state = widget where
     containerResize = resize,
     containerRenderAfter = renderAfter
   }
+  widget = createContainer state container
 
   ScrollState dragging dx dy _ _ _ = state
   Size childWidth childHeight = _sstChildSize state
@@ -385,6 +387,12 @@ makeScroll config state = widget where
         & L.info . L.style .~ parentStyle
         & L.children . ix 0 . L.info . L.style .~ childStyle
       | otherwise = node
+
+  createContainerFromModel wenv node state = Just newContainer where
+    offset = Point (_sstDeltaX state) (_sstDeltaX state)
+    newContainer = container {
+      containerChildrenOffset = Just offset
+    }
 
   -- This is overriden to account for space used by scroll bars
   updateCWenv wenv node cnode cidx = newWenv where
