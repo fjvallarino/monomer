@@ -56,7 +56,7 @@ initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
-  setDisableCompositorHint False
+  setDisableCompositorHint compositingFlag
 
   do renderQuality <- SDL.get SDL.HintRenderScaleQuality
      when (renderQuality /= SDL.ScaleLinear) $
@@ -120,6 +120,7 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
+    compositingFlag = fromMaybe False (_apcDisableCompositing config)
     userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
