@@ -43,13 +43,12 @@ module Monomer.Widgets.Containers.Keystroke (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (.~), (%~), at)
+import Control.Lens ((&), (^.), (^..), (.~), (%~), _1, at, folded)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Bifunctor (first)
 import Data.Char (chr, isAscii, isPrint, ord)
 import Data.Default
 import Data.List (foldl')
-import Data.Maybe
 import Data.Set (Set)
 import Data.Text (Text)
 
@@ -91,6 +90,7 @@ instance CmbIgnoreChildrenEvts KeystrokeCfg where
   }
 
 data KeyStroke = KeyStroke {
+  _kstKsText :: Text,
   _kstKsC :: Bool,
   _kstKsCtrl :: Bool,
   _kstKsCmd :: Bool,
@@ -101,6 +101,7 @@ data KeyStroke = KeyStroke {
 
 instance Default KeyStroke where
   def = KeyStroke {
+    _kstKsText = "",
     _kstKsC = False,
     _kstKsCtrl = False,
     _kstKsCmd = False,
@@ -109,7 +110,12 @@ instance Default KeyStroke where
     _kstKsKeys = Set.empty
   }
 
+newtype KeyStrokeState e = KeyStrokeState {
+  _kssLatest :: [(KeyStroke, e)]
+} deriving (Eq, Show)
+
 makeLensesWith abbreviatedFields ''KeyStroke
+makeLensesWith abbreviatedFields ''KeyStrokeState
 
 -- | Creates a keystroke container with a single node as child.
 keystroke :: WidgetEvent e => [(Text, e)] -> WidgetNode s e -> WidgetNode s e
@@ -125,29 +131,53 @@ keystroke_
 keystroke_ bindings configs managed = makeNode widget managed where
   config = mconcat configs
   newBindings = fmap (first textToStroke) bindings
-  widget = makeKeystroke newBindings config
+  state = KeyStrokeState []
+  widget = makeKeystroke newBindings config state
 
 makeNode :: Widget s e -> WidgetNode s e -> WidgetNode s e
 makeNode widget managedWidget = defaultWidgetNode "keystroke" widget
   & L.info . L.focusable .~ False
   & L.children .~ Seq.singleton managedWidget
 
-makeKeystroke :: WidgetEvent e => [(KeyStroke, e)] -> KeystrokeCfg -> Widget s e
-makeKeystroke bindings config = widget where
-  widget = createContainer () def {
+makeKeystroke
+  :: WidgetEvent e
+  => [(KeyStroke, e)]
+  -> KeystrokeCfg
+  -> KeyStrokeState e
+  -> Widget s e
+makeKeystroke bindings config state = widget where
+  widget = createContainer state def {
+    containerMerge = merge,
     containerHandleEvent = handleEvent
   }
 
+  merge wenv node oldNode oldState = resultNode newNode where
+    newNode = node
+      & L.widget .~ makeKeystroke bindings config oldState
+
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed -> Just result where
-      ignoreChildren = Just True == _kscIgnoreChildren config
       newWenv = wenv & L.inputStatus %~ removeMods
-      evts = snd <$> filter (keyStrokeActive newWenv code . fst) bindings
+      matches = filter (keyStrokeActive newWenv code . fst) bindings
+      newState = KeyStrokeState matches
+      newNode = node
+        & L.widget .~ makeKeystroke bindings config newState
+      evts = snd <$> matches
       reqs
         | ignoreChildren && not (null evts) = [IgnoreChildrenEvents]
         | otherwise = []
-      result = resultReqsEvts node reqs evts
+      result = resultReqsEvts newNode reqs evts
+    TextInput t
+      | ignoreChildren && ignorePrevious t -> Just result where
+        previousMatch t = t `elem` _kssLatest state ^.. folded . _1 . ksText
+        ignorePrevious t = isTextValidCode t && previousMatch t
+        newState = KeyStrokeState []
+        newNode = node
+          & L.widget .~ makeKeystroke bindings config newState
+        result = resultReqs newNode [IgnoreChildrenEvents]
     _ -> Nothing
+    where
+      ignoreChildren = Just True == _kscIgnoreChildren config
 
 keyStrokeActive :: WidgetEnv s e -> KeyCode -> KeyStroke -> Bool
 keyStrokeActive wenv code ks = currValid && allPressed && validMods where
@@ -173,6 +203,7 @@ textToStroke :: Text -> KeyStroke
 textToStroke text = ks where
   parts = T.split (=='-') text
   ks = foldl' partToStroke def parts
+    & ksText .~ text
 
 partToStroke :: KeyStroke -> Text -> KeyStroke
 partToStroke ks "A" = ks & ksAlt .~ True
@@ -212,11 +243,15 @@ partToStroke ks "F11" = ks & ksKeys %~ Set.insert keyF11
 partToStroke ks "F12" = ks & ksKeys %~ Set.insert keyF12
 -- Other keys (numbers, letters, points, etc)
 partToStroke ks txt
-  | isValid = ks & ksKeys %~ Set.insert (KeyCode (ord txtHead))
+  | isTextValidCode txt = ks & ksKeys %~ Set.insert (KeyCode (ord txtHead))
   | otherwise = ks
   where
-    isValid = T.length txt == 1 && isAscii txtHead && isPrint txtHead
     txtHead = T.index txt 0
+
+isTextValidCode :: Text -> Bool
+isTextValidCode txt = validLen && isAscii txtHead && isPrint txtHead where
+  validLen = T.length txt == 1
+  txtHead = T.index txt 0
 
 removeMods :: InputStatus -> InputStatus
 removeMods status = status

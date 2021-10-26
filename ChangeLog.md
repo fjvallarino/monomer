@@ -4,6 +4,8 @@
 
 - Add `customModelBuilder` in Composite, for custom models support. These can consume information
   from the parent model.
+- Add `containerCreateContainerFromModel` to workaround issue when updating offset during merge.
+- Add `appDisableCompositing` to allow requesting compositing to be disabled on startup.
 
 ### Fixed
 
@@ -17,7 +19,8 @@
 - ZStack's `onlyTopActive` now follows the same pattern as other boolean combinators.
 - Shortened labels for `ColorPicker`.
 - Changed `_weFindByPath` to `_weFindBranchByPath`, now returning the complete branch up to the given path.
-- Add `containerCreateContainerFromModel` to workaround issue when updating offset during merge.
+- Change SDL's default of requesting compositing to be disabled on startup (compositing is now left unchanged).
+- Filter following `TextInput` event if a single letter binding matched previously on `keystroke`.
 
 ## 1.1.1.0
 
