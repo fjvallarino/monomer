@@ -22,6 +22,7 @@ module Monomer.Main.Platform (
   getDisplayDPI
 ) where
 
+import Control.Monad (void)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
@@ -55,6 +56,7 @@ initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
+  setDisableCompositorHint compositingFlag
 
   do renderQuality <- SDL.get SDL.HintRenderScaleQuality
      when (renderQuality /= SDL.ScaleLinear) $
@@ -118,6 +120,7 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
+    compositingFlag = fromMaybe False (_apcDisableCompositing config)
     userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
@@ -212,3 +215,11 @@ getLinuxFactor =
     if width <= 1920
       then return 1
       else return (fromIntegral (ceiling baseFactor) / 2)
+
+setDisableCompositorHint :: Bool -> IO ()
+setDisableCompositorHint disable = void $
+  withCString "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR" $ \cHintNameStr ->
+    withCString disableStr $ \cDisableStr ->
+      Raw.setHint cHintNameStr cDisableStr
+  where
+    disableStr = if disable then "1" else "0"

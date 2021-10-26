@@ -189,7 +189,9 @@ data AppConfig e = AppConfig {
   -- | Whether wheel/trackpad horizontal movement should be inverted.
   _apcInvertWheelX :: Maybe Bool,
   -- | Whether wheel/trackpad vertical movement should be inverted.
-  _apcInvertWheelY :: Maybe Bool
+  _apcInvertWheelY :: Maybe Bool,
+  -- | Whether compositing should be disabled. Defaults to False.
+  _apcDisableCompositing :: Maybe Bool
 }
 
 instance Default (AppConfig e) where
@@ -210,7 +212,8 @@ instance Default (AppConfig e) where
     _apcMainButton = Nothing,
     _apcContextButton = Nothing,
     _apcInvertWheelX = Nothing,
-    _apcInvertWheelY = Nothing
+    _apcInvertWheelY = Nothing,
+    _apcDisableCompositing = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -231,7 +234,8 @@ instance Semigroup (AppConfig e) where
     _apcMainButton = _apcMainButton a2 <|> _apcMainButton a1,
     _apcContextButton = _apcContextButton a2 <|> _apcContextButton a1,
     _apcInvertWheelX = _apcInvertWheelX a2 <|> _apcInvertWheelX a1,
-    _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1
+    _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1,
+    _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1
   }
 
 instance Monoid (AppConfig e) where
@@ -363,4 +367,17 @@ platform detection should do the right thing.
 appInvertWheelY :: Bool -> AppConfig e
 appInvertWheelY invert = def {
   _apcInvertWheelY = Just invert
+}
+
+{-|
+Whether compositing should be disabled. Linux only, ignored in other platforms.
+Defaults to False.
+
+Desktop applications should leave compositing as is, since disabling it may
+cause visual glitches in other programs. When creating games or fullscreen
+applications, disabling compositing may improve performance.
+-}
+appDisableCompositing :: Bool -> AppConfig e
+appDisableCompositing invert = def {
+  _apcDisableCompositing = Just invert
 }
