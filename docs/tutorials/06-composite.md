@@ -34,6 +34,10 @@ data EventResponse s e sp ep
   | Report ep
   -- Sends a Widget Request
   | Request (WidgetRequest s e)
+  -- Sets focus on the given key
+  | SetFocusOnKey WidgetKey
+  -- Moves focus forward/backward, optionally starting from the given key.
+  | MoveFocusFromKey (Maybe WidgetKey) FocusDirection
   -- Sends a message to the specified key
   | forall i . Typeable i => Message WidgetKey i
   -- Launches a Task
@@ -73,9 +77,6 @@ easier to use interface:
 `WidgetRequest`s will be explored in more detail in the custom widgets tutorial,
 but some requests can be interesting for an application or composite:
 
-- MoveFocus: Moves focus to the next focusable widget in the given direction.
-- SetFocus: Sets focus on a specific widget. We have already used this request
-  when calling `setFocusOnKey`.
 - ExitApplication: Requests to exit the application or cancel an active request
   to exit. This is useful combined with `appExitEvent`.
 - UpdateWindow: Allows making window related actions, such as setting window

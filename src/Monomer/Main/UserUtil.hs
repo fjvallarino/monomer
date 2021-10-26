@@ -24,8 +24,9 @@ import Monomer.Widgets.Composite
 import qualified Monomer.Core.Lens as L
 import qualified Monomer.Main.Lens as L
 
+{-# DEPRECATED setFocusOnKey "Use SetFocusOnKey instead (wenv argument should be removed)." #-}
 {-|
-Generates a response to sets focus on the given key, provided as WidgetKey. If
+Generates a response to set focus on the given key, provided as WidgetKey. If
 the key does not exist, focus will remain on the currently focused widget.
 -}
 setFocusOnKey :: WidgetEnv s e -> WidgetKey -> EventResponse s e sp ep

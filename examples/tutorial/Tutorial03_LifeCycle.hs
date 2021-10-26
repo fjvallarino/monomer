@@ -84,13 +84,14 @@ handleEvent wenv node model evt = case evt of
       Model $ model
         & newItemText .~ ""
         & items .~ newItem : model ^. items,
-      setFocusOnKey wenv "description"]
+      SetFocusOnKey "description"]
   RemoveItem idx -> [Model $ model
     & items .~ removeIdx idx (model ^. items)]
   _ -> []
   where
     newItem = ListItem (wenv ^. L.timestamp) (model ^. newItemText)
 
+removeIdx :: Int -> [a] -> [a]
 removeIdx idx lst = part1 ++ drop 1 part2 where
   (part1, part2) = splitAt idx lst
 

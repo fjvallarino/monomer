@@ -134,6 +134,18 @@ type ProducerHandler e = (e -> IO ()) -> IO ()
 data CompMsgUpdate
   = forall s . CompositeModel s => CompMsgUpdate (s -> s)
 
+{-|
+Delayed request. Used to account for widget tree changes in previous steps. When
+processing EventResponses that depend on WidgetKeys, resolving the key at the
+time the response is created may result in missing/no longer valid keys. The
+delayed message allows resolving the key right before the WidgetRequest is
+processed.
+-}
+data CompMsgDelayedRequest
+  = CompMsgSetFocus WidgetKey
+  | CompMsgMoveFocus (Maybe WidgetKey) FocusDirection
+  | forall i . Typeable i => CompMsgMessage WidgetKey i
+
 -- | Response options for an event handler.
 data EventResponse s e sp ep
   -- | Modifies the current model, prompting a merge.
@@ -150,6 +162,16 @@ data EventResponse s e sp ep
   otherwise.
   -}
   | RequestParent (WidgetRequest sp ep)
+  {-|
+  Generates a request to set focus on the widget with the matching key. If the
+  key does not exist, focus remains on the currently focused widget.
+  -}
+  | SetFocusOnKey WidgetKey
+  {-|
+  Generates a request to move focus forward/backward, optionally indicating the
+  key of the starting widget.
+  -}
+  | MoveFocusFromKey (Maybe WidgetKey) FocusDirection
   {-|
   Sends a message to the given key. If the key does not exist, the message will
   not be delivered.
@@ -692,7 +714,9 @@ compositeHandleMessage comp state@CompositeState{..} !wenv !widgetComp !target a
       Just evt -> Just $ handleMsgEvent comp state wenv widgetComp evt
       Nothing -> case cast arg of
         Just (CompMsgUpdate msg) -> handleMsgUpdate comp state wenv widgetComp <$> cast msg
-        _ -> traceShow ("Failed match on Composite handleEvent", typeOf arg) Nothing
+        Nothing -> case cast arg of
+          Just req -> handleDelayedRequest comp state wenv widgetComp req
+          _ -> traceShow ("Failed match on Composite handleMessage", typeOf arg) Nothing
   | otherwise = fmap processEvent result where
       processEvent = toParentResult comp state wenv widgetComp
       cmpWidget = _cpsRoot ^. L.widget
@@ -844,18 +868,41 @@ evtResponseToRequest
   -> EventResponse s e sp ep
   -> Maybe (WidgetRequest sp ep)
 evtResponseToRequest widgetComp widgetKeys response = case response of
-  Model newModel -> Just $ sendTo widgetComp (CompMsgUpdate $ const newModel)
-  Event event -> Just $ sendTo widgetComp event
+  Model newModel -> Just $ sendMsgTo widgetComp (CompMsgUpdate $ const newModel)
+  Event event -> Just $ sendMsgTo widgetComp event
   Report report -> Just (RaiseEvent report)
   Request req -> toParentReq widgetId req
   RequestParent req -> Just req
-  Message key msg -> (`sendTo` msg) <$> M.lookup key widgetKeys
+  SetFocusOnKey key -> Just $ sendMsgTo widgetComp (CompMsgSetFocus key)
+  MoveFocusFromKey key dir -> Just $ sendMsgTo widgetComp (CompMsgMoveFocus key dir)
+  Message key msg -> Just $ sendMsgTo widgetComp (CompMsgMessage key msg)
   Task task -> Just $ RunTask widgetId path task
   Producer producer -> Just $ RunProducer widgetId path producer
   where
-    sendTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
     widgetId = widgetComp ^. L.info . L.widgetId
     path = widgetComp ^. L.info . L.path
+
+handleDelayedRequest
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
+  => Composite s e sp ep
+  -> CompositeState s e
+  -> WidgetEnv sp ep
+  -> WidgetNode sp ep
+  -> CompMsgDelayedRequest
+  -> Maybe (WidgetResult sp ep)
+handleDelayedRequest comp state wenv node req = result where
+    widgetKeys = _cpsWidgetKeyMap state
+    newReq = case req of
+      CompMsgSetFocus key -> setFocus <$> lookupNode widgetKeys "SetFocusOnKey" key
+      CompMsgMoveFocus (Just key) dir -> moveFocusFrom key dir
+      CompMsgMoveFocus _ dir -> Just $ MoveFocus Nothing dir
+      CompMsgMessage key msg -> (`sendMsgTo` msg) <$> lookupNode widgetKeys "Message" key
+    result = resultReqs node . (: []) <$> newReq
+
+    setFocus node = SetFocus (node ^. L.info . L.widgetId)
+    moveFocusFrom key dir = mwid >> Just (MoveFocus mwid dir) where
+      mnode = lookupNode widgetKeys "MoveFocusFromKey" key
+      mwid = (^. L.info . L.widgetId) <$> mnode
 
 mergeChild
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
@@ -988,3 +1035,11 @@ cascadeCtx wenv parent child = newChild where
     & L.info . L.path .~ newPath
     & L.info . L.visible .~ (cVisible && pVisible)
     & L.info . L.enabled .~ (cEnabled && pEnabled)
+
+lookupNode :: WidgetKeyMap s e -> String -> WidgetKey -> Maybe (WidgetNode s e)
+lookupNode widgetKeys desc key = case M.lookup key widgetKeys of
+  Nothing -> trace ("Key " ++ show key ++ " not found for " ++ desc) Nothing
+  res -> res
+
+sendMsgTo :: Typeable i => WidgetNode s e -> i -> WidgetRequest sp ep
+sendMsgTo node msg = SendMessage (node ^. L.info . L.widgetId) msg
