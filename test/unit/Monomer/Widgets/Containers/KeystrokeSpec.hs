@@ -35,7 +35,9 @@ import Monomer.Widgets.Singles.TextField
 import qualified Monomer.Lens as L
 
 data TestEvt
-  = CtrlA
+  = SingleO
+  | TextFieldChanged Text
+  | CtrlA
   | CtrlSpace
   | CtrlShiftSpace
   | MultiKey Int
@@ -83,12 +85,20 @@ handleEvent = describe "handleEvent" $ do
       evtKC keyD, evtKC keyE] `shouldBe` Seq.fromList [MultiKey 1, MultiKey 2]
 
   it "should not ignore children events if not explicitly requested" $ do
-    events1 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
+    events1 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA, TextFieldChanged "d"]
     model1 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "d"
 
   it "should ignore children events if requested" $ do
-    events2 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA]
+    events2 [evtKG keyA, evtT "d"] `shouldBe` Seq.fromList [CtrlA, TextFieldChanged "abcd"]
     model2 [evtKG keyA, evtT "d"] ^. textValue `shouldBe` "abcd"
+
+  it "should not filter text events if not explicitly requested" $ do
+    events1 [evtK keyO, evtT "o"] `shouldBe` Seq.fromList [SingleO, TextFieldChanged "abco"]
+    model1 [evtK keyO, evtT "o"] ^. textValue `shouldBe` "abco"
+
+  it "should filter text events if requested" $ do
+    events2 [evtK keyO, evtT "o"] `shouldBe` Seq.fromList [SingleO]
+    model2 [evtK keyO, evtT "o"] ^. textValue `shouldBe` "abc"
 
   where
     wenv = mockWenv (TestModel "")
@@ -105,8 +115,8 @@ handleEvent = describe "handleEvent" $ do
     kstNode = keystroke bindings (textField textValue)
     events es = nodeHandleEventEvts wenv es kstNode
     wenv2 = mockWenv (TestModel "abc")
-    kstModel1 = keystroke [("C-a", CtrlA)] (textField textValue)
-    kstModel2 = keystroke_ [("C-a", CtrlA)] [ignoreChildrenEvts] (textField textValue)
+    kstModel1 = keystroke [("C-a", CtrlA), ("o", SingleO)] (textField_ textValue [onChange TextFieldChanged])
+    kstModel2 = keystroke_ [("C-a", CtrlA), ("o", SingleO)] [ignoreChildrenEvts] (textField_ textValue [onChange TextFieldChanged])
     model1 es = nodeHandleEventModel wenv2 es kstModel1
     model2 es = nodeHandleEventModel wenv2 es kstModel2
     events1 es = nodeHandleEventEvts wenv2 es kstModel1
