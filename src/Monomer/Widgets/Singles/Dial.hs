@@ -320,7 +320,8 @@ makeDial !field !minVal !maxVal !config !state = widget where
       tmpPos = pos + round (wy * wheelRate)
       newPos = clamp 0 maxPos tmpPos
       newVal = valueFromPos minVal dragRate newPos
-      result = addReqsEvts (resultReqs node [RenderOnce]) newVal
+      reqs = [RenderOnce, IgnoreParentEvents]
+      result = addReqsEvts (resultReqs node reqs) newVal
     _ -> Nothing
     where
       theme = currentTheme wenv node

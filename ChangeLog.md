@@ -9,8 +9,9 @@
 
 ### Fixed
 
-- Keep old Composite root if model has not changed. This did not affect previous code,
+- Keep old Composite root if model has not changed. This does not affect previous code,
   it is only relevant with new features.
+- Generate `IgnoreParentEvents` request from widgets that handle Wheel event (avoids issues with scroll widget moving the content).
 
 ### Changed
 

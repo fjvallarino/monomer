@@ -324,11 +324,17 @@ handleWheelH = describe "handleWheelH" $ do
     let steps = [WheelScroll p (Point 0 100) WheelNormal]
     model steps ^. sliderVal `shouldBe` 300
 
+  it "should generate IgnoreParentEvents when using the wheel" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 (-64)) WheelNormal]
+    reqs steps `shouldSatisfy` (IgnoreParentEvents `elem`)
+
   where
     wenv = mockWenvEvtUnit (TestModel 200)
       & L.theme .~ darkTheme
     sliderNode = hslider_ sliderVal (-500) 500 [wheelRate 1]
     model es = nodeHandleEventModel wenv es sliderNode
+    reqs es = nodeHandleEventReqs wenv es sliderNode
 
 handleWheelValV :: Spec
 handleWheelValV = describe "handleWheelValV" $ do

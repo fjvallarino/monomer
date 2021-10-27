@@ -118,6 +118,11 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     model steps3 ^. integralValue `shouldBe` 100
     model steps4 ^. integralValue `shouldBe` 1501
 
+  it "should generate IgnoreParentEvents when using the wheel" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 (-64)) WheelNormal]
+    reqs steps `shouldSatisfy` (IgnoreParentEvents `elem`)
+
   it "should generate an event when focus is received" $
     events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
 
@@ -133,6 +138,7 @@ handleEventIntegral = describe "handleEventIntegral" $ do
     model es = nodeHandleEventModel wenv (evtFocus : es) intNode
     modelBasic es = nodeHandleEventModel wenv es basicIntNode
     events es = nodeHandleEventEvts wenv es intNode
+    reqs es = nodeHandleEventReqs wenv es intNode
 
 handleEventValueIntegral :: Spec
 handleEventValueIntegral = describe "handleEventIntegral" $ do
@@ -317,6 +323,11 @@ handleEventFractional = describe "handleEventFractional" $ do
     model steps3 ^. fractionalValue `shouldBe` Just 870
     model steps4 ^. fractionalValue `shouldBe` Just 1501
 
+  it "should generate IgnoreParentEvents when using the wheel" $ do
+    let p = Point 100 10
+    let steps = [WheelScroll p (Point 0 (-64)) WheelNormal]
+    reqs steps `shouldSatisfy` (IgnoreParentEvents `elem`)
+
   it "should generate an event when focus is received" $
     events evtFocus `shouldBe` Seq.singleton (GotFocus emptyPath)
 
@@ -332,6 +343,7 @@ handleEventFractional = describe "handleEventFractional" $ do
     model es = nodeHandleEventModel wenv es floatNode
     modelBasic es = nodeHandleEventModel wenv es basicFractionalNode
     events evt = nodeHandleEventEvts wenv [evt] floatNode
+    reqs es = nodeHandleEventReqs wenv es floatNode
 
 handleEventValueFractional :: Spec
 handleEventValueFractional = describe "handleEventValueFractional" $ do
