@@ -492,7 +492,7 @@ makeInputField !config !state = widget where
       | isJust wheelHandler -> Just result where
         handlerRes = fromJust wheelHandler state point move dir
         (newText, newPos, newSel) = handlerRes
-        reqs = [RenderOnce]
+        reqs = [RenderOnce, IgnoreParentEvents]
         result = genInputResult wenv node True newText newPos newSel reqs
 
     -- Handle keyboard shortcuts and possible cursor changes

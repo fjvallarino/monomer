@@ -191,11 +191,17 @@ handleWheelVal = describe "handleWheelVal" $ do
     let steps = [WheelScroll p (Point 0 (-200)) WheelNormal]
     evts steps `shouldBe` Seq.singleton (DialChanged (-200))
 
+  it "should generate IgnoreParentEvents when using the wheel" $ do
+    let p = Point 320 240
+    let steps = [WheelScroll p (Point 0 (-64)) WheelNormal]
+    reqs steps `shouldSatisfy` (IgnoreParentEvents `elem`)
+
   where
     wenv = mockWenv (TestModel 0)
       & L.theme .~ darkTheme
     dialNode = dialV_ 0 DialChanged (-500) 500 [wheelRate 1]
     evts es = nodeHandleEventEvts wenv es dialNode
+    reqs es = nodeHandleEventReqs wenv es dialNode
 
 handleShiftFocus :: Spec
 handleShiftFocus = describe "handleShiftFocus" $ do

@@ -391,11 +391,12 @@ makeSlider !isHz !field !minVal !maxVal !config !state = widget where
 
     ButtonAction point btn BtnReleased clicks  -> resultFromPoint point []
 
-    WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos [] where
+    WheelScroll _ (Point _ wy) wheelDirection -> resultFromPos newPos reqs where
       wheelCfg = fromMaybe (theme ^. L.sliderWheelRate) (_slcWheelRate config)
       wheelRate = fromRational wheelCfg
       tmpPos = pos + round (wy * wheelRate)
       newPos = clamp 0 maxPos tmpPos
+      reqs = [IgnoreParentEvents]
     _ -> Nothing
     where
       theme = currentTheme wenv node
