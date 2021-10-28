@@ -114,6 +114,7 @@ library
       Monomer.Widgets.Singles.LabeledCheckbox
       Monomer.Widgets.Singles.LabeledRadio
       Monomer.Widgets.Singles.NumericField
+      Monomer.Widgets.Singles.OptionButton
       Monomer.Widgets.Singles.Radio
       Monomer.Widgets.Singles.SeparatorLine
       Monomer.Widgets.Singles.Slider
@@ -122,6 +123,7 @@ library
       Monomer.Widgets.Singles.TextDropdown
       Monomer.Widgets.Singles.TextField
       Monomer.Widgets.Singles.TimeField
+      Monomer.Widgets.Singles.ToggleButton
       Monomer.Widgets.Util
       Monomer.Widgets.Util.Drawing
       Monomer.Widgets.Util.Focus
@@ -491,6 +493,7 @@ test-suite monomer-test
       Monomer.Widgets.Singles.LabeledRadioSpec
       Monomer.Widgets.Singles.LabelSpec
       Monomer.Widgets.Singles.NumericFieldSpec
+      Monomer.Widgets.Singles.OptionButtonSpec
       Monomer.Widgets.Singles.RadioSpec
       Monomer.Widgets.Singles.SeparatorLineSpec
       Monomer.Widgets.Singles.SliderSpec
@@ -498,6 +501,7 @@ test-suite monomer-test
       Monomer.Widgets.Singles.TextAreaSpec
       Monomer.Widgets.Singles.TextFieldSpec
       Monomer.Widgets.Singles.TimeFieldSpec
+      Monomer.Widgets.Singles.ToggleButtonSpec
       Monomer.Widgets.Util.FocusSpec
       Monomer.Widgets.Util.StyleSpec
       Monomer.Widgets.Util.TextSpec

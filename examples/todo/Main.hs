@@ -53,6 +53,8 @@ todoRow wenv model idx t = animRow `nodeKey` todoKey where
   rowButton caption action = button caption action
     `styleBasic` [textFont "Remix", textMiddle, textColor rowButtonColor, bgColor transparent, border 0 transparent]
     `styleHover` [bgColor sectionBg]
+    `styleFocus` [bgColor (sectionBg & L.a .~ 0.5)]
+    `styleFocusHover` [bgColor sectionBg]
 
   todoInfo = hstack [
       vstack [

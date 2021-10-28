@@ -75,9 +75,10 @@ buildUI wenv model = widgetTree where
         spacer,
         textDropdown_ activeGen genTypes genTypeDesc [] `nodeKey` "activeType",
         spacer,
-
-        labeledCheckbox "Show config:" showCfg
+        toggleButton remixSettings3Fill showCfg
+          `styleBasic` [textFont "Remix", textSize 20, textMiddle]
       ] `styleBasic` [padding 20, bgColor sectionBg],
+
       zstack [
         hstack [
           circlesGrid (model ^. circlesCfg) `styleBasic` [padding 20],
@@ -112,6 +113,7 @@ main = do
     config = [
       appWindowTitle "Generative",
       appTheme darkTheme,
+      appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent GenerativeInit
       ]

@@ -11,6 +11,9 @@ the radio will be associated with a single value. It does not include text,
 which should be added as a label in the desired position (usually with hstack).
 Alternatively, 'Monomer.Widgets.Singles.LabeledRadio' provides this
 functionality out of the box.
+
+'Monomer.Widgets.Singles.OptionButton' provides similar functionality but with
+the look of a regular button.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}

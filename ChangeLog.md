@@ -6,6 +6,7 @@
   from the parent model.
 - Add `containerCreateContainerFromModel` to workaround issue when updating offset during merge.
 - Add `appDisableCompositing` to allow requesting compositing to be disabled on startup.
+- Add `optionButton` and `toggleButton` widgets.
 
 ### Fixed
 
