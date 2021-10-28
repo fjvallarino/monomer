@@ -310,8 +310,6 @@ compositeMergeReqs fn = def {
 Generates a custom model from the current parent model and the previous
 composite model. Useful when the composite needs a more complex model than what
 the user is binding.
-
-For a usage example, see 'Monomer.Widgets.Singles.ColorPopup'.
 -}
 customModelBuilder
   :: CompositeCustomModelBuilder s sp
