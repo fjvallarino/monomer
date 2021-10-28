@@ -7,12 +7,17 @@
 - Add `containerCreateContainerFromModel` to workaround issue when updating offset during merge.
 - Add `appDisableCompositing` to allow requesting compositing to be disabled on startup.
 - Add `optionButton` and `toggleButton` widgets.
+- Add `SetFocusOnKey` and `MoveFocusFromKey` actions in `Composite`. Deprecate `setFocusOnKey` function.
+  This function depended on information in `WidgetEnv`, which can become stale if several actions are
+  returned at once. This change reduces confusion regarding order of operations and widget tree state.
 
 ### Fixed
 
 - Keep old Composite root if model has not changed. This does not affect previous code,
   it is only relevant with new features.
 - Generate `IgnoreParentEvents` request from widgets that handle Wheel event (avoids issues with scroll widget moving the content).
+- Do not run tests which depend on SDL's video subsystem to be available unless an environment variable is defined.
+  This allows for (hopefully) running tests on Hackage and, later on, deploying to Stackage.
 
 ### Changed
 

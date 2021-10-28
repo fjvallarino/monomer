@@ -130,7 +130,7 @@ handleEvent env wenv node model evt = case evt of
       & symbolPairs .~ initialList,
     Producer (startProducer env),
     Task (subscribeInitial env initialList),
-    setFocusOnKey wenv "newPair"
+    SetFocusOnKey "newPair"
     ]
 
   TickerAddClick -> [
@@ -138,7 +138,7 @@ handleEvent env wenv node model evt = case evt of
       & symbolPairs %~ (model ^. newPair <|)
       & newPair .~ "",
     Task $ subscribe env [model ^. newPair],
-    setFocusOnKey wenv "newPair"
+    SetFocusOnKey "newPair"
     ]
 
   TickerRemovePairBegin pair -> [

@@ -141,7 +141,7 @@ handleEvent
   -> BooksEvt
   -> [EventResponse BooksModel BooksEvt BooksModel ()]
 handleEvent sess wenv node model evt = case evt of
-  BooksInit -> [setFocusOnKey wenv "query"]
+  BooksInit -> [SetFocusOnKey "query"]
   BooksSearch -> [
     Model $ model & searching .~ True,
     Task $ searchBooks sess (model ^. query)
