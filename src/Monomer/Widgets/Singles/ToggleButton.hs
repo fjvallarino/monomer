@@ -46,6 +46,8 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for toggleButton:
 
+- 'ignoreTheme': whether to load default style from theme or start empty.
+- 'toggleButtonOffStyle': style to use when the option is not active.
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
