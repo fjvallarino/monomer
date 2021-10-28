@@ -20,7 +20,9 @@ import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import Data.Sequence (Seq)
-import System.IO.Unsafe
+import System.Environment (lookupEnv)
+import System.IO.Unsafe (unsafePerformIO)
+import Test.Hspec (Expectation, pendingWith)
 
 import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as M
@@ -348,3 +350,15 @@ roundRectUnits (Rect x y w h) = Rect nx ny nw nh where
   ny = fromIntegral (round y)
   nw = fromIntegral (round w)
   nh = fromIntegral (round h)
+
+useVideoSubSystem :: IO Bool
+useVideoSubSystem = do
+  (== Just "1") <$> lookupEnv "USE_SDL_VIDEO_SUBSYSTEM"
+
+testInVideoSubSystem :: Expectation -> Expectation
+testInVideoSubSystem expectation = do
+  useVideo <- useVideoSubSystem
+  if useVideo then
+    expectation
+  else
+    pendingWith "SDL Video sub system not initialized. Skipping."

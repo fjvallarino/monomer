@@ -105,12 +105,16 @@ handleEvent = describe "handleEvent" $ do
   it "should copy and paste text around" $ do
     let str = "This is some long text"
     let steps = [evtT str, selWordL, selWordL, selCharL, evtKG keyC, moveWordL, moveWordL, moveCharL, evtKG keyV]
-    model steps ^. textValue `shouldBe` "This long text is some long text"
+
+    testInVideoSubSystem $
+      model steps ^. textValue `shouldBe` "This long text is some long text"
 
   it "should cut and paste text around" $ do
     let str = "This is long text"
     let steps = [evtT str, selWordL, selCharL, evtKG keyX, moveWordL, moveWordL, moveCharL, evtKG keyV]
-    model steps ^. textValue `shouldBe` "This text is long"
+
+    testInVideoSubSystem $
+      model steps ^. textValue `shouldBe` "This text is long"
 
   it "should generate an event when focus is received" $ do
     events [evtFocus] `shouldBe` Seq.singleton (GotFocus emptyPath)
@@ -173,7 +177,9 @@ handleEventValue = describe "handleEventValue" $ do
 
   it "should input 'abc123', move to beginning, select three letters, copy, move to end, paste" $ do
     let steps = [evtT "abc123", evtKC keyHome, selCharR, selCharR, selCharR, evtKG keyC, evtK keyEnd, evtKG keyV]
-    lastEvt steps `shouldBe` TextChanged "abc123abc"
+
+    testInVideoSubSystem $
+      lastEvt steps `shouldBe` TextChanged "abc123abc"
 
   it "should input a-b-c-d on separate lines, then press Return" $ do
     let steps = [evtT "a\nb\nc\nd", evtK keyReturn]
