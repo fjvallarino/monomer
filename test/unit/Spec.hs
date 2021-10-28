@@ -43,6 +43,7 @@ import qualified Monomer.Widgets.Singles.LabeledCheckboxSpec as LabeledCheckboxS
 import qualified Monomer.Widgets.Singles.LabeledRadioSpec as LabeledRadioSpec
 import qualified Monomer.Widgets.Singles.LabelSpec as LabelSpec
 import qualified Monomer.Widgets.Singles.NumericFieldSpec as NumericFieldSpec
+import qualified Monomer.Widgets.Singles.OptionButtonSpec as OptionButtonSpec
 import qualified Monomer.Widgets.Singles.RadioSpec as RadioSpec
 import qualified Monomer.Widgets.Singles.SeparatorLineSpec as SeparatorLineSpec
 import qualified Monomer.Widgets.Singles.SliderSpec as SliderSpec
@@ -50,6 +51,7 @@ import qualified Monomer.Widgets.Singles.SpacerSpec as SpacerSpec
 import qualified Monomer.Widgets.Singles.TextFieldSpec as TextFieldSpec
 import qualified Monomer.Widgets.Singles.TextAreaSpec as TextAreaSpec
 import qualified Monomer.Widgets.Singles.TimeFieldSpec as TimeFieldSpec
+import qualified Monomer.Widgets.Singles.ToggleButtonSpec as ToggleButtonSpec
 
 import qualified Monomer.Widgets.Util.FocusSpec as FocusSpec
 import qualified Monomer.Widgets.Util.StyleSpec as StyleSpec
@@ -134,6 +136,7 @@ singles = describe "Singles" $ do
   LabeledCheckboxSpec.spec
   LabeledRadioSpec.spec
   NumericFieldSpec.spec
+  OptionButtonSpec.spec
   RadioSpec.spec
   SeparatorLineSpec.spec
   SliderSpec.spec
@@ -141,6 +144,7 @@ singles = describe "Singles" $ do
   TextAreaSpec.spec
   TextFieldSpec.spec
   TimeFieldSpec.spec
+  ToggleButtonSpec.spec
 
 widgetsUtil :: Spec
 widgetsUtil = describe "Widgets Util" $ do

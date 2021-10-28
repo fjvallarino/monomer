@@ -43,6 +43,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.LabeledCheckbox,
   module Monomer.Widgets.Singles.LabeledRadio,
   module Monomer.Widgets.Singles.NumericField,
+  module Monomer.Widgets.Singles.OptionButton,
   module Monomer.Widgets.Singles.Radio,
   module Monomer.Widgets.Singles.SeparatorLine,
   module Monomer.Widgets.Singles.Slider,
@@ -50,7 +51,8 @@ module Monomer.Widgets (
   module Monomer.Widgets.Singles.TextArea,
   module Monomer.Widgets.Singles.TextDropdown,
   module Monomer.Widgets.Singles.TextField,
-  module Monomer.Widgets.Singles.TimeField
+  module Monomer.Widgets.Singles.TimeField,
+  module Monomer.Widgets.Singles.ToggleButton
 ) where
 
 import Monomer.Widgets.Composite
@@ -87,6 +89,7 @@ import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Singles.LabeledCheckbox
 import Monomer.Widgets.Singles.LabeledRadio
 import Monomer.Widgets.Singles.NumericField
+import Monomer.Widgets.Singles.OptionButton
 import Monomer.Widgets.Singles.Radio
 import Monomer.Widgets.Singles.SeparatorLine
 import Monomer.Widgets.Singles.Slider
@@ -95,3 +98,4 @@ import Monomer.Widgets.Singles.TextArea
 import Monomer.Widgets.Singles.TextDropdown
 import Monomer.Widgets.Singles.TextField
 import Monomer.Widgets.Singles.TimeField
+import Monomer.Widgets.Singles.ToggleButton
