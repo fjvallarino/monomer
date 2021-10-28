@@ -59,6 +59,7 @@ tickerPct t = pctLabel where
 
 tickerRow :: TickerWenv -> Int -> Ticker -> TickerNode
 tickerRow wenv idx t = row where
+  sectionBg = wenv ^. L.theme . L.sectionColor
   dragColor = rgbaHex "#D3D3D3" 0.5
   rowSep = rgbaHex "#A9A9A9" 0.5
   rowBg = wenv ^. L.theme . L.userColorMap . at "rowBg" . non def
@@ -68,6 +69,8 @@ tickerRow wenv idx t = row where
   trashIcon action = button remixDeleteBinLine action
     `styleBasic` [textFont "Remix", textMiddle, textColor trashFg, bgColor transparent, border 0 transparent]
     `styleHover` [bgColor trashBg]
+    `styleFocus` [bgColor (sectionBg & L.a .~ 0.5)]
+    `styleFocusHover` [bgColor trashBg]
 
   dropTicker pair
     = dropTarget_ (TickerMovePair pair) [dropTargetStyle [bgColor darkGray]]
