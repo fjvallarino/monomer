@@ -5,6 +5,8 @@ import Test.Hspec
 import qualified SDL
 import qualified SDL.Raw as Raw
 
+import Monomer.TestUtil (useVideoSubSystem)
+
 import qualified Monomer.Common.CursorIconSpec as CursorIconSpec
 import qualified Monomer.Core.SizeReqSpec as SizeReqSpec
 import qualified Monomer.Graphics.UtilSpec as GraphicsUtilSpec
@@ -55,13 +57,19 @@ import qualified Monomer.Widgets.Util.TextSpec as TextSpec
 
 main :: IO ()
 main = do
-  -- Initialize SDL
-  SDL.initialize [SDL.InitVideo]
-  -- Run tests
-  hspec spec
-  -- Shutdown SDL
-  Raw.quitSubSystem Raw.SDL_INIT_VIDEO
-  SDL.quit
+  initVideo <- useVideoSubSystem
+
+  if initVideo then do
+    -- Initialize SDL
+    SDL.initialize [SDL.InitVideo]
+    -- Run tests
+    hspec spec
+    -- Shutdown SDL
+    Raw.quitSubSystem Raw.SDL_INIT_VIDEO
+    SDL.quit
+  else do
+    -- Run tests
+    hspec spec
 
 spec :: Spec
 spec = do

@@ -506,7 +506,7 @@ test-suite monomer-test
       test/unit
   default-extensions:
       OverloadedStrings
-  ghc-options: -threaded -fwarn-incomplete-patterns
+  ghc-options: -fwarn-incomplete-patterns
   build-depends:
       HUnit ==1.6.*
     , JuicyPixels >=3.2.9 && <3.5
