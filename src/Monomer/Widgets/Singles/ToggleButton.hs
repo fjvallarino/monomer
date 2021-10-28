@@ -114,6 +114,7 @@ toggleButtonD_
   -> WidgetNode s e
 toggleButtonD_ caption widgetData configs = toggleButtonNode where
   config = mconcat configs
-  widget = makeOptionButton widgetData caption id not config
+  makeWithStyle = makeOptionButton L.toggleBtnOnStyle L.toggleBtnOffStyle
+  widget = makeWithStyle widgetData caption id not config
   toggleButtonNode = defaultWidgetNode "toggleButton" widget
     & L.info . L.focusable .~ True

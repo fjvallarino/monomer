@@ -240,6 +240,8 @@ baseBasic themeMod = def
   & L.labelStyle . L.text
     ?~ (normalFont & L.fontColor ?~ labelText themeMod) <> textLeft
   & L.numericFieldStyle .~ numericInputStyle themeMod
+  & L.optionBtnOnStyle .~ btnMainStyle themeMod
+  & L.optionBtnOffStyle .~ btnStyle themeMod
   & L.selectListStyle . L.bgColor ?~ slMainBg themeMod
   & L.selectListStyle . L.border ?~ border 1 (slMainBg themeMod)
   & L.selectListItemStyle .~ selectListItemStyle themeMod
@@ -266,6 +268,8 @@ baseBasic themeMod = def
   & L.textAreaStyle .~ textInputStyle themeMod
   & L.textFieldStyle .~ textInputStyle themeMod
   & L.timeFieldStyle .~ timeInputStyle themeMod
+  & L.toggleBtnOnStyle .~ btnMainStyle themeMod
+  & L.toggleBtnOffStyle .~ btnStyle themeMod
   & L.tooltipStyle .~ tooltipStyle themeMod
 
 baseHover :: BaseThemeColors -> ThemeState
@@ -297,6 +301,12 @@ baseHover themeMod = baseBasic themeMod
   & L.externalLinkStyle . L.text . non def . L.underline ?~ True
   & L.externalLinkStyle . L.cursorIcon ?~ CursorHand
   & L.numericFieldStyle . L.cursorIcon ?~ CursorIBeam
+  & L.optionBtnOnStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.optionBtnOnStyle . L.border ?~ border 1 (btnMainBgHover themeMod)
+  & L.optionBtnOnStyle . L.cursorIcon ?~ CursorHand
+  & L.optionBtnOffStyle . L.bgColor ?~ btnBgHover themeMod
+  & L.optionBtnOffStyle . L.border ?~ border 1 (btnBgHover themeMod)
+  & L.optionBtnOffStyle . L.cursorIcon ?~ CursorHand
   & L.selectListItemStyle . L.bgColor ?~ slNormalBgHover themeMod
   & L.selectListItemStyle . L.border ?~ border 1 (slNormalBgHover themeMod)
   & L.selectListItemStyle . L.cursorIcon ?~ CursorHand
@@ -315,6 +325,12 @@ baseHover themeMod = baseBasic themeMod
   & L.textAreaStyle . L.cursorIcon ?~ CursorIBeam
   & L.textFieldStyle . L.cursorIcon ?~ CursorIBeam
   & L.timeFieldStyle . L.cursorIcon ?~ CursorIBeam
+  & L.toggleBtnOnStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.toggleBtnOnStyle . L.border ?~ border 1 (btnMainBgHover themeMod)
+  & L.toggleBtnOnStyle . L.cursorIcon ?~ CursorHand
+  & L.toggleBtnOffStyle . L.bgColor ?~ btnBgHover themeMod
+  & L.toggleBtnOffStyle . L.border ?~ border 1 (btnBgHover themeMod)
+  & L.toggleBtnOffStyle . L.cursorIcon ?~ CursorHand
 
 baseFocus :: BaseThemeColors -> ThemeState
 baseFocus themeMod = baseBasic themeMod
@@ -335,6 +351,10 @@ baseFocus themeMod = baseBasic themeMod
   & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkFocus themeMod
   & L.numericFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.numericFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.optionBtnOnStyle . L.bgColor ?~ btnMainBgFocus themeMod
+  & L.optionBtnOnStyle . L.border ?~ btnMainBorderFocus themeMod
+  & L.optionBtnOffStyle . L.bgColor ?~ btnBgFocus themeMod
+  & L.optionBtnOffStyle . L.border ?~ btnBorderFocus themeMod
   & L.selectListStyle . L.border ?~ inputBorderFocus themeMod
   & L.selectListItemStyle . L.border ?~ border 1 (slNormalFocusBorder themeMod)
   & L.selectListItemSelectedStyle . L.border ?~ border 1 (slSelectedFocusBorder themeMod)
@@ -349,6 +369,10 @@ baseFocus themeMod = baseBasic themeMod
   & L.textFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.timeFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.timeFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.toggleBtnOnStyle . L.bgColor ?~ btnMainBgFocus themeMod
+  & L.toggleBtnOnStyle . L.border ?~ btnMainBorderFocus themeMod
+  & L.toggleBtnOffStyle . L.bgColor ?~ btnBgFocus themeMod
+  & L.toggleBtnOffStyle . L.border ?~ btnBorderFocus themeMod
 
 baseFocusHover :: BaseThemeColors -> ThemeState
 baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
@@ -357,6 +381,10 @@ baseFocusHover themeMod = (baseHover themeMod <> baseFocus themeMod)
   & L.dropdownItemStyle . L.bgColor ?~ slNormalBgHover themeMod
   & L.dropdownItemSelectedStyle . L.bgColor ?~ slSelectedBgHover themeMod
   & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkHover themeMod
+  & L.optionBtnOnStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.optionBtnOffStyle . L.bgColor ?~ btnBgHover themeMod
+  & L.toggleBtnOnStyle . L.bgColor ?~ btnMainBgHover themeMod
+  & L.toggleBtnOffStyle . L.bgColor ?~ btnBgHover themeMod
 
 baseActive :: BaseThemeColors -> ThemeState
 baseActive themeMod = baseFocusHover themeMod
@@ -375,6 +403,10 @@ baseActive themeMod = baseFocusHover themeMod
   & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkActive themeMod
   & L.numericFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.numericFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.optionBtnOnStyle . L.bgColor ?~ btnMainBgActive themeMod
+  & L.optionBtnOnStyle . L.border ?~ btnMainBorderFocus themeMod
+  & L.optionBtnOffStyle . L.bgColor ?~ btnBgActive themeMod
+  & L.optionBtnOffStyle . L.border ?~ btnBorderFocus themeMod
   & L.radioStyle . L.fgColor ?~ inputFgActive themeMod
   & L.radioStyle . L.hlColor ?~ inputHlActive themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgActive themeMod
@@ -386,6 +418,10 @@ baseActive themeMod = baseFocusHover themeMod
   & L.textFieldStyle . L.hlColor ?~ inputSelFocus themeMod
   & L.timeFieldStyle . L.border ?~ inputBorderFocus themeMod
   & L.timeFieldStyle . L.hlColor ?~ inputSelFocus themeMod
+  & L.toggleBtnOnStyle . L.bgColor ?~ btnMainBgActive themeMod
+  & L.toggleBtnOnStyle . L.border ?~ btnMainBorderFocus themeMod
+  & L.toggleBtnOffStyle . L.bgColor ?~ btnBgActive themeMod
+  & L.toggleBtnOffStyle . L.border ?~ btnBorderFocus themeMod
 
 baseDisabled :: BaseThemeColors -> ThemeState
 baseDisabled themeMod = baseBasic themeMod
@@ -407,6 +443,12 @@ baseDisabled themeMod = baseBasic themeMod
   & L.externalLinkStyle . L.text . non def . L.fontColor ?~ externalLinkDisabled themeMod
   & L.numericFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
   & L.numericFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.optionBtnOnStyle . L.text . non def . L.fontColor ?~ btnMainTextDisabled themeMod
+  & L.optionBtnOnStyle . L.bgColor ?~ btnMainBgDisabled themeMod
+  & L.optionBtnOnStyle . L.border ?~ border 1 (btnMainBgDisabled themeMod)
+  & L.optionBtnOffStyle . L.text . non def . L.fontColor ?~ btnTextDisabled themeMod
+  & L.optionBtnOffStyle . L.bgColor ?~ btnBgDisabled themeMod
+  & L.optionBtnOffStyle . L.border ?~ border 1 (btnBgDisabled themeMod)
   & L.radioStyle . L.fgColor ?~ inputFgDisabled themeMod
   & L.radioStyle . L.hlColor ?~ inputHlDisabled themeMod
   & L.sliderStyle . L.fgColor ?~ inputFgDisabled themeMod
@@ -418,3 +460,9 @@ baseDisabled themeMod = baseBasic themeMod
   & L.textFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
   & L.timeFieldStyle . L.bgColor ?~ inputBgDisabled themeMod
   & L.timeFieldStyle . L.text . non def . L.fontColor ?~ inputTextDisabled themeMod
+  & L.toggleBtnOnStyle . L.text . non def . L.fontColor ?~ btnMainTextDisabled themeMod
+  & L.toggleBtnOnStyle . L.bgColor ?~ btnMainBgDisabled themeMod
+  & L.toggleBtnOnStyle . L.border ?~ border 1 (btnMainBgDisabled themeMod)
+  & L.toggleBtnOffStyle . L.text . non def . L.fontColor ?~ btnTextDisabled themeMod
+  & L.toggleBtnOffStyle . L.bgColor ?~ btnBgDisabled themeMod
+  & L.toggleBtnOffStyle . L.border ?~ border 1 (btnBgDisabled themeMod)

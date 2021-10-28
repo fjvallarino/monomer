@@ -34,6 +34,7 @@ newStyle :: Style = def
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.OptionButton (
@@ -51,7 +52,7 @@ module Monomer.Widgets.Singles.OptionButton (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens (ALens', (&), (^.), (^?), (.~), (?~), _Just)
+import Control.Lens (ALens', Lens', (&), (^.), (^?), (.~), (?~), _Just)
 import Control.Monad
 import Data.Default
 import Data.Maybe
@@ -243,19 +244,22 @@ optionButtonD_
   -> WidgetNode s e
 optionButtonD_ caption option widgetData configs = optionButtonNode where
   config = mconcat configs
-  widget = makeOptionButton widgetData caption (== option) (const option) config
+  makeWithStyle = makeOptionButton L.optionBtnOnStyle L.optionBtnOffStyle
+  widget = makeWithStyle widgetData caption (== option) (const option) config
   optionButtonNode = defaultWidgetNode "optionButton" widget
     & L.info . L.focusable .~ True
 
 makeOptionButton
   :: Eq a
-  => WidgetData s a
+  => Lens' ThemeState StyleState
+  -> Lens' ThemeState StyleState
+  -> WidgetData s a
   -> Text
   -> (a -> Bool)
   -> (a -> a)
   -> OptionButtonCfg s e a
   -> Widget s e
-makeOptionButton !field !caption !isSelectedValue !getNextValue !config = widget where
+makeOptionButton styleOn styleOff !field !caption !isSelVal !getNextVal !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
     containerDrawDecorations = False,
@@ -268,15 +272,15 @@ makeOptionButton !field !caption !isSelectedValue !getNextValue !config = widget
 
   createChildNode wenv node = newNode where
     currValue = widgetDataGet (wenv ^. L.model) field
-    isSelected = isSelectedValue currValue
+    isSelected = isSelVal currValue
     useBaseTheme = _obcIgnoreTheme config /= Just True
 
-    baseNormalStyle
-      | useBaseTheme = Just (collectTheme wenv L.btnStyle)
+    baseOffStyle
+      | useBaseTheme = Just (collectTheme wenv styleOff)
       | otherwise = Nothing
 
-    baseSelectedStyle
-      | useBaseTheme = Just (collectTheme wenv L.btnMainStyle)
+    baseOnStyle
+      | useBaseTheme = Just (collectTheme wenv styleOn)
       | otherwise = Nothing
 
     nodeStyle = node ^. L.info . L.style
@@ -284,8 +288,8 @@ makeOptionButton !field !caption !isSelectedValue !getNextValue !config = widget
     customOffStyle = mergeBasicStyle <$> _obcOffStyle config
 
     labelNodeStyle
-      | isSelected = fromJust (baseSelectedStyle <> Just nodeStyle)
-      | otherwise = fromJust (baseNormalStyle <> Just colorlessStyle <> customOffStyle)
+      | isSelected = fromJust (baseOnStyle <> Just nodeStyle)
+      | otherwise = fromJust (baseOffStyle <> Just colorlessStyle <> customOffStyle)
 
     labelCfg = _obcLabelCfg config
     labelCurrStyle = labelCurrentStyle childOfFocusedStyle
@@ -323,7 +327,7 @@ makeOptionButton !field !caption !isSelectedValue !getNextValue !config = widget
       pointInVp p = isPointInNodeVp node p
 
       currValue = widgetDataGet (wenv ^. L.model) field
-      nextValue = getNextValue currValue
+      nextValue = getNextVal currValue
       setValueReq = widgetDataSet field nextValue
       reqs = setValueReq ++ fmap ($ nextValue) (_obcOnChangeReq config)
       result = resultReqs node reqs
