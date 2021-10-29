@@ -12,7 +12,7 @@ Its behavior is equivalent to 'Monomer.Widgets.Singles.Checkbox' and
 'Monomer.Widgets.Singles.LabeledCheckbox', with a different visual
 representation.
 
-See 'OptionButton' for detailed notes.
+See 'Monomer.Widgets.Singles.OptionButton' for detailed notes.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
