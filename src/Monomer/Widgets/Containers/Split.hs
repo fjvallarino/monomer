@@ -320,7 +320,9 @@ makeSplit isHorizontal config state = widget where
       & L.node . L.widget .~ makeSplit isHorizontal config newState
       & L.requests .~ Seq.fromList (requestPos ++ reqOnChange)
     newVps = Seq.fromList [rect1, rect2]
-    resized = (result, newVps)
+    resized
+      | node ^. L.info . L.visible = (result, newVps)
+      | otherwise = (resultNode node, newVps)
 
   getValidHandlePos maxDim vp handleXY children = addPoint origin newPoint where
     Rect rx ry _ _ = vp

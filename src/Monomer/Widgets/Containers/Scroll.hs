@@ -676,9 +676,11 @@ makeScroll config state = widget where
       _sstChildSize = Size areaW areaH,
       _sstScissor = scissor
     }
-    newNode = resultNode $ node
+    newNode = node
       & L.widget .~ makeScroll config newState
-    result = (newNode, Seq.singleton cViewport)
+    result
+      | node ^. L.info . L.visible = (resultNode newNode, Seq.singleton cViewport)
+      | otherwise = (resultNode node, Seq.singleton cViewport)
 
   renderAfter wenv node renderer = do
     when hScrollRequired $
