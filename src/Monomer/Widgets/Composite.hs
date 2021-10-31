@@ -528,8 +528,8 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   -- The same model is provided as old since nothing else is available, but
   -- mergeRequired may be using data from a closure
   modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
-  visibleChg = oldComp ^. L.info . L.visible /= newComp ^. L.info . L.visible
-  enabledChg = oldComp ^. L.info . L.enabled /= newComp ^. L.info . L.enabled
+  visibleChg = nodeVisibleChanged oldComp newComp
+  enabledChg = nodeEnabledChanged oldComp newComp
   flagsChanged = visibleChg || enabledChg
   themeChanged = wenv ^. L.themeChanged
   mergeRequired
