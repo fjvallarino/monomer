@@ -395,6 +395,7 @@ executable todo
 executable tutorial
   main-is: Main.hs
   other-modules:
+      IsolatedComposite
       Tutorial01_Basics
       Tutorial02_Styling
       Tutorial03_LifeCycle

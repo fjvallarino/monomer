@@ -23,6 +23,8 @@ import TextShow
 import qualified Data.Text as T
 import qualified Monomer.Lens as L
 
+import IsolatedComposite
+
 data CompModel = CompModel {
   _listA :: [Int],
   _listB :: [Int]
@@ -36,7 +38,8 @@ data CompEvent
 data AppModel = AppModel {
   _showDialog :: Bool,
   _parentModel :: CompModel,
-  _dialogModel :: CompModel
+  _dialogModel :: CompModel,
+  _counter :: Int
 } deriving (Eq, Show)
 
 data AppEvent
@@ -107,7 +110,10 @@ buildUI
   -> WidgetNode AppModel AppEvent
 buildUI wenv model = widgetTree where
   baseLayer = vstack [
-      compWidget parentModel,
+      hstack [
+        compWidget parentModel,
+        isolatedComposite `styleBasic` [paddingL 10]
+      ],
       spacer,
       hstack [
         button "Show Dialog" ShowDialog
@@ -162,5 +168,6 @@ main06 = do
     model = AppModel {
       _showDialog = False,
       _parentModel = compModel,
-      _dialogModel = compModel
+      _dialogModel = compModel,
+      _counter = 0
     }
