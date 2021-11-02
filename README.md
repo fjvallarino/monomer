@@ -77,6 +77,11 @@ PRs are welcome!
 If possible, keep them small and focused. If you are planning on making a large
 change, please submit an issue first so we can agree on a solution.
 
+## Questions?
+
+If you aren't sure how something works or you have a usage question, feel free
+to open an issue!
+
 ## License
 
 This library is licensed under the [BSD-3 license](LICENSE).
@@ -88,5 +93,5 @@ Fonts used in the examples:
 
 ## Acknowledgments
 
-- Thanks to [Ghislaine Guerin](https://github.com/ghislaineguerin) for UX advise.
+- Thanks to [Ghislaine Guerin](https://github.com/ghislaineguerin) for UX advice.
 - Thanks to [Mikko Mononen](https://github.com/memononen) for the amazing [nanovg](https://github.com/memononen/nanovg) library.
