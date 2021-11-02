@@ -88,5 +88,5 @@ Fonts used in the examples:
 
 ## Acknowledgments
 
-- Thanks to [Ghislaine Guerin](https://github.com/ghislaineguerin) for UX advise.
+- Thanks to [Ghislaine Guerin](https://github.com/ghislaineguerin) for UX advice.
 - Thanks to [Mikko Mononen](https://github.com/memononen) for the amazing [nanovg](https://github.com/memononen/nanovg) library.
