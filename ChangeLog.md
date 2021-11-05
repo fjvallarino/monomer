@@ -1,3 +1,9 @@
+## 1.2.0.1
+
+### Fixed
+
+- The `scroll` and `split` widgets now avoid unexpected behaviour when visibility is toggled.
+
 ## 1.2.0.0
 
 ### Added

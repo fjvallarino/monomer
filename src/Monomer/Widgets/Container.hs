@@ -317,11 +317,19 @@ type ContainerGetSizeReqHandler s e
   -> (SizeReq, SizeReq)    -- ^ The horizontal and vertical requirements.
 
 {-|
-Resizes the widget to the provided size. If the widget state does not depend
-on the viewport size, this function does not need to be overriden.
+Assigns space to children according to the Container's logic, returning a 'Seq'
+of 'Rect's in the same order of the child widgets. If the container has a single
+child it is not generally necessary to override this function. A new version of
+the Container may be returned if state needs to be updated.
 
 Examples can be found in "Monomer.Widgets.Containers.Grid" and
 "Monomer.Widgets.Containers.Stack".
+
+Note: if the Container's state depends on the current size, visibility should be
+considered; since invisible nodes receive zero space, it may affect calculations
+and cause unexpected behavior when the widget is made visible again. Examples
+can be found in "Monomer.Widgets.Containers.Scroll" and
+"Monomer.Widgets.Containers.Split".
 -}
 type ContainerResizeHandler s e
   = WidgetEnv s e                  -- ^ The widget environment.
