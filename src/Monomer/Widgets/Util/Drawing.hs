@@ -19,6 +19,7 @@ module Monomer.Widgets.Util.Drawing (
   drawInRotation,
   drawInAlpha,
   drawTextLine,
+  drawLine,
   drawRect,
   drawRectBorder,
   drawArc,
@@ -30,7 +31,7 @@ module Monomer.Widgets.Util.Drawing (
   drawStyledAction,
   drawStyledAction_,
   drawRoundedRect,
-  drawRectRoundedBorder
+  drawRoundedRectBorder
 ) where
 
 import Control.Applicative ((<|>))
@@ -201,7 +202,7 @@ drawRectBorder
 drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
-  drawRectRoundedBorder renderer rect border radius
+  drawRoundedRectBorder renderer rect border radius
 
 -- | Draws a filled arc, delimited by a rect and within the given angles.
 drawArc
@@ -451,8 +452,8 @@ drawRectCorner renderer cor ocorner ms1 ms2 = do
     (g1, g2) = cornerGradientPoints ocorner icorner
 
 -- | Draws the border of a rounded rect. Borders' widths may not match.
-drawRectRoundedBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
-drawRectRoundedBorder renderer rect border radius =
+drawRoundedRectBorder :: Renderer -> Rect -> Border -> Radius -> IO ()
+drawRoundedRectBorder renderer rect border radius =
   let
     Rect xl yt w h = rect
     Border borL borR borT borB = border
