@@ -54,5 +54,9 @@ with super.haskellPackages.extend (self: super:
         drv = libraries.monomer;
         name = "tutorial";
       };
+      opengl = mkApp rec {
+        drv = libraries.monomer;
+        name = "opengl";
+      };
     };
   }
