@@ -58,6 +58,9 @@ in rec {
             }) ++ (mkSystemPackages {
               library = "monomer";
               app = "tutorial";
+            }) ++ (mkSystemPackages {
+              library = "monomer";
+              app = "opengl";
             });
           };
           users = {
@@ -73,21 +76,21 @@ in rec {
               wheelNeedsPassword = false;
             };
           };
- 	  # Enable the X11 windowing system.
-	  services.xserver.enable = true;
- 
-	  # Enable the KDE Desktop Environment.
-	  services.xserver.displayManager.sddm.enable = true;
-	  services.xserver.desktopManager.plasma5.enable = true;
-	  services.xserver = {
-	    windowManager = {
-	      awesome = {
-	        enable = true;
-	        luaModules = [ luaPackages.luaposix ];
-	      };
-	    };
-	  };
-	  services.xserver.autorun = true;
+          # Enable the X11 windowing system.
+          services.xserver.enable = true;
+
+          # Enable the KDE Desktop Environment.
+          services.xserver = {
+            autorun = true;
+            displayManager.sddm.enable = true;
+            desktopManager.plasma5.enable = true;
+            windowManager = {
+              awesome = {
+                enable = true;
+                luaModules = [ luaPackages.luaposix ];
+              };
+            };
+          };
 
           virtualisation = {
             graphics = true;
