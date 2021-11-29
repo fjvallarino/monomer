@@ -33,30 +33,9 @@ with super.haskellPackages.extend (self: super:
           '';
         })) GLEW;
     };
-    executables = {
-      todo = mkApp rec {
+    executables = builtins.mapAttrs (name: _:
+      mkApp {
+        inherit name;
         drv = libraries.monomer;
-        name = "todo";
-      };
-      books = mkApp rec {
-        drv = libraries.monomer;
-        name = "books";
-      };
-      ticker = mkApp rec {
-        drv = libraries.monomer;
-        name = "ticker";
-      };
-      generative = mkApp rec {
-        drv = libraries.monomer;
-        name = "generative";
-      };
-      tutorial = mkApp rec {
-        drv = libraries.monomer;
-        name = "tutorial";
-      };
-      opengl = mkApp rec {
-        drv = libraries.monomer;
-        name = "opengl";
-      };
-    };
+      }) (builtins.readDir ../examples);
   }
