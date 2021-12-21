@@ -15,6 +15,7 @@ customizable, plus its styling.
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Monomer.Widgets.Containers.SelectList (
   -- * Configuration
@@ -38,7 +39,8 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
-import Data.Typeable (Typeable, cast)
+import Data.Typeable (Typeable, Proxy, cast, typeRep)
+import TextShow
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
@@ -235,21 +237,22 @@ selectListV_ value handler items makeRow configs = newNode where
 
 -- | Creates a dropdown providing a 'WidgetData' instance and config.
 selectListD_
-  :: (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
+  :: forall s e t a . (WidgetModel s, WidgetEvent e, Traversable t, SelectListItem a)
   => WidgetData s a         -- ^ The 'WidgetData' to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
   -> SelectListMakeRow s e a  -- ^ Function to create the list items.
   -> [SelectListCfg s e a]  -- ^ The config options.
   -> WidgetNode s e         -- ^ The created dropdown.
-selectListD_ widgetData items makeRow configs = makeNode widget where
+selectListD_ widgetData items makeRow configs = makeNode wtype widget where
   config = mconcat configs
   newItems = foldl' (|>) Empty items
   newState = SelectListState newItems (-1) 0
+  wtype = WidgetType ("selectList-" <> showt (typeRep (undefined :: Proxy a)))
   widget = makeSelectList widgetData newItems makeRow config newState
 
-makeNode :: Widget s e -> WidgetNode s e
-makeNode widget = scroll_ [scrollStyle L.selectListStyle] childNode where
-  childNode = defaultWidgetNode "selectList" widget
+makeNode :: WidgetType -> Widget s e -> WidgetNode s e
+makeNode wtype widget = scroll_ [scrollStyle L.selectListStyle] childNode where
+  childNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
 makeSelectList

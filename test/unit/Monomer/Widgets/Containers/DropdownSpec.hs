@@ -67,6 +67,7 @@ spec = describe "Dropdown" $ do
   handleEvent
   handleEventValue
   getSizeReq
+  testWidgetType
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -164,3 +165,13 @@ getSizeReq = describe "getSizeReq" $ do
     labelItem l = label_ (showt l) [resizeFactorW 0.01]
     ddNode = dropdown selectedItem testItems labelItem labelItem
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv ddNode
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "dropdown-TestItem"
+
+  where
+    labelItem l = label_ (showt l) []
+    node :: WidgetNode TestModel TestEvt
+    node = dropdown selectedItem testItems labelItem labelItem

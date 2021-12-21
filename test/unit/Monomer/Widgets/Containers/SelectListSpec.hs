@@ -13,7 +13,7 @@ Unit tests for SelectList widget.
 
 module Monomer.Widgets.Containers.SelectListSpec (spec) where
 
-import Control.Lens ((&), (^.), (.~), _1)
+import Control.Lens ((&), (^.), (^?!), (.~), _1, ix)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Functor ((<&>))
@@ -68,6 +68,7 @@ spec = describe "SelectList" $ do
   handleEvent
   handleEventValue
   getSizeReq
+  testWidgetType
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -143,3 +144,12 @@ getSizeReq = describe "getSizeReq" $ do
     wenv = mockWenvEvtUnit (TestModel testItem0)
     slNode = selectList selectedItem testItems (label . showt)
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv slNode
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^?! L.children . ix 0 . L.info . L.widgetType `shouldBe` "selectList-TestItem"
+
+  where
+    node :: WidgetNode TestModel TestEvt
+    node = selectList selectedItem testItems (label . showt)
