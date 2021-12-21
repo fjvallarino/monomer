@@ -79,7 +79,7 @@ change, please submit an issue first so we can agree on a solution.
 
 ## Questions?
 
-If you aren't sure how something works or you have a usage question, feel free
+If you are not sure how something works or you have a usage question, feel free
 to open an issue!
 
 ## License
