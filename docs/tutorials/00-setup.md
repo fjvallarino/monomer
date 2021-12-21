@@ -176,10 +176,11 @@ immediately.
 
 If you have a discrete GPU, and you'd rather have your application use the
 integrated GPU, you may want to copy `Info.plist` into the bin directory the
-build command shows. It will be something like:
+build command shows. It will be something like (replacing 8.10.7 with the
+corresponding GHC version):
 
 ```bash
-$HOME/.../monomer-starter/.stack-work/install/x86_64-osx/......../8.10.4/bin
+$HOME/.../monomer-starter/.stack-work/install/x86_64-osx/......../8.10.7/bin
 ```
 
 By doing this, macOS will default to using the integrated GPU instead of the
@@ -193,6 +194,12 @@ executable is located. The path is usually:
 
 ```bash
 $HOME/.local/bin
+```
+
+You will also need to add it to the directory where `ghc`/`ghci` are installed:
+
+```bash
+$HOME/.stack/programs/x86_64-osx/ghc-8.10.7/lib/ghc-8.10.7/bin/
 ```
 
 Reference: http://supermegaultragroovy.com/2016/12/10/auto-graphics-switching
