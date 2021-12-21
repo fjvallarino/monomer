@@ -10,6 +10,7 @@ Radio widget, used for interacting with a fixed set of values with an associated
 clickable label. Each instance of the radio will be associated with a single
 value.
 -}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Strict #-}
@@ -30,6 +31,8 @@ import Control.Lens (ALens', (&), (^.), (.~))
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (typeOf)
+import TextShow
 
 import qualified Data.Sequence as Seq
 
@@ -185,7 +188,7 @@ instance CmbOnChangeReq (LabeledRadioCfg s e a) s e a where
 
 -- | Creates a labeled radio using the given lens.
 labeledRadio
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => Text
   -> a
   -> ALens' s a
@@ -194,7 +197,7 @@ labeledRadio caption option field = labeledRadio_ caption option field def
 
 -- | Creates a labeled radio using the given lens. Accepts config.
 labeledRadio_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => Text
   -> a
   -> ALens' s a
@@ -205,7 +208,7 @@ labeledRadio_ caption option field config = newNode where
 
 -- | Creates a labeled radio using the given value and 'onChange' event handler.
 labeledRadioV
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => Text
   -> a
   -> a
@@ -219,7 +222,7 @@ Creates a labeled radio using the given value and 'onChange' event handler.
 Accepts config.
 -}
 labeledRadioV_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => Text
   -> a
   -> a
@@ -232,7 +235,7 @@ labeledRadioV_ caption option value handler config = newNode where
 
 -- | Creates a labeled radio providing a 'WidgetData' instance and config.
 labeledRadioD_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => Text
   -> a
   -> WidgetData s a
@@ -242,5 +245,6 @@ labeledRadioD_ caption option widgetData configs = newNode where
   config = mconcat configs
   labelSide = fromMaybe SideLeft (_lchTextSide config)
   labelCfg = _lchLabelCfg config
+  wtype = WidgetType ("labeledRadio-" <> showt (typeOf option))
   widget = radioD_ option widgetData [_lchRadioCfg config]
-  newNode = labeledItem "labeledRadio" labelSide caption labelCfg widget
+  newNode = labeledItem wtype labelSide caption labelCfg widget

@@ -42,6 +42,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Data.Text.Read (signed, rational)
 import Data.Typeable (Typeable, typeOf)
+import TextShow
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
@@ -347,7 +348,8 @@ numericFieldD_ widgetData configs = newNode where
     _ifcOnBlurReq = _nfcOnBlurReq config,
     _ifcOnChangeReq = _nfcOnChangeReq config
   }
-  newNode = inputField_ "numericField" inputConfig
+  wtype = WidgetType ("numericField-" <> showt (typeOf initialValue))
+  newNode = inputField_ wtype inputConfig
 
 handleWheel
   :: FormattableNumber a

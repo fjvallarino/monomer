@@ -37,8 +37,9 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (Typeable)
+import Data.Typeable (Typeable, typeOf)
 import GHC.Generics
+import TextShow
 
 import qualified Data.Sequence as Seq
 
@@ -212,8 +213,9 @@ dialD_
 dialD_ widgetData minVal maxVal configs = dialNode where
   config = mconcat configs
   state = DialState 0 0
+  wtype = WidgetType ("dial-" <> showt (typeOf minVal))
   widget = makeDial widgetData minVal maxVal config state
-  dialNode = defaultWidgetNode "dial" widget
+  dialNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
 makeDial

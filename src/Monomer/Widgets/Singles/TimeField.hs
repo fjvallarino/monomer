@@ -20,7 +20,6 @@ Handles mouse wheel and shift + vertical drag to increase/decrease minutes.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.TimeField (
@@ -46,6 +45,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Data.Time
 import Data.Typeable (Typeable, typeOf)
+import TextShow
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
@@ -372,7 +372,8 @@ timeFieldD_ widgetData configs = newNode where
     _ifcOnBlurReq = _tfcOnBlurReq config,
     _ifcOnChangeReq = _tfcOnChangeReq config
   }
-  newNode = inputField_ "timeField" inputConfig
+  wtype = WidgetType ("timeField-" <> showt (typeOf initialValue))
+  newNode = inputField_ wtype inputConfig
 
 handleWheel
   :: FormattableTime a
