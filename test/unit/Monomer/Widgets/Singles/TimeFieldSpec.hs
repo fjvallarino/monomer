@@ -74,6 +74,7 @@ spec = describe "TimeField" $ do
   handleEventMouseDragTime
   handleShiftFocus
   getSizeReqTime
+  testWidgetType
 
 handleEventTime :: Spec
 handleEventTime = describe "handleEventTime" $ do
@@ -291,3 +292,12 @@ getSizeReqTime = describe "getSizeReqTime" $ do
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (timeField timeValue)
     timeResize = timeField_ timeValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv timeResize
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "timeField-TimeOfDay"
+
+  where
+    node :: WidgetNode TimeModel TestEvt
+    node = timeField timeValue

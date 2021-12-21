@@ -74,6 +74,7 @@ spec = describe "DateField" $ do
   handleEventMouseDragDate
   handleShiftFocus
   getSizeReqDate
+  testWidgetType
 
 handleEventDate :: Spec
 handleEventDate = describe "handleEventDate" $ do
@@ -282,3 +283,12 @@ getSizeReqDate = describe "getSizeReqDate" $ do
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (dateField dateValue)
     dateResize = dateField_ dateValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv dateResize
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "dateField-Day"
+
+  where
+    node :: WidgetNode DateModel TestEvt
+    node = dateField dateValue
