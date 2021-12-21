@@ -26,6 +26,7 @@ module Monomer.Widgets.Util.Drawing (
   drawArcBorder,
   drawEllipse,
   drawEllipseBorder,
+  drawArrowUp,
   drawArrowDown,
   drawTimesX,
   drawStyledAction,
@@ -277,6 +278,27 @@ drawEllipseBorder renderer rect (Just color) width =
   where
     contentRect = subtractFromRect rect w w w w
     w = width / 2
+
+-- | Draws a triangular arrow pointing up, delimited by the given rect.
+drawArrowUp
+  :: Renderer      -- ^ The renderer.
+  -> Rect          -- ^ The rect delimiting the arrow.
+  -> Maybe Color   -- ^ The color. If Nothing, the arrow will not be drawn.
+  -> IO ()         -- ^ The resulting action.
+drawArrowUp renderer rect Nothing = return ()
+drawArrowUp renderer rect (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  renderLineTo renderer p1
+  fill renderer
+  where
+    Rect x y w h = rect
+    p1 = Point (x + w / 2) y
+    p2 = Point (x + w) (y + h)
+    p3 = Point x (y + h)
 
 -- | Draws a triangular arrow pointing down, delimited by the given rect.
 drawArrowDown
