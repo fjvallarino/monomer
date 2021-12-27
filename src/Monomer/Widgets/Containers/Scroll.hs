@@ -22,12 +22,12 @@ Messages:
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.Scroll (
   -- * Configuration
   ScrollCfg,
+  ScrollStatus(..),
   ScrollMessage(..),
   scrollOverlay,
   scrollOverlay_,
@@ -68,6 +68,23 @@ data ScrollType
   | ScrollBoth
   deriving (Eq, Show)
 
+data ScrollStatus = ScrollStatus {
+  scrollDeltaX :: Double,
+  scrollDeltaY :: Double,
+  scrollRect :: Rect,
+  scrollVpSize :: Size,
+  scrollChildSize :: Size
+} deriving (Eq, Show)
+
+instance Default ScrollStatus where
+  def = ScrollStatus {
+    scrollDeltaX = 0,
+    scrollDeltaY = 0,
+    scrollRect = def,
+    scrollVpSize = def,
+    scrollChildSize = def
+  }
+
 data ActiveBar
   = HBar
   | VBar
@@ -76,6 +93,12 @@ data ActiveBar
 {-|
 Configuration options for scroll:
 
+- 'scrollOverlay': whether scroll bar should be on top of content or by the
+  side.
+- 'scrollInvisible': shortcut for setting invisible style. Useful with scroll
+  overlay, since it allows scrolling without taking up space or hiding content.
+- 'scrollFollowFocus': whether to auto scroll when focusing a non visible item.
+- 'scrollStyle': the base style of the scroll bar.
 - 'wheelRate': rate at which wheel movement causes scrolling.
 - 'barColor': the color of the bar (container of the thumb).
 - 'barHoverColor': the color of the bar when mouse is on top.
@@ -84,12 +107,8 @@ Configuration options for scroll:
 - 'thumbHoverColor': the color of the thumb when mouse is on top.
 - 'thumbWidth': the width of the thumb.
 - 'thumbRadius': the radius of the corners of the thumb.
-- 'scrollOverlay': whether scroll bar should be on top of content or by the
-  side.
-- 'scrollInvisible': shortcut for setting invisible style. Useful with scroll
-  overlay, since it allows scrolling without taking up space or hiding content.
-- 'scrollFollowFocus': whether to auto scroll when focusing a non visible item.
-- 'scrollStyle': the base style of the scroll bar.
+- 'onChange': event to raise when the viewport changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the viewport changes.
 -}
 data ScrollCfg s e = ScrollCfg {
   _scScrollType :: Maybe ScrollType,
@@ -104,7 +123,8 @@ data ScrollCfg s e = ScrollCfg {
   _scStyle :: Maybe (ALens' ThemeState StyleState),
   _scBarWidth :: Maybe Double,
   _scThumbWidth :: Maybe Double,
-  _scThumbRadius :: Maybe Double
+  _scThumbRadius :: Maybe Double,
+  _scOnChangeReq :: [ScrollStatus -> WidgetRequest s e]
 }
 
 instance Default (ScrollCfg s e) where
@@ -121,7 +141,8 @@ instance Default (ScrollCfg s e) where
     _scStyle = Nothing,
     _scBarWidth = Nothing,
     _scThumbWidth = Nothing,
-    _scThumbRadius = Nothing
+    _scThumbRadius = Nothing,
+    _scOnChangeReq = []
   }
 
 instance Semigroup (ScrollCfg s e) where
@@ -138,7 +159,8 @@ instance Semigroup (ScrollCfg s e) where
     _scStyle = _scStyle t2 <|> _scStyle t1,
     _scBarWidth = _scBarWidth t2 <|> _scBarWidth t1,
     _scThumbWidth = _scThumbWidth t2 <|> _scThumbWidth t1,
-    _scThumbRadius = _scThumbRadius t2 <|> _scThumbRadius t1
+    _scThumbRadius = _scThumbRadius t2 <|> _scThumbRadius t1,
+    _scOnChangeReq = _scOnChangeReq t2 <|> _scOnChangeReq t1
   }
 
 instance Monoid (ScrollCfg s e) where
@@ -183,6 +205,16 @@ instance CmbThumbWidth (ScrollCfg s e) where
 instance CmbThumbRadius (ScrollCfg s e) where
   thumbRadius r = def {
     _scThumbRadius = Just r
+  }
+
+instance WidgetEvent e => CmbOnChange (ScrollCfg s e) ScrollStatus e where
+  onChange fn = def {
+    _scOnChangeReq = [RaiseEvent . fn]
+  }
+
+instance CmbOnChangeReq (ScrollCfg s e) s e ScrollStatus where
+  onChangeReq req = def {
+    _scOnChangeReq = [req]
   }
 
 -- | Scroll bars will be displayed on top of the content.
@@ -559,6 +591,7 @@ makeScroll config state = widget where
     rect = moveRect offset targetRect
     Rect rx ry rw rh = rect
     Rect cx cy _ _ = contentArea
+    childVp = Rect cx cy maxVpW maxVpH
 
     diffL = cx - rx
     diffR = cx + maxVpW - (rx + rw)
@@ -566,11 +599,11 @@ makeScroll config state = widget where
     diffB = cy + maxVpH - (ry + rh)
 
     stepX
-      | rectInRectH rect contentArea = dx
+      | rectInRectH rect childVp = dx
       | abs diffL <= abs diffR = diffL + dx
       | otherwise = diffR + dx
     stepY
-      | rectInRectV rect contentArea = dy
+      | rectInRectV rect childVp = dy
       | abs diffT <= abs diffB = diffT + dy
       | otherwise = diffB + dy
 
@@ -579,7 +612,7 @@ makeScroll config state = widget where
       _sstDeltaY = scrollAxisV stepY
     }
     result
-      | rectInRect rect contentArea = Nothing
+      | rectInRect rect childVp = Nothing
       | otherwise = Just $ rebuildWidget wenv node newState
 
   scrollReset wenv node = result where
@@ -613,9 +646,14 @@ makeScroll config state = widget where
     }
 
   rebuildWidget wenv node newState = result where
+    updateReqs
+      | childPosChanged state newState = scrollInfoReqs node config newState
+      | otherwise = []
+
     newNode = node
       & L.widget .~ makeScroll config newState
     result = resultNode newNode
+      & L.requests .~ Seq.fromList updateReqs
 
   getSizeReq :: ContainerGetSizeReqHandler s e
   getSizeReq wenv node children = sizeReq where
@@ -678,8 +716,15 @@ makeScroll config state = widget where
     }
     newNode = node
       & L.widget .~ makeScroll config newState
+
+    updateReqs
+      | childPosChanged state newState = scrollInfoReqs node config newState
+      | otherwise = []
+    visibleResult = resultNode newNode
+      & L.requests .~ Seq.fromList updateReqs
+
     result
-      | node ^. L.info . L.visible = (resultNode newNode, Seq.singleton cViewport)
+      | node ^. L.info . L.visible = (visibleResult, Seq.singleton cViewport)
       | otherwise = (resultNode node, Seq.singleton cViewport)
 
   renderAfter wenv node renderer = do
@@ -731,6 +776,27 @@ makeScroll config state = widget where
       thumbColorV
         | vMouseInThumb || draggingV = thumbHCol
         | otherwise = thumbBCol
+
+childPosChanged :: ScrollState -> ScrollState -> Bool
+childPosChanged state newState = _sstVpSize state /= _sstVpSize newState
+  || _sstChildSize state /= _sstChildSize newState
+  || _sstDeltaX state /= _sstDeltaX newState
+  || _sstDeltaY state /= _sstDeltaY newState
+
+scrollInfoReqs
+  :: WidgetNode s e
+  -> ScrollCfg s e
+  -> ScrollState
+  -> [WidgetRequest s e]
+scrollInfoReqs node config state = reqs where
+  info = ScrollStatus {
+    scrollDeltaX = _sstDeltaX state,
+    scrollDeltaY = _sstDeltaY state,
+    scrollRect = node ^. L.info . L.viewport,
+    scrollVpSize = _sstVpSize state,
+    scrollChildSize = _sstChildSize state
+  }
+  reqs = fmap ($ info) (_scOnChangeReq config)
 
 scrollCurrentStyle :: WidgetEnv s e -> WidgetNode s e -> StyleState
 scrollCurrentStyle wenv node
