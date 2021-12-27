@@ -58,6 +58,7 @@ spec = describe "OptionButton" $ do
   handleEvent
   handleEventValue
   getSizeReq
+  testWidgetType
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -114,3 +115,12 @@ getSizeReq = describe "getSizeReq" $ do
   where
     wenv = mockWenvEvtUnit (TestModel Apple)
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (optionButton "Apple" Apple fruit)
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "optionButton-Fruit"
+
+  where
+    node :: WidgetNode TestModel FruitEvt
+    node = optionButton "Test" Apple fruit

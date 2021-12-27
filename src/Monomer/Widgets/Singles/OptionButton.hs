@@ -31,6 +31,7 @@ newStyle :: Style = def
 @
 -}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -39,6 +40,7 @@ newStyle :: Style = def
 
 module Monomer.Widgets.Singles.OptionButton (
   -- * Configuration
+  OptionButtonValue,
   OptionButtonCfg,
   optionButtonOffStyle,
   -- * Constructors
@@ -57,6 +59,8 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable, typeOf)
+import TextShow
 
 import qualified Data.Sequence as Seq
 
@@ -64,6 +68,9 @@ import Monomer.Widgets.Container
 import Monomer.Widgets.Singles.Label
 
 import qualified Monomer.Lens as L
+
+-- | Constraints for numeric types accepted by the optionButton widget.
+type OptionButtonValue a = (Eq a, Typeable a)
 
 {-|
 Configuration options for optionButton:
@@ -192,7 +199,7 @@ optionButtonOffStyle style = def {
 
 -- | Creates an optionButton using the given lens.
 optionButton
-  :: Eq a
+  :: OptionButtonValue a
   => Text
   -> a
   -> ALens' s a
@@ -201,7 +208,7 @@ optionButton caption option field = optionButton_ caption option field def
 
 -- | Creates an optionButton using the given lens. Accepts config.
 optionButton_
-  :: Eq a
+  :: OptionButtonValue a
   => Text
   -> a
   -> ALens' s a
@@ -212,7 +219,7 @@ optionButton_ caption option field cfgs = newNode where
 
 -- | Creates an optionButton using the given value and 'onChange' event handler.
 optionButtonV
-  :: (Eq a, WidgetEvent e)
+  :: (OptionButtonValue a, WidgetEvent e)
   => Text
   -> a
   -> a
@@ -224,7 +231,7 @@ optionButtonV caption option value handler = newNode where
 -- | Creates an optionButton using the given value and 'onChange' event handler.
 --   Accepts config.
 optionButtonV_
-  :: (Eq a, WidgetEvent e)
+  :: (OptionButtonValue a, WidgetEvent e)
   => Text
   -> a
   -> a
@@ -238,7 +245,7 @@ optionButtonV_ caption option value handler configs = newNode where
 
 -- | Creates an optionButton providing a 'WidgetData' instance and config.
 optionButtonD_
-  :: Eq a
+  :: OptionButtonValue a
   => Text
   -> a
   -> WidgetData s a
@@ -247,12 +254,13 @@ optionButtonD_
 optionButtonD_ caption option widgetData configs = optionButtonNode where
   config = mconcat configs
   makeWithStyle = makeOptionButton L.optionBtnOnStyle L.optionBtnOffStyle
+  wtype = WidgetType ("optionButton-" <> showt (typeOf option))
   widget = makeWithStyle widgetData caption (== option) (const option) config
-  optionButtonNode = defaultWidgetNode "optionButton" widget
+  optionButtonNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
 makeOptionButton
-  :: Eq a
+  :: OptionButtonValue a
   => Lens' ThemeState StyleState
   -> Lens' ThemeState StyleState
   -> WidgetData s a

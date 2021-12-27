@@ -12,6 +12,7 @@ Unit tests for Dial widget.
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Monomer.Widgets.Singles.DialSpec (spec) where
 
@@ -56,6 +57,7 @@ spec = describe "Dial" $ do
   handleWheelVal
   handleShiftFocus
   getSizeReq
+  testWidgetType
 
 handleKeyboard :: Spec
 handleKeyboard = describe "handleKeyboard" $ do
@@ -235,3 +237,12 @@ getSizeReq = describe "getSizeReq" $ do
     wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (dial dialVal 0 100)
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "dial-Double"
+
+  where
+    node :: WidgetNode TestModel TestEvt
+    node = dial dialVal 0 100

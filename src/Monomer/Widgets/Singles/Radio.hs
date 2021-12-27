@@ -16,12 +16,14 @@ functionality out of the box.
 the look of a regular button.
 -}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Singles.Radio (
   -- * Configuration
+  RadioValue,
   RadioCfg,
   -- * Constructors
   radio,
@@ -37,10 +39,15 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
+import Data.Typeable (Typeable, typeOf)
+import TextShow
 
 import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
+
+-- | Constraints for numeric types accepted by the radio widget.
+type RadioValue a = (Eq a, Typeable a)
 
 {-|
 Configuration options for radio:
@@ -115,12 +122,12 @@ instance CmbOnChangeReq (RadioCfg s e a) s e a where
   }
 
 -- | Creates a radio using the given lens.
-radio :: (Eq a, WidgetEvent e) => a -> ALens' s a -> WidgetNode s e
+radio :: (RadioValue a, WidgetEvent e) => a -> ALens' s a -> WidgetNode s e
 radio option field = radio_ option field def
 
 -- | Creates a radio using the given lens. Accepts config.
 radio_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => a
   -> ALens' s a
   -> [RadioCfg s e a]
@@ -128,13 +135,18 @@ radio_
 radio_ option field configs = radioD_ option (WidgetLens field) configs
 
 -- | Creates a radio using the given value and 'onChange' event handler.
-radioV :: (Eq a, WidgetEvent e) => a -> a -> (a -> e) -> WidgetNode s e
+radioV
+  :: (RadioValue a, WidgetEvent e)
+  => a
+  -> a
+  -> (a -> e)
+  -> WidgetNode s e
 radioV option value handler = radioV_ option value handler def
 
 -- | Creates a radio using the given value and 'onChange' event handler.
 --   Accepts config.
 radioV_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => a
   -> a
   -> (a -> e)
@@ -147,18 +159,24 @@ radioV_ option value handler configs = newNode where
 
 -- | Creates a radio providing a 'WidgetData' instance and config.
 radioD_
-  :: (Eq a, WidgetEvent e)
+  :: (RadioValue a, WidgetEvent e)
   => a
   -> WidgetData s a
   -> [RadioCfg s e a]
   -> WidgetNode s e
 radioD_ option widgetData configs = radioNode where
   config = mconcat configs
+  wtype = WidgetType ("radio-" <> showt (typeOf option))
   widget = makeRadio widgetData option config
-  radioNode = defaultWidgetNode "radio" widget
+  radioNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
-makeRadio :: (Eq a, WidgetEvent e) => WidgetData s a -> a -> RadioCfg s e a -> Widget s e
+makeRadio
+  :: (RadioValue a, WidgetEvent e)
+  => WidgetData s a
+  -> a
+  -> RadioCfg s e a
+  -> Widget s e
 makeRadio !field !option !config = widget where
   widget = createSingle () def {
     singleGetBaseStyle = getBaseStyle,

@@ -20,7 +20,6 @@ Handles mouse wheel and shift + vertical drag to increase/decrease days.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Monomer.Widgets.Singles.DateField (
@@ -49,6 +48,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Data.Time
 import Data.Typeable (Typeable, typeOf)
+import TextShow
 
 import qualified Data.Attoparsec.Text as A
 import qualified Data.Text as T
@@ -395,7 +395,8 @@ dateFieldD_ widgetData configs = newNode where
     _ifcOnBlurReq = _dfcOnBlurReq config,
     _ifcOnChangeReq = _dfcOnChangeReq config
   }
-  newNode = inputField_ "dateField" inputConfig
+  wtype = WidgetType ("dateField-" <> showt (typeOf initialValue))
+  newNode = inputField_ wtype inputConfig
 
 handleWheel
   :: FormattableDate a

@@ -43,8 +43,9 @@ import Control.Monad
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
-import Data.Typeable (Typeable)
+import Data.Typeable (Typeable, typeOf)
 import GHC.Generics
+import TextShow
 
 import qualified Data.Sequence as Seq
 
@@ -53,7 +54,7 @@ import Monomer.Widgets.Single
 
 import qualified Monomer.Lens as L
 
--- | Constraints for numeric types accepted by slider.
+-- | Constraints for numeric types accepted by the slider widget.
 type SliderValue a = (Eq a, Show a, Real a, FromFractional a, Typeable a)
 
 {-|
@@ -306,8 +307,9 @@ sliderD_
 sliderD_ isHz widgetData minVal maxVal configs = sliderNode where
   config = mconcat configs
   state = SliderState 0 0
+  wtype = WidgetType ("slider-" <> showt (typeOf minVal))
   widget = makeSlider isHz widgetData minVal maxVal config state
-  sliderNode = defaultWidgetNode "slider" widget
+  sliderNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
 makeSlider

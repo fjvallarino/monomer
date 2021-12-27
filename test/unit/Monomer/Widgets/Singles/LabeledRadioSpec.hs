@@ -56,6 +56,7 @@ spec = describe "Labeled Radio" $ do
   handleEvent
   handleEventValue
   getSizeReq
+  testWidgetType
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
@@ -127,3 +128,12 @@ getSizeReq = describe "getSizeReq" $ do
     wenv = mockWenvEvtUnit (TestModel Apple)
       & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (labeledRadio "Test" Apple fruit)
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "labeledRadio-Fruit"
+
+  where
+    node :: WidgetNode TestModel FruitEvt
+    node = labeledRadio "Test" Apple fruit

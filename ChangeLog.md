@@ -1,3 +1,16 @@
+## 1.3.0.0 (in development)
+
+### Fixed
+
+- Widgets that receive polymorphic types now append the handled type to their `WidgetType`. This
+  is done to avoid issues if the handled type is later changed (https://github.com/fjvallarino/monomer/issues/46).
+
+### Added
+
+- Export `drawArrowUp` from `Drawing` module.
+
+### Changed
+
 ## 1.2.0.1
 
 ### Fixed

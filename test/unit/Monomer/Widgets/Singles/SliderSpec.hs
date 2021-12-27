@@ -62,6 +62,7 @@ spec = describe "Slider" $ do
   getSizeReqH
   getSizeReqV
   getSizeReqThumb
+  testWidgetType
 
 handleKeyboardH :: Spec
 handleKeyboardH = describe "handleKeyboardH" $ do
@@ -405,3 +406,12 @@ getSizeReqThumb = describe "getSizeReqThumb" $ do
     wenv = mockWenvEvtUnit (TestModel 0)
       & L.theme .~ darkTheme
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (vslider_ sliderVal 0 100 [thumbVisible])
+
+testWidgetType :: Spec
+testWidgetType = describe "testWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "slider-Double"
+
+  where
+    node :: WidgetNode TestModel TestEvt
+    node = hslider sliderVal 0 100

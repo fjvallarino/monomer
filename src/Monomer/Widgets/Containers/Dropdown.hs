@@ -18,6 +18,7 @@ to use.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
 
 module Monomer.Widgets.Containers.Dropdown (
@@ -40,8 +41,9 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Sequence (Seq(..), (<|), (|>))
 import Data.Text (Text)
-import Data.Typeable (cast)
+import Data.Typeable (Typeable, Proxy, cast, typeRep)
 import GHC.Generics
+import TextShow
 
 import qualified Data.Sequence as Seq
 
@@ -223,22 +225,21 @@ dropdownV_ value handler items makeMain makeRow configs = newNode where
 
 -- | Creates a dropdown providing a WidgetData instance and config.
 dropdownD_
-  :: (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
+  :: forall s e t a . (WidgetModel s, WidgetEvent e, Traversable t, DropdownItem a)
   => WidgetData s a         -- ^ The 'WidgetData' to retrieve the value from.
   -> t a                    -- ^ The list of selectable items.
   -> (a -> WidgetNode s e)  -- ^ Function to create the header (always visible).
   -> (a -> WidgetNode s e)  -- ^ Function to create the list (collapsable).
   -> [DropdownCfg s e a]    -- ^ The config options.
   -> WidgetNode s e         -- ^ The created dropdown.
-dropdownD_ widgetData items makeMain makeRow configs = makeNode widget where
+dropdownD_ widgetData items makeMain makeRow configs = newNode where
   config = mconcat configs
   newState = DropdownState False def
   newItems = foldl' (|>) Empty items
+  wtype = WidgetType ("dropdown-" <> showt (typeRep (undefined :: Proxy a)))
   widget = makeDropdown widgetData newItems makeMain makeRow config newState
-
-makeNode :: Widget s e -> WidgetNode s e
-makeNode widget = defaultWidgetNode "dropdown" widget
-  & L.info . L.focusable .~ True
+  newNode = defaultWidgetNode wtype widget
+    & L.info . L.focusable .~ True
 
 makeDropdown
   :: (WidgetModel s, WidgetEvent e, DropdownItem a)

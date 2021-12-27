@@ -66,6 +66,7 @@ specIntegral = describe "IntegralField" $ do
   handleEventValueIntegral
   handleEventMouseDragIntegral
   getSizeReqIntegral
+  testIntegralWidgetType
 
 handleEventIntegral :: Spec
 handleEventIntegral = describe "handleEventIntegral" $ do
@@ -259,6 +260,15 @@ getSizeReqIntegral = describe "getSizeReqIntegral" $ do
     numericResize = numericField_ integralValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv numericResize
 
+testIntegralWidgetType :: Spec
+testIntegralWidgetType = describe "testIntegralWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "numericField-Int"
+
+  where
+    node :: WidgetNode IntegralModel TestEvt
+    node = numericField integralValue
+
 -- ------------------------------
 -- Fractional field
 -- ------------------------------
@@ -269,6 +279,7 @@ specFractional = describe "FractionalField" $ do
   handleEventMouseDragFractional
   handleShiftFocusFractional
   getSizeReqFractional
+  testFractionalWidgetType
 
 handleEventFractional :: Spec
 handleEventFractional = describe "handleEventFractional" $ do
@@ -484,3 +495,12 @@ getSizeReqFractional = describe "getSizeReqFractional" $ do
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv (numericField fractionalValue)
     numericResize = numericField_ fractionalValue [resizeOnChange]
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv numericResize
+
+testFractionalWidgetType :: Spec
+testFractionalWidgetType = describe "testFractionalWidgetType" $ do
+  it "should set the correct widgetType" $
+    node ^. L.info . L.widgetType `shouldBe` "numericField-Maybe Double"
+
+  where
+    node :: WidgetNode FractionalModel TestEvt
+    node = numericField fractionalValue
