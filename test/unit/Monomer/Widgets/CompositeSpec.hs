@@ -140,17 +140,20 @@ spec = describe "Composite" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventBasic
+  handleEventNewRoot
   handleEventChild
   handleEventResize
   handleEventLocalKey
 
 handleEventBasic :: Spec
 handleEventBasic = describe "handleEventBasic" $ do
-  it "should not generate an event if clicked outside" $
+  it "should not generate an event if clicked outside" $ do
     model [evtClick (Point 3000 3000)] ^. clicks `shouldBe` 0
+    reqs [evtClick (Point 3000 3000)] `shouldBe` Seq.Empty
 
-  it "should generate a user provided event when clicked" $
+  it "should generate a user provided event when clicked" $ do
     model [evtClick (Point 10 10)] ^. clicks `shouldBe` 1
+    reqs [evtClick (Point 10 10)] `shouldSatisfy` (== 3) . length
 
   where
     wenv = mockWenv def
@@ -166,6 +169,31 @@ handleEventBasic = describe "handleEventBasic" $ do
     buildUI wenv model = button "Click" MainBtnClicked
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
+    reqs es = nodeHandleEventReqs wenv es cmpNode
+
+handleEventNewRoot :: Spec
+handleEventNewRoot = describe "handleEventNewRoot" $ do
+  it "should generate a resize request when the widgetType of the root widget changes" $ do
+    reqs [evtClick (Point 10 10)] `shouldSatisfy` (== 4) . length
+    reqs [evtClick (Point 10 10)] `shouldSatisfy` (== 1) . length . Seq.filter isResizeWidgets
+
+  where
+    wenv = mockWenv def
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
+    handleEvent wenv node model evt = case evt of
+      MainBtnClicked -> [Model (model & clicks %~ (+1))]
+      _ -> []
+    buildUI wenv model
+      | even (model ^. clicks) = button "Click" MainBtnClicked
+      | otherwise = label "Test"
+    cmpNode = composite "main" id buildUI handleEvent
+    model es = nodeHandleEventModel wenv es cmpNode
+    reqs es = nodeHandleEventReqs wenv es cmpNode
 
 handleEventChild :: Spec
 handleEventChild = describe "handleEventChild" $ do

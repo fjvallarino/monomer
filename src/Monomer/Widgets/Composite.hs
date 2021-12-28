@@ -914,10 +914,14 @@ mergeChild
 mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   CompositeState{..} = state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap newModel
+  widgetId = _cpsRoot ^. L.info . L.widgetId
   builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
-      & L.info . L.widgetId .~ _cpsRoot ^. L.info . L.widgetId
+      & L.info . L.widgetId .~ widgetId
   builtWidget = builtRoot ^. L.widget
-  mergedResult = widgetMerge builtWidget cwenv builtRoot widgetRoot
+  initRequired = not (nodeMatches widgetRoot builtRoot)
+  mergedResult
+    | initRequired = widgetInit builtWidget cwenv builtRoot
+    | otherwise = widgetMerge builtWidget cwenv builtRoot widgetRoot
   !mergedState = state {
     _cpsModel = Just newModel,
     _cpsRoot = mergedResult ^. L.node,
@@ -926,6 +930,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
   !result = toParentResult comp mergedState wenv widgetComp mergedResult
   !newReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ fmap ($ newModel) (_cmpOnChangeReq comp)
+    ++ [ResizeWidgets widgetId | initRequired]
   !newResult = result
     & L.requests <>~ Seq.fromList newReqs
 

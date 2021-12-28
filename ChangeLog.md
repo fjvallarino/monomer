@@ -4,6 +4,8 @@
 
 - Widgets that receive polymorphic types now append the handled type to their `WidgetType`. This
   is done to avoid issues if the handled type is later changed (https://github.com/fjvallarino/monomer/issues/46).
+- If the `WidgetType` of the root item in a `Composite` changes during `merge`, initialize the new widget instead
+  of merging with the old one (https://github.com/fjvallarino/monomer/issues/50).
 
 ### Added
 
