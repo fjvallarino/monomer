@@ -506,8 +506,7 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       Rect x y w h = contentArea
       size = style ^. L.text . non def . L.fontSize . non def
       arrowW = unFontSize size / 2
-      dh = (h - arrowW) / 2
-      arrowRect = Rect (x + w - dh * 2) (y + dh * 1.25) arrowW (arrowW / 2)
+      arrowRect = Rect (x + w - arrowW) (y + h / 2 - arrowW / 3) arrowW (arrowW / 2)
 
   renderOverlay renderer wenv overlayNode = renderAction where
     widget = overlayNode ^. L.widget
