@@ -265,6 +265,10 @@ class CmbFitWidth t where
 class CmbFitHeight t where
   fitHeight :: t
 
+-- | Either fitWidth or fitHeight such that image does not overflow viewport
+class CmbFitEither t where
+  fitEither :: t
+
 -- | Applies nearest filtering when stretching an image.
 class CmbImageNearest t where
   imageNearest :: t

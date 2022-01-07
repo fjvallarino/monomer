@@ -69,6 +69,7 @@ data ImageFit
   | FitFill
   | FitWidth
   | FitHeight
+  | FitEither
   deriving (Eq, Show)
 
 -- | Posible errors when loading an image.
@@ -172,6 +173,11 @@ instance CmbFitWidth (ImageCfg e) where
 instance CmbFitHeight (ImageCfg e) where
   fitHeight = def {
     _imcFit = Just FitHeight
+  }
+
+instance CmbFitEither (ImageCfg e) where
+  fitEither  = def {
+    _imcFit = Just FitEither
   }
 
 instance CmbTransparency (ImageCfg e) where
@@ -423,16 +429,22 @@ fitImage :: Rect -> Size -> [ImageFlag] -> ImageFit -> AlignH -> AlignV -> Rect
 fitImage viewport imageSize imgFlags imgFit alignH alignV = case imgFit of
   FitNone -> alignImg iw ih
   FitFill -> alignImg w h
-  FitWidth
-    | ImageRepeatY `elem` imgFlags -> alignImg w ih
-    | otherwise -> alignImg w (w * ih / iw)
-  FitHeight
-    | ImageRepeatX `elem` imgFlags -> alignImg iw h
-    | otherwise -> alignImg (h * iw / ih) h
+  FitWidth -> fitWidth
+  FitHeight -> fitHeight
+  FitEither
+    | w * ih > h * iw -> fitHeight
+    | otherwise -> fitWidth
   where
     Rect x y w h = viewport
     Size iw ih = imageSize
     alignImg nw nh = alignInRect viewport (Rect x y nw nh) alignH alignV
+    fitWidth
+      | ImageRepeatY `elem` imgFlags = alignImg w ih
+      | otherwise = alignImg w (w * ih / iw)
+    fitHeight
+      | ImageRepeatX `elem` imgFlags = alignImg iw h
+      | otherwise = alignImg (h * iw / ih) h
+
 
 handleImageLoad :: ImageCfg e -> WidgetEnv s e -> Text -> IO ImageMessage
 handleImageLoad config wenv path = do
