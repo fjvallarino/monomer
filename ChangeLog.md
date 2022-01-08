@@ -6,10 +6,13 @@
   is done to avoid issues if the handled type is later changed (https://github.com/fjvallarino/monomer/issues/46).
 - If the `WidgetType` of the root item in a `Composite` changes during `merge`, initialize the new widget instead
   of merging with the old one (https://github.com/fjvallarino/monomer/issues/50).
+- The arrow position in `dropdown` is now correct when a dropdown is taller than one line (thanks @Dretch!).
 
 ### Added
 
 - Export `drawArrowUp` from `Drawing` module.
+- The `image` widget now supports a `fitEither` option (thanks @Kyarigwo!).
+- The `scroll` widget now raises `onChange` events, providing the current `ScrollStatus`.
 
 ### Changed
 

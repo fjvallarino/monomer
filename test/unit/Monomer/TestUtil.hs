@@ -40,6 +40,7 @@ import qualified Monomer.Lens as L
 
 data InitWidget
   = WInit
+  | WInitKeepFirst
   | WNoInit
   deriving (Eq, Show)
 
@@ -217,7 +218,17 @@ nodeHandleEventCtx
   -> WidgetNode s e
   -> MonomerCtx s e
 nodeHandleEventCtx wenv evts node = ctx where
-  ctx = snd $ nodeHandleEvents wenv WInit evts node
+  ctx = nodeHandleEventCtx_ wenv WInit evts node
+
+nodeHandleEventCtx_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> MonomerCtx s e
+nodeHandleEventCtx_ wenv init evts node = ctx where
+  ctx = snd $ nodeHandleEvents wenv init evts node
 
 nodeHandleEventModel
   :: (Eq s)
@@ -225,8 +236,18 @@ nodeHandleEventModel
   -> [SystemEvent]
   -> WidgetNode s e
   -> s
-nodeHandleEventModel wenv evts node = _weModel wenv2 where
-  (wenv2, _, _) = fst $ nodeHandleEvents wenv WInit evts node
+nodeHandleEventModel wenv evts node = model where
+  model = nodeHandleEventModel_ wenv WInit evts node
+
+nodeHandleEventModel_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> s
+nodeHandleEventModel_ wenv init evts node = _weModel wenv2 where
+  (wenv2, _, _) = fst $ nodeHandleEvents wenv init evts node
 
 nodeHandleEventRoot
   :: (Eq s)
@@ -235,7 +256,17 @@ nodeHandleEventRoot
   -> WidgetNode s e
   -> WidgetNode s e
 nodeHandleEventRoot wenv evts node = newRoot where
-  (_, newRoot, _) = fst $ nodeHandleEvents wenv WInit evts node
+  newRoot = nodeHandleEventRoot_ wenv WInit evts node
+
+nodeHandleEventRoot_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> WidgetNode s e
+nodeHandleEventRoot_ wenv init evts node = newRoot where
+  (_, newRoot, _) = fst $ nodeHandleEvents wenv init evts node
 
 nodeHandleEventReqs
   :: (Eq s)
@@ -244,7 +275,17 @@ nodeHandleEventReqs
   -> WidgetNode s e
   -> Seq (WidgetRequest s e)
 nodeHandleEventReqs wenv evts node = reqs where
-  (_, _, reqs) = fst $ nodeHandleEvents wenv WInit evts node
+  reqs = nodeHandleEventReqs_ wenv WInit evts node
+
+nodeHandleEventReqs_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> Seq (WidgetRequest s e)
+nodeHandleEventReqs_ wenv init evts node = reqs where
+  (_, _, reqs) = fst $ nodeHandleEvents wenv init evts node
 
 nodeHandleEventEvts
   :: (Eq s)
@@ -252,8 +293,18 @@ nodeHandleEventEvts
   -> [SystemEvent]
   -> WidgetNode s e
   -> Seq e
-nodeHandleEventEvts wenv evts node = eventsFromReqs reqs where
-  (_, _, reqs) = fst $ nodeHandleEvents wenv WInit evts node
+nodeHandleEventEvts wenv evts node = newEvts where
+  newEvts = nodeHandleEventEvts_ wenv WInit evts node
+
+nodeHandleEventEvts_
+  :: (Eq s)
+  => WidgetEnv s e
+  -> InitWidget
+  -> [SystemEvent]
+  -> WidgetNode s e
+  -> Seq e
+nodeHandleEventEvts_ wenv init evts node = eventsFromReqs reqs where
+  (_, _, reqs) = fst $ nodeHandleEvents wenv init evts node
 
 nodeHandleEvents
   :: (Eq s)
@@ -263,9 +314,10 @@ nodeHandleEvents
   -> WidgetNode s e
   -> (HandlerStep s e, MonomerCtx s e)
 nodeHandleEvents wenv init evts node = result where
-  steps
-    | init == WInit = tail $ nodeHandleEvents_ wenv init [evts] node
-    | otherwise = nodeHandleEvents_ wenv init [evts] node
+  steps = case init of
+    WInit -> tail $ nodeHandleEvents_ wenv init [evts] node
+    WInitKeepFirst -> nodeHandleEvents_ wenv WInit [evts] node
+    _ -> nodeHandleEvents_ wenv init [evts] node
   result = foldl1 stepper steps
   stepper step1 step2 = result where
     ((_, _, reqs1), _) = step1

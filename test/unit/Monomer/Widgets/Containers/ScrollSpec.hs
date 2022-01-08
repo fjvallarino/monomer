@@ -13,6 +13,7 @@ module Monomer.Widgets.Containers.ScrollSpec (spec) where
 import Control.Lens ((&), (^.), (^?), (^?!), (.~), _Just, ix)
 import Data.Default
 import Data.Text (Text)
+import Data.Sequence (Seq(..))
 import Test.Hspec
 
 import qualified Data.Sequence as Seq
@@ -38,6 +39,7 @@ data ButtonEvt
   | Button2
   | Button3
   | Button4
+  | OnScrollChange ScrollStatus
   deriving (Eq, Show)
 
 spec :: Spec
@@ -52,6 +54,7 @@ handleEvent = describe "handleEvent" $ do
   handleChildrenFocus
   handleNestedWheel
   handleMessageReset
+  raiseOnChange
 
 handleBarClick :: Spec
 handleBarClick = describe "handleBarClick" $ do
@@ -180,6 +183,63 @@ handleMessageReset = describe "handleMessageReset" $ do
       ]) `nodeKey` "mainScroll"
     cmpNode = composite "main" id buildUI handleEvent
     events es = nodeHandleEventEvts wenv es cmpNode
+
+raiseOnChange :: Spec
+raiseOnChange = describe "raiseOnChange" $ do
+  it "should raise the event on init" $ do
+    let evts es = nodeHandleEventEvts_ wenv WInitKeepFirst es scrollNode
+    let (OnScrollChange status) :<| Empty = evts []
+
+    scrollDeltaX status `shouldBe` 0
+    scrollDeltaY status `shouldBe` 0
+    validateStatus status
+
+  it "should raise the event when horizontal bar is clicked" $ do
+    let (OnScrollChange status) :<| Empty = evts [evtPress midHBar]
+
+    scrollDeltaX status `shouldBe` -648
+    scrollDeltaY status `shouldBe` 0
+    validateStatus status
+
+  it "should raise the event when vertical bar is clicked" $ do
+    let (OnScrollChange status) :<| Empty = evts [evtPress midVBar]
+
+    scrollDeltaX status `shouldBe` 0
+    scrollDeltaY status `shouldBe` -488
+    validateStatus status
+
+  it "should raise the event when wheel is scrolled" $ do
+    let evtWheel = WheelScroll (Point 320 240) (Point 0 (-20)) WheelNormal
+    let (OnScrollChange status) :<| Empty = evts [evtWheel]
+
+    scrollDeltaX status `shouldBe` 0
+    scrollDeltaY status `shouldBe` -200
+    validateStatus status
+
+  where
+    validateStatus status = do
+      scrollRect status `shouldBe` Rect 0 0 640 480
+      scrollVpSize status `shouldBe` Size 632 472
+      scrollChildSize status `shouldBe` Size 1280 960
+
+    wenv = mockWenv ()
+      & L.theme .~ darkTheme
+      & L.windowSize .~ Size 640 480
+    midHBar = Point 630 476
+    midVBar = Point 636 470
+    st = [width 640, height 480]
+    stackNode = vstack [
+        hstack [
+          button "Button 1" Button1 `styleBasic` st,
+          button "Button 2" Button2 `styleBasic` st
+        ],
+        hstack [
+          button "Button 3" Button3 `styleBasic` st,
+          button "Button 4" Button4 `styleBasic` st
+        ]
+      ]
+    scrollNode = scroll_ [onChange OnScrollChange] stackNode
+    evts es = nodeHandleEventEvts wenv es scrollNode
 
 forwardStyle :: Spec
 forwardStyle = describe "forwardStyle" $ do
