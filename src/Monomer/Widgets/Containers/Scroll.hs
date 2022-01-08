@@ -716,9 +716,11 @@ makeScroll config state = widget where
     }
     newNode = node
       & L.widget .~ makeScroll config newState
+      -- For scrollInfoReqs only, since parent will set viewport later
+      & L.info . L.viewport .~ viewport
 
     updateReqs
-      | childPosChanged state newState = scrollInfoReqs node config newState
+      | childPosChanged state newState = scrollInfoReqs newNode config newState
       | otherwise = []
     visibleResult = resultNode newNode
       & L.requests .~ Seq.fromList updateReqs
