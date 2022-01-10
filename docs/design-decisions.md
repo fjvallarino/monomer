@@ -155,6 +155,12 @@ possible with the standard `Lens` type. The lens library provides `ALens`, which
 allows for that use case. I don't think microlens has something similar, plus
 I'm currently using more things from lens.
 
+## Why Lens and not Optics?
+
+I started this project in one form or another in mid-2018, while the Optics
+library was released in September 2019. I have not had a strong reason for
+replacing Lens with Optics, and a migration would take a lot of effort.
+
 ## Why nanovg? The project's repository says it's not actively maintained.
 
 [NanoVG](https://github.com/memononen/nanovg) is an easy to use vector graphics
