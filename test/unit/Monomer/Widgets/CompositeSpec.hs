@@ -20,6 +20,7 @@ import Control.Lens (
   (&), (^.), (^?), (^..), (.~), (%~), _Just, ix, folded, traverse, dropping)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
+import Data.Foldable (toList)
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable (Typeable, cast)
@@ -52,6 +53,7 @@ data MainEvt
   = MainBtnClicked
   | ChildClicked
   | MainResize Rect
+  | OnChange MainModel
   deriving (Eq, Show)
 
 data ChildEvt
@@ -140,6 +142,7 @@ spec = describe "Composite" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventBasic
+  handleEventOnChange
   handleEventNewRoot
   handleEventChild
   handleEventResize
@@ -170,6 +173,36 @@ handleEventBasic = describe "handleEventBasic" $ do
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
     reqs es = nodeHandleEventReqs wenv es cmpNode
+
+handleEventOnChange :: Spec
+handleEventOnChange = describe "handleEventOnChange" $ do
+  it "should not generate an event if model did not change" $ do
+    evts [evtClick (Point 10 10)] `shouldBe` Seq.empty
+
+  it "should generate an event if model changed" $ do
+    let items = toList $ evts [evtClick (Point 10 30)]
+
+    [i | i@OnChange{} <- items] `shouldSatisfy` not . null
+
+  where
+    wenv = mockWenv def
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
+    handleEvent wenv node model evt = case evt of
+      MainBtnClicked -> [Model (model & clicks %~ (+1))]
+      ChildClicked -> [Model model]
+      OnChange{} -> [Report evt]
+      _ -> []
+    buildUI wenv model = vstack [
+        button "Click secondary" ChildClicked,
+        button "Click main" MainBtnClicked
+      ]
+    cmpNode = composite_ "main" id buildUI handleEvent [onChange OnChange]
+    evts es = nodeHandleEventEvts wenv es cmpNode
 
 handleEventNewRoot :: Spec
 handleEventNewRoot = describe "handleEventNewRoot" $ do
