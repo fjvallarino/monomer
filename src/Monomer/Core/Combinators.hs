@@ -338,9 +338,17 @@ class CmbIgnoreChildrenEvts t where
 class CmbOnInit t e | t -> e where
   onInit :: e -> t
 
+-- | On init WidgetRequest.
+class CmbOnInitReq t s e | t -> s e where
+  onInitReq :: WidgetRequest s e -> t
+
 -- | On dispose event.
 class CmbOnDispose t e | t -> e where
   onDispose :: e -> t
+
+-- | On dispose WidgetRequest.
+class CmbOnDisposeReq t s e | t -> s e where
+  onDisposeReq :: WidgetRequest s e -> t
 
 -- | On resize event.
 class CmbOnResize t e a | t -> e a where
