@@ -17,7 +17,7 @@ Unit tests for Composite widget.
 module Monomer.Widgets.CompositeSpec (spec) where
 
 import Control.Lens (
-  (&), (^.), (^?), (^..), (.~), (%~), _Just, ix, folded, traverse, dropping)
+  (&), (^.), (^?), (^?!), (^..), (.~), (%~), _Just, ix, folded, traverse, dropping)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Foldable (toList)
@@ -53,6 +53,8 @@ data MainEvt
   = MainBtnClicked
   | ChildClicked
   | MainResize Rect
+  | OnInit
+  | OnDispose
   | OnChange MainModel
   deriving (Eq, Show)
 
@@ -142,6 +144,8 @@ spec = describe "Composite" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleEventBasic
+  handleEventOnInit
+  handleEventOnDispose
   handleEventOnChange
   handleEventNewRoot
   handleEventChild
@@ -173,6 +177,51 @@ handleEventBasic = describe "handleEventBasic" $ do
     cmpNode = composite "main" id buildUI handleEvent
     model es = nodeHandleEventModel wenv es cmpNode
     reqs es = nodeHandleEventReqs wenv es cmpNode
+
+handleEventOnInit :: Spec
+handleEventOnInit = describe "handleEventOnInit" $ do
+  it "should generate an init event" $ do
+    evts [] `shouldBe` Seq.singleton OnInit
+
+  where
+    wenv = mockWenv def
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
+    handleEvent wenv node model evt = case evt of
+      OnInit{} -> [Report evt]
+      _ -> []
+    buildUI wenv model = vstack []
+    cmpNode = composite_ "main" id buildUI handleEvent [onInit OnInit]
+    evts es = nodeHandleEventEvts_ wenv WInitKeepFirst es cmpNode
+
+handleEventOnDispose :: Spec
+handleEventOnDispose = describe "handleEventOnDispose" $ do
+  it "should generate an init event" $ do
+    let val = case evts [] ^?! L.requests . ix 1 of
+          SendMessage wid msg -> cast msg
+          _ -> Nothing
+
+    val `shouldBe` Just OnDispose
+
+  where
+    wenv = mockWenv def
+    handleEvent
+      :: WidgetEnv MainModel MainEvt
+      -> WidgetNode MainModel MainEvt
+      -> MainModel
+      -> MainEvt
+      -> [EventResponse MainModel MainEvt MainModel MainEvt]
+    handleEvent wenv node model evt = case evt of
+      OnInit{} -> [Report evt]
+      _ -> []
+    buildUI wenv model = vstack []
+    cmpNode = nodeInit wenv
+      $ composite_ "main" id buildUI handleEvent [onDispose OnDispose]
+    evts es = widgetDispose (cmpNode ^. L.widget) wenv cmpNode
 
 handleEventOnChange :: Spec
 handleEventOnChange = describe "handleEventOnChange" $ do
