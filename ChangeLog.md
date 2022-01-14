@@ -7,6 +7,7 @@
 - If the `WidgetType` of the root item in a `Composite` changes during `merge`, initialize the new widget instead
   of merging with the old one (https://github.com/fjvallarino/monomer/issues/50).
 - The arrow position in `dropdown` is now correct when a dropdown is taller than one line (thanks @Dretch!).
+- The middle button click is now handled by `convertEvents`, and in turn reported to widgets.
 
 ### Added
 
