@@ -11,7 +11,7 @@ app widget. Composite allows to split an application into reusable parts without
 the need to implement a lower level widget. It can comunicate with its parent
 component by reporting events.
 
-Requires two main functions:
+Requires two functions:
 
 - UI Builder: creates the widget tree based on the provided Widget Environment
 and model. This widget tree is made of other widgets, in general combinations of
@@ -198,14 +198,15 @@ Configuration options for composite:
   to signal that merging is required even if the model has not changed. It can
   also be used as a performance tweak if the changes do not require rebuilding
   the UI.
-- 'onInit': event to raise when the widget is created. Useful for performing all
-  kinds of initialization.
-- 'onDispose': event to raise when the widget is disposed. Used to free
-  resources.
+- 'onInit': event to raise when the widget is created. Useful for initializing
+  required resources.
+- 'onDispose': event to raise when the widget is disposed. Useful for freeing
+  acquired resources.
 - 'onResize': event to raise when the size of the widget changes.
-- 'onChange': event to raise when the size of the model changes.
-- 'onChangeReq': 'WidgetRequest' to generate when the size of the widget
-  changes.
+- 'onChange': event to raise when the model changes. The value passed to the
+  provided event is the previous version of the model. The current version of
+  the model is always available as a parameter in the `handleEvent` function.
+- 'onChangeReq': 'WidgetRequest' to generate when the model changes.
 - 'onEnabledChange': event to raise when the enabled status changes.
 - 'onVisibleChange': event to raise when the visibility changes.
 - 'compositeMergeReqs': functions to generate WidgetRequests during the merge
@@ -924,6 +925,7 @@ mergeChild
   -> WidgetResult sp ep
 mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
   CompositeState{..} = state
+  oldModel = getCompositeModel state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap newModel
   widgetId = _cpsRoot ^. L.info . L.widgetId
   builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
@@ -938,14 +940,14 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
     _cpsRoot = mergedResult ^. L.node,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
-  childReqs = fmap ($ newModel) (_cmpOnChangeReq comp)
+  childReqs = fmap ($ oldModel) (_cmpOnChangeReq comp)
   parentReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ [ResizeWidgets widgetId | initRequired]
   childResult = mergedResult
     & L.requests <>~ Seq.fromList childReqs
   result = toParentResult comp mergedState wenv widgetComp childResult
   parentResult = result
-    & L.requests <>~ Seq.fromList parentReqs
+    & L.requests .~ Seq.fromList parentReqs <> result ^. L.requests
 
 getUserModel
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)

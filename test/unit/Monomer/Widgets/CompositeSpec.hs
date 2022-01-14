@@ -56,6 +56,7 @@ data MainEvt
   | OnInit
   | OnDispose
   | OnChange MainModel
+  | ReportOnChange MainModel MainModel
   deriving (Eq, Show)
 
 data ChildEvt
@@ -226,12 +227,13 @@ handleEventOnDispose = describe "handleEventOnDispose" $ do
 handleEventOnChange :: Spec
 handleEventOnChange = describe "handleEventOnChange" $ do
   it "should not generate an event if model did not change" $ do
-    evts [evtClick (Point 10 10)] `shouldBe` Seq.empty
+    evts [evtClick (Point 10 30)] `shouldBe` Seq.empty
 
   it "should generate an event if model changed" $ do
-    let items = toList $ evts [evtClick (Point 10 30)]
+    let items = toList $ evts [evtClick (Point 10 10)]
+    let ReportOnChange oldModel newModel = head items
 
-    [i | i@OnChange{} <- items] `shouldSatisfy` not . null
+    oldModel `shouldNotBe` newModel
 
   where
     wenv = mockWenv def
@@ -244,11 +246,11 @@ handleEventOnChange = describe "handleEventOnChange" $ do
     handleEvent wenv node model evt = case evt of
       MainBtnClicked -> [Model (model & clicks %~ (+1))]
       ChildClicked -> [Model model]
-      OnChange{} -> [Report evt]
+      OnChange oldModel -> [Report $ ReportOnChange oldModel model]
       _ -> []
     buildUI wenv model = vstack [
-        button "Click secondary" ChildClicked,
-        button "Click main" MainBtnClicked
+        button "Click main" MainBtnClicked,
+        button "Click secondary" ChildClicked
       ]
     cmpNode = composite_ "main" id buildUI handleEvent [onChange OnChange]
     evts es = nodeHandleEventEvts wenv es cmpNode
