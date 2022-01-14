@@ -328,7 +328,7 @@ addEllipsisToTextLine fontMgr style width textLine = newTextLine where
   targetW = width - tw
 
   dropHelper (idx, w) g
-    | _glpW g + w <= dw = (idx + 1, _glpW g + w)
+    | isSafeLE (_glpW g + w) dw = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
   (dropChars, _) = foldl' dropHelper (0, targetW) (Seq.reverse _tlGlyphs)
 
@@ -359,11 +359,11 @@ clipTextLine fontMgr style trim width textLine = newTextLine where
   fontSpcH = styleFontSpaceH style
 
   takeHelper (idx, w) g
-    | _glpW g + w <= width = (idx + 1, _glpW g + w)
+    | isSafeLE (_glpW g + w) width = (idx + 1, _glpW g + w)
     | otherwise = (idx, w)
 
   (takeChars, _) = foldl' takeHelper (0, 0) _tlGlyphs
-  validGlyphs = Seq.takeWhileL (\g -> _glpXMax g <= width) _tlGlyphs
+  validGlyphs = Seq.takeWhileL (\g -> isSafeLE (_glpXMax g) width) _tlGlyphs
   newText
     | trim == KeepSpaces = T.take (length validGlyphs) _tlText
     | otherwise = T.dropWhileEnd (== ' ') $ T.take (length validGlyphs) _tlText
@@ -395,7 +395,7 @@ fitExtraGroups
   -> (Seq GlyphPos, Seq GlyphGroup)
 fitExtraGroups Empty _ _ _ = (Empty, Empty)
 fitExtraGroups (g :<| gs) !width !prevGMax !keepTailSpaces
-  | gW + wDiff <= width || keepSpace = (g <> newFit, newRest)
+  | isSafeLE (gW + wDiff) width || keepSpace = (g <> newFit, newRest)
   | otherwise = (Empty, g :<| gs)
   where
     gW = getGlyphsWidth g
@@ -444,3 +444,6 @@ isWordDelimiter = (== ' ')
 
 isSpace :: Char -> Bool
 isSpace = (== ' ')
+
+isSafeLE :: Double -> Double -> Bool
+isSafeLE width target = width <= target || abs (target - width) < 0.001
