@@ -23,6 +23,7 @@ module Monomer.Main.Platform (
 ) where
 
 import Control.Monad (void)
+import Control.Monad.Extra (whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
@@ -90,8 +91,8 @@ initSDLWindow config = do
         | platform `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
         | otherwise = (scaleFactor * contentRatio, 1 / scaleFactor) -- macOS
 
-  when (isJust (_apcWindowTitle config)) $
-    SDL.windowTitle window $= fromJust (_apcWindowTitle config)
+  whenJust (_apcWindowTitle config) $ \title ->
+    SDL.windowTitle window $= title
 
   when windowFullscreen $
     SDL.setWindowMode window SDL.FullscreenDesktop
