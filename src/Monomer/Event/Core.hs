@@ -85,6 +85,7 @@ mouseClick mousePos (SDL.MouseButtonEvent eventData) = systemEvent where
     button = case SDL.mouseButtonEventButton eventData of
       SDL.ButtonLeft -> Just BtnLeft
       SDL.ButtonRight -> Just BtnRight
+      SDL.ButtonMiddle -> Just BtnMiddle
       _ -> Nothing
 
     action = case SDL.mouseButtonEventMotion eventData of
