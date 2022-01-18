@@ -43,6 +43,10 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for labeledCheckbox:
 
+- General
+
+    - 'childSpacing': the spacing between the checkbox and the text.
+
 - Text related
 
     - 'textLeft': places the label to the left of the checkbox.
@@ -70,6 +74,7 @@ Configuration options for labeledCheckbox:
 -}
 data LabeledCheckboxCfg s e = LabeledCheckboxCfg {
   _lchTextSide :: Maybe RectSide,
+  _lchChildSpacing :: Maybe Double,
   _lchLabelCfg :: LabelCfg s e,
   _lchCheckboxCfg :: CheckboxCfg s e
 }
@@ -77,6 +82,7 @@ data LabeledCheckboxCfg s e = LabeledCheckboxCfg {
 instance Default (LabeledCheckboxCfg s e) where
   def = LabeledCheckboxCfg {
     _lchTextSide = Nothing,
+    _lchChildSpacing = Nothing,
     _lchLabelCfg = def,
     _lchCheckboxCfg = def
   }
@@ -84,12 +90,18 @@ instance Default (LabeledCheckboxCfg s e) where
 instance Semigroup (LabeledCheckboxCfg s e) where
   (<>) t1 t2 = LabeledCheckboxCfg {
     _lchTextSide = _lchTextSide t2 <|> _lchTextSide t1,
+    _lchChildSpacing = _lchChildSpacing t2 <|> _lchChildSpacing t1,
     _lchLabelCfg = _lchLabelCfg t1 <> _lchLabelCfg t2,
     _lchCheckboxCfg = _lchCheckboxCfg t1 <> _lchCheckboxCfg t2
   }
 
 instance Monoid (LabeledCheckboxCfg s e) where
   mempty = def
+
+instance CmbChildSpacing (LabeledCheckboxCfg s e) where
+  childSpacing_ spacing = def {
+    _lchChildSpacing = Just spacing
+  }
 
 instance CmbTextLeft (LabeledCheckboxCfg s e) where
   textLeft_ False = def
@@ -240,6 +252,7 @@ labeledCheckboxD_
 labeledCheckboxD_ caption widgetData configs = newNode where
   config = mconcat configs
   labelSide = fromMaybe SideLeft (_lchTextSide config)
+  childSpacing = _lchChildSpacing config
   labelCfg = _lchLabelCfg config
   widget = checkboxD_ widgetData [_lchCheckboxCfg config]
-  newNode = labeledItem "labeledCheckbox" labelSide caption labelCfg widget
+  newNode = labeledItem "labeledCheckbox" labelSide childSpacing caption labelCfg widget

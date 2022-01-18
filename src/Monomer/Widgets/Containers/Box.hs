@@ -397,8 +397,8 @@ makeBox config state = widget where
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect cx cy cw ch = contentArea
 
-    contentW = snd $ assignStackAreas True contentArea children
-    contentH = snd $ assignStackAreas False contentArea children
+    contentW = snd $ assignStackAreas True contentArea 0 children
+    contentH = snd $ assignStackAreas False contentArea 0 children
 
     raChild = Rect cx cy (min cw contentW) (min ch contentH)
     ah = fromMaybe ACenter (_boxAlignH config)

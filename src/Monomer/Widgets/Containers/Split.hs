@@ -270,7 +270,7 @@ makeSplit isHorizontal config state = widget where
     style = currentStyle wenv node
     contentArea = fromMaybe def (removeOuterBounds style viewport)
     Rect rx ry rw rh = contentArea
-    (areas, newSize) = assignStackAreas isHorizontal contentArea children
+    (areas, newSize) = assignStackAreas isHorizontal contentArea 0 children
     oldHandlePos = _spsHandlePos state
 
     sizeReq1 = sizeReq $ Seq.index children 0

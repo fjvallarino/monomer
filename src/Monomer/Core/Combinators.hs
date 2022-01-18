@@ -698,3 +698,11 @@ class CmbRadiusBL t where
 -- | Set radius for the bottom right corner.
 class CmbRadiusBR t where
   radiusBR :: Double -> t
+
+-- | Set the spacing between the children of the container.
+class CmbChildSpacing t where
+  -- | Set the spacing to the default amount (may vary by container).
+  childSpacing :: t
+  childSpacing = childSpacing_ 10
+  -- | Set the spacing to the specified amount.
+  childSpacing_ :: Double -> t
