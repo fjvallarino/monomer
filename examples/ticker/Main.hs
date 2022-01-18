@@ -170,7 +170,7 @@ processTickerUpdates model updates = foldl' stepTicker model updates where
 
 handleSubscription :: AppEnv -> [Text] -> Text -> IO TickerEvt
 handleSubscription env pairs action = do
-  liftIO . atomically $ writeTChan (env^.channel) req
+  atomically $ writeTChan (env ^. channel) req
   return TickerIgnore
   where
     subscription pair = T.toLower pair <> "@miniTicker"
@@ -213,8 +213,8 @@ subscribeInitial env initialList = do
 
 groupTickers :: TChan Ticker -> (TickerEvt -> IO a) -> IO ()
 groupTickers channel sendMsg = void . forkIO . forever $ do
-  ticker <- liftIO . atomically $ readTChan channel
-  tickers <- collectJustM . liftIO . atomically $ tryReadTChan channel
+  ticker <- atomically $ readTChan channel
+  tickers <- collectJustM . atomically $ tryReadTChan channel
   sendMsg $ TickerUpdate (ticker : tickers)
 
   threadDelay $ 500 * 1000
@@ -227,11 +227,11 @@ receiveWs conn groupChannel sendMsg = void . forkIO . forever $ do
   forM_ serverMsg $ \case
     MsgResponse resp -> sendMsg $ TickerResponse resp
     MsgError err -> sendMsg $ TickerError err
-    MsgTicker ticker -> liftIO . atomically $ writeTChan groupChannel ticker
+    MsgTicker ticker -> atomically $ writeTChan groupChannel ticker
 
 sendWs :: (Show a, ToJSON a) => TChan a -> WS.Connection -> IO ()
 sendWs channel connection = forever $ do
-  msg <- liftIO . atomically $ readTChan channel
+  msg <- atomically $ readTChan channel
   WS.sendTextData connection (encode msg)
 
 main :: IO ()
