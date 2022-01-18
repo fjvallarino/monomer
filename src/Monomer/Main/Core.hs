@@ -220,7 +220,7 @@ mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
   startTicks <- fmap fromIntegral SDL.ticks
-  events <- SDL.pollEvents
+  events <- SDL.pumpEvents >> SDL.pollEvents
 
   windowSize <- use L.windowSize
   dpr <- use L.dpr
