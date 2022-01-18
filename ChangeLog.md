@@ -3,17 +3,20 @@
 ### Fixed
 
 - Widgets that receive polymorphic types now append the handled type to their `WidgetType`. This
-  is done to avoid issues if the handled type is later changed (https://github.com/fjvallarino/monomer/issues/46).
+  is done to avoid issues if the handled type is later changed ([#46](https://github.com/fjvallarino/monomer/issues/46)).
 - If the `WidgetType` of the root item in a `Composite` changes during `merge`, initialize the new widget instead
-  of merging with the old one (https://github.com/fjvallarino/monomer/issues/50).
-- The arrow position in `dropdown` is now correct when a dropdown is taller than one line (thanks @Dretch!).
-- The middle button click is now handled by `convertEvents`, and in turn reported to widgets.
+  of merging with the old one ([#50](https://github.com/fjvallarino/monomer/issues/50)).
+- The arrow position in `dropdown` is now correct when a dropdown is taller than one line ([PR #55](https://github.com/fjvallarino/monomer/pull/55)). Thanks @Dretch!
+- The middle button click is now handled by `convertEvents`, and in turn reported to widgets ([#63](https://github.com/fjvallarino/monomer/issues/63)).
+- Add tolerance to width comparison in text clipping functions ([#54](https://github.com/fjvallarino/monomer/issues/54)).
+- Call `pumpEvents` before `pollEvents`. The `pumpEvents` call is implied by `pollEvent`, but starting on
+  SDL2 `2.0.20` it seems to be required to call it explicitly ([#66](https://github.com/fjvallarino/monomer/issues/66)). Thanks @JD95!
 
 ### Added
 
 - Export `drawArrowUp` from `Drawing` module.
-- The `image` widget now supports a `fitEither` option (thanks @Kyarigwo!).
-- The `scroll` widget now raises `onChange` events, providing the current `ScrollStatus`.
+- The `image` widget now supports a `fitEither` option ([PR #56](https://github.com/fjvallarino/monomer/pull/56)). Thanks @Kyarigwo!
+- The `scroll` widget now raises `onChange` events, providing the current `ScrollStatus` ([PR #51](https://github.com/fjvallarino/monomer/pull/51)).
 
 ### Changed
 
