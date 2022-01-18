@@ -332,9 +332,13 @@ class CmbThumbVisible t where
   thumbVisible = thumbVisible_ True
   thumbVisible_ :: Bool -> t
 
--- | The width color of a thumb, for example in a scroll.
+-- | The width of a thumb, for example in a scroll.
 class CmbThumbWidth t where
   thumbWidth :: Double -> t
+
+-- | The minimum size of a thumb, for example in a scroll.
+class CmbThumbMinSize t where
+  thumbMinSize :: Double -> t
 
 -- | Whether to show an alpha channel, for instance in color selector.
 class CmbShowAlpha t where
