@@ -394,11 +394,11 @@ resizeChildSpacing = describe "with childSpacing" $ do
 
   it "should add spacing between children" $
     testStackChildLocations [spacer3, spacer3] `shouldBe`
-      Seq.fromList [(0, 3), (5, 8)]
+      Seq.fromList [Rect 0 0 640 3, Rect 0 5 640 3]
   
   it "should not add spacing between invisible children" $
     testStackChildLocations [spacer3, spacer3 `nodeVisible` False, spacer3] `shouldBe`
-      Seq.fromList [(0, 3), (0, 0), (5, 8)]
+      Seq.fromList [Rect 0 0 640 3, Rect 0 0 0 0, Rect 0 5 640 3]
   
   where
     wenv = mockWenv ()
@@ -406,8 +406,4 @@ resizeChildSpacing = describe "with childSpacing" $ do
     testStackChildLocations children = childLocations where
       vstackNode = vstack_ [childSpacing_ 2] children
       newNode = nodeInit wenv vstackNode
-      childLocations = rectRoundYPostions . _wniViewport . _wnInfo <$> newNode ^. L.children
-
-rectRoundYPostions :: Rect -> (Double, Double)
-rectRoundYPostions (Rect _x y _w h) =
-  (fromIntegral (round y), fromIntegral (round (y + h)))
+      childLocations = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children

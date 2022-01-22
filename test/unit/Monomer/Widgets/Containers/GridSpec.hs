@@ -235,19 +235,15 @@ resizeChildSpacing = describe "with childSpacing" $ do
 
   it "should add spacing between children" $
     testGridChildLocations [spacer, spacer] `shouldBe`
-      Seq.fromList [(0, 215), (215 + 50, 480)]
+      Seq.fromList [Rect 0 0 640 215, Rect 0 265 640 215]
   
   it "should not add spacing between invisible children" $
-    testGridChildLocations [spacer, spacer `nodeVisible` False, spacer]
-      `shouldBe` Seq.fromList [(0, 215), (0, 0), (215 + 50, 480)]
+    testGridChildLocations [spacer, spacer `nodeVisible` False, spacer] `shouldBe`
+      Seq.fromList [Rect 0 0 640 215, Rect 0 0 0 0, Rect 0 265 640 215]
   
   where
     wenv = mockWenv ()
     testGridChildLocations children = childLocations where
       vgridNode = vgrid_ [childSpacing_ 50] children
       newNode = nodeInit wenv vgridNode
-      childLocations = rectRoundYPostions . _wniViewport . _wnInfo <$> newNode ^. L.children
-
-rectRoundYPostions :: Rect -> (Double, Double)
-rectRoundYPostions (Rect _x y _w h) =
-  (fromIntegral (round y), fromIntegral (round (y + h)))
+      childLocations = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
