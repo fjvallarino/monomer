@@ -140,11 +140,11 @@ makeFixedGrid isHorizontal config = widget where
 
     cx i
       | rows == 0 = 0
-      | isHorizontal = l + fromIntegral (i `div` rows) * cw + spacingOffset i
+      | isHorizontal = l + fromIntegral i * cw + spacingOffset i
       | otherwise = l
     cy i
       | cols == 0 = 0
-      | isVertical = t + fromIntegral (i `div` cols) * ch + spacingOffset i
+      | isVertical = t + fromIntegral i * ch + spacingOffset i
       | otherwise = t
     spacingOffset i =
       fromIntegral i * childSpacing
