@@ -22,11 +22,13 @@ import Control.Concurrent.STM.TChan
 import Control.Lens.TH
 import Data.Aeson
 import Data.Default
+import Data.Fixed
 import Data.Foldable (asum)
 import Data.Maybe
 import Data.Map (Map)
-import Data.Scientific
 import Data.Text (Text, pack)
+
+type FixedFloat = Pico
 
 data ServerRequest = ServerRequest {
   _srqRequestId :: Int,
@@ -68,12 +70,12 @@ instance FromJSON ServerError where
 data Ticker = Ticker {
   _tckSymbolPair :: Text,
   _tckTs :: Int,
-  _tckOpen :: Scientific,
-  _tckClose :: Scientific,
-  _tckHigh :: Scientific,
-  _tckLow :: Scientific,
-  _tckVolume :: Scientific,
-  _tckTrades :: Scientific
+  _tckOpen :: FixedFloat,
+  _tckClose :: FixedFloat,
+  _tckHigh :: FixedFloat,
+  _tckLow :: FixedFloat,
+  _tckVolume :: FixedFloat,
+  _tckTrades :: FixedFloat
 } deriving (Eq, Show)
 
 instance FromJSON Ticker where
