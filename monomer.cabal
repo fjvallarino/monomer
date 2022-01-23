@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           monomer
-version:        1.2.0.0
+version:        1.3.0.0
 synopsis:       A GUI library for writing native Haskell applications.
 description:    Monomer is an easy to use, cross platform, GUI library for writing native
                 Haskell applications.
@@ -168,16 +168,16 @@ library
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
     , process ==1.6.*
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -203,7 +203,7 @@ executable books
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
     , OpenGL ==3.0.*
-    , aeson >=1.4 && <2.1
+    , aeson >=1.4 && <2.3
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -215,7 +215,7 @@ executable books
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -223,9 +223,9 @@ executable books
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -258,7 +258,7 @@ executable generative
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -267,9 +267,9 @@ executable generative
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -301,7 +301,7 @@ executable opengl
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -310,9 +310,9 @@ executable opengl
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -333,7 +333,7 @@ executable ticker
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
     , OpenGL ==3.0.*
-    , aeson >=1.4 && <2.1
+    , aeson >=1.4 && <2.3
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -345,7 +345,7 @@ executable ticker
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -354,15 +354,15 @@ executable ticker
     , scientific ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
     , websockets ==0.12.*
     , wreq >=0.5.2 && <0.6
-    , wuss ==1.1.*
+    , wuss >=1.1 && <2.3
   default-language: Haskell2010
 
 executable todo
@@ -389,7 +389,7 @@ executable todo
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -397,9 +397,9 @@ executable todo
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -437,7 +437,7 @@ executable tutorial
     , extra >=1.6 && <1.9
     , formatting >=6.0 && <8.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -446,7 +446,7 @@ executable tutorial
     , safe ==0.3.*
     , sdl2 >=2.5.0 && <2.6
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
     , time >=1.8 && <1.13
     , transformers >=0.5 && <0.7
@@ -528,7 +528,7 @@ test-suite monomer-test
     , formatting >=6.0 && <8.0
     , hspec >=2.4 && <3.0
     , http-client >=0.6 && <0.9
-    , lens >=4.16 && <5.1
+    , lens >=4.16 && <6
     , monomer
     , mtl >=2.1 && <2.3
     , nanovg >=0.8 && <1.0
@@ -537,9 +537,9 @@ test-suite monomer-test
     , sdl2 >=2.5.0 && <2.6
     , silently ==1.2.*
     , stm ==2.5.*
-    , text ==1.2.*
+    , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14

@@ -1,4 +1,12 @@
-## 1.3.0.0 (in development)
+## 1.3.0.0
+
+### Added
+
+- Export `drawArrowUp` from `Drawing` module.
+- The `image` widget now supports a `fitEither` option ([PR #56](https://github.com/fjvallarino/monomer/pull/56)). Thanks @Kyarigwo!
+- The `scroll` widget now raises `onChange` events, providing the current `ScrollStatus` ([PR #51](https://github.com/fjvallarino/monomer/pull/51)).
+- The `grid`, `stack`, `labeledCheckbox` and `labeledRadio` widgets now support a `childSpacing`/`childSpacing_` option
+  ([PR #67](https://github.com/fjvallarino/monomer/pull/67)). Thanks @Dretch!
 
 ### Fixed
 
@@ -12,13 +20,9 @@
 - Call `pumpEvents` before `pollEvents`. The `pumpEvents` call is implied by `pollEvent`, but starting on
   SDL2 `2.0.20` it seems to be required to call it explicitly ([#66](https://github.com/fjvallarino/monomer/issues/66)). Thanks @JD95!
 
-### Added
-
-- Export `drawArrowUp` from `Drawing` module.
-- The `image` widget now supports a `fitEither` option ([PR #56](https://github.com/fjvallarino/monomer/pull/56)). Thanks @Kyarigwo!
-- The `scroll` widget now raises `onChange` events, providing the current `ScrollStatus` ([PR #51](https://github.com/fjvallarino/monomer/pull/51)).
-
 ### Changed
+
+- Relaxed upper bounds of dependencies for Stackage inclusion.
 
 ## 1.2.0.1
 
