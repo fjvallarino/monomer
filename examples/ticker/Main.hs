@@ -25,9 +25,9 @@ import Data.Aeson
 import Data.Default
 import Data.Foldable (foldl')
 import Data.Maybe
-import Data.Scientific
 import Data.Text (Text)
 
+import qualified Formatting as F
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Network.Wreq as W
@@ -46,10 +46,10 @@ type TickerNode = WidgetNode TickerModel TickerEvt
 
 tickerPct :: Ticker -> TickerNode
 tickerPct t = pctLabel where
-  diff = toRealFloat $ 100 * (t ^. close - t ^. open)
-  pct = diff / toRealFloat (t ^. open)
+  diff = 100 * (t ^. close - t ^. open)
+  pct = diff / t ^. open
 
-  pctText = formatTickerPct (fromFloatDigits pct) <> "%"
+  pctText = formatTickerPct pct <> "%"
   pctColor
     | abs pct < 0.01 = rgbHex "#428FE0"
     | pct > 0 = rgbHex "#51A39A"
@@ -271,11 +271,11 @@ collectJustM action = do
       xs <- collectJustM action
       return (x : xs)
 
-formatTickerValue :: Scientific -> Text
-formatTickerValue = T.pack . formatScientific Fixed (Just 8)
+formatTickerValue :: FixedFloat -> Text
+formatTickerValue = F.sformat (F.fixed 8)
 
-formatTickerPct :: Scientific -> Text
-formatTickerPct = T.pack . formatScientific Fixed (Just 2)
+formatTickerPct :: FixedFloat -> Text
+formatTickerPct = F.sformat (F.fixed 2)
 
 initialList :: [Text]
 initialList = ["BTCUSDT", "ETHBTC", "BNBBTC", "ADABTC", "DOTBTC", "XRPBTC",

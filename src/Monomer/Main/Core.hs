@@ -32,9 +32,9 @@ import Data.Maybe
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
+import Graphics.GL
 
 import qualified Data.Map as Map
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 import qualified Data.Sequence as Seq
 
@@ -434,13 +434,10 @@ renderWidgets window dpr renderer clearColor wenv widgetRoot = do
   Size dwW dwH <- getDrawableSize window
   Size vpW vpH <- getViewportSize window dpr
 
-  let position = GL.Position 0 0
-  let size = GL.Size (round dwW) (round dwH)
+  glViewport 0 0 (round dwW) (round dwH)
 
-  GL.viewport GL.$= (position, size)
-
-  GL.clearColor GL.$= clearColor4
-  GL.clear [GL.ColorBuffer]
+  glClearColor r g b a
+  glClear GL_COLOR_BUFFER_BIT
 
   beginFrame renderer vpW vpH
   widgetRender (widgetRoot ^. L.widget) wenv widgetRoot renderer
@@ -459,8 +456,7 @@ renderWidgets window dpr renderer clearColor wenv widgetRoot = do
     r = fromIntegral (clearColor ^. L.r) / 255
     g = fromIntegral (clearColor ^. L.g) / 255
     b = fromIntegral (clearColor ^. L.b) / 255
-    a = clearColor ^. L.a
-    clearColor4 = GL.Color4 r g b (realToFrac a)
+    a = realToFrac (clearColor ^. L.a)
 
 watchWindowResize :: TChan (RenderMsg s e) -> IO ()
 watchWindowResize channel = do

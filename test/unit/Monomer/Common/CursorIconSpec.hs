@@ -21,7 +21,6 @@ import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..))
 import Data.Text (Text)
-import Safe
 import Test.Hspec
 
 import qualified Data.Map.Strict as M
@@ -31,6 +30,7 @@ import Monomer.Core
 import Monomer.Core.Combinators
 import Monomer.Core.Themes.SampleThemes
 import Monomer.Event
+import Monomer.Helper (headMay)
 import Monomer.Main
 import Monomer.TestUtil
 import Monomer.TestEventUtil

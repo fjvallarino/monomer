@@ -21,15 +21,14 @@ import Control.Monad.Extra
 import Control.Monad.State
 import Data.Default
 import Data.Maybe
-import Safe (headMay)
 
 import qualified Data.Sequence as Seq
 import qualified Data.Map as Map
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Helper (headMay)
 import Monomer.Main.Platform
 import Monomer.Main.Types
 import Monomer.Widgets.Util.Widget

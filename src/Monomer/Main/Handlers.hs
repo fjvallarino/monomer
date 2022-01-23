@@ -39,7 +39,6 @@ import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
 import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
-import Safe (headMay)
 import SDL (($=))
 
 import qualified Data.Map as Map
@@ -52,7 +51,7 @@ import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
-import Monomer.Helper (seqStartsWith)
+import Monomer.Helper (headMay, seqStartsWith)
 import Monomer.Main.Types
 import Monomer.Main.Util
 
