@@ -8,6 +8,10 @@
   in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
   use `Report`/`RequestParent`; an example can be found in `ColorPicker`.
 
+### Removed
+
+- Dependencies on `OpenGL`, `Safe`, `scientific`, `unordered-containers`, `directory`, `HUnit` and `silently`.
+
 ## 1.3.0.0
 
 ### Added
