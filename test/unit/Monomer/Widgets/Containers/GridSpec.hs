@@ -24,6 +24,7 @@ import Monomer.Event
 import Monomer.TestUtil
 import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Singles.Label
+import Monomer.Widgets.Singles.Spacer
 
 import qualified Monomer.Lens as L
 
@@ -40,6 +41,7 @@ getSizeReq = describe "getSizeReq" $ do
   getSizeReqMixedH
   getSizeReqMixedV
   getSizeReqUpdater
+  getSizeReqChildSpacing
 
 getSizeReqEmpty :: Spec
 getSizeReqEmpty = describe "empty" $ do
@@ -136,11 +138,33 @@ getSizeReqUpdater = describe "getSizeReqUpdater" $ do
     vgridNode = vgrid_ [sizeReqUpdater (fixedToMinW 2), sizeReqUpdater (fixedToMaxH 3)] [label "Label"]
     (sizeReqW, sizeReqH) = nodeGetSizeReq wenv vgridNode
 
+getSizeReqChildSpacing :: Spec
+getSizeReqChildSpacing = describe "with childSpacing" $ do
+  it "should not add spacing when empty" $
+    testGridSizeReq [] `shouldBe` fixedSize 0
+
+  it "should not add spacing when singleton" $
+    testGridSizeReq [spacer3] `shouldBe` fixedSize 3
+
+  it "should add spacing between children" $
+    testGridSizeReq [spacer3, spacer3] `shouldBe` fixedSize 8
+  
+  it "should not add spacing between invisible children" $ do
+    testGridSizeReq [spacer3, spacer3 `nodeVisible` False] `shouldBe` fixedSize 3
+  
+  where
+    wenv = mockWenv ()
+    spacer3 = spacer_ [width 3, resizeFactor 0]
+    testGridSizeReq children = sizeReqH where
+      (_sizeReqW, sizeReqH) = nodeGetSizeReq wenv vgridNode
+      vgridNode = vgrid_ [childSpacing_ 2] children
+
 resize :: Spec
 resize = describe "resize" $ do
   resizeEmpty
   resizeItemsH
   resizeItemsV
+  resizeChildSpacing
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
@@ -205,3 +229,21 @@ resizeItemsV = describe "several items, vertical, one not visible" $ do
     newNode = nodeInit wenv gridNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = (^. L.info . L.viewport) <$> newNode ^. L.children
+
+resizeChildSpacing :: Spec
+resizeChildSpacing = describe "with childSpacing" $ do
+
+  it "should add spacing between children" $
+    testGridChildLocations [spacer, spacer] `shouldBe`
+      Seq.fromList [Rect 0 0 640 215, Rect 0 265 640 215]
+  
+  it "should not add spacing between invisible children" $
+    testGridChildLocations [spacer, spacer `nodeVisible` False, spacer] `shouldBe`
+      Seq.fromList [Rect 0 0 640 215, Rect 0 0 0 0, Rect 0 265 640 215]
+  
+  where
+    wenv = mockWenv ()
+    testGridChildLocations children = childLocations where
+      vgridNode = vgrid_ [childSpacing_ 50] children
+      newNode = nodeInit wenv vgridNode
+      childLocations = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children

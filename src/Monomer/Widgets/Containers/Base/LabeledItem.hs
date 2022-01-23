@@ -26,7 +26,7 @@ import Data.Text (Text)
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Core.Combinators
+import Monomer.Core.Combinators as Cmb
 
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Stack
@@ -43,22 +43,24 @@ labeledItem
   :: WidgetEvent e
   => WidgetType
   -> RectSide
+  -> Maybe Double
   -> Text
   -> LabelCfg s e
   -> WidgetNode s e
   -> WidgetNode s e
-labeledItem wtype textSide caption labelCfg itemNode = labeledNode where
-  widget = makeLabeledItem textSide caption labelCfg itemNode
+labeledItem wtype textSide childSpacing caption labelCfg itemNode = labeledNode where
+  widget = makeLabeledItem textSide childSpacing caption labelCfg itemNode
   labeledNode = defaultWidgetNode wtype widget
 
 makeLabeledItem
   :: WidgetEvent e
   => RectSide
+  -> Maybe Double
   -> Text
   -> LabelCfg s e
   -> WidgetNode s e
   -> Widget s e
-makeLabeledItem textSide caption labelCfg itemNode = widget where
+makeLabeledItem textSide childSpacing caption labelCfg itemNode = widget where
   widget = createContainer () def {
     containerInit = init,
     containerMerge = merge,
@@ -83,10 +85,12 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
       & L.info . L.style <>~ itemStyle
 
     childNode
-      | textSide == SideLeft = hstack [ labelNode, spacer, styledNode ]
-      | textSide == SideRight = hstack [ styledNode, spacer, labelNode ]
-      | textSide == SideTop = vstack [ labelNode, spacer, styledNode ]
-      | otherwise = vstack [ styledNode, spacer, labelNode ]
+      | textSide == SideLeft = hstack_ stackCfg [ labelNode, styledNode ]
+      | textSide == SideRight = hstack_ stackCfg [ styledNode, labelNode ]
+      | textSide == SideTop = vstack_ stackCfg [ labelNode, styledNode ]
+      | otherwise = vstack_ stackCfg [ styledNode, labelNode ]
+    stackCfg =
+      [maybe Cmb.childSpacing Cmb.childSpacing_ childSpacing]
     newNode = node
       & L.children .~ Seq.singleton childNode
 
@@ -110,8 +114,8 @@ makeLabeledItem textSide caption labelCfg itemNode = widget where
     where
       labelIdx
         | textSide `elem` [SideLeft, SideTop] = 0
-        | otherwise = 2
-      targetIdx = 2 - labelIdx
+        | otherwise = 1
+      targetIdx = 1 - labelIdx
       newPath = Seq.take (length target - 1) target |> targetIdx
       labelNode = node ^. L.children . ix 0 . L.children ^?! ix labelIdx
       targetNode = node ^. L.children . ix 0 . L.children ^?! ix targetIdx

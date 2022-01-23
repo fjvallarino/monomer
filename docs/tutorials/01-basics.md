@@ -151,6 +151,18 @@ between two widgets. Simple but very useful! In case you want to take as much
 space as available (for example, you want one button on the left, one on the
 right and space in the middle) you can use `filler`.
 
+If you just want the same spacing between all the children in your container,
+then you can instead use the `childSpacing` configuration combinator, which is
+roughly equivalent to putting a `spacer` between all the children. You can
+control the exact amount of spacing with the `childSpacing_ <pixels>` combinator:
+
+```haskell
+vstack_ [childSpacing_ 100] [
+  label "good fences make",
+  label "good neighbours"
+]
+```
+
 ### Basic widgets
 
 In the example you can see `label` and `button`, two basic building blocks which

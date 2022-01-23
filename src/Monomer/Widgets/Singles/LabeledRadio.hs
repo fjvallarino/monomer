@@ -46,6 +46,10 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for labeledRadio:
 
+- General
+
+    - 'childSpacing': the spacing between the radio and the text.
+
 - Text related
 
     - 'textLeft': places the label to the left of the radio.
@@ -73,6 +77,7 @@ Configuration options for labeledRadio:
 -}
 data LabeledRadioCfg s e a = LabeledRadioCfg {
   _lchTextSide :: Maybe RectSide,
+  _lchChildSpacing :: Maybe Double,
   _lchLabelCfg :: LabelCfg s e,
   _lchRadioCfg :: RadioCfg s e a
 }
@@ -80,6 +85,7 @@ data LabeledRadioCfg s e a = LabeledRadioCfg {
 instance Default (LabeledRadioCfg s e a) where
   def = LabeledRadioCfg {
     _lchTextSide = Nothing,
+    _lchChildSpacing = Nothing,
     _lchLabelCfg = def,
     _lchRadioCfg = def
   }
@@ -87,12 +93,18 @@ instance Default (LabeledRadioCfg s e a) where
 instance Semigroup (LabeledRadioCfg s e a) where
   (<>) t1 t2 = LabeledRadioCfg {
     _lchTextSide = _lchTextSide t2 <|> _lchTextSide t1,
+    _lchChildSpacing = _lchChildSpacing t2 <|> _lchChildSpacing t1,
     _lchLabelCfg = _lchLabelCfg t1 <> _lchLabelCfg t2,
     _lchRadioCfg = _lchRadioCfg t1 <> _lchRadioCfg t2
   }
 
 instance Monoid (LabeledRadioCfg s e a) where
   mempty = def
+
+instance CmbChildSpacing (LabeledRadioCfg s e a) where
+  childSpacing_ spacing = def {
+    _lchChildSpacing = Just spacing
+  }
 
 instance CmbTextLeft (LabeledRadioCfg s e a) where
   textLeft_ False = def
@@ -244,7 +256,8 @@ labeledRadioD_
 labeledRadioD_ caption option widgetData configs = newNode where
   config = mconcat configs
   labelSide = fromMaybe SideLeft (_lchTextSide config)
+  childSpacing = _lchChildSpacing config
   labelCfg = _lchLabelCfg config
   wtype = WidgetType ("labeledRadio-" <> showt (typeOf option))
   widget = radioD_ option widgetData [_lchRadioCfg config]
-  newNode = labeledItem wtype labelSide caption labelCfg widget
+  newNode = labeledItem wtype labelSide childSpacing caption labelCfg widget

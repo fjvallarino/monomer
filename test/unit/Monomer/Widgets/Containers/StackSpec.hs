@@ -39,6 +39,7 @@ getSizeReq = describe "getSizeReq" $ do
   getSizeReqEmpty
   getSizeReqItems
   getSizeReqUpdater
+  getSizeReqChildSpacing
 
 getSizeReqEmpty :: Spec
 getSizeReqEmpty = describe "empty" $ do
@@ -92,6 +93,27 @@ getSizeReqUpdater = describe "getSizeReqUpdater" $ do
     (sizeReqW1, sizeReqH1) = nodeGetSizeReq wenv vstackNode1
     (sizeReqW2, sizeReqH2) = nodeGetSizeReq wenv vstackNode2
 
+getSizeReqChildSpacing :: Spec
+getSizeReqChildSpacing = describe "with childSpacing" $ do
+  it "should not add spacing when empty" $
+    testStackSizeReq [] `shouldBe` fixedSize 0
+
+  it "should not add spacing when singleton" $
+    testStackSizeReq [spacer3] `shouldBe` fixedSize 3
+
+  it "should add spacing between children" $
+    testStackSizeReq [spacer3, spacer3] `shouldBe` fixedSize 8
+  
+  it "should not add spacing between invisible children" $ do
+    testStackSizeReq [spacer3, spacer3 `nodeVisible` False] `shouldBe` fixedSize 3
+  
+  where
+    wenv = mockWenv ()
+    spacer3 = spacer_ [width 3, resizeFactor 0]
+    testStackSizeReq children = sizeReqH where
+      (_sizeReqW, sizeReqH) = nodeGetSizeReq wenv vstackNode
+      vstackNode = vstack_ [childSpacing_ 2] children
+
 resize :: Spec
 resize = describe "resize" $ do
   resizeEmpty
@@ -105,6 +127,7 @@ resize = describe "resize" $ do
   resizeNoSpaceV
   resizeSpacerFlexH
   resizeSpacerFixedH
+  resizeChildSpacing
 
 resizeEmpty :: Spec
 resizeEmpty = describe "empty" $ do
@@ -365,3 +388,22 @@ resizeSpacerFixedH = describe "label fixed and spacer, horizontal" $ do
     newNode = nodeInit wenv hstackNode
     viewport = newNode ^. L.info . L.viewport
     childrenVp = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
+
+resizeChildSpacing :: Spec
+resizeChildSpacing = describe "with childSpacing" $ do
+
+  it "should add spacing between children" $
+    testStackChildLocations [spacer3, spacer3] `shouldBe`
+      Seq.fromList [Rect 0 0 640 3, Rect 0 5 640 3]
+  
+  it "should not add spacing between invisible children" $
+    testStackChildLocations [spacer3, spacer3 `nodeVisible` False, spacer3] `shouldBe`
+      Seq.fromList [Rect 0 0 640 3, Rect 0 0 0 0, Rect 0 5 640 3]
+  
+  where
+    wenv = mockWenv ()
+    spacer3 = spacer_ [width 3, resizeFactor 0]
+    testStackChildLocations children = childLocations where
+      vstackNode = vstack_ [childSpacing_ 2] children
+      newNode = nodeInit wenv vstackNode
+      childLocations = roundRectUnits . _wniViewport . _wnInfo <$> newNode ^. L.children
