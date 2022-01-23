@@ -11,7 +11,7 @@ app widget. Composite allows to split an application into reusable parts without
 the need to implement a lower level widget. It can comunicate with its parent
 component by reporting events.
 
-Requires two main functions:
+Requires two functions:
 
 - UI Builder: creates the widget tree based on the provided Widget Environment
 and model. This widget tree is made of other widgets, in general combinations of
@@ -198,14 +198,15 @@ Configuration options for composite:
   to signal that merging is required even if the model has not changed. It can
   also be used as a performance tweak if the changes do not require rebuilding
   the UI.
-- 'onInit': event to raise when the widget is created. Useful for performing all
-  kinds of initialization.
-- 'onDispose': event to raise when the widget is disposed. Used to free
-  resources.
+- 'onInit': event to raise when the widget is created. Useful for initializing
+  required resources.
+- 'onDispose': event to raise when the widget is disposed. Useful for freeing
+  acquired resources.
 - 'onResize': event to raise when the size of the widget changes.
-- 'onChange': event to raise when the size of the model changes.
-- 'onChangeReq': 'WidgetRequest' to generate when the size of the widget
-  changes.
+- 'onChange': event to raise when the model changes. The value passed to the
+  provided event is the previous version of the model. The current version of
+  the model is always available as a parameter in the `handleEvent` function.
+- 'onChangeReq': 'WidgetRequest' to generate when the model changes.
 - 'onEnabledChange': event to raise when the enabled status changes.
 - 'onVisibleChange': event to raise when the visibility changes.
 - 'compositeMergeReqs': functions to generate WidgetRequests during the merge
@@ -223,10 +224,10 @@ data CompositeCfg s e sp ep = CompositeCfg {
   _cmcModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
   _cmcMergeRequired :: Maybe (MergeRequired s),
   _cmcMergeReqs :: [MergeReqsHandler s e],
-  _cmcOnInit :: [e],
-  _cmcOnDispose :: [e],
+  _cmcOnInitReq :: [WidgetRequest s e],
+  _cmcOnDisposeReq :: [WidgetRequest s e],
   _cmcOnResize :: [Rect -> e],
-  _cmcOnChangeReq :: [s -> WidgetRequest sp ep],
+  _cmcOnChangeReq :: [s -> WidgetRequest s e],
   _cmcOnEnabledChange :: [e],
   _cmcOnVisibleChange :: [e]
 }
@@ -236,8 +237,8 @@ instance Default (CompositeCfg s e sp ep) where
     _cmcModelBuilder = Nothing,
     _cmcMergeRequired = Nothing,
     _cmcMergeReqs = [],
-    _cmcOnInit = [],
-    _cmcOnDispose = [],
+    _cmcOnInitReq = [],
+    _cmcOnDisposeReq = [],
     _cmcOnResize = [],
     _cmcOnChangeReq = [],
     _cmcOnEnabledChange = [],
@@ -249,8 +250,8 @@ instance Semigroup (CompositeCfg s e sp ep) where
     _cmcModelBuilder = _cmcModelBuilder c2 <|> _cmcModelBuilder c1,
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
     _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
-    _cmcOnInit = _cmcOnInit c1 <> _cmcOnInit c2,
-    _cmcOnDispose = _cmcOnDispose c1 <> _cmcOnDispose c2,
+    _cmcOnInitReq = _cmcOnInitReq c1 <> _cmcOnInitReq c2,
+    _cmcOnDisposeReq = _cmcOnDisposeReq c1 <> _cmcOnDisposeReq c2,
     _cmcOnResize = _cmcOnResize c1 <> _cmcOnResize c2,
     _cmcOnChangeReq = _cmcOnChangeReq c1 <> _cmcOnChangeReq c2,
     _cmcOnEnabledChange = _cmcOnEnabledChange c1 <> _cmcOnEnabledChange c2,
@@ -265,14 +266,24 @@ instance CmbMergeRequired (CompositeCfg s e sp ep) s where
     _cmcMergeRequired = Just fn
   }
 
-instance CmbOnInit (CompositeCfg s e sp ep) e where
+instance WidgetEvent e => CmbOnInit (CompositeCfg s e sp ep) e where
   onInit fn = def {
-    _cmcOnInit = [fn]
+    _cmcOnInitReq = [RaiseEvent fn]
   }
 
-instance CmbOnDispose (CompositeCfg s e sp ep) e where
+instance CmbOnInitReq (CompositeCfg s e sp ep) s e where
+  onInitReq req = def {
+    _cmcOnInitReq = [req]
+  }
+
+instance WidgetEvent e => CmbOnDispose (CompositeCfg s e sp ep) e where
   onDispose fn = def {
-    _cmcOnDispose = [fn]
+    _cmcOnDisposeReq = [RaiseEvent fn]
+  }
+
+instance CmbOnDisposeReq (CompositeCfg s e sp ep) s e where
+  onDisposeReq req = def {
+    _cmcOnDisposeReq = [req]
   }
 
 instance CmbOnResize (CompositeCfg s e sp ep) e Rect where
@@ -280,12 +291,12 @@ instance CmbOnResize (CompositeCfg s e sp ep) e Rect where
     _cmcOnResize = [fn]
   }
 
-instance WidgetEvent ep => CmbOnChange (CompositeCfg s e sp ep) s ep where
+instance WidgetEvent e => CmbOnChange (CompositeCfg s e sp ep) s e where
   onChange fn = def {
     _cmcOnChangeReq = [RaiseEvent . fn]
   }
 
-instance CmbOnChangeReq (CompositeCfg s e sp ep) sp ep s where
+instance CmbOnChangeReq (CompositeCfg s e sp ep) s e s where
   onChangeReq req = def {
     _cmcOnChangeReq = [req]
   }
@@ -325,10 +336,10 @@ data Composite s e sp ep = Composite {
   _cmpMergeRequired :: MergeRequired s,
   _cmpMergeReqs :: [MergeReqsHandler s e],
   _cmpModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
-  _cmpOnInit :: [e],
-  _cmpOnDispose :: [e],
+  _cmpOnInitReq :: [WidgetRequest s e],
+  _cmpOnDisposeReq :: [WidgetRequest s e],
   _cmpOnResize :: [Rect -> e],
-  _cmpOnChangeReq :: [s -> WidgetRequest sp ep],
+  _cmpOnChangeReq :: [s -> WidgetRequest s e],
   _cmpOnEnabledChange :: [e],
   _cmpOnVisibleChange :: [e]
 }
@@ -383,7 +394,7 @@ compositeV
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType              -- ^ The name of the composite.
   -> s                       -- ^ The model.
-  -> (s -> ep)               -- ^ The event to report when model changes.
+  -> (s -> e)                -- ^ The event to report when model changes.
   -> UIBuilder s e           -- ^ The UI builder function.
   -> EventHandler s e sp ep  -- ^ The event handler.
   -> WidgetNode sp ep        -- ^ The resulting widget.
@@ -398,7 +409,7 @@ compositeV_
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
   => WidgetType                -- ^ The name of the composite.
   -> s                         -- ^ The model.
-  -> (s -> ep)                 -- ^ The event to report when model changes.
+  -> (s -> e)                  -- ^ The event to report when model changes.
   -> UIBuilder s e             -- ^ The UI builder function.
   -> EventHandler s e sp ep    -- ^ The event handler.
   -> [CompositeCfg s e sp ep]  -- ^ The config options.
@@ -428,8 +439,8 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpMergeRequired = mergeReq,
     _cmpMergeReqs = _cmcMergeReqs config,
     _cmpModelBuilder = _cmcModelBuilder config,
-    _cmpOnInit = _cmcOnInit config,
-    _cmpOnDispose = _cmcOnDispose config,
+    _cmpOnInitReq = _cmcOnInitReq config,
+    _cmpOnDisposeReq = _cmcOnDisposeReq config,
     _cmpOnResize = _cmcOnResize config,
     _cmpOnChangeReq = _cmcOnChangeReq config,
     _cmpOnEnabledChange = _cmcOnEnabledChange config,
@@ -491,11 +502,11 @@ compositeInit comp state wenv widgetComp = newResult where
     _cpsWidgetKeyMap = collectWidgetKeys M.empty root
   }
 
-  !newEvts = RaiseEvent <$> Seq.fromList (_cmpOnInit comp)
-
   getBaseStyle wenv node = Nothing
   styledComp = initNodeStyle getBaseStyle wenv widgetComp
-  tempResult = WidgetResult root (RenderOnce <| reqs <> newEvts)
+
+  initReqs = Seq.fromList (_cmpOnInitReq comp)
+  tempResult = WidgetResult root (RenderOnce <| reqs <> initReqs)
   !newResult = toParentResult comp newState wenv styledComp tempResult
 
 -- | Merge
@@ -586,10 +597,11 @@ compositeDispose comp state wenv widgetComp = result where
   model = getCompositeModel state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   widget = _cpsRoot ^. L.widget
-  newEvts = RaiseEvent <$> Seq.fromList (_cmpOnDispose comp)
 
   WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
-  tempResult = WidgetResult _cpsRoot (reqs <> newEvts)
+
+  disposeReqs = Seq.fromList (_cmpOnDisposeReq comp)
+  tempResult = WidgetResult _cpsRoot (reqs <> disposeReqs)
   result = toParentResult comp state wenv widgetComp tempResult
 
 compositeGetInstanceTree
@@ -911,8 +923,9 @@ mergeChild
   -> WidgetNode s e
   -> WidgetNode sp ep
   -> WidgetResult sp ep
-mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
+mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
   CompositeState{..} = state
+  oldModel = getCompositeModel state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap newModel
   widgetId = _cpsRoot ^. L.info . L.widgetId
   builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
@@ -927,12 +940,14 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = newResult where
     _cpsRoot = mergedResult ^. L.node,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
-  !result = toParentResult comp mergedState wenv widgetComp mergedResult
-  !newReqs = widgetDataSet (_cmpWidgetData comp) newModel
-    ++ fmap ($ newModel) (_cmpOnChangeReq comp)
+  childReqs = fmap ($ oldModel) (_cmpOnChangeReq comp)
+  parentReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ [ResizeWidgets widgetId | initRequired]
-  !newResult = result
-    & L.requests <>~ Seq.fromList newReqs
+  childResult = mergedResult
+    & L.requests <>~ Seq.fromList childReqs
+  result = toParentResult comp mergedState wenv widgetComp childResult
+  parentResult = result
+    & L.requests .~ Seq.fromList parentReqs <> result ^. L.requests
 
 getUserModel
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)

@@ -1,3 +1,17 @@
+## 1.4.0.0 (in development)
+
+### Changed
+
+- `Composite`'s `onChange` event is now sent to its `handleEvent` function, not to its parent; the type of the
+  generated event was updated to reflect this change. The rationale is that since `onInit` is sent to
+  `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
+  in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
+  use `Report`/`RequestParent`; an example can be found in `ColorPicker`.
+
+### Removed
+
+- Dependencies on `OpenGL`, `Safe`, `scientific`, `unordered-containers`, `directory`, `HUnit` and `silently`.
+
 ## 1.3.0.0
 
 ### Added

@@ -259,7 +259,7 @@ handleResizeWidgets
   -> m (HandlerStep s e)  -- ^ Updated state/"HandlerStep".
 handleResizeWidgets previousStep = do
   windowSize <- use L.windowSize
-  resizeCheckFn <- makeResizeChechFn
+  resizeCheckFn <- makeResizeCheckFn
 
   let viewport = Rect 0 0 (windowSize ^. L.w) (windowSize ^. L.h)
   let (wenv, root, reqs) = previousStep
@@ -276,7 +276,7 @@ handleResizeWidgets previousStep = do
 
   return (wenv2, root2, reqs <> reqs2)
   where
-    makeResizeChechFn = do
+    makeResizeCheckFn = do
       resizeRequests <- use L.resizeRequests
       paths <- mapM getWidgetIdPath resizeRequests
       let parts = Set.fromDistinctAscList . drop 1 . toList . Seq.inits
