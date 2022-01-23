@@ -68,3 +68,8 @@ clamp mn mx = max mn . min mx
 -- | Catches any exception thrown by the provided action
 catchAny :: IO a -> (SomeException -> IO a) -> IO a
 catchAny = catch
+
+-- | Returns Just the first item if the list is not empty, Nothing otherwise.
+headMay :: [a] -> Maybe a
+headMay [] = Nothing
+headMay (x : _) = Just x
