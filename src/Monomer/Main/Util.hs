@@ -25,7 +25,6 @@ import Safe (headMay)
 
 import qualified Data.Sequence as Seq
 import qualified Data.Map as Map
-import qualified Graphics.Rendering.OpenGL as GL
 import qualified SDL
 
 import Monomer.Core

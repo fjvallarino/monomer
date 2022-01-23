@@ -156,7 +156,7 @@ library
       c2hs
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -202,7 +202,7 @@ executable books
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , aeson >=1.4 && <2.3
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
@@ -246,7 +246,7 @@ executable generative
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -288,7 +288,6 @@ executable opengl
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
     , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
@@ -332,7 +331,7 @@ executable ticker
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , aeson >=1.4 && <2.3
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
@@ -377,7 +376,7 @@ executable todo
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -425,7 +424,7 @@ executable tutorial
   ghc-options: -threaded
   build-depends:
       JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
@@ -448,7 +447,7 @@ executable tutorial
     , stm ==2.5.*
     , text >=1.2 && <2.1
     , text-show >=3.7 && <3.10
-    , time >=1.8 && <1.13
+    , time >=1.8 && <1.16
     , transformers >=0.5 && <0.7
     , unordered-containers >=0.2.8 && <0.3
     , vector >=0.12 && <0.14
@@ -514,7 +513,7 @@ test-suite monomer-test
   build-depends:
       HUnit ==1.6.*
     , JuicyPixels >=3.2.9 && <3.5
-    , OpenGL ==3.0.*
+    , OpenGLRaw ==3.3.*
     , async >=2.1 && <2.3
     , attoparsec >=0.12 && <0.15
     , base >=4.11 && <5
