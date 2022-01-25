@@ -165,6 +165,14 @@ rectBoundedPoint (Rect rx ry rw rh) (Point px py) = Point px2 py2 where
   px2 = max rx . min (rx + rw) $ px
   py2 = max ry . min (ry + rh) $ py
 
+-- | Returns a rect using the provided points as boundaries
+rectFromPoints :: Point -> Point -> Rect
+rectFromPoints (Point x1 y1) (Point x2 y2) = Rect x y w h where
+  x = min x1 x2
+  y = min y1 y2
+  w = abs (x2 - x1)
+  h = abs (y2 - y1)
+
 -- | Adds individual x, y, w and h coordinates to a rect.
 addToRect :: Rect -> Double -> Double -> Double -> Double -> Maybe Rect
 addToRect (Rect x y w h) l r t b = newRect where
