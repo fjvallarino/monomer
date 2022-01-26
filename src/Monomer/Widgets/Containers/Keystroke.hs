@@ -216,6 +216,7 @@ partToStroke ks "Option" = ks & ksAlt .~ True
 partToStroke ks "S" = ks & ksShift .~ True
 partToStroke ks "Shift" = ks & ksShift .~ True
 -- Main keys
+partToStroke ks "Backspace" = ks & ksKeys %~ Set.insert keyBackspace
 partToStroke ks "Caps" = ks & ksKeys %~ Set.insert keyCapsLock
 partToStroke ks "Delete" = ks & ksKeys %~ Set.insert keyDelete
 partToStroke ks "Enter" = ks & ksKeys %~ Set.insert keyReturn
