@@ -557,7 +557,7 @@ findByPath = describe "findByPath" $ do
     cmpNode = findByHelperUI
     wni path = res where
       inode = nodeInit wenv cmpNode
-      res = findWidgetByPath wenv inode path
+      res = findChildNodeInfoByPath wenv inode path
 
 findNextFocus :: Spec
 findNextFocus = describe "findNextFocus" $ do

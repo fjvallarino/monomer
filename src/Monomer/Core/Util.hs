@@ -8,11 +8,12 @@ Portability : non-portable
 
 Helper functions for Core types.
 -}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Monomer.Core.Util where
 
-import Control.Lens ((&), (^.), (.~), (?~))
+import Control.Lens ((&), (^.), (^?), (.~), (?~), _Just)
 import Data.Maybe
 import Data.Text (Text)
 import Data.Typeable (cast)
@@ -29,31 +30,63 @@ import Monomer.Helper
 
 import qualified Monomer.Core.Lens as L
 
--- | Returns the path associated to a given key, if any.
+-- | Returns the 'Path' associated to a given 'WidgetKey', if any. The search is
+--   restricted to the parent 'Composite'.
 pathFromKey :: WidgetEnv s e -> WidgetKey -> Maybe Path
 pathFromKey wenv key = fmap (^. L.info . L.path) node where
   node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
--- | Returns the widgetId associated to a given key, if any.
+-- | Returns the 'WidgetId' associated to a given 'WidgetKey', if any. The
+--   search is restricted to the parent 'Composite'.
 widgetIdFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetId
 widgetIdFromKey wenv key = fmap (^. L.info . L.widgetId) node where
   node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
--- | Returns the node info associated to a given path.
-findWidgetByPath
+-- | Returns the 'WidgetNodeInfo' associated to the given 'WidgetKey', if any.
+--   The search is restricted to the parent 'Composite'.
+nodeInfoFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetNodeInfo
+nodeInfoFromKey wenv key = fmap (^. L.info) node where
+  node = Map.lookup key (wenv ^. L.widgetKeyMap)
+
+-- | Returns the 'WidgetId' associated to the given 'Path', if any.
+widgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
+widgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
+  branch = wenv ^. L.findBranchByPath $ path
+  mwni = Seq.lookup (length branch - 1) branch
+
+-- | Returns the 'WidgetNodeInfo' associated to the given 'Path', if any.
+nodeInfoFromPath :: WidgetEnv s e -> Path -> Maybe WidgetNodeInfo
+nodeInfoFromPath wenv path = mwni where
+  branch = wenv ^. L.findBranchByPath $ path
+  mwni = Seq.lookup (length branch - 1) branch
+
+-- | Returns the 'WidgetNodeInfo' associated to a given 'Path'. The path will be
+--   searched for starting from the provided 'WidgetNode'.
+findChildNodeInfoByPath
   :: WidgetEnv s e -> WidgetNode s e -> Path -> Maybe WidgetNodeInfo
-findWidgetByPath wenv node target = mnode where
+findChildNodeInfoByPath wenv node target = mnode where
   branch = widgetFindBranchByPath (node ^. L.widget) wenv node target
   mnode = case Seq.lookup (length branch - 1) branch of
     Just child
       | child ^. L.path == target -> Just child
     _ -> Nothing
 
--- | Returns the complete node info branch associated to a given path.
-findWidgetBranchByPath
+-- | Returns the 'WidgetNodeInfo' branch associated to a given 'Path'. The path
+--   will be searched for starting from the provided 'WidgetNode'.
+findChildBranchByPath
   :: WidgetEnv s e -> WidgetNode s e -> Path -> Seq WidgetNodeInfo
-findWidgetBranchByPath wenv node target = branch where
+findChildBranchByPath wenv node target = branch where
   branch = widgetFindBranchByPath (node ^. L.widget) wenv node target
+
+-- | Returns the first parent 'WidgetNodeInfo' of the 'Path' that matches the
+--   given 'WidgetType'.
+findParentNodeInfoByType
+  :: WidgetEnv s e -> Path -> WidgetType -> Maybe WidgetNodeInfo
+findParentNodeInfoByType wenv path wtype = wniParent where
+  isMatch wni = wni ^. L.widgetType == wtype
+  branch = wenv ^. L.findBranchByPath $ path
+  matches = Seq.filter isMatch branch
+  wniParent = Seq.lookup (length matches - 1) matches
 
 -- | Helper functions that associates False to Vertical and True to Horizontal.
 getLayoutDirection :: Bool -> LayoutDirection

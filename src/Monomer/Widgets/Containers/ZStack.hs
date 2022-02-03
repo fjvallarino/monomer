@@ -127,7 +127,7 @@ makeZStack config state = widget where
     ZStackState oldFocusMap oldTopIdx = oldState
     children = node ^. L.children
     focusedPath = wenv ^. L.focusedPath
-    focusedWid = findWidgetIdFromPath wenv focusedPath
+    focusedWid = widgetIdFromPath wenv focusedPath
     isFocusParent = isNodeParentOfPath node focusedPath
 
     topLevel = isNodeTopLevel wenv node
