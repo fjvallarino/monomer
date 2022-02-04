@@ -54,6 +54,10 @@ widgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
   branch = wenv ^. L.findBranchByPath $ path
   mwni = Seq.lookup (length branch - 1) branch
 
+{-# DEPRECATED findWidgetIdFromPath "Use 'widgetIdFromPath' instead." #-}
+findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
+findWidgetIdFromPath = widgetIdFromPath
+
 -- | Returns the 'WidgetNodeInfo' associated to the given 'Path', if any.
 nodeInfoFromPath :: WidgetEnv s e -> Path -> Maybe WidgetNodeInfo
 nodeInfoFromPath wenv path = mwni where
@@ -71,12 +75,22 @@ findChildNodeInfoByPath wenv node target = mnode where
       | child ^. L.path == target -> Just child
     _ -> Nothing
 
+{-# DEPRECATED findWidgetByPath "Use 'findChildNodeInfoByPath' instead." #-}
+findWidgetByPath
+  :: WidgetEnv s e -> WidgetNode s e -> Path -> Maybe WidgetNodeInfo
+findWidgetByPath = findChildNodeInfoByPath
+
 -- | Returns the 'WidgetNodeInfo' branch associated to a given 'Path'. The path
 --   will be searched for starting from the provided 'WidgetNode'.
 findChildBranchByPath
   :: WidgetEnv s e -> WidgetNode s e -> Path -> Seq WidgetNodeInfo
 findChildBranchByPath wenv node target = branch where
   branch = widgetFindBranchByPath (node ^. L.widget) wenv node target
+
+{-# DEPRECATED findWidgetBranchByPath "Use 'findChildBranchByPath' instead." #-}
+findWidgetBranchByPath
+  :: WidgetEnv s e -> WidgetNode s e -> Path -> Seq WidgetNodeInfo
+findWidgetBranchByPath = findChildBranchByPath
 
 -- | Returns the first parent 'WidgetNodeInfo' of the 'Path' that matches the
 --   given 'WidgetType'.
