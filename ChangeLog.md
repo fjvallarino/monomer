@@ -1,5 +1,9 @@
 ## 1.4.0.0 (in development)
 
+### Added
+
+- Utility functions `rectFromPoints`, `nodeInfoFromKey`, `nodeInfoFromPath` and `findParentNodeInfoByType`.
+
 ### Changed
 
 - `Composite`'s `onChange` event is now sent to its `handleEvent` function, not to its parent; the type of the
@@ -7,6 +11,13 @@
   `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
   in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
   use `Report`/`RequestParent`; an example can be found in `ColorPicker`.
+- The `keystroke` widget now supports `Backspace` key.
+
+### Renamed
+
+- `findWidgetByPath` -> `findChildNodeInfoByPath`.
+- `findWidgetBranchByPath` -> `findChildBranchByPath`.
+- `findWidgetIdFromPath` -> `widgetIdFromPath`.
 
 ### Removed
 

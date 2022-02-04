@@ -33,7 +33,6 @@ module Monomer.Widgets.Util.Widget (
   infoMatches,
   nodeMatches,
   handleWidgetIdChange,
-  findWidgetIdFromPath,
   delayedMessage,
   delayedMessage_
 ) where
@@ -201,12 +200,6 @@ handleWidgetIdChange oldNode result = newResult where
     | oldPath /= newPath = result
         & L.requests %~ (SetWidgetPath widgetId newPath <|)
     | otherwise = result
-
--- | Returns the WidgetId associated to the given path, if any.
-findWidgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
-findWidgetIdFromPath wenv path = mwni ^? _Just . L.widgetId where
-  branch = wenv ^. L.findBranchByPath $ path
-  mwni = Seq.lookup (length branch - 1) branch
 
 -- | Sends a message to the given node with a delay of n ms.
 delayedMessage :: Typeable i => WidgetNode s e -> i -> Int -> WidgetRequest s e

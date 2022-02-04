@@ -88,7 +88,7 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
     let (curWenv, curRoot, curReqs) = curStep
     let target = fromMaybe focused evtTarget
     let curWidget = curRoot ^. L.widget
-    let targetWni = evtTarget >>= findWidgetByPath curWenv curRoot
+    let targetWni = evtTarget >>= findChildNodeInfoByPath curWenv curRoot
     let targetWid = (^. L.widgetId) <$> targetWni
 
     when (isOnEnter evt) $
@@ -107,7 +107,7 @@ handleSystemEvents wenv widgetRoot baseEvents = nextStep where
           & L.hoveredPath .~ hoveredPath
           & L.mainBtnPress .~ mainBtnPress
           & L.inputStatus .~ inputStatus
-    let findBranchByPath path = findWidgetBranchByPath tmpWenv curRoot path
+    let findBranchByPath path = findChildBranchByPath tmpWenv curRoot path
     let newWenv = tmpWenv
           & L.findBranchByPath .~ findBranchByPath
     (wenv2, root2, reqs2) <- handleSystemEvent newWenv curRoot evt target
@@ -828,7 +828,7 @@ findNextFocus wenv dir start overlay widgetRoot = fromJust nextFocus where
   restartPath = fromMaybe emptyPath overlay
   candidateWni = widgetFindNextFocus widget wenv widgetRoot dir start
   fromRootWni = widgetFindNextFocus widget wenv widgetRoot dir restartPath
-  focusWni = fromMaybe def (findWidgetByPath wenv widgetRoot start)
+  focusWni = fromMaybe def (findChildNodeInfoByPath wenv widgetRoot start)
   nextFocus = candidateWni <|> fromRootWni <|> Just focusWni
 
 dropNonParentWidgetId

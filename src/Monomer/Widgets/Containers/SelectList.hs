@@ -406,7 +406,7 @@ makeSelectList widgetData items makeRow config state = widget where
 
   itemScrollTo wenv node idx = maybeToList (scrollToReq <$> mwid <*> vp) where
     vp = itemViewport node idx
-    mwid = findWidgetIdFromPath wenv (parentPath node)
+    mwid = widgetIdFromPath wenv (parentPath node)
     scrollToReq wid rect = SendMessage wid (ScrollTo rect)
 
   itemViewport node idx = viewport where

@@ -108,11 +108,12 @@ mostly internal, unless you are writing custom widgets or making WidgetRequests:
 
 There are a couple of functions you can use to get the WidgetId of a node:
 
-- If you have a Path, you can call `findWidgetByPath`. If the path is valid, it
-  returns a `WidgetNodeInfo` instance which, among other node related data, has
-  the WidgetId.
-- If you have a key, you can call `widgetIdFromKey` which returns the WidgetId
-  if the Path is valid. There is also a `pathFromKey` to get the Path instead.
+- If you have a key you can call `widgetIdFromKey`, which returns a WidgetId if
+  the Path is valid. There is also a `pathFromKey` to get the Path instead.
+- If you have a Path you can call `widgetIdFromPath`, which returns a WidgetId
+  if the Path is valid.
+- Alternatively, you can call `nodeInfoFromKey` or `nodeInfoFromPath` to get all
+  the information about a node (including the key, path and widgetId).
 
 ## New Widgets
 
