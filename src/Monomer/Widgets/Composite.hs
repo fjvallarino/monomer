@@ -941,8 +941,8 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
     _cpsRoot = mergedResult ^. L.node,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
-  onChangeReqs = Seq.fromList . catMaybes $
-    fmap (\fn -> toParentReq compWid (fn oldModel)) (_cmpOnChangeReq comp)
+  onChangeReqs = Seq.fromList $
+    mapMaybe (\fn -> toParentReq compWid (fn oldModel)) (_cmpOnChangeReq comp)
   parentReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ [ResizeWidgets widgetId | initRequired]
   result = toParentResult comp mergedState wenv widgetComp mergedResult
