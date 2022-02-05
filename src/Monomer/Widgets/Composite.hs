@@ -927,6 +927,7 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
   CompositeState{..} = state
   oldModel = getCompositeModel state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap newModel
+  compWid = widgetComp ^. L.info . L.widgetId
   widgetId = _cpsRoot ^. L.info . L.widgetId
   builtRoot = cascadeCtx wenv widgetComp (_cmpUiBuilder comp cwenv newModel)
       & L.info . L.widgetId .~ widgetId
@@ -940,14 +941,13 @@ mergeChild comp state wenv newModel widgetRoot widgetComp = parentResult where
     _cpsRoot = mergedResult ^. L.node,
     _cpsWidgetKeyMap = collectWidgetKeys M.empty (mergedResult ^. L.node)
   }
-  childReqs = fmap ($ oldModel) (_cmpOnChangeReq comp)
+  onChangeReqs = Seq.fromList . catMaybes $
+    fmap (\fn -> toParentReq compWid (fn oldModel)) (_cmpOnChangeReq comp)
   parentReqs = widgetDataSet (_cmpWidgetData comp) newModel
     ++ [ResizeWidgets widgetId | initRequired]
-  childResult = mergedResult
-    & L.requests <>~ Seq.fromList childReqs
-  result = toParentResult comp mergedState wenv widgetComp childResult
+  result = toParentResult comp mergedState wenv widgetComp mergedResult
   parentResult = result
-    & L.requests .~ Seq.fromList parentReqs <> result ^. L.requests
+    & L.requests <>~ (Seq.fromList parentReqs <> onChangeReqs)
 
 getUserModel
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
