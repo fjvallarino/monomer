@@ -62,6 +62,7 @@ main01 = do
   where
     config = [
       appWindowTitle "Tutorial 01 - Basics",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit

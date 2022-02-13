@@ -80,6 +80,7 @@ main05 = do
   where
     config = [
       appWindowTitle "Tutorial 05 - Producers",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Bold" "./assets/fonts/Roboto-Bold.ttf",

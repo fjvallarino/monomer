@@ -245,6 +245,7 @@ main = do
   where
     config = [
       appWindowTitle "Todo list",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",

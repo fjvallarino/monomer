@@ -168,6 +168,7 @@ main07 = do
   where
     config = [
       appWindowTitle "Tutorial 07 - Custom Widget",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf"
       ]
