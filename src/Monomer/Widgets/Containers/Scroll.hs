@@ -484,7 +484,10 @@ makeScroll config state = widget where
       follow = fromMaybe (theme ^. L.scrollFollowFocus) (_scFollowFocus config)
       overlayMatch = focusOverlay == inOverlay (node ^. L.info)
 
+      fwdFocus = Just (resultReqs node [MoveFocus Nothing FocusFwd])
+
       result
+        | target == node ^. L.info . L.path = fwdFocus
         | follow && overlayMatch = focusVp >>= scrollTo wenv node
         | otherwise = Nothing
 
