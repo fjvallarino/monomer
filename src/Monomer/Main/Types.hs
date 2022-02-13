@@ -153,6 +153,8 @@ data AppConfig e = AppConfig {
   _apcWindowResizable :: Maybe Bool,
   -- | Whether the main window has a border.
   _apcWindowBorder :: Maybe Bool,
+  -- | Path to an icon file in BMP format.
+  _apcWindowIcon :: Maybe Text,
   -- | Whether a separate render thread should be used. Defaults to True.
   _apcUseRenderThread :: Maybe Bool,
   {-|
@@ -200,6 +202,7 @@ instance Default (AppConfig e) where
     _apcWindowTitle = Nothing,
     _apcWindowResizable = Nothing,
     _apcWindowBorder = Nothing,
+    _apcWindowIcon = Nothing,
     _apcUseRenderThread = Nothing,
     _apcMaxFps = Nothing,
     _apcScaleFactor = Nothing,
@@ -222,6 +225,7 @@ instance Semigroup (AppConfig e) where
     _apcWindowTitle = _apcWindowTitle a2 <|> _apcWindowTitle a1,
     _apcWindowResizable = _apcWindowResizable a2 <|> _apcWindowResizable a1,
     _apcWindowBorder = _apcWindowBorder a2 <|> _apcWindowBorder a1,
+    _apcWindowIcon = _apcWindowIcon a2 <|> _apcWindowIcon a1,
     _apcUseRenderThread = _apcUseRenderThread a2 <|> _apcUseRenderThread a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcScaleFactor = _apcScaleFactor a2 <|> _apcScaleFactor a1,
@@ -263,6 +267,12 @@ appWindowResizable resizable = def {
 appWindowBorder :: Bool -> AppConfig e
 appWindowBorder border = def {
   _apcWindowBorder = Just border
+}
+
+-- | Path to an icon file in BMP format.
+appWindowIcon :: Text -> AppConfig e
+appWindowIcon path = def {
+  _apcWindowIcon = Just path
 }
 
 {-|

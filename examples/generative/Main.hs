@@ -112,6 +112,7 @@ main = do
     model = GenerativeModel CirclesGrid False def def
     config = [
       appWindowTitle "Generative",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme darkTheme,
       appFontDef "Remix" "./assets/fonts/remixicon.ttf",
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",

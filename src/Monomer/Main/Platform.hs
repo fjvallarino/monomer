@@ -22,6 +22,7 @@ module Monomer.Main.Platform (
   getDisplayDPI
 ) where
 
+import Control.Exception (finally)
 import Control.Monad (void)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.State
@@ -38,6 +39,8 @@ import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
 import qualified SDL.Raw as Raw
 import qualified SDL.Raw.Error as SRE
+import qualified SDL.Internal.Types as SIT
+import qualified SDL.Video.Renderer as SVR
 
 import Monomer.Common
 import Monomer.Core.StyleTypes
@@ -91,6 +94,8 @@ initSDLWindow config = do
         | platform `elem` ["Windows", "Linux"] = (scaleFactor, 1 / scaleFactor)
         | otherwise = (scaleFactor * contentRatio, 1 / scaleFactor) -- macOS
 
+  setWindowIcon window config
+
   whenJust (_apcWindowTitle config) $ \title ->
     SDL.windowTitle window $= title
 
@@ -134,6 +139,16 @@ initSDLWindow config = do
     windowMaximized = case _apcWindowState config of
       Just MainWindowMaximized -> True
       _ -> False
+
+setWindowIcon :: SDL.Window -> AppConfig e -> IO ()
+setWindowIcon (SIT.Window winPtr) config =
+  forM_ (_apcWindowIcon config) $ \iconPath -> do
+    iconSurface <- SVR.loadBMP (T.unpack iconPath)
+    let SVR.Surface iconSurfacePtr _ = iconSurface
+    finally
+      -- Note: this can use the high-level setWindowIcon once it is available (https://github.com/haskell-game/sdl2/pull/243)
+      (Raw.setWindowIcon winPtr iconSurfacePtr)
+      (SVR.freeSurface iconSurface)
 
 -- | Destroys the provided window, shutdowns the video subsystem and SDL.
 detroySDLWindow :: SDL.Window -> IO ()

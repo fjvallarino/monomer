@@ -106,6 +106,7 @@ main02 = do
   where
     config = [
       appWindowTitle "Tutorial 02 - Styling",
+      appWindowIcon "./assets/images/icon.bmp",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Medium" "./assets/fonts/Roboto-Medium.ttf",
