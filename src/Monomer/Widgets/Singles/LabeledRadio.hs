@@ -59,6 +59,7 @@ Configuration options for labeledRadio:
     - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
     - 'ellipsis': if ellipsis should be used for overflown text.
     - 'multiline': if text may be split in multiple lines.
+    - lineBreak': how to break texts into lines.
     - 'maxLines': maximum number of text lines to show.
     - 'resizeFactor': flexibility to have more or less spaced assigned.
     - 'resizeFactorW': flexibility for more or less horizontal spaced assigned.
@@ -143,6 +144,11 @@ instance CmbEllipsis (LabeledRadioCfg s e a) where
 instance CmbMultiline (LabeledRadioCfg s e a) where
   multiline_ multi = def {
     _lchLabelCfg = multiline_ multi
+  }
+
+instance CmbLineBreak (LabeledRadioCfg s e a) where
+  lineBreak l = def {
+    _lchLabelCfg = lineBreak l
   }
 
 instance CmbMaxLines (LabeledRadioCfg s e a) where

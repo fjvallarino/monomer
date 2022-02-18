@@ -53,7 +53,7 @@ calcTextSize
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
 calcTextSize fontMgr style !text = size where
-  size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
+  size = calcTextSize_ fontMgr style SingleLine KeepSpaces OnSpaces Nothing Nothing text
 
 -- | Returns the size a given text an style will take.
 calcTextSize_
@@ -61,17 +61,18 @@ calcTextSize_
   -> StyleState    -- ^ The style.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> LineBreak     -- ^ How to break texts into lines.
   -> Maybe Double  -- ^ Optional max width (needed for multiline).
   -> Maybe Int     -- ^ Optional max lines.
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
-calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
+calcTextSize_ fontMgr style mode trim break mwidth mlines text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
   !metrics = computeTextMetrics fontMgr font fontSize
   width = fromMaybe maxNumericValue mwidth
 
-  textLinesW = fitTextToWidth fontMgr style width trim text
+  textLinesW = fitTextToWidth fontMgr style width trim break text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
     | isJust mlines = Seq.take (fromJust mlines) textLinesW
@@ -94,11 +95,12 @@ fitTextToSize
   -> TextOverflow  -- ^ Whether to clip or use ellipsis.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> LineBreak     -- ^ How to break texts into lines.
   -> Maybe Int     -- ^ Optional max lines.
   -> Size          -- ^ The bounding size.
   -> Text          -- ^ The text to fit.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
+fitTextToSize fontMgr style ovf mode trim break mlines !size !text = newLines where
   Size cw ch = size
   font = styleFont style
   fontSize = styleFontSize style
@@ -111,7 +113,7 @@ fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
 
-  textLinesW = fitTextToWidth fontMgr style fitW trim text
+  textLinesW = fitTextToWidth fontMgr style fitW trim break text
   firstLine = Seq.take 1 textLinesW
   isMultiline = mode == MultiLine
   ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. L.w > cw
@@ -128,9 +130,10 @@ fitTextToWidth
   -> StyleState    -- ^ The style.
   -> Double        -- ^ The maximum width.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
+  -> LineBreak     -- ^ How to break texts into lines.
   -> Text          -- ^ The text to calculate.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToWidth fontMgr style width trim text = resultLines where
+fitTextToWidth fontMgr style width trim break text = resultLines where
   font = styleFont style
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
@@ -138,7 +141,7 @@ fitTextToWidth fontMgr style width trim text = resultLines where
   lineH = _txmLineH metrics
 
   !metrics = computeTextMetrics fontMgr font fSize
-  fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics
+  fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics break
 
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
@@ -261,19 +264,20 @@ fitLineToW
   -> FontSpace
   -> FontSpace
   -> TextMetrics
+  -> LineBreak
   -> Double
   -> Double
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitLineToW fontMgr font fSize fSpcH fSpcV metrics top width trim text = res where
+fitLineToW fontMgr font fSize fSpcH fSpcV metrics break top width trim text = res where
   spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
   !glyphs = computeGlyphsPos fontMgr font fSize fSpcH newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
   keepTailSpaces = trim == TrimSpaces
-  groups = fitGroups (splitGroups glyphs) width keepTailSpaces
+  groups = fitGroups (splitGroups break glyphs) width keepTailSpaces
   resetGroups
     | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
@@ -413,13 +417,14 @@ isSpaceGroup :: Seq GlyphPos -> Bool
 isSpaceGroup Empty = False
 isSpaceGroup (g :<| gs) = isSpace (_glpGlyph g)
 
-splitGroups :: Seq GlyphPos -> Seq GlyphGroup
-splitGroups Empty = Empty
-splitGroups glyphs = group <| splitGroups rest where
+splitGroups :: LineBreak -> Seq GlyphPos -> Seq GlyphGroup
+splitGroups _ Empty = Empty
+splitGroups break glyphs = group <| splitGroups break rest where
   g :<| gs = glyphs
   groupWordFn = not . isWordDelimiter . _glpGlyph
+  atAnyPos = break == OnCharacters
   (group, rest)
-    | isWordDelimiter (_glpGlyph g) = (Seq.singleton g, gs)
+    | atAnyPos || isWordDelimiter (_glpGlyph g) = (Seq.singleton g, gs)
     | otherwise = Seq.spanl groupWordFn glyphs
 
 resetGlyphs :: Seq GlyphPos -> Seq GlyphPos

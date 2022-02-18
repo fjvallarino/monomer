@@ -919,7 +919,7 @@ updatePlaceholder wenv node !state !config = newState where
     & L.text . non def . L.alignH ?~ inputFieldAlignH style
     & L.text . non def . L.alignV ?~ inputFieldAlignV style
   text = _ifcPlaceholder config
-  fitText = fitTextToSize fontMgr pstyle Ellipsis MultiLine KeepSpaces Nothing
+  fitText = fitTextToSize fontMgr pstyle Ellipsis MultiLine KeepSpaces OnSpaces Nothing
   lines
     | isJust text = fitText size (fromJust text)
     | otherwise = Seq.empty

@@ -80,6 +80,7 @@ Configuration options for optionButton:
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
+- 'lineBreak': how to break texts into lines.
 - 'maxLines': maximum number of text lines to show.
 - 'resizeFactor': flexibility to have more or less spaced assigned.
 - 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
@@ -141,6 +142,11 @@ instance CmbEllipsis (OptionButtonCfg s e a) where
 instance CmbMultiline (OptionButtonCfg s e a) where
   multiline_ multi = def {
     _obcLabelCfg = multiline_ multi
+  }
+
+instance CmbLineBreak (OptionButtonCfg s e a) where
+  lineBreak l = def {
+    _obcLabelCfg = lineBreak l
   }
 
 instance CmbMaxLines (OptionButtonCfg s e a) where

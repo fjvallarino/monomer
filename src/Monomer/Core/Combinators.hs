@@ -139,6 +139,10 @@ class CmbTrimSpaces t where
   trimSpaces = trimSpaces_ True
   trimSpaces_ :: Bool -> t
 
+-- | How to break texts into lines.
+class CmbLineBreak t where
+  lineBreak :: LineBreak -> t
+
 -- | Whether to automatically select a value on blur (for example, dropdown).
 class CmbSelectOnBlur t where
   selectOnBlur :: t

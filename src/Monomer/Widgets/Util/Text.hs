@@ -40,7 +40,7 @@ getTextMetrics wenv style = textMetrics where
 getTextSize :: WidgetEnv s e -> StyleState -> Text -> Size
 getTextSize wenv style text = size where
   fontMgr = wenv ^. L.fontManager
-  size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
+  size = calcTextSize_ fontMgr style SingleLine KeepSpaces OnSpaces Nothing Nothing text
 
 -- | Returns the size of the text using the active style.
 getTextSize_
@@ -48,13 +48,14 @@ getTextSize_
   -> StyleState     -- ^ The active style.
   -> TextMode       -- ^ Whether to use single or multi line.
   -> TextTrim       -- ^ Whether to trim spacers or keep them.
+  -> LineBreak      -- ^ How to break texts into lines.
   -> Maybe Double   -- ^ Maximum width (required for multi line).
   -> Maybe Int      -- ^ Max lines.
   -> Text           -- ^ Text to measure.
   -> Size           -- ^ The calculated size.
-getTextSize_ wenv style mode trim mwidth mlines text = newSize where
+getTextSize_ wenv style mode trim break mwidth mlines text = newSize where
   fontMgr = wenv ^. L.fontManager
-  newSize = calcTextSize_ fontMgr style mode trim mwidth mlines text
+  newSize = calcTextSize_ fontMgr style mode trim break mwidth mlines text
 
 -- | Returns the rect a single line of text needs to be displayed completely.
 getSingleTextLineRect
