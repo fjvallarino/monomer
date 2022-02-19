@@ -49,7 +49,6 @@ Configuration options for button:
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
-- 'lineBreak': how to break texts into lines.
 - 'maxLines': maximum number of text lines to show.
 - 'resizeFactor': flexibility to have more or less spaced assigned.
 - 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
@@ -111,11 +110,6 @@ instance CmbEllipsis (ButtonCfg s e) where
 instance CmbMultiline (ButtonCfg s e) where
   multiline_ multi = def {
     _btnLabelCfg = multiline_ multi
-  }
-
-instance CmbLineBreak (ButtonCfg s e) where
-  lineBreak l = def {
-    _btnLabelCfg = lineBreak l
   }
 
 instance CmbMaxLines (ButtonCfg s e) where

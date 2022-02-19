@@ -53,7 +53,7 @@ calcTextSize
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
 calcTextSize fontMgr style !text = size where
-  size = calcTextSize_ fontMgr style SingleLine KeepSpaces OnSpaces Nothing Nothing text
+  size = calcTextSize_ fontMgr style SingleLine KeepSpaces Nothing Nothing text
 
 -- | Returns the size a given text an style will take.
 calcTextSize_
@@ -61,18 +61,17 @@ calcTextSize_
   -> StyleState    -- ^ The style.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
-  -> LineBreak     -- ^ How to break texts into lines.
   -> Maybe Double  -- ^ Optional max width (needed for multiline).
   -> Maybe Int     -- ^ Optional max lines.
   -> Text          -- ^ The text to calculate.
   -> Size          -- ^ The calculated size.
-calcTextSize_ fontMgr style mode trim break mwidth mlines text = newSize where
+calcTextSize_ fontMgr style mode trim mwidth mlines text = newSize where
   font = styleFont style
   fontSize = styleFontSize style
   !metrics = computeTextMetrics fontMgr font fontSize
   width = fromMaybe maxNumericValue mwidth
 
-  textLinesW = fitTextToWidth fontMgr style width trim break text
+  textLinesW = fitTextToWidth fontMgr style width trim text
   textLines
     | mode == SingleLine = Seq.take 1 textLinesW
     | isJust mlines = Seq.take (fromJust mlines) textLinesW
@@ -95,12 +94,11 @@ fitTextToSize
   -> TextOverflow  -- ^ Whether to clip or use ellipsis.
   -> TextMode      -- ^ Single or multiline.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
-  -> LineBreak     -- ^ How to break texts into lines.
   -> Maybe Int     -- ^ Optional max lines.
   -> Size          -- ^ The bounding size.
   -> Text          -- ^ The text to fit.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToSize fontMgr style ovf mode trim break mlines !size !text = newLines where
+fitTextToSize fontMgr style ovf mode trim mlines !size !text = newLines where
   Size cw ch = size
   font = styleFont style
   fontSize = styleFontSize style
@@ -113,7 +111,7 @@ fitTextToSize fontMgr style ovf mode trim break mlines !size !text = newLines wh
     Just maxLines -> min ch (fromIntegral maxLines * textMetrics ^. L.lineH)
     _ -> ch
 
-  textLinesW = fitTextToWidth fontMgr style fitW trim break text
+  textLinesW = fitTextToWidth fontMgr style fitW trim text
   firstLine = Seq.take 1 textLinesW
   isMultiline = mode == MultiLine
   ellipsisReq = ovf == Ellipsis && getTextLinesSize firstLine ^. L.w > cw
@@ -130,14 +128,14 @@ fitTextToWidth
   -> StyleState    -- ^ The style.
   -> Double        -- ^ The maximum width.
   -> TextTrim      -- ^ Whether to trim or keep spaces.
-  -> LineBreak     -- ^ How to break texts into lines.
   -> Text          -- ^ The text to calculate.
   -> Seq TextLine  -- ^ The fitted text lines.
-fitTextToWidth fontMgr style width trim break text = resultLines where
+fitTextToWidth fontMgr style width trim text = resultLines where
   font = styleFont style
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
   fSpcV = styleFontSpaceV style
+  break = styleTextLineBreak style
   lineH = _txmLineH metrics
 
   !metrics = computeTextMetrics fontMgr font fSize

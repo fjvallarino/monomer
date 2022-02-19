@@ -177,6 +177,9 @@ instance CmbTextOverline TextStyle where
 instance CmbTextThroughline TextStyle where
   textThroughline_ through = def & L.throughline ?~ through
 
+instance CmbTextLineBreak TextStyle where
+  textLineBreak break = def & L.lineBreak ?~ break
+
 -- Padding
 
 instance CmbPadding Padding where
@@ -360,6 +363,9 @@ instance CmbTextOverline StyleState where
 instance CmbTextThroughline StyleState where
   textThroughline_ False = def
   textThroughline_ True = def & L.text ?~ textThroughline
+
+instance CmbTextLineBreak StyleState where
+  textLineBreak break = def & L.text ?~ textLineBreak break
 
 -- Padding
 instance CmbPadding StyleState where

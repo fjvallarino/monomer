@@ -197,7 +197,7 @@ makeTooltip caption config state = widget where
       targetW = fromMaybe maxW (_ttcMaxWidth config)
       targetH = fromMaybe maxH (_ttcMaxHeight config)
       targetSize = Size targetW targetH
-      fittedLines = fitTextToSize fontMgr style Ellipsis MultiLine TrimSpaces OnSpaces
+      fittedLines = fitTextToSize fontMgr style Ellipsis MultiLine TrimSpaces
         Nothing targetSize caption
       textSize = getTextLinesSize fittedLines
 

@@ -44,7 +44,6 @@ Configuration options for label.
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
-- 'lineBreak': how to break texts into lines.
 - 'maxLines': maximum number of text lines to show.
 - 'ignoreTheme': whether to load default style from theme or start empty.
 - 'resizeFactor': flexibility to have more or less spaced assigned.
@@ -56,7 +55,6 @@ data LabelCfg s e = LabelCfg {
   _lscTextTrim :: Maybe Bool,
   _lscTextEllipsis :: Maybe Bool,
   _lscTextMultiLine :: Maybe Bool,
-  _lscTextLineBreak :: Maybe LineBreak,
   _lscTextMaxLines :: Maybe Int,
   _lscFactorW :: Maybe Double,
   _lscFactorH :: Maybe Double,
@@ -69,7 +67,6 @@ instance Default (LabelCfg s e) where
     _lscTextTrim = Nothing,
     _lscTextEllipsis = Nothing,
     _lscTextMultiLine = Nothing,
-    _lscTextLineBreak = Nothing,
     _lscTextMaxLines = Nothing,
     _lscFactorW = Nothing,
     _lscFactorH = Nothing,
@@ -82,7 +79,6 @@ instance Semigroup (LabelCfg s e) where
     _lscTextTrim = _lscTextTrim l2 <|> _lscTextTrim l1,
     _lscTextEllipsis = _lscTextEllipsis l2 <|> _lscTextEllipsis l1,
     _lscTextMultiLine = _lscTextMultiLine l2 <|> _lscTextMultiLine l1,
-    _lscTextLineBreak = _lscTextLineBreak l2 <|> _lscTextLineBreak l1,
     _lscTextMaxLines = _lscTextMaxLines l2 <|> _lscTextMaxLines l1,
     _lscFactorW = _lscFactorW l2 <|> _lscFactorW l1,
     _lscFactorH = _lscFactorH l2 <|> _lscFactorH l1,
@@ -110,11 +106,6 @@ instance CmbEllipsis (LabelCfg s e) where
 instance CmbMultiline (LabelCfg s e) where
   multiline_ multi = def {
     _lscTextMultiLine = Just multi
-  }
-
-instance CmbLineBreak (LabelCfg s e) where
-  lineBreak l = def {
-    _lscTextLineBreak = Just l
   }
 
 instance CmbMaxLines (LabelCfg s e) where
@@ -196,7 +187,6 @@ makeLabel config state = widget where
   mode
     | _lscTextMultiLine config == Just True = MultiLine
     | otherwise = SingleLine
-  break = fromMaybe OnSpaces (_lscTextLineBreak config)
   maxLines = _lscTextMaxLines config
   labelCurrentStyle = fromMaybe currentStyle (_lscCurrentStyle config)
   LabelState caption textStyle textRect textLines prevResize = state
@@ -251,7 +241,7 @@ makeLabel config state = widget where
     targetW
       | mode == MultiLine && prevResize == (ts, True) = Just cw
       | otherwise = fmap sizeReqMaxBounded (style ^. L.sizeReqW)
-    Size w h = getTextSize_ wenv style mode trim break targetW maxLines caption
+    Size w h = getTextSize_ wenv style mode trim targetW maxLines caption
 
     factorW = fromMaybe defaultFactor (_lscFactorW config)
     factorH = fromMaybe defaultFactor (_lscFactorH config)
@@ -277,7 +267,7 @@ makeLabel config state = widget where
     alignRect = Rect 0 0 cw ch
 
     fittedLines
-      = fitTextToSize fontMgr style overflow mode trim break maxLines size caption
+      = fitTextToSize fontMgr style overflow mode trim maxLines size caption
     newTextLines = alignTextLines style alignRect fittedLines
 
     newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle

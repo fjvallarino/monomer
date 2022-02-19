@@ -25,6 +25,7 @@ module Monomer.Core.StyleUtil (
   styleFontColor,
   styleTextAlignH,
   styleTextAlignV,
+  styleTextLineBreak,
   styleBgColor,
   styleFgColor,
   styleSndColor,
@@ -176,6 +177,11 @@ styleTextAlignH style = fromMaybe def alignH where
 styleTextAlignV :: StyleState -> AlignTV
 styleTextAlignV style = fromMaybe def alignV where
   alignV = style ^? L.text . _Just . L.alignV . _Just
+
+-- | Returns the line break option of the given style state, or the
+styleTextLineBreak :: StyleState -> LineBreak
+styleTextLineBreak style = fromMaybe def lineBreak where
+  lineBreak = style ^? L.text . _Just . L.lineBreak . _Just
 
 -- | Returns the background color of the given style state, or the default.
 styleBgColor :: StyleState -> Color

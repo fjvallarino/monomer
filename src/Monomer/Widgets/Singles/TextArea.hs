@@ -762,7 +762,7 @@ stateFromText wenv node state text = newState where
   style = currentStyle wenv node
   fontMgr = wenv ^. L.fontManager
   newTextMetrics = getTextMetrics wenv style
-  tmpTextLines = fitTextToWidth fontMgr style maxNumericValue KeepSpaces OnSpaces text
+  tmpTextLines = fitTextToWidth fontMgr style maxNumericValue KeepSpaces text
   totalH = newTextMetrics ^. L.lineH + getSpaceV tmpTextLines
   lastRect = def
     & L.y .~ fromIntegral (length tmpTextLines) * totalH

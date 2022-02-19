@@ -139,10 +139,6 @@ class CmbTrimSpaces t where
   trimSpaces = trimSpaces_ True
   trimSpaces_ :: Bool -> t
 
--- | How to break texts into lines.
-class CmbLineBreak t where
-  lineBreak :: LineBreak -> t
-
 -- | Whether to automatically select a value on blur (for example, dropdown).
 class CmbSelectOnBlur t where
   selectOnBlur :: t
@@ -252,6 +248,10 @@ class CmbTextThroughline t where
   textThroughline :: t
   textThroughline = textThroughline_ True
   textThroughline_ :: Bool -> t
+
+-- | How to break texts into lines.
+class CmbTextLineBreak t where
+  textLineBreak :: LineBreak -> t
 
 -- | Does not apply any kind of resizing to fit to container.
 class CmbFitNone t where
