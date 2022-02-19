@@ -152,6 +152,16 @@ fitTextMulti = describe "fitTextToSize multi line" $ do
     clipKeep "This is    a tad bit longer\nMore" ^. ix 1 . L.text `shouldBe` "   a tad"
     clipKeep "This is    a tad bit longer\nMore" ^. ix 2 . L.text `shouldBe` " bit "
 
+  it "should return text broken even in the middle of words, clipped, trimmed, if it does not fit" $ do
+    breakOnChar "This is    really-long\nMore" `shouldSatisfy` elementCount 3
+    breakOnChar "This is    really-long\nMore" ^. ix 0 . L.text `shouldBe` "This is"
+    breakOnChar "This is    really-long\nMore" ^. ix 1 . L.text `shouldBe` "really-l"
+    breakOnChar "This is    really-long\nMore" ^. ix 2 . L.text `shouldBe` "ong"
+    breakOnChar "This is    a tad bit longer\nMore" `shouldSatisfy` elementCount 3
+    breakOnChar "This is    a tad bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is"
+    breakOnChar "This is    a tad bit longer\nMore" ^. ix 1 . L.text `shouldBe` "a tad bi"
+    breakOnChar "This is    a tad bit longer\nMore" ^. ix 2 . L.text `shouldBe` "t longer"
+
   where
     wenv = mockWenv ()
     fontMgr = wenv ^. L.fontManager
@@ -167,6 +177,7 @@ fitTextMulti = describe "fitTextToSize multi line" $ do
     elpsKeep_ size text = fitTextToSize fontMgr style Ellipsis MultiLine KeepSpaces Nothing size text
     clipTrim_ size text = fitTextToSize fontMgr style ClipText MultiLine TrimSpaces Nothing size text
     clipKeep_ size text = fitTextToSize fontMgr style ClipText MultiLine KeepSpaces Nothing size text
+    breakOnChar text = fitTextToSize fontMgr (textLineBreak OnCharacters) ClipText MultiLine TrimSpaces Nothing sizeC text
     elementCount count sq = Seq.length sq == count
 
 fitTextSpace :: Spec
