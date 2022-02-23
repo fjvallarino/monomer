@@ -680,13 +680,13 @@ mergeChildren
   -> WidgetNode s e
   -> WidgetResult s e
   -> WidgetResult s e
-mergeChildren updateCWenv !wenv !newNode !oldNode !result = newResult where
-  WidgetResult uNode uReqs = result
+mergeChildren updateCWenv !wenv !newNode !oldNode !pResult = newResult where
+  WidgetResult pNode pReqs = pResult
   oldChildren = oldNode ^. L.children
   oldIts = Seq.mapWithIndex (,) oldChildren
-  updatedChildren = uNode ^. L.children
+  updatedChildren = pNode ^. L.children
 
-  mergeChild idx child = (idx, cascadeCtx wenv uNode child idx)
+  mergeChild idx child = (idx, cascadeCtx wenv pNode child idx)
   newIts = Seq.mapWithIndex mergeChild updatedChildren
   oldKeys = buildLocalMap oldChildren
   newKeys = buildLocalMap (snd <$> newIts)
@@ -696,8 +696,8 @@ mergeChildren updateCWenv !wenv !newNode !oldNode !result = newResult where
   mergedChildren = fmap _wrNode mergedResults
   mergedReqs = foldMap _wrRequests mergedResults
   removedReqs = foldMap _wrRequests removedResults
-  mergedNode = uNode & L.children .~ mergedChildren
-  newReqs = uReqs <> mergedReqs <> removedReqs
+  mergedNode = pNode & L.children .~ mergedChildren
+  newReqs = pReqs <> mergedReqs <> removedReqs
   !newResult = WidgetResult mergedNode newReqs
 
 mergeChildSeq
