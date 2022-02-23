@@ -155,12 +155,12 @@ fitTextMulti = describe "fitTextToSize multi line" $ do
   it "should return text broken even in the middle of words, clipped, trimmed, if it does not fit" $ do
     breakOnChar "This is    really-long\nMore" `shouldSatisfy` elementCount 3
     breakOnChar "This is    really-long\nMore" ^. ix 0 . L.text `shouldBe` "This is"
-    breakOnChar "This is    really-long\nMore" ^. ix 1 . L.text `shouldBe` "really-l"
-    breakOnChar "This is    really-long\nMore" ^. ix 2 . L.text `shouldBe` "ong"
+    breakOnChar "This is    really-long\nMore" ^. ix 1 . L.text `shouldBe` "reall"
+    breakOnChar "This is    really-long\nMore" ^. ix 2 . L.text `shouldBe` "y-long"
     breakOnChar "This is    a tad bit longer\nMore" `shouldSatisfy` elementCount 3
     breakOnChar "This is    a tad bit longer\nMore" ^. ix 0 . L.text `shouldBe` "This is"
-    breakOnChar "This is    a tad bit longer\nMore" ^. ix 1 . L.text `shouldBe` "a tad bi"
-    breakOnChar "This is    a tad bit longer\nMore" ^. ix 2 . L.text `shouldBe` "t longer"
+    breakOnChar "This is    a tad bit longer\nMore" ^. ix 1 . L.text `shouldBe` "a tad"
+    breakOnChar "This is    a tad bit longer\nMore" ^. ix 2 . L.text `shouldBe` "bit lon"
 
   where
     wenv = mockWenv ()
