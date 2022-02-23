@@ -468,6 +468,7 @@ createComposite !comp !state = widget where
     widgetHandleEvent = compositeHandleEvent comp state,
     widgetHandleMessage = compositeHandleMessage comp state,
     widgetGetSizeReq = compositeGetSizeReq comp state,
+    widgetUpdateSizeReq = updateSizeReqWrapper comp state,
     widgetResize = compositeResize comp state,
     widgetRender = compositeRender comp state
   }
@@ -745,7 +746,6 @@ compositeGetSizeReq
 compositeGetSizeReq comp state wenv widgetComp = (newReqW, newReqH) where
   CompositeState{..} = state
   style = currentStyle wenv widgetComp
-  widget = _cpsRoot ^. L.widget
   currReqW = _cpsRoot ^. L.info . L.sizeReqW
   currReqH = _cpsRoot ^. L.info . L.sizeReqH
   (tmpReqW, tmpReqH) = sizeReqAddStyle style (currReqW, currReqH)
@@ -766,6 +766,32 @@ updateSizeReq comp state wenv widgetComp = newComp where
   newComp = widgetComp
     & L.info . L.sizeReqW .~ newReqW
     & L.info . L.sizeReqH .~ newReqH
+
+-- Update preferred size
+updateSizeReqWrapper
+  :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)
+  => Composite s e sp ep
+  -> CompositeState s e
+  -> WidgetEnv sp ep
+  -> WidgetNode sp ep
+  -> (Path -> Bool)
+  -> WidgetNode sp ep
+updateSizeReqWrapper comp state wenv widgetComp resizeReq = newComp where
+  CompositeState{..} = state
+  path = widgetComp ^. L.info . L.path
+  model = getCompositeModel state
+  cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
+
+  newRoot = widgetUpdateSizeReq (_cpsRoot ^. L.widget) cwenv _cpsRoot resizeReq
+  newState = state {
+    _cpsRoot = newRoot
+  }
+  tmpComp = widgetComp
+    & L.widget .~ createComposite comp newState
+
+  newComp
+    | resizeReq path = updateSizeReq comp newState wenv tmpComp
+    | otherwise = widgetComp
 
 -- Resize
 compositeResize

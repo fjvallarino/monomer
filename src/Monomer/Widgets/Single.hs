@@ -323,6 +323,7 @@ createSingle state single = Widget {
   widgetHandleEvent = handleEventWrapper single,
   widgetHandleMessage = handleMessageWrapper single,
   widgetGetSizeReq = getSizeReqWrapper single,
+  widgetUpdateSizeReq = updateSizeReqWrapper single,
   widgetResize = resizeHandlerWrapper single,
   widgetRender = renderWrapper single
 }
@@ -563,6 +564,20 @@ handleSizeReqChange single wenv node evt mResult = result where
     | styleChanged || resizeReq = Just $ baseResult
       & L.node .~ updateSizeReq wenv newNode
     | otherwise = mResult
+
+updateSizeReqWrapper
+  :: WidgetModel a
+  => Single s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> (Path -> Bool)
+  -> WidgetNode s e
+updateSizeReqWrapper single wenv node resizeReq = newNode where
+  path = node ^. L.info . L.path
+
+  newNode
+    | resizeReq path = updateSizeReq wenv node
+    | otherwise = node
 
 defaultResize :: SingleResizeHandler s e
 defaultResize wenv node viewport = resultNode node

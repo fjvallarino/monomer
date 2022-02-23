@@ -263,11 +263,12 @@ handleResizeWidgets previousStep = do
 
   let viewport = Rect 0 0 (windowSize ^. L.w) (windowSize ^. L.h)
   let (wenv, root, reqs) = previousStep
+  let newRoot = widgetUpdateSizeReq (root ^. L.widget) wenv root resizeCheckFn
   let newWenv = wenv
         & L.windowSize .~ windowSize
         & L.viewport .~ viewport
-  let rootWidget = root ^. L.widget
-  let newResult = widgetResize rootWidget newWenv root viewport resizeCheckFn
+  let rootWidget = newRoot ^. L.widget
+  let newResult = widgetResize rootWidget newWenv newRoot viewport resizeCheckFn
 
   L.renderRequested .= True
   L.resizeRequests .= Seq.empty

@@ -82,7 +82,7 @@ data WidgetData s a
   | WidgetLens (ALens' s a)  -- ^ A lens into the parent model.
 
 {-|
-Widgets instances have an associated path from the root, which is unique at a
+Widget instances have an associated path from the root, which is unique at a
 specific point in time. This path may change, since widgets could be added
 before or after it (for example, a widget is added to the beginning of a list).
 WidgetIds are used by the runtime to create an association from a unique
@@ -641,6 +641,24 @@ data Widget s e =
       -> WidgetNode s e
       -> (SizeReq, SizeReq),
     {-|
+    Sets the preferred size for the widget.
+
+    Arguments:
+
+    - The widget environment.
+    - The widget node.
+    - Helper to check if a given path, or its children, requested updateSizeReq.
+
+    Returns:
+
+    - The result of resizing the widget.
+    -}
+    widgetUpdateSizeReq
+      :: WidgetEnv s e
+      -> WidgetNode s e
+      -> (Path -> Bool)
+      -> WidgetNode s e,
+    {-|
     Resizes the widget to the provided size.
 
     Arguments:
@@ -648,7 +666,7 @@ data Widget s e =
     - The widget environment.
     - The widget node.
     - The new viewport.
-    - Helper to checks if a given path, or its children, requested resize.
+    - Helper to check if a given path, or its children, requested resize.
 
     Returns:
 

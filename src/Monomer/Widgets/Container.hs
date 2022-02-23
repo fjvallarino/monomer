@@ -487,6 +487,7 @@ createContainer !state !container = Widget {
   widgetHandleEvent = handleEventWrapper container,
   widgetHandleMessage = handleMessageWrapper container,
   widgetGetSizeReq = getSizeReqWrapper container,
+  widgetUpdateSizeReq = updateSizeReqWrapper container,
   widgetResize = resizeWrapper container,
   widgetRender = renderWrapper container
 }
@@ -633,10 +634,10 @@ mergeWrapper container wenv newNode oldNode = newResult where
     cwenv = updateCWenv wenv pNode child idx
 
   pResult = mergeParent mergeHandler wenv styledNode oldNode oldState
-  cResult = mergeChildren cWenvHelper wenv newNode oldNode pResult
+  cResult = mergeChildren cWenvHelper wenv styledNode oldNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
 
-  flagsChanged = nodeFlagsChanged oldNode newNode
+  flagsChanged = nodeFlagsChanged oldNode styledNode
   themeChanged = wenv ^. L.themeChanged
   mResult
     | mergeRequired || flagsChanged || themeChanged = vResult
@@ -1083,6 +1084,25 @@ handleSizeReqChange container wenv node evt mResult = result where
     | styleChanged || resizeReq = Just $ baseResult
       & L.node .~ updateSizeReq wenv baseNode
     | otherwise = mResult
+
+updateSizeReqWrapper
+  :: WidgetModel a
+  => Container s e a
+  -> WidgetEnv s e
+  -> WidgetNode s e
+  -> (Path -> Bool)
+  -> WidgetNode s e
+updateSizeReqWrapper single wenv node resizeReq = newNode where
+  updateChild ch = widgetUpdateSizeReq (ch ^. L.widget) wenv ch resizeReq
+  path = node ^. L.info . L.path
+
+  newChildren = updateChild <$> node ^. L.children
+  tmpNode = node
+    & L.children .~ newChildren
+
+  newNode
+    | resizeReq path = updateSizeReq wenv tmpNode
+    | otherwise = node
 
 -- | Resize
 defaultResize :: ContainerResizeHandler s e
