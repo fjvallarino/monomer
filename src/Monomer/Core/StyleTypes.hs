@@ -306,6 +306,15 @@ instance Semigroup Radius where
 instance Monoid Radius where
   mempty = def
 
+-- | Defines how to break texts into lines.
+data LineBreak
+  = OnSpaces
+  | OnCharacters
+  deriving (Eq, Ord, Enum, Show, Generic)
+
+instance Default LineBreak where
+  def = OnSpaces
+
 -- | Text related definitions.
 data TextStyle = TextStyle {
   _txsFont :: Maybe Font,          -- ^ The font type.
@@ -317,7 +326,8 @@ data TextStyle = TextStyle {
   _txsOverline :: Maybe Bool,      -- ^ True if overline should be displayed.
   _txsThroughline :: Maybe Bool,   -- ^ True if throughline should be displayed.
   _txsAlignH :: Maybe AlignTH,     -- ^ Horizontal alignment.
-  _txsAlignV :: Maybe AlignTV      -- ^ Vertical alignment.
+  _txsAlignV :: Maybe AlignTV,     -- ^ Vertical alignment.
+  _txsLineBreak :: Maybe LineBreak -- ^ Line break option.
 } deriving (Eq, Show, Generic)
 
 instance Default TextStyle where
@@ -331,7 +341,8 @@ instance Default TextStyle where
     _txsOverline = Nothing,
     _txsThroughline = Nothing,
     _txsAlignH = Nothing,
-    _txsAlignV = Nothing
+    _txsAlignV = Nothing,
+    _txsLineBreak = Nothing
   }
 
 instance Semigroup TextStyle where
@@ -345,7 +356,8 @@ instance Semigroup TextStyle where
     _txsOverline = _txsOverline ts2 <|> _txsOverline ts1,
     _txsThroughline = _txsThroughline ts2 <|> _txsThroughline ts1,
     _txsAlignH = _txsAlignH ts2 <|> _txsAlignH ts1,
-    _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1
+    _txsAlignV = _txsAlignV ts2 <|> _txsAlignV ts1,
+    _txsLineBreak = _txsLineBreak ts2 <|> _txsLineBreak ts1
   }
 
 instance Monoid TextStyle where

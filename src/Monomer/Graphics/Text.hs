@@ -135,10 +135,11 @@ fitTextToWidth fontMgr style width trim text = resultLines where
   fSize = styleFontSize style
   fSpcH = styleFontSpaceH style
   fSpcV = styleFontSpaceV style
+  break = styleTextLineBreak style
   lineH = _txmLineH metrics
 
   !metrics = computeTextMetrics fontMgr font fSize
-  fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics
+  fitToWidth = fitLineToW fontMgr font fSize fSpcH fSpcV metrics break
 
   helper acc line = (cLines <> newLines, newTop) where
     (cLines, cTop) = acc
@@ -261,19 +262,22 @@ fitLineToW
   -> FontSpace
   -> FontSpace
   -> TextMetrics
+  -> LineBreak
   -> Double
   -> Double
   -> TextTrim
   -> Text
   -> Seq TextLine
-fitLineToW fontMgr font fSize fSpcH fSpcV metrics top width trim text = res where
+fitLineToW fontMgr font fSize fSpcH fSpcV metrics break top width trim text = res where
   spaces = T.replicate 4 " "
   newText = T.replace "\t" spaces text
   !glyphs = computeGlyphsPos fontMgr font fSize fSpcH newText
   -- Do not break line on trailing spaces, they are removed in the next step
   -- In the case of KeepSpaces, lines with only spaces (empty looking) are valid
   keepTailSpaces = trim == TrimSpaces
-  groups = fitGroups (splitGroups glyphs) width keepTailSpaces
+  groups
+    | break == OnCharacters = splitGroups break width glyphs
+    | otherwise = fitGroups (splitGroups break width glyphs) width keepTailSpaces
   resetGroups
     | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
     | otherwise = fmap resetGlyphs groups
@@ -413,14 +417,17 @@ isSpaceGroup :: Seq GlyphPos -> Bool
 isSpaceGroup Empty = False
 isSpaceGroup (g :<| gs) = isSpace (_glpGlyph g)
 
-splitGroups :: Seq GlyphPos -> Seq GlyphGroup
-splitGroups Empty = Empty
-splitGroups glyphs = group <| splitGroups rest where
+splitGroups :: LineBreak -> Double -> Seq GlyphPos -> Seq GlyphGroup
+splitGroups _ _ Empty = Empty
+splitGroups break width glyphs = group <| splitGroups break width rest where
   g :<| gs = glyphs
   groupWordFn = not . isWordDelimiter . _glpGlyph
+  groupWidthFn g2 = _glpXMax g2 - _glpXMin g <= width
+  atWord = break == OnSpaces
   (group, rest)
-    | isWordDelimiter (_glpGlyph g) = (Seq.singleton g, gs)
-    | otherwise = Seq.spanl groupWordFn glyphs
+    | atWord && isWordDelimiter (_glpGlyph g) = (Seq.singleton g, gs)
+    | atWord = Seq.spanl groupWordFn glyphs
+    | otherwise = Seq.spanl groupWidthFn glyphs
 
 resetGlyphs :: Seq GlyphPos -> Seq GlyphPos
 resetGlyphs Empty = Empty

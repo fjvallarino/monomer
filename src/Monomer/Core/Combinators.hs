@@ -249,6 +249,10 @@ class CmbTextThroughline t where
   textThroughline = textThroughline_ True
   textThroughline_ :: Bool -> t
 
+-- | How to break texts into lines.
+class CmbTextLineBreak t where
+  textLineBreak :: LineBreak -> t
+
 -- | Does not apply any kind of resizing to fit to container.
 class CmbFitNone t where
   fitNone :: t
