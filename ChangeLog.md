@@ -1,8 +1,14 @@
 ## 1.4.0.0 (in development)
 
+### Fixed
+
+- Properly handle `SetFocusOnKey` for `textArea` ([#80](https://github.com/fjvallarino/monomer/issues/80)).
+
 ### Added
 
 - Utility functions `rectFromPoints`, `nodeInfoFromKey`, `nodeInfoFromPath` and `findParentNodeInfoByType`.
+- Allow setting the window icon via AppConfig ([PR #79](https://github.com/fjvallarino/monomer/pull/79)). Thanks @Dretch!
+- Add support for breaking text lines at character boundaries ([PR #86](https://github.com/fjvallarino/monomer/pull/86)). Thanks @toku-sa-n!
 
 ### Changed
 
@@ -10,18 +16,19 @@
   generated event was updated to reflect this change. The rationale is that since `onInit` is sent to
   `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
   in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
-  use `Report`/`RequestParent`; an example can be found in `ColorPicker`.
-- The `keystroke` widget now supports `Backspace` key.
+  use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
+- The `keystroke` widget now supports `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 
 ### Renamed
 
-- `findWidgetByPath` -> `findChildNodeInfoByPath`.
-- `findWidgetBranchByPath` -> `findChildBranchByPath`.
-- `findWidgetIdFromPath` -> `widgetIdFromPath`.
+- Utility functions for retrieving `WidgetNode` information ([PR #75](https://github.com/fjvallarino/monomer/pull/75))
+  - `findWidgetByPath` -> `findChildNodeInfoByPath`.
+  - `findWidgetBranchByPath` -> `findChildBranchByPath`.
+  - `findWidgetIdFromPath` -> `widgetIdFromPath`.
 
 ### Removed
 
-- Dependencies on `OpenGL`, `Safe`, `scientific`, `unordered-containers`, `directory`, `HUnit` and `silently`.
+- Dependencies on `OpenGL`, `Safe`, `scientific`, `unordered-containers`, `directory`, `HUnit` and `silently` ([PR #70](https://github.com/fjvallarino/monomer/pull/70)).
 
 ## 1.3.0.0
 
