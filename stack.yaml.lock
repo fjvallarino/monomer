@@ -13,7 +13,7 @@ packages:
     hackage: nanovg-0.8.0.0@sha256:0183b4295ccc2dfb94a7eca977fb45759e1480652578936aa7b71bb4b9626480,4742
 snapshots:
 - completed:
-    size: 586103
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
-    sha256: 32716534fff554b7f90762130fdb985cabf29f157758934dd1c8f3892a646430
-  original: lts-18.19
+    size: 590102
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/27.yaml
+    sha256: 79a786674930a89301b0e908fad2822a48882f3d01486117693c377b8edffdbe
+  original: lts-18.27

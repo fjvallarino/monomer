@@ -90,12 +90,18 @@ Stack installs its files in two locations:
 - `%STACK_ROOT%` (usually `C:\sr`, unless modified)
 - `%LOCALAPPDATA%\Programs\stack`
 
-The second location is the one that contains MinGW. Removing
+The second location is the directory that contains MinGW. Removing
 `%LOCALAPPDATA%\Programs\stack` and running the above steps again is usually
-enough to get a working environment.
+enough to get a working environment. If this does not work, removing
+`%STACK_ROOT%` and reinstalling Stack may be required.
 
-If this does not work, removing `%STACK_ROOT%` and reinstalling Stack may be
-required.
+If the previous steps did not fix the issue, updating the keyring with the
+following commands and building again may help:
+
+```bash
+stack exec -- pacman -S msys2-keyring
+stack exec -- pacman -Syu
+```
 
 ## Build the project
 
