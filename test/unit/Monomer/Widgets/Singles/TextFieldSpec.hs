@@ -51,6 +51,8 @@ spec = describe "TextField" $ do
   handleEventValue
   handleEventMouseSelect
   handleEventHistory
+  handleEventMouseDrag
+  handleEventWheel
   getSizeReq
 
 handleEvent :: Spec
@@ -267,6 +269,30 @@ handleEventHistory = describe "handleEventHistory" $ do
     evts es = nodeHandleEventEvts wenv es txtNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleEventMouseDrag :: Spec
+handleEventMouseDrag = describe "handleEventMouseDrag" $ do
+  it "should ignore shift+drag events" $ do
+    let selStart = Point 50 10
+    let selEnd = Point 50 (-70)
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. textValue `shouldBe` ""
+
+  where
+    wenv = mockWenvEvtUnit (TestModel "")
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
+    model es = nodeHandleEventModel wenv es (textField textValue)
+
+handleEventWheel :: Spec
+handleEventWheel = describe "handleEventWheel" $ do
+  it "should ignore wheel events" $ do
+    let p = Point 50 10
+    let steps1 = [WheelScroll p (Point 0 (-8000)) WheelNormal]
+    model steps1 ^. textValue `shouldBe` ""
+
+  where
+    wenv = mockWenvEvtUnit (TestModel "")
+    model es = nodeHandleEventModel wenv es (textField textValue)
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
