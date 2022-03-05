@@ -569,7 +569,7 @@ makeInputField !config !state = widget where
         && shiftPressed
         && isJust dragHandler
       validCursor
-        | not shiftPressed = CursorIBeam
+        | not shiftPressed || isNothing dragHandler = CursorIBeam
         | otherwise = fromMaybe CursorArrow dragCursor
       changeCursorReq newCursor = reqs where
         cursorMatch = wenv ^? L.cursor . _Just . _2 == Just newCursor
