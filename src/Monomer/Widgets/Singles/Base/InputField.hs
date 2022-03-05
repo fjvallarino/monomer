@@ -476,7 +476,8 @@ makeInputField !config !state = widget where
 
     -- Handle custom drag
     Move point
-      | isNodePressed wenv node && shiftPressed -> Just result where
+      | isNodePressed wenv node && isShiftDrag -> Just result where
+        isShiftDrag = shiftPressed && isJust dragHandler
         (_, stPoint) = fromJust $ wenv ^. L.mainBtnPress
         handlerRes = fromJust dragHandler state stPoint point
         (newText, newPos, newSel) = handlerRes
@@ -568,7 +569,7 @@ makeInputField !config !state = widget where
         && shiftPressed
         && isJust dragHandler
       validCursor
-        | not shiftPressed = CursorIBeam
+        | not shiftPressed || isNothing dragHandler = CursorIBeam
         | otherwise = fromMaybe CursorArrow dragCursor
       changeCursorReq newCursor = reqs where
         cursorMatch = wenv ^? L.cursor . _Just . _2 == Just newCursor
