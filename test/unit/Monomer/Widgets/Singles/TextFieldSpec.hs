@@ -53,6 +53,7 @@ spec = describe "TextField" $ do
   handleEventHistory
   handleEventMouseDrag
   handleEventWheel
+  handleEventReadOnly
   getSizeReq
 
 handleEvent :: Spec
@@ -293,6 +294,24 @@ handleEventWheel = describe "handleEventWheel" $ do
   where
     wenv = mockWenvEvtUnit (TestModel "")
     model es = nodeHandleEventModel wenv es (textField textValue)
+
+handleEventReadOnly :: Spec
+handleEventReadOnly = describe "handleEventReadOnly" $ do
+  it "should ignore text input" $ do
+    model [evtT "a"] ^. textValue `shouldBe` initText
+  
+  it "should ignore cut" $ do
+    model [selWordR, evtKG keyX] ^. textValue `shouldBe` initText
+  
+  it "should ignore paste" $ do
+    model [selWordR, evtKG keyV] ^. textValue `shouldBe` initText
+  
+  where
+    initText = "hello"
+    wenv = mockWenv (TestModel initText)
+    txtCfg = [readOnly :: TextFieldCfg TestModel TestEvt]
+    txtNode = textField_ textValue txtCfg
+    model es = nodeHandleEventModel wenv es txtNode
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do

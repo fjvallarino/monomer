@@ -72,6 +72,7 @@ spec = describe "TimeField" $ do
   handleEventTime
   handleEventValueTime
   handleEventMouseDragTime
+  handleEventReadOnly
   handleShiftFocus
   getSizeReqTime
   testWidgetType
@@ -255,6 +256,30 @@ handleEventMouseDragTime = describe "handleEventMouseDragTime" $ do
     model es = nodeHandleEventModel wenv es timeNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleEventReadOnly :: Spec
+handleEventReadOnly = describe "handleEventReadOnly" $ do
+  it "should ignore text input" $ do
+    let steps = [moveCharR, delCharL, evtT "5"]
+    model steps ^. timeValue `shouldBe` initTime
+  
+  it "should ignore drag" $ do
+    let selStart = Point 5 5
+    let selEnd = Point 100 2000
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. timeValue `shouldBe` initTime
+
+  it "should ignore wheel" $ do
+    let steps = [WheelScroll (Point 100 10) (Point 0 (-2000)) WheelNormal]
+    model steps ^. timeValue `shouldBe` initTime
+  
+  where
+    initTime = TimeOfDay 20 37 00
+    wenv = mockWenv (TimeModel initTime False)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
+    timeCfg = [readOnly :: TimeFieldCfg TimeModel TestEvt TimeOfDay]
+    timeNode = timeField_ timeValue timeCfg
+    model es = nodeHandleEventModel wenv es timeNode
 
 handleShiftFocus :: Spec
 handleShiftFocus = describe "handleShiftFocus" $ do

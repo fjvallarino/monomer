@@ -47,6 +47,7 @@ Configuration options for textField:
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'readOnly': Whether to prevent the user changing the input text.
 - 'maxLength': the maximum length of input text.
 - 'textFieldDisplayChar': the character that will be displayed as replacement of
   the real text. Useful for password fields.
@@ -67,6 +68,7 @@ data TextFieldCfg s e = TextFieldCfg {
   _tfcMaxLength :: Maybe Int,
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
+  _tfcReadOnly :: Maybe Bool,
   _tfcOnFocusReq :: [Path -> WidgetRequest s e],
   _tfcOnBlurReq :: [Path -> WidgetRequest s e],
   _tfcOnChangeReq :: [Text -> WidgetRequest s e]
@@ -83,6 +85,7 @@ instance Default (TextFieldCfg s e) where
     _tfcMaxLength = Nothing,
     _tfcResizeOnChange = Nothing,
     _tfcSelectOnFocus = Nothing,
+    _tfcReadOnly = Nothing,
     _tfcOnFocusReq = [],
     _tfcOnBlurReq = [],
     _tfcOnChangeReq = []
@@ -99,6 +102,7 @@ instance Semigroup (TextFieldCfg s e) where
     _tfcMaxLength = _tfcMaxLength t2 <|> _tfcMaxLength t1,
     _tfcResizeOnChange = _tfcResizeOnChange t2 <|> _tfcResizeOnChange t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
+    _tfcReadOnly = _tfcReadOnly t2 <|> _tfcReadOnly t1,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
@@ -140,6 +144,11 @@ instance CmbResizeOnChange (TextFieldCfg s e) where
 instance CmbSelectOnFocus (TextFieldCfg s e) where
   selectOnFocus_ sel = def {
     _tfcSelectOnFocus = Just sel
+  }
+
+instance CmbReadOnly (TextFieldCfg s e) where
+  readOnly_ ro = def {
+    _tfcReadOnly = Just ro
   }
 
 instance CmbMaxLength (TextFieldCfg s e) where
@@ -227,6 +236,7 @@ textFieldD_ widgetData configs = inputField where
     _ifcDisplayChar = _tfcDisplayChar config,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe False (_tfcSelectOnFocus config),
+    _ifcReadOnly = fromMaybe False (_tfcReadOnly config),
     _ifcStyle = Just L.textFieldStyle,
     _ifcWheelHandler = Nothing,
     _ifcDragHandler = Nothing,

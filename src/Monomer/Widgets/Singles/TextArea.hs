@@ -23,7 +23,8 @@ module Monomer.Widgets.Singles.TextArea (
   textArea,
   textArea_,
   textAreaV,
-  textAreaV_
+  textAreaV_,
+  textAreaD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -60,6 +61,7 @@ Configuration options for textArea:
 - 'acceptTab': whether to handle tab and convert it to spaces (cancelling change
   of focus), or keep default behaviour and lose focus.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'readOnly': Whether to prevent the user changing the input text.
 - 'onFocus': event to raise when focus is received.
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.
@@ -74,6 +76,7 @@ data TextAreaCfg s e = TextAreaCfg {
   _tacMaxLines :: Maybe Int,
   _tacAcceptTab :: Maybe Bool,
   _tacSelectOnFocus :: Maybe Bool,
+  _tacReadOnly :: Maybe Bool,
   _tacOnFocusReq :: [Path -> WidgetRequest s e],
   _tacOnBlurReq :: [Path -> WidgetRequest s e],
   _tacOnChangeReq :: [Text -> WidgetRequest s e]
@@ -87,6 +90,7 @@ instance Default (TextAreaCfg s e) where
     _tacMaxLines = Nothing,
     _tacAcceptTab = Nothing,
     _tacSelectOnFocus = Nothing,
+    _tacReadOnly = Nothing,
     _tacOnFocusReq = [],
     _tacOnBlurReq = [],
     _tacOnChangeReq = []
@@ -100,6 +104,7 @@ instance Semigroup (TextAreaCfg s e) where
     _tacMaxLines = _tacMaxLines t2 <|> _tacMaxLines t1,
     _tacAcceptTab = _tacAcceptTab t2 <|> _tacAcceptTab t1,
     _tacSelectOnFocus = _tacSelectOnFocus t2 <|> _tacSelectOnFocus t1,
+    _tacReadOnly = _tacReadOnly t2 <|> _tacReadOnly t1,
     _tacOnFocusReq = _tacOnFocusReq t1 <> _tacOnFocusReq t2,
     _tacOnBlurReq = _tacOnBlurReq t1 <> _tacOnBlurReq t2,
     _tacOnChangeReq = _tacOnChangeReq t1 <> _tacOnChangeReq t2
@@ -136,6 +141,11 @@ instance CmbAcceptTab (TextAreaCfg s e) where
 instance CmbSelectOnFocus (TextAreaCfg s e) where
   selectOnFocus_ sel = def {
     _tacSelectOnFocus = Just sel
+  }
+
+instance CmbReadOnly (TextAreaCfg s e) where
+  readOnly_ ro = def {
+    _tacReadOnly = Just ro
   }
 
 instance WidgetEvent e => CmbOnFocus (TextAreaCfg s e) e Path where
@@ -254,6 +264,7 @@ makeTextArea !wdata !config !state = widget where
   !caretMs = fromMaybe defCaretMs (_tacCaretMs config)
   !maxLength = _tacMaxLength config
   !maxLines = _tacMaxLines config
+  !editable = not (fromMaybe False (_tacReadOnly config))
   getModelValue !wenv = widgetDataGet (_weModel wenv) wdata
   -- State
   !currText = _tasText state
@@ -291,10 +302,10 @@ makeTextArea !wdata !config !state = widget where
     reqs = [RenderStop widgetId]
 
   handleKeyPress wenv mod code
-    | isDelBackWordNoSel = Just removeWordL
-    | isDelBackWord = Just (replaceText state selStart "")
-    | isBackspace && emptySel = Just removeCharL
-    | isBackspace = Just (replaceText state selStart "")
+    | isDelBackWordNoSel && editable = Just removeWordL
+    | isDelBackWord && editable = Just (replaceText state selStart "")
+    | isBackspace && emptySel && editable = Just removeCharL
+    | isBackspace && editable = Just (replaceText state selStart "")
     | isMoveLeft = Just $ moveCursor txt (tpX - 1, tpY) Nothing
     | isMoveRight = Just $ moveCursor txt (tpX + 1, tpY) Nothing
     | isMoveUp = Just $ moveCursor txt (tpX, tpY - 1) Nothing
@@ -534,12 +545,12 @@ makeTextArea !wdata !config !state = widget where
 
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt -> Just resultCopy
-      | isKeyboardPaste wenv evt -> Just resultPaste
-      | isKeyboardCut wenv evt -> Just resultCut
-      | isKeyboardUndo wenv evt -> Just $ moveHistory bwdState (-1)
-      | isKeyboardRedo wenv evt -> Just $ moveHistory state 1
-      | isKeyReturn code -> Just resultReturn
-      | isKeyTab code && acceptTab -> Just resultTab
+      | isKeyboardPaste wenv evt && editable -> Just resultPaste
+      | isKeyboardCut wenv evt && editable -> Just resultCut
+      | isKeyboardUndo wenv evt && editable -> Just $ moveHistory bwdState (-1)
+      | isKeyboardRedo wenv evt && editable -> Just $ moveHistory state 1
+      | isKeyReturn code && editable -> Just resultReturn
+      | isKeyTab code && acceptTab && editable -> Just resultTab
       | otherwise -> fmap handleKeyRes (handleKeyPress wenv mod code)
       where
         acceptTab = fromMaybe False (_tacAcceptTab config)
@@ -576,8 +587,9 @@ makeTextArea !wdata !config !state = widget where
             & L.widget .~ makeTextArea wdata config newState
           result = resultReqs newNode (generateReqs wenv node newState)
 
-    TextInput newText -> Just result where
-      result = insertText wenv node newText
+    TextInput newText
+      | editable -> Just result where
+        result = insertText wenv node newText
 
     Clipboard (ClipboardText newText) -> Just result where
       result = insertText wenv node newText

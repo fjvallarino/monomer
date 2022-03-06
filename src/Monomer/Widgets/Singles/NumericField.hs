@@ -28,7 +28,8 @@ module Monomer.Widgets.Singles.NumericField (
   numericField,
   numericField_,
   numericFieldV,
-  numericFieldV_
+  numericFieldV_,
+  numericFieldD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -107,6 +108,7 @@ Configuration options for numericField:
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'readOnly': Whether to prevent the user changing the input text.
 - 'minValue': Minimum valid number.
 - 'maxValue': Maximum valid number.
 - 'wheelRate': The rate at which wheel movement affects the number.
@@ -132,6 +134,7 @@ data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcDragRate :: Maybe Double,
   _nfcResizeOnChange :: Maybe Bool,
   _nfcSelectOnFocus :: Maybe Bool,
+  _nfcReadOnly :: Maybe Bool,
   _nfcOnFocusReq :: [Path -> WidgetRequest s e],
   _nfcOnBlurReq :: [Path -> WidgetRequest s e],
   _nfcOnChangeReq :: [a -> WidgetRequest s e]
@@ -150,6 +153,7 @@ instance Default (NumericFieldCfg s e a) where
     _nfcDragRate = Nothing,
     _nfcResizeOnChange = Nothing,
     _nfcSelectOnFocus = Nothing,
+    _nfcReadOnly = Nothing,
     _nfcOnFocusReq = [],
     _nfcOnBlurReq = [],
     _nfcOnChangeReq = []
@@ -167,6 +171,7 @@ instance Semigroup (NumericFieldCfg s e a) where
     _nfcWheelRate = _nfcWheelRate t2 <|> _nfcWheelRate t1,
     _nfcDragRate = _nfcDragRate t2 <|> _nfcDragRate t1,
     _nfcResizeOnChange = _nfcResizeOnChange t2 <|> _nfcResizeOnChange t1,
+    _nfcReadOnly = _nfcReadOnly t2 <|> _nfcReadOnly t1,
     _nfcSelectOnFocus = _nfcSelectOnFocus t2 <|> _nfcSelectOnFocus t1,
     _nfcOnFocusReq = _nfcOnFocusReq t1 <> _nfcOnFocusReq t2,
     _nfcOnBlurReq = _nfcOnBlurReq t1 <> _nfcOnBlurReq t2,
@@ -204,6 +209,11 @@ instance CmbResizeOnChange (NumericFieldCfg s e a) where
 instance CmbSelectOnFocus (NumericFieldCfg s e a) where
   selectOnFocus_ sel = def {
     _nfcSelectOnFocus = Just sel
+  }
+
+instance CmbReadOnly (NumericFieldCfg s e a) where
+  readOnly_ ro = def {
+    _nfcReadOnly = Just ro
   }
 
 instance FormattableNumber a => CmbMinValue (NumericFieldCfg s e a) a where
@@ -305,6 +315,7 @@ numericFieldD_ widgetData configs = newNode where
   config = mconcat configs
   minVal = _nfcMinValue config
   maxVal = _nfcMaxValue config
+  readOnly = fromMaybe False (_nfcReadOnly config)
 
   initialValue
     | isJust minVal = fromJust minVal
@@ -340,9 +351,10 @@ numericFieldD_ widgetData configs = newNode where
     _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_nfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_nfcSelectOnFocus config),
+    _ifcReadOnly = readOnly,
     _ifcStyle = Just L.numericFieldStyle,
-    _ifcWheelHandler = Just (handleWheel config),
-    _ifcDragHandler = Just (handleDrag config),
+    _ifcWheelHandler = if readOnly then Nothing else Just (handleWheel config),
+    _ifcDragHandler = if readOnly then Nothing else Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _nfcOnFocusReq config,
     _ifcOnBlurReq = _nfcOnBlurReq config,
