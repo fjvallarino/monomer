@@ -310,9 +310,11 @@ numericFieldD_ widgetData configs = newNode where
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
     | otherwise = numericFromFractional 0
-  decimals
-    | isIntegral initialValue = 0
-    | otherwise = max 0 $ fromMaybe 2 (_nfcDecimals config)
+  decimals = case _nfcDecimals config of
+    Just count -> max 0 count
+    Nothing
+      | isIntegral initialValue -> 0
+      | otherwise -> 2
   defWidth
     | isIntegral initialValue = 50
     | otherwise = 70
@@ -438,7 +440,6 @@ numberInBounds (Just minVal) (Just maxVal) val = val >= minVal && val <= maxVal
 isIntegral :: Typeable a => a -> Bool
 isIntegral val
   | "Int" `isPrefixOf` name = True
-  | "Fixed" `isPrefixOf` name = True
   | "Word" `isPrefixOf` name = True
   | otherwise = False
   where
