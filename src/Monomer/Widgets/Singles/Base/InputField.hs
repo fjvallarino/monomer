@@ -104,6 +104,8 @@ data InputFieldCfg s e a = InputFieldCfg {
   _ifcResizeOnChange :: Bool,
   -- | If all input should be selected when focus is received.
   _ifcSelectOnFocus :: Bool,
+  -- | Whether the input should be read-only (with editing not allowed, but allowing selection).
+  _ifcReadOnly :: Bool,
   -- | Conversion from text to the expected value. Failure returns Nothing.
   _ifcFromText :: Text -> Maybe a,
   -- | Conversion from a value to text. Cannot fail.
@@ -255,6 +257,7 @@ makeInputField !config !state = widget where
   -- Text/value conversion functions
   !caretW = fromMaybe defCaretW (_ifcCaretWidth config)
   !caretMs = fromMaybe defCaretMs (_ifcCaretMs config)
+  !editable = not (_ifcReadOnly config)
   !fromText = _ifcFromText config
   !toText = _ifcToText config
   getModelValue !wenv = widgetDataGet (_weModel wenv) (_ifcValue config)
@@ -318,10 +321,10 @@ makeInputField !config !state = widget where
     reqs = [ RenderStop widgetId ]
 
   handleKeyPress wenv mod code
-    | isDelBackWordNoSel = Just $ moveCursor removeWord prevWordStartIdx Nothing
-    | isDelBackWord = Just $ moveCursor removeText minTpSel Nothing
-    | isBackspace && emptySel = Just $ moveCursor removeText (tp - 1) Nothing
-    | isBackspace = Just $ moveCursor removeText minTpSel Nothing
+    | isDelBackWordNoSel && editable = Just $ moveCursor removeWord prevWordStartIdx Nothing
+    | isDelBackWord && editable = Just $ moveCursor removeText minTpSel Nothing
+    | isBackspace && emptySel && editable = Just $ moveCursor removeText (tp - 1) Nothing
+    | isBackspace && editable = Just $ moveCursor removeText minTpSel Nothing
     | isMoveLeft = Just $ moveCursor txt (tp - 1) Nothing
     | isMoveRight = Just $ moveCursor txt (tp + 1) Nothing
     | isMoveWordL = Just $ moveCursor txt prevWordStartIdx Nothing
@@ -500,11 +503,11 @@ makeInputField !config !state = widget where
     KeyAction mod code KeyPressed
       | isKeyboardCopy wenv evt
           -> Just $ resultReqs node [SetClipboard (ClipboardText selectedText)]
-      | isKeyboardPaste wenv evt
+      | isKeyboardPaste wenv evt && editable
           -> Just $ resultReqs node [GetClipboard widgetId]
-      | isKeyboardCut wenv evt -> cutTextRes wenv node
-      | isKeyboardUndo wenv evt -> moveHistory wenv node state config (-1)
-      | isKeyboardRedo wenv evt -> moveHistory wenv node state config 1
+      | isKeyboardCut wenv evt && editable -> cutTextRes wenv node
+      | isKeyboardUndo wenv evt && editable -> moveHistory wenv node state config (-1)
+      | isKeyboardRedo wenv evt && editable -> moveHistory wenv node state config 1
       | otherwise -> fmap handleKeyRes keyRes <|> cursorRes where
           !keyRes = handleKeyPress wenv mod code
           handleKeyRes (!newText, !newPos, !newSel) = result where
@@ -523,8 +526,9 @@ makeInputField !config !state = widget where
         result = Just (resultReqs node reqs)
 
     -- Text input has unicode already processed (it's not the same as KeyAction)
-    TextInput newText -> result where
-      result = insertTextRes wenv node newText
+    TextInput newText
+      | editable -> result where
+        result = insertTextRes wenv node newText
 
     -- Paste clipboard contents
     Clipboard (ClipboardText newText) -> result where

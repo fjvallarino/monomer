@@ -72,6 +72,7 @@ spec = describe "DateField" $ do
   handleEventDate
   handleEventValueDate
   handleEventMouseDragDate
+  handleEventReadOnly
   handleShiftFocus
   getSizeReqDate
   testWidgetType
@@ -246,6 +247,30 @@ handleEventMouseDragDate = describe "handleEventMouseDragDate" $ do
     model es = nodeHandleEventModel wenv es dateNode
     lastIdx es = Seq.index es (Seq.length es - 1)
     lastEvt es = lastIdx (evts es)
+
+handleEventReadOnly :: Spec
+handleEventReadOnly = describe "handleEventReadOnly" $ do
+  it "should ignore text input" $ do
+    let steps = [moveCharR, delCharL, evtT "5"]
+    model steps ^. dateValue `shouldBe` initDate
+  
+  it "should ignore drag" $ do
+    let selStart = Point 5 5
+    let selEnd = Point 100 2000
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. dateValue `shouldBe` initDate
+
+  it "should ignore wheel" $ do
+    let steps = [WheelScroll (Point 100 10) (Point 0 (-2000)) WheelNormal]
+    model steps ^. dateValue `shouldBe` initDate
+
+  where
+    initDate = fromGregorian 1999 11 21
+    wenv = mockWenv (DateModel initDate True)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
+    dateCfg = [readOnly :: DateFieldCfg DateModel TestEvt Day]
+    dateNode = dateField_ dateValue dateCfg
+    model es = nodeHandleEventModel wenv es dateNode
 
 handleShiftFocus :: Spec
 handleShiftFocus = describe "handleShiftFocus" $ do

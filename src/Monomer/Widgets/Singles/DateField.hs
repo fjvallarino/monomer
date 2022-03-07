@@ -33,6 +33,7 @@ module Monomer.Widgets.Singles.DateField (
   dateField_,
   dateFieldV,
   dateFieldV_,
+  dateFieldD_,
   dateFormatDelimiter,
   dateFormatDDMMYYYY,
   dateFormatMMDDYYYY,
@@ -134,6 +135,7 @@ Configuration options for dateField:
   warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes 'ResizeWidgets' requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'readOnly': Whether to prevent the user changing the input text.
 - 'minValue': Minimum valid date.
 - 'maxValue': Maximum valid date.
 - 'wheelRate': The rate at which wheel movement affects the date.
@@ -162,6 +164,7 @@ data DateFieldCfg s e a = DateFieldCfg {
   _dfcDragRate :: Maybe Double,
   _dfcResizeOnChange :: Maybe Bool,
   _dfcSelectOnFocus :: Maybe Bool,
+  _dfcReadOnly :: Maybe Bool,
   _dfcOnFocusReq :: [Path -> WidgetRequest s e],
   _dfcOnBlurReq :: [Path -> WidgetRequest s e],
   _dfcOnChangeReq :: [a -> WidgetRequest s e]
@@ -181,6 +184,7 @@ instance Default (DateFieldCfg s e a) where
     _dfcDragRate = Nothing,
     _dfcResizeOnChange = Nothing,
     _dfcSelectOnFocus = Nothing,
+    _dfcReadOnly = Nothing,
     _dfcOnFocusReq = [],
     _dfcOnBlurReq = [],
     _dfcOnChangeReq = []
@@ -200,6 +204,7 @@ instance Semigroup (DateFieldCfg s e a) where
     _dfcDragRate = _dfcDragRate t2 <|> _dfcDragRate t1,
     _dfcResizeOnChange = _dfcResizeOnChange t2 <|> _dfcResizeOnChange t1,
     _dfcSelectOnFocus = _dfcSelectOnFocus t2 <|> _dfcSelectOnFocus t1,
+    _dfcReadOnly = _dfcReadOnly t2 <|> _dfcReadOnly t1,
     _dfcOnFocusReq = _dfcOnFocusReq t1 <> _dfcOnFocusReq t2,
     _dfcOnBlurReq = _dfcOnBlurReq t1 <> _dfcOnBlurReq t2,
     _dfcOnChangeReq = _dfcOnChangeReq t1 <> _dfcOnChangeReq t2
@@ -236,6 +241,11 @@ instance CmbResizeOnChange (DateFieldCfg s e a) where
 instance CmbSelectOnFocus (DateFieldCfg s e a) where
   selectOnFocus_ sel = def {
     _dfcSelectOnFocus = Just sel
+  }
+
+instance CmbReadOnly (DateFieldCfg s e a) where
+  readOnly_ ro = def {
+    _dfcReadOnly = Just ro
   }
 
 instance FormattableDate a => CmbMinValue (DateFieldCfg s e a) a where
@@ -358,6 +368,7 @@ dateFieldD_ widgetData configs = newNode where
   delim = fromMaybe defaultDateDelim (_dfcDateDelim config)
   minVal = _dfcMinValue config
   maxVal = _dfcMaxValue config
+  readOnly = fromMaybe False (_dfcReadOnly config)
 
   initialValue
     | isJust minVal = fromJust minVal
@@ -387,9 +398,10 @@ dateFieldD_ widgetData configs = newNode where
     _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_dfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_dfcSelectOnFocus config),
+    _ifcReadOnly = readOnly,
     _ifcStyle = Just L.dateFieldStyle,
-    _ifcWheelHandler = Just (handleWheel config),
-    _ifcDragHandler = Just (handleDrag config),
+    _ifcWheelHandler = if readOnly then Nothing else Just (handleWheel config),
+    _ifcDragHandler =  if readOnly then Nothing else Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _dfcOnFocusReq config,
     _ifcOnBlurReq = _dfcOnBlurReq config,

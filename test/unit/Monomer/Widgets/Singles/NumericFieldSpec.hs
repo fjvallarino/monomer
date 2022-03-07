@@ -65,6 +65,7 @@ specIntegral = describe "IntegralField" $ do
   handleEventIntegral
   handleEventValueIntegral
   handleEventMouseDragIntegral
+  handleEventReadOnly
   getSizeReqIntegral
   testIntegralWidgetType
 
@@ -475,6 +476,30 @@ handleShiftFocusFractional = describe "handleShiftFocusFractional" $ do
         numericField_ fractionalValue [wheelRate 1, onFocus GotFocus]
       ]
     evts es = nodeHandleEventEvts wenv es floatNode
+
+handleEventReadOnly :: Spec
+handleEventReadOnly = describe "handleEventReadOnly" $ do
+  it "should ignore text input" $ do
+    let steps = [moveCharR, delCharL, evtT "5"]
+    model steps ^. fractionalValue `shouldBe` initValue
+  
+  it "should ignore drag" $ do
+    let selStart = Point 5 5
+    let selEnd = Point 100 2000
+    let steps = [evtPress selStart, evtMove selEnd, evtRelease selEnd]
+    model steps ^. fractionalValue `shouldBe` initValue
+
+  it "should ignore wheel" $ do
+    let steps = [WheelScroll (Point 100 10) (Point 0 (-2000)) WheelNormal]
+    model steps ^. fractionalValue `shouldBe` initValue
+
+  where
+    initValue = Just 42.4
+    wenv = mockWenv (FractionalModel initValue False)
+      & L.inputStatus . L.keyMod . L.leftShift .~ True
+    fieldCfg = [readOnly :: NumericFieldCfg FractionalModel TestEvt (Maybe Double)]
+    fieldNode = numericField_ fractionalValue fieldCfg
+    model es = nodeHandleEventModel wenv es fieldNode
 
 getSizeReqFractional :: Spec
 getSizeReqFractional = describe "getSizeReqFractional" $ do

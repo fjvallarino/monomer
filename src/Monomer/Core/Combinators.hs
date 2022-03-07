@@ -49,6 +49,16 @@ class CmbSelectOnFocus t where
   selectOnFocus = selectOnFocus_ True
   selectOnFocus_ :: Bool -> t
 
+{-|
+Defines whether a widget prevents the user changing the value. Note that, in
+contrast to a disabled widget, a read-only widget can still be focused and
+still allows selecting and copying the value.
+-}
+class CmbReadOnly t where
+  readOnly :: t
+  readOnly = readOnly_ True
+  readOnly_ :: Bool -> t
+
 -- | Defines whether a widget changes its size when the model changes.
 class CmbResizeOnChange t where
   resizeOnChange :: t

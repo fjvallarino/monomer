@@ -32,6 +32,7 @@ module Monomer.Widgets.Singles.TimeField (
   timeField_,
   timeFieldV,
   timeFieldV_,
+  timeFieldD_,
   timeFormatHHMM,
   timeFormatHHMMSS
 ) where
@@ -130,6 +131,7 @@ Configuration options for timeField:
 warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
+- 'readOnly': Whether to prevent the user changing the input text.
 - 'minValue': Minimum valid date.
 - 'maxValue': Maximum valid date.
 - 'wheelRate': The rate at which wheel movement affects the date.
@@ -155,6 +157,7 @@ data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcDragRate :: Maybe Double,
   _tfcResizeOnChange :: Maybe Bool,
   _tfcSelectOnFocus :: Maybe Bool,
+  _tfcReadOnly :: Maybe Bool,
   _tfcOnFocusReq :: [Path -> WidgetRequest s e],
   _tfcOnBlurReq :: [Path -> WidgetRequest s e],
   _tfcOnChangeReq :: [a -> WidgetRequest s e]
@@ -173,6 +176,7 @@ instance Default (TimeFieldCfg s e a) where
     _tfcDragRate = Nothing,
     _tfcResizeOnChange = Nothing,
     _tfcSelectOnFocus = Nothing,
+    _tfcReadOnly = Nothing,
     _tfcOnFocusReq = [],
     _tfcOnBlurReq = [],
     _tfcOnChangeReq = []
@@ -191,6 +195,7 @@ instance Semigroup (TimeFieldCfg s e a) where
     _tfcDragRate = _tfcDragRate t2 <|> _tfcDragRate t1,
     _tfcResizeOnChange = _tfcResizeOnChange t2 <|> _tfcResizeOnChange t1,
     _tfcSelectOnFocus = _tfcSelectOnFocus t2 <|> _tfcSelectOnFocus t1,
+    _tfcReadOnly = _tfcReadOnly t2 <|> _tfcReadOnly t1,
     _tfcOnFocusReq = _tfcOnFocusReq t1 <> _tfcOnFocusReq t2,
     _tfcOnBlurReq = _tfcOnBlurReq t1 <> _tfcOnBlurReq t2,
     _tfcOnChangeReq = _tfcOnChangeReq t1 <> _tfcOnChangeReq t2
@@ -227,6 +232,11 @@ instance CmbResizeOnChange (TimeFieldCfg s e a) where
 instance CmbSelectOnFocus (TimeFieldCfg s e a) where
   selectOnFocus_ sel = def {
     _tfcSelectOnFocus = Just sel
+  }
+
+instance CmbReadOnly (TimeFieldCfg s e a) where
+  readOnly_ ro = def {
+    _tfcReadOnly = Just ro
   }
 
 instance FormattableTime a => CmbMinValue (TimeFieldCfg s e a) a where
@@ -336,6 +346,7 @@ timeFieldD_ widgetData configs = newNode where
   format = fromMaybe defaultTimeFormat (_tfcTimeFormat config)
   minVal = _tfcMinValue config
   maxVal = _tfcMaxValue config
+  readOnly = fromMaybe False (_tfcReadOnly config)
   initialValue
     | isJust minVal = fromJust minVal
     | isJust maxVal = fromJust maxVal
@@ -364,9 +375,10 @@ timeFieldD_ widgetData configs = newNode where
     _ifcDisplayChar = Nothing,
     _ifcResizeOnChange = fromMaybe False (_tfcResizeOnChange config),
     _ifcSelectOnFocus = fromMaybe True (_tfcSelectOnFocus config),
+    _ifcReadOnly = readOnly,
     _ifcStyle = Just L.timeFieldStyle,
-    _ifcWheelHandler = Just (handleWheel config),
-    _ifcDragHandler = Just (handleDrag config),
+    _ifcWheelHandler = if readOnly then Nothing else Just (handleWheel config),
+    _ifcDragHandler = if readOnly then Nothing else Just (handleDrag config),
     _ifcDragCursor = Just CursorSizeV,
     _ifcOnFocusReq = _tfcOnFocusReq config,
     _ifcOnBlurReq = _tfcOnBlurReq config,
