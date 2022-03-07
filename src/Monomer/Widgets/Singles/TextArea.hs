@@ -264,7 +264,7 @@ makeTextArea !wdata !config !state = widget where
   !caretMs = fromMaybe defCaretMs (_tacCaretMs config)
   !maxLength = _tacMaxLength config
   !maxLines = _tacMaxLines config
-  !editable = not (fromMaybe False (_tacReadOnly config))
+  !editable = _tacReadOnly config /= Just True
   getModelValue !wenv = widgetDataGet (_weModel wenv) wdata
   -- State
   !currText = _tasText state
