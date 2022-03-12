@@ -65,7 +65,7 @@ data Address = Address {
 data Person = Person {
   _name :: Text,
   _homeAddress :: Address,
-  _address :: Maybe Address,
+  _workAddress :: Maybe Address,
   _friends :: [Person]
 } deriving (Eq, Show)
 ```
