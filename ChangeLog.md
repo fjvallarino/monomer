@@ -3,12 +3,15 @@
 ### Fixed
 
 - Properly handle `SetFocusOnKey` for `textArea` ([#80](https://github.com/fjvallarino/monomer/issues/80)).
+- Lens tutorial sample code ([PR #95](https://github.com/fjvallarino/monomer/pull/95) and [PR #98](https://github.com/fjvallarino/monomer/pull/98)). Thanks @Clindbergh!
 
 ### Added
 
 - Utility functions `rectFromPoints`, `nodeInfoFromKey`, `nodeInfoFromPath` and `findParentNodeInfoByType`.
 - Allow setting the window icon via AppConfig ([PR #79](https://github.com/fjvallarino/monomer/pull/79)). Thanks @Dretch!
-- Add support for breaking text lines at character boundaries ([PR #86](https://github.com/fjvallarino/monomer/pull/86)). Thanks @toku-sa-n!
+- Support for breaking text lines at character boundaries ([PR #86](https://github.com/fjvallarino/monomer/pull/86)). Thanks @toku-sa-n!
+- Read-only mode for `textField`, `numericField`, `dateField`, `timeField` and `textArea` ([PR #93](https://github.com/fjvallarino/monomer/pull/93)). Thanks @Dretch!
+- The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
 
 ### Changed
 
@@ -17,7 +20,7 @@
   `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
   in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
   use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
-- The `keystroke` widget now supports `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
+- The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 
 ### Renamed
 
