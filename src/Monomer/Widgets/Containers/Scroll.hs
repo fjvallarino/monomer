@@ -106,6 +106,7 @@ Configuration options for scroll:
 - 'thumbColor': the color of the thumb.
 - 'thumbHoverColor': the color of the thumb when mouse is on top.
 - 'thumbWidth': the width of the thumb.
+- 'thumbMinSize': the minimum size of the thumb.
 - 'thumbRadius': the radius of the corners of the thumb.
 - 'onChange': event to raise when the viewport changes.
 - 'onChangeReq': 'WidgetRequest' to generate when the viewport changes.
@@ -123,6 +124,7 @@ data ScrollCfg s e = ScrollCfg {
   _scStyle :: Maybe (ALens' ThemeState StyleState),
   _scBarWidth :: Maybe Double,
   _scThumbWidth :: Maybe Double,
+  _scThumbMinSize :: Maybe Double,
   _scThumbRadius :: Maybe Double,
   _scOnChangeReq :: [ScrollStatus -> WidgetRequest s e]
 }
@@ -141,6 +143,7 @@ instance Default (ScrollCfg s e) where
     _scStyle = Nothing,
     _scBarWidth = Nothing,
     _scThumbWidth = Nothing,
+    _scThumbMinSize = Nothing,
     _scThumbRadius = Nothing,
     _scOnChangeReq = []
   }
@@ -159,6 +162,7 @@ instance Semigroup (ScrollCfg s e) where
     _scStyle = _scStyle t2 <|> _scStyle t1,
     _scBarWidth = _scBarWidth t2 <|> _scBarWidth t1,
     _scThumbWidth = _scThumbWidth t2 <|> _scThumbWidth t1,
+    _scThumbMinSize = _scThumbMinSize t2 <|> _scThumbMinSize t1,
     _scThumbRadius = _scThumbRadius t2 <|> _scThumbRadius t1,
     _scOnChangeReq = _scOnChangeReq t2 <|> _scOnChangeReq t1
   }
@@ -200,6 +204,11 @@ instance CmbThumbHoverColor (ScrollCfg s e) where
 instance CmbThumbWidth (ScrollCfg s e) where
   thumbWidth w = def {
     _scThumbWidth = Just w
+  }
+
+instance CmbThumbMinSize (ScrollCfg s e) where
+  thumbMinSize w = def {
+    _scThumbMinSize = Just w
   }
 
 instance CmbThumbRadius (ScrollCfg s e) where
@@ -300,14 +309,16 @@ data ScrollState = ScrollState {
   _sstDragging :: Maybe ActiveBar,
   _sstDeltaX :: !Double,
   _sstDeltaY :: !Double,
+  _sstThumbOffsetX :: !Double,
+  _sstThumbOffsetY :: !Double,
   _sstVpSize :: Size,
   _sstChildSize :: Size,
   _sstScissor :: Rect
 } deriving (Eq, Show, Generic)
 
 data ScrollContext = ScrollContext {
-  hScrollRatio :: Double,
-  vScrollRatio :: Double,
+  hThumbRatio :: Double,
+  vThumbRatio :: Double,
   hScrollRequired :: Bool,
   vScrollRequired :: Bool,
   hMouseInScroll :: Bool,
@@ -325,6 +336,8 @@ instance Default ScrollState where
     _sstDragging = Nothing,
     _sstDeltaX = 0,
     _sstDeltaY = 0,
+    _sstThumbOffsetX = 0,
+    _sstThumbOffsetY = 0,
     _sstVpSize = def,
     _sstChildSize = def,
     _sstScissor = def
@@ -395,7 +408,7 @@ makeScroll config state = widget where
   }
   widget = createContainer state container
 
-  ScrollState dragging dx dy _ _ _ = state
+  (dragging, dx, dy) = (_sstDragging state, _sstDeltaX state, _sstDeltaY state)
   Size childWidth childHeight = _sstChildSize state
   Size maxVpW maxVpH = _sstVpSize state
   offset = Point dx dy
@@ -506,9 +519,20 @@ makeScroll config state = widget where
       mouseInThumb = hMouseInThumb sctx || vMouseInThumb sctx
       mouseInScroll = hMouseInScroll sctx || vMouseInScroll sctx
 
+      thumbOffsetX = point ^. L.x - hThumbRect sctx ^. L.x
+      thumbOffsetY = point ^. L.y - vThumbRect sctx ^. L.y
+
       newState
-        | startDragH = state { _sstDragging = Just HBar }
-        | startDragV = state { _sstDragging = Just VBar }
+        | startDragH = state {
+            _sstDragging = Just HBar,
+            _sstThumbOffsetX = thumbOffsetX,
+            _sstThumbOffsetY = 0
+          }
+        | startDragV = state {
+            _sstDragging = Just VBar,
+            _sstThumbOffsetX = 0,
+            _sstThumbOffsetY = thumbOffsetY
+          }
         | jumpScrollH = updateScrollThumb state HBar point contentArea sctx
         | jumpScrollV = updateScrollThumb state VBar point contentArea sctx
         | mainReleased = state { _sstDragging = Nothing }
@@ -630,11 +654,10 @@ makeScroll config state = widget where
     ScrollContext{..} = sctx
     Rect cx cy _ _ = contentArea
 
-    hMid = _rW hThumbRect / 2
-    vMid = _rH vThumbRect / 2
+    (offsetH, offsetV) = (_sstThumbOffsetX state, _sstThumbOffsetY state)
 
-    hDelta = (cx - px + hMid) / hScrollRatio
-    vDelta = (cy - py + vMid) / vScrollRatio
+    hDelta = (cx - px + offsetH) / hThumbRatio
+    vDelta = (cy - py + offsetV) / vThumbRatio
 
     newDeltaX
       | activeBar == HBar = scrollAxisH hDelta
@@ -817,16 +840,19 @@ scrollStatus
   -> ScrollState
   -> Point
   -> ScrollContext
-scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
-  ScrollState _ dx dy _ _ _ = scrollState
-  Size childWidth childHeight = _sstChildSize scrollState
-  Size vpWidth vpHeight = _sstVpSize scrollState
+scrollStatus config wenv node state mousePos = ScrollContext{..} where
+  (dragging, dx, dy) = (_sstDragging state, _sstDeltaX state, _sstDeltaY state)
+
+  Size childWidth childHeight = _sstChildSize state
+  Size vpWidth vpHeight = _sstVpSize state
+
   theme = currentTheme wenv node
   style = scrollCurrentStyle wenv node
   contentArea = getContentArea node style
 
   barW = fromMaybe (theme ^. L.scrollBarWidth) (_scBarWidth config)
   thumbW = fromMaybe (theme ^. L.scrollThumbWidth) (_scThumbWidth config)
+  minSize = fromMaybe (theme ^. L.scrollThumbMinSize) (_scThumbMinSize config)
 
   caLeft = _rX contentArea
   caTop = _rY contentArea
@@ -838,14 +864,23 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
 
   hRatio = caWidth / childWidth
   vRatio = caHeight / childHeight
-  hRatioR = (caWidth - barW) / childWidth
-  vRatioR = (caHeight - barW) / childHeight
 
-  (hScrollRatio, vScrollRatio)
-    | hRatio < 1 && vRatio < 1 = (hRatioR, vRatioR)
-    | otherwise = (hRatio, vRatio)
+  ratioBarW
+    | hRatio < 1 && vRatio < 1 = barW
+    | otherwise = 0
+  hScrollRatio = (caWidth - ratioBarW) / childWidth
+  vScrollRatio = (caHeight - ratioBarW) / childHeight
+
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
+
+  hThumbSize = max minSize (hScrollRatio * vpWidth)
+  vThumbSize = max minSize (vScrollRatio * vpHeight)
+
+  hThumbArea = caWidth - ratioBarW
+  vThumbArea = caHeight - ratioBarW
+  hThumbRatio = (hThumbArea - hThumbSize) / (childWidth - hThumbArea)
+  vThumbRatio = (vThumbArea - vThumbSize) / (childHeight - vThumbArea)
 
   hScrollRect = Rect {
     _rX = caLeft,
@@ -860,16 +895,16 @@ scrollStatus config wenv node scrollState mousePos = ScrollContext{..} where
     _rH = vpHeight
   }
   hThumbRect = Rect {
-    _rX = caLeft - hScrollRatio * dx,
+    _rX = caLeft - hThumbRatio * dx,
     _rY = caTop + hScrollTop + (barW - thumbW) / 2,
-    _rW = hScrollRatio * vpWidth,
+    _rW = hThumbSize,
     _rH = thumbW
   }
   vThumbRect = Rect {
     _rX = caLeft + vScrollLeft + (barW - thumbW) / 2,
-    _rY = caTop - vScrollRatio * dy,
+    _rY = caTop - vThumbRatio * dy,
     _rW = thumbW,
-    _rH = vScrollRatio * vpHeight
+    _rH = vThumbSize
   }
 
   hMouseInScroll = pointInRect mousePos hScrollRect

@@ -255,6 +255,7 @@ baseBasic themeMod = def
   & L.scrollThumbColor .~ scrollThumbBasic themeMod
   & L.scrollBarWidth .~ 8
   & L.scrollThumbWidth .~ 8
+  & L.scrollThumbMinSize .~ 25
   & L.scrollThumbRadius .~ 4
   & L.scrollWheelRate .~ 10
   & L.separatorLineWidth .~ 1
