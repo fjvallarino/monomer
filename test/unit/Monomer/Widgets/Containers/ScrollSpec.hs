@@ -51,6 +51,7 @@ spec = describe "Scroll" $ do
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
   handleBarClick
+  handleThumbDrag
   handleChildrenFocus
   handleNestedWheel
   handleMessageReset
@@ -61,11 +62,8 @@ handleBarClick = describe "handleBarClick" $ do
   it "should click the first button" $ do
     evts [evtClick point] `shouldBe` Seq.fromList [Button1]
 
-  it "should scroll right and click the third button" $ do
+  it "should scroll right and click the second button" $ do
     evts [evtPress midHBar, evtClick point] `shouldBe` Seq.fromList [Button2]
-
-  it "should scroll down and click the third button" $ do
-    evts [evtPress midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
 
   it "should scroll down and click the third button" $ do
     evts [evtPress midVBar, evtClick point] `shouldBe` Seq.fromList [Button3]
@@ -93,6 +91,53 @@ handleBarClick = describe "handleBarClick" $ do
       ]
     scrollNode = scroll stackNode
     evts es = nodeHandleEventEvts wenv es scrollNode
+
+handleThumbDrag :: Spec
+handleThumbDrag = describe "handleThumbDrag" $ do
+  it "should click the first button" $ do
+    evts [evtClick pClick] `shouldBe` Seq.fromList [Button1]
+
+  it "should drag the thumb right and click the second button" $ do
+    evts [evtPress pStartH, evtMove pEndH, evtClick pClick] `shouldBe` Seq.fromList [Button2]
+
+  it "should drag the thumb down and click the third button" $ do
+    evts [evtPress pStartV, evtMove pEndV, evtClick pClick] `shouldBe` Seq.fromList [Button3]
+
+  it "should drag the thumb down and right and click the fourth button" $ do
+    let steps = [ evtPress pStartH, evtMove pEndH, evtRelease pEndH,
+                  evtPress pStartV, evtMove pEndV, evtRelease pEndV,
+                  evtClick pClick ]
+    evts steps `shouldBe` Seq.fromList [Button4]
+
+  it "should fail to drag the thumb right because of thumb size, causing it to click the first button" $ do
+    evtsSmall [evtPress pStartH, evtMove pEndH, evtClick pClick] `shouldBe` Seq.fromList [Button1]
+
+  it "should fail to drag the thumb down because of thumb size, causing it to click the first button" $ do
+    evtsSmall [evtPress pStartV, evtMove pEndV, evtClick pClick] `shouldBe` Seq.fromList [Button1]
+
+  where
+    wenv = mockWenv ()
+      & L.theme .~ darkTheme
+      & L.windowSize .~ Size 640 480
+    pClick = Point 320 200
+    pStartH = Point 50 476
+    pEndH = Point 400 476
+    pStartV = Point 636 50
+    pEndV = Point 636 300
+    st = [width 6400, height 4800]
+    stackNode = vstack [
+        hstack [
+          button "Button 1" Button1 `styleBasic` st,
+          button "Button 2" Button2 `styleBasic` st
+        ],
+        hstack [
+          button "Button 3" Button3 `styleBasic` st,
+          button "Button 4" Button4 `styleBasic` st
+        ]
+      ]
+    scrollNode = scroll_ [thumbMinSize 100] stackNode
+    evts es = nodeHandleEventEvts wenv es scrollNode
+    evtsSmall es = nodeHandleEventEvts wenv es (scroll stackNode)
 
 handleChildrenFocus :: Spec
 handleChildrenFocus = describe "handleChildrenFocus" $ do

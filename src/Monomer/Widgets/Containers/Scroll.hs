@@ -842,7 +842,6 @@ scrollStatus
   -> ScrollContext
 scrollStatus config wenv node state mousePos = ScrollContext{..} where
   (dragging, dx, dy) = (_sstDragging state, _sstDeltaX state, _sstDeltaY state)
-  (offsetH, offsetV) = (_sstThumbOffsetX state, _sstThumbOffsetY state)
 
   Size childWidth childHeight = _sstChildSize state
   Size vpWidth vpHeight = _sstVpSize state
