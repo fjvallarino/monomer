@@ -868,10 +868,9 @@ scrollStatus config wenv node state mousePos = ScrollContext{..} where
   ratioBarW
     | hRatio < 1 && vRatio < 1 = barW
     | otherwise = 0
-  hRatioR = (caWidth - ratioBarW) / childWidth
-  vRatioR = (caHeight - ratioBarW) / childHeight
+  hScrollRatio = (caWidth - ratioBarW) / childWidth
+  vScrollRatio = (caHeight - ratioBarW) / childHeight
 
-  (hScrollRatio, vScrollRatio) = (hRatioR, vRatioR)
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
 
