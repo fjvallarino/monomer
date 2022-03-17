@@ -865,20 +865,24 @@ scrollStatus config wenv node state mousePos = ScrollContext{..} where
 
   hRatio = caWidth / childWidth
   vRatio = caHeight / childHeight
-  hRatioR = (caWidth - barW) / childWidth
-  vRatioR = (caHeight - barW) / childHeight
 
-  (hScrollRatio, vScrollRatio)
-    | hRatio < 1 && vRatio < 1 = (hRatioR, vRatioR)
-    | otherwise = (hRatio, vRatio)
+  ratioBarW
+    | hRatio < 1 && vRatio < 1 = barW
+    | otherwise = 0
+  hRatioR = (caWidth - ratioBarW) / childWidth
+  vRatioR = (caHeight - ratioBarW) / childHeight
+
+  (hScrollRatio, vScrollRatio) = (hRatioR, vRatioR)
   hScrollRequired = hScrollRatio < 1
   vScrollRequired = vScrollRatio < 1
 
   hThumbSize = max minSize (hScrollRatio * vpWidth)
   vThumbSize = max minSize (vScrollRatio * vpHeight)
 
-  hThumbRatio = (caWidth - hThumbSize) / (childWidth - caWidth)
-  vThumbRatio = (caHeight - vThumbSize) / (childHeight - caHeight)
+  hThumbArea = caWidth - ratioBarW
+  vThumbArea = caHeight - ratioBarW
+  hThumbRatio = (hThumbArea - hThumbSize) / (childWidth - hThumbArea)
+  vThumbRatio = (vThumbArea - vThumbSize) / (childHeight - vThumbArea)
 
   hScrollRect = Rect {
     _rX = caLeft,
