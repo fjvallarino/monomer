@@ -11,6 +11,7 @@ Helper functions for style types.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Strict #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Monomer.Core.StyleUtil (
   getContentArea,
@@ -43,7 +44,7 @@ module Monomer.Core.StyleUtil (
   mapStyleStates
 ) where
 
-import Control.Lens ((&), (^.), (^?), (.~), (+~), (%~), (?~), _Just, non)
+import Control.Lens
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
@@ -59,63 +60,87 @@ import qualified Monomer.Core.Lens as L
 
 instance CmbStyleBasic Style where
   styleBasic oldStyle states = newStyle where
+    newStyle = oldStyle & L.basic <>~ maybeConcat states
+
+  styleBasicSet oldStyle states = newStyle where
     newStyle = oldStyle & L.basic .~ maybeConcat states
 
 instance CmbStyleHover Style where
   styleHover oldStyle states = newStyle where
+    newStyle = oldStyle & L.hover <>~ maybeConcat states
+
+  styleHoverSet oldStyle states = newStyle where
     newStyle = oldStyle & L.hover .~ maybeConcat states
 
 instance CmbStyleFocus Style where
   styleFocus oldStyle states = newStyle where
+    newStyle = oldStyle & L.focus <>~ maybeConcat states
+
+  styleFocusSet oldStyle states = newStyle where
     newStyle = oldStyle & L.focus .~ maybeConcat states
 
 instance CmbStyleFocusHover Style where
   styleFocusHover oldStyle states = newStyle where
+    newStyle = oldStyle & L.focusHover <>~ maybeConcat states
+
+  styleFocusHoverSet oldStyle states = newStyle where
     newStyle = oldStyle & L.focusHover .~ maybeConcat states
 
 instance CmbStyleActive Style where
   styleActive oldStyle states = newStyle where
+    newStyle = oldStyle & L.active <>~ maybeConcat states
+
+  styleActiveSet oldStyle states = newStyle where
     newStyle = oldStyle & L.active .~ maybeConcat states
 
 instance CmbStyleDisabled Style where
   styleDisabled oldStyle states = newStyle where
+    newStyle = oldStyle & L.disabled <>~ maybeConcat states
+
+  styleDisabledSet oldStyle states = newStyle where
     newStyle = oldStyle & L.disabled .~ maybeConcat states
 
 instance CmbStyleBasic (WidgetNode s e) where
-  styleBasic node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.basic ?~ state
+  styleBasic node states = newNode where
+    newNode = mergeNodeStyleState L.basic node states
+
+  styleBasicSet node states = newNode where
+    newNode = setNodeStyleState L.basic node states
 
 instance CmbStyleHover (WidgetNode s e) where
-  styleHover node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.hover ?~ state
+  styleHover node states = newNode where
+    newNode = mergeNodeStyleState L.hover node states
+
+  styleHoverSet node states = newNode where
+    newNode = setNodeStyleState L.hover node states
 
 instance CmbStyleFocus (WidgetNode s e) where
-  styleFocus node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.focus ?~ state
+  styleFocus node states = newNode where
+    newNode = mergeNodeStyleState L.focus node states
+
+  styleFocusSet node states = newNode where
+    newNode = setNodeStyleState L.focus node states
 
 instance CmbStyleFocusHover (WidgetNode s e) where
-  styleFocusHover node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.focusHover ?~ state
+  styleFocusHover node states = newNode where
+    newNode = mergeNodeStyleState L.focusHover node states
+
+  styleFocusHoverSet node states = newNode where
+    newNode = setNodeStyleState L.focusHover node states
 
 instance CmbStyleActive (WidgetNode s e) where
-  styleActive node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.active ?~ state
+  styleActive node states = newNode where
+    newNode = mergeNodeStyleState L.active node states
+
+  styleActiveSet node states = newNode where
+    newNode = setNodeStyleState L.active node states
 
 instance CmbStyleDisabled (WidgetNode s e) where
-  styleDisabled node states = node & L.info . L.style .~ newStyle where
-    state = mconcat states
-    oldStyle = node ^. L.info . L.style
-    newStyle = oldStyle & L.disabled ?~ state
+  styleDisabled node states = newNode where
+    newNode = mergeNodeStyleState L.disabled node states
+
+  styleDisabledSet node states = newNode where
+    newNode = setNodeStyleState L.disabled node states
 
 infixl 5 `nodeKey`
 infixl 5 `nodeEnabled`
@@ -312,6 +337,31 @@ borderWidths (Just border) = (bl, br, bt, bb) where
   br = maybe 0 _bsWidth (_brdRight border)
   bt = maybe 0 _bsWidth (_brdTop border)
   bb = maybe 0 _bsWidth (_brdBottom border)
+
+mergeNodeStyleState
+  :: Lens' Style (Maybe StyleState)
+  -> WidgetNode s e
+  -> [StyleState]
+  -> WidgetNode s e
+mergeNodeStyleState field node states = newNode where
+  oldStyle = node ^. L.info . L.style
+  oldState = oldStyle ^. field . non def
+  newStyle = oldStyle
+    & field ?~ oldState <> mconcat states
+  newNode = node
+    & L.info . L.style .~ newStyle
+
+setNodeStyleState
+  :: Lens' Style (Maybe StyleState)
+  -> WidgetNode s e
+  -> [StyleState]
+  -> WidgetNode s e
+setNodeStyleState field node states = newNode where
+  oldStyle = node ^. L.info . L.style
+  newStyle = oldStyle
+    & field ?~ mconcat states
+  newNode = node
+    & L.info . L.style .~ newStyle
 
 justDef :: (Default a) => Maybe a -> a
 justDef val = fromMaybe def val

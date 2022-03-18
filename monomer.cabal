@@ -445,6 +445,7 @@ test-suite monomer-test
   other-modules:
       Monomer.Common.CursorIconSpec
       Monomer.Core.SizeReqSpec
+      Monomer.Core.StyleUtilSpec
       Monomer.Graphics.UtilSpec
       Monomer.TestEventUtil
       Monomer.TestUtil

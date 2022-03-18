@@ -8,7 +8,10 @@ import qualified SDL.Raw as Raw
 import Monomer.TestUtil (useVideoSubSystem)
 
 import qualified Monomer.Common.CursorIconSpec as CursorIconSpec
+
 import qualified Monomer.Core.SizeReqSpec as SizeReqSpec
+import qualified Monomer.Core.StyleUtilSpec as StyleUtilSpec
+
 import qualified Monomer.Graphics.UtilSpec as GraphicsUtilSpec
 
 import qualified Monomer.Widgets.CompositeSpec as CompositeSpec
@@ -88,6 +91,7 @@ common = describe "Common" $ do
 core :: Spec
 core = describe "Core" $ do
   SizeReqSpec.spec
+  StyleUtilSpec.spec
 
 graphics :: Spec
 graphics = describe "Graphics" $ do
