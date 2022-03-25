@@ -60,7 +60,7 @@ Configuration options for textField:
 -}
 data TextFieldCfg s e = TextFieldCfg {
   _tfcCaretWidth :: Maybe Double,
-  _tfcCaretMs :: Maybe Int,
+  _tfcCaretMs :: Maybe Timestamp,
   _tfcDisplayChar :: Maybe Char,
   _tfcPlaceholder :: Maybe Text,
   _tfcValid :: Maybe (WidgetData s Bool),
@@ -116,7 +116,7 @@ instance CmbCaretWidth (TextFieldCfg s e) Double where
     _tfcCaretWidth = Just w
   }
 
-instance CmbCaretMs (TextFieldCfg s e) Int where
+instance CmbCaretMs (TextFieldCfg s e) Timestamp where
   caretMs ms = def {
     _tfcCaretMs = Just ms
   }

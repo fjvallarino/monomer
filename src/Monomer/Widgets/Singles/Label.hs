@@ -142,7 +142,7 @@ data LabelState = LabelState {
   _lstTextStyle :: Maybe TextStyle,
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine,
-  _lstPrevResize :: (Int, Bool)
+  _lstPrevResize :: (Timestamp, Bool)
 } deriving (Eq, Show, Generic)
 
 -- | Creates a label using the provided 'Text'.

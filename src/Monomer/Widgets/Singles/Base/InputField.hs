@@ -97,7 +97,7 @@ data InputFieldCfg s e a = InputFieldCfg {
   -- | Caret width.
   _ifcCaretWidth :: Maybe Double,
   -- | Caret blink period.
-  _ifcCaretMs :: Maybe Int,
+  _ifcCaretMs :: Maybe Timestamp,
   -- | Character to display as text replacement. Useful for passwords.
   _ifcDisplayChar :: Maybe Char,
   -- | Whether input causes ResizeWidgets requests. Defaults to False.
@@ -186,7 +186,7 @@ data InputFieldState a = InputFieldState {
   -- | Current index into history.
   _ifsHistIdx :: Int,
   -- | The timestamp when focus was received (used for caret blink)
-  _ifsFocusStart :: Int
+  _ifsFocusStart :: Timestamp
 } deriving (Eq, Show, Typeable, Generic)
 
 initialState :: a -> InputFieldState a
@@ -209,7 +209,7 @@ initialState value = InputFieldState {
 defCaretW :: Double
 defCaretW = 2
 
-defCaretMs :: Int
+defCaretMs :: Timestamp
 defCaretMs = 500
 
 -- | Creates an instance of an input field, with customizations in config.

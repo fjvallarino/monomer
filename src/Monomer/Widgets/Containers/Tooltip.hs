@@ -51,7 +51,7 @@ Configuration options for tooltip:
 - 'tooltipFollow': if, after tooltip is displayed, it should follow the mouse.
 -}
 data TooltipCfg = TooltipCfg {
-  _ttcDelay :: Maybe Int,
+  _ttcDelay :: Maybe Timestamp,
   _ttcFollowCursor :: Maybe Bool,
   _ttcMaxWidth :: Maybe Double,
   _ttcMaxHeight :: Maybe Double
@@ -87,7 +87,7 @@ instance CmbMaxHeight TooltipCfg where
   }
 
 -- | Delay before the tooltip is displayed when child widget is hovered.
-tooltipDelay :: Int -> TooltipCfg
+tooltipDelay :: Timestamp -> TooltipCfg
 tooltipDelay ms = def {
   _ttcDelay = Just ms
 }
@@ -100,7 +100,7 @@ tooltipFollow = def {
 
 data TooltipState = TooltipState {
   _ttsLastPos :: Point,
-  _ttsLastPosTs :: Int
+  _ttsLastPosTs :: Timestamp
 } deriving (Eq, Show, Generic)
 
 -- | Creates a tooltip for the child widget.
