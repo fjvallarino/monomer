@@ -11,6 +11,7 @@ Basic types and definitions for Widgets.
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# Language GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Strict #-}
 
@@ -24,7 +25,9 @@ import Data.Sequence (Seq)
 import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
+import Data.Word (Word64)
 import GHC.Generics
+import TextShow
 
 import qualified Data.Text as T
 
@@ -34,8 +37,15 @@ import Monomer.Core.ThemeTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
--- | Time ellapsed since startup
-type Timestamp = Int
+{-|
+Timestamp in milliseconds. Useful for representing the time of events, ellapsed
+time since start/start time of the application and length of intervals.
+
+It can be converted from/to other numeric types using the standard functions.
+-}
+newtype Timestamp = Timestamp {
+  unTimestamp :: Word64
+} deriving (Show, Eq, Ord, Num, Enum, Bounded, Real, Integral, TextShow)
 
 -- | Type constraints for a valid model
 type WidgetModel s = Typeable s
@@ -329,7 +339,7 @@ data WidgetEnv s e = WidgetEnv {
   _weInputStatus :: InputStatus,
   {-|
   The timestamp in milliseconds when this event/message cycle started. This
-  value starts from zero each time the application is executed.
+  value starts from zero each time the application is run.
   -}
   _weTimestamp :: Timestamp,
   {-|
