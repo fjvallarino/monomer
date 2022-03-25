@@ -32,7 +32,8 @@ import Data.Maybe
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
-import Data.Time.Clock.POSIX (getPOSIXTime)
+import Data.Time
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -142,8 +143,9 @@ runAppLoop window glCtx channel widgetRoot config = do
   let exitEvents = _apcExitEvent config
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
+  let toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
 
-  appStartTs <- round . (3 *) <$> liftIO getPOSIXTime
+  appStartTs <- toMs <$> liftIO getCurrentTime
   startTs <- fmap fromIntegral SDL.ticks
 
   model <- use L.mainModel
@@ -193,7 +195,7 @@ runAppLoop window glCtx channel widgetRoot config = do
     _mlRenderer = renderer,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
-    _mlAppStartTs = 0,
+    _mlAppStartTs = appStartTs,
     _mlLatestRenderTs = 0,
     _mlFrameStartTs = startTs,
     _mlFrameAccumTs = 0,
