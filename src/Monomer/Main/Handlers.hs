@@ -517,7 +517,7 @@ handleRenderOnce previousStep = do
 handleRenderEvery
   :: MonomerM s e m
   => WidgetId
-  -> Int
+  -> Timestamp
   -> Maybe Int
   -> HandlerStep s e
   -> m (HandlerStep s e)

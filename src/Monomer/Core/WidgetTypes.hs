@@ -94,8 +94,8 @@ Several WidgetRequests rely on this to find the destination of asynchronous
 requests (tasks, clipboard, etc).
 -}
 data WidgetId = WidgetId {
-  _widTs :: Int,    -- ^ The timestamp when the instance was created.
-  _widPath :: Path  -- ^ The path at creation time.
+  _widTs :: Timestamp,  -- ^ The timestamp when the instance was created.
+  _widPath :: Path      -- ^ The path at creation time.
 } deriving (Eq, Show, Ord, Generic)
 
 instance Default WidgetId where
@@ -192,7 +192,7 @@ data WidgetRequest s e
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
-  | RenderEvery WidgetId Int (Maybe Int)
+  | RenderEvery WidgetId Timestamp (Maybe Int)
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
   {-|
@@ -293,6 +293,8 @@ data WidgetEnv s e = WidgetEnv {
   _weOs :: Text,
   -- | Device pixel rate.
   _weDpr :: Double,
+  -- | The timestamp in milliseconds when the application started.
+  _weAppStartTs :: Timestamp,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
   -- | Returns the node info, and its parents', given a path from root.
@@ -325,7 +327,10 @@ data WidgetEnv s e = WidgetEnv {
   _weModel :: s,
   -- | The input status, mainly mouse and keyboard.
   _weInputStatus :: InputStatus,
-  -- | The timestamp when this cycle started.
+  {-|
+  The timestamp in milliseconds when this event/message cycle started. This
+  value starts from zero each time the application is executed.
+  -}
   _weTimestamp :: Timestamp,
   {-|
   Whether the theme changed in this cycle. Should be considered when a widget

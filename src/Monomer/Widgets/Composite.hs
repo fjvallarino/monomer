@@ -1016,6 +1016,7 @@ convertWidgetEnv :: WidgetEnv sp ep -> WidgetKeyMap s e -> s -> WidgetEnv s e
 convertWidgetEnv wenv widgetKeyMap model = WidgetEnv {
   _weOs = _weOs wenv,
   _weDpr = _weDpr wenv,
+  _weAppStartTs = _weAppStartTs wenv,
   _weFontManager = _weFontManager wenv,
   _weFindBranchByPath = _weFindBranchByPath wenv,
   _weMainButton = _weMainButton wenv,

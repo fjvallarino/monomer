@@ -32,6 +32,7 @@ import Data.Maybe
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -73,11 +74,11 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
-  _mlAppStartTs :: Int,
+  _mlAppStartTs :: Timestamp,
   _mlMaxFps :: Int,
-  _mlLatestRenderTs :: Int,
-  _mlFrameStartTs :: Int,
-  _mlFrameAccumTs :: Int,
+  _mlLatestRenderTs :: Timestamp,
+  _mlFrameStartTs :: Timestamp,
+  _mlFrameAccumTs :: Timestamp,
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode sp ep,
@@ -142,7 +143,9 @@ runAppLoop window glCtx channel widgetRoot config = do
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
 
+  appStartTs <- round . (3 *) <$> liftIO getPOSIXTime
   startTs <- fmap fromIntegral SDL.ticks
+
   model <- use L.mainModel
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
@@ -154,6 +157,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   let wenv = WidgetEnv {
     _weOs = os,
     _weDpr = dpr,
+    _weAppStartTs = appStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = const Seq.empty,
     _weMainButton = mainBtn,
@@ -264,6 +268,7 @@ mainLoop window fontManager config loopArgs = do
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weDpr = dpr,
+    _weAppStartTs = _mlAppStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = findChildBranchByPath wenv _mlWidgetRoot,
     _weMainButton = mainBtn,
@@ -329,11 +334,10 @@ mainLoop window fontManager config loopArgs = do
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
   let remainingMs = endTicks - startTicks
-  let tempDelay = abs (frameLength - remainingMs * 1000)
+  let tempDelay = abs (frameLength - fromIntegral remainingMs * 1000)
   let nextFrameDelay = min frameLength tempDelay
   let latestRenderTs = if renderNeeded then startTicks else _mlLatestRenderTs
   let newLoopArgs = loopArgs {
-    _mlAppStartTs = _mlAppStartTs + ts,
     _mlLatestRenderTs = latestRenderTs,
     _mlFrameStartTs = startTicks,
     _mlFrameAccumTs = if newSecond then 0 else _mlFrameAccumTs + ts,
@@ -469,7 +473,7 @@ watchWindowResize channel = do
         atomically $ writeTChan channel (MsgResize newSize)
       _ -> return ()
 
-checkRenderCurrent :: (MonomerM s e m) => Int -> Int -> m Bool
+checkRenderCurrent :: (MonomerM s e m) => Timestamp -> Timestamp -> m Bool
 checkRenderCurrent currTs renderTs = do
   renderCurrent <- use L.renderRequested
   schedule <- use L.renderSchedule
@@ -479,14 +483,14 @@ checkRenderCurrent currTs renderTs = do
     requiresRender = renderScheduleReq currTs renderTs
     renderNext schedule = any requiresRender schedule
 
-renderScheduleReq :: Int -> Int -> RenderSchedule -> Bool
+renderScheduleReq :: Timestamp -> Timestamp -> RenderSchedule -> Bool
 renderScheduleReq currTs renderTs schedule = required where
   RenderSchedule _ start ms _ = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
   stepTs = start + ms * stepCount
   required = renderTs < stepTs
 
-renderScheduleActive :: Int -> RenderSchedule -> Bool
+renderScheduleActive :: Timestamp -> RenderSchedule -> Bool
 renderScheduleActive currTs schedule = scheduleActive where
   RenderSchedule _ start ms count = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
