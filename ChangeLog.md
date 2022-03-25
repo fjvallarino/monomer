@@ -12,6 +12,7 @@
 - Support for breaking text lines at character boundaries ([PR #86](https://github.com/fjvallarino/monomer/pull/86)). Thanks @toku-sa-n!
 - Read-only mode for `textField`, `numericField`, `dateField`, `timeField` and `textArea` ([PR #93](https://github.com/fjvallarino/monomer/pull/93)). Thanks @Dretch!
 - The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
+- New field to `WidgetEnv`, `_weAppStartTs`, representing the time in milliseconds when the application started. Complementary to `_weTimestamp` ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 
 ### Changed
 
@@ -21,6 +22,7 @@
   in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
   use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
 - The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
+- `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 
 ### Renamed
 
