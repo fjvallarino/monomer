@@ -12,7 +12,7 @@
 - Support for breaking text lines at character boundaries ([PR #86](https://github.com/fjvallarino/monomer/pull/86)). Thanks @toku-sa-n!
 - Read-only mode for `textField`, `numericField`, `dateField`, `timeField` and `textArea` ([PR #93](https://github.com/fjvallarino/monomer/pull/93)). Thanks @Dretch!
 - The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
-- New field to `WidgetEnv`, `_weAppStartTs`, representing the time in milliseconds when the application started. Complementary to `_weTimestamp` ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
+- New field `_weAppStartTs` in `WidgetEnv`, complementary to `_weTimestamp`, representing the time in milliseconds when the application started. Added utility function `currentTimeMs` that returns their sum with a polymorphic type ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 
 ### Changed
 

@@ -333,6 +333,14 @@ isResizeAnyResult res = isResizeResult res || isResizeImmediateResult res
 isMacOS :: WidgetEnv s e -> Bool
 isMacOS wenv = _weOs wenv == "Mac OS X"
 
+{-|
+Returns the current time in milliseconds. Adds appStartTs and timestamp fields
+from 'WidgetEnv' and converts the result to the expected 'Integral' type.
+-}
+currentTimeMs :: Integral a => WidgetEnv s e -> a
+currentTimeMs wenv = fromIntegral ts where
+  ts = wenv ^. L.appStartTs + wenv ^. L.timestamp
+
 -- | Returns a string description of a node and its children.
 widgetTreeDesc :: Int -> WidgetNode s e -> String
 widgetTreeDesc level node = desc where
