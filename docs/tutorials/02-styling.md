@@ -26,17 +26,20 @@ label text `styleBasic` [textFont "Medium", textSize 20]
 
 A widget node can be assigned different styles depending on its current status.
 These styles can be set using the `style...` family of functions, and they
-receive a list of options. These functions are generally used infix. They are:
+receive a list of attributes. These functions are generally used infix. They
+are:
 
 - `styleBasic`: Default style of a widget. It serves as the base for all the
-  other styles states when a value is not overriden.
+  other style states when an attribute is not overriden.
+- `styleHover`: Used when the widget is hovered with a pointing device. In
+  general an alternative background color is used.
 - `styleFocus`: Used when the widget has keyboard focus. In general a border is
   displayed.
-- `styleHover`: Used when the widget is hovered. In general an alternative
-  background color is used.
-- `styleFocusHover`: Used when the node is both focused and hovered. Used to
-  have better control in cases when the mix of focus and hover styles do not
-  match expectations.
+- `styleFocusHover`: Used when the widget is both focused and hovered. In this
+  situation the attributes defined in focus and hover will be combined, with
+  focus attributes taking precedence. This style state allows for better control
+  in cases when the combination of focus and hover styles do not match
+  expectations.
 - `styleActive`: Used when a mouse press was started in the widget and the
   pointer is inside its boundaries.
 - `styleDisabled`: Used when the `nodeEnabled` attribute has been set to False.
@@ -49,14 +52,14 @@ create a function that returns the label styled as needed:
 titleText text = label text `styleBasic` [textFont "Medium", textSize 20]
 ```
 
-If you apply `styleBasic` to the result of `titleText`, the options will be
+If you apply `styleBasic` to the result of `titleText`, the attributes will be
 combined. This means that:
 
 ```haskell
 newNode = titleText "Title" `styleBasic` [textSize 40, textColor red]
 ```
 
-will have:
+will result in:
 
 ```haskell
 [textFont "Medium", textSize 40, textColor red]
