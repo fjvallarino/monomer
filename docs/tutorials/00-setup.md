@@ -27,12 +27,15 @@ brew install glew
 
 #### Notes
 
-Currently Monomer fails to compile on M1 Macs. This issue should be fixed when
-GHC 9.2 is released, since it will include a native code generator for that CPU.
+The standard build process currently fails on M1 Macs. This issue should be
+fixed when support for `GHC 9.2` is added to `stack`, since that version of GHC
+includes a native code generator for M1 processors.
 
-Until that time, it has been [reported](https://github.com/fjvallarino/monomer/issues/1#issuecomment-914866110)
-that building for x86 and running the application in the Rosetta shell works
-well.
+It has been [reported](https://github.com/fjvallarino/monomer/issues/1) that:
+
+- Building for x86 and running the application in the Rosetta shell works well.
+- Applying some workarounds, mentioned in the same issue, the build can work on
+  M1.
 
 ### Linux
 
@@ -152,8 +155,9 @@ stack run generative
 
 ## Development mode
 
-Since compilation times can be annoying, I personally prefer to rely on `ghcid`
-for a nicer development experience. First, you need to install it:
+Since compilation times can be annoying, I personally prefer to rely on
+[ghcid](https://github.com/ndmitchell/ghcid) for a nicer development experience.
+First, you need to install it:
 
 ```bash
 stack install ghcid
@@ -165,11 +169,8 @@ Then, inside your project's directory:
 ghcid
 ```
 
-If you use Visual Studio Code, you can also use this very nice extension:
-
-```
-https://marketplace.visualstudio.com/items?itemName=ndmitchell.haskell-ghcid
-```
+If you use Visual Studio Code, you can also use this [very nice
+extension](https://marketplace.visualstudio.com/items?itemName=ndmitchell.haskell-ghcid).
 
 Once installed, pressing `Ctrl-Shift-P` will allow you to invoke the
 `Start Ghcid` command. You can also run `ghcid` on the command line directly.
@@ -177,6 +178,9 @@ Once installed, pressing `Ctrl-Shift-P` will allow you to invoke the
 With this you will be running your application in interpreted mode (`ghcid`
 under the hood uses `ghci`), allowing you to make changes and test them almost
 immediately.
+
+Note: when a file is saved, a new instance of the application will be in a new
+window. The previous window needs to be closed manually.
 
 ## Notes for macOS users
 

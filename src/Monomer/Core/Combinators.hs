@@ -541,35 +541,93 @@ class CmbResizeFactorDim t where
 
 -- Style
 infixl 5 `styleBasic`
+infixl 5 `styleBasicSet`
+
 infixl 5 `styleHover`
+infixl 5 `styleHoverSet`
+
 infixl 5 `styleFocus`
+infixl 5 `styleFocusSet`
+
 infixl 5 `styleFocusHover`
+infixl 5 `styleFocusHoverSet`
+
 infixl 5 `styleActive`
+infixl 5 `styleActiveSet`
+
 infixl 5 `styleDisabled`
+infixl 5 `styleDisabledSet`
 
--- | Basic style combinator, used mainly infix for widgets as a list.
+{-|
+Basic style combinator, mainly used infix with widgets.
+
+Represents the default style of a widget. It serves as the base for all the
+other style states when an attribute is not overriden.
+-}
 class CmbStyleBasic t where
+  -- | Merges the new basic style states with the existing ones.
   styleBasic :: t -> [StyleState] -> t
+  -- | Sets the new basic style states overriding the existing ones.
+  styleBasicSet :: t -> [StyleState] -> t
 
--- | Hover style combinator, used mainly infix for widgets as a list.
+{-|
+Hover style combinator, mainly used infix with widgets.
+
+Used when the widget is hovered with a pointing device.
+-}
 class CmbStyleHover t where
+  -- | Merges the new hover style states with the existing ones.
   styleHover :: t -> [StyleState] -> t
+  -- | Sets the new hover style states overriding the existing ones.
+  styleHoverSet :: t -> [StyleState] -> t
 
--- | Focus style combinator, used mainly infix for widgets as a list.
+{-|
+Focus style combinator, mainly used infix with widgets.
+
+Used when the widget has keyboard focus.
+-}
 class CmbStyleFocus t where
+  -- | Merges the new focus style states with the existing ones.
   styleFocus :: t -> [StyleState] -> t
+  -- | Sets the new focus style states overriding the existing ones.
+  styleFocusSet :: t -> [StyleState] -> t
 
--- | Focus Hover style combinator, used mainly infix for widgets as a list.
+{-|
+Focus Hover style combinator, mainly used infix with widgets.
+
+Used when the widget is both focused and hovered. In this situation the
+attributes defined in focus and hover will be combined, with focus attributes
+taking precedence. This style state allows for better control in cases when the
+combination of focus and hover styles do not match expectations.
+-}
 class CmbStyleFocusHover t where
+  -- | Merges the new focus hover style states with the existing ones.
   styleFocusHover :: t -> [StyleState] -> t
+  -- | Sets the new focus hover style states overriding the existing ones.
+  styleFocusHoverSet :: t -> [StyleState] -> t
 
--- | Active style combinator, used mainly infix for widgets as a list.
+{-|
+Active style combinator, mainly used infix with widgets.
+
+Used when a mouse press was started in the widget and the pointer is inside its
+boundaries.
+-}
 class CmbStyleActive t where
+  -- | Merges the new active style states with the existing ones.
   styleActive :: t -> [StyleState] -> t
+  -- | Sets the new active style states overriding the existing ones.
+  styleActiveSet :: t -> [StyleState] -> t
 
--- | Disabled style combinator, used mainly infix for widgets as a list.
+{-|
+Disabled style combinator, mainly used infix with widgets.
+
+Used when the 'nodeEnabled' attribute has been set to False.
+-}
 class CmbStyleDisabled t where
+  -- | Merges the new disabled style states with the existing ones.
   styleDisabled :: t -> [StyleState] -> t
+  -- | Sets the new disabled style states overriding the existing ones.
+  styleDisabledSet :: t -> [StyleState] -> t
 
 -- | Ignore theme settings and start with blank style.
 class CmbIgnoreTheme t where
