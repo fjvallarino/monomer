@@ -89,7 +89,7 @@ handleEvent wenv node model evt = case evt of
     & items .~ removeIdx idx (model ^. items)]
   _ -> []
   where
-    newItem = ListItem (wenv ^. L.timestamp) (model ^. newItemText)
+    newItem = ListItem (currentTimeMs wenv) (model ^. newItemText)
 
 removeIdx :: Int -> [a] -> [a]
 removeIdx idx lst = part1 ++ drop 1 part2 where

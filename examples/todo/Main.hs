@@ -221,7 +221,7 @@ handleEvent wenv node model evt = case evt of
 addNewTodo :: WidgetEnv s e -> TodoModel -> TodoModel
 addNewTodo wenv model = newModel where
   newTodo = model ^. activeTodo
-    & todoId .~ wenv ^. L.timestamp
+    & todoId .~ currentTimeMs wenv
   newModel = model
     & todos .~ (newTodo : model ^. todos)
 
