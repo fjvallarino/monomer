@@ -22,7 +22,7 @@ import qualified Data.Text as T
 import qualified Monomer.Lens as L
 
 data ListItem = ListItem {
-  _ts :: Int,
+  _ts :: Timestamp,
   _text :: Text
 } deriving (Eq, Show)
 
@@ -59,7 +59,8 @@ buildUI wenv model = widgetTree where
       keystroke [("Enter", AddItem)] $ hstack [
         label "Description:",
         spacer,
-        textField_ newItemText [placeholder "Write here!"], -- `nodeKey` "description",
+        textField_ newItemText [placeholder "Write here!"]
+          `nodeKey` "description",
         spacer,
         button "Add" AddItem
           `styleBasic` [paddingH 5]
@@ -89,7 +90,7 @@ handleEvent wenv node model evt = case evt of
     & items .~ removeIdx idx (model ^. items)]
   _ -> []
   where
-    newItem = ListItem (wenv ^. L.timestamp) (model ^. newItemText)
+    newItem = ListItem (currentTimeMs wenv) (model ^. newItemText)
 
 removeIdx :: Int -> [a] -> [a]
 removeIdx idx lst = part1 ++ drop 1 part2 where

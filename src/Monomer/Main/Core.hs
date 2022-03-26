@@ -32,6 +32,8 @@ import Data.Maybe
 import Data.Map (Map)
 import Data.List (foldl')
 import Data.Text (Text)
+import Data.Time
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Graphics.GL
 
 import qualified Data.Map as Map
@@ -73,11 +75,11 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
-  _mlAppStartTs :: Int,
+  _mlAppStartTs :: Timestamp,
   _mlMaxFps :: Int,
-  _mlLatestRenderTs :: Int,
-  _mlFrameStartTs :: Int,
-  _mlFrameAccumTs :: Int,
+  _mlLatestRenderTs :: Timestamp,
+  _mlFrameStartTs :: Timestamp,
+  _mlFrameAccumTs :: Timestamp,
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode sp ep,
@@ -142,7 +144,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   let mainBtn = fromMaybe BtnLeft (_apcMainButton config)
   let contextBtn = fromMaybe BtnRight (_apcContextButton config)
 
-  startTs <- fmap fromIntegral SDL.ticks
+  appStartTs <- getCurrentTimestamp
   model <- use L.mainModel
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
@@ -154,6 +156,7 @@ runAppLoop window glCtx channel widgetRoot config = do
   let wenv = WidgetEnv {
     _weOs = os,
     _weDpr = dpr,
+    _weAppStartTs = appStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = const Seq.empty,
     _weMainButton = mainBtn,
@@ -170,7 +173,7 @@ runAppLoop window glCtx channel widgetRoot config = do
     _weMainBtnPress = Nothing,
     _weModel = model,
     _weInputStatus = def,
-    _weTimestamp = startTs,
+    _weTimestamp = 0,
     _weThemeChanged = False,
     _weInTopLayer = const True,
     _weLayoutDirection = LayoutNone,
@@ -189,9 +192,9 @@ runAppLoop window glCtx channel widgetRoot config = do
     _mlRenderer = renderer,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
-    _mlAppStartTs = 0,
+    _mlAppStartTs = appStartTs,
     _mlLatestRenderTs = 0,
-    _mlFrameStartTs = startTs,
+    _mlFrameStartTs = 0,
     _mlFrameAccumTs = 0,
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
@@ -219,7 +222,7 @@ mainLoop
 mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
-  startTicks <- fmap fromIntegral SDL.ticks
+  startTs <- getEllapsedTimestamp _mlAppStartTs
   events <- SDL.pumpEvents >> SDL.pollEvents
 
   windowSize <- use L.windowSize
@@ -237,7 +240,7 @@ mainLoop window fontManager config loopArgs = do
   currWinSize <- liftIO $ getViewportSize window dpr
 
   let Size rw rh = windowSize
-  let ts = startTicks - _mlFrameStartTs
+  let ts = startTs - _mlFrameStartTs
   let eventsPayload = fmap SDL.eventPayload events
   let quit = SDL.QuitEvent `elem` eventsPayload
 
@@ -264,6 +267,7 @@ mainLoop window fontManager config loopArgs = do
   let wenv = WidgetEnv {
     _weOs = _mlOS,
     _weDpr = dpr,
+    _weAppStartTs = _mlAppStartTs,
     _weFontManager = fontManager,
     _weFindBranchByPath = findChildBranchByPath wenv _mlWidgetRoot,
     _weMainButton = mainBtn,
@@ -280,7 +284,7 @@ mainLoop window fontManager config loopArgs = do
     _weMainBtnPress = mainPress,
     _weModel = currentModel,
     _weInputStatus = inputStatus,
-    _weTimestamp = startTicks,
+    _weTimestamp = startTs,
     _weThemeChanged = False,
     _weInTopLayer = const True,
     _weLayoutDirection = LayoutNone,
@@ -305,10 +309,10 @@ mainLoop window fontManager config loopArgs = do
       handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
-  endTicks <- fmap fromIntegral SDL.ticks
+  endTs <- getEllapsedTimestamp _mlAppStartTs
 
   -- Rendering
-  renderCurrentReq <- checkRenderCurrent startTicks _mlLatestRenderTs
+  renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
 
   let useRenderThread = fromMaybe True (_apcUseRenderThread config)
   let renderEvent = any isActionEvent eventsPayload
@@ -328,14 +332,13 @@ mainLoop window fontManager config loopArgs = do
 
   let fps = realToFrac _mlMaxFps
   let frameLength = round (1000000 / fps)
-  let remainingMs = endTicks - startTicks
-  let tempDelay = abs (frameLength - remainingMs * 1000)
+  let remainingMs = endTs - startTs
+  let tempDelay = abs (frameLength - fromIntegral remainingMs * 1000)
   let nextFrameDelay = min frameLength tempDelay
-  let latestRenderTs = if renderNeeded then startTicks else _mlLatestRenderTs
+  let latestRenderTs = if renderNeeded then startTs else _mlLatestRenderTs
   let newLoopArgs = loopArgs {
-    _mlAppStartTs = _mlAppStartTs + ts,
     _mlLatestRenderTs = latestRenderTs,
-    _mlFrameStartTs = startTicks,
+    _mlFrameStartTs = startTs,
     _mlFrameAccumTs = if newSecond then 0 else _mlFrameAccumTs + ts,
     _mlFrameCount = if newSecond then 0 else _mlFrameCount + 1,
     _mlWidgetRoot = newRoot
@@ -469,7 +472,7 @@ watchWindowResize channel = do
         atomically $ writeTChan channel (MsgResize newSize)
       _ -> return ()
 
-checkRenderCurrent :: (MonomerM s e m) => Int -> Int -> m Bool
+checkRenderCurrent :: (MonomerM s e m) => Timestamp -> Timestamp -> m Bool
 checkRenderCurrent currTs renderTs = do
   renderCurrent <- use L.renderRequested
   schedule <- use L.renderSchedule
@@ -479,14 +482,14 @@ checkRenderCurrent currTs renderTs = do
     requiresRender = renderScheduleReq currTs renderTs
     renderNext schedule = any requiresRender schedule
 
-renderScheduleReq :: Int -> Int -> RenderSchedule -> Bool
+renderScheduleReq :: Timestamp -> Timestamp -> RenderSchedule -> Bool
 renderScheduleReq currTs renderTs schedule = required where
   RenderSchedule _ start ms _ = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
   stepTs = start + ms * stepCount
   required = renderTs < stepTs
 
-renderScheduleActive :: Int -> RenderSchedule -> Bool
+renderScheduleActive :: Timestamp -> RenderSchedule -> Bool
 renderScheduleActive currTs schedule = scheduleActive where
   RenderSchedule _ start ms count = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
@@ -503,3 +506,13 @@ isWindowExposed eventsPayload = not status where
 isMouseEntered :: [SDL.EventPayload] -> Bool
 isMouseEntered eventsPayload = not status where
   status = null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
+
+getCurrentTimestamp :: MonadIO m => m Timestamp
+getCurrentTimestamp = toMs <$> liftIO getCurrentTime
+  where
+    toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
+
+getEllapsedTimestamp :: MonadIO m => Timestamp -> m Timestamp
+getEllapsedTimestamp start = do
+  ts <- getCurrentTimestamp
+  return (ts - start)

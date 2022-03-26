@@ -54,7 +54,7 @@ Configuration options for fade:
 -}
 data FadeCfg e = FadeCfg {
   _fdcAutoStart :: Maybe Bool,
-  _fdcDuration :: Maybe Int,
+  _fdcDuration :: Maybe Timestamp,
   _fdcOnFinished :: [e]
 } deriving (Eq, Show)
 
@@ -80,7 +80,7 @@ instance CmbAutoStart (FadeCfg e) where
     _fdcAutoStart = Just start
   }
 
-instance CmbDuration (FadeCfg e) Int where
+instance CmbDuration (FadeCfg e) Timestamp where
   duration dur = def {
     _fdcDuration = Just dur
   }
@@ -92,7 +92,7 @@ instance CmbOnFinished (FadeCfg e) e where
 
 data FadeState = FadeState {
   _fdsRunning :: Bool,
-  _fdsStartTs :: Int
+  _fdsStartTs :: Timestamp
 } deriving (Eq, Show, Generic)
 
 instance Default FadeState where
@@ -141,7 +141,7 @@ makeFade isFadeIn config state = widget where
   autoStart = fromMaybe False (_fdcAutoStart config)
   duration = fromMaybe 500 (_fdcDuration config)
   period = 20
-  steps = duration `div` period
+  steps = fromIntegral $ duration `div` period
 
   finishedReq node = delayedMessage node AnimationFinished duration
   renderReq wenv node = req where

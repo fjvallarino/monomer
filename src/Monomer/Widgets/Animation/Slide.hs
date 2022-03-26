@@ -66,7 +66,7 @@ Configuration options for slide:
 data SlideCfg e = SlideCfg {
   _slcDirection :: Maybe SlideDirection,
   _slcAutoStart :: Maybe Bool,
-  _slcDuration :: Maybe Int,
+  _slcDuration :: Maybe Timestamp,
   _slcOnFinished :: [e]
 } deriving (Eq, Show)
 
@@ -94,7 +94,7 @@ instance CmbAutoStart (SlideCfg e) where
     _slcAutoStart = Just start
   }
 
-instance CmbDuration (SlideCfg e) Int where
+instance CmbDuration (SlideCfg e) Timestamp where
   duration dur = def {
     _slcDuration = Just dur
   }
@@ -122,7 +122,7 @@ slideBottom = def { _slcDirection = Just SlideDown }
 
 data SlideState = SlideState {
   _slsRunning :: Bool,
-  _slsStartTs :: Int
+  _slsStartTs :: Timestamp
 } deriving (Eq, Show, Generic)
 
 instance Default SlideState where
@@ -174,7 +174,7 @@ makeSlide isSlideIn config state = widget where
   autoStart = fromMaybe False (_slcAutoStart config)
   duration = fromMaybe 500 (_slcDuration config)
   period = 20
-  steps = duration `div` period
+  steps = fromIntegral $ duration `div` period
 
   finishedReq node = delayedMessage node AnimationFinished duration
   renderReq wenv node = req where

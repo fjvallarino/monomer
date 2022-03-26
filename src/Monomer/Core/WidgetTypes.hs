@@ -11,6 +11,7 @@ Basic types and definitions for Widgets.
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# Language GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Strict #-}
 
@@ -24,7 +25,9 @@ import Data.Sequence (Seq)
 import Data.String (IsString(..))
 import Data.Text (Text)
 import Data.Typeable (Typeable, typeOf)
+import Data.Word (Word64)
 import GHC.Generics
+import TextShow
 
 import qualified Data.Text as T
 
@@ -34,8 +37,15 @@ import Monomer.Core.ThemeTypes
 import Monomer.Event.Types
 import Monomer.Graphics.Types
 
--- | Time ellapsed since startup
-type Timestamp = Int
+{-|
+Timestamp in milliseconds. Useful for representing the time of events, ellapsed
+time since start/start time of the application and length of intervals.
+
+It can be converted from/to other numeric types using the standard functions.
+-}
+newtype Timestamp = Timestamp {
+  unTimestamp :: Word64
+} deriving (Show, Eq, Ord, Num, Enum, Bounded, Real, Integral, TextShow)
 
 -- | Type constraints for a valid model
 type WidgetModel s = Typeable s
@@ -94,8 +104,8 @@ Several WidgetRequests rely on this to find the destination of asynchronous
 requests (tasks, clipboard, etc).
 -}
 data WidgetId = WidgetId {
-  _widTs :: Int,    -- ^ The timestamp when the instance was created.
-  _widPath :: Path  -- ^ The path at creation time.
+  _widTs :: Timestamp,  -- ^ The timestamp when the instance was created.
+  _widPath :: Path      -- ^ The path at creation time.
 } deriving (Eq, Show, Ord, Generic)
 
 instance Default WidgetId where
@@ -192,7 +202,7 @@ data WidgetRequest s e
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
-  | RenderEvery WidgetId Int (Maybe Int)
+  | RenderEvery WidgetId Timestamp (Maybe Int)
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
   {-|
@@ -293,6 +303,8 @@ data WidgetEnv s e = WidgetEnv {
   _weOs :: Text,
   -- | Device pixel rate.
   _weDpr :: Double,
+  -- | The timestamp in milliseconds when the application started.
+  _weAppStartTs :: Timestamp,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
   -- | Returns the node info, and its parents', given a path from root.
@@ -325,7 +337,10 @@ data WidgetEnv s e = WidgetEnv {
   _weModel :: s,
   -- | The input status, mainly mouse and keyboard.
   _weInputStatus :: InputStatus,
-  -- | The timestamp when this cycle started.
+  {-|
+  The timestamp in milliseconds when this event/message cycle started. This
+  value starts from zero each time the application is run.
+  -}
   _weTimestamp :: Timestamp,
   {-|
   Whether the theme changed in this cycle. Should be considered when a widget

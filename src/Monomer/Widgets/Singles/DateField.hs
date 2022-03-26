@@ -153,7 +153,7 @@ Configuration options for dateField:
 -}
 data DateFieldCfg s e a = DateFieldCfg {
   _dfcCaretWidth :: Maybe Double,
-  _dfcCaretMs :: Maybe Int,
+  _dfcCaretMs :: Maybe Timestamp,
   _dfcValid :: Maybe (WidgetData s Bool),
   _dfcValidV :: [Bool -> e],
   _dfcDateDelim :: Maybe Char,
@@ -218,7 +218,7 @@ instance CmbCaretWidth (DateFieldCfg s e a) Double where
     _dfcCaretWidth = Just w
   }
 
-instance CmbCaretMs (DateFieldCfg s e a) Int where
+instance CmbCaretMs (DateFieldCfg s e a) Timestamp where
   caretMs ms = def {
     _dfcCaretMs = Just ms
   }
