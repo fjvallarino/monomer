@@ -13,6 +13,7 @@
 - Read-only mode for `textField`, `numericField`, `dateField`, `timeField` and `textArea` ([PR #93](https://github.com/fjvallarino/monomer/pull/93)). Thanks @Dretch!
 - The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
 - New field `_weAppStartTs` in `WidgetEnv`, complementary to `_weTimestamp`, representing the time in milliseconds when the application started. Added utility function `currentTimeMs` that returns their sum with a polymorphic type ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
+- `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 
 ### Changed
 
@@ -23,6 +24,7 @@
   use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
 - The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 - `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
+- `style...` family of functions now combine new attributes with the existing ones ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 
 ### Renamed
 
