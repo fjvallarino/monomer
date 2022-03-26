@@ -3,7 +3,7 @@
 A Monomer application has five main components that are provided to the
 `startApp` function:
 
-- **Model**: contains the information your application uses.
+- **Model**: contains data specific to your application.
 - **Events**: generated from user actions or asynchronous tasks.
 - **Build UI function**: creates the UI using the current model.
 - **Event handler**: reacts to events and can update the model, run asynchronous
@@ -115,7 +115,7 @@ Before moving forward, a quick clarification:
   its location, size, visibility, children, etc. When mentioning the _"widget
   tree"_, it really is the _"widget node tree"_. All the functions used
   throughout the tutorials to create `widgets` return `WidgetNode`s, to allow
-  composing them into larger structures..
+  composing them into larger structures.
 
 We'll explore some basic widgets next.
 

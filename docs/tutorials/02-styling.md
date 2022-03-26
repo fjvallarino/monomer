@@ -24,10 +24,22 @@ label or widget that displays text.
 label text `styleBasic` [textFont "Medium", textSize 20]
 ```
 
-There are several functions you can use to alter widget node. These functions
-are generally used infix, since the intention is clearer that way. In
-particular, the `styleBasic` function allows providing different style options
-with a list.
+A widget node can be assigned different styles depending on its current status.
+These styles can be set using the `style...` family of functions, and they
+receive a list of options. These functions are generally used infix. They are:
+
+- `styleBasic`: Default style of a widget. It serves as the base for all the
+  other styles states when a value is not overriden.
+- `styleFocus`: Used when the widget has keyboard focus. In general a border is
+  displayed.
+- `styleHover`: Used when the widget is hovered. In general an alternative
+  background color is used.
+- `styleFocusHover`: Used when the node is both focused and hovered. Used to
+  have better control in cases when the mix of focus and hover styles do not
+  match expectations.
+- `styleActive`: Used when a mouse press was started in the widget and the
+  pointer is inside its boundaries.
+- `styleDisabled`: Used when the `nodeEnabled` attribute has been set to False.
 
 Since this style is used a few times in the example, it would be nice to avoid
 duplicating the code all over the example. An easy way to avoid this is to
@@ -37,14 +49,30 @@ create a function that returns the label styled as needed:
 titleText text = label text `styleBasic` [textFont "Medium", textSize 20]
 ```
 
+If you apply `styleBasic` to the result of `titleText`, the options will be
+combined. This means that:
+
+```haskell
+newNode = titleText "Title" `styleBasic` [textSize 40, textColor red]
+```
+
+will have:
+
+```haskell
+[textFont "Medium", textSize 40, textColor red]
+```
+
+If you want to replace the style state in a node, you can use `styleBasicSet`.
+All the `style...` functions have an associated `style...Set` version.
+
 In general, all components which display text support the following styles:
 
-- textFont
-- textSize
-- textColor
-- textUnderline/textOverline/textThroughline
-- textCenter/textLeft/textRight
-- textMiddle/textTop/textBottom
+- `textFont`
+- `textSize`
+- `textColor`
+- `textUnderline`/`textOverline`/`textThroughline`
+- `textCenter`/`textLeft`/`textRight`
+- `textMiddle`/`textTop`/`textBottom`
 
 All dimensions in Monomer are expressed in pixels.
 

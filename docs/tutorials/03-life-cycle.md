@@ -12,10 +12,11 @@ When the application starts, the view is created from scratch by calling buildUI
 and providing the initial model given to startApp. During this process, each
 widget has its init function called.
 
-From that point on, whenever the model changes, buildUI will be called with the
-current model but its result will not be used directly. The reason for that is
-widgets may have internal state that needs to be kept around. To take care of
-this, the merge process is used.
+From that point on, whenever the model changes buildUI will be called with the
+current model, although the new version of the view will not be used directly.
+The reason is widgets in the old view may have internal state that needs to be
+kept around to be used by their new versions. The merge process takes care of
+this.
 
 ## Merge process
 
