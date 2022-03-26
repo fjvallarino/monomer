@@ -222,7 +222,7 @@ mainLoop
 mainLoop window fontManager config loopArgs = do
   let MainLoopArgs{..} = loopArgs
 
-  startTs <- getEllapsedTimestamp _mlAppStartTs
+  startTs <- getEllapsedTimestampSince _mlAppStartTs
   events <- SDL.pumpEvents >> SDL.pollEvents
 
   windowSize <- use L.windowSize
@@ -309,7 +309,7 @@ mainLoop window fontManager config loopArgs = do
       handleResizeWidgets (seWenv, seRoot, Seq.empty)
     else return (seWenv, seRoot, Seq.empty)
 
-  endTs <- getEllapsedTimestamp _mlAppStartTs
+  endTs <- getEllapsedTimestampSince _mlAppStartTs
 
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
@@ -512,7 +512,7 @@ getCurrentTimestamp = toMs <$> liftIO getCurrentTime
   where
     toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
 
-getEllapsedTimestamp :: MonadIO m => Timestamp -> m Timestamp
-getEllapsedTimestamp start = do
+getEllapsedTimestampSince :: MonadIO m => Timestamp -> m Timestamp
+getEllapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)
