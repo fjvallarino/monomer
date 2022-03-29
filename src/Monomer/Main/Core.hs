@@ -75,11 +75,11 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
-  _mlAppStartTs :: Timestamp,
+  _mlAppStartTs :: Millisecond,
   _mlMaxFps :: Int,
-  _mlLatestRenderTs :: Timestamp,
-  _mlFrameStartTs :: Timestamp,
-  _mlFrameAccumTs :: Timestamp,
+  _mlLatestRenderTs :: Millisecond,
+  _mlFrameStartTs :: Millisecond,
+  _mlFrameAccumTs :: Millisecond,
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode sp ep,
@@ -472,7 +472,7 @@ watchWindowResize channel = do
         atomically $ writeTChan channel (MsgResize newSize)
       _ -> return ()
 
-checkRenderCurrent :: (MonomerM s e m) => Timestamp -> Timestamp -> m Bool
+checkRenderCurrent :: (MonomerM s e m) => Millisecond -> Millisecond -> m Bool
 checkRenderCurrent currTs renderTs = do
   renderCurrent <- use L.renderRequested
   schedule <- use L.renderSchedule
@@ -482,14 +482,14 @@ checkRenderCurrent currTs renderTs = do
     requiresRender = renderScheduleReq currTs renderTs
     renderNext schedule = any requiresRender schedule
 
-renderScheduleReq :: Timestamp -> Timestamp -> RenderSchedule -> Bool
+renderScheduleReq :: Millisecond -> Millisecond -> RenderSchedule -> Bool
 renderScheduleReq currTs renderTs schedule = required where
   RenderSchedule _ start ms _ = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
   stepTs = start + ms * stepCount
   required = renderTs < stepTs
 
-renderScheduleActive :: Timestamp -> RenderSchedule -> Bool
+renderScheduleActive :: Millisecond -> RenderSchedule -> Bool
 renderScheduleActive currTs schedule = scheduleActive where
   RenderSchedule _ start ms count = schedule
   stepCount = floor (fromIntegral (currTs - start) / fromIntegral ms)
@@ -507,12 +507,12 @@ isMouseEntered :: [SDL.EventPayload] -> Bool
 isMouseEntered eventsPayload = not status where
   status = null [ e | e@SDL.WindowGainedMouseFocusEvent {} <- eventsPayload ]
 
-getCurrentTimestamp :: MonadIO m => m Timestamp
+getCurrentTimestamp :: MonadIO m => m Millisecond
 getCurrentTimestamp = toMs <$> liftIO getCurrentTime
   where
     toMs = floor . (1e3 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
 
-getEllapsedTimestampSince :: MonadIO m => Timestamp -> m Timestamp
+getEllapsedTimestampSince :: MonadIO m => Millisecond -> m Millisecond
 getEllapsedTimestampSince start = do
   ts <- getCurrentTimestamp
   return (ts - start)

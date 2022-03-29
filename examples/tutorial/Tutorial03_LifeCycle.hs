@@ -22,7 +22,7 @@ import qualified Data.Text as T
 import qualified Monomer.Lens as L
 
 data ListItem = ListItem {
-  _ts :: Timestamp,
+  _ts :: Millisecond,
   _text :: Text
 } deriving (Eq, Show)
 

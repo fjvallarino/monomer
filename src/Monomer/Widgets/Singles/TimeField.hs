@@ -147,7 +147,7 @@ warnings in the UI, or disable buttons if needed.
 -}
 data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcCaretWidth :: Maybe Double,
-  _tfcCaretMs :: Maybe Timestamp,
+  _tfcCaretMs :: Maybe Millisecond,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
   _tfcTimeFormat :: Maybe TimeFormat,
@@ -209,7 +209,7 @@ instance CmbCaretWidth (TimeFieldCfg s e a) Double where
     _tfcCaretWidth = Just w
   }
 
-instance CmbCaretMs (TimeFieldCfg s e a) Timestamp where
+instance CmbCaretMs (TimeFieldCfg s e a) Millisecond where
   caretMs ms = def {
     _tfcCaretMs = Just ms
   }

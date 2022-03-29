@@ -31,7 +31,7 @@ data TodoStatus
   deriving (Eq, Show, Enum)
 
 data Todo = Todo {
-  _todoId :: Timestamp,
+  _todoId :: Millisecond,
   _todoType :: TodoType,
   _status :: TodoStatus,
   _description :: Text

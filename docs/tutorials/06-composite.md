@@ -100,11 +100,11 @@ mostly internal, unless you are writing custom widgets or making WidgetRequests:
   The disadvantage is that it can become invalid if widgets change positions.
   Paths are used for several status related operations (focus, hover, etc), but
   they should not be stored since they can become stale.
-- WidgetId: The WidgetId of an item is made out of the Path and Timestamp when
-  the widget was initialized. This makes it unique, and allows keeping track of
-  the widget's path if its location in the widget tree changes. The disadvantage
-  is that it's not possible to deduce the WidgetId of a widget, requiring a call
-  to a helper function to find it.
+- WidgetId: The WidgetId of an item is made out of the Path and Milliseconds
+  when the widget was initialized. This makes it unique, and allows keeping
+  track of the widget's path if its location in the widget tree changes. The
+  disadvantage is that it's not possible to deduce the WidgetId of a widget,
+  requiring a call to a helper function to find it.
 
 There are a couple of functions you can use to get the WidgetId of a node:
 

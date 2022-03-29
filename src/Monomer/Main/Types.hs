@@ -59,8 +59,8 @@ be provided.
 -}
 data RenderSchedule = RenderSchedule {
   _rsWidgetId :: WidgetId,
-  _rsStart :: Timestamp,
-  _rsMs :: Timestamp,
+  _rsStart :: Millisecond,
+  _rsMs :: Millisecond,
   _rsRepeat :: Maybe Int
 } deriving (Eq, Show, Generic)
 

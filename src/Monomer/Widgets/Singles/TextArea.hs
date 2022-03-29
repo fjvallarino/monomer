@@ -50,7 +50,7 @@ import qualified Monomer.Lens as L
 defCaretW :: Double
 defCaretW = 2
 
-defCaretMs :: Timestamp
+defCaretMs :: Millisecond
 defCaretMs = 500
 
 {-|
@@ -71,7 +71,7 @@ Configuration options for textArea:
 -}
 data TextAreaCfg s e = TextAreaCfg {
   _tacCaretWidth :: Maybe Double,
-  _tacCaretMs :: Maybe Timestamp,
+  _tacCaretMs :: Maybe Millisecond,
   _tacMaxLength :: Maybe Int,
   _tacMaxLines :: Maybe Int,
   _tacAcceptTab :: Maybe Bool,
@@ -118,7 +118,7 @@ instance CmbCaretWidth (TextAreaCfg s e) Double where
     _tacCaretWidth = Just w
   }
 
-instance CmbCaretMs (TextAreaCfg s e) Timestamp where
+instance CmbCaretMs (TextAreaCfg s e) Millisecond where
   caretMs ms = def {
     _tacCaretMs = Just ms
   }
@@ -193,7 +193,7 @@ data TextAreaState = TextAreaState {
   _tasTextLines :: Seq TextLine,
   _tasHistory :: Seq HistoryStep,
   _tasHistoryIdx :: Int,
-  _tasFocusStart :: Timestamp
+  _tasFocusStart :: Millisecond
 } deriving (Eq, Show, Generic)
 
 instance Default TextAreaState where

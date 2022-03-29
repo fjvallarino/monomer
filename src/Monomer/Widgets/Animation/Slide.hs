@@ -66,7 +66,7 @@ Configuration options for slide:
 data SlideCfg e = SlideCfg {
   _slcDirection :: Maybe SlideDirection,
   _slcAutoStart :: Maybe Bool,
-  _slcDuration :: Maybe Timestamp,
+  _slcDuration :: Maybe Millisecond,
   _slcOnFinished :: [e]
 } deriving (Eq, Show)
 
@@ -94,7 +94,7 @@ instance CmbAutoStart (SlideCfg e) where
     _slcAutoStart = Just start
   }
 
-instance CmbDuration (SlideCfg e) Timestamp where
+instance CmbDuration (SlideCfg e) Millisecond where
   duration dur = def {
     _slcDuration = Just dur
   }
@@ -122,7 +122,7 @@ slideBottom = def { _slcDirection = Just SlideDown }
 
 data SlideState = SlideState {
   _slsRunning :: Bool,
-  _slsStartTs :: Timestamp
+  _slsStartTs :: Millisecond
 } deriving (Eq, Show, Generic)
 
 instance Default SlideState where
