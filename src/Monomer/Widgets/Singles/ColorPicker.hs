@@ -10,7 +10,7 @@ Color picker using sliders and numeric fields.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Singles.ColorPicker (
@@ -201,7 +201,7 @@ buildUI config wenv model = mainTree where
       spacer_ [width 5],
       numericField_ lensCol [minValue minV, maxValue maxV, onChange evt,
         onFocus PickerFocus, onBlur PickerBlur]
-        `styleBasic` [width 40, padding 0, textRight]
+        `styleBasic` [width 40, padding 0, textAscender, textRight]
     ]
 
   colorRow lens lbl = compRow lens ColorChanged lbl 0 255
