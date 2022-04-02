@@ -53,12 +53,29 @@ type SizeReqUpdater = (SizeReq, SizeReq) -> (SizeReq, SizeReq)
 clearExtra :: SizeReqUpdater
 clearExtra (reqW, reqH) = (reqW & L.extra .~ 0, reqH & L.extra .~ 0)
 
+-- | Clears the horizontal extra field of a pair of SizeReqs.
+clearExtraW :: SizeReqUpdater
+clearExtraW (reqW, reqH) = (reqW & L.extra .~ 0, reqH)
+
+-- | Clears the vertical extra field of a pair of SizeReqs.
+clearExtraH :: SizeReqUpdater
+clearExtraH (reqW, reqH) = (reqW, reqH & L.extra .~ 0)
+
+-- | Switches a SizeReq pair from fixed size to minimum size.
+fixedToMin
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMin fs (reqW, reqH) = (newReqW, newReqH) where
+  (fixedW, fixedH) = (reqW ^. L.fixed, reqH ^. L.fixed)
+  newReqW = SizeReq fixedW 0 fixedW fs
+  newReqH = SizeReq fixedH 0 fixedH fs
+
 -- | Switches a SizeReq pair from fixed width to minimum width.
 fixedToMinW
   :: Double          -- ^ The resize factor.
   -> SizeReqUpdater  -- ^ The updated SizeReq.
-fixedToMinW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
-  newReqH = SizeReq fixed 0 fixed fw
+fixedToMinW fw (SizeReq fixed _ _ _, reqH) = (newReqW, reqH) where
+  newReqW = SizeReq fixed 0 fixed fw
 
 -- | Switches a SizeReq pair from fixed height to minimum height.
 fixedToMinH
@@ -67,12 +84,21 @@ fixedToMinH
 fixedToMinH fh (reqW, SizeReq fixed _ _ _) = (reqW, newReqH) where
   newReqH = SizeReq fixed 0 fixed fh
 
+-- | Switches a SizeReq pair from fixed size to maximum size.
+fixedToMax
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToMax fs (reqW, reqH) = (newReqW, newReqH) where
+  (fixedW, fixedH) = (reqW ^. L.fixed, reqH ^. L.fixed)
+  newReqW = SizeReq 0 fixedW 0 fs
+  newReqH = SizeReq 0 fixedH 0 fs
+
 -- | Switches a SizeReq pair from fixed width to maximum width.
 fixedToMaxW
   :: Double          -- ^ The resize factor.
   -> SizeReqUpdater  -- ^ The updated SizeReq.
-fixedToMaxW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
-  newReqH = SizeReq 0 fixed 0 fw
+fixedToMaxW fw (SizeReq fixed _ _ _, reqH) = (newReqW, reqH) where
+  newReqW = SizeReq 0 fixed 0 fw
 
 -- | Switches a SizeReq pair from fixed height to maximum height.
 fixedToMaxH
@@ -81,12 +107,21 @@ fixedToMaxH
 fixedToMaxH fh (reqW, SizeReq fixed _ _ _) = (reqW, newReqH) where
   newReqH = SizeReq 0 fixed 0 fh
 
+-- | Switches a SizeReq pair from fixed size to expand size.
+fixedToExpand
+  :: Double          -- ^ The resize factor.
+  -> SizeReqUpdater  -- ^ The updated SizeReq.
+fixedToExpand fs (reqW, reqH) = (newReqW, newReqH) where
+  (fixedW, fixedH) = (reqW ^. L.fixed, reqH ^. L.fixed)
+  newReqW = SizeReq 0 fixedW fixedW fs
+  newReqH = SizeReq 0 fixedH fixedH fs
+
 -- | Switches a SizeReq pair from fixed width to expand width.
 fixedToExpandW
   :: Double          -- ^ The resize factor.
   -> SizeReqUpdater  -- ^ The updated SizeReq.
-fixedToExpandW fw (SizeReq fixed _ _ _, reqH) = (newReqH, reqH) where
-  newReqH = SizeReq 0 fixed fixed fw
+fixedToExpandW fw (SizeReq fixed _ _ _, reqH) = (newReqW, reqH) where
+  newReqW = SizeReq 0 fixed fixed fw
 
 -- | Switches a SizeReq pair from fixed height to expand height.
 fixedToExpandH
