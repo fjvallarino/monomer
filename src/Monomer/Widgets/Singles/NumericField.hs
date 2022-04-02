@@ -124,7 +124,7 @@ Configuration options for numericField:
 -}
 data NumericFieldCfg s e a = NumericFieldCfg {
   _nfcCaretWidth :: Maybe Double,
-  _nfcCaretMs :: Maybe Timestamp,
+  _nfcCaretMs :: Maybe Millisecond,
   _nfcValid :: Maybe (WidgetData s Bool),
   _nfcValidV :: [Bool -> e],
   _nfcDecimals :: Maybe Int,
@@ -186,7 +186,7 @@ instance CmbCaretWidth (NumericFieldCfg s e a) Double where
     _nfcCaretWidth = Just w
   }
 
-instance CmbCaretMs (NumericFieldCfg s e a) Timestamp where
+instance CmbCaretMs (NumericFieldCfg s e a) Millisecond where
   caretMs ms = def {
     _nfcCaretMs = Just ms
   }

@@ -54,7 +54,7 @@ Configuration options for fade:
 -}
 data FadeCfg e = FadeCfg {
   _fdcAutoStart :: Maybe Bool,
-  _fdcDuration :: Maybe Timestamp,
+  _fdcDuration :: Maybe Millisecond,
   _fdcOnFinished :: [e]
 } deriving (Eq, Show)
 
@@ -80,7 +80,7 @@ instance CmbAutoStart (FadeCfg e) where
     _fdcAutoStart = Just start
   }
 
-instance CmbDuration (FadeCfg e) Timestamp where
+instance CmbDuration (FadeCfg e) Millisecond where
   duration dur = def {
     _fdcDuration = Just dur
   }
@@ -92,7 +92,7 @@ instance CmbOnFinished (FadeCfg e) e where
 
 data FadeState = FadeState {
   _fdsRunning :: Bool,
-  _fdsStartTs :: Timestamp
+  _fdsStartTs :: Millisecond
 } deriving (Eq, Show, Generic)
 
 instance Default FadeState where

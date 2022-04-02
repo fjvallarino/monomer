@@ -202,14 +202,14 @@ handleWidgetIdChange oldNode result = newResult where
     | otherwise = result
 
 -- | Sends a message to the given node with a delay of n ms.
-delayedMessage :: Typeable i => WidgetNode s e -> i -> Timestamp -> WidgetRequest s e
+delayedMessage :: Typeable i => WidgetNode s e -> i -> Millisecond -> WidgetRequest s e
 delayedMessage node msg delay = delayedMessage_ widgetId path msg delay where
   widgetId = node ^. L.info . L.widgetId
   path = node ^. L.info . L.path
 
 -- | Sends a message to the given WidgetId with a delay of n ms.
 delayedMessage_
-  :: Typeable i => WidgetId -> Path -> i -> Timestamp -> WidgetRequest s e
+  :: Typeable i => WidgetId -> Path -> i -> Millisecond -> WidgetRequest s e
 delayedMessage_ widgetId path msg delay = RunTask widgetId path $ do
   threadDelay (fromIntegral delay * 1000)
   return msg

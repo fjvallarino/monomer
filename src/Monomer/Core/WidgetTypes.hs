@@ -38,13 +38,14 @@ import Monomer.Event.Types
 import Monomer.Graphics.Types
 
 {-|
-Timestamp in milliseconds. Useful for representing the time of events, ellapsed
-time since start/start time of the application and length of intervals.
+Time expressed in milliseconds. Useful for representing the time of events,
+length of intervals, start time of the application and ellapsed time since its
+start.
 
 It can be converted from/to other numeric types using the standard functions.
 -}
-newtype Timestamp = Timestamp {
-  unTimestamp :: Word64
+newtype Millisecond = Millisecond {
+  unMilliseconds :: Word64
 } deriving (Show, Eq, Ord, Num, Enum, Bounded, Real, Integral, TextShow)
 
 -- | Type constraints for a valid model
@@ -104,7 +105,7 @@ Several WidgetRequests rely on this to find the destination of asynchronous
 requests (tasks, clipboard, etc).
 -}
 data WidgetId = WidgetId {
-  _widTs :: Timestamp,  -- ^ The timestamp when the instance was created.
+  _widTs :: Millisecond,  -- ^ The timestamp when the instance was created.
   _widPath :: Path      -- ^ The path at creation time.
 } deriving (Eq, Show, Ord, Generic)
 
@@ -202,7 +203,7 @@ data WidgetRequest s e
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
-  | RenderEvery WidgetId Timestamp (Maybe Int)
+  | RenderEvery WidgetId Millisecond (Maybe Int)
   -- | Stops a previous periodic rendering request.
   | RenderStop WidgetId
   {-|
@@ -304,7 +305,7 @@ data WidgetEnv s e = WidgetEnv {
   -- | Device pixel rate.
   _weDpr :: Double,
   -- | The timestamp in milliseconds when the application started.
-  _weAppStartTs :: Timestamp,
+  _weAppStartTs :: Millisecond,
   -- | Provides helper funtions for calculating text size.
   _weFontManager :: FontManager,
   -- | Returns the node info, and its parents', given a path from root.
@@ -341,7 +342,7 @@ data WidgetEnv s e = WidgetEnv {
   The timestamp in milliseconds when this event/message cycle started. This
   value starts from zero each time the application is run.
   -}
-  _weTimestamp :: Timestamp,
+  _weTimestamp :: Millisecond,
   {-|
   Whether the theme changed in this cycle. Should be considered when a widget
   avoids merging as optimization, as the styles may have changed.
