@@ -92,7 +92,7 @@ The are three types of identifiers for a widget. One, as we've seen, is the
 of identifying widgets. Besides nodeKey, there are two identifiers which are
 mostly internal, unless you are writing custom widgets or making WidgetRequests:
 
-- Path: This is a sequence of numbers starting from the root node, adding one
+- `Path`: This is a sequence of numbers starting from the root node, adding one
   number per level, until reaching the node of interest. Each number is an index
   in the list of children of the parent node. The main advantages of a path are
   that they clearly denote a hierarchy and that they allow to easily get the
@@ -100,11 +100,11 @@ mostly internal, unless you are writing custom widgets or making WidgetRequests:
   The disadvantage is that it can become invalid if widgets change positions.
   Paths are used for several status related operations (focus, hover, etc), but
   they should not be stored since they can become stale.
-- WidgetId: The WidgetId of an item is made out of the Path and Milliseconds
-  when the widget was initialized. This makes it unique, and allows keeping
-  track of the widget's path if its location in the widget tree changes. The
-  disadvantage is that it's not possible to deduce the WidgetId of a widget,
-  requiring a call to a helper function to find it.
+- `WidgetId`: The WidgetId of an item is made out of the Path and the timestamp
+  in milliseconds when the widget was initialized. This makes it unique, and
+  allows keeping track of the widget's path if its location in the widget tree
+  changes. The disadvantage is that it's not possible to deduce the WidgetId of
+  a widget, requiring a call to a helper function to find it.
 
 There are a couple of functions you can use to get the WidgetId of a node:
 

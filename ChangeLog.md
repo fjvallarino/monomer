@@ -4,6 +4,7 @@
 
 - Properly handle `SetFocusOnKey` for `textArea` ([#80](https://github.com/fjvallarino/monomer/issues/80)).
 - Lens tutorial sample code ([PR #95](https://github.com/fjvallarino/monomer/pull/95) and [PR #98](https://github.com/fjvallarino/monomer/pull/98)). Thanks @Clindbergh!
+- ColorPicker's numericFields vertical alignment ([PR #108](https://github.com/fjvallarino/monomer/pull/108)).
 
 ### Added
 
@@ -14,6 +15,7 @@
 - The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
 - New field `_weAppStartTs` in `WidgetEnv`, complementary to `_weTimestamp`, representing the time in milliseconds when the application started. Added utility function `currentTimeMs` that returns their sum with a polymorphic type ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 - `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
+- Several sizeReq helpers ([PR #106](https://github.com/fjvallarino/monomer/pull/106)).
 
 ### Changed
 
@@ -25,6 +27,7 @@
 - The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 - `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 - `style...` family of functions now combine new attributes with the existing ones ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
+- `Timestamp` was renamed to `Millisecond`. The rationale is that since both timestamps and durations are used frequently in calculations (and in the context of Monomer timestamps and durations indeed represent time in milliseconds), having separate types for Timestamp and Duration caused more harm than good ([PR #107](https://github.com/fjvallarino/monomer/pull/107)).
 
 ### Renamed
 
