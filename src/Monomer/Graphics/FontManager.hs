@@ -42,7 +42,7 @@ makeFontManager fonts dpr = do
 
   This should be reviewed/improved.
   -}
-  let adjustedDpr = min (dpr * 4) 4
+  let adjustedDpr = 4
 
   ctx <- fmInit adjustedDpr
 
