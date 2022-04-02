@@ -46,7 +46,7 @@ It can be converted from/to other numeric types using the standard functions.
 -}
 newtype Millisecond = Millisecond {
   unMilliseconds :: Word64
-} deriving (Show, Eq, Ord, Num, Enum, Bounded, Real, Integral, Generic, TextShow)
+} deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Read, Show, Generic, TextShow)
 
 -- | Type constraints for a valid model
 type WidgetModel s = Typeable s
