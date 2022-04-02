@@ -10,6 +10,7 @@ Basic types and definitions for Widgets.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# Language GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
@@ -46,7 +47,8 @@ It can be converted from/to other numeric types using the standard functions.
 -}
 newtype Millisecond = Millisecond {
   unMilliseconds :: Word64
-} deriving (Show, Eq, Ord, Num, Enum, Bounded, Real, Integral, TextShow)
+} deriving newtype (Eq, Ord, Enum, Bounded, Num, Real, Integral, Read, Show, Default, TextShow)
+  deriving (Generic)
 
 -- | Type constraints for a valid model
 type WidgetModel s = Typeable s
