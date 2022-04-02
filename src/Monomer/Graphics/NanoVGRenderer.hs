@@ -113,6 +113,10 @@ makeRenderer fonts dpr = do
 
 newRenderer :: VG.Context -> Double -> IORef Env -> Renderer
 newRenderer c rdpr envRef = Renderer {..} where
+  {-
+  rdpr is used to let nanovg know the real device pixel rate.
+  dpr is set to 1 to disable all NanoVGRenderer internal calculations.
+  -}
   dpr = 1
 
   beginFrame w h = do

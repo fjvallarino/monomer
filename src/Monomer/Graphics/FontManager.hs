@@ -35,14 +35,23 @@ makeFontManager
   -> Double       -- ^ The device pixel rate.
   -> IO FontManager  -- ^ The created renderer.
 makeFontManager fonts dpr = do
-  ctx <- fmInit 1 --dpr
+  {-
+  Awful fix/workaround to account for rounding errors/differences in how scaling
+  is performed. The nvg__getFontScale function calculates a scale based on
+  internal state and seems to be the source of the differences.
+
+  This should be reviewed/improved.
+  -}
+  let adjustedDpr = 4
+
+  ctx <- fmInit adjustedDpr
 
   validFonts <- foldM (loadFont ctx) [] fonts
 
   when (null validFonts) $
     putStrLn "Could not find any valid fonts. Text size calculations will fail."
-  
-  return $ newManager ctx dpr
+
+  return $ newManager ctx adjustedDpr
 
 newManager :: FMContext -> Double -> FontManager
 newManager ctx dpr = FontManager {..} where
