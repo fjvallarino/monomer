@@ -45,8 +45,8 @@ widgetIdFromKey wenv key = fmap (^. L.info . L.widgetId) node where
 -- | Returns the 'WidgetNodeInfo' associated to the given 'WidgetKey', if any.
 --   The search is restricted to the parent 'Composite'.
 nodeInfoFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetNodeInfo
-nodeInfoFromKey wenv key = fmap (^. L.info) node where
-  node = Map.lookup key (wenv ^. L.widgetKeyMap)
+nodeInfoFromKey wenv key = path >>= nodeInfoFromPath wenv where
+  path = pathFromKey wenv key
 
 -- | Returns the 'WidgetId' associated to the given 'Path', if any.
 widgetIdFromPath :: WidgetEnv s e -> Path -> Maybe WidgetId
