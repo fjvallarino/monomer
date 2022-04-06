@@ -95,7 +95,9 @@ First of all, it has the type signature. You don't really need to include it,
 but in general it's preferable to do it in order to have clearer compiler
 errors. Both `WidgetEnv` (environment information that can be used when building
 the UI) and `WidgetNode` (the result of building the UI) receive the type of
-your model and the type of your events as type parameters.
+your model and the type of your events as type parameters (sometimes referred to
+as `s` and `e` in the tutorials when being general about the return type, as in
+`WidgetNode s e`).
 
 Next, it declares the parameters the function receives:
 

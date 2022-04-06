@@ -79,6 +79,43 @@ In general, all components which display text support the following styles:
 
 All dimensions in Monomer are expressed in pixels.
 
+### Note: Possible compilation issue
+
+When creating a custom widget using a function similar to `titleText`, you may
+run into a compilation issue along the lines of _*"No instance for (Typeable s)
+arising from a use of"*_ (or the same with `e`). This will happen if your
+function uses `box`, `button` or any other widget that generates events,
+especially if the function is written in point free format. For example, this
+will fail unless it's used in the same file where it is declared:
+
+```haskell
+boxedLabel = box . label
+```
+
+The solution in those cases is having a explicit type signature. If you use
+`AppModel` and `AppEvent`, or the corresponding names for your application,
+a type signature similar to the one of `buildUI` is good. For example, this
+will work:
+
+```haskell
+boxedLabel :: Text -> WidgetNode AppModel AppEvent
+boxedLabel = box . label
+```
+
+Sometimes you don't want to tie your utility functions to specific types,
+because you want to reuse them in other parts of the application that may use
+different model/events. In those cases you can return a more general type, as
+long as you satisfy the constraints for the `s` and `e` arguments of
+`WidgetNode` (sometimes, being explicit only about `e` is enough). Monomer
+exports two types (`WidgetModel` and `WidgetEvent`) that are just aliases of
+`Typeable`, but have a more specific name and the extra import for `Typeable` is
+not needed. Extending the previous example, this will work too:
+
+```haskell
+boxedLabel :: (WidgetModel s, WidgetEvent e) => Text -> WidgetNode s e
+boxedLabel = box . label
+```
+
 ## Padding, border and radius
 
 Besides using spacer and filler for having some room between widgets, you can
