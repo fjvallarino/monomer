@@ -42,6 +42,7 @@ module Monomer.Widgets.Composite (
   CompositeEvent,
   MergeRequired,
   MergeReqsHandler,
+  MergeEventsHandler,
   MergeModelHandler,
   EventHandler,
   UIBuilder,
@@ -49,6 +50,7 @@ module Monomer.Widgets.Composite (
   ProducerHandler,
   CompMsgUpdate,
   compositeMergeReqs,
+  compositeMergeEvents,
   compositeMergeModel,
 
   -- * Constructors
@@ -107,6 +109,16 @@ type MergeReqsHandler s e sp
   -> s                    -- ^ Old composite model.
   -> s                    -- ^ New composite model.
   -> [WidgetRequest s e]  -- ^ The list of requests.
+
+-- | Generates events during the merge process.
+type MergeEventsHandler s e sp
+  = WidgetEnv s e         -- ^ Widget environment.
+  -> WidgetNode s e       -- ^ New widget node.
+  -> WidgetNode s e       -- ^ Old widget node.
+  -> sp                   -- ^ Parent model.
+  -> s                    -- ^ Old composite model.
+  -> s                    -- ^ New composite model.
+  -> [e]                  -- ^ The list of events.
 
 -- | Allows updating the composite model with information from the parent model.
 type MergeModelHandler s e sp
@@ -320,6 +332,16 @@ compositeMergeReqs :: MergeReqsHandler s e sp -> CompositeCfg s e sp ep
 compositeMergeReqs fn = def {
   _cmcMergeReqs = [fn]
 }
+
+-- | Generate events during the merge process.
+compositeMergeEvents
+  :: WidgetEvent e => MergeEventsHandler s e sp -> CompositeCfg s e sp ep
+compositeMergeEvents fn = cfg where
+  cfg = def {
+    _cmcMergeReqs = [wrapper]
+  }
+  wrapper wenv node oldNode parentModel oldModel newModel
+    = RaiseEvent <$> fn wenv node oldNode parentModel oldModel newModel
 
 {-|
 Allows updating the composite model with information from the parent model.
