@@ -327,13 +327,21 @@ instance CmbOnVisibleChange (CompositeCfg s e sp ep) e where
     _cmcOnVisibleChange = [fn]
   }
 
--- | Generate WidgetRequests during the merge process.
+{-|
+Generate WidgetRequests during the merge process.
+
+This function is not called during initialization; 'onInitReq' can be used.
+-}
 compositeMergeReqs :: MergeReqsHandler s e sp -> CompositeCfg s e sp ep
 compositeMergeReqs fn = def {
   _cmcMergeReqs = [fn]
 }
 
--- | Generate events during the merge process.
+{-|
+Generate events during the merge process.
+
+This function is not called during initialization; 'onInit' can be used.
+-}
 compositeMergeEvents
   :: WidgetEvent e => MergeEventsHandler s e sp -> CompositeCfg s e sp ep
 compositeMergeEvents fn = cfg where
@@ -351,6 +359,9 @@ binding.
 For example, a database record may be binded as the model from the parent, but
 the composite needs its own boolean flags to toggle visibility on different
 sections.
+
+This function is called during both merge and init. On init, the oldModel will
+be equal to the current model.
 -}
 compositeMergeModel :: MergeModelHandler s e sp -> CompositeCfg s e sp ep
 compositeMergeModel fn = def {
