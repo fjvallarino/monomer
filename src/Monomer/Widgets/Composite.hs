@@ -42,14 +42,14 @@ module Monomer.Widgets.Composite (
   CompositeEvent,
   MergeRequired,
   MergeReqsHandler,
-  CompositeCustomModelBuilder,
+  MergeModelHandler,
   EventHandler,
   UIBuilder,
   TaskHandler,
   ProducerHandler,
   CompMsgUpdate,
   compositeMergeReqs,
-  customModelBuilder,
+  compositeMergeModel,
 
   -- * Constructors
   composite,
@@ -99,19 +99,22 @@ type MergeRequired s
   -> Bool -- ^ True if merge is required.
 
 -- | Generates requests during the merge process.
-type MergeReqsHandler s e
+type MergeReqsHandler s e sp
   = WidgetEnv s e         -- ^ Widget environment.
   -> WidgetNode s e       -- ^ New widget node.
   -> WidgetNode s e       -- ^ Old widget node.
-  -> s                    -- ^ The current model.
+  -> sp                   -- ^ Parent model.
+  -> s                    -- ^ Old composite model.
+  -> s                    -- ^ New composite model.
   -> [WidgetRequest s e]  -- ^ The list of requests.
 
--- | Creates a custom composite model from the parent model.
-type CompositeCustomModelBuilder s sp
-  = sp -- ^ Parent model.
-  -> s -- ^ Old custom composite model.
-  -> s -- ^ New custom composite model.
-  -> s -- ^ Custom composite model.
+-- | Allows updating the composite model with information from the parent model.
+type MergeModelHandler s e sp
+  = WidgetEnv s e         -- ^ Widget environment.
+  -> sp                   -- ^ Parent model.
+  -> s                    -- ^ Old composite model.
+  -> s                    -- ^ New composite model.
+  -> s                    -- ^ Updated composite model.
 
 -- | Handles a composite event and returns a set of responses.
 type EventHandler s e sp ep
@@ -193,11 +196,6 @@ data EventResponse s e sp ep
 {-|
 Configuration options for composite:
 
-- 'mergeRequired': indicates if merging is necessary for this widget. In case
-  the UI build process references information outside the model, it can be used
-  to signal that merging is required even if the model has not changed. It can
-  also be used as a performance tweak if the changes do not require rebuilding
-  the UI.
 - 'onInit': event to raise when the widget is created. Useful for initializing
   required resources.
 - 'onDispose': event to raise when the widget is disposed. Useful for freeing
@@ -209,21 +207,27 @@ Configuration options for composite:
 - 'onChangeReq': 'WidgetRequest' to generate when the model changes.
 - 'onEnabledChange': event to raise when the enabled status changes.
 - 'onVisibleChange': event to raise when the visibility changes.
+- 'mergeRequired': indicates if merging is necessary for this widget. In case
+  the UI build process references information outside the model, it can be used
+  to signal that merging is required even if the model has not changed. It can
+  also be used as a performance tweak if the changes do not require rebuilding
+  the UI.
 - 'compositeMergeReqs': functions to generate WidgetRequests during the merge
   process. Since merge is already handled by Composite (by merging its tree),
   this is complementary for the cases when more control, and the previous
   version of the widget tree, is required.  For example, it is used in
   'Monomer.Widgets.Containers.Confirm' to set the focus on its Accept button
-  when visibility is restored (usually means it was brought to the front in a
-  zstack, and the visibility flag of the previous version needs to be checked).
-- 'customModelBuilder': function for extracting a custom model from the current
-  parent model and the previous composite model. Useful when the composite needs
-  a more complex model than what the user is binding.
+  when visibility is restored (this usually means it was brought to the front in
+  a zstack, and the visibility flag of the previous version needs to be
+  checked).
+- 'compositeMergeModel': Allows updating the composite model with information
+  from the parent model. Useful when the composite needs a more complex model
+  than what the user is binding.
 -}
 data CompositeCfg s e sp ep = CompositeCfg {
-  _cmcModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
   _cmcMergeRequired :: Maybe (MergeRequired s),
-  _cmcMergeReqs :: [MergeReqsHandler s e],
+  _cmcMergeReqs :: [MergeReqsHandler s e sp],
+  _cmcMergeModel :: Maybe (MergeModelHandler s e sp),
   _cmcOnInitReq :: [WidgetRequest s e],
   _cmcOnDisposeReq :: [WidgetRequest s e],
   _cmcOnResize :: [Rect -> e],
@@ -234,7 +238,7 @@ data CompositeCfg s e sp ep = CompositeCfg {
 
 instance Default (CompositeCfg s e sp ep) where
   def = CompositeCfg {
-    _cmcModelBuilder = Nothing,
+    _cmcMergeModel = Nothing,
     _cmcMergeRequired = Nothing,
     _cmcMergeReqs = [],
     _cmcOnInitReq = [],
@@ -247,7 +251,7 @@ instance Default (CompositeCfg s e sp ep) where
 
 instance Semigroup (CompositeCfg s e sp ep) where
   (<>) c1 c2 = CompositeCfg {
-    _cmcModelBuilder = _cmcModelBuilder c2 <|> _cmcModelBuilder c1,
+    _cmcMergeModel = _cmcMergeModel c2 <|> _cmcMergeModel c1,
     _cmcMergeRequired = _cmcMergeRequired c2 <|> _cmcMergeRequired c1,
     _cmcMergeReqs = _cmcMergeReqs c1 <> _cmcMergeReqs c2,
     _cmcOnInitReq = _cmcOnInitReq c1 <> _cmcOnInitReq c2,
@@ -312,21 +316,23 @@ instance CmbOnVisibleChange (CompositeCfg s e sp ep) e where
   }
 
 -- | Generate WidgetRequests during the merge process.
-compositeMergeReqs :: MergeReqsHandler s e -> CompositeCfg s e sp ep
+compositeMergeReqs :: MergeReqsHandler s e sp -> CompositeCfg s e sp ep
 compositeMergeReqs fn = def {
   _cmcMergeReqs = [fn]
 }
 
 {-|
-Generates a custom model from the current parent model and the previous
-composite model. Useful when the composite needs a more complex model than what
-the user is binding.
+Allows updating the composite model with information from the parent model.
+Useful when the composite needs a more complex model than what the user is
+binding.
+
+For example, a database record may be binded as the model from the parent, but
+the composite needs its own boolean flags to toggle visibility on different
+sections.
 -}
-customModelBuilder
-  :: CompositeCustomModelBuilder s sp
-  -> CompositeCfg s e sp ep
-customModelBuilder fn = def {
-  _cmcModelBuilder = Just fn
+compositeMergeModel :: MergeModelHandler s e sp -> CompositeCfg s e sp ep
+compositeMergeModel fn = def {
+  _cmcMergeModel = Just fn
 }
 
 data Composite s e sp ep = Composite {
@@ -334,8 +340,8 @@ data Composite s e sp ep = Composite {
   _cmpEventHandler :: !(EventHandler s e sp ep),
   _cmpUiBuilder :: !(UIBuilder s e),
   _cmpMergeRequired :: MergeRequired s,
-  _cmpMergeReqs :: [MergeReqsHandler s e],
-  _cmpModelBuilder :: Maybe (CompositeCustomModelBuilder s sp),
+  _cmpMergeReqs :: [MergeReqsHandler s e sp],
+  _cmpMergeModel :: Maybe (MergeModelHandler s e sp),
   _cmpOnInitReq :: [WidgetRequest s e],
   _cmpOnDisposeReq :: [WidgetRequest s e],
   _cmpOnResize :: [Rect -> e],
@@ -438,7 +444,7 @@ compositeD_ wType wData uiBuilder evtHandler configs = newNode where
     _cmpUiBuilder = uiBuilder,
     _cmpMergeRequired = mergeReq,
     _cmpMergeReqs = _cmcMergeReqs config,
-    _cmpModelBuilder = _cmcModelBuilder config,
+    _cmpMergeModel = _cmcMergeModel config,
     _cmpOnInitReq = _cmcOnInitReq config,
     _cmpOnDisposeReq = _cmcOnDisposeReq config,
     _cmpOnResize = _cmcOnResize config,
@@ -483,11 +489,12 @@ compositeInit
 compositeInit comp state wenv widgetComp = newResult where
   CompositeState{..} = state
 
-  !customModelBuilder = _cmpModelBuilder comp
+  !mergeModel = _cmpMergeModel comp
   !parentModel = wenv ^. L.model
   !userModel = getUserModel comp wenv
-  !model = case customModelBuilder of
-    Just buildCustomModel -> buildCustomModel parentModel userModel userModel
+  !model = case mergeModel of
+    Just merge -> merge cwenv parentModel userModel userModel where
+      !cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap userModel
     _ -> userModel
 
   -- Creates UI using provided function
@@ -524,11 +531,12 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   validState = fromMaybe state (useState oldState)
   CompositeState oldModel oldRoot oldWidgetKeys = validState
 
-  !customModelBuilder = _cmpModelBuilder comp
+  !mergeModel = _cmpMergeModel comp
   !parentModel = wenv ^. L.model
   !userModel = getUserModel comp wenv
-  !model = case customModelBuilder of
-    Just buildCustomModel -> buildCustomModel parentModel (fromJust oldModel) userModel
+  !model = case mergeModel of
+    Just merge -> merge cwenv parentModel (fromJust oldModel) userModel where
+      cwenv = convertWidgetEnv wenv oldWidgetKeys userModel
     _ -> userModel
 
   -- Creates new UI using provided function
@@ -574,7 +582,8 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   evts = RaiseEvent <$> Seq.fromList (visibleEvts ++ enabledEvts)
 
   mergeReqsFns = _cmpMergeReqs comp
-  mergeReqs = concatMap (\fn -> fn cwenv newRoot oldRoot model) mergeReqsFns
+  mergeHelper f = f cwenv newRoot oldRoot parentModel (fromJust oldModel) model
+  mergeReqs = concatMap mergeHelper mergeReqsFns
   extraReqs = seqCatMaybes (toParentReq widgetId <$> Seq.fromList mergeReqs)
 
   tmpResult = WidgetResult newRoot (RenderOnce <| tmpReqs <> extraReqs <> evts)
