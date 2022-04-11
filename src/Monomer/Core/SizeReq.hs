@@ -13,6 +13,8 @@ Helper functions creating, validating and merging size requirements.
 module Monomer.Core.SizeReq (
   SizeReqUpdater(..),
   clearExtra,
+  clearExtraW,
+  clearExtraH,
   fixedToMinW,
   fixedToMinH,
   fixedToMaxW,

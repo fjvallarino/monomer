@@ -18,6 +18,7 @@
 - New field `_weAppStartTs` in `WidgetEnv`, complementary to `_weTimestamp`, representing the time in milliseconds when the application started. Added utility function `currentTimeMs` that returns their sum with a polymorphic type ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 - `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 - Several sizeReq helpers ([PR #106](https://github.com/fjvallarino/monomer/pull/106)).
+- `compositeMergeEvents`, for completeness ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 
 ### Changed
 
@@ -30,6 +31,8 @@
 - `style...` family of functions now combine new attributes with the existing ones ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 - `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
 - `Timestamp` was renamed to `Millisecond`. The rationale is that since both timestamps and durations are used frequently in calculations (and in the context of Monomer timestamps and durations indeed represent time in milliseconds), having separate types for Timestamp and Duration caused more harm than good ([PR #107](https://github.com/fjvallarino/monomer/pull/107)).
+- `compositeMergeModel` (previously `customModelBuilder`) now receives `WidgetEnv` as its first parameter ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
+- `compositeMergeReqs` now receives `parentModel` and `oldModel` too ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 
 ### Renamed
 
@@ -37,6 +40,9 @@
   - `findWidgetByPath` -> `findChildNodeInfoByPath`.
   - `findWidgetBranchByPath` -> `findChildBranchByPath`.
   - `findWidgetIdFromPath` -> `widgetIdFromPath`.
+- Composite merge related ([PR #114](https://github.com/fjvallarino/monomer/pull/114))
+  - `customModelBuilder` -> `compositeMergeModel`
+  - `CompositeCustomModelBuilder` -> `MergeModelHandler`.
 
 ### Removed
 
