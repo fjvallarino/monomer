@@ -39,9 +39,11 @@ data TestEvt
   | TextFieldChanged Text
   | CtrlA
   | CtrlSpace
+  | CtrlDash
   | CtrlShiftSpace
   | MultiKey Int
   | FunctionKey Int
+  | SymbolKey Text
   deriving (Eq, Show)
 
 newtype TestModel = TestModel {
@@ -63,6 +65,9 @@ handleEvent = describe "handleEvent" $ do
   it "should generate an event when Ctrl-Space is pressed" $ do
     events [evtKC keySpace] `shouldBe` Seq.fromList [CtrlSpace]
 
+  it "should generate an event when Ctrl-Dash is pressed" $ do
+    events [evtKC keyMinus] `shouldBe` Seq.fromList [CtrlDash]
+
   it "should generate an event when Ctrl-Shift-Space is pressed" $ do
     events [evtKCS keySpace] `shouldBe` Seq.fromList [CtrlShiftSpace]
 
@@ -71,6 +76,14 @@ handleEvent = describe "handleEvent" $ do
     events [evtKC keyF3] `shouldBe` Seq.fromList [FunctionKey 3]
     events [evtKG keyF7] `shouldBe` Seq.fromList [FunctionKey 7]
     events [evtKS keyF12] `shouldBe` Seq.fromList [FunctionKey 12]
+
+  it "should generate events when symbol keys are pressed" $ do
+    let wenv = mockWenv (TestModel "")
+          & L.inputStatus . L.keyMod . L.leftCtrl .~ True
+    let events es = nodeHandleEventEvts wenv es kstNode
+
+    events [evtT "["] `shouldBe` Seq.fromList [SymbolKey "["]
+    events [evtT "^"] `shouldBe` Seq.fromList [SymbolKey "^"]
 
   it "should only generate events when the exact keys are pressed" $ do
     events [evtKC keyA, evtKC keyB] `shouldBe` Seq.fromList []
@@ -104,13 +117,16 @@ handleEvent = describe "handleEvent" $ do
     wenv = mockWenv (TestModel "")
     bindings = [
         ("C-Space", CtrlSpace),
+        ("C-Dash", CtrlDash),
         ("C-S-Space", CtrlShiftSpace),
         ("C-a-b-c", MultiKey 1),
         ("C-d-e", MultiKey 2),
         ("F1", FunctionKey 1),
         ("Ctrl-F3", FunctionKey 3),
         ("Cmd-F7", FunctionKey 7),
-        ("S-F12", FunctionKey 12)
+        ("S-F12", FunctionKey 12),
+        ("C-[", SymbolKey "["),
+        ("Shift-^", SymbolKey "^")
       ]
     kstNode = keystroke bindings (textField textValue)
     events es = nodeHandleEventEvts wenv es kstNode

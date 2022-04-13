@@ -16,9 +16,10 @@ combinations of multiple keys at the same time, but does not support ordered
 sequences (pressing "a", releasing, then "b" and "c"). The available keys are:
 
 - Mod keys: A, Alt, C, Ctrl, Cmd, O, Option, S, Shift
-- Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab
+- Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab, Dash
 - Arrows: Up, Down, Left, Right
 - Function keys: F1-F12
+- Symbols: brackets, ^, *, &, etc.
 - Lowercase letters (uppercase keys are reserved for mod and action keys)
 - Numbers
 
@@ -26,13 +27,20 @@ These can be combined, for example:
 
 - Copy: "Ctrl-c" or "C-c"
 - App config: "Ctrl-Shift-p" or "C-S-p"
+
+Note: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
+and share the KeyCode with the symbol associated to the same physical key. This
+causes issues when detecting their pressed status, and thus it's not possible to
+combine these symbols with letters, numbers or other symbols in the same
+keystroke. It is still possible to combine them with mod keys, so using "C-^" or
+"C-[" is possible.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE Strict #-}
 
 module Monomer.Widgets.Containers.Keystroke (
   -- * Configuration
@@ -96,7 +104,8 @@ data KeyStroke = KeyStroke {
   _kstKsCmd :: Bool,
   _kstKsAlt :: Bool,
   _kstKsShift :: Bool,
-  _kstKsKeys :: Set KeyCode
+  _kstKsKeys :: Set KeyCode,
+  _kstKsKeysText :: Set Text
 } deriving (Eq, Show)
 
 instance Default KeyStroke where
@@ -107,12 +116,18 @@ instance Default KeyStroke where
     _kstKsCmd = False,
     _kstKsAlt = False,
     _kstKsShift = False,
-    _kstKsKeys = Set.empty
+    _kstKsKeys = Set.empty,
+    _kstKsKeysText = Set.empty
   }
 
 newtype KeyStrokeState e = KeyStrokeState {
   _kssLatest :: [(KeyStroke, e)]
 } deriving (Eq, Show)
+
+data KeyEntry
+  = KeyEntryCode KeyCode
+  | KeyEntryText Text
+  deriving (Eq, Show)
 
 makeLensesWith abbreviatedFields ''KeyStroke
 makeLensesWith abbreviatedFields ''KeyStrokeState
@@ -156,37 +171,47 @@ makeKeystroke bindings config state = widget where
       & L.widget .~ makeKeystroke bindings config oldState
 
   handleEvent wenv node target evt = case evt of
-    KeyAction mod code KeyPressed -> Just result where
-      newWenv = wenv & L.inputStatus %~ removeMods
-      matches = filter (keyStrokeActive newWenv code . fst) bindings
-      newState = KeyStrokeState matches
-      newNode = node
-        & L.widget .~ makeKeystroke bindings config newState
-      evts = snd <$> matches
-      reqs
-        | ignoreChildren && not (null evts) = [IgnoreChildrenEvents]
-        | otherwise = []
-      result = resultReqsEvts newNode reqs evts
-    TextInput t
-      | ignoreChildren && ignorePrevious t -> Just result where
-        previousMatch t = t `elem` _kssLatest state ^.. folded . _1 . ksText
-        ignorePrevious t = isTextValidCode t && previousMatch t
+    KeyAction mod code KeyPressed -> result where
+      result = handleKeystroke (KeyEntryCode code)
+    TextInput text
+      | ignoreChildren && ignorePrevious text -> Just result where
         newState = KeyStrokeState []
         newNode = node
           & L.widget .~ makeKeystroke bindings config newState
         result = resultReqs newNode [IgnoreChildrenEvents]
+    TextInput text
+      | not (previousMatch text) -> result where
+        result = handleKeystroke (KeyEntryText text)
     _ -> Nothing
     where
       ignoreChildren = Just True == _kscIgnoreChildren config
+      previousMatch t = t `elem` _kssLatest state ^.. folded . _1 . ksText
+      ignorePrevious t = isTextValidCode t && previousMatch t
 
-keyStrokeActive :: WidgetEnv s e -> KeyCode -> KeyStroke -> Bool
-keyStrokeActive wenv code ks = currValid && allPressed && validMods where
+      handleKeystroke entry = Just result where
+        newWenv = wenv & L.inputStatus %~ removeMods
+        matches = filter (keyStrokeActive newWenv entry . fst) bindings
+        newState = KeyStrokeState matches
+        newNode = node
+          & L.widget .~ makeKeystroke bindings config newState
+        evts = snd <$> matches
+        reqs
+          | ignoreChildren && not (null evts) = [IgnoreChildrenEvents]
+          | otherwise = []
+        result = resultReqsEvts newNode reqs evts
+
+keyStrokeActive :: WidgetEnv s e -> KeyEntry -> KeyStroke -> Bool
+keyStrokeActive wenv entry ks = currValid && allPressed && validMods where
   status = wenv ^. L.inputStatus
   keyMod = status ^. L.keyMod
   pressedKeys = M.filter (== KeyPressed) (status ^. L.keys)
 
-  currValid = code `elem` (ks ^. ksKeys) || code `elem` modKeys
-  allPressed = M.keysSet pressedKeys == ks ^. ksKeys
+  (currValid, allPressed, ignoreShift) = case entry of
+    KeyEntryCode code -> (valid, pressed, False) where
+      valid = code `elem` (ks ^. ksKeys) || code `elem` modKeys
+      pressed = M.keysSet pressedKeys == ks ^. ksKeys
+    KeyEntryText txt -> (valid, True, True) where
+      valid = txt `elem` (ks ^. ksKeysText)
 
   ctrlPressed = isCtrlPressed keyMod
   cmdPressed = isMacOS wenv && isGUIPressed keyMod
@@ -194,7 +219,7 @@ keyStrokeActive wenv code ks = currValid && allPressed && validMods where
   validC = not (ks ^. ksC) || ks ^. ksC == (ctrlPressed || cmdPressed)
   validCtrl = ks ^. ksCtrl == ctrlPressed || ctrlPressed && validC
   validCmd = ks ^. ksCmd == cmdPressed || cmdPressed && validC
-  validShift = ks ^. ksShift == isShiftPressed keyMod
+  validShift = ks ^. ksShift == isShiftPressed keyMod || ignoreShift
   validAlt = ks ^. ksAlt == isAltPressed keyMod
 
   validMods = (validC && validCtrl && validCmd) && validShift && validAlt
@@ -218,6 +243,7 @@ partToStroke ks "Shift" = ks & ksShift .~ True
 -- Main keys
 partToStroke ks "Backspace" = ks & ksKeys %~ Set.insert keyBackspace
 partToStroke ks "Caps" = ks & ksKeys %~ Set.insert keyCapsLock
+partToStroke ks "Dash" = ks & ksKeys %~ Set.insert keyMinus
 partToStroke ks "Delete" = ks & ksKeys %~ Set.insert keyDelete
 partToStroke ks "Enter" = ks & ksKeys %~ Set.insert keyReturn
 partToStroke ks "Esc" = ks & ksKeys %~ Set.insert keyEscape
@@ -244,7 +270,9 @@ partToStroke ks "F11" = ks & ksKeys %~ Set.insert keyF11
 partToStroke ks "F12" = ks & ksKeys %~ Set.insert keyF12
 -- Other keys (numbers, letters, points, etc)
 partToStroke ks txt
-  | isTextValidCode txt = ks & ksKeys %~ Set.insert (KeyCode (ord txtHead))
+  | isTextValidCode txt = ks
+      & ksKeys %~ Set.insert (KeyCode (ord txtHead))
+      & ksKeysText %~ Set.insert txt
   | otherwise = ks
   where
     txtHead = T.index txt 0
