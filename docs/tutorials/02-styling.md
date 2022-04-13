@@ -4,7 +4,7 @@
 
 Before you can display a label, you need to load fonts into the system. This can
 be done using the application's config. The monomer-starter project includes the
-Roboto fonts for Regular, Bold and Italic, and they are loaded this way:
+Roboto fonts for Regular, Medium, Bold and Italic, and they are loaded this way:
 
 ```haskell
 config = [
@@ -44,19 +44,25 @@ are:
   pointer is inside its boundaries.
 - `styleDisabled`: Used when the `nodeEnabled` attribute has been set to False.
 
-Since this style is used a few times in the example, it would be nice to avoid
-duplicating the code all over the example. An easy way to avoid this is to
-create a function that returns the label styled as needed:
+Styles belong to a specific widget and are not cascade down to its children. If
+you have several labels inside a container and want them to have the same font
+size, you need to assign the style to each of them individually.
+
+Considering the previous example, it would be nice to avoid duplicating the
+styling code all over the application. An easy way to avoid this is to create a
+function that returns the label styled as needed:
 
 ```haskell
-titleText text = label text `styleBasic` [textFont "Medium", textSize 20]
+titleText text = label text
+  `styleBasic` [textFont "Medium", textSize 20]
 ```
 
 If you apply `styleBasic` to the result of `titleText`, the attributes will be
 combined. This means that:
 
 ```haskell
-newNode = titleText "Title" `styleBasic` [textSize 40, textColor red]
+newNode = titleText "Title"
+  `styleBasic` [textSize 40, textColor red]
 ```
 
 will result in:
