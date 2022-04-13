@@ -29,6 +29,7 @@ data AppModel = AppModel {
 
 data AppEvent
   = AppInit
+  | AppCombination Text
   deriving (Eq, Show)
 
 makeLenses 'AppModel
@@ -40,7 +41,19 @@ buildUI
 buildUI wenv model = widgetTree where
   widgetTree = vstack [
       titleText "Text",
-      box (textField sampleText) `styleBasic` [paddingV 10],
+      keystroke_ [
+          ("e", AppCombination "e"),
+          ("+", AppCombination "+"),
+          ("^", AppCombination "^"),
+          ("Dash", AppCombination "-"),
+          ("ddd", AppCombination "["),
+          ("]", AppCombination "]"),
+          ("(", AppCombination "("),
+          (")", AppCombination ")"),
+          ("{", AppCombination "{"),
+          ("}", AppCombination "}")
+        ] [ignoreChildrenEvts] $
+        box (textField sampleText) `styleBasic` [paddingV 10],
 
       titleText "Font name",
       hgrid [
@@ -99,6 +112,10 @@ handleEvent
   -> [AppEventResponse AppModel AppEvent]
 handleEvent wenv node model evt = case evt of
   AppInit -> []
+  AppCombination txt -> [ Task $ do
+      print txt
+      return AppInit
+    ]
 
 main02 :: IO ()
 main02 = do

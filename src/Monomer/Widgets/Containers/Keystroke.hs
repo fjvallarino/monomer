@@ -11,9 +11,10 @@ Using these event makes sense at the application or Composite level. If you are
 implementing a widget from scratch, keyboard events are directly available.
 
 The shortcut definitions are provided as a list of tuples of 'Text', containing
-the key combination and associated event. The widget handles unordered
-combinations of multiple keys at the same time, but does not support ordered
-sequences (pressing "a", releasing, then "b" and "c"). The available keys are:
+the key combination and associated event, separated by "-". The widget handles
+unordered combinations of multiple keys at the same time, but does not support
+ordered sequences (pressing "a", releasing, then "b" and "c"). The available
+keys are:
 
 - Mod keys: A, Alt, C, Ctrl, Cmd, O, Option, S, Shift
 - Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab, Dash
@@ -23,12 +24,18 @@ sequences (pressing "a", releasing, then "b" and "c"). The available keys are:
 - Lowercase letters (uppercase keys are reserved for mod and action keys)
 - Numbers
 
-These can be combined, for example:
+The keys can be combined, for example:
 
 - Copy: "Ctrl-c" or "C-c"
 - App config: "Ctrl-Shift-p" or "C-S-p"
 
-Note: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
+Note 1: Except in the specific cases mentioned here (Ctrl, Cmd, etc), the keys
+must be single characters.
+
+Note 2: Full words must be input exactly as indicated (Ctrl, Cmd, etc). Alias
+only exist for the keys described here (A for Alt, C for Ctrl/Cmd, etc).
+
+Note 3: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
 and share the KeyCode with the symbol associated to the same physical key. This
 causes issues when detecting their pressed status, and thus it's not possible to
 combine these symbols with letters, numbers or other symbols in the same
@@ -49,6 +56,8 @@ module Monomer.Widgets.Containers.Keystroke (
   keystroke,
   keystroke_
 ) where
+
+import Debug.Trace (traceShow)
 
 import Control.Applicative ((<|>))
 import Control.Lens ((&), (^.), (^..), (.~), (%~), _1, at, folded)
@@ -105,7 +114,8 @@ data KeyStroke = KeyStroke {
   _kstKsAlt :: Bool,
   _kstKsShift :: Bool,
   _kstKsKeys :: Set KeyCode,
-  _kstKsKeysText :: Set Text
+  _kstKsKeysText :: Set Text,
+  _kstKsErrors :: [Text]
 } deriving (Eq, Show)
 
 instance Default KeyStroke where
@@ -117,7 +127,8 @@ instance Default KeyStroke where
     _kstKsAlt = False,
     _kstKsShift = False,
     _kstKsKeys = Set.empty,
-    _kstKsKeysText = Set.empty
+    _kstKsKeysText = Set.empty,
+    _kstKsErrors = []
   }
 
 newtype KeyStrokeState e = KeyStrokeState {
@@ -225,10 +236,17 @@ keyStrokeActive wenv entry ks = currValid && allPressed && validMods where
   validMods = (validC && validCtrl && validCmd) && validShift && validAlt
 
 textToStroke :: Text -> KeyStroke
-textToStroke text = ks where
+textToStroke text = result where
   parts = T.split (=='-') text
   ks = foldl' partToStroke def parts
     & ksText .~ text
+
+  errors = ks ^. ksErrors
+  errorMsg = "'" <> text <> "' is not valid. Invalid parts: "
+
+  result
+    | not (T.null text) && null errors = ks
+    | otherwise = traceShow (errorMsg, errors) ks
 
 partToStroke :: KeyStroke -> Text -> KeyStroke
 partToStroke ks "A" = ks & ksAlt .~ True
@@ -274,6 +292,7 @@ partToStroke ks txt
       & ksKeys %~ Set.insert (KeyCode (ord txtHead))
       & ksKeysText %~ Set.insert txt
   | otherwise = ks
+      & ksErrors %~ (++ [txt])
   where
     txtHead = T.index txt 0
 
