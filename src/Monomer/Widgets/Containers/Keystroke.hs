@@ -265,9 +265,9 @@ partToStroke ks "Shift" = ks & ksShift .~ True
 -- Main keys
 partToStroke ks "Backspace" = ks & ksKeys %~ Set.insert keyBackspace
 partToStroke ks "Caps" = ks & ksKeys %~ Set.insert keyCapsLock
-partToStroke ks "Dash" = ks & ksKeys %~ Set.insert keyMinus
 partToStroke ks "Delete" = ks & ksKeys %~ Set.insert keyDelete
 partToStroke ks "Enter" = ks & ksKeys %~ Set.insert keyReturn
+partToStroke ks "KpEnter" = ks & ksKeys %~ Set.insert keyPadEnter
 partToStroke ks "Esc" = ks & ksKeys %~ Set.insert keyEscape
 partToStroke ks "Return" = ks & ksKeys %~ Set.insert keyReturn
 partToStroke ks "Space" = ks & ksKeys %~ Set.insert keySpace
@@ -291,6 +291,7 @@ partToStroke ks "F10" = ks & ksKeys %~ Set.insert keyF10
 partToStroke ks "F11" = ks & ksKeys %~ Set.insert keyF11
 partToStroke ks "F12" = ks & ksKeys %~ Set.insert keyF12
 -- Other keys (numbers, letters, points, etc)
+partToStroke ks "Dash" = partToStroke ks "-"
 partToStroke ks txt
   | isTextValidCode txt = ks
       & ksKeys %~ Set.insert (KeyCode (ord txtHead))

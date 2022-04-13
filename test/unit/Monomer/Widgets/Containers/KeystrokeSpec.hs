@@ -66,7 +66,11 @@ handleEvent = describe "handleEvent" $ do
     events [evtKC keySpace] `shouldBe` Seq.fromList [CtrlSpace]
 
   it "should generate an event when Ctrl-Dash is pressed" $ do
-    events [evtKC keyMinus] `shouldBe` Seq.fromList [CtrlDash]
+    let wenv = mockWenv (TestModel "")
+          & L.inputStatus . L.keyMod . L.leftCtrl .~ True
+    let events es = nodeHandleEventEvts wenv es kstNode
+
+    events [evtT "-"] `shouldBe` Seq.fromList [CtrlDash]
 
   it "should generate an event when Ctrl-Shift-Space is pressed" $ do
     events [evtKCS keySpace] `shouldBe` Seq.fromList [CtrlShiftSpace]
