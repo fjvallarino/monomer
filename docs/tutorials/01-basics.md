@@ -148,6 +148,11 @@ example, the children of vstack will get same width vstack gets (the window
 width, in this case), but they will be assigned vertical space according to what
 they requested.
 
+If you wrap the top level `vstack` with an `hstack`, you will notice the widgets
+get only as much horizontal space as they requested. Combining `hstack`s and
+`vstack`s allow for creating complex layouts. If you want to distribute space
+evenly, ignoring the size requests of children, you can use `hgrid` and `vgrid`.
+
 Inside hstack you'll notice the use of `spacer`. This just adds a small gap
 between two widgets. Simple but very useful! In case you want to take as much
 space as available (for example, you want one button on the left, one on the
