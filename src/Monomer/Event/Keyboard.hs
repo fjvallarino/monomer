@@ -337,6 +337,56 @@ keyY = getKeyCode SDL.KeycodeY
 keyZ :: KeyCode
 keyZ = getKeyCode SDL.KeycodeZ
 
+-- Key pad
+keyPadDivide :: KeyCode
+keyPadDivide = getKeyCode SDL.KeycodeKPDivide
+
+keyPadMultiply :: KeyCode
+keyPadMultiply = getKeyCode SDL.KeycodeKPMultiply
+
+keyPadMinus :: KeyCode
+keyPadMinus = getKeyCode SDL.KeycodeKPMinus
+
+keyPadPlus :: KeyCode
+keyPadPlus = getKeyCode SDL.KeycodeKPPlus
+
+keyPadEnter :: KeyCode
+keyPadEnter = getKeyCode SDL.KeycodeKPEnter
+
+keyPadPeriod :: KeyCode
+keyPadPeriod = getKeyCode SDL.KeycodeKPPeriod
+
+-- Key pad numbers
+keyPad0 :: KeyCode
+keyPad0 = getKeyCode SDL.KeycodeKP0
+
+keyPad1 :: KeyCode
+keyPad1 = getKeyCode SDL.KeycodeKP1
+
+keyPad2 :: KeyCode
+keyPad2 = getKeyCode SDL.KeycodeKP2
+
+keyPad3 :: KeyCode
+keyPad3 = getKeyCode SDL.KeycodeKP3
+
+keyPad4 :: KeyCode
+keyPad4 = getKeyCode SDL.KeycodeKP4
+
+keyPad5 :: KeyCode
+keyPad5 = getKeyCode SDL.KeycodeKP5
+
+keyPad6 :: KeyCode
+keyPad6 = getKeyCode SDL.KeycodeKP6
+
+keyPad7 :: KeyCode
+keyPad7 = getKeyCode SDL.KeycodeKP7
+
+keyPad8 :: KeyCode
+keyPad8 = getKeyCode SDL.KeycodeKP8
+
+keyPad9 :: KeyCode
+keyPad9 = getKeyCode SDL.KeycodeKP9
+
 --
 
 -- Mod keys
@@ -657,3 +707,53 @@ isKeyY = (== keyY)
 
 isKeyZ :: KeyCode -> Bool
 isKeyZ = (== keyZ)
+
+-- Key pad
+isKeyPadDivide :: KeyCode -> Bool
+isKeyPadDivide = (== keyPadDivide)
+
+isKeyPadMultiply :: KeyCode -> Bool
+isKeyPadMultiply = (== keyPadMultiply)
+
+isKeyPadMinus :: KeyCode -> Bool
+isKeyPadMinus = (== keyPadMinus)
+
+isKeyPadPlus :: KeyCode -> Bool
+isKeyPadPlus = (== keyPadPlus)
+
+isKeyPadEnter :: KeyCode -> Bool
+isKeyPadEnter = (== keyPadEnter)
+
+isKeyPadPeriod :: KeyCode -> Bool
+isKeyPadPeriod = (== keyPadPeriod)
+
+-- Key pad numbers
+isKeyPad0 :: KeyCode -> Bool
+isKeyPad0 = (== keyPad0)
+
+isKeyPad1 :: KeyCode -> Bool
+isKeyPad1 = (== keyPad1)
+
+isKeyPad2 :: KeyCode -> Bool
+isKeyPad2 = (== keyPad2)
+
+isKeyPad3 :: KeyCode -> Bool
+isKeyPad3 = (== keyPad3)
+
+isKeyPad4 :: KeyCode -> Bool
+isKeyPad4 = (== keyPad4)
+
+isKeyPad5 :: KeyCode -> Bool
+isKeyPad5 = (== keyPad5)
+
+isKeyPad6 :: KeyCode -> Bool
+isKeyPad6 = (== keyPad6)
+
+isKeyPad7 :: KeyCode -> Bool
+isKeyPad7 = (== keyPad7)
+
+isKeyPad8 :: KeyCode -> Bool
+isKeyPad8 = (== keyPad8)
+
+isKeyPad9 :: KeyCode -> Bool
+isKeyPad9 = (== keyPad9)
