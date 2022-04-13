@@ -17,9 +17,10 @@ ordered sequences (pressing "a", releasing, then "b" and "c"). The available
 keys are:
 
 - Mod keys: A, Alt, C, Ctrl, Cmd, O, Option, S, Shift
-- Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab, Dash
+- Action keys: Caps, Delete, Enter, Esc, Return, Space, Tab
 - Arrows: Up, Down, Left, Right
 - Function keys: F1-F12
+- Separator: Dash (since '-' is used for defining keystrokes)
 - Symbols: brackets, ^, *, &, etc.
 - Lowercase letters (uppercase keys are reserved for mod and action keys)
 - Numbers
@@ -39,8 +40,11 @@ Note 3: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
 and share the KeyCode with the symbol associated to the same physical key. This
 causes issues when detecting their pressed status, and thus it's not possible to
 combine these symbols with letters, numbers or other symbols in the same
-keystroke. It is still possible to combine them with mod keys, so using "C-^" or
-"C-[" is possible.
+keystroke. The same happens with characters that require pressing a combination
+of keys (e.g. accented characters). It is still possible to combine them with
+mod keys, so using "C-^" or "C-[" should work. If you find that binding a
+symbol/complex character does not work, try using the names of the physical keys
+instead (e.g. "Shift-e" instead of "E").
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
