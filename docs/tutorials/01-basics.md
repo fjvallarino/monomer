@@ -150,7 +150,7 @@ they requested.
 
 If you wrap the top level `vstack` with an `hstack`, you will notice the widgets
 get only as much horizontal space as they requested. Combining `hstack`s and
-`vstack`s allow for creating complex layouts. If you want to distribute space
+`vstack`s allows for creating complex layouts. If you want to distribute space
 evenly, ignoring the size requests of children, you can use `hgrid` and `vgrid`.
 
 Inside hstack you'll notice the use of `spacer`. This just adds a small gap
