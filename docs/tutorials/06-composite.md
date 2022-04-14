@@ -5,8 +5,10 @@
 Sometimes your application can become large, or there is functionality you want
 to share with a different project. In these cases, it would be nice to be able
 to have separate functions for building a section of the UI and handling its
-events. This is what `Composite` provides and, inadvertently, you have been
-using it all along: the `startApp` call creates a Composite under the hood.
+events. This is what
+[Composite](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Composite.html)
+provides and, inadvertently, you have been using it all along: the `startApp`
+call creates a Composite under the hood.
 
 ## Types
 
@@ -121,7 +123,9 @@ In this tutorial two new widgets are used and, in general, they work together.
 
 ### Draggable
 
-A `draggable` widget receives two arguments:
+A
+[draggable](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Draggable.html)
+widget receives two arguments:
 
 - The value that is going to be carried during a drag event. This value can be
   used by other widgets when hovered, to indicate they accept the item or not.
@@ -134,7 +138,9 @@ and optional transparency.
 
 ### DropTarget
 
-A `dropTarget` also receives two arguments:
+A
+[dropTarget](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-DropTarget.html)
+also receives two arguments:
 
 - A function that can create user events. The type of the argument must match
   the type of the value provided by the widget being dragged. This event will be

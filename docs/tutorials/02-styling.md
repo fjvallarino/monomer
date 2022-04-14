@@ -189,10 +189,10 @@ A few input widgets are used in this tutorial:
 
 ### Radio
 
-A radio button allows choosing between mutually exclusive options. To construct
-it, the value it represents must be provided, plus a lens to the associated
-field. The value can be of any type, as long as it matches with its target
-field's type.
+A [radio](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-Radio.html)
+button allows choosing between mutually exclusive options. To construct it, the value
+it represents must be provided, plus a lens to the associated field. The value
+can be of any type, as long as it matches with its target field's type.
 
 By default, a `radio` does not have a caption, but it can be provided with a
 label widget (generally, inside an hstack or vstack). Alternatively
@@ -201,23 +201,32 @@ performed on the radio widget.
 
 ### Checkbox
 
-A checkbox allows handling boolean fields. Given only two options are available,
-a `checkbox` only needs a lens to a boolean field.
+A
+[checkbox](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-Checkbox.html)
+allows handling boolean fields. Given only two options are available, a
+`checkbox` only needs a lens to a boolean field.
 
 There is also a `labeledCheckbox` version.
 
 ### Textfield
 
-A `textField` allows editing free text in a single line. Several configuration
-options exist to limit length, placeholder, display character (for password
-fields) are available. On its most basic configuration, it requires a lens to
-a text field. In case you need to support multiline editing, `textArea` is
-available too.
+A
+[textField](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-TextField.html)
+allows editing free text in a single line. Several configuration options exist
+to limit length, placeholder, display character (for password fields) are
+available. On its most basic configuration, it requires a lens to a text field.
+In case you need to support multiline editing,
+[textArea](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-TextArea.html)
+is available too.
 
-There are specific versions for some data types, named `numericField`,
-`dateField` and `timeField`, which provide options for valid ranges, formats and
-also some editing conveniences (mouse wheel or shift-dragging allow for changing
-the field's value).
+There are specific versions for some data types, named
+[numericField](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-NumericField.html),
+[dateField](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-DateField.html)
+and
+[timeField](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-TimeField.html),
+which provide options for valid ranges, formats and also some editing
+conveniences (mouse wheel or shift-dragging allow for changing the field's
+value).
 
 ## Model updates
 

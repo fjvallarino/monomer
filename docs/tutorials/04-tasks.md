@@ -53,7 +53,8 @@ pushLayers = zstack [
 
 ### box
 
-Box is a container for a single item that can be used for both layout and event
+[Box](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Box.html)
+is a container for a single item that can be used for both layout and event
 handling on behalf of its child widget.
 
 By default box assigns the requested space by its child, which can leave some
@@ -74,9 +75,11 @@ without a custom widget.
 
 ### image
 
-The image widget allows loading and displaying an image from the local
-filesystem or from an HTTP/S resource. It also provides options for fitting the
-image to the available space, plus filtering and pattern repetition.
+The
+[image](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-Image.html)
+widget allows loading and displaying an image from the local filesystem or from
+an http/s resource. It also provides options for fitting the image to the
+available space, plus filtering and pattern repetition.
 
 ```haskell
 image_ "./assets/images/red-button.png" [fitFill]
@@ -86,9 +89,11 @@ It also supports creating images from memory using a `ByteString`.
 
 ### scroll
 
-A common situation is having a widget that needs more space than is available. In
-this scenario, to avoid having the widget cut its content or display it in a less
-than ideal format, `scroll` can be used. There are three types of scroll:
+A common situation is having a widget that needs more space than is available.
+In this scenario, to avoid having the widget cut its content or display it in a
+less than ideal format,
+[scroll](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Scroll.html)
+can be used. There are three types of scroll:
 
 - scroll: displays both scroll bars if required.
 - hscroll: only displays the horizontal scroll bar, if needed. The contained
