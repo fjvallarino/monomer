@@ -19,6 +19,7 @@
 - `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 - Several sizeReq helpers ([PR #106](https://github.com/fjvallarino/monomer/pull/106)).
 - `compositeMergeEvents`, for completeness ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
+- Support for symbols and other keys in `keystroke` ([PR #117](https://github.com/fjvallarino/monomer/pull/117)).
 
 ### Changed
 
