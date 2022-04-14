@@ -6,10 +6,26 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Container which stacks its children along a main axis. The layout algorithm
-considers the different type of size requirements and assigns space according to
-the logic defined in 'SizeReq'. If the requested fixed space is larger that the
-viewport of the stack, the content will overflow.
+Container which stacks its children along a main axis.
+
+An hstack widget will assign horizontal space to its children according to their
+size requests. The inverse happens with vstack and vertical space, which assigns
+vertical space as requested and all the horizontal space available.
+
+For example, a label will get enough space to be displayed completely, and it
+will also get all the vertical space the hstack has. This means that if the
+hstack is the top level widget in the window, the label will also be as tall as
+the window.
+
+Both can be combined to create complex layouts. Considering the situation of a
+top-level hstack which created a large vertical label, we could wrap the hstack
+with a vstack to only use as much horizontal and vertical space as needed. Both
+stack widgets will request space from their parent, along their corresponding
+axis, based on the requests of their children.
+
+The layout algorithm considers the different type of size requirements and
+assigns space according to the logic defined in 'SizeReq'. If the requested
+fixed space is larger that the viewport of the stack, the content will overflow.
 -}
 {-# LANGUAGE Strict #-}
 
