@@ -214,7 +214,7 @@ A
 [textField](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-TextField.html)
 allows editing free text in a single line. Several configuration options exist
 to limit length, placeholder, display character (for password fields) are
-available. On its most basic configuration, it requires a lens to a text field.
+available. In its most basic configuration, it requires a lens to a text field.
 In case you need to support multiline editing,
 [textArea](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-TextArea.html)
 is available too.
