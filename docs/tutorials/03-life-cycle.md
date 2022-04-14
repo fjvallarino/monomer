@@ -87,12 +87,15 @@ turns out to be a Composite, as we'll see in more advanced tutorials) can only
 handle the events defined by the user. This is a difference compared to custom
 widgets, which can handle any kind of low level event. Although this can sound
 like a limitation, you can always have a widget that converts those low level
-events to the event type you can handle. This is the case of keystroke. It
-receives a list of mappings from a keystroke combination (provided as a Text
-string) and the event to raise when that combination is detected. In this
-example, it just listens for the `Enter` key and raises the same event as if the
-user had clicked the "Add" button. These combinations can be more complex, of
-course. Check the documentation of the widget for more information.
+events to the event type your application can handle.
+
+This is the case of keystroke. It receives a list of mappings from a keystroke
+combination, provided as Text, and the event to raise when that combination is
+detected. In this example, it just listens for the `Enter` key and raises the
+same event as if the user had clicked the "Add" button. These combinations can
+be more complex, of course. Check the
+[documentation](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Keystroke.html)
+of the widget for more information.
 
 ### The _singular_ function
 

@@ -58,8 +58,11 @@ fadeInMsg time
   | otherwise = [Message "fadeTimeLabel" AnimationStart]
 ```
 
-In the case of `animFadeIn`/`animFadeOut` (there is also
-`animSlideIn`/`animSlideOut`), the possible messages are:
+In the case of
+[animFadeIn/animFadeOut](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Animation-Fade.html)
+(there is also
+[animSlideIn/animSlideOut](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Animation-Slide.html)),
+the possible messages are:
 
 - AnimationStart: Causes the animation to start from the beginning.
 - AnimationStop: Causes the animation to stop if currently running.

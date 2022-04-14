@@ -6,9 +6,15 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Layout container which distributes size equally along the main axis. For hgrid
-it requests max width * elements as its width, and the max height as its height.
-The reverse happens for vgrid.
+Layout container which distributes space evenly along the main axis. For the
+secondary axis children will receive as much space as available for the grid
+widget itself.
+
+In the same way as with hstack and vstack, hgrid and vgrid can be combined to
+create more complex layouts.
+
+The hgrid widget requests maxWidth * elements as its width, and the max height
+as its height. The inverse happens for vgrid.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Strict #-}

@@ -126,7 +126,8 @@ We'll explore some basic widgets next.
 The two most common widgets for layout are `hstack` and `vstack`. These allow
 stacking widgets next to each other in horizontal or vertical position, trying
 to satisfy the size requests of each of them (the h or v indicate the main
-axis).
+axis). You can check their documentation
+[here](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Stack.html).
 
 Back to the starter app, you can see both being used:
 
@@ -177,7 +178,9 @@ are useful in most applications.
 
 #### Label
 
-As expected, label is used to display text. More specifically, it displays
+The
+[label](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-Label.html)
+widget is used to display text. More specifically, it displays
 [Text](https://hackage.haskell.org/package/text) instances. There is also
 `labelS`, which can be used for instances of `Show`, such as numbers or custom
 types, without having to convert first to Text. If you need to display a
@@ -198,8 +201,10 @@ label_ "This is\nmultiline text" [multiline, ellipsis]
 
 #### Button
 
-The button widget provides a basic interaction block for users. To construct it,
-it needs a caption and an event as defined in [Events type](#events-type).
+The
+[button](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Singles-Button.html)
+widget provides a basic interaction block for users. To construct it, it needs a
+caption and an event as defined in [Events type](#events-type).
 
 It supports the same configuration options as label (multiline, ellipsis, etc)
 plus some extra options for other possible events accessible with `button_`:
