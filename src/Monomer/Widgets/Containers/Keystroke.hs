@@ -30,13 +30,20 @@ The keys can be combined, for example:
 - Copy: "Ctrl-c" or "C-c"
 - App config: "Ctrl-Shift-p" or "C-S-p"
 
-Note 1: Except in the specific cases mentioned here (Ctrl, Cmd, etc), the keys
+Note 1: Following the pattern explained in 'CmbIgnoreChildrenEvts', this widget
+by default allows children widgets (i.e., focused widgets) that may receive the
+events to respond to the pressed keys. If you want to avoid this, and only keep
+the keystroke widgets's response when a combination matches, add the
+'ignoreChildrenEvts' config option. To clarify: the only keypress event that
+will be filtered is the one that causes a combination to match (the last one).
+
+Note 2: Except in the specific cases mentioned here (Ctrl, Cmd, etc), the keys
 must be single characters.
 
-Note 2: Full words must be input exactly as indicated (Ctrl, Cmd, etc). Alias
+Note 3: Full words must be input exactly as indicated (Ctrl, Cmd, etc). Alias
 only exist for the keys described here (A for Alt, C for Ctrl/Cmd, etc).
 
-Note 3: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
+Note 4: Symbols that require pressing the Shift key (^, &, etc) are virtual keys
 and share the KeyCode with the symbol associated to the same physical key. This
 causes issues when detecting their pressed status, and thus it's not possible to
 combine these symbols with letters, numbers or other symbols in the same
