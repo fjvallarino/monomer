@@ -206,6 +206,10 @@ The
 widget provides a basic interaction block for users. To construct it, it needs a
 caption and an event as defined in [Events type](#events-type).
 
+```haskell
+button "Increase count" AppIncrease
+```
+
 It supports the same configuration options as label (multiline, ellipsis, etc)
 plus some extra options for other possible events accessible with `button_`:
 
@@ -213,7 +217,7 @@ plus some extra options for other possible events accessible with `button_`:
 - onFocus: raises an event when the button gains focus.
 - onBlur: raises an event when the button loses focus.
 
-All widgets that can be focused provide the onFocus and onBlur events.
+All widgets that can be focused provide the `onFocus` and `onBlur` events.
 
 ## Event handling
 

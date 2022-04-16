@@ -92,8 +92,8 @@ events to the event type your application can handle.
 This is the case of keystroke. It receives a list of mappings from a keystroke
 combination, provided as Text, and the event to raise when that combination is
 detected. In this example, it just listens for the `Enter` key and raises the
-same event as if the user had clicked the "Add" button. These combinations can
-be more complex, of course. Check the
+same event as if the user had clicked the "Add" button. The combinations of keys
+can be more complex. Check the
 [documentation](https://hackage.haskell.org/package/monomer/docs/Monomer-Widgets-Containers-Keystroke.html)
 of the widget for more information.
 

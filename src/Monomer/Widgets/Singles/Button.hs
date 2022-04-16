@@ -8,6 +8,10 @@ Portability : non-portable
 
 Button widget, with support for multiline text. At the most basic level, a
 button consists of a caption and an event to raise when clicked.
+
+@
+button "Increase count" AppIncrease
+@
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -19,10 +23,12 @@ module Monomer.Widgets.Singles.Button (
   -- * Configuration
   ButtonCfg,
   -- * Constructors
+  mainButton,
+  mainButton_,
+  mainButtonD_,
   button,
   button_,
-  mainButton,
-  mainButton_
+  buttonD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -165,13 +171,28 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
--- | Creates a button with main styling. Useful for dialogs.
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available.
+-}
 mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
--- | Creates a button with main styling. Useful for dialogs. Accepts config.
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available. Accepts config.
+-}
 mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
+  newConfigs = mainConfig : configs
+
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available. Accepts config but does not
+require an event. See 'buttonD_'.
+-}
+mainButtonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+mainButtonD_ caption configs = buttonD_ caption newConfigs where
   newConfigs = mainConfig : configs
 
 -- | Creates a button with normal styling.
@@ -181,7 +202,20 @@ button caption handler = button_ caption handler def
 -- | Creates a button with normal styling. Accepts config.
 button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
-  config = onClick handler <> mconcat configs
+  buttonNode = buttonD_ caption (onClick handler : configs)
+
+{-|
+Creates a button without forcing an event to be provided. The other constructors
+use this version, adding an 'onClick' handler in configs.
+
+Using this constructor directly can be helpful in cases where the event to be
+raised belongs in a 'Composite' above in the widget tree, outside the scope of
+the Composite that contains the button. This parent Composite can be reached by
+sending a message ('SendMessage') to its 'WidgetId' using 'onClickReq'.
+-}
+buttonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+buttonD_ caption configs = buttonNode where
+  config = mconcat configs
   widget = makeButton caption config
   !buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
