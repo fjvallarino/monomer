@@ -1,5 +1,19 @@
 ## 1.4.0.0 (in development)
 
+### Breaking changes
+
+- Added `style...Set` family of functions. ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
+- `Composite`'s `onChange` event is now sent to its `handleEvent` function, not to its parent; the type of the
+  generated event was updated to reflect this change. The rationale is that since `onInit` is sent to
+  `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
+  in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
+  use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
+- `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
+- `Timestamp` was renamed to `Millisecond`. The rationale is that since both timestamps and durations are used frequently in calculations (and in the context of Monomer timestamps and durations indeed represent time in milliseconds), having separate types for Timestamp and Duration caused more harm than good ([PR #107](https://github.com/fjvallarino/monomer/pull/107)).
+- `compositeMergeModel` (previously `customModelBuilder`) now receives `WidgetEnv` as its first parameter ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
+- `compositeMergeReqs` now receives `parentModel` and `oldModel` too ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
+- `mergeRequired` now receives an extra value as its first parameter, usually `WidgetEnv` ([PR #122](https://github.com/fjvallarino/monomer/pull/122)).
+
 ### Fixed
 
 - Properly handle `SetFocusOnKey` for `textArea` ([#80](https://github.com/fjvallarino/monomer/issues/80)).
@@ -16,24 +30,14 @@
 - Read-only mode for `textField`, `numericField`, `dateField`, `timeField` and `textArea` ([PR #93](https://github.com/fjvallarino/monomer/pull/93)). Thanks @Dretch!
 - The `scroll` widget now supports a `thumbMinSize` configuration option that allows setting a minimum thumb size ([PR #100](https://github.com/fjvallarino/monomer/pull/100)).
 - New field `_weAppStartTs` in `WidgetEnv`, complementary to `_weTimestamp`, representing the time in milliseconds when the application started. Added utility function `currentTimeMs` that returns their sum with a polymorphic type ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
-- `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 - Several sizeReq helpers ([PR #106](https://github.com/fjvallarino/monomer/pull/106)).
 - `compositeMergeEvents`, for completeness ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 - Support for symbols and other keys in `keystroke` ([PR #117](https://github.com/fjvallarino/monomer/pull/117)).
 
 ### Changed
 
-- `Composite`'s `onChange` event is now sent to its `handleEvent` function, not to its parent; the type of the
-  generated event was updated to reflect this change. The rationale is that since `onInit` is sent to
-  `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
-  in `handleEvent` to know when the model changed. Widgets that want to report model changes to its parent can
-  use `Report`/`RequestParent`; an example can be found in `ColorPicker` ([PR #71](https://github.com/fjvallarino/monomer/pull/71)).
 - The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 - `style...` family of functions now combine new attributes with the existing ones ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
-- `Timestamp` is now a newtype. Enforce use of this type instead of `Int` when appropriate ([PR #103](https://github.com/fjvallarino/monomer/pull/103)).
-- `Timestamp` was renamed to `Millisecond`. The rationale is that since both timestamps and durations are used frequently in calculations (and in the context of Monomer timestamps and durations indeed represent time in milliseconds), having separate types for Timestamp and Duration caused more harm than good ([PR #107](https://github.com/fjvallarino/monomer/pull/107)).
-- `compositeMergeModel` (previously `customModelBuilder`) now receives `WidgetEnv` as its first parameter ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
-- `compositeMergeReqs` now receives `parentModel` and `oldModel` too ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 
 ### Renamed
 
