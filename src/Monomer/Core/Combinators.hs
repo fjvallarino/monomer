@@ -30,16 +30,40 @@ import Monomer.Graphics.Types
 
 {-|
 Given two values, usually model, checks if merge is required for a given widget.
-The first parameter corresponds to the old value, and the second to the new.
--}
-class CmbMergeRequired t s | t -> s where
-  mergeRequired :: (s -> s -> Bool) -> t
 
--- | Listener for the validation status of a field using a lens.
+The first parameter usually corresponds to the current 'WidgetEnv', the second
+to the old value/model, and the third to the new/model.
+
+This is used, for example, by 'composite' and 'box'.
+-}
+class CmbMergeRequired t w s | t -> w s where
+  mergeRequired :: (w -> s -> s -> Bool) -> t
+
+{-|
+Listener for the validation status of a user input field using a lens.
+
+Allows associating a flag to know if the input of a field with validation
+settings is valid. This can be used with 'textField ,'numericField', 'dateField'
+and 'timeField'.
+
+The flag can be used for styling the component according to the current status.
+Beyond styling, its usage is needed for validation purposes. Taking
+'numericField' as an example, one can bind a 'Double' record field to it and set
+a valid range from 0 to 100. When the user inputs 100, the record field will
+reflect the correct value. If the user adds a 0 (the numericField showing 1000),
+the record field will still have 100 because it's the last valid value. Since
+there is not a way of indicating errors when using primitive types (a 'Double'
+is just a number), we can rely on the flag to check its validity.
+-}
 class CmbValidInput t s | t -> s where
   validInput :: ALens' s Bool -> t
 
--- | Listener for the validation status of a field using an event handler.
+{-|
+Listener for the validation status of a user input field using an event handler,
+avoiding the need of a lens.
+
+Check 'CmbValidInput' for details.
+-}
 class CmbValidInputV t e | t -> e where
   validInputV :: (Bool -> e) -> t
 
@@ -316,8 +340,8 @@ class CmbThumbHoverColor t where
   thumbHoverColor :: Color -> t
 
 {-|
-The thumb factor. For example, in slider this makes the thumb proportional
-to the width of the slider.
+The thumb factor. For example, in slider this makes the thumb proportional to
+the width of the slider.
 -}
 class CmbThumbFactor t where
   thumbFactor :: Double -> t

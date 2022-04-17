@@ -119,7 +119,7 @@ buildUI wenv model = widgetTree where
   countLabel = label caption `styleBasic` [padding 10] where
     caption = "Books (" <> showt (length $ model ^. books) <> ")"
 
-  booksChanged old new = old ^. books /= new ^. books
+  booksChanged wenv old new = old ^. books /= new ^. books
 
   widgetTree = zstack [
       vstack [

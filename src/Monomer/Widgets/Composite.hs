@@ -95,10 +95,11 @@ type CompositeModel s = (Eq s, WidgetModel s)
 type CompositeEvent e = WidgetEvent e
 
 -- | Checks if merging the composite is required.
-type MergeRequired s
-  = s     -- ^ Old composite model.
-  -> s    -- ^ New composite model
-  -> Bool -- ^ True if merge is required.
+type MergeRequired s e
+  = WidgetEnv s e  -- ^ Widget environment.
+  -> s             -- ^ Old composite model.
+  -> s             -- ^ New composite model
+  -> Bool          -- ^ True if merge is required.
 
 -- | Generates requests during the merge process.
 type MergeReqsHandler s e sp
@@ -237,7 +238,7 @@ Configuration options for composite:
   than what the user is binding.
 -}
 data CompositeCfg s e sp ep = CompositeCfg {
-  _cmcMergeRequired :: Maybe (MergeRequired s),
+  _cmcMergeRequired :: Maybe (MergeRequired s e),
   _cmcMergeReqs :: [MergeReqsHandler s e sp],
   _cmcMergeModel :: Maybe (MergeModelHandler s e sp),
   _cmcOnInitReq :: [WidgetRequest s e],
@@ -277,7 +278,7 @@ instance Semigroup (CompositeCfg s e sp ep) where
 instance Monoid (CompositeCfg s e sp ep) where
   mempty = def
 
-instance CmbMergeRequired (CompositeCfg s e sp ep) s where
+instance CmbMergeRequired (CompositeCfg s e sp ep) (WidgetEnv s e) s where
   mergeRequired fn = def {
     _cmcMergeRequired = Just fn
   }
@@ -372,7 +373,7 @@ data Composite s e sp ep = Composite {
   _cmpWidgetData :: !(WidgetData sp s),
   _cmpEventHandler :: !(EventHandler s e sp ep),
   _cmpUiBuilder :: !(UIBuilder s e),
-  _cmpMergeRequired :: MergeRequired s,
+  _cmpMergeRequired :: MergeRequired s e,
   _cmpMergeReqs :: [MergeReqsHandler s e sp],
   _cmpMergeModel :: Maybe (MergeModelHandler s e sp),
   _cmpOnInitReq :: [WidgetRequest s e],
@@ -469,7 +470,7 @@ compositeD_
   -> WidgetNode sp ep          -- ^ The resulting widget.
 compositeD_ wType wData uiBuilder evtHandler configs = newNode where
   config = mconcat configs
-  mergeReq = fromMaybe (/=) (_cmcMergeRequired config)
+  mergeReq = fromMaybe (const (/=)) (_cmcMergeRequired config)
   !widgetRoot = spacer
   composite = Composite {
     _cmpWidgetData = wData,
@@ -579,7 +580,7 @@ compositeMerge comp state wenv newComp oldComp = newResult where
   -- Needed in case the user references something outside model when building UI
   -- The same model is provided as old since nothing else is available, but
   -- mergeRequired may be using data from a closure
-  modelChanged = _cmpMergeRequired comp (fromJust oldModel) model
+  modelChanged = _cmpMergeRequired comp cwenv (fromJust oldModel) model
   visibleChg = nodeVisibleChanged oldComp newComp
   enabledChg = nodeEnabledChanged oldComp newComp
   flagsChanged = visibleChg || enabledChg

@@ -34,7 +34,7 @@ This is an optimization and should not be needed unless performance is a concern
 (for example, when a long list of items is displayed).
 
 ```haskell
-booksChanged old new = old ^. books /= new ^. books
+booksChanged wenv old new = old ^. books /= new ^. books
 
 box_ [mergeRequired booksChanged] $
   vscroll (vstack (bookRow wenv <$> model ^. books)) `nodeKey` "mainScroll"
