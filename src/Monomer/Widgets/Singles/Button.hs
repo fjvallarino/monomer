@@ -8,6 +8,10 @@ Portability : non-portable
 
 Button widget, with support for multiline text. At the most basic level, a
 button consists of a caption and an event to raise when clicked.
+
+@
+button "Increase count" AppIncrease
+@
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -19,10 +23,12 @@ module Monomer.Widgets.Singles.Button (
   -- * Configuration
   ButtonCfg,
   -- * Constructors
+  mainButton,
+  mainButton_,
+  mainButtonD_,
   button,
   button_,
-  mainButton,
-  mainButton_
+  buttonD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -46,6 +52,9 @@ data ButtonType
 {-|
 Configuration options for button:
 
+- 'ignoreParentEvts': whether to ignore all other responses to the click or
+  keypress that triggered the button, and only keep this button's response.
+  Useful when the button is child of a 'keystroke' widget.
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
@@ -62,6 +71,7 @@ Configuration options for button:
 -}
 data ButtonCfg s e = ButtonCfg {
   _btnButtonType :: Maybe ButtonType,
+  _btnIgnoreParent :: Maybe Bool,
   _btnIgnoreTheme :: Maybe Bool,
   _btnLabelCfg :: LabelCfg s e,
   _btnOnFocusReq :: [Path -> WidgetRequest s e],
@@ -72,6 +82,7 @@ data ButtonCfg s e = ButtonCfg {
 instance Default (ButtonCfg s e) where
   def = ButtonCfg {
     _btnButtonType = Nothing,
+    _btnIgnoreParent = Nothing,
     _btnIgnoreTheme = Nothing,
     _btnLabelCfg = def,
     _btnOnFocusReq = [],
@@ -82,6 +93,7 @@ instance Default (ButtonCfg s e) where
 instance Semigroup (ButtonCfg s e) where
   (<>) t1 t2 = ButtonCfg {
     _btnButtonType = _btnButtonType t2 <|> _btnButtonType t1,
+    _btnIgnoreParent = _btnIgnoreParent t2 <|> _btnIgnoreParent t1,
     _btnIgnoreTheme = _btnIgnoreTheme t2 <|> _btnIgnoreTheme t1,
     _btnLabelCfg = _btnLabelCfg t1 <> _btnLabelCfg t2,
     _btnOnFocusReq = _btnOnFocusReq t1 <> _btnOnFocusReq t2,
@@ -91,6 +103,11 @@ instance Semigroup (ButtonCfg s e) where
 
 instance Monoid (ButtonCfg s e) where
   mempty = def
+
+instance CmbIgnoreParentEvts (ButtonCfg s e) where
+  ignoreParentEvts_ ignore = def {
+    _btnIgnoreParent = Just ignore
+  }
 
 instance CmbIgnoreTheme (ButtonCfg s e) where
   ignoreTheme_ ignore = def {
@@ -165,13 +182,28 @@ mainConfig = def {
   _btnButtonType = Just ButtonMain
 }
 
--- | Creates a button with main styling. Useful for dialogs.
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available.
+-}
 mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
--- | Creates a button with main styling. Useful for dialogs. Accepts config.
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available. Accepts config.
+-}
 mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
+  newConfigs = mainConfig : configs
+
+{-|
+Creates a button with main styling. Useful to highlight an option, such as
+"Accept", when multiple buttons are available. Accepts config but does not
+require an event. See 'buttonD_'.
+-}
+mainButtonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+mainButtonD_ caption configs = buttonD_ caption newConfigs where
   newConfigs = mainConfig : configs
 
 -- | Creates a button with normal styling.
@@ -181,7 +213,20 @@ button caption handler = button_ caption handler def
 -- | Creates a button with normal styling. Accepts config.
 button_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 button_ caption handler configs = buttonNode where
-  config = onClick handler <> mconcat configs
+  buttonNode = buttonD_ caption (onClick handler : configs)
+
+{-|
+Creates a button without forcing an event to be provided. The other constructors
+use this version, adding an 'onClick' handler in configs.
+
+Using this constructor directly can be helpful in cases where the event to be
+raised belongs in a 'Composite' above in the widget tree, outside the scope of
+the Composite that contains the button. This parent Composite can be reached by
+sending a message ('SendMessage') to its 'WidgetId' using 'onClickReq'.
+-}
+buttonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
+buttonD_ caption configs = buttonNode where
+  config = mconcat configs
   widget = makeButton caption config
   !buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
@@ -242,9 +287,12 @@ makeButton !caption !config = widget where
     _ -> Nothing
     where
       mainBtn btn = btn == wenv ^. L.mainButton
+
       focused = isNodeFocused wenv node
       pointInVp p = isPointInNodeVp node p
-      reqs = _btnOnClickReq config
+      ignoreParent = _btnIgnoreParent config == Just True
+
+      reqs = _btnOnClickReq config ++ [IgnoreParentEvents | ignoreParent]
       result = resultReqs node reqs
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 

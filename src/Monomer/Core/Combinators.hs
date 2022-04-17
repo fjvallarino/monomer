@@ -370,11 +370,40 @@ class CmbShowAlpha t where
   showAlpha = showAlpha_ True
   showAlpha_ :: Bool -> t
 
--- | Whether to ignore children events.
+{-|
+Whether to ignore children events.
+
+By default low-level events (keyboard, mouse, clipboard, etc) traverse the whole
+branch where the target widget is located in the widget tree, giving the chance
+to each widget along the line to respond to the event.
+
+In some cases it is desirable to restrict which widgets can handle an event. Two
+different 'WidgetRequest's, which can be returned during event handling, exist
+for this:
+
+- 'IgnoreChildrenEvents': parent widgets always have the priority. If a widget
+  returns this 'WidgetRequest' during event handling, its children widgets
+  response will be ignored. For example, the 'keystroke' widget can be
+  configured to return this when a keystroke combination matches.
+- 'IgnoreParentEvents': if no parent widget requested 'IgnoreChildrenEvents', a
+  widget can respond with 'IgnoreParentEvents' to have its response being the
+  only one taking place. This is used, for example, by the 'textArea' widget to
+  handle the tab key; without this, the default handler would pass focus to the
+  next widget down the line.
+
+Some of the stock widgets allow configuring this behavior (e.g, keystroke and
+button).
+-}
 class CmbIgnoreChildrenEvts t where
   ignoreChildrenEvts :: t
   ignoreChildrenEvts = ignoreChildrenEvts_ True
   ignoreChildrenEvts_ :: Bool -> t
+
+-- | Whether to ignore parent events. Check 'CmbIgnoreChildrenEvts'.
+class CmbIgnoreParentEvts t where
+  ignoreParentEvts :: t
+  ignoreParentEvts = ignoreParentEvts_ True
+  ignoreParentEvts_ :: Bool -> t
 
 -- | On init event.
 class CmbOnInit t e | t -> e where

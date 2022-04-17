@@ -23,19 +23,22 @@ import Test.Hspec
 
 import qualified Data.Sequence as Seq
 
-import Monomer.Core
+import Monomer.Common
 import Monomer.Core.Combinators
 import Monomer.Event
 import Monomer.TestUtil
 import Monomer.TestEventUtil
 import Monomer.Widgets.Containers.Keystroke
+import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Label
 import Monomer.Widgets.Singles.TextField
 
 import qualified Monomer.Lens as L
 
 data TestEvt
-  = SingleO
+  = ButtonEvent
+  | EnterPressed
+  | SingleO
   | TextFieldChanged Text
   | CtrlA
   | CtrlSpace
@@ -55,6 +58,7 @@ makeLensesWith abbreviatedFields ''TestModel
 spec :: Spec
 spec = describe "Keystroke" $ do
   handleEvent
+  handleNestedEvent
   getSizeReq
 
 handleEvent :: Spec
@@ -141,6 +145,35 @@ handleEvent = describe "handleEvent" $ do
     model2 es = nodeHandleEventModel wenv2 es kstModel2
     events1 es = nodeHandleEventEvts wenv2 es kstModel1
     events2 es = nodeHandleEventEvts wenv2 es kstModel2
+
+handleNestedEvent :: Spec
+handleNestedEvent = describe "handleNestedEvent" $ do
+  it "should not generate events" $ do
+    events False False [] `shouldBe` Seq.empty
+
+  it "should generate an event when clicking the button" $ do
+    events False False [evtClick (Point 100 100)] `shouldBe` Seq.fromList [ButtonEvent]
+    events True False [evtClick (Point 100 100)] `shouldBe` Seq.fromList [ButtonEvent]
+    events False True [evtClick (Point 100 100)] `shouldBe` Seq.fromList [ButtonEvent]
+    events True True [evtClick (Point 100 100)] `shouldBe` Seq.fromList [ButtonEvent]
+
+  it "should generate the expected events when pressing the enter key" $ do
+    events False False [evtK keyEnter] `shouldBe` Seq.fromList [EnterPressed, ButtonEvent]
+    events True False [evtK keyEnter] `shouldBe` Seq.fromList [EnterPressed]
+    events False True [evtK keyEnter] `shouldBe` Seq.fromList [ButtonEvent]
+    events True True [evtK keyEnter] `shouldBe` Seq.fromList [EnterPressed]
+
+  where
+    wenv = mockWenv (TestModel "")
+    bindings = [
+        ("Enter", EnterPressed)
+      ]
+    kstNode ignoreChild ignoreParent =
+      keystroke_ bindings [ignoreChildrenEvts_ ignoreChild] $
+        button_ "Test" ButtonEvent [ignoreParentEvts_ ignoreParent]
+    events ignoreChild ignoreParent es =
+      nodeHandleEventEvts wenv es $
+        kstNode ignoreChild ignoreParent
 
 getSizeReq :: Spec
 getSizeReq = describe "getSizeReq" $ do
