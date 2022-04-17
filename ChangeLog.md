@@ -2,7 +2,7 @@
 
 ### Breaking changes
 
-- Added `style...Set` family of functions. ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
+- Added `style...Set` family of functions ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
 - `Composite`'s `onChange` event is now sent to its `handleEvent` function, not to its parent; the type of the
   generated event was updated to reflect this change. The rationale is that since `onInit` is sent to
   `handleEvent`, having `onChange` sent to its parent was confusing. At the same time there was not an easy way
@@ -33,6 +33,7 @@
 - Several sizeReq helpers ([PR #106](https://github.com/fjvallarino/monomer/pull/106)).
 - `compositeMergeEvents`, for completeness ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 - Support for symbols and other keys in `keystroke` ([PR #117](https://github.com/fjvallarino/monomer/pull/117)).
+- New constructor (`buttonD_`) and `ignoreParentEvts` configuration option to `button` ([PR #123](https://github.com/fjvallarino/monomer/pull/123)).
 
 ### Changed
 
