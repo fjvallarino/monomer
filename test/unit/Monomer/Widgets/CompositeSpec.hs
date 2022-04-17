@@ -424,7 +424,7 @@ handleEventLocalKeySingleState = describe "handleEventLocalKeySingleState" $
         ] `nodeKey` "localTxt1"
       ]
     cmpNode1 = composite "main" id buildUI1 handleEvent
-    cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ -> True)]
+    cmpNode2 = composite_ "main" id buildUI2 handleEvent [mergeRequired (\_ _ _ -> True)]
     evts1 = [evtK keyTab, evtT "aacc", moveCharL, moveCharL]
     (wenv1, root1, _) = fst $ nodeHandleEvents wenv WInit evts1 cmpNode1
     cntNodeM = nodeMerge wenv1 cmpNode2 root1

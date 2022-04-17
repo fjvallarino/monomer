@@ -80,7 +80,7 @@ data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
   _boxSizeReqUpdater :: [SizeReqUpdater],
-  _boxMergeRequired :: Maybe (s -> s -> Bool),
+  _boxMergeRequired :: Maybe (WidgetEnv s e -> s -> s -> Bool),
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
   _boxOnFocusReq :: [Path -> WidgetRequest s e],
@@ -142,7 +142,7 @@ instance CmbSizeReqUpdater (BoxCfg s e) where
     _boxSizeReqUpdater = [updater]
   }
 
-instance CmbMergeRequired (BoxCfg s e) s where
+instance CmbMergeRequired (BoxCfg s e) (WidgetEnv s e) s where
   mergeRequired fn = def {
     _boxMergeRequired = Just fn
   }
@@ -320,7 +320,7 @@ makeBox config state = widget where
   mergeRequired wenv node oldNode oldState = required where
     newModel = wenv ^. L.model
     required = case (_boxMergeRequired config, _bxsModel oldState) of
-      (Just mergeReqFn, Just oldModel) -> mergeReqFn oldModel newModel
+      (Just mergeReqFn, Just oldModel) -> mergeReqFn wenv oldModel newModel
       _ -> True
 
   merge wenv node oldNode oldState = resultNode newNode where

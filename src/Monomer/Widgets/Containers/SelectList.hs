@@ -83,7 +83,7 @@ data SelectListCfg s e a = SelectListCfg {
   _slcSelectOnBlur :: Maybe Bool,
   _slcItemStyle :: Maybe Style,
   _slcItemSelectedStyle :: Maybe Style,
-  _slcMergeRequired :: Maybe (Seq a -> Seq a -> Bool),
+  _slcMergeRequired :: Maybe (WidgetEnv s e -> Seq a -> Seq a -> Bool),
   _slcOnFocusReq :: [Path -> WidgetRequest s e],
   _slcOnBlurReq :: [Path -> WidgetRequest s e],
   _slcOnChangeReq :: [a -> WidgetRequest s e],
@@ -172,7 +172,7 @@ instance CmbItemSelectedStyle (SelectListCfg s e a) Style where
     _slcItemSelectedStyle = Just style
   }
 
-instance CmbMergeRequired (SelectListCfg s e a) (Seq a) where
+instance CmbMergeRequired (SelectListCfg s e a) (WidgetEnv s e) (Seq a) where
   mergeRequired fn = def {
     _slcMergeRequired = Just fn
   }
@@ -299,8 +299,8 @@ makeSelectList widgetData items makeRow config state = widget where
 
   mergeChildrenReq wenv node oldNode oldState = result where
     oldItems = _prevItems oldState
-    mergeRequiredFn = fromMaybe (/=) (_slcMergeRequired config)
-    result = mergeRequiredFn oldItems items
+    mergeRequiredFn = fromMaybe (const (/=)) (_slcMergeRequired config)
+    result = mergeRequiredFn wenv oldItems items
 
   merge wenv node oldNode oldState = resultNode newNode where
     selected = currentValue wenv
