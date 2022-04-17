@@ -46,6 +46,9 @@ keyRShift = getKeyCode SDL.KeycodeLShift
 keyUnknown :: KeyCode
 keyUnknown = getKeyCode SDL.KeycodeUnknown
 
+keyEnter :: KeyCode
+keyEnter = getKeyCode SDL.KeycodeReturn
+
 keyReturn :: KeyCode
 keyReturn = getKeyCode SDL.KeycodeReturn
 
