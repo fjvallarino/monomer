@@ -46,7 +46,7 @@ packages:
 extra-deps:
   - nanovg-0.8.0.0@sha256:0183b4295ccc2dfb94a7eca977fb45759e1480652578936aa7b71bb4b9626480,4742
 
-  # Override default flag values for local packages and extra-deps
+# Override default flag values for local packages and extra-deps
 flags:
   nanovg:
     stb_truetype: true
