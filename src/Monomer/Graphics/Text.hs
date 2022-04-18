@@ -279,8 +279,8 @@ fitLineToW fontMgr font fSize fSpcH fSpcV metrics break top width trim text = re
     | break == OnCharacters = splitGroups break width glyphs
     | otherwise = fitGroups (splitGroups break width glyphs) width keepTailSpaces
   resetGroups
-    | trim == TrimSpaces = fmap (resetGlyphs . trimGlyphs) groups
-    | otherwise = fmap resetGlyphs groups
+    | trim == TrimSpaces = fmap trimGlyphs groups
+    | otherwise = groups
   buildLine = buildTextLine font fSize fSpcH fSpcV metrics top
   res
     | text /= "" = Seq.mapWithIndex buildLine resetGroups
@@ -428,18 +428,6 @@ splitGroups break width glyphs = group <| splitGroups break width rest where
     | atWord && isWordDelimiter (_glpGlyph g) = (Seq.singleton g, gs)
     | atWord = Seq.spanl groupWordFn glyphs
     | otherwise = Seq.spanl groupWidthFn glyphs
-
-resetGlyphs :: Seq GlyphPos -> Seq GlyphPos
-resetGlyphs Empty = Empty
-resetGlyphs gs@(g :<| _) = resetGlyphsPos gs (_glpXMin g)
-
-resetGlyphsPos :: Seq GlyphPos -> Double -> Seq GlyphPos
-resetGlyphsPos Empty _ = Empty
-resetGlyphsPos (g :<| gs) offset = newG <| resetGlyphsPos gs offset where
-  newG = g {
-    _glpXMin = _glpXMin g - offset,
-    _glpXMax = _glpXMax g - offset
-  }
 
 trimGlyphs :: Seq GlyphPos -> Seq GlyphPos
 trimGlyphs glyphs = newGlyphs where
