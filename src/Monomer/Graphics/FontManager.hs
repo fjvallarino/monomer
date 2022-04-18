@@ -31,8 +31,8 @@ import Monomer.Graphics.Types
 
 -- | Creates a font manager instance.
 makeFontManager
-  :: [FontDef]    -- ^ The font definitions.
-  -> Double       -- ^ The device pixel rate.
+  :: [FontDef]       -- ^ The font definitions.
+  -> Double          -- ^ The device pixel rate.
   -> IO FontManager  -- ^ The created renderer.
 makeFontManager fonts dpr = do
   ctx <- fmInit dpr
@@ -90,6 +90,7 @@ newManager ctx = FontManager {..} where
     where
       toGlyphPos chr glyph = GlyphPos {
         _glpGlyph = chr,
+        _glpX = realToFrac (glyphX glyph),
         _glpXMin = realToFrac (glyphPosMinX glyph),
         _glpXMax = realToFrac (glyphPosMaxX glyph),
         _glpYMin = realToFrac (glyphPosMinY glyph),

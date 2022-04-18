@@ -140,6 +140,7 @@ instance Default AlignTV where
 -- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {
   _glpGlyph :: {-# UNPACK #-} !Char,   -- ^ The represented character.
+  _glpX :: {-# UNPACK #-} !Double,     -- ^ The x coordinate used for rendering.
   _glpXMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
   _glpXMax :: {-# UNPACK #-} !Double,  -- ^ The max x coordinate.
   _glpYMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
@@ -151,6 +152,7 @@ data GlyphPos = GlyphPos {
 instance Default GlyphPos where
   def = GlyphPos {
     _glpGlyph = ' ',
+    _glpX = 0,
     _glpXMin = 0,
     _glpXMax = 0,
     _glpYMin = 0,
@@ -197,8 +199,8 @@ instance Default TextMetrics where
 data TextLine = TextLine {
   _tlFont :: !Font,              -- ^ The font name.
   _tlFontSize :: !FontSize,      -- ^ The font size.
-  _tlFontSpaceH :: !FontSpace, -- ^ The font spacing.
-  _tlFontSpaceV :: !FontSpace, -- ^ The vertical line spacing.
+  _tlFontSpaceH :: !FontSpace,   -- ^ The font spacing.
+  _tlFontSpaceV :: !FontSpace,   -- ^ The vertical line spacing.
   _tlMetrics :: !TextMetrics,    -- ^ The text metrics for the given font/size.
   _tlText :: !Text,              -- ^ The represented text.
   _tlSize :: !Size,              -- ^ The size the formatted text takes.
@@ -228,7 +230,7 @@ data ImageFlag
 
 -- | The definition of a loaded image.
 data ImageDef = ImageDef {
-  _idfName :: Text,            -- ^ The logic name of the image.
+  _idfName :: Text,              -- ^ The logic name of the image.
   _idfSize :: Size,              -- ^ The dimensions of the image.
   _idfImgData :: BS.ByteString,  -- ^ The image data as RGBA 4-bytes blocks.
   _idfFlags :: [ImageFlag]       -- ^ The image flags.

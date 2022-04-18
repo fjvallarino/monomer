@@ -919,7 +919,7 @@ findClosestGlyphPos state point = (newPos, lineIdx) where
 
   glyphs
     | Seq.null lineGlyphs = Seq.empty
-    | otherwise = lineGlyphs |> GlyphPos ' ' textLen 0 0 0 0 0
+    | otherwise = lineGlyphs |> GlyphPos ' ' textLen 0 0 0 0 0 0
   glyphStart i g = (i, abs (_glpXMin g - x))
 
   pairs = Seq.mapWithIndex glyphStart glyphs
