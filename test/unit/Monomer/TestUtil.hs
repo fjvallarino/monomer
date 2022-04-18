@@ -56,27 +56,35 @@ testWindowSize = Size testW testH
 testWindowRect :: Rect
 testWindowRect = Rect 0 0 testW testH
 
-mockTextMetrics :: Font -> FontSize -> TextMetrics
-mockTextMetrics font fontSize = TextMetrics {
+mockTextMetrics :: Double -> Font -> FontSize -> TextMetrics
+mockTextMetrics scale font fontSize = TextMetrics {
   _txmAsc = 15,
   _txmDesc = 5,
   _txmLineH = 20,
   _txmLowerX = 10
 }
 
-mockTextSize :: Maybe Double -> Font -> FontSize -> FontSpace -> Text -> Size
-mockTextSize mw font (FontSize fs) spaceH text = Size width height where
+mockTextSize
+  :: Maybe Double -> Double -> Font -> FontSize -> FontSpace -> Text -> Size
+mockTextSize mw scale font (FontSize fs) spaceH text = Size width height where
   w = fromMaybe fs mw + unFontSpace spaceH
   width = fromIntegral (T.length text) * w
   height = 20
 
 mockGlyphsPos
-  :: Maybe Double -> Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos
-mockGlyphsPos mw font (FontSize fs) spaceH text = glyphs where
+  :: Maybe Double
+  -> Double
+  -> Font
+  -> FontSize
+  -> FontSpace
+  -> Text
+  -> Seq GlyphPos
+mockGlyphsPos mw scale font (FontSize fs) spaceH text = glyphs where
   w = fromMaybe fs mw + unFontSpace spaceH
   chars = Seq.fromList $ T.unpack text
   mkGlyph idx chr = GlyphPos {
     _glpGlyph = chr,
+    _glpX = fromIntegral idx * w,
     _glpXMin = fromIntegral idx * w,
     _glpXMax = (fromIntegral idx + 1) * w,
     _glpYMin = 0,
@@ -154,9 +162,12 @@ mockRenderer = Renderer {
 
 mockFontManager :: FontManager
 mockFontManager = FontManager {
-  computeTextMetrics = mockTextMetrics,
-  computeTextSize = mockTextSize (Just 10),
-  computeGlyphsPos = mockGlyphsPos (Just 10)
+  computeTextMetrics = mockTextMetrics 1,
+  computeTextMetrics_ = mockTextMetrics,
+  computeTextSize = mockTextSize (Just 10) 1,
+  computeTextSize_ = mockTextSize (Just 10),
+  computeGlyphsPos = mockGlyphsPos (Just 10) 1,
+  computeGlyphsPos_ = mockGlyphsPos (Just 10)
 }
 
 mockWenv :: s -> WidgetEnv s e
