@@ -140,6 +140,7 @@ instance Default AlignTV where
 -- | Information of a text glyph instance.
 data GlyphPos = GlyphPos {
   _glpGlyph :: {-# UNPACK #-} !Char,   -- ^ The represented character.
+  _glpX :: {-# UNPACK #-} !Double,     -- ^ The x coordinate used for rendering.
   _glpXMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
   _glpXMax :: {-# UNPACK #-} !Double,  -- ^ The max x coordinate.
   _glpYMin :: {-# UNPACK #-} !Double,  -- ^ The min x coordinate.
@@ -151,6 +152,7 @@ data GlyphPos = GlyphPos {
 instance Default GlyphPos where
   def = GlyphPos {
     _glpGlyph = ' ',
+    _glpX = 0,
     _glpXMin = 0,
     _glpXMax = 0,
     _glpYMin = 0,
@@ -197,8 +199,8 @@ instance Default TextMetrics where
 data TextLine = TextLine {
   _tlFont :: !Font,              -- ^ The font name.
   _tlFontSize :: !FontSize,      -- ^ The font size.
-  _tlFontSpaceH :: !FontSpace, -- ^ The font spacing.
-  _tlFontSpaceV :: !FontSpace, -- ^ The vertical line spacing.
+  _tlFontSpaceH :: !FontSpace,   -- ^ The font spacing.
+  _tlFontSpaceV :: !FontSpace,   -- ^ The vertical line spacing.
   _tlMetrics :: !TextMetrics,    -- ^ The text metrics for the given font/size.
   _tlText :: !Text,              -- ^ The represented text.
   _tlSize :: !Size,              -- ^ The size the formatted text takes.
@@ -228,20 +230,39 @@ data ImageFlag
 
 -- | The definition of a loaded image.
 data ImageDef = ImageDef {
-  _idfName :: Text,            -- ^ The logic name of the image.
+  _idfName :: Text,              -- ^ The logic name of the image.
   _idfSize :: Size,              -- ^ The dimensions of the image.
   _idfImgData :: BS.ByteString,  -- ^ The image data as RGBA 4-bytes blocks.
   _idfFlags :: [ImageFlag]       -- ^ The image flags.
 } deriving (Eq, Show, Generic)
 
--- | Text metrics related functions.
+{-|
+Text metrics related functions.
+
+Two different versions of each function exist:
+
+- Default one, without underscore, does not apply scaling.
+- Version with a trailing underscore, that receives an extra scale argument.
+
+In case the text is going to be rendered with a scale factor applied on
+'Renderer' (by calling 'setScale'), it is recommended to apply the scale here
+too (otherwise there will be differences in size and positioning). In most use
+cases these functions will never be called, preferring the non underscore
+versions.
+-}
 data FontManager = FontManager {
   -- | Returns the text metrics of a given font and size.
   computeTextMetrics :: Font -> FontSize -> TextMetrics,
+  -- | Returns the text metrics of a given font and size, applying scale.
+  computeTextMetrics_ :: Double -> Font -> FontSize -> TextMetrics,
   -- | Returns the size of the line of text given font and size.
   computeTextSize :: Font -> FontSize -> FontSpace -> Text -> Size,
+  -- | Returns the size of the line of text given font and size, applying scale.
+  computeTextSize_ :: Double -> Font -> FontSize -> FontSpace -> Text -> Size,
   -- | Returns the glyphs of the line of text given font and size.
-  computeGlyphsPos :: Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos
+  computeGlyphsPos :: Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos,
+  -- | Returns the glyphs of the line of text given font and size, applying scale.
+  computeGlyphsPos_ :: Double -> Font -> FontSize -> FontSpace -> Text -> Seq GlyphPos
 }
 
 -- | Low level rendering definitions.

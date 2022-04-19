@@ -15,6 +15,7 @@
 struct FMcontext {
 	struct FONScontext* fs;
 	float dpr;
+	float scale;
 	float fontSize;
 	float letterSpacing;
 	float lineHeight;
@@ -37,6 +38,8 @@ typedef struct FMGglyphPosition FMGglyphPosition;
 FMcontext* fmInit(float dpr);
 
 int fmCreateFont(FMcontext* ctx, const char* name, const char* filename);
+
+void fmSetScale(FMcontext* ctx, float scale);
 
 void fmFontFace(FMcontext* ctx, const char* font);
 

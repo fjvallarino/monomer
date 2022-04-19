@@ -37,6 +37,7 @@ FMcontext* fmInit(float dpr)
 	// Initialize font manager context
 	ctx->fs = fonsCreateInternal(&fontParams);
 	ctx->dpr = dpr;
+	ctx->scale = 1;
 	ctx->fontSize = 16.0f;
 	ctx->letterSpacing = 0.0f;
 	ctx->lineHeight = 1.0f;
@@ -50,6 +51,10 @@ FMcontext* fmInit(float dpr)
 int fmCreateFont(FMcontext* ctx, const char* name, const char* filename)
 {
 	return fonsAddFont(ctx->fs, name, filename, 0);
+}
+
+void fmSetScale(FMcontext* ctx, float scale) {
+	ctx->scale = scale;
 }
 
 void fmFontFace(FMcontext* ctx, const char* font)
@@ -79,7 +84,7 @@ void fmTextLineHeight(FMcontext* ctx, float lineHeight)
 
 void fmTextMetrics(FMcontext* ctx, float* ascender, float* descender, float* lineh)
 {
-	float scale = ctx->dpr;
+	float scale = ctx->dpr * ctx->scale;
 	float invscale = 1.0f / scale;
 
 	if (ctx->fontId == FONS_INVALID) return;
@@ -101,7 +106,7 @@ void fmTextMetrics(FMcontext* ctx, float* ascender, float* descender, float* lin
 
 float fmTextBounds(FMcontext* ctx, float x, float y, const char* string, const char* end, float* bounds)
 {
-	float scale = ctx->dpr;
+	float scale = ctx->dpr * ctx->scale;
 	float invscale = 1.0f / scale;
 	float width;
 
@@ -127,7 +132,7 @@ float fmTextBounds(FMcontext* ctx, float x, float y, const char* string, const c
 
 int fmTextGlyphPositions(FMcontext* ctx, float x, float y, const char* string, const char* end, FMGglyphPosition* positions, int maxPositions)
 {
-	float scale = ctx->dpr;
+	float scale = ctx->dpr * ctx->scale;
 	float invscale = 1.0f / scale;
 	FONStextIter iter, prevIter;
 	FONSquad q;

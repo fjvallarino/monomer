@@ -122,6 +122,8 @@ deriving instance Storable FMContext
 
 {# fun unsafe fmCreateFont {`FMContext', withCString*`Text', withCString*`Text'} -> `Int' #}
 
+{# fun unsafe fmSetScale {`FMContext', `Double'} -> `()' #}
+
 {# fun unsafe fmFontFace {`FMContext', withCString*`Text'} -> `()' #}
 
 {# fun unsafe fmFontSize {`FMContext', `Double'} -> `()' #}
