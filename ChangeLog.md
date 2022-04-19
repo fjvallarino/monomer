@@ -19,8 +19,9 @@
 - Properly handle `SetFocusOnKey` for `textArea` ([#80](https://github.com/fjvallarino/monomer/issues/80)).
 - Lens tutorial sample code ([PR #95](https://github.com/fjvallarino/monomer/pull/95) and [PR #98](https://github.com/fjvallarino/monomer/pull/98)). Thanks @Clindbergh!
 - ColorPicker's numericFields vertical alignment ([PR #108](https://github.com/fjvallarino/monomer/pull/108)).
-- Differences in glyphs positions used by FontManager and nanovg ([PR #105](https://github.com/fjvallarino/monomer/pull/105)).
-- `nodeInfoFromKey` relies on `nodeInfoFromPath` to retrieve information instead of fetching it directly from `WidgetEnv`'s `widgetKeyMap`, which can be stale ([PR #110](https://github.com/fjvallarino/monomer/pull/110))
+- Differences in glyphs positions used by `FontManager` and nanovg; temporary workaround ([PR #105](https://github.com/fjvallarino/monomer/pull/105)).
+- `nodeInfoFromKey` relies on `nodeInfoFromPath` to retrieve information instead of fetching it directly from `WidgetEnv`'s `widgetKeyMap`, which can be stale ([PR #110](https://github.com/fjvallarino/monomer/pull/110)).
+- Glyph positioning issues in `FontManager`; removed workaround added in #105 ([PR #125](https://github.com/fjvallarino/monomer/pull/125)).
 
 ### Added
 
