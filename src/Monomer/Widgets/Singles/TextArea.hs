@@ -28,7 +28,7 @@ module Monomer.Widgets.Singles.TextArea (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Lens ((&), (^.), (^?), (.~), (%~), (<>~), ALens', ix, view)
+import Control.Lens hiding ((|>))
 import Control.Monad (forM_, when)
 import Data.Default
 import Data.Foldable (toList)
@@ -659,7 +659,7 @@ makeTextArea !wdata !config !state = widget where
     scWid = widgetIdFromPath wenv scPath
     contentArea = getContentArea node style
     offset = Point (contentArea ^. L.x) (contentArea ^. L.y)
-    caretRect = getCaretRect config newState True
+    caretRect = getCaretRect config newState
     -- Padding/border added to show left/top borders when moving near them
     scrollRect = fromMaybe caretRect (addOuterBounds style caretRect)
     scrollMsg = ScrollTo $ moveRect offset scrollRect
@@ -695,43 +695,41 @@ makeTextArea !wdata !config !state = widget where
       caretTs = ts - _tasFocusStart state
       caretRequired = focused && even (caretTs `div` caretMs)
       caretColor = styleFontColor style
-      caretRect = getCaretRect config state False
+      caretRect = getCaretRect config state
 
       selRequired = isJust (_tasSelStart state)
       selColor = styleHlColor style
       selRects = getSelectionRects state contentArea
 
-getCaretRect :: TextAreaCfg s e -> TextAreaState -> Bool -> Rect
-getCaretRect config state addSpcV = caretRect where
-  caretW = fromMaybe defCaretW (_tacCaretWidth config)
+getCaretRect :: TextAreaCfg s e -> TextAreaState -> Rect
+getCaretRect config state = caretRect where
   (cursorX, cursorY) = _tasCursorPos state
-  TextMetrics _ _ lineh _ = _tasTextMetrics state
+  Rect tx ty _ _ = lineRect
+  TextMetrics asc desc lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
 
-  (lineRect, glyphs, spaceV) = case Seq.lookup cursorY textLines of
+  (lineRect, glyphs, fspaceV) = case Seq.lookup cursorY textLines of
     Just tl -> (tl ^. L.rect, tl ^. L.glyphs, tl ^. L.fontSpaceV)
     Nothing -> (def, Seq.empty, def)
-
-  Rect tx ty _ _ = lineRect
-  totalH
-    | addSpcV = lineh + unFontSpace spaceV
-    | otherwise = lineh
+  spaceV = unFontSpace fspaceV
 
   caretPos
     | cursorX == 0 || cursorX > length glyphs = 0
     | cursorX == length glyphs = _glpXMax (Seq.index glyphs (cursorX - 1))
     | otherwise = _glpXMin (Seq.index glyphs cursorX)
+
   caretX = max 0 (tx + caretPos)
-  caretY
-    | cursorY == length textLines = fromIntegral cursorY * totalH
-    | otherwise = ty
-  caretRect = Rect caretX caretY caretW totalH
+  caretY = ty - spaceV
+  caretW = fromMaybe defCaretW (_tacCaretWidth config)
+  caretH = lineh + spaceV
+
+  caretRect = Rect caretX caretY caretW caretH
 
 getSelectionRects :: TextAreaState -> Rect -> [Rect]
 getSelectionRects state contentArea = rects where
   currPos = _tasCursorPos state
   currSel = fromMaybe def (_tasSelStart state)
-  TextMetrics _ _ lineh _ = _tasTextMetrics state
+  TextMetrics asc desc lineh _ = _tasTextMetrics state
   textLines = _tasTextLines state
 
   spaceV = getSpaceV textLines
@@ -752,14 +750,16 @@ getSelectionRects state contentArea = rects where
     | swap currPos <= swap currSel = (currPos, currSel)
     | otherwise = (currSel, currPos)
 
+  totalH = lineh + spaceV
   updateRect rect = rect
-    & L.h .~ lineh + spaceV
+    & L.y -~ spaceV
+    & L.h .~ totalH
     & L.w %~ max 5 -- Empty lines show a small rect to indicate they are there.
   makeRect cx1 cx2 cy = Rect rx ry rw rh where
     rx = glyphPos cx1 cy
     rw = glyphPos cx2 cy - rx
-    ry = fromIntegral cy * (lineh + spaceV)
-    rh = lineh + spaceV
+    ry = fromIntegral cy * totalH - spaceV
+    rh = totalH
   rects
     | selY1 == selY2 = [makeRect selX1 selX2 selY1]
     | otherwise = begin : middle ++ end where
