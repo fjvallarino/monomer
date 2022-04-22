@@ -131,12 +131,28 @@ normalFont :: TextStyle
 normalFont = def
   & L.font ?~ Font "Regular"
   & L.fontSize ?~ FontSize 16
-  & L.fontSpaceV ?~ FontSpace 4
+  & L.fontSpaceV ?~ FontSpace 2
 
 titleFont :: TextStyle
 titleFont = def
   & L.font ?~ Font "Bold"
   & L.fontSize ?~ FontSize 20
+  & L.fontSpaceV ?~ FontSpace 2
+
+dialogMsgBodyFont :: BaseThemeColors -> TextStyle
+dialogMsgBodyFont themeMod = fontStyle where
+  fontStyle = normalFont
+    & L.fontColor ?~ dialogText themeMod
+
+externalLinkFont :: BaseThemeColors -> TextStyle
+externalLinkFont themeMod = fontStyle where
+  fontStyle = normalFont
+    & L.fontColor ?~ externalLinkBasic themeMod
+
+labelFont :: BaseThemeColors -> TextStyle
+labelFont themeMod = fontStyle <> textLeft where
+  fontStyle = normalFont
+    & L.fontColor ?~ labelText themeMod
 
 btnStyle :: BaseThemeColors -> StyleState
 btnStyle themeMod = def
@@ -153,15 +169,18 @@ btnMainStyle themeMod = btnStyle themeMod
   & L.border ?~ border 1 (btnMainBgBasic themeMod)
 
 textInputStyle :: BaseThemeColors -> StyleState
-textInputStyle themeMod = def
-  & L.text ?~ (normalFont & L.fontColor ?~ inputText themeMod)
-  & L.bgColor ?~ inputBgBasic themeMod
-  & L.fgColor ?~ inputFgBasic themeMod
-  & L.sndColor ?~ (inputSndBasic themeMod & L.a .~ 0.6)
-  & L.hlColor ?~ inputSelBasic themeMod
-  & L.border ?~ border 1 (inputBorder themeMod)
-  & L.radius ?~ radius 4
-  & L.padding ?~ padding 8
+textInputStyle themeMod = style where
+  textStyle = normalFont
+    & L.fontColor ?~ inputText themeMod
+  style = def
+    & L.text ?~ textStyle
+    & L.bgColor ?~ inputBgBasic themeMod
+    & L.fgColor ?~ inputFgBasic themeMod
+    & L.sndColor ?~ (inputSndBasic themeMod & L.a .~ 0.6)
+    & L.hlColor ?~ inputSelBasic themeMod
+    & L.border ?~ border 1 (inputBorder themeMod)
+    & L.radius ?~ radius 4
+    & L.padding ?~ padding 8
 
 numericInputStyle :: BaseThemeColors -> StyleState
 numericInputStyle themeMod = textInputStyle themeMod
@@ -226,8 +245,7 @@ baseBasic themeMod = def
   & L.dialogCloseIconStyle . L.sizeReqH ?~ width 16
   & L.dialogButtonsStyle . L.padding ?~ padding 20 <> paddingT 10
   & L.dialogMsgBodyStyle . L.padding ?~ padding 20
-  & L.dialogMsgBodyStyle . L.text
-    ?~ (normalFont & L.fontColor ?~ dialogText themeMod)
+  & L.dialogMsgBodyStyle . L.text ?~ dialogMsgBodyFont themeMod
   & L.dialogMsgBodyStyle . L.sizeReqW ?~ maxWidth 600
   & L.dropdownStyle .~ textInputStyle themeMod
   & L.dropdownStyle . L.fgColor ?~ inputIconFg themeMod
@@ -236,9 +254,8 @@ baseBasic themeMod = def
   & L.dropdownListStyle . L.bgColor ?~ slMainBg themeMod
   & L.dropdownItemStyle .~ selectListItemStyle themeMod
   & L.dropdownItemSelectedStyle .~ selectListItemSelectedStyle themeMod
-  & L.externalLinkStyle . L.text ?~ (normalFont & L.fontColor ?~ externalLinkBasic themeMod)
-  & L.labelStyle . L.text
-    ?~ (normalFont & L.fontColor ?~ labelText themeMod) <> textLeft
+  & L.externalLinkStyle . L.text ?~ externalLinkFont themeMod
+  & L.labelStyle . L.text ?~ labelFont themeMod
   & L.numericFieldStyle .~ numericInputStyle themeMod
   & L.optionBtnOnStyle .~ btnMainStyle themeMod
   & L.optionBtnOffStyle .~ btnStyle themeMod
