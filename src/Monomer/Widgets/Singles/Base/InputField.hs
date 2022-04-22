@@ -34,8 +34,7 @@ module Monomer.Widgets.Singles.Base.InputField (
 
 import Control.Applicative ((<|>))
 import Control.Monad
-import Control.Lens
-  (ALens', (&), (.~), (?~), (%~), (^.), (^?), _2, _Just, cloneLens, non)
+import Control.Lens hiding ((|>))
 import Data.Default
 import Data.Maybe
 import Data.Sequence (Seq(..), (|>))
@@ -711,8 +710,13 @@ renderContent renderer state style currText = do
     tsFontColor = styleFontColor style
 
 getCaretH :: InputFieldState a -> Double
-getCaretH state = ta - td * 2 where
-  TextMetrics ta td _ _ = _ifsTextMetrics state
+getCaretH state = lineh where
+  TextMetrics asc desc lineh _ = _ifsTextMetrics state
+
+getCaretOffset :: TextMetrics -> StyleState -> Double
+getCaretOffset metrics style = textOffset - desc where
+  TextMetrics asc desc lineh _ = metrics
+  textOffset = textOffsetY metrics style
 
 getCaretRect
   :: InputFieldCfg s e a
@@ -732,7 +736,7 @@ getCaretRect config state style carea = caretRect where
     | pos >= length glyphs = _glpXMax (seqLast glyphs)
     | otherwise = _glpXMin (Seq.index glyphs pos)
   caretX tx = max 0 $ min (cx + cw - caretW) (tx + caretPos)
-  caretY = ty + textOffsetY textMetrics style
+  caretY = ty + getCaretOffset textMetrics style
   caretRect = Rect (caretX tx) caretY caretW (getCaretH state)
 
 getSelRect :: InputFieldState a -> StyleState -> Rect
@@ -742,7 +746,7 @@ getSelRect state style = selRect where
   glyphs = _ifsGlyphs state
   pos = _ifsCursorPos state
   sel = _ifsSelStart state
-  caretY = ty + textOffsetY textMetrics style
+  caretY = ty + getCaretOffset textMetrics style
   caretH = getCaretH state
   glyph idx = Seq.index glyphs (min idx (length glyphs - 1))
   gx idx = _glpXMin (glyph idx)
