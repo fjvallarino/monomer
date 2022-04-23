@@ -338,8 +338,7 @@ the existing options for detection, check here:
 https://wiki.archlinux.org/title/HiDPI.
 
 Considering the above, the library assumes that resolutions larger than 1920
-belong to HiDPI displays and scales them by 2. This can be disabled using
-'appDisableAutoScale'.
+belong to HiDPI displays and scales them by 2.
 -}
 appScaleFactor :: Double -> AppConfig e
 appScaleFactor factor = def {
@@ -349,6 +348,11 @@ appScaleFactor factor = def {
 {-|
 Whether display scaling detection should not be attempted. If set to True, the
 display scale will be set to 1.
+
+Disabling auto scaling also affects window size on Linux and Windows in the
+cases where the library would have applied scaling. This happens because window
+and viewport size are the same in those operating systems. Window size can be
+adjusted with 'appWindowState'.
 
 This flag works together with 'appScaleFactor', and it does not cause an effect
 on macOS.
