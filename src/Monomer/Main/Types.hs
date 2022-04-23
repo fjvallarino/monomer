@@ -307,38 +307,9 @@ appMaxFps fps = def {
 }
 
 {-|
-Scale factor to apply. This factor only affects the content, not the size of the
-window. It is applied in addition to the detected display scaling, and can be
-useful if the detected value is not the desired. This can be combined with
-'appDisableAutoScale'.
-
-The logic for detecting display scaling varies depending on the platform.
-
-__macOS__
-
-This can be detected based on the window size and viewport size; the ratio
-between these two give the scaling factor.
-
-Using window and viewport size for detecting DPI only works on macOS; both
-Windows and Linux return the same value window and viewport size.
-
-__Windows__
-
-SDL_GetDisplayDPI returns the DPI of the screen, and dividing by 96 gives the
-scaling factor.
-
-__Linux__
-
-On Linux the situation is more complex, since SDL_GetDisplayDPI does not return
-valid information. There is not a practical DPI/scale detection solution that
-works for all combinations of Linux display servers and window managers. Even
-when using the main window managers the scaling factor may be handled
-differently by the distribution (GNOME in Ubuntu). For a reference of some of
-the existing options for detection, check here:
-https://wiki.archlinux.org/title/HiDPI.
-
-Considering the above, the library assumes that resolutions larger than 1920
-belong to HiDPI displays and scales them by 2.
+Scale factor to apply to the viewport. This factor only affects the content, not
+the size of the window. It is applied in addition to the detected display scale
+factor, and can be useful if the detected value is not the desired.
 -}
 appScaleFactor :: Double -> AppConfig e
 appScaleFactor factor = def {
@@ -352,10 +323,36 @@ display scale will be set to 1.
 Disabling auto scaling also affects window size on Linux and Windows in the
 cases where the library would have applied scaling. This happens because window
 and viewport size are the same in those operating systems. Window size can be
-adjusted with 'appWindowState'.
+adjusted with 'appWindowState'. This flag does not cause an effect on macOS.
 
-This flag works together with 'appScaleFactor', and it does not cause an effect
-on macOS.
+The logic for detecting display scaling varies depending on the platform:
+
+__macOS__
+
+Scaling can be detected based on the window size and viewport size; the ratio
+between these two give the scaling factor.
+
+Using window and viewport size for detecting DPI only works on macOS; both
+Windows and Linux return the same value for window and viewport size.
+
+__Windows__
+
+SDL_GetDisplayDPI returns the DPI of the screen, and dividing by 96 gives the
+scaling factor. This factor is used to scale the window and the content.
+
+__Linux__
+
+The situation is more complex, since SDL_GetDisplayDPI does not return valid
+information. There is not a practical DPI/scale detection solution that works
+for all combinations of Linux display servers and window managers. Even when
+using the most popular window managers, the scaling factor may be handled
+differently by the distribution (GNOME in Ubuntu). For a reference of some of
+the existing options for detection, check here:
+https://wiki.archlinux.org/title/HiDPI.
+
+Considering the above, the library assumes that resolutions larger than 1920
+belong to HiDPI displays and scales them by 2. This factor is used to scale the
+window and the content.
 -}
 appDisableAutoScale :: Bool -> AppConfig e
 appDisableAutoScale disable = def {
