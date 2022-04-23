@@ -215,23 +215,11 @@ getDisplayDPI =
         vdpi <- peek pvdpi
         return (realToFrac ddpi, realToFrac hdpi, realToFrac vdpi)
 
--- | Returns the default resize factor for Windows
+-- | Returns the default resize factor for Windows.
 getWindowsFactor :: IO Double
 getWindowsFactor = getDisplayDPIFactor
 
-{-|
-Returns a scale factor to handle HiDPI on Linux.
-
-Assumes that resolutions larger than 1920 belong to HiDPI displays and scales
-them by 2. In case this is not an appropriate scale, 'appScaleFactor' can be
-used to set a custom scaling factor, while 'appDisableAutoScale' can be used for
-disabling automatic detection.
-
-There is not a practical DPI/scale detection solution that works for all
-combinations of Linux display servers and window managers. For a reference of
-some of the existing options for detection, check here:
-https://wiki.archlinux.org/title/HiDPI.
--}
+-- | Returns the default resize factor for Linux.
 getLinuxFactor :: IO Double
 getLinuxFactor = do
   dpiFactor <- getDisplayDPIFactor
@@ -248,7 +236,7 @@ getLinuxFactor = do
 
     return detectedDPI
 
--- | Returns DPI scaling factor using SDL_GetDisplayDPI
+-- | Returns DPI scaling factor using SDL_GetDisplayDPI.
 getDisplayDPIFactor :: IO Double
 getDisplayDPIFactor = do
   (ddpi, hdpi, vdpi) <- getDisplayDPI
