@@ -217,7 +217,7 @@ getDisplayDPI =
 
 -- | Returns the default resize factor for Windows.
 getWindowsFactor :: IO Double
-getWindowsFactor = getDisplayDPIFactor
+getWindowsFactor = max 1 <$> getDisplayDPIFactor
 
 -- | Returns the default resize factor for Linux.
 getLinuxFactor :: IO Double
