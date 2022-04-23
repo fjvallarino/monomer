@@ -217,9 +217,7 @@ getDisplayDPI =
 
 -- | Returns the default resize factor for Windows
 getWindowsFactor :: IO Double
-getWindowsFactor = do
-  (ddpi, hdpi, vdpi) <- getDisplayDPI
-  return (hdpi / 96)
+getWindowsFactor = getDisplayDPIFactor
 
 {-|
 Returns a scale factor to handle HiDPI on Linux.
@@ -235,15 +233,26 @@ some of the existing options for detection, check here:
 https://wiki.archlinux.org/title/HiDPI.
 -}
 getLinuxFactor :: IO Double
-getLinuxFactor =
+getLinuxFactor = do
+  dpiFactor <- getDisplayDPIFactor
+
   alloca $ \pmode -> do
     Raw.getCurrentDisplayMode 0 pmode
     mode <- peek pmode
-    let width = Raw.displayModeW mode
 
-    if width <= 1920
-      then return 1
-      else return 2
+    let width = Raw.displayModeW mode
+    let detectedDPI
+          | dpiFactor > 0 = dpiFactor
+          | width <= 1920 = 1
+          | otherwise = 2
+
+    return detectedDPI
+
+-- | Returns DPI scaling factor using SDL_GetDisplayDPI
+getDisplayDPIFactor :: IO Double
+getDisplayDPIFactor = do
+  (ddpi, hdpi, vdpi) <- getDisplayDPI
+  return (hdpi / 96)
 
 setDisableCompositorHint :: Bool -> IO ()
 setDisableCompositorHint disable = void $

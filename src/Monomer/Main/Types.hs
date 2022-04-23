@@ -342,17 +342,17 @@ scaling factor. This factor is used to scale the window and the content.
 
 __Linux__
 
-The situation is more complex, since SDL_GetDisplayDPI does not return valid
-information. There is not a practical DPI/scale detection solution that works
-for all combinations of Linux display servers and window managers. Even when
-using the most popular window managers, the scaling factor may be handled
+The situation is more complex, since SDL_GetDisplayDPI does not always return
+valid information. There is not a practical DPI/scale detection solution that
+works for all combinations of Linux display servers and window managers. Even
+when using the most popular window managers, the scaling factor may be handled
 differently by the distribution (GNOME in Ubuntu). For a reference of some of
 the existing options for detection, check here:
 https://wiki.archlinux.org/title/HiDPI.
 
-Considering the above, the library assumes that resolutions larger than 1920
-belong to HiDPI displays and scales them by 2. This factor is used to scale the
-window and the content.
+Considering the above, when SDL_GetDisplayDPI fails, the library assumes that
+resolutions larger than 1920 belong to HiDPI displays and scales them by 2. This
+factor is used to scale the window and the content.
 -}
 appDisableAutoScale :: Bool -> AppConfig e
 appDisableAutoScale disable = def {
