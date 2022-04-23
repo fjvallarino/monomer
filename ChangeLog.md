@@ -35,6 +35,7 @@
 - `compositeMergeEvents`, for completeness ([PR #114](https://github.com/fjvallarino/monomer/pull/114)).
 - Support for symbols and other keys in `keystroke` ([PR #117](https://github.com/fjvallarino/monomer/pull/117)).
 - New constructor (`buttonD_`) and `ignoreParentEvts` configuration option to `button` ([PR #123](https://github.com/fjvallarino/monomer/pull/123)).
+- Allow disabling auto scale detection with `appDisableAutoScale` ([PR #128](https://github.com/fjvallarino/monomer/pull/128)).
 
 ### Changed
 
