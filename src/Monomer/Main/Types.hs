@@ -318,12 +318,12 @@ appScaleFactor factor = def {
 
 {-|
 Whether display scaling detection should not be attempted. If set to True, the
-display scale will be set to 1.
+display scale will be set to 1. This flag does not cause an effect on macOS.
 
 Disabling auto scaling also affects window size on Linux and Windows in the
 cases where the library would have applied scaling. This happens because window
 and viewport size are the same in those operating systems. Window size can be
-adjusted with 'appWindowState'. This flag does not cause an effect on macOS.
+adjusted with 'appWindowState'.
 
 The logic for detecting display scaling varies depending on the platform:
 
@@ -338,7 +338,7 @@ Windows and Linux return the same value for window and viewport size.
 __Windows__
 
 SDL_GetDisplayDPI returns the DPI of the screen, and dividing by 96 gives the
-scaling factor. This factor is used to scale the window and the content.
+scaling factor. This factor is used to scale the window size and the content.
 
 __Linux__
 
@@ -347,12 +347,12 @@ valid information. There is not a practical DPI/scale detection solution that
 works for all combinations of Linux display servers and window managers. Even
 when using the most popular window managers, the scaling factor may be handled
 differently by the distribution (GNOME in Ubuntu). For a reference of some of
-the existing options for detection, check here:
+the existing options for DPI scaling detection, check here:
 https://wiki.archlinux.org/title/HiDPI.
 
-Considering the above, when SDL_GetDisplayDPI fails, the library assumes that
-resolutions larger than 1920 belong to HiDPI displays and scales them by 2. This
-factor is used to scale the window and the content.
+Considering the above, when SDL_GetDisplayDPI fails, the library assumes that a
+screen width larger than 1920 belongs to an HiDPI display and uses a scale
+factor of 2. This factor is used to scale the window size and the content.
 -}
 appDisableAutoScale :: Bool -> AppConfig e
 appDisableAutoScale disable = def {
