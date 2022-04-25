@@ -165,10 +165,14 @@ data AppConfig e = AppConfig {
   _apcMaxFps :: Maybe Int,
   {-|
   Scale factor to apply. This factor only affects the content, not the size of
-  the window. It is applied in addition to the OS zoom in plaforms where it is
-  reliably detected (i.e., system scaling may not be detected reliably on Linux)
+  the window. It is applied in addition to the detected display scaling.
   -}
   _apcScaleFactor :: Maybe Double,
+  {-|
+  Whether display scaling detection should not be attempted. If set to True, the
+  display scale will be set to 1. This works together with 'appScaleFactor'.
+  -}
+  _apcDisableAutoScale :: Maybe Bool,
   {-|
   Available fonts to the application. An empty list will make it impossible to
   render text.
@@ -206,6 +210,7 @@ instance Default (AppConfig e) where
     _apcUseRenderThread = Nothing,
     _apcMaxFps = Nothing,
     _apcScaleFactor = Nothing,
+    _apcDisableAutoScale = Nothing,
     _apcFonts = [],
     _apcTheme = Nothing,
     _apcInitEvent = [],
@@ -229,6 +234,7 @@ instance Semigroup (AppConfig e) where
     _apcUseRenderThread = _apcUseRenderThread a2 <|> _apcUseRenderThread a1,
     _apcMaxFps = _apcMaxFps a2 <|> _apcMaxFps a1,
     _apcScaleFactor = _apcScaleFactor a2 <|> _apcScaleFactor a1,
+    _apcDisableAutoScale = _apcDisableAutoScale a2 <|> _apcDisableAutoScale a1,
     _apcFonts = _apcFonts a1 ++ _apcFonts a2,
     _apcTheme = _apcTheme a2 <|> _apcTheme a1,
     _apcInitEvent = _apcInitEvent a1 ++ _apcInitEvent a2,
@@ -301,13 +307,56 @@ appMaxFps fps = def {
 }
 
 {-|
-Scale factor to apply. This factor only affects the content, not the size of the
-window. It is applied in addition to the OS zoom in plaforms where it is
-reliably detected (i.e., system scaling may not be detected reliably on Linux).
+Scale factor to apply to the viewport. This factor only affects the content, not
+the size of the window. It is applied in addition to the detected display scale
+factor, and can be useful if the detected value is not the desired.
 -}
 appScaleFactor :: Double -> AppConfig e
 appScaleFactor factor = def {
   _apcScaleFactor = Just factor
+}
+
+{-|
+Whether display scaling detection should not be attempted. If set to True, the
+display scale will be set to 1. This flag does not cause an effect on macOS.
+
+Disabling auto scaling also affects window size on Linux and Windows in the
+cases where the library would have applied scaling. This happens because window
+and viewport size are the same in those operating systems. Window size can be
+adjusted with 'appWindowState'.
+
+The logic for detecting display scaling varies depending on the platform:
+
+__macOS__
+
+Scaling can be detected based on the window size and viewport size; the ratio
+between these two give the scaling factor.
+
+Using window and viewport size for detecting DPI only works on macOS; both
+Windows and Linux return the same value for window and viewport size.
+
+__Windows__
+
+SDL_GetDisplayDPI returns the DPI of the screen, and dividing by 96 gives the
+scaling factor. This factor is used to scale the window size and the content.
+
+__Linux__
+
+The situation is more complex, since SDL_GetDisplayDPI does not always return
+valid information. There is not a practical DPI/scale detection solution that
+works for all combinations of Linux display servers and window managers. Even
+when using the most popular window managers, the scaling factor may be handled
+differently by the distribution (GNOME in Ubuntu). For a reference of some of
+the existing options for DPI scaling detection, check here:
+https://wiki.archlinux.org/title/HiDPI.
+
+Considering the above, when SDL_GetDisplayDPI fails, the library assumes that a
+screen width larger than 1920 belongs to an HiDPI display and uses a scale
+factor of 2. This factor is used to scale the window size and the content.
+-}
+appDisableAutoScale :: Bool -> AppConfig e
+appDisableAutoScale disable = def {
+  _apcDisableAutoScale = Just disable
 }
 
 {-|

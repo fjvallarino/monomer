@@ -68,10 +68,15 @@ initSDLWindow config = do
 
   platform <- getPlatform
   initDpiAwareness
-  factor <- case platform of
+
+  baseFactor <- case platform of
     "Windows" -> getWindowsFactor
     "Linux" -> getLinuxFactor
     _ -> return 1 -- macOS
+
+  let factor
+        | disableAutoScale = 1
+        | otherwise = baseFactor
   let (winW, winH) = (factor * fromIntegral baseW, factor * fromIntegral baseH)
 
   window <-
@@ -128,6 +133,7 @@ initSDLWindow config = do
     }
     compositingFlag = fromMaybe False (_apcDisableCompositing config)
     userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
+    disableAutoScale = _apcDisableAutoScale config == Just True
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize
@@ -209,28 +215,32 @@ getDisplayDPI =
         vdpi <- peek pvdpi
         return (realToFrac ddpi, realToFrac hdpi, realToFrac vdpi)
 
--- | Returns the default resize factor for Windows
+-- | Returns the default resize factor for Windows.
 getWindowsFactor :: IO Double
-getWindowsFactor = do
-  (ddpi, hdpi, vdpi) <- getDisplayDPI
-  return (hdpi / 96)
+getWindowsFactor = max 1 <$> getDisplayDPIFactor
 
-{-|
-Returns a resizing factor to handle HiDPI on Linux. Currently only tested on
-Wayland (Ubuntu 21.04).
--}
+-- | Returns the default resize factor for Linux.
 getLinuxFactor :: IO Double
-getLinuxFactor =
+getLinuxFactor = do
+  dpiFactor <- getDisplayDPIFactor
+
   alloca $ \pmode -> do
     Raw.getCurrentDisplayMode 0 pmode
     mode <- peek pmode
-    let width = Raw.displayModeW mode
-    -- Applies scale in half steps (1, 1.5, 2, etc)
-    let baseFactor = 2 * fromIntegral width / 1920
 
-    if width <= 1920
-      then return 1
-      else return (fromIntegral (ceiling baseFactor) / 2)
+    let width = Raw.displayModeW mode
+    let detectedDPI
+          | dpiFactor > 0 = dpiFactor
+          | width <= 1920 = 1
+          | otherwise = 2
+
+    return detectedDPI
+
+-- | Returns DPI scaling factor using SDL_GetDisplayDPI.
+getDisplayDPIFactor :: IO Double
+getDisplayDPIFactor = do
+  (ddpi, hdpi, vdpi) <- getDisplayDPI
+  return (hdpi / 96)
 
 setDisableCompositorHint :: Bool -> IO ()
 setDisableCompositorHint disable = void $
