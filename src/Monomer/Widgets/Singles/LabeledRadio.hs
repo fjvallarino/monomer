@@ -6,9 +6,19 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Radio widget, used for interacting with a fixed set of values with an associated
-clickable label. Each instance of the radio will be associated with a single
-value.
+Labeled radio widget, used for interacting with a fixed set of values. Each
+instance of labeled radio is associated with a single value. In contrast to
+'radio', it includes a clickable label.
+
+@
+labeledRadio "First option" Option1 optionLens
+@
+
+With text in a different location:
+
+@
+labeledRadio_ "Radio with text below" Option1 optionLens [textBottom]
+@
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}

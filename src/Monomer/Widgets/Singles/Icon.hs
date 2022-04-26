@@ -7,6 +7,10 @@ Stability   : experimental
 Portability : non-portable
 
 Icon widget. Used for showing basic icons without the need of an asset.
+
+@
+icon IconPlus
+@
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}

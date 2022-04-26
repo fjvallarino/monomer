@@ -7,7 +7,11 @@ Stability   : experimental
 Portability : non-portable
 
 Slider widget, used for interacting with numeric values. It allows changing the
-value by keyboard arrows, dragging the mouse or using the wheel.
+value using the keyboard arrows, dragging the mouse or using the wheel.
+
+@
+hslider numericLens 0 100
+@
 
 Similar in objective to 'Monomer.Widgets.Singles.Dial', but more convenient in
 some layouts.

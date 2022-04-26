@@ -10,8 +10,16 @@ SeparatorLine is used for adding a separator line between two widgets. It adapts
 to the active layout direction, creating a vertical line on a horizontal layout
 and viceversa.
 
-The line has the provided width in the direction orthogonal to the layout
-direction, and takes all the available space in the other direction. In case of
+@
+hstack [
+  label "Left half",
+  separatorLine,
+  label "Right half"
+]
+@
+
+The separator line has the provided width in the direction orthogonal to the
+parent layout, and takes all the available space in the other axis. In case of
 wanting a shorter line, padding should be used.
 -}
 {-# LANGUAGE BangPatterns #-}

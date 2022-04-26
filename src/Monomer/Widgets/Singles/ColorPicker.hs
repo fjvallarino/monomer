@@ -6,7 +6,11 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Color picker using sliders and numeric fields.
+Color picker, displayed inside its parent container as a regular widget.
+
+@
+colorPicker colorLens
+@
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}

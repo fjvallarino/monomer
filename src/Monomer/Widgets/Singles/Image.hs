@@ -8,6 +8,12 @@ Portability : non-portable
 
 Displays an image from local storage or a url.
 
+@
+image "https://picsum.photos/id/1059/800/600"
+@
+
+It is also possible to create images from a block of memory using 'imageMem'.
+
 Notes:
 
 - Depending on the type of image fit chosen and the assigned viewport, some

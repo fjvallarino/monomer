@@ -6,13 +6,22 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for dates types.
+Input field for dates types with support for valid ranges, different formats and
+separators.
 
-Supports the Day type of the <https://hackage.haskell.org/package/time time>
-library, but other types can be supported by implementing 'DayConverter'. Maybe
-is also supported.
+@
+dateField dateLens
+@
 
-Supports different date formats and separators.
+With configuration options:
+
+@
+dateField_ dateLens [dateFormatMMDDYYYY, dateFormatDelimiter '-']
+@
+
+Supports the 'Day' type of the <https://hackage.haskell.org/package/time time>
+library, but other types can be supported by implementing 'DayConverter'.
+'Maybe' is also supported.
 
 Handles mouse wheel and shift + vertical drag to increase/decrease days.
 -}
@@ -249,13 +258,13 @@ instance CmbReadOnly (DateFieldCfg s e a) where
   }
 
 instance FormattableDate a => CmbMinValue (DateFieldCfg s e a) a where
-  minValue len = def {
-    _dfcMinValue = Just len
+  minValue value = def {
+    _dfcMinValue = Just value
   }
 
 instance FormattableDate a => CmbMaxValue (DateFieldCfg s e a) a where
-  maxValue len = def {
-    _dfcMaxValue = Just len
+  maxValue value = def {
+    _dfcMaxValue = Just value
   }
 
 instance CmbWheelRate (DateFieldCfg s e a) Double where

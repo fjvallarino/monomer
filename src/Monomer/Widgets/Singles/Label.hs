@@ -7,6 +7,18 @@ Stability   : experimental
 Portability : non-portable
 
 Label widget, with support for multiline text.
+
+Single line label:
+
+@
+label "This is a label"
+@
+
+Multi-line label:
+
+@
+label_ "This is a\nmultiline label" [multiline]
+@
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE Strict #-}

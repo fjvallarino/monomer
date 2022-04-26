@@ -7,8 +7,14 @@ Stability   : experimental
 Portability : non-portable
 
 Dropdown widget, allowing selection of a single item from a collapsable list.
-Both header and list content is text based. In case a customizable version is
-is needed, 'Monomer.Widgets.Containers.Dropdown' can be used.
+Both header and list content are text based.
+
+@
+textDropdown textLens ["Option 1", "Option 2", "Option 3"]
+@
+
+In case a customizable version is needed, to display rich content in the header
+or list items, 'Monomer.Widgets.Containers.Dropdown' can be used.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE Strict #-}
