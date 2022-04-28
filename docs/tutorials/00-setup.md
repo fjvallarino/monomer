@@ -114,16 +114,6 @@ Inside your project's directory:
 stack build
 ```
 
-#### Linux notes
-
-One case has been reported where an _"Unable to make GL context current"_ error
-ocurred on application startup. This seems to be a driver issue, and it's not
-something that can be fixed from the library.
-
-As a workaround, an application configuration option called
-`appRenderOnMainThread` is available. It can be added to the `config` list of
-the starter application or to the corresponding section of any of the examples.
-
 ## Build the examples included with the library
 
 In case you want to test the examples the library provides, you need to clone
