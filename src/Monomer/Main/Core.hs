@@ -19,7 +19,7 @@ module Monomer.Main.Core (
   startApp
 ) where
 
-import Control.Concurrent (MVar, forkIO, forkOS, newMVar, threadDelay)
+import Control.Concurrent
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
 import Control.Exception
 import Control.Lens ((&), (^.), (.=), (.~), use)
@@ -138,7 +138,8 @@ runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
-  let useRenderThread = fromMaybe True (_apcUseRenderThread config)
+  let useRenderThreadFlag = _apcUseRenderThread config == Just True
+  let useRenderThread = useRenderThreadFlag && rtsSupportsBoundThreads
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
@@ -209,7 +210,7 @@ runAppLoop window glCtx channel widgetRoot config = do
         RenderSetupMakeCurrentFailed msg -> do
           liftIO . putStrLn $ "Setup of the rendering thread failed: " ++ msg
           liftIO . putStrLn $ "Falling back to rendering on main thread. " ++
-            "The content will not be updated while resizing the window."
+            "The content may not be updated while resizing the window."
 
           makeMainThreadRenderer
     else do

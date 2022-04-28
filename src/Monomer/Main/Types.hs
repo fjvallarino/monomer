@@ -291,11 +291,21 @@ Performs rendering on the main thread. On macOS and Windows this also disables
 continuous rendering on window resize, but in some Linux configurations it still
 works.
 
-This option is useful when OpenGL driver issues prevent normal startup showing
-the "Unable to make GL context current" error.
+This configuration option was originally available to handle:
 
-It can also be used for single threaded applications (without -threaded).
+  - OpenGL driver issues which prevented normal startup showing the "Unable to
+    make GL context current" error.
+  - Single threaded applications (without -threaded) which cannot use forkOS.
+
+This flag is no longer necessary for those cases, since the library will:
+
+  - Attempt to fallback to rendering on the main thread if setting up a
+    secondary rendering thread fails.
+  - Will not attempt to set up a secondary rendering thread if the runtime does
+    not support bound threads (i.e. compiled without the -threaded flag).
 -}
+{-# DEPRECATED appRenderOnMainThread
+  "Should not longer be needed. Check appRenderOnMainThread's Haddock page." #-}
 appRenderOnMainThread :: AppConfig e
 appRenderOnMainThread = def {
   _apcUseRenderThread = Just False
