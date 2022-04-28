@@ -8,10 +8,11 @@ Portability : non-portable
 
 Helper functions for style types.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE Strict #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE Strict #-}
 
 module Monomer.Core.StyleUtil (
   getContentArea,
@@ -346,9 +347,11 @@ mergeNodeStyleState
 mergeNodeStyleState field node states = newNode where
   oldStyle = node ^. L.info . L.style
   oldState = oldStyle ^. field . non def
-  newStyle = oldStyle
-    & field ?~ oldState <> mconcat states
-  newNode = node
+  !mcatStates = mconcat states
+  !newStates = oldState <> mcatStates
+  !newStyle = oldStyle
+    & field ?~ newStates
+  !newNode = node
     & L.info . L.style .~ newStyle
 
 setNodeStyleState
@@ -358,9 +361,10 @@ setNodeStyleState
   -> WidgetNode s e
 setNodeStyleState field node states = newNode where
   oldStyle = node ^. L.info . L.style
-  newStyle = oldStyle
-    & field ?~ mconcat states
-  newNode = node
+  !newStates = mconcat states
+  !newStyle = oldStyle
+    & field ?~ newStates
+  !newNode = node
     & L.info . L.style .~ newStyle
 
 justDef :: (Default a) => Maybe a -> a
