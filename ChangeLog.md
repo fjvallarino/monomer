@@ -22,6 +22,7 @@
 - Differences in glyphs positions used by `FontManager` and nanovg; temporary workaround ([PR #105](https://github.com/fjvallarino/monomer/pull/105)).
 - `nodeInfoFromKey` relies on `nodeInfoFromPath` to retrieve information instead of fetching it directly from `WidgetEnv`'s `widgetKeyMap`, which can be stale ([PR #110](https://github.com/fjvallarino/monomer/pull/110)).
 - Glyph positioning issues in `FontManager`; removed workaround added in #105 ([PR #125](https://github.com/fjvallarino/monomer/pull/125)).
+- Will attempt to fall back to rendering on the main thread if threaded rendering setup fails ([PR #131](https://github.com/fjvallarino/monomer/pull/131)).
 
 ### Added
 
