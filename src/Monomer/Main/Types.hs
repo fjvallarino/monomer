@@ -305,7 +305,7 @@ This flag is no longer necessary for those cases, since the library will:
     not support bound threads (i.e. compiled without the -threaded flag).
 -}
 {-# DEPRECATED appRenderOnMainThread
-  "Should not longer be needed. Check appRenderOnMainThread's Haddock page." #-}
+  "Should no longer be needed. Check appRenderOnMainThread's Haddock page." #-}
 appRenderOnMainThread :: AppConfig e
 appRenderOnMainThread = def {
   _apcUseRenderThread = Just False
