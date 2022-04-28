@@ -21,9 +21,9 @@ module Monomer.Main.Core (
 
 import Control.Concurrent (MVar, forkIO, forkOS, newMVar, threadDelay)
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
+import Control.Exception
 import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad (unless, void, when)
-import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
@@ -37,6 +37,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Graphics.GL
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import qualified SDL
 import qualified Data.Sequence as Seq
 
@@ -74,6 +75,7 @@ type AppUIBuilder s e = UIBuilder s e
 data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
   _mlRenderer :: Maybe Renderer,
+  _mlUseRenderThread :: Bool,
   _mlTheme :: Theme,
   _mlAppStartTs :: Millisecond,
   _mlMaxFps :: Int,
@@ -148,9 +150,6 @@ runAppLoop window glCtx channel widgetRoot config = do
   model <- use L.mainModel
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
-  renderer <- if useRenderThread
-    then return Nothing
-    else liftIO $ Just <$> makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
 
   let wenv = WidgetEnv {
@@ -183,13 +182,43 @@ runAppLoop window glCtx channel widgetRoot config = do
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let makeMainThreadRenderer = do
+        renderer <- liftIO $ makeRenderer fonts dpr
+        return (Just renderer, False)
 
   handleResourcesInit
   (newWenv, newRoot, _) <- handleWidgetInit wenv pathReadyRoot
 
+  (renderer, useRenderThread) <- if useRenderThread
+    then do
+      {-
+      Attempt to setup multi threaded rendering. Fallback to single threaded if
+      glMakeCurrent fails.
+      -}
+      stpChan <- liftIO newTChanIO
+
+      liftIO . void . forkOS $
+        startRenderThread stpChan channel window glCtx fonts dpr newWenv newRoot
+
+      setupRes <- liftIO . atomically $ readTChan stpChan
+
+      case setupRes of
+        RenderSetupOk -> do
+          liftIO $ watchWindowResize channel
+          return (Nothing, True)
+        RenderSetupMakeCurrentFailed msg -> do
+          liftIO . putStrLn $ "Setup of the rendering thread failed: " ++ msg
+          liftIO . putStrLn $ "Falling back to rendering on main thread. " ++
+            "The content will not be updated while resizing the window."
+
+          makeMainThreadRenderer
+    else do
+      makeMainThreadRenderer
+
   let loopArgs = MainLoopArgs {
     _mlOS = os,
     _mlRenderer = renderer,
+    _mlUseRenderThread = useRenderThread,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
     _mlAppStartTs = appStartTs,
@@ -204,11 +233,6 @@ runAppLoop window glCtx channel widgetRoot config = do
   }
 
   L.mainModel .= _weModel newWenv
-
-  when useRenderThread $ do
-    liftIO $ watchWindowResize channel
-    liftIO . void . forkOS $
-      startRenderThread channel window glCtx fonts dpr newWenv newRoot
 
   mainLoop window fontManager config loopArgs
 
@@ -314,7 +338,7 @@ mainLoop window fontManager config loopArgs = do
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
 
-  let useRenderThread = fromMaybe True (_apcUseRenderThread config)
+  let useRenderThread = _mlUseRenderThread
   let renderEvent = any isActionEvent eventsPayload
   let winRedrawEvt = windowResized || windowExposed
   let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
@@ -355,7 +379,8 @@ mainLoop window fontManager config loopArgs = do
 
 startRenderThread
   :: (Eq s, WidgetEvent e)
-  => TChan (RenderMsg s e)
+  => TChan RenderSetupResult
+  -> TChan (RenderMsg s e)
   -> SDL.Window
   -> SDL.GLContext
   -> [FontDef]
@@ -363,12 +388,23 @@ startRenderThread
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-startRenderThread channel window glCtx fonts dpr wenv root = do
-  SDL.glMakeCurrent window glCtx
-  renderer <- liftIO $ makeRenderer fonts dpr
-  fontMgr <- liftIO $ makeFontManager fonts dpr
+startRenderThread setupChannel msgChannel window glCtx fonts dpr wenv root = do
+  resp <- try $ SDL.glMakeCurrent window glCtx
 
-  waitRenderMsg channel window renderer fontMgr state
+  case resp of
+    Right{} -> do
+      renderer <- liftIO $ makeRenderer fonts dpr
+      fontMgr <- liftIO $ makeFontManager fonts dpr
+
+      atomically $ writeTChan setupChannel RenderSetupOk
+
+      waitRenderMsg msgChannel window renderer fontMgr state
+    Left (SDL.SDLCallFailed _ _ err) -> do
+      let msg = T.unpack err
+      atomically $ writeTChan setupChannel (RenderSetupMakeCurrentFailed msg)
+    Left e -> do
+      let msg = displayException e
+      atomically $ writeTChan setupChannel (RenderSetupMakeCurrentFailed msg)
   where
     state = RenderState dpr wenv root
 
@@ -381,7 +417,7 @@ waitRenderMsg
   -> RenderState s e
   -> IO ()
 waitRenderMsg channel window renderer fontMgr state = do
-  msg <- liftIO . atomically $ readTChan channel
+  msg <- atomically $ readTChan channel
   newState <- handleRenderMsg window renderer fontMgr state msg
   waitRenderMsg channel window renderer fontMgr newState
 

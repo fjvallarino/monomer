@@ -52,6 +52,11 @@ data RenderMsg s e
   | MsgRemoveImage Text
   | forall i . MsgRunInRender (TChan i) (IO i)
 
+data RenderSetupResult
+  = RenderSetupOk
+  | RenderSetupMakeCurrentFailed String
+  deriving (Eq, Show)
+
 {-|
 Requirements for periodic rendering by a widget. Start time is stored to
 calculate next frame based on the step ms. A maximum number of repetitions may
