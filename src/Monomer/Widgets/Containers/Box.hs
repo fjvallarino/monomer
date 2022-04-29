@@ -18,7 +18,7 @@ Grid).
 @
 box_ [alignRight, alignBottom] $
   image "assets/test-image.jpg"
-    `styleBasic` [width 100, height 100]
+    \`styleBasic\` [width 100, height 100]
 @
 
 Can be used to add padding to an inner widget with a border. This is equivalent
@@ -26,11 +26,11 @@ to the margin property in CSS.
 
 @
 -- Padding is inside the border
-content = label "Message"
-  `styleBasic` [padding 5, border 1 black]
+content = label \"Message\"
+  \`styleBasic\` [padding 5, border 1 black]
 -- Padding in the wrapper box acts as margin
 container = box content
-  `styleBasic [padding 5]
+  \`styleBasic\` [padding 5]
 @
 
 Also useful to handle click events in complex widget structures (for example, a
@@ -43,7 +43,7 @@ content = vstack [
     image "assets/test-image.jpg"
   ]
 clickableItem = box_ [onClick ItemClicked] content
-  `styleBasic' [cursorHand]
+  \`styleBasic\' [cursorHand]
 @
 -}
 {-# LANGUAGE FlexibleContexts #-}

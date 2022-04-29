@@ -10,8 +10,8 @@ Base single line text editing field. Extensible for handling specific textual
 representations of other types, such as numbers and dates. It is not meant for
 direct use, but to create custom widgets using it.
 
-See "Monomer.Widgets.Singles.NumericField", "Monomer.Widgets.Singles.DateField"
-and "Monomer.Widgets.Singles.TimeField".
+See "Monomer.Widgets.Singles.NumericField", "Monomer.Widgets.Singles.DateField",
+"Monomer.Widgets.Singles.TimeField" and "Monomer.Widgets.Singles.TextField".
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}

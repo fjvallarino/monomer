@@ -13,7 +13,7 @@ value using the keyboard arrows, dragging the mouse or using the wheel.
 hslider numericLens 0 100
 @
 
-Similar in objective to 'Monomer.Widgets.Singles.Dial', but more convenient in
+Similar in objective to "Monomer.Widgets.Singles.Dial", but more convenient in
 some layouts.
 -}
 {-# LANGUAGE BangPatterns #-}

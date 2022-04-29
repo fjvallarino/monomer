@@ -31,8 +31,8 @@ fixed space is larger that the viewport of the stack, the content will overflow.
 vstack_ [childSpacing] [
     label "Selected image",
     image "assets/large-image.jpg"
-      `styleBasic` [maxHeight 400],
-    button "Complete" CompleteAction
+      \`styleBasic\` [maxHeight 400],
+    button \"Complete\" CompleteAction
   ]
 @
 -}

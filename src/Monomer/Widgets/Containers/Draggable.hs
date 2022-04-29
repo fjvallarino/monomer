@@ -8,7 +8,7 @@ Portability : non-portable
 
 Draggable container for a single item. Useful for adding drag support without
 having to implement a custom widget. Usually works in tandem with
-'Monomer.Widgets.Containers.DropTarget'.
+"Monomer.Widgets.Containers.DropTarget".
 
 Requires a value to identify the content (used when the item is dropped) and the
 content to display.

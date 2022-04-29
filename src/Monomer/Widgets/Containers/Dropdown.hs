@@ -9,7 +9,7 @@ Portability : non-portable
 Dropdown widget, allowing selection of a single item from a collapsable list.
 Both header and list content are customizable, and so is their styling.
 
-In case only 'Text' content is needed, 'Monomer.Widgets.Singles.TextDropdown' is
+In case only 'Text' content is needed, "Monomer.Widgets.Singles.TextDropdown" is
 easier to use.
 
 @

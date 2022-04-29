@@ -10,7 +10,7 @@ Simple confirm dialog, displaying accept and close buttons and optional title.
 Usually embedded in a zstack component and displayed/hidden depending on
 context.
 
-Similar to 'Monomer.Widgets.Containers.Alert', but takes two events to handle
+Similar to "Monomer.Widgets.Containers.Alert", but takes two events to handle
 the Accept and Cancel actions.
 
 A simple text message can be displayed with 'confirmMsg', providing the message

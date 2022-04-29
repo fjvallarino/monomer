@@ -8,7 +8,7 @@ Portability : non-portable
 
 Select list widget, allowing selection of a single item. List content (rows) is
 customizable, and so is its styling. This widget is used by
-'Monomer.Widgets.Containers.Dropdown' when in its open state.
+"Monomer.Widgets.Containers.Dropdown" when in its open state.
 
 @
 makeRow username = hstack [

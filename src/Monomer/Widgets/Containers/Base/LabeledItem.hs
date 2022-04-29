@@ -11,8 +11,8 @@ and checkbox.
 
 For usage examples, see:
 
-- 'Monomer.Widgets.Singles.LabeledCheckbox'
-- 'Monomer.Widgets.Singles.LabeledRadio'
+- "Monomer.Widgets.Singles.LabeledCheckbox"
+- "Monomer.Widgets.Singles.LabeledRadio"
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}

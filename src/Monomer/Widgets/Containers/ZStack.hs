@@ -19,7 +19,7 @@ size requested by its child nodes.
 zstack [
     image_ "assets/test-image.png" [fitFill],
     label "Image caption"
-      `styleBasic` [textFont "Bold", textSize 20, textCenter]
+      \`styleBasic\` [textFont \"Bold\", textSize 20, textCenter]
   ]
 @
 -}

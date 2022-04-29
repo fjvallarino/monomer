@@ -13,25 +13,26 @@ instance of optionButton is associated with a single value.
 optionButton "First option" Option1 optionLens
 @
 
-Its behavior is equivalent to 'Monomer.Widgets.Singles.Radio' and
-'Monomer.Widgets.Singles.LabeledRadio', with a different visual representation.
+Its behavior is equivalent to "Monomer.Widgets.Singles.Radio" and
+"Monomer.Widgets.Singles.LabeledRadio", with a different visual representation.
 
-This widget, and the associated 'ToggleButton', uses two separate styles for the
-On and Off states which can be modified individually for the theme. If you use
-any of the the standard style functions (styleBasic, styleHover, etc) in an
-optionButton/toggleButton these changes will apply to both On and Off states,
-except for the color related styles. The reason is that, in general, the font
-and padding will be the same for both states, but the colors will differ. The
-'optionButtonOffStyle' option, which receives a 'Style' instance, can be used to
-change the colors of the Off state. The values set with this option are higher
-priority than any inherited style from the theme or node text style.
+This widget, and the associated "Monomer.Widgets.Singles.ToggleButton", uses two
+separate styles for the On and Off states which can be modified individually for
+the theme. If you use any of the the standard style functions (styleBasic,
+styleHover, etc) in an optionButton/toggleButton these changes will apply to
+both On and Off states, except for the color related styles. The reason is that,
+in general, the font and padding will be the same for both states, but the
+colors will differ. The 'optionButtonOffStyle' option, which receives a 'Style'
+instance, can be used to change the colors of the Off state. The values set with
+this option are higher priority than any inherited style from the theme or node
+text style.
 
 'Style' instances can be created this way:
 
 @
 newStyle :: Style = def
-  `styleBasic` [textSize 20]
-  `styleHover` [textColor white]
+  \`styleBasic\` [textSize 20]
+  \`styleHover\` [textColor white]
 @
 -}
 {-# LANGUAGE BangPatterns #-}

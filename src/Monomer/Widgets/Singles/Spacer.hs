@@ -10,7 +10,7 @@ Spacer is used for adding a fixed space between two widgets.
 
 @
 hstack [
-  label "Username",
+  label \"Username\",
   spacer,
   label username
 ]
@@ -23,7 +23,7 @@ alignment purposes.
 hstack [
   label "Section title",
   filler,
-  button "Close" CloseSection
+  button \"Close\" CloseSection
 ]
 @
 

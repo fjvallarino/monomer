@@ -17,7 +17,7 @@ widgetTree = themeSwitch theme $ vstack [
     hstack [
       label "Select theme:",
       spacer,
-      textDropdownS activeTheme (enumFrom (toEnum 0))
+      textDropdownS activeTheme [DarkTheme, LightTheme]
     ]
   ]
 @

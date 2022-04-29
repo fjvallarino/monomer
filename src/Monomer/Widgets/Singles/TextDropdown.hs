@@ -14,7 +14,7 @@ textDropdown textLens ["Option 1", "Option 2", "Option 3"]
 @
 
 In case a customizable version is needed, to display rich content in the header
-or list items, 'Monomer.Widgets.Containers.Dropdown' can be used.
+or list items, "Monomer.Widgets.Containers.Dropdown" can be used.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE Strict #-}

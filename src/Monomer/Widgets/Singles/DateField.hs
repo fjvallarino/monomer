@@ -16,7 +16,7 @@ dateField dateLens
 With configuration options:
 
 @
-dateField_ dateLens [dateFormatMMDDYYYY, dateFormatDelimiter '-']
+dateField_ dateLens [dateFormatMMDDYYYY, dateFormatDelimiter \'-\']
 @
 
 Supports the 'Day' type of the <https://hackage.haskell.org/package/time time>

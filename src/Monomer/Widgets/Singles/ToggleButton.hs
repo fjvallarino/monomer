@@ -9,14 +9,14 @@ Portability : non-portable
 Toggle button widget, used for boolean value.
 
 @
-toggleButton "Toggle" booleanLens
+toggleButton \"Toggle\" booleanLens
 @
 
-Its behavior is equivalent to 'Monomer.Widgets.Singles.Checkbox' and
-'Monomer.Widgets.Singles.LabeledCheckbox', with a different visual
+Its behavior is equivalent to "Monomer.Widgets.Singles.Checkbox" and
+"Monomer.Widgets.Singles.LabeledCheckbox", with a different visual
 representation.
 
-See 'Monomer.Widgets.Singles.OptionButton' for detailed notes.
+See "Monomer.Widgets.Singles.OptionButton" for detailed notes.
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}

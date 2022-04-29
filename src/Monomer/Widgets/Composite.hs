@@ -18,6 +18,8 @@ and model. This widget tree is made of other widgets, in general combinations of
 containers and singles.
 - Event Handler: processes user defined events which are raised by the widgets
 created when building the UI.
+
+Composite is discussed in detail in the tutorials.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}

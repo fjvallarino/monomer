@@ -12,11 +12,11 @@ delay, if any, has ellapsed.
 Tooltip styling is a bit unusual, since it is applied to the overlaid element.
 This means padding will not be shown for the contained child element, but only
 on the message when the tooltip is active. If you need padding around the child
-element, you can use a 'Monomer.Widgets.Containers.Box' around it.
+element, you can use a "Monomer.Widgets.Containers.Box" around it.
 
 @
-tooltip "Click the button" (buttom "Accept" AcceptAction)
-  `styleBasic` [textSize 16, bgColor steelBlue, paddingH 5, radius 5]
+tooltip "Click the button" (buttom \"Accept\" AcceptAction)
+  \`styleBasic\` [textSize 16, bgColor steelBlue, paddingH 5, radius 5]
 @
 -}
 {-# LANGUAGE DeriveGeneric #-}
