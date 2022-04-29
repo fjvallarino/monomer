@@ -201,7 +201,7 @@ runAppLoop window glCtx channel widgetRoot config = do
       case setupRes of
         RenderSetupMakeCurrentFailed msg -> do
           liftIO . putStrLn $ "Setup of the rendering thread failed: " ++ msg
-          liftIO . putStrLn $ "Falling back to rendering on the main thread. "
+          liftIO . putStrLn $ "Falling back to rendering in the main thread. "
             ++ "The content may not be updated while resizing the window."
 
           makeMainThreadRenderer

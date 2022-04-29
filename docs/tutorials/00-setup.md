@@ -143,6 +143,24 @@ stack run ticker
 stack run generative
 ```
 
+#### Notes
+
+Monomer uses a secondary thread for rendering to be able to redraw the content
+while the user resizes the window. In some configurations, mainly with NVIDIA
+drivers on Linux, setting up an OpenGL context in a secondary thread fails.
+
+If this happens, Monomer will try to fall back to rendering in the main thread
+and warn about the situation with a message similar to:
+
+```
+Setup of the rendering thread failed: Unable to make GL context current
+Falling back to rendering in the main thread.
+```
+
+Besides having the content stretched while resizing the window (i.e. not
+dinamically resized), there are no other differences between the threaded and
+non-threaded modes.
+
 ## Development mode
 
 Since compilation times can be annoying, I personally prefer to rely on
