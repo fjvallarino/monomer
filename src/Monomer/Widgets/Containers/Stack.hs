@@ -6,7 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Container which stacks its children along a main axis.
+Container that stacks its children along a main axis.
 
 An hstack widget will assign horizontal space to its children according to their
 size requests. The inverse happens with vstack and vertical space, which assigns
@@ -26,6 +26,15 @@ axis, based on the requests of their children.
 The layout algorithm considers the different type of size requirements and
 assigns space according to the logic defined in 'SizeReq'. If the requested
 fixed space is larger that the viewport of the stack, the content will overflow.
+
+@
+vstack_ [childSpacing] [
+    label "Selected image",
+    image "assets/large-image.jpg"
+      `styleBasic` [maxHeight 400],
+    button "Complete" CompleteAction
+  ]
+@
 -}
 {-# LANGUAGE Strict #-}
 

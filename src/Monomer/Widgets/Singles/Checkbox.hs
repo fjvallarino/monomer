@@ -8,8 +8,8 @@ Portability : non-portable
 
 Checkbox widget, used for interacting with boolean values. It does not include
 text, which can be added with a label in the desired position (usually with
-[hstack/vstack]("Monomer.Widgets.Containers.Stack")). Alternatively,
-"Monomer.Widgets.Singles.LabeledCheckbox" provides this functionality out of the
+[hstack/vstack]('Monomer.Widgets.Containers.Stack')). Alternatively,
+'Monomer.Widgets.Singles.LabeledCheckbox' provides this functionality out of the
 box.
 
 @

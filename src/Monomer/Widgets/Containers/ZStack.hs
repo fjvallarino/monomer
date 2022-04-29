@@ -7,13 +7,21 @@ Stability   : experimental
 Portability : non-portable
 
 Layered container, stacking children one on top of the other. Useful for
-handling widgets that need to be visible in certain contexts only (dialogs), or
-to overlay unrelated widgets (text on top of an image).
+handling widgets that need to be visible in certain contexts only, such as
+dialogs, or to overlay unrelated widgets (text on top of an image).
 
 The order of the widgets is from bottom to top.
 
 The container will request the largest combination of horizontal and vertical
 size requested by its child nodes.
+
+@
+zstack [
+    image_ "assets/test-image.png" [fitFill],
+    label "Image caption"
+      `styleBasic` [textFont "Bold", textSize 20, textCenter]
+  ]
+@
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}

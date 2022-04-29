@@ -6,9 +6,20 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Splits the assigned space into two parts, vertically or horizontally, which are
+Splits the assigned space into two areas, vertically or horizontally, which are
 assigned to its two child nodes. The space assigned depends on the style and
 size requirements of each child node.
+
+@
+actionPanel = vstack [
+    button "Image 1" ShowImage1,
+    button "Image 2" ShowImage2,
+    button "Image 3" ShowImage3
+  ]
+contentPanel = scroll (image activeImage)
+
+mainPanel = hsplit (actionPanel, contentPanel)
+@
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}

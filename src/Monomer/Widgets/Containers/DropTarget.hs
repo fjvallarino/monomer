@@ -11,7 +11,15 @@ without having to implement a custom widget. Usually works in tandem with
 'Monomer.Widgets.Containers.Draggable'.
 
 Raises a user provided event when an item is dropped. The type must match with
-the dragged message, otherwise it will not be raised.
+the type of the dragged widget message, otherwise it will not be raised.
+
+@
+target = dropTarget ItemDropped $
+  vstack itemsRows
+    `styleBasic` [width 200, height 400]
+@
+
+See Tutorial 6 (Composite) for a usage example.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}

@@ -10,11 +10,19 @@ Layout container which distributes space evenly along the main axis. For the
 secondary axis children will receive as much space as available for the grid
 widget itself.
 
-In the same way as with hstack and vstack, hgrid and vgrid can be combined to
-create more complex layouts.
+In the same way as with hstack and vstack, 'hgrid' and 'vgrid' can be combined
+to create more complex layouts.
 
 The hgrid widget requests maxWidth * elements as its width, and the max height
 as its height. The inverse happens for vgrid.
+
+@
+hgrid [
+    label "Third 1",
+    label "Third 2",
+    label "Third 3"
+  ]
+@
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Strict #-}

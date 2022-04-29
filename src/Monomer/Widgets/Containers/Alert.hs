@@ -8,6 +8,24 @@ Portability : non-portable
 
 Simple alert dialog, displaying a close button and optional title. Usually
 embedded in a zstack component and displayed/hidden depending on context.
+
+A simple text message can be displayed with 'alertMsg', providing the message
+text and the event to generate when the user closes the alert:
+
+@
+alertMsg "En error occurred" AlertClosedEvent
+@
+
+Alternatively, a custom widget can be provided to display as content:
+
+@
+customAlert = alert AlertClosedEvent content where
+  content = hstack [
+      label "Error:",
+      filler,
+      label errorDescription
+    ]
+@
 -}
 {-# LANGUAGE Strict #-}
 

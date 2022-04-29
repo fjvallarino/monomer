@@ -11,10 +11,14 @@ but limits itself to what its parent assigns. It allows navigating the content
 of the inner node with the scroll bars. It also supports automatic focus
 following.
 
-Messages:
+Accepts the following messages:
 
 - 'ScrollTo': Causes the scroll to update its handles to ensure rect is visible.
 - 'ScrollReset': Sets both handle positions to zero.
+
+@
+vscroll (vstack longItemsList)
+@
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}

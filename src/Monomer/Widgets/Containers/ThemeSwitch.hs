@@ -8,9 +8,23 @@ Portability : non-portable
 
 Switches to the provided theme for its child nodes.
 
-Note: this widget ignores style settings. If you need to display borders or any
-other kind of style configuration, set it on the child node or wrap the
-themeSwitch widget in a "Monomer.Widgets.Containers.Box".
+@
+theme = case activeTheme of
+  DarkTheme -> darkTheme
+  LightTheme -> lightTheme
+
+widgetTree = themeSwitch theme $ vstack [
+    hstack [
+      label "Select theme:",
+      spacer,
+      textDropdownS activeTheme (enumFrom (toEnum 0))
+    ]
+  ]
+@
+
+Note: this widget ignores style settings applied to itself. If you need to
+display borders or any other kind of style configuration, set it on the child
+node or wrap the themeSwitch widget in a "Monomer.Widgets.Containers.Box".
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE StrictData #-}

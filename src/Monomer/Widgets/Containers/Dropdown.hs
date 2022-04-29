@@ -7,9 +7,21 @@ Stability   : experimental
 Portability : non-portable
 
 Dropdown widget, allowing selection of a single item from a collapsable list.
-Both header and list content is customizable, and so is its styling. In case
-only 'Text' content is needed, 'Monomer.Widgets.Singles.TextDropdown' is easier
-to use.
+Both header and list content are customizable, and so is their styling.
+
+In case only 'Text' content is needed, 'Monomer.Widgets.Singles.TextDropdown' is
+easier to use.
+
+@
+makeSelected username = hstack [
+    label "Selected: ",
+    spacer,
+    label username
+  ]
+makeRow username = label username
+
+customDropdown = dropdown userLens usernames makeSelected makeRow
+@
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}

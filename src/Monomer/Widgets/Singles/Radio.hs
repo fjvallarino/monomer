@@ -9,7 +9,7 @@ Portability : non-portable
 Radio widget, used for interacting with a fixed set of values. Each instance of
 the radio is associated with a single value. It does not include text, which can
 be added with a label in the desired position (usually with
-[hstack/vstack]("Monomer.Widgets.Containers.Stack")). Alternatively,
+[hstack/vstack]('Monomer.Widgets.Containers.Stack')). Alternatively,
 'Monomer.Widgets.Singles.LabeledRadio' provides this functionality out of the
 box.
 
