@@ -10,7 +10,7 @@ Utility functions to retrieve the Unicode code point of a Remix Font using its
 representative name. These code points can be used in labels or buttons to show
 icons instead of regular text.
 
-Make sure to load the remixicon.ttf font in your application and set 'textFont'
+Make sure to load the remixicon.ttf font in your application and set _textFont_
 in the corresponding widget.
 
 Existing icons can be browsed in https://remixicon.com.

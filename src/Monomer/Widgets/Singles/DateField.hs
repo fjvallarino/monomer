@@ -34,9 +34,10 @@ Handles mouse wheel and shift + vertical drag to increase/decrease days.
 module Monomer.Widgets.Singles.DateField (
   -- * Configuration
   DateFieldCfg,
+  DateFieldFormat,
   FormattableDate,
   DayConverter(..),
-  DateTextConverter,
+  DateTextConverter(..),
   -- * Constructors
   dateField,
   dateField_,
@@ -71,13 +72,14 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Util.Parser as P
 
-data DateFormat
+-- | Available formats for 'dateField'.
+data DateFieldFormat
   = FormatDDMMYYYY
   | FormatYYYYMMDD
   | FormatMMDDYYYY
   deriving (Eq, Show)
 
-defaultDateFormat :: DateFormat
+defaultDateFormat :: DateFieldFormat
 defaultDateFormat = FormatDDMMYYYY
 
 defaultDateDelim :: Char
@@ -95,11 +97,14 @@ instance DayConverter Day where
   convertFromDay = id
   convertToDay = Just
 
--- | Converts a 'Day' instance to and from 'Text'.
+{-|
+Converts a 'Day' instance to and from 'Text'. Implementing this typeclass
+is not necessary for instances of 'DayConverter'.
+-}
 class DateTextConverter a where
-  dateAcceptText :: DateFormat -> Char -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
-  dateFromText :: DateFormat -> Char -> Text -> Maybe a
-  dateToText :: DateFormat -> Char -> a -> Text
+  dateAcceptText :: DateFieldFormat -> Char -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
+  dateFromText :: DateFieldFormat -> Char -> Text -> Maybe a
+  dateToText :: DateFieldFormat -> Char -> a -> Text
   dateFromDay :: Day -> a
   dateToDay :: a -> Maybe Day
 
@@ -166,7 +171,7 @@ data DateFieldCfg s e a = DateFieldCfg {
   _dfcValid :: Maybe (WidgetData s Bool),
   _dfcValidV :: [Bool -> e],
   _dfcDateDelim :: Maybe Char,
-  _dfcDateFormat :: Maybe DateFormat,
+  _dfcDateFormat :: Maybe DateFieldFormat,
   _dfcMinValue :: Maybe a,
   _dfcMaxValue :: Maybe a,
   _dfcWheelRate :: Maybe Double,
@@ -484,7 +489,7 @@ handleMove config state rate value dy = result where
 
 dateFromTextSimple
   :: (DayConverter a, FormattableDate a)
-  => DateFormat
+  => DateFieldFormat
   -> Char
   -> Text
   -> Maybe a
@@ -499,7 +504,7 @@ dateFromTextSimple format delim text = newDate where
       | otherwise -> fromGregorianValid (fromIntegral n1) n2 n3
   newDate = tmpDate >>= dateFromDay
 
-dateToTextSimple :: FormattableDate a => DateFormat -> Char -> a -> Text
+dateToTextSimple :: FormattableDate a => DateFieldFormat -> Char -> a -> Text
 dateToTextSimple format delim val = result where
   converted = dateToDay val
   (year, month, day) = toGregorian (fromJust converted)
@@ -516,7 +521,7 @@ dateToTextSimple format delim val = result where
     | format == FormatMMDDYYYY = tmonth <> sep <> tday <> sep <> tyear
     | otherwise = tyear <> sep <> tmonth <> sep <> tday
 
-acceptTextInput :: DateFormat -> Char -> Text -> Bool
+acceptTextInput :: DateFieldFormat -> Char -> Text -> Bool
 acceptTextInput format delim text = isRight (A.parseOnly parser text) where
   numP = A.digit *> ""
   delimP = A.char delim *> ""

@@ -25,6 +25,7 @@ module Monomer.Widgets.Container (
   -- * Configuration
   ContainerGetBaseStyle,
   ContainerGetCurrentStyle,
+  ContainerCreateContainerFromModel,
   ContainerUpdateCWenvHandler,
   ContainerInitHandler,
   ContainerInitPostHandler,

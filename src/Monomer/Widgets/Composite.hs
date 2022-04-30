@@ -218,7 +218,7 @@ Configuration options for composite:
 - 'onResize': event to raise when the size of the widget changes.
 - 'onChange': event to raise when the model changes. The value passed to the
   provided event is the previous version of the model. The current version of
-  the model is always available as a parameter in the `handleEvent` function.
+  the model is always available as a parameter in the _handleEvent_ function.
 - 'onChangeReq': 'WidgetRequest' to generate when the model changes.
 - 'onEnabledChange': event to raise when the enabled status changes.
 - 'onVisibleChange': event to raise when the visibility changes.

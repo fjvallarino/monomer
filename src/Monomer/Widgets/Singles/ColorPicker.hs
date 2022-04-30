@@ -20,6 +20,7 @@ colorPicker colorLens
 module Monomer.Widgets.Singles.ColorPicker (
   -- * Configuration
   ColorPickerCfg,
+  ColorPickerEvt,
   -- * Constructors
   colorPicker,
   colorPicker_,
@@ -126,11 +127,12 @@ instance CmbOnChangeReq (ColorPickerCfg s e) s e Color where
     _cpcOnChangeReq = [req]
   }
 
+-- | Internal events for the 'colorPicker' widget.
 data ColorPickerEvt
   = PickerFocus Path
   | PickerBlur Path
-  | ColorChanged Int
-  | AlphaChanged Double
+  | PickerColorChanged Int
+  | PickerAlphaChanged Double
   deriving (Eq, Show)
 
 -- | Creates a color picker using the given lens.
@@ -210,8 +212,8 @@ buildUI config wenv model = mainTree where
         `styleBasic` [width 40, padding 0, textAscender, textRight]
     ]
 
-  colorRow lens lbl = compRow lens ColorChanged lbl 0 255
-  alphaRow lens lbl = compRow lens AlphaChanged lbl 0 1
+  colorRow lens lbl = compRow lens PickerColorChanged lbl 0 255
+  alphaRow lens lbl = compRow lens PickerAlphaChanged lbl 0 1
 
   mainTree = hstack_ [sizeReqUpdater clearExtra] [
       vstack [
@@ -240,8 +242,8 @@ handleEvent cfg wenv node model evt = case evt of
     | not (isNodeParentOfPath node prev) -> reportFocus prev
   PickerBlur next
     | not (isNodeParentOfPath node next) -> reportBlur next
-  ColorChanged _ -> reportChange
-  AlphaChanged _ -> reportChange
+  PickerColorChanged _ -> reportChange
+  PickerAlphaChanged _ -> reportChange
   _ -> []
   where
     report reqs = RequestParent <$> reqs

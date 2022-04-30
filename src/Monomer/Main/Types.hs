@@ -53,6 +53,7 @@ data RenderMsg s e
   | MsgRemoveImage Text
   | forall i . MsgRunInRender (TChan i) (IO i)
 
+-- | Result from attempting to set up the secondary rendering thread.
 data RenderSetupResult
   = RenderSetupSingle
   | RenderSetupMulti

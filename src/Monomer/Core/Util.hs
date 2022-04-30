@@ -31,19 +31,19 @@ import Monomer.Helper
 import qualified Monomer.Core.Lens as L
 
 -- | Returns the 'Path' associated to a given 'WidgetKey', if any. The search is
---   restricted to the parent 'Composite'.
+--   restricted to the parent _Composite_.
 pathFromKey :: WidgetEnv s e -> WidgetKey -> Maybe Path
 pathFromKey wenv key = fmap (^. L.info . L.path) node where
   node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
 -- | Returns the 'WidgetId' associated to a given 'WidgetKey', if any. The
---   search is restricted to the parent 'Composite'.
+--   search is restricted to the parent _Composite_.
 widgetIdFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetId
 widgetIdFromKey wenv key = fmap (^. L.info . L.widgetId) node where
   node = Map.lookup key (wenv ^. L.widgetKeyMap)
 
 -- | Returns the 'WidgetNodeInfo' associated to the given 'WidgetKey', if any.
---   The search is restricted to the parent 'Composite'.
+--   The search is restricted to the parent _Composite_.
 nodeInfoFromKey :: WidgetEnv s e -> WidgetKey -> Maybe WidgetNodeInfo
 nodeInfoFromKey wenv key = path >>= nodeInfoFromPath wenv where
   path = pathFromKey wenv key

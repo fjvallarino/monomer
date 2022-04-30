@@ -201,7 +201,7 @@ data WidgetRequest s e
   --   in order to reduce CPU usage. Widgets are responsible for requesting
   --   rendering at points of interest. Mouse (except mouse move) and keyboard
   --   events automatically generate render requests, but the result of a
-  --   'WidgetTask' or 'WidgetProducer' does not.
+  --   'RunTask' or 'RunProducer' does not.
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
