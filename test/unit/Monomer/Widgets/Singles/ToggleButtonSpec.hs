@@ -36,7 +36,8 @@ import Monomer.Widgets.Singles.ToggleButton
 import qualified Monomer.Lens as L
 
 data TestEvt
-  = BoolSel Bool
+  = BoolClicked
+  | BoolSel Bool
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -70,9 +71,19 @@ handleEvent = describe "handleEvent" $ do
   it "should generate an event when focus is lost" $
     events evtBlur `shouldBe` Seq.singleton (LostFocus emptyPath)
 
+  it "should generate multiple click and change events when clicked, since it toggles between True and False" $ do
+    let evt = evtClick (Point 320 240)
+    let events es = nodeHandleEventEvts wenv es chkClickNode
+
+    events [evt] `shouldBe` Seq.fromList [BoolClicked, BoolSel True]
+    events [evt, evt] `shouldBe` Seq.fromList [BoolClicked, BoolSel True, BoolClicked, BoolSel False]
+    events [evt, evt, evt] `shouldBe` Seq.fromList [BoolClicked, BoolSel True, BoolClicked, BoolSel False, BoolClicked, BoolSel True]
+
   where
     wenv = mockWenv (TestModel False)
     chkNode = toggleButton_ "Toggle" testBool [onFocus GotFocus, onBlur LostFocus]
+    chkClickNode = toggleButton_ "Toggle" testBool [onClick BoolClicked, onChange BoolSel]
+
     clickModel p = nodeHandleEventModel wenv [evtClick p] chkNode
     keyModel key = nodeHandleEventModel wenv [KeyAction def key KeyPressed] chkNode
     events evt = nodeHandleEventEvts wenv [evt] chkNode

@@ -43,6 +43,7 @@
 
 - The `keystroke` widget now supports the `Backspace` key ([PR #74](https://github.com/fjvallarino/monomer/pull/74)).
 - `style...` family of functions now combine new attributes with the existing ones ([PR #104](https://github.com/fjvallarino/monomer/pull/104)).
+- `radio` and `optionButton` now only trigger `onChange` when their value changes. `onClick` was can be used to replicate the previous `onChange` behavior ([PR #134](https://github.com/fjvallarino/monomer/pull/134)).
 
 ### Renamed
 

@@ -42,7 +42,8 @@ data Fruit
   deriving (Eq, Show)
 
 data FruitEvt
-  = FruitSel Fruit
+  = FruitClicked
+  | FruitSel Fruit
   | GotFocus Path
   | LostFocus Path
   deriving (Eq, Show)
@@ -77,11 +78,21 @@ handleEvent = describe "handleEvent" $ do
   it "should generate an event when focus is lost" $
     events evtBlur orangeNode `shouldBe` Seq.singleton (LostFocus emptyPath)
 
+  it "should generate multiple click events when clicked, but a single onChange because the value did not change" $ do
+    let evt = evtClick (Point 320 240)
+    let events es = nodeHandleEventEvts wenv es bananaClickNode
+
+    events [evt] `shouldBe` Seq.fromList [FruitClicked, FruitSel Banana]
+    events [evt, evt] `shouldBe` Seq.fromList [FruitClicked, FruitSel Banana, FruitClicked]
+    events [evt, evt, evt] `shouldBe` Seq.fromList [FruitClicked, FruitSel Banana, FruitClicked, FruitClicked]
+
   where
     wenv = mockWenv (TestModel Apple)
     orangeNode = optionButton_ "Orange" Orange fruit [onFocus GotFocus, onBlur LostFocus]
     bananaNode :: WidgetNode TestModel FruitEvt
     bananaNode = optionButton "Banana" Banana fruit
+    bananaClickNode = optionButton_ "Banana" Banana fruit [onClick FruitClicked, onChange FruitSel]
+
     clickModel p node = nodeHandleEventModel wenv [evtClick p] node
     keyModel key node = nodeHandleEventModel wenv [KeyAction def key KeyPressed] node
     events evt node = nodeHandleEventEvts wenv [evt] node
