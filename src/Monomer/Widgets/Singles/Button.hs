@@ -54,7 +54,7 @@ Configuration options for button:
 
 - 'ignoreParentEvts': whether to ignore all other responses to the click or
   keypress that triggered the button, and only keep this button's response.
-  Useful when the button is child of a 'keystroke' widget.
+  Useful when the button is child of a _keystroke_ widget.
 - 'trimSpaces': whether to remove leading/trailing spaces in the caption.
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
@@ -220,7 +220,7 @@ Creates a button without forcing an event to be provided. The other constructors
 use this version, adding an 'onClick' handler in configs.
 
 Using this constructor directly can be helpful in cases where the event to be
-raised belongs in a 'Composite' above in the widget tree, outside the scope of
+raised belongs in a _Composite_ above in the widget tree, outside the scope of
 the Composite that contains the button. This parent Composite can be reached by
 sending a message ('SendMessage') to its 'WidgetId' using 'onClickReq'.
 -}

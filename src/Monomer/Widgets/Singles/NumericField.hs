@@ -33,7 +33,7 @@ module Monomer.Widgets.Singles.NumericField (
   -- * Configuration
   NumericFieldCfg,
   FormattableNumber,
-  NumericTextConverter,
+  NumericTextConverter(..),
   -- * Constructors
   numericField,
   numericField_,
@@ -67,7 +67,10 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Util.Parser as P
 
--- | Converts a numeric instance to and from 'Text'.
+{-|
+Converts a numeric instance to and from 'Text'. Implementing this typeclass
+is not necessary for instances of 'FromFractional'.
+-}
 class NumericTextConverter a where
   numericAcceptText :: Maybe a -> Maybe a -> Int -> Text -> (Bool, Bool, Maybe a)
   numericFromText :: Text -> Maybe a

@@ -279,6 +279,10 @@ optionButtonD_ caption option widgetData configs = optionButtonNode where
   optionButtonNode = defaultWidgetNode wtype widget
     & L.info . L.focusable .~ True
 
+{-|
+Helper function for creating a button associated to a value. Used by
+_optionButton_ and _toggleButton_.
+-}
 makeOptionButton
   :: OptionButtonValue a
   => Lens' ThemeState StyleState

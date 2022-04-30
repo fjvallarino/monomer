@@ -37,10 +37,11 @@ import Monomer.Graphics.Types (GlyphPos(..))
 
 #include "fontmanager.h"
 
--- | Vector of 4 strict elements
+-- | Vector of 4 strict elements.
 data V4 a = V4 !a !a !a !a
   deriving (Show, Read, Eq, Ord)
 
+-- | Bounds of a block of text.
 newtype Bounds
   = Bounds (V4 CFloat)
   deriving (Show, Read, Eq, Ord)
@@ -62,6 +63,7 @@ instance Storable Bounds where
        pokeElemOff p' 2 c
        pokeElemOff p' 3 d
 
+-- | Position of a glyph in a text string.
 data GlyphPosition = GlyphPosition {
   -- | Pointer of the glyph in the input string.
   str :: !(Ptr CChar),
@@ -98,9 +100,11 @@ instance Storable GlyphPosition where
 
 {#pointer *FMGglyphPosition as GlyphPositionPtr -> GlyphPosition#}
 
+-- | Reads Bounds from a pointer.
 peekBounds :: Ptr CFloat -> IO Bounds
 peekBounds = peek . castPtr
 
+-- | Allocates space for Bounds.
 allocaBounds :: (Ptr CFloat -> IO b) -> IO b
 allocaBounds f = alloca (\(p :: Ptr Bounds) -> f (castPtr p))
 

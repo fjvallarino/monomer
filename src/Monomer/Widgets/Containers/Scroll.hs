@@ -72,12 +72,19 @@ data ScrollType
   | ScrollBoth
   deriving (Eq, Show)
 
+{-|
+Information provided in the 'onChange' event.
+
+The currently visible viewport is affected by the position of the scroll bars,
+their size and any other parent widget that restricts the visible viewport
+(e.g., another scroll).
+-}
 data ScrollStatus = ScrollStatus {
-  scrollDeltaX :: Double,
-  scrollDeltaY :: Double,
-  scrollRect :: Rect,
-  scrollVpSize :: Size,
-  scrollChildSize :: Size
+  scrollDeltaX :: Double, -- ^ Displacement in the x axis.
+  scrollDeltaY :: Double, -- ^ Displacement in the y axis.
+  scrollRect :: Rect,     -- ^ The viewport assigned to the scroll widget.
+  scrollVpSize :: Size,   -- ^ The currently visible viewport.
+  scrollChildSize :: Size -- ^ The total size of the child widget.
 } deriving (Eq, Show)
 
 instance Default ScrollStatus where

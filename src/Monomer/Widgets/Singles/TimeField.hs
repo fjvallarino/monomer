@@ -34,7 +34,9 @@ module Monomer.Widgets.Singles.TimeField (
   -- * Configuration
   TimeFieldCfg,
   FormattableTime,
+  TimeFieldFormat,
   TimeOfDayConverter(..),
+  TimeTextConverter(..),
   -- * Constructors
   timeField,
   timeField_,
@@ -67,12 +69,13 @@ import Monomer.Widgets.Singles.Base.InputField
 import qualified Monomer.Lens as L
 import qualified Monomer.Widgets.Util.Parser as P
 
-data TimeFormat
+-- | Available formats for 'timeField'.
+data TimeFieldFormat
   = FormatHHMM
   | FormatHHMMSS
   deriving (Eq, Show)
 
-defaultTimeFormat :: TimeFormat
+defaultTimeFormat :: TimeFieldFormat
 defaultTimeFormat = FormatHHMM
 
 defaultTimeDelim :: Char
@@ -90,11 +93,14 @@ instance TimeOfDayConverter TimeOfDay where
   convertFromTimeOfDay = id
   convertToTimeOfDay = Just
 
--- | Converts a 'TimeOfDay' instance to and from 'Text'.
+{-|
+Converts a 'TimeOfDay' instance to and from 'Text'. Implementing this typeclass
+is not necessary for instances of 'TimeOfDayConverter'.
+-}
 class TimeTextConverter a where
-  timeAcceptText :: TimeFormat -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
-  timeFromText :: TimeFormat -> Text -> Maybe a
-  timeToText :: TimeFormat -> a -> Text
+  timeAcceptText :: TimeFieldFormat -> Maybe a -> Maybe a -> Text -> (Bool, Bool, Maybe a)
+  timeFromText :: TimeFieldFormat -> Text -> Maybe a
+  timeToText :: TimeFieldFormat -> a -> Text
   timeFromTimeOfDay' :: TimeOfDay -> a
   timeToTimeOfDay' :: a -> Maybe TimeOfDay
 
@@ -158,7 +164,7 @@ data TimeFieldCfg s e a = TimeFieldCfg {
   _tfcCaretMs :: Maybe Millisecond,
   _tfcValid :: Maybe (WidgetData s Bool),
   _tfcValidV :: [Bool -> e],
-  _tfcTimeFormat :: Maybe TimeFormat,
+  _tfcTimeFormat :: Maybe TimeFieldFormat,
   _tfcMinValue :: Maybe a,
   _tfcMaxValue :: Maybe a,
   _tfcWheelRate :: Maybe Double,
@@ -459,7 +465,7 @@ handleMove config state rate value dy = result where
 
 timeFromTextSimple
   :: (TimeOfDayConverter a, FormattableTime a)
-  => TimeFormat
+  => TimeFieldFormat
   -> Text
   -> Maybe a
 timeFromTextSimple format text = newTime where
@@ -474,7 +480,7 @@ timeFromTextSimple format text = newTime where
       | otherwise -> makeTimeOfDayValid n1 n2 (fromIntegral n3)
   newTime = tmpTime >>= timeFromTimeOfDay'
 
-timeToTextSimple :: FormattableTime a => TimeFormat -> a -> Text
+timeToTextSimple :: FormattableTime a => TimeFieldFormat -> a -> Text
 timeToTextSimple format val = result where
   sep = T.singleton defaultTimeDelim
   converted = timeToTimeOfDay' val
@@ -490,7 +496,7 @@ timeToTextSimple format val = result where
     | format == FormatHHMM = thh <> sep <> tmm
     | otherwise = thh <> sep <> tmm <> sep <> tss
 
-acceptTextInput :: TimeFormat -> Text -> Bool
+acceptTextInput :: TimeFieldFormat -> Text -> Bool
 acceptTextInput format text = isRight (A.parseOnly parser text) where
   numP = A.digit *> ""
   delimP = A.char defaultTimeDelim *> ""

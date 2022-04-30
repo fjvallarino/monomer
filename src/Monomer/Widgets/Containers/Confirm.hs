@@ -38,6 +38,7 @@ customConfirm = confirm ConfirmAcceptEvent ConfirmCancelEvent where
 module Monomer.Widgets.Containers.Confirm (
   -- * Configuration
   ConfirmCfg,
+  InnerConfirmEvt,
   -- * Constructors
   confirm,
   confirm_,
@@ -110,28 +111,34 @@ instance CmbCancelCaption ConfirmCfg where
     _cfcCancel = Just t
   }
 
-newtype ConfirmEvt e
+{-|
+Wraps the user event to be able to implement custom events and still be able to
+report to its parent.
+
+Previously used, now kept for reference.
+-}
+newtype InnerConfirmEvt e
   = ConfirmParentEvt e
   deriving (Eq, Show)
 
 -- | Creates a confirm dialog with the provided content.
 confirm
   :: (WidgetModel s, WidgetEvent e)
-  => e                             -- ^ The accept button event.
-  -> e                             -- ^ The cancel button event.
-  -> WidgetNode () (ConfirmEvt e)  -- ^ The content to display in the dialog.
-  -> WidgetNode s e               -- ^ The created dialog.
+  => e                                  -- ^ The accept button event.
+  -> e                                  -- ^ The cancel button event.
+  -> WidgetNode () (InnerConfirmEvt e)  -- ^ Content to display in the dialog.
+  -> WidgetNode s e                     -- ^ The created dialog.
 confirm acceptEvt cancelEvt dialogBody = newNode where
   newNode = confirm_ acceptEvt cancelEvt def dialogBody
 
 -- | Creates an alert dialog with the provided content. Accepts config.
 confirm_
   :: (WidgetModel s, WidgetEvent e)
-  => e                             -- ^ The accept button event.
-  -> e                             -- ^ The cancel button event.
-  -> [ConfirmCfg]                   -- ^ The config options for the dialog.
-  -> WidgetNode () (ConfirmEvt e)  -- ^ The content to display in the dialog.
-  -> WidgetNode s e               -- ^ The created dialog.
+  => e                                  -- ^ The accept button event.
+  -> e                                  -- ^ The cancel button event.
+  -> [ConfirmCfg]                       -- ^ The config options for the dialog.
+  -> WidgetNode () (InnerConfirmEvt e)  -- ^ Content to display in the dialog.
+  -> WidgetNode s e                     -- ^ The created dialog.
 confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
   config = mconcat configs
   createUI = buildUI (const dialogBody) acceptEvt cancelEvt config
@@ -141,19 +148,19 @@ confirm_ acceptEvt cancelEvt configs dialogBody = newNode where
 -- | Creates an alert dialog with a text message as content.
 confirmMsg
   :: (WidgetModel s, WidgetEvent e)
-  => Text              -- ^ The message to display in the dialog.
-  -> e                -- ^ The accept button event.
-  -> e                -- ^ The cancel button event.
+  => Text            -- ^ The message to display in the dialog.
+  -> e               -- ^ The accept button event.
+  -> e               -- ^ The cancel button event.
   -> WidgetNode s e  -- ^ The created dialog.
 confirmMsg msg acceptEvt cancelEvt = confirmMsg_ msg acceptEvt cancelEvt def
 
 -- | Creates an alert dialog with a text message as content. Accepts config.
 confirmMsg_
   :: (WidgetModel s, WidgetEvent e)
-  => Text              -- ^ The message to display in the dialog.
-  -> e                -- ^ The accept button event.
-  -> e                -- ^ The cancel button event.
-  -> [ConfirmCfg]      -- ^ The config options for the dialog.
+  => Text            -- ^ The message to display in the dialog.
+  -> e               -- ^ The accept button event.
+  -> e               -- ^ The cancel button event.
+  -> [ConfirmCfg]    -- ^ The config options for the dialog.
   -> WidgetNode s e  -- ^ The created dialog.
 confirmMsg_ message acceptEvt cancelEvt configs = newNode where
   config = mconcat configs
@@ -173,13 +180,13 @@ mergeReqs wenv newNode oldNode parentModel oldModel model = reqs where
 
 buildUI
   :: (WidgetModel s, WidgetEvent ep)
-  => (WidgetEnv s (ConfirmEvt ep) -> WidgetNode s (ConfirmEvt ep))
+  => (WidgetEnv s (InnerConfirmEvt ep) -> WidgetNode s (InnerConfirmEvt ep))
   -> ep
   -> ep
   -> ConfirmCfg
-  -> WidgetEnv s (ConfirmEvt ep)
+  -> WidgetEnv s (InnerConfirmEvt ep)
   -> s
-  -> WidgetNode s (ConfirmEvt ep)
+  -> WidgetNode s (InnerConfirmEvt ep)
 buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   acceptEvt = ConfirmParentEvt pAcceptEvt
   cancelEvt = ConfirmParentEvt pCancelEvt
@@ -211,10 +218,10 @@ buildUI dialogBody pAcceptEvt pCancelEvt config wenv model = mainTree where
   mainTree = keystroke [("Esc", cancelEvt)] confirmBox
 
 handleEvent
-  :: WidgetEnv s (ConfirmEvt ep)
-  -> WidgetNode s (ConfirmEvt ep)
+  :: WidgetEnv s (InnerConfirmEvt ep)
+  -> WidgetNode s (InnerConfirmEvt ep)
   -> s
-  -> ConfirmEvt ep
-  -> [EventResponse s (ConfirmEvt ep) sp ep]
+  -> InnerConfirmEvt ep
+  -> [EventResponse s (InnerConfirmEvt ep) sp ep]
 handleEvent wenv node model evt = case evt of
   ConfirmParentEvt pevt -> [Report pevt]

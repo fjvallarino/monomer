@@ -34,7 +34,7 @@ Given two values, usually model, checks if merge is required for a given widget.
 The first parameter usually corresponds to the current 'WidgetEnv', the second
 to the old value/model, and the third to the new/model.
 
-This is used, for example, by 'composite' and 'box'.
+This is used, for example, by _composite_ and _box_.
 -}
 class CmbMergeRequired t w s | t -> w s where
   mergeRequired :: (w -> s -> s -> Bool) -> t
@@ -43,12 +43,12 @@ class CmbMergeRequired t w s | t -> w s where
 Listener for the validation status of a user input field using a lens.
 
 Allows associating a flag to know if the input of a field with validation
-settings is valid. This can be used with 'textField ,'numericField', 'dateField'
-and 'timeField'.
+settings is valid. This can be used with _textField_, _numericField_,
+_dateField_ and _timeField_.
 
 The flag can be used for styling the component according to the current status.
 Beyond styling, its usage is needed for validation purposes. Taking
-'numericField' as an example, one can bind a 'Double' record field to it and set
+_numericField_ as an example, one can bind a 'Double' record field to it and set
 a valid range from 0 to 100. When the user inputs 100, the record field will
 reflect the correct value. If the user adds a 0 (the numericField showing 1000),
 the record field will still have 100 because it's the last valid value. Since
@@ -383,11 +383,11 @@ for this:
 
 - 'IgnoreChildrenEvents': parent widgets always have the priority. If a widget
   returns this 'WidgetRequest' during event handling, its children widgets
-  response will be ignored. For example, the 'keystroke' widget can be
+  response will be ignored. For example, the _keystroke_ widget can be
   configured to return this when a keystroke combination matches.
 - 'IgnoreParentEvents': if no parent widget requested 'IgnoreChildrenEvents', a
   widget can respond with 'IgnoreParentEvents' to have its response being the
-  only one taking place. This is used, for example, by the 'textArea' widget to
+  only one taking place. This is used, for example, by the _textArea_ widget to
   handle the tab key; without this, the default handler would pass focus to the
   next widget down the line.
 
@@ -674,7 +674,7 @@ class CmbStyleActive t where
 {-|
 Disabled style combinator, mainly used infix with widgets.
 
-Used when the 'nodeEnabled' attribute has been set to False.
+Used when the _nodeEnabled_ attribute has been set to False.
 -}
 class CmbStyleDisabled t where
   -- | Merges the new disabled style states with the existing ones.

@@ -39,6 +39,7 @@ isActionEvent SDL.KeyboardEvent{} = True
 isActionEvent SDL.TextInputEvent{} = True
 isActionEvent _ = False
 
+-- | Configuration options for converting from an SDL event to a 'SystemEvent'.
 data ConvertEventsCfg = ConvertEventsCfg {
   _cecOs :: Text,           -- ^ The host operating system.
   _cecDpr :: Double,        -- ^ Device pixel rate.
