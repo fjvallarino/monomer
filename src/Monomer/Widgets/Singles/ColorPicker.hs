@@ -192,8 +192,10 @@ buildUI
 buildUI config wenv model = mainTree where
   showAlpha = fromMaybe False (_cpcShowAlpha config)
   colorSample = zstack [
-      patternImage 2 10 (rgb 255 255 255) (rgb 150 150 150),
-      filler `styleBasic` [bgColor model]
+      patternImage 2 10 (rgb 255 255 255) (rgb 150 150 150)
+        `styleBasic` [radius 4],
+      filler
+        `styleBasic` [bgColor model, radius 4]
     ] `styleBasic` [width 32]
 
   compRow lensCol evt lbl minV maxV = hstack [
