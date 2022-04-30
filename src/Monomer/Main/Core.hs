@@ -19,11 +19,11 @@ module Monomer.Main.Core (
   startApp
 ) where
 
-import Control.Concurrent (MVar, forkIO, forkOS, newMVar, threadDelay)
+import Control.Concurrent
 import Control.Concurrent.STM.TChan (TChan, newTChanIO, readTChan, writeTChan)
+import Control.Exception
 import Control.Lens ((&), (^.), (.=), (.~), use)
 import Control.Monad (unless, void, when)
-import Control.Monad.Catch
 import Control.Monad.Extra
 import Control.Monad.State
 import Control.Monad.STM (atomically)
@@ -37,6 +37,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Graphics.GL
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import qualified SDL
 import qualified Data.Sequence as Seq
 
@@ -73,7 +74,6 @@ type AppUIBuilder s e = UIBuilder s e
 
 data MainLoopArgs sp e ep = MainLoopArgs {
   _mlOS :: Text,
-  _mlRenderer :: Maybe Renderer,
   _mlTheme :: Theme,
   _mlAppStartTs :: Millisecond,
   _mlMaxFps :: Int,
@@ -83,8 +83,7 @@ data MainLoopArgs sp e ep = MainLoopArgs {
   _mlFrameCount :: Int,
   _mlExitEvents :: [e],
   _mlWidgetRoot :: WidgetNode sp ep,
-  _mlWidgetShared :: MVar (Map Text WidgetShared),
-  _mlChannel :: TChan (RenderMsg sp ep)
+  _mlWidgetShared :: MVar (Map Text WidgetShared)
 }
 
 data RenderState s e = RenderState {
@@ -136,7 +135,8 @@ runAppLoop window glCtx channel widgetRoot config = do
   dpr <- use L.dpr
   winSize <- use L.windowSize
 
-  let useRenderThread = fromMaybe True (_apcUseRenderThread config)
+  let useRenderThreadFlag = fromMaybe True (_apcUseRenderThread config)
+  let useRenderThread = useRenderThreadFlag && rtsSupportsBoundThreads
   let maxFps = fromMaybe 60 (_apcMaxFps config)
   let fonts = _apcFonts config
   let theme = fromMaybe def (_apcTheme config)
@@ -148,9 +148,6 @@ runAppLoop window glCtx channel widgetRoot config = do
   model <- use L.mainModel
   os <- liftIO getPlatform
   widgetSharedMVar <- liftIO $ newMVar Map.empty
-  renderer <- if useRenderThread
-    then return Nothing
-    else liftIO $ Just <$> makeRenderer fonts dpr
   fontManager <- liftIO $ makeFontManager fonts dpr
 
   let wenv = WidgetEnv {
@@ -183,13 +180,52 @@ runAppLoop window glCtx channel widgetRoot config = do
   let pathReadyRoot = widgetRoot
         & L.info . L.path .~ rootPath
         & L.info . L.widgetId .~ WidgetId (wenv ^. L.timestamp) rootPath
+  let makeMainThreadRenderer = do
+        renderer <- liftIO $ makeRenderer fonts dpr
+        L.renderMethod .= Left renderer
+        return RenderSetupSingle
+
+  setupRes <- if useRenderThread
+    then do
+      stpChan <- liftIO newTChanIO
+
+      liftIO . void . forkOS $
+        {-
+        The wenv and widgetRoot values are not used, since they are replaced
+        during MsgInit. Kept to avoid issues with the Strict pragma.
+        -}
+        startRenderThread stpChan channel window glCtx fonts dpr wenv widgetRoot
+
+      setupRes <- liftIO . atomically $ readTChan stpChan
+
+      case setupRes of
+        RenderSetupMakeCurrentFailed msg -> do
+          liftIO . putStrLn $ "Setup of the rendering thread failed: " ++ msg
+          liftIO . putStrLn $ "Falling back to rendering in the main thread. "
+            ++ "The content may not be updated while resizing the window."
+
+          makeMainThreadRenderer
+        _ -> do
+          return RenderSetupMulti
+    else do
+      makeMainThreadRenderer
 
   handleResourcesInit
   (newWenv, newRoot, _) <- handleWidgetInit wenv pathReadyRoot
 
+  {-
+  Deferred initialization step to account for Widgets that rely on OpenGL. They
+  need the Renderer to be setup before handleWidgetInit is called, and it is
+  safer to initialize the watcher after this happens.
+  -}
+  case setupRes of
+    RenderSetupMulti -> do
+      liftIO . atomically $ writeTChan channel (MsgInit newWenv newRoot)
+      liftIO $ watchWindowResize channel
+    _ -> return ()
+
   let loopArgs = MainLoopArgs {
     _mlOS = os,
-    _mlRenderer = renderer,
     _mlTheme = theme,
     _mlMaxFps = maxFps,
     _mlAppStartTs = appStartTs,
@@ -199,16 +235,10 @@ runAppLoop window glCtx channel widgetRoot config = do
     _mlFrameCount = 0,
     _mlExitEvents = exitEvents,
     _mlWidgetRoot = newRoot,
-    _mlWidgetShared = widgetSharedMVar,
-    _mlChannel = channel
+    _mlWidgetShared = widgetSharedMVar
   }
 
   L.mainModel .= _weModel newWenv
-
-  when useRenderThread $ do
-    liftIO $ watchWindowResize channel
-    liftIO . void . forkOS $
-      startRenderThread channel window glCtx fonts dpr newWenv newRoot
 
   mainLoop window fontManager config loopArgs
 
@@ -314,20 +344,22 @@ mainLoop window fontManager config loopArgs = do
   -- Rendering
   renderCurrentReq <- checkRenderCurrent startTs _mlLatestRenderTs
 
-  let useRenderThread = fromMaybe True (_apcUseRenderThread config)
   let renderEvent = any isActionEvent eventsPayload
   let winRedrawEvt = windowResized || windowExposed
   let renderNeeded = winRedrawEvt || renderEvent || renderCurrentReq
 
-  when (renderNeeded && useRenderThread) $
-    liftIO . atomically $ writeTChan _mlChannel (MsgRender newWenv newRoot)
+  when renderNeeded $ do
+    renderMethod <- use L.renderMethod
 
-  when (renderNeeded && not useRenderThread) $ do
-    let renderer = fromJust _mlRenderer
-    let bgColor = newWenv ^. L.theme . L.clearColor
+    case renderMethod of
+      Right renderChan -> do
+        liftIO . atomically $ writeTChan renderChan (MsgRender newWenv newRoot)
+      Left renderer -> do
+        let bgColor = newWenv ^. L.theme . L.clearColor
 
-    liftIO $ renderWidgets window dpr renderer bgColor newWenv newRoot
+        liftIO $ renderWidgets window dpr renderer bgColor newWenv newRoot
 
+  -- Used in the next rendering cycle
   L.renderRequested .= windowResized
 
   let fps = realToFrac _mlMaxFps
@@ -353,9 +385,18 @@ mainLoop window fontManager config loopArgs = do
 
   unless shouldQuit (mainLoop window fontManager config newLoopArgs)
 
+{-
+Attempts to initialize a GL context in a separate OS thread to handle rendering
+actions. This allows for continuous content updates when the user resizes the
+window.
+
+In case the setup fails, it notifies the parent process so it can fall back to
+rendering in the main thread.
+-}
 startRenderThread
   :: (Eq s, WidgetEvent e)
-  => TChan (RenderMsg s e)
+  => TChan RenderSetupResult
+  -> TChan (RenderMsg s e)
   -> SDL.Window
   -> SDL.GLContext
   -> [FontDef]
@@ -363,12 +404,23 @@ startRenderThread
   -> WidgetEnv s e
   -> WidgetNode s e
   -> IO ()
-startRenderThread channel window glCtx fonts dpr wenv root = do
-  SDL.glMakeCurrent window glCtx
-  renderer <- liftIO $ makeRenderer fonts dpr
-  fontMgr <- liftIO $ makeFontManager fonts dpr
+startRenderThread setupChan msgChan window glCtx fonts dpr wenv root = do
+  resp <- try $ SDL.glMakeCurrent window glCtx
 
-  waitRenderMsg channel window renderer fontMgr state
+  case resp of
+    Right{} -> do
+      renderer <- liftIO $ makeRenderer fonts dpr
+      fontMgr <- liftIO $ makeFontManager fonts dpr
+
+      atomically $ writeTChan setupChan RenderSetupMulti
+
+      waitRenderMsg msgChan window renderer fontMgr state
+    Left (SDL.SDLCallFailed _ _ err) -> do
+      let msg = T.unpack err
+      atomically $ writeTChan setupChan (RenderSetupMakeCurrentFailed msg)
+    Left e -> do
+      let msg = displayException e
+      atomically $ writeTChan setupChan (RenderSetupMakeCurrentFailed msg)
   where
     state = RenderState dpr wenv root
 
@@ -380,10 +432,10 @@ waitRenderMsg
   -> FontManager
   -> RenderState s e
   -> IO ()
-waitRenderMsg channel window renderer fontMgr state = do
-  msg <- liftIO . atomically $ readTChan channel
+waitRenderMsg msgChan window renderer fontMgr state = do
+  msg <- atomically $ readTChan msgChan
   newState <- handleRenderMsg window renderer fontMgr state msg
-  waitRenderMsg channel window renderer fontMgr newState
+  waitRenderMsg msgChan window renderer fontMgr newState
 
 handleRenderMsg
   :: (Eq s, WidgetEvent e)
@@ -393,6 +445,9 @@ handleRenderMsg
   -> RenderState s e
   -> RenderMsg s e
   -> IO (RenderState s e)
+handleRenderMsg window renderer fontMgr state (MsgInit newWenv newRoot) = do
+  let RenderState dpr _ _ = state
+  return (RenderState dpr newWenv newRoot)
 handleRenderMsg window renderer fontMgr state (MsgRender tmpWenv newRoot) = do
   let RenderState dpr _ _ = state
   let newWenv = tmpWenv

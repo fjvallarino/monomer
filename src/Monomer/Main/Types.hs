@@ -47,10 +47,17 @@ type MonomerM s e m = (Eq s, MonadState (MonomerCtx s e) m, MonadCatch m, MonadI
 
 -- | Messages received by the rendering thread.
 data RenderMsg s e
-  = MsgRender (WidgetEnv s e) (WidgetNode s e)
+  = MsgInit (WidgetEnv s e) (WidgetNode s e)
+  | MsgRender (WidgetEnv s e) (WidgetNode s e)
   | MsgResize Size
   | MsgRemoveImage Text
   | forall i . MsgRunInRender (TChan i) (IO i)
+
+data RenderSetupResult
+  = RenderSetupSingle
+  | RenderSetupMulti
+  | RenderSetupMakeCurrentFailed String
+  deriving (Eq, Show)
 
 {-|
 Requirements for periodic rendering by a widget. Start time is stored to
@@ -93,8 +100,8 @@ data MonomerCtx s e = MonomerCtx {
   _mcDpr :: Double,
   -- | Event pixel rate.
   _mcEpr :: Double,
-  -- | Event pixel rate.
-  _mcRenderChannel :: TChan (RenderMsg s e),
+  -- | Renderer instance or communication channel with the render thread.
+  _mcRenderMethod :: Either Renderer (TChan (RenderMsg s e)),
   -- | Input status (mouse and keyboard).
   _mcInputStatus :: InputStatus,
   -- | Cursor icons (a stack is used because of parent -> child relationship).
@@ -286,11 +293,21 @@ Performs rendering on the main thread. On macOS and Windows this also disables
 continuous rendering on window resize, but in some Linux configurations it still
 works.
 
-This option is useful when OpenGL driver issues prevent normal startup showing
-the "Unable to make GL context current" error.
+This configuration option was originally available to handle:
 
-It can also be used for single threaded applications (without -threaded).
+  - OpenGL driver issues which prevented normal startup showing the "Unable to
+    make GL context current" error.
+  - Single threaded applications (without -threaded) which cannot use forkOS.
+
+This flag is no longer necessary for those cases, since the library will:
+
+  - Attempt to fall back to rendering on the main thread if setting up a
+    secondary rendering thread fails.
+  - Will not attempt to set up a secondary rendering thread if the runtime does
+    not support bound threads (i.e. compiled without the -threaded flag).
 -}
+{-# DEPRECATED appRenderOnMainThread
+  "Should no longer be needed. Check appRenderOnMainThread's Haddock page." #-}
 appRenderOnMainThread :: AppConfig e
 appRenderOnMainThread = def {
   _apcUseRenderThread = Just False

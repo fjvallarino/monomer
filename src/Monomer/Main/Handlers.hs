@@ -51,6 +51,7 @@ import qualified SDL.Raw.Types as SDLT
 
 import Monomer.Core
 import Monomer.Event
+import Monomer.Graphics
 import Monomer.Helper (headMay, seqStartsWith)
 import Monomer.Main.Types
 import Monomer.Main.Util
@@ -547,9 +548,12 @@ handleRenderStop widgetId previousStep = do
 handleRemoveRendererImage
   :: MonomerM s e m => Text -> HandlerStep s e -> m (HandlerStep s e)
 handleRemoveRendererImage name previousStep = do
-  renderChannel <- use L.renderChannel
+  renderMethod <- use L.renderMethod
 
-  liftIO . atomically $ writeTChan renderChannel (MsgRemoveImage name)
+  case renderMethod of
+    Left renderer -> liftIO $ deleteImage renderer name
+    Right chan -> liftIO . atomically $ writeTChan chan (MsgRemoveImage name)
+
   return previousStep
 
 handleExitApplication
@@ -661,9 +665,17 @@ handleRunInRenderThread
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRunInRenderThread widgetId path handler previousStep = do
-  renderChannel <- use L.renderChannel
+  renderMethod <- use L.renderMethod
 
-  handleRunTask widgetId path (taskWrapper renderChannel) previousStep
+  task <- case renderMethod of
+    Left renderer -> do
+      -- Force running in main thread to avoid issues with OpenGL
+      result <- liftIO handler
+      return (return result)
+    Right chan -> do
+      return $ liftIO (taskWrapper chan)
+
+  handleRunTask widgetId path task previousStep
   where
     taskWrapper renderChannel = do
       msgChan <- newTChanIO

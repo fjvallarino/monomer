@@ -114,16 +114,6 @@ Inside your project's directory:
 stack build
 ```
 
-#### Linux notes
-
-One case has been reported where an _"Unable to make GL context current"_ error
-ocurred on application startup. This seems to be a driver issue, and it's not
-something that can be fixed from the library.
-
-As a workaround, an application configuration option called
-`appRenderOnMainThread` is available. It can be added to the `config` list of
-the starter application or to the corresponding section of any of the examples.
-
 ## Build the examples included with the library
 
 In case you want to test the examples the library provides, you need to clone
@@ -152,6 +142,24 @@ stack run books
 stack run ticker
 stack run generative
 ```
+
+#### Notes
+
+Monomer uses a secondary thread for rendering to be able to redraw the content
+while the user resizes the window. In some configurations, mainly with NVIDIA
+drivers on Linux, setting up an OpenGL context in a secondary thread fails.
+
+If this happens, Monomer will try to fall back to rendering in the main thread
+and warn about the situation with a message similar to:
+
+```
+Setup of the rendering thread failed: Unable to make GL context current
+Falling back to rendering in the main thread.
+```
+
+Besides having the content stretched while resizing the window (i.e. not
+dinamically resized), there are no other differences between the threaded and
+non-threaded modes.
 
 ## Development mode
 
