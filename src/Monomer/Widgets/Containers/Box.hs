@@ -6,19 +6,45 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Container for a single item.
+Container for a single item, providing functionalities that may not be available
+in other widgets.
 
 Useful in different layout situations, since it provides alignment options. This
 allows for the inner widget to keep its size while being positioned more
 explicitly, while the box takes up the complete space assigned by its parent (in
-particular for containers which do not follow SizeReq restriccions, such as
+particular for containers which do not follow SizeReq restrictions, such as
 Grid).
+
+@
+box_ [alignRight, alignBottom] $
+  image "assets/test-image.jpg"
+    \`styleBasic\` [width 100, height 100]
+@
 
 Can be used to add padding to an inner widget with a border. This is equivalent
 to the margin property in CSS.
 
+@
+-- Padding is inside the border
+content = label \"Message\"
+  \`styleBasic\` [padding 5, border 1 black]
+-- Padding in the wrapper box acts as margin
+container = box content
+  \`styleBasic\` [padding 5]
+@
+
 Also useful to handle click events in complex widget structures (for example, a
 label with an image at its side).
+
+@
+content = vstack [
+    label "All the content widget is clickable",
+    spacer,
+    image "assets/test-image.jpg"
+  ]
+clickableItem = box_ [onClick ItemClicked] content
+  \`styleBasic\' [cursorHand]
+@
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}

@@ -10,7 +10,7 @@ Main module, re-exporting all the modules in the library. This is the module
 that should be imported by applications.
 
 To start using the library, it is recommended to check the
-<https://github.com/fjvallarino/monomer#documentation tutorials>:
+<https://github.com/fjvallarino/monomer#documentation tutorials>.
 
 If you don't want to use all the helper modules, or you don't want to import
 them unqualified, the modules you will need to import to create an application

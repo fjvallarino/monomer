@@ -8,6 +8,11 @@ Portability : non-portable
 
 Container for items with an associated clickable label. Mainly used with radio
 and checkbox.
+
+For usage examples, see:
+
+- "Monomer.Widgets.Singles.LabeledCheckbox"
+- "Monomer.Widgets.Singles.LabeledRadio"
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}

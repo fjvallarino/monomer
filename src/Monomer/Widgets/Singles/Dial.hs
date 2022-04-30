@@ -7,9 +7,14 @@ Stability   : experimental
 Portability : non-portable
 
 Dial widget, used for interacting with numeric values. It allows changing the
-value by keyboard arrows, dragging the mouse or using the wheel.
+value using the keyboard arrows, dragging the mouse or using the wheel.
 
-Similar in objective to "Monomer.Widgets.Singles.Slider", but uses less space.
+@
+dial numericLens 0 100
+@
+
+Similar in objective to "Monomer.Widgets.Singles.Slider", but uses less visual
+space in its parent container.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}

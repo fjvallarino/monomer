@@ -6,9 +6,30 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Simple confirm dialog, displaying an accept and close buttons and optional
-title. Usually embedded in a zstack component and displayed/hidden depending on
+Simple confirm dialog, displaying accept and close buttons and optional title.
+Usually embedded in a zstack component and displayed/hidden depending on
 context.
+
+Similar to "Monomer.Widgets.Containers.Alert", but takes two events to handle
+the Accept and Cancel actions.
+
+A simple text message can be displayed with 'confirmMsg', providing the message
+text and the events to generate when the user interacts with the dialog:
+
+@
+confirmMsg "Save changes?" ConfirmAcceptEvent ConfirmCancelEvent
+@
+
+Alternatively, a custom widget can be provided to display as content:
+
+@
+customConfirm = confirm ConfirmAcceptEvent ConfirmCancelEvent where
+  content = hstack [
+      label "Save changes?",
+      filler,
+      label fileName
+    ]
+@
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}

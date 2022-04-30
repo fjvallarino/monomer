@@ -6,15 +6,18 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Toggle button widget, used for boolean properties.
+Toggle button widget, used for boolean value.
 
-Its behavior is equivalent to 'Monomer.Widgets.Singles.Checkbox' and
-'Monomer.Widgets.Singles.LabeledCheckbox', with a different visual
+@
+toggleButton \"Toggle\" booleanLens
+@
+
+Its behavior is equivalent to "Monomer.Widgets.Singles.Checkbox" and
+"Monomer.Widgets.Singles.LabeledCheckbox", with a different visual
 representation.
 
-See 'Monomer.Widgets.Singles.OptionButton' for detailed notes.
+See "Monomer.Widgets.Singles.OptionButton" for detailed notes.
 -}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StrictData #-}

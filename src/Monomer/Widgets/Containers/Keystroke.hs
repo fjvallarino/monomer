@@ -30,6 +30,14 @@ The keys can be combined, for example:
 - Copy: "Ctrl-c" or "C-c"
 - App config: "Ctrl-Shift-p" or "C-S-p"
 
+@
+keystroke [("Esc", CancelEditing)] $ hstack [
+    label "Username:",
+    spacer,
+    textField userLens
+  ]
+@
+
 Note 1: Following the pattern explained in 'CmbIgnoreChildrenEvts', this widget
 by default allows children widgets (i.e., focused widgets) that may receive the
 events to respond to the pressed keys. If you want to avoid this, and only keep

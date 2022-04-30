@@ -152,7 +152,7 @@ instance Show WidgetShared where
 {-|
 WidgetRequests are the way a widget can perform side effects, such as changing
 cursor icons, get/set the clipboard and perform asynchronous tasks. These
-requests are included as part of a WidgetResult in different points in the
+requests are included as part of a 'WidgetResult' in different points in the
 lifecycle of a widget.
 -}
 data WidgetRequest s e
@@ -173,7 +173,7 @@ data WidgetRequest s e
   | SetFocus WidgetId
   -- | Requests the clipboard contents. It will be received as a SystemEvent.
   | GetClipboard WidgetId
-  -- | Sets the clipboard to the given ClipboardData.
+  -- | Sets the clipboard to the given 'ClipboardData'.
   | SetClipboard ClipboardData
   -- | Sets the viewport that should be remain visible when an on-screen
   --   keyboard is displayed. Required for mobile.
@@ -201,7 +201,7 @@ data WidgetRequest s e
   --   in order to reduce CPU usage. Widgets are responsible for requesting
   --   rendering at points of interest. Mouse (except mouse move) and keyboard
   --   events automatically generate render requests, but the result of a
-  --   WidgetTask or WidgetProducer does not.
+  --   'WidgetTask' or 'WidgetProducer' does not.
   | RenderOnce
   -- | Useful if a widget requires periodic rendering. An optional maximum
   --   number of frames can be provided.
@@ -426,8 +426,8 @@ data WidgetNode s e = WidgetNode {
 {-|
 An instance of the widget in the widget tree, without specific type information.
 This allows querying for widgets that may be nested in Composites, which are not
-visible as a regular "WidgetNode" because of possible type mismatches (see
-"WidgetKeyMap").
+visible as a regular 'WidgetNode' because of possible type mismatches (see
+'WidgetKeyMap').
 -}
 data WidgetInstanceNode = WidgetInstanceNode {
   -- | Information about the instance.

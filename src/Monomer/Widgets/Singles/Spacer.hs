@@ -7,10 +7,27 @@ Stability   : experimental
 Portability : non-portable
 
 Spacer is used for adding a fixed space between two widgets.
+
+@
+hstack [
+  label \"Username\",
+  spacer,
+  label username
+]
+@
+
 Filler is used for taking all the unused space between two widgets. Useful for
 alignment purposes.
 
-Both adapt to the current layout direction, if any.
+@
+hstack [
+  label "Section title",
+  filler,
+  button \"Close\" CloseSection
+]
+@
+
+Both adapt to the active layout direction.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 

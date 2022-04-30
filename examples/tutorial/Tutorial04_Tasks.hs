@@ -52,7 +52,7 @@ buildUI wenv model = widgetTree where
     `nodeVisible` (model ^. selected == idx)
   imageSet = hstack [
       numberedImage "https://picsum.photos/id/1020/800/600" 1,
-      numberedImage "https://picsum.photos/id/1047/800/600" 2,
+      numberedImage "https://picsum.photos/id/1043/800/600" 2,
       numberedImage "https://picsum.photos/id/1047/800/600" 3,
       numberedImage "https://picsum.photos/id/1025/800/600" 4,
       numberedImage "https://picsum.photos/id/1080/800/600" 5,

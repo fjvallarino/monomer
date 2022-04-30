@@ -6,7 +6,18 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for multiline 'Text'.
+Input field for multiline 'Text'. Allows setting the maximum number of
+characters, lines and whether the tab key should trigger focus change.
+
+@
+textArea longTextLens
+@
+
+With configuration options:
+
+@
+textArea_ longTextLens [maxLength 1000, selectOnFocus]
+@
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}

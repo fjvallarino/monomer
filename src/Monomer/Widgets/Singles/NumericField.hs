@@ -6,7 +6,17 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for numeric types.
+Input field for numeric types, with support for valid ranges and decimal places.
+
+@
+numericField numericLens
+@
+
+With configuration options:
+
+@
+numericField_ numericLens [minValue 0, maxValue 100, decimals 2]
+@
 
 Supports instances of the 'FromFractional' typeclass. Several basic types are
 implemented, both for integer and floating point types.
@@ -217,13 +227,13 @@ instance CmbReadOnly (NumericFieldCfg s e a) where
   }
 
 instance FormattableNumber a => CmbMinValue (NumericFieldCfg s e a) a where
-  minValue len = def {
-    _nfcMinValue = Just len
+  minValue value = def {
+    _nfcMinValue = Just value
   }
 
 instance FormattableNumber a => CmbMaxValue (NumericFieldCfg s e a) a where
-  maxValue len = def {
-    _nfcMaxValue = Just len
+  maxValue value = def {
+    _nfcMaxValue = Just value
   }
 
 instance CmbWheelRate (NumericFieldCfg s e a) Double where

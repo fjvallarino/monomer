@@ -6,13 +6,18 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Displays a text message above its child node when the pointer is on top and
-the delay, if any, has ellapsed.
+Displays a text message above its child node when the pointer is on top and the
+delay, if any, has ellapsed.
 
-Tooltip styling is a bit unusual, since it only applies to the overlaid element.
-This means, padding will not be shown for the contained child element, but only
+Tooltip styling is a bit unusual, since it is applied to the overlaid element.
+This means padding will not be shown for the contained child element, but only
 on the message when the tooltip is active. If you need padding around the child
-element, you may want to use a box.
+element, you can use a "Monomer.Widgets.Containers.Box" around it.
+
+@
+tooltip "Click the button" (buttom \"Accept\" AcceptAction)
+  \`styleBasic\` [textSize 16, bgColor steelBlue, paddingH 5, radius 5]
+@
 -}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}

@@ -9,12 +9,13 @@ Portability : non-portable
 Widgets module, grouping and re-exporting all the existing widgets.
 -}
 module Monomer.Widgets (
+  -- * Composite widget
   module Monomer.Widgets.Composite,
-
+  -- * Animation
   module Monomer.Widgets.Animation.Fade,
   module Monomer.Widgets.Animation.Slide,
   module Monomer.Widgets.Animation.Types,
-
+  -- * Containers
   module Monomer.Widgets.Containers.Alert,
   module Monomer.Widgets.Containers.Box,
   module Monomer.Widgets.Containers.Confirm,
@@ -30,7 +31,7 @@ module Monomer.Widgets (
   module Monomer.Widgets.Containers.ThemeSwitch,
   module Monomer.Widgets.Containers.Tooltip,
   module Monomer.Widgets.Containers.ZStack,
-
+  -- * Single widgets
   module Monomer.Widgets.Singles.Button,
   module Monomer.Widgets.Singles.Checkbox,
   module Monomer.Widgets.Singles.ColorPicker,

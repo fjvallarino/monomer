@@ -6,8 +6,12 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Provides a clickable link that opens in the system's browser. It uses OS
-services to open the URI, which means not only URLs can be opened.
+Provides a clickable link that is opened by the host OS. Since it relies on the
+OS to open the content, it is possible to open URIs other than urls.
+
+@
+externalLink "Open Wikipedia" "https://en.wikipedia.org"
+@
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}

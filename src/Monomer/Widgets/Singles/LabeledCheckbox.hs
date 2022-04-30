@@ -6,8 +6,18 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Labeled checkbox, used for interacting with boolean values with an associated
-clickable label.
+Labeled checkbox, used for interacting with boolean values. In contrast to
+'checkbox', it includes a clickable label.
+
+@
+labeledCheckbox "Bool value" booleanLens
+@
+
+With text in a different location:
+
+@
+labeledCheckbox_ "Checkbox with text below" booleanLens [textBottom]
+@
 -}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}

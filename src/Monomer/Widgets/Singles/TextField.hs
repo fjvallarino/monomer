@@ -6,7 +6,19 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for single line 'Text'.
+Input field for single line 'Text'. Allows setting the maximum number of
+characters and a replacement character for password.
+
+@
+textField shortTextLens
+@
+
+With configuration options:
+
+@
+textField_ shortTextLens [maxLength 100, selectOnFocus_ False]
+@
+
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}

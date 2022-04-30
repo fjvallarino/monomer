@@ -6,13 +6,21 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Input field for time types.
+Input field for time types with support for different formats.
 
-Supports TimeOfDay type of the <https://hackage.haskell.org/package/time time>
+@
+timeField timeLens
+@
+
+With configuration options:
+
+@
+timeField_ timeLens [timeFormatHHMMSS]
+@
+
+Supports 'TimeOfDay' type of the <https://hackage.haskell.org/package/time time>
 library, but other types can be supported by implementing 'TimeOfDayConverter'.
-Maybe is also supported.
-
-Supports different time formats.
+'Maybe' is also supported.
 
 Handles mouse wheel and shift + vertical drag to increase/decrease minutes.
 -}
@@ -132,10 +140,10 @@ warnings in the UI, or disable buttons if needed.
 - 'resizeOnChange': Whether input causes ResizeWidgets requests.
 - 'selectOnFocus': Whether all input should be selected when focus is received.
 - 'readOnly': Whether to prevent the user changing the input text.
-- 'minValue': Minimum valid date.
-- 'maxValue': Maximum valid date.
-- 'wheelRate': The rate at which wheel movement affects the date.
-- 'dragRate': The rate at which drag movement affects the date.
+- 'minValue': Minimum valid time.
+- 'maxValue': Maximum valid time.
+- 'wheelRate': The rate at which wheel movement affects the time.
+- 'dragRate': The rate at which drag movement affects the time.
 - 'onFocus': event to raise when focus is received.
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.

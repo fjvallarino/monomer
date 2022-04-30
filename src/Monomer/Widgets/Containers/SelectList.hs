@@ -7,13 +7,22 @@ Stability   : experimental
 Portability : non-portable
 
 Select list widget, allowing selection of a single item. List content (rows) is
-customizable, plus its styling.
+customizable, and so is its styling. This widget is used by
+"Monomer.Widgets.Containers.Dropdown" when in its open state.
+
+@
+makeRow username = hstack [
+    label "User: ",
+    label username
+  ]
+
+customSelect = selectList userLens usernames makeRow
+@
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
