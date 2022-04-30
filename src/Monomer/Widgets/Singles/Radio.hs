@@ -62,13 +62,16 @@ Configuration options for radio:
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.
 - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
-- 'onChange': event to raise when the value changes/is clicked.
-- 'onChangeReq': 'WidgetRequest' to generate when the value changes/is clicked.
+- 'onClick': event to raise when the value is clicked.
+- 'onClickReq': 'WidgetRequest' to generate when the value is clicked.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
 -}
 data RadioCfg s e a = RadioCfg {
   _rdcWidth :: Maybe Double,
   _rdcOnFocusReq :: [Path -> WidgetRequest s e],
   _rdcOnBlurReq :: [Path -> WidgetRequest s e],
+  _rdcOnClickReq :: [WidgetRequest s e],
   _rdcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -77,6 +80,7 @@ instance Default (RadioCfg s e a) where
     _rdcWidth = Nothing,
     _rdcOnFocusReq = [],
     _rdcOnBlurReq = [],
+    _rdcOnClickReq = [],
     _rdcOnChangeReq = []
   }
 
@@ -85,6 +89,7 @@ instance Semigroup (RadioCfg s e a) where
     _rdcWidth = _rdcWidth t2 <|> _rdcWidth t1,
     _rdcOnFocusReq = _rdcOnFocusReq t1 <> _rdcOnFocusReq t2,
     _rdcOnBlurReq = _rdcOnBlurReq t1 <> _rdcOnBlurReq t2,
+    _rdcOnClickReq = _rdcOnClickReq t1 <> _rdcOnClickReq t2,
     _rdcOnChangeReq = _rdcOnChangeReq t1 <> _rdcOnChangeReq t2
   }
 
@@ -114,6 +119,16 @@ instance WidgetEvent e => CmbOnBlur (RadioCfg s e a) e Path where
 instance CmbOnBlurReq (RadioCfg s e a) s e Path where
   onBlurReq req = def {
     _rdcOnBlurReq = [req]
+  }
+
+instance WidgetEvent e => CmbOnClick (RadioCfg s e a) e where
+  onClick fn = def {
+    _rdcOnClickReq = [RaiseEvent fn]
+  }
+
+instance CmbOnClickReq (RadioCfg s e a) s e where
+  onClickReq req = def {
+    _rdcOnClickReq = [req]
   }
 
 instance WidgetEvent e => CmbOnChange (RadioCfg s e a) a e where
@@ -213,8 +228,14 @@ makeRadio !field !option !config = widget where
       rdArea = getRadioArea wenv node config
       path = node ^. L.info . L.path
       isSelectKey code = isKeyReturn code || isKeySpace code
+
+      currValue = widgetDataGet (wenv ^. L.model) field
       setValueReq = widgetDataSet field option
-      reqs = setValueReq ++ fmap ($ option) (_rdcOnChangeReq config)
+      clickReqs = _rdcOnClickReq config
+      changeReqs
+        | currValue /= option = fmap ($ option) (_rdcOnChangeReq config)
+        | otherwise = []
+      reqs = setValueReq ++ clickReqs ++ changeReqs
 
   getSizeReq wenv node = req where
     theme = currentTheme wenv node

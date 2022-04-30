@@ -62,8 +62,10 @@ Configuration options for toggleButton:
 - 'onFocusReq': 'WidgetRequest' to generate when focus is received.
 - 'onBlur': event to raise when focus is lost.
 - 'onBlurReq': 'WidgetRequest' to generate when focus is lost.
-- 'onChange': event to raise when the value changes/is clicked.
-- 'onChangeReq': 'WidgetRequest' to generate when the value changes/is clicked.
+- 'onClick': event to raise when the value is clicked.
+- 'onClickReq': 'WidgetRequest' to generate when the value is clicked.
+- 'onChange': event to raise when the value changes.
+- 'onChangeReq': 'WidgetRequest' to generate when the value changes.
 -}
 type ToggleButtonCfg = OptionButtonCfg
 
