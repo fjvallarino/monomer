@@ -1,4 +1,4 @@
-## 1.4.0.0 (in development)
+## 1.4.0.0
 
 ### Breaking changes
 
