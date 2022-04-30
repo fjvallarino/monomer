@@ -102,6 +102,7 @@ data OptionButtonCfg s e a = OptionButtonCfg {
   _obcLabelCfg :: LabelCfg s e,
   _obcOnFocusReq :: [Path -> WidgetRequest s e],
   _obcOnBlurReq :: [Path -> WidgetRequest s e],
+  _obcOnClickReq :: [WidgetRequest s e],
   _obcOnChangeReq :: [a -> WidgetRequest s e]
 }
 
@@ -112,6 +113,7 @@ instance Default (OptionButtonCfg s e a) where
     _obcLabelCfg = def,
     _obcOnFocusReq = [],
     _obcOnBlurReq = [],
+    _obcOnClickReq = [],
     _obcOnChangeReq = []
   }
 
@@ -122,6 +124,7 @@ instance Semigroup (OptionButtonCfg s e a) where
     _obcLabelCfg = _obcLabelCfg t1 <> _obcLabelCfg t2,
     _obcOnFocusReq = _obcOnFocusReq t1 <> _obcOnFocusReq t2,
     _obcOnBlurReq = _obcOnBlurReq t1 <> _obcOnBlurReq t2,
+    _obcOnClickReq = _obcOnClickReq t1 <> _obcOnClickReq t2,
     _obcOnChangeReq = _obcOnChangeReq t1 <> _obcOnChangeReq t2
   }
 
@@ -184,6 +187,16 @@ instance WidgetEvent e => CmbOnBlur (OptionButtonCfg s e a) e Path where
 instance CmbOnBlurReq (OptionButtonCfg s e a) s e Path where
   onBlurReq req = def {
     _obcOnBlurReq = [req]
+  }
+
+instance WidgetEvent e => CmbOnClick (OptionButtonCfg s e a) e where
+  onClick req = def {
+    _obcOnClickReq = [RaiseEvent req]
+  }
+
+instance CmbOnClickReq (OptionButtonCfg s e a) s e where
+  onClickReq req = def {
+    _obcOnClickReq = [req]
   }
 
 instance WidgetEvent e => CmbOnChange (OptionButtonCfg s e a) a e where
@@ -344,7 +357,11 @@ makeOptionButton styleOn styleOff !field !caption !isSelVal !getNextVal !config 
       currValue = widgetDataGet (wenv ^. L.model) field
       nextValue = getNextVal currValue
       setValueReq = widgetDataSet field nextValue
-      reqs = setValueReq ++ fmap ($ nextValue) (_obcOnChangeReq config)
+      clickReqs = _obcOnClickReq config
+      changeReqs
+        | currValue /= nextValue = fmap ($ nextValue) (_obcOnChangeReq config)
+        | otherwise = []
+      reqs = setValueReq ++ clickReqs ++ changeReqs
       result = resultReqs node reqs
       resultFocus = resultReqs node [SetFocus (node ^. L.info . L.widgetId)]
 

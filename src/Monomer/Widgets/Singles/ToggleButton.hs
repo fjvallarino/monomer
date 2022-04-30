@@ -6,7 +6,7 @@ Maintainer  : fjvallarino@gmail.com
 Stability   : experimental
 Portability : non-portable
 
-Toggle button widget, used for boolean value.
+Toggle button widget, used for boolean values.
 
 @
 toggleButton \"Toggle\" booleanLens
