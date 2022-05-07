@@ -588,8 +588,12 @@ makeScroll config state = widget where
       result
         | needsUpdate = Just $ makeResult newState
         | otherwise = Nothing
-      stepX = wheelRate * wx
-      stepY = wheelRate * wy
+      stepX
+        | shiftPressed && changedY = wheelRate * wy
+        | otherwise = wheelRate * wx
+      stepY
+        | shiftPressed = 0
+        | otherwise = wheelRate * wy
       newState = state {
         _sstDeltaX = scrollAxisH (stepX + dx),
         _sstDeltaY = scrollAxisV (stepY + dy)
@@ -601,6 +605,7 @@ makeScroll config state = widget where
       style = scrollCurrentStyle wenv node
       contentArea = getContentArea node style
       mousePos = wenv ^. L.inputStatus . L.mousePos
+      shiftPressed = isShiftPressed (wenv ^. L.inputStatus . L.keyMod)
 
       Rect cx cy cw ch = contentArea
       sctx = scrollStatus config wenv node state mousePos

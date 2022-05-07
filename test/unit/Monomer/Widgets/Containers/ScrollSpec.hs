@@ -53,6 +53,7 @@ handleEvent = describe "handleEvent" $ do
   handleBarClick
   handleThumbDrag
   handleChildrenFocus
+  handleWheel
   handleNestedWheel
   handleMessageReset
   raiseOnChange
@@ -167,6 +168,47 @@ handleChildrenFocus = describe "handleChildrenFocus" $ do
     followNode = scroll stackNode
     evtsIgnore es = nodeHandleEventEvts wenv es ignoreNode
     evtsFollow es = nodeHandleEventEvts wenv es followNode
+
+handleWheel :: Spec
+handleWheel = describe "handleWheel" $ do
+  it "should scroll horizontally with the horizontal wheel and click the second button" $ do
+    eventsH False `shouldBe` Seq.fromList [Button2]
+
+  it "should scroll horizontally with the horizontal wheel, ignoring shift, and click the second button" $ do
+    eventsH True `shouldBe` Seq.fromList [Button2]
+
+  it "should scroll vertically with the vertical wheel and click the third button" $ do
+    eventsV False `shouldBe` Seq.fromList [Button3]
+
+  it "should scroll horizontally with the vertical wheel, since shift is pressed, and click the second button" $ do
+    eventsV True `shouldBe` Seq.fromList [Button2]
+
+  where
+    wenv shiftPressed = mockWenv ()
+      & L.windowSize .~ Size 640 480
+      & L.inputStatus . L.keyMod . L.leftShift .~ shiftPressed
+
+    point = Point 160 240
+    st = [width 640, height 480]
+    stackNode = vstack [
+        hstack [
+          button "Button 1" Button1 `styleBasic` st,
+          button "Button 2" Button2 `styleBasic` st
+        ],
+        hstack [
+          button "Button 3" Button3 `styleBasic` st,
+          button "Button 4" Button4 `styleBasic` st
+        ]
+      ]
+    scrollNode = scroll stackNode
+
+    eventsH shift = nodeHandleEventEvts (wenv shift) es scrollNode where
+      evtWheel = WheelScroll point (Point (-2000) 0) WheelNormal
+      es = [evtWheel, evtClick point]
+
+    eventsV shift = nodeHandleEventEvts (wenv shift) es scrollNode where
+      evtWheel = WheelScroll point (Point 0 (-2000)) WheelNormal
+      es = [evtWheel, evtClick point]
 
 handleNestedWheel :: Spec
 handleNestedWheel = describe "handleNestedWheel" $ do
