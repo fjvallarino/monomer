@@ -22,6 +22,8 @@ module Monomer.Widgets.Util.Drawing (
   drawLine,
   drawRect,
   drawRectBorder,
+  drawTriangle,
+  drawTriangleBorder,
   drawArc,
   drawArcBorder,
   drawEllipse,
@@ -204,6 +206,48 @@ drawRectBorder renderer rect border Nothing =
   drawRectSimpleBorder renderer rect border
 drawRectBorder renderer rect border (Just radius) =
   drawRoundedRectBorder renderer rect border radius
+
+{-|
+Draws a filled triangle with the given color.
+
+The points should be provided in clockwise order.
+-}
+drawTriangle
+  :: Renderer     -- ^ The renderer.
+  -> Point        -- ^ The first point.
+  -> Point        -- ^ The second point.
+  -> Point        -- ^ The third point.
+  -> Maybe Color  -- ^ The color. If Nothing, the triangle will not be drawn.
+  -> IO ()        -- ^ The resulting action.
+drawTriangle _ _ _ _ Nothing = return ()
+drawTriangle renderer p1 p2 p3 (Just color) = do
+  beginPath renderer
+  setFillColor renderer color
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  closePath renderer
+  fill renderer
+
+-- | Draws a triangle's border with the given color and width.
+drawTriangleBorder
+  :: Renderer     -- ^ The renderer.
+  -> Point        -- ^ The first point.
+  -> Point        -- ^ The second point.
+  -> Point        -- ^ The third point.
+  -> Double       -- ^ The border width.
+  -> Maybe Color  -- ^ The color. If Nothing, the triangle will not be drawn.
+  -> IO ()        -- ^ The resulting action.
+drawTriangleBorder _ _ _ _ _ Nothing = return ()
+drawTriangleBorder renderer p1 p2 p3 width (Just color) = do
+  beginPath renderer
+  setStrokeColor renderer color
+  setStrokeWidth renderer width
+  moveTo renderer p1
+  renderLineTo renderer p2
+  renderLineTo renderer p3
+  closePath renderer
+  stroke renderer
 
 -- | Draws a filled arc, delimited by a rect and within the given angles.
 drawArc
