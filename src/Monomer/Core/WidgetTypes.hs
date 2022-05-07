@@ -324,9 +324,10 @@ data WidgetEnv s e = WidgetEnv {
   _weWidgetShared :: MVar (Map Text WidgetShared),
   {-|
   The active map of WidgetKey -> WidgetNode, if any. This map is restricted to
-  to the parent 'Composite'. Do not use this map directly, rely instead on the
-  'Monomer.Core.Util.widgetIdFromKey', 'Monomer.Core.Util.nodeInfoFromKey' and
-  'Monomer.Core.Util.nodeInfoFromPath' utility functions.
+  to the parent "Monomer.Widgets.Composite". Do not use this map directly, rely
+  instead on the 'Monomer.Core.Util.widgetIdFromKey',
+  'Monomer.Core.Util.nodeInfoFromKey' and 'Monomer.Core.Util.nodeInfoFromPath'
+  utility functions.
   -}
   _weWidgetKeyMap :: WidgetKeyMap s e,
   -- | The currently hovered path, if any.

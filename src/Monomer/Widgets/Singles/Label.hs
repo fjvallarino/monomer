@@ -17,7 +17,7 @@ label "This is a label"
 Multi-line label:
 
 @
-label_ "This is a\nmultiline label" [multiline]
+label_ "This is a\\nmultiline label" [multiline]
 @
 -}
 {-# LANGUAGE DeriveGeneric #-}
