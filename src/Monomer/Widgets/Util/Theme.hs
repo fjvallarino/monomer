@@ -8,6 +8,7 @@ Portability : non-portable
 
 Helper functions for loading theme values.
 -}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Strict #-}
 
@@ -73,3 +74,84 @@ collectUserTheme wenv name = style where
   active = wenv ^. L.theme . L.active . L.userStyleMap . at name
   disabled = wenv ^. L.theme . L.disabled . L.userStyleMap . at name
   style = Style basic hover focus focusHover active disabled
+
+{-|
+Sets the given value, overwriting the previous one, for each of the states of a
+theme.
+
+Useful for customizing a base theme.
+
+@
+theme = darkTheme
+  & setThemeValue L.sliderRadius (Just 10)
+  & setThemeValue L.sliderWidth 10
+@
+-}
+setThemeValue
+  :: Lens' ThemeState a
+  -> a
+  -> Theme
+  -> Theme
+setThemeValue field value theme = newTheme where
+  newTheme = theme
+    & L.basic . field .~ value
+    & L.hover . field .~ value
+    & L.focus . field .~ value
+    & L.focusHover . field .~ value
+    & L.active . field .~ value
+    & L.disabled . field .~ value
+
+{-|
+Sets the given style options, overwriting the previous style, for each of the
+states of a theme.
+
+Useful for customizing a base theme.
+
+@
+theme = darkTheme
+  & setThemeStyle L.dropdownStyle [padding 6, paddingV 6]
+@
+
+Note: In most cases 'mergeThemeStyle' is a better choice, since it keeps all the
+other style settings intact.
+-}
+setThemeStyle
+  :: Lens' ThemeState StyleState
+  -> [StyleState]
+  -> Theme
+  -> Theme
+setThemeStyle field styles theme = newTheme where
+  !value = mconcat styles
+  newTheme = theme
+    & L.basic . field .~ value
+    & L.hover . field .~ value
+    & L.focus . field .~ value
+    & L.focusHover . field .~ value
+    & L.active . field .~ value
+    & L.disabled . field .~ value
+
+{-|
+Merges the given style options with the existing style, for each of the states
+of a theme.
+
+Useful for customizing a base theme.
+
+@
+theme = darkTheme
+  & mergeThemeStyle L.dropdownStyle [padding 6, paddingV 6]
+@
+-}
+mergeThemeStyle
+  :: Lens' ThemeState StyleState
+  -> [StyleState]
+  -> Theme
+  -> Theme
+mergeThemeStyle field styles theme = newTheme where
+  !value = mconcat styles
+  newTheme = theme
+    & L.basic . field <>~ value
+    & L.hover . field <>~ value
+    & L.focus . field <>~ value
+    & L.focusHover . field <>~ value
+    & L.active . field <>~ value
+    & L.disabled . field <>~ value
