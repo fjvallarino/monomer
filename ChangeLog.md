@@ -1,3 +1,9 @@
+## 1.5.0.0 (in development)
+
+### Added
+
+- Support for switching vertical wheel scrolling to horizontal in scroll widget by pressing the shift key ([PR #137](https://github.com/fjvallarino/monomer/pull/137)).
+
 ## 1.4.0.0
 
 ### Breaking changes
