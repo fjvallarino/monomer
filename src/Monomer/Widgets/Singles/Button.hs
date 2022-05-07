@@ -184,14 +184,14 @@ mainConfig = def {
 
 {-|
 Creates a button with main styling. Useful to highlight an option, such as
-"Accept", when multiple buttons are available.
+\"Accept\", when multiple buttons are available.
 -}
 mainButton :: WidgetEvent e => Text -> e -> WidgetNode s e
 mainButton caption handler = button_ caption handler [mainConfig]
 
 {-|
 Creates a button with main styling. Useful to highlight an option, such as
-"Accept", when multiple buttons are available. Accepts config.
+\"Accept\", when multiple buttons are available. Accepts config.
 -}
 mainButton_ :: WidgetEvent e => Text -> e -> [ButtonCfg s e] -> WidgetNode s e
 mainButton_ caption handler configs = button_ caption handler newConfigs where
@@ -199,7 +199,7 @@ mainButton_ caption handler configs = button_ caption handler newConfigs where
 
 {-|
 Creates a button with main styling. Useful to highlight an option, such as
-"Accept", when multiple buttons are available. Accepts config but does not
+\"Accept\", when multiple buttons are available. Accepts config but does not
 require an event. See 'buttonD_'.
 -}
 mainButtonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
@@ -220,9 +220,10 @@ Creates a button without forcing an event to be provided. The other constructors
 use this version, adding an 'onClick' handler in configs.
 
 Using this constructor directly can be helpful in cases where the event to be
-raised belongs in a _Composite_ above in the widget tree, outside the scope of
-the Composite that contains the button. This parent Composite can be reached by
-sending a message ('SendMessage') to its 'WidgetId' using 'onClickReq'.
+raised belongs in a "Monomer.Widgets.Composite" above in the widget tree,
+outside the scope of the Composite that contains the button. This parent
+Composite can be reached by sending a message ('SendMessage') to its 'WidgetId'
+using 'onClickReq'.
 -}
 buttonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
 buttonD_ caption configs = buttonNode where
