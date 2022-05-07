@@ -322,7 +322,7 @@ data WidgetEnv s e = WidgetEnv {
   _weWindowSize :: Size,
   -- | The active map of shared data.
   _weWidgetShared :: MVar (Map Text WidgetShared),
-  {-
+  {-|
   The active map of WidgetKey -> WidgetNode, if any. This map is restricted to
   to the parent 'Composite'. Do not use this map directly, rely instead on the
   'widgetIdFromKey', 'nodeInfoFromKey' and 'nodeInfoFromPath' utility functions.

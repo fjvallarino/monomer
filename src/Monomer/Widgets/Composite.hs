@@ -170,14 +170,14 @@ data EventResponse s e sp ep
   = Model s
   -- | Raises a new event, which will be handled in the same cycle.
   | Event e
-  -- | Raises an event that will be handled by the parent.
+  -- | Raises an event that will be handled by the parent Composite.
   | Report ep
   -- | Generates a 'WidgetRequest'.
   | Request (WidgetRequest s e)
   {-|
-  Generates a 'WidgetRequest' matching the parent's types. Useful when receiving
-  requests as configuration from the parent, since the types will not match
-  otherwise.
+  Generates a 'WidgetRequest' matching the parent Composite's type. Useful when
+  receiving requests as configuration from the parent, since the types will not
+  match otherwise.
   -}
   | RequestParent (WidgetRequest sp ep)
   {-|

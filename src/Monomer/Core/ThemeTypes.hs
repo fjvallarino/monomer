@@ -9,7 +9,7 @@ Portability : non-portable
 Theme configuration types.
 -}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 
 module Monomer.Core.ThemeTypes where
 
@@ -19,7 +19,6 @@ import GHC.Generics
 
 import qualified Data.Map.Strict as M
 
-import Monomer.Common
 import Monomer.Core.StyleTypes
 import Monomer.Graphics.ColorTable
 import Monomer.Graphics.Types
