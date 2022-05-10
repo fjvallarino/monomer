@@ -59,6 +59,7 @@ Configuration options for button:
 - 'ellipsis': if ellipsis should be used for overflown text.
 - 'multiline': if text may be split in multiple lines.
 - 'maxLines': maximum number of text lines to show.
+- 'ignoreTheme': whether to load default style from theme or start empty.
 - 'resizeFactor': flexibility to have more or less spaced assigned.
 - 'resizeFactorW': flexibility to have more or less horizontal spaced assigned.
 - 'resizeFactorH': flexibility to have more or less vertical spaced assigned.

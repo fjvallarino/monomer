@@ -68,7 +68,7 @@ data FocusDirection
   | FocusBwd  -- ^ Focus moving backward (usually right to left, top to bottom).
   deriving (Eq, Show)
 
--- | "WidgetRequest" specific for window related operations.
+-- | 'WidgetRequest' specific for window related operations.
 data WindowRequest
   = WindowSetTitle Text  -- ^ Sets the title of the window to the given text.
   | WindowSetFullScreen  -- ^ Switches to fullscreen mode.
@@ -216,9 +216,12 @@ data WidgetRequest s e
   -- | Requests to exit the application. Can also be used to cancel a previous
   --   request (or a window close).
   | ExitApplication Bool
-  -- | Performs a "WindowRequest".
+  -- | Performs a 'WindowRequest'.
   | UpdateWindow WindowRequest
-  -- | Request a model update. This usually involves lenses and "widgetDataSet".
+  {-|
+  Request a model update. This usually involves lenses and
+  'Monomer.Widgets.Util.Widget.widgetDataSet'.
+  -}
   | UpdateModel (s -> s)
   -- | Updates the path of a given widget. Both "Monomer.Widgets.Single" and
   --   "Monomer.Widgets.Container" handle this automatically.
@@ -273,11 +276,13 @@ instance Eq e => Eq (WidgetRequest s e) where
 
 {-|
 Result of widget operations (init, merge, handleEvent, etc). The node is
-mandatory. The "resultNode", "resultEvts", "resultReqs" and "resultReqsEvts"
-helper functions can also be used.
+mandatory. The 'Monomer.Widgets.Util.Widget.resultNode',
+'Monomer.Widgets.Util.Widget.resultEvts',
+'Monomer.Widgets.Util.Widget.resultReqs' and
+'Monomer.Widgets.Util.Widget.resultReqsEvts' helper functions can also be used.
 
 In general a result starts in a child widget, but parent widgets can append
-requets or new versions of themselves.
+requests or new versions of themselves.
 -}
 data WidgetResult s e = WidgetResult {
   _wrNode :: WidgetNode s e,              -- ^ The updated widget node.
@@ -627,8 +632,8 @@ data Widget s e =
     Receives a message and, optionally, returns a result. This can include an
     updated version of the widget (in case it has internal state), user events
     or requests to the runtime. There is no validation regarding the message
-    type, and the widget should take care of _casting_ to the correct type using
-    "Data.Typeable.cast"
+    type, and the widget should take care of /casting/ to the correct type using
+    'Data.Typeable.cast'.
 
     Arguments:
 
