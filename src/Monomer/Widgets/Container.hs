@@ -258,7 +258,7 @@ type ContainerFindByPointHandler s e
 
 {-|
 Receives a System event and, optionally, modifies the event, its target, or
-cancels the event propagation by returning null.
+stops the event propagation by returning Nothing.
 
 Examples can be found in "Monomer.Widgets.Containers.Base.LabeledItem".
 -}
