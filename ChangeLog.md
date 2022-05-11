@@ -4,6 +4,7 @@
 
 - Support for switching vertical wheel scrolling to horizontal in scroll widget by pressing the shift key ([PR #137](https://github.com/fjvallarino/monomer/pull/137)).
 - Drawing and theme utility functions ([PR #138](https://github.com/fjvallarino/monomer/pull/138)).
+- `boxFilterEvent` config option, exposing Container's filterEvent functionality ([PR #146](https://github.com/fjvallarino/monomer/pull/146)).
 
 ## 1.4.0.0
 
