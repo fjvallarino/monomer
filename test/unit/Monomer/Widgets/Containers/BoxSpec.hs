@@ -26,6 +26,7 @@ import Monomer.Graphics
 import Monomer.TestEventUtil
 import Monomer.TestUtil
 import Monomer.Widgets.Containers.Box
+import Monomer.Widgets.Containers.Grid
 import Monomer.Widgets.Containers.ZStack
 import Monomer.Widgets.Singles.Button
 import Monomer.Widgets.Singles.Label
@@ -45,6 +46,7 @@ data TestEvent
 spec :: Spec
 spec = describe "Box" $ do
   mergeReq
+  filterEvent
   handleEvent
   handleEventIgnoreEmpty
   handleEventSinkEmpty
@@ -74,6 +76,29 @@ mergeReq = describe "mergeReq" $ do
     mergeWith newNode oldNode = result ^?! L.node . L.children . ix 0 where
       oldNode2 = nodeInit wenv oldNode
       result = widgetMerge (newNode ^. L.widget) wenv newNode oldNode2
+
+filterEvent :: Spec
+filterEvent = describe "filterEvent" $ do
+  it "should click the first button, since the click event was directed to it" $
+    evts False [evtClick point1] `shouldBe` Seq.singleton (BtnClick 1)
+
+  it "should click the second button, since the click event's target was modified" $
+    evts True [evtClick point1] `shouldBe` Seq.singleton (BtnClick 2)
+
+  where
+    wenv = mockWenv ()
+    point1 = Point 320 200
+    point2 = Point 320 400
+
+    filterEvent wenv node target evt = Just (target & ix 2 .~ 1, evtClick point2)
+
+    btnBox ignore = box_ (expandContent : [boxFilterEvent filterEvent | ignore]) $
+      vgrid [
+        button "Button 1" (BtnClick 1),
+        button "Button 2" (BtnClick 2)
+      ]
+    evts ignore es = nodeHandleEventEvts wenv es $
+      nodeInit wenv (btnBox ignore)
 
 handleEvent :: Spec
 handleEvent = describe "handleEvent" $ do
