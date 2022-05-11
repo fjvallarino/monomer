@@ -330,7 +330,10 @@ makeImage !imgSource !config !state = widget where
 
     sameImgNode = newNode
       & L.widget .~ makeImage imgSource config oldState
-    newMemReqs = [ RemoveRendererImage prevPath ]
+    newMemReqs = [ 
+        RemoveRendererImage prevPath,
+        ResizeWidgets wid
+      ]
     newImgReqs = [
         RemoveRendererImage prevPath,
         RunTask wid path (handleImageLoad config wenv imgPath)
