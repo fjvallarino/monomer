@@ -58,7 +58,8 @@ module Monomer.Widgets.Containers.Box (
   -- * Constructors
   box,
   box_,
-  expandContent
+  expandContent,
+  boxFilterEvent
 ) where
 
 import Control.Applicative ((<|>))
@@ -101,11 +102,13 @@ Configuration options for box:
 - 'onClickEmptyReq': generates a WidgetRequest on click in empty area.
 - 'expandContent': if the inner widget should use all the available space. To be
   able to use alignment options, this must be False (the default).
+- 'boxFilterEvent': allows filtering or modifying a 'SystemEvent'.
 -}
 data BoxCfg s e = BoxCfg {
   _boxExpandContent :: Maybe Bool,
   _boxIgnoreEmptyArea :: Maybe Bool,
   _boxSizeReqUpdater :: [SizeReqUpdater],
+  _boxFilterEvent :: Maybe (ContainerFilterHandler s e),
   _boxMergeRequired :: Maybe (WidgetEnv s e -> s -> s -> Bool),
   _boxAlignH :: Maybe AlignH,
   _boxAlignV :: Maybe AlignV,
@@ -124,6 +127,7 @@ instance Default (BoxCfg s e) where
     _boxExpandContent = Nothing,
     _boxIgnoreEmptyArea = Nothing,
     _boxSizeReqUpdater = [],
+    _boxFilterEvent = Nothing,
     _boxMergeRequired = Nothing,
     _boxAlignH = Nothing,
     _boxAlignV = Nothing,
@@ -142,6 +146,7 @@ instance Semigroup (BoxCfg s e) where
     _boxExpandContent = _boxExpandContent t2 <|> _boxExpandContent t1,
     _boxIgnoreEmptyArea = _boxIgnoreEmptyArea t2 <|> _boxIgnoreEmptyArea t1,
     _boxSizeReqUpdater = _boxSizeReqUpdater t1 <> _boxSizeReqUpdater t2,
+    _boxFilterEvent = _boxFilterEvent t2 <|> _boxFilterEvent t1,
     _boxMergeRequired = _boxMergeRequired t2 <|> _boxMergeRequired t1,
     _boxAlignH = _boxAlignH t2 <|> _boxAlignH t1,
     _boxAlignV = _boxAlignV t2 <|> _boxAlignV t1,
@@ -295,6 +300,15 @@ expandContent = def {
   _boxExpandContent = Just True
 }
 
+{-|
+Receives a System event and, optionally, modifies the event, its target, or
+stops the event propagation by returning Nothing.
+-}
+boxFilterEvent :: ContainerFilterHandler s e -> BoxCfg  s e
+boxFilterEvent handler = def {
+  _boxFilterEvent = Just handler
+}
+
 newtype BoxState s = BoxState {
   _bxsModel :: Maybe s
 }
@@ -330,6 +344,7 @@ makeBox config state = widget where
     containerInit = init,
     containerMergeChildrenReq = mergeRequired,
     containerMerge = merge,
+    containerFilterEvent = filterEvent,
     containerHandleEvent = handleEvent,
     containerGetSizeReq = getSizeReq,
     containerResize = resize
@@ -357,6 +372,10 @@ makeBox config state = widget where
   getCurrentStyle = currentStyle_ currentStyleConfig where
     currentStyleConfig = def
       & L.isActive .~ isNodeTreeActive
+
+  filterEvent = case _boxFilterEvent config of
+    Just handler -> handler
+    _ -> \wenv node target evt -> Just (target, evt)
 
   handleEvent wenv node target evt = case evt of
     Focus prev -> handleFocusChange node prev (_boxOnFocusReq config)
