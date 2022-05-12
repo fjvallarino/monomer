@@ -36,10 +36,11 @@ initMergeWidget = describe "init/merge" $ do
   it "should not create a task when merging to the same path" $
     Seq.length reqs2 `shouldBe` 0
 
-  it "should create a task when merging to a different path" $ do
-    Seq.length reqs3 `shouldBe` 2
-    Seq.index reqs3 0 `shouldSatisfy` isRemoveRendererImage
-    Seq.index reqs3 1 `shouldSatisfy` isRunTask
+  it "should create two tasks when merging to a different path" $ do
+    Seq.length reqs3 `shouldBe` 3
+    Seq.index reqs3 0 `shouldSatisfy` isRunTask
+    Seq.index reqs3 1 `shouldSatisfy` isRemoveRendererImage
+    Seq.index reqs3 2 `shouldSatisfy` isRunTask
 
   it "should have one widgetId on init (loading)" $
     ctx1 ^. L.widgetPaths `shouldSatisfy` (== 1) . length
