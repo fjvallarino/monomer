@@ -303,7 +303,7 @@ makeImage !imgSource !config !state = widget where
     singleRender = render
   }
 
-  !isImageMem = case imgSource of
+  isImageMem !source = case source of
     ImageMem{} -> True
     _ -> False
 
@@ -324,23 +324,30 @@ makeImage !imgSource !config !state = widget where
   merge wenv newNode oldNode oldState = result where
     wid = newNode ^. L.info . L.widgetId
     path = newNode ^. L.info . L.path
+
     oldSource = isImageSource oldState
-    imgPath = imgName imgSource
-    prevPath = imgName oldSource
+
+    newPath = imgName imgSource
+    oldPath = imgName oldSource
+    isNewMem = isImageMem imgSource
+    isOldMem = isImageMem oldSource
 
     sameImgNode = newNode
       & L.widget .~ makeImage imgSource config oldState
-    newMemReqs = [ 
-        RemoveRendererImage prevPath,
+
+    disposeOld = [ RunTask wid path (handleImageDispose wenv oldPath) | not isOldMem ]
+
+    newMemReqs = disposeOld ++ [
+        RemoveRendererImage oldPath,
         ResizeWidgets wid
       ]
-    newImgReqs = [
-        RemoveRendererImage prevPath,
-        RunTask wid path (handleImageLoad config wenv imgPath)
+    newImgReqs = disposeOld ++ [
+        RemoveRendererImage oldPath,
+        RunTask wid path (handleImageLoad config wenv newPath)
       ]
     result
       | oldSource == imgSource = resultNode sameImgNode
-      | isImageMem = resultReqs newNode newMemReqs
+      | isNewMem = resultReqs newNode newMemReqs
       | otherwise = resultReqs newNode newImgReqs
 
   dispose wenv node = resultReqs node reqs where
@@ -461,6 +468,7 @@ handleImageLoad config wenv path = do
   -- loading images in parallel. The main MVar is only taken until the image's
   -- MVar is retrieved/created.
   (sharedMap, sess) <- takeMVar sharedMapMVar >>= getImagesSession
+
   sharedImgMVar <- case useShared (Map.lookup key sharedMap) of
     Just mvar -> return mvar
     Nothing -> newMVar emptyImgState
@@ -468,6 +476,7 @@ handleImageLoad config wenv path = do
 
   -- Take the image's MVar until done
   sharedImg <- takeMVar sharedImgMVar
+
   (result, newSharedImg) <- case sharedImg of
     Just (oldState, oldCount) -> do
       return (ImageLoaded oldState, Just (oldState, oldCount + 1))
@@ -491,15 +500,18 @@ handleImageLoad config wenv path = do
 handleImageDispose :: WidgetEnv s e -> Text -> IO ()
 handleImageDispose wenv path = do
   sharedMap <- takeMVar sharedMapMVar
+
   newSharedMap <- case useShared (Map.lookup key sharedMap) of
     Just mvar -> do
       sharedImg <- takeMVar mvar
+
       return $ case sharedImg of
         Just (oldState :: ImageState, oldCount :: Int)
           | oldCount > 1 ->
               sharedMap & at key ?~ WidgetShared (oldState, oldCount - 1)
         _ -> sharedMap & at key .~ Nothing
     Nothing -> return sharedMap
+
   putMVar sharedMapMVar newSharedMap
   where
     sharedMapMVar = wenv ^. L.widgetShared
