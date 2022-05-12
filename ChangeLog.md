@@ -6,6 +6,11 @@
 - Drawing and theme utility functions ([PR #138](https://github.com/fjvallarino/monomer/pull/138)).
 - `boxFilterEvent` config option, exposing Container's filterEvent functionality ([PR #146](https://github.com/fjvallarino/monomer/pull/146)).
 
+### Fixed
+
+- Bug where memory based image widget would not render their new state after a merge ([PR #147](https://github.com/fjvallarino/monomer/pull/147)). Thanks @CamdenKuwahara!
+- Fix memory leak in NanoVGRenderer's image initialization. Dispose unused images in image widget ([PR #149](https://github.com/fjvallarino/monomer/pull/149)).
+
 ## 1.4.0.0
 
 ### Breaking changes
