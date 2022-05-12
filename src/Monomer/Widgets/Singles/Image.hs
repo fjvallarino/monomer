@@ -48,7 +48,7 @@ import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
 import Data.Default
-import Data.Map (Map)
+import Data.Map.Strict (Map)
 import Data.Maybe
 import Data.List (isPrefixOf)
 import Data.Text (Text)
@@ -62,7 +62,7 @@ import Network.Wreq.Session (Session)
 import qualified Codec.Picture as Pic
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import qualified Network.Wreq.Session as Sess
 
