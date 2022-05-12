@@ -471,7 +471,7 @@ imgIncreaseCount name imagesMap = newImageMap where
 
 imgInsertNew :: Text -> ImageDef -> ImagesMap -> VG.Image -> ImagesMap
 imgInsertNew name imageDef imagesMap nvImg = newImagesMap where
-  image = Image imageDef nvImg 0
+  image = Image imageDef nvImg 1
   newImagesMap = M.insert name image imagesMap
 
 imgDelete :: Text -> ImagesMap -> ImagesMap
