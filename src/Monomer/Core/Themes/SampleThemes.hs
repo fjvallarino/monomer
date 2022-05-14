@@ -117,8 +117,8 @@ lightThemeColors = BaseThemeColors {
   slSelectedText = black,
   slSelectedFocusBorder = blue07,
 
-  tooltipBorder = gray09,
-  tooltipBg = gray10,
+  tooltipBorder = gray08,
+  tooltipBg = gray07,
   tooltipText = black
 }
 
@@ -216,8 +216,8 @@ darkThemeColors = BaseThemeColors {
   slSelectedText = white,
   slSelectedFocusBorder = blue08,
 
-  tooltipBorder = gray09,
-  tooltipBg = gray04,
+  tooltipBorder = gray05,
+  tooltipBg = rgbHex "#1D212B",
   tooltipText = white
 }
 
