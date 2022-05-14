@@ -239,15 +239,16 @@ drawTriangleBorder
   -> Maybe Color  -- ^ The color. If Nothing, the triangle will not be drawn.
   -> IO ()        -- ^ The resulting action.
 drawTriangleBorder _ _ _ _ _ Nothing = return ()
-drawTriangleBorder renderer p1 p2 p3 width (Just color) = do
-  beginPath renderer
-  setStrokeColor renderer color
-  setStrokeWidth renderer width
-  moveTo renderer p1
-  renderLineTo renderer p2
-  renderLineTo renderer p3
-  closePath renderer
-  stroke renderer
+drawTriangleBorder renderer p1 p2 p3 width (Just color) =
+  when (width > 0) $ do
+    beginPath renderer
+    setStrokeColor renderer color
+    setStrokeWidth renderer width
+    moveTo renderer p1
+    renderLineTo renderer p2
+    renderLineTo renderer p3
+    closePath renderer
+    stroke renderer
 
 -- | Draws a filled arc, delimited by a rect and within the given angles.
 drawArc
@@ -280,12 +281,13 @@ drawArcBorder
   -> Double        -- ^ The arc width.
   -> IO ()         -- ^ The resulting action.
 drawArcBorder renderer rect start end winding Nothing width = return ()
-drawArcBorder renderer rect start end winding (Just color) width = do
-  beginPath renderer
-  setStrokeColor renderer color
-  setStrokeWidth renderer width
-  renderArc renderer center radius start end winding
-  stroke renderer
+drawArcBorder renderer rect start end winding (Just color) width =
+  when (width > 0) $ do
+    beginPath renderer
+    setStrokeColor renderer color
+    setStrokeWidth renderer width
+    renderArc renderer center radius start end winding
+    stroke renderer
   where
     Rect rx ry rw rh = rect
     radius = min ((rw - width) / 2) ((rh - width) / 2)
@@ -313,12 +315,13 @@ drawEllipseBorder
   -> IO ()         -- ^ The resulting action.
 drawEllipseBorder renderer rect Nothing _ = return ()
 drawEllipseBorder renderer rect (Just color) width =
-  forM_ contentRect $ \finalRect -> do
-    beginPath renderer
-    setStrokeColor renderer color
-    setStrokeWidth renderer width
-    renderEllipse renderer finalRect
-    stroke renderer
+  when (width > 0) $
+    forM_ contentRect $ \finalRect -> do
+      beginPath renderer
+      setStrokeColor renderer color
+      setStrokeWidth renderer width
+      renderEllipse renderer finalRect
+      stroke renderer
   where
     contentRect = subtractFromRect rect w w w w
     w = width / 2
@@ -481,19 +484,21 @@ drawRectCorner
 drawRectCorner _ _ ocorner Nothing Nothing = return points where
   points = (ocorner, ocorner, ocorner)
 drawRectCorner renderer cor ocorner ms1 ms2 = do
-  beginPath renderer
+  when (w1 > 0 && w2 > 0) $ do
+    beginPath renderer
 
-  if color1 == color2
-    then setFillColor renderer color1
-    else setFillLinearGradient renderer g1 g2 color1 color2
+    if color1 == color2
+      then setFillColor renderer color1
+      else setFillLinearGradient renderer g1 g2 color1 color2
 
-  moveTo renderer o1
-  renderLineTo renderer icorner
-  renderLineTo renderer o2
-  renderLineTo renderer ocorner
-  closePath renderer
+    moveTo renderer o1
+    renderLineTo renderer icorner
+    renderLineTo renderer o2
+    renderLineTo renderer ocorner
+    closePath renderer
 
-  fill renderer
+    fill renderer
+
   return (o1, o2, icorner)
   where
     Point cx cy = ocorner
@@ -574,30 +579,31 @@ drawRoundedCorner
 drawRoundedCorner _ _ _ center _ Nothing Nothing = return points where
   points = (center, center, center, center)
 drawRoundedCorner renderer cor bounds ocenter mrcor ms1 ms2 = do
-  beginPath renderer
+  when (w1 > 0 || w2 > 0) $ do
+    beginPath renderer
 
-  if color1 == color2
-    then setFillColor renderer color1
-    else setFillLinearGradient renderer g1 g2 color1 color2
+    if color1 == color2
+      then setFillColor renderer color1
+      else setFillLinearGradient renderer g1 g2 color1 color2
 
-  if round orad == 0
-    then drawRectArc renderer cor icenter w1 w2
-    else renderArc renderer ocenter orad deg (deg - 90) CCW
+    if round orad == 0
+      then drawRectArc renderer cor icenter w1 w2
+      else renderArc renderer ocenter orad deg (deg - 90) CCW
 
-  renderLineTo renderer o1
+    renderLineTo renderer o1
 
-  if round orad > 0 && round irad > 0
-    then do
-      renderLineTo renderer i1
-      renderArc renderer icenter irad (deg - 90) deg CW
-      renderLineTo renderer i2
-    else do
-      renderLineTo renderer icenter
+    if round orad > 0 && round irad > 0
+      then do
+        renderLineTo renderer i1
+        renderArc renderer icenter irad (deg - 90) deg CW
+        renderLineTo renderer i2
+      else do
+        renderLineTo renderer icenter
 
-  renderLineTo renderer o2
+    renderLineTo renderer o2
 
-  closePath renderer
-  fill renderer
+    closePath renderer
+    fill renderer
 
   return bordersCorners
   where
@@ -663,15 +669,16 @@ drawRectArc renderer corner c1 pw1 pw2 = do
 
 drawQuad :: Renderer -> Point -> Point -> Point -> Point -> Maybe BorderSide -> IO ()
 drawQuad renderer p1 p2 p3 p4 Nothing = pure ()
-drawQuad renderer p1 p2 p3 p4 (Just BorderSide{..}) = do
-  beginPath renderer
-  setFillColor renderer _bsColor
-  moveTo renderer p1
-  renderLineTo renderer p2
-  renderLineTo renderer p3
-  renderLineTo renderer p4
-  closePath renderer
-  fill renderer
+drawQuad renderer p1 p2 p3 p4 (Just BorderSide{..}) =
+  when (_bsWidth > 0) $ do
+    beginPath renderer
+    setFillColor renderer _bsColor
+    moveTo renderer p1
+    renderLineTo renderer p2
+    renderLineTo renderer p3
+    renderLineTo renderer p4
+    closePath renderer
+    fill renderer
 
 cornerGradientPoints :: Point -> Point -> (Point, Point)
 cornerGradientPoints outer inner = (g1, g2) where
