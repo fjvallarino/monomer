@@ -215,7 +215,8 @@ tooltipStyle themeMod = def
   & L.text . non def . L.fontColor ?~ tooltipText themeMod
   & L.bgColor ?~ tooltipBg themeMod
   & L.border ?~ border 1 (tooltipBorder themeMod)
-  & L.padding ?~ padding 4
+  & L.padding ?~ padding 6
+  & L.radius ?~ radius 4
 
 baseBasic :: BaseThemeColors -> ThemeState
 baseBasic themeMod = def
