@@ -67,10 +67,10 @@ Configuration options for toggleButton:
 - 'onChange': event to raise when the value changes.
 - 'onChangeReq': 'WidgetRequest' to generate when the value changes.
 -}
-type ToggleButtonCfg = OptionButtonCfg
+type ToggleButtonCfg s e = OptionButtonCfg s e Bool
 
 -- | Sets the style for the Off state of the toggle button.
-toggleButtonOffStyle :: Style -> ToggleButtonCfg s e a
+toggleButtonOffStyle :: Style -> ToggleButtonCfg s e
 toggleButtonOffStyle = optionButtonOffStyle
 
 -- | Creates a toggleButton using the given lens.
@@ -84,7 +84,7 @@ toggleButton caption field = toggleButton_ caption field def
 toggleButton_
   :: Text
   -> ALens' s Bool
-  -> [ToggleButtonCfg s e Bool]
+  -> [ToggleButtonCfg s e]
   -> WidgetNode s e
 toggleButton_ caption field cfgs = newNode where
   newNode = toggleButtonD_ caption (WidgetLens field) cfgs
@@ -106,7 +106,7 @@ toggleButtonV_
   => Text
   -> Bool
   -> (Bool -> e)
-  -> [ToggleButtonCfg s e Bool]
+  -> [ToggleButtonCfg s e]
   -> WidgetNode s e
 toggleButtonV_ caption value handler configs = newNode where
   widgetData = WidgetValue value
@@ -117,7 +117,7 @@ toggleButtonV_ caption value handler configs = newNode where
 toggleButtonD_
   :: Text
   -> WidgetData s Bool
-  -> [ToggleButtonCfg s e Bool]
+  -> [ToggleButtonCfg s e]
   -> WidgetNode s e
 toggleButtonD_ caption widgetData configs = toggleButtonNode where
   config = mconcat configs
