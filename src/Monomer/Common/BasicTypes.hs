@@ -101,6 +101,18 @@ interpolatePoints (Point x1 y1) (Point x2 y2) f = newPoint where
 negPoint :: Point -> Point
 negPoint (Point x y) = Point (-x) (-y)
 
+{-|
+Returns the minimum distance from the point given as first argument to the line
+formed by the points given as second and third arguments.
+-}
+pointToLineDistance :: Point -> Point -> Point -> Double
+pointToLineDistance p0 p1 p2 = distNum / distDen where
+  Point px0 py0 = p0
+  Point px1 py1 = p1
+  Point px2 py2 = p2
+  distNum = abs ((px2 - px1) * (py1 - py0) - (px1 - px0) * (py2 - py1))
+  distDen = sqrt ((px2 - px1) ** 2 + (py2 - py1) ** 2)
+
 -- | Checks if a coordinate is inside the horizontal range of a rect.
 coordInRectH :: Double -> Rect -> Bool
 coordInRectH px (Rect x y w h) = px >= x && px < x + w
