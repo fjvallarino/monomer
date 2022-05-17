@@ -53,8 +53,8 @@ import TextShow
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
+import qualified Data.Text as T
 
-import Monomer.Graphics.Lens
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Scroll
@@ -327,7 +327,12 @@ makeSelectList widgetData items makeRow config state = widget where
       & L.children .~ createSelectListChildren wenv node
 
   mergePost wenv node oldNode oldState newState result = newResult where
+    widgetId = node ^. L.info . L.widgetId
+    resizeReq = mergeChildrenReq wenv node oldNode oldState
+    extraReqs = Seq.fromList [ ResizeWidgets widgetId | resizeReq ]
+
     newResult = updateResultStyle wenv config result oldState newState
+      & L.requests %~ (<> extraReqs)
 
   handleEvent wenv node target evt = case evt of
     ButtonAction _ btn BtnPressed _
@@ -539,5 +544,6 @@ makeItemsList wenv items makeRow config widgetId selected = itemsList where
     clickCfg = onClickReq $ SendMessage widgetId (SelectListClickItem idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ itemCfg (content & L.info . L.style .~ normalStyle)
+      & L.info . L.style .~ normalStyle
+    newItem = box_ itemCfg content
   itemsList = vstack $ Seq.mapWithIndex makeItem items
