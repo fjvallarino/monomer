@@ -647,7 +647,7 @@ mergeWrapper container wenv newNode oldNode = newResult where
   mState = widgetGetState (mNode ^. L.widget) wenv mNode
   postRes = case (,) <$> useState oldState <*> useState mState of
     Just (ost, st) -> mergePostHandler wenv mNode oldNode ost st mResult
-    Nothing -> resultNode (mResult ^. L.node)
+    Nothing -> mResult
 
   tmpResult
     | isResizeAnyResult (Just postRes) = postRes
