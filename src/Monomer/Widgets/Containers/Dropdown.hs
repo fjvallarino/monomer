@@ -22,6 +22,11 @@ makeRow username = label username
 
 customDropdown = dropdown userLens usernames makeSelected makeRow
 @
+
+Note: the content of the dropdown list will only be updated when the provided
+items change, based on their 'Eq' instance. In case data external to the items
+is used for building the row nodes, 'mergeRequired' may be needed to avoid stale
+content.
 -}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -84,11 +89,17 @@ Configuration options for dropdown:
 - 'maxHeight': maximum height of the list when dropdown is expanded.
 - 'itemBasicStyle': 'Style' of an item in the list when not selected.
 - 'itemSelectedStyle': 'Style' of the selected item in the list.
+- 'mergeRequired': whether merging the items in the list is required. Useful
+  when the content displayed depends on external data, since changes to data
+  outside the provided list cannot be detected. In general it is recommended to
+  only depend on data contained in the list itself, making sure the 'Eq'
+  instance of the item type is correct.
 -}
 data DropdownCfg s e a = DropdownCfg {
   _ddcMaxHeight :: Maybe Double,
   _ddcItemStyle :: Maybe Style,
   _ddcItemSelectedStyle :: Maybe Style,
+  _ddcMergeRequired :: Maybe (WidgetEnv s e -> Seq a -> Seq a -> Bool),
   _ddcOnFocusReq :: [Path -> WidgetRequest s e],
   _ddcOnBlurReq :: [Path -> WidgetRequest s e],
   _ddcOnChangeReq :: [a -> WidgetRequest s e],
@@ -100,6 +111,7 @@ instance Default (DropdownCfg s e a) where
     _ddcMaxHeight = Nothing,
     _ddcItemStyle = Nothing,
     _ddcItemSelectedStyle = Nothing,
+    _ddcMergeRequired = Nothing,
     _ddcOnFocusReq = [],
     _ddcOnBlurReq = [],
     _ddcOnChangeReq = [],
@@ -111,6 +123,7 @@ instance Semigroup (DropdownCfg s e a) where
     _ddcMaxHeight = _ddcMaxHeight t2 <|> _ddcMaxHeight t1,
     _ddcItemStyle = _ddcItemStyle t2 <|> _ddcItemStyle t1,
     _ddcItemSelectedStyle = _ddcItemSelectedStyle t2 <|> _ddcItemSelectedStyle t1,
+    _ddcMergeRequired = _ddcMergeRequired t2 <|> _ddcMergeRequired t1,
     _ddcOnFocusReq = _ddcOnFocusReq t1 <> _ddcOnFocusReq t2,
     _ddcOnBlurReq = _ddcOnBlurReq t1 <> _ddcOnBlurReq t2,
     _ddcOnChangeReq = _ddcOnChangeReq t1 <> _ddcOnChangeReq t2,
@@ -173,6 +186,11 @@ instance CmbItemBasicStyle (DropdownCfg s e a) Style where
 instance CmbItemSelectedStyle (DropdownCfg s e a) Style where
   itemSelectedStyle style = def {
     _ddcItemSelectedStyle = Just style
+  }
+
+instance CmbMergeRequired (DropdownCfg s e a) (WidgetEnv s e) (Seq a) where
+  mergeRequired fn = def {
+    _ddcMergeRequired = Just fn
   }
 
 data DropdownState = DropdownState {
@@ -540,12 +558,15 @@ makeSelectList wenv value items makeRow config widgetId = selectListNode where
   itemStyle = fromJust (Just normalTheme <> _ddcItemStyle config)
   itemSelStyle = fromJust (Just selectedTheme <> _ddcItemSelectedStyle config)
 
+  mergeReqFn = maybe def mergeRequired (_ddcMergeRequired config)
+
   slConfig = [
       selectOnBlur,
       onBlurReq (const $ SendMessage widgetId OnListBlur),
       onChangeIdxReq (\idx it -> SendMessage widgetId (OnChangeMessage idx it)),
       itemBasicStyle itemStyle,
-      itemSelectedStyle itemSelStyle
+      itemSelectedStyle itemSelStyle,
+      mergeReqFn
     ]
   slStyle = collectTheme wenv L.dropdownListStyle
   selectListNode = selectListD_ value items makeRow slConfig

@@ -18,6 +18,11 @@ makeRow username = hstack [
 
 customSelect = selectList userLens usernames makeRow
 @
+
+Note: the content of the list will only be updated when the provided items
+change, based on their 'Eq' instance. In case data external to the items is used
+for building the row nodes, 'mergeRequired' may be needed to avoid stale
+content.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -84,8 +89,11 @@ Configuration options for selectList:
   navigating away from the widget with tab key.
 - 'itemBasicStyle': style of an item in the list when not selected.
 - 'itemSelectedStyle': style of the selected item in the list.
-- 'mergeRequired': whether merging children is required. Useful when select list
-  is part of another widget such as dropdown.
+- 'mergeRequired': whether merging children is required. Useful when the content
+  displayed depends on external data, since changes to data outside the provided
+  list cannot be detected. In general it is recommended to only depend on data
+  contained in the list itself, making sure the 'Eq' instance of the item type
+  is correct.
 -}
 data SelectListCfg s e a = SelectListCfg {
   _slcSelectOnBlur :: Maybe Bool,
