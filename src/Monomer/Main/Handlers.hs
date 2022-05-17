@@ -282,8 +282,11 @@ handleResizeWidgets previousStep = do
       paths <- mapM getWidgetIdPath resizeRequests
       let parts = Set.fromDistinctAscList . drop 1 . toList . Seq.inits
       let sets = fold (parts <$> paths)
+      let checkFn path = isChild || isParent where
+            isChild = any (`seqStartsWith` path) paths
+            isParent = path `Set.member` sets
 
-      return (`Set.member` sets)
+      return checkFn
 
 handleAddPendingResize
   :: MonomerM s e m
