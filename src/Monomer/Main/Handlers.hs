@@ -277,16 +277,13 @@ handleResizeWidgets previousStep = do
 
   return (wenv2, root2, reqs <> reqs2)
   where
-    isInBranch path1 path2
-      =  seqStartsWith path1 path2
-      || seqStartsWith path2 path1
-    checkFn paths path = any (isInBranch path) paths
-
     makeResizeCheckFn = do
       resizeRequests <- use L.resizeRequests
       paths <- mapM getWidgetIdPath resizeRequests
+      let parts = Set.fromDistinctAscList . drop 1 . toList . Seq.inits
+      let sets = fold (parts <$> paths)
 
-      return (checkFn paths)
+      return (`Set.member` sets)
 
 handleAddPendingResize
   :: MonomerM s e m
