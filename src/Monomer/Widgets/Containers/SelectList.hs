@@ -517,9 +517,11 @@ updateResultStyle
 updateResultStyle wenv config result oldState newState = newResult where
   slIdx = _slIdx newState
   hlIdx = _hlIdx newState
-  tmpNode = result ^. L.node
-  (newNode, reqs) = updateStyles wenv config oldState tmpNode slIdx hlIdx
-  newResult = resultReqs newNode reqs
+  WidgetResult prevNode prevReqs = result
+
+  (newNode, reqs) = updateStyles wenv config oldState prevNode slIdx hlIdx
+  newResult = resultNode newNode
+    & L.requests .~ prevReqs <> Seq.fromList reqs
 
 makeItemsList
   :: (WidgetModel s, WidgetEvent e, Eq a)
