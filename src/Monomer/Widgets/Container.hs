@@ -624,20 +624,21 @@ mergeWrapper container wenv newNode oldNode = newResult where
     Nothing -> True
 
   styledNode = initNodeStyle getBaseStyle wenv newNode
+  pResult = mergeParent mergeHandler wenv styledNode oldNode oldState
+  pNode = pResult ^. L.node
 
   -- Check if an updated container can be used for offset/layout direction.
-  pNode = pResult ^. L.node
   updateCWenv = case useState oldState >>= createContainerFromModel wenv pNode of
     Just newContainer -> getUpdateCWenv newContainer
     _ -> getUpdateCWenv container
+
   cWenvHelper idx child = cwenv where
     cwenv = updateCWenv wenv pNode child idx
 
-  pResult = mergeParent mergeHandler wenv styledNode oldNode oldState
-  cResult = mergeChildren cWenvHelper wenv newNode oldNode pResult
+  cResult = mergeChildren cWenvHelper wenv pNode oldNode pResult
   vResult = mergeChildrenCheckVisible oldNode cResult
 
-  flagsChanged = nodeFlagsChanged oldNode newNode
+  flagsChanged = nodeFlagsChanged oldNode pNode
   themeChanged = wenv ^. L.themeChanged
   mResult
     | mergeRequired || flagsChanged || themeChanged = vResult
@@ -698,6 +699,7 @@ mergeChildren updateCWenv !wenv !newNode !oldNode !pResult = newResult where
   mergedReqs = foldMap _wrRequests mergedResults
   removedReqs = foldMap _wrRequests removedResults
   mergedNode = pNode & L.children .~ mergedChildren
+
   newReqs = pReqs <> mergedReqs <> removedReqs
   !newResult = WidgetResult mergedNode newReqs
 
@@ -717,10 +719,16 @@ mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts Empty = res where
     _ -> widgetDispose (child ^. L.widget) wenv child
   !removed = fmap dispose oldIts
   !res = (Empty, removed)
+
 mergeChildSeq updateCWenv wenv oldKeys newKeys newNode Empty newIts = res where
-  init (idx, !child) = widgetInit (child ^. L.widget) wenv child
+  init (idx, !child) = newWidget where
+    newWidgetId = child ^. L.info . L.widgetId
+    newWidget = widgetInit (child ^. L.widget) wenv child
+      & L.requests %~ (|> ResizeWidgets newWidgetId)
+
   !merged = fmap init newIts
   !res = (merged, Empty)
+
 mergeChildSeq updateCWenv wenv oldKeys newKeys newNode oldIts newIts = res where
   (_, !oldChild) :<| oldChildren = oldIts
   (!newIdx, !newChild) :<| newChildren = newIts
