@@ -28,7 +28,10 @@ module Monomer.Widgets.Singles.Button (
   mainButtonD_,
   button,
   button_,
-  buttonD_
+  buttonD_,
+  widgetButton,
+  widgetButton_,
+  widgetButtonD_
 ) where
 
 import Control.Applicative ((<|>))
@@ -229,12 +232,46 @@ using 'onClickReq'.
 buttonD_ :: WidgetEvent e => Text -> [ButtonCfg s e] -> WidgetNode s e
 buttonD_ caption configs = buttonNode where
   config = mconcat configs
-  widget = makeButton caption config
+  childNode = makeLabel caption config
+  widget = makeButton childNode config
   !buttonNode = defaultWidgetNode "button" widget
     & L.info . L.focusable .~ True
 
-makeButton :: WidgetEvent e => Text -> ButtonCfg s e -> Widget s e
-makeButton !caption !config = widget where
+-- | Creates a widget button with normal styling.
+widgetButton :: WidgetEvent e => WidgetNode s e -> e -> WidgetNode s e
+widgetButton childNode handler = widgetButton_ childNode handler def
+
+-- | Creates a widget button with normal styling. Accepts config.
+widgetButton_ :: WidgetEvent e => WidgetNode s e -> e -> [ButtonCfg s e] -> WidgetNode s e
+widgetButton_ childNode handler configs = buttonNode where
+  buttonNode = widgetButtonD_ childNode (onClick handler : configs)
+
+{-|
+Creates a widget button without forcing an event to be provided. The other constructors
+use this version, adding an 'onClick' handler in configs.
+
+Using this constructor directly can be helpful in cases where the event to be
+raised belongs in a "Monomer.Widgets.Composite" above in the widget tree,
+outside the scope of the Composite that contains the button. This parent
+Composite can be reached by sending a message ('SendMessage') to its 'WidgetId'
+using 'onClickReq'.
+-}
+widgetButtonD_ :: WidgetEvent e => WidgetNode s e -> [ButtonCfg s e] -> WidgetNode s e
+widgetButtonD_ childNode configs = buttonNode where
+  config = mconcat configs
+  widget = makeButton childNode config
+  !buttonNode = defaultWidgetNode "button" widget
+    & L.info . L.focusable .~ True
+
+makeLabel :: WidgetEvent e => Text -> ButtonCfg s e -> WidgetNode s e
+makeLabel caption config =
+  label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
+  where
+    labelCfg = _btnLabelCfg config
+    labelCurrStyle = labelCurrentStyle childOfFocusedStyle
+
+makeButton :: WidgetEvent e => WidgetNode s e -> ButtonCfg s e -> Widget s e
+makeButton !childNode !config = widget where
   widget = createContainer () def {
     containerAddStyleReq = False,
     containerDrawDecorations = False,
@@ -258,12 +295,10 @@ makeButton !caption !config = widget where
 
   createChildNode wenv node = newNode where
     nodeStyle = node ^. L.info . L.style
-    labelCfg = _btnLabelCfg config
-    labelCurrStyle = labelCurrentStyle childOfFocusedStyle
-    !labelNode = label_ caption [ignoreTheme, labelCfg, labelCurrStyle]
+    !childNode' = childNode
       & L.info . L.style .~ nodeStyle
     !newNode = node
-      & L.children .~ Seq.singleton labelNode
+      & L.children .~ Seq.singleton childNode'
 
   init wenv node = result where
     result = resultNode (createChildNode wenv node)
