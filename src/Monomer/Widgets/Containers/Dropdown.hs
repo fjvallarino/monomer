@@ -420,9 +420,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay slWid, SetFocus widgetId]
 
+  scrollListInfo :: WidgetNode s' e' -> (WidgetId, Path)
   scrollListInfo node = (scrollInfo ^. L.widgetId, scrollInfo ^. L.path) where
     scrollInfo = node ^?! L.children . ix listIdx . L.info
 
+  selectListInfo :: WidgetNode s' e' -> (WidgetId, Path)
   selectListInfo node = (listInfo ^. L.widgetId, listInfo ^. L.path) where
     listInfo = node ^?! L.children . ix listIdx . L.children . ix 0 . L.info
 
