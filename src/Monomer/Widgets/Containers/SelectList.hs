@@ -18,6 +18,11 @@ makeRow username = hstack [
 
 customSelect = selectList userLens usernames makeRow
 @
+
+Note: the content of the list will only be updated when the provided items
+change, based on their 'Eq' instance. In case data external to the items is used
+for building the row nodes, 'mergeRequired' may be needed to avoid stale
+content.
 -}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -54,7 +59,6 @@ import TextShow
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 
-import Monomer.Graphics.Lens
 import Monomer.Widgets.Container
 import Monomer.Widgets.Containers.Box
 import Monomer.Widgets.Containers.Scroll
@@ -85,8 +89,11 @@ Configuration options for selectList:
   navigating away from the widget with tab key.
 - 'itemBasicStyle': style of an item in the list when not selected.
 - 'itemSelectedStyle': style of the selected item in the list.
-- 'mergeRequired': whether merging children is required. Useful when select list
-  is part of another widget such as dropdown.
+- 'mergeRequired': whether merging children is required. Useful when the content
+  displayed depends on external data, since changes to data outside the provided
+  list cannot be detected. In general it is recommended to only depend on data
+  contained in the list itself, making sure the 'Eq' instance of the item type
+  is correct.
 -}
 data SelectListCfg s e a = SelectListCfg {
   _slcSelectOnBlur :: Maybe Bool,
@@ -518,9 +525,11 @@ updateResultStyle
 updateResultStyle wenv config result oldState newState = newResult where
   slIdx = _slIdx newState
   hlIdx = _hlIdx newState
-  tmpNode = result ^. L.node
-  (newNode, reqs) = updateStyles wenv config oldState tmpNode slIdx hlIdx
-  newResult = resultReqs newNode reqs
+  WidgetResult prevNode prevReqs = result
+
+  (newNode, reqs) = updateStyles wenv config oldState prevNode slIdx hlIdx
+  newResult = resultNode newNode
+    & L.requests .~ prevReqs <> Seq.fromList reqs
 
 makeItemsList
   :: (WidgetModel s, WidgetEvent e, Eq a)
@@ -539,5 +548,6 @@ makeItemsList wenv items makeRow config widgetId selected = itemsList where
     clickCfg = onClickReq $ SendMessage widgetId (SelectListClickItem idx)
     itemCfg = [expandContent, clickCfg]
     content = makeRow item
-    newItem = box_ itemCfg (content & L.info . L.style .~ normalStyle)
+      & L.info . L.style .~ normalStyle
+    newItem = box_ itemCfg content
   itemsList = vstack $ Seq.mapWithIndex makeItem items

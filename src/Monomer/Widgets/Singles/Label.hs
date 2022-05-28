@@ -282,18 +282,13 @@ makeLabel config state = widget where
       = fitTextToSize fontMgr style overflow mode trim maxLines size caption
     newTextLines = alignTextLines style alignRect fittedLines
 
-    newGlyphsReq = pw /= cw || ph /= ch || textStyle /= newTextStyle
-    newLines
-      | not newGlyphsReq = textLines
-      | otherwise = newTextLines
-
     (prevTs, prevStep) = prevResize
     needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
 
     newState = state {
       _lstTextStyle = newTextStyle,
       _lstTextRect = crect,
-      _lstTextLines = newLines,
+      _lstTextLines = newTextLines,
       _lstPrevResize = (ts, needsSndResize && prevTs == ts)
     }
     newNode = node

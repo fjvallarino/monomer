@@ -1,3 +1,9 @@
+## 1.4.2.0 (in development)
+
+### Fixed
+
+- Issue in `selectList`, which would ignore `WidgetRequest`s made by child widgets ([PR #157](https://github.com/fjvallarino/monomer/pull/157)).
+
 ## 1.4.1.0
 
 ### Added
