@@ -254,7 +254,7 @@ dropdownD_ widgetData items makeMain makeRow configs = newNode where
     & L.info . L.focusable .~ True
 
 makeDropdown
-  :: (WidgetModel s, WidgetEvent e, DropdownItem a)
+  :: forall s e a. (WidgetModel s, WidgetEvent e, DropdownItem a)
   => WidgetData s a
   -> Seq a
   -> (a -> WidgetNode s e)
@@ -420,11 +420,11 @@ makeDropdown widgetData items makeMain makeRow config state = widget where
       & L.widget .~ makeDropdown widgetData items makeMain makeRow config newState
     requests = [ResetOverlay slWid, SetFocus widgetId]
 
-  scrollListInfo :: WidgetNode s' e' -> (WidgetId, Path)
+  scrollListInfo :: WidgetNode s e -> (WidgetId, Path)
   scrollListInfo node = (scrollInfo ^. L.widgetId, scrollInfo ^. L.path) where
     scrollInfo = node ^?! L.children . ix listIdx . L.info
 
-  selectListInfo :: WidgetNode s' e' -> (WidgetId, Path)
+  selectListInfo :: WidgetNode s e -> (WidgetId, Path)
   selectListInfo node = (listInfo ^. L.widgetId, listInfo ^. L.path) where
     listInfo = node ^?! L.children . ix listIdx . L.children . ix 0 . L.info
 
