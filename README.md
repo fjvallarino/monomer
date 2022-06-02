@@ -58,7 +58,7 @@ Beyond the tutorials, a few _real world like_ examples are available:
 
 - OS Dialog:
 
-haskell```
+```haskell
 promptFileDialog -> [ Task $ do
      sr <- osSelectFileDialog "Select Intake JSON" "./" ["*.json"] "json files" False
      case sr of 
