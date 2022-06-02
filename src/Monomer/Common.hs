@@ -9,7 +9,9 @@ Portability : non-portable
 Common module, including basic types definitions.
 -}
 module Monomer.Common (
-  module Monomer.Common.BasicTypes
+  module Monomer.Common.BasicTypes,
+  module Monomer.Common.OSDialogs
 ) where
 
 import Monomer.Common.BasicTypes
+import Monomer.Common.OSDialogs
