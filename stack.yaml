@@ -45,6 +45,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - nanovg-0.8.0.0@sha256:0183b4295ccc2dfb94a7eca977fb45759e1480652578936aa7b71bb4b9626480,4742
+  - tinyfiledialogs-0.2.1.0@sha256:118f9fd7b721de68f1e84c8b820784e31140bf34e32f23fd6410fb57914a309c,1905
 
 # Override default flag values for local packages and extra-deps
 flags:
