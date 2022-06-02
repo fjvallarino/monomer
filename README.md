@@ -56,6 +56,20 @@ Beyond the tutorials, a few _real world like_ examples are available:
 - [Generative](docs/examples/04-generative.md)
 - [Custom OpenGL](docs/examples/05-opengl.md)
 
+- OS Dialog:
+
+haskell```
+promptFileDialog -> [ Task $ do
+     sr <- osSelectFileDialog "Select Intake JSON" "./" ["*.json"] "json files" False
+     case sr of 
+       Nothing  -> return InvalidFile -- Failure Event
+       Just val -> return $ ProcessFile val
+]
+```
+
+For more info on how osSelectFileDialog and osSelectFolderDialog work see:
+https://hackage.haskell.org/package/tinyfiledialogs
+
 ### Haddock
 
 You can read the source code's documentation [here](https://hackage.haskell.org/package/monomer).
