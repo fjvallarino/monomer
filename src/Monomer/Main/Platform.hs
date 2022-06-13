@@ -43,10 +43,8 @@ import qualified SDL.Internal.Types as SIT
 import qualified SDL.Video.Renderer as SVR
 
 import Monomer.Common
-import Monomer.Core.StyleTypes
+import Monomer.Helper (catchAny)
 import Monomer.Main.Types
-import Monomer.Event.Types
-import Monomer.Widgets.Composite
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
 foreign import ccall unsafe "initDpiAwareness" initDpiAwareness :: IO CInt
@@ -148,13 +146,17 @@ initSDLWindow config = do
 
 setWindowIcon :: SDL.Window -> AppConfig e -> IO ()
 setWindowIcon (SIT.Window winPtr) config =
-  forM_ (_apcWindowIcon config) $ \iconPath -> do
-    iconSurface <- SVR.loadBMP (T.unpack iconPath)
-    let SVR.Surface iconSurfacePtr _ = iconSurface
-    finally
-      -- Note: this can use the high-level setWindowIcon once it is available (https://github.com/haskell-game/sdl2/pull/243)
-      (Raw.setWindowIcon winPtr iconSurfacePtr)
-      (SVR.freeSurface iconSurface)
+  forM_ (_apcWindowIcon config) $ \iconPath ->
+    flip catchAny handleException $ do
+      iconSurface <- SVR.loadBMP (T.unpack iconPath)
+      let SVR.Surface iconSurfacePtr _ = iconSurface
+      finally
+        -- Note: this can use the high-level setWindowIcon once it is available (https://github.com/haskell-game/sdl2/pull/243)
+        (Raw.setWindowIcon winPtr iconSurfacePtr)
+        (SVR.freeSurface iconSurface)
+  where
+    handleException err = putStrLn $
+      "Failed to set window icon. Does the file exist?\n\t" ++ show err ++ "\n"
 
 -- | Destroys the provided window, shutdowns the video subsystem and SDL.
 detroySDLWindow :: SDL.Window -> IO ()
