@@ -28,7 +28,7 @@ import Data.Typeable
 import qualified Data.Sequence as Seq
 
 import Monomer.Core
-import Monomer.Helper (collectJustM)
+import Monomer.Helper (collectJustM, putStrLnErr)
 import Monomer.Main.Handlers
 import Monomer.Main.Lens
 import Monomer.Main.Util
@@ -90,7 +90,7 @@ processTaskResult
   -> Either SomeException i
   -> m (HandlerStep s e)
 processTaskResult wenv widgetRoot _ (Left ex) = do
-  liftIO . putStrLn $ "Error processing Widget task result: " ++ show ex
+  liftIO . putStrLnErr $ "Error processing Widget task result: " ++ show ex
   return (wenv, widgetRoot, Seq.empty)
 processTaskResult wenv widgetRoot widgetId (Right taskResult)
   = processTaskEvent wenv widgetRoot widgetId taskResult

@@ -16,6 +16,7 @@ module Monomer.Helper where
 import Control.Exception (SomeException, catch)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Sequence (Seq(..))
+import System.IO (hPutStrLn, stderr)
 
 import qualified Data.Sequence as Seq
 
@@ -76,3 +77,6 @@ catchAny = catch
 headMay :: [a] -> Maybe a
 headMay [] = Nothing
 headMay (x : _) = Just x
+
+putStrLnErr :: String -> IO ()
+putStrLnErr msg = hPutStrLn stderr msg

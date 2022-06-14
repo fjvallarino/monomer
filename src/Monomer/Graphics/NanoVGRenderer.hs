@@ -42,6 +42,7 @@ import qualified NanoVG.Internal.Image as VGI
 
 import Monomer.Common
 import Monomer.Graphics.Types
+import Monomer.Helper (putStrLnErr)
 
 import qualified Monomer.Common.Lens as L
 import qualified Monomer.Graphics.Lens as L
@@ -99,7 +100,7 @@ makeRenderer fonts dpr = do
   validFonts <- foldM (loadFont c) Set.empty fonts
 
   when (null validFonts) $
-    putStrLn "Could not find any valid fonts. Text will fail to be displayed."
+    putStrLnErr "Could not find any valid fonts. Text will fail to be displayed."
 
   envRef <- newIORef $ Env {
     overlays = Seq.empty,
@@ -356,7 +357,7 @@ loadFont c fonts (FontDef name path) = do
   res <- VG.createFont c name (VG.FileName path)
   case res of
     Just{} -> return $ Set.insert name fonts
-    _ -> putStrLn ("Failed to load font: " ++ T.unpack name) >> return fonts
+    _ -> putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
 
 setFont
   :: VG.Context
@@ -483,7 +484,7 @@ imgDelete name imagesMap = newImageMap where
 
 clearImagesMap :: VG.Context -> ImagesMap -> IO ()
 clearImagesMap c imagesMap = do
-  putStrLn "Clearing images map"
+  putStrLnErr "Clearing images map"
   forM_ (M.elems imagesMap) $ \image ->
     VG.deleteImage c (_imNvImage image)
 

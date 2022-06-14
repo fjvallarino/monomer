@@ -43,7 +43,7 @@ import qualified SDL.Internal.Types as SIT
 import qualified SDL.Video.Renderer as SVR
 
 import Monomer.Common
-import Monomer.Helper (catchAny)
+import Monomer.Helper (catchAny, putStrLnErr)
 import Monomer.Main.Types
 
 foreign import ccall unsafe "initGlew" glewInit :: IO CInt
@@ -60,9 +60,10 @@ initSDLWindow config = do
   SDL.HintRenderScaleQuality $= SDL.ScaleLinear
   setDisableCompositorHint compositingFlag
 
-  do renderQuality <- SDL.get SDL.HintRenderScaleQuality
-     when (renderQuality /= SDL.ScaleLinear) $
-       putStrLn "Warning: Linear texture filtering not enabled!"
+  renderQuality <- SDL.get SDL.HintRenderScaleQuality
+
+  when (renderQuality /= SDL.ScaleLinear) $
+    putStrLnErr "Warning: Linear texture filtering not enabled!"
 
   platform <- getPlatform
   initDpiAwareness
@@ -110,7 +111,7 @@ initSDLWindow config = do
 
   err <- SRE.getError
   err <- STR.peekCString err
-  putStrLn err
+  putStrLnErr err
 
   ctxRender <- SDL.glCreateContext window
 
@@ -155,13 +156,12 @@ setWindowIcon (SIT.Window winPtr) config =
         (Raw.setWindowIcon winPtr iconSurfacePtr)
         (SVR.freeSurface iconSurface)
   where
-    handleException err = putStrLn $
+    handleException err = putStrLnErr $
       "Failed to set window icon. Does the file exist?\n\t" ++ show err ++ "\n"
 
 -- | Destroys the provided window, shutdowns the video subsystem and SDL.
 detroySDLWindow :: SDL.Window -> IO ()
 detroySDLWindow window = do
-  putStrLn "About to destroyWindow"
   SDL.destroyWindow window
   Raw.quitSubSystem Raw.SDL_INIT_VIDEO
   SDL.quit
