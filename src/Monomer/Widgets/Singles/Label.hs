@@ -151,7 +151,7 @@ labelCurrentStyle styleFn = def {
 
 data LabelState = LabelState {
   _lstCaption :: Text,
-  _lstTextStyle :: Maybe TextStyle,
+  _lstStyle :: StyleState,
   _lstTextRect :: Rect,
   _lstTextLines :: Seq TextLine,
   _lstPrevResize :: (Millisecond, Bool)
@@ -165,7 +165,7 @@ label caption = label_ caption def
 label_ :: Text -> [LabelCfg s e] -> WidgetNode s e
 label_ caption configs = defaultWidgetNode "label" widget where
   config = mconcat configs
-  state = LabelState caption Nothing def Seq.Empty (0, False)
+  state = LabelState caption def def Seq.Empty (0, False)
   widget = makeLabel config state
 
 -- | Creates a label using the 'Show' instance of the type.
@@ -210,7 +210,7 @@ makeLabel config state = widget where
   init wenv node = resultNode newNode where
     style = labelCurrentStyle wenv node
     newState = state {
-      _lstTextStyle = style ^. L.text
+      _lstStyle = style
     }
     newNode = node
       & L.widget .~ makeLabel config newState
@@ -218,10 +218,15 @@ makeLabel config state = widget where
   merge wenv newNode oldNode oldState = result where
     widgetId = newNode ^. L.info . L.widgetId
     style = labelCurrentStyle wenv newNode
-    newTextStyle = style ^. L.text
+    prevStyle = _lstStyle oldState
 
     captionChanged = _lstCaption oldState /= caption
-    styleChanged = _lstTextStyle oldState /= newTextStyle
+    styleChanged = prevStyle ^. L.text /= style ^. L.text
+      || prevStyle ^. L.padding /= style ^. L.padding
+      || prevStyle ^. L.border /= style ^. L.border
+      || prevStyle ^. L.sizeReqH /= style ^. L.sizeReqH
+      || prevStyle ^. L.sizeReqW /= style ^. L.sizeReqW
+
     changeReq = captionChanged || styleChanged
     -- This is used in resize to know if glyphs have to be recalculated
     newRect
@@ -229,8 +234,8 @@ makeLabel config state = widget where
       | otherwise = _lstTextRect oldState
     newState = oldState {
       _lstCaption = caption,
-      _lstTextRect = newRect,
-      _lstTextStyle = newTextStyle
+      _lstStyle = style,
+      _lstTextRect = newRect
     }
 
     reqs = [ ResizeWidgets widgetId | changeReq ]
@@ -271,7 +276,6 @@ makeLabel config state = widget where
     widgetId = newNode ^. L.info . L.widgetId
     style = labelCurrentStyle wenv node
     crect = fromMaybe def (removeOuterBounds style viewport)
-    newTextStyle = style ^. L.text
 
     Rect px py pw ph = textRect
     Rect _ _ cw ch = crect
@@ -286,7 +290,7 @@ makeLabel config state = widget where
     needsSndResize = mode == MultiLine && (prevTs /= ts || not prevStep)
 
     newState = state {
-      _lstTextStyle = newTextStyle,
+      _lstStyle = style,
       _lstTextRect = crect,
       _lstTextLines = newTextLines,
       _lstPrevResize = (ts, needsSndResize && prevTs == ts)
