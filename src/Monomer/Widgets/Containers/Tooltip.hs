@@ -149,6 +149,14 @@ makeTooltip caption config state = widget where
     result = resultNode newNode
 
   handleEvent wenv node target evt = case evt of
+    ButtonAction{} -> Just $ resultReqs newNode [RenderOnce] where
+      newState = state {
+        _ttsLastPos = Point (-1) (-1),
+        _ttsLastPosTs = maxBound
+      }
+      newNode = node
+        & L.widget .~ makeTooltip caption config newState
+
     Leave point -> Just $ resultReqs newNode [RenderOnce] where
       newState = state {
         _ttsLastPos = Point (-1) (-1),
