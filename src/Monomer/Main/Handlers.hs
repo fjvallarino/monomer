@@ -52,7 +52,7 @@ import qualified SDL.Raw.Types as SDLT
 import Monomer.Core
 import Monomer.Event
 import Monomer.Graphics
-import Monomer.Helper (headMay, seqStartsWith)
+import Monomer.Helper (headMay, putStrLnErr, seqStartsWith)
 import Monomer.Main.Types
 import Monomer.Main.Util
 
@@ -436,7 +436,7 @@ handleSetCursorIcon wid icon previousStep = do
   cursor <- Map.lookup icon <$> use L.cursorIcons
 
   when (isNothing cursor) $
-    liftIO . putStrLn $ "Invalid handleSetCursorIcon: " ++ show icon
+    liftIO . putStrLnErr $ "Invalid handleSetCursorIcon: " ++ show icon
 
   forM_ cursor SDLE.setCursor
 
@@ -601,7 +601,6 @@ handleRaiseEvent
   -> HandlerStep s e
   -> m (HandlerStep s e)
 handleRaiseEvent message step = do
-  --liftIO . putStrLn $ message ++ show (typeOf message)
   return step
   where
     message = "Invalid state. RaiseEvent reached main handler. Type: "
@@ -891,7 +890,7 @@ restoreCursorOnWindowEnter = do
   let sdlCursor = cursorPair >>= (`Map.lookup` cursorIcons) . snd
 
   when (isNothing sdlCursor && isJust cursorPair) $
-    liftIO. putStrLn $ "Invalid restoreCursorOnWindowEnter: " ++ show cursorPair
+    liftIO. putStrLnErr $ "Invalid restoreCursorOnWindowEnter: " ++ show cursorPair
 
   when (not prevInside && currInside && isJust sdlCursor) $ do
     SDLE.setCursor (fromJust sdlCursor)

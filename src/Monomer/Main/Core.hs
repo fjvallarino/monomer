@@ -50,7 +50,7 @@ import Monomer.Main.Types
 import Monomer.Main.Util
 import Monomer.Main.WidgetTask
 import Monomer.Graphics
-import Monomer.Helper (catchAny)
+import Monomer.Helper (catchAny, putStrLnErr)
 import Monomer.Widgets.Composite
 
 import qualified Monomer.Lens as L
@@ -200,8 +200,8 @@ runAppLoop window glCtx channel widgetRoot config = do
 
       case setupRes of
         RenderSetupMakeCurrentFailed msg -> do
-          liftIO . putStrLn $ "Setup of the rendering thread failed: " ++ msg
-          liftIO . putStrLn $ "Falling back to rendering in the main thread. "
+          liftIO . putStrLnErr $ "Setup of the rendering thread failed: " ++ msg
+          liftIO . putStrLnErr $ "Falling back to rendering in the main thread. "
             ++ "The content may not be updated while resizing the window."
 
           makeMainThreadRenderer
@@ -283,7 +283,7 @@ mainLoop window fontManager config loopArgs = do
   let baseSystemEvents = convertEvents convertCfg mousePos eventsPayload
 
 --  when newSecond $
---    liftIO . putStrLn $ "Frames: " ++ show _mlFrameCount
+--    liftIO . putStrLnErr $ "Frames: " ++ show _mlFrameCount
 
   when quit $
     L.exitApplication .= True

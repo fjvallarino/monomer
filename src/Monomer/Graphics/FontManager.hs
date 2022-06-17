@@ -28,6 +28,7 @@ import qualified Data.Text as T
 import Monomer.Common.BasicTypes
 import Monomer.Graphics.FFI
 import Monomer.Graphics.Types
+import Monomer.Helper (putStrLnErr)
 
 -- | Creates a font manager instance.
 makeFontManager
@@ -40,7 +41,7 @@ makeFontManager fonts dpr = do
   validFonts <- foldM (loadFont ctx) [] fonts
 
   when (null validFonts) $
-    putStrLn "Could not find any valid fonts. Text size calculations will fail."
+    putStrLnErr "Could not find any valid fonts. Text size calculations will fail."
 
   return $ newManager ctx
 
@@ -104,7 +105,7 @@ loadFont ctx fonts (FontDef name path) = do
   res <- fmCreateFont ctx name path
   if res >= 0
     then return $ path : fonts
-    else putStrLn ("Failed to load font: " ++ T.unpack name) >> return fonts
+    else putStrLnErr ("Failed to load font: " ++ T.unpack name) >> return fonts
 
 setFont :: FMContext -> Double -> Font -> FontSize -> FontSpace -> IO ()
 setFont ctx scale (Font name) (FontSize size) (FontSpace spaceH) = do
