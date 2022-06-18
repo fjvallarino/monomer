@@ -69,7 +69,6 @@ import Control.Applicative ((<|>))
 import Control.Exception (AssertionFailed(..), throw)
 import Control.Lens (ALens', (&), (^.), (^?), (.~), (%~), (<>~), at, ix, non)
 import Data.Default
-import Data.Either
 import Data.List (foldl')
 import Data.Map.Strict (Map)
 import Data.Maybe
@@ -642,12 +641,18 @@ compositeDispose comp state wenv widgetComp = result where
   model = getCompositeModel state
   cwenv = convertWidgetEnv wenv _cpsWidgetKeyMap model
   widget = _cpsRoot ^. L.widget
+  widgetId = widgetComp ^. L.info . L.widgetId
 
-  WidgetResult _ reqs = widgetDispose widget cwenv _cpsRoot
+  handleReq (RaiseEvent evt) = reqs where
+    WidgetResult _ reqs = handleMsgEvent comp state wenv widgetComp evt
+  handleReq req = maybe Seq.empty Seq.singleton (toParentReq widgetId req)
 
-  disposeReqs = Seq.fromList (_cmpOnDisposeReq comp)
-  tempResult = WidgetResult _cpsRoot (reqs <> disposeReqs)
+  parentReqs = mconcat (handleReq <$> _cmpOnDisposeReq comp)
+
+  WidgetResult _ childReqs = widgetDispose widget cwenv _cpsRoot
+  tempResult = WidgetResult _cpsRoot childReqs
   result = toParentResult comp state wenv widgetComp tempResult
+    & L.requests %~ (parentReqs <>)
 
 compositeGetInstanceTree
   :: (CompositeModel s, CompositeEvent e, CompositeEvent ep, CompParentModel sp)

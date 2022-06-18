@@ -16,8 +16,7 @@ Unit tests for Composite widget.
 
 module Monomer.Widgets.CompositeSpec (spec) where
 
-import Control.Lens (
-  (&), (^.), (^?), (^?!), (^..), (.~), (%~), _Just, ix, folded, traverse, dropping)
+import Control.Lens hiding ((|>), deep)
 import Control.Lens.TH (abbreviatedFields, makeLensesWith)
 import Data.Default
 import Data.Foldable (toList)
@@ -63,6 +62,7 @@ data ChildEvt
   = ChildBtnClicked
   | ChildMessage String
   | ChildResize Rect
+  | ChildDispose
   deriving (Eq, Show)
 
 data DeepEvt
@@ -201,12 +201,10 @@ handleEventOnInit = describe "handleEventOnInit" $ do
 
 handleEventOnDispose :: Spec
 handleEventOnDispose = describe "handleEventOnDispose" $ do
-  it "should generate an init event" $ do
-    let val = case evts [] ^?! L.requests . ix 1 of
-          SendMessage wid msg -> cast msg
-          _ -> Nothing
-
-    val `shouldBe` Just OnDispose
+  it "should generate a dispose event" $ do
+    evts ^? L.requests . ix 0 `shouldBe` Just RenderOnce
+    evts ^? L.requests . ix 1 `shouldBe` Just (RaiseEvent ChildClicked)
+    evts ^? L.requests . ix 2 `shouldBe` Just (SetClipboard ClipboardEmpty)
 
   where
     wenv = mockWenv def
@@ -217,12 +215,12 @@ handleEventOnDispose = describe "handleEventOnDispose" $ do
       -> MainEvt
       -> [EventResponse MainModel MainEvt MainModel MainEvt]
     handleEvent wenv node model evt = case evt of
-      OnInit{} -> [Report evt]
+      OnDispose{} -> [ Request RenderOnce, Report ChildClicked ]
       _ -> []
     buildUI wenv model = vstack []
     cmpNode = nodeInit wenv
-      $ composite_ "main" id buildUI handleEvent [onDispose OnDispose]
-    evts es = widgetDispose (cmpNode ^. L.widget) wenv cmpNode
+      $ composite_ "main" id buildUI handleEvent [onDispose OnDispose, onDisposeReq (SetClipboard ClipboardEmpty)]
+    evts = widgetDispose (cmpNode ^. L.widget) wenv cmpNode
 
 handleEventOnChange :: Spec
 handleEventOnChange = describe "handleEventOnChange" $ do

@@ -57,7 +57,23 @@ seqCatMaybes (x :<| xs) = case x of
 applyFnList :: [a -> a] -> a -> a
 applyFnList fns initial = foldl (flip ($)) initial fns
 
--- | Returns the maximum value of a given floating type.
+{-|
+Returns the minimum value of a given floating type.
+
+Copied from: https://hackage.haskell.org/package/numeric-limits
+-}
+minNumericValue :: (RealFloat a) => a
+minNumericValue = x where
+  n = floatDigits x
+  b = floatRadix x
+  (l, _) = floatRange x
+  x = encodeFloat (b^n - 1) (l - n - 1)
+
+{-|
+Returns the maximum value of a given floating type.
+
+Copied from: https://hackage.haskell.org/package/numeric-limits
+-}
 maxNumericValue :: (RealFloat a) => a
 maxNumericValue = x where
   n = floatDigits x
