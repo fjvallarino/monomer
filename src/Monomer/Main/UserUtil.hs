@@ -64,8 +64,8 @@ Useful for conditionally adding a widget to a list.
 
 @
 vstack [
-  label "Label 1",
-  widgetIf isValid (label "Label 2")
+  label \"Label 1\",
+  widgetIf isValid (label \"Label 2\")
 ]
 @
 -}
@@ -89,9 +89,9 @@ Returns the provided style when True, otherwise returns the empty style.
 Useful for conditionally setting a style.
 
 @
-label "Test"
+label \"Test\"
   \`styleBasic\` [
-    textFont "Medium",
+    textFont \"Medium\",
     styleIf invalidUser (textColor red)
   ]
 @
@@ -117,7 +117,7 @@ default ('mempty') configuration value.
 Useful for conditionally setting a configuration value.
 
 @
-label_ "Test" [textFont "Medium", configIf showAll multiline]
+label_ \"Test\" [textFont \"Medium\", configIf showAll multiline]
 @
 -}
 configIf :: Monoid a => Bool -> a -> a
