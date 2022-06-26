@@ -75,19 +75,20 @@ bookDetail b = content `styleBasic` [minWidth 500, paddingH 20] where
   shortLabel value = label value `styleBasic` [textFont "Medium", textTop]
   longLabel value = label_ value [multiline, ellipsis, trimSpaces]
 
-  content = hstack . concat $ [[
-    vstack [
-      longLabel (b ^. title)
-        `styleBasic` [textSize 20, textFont "Medium"],
-      spacer,
-      longLabel (T.intercalate ", " (b ^. authors))
-        `styleBasic` [textSize 16],
-      spacer,
-      label publishYear
-        `styleBasic` [textSize 14]
-    ]],
-    [filler | hasCover],
-    [bookImage (b ^. cover) "M" `styleBasic` [width 200] | hasCover]
+  content = hstack [
+      vstack_ [childSpacing] [
+        longLabel (b ^. title)
+          `styleBasic` [textSize 20, textFont "Medium"],
+        longLabel (T.intercalate ", " (b ^. authors))
+          `styleBasic` [textSize 16],
+        label publishYear
+          `styleBasic` [textSize 14]
+      ],
+      widgetIf hasCover $ hstack [
+        filler,
+        bookImage (b ^. cover) "M"
+          `styleBasic` [width 200]
+      ]
     ]
 
 buildUI

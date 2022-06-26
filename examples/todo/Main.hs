@@ -68,7 +68,7 @@ todoRow wenv model idx t = animRow `nodeKey` todoKey where
       rowButton remixEdit2Line (TodoEdit idx t),
       spacer,
       rowButton remixDeleteBinLine (TodoDeleteBegin idx t)
-    ] `styleBasic` (paddingV 15 : [borderB 1 rowSepColor | not isLast])
+    ] `styleBasic` [ paddingV 15, styleIf (not isLast) $ borderB 1 rowSepColor ]
 
   animRow = animFadeOut_ [onFinished (TodoDelete idx t)] todoInfo
 
