@@ -102,7 +102,7 @@ main03 = do
   where
     config = [
       appWindowTitle "Tutorial 03 - Merging",
-      appWindowIcon "./assets/images/icon.bmp",
+      appWindowIcon "./assets/images/icon.png",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit
