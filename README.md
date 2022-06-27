@@ -1,7 +1,6 @@
-<h1 align="center">
-  Monomer
-  <p style="font-size: 13pt; margin-top: 10px">A cross-platform GUI library for Haskell</p>
-</h1>
+<h1 align="center">Monomer</h1>
+
+<h3 align="center">A cross-platform GUI library for Haskell</h3>
 
 <p align="center">
   <img src="assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
@@ -24,7 +23,7 @@
 An easy to use, cross platform, GUI library for writing native Haskell
 applications.
 
-It provides a framework similar to the Elm Architecture, allowing the creation
+Monomer provides a framework similar to the Elm Architecture, allowing the creation
 of GUIs using an extensible set of widgets with pure Haskell.
 
 ## Objectives
