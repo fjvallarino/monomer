@@ -1,14 +1,31 @@
-# Monomer
+<h1 align="center">
+  Monomer
+  <p style="font-size: 13pt; margin-top: 10px">A cross-platform GUI library for Haskell</p>
+</h1>
+
+<p align="center">
+  <img src="assets/images/monomer-logo.svg" height=250 width=250 alt="Logo" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/fjvallarino/monomer/actions">
+    <img src="https://img.shields.io/github/workflow/status/fjvallarino/monomer/Build" alt="CI badge" />
+  </a>
+  <a href="https://haskell.org">
+    <img src="https://img.shields.io/badge/Made%20in-Haskell-%235e5086?logo=haskell&style=flat-square" alt="made with Haskell"/>
+  </a>
+  <a href="https://haskell.org">
+    <img src="https://img.shields.io/github/license/fjvallarino/monomer?color=111%09193%0965%09" alt="BSD-3-Clause"/>
+  </a>
+</p>
+
+<br/>
 
 An easy to use, cross platform, GUI library for writing native Haskell
 applications.
 
 It provides a framework similar to the Elm Architecture, allowing the creation
 of GUIs using an extensible set of widgets with pure Haskell.
-
-## Screenshot
-
-![Project's screenshot](assets/images/monomer-readme.png)
 
 ## Objectives
 
@@ -74,13 +91,7 @@ In case you wonder why some choices were made, you can read
 
 PRs are welcome!
 
-If possible, keep them small and focused. If you are planning on making a large
-change, please submit an issue first so we can agree on a solution.
-
-## Questions?
-
-If you are not sure how something works or you have a usage question, feel free
-to open an issue!
+If possible, keep them small and focused. If you are planning on making a large change, please submit an issue first so we can agree on a solution.
 
 ## License
 
