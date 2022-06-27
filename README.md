@@ -90,7 +90,8 @@ In case you wonder why some choices were made, you can read
 
 PRs are welcome!
 
-If possible, keep them small and focused. If you are planning on making a large change, please submit an issue first so we can agree on a solution.
+If possible, keep them small and focused. If you are planning on making a large
+change, please submit an issue first so we can agree on a solution.
 
 ## License
 
