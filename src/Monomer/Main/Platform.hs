@@ -28,12 +28,15 @@ import Control.Monad.Extra (whenJust)
 import Control.Monad.State
 import Data.Maybe
 import Data.Text (Text)
+import Data.Word
 import Foreign (alloca, peek)
 import Foreign.C (peekCString, withCString)
 import Foreign.C.Types
 import SDL (($=))
 
+import qualified Codec.Picture as P
 import qualified Data.Text as T
+import qualified Data.Vector.Storable as V
 import qualified Foreign.C.String as STR
 import qualified SDL
 import qualified SDL.Input.Mouse as Mouse
@@ -149,7 +152,7 @@ setWindowIcon :: SDL.Window -> AppConfig e -> IO ()
 setWindowIcon (SIT.Window winPtr) config =
   forM_ (_apcWindowIcon config) $ \iconPath ->
     flip catchAny handleException $ do
-      iconSurface <- SVR.loadBMP (T.unpack iconPath)
+      iconSurface <- loadImgToSurface (T.unpack iconPath)
       let SVR.Surface iconSurfacePtr _ = iconSurface
       finally
         -- Note: this can use the high-level setWindowIcon once it is available (https://github.com/haskell-game/sdl2/pull/243)
@@ -251,3 +254,18 @@ setDisableCompositorHint disable = void $
       Raw.setHint cHintNameStr cDisableStr
   where
     disableStr = if disable then "1" else "0"
+
+readImageRGBA8 :: FilePath -> IO (P.Image P.PixelRGBA8)
+readImageRGBA8 path = P.readImage path
+  >>= either fail (return . P.convertRGBA8)
+
+loadImgToSurface :: FilePath -> IO SDL.Surface
+loadImgToSurface path = do
+  rgba8 <- readImageRGBA8 path
+  imgData <- V.thaw (P.imageData rgba8)
+
+  let width = fromIntegral $ P.imageWidth rgba8
+      height = fromIntegral $ P.imageHeight rgba8
+      imgSize = SDL.V2 width height
+
+  SDL.createRGBSurfaceFrom imgData imgSize (4 * width) SDL.ABGR8888
