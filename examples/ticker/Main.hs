@@ -243,7 +243,7 @@ main = do
   where
     config = [
       appWindowTitle "Ticker",
-      appWindowIcon "./assets/images/icon.bmp",
+      appWindowIcon "./assets/images/icon.png",
       appTheme customDarkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appFontDef "Remix" "./assets/fonts/remixicon.ttf",

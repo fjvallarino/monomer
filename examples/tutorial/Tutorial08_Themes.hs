@@ -115,7 +115,7 @@ main08 = do
   where
     config = [
       appWindowTitle "Tutorial 08 - Themes",
-      appWindowIcon "./assets/images/icon.bmp",
+      appWindowIcon "./assets/images/icon.png",
       appTheme darkTheme,
       appFontDef "Regular" "./assets/fonts/Roboto-Regular.ttf",
       appInitEvent AppInit
