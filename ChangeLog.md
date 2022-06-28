@@ -1,8 +1,22 @@
-## 1.4.2.0 (in development)
+## 1.5.0.0 (in development)
+
+### Added
+
+- Do not disable screensaver unless explicitly requested; add configuration flag ([PR #189](https://github.com/fjvallarino/monomer/pull/189)).
 
 ### Fixed
 
 - Issue in `selectList`, which would ignore `WidgetRequest`s made by child widgets ([PR #157](https://github.com/fjvallarino/monomer/pull/157)).
+- Compatibility with GHC 9.2.2 ([PR #162](https://github.com/fjvallarino/monomer/pull/162)). Thanks @Dretch!
+- Consider padding, border and sizeReqs in addition to textStyle when checking if resize is needed for label ([PR #169](https://github.com/fjvallarino/monomer/pull/169)).
+- Hide tooltip when a button action is detected on its child widget ([PR #170](https://github.com/fjvallarino/monomer/pull/170)).
+- Fix Composite's onDispose event handler ([PR #176](https://github.com/fjvallarino/monomer/pull/176)).
+
+### Changed
+
+- Do not exit application if icon image is missing or fails to load ([PR #171](https://github.com/fjvallarino/monomer/pull/171)).
+- Use stderr for diagnostic and error messages ([PR #172](https://github.com/fjvallarino/monomer/pull/172)).
+- Allow using any file type for the application icon ([PR #186](https://github.com/fjvallarino/monomer/pull/186)).
 
 ## 1.4.1.0
 
