@@ -60,9 +60,14 @@ defaultWindowSize = (800, 600)
 initSDLWindow :: AppConfig e -> IO (SDL.Window, Double, Double, SDL.GLContext)
 initSDLWindow config = do
   SDL.initialize [SDL.InitVideo]
-  SDL.HintRenderScaleQuality $= SDL.ScaleLinear
-  setDisableCompositorHint compositingFlag
 
+  setDisableCompositorHint disableCompositingFlag
+
+  if disableScreensaverFlag
+    then Raw.disableScreenSaver
+    else Raw.enableScreenSaver
+
+  SDL.HintRenderScaleQuality $= SDL.ScaleLinear
   renderQuality <- SDL.get SDL.HintRenderScaleQuality
 
   when (renderQuality /= SDL.ScaleLinear) $
@@ -133,9 +138,12 @@ initSDLWindow config = do
       SDL.glProfile = SDL.Core SDL.Normal 3 2,
       SDL.glMultisampleSamples = 1
     }
-    compositingFlag = fromMaybe False (_apcDisableCompositing config)
-    userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
+
+    disableCompositingFlag = _apcDisableCompositing config == Just True
+    disableScreensaverFlag = _apcDisableScreensaver config == Just True
     disableAutoScale = _apcDisableAutoScale config == Just True
+    userScaleFactor = fromMaybe 1 (_apcScaleFactor config)
+
     (baseW, baseH) = case _apcWindowState config of
       Just (MainWindowNormal size) -> size
       _ -> defaultWindowSize
@@ -248,12 +256,16 @@ getDisplayDPIFactor = do
   return (hdpi / 96)
 
 setDisableCompositorHint :: Bool -> IO ()
-setDisableCompositorHint disable = void $
-  withCString "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR" $ \cHintNameStr ->
-    withCString disableStr $ \cDisableStr ->
-      Raw.setHint cHintNameStr cDisableStr
+setDisableCompositorHint disable =
+  setBooleanHintSDL "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR" disable
+
+setBooleanHintSDL :: String -> Bool -> IO ()
+setBooleanHintSDL flagName value = void $
+  withCString flagName $ \cHintNameStr ->
+    withCString valueStr $ \cValueStr ->
+      Raw.setHint cHintNameStr cValueStr
   where
-    disableStr = if disable then "1" else "0"
+    valueStr = if value then "1" else "0"
 
 readImageRGBA8 :: FilePath -> IO (P.Image P.PixelRGBA8)
 readImageRGBA8 path = P.readImage path

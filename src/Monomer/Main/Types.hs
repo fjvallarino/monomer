@@ -205,7 +205,9 @@ data AppConfig e = AppConfig {
   -- | Whether wheel/trackpad vertical movement should be inverted.
   _apcInvertWheelY :: Maybe Bool,
   -- | Whether compositing should be disabled. Defaults to False.
-  _apcDisableCompositing :: Maybe Bool
+  _apcDisableCompositing :: Maybe Bool,
+  -- | Whether the screensaver should be disabled. Defaults to False.
+  _apcDisableScreensaver :: Maybe Bool
 }
 
 instance Default (AppConfig e) where
@@ -229,7 +231,8 @@ instance Default (AppConfig e) where
     _apcContextButton = Nothing,
     _apcInvertWheelX = Nothing,
     _apcInvertWheelY = Nothing,
-    _apcDisableCompositing = Nothing
+    _apcDisableCompositing = Nothing,
+    _apcDisableScreensaver = Nothing
   }
 
 instance Semigroup (AppConfig e) where
@@ -253,7 +256,8 @@ instance Semigroup (AppConfig e) where
     _apcContextButton = _apcContextButton a2 <|> _apcContextButton a1,
     _apcInvertWheelX = _apcInvertWheelX a2 <|> _apcInvertWheelX a1,
     _apcInvertWheelY = _apcInvertWheelY a2 <|> _apcInvertWheelY a1,
-    _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1
+    _apcDisableCompositing = _apcDisableCompositing a2 <|> _apcDisableCompositing a1,
+    _apcDisableScreensaver = _apcDisableScreensaver a2 <|> _apcDisableScreensaver a1
   }
 
 instance Monoid (AppConfig e) where
@@ -450,11 +454,23 @@ appInvertWheelY invert = def {
 Whether compositing should be disabled. Linux only, ignored in other platforms.
 Defaults to False.
 
-Desktop applications should leave compositing as is, since disabling it may
+Desktop applications should leave compositing as is since disabling it may
 cause visual glitches in other programs. When creating games or fullscreen
 applications, disabling compositing may improve performance.
 -}
 appDisableCompositing :: Bool -> AppConfig e
-appDisableCompositing invert = def {
-  _apcDisableCompositing = Just invert
+appDisableCompositing disable = def {
+  _apcDisableCompositing = Just disable
+}
+
+{-|
+Whether the screensaver should be disabled. Defaults to False.
+
+Desktop applications should leave the screensaver as is since disabling it also
+affects power saving features, including turning off the screen. When creating
+games or fullscreen applications, disabling the screensaver may make sense.
+-}
+appDisableScreensaver :: Bool -> AppConfig e
+appDisableScreensaver disable = def {
+  _apcDisableScreensaver = Just disable
 }
