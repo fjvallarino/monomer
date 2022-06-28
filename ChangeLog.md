@@ -11,6 +11,7 @@
 - Consider padding, border and sizeReqs in addition to textStyle when checking if resize is needed for label ([PR #169](https://github.com/fjvallarino/monomer/pull/169)).
 - Hide tooltip when a button action is detected on its child widget ([PR #170](https://github.com/fjvallarino/monomer/pull/170)).
 - Fix Composite's onDispose event handler ([PR #176](https://github.com/fjvallarino/monomer/pull/176)).
+- Catch exception when trying to write to stderr and try stdout instead ([PR #190](https://github.com/fjvallarino/monomer/pull/190)).
 
 ### Changed
 
