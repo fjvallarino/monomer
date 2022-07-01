@@ -47,6 +47,8 @@ For an example of popup's use, check 'Monomer.Widgets.Singles.ColorPopup'.
 module Monomer.Widgets.Containers.Popup (
   -- * Configuration
   PopupCfg,
+  popupDisableClose,
+  popupDisableClose_,
   popupOffset,
   popupOpenAtClick,
   popupOpenAtClick_,
@@ -82,6 +84,7 @@ Configuration options for popup:
 -}
 data PopupCfg s e = PopupCfg {
   _ppcOpenAtClickPos :: Maybe Bool,
+  _ppcDisableClose :: Maybe Bool,
   _ppcOffset :: Maybe Point,
   _ppcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
@@ -89,6 +92,7 @@ data PopupCfg s e = PopupCfg {
 instance Default (PopupCfg s e) where
   def = PopupCfg {
     _ppcOpenAtClickPos = Nothing,
+    _ppcDisableClose = Nothing,
     _ppcOffset = Nothing,
     _ppcOnChangeReq = []
   }
@@ -96,6 +100,7 @@ instance Default (PopupCfg s e) where
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
     _ppcOpenAtClickPos = _ppcOpenAtClickPos t2 <|> _ppcOpenAtClickPos t1,
+    _ppcDisableClose = _ppcDisableClose t2 <|> _ppcDisableClose t1,
     _ppcOffset = _ppcOffset t2 <|> _ppcOffset t1,
     _ppcOnChangeReq = _ppcOnChangeReq t1 <> _ppcOnChangeReq t2
   }
@@ -117,6 +122,14 @@ data PopupState = PopupState {
   _ppsClickPos :: Point,
   _ppsOffset :: Point
 } deriving (Eq, Show)
+
+popupDisableClose :: PopupCfg s e
+popupDisableClose = popupDisableClose_ True
+
+popupDisableClose_ :: Bool -> PopupCfg s e
+popupDisableClose_ close = def {
+  _ppcDisableClose = Just close
+}
 
 popupOffset :: Point -> PopupCfg s e
 popupOffset point = def {
@@ -233,12 +246,14 @@ makePopup field config state = widget where
 
   handleEvent wenv node target evt = case evt of
     KeyAction mod code KeyPressed
-      | isVisible && isKeyEscape code -> Just (closePopup field node)
+      | isCloseable && isKeyEscape code -> Just (closePopup field node)
     ButtonAction point button BtnPressed clicks
-      | isVisible && not (insidePopup point) -> Just (closePopup field node)
+      | isCloseable && not (insidePopup point) -> Just (closePopup field node)
     _ -> Nothing
     where
       isVisible = widgetDataGet (wenv ^. L.model) field
+      disableClose = _ppcDisableClose config == Just True
+      isCloseable = isVisible && not disableClose
       offset = _ppsOffset state
 
       child = Seq.index (node ^. L.children) 0
