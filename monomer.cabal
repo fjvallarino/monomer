@@ -93,6 +93,7 @@ library
       Monomer.Widgets.Containers.DropTarget
       Monomer.Widgets.Containers.Grid
       Monomer.Widgets.Containers.Keystroke
+      Monomer.Widgets.Containers.Popup
       Monomer.Widgets.Containers.Scroll
       Monomer.Widgets.Containers.SelectList
       Monomer.Widgets.Containers.Split

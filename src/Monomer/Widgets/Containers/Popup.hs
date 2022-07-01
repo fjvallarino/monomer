@@ -47,8 +47,9 @@ For an example of popup's use, check 'Monomer.Widgets.Singles.ColorPopup'.
 module Monomer.Widgets.Containers.Popup (
   -- * Configuration
   PopupCfg,
-  openPopupAtClick,
-  openPopupAtClick_,
+  popupOffset,
+  popupOpenAtClick,
+  popupOpenAtClick_,
 
   -- * Constructors
   popup,
@@ -73,24 +74,29 @@ import qualified Monomer.Lens as L
 {-|
 Configuration options for popup:
 
-- 'openPopupAtClick': to open the content at the location of the mouse pointer.
+- 'popupOpenAtClick': whether to open the content at the location of the mouse
+  pointer.
+- 'popupOffset': offset to add to the default location of the popup.
 - 'onChange': event to raise when the popup is opened/closed.
 - 'onChangeReq': 'WidgetRequest' to generate when the popup is opened/closed.
 -}
 data PopupCfg s e = PopupCfg {
   _ppcOpenAtClickPos :: Maybe Bool,
+  _ppcOffset :: Maybe Point,
   _ppcOnChangeReq :: [Bool -> WidgetRequest s e]
 }
 
 instance Default (PopupCfg s e) where
   def = PopupCfg {
     _ppcOpenAtClickPos = Nothing,
+    _ppcOffset = Nothing,
     _ppcOnChangeReq = []
   }
 
 instance Semigroup (PopupCfg s e) where
   (<>) t1 t2 = PopupCfg {
     _ppcOpenAtClickPos = _ppcOpenAtClickPos t2 <|> _ppcOpenAtClickPos t1,
+    _ppcOffset = _ppcOffset t2 <|> _ppcOffset t1,
     _ppcOnChangeReq = _ppcOnChangeReq t1 <> _ppcOnChangeReq t2
   }
 
@@ -112,11 +118,16 @@ data PopupState = PopupState {
   _ppsOffset :: Point
 } deriving (Eq, Show)
 
-openPopupAtClick :: PopupCfg s e
-openPopupAtClick = openPopupAtClick_ True
+popupOffset :: Point -> PopupCfg s e
+popupOffset point = def {
+  _ppcOffset = Just point
+}
 
-openPopupAtClick_ :: Bool -> PopupCfg s e
-openPopupAtClick_ open = def {
+popupOpenAtClick :: PopupCfg s e
+popupOpenAtClick = popupOpenAtClick_ True
+
+popupOpenAtClick_ :: Bool -> PopupCfg s e
+popupOpenAtClick_ open = def {
   _ppcOpenAtClickPos = Just open
 }
 
@@ -243,6 +254,8 @@ makePopup field config state = widget where
   resize wenv node viewport children = resized where
     Rect px py pw ph = viewport
     Point sx sy = _ppsClickPos state
+    Point ox oy = fromMaybe def (_ppcOffset config)
+
     openAtMouse = fromMaybe False (_ppcOpenAtClickPos config)
     child = Seq.index children 0
 
@@ -251,7 +264,7 @@ makePopup field config state = widget where
       | otherwise = (px, py)
     cw = sizeReqMaxBounded (child ^. L.info . L.sizeReqW)
     ch = sizeReqMaxBounded (child ^. L.info . L.sizeReqH)
-    carea = Rect cx cy cw ch
+    carea = Rect (cx + ox) (cy + oy) cw ch
 
     newState = state {
       _ppsOffset = calcPopupOffset wenv carea
